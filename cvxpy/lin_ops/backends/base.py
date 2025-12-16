@@ -566,7 +566,7 @@ class PythonCanonBackend(CanonBackend):
         Given (A, b) in view, return (-A, -b).
         """
 
-        def func(x):
+        def func(x, _p):
             return -x
 
         view.apply_all(func)

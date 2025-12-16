@@ -186,17 +186,6 @@ class SciPyCanonBackend(PythonCanonBackend):
                                               self.param_to_size, self.param_to_col,
                                               self.var_length)
 
-    @staticmethod
-    def neg(_lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
-        """
-        Given (A, b) in view, return (-A, -b).
-        """
-        def func(x, _p):
-            return -x
-
-        view.apply_all(func)
-        return view
-
     def mul(self, lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
         """
         Multiply view with constant data from the left.

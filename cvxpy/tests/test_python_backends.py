@@ -10,6 +10,7 @@ import scipy.sparse as sp
 import cvxpy.settings as s
 from cvxpy.lin_ops.backends import (
     CooCanonBackend,
+    CooTensor,
     PythonCanonBackend,
     SciPyCanonBackend,
     TensorRepresentation,
@@ -2552,3 +2553,102 @@ class TestSciPyBackend:
         transposed = scipy_backend._transpose_stacked(stacked, param_id)
         expected = sp.vstack([m.T for m in matrices])
         assert (expected != transposed).nnz == 0
+
+
+class TestCooBackend:
+    @staticmethod
+    @pytest.fixture()
+    def coo_backend():
+        kwargs = {
+            "id_to_col": {1: 0},
+            "param_to_size": {-1: 1, 2: 2},
+            "param_to_col": {2: 0, -1: 2},
+            "param_size_plus_one": 3,
+            "var_length": 2,
+        }
+        backend = get_backend(s.COO_CANON_BACKEND, **kwargs)
+        assert isinstance(backend, CooCanonBackend)
+        return backend
+
+    def test_coo_tensor_negation(self):
+        """Test CooTensor.__neg__ (unary negation)."""
+        tensor = CooTensor(
+            data=np.array([1.0, 2.0, 3.0]),
+            row=np.array([0, 1, 2]),
+            col=np.array([0, 1, 2]),
+            param_idx=np.array([0, 0, 0]),
+            m=3, n=3, param_size=1
+        )
+        negated = -tensor
+        assert np.all(negated.data == np.array([-1.0, -2.0, -3.0]))
+        assert np.all(negated.row == tensor.row)
+        assert np.all(negated.col == tensor.col)
+
+    def test_coo_tensor_addition(self):
+        """Test CooTensor.__add__ (tensor addition)."""
+        t1 = CooTensor(
+            data=np.array([1.0, 2.0]),
+            row=np.array([0, 1]),
+            col=np.array([0, 1]),
+            param_idx=np.array([0, 0]),
+            m=2, n=2, param_size=1
+        )
+        t2 = CooTensor(
+            data=np.array([3.0, 4.0]),
+            row=np.array([0, 1]),
+            col=np.array([1, 0]),
+            param_idx=np.array([0, 0]),
+            m=2, n=2, param_size=1
+        )
+        result = t1 + t2
+        assert result.nnz == 4
+        assert result.m == 2 and result.n == 2
+        # Convert to dense to verify values
+        dense = result.toarray()
+        expected = np.array([[1.0, 3.0], [4.0, 2.0]])
+        assert np.allclose(dense, expected)
+
+    def test_coo_tensor_select_rows(self):
+        """Test CooTensor.select_rows for row selection/reordering."""
+        # Diagonal matrix with values 1, 2, 3 at positions (0,0), (1,1), (2,2)
+        tensor = CooTensor(
+            data=np.array([1.0, 2.0, 3.0]),
+            row=np.array([0, 1, 2]),
+            col=np.array([0, 1, 2]),
+            param_idx=np.array([0, 0, 0]),
+            m=3, n=3, param_size=1
+        )
+        # Select rows [2, 0]: new row 0 <- old row 2, new row 1 <- old row 0
+        # Columns are preserved, so:
+        # - old (2,2)=3 -> new (0,2)=3
+        # - old (0,0)=1 -> new (1,0)=1
+        selected = tensor.select_rows(np.array([2, 0]))
+        assert selected.m == 2
+        dense = selected.toarray()
+        expected = np.array([[0.0, 0.0, 3.0], [1.0, 0.0, 0.0]])
+        assert np.allclose(dense, expected)
+
+    def test_get_variable_tensor(self, coo_backend):
+        """Test CooCanonBackend.get_variable_tensor."""
+        outer = coo_backend.get_variable_tensor((2,), 1)
+        assert outer.keys() == {1}, "Should only be in variable with ID 1"
+        inner = outer[1]
+        assert inner.keys() == {-1}, "Should only be in parameter slice -1"
+        tensor = inner[-1]
+        assert isinstance(tensor, CooTensor)
+        assert tensor.m == 2 and tensor.n == 2
+        assert np.all(tensor.toarray() == np.eye(2))
+
+    def test_get_data_tensor(self, coo_backend):
+        """Test CooCanonBackend.get_data_tensor."""
+        data = np.array([[1, 2], [3, 4]])
+        outer = coo_backend.get_data_tensor(data)
+        assert outer.keys() == {-1}, "Should only be constant variable ID"
+        inner = outer[-1]
+        assert inner.keys() == {-1}, "Should only be non-parametrized slice"
+        tensor = inner[-1]
+        assert isinstance(tensor, CooTensor)
+        assert tensor.m == 4 and tensor.n == 1
+        # Column vector in Fortran order: [1, 3, 2, 4]
+        expected = data.flatten(order='F').reshape(-1, 1)
+        assert np.allclose(tensor.toarray(), expected)

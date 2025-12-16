@@ -299,6 +299,10 @@ class CooTensor:
         """Negate all values."""
         return self.scale(-1.0)
 
+    def __neg__(self) -> CooTensor:
+        """Support unary negation (-tensor)."""
+        return self.negate()
+
     def _transpose_helper(self) -> CooTensor:
         """2D matrix transpose (swap rows and cols).
 
@@ -886,13 +890,6 @@ class CooCanonBackend(PythonCanonBackend):
     # Tensor operations
     # =========================================================================
 
-    def neg(self, lin_op, view: CooTensorView) -> CooTensorView:
-        """Negate all values."""
-        def func(compact, p):
-            return compact.negate()
-        view.accumulate_over_variables(func, is_param_free_function=True)
-        return view
-
     def sum_entries(self, lin_op, view: CooTensorView) -> CooTensorView:
         """Sum entries along an axis (ND-aware)."""
         shape = tuple(lin_op.args[0].shape)
@@ -1172,7 +1169,8 @@ class CooCanonBackend(PythonCanonBackend):
 
     # index: use base class implementation (via select_rows)
 
-    def diag_vec(self, lin_op, view: CooTensorView) -> CooTensorView:
+    @staticmethod
+    def diag_vec(lin_op, view: CooTensorView) -> CooTensorView:
         """Convert vector to diagonal matrix."""
         k = lin_op.data  # Diagonal offset
         n = lin_op.shape[0]
