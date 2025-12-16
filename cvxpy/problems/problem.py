@@ -1244,8 +1244,8 @@ class Problem(u.Canonical):
             solver, gp, enforce_dpp, ignore_dpp, verbose, canon_backend, kwargs
         )
 
-        # Store batch_shape from problem data
-        self._batch_shape = data.get(s.BATCH_SHAPE, ())
+        # Store batch_shape from the problem's parameters
+        self._batch_shape = self._compute_batch_shape()
 
         if verbose:
             print(_NUM_SOLVER_STR)
