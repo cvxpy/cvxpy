@@ -911,6 +911,13 @@ class Problem(u.Canonical):
                 candidates['qp_solvers'] = []  # No QP solvers allowed
 
         if self.is_mixed_integer():
+            if solver is None and not self.is_lp():
+                # Problem is mixed integer but not LP
+                warnings.warn(
+                    "Your problem is mixed-integer but not an LP. " \
+                    "Consider installing a MINLP solver to solve your problem",
+                    UserWarning
+                )
             candidates['qp_solvers'] = [
                 s for s in candidates['qp_solvers']
                 if slv_def.SOLVER_MAP_QP[s].MIP_CAPABLE]
