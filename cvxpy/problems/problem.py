@@ -33,7 +33,6 @@ from cvxpy.constraints.constraint import Constraint
 from cvxpy.error import DPPError
 from cvxpy.expressions import cvxtypes
 from cvxpy.expressions.variable import Variable
-from cvxpy.interface.matrix_utilities import scalar_value
 from cvxpy.problems.objective import Maximize, Minimize
 from cvxpy.reductions import InverseData
 from cvxpy.reductions.chain import Chain
@@ -103,9 +102,19 @@ _FOOTER = (
 )
 
 
+@dataclass(frozen=True)
+class CacheKey:
+    """Key for caching the solving chain and related data."""
+    solver: str | None
+    gp: bool
+    ignore_dpp: bool
+    use_quad_obj: bool
+    is_batched: bool
+
+
 class Cache:
     def __init__(self) -> None:
-        self.key = None
+        self.key: CacheKey | None = None
         self.solving_chain: Optional[SolvingChain] = None
         self.param_prog = None
         self.inverse_data: Optional[InverseData] = None
@@ -116,11 +125,11 @@ class Cache:
         self.param_prog = None
         self.inverse_data = None
 
-    def make_key(self, solver, gp, ignore_dpp, use_quad_obj):
-        return (solver, gp, ignore_dpp, use_quad_obj)
+    def make_key(self, solver, gp, ignore_dpp, use_quad_obj, is_batched) -> CacheKey:
+        return CacheKey(solver, gp, ignore_dpp, use_quad_obj, is_batched)
 
     def gp(self):
-        return self.key is not None and self.key[1]
+        return self.key is not None and self.key.gp
 
 
 def _validate_constraint(constraint):
@@ -212,13 +221,12 @@ class Problem(u.Canonical):
 
     @property
     def value(self):
-        """float : The value from the last time the problem was solved
+        """float or ndarray : The value from the last time the problem was solved
                    (or None if not solved).
+
+        For batched problems, returns an array with shape equal to batch_shape.
         """
-        if self._value is None:
-            return None
-        else:
-            return scalar_value(self._value)
+        return self._value
 
     @property
     def status(self):
@@ -800,7 +808,9 @@ class Problem(u.Canonical):
             use_quad_obj = None
         else:
             use_quad_obj = solver_opts.get('use_quad_obj', None)
-        key = self._cache.make_key(solver, gp, ignore_dpp, use_quad_obj)
+        # Check if any parameter is batched
+        is_batched = bool(self._compute_batch_shape())
+        key = self._cache.make_key(solver, gp, ignore_dpp, use_quad_obj, is_batched)
         if key != self._cache.key:
             self._cache.invalidate()
             solving_chain = self._construct_chain(
@@ -808,7 +818,8 @@ class Problem(u.Canonical):
                 enforce_dpp=enforce_dpp,
                 ignore_dpp=ignore_dpp,
                 canon_backend=canon_backend,
-                solver_opts=solver_opts)
+                solver_opts=solver_opts,
+                is_batched=is_batched)
             self._cache.key = key
             self._cache.solving_chain = solving_chain
             self._solver_cache = {}
@@ -873,139 +884,141 @@ class Problem(u.Canonical):
 
     def _find_candidate_solvers(self,
                                 solver=None,
-                                gp: bool = False):
+                                gp: bool = False,
+                                is_batched: bool = False):
         """
-        Find candidate solvers for the current problem. If solver
-        is not None, it checks if the specified solver is compatible
-        with the problem passed.
+        Find candidate solvers for the current problem.
 
         Arguments
         ---------
         solver : Union[string, Solver, None]
-            The name of the solver with which to solve the problem or an
-            instance of a custom solver. If no solver is supplied
-            (i.e., if solver is None), then the targeted solver may be any
-            of those that are installed. If the problem is variable-free,
-            then this parameter is ignored.
+            The solver to use, or None to auto-select.
         gp : bool
-            If True, the problem is parsed as a Disciplined Geometric Program
-            instead of as a Disciplined Convex Program.
+            If True, problem is a Disciplined Geometric Program.
+        is_batched : bool
+            If True, problem has batched parameters.
 
         Returns
         -------
         dict
-            A dictionary of compatible solvers divided in `qp_solvers`
-            and `conic_solvers`.
-
-        Raises
-        ------
-        cvxpy.error.SolverError
-            Raised if the problem is not DCP and `gp` is False.
-        cvxpy.error.DGPError
-            Raised if the problem is not DGP and `gp` is True.
+            Dictionary with 'qp_solvers' and 'conic_solvers' lists.
         """
-        candidates = {'qp_solvers': [],
-                      'conic_solvers': []}
+        # Handle custom solver instance
         if isinstance(solver, Solver):
-            return self._add_custom_solver_candidates(solver)
-        # Convert solver to upper case.
+            return self._add_custom_solver_candidates(solver, is_batched)
+
+        # Normalize solver name
         if isinstance(solver, str):
             solver = solver.upper()
-        if solver is not None:
-            if solver not in slv_def.INSTALLED_SOLVERS:
-                raise error.SolverError("The solver %s is not installed." % solver)
-            if solver in slv_def.CONIC_SOLVERS:
-                candidates['conic_solvers'] += [solver]
-            if solver in slv_def.QP_SOLVERS:
-                candidates['qp_solvers'] += [solver]
-        else:
-            candidates['qp_solvers'] = [s for s in slv_def.INSTALLED_SOLVERS
-                                        if s in slv_def.QP_SOLVERS]
-            candidates['conic_solvers'] = []
-            # ECOS_BB can only be called explicitly.
-            for slv in slv_def.INSTALLED_SOLVERS:
-                if slv in slv_def.CONIC_SOLVERS and slv != s.ECOS_BB:
-                    candidates['conic_solvers'].append(slv)
 
-        # If gp we must have only conic solvers
-        if gp:
-            if solver is not None and solver not in slv_def.CONIC_SOLVERS:
-                raise error.SolverError(
-                  "When `gp=True`, `solver` must be a conic solver "
-                  "(received '%s'); try calling " % solver +
-                  " `solve()` with `solver=cvxpy.ECOS`."
-                  )
-            elif solver is None:
-                candidates['qp_solvers'] = []  # No QP solvers allowed
+        # Build initial candidate list
+        candidates = self._get_initial_candidates(solver)
 
-        if self.is_mixed_integer():
-            # ECOS_BB must be called explicitly.
-            if slv_def.INSTALLED_MI_SOLVERS == [s.ECOS_BB] and solver != s.ECOS_BB:
-                msg = """
-
-                    You need a mixed-integer solver for this model. Refer to the documentation
-                        https://www.cvxpy.org/tutorial/advanced/index.html#mixed-integer-programs
-                    for discussion on this topic.
-
-                    Quick fix 1: if you install the python package CVXOPT (pip install cvxopt),
-                    then CVXPY can use the open-source mixed-integer linear programming
-                    solver `GLPK`. If your problem is nonlinear then you can install SCIP
-                    (pip install pyscipopt).
-
-                    Quick fix 2: you can explicitly specify solver='ECOS_BB'. This may result
-                    in incorrect solutions and is not recommended.
-                """
-                raise error.SolverError(msg)
-            # TODO: provide a useful error message when the problem is nonlinear but
-            #  the only installed mixed-integer solvers are MILP solvers (e.g., GLPK_MI).
-            candidates['qp_solvers'] = [
-                s for s in candidates['qp_solvers']
-                if slv_def.SOLVER_MAP_QP[s].MIP_CAPABLE]
-            candidates['conic_solvers'] = [
-                s for s in candidates['conic_solvers']
-                if slv_def.SOLVER_MAP_CONIC[s].MIP_CAPABLE]
-            if not candidates['conic_solvers'] and \
-                    not candidates['qp_solvers']:
-                raise error.SolverError(
-                    "Problem is mixed-integer, but candidate "
-                    "QP/Conic solvers (%s) are not MIP-capable." %
-                    (candidates['qp_solvers'] +
-                     candidates['conic_solvers']))
+        # Apply filters
+        self._filter_for_gp(candidates, solver, gp)
+        self._filter_for_mip(candidates, solver)
+        self._filter_for_batch(candidates, is_batched)
 
         return candidates
 
-    def _add_custom_solver_candidates(self, custom_solver: Solver):
+    def _get_initial_candidates(self, solver: str | None) -> dict:
+        """Build initial candidate solver lists."""
+        if solver is not None:
+            if solver not in slv_def.INSTALLED_SOLVERS:
+                raise error.SolverError(f"The solver {solver} is not installed.")
+            return {
+                'qp_solvers': [solver] if solver in slv_def.QP_SOLVERS else [],
+                'conic_solvers': [solver] if solver in slv_def.CONIC_SOLVERS else [],
+            }
+        else:
+            return {
+                'qp_solvers': [slv for slv in slv_def.INSTALLED_SOLVERS
+                               if slv in slv_def.QP_SOLVERS],
+                # ECOS_BB can only be called explicitly
+                'conic_solvers': [slv for slv in slv_def.INSTALLED_SOLVERS
+                                  if slv in slv_def.CONIC_SOLVERS and slv != s.ECOS_BB],
+            }
+
+    def _filter_for_gp(self, candidates: dict, solver: str | None, gp: bool) -> None:
+        """Filter candidates for geometric programming."""
+        if not gp:
+            return
+        if solver is not None and solver not in slv_def.CONIC_SOLVERS:
+            raise error.SolverError(
+                f"When `gp=True`, `solver` must be a conic solver "
+                f"(received '{solver}'); try `solver=cvxpy.ECOS`."
+            )
+        candidates['qp_solvers'] = []
+
+    def _filter_for_mip(self, candidates: dict, solver: str | None) -> None:
+        """Filter candidates for mixed-integer programming."""
+        if not self.is_mixed_integer():
+            return
+
+        # ECOS_BB must be called explicitly
+        if slv_def.INSTALLED_MI_SOLVERS == [s.ECOS_BB] and solver != s.ECOS_BB:
+            raise error.SolverError(
+                "You need a mixed-integer solver for this model. "
+                "See https://www.cvxpy.org/tutorial/advanced/index.html#mixed-integer-programs"
+            )
+
+        candidates['qp_solvers'] = [
+            slv for slv in candidates['qp_solvers']
+            if slv_def.SOLVER_MAP_QP[slv].MIP_CAPABLE]
+        candidates['conic_solvers'] = [
+            slv for slv in candidates['conic_solvers']
+            if slv_def.SOLVER_MAP_CONIC[slv].MIP_CAPABLE]
+
+        if not candidates['conic_solvers'] and not candidates['qp_solvers']:
+            raise error.SolverError(
+                "Problem is mixed-integer, but no candidate solvers are MIP-capable.")
+
+    def _filter_for_batch(self, candidates: dict, is_batched: bool) -> None:
+        """Filter candidates for batch mode."""
+        if not is_batched:
+            return
+
+        candidates['qp_solvers'] = [
+            slv for slv in candidates['qp_solvers']
+            if slv_def.SOLVER_MAP_QP[slv].BATCH_CAPABLE]
+        candidates['conic_solvers'] = [
+            slv for slv in candidates['conic_solvers']
+            if slv_def.SOLVER_MAP_CONIC[slv].BATCH_CAPABLE]
+
+        if not candidates['conic_solvers'] and not candidates['qp_solvers']:
+            raise error.SolverError(
+                "Problem has batched parameters, but no installed solvers "
+                "support batch mode.")
+
+    def _add_custom_solver_candidates(self, custom_solver: Solver,
+                                       is_batched: bool = False):
         """
-        Returns a list of candidate solvers where custom_solver is the only potential option.
+        Returns candidate solvers dict with custom_solver as the only option.
 
-        Arguments
-        ---------
-        custom_solver : Solver
-
-        Returns
-        -------
-        dict
-            A dictionary of compatible solvers divided in `qp_solvers`
-            and `conic_solvers`.
-
-        Raises
-        ------
-        cvxpy.error.SolverError
-            Raised if the name of the custom solver conflicts with the name of some officially
-            supported solver
+        Raises SolverError if the solver name conflicts with official solvers,
+        or if the solver lacks required capabilities (MIP, batch).
         """
         if custom_solver.name() in SOLVERS:
-            message = "Custom solvers must have a different name than the officially supported ones"
-            raise error.SolverError(message)
+            raise error.SolverError(
+                "Custom solvers must have a different name than officially supported ones")
+
+        # Check capabilities
+        if self.is_mixed_integer() and not custom_solver.MIP_CAPABLE:
+            raise error.SolverError(
+                f"Problem is mixed-integer, but solver {custom_solver.name()} "
+                "is not MIP-capable.")
+        if is_batched and not custom_solver.BATCH_CAPABLE:
+            raise error.SolverError(
+                f"Problem has batched parameters, but solver {custom_solver.name()} "
+                "does not support batch mode.")
 
         candidates = {'qp_solvers': [], 'conic_solvers': []}
-        if not self.is_mixed_integer() or custom_solver.MIP_CAPABLE:
-            if isinstance(custom_solver, QpSolver):
-                SOLVER_MAP_QP[custom_solver.name()] = custom_solver
-                candidates['qp_solvers'] = [custom_solver.name()]
-            elif isinstance(custom_solver, ConicSolver):
-                SOLVER_MAP_CONIC[custom_solver.name()] = custom_solver
-                candidates['conic_solvers'] = [custom_solver.name()]
+        if isinstance(custom_solver, QpSolver):
+            SOLVER_MAP_QP[custom_solver.name()] = custom_solver
+            candidates['qp_solvers'] = [custom_solver.name()]
+        elif isinstance(custom_solver, ConicSolver):
+            SOLVER_MAP_CONIC[custom_solver.name()] = custom_solver
+            candidates['conic_solvers'] = [custom_solver.name()]
         return candidates
 
     def _construct_chain(
@@ -1015,42 +1028,35 @@ class Problem(u.Canonical):
             enforce_dpp: bool = False,
             ignore_dpp: bool = False,
             canon_backend: str | None = None,
-            solver_opts: Optional[dict] = None
+            solver_opts: Optional[dict] = None,
+            is_batched: bool = False
     ) -> SolvingChain:
         """
-        Construct the chains required to reformulate and solve the problem.
-
-        In particular, this function
-
-        # finds the candidate solvers
-        # constructs the solving chain that performs the
-           numeric reductions and solves the problem.
+        Construct the solving chain for the problem.
 
         Arguments
         ---------
         solver : str, optional
-            The solver to use. Defaults to ECOS.
-        gp : bool, optional
-            If True, the problem is parsed as a Disciplined Geometric Program
-            instead of as a Disciplined Convex Program.
-        enforce_dpp : bool, optional
+            The solver to use.
+        gp : bool
+            If True, problem is a Disciplined Geometric Program.
+        enforce_dpp : bool
             Whether to error on DPP violations.
-        ignore_dpp : bool, optional
-            When True, DPP problems will be treated as non-DPP,
-            which may speed up compilation. Defaults to False.
+        ignore_dpp : bool
+            When True, DPP problems will be treated as non-DPP.
         canon_backend : str, optional
-            'CPP' (default) | 'SCIPY'
-            Specifies which backend to use for canonicalization, which can affect
-            compilation time. Defaults to None, i.e., selecting the default
-            backend.
-        solver_opts: dict, optional
-            Additional arguments to pass to the solver.
+            Backend for canonicalization ('CPP' or 'SCIPY').
+        solver_opts : dict, optional
+            Additional solver options.
+        is_batched : bool
+            If True, problem has batched parameters.
 
         Returns
         -------
-        A solving chain
+        SolvingChain
         """
-        candidate_solvers = self._find_candidate_solvers(solver=solver, gp=gp)
+        candidate_solvers = self._find_candidate_solvers(
+            solver=solver, gp=gp, is_batched=is_batched)
         self._sort_candidate_solvers(candidate_solvers)
         return construct_solving_chain(self, candidate_solvers, gp=gp,
                                        enforce_dpp=enforce_dpp,
@@ -1237,6 +1243,9 @@ class Problem(u.Canonical):
         data, solving_chain, inverse_data = self.get_problem_data(
             solver, gp, enforce_dpp, ignore_dpp, verbose, canon_backend, kwargs
         )
+
+        # Store batch_shape from problem data
+        self._batch_shape = data.get(s.BATCH_SHAPE, ())
 
         if verbose:
             print(_NUM_SOLVER_STR)
@@ -1518,15 +1527,19 @@ class Problem(u.Canonical):
         ValueError
             If the solution object has an invalid status
         """
-        if solution.status in s.SOLUTION_PRESENT:
+        if solution.has_solution():
             for v in self.variables():
                 v.save_value(solution.primal_vars[v.id])
             for c in self.constraints:
                 if c.id in solution.dual_vars:
                     c.save_dual_value(solution.dual_vars[c.id])
-            # Eliminate confusion of problem.value versus objective.value.
-            self._value = self.objective.value
-        elif solution.status in s.INF_OR_UNB:
+            # For batched solves, use solution.opt_val directly.
+            # For non-batched, use self.objective.value to avoid confusion.
+            if solution.is_batched:
+                self._value = solution.opt_val
+            else:
+                self._value = self.objective.value
+        elif solution.has_inf_or_unb():
             for v in self.variables():
                 v.save_value(None)
             for constr in self.constraints:
@@ -1561,15 +1574,15 @@ class Problem(u.Canonical):
         """
 
         solution = chain.invert(solution, inverse_data)
-        if solution.status in s.INACCURATE:
+        if solution.has_inaccurate():
             warnings.warn(
                 "Solution may be inaccurate. Try another solver, "
                 "adjusting the solver settings, or solve with "
                 "verbose=True for more information."
             )
-        if solution.status == s.INFEASIBLE_OR_UNBOUNDED:
+        if solution.has_infeasible_or_unbounded():
             warnings.warn(INF_OR_UNB_MESSAGE)
-        if solution.status in s.ERROR:
+        if solution.has_error():
             raise error.SolverError(
                     "Solver '%s' failed. " % chain.solver.name() +
                     "Try another solver, or solve with verbose=True for more "

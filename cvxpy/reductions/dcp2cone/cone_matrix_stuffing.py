@@ -197,6 +197,30 @@ class ParamConeProg(ParamProb):
         return self.x.attributes['boolean'] or \
             self.x.attributes['integer']
 
+    @property
+    def batch_shape(self) -> tuple:
+        """Compute batch shape from parameters.
+
+        Returns the broadcasted batch shape across all batched parameters,
+        or () if no parameters are batched.
+        """
+        batch_shapes = []
+        for param in self.parameters:
+            if param.is_batched:
+                batch_shapes.append(param.batch_shape)
+
+        if not batch_shapes:
+            return ()
+
+        # Broadcast all batch shapes together
+        try:
+            result_shape = batch_shapes[0]
+            for shape in batch_shapes[1:]:
+                result_shape = np.broadcast_shapes(result_shape, shape)
+            return tuple(result_shape)
+        except ValueError as e:
+            raise ValueError(f"Incompatible batch shapes: {batch_shapes}") from e
+
     def apply_parameters(self, id_to_param_value=None, zero_offset: bool = False,
                          keep_zeros: bool = False, quad_obj: bool = False,
                          batch_shape: tuple[int, ...] | None = None):
@@ -478,23 +502,32 @@ class ConeMatrixStuffing(MatrixStuffing):
         """Retrieves a solution to the original problem"""
         var_map = inverse_data.var_offsets
         con_map = inverse_data.cons_id_map
+
         # Flip sign of opt val if maximize.
         opt_val = solution.opt_val
-        if solution.status not in s.ERROR and not inverse_data.minimize:
+        if solution.all_not_error() and not inverse_data.minimize:
             opt_val = -solution.opt_val
 
         primal_vars, dual_vars = {}, {}
-        if solution.status not in s.SOLUTION_PRESENT:
+        if not solution.has_solution():
             return Solution(solution.status, opt_val, primal_vars, dual_vars,
                             solution.attr)
 
         # Split vectorized variable into components.
         x_opt = list(solution.primal_vars.values())[0]
+        batch_shape = solution.batch_shape
+
         for var_id, offset in var_map.items():
             shape = inverse_data.var_shapes[var_id]
             size = np.prod(shape, dtype=int)
-            primal_vars[var_id] = np.reshape(x_opt[offset:offset+size], shape,
-                                             order='F')
+            if batch_shape:
+                # For batched: x_opt is (batch_shape..., total_var_size)
+                var_slice = x_opt[..., offset:offset+size]
+                primal_vars[var_id] = np.reshape(var_slice, batch_shape + shape,
+                                                 order='F')
+            else:
+                primal_vars[var_id] = np.reshape(x_opt[offset:offset+size], shape,
+                                                 order='F')
 
         # Remap dual variables if dual exists (problem is convex).
         if solution.dual_vars is not None:
@@ -504,6 +537,11 @@ class ConeMatrixStuffing(MatrixStuffing):
                 # TODO rationalize Exponential.
                 if shape == () or isinstance(con_obj, (ExpCone, SOC)):
                     dual_vars[old_con] = solution.dual_vars[new_con]
+                elif batch_shape:
+                    # For batched: dual is (batch_shape..., constraint_size)
+                    dual_slice = solution.dual_vars[new_con]
+                    dual_vars[old_con] = np.reshape(dual_slice, batch_shape + shape,
+                                                    order='F')
                 else:
                     dual_vars[old_con] = np.reshape(
                         solution.dual_vars[new_con],

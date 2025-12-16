@@ -168,6 +168,7 @@ F = "F"
 DIMS = "dims"
 BOOL_IDX = "bool_vars_idx"
 INT_IDX = "int_vars_idx"
+BATCH_SHAPE = "batch_shape"
 
 # Keys for curvature and sign.
 CONSTANT = "CONSTANT"

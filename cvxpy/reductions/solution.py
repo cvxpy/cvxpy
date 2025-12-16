@@ -92,3 +92,49 @@ class Solution:
                                              self.primal_vars,
                                              self.dual_vars,
                                              self.attr)
+
+    @property
+    def batch_shape(self) -> tuple:
+        """Return the batch shape from attr, or () if not batched."""
+        return self.attr.get(s.BATCH_SHAPE, ())
+
+    @property
+    def is_batched(self) -> bool:
+        """Return True if this is a batched solution."""
+        return len(self.batch_shape) > 0
+
+    def has_solution(self) -> bool:
+        """Check if any solution is present (status in SOLUTION_PRESENT)."""
+        if self.is_batched:
+            return bool(np.any(np.isin(self.status, list(s.SOLUTION_PRESENT))))
+        return self.status in s.SOLUTION_PRESENT
+
+    def has_inf_or_unb(self) -> bool:
+        """Check if any solution is infeasible or unbounded."""
+        if self.is_batched:
+            return bool(np.any(np.isin(self.status, list(s.INF_OR_UNB))))
+        return self.status in s.INF_OR_UNB
+
+    def has_error(self) -> bool:
+        """Check if any solution has an error."""
+        if self.is_batched:
+            return bool(np.any(np.isin(self.status, list(s.ERROR))))
+        return self.status in s.ERROR
+
+    def all_not_error(self) -> bool:
+        """Check if all solutions are not errors (for opt_val negation)."""
+        if self.is_batched:
+            return bool(np.all(~np.isin(self.status, list(s.ERROR))))
+        return self.status not in s.ERROR
+
+    def has_inaccurate(self) -> bool:
+        """Check if any solution is inaccurate."""
+        if self.is_batched:
+            return bool(np.any(np.isin(self.status, list(s.INACCURATE))))
+        return self.status in s.INACCURATE
+
+    def has_infeasible_or_unbounded(self) -> bool:
+        """Check if any solution has INFEASIBLE_OR_UNBOUNDED status."""
+        if self.is_batched:
+            return bool(np.any(self.status == s.INFEASIBLE_OR_UNBOUNDED))
+        return self.status == s.INFEASIBLE_OR_UNBOUNDED

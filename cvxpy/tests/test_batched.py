@@ -20,6 +20,7 @@ import scipy.sparse as sp
 
 import cvxpy as cp
 import cvxpy.settings as s
+from cvxpy.reductions.solution import Solution
 from cvxpy.reductions.solvers.conic_solvers.clarabel_conif import (
     CLARABEL,
     dims_to_solver_cones,
@@ -72,7 +73,7 @@ class BATCH_CLARABEL(CLARABEL):
         """Solve batched problem by looping over instances."""
         import clarabel
 
-        batch_shape = data.get('batch_shape')
+        batch_shape = data.get(s.BATCH_SHAPE)
 
         if batch_shape is None or len(batch_shape) == 0:
             # Non-batch: use parent implementation
@@ -137,9 +138,7 @@ class BATCH_CLARABEL(CLARABEL):
 
     def invert(self, solution, inverse_data):
         """Invert batched solution."""
-        from cvxpy.reductions.solution import Solution
-
-        batch_shape = inverse_data.get('batch_shape')
+        batch_shape = inverse_data.get(s.BATCH_SHAPE)
 
         if batch_shape is None or len(batch_shape) == 0:
             return super().invert(solution, inverse_data)
@@ -153,13 +152,35 @@ class BATCH_CLARABEL(CLARABEL):
 
         primal_vars = {inverse_data[self.VAR_ID]: solution.xs}
 
+        # Construct batched dual_vars
+        dual_vars = {}
+        zs = solution.zs  # shape: batch_shape + (n_constr,)
+        cone_dims = inverse_data[ConicSolver.DIMS]
+
+        # Handle equality constraints (zero cone)
+        eq_constrs = inverse_data.get(self.EQ_CONSTR, [])
+        offset = 0
+        for constr in eq_constrs:
+            size = constr.size
+            dual_vars[constr.id] = zs[..., offset:offset+size]
+            offset += size
+
+        # Handle inequality constraints (nonneg cone + other cones)
+        neq_constrs = inverse_data.get(self.NEQ_CONSTR, [])
+        # offset continues from zero cone size
+        offset = cone_dims.zero
+        for constr in neq_constrs:
+            size = constr.size
+            dual_vars[constr.id] = zs[..., offset:offset+size]
+            offset += size
+
         attr = {
             s.SOLVE_TIME: solution.solve_time,
             s.NUM_ITERS: solution.iterations,
-            'batch_shape': batch_shape,
+            s.BATCH_SHAPE: batch_shape,
         }
 
-        return Solution(statuses, opt_vals, primal_vars, {}, attr)
+        return Solution(statuses, opt_vals, primal_vars, dual_vars, attr)
 
 
 class TestBatchedParameterAPI:
@@ -509,311 +530,100 @@ class TestBatchedApplyParameters:
         assert b_batch.shape == (3, 4, param_cone_prog.constr_size)
 
 
-class TestBatchClarabelSolver:
-    """End-to-end tests for BATCH_CLARABEL solver."""
+class TestBatchedSolveEndToEnd:
+    """End-to-end tests for problem.solve() with batched parameters."""
 
-    def test_batch_clarabel_lp_matches_individual_solves(self):
-        """Test that BATCH_CLARABEL results match individual CLARABEL solves."""
+    def test_solve_with_batched_params(self):
+        """Test that solve() auto-detects batch mode."""
         n = 3
         x = cp.Variable(n)
         c = cp.Parameter(n)
 
         prob = cp.Problem(cp.Minimize(c @ x), [x >= 0, cp.sum(x) == 1])
 
-        # Generate batch of cost vectors
+        # Set batched values
+        batch_size = 5
+        np.random.seed(42)
+        c_vals = np.random.randn(batch_size, n)
+        c.set_value(c_vals, batch=True)
+
+        # Solve with BATCH_CLARABEL (pass instance)
+        prob.solve(solver=BATCH_CLARABEL())
+
+        # Check results
+        assert prob.batch_shape == (batch_size,)
+        assert x.value.shape == (batch_size, n)
+        assert prob.value.shape == (batch_size,)
+
+    def test_batched_solve_matches_individual(self):
+        """Test batched results match individual solves."""
+        n = 3
+        x = cp.Variable(n)
+        c = cp.Parameter(n)
+
+        prob = cp.Problem(cp.Minimize(c @ x), [x >= 0, cp.sum(x) == 1])
+
         batch_size = 5
         np.random.seed(42)
         c_vals = np.random.randn(batch_size, n)
 
-        # Get param_cone_prog first
-        c.value = c_vals[0]
-        prob.get_problem_data(solver=cp.CLARABEL)
-        param_cone_prog = prob._cache.param_prog
-        assert param_cone_prog is not None
-
-        # Individual solves using CLARABEL directly on param_cone_prog data
-        clarabel_solver = CLARABEL()
-        individual_obj_vals = []
-        individual_x_vals = []
+        # Individual solves
+        individual_values = []
+        individual_x = []
         for i in range(batch_size):
             c.value = c_vals[i]
-            q, d, A, b = param_cone_prog.apply_parameters()
-            data = {
-                s.C: q,
-                s.B: b,
-                s.A: A,
-                ConicSolver.DIMS: param_cone_prog.cone_dims,
-            }
-            result = clarabel_solver.solve_via_data(data, False, False, {})
-            individual_obj_vals.append(result.obj_val + d)
-            individual_x_vals.append(result.x.copy())
+            prob.solve(solver=cp.CLARABEL)
+            individual_values.append(prob.value)
+            individual_x.append(x.value.copy())
 
-        individual_obj_vals = np.array(individual_obj_vals)
-        individual_x_vals = np.array(individual_x_vals)
-
-        # Batched solve using BATCH_CLARABEL
-        batch_shape = (batch_size,)
+        # Batched solve
         c.set_value(c_vals, batch=True)
+        prob.solve(solver=BATCH_CLARABEL())
 
-        q_batch, d_batch, A_batch, b_batch = param_cone_prog.apply_parameters(
-            batch_shape=batch_shape
-        )
+        # Compare
+        np.testing.assert_allclose(prob.value, individual_values, rtol=1e-5)
+        np.testing.assert_allclose(x.value, np.array(individual_x), rtol=1e-5)
 
-        data = {
-            s.C: q_batch,
-            s.B: b_batch,
-            s.A: A_batch,
-            ConicSolver.DIMS: param_cone_prog.cone_dims,
-            'batch_shape': batch_shape,
-        }
+    def test_non_batch_solver_raises_error(self):
+        """Test that non-batch-capable solver raises SolverError."""
+        x = cp.Variable(3)
+        c = cp.Parameter(3)
+        prob = cp.Problem(cp.Minimize(c @ x), [x >= 0])
 
-        batch_solver = BATCH_CLARABEL()
-        batch_solution = batch_solver.solve_via_data(data, False, False, {})
+        c.set_value(np.random.randn(5, 3), batch=True)
 
-        # Verify results match
-        np.testing.assert_allclose(
-            batch_solution.obj_vals + d_batch,
-            individual_obj_vals,
-            rtol=1e-5
-        )
-        np.testing.assert_allclose(
-            batch_solution.xs,
-            individual_x_vals,
-            rtol=1e-5
-        )
+        with pytest.raises(cp.error.SolverError, match="batch mode"):
+            prob.solve(solver=cp.CLARABEL)
 
-    def test_batch_clarabel_qp_with_use_quad_obj(self):
-        """Test BATCH_CLARABEL with quadratic objective (use_quad_obj=True)."""
+    def test_batched_qp_matches_individual(self):
+        """Test batched QP (quadratic objective) matches individual solves."""
         n = 2
         x = cp.Variable(n)
         c = cp.Parameter(n)
 
-        # Use sum_squares which is DPP-compliant
+        # Quadratic objective using sum_squares (DPP-compliant)
         prob = cp.Problem(
             cp.Minimize(0.5 * cp.sum_squares(x) + c @ x),
             [x >= -1, x <= 1]
         )
 
-        # Generate batch of parameters
         batch_size = 4
         np.random.seed(123)
         c_vals = np.random.randn(batch_size, n)
 
-        # Get problem data first
-        c.value = c_vals[0]
-        prob.get_problem_data(solver=cp.CLARABEL)
-        param_cone_prog = prob._cache.param_prog
-        assert param_cone_prog is not None
-
-        # Individual solves using CLARABEL directly
-        clarabel_solver = CLARABEL()
-        individual_obj_vals = []
-        individual_x_vals = []
+        # Individual solves
+        individual_values = []
+        individual_x = []
         for i in range(batch_size):
             c.value = c_vals[i]
-            P, q, d, A, b = param_cone_prog.apply_parameters(quad_obj=True)
-            data = {
-                s.P: P,
-                s.C: q,
-                s.B: b,
-                s.A: A,
-                ConicSolver.DIMS: param_cone_prog.cone_dims,
-            }
-            result = clarabel_solver.solve_via_data(data, False, False, {})
-            individual_obj_vals.append(result.obj_val + d)
-            individual_x_vals.append(result.x.copy())
-
-        individual_obj_vals = np.array(individual_obj_vals)
-        individual_x_vals = np.array(individual_x_vals)
-
-        # Batched solve
-        batch_shape = (batch_size,)
-        c.set_value(c_vals, batch=True)
-
-        P_batch, q_batch, d_batch, A_batch, b_batch = param_cone_prog.apply_parameters(
-            batch_shape=batch_shape, quad_obj=True
-        )
-
-        data = {
-            s.P: P_batch,
-            s.C: q_batch,
-            s.B: b_batch,
-            s.A: A_batch,
-            ConicSolver.DIMS: param_cone_prog.cone_dims,
-            'batch_shape': batch_shape,
-        }
-
-        batch_solver = BATCH_CLARABEL()
-        batch_solution = batch_solver.solve_via_data(data, False, False, {})
-
-        # Verify results match
-        np.testing.assert_allclose(
-            batch_solution.obj_vals + d_batch,
-            individual_obj_vals,
-            rtol=1e-4
-        )
-        np.testing.assert_allclose(
-            batch_solution.xs,
-            individual_x_vals,
-            rtol=1e-4
-        )
-
-    def test_batch_clarabel_2d_batch_shape(self):
-        """Test BATCH_CLARABEL with 2D batch shape."""
-        n = 2
-        x = cp.Variable(n)
-        c = cp.Parameter(n)
-
-        prob = cp.Problem(cp.Minimize(c @ x), [x >= 0, cp.sum(x) == 1])
-
-        # 2D batch shape
-        batch_shape = (3, 4)
-        np.random.seed(456)
-        c_vals = np.random.randn(*batch_shape, n)
-
-        # Get problem data first
-        c.value = c_vals[0, 0]
-        prob.get_problem_data(solver=cp.CLARABEL)
-        param_cone_prog = prob._cache.param_prog
-        assert param_cone_prog is not None
-
-        # Individual solves using CLARABEL directly
-        clarabel_solver = CLARABEL()
-        individual_obj_vals = np.zeros(batch_shape)
-        individual_x_vals = np.zeros(batch_shape + (param_cone_prog.x.size,))
-        for i in range(batch_shape[0]):
-            for j in range(batch_shape[1]):
-                c.value = c_vals[i, j]
-                q, d, A, b = param_cone_prog.apply_parameters()
-                data = {
-                    s.C: q,
-                    s.B: b,
-                    s.A: A,
-                    ConicSolver.DIMS: param_cone_prog.cone_dims,
-                }
-                result = clarabel_solver.solve_via_data(data, False, False, {})
-                individual_obj_vals[i, j] = result.obj_val + d
-                individual_x_vals[i, j] = result.x
+            prob.solve(solver=cp.CLARABEL, use_quad_obj=True)
+            individual_values.append(prob.value)
+            individual_x.append(x.value.copy())
 
         # Batched solve
         c.set_value(c_vals, batch=True)
+        prob.solve(solver=BATCH_CLARABEL(), use_quad_obj=True)
 
-        q_batch, d_batch, A_batch, b_batch = param_cone_prog.apply_parameters(
-            batch_shape=batch_shape
-        )
-
-        data = {
-            s.C: q_batch,
-            s.B: b_batch,
-            s.A: A_batch,
-            ConicSolver.DIMS: param_cone_prog.cone_dims,
-            'batch_shape': batch_shape,
-        }
-
-        batch_solver = BATCH_CLARABEL()
-        batch_solution = batch_solver.solve_via_data(data, False, False, {})
-
-        # Verify shapes
-        assert batch_solution.obj_vals.shape == batch_shape
-        assert batch_solution.xs.shape == batch_shape + (param_cone_prog.x.size,)
-
-        # Verify results match
-        np.testing.assert_allclose(
-            batch_solution.obj_vals + d_batch,
-            individual_obj_vals,
-            rtol=1e-5
-        )
-        np.testing.assert_allclose(
-            batch_solution.xs,
-            individual_x_vals,
-            rtol=1e-5
-        )
-
-    def test_batch_clarabel_all_optimal(self):
-        """Test that all batch instances return optimal status."""
-        n = 2
-        x = cp.Variable(n)
-        c = cp.Parameter(n)
-
-        prob = cp.Problem(cp.Minimize(c @ x), [x >= 0, cp.sum(x) == 1])
-
-        batch_size = 5
-        c_vals = np.random.randn(batch_size, n)
-
-        c.value = c_vals[0]
-        prob.get_problem_data(solver=cp.CLARABEL)
-
-        param_cone_prog = prob._cache.param_prog
-        assert param_cone_prog is not None
-
-        batch_shape = (batch_size,)
-        c.set_value(c_vals, batch=True)
-
-        q_batch, d_batch, A_batch, b_batch = param_cone_prog.apply_parameters(
-            batch_shape=batch_shape
-        )
-
-        data = {
-            s.C: q_batch,
-            s.B: b_batch,
-            s.A: A_batch,
-            ConicSolver.DIMS: param_cone_prog.cone_dims,
-            'batch_shape': batch_shape,
-        }
-
-        solver = BATCH_CLARABEL()
-        batch_solution = solver.solve_via_data(data, False, False, {})
-
-        # All should be "Solved"
-        assert all(status == "Solved" for status in batch_solution.statuses)
-
-    def test_batch_clarabel_invert(self):
-        """Test BATCH_CLARABEL invert method."""
-        n = 2
-        x = cp.Variable(n)
-        c = cp.Parameter(n)
-
-        prob = cp.Problem(cp.Minimize(c @ x), [x >= 0, cp.sum(x) == 1])
-
-        batch_size = 3
-        c_vals = np.random.randn(batch_size, n)
-
-        c.value = c_vals[0]
-        prob.get_problem_data(solver=cp.CLARABEL)
-
-        param_cone_prog = prob._cache.param_prog
-        assert param_cone_prog is not None
-
-        batch_shape = (batch_size,)
-        c.set_value(c_vals, batch=True)
-
-        q_batch, d_batch, A_batch, b_batch = param_cone_prog.apply_parameters(
-            batch_shape=batch_shape
-        )
-
-        data = {
-            s.C: q_batch,
-            s.B: b_batch,
-            s.A: A_batch,
-            ConicSolver.DIMS: param_cone_prog.cone_dims,
-            'batch_shape': batch_shape,
-        }
-
-        solver = BATCH_CLARABEL()
-        batch_solution = solver.solve_via_data(data, False, False, {})
-
-        # Create inverse_data
-        inverse_data = {
-            solver.VAR_ID: x.id,
-            ConicSolver.DIMS: param_cone_prog.cone_dims,
-            s.OFFSET: d_batch,
-            'batch_shape': batch_shape,
-        }
-
-        # Invert the solution
-        solution = solver.invert(batch_solution, inverse_data)
-
-        # Check that solution has batched values
-        assert solution.opt_val.shape == batch_shape
-        assert x.id in solution.primal_vars
-        assert solution.primal_vars[x.id].shape == batch_shape + (n,)
+        # Compare
+        np.testing.assert_allclose(prob.value, individual_values, rtol=1e-4)
+        np.testing.assert_allclose(x.value, np.array(individual_x), rtol=1e-4)

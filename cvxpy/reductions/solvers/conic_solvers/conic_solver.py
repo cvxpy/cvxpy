@@ -378,12 +378,15 @@ class ConicSolver(Solver):
 
         problem, data, inv_data = self._prepare_data_and_inv_data(problem)
 
+        # Get batch_shape from problem (empty tuple if not batched)
+        batch_shape = problem.batch_shape
+
         # Apply parameter values.
         # Obtain A, b such that Ax + s = b, s \in cones.
         if problem.P is None:
-            c, d, A, b = problem.apply_parameters()
+            c, d, A, b = problem.apply_parameters(batch_shape=batch_shape)
         else:
-            P, c, d, A, b = problem.apply_parameters(quad_obj=True)
+            P, c, d, A, b = problem.apply_parameters(batch_shape=batch_shape, quad_obj=True)
             data[s.P] = P
         data[s.C] = c
         inv_data[s.OFFSET] = d
@@ -391,4 +394,9 @@ class ConicSolver(Solver):
         data[s.B] = b
         data[s.LOWER_BOUNDS] = problem.lower_bounds
         data[s.UPPER_BOUNDS] = problem.upper_bounds
+
+        # Include batch_shape in data and inverse_data
+        data[s.BATCH_SHAPE] = batch_shape
+        inv_data[s.BATCH_SHAPE] = batch_shape
+
         return data, inv_data
