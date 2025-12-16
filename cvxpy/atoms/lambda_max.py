@@ -34,9 +34,12 @@ class lambda_max(Atom):
         """Returns the largest eigenvalue of A.
 
         Requires that A be symmetric.
+        Supports batched inputs: (..., M, M) -> (...)
         """
-        lo = hi = self.args[0].shape[0]-1
-        return LA.eigvalsh(values[0], subset_by_index=(lo, hi))[0]
+        # np.linalg.eigvalsh supports batch dimensions and returns
+        # eigenvalues in ascending order, so last is largest
+        eigs = np.linalg.eigvalsh(values[0])
+        return eigs[..., -1]
 
     def _domain(self) -> List[Constraint]:
         """Returns constraints describing the domain of the node.
@@ -100,7 +103,10 @@ class lambda_max(Atom):
 
     @property
     def value(self):
-        if not np.allclose(self.args[0].value, self.args[0].value.T.conj()):
+        val = self.args[0].value
+        # Use swapaxes for batch-safe conjugate transpose
+        val_H = np.conj(np.swapaxes(val, -2, -1))
+        if not np.allclose(val, val_H):
             raise ValueError("Input matrix was not Hermitian/symmetric.")
         if any([p.value is None for p in self.parameters()]):
             return None

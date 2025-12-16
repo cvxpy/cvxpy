@@ -1121,3 +1121,269 @@ class TestBatchedAtomEvaluation:
         assert result.shape == (2, 4)
         expected = np.cumprod(x.value, axis=-1)
         np.testing.assert_allclose(result, expected)
+
+    def test_lambda_max_batched(self):
+        """lambda_max preserves batch dimensions."""
+        batch = 5
+        n = 4
+
+        X = cp.Variable((n, n))
+        # Create batch of symmetric positive definite matrices
+        vals = np.random.randn(batch, n, n)
+        vals = vals @ np.swapaxes(vals, -2, -1) + np.eye(n)  # Make symmetric PD
+        X._value = vals
+        X._batch_shape = (batch,)
+
+        result = cp.lambda_max(X).value
+        assert result.shape == (batch,)
+
+        # Verify against loop over batches
+        for i in range(batch):
+            expected_i = np.linalg.eigvalsh(vals[i])[-1]
+            np.testing.assert_allclose(result[i], expected_i, rtol=1e-10)
+
+    def test_lambda_min_batched(self):
+        """lambda_min preserves batch dimensions."""
+        batch = 5
+        n = 4
+
+        X = cp.Variable((n, n))
+        # Create batch of symmetric positive definite matrices
+        vals = np.random.randn(batch, n, n)
+        vals = vals @ np.swapaxes(vals, -2, -1) + np.eye(n)  # Make symmetric PD
+        X._value = vals
+        X._batch_shape = (batch,)
+
+        result = cp.lambda_min(X).value
+        assert result.shape == (batch,)
+
+        # Verify against loop over batches
+        for i in range(batch):
+            expected_i = np.linalg.eigvalsh(vals[i])[0]
+            np.testing.assert_allclose(result[i], expected_i, rtol=1e-10)
+
+    def test_log_det_batched(self):
+        """log_det preserves batch dimensions."""
+        batch = 5
+        n = 4
+
+        X = cp.Variable((n, n))
+        # Create batch of symmetric positive definite matrices
+        vals = np.random.randn(batch, n, n)
+        vals = vals @ np.swapaxes(vals, -2, -1) + 2 * np.eye(n)  # Make symmetric PD
+        X._value = vals
+        X._batch_shape = (batch,)
+
+        result = cp.log_det(X).value
+        assert result.shape == (batch,)
+
+        # Verify against loop over batches
+        for i in range(batch):
+            _, expected_i = np.linalg.slogdet(vals[i])
+            np.testing.assert_allclose(result[i], expected_i, rtol=1e-10)
+
+    def test_quad_form_batched(self):
+        """quad_form preserves batch dimensions."""
+        batch = 5
+        n = 4
+
+        x = cp.Variable(n)
+        P = np.random.randn(n, n)
+        P = P @ P.T + np.eye(n)  # Make symmetric PD
+
+        x_vals = np.random.randn(batch, n)
+        x._value = x_vals
+        x._batch_shape = (batch,)
+
+        result = cp.quad_form(x, P).value
+        assert result.shape == (batch,)
+
+        # Verify against loop over batches
+        for i in range(batch):
+            expected_i = x_vals[i] @ P @ x_vals[i]
+            np.testing.assert_allclose(result[i], expected_i, rtol=1e-10)
+
+    def test_sum_largest_batched(self):
+        """sum_largest preserves batch dimensions."""
+        batch = 5
+        n = 6
+
+        x = cp.Variable(n)
+        x._value = np.random.randn(batch, n)
+        x._batch_shape = (batch,)
+
+        k = 3
+        result = cp.sum_largest(x, k).value
+        assert result.shape == (batch,)
+
+        # Verify against loop over batches
+        for i in range(batch):
+            sorted_vals = np.sort(x.value[i])[::-1]
+            expected_i = np.sum(sorted_vals[:k])
+            np.testing.assert_allclose(result[i], expected_i, rtol=1e-10)
+
+    def test_sum_smallest_batched(self):
+        """sum_smallest preserves batch dimensions."""
+        batch = 5
+        n = 6
+
+        x = cp.Variable(n)
+        x._value = np.random.randn(batch, n)
+        x._batch_shape = (batch,)
+
+        k = 3
+        result = cp.sum_smallest(x, k).value
+        assert result.shape == (batch,)
+
+        # Verify against loop over batches
+        for i in range(batch):
+            sorted_vals = np.sort(x.value[i])
+            expected_i = np.sum(sorted_vals[:k])
+            np.testing.assert_allclose(result[i], expected_i, rtol=1e-10)
+
+    def test_quad_over_lin_batched(self):
+        """quad_over_lin preserves batch dimensions."""
+        batch = 5
+        n = 4
+
+        x = cp.Variable(n)
+        y = cp.Variable()
+
+        x._value = np.random.randn(batch, n)
+        y._value = np.abs(np.random.randn(batch)) + 1  # positive values
+        x._batch_shape = (batch,)
+        y._batch_shape = (batch,)
+
+        result = cp.quad_over_lin(x, y).value
+        assert result.shape == (batch,)
+
+        # Verify against loop over batches
+        for i in range(batch):
+            expected_i = np.sum(np.square(x.value[i])) / y.value[i]
+            np.testing.assert_allclose(result[i], expected_i, rtol=1e-10)
+
+    def test_tr_inv_batched(self):
+        """tr_inv preserves batch dimensions."""
+        batch = 5
+        n = 4
+
+        X = cp.Variable((n, n))
+        # Create batch of symmetric positive definite matrices
+        vals = np.random.randn(batch, n, n)
+        vals = vals @ np.swapaxes(vals, -2, -1) + 2 * np.eye(n)  # Make symmetric PD
+        X._value = vals
+        X._batch_shape = (batch,)
+
+        result = cp.tr_inv(X).value
+        assert result.shape == (batch,)
+
+        # Verify against loop over batches
+        for i in range(batch):
+            eigs = np.linalg.eigvalsh(vals[i])
+            expected_i = np.sum(1.0 / eigs)
+            np.testing.assert_allclose(result[i], expected_i, rtol=1e-10)
+
+    def test_matrix_frac_batched(self):
+        """matrix_frac preserves batch dimensions."""
+        batch = 5
+        n = 4
+
+        X = cp.Variable((n, 1))
+        P = cp.Variable((n, n))
+
+        # Create batch values
+        x_vals = np.random.randn(batch, n, 1)
+        p_vals = np.random.randn(batch, n, n)
+        p_vals = p_vals @ np.swapaxes(p_vals, -2, -1) + 2 * np.eye(n)  # Make symmetric PD
+
+        X._value = x_vals
+        P._value = p_vals
+        X._batch_shape = (batch,)
+        P._batch_shape = (batch,)
+
+        result = cp.matrix_frac(X, P).value
+        assert result.shape == (batch,)
+
+        # Verify against loop over batches
+        for i in range(batch):
+            P_inv = np.linalg.inv(p_vals[i])
+            expected_i = (x_vals[i].T @ P_inv @ x_vals[i]).item()
+            np.testing.assert_allclose(result[i], expected_i, rtol=1e-9)
+
+    def test_sigma_max_batched(self):
+        """sigma_max preserves batch dimensions."""
+        batch = 5
+        m, n = 4, 3
+
+        X = cp.Variable((m, n))
+        vals = np.random.randn(batch, m, n)
+        X._value = vals
+        X._batch_shape = (batch,)
+
+        result = cp.sigma_max(X).value
+        assert result.shape == (batch,)
+
+        # Verify against loop over batches
+        for i in range(batch):
+            s = np.linalg.svd(vals[i], compute_uv=False)
+            expected_i = s[0]  # Largest singular value
+            np.testing.assert_allclose(result[i], expected_i, rtol=1e-10)
+
+    def test_norm_nuc_batched(self):
+        """norm_nuc preserves batch dimensions."""
+        batch = 5
+        m, n = 4, 3
+
+        X = cp.Variable((m, n))
+        vals = np.random.randn(batch, m, n)
+        X._value = vals
+        X._batch_shape = (batch,)
+
+        result = cp.normNuc(X).value
+        assert result.shape == (batch,)
+
+        # Verify against loop over batches
+        for i in range(batch):
+            s = np.linalg.svd(vals[i], compute_uv=False)
+            expected_i = np.sum(s)
+            np.testing.assert_allclose(result[i], expected_i, rtol=1e-10)
+
+    def test_eye_minus_inv_batched(self):
+        """eye_minus_inv preserves batch dimensions."""
+        batch = 5
+        n = 4
+
+        X = cp.Variable((n, n))
+        # Create batch of matrices with spectral radius < 1
+        vals = np.random.randn(batch, n, n) * 0.1  # Small values for convergence
+        X._value = vals
+        X._batch_shape = (batch,)
+
+        result = cp.eye_minus_inv(X).value
+        assert result.shape == (batch, n, n)
+
+        # Verify against loop over batches
+        for i in range(batch):
+            expected_i = np.linalg.inv(np.eye(n) - vals[i])
+            np.testing.assert_allclose(result[i], expected_i, rtol=1e-10)
+
+    def test_dotsort_batched(self):
+        """dotsort preserves batch dimensions."""
+        batch = 5
+        n = 6
+
+        x = cp.Variable(n)
+        w = np.array([1.0, 1.0, 1.0, 0.0, 0.0, 0.0])  # Sum of 3 largest
+
+        x._value = np.random.randn(batch, n)
+        x._batch_shape = (batch,)
+
+        result = cp.dotsort(x, w).value
+        assert result.shape == (batch,)
+
+        # Verify against loop over batches
+        for i in range(batch):
+            x_sorted = np.sort(x.value[i])
+            w_sorted = np.sort(w)
+            expected_i = x_sorted @ w_sorted
+            np.testing.assert_allclose(result[i], expected_i, rtol=1e-10)

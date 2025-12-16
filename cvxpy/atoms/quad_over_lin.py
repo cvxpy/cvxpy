@@ -37,10 +37,27 @@ class quad_over_lin(Atom):
     @Atom.numpy_numeric
     def numeric(self, values):
         """Returns the sum of the entries of x squared over y.
+
+        Supports batched inputs: (..., problem_shape), (...) -> (...)
         """
-        if self.args[0].is_complex():
-            return (np.square(values[0].imag) + np.square(values[0].real)).sum()/values[1]
-        return np.square(values[0]).sum()/values[1]
+        x, y = values[0], values[1]
+        batch_ndim = x.ndim - len(self.args[0].shape)
+
+        if batch_ndim > 0:
+            # Batched computation
+            batch_shape = x.shape[:batch_ndim]
+            # Flatten only problem dimensions
+            x_flat = x.reshape(batch_shape + (-1,))
+            if self.args[0].is_complex():
+                sq_sum = np.sum(np.square(x_flat.real) + np.square(x_flat.imag), axis=-1)
+            else:
+                sq_sum = np.sum(np.square(x_flat), axis=-1)
+            return sq_sum / y
+        else:
+            # Non-batched computation
+            if self.args[0].is_complex():
+                return (np.square(x.imag) + np.square(x.real)).sum() / y
+            return np.square(x).sum() / y
 
     def _domain(self) -> List[Constraint]:
         """Returns constraints describing the domain of the node.

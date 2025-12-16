@@ -59,9 +59,32 @@ class dotsort(Atom):
         """
         Returns the inner product of the sorted values of vec(X) and the sorted
         (and potentially padded) values of vec(W).
+
+        Supports batched inputs: (..., problem_shape) -> (...)
         """
-        x, w_padded = self._get_args_from_values(values)
-        return np.sort(x) @ np.sort(w_padded)
+        x_val = values[0]
+        batch_ndim = x_val.ndim - len(self.args[0].shape)
+
+        if batch_ndim > 0:
+            # Batched computation
+            batch_shape = x_val.shape[:batch_ndim]
+            # Flatten only problem dimensions
+            x_flat = x_val.reshape(batch_shape + (-1,))
+            n = x_flat.shape[-1]
+
+            # Get w and pad to match x size
+            w = values[1].flatten()
+            w_padded = np.zeros(n)
+            w_padded[:len(w)] = w
+
+            # Sort along last axis and compute dot product
+            x_sorted = np.sort(x_flat, axis=-1)
+            w_sorted = np.sort(w_padded)
+            return np.sum(x_sorted * w_sorted, axis=-1)
+        else:
+            # Non-batched computation
+            x, w_padded = self._get_args_from_values(values)
+            return np.sort(x) @ np.sort(w_padded)
 
     def _grad(self, values):
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.

@@ -38,14 +38,17 @@ class log_det(Atom):
 
         For PSD matrix A, this is the sum of logs of eigenvalues of A
         and is equivalent to the nuclear norm of the matrix logarithm of A.
+
+        Supports batched inputs: (..., M, M) -> (...)
         """
-        # take Hermitian part of the input.
-        symm = (values[0] + np.conj(values[0].T))/2
+        val = values[0]
+        # Batch-safe conjugate transpose using swapaxes
+        val_H = np.conj(np.swapaxes(val, -2, -1))
+        # Take Hermitian part of the input
+        symm = (val + val_H) / 2
         sign, logdet = LA.slogdet(symm)
-        if np.isclose(np.real(sign), 1):
-            return logdet
-        else:
-            return -np.inf
+        # Vectorized sign check: return -inf where sign != 1
+        return np.where(np.isclose(np.real(sign), 1), logdet, -np.inf)
 
     # Any argument shape is valid.
     def validate_arguments(self) -> None:
@@ -110,9 +113,11 @@ class log_det(Atom):
         return [self.args[0] >> 0]
 
     @property
-    def value(self) -> float:
-        if not np.allclose(self.args[0].value,
-                           self.args[0].value.T.conj(),
+    def value(self):
+        val = self.args[0].value
+        # Batch-safe conjugate transpose
+        val_H = np.conj(np.swapaxes(val, -2, -1))
+        if not np.allclose(val, val_H,
                            rtol=s.ATOM_EVAL_TOL,
                            atol=s.ATOM_EVAL_TOL):
             raise ValueError("Input matrix was not Hermitian/symmetric.")

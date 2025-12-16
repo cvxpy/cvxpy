@@ -35,15 +35,31 @@ class MatrixFrac(Atom):
 
     def numeric(self, values):
         """Returns tr X.T*P^-1*X.
+
+        Supports batched inputs: (..., n, k), (..., n, n) -> (...)
         """
-        # TODO raise error if not invertible?
         X = values[0]
         P = values[1]
-        if self.args[0].is_complex():
-            product = np.conj(X).T.dot(LA.inv(P)).dot(X)
+
+        # Determine batch dimensions
+        batch_ndim = X.ndim - len(self.args[0].shape)
+
+        if batch_ndim > 0:
+            # Batched computation using solve for numerical stability
+            # Solve P @ Y = X, then compute trace(X^H @ Y) = sum of element-wise X^H * Y
+            Y = np.linalg.solve(P, X)
+            if self.args[0].is_complex():
+                # trace(X^H @ Y) = sum_{i,j} conj(X_ij) * Y_ij
+                return np.real(np.sum(np.conj(X) * Y, axis=(-2, -1)))
+            else:
+                return np.sum(X * Y, axis=(-2, -1))
         else:
-            product = X.T.dot(LA.inv(P)).dot(X)
-        return product.trace() if len(product.shape) == 2 else product
+            # Non-batched computation (original algorithm)
+            if self.args[0].is_complex():
+                product = np.conj(X).T.dot(LA.inv(P)).dot(X)
+            else:
+                product = X.T.dot(LA.inv(P)).dot(X)
+            return product.trace() if len(product.shape) == 2 else product
 
     def _domain(self) -> List[Constraint]:
         """Returns constraints describing the domain of the node.

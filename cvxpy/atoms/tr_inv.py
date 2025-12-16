@@ -38,16 +38,31 @@ class tr_inv(Atom):
         """Returns the trinv of positive definite matrix X.
 
         For positive definite matrix X, this is the trace of inverse of X.
+
+        Supports batched inputs: (..., M, M) -> (...)
         """
-        # if values[0] isn't Hermitian then return np.inf
-        if (LA.norm(values[0] - values[0].T.conj()) >= 1e-8):
-            return np.inf
-        # take symmetric part of the input to enhance numerical stability
-        symm = (values[0] + values[0].T)/2
-        eigVal = LA.eigvalsh(symm)
-        if min(eigVal) <= 0:
-            return np.inf
-        return np.sum(eigVal**-1)
+        val = values[0]
+        # Batch-safe conjugate transpose
+        val_H = np.conj(np.swapaxes(val, -2, -1))
+
+        # Check Hermitian (batch-aware)
+        hermitian_error = LA.norm(val - val_H, axis=(-2, -1))
+        is_hermitian = hermitian_error < 1e-8
+
+        # Take symmetric part of the input to enhance numerical stability
+        val_T = np.swapaxes(val, -2, -1)
+        symm = (val + val_T) / 2
+        eigVal = LA.eigvalsh(symm)  # (..., M)
+
+        # Check positive definite per batch element
+        min_eig = np.min(eigVal, axis=-1)  # (...)
+        is_psd = min_eig > 0
+
+        # Sum eigenvalue reciprocals per batch element
+        trace = np.sum(eigVal ** -1, axis=-1)  # (...)
+
+        # Return inf where not Hermitian or not positive definite
+        return np.where(is_hermitian & is_psd, trace, np.inf)
 
     def validate_arguments(self) -> None:
         """Verify that the argument is a square matrix."""
@@ -114,9 +129,11 @@ class tr_inv(Atom):
         return [self.args[0] >> 0]
 
     @property
-    def value(self) -> float:
-        if not np.allclose(self.args[0].value,
-                           self.args[0].value.T.conj(),
+    def value(self):
+        val = self.args[0].value
+        # Batch-safe conjugate transpose
+        val_H = np.conj(np.swapaxes(val, -2, -1))
+        if not np.allclose(val, val_H,
                            rtol=s.ATOM_EVAL_TOL,
                            atol=s.ATOM_EVAL_TOL):
             raise ValueError("Input array to tr_inv was not Hermitian/symmetric.")

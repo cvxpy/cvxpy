@@ -43,28 +43,57 @@ class sum_largest(Atom):
         """
         Returns the sum of the k largest entries of the matrix.
         For non-integer k, uses linear interpolation.
+
+        Supports batched inputs: (..., problem_shape) -> (...)
         """
-        value = values[0].flatten()
-        n = len(value)
-        k_floor = int(np.floor(self.k))
-        k_frac = self.k - k_floor
+        val = values[0]
+        batch_ndim = val.ndim - len(self.args[0].shape)
 
-        if k_floor > 0:
-            # Get k_floor largest values
-            indices = np.argpartition(-value, kth=min(k_floor, n) - 1)[:k_floor]
-            result = value[indices].sum()
+        if batch_ndim > 0:
+            # Batched computation
+            batch_shape = val.shape[:batch_ndim]
+            # Flatten only problem dimensions
+            flat = val.reshape(batch_shape + (-1,))
+            n = flat.shape[-1]
+            k_floor = int(np.floor(self.k))
+            k_frac = self.k - k_floor
+
+            # Sort along last axis (descending)
+            sorted_vals = np.sort(flat, axis=-1)[..., ::-1]
+
+            if k_floor > 0:
+                result = np.sum(sorted_vals[..., :k_floor], axis=-1)
+            else:
+                result = np.zeros(batch_shape)
+
+            # Add fractional part if needed
+            if k_frac > 0 and k_floor < n:
+                result = result + k_frac * sorted_vals[..., k_floor]
+
+            return result
         else:
-            result = 0.0
+            # Non-batched computation (original algorithm)
+            value = val.flatten()
+            n = len(value)
+            k_floor = int(np.floor(self.k))
+            k_frac = self.k - k_floor
 
-        # Add fractional part if needed
-        if k_frac > 0 and k_floor < n:
-            # Get the (k_floor + 1)-th largest value
-            indices_next = np.argpartition(-value, kth=k_floor)[:k_floor + 1]
-            # min of largest k_floor+1 is the (k_floor+1)-th largest
-            next_value = value[indices_next].min()
-            result += k_frac * next_value
+            if k_floor > 0:
+                # Get k_floor largest values
+                indices = np.argpartition(-value, kth=min(k_floor, n) - 1)[:k_floor]
+                result = value[indices].sum()
+            else:
+                result = 0.0
 
-        return result
+            # Add fractional part if needed
+            if k_frac > 0 and k_floor < n:
+                # Get the (k_floor + 1)-th largest value
+                indices_next = np.argpartition(-value, kth=k_floor)[:k_floor + 1]
+                # min of largest k_floor+1 is the (k_floor+1)-th largest
+                next_value = value[indices_next].min()
+                result += k_frac * next_value
+
+            return result
 
     def _grad(self, values):
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.
