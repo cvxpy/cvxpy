@@ -35,6 +35,7 @@ class CvxPyDomainError(Exception):
 
 class QuadForm(Atom):
     _allow_complex = True
+    block_indices = None  # For compatibility with SymbolicQuadForm
 
     def __init__(self, x, P) -> None:
         """Atom representing :math:`x^T P x`."""
@@ -166,14 +167,29 @@ class QuadForm(Atom):
 class SymbolicQuadForm(Atom):
     """
     Symbolic form of QuadForm when quadratic matrix is not known (yet).
+
+    Parameters
+    ----------
+    x : Variable or Expression
+        The input expression.
+    P : ndarray or sparse matrix
+        The quadratic matrix.
+    expr : Expression
+        The original expression that this represents.
+    block_indices : list of np.ndarray, optional
+        For non-scalar outputs, maps each output element j to input indices.
+        block_indices[j] is an array of indices that output[j] depends on.
+        Supports both contiguous and non-contiguous blocks.
+        If None, uses existing scalar/diagonal behavior.
     """
-    def __init__(self, x, P, expr) -> None:
+    def __init__(self, x, P, expr, block_indices=None) -> None:
         self.original_expression = expr
+        self.block_indices = block_indices
         super(SymbolicQuadForm, self).__init__(x, P)
         self.P = self.args[1]
 
     def get_data(self):
-        return [self.original_expression]
+        return [self.original_expression, self.block_indices]
 
     def _grad(self, values):
         raise NotImplementedError()
