@@ -83,9 +83,9 @@ CVXPY has the following dependencies:
 
 - Python >= 3.11
 - Clarabel >= 0.5.0
-- OSQP >= 0.6.2
+- OSQP >= 1.0.0
 - SCS >= 3.2.4.post1
-- NumPy >= 1.22.4
+- NumPy >= 2.0.0
 - SciPy >= 1.13.0
 
 For detailed instructions, see the [installation
