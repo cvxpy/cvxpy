@@ -123,13 +123,6 @@ class Parameter(Leaf):
             self._batch_shape = ()
             self.value = val  # Use the property setter for validation
 
-    @Leaf.value.setter
-    def value(self, val) -> None:
-        """Set value without batching (clears batch_shape)."""
-        self._batch_shape = ()
-        # Call parent's save_value with validation
-        self.save_value(self._validate_value(val))
-
     def get_data(self):
         """Returns info needed to reconstruct the expression besides the args.
         """

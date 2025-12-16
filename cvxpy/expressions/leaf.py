@@ -488,6 +488,8 @@ class Leaf(expression.Expression):
 
     @value.setter
     def value(self, val) -> None:
+        # Clear batch shape when setting value directly (non-batched assignment)
+        self._batch_shape = ()
         if self.sparse_idx is not None and self._sparse_high_fill_in:
             warnings.warn('Writing to a sparse CVXPY expression via `.value` is discouraged.'
                           ' Use `.value_sparse` instead', RuntimeWarning, 1)
