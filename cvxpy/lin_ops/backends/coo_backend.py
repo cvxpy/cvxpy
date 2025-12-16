@@ -506,51 +506,10 @@ def coo_matmul(lhs: CooTensor, rhs: CooTensor) -> CooTensor:
         )
 
     else:
-        # Both parametrized - need to match param_idx
-        # This is rare in DPP, fall back to per-slice computation
-        if lhs.param_size != rhs.param_size:
-            raise ValueError("Mismatched param_size in coo_matmul")
-
-        results = []
-        for p in range(lhs.param_size):
-            # Extract slice p from both
-            lhs_mask = lhs.param_idx == p
-            rhs_mask = rhs.param_idx == p
-
-            lhs_slice = sp.csr_array(
-                (lhs.data[lhs_mask], (lhs.row[lhs_mask], lhs.col[lhs_mask])),
-                shape=(lhs.m, lhs.n)
-            )
-            rhs_slice = sp.csc_array(
-                (rhs.data[rhs_mask], (rhs.row[rhs_mask], rhs.col[rhs_mask])),
-                shape=(rhs.m, rhs.n)
-            )
-            result_slice = (lhs_slice @ rhs_slice).tocoo()
-
-            if result_slice.nnz > 0:
-                results.append((
-                    result_slice.data,
-                    result_slice.row,
-                    result_slice.col,
-                    np.full(result_slice.nnz, p, dtype=np.int64)
-                ))
-
-        if not results:
-            return CooTensor.empty(lhs.m, rhs.n, lhs.param_size)
-
-        all_data = np.concatenate([r[0] for r in results])
-        all_row = np.concatenate([r[1] for r in results]).astype(np.int64)
-        all_col = np.concatenate([r[2] for r in results]).astype(np.int64)
-        all_param = np.concatenate([r[3] for r in results])
-
-        return CooTensor(
-            data=all_data,
-            row=all_row,
-            col=all_col,
-            param_idx=all_param,
-            m=lhs.m,
-            n=rhs.n,
-            param_size=lhs.param_size
+        # Both operands parametrized - not supported in DPP
+        raise ValueError(
+            "coo_matmul: both operands have param_size > 1. "
+            "This is not allowed in DPP-compliant problems."
         )
 
 
@@ -708,42 +667,10 @@ def coo_mul_elem(lhs: CooTensor, rhs: CooTensor) -> CooTensor:
         )
 
     else:
-        # Both parametrized - element-wise multiply matching slices
-        # Vectorized: sorted merge with searchsorted
-        if lhs.param_size != rhs.param_size:
-            raise ValueError("Mismatched param_size in coo_mul_elem")
-
-        # Compute linear indices: param_idx * (m * n) + row * n + col
-        # Use int64 to prevent overflow for large tensors
-        slice_size = np.int64(lhs.m) * np.int64(lhs.n)
-        lhs_linear = lhs.param_idx * slice_size + lhs.row * np.int64(lhs.n) + lhs.col
-        rhs_linear = rhs.param_idx * slice_size + rhs.row * np.int64(rhs.n) + rhs.col
-
-        # Sort rhs for binary search
-        rhs_sort = np.argsort(rhs_linear)
-        rhs_sorted = rhs_linear[rhs_sort]
-
-        # Find matching indices in rhs for each lhs entry
-        match_pos = np.searchsorted(rhs_sorted, lhs_linear)
-
-        # Check which matches are valid (within bounds and actually equal)
-        match_pos_clipped = np.minimum(match_pos, len(rhs_sorted) - 1)
-        valid = (match_pos < len(rhs_sorted)) & (rhs_sorted[match_pos_clipped] == lhs_linear)
-
-        if not valid.any():
-            return CooTensor.empty(lhs.m, lhs.n, lhs.param_size)
-
-        # Get matching rhs indices in original order
-        rhs_match_idx = rhs_sort[match_pos[valid]]
-
-        return CooTensor(
-            data=lhs.data[valid] * rhs.data[rhs_match_idx],
-            row=lhs.row[valid],
-            col=lhs.col[valid],
-            param_idx=lhs.param_idx[valid],
-            m=lhs.m,
-            n=lhs.n,
-            param_size=lhs.param_size
+        # Both operands parametrized - not supported in DPP
+        raise ValueError(
+            "coo_mul_elem: both operands have param_size > 1. "
+            "This is not allowed in DPP-compliant problems."
         )
 
 
@@ -863,7 +790,7 @@ class CooTensorView(DictTensorView):
         return CooTensor
 
 
-class COOCanonBackend(PythonCanonBackend):
+class CooCanonBackend(PythonCanonBackend):
     """
     Canon backend using CooTensorView for O(nnz) operations.
 
@@ -993,8 +920,9 @@ class COOCanonBackend(PythonCanonBackend):
             # Sum along specific axis
             # row_map[i] tells us which output row input row i maps to
             row_map = self._get_sum_row_map(shape, axis)
-            new_m = int(np.prod(shape) // np.prod([shape[a] for a in
-                        (axis if isinstance(axis, tuple) else (axis,))]))
+            axis_tuple = axis if isinstance(axis, tuple) else (axis,)
+            out_axes = [i for i in range(len(shape)) if i not in axis_tuple]
+            new_m = int(np.prod([shape[i] for i in out_axes])) if out_axes else 1
 
             def func(compact, p):
                 return CooTensor(
@@ -1024,7 +952,12 @@ class COOCanonBackend(PythonCanonBackend):
         return row_idx.flatten(order='F')
 
     def reshape(self, lin_op, view: CooTensorView) -> CooTensorView:
-        """Reshape tensor (column-major order)."""
+        """Reshape tensor (column-major/Fortran order).
+
+        Note: C-order reshape is handled at the atom level by transposing
+        before and after the reshape operation (see reshape.graph_implementation).
+        The backend reshape always uses F-order.
+        """
         new_shape = lin_op.shape
         new_m = int(np.prod(new_shape))
 

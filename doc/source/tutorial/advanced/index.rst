@@ -257,4 +257,3 @@ Currently, the following canonicalization backends are supported:
    | Generally fast for problems that are already vectorized.
 *  | COO: A pure Python implementation using 3D COO sparse tensors with O(nnz) operations.
    | Necessary for DPP-compliant problems with large parameters.
-*  NUMPY: Reference implementation in pure NumPy. Fast for some small or dense problems.

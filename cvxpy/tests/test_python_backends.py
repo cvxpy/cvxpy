@@ -9,7 +9,7 @@ import scipy.sparse as sp
 
 import cvxpy.settings as s
 from cvxpy.lin_ops.backends import (
-    COOCanonBackend,
+    CooCanonBackend,
     PythonCanonBackend,
     SciPyCanonBackend,
     TensorRepresentation,
@@ -55,7 +55,7 @@ class TestBackendInstance:
         assert isinstance(backend, SciPyCanonBackend)
 
         backend = get_backend(s.COO_CANON_BACKEND, *args)
-        assert isinstance(backend, COOCanonBackend)
+        assert isinstance(backend, CooCanonBackend)
 
         with pytest.raises(KeyError):
             get_backend("notabackend")
@@ -2026,6 +2026,39 @@ class TestParametrizedBackends:
         assert out_view.get_tensor_representation(0, 1) == param_var_view.get_tensor_representation(
             0, 1
         )
+
+    @pytest.mark.parametrize("backend_name", backends)
+    def test_mul_1d_param_1d_var(self, backend_name):
+        """1D parameter @ 1D variable = scalar (dot product).
+
+        Bug regression test: 1D parameters must be treated as row vectors
+        (1, n) not column vectors (n, 1) for correct matrix dimensions.
+        """
+        n = 4
+        backend = get_backend(
+            backend_name,
+            id_to_col={1: 0},
+            param_to_size={-1: 1, 3: n},
+            param_to_col={-1: 0, 3: 1},
+            param_size_plus_one=n + 1,
+            var_length=n,
+        )
+        var = linOpHelper((n,), type="variable", data=1)
+        view = backend.process_constraint(var, backend.get_empty_view())
+
+        # param (n,) @ x (n,) -> scalar
+        param = linOpHelper((n,), type="param", data=3)
+        lin_op = linOpHelper(shape=(), data=param, args=[var])
+        out = backend.mul(lin_op, view)
+
+        # Result is 1 row (scalar output)
+        total_rows = 1
+        tr = out.get_tensor_representation(0, total_rows)
+
+        # Row indices must be within bounds
+        assert len(tr.row) > 0, "Should have non-zero entries"
+        assert tr.row.max() < total_rows, \
+            f"Row index {tr.row.max()} exceeds total_rows {total_rows}"
 
 
 class TestND_Backends:

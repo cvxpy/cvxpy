@@ -17,7 +17,7 @@ Canonicalization backends for CVXPY.
 
 This package provides multiple backends for canonicalizing optimization problems:
 - SciPyCanonBackend: Default sparse backend using scipy sparse matrices
-- COOCanonBackend: 3D COO tensor backend optimized for large DPP problems
+- CooCanonBackend: 3D COO tensor backend optimized for large DPP problems
 - RustCanonBackend: Experimental Rust-accelerated backend
 """
 from cvxpy.lin_ops.backends.base import (
@@ -29,7 +29,7 @@ from cvxpy.lin_ops.backends.base import (
     TensorView,
 )
 from cvxpy.lin_ops.backends.coo_backend import (
-    COOCanonBackend,
+    CooCanonBackend,
     CooTensor,
     CooTensorView,
 )
@@ -48,7 +48,7 @@ from cvxpy.settings import (
 _BACKEND_REGISTRY = {
     SCIPY_CANON_BACKEND: SciPyCanonBackend,
     RUST_CANON_BACKEND: RustCanonBackend,
-    COO_CANON_BACKEND: COOCanonBackend,
+    COO_CANON_BACKEND: CooCanonBackend,
 }
 
 
@@ -87,7 +87,7 @@ __all__ = [
     "SciPyCanonBackend",
     "SciPyTensorView",
     # COO backend
-    "COOCanonBackend",
+    "CooCanonBackend",
     "CooTensor",
     "CooTensorView",
     # Rust backend
