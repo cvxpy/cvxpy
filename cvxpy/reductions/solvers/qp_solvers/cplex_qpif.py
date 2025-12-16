@@ -3,6 +3,7 @@ import numpy as np
 import cvxpy.interface as intf
 import cvxpy.settings as s
 from cvxpy.reductions.solution import Solution, failure_solution
+from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.cplex_conif import (
     get_status,
     hide_solver_output,
@@ -66,8 +67,21 @@ class CPLEX(QpSolver):
             # Only add duals if not a MIP.
             dual_vars = None
             if not inverse_data[CPLEX.IS_MIP]:
+                # Build dual vars dict keyed by constraint IDs
+                # CPLEX returns duals for [eq_constrs; ineq_constrs]
                 y = -np.array(model.solution.get_dual_values())
-                dual_vars = {CPLEX.DUAL_VAR_ID: y}
+                n_eq = inverse_data[self.DIMS].zero
+                eq_dual = utilities.get_dual_values(
+                    y[:n_eq],
+                    utilities.extract_dual_value,
+                    inverse_data[self.EQ_CONSTR])
+                ineq_dual = utilities.get_dual_values(
+                    y[n_eq:],
+                    utilities.extract_dual_value,
+                    inverse_data[self.NEQ_CONSTR])
+                dual_vars = {}
+                dual_vars.update(eq_dual)
+                dual_vars.update(ineq_dual)
 
             sol = Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:

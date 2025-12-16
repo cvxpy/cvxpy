@@ -33,36 +33,9 @@ from cvxpy.utilities.citations import CITATION_DICT
 # is not installed
 try:
     from cuopt.linear_programming.solver.solver_parameters import (
-        CUOPT_ABSOLUTE_DUAL_TOLERANCE,
-        CUOPT_ABSOLUTE_GAP_TOLERANCE,
-        CUOPT_ABSOLUTE_PRIMAL_TOLERANCE,
-        CUOPT_CROSSOVER,
-        CUOPT_DUAL_INFEASIBLE_TOLERANCE,
-        CUOPT_FIRST_PRIMAL_FEASIBLE,
-        CUOPT_INFEASIBILITY_DETECTION,
-        CUOPT_ITERATION_LIMIT,
-        CUOPT_LOG_FILE,
         CUOPT_LOG_TO_CONSOLE,
         CUOPT_METHOD,
-        CUOPT_MIP_ABSOLUTE_GAP,
-        CUOPT_MIP_ABSOLUTE_TOLERANCE,
-        CUOPT_MIP_HEURISTICS_ONLY,
-        CUOPT_MIP_INTEGRALITY_TOLERANCE,
-        CUOPT_MIP_RELATIVE_GAP,
-        CUOPT_MIP_RELATIVE_TOLERANCE,
-        CUOPT_MIP_SCALING,
-        CUOPT_NUM_CPU_THREADS,
         CUOPT_PDLP_SOLVER_MODE,
-        CUOPT_PER_CONSTRAINT_RESIDUAL,
-        CUOPT_PRIMAL_INFEASIBLE_TOLERANCE,
-        CUOPT_RELATIVE_DUAL_TOLERANCE,
-        CUOPT_RELATIVE_GAP_TOLERANCE,
-        CUOPT_RELATIVE_PRIMAL_TOLERANCE,
-        CUOPT_SAVE_BEST_PRIMAL_SO_FAR,
-        CUOPT_SOLUTION_FILE,
-        CUOPT_STRICT_INFEASIBILITY,
-        CUOPT_TIME_LIMIT,
-        CUOPT_USER_PROBLEM_FILE,
     )
     from cuopt.linear_programming.solver.solver_wrapper import (
         ErrorStatus,
@@ -128,17 +101,35 @@ class CUOPT(ConicSolver):
     }
 
     def _solver_mode(self, m):
-        solver_modes = {"Stable2": PDLPSolverMode.Stable2,
-                        "Methodical1": PDLPSolverMode.Methodical1,
-                        "Fast1": PDLPSolverMode.Fast1}
-        return solver_modes.get(m, PDLPSolverMode.Stable2)
-
+        try:
+            if m.isdigit():
+                return PDLPSolverMode(int(m))
+            return PDLPSolverMode[m]
+        except Exception:
+            return None
 
     def _solver_method(self, m):
-        solver_methods = {"Concurrent": SolverMethod.Concurrent,
-                          "PDLP": SolverMethod.PDLP,
-                          "DualSimplex": SolverMethod.DualSimplex}
-        return solver_methods.get(m, SolverMethod.Concurrent)
+        try:
+            if m.isdigit():
+                return SolverMethod(int(m))
+            return SolverMethod[m]
+        except Exception:
+            return None
+
+    def _get_cuopt_parameter_strings(self):
+        from cuopt.linear_programming.solver import solver_parameters
+
+        # Get all attributes that start with CUOPT_
+        cuopt_attrs = [attr for attr in dir(solver_parameters) if attr.startswith('CUOPT_')]
+
+        # Extract string values
+        result = []
+        for attr in cuopt_attrs:
+            value = getattr(solver_parameters, attr)
+            if isinstance(value, str):
+                result.append(value)
+
+        return result
 
     def name(self):
         """The name of the solver.
@@ -206,46 +197,27 @@ class CUOPT(ConicSolver):
 
         # Special handling for the enum value
         if CUOPT_PDLP_SOLVER_MODE in solver_opts:
-            ss.set_parameter(CUOPT_PDLP_SOLVER_MODE,
-                             self._solver_mode(solver_opts[CUOPT_PDLP_SOLVER_MODE]))
+            m = self._solver_mode(solver_opts[CUOPT_PDLP_SOLVER_MODE])
+            if m is not None:
+                ss.set_parameter(CUOPT_PDLP_SOLVER_MODE, m)
+            solver_opts.pop(CUOPT_PDLP_SOLVER_MODE)
 
         # Name collision with "method" in cvxpy
         if "solver_method" in solver_opts:
-            ss.set_parameter(CUOPT_METHOD, self._solver_method(solver_opts["solver_method"]))
+            m =  self._solver_method(solver_opts["solver_method"])
+            if m is not None:
+                ss.set_parameter(CUOPT_METHOD, m)
+            solver_opts.pop("solver_method")
 
         if "optimality" in solver_opts:
             ss.set_optimality_tolerance(solver_opts["optimality"])
+            solver_opts.pop("optimality")
 
-        for p in [
-                CUOPT_ABSOLUTE_DUAL_TOLERANCE,
-                CUOPT_ABSOLUTE_GAP_TOLERANCE,
-                CUOPT_ABSOLUTE_PRIMAL_TOLERANCE,
-                CUOPT_CROSSOVER,
-                CUOPT_DUAL_INFEASIBLE_TOLERANCE,
-                CUOPT_FIRST_PRIMAL_FEASIBLE,
-                CUOPT_INFEASIBILITY_DETECTION,
-                CUOPT_ITERATION_LIMIT,
-                CUOPT_LOG_FILE,
-                CUOPT_MIP_ABSOLUTE_GAP,
-                CUOPT_MIP_ABSOLUTE_TOLERANCE,
-                CUOPT_MIP_HEURISTICS_ONLY,
-                CUOPT_MIP_INTEGRALITY_TOLERANCE,
-                CUOPT_MIP_RELATIVE_GAP,
-                CUOPT_MIP_RELATIVE_TOLERANCE,
-                CUOPT_MIP_SCALING,
-                CUOPT_NUM_CPU_THREADS,
-                CUOPT_PER_CONSTRAINT_RESIDUAL,
-                CUOPT_PRIMAL_INFEASIBLE_TOLERANCE,
-                CUOPT_RELATIVE_DUAL_TOLERANCE,
-                CUOPT_RELATIVE_GAP_TOLERANCE,
-                CUOPT_RELATIVE_PRIMAL_TOLERANCE,
-                CUOPT_SAVE_BEST_PRIMAL_SO_FAR,
-                CUOPT_SOLUTION_FILE,
-                CUOPT_STRICT_INFEASIBILITY,
-                CUOPT_TIME_LIMIT,
-                CUOPT_USER_PROBLEM_FILE]:
-            if p in solver_opts:
+        valid = self._get_cuopt_parameter_strings()
+        for p,v in solver_opts.items():
+            if p in valid:
                 ss.set_parameter(p, solver_opts[p])
+
         return ss
 
 

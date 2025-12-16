@@ -16,15 +16,15 @@ limitations under the License.
 
 
 import os
-import unittest
 
 import numpy as np
+import pytest
 
 import cvxpy as cp
 from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS
 
 
-@unittest.skipUnless('COPT' in INSTALLED_SOLVERS, 'COPT is not installed.')
+@pytest.mark.skipif('COPT' not in INSTALLED_SOLVERS, reason='COPT is not installed.')
 def test_write(tmpdir):
     """Test the COPT model.write().
     """

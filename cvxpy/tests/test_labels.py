@@ -292,7 +292,7 @@ def test_division_multiplication_precedence():
     
     # Test division with multiplication on right needs parentheses
     expr = x / (y * z)
-    assert str(expr) == "x / (y @ z)"  # Should have parentheses
+    assert str(expr) == "x / (y * z)"  # Should have parentheses
     
     # Test with labels
     a = x.set_label("a")
@@ -300,32 +300,32 @@ def test_division_multiplication_precedence():
     c = z.set_label("c")
     
     expr_labeled = a / (b * c)
-    assert expr_labeled.format_labeled() == "a / (b @ c)"
+    assert expr_labeled.format_labeled() == "a / (b * c)"
     
     # Test that multiplication followed by division doesn't add extra parens
     expr2 = x * y / z
-    assert str(expr2) == "x @ y / z"  # No parentheses needed
+    assert str(expr2) == "x * y / z"  # No parentheses needed
     
     # Test with labeled version
     expr2_labeled = a * b / c
-    assert expr2_labeled.format_labeled() == "a @ b / c"
+    assert expr2_labeled.format_labeled() == "a * b / c"
     
     # Additional precedence tests
     # a + b * c should not have parens (multiplication has higher precedence)
     expr3 = a + b * c
-    assert expr3.format_labeled() == "a + b @ c"
+    assert expr3.format_labeled() == "a + b * c"
     
     # a * (b + c) should have parens
     expr4 = a * (b + c)
-    assert expr4.format_labeled() == "a @ (b + c)"
+    assert expr4.format_labeled() == "a * (b + c)"
     
     # (a / b) * c vs a / (b * c)
     expr5 = (a / b) * c
     # Division gets parens when used in multiplication
-    assert expr5.format_labeled() == "(a / b) @ c"
+    assert expr5.format_labeled() == "(a / b) * c"
     
     expr6 = a / (b * c)
-    assert expr6.format_labeled() == "a / (b @ c)"  # Needs parens
+    assert expr6.format_labeled() == "a / (b * c)"  # Needs parens
 
 
 def test_matrix_expressions_with_labels():
@@ -435,8 +435,8 @@ def test_label_display_catalog_exact():
     assert (-x).format_labeled() == "-xL"
 
     # Division / multiplication precedence
-    assert (a / (b * c)).format_labeled() == "aL / (bL @ cL)"
-    assert ((a / b) * c).format_labeled() == "(aL / bL) @ cL"
+    assert (a / (b * c)).format_labeled() == "aL / (bL * cL)"
+    assert ((a / b) * c).format_labeled() == "(aL / bL) * cL"
 
     # Transpose and indexing
     assert cp.transpose(x).format_labeled() == "xL.T"

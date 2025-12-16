@@ -37,7 +37,6 @@ from cvxpy.interface.matrix_utilities import scalar_value
 from cvxpy.problems.objective import Maximize, Minimize
 from cvxpy.reductions import InverseData
 from cvxpy.reductions.chain import Chain
-from cvxpy.reductions.dgp2dcp.dgp2dcp import Dgp2Dcp
 from cvxpy.reductions.dqcp2dcp import dqcp2dcp
 from cvxpy.reductions.eval_params import EvalParams
 from cvxpy.reductions.flip_objective import FlipObjective
@@ -48,6 +47,7 @@ from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.defines import SOLVER_MAP_CONIC, SOLVER_MAP_QP
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
 from cvxpy.reductions.solvers.solver import Solver
+from cvxpy.reductions.solvers.solver_inverse_data import SolverInverseData
 from cvxpy.reductions.solvers.solving_chain import (
     SolvingChain,
     construct_solving_chain,
@@ -367,12 +367,24 @@ class Problem(u.Canonical):
     @perf.compute_once
     def is_qp(self) -> bool:
         """Is problem a quadratic program?
+
+        A problem is a QP if:
+        - It is DCP
+        - The objective is quadratic or piecewise-affine (QPWA)
+        - Inequality constraints (Inequality, NonPos, NonNeg) have PWL expressions
+        - Equality constraints (Equality, Zero) are allowed (DCP ensures affine args)
+        - No other constraint types (e.g., SOC, PSD, ExpCone) are present
+        - No PSD/NSD/Hermitian variables
         """
         for c in self.constraints:
-            if not (isinstance(c, (Equality, Zero)) or c.args[0].is_pwl()):
+            if type(c) in (Inequality, NonPos, NonNeg):
+                if not c.expr.is_pwl():
+                    return False
+            elif type(c) not in (Equality, Zero):
+                # Reject conic constraints (SOC, PSD, ExpCone, etc.)
                 return False
         for var in self.variables():
-            if var.is_psd() or var.is_nsd():
+            if var.attributes['PSD'] or var.attributes['NSD'] or var.attributes['hermitian']:
                 return False
         return (self.is_dcp() and self.objective.args[0].is_qpwa())
 
@@ -784,18 +796,11 @@ class Problem(u.Canonical):
                 s.LOGGER.info(
                         'Using cached ASA map, for faster compilation '
                         '(bypassing reduction chain).')
-            if gp:
-                dgp2dcp = self._cache.solving_chain.get(Dgp2Dcp)
-                # Parameters in the param cone prog are the logs
-                # of parameters in the original problem (with one exception:
-                # parameters appearing as exponents (in power and gmatmul
-                # atoms) are unchanged.
-                old_params_to_new_params = dgp2dcp.canon_methods._parameters
-                for param in self.parameters():
-
-                    if param in old_params_to_new_params:
-                        old_params_to_new_params[param].value = np.log(
-                            param.value)
+            # Update parameter values for reductions that transform them.
+            # Each reduction handles its own parameter transformations
+            # (e.g., Dgp2Dcp applies log(), Complex2Real splits into real/imag).
+            for reduction in solving_chain.reductions:
+                reduction.update_parameters(self)
 
             data, solver_inverse_data = solving_chain.solver.apply(
                 self._cache.param_prog)
@@ -834,6 +839,8 @@ class Problem(u.Canonical):
                 # the last datum in inverse_data corresponds to the solver,
                 # so we shouldn't cache it
                 self._cache.inverse_data = inverse_data[:-1]
+        # Convert last inverse data (which is from the solver) to a SolverInverseData object.
+        inverse_data[-1] = SolverInverseData(inverse_data[-1], solving_chain.solver, solver_opts)
         return data, solving_chain, inverse_data
 
     def _find_candidate_solvers(self,
@@ -1312,19 +1319,20 @@ class Problem(u.Canonical):
         backward_cache = self._solver_cache[s.DIFFCP]
         DT = backward_cache["DT"]
         zeros = np.zeros(backward_cache["s"].shape)
+        # del_vars: dictionary of variable gradients (delta/∂ with respect to variables)
+        # Maps variable IDs to their gradient arrays for the backward pass
         del_vars = {}
 
-        gp = self._cache.gp()
         for variable in self.variables():
             if variable.gradient is None:
                 del_vars[variable.id] = np.ones(variable.shape)
             else:
                 del_vars[variable.id] = np.asarray(variable.gradient,
                                                    dtype=np.float64)
-            if gp:
-                # x_gp = exp(x_cone_program),
-                # dx_gp/d x_cone_program = exp(x_cone_program) = x_gp
-                del_vars[variable.id] *= variable.value
+            # Apply chain rule through reductions that transform variables
+            for reduction in self._cache.solving_chain.reductions:
+                del_vars[variable.id] = reduction.var_backward(
+                    variable, del_vars[variable.id])
 
         dx = self._cache.param_prog.split_adjoint(del_vars)
         start = time.time()
@@ -1333,29 +1341,18 @@ class Problem(u.Canonical):
         backward_cache['DT_TIME'] = end - start
         dparams = self._cache.param_prog.apply_param_jac(dc, -dA, db)
 
-        if not gp:
-            for param in self.parameters():
-                param.gradient = dparams[param.id]
-        else:
-            dgp2dcp = self._cache.solving_chain.get(Dgp2Dcp)
-            old_params_to_new_params = dgp2dcp.canon_methods._parameters
-            for param in self.parameters():
-                # Note: if param is an exponent in a power or gmatmul atom,
-                # then the parameter passes through unchanged to the DCP
-                # program; if the param is also used elsewhere (not as an
-                # exponent), then param will also be in
-                # old_params_to_new_params. Therefore, param.gradient =
-                # dparams[param.id] (or 0) + 1/param*dparams[new_param.id]
-                #
-                # Note that param.id is in dparams if and only if
-                # param was used as an exponent (because this means that
-                # the parameter entered the DCP problem unchanged.)
-                grad = 0.0 if param.id not in dparams else dparams[param.id]
-                if param in old_params_to_new_params:
-                    new_param = old_params_to_new_params[param]
-                    # new_param.value == log(param), apply chain rule
-                    grad += (1.0 / param.value) * dparams[new_param.id]
-                param.gradient = grad
+        # Compute gradients for each parameter, applying chain rule through
+        # reductions that transform parameters (e.g., DGP log transform,
+        # Complex2Real split into real/imag).
+        for param in self.parameters():
+            # Start with the direct gradient if the param passed through unchanged
+            grad = 0.0 if param.id not in dparams else dparams[param.id]
+            # Apply chain rule through any reductions that transformed this param
+            for reduction in self._cache.solving_chain.reductions:
+                reduction_grad = reduction.param_backward(param, dparams)
+                if reduction_grad is not None:
+                    grad = grad + reduction_grad
+            param.gradient = grad
 
     def derivative(self) -> None:
         """Apply the derivative of the solution map to perturbations in the Parameters
@@ -1414,32 +1411,24 @@ class Problem(u.Canonical):
         D = backward_cache["D"]
         param_deltas = {}
 
-        gp = self._cache.gp()
-        if gp:
-            dgp2dcp = self._cache.solving_chain.get(Dgp2Dcp)
-
         if not self.parameters():
             for variable in self.variables():
                 variable.delta = np.zeros(variable.shape)
             return
 
+        # Compute deltas for transformed parameters, applying chain rule through
+        # reductions that transform parameters (e.g., DGP log transform,
+        # Complex2Real split into real/imag).
         for param in self.parameters():
             delta = param.delta if param.delta is not None else np.zeros(param.shape)
-            if gp:
-                if param in dgp2dcp.canon_methods._parameters:
-                    new_param_id = dgp2dcp.canon_methods._parameters[param].id
-                else:
-                    new_param_id = param.id
-                param_deltas[new_param_id] = (
-                    1.0/param.value * np.asarray(delta, dtype=np.float64))
-                if param.id in param_prog.param_id_to_col:
-                    # here, param generated a new parameter and also
-                    # passed through to the param cone prog unchanged
-                    # (because it was an exponent of a power)
-                    param_deltas[param.id] = np.asarray(delta,
-                                                        dtype=np.float64)
-            else:
+            # If param passed through unchanged, add its delta directly
+            if param.id in param_prog.param_id_to_col:
                 param_deltas[param.id] = np.asarray(delta, dtype=np.float64)
+            # Apply chain rule through any reductions that transformed this param
+            for reduction in self._cache.solving_chain.reductions:
+                transformed_deltas = reduction.param_forward(param, delta)
+                if transformed_deltas is not None:
+                    param_deltas.update(transformed_deltas)
         dc, _, dA, db = param_prog.apply_parameters(param_deltas,
                                                     zero_offset=True)
         start = time.time()
@@ -1450,10 +1439,9 @@ class Problem(u.Canonical):
             dx, [v.id for v in self.variables()])
         for variable in self.variables():
             variable.delta = dvars[variable.id]
-            if gp:
-                # x_gp = exp(x_cone_program),
-                # dx_gp/d x_cone_program = exp(x_cone_program) = x_gp
-                variable.delta *= variable.value
+            # Apply chain rule through reductions that transform variables
+            for reduction in self._cache.solving_chain.reductions:
+                variable.delta = reduction.var_forward(variable, variable.delta)
 
     def _clear_solution(self) -> None:
         for v in self.variables():
@@ -1518,7 +1506,6 @@ class Problem(u.Canonical):
             A solving chain that was used to solve the problem.
         inverse_data : list
             The inverse data returned by applying the chain to the problem.
-
         Raises
         ------
         cvxpy.error.SolverError

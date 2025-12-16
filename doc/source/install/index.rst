@@ -78,7 +78,7 @@ or a conda environment.
             pip install -e .
 
         otherwise, run
-        
+
         ::
 
             pip install .
@@ -128,6 +128,18 @@ Install with Additional Solver Support
     CVXPY supports the GUROBI solver.
     Install GUROBI version 7.5.2 or greater such that you can ``import gurobipy`` in Python.
     See the `GUROBI <https://www.gurobi.com/>`_ website for installation instructions.
+
+.. info:: MOREAU
+    :collapsible:
+
+    CVXPY supports the MOREAU solver.
+    Simply install MOREAU such that you can ``import moreau`` in Python.
+
+    ::
+
+        pip install moreau
+
+    See the `MOREAU <https://optimalintellect.com/>`_ website for installation instructions.
 
 .. info:: MOSEK
     :collapsible:
@@ -220,8 +232,9 @@ Install with Additional Solver Support
    CVXPY supports the HiGHS solver. Run the following command to install the HiGHS python interface.
 
    .. code-block:: python
-    pip install highspy
-   
+
+       pip install highspy
+
    See the `HiGHS <https://ergo-code.github.io/HiGHS/dev/interfaces/python/>`_ documentation for additional instructions.
 
 .. info:: SCIPY

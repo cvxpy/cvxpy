@@ -49,6 +49,7 @@ class PowCone3D(Cone):
             if not (val.is_affine() and val.is_real()):
                 raise ValueError('All arguments must be affine and real.')
         alpha = Expression.cast_to_const(alpha)
+        alpha_promoted_to_vec = False
         if alpha.is_scalar():
             if self.x.shape:
                 alpha = cvxtypes.promote()(alpha, self.x.shape)
@@ -56,12 +57,13 @@ class PowCone3D(Cone):
                 # when `alpha` is a naked float, it has to be cast into a
                 # 1-D array to be compatible with downstream (vectorized)
                 # processing
+                alpha_promoted_to_vec = True
                 alpha = cvxtypes.promote()(alpha, (1,))
         self.alpha = alpha
         if np.any(self.alpha.value <= 0) or np.any(self.alpha.value >= 1):
             msg = "Argument alpha must have entries in the open interval (0, 1)."
             raise ValueError(msg)
-        if alpha.shape == (1,):
+        if alpha_promoted_to_vec:
             arg_shapes = [self.x.shape, self.y.shape, self.z.shape, ()]
         else:
             arg_shapes = [self.x.shape, self.y.shape, self.z.shape, self.alpha.shape]
@@ -227,7 +229,18 @@ class PowConeND(Cone):
 
     def get_data(self):
         return [self.alpha, self.axis, self.id]
-
+    
+    @property
+    def shape(self) -> Tuple[int, int]:
+        # The shape property is a tuple (m, n) where each
+        # column/row is a separate power cone depending on axis.
+        # This constitutes the shape of the hypograph variable z
+        # appended to W in the standard conic form.
+        # TODO: support arbitrary z.dim
+        m, n = self.W.shape if self.axis == 0 else (self.W.shape[1], self.W.shape[0])
+        s = (m + 1, n)
+        return s
+    
     @property
     def residual(self):
         # TODO: The projection should be implemented directly.
