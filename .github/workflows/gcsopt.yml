@@ -1,0 +1,27 @@
+name: test_gcsopt
+
+on:
+    pull_request:
+    push:
+        branches:
+            - master
+        tags:
+          - '*'
+jobs:
+  test_backends:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - uses: actions/checkout@v5
+      - name: Install pytest and gcsopt
+        run: |
+          pip install . pytest hypothesis
+          git clone https://github.com/TobiaMarcucci/gcsopt.git
+          cd gcsopt
+          git submodule update --init --recursive
+          pip install .
+      - name: Run test_gcsopt
+        run : |
+          pytest gcsopt/tests
