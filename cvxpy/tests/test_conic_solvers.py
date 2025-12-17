@@ -25,6 +25,7 @@ import scipy.linalg as la
 import scipy.stats as st
 
 import cvxpy as cp
+import cvxpy.settings as s
 import cvxpy.tests.solver_test_helpers as sths
 from cvxpy.reductions.solvers.defines import (
     INSTALLED_MI_SOLVERS,
@@ -2360,6 +2361,18 @@ class TestSCIP(unittest.TestCase):
             exc = "Solver 'SCIP' failed. " \
                   "Try another solver, or solve with verbose=True for more information."
             assert str(se.value) == exc
+
+    def test_scip_solver_stats(self) -> None:
+        import pyscipopt
+
+        sth = sths.lp_0()
+        sth.solve(solver="SCIP")
+        stats = sth.prob.solver_stats
+        assert stats.solver_name == "SCIP"
+        assert stats.solve_time is not None
+        assert stats.num_iters is not None
+        assert stats.extra_stats["scip_status"] == "optimal"
+        assert isinstance(stats.extra_stats["model"], pyscipopt.Model)
 
 
 # We can't inherit from unittest.TestCase since we access some advanced pytest features.
