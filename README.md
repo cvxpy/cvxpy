@@ -121,7 +121,7 @@ Here are some simple ways to start contributing immediately:
 * Read the CVXPY source code and improve the documentation, or address TODOs
 * Enhance the [website documentation](https://github.com/cvxpy/cvxpy/tree/master/doc)
 * Browse the [issue tracker](https://github.com/cvxpy/cvxpy/issues), and look for issues tagged as "help wanted"
-* Polish the [example library](https://github.com/cvxpy/cvxpy/tree/master/examples)
+* Polish the [example library](https://github.com/cvxpy/examples)
 * Add a [benchmark](https://github.com/cvxpy/benchmarks)
 
 If you'd like to add a new example to our library, or implement a new feature,
