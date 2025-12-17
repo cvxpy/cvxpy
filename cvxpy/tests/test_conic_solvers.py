@@ -25,7 +25,6 @@ import scipy.linalg as la
 import scipy.stats as st
 
 import cvxpy as cp
-import cvxpy.settings as s
 import cvxpy.tests.solver_test_helpers as sths
 from cvxpy.reductions.solvers.defines import (
     INSTALLED_MI_SOLVERS,
