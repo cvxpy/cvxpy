@@ -522,7 +522,7 @@ class Problem(u.Canonical):
                 s.LOGGER.info("Solver %s failed: %s", solver_name, e)
         raise error.SolverError(f"All solvers failed: {solvers}")
 
-    def solve(self, *args, **kwargs) -> float:
+    def solve(self, *args, **kwargs):
         """Compiles and solves the problem using the specified method.
 
         Populates the :code:`status` and :code:`value` attributes on the
