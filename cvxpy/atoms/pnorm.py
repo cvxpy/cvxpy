@@ -141,18 +141,32 @@ class Pnorm(AxisAtom):
     def numeric(self, values):
         """Returns the p-norm of x.
         """
-        if self.axis is None:
-            values = np.array(values[0]).flatten()
-        else:
-            values = np.array(values[0])
+        val = np.array(values[0])
 
-        if self.p < 1 and np.any(values < 0):
+        if self.p < 1 and np.any(val < 0):
             return -np.inf
-        if self.p < 0 and np.any(values == 0):
+        if self.p < 0 and np.any(val == 0):
             return 0.0
 
-        return np.linalg.norm(values, float(self.p), axis=self.axis,
-                              keepdims=self.keepdims)
+        # For pnorm, we need vector norm behavior (flatten problem dims).
+        # np.linalg.norm with tuple axis gives matrix norm, which is different.
+        if self.axis is None:
+            # Compute batch_ndim to preserve batch dimensions
+            batch_ndim = val.ndim - len(self.args[0].shape)
+            if batch_ndim > 0:
+                # Flatten problem dimensions, keeping batch dims
+                batch_shape = val.shape[:batch_ndim]
+                val = val.reshape(batch_shape + (-1,))
+                return np.linalg.norm(val, float(self.p), axis=-1,
+                                      keepdims=self.keepdims)
+            else:
+                # Non-batched: flatten all
+                return np.linalg.norm(val.flatten(), float(self.p),
+                                      keepdims=self.keepdims)
+        else:
+            effective_axis = self._get_effective_axis(val)
+            return np.linalg.norm(val, float(self.p), axis=effective_axis,
+                                  keepdims=self.keepdims)
 
     def validate_arguments(self) -> None:
         super(Pnorm, self).validate_arguments()

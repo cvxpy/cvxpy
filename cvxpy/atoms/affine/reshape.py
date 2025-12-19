@@ -102,7 +102,13 @@ class reshape(AffAtom):
     def numeric(self, values):
         """Reshape the value.
         """
-        return np.reshape(values[0], self.shape, order=self.order)
+        val = values[0]
+        # Handle batched values: preserve batch dimensions
+        batch_ndim = np.ndim(val) - len(self.args[0].shape)
+        if batch_ndim > 0:
+            batch_shape = val.shape[:batch_ndim]
+            return np.reshape(val, batch_shape + self.shape, order=self.order)
+        return np.reshape(val, self.shape, order=self.order)
 
     def validate_arguments(self) -> None:
         """Checks that the new shape has the same number of entries as the old.

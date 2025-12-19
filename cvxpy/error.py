@@ -60,3 +60,12 @@ class DQCPError(Exception):
 class ParameterError(Exception):
     """Error thrown for accessing the value of an unspecified parameter.
     """
+
+
+class BatchedValueError(Exception):
+    """Error thrown when accessing .value on expressions with batched variables.
+
+    In batch mode, expression .value is not supported because atoms would need
+    batch-aware numeric implementations. Access variable values directly instead
+    (e.g., x.value) and compute expressions using numpy operations.
+    """

@@ -136,15 +136,15 @@ class ExpCone(Cone):
         s = (3,) + self.x.shape
         return s
 
-    def save_dual_value(self, value) -> None:
+    def save_dual_value(self, value, batch_shape=()) -> None:
         # TODO(akshaya,SteveDiamond): verify that reshaping below works correctly
         value = np.reshape(value, (-1, 3))
         dv0 = np.reshape(value[:, 0], self.x.shape)
         dv1 = np.reshape(value[:, 1], self.y.shape)
         dv2 = np.reshape(value[:, 2], self.z.shape)
-        self.dual_variables[0].save_value(dv0)
-        self.dual_variables[1].save_value(dv1)
-        self.dual_variables[2].save_value(dv2)
+        self.dual_variables[0].save_value(dv0, batch_shape=batch_shape)
+        self.dual_variables[1].save_value(dv1, batch_shape=batch_shape)
+        self.dual_variables[2].save_value(dv2, batch_shape=batch_shape)
 
     def _dual_cone(self, *args):
         """Implements the dual cone of the exponential cone
@@ -272,7 +272,7 @@ class RelEntrConeQuad(Cone):
         s = (3,) + self.x.shape
         return s
 
-    def save_dual_value(self, value) -> None:
+    def save_dual_value(self, value, batch_shape=()) -> None:
         # TODO: implement me.
         pass
 
@@ -389,6 +389,6 @@ class OpRelEntrConeQuad(Cone):
         s = (3,) + self.X.shape
         return s
 
-    def save_dual_value(self, value) -> None:
+    def save_dual_value(self, value, batch_shape=()) -> None:
         # TODO: implement me.
         pass

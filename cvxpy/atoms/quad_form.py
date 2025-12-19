@@ -41,12 +41,36 @@ class QuadForm(Atom):
         super(QuadForm, self).__init__(x, P)
 
     def numeric(self, values):
-        prod = values[1].dot(values[0])
-        if self.args[0].is_complex():
-            quad = np.dot(np.conj(values[0]).T, prod)
+        x, P = values[0], values[1]
+        # Determine batch dimensions from x
+        # x.shape is (..., n) or (..., n, 1)
+        x_shape = self.args[0].shape
+        x_ndim = 1 if len(x_shape) == 1 or x_shape[1] == 1 else len(x_shape)
+        batch_ndim = x.ndim - x_ndim
+
+        if batch_ndim > 0:
+            # Batched computation using einsum
+            # Squeeze x if it's (..., n, 1) shape
+            if x.shape[-1] == 1 and len(x_shape) > 1 and x_shape[-1] == 1:
+                x = x.squeeze(-1)
+
+            if self.args[0].is_complex():
+                x_conj = np.conj(x)
+            else:
+                x_conj = x
+
+            if P.ndim == 2:  # P not batched: (n, n)
+                return np.real(np.einsum('...i,ij,...j->...', x_conj, P, x))
+            else:  # P also batched: (..., n, n)
+                return np.real(np.einsum('...i,...ij,...j->...', x_conj, P, x))
         else:
-            quad = np.dot(np.transpose(values[0]), prod)
-        return np.real(quad)
+            # Original non-batched code
+            prod = P.dot(x)
+            if self.args[0].is_complex():
+                quad = np.dot(np.conj(x).T, prod)
+            else:
+                quad = np.dot(np.transpose(x), prod)
+            return np.real(quad)
 
     def validate_arguments(self) -> None:
         super(QuadForm, self).validate_arguments()

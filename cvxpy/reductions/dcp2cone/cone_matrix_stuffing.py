@@ -197,8 +197,33 @@ class ParamConeProg(ParamProb):
         return self.x.attributes['boolean'] or \
             self.x.attributes['integer']
 
+    @property
+    def batch_shape(self) -> tuple:
+        """Compute batch shape from parameters.
+
+        Returns the broadcasted batch shape across all batched parameters,
+        or () if no parameters are batched.
+        """
+        batch_shapes = []
+        for param in self.parameters:
+            if param.is_batched:
+                batch_shapes.append(param.batch_shape)
+
+        if not batch_shapes:
+            return ()
+
+        # Broadcast all batch shapes together
+        try:
+            result_shape = batch_shapes[0]
+            for shape in batch_shapes[1:]:
+                result_shape = np.broadcast_shapes(result_shape, shape)
+            return tuple(result_shape)
+        except ValueError as e:
+            raise ValueError(f"Incompatible batch shapes: {batch_shapes}") from e
+
     def apply_parameters(self, id_to_param_value=None, zero_offset: bool = False,
-                         keep_zeros: bool = False, quad_obj: bool = False):
+                         keep_zeros: bool = False, quad_obj: bool = False,
+                         batch_shape: tuple[int, ...] | None = None):
         """Returns A, b after applying parameters (and reshaping).
 
         Args:
@@ -206,31 +231,82 @@ class ParamConeProg(ParamProb):
           zero_offset: (optional) if True, zero out the constant offset in the
                        parameter vector.
           keep_zeros: (optional) if True, store explicit zeros in A where
-                        parameters are affected.
+                        parameters are affected. Only used in non-batched mode.
           quad_obj: (optional) if True, include quadratic objective term.
+          batch_shape: (optional) if provided, returns batched results with
+              dense arrays instead of sparse matrices. Values should have
+              shape (*batch_shape, *param_shape).
+
+        Returns:
+            Non-batched (batch_shape is None):
+                If quad_obj is False: (q, d, A, b) where A is sparse
+                If quad_obj is True: (P, q, d, A, b) where P, A are sparse
+
+            Batched (batch_shape is provided):
+                If quad_obj is False: (q, d, A, b) where
+                    - q: shape (*batch_shape, n_var)
+                    - d: shape (*batch_shape,)
+                    - A: shape (*batch_shape, n_constr, n_var) dense
+                    - b: shape (*batch_shape, n_constr)
+                If quad_obj is True: (P, q, d, A, b) where
+                    - P: shape (*batch_shape, n_var, n_var) dense
         """
-        self.reduced_A.cache(keep_zeros)
-
         def param_value(idx):
-            return (np.array(self.id_to_param[idx].value) if id_to_param_value
-                    is None else id_to_param_value[idx])
+            if id_to_param_value is None:
+                return np.array(self.id_to_param[idx].value)
+            else:
+                return id_to_param_value[idx]
 
-        param_vec = canonInterface.get_parameter_vector(
-            self.total_param_size,
-            self.param_id_to_col,
-            self.param_id_to_size,
-            param_value,
-            zero_offset=zero_offset)
-        q, d = canonInterface.get_matrix_from_tensor(
-            self.q, param_vec, self.x.size, with_offset=True)
-        q = q.toarray().flatten()
-        A, b = self.reduced_A.get_matrix_from_tensor(param_vec, with_offset=True)
-        if quad_obj:
-            self.reduced_P.cache(keep_zeros)
-            P, _ = self.reduced_P.get_matrix_from_tensor(param_vec, with_offset=False)
-            return P, q, d, A, np.atleast_1d(b)
+        if batch_shape is not None and len(batch_shape) > 0:
+            # Batched mode
+            param_vec = canonInterface.get_parameter_vector(
+                self.total_param_size,
+                self.param_id_to_col,
+                self.param_id_to_size,
+                param_value,
+                zero_offset=zero_offset,
+                batch_shape=batch_shape)
+
+            # Get batched q and d from objective tensor
+            q, d = canonInterface.get_matrix_from_tensor_batched(
+                self.q, param_vec, self.x.size, batch_shape, with_offset=True)
+            # q: (*batch_shape, 1, n_var), d: (*batch_shape, 1)
+            # Squeeze out the constraint dimension (objective has 1 "constraint")
+            q = q.squeeze(axis=-2)  # (*batch_shape, n_var)
+            d = d.squeeze(axis=-1)  # (*batch_shape,)
+
+            # Get batched A and b from constraint tensor
+            A, b = canonInterface.get_matrix_from_tensor_batched(
+                self.A, param_vec, self.x.size, batch_shape, with_offset=True)
+            # A: (*batch_shape, n_constr, n_var), b: (*batch_shape, n_constr)
+
+            if quad_obj:
+                P, _ = canonInterface.get_matrix_from_tensor_batched(
+                    self.P, param_vec, self.x.size, batch_shape, with_offset=False)
+                # P: (*batch_shape, n_var, n_var)
+                return P, q, d, A, b
+            else:
+                return q, d, A, b
         else:
-            return q, d, A, np.atleast_1d(b)
+            # Non-batched mode (original behavior)
+            self.reduced_A.cache(keep_zeros)
+
+            param_vec = canonInterface.get_parameter_vector(
+                self.total_param_size,
+                self.param_id_to_col,
+                self.param_id_to_size,
+                param_value,
+                zero_offset=zero_offset)
+            q, d = canonInterface.get_matrix_from_tensor(
+                self.q, param_vec, self.x.size, with_offset=True)
+            q = q.toarray().flatten()
+            A, b = self.reduced_A.get_matrix_from_tensor(param_vec, with_offset=True)
+            if quad_obj:
+                self.reduced_P.cache(keep_zeros)
+                P, _ = self.reduced_P.get_matrix_from_tensor(param_vec, with_offset=False)
+                return P, q, d, A, np.atleast_1d(b)
+            else:
+                return q, d, A, np.atleast_1d(b)
 
     def apply_param_jac(self, delc, delA, delb, active_params=None):
         """Multiplies by Jacobian of parameter mapping.
@@ -426,23 +502,32 @@ class ConeMatrixStuffing(MatrixStuffing):
         """Retrieves a solution to the original problem"""
         var_map = inverse_data.var_offsets
         con_map = inverse_data.cons_id_map
+
         # Flip sign of opt val if maximize.
         opt_val = solution.opt_val
-        if solution.status not in s.ERROR and not inverse_data.minimize:
+        if solution.all_not_error() and not inverse_data.minimize:
             opt_val = -solution.opt_val
 
         primal_vars, dual_vars = {}, {}
-        if solution.status not in s.SOLUTION_PRESENT:
+        if not solution.has_solution():
             return Solution(solution.status, opt_val, primal_vars, dual_vars,
                             solution.attr)
 
         # Split vectorized variable into components.
         x_opt = list(solution.primal_vars.values())[0]
+        batch_shape = solution.batch_shape
+
         for var_id, offset in var_map.items():
             shape = inverse_data.var_shapes[var_id]
             size = np.prod(shape, dtype=int)
-            primal_vars[var_id] = np.reshape(x_opt[offset:offset+size], shape,
-                                             order='F')
+            if batch_shape:
+                # For batched: x_opt is (batch_shape..., total_var_size)
+                var_slice = x_opt[..., offset:offset+size]
+                primal_vars[var_id] = np.reshape(var_slice, batch_shape + shape,
+                                                 order='F')
+            else:
+                primal_vars[var_id] = np.reshape(x_opt[offset:offset+size], shape,
+                                                 order='F')
 
         # Remap dual variables if dual exists (problem is convex).
         if solution.dual_vars is not None:
@@ -452,6 +537,11 @@ class ConeMatrixStuffing(MatrixStuffing):
                 # TODO rationalize Exponential.
                 if shape == () or isinstance(con_obj, (ExpCone, SOC)):
                     dual_vars[old_con] = solution.dual_vars[new_con]
+                elif batch_shape:
+                    # For batched: dual is (batch_shape..., constraint_size)
+                    dual_slice = solution.dual_vars[new_con]
+                    dual_vars[old_con] = np.reshape(dual_slice, batch_shape + shape,
+                                                    order='F')
                 else:
                     dual_vars[old_con] = np.reshape(
                         solution.dual_vars[new_con],

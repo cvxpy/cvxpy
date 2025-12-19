@@ -96,7 +96,8 @@ class Sum(AxisAtom, AffAtom):
             if not self.keepdims and self.axis is not None:
                 result = result.flatten()
         else:
-            result = np.sum(values[0], axis=self.axis, keepdims=self.keepdims)
+            effective_axis = self._get_effective_axis(values[0])
+            result = np.sum(values[0], axis=effective_axis, keepdims=self.keepdims)
         return result
 
     def graph_implementation(self,

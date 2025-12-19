@@ -40,8 +40,13 @@ class sigma_max(Atom):
     @Atom.numpy_numeric
     def numeric(self, values):
         """Returns the largest singular value of A.
+
+        Supports batched inputs: (..., M, N) -> (...)
         """
-        return LA.norm(values[0], 2)
+        # np.linalg.svd supports batch: (..., M, N) -> (..., min(M,N))
+        # Singular values are returned in descending order
+        s = np.linalg.svd(values[0], compute_uv=False)
+        return s[..., 0]
 
     def _grad(self, values):
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.

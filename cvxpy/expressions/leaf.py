@@ -159,8 +159,19 @@ class Leaf(expression.Expression):
             )
         self.args = []
         self.bounds = self._ensure_valid_bounds(bounds)
+        self._batch_shape: tuple[int, ...] = ()
         if value is not None:
             self.value = value
+
+    @property
+    def batch_shape(self) -> tuple[int, ...]:
+        """Batch dimensions, () if not batched."""
+        return self._batch_shape
+
+    @property
+    def is_batched(self) -> bool:
+        """True if leaf has batch dimensions."""
+        return len(self._batch_shape) > 0
 
     def _validate_indices(self, indices: list[tuple[int]] | tuple[np.ndarray]) -> tuple[np.ndarray]:
         """
@@ -451,7 +462,8 @@ class Leaf(expression.Expression):
             return val
 
     # Getter and setter for parameter value.
-    def save_value(self, val, sparse_path=False) -> None:
+    def save_value(self, val, sparse_path=False, batch_shape=()) -> None:
+        self._batch_shape = batch_shape if val is not None else ()
         if val is None:
             self._value = None
         elif self.sparse_idx is not None and not sparse_path:
@@ -477,6 +489,8 @@ class Leaf(expression.Expression):
 
     @value.setter
     def value(self, val) -> None:
+        # Clear batch shape when setting value directly (non-batched assignment)
+        self._batch_shape = ()
         if self.sparse_idx is not None and self._sparse_high_fill_in:
             warnings.warn('Writing to a sparse CVXPY expression via `.value` is discouraged.'
                           ' Use `.value_sparse` instead', RuntimeWarning, 1)

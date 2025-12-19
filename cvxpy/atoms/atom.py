@@ -397,8 +397,7 @@ class Atom(Expression):
                 arg_val = arg._value_impl()
                 if arg_val is None and not self.is_constant():
                     return None
-                else:
-                    arg_values.append(arg_val)
+                arg_values.append(arg_val)
             result = self.numeric(arg_values)
         return result
 

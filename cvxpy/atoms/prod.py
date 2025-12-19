@@ -84,6 +84,7 @@ class Prod(AxisAtom):
         """Takes the product of the entries of value.
         """
         if intf.is_sparse(values[0]):
+            # Sparse handling doesn't support batching
             sp_mat = values[0]
             if self.axis is None:
                 if sp_mat.nnz == sp_mat.shape[0] * sp_mat.shape[1]:
@@ -104,7 +105,8 @@ class Prod(AxisAtom):
             else:
                 raise UserWarning("cp.prod does not support axis > 1 for sparse matrices.")
         else:
-            result = np.prod(values[0], axis=self.axis, keepdims=self.keepdims)
+            effective_axis = self._get_effective_axis(values[0])
+            result = np.prod(values[0], axis=effective_axis, keepdims=self.keepdims)
         return result
 
     def _column_grad(self, value):

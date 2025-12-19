@@ -51,7 +51,21 @@ class transpose(AffAtom):
     # Returns the transpose of the given value.
     @AffAtom.numpy_numeric
     def numeric(self, values):
-        return np.transpose(values[0], axes=self.axes)
+        val = values[0]
+        # Handle batched values: preserve batch dimensions
+        batch_ndim = np.ndim(val) - len(self.args[0].shape)
+        if batch_ndim > 0:
+            if self.axes is None:
+                # Default: reverse problem dimensions, keep batch dims first
+                batch_axes = tuple(range(batch_ndim))
+                problem_axes = tuple(range(val.ndim - 1, batch_ndim - 1, -1))
+                return np.transpose(val, axes=batch_axes + problem_axes)
+            else:
+                # Offset each axis by batch_ndim
+                batch_axes = tuple(range(batch_ndim))
+                problem_axes = tuple(a + batch_ndim for a in self.axes)
+                return np.transpose(val, axes=batch_axes + problem_axes)
+        return np.transpose(val, axes=self.axes)
 
     def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?

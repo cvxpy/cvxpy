@@ -32,8 +32,13 @@ class normNuc(Atom):
 
     def numeric(self, values):
         """Returns the nuclear norm (i.e. the sum of the singular values) of A.
+
+        Supports batched inputs: (..., M, N) -> (...)
         """
-        return np.linalg.norm(values[0], 'nuc')
+        # np.linalg.svd supports batch: (..., M, N) -> (..., min(M,N))
+        s = np.linalg.svd(values[0], compute_uv=False)
+        # Sum singular values along last axis
+        return np.sum(s, axis=-1)
 
     def _grad(self, values):
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.
