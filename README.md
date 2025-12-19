@@ -8,7 +8,7 @@ with some rules governing how the nonsmooth functions can be used. For details, 
 The installation consists of two steps.
 
 #### Step 1: Install IPOPT via Conda
-DNLP requires an NLP solver. The recommended solver is [Ipopt](XXX), which can be installed together with its Python interface [cyipopt](https://github.com/mechmotum/cyipopt):
+DNLP requires an NLP solver. The recommended solver is [Ipopt](https://coin-or.github.io/Ipopt/), which can be installed together with its Python interface [cyipopt](https://github.com/mechmotum/cyipopt):
 ```bash
 conda install -c conda-forge cyipopt
 ```
