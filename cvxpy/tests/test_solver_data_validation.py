@@ -16,122 +16,62 @@ limitations under the License.
 """
 import numpy as np
 import pytest
-import scipy.sparse as sp
 
 import cvxpy as cp
 from cvxpy.tests.base_test import BaseTest
 
 
 class TestSolverDataValidation(BaseTest):
+    """Test that NaN/Inf values in problem data are caught early.
+
+    These tests verify that NaN/Inf values in constants are detected
+    during apply_parameters() before being sent to the solver.
+    Note: Parameters are already validated at assignment time, so
+    NaN/Inf in parameters are caught earlier.
+    """
+
     def test_inf_constant_in_constraint(self):
+        """Inf in a constraint constant should raise ValueError during solve."""
         x = cp.Variable()
-        # Constant(np.inf) is allowed in expression tree
         c = cp.Constant(np.inf)
         prob = cp.Problem(cp.Minimize(x), [x >= c])
-        
-        # Should raise ValueError from our new check in solving_chain.py
-        # We use SCS because it's a conic solver and usually available
+
         if cp.SCS in cp.installed_solvers():
-            with pytest.raises(ValueError, match="Problem data in .* contains NaN or Inf"):
+            with pytest.raises(ValueError, match="contains NaN or Inf"):
                 prob.solve(solver=cp.SCS)
 
     def test_nan_constant_in_objective(self):
+        """NaN in objective coefficients should raise ValueError."""
         x = cp.Variable()
-        # Use NaN in the linear coefficient, which goes into data[s.C]
         prob = cp.Problem(cp.Minimize(x * cp.Constant(np.nan)), [x >= 0])
-        
+
         if cp.SCS in cp.installed_solvers():
-            with pytest.raises(ValueError, match="Problem data in .* contains NaN or Inf"):
+            with pytest.raises(ValueError, match="contains NaN or Inf"):
                 prob.solve(solver=cp.SCS)
 
-    def test_ignore_nan_flag(self):
+    def test_inf_constant_in_objective(self):
+        """Inf in objective coefficients should raise ValueError."""
         x = cp.Variable()
-        c = cp.Constant(np.inf)
-        prob = cp.Problem(cp.Minimize(x), [x >= c])
-        
-        if cp.SCS in cp.installed_solvers():
-            # Should NOT raise ValueError (might raise SolverError or return infeasible/unbounded)
-            try:
-                prob.solve(solver=cp.SCS, ignore_nan=True)
-            except ValueError as e:
-                if "Problem data in" in str(e):
-                    pytest.fail("ValueError raised even with ignore_nan=True")
-            except Exception:
-                # Other errors are expected (SolverError, etc.)
-                pass
+        prob = cp.Problem(cp.Minimize(x + cp.Constant(np.inf)), [x >= 0])
 
-    def test_sparse_matrix_check(self):
-        # Construct a problem where A matrix might end up sparse and containing Inf
-        # It's hard to force a sparse matrix with Inf through standard atoms without it being caught
-        # elsewhere,
-        # so we might need to manually invoke the check or mock the data.
-        
-        # Let's try to manually call solve_via_data on a SolvingChain to ensure we hit the sparse
-        # path.
+        if cp.SCS in cp.installed_solvers():
+            with pytest.raises(ValueError, match="contains NaN or Inf"):
+                prob.solve(solver=cp.SCS)
+
+    def test_valid_problem_solves(self):
+        """A valid problem should still solve correctly."""
         x = cp.Variable()
         prob = cp.Problem(cp.Minimize(x), [x >= 1])
-        
-        # Create a dummy chain
+
+        if cp.SCS in cp.installed_solvers():
+            prob.solve(solver=cp.SCS)
+            self.assertAlmostEqual(x.value, 1.0, places=3)
+
+    def test_qp_solver_with_inf(self):
+        """Test that QP solvers also catch Inf in problem data."""
+        x = cp.Variable()
+        prob = cp.Problem(cp.Minimize(x**2), [x >= cp.Constant(np.inf)])
+
         if cp.OSQP in cp.installed_solvers():
-            solver = cp.OSQP
-        elif cp.SCS in cp.installed_solvers():
-            solver = cp.SCS
-        else:
-            return
-
-        # We can manually trigger the check by creating a SolvingChain and calling solve_via_data
-        # with bad data
-        # But SolvingChain.solve_via_data calls self.solver.solve_via_data.
-        # We need a real chain.
-        
-        chain = prob._construct_chain(solver=solver)
-        
-        # Create bad data
-        bad_data = {
-            cp.settings.A: sp.csc_matrix(np.array([[np.inf]])),
-            cp.settings.B: np.array([1.0]),
-            cp.settings.C: np.array([1.0]),
-            cp.settings.OFFSET: 0.0
-        }
-        
-        # We need to mock the solver instance inside the chain to avoid actual solving
-        # or just expect the error before the solver is called.
-        
-        # The check happens BEFORE self.solver.solve_via_data
-        
-        with pytest.raises(ValueError, match="Problem data in .* contains NaN or Inf"):
-            chain.solve_via_data(prob, bad_data)
-
-    def test_solver_opts_none(self):
-        # Test that solver_opts=None is handled correctly (defaults to {})
-        x = cp.Variable()
-        prob = cp.Problem(cp.Minimize(x), [x >= 1])
-        
-        if cp.SCS in cp.installed_solvers():
-            solver = cp.SCS
-        else:
-            return
-
-        chain = prob._construct_chain(solver=solver)
-        
-        # Good data
-        good_data = {
-            cp.settings.A: sp.csc_matrix(np.array([[1.0]])),
-            cp.settings.B: np.array([1.0]),
-            cp.settings.C: np.array([1.0]),
-            cp.settings.OFFSET: 0.0
-        }
-        
-        # Should not raise error
-        try:
-            # We mock the solver's solve_via_data to do nothing
-            original_solve = chain.solver.solve_via_data
-            chain.solver.solve_via_data = lambda *args, **kwargs: {}
-            
-            chain.solve_via_data(prob, good_data, solver_opts=None)
-            
-            # Restore
-            chain.solver.solve_via_data = original_solve
-        except Exception as e:
-            pytest.fail(f"Raised exception with solver_opts=None: {e}")
-
+            with pytest.raises(ValueError, match="contains NaN or Inf"):
+                prob.solve(solver=cp.OSQP)

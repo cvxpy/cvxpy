@@ -3,9 +3,7 @@ from __future__ import annotations
 import warnings
 
 import numpy as np
-import scipy.sparse as sp
 
-import cvxpy.settings as s
 from cvxpy.atoms import EXP_ATOMS, NONPOS_ATOMS, PSD_ATOMS, SOC_ATOMS
 from cvxpy.constraints import (
     PSD,
@@ -494,22 +492,6 @@ class SolvingChain(Chain):
         """
         if solver_opts is None:
             solver_opts = {}
-
-        if not solver_opts.get('ignore_nan', False) and isinstance(data, dict):
-             # Check for NaN or Inf in data
-             keys = [s.P, s.Q, s.A, s.B, s.G, s.H, s.F, s.C, s.OFFSET]
-             for key in keys:
-                 if key in data:
-                     val = data[key]
-                     if val is None:
-                         continue
-                     if sp.issparse(val):
-                         val = val.data
-
-                     if np.any(np.isnan(val)) or np.any(np.isinf(val)):
-                          raise ValueError(f"Problem data in '{key}' contains NaN or Inf. "
-                                           "This may be due to invalid parameter values or "
-                                           "unbounded constants.")
 
         return self.solver.solve_via_data(data, warm_start, verbose,
                                           solver_opts, problem._solver_cache)
