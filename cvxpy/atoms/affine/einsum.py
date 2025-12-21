@@ -327,6 +327,10 @@ def _contract_pair(operands, input_lists, to_remove, all_labels, dimension_dict)
         - Expression: The contracted result
         - str: The subscript pattern for the contracted result
     """
+    # Convert all_labels from set to sorted string for deterministic ordering
+    if isinstance(all_labels, set):
+        all_labels = "".join(sorted(all_labels))
+    
     # Align and permute the operands to compatible shapes
     aligned_operands = []
     for operand, input_list in zip(operands, input_lists):
@@ -352,7 +356,13 @@ def _contract_pair(operands, input_lists, to_remove, all_labels, dimension_dict)
         new_operand = cvxpy_sum(new_operand, axis=None, keepdims=False)
     elif len(to_remove) > 0:
         axes_to_remove = [i for i, x in enumerate(all_labels) if x in to_remove]
-        new_operand = cvxpy_sum(new_operand, axis=tuple(axes_to_remove), keepdims=False)
+    
+        # Reduce single-element axis tuple to int
+        if len(axes_to_remove) == 1:
+            axis = axes_to_remove[0]
+        else:
+            axis = tuple(axes_to_remove)
+        new_operand = cvxpy_sum(new_operand, axis=axis, keepdims=False)
     
     new_input = "".join([x for x in all_labels if x not in to_remove])
 
