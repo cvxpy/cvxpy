@@ -19,6 +19,7 @@ from scipy import sparse
 
 import cvxpy.settings as s
 from cvxpy.reductions.solution import Solution, failure_solution
+from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
 from cvxpy.utilities.citations import CITATION_DICT
 
@@ -176,8 +177,21 @@ class KNITRO(QpSolver):
                 dual_vars = None
                 is_mip = bool(inverse_data.get("is_mip", False))
                 if y_kn is not None and not is_mip:
+                    # Build dual vars dict keyed by constraint IDs
+                    # Knitro returns duals for [eq_constrs; ineq_constrs]
                     y = np.array(y_kn)
-                    dual_vars = {KNITRO.DUAL_VAR_ID: y}
+                    n_eq = inverse_data[self.DIMS].zero
+                    eq_dual = utilities.get_dual_values(
+                        y[:n_eq],
+                        utilities.extract_dual_value,
+                        inverse_data[self.EQ_CONSTR])
+                    ineq_dual = utilities.get_dual_values(
+                        y[n_eq:],
+                        utilities.extract_dual_value,
+                        inverse_data[self.NEQ_CONSTR])
+                    dual_vars = {}
+                    dual_vars.update(eq_dual)
+                    dual_vars.update(ineq_dual)
                 solution = Solution(status, obj, primal_vars, dual_vars, attr)
 
         # Free the Knitro context.

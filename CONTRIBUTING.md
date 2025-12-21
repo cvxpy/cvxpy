@@ -47,7 +47,7 @@ following:
 * Read the CVXPY source and enhance the documentation, or address TODOs
 * Browse the [issue tracker](https://github.com/cvxpy/cvxpy/issues), and
   look for the issues tagged "help wanted".
-* Polish the [example library](https://www.cvxpy.org/examples/index.html) or add new examples
+* Polish the [example library](https://www.cvxpy.org/examples/index.html) or add new examples to the [examples repository](https://github.com/cvxpy/examples)
 * Add a [benchmark](https://github.com/cvxpy/benchmarks)
 
 ## License

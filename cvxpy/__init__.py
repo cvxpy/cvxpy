@@ -80,6 +80,7 @@ from cvxpy.settings import (
     INFEASIBLE as INFEASIBLE,
     INFEASIBLE_INACCURATE as INFEASIBLE_INACCURATE,
     MOSEK as MOSEK,
+    MOREAU as MOREAU,
     MPAX as MPAX,
     NAG as NAG,
     OPTIMAL as OPTIMAL,

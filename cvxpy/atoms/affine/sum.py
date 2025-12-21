@@ -15,9 +15,10 @@ limitations under the License.
 """
 import builtins
 from functools import wraps
-from typing import Optional
+from typing import Optional, Tuple
 
 import numpy as np
+from numpy.exceptions import AxisError
 
 import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_op as lo
@@ -71,6 +72,22 @@ class Sum(AxisAtom, AffAtom):
     def is_atom_log_log_concave(self) -> bool:
         """Is the atom log-log concave?"""
         return False
+
+    def validate_arguments(self) -> None:
+        """Validates arguments using NumPy's sum validation."""
+        self.shape_from_args()
+        super(AxisAtom, self).validate_arguments()
+
+    def shape_from_args(self) -> Tuple[int, ...]:
+        """Returns shape using NumPy's sum shape calculation."""
+        try:
+            return np.sum(
+                np.empty(self.args[0].shape),
+                axis=self.axis,
+                keepdims=self.keepdims
+            ).shape
+        except (ValueError, AxisError, TypeError) as e:
+            raise ValueError(f"Invalid arguments for cp.sum: {e}") from e
 
     def numeric(self, values):
         """Sums the entries of value."""

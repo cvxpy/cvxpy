@@ -15,15 +15,15 @@ limitations under the License.
 """
 
 import os
-import unittest
 
 import numpy as np
+import pytest
 
 import cvxpy as cp
 from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS
 
 
-@unittest.skipUnless('GUROBI' in INSTALLED_SOLVERS, 'GUROBI is not installed.')
+@pytest.mark.skipif('GUROBI' not in INSTALLED_SOLVERS, reason='GUROBI is not installed.')
 def test_write(tmpdir):
     """Test the Gurobi model.write().
     """

@@ -63,14 +63,13 @@ class TensorRepresentation:
         Concatenates the row, col, parameter_offset, and data fields of a list of
         TensorRepresentations.
         """
-        data, row, col, parameter_offset = np.array([]), np.array([]), np.array([]), np.array([])
-        # Appending to numpy arrays vs. appending to lists and casting to array at the end was
-        # faster for relevant dimensions in our testing.
-        for t in tensors:
-            data = np.append(data, t.data)
-            row = np.append(row, t.row)
-            col = np.append(col, t.col)
-            parameter_offset = np.append(parameter_offset, t.parameter_offset)
+        if not tensors:
+            raise ValueError("Cannot combine empty list of tensors")
+        # Collect arrays in lists then concatenate once (much faster than repeated np.append)
+        data = np.concatenate([t.data for t in tensors])
+        row = np.concatenate([t.row for t in tensors])
+        col = np.concatenate([t.col for t in tensors])
+        parameter_offset = np.concatenate([t.parameter_offset for t in tensors])
         assert all(t.shape == tensors[0].shape for t in tensors)
         return cls(data, row, col, parameter_offset, tensors[0].shape)
 
@@ -1982,7 +1981,7 @@ class SciPyTensorView(DictTensorView):
                     coo_repr.data,
                     (coo_repr.row % m) + row_offset,
                     coo_repr.col + self.id_to_col[variable_id],
-                    coo_repr.row // m + np.ones(coo_repr.nnz) * self.param_to_col[parameter_id],
+                    coo_repr.row // m + self.param_to_col[parameter_id],
                     shape=shape
                 ))
         return TensorRepresentation.combine(tensor_representations)
