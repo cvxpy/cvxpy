@@ -72,6 +72,13 @@ diff
 
 .. autofunction:: cvxpy.diff
 
+.. _einsum:
+
+einsum
+---------------------------------
+
+.. autofunction:: cvxpy.einsum
+
 .. _hstack:
 
 hstack
