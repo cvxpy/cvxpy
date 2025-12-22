@@ -40,7 +40,7 @@ class kron(AffAtom):
         return np.kron(values[0], values[1])
 
     def validate_arguments(self) -> None:
-        """Checks that both arguments are vectors, and the first is constant.
+        """Checks that at least one argument is constant and both arguments are 2-d.
         """
         if not (self.args[0].is_constant() or self.args[1].is_constant()):
             raise ValueError("At least one argument to kron must be constant.")
