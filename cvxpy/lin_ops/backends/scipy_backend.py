@@ -28,8 +28,9 @@ from cvxpy.lin_ops.backends.base import (
     TensorRepresentation,
 )
 from cvxpy.lin_ops.backends.nd_matmul_utils import (
-    apply_nd_kron_structure,
-    build_interleaved_matrix,
+    expand_lhs_for_nd_matmul,
+    expand_parametric_slices,
+    get_nd_matmul_dims,
 )
 
 
@@ -201,24 +202,12 @@ class SciPyCanonBackend(PythonCanonBackend):
         For ND arrays with batch-varying constant: I_n ⊗ block_diag(C[0], ..., C[B-1])
         """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=False)
+        var_shape = lin.args[0].shape
+        const_shape = lin.data.shape
+
         if is_param_free_lhs:
-            var_shape = lin.args[0].shape
-            const_shape = lin.data.shape
-
-            # Check if constant has batch dimensions
-            const_has_batch = len(const_shape) > 2
-
-            if const_has_batch:
-                # Batch-varying constant: C (..., m, k) @ X (..., k, n)
-                stacked_lhs = build_interleaved_matrix(
-                    lin.data.data, const_shape, var_shape
-                )
-            else:
-                # 2D constant @ ND variable: I_n ⊗ C ⊗ I_batch
-                # For 2D variable (batch_size=1), this reduces to I_n ⊗ C
-                batch_size = int(np.prod(var_shape[:-2])) if len(var_shape) > 2 else 1
-                n = var_shape[-1] if len(var_shape) >= 2 else 1
-                stacked_lhs = apply_nd_kron_structure(lhs, batch_size, n)
+            # Constant lhs: expand using unified helper
+            stacked_lhs = expand_lhs_for_nd_matmul(lhs, lin.data.data, const_shape, var_shape)
 
             def func(x, p):
                 if p == 1:
@@ -226,54 +215,21 @@ class SciPyCanonBackend(PythonCanonBackend):
                 else:
                     return ((sp.kron(sp.eye_array(p, format="csc"), stacked_lhs)) @ x).tocsc()
         else:
-            var_shape = lin.args[0].shape
-
-            # Parametrized lhs @ ND variable: I_n ⊗ C ⊗ I_batch for each param slice
-            # For 2D variable (batch_size=1), this reduces to I_n ⊗ C
-            batch_size = int(np.prod(var_shape[:-2])) if len(var_shape) > 2 else 1
-            n = var_shape[-1] if len(var_shape) >= 2 else 1
-            stacked_lhs = self._stacked_kron_nd(lhs, batch_size, n)
+            # Parametrized lhs: expand each param slice using unified helper
+            batch_size, n, _ = get_nd_matmul_dims(const_shape, var_shape)
+            stacked_lhs = {
+                param_id: sp.vstack(
+                    list(expand_parametric_slices(v, self.param_to_size[param_id], batch_size, n)),
+                    format="csc"
+                )
+                for param_id, v in lhs.items()
+            }
 
             def parametrized_mul(x):
                 return {k: v @ x for k, v in stacked_lhs.items()}
 
             func = parametrized_mul
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
-
-    def _stacked_kron_nd(self, lhs: dict[int, sp.csc_array], batch_size: int, n: int) \
-            -> dict[int, sp.csc_array]:
-        """
-        Apply ND Kronecker structure I_n ⊗ C ⊗ I_batch to each parameter slice.
-
-        For ND matmul C @ X where X has shape (..., k, n), we need:
-        I_n ⊗ C ⊗ I_batch where batch = prod(...)
-
-        Parameters
-        ----------
-        lhs : dict mapping param_id to stacked sparse matrix
-        batch_size : product of batch dimensions
-        n : last dimension of variable
-
-        Returns
-        -------
-        dict mapping param_id to the ND Kronecker-expanded matrix
-        """
-        res = dict()
-        for param_id, v in lhs.items():
-            p = self.param_to_size[param_id]
-            # v has shape (p * m, k) where m, k are the constant dimensions
-            m = v.shape[0] // p
-
-            # For each param slice, apply I_n ⊗ C ⊗ I_batch
-            new_slices = []
-            for slice_idx in range(p):
-                slice_matrix = v[slice_idx * m:(slice_idx + 1) * m, :]
-                expanded = apply_nd_kron_structure(slice_matrix, batch_size, n)
-                new_slices.append(expanded)
-
-            # Stack all slices vertically
-            res[param_id] = sp.vstack(new_slices, format="csc")
-        return res
 
     @staticmethod
     def promote(lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:

@@ -16,7 +16,10 @@ from cvxpy.lin_ops.backends import (
     TensorRepresentation,
     get_backend,
 )
-from cvxpy.lin_ops.backends.nd_matmul_utils import apply_nd_kron_structure
+from cvxpy.lin_ops.backends.nd_matmul_utils import (
+    apply_nd_kron_structure,
+    expand_parametric_slices,
+)
 
 
 @dataclass
@@ -2817,20 +2820,18 @@ class TestSciPyBackend:
         ((3, 2), 1, 4),   # 2D case with non-square matrix
         ((3, 2), 3, 2),   # ND case with non-square matrix
     ])
-    def test_stacked_kron_nd(shape, batch_size, n, scipy_backend):
+    def test_expand_parametric_slices(shape, batch_size, n):
         """
-        Test _stacked_kron_nd which applies I_n ⊗ C ⊗ I_batch to each param slice.
+        Test expand_parametric_slices which applies I_n ⊗ C ⊗ I_batch to each param slice.
 
         For batch_size=1, this reduces to I_n ⊗ C (the 2D case).
         """
         rng = np.random.default_rng(42)
         p = 2  # number of parameter slices
-        param_id = 2
         matrices = [sp.random_array(shape, random_state=rng, density=0.5).tocsc()
                     for _ in range(p)]
         stacked = sp.vstack(matrices, format="csc")
-        result = scipy_backend._stacked_kron_nd({param_id: stacked}, batch_size, n)
-        result = result[param_id]
+        result = sp.vstack(list(expand_parametric_slices(stacked, p, batch_size, n)))
 
         # Expected: apply I_n ⊗ C ⊗ I_batch to each slice, then vstack
         expected = sp.vstack([apply_nd_kron_structure(m, batch_size, n) for m in matrices])

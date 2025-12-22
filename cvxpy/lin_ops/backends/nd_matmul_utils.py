@@ -10,9 +10,14 @@ The mathematical background:
 - 2D case: vec(C @ X) = (I_n ⊗ C) @ vec(X)
 - ND case with 2D constant: vec(C @ X) = (I_n ⊗ C ⊗ I_batch) @ vec(X)
 - ND case with batch-varying constant: uses interleaved matrix structure
+
+High-level helpers for backend unification:
+- get_nd_matmul_dims: Compute batch_size, n, and whether constant has batch dims
+- expand_lhs_for_nd_matmul: Expand constant lhs for ND matmul (handles both cases)
+- expand_parametric_slices: Generator for expanding parametric lhs slices
 """
 
-from typing import Tuple
+from typing import Iterator, Tuple
 
 import numpy as np
 import scipy.sparse as sp
@@ -110,3 +115,109 @@ def apply_nd_kron_structure(
     if n > 1:
         return sp.kron(sp.eye_array(n, format="csr"), inner)
     return inner
+
+
+# =============================================================================
+# High-level helpers for backend unification
+# =============================================================================
+
+
+def get_nd_matmul_dims(
+    const_shape: Tuple[int, ...],
+    var_shape: Tuple[int, ...],
+) -> Tuple[int, int, bool]:
+    """
+    Compute dimensions for ND matmul C @ X.
+
+    Parameters
+    ----------
+    const_shape : tuple
+        Shape of the constant C
+    var_shape : tuple
+        Shape of the variable X
+
+    Returns
+    -------
+    batch_size : int
+        Product of batch dimensions from X (1 if X is 2D)
+    n : int
+        Last dimension of X (number of columns)
+    const_has_batch : bool
+        Whether C has batch dimensions (len > 2)
+    """
+    batch_size = int(np.prod(var_shape[:-2])) if len(var_shape) > 2 else 1
+    n = var_shape[-1] if len(var_shape) >= 2 else 1
+    const_has_batch = len(const_shape) > 2
+    return batch_size, n, const_has_batch
+
+
+def expand_lhs_for_nd_matmul(
+    lhs_sparse: sp.sparray,
+    const_data: np.ndarray,
+    const_shape: Tuple[int, ...],
+    var_shape: Tuple[int, ...],
+) -> sp.sparray:
+    """
+    Expand constant lhs matrix for ND matmul.
+
+    Handles both cases:
+    - Batch-varying constant: uses interleaved matrix structure
+    - 2D constant: uses I_n ⊗ C ⊗ I_batch Kronecker structure
+
+    Parameters
+    ----------
+    lhs_sparse : sp.sparray
+        The constant matrix C as sparse (used for 2D case)
+    const_data : np.ndarray
+        Raw constant data (used for batch-varying case)
+    const_shape : tuple
+        Shape of the constant
+    var_shape : tuple
+        Shape of the variable
+
+    Returns
+    -------
+    sp.sparray
+        The expanded matrix ready for multiplication with vec(X)
+    """
+    batch_size, n, const_has_batch = get_nd_matmul_dims(const_shape, var_shape)
+
+    if const_has_batch:
+        return build_interleaved_matrix(const_data, const_shape, var_shape)
+    else:
+        return apply_nd_kron_structure(lhs_sparse, batch_size, n)
+
+
+def expand_parametric_slices(
+    stacked_matrix: sp.sparray,
+    param_size: int,
+    batch_size: int,
+    n: int,
+) -> Iterator[sp.sparray]:
+    """
+    Generator yielding expanded slices for parametric ND matmul.
+
+    For a stacked parameter matrix of shape (param_size * m, k), extracts each
+    (m, k) slice and applies I_n ⊗ C ⊗ I_batch structure.
+
+    Parameters
+    ----------
+    stacked_matrix : sp.sparray
+        Stacked parameter matrix of shape (param_size * m, k)
+    param_size : int
+        Number of parameter slices
+    batch_size : int
+        Product of batch dimensions from the variable
+    n : int
+        Last dimension of the variable
+
+    Yields
+    ------
+    sp.sparray
+        Each expanded slice with shape (batch_size * m * n, batch_size * k * n)
+    """
+    m = stacked_matrix.shape[0] // param_size
+
+    for slice_idx in range(param_size):
+        slice_matrix = stacked_matrix[slice_idx * m:(slice_idx + 1) * m, :]
+        yield apply_nd_kron_structure(slice_matrix, batch_size, n)

@@ -28,8 +28,9 @@ from cvxpy.lin_ops.backends.base import (
     TensorRepresentation,
 )
 from cvxpy.lin_ops.backends.nd_matmul_utils import (
-    apply_nd_kron_structure,
-    build_interleaved_matrix,
+    expand_lhs_for_nd_matmul,
+    expand_parametric_slices,
+    get_nd_matmul_dims,
 )
 
 # Module-level empty array constants to avoid repeated allocations
@@ -965,26 +966,34 @@ class CooCanonBackend(PythonCanonBackend):
 
         var_shape = lin_op.args[0].shape
         const_shape = lin_op.data.shape
-        const_has_batch = len(const_shape) > 2
 
         if is_lhs_parametric:
-            # Parametrized lhs @ variable rhs - the expensive case
-            # I_n ⊗ C ⊗ I_batch for each param slice
-            # For 2D variable (batch_size=1), this reduces to I_n ⊗ C
-            batch_size = int(np.prod(var_shape[:-2])) if len(var_shape) > 2 else 1
-            n = var_shape[-1] if len(var_shape) >= 2 else 1
-            expanded_lhs = self._expand_lhs_nd_parametric(lhs_data, batch_size, n)
+            # Parametrized lhs @ variable rhs - expand each param slice using unified helper
+            # TODO: Implement native CooTensor kron structure to avoid sparse round-trip
+            batch_size, n, _ = get_nd_matmul_dims(const_shape, var_shape)
+            expanded_lhs = {
+                param_id: self._to_coo_tensor(
+                    sp.vstack(
+                        list(expand_parametric_slices(
+                            tensor.to_stacked_sparse(),
+                            tensor.param_size,
+                            batch_size, n
+                        )),
+                        format="csr"
+                    ),
+                    param_id=param_id
+                )
+                for param_id, tensor in lhs_data.items()
+            }
 
             def parametrized_mul(rhs_compact):
-                # lhs_data is a dict {param_id: CooTensor}
-                result = {}
-                for param_id, lhs_compact in expanded_lhs.items():
-                    result[param_id] = coo_matmul(lhs_compact, rhs_compact)
-                return result
+                return {
+                    param_id: coo_matmul(lhs_compact, rhs_compact)
+                    for param_id, lhs_compact in expanded_lhs.items()
+                }
 
             # Apply to each variable tensor in-place
             for var_id, var_tensor in view.tensor.items():
-                # var_tensor is {Constant.ID: CooTensor}
                 const_compact = var_tensor[Constant.ID.value]
                 view.tensor[var_id] = parametrized_mul(const_compact)
 
@@ -992,29 +1001,24 @@ class CooCanonBackend(PythonCanonBackend):
             return view
 
         else:
-            # Constant lhs @ rhs - need to expand lhs with Kronecker product
+            # Constant lhs: expand using unified helper
+            # For batch-varying case, the helper uses raw data directly
+            # For 2D case, we need to convert to sparse first
+            _, _, const_has_batch = get_nd_matmul_dims(const_shape, var_shape)
+
             if const_has_batch:
-                # Batch-varying constant: C (..., m, k) @ X (..., k, n)
-                # Don't convert to sparse - build_interleaved_matrix handles raw data
-                stacked_lhs = build_interleaved_matrix(
-                    lin_op.data.data, const_shape, var_shape
-                )
+                # Batch-varying: pass None as lhs_sparse, helper uses raw data
+                lhs_sparse = None
+            elif isinstance(lhs_data, CooTensor):
+                lhs_sparse = lhs_data.to_stacked_sparse()
+            elif sp.issparse(lhs_data):
+                lhs_sparse = lhs_data
             else:
-                # Convert to sparse for 2D constant cases
-                if isinstance(lhs_data, CooTensor):
-                    lhs_sparse = lhs_data.to_stacked_sparse()
-                elif sp.issparse(lhs_data):
-                    lhs_sparse = lhs_data
-                else:
-                    lhs_sparse = sp.csr_array(np.atleast_2d(lhs_data))
+                lhs_sparse = sp.csr_array(np.atleast_2d(lhs_data))
 
-                # 2D constant @ ND variable: I_n ⊗ C ⊗ I_batch
-                # For 2D variable (batch_size=1), this reduces to I_n ⊗ C
-                batch_size = int(np.prod(var_shape[:-2])) if len(var_shape) > 2 else 1
-                n = var_shape[-1] if len(var_shape) >= 2 else 1
-                stacked_lhs = apply_nd_kron_structure(lhs_sparse, batch_size, n)
-
-            # Convert stacked lhs to CooTensor
+            stacked_lhs = expand_lhs_for_nd_matmul(
+                lhs_sparse, lin_op.data.data, const_shape, var_shape
+            )
             stacked_compact = self._to_coo_tensor(stacked_lhs)
 
             def constant_mul(compact, p):
@@ -1022,34 +1026,6 @@ class CooCanonBackend(PythonCanonBackend):
 
             view.accumulate_over_variables(constant_mul, is_param_free_function=True)
             return view
-
-    def _expand_lhs_nd_parametric(self, lhs_data: dict, batch_size: int, n: int) -> dict:
-        """
-        Apply ND Kronecker structure I_n ⊗ C ⊗ I_batch to parametric lhs.
-
-        For ND matmul C @ X where X has shape (..., k, n), we need:
-        I_n ⊗ C ⊗ I_batch where batch = prod(...)
-
-        Important: Must apply Kronecker structure to each parameter slice separately,
-        then stack, to preserve correct parameter indexing.
-        """
-        result = {}
-        for param_id, tensor in lhs_data.items():
-            sparse = tensor.to_stacked_sparse()
-            p = tensor.param_size
-            m = tensor.m
-
-            # For each param slice, apply I_n ⊗ C ⊗ I_batch
-            new_slices = []
-            for slice_idx in range(p):
-                slice_matrix = sparse[slice_idx * m:(slice_idx + 1) * m, :]
-                expanded = apply_nd_kron_structure(slice_matrix, batch_size, n)
-                new_slices.append(expanded)
-
-            # Stack all slices vertically
-            stacked = sp.vstack(new_slices, format="csr")
-            result[param_id] = self._to_coo_tensor(stacked, param_id=param_id)
-        return result
 
     def _get_lhs_data(self, lhs, view):
         """Get lhs data, detecting if it's parametric."""
