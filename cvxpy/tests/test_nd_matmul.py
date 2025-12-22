@@ -1,0 +1,301 @@
+"""
+Comprehensive tests for ND matrix multiplication in CVXPY.
+
+Tests cover:
+1. Parametric tests (Parameter @ Variable)
+2. Broadcasting tests (2D constant @ higher-dim variable)
+3. Edge cases (B=1, non-square, n=1, large batch)
+4. Cross-backend consistency
+
+Copyright 2025, the CVXPY authors.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+"""
+
+import numpy as np
+import pytest
+
+import cvxpy as cp
+
+
+class TestNDMatmulParametric:
+    """Test ND matmul with Parameters."""
+
+    def test_parametric_2d_const_3d_var(self):
+        """Test P (m,k) @ X (B,k,n) where P is a Parameter."""
+        B, m, k, n = 2, 3, 4, 5
+        P = cp.Parameter((m, k))
+        P.value = np.random.randn(m, k)
+
+        X = cp.Variable((B, k, n))
+        expr = P @ X
+
+        assert expr.shape == (B, m, n)
+
+        target = np.random.randn(B, m, n)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(expr - target)))
+        prob.solve()
+
+        assert prob.status == cp.OPTIMAL
+        # Verify with current parameter value
+        expected = P.value @ X.value
+        np.testing.assert_allclose(expr.value, expected, rtol=1e-5)
+
+    def test_parametric_reoptimization(self):
+        """Test that changing parameter value gives correct result."""
+        B, m, k, n = 2, 3, 4, 5
+        P = cp.Parameter((m, k))
+        X = cp.Variable((B, k, n))
+
+        target = np.random.randn(B, m, n)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(P @ X - target)))
+
+        # First solve
+        P.value = np.eye(m, k)
+        prob.solve()
+        result1 = X.value.copy()
+
+        # Second solve with different parameter
+        P.value = 2 * np.eye(m, k)
+        prob.solve()
+        result2 = X.value.copy()
+
+        # Results should differ
+        assert not np.allclose(result1, result2)
+
+    @pytest.mark.parametrize("backend", [cp.SCIPY_CANON_BACKEND, cp.COO_CANON_BACKEND])
+    def test_parametric_both_backends(self, backend):
+        """Test parametric ND matmul with both backends."""
+        B, m, k, n = 2, 3, 4, 5
+        P = cp.Parameter((m, k))
+        P.value = np.random.randn(m, k)
+        X = cp.Variable((B, k, n))
+
+        target = np.random.randn(B, m, n)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(P @ X - target)))
+        prob.solve(canon_backend=backend)
+
+        assert prob.status == cp.OPTIMAL
+
+
+class TestNDMatmulBroadcasting:
+    """Test broadcasting behavior for ND matmul."""
+
+    def test_2d_const_4d_var(self):
+        """Test (m,k) @ (B1,B2,k,n) -> (B1,B2,m,n)."""
+        B1, B2, m, k, n = 2, 3, 4, 5, 6
+        C = np.random.randn(m, k)
+        X = cp.Variable((B1, B2, k, n))
+
+        expr = C @ X
+        assert expr.shape == (B1, B2, m, n)
+
+        target = np.random.randn(B1, B2, m, n)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(expr - target)))
+        prob.solve()
+
+        assert prob.status == cp.OPTIMAL
+        # Verify result
+        result = np.zeros((B1, B2, m, n))
+        for i in range(B1):
+            for j in range(B2):
+                result[i, j] = C @ X.value[i, j]
+        error = np.linalg.norm(result - target) / np.linalg.norm(target)
+        assert error < 1e-4
+
+    def test_2d_const_5d_var(self):
+        """Test (m,k) @ (B1,B2,B3,k,n) -> (B1,B2,B3,m,n)."""
+        B1, B2, B3, m, k, n = 2, 2, 2, 3, 4, 5
+        C = np.random.randn(m, k)
+        X = cp.Variable((B1, B2, B3, k, n))
+
+        expr = C @ X
+        assert expr.shape == (B1, B2, B3, m, n)
+
+        target = np.random.randn(B1, B2, B3, m, n)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(expr - target)))
+        prob.solve()
+
+        assert prob.status == cp.OPTIMAL
+
+
+class TestNDMatmulEdgeCases:
+    """Test edge cases for ND matmul."""
+
+    def test_batch_size_one(self):
+        """Test with B=1 batch dimension."""
+        m, k, n = 3, 4, 5
+        C = np.random.randn(m, k)
+        X = cp.Variable((1, k, n))
+
+        expr = C @ X
+        assert expr.shape == (1, m, n)
+
+        target = np.random.randn(1, m, n)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(expr - target)))
+        prob.solve()
+        assert prob.status == cp.OPTIMAL
+
+    def test_non_square_matrices(self):
+        """Test with non-square constant matrix."""
+        B, m, k, n = 2, 7, 3, 11  # Non-square, different sizes
+        C = np.random.randn(m, k)
+        X = cp.Variable((B, k, n))
+
+        expr = C @ X
+        assert expr.shape == (B, m, n)
+
+        target = np.random.randn(B, m, n)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(expr - target)))
+        prob.solve()
+        assert prob.status == cp.OPTIMAL
+
+    def test_single_element_last_dim(self):
+        """Test with n=1 (column vector result)."""
+        B, m, k = 2, 3, 4
+        C = np.random.randn(m, k)
+        X = cp.Variable((B, k, 1))
+
+        expr = C @ X
+        assert expr.shape == (B, m, 1)
+
+        target = np.random.randn(B, m, 1)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(expr - target)))
+        prob.solve()
+        assert prob.status == cp.OPTIMAL
+
+    def test_large_batch_dimension(self):
+        """Test with larger batch dimension."""
+        B, m, k, n = 10, 3, 4, 5
+        C = np.random.randn(m, k)
+        X = cp.Variable((B, k, n))
+
+        expr = C @ X
+        target = np.random.randn(B, m, n)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(expr - target)))
+        prob.solve()
+        assert prob.status == cp.OPTIMAL
+
+    def test_single_element_inner_dim(self):
+        """Test with k=1 (rank-1 matrices)."""
+        B, m, n = 2, 3, 4
+        C = np.random.randn(m, 1)
+        X = cp.Variable((B, 1, n))
+
+        expr = C @ X
+        assert expr.shape == (B, m, n)
+
+        target = np.random.randn(B, m, n)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(expr - target)))
+        prob.solve()
+        assert prob.status == cp.OPTIMAL
+
+    def test_batch_varying_with_batch_one(self):
+        """Test batch-varying constant with B=1."""
+        m, k, n = 3, 4, 5
+        C = np.random.randn(1, m, k)
+        X = cp.Variable((1, k, n))
+
+        expr = C @ X
+        assert expr.shape == (1, m, n)
+
+        target = np.random.randn(1, m, n)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(expr - target)))
+        prob.solve()
+        assert prob.status == cp.OPTIMAL
+
+
+class TestNDMatmulCrossBackendConsistency:
+    """Verify both backends produce identical results."""
+
+    def test_consistent_results_2d_const(self):
+        """Both backends should give same result for 2D const @ 3D var."""
+        np.random.seed(42)
+        B, m, k, n = 2, 3, 4, 5
+        C = np.random.randn(m, k)
+        target = np.random.randn(B, m, n)
+
+        results = {}
+        for backend in [cp.SCIPY_CANON_BACKEND, cp.COO_CANON_BACKEND]:
+            X = cp.Variable((B, k, n))
+            prob = cp.Problem(cp.Minimize(cp.sum_squares(C @ X - target)))
+            prob.solve(canon_backend=backend)
+            results[backend] = X.value.copy()
+
+        np.testing.assert_allclose(
+            results[cp.SCIPY_CANON_BACKEND],
+            results[cp.COO_CANON_BACKEND],
+            rtol=1e-5
+        )
+
+    def test_consistent_results_batch_varying(self):
+        """Both backends should give same result for batch-varying const."""
+        np.random.seed(42)
+        B, m, k, n = 3, 4, 5, 6
+        C = np.random.randn(B, m, k)
+        target = np.random.randn(B, m, n)
+
+        results = {}
+        for backend in [cp.SCIPY_CANON_BACKEND, cp.COO_CANON_BACKEND]:
+            X = cp.Variable((B, k, n))
+            prob = cp.Problem(cp.Minimize(cp.sum_squares(C @ X - target)))
+            prob.solve(canon_backend=backend)
+            results[backend] = X.value.copy()
+
+        np.testing.assert_allclose(
+            results[cp.SCIPY_CANON_BACKEND],
+            results[cp.COO_CANON_BACKEND],
+            rtol=1e-5
+        )
+
+    def test_consistent_results_4d_var(self):
+        """Both backends should give same result for 4D variable."""
+        np.random.seed(42)
+        B1, B2, m, k, n = 2, 3, 4, 5, 6
+        C = np.random.randn(m, k)
+        target = np.random.randn(B1, B2, m, n)
+
+        results = {}
+        for backend in [cp.SCIPY_CANON_BACKEND, cp.COO_CANON_BACKEND]:
+            X = cp.Variable((B1, B2, k, n))
+            prob = cp.Problem(cp.Minimize(cp.sum_squares(C @ X - target)))
+            prob.solve(canon_backend=backend)
+            results[backend] = X.value.copy()
+
+        np.testing.assert_allclose(
+            results[cp.SCIPY_CANON_BACKEND],
+            results[cp.COO_CANON_BACKEND],
+            rtol=1e-5
+        )
+
+    def test_consistent_results_parametric(self):
+        """Both backends should give same result for parametric matmul."""
+        np.random.seed(42)
+        B, m, k, n = 2, 3, 4, 5
+        P_val = np.random.randn(m, k)
+        target = np.random.randn(B, m, n)
+
+        results = {}
+        for backend in [cp.SCIPY_CANON_BACKEND, cp.COO_CANON_BACKEND]:
+            P = cp.Parameter((m, k))
+            P.value = P_val
+            X = cp.Variable((B, k, n))
+            prob = cp.Problem(cp.Minimize(cp.sum_squares(P @ X - target)))
+            prob.solve(canon_backend=backend)
+            results[backend] = X.value.copy()
+
+        np.testing.assert_allclose(
+            results[cp.SCIPY_CANON_BACKEND],
+            results[cp.COO_CANON_BACKEND],
+            rtol=1e-5
+        )

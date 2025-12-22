@@ -27,6 +27,10 @@ from cvxpy.lin_ops.backends.base import (
     PythonCanonBackend,
     TensorRepresentation,
 )
+from cvxpy.lin_ops.backends.nd_matmul_utils import (
+    apply_nd_kron_structure,
+    build_interleaved_matrix,
+)
 
 # Module-level empty array constants to avoid repeated allocations
 _EMPTY_FLOAT = np.array([], dtype=np.float64)
@@ -1008,70 +1012,34 @@ class CooCanonBackend(PythonCanonBackend):
             lhs_shape_2d = const_shape if len(const_shape) == 2 else (1, const_shape[0])
             lhs_k = lhs_shape_2d[-1]  # Inner dimension of A
 
-            # Convert to sparse
-            if isinstance(lhs_data, CooTensor):
-                lhs_sparse = lhs_data.to_stacked_sparse()
-            elif sp.issparse(lhs_data):
-                lhs_sparse = lhs_data
-            else:
-                lhs_sparse = sp.csr_array(np.atleast_2d(lhs_data))
-
             if const_has_batch:
-                # Batch-varying constant: C has shape (..., m, k), X has shape (..., k, n)
-                # In Fortran order, batches are interleaved. For vec(result) and vec(X):
-                # - result[b, i, c] at index b + B*i + B*m*c
-                # - X[b, r, c] at index b + B*r + B*k*c
-                # We need M[b + B*i + B*m*c, b' + B*r + B*k*c'] = C[b,i,r] if b==b' and c==c'
-                # This is I_n ⊗ M_interleaved where M_interleaved[b+B*i, b+B*r] = C[b,i,r]
-                B = int(np.prod(const_shape[:-2]))
-                m_dim = const_shape[-2]
-                k_dim = const_shape[-1]
-                n = var_shape[-1]
-
-                # Get the raw constant data and reshape to (B, m, k)
-                const_data = lin_op.data.data
-                const_flat = np.reshape(const_data, (B, m_dim, k_dim), order='F')
-
-                # Build interleaved matrix in COO format: entry (b+B*i, b+B*r) = C[b,i,r]
-                rows = []
-                cols = []
-                data = []
-                for b in range(B):
-                    for i in range(m_dim):
-                        for r in range(k_dim):
-                            rows.append(b + B * i)
-                            cols.append(b + B * r)
-                            data.append(const_flat[b, i, r])
-                M_interleaved = sp.csr_array(
-                    (data, (rows, cols)), shape=(B * m_dim, B * k_dim)
+                # Batch-varying constant: C (..., m, k) @ X (..., k, n)
+                # Don't convert to sparse - build_interleaved_matrix handles raw data
+                stacked_lhs = build_interleaved_matrix(
+                    lin_op.data.data, const_shape, var_shape
                 )
 
-                # Apply I_n ⊗ M_interleaved
-                if n > 1:
-                    stacked_lhs = sp.kron(sp.eye_array(n, format="csr"), M_interleaved)
-                else:
-                    stacked_lhs = M_interleaved
-
-            elif is_nd:
-                # ND variable with 2D constant: I_n ⊗ C ⊗ I_batch
-                batch_size = int(np.prod(var_shape[:-2]))
-                n = var_shape[-1]
-
-                if batch_size > 1:
-                    inner = sp.kron(lhs_sparse, sp.eye_array(batch_size, format="csr"))
-                else:
-                    inner = lhs_sparse
-                if n > 1:
-                    stacked_lhs = sp.kron(sp.eye_array(n, format="csr"), inner)
-                else:
-                    stacked_lhs = inner
             else:
-                # 2D case - original code
-                reps = view.rows // lhs_k
-                if reps > 1:
-                    stacked_lhs = sp.kron(sp.eye_array(reps, format="csr"), lhs_sparse)
+                # Convert to sparse for 2D constant cases
+                if isinstance(lhs_data, CooTensor):
+                    lhs_sparse = lhs_data.to_stacked_sparse()
+                elif sp.issparse(lhs_data):
+                    lhs_sparse = lhs_data
                 else:
-                    stacked_lhs = lhs_sparse
+                    lhs_sparse = sp.csr_array(np.atleast_2d(lhs_data))
+
+                if is_nd:
+                    # ND variable with 2D constant: I_n ⊗ C ⊗ I_batch
+                    batch_size = int(np.prod(var_shape[:-2]))
+                    n = var_shape[-1]
+                    stacked_lhs = apply_nd_kron_structure(lhs_sparse, batch_size, n)
+                else:
+                    # 2D case - original code
+                    reps = view.rows // lhs_k
+                    if reps > 1:
+                        stacked_lhs = sp.kron(sp.eye_array(reps, format="csr"), lhs_sparse)
+                    else:
+                        stacked_lhs = lhs_sparse
 
             # Convert stacked lhs to CooTensor
             stacked_compact = self._to_coo_tensor(stacked_lhs)
@@ -1088,22 +1056,26 @@ class CooCanonBackend(PythonCanonBackend):
 
         For ND matmul C @ X where X has shape (..., k, n), we need:
         I_n ⊗ C ⊗ I_batch where batch = prod(...)
+
+        Important: Must apply Kronecker structure to each parameter slice separately,
+        then stack, to preserve correct parameter indexing.
         """
         result = {}
         for param_id, tensor in lhs_data.items():
-            # Convert to sparse, apply kron, convert back
             sparse = tensor.to_stacked_sparse()
+            p = tensor.param_size
+            m = tensor.m
 
-            if batch_size > 1:
-                inner = sp.kron(sparse, sp.eye_array(batch_size, format="csr"))
-            else:
-                inner = sparse
-            if n > 1:
-                expanded = sp.kron(sp.eye_array(n, format="csr"), inner)
-            else:
-                expanded = inner
+            # For each param slice, apply I_n ⊗ C ⊗ I_batch
+            new_slices = []
+            for slice_idx in range(p):
+                slice_matrix = sparse[slice_idx * m:(slice_idx + 1) * m, :]
+                expanded = apply_nd_kron_structure(slice_matrix, batch_size, n)
+                new_slices.append(expanded)
 
-            result[param_id] = self._to_coo_tensor(expanded, param_id=param_id)
+            # Stack all slices vertically
+            stacked = sp.vstack(new_slices, format="csr")
+            result[param_id] = self._to_coo_tensor(stacked, param_id=param_id)
         return result
 
     def _get_lhs_data(self, lhs, view):

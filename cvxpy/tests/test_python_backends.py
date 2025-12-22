@@ -2353,6 +2353,54 @@ class TestND_Backends:
         # Note: view is edited in-place:
         assert out_view.get_tensor_representation(0, 1) == view.get_tensor_representation(0, 1)
 
+    def test_nd_mul_3d_var(self, backend):
+        """
+        Test mul linop with 3D variable: C (m,k) @ X (B,k,n).
+
+        For X = Variable((2,3,4)) and C = (5,3):
+        - X is represented as eye(24) in Fortran order
+        - Result should be (2,5,4) = 40 rows
+        - Matrix structure: I_4 ⊗ C ⊗ I_2
+        """
+        # Update backend for 3D variable
+        backend.var_length = 24
+        backend.id_to_col = {1: 0}
+
+        var = linOpHelper((2, 3, 4), type="variable", data=1)
+        view = backend.process_constraint(var, backend.get_empty_view())
+
+        # Verify initial view
+        assert view.rows == 24
+
+        # Create constant (5, 3)
+        const_data = np.random.randn(5, 3)
+        const = linOpHelper((5, 3), type="dense_const", data=const_data)
+
+        mul_op = linOpHelper(shape=(2, 5, 4), data=const, args=[var])
+        out_view = backend.mul(mul_op, view)
+
+        # Output should have 40 rows
+        assert out_view.rows == 40
+
+    def test_nd_mul_batch_varying_const(self, backend):
+        """
+        Test mul linop with batch-varying constant: C (B,m,k) @ X (B,k,n).
+        """
+        backend.var_length = 30  # 3*2*5
+        backend.id_to_col = {1: 0}
+
+        var = linOpHelper((3, 2, 5), type="variable", data=1)
+        view = backend.process_constraint(var, backend.get_empty_view())
+
+        const_data = np.random.randn(3, 4, 2)
+        const = linOpHelper((3, 4, 2), type="dense_const", data=const_data)
+
+        mul_op = linOpHelper(shape=(3, 4, 5), data=const, args=[var])
+        out_view = backend.mul(mul_op, view)
+
+        # Output should have 60 rows (3*4*5)
+        assert out_view.rows == 60
+
 
 class TestParametrizedND_Backends:
     @staticmethod
