@@ -965,31 +965,15 @@ class CooCanonBackend(PythonCanonBackend):
 
         var_shape = lin_op.args[0].shape
         const_shape = lin_op.data.shape
-        is_nd = len(var_shape) > 2
         const_has_batch = len(const_shape) > 2
 
         if is_lhs_parametric:
             # Parametrized lhs @ variable rhs - the expensive case
-            lhs_shape = lhs.shape
-            # For 1D lhs in matmul, treat as row vector (1, size) to match numpy behavior
-            lhs_shape_2d = lhs_shape if len(lhs_shape) == 2 else (1, int(np.prod(lhs_shape)))
-            lhs_k = lhs_shape_2d[-1]  # Inner dimension
-
-            if is_nd:
-                # ND case: need I_n ⊗ C ⊗ I_batch for each param slice
-                batch_size = int(np.prod(var_shape[:-2]))
-                n = var_shape[-1]
-                expanded_lhs = self._expand_lhs_nd_parametric(lhs_data, batch_size, n)
-            else:
-                # 2D case - original code
-                reps = view.rows // lhs_k
-                if reps > 1:
-                    expanded_lhs = {
-                        param_id: _coo_kron_eye_r(tensor, reps)
-                        for param_id, tensor in lhs_data.items()
-                    }
-                else:
-                    expanded_lhs = lhs_data
+            # I_n ⊗ C ⊗ I_batch for each param slice
+            # For 2D variable (batch_size=1), this reduces to I_n ⊗ C
+            batch_size = int(np.prod(var_shape[:-2])) if len(var_shape) > 2 else 1
+            n = var_shape[-1] if len(var_shape) >= 2 else 1
+            expanded_lhs = self._expand_lhs_nd_parametric(lhs_data, batch_size, n)
 
             def parametrized_mul(rhs_compact):
                 # lhs_data is a dict {param_id: CooTensor}
@@ -1009,16 +993,12 @@ class CooCanonBackend(PythonCanonBackend):
 
         else:
             # Constant lhs @ rhs - need to expand lhs with Kronecker product
-            lhs_shape_2d = const_shape if len(const_shape) == 2 else (1, const_shape[0])
-            lhs_k = lhs_shape_2d[-1]  # Inner dimension of A
-
             if const_has_batch:
                 # Batch-varying constant: C (..., m, k) @ X (..., k, n)
                 # Don't convert to sparse - build_interleaved_matrix handles raw data
                 stacked_lhs = build_interleaved_matrix(
                     lin_op.data.data, const_shape, var_shape
                 )
-
             else:
                 # Convert to sparse for 2D constant cases
                 if isinstance(lhs_data, CooTensor):
@@ -1028,18 +1008,11 @@ class CooCanonBackend(PythonCanonBackend):
                 else:
                     lhs_sparse = sp.csr_array(np.atleast_2d(lhs_data))
 
-                if is_nd:
-                    # ND variable with 2D constant: I_n ⊗ C ⊗ I_batch
-                    batch_size = int(np.prod(var_shape[:-2]))
-                    n = var_shape[-1]
-                    stacked_lhs = apply_nd_kron_structure(lhs_sparse, batch_size, n)
-                else:
-                    # 2D case - original code
-                    reps = view.rows // lhs_k
-                    if reps > 1:
-                        stacked_lhs = sp.kron(sp.eye_array(reps, format="csr"), lhs_sparse)
-                    else:
-                        stacked_lhs = lhs_sparse
+                # 2D constant @ ND variable: I_n ⊗ C ⊗ I_batch
+                # For 2D variable (batch_size=1), this reduces to I_n ⊗ C
+                batch_size = int(np.prod(var_shape[:-2])) if len(var_shape) > 2 else 1
+                n = var_shape[-1] if len(var_shape) >= 2 else 1
+                stacked_lhs = apply_nd_kron_structure(lhs_sparse, batch_size, n)
 
             # Convert stacked lhs to CooTensor
             stacked_compact = self._to_coo_tensor(stacked_lhs)

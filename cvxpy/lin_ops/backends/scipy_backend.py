@@ -204,7 +204,6 @@ class SciPyCanonBackend(PythonCanonBackend):
         if is_param_free_lhs:
             var_shape = lin.args[0].shape
             const_shape = lin.data.shape
-            lhs_k = lhs.shape[-1]  # inner dimension
 
             # Check if constant has batch dimensions
             const_has_batch = len(const_shape) > 2
@@ -214,19 +213,12 @@ class SciPyCanonBackend(PythonCanonBackend):
                 stacked_lhs = build_interleaved_matrix(
                     lin.data.data, const_shape, var_shape
                 )
-
-            elif len(var_shape) > 2:
-                # ND variable with 2D constant: I_n ⊗ C ⊗ I_batch
-                batch_size = int(np.prod(var_shape[:-2]))
-                n = var_shape[-1]
-                stacked_lhs = apply_nd_kron_structure(lhs, batch_size, n)
             else:
-                # 2D case - original code
-                reps = view.rows // lhs_k
-                if reps > 1:
-                    stacked_lhs = sp.kron(sp.eye_array(reps, format="csr"), lhs)
-                else:
-                    stacked_lhs = lhs
+                # 2D constant @ ND variable: I_n ⊗ C ⊗ I_batch
+                # For 2D variable (batch_size=1), this reduces to I_n ⊗ C
+                batch_size = int(np.prod(var_shape[:-2])) if len(var_shape) > 2 else 1
+                n = var_shape[-1] if len(var_shape) >= 2 else 1
+                stacked_lhs = apply_nd_kron_structure(lhs, batch_size, n)
 
             def func(x, p):
                 if p == 1:
@@ -235,21 +227,12 @@ class SciPyCanonBackend(PythonCanonBackend):
                     return ((sp.kron(sp.eye_array(p, format="csc"), stacked_lhs)) @ x).tocsc()
         else:
             var_shape = lin.args[0].shape
-            first_lhs = next(iter(lhs.values()))
-            lhs_k = first_lhs.shape[-1]
 
-            if len(var_shape) > 2:
-                # ND case with parametrized lhs: need I_n ⊗ C ⊗ I_batch for each param slice
-                batch_size = int(np.prod(var_shape[:-2]))
-                n = var_shape[-1]
-                stacked_lhs = self._stacked_kron_nd(lhs, batch_size, n)
-            else:
-                # 2D case - original code
-                reps = view.rows // lhs_k
-                if reps > 1:
-                    stacked_lhs = self._stacked_kron_r(lhs, reps)
-                else:
-                    stacked_lhs = lhs
+            # Parametrized lhs @ ND variable: I_n ⊗ C ⊗ I_batch for each param slice
+            # For 2D variable (batch_size=1), this reduces to I_n ⊗ C
+            batch_size = int(np.prod(var_shape[:-2])) if len(var_shape) > 2 else 1
+            n = var_shape[-1] if len(var_shape) >= 2 else 1
+            stacked_lhs = self._stacked_kron_nd(lhs, batch_size, n)
 
             def parametrized_mul(x):
                 return {k: v @ x for k, v in stacked_lhs.items()}
