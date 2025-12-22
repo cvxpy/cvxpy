@@ -185,15 +185,16 @@ class CooTensor:
         if self.nnz == 0:
             return CooTensor.empty(new_m, self.n, self.param_size)
 
-        # Fast path: no duplicate rows (common case for transpose, reshape, etc.)
-        # Use sort+diff which is ~10x faster than np.unique for checking duplicates
-        sorted_rows = np.sort(rows)
-        has_duplicates = len(rows) > 1 and np.any(np.diff(sorted_rows) == 0)
+        # Check for duplicates - avoid sorting if already sorted
+        diffs = np.diff(rows)
+        has_duplicates = (np.any(diffs == 0) if np.all(diffs >= 0)
+                          else np.any(np.diff(np.sort(rows)) == 0))
+        # Fast path: no duplicate rows for transpose, simple indexing
         if not has_duplicates:
             return self._select_rows_no_duplicates(rows, new_m)
-
         # General path: handles duplicate rows (needed for broadcasting, etc.)
-        return self._select_rows_with_duplicates(rows, new_m)
+        else:
+            return self._select_rows_with_duplicates(rows, new_m)
 
     def _select_rows_no_duplicates(self, rows: np.ndarray, new_m: int) -> CooTensor:
         """Fast path for select_rows when there are no duplicate rows."""
@@ -220,58 +221,36 @@ class CooTensor:
     def _select_rows_with_duplicates(self, rows: np.ndarray, new_m: int) -> CooTensor:
         """General path for select_rows that handles duplicate rows.
 
-        Uses binary search (searchsorted) to efficiently find which tensor
-        entries need to be replicated. For each unique tensor row, we find all
-        destination positions it maps to in O(log n) time via binary search,
-        then use np.repeat to duplicate entries accordingly.
+        Uses binary search to find destination positions for each tensor entry,
+        then replicates entries accordingly. O(nnz log n) complexity.
         """
-        # Sort the rows array to enable efficient range queries
-        # rows[new_pos] = old_pos, so we sort to find all new_pos for each old_pos
+        # Sort rows to enable binary search for range queries
         row_sort_perm = np.argsort(rows)
         rows_sorted = rows[row_sort_perm]
 
-        # Find unique tensor rows and how many destinations each maps to
+        # Find unique tensor rows and count destinations for each
         unique_tensor_rows, inverse_idx = np.unique(self.row, return_inverse=True)
-
-        # For each unique tensor row, find the range in sorted rows via searchsorted
         left = np.searchsorted(rows_sorted, unique_tensor_rows, side='left')
         right = np.searchsorted(rows_sorted, unique_tensor_rows, side='right')
-        counts = right - left  # How many new rows each unique tensor row maps to
+        counts = right - left
 
-        # Per-entry counts: how many outputs each tensor entry will produce
+        # Compute per-entry replication counts
         entry_counts = counts[inverse_idx]
         total_nnz = entry_counts.sum()
-
         if total_nnz == 0:
             return CooTensor.empty(new_m, self.n, self.param_size)
 
-        # Expand entries according to counts using np.repeat
+        # Replicate data, col, param arrays
         out_data = np.repeat(self.data, entry_counts)
         out_col = np.repeat(self.col, entry_counts)
         out_param = np.repeat(self.param_idx, entry_counts)
 
-        # Build output row indices:
-        # For each repeated entry, we need to gather from row_sort_perm at the
-        # appropriate position within its range [left, right)
-
-        # Get the left boundary for each entry
+        # Build output row indices by gathering from row_sort_perm
+        # For each entry, gather from range [left, left+count)
         entry_lefts = np.repeat(left[inverse_idx], entry_counts)
-
-        # Build position-within-range using cumsum trick
-        # First, compute the starting offset for each entry's outputs
-        entry_offsets = np.zeros(len(self.data) + 1, dtype=np.int64)
-        entry_offsets[1:] = np.cumsum(entry_counts)
-
-        # Position within each entry's range: [0, 1, 2, ...] repeating per entry
-        positions = np.arange(total_nnz, dtype=np.int64) - np.repeat(
-            entry_offsets[:-1], entry_counts
-        )
-
-        # Gather indices into row_sort_perm
-        gather_idx = entry_lefts + positions
-
-        # The output rows are the positions in the original rows array
-        out_row = row_sort_perm[gather_idx]
+        offsets = np.concatenate([[0], np.cumsum(entry_counts)[:-1]])
+        positions = np.arange(total_nnz, dtype=np.int64) - np.repeat(offsets, entry_counts)
+        out_row = row_sort_perm[entry_lefts + positions]
 
         return CooTensor(
             data=out_data,
