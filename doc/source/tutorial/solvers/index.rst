@@ -44,8 +44,10 @@ parses and solves the problem.
    :param ignore_dpp: When True, DPP problems will be treated as non-DPP,
         which may speed up compilation. Defaults to ``False``.
    :type ignore_dpp: bool, optional
-   :param ignore_nan: When True, allows ``NaN`` and ``Inf`` values in the problem data.
-        If ``False`` (default), raises a ``ValueError`` if such values are found.
+   :param ignore_nan: When True, bypasses CVXPY's validation check for ``NaN`` and ``Inf``
+        values in the problem data. Note that solvers may still fail or produce incorrect
+        results with such invalid data. If ``False`` (default), raises a ``ValueError`` if
+        such values are found.
    :type ignore_nan: bool, optional
    :param kwargs: Additional keyword arguments specifying solver specific options.
    :return: The optimal value for the problem, or a string indicating why the problem could not be solved.
