@@ -2357,49 +2357,160 @@ class TestND_Backends:
         """
         Test mul linop with 3D variable: C (m,k) @ X (B,k,n).
 
-        For X = Variable((2,3,4)) and C = (5,3):
-        - X is represented as eye(24) in Fortran order
-        - Result should be (2,5,4) = 40 rows
-        - Matrix structure: I_4 ⊗ C ⊗ I_2
+        For C @ X where C is 2D (m,k) and X is 3D (B,k,n):
+        - vec(C @ X) = (I_n ⊗ C ⊗ I_B) @ vec(X)
+
+        Example: X = Variable((2, 2, 2)) with shape (B=2, k=2, n=2)
+        X is represented as eye(8) in column-major (Fortran) order:
+
+        vec(X) index mapping:
+        - Index 0: X[0,0,0]
+        - Index 1: X[1,0,0]
+        - Index 2: X[0,1,0]
+        - Index 3: X[1,1,0]
+        - Index 4: X[0,0,1]
+        - Index 5: X[1,0,1]
+        - Index 6: X[0,1,1]
+        - Index 7: X[1,1,1]
+
+        For C = [[1, 2], [3, 4]], the result is (B=2, m=2, n=2).
+        Each output element is computed as:
+        - result[b, i, c] = sum_r C[i, r] * X[b, r, c]
+
+        The resulting A matrix is I_2 ⊗ C ⊗ I_2:
+
+                   X000 X100 X010 X110 X001 X101 X011 X111
+        result[0]  [1    0    2    0    0    0    0    0  ]  # C[0,:]@X[0,:,0]
+        result[1]  [0    1    0    2    0    0    0    0  ]  # C[0,:]@X[1,:,0]
+        result[2]  [3    0    4    0    0    0    0    0  ]  # C[1,:]@X[0,:,0]
+        result[3]  [0    3    0    4    0    0    0    0  ]  # C[1,:]@X[1,:,0]
+        result[4]  [0    0    0    0    1    0    2    0  ]  # C[0,:]@X[0,:,1]
+        result[5]  [0    0    0    0    0    1    0    2  ]  # C[0,:]@X[1,:,1]
+        result[6]  [0    0    0    0    3    0    4    0  ]  # C[1,:]@X[0,:,1]
+        result[7]  [0    0    0    0    0    3    0    4  ]  # C[1,:]@X[1,:,1]
         """
         # Update backend for 3D variable
-        backend.var_length = 24
+        backend.var_length = 8
         backend.id_to_col = {1: 0}
 
-        var = linOpHelper((2, 3, 4), type="variable", data=1)
+        var = linOpHelper((2, 2, 2), type="variable", data=1)
         view = backend.process_constraint(var, backend.get_empty_view())
 
-        # Verify initial view
-        assert view.rows == 24
+        # Verify initial view is identity
+        view_A = view.get_tensor_representation(0, 8)
+        view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(8, 8)).toarray()
+        assert np.all(view_A == np.eye(8))
 
-        # Create constant (5, 3)
-        const_data = np.random.randn(5, 3)
-        const = linOpHelper((5, 3), type="dense_const", data=const_data)
+        # Create constant C = [[1, 2], [3, 4]]
+        const_data = np.array([[1, 2], [3, 4]])
+        const = linOpHelper((2, 2), type="dense_const", data=const_data)
 
-        mul_op = linOpHelper(shape=(2, 5, 4), data=const, args=[var])
+        mul_op = linOpHelper(shape=(2, 2, 2), data=const, args=[var])
         out_view = backend.mul(mul_op, view)
+        A = out_view.get_tensor_representation(0, 8)
 
-        # Output should have 40 rows
-        assert out_view.rows == 40
+        # Cast to numpy
+        A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(8, 8)).toarray()
+
+        # Expected: I_2 ⊗ C ⊗ I_2
+        # C ⊗ I_2 = [[1,0,2,0], [0,1,0,2], [3,0,4,0], [0,3,0,4]]
+        # I_2 ⊗ (C ⊗ I_2) = block_diag(C ⊗ I_2, C ⊗ I_2)
+        expected = np.array([
+            [1, 0, 2, 0, 0, 0, 0, 0],
+            [0, 1, 0, 2, 0, 0, 0, 0],
+            [3, 0, 4, 0, 0, 0, 0, 0],
+            [0, 3, 0, 4, 0, 0, 0, 0],
+            [0, 0, 0, 0, 1, 0, 2, 0],
+            [0, 0, 0, 0, 0, 1, 0, 2],
+            [0, 0, 0, 0, 3, 0, 4, 0],
+            [0, 0, 0, 0, 0, 3, 0, 4],
+        ])
+        assert np.all(A == expected)
+
+        # Note: view is edited in-place
+        assert out_view.get_tensor_representation(0, 8) == view.get_tensor_representation(0, 8)
 
     def test_nd_mul_batch_varying_const(self, backend):
         """
         Test mul linop with batch-varying constant: C (B,m,k) @ X (B,k,n).
+
+        For C @ X where C is 3D (B,m,k) and X is 3D (B,k,n):
+        - Each batch b computes: result[b,:,:] = C[b,:,:] @ X[b,:,:]
+        - Uses interleaved matrix structure where batch indices alternate
+
+        Example: X = Variable((2, 2, 2)) with shape (B=2, k=2, n=2)
+        X is represented as eye(8) in column-major (Fortran) order:
+
+        vec(X) index mapping:
+        - Index 0: X[0,0,0]
+        - Index 1: X[1,0,0]
+        - Index 2: X[0,1,0]
+        - Index 3: X[1,1,0]
+        - Index 4: X[0,0,1]
+        - Index 5: X[1,0,1]
+        - Index 6: X[0,1,1]
+        - Index 7: X[1,1,1]
+
+        For C with shape (2, 2, 2):
+        - C[0] = [[1, 2], [3, 4]]
+        - C[1] = [[5, 6], [7, 8]]
+
+        The result shape is (B=2, m=2, n=2). Each output:
+        - result[b, i, c] = sum_r C[b, i, r] * X[b, r, c]
+
+        The resulting A matrix has interleaved batch structure:
+
+                   X000 X100 X010 X110 X001 X101 X011 X111
+        result[0]  [1    0    2    0    0    0    0    0  ]  # C[0,0,:]@X[0,:,0]
+        result[1]  [0    5    0    6    0    0    0    0  ]  # C[1,0,:]@X[1,:,0]
+        result[2]  [3    0    4    0    0    0    0    0  ]  # C[0,1,:]@X[0,:,0]
+        result[3]  [0    7    0    8    0    0    0    0  ]  # C[1,1,:]@X[1,:,0]
+        result[4]  [0    0    0    0    1    0    2    0  ]  # C[0,0,:]@X[0,:,1]
+        result[5]  [0    0    0    0    0    5    0    6  ]  # C[1,0,:]@X[1,:,1]
+        result[6]  [0    0    0    0    3    0    4    0  ]  # C[0,1,:]@X[0,:,1]
+        result[7]  [0    0    0    0    0    7    0    8  ]  # C[1,1,:]@X[1,:,1]
+
+        Note how batch indices are interleaved: rows 0,2,4,6 use C[0], rows 1,3,5,7 use C[1].
         """
-        backend.var_length = 30  # 3*2*5
+        backend.var_length = 8
         backend.id_to_col = {1: 0}
 
-        var = linOpHelper((3, 2, 5), type="variable", data=1)
+        var = linOpHelper((2, 2, 2), type="variable", data=1)
         view = backend.process_constraint(var, backend.get_empty_view())
 
-        const_data = np.random.randn(3, 4, 2)
-        const = linOpHelper((3, 4, 2), type="dense_const", data=const_data)
+        # Verify initial view is identity
+        view_A = view.get_tensor_representation(0, 8)
+        view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(8, 8)).toarray()
+        assert np.all(view_A == np.eye(8))
 
-        mul_op = linOpHelper(shape=(3, 4, 5), data=const, args=[var])
+        # Create batch-varying constant C with shape (2, 2, 2)
+        # C[0] = [[1, 2], [3, 4]], C[1] = [[5, 6], [7, 8]]
+        const_data = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
+        const = linOpHelper((2, 2, 2), type="dense_const", data=const_data)
+
+        mul_op = linOpHelper(shape=(2, 2, 2), data=const, args=[var])
         out_view = backend.mul(mul_op, view)
+        A = out_view.get_tensor_representation(0, 8)
 
-        # Output should have 60 rows (3*4*5)
-        assert out_view.rows == 60
+        # Cast to numpy
+        A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(8, 8)).toarray()
+
+        # Expected: interleaved matrix structure
+        # Rows 0,2,4,6 use C[0], rows 1,3,5,7 use C[1]
+        expected = np.array([
+            [1, 0, 2, 0, 0, 0, 0, 0],
+            [0, 5, 0, 6, 0, 0, 0, 0],
+            [3, 0, 4, 0, 0, 0, 0, 0],
+            [0, 7, 0, 8, 0, 0, 0, 0],
+            [0, 0, 0, 0, 1, 0, 2, 0],
+            [0, 0, 0, 0, 0, 5, 0, 6],
+            [0, 0, 0, 0, 3, 0, 4, 0],
+            [0, 0, 0, 0, 0, 7, 0, 8],
+        ])
+        assert np.all(A == expected)
+
+        # Note: view is edited in-place
+        assert out_view.get_tensor_representation(0, 8) == view.get_tensor_representation(0, 8)
 
 
 class TestParametrizedND_Backends:
@@ -2487,6 +2598,147 @@ class TestParametrizedND_Backends:
         assert out_view.get_tensor_representation(0, 4) == param_var_view.get_tensor_representation(
             0, 4
         )
+
+    def test_parametrized_nd_mul(self, param_backend):
+        """
+        Test parametrized mul linop with 3D variable: C_param (m,k) @ X (B,k,n).
+
+        For parametrized C @ X where C is a 2D parameter (m,k) and X is 3D (B,k,n):
+        - Each element of C becomes a separate parameter slice
+        - vec(result) = (I_n ⊗ C ⊗ I_B) @ vec(X) with C parametrized
+
+        Example: X = Variable((2, 2, 2)) with shape (B=2, k=2, n=2)
+        C = Parameter((2, 2)) with 4 elements in Fortran order:
+        - param_slice 0: C[0,0]
+        - param_slice 1: C[1,0]
+        - param_slice 2: C[0,1]
+        - param_slice 3: C[1,1]
+
+        Each output element: result[b, i, c] = sum_r C[i, r] * X[b, r, c]
+
+        For param_slice 0 (C[0,0]), contributes to result[b, 0, c] from X[b, 0, c]:
+                   X000 X100 X010 X110 X001 X101 X011 X111
+        result[0]  [1    0    0    0    0    0    0    0  ]
+        result[1]  [0    1    0    0    0    0    0    0  ]
+        result[2]  [0    0    0    0    0    0    0    0  ]
+        result[3]  [0    0    0    0    0    0    0    0  ]
+        result[4]  [0    0    0    0    1    0    0    0  ]
+        result[5]  [0    0    0    0    0    1    0    0  ]
+        result[6]  [0    0    0    0    0    0    0    0  ]
+        result[7]  [0    0    0    0    0    0    0    0  ]
+
+        For param_slice 1 (C[1,0]), contributes to result[b, 1, c] from X[b, 0, c]:
+                   X000 X100 X010 X110 X001 X101 X011 X111
+        result[0]  [0    0    0    0    0    0    0    0  ]
+        result[1]  [0    0    0    0    0    0    0    0  ]
+        result[2]  [1    0    0    0    0    0    0    0  ]
+        result[3]  [0    1    0    0    0    0    0    0  ]
+        result[4]  [0    0    0    0    0    0    0    0  ]
+        result[5]  [0    0    0    0    0    0    0    0  ]
+        result[6]  [0    0    0    0    1    0    0    0  ]
+        result[7]  [0    0    0    0    0    1    0    0  ]
+
+        For param_slice 2 (C[0,1]), contributes to result[b, 0, c] from X[b, 1, c]:
+                   X000 X100 X010 X110 X001 X101 X011 X111
+        result[0]  [0    0    1    0    0    0    0    0  ]
+        result[1]  [0    0    0    1    0    0    0    0  ]
+        result[2]  [0    0    0    0    0    0    0    0  ]
+        result[3]  [0    0    0    0    0    0    0    0  ]
+        result[4]  [0    0    0    0    0    0    1    0  ]
+        result[5]  [0    0    0    0    0    0    0    1  ]
+        result[6]  [0    0    0    0    0    0    0    0  ]
+        result[7]  [0    0    0    0    0    0    0    0  ]
+
+        For param_slice 3 (C[1,1]), contributes to result[b, 1, c] from X[b, 1, c]:
+                   X000 X100 X010 X110 X001 X101 X011 X111
+        result[0]  [0    0    0    0    0    0    0    0  ]
+        result[1]  [0    0    0    0    0    0    0    0  ]
+        result[2]  [0    0    1    0    0    0    0    0  ]
+        result[3]  [0    0    0    1    0    0    0    0  ]
+        result[4]  [0    0    0    0    0    0    0    0  ]
+        result[5]  [0    0    0    0    0    0    0    0  ]
+        result[6]  [0    0    0    0    0    0    1    0  ]
+        result[7]  [0    0    0    0    0    0    0    1  ]
+        """
+        # Reconfigure backend for this test: 4 parameter slices (2x2 parameter)
+        param_backend.param_to_size = {-1: 1, 2: 4}
+        param_backend.param_to_col = {2: 0, -1: 4}
+        param_backend.param_size_plus_one = 5
+        param_backend.var_length = 8
+
+        variable_lin_op = linOpHelper((2, 2, 2), type="variable", data=1)
+        view = param_backend.process_constraint(variable_lin_op, param_backend.get_empty_view())
+
+        # Verify initial view is identity
+        view_A = view.get_tensor_representation(0, 8)
+        view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(8, 8)).toarray()
+        assert np.all(view_A == np.eye(8))
+
+        # Create parametrized lhs C with shape (2, 2)
+        lhs_parameter = linOpHelper((2, 2), type="param", data=2)
+
+        mul_lin_op = linOpHelper(shape=(2, 2, 2), data=lhs_parameter, args=[variable_lin_op])
+        out_view = param_backend.mul(mul_lin_op, view)
+        out_repr = out_view.get_tensor_representation(0, 8)
+
+        # Verify param_slice 0 (C[0,0]): contributes to result[b,0,c] from X[b,0,c]
+        slice_idx_zero = out_repr.get_param_slice(0).toarray()[:, :-1]
+        expected_idx_zero = np.array([
+            [1, 0, 0, 0, 0, 0, 0, 0],
+            [0, 1, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 1, 0, 0, 0],
+            [0, 0, 0, 0, 0, 1, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+        ])
+        assert np.all(slice_idx_zero == expected_idx_zero)
+
+        # Verify param_slice 1 (C[1,0]): contributes to result[b,1,c] from X[b,0,c]
+        slice_idx_one = out_repr.get_param_slice(1).toarray()[:, :-1]
+        expected_idx_one = np.array([
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [1, 0, 0, 0, 0, 0, 0, 0],
+            [0, 1, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 1, 0, 0, 0],
+            [0, 0, 0, 0, 0, 1, 0, 0],
+        ])
+        assert np.all(slice_idx_one == expected_idx_one)
+
+        # Verify param_slice 2 (C[0,1]): contributes to result[b,0,c] from X[b,1,c]
+        slice_idx_two = out_repr.get_param_slice(2).toarray()[:, :-1]
+        expected_idx_two = np.array([
+            [0, 0, 1, 0, 0, 0, 0, 0],
+            [0, 0, 0, 1, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 1, 0],
+            [0, 0, 0, 0, 0, 0, 0, 1],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+        ])
+        assert np.all(slice_idx_two == expected_idx_two)
+
+        # Verify param_slice 3 (C[1,1]): contributes to result[b,1,c] from X[b,1,c]
+        slice_idx_three = out_repr.get_param_slice(3).toarray()[:, :-1]
+        expected_idx_three = np.array([
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 1, 0, 0, 0, 0, 0],
+            [0, 0, 0, 1, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 1, 0],
+            [0, 0, 0, 0, 0, 0, 0, 1],
+        ])
+        assert np.all(slice_idx_three == expected_idx_three)
+
+        # Note: view is edited in-place
+        assert out_view.get_tensor_representation(0, 8) == view.get_tensor_representation(0, 8)
 
 
 class TestSciPyBackend:
