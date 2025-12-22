@@ -968,23 +968,9 @@ class CooCanonBackend(PythonCanonBackend):
         const_shape = lin_op.data.shape
 
         if is_lhs_parametric:
-            # Parametrized lhs @ variable rhs - expand each param slice using unified helper
-            # TODO: Implement native CooTensor kron structure to avoid sparse round-trip
+            # Parametrized lhs @ variable rhs
             batch_size, n, _ = get_nd_matmul_dims(const_shape, var_shape)
-            expanded_lhs = {
-                param_id: self._to_coo_tensor(
-                    sp.vstack(
-                        list(expand_parametric_slices(
-                            tensor.to_stacked_sparse(),
-                            tensor.param_size,
-                            batch_size, n
-                        )),
-                        format="csr"
-                    ),
-                    param_id=param_id
-                )
-                for param_id, tensor in lhs_data.items()
-            }
+            expanded_lhs = self._expand_lhs_nd_parametric(lhs_data, batch_size, n)
 
             def parametrized_mul(rhs_compact):
                 return {
@@ -1054,6 +1040,25 @@ class CooCanonBackend(PythonCanonBackend):
             # Constant lhs - use get_constant_data to handle complex expressions
             lhs_data, is_param_free = self.get_constant_data(lhs, view, column=False)
             return lhs_data, not is_param_free  # return (data, is_parametric)
+
+    def _expand_lhs_nd_parametric(self, lhs_data: dict, batch_size: int, n: int) -> dict:
+        """
+        Apply ND Kronecker structure I_n ⊗ C ⊗ I_batch to parametric lhs.
+
+        TODO: Implement native CooTensor kron structure to avoid sparse round-trip.
+        """
+        return {
+            param_id: self._to_coo_tensor(
+                sp.vstack(
+                    list(expand_parametric_slices(
+                        tensor.to_stacked_sparse(), tensor.param_size, batch_size, n
+                    )),
+                    format="csr"
+                ),
+                param_id=param_id
+            )
+            for param_id, tensor in lhs_data.items()
+        }
 
     def get_constant_data_from_const(self, lin_op):
         """Extract constant data from a LinOp."""
