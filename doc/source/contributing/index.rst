@@ -48,6 +48,7 @@ Small scope projects
  - `Add cp.RSOC (Rotated Second-Order Cone) <https://github.com/cvxpy/cvxpy/issues/2874>`_.
  - `Huber function with concomitant scale estimation <https://github.com/cvxpy/cvxpy/issues/1377>`_.
  - `More verbose logging info (expression tree nodes, DCP time) <https://github.com/cvxpy/cvxpy/issues/2674>`_.
+ - Improve type checking for compatibility with Pyright.
 
 Medium scope projects
  - `Post-solver feasibility checks <https://github.com/cvxpy/cvxpy/issues/434>`_.
