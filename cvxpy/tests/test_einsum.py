@@ -156,7 +156,7 @@ class TestEinsum(BaseTest):
         with self.assertRaises(ValueError) as cm:
             cp.einsum('ij,jkl->ikl', A, E)  # j dimension mismatch
         self.assertIn(
-            "Size of label 'j' for operand 1 (4) does not match previous terms (5).", 
+            "Size of label 'j' for operand 1 (5) does not match previous terms (4).", 
             str(cm.exception)
         )
 

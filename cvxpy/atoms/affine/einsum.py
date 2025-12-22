@@ -15,21 +15,21 @@ limitations under the License.
 """
 
 import numpy as np
-from numpy._core.einsumfunc import (
-    _find_contraction,
-    _greedy_path,
-    _optimal_path,
-    _parse_einsum_input,
-)
 
 from cvxpy.atoms.affine.binary_operators import multiply
 from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.atoms.affine.sum import sum as cvxpy_sum
 from cvxpy.atoms.affine.transpose import permute_dims
+from cvxpy.utilities.einsum_utilities import (
+    find_contraction,
+    greedy_path,
+    optimal_path,
+    parse_einsum_input,
+)
 
 
 def einsum(subscripts, *exprs, optimize="greedy"):
-    """Evaluates the Einstein summation convention on the given expressions.
+    f"""Evaluates the Einstein summation convention on the given expressions.
 
     This atom is the CVXPY analog of NumPy's einsum function `numpy.einsum` [1],
     and it maintains the same syntax and semantics. 
@@ -43,6 +43,47 @@ def einsum(subscripts, *exprs, optimize="greedy"):
     in the number of distinct subscripts, while the cost to compute the greedy path 
     is cubic in the number of distinct subscripts. We typically expect the greedy 
     search to produce the optimal path for most problems.
+
+    Here, einsum is implemented using the CVXPY sum, multiply, permute_dims, and reshape atoms.
+    The implementation proceeds as follows:
+    
+    1. Parse and validate the subscripts and the shapes and count of the expressions.
+        The core logic is:
+        ```python
+        input_subscripts, output_subscript = subscripts.split("->")
+        ```
+        The rest is validation.
+    
+    2. Reduce duplicate indices in the expressions.
+        Duplicated indices in a subscript pattern represent indexing along a diagonal
+        of the corresponding dimensions. For example, the subscript pattern 'ii->i'
+        extracts the diagonal of a matrix and 'ii->' takes the trace. For the following steps,
+        it is necessary that every dimension of a tensor is uniquely indexed (within the tensor)
+        or not indexed (elipsis). We reduce duplicated indices by creating a new tensor
+        of reduced dimension by taking the diagonal elements.
+
+    3. Contraction.
+        A. If only one input, simply perform an axis sum.
+        B. Otherwise, we iterate over pairs of tensors and contract them. Contracting 
+        two tensors involves (i) reshaping and permuting them to compatible shapes where 
+        corresponding indices align, (ii) performing elementwise multiplication, and 
+        (iii) summing over the contracted dimensions. The order of the contractions is 
+        given by the contraction path.
+
+    4. Permute the final result to match output subscript order.
+        After all contractions, we permute the final result to match the output subscript order.
+
+    Examples
+    --------
+    >>> import cvxpy as cp
+    >>> A = cp.Variable((3, 4))
+    >>> B = cp.Variable((4, 5))
+    >>> # Matrix multiplication
+    >>> result = cp.einsum('ij,jk->ik', A, B)
+    >>> 
+    >>> # Trace of a matrix
+    >>> C = cp.Variable((3, 3))
+    >>> trace = cp.einsum('ii->', C)
 
     References
     ----------
@@ -63,9 +104,9 @@ def einsum(subscripts, *exprs, optimize="greedy"):
     Expression
         The contracted expression.
     """
-    # Initial parsing
+    # 1. Initial parsing
     dummy_operands = [np.empty(expr.shape, dtype=np.dtype([])) for expr in exprs]
-    input_subscripts, output_subscript, _ = _parse_einsum_input((
+    input_subscripts, output_subscript, _ = parse_einsum_input((
         subscripts, *dummy_operands
     ))
 
@@ -73,27 +114,26 @@ def einsum(subscripts, *exprs, optimize="greedy"):
     output_set = set(output_subscript)
     dimension_dict = _validate_arguments(input_list, exprs)
 
-    # Reduce duplicate indices
+    # 2. Reduce duplicate indices
     operands = []
     reduced_inputs = []
     input_sets = []
-    for expr, input in zip(exprs, input_list):
+    for expr, input in zip(exprs, input_list, strict=True):
         operand, inputs = _initial_reduction(expr, input, dimension_dict)
         operands.append(operand)
         reduced_inputs.append(inputs)
         input_sets.append(set(inputs))
 
-    # If only one input, simply perform an axis sum
+    # 3.A. If only one input, simply perform an axis sum
     if len(operands) == 1:
         return _sum_single_operand(operands[0], reduced_inputs[0], output_subscript)
 
-    output_set = set(output_subscript)
     path = _get_path(input_sets, output_set, dimension_dict, optimize)
     
-    # Contract tensors
+    # 3.B Contract tensors
     for contraction_inds in path:
         # Results of contraction go to the last of the list
-        _, input_sets, to_remove, all_labels = _find_contraction(
+        _, input_sets, to_remove, all_labels = find_contraction(
             contraction_inds, 
             input_sets, 
             output_set
@@ -115,7 +155,7 @@ def einsum(subscripts, *exprs, optimize="greedy"):
         ]
         reduced_inputs.append(new_input)
 
-    # After all contractions, permute the final result to match output subscript order
+    # 4. After all contractions, permute the final result to match output subscript order
     final_operand = operands[0]
     final_input = reduced_inputs[0]
     
@@ -170,7 +210,7 @@ def _validate_arguments(input_list, exprs):
                 if dimension_dict[char] != dim:
                     raise ValueError("Size of label '%s' for operand %d (%d) "
                                         "does not match previous terms (%d)."
-                                        % (char, tnum, dimension_dict[char], dim))
+                                        % (char, tnum, dim, dimension_dict[char]))
             else:
                 dimension_dict[char] = dim
 
@@ -181,7 +221,7 @@ def _get_path(input_sets, output_set, dimension_dict, optimize):
     
     This function determines the order in which pairs of tensors should be
     contracted to minimize computational cost. The path optimization can use
-    either a greedy search or a find the optimal path.
+    either a greedy or optimal path.
     
     Parameters
     ----------
@@ -208,9 +248,9 @@ def _get_path(input_sets, output_set, dimension_dict, optimize):
         If optimize has an invalid value.
     """
     if optimize in {True, "optimal"}:
-        return _optimal_path(input_sets, output_set, dimension_dict, np.iinfo(np.int32).max)
+        return optimal_path(input_sets, output_set, dimension_dict, np.iinfo(np.int32).max)
     elif optimize in {False, "greedy"}:
-        return _greedy_path(input_sets, output_set, dimension_dict, np.iinfo(np.int32).max)
+        return greedy_path(input_sets, output_set, dimension_dict, np.iinfo(np.int32).max)
     else:
         raise ValueError("Invalid value for optimize. Must be True, False, 'optimal', or 'greedy'.")
 
@@ -333,7 +373,7 @@ def _contract_pair(operands, input_lists, to_remove, all_labels, dimension_dict)
     
     # Align and permute the operands to compatible shapes
     aligned_operands = []
-    for operand, input_list in zip(operands, input_lists):
+    for operand, input_list in zip(operands, input_lists, strict=True):
 
         extra_dims = tuple(1 for x in all_labels if x not in input_list)
         if len(extra_dims) > 0:
