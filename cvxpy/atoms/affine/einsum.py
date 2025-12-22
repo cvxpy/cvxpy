@@ -29,7 +29,7 @@ from cvxpy.utilities.einsum_utilities import (
 
 
 def einsum(subscripts, *exprs, optimize="greedy"):
-    f"""Evaluates the Einstein summation convention on the given expressions.
+    """Evaluates the Einstein summation convention on the given expressions.
 
     This atom is the CVXPY analog of NumPy's einsum function `numpy.einsum` [1],
     and it maintains the same syntax and semantics. 
@@ -43,35 +43,6 @@ def einsum(subscripts, *exprs, optimize="greedy"):
     in the number of distinct subscripts, while the cost to compute the greedy path 
     is cubic in the number of distinct subscripts. We typically expect the greedy 
     search to produce the optimal path for most problems.
-
-    Here, einsum is implemented using the CVXPY sum, multiply, permute_dims, and reshape atoms.
-    The implementation proceeds as follows:
-    
-    1. Parse and validate the subscripts and the shapes and count of the expressions.
-        The core logic is:
-        ```python
-        input_subscripts, output_subscript = subscripts.split("->")
-        ```
-        The rest is validation.
-    
-    2. Reduce duplicate indices in the expressions.
-        Duplicated indices in a subscript pattern represent indexing along a diagonal
-        of the corresponding dimensions. For example, the subscript pattern 'ii->i'
-        extracts the diagonal of a matrix and 'ii->' takes the trace. For the following steps,
-        it is necessary that every dimension of a tensor is uniquely indexed (within the tensor)
-        or not indexed (elipsis). We reduce duplicated indices by creating a new tensor
-        of reduced dimension by taking the diagonal elements.
-
-    3. Contraction.
-        A. If only one input, simply perform an axis sum.
-        B. Otherwise, we iterate over pairs of tensors and contract them. Contracting 
-        two tensors involves (i) reshaping and permuting them to compatible shapes where 
-        corresponding indices align, (ii) performing elementwise multiplication, and 
-        (iii) summing over the contracted dimensions. The order of the contractions is 
-        given by the contraction path.
-
-    4. Permute the final result to match output subscript order.
-        After all contractions, we permute the final result to match the output subscript order.
 
     Examples
     --------
@@ -103,6 +74,36 @@ def einsum(subscripts, *exprs, optimize="greedy"):
     -------
     Expression
         The contracted expression.
+    """
+    """Note for maintainers:
+    Here, einsum is implemented using the CVXPY sum, multiply, permute_dims, and reshape atoms.
+    The implementation proceeds as follows:
+    
+    1. Parse and validate the subscripts and the shapes and count of the expressions.
+        The core logic is:
+        ```python
+        input_subscripts, output_subscript = subscripts.split("->")
+        ```
+        The rest is validation.
+    
+    2. Reduce duplicate indices in the expressions.
+        Duplicated indices in a subscript pattern represent indexing along a diagonal
+        of the corresponding dimensions. For example, the subscript pattern 'ii->i'
+        extracts the diagonal of a matrix and 'ii->' takes the trace. For the following steps,
+        it is necessary that every dimension of a tensor is uniquely indexed (within the tensor)
+        or not indexed (elipsis). We reduce duplicated indices by creating a new tensor
+        of reduced dimension by taking the diagonal elements.
+
+    3. Contraction.
+        A. If only one input, simply perform an axis sum.
+        B. Otherwise, we iterate over pairs of tensors and contract them. Contracting 
+        two tensors involves (i) reshaping and permuting them to compatible shapes where 
+        corresponding indices align, (ii) performing elementwise multiplication, and 
+        (iii) summing over the contracted dimensions. The order of the contractions is 
+        given by the contraction path.
+
+    4. Permute the final result to match output subscript order.
+        After all contractions, we permute the final result to match the output subscript order.
     """
     # 1. Initial parsing
     dummy_operands = [np.empty(expr.shape, dtype=np.dtype([])) for expr in exprs]
