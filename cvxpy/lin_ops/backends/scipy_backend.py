@@ -192,14 +192,75 @@ class SciPyCanonBackend(PythonCanonBackend):
         When the lhs is parametrized, multiply each slice of the tensor with the
         single, constant slice of the rhs.
         Otherwise, multiply the single slice of the tensor with each slice of the rhs.
+
+        For ND arrays with 2D constant: I_n ⊗ C ⊗ I_batch
+        For ND arrays with batch-varying constant: I_n ⊗ block_diag(C[0], ..., C[B-1])
         """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=False)
         if is_param_free_lhs:
-            reps = view.rows // lhs.shape[-1]
-            if reps > 1:
-                stacked_lhs = (sp.kron(sp.eye_array(reps, format="csr"), lhs))
+            var_shape = lin.args[0].shape
+            const_shape = lin.data.shape
+            lhs_k = lhs.shape[-1]  # inner dimension
+
+            # Check if constant has batch dimensions
+            const_has_batch = len(const_shape) > 2
+
+            if const_has_batch:
+                # Batch-varying constant: C has shape (..., m, k), X has shape (..., k, n)
+                # In Fortran order, batches are interleaved. For vec(result) and vec(X):
+                # - result[b, i, c] at index b + B*i + B*m*c
+                # - X[b, r, c] at index b + B*r + B*k*c
+                # We need M[b + B*i + B*m*c, b' + B*r + B*k*c'] = C[b,i,r] if b==b' and c==c'
+                # This is I_n ⊗ M_interleaved where M_interleaved[b+B*i, b+B*r] = C[b,i,r]
+                B = int(np.prod(const_shape[:-2]))
+                m_dim = const_shape[-2]
+                k_dim = const_shape[-1]
+                n = var_shape[-1]
+
+                # Get the raw constant data and reshape to (B, m, k)
+                const_data = lin.data.data
+                const_flat = np.reshape(const_data, (B, m_dim, k_dim), order='F')
+
+                # Build interleaved matrix in COO format: entry (b+B*i, b+B*r) = C[b,i,r]
+                rows = []
+                cols = []
+                data = []
+                for b in range(B):
+                    for i in range(m_dim):
+                        for r in range(k_dim):
+                            rows.append(b + B * i)
+                            cols.append(b + B * r)
+                            data.append(const_flat[b, i, r])
+                M_interleaved = sp.csr_array(
+                    (data, (rows, cols)), shape=(B * m_dim, B * k_dim)
+                )
+
+                # Apply I_n ⊗ M_interleaved
+                if n > 1:
+                    stacked_lhs = sp.kron(sp.eye_array(n, format="csr"), M_interleaved)
+                else:
+                    stacked_lhs = M_interleaved
+
+            elif len(var_shape) > 2:
+                # ND variable with 2D constant: I_n ⊗ C ⊗ I_batch
+                batch_size = int(np.prod(var_shape[:-2]))
+                n = var_shape[-1]
+
+                if batch_size > 1:
+                    inner = sp.kron(lhs, sp.eye_array(batch_size, format="csr"))
+                else:
+                    inner = lhs
+                if n > 1:
+                    stacked_lhs = sp.kron(sp.eye_array(n, format="csr"), inner)
+                else:
+                    stacked_lhs = inner
             else:
-                stacked_lhs = lhs
+                # 2D case - original code
+                reps = view.rows // lhs_k
+                if reps > 1:
+                    stacked_lhs = sp.kron(sp.eye_array(reps, format="csr"), lhs)
+                else:
+                    stacked_lhs = lhs
 
             def func(x, p):
                 if p == 1:
@@ -207,11 +268,22 @@ class SciPyCanonBackend(PythonCanonBackend):
                 else:
                     return ((sp.kron(sp.eye_array(p, format="csc"), stacked_lhs)) @ x).tocsc()
         else:
-            reps = view.rows // next(iter(lhs.values())).shape[-1]
-            if reps > 1:
-                stacked_lhs = self._stacked_kron_r(lhs, reps)
+            var_shape = lin.args[0].shape
+            first_lhs = next(iter(lhs.values()))
+            lhs_k = first_lhs.shape[-1]
+
+            if len(var_shape) > 2:
+                # ND case with parametrized lhs: need I_n ⊗ C ⊗ I_batch for each param slice
+                batch_size = int(np.prod(var_shape[:-2]))
+                n = var_shape[-1]
+                stacked_lhs = self._stacked_kron_nd(lhs, batch_size, n)
             else:
-                stacked_lhs = lhs
+                # 2D case - original code
+                reps = view.rows // lhs_k
+                if reps > 1:
+                    stacked_lhs = self._stacked_kron_r(lhs, reps)
+                else:
+                    stacked_lhs = lhs
 
             def parametrized_mul(x):
                 return {k: v @ x for k, v in stacked_lhs.items()}
@@ -249,6 +321,57 @@ class SciPyCanonBackend(PythonCanonBackend):
             new_shape = (v.shape[0] * reps, v.shape[1] * reps)
             res[param_id] = sp.csc_array(
                 (new_data, (new_rows, new_cols)), shape=new_shape)
+        return res
+
+    def _stacked_kron_nd(self, lhs: dict[int, sp.csc_array], batch_size: int, n: int) \
+            -> dict[int, sp.csc_array]:
+        """
+        Apply ND Kronecker structure I_n ⊗ C ⊗ I_batch to each parameter slice.
+
+        For ND matmul C @ X where X has shape (..., k, n), we need:
+        I_n ⊗ C ⊗ I_batch where batch = prod(...)
+
+        Parameters
+        ----------
+        lhs : dict mapping param_id to stacked sparse matrix
+        batch_size : product of batch dimensions
+        n : last dimension of variable
+
+        Returns
+        -------
+        dict mapping param_id to the ND Kronecker-expanded matrix
+        """
+        res = dict()
+        for param_id, v in lhs.items():
+            p = self.param_to_size[param_id]
+            # v has shape (p * m, k) where m, k are the constant dimensions
+            m_times_k = v.shape[0] // p
+            k = v.shape[1]
+            m = m_times_k // k if k > 0 else m_times_k
+
+            # For each param slice, apply I_n ⊗ C ⊗ I_batch
+            # Build by iterating over each param slice
+            new_slices = []
+            for slice_idx in range(p):
+                # Extract this param slice
+                start_row = slice_idx * m
+                end_row = (slice_idx + 1) * m
+                # Get the slice (may need to handle this differently for stacked format)
+                slice_matrix = v[start_row:end_row, :]
+
+                # Apply kron(I_n, kron(C, I_batch))
+                if batch_size > 1:
+                    inner = sp.kron(slice_matrix, sp.eye_array(batch_size, format="csr"))
+                else:
+                    inner = slice_matrix
+                if n > 1:
+                    expanded = sp.kron(sp.eye_array(n, format="csr"), inner)
+                else:
+                    expanded = inner
+                new_slices.append(expanded)
+
+            # Stack all slices vertically
+            res[param_id] = sp.vstack(new_slices, format="csc")
         return res
 
     @staticmethod
