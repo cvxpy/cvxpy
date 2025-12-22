@@ -331,6 +331,16 @@ class TestAtoms(BaseTest):
         self.assertEqual(str(cm.exception),
                          "The second argument to quad_over_lin must be a scalar.")
 
+        # Test quad_over_lin numeric value computation.
+        # The denominator should be converted to a scalar via .item().
+        x_val = np.array([3.0, 4.0])
+        y_val = np.array([2.0])  # (1,) shaped numpy array
+        atom = cp.quad_over_lin(Constant(x_val), Constant(y_val))
+        expected = (3.0**2 + 4.0**2) / 2.0  # = 12.5
+        self.assertAlmostEqual(atom.value, expected)
+        # Verify the result is a scalar (not an array).
+        self.assertEqual(np.ndim(atom.value), 0)
+
     def test_elemwise_arg_count(self) -> None:
         """Test arg count for max and min variants.
         """
