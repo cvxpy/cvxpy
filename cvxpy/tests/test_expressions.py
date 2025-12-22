@@ -1587,7 +1587,7 @@ class TestND_Expressions():
 
     def test_nd_variable_value_error(self) -> None:
         prob = cp.Problem(self.obj, [self.x == self.target])
-        error_str = "Only the SCIPY and NUMPY backends are supported " \
+        error_str = "Only the COO and SCIPY backends are supported " \
                     "for problems with expressions of dimension greater than 2."
         with pytest.raises(ValueError, match=error_str):
             prob.solve(canon_backend=cp.CPP_CANON_BACKEND)
