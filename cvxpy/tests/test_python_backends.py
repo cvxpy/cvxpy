@@ -16,6 +16,7 @@ from cvxpy.lin_ops.backends import (
     TensorRepresentation,
     get_backend,
 )
+from cvxpy.lin_ops.backends.nd_matmul_utils import apply_nd_kron_structure
 
 
 @dataclass
@@ -2810,17 +2811,30 @@ class TestSciPyBackend:
             view.add_dicts({"a": 1}, {"a": 2})
 
     @staticmethod
-    @pytest.mark.parametrize("shape", [(1, 1), (2, 2), (3, 3), (4, 4)])
-    def test_stacked_kron_r(shape, scipy_backend):
-        p = 2
-        reps = 3
+    @pytest.mark.parametrize("shape,batch_size,n", [
+        ((2, 2), 1, 3),   # 2D case: I_3 ⊗ C
+        ((2, 2), 2, 3),   # ND case: I_3 ⊗ C ⊗ I_2
+        ((3, 2), 1, 4),   # 2D case with non-square matrix
+        ((3, 2), 3, 2),   # ND case with non-square matrix
+    ])
+    def test_stacked_kron_nd(shape, batch_size, n, scipy_backend):
+        """
+        Test _stacked_kron_nd which applies I_n ⊗ C ⊗ I_batch to each param slice.
+
+        For batch_size=1, this reduces to I_n ⊗ C (the 2D case).
+        """
+        rng = np.random.default_rng(42)
+        p = 2  # number of parameter slices
         param_id = 2
-        matrices = [sp.random_array(shape, random_state=i, density=0.5) for i in range(p)]
-        stacked = sp.vstack(matrices)
-        repeated = scipy_backend._stacked_kron_r({param_id: stacked}, reps)
-        repeated = repeated[param_id]
-        expected = sp.vstack([sp.kron(sp.eye_array(reps), m) for m in matrices])
-        assert (expected != repeated).nnz == 0
+        matrices = [sp.random_array(shape, random_state=rng, density=0.5).tocsc()
+                    for _ in range(p)]
+        stacked = sp.vstack(matrices, format="csc")
+        result = scipy_backend._stacked_kron_nd({param_id: stacked}, batch_size, n)
+        result = result[param_id]
+
+        # Expected: apply I_n ⊗ C ⊗ I_batch to each slice, then vstack
+        expected = sp.vstack([apply_nd_kron_structure(m, batch_size, n) for m in matrices])
+        assert (expected != result).nnz == 0
 
     @staticmethod
     @pytest.mark.parametrize("shape", [(1, 1), (2, 2), (3, 3), (4, 4)])
