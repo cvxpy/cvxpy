@@ -17,13 +17,15 @@ from cvxpy.lin_ops.backends import (
     get_backend,
 )
 from cvxpy.lin_ops.backends.coo_backend import (
-    _coo_kron_eye_l,
-    _coo_kron_eye_r,
-    _coo_kron_nd_structure,
+    _build_interleaved,
+    _kron_eye_l,
+    _kron_eye_r,
+    _kron_nd_structure,
 )
-from cvxpy.lin_ops.backends.nd_matmul_utils import (
-    apply_nd_kron_structure,
-    expand_parametric_slices,
+from cvxpy.lin_ops.backends.scipy_backend import (
+    _apply_nd_kron_structure,
+    _build_interleaved_matrix,
+    _expand_parametric_slices,
 )
 
 
@@ -2836,10 +2838,10 @@ class TestSciPyBackend:
         matrices = [sp.random_array(shape, random_state=rng, density=0.5).tocsc()
                     for _ in range(p)]
         stacked = sp.vstack(matrices, format="csc")
-        result = sp.vstack(list(expand_parametric_slices(stacked, p, batch_size, n)))
+        result = sp.vstack(list(_expand_parametric_slices(stacked, p, batch_size, n)))
 
         # Expected: apply I_n ⊗ C ⊗ I_batch to each slice, then vstack
-        expected = sp.vstack([apply_nd_kron_structure(m, batch_size, n) for m in matrices])
+        expected = sp.vstack([_apply_nd_kron_structure(m, batch_size, n) for m in matrices])
         assert (expected != result).nnz == 0
 
     @staticmethod
@@ -2980,8 +2982,8 @@ class TestCooBackend:
         ((3, 2), 2),
         ((2, 3), 4),
     ])
-    def test_coo_kron_eye_l(shape, reps):
-        """Test _coo_kron_eye_l against scipy.sparse.kron(A, I)."""
+    def test_kron_eye_l(shape, reps):
+        """Test _kron_eye_l against scipy.sparse.kron(A, I)."""
         rng = np.random.default_rng(42)
         param_size = 2
 
@@ -2993,8 +2995,8 @@ class TestCooBackend:
         stacked = sp.vstack(matrices)
         tensor = CooTensor.from_stacked_sparse(stacked, param_size)
 
-        # Apply _coo_kron_eye_l
-        result = _coo_kron_eye_l(tensor, reps)
+        # Apply _kron_eye_l
+        result = _kron_eye_l(tensor, reps)
 
         # Expected: apply kron(M, I_reps) to each slice, then stack
         expected = sp.vstack([sp.kron(m, sp.eye_array(reps)) for m in matrices])
@@ -3007,8 +3009,8 @@ class TestCooBackend:
         ((3, 2), 2),
         ((2, 3), 4),
     ])
-    def test_coo_kron_eye_r(shape, reps):
-        """Test _coo_kron_eye_r against scipy.sparse.kron(I, A)."""
+    def test_kron_eye_r(shape, reps):
+        """Test _kron_eye_r against scipy.sparse.kron(I, A)."""
         rng = np.random.default_rng(42)
         param_size = 2
 
@@ -3018,7 +3020,7 @@ class TestCooBackend:
         stacked = sp.vstack(matrices)
         tensor = CooTensor.from_stacked_sparse(stacked, param_size)
 
-        result = _coo_kron_eye_r(tensor, reps)
+        result = _kron_eye_r(tensor, reps)
 
         # Expected: apply kron(I_reps, M) to each slice
         expected = sp.vstack([sp.kron(sp.eye_array(reps), m) for m in matrices])
@@ -3033,24 +3035,44 @@ class TestCooBackend:
         ((3, 2), 1, 4),   # 2D non-square
         ((3, 2), 3, 2),   # ND non-square
     ])
-    def test_coo_kron_nd_structure(shape, batch_size, n):
-        """Test _coo_kron_nd_structure against scipy-based approach."""
+    def test_kron_nd_structure(shape, batch_size, n):
+        """Test _kron_nd_structure against scipy-based approach."""
         rng = np.random.default_rng(42)
         param_size = 2
 
         matrices = [sp.random_array(shape, random_state=rng, density=0.5)
                     for _ in range(param_size)]
 
-        # Use CSR format because expand_parametric_slices slices the matrix,
+        # Use CSR format because _expand_parametric_slices slices the matrix,
         # and COO arrays don't support __getitem__ slicing.
         stacked = sp.vstack(matrices, format="csr")
         tensor = CooTensor.from_stacked_sparse(stacked, param_size)
 
         # Native COO implementation
-        result = _coo_kron_nd_structure(tensor, batch_size, n)
+        result = _kron_nd_structure(tensor, batch_size, n)
 
-        # Reference: scipy-based implementation (expand_parametric_slices)
-        expected = sp.vstack(list(expand_parametric_slices(stacked, param_size, batch_size, n)))
+        # Reference: scipy-based implementation
+        expected = sp.vstack(list(_expand_parametric_slices(stacked, param_size, batch_size, n)))
 
         assert result.to_stacked_sparse().shape == expected.shape
         assert (expected != result.to_stacked_sparse()).nnz == 0
+
+    @staticmethod
+    @pytest.mark.parametrize("const_shape,var_shape", [
+        ((2, 3, 4), (2, 4, 5)),     # B=2, m=3, k=4, n=5
+        ((3, 2, 2), (3, 2, 3)),     # B=3, m=2, k=2, n=3
+        ((2, 2, 3, 4), (2, 2, 4, 2)),  # B=4, m=3, k=4, n=2
+    ])
+    def test_build_interleaved(const_shape, var_shape):
+        """Test _build_interleaved against scipy-based _build_interleaved_matrix."""
+        rng = np.random.default_rng(42)
+        const_data = rng.random(np.prod(const_shape))
+
+        # Native COO implementation
+        result = _build_interleaved(const_data, const_shape, var_shape)
+
+        # Reference: scipy-based implementation
+        expected = _build_interleaved_matrix(const_data, const_shape, var_shape)
+
+        assert result.to_stacked_sparse().shape == expected.shape
+        assert np.allclose(result.toarray(), expected.toarray())

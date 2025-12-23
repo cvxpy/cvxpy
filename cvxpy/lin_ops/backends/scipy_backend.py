@@ -15,7 +15,7 @@ limitations under the License.
 """
 from __future__ import annotations
 
-from typing import Any, Callable
+from typing import Any, Callable, Iterator, Tuple
 
 import numpy as np
 import scipy.sparse as sp
@@ -26,12 +26,114 @@ from cvxpy.lin_ops.backends.base import (
     DictTensorView,
     PythonCanonBackend,
     TensorRepresentation,
-)
-from cvxpy.lin_ops.backends.nd_matmul_utils import (
-    expand_lhs_for_nd_matmul,
-    expand_parametric_slices,
     get_nd_matmul_dims,
 )
+
+# =============================================================================
+# ND matmul helper functions (internal)
+# =============================================================================
+
+
+def _build_interleaved_matrix(
+    const_data: np.ndarray,
+    const_shape: Tuple[int, ...],
+    var_shape: Tuple[int, ...],
+) -> sp.csr_array:
+    """
+    Build the interleaved matrix for batch-varying constant case.
+
+    For C (..., m, k) @ X (..., k, n), builds I_n ⊗ M_interleaved where:
+    M_interleaved[b + B*i, b + B*r] = C[b, i, r]
+
+    This captures the Fortran-order vectorization where batch indices are interleaved:
+    - result[b, i, c] is at index b + B*i + B*m*c
+    - X[b, r, c] is at index b + B*r + B*k*c
+    """
+    B = int(np.prod(const_shape[:-2]))
+    m_dim = const_shape[-2]
+    k_dim = const_shape[-1]
+    n = var_shape[-1]
+
+    # Reshape to (B, m, k) in Fortran order
+    const_flat = np.reshape(const_data, (B, m_dim, k_dim), order="F")
+
+    # Build interleaved matrix using vectorized operations
+    b_indices = np.arange(B)
+    i_indices = np.arange(m_dim)
+    r_indices = np.arange(k_dim)
+
+    bb, ii, rr = np.meshgrid(b_indices, i_indices, r_indices, indexing="ij")
+
+    rows = (bb + B * ii).ravel()
+    cols = (bb + B * rr).ravel()
+    data = const_flat.ravel()
+
+    M_interleaved = sp.csr_array((data, (rows, cols)), shape=(B * m_dim, B * k_dim))
+
+    if n > 1:
+        return sp.kron(sp.eye_array(n, format="csr"), M_interleaved)
+    return M_interleaved
+
+
+def _apply_nd_kron_structure(
+    lhs: sp.sparray,
+    batch_size: int,
+    n: int,
+) -> sp.sparray:
+    """
+    Apply ND Kronecker structure I_n ⊗ C ⊗ I_batch.
+
+    For ND matmul C @ X where C is 2D (m, k) and X has shape (..., k, n):
+    vec(C @ X) = (I_n ⊗ C ⊗ I_batch) @ vec(X)
+    """
+    if batch_size > 1:
+        inner = sp.kron(lhs, sp.eye_array(batch_size, format="csr"))
+    else:
+        inner = lhs
+
+    if n > 1:
+        return sp.kron(sp.eye_array(n, format="csr"), inner)
+    return inner
+
+
+def _expand_lhs_for_nd_matmul(
+    lhs_sparse: sp.sparray,
+    const_data: np.ndarray,
+    const_shape: Tuple[int, ...],
+    var_shape: Tuple[int, ...],
+) -> sp.sparray:
+    """
+    Expand constant lhs matrix for ND matmul.
+
+    Handles both cases:
+    - Batch-varying constant: uses interleaved matrix structure
+    - 2D constant: uses I_n ⊗ C ⊗ I_batch Kronecker structure
+    """
+    batch_size, n, const_has_batch = get_nd_matmul_dims(const_shape, var_shape)
+
+    if const_has_batch:
+        return _build_interleaved_matrix(const_data, const_shape, var_shape)
+    else:
+        return _apply_nd_kron_structure(lhs_sparse, batch_size, n)
+
+
+def _expand_parametric_slices(
+    stacked_matrix: sp.sparray,
+    param_size: int,
+    batch_size: int,
+    n: int,
+) -> Iterator[sp.sparray]:
+    """
+    Generator yielding expanded slices for parametric ND matmul.
+
+    For a stacked parameter matrix of shape (param_size * m, k), extracts each
+    (m, k) slice and applies I_n ⊗ C ⊗ I_batch structure.
+    """
+    m = stacked_matrix.shape[0] // param_size
+
+    for slice_idx in range(param_size):
+        slice_matrix = stacked_matrix[slice_idx * m:(slice_idx + 1) * m, :]
+        yield _apply_nd_kron_structure(slice_matrix, batch_size, n)
 
 
 class SciPyTensorView(DictTensorView):
@@ -207,7 +309,7 @@ class SciPyCanonBackend(PythonCanonBackend):
 
         if is_param_free_lhs:
             # Constant lhs: expand using unified helper
-            stacked_lhs = expand_lhs_for_nd_matmul(lhs, lin.data.data, const_shape, var_shape)
+            stacked_lhs = _expand_lhs_for_nd_matmul(lhs, lin.data.data, const_shape, var_shape)
 
             def func(x, p):
                 if p == 1:
@@ -219,7 +321,7 @@ class SciPyCanonBackend(PythonCanonBackend):
             batch_size, n, _ = get_nd_matmul_dims(const_shape, var_shape)
             stacked_lhs = {
                 param_id: sp.vstack(
-                    list(expand_parametric_slices(v, self.param_to_size[param_id], batch_size, n)),
+                    list(_expand_parametric_slices(v, self.param_to_size[param_id], batch_size, n)),
                     format="csc"
                 )
                 for param_id, v in lhs.items()

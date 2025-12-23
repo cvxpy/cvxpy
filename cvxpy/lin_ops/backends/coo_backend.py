@@ -26,9 +26,6 @@ from cvxpy.lin_ops.backends.base import (
     DictTensorView,
     PythonCanonBackend,
     TensorRepresentation,
-)
-from cvxpy.lin_ops.backends.nd_matmul_utils import (
-    expand_lhs_for_nd_matmul,
     get_nd_matmul_dims,
 )
 
@@ -321,7 +318,7 @@ class CooTensor:
         )
 
 
-def _coo_kron_eye_r(tensor: CooTensor, reps: int) -> CooTensor:
+def _kron_eye_r(tensor: CooTensor, reps: int) -> CooTensor:
     """
     Apply Kronecker product kron(I_reps, A) to a CooTensor.
 
@@ -359,7 +356,7 @@ def _coo_kron_eye_r(tensor: CooTensor, reps: int) -> CooTensor:
     )
 
 
-def _coo_kron_eye_l(tensor: CooTensor, reps: int) -> CooTensor:
+def _kron_eye_l(tensor: CooTensor, reps: int) -> CooTensor:
     """
     Apply Kronecker product kron(A, I_reps) to a CooTensor.
 
@@ -397,11 +394,11 @@ def _coo_kron_eye_l(tensor: CooTensor, reps: int) -> CooTensor:
     )
 
 
-def _coo_kron_nd_structure(tensor: CooTensor, batch_size: int, n: int) -> CooTensor:
+def _kron_nd_structure(tensor: CooTensor, batch_size: int, n: int) -> CooTensor:
     """
     Apply I_n ⊗ C ⊗ I_batch natively to a CooTensor.
 
-    Equivalent to: _coo_kron_eye_r(_coo_kron_eye_l(tensor, batch_size), n)
+    Equivalent to: _kron_eye_r(_kron_eye_l(tensor, batch_size), n)
     but computed in a single pass for efficiency.
 
     Each entry at (p, i, j) expands to batch_size * n entries at:
@@ -425,9 +422,9 @@ def _coo_kron_nd_structure(tensor: CooTensor, batch_size: int, n: int) -> CooTen
     if batch_size == 1 and n == 1:
         return tensor
     if batch_size == 1:
-        return _coo_kron_eye_r(tensor, n)
+        return _kron_eye_r(tensor, n)
     if n == 1:
-        return _coo_kron_eye_l(tensor, batch_size)
+        return _kron_eye_l(tensor, batch_size)
 
     m, k = tensor.m, tensor.n
     nnz = tensor.nnz
@@ -463,6 +460,79 @@ def _coo_kron_nd_structure(tensor: CooTensor, batch_size: int, n: int) -> CooTen
         m=m * batch_size * n,
         n=k * batch_size * n,
         param_size=tensor.param_size
+    )
+
+
+def _build_interleaved(
+    const_data: np.ndarray,
+    const_shape: tuple,
+    var_shape: tuple,
+) -> CooTensor:
+    """
+    Build interleaved matrix for batch-varying constant case, as CooTensor.
+
+    For C (..., m, k) @ X (..., k, n), builds I_n ⊗ M_interleaved where:
+    M_interleaved[b + B*i, b + B*r] = C[b, i, r]
+
+    This is the native CooTensor equivalent of build_interleaved_matrix.
+
+    Parameters
+    ----------
+    const_data : np.ndarray
+        Raw constant data (will be reshaped to (B, m, k) in Fortran order)
+    const_shape : tuple
+        Shape of the constant (..., m, k)
+    var_shape : tuple
+        Shape of the variable (..., k, n)
+
+    Returns
+    -------
+    CooTensor
+        The interleaved matrix with I_n applied
+    """
+    B = int(np.prod(const_shape[:-2]))
+    m = const_shape[-2]
+    k = const_shape[-1]
+    n = var_shape[-1]
+
+    # Reshape to (B, m, k) in Fortran order
+    const_flat = np.reshape(const_data, (B, m, k), order="F")
+
+    # Build interleaved indices for all (b, i, r) combinations
+    b_idx = np.arange(B)
+    i_idx = np.arange(m)
+    r_idx = np.arange(k)
+
+    bb, ii, rr = np.meshgrid(b_idx, i_idx, r_idx, indexing="ij")
+    bb, ii, rr = bb.ravel(), ii.ravel(), rr.ravel()
+
+    # M_interleaved[b + B*i, b + B*r] = C[b, i, r]
+    base_row = bb + B * ii
+    base_col = bb + B * rr
+    data = const_flat.ravel()
+
+    # Apply I_n ⊗ M_interleaved: replicate for each c in 0..n-1
+    if n > 1:
+        c_offsets = np.arange(n)
+        row_offsets = np.repeat(c_offsets * B * m, len(data))
+        col_offsets = np.repeat(c_offsets * B * k, len(data))
+
+        new_data = np.tile(data, n)
+        new_row = np.tile(base_row, n) + row_offsets
+        new_col = np.tile(base_col, n) + col_offsets
+    else:
+        new_data = data
+        new_row = base_row
+        new_col = base_col
+
+    return CooTensor(
+        data=new_data.astype(np.float64),
+        row=new_row.astype(np.int64),
+        col=new_col.astype(np.int64),
+        param_idx=np.zeros(len(new_data), dtype=np.int64),
+        m=B * m * n,
+        n=B * k * n,
+        param_size=1
     )
 
 
@@ -1097,18 +1167,17 @@ class CooCanonBackend(PythonCanonBackend):
             batch_size, n, const_has_batch = get_nd_matmul_dims(const_shape, var_shape)
 
             if const_has_batch:
-                # Batch-varying: use scipy-based interleaved matrix
-                stacked_lhs = expand_lhs_for_nd_matmul(
-                    None, lin_op.data.data, const_shape, var_shape
+                # Batch-varying: build interleaved matrix natively
+                stacked_compact = _build_interleaved(
+                    lin_op.data.data, const_shape, var_shape
                 )
-                stacked_compact = self._to_coo_tensor(stacked_lhs)
             else:
                 # 2D constant: apply I_n ⊗ C ⊗ I_batch natively
                 if isinstance(lhs_data, CooTensor):
                     lhs_tensor = lhs_data
                 else:
                     lhs_tensor = self._to_coo_tensor(lhs_data)
-                stacked_compact = _coo_kron_nd_structure(lhs_tensor, batch_size, n)
+                stacked_compact = _kron_nd_structure(lhs_tensor, batch_size, n)
 
             def constant_mul(compact, p):
                 return coo_matmul(stacked_compact, compact)
@@ -1151,7 +1220,7 @@ class CooCanonBackend(PythonCanonBackend):
         Uses native CooTensor operations to avoid sparse format conversions.
         """
         return {
-            param_id: _coo_kron_nd_structure(tensor, batch_size, n)
+            param_id: _kron_nd_structure(tensor, batch_size, n)
             for param_id, tensor in lhs_data.items()
         }
 

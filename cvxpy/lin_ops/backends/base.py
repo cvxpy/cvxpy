@@ -28,13 +28,42 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Callable
+from typing import Any, Callable, Tuple
 
 import numpy as np
 import scipy.sparse as sp
 
 import cvxpy.settings as s
 from cvxpy.lin_ops import LinOp
+
+
+def get_nd_matmul_dims(
+    const_shape: Tuple[int, ...],
+    var_shape: Tuple[int, ...],
+) -> Tuple[int, int, bool]:
+    """
+    Compute dimensions for ND matmul C @ X.
+
+    Parameters
+    ----------
+    const_shape : tuple
+        Shape of the constant C
+    var_shape : tuple
+        Shape of the variable X
+
+    Returns
+    -------
+    batch_size : int
+        Product of batch dimensions from X (1 if X is 2D)
+    n : int
+        Last dimension of X (number of columns)
+    const_has_batch : bool
+        Whether C has batch dimensions (len > 2)
+    """
+    batch_size = int(np.prod(var_shape[:-2])) if len(var_shape) > 2 else 1
+    n = var_shape[-1] if len(var_shape) >= 2 else 1
+    const_has_batch = len(const_shape) > 2
+    return batch_size, n, const_has_batch
 
 
 class Constant(Enum):
