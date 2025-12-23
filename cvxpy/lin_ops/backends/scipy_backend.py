@@ -26,7 +26,6 @@ from cvxpy.lin_ops.backends.base import (
     DictTensorView,
     PythonCanonBackend,
     TensorRepresentation,
-    get_nd_matmul_dims,
 )
 
 # =============================================================================
@@ -98,27 +97,6 @@ def _apply_nd_kron_structure(
     if n > 1:
         return sp.kron(sp.eye_array(n, format="csr"), inner)
     return inner
-
-
-def _expand_lhs_for_nd_matmul(
-    lhs_sparse: sp.sparray,
-    const_data: np.ndarray,
-    const_shape: Tuple[int, ...],
-    var_shape: Tuple[int, ...],
-) -> sp.sparray:
-    """
-    Expand constant lhs matrix for ND matmul.
-
-    Handles both cases:
-    - Batch-varying constant: uses interleaved matrix structure
-    - 2D constant: uses I_n ⊗ C ⊗ I_batch Kronecker structure
-    """
-    batch_size, n, const_has_batch = get_nd_matmul_dims(const_shape, var_shape)
-
-    if const_has_batch:
-        return _build_interleaved_matrix(const_data, const_shape, var_shape)
-    else:
-        return _apply_nd_kron_structure(lhs_sparse, batch_size, n)
 
 
 def _expand_parametric_slices(
@@ -297,45 +275,136 @@ class SciPyCanonBackend(PythonCanonBackend):
                                               self.param_to_size, self.param_to_col,
                                               self.var_length)
 
+    # =========================================================================
+    # ND Matmul: helper predicates and methods
+    # =========================================================================
+
+    @staticmethod
+    def _is_batch_varying(const_shape: Tuple[int, ...]) -> bool:
+        """
+        Check if constant has batch dimensions with product > 1.
+
+        A batch-varying constant has different values for each batch element,
+        requiring the interleaved matrix structure.
+        """
+        if len(const_shape) <= 2:
+            return False
+        return int(np.prod(const_shape[:-2])) > 1
+
+    @staticmethod
+    def _get_nd_dims(const_shape: Tuple[int, ...], var_shape: Tuple[int, ...]) -> Tuple[int, int]:
+        """
+        Get (batch_size, n) for ND matmul C @ X.
+
+        batch_size: product of variable's batch dimensions
+        n: last dimension of variable (columns per batch)
+        """
+        batch_size = int(np.prod(var_shape[:-2])) if len(var_shape) > 2 else 1
+        n = var_shape[-1] if len(var_shape) >= 2 else 1
+        return batch_size, n
+
+    def _mul_kronecker(
+        self,
+        lhs: sp.sparray,
+        const_shape: Tuple[int, ...],
+        var_shape: Tuple[int, ...],
+        view: SciPyTensorView,
+    ) -> SciPyTensorView:
+        """
+        2D constant @ ND variable: use Kronecker structure I_n ⊗ C ⊗ I_batch.
+
+        This is the most common case: a 2D constant matrix multiplies each
+        batch element of an ND variable.
+        """
+        batch_size, n = self._get_nd_dims(const_shape, var_shape)
+        stacked_lhs = _apply_nd_kron_structure(lhs, batch_size, n)
+
+        def func(x, p):
+            if p == 1:
+                return (stacked_lhs @ x).tocsr()
+            else:
+                return (sp.kron(sp.eye_array(p, format="csc"), stacked_lhs) @ x).tocsc()
+
+        return view.accumulate_over_variables(func, is_param_free_function=True)
+
+    def _mul_interleaved(
+        self,
+        const: LinOp,
+        var_shape: Tuple[int, ...],
+        view: SciPyTensorView,
+    ) -> SciPyTensorView:
+        """
+        Batch-varying constant @ variable: use interleaved matrix structure.
+
+        When the constant has batch dimensions (e.g., C(B,m,k) @ X(B,k,n)),
+        each batch element uses a different constant matrix.
+        """
+        const_shape = const.shape
+        # Uses raw numpy data to build interleaved matrix structure
+        stacked_lhs = _build_interleaved_matrix(const.data, const_shape, var_shape)
+
+        def func(x, p):
+            if p == 1:
+                return (stacked_lhs @ x).tocsr()
+            else:
+                return (sp.kron(sp.eye_array(p, format="csc"), stacked_lhs) @ x).tocsc()
+
+        return view.accumulate_over_variables(func, is_param_free_function=True)
+
+    def _mul_parametric_lhs(
+        self,
+        lhs: dict,
+        const_shape: Tuple[int, ...],
+        var_shape: Tuple[int, ...],
+        view: SciPyTensorView,
+    ) -> SciPyTensorView:
+        """
+        Parametric constant @ variable: expand each parameter slice with Kronecker.
+
+        When the constant depends on Parameters, we expand each parameter slice
+        separately using the Kronecker structure.
+        """
+        batch_size, n = self._get_nd_dims(const_shape, var_shape)
+
+        # Expand each parameter slice and stack
+        stacked_lhs = {
+            param_id: sp.vstack(
+                list(_expand_parametric_slices(v, self.param_to_size[param_id], batch_size, n)),
+                format="csc"
+            )
+            for param_id, v in lhs.items()
+        }
+
+        def parametrized_mul(x):
+            return {k: v @ x for k, v in stacked_lhs.items()}
+
+        return view.accumulate_over_variables(parametrized_mul, is_param_free_function=False)
+
     def mul(self, lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
         """
-        Multiply view with constant data from the left.
-        When the lhs is parametrized, multiply each slice of the tensor with the
-        single, constant slice of the rhs.
-        Otherwise, multiply the single slice of the tensor with each slice of the rhs.
+        Matrix multiply: C @ X where C is constant/parametric, X is variable.
 
-        For ND arrays with 2D constant: I_n ⊗ C ⊗ I_batch
-        For ND arrays with batch-varying constant: I_n ⊗ block_diag(C[0], ..., C[B-1])
+        Three cases (explicitly branched for clarity):
+        1. Parametric LHS: Parameter @ Variable
+        2. Batch-varying constant: C(B,m,k) @ X(B,k,n) - uses interleaved matrix
+        3. 2D constant: C(m,k) @ X(B,k,n) - uses Kronecker I_n ⊗ C ⊗ I_B
         """
-        lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=False)
+        const = lin.data
         var_shape = lin.args[0].shape
-        const_shape = lin.data.shape
+        const_shape = const.shape
 
-        if is_param_free_lhs:
-            # Constant lhs: expand using unified helper
-            stacked_lhs = _expand_lhs_for_nd_matmul(lhs, lin.data.data, const_shape, var_shape)
+        # Get constant data - this also tells us if it's parametric
+        lhs, is_param_free = self.get_constant_data(const, view, column=False)
 
-            def func(x, p):
-                if p == 1:
-                    return (stacked_lhs @ x).tocsr()
-                else:
-                    return ((sp.kron(sp.eye_array(p, format="csc"), stacked_lhs)) @ x).tocsc()
+        if not is_param_free:
+            # Case 1: Parametric LHS
+            return self._mul_parametric_lhs(lhs, const_shape, var_shape, view)
+        elif self._is_batch_varying(const_shape):
+            # Case 2: Batch-varying constant
+            return self._mul_interleaved(const, var_shape, view)
         else:
-            # Parametrized lhs: expand each param slice using unified helper
-            batch_size, n, _ = get_nd_matmul_dims(const_shape, var_shape)
-            stacked_lhs = {
-                param_id: sp.vstack(
-                    list(_expand_parametric_slices(v, self.param_to_size[param_id], batch_size, n)),
-                    format="csc"
-                )
-                for param_id, v in lhs.items()
-            }
-
-            def parametrized_mul(x):
-                return {k: v @ x for k, v in stacked_lhs.items()}
-
-            func = parametrized_mul
-        return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
+            # Case 3: 2D constant (or trivial batch dims like (1, m, k))
+            return self._mul_kronecker(lhs, const_shape, var_shape, view)
 
     @staticmethod
     def promote(lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:

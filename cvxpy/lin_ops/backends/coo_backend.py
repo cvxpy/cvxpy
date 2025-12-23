@@ -26,7 +26,6 @@ from cvxpy.lin_ops.backends.base import (
     DictTensorView,
     PythonCanonBackend,
     TensorRepresentation,
-    get_nd_matmul_dims,
 )
 
 # Module-level empty array constants to avoid repeated allocations
@@ -1130,64 +1129,145 @@ class CooCanonBackend(PythonCanonBackend):
 
     # transpose: use base class implementation (via select_rows)
 
+    # =========================================================================
+    # ND Matmul: helper predicates and methods
+    # =========================================================================
+
+    @staticmethod
+    def _is_batch_varying(const_shape: tuple) -> bool:
+        """
+        Check if constant has batch dimensions with product > 1.
+
+        A batch-varying constant has different values for each batch element,
+        requiring the interleaved matrix structure.
+        """
+        if len(const_shape) <= 2:
+            return False
+        return int(np.prod(const_shape[:-2])) > 1
+
+    @staticmethod
+    def _get_nd_dims(const_shape: tuple, var_shape: tuple) -> tuple:
+        """
+        Get (batch_size, n) for ND matmul C @ X.
+
+        batch_size: product of variable's batch dimensions
+        n: last dimension of variable (columns per batch)
+        """
+        batch_size = int(np.prod(var_shape[:-2])) if len(var_shape) > 2 else 1
+        n = var_shape[-1] if len(var_shape) >= 2 else 1
+        return batch_size, n
+
+    def _mul_kronecker(
+        self,
+        lhs_data,
+        const_shape: tuple,
+        var_shape: tuple,
+        view: CooTensorView,
+    ) -> CooTensorView:
+        """
+        2D constant @ ND variable: use Kronecker structure I_n ⊗ C ⊗ I_batch.
+
+        This is the most common case: a 2D constant matrix multiplies each
+        batch element of an ND variable.
+        """
+        batch_size, n = self._get_nd_dims(const_shape, var_shape)
+
+        # Convert to CooTensor if needed
+        if isinstance(lhs_data, CooTensor):
+            lhs_tensor = lhs_data
+        else:
+            lhs_tensor = self._to_coo_tensor(lhs_data)
+
+        stacked_compact = _kron_nd_structure(lhs_tensor, batch_size, n)
+
+        def constant_mul(compact, p):
+            return coo_matmul(stacked_compact, compact)
+
+        view.accumulate_over_variables(constant_mul, is_param_free_function=True)
+        return view
+
+    def _mul_interleaved(
+        self,
+        lin_op,
+        var_shape: tuple,
+        view: CooTensorView,
+    ) -> CooTensorView:
+        """
+        Batch-varying constant @ variable: use interleaved matrix structure.
+
+        When the constant has batch dimensions (e.g., C(B,m,k) @ X(B,k,n)),
+        each batch element uses a different constant matrix.
+        """
+        const_shape = lin_op.data.shape
+        # Uses raw numpy data to build interleaved matrix structure
+        stacked_compact = _build_interleaved(lin_op.data.data, const_shape, var_shape)
+
+        def constant_mul(compact, p):
+            return coo_matmul(stacked_compact, compact)
+
+        view.accumulate_over_variables(constant_mul, is_param_free_function=True)
+        return view
+
+    def _mul_parametric_lhs(
+        self,
+        lhs_data: dict,
+        const_shape: tuple,
+        var_shape: tuple,
+        view: CooTensorView,
+    ) -> CooTensorView:
+        """
+        Parametric constant @ variable: expand each parameter slice with Kronecker.
+
+        When the constant depends on Parameters, we expand each parameter slice
+        separately using the Kronecker structure.
+        """
+        batch_size, n = self._get_nd_dims(const_shape, var_shape)
+
+        # Expand each parameter slice with Kronecker structure
+        expanded_lhs = {
+            param_id: _kron_nd_structure(tensor, batch_size, n)
+            for param_id, tensor in lhs_data.items()
+        }
+
+        def parametrized_mul(rhs_compact):
+            return {
+                param_id: coo_matmul(lhs_compact, rhs_compact)
+                for param_id, lhs_compact in expanded_lhs.items()
+            }
+
+        # Apply to each variable tensor in-place
+        for var_id, var_tensor in view.tensor.items():
+            const_compact = var_tensor[Constant.ID.value]
+            view.tensor[var_id] = parametrized_mul(const_compact)
+
+        view.is_parameter_free = False
+        return view
+
     def mul(self, lin_op, view: CooTensorView) -> CooTensorView:
         """
-        Matrix multiplication - the key optimized operation.
+        Matrix multiply: C @ X where C is constant/parametric, X is variable.
 
-        For parametrized A @ x, this is O(nnz) instead of O(param_size * m).
-
-        For ND arrays with 2D constant: I_n ⊗ C ⊗ I_batch
-        For ND arrays with batch-varying constant: I_n ⊗ block_diag(C[0], ..., C[B-1])
+        Three cases (explicitly branched for clarity):
+        1. Parametric LHS: Parameter @ Variable
+        2. Batch-varying constant: C(B,m,k) @ X(B,k,n) - uses interleaved matrix
+        3. 2D constant: C(m,k) @ X(B,k,n) - uses Kronecker I_n ⊗ C ⊗ I_B
         """
-        lhs = lin_op.data
-
-        # Get constant data for lhs
-        lhs_data, is_lhs_parametric = self._get_lhs_data(lhs, view)
-
+        const = lin_op.data
         var_shape = lin_op.args[0].shape
-        const_shape = lin_op.data.shape
+        const_shape = const.shape
+
+        # Get constant data - this also tells us if it's parametric
+        lhs_data, is_lhs_parametric = self._get_lhs_data(const, view)
 
         if is_lhs_parametric:
-            # Parametrized lhs @ variable rhs
-            batch_size, n, _ = get_nd_matmul_dims(const_shape, var_shape)
-            expanded_lhs = self._expand_lhs_nd_parametric(lhs_data, batch_size, n)
-
-            def parametrized_mul(rhs_compact):
-                return {
-                    param_id: coo_matmul(lhs_compact, rhs_compact)
-                    for param_id, lhs_compact in expanded_lhs.items()
-                }
-
-            # Apply to each variable tensor in-place
-            for var_id, var_tensor in view.tensor.items():
-                const_compact = var_tensor[Constant.ID.value]
-                view.tensor[var_id] = parametrized_mul(const_compact)
-
-            view.is_parameter_free = False
-            return view
-
+            # Case 1: Parametric LHS
+            return self._mul_parametric_lhs(lhs_data, const_shape, var_shape, view)
+        elif self._is_batch_varying(const_shape):
+            # Case 2: Batch-varying constant
+            return self._mul_interleaved(lin_op, var_shape, view)
         else:
-            # Constant lhs case
-            batch_size, n, const_has_batch = get_nd_matmul_dims(const_shape, var_shape)
-
-            if const_has_batch:
-                # Batch-varying: build interleaved matrix natively
-                stacked_compact = _build_interleaved(
-                    lin_op.data.data, const_shape, var_shape
-                )
-            else:
-                # 2D constant: apply I_n ⊗ C ⊗ I_batch natively
-                if isinstance(lhs_data, CooTensor):
-                    lhs_tensor = lhs_data
-                else:
-                    lhs_tensor = self._to_coo_tensor(lhs_data)
-                stacked_compact = _kron_nd_structure(lhs_tensor, batch_size, n)
-
-            def constant_mul(compact, p):
-                return coo_matmul(stacked_compact, compact)
-
-            view.accumulate_over_variables(constant_mul, is_param_free_function=True)
-            return view
+            # Case 3: 2D constant (or trivial batch dims like (1, m, k))
+            return self._mul_kronecker(lhs_data, const_shape, var_shape, view)
 
     def _get_lhs_data(self, lhs, view):
         """Get lhs data, detecting if it's parametric."""
@@ -1216,17 +1296,6 @@ class CooCanonBackend(PythonCanonBackend):
             # Constant lhs - use get_constant_data to handle complex expressions
             lhs_data, is_param_free = self.get_constant_data(lhs, view, column=False)
             return lhs_data, not is_param_free  # return (data, is_parametric)
-
-    def _expand_lhs_nd_parametric(self, lhs_data: dict, batch_size: int, n: int) -> dict:
-        """
-        Apply ND Kronecker structure I_n ⊗ C ⊗ I_batch to parametric lhs.
-
-        Uses native CooTensor operations to avoid sparse format conversions.
-        """
-        return {
-            param_id: _kron_nd_structure(tensor, batch_size, n)
-            for param_id, tensor in lhs_data.items()
-        }
 
     def get_constant_data_from_const(self, lin_op):
         """Extract constant data from a LinOp."""
