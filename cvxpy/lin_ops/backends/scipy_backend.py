@@ -48,6 +48,9 @@ def _build_interleaved_matrix(
     This captures the Fortran-order vectorization where batch indices are interleaved:
     - result[b, i, c] is at index b + B*i + B*m*c
     - X[b, r, c] is at index b + B*r + B*k*c
+
+    Note: Batch broadcasting is handled symbolically in MulExpression, so
+    const_shape and var_shape batch dimensions are guaranteed to match here.
     """
     B = int(np.prod(const_shape[:-2]))
     m_dim = const_shape[-2]
@@ -62,6 +65,7 @@ def _build_interleaved_matrix(
     i_indices = np.arange(m_dim)
     r_indices = np.arange(k_dim)
 
+    # bb, ii, rr are grids of indices corresponding to b, i, r in the formula below
     bb, ii, rr = np.meshgrid(b_indices, i_indices, r_indices, indexing="ij")
 
     rows = (bb + B * ii).ravel()

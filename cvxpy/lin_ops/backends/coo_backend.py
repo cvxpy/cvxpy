@@ -476,6 +476,9 @@ def _build_interleaved(
 
     This is the native CooTensor equivalent of build_interleaved_matrix.
 
+    Note: Batch broadcasting is handled symbolically in MulExpression, so
+    const_shape and var_shape batch dimensions are guaranteed to match here.
+
     Parameters
     ----------
     const_data : np.ndarray
@@ -503,6 +506,7 @@ def _build_interleaved(
     i_idx = np.arange(m)
     r_idx = np.arange(k)
 
+    # bb, ii, rr are grids of indices corresponding to b, i, r in the formula below
     bb, ii, rr = np.meshgrid(b_idx, i_idx, r_idx, indexing="ij")
     bb, ii, rr = bb.ravel(), ii.ravel(), rr.ravel()
 
