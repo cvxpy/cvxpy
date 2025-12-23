@@ -16,6 +16,11 @@ from cvxpy.lin_ops.backends import (
     TensorRepresentation,
     get_backend,
 )
+from cvxpy.lin_ops.backends.coo_backend import (
+    _coo_kron_eye_l,
+    _coo_kron_eye_r,
+    _coo_kron_nd_structure,
+)
 from cvxpy.lin_ops.backends.nd_matmul_utils import (
     apply_nd_kron_structure,
     expand_parametric_slices,
@@ -2967,3 +2972,85 @@ class TestCooBackend:
         # Column vector in Fortran order: [1, 3, 2, 4]
         expected = data.flatten(order='F').reshape(-1, 1)
         assert np.allclose(tensor.toarray(), expected)
+
+    @staticmethod
+    @pytest.mark.parametrize("shape,reps", [
+        ((2, 2), 1),
+        ((2, 2), 3),
+        ((3, 2), 2),
+        ((2, 3), 4),
+    ])
+    def test_coo_kron_eye_l(shape, reps):
+        """Test _coo_kron_eye_l against scipy.sparse.kron(A, I)."""
+        rng = np.random.default_rng(42)
+        param_size = 2
+
+        # Create random sparse matrices for each param slice
+        matrices = [sp.random_array(shape, random_state=rng, density=0.5)
+                    for _ in range(param_size)]
+
+        # Build CooTensor from stacked sparse
+        stacked = sp.vstack(matrices)
+        tensor = CooTensor.from_stacked_sparse(stacked, param_size)
+
+        # Apply _coo_kron_eye_l
+        result = _coo_kron_eye_l(tensor, reps)
+
+        # Expected: apply kron(M, I_reps) to each slice, then stack
+        expected = sp.vstack([sp.kron(m, sp.eye_array(reps)) for m in matrices])
+        assert (expected != result.to_stacked_sparse()).nnz == 0
+
+    @staticmethod
+    @pytest.mark.parametrize("shape,reps", [
+        ((2, 2), 1),
+        ((2, 2), 3),
+        ((3, 2), 2),
+        ((2, 3), 4),
+    ])
+    def test_coo_kron_eye_r(shape, reps):
+        """Test _coo_kron_eye_r against scipy.sparse.kron(I, A)."""
+        rng = np.random.default_rng(42)
+        param_size = 2
+
+        matrices = [sp.random_array(shape, random_state=rng, density=0.5)
+                    for _ in range(param_size)]
+
+        stacked = sp.vstack(matrices)
+        tensor = CooTensor.from_stacked_sparse(stacked, param_size)
+
+        result = _coo_kron_eye_r(tensor, reps)
+
+        # Expected: apply kron(I_reps, M) to each slice
+        expected = sp.vstack([sp.kron(sp.eye_array(reps), m) for m in matrices])
+        assert (expected != result.to_stacked_sparse()).nnz == 0
+
+    @staticmethod
+    @pytest.mark.parametrize("shape,batch_size,n", [
+        ((2, 2), 1, 1),   # No expansion
+        ((2, 2), 1, 3),   # 2D case: I_3 ⊗ C
+        ((2, 2), 2, 1),   # Only batch: C ⊗ I_2
+        ((2, 2), 2, 3),   # ND case: I_3 ⊗ C ⊗ I_2
+        ((3, 2), 1, 4),   # 2D non-square
+        ((3, 2), 3, 2),   # ND non-square
+    ])
+    def test_coo_kron_nd_structure(shape, batch_size, n):
+        """Test _coo_kron_nd_structure against scipy-based approach."""
+        rng = np.random.default_rng(42)
+        param_size = 2
+
+        matrices = [sp.random_array(shape, random_state=rng, density=0.5)
+                    for _ in range(param_size)]
+
+        # Use CSR format because expand_parametric_slices slices the matrix,
+        # and COO arrays don't support __getitem__ slicing.
+        stacked = sp.vstack(matrices, format="csr")
+        tensor = CooTensor.from_stacked_sparse(stacked, param_size)
+
+        # Native COO implementation
+        result = _coo_kron_nd_structure(tensor, batch_size, n)
+
+        # Reference: scipy-based implementation (expand_parametric_slices)
+        expected = sp.vstack(list(expand_parametric_slices(stacked, param_size, batch_size, n)))
+
+        assert result.to_stacked_sparse().shape == expected.shape
+        assert (expected != result.to_stacked_sparse()).nnz == 0

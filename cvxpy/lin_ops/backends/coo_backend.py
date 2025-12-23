@@ -29,7 +29,6 @@ from cvxpy.lin_ops.backends.base import (
 )
 from cvxpy.lin_ops.backends.nd_matmul_utils import (
     expand_lhs_for_nd_matmul,
-    expand_parametric_slices,
     get_nd_matmul_dims,
 )
 
@@ -356,6 +355,113 @@ def _coo_kron_eye_r(tensor: CooTensor, reps: int) -> CooTensor:
         param_idx=new_param_idx,
         m=m * reps,
         n=k * reps,
+        param_size=tensor.param_size
+    )
+
+
+def _coo_kron_eye_l(tensor: CooTensor, reps: int) -> CooTensor:
+    """
+    Apply Kronecker product kron(A, I_reps) to a CooTensor.
+
+    For a tensor with shape (m, k), this produces a tensor with shape (m*reps, k*reps)
+    where each entry at (param_idx, row, col) becomes `reps` entries at
+    (param_idx, row*reps + r, col*reps + r) for r in 0..reps-1.
+
+    This creates a block diagonal structure where each scalar in A becomes a
+    diagonal block of size reps x reps.
+    """
+    if reps == 1:
+        return tensor
+
+    m, k = tensor.m, tensor.n
+    nnz = tensor.nnz
+
+    # Each original entry expands to reps entries
+    new_data = np.tile(tensor.data, reps)
+    new_param_idx = np.tile(tensor.param_idx, reps)
+
+    # new_row = old_row * reps + offset
+    # new_col = old_col * reps + offset
+    offsets = np.repeat(np.arange(reps), nnz)
+    new_row = np.tile(tensor.row * reps, reps) + offsets
+    new_col = np.tile(tensor.col * reps, reps) + offsets
+
+    return CooTensor(
+        data=new_data,
+        row=new_row,
+        col=new_col,
+        param_idx=new_param_idx,
+        m=m * reps,
+        n=k * reps,
+        param_size=tensor.param_size
+    )
+
+
+def _coo_kron_nd_structure(tensor: CooTensor, batch_size: int, n: int) -> CooTensor:
+    """
+    Apply I_n ⊗ C ⊗ I_batch natively to a CooTensor.
+
+    Equivalent to: _coo_kron_eye_r(_coo_kron_eye_l(tensor, batch_size), n)
+    but computed in a single pass for efficiency.
+
+    Each entry at (p, i, j) expands to batch_size * n entries at:
+    (p, B*(i + r*m) + b, B*(j + r*k) + b)
+    for b in [0, batch_size) and r in [0, n).
+
+    Parameters
+    ----------
+    tensor : CooTensor
+        The input tensor C with shape (param_size, m, k)
+    batch_size : int
+        The batch dimension (B = prod of batch dims from variable)
+    n : int
+        The last dimension of the variable
+
+    Returns
+    -------
+    CooTensor
+        Expanded tensor with shape (param_size, m*B*n, k*B*n)
+    """
+    if batch_size == 1 and n == 1:
+        return tensor
+    if batch_size == 1:
+        return _coo_kron_eye_r(tensor, n)
+    if n == 1:
+        return _coo_kron_eye_l(tensor, batch_size)
+
+    m, k = tensor.m, tensor.n
+    nnz = tensor.nnz
+    expansion = batch_size * n
+
+    # Pre-compute all (b, r) combinations
+    # b_flat iterates slowest: [0,0,...,0, 1,1,...,1, ...]
+    # r_flat iterates fastest: [0,1,...,n-1, 0,1,...,n-1, ...]
+    b_vals, r_vals = np.meshgrid(np.arange(batch_size), np.arange(n), indexing='ij')
+    b_flat = b_vals.ravel()
+    r_flat = r_vals.ravel()
+
+    # Expand arrays: each entry replicates expansion times
+    new_data = np.tile(tensor.data, expansion)
+    new_param_idx = np.tile(tensor.param_idx, expansion)
+
+    # new_row = B*(i + r*m) + b
+    # new_col = B*(j + r*k) + b
+    base_row = np.tile(tensor.row, expansion)
+    base_col = np.tile(tensor.col, expansion)
+
+    b_offsets = np.repeat(b_flat, nnz)
+    r_offsets = np.repeat(r_flat, nnz)
+
+    new_row = batch_size * (base_row + r_offsets * m) + b_offsets
+    new_col = batch_size * (base_col + r_offsets * k) + b_offsets
+
+    return CooTensor(
+        data=new_data,
+        row=new_row,
+        col=new_col,
+        param_idx=new_param_idx,
+        m=m * batch_size * n,
+        n=k * batch_size * n,
         param_size=tensor.param_size
     )
 
@@ -987,25 +1093,22 @@ class CooCanonBackend(PythonCanonBackend):
             return view
 
         else:
-            # Constant lhs: expand using unified helper
-            # For batch-varying case, the helper uses raw data directly
-            # For 2D case, we need to convert to sparse first
-            _, _, const_has_batch = get_nd_matmul_dims(const_shape, var_shape)
+            # Constant lhs case
+            batch_size, n, const_has_batch = get_nd_matmul_dims(const_shape, var_shape)
 
             if const_has_batch:
-                # Batch-varying: pass None as lhs_sparse, helper uses raw data
-                lhs_sparse = None
-            elif isinstance(lhs_data, CooTensor):
-                lhs_sparse = lhs_data.to_stacked_sparse()
-            elif sp.issparse(lhs_data):
-                lhs_sparse = lhs_data
+                # Batch-varying: use scipy-based interleaved matrix
+                stacked_lhs = expand_lhs_for_nd_matmul(
+                    None, lin_op.data.data, const_shape, var_shape
+                )
+                stacked_compact = self._to_coo_tensor(stacked_lhs)
             else:
-                lhs_sparse = sp.csr_array(np.atleast_2d(lhs_data))
-
-            stacked_lhs = expand_lhs_for_nd_matmul(
-                lhs_sparse, lin_op.data.data, const_shape, var_shape
-            )
-            stacked_compact = self._to_coo_tensor(stacked_lhs)
+                # 2D constant: apply I_n ⊗ C ⊗ I_batch natively
+                if isinstance(lhs_data, CooTensor):
+                    lhs_tensor = lhs_data
+                else:
+                    lhs_tensor = self._to_coo_tensor(lhs_data)
+                stacked_compact = _coo_kron_nd_structure(lhs_tensor, batch_size, n)
 
             def constant_mul(compact, p):
                 return coo_matmul(stacked_compact, compact)
@@ -1045,18 +1148,10 @@ class CooCanonBackend(PythonCanonBackend):
         """
         Apply ND Kronecker structure I_n ⊗ C ⊗ I_batch to parametric lhs.
 
-        TODO: Implement native CooTensor kron structure to avoid sparse round-trip.
+        Uses native CooTensor operations to avoid sparse format conversions.
         """
         return {
-            param_id: self._to_coo_tensor(
-                sp.vstack(
-                    list(expand_parametric_slices(
-                        tensor.to_stacked_sparse(), tensor.param_size, batch_size, n
-                    )),
-                    format="csr"
-                ),
-                param_id=param_id
-            )
+            param_id: _coo_kron_nd_structure(tensor, batch_size, n)
             for param_id, tensor in lhs_data.items()
         }
 
@@ -1192,29 +1287,38 @@ class CooCanonBackend(PythonCanonBackend):
     # upper_tri: use base class implementation (via select_rows)
 
     def _to_coo_tensor(self, matrix, param_id=None):
-        """Convert sparse matrix to CooTensor."""
+        """Convert sparse matrix or dense array to CooTensor."""
         if isinstance(matrix, dict):
-            # Already a dict of matrices
             raise ValueError("Expected single matrix, got dict")
 
-        coo = matrix.tocoo()
+        if isinstance(matrix, np.ndarray):
+            # Dense array: extract nonzeros directly
+            data_2d = np.atleast_2d(matrix)
+            rows, cols = np.nonzero(data_2d)
+            data = data_2d[rows, cols]
+            m, n = data_2d.shape
+        else:
+            # Sparse matrix
+            coo = matrix.tocoo()
+            rows, cols, data = coo.row, coo.col, coo.data.copy()
+            m, n = coo.shape
+
         if param_id is not None:
             p = self.param_to_size[param_id]
-            m = coo.shape[0] // p
-            param_idx, row = np.divmod(coo.row, m)
+            slice_m = m // p
+            param_idx, rows = np.divmod(rows, slice_m)
+            m = slice_m
         else:
             p = 1
-            m = coo.shape[0]
-            row = coo.row
-            param_idx = np.zeros(len(coo.data), dtype=np.int64)
+            param_idx = np.zeros(len(data), dtype=np.int64)
 
         return CooTensor(
-            data=coo.data.copy(),
-            row=row.astype(np.int64),
-            col=coo.col.astype(np.int64),
+            data=data.astype(np.float64),
+            row=rows.astype(np.int64),
+            col=cols.astype(np.int64),
             param_idx=param_idx.astype(np.int64),
             m=m,
-            n=coo.shape[1],
+            n=n,
             param_size=p
         )
 
