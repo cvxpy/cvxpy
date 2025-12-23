@@ -101,15 +101,31 @@ class TensorRepresentation:
             shape,
         )
 
-    def flatten_tensor(self, num_param_slices: int) -> sp.csc_array:
+    def flatten_tensor(
+        self, num_param_slices: int, order: str = 'CSC'
+    ) -> sp.csc_array | sp.csr_array:
         """
-        Flatten into 2D scipy csc-matrix in column-major order and transpose.
+        Flatten into 2D scipy sparse matrix in column-major order and transpose.
+
+        Parameters
+        ----------
+        num_param_slices: Number of parameter slices.
+        order: 'CSC' for column-major (default) or 'CSR' for row-major sparse format.
+
+        Returns
+        -------
+        2D sparse array in the requested format.
         """
         rows = (self.col.astype(np.int64) * np.int64(self.shape[0]) + self.row.astype(np.int64))
         cols = self.parameter_offset.astype(np.int64)
         shape = (np.prod(self.shape, dtype=np.int64), num_param_slices)
 
-        return sp.csc_array((self.data, (rows, cols)), shape=shape)
+        if order == 'CSR':
+            return sp.csr_array((self.data, (rows, cols)), shape=shape)
+        elif order == 'CSC':
+            return sp.csc_array((self.data, (rows, cols)), shape=shape)
+        else:
+            raise ValueError(f"order must be 'CSC' or 'CSR', got '{order}'")
 
     def get_param_slice(self, param_offset: int) -> sp.csc_array:
         """
@@ -142,20 +158,23 @@ class CanonBackend(ABC):
         self.var_length = var_length
 
     @abstractmethod
-    def build_matrix(self, lin_ops: list[LinOp]) -> sp.csc_array:
+    def build_matrix(
+        self, lin_ops: list[LinOp], order: str = 'CSC'
+    ) -> sp.csc_array | sp.csr_array:
         """
         Main function called from canonInterface.
         Given a list of LinOp trees, each representing a constraint (or the objective), get the
-        [A b] Tensor for each, stack them and return the result reshaped as a 2D sp.csc_array
+        [A b] Tensor for each, stack them and return the result reshaped as a 2D sparse array
         of shape (total_rows * (var_length + 1)), param_size_plus_one)
 
         Parameters
         ----------
         lin_ops: list of linOp trees.
+        order: 'CSC' for column-major (default) or 'CSR' for row-major sparse format.
 
         Returns
         -------
-        2D sp.csc_array representing the constraints (or the objective).
+        2D sparse array representing the constraints (or the objective).
         """
         pass  # noqa
 
@@ -177,7 +196,7 @@ class TensorView(ABC):
                  param_to_col: dict[int, int],
                  var_length: int
                  ):
-        self.variable_ids = variable_ids if variable_ids is not None else None
+        self.variable_ids = variable_ids
         self.tensor = tensor
         self.is_parameter_free = is_parameter_free
 
@@ -359,7 +378,9 @@ class PythonCanonBackend(CanonBackend):
     - A new constant of size n has shape (1, n, 1)
     """
 
-    def build_matrix(self, lin_ops: list[LinOp]) -> sp.csc_array:
+    def build_matrix(
+        self, lin_ops: list[LinOp], order: str = 'CSC'
+    ) -> sp.csc_array | sp.csr_array:
         self.id_to_col[-1] = self.var_length
 
         constraint_res = []
@@ -374,7 +395,7 @@ class PythonCanonBackend(CanonBackend):
         tensor_res = self.concatenate_tensors(constraint_res)
 
         self.id_to_col.pop(-1)
-        return tensor_res.flatten_tensor(self.param_size_plus_one)
+        return tensor_res.flatten_tensor(self.param_size_plus_one, order=order)
 
     def process_constraint(self, lin_op: LinOp, empty_view: TensorView) -> TensorView:
         """

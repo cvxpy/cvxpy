@@ -32,7 +32,9 @@ class RustCanonBackend(CanonBackend):
     https://github.com/cvxpy/cvxpy/pull/3018
     """
 
-    def build_matrix(self, lin_ops: list[LinOp]) -> sp.csc_array:
+    def build_matrix(
+        self, lin_ops: list[LinOp], order: str = 'CSC'
+    ) -> sp.csc_array | sp.csr_array:
         import cvxpy_rust
         self.id_to_col[-1] = self.var_length
         (data, (row, col), shape) = cvxpy_rust.build_matrix(lin_ops,
@@ -42,4 +44,9 @@ class RustCanonBackend(CanonBackend):
                                                             self.param_to_col,
                                                             self.var_length)
         self.id_to_col.pop(-1)
-        return sp.csc_array((data, (row, col)), shape)
+        if order == 'CSR':
+            return sp.csr_array((data, (row, col)), shape)
+        elif order == 'CSC':
+            return sp.csc_array((data, (row, col)), shape)
+        else:
+            raise ValueError(f"order must be 'CSC' or 'CSR', got '{order}'")

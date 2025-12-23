@@ -48,6 +48,37 @@ def test_tensor_representation():
     assert np.all(flattened.toarray() == np.array([[0, 0], [0, 0], [10, 0], [0, 20]]))
 
 
+@pytest.mark.parametrize("backend_name", [s.SCIPY_CANON_BACKEND, s.COO_CANON_BACKEND])
+def test_build_matrix_order(backend_name):
+    """Test that build_matrix respects the order argument for both backends."""
+    kwargs = {
+        "id_to_col": {1: 0},
+        "param_to_size": {-1: 1},
+        "param_to_col": {-1: 0},
+        "param_size_plus_one": 1,
+        "var_length": 2,
+    }
+    backend = get_backend(backend_name, **kwargs)
+
+    # Simple variable linop
+    lin_op = linOpHelper(shape=(2,), type="variable", data=1, args=[])
+
+    # Test CSC (default)
+    csc_result = backend.build_matrix([lin_op], order='CSC')
+    assert isinstance(csc_result, sp.csc_array)
+
+    # Test CSR
+    csr_result = backend.build_matrix([lin_op], order='CSR')
+    assert isinstance(csr_result, sp.csr_array)
+
+    # Both should produce the same values
+    assert np.allclose(csc_result.toarray(), csr_result.toarray())
+
+    # Test invalid order
+    with pytest.raises(ValueError, match="order must be 'CSC' or 'CSR'"):
+        backend.build_matrix([lin_op], order='INVALID')
+
+
 class TestBackendInstance:
     def test_get_backend(self):
         args = ({1: 0, 2: 2}, {-1: 1, 3: 1}, {3: 0, -1: 1}, 2, 4)
