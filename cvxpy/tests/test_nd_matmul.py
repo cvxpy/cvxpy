@@ -291,7 +291,6 @@ class TestNDMatmulBatchBroadcasting:
         # Check output matches (problem may be underdetermined)
         np.testing.assert_allclose(C @ X.value, target, rtol=1e-5)
 
-    @pytest.mark.xfail(reason="Parametric ND matmul with batch broadcasting not yet supported")
     @pytest.mark.parametrize("backend", [cp.SCIPY_CANON_BACKEND, cp.COO_CANON_BACKEND])
     def test_broadcast_with_parameter(self, backend):
         """Test broadcast with Parameter @ Variable."""
@@ -396,3 +395,84 @@ class TestNDMatmulCrossBackendConsistency:
             results[cp.COO_CANON_BACKEND],
             rtol=1e-5
         )
+
+
+class TestNDMatmulReshapeCorrectness:
+    """Tests that verify the reshape operations produce correct matrix structure."""
+
+    @pytest.mark.parametrize("backend", [cp.SCIPY_CANON_BACKEND, cp.COO_CANON_BACKEND])
+    def test_parametric_matmul_achieves_target(self, backend):
+        """
+        Verify that parametric ND matmul actually achieves the target (not just consistent).
+
+        For min ||P @ X - target||^2 with underdetermined system, optimal value should be ~0.
+        """
+        np.random.seed(123)
+        B, m, k, n = 2, 3, 4, 5
+
+        P = cp.Parameter((m, k))
+        P.value = np.random.randn(m, k)
+        X = cp.Variable((B, k, n))
+
+        # Create achievable target
+        X_true = np.random.randn(B, k, n)
+        target = P.value @ X_true
+
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(P @ X - target)))
+        prob.solve(canon_backend=backend)
+
+        assert prob.status == cp.OPTIMAL, f"Problem not optimal with {backend}"
+        # Since target is achievable, optimal value should be near 0
+        assert prob.value < 1e-6, f"Optimal value {prob.value} too large for {backend}"
+
+    def test_get_constant_data_shape_for_broadcast_param(self):
+        """
+        Test that get_constant_data returns correct matrix structure for broadcast parameter.
+
+        This is the intermediate check that catches reshape bugs.
+        """
+        from cvxpy.lin_ops.backends.coo_backend import CooCanonBackend
+
+        np.random.seed(42)
+        B, m, k, n = 2, 3, 4, 5
+        P = cp.Parameter((m, k))
+        P.value = np.random.randn(m, k)
+        X = cp.Variable((B, k, n))
+        expr = P @ X
+
+        obj, _ = expr.canonical_form
+        const_linop = obj.data  # broadcast_to
+
+        # Set up backend
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(expr)))
+        variables = prob.variables()
+        parameters = prob.parameters()
+
+        var_length = sum(int(np.prod(v.shape)) for v in variables)
+        id_to_col = {variables[0].id: 0}
+        param_to_size = {p.id: int(np.prod(p.shape)) for p in parameters}
+        param_to_col = {p.id: 0 for p in parameters}
+        param_size = sum(param_to_size.values())
+
+        backend = CooCanonBackend(
+            param_to_size=param_to_size,
+            param_to_col=param_to_col,
+            param_size_plus_one=param_size + 1,
+            var_length=var_length,
+            id_to_col=id_to_col
+        )
+
+        empty_view = backend.get_empty_view()
+        lhs_data, is_param_free = backend.get_constant_data(const_linop, empty_view, column=False)
+
+        assert not is_param_free, "Parameter expression should not be param_free"
+
+        # Check that reshaped tensor has correct matrix structure
+        for param_id, tensor in lhs_data.items():
+            assert tensor.m == m, f"Expected m={m}, got {tensor.m}"
+            assert tensor.n == k, f"Expected n={k}, got {tensor.n}"
+            assert tensor.nnz == m * k, f"Expected nnz={m*k}, got {tensor.nnz}"
+            # Each param_idx should appear exactly once (no broadcast duplication)
+            unique_params = np.unique(tensor.param_idx)
+            assert len(unique_params) == param_to_size[param_id], \
+                f"Expected {param_to_size[param_id]} unique param_idx, got {len(unique_params)}"

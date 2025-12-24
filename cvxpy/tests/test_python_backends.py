@@ -2860,7 +2860,8 @@ class TestSciPyBackend:
     @staticmethod
     def test_reshape_single_constant_tensor(scipy_backend):
         a = sp.csc_array(np.tile(np.arange(6), 3).reshape((-1, 1)))
-        reshaped = scipy_backend._reshape_single_constant_tensor(a, (3, 2))
+        # param_size=1 for non-parametric data
+        reshaped = scipy_backend._reshape_single_constant_tensor(a, (3, 2), param_size=1)
         expected = np.arange(6).reshape((3, 2), order="F")
         expected = sp.csc_array(np.tile(expected, (3, 1)))
         assert (reshaped != expected).nnz == 0

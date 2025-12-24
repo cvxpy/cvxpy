@@ -233,8 +233,7 @@ class SciPyCanonBackend(PythonCanonBackend):
         assert constant.shape == lin_op.shape
         return constant
 
-    @staticmethod
-    def reshape_constant_data(constant_data: dict[int, sp.csc_array],
+    def reshape_constant_data(self, constant_data: dict[int, sp.csc_array],
                               lin_op_shape: tuple[int, int]) \
             -> dict[int, sp.csc_array]:
         """
@@ -242,29 +241,67 @@ class SciPyCanonBackend(PythonCanonBackend):
         do not require column format. This function unpacks the constant data dict and reshapes
         the stacked slices of the tensor 'v' according to the lin_op_shape argument.
         """
-        return {k: SciPyCanonBackend._reshape_single_constant_tensor(v, lin_op_shape)
+        return {k: self._reshape_single_constant_tensor(v, lin_op_shape, self.param_to_size[k])
                 for k, v in constant_data.items()}
 
     @staticmethod
-    def _reshape_single_constant_tensor(v: sp.csc_array, lin_op_shape: tuple[int, int]) \
-            -> sp.csc_array:
+    def _reshape_single_constant_tensor(v: sp.csc_array, lin_op_shape: tuple[int, int],
+                                        param_size: int) -> sp.csc_array:
         """
-        Given v, which is a matrix of shape (p * lin_op_shape[0] * lin_op_shape[1], 1),
-        reshape v into a matrix of shape (p * lin_op_shape[0], lin_op_shape[1]).
+        Given v, which is a matrix of shape (broadcast_size * param_size, 1),
+        reshape v into a matrix of shape (param_size * lin_op_shape[0], lin_op_shape[1]).
+
+        For parametric data (param_size > 1), the rows encode param_idx information.
+        We extract param_idx, deduplicate broadcast copies, and compute positions
+        based on param_idx.
         """
         assert v.shape[1] == 1
-        p = np.prod(v.shape) // np.prod(lin_op_shape)
-        old_shape = (v.shape[0] // p, v.shape[1])
 
         coo = v.tocoo()
         data, stacked_rows = coo.data, coo.row
-        slices, rows = np.divmod(stacked_rows, old_shape[0])
 
-        new_cols, new_rows = np.divmod(rows, lin_op_shape[0])
-        new_rows = slices * lin_op_shape[0] + new_rows
+        if param_size == 1:
+            # Non-parametric: use standard reshape logic
+            p = np.prod(v.shape) // np.prod(lin_op_shape)
+            old_shape = (v.shape[0] // p, v.shape[1])
 
-        new_stacked_shape = (p * lin_op_shape[0], lin_op_shape[1])
-        return sp.csc_array((data, (new_rows, new_cols)), shape=new_stacked_shape)
+            slices, rows = np.divmod(stacked_rows, old_shape[0])
+
+            new_cols, new_rows = np.divmod(rows, lin_op_shape[0])
+            new_rows = slices * lin_op_shape[0] + new_rows
+
+            new_stacked_shape = (p * lin_op_shape[0], lin_op_shape[1])
+            return sp.csc_array((data, (new_rows, new_cols)), shape=new_stacked_shape)
+        else:
+            # Parametric: extract param_idx from row structure
+            # Rows are structured as: slice_idx * slice_size + local_row
+            # For param_vec, local_row = param_idx and rows at param_idx * (1 + param_size)
+            # After broadcast, entries get duplicated but param_idx stays the same.
+
+            # The row structure is: stacked_row = slice_idx * slice_size + local_row
+            # For slice s, the non-zeros are for param_idx s. So param_idx = slice_idx.
+            slice_size = v.shape[0] // param_size
+            param_idx = stacked_rows // slice_size
+
+            # Deduplicate: keep first occurrence of each param_idx
+            unique_param_idx, first_occurrence = np.unique(param_idx, return_index=True)
+
+            # Compute new positions based on param_idx
+            # For param_idx i, position in (m, k) matrix:
+            #   new_row = i % lin_op_shape[0]
+            #   new_col = i // lin_op_shape[0]
+            new_rows = unique_param_idx % lin_op_shape[0]
+            new_cols = unique_param_idx // lin_op_shape[0]
+
+            # In stacked format, add slice offset: new_row += slice_idx * lin_op_shape[0]
+            # But after dedup, unique_param_idx IS the slice index for each entry
+            stacked_new_rows = unique_param_idx * lin_op_shape[0] + new_rows
+
+            new_stacked_shape = (param_size * lin_op_shape[0], lin_op_shape[1])
+            return sp.csc_array(
+                (data[first_occurrence], (stacked_new_rows, new_cols)),
+                shape=new_stacked_shape
+            )
 
     def get_empty_view(self) -> SciPyTensorView:
         """

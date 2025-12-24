@@ -845,25 +845,52 @@ def coo_reshape(tensor: CooTensor, new_m: int, new_n: int) -> CooTensor:
     """
     Reshape the tensor (Fortran order, column-major).
 
-    For each entry at (param_idx, row, col), compute linear index = col * m + row,
-    then new_row = linear_idx % new_m, new_col = linear_idx // new_m.
+    For non-parametric tensors (param_size == 1):
+        For each entry at (row, col), compute linear index = col * m + row,
+        then new_row = linear_idx % new_m, new_col = linear_idx // new_m.
+
+    For parametric tensors (param_size > 1):
+        Each param_idx value represents one element in the parameter matrix.
+        The position in the reshaped matrix is determined by param_idx:
+        new_row = param_idx % new_m, new_col = param_idx // new_m.
+        Duplicate entries (from broadcast operations) are deduplicated.
     """
-    # Compute linear index in column-major order
-    linear_idx = tensor.col * tensor.m + tensor.row
+    if tensor.param_size > 1:
+        # For parametric tensors, use param_idx as position indicator
+        # Each param_idx maps to one position in (new_m, new_n) in column-major order
+        new_row = tensor.param_idx % new_m
+        new_col = tensor.param_idx // new_m
 
-    # Compute new row and col
-    new_row = linear_idx % new_m
-    new_col = linear_idx // new_m
+        # Deduplicate: keep first occurrence of each param_idx
+        # This handles broadcast operations that duplicate param entries
+        unique_param_idx, first_occurrence = np.unique(
+            tensor.param_idx, return_index=True
+        )
 
-    return CooTensor(
-        data=tensor.data.copy(),
-        row=new_row.astype(np.int64),
-        col=new_col.astype(np.int64),
-        param_idx=tensor.param_idx.copy(),
-        m=new_m,
-        n=new_n,
-        param_size=tensor.param_size
-    )
+        return CooTensor(
+            data=tensor.data[first_occurrence].copy(),
+            row=new_row[first_occurrence].astype(np.int64),
+            col=new_col[first_occurrence].astype(np.int64),
+            param_idx=unique_param_idx.astype(np.int64),
+            m=new_m,
+            n=new_n,
+            param_size=tensor.param_size
+        )
+    else:
+        # Non-parametric: use linear index reshaping
+        linear_idx = tensor.col * tensor.m + tensor.row
+        new_row = linear_idx % new_m
+        new_col = linear_idx // new_m
+
+        return CooTensor(
+            data=tensor.data.copy(),
+            row=new_row.astype(np.int64),
+            col=new_col.astype(np.int64),
+            param_idx=tensor.param_idx.copy(),
+            m=new_m,
+            n=new_n,
+            param_size=tensor.param_size
+        )
 
 
 class CooTensorView(DictTensorView):
