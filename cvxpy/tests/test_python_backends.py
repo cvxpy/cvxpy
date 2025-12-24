@@ -3077,3 +3077,50 @@ class TestCooBackend:
 
         assert result.to_stacked_sparse().shape == expected.shape
         assert np.allclose(result.toarray(), expected.toarray())
+
+    @staticmethod
+    def test_coo_reshape_vs_reshape_parametric_constant():
+        """
+        Test that coo_reshape and reshape_parametric_constant behave differently.
+
+        - coo_reshape: Uses linear index reshaping, preserves all entries.
+          Used by the 'reshape' linop for general reshape operations.
+        - reshape_parametric_constant: Deduplicates based on param_idx for
+          parametric tensors. Used for reshaping constant data in matmul.
+
+        This is a regression test for an issue where using parametric reshape
+        logic in coo_reshape caused DGP tests to fail with index out of bounds
+        errors, because DGP generates tensors where param_idx doesn't map
+        directly to positions in the target matrix.
+        """
+        from cvxpy.lin_ops.backends.coo_backend import (
+            coo_reshape,
+            reshape_parametric_constant,
+        )
+
+        # Create a parametric tensor with duplicated param_idx entries
+        # (simulating what happens after broadcast_to)
+        tensor = CooTensor(
+            data=np.array([1.0, 1.0, 1.0, 1.0]),  # Duplicated entries
+            row=np.array([0, 1, 2, 3]),
+            col=np.array([0, 0, 0, 0]),
+            param_idx=np.array([0, 0, 1, 1]),  # param_idx 0 and 1 appear twice
+            m=4, n=1, param_size=2
+        )
+
+        # Reshape from column (4, 1) to (2, 2)
+        new_m, new_n = 2, 2
+
+        # coo_reshape: preserves all entries, uses linear index reshaping
+        result_linear = coo_reshape(tensor, new_m, new_n)
+        assert result_linear.nnz == 4, "coo_reshape should preserve all entries"
+        # Linear indices: col*m + row = 0*4+0=0, 0*4+1=1, 0*4+2=2, 0*4+3=3
+        # In (2,2): 0->(0,0), 1->(1,0), 2->(0,1), 3->(1,1)
+        assert np.array_equal(result_linear.row, np.array([0, 1, 0, 1]))
+        assert np.array_equal(result_linear.col, np.array([0, 0, 1, 1]))
+
+        # reshape_parametric_constant: deduplicates based on param_idx
+        result_param = reshape_parametric_constant(tensor, new_m, new_n)
+        assert result_param.nnz == 2, "reshape_parametric_constant should deduplicate"
+        # param_idx 0 -> position (0,0), param_idx 1 -> position (1,0)
+        assert np.array_equal(result_param.param_idx, np.array([0, 1]))

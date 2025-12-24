@@ -847,15 +847,50 @@ def coo_reshape(tensor: CooTensor, new_m: int, new_n: int) -> CooTensor:
     """
     Reshape the tensor (Fortran order, column-major).
 
-    For non-parametric tensors (param_size == 1):
-        For each entry at (row, col), compute linear index = col * m + row,
-        then new_row = linear_idx % new_m, new_col = linear_idx // new_m.
+    For each entry at (row, col), compute linear index = col * m + row,
+    then new_row = linear_idx % new_m, new_col = linear_idx // new_m.
+
+    The param_idx is preserved - it identifies which parameter value affects
+    each entry, not the position in the matrix.
+
+    This function is used by the `reshape` linop for general reshape operations.
+    For reshaping parametric constant data (from get_constant_data), use
+    reshape_parametric_constant instead.
+    """
+    # Compute linear index in column-major order
+    linear_idx = tensor.col * tensor.m + tensor.row
+
+    # Compute new row and col
+    new_row = linear_idx % new_m
+    new_col = linear_idx // new_m
+
+    return CooTensor(
+        data=tensor.data.copy(),
+        row=new_row.astype(np.int64),
+        col=new_col.astype(np.int64),
+        param_idx=tensor.param_idx.copy(),
+        m=new_m,
+        n=new_n,
+        param_size=tensor.param_size
+    )
+
+
+def reshape_parametric_constant(tensor: CooTensor, new_m: int, new_n: int) -> CooTensor:
+    """
+    Reshape parametric constant data from column format to matrix format.
+
+    This is specifically for constant data extracted via get_constant_data,
+    where param_idx directly maps to positions in the parameter matrix
+    (column-major order).
 
     For parametric tensors (param_size > 1):
         Each param_idx value represents one element in the parameter matrix.
         The position in the reshaped matrix is determined by param_idx:
         new_row = param_idx % new_m, new_col = param_idx // new_m.
         Duplicate entries (from broadcast operations) are deduplicated.
+
+    For non-parametric tensors (param_size == 1):
+        Uses standard linear index reshaping.
     """
     if tensor.param_size > 1:
         # For parametric tensors, use param_idx as position indicator
@@ -879,20 +914,8 @@ def coo_reshape(tensor: CooTensor, new_m: int, new_n: int) -> CooTensor:
             param_size=tensor.param_size
         )
     else:
-        # Non-parametric: use linear index reshaping
-        linear_idx = tensor.col * tensor.m + tensor.row
-        new_row = linear_idx % new_m
-        new_col = linear_idx // new_m
-
-        return CooTensor(
-            data=tensor.data.copy(),
-            row=new_row.astype(np.int64),
-            col=new_col.astype(np.int64),
-            param_idx=tensor.param_idx.copy(),
-            m=new_m,
-            n=new_n,
-            param_size=tensor.param_size
-        )
+        # Non-parametric: use standard linear index reshaping
+        return coo_reshape(tensor, new_m, new_n)
 
 
 class CooTensorView(DictTensorView):
@@ -1560,6 +1583,9 @@ class CooCanonBackend(PythonCanonBackend):
 
         The input CooTensor is in column format (m*n, 1). We reshape it
         to (m, n) for operations like mul that need the actual shape.
+
+        For parametric data, uses reshape_parametric_constant which handles
+        broadcast deduplication based on param_idx.
         """
         result = {}
         for k, v in constant_data.items():
@@ -1567,7 +1593,8 @@ class CooCanonBackend(PythonCanonBackend):
                 new_m = lin_op_shape[0] if len(lin_op_shape) > 0 else 1
                 new_n = lin_op_shape[1] if len(lin_op_shape) > 1 else 1
                 # Reshape from column (m*n, 1) to matrix (m, n)
-                result[k] = coo_reshape(v, new_m, new_n)
+                # Use reshape_parametric_constant for proper param_idx handling
+                result[k] = reshape_parametric_constant(v, new_m, new_n)
             else:
                 result[k] = v.reshape(lin_op_shape, order='F') if hasattr(v, 'reshape') else v
         return result
