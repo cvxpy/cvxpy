@@ -770,9 +770,14 @@ class SciPyCanonBackend(PythonCanonBackend):
 
         Note: conv currently doesn't support parameters.
         """
-        # Compute target shape (2D shape, or row vector for 1D)
+        # Compute target shape (2D shape, or row vector for 1D, or (1,1) for 0D)
         data_shape = lin.data.shape
-        target = data_shape if len(data_shape) == 2 else (1, data_shape[0])
+        if len(data_shape) == 2:
+            target = data_shape
+        elif len(data_shape) == 1:
+            target = (1, data_shape[0])
+        else:  # 0D scalar
+            target = (1, 1)
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, target_shape=target)
         assert is_param_free_lhs, \
             "SciPy backend does not support parametrized left operand for conv."

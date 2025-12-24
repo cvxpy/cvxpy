@@ -463,7 +463,11 @@ class TestNDMatmulReshapeCorrectness:
         )
 
         empty_view = backend.get_empty_view()
-        lhs_data, is_param_free = backend.get_constant_data(const_linop, empty_view, column=False)
+        lhs_data, is_param_free = backend.get_constant_data(
+            const_linop, 
+            empty_view, 
+            target_shape=(m, k)
+        )
 
         assert not is_param_free, "Parameter expression should not be param_free"
 
