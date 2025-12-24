@@ -30,10 +30,6 @@ from cvxpy.lin_ops.backends.base import (
     is_batch_varying,
 )
 
-# =============================================================================
-# ND matmul helper functions (internal)
-# =============================================================================
-
 
 def _build_interleaved_matrix(
     const_data: np.ndarray,
@@ -356,11 +352,6 @@ class SciPyCanonBackend(PythonCanonBackend):
         return SciPyTensorView.get_empty_view(self.param_size_plus_one, self.id_to_col,
                                               self.param_to_size, self.param_to_col,
                                               self.var_length)
-
-    # =========================================================================
-    # ND Matmul: helper methods
-    # Note: is_batch_varying and get_nd_matmul_dims are imported from base.py
-    # =========================================================================
 
     def _mul_kronecker(
         self,

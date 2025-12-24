@@ -1181,11 +1181,6 @@ class CooCanonBackend(PythonCanonBackend):
 
     # transpose: use base class implementation (via select_rows)
 
-    # =========================================================================
-    # ND Matmul: helper methods
-    # Note: is_batch_varying and get_nd_matmul_dims are imported from base.py
-    # =========================================================================
-
     def _mul_kronecker(
         self,
         lhs_data,
