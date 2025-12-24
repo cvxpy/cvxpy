@@ -3,7 +3,9 @@ from __future__ import annotations
 import warnings
 
 import numpy as np
+import scipy.sparse as sp
 
+import cvxpy.settings as s
 from cvxpy.atoms import EXP_ATOMS, NONPOS_ATOMS, PSD_ATOMS, SOC_ATOMS
 from cvxpy.constraints import (
     PSD,
@@ -395,6 +397,44 @@ def construct_solving_chain(problem, candidates,
                           ", ".join([cone.__name__ for cone in cones])))
 
 
+def _validate_problem_data(data) -> None:
+    """Validate problem data for NaN and Inf values.
+
+    Raises ValueError if:
+    - Any matrix/vector contains NaN
+    - Objective or constraint matrix (not RHS/bounds) contains Inf
+
+    Inf is allowed in constraint RHS (b, G) and bounds since users
+    sometimes use inf for unbounded constraints/variables.
+    """
+    # Skip validation for non-dict data (e.g., ConstantSolver returns Problem)
+    if not isinstance(data, dict):
+        return
+
+    # Keys where Inf is allowed (constraint RHS and variable bounds)
+    inf_allowed_keys = {s.B, s.G, s.LOWER_BOUNDS, s.UPPER_BOUNDS}
+
+    # Keys to check (objective coefficients, constraint matrices, bounds)
+    keys_to_check = [s.P, s.C, s.Q, s.A, s.B, s.F, s.G,
+                     s.LOWER_BOUNDS, s.UPPER_BOUNDS]
+
+    for key in keys_to_check:
+        if key not in data or data[key] is None:
+            continue
+        val = data[key]
+        arr = val.data if sp.issparse(val) else val
+        if np.any(np.isnan(arr)):
+            raise ValueError(
+                "Problem data contains NaN. "
+                "Check your parameter values and constants."
+            )
+        if key not in inf_allowed_keys and not np.all(np.isfinite(arr)):
+            raise ValueError(
+                "Problem data contains NaN or Inf. "
+                "Check your parameter values and constants."
+            )
+
+
 class SolvingChain(Chain):
     """A reduction chain that ends with a solver.
 
@@ -450,6 +490,7 @@ class SolvingChain(Chain):
             A solution to the problem.
         """
         data, inverse_data = self.apply(problem)
+        _validate_problem_data(data)
         solution = self.solver.solve_via_data(data, warm_start,
                                               verbose, solver_opts)
         return self.invert(solution, inverse_data)
@@ -493,5 +534,6 @@ class SolvingChain(Chain):
         if solver_opts is None:
             solver_opts = {}
 
+        _validate_problem_data(data)
         return self.solver.solve_via_data(data, warm_start, verbose,
                                           solver_opts, problem._solver_cache)
