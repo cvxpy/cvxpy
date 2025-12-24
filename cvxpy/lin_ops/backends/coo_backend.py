@@ -26,6 +26,8 @@ from cvxpy.lin_ops.backends.base import (
     DictTensorView,
     PythonCanonBackend,
     TensorRepresentation,
+    get_nd_matmul_dims,
+    is_batch_varying,
 )
 
 # Module-level empty array constants to avoid repeated allocations
@@ -1157,32 +1159,9 @@ class CooCanonBackend(PythonCanonBackend):
     # transpose: use base class implementation (via select_rows)
 
     # =========================================================================
-    # ND Matmul: helper predicates and methods
+    # ND Matmul: helper methods
+    # Note: is_batch_varying and get_nd_matmul_dims are imported from base.py
     # =========================================================================
-
-    @staticmethod
-    def _is_batch_varying(const_shape: tuple) -> bool:
-        """
-        Check if constant has batch dimensions with product > 1.
-
-        A batch-varying constant has different values for each batch element,
-        requiring the interleaved matrix structure.
-        """
-        if len(const_shape) <= 2:
-            return False
-        return int(np.prod(const_shape[:-2])) > 1
-
-    @staticmethod
-    def _get_nd_dims(const_shape: tuple, var_shape: tuple) -> tuple:
-        """
-        Get (batch_size, n) for ND matmul C @ X.
-
-        batch_size: product of variable's batch dimensions
-        n: last dimension of variable (columns per batch)
-        """
-        batch_size = int(np.prod(var_shape[:-2])) if len(var_shape) > 2 else 1
-        n = var_shape[-1] if len(var_shape) >= 2 else 1
-        return batch_size, n
 
     def _mul_kronecker(
         self,
@@ -1197,7 +1176,7 @@ class CooCanonBackend(PythonCanonBackend):
         This is the most common case: a 2D constant matrix multiplies each
         batch element of an ND variable.
         """
-        batch_size, n = self._get_nd_dims(const_shape, var_shape)
+        batch_size, n, _ = get_nd_matmul_dims(const_shape, var_shape)
 
         # Convert to CooTensor if needed
         if isinstance(lhs_data, CooTensor):
@@ -1248,7 +1227,7 @@ class CooCanonBackend(PythonCanonBackend):
         When the constant depends on Parameters, we expand each parameter slice
         separately using the Kronecker structure.
         """
-        batch_size, n = self._get_nd_dims(const_shape, var_shape)
+        batch_size, n, _ = get_nd_matmul_dims(const_shape, var_shape)
 
         # Expand each parameter slice with Kronecker structure
         expanded_lhs = {
@@ -1289,7 +1268,7 @@ class CooCanonBackend(PythonCanonBackend):
         if is_lhs_parametric:
             # Case 1: Parametric LHS
             return self._mul_parametric_lhs(lhs_data, const_shape, var_shape, view)
-        elif self._is_batch_varying(const_shape):
+        elif is_batch_varying(const_shape):
             # Case 2: Batch-varying constant
             return self._mul_interleaved(lin_op, var_shape, view)
         else:

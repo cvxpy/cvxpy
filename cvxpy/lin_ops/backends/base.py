@@ -15,6 +15,36 @@ limitations under the License.
 
 Base classes for canonicalization backends.
 
+Backend Architecture Overview
+=============================
+
+Tensor Representation
+---------------------
+The backends represent linear operators as sparse 3D tensors:
+- Axis 0 (rows): Corresponds to constraint rows
+- Axis 1 (cols): Corresponds to variable columns
+- Axis 2 (param): Parameter slices (param_size slices, or 1 if non-parametric)
+
+Key Terms
+---------
+- param_size: Number of parameter values (e.g., 12 for a 3x4 Parameter)
+- param_slice: One 2D slice of the 3D tensor for a specific parameter value
+- param_idx: Index identifying which parameter value (0 to param_size-1)
+- is_param_free: True if expression has no Parameters (param_size == 1)
+- batch_size: Product of batch dimensions in ND arrays (e.g., B1*B2 for shape (B1,B2,m,n))
+
+Class Hierarchy
+---------------
+CanonBackend (abstract)
+  └── PythonCanonBackend (abstract, defines all linop methods)
+        ├── SciPyCanonBackend (stacked sparse matrices)
+        └── CooCanonBackend (3D COO tensor)
+
+TensorView (abstract)
+  └── DictTensorView (abstract)
+        ├── SciPyTensorView
+        └── CooTensorView
+
 This module contains the abstract base classes used by all backends:
 - Constant: Enum for constant ID marker
 - TensorRepresentation: Sparse 3D tensor representation
@@ -64,6 +94,28 @@ def get_nd_matmul_dims(
     n = var_shape[-1] if len(var_shape) >= 2 else 1
     const_has_batch = len(const_shape) > 2
     return batch_size, n, const_has_batch
+
+
+def is_batch_varying(const_shape: Tuple[int, ...]) -> bool:
+    """
+    Check if constant has batch dimensions with product > 1.
+
+    A batch-varying constant has different values for each batch element,
+    requiring the interleaved matrix structure for ND matmul.
+
+    Parameters
+    ----------
+    const_shape : tuple
+        Shape of the constant
+
+    Returns
+    -------
+    bool
+        True if the constant has batch dimensions (shape like (B, m, k) with B > 1)
+    """
+    if len(const_shape) <= 2:
+        return False
+    return int(np.prod(const_shape[:-2])) > 1
 
 
 class Constant(Enum):

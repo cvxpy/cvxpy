@@ -26,6 +26,8 @@ from cvxpy.lin_ops.backends.base import (
     DictTensorView,
     PythonCanonBackend,
     TensorRepresentation,
+    get_nd_matmul_dims,
+    is_batch_varying,
 )
 
 # =============================================================================
@@ -248,60 +250,103 @@ class SciPyCanonBackend(PythonCanonBackend):
     def _reshape_single_constant_tensor(v: sp.csc_array, lin_op_shape: tuple[int, int],
                                         param_size: int) -> sp.csc_array:
         """
-        Given v, which is a matrix of shape (broadcast_size * param_size, 1),
-        reshape v into a matrix of shape (param_size * lin_op_shape[0], lin_op_shape[1]).
+        Reshape constant data from column format to matrix format.
 
-        For parametric data (param_size > 1), the rows encode param_idx information.
-        We extract param_idx, deduplicate broadcast copies, and compute positions
-        based on param_idx.
+        Dispatches to specialized functions based on whether data is parametric.
+
+        Parameters
+        ----------
+        v : sparse column vector of shape (N, 1)
+        lin_op_shape : (m, k) target matrix dimensions
+        param_size : number of parameter slices (1 = non-parametric)
+
+        Returns
+        -------
+        Reshaped sparse matrix of shape (param_size * m, k)
+        """
+        if param_size == 1:
+            return SciPyCanonBackend._reshape_nonparametric(v, lin_op_shape)
+        else:
+            return SciPyCanonBackend._reshape_parametric(v, lin_op_shape, param_size)
+
+    @staticmethod
+    def _reshape_nonparametric(v: sp.csc_array, lin_op_shape: tuple[int, int]) -> sp.csc_array:
+        """
+        Reshape non-parametric constant data from column to matrix format.
+
+        For a column vector of shape (p * m * k, 1), reshape to (p * m, k)
+        where p is the number of copies (from broadcast operations).
+
+        The reshaping follows Fortran (column-major) order.
         """
         assert v.shape[1] == 1
+        m, k = lin_op_shape
 
         coo = v.tocoo()
         data, stacked_rows = coo.data, coo.row
 
-        if param_size == 1:
-            # Non-parametric: use standard reshape logic
-            p = np.prod(v.shape) // np.prod(lin_op_shape)
-            old_shape = (v.shape[0] // p, v.shape[1])
+        # p = number of copies from broadcast
+        p = np.prod(v.shape) // np.prod(lin_op_shape)
+        slice_size = v.shape[0] // p
 
-            slices, rows = np.divmod(stacked_rows, old_shape[0])
+        # Extract slice index and position within slice
+        slices, rows = np.divmod(stacked_rows, slice_size)
 
-            new_cols, new_rows = np.divmod(rows, lin_op_shape[0])
-            new_rows = slices * lin_op_shape[0] + new_rows
+        # Reshape: linear index -> (row, col) in column-major order
+        new_cols, new_rows = np.divmod(rows, m)
+        new_rows = slices * m + new_rows
 
-            new_stacked_shape = (p * lin_op_shape[0], lin_op_shape[1])
-            return sp.csc_array((data, (new_rows, new_cols)), shape=new_stacked_shape)
-        else:
-            # Parametric: extract param_idx from row structure
-            # Rows are structured as: slice_idx * slice_size + local_row
-            # For param_vec, local_row = param_idx and rows at param_idx * (1 + param_size)
-            # After broadcast, entries get duplicated but param_idx stays the same.
+        new_stacked_shape = (p * m, k)
+        return sp.csc_array((data, (new_rows, new_cols)), shape=new_stacked_shape)
 
-            # The row structure is: stacked_row = slice_idx * slice_size + local_row
-            # For slice s, the non-zeros are for param_idx s. So param_idx = slice_idx.
-            slice_size = v.shape[0] // param_size
-            param_idx = stacked_rows // slice_size
+    @staticmethod
+    def _reshape_parametric(v: sp.csc_array, lin_op_shape: tuple[int, int],
+                            param_size: int) -> sp.csc_array:
+        """
+        Reshape parametric constant data from column to matrix format.
 
-            # Deduplicate: keep first occurrence of each param_idx
-            unique_param_idx, first_occurrence = np.unique(param_idx, return_index=True)
+        For parametric data, entries may be duplicated by broadcast operations.
+        We deduplicate and compute positions based on param_idx.
 
-            # Compute new positions based on param_idx
-            # For param_idx i, position in (m, k) matrix:
-            #   new_row = i % lin_op_shape[0]
-            #   new_col = i // lin_op_shape[0]
-            new_rows = unique_param_idx % lin_op_shape[0]
-            new_cols = unique_param_idx // lin_op_shape[0]
+        The param_idx encodes which parameter value each entry corresponds to.
+        After broadcast_to, entries are duplicated but param_idx stays the same.
+        We keep only the first occurrence of each param_idx.
 
-            # In stacked format, add slice offset: new_row += slice_idx * lin_op_shape[0]
-            # But after dedup, unique_param_idx IS the slice index for each entry
-            stacked_new_rows = unique_param_idx * lin_op_shape[0] + new_rows
+        Parameters
+        ----------
+        v : sparse column of shape (broadcast_size * param_size, 1)
+        lin_op_shape : (m, k) target matrix dimensions
+        param_size : number of parameter values
 
-            new_stacked_shape = (param_size * lin_op_shape[0], lin_op_shape[1])
-            return sp.csc_array(
-                (data[first_occurrence], (stacked_new_rows, new_cols)),
-                shape=new_stacked_shape
-            )
+        Returns
+        -------
+        Sparse matrix of shape (param_size * m, k)
+        """
+        assert v.shape[1] == 1
+        m, k = lin_op_shape
+
+        coo = v.tocoo()
+        data, stacked_rows = coo.data, coo.row
+
+        # Each param slice has slice_size rows; param_idx = stacked_row // slice_size
+        slice_size = v.shape[0] // param_size
+        param_idx = stacked_rows // slice_size
+
+        # Deduplicate: broadcast creates copies with same param_idx
+        unique_param_idx, first_occurrence = np.unique(param_idx, return_index=True)
+
+        # Position in (m, k) matrix: column-major order
+        new_rows = unique_param_idx % m
+        new_cols = unique_param_idx // m
+
+        # In stacked format, offset by slice: unique_param_idx is also the slice index
+        stacked_new_rows = unique_param_idx * m + new_rows
+
+        new_stacked_shape = (param_size * m, k)
+        return sp.csc_array(
+            (data[first_occurrence], (stacked_new_rows, new_cols)),
+            shape=new_stacked_shape
+        )
 
     def get_empty_view(self) -> SciPyTensorView:
         """
@@ -313,32 +358,9 @@ class SciPyCanonBackend(PythonCanonBackend):
                                               self.var_length)
 
     # =========================================================================
-    # ND Matmul: helper predicates and methods
+    # ND Matmul: helper methods
+    # Note: is_batch_varying and get_nd_matmul_dims are imported from base.py
     # =========================================================================
-
-    @staticmethod
-    def _is_batch_varying(const_shape: Tuple[int, ...]) -> bool:
-        """
-        Check if constant has batch dimensions with product > 1.
-
-        A batch-varying constant has different values for each batch element,
-        requiring the interleaved matrix structure.
-        """
-        if len(const_shape) <= 2:
-            return False
-        return int(np.prod(const_shape[:-2])) > 1
-
-    @staticmethod
-    def _get_nd_dims(const_shape: Tuple[int, ...], var_shape: Tuple[int, ...]) -> Tuple[int, int]:
-        """
-        Get (batch_size, n) for ND matmul C @ X.
-
-        batch_size: product of variable's batch dimensions
-        n: last dimension of variable (columns per batch)
-        """
-        batch_size = int(np.prod(var_shape[:-2])) if len(var_shape) > 2 else 1
-        n = var_shape[-1] if len(var_shape) >= 2 else 1
-        return batch_size, n
 
     def _mul_kronecker(
         self,
@@ -353,7 +375,7 @@ class SciPyCanonBackend(PythonCanonBackend):
         This is the most common case: a 2D constant matrix multiplies each
         batch element of an ND variable.
         """
-        batch_size, n = self._get_nd_dims(const_shape, var_shape)
+        batch_size, n, _ = get_nd_matmul_dims(const_shape, var_shape)
         stacked_lhs = _apply_nd_kron_structure(lhs, batch_size, n)
 
         def func(x, p):
@@ -401,7 +423,7 @@ class SciPyCanonBackend(PythonCanonBackend):
         When the constant depends on Parameters, we expand each parameter slice
         separately using the Kronecker structure.
         """
-        batch_size, n = self._get_nd_dims(const_shape, var_shape)
+        batch_size, n, _ = get_nd_matmul_dims(const_shape, var_shape)
 
         # Expand each parameter slice and stack
         stacked_lhs = {
@@ -436,7 +458,7 @@ class SciPyCanonBackend(PythonCanonBackend):
         if not is_param_free:
             # Case 1: Parametric LHS
             return self._mul_parametric_lhs(lhs, const_shape, var_shape, view)
-        elif self._is_batch_varying(const_shape):
+        elif is_batch_varying(const_shape):
             # Case 2: Batch-varying constant
             return self._mul_interleaved(const, var_shape, view)
         else:
