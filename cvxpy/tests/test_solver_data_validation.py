@@ -1,4 +1,3 @@
-
 """
 Copyright, the CVXPY authors
 
@@ -22,56 +21,31 @@ from cvxpy.tests.base_test import BaseTest
 
 
 class TestSolverDataValidation(BaseTest):
-    """Test that NaN/Inf values in problem data are caught early.
+    """Test that NaN values in problem data are caught."""
 
-    These tests verify that NaN/Inf values in constants are detected
-    during apply_parameters() before being sent to the solver.
-    Note: Parameters are already validated at assignment time, so
-    NaN/Inf in parameters are caught earlier.
-    """
-
-    def test_inf_constant_in_constraint(self):
-        """Inf in a constraint constant should raise ValueError during solve."""
-        x = cp.Variable()
-        c = cp.Constant(np.inf)
-        prob = cp.Problem(cp.Minimize(x), [x >= c])
-
-        if cp.SCS in cp.installed_solvers():
-            with pytest.raises(ValueError, match="contains NaN or Inf"):
-                prob.solve(solver=cp.SCS)
+    def test_nan_in_parameter_raises(self):
+        """NaN in a parameter value should raise ValueError at assignment."""
+        p = cp.Parameter()
+        with pytest.raises(ValueError, match="must be real"):
+            p.value = np.nan
 
     def test_nan_constant_in_objective(self):
-        """NaN in objective coefficients should raise ValueError."""
+        """NaN in objective should raise ValueError during solve."""
         x = cp.Variable()
-        prob = cp.Problem(cp.Minimize(x * cp.Constant(np.nan)), [x >= 0])
+        prob = cp.Problem(cp.Minimize(x * np.nan), [x >= 0])
+        with pytest.raises(ValueError, match="contains NaN"):
+            prob.solve(solver=cp.SCS)
 
-        if cp.SCS in cp.installed_solvers():
-            with pytest.raises(ValueError, match="contains NaN or Inf"):
-                prob.solve(solver=cp.SCS)
-
-    def test_inf_constant_in_objective(self):
-        """Inf in objective coefficients should raise ValueError."""
+    def test_nan_constant_in_constraint(self):
+        """NaN in constraint should raise ValueError during solve."""
         x = cp.Variable()
-        prob = cp.Problem(cp.Minimize(x + cp.Constant(np.inf)), [x >= 0])
-
-        if cp.SCS in cp.installed_solvers():
-            with pytest.raises(ValueError, match="contains NaN or Inf"):
-                prob.solve(solver=cp.SCS)
+        prob = cp.Problem(cp.Minimize(x), [x >= np.nan])
+        with pytest.raises(ValueError, match="contains NaN"):
+            prob.solve(solver=cp.SCS)
 
     def test_valid_problem_solves(self):
         """A valid problem should still solve correctly."""
         x = cp.Variable()
         prob = cp.Problem(cp.Minimize(x), [x >= 1])
-
-        if cp.SCS in cp.installed_solvers():
-            prob.solve(solver=cp.SCS)
-            self.assertAlmostEqual(x.value, 1.0, places=3)
-
-    def test_qp_solver_with_inf(self):
-        """Test that QP solvers also catch Inf in problem data."""
-        x = cp.Variable()
-        prob = cp.Problem(cp.Minimize(x**2), [x >= cp.Constant(np.inf)])
-
-        if cp.OSQP in cp.installed_solvers():
-            with pytest.raises(ValueError, match="contains NaN or Inf"):
-                prob.solve(solver=cp.OSQP)
+        prob.solve(solver=cp.SCS)
+        self.assertAlmostEqual(x.value, 1.0, places=3)

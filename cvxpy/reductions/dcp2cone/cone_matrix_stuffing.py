@@ -197,9 +197,24 @@ class ParamConeProg(ParamProb):
         return self.x.attributes['boolean'] or \
             self.x.attributes['integer']
 
+    def _check_nan(self, *args) -> None:
+        """Check values for NaN.
+
+        Raises:
+            ValueError: If any value contains NaN.
+        """
+        for val in args:
+            if val is None:
+                continue
+            data = val.data if sp.issparse(val) else val
+            if np.any(np.isnan(data)):
+                raise ValueError(
+                    "Problem data contains NaN. "
+                    "Check your parameter values and constants for NaN."
+                )
+
     def apply_parameters(self, id_to_param_value=None, zero_offset: bool = False,
-                         keep_zeros: bool = False, quad_obj: bool = False,
-                         ignore_unknown_params: bool = False):
+                         keep_zeros: bool = False, quad_obj: bool = False):
         """Returns A, b after applying parameters (and reshaping).
 
         Args:
@@ -209,7 +224,6 @@ class ParamConeProg(ParamProb):
           keep_zeros: (optional) if True, store explicit zeros in A where
                         parameters are affected.
           quad_obj: (optional) if True, include quadratic objective term.
-          ignore_unknown_params: (optional) if True, skip NaN/Inf validation.
         """
         self.reduced_A.cache(keep_zeros)
 
@@ -227,49 +241,15 @@ class ParamConeProg(ParamProb):
             self.q, param_vec, self.x.size, with_offset=True)
         q = q.toarray().flatten()
         A, b = self.reduced_A.get_matrix_from_tensor(param_vec, with_offset=True)
-        b = np.atleast_1d(b)
-
-        # Validate for NaN/Inf unless:
-        # 1. explicitly ignored via ignore_unknown_params, or
-        # 2. any parameter values are None (DPP compilation without values)
-        should_validate = (
-            not ignore_unknown_params
-            and all(p.value is not None for p in self.parameters)
-        )
-        if should_validate:
-            self._validate_data(q, d, A, b)
 
         if quad_obj:
             self.reduced_P.cache(keep_zeros)
             P, _ = self.reduced_P.get_matrix_from_tensor(param_vec, with_offset=False)
-            if should_validate:
-                self._validate_matrix(P, 'P')
-            return P, q, d, A, b
+            self._check_nan(P, q, d, A, b)
+            return P, q, d, A, np.atleast_1d(b)
         else:
-            return q, d, A, b
-
-    def _validate_matrix(self, mat, name: str) -> None:
-        """Check a matrix for NaN or Inf values."""
-        if mat is None:
-            return
-        data = mat.data if sp.issparse(mat) else mat
-        # Use ~np.isfinite to check for NaN/Inf in one pass
-        if not np.all(np.isfinite(data)):
-            raise ValueError(
-                f"Problem data in '{name}' contains NaN or Inf. "
-                "This may be due to invalid parameter values or unbounded constants."
-            )
-
-    def _validate_data(self, q, d, A, b) -> None:
-        """Validate problem data for NaN/Inf values."""
-        self._validate_matrix(q, 'c')
-        if not np.isfinite(d):
-            raise ValueError(
-                "Problem data in 'offset' contains NaN or Inf. "
-                "This may be due to invalid parameter values or unbounded constants."
-            )
-        self._validate_matrix(A, 'A')
-        self._validate_matrix(b, 'b')
+            self._check_nan(q, d, A, b)
+            return q, d, A, np.atleast_1d(b)
 
     def apply_param_jac(self, delc, delA, delb, active_params=None):
         """Multiplies by Jacobian of parameter mapping.
