@@ -2,10 +2,12 @@
 Comprehensive tests for ND matrix multiplication in CVXPY.
 
 Tests cover:
-1. Parametric tests (Parameter @ Variable)
-2. Broadcasting tests (2D constant @ higher-dim variable)
-3. Edge cases (B=1, non-square, n=1, large batch)
-4. Cross-backend consistency
+1. Core functionality (2D constant @ higher-dim variable)
+2. Parametric tests (Parameter @ Variable)
+3. Broadcasting (batch dimension size 1)
+4. Edge cases (B=1, non-square, n=1, k=1, large batch, errors)
+
+All tests are parametrized by backend for cross-backend consistency.
 
 Copyright 2025, the CVXPY authors.
 
@@ -27,11 +29,95 @@ import pytest
 
 import cvxpy as cp
 
+BACKENDS = [cp.SCIPY_CANON_BACKEND, cp.COO_CANON_BACKEND]
+
+
+@pytest.fixture(autouse=True)
+def seed_rng():
+    """Consistent seeding for all tests."""
+    np.random.seed(42)
+
+
+class TestNDMatmul:
+    """Core ND matmul functionality: 2D constant @ higher-dim variable."""
+
+    @pytest.mark.parametrize("backend", BACKENDS)
+    def test_2d_const_3d_var(self, backend):
+        """Test (m,k) @ (B,k,n) -> (B,m,n)."""
+        B, m, k, n = 2, 3, 4, 5
+        C = np.random.randn(m, k)
+        X = cp.Variable((B, k, n))
+
+        expr = C @ X
+        assert expr.shape == (B, m, n)
+
+        target = np.random.randn(B, m, n)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(expr - target)))
+        prob.solve(canon_backend=backend)
+
+        assert prob.status == cp.OPTIMAL
+
+    @pytest.mark.parametrize("backend", BACKENDS)
+    def test_2d_const_4d_var(self, backend):
+        """Test (m,k) @ (B1,B2,k,n) -> (B1,B2,m,n)."""
+        B1, B2, m, k, n = 2, 3, 4, 5, 6
+        C = np.random.randn(m, k)
+        X = cp.Variable((B1, B2, k, n))
+
+        expr = C @ X
+        assert expr.shape == (B1, B2, m, n)
+
+        target = np.random.randn(B1, B2, m, n)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(expr - target)))
+        prob.solve(canon_backend=backend)
+
+        assert prob.status == cp.OPTIMAL
+        # Verify result
+        result = np.zeros((B1, B2, m, n))
+        for i in range(B1):
+            for j in range(B2):
+                result[i, j] = C @ X.value[i, j]
+        error = np.linalg.norm(result - target) / np.linalg.norm(target)
+        assert error < 1e-4
+
+    @pytest.mark.parametrize("backend", BACKENDS)
+    def test_2d_const_5d_var(self, backend):
+        """Test (m,k) @ (B1,B2,B3,k,n) -> (B1,B2,B3,m,n)."""
+        B1, B2, B3, m, k, n = 2, 2, 2, 3, 4, 5
+        C = np.random.randn(m, k)
+        X = cp.Variable((B1, B2, B3, k, n))
+
+        expr = C @ X
+        assert expr.shape == (B1, B2, B3, m, n)
+
+        target = np.random.randn(B1, B2, B3, m, n)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(expr - target)))
+        prob.solve(canon_backend=backend)
+
+        assert prob.status == cp.OPTIMAL
+
+    @pytest.mark.parametrize("backend", BACKENDS)
+    def test_batch_varying_const(self, backend):
+        """Test (B,m,k) @ (B,k,n) -> (B,m,n) with batch-varying constant."""
+        B, m, k, n = 3, 4, 5, 6
+        C = np.random.randn(B, m, k)
+        X = cp.Variable((B, k, n))
+
+        expr = C @ X
+        assert expr.shape == (B, m, n)
+
+        target = np.random.randn(B, m, n)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(expr - target)))
+        prob.solve(canon_backend=backend)
+
+        assert prob.status == cp.OPTIMAL
+
 
 class TestNDMatmulParametric:
     """Test ND matmul with Parameters."""
 
-    def test_parametric_2d_const_3d_var(self):
+    @pytest.mark.parametrize("backend", BACKENDS)
+    def test_parametric_2d_param_3d_var(self, backend):
         """Test P (m,k) @ X (B,k,n) where P is a Parameter."""
         B, m, k, n = 2, 3, 4, 5
         P = cp.Parameter((m, k))
@@ -44,14 +130,14 @@ class TestNDMatmulParametric:
 
         target = np.random.randn(B, m, n)
         prob = cp.Problem(cp.Minimize(cp.sum_squares(expr - target)))
-        prob.solve()
+        prob.solve(canon_backend=backend)
 
         assert prob.status == cp.OPTIMAL
-        # Verify with current parameter value
         expected = P.value @ X.value
         np.testing.assert_allclose(expr.value, expected, rtol=1e-5)
 
-    def test_parametric_reoptimization(self):
+    @pytest.mark.parametrize("backend", BACKENDS)
+    def test_parametric_reoptimization(self, backend):
         """Test that changing parameter value gives correct result."""
         B, m, k, n = 2, 3, 4, 5
         P = cp.Parameter((m, k))
@@ -62,71 +148,105 @@ class TestNDMatmulParametric:
 
         # First solve
         P.value = np.eye(m, k)
-        prob.solve()
+        prob.solve(canon_backend=backend)
         result1 = X.value.copy()
 
         # Second solve with different parameter
         P.value = 2 * np.eye(m, k)
-        prob.solve()
+        prob.solve(canon_backend=backend)
         result2 = X.value.copy()
 
         # Results should differ
         assert not np.allclose(result1, result2)
 
-    @pytest.mark.parametrize("backend", [cp.SCIPY_CANON_BACKEND, cp.COO_CANON_BACKEND])
-    def test_parametric_both_backends(self, backend):
-        """Test parametric ND matmul with both backends."""
+    @pytest.mark.parametrize("backend", BACKENDS)
+    def test_parametric_achieves_target(self, backend):
+        """Verify parametric ND matmul achieves an achievable target."""
         B, m, k, n = 2, 3, 4, 5
+
         P = cp.Parameter((m, k))
         P.value = np.random.randn(m, k)
         X = cp.Variable((B, k, n))
 
-        target = np.random.randn(B, m, n)
+        # Create achievable target
+        X_true = np.random.randn(B, k, n)
+        target = P.value @ X_true
+
         prob = cp.Problem(cp.Minimize(cp.sum_squares(P @ X - target)))
         prob.solve(canon_backend=backend)
 
         assert prob.status == cp.OPTIMAL
+        # Since target is achievable, optimal value should be near 0
+        assert prob.value < 1e-6
 
 
 class TestNDMatmulBroadcasting:
-    """Test broadcasting behavior for ND matmul."""
+    """Test batch dimension broadcasting for ND matmul."""
 
-    def test_2d_const_4d_var(self):
-        """Test (m,k) @ (B1,B2,k,n) -> (B1,B2,m,n)."""
+    @pytest.mark.parametrize("backend", BACKENDS)
+    def test_broadcast_const_batch_1(self, backend):
+        """Test (1, m, k) @ (B, k, n) broadcasts const to (B, m, n)."""
+        B, m, k, n = 3, 4, 5, 6
+        C = np.random.randn(1, m, k)
+        X = cp.Variable((B, k, n))
+        expr = C @ X
+        assert expr.shape == (B, m, n)
+
+        X_true = np.random.randn(B, k, n)
+        target = C @ X_true
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(expr - target)))
+        prob.solve(canon_backend=backend)
+        assert prob.status == cp.OPTIMAL
+        np.testing.assert_allclose(C @ X.value, target, rtol=1e-5)
+
+    @pytest.mark.parametrize("backend", BACKENDS)
+    def test_broadcast_var_batch_1(self, backend):
+        """Test (B, m, k) @ (1, k, n) broadcasts var to (B, m, n)."""
+        B, m, k, n = 3, 4, 5, 6
+        C = np.random.randn(B, m, k)
+        X = cp.Variable((1, k, n))
+        expr = C @ X
+        assert expr.shape == (B, m, n)
+
+        X_true = np.random.randn(1, k, n)
+        target = C @ X_true
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(expr - target)))
+        prob.solve(canon_backend=backend)
+        assert prob.status == cp.OPTIMAL
+        np.testing.assert_allclose(C @ X.value, target, rtol=1e-5)
+
+    @pytest.mark.parametrize("backend", BACKENDS)
+    def test_broadcast_both_batch_dims(self, backend):
+        """Test (B1, 1, m, k) @ (1, B2, k, n) broadcasts to (B1, B2, m, n)."""
         B1, B2, m, k, n = 2, 3, 4, 5, 6
-        C = np.random.randn(m, k)
-        X = cp.Variable((B1, B2, k, n))
-
+        C = np.random.randn(B1, 1, m, k)
+        X = cp.Variable((1, B2, k, n))
         expr = C @ X
         assert expr.shape == (B1, B2, m, n)
 
-        target = np.random.randn(B1, B2, m, n)
+        X_true = np.random.randn(1, B2, k, n)
+        target = C @ X_true
         prob = cp.Problem(cp.Minimize(cp.sum_squares(expr - target)))
-        prob.solve()
-
+        prob.solve(canon_backend=backend)
         assert prob.status == cp.OPTIMAL
-        # Verify result
-        result = np.zeros((B1, B2, m, n))
-        for i in range(B1):
-            for j in range(B2):
-                result[i, j] = C @ X.value[i, j]
-        error = np.linalg.norm(result - target) / np.linalg.norm(target)
-        assert error < 1e-4
+        np.testing.assert_allclose(C @ X.value, target, rtol=1e-5)
 
-    def test_2d_const_5d_var(self):
-        """Test (m,k) @ (B1,B2,B3,k,n) -> (B1,B2,B3,m,n)."""
-        B1, B2, B3, m, k, n = 2, 2, 2, 3, 4, 5
-        C = np.random.randn(m, k)
-        X = cp.Variable((B1, B2, B3, k, n))
+    @pytest.mark.parametrize("backend", BACKENDS)
+    def test_broadcast_with_parameter(self, backend):
+        """Test broadcast with Parameter @ Variable."""
+        B, m, k, n = 3, 4, 5, 6
+        P = cp.Parameter((1, m, k))
+        P.value = np.random.randn(1, m, k)
+        X = cp.Variable((B, k, n))
+        expr = P @ X
+        assert expr.shape == (B, m, n)
 
-        expr = C @ X
-        assert expr.shape == (B1, B2, B3, m, n)
-
-        target = np.random.randn(B1, B2, B3, m, n)
+        X_true = np.random.randn(B, k, n)
+        target = P.value @ X_true
         prob = cp.Problem(cp.Minimize(cp.sum_squares(expr - target)))
-        prob.solve()
-
+        prob.solve(canon_backend=backend)
         assert prob.status == cp.OPTIMAL
+        np.testing.assert_allclose(P.value @ X.value, target, rtol=1e-5)
 
 
 class TestNDMatmulEdgeCases:
@@ -148,7 +268,16 @@ class TestNDMatmulEdgeCases:
         with pytest.raises(ValueError, match="Incompatible dimensions"):
             C @ X
 
-    def test_batch_size_one(self):
+    def test_rmul_not_implemented(self):
+        """Test that ND rmul (X @ C) raises NotImplementedError."""
+        B, m, k, n = 2, 3, 4, 5
+        X = cp.Variable((B, m, k))
+        C = np.random.randn(k, n)
+        with pytest.raises(NotImplementedError, match="ND matmul for X @ C"):
+            X @ C
+
+    @pytest.mark.parametrize("backend", BACKENDS)
+    def test_batch_size_one(self, backend):
         """Test with B=1 batch dimension."""
         m, k, n = 3, 4, 5
         C = np.random.randn(m, k)
@@ -159,10 +288,11 @@ class TestNDMatmulEdgeCases:
 
         target = np.random.randn(1, m, n)
         prob = cp.Problem(cp.Minimize(cp.sum_squares(expr - target)))
-        prob.solve()
+        prob.solve(canon_backend=backend)
         assert prob.status == cp.OPTIMAL
 
-    def test_non_square_matrices(self):
+    @pytest.mark.parametrize("backend", BACKENDS)
+    def test_non_square_matrices(self, backend):
         """Test with non-square constant matrix."""
         B, m, k, n = 2, 7, 3, 11  # Non-square, different sizes
         C = np.random.randn(m, k)
@@ -173,10 +303,11 @@ class TestNDMatmulEdgeCases:
 
         target = np.random.randn(B, m, n)
         prob = cp.Problem(cp.Minimize(cp.sum_squares(expr - target)))
-        prob.solve()
+        prob.solve(canon_backend=backend)
         assert prob.status == cp.OPTIMAL
 
-    def test_single_element_last_dim(self):
+    @pytest.mark.parametrize("backend", BACKENDS)
+    def test_single_element_last_dim(self, backend):
         """Test with n=1 (column vector result)."""
         B, m, k = 2, 3, 4
         C = np.random.randn(m, k)
@@ -187,22 +318,11 @@ class TestNDMatmulEdgeCases:
 
         target = np.random.randn(B, m, 1)
         prob = cp.Problem(cp.Minimize(cp.sum_squares(expr - target)))
-        prob.solve()
+        prob.solve(canon_backend=backend)
         assert prob.status == cp.OPTIMAL
 
-    def test_large_batch_dimension(self):
-        """Test with larger batch dimension."""
-        B, m, k, n = 10, 3, 4, 5
-        C = np.random.randn(m, k)
-        X = cp.Variable((B, k, n))
-
-        expr = C @ X
-        target = np.random.randn(B, m, n)
-        prob = cp.Problem(cp.Minimize(cp.sum_squares(expr - target)))
-        prob.solve()
-        assert prob.status == cp.OPTIMAL
-
-    def test_single_element_inner_dim(self):
+    @pytest.mark.parametrize("backend", BACKENDS)
+    def test_single_element_inner_dim(self, backend):
         """Test with k=1 (rank-1 matrices)."""
         B, m, n = 2, 3, 4
         C = np.random.randn(m, 1)
@@ -213,10 +333,24 @@ class TestNDMatmulEdgeCases:
 
         target = np.random.randn(B, m, n)
         prob = cp.Problem(cp.Minimize(cp.sum_squares(expr - target)))
-        prob.solve()
+        prob.solve(canon_backend=backend)
         assert prob.status == cp.OPTIMAL
 
-    def test_batch_varying_with_batch_one(self):
+    @pytest.mark.parametrize("backend", BACKENDS)
+    def test_large_batch_dimension(self, backend):
+        """Test with larger batch dimension."""
+        B, m, k, n = 10, 3, 4, 5
+        C = np.random.randn(m, k)
+        X = cp.Variable((B, k, n))
+
+        expr = C @ X
+        target = np.random.randn(B, m, n)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(expr - target)))
+        prob.solve(canon_backend=backend)
+        assert prob.status == cp.OPTIMAL
+
+    @pytest.mark.parametrize("backend", BACKENDS)
+    def test_batch_varying_with_batch_one(self, backend):
         """Test batch-varying constant with B=1."""
         m, k, n = 3, 4, 5
         C = np.random.randn(1, m, k)
@@ -227,256 +361,5 @@ class TestNDMatmulEdgeCases:
 
         target = np.random.randn(1, m, n)
         prob = cp.Problem(cp.Minimize(cp.sum_squares(expr - target)))
-        prob.solve()
-        assert prob.status == cp.OPTIMAL
-
-
-class TestNDMatmulBatchBroadcasting:
-    """Test batch dimension broadcasting for ND matmul."""
-
-    @pytest.mark.parametrize("backend", [cp.SCIPY_CANON_BACKEND, cp.COO_CANON_BACKEND])
-    def test_broadcast_const_batch_1(self, backend):
-        """Test (1, m, k) @ (B, k, n) broadcasts const to (B, m, k)."""
-        np.random.seed(42)
-        B, m, k, n = 3, 4, 5, 6
-        C = np.random.randn(1, m, k)
-        X = cp.Variable((B, k, n))
-        expr = C @ X
-        assert expr.shape == (B, m, n)
-
-        # Use achievable target
-        X_true = np.random.randn(B, k, n)
-        target = C @ X_true
-        prob = cp.Problem(cp.Minimize(cp.sum_squares(expr - target)))
         prob.solve(canon_backend=backend)
         assert prob.status == cp.OPTIMAL
-        # Check output matches (problem may be underdetermined)
-        np.testing.assert_allclose(C @ X.value, target, rtol=1e-5)
-
-    @pytest.mark.parametrize("backend", [cp.SCIPY_CANON_BACKEND, cp.COO_CANON_BACKEND])
-    def test_broadcast_var_batch_1(self, backend):
-        """Test (B, m, k) @ (1, k, n) broadcasts var to (B, k, n)."""
-        np.random.seed(42)
-        B, m, k, n = 3, 4, 5, 6
-        C = np.random.randn(B, m, k)
-        X = cp.Variable((1, k, n))
-        expr = C @ X
-        assert expr.shape == (B, m, n)
-
-        # Use achievable target
-        X_true = np.random.randn(1, k, n)
-        target = C @ X_true
-        prob = cp.Problem(cp.Minimize(cp.sum_squares(expr - target)))
-        prob.solve(canon_backend=backend)
-        assert prob.status == cp.OPTIMAL
-        # Check output matches (problem may be underdetermined)
-        np.testing.assert_allclose(C @ X.value, target, rtol=1e-5)
-
-    @pytest.mark.parametrize("backend", [cp.SCIPY_CANON_BACKEND, cp.COO_CANON_BACKEND])
-    def test_broadcast_both_batch_dims(self, backend):
-        """Test (B1, 1, m, k) @ (1, B2, k, n) broadcasts both to (B1, B2, m, k)."""
-        np.random.seed(42)
-        B1, B2, m, k, n = 2, 3, 4, 5, 6
-        C = np.random.randn(B1, 1, m, k)
-        X = cp.Variable((1, B2, k, n))
-        expr = C @ X
-        assert expr.shape == (B1, B2, m, n)
-
-        # Use achievable target
-        X_true = np.random.randn(1, B2, k, n)
-        target = C @ X_true
-        prob = cp.Problem(cp.Minimize(cp.sum_squares(expr - target)))
-        prob.solve(canon_backend=backend)
-        assert prob.status == cp.OPTIMAL
-        # Check output matches (problem may be underdetermined)
-        np.testing.assert_allclose(C @ X.value, target, rtol=1e-5)
-
-    @pytest.mark.parametrize("backend", [cp.SCIPY_CANON_BACKEND, cp.COO_CANON_BACKEND])
-    def test_broadcast_with_parameter(self, backend):
-        """Test broadcast with Parameter @ Variable."""
-        np.random.seed(42)
-        B, m, k, n = 3, 4, 5, 6
-        P = cp.Parameter((1, m, k))
-        P.value = np.random.randn(1, m, k)
-        X = cp.Variable((B, k, n))
-        expr = P @ X
-        assert expr.shape == (B, m, n)
-
-        X_true = np.random.randn(B, k, n)
-        target = P.value @ X_true
-        prob = cp.Problem(cp.Minimize(cp.sum_squares(expr - target)))
-        prob.solve(canon_backend=backend)
-        assert prob.status == cp.OPTIMAL
-        # Check output matches (problem may be underdetermined)
-        np.testing.assert_allclose(P.value @ X.value, target, rtol=1e-5)
-
-
-class TestNDMatmulCrossBackendConsistency:
-    """Verify both backends produce identical results."""
-
-    def test_consistent_results_2d_const(self):
-        """Both backends should give same result for 2D const @ 3D var."""
-        np.random.seed(42)
-        B, m, k, n = 2, 3, 4, 5
-        C = np.random.randn(m, k)
-        target = np.random.randn(B, m, n)
-
-        results = {}
-        for backend in [cp.SCIPY_CANON_BACKEND, cp.COO_CANON_BACKEND]:
-            X = cp.Variable((B, k, n))
-            prob = cp.Problem(cp.Minimize(cp.sum_squares(C @ X - target)))
-            prob.solve(canon_backend=backend)
-            results[backend] = X.value.copy()
-
-        np.testing.assert_allclose(
-            results[cp.SCIPY_CANON_BACKEND],
-            results[cp.COO_CANON_BACKEND],
-            rtol=1e-5
-        )
-
-    def test_consistent_results_batch_varying(self):
-        """Both backends should give same result for batch-varying const."""
-        np.random.seed(42)
-        B, m, k, n = 3, 4, 5, 6
-        C = np.random.randn(B, m, k)
-        target = np.random.randn(B, m, n)
-
-        results = {}
-        for backend in [cp.SCIPY_CANON_BACKEND, cp.COO_CANON_BACKEND]:
-            X = cp.Variable((B, k, n))
-            prob = cp.Problem(cp.Minimize(cp.sum_squares(C @ X - target)))
-            prob.solve(canon_backend=backend)
-            results[backend] = X.value.copy()
-
-        np.testing.assert_allclose(
-            results[cp.SCIPY_CANON_BACKEND],
-            results[cp.COO_CANON_BACKEND],
-            rtol=1e-5
-        )
-
-    def test_consistent_results_4d_var(self):
-        """Both backends should give same result for 4D variable."""
-        np.random.seed(42)
-        B1, B2, m, k, n = 2, 3, 4, 5, 6
-        C = np.random.randn(m, k)
-        target = np.random.randn(B1, B2, m, n)
-
-        results = {}
-        for backend in [cp.SCIPY_CANON_BACKEND, cp.COO_CANON_BACKEND]:
-            X = cp.Variable((B1, B2, k, n))
-            prob = cp.Problem(cp.Minimize(cp.sum_squares(C @ X - target)))
-            prob.solve(canon_backend=backend)
-            results[backend] = X.value.copy()
-
-        np.testing.assert_allclose(
-            results[cp.SCIPY_CANON_BACKEND],
-            results[cp.COO_CANON_BACKEND],
-            rtol=1e-5
-        )
-
-    def test_consistent_results_parametric(self):
-        """Both backends should give same result for parametric matmul."""
-        np.random.seed(42)
-        B, m, k, n = 2, 3, 4, 5
-        P_val = np.random.randn(m, k)
-        target = np.random.randn(B, m, n)
-
-        results = {}
-        for backend in [cp.SCIPY_CANON_BACKEND, cp.COO_CANON_BACKEND]:
-            P = cp.Parameter((m, k))
-            P.value = P_val
-            X = cp.Variable((B, k, n))
-            prob = cp.Problem(cp.Minimize(cp.sum_squares(P @ X - target)))
-            prob.solve(canon_backend=backend)
-            results[backend] = X.value.copy()
-
-        np.testing.assert_allclose(
-            results[cp.SCIPY_CANON_BACKEND],
-            results[cp.COO_CANON_BACKEND],
-            rtol=1e-5
-        )
-
-
-class TestNDMatmulReshapeCorrectness:
-    """Tests that verify the reshape operations produce correct matrix structure."""
-
-    @pytest.mark.parametrize("backend", [cp.SCIPY_CANON_BACKEND, cp.COO_CANON_BACKEND])
-    def test_parametric_matmul_achieves_target(self, backend):
-        """
-        Verify that parametric ND matmul actually achieves the target (not just consistent).
-
-        For min ||P @ X - target||^2 with underdetermined system, optimal value should be ~0.
-        """
-        np.random.seed(123)
-        B, m, k, n = 2, 3, 4, 5
-
-        P = cp.Parameter((m, k))
-        P.value = np.random.randn(m, k)
-        X = cp.Variable((B, k, n))
-
-        # Create achievable target
-        X_true = np.random.randn(B, k, n)
-        target = P.value @ X_true
-
-        prob = cp.Problem(cp.Minimize(cp.sum_squares(P @ X - target)))
-        prob.solve(canon_backend=backend)
-
-        assert prob.status == cp.OPTIMAL, f"Problem not optimal with {backend}"
-        # Since target is achievable, optimal value should be near 0
-        assert prob.value < 1e-6, f"Optimal value {prob.value} too large for {backend}"
-
-    def test_get_constant_data_shape_for_broadcast_param(self):
-        """
-        Test that get_constant_data returns correct matrix structure for broadcast parameter.
-
-        This is the intermediate check that catches reshape bugs.
-        """
-        from cvxpy.lin_ops.backends.coo_backend import CooCanonBackend
-
-        np.random.seed(42)
-        B, m, k, n = 2, 3, 4, 5
-        P = cp.Parameter((m, k))
-        P.value = np.random.randn(m, k)
-        X = cp.Variable((B, k, n))
-        expr = P @ X
-
-        obj, _ = expr.canonical_form
-        const_linop = obj.data  # broadcast_to
-
-        # Set up backend
-        prob = cp.Problem(cp.Minimize(cp.sum_squares(expr)))
-        variables = prob.variables()
-        parameters = prob.parameters()
-
-        var_length = sum(int(np.prod(v.shape)) for v in variables)
-        id_to_col = {variables[0].id: 0}
-        param_to_size = {p.id: int(np.prod(p.shape)) for p in parameters}
-        param_to_col = {p.id: 0 for p in parameters}
-        param_size = sum(param_to_size.values())
-
-        backend = CooCanonBackend(
-            param_to_size=param_to_size,
-            param_to_col=param_to_col,
-            param_size_plus_one=param_size + 1,
-            var_length=var_length,
-            id_to_col=id_to_col
-        )
-
-        empty_view = backend.get_empty_view()
-        lhs_data, is_param_free = backend.get_constant_data(
-            const_linop, 
-            empty_view, 
-            target_shape=(m, k)
-        )
-
-        assert not is_param_free, "Parameter expression should not be param_free"
-
-        # Check that reshaped tensor has correct matrix structure
-        for param_id, tensor in lhs_data.items():
-            assert tensor.m == m, f"Expected m={m}, got {tensor.m}"
-            assert tensor.n == k, f"Expected n={k}, got {tensor.n}"
-            assert tensor.nnz == m * k, f"Expected nnz={m*k}, got {tensor.nnz}"
-            # Each param_idx should appear exactly once (no broadcast duplication)
-            unique_params = np.unique(tensor.param_idx)
-            assert len(unique_params) == param_to_size[param_id], \
-                f"Expected {param_to_size[param_id]} unique param_idx, got {len(unique_params)}"

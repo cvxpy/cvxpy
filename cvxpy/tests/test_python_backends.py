@@ -7,6 +7,7 @@ import numpy as np
 import pytest
 import scipy.sparse as sp
 
+import cvxpy as cp
 import cvxpy.settings as s
 from cvxpy.lin_ops.backends import (
     CooCanonBackend,
@@ -3124,3 +3125,58 @@ class TestCooBackend:
         assert result_param.nnz == 2, "reshape_parametric_constant should deduplicate"
         # param_idx 0 -> position (0,0), param_idx 1 -> position (1,0)
         assert np.array_equal(result_param.param_idx, np.array([0, 1]))
+
+    @staticmethod
+    def test_get_constant_data_shape_for_broadcast_param():
+        """
+        Test that get_constant_data returns correct matrix structure for broadcast parameter.
+
+        This is an intermediate check that catches reshape bugs in ND matmul.
+        """
+        np.random.seed(42)
+        B, m, k, n = 2, 3, 4, 5
+        P = cp.Parameter((m, k))
+        P.value = np.random.randn(m, k)
+        X = cp.Variable((B, k, n))
+        expr = P @ X
+
+        obj, _ = expr.canonical_form
+        const_linop = obj.data  # broadcast_to
+
+        # Set up backend
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(expr)))
+        variables = prob.variables()
+        parameters = prob.parameters()
+
+        var_length = sum(int(np.prod(v.shape)) for v in variables)
+        id_to_col = {variables[0].id: 0}
+        param_to_size = {p.id: int(np.prod(p.shape)) for p in parameters}
+        param_to_col = {p.id: 0 for p in parameters}
+        param_size = sum(param_to_size.values())
+
+        backend = CooCanonBackend(
+            param_to_size=param_to_size,
+            param_to_col=param_to_col,
+            param_size_plus_one=param_size + 1,
+            var_length=var_length,
+            id_to_col=id_to_col
+        )
+
+        empty_view = backend.get_empty_view()
+        lhs_data, is_param_free = backend.get_constant_data(
+            const_linop,
+            empty_view,
+            target_shape=(m, k)
+        )
+
+        assert not is_param_free, "Parameter expression should not be param_free"
+
+        # Check that reshaped tensor has correct matrix structure
+        for param_id, tensor in lhs_data.items():
+            assert tensor.m == m, f"Expected m={m}, got {tensor.m}"
+            assert tensor.n == k, f"Expected n={k}, got {tensor.n}"
+            assert tensor.nnz == m * k, f"Expected nnz={m * k}, got {tensor.nnz}"
+            # Each param_idx should appear exactly once (no broadcast duplication)
+            unique_params = np.unique(tensor.param_idx)
+            assert len(unique_params) == param_to_size[param_id], \
+                f"Expected {param_to_size[param_id]} unique param_idx, got {len(unique_params)}"
