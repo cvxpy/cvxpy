@@ -43,6 +43,21 @@ class TestSolverDataValidation(BaseTest):
         with pytest.raises(ValueError, match="contains NaN"):
             prob.solve(solver=cp.SCS)
 
+    def test_inf_in_objective_raises(self):
+        """Inf in objective should raise ValueError."""
+        x = cp.Variable()
+        prob = cp.Problem(cp.Minimize(x + np.inf), [x >= 0])
+        with pytest.raises(ValueError, match="NaN or Inf"):
+            prob.solve(solver=cp.SCS)
+
+    def test_inf_in_constraint_rhs_allowed(self):
+        """Inf in constraint RHS (b vector) should be allowed."""
+        x = cp.Variable()
+        # x <= inf is trivially satisfied, should not raise
+        prob = cp.Problem(cp.Minimize(x), [x >= 1, x <= np.inf])
+        prob.solve(solver=cp.OSQP)
+        self.assertAlmostEqual(x.value, 1.0, places=3)
+
     def test_valid_problem_solves(self):
         """A valid problem should still solve correctly."""
         x = cp.Variable()

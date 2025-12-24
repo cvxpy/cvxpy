@@ -197,20 +197,30 @@ class ParamConeProg(ParamProb):
         return self.x.attributes['boolean'] or \
             self.x.attributes['integer']
 
-    def _check_nan(self, *args) -> None:
-        """Check values for NaN.
+    def _validate_data(self, inf_allowed, finite_only) -> None:
+        """Check problem data for invalid values.
 
-        Raises:
-            ValueError: If any value contains NaN.
+        Args:
+            inf_allowed: Values where Inf is allowed (checked for NaN only).
+            finite_only: Values that must be finite (no NaN or Inf).
         """
-        for val in args:
+        for val in inf_allowed:
             if val is None:
                 continue
             data = val.data if sp.issparse(val) else val
             if np.any(np.isnan(data)):
                 raise ValueError(
                     "Problem data contains NaN. "
-                    "Check your parameter values and constants for NaN."
+                    "Check your parameter values and constants."
+                )
+        for val in finite_only:
+            if val is None:
+                continue
+            data = val.data if sp.issparse(val) else val
+            if not np.all(np.isfinite(data)):
+                raise ValueError(
+                    "Problem data contains NaN or Inf. "
+                    "Check your parameter values and constants."
                 )
 
     def apply_parameters(self, id_to_param_value=None, zero_offset: bool = False,
@@ -245,10 +255,10 @@ class ParamConeProg(ParamProb):
         if quad_obj:
             self.reduced_P.cache(keep_zeros)
             P, _ = self.reduced_P.get_matrix_from_tensor(param_vec, with_offset=False)
-            self._check_nan(P, q, d, A, b)
+            self._validate_data([b], [P, q, d, A])
             return P, q, d, A, np.atleast_1d(b)
         else:
-            self._check_nan(q, d, A, b)
+            self._validate_data([b], [q, d, A])
             return q, d, A, np.atleast_1d(b)
 
     def apply_param_jac(self, delc, delA, delb, active_params=None):
