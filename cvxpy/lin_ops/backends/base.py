@@ -504,22 +504,42 @@ class PythonCanonBackend(CanonBackend):
             assert res is not None
             return res
 
-    def get_constant_data(self, lin_op: LinOp, view: TensorView, column: bool) \
-            -> tuple[np.ndarray | sp.spmatrix, bool]:
+    def get_constant_data(self, lin_op: LinOp, view: TensorView,
+                          keep_column_format: bool) -> tuple[np.ndarray | sp.spmatrix, bool]:
         """
-        Extract the constant data from a LinOp node. In most cases, lin_op will be of
-        type "*_const" or "param", but can handle arbitrary types.
+        Extract constant data from a LinOp node.
+
+        Parameters
+        ----------
+        lin_op : LinOp
+            A LinOp node, typically "*_const" or "param", but handles arbitrary types.
+        view : TensorView
+            Current tensor view (needed for processing parametric expressions).
+        keep_column_format : bool
+            If True, return data as (m*n, 1) column vector (internal storage format).
+            If False, reshape to 2D shape (m, n) or last two dims for ND arrays.
+
+            Use True for: mul_elem, div, kron_r, kron_l (element-wise operations)
+            Use False for: mul, rmul, conv (matrix operations needing 2D shape)
+
+        Returns
+        -------
+        data : np.ndarray | sp.spmatrix | dict
+            For constants: numpy array or sparse matrix.
+            For parametric: dict mapping param_id -> tensor.
+        is_param_free : bool
+            True if no Parameters, False if parametric.
         """
         # Fast path for constant data to prevent reshape into column vector.
         constants = {"scalar_const", "dense_const", "sparse_const"}
-        if not column and lin_op.type in constants and len(lin_op.shape) == 2:
+        if not keep_column_format and lin_op.type in constants and len(lin_op.shape) == 2:
             constant_data = self.get_constant_data_from_const(lin_op)
             return constant_data, True
 
         constant_view = self.process_constraint(lin_op, view)
         assert constant_view.variable_ids == {Constant.ID.value}
         constant_data = constant_view.tensor[Constant.ID.value]
-        if not column and len(lin_op.shape) >= 1:
+        if not keep_column_format and len(lin_op.shape) >= 1:
             # constant_view has the data stored in column format.
             # Some operations (like mul) do not require column format, so we need to reshape
             # according to lin_op.shape.

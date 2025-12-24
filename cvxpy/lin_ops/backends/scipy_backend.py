@@ -399,7 +399,8 @@ class SciPyCanonBackend(PythonCanonBackend):
         each batch element uses a different constant matrix.
         """
         const_shape = const.shape
-        # Uses raw numpy data to build interleaved matrix structure
+        # Raw data access is intentional: batch-varying constants are never parametric
+        # (they're concrete arrays with explicit batch dims), so we skip get_constant_data.
         stacked_lhs = _build_interleaved_matrix(const.data, const_shape, var_shape)
 
         def func(x, p):
@@ -453,7 +454,7 @@ class SciPyCanonBackend(PythonCanonBackend):
         const_shape = const.shape
 
         # Get constant data - this also tells us if it's parametric
-        lhs, is_param_free = self.get_constant_data(const, view, column=False)
+        lhs, is_param_free = self.get_constant_data(const, view, keep_column_format=False)
 
         if not is_param_free:
             # Case 1: Parametric LHS
@@ -494,7 +495,7 @@ class SciPyCanonBackend(PythonCanonBackend):
         and stack them vertically to ensure shape compatibility for elementwise multiplication
         with the parametrized expression.
         """
-        lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=True)
+        lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, keep_column_format=True)
         if is_param_free_lhs:
             def func(x, p):
                 if p == 1:
@@ -574,7 +575,7 @@ class SciPyCanonBackend(PythonCanonBackend):
 
         Note: div currently doesn't support parameters.
         """
-        lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=True)
+        lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, keep_column_format=True)
         assert is_param_free_lhs
         # dtype is important here, will do integer division if data is of dtype "int" otherwise.
         lhs.data = np.reciprocal(lhs.data, dtype=float)
@@ -645,7 +646,7 @@ class SciPyCanonBackend(PythonCanonBackend):
         Note: Even though this is rmul, we still use "lhs", as is implemented via a
         multiplication from the left in this function.
         """
-        lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=False)
+        lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, keep_column_format=False)
 
         arg_cols = lin.args[0].shape[0] if len(lin.args[0].shape) == 1 else lin.args[0].shape[1]
 
@@ -764,7 +765,7 @@ class SciPyCanonBackend(PythonCanonBackend):
 
         Note: conv currently doesn't support parameters.
         """
-        lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=False)
+        lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, keep_column_format=False)
         assert is_param_free_lhs, \
             "SciPy backend does not support parametrized left operand for conv."
         assert lhs.ndim == 2
@@ -799,7 +800,7 @@ class SciPyCanonBackend(PythonCanonBackend):
 
         Note: kron_r currently doesn't support parameters.
         """
-        lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=True)
+        lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, keep_column_format=True)
         assert is_param_free_lhs, \
             "SciPy backend does not support parametrized left operand for kron_r."
         assert lhs.ndim == 2
@@ -827,7 +828,7 @@ class SciPyCanonBackend(PythonCanonBackend):
 
         Note: kron_l currently doesn't support parameters.
         """
-        rhs, is_param_free_rhs = self.get_constant_data(lin.data, view, column=True)
+        rhs, is_param_free_rhs = self.get_constant_data(lin.data, view, keep_column_format=True)
         assert is_param_free_rhs, \
             "SciPy backend does not support parametrized right operand for kron_l."
         assert rhs.ndim == 2

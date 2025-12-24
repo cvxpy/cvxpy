@@ -1205,7 +1205,8 @@ class CooCanonBackend(PythonCanonBackend):
         each batch element uses a different constant matrix.
         """
         const_shape = lin_op.data.shape
-        # Uses raw numpy data to build interleaved matrix structure
+        # Raw data access is intentional: batch-varying constants are never parametric.
+        # lin_op.data is a LinOp of type "*_const", so lin_op.data.data gets the numpy array.
         stacked_compact = _build_interleaved(lin_op.data.data, const_shape, var_shape)
 
         def constant_mul(compact, p):
@@ -1262,10 +1263,28 @@ class CooCanonBackend(PythonCanonBackend):
         var_shape = lin_op.args[0].shape
         const_shape = const.shape
 
-        # Get constant data - this also tells us if it's parametric
-        lhs_data, is_lhs_parametric = self._get_lhs_data(const, view)
+        # Get constant data - check for direct param case first
+        if hasattr(const, 'type') and const.type == 'param':
+            # Direct parameter: construct CooTensor for parameter matrix
+            # Parameters are stored in column-major (Fortran) order:
+            # param_idx=0 -> A[0,0], param_idx=1 -> A[1,0], ..., param_idx=m -> A[0,1]
+            param_id = const.data
+            param_size = self.param_to_size[param_id]
+            size = int(np.prod(const.shape))
+            m, k = const.shape if len(const.shape) == 2 else (1, size)
+            lhs_data = {param_id: CooTensor(
+                data=np.ones(param_size, dtype=np.float64),
+                row=np.tile(np.arange(m), k),
+                col=np.repeat(np.arange(k), m),
+                param_idx=np.arange(param_size, dtype=np.int64),
+                m=m, n=k, param_size=param_size
+            )}
+            is_param_free = False
+        else:
+            lhs_data, is_param_free = self.get_constant_data(const, view,
+                                                             keep_column_format=False)
 
-        if is_lhs_parametric:
+        if not is_param_free:
             # Case 1: Parametric LHS
             return self._mul_parametric_lhs(lhs_data, const_shape, var_shape, view)
         elif is_batch_varying(const_shape):
@@ -1274,34 +1293,6 @@ class CooCanonBackend(PythonCanonBackend):
         else:
             # Case 3: 2D constant (or trivial batch dims like (1, m, k))
             return self._mul_kronecker(lhs_data, const_shape, var_shape, view)
-
-    def _get_lhs_data(self, lhs, view):
-        """Get lhs data, detecting if it's parametric."""
-        if hasattr(lhs, 'type') and lhs.type == 'param':
-            # Parametric lhs
-            param_id = lhs.data
-            param_size = self.param_to_size[param_id]
-            size = int(np.prod(lhs.shape))
-            # For 1D lhs in matmul, treat as row vector (1, size) to match numpy behavior
-            m, k = lhs.shape if len(lhs.shape) == 2 else (1, size)
-
-            # Create CooTensor for parameter matrix
-            # Parameters are stored in column-major (Fortran) order:
-            # param_idx=0 -> A[0,0], param_idx=1 -> A[1,0], ..., param_idx=m -> A[0,1]
-            compact = CooTensor(
-                data=np.ones(param_size, dtype=np.float64),
-                row=np.tile(np.arange(m), k),  # [0,1,2,0,1,2,...] for column-major
-                col=np.repeat(np.arange(k), m),  # [0,0,0,1,1,1,...] for column-major
-                param_idx=np.arange(param_size, dtype=np.int64),
-                m=m,
-                n=k,
-                param_size=param_size
-            )
-            return {param_id: compact}, True
-        else:
-            # Constant lhs - use get_constant_data to handle complex expressions
-            lhs_data, is_param_free = self.get_constant_data(lhs, view, column=False)
-            return lhs_data, not is_param_free  # return (data, is_parametric)
 
     def get_constant_data_from_const(self, lin_op):
         """Extract constant data from a LinOp."""
@@ -1320,7 +1311,7 @@ class CooCanonBackend(PythonCanonBackend):
 
         Note: div currently doesn't support parameters in divisor.
         """
-        lhs, is_param_free_lhs = self.get_constant_data(lin_op.data, view, column=True)
+        lhs, is_param_free_lhs = self.get_constant_data(lin_op.data, view, keep_column_format=True)
         assert is_param_free_lhs, "div doesn't support parametrized divisor"
 
         # Get reciprocal values
@@ -1353,7 +1344,7 @@ class CooCanonBackend(PythonCanonBackend):
         """
         Element-wise multiplication: x * d.
         """
-        lhs, is_param_free_lhs = self.get_constant_data(lin_op.data, view, column=True)
+        lhs, is_param_free_lhs = self.get_constant_data(lin_op.data, view, keep_column_format=True)
 
         if is_param_free_lhs:
             lhs_compact = self._to_coo_tensor(lhs)
@@ -1481,7 +1472,7 @@ class CooCanonBackend(PythonCanonBackend):
 
         Supports both constant and parametrized B.
         """
-        lhs, is_param_free_lhs = self.get_constant_data(lin_op.data, view, column=False)
+        lhs, is_param_free_lhs = self.get_constant_data(lin_op.data, view, keep_column_format=False)
 
         # Get dimensions
         arg_shape = lin_op.args[0].shape
@@ -1600,7 +1591,7 @@ class CooCanonBackend(PythonCanonBackend):
 
         Note: conv currently doesn't support parameters.
         """
-        lhs, is_param_free_lhs = self.get_constant_data(lin_op.data, view, column=False)
+        lhs, is_param_free_lhs = self.get_constant_data(lin_op.data, view, keep_column_format=False)
         assert is_param_free_lhs, "conv doesn't support parametrized kernel"
 
         # Convert to sparse - may be CooTensor or sparse matrix
@@ -1650,7 +1641,11 @@ class CooCanonBackend(PythonCanonBackend):
         Reorders rows to match CVXPY's column-major ordering.
         Note: kron currently doesn't support parameters.
         """
-        const_data, is_param_free = self.get_constant_data(lin_op.data, view, column=True)
+        const_data, is_param_free = self.get_constant_data(
+            lin_op.data, 
+            view, 
+            keep_column_format=True
+        )
         assert is_param_free, "kron doesn't support parametrized operands"
 
         # Convert constant to sparse
