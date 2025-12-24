@@ -1281,8 +1281,9 @@ class CooCanonBackend(PythonCanonBackend):
             )}
             is_param_free = False
         else:
-            lhs_data, is_param_free = self.get_constant_data(const, view,
-                                                             keep_column_format=False)
+            # Compute 2D target shape (last 2 dims for ND, row vector for 1D)
+            target = const_shape[-2:] if len(const_shape) >= 2 else (1, const_shape[0])
+            lhs_data, is_param_free = self.get_constant_data(const, view, target_shape=target)
 
         if not is_param_free:
             # Case 1: Parametric LHS
@@ -1311,7 +1312,7 @@ class CooCanonBackend(PythonCanonBackend):
 
         Note: div currently doesn't support parameters in divisor.
         """
-        lhs, is_param_free_lhs = self.get_constant_data(lin_op.data, view, keep_column_format=True)
+        lhs, is_param_free_lhs = self.get_constant_data(lin_op.data, view, target_shape=None)
         assert is_param_free_lhs, "div doesn't support parametrized divisor"
 
         # Get reciprocal values
@@ -1344,7 +1345,7 @@ class CooCanonBackend(PythonCanonBackend):
         """
         Element-wise multiplication: x * d.
         """
-        lhs, is_param_free_lhs = self.get_constant_data(lin_op.data, view, keep_column_format=True)
+        lhs, is_param_free_lhs = self.get_constant_data(lin_op.data, view, target_shape=None)
 
         if is_param_free_lhs:
             lhs_compact = self._to_coo_tensor(lhs)
@@ -1472,7 +1473,10 @@ class CooCanonBackend(PythonCanonBackend):
 
         Supports both constant and parametrized B.
         """
-        lhs, is_param_free_lhs = self.get_constant_data(lin_op.data, view, keep_column_format=False)
+        # Compute target shape (2D shape, or row vector for 1D)
+        data_shape = lin_op.data.shape
+        target = data_shape if len(data_shape) == 2 else (1, data_shape[0])
+        lhs, is_param_free_lhs = self.get_constant_data(lin_op.data, view, target_shape=target)
 
         # Get dimensions
         arg_shape = lin_op.args[0].shape
@@ -1591,7 +1595,10 @@ class CooCanonBackend(PythonCanonBackend):
 
         Note: conv currently doesn't support parameters.
         """
-        lhs, is_param_free_lhs = self.get_constant_data(lin_op.data, view, keep_column_format=False)
+        # Compute target shape (2D shape, or row vector for 1D)
+        data_shape = lin_op.data.shape
+        target = data_shape if len(data_shape) == 2 else (1, data_shape[0])
+        lhs, is_param_free_lhs = self.get_constant_data(lin_op.data, view, target_shape=target)
         assert is_param_free_lhs, "conv doesn't support parametrized kernel"
 
         # Convert to sparse - may be CooTensor or sparse matrix
@@ -1642,9 +1649,7 @@ class CooCanonBackend(PythonCanonBackend):
         Note: kron currently doesn't support parameters.
         """
         const_data, is_param_free = self.get_constant_data(
-            lin_op.data, 
-            view, 
-            keep_column_format=True
+            lin_op.data, view, target_shape=None
         )
         assert is_param_free, "kron doesn't support parametrized operands"
 

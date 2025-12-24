@@ -504,8 +504,9 @@ class PythonCanonBackend(CanonBackend):
             assert res is not None
             return res
 
-    def get_constant_data(self, lin_op: LinOp, view: TensorView,
-                          keep_column_format: bool) -> tuple[np.ndarray | sp.spmatrix, bool]:
+    def get_constant_data(
+        self, lin_op: LinOp, view: TensorView, target_shape: tuple[int, ...] | None
+    ) -> tuple[np.ndarray | sp.spmatrix, bool]:
         """
         Extract constant data from a LinOp node.
 
@@ -515,12 +516,12 @@ class PythonCanonBackend(CanonBackend):
             A LinOp node, typically "*_const" or "param", but handles arbitrary types.
         view : TensorView
             Current tensor view (needed for processing parametric expressions).
-        keep_column_format : bool
-            If True, return data as (m*n, 1) column vector (internal storage format).
-            If False, reshape to 2D shape (m, n) or last two dims for ND arrays.
-
-            Use True for: mul_elem, div, kron_r, kron_l (element-wise operations)
-            Use False for: mul, rmul, conv (matrix operations needing 2D shape)
+        target_shape : tuple[int, ...] | None
+            Shape to reshape the constant data to.
+            - None: Keep column format (m*n, 1). Use for operations that work
+              on flattened data (mul_elem, div, kron_r, kron_l).
+            - tuple: Reshape to specified shape. Use for matrix operations
+              (mul, rmul, conv) that need explicit matrix dimensions.
 
         Returns
         -------
@@ -532,26 +533,16 @@ class PythonCanonBackend(CanonBackend):
         """
         # Fast path for constant data to prevent reshape into column vector.
         constants = {"scalar_const", "dense_const", "sparse_const"}
-        if not keep_column_format and lin_op.type in constants and len(lin_op.shape) == 2:
+        if target_shape is not None and lin_op.type in constants and lin_op.shape == target_shape:
             constant_data = self.get_constant_data_from_const(lin_op)
             return constant_data, True
 
         constant_view = self.process_constraint(lin_op, view)
         assert constant_view.variable_ids == {Constant.ID.value}
         constant_data = constant_view.tensor[Constant.ID.value]
-        if not keep_column_format and len(lin_op.shape) >= 1:
-            # constant_view has the data stored in column format.
-            # Some operations (like mul) do not require column format, so we need to reshape
-            # according to lin_op.shape.
-            if len(lin_op.shape) == 2:
-                lin_op_shape = lin_op.shape
-            elif len(lin_op.shape) > 2:
-                # For ND arrays, use last 2 dimensions as matrix shape
-                lin_op_shape = lin_op.shape[-2:]
-            else:
-                # 1D: treat as row vector
-                lin_op_shape = (1, lin_op.shape[0])
-            constant_data = self.reshape_constant_data(constant_data, lin_op_shape)
+        if target_shape is not None:
+            # Reshape from column format to the requested shape.
+            constant_data = self.reshape_constant_data(constant_data, target_shape)
 
         data_to_return = constant_data[Constant.ID.value] if constant_view.is_parameter_free \
             else constant_data
@@ -567,10 +558,9 @@ class PythonCanonBackend(CanonBackend):
 
     @staticmethod
     @abstractmethod
-    def reshape_constant_data(constant_data: Any, lin_op_shape: tuple[int, int]) -> Any:
+    def reshape_constant_data(constant_data: Any, target_shape: tuple[int, ...]) -> Any:
         """
-        Reshape constant data from column format to the required shape for operations that
-        do not require column format
+        Reshape constant data from column format to the target shape.
         """
         pass  # noqa
 
