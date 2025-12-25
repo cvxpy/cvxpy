@@ -17,6 +17,7 @@ from typing import List, Optional, Tuple
 
 import numpy as np
 import scipy.sparse as sp
+from numpy.lib.array_utils import normalize_axis_index
 
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
@@ -135,8 +136,7 @@ class cumsum(AffAtom, AxisAtom):
             grad = tril @ P
             return [sp.csc_array(grad)]
 
-        if axis < 0:
-            axis = ndim + axis
+        axis = normalize_axis_index(axis, ndim)
         dim = values[0].shape[axis]
 
         # Lower triangular matrix = cumsum gradient
@@ -185,25 +185,10 @@ class cumsum(AffAtom, AxisAtom):
             axis = 0
 
         ndim = len(shape)
-
-        # Normalize negative axis
-        if axis < 0:
-            axis = ndim + axis
-
+        axis = normalize_axis_index(axis, ndim)
         dim = shape[axis]
 
-        # 1D/2D: use optimized path
-        if ndim <= 2:
-            diff_mat = get_diff_mat(dim, axis)
-            diff_mat = lu.create_const(diff_mat, (dim, dim), sparse=True)
-            if axis == 0:
-                diff = lu.mul_expr(diff_mat, Y, shape)
-            else:
-                diff = lu.rmul_expr(Y, diff_mat, shape)
-            return (Y, [lu.create_eq(input_obj, diff)])
-
-        # ND: transpose -> reshape -> mul -> reshape -> transpose
-        # This reduces ND cumsum to 2D by bringing target axis to front.
+        # Reduce to 2D by bringing target axis to front, then apply diff matrix
         pre_axes = list(range(axis))
         post_axes = list(range(axis + 1, ndim))
 
