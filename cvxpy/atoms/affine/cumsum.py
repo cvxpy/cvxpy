@@ -69,13 +69,6 @@ class cumsum(AffAtom, AxisAtom):
         Returns the cumulative sum of elements of an expression over an axis.
         """
         return np.cumsum(values[0], axis=self.axis)
-
-    def validate_arguments(self):
-        if self.args[0].ndim > 2:
-            raise UserWarning(
-                "cumsum is only implemented for 1D or 2D arrays and might not "
-                "work as expected for higher dimensions."
-            )
     
     def shape_from_args(self) -> Tuple[int, ...]:
         """The same as the input."""
@@ -92,14 +85,30 @@ class cumsum(AffAtom, AxisAtom):
         Returns:
             A list of SciPy CSC sparse matrices or None.
         """
-        dim = values[0].shape[self.axis]
-        mat = sp.csc_array(np.tril(np.ones((dim, dim))))
-        var = Variable(self.args[0].shape)
-        if self.axis == 0:
-            grad = MulExpression(mat, var)._grad(values)[1]
-        else:
-            grad = MulExpression(var, mat.T)._grad(values)[0]
-        return [grad]
+        ndim = len(values[0].shape)
+        axis = self.axis
+        if axis < 0:
+            axis = ndim + axis
+        dim = values[0].shape[axis]
+
+        # Lower triangular matrix = cumsum gradient
+        tril = sp.csc_array(np.tril(np.ones((dim, dim))))
+
+        if ndim <= 2:
+            # Existing 2D logic
+            var = Variable(self.args[0].shape)
+            if axis == 0:
+                grad = MulExpression(tril, var)._grad(values)[1]
+            else:
+                grad = MulExpression(var, tril.T)._grad(values)[0]
+            return [grad]
+
+        # ND: Kronecker product I_post ⊗ tril ⊗ I_pre
+        pre_size = int(np.prod(values[0].shape[:axis])) if axis > 0 else 1
+        post_size = int(np.prod(values[0].shape[axis+1:])) if axis < ndim - 1 else 1
+
+        grad = sp.kron(sp.kron(sp.eye_array(post_size), tril), sp.eye_array(pre_size))
+        return [sp.csc_array(grad)]
 
     def get_data(self):
         """Returns the axis being summed."""
@@ -128,11 +137,50 @@ class cumsum(AffAtom, AxisAtom):
         # X = Y[1:,:] - Y[:-1, :]
         Y = lu.create_var(shape)
         axis = data[0]
+        ndim = len(shape)
+
+        # Normalize negative axis
+        if axis < 0:
+            axis = ndim + axis
+
         dim = shape[axis]
-        diff_mat = get_diff_mat(dim, axis)
+
+        # 1D/2D: use existing optimized path
+        if ndim <= 2:
+            diff_mat = get_diff_mat(dim, axis)
+            diff_mat = lu.create_const(diff_mat, (dim, dim), sparse=True)
+            if axis == 0:
+                diff = lu.mul_expr(diff_mat, Y)
+            else:
+                diff = lu.rmul_expr(Y, diff_mat)
+            return (Y, [lu.create_eq(arg_objs[0], diff)])
+
+        # ND: transpose -> reshape -> mul -> reshape -> transpose
+        # This reduces ND cumsum to 2D by bringing target axis to front.
+        pre_axes = list(range(axis))
+        post_axes = list(range(axis + 1, ndim))
+
+        # Permutation: bring axis to front
+        perm = [axis] + pre_axes + post_axes
+        inv_perm = [0] * ndim
+        for i, p in enumerate(perm):
+            inv_perm[p] = i
+
+        transposed_shape = tuple(shape[p] for p in perm)
+
+        # Flatten to 2D: (dim, other_size)
+        other_size = int(np.prod(shape) // dim)
+        flat_shape = (dim, other_size)
+
+        # Diff matrix for axis 0
+        diff_mat = get_diff_mat(dim, axis=0)
         diff_mat = lu.create_const(diff_mat, (dim, dim), sparse=True)
-        if axis == 0:
-            diff = lu.mul_expr(diff_mat, Y)
-        else:
-            diff = lu.rmul_expr(Y, diff_mat)
+
+        # Apply: transpose -> reshape -> mul -> reshape -> transpose
+        Y_t = lu.transpose(Y, perm)
+        Y_flat = lu.reshape(Y_t, flat_shape)
+        diff_flat = lu.mul_expr(diff_mat, Y_flat)
+        diff_t = lu.reshape(diff_flat, transposed_shape)
+        diff = lu.transpose(diff_t, inv_perm)
+
         return (Y, [lu.create_eq(arg_objs[0], diff)])
