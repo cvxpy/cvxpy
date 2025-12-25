@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.expressions.variable import Variable
 
 
@@ -22,13 +23,23 @@ def cumsum_canon(expr, args):
     """
     X = args[0]
     axis = expr.axis
-    ndim = len(expr.shape)
 
-    # Handle axis=None case (flatten then cumsum)
+    # Handle axis=None case: flatten in C order, then use axis=0 logic
     if axis is None:
-        # axis=None is handled by cumsum atom's numeric method
-        # We don't need special canonicalization here
-        return None, None
+        # Flatten X in C order
+        total_size = X.size
+        X_flat = reshape(X, (total_size,), order='C')
+
+        # Now treat as 1D with axis=0
+        Y = Variable((total_size,))
+
+        # X_flat[1:] = Y[1:] - Y[:-1]
+        # Y[0] = X_flat[0]
+        constr = [X_flat[1:] == Y[1:] - Y[:-1],
+                  Y[0:1] == X_flat[0:1]]
+        return Y, constr
+
+    ndim = len(expr.shape)
 
     # Normalize negative axis
     if axis < 0:

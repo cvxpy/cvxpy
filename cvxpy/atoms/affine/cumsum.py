@@ -72,7 +72,9 @@ class cumsum(AffAtom, AxisAtom):
         return np.cumsum(values[0], axis=self.axis)
     
     def shape_from_args(self) -> Tuple[int, ...]:
-        """The same as the input."""
+        """Flattened if axis=None, otherwise same as input."""
+        if self.axis is None:
+            return (self.args[0].size,)
         return self.args[0].shape
 
     def _grad(self, values):
@@ -88,6 +90,21 @@ class cumsum(AffAtom, AxisAtom):
         """
         ndim = len(values[0].shape)
         axis = self.axis
+
+        # Handle axis=None: treat as 1D cumsum over C-order flattened array
+        if axis is None:
+            dim = values[0].size
+            # Lower triangular matrix = cumsum gradient
+            # Need to account for C-order flattening vs F-order vectorization
+            tril = sp.csc_array(np.tril(np.ones((dim, dim))))
+            # Permutation to convert F-order to C-order and back
+            c_order_indices = np.arange(dim).reshape(values[0].shape, order='F').flatten(order='C')
+            # P converts F-order vector to C-order, P.T converts back
+            P = sp.csc_array((np.ones(dim), (np.arange(dim), c_order_indices)), shape=(dim, dim))
+            # grad = P.T @ tril @ P (apply P, cumsum, then P.T)
+            grad = P.T @ tril @ P
+            return [sp.csc_array(grad)]
+
         if axis < 0:
             axis = ndim + axis
         dim = values[0].shape[axis]
@@ -138,6 +155,27 @@ class cumsum(AffAtom, AxisAtom):
         # X = Y[1:,:] - Y[:-1, :]
         Y = lu.create_var(shape)
         axis = data[0]
+        input_shape = arg_objs[0].shape
+        input_ndim = len(input_shape)
+
+        # Handle axis=None: flatten in C order, then 1D cumsum
+        if axis is None:
+            dim = int(np.prod(shape))  # shape is (total_size,) for axis=None
+            diff_mat = get_diff_mat(dim, axis=0)
+            diff_mat = lu.create_const(diff_mat, (dim, dim), sparse=True)
+
+            # Flatten input in C order: transpose (reverse axes) then reshape
+            if input_ndim <= 1:
+                flat_input = arg_objs[0]
+            else:
+                perm = list(range(input_ndim))[::-1]  # reverse axes for C-order
+                transposed = lu.transpose(arg_objs[0], perm)
+                flat_input = lu.reshape(transposed, shape)
+
+            # Apply diff matrix
+            diff = lu.mul_expr(diff_mat, Y, shape)
+            return (Y, [lu.create_eq(flat_input, diff)])
+
         ndim = len(shape)
 
         # Normalize negative axis
