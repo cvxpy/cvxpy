@@ -936,8 +936,8 @@ class TestGrad(BaseTest):
         # cumsum
         expr = cp.cumsum(self.x)
         self.x.value = [1, 2]
-        val = np.ones((2, 2))
-        val[1, 0] = 0
+        # Gradient is lower triangular matrix (cumsum gradient)
+        val = np.tril(np.ones((2, 2)))
         self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), val)
 
         expr = cp.cumsum(self.x[:, None], axis=1)

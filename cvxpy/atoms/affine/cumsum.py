@@ -21,11 +21,9 @@ import scipy.sparse as sp
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.affine.affine_atom import AffAtom
-from cvxpy.atoms.affine.binary_operators import MulExpression
 from cvxpy.atoms.axis_atom import AxisAtom
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions.expression import Expression
-from cvxpy.expressions.variable import Variable
 
 
 def get_diff_mat(dim: int, axis: int) -> sp.csc_array:
@@ -144,16 +142,8 @@ class cumsum(AffAtom, AxisAtom):
         # Lower triangular matrix = cumsum gradient
         tril = sp.csc_array(np.tril(np.ones((dim, dim))))
 
-        if ndim <= 2:
-            # Existing 2D logic
-            var = Variable(self.args[0].shape)
-            if axis == 0:
-                grad = MulExpression(tril, var)._grad(values)[1]
-            else:
-                grad = MulExpression(var, tril.T)._grad(values)[0]
-            return [grad]
-
-        # ND: Kronecker product I_post ⊗ tril ⊗ I_pre
+        # Kronecker product: I_post ⊗ tril ⊗ I_pre
+        # This works for all dimensions including 1D and 2D
         pre_size = int(np.prod(values[0].shape[:axis])) if axis > 0 else 1
         post_size = int(np.prod(values[0].shape[axis+1:])) if axis < ndim - 1 else 1
 
@@ -187,18 +177,12 @@ class cumsum(AffAtom, AxisAtom):
         # X = Y[1:,:] - Y[:-1, :]
         Y = lu.create_var(shape)
         axis = data[0]
+        input_obj = arg_objs[0]
 
-        # Handle axis=None: flatten in C order, then 1D cumsum
+        # Handle axis=None: flatten in C order, then treat as 1D with axis=0
         if axis is None:
-            dim = int(np.prod(shape))  # shape is (total_size,) for axis=None
-            diff_mat = get_diff_mat(dim, axis=0)
-            diff_mat = lu.create_const(diff_mat, (dim, dim), sparse=True)
-
-            flat_input = _flatten_c_order(arg_objs[0], shape)
-
-            # Apply diff matrix: D @ Y = X_flat
-            diff = lu.mul_expr(diff_mat, Y, shape)
-            return (Y, [lu.create_eq(flat_input, diff)])
+            input_obj = _flatten_c_order(input_obj, shape)
+            axis = 0
 
         ndim = len(shape)
 
@@ -208,7 +192,7 @@ class cumsum(AffAtom, AxisAtom):
 
         dim = shape[axis]
 
-        # 1D/2D: use existing optimized path
+        # 1D/2D: use optimized path
         if ndim <= 2:
             diff_mat = get_diff_mat(dim, axis)
             diff_mat = lu.create_const(diff_mat, (dim, dim), sparse=True)
@@ -216,7 +200,7 @@ class cumsum(AffAtom, AxisAtom):
                 diff = lu.mul_expr(diff_mat, Y, shape)
             else:
                 diff = lu.rmul_expr(Y, diff_mat, shape)
-            return (Y, [lu.create_eq(arg_objs[0], diff)])
+            return (Y, [lu.create_eq(input_obj, diff)])
 
         # ND: transpose -> reshape -> mul -> reshape -> transpose
         # This reduces ND cumsum to 2D by bringing target axis to front.
@@ -246,4 +230,4 @@ class cumsum(AffAtom, AxisAtom):
         diff_t = lu.reshape(diff_flat, transposed_shape)
         diff = lu.transpose(diff_t, inv_perm)
 
-        return (Y, [lu.create_eq(arg_objs[0], diff)])
+        return (Y, [lu.create_eq(input_obj, diff)])
