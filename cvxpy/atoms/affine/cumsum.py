@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import warnings
 from typing import List, Optional, Tuple
 
 import numpy as np
@@ -94,6 +95,18 @@ class cumsum(AffAtom, AxisAtom):
     """
     def __init__(self, expr: Expression, axis: Optional[int] = 0) -> None:
         super(cumsum, self).__init__(expr, axis)
+
+    def validate_arguments(self) -> None:
+        """Validate axis, but handle 0D arrays specially."""
+        if self.args[0].ndim == 0:
+            warnings.warn(
+                "cumsum on 0-dimensional arrays currently returns a scalar, but "
+                "in a future CVXPY version it will return a 1-element array to "
+                "match numpy.cumsum behavior.",
+                FutureWarning
+            )
+        else:
+            super().validate_arguments()
 
     @AffAtom.numpy_numeric
     def numeric(self, values):

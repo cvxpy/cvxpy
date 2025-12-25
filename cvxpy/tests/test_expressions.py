@@ -1879,3 +1879,17 @@ class TestND_Expressions():
             prob.solve()
             assert expr.value is not None
             assert np.allclose(expr.value, expected), f"Failed for 4D axis={axis}"
+
+    def test_cumsum_0d_warning(self) -> None:
+        """Test that cumsum on 0D arrays raises FutureWarning."""
+        x = cp.Variable(())
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            expr = cp.cumsum(x)
+            # Check that a FutureWarning was raised
+            assert len(w) == 1
+            assert issubclass(w[0].category, FutureWarning)
+            assert "0-dimensional" in str(w[0].message)
+            assert "1-element array" in str(w[0].message)
+        # Verify the expression still works (returns scalar for now)
+        assert expr.shape == ()
