@@ -1860,11 +1860,12 @@ class TestND_Expressions():
         x = cp.Variable((2, 3, 4))
         x_val = np.arange(24).reshape((2, 3, 4)).astype(float)
 
-        for axis in [0, 1, 2, -1, -2, -3]:
+        for axis in [0, 1, 2, -1, -2, -3, None]:
             expr = cp.cumsum(x, axis=axis)
             expected = np.cumsum(x_val, axis=axis)
             prob = cp.Problem(cp.Minimize(0), [x == x_val, expr == expected])
             prob.solve()
+            assert expr.value is not None
             assert np.allclose(expr.value, expected), f"Failed for axis={axis}"
 
         # Test 4D array
@@ -1876,11 +1877,5 @@ class TestND_Expressions():
             expected = np.cumsum(y_val, axis=axis)
             prob = cp.Problem(cp.Minimize(0), [y == y_val, expr == expected])
             prob.solve()
+            assert expr.value is not None
             assert np.allclose(expr.value, expected), f"Failed for 4D axis={axis}"
-
-        # Test axis=None (flattens array first)
-        expr = cp.cumsum(x, axis=None)
-        expected = np.cumsum(x_val, axis=None)
-        prob = cp.Problem(cp.Minimize(0), [x == x_val, expr == expected])
-        prob.solve()
-        assert np.allclose(expr.value.flatten(), expected), "Failed for axis=None"

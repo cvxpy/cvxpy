@@ -13,7 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 import numpy as np
 import scipy.sparse as sp
@@ -57,10 +57,11 @@ class cumsum(AffAtom, AxisAtom):
     ----------
     expr : CVXPY expression
         The expression being summed.
-    axis : int
-        The axis to sum across if 2D.
+    axis : int, optional
+        The axis to sum across. If None, the array is flattened before cumsum.
+        Note: NumPy's default is axis=None, while CVXPY defaults to axis=0.
     """
-    def __init__(self, expr: Expression, axis: int = 0) -> None:
+    def __init__(self, expr: Expression, axis: Optional[int] = 0) -> None:
         super(cumsum, self).__init__(expr, axis)
 
     @AffAtom.numpy_numeric
@@ -150,9 +151,9 @@ class cumsum(AffAtom, AxisAtom):
             diff_mat = get_diff_mat(dim, axis)
             diff_mat = lu.create_const(diff_mat, (dim, dim), sparse=True)
             if axis == 0:
-                diff = lu.mul_expr(diff_mat, Y)
+                diff = lu.mul_expr(diff_mat, Y, shape)
             else:
-                diff = lu.rmul_expr(Y, diff_mat)
+                diff = lu.rmul_expr(Y, diff_mat, shape)
             return (Y, [lu.create_eq(arg_objs[0], diff)])
 
         # ND: transpose -> reshape -> mul -> reshape -> transpose
@@ -179,7 +180,7 @@ class cumsum(AffAtom, AxisAtom):
         # Apply: transpose -> reshape -> mul -> reshape -> transpose
         Y_t = lu.transpose(Y, perm)
         Y_flat = lu.reshape(Y_t, flat_shape)
-        diff_flat = lu.mul_expr(diff_mat, Y_flat)
+        diff_flat = lu.mul_expr(diff_mat, Y_flat, flat_shape)
         diff_t = lu.reshape(diff_flat, transposed_shape)
         diff = lu.transpose(diff_t, inv_perm)
 

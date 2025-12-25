@@ -22,17 +22,40 @@ def cumsum_canon(expr, args):
     """
     X = args[0]
     axis = expr.axis
+    ndim = len(expr.shape)
+
+    # Handle axis=None case (flatten then cumsum)
+    if axis is None:
+        # axis=None is handled by cumsum atom's numeric method
+        # We don't need special canonicalization here
+        return None, None
+
+    # Normalize negative axis
+    if axis < 0:
+        axis = ndim + axis
+
+    # If only one element along this axis, cumsum is identity
+    if expr.shape[axis] == 1:
+        return X, []
+
     # Implicit O(n) definition:
-    # X = Y[1:,:] - Y[:-1, :]
+    # X = Y[1:,:] - Y[:-1, :] along the specified axis
     Y = Variable(expr.shape)
-    if axis == 0:
-        if (expr.shape[0] == 1):
-            return X, []
-        else:
-            constr = [X[1:] == Y[1:] - Y[:-1], Y[0] == X[0]]
-    else:
-        if (expr.shape[1] == 1):
-            return X, []
-        else:
-            constr = [X[:, 1:] == Y[:, 1:] - Y[:, :-1], Y[:, 0] == X[:, 0]]
+
+    # Build slices for "all but first" and "all but last" along axis
+    # and for "first element" along axis
+    slice_all = slice(None)
+    slice_from_1 = slice(1, None)
+    slice_to_minus1 = slice(None, -1)
+    slice_first = slice(0, 1)
+
+    # Create index tuples
+    idx_from_1 = tuple(slice_from_1 if i == axis else slice_all for i in range(ndim))
+    idx_to_minus1 = tuple(slice_to_minus1 if i == axis else slice_all for i in range(ndim))
+    idx_first = tuple(slice_first if i == axis else slice_all for i in range(ndim))
+
+    # X[from_1] = Y[from_1] - Y[to_minus1]
+    # Y[first] = X[first]
+    constr = [X[idx_from_1] == Y[idx_from_1] - Y[idx_to_minus1],
+              Y[idx_first] == X[idx_first]]
     return Y, constr
