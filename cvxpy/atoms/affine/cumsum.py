@@ -43,12 +43,14 @@ class cumsum(AffAtom, AxisAtom):
     def validate_arguments(self) -> None:
         """Validate axis, but handle 0D arrays specially."""
         if self.args[0].ndim == 0:
-            warnings.warn(
-                "cumsum on 0-dimensional arrays currently returns a scalar, but "
-                "in a future CVXPY version it will return a 1-element array to "
-                "match numpy.cumsum behavior.",
-                FutureWarning
-            )
+            if self.axis is not None:
+                warnings.warn(
+                    "cumsum on 0-dimensional arrays currently returns a scalar, "
+                    "but in a future CVXPY version it will return a 1-element "
+                    "array to match numpy.cumsum behavior. Additionally, only "
+                    "axis=0, axis=-1, or axis=None will be valid for 0D arrays.",
+                    FutureWarning
+                )
         else:
             super().validate_arguments()
 
