@@ -49,6 +49,38 @@ def get_diff_mat(dim: int, axis: int) -> sp.csc_array:
     return mat if axis == 0 else mat.T
 
 
+def _flatten_c_order(linop: lo.LinOp, target_shape: Tuple[int, ...]) -> lo.LinOp:
+    """Flatten a LinOp in C-order (row-major) for use in graph_implementation.
+
+    CVXPY's lin_ops use F-order (column-major) internally. To achieve C-order
+    flattening, we transpose (reverse all axes), then reshape. This is the same
+    pattern used in reshape.graph_implementation for order='C'.
+
+    For a 2D array [[a, b], [c, d]], F-order gives [a, c, b, d] while
+    C-order gives [a, b, c, d]. The transpose swaps axes so that F-order
+    reshape of the transposed array produces the C-order result.
+
+    Parameters
+    ----------
+    linop : lo.LinOp
+        The LinOp to flatten.
+    target_shape : tuple
+        The target shape after flattening (typically 1D).
+
+    Returns
+    -------
+    lo.LinOp
+        The flattened LinOp in C-order.
+    """
+    ndim = len(linop.shape)
+    if ndim <= 1:
+        return linop
+    # Reverse axes: equivalent to multiple transposes that reverse memory layout
+    perm = list(range(ndim))[::-1]
+    transposed = lu.transpose(linop, perm)
+    return lu.reshape(transposed, target_shape)
+
+
 class cumsum(AffAtom, AxisAtom):
     """
     Cumulative sum of the elements of an expression.
@@ -94,15 +126,15 @@ class cumsum(AffAtom, AxisAtom):
         # Handle axis=None: treat as 1D cumsum over C-order flattened array
         if axis is None:
             dim = values[0].size
-            # Lower triangular matrix = cumsum gradient
-            # Need to account for C-order flattening vs F-order vectorization
+            # Lower triangular matrix = cumsum gradient in C-order space
             tril = sp.csc_array(np.tril(np.ones((dim, dim))))
-            # Permutation to convert F-order to C-order and back
+            # Permutation to convert F-order vectorized input to C-order
+            # P[i, j] = 1 means output[i] = input[j], so P @ f_vec = c_vec
             c_order_indices = np.arange(dim).reshape(values[0].shape, order='F').flatten(order='C')
-            # P converts F-order vector to C-order, P.T converts back
             P = sp.csc_array((np.ones(dim), (np.arange(dim), c_order_indices)), shape=(dim, dim))
-            # grad = P.T @ tril @ P (apply P, cumsum, then P.T)
-            grad = P.T @ tril @ P
+            # Gradient: input (F-order) -> C-order via P -> cumsum via tril -> output (1D)
+            # dy = tril @ P @ dx_f, so gradient is tril @ P
+            grad = tril @ P
             return [sp.csc_array(grad)]
 
         if axis < 0:
@@ -155,8 +187,6 @@ class cumsum(AffAtom, AxisAtom):
         # X = Y[1:,:] - Y[:-1, :]
         Y = lu.create_var(shape)
         axis = data[0]
-        input_shape = arg_objs[0].shape
-        input_ndim = len(input_shape)
 
         # Handle axis=None: flatten in C order, then 1D cumsum
         if axis is None:
@@ -164,15 +194,9 @@ class cumsum(AffAtom, AxisAtom):
             diff_mat = get_diff_mat(dim, axis=0)
             diff_mat = lu.create_const(diff_mat, (dim, dim), sparse=True)
 
-            # Flatten input in C order: transpose (reverse axes) then reshape
-            if input_ndim <= 1:
-                flat_input = arg_objs[0]
-            else:
-                perm = list(range(input_ndim))[::-1]  # reverse axes for C-order
-                transposed = lu.transpose(arg_objs[0], perm)
-                flat_input = lu.reshape(transposed, shape)
+            flat_input = _flatten_c_order(arg_objs[0], shape)
 
-            # Apply diff matrix
+            # Apply diff matrix: D @ Y = X_flat
             diff = lu.mul_expr(diff_mat, Y, shape)
             return (Y, [lu.create_eq(flat_input, diff)])
 
