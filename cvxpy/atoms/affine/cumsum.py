@@ -14,71 +14,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import warnings
-from typing import List, Optional, Tuple
+from typing import Optional, Tuple
 
 import numpy as np
 import scipy.sparse as sp
 from numpy.lib.array_utils import normalize_axis_index
 
-import cvxpy.lin_ops.lin_op as lo
-import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.atoms.axis_atom import AxisAtom
-from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions.expression import Expression
-
-
-def get_diff_mat(dim: int, axis: int) -> sp.csc_array:
-    """Return a sparse matrix representation of first order difference operator.
-
-    Parameters
-    ----------
-    dim : int
-       The length of the matrix dimensions.
-    axis : int
-       The axis to take the difference along.
-
-    Returns
-    -------
-    sp.csc_array
-        A square matrix representing first order difference.
-    """
-    mat = sp.diags_array([np.ones(dim), -np.ones(dim - 1)], offsets=[0, -1],
-                   shape=(dim, dim),
-                   format='csc')
-    return mat if axis == 0 else mat.T
-
-
-def _flatten_c_order(linop: lo.LinOp, target_shape: Tuple[int, ...]) -> lo.LinOp:
-    """Flatten a LinOp in C-order (row-major) for use in graph_implementation.
-
-    CVXPY's lin_ops use F-order (column-major) internally. To achieve C-order
-    flattening, we transpose (reverse all axes), then reshape. This is the same
-    pattern used in reshape.graph_implementation for order='C'.
-
-    For a 2D array [[a, b], [c, d]], F-order gives [a, c, b, d] while
-    C-order gives [a, b, c, d]. The transpose swaps axes so that F-order
-    reshape of the transposed array produces the C-order result.
-
-    Parameters
-    ----------
-    linop : lo.LinOp
-        The LinOp to flatten.
-    target_shape : tuple
-        The target shape after flattening (typically 1D).
-
-    Returns
-    -------
-    lo.LinOp
-        The flattened LinOp in C-order.
-    """
-    ndim = len(linop.shape)
-    if ndim <= 1:
-        return linop
-    # Reverse axes: equivalent to multiple transposes that reverse memory layout
-    perm = list(range(ndim))[::-1]
-    transposed = lu.transpose(linop, perm)
-    return lu.reshape(transposed, target_shape)
 
 
 class cumsum(AffAtom, AxisAtom):
@@ -114,7 +58,7 @@ class cumsum(AffAtom, AxisAtom):
         Returns the cumulative sum of elements of an expression over an axis.
         """
         return np.cumsum(values[0], axis=self.axis)
-    
+
     def shape_from_args(self) -> Tuple[int, ...]:
         """Flattened if axis=None, otherwise same as input."""
         if self.axis is None:
@@ -166,66 +110,3 @@ class cumsum(AffAtom, AxisAtom):
     def get_data(self):
         """Returns the axis being summed."""
         return [self.axis]
-
-    def graph_implementation(
-        self, arg_objs, shape: Tuple[int, ...], data=None
-    ) -> Tuple[lo.LinOp, List[Constraint]]:
-        """Cumulative sum via difference matrix.
-
-        Parameters
-        ----------
-        arg_objs : list
-            LinExpr for each argument.
-        shape : tuple
-            The shape of the resulting expression.
-        data :
-            Additional data required by the atom.
-
-        Returns
-        -------
-        tuple
-            (LinOp for objective, list of constraints)
-        """
-        # Implicit O(n) definition:
-        # X = Y[1:,:] - Y[:-1, :]
-        Y = lu.create_var(shape)
-        axis = data[0]
-        input_obj = arg_objs[0]
-
-        # Handle axis=None: flatten in C order, then treat as 1D with axis=0
-        if axis is None:
-            input_obj = _flatten_c_order(input_obj, shape)
-            axis = 0
-
-        ndim = len(shape)
-        axis = normalize_axis_index(axis, ndim)
-        dim = shape[axis]
-
-        # Reduce to 2D by bringing target axis to front, then apply diff matrix
-        pre_axes = list(range(axis))
-        post_axes = list(range(axis + 1, ndim))
-
-        # Permutation: bring axis to front
-        perm = [axis] + pre_axes + post_axes
-        inv_perm = [0] * ndim
-        for i, p in enumerate(perm):
-            inv_perm[p] = i
-
-        transposed_shape = tuple(shape[p] for p in perm)
-
-        # Flatten to 2D: (dim, other_size)
-        other_size = int(np.prod(shape) // dim)
-        flat_shape = (dim, other_size)
-
-        # Diff matrix for axis 0
-        diff_mat = get_diff_mat(dim, axis=0)
-        diff_mat = lu.create_const(diff_mat, (dim, dim), sparse=True)
-
-        # Apply: transpose -> reshape -> mul -> reshape -> transpose
-        Y_t = lu.transpose(Y, perm)
-        Y_flat = lu.reshape(Y_t, flat_shape)
-        diff_flat = lu.mul_expr(diff_mat, Y_flat, flat_shape)
-        diff_t = lu.reshape(diff_flat, transposed_shape)
-        diff = lu.transpose(diff_t, inv_perm)
-
-        return (Y, [lu.create_eq(input_obj, diff)])

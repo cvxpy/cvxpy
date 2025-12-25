@@ -13,45 +13,32 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from numpy.lib.array_utils import normalize_axis_index
 
 from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.expressions.variable import Variable
 
 
 def cumsum_canon(expr, args):
-    """Cumulative sum.
-    """
+    """Cumulative sum."""
     X = args[0]
     axis = expr.axis
+    shape = expr.shape
 
-    # Handle axis=None case: flatten in C order, then use axis=0 logic
+    # Handle axis=None: flatten in C order, then treat as 1D with axis=0
     if axis is None:
-        # Flatten X in C order
-        total_size = X.size
-        X_flat = reshape(X, (total_size,), order='C')
+        X = reshape(X, (X.size,), order='C')
+        shape = (X.size,)
+        axis = 0
 
-        # Now treat as 1D with axis=0
-        Y = Variable((total_size,))
-
-        # X_flat[1:] = Y[1:] - Y[:-1]
-        # Y[0] = X_flat[0]
-        constr = [X_flat[1:] == Y[1:] - Y[:-1],
-                  Y[0:1] == X_flat[0:1]]
-        return Y, constr
-
-    ndim = len(expr.shape)
-
-    # Normalize negative axis
-    if axis < 0:
-        axis = ndim + axis
+    ndim = len(shape)
+    axis = normalize_axis_index(axis, ndim)
 
     # If only one element along this axis, cumsum is identity
-    if expr.shape[axis] == 1:
+    if shape[axis] == 1:
         return X, []
 
-    # Implicit O(n) definition:
-    # X = Y[1:,:] - Y[:-1, :] along the specified axis
-    Y = Variable(expr.shape)
+    Y = Variable(shape)
 
     # Build slices for "all but first" and "all but last" along axis
     # and for "first element" along axis
