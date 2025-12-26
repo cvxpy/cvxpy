@@ -70,9 +70,12 @@ class quad_over_lin(Atom):
             else:
                 Dy = -np.square(X).sum()/np.square(y)
 
+            # Ensure Dy is a scalar for proper sparse array construction
+            Dy = float(np.asarray(Dy).item() if np.asarray(Dy).ndim > 0 else Dy)
             Dy = sp.csc_array([[Dy]])
             DX = 2.0*X/y
-            DX = np.reshape(DX, (self.args[0].size, 1))
+            # Use F-order to match CVXPY's vectorization convention
+            DX = np.reshape(DX, (self.args[0].size, 1), order='F')
             DX = scipy.sparse.csc_array(DX)
             return [DX, Dy]
 

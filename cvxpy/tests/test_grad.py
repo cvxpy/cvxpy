@@ -936,8 +936,9 @@ class TestGrad(BaseTest):
         # cumsum
         expr = cp.cumsum(self.x)
         self.x.value = [1, 2]
-        # Gradient is lower triangular matrix (cumsum gradient)
-        val = np.tril(np.ones((2, 2)))
+        # CVXPY convention: grad[i,j] = d(out[j])/d(in[i])
+        # For cumsum: out[j] depends on in[i] for i <= j, so grad is upper triangular
+        val = np.triu(np.ones((2, 2)))
         self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), val)
 
         expr = cp.cumsum(self.x[:, None], axis=1)
@@ -960,6 +961,8 @@ class TestGrad(BaseTest):
             self.assertEqual(grad.shape, (24, 24))
 
             # Verify gradient numerically via finite differences
+            # CVXPY convention: grad[i, j] = d(output[j])/d(input[i])
+            # So grad[idx, :] = d(output)/d(input[idx])
             eps = 1e-5
             for idx in range(24):
                 # Perturb one element
@@ -969,8 +972,8 @@ class TestGrad(BaseTest):
                 result_plus = np.cumsum(z_pert, axis=axis).flatten(order='F')
                 result_base = np.cumsum(z_val, axis=axis).flatten(order='F')
                 numerical_grad = (result_plus - result_base) / eps
-                # Compare with analytic gradient column
-                analytic_grad = grad.toarray()[:, idx]
+                # Compare with analytic gradient row (not column)
+                analytic_grad = grad.toarray()[idx, :]
                 self.assertItemsAlmostEqual(analytic_grad, numerical_grad, places=4)
 
         # Test axis=None (C-order flattened cumsum)
@@ -983,8 +986,8 @@ class TestGrad(BaseTest):
 
         # For axis=None with [[1,2],[3,4]], C-order is [1,2,3,4]
         # cumsum([1,2,3,4]) = [1,3,6,10]
-        # The gradient should be a lower triangular matrix, but permuted
-        # to account for F-order vectorization vs C-order cumsum
+        # The gradient uses upper triangular for CVXPY convention
+        # grad[i, j] = d(output[j])/d(input[i]) = 1 if input[i] affects output[j]
         # Verify via finite differences
         A_val = self.A.value
         eps = 1e-5
@@ -995,7 +998,7 @@ class TestGrad(BaseTest):
             result_plus = np.cumsum(A_pert, axis=None)  # C-order flatten
             result_base = np.cumsum(A_val, axis=None)
             numerical_grad = (result_plus - result_base) / eps
-            analytic_grad = grad.toarray()[:, idx]
+            analytic_grad = grad.toarray()[idx, :]
             self.assertItemsAlmostEqual(analytic_grad, numerical_grad, places=4)
 
         # Test 4D array
