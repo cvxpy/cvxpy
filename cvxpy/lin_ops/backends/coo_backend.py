@@ -388,12 +388,6 @@ def coo_matmul(lhs: CooTensor, rhs: CooTensor) -> CooTensor:
         if total_nnz == 0:
             return CooTensor.empty(lhs.m, rhs.n, lhs.param_size)
 
-        # Pre-allocate output
-        out_data = np.empty(total_nnz, dtype=np.float64)
-        out_row = np.empty(total_nnz, dtype=np.int64)
-        out_col = np.empty(total_nnz, dtype=np.int64)
-        out_param = np.empty(total_nnz, dtype=np.int64)
-
         # Expand lhs entries
         out_row = np.repeat(lhs.row, nnz_per_lhs)
         out_param = np.repeat(lhs.param_idx, nnz_per_lhs)
@@ -818,7 +812,7 @@ class CooCanonBackend(PythonCanonBackend):
             size = coo.shape[0] * coo.shape[1]
             # Flatten indices in Fortran order: linear_idx = col * nrows + row
             nz_idx = coo.col * coo.shape[0] + coo.row
-            nz_data = coo.data
+            nz_data = coo.data.copy()
         else:
             flat = np.asarray(data).flatten(order='F')
             size = len(flat)
@@ -828,7 +822,7 @@ class CooCanonBackend(PythonCanonBackend):
             nz_data = flat[nz_mask]
 
         compact = CooTensor(
-            data=nz_data.copy() if sp.issparse(data) else nz_data,
+            data=nz_data,
             row=nz_idx.astype(np.int64),
             col=np.zeros(len(nz_idx), dtype=np.int64),
             param_idx=np.zeros(len(nz_idx), dtype=np.int64),
@@ -1067,31 +1061,31 @@ class CooCanonBackend(PythonCanonBackend):
 
         Note: div currently doesn't support parameters in divisor.
         """
-        lhs, is_param_free_lhs = self.get_constant_data(lin_op.data, view, column=True)
-        assert is_param_free_lhs, "div doesn't support parametrized divisor"
+        rhs, is_param_free_rhs = self.get_constant_data(lin_op.data, view, column=True)
+        assert is_param_free_rhs, "div doesn't support parametrized divisor"
 
         # Get reciprocal values
-        lhs_compact = self._to_coo_tensor(lhs)
+        rhs_compact = self._to_coo_tensor(rhs)
         # Check for zero divisors (both explicit zeros and implicit zeros from sparsity)
-        if np.any(lhs_compact.data == 0):
+        if np.any(rhs_compact.data == 0):
             raise ValueError("Division by zero encountered in divisor (explicit zero)")
-        expected_entries = lhs_compact.m * lhs_compact.n * lhs_compact.param_size
-        if lhs_compact.nnz < expected_entries:
+        expected_entries = rhs_compact.m * rhs_compact.n * rhs_compact.param_size
+        if rhs_compact.nnz < expected_entries:
             raise ValueError("Division by zero encountered in divisor (sparse with implicit zeros)")
         # Invert the data
-        recip_data = np.reciprocal(lhs_compact.data, dtype=float)
-        lhs_recip = CooTensor(
+        recip_data = np.reciprocal(rhs_compact.data, dtype=float)
+        rhs_recip = CooTensor(
             data=recip_data,
-            row=lhs_compact.row,
-            col=lhs_compact.col,
-            param_idx=lhs_compact.param_idx,
-            m=lhs_compact.m,
-            n=lhs_compact.n,
-            param_size=lhs_compact.param_size
+            row=rhs_compact.row,
+            col=rhs_compact.col,
+            param_idx=rhs_compact.param_idx,
+            m=rhs_compact.m,
+            n=rhs_compact.n,
+            param_size=rhs_compact.param_size
         )
 
         def div_func(compact, p):
-            return coo_mul_elem(compact, lhs_recip)
+            return coo_mul_elem(compact, rhs_recip)
 
         view.accumulate_over_variables(div_func, is_param_free_function=True)
         return view
@@ -1219,35 +1213,35 @@ class CooCanonBackend(PythonCanonBackend):
 
         Supports both constant and parametrized B.
         """
-        lhs, is_param_free_lhs = self.get_constant_data(lin_op.data, view, column=False)
+        rhs, is_param_free_rhs = self.get_constant_data(lin_op.data, view, column=False)
 
         # Get dimensions
         arg_shape = lin_op.args[0].shape
         arg_cols = arg_shape[0] if len(arg_shape) == 1 else arg_shape[1]
 
-        if is_param_free_lhs:
+        if is_param_free_rhs:
             # Constant B case
             # Convert to sparse - may be CooTensor or sparse matrix
-            if isinstance(lhs, CooTensor):
-                lhs_sparse = lhs.to_stacked_sparse()
-            elif sp.issparse(lhs):
-                lhs_sparse = lhs
+            if isinstance(rhs, CooTensor):
+                rhs_sparse = rhs.to_stacked_sparse()
+            elif sp.issparse(rhs):
+                rhs_sparse = rhs
             else:
-                lhs_sparse = sp.csr_array(np.atleast_2d(lhs))
+                rhs_sparse = sp.csr_array(np.atleast_2d(rhs))
 
             # Handle 1D case - may need transpose
-            if len(lin_op.data.shape) == 1 and arg_cols != lhs_sparse.shape[0]:
-                lhs_sparse = lhs_sparse.T
+            if len(lin_op.data.shape) == 1 and arg_cols != rhs_sparse.shape[0]:
+                rhs_sparse = rhs_sparse.T
 
             # Compute kron(B.T, I_reps) where reps = X_rows / B_rows
-            reps = view.rows // lhs_sparse.shape[0]
+            reps = view.rows // rhs_sparse.shape[0]
             if reps > 1:
-                stacked_lhs = sp.kron(lhs_sparse.T, sp.eye_array(reps, format="csr"))
+                stacked_rhs = sp.kron(rhs_sparse.T, sp.eye_array(reps, format="csr"))
             else:
-                stacked_lhs = lhs_sparse.T
+                stacked_rhs = rhs_sparse.T
 
             # Convert to CooTensor
-            stacked_compact = self._to_coo_tensor(stacked_lhs)
+            stacked_compact = self._to_coo_tensor(stacked_rhs)
 
             def rmul_func(compact, p):
                 return coo_matmul(stacked_compact, compact)
@@ -1256,38 +1250,38 @@ class CooCanonBackend(PythonCanonBackend):
             return view
         else:
             # Parametrized B case
-            # lhs is dict {param_id: CooTensor}
+            # rhs is dict {param_id: CooTensor}
 
             # Get representative param slice to determine dimensions
-            param_id, first_compact = next(iter(lhs.items()))
-            lhs_rows = first_compact.m
+            param_id, first_compact = next(iter(rhs.items()))
+            rhs_rows = first_compact.m
 
             # Handle 1D case - may need transpose
-            if len(lin_op.data.shape) == 1 and arg_cols != lhs_rows:
-                lhs = {k: v._transpose_helper() for k, v in lhs.items()}
-                param_id, first_compact = next(iter(lhs.items()))
-                lhs_rows = first_compact.m
+            if len(lin_op.data.shape) == 1 and arg_cols != rhs_rows:
+                rhs = {k: v._transpose_helper() for k, v in rhs.items()}
+                param_id, first_compact = next(iter(rhs.items()))
+                rhs_rows = first_compact.m
 
-            reps = view.rows // lhs_rows
+            reps = view.rows // rhs_rows
 
             # Transpose each param slice (B.T)
-            lhs_transposed = {k: v._transpose_helper() for k, v in lhs.items()}
+            rhs_transposed = {k: v._transpose_helper() for k, v in rhs.items()}
 
             # Apply kron expansion if needed
             if reps > 1:
                 # kron(B.T, I_reps) for each param slice
-                stacked_lhs = {}
-                for k, v in lhs_transposed.items():
+                stacked_rhs = {}
+                for k, v in rhs_transposed.items():
                     v_sparse = v.to_stacked_sparse()
                     kron_result = sp.kron(v_sparse, sp.eye_array(reps, format="csr"))
-                    stacked_lhs[k] = self._to_coo_tensor(kron_result, param_id=k)
+                    stacked_rhs[k] = self._to_coo_tensor(kron_result, param_id=k)
             else:
-                stacked_lhs = {k: self._to_coo_tensor(v.to_stacked_sparse(), param_id=k)
-                               for k, v in lhs_transposed.items()}
+                stacked_rhs = {k: self._to_coo_tensor(v.to_stacked_sparse(), param_id=k)
+                               for k, v in rhs_transposed.items()}
 
-            def parametrized_rmul(rhs_compact):
-                # Multiply each param slice of stacked_lhs with the constant rhs
-                return {k: coo_matmul(v, rhs_compact) for k, v in stacked_lhs.items()}
+            def parametrized_rmul(var_compact):
+                # Multiply each param slice of stacked_rhs with the variable compact
+                return {k: coo_matmul(v, var_compact) for k, v in stacked_rhs.items()}
 
             # Apply to each variable tensor in-place
             for var_id, var_tensor in view.tensor.items():
