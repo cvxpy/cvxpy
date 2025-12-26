@@ -559,6 +559,8 @@ SINGLE_VAR_ATOM_CONFIGS = [
                    "unrestricted"),
     AtomTestConfig("cumsum_3d_ax2", lambda x: cp.cumsum(x, axis=2), [(2, 3, 4)],
                    "unrestricted"),
+    AtomTestConfig("cumsum_axis_none", lambda x: cp.cumsum(x, axis=None), [(2, 3)],
+                   "unrestricted"),
     AtomTestConfig("cummax", lambda x: cp.cummax(x), [(4,)], "unrestricted",
                    skip_reason="cummax gradient has subdifferential issues"),
     AtomTestConfig("diff", lambda x: cp.diff(x), [(4,)], "unrestricted"),
@@ -920,126 +922,6 @@ class TestSpecialCases:
             expr = partial_optimize(prob, opt_vars=[x, a], solver=cp.CLARABEL)
             grad = expr.grad
             assert grad == {}
-
-    def test_bilinear(self):
-        """Test grad for bilinear expressions."""
-        for n in [1, 2, 3]:
-            x_vals = np.arange(1, n + 1)
-            y_vals = -np.arange(1, n + 1)
-            x = cp.Variable(n, value=x_vals)
-            y = cp.Variable(n, value=y_vals)
-
-            # test bilinear expression x @ y
-            # which has partial derivatives grad_x = y, grad_y = x
-            expr = x @ y
-
-            grad_x = expr.grad[x]
-            grad_y = expr.grad[y]
-
-            assert x.value is not None
-            assert y.value is not None
-
-            if n == 1:
-                assert grad_x.shape == ()
-                assert grad_y.shape == ()
-                np.testing.assert_almost_equal(grad_x, y.value)
-                np.testing.assert_almost_equal(grad_y, x.value)
-            else:
-                assert grad_x.shape == (n, 1)
-                assert grad_y.shape == (n, 1)
-                np.testing.assert_array_almost_equal(
-                    grad_x.toarray(), y.value.reshape(-1, 1))
-                np.testing.assert_array_almost_equal(
-                    grad_y.toarray(), x.value.reshape(-1, 1))
-
-    def test_matrix_product(self):
-        """Test matrix-matrix product."""
-        x_vals = np.array([[1, -1], [2, -2]])
-        y_vals = np.array([[-1, 1], [-2, 2]])
-        x = cp.Variable((2, 2), value=x_vals)
-        y = cp.Variable((2, 2), value=y_vals)
-        expr = x @ y
-        grad_x = expr.grad[x]
-        grad_y = expr.grad[y]
-        assert x.value is not None
-        assert y.value is not None
-
-        # expected gradients are 4x4 Jacobian matrices for 2x2 matrix variables
-        expected_grad_x = np.array([[-1., 0., 1., 0.],
-                                    [0., -1., 0., 1.],
-                                    [-2., 0., 2., 0.],
-                                    [0., -2., 0., 2.]])
-        expected_grad_y = np.array([[1., 2., 0., 0.],
-                                    [-1., -2., 0., 0.],
-                                    [0., 0., 1., 2.],
-                                    [0., 0., -1., -2.]])
-
-        np.testing.assert_array_almost_equal(grad_x.toarray(), expected_grad_x)
-        np.testing.assert_array_almost_equal(grad_y.toarray(), expected_grad_y)
-
-    def test_cumsum_nd_grad(self):
-        """Test gradient for cumsum with ND arrays."""
-        # Test 3D array with various axes
-        z = cp.Variable((2, 3, 4))
-        z_val = np.arange(24).reshape((2, 3, 4)).astype(float)
-        z.value = z_val
-
-        for axis in [0, 1, 2]:
-            expr = cp.cumsum(z, axis=axis)
-            grad = expr.grad[z]
-            assert grad is not None
-            # Gradient should be 24x24 (input size x output size)
-            assert grad.shape == (24, 24)
-
-            # Verify gradient numerically via finite differences
-            # CVXPY convention: grad[i, j] = d(output[j])/d(input[i])
-            eps = 1e-5
-            for idx in range(24):
-                # Perturb one element
-                z_pert = z_val.copy().flatten(order='F')
-                z_pert[idx] += eps
-                z_pert = z_pert.reshape(z_val.shape, order='F')
-                result_plus = np.cumsum(z_pert, axis=axis).flatten(order='F')
-                result_base = np.cumsum(z_val, axis=axis).flatten(order='F')
-                numerical_grad = (result_plus - result_base) / eps
-                # Compare with analytic gradient row (not column)
-                analytic_grad = grad.toarray()[idx, :]
-                np.testing.assert_array_almost_equal(
-                    analytic_grad, numerical_grad, decimal=4)
-
-        # Test axis=None (C-order flattened cumsum)
-        A = cp.Variable((2, 2))
-        A.value = np.array([[1, 2], [3, 4]])
-        expr = cp.cumsum(A, axis=None)
-        grad = expr.grad[A]
-        assert grad is not None
-        # Gradient shape is (4, 4) for 2x2 matrix
-        assert grad.shape == (4, 4)
-
-        # Verify via finite differences
-        A_val = A.value
-        eps = 1e-5
-        for idx in range(4):
-            A_pert = A_val.copy().flatten(order='F')
-            A_pert[idx] += eps
-            A_pert = A_pert.reshape(A_val.shape, order='F')
-            result_plus = np.cumsum(A_pert, axis=None)  # C-order flatten
-            result_base = np.cumsum(A_val, axis=None)
-            numerical_grad = (result_plus - result_base) / eps
-            analytic_grad = grad.toarray()[idx, :]
-            np.testing.assert_array_almost_equal(
-                analytic_grad, numerical_grad, decimal=4)
-
-        # Test 4D array
-        w = cp.Variable((2, 2, 3, 2))
-        w_val = np.arange(24).reshape((2, 2, 3, 2)).astype(float)
-        w.value = w_val
-
-        for axis in [0, 1, 2, 3]:
-            expr = cp.cumsum(w, axis=axis)
-            grad = expr.grad[w]
-            assert grad is not None
-            assert grad.shape == (24, 24)
 
     def test_quad_form_issue_1260(self):
         """Test quad_form gradient access after solving (issue 1260)."""
