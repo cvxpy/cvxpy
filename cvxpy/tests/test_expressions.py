@@ -1893,3 +1893,41 @@ class TestND_Expressions():
             assert "1-element array" in str(w[0].message)
         # Verify the expression still works (returns scalar for now)
         assert expr.shape == ()
+
+
+@pytest.mark.parametrize("shape,axis,keepdims,expected_shape,use_soc", [
+    # 2D cases
+    ((3, 4), 0, False, (4,), False),      # QP path
+    ((3, 4), 1, False, (3,), False),      # QP path
+    ((3, 4), 0, False, (4,), True),       # SOC path
+    ((3, 4), 1, False, (3,), True),       # SOC path
+    ((3, 4), 0, True, (1, 4), True),      # keepdims
+    ((3, 4), 1, True, (3, 1), True),      # keepdims
+    ((3, 4), None, True, (1, 1), True),   # scalar with keepdims
+    # ND cases with tuple axes
+    ((2, 3, 4), (0, 2), False, (3,), False),      # ND QP
+    ((2, 3, 4), (0, 2), False, (3,), True),       # ND SOC
+    ((2, 3, 4), (0, 2), True, (1, 3, 1), True),   # ND keepdims
+])
+def test_sum_squares_with_axis(shape, axis, keepdims, expected_shape, use_soc):
+    """Test sum_squares with axis, keepdims, tuple axes, QP and SOC paths."""
+    # Test shape
+    X = cp.Variable(shape)
+    s = cp.sum_squares(X, axis=axis, keepdims=keepdims)
+    assert s.shape == expected_shape
+
+    # Test numeric values match numpy
+    np.random.seed(42)
+    X_val = np.random.randn(*shape)
+    X.value = X_val
+    expected = (X_val**2).sum(axis=axis, keepdims=keepdims)
+    np.testing.assert_allclose(s.value, expected)
+
+    # Test optimization
+    Y = np.random.randn(*shape)
+    X = cp.Variable(shape)
+    obj = cp.sum(cp.sum_squares(X - Y, axis=axis, keepdims=keepdims))
+    prob = cp.Problem(cp.Minimize(obj))
+    prob.solve(solver=cp.CLARABEL, use_quad_obj=not use_soc)
+    assert prob.status == cp.OPTIMAL
+    np.testing.assert_allclose(X.value, Y, atol=1e-3)
