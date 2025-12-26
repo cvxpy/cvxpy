@@ -25,6 +25,19 @@ from cvxpy.atoms.axis_atom import AxisAtom
 from cvxpy.expressions.expression import Expression
 
 
+def _sparse_tril_ones(dim: int) -> sp.csc_array:
+    """Create a sparse lower triangular matrix of ones.
+
+    This avoids allocating a dense dim x dim matrix.
+    """
+    # Column j has entries at rows j, j+1, ..., dim-1
+    # So column 0 has dim entries, column 1 has dim-1, etc.
+    rows = np.concatenate([np.arange(j, dim) for j in range(dim)])
+    cols = np.repeat(np.arange(dim), np.arange(dim, 0, -1))
+    data = np.ones(len(rows))
+    return sp.csc_array((data, (rows, cols)), shape=(dim, dim))
+
+
 class cumsum(AffAtom, AxisAtom):
     """
     Cumulative sum of the elements of an expression.
@@ -85,7 +98,7 @@ class cumsum(AffAtom, AxisAtom):
         if axis is None:
             dim = values[0].size
             # Lower triangular matrix = cumsum gradient in C-order space
-            tril = sp.csc_array(np.tril(np.ones((dim, dim))))
+            tril = _sparse_tril_ones(dim)
             # Permutation to convert F-order vectorized input to C-order
             # P[i, j] = 1 means output[i] = input[j], so P @ f_vec = c_vec
             c_order_indices = np.arange(dim).reshape(values[0].shape, order='F').flatten(order='C')
@@ -99,7 +112,7 @@ class cumsum(AffAtom, AxisAtom):
         dim = values[0].shape[axis]
 
         # Lower triangular matrix = cumsum gradient
-        tril = sp.csc_array(np.tril(np.ones((dim, dim))))
+        tril = _sparse_tril_ones(dim)
 
         # Kronecker product: I_post ⊗ tril ⊗ I_pre
         # This works for all dimensions including 1D and 2D
