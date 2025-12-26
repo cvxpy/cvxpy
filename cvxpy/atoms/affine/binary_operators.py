@@ -231,8 +231,9 @@ class MulExpression(BinaryOperator):
             return [DX, DY]
 
         # For matrix @ vector, Y is (k,) -> treat as (k, 1)
+        # Note: atleast_2d converts (k,) to (1, k), so we transpose to get (k, 1)
         if len(y_shape) == 1:
-            Y = Y.T  # (1, k) -> (k, 1)
+            Y = Y.T  # (1, k) from atleast_2d -> (k, 1)
 
         # For vector @ matrix, X is (k,) -> treat as (1, k)
         if len(x_shape) == 1:

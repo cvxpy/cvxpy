@@ -32,17 +32,78 @@ finite differences for all CVXPY atoms.
 """
 
 # =============================================================================
+# Constants
+# =============================================================================
+
+# Default finite difference step size for numerical gradient computation
+DEFAULT_FD_EPS = 1e-5
+
+# Default tolerances for gradient comparison (np.allclose)
+DEFAULT_RTOL = 1e-4
+DEFAULT_ATOL = 1e-4
+
+# =============================================================================
 # Core Gradcheck Utilities
 # =============================================================================
+
+
+def _compute_numerical_jacobian(
+    eval_func: Callable[[np.ndarray], np.ndarray],
+    var_value: np.ndarray,
+    var_shape: Tuple[int, ...],
+    output_size: int,
+    eps: float = DEFAULT_FD_EPS,
+) -> np.ndarray:
+    """
+    Compute numerical Jacobian via central finite differences.
+
+    Parameters
+    ----------
+    eval_func : callable
+        Function that takes a flat variable value and returns flat output
+    var_value : ndarray
+        Value to evaluate Jacobian at
+    var_shape : tuple
+        Shape of the variable (for reshaping perturbations)
+    output_size : int
+        Size of the output
+    eps : float
+        Finite difference step size
+
+    Returns
+    -------
+    jacobian : ndarray
+        Jacobian matrix with shape (output_size, input_size)
+        jacobian[i, j] = d(output[i]) / d(input[j])
+    """
+    flat_value = var_value.flatten(order='F')  # CVXPY uses Fortran order
+    input_size = flat_value.size
+    jacobian = np.zeros((output_size, input_size))
+
+    for idx in range(input_size):
+        # Perturb in positive direction
+        perturbed_plus = flat_value.copy()
+        perturbed_plus[idx] += eps
+        result_plus = eval_func(perturbed_plus.reshape(var_shape, order='F'))
+
+        # Perturb in negative direction
+        perturbed_minus = flat_value.copy()
+        perturbed_minus[idx] -= eps
+        result_minus = eval_func(perturbed_minus.reshape(var_shape, order='F'))
+
+        # Central difference
+        jacobian[:, idx] = (result_plus - result_minus) / (2 * eps)
+
+    return jacobian
 
 
 def expression_gradcheck(
     expr_factory: Callable[[cp.Variable], cp.Expression],
     var_shape: Tuple[int, ...],
     var_value: np.ndarray,
-    eps: float = 1e-5,
-    rtol: float = 1e-4,
-    atol: float = 1e-4,
+    eps: float = DEFAULT_FD_EPS,
+    rtol: float = DEFAULT_RTOL,
+    atol: float = DEFAULT_ATOL,
 ) -> Tuple[bool, Optional[str]]:
     """
     Validate expression gradient against numerical finite differences.
@@ -85,33 +146,16 @@ def expression_gradcheck(
         analytic_grad = analytic_grad.toarray()
     analytic_grad = np.asarray(analytic_grad)
 
-    # Compute numerical gradient via central differences
-    # CVXPY gradient shape is (input_size, output_size)
-    # Convention: grad[i, j] = d(output[j]) / d(input[i])
+    # Compute numerical Jacobian via central differences
+    # CVXPY gradient convention: grad[i, j] = d(output[j]) / d(input[i])
     # This is the TRANSPOSE of the standard Jacobian
-    input_size = var_value.size
-    output_size = expr.size
+    def eval_expr(val):
+        var.value = val
+        return np.asarray(expr.value).flatten(order='F')
 
-    # Build standard Jacobian first: jacobian[out_idx, in_idx] = d(out)/d(in)
-    jacobian = np.zeros((output_size, input_size))
-
-    flat_value = var_value.flatten(order='F')  # CVXPY uses Fortran order
-
-    for idx in range(input_size):
-        # Perturb in positive direction
-        perturbed_plus = flat_value.copy()
-        perturbed_plus[idx] += eps
-        var.value = perturbed_plus.reshape(var_shape, order='F')
-        result_plus = np.asarray(expr.value).flatten(order='F')
-
-        # Perturb in negative direction
-        perturbed_minus = flat_value.copy()
-        perturbed_minus[idx] -= eps
-        var.value = perturbed_minus.reshape(var_shape, order='F')
-        result_minus = np.asarray(expr.value).flatten(order='F')
-
-        # Central difference gives d(output)/d(input[idx]) as column idx
-        jacobian[:, idx] = (result_plus - result_minus) / (2 * eps)
+    jacobian = _compute_numerical_jacobian(
+        eval_expr, var_value, var_shape, expr.size, eps
+    )
 
     # Restore original value
     var.value = var_value
@@ -139,9 +183,9 @@ def expression_gradcheck_symmetric(
     expr_factory: Callable[[cp.Variable], cp.Expression],
     n: int,
     var_value: np.ndarray,
-    eps: float = 1e-5,
-    rtol: float = 1e-4,
-    atol: float = 1e-4,
+    eps: float = DEFAULT_FD_EPS,
+    rtol: float = DEFAULT_RTOL,
+    atol: float = DEFAULT_ATOL,
 ) -> Tuple[bool, Optional[str]]:
     """
     Validate expression gradient for symmetric matrix inputs.
@@ -251,9 +295,9 @@ def expression_gradcheck_multi(
     expr_factory: Callable[..., cp.Expression],
     var_shapes: List[Tuple[int, ...]],
     var_values: List[np.ndarray],
-    eps: float = 1e-5,
-    rtol: float = 1e-4,
-    atol: float = 1e-4,
+    eps: float = DEFAULT_FD_EPS,
+    rtol: float = DEFAULT_RTOL,
+    atol: float = DEFAULT_ATOL,
 ) -> Tuple[bool, Optional[str]]:
     """
     Validate gradient for expressions with multiple variable arguments.
@@ -291,31 +335,19 @@ def expression_gradcheck_multi(
             analytic_grad = analytic_grad.toarray()
         analytic_grad = np.asarray(analytic_grad)
 
-        # CVXPY gradient shape is (input_size, output_size)
-        # Convention: grad[i, j] = d(output[j]) / d(input[i])
-        input_size = var_value.size
-        output_size = expr.size
-        jacobian = np.zeros((output_size, input_size))
+        # Compute numerical Jacobian via central differences
+        def eval_expr(val):
+            var.value = val
+            return np.asarray(expr.value).flatten(order='F')
 
-        flat_value = var_value.flatten(order='F')
-
-        for idx in range(input_size):
-            # Perturb in positive direction
-            perturbed_plus = flat_value.copy()
-            perturbed_plus[idx] += eps
-            var.value = perturbed_plus.reshape(var.shape, order='F')
-            result_plus = np.asarray(expr.value).flatten(order='F')
-
-            # Perturb in negative direction
-            perturbed_minus = flat_value.copy()
-            perturbed_minus[idx] -= eps
-            var.value = perturbed_minus.reshape(var.shape, order='F')
-            result_minus = np.asarray(expr.value).flatten(order='F')
-
-            jacobian[:, idx] = (result_plus - result_minus) / (2 * eps)
+        jacobian = _compute_numerical_jacobian(
+            eval_expr, var_value, var.shape, expr.size, eps
+        )
 
         # Restore value
         var.value = var_value
+
+        # CVXPY stores grad as transpose of Jacobian
         numerical_grad = jacobian.T
 
         if not np.allclose(analytic_grad, numerical_grad, rtol=rtol, atol=atol):
@@ -468,6 +500,11 @@ SINGLE_VAR_ATOM_CONFIGS = [
     AtomTestConfig("neg", lambda x: cp.neg(x), [(3,)], "unrestricted"),
     AtomTestConfig("square", lambda x: cp.square(x), [(2,), (2, 2), (2, 3, 4)],
                    "unrestricted"),
+
+    # === Scalar variable tests ===
+    AtomTestConfig("square_scalar", lambda x: cp.square(x), [()], "unrestricted"),
+    AtomTestConfig("exp_scalar", lambda x: cp.exp(x), [()], "unrestricted"),
+    AtomTestConfig("log_scalar", lambda x: cp.log(x), [()], "positive"),
 
     # === Elementwise atoms (positive domain) ===
     AtomTestConfig("log", lambda x: cp.log(x), [(2,), (2, 2), (2, 3, 4)], "positive"),
@@ -640,6 +677,8 @@ MULTI_VAR_ATOM_CONFIGS = [
                        [("unrestricted", (3,)), ("unrestricted", (3,))]),
     MultiVarAtomConfig("multiply", lambda x, y: cp.multiply(x, y),
                        [("unrestricted", (3,)), ("unrestricted", (3,))]),
+    MultiVarAtomConfig("multiply_broadcast", lambda x, y: cp.multiply(x, y),
+                       [("unrestricted", (3, 1)), ("unrestricted", (1, 3))]),
 
     # === Matrix operations ===
     MultiVarAtomConfig("matmul", lambda x, y: x @ y,
