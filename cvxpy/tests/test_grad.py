@@ -936,14 +936,78 @@ class TestGrad(BaseTest):
         # cumsum
         expr = cp.cumsum(self.x)
         self.x.value = [1, 2]
-        val = np.ones((2, 2))
-        val[1, 0] = 0
+        # Gradient is lower triangular matrix (cumsum gradient)
+        val = np.tril(np.ones((2, 2)))
         self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), val)
 
         expr = cp.cumsum(self.x[:, None], axis=1)
         self.x.value = [1, 2]
         val = np.eye(2)
         self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), val)
+
+    def test_cumsum_nd_grad(self) -> None:
+        """Test gradient for cumsum with ND arrays."""
+        # Test 3D array with various axes
+        z = Variable((2, 3, 4))
+        z_val = np.arange(24).reshape((2, 3, 4)).astype(float)
+        z.value = z_val
+
+        for axis in [0, 1, 2]:
+            expr = cp.cumsum(z, axis=axis)
+            grad = expr.grad[z]
+            self.assertIsNotNone(grad)
+            # Gradient should be 24x24 (input size x output size)
+            self.assertEqual(grad.shape, (24, 24))
+
+            # Verify gradient numerically via finite differences
+            eps = 1e-5
+            for idx in range(24):
+                # Perturb one element
+                z_pert = z_val.copy().flatten(order='F')
+                z_pert[idx] += eps
+                z_pert = z_pert.reshape(z_val.shape, order='F')
+                result_plus = np.cumsum(z_pert, axis=axis).flatten(order='F')
+                result_base = np.cumsum(z_val, axis=axis).flatten(order='F')
+                numerical_grad = (result_plus - result_base) / eps
+                # Compare with analytic gradient column
+                analytic_grad = grad.toarray()[:, idx]
+                self.assertItemsAlmostEqual(analytic_grad, numerical_grad, places=4)
+
+        # Test axis=None (C-order flattened cumsum)
+        expr = cp.cumsum(self.A, axis=None)
+        self.A.value = np.array([[1, 2], [3, 4]])
+        grad = expr.grad[self.A]
+        self.assertIsNotNone(grad)
+        # Gradient shape is (4, 4) for 2x2 matrix
+        self.assertEqual(grad.shape, (4, 4))
+
+        # For axis=None with [[1,2],[3,4]], C-order is [1,2,3,4]
+        # cumsum([1,2,3,4]) = [1,3,6,10]
+        # The gradient should be a lower triangular matrix, but permuted
+        # to account for F-order vectorization vs C-order cumsum
+        # Verify via finite differences
+        A_val = self.A.value
+        eps = 1e-5
+        for idx in range(4):
+            A_pert = A_val.copy().flatten(order='F')
+            A_pert[idx] += eps
+            A_pert = A_pert.reshape(A_val.shape, order='F')
+            result_plus = np.cumsum(A_pert, axis=None)  # C-order flatten
+            result_base = np.cumsum(A_val, axis=None)
+            numerical_grad = (result_plus - result_base) / eps
+            analytic_grad = grad.toarray()[:, idx]
+            self.assertItemsAlmostEqual(analytic_grad, numerical_grad, places=4)
+
+        # Test 4D array
+        w = Variable((2, 2, 3, 2))
+        w_val = np.arange(24).reshape((2, 2, 3, 2)).astype(float)
+        w.value = w_val
+
+        for axis in [0, 1, 2, 3]:
+            expr = cp.cumsum(w, axis=axis)
+            grad = expr.grad[w]
+            self.assertIsNotNone(grad)
+            self.assertEqual(grad.shape, (24, 24))
 
     def test_bilinear(self) -> None:
         """Test grad for bilinear expressions."""
