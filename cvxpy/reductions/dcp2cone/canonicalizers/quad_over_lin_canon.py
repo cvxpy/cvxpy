@@ -23,6 +23,15 @@ def quad_over_lin_canon(expr, args):
     # quad_over_lin := sum_{ij} X^2_{ij} / y
     x = args[0]
     y = args[1].flatten(order='F')
+
+    # Check for axis parameter - SOC path doesn't support it yet
+    if expr.axis is not None:
+        raise NotImplementedError(
+            "sum_squares/quad_over_lin with axis parameter is only supported "
+            "for QP problems. Use a QP solver (e.g., OSQP, ECOS) or set "
+            "use_quad_obj=True in solver options."
+        )
+
     # precondition: shape == ()
     t = Variable(1,)
     # (y+t, y-t, 2*x) must lie in the second-order cone,

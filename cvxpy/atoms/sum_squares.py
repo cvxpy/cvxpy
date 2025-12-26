@@ -14,20 +14,28 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from typing import Optional
+
 from cvxpy.atoms.quad_over_lin import quad_over_lin
 
 
-def sum_squares(expr):
+def sum_squares(expr, axis: Optional[int] = None):
     """The sum of the squares of the entries.
 
     Parameters
     ----------
-    expr: Expression
+    expr : Expression
         The expression to take the sum of squares of.
+    axis : int, optional
+        The axis along which to compute the sum of squares.
+        If None (default), sums over all elements and returns a scalar.
+        If 0, sums over rows for each column (returns a vector of length n for m x n input).
+        If 1, sums over columns for each row (returns a vector of length m for m x n input).
 
     Returns
     -------
     Expression
         An expression representing the sum of squares.
+        Scalar if axis is None, otherwise a vector.
     """
-    return quad_over_lin(expr, 1)
+    return quad_over_lin(expr, 1, axis=axis)

@@ -14,11 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 import numpy as np
 import scipy as scipy
 import scipy.sparse as sp
+from numpy.lib.array_utils import normalize_axis_index
 
 import cvxpy.utilities as u
 from cvxpy.atoms.atom import Atom
@@ -28,19 +29,31 @@ from cvxpy.expressions.constants.parameter import is_param_free
 
 class quad_over_lin(Atom):
     """:math:`(sum_{ij}X^2_{ij})/y`
+
+    When axis is specified, computes the sum of squares along that axis,
+    returning a vector instead of a scalar.
     """
     _allow_complex = True
 
-    def __init__(self, x, y) -> None:
+    def __init__(self, x, y, axis: Optional[int] = None) -> None:
+        self.axis = axis
         super(quad_over_lin, self).__init__(x, y)
 
     @Atom.numpy_numeric
     def numeric(self, values):
         """Returns the sum of the entries of x squared over y.
         """
+        x_val = values[0]
+        y_val = values[1].item()
         if self.args[0].is_complex():
-            return (np.square(values[0].imag) + np.square(values[0].real)).sum()/values[1].item()
-        return np.square(values[0]).sum()/values[1].item()
+            squared = np.square(x_val.imag) + np.square(x_val.real)
+        else:
+            squared = np.square(x_val)
+
+        if self.axis is None:
+            return squared.sum() / y_val
+        else:
+            return squared.sum(axis=self.axis) / y_val
 
     def _domain(self) -> List[Constraint]:
         """Returns constraints describing the domain of the node.
@@ -79,7 +92,14 @@ class quad_over_lin(Atom):
     def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the (row, col) shape of the expression.
         """
-        return tuple()
+        if self.axis is None:
+            return tuple()
+        else:
+            shape = list(self.args[0].shape)
+            # Normalize negative axis
+            axis = normalize_axis_index(self.axis, len(shape))
+            # Remove the summed dimension
+            return tuple(shape[:axis] + shape[axis+1:])
 
     def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
@@ -128,7 +148,21 @@ class quad_over_lin(Atom):
             raise ValueError("The second argument to quad_over_lin must be a scalar.")
         if self.args[1].is_complex():
             raise ValueError("The second argument to quad_over_lin cannot be complex.")
+        if self.axis is not None:
+            ndim = self.args[0].ndim
+            if ndim < 2:
+                raise ValueError(
+                    "axis parameter requires at least 2D input, "
+                    f"got {ndim}D input."
+                )
+            # Validate axis is in range (normalize_axis_index will raise if not)
+            _ = normalize_axis_index(self.axis, ndim)
         super(quad_over_lin, self).validate_arguments()
+
+    def get_data(self):
+        """Returns info needed to reconstruct the object besides the args.
+        """
+        return [self.axis]
 
     def is_quadratic(self) -> bool:
         """Quadratic if x is affine and y is constant.
