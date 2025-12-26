@@ -1,5 +1,5 @@
 """
-Copyright 2025 CVXPY authors
+Copyright 2025, the CVXPY authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -21,14 +21,16 @@ import pytest
 
 import cvxpy as cp
 
+"""
+Systematic gradient validation for CVXPY expressions.
+
+This module provides a PyTorch-style gradcheck utility that validates
+expression-level gradients (expr.grad[var]) against numerical finite
+differences for all CVXPY atoms.
+"""
+
 # =============================================================================
 # Core Gradcheck Utility
-# 
-# Systematic gradient validation for CVXPY expressions.
-# 
-# This module provides a PyTorch-style gradcheck utility that validates
-# expression-level gradients (expr.grad[var]) against numerical finite
-# differences for all CVXPY atoms.
 # =============================================================================
 
 
@@ -564,7 +566,6 @@ class TestMultiVariableAtoms:
         assert passed, f"minimum(x,y): {msg}"
 
     @pytest.mark.parametrize("seed", [42, 123])
-    @pytest.mark.skip(reason="matmul gradient has bug in binary_operators.py")
     def test_matmul(self, seed: int):
         """Test matrix multiplication gradient."""
         x_val = AtomInputGenerator.unrestricted((2, 3), seed)
@@ -578,7 +579,6 @@ class TestMultiVariableAtoms:
         assert passed, f"matmul: {msg}"
 
     @pytest.mark.parametrize("seed", [42, 123])
-    @pytest.mark.skip(reason="multiply gradient has bug in binary_operators.py")
     def test_multiply_elementwise(self, seed: int):
         """Test elementwise multiplication gradient."""
         x_val = AtomInputGenerator.unrestricted((3,), seed)
