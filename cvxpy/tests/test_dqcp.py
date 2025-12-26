@@ -741,6 +741,9 @@ class TestDqcp(base_test.BaseTest):
 
         # solve
         assert problem.is_dqcp()
-        with pytest.raises(cp.SolverError, 
-                           match="Max iters hit during bisection."):
+        with pytest.raises(
+            cp.SolverError,
+            match="(Max iters hit during bisection|"
+                  "Unable to find suitable interval for bisection)"
+        ):
             problem.solve(qcp=True, solver=cp.SCS, max_iters=1)

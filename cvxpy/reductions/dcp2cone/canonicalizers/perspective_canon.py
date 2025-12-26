@@ -20,9 +20,10 @@ from cvxpy.atoms.affine.vec import vec
 from cvxpy.expressions.variable import Variable
 from cvxpy.problems.objective import Maximize, Minimize
 from cvxpy.utilities.perspective_utils import form_cone_constraint
+from cvxpy.utilities.solver_context import SolverInfo
 
 
-def perspective_canon(expr, args):
+def perspective_canon(expr, args, solver_context: SolverInfo | None = None):
 
     from cvxpy.problems.problem import Problem
 

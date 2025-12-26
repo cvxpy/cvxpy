@@ -5,9 +5,10 @@ from cvxpy.constraints.exponential import ExpCone
 from cvxpy.reductions.solvers.conic_solvers.scs_conif import (
     scs_psdvec_to_psdmat,
 )
+from cvxpy.utilities.solver_context import SolverInfo
 
 
-def suppfunc_canon(expr, args):
+def suppfunc_canon(expr, args, solver_context: SolverInfo | None = None):
     y = args[0].flatten(order='F')
     # ^ That's the user-supplied argument to the support function.
     parent = expr._parent
