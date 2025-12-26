@@ -14,12 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Union
 
 import numpy as np
 import scipy as scipy
 import scipy.sparse as sp
-from numpy.lib.array_utils import normalize_axis_index
+from numpy.lib.array_utils import normalize_axis_index, normalize_axis_tuple
 
 import cvxpy.utilities as u
 from cvxpy.atoms.atom import Atom
@@ -35,8 +35,15 @@ class quad_over_lin(Atom):
     """
     _allow_complex = True
 
-    def __init__(self, x, y, axis: Optional[int] = None) -> None:
+    def __init__(
+        self,
+        x,
+        y,
+        axis: Optional[Union[int, Tuple[int, ...]]] = None,
+        keepdims: bool = False
+    ) -> None:
         self.axis = axis
+        self.keepdims = keepdims
         super(quad_over_lin, self).__init__(x, y)
 
     @Atom.numpy_numeric
@@ -50,10 +57,7 @@ class quad_over_lin(Atom):
         else:
             squared = np.square(x_val)
 
-        if self.axis is None:
-            return squared.sum() / y_val
-        else:
-            return squared.sum(axis=self.axis) / y_val
+        return squared.sum(axis=self.axis, keepdims=self.keepdims) / y_val
 
     def _domain(self) -> List[Constraint]:
         """Returns constraints describing the domain of the node.
@@ -72,6 +76,10 @@ class quad_over_lin(Atom):
         Returns:
             A list of SciPy CSC sparse matrices or None.
         """
+        # Gradient for axis case requires Jacobian; use numerical differentiation
+        if self.axis is not None:
+            return [None, None]
+
         X = values[0]
         y = values[1]
         if y <= 0:
@@ -93,13 +101,27 @@ class quad_over_lin(Atom):
         """Returns the (row, col) shape of the expression.
         """
         if self.axis is None:
+            if self.keepdims:
+                return (1,) * self.args[0].ndim
             return tuple()
+
+        shape = list(self.args[0].shape)
+        ndim = len(shape)
+
+        # Normalize axis/axes
+        if isinstance(self.axis, int):
+            axes = (normalize_axis_index(self.axis, ndim),)
         else:
-            shape = list(self.args[0].shape)
-            # Normalize negative axis
-            axis = normalize_axis_index(self.axis, len(shape))
-            # Remove the summed dimension
-            return tuple(shape[:axis] + shape[axis+1:])
+            axes = normalize_axis_tuple(self.axis, ndim)
+
+        if self.keepdims:
+            for ax in axes:
+                shape[ax] = 1
+        else:
+            # Remove axes in reverse order to maintain correct indices
+            shape = [s for i, s in enumerate(shape) if i not in axes]
+
+        return tuple(shape)
 
     def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
@@ -155,14 +177,17 @@ class quad_over_lin(Atom):
                     "axis parameter requires at least 2D input, "
                     f"got {ndim}D input."
                 )
-            # Validate axis is in range (normalize_axis_index will raise if not)
-            _ = normalize_axis_index(self.axis, ndim)
+            # Validate axis is in range (normalize functions will raise if not)
+            if isinstance(self.axis, int):
+                _ = normalize_axis_index(self.axis, ndim)
+            else:
+                _ = normalize_axis_tuple(self.axis, ndim)
         super(quad_over_lin, self).validate_arguments()
 
     def get_data(self):
         """Returns info needed to reconstruct the object besides the args.
         """
-        return [self.axis]
+        return [self.axis, self.keepdims]
 
     def is_quadratic(self) -> bool:
         """Quadratic if x is affine and y is constant.

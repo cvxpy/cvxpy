@@ -197,6 +197,110 @@ class TestExpressions(BaseTest):
         np.testing.assert_allclose(result1, result2, atol=1e-4)
         np.testing.assert_allclose(X1, X2, atol=1e-4)
 
+    def test_sum_squares_axis_soc(self) -> None:
+        """Test sum_squares with axis using SOC solver (not QP path)."""
+        np.random.seed(42)
+        Y = np.random.randn(3, 4)
+
+        # Test axis=0 with Clarabel, use_quad_obj=False forces SOC path
+        X = Variable((3, 4))
+        obj = cp.sum(cp.sum_squares(X - Y, axis=0))
+        prob = cp.Problem(cp.Minimize(obj))
+        prob.solve(solver=cp.CLARABEL, use_quad_obj=False)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        np.testing.assert_allclose(X.value, Y, atol=1e-4)
+
+        # Test axis=1
+        X = Variable((3, 4))
+        obj = cp.sum(cp.sum_squares(X - Y, axis=1))
+        prob = cp.Problem(cp.Minimize(obj))
+        prob.solve(solver=cp.CLARABEL, use_quad_obj=False)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        np.testing.assert_allclose(X.value, Y, atol=1e-4)
+
+    def test_sum_squares_keepdims(self) -> None:
+        """Test sum_squares with keepdims parameter."""
+        X = Variable((3, 4))
+
+        # keepdims=False (default)
+        s0 = cp.sum_squares(X, axis=0)
+        self.assertEqual(s0.shape, (4,))
+
+        # keepdims=True
+        s0_keep = cp.sum_squares(X, axis=0, keepdims=True)
+        self.assertEqual(s0_keep.shape, (1, 4))
+
+        s1_keep = cp.sum_squares(X, axis=1, keepdims=True)
+        self.assertEqual(s1_keep.shape, (3, 1))
+
+        # Scalar case with keepdims
+        s_scalar_keep = cp.sum_squares(X, keepdims=True)
+        self.assertEqual(s_scalar_keep.shape, (1, 1))
+
+        # Test numeric values with keepdims
+        X_val = np.random.randn(3, 4)
+        X.value = X_val
+        expected = (X_val**2).sum(axis=0, keepdims=True)
+        np.testing.assert_allclose(s0_keep.value, expected)
+
+        expected = (X_val**2).sum(axis=1, keepdims=True)
+        np.testing.assert_allclose(s1_keep.value, expected)
+
+        expected = (X_val**2).sum(keepdims=True)
+        np.testing.assert_allclose(s_scalar_keep.value, expected)
+
+        # Test optimization with keepdims
+        np.random.seed(42)
+        Y = np.random.randn(3, 4)
+        X = Variable((3, 4))
+        obj = cp.sum(cp.sum_squares(X - Y, axis=0, keepdims=True))
+        prob = cp.Problem(cp.Minimize(obj))
+        prob.solve(solver=cp.CLARABEL, use_quad_obj=False)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        np.testing.assert_allclose(X.value, Y, atol=1e-4)
+
+    def test_sum_squares_tuple_axes(self) -> None:
+        """Test sum_squares with tuple of axes for ND arrays."""
+        X = Variable((2, 3, 4))
+
+        # Test shape computation
+        s02 = cp.sum_squares(X, axis=(0, 2))
+        self.assertEqual(s02.shape, (3,))
+
+        s12 = cp.sum_squares(X, axis=(1, 2))
+        self.assertEqual(s12.shape, (2,))
+
+        # With keepdims
+        s02_keep = cp.sum_squares(X, axis=(0, 2), keepdims=True)
+        self.assertEqual(s02_keep.shape, (1, 3, 1))
+
+        # Test numeric values
+        np.random.seed(42)
+        X_val = np.random.randn(2, 3, 4)
+        X.value = X_val
+        expected = (X_val**2).sum(axis=(0, 2))
+        np.testing.assert_allclose(s02.value, expected)
+
+        expected_keep = (X_val**2).sum(axis=(0, 2), keepdims=True)
+        np.testing.assert_allclose(s02_keep.value, expected_keep)
+
+        # Test optimization with QP solver
+        Y = np.random.randn(2, 3, 4)
+        X = Variable((2, 3, 4))
+        obj = cp.sum(cp.sum_squares(X - Y, axis=(0, 2)))
+        prob = cp.Problem(cp.Minimize(obj))
+        prob.solve(solver=cp.OSQP)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        np.testing.assert_allclose(X.value, Y, atol=1e-3)
+
+        # Test optimization with SOC solver
+        X = Variable((2, 3, 4))
+        obj = cp.sum(cp.sum_squares(X - Y, axis=(0, 2)))
+        prob = cp.Problem(cp.Minimize(obj))
+        prob.solve(solver=cp.CLARABEL, use_quad_obj=False)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        np.testing.assert_allclose(X.value, Y, atol=1e-4)
+
     def test_indefinite_quadratic(self) -> None:
         x = Variable()
         y = Variable()
