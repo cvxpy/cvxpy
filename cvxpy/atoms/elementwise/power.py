@@ -130,7 +130,7 @@ class power(Elementwise):
         of ``p``; only relevant when solving as a DCP program.
     """
 
-    def __init__(self, x, p, max_denom: int = 1024, approx: bool = True) -> None:
+    def __init__(self, x, p, max_denom: int = 1024, approx: bool | None = None) -> None:
         self._p_orig = p
         # NB: It is important that the exponent is an attribute, not
         # an argument. This prevents parametrized exponents from being replaced
@@ -156,12 +156,15 @@ class power(Elementwise):
             else:
                 p = self.p.value
             # how we convert p to a rational depends on the branch of the function
+            # When _approx is None (auto-detect), use True for initial computation
+            # The actual choice will be made during canonicalization based on solver
+            approx_for_init = self._approx if self._approx is not None else True
             if p > 1:
-                p, w = pow_high(p, max_denom, approx=self._approx)
+                p, w = pow_high(p, max_denom, approx=approx_for_init)
             elif 0 < p < 1:
-                p, w = pow_mid(p, max_denom, approx=self._approx)
+                p, w = pow_mid(p, max_denom, approx=approx_for_init)
             elif p < 0:
-                p, w = pow_neg(p, max_denom, approx=self._approx)
+                p, w = pow_neg(p, max_denom, approx=approx_for_init)
 
             # note: if, after making the rational approximation, p ends up
             # being 0 or 1, we default to using the 0 or 1 behavior of the
@@ -176,7 +179,7 @@ class power(Elementwise):
                 w = None
 
             self.p_rational, self.w = p, w
-            if approx:
+            if approx_for_init:
                 self.approx_error = float(abs(self.p_rational - p))
             else:
                 self.approx_error = 0.0

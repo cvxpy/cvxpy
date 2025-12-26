@@ -28,11 +28,16 @@ def power_canon(expr, args, solver_context: SolverInfo | None = None):
     # Decide whether to use approximation based on solver context.
     # We approximate if the solver does not support power cones.
 
-    approx = False
-    if solver_context is None \
-        or PowCone3D not in solver_context.solver_supported_constraints \
-            or expr._approx:
+    # If user explicitly set approx, respect that choice
+    if expr._approx is not None:
+        approx = expr._approx
+    # Otherwise, auto-detect based on solver capabilities
+    elif solver_context is None \
+            or PowCone3D not in solver_context.solver_supported_constraints:
         approx = True
+    else:
+        approx = False
+
     if expr._approx != approx:
         expr = cp.power(args[0], expr._p_orig, max_denom=expr.max_denom, approx=approx)
     if approx:
