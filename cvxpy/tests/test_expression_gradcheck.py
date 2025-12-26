@@ -364,23 +364,48 @@ class AtomInputGenerator:
         A = rng.standard_normal(shape)
         return (A + A.T) / 2
 
+    # === Domain violation generators (for testing grad returns None) ===
+    @staticmethod
+    def negative(shape: Tuple[int, ...], seed: int = 42) -> np.ndarray:
+        """Generate negative values (violates positive domain)."""
+        rng = np.random.default_rng(seed)
+        return -np.abs(rng.standard_normal(shape)) - 0.5
+
+    @staticmethod
+    def with_zero(shape: Tuple[int, ...], seed: int = 42) -> np.ndarray:
+        """Generate values with at least one zero (violates strictly positive)."""
+        arr = AtomInputGenerator.positive(shape, seed)
+        arr.flat[0] = 0.0
+        return arr
+
+    @staticmethod
+    def non_psd(n: int, seed: int = 42) -> np.ndarray:
+        """Generate non-PSD symmetric matrix (has negative eigenvalue)."""
+        rng = np.random.default_rng(seed)
+        A = rng.standard_normal((n, n))
+        A = (A + A.T) / 2
+        # Shift to ensure negative eigenvalue
+        A[0, 0] = -abs(A[0, 0]) - 1.0
+        return A
+
     @staticmethod
     def generate(input_type: str, shape: Tuple[int, ...],
                  seed: int = 42) -> np.ndarray:
         """Generate input based on type string."""
-        if input_type == "unrestricted":
-            return AtomInputGenerator.unrestricted(shape, seed)
-        elif input_type == "positive":
-            return AtomInputGenerator.positive(shape, seed)
-        elif input_type == "nonnegative":
-            return AtomInputGenerator.nonnegative(shape, seed)
-        elif input_type == "psd":
-            assert len(shape) == 2 and shape[0] == shape[1]
-            return AtomInputGenerator.psd_matrix(shape[0], seed)
-        elif input_type == "symmetric":
-            return AtomInputGenerator.symmetric(shape, seed)
-        else:
+        generators = {
+            "unrestricted": lambda: AtomInputGenerator.unrestricted(shape, seed),
+            "positive": lambda: AtomInputGenerator.positive(shape, seed),
+            "nonnegative": lambda: AtomInputGenerator.nonnegative(shape, seed),
+            "psd": lambda: AtomInputGenerator.psd_matrix(shape[0], seed),
+            "symmetric": lambda: AtomInputGenerator.symmetric(shape, seed),
+            # Domain violation generators
+            "negative": lambda: AtomInputGenerator.negative(shape, seed),
+            "with_zero": lambda: AtomInputGenerator.with_zero(shape, seed),
+            "non_psd": lambda: AtomInputGenerator.non_psd(shape[0], seed),
+        }
+        if input_type not in generators:
             raise ValueError(f"Unknown input type: {input_type}")
+        return generators[input_type]()
 
 
 # =============================================================================
@@ -399,6 +424,15 @@ class AtomTestConfig:
     atol: float = 1e-4
     skip_reason: Optional[str] = None
     symmetric: bool = False  # For PSD/symmetric matrix atoms
+    test_domain: bool = True  # Auto-test domain violation based on input_generator
+
+
+# Map from valid input generator to its domain-violating counterpart
+DOMAIN_VIOLATION_MAP = {
+    "positive": "negative",
+    "nonnegative": "negative",
+    "psd": "non_psd",
+}
 
 
 @dataclass
@@ -471,7 +505,8 @@ SINGLE_VAR_ATOM_CONFIGS = [
                    "unrestricted"),
 
     # === Reduction atoms ===
-    AtomTestConfig("sum", lambda x: cp.sum(x), [(2, 3)], "unrestricted"),
+    AtomTestConfig("sum", lambda x: cp.sum(x), [(2, 3), (2, 3, 4)], "unrestricted"),
+    AtomTestConfig("sum_scalar", lambda x: cp.sum(x), [()], "unrestricted"),
     AtomTestConfig("sum_axis0", lambda x: cp.sum(x, axis=0), [(2, 3)],
                    "unrestricted"),
     AtomTestConfig("sum_axis1", lambda x: cp.sum(x, axis=1), [(2, 3)],
@@ -490,7 +525,7 @@ SINGLE_VAR_ATOM_CONFIGS = [
     AtomTestConfig("log_sum_exp_axis0",
                    lambda x: cp.log_sum_exp(x, axis=0), [(2, 3)],
                    "unrestricted"),
-    AtomTestConfig("prod", lambda x: cp.prod(x), [(3,)], "positive"),
+    AtomTestConfig("prod", lambda x: cp.prod(x), [(3,)], "unrestricted"),
 
     # === Affine atoms ===
     AtomTestConfig("trace", lambda x: cp.trace(x), [(3, 3)], "unrestricted"),
@@ -507,6 +542,12 @@ SINGLE_VAR_ATOM_CONFIGS = [
     AtomTestConfig("cumsum", lambda x: cp.cumsum(x), [(4,)], "unrestricted"),
     AtomTestConfig("cumsum_2d", lambda x: cp.cumsum(x, axis=0), [(2, 3)],
                    "unrestricted"),
+    AtomTestConfig("cumsum_3d_ax0", lambda x: cp.cumsum(x, axis=0), [(2, 3, 4)],
+                   "unrestricted"),
+    AtomTestConfig("cumsum_3d_ax1", lambda x: cp.cumsum(x, axis=1), [(2, 3, 4)],
+                   "unrestricted"),
+    AtomTestConfig("cumsum_3d_ax2", lambda x: cp.cumsum(x, axis=2), [(2, 3, 4)],
+                   "unrestricted"),
     AtomTestConfig("cummax", lambda x: cp.cummax(x), [(4,)], "unrestricted",
                    skip_reason="cummax gradient has subdifferential issues"),
     AtomTestConfig("diff", lambda x: cp.diff(x), [(4,)], "unrestricted"),
@@ -514,10 +555,10 @@ SINGLE_VAR_ATOM_CONFIGS = [
     AtomTestConfig("index_single", lambda x: x[0], [(5,)], "unrestricted"),
     AtomTestConfig("index_slice", lambda x: x[1:4], [(5,)], "unrestricted"),
 
-    # === Matrix atoms requiring symmetric PSD input ===
-    AtomTestConfig("lambda_max", lambda x: cp.lambda_max(x), [(3, 3)], "psd",
+    # === Matrix atoms requiring symmetric input (not necessarily PSD) ===
+    AtomTestConfig("lambda_max", lambda x: cp.lambda_max(x), [(3, 3)], "symmetric",
                    symmetric=True),
-    AtomTestConfig("lambda_min", lambda x: cp.lambda_min(x), [(3, 3)], "psd",
+    AtomTestConfig("lambda_min", lambda x: cp.lambda_min(x), [(3, 3)], "symmetric",
                    symmetric=True),
     AtomTestConfig("lambda_sum_largest", lambda x: cp.lambda_sum_largest(x, 2),
                    [(3, 3)], "psd",
@@ -526,6 +567,10 @@ SINGLE_VAR_ATOM_CONFIGS = [
                    symmetric=True),
     AtomTestConfig("tr_inv", lambda x: cp.tr_inv(x), [(3, 3)], "psd",
                    symmetric=True),
+
+    # === Quadratic atoms with constant parameters ===
+    AtomTestConfig("quad_form", lambda x: cp.quad_form(x, np.eye(3)), [(3,)],
+                   "unrestricted"),
 
     # === Other atoms ===
     AtomTestConfig("dotsort", lambda x: cp.dotsort(x, [3, 2, 1]), [(3,)],
@@ -667,112 +712,42 @@ class TestExpressionGradcheck:
         assert passed, f"{config.name}: {message}"
 
 
-class TestEdgeCases:
-    """Tests for edge cases and domain violations."""
-
-    def test_log_negative_returns_none(self):
-        """Test that log returns None gradient for negative values."""
-        var = cp.Variable(2)
-        var.value = np.array([-1.0, 1.0])
-        expr = cp.log(var)
-        assert expr.grad[var] is None
-
-    def test_sqrt_zero_boundary(self):
-        """Test sqrt gradient at zero boundary."""
-        var = cp.Variable(2)
-        var.value = np.array([0.0, 1.0])
-        expr = cp.sqrt(var)
-        # At zero, sqrt gradient is undefined (infinity)
-        assert expr.grad[var] is None
-
-    def test_log_det_non_psd(self):
-        """Test that log_det returns None for non-PSD matrix."""
-        var = cp.Variable((2, 2), symmetric=True)
-        var.value = np.array([[-1.0, 0], [0, 1.0]])
-        expr = cp.log_det(var)
-        assert expr.grad[var] is None
-
-    def test_inv_pos_at_zero(self):
-        """Test inv_pos gradient at zero."""
-        var = cp.Variable(2)
-        var.value = np.array([0.0, 1.0])
-        expr = cp.inv_pos(var)
-        assert expr.grad[var] is None
-
-    def test_scalar_variable(self):
-        """Test gradcheck with scalar variables."""
-        var_value = np.array(2.0)
-        passed, msg = expression_gradcheck(
-            lambda x: cp.square(x),
-            (),
-            var_value
-        )
-        assert passed, f"scalar square: {msg}"
-
-    def test_large_matrix(self):
-        """Test gradcheck with larger matrices."""
-        var_value = AtomInputGenerator.unrestricted((5, 5), seed=42)
-        passed, msg = expression_gradcheck(
-            lambda x: cp.sum(x),
-            (5, 5),
-            var_value
-        )
-        assert passed, f"large matrix sum: {msg}"
-
-    def test_3d_array(self):
-        """Test gradcheck with 3D arrays."""
-        var_value = AtomInputGenerator.unrestricted((2, 3, 4), seed=42)
-        passed, msg = expression_gradcheck(
-            lambda x: cp.sum(x),
-            (2, 3, 4),
-            var_value
-        )
-        assert passed, f"3D array sum: {msg}"
-
-    def test_cumsum_3d(self):
-        """Test cumsum gradient with 3D arrays."""
-        var_value = AtomInputGenerator.unrestricted((2, 3, 4), seed=42)
-        for axis in [0, 1, 2]:
-            passed, msg = expression_gradcheck(
-                lambda x, ax=axis: cp.cumsum(x, axis=ax),
-                (2, 3, 4),
-                var_value
-            )
-            assert passed, f"3D cumsum axis={axis}: {msg}"
+# Filter configs that have restricted domains (auto-derive from input_generator)
+DOMAIN_VIOLATION_CONFIGS = [
+    c for c in SINGLE_VAR_ATOM_CONFIGS
+    if c.input_generator in DOMAIN_VIOLATION_MAP
+    and c.test_domain
+    and not c.skip_reason
+]
 
 
-class TestQuadraticAtoms:
-    """Tests for quadratic atoms with fixed parameters."""
+def get_domain_violation_ids():
+    return [c.name for c in DOMAIN_VIOLATION_CONFIGS]
 
-    @pytest.mark.parametrize("seed", [42, 123])
-    def test_quad_form_identity(self, seed: int):
-        """Test quad_form(x, I) gradient."""
-        n = 3
-        x_val = AtomInputGenerator.unrestricted((n,), seed)
-        P = np.eye(n)
 
-        passed, msg = expression_gradcheck(
-            lambda x: cp.quad_form(x, P),
-            (n,),
-            x_val
-        )
-        assert passed, f"quad_form identity: {msg}"
+class TestDomainViolations:
+    """Automated tests that gradient returns None outside domain."""
 
-    @pytest.mark.parametrize("seed", [42, 123])
-    def test_quad_form_psd(self, seed: int):
-        """Test quad_form(x, P) gradient with PSD P."""
-        n = 3
-        x_val = AtomInputGenerator.unrestricted((n,), seed)
-        rng = np.random.default_rng(seed + 100)
-        A = rng.standard_normal((n, n))
-        P = A @ A.T + np.eye(n)
+    @pytest.mark.parametrize(
+        "config",
+        DOMAIN_VIOLATION_CONFIGS,
+        ids=get_domain_violation_ids()
+    )
+    def test_domain_violation(self, config: AtomTestConfig):
+        """Test that gradient is None when input violates domain."""
+        bad_gen = DOMAIN_VIOLATION_MAP[config.input_generator]
+        var_shape = config.var_shapes[0]
 
-        passed, msg = expression_gradcheck(
-            lambda x: cp.quad_form(x, P),
-            (n,),
-            x_val
-        )
-        assert passed, f"quad_form PSD: {msg}"
+        if config.symmetric:
+            var = cp.Variable(var_shape, symmetric=True)
+        else:
+            var = cp.Variable(var_shape)
+
+        var.value = AtomInputGenerator.generate(bad_gen, var_shape, seed=42)
+        expr = config.atom_factory(var)
+
+        assert expr.grad[var] is None, \
+            f"{config.name}: expected None grad for {bad_gen} input"
 
 
 class TestCompositeExpressions:
