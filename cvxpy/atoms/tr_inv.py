@@ -103,7 +103,7 @@ class tr_inv(Atom):
             # Grad: -X^{-2}.T
             D = np.linalg.inv(X).T
             D = - D @ D
-            return [sp.csc_array(D.ravel(order='F')).T]
+            return [sp.csc_array([D.ravel(order='F')]).T]
         # Outside domain.
         else:
             return [None]

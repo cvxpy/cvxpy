@@ -133,6 +133,118 @@ def expression_gradcheck(
     return True, None
 
 
+def expression_gradcheck_symmetric(
+    expr_factory: Callable[[cp.Variable], cp.Expression],
+    n: int,
+    var_value: np.ndarray,
+    eps: float = 1e-5,
+    rtol: float = 1e-4,
+    atol: float = 1e-4,
+) -> Tuple[bool, Optional[str]]:
+    """
+    Validate expression gradient for symmetric matrix inputs.
+
+    For symmetric matrices, we perturb in directions that maintain symmetry.
+    This means perturbing (i,j) and (j,i) together for off-diagonal elements.
+
+    Parameters
+    ----------
+    expr_factory : callable
+        Function that takes a symmetric Variable and returns an Expression
+    n : int
+        Size of the n×n symmetric matrix
+    var_value : ndarray
+        Symmetric matrix value to evaluate gradient at
+    eps : float
+        Finite difference step size
+    rtol, atol : float
+        Tolerances for comparison
+
+    Returns
+    -------
+    passed : bool
+        Whether gradient check passed
+    message : str or None
+        Error message if failed
+    """
+    var = cp.Variable((n, n), symmetric=True)
+    var.value = var_value.copy()
+    expr = expr_factory(var)
+
+    # Get analytic gradient
+    analytic_grad = expr.grad.get(var)
+
+    if analytic_grad is None:
+        return True, "Gradient is None (outside domain)"
+
+    if hasattr(analytic_grad, 'toarray'):
+        analytic_grad = analytic_grad.toarray()
+    analytic_grad = np.asarray(analytic_grad)
+
+    # Compute numerical gradient via central differences
+    # For symmetric matrices, we perturb in the symmetric subspace
+    input_size = n * n
+    output_size = expr.size
+
+    # Build standard Jacobian first
+    jacobian = np.zeros((output_size, input_size))
+
+    for i in range(n):
+        for j in range(n):
+            # Create symmetric perturbation
+            perturbation = np.zeros((n, n))
+            if i == j:
+                perturbation[i, j] = eps
+            else:
+                perturbation[i, j] = eps
+                perturbation[j, i] = eps
+
+            # Perturb in positive direction
+            var.value = var_value + perturbation
+            result_plus = np.asarray(expr.value).flatten(order='F')
+
+            # Perturb in negative direction
+            var.value = var_value - perturbation
+            result_minus = np.asarray(expr.value).flatten(order='F')
+
+            # Central difference
+            # For diagonal: gradient is just d/d(A[i,i])
+            # For off-diagonal: we perturbed both (i,j) and (j,i)
+            # so the gradient contribution is d/d(A[i,j]) + d/d(A[j,i])
+            idx = i + j * n  # F-order index
+            diff = (result_plus - result_minus) / (2 * eps)
+
+            if i == j:
+                jacobian[:, idx] = diff
+            else:
+                # For symmetric matrix, grad[i,j] should equal grad[j,i]
+                # The numerical diff gives sum of both, so divide by 2
+                # But CVXPY stores full n×n gradient even for symmetric
+                jacobian[:, idx] = diff / 2
+                jacobian[:, j + i * n] = diff / 2
+
+    # Restore original value
+    var.value = var_value
+
+    # CVXPY stores grad as transpose of Jacobian
+    numerical_grad = jacobian.T
+
+    # Compare gradients
+    if not np.allclose(analytic_grad, numerical_grad, rtol=rtol, atol=atol):
+        max_diff = np.max(np.abs(analytic_grad - numerical_grad))
+        max_idx = np.unravel_index(
+            np.argmax(np.abs(analytic_grad - numerical_grad)),
+            analytic_grad.shape
+        )
+        return False, (
+            f"Max difference: {max_diff:.2e} at index {max_idx}. "
+            f"Analytic: {analytic_grad[max_idx]:.6f}, "
+            f"Numerical: {numerical_grad[max_idx]:.6f}"
+        )
+
+    return True, None
+
+
 def expression_gradcheck_multi(
     expr_factory: Callable[..., cp.Expression],
     var_shapes: List[Tuple[int, ...]],
@@ -370,48 +482,42 @@ SINGLE_VAR_ATOM_CONFIGS = [
                    "unrestricted"),
     AtomTestConfig("prod", lambda x: cp.prod(x), [(3,)], "positive"),
 
-    # === Affine atoms (1D shapes work correctly) ===
-    AtomTestConfig("trace", lambda x: cp.trace(x), [(3, 3)], "unrestricted",
-                   skip_reason="2D gradient ordering issue - needs investigation"),
-    AtomTestConfig("diag_extract", lambda x: cp.diag(x), [(3, 3)],
-                   "unrestricted",
-                   skip_reason="2D gradient ordering issue - needs investigation"),
+    # === Affine atoms ===
+    AtomTestConfig("trace", lambda x: cp.trace(x), [(3, 3)], "unrestricted"),
+    AtomTestConfig("diag_extract", lambda x: cp.diag(x), [(3, 3)], "unrestricted"),
     AtomTestConfig("diag_create", lambda x: cp.diag(x), [(3,)], "unrestricted"),
     AtomTestConfig("reshape", lambda x: cp.reshape(x, (6,), order='F'),
                    [(2, 3)], "unrestricted"),
     AtomTestConfig("vec", lambda x: cp.vec(x), [(2, 3)], "unrestricted"),
-    AtomTestConfig("transpose", lambda x: cp.transpose(x), [(2, 3)],
-                   "unrestricted",
-                   skip_reason="2D gradient ordering bug - needs fix"),
+    AtomTestConfig("transpose", lambda x: cp.transpose(x), [(2, 3)], "unrestricted"),
     AtomTestConfig("hstack", lambda x: cp.hstack([x, x]), [(3,)],
                    "unrestricted"),
     AtomTestConfig("vstack", lambda x: cp.vstack([x, x]), [(3,)],
                    "unrestricted"),
     AtomTestConfig("cumsum", lambda x: cp.cumsum(x), [(4,)], "unrestricted"),
     AtomTestConfig("cumsum_2d", lambda x: cp.cumsum(x, axis=0), [(2, 3)],
-                   "unrestricted",
-                   skip_reason="2D gradient ordering issue - needs investigation"),
+                   "unrestricted"),
     AtomTestConfig("cummax", lambda x: cp.cummax(x), [(4,)], "unrestricted",
                    skip_reason="cummax gradient has subdifferential issues"),
     AtomTestConfig("diff", lambda x: cp.diff(x), [(4,)], "unrestricted"),
-    AtomTestConfig("upper_tri", lambda x: cp.upper_tri(x), [(3, 3)],
-                   "unrestricted",
-                   skip_reason="2D gradient ordering issue - needs investigation"),
+    AtomTestConfig("upper_tri", lambda x: cp.upper_tri(x), [(3, 3)], "unrestricted"),
     AtomTestConfig("index_single", lambda x: x[0], [(5,)], "unrestricted"),
     AtomTestConfig("index_slice", lambda x: x[1:4], [(5,)], "unrestricted"),
 
     # === Matrix atoms requiring PSD input ===
+    # Note: These are tested separately in TestSymmetricMatrixAtoms using
+    # expression_gradcheck_symmetric which handles symmetry constraints.
     AtomTestConfig("lambda_max", lambda x: cp.lambda_max(x), [(3, 3)], "psd",
-                   skip_reason="2D gradient ordering issue - needs investigation"),
+                   skip_reason="requires symmetric gradcheck - tested in TestSymmetricMatrixAtoms"),
     AtomTestConfig("lambda_min", lambda x: cp.lambda_min(x), [(3, 3)], "psd",
-                   skip_reason="2D gradient ordering issue - needs investigation"),
+                   skip_reason="requires symmetric gradcheck - tested in TestSymmetricMatrixAtoms"),
     AtomTestConfig("lambda_sum_largest",
                    lambda x: cp.lambda_sum_largest(x, 2), [(3, 3)], "psd",
-                   skip_reason="2D gradient ordering issue - needs investigation"),
+                   skip_reason="lambda_sum_largest _grad raises NotImplementedError"),
     AtomTestConfig("log_det", lambda x: cp.log_det(x), [(3, 3)], "psd",
-                   skip_reason="2D gradient ordering issue - needs investigation"),
+                   skip_reason="requires symmetric gradcheck - tested in TestSymmetricMatrixAtoms"),
     AtomTestConfig("tr_inv", lambda x: cp.tr_inv(x), [(3, 3)], "psd",
-                   skip_reason="2D gradient ordering issue - needs investigation"),
+                   skip_reason="requires symmetric gradcheck - tested in TestSymmetricMatrixAtoms"),
 
     # === Other atoms ===
     AtomTestConfig("dotsort", lambda x: cp.dotsort(x, [3, 2, 1]), [(3,)],
@@ -590,6 +696,50 @@ class TestMultiVariableAtoms:
             [x_val, y_val]
         )
         assert passed, f"multiply: {msg}"
+
+
+class TestSymmetricMatrixAtoms:
+    """Tests for atoms that require symmetric/PSD matrix inputs."""
+
+    @pytest.mark.parametrize("seed", [42, 123])
+    def test_lambda_max(self, seed: int):
+        """Test lambda_max gradient with symmetric gradcheck."""
+        n = 3
+        psd_val = AtomInputGenerator.psd_matrix(n, seed)
+        passed, msg = expression_gradcheck_symmetric(
+            lambda x: cp.lambda_max(x), n, psd_val
+        )
+        assert passed, f"lambda_max: {msg}"
+
+    @pytest.mark.parametrize("seed", [42, 123])
+    def test_lambda_min(self, seed: int):
+        """Test lambda_min gradient with symmetric gradcheck."""
+        n = 3
+        psd_val = AtomInputGenerator.psd_matrix(n, seed)
+        passed, msg = expression_gradcheck_symmetric(
+            lambda x: cp.lambda_min(x), n, psd_val
+        )
+        assert passed, f"lambda_min: {msg}"
+
+    @pytest.mark.parametrize("seed", [42, 123])
+    def test_log_det(self, seed: int):
+        """Test log_det gradient with symmetric gradcheck."""
+        n = 3
+        psd_val = AtomInputGenerator.psd_matrix(n, seed)
+        passed, msg = expression_gradcheck_symmetric(
+            lambda x: cp.log_det(x), n, psd_val
+        )
+        assert passed, f"log_det: {msg}"
+
+    @pytest.mark.parametrize("seed", [42, 123])
+    def test_tr_inv(self, seed: int):
+        """Test tr_inv gradient with symmetric gradcheck."""
+        n = 3
+        psd_val = AtomInputGenerator.psd_matrix(n, seed)
+        passed, msg = expression_gradcheck_symmetric(
+            lambda x: cp.tr_inv(x), n, psd_val
+        )
+        assert passed, f"tr_inv: {msg}"
 
 
 class TestEdgeCases:
