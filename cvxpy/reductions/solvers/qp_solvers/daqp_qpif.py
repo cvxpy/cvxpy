@@ -5,13 +5,14 @@ import numpy as np
 import cvxpy.interface as intf
 import cvxpy.settings as s
 from cvxpy.reductions.solution import Solution, failure_solution
+from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
 from cvxpy.utilities.citations import CITATION_DICT
 
 
 class DAQP(QpSolver):
     """QP interface for the DAQP solver.
-    
+
     This is a simple implementation based on the `official DAQP documentation
     <https://darnstrom.github.io/daqp/>`_.
 
@@ -68,7 +69,7 @@ class DAQP(QpSolver):
         (xstar,fval,exitflag,info) = solution
 
         attr = {
-            s.SOLVE_TIME: info['solve_time'], 
+            s.SOLVE_TIME: info['solve_time'],
             s.SETUP_TIME: info['setup_time'],
         }
         attr[s.EXTRA_STATS] = info
@@ -82,9 +83,23 @@ class DAQP(QpSolver):
                 DAQP.VAR_ID:
                 intf.DEFAULT_INTF.const_to_matrix(np.array(xstar))
             }
-            # dual variables associated with var bounds: TODO
+            # Build dual vars dict keyed by constraint IDs
+            # DAQP returns duals for [var_bounds; eq_constrs; ineq_constrs]
+            # Skip variable bounds (len_primal), then get constraint duals
             len_primal = len(xstar)
-            dual_vars = {DAQP.DUAL_VAR_ID: np.array(info['lam'][len_primal:])}
+            y = np.array(info['lam'][len_primal:])
+            n_eq = inverse_data[self.DIMS].zero
+            eq_dual = utilities.get_dual_values(
+                y[:n_eq],
+                utilities.extract_dual_value,
+                inverse_data[self.EQ_CONSTR])
+            ineq_dual = utilities.get_dual_values(
+                y[n_eq:],
+                utilities.extract_dual_value,
+                inverse_data[self.NEQ_CONSTR])
+            dual_vars = {}
+            dual_vars.update(eq_dual)
+            dual_vars.update(ineq_dual)
             attr[s.NUM_ITERS] = info['iterations']
             sol = Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:

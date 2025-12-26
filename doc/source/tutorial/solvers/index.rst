@@ -95,6 +95,8 @@ The table below shows the types of problems the supported solvers can handle.
 +----------------+----+----+------+-----+-----+-----+-----+
 | `GUROBI`_      | X  | X  | X    |     |     |     | X   |
 +----------------+----+----+------+-----+-----+-----+-----+
+| `MOREAU`_       | X  | X  | X    |     | X  | X   |     |
++----------------+----+----+------+-----+-----+-----+-----+
 | `MOSEK`_       | X  | X  | X    | X   | X   | X   | X** |
 +----------------+----+----+------+-----+-----+-----+-----+
 | `MPAX`_        | X  | X  |      |     |     |     |     |
@@ -913,6 +915,7 @@ will be the same as the class variable ``SUPPORTED_CONSTRAINTS``.
 .. _GLPK_MI: https://www.gnu.org/software/glpk/
 .. _GUROBI: https://www.gurobi.com/
 .. _MOSEK: https://www.mosek.com/
+.. _MOREAU: https://optimalintellect.com/
 .. _MPAX: https://github.com/MIT-Lu-Lab/MPAX
 .. _CBC: https://projects.coin-or.org/Cbc
 .. _CGL: https://projects.coin-or.org/Cgl

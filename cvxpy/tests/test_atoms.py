@@ -331,6 +331,16 @@ class TestAtoms(BaseTest):
         self.assertEqual(str(cm.exception),
                          "The second argument to quad_over_lin must be a scalar.")
 
+        # Test quad_over_lin numeric value computation.
+        # The denominator should be converted to a scalar via .item().
+        x_val = np.array([3.0, 4.0])
+        y_val = np.array([2.0])  # (1,) shaped numpy array
+        atom = cp.quad_over_lin(Constant(x_val), Constant(y_val))
+        expected = (3.0**2 + 4.0**2) / 2.0  # = 12.5
+        self.assertAlmostEqual(atom.value, expected)
+        # Verify the result is a scalar (not an array).
+        self.assertEqual(np.ndim(atom.value), 0)
+
     def test_elemwise_arg_count(self) -> None:
         """Test arg count for max and min variants.
         """
@@ -1664,6 +1674,42 @@ class TestAtoms(BaseTest):
 
         with pytest.raises(ValueError, match="< k elements"):
             cp.diff(x1, axis=0).value
+
+        # Test ND arrays
+        C = cp.Variable((4, 5, 6))
+        D = np.zeros((4, 5, 6))
+
+        # Test shape for all axes
+        for axis in range(3):
+            self.assertEqual(cp.diff(C, axis=axis).shape,
+                             np.diff(D, axis=axis).shape)
+
+        # Test with values
+        np.random.seed(42)
+        vals_3d = np.random.randn(4, 5, 6)
+        C_val = cp.Variable((4, 5, 6), value=vals_3d)
+        for axis in range(3):
+            expr = cp.diff(C_val, axis=axis)
+            self.assertItemsAlmostEqual(expr.value, np.diff(vals_3d, axis=axis))
+
+        # Test higher-order diff on ND
+        for k in [1, 2]:
+            for axis in range(3):
+                self.assertEqual(cp.diff(C, k=k, axis=axis).shape,
+                                 np.diff(D, n=k, axis=axis).shape)
+
+        # Test negative axis
+        for axis in [-1, -2, -3]:
+            self.assertEqual(cp.diff(C, axis=axis).shape,
+                             np.diff(D, axis=axis).shape)
+            expr = cp.diff(C_val, axis=axis)
+            self.assertItemsAlmostEqual(expr.value, np.diff(vals_3d, axis=axis))
+
+        # Test invalid axis
+        with pytest.raises((ValueError, np.exceptions.AxisError)):
+            cp.diff(C, axis=3)
+        with pytest.raises((ValueError, np.exceptions.AxisError)):
+            cp.diff(C, axis=-4)
 
     def test_log_normcdf(self) -> None:
         self.assertEqual(cp.log_normcdf(self.x).sign, s.NONPOS)

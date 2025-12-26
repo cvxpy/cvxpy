@@ -1,6 +1,10 @@
 import warnings
 
-from cvxpy.settings import CPP_CANON_BACKEND, NUMPY_CANON_BACKEND, SCIPY_CANON_BACKEND
+from cvxpy.settings import (
+    COO_CANON_BACKEND,
+    CPP_CANON_BACKEND,
+    SCIPY_CANON_BACKEND,
+)
 
 
 def get_canon_backend(problem, canon_backend: str) -> str:
@@ -34,7 +38,7 @@ def get_canon_backend(problem, canon_backend: str) -> str:
         if canon_backend == CPP_CANON_BACKEND:
             raise ValueError(f"The {CPP_CANON_BACKEND} backend cannot be used with problems "
                              f"that have expressions which do not support it.")
-        return canon_backend  # Use the specified backend (e.g., SCIPY_CANON_BACKEND)
+        return canon_backend  # Use the specified backend (e.g., COO_CANON_BACKEND)
 
     if problem._max_ndim() > 2:
         if canon_backend is None:
@@ -43,7 +47,9 @@ def get_canon_backend(problem, canon_backend: str) -> str:
                 f"Defaulting to the {SCIPY_CANON_BACKEND} backend for canonicalization."))
             return SCIPY_CANON_BACKEND
         if canon_backend == CPP_CANON_BACKEND:
-            raise ValueError(f"Only the {SCIPY_CANON_BACKEND} and {NUMPY_CANON_BACKEND} "
-                             f"backends are supported for problems with expressions of "
-                             f"dimension greater than 2.")
+            raise ValueError(
+                f"Only the {COO_CANON_BACKEND} and {SCIPY_CANON_BACKEND} "
+                f"backends are supported for problems "
+                f"with expressions of dimension greater than 2."
+            )
     return canon_backend

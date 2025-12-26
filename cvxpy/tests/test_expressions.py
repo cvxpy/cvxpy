@@ -1587,7 +1587,7 @@ class TestND_Expressions():
 
     def test_nd_variable_value_error(self) -> None:
         prob = cp.Problem(self.obj, [self.x == self.target])
-        error_str = "Only the SCIPY and NUMPY backends are supported " \
+        error_str = "Only the COO and SCIPY backends are supported " \
                     "for problems with expressions of dimension greater than 2."
         with pytest.raises(ValueError, match=error_str):
             prob.solve(canon_backend=cp.CPP_CANON_BACKEND)
@@ -1854,9 +1854,42 @@ class TestND_Expressions():
             y = cp.Variable((3,10))
             x @ y
     
-    #TODO make tests pass, support cumsum with multiple axes
-    def test_nd_cumsum_warning(self) -> None:
-        warning_str = "cumsum is only implemented for 1D or 2D arrays and might not"
-        with pytest.raises(UserWarning, match=warning_str):
-            x = cp.Variable((5,20,3))
-            cp.cumsum(x, axis=1)
+    def test_nd_cumsum(self) -> None:
+        """Test that cumsum works correctly for ND arrays."""
+        # Test 3D array
+        x = cp.Variable((2, 3, 4))
+        x_val = np.arange(24).reshape((2, 3, 4)).astype(float)
+
+        for axis in [0, 1, 2, -1, -2, -3, None]:
+            expr = cp.cumsum(x, axis=axis)
+            expected = np.cumsum(x_val, axis=axis)
+            prob = cp.Problem(cp.Minimize(0), [x == x_val, expr == expected])
+            prob.solve()
+            assert expr.value is not None
+            assert np.allclose(expr.value, expected), f"Failed for axis={axis}"
+
+        # Test 4D array
+        y = cp.Variable((2, 3, 4, 2))
+        y_val = np.arange(48).reshape((2, 3, 4, 2)).astype(float)
+
+        for axis in range(4):
+            expr = cp.cumsum(y, axis=axis)
+            expected = np.cumsum(y_val, axis=axis)
+            prob = cp.Problem(cp.Minimize(0), [y == y_val, expr == expected])
+            prob.solve()
+            assert expr.value is not None
+            assert np.allclose(expr.value, expected), f"Failed for 4D axis={axis}"
+
+    def test_cumsum_0d_warning(self) -> None:
+        """Test that cumsum on 0D arrays raises FutureWarning."""
+        x = cp.Variable(())
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            expr = cp.cumsum(x)
+            # Check that a FutureWarning was raised
+            assert len(w) == 1
+            assert issubclass(w[0].category, FutureWarning)
+            assert "0-dimensional" in str(w[0].message)
+            assert "1-element array" in str(w[0].message)
+        # Verify the expression still works (returns scalar for now)
+        assert expr.shape == ()
