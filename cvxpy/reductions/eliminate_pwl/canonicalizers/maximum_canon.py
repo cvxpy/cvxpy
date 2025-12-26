@@ -21,11 +21,17 @@ from cvxpy.expressions.variable import Variable
 def maximum_canon(expr, args):
     shape = expr.shape
     t = Variable(shape)
-    
+
+    # for DNLP we must initialize the new variable (DNLP guarantees that 
+    # x.value will be set when this function is called)
+    if expr.value is not None:
+        t.value = expr.value
+
     if expr.is_nonneg():
         t = nonneg_wrap(t)
     if expr.is_nonpos():
         t = nonpos_wrap(t)
     
     constraints = [t >= elem for elem in args]
+
     return t, constraints
