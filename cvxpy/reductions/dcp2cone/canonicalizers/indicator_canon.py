@@ -15,7 +15,8 @@ limitations under the License.
 """
 
 from cvxpy.expressions.constants import Constant
+from cvxpy.utilities.solver_context import SolverInfo
 
 
-def indicator_canon(expr, args, solver_context=None):
+def indicator_canon(expr, args, solver_context: SolverInfo | None = None):
     return Constant(0), args

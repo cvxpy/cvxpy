@@ -26,9 +26,10 @@ from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.eliminate_pwl.canonicalizers.abs_canon import abs_canon
 from cvxpy.utilities.power_tools import gm_constrs
+from cvxpy.utilities.solver_context import SolverInfo
 
 
-def pnorm_canon(expr, args, solver_context=None):
+def pnorm_canon(expr, args, solver_context: SolverInfo | None = None):
     x = args[0]
     p = expr.p
     axis = expr.axis

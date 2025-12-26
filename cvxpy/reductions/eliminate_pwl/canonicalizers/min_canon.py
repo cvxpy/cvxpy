@@ -16,9 +16,10 @@ limitations under the License.
 
 from cvxpy.atoms.max import max
 from cvxpy.reductions.eliminate_pwl.canonicalizers.max_canon import max_canon
+from cvxpy.utilities.solver_context import SolverInfo
 
 
-def min_canon(expr, args, solver_context=None):
+def min_canon(expr, args, solver_context: SolverInfo | None = None):
     axis = expr.axis
     keepdims = expr.keepdims
     del expr

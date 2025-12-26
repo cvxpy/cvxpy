@@ -19,9 +19,10 @@ import numpy as np
 from cvxpy.constraints.exponential import ExpCone
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variable import Variable
+from cvxpy.utilities.solver_context import SolverInfo
 
 
-def entr_canon(expr, args, solver_context=None):
+def entr_canon(expr, args, solver_context: SolverInfo | None = None):
     x = args[0]
     shape = expr.shape
     t = Variable(shape)

@@ -20,9 +20,12 @@ from cvxpy.atoms.affine.bmat import bmat
 from cvxpy.atoms.affine.trace import trace
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions.variable import Variable
+from cvxpy.utilities.solver_context import SolverInfo
 
 
-def normNuc_canon(expr, args, solver_context=None) -> Tuple[float, List[Constraint]]:
+def normNuc_canon(
+    expr, args, solver_context: SolverInfo | None = None
+) -> Tuple[float, List[Constraint]]:
     A = args[0]
     m, n = A.shape
     # Create the equivalent problem:

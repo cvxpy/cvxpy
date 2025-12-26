@@ -20,9 +20,10 @@ from cvxpy.expressions.constants import Constant
 from cvxpy.reductions.dcp2cone.canonicalizers.quad_over_lin_canon import (
     quad_over_lin_canon,
 )
+from cvxpy.utilities.solver_context import SolverInfo
 
 
-def quad_form_canon(expr, args, solver_context=None):
+def quad_form_canon(expr, args, solver_context: SolverInfo | None = None):
     # TODO this doesn't work with parameters!
     scale, M1, M2 = decomp_quad(args[1].value)
     # Special case where P == 0.

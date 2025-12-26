@@ -19,9 +19,10 @@ import numpy as np
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.dcp2cone.canonicalizers.exp_canon import exp_canon
+from cvxpy.utilities.solver_context import SolverInfo
 
 
-def logistic_canon(expr, args, solver_context=None):
+def logistic_canon(expr, args, solver_context: SolverInfo | None = None):
     x = args[0]
     shape = expr.shape
     # log(1 + exp(x)) <= t <=> exp(-t) + exp(x - t) <= 1

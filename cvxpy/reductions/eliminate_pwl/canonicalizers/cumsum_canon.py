@@ -17,9 +17,10 @@ from numpy.lib.array_utils import normalize_axis_index
 
 from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.expressions.variable import Variable
+from cvxpy.utilities.solver_context import SolverInfo
 
 
-def cumsum_canon(expr, args, solver_context=None):
+def cumsum_canon(expr, args, solver_context: SolverInfo | None = None):
     """Cumulative sum."""
     X = args[0]
     axis = expr.axis

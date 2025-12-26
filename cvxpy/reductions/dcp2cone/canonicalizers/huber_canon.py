@@ -19,9 +19,10 @@ from cvxpy.atoms.elementwise.power import power
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.dcp2cone.canonicalizers.power_canon import power_canon
 from cvxpy.reductions.eliminate_pwl.canonicalizers.abs_canon import abs_canon
+from cvxpy.utilities.solver_context import SolverInfo
 
 
-def huber_canon(expr, args, solver_context=None):
+def huber_canon(expr, args, solver_context: SolverInfo | None = None):
     M = expr.M
     x = args[0]
     shape = expr.shape

@@ -20,9 +20,10 @@ from cvxpy.atoms.affine.binary_operators import outer
 from cvxpy.atoms.affine.sum import sum
 from cvxpy.atoms.affine.vec import vec
 from cvxpy.expressions.variable import Variable
+from cvxpy.utilities.solver_context import SolverInfo
 
 
-def dotsort_canon(expr, args, solver_context=None):
+def dotsort_canon(expr, args, solver_context: SolverInfo | None = None):
     x = args[0]
     w = args[1]
 

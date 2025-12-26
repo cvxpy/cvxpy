@@ -17,9 +17,10 @@ limitations under the License.
 from cvxpy.atoms.affine.hstack import hstack
 from cvxpy.constraints.second_order import SOC
 from cvxpy.expressions.variable import Variable
+from cvxpy.utilities.solver_context import SolverInfo
 
 
-def quad_over_lin_canon(expr, args, solver_context=None):
+def quad_over_lin_canon(expr, args, solver_context: SolverInfo | None = None):
     # quad_over_lin := sum_{ij} X^2_{ij} / y
     x = args[0]
     y = args[1].flatten(order='F')

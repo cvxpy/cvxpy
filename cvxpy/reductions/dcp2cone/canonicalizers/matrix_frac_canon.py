@@ -17,9 +17,10 @@ limitations under the License.
 from cvxpy.atoms import bmat, reshape, trace, upper_tri
 from cvxpy.constraints.psd import PSD
 from cvxpy.expressions.variable import Variable
+from cvxpy.utilities.solver_context import SolverInfo
 
 
-def matrix_frac_canon(expr, args, solver_context=None):
+def matrix_frac_canon(expr, args, solver_context: SolverInfo | None = None):
     X = args[0]  # n by m matrix.
     P = args[1]  # n by n matrix.
 

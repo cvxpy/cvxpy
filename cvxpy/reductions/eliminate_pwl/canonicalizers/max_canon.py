@@ -19,9 +19,10 @@ import numpy as np
 from cvxpy.atoms import promote, reshape
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variable import Variable
+from cvxpy.utilities.solver_context import SolverInfo
 
 
-def max_canon(expr, args, solver_context=None):
+def max_canon(expr, args, solver_context: SolverInfo | None = None):
     x = args[0]
     shape = expr.shape
     axis = expr.axis

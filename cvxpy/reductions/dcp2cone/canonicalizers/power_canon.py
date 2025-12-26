@@ -24,7 +24,7 @@ from cvxpy.utilities.power_tools import gm_constrs, powcone_constrs
 from cvxpy.utilities.solver_context import SolverInfo
 
 
-def power_canon(expr, args, solver_context: SolverInfo = None):
+def power_canon(expr, args, solver_context: SolverInfo | None = None):
     # Decide whether to use approximation based on solver context.
     # We approximate if the solver does not support power cones.
 

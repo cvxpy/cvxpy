@@ -20,9 +20,10 @@ from cvxpy.atoms import promote
 from cvxpy.constraints.exponential import ExpCone
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variable import Variable
+from cvxpy.utilities.solver_context import SolverInfo
 
 
-def exp_canon(expr, args, solver_context=None):
+def exp_canon(expr, args, solver_context: SolverInfo | None = None):
     x = promote(args[0], expr.shape)
     t = Variable(expr.shape)
     ones = Constant(np.ones(expr.shape))

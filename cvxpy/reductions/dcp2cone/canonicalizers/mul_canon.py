@@ -1,9 +1,10 @@
 from cvxpy.expressions.variable import Variable
 from cvxpy.utilities import scopes
+from cvxpy.utilities.solver_context import SolverInfo
 
 
 # TODO(akshayka): expose as a reduction for user's convenience
-def mul_canon(expr, args, solver_context=None):
+def mul_canon(expr, args, solver_context: SolverInfo | None = None):
     # Only allow param * var (not var * param). Associate right to left.
     # TODO: Only descend if both sides have parameters
     lhs = args[0]

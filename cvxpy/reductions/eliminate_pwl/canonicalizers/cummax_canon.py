@@ -15,9 +15,10 @@ limitations under the License.
 """
 
 from cvxpy.expressions.variable import Variable
+from cvxpy.utilities.solver_context import SolverInfo
 
 
-def cummax_canon(expr, args, solver_context=None):
+def cummax_canon(expr, args, solver_context: SolverInfo | None = None):
     """Cumulative max.
     """
     X = args[0]

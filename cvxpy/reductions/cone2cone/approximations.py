@@ -32,6 +32,7 @@ from cvxpy.reductions.canonicalization import Canonicalization
 from cvxpy.reductions.dcp2cone.canonicalizers.von_neumann_entr_canon import (
     von_neumann_entr_canon,
 )
+from cvxpy.utilities.solver_context import SolverInfo
 
 APPROX_CONES = {
     RelEntrConeQuad: {cp.SOC},
@@ -192,7 +193,7 @@ def von_neumann_entr_QuadApprox(expr, args):
     return epi, cons
 
 
-def von_neumann_entr_canon_dispatch(expr, args, solver_context=None):
+def von_neumann_entr_canon_dispatch(expr, args, solver_context: SolverInfo | None = None):
     if expr.quad_approx:
         return von_neumann_entr_QuadApprox(expr, args)
     else:
