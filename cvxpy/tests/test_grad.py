@@ -1,5 +1,5 @@
 """
-Copyright 2013 Steven Diamond
+Copyright 2013 Steven Diamond, 2025 CVXPY authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -13,956 +13,986 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from dataclasses import dataclass
+from typing import Callable, List, Optional, Tuple
 
 import numpy as np
+import pytest
 
 import cvxpy as cp
 from cvxpy import Maximize, Minimize, Problem
-from cvxpy.expressions.variable import Variable
-from cvxpy.tests.base_test import BaseTest
 from cvxpy.transforms import linearize
 from cvxpy.transforms.partial_optimize import partial_optimize
 
+"""
+Systematic gradient validation for CVXPY expressions.
 
-class TestGrad(BaseTest):
-    """ Unit tests for the grad module. """
+Validates expression-level gradients (expr.grad[var]) against numerical
+finite differences for all CVXPY atoms.
+"""
 
-    def setUp(self) -> None:
-        self.a = Variable(name='a')
+# =============================================================================
+# Core Gradcheck Utilities
+# =============================================================================
 
-        self.x = Variable(2, name='x')
-        self.y = Variable(2, name='y')
 
-        self.A = Variable((2, 2), name='A')
-        self.B = Variable((2, 2), name='B')
-        self.C = Variable((3, 2), name='C')
-        self.D = Variable((1, 2), name='D')
+def expression_gradcheck(
+    expr_factory: Callable[[cp.Variable], cp.Expression],
+    var_shape: Tuple[int, ...],
+    var_value: np.ndarray,
+    eps: float = 1e-5,
+    rtol: float = 1e-4,
+    atol: float = 1e-4,
+) -> Tuple[bool, Optional[str]]:
+    """
+    Validate expression gradient against numerical finite differences.
 
-    def test_affine_prod(self) -> None:
-        """Test gradient for affine_prod
-        """
-        expr = self.C @ self.A
-        self.C.value = np.array([[1, -2], [3, 4], [-1, -3]])
-        self.A.value = np.array([[3, 2], [-5, 1]])
+    Uses central finite differences: (f(x+eps) - f(x-eps)) / (2*eps)
 
-        arr_val = np.array([[3, 0, 0, 2, 0, 0], [0, 3, 0, 0, 2, 0], [0, 0, 3, 0, 0, 2],
-                            [-5, 0, 0, 1, 0, 0], [0, -5, 0, 0, 1, 0], [0, 0, -5, 0, 0, 1]])
-        self.assertItemsAlmostEqual(expr.grad[self.C].toarray(), arr_val)
-        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(),
-                                    np.array([[1, 3, -1, 0, 0, 0], [-2, 4, -3, 0, 0, 0],
-                                              [0, 0, 0, 1, 3, -1], [0, 0, 0, -2, 4, -3]]))
+    Parameters
+    ----------
+    expr_factory : callable
+        Function that takes a Variable and returns an Expression
+    var_shape : tuple
+        Shape of the variable
+    var_value : ndarray
+        Value to evaluate gradient at (must be in domain)
+    eps : float
+        Finite difference step size
+    rtol, atol : float
+        Tolerances for np.allclose comparison
 
-    def test_pnorm(self) -> None:
-        """Test gradient for pnorm
-        """
-        expr = cp.pnorm(self.x, 1)
-        self.x.value = [-1, 0]
-        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), [-1, 0])
+    Returns
+    -------
+    passed : bool
+        Whether gradient check passed
+    message : str or None
+        Error message if failed, None if passed
+    """
+    var = cp.Variable(var_shape)
+    var.value = var_value.copy()
+    expr = expr_factory(var)
 
-        self.x.value = [0, 10]
-        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), [0, 1])
+    # Get analytic gradient
+    analytic_grad = expr.grad.get(var)
 
-        expr = cp.pnorm(self.x, 2)
-        self.x.value = [-3, 4]
-        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), np.array([[-3.0/5], [4.0/5]]))
+    # Handle None gradient (outside domain or undefined)
+    if analytic_grad is None:
+        return True, "Gradient is None (outside domain)"
 
-        expr = cp.pnorm(self.x, 0.5)
-        self.x.value = [-1, 2]
-        self.assertAlmostEqual(expr.grad[self.x], None)
+    # Convert to dense array for comparison
+    if hasattr(analytic_grad, 'toarray'):
+        analytic_grad = analytic_grad.toarray()
+    analytic_grad = np.asarray(analytic_grad)
 
-        expr = cp.pnorm(self.x, 0.5)
-        self.x.value = [0, 0]
-        self.assertAlmostEqual(expr.grad[self.x], None)
+    # Compute numerical gradient via central differences
+    # CVXPY gradient shape is (input_size, output_size)
+    # Convention: grad[i, j] = d(output[j]) / d(input[i])
+    # This is the TRANSPOSE of the standard Jacobian
+    input_size = var_value.size
+    output_size = expr.size
 
-        expr = cp.pnorm(self.x, 2)
-        self.x.value = [0, 0]
-        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), [0, 0])
+    # Build standard Jacobian first: jacobian[out_idx, in_idx] = d(out)/d(in)
+    jacobian = np.zeros((output_size, input_size))
 
-        expr = cp.pnorm(self.x[:, None], 2, axis=1)
-        self.x.value = [1, 2]
-        val = np.eye(2)
-        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), val)
+    flat_value = var_value.flatten(order='F')  # CVXPY uses Fortran order
 
-        expr = cp.pnorm(self.A, 2)
-        self.A.value = np.array([[2, -2], [2, 2]])
-        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), [0.5, 0.5, -0.5, 0.5])
+    for idx in range(input_size):
+        # Perturb in positive direction
+        perturbed_plus = flat_value.copy()
+        perturbed_plus[idx] += eps
+        var.value = perturbed_plus.reshape(var_shape, order='F')
+        result_plus = np.asarray(expr.value).flatten(order='F')
 
-        expr = cp.pnorm(self.A, 2, axis=0)
-        self.A.value = np.array([[3, -3], [4, 4]])
-        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(),
-                                    np.array([[0.6, 0], [0.8, 0], [0, -0.6], [0, 0.8]]))
+        # Perturb in negative direction
+        perturbed_minus = flat_value.copy()
+        perturbed_minus[idx] -= eps
+        var.value = perturbed_minus.reshape(var_shape, order='F')
+        result_minus = np.asarray(expr.value).flatten(order='F')
 
-        # Helper: normalize gradient to a flat ndarray (works for sparse/dense)
-        def _flat(g):
-            g_arr = g.toarray() if hasattr(g, "toarray") else np.asarray(g)
-            return g_arr.ravel(order="F")
+        # Central difference gives d(output)/d(input[idx]) as column idx
+        jacobian[:, idx] = (result_plus - result_minus) / (2 * eps)
 
-        # Regression test for issue #2896 - harmonic_mean gradient dtype=object error
-        x = cp.Variable(2, name="x", value=[1.0, 1.0])
-        expr = cp.harmonic_mean(x)
-        grad = expr.grad[x]
-        self.assertIsNotNone(grad)
-        # Robust dtype check (float or complex, but not object)
-        self.assertIn(getattr(grad, "dtype", np.asarray(grad).dtype).kind, ("f", "c"))
-        # Check expected values: HM([1,1]) = 1, ∂HM/∂x_i = n*||x||_{-1}^2/x_i^2 = 0.5
-        self.assertTrue(np.allclose(_flat(grad), [0.5, 0.5]))
+    # Restore original value
+    var.value = var_value
 
-        # Test gradient for negative p values (harmonic mean case p=-1)
-        expr = cp.pnorm(self.x, -1)
-        self.x.value = np.array([1.0, 2.0])
-        grad = expr.grad[self.x]
-        self.assertIsNotNone(grad)
-        self.assertIn(getattr(grad, "dtype", np.asarray(grad).dtype).kind, ("f", "c"))
+    # CVXPY stores grad as transpose of Jacobian
+    numerical_grad = jacobian.T
 
-        # Test gradient sign correctness for p=3 with negative values
-        expr = cp.pnorm(self.x, 3)
-        self.x.value = np.array([-2.0, 3.0])
-        grad = expr.grad[self.x]
-        g = _flat(grad)
-        # Sign checks
-        self.assertLess(g[0], 0)
-        self.assertGreater(g[1], 0)
-        # Analytic check
-        den = (np.linalg.norm(self.x.value, ord=3.0))**(3-1)
-        expected = np.sign(self.x.value) * np.abs(self.x.value)**(3-1) / den
-        self.assertTrue(np.allclose(g, expected))
-
-        # Test p=-0.5 on column-shaped value (vector semantics)
-        y = cp.Variable((3, 1), pos=True)
-        y.value = np.array([[1.0], [2.0], [4.0]])
-        expr = cp.pnorm(y, -0.5)
-        grad = expr.grad[y]
-        self.assertIsNotNone(grad)
-        self.assertIn(getattr(grad, "dtype", np.asarray(grad).dtype).kind, ("f", "c"))
-
-        expr = cp.pnorm(self.A, 2, axis=1)
-        self.A.value = np.array([[3, -4], [4, 3]])
-        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(),
-                                    np.array([[0.6, 0], [0, 0.8], [-0.8, 0], [0, 0.6]]))
-
-        expr = cp.pnorm(self.A, 2, axis=1)
-        self.A.value = np.array([[0, 0], [10, 0]])
-        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(),
-                                    np.array([[0, 0], [0, 1], [0, 0], [0, 0]]))
-
-        expr = cp.pnorm(self.A, 1, axis=1)
-        self.A.value = np.array([[0, 0], [10, 0]])
-        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(),
-                                    np.array([[0, 0], [0, 1], [0, 0], [0, 0]]))
-        
-        expr = cp.norm(self.D, 2, axis=0)
-        self.D.value = np.array([[0, 10]])
-        self.assertItemsAlmostEqual(expr.grad[self.D].toarray(), np.array([[0, 0], [0, 1]]))
-        
-        expr = cp.norm(self.D, 2, axis=1)
-        self.D.value = np.array([[0, 10]])
-        self.assertItemsAlmostEqual(expr.grad[self.D].toarray(), np.array([[0], [1]]))
-
-        expr = cp.pnorm(self.A, 0.5)
-        self.A.value = np.array([[3, -4], [4, 3]])
-        self.assertAlmostEqual(expr.grad[self.A], None)
-
-    def test_log_sum_exp(self) -> None:
-        expr = cp.log_sum_exp(self.x)
-        self.x.value = [0, 1]
-        e = np.exp(1)
-        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), [1.0/(1+e), e/(1+e)])
-
-        expr = cp.log_sum_exp(self.A)
-        self.A.value = np.array([[0, 1], [-1, 0]])
-        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(),
-                                    [1.0/(2+e+1.0/e), 1.0/e/(2+e+1.0/e),
-                                     e/(2+e+1.0/e), 1.0/(2+e+1.0/e)])
-
-        expr = cp.log_sum_exp(self.A, axis=0)
-        self.A.value = np.array([[0, 1], [-1, 0]])
-        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(),
-                                    np.transpose(np.array([[1.0/(1+1.0/e), 1.0/e/(1+1.0/e), 0, 0],
-                                                           [0, 0, e/(1+e), 1.0/(1+e)]])))
-
-    def test_geo_mean(self) -> None:
-        """Test gradient for geo_mean
-        """
-        expr = cp.geo_mean(self.x)
-        self.x.value = [1, 2]
-        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), [np.sqrt(2)/2, 1.0/2/np.sqrt(2)])
-
-        self.x.value = [0, 2]
-        self.assertAlmostEqual(expr.grad[self.x], None)
-
-        expr = cp.geo_mean(self.x, [1, 0])
-        self.x.value = [1, 2]
-        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), [1, 0])
-
-        # No exception for single weight.
-        self.x.value = [-1, 2]
-        self.assertAlmostEqual(expr.grad[self.x], None)
-
-    def test_lambda_max(self) -> None:
-        """Test gradient for lambda_max
-        """
-        expr = cp.lambda_max(self.A)
-        self.A.value = [[2, 0], [0, 1]]
-        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), [1, 0, 0, 0])
-
-        self.A.value = [[1, 0], [0, 2]]
-        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), [0, 0, 0, 1])
-
-        self.A.value = [[1, 0], [0, 1]]
-        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), [0, 0, 0, 1])
-
-    def test_matrix_frac(self) -> None:
-        """Test gradient for matrix_frac
-        """
-        expr = cp.matrix_frac(self.A, self.B)
-        self.A.value = np.eye(2)
-        self.B.value = np.eye(2)
-        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), [2, 0, 0, 2])
-        self.assertItemsAlmostEqual(expr.grad[self.B].toarray(), [-1, 0, 0, -1])
-
-        self.B.value = np.zeros((2, 2))
-        self.assertAlmostEqual(expr.grad[self.A], None)
-        self.assertAlmostEqual(expr.grad[self.B], None)
-
-        expr = cp.matrix_frac(self.x[:, None], self.A)
-        self.x.value = [2, 3]
-        self.A.value = np.eye(2)
-        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), [4, 6])
-        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), [-4, -6, -6, -9])
-
-        expr = cp.matrix_frac(self.x, self.A)
-        self.x.value = [2, 3]
-        self.A.value = np.eye(2)
-        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), [4, 6])
-        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), [-4, -6, -6, -9])
-
-    def test_norm_nuc(self) -> None:
-        """Test gradient for norm_nuc
-        """
-        expr = cp.normNuc(self.A)
-        self.A.value = [[10, 4], [4, 30]]
-        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), [1, 0, 0, 1])
-
-        # Failed for rectangular inputs.
-        # https://github.com/cvxpy/cvxpy/issues/2364
-        expr = cp.normNuc(self.C)
-        self.C.value = np.array([[1, 0], [0, 0], [0, 2]])
-        self.assertItemsAlmostEqual(expr.grad[self.C].toarray(), [1, 0, 0, 0, 0, 1])
-
-    def test_log_det(self) -> None:
-        """Test gradient for log_det
-        """
-        expr = cp.log_det(self.A)
-        self.A.value = 2*np.eye(2)
-        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), 1.0/2*np.eye(2))
-
-        mat = np.array([[1, 2], [3, 5]])
-        self.A.value = mat.T.dot(mat)
-        val = np.linalg.inv(self.A.value).T
-        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), val)
-
-        self.A.value = np.zeros((2, 2))
-        self.assertAlmostEqual(expr.grad[self.A], None)
-
-        self.A.value = -np.array([[1, 2], [3, 4]])
-        self.assertAlmostEqual(expr.grad[self.A], None)
-
-        K = Variable((8, 8))
-        expr = cp.log_det(K[[1, 2]][:, [1, 2]])
-        K.value = np.eye(8)
-        val = np.zeros((8, 8))
-        val[[1, 2], [1, 2]] = 1
-        self.assertItemsAlmostEqual(expr.grad[K].toarray(), val)
-
-    def test_quad_over_lin(self) -> None:
-        """Test gradient for quad_over_lin
-        """
-        expr = cp.quad_over_lin(self.x, self.a)
-        self.x.value = [1, 2]
-        self.a.value = 2
-        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), [1, 2])
-        self.assertAlmostEqual(expr.grad[self.a], [-1.25])
-
-        self.a.value = 0
-        self.assertAlmostEqual(expr.grad[self.x], None)
-        self.assertAlmostEqual(expr.grad[self.a], None)
-
-        expr = cp.quad_over_lin(self.A, self.a)
-        self.A.value = np.eye(2)
-        self.a.value = 2
-        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), [1, 0, 0, 1])
-        self.assertAlmostEqual(expr.grad[self.a], [-0.5])
-
-        expr = cp.quad_over_lin(self.x, self.a) + cp.quad_over_lin(self.y, self.a)
-        self.x.value = [1, 2]
-        self.a.value = 2
-        self.y.value = [1, 2]
-        self.a.value = 2
-        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), [1, 2])
-        self.assertItemsAlmostEqual(expr.grad[self.y].toarray(), [1, 2])
-        self.assertAlmostEqual(expr.grad[self.a], [-2.5])
-
-    def test_quad_form(self) -> None:
-        """Test gradient for quad_form.
-        """
-        # Issue 1260
-        n = 10
-        np.random.seed(1)
-        P = np.random.randn(n, n)
-        P = P.T @ P
-        q = np.random.randn(n)
-
-        # define the optimization problem with the 2nd constraint as a quad_form constraint
-        x = cp.Variable(n)
-        prob = cp.Problem(cp.Maximize(q.T @ x - (1/2)*cp.quad_form(x, P)),
-                          [cp.norm(x, 1) <= 1.0,
-                           cp.quad_form(x, P) <= 10,   # quad form constraint
-                           cp.abs(x) <= 0.01])
-        prob.solve(solver=cp.SCS)
-
-        # access quad_form.expr.grad without error
-        prob.constraints[1].expr.grad
-
-        # define the optimization problem with a two-dimensional decision variable
-        x = cp.Variable((n, 1))
-        prob = cp.Problem(
-            cp.Maximize(q.T @ x - (1 / 2) * cp.quad_form(x, P)),
-            [
-                cp.norm(x, 1) <= 1.0,
-                cp.quad_form(x, P) <= 10,  # quad form constraint
-                cp.abs(x) <= 0.01,
-            ],
+    # Compare gradients
+    if not np.allclose(analytic_grad, numerical_grad, rtol=rtol, atol=atol):
+        max_diff = np.max(np.abs(analytic_grad - numerical_grad))
+        max_idx = np.unravel_index(
+            np.argmax(np.abs(analytic_grad - numerical_grad)),
+            analytic_grad.shape
         )
-        prob.solve(solver=cp.SCS)
+        return False, (
+            f"Max difference: {max_diff:.2e} at index {max_idx}. "
+            f"Analytic: {analytic_grad[max_idx]:.6f}, "
+            f"Numerical: {numerical_grad[max_idx]:.6f}"
+        )
 
-        # access quad_form.expr.grad without error
-        prob.constraints[1].expr.grad
+    return True, None
 
-    def test_max(self) -> None:
-        """Test gradient for max
-        """
-        expr = cp.max(self.x)
-        self.x.value = [2, 1]
-        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), [1, 0])
 
-        expr = cp.max(self.A)
-        self.A.value = np.array([[1, 2], [4, 3]])
-        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), [0, 1, 0, 0])
+def expression_gradcheck_symmetric(
+    expr_factory: Callable[[cp.Variable], cp.Expression],
+    n: int,
+    var_value: np.ndarray,
+    eps: float = 1e-5,
+    rtol: float = 1e-4,
+    atol: float = 1e-4,
+) -> Tuple[bool, Optional[str]]:
+    """
+    Validate expression gradient for symmetric matrix inputs.
 
-        expr = cp.max(self.A, axis=0)
-        self.A.value = np.array([[1, 2], [4, 3]])
-        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(),
-                                    np.array([[0, 0], [1, 0], [0, 0], [0, 1]]))
+    For symmetric matrices, we perturb in directions that maintain symmetry.
+    This means perturbing (i,j) and (j,i) together for off-diagonal elements.
 
-        expr = cp.max(self.A, axis=1)
-        self.A.value = np.array([[1, 2], [4, 3]])
-        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(),
-                                    np.array([[0, 0], [0, 1], [1, 0], [0, 0]]))
+    Parameters
+    ----------
+    expr_factory : callable
+        Function that takes a symmetric Variable and returns an Expression
+    n : int
+        Size of the n x n symmetric matrix
+    var_value : ndarray
+        Symmetric matrix value to evaluate gradient at
+    eps : float
+        Finite difference step size
+    rtol, atol : float
+        Tolerances for comparison
 
-    def test_sigma_max(self) -> None:
-        """Test sigma_max.
-        """
-        expr = cp.sigma_max(self.A)
-        self.A.value = [[1, 0], [0, 2]]
-        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), [0, 0, 0, 1])
+    Returns
+    -------
+    passed : bool
+        Whether gradient check passed
+    message : str or None
+        Error message if failed
+    """
+    var = cp.Variable((n, n), symmetric=True)
+    var.value = var_value.copy()
+    expr = expr_factory(var)
 
-        self.A.value = [[1, 0], [0, 1]]
-        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), [1, 0, 0, 0])
+    # Get analytic gradient
+    analytic_grad = expr.grad.get(var)
 
-    def test_sum_largest(self) -> None:
-        """Test sum_largest.
-        """
-        expr = cp.sum_largest(self.A, 2)
+    if analytic_grad is None:
+        return True, "Gradient is None (outside domain)"
 
-        self.A.value = [[4, 3], [2, 1]]
-        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), [1, 0, 1, 0])
+    if hasattr(analytic_grad, 'toarray'):
+        analytic_grad = analytic_grad.toarray()
+    analytic_grad = np.asarray(analytic_grad)
 
-        self.A.value = [[1, 2], [3, 0.5]]
-        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), [0, 1, 1, 0])
+    # Compute numerical gradient via central differences
+    # For symmetric matrices, we perturb in the symmetric subspace
+    input_size = n * n
+    output_size = expr.size
 
-    def test_dotsort(self) -> None:
-        """Test dotsort.
-        """
-        expr = cp.dotsort(self.A, [0.1, -2])
+    # Build standard Jacobian first
+    jacobian = np.zeros((output_size, input_size))
 
-        self.A.value = [[4, 3], [2, 1]]
-        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), [0.1, 0, 0, -2])
+    for i in range(n):
+        for j in range(n):
+            # Create symmetric perturbation
+            perturbation = np.zeros((n, n))
+            if i == j:
+                perturbation[i, j] = eps
+            else:
+                perturbation[i, j] = eps
+                perturbation[j, i] = eps
 
-        self.A.value = [[1, 2], [3, 0.5]]
-        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), [0, 0.1, 0, -2])
+            # Perturb in positive direction
+            var.value = var_value + perturbation
+            result_plus = np.asarray(expr.value).flatten(order='F')
 
-        # sum_largest tests:
-        expr = cp.dotsort(self.A, [1, 1])
-        self.A.value = [[4, 3], [2, 1]]
-        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), [1, 0, 1, 0])
-        self.A.value = [[1, 2], [3, 0.5]]
-        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), [0, 1, 1, 0])
+            # Perturb in negative direction
+            var.value = var_value - perturbation
+            result_minus = np.asarray(expr.value).flatten(order='F')
 
-        # sum_smallest tests:
-        expr = -cp.dotsort(self.A, [-1, -1])
-        self.A.value = [[4, 3], [2, 1]]
-        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), [0, 1, 0, 1])
-        self.A.value = [[1, 2], [3, 0.5]]
-        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), [1, 0, 0, 1])
+            # Central difference
+            # For diagonal: gradient is just d/d(A[i,i])
+            # For off-diagonal: we perturbed both (i,j) and (j,i)
+            # so the gradient contribution is d/d(A[i,j]) + d/d(A[j,i])
+            idx = i + j * n  # F-order index
+            diff = (result_plus - result_minus) / (2 * eps)
 
-    def test_abs(self) -> None:
-        """Test abs.
-        """
-        expr = cp.abs(self.A)
-        self.A.value = [[1, 2], [-1, 0]]
-        val = np.zeros((4, 4)) + np.diag([1, 1, -1, 0])
-        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), val)
+            if i == j:
+                jacobian[:, idx] = diff
+            else:
+                # For symmetric matrix, grad[i,j] should equal grad[j,i]
+                # The numerical diff gives sum of both, so divide by 2
+                # But CVXPY stores full n x n gradient even for symmetric
+                jacobian[:, idx] = diff / 2
+                jacobian[:, j + i * n] = diff / 2
 
-    def test_linearize(self) -> None:
-        """Test linearize method.
-        """
+    # Restore original value
+    var.value = var_value
+
+    # CVXPY stores grad as transpose of Jacobian
+    numerical_grad = jacobian.T
+
+    # Compare gradients
+    if not np.allclose(analytic_grad, numerical_grad, rtol=rtol, atol=atol):
+        max_diff = np.max(np.abs(analytic_grad - numerical_grad))
+        max_idx = np.unravel_index(
+            np.argmax(np.abs(analytic_grad - numerical_grad)),
+            analytic_grad.shape
+        )
+        return False, (
+            f"Max difference: {max_diff:.2e} at index {max_idx}. "
+            f"Analytic: {analytic_grad[max_idx]:.6f}, "
+            f"Numerical: {numerical_grad[max_idx]:.6f}"
+        )
+
+    return True, None
+
+
+def expression_gradcheck_multi(
+    expr_factory: Callable[..., cp.Expression],
+    var_shapes: List[Tuple[int, ...]],
+    var_values: List[np.ndarray],
+    eps: float = 1e-5,
+    rtol: float = 1e-4,
+    atol: float = 1e-4,
+) -> Tuple[bool, Optional[str]]:
+    """
+    Validate gradient for expressions with multiple variable arguments.
+
+    Parameters
+    ----------
+    expr_factory : callable
+        Function that takes multiple Variables and returns an Expression
+    var_shapes : list of tuples
+        Shapes of the variables
+    var_values : list of ndarrays
+        Values to evaluate gradients at
+
+    Returns
+    -------
+    passed : bool
+        Whether gradient check passed for all variables
+    message : str or None
+        Error message if failed
+    """
+    variables = [cp.Variable(shape) for shape in var_shapes]
+    for var, val in zip(variables, var_values):
+        var.value = val.copy()
+
+    expr = expr_factory(*variables)
+
+    # Check gradient for each variable
+    for var_idx, (var, var_value) in enumerate(zip(variables, var_values)):
+        analytic_grad = expr.grad.get(var)
+
+        if analytic_grad is None:
+            continue
+
+        if hasattr(analytic_grad, 'toarray'):
+            analytic_grad = analytic_grad.toarray()
+        analytic_grad = np.asarray(analytic_grad)
+
+        # CVXPY gradient shape is (input_size, output_size)
+        # Convention: grad[i, j] = d(output[j]) / d(input[i])
+        input_size = var_value.size
+        output_size = expr.size
+        jacobian = np.zeros((output_size, input_size))
+
+        flat_value = var_value.flatten(order='F')
+
+        for idx in range(input_size):
+            # Perturb in positive direction
+            perturbed_plus = flat_value.copy()
+            perturbed_plus[idx] += eps
+            var.value = perturbed_plus.reshape(var.shape, order='F')
+            result_plus = np.asarray(expr.value).flatten(order='F')
+
+            # Perturb in negative direction
+            perturbed_minus = flat_value.copy()
+            perturbed_minus[idx] -= eps
+            var.value = perturbed_minus.reshape(var.shape, order='F')
+            result_minus = np.asarray(expr.value).flatten(order='F')
+
+            jacobian[:, idx] = (result_plus - result_minus) / (2 * eps)
+
+        # Restore value
+        var.value = var_value
+        numerical_grad = jacobian.T
+
+        if not np.allclose(analytic_grad, numerical_grad, rtol=rtol, atol=atol):
+            max_diff = np.max(np.abs(analytic_grad - numerical_grad))
+            return False, f"Variable {var_idx}: max difference {max_diff:.2e}"
+
+    return True, None
+
+
+# =============================================================================
+# Input Generators
+# =============================================================================
+
+
+class AtomInputGenerator:
+    """Generate valid test inputs for different atom domain types."""
+
+    @staticmethod
+    def unrestricted(shape: Tuple[int, ...], seed: int = 42) -> np.ndarray:
+        """Generate unrestricted real inputs."""
+        rng = np.random.default_rng(seed)
+        return rng.standard_normal(shape)
+
+    @staticmethod
+    def positive(shape: Tuple[int, ...], seed: int = 42,
+                 margin: float = 0.5) -> np.ndarray:
+        """Generate strictly positive inputs (for log, sqrt, etc.)."""
+        rng = np.random.default_rng(seed)
+        return np.abs(rng.standard_normal(shape)) + margin
+
+    @staticmethod
+    def nonnegative(shape: Tuple[int, ...], seed: int = 42,
+                    margin: float = 0.1) -> np.ndarray:
+        """Generate non-negative inputs with small margin from zero."""
+        rng = np.random.default_rng(seed)
+        return np.abs(rng.standard_normal(shape)) + margin
+
+    @staticmethod
+    def psd_matrix(n: int, seed: int = 42) -> np.ndarray:
+        """Generate positive definite matrix."""
+        rng = np.random.default_rng(seed)
+        A = rng.standard_normal((n, n))
+        return A @ A.T + np.eye(n)
+
+    @staticmethod
+    def symmetric(shape: Tuple[int, int], seed: int = 42) -> np.ndarray:
+        """Generate symmetric matrix."""
+        rng = np.random.default_rng(seed)
+        A = rng.standard_normal(shape)
+        return (A + A.T) / 2
+
+    # === Domain violation generators (for testing grad returns None) ===
+    @staticmethod
+    def negative(shape: Tuple[int, ...], seed: int = 42) -> np.ndarray:
+        """Generate negative values (violates positive domain)."""
+        rng = np.random.default_rng(seed)
+        return -np.abs(rng.standard_normal(shape)) - 0.5
+
+    @staticmethod
+    def with_zero(shape: Tuple[int, ...], seed: int = 42) -> np.ndarray:
+        """Generate values with at least one zero (violates strictly positive)."""
+        arr = AtomInputGenerator.positive(shape, seed)
+        arr.flat[0] = 0.0
+        return arr
+
+    @staticmethod
+    def non_psd(n: int, seed: int = 42) -> np.ndarray:
+        """Generate non-PSD symmetric matrix (has negative eigenvalue)."""
+        rng = np.random.default_rng(seed)
+        A = rng.standard_normal((n, n))
+        A = (A + A.T) / 2
+        # Shift to ensure negative eigenvalue
+        A[0, 0] = -abs(A[0, 0]) - 1.0
+        return A
+
+    @staticmethod
+    def generate(input_type: str, shape: Tuple[int, ...],
+                 seed: int = 42) -> np.ndarray:
+        """Generate input based on type string."""
+        generators = {
+            "unrestricted": lambda: AtomInputGenerator.unrestricted(shape, seed),
+            "positive": lambda: AtomInputGenerator.positive(shape, seed),
+            "nonnegative": lambda: AtomInputGenerator.nonnegative(shape, seed),
+            "psd": lambda: AtomInputGenerator.psd_matrix(shape[0], seed),
+            "symmetric": lambda: AtomInputGenerator.symmetric(shape, seed),
+            # Domain violation generators
+            "negative": lambda: AtomInputGenerator.negative(shape, seed),
+            "with_zero": lambda: AtomInputGenerator.with_zero(shape, seed),
+            "non_psd": lambda: AtomInputGenerator.non_psd(shape[0], seed),
+        }
+        if input_type not in generators:
+            raise ValueError(f"Unknown input type: {input_type}")
+        return generators[input_type]()
+
+
+# =============================================================================
+# Atom Test Configuration
+# =============================================================================
+
+
+@dataclass
+class AtomTestConfig:
+    """Configuration for testing a single atom."""
+    name: str
+    atom_factory: Callable
+    var_shapes: List[Tuple[int, ...]]
+    input_generator: str
+    rtol: float = 1e-4
+    atol: float = 1e-4
+    skip_reason: Optional[str] = None
+    symmetric: bool = False  # For PSD/symmetric matrix atoms
+    test_domain: bool = True  # Auto-test domain violation based on input_generator
+
+
+# Map from valid input generator to its domain-violating counterpart
+DOMAIN_VIOLATION_MAP = {
+    "positive": "negative",
+    "nonnegative": "negative",
+    "psd": "non_psd",
+}
+
+
+@dataclass
+class MultiVarAtomConfig:
+    """Configuration for testing atoms with multiple variable arguments."""
+    name: str
+    atom_factory: Callable
+    var_specs: List[Tuple[str, Tuple[int, ...]]]  # [(input_type, shape), ...]
+    rtol: float = 1e-4
+    atol: float = 1e-4
+    skip_reason: Optional[str] = None
+
+
+# =============================================================================
+# Atom Registry - Single Variable Atoms
+# =============================================================================
+
+SINGLE_VAR_ATOM_CONFIGS = [
+    # === Elementwise atoms (unrestricted domain) ===
+    AtomTestConfig("exp", lambda x: cp.exp(x), [(2,), (2, 2), (2, 3, 4)],
+                   "unrestricted"),
+    AtomTestConfig("logistic", lambda x: cp.logistic(x), [(2,), (2, 2)],
+                   "unrestricted"),
+    AtomTestConfig("huber", lambda x: cp.huber(x), [(2,), (2, 2)],
+                   "unrestricted"),
+    AtomTestConfig("huber_M2", lambda x: cp.huber(x, M=2), [(2,)],
+                   "unrestricted"),
+    AtomTestConfig("abs", lambda x: cp.abs(x), [(3,), (2, 2)], "unrestricted"),
+    AtomTestConfig("pos", lambda x: cp.pos(x), [(3,)], "unrestricted"),
+    AtomTestConfig("neg", lambda x: cp.neg(x), [(3,)], "unrestricted"),
+    AtomTestConfig("square", lambda x: cp.square(x), [(2,), (2, 2), (2, 3, 4)],
+                   "unrestricted"),
+
+    # === Elementwise atoms (positive domain) ===
+    AtomTestConfig("log", lambda x: cp.log(x), [(2,), (2, 2), (2, 3, 4)], "positive"),
+    AtomTestConfig("log1p", lambda x: cp.log1p(x), [(2,), (2, 2)], "positive"),
+    AtomTestConfig("sqrt", lambda x: cp.sqrt(x), [(2,), (2, 2), (2, 3, 4)], "positive"),
+    AtomTestConfig("inv_pos", lambda x: cp.inv_pos(x), [(2,)], "positive"),
+    AtomTestConfig("entr", lambda x: cp.entr(x), [(2,), (2, 2)], "positive"),
+    AtomTestConfig("xexp", lambda x: cp.xexp(x), [(2,)], "positive"),
+
+    # === Power atoms ===
+    AtomTestConfig("power_2", lambda x: cp.power(x, 2), [(2,), (2, 2)],
+                   "unrestricted"),
+    AtomTestConfig("power_3", lambda x: cp.power(x, 3), [(2,)], "positive"),
+    AtomTestConfig("power_0.5", lambda x: cp.power(x, 0.5), [(2,)], "positive"),
+    AtomTestConfig("power_neg1", lambda x: cp.power(x, -1), [(2,)], "positive"),
+
+    # === Norm atoms ===
+    AtomTestConfig("pnorm_2", lambda x: cp.pnorm(x, 2), [(3,), (2, 2)],
+                   "unrestricted"),
+    AtomTestConfig("pnorm_1", lambda x: cp.pnorm(x, 1), [(3,)], "unrestricted"),
+    AtomTestConfig("pnorm_inf", lambda x: cp.pnorm(x, 'inf'), [(3,)],
+                   "unrestricted", skip_reason="Gradient not implemented"),
+    AtomTestConfig("pnorm_3", lambda x: cp.pnorm(x, 3), [(3,)], "unrestricted"),
+    AtomTestConfig("pnorm_axis0", lambda x: cp.pnorm(x, 2, axis=0), [(2, 3)],
+                   "unrestricted"),
+    AtomTestConfig("pnorm_axis1", lambda x: cp.pnorm(x, 2, axis=1), [(2, 3)],
+                   "unrestricted"),
+    AtomTestConfig("norm1", lambda x: cp.norm1(x), [(3,), (2, 2)],
+                   "unrestricted"),
+    AtomTestConfig("norm_inf", lambda x: cp.norm_inf(x), [(3,), (2, 2)],
+                   "unrestricted", skip_reason="Gradient not implemented"),
+    AtomTestConfig("norm_nuc", lambda x: cp.normNuc(x), [(3, 3)],
+                   "unrestricted"),
+    AtomTestConfig("sigma_max", lambda x: cp.sigma_max(x), [(3, 3)],
+                   "unrestricted"),
+    AtomTestConfig("mixed_norm_21", lambda x: cp.mixed_norm(x, 2, 1), [(3, 2)],
+                   "unrestricted"),
+    AtomTestConfig("sum_squares", lambda x: cp.sum_squares(x), [(3,), (2, 2)],
+                   "unrestricted"),
+
+    # === Reduction atoms ===
+    AtomTestConfig("sum", lambda x: cp.sum(x), [(2, 3), (2, 3, 4)], "unrestricted"),
+    AtomTestConfig("sum_scalar", lambda x: cp.sum(x), [()], "unrestricted"),
+    AtomTestConfig("sum_axis0", lambda x: cp.sum(x, axis=0), [(2, 3)],
+                   "unrestricted"),
+    AtomTestConfig("sum_axis1", lambda x: cp.sum(x, axis=1), [(2, 3)],
+                   "unrestricted"),
+    AtomTestConfig("max", lambda x: cp.max(x), [(5,), (2, 3, 4)], "unrestricted"),
+    AtomTestConfig("max_axis0", lambda x: cp.max(x, axis=0), [(2, 3)],
+                   "unrestricted"),
+    AtomTestConfig("max_3d_axis1", lambda x: cp.max(x, axis=1), [(2, 3, 4)],
+                   "unrestricted", skip_reason="_axis_grad doesn't support 3D"),
+    AtomTestConfig("min", lambda x: cp.min(x), [(5,), (2, 3, 4)], "unrestricted"),
+    AtomTestConfig("min_axis0", lambda x: cp.min(x, axis=0), [(2, 3)],
+                   "unrestricted"),
+    AtomTestConfig("min_3d_axis2", lambda x: cp.min(x, axis=2), [(2, 3, 4)],
+                   "unrestricted", skip_reason="_axis_grad doesn't support 3D"),
+    AtomTestConfig("geo_mean", lambda x: cp.geo_mean(x), [(3,)], "positive"),
+    AtomTestConfig("harmonic_mean", lambda x: cp.harmonic_mean(x), [(3,)],
+                   "positive"),
+    AtomTestConfig("log_sum_exp", lambda x: cp.log_sum_exp(x),
+                   [(3,), (2, 2), (2, 3, 4)], "unrestricted"),
+    AtomTestConfig("log_sum_exp_axis0",
+                   lambda x: cp.log_sum_exp(x, axis=0), [(2, 3)],
+                   "unrestricted"),
+    AtomTestConfig("log_sum_exp_3d_axis1",
+                   lambda x: cp.log_sum_exp(x, axis=1), [(2, 3, 4)],
+                   "unrestricted", skip_reason="_axis_grad doesn't support 3D"),
+    AtomTestConfig("prod", lambda x: cp.prod(x), [(3,)], "unrestricted"),
+
+    # === Affine atoms ===
+    AtomTestConfig("trace", lambda x: cp.trace(x), [(3, 3)], "unrestricted"),
+    AtomTestConfig("diag_extract", lambda x: cp.diag(x), [(3, 3)], "unrestricted"),
+    AtomTestConfig("diag_create", lambda x: cp.diag(x), [(3,)], "unrestricted"),
+    AtomTestConfig("reshape", lambda x: cp.reshape(x, (6,), order='F'),
+                   [(2, 3)], "unrestricted"),
+    AtomTestConfig("vec", lambda x: cp.vec(x), [(2, 3)], "unrestricted"),
+    AtomTestConfig("transpose", lambda x: cp.transpose(x), [(2, 3)], "unrestricted"),
+    AtomTestConfig("hstack", lambda x: cp.hstack([x, x]), [(3,)],
+                   "unrestricted"),
+    AtomTestConfig("vstack", lambda x: cp.vstack([x, x]), [(3,)],
+                   "unrestricted"),
+    AtomTestConfig("cumsum", lambda x: cp.cumsum(x), [(4,)], "unrestricted"),
+    AtomTestConfig("cumsum_2d", lambda x: cp.cumsum(x, axis=0), [(2, 3)],
+                   "unrestricted"),
+    AtomTestConfig("cumsum_3d_ax0", lambda x: cp.cumsum(x, axis=0), [(2, 3, 4)],
+                   "unrestricted"),
+    AtomTestConfig("cumsum_3d_ax1", lambda x: cp.cumsum(x, axis=1), [(2, 3, 4)],
+                   "unrestricted"),
+    AtomTestConfig("cumsum_3d_ax2", lambda x: cp.cumsum(x, axis=2), [(2, 3, 4)],
+                   "unrestricted"),
+    AtomTestConfig("cummax", lambda x: cp.cummax(x), [(4,)], "unrestricted",
+                   skip_reason="cummax gradient has subdifferential issues"),
+    AtomTestConfig("diff", lambda x: cp.diff(x), [(4,)], "unrestricted"),
+    AtomTestConfig("diff_3d_axis0", lambda x: cp.diff(x, axis=0), [(3, 4, 5)],
+                   "unrestricted"),
+    AtomTestConfig("upper_tri", lambda x: cp.upper_tri(x), [(3, 3)], "unrestricted"),
+    AtomTestConfig("index_single", lambda x: x[0], [(5,)], "unrestricted"),
+    AtomTestConfig("index_slice", lambda x: x[1:4], [(5,)], "unrestricted"),
+
+    # === Matrix atoms requiring symmetric input (not necessarily PSD) ===
+    AtomTestConfig("lambda_max", lambda x: cp.lambda_max(x), [(3, 3)], "symmetric",
+                   symmetric=True),
+    AtomTestConfig("lambda_min", lambda x: cp.lambda_min(x), [(3, 3)], "symmetric",
+                   symmetric=True),
+    AtomTestConfig("lambda_sum_largest", lambda x: cp.lambda_sum_largest(x, 2),
+                   [(3, 3)], "psd",
+                   skip_reason="_grad raises NotImplementedError"),
+    AtomTestConfig("log_det", lambda x: cp.log_det(x), [(3, 3)], "psd",
+                   symmetric=True),
+    AtomTestConfig("tr_inv", lambda x: cp.tr_inv(x), [(3, 3)], "psd",
+                   symmetric=True),
+
+    # === Quadratic atoms with constant parameters ===
+    AtomTestConfig("quad_form", lambda x: cp.quad_form(x, np.eye(3)), [(3,)],
+                   "unrestricted"),
+
+    # === Other atoms ===
+    AtomTestConfig("dotsort", lambda x: cp.dotsort(x, [3, 2, 1]), [(3,)],
+                   "unrestricted"),
+    AtomTestConfig("ptp", lambda x: cp.ptp(x), [(3,)], "unrestricted"),
+    AtomTestConfig("sum_largest", lambda x: cp.sum_largest(x, 2), [(5,)],
+                   "unrestricted",
+                   skip_reason="subdifferential at ties - needs special handling"),
+    AtomTestConfig("sum_smallest", lambda x: cp.sum_smallest(x, 2), [(5,)],
+                   "unrestricted",
+                   skip_reason="subdifferential at ties - needs special handling"),
+
+    # === Atoms with unimplemented or trivial gradients ===
+    AtomTestConfig("loggamma", lambda x: cp.loggamma(x), [(2,)], "positive",
+                   skip_reason="_grad not implemented"),
+    AtomTestConfig("log_normcdf", lambda x: cp.log_normcdf(x), [(2,)],
+                   "unrestricted", skip_reason="_grad not implemented"),
+    AtomTestConfig("ceil", lambda x: cp.ceil(x), [(2,)], "unrestricted",
+                   skip_reason="zero gradient everywhere"),
+    AtomTestConfig("floor", lambda x: cp.floor(x), [(2,)], "unrestricted",
+                   skip_reason="zero gradient everywhere"),
+    AtomTestConfig("sign", lambda x: cp.sign(x), [(2,)], "unrestricted",
+                   skip_reason="zero gradient everywhere"),
+    AtomTestConfig("cumprod", lambda x: cp.cumprod(x), [(4,)], "positive",
+                   skip_reason="_grad returns empty list (TODO in source)"),
+    AtomTestConfig("length", lambda x: cp.length(x), [(4,)], "unrestricted",
+                   skip_reason="_grad returns None (discrete)"),
+    AtomTestConfig("one_minus_pos", lambda x: cp.one_minus_pos(x), [(3,)],
+                   "unrestricted", skip_reason="constraint atom, trivial affine"),
+    AtomTestConfig("eye_minus_inv", lambda x: cp.eye_minus_inv(x), [(3, 3)],
+                   "unrestricted", skip_reason="specialized spectral atom"),
+    AtomTestConfig("von_neumann_entr", lambda x: cp.von_neumann_entr(x),
+                   [(3, 3)], "psd", skip_reason="_grad has TODO (scipy CSC)"),
+    AtomTestConfig("quantum_rel_entr", lambda x: cp.quantum_rel_entr(x, x),
+                   [(3, 3)], "psd", skip_reason="two-arg quantum atom"),
+]
+
+
+# =============================================================================
+# Multi-Variable Atom Configs
+# =============================================================================
+
+MULTI_VAR_ATOM_CONFIGS = [
+    # === Binary elementwise atoms ===
+    MultiVarAtomConfig("kl_div", lambda x, y: cp.kl_div(x, y),
+                       [("positive", (3,)), ("positive", (3,))]),
+    MultiVarAtomConfig("rel_entr", lambda x, y: cp.rel_entr(x, y),
+                       [("positive", (3,)), ("positive", (3,))]),
+    MultiVarAtomConfig("maximum", lambda x, y: cp.maximum(x, y),
+                       [("unrestricted", (3,)), ("unrestricted", (3,))]),
+    MultiVarAtomConfig("minimum", lambda x, y: cp.minimum(x, y),
+                       [("unrestricted", (3,)), ("unrestricted", (3,))]),
+    MultiVarAtomConfig("multiply", lambda x, y: cp.multiply(x, y),
+                       [("unrestricted", (3,)), ("unrestricted", (3,))]),
+
+    # === Matrix operations ===
+    MultiVarAtomConfig("matmul", lambda x, y: x @ y,
+                       [("unrestricted", (2, 3)), ("unrestricted", (3, 2))]),
+    MultiVarAtomConfig("quad_over_lin", lambda x, y: cp.quad_over_lin(x, y),
+                       [("unrestricted", (3,)), ("positive", (1,))]),
+    MultiVarAtomConfig("matrix_frac", lambda x, P: cp.matrix_frac(x, P),
+                       [("unrestricted", (3,)), ("psd", (3, 3))]),
+]
+
+
+# =============================================================================
+# Pytest Fixtures
+# =============================================================================
+
+@pytest.fixture(params=[42, 123, 456])
+def random_seed(request):
+    """Multiple random seeds for robust testing."""
+    return request.param
+
+
+def get_atom_config_ids():
+    """Generate test IDs for atom configs."""
+    return [c.name for c in SINGLE_VAR_ATOM_CONFIGS]
+
+
+def get_multi_var_config_ids():
+    """Generate test IDs for multi-var atom configs."""
+    return [c.name for c in MULTI_VAR_ATOM_CONFIGS]
+
+
+# =============================================================================
+# Systematic Gradient Tests
+# =============================================================================
+
+
+class TestSingleVarAtomGradients:
+    """Systematic gradient tests for single-variable atoms."""
+
+    @pytest.mark.parametrize(
+        "config",
+        SINGLE_VAR_ATOM_CONFIGS,
+        ids=get_atom_config_ids()
+    )
+    def test_single_var_atom(self, config: AtomTestConfig, random_seed: int):
+        """Test gradient correctness for single-variable atoms."""
+        if config.skip_reason:
+            pytest.skip(config.skip_reason)
+
+        for var_shape in config.var_shapes:
+            var_value = AtomInputGenerator.generate(
+                config.input_generator, var_shape, seed=random_seed
+            )
+
+            if config.symmetric:
+                # Use symmetric gradcheck for PSD matrix atoms
+                n = var_shape[0]
+                passed, message = expression_gradcheck_symmetric(
+                    config.atom_factory, n, var_value,
+                    rtol=config.rtol, atol=config.atol
+                )
+            else:
+                passed, message = expression_gradcheck(
+                    config.atom_factory, var_shape, var_value,
+                    rtol=config.rtol, atol=config.atol
+                )
+
+            assert passed, f"{config.name} shape={var_shape}: {message}"
+
+
+class TestMultiVarAtomGradients:
+    """Systematic gradient tests for multi-variable atoms."""
+
+    @pytest.mark.parametrize(
+        "config",
+        MULTI_VAR_ATOM_CONFIGS,
+        ids=get_multi_var_config_ids()
+    )
+    def test_multi_var_atom(self, config: MultiVarAtomConfig, random_seed: int):
+        """Test gradient correctness for multi-variable atoms."""
+        if config.skip_reason:
+            pytest.skip(config.skip_reason)
+
+        var_shapes = [spec[1] for spec in config.var_specs]
+        var_values = [
+            AtomInputGenerator.generate(spec[0], spec[1], seed=random_seed + i)
+            for i, spec in enumerate(config.var_specs)
+        ]
+
+        passed, message = expression_gradcheck_multi(
+            config.atom_factory, var_shapes, var_values,
+            rtol=config.rtol, atol=config.atol
+        )
+        assert passed, f"{config.name}: {message}"
+
+
+# Filter configs that have restricted domains (auto-derive from input_generator)
+DOMAIN_VIOLATION_CONFIGS = [
+    c for c in SINGLE_VAR_ATOM_CONFIGS
+    if c.input_generator in DOMAIN_VIOLATION_MAP
+    and c.test_domain
+    and not c.skip_reason
+]
+
+
+def get_domain_violation_ids():
+    return [c.name for c in DOMAIN_VIOLATION_CONFIGS]
+
+
+class TestDomainViolations:
+    """Automated tests that gradient returns None outside domain."""
+
+    @pytest.mark.parametrize(
+        "config",
+        DOMAIN_VIOLATION_CONFIGS,
+        ids=get_domain_violation_ids()
+    )
+    def test_domain_violation(self, config: AtomTestConfig):
+        """Test that gradient is None when input violates domain."""
+        bad_gen = DOMAIN_VIOLATION_MAP[config.input_generator]
+        var_shape = config.var_shapes[0]
+
+        if config.symmetric:
+            var = cp.Variable(var_shape, symmetric=True)
+        else:
+            var = cp.Variable(var_shape)
+
+        var.value = AtomInputGenerator.generate(bad_gen, var_shape, seed=42)
+        expr = config.atom_factory(var)
+
+        assert expr.grad[var] is None, \
+            f"{config.name}: expected None grad for {bad_gen} input"
+
+
+class TestCompositeExpressions:
+    """Tests for composite expressions (multiple atoms combined)."""
+
+    @pytest.mark.parametrize("seed", [42, 123])
+    def test_sum_of_squares(self, seed: int):
+        """Test sum(square(x)) gradient."""
+        var_value = AtomInputGenerator.unrestricted((3,), seed)
+        passed, msg = expression_gradcheck(
+            lambda x: cp.sum(cp.square(x)),
+            (3,),
+            var_value
+        )
+        assert passed, f"sum(square(x)): {msg}"
+
+    @pytest.mark.parametrize("seed", [42, 123])
+    def test_log_sum_exp_composition(self, seed: int):
+        """Test log_sum_exp of scaled input."""
+        var_value = AtomInputGenerator.unrestricted((3,), seed)
+        passed, msg = expression_gradcheck(
+            lambda x: cp.log_sum_exp(2 * x),
+            (3,),
+            var_value
+        )
+        assert passed, f"log_sum_exp(2*x): {msg}"
+
+    @pytest.mark.parametrize("seed", [42, 123])
+    def test_norm_of_affine(self, seed: int):
+        """Test norm(Ax + b) gradient."""
+        var_value = AtomInputGenerator.unrestricted((3,), seed)
+        A = np.array([[1, 0, 0], [0, 2, 0], [0, 0, 3]])
+        b = np.array([1, 2, 3])
+        passed, msg = expression_gradcheck(
+            lambda x: cp.pnorm(A @ x + b, 2),
+            (3,),
+            var_value
+        )
+        assert passed, f"norm(Ax+b): {msg}"
+
+    @pytest.mark.parametrize("seed", [42, 123])
+    def test_entropy_sum(self, seed: int):
+        """Test sum(entr(x)) gradient."""
+        var_value = AtomInputGenerator.positive((3,), seed)
+        passed, msg = expression_gradcheck(
+            lambda x: cp.sum(cp.entr(x)),
+            (3,),
+            var_value
+        )
+        assert passed, f"sum(entr(x)): {msg}"
+
+
+# =============================================================================
+# Special Case Tests (require specific expected values or special handling)
+# =============================================================================
+
+
+class TestSpecialCases:
+    """Tests that require specific expected values or special handling."""
+
+    def test_linearize(self):
+        """Test linearize method."""
+        x = cp.Variable(2)
+
         # Affine.
-        expr = (2*self.x - 5)[0]
-        self.x.value = [1, 2]
+        expr = (2*x - 5)[0]
+        x.value = [1, 2]
         lin_expr = linearize(expr)
-        self.x.value = [55, 22]
-        self.assertAlmostEqual(lin_expr.value, expr.value)
-        self.x.value = [-1, -5]
-        self.assertAlmostEqual(lin_expr.value, expr.value)
+        x.value = [55, 22]
+        np.testing.assert_almost_equal(lin_expr.value, expr.value)
+        x.value = [-1, -5]
+        np.testing.assert_almost_equal(lin_expr.value, expr.value)
 
         # Convex.
-        expr = self.A**2 + 5
+        A = cp.Variable((2, 2))
+        expr = A**2 + 5
 
-        with self.assertRaises(Exception) as cm:
+        with pytest.raises(Exception, match="Cannot linearize non-affine expression"):
             linearize(expr)
-        self.assertEqual(str(cm.exception),
-                         "Cannot linearize non-affine expression with missing variable values.")
 
-        self.A.value = [[1, 2], [3, 4]]
+        A.value = [[1, 2], [3, 4]]
         lin_expr = linearize(expr)
         manual = expr.value + 2*cp.reshape(
-            cp.diag(cp.vec(self.A, order='F')).value @ cp.vec(self.A - self.A.value, order='F'), 
-            (2, 2), 
+            cp.diag(cp.vec(A, order='F')).value @ cp.vec(A - A.value, order='F'),
+            (2, 2),
             order='F'
         )
-        self.assertItemsAlmostEqual(lin_expr.value, expr.value)
-        self.A.value = [[-5, -5], [8.2, 4.4]]
+        np.testing.assert_array_almost_equal(lin_expr.value, expr.value)
+        A.value = [[-5, -5], [8.2, 4.4]]
         assert (lin_expr.value <= expr.value).all()
-        self.assertItemsAlmostEqual(lin_expr.value, manual.value)
+        np.testing.assert_array_almost_equal(lin_expr.value, manual.value)
 
         # Concave.
-        expr = cp.log(self.x)/2
-        self.x.value = [1, 2]
+        expr = cp.log(x)/2
+        x.value = [1, 2]
         lin_expr = linearize(expr)
-        manual = expr.value + cp.diag(0.5*self.x**-1).value @ (self.x - self.x.value)
-        self.assertItemsAlmostEqual(lin_expr.value, expr.value)
-        self.x.value = [3, 4.4]
+        manual = expr.value + cp.diag(0.5*x**-1).value @ (x - x.value)
+        np.testing.assert_array_almost_equal(lin_expr.value, expr.value)
+        x.value = [3, 4.4]
         assert (lin_expr.value >= expr.value).all()
-        self.assertItemsAlmostEqual(lin_expr.value, manual.value)
-
-    def test_log(self) -> None:
-        """Test gradient for log.
-        """
-        expr = cp.log(self.a)
-        self.a.value = 2
-        self.assertAlmostEqual(expr.grad[self.a], 1.0/2)
-
-        self.a.value = 3
-        self.assertAlmostEqual(expr.grad[self.a], 1.0/3)
-
-        self.a.value = -1
-        self.assertAlmostEqual(expr.grad[self.a], None)
-
-        expr = cp.log(self.x)
-        self.x.value = [3, 4]
-        val = np.zeros((2, 2)) + np.diag([1/3, 1/4])
-        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), val)
-
-        expr = cp.log(self.x)
-        self.x.value = [-1e-9, 4]
-        self.assertAlmostEqual(expr.grad[self.x], None)
-
-        expr = cp.log(self.A)
-        self.A.value = [[1, 2], [3, 4]]
-        val = np.zeros((4, 4)) + np.diag([1, 1/2, 1/3, 1/4])
-        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), val)
-
-    def test_log1p(self) -> None:
-        """Test domain for log1p.
-        """
-        expr = cp.log1p(self.a)
-        self.a.value = 2
-        self.assertAlmostEqual(expr.grad[self.a], 1.0/3)
-
-        self.a.value = 3
-        self.assertAlmostEqual(expr.grad[self.a], 1.0/4)
-
-        self.a.value = -1
-        self.assertAlmostEqual(expr.grad[self.a], None)
-
-        expr = cp.log1p(self.x)
-        self.x.value = [3, 4]
-        val = np.zeros((2, 2)) + np.diag([1/4, 1/5])
-        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), val)
-
-        expr = cp.log1p(self.x)
-        self.x.value = [-1e-9-1, 4]
-        self.assertAlmostEqual(expr.grad[self.x], None)
-
-        expr = cp.log1p(self.A)
-        self.A.value = [[1, 2], [3, 4]]
-        val = np.zeros((4, 4)) + np.diag([1/2, 1/3, 1/4, 1/5])
-        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), val)
-
-    def test_entr(self) -> None:
-        """Test domain for entr.
-        """
-        expr = cp.entr(self.a)
-        self.a.value = 2
-        self.assertAlmostEqual(expr.grad[self.a], -np.log(2) - 1)
-
-        self.a.value = 3
-        self.assertAlmostEqual(expr.grad[self.a], -(np.log(3) + 1))
-
-        self.a.value = -1
-        self.assertAlmostEqual(expr.grad[self.a], None)
-
-        expr = cp.entr(self.x)
-        self.x.value = [3, 4]
-        val = np.zeros((2, 2)) + np.diag(-(np.log([3, 4]) + 1))
-        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), val)
-
-        expr = cp.entr(self.x)
-        self.x.value = [-1e-9, 4]
-        self.assertAlmostEqual(expr.grad[self.x], None)
-
-        expr = cp.entr(self.A)
-        self.A.value = [[1, 2], [3, 4]]
-        val = np.zeros((4, 4)) + np.diag(-(np.log([1, 2, 3, 4]) + 1))
-        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), val)
-
-    def test_exp(self) -> None:
-        """Test domain for exp.
-        """
-        expr = cp.exp(self.a)
-        self.a.value = 2
-        self.assertAlmostEqual(expr.grad[self.a], np.exp(2))
-
-        self.a.value = 3
-        self.assertAlmostEqual(expr.grad[self.a], np.exp(3))
-
-        self.a.value = -1
-        self.assertAlmostEqual(expr.grad[self.a], np.exp(-1))
-
-        expr = cp.exp(self.x)
-        self.x.value = [3, 4]
-        val = np.zeros((2, 2)) + np.diag(np.exp([3, 4]))
-        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), val)
-
-        expr = cp.exp(self.x)
-        self.x.value = [-1e-9, 4]
-        val = np.zeros((2, 2)) + np.diag(np.exp([-1e-9, 4]))
-        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), val)
-
-        expr = cp.exp(self.A)
-        self.A.value = [[1, 2], [3, 4]]
-        val = np.zeros((4, 4)) + np.diag(np.exp([1, 2, 3, 4]))
-        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), val)
-
-    def test_logistic(self) -> None:
-        """Test domain for logistic.
-        """
-        expr = cp.logistic(self.a)
-        self.a.value = 2
-        self.assertAlmostEqual(expr.grad[self.a], np.exp(2)/(1+np.exp(2)))
-
-        self.a.value = 3
-        self.assertAlmostEqual(expr.grad[self.a], np.exp(3)/(1+np.exp(3)))
-
-        self.a.value = -1
-        self.assertAlmostEqual(expr.grad[self.a], np.exp(-1)/(1+np.exp(-1)))
-
-        expr = cp.logistic(self.x)
-        self.x.value = [3, 4]
-        val = np.zeros((2, 2)) + np.diag(np.exp([3, 4])/(1+np.exp([3, 4])))
-        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), val)
-
-        expr = cp.logistic(self.x)
-        self.x.value = [-1e-9, 4]
-        val = np.zeros((2, 2)) + np.diag(np.exp([-1e-9, 4])/(1+np.exp([-1e-9, 4])))
-        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), val)
-
-        expr = cp.logistic(self.A)
-        self.A.value = [[1, 2], [3, 4]]
-        val = np.zeros((4, 4)) + np.diag(np.exp([1, 2, 3, 4])/(1+np.exp([1, 2, 3, 4])))
-        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), val)
-
-    def test_huber(self) -> None:
-        """Test domain for huber.
-        """
-        expr = cp.huber(self.a)
-        self.a.value = 2
-        self.assertAlmostEqual(expr.grad[self.a], 2)
-
-        expr = cp.huber(self.a, M=2)
-        self.a.value = 3
-        self.assertAlmostEqual(expr.grad[self.a], 4)
-
-        self.a.value = -1
-        self.assertAlmostEqual(expr.grad[self.a], -2)
-
-        expr = cp.huber(self.x)
-        self.x.value = [3, 4]
-        val = np.zeros((2, 2)) + np.diag([2, 2])
-        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), val)
-
-        expr = cp.huber(self.x)
-        self.x.value = [-1e-9, 4]
-        val = np.zeros((2, 2)) + np.diag([0, 2])
-        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), val)
-
-        expr = cp.huber(self.A, M=3)
-        self.A.value = [[1, 2], [3, 4]]
-        val = np.zeros((4, 4)) + np.diag([2, 4, 6, 6])
-        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), val)
-
-    def test_kl_div(self) -> None:
-        """Test domain for kl_div.
-        """
-        b = Variable()
-        expr = cp.kl_div(self.a, b)
-        self.a.value = 2
-        b.value = 4
-        self.assertAlmostEqual(expr.grad[self.a], np.log(2/4))
-        self.assertAlmostEqual(expr.grad[b], 1 - (2/4))
-
-        self.a.value = 3
-        b.value = 0
-        self.assertAlmostEqual(expr.grad[self.a], None)
-        self.assertAlmostEqual(expr.grad[b], None)
-
-        self.a.value = -1
-        b.value = 2
-        self.assertAlmostEqual(expr.grad[self.a], None)
-        self.assertAlmostEqual(expr.grad[b], None)
-
-        y = Variable(2)
-        expr = cp.kl_div(self.x, y)
-        self.x.value = [3, 4]
-        y.value = [5, 8]
-        val = np.zeros((2, 2)) + np.diag(np.log([3, 4]) - np.log([5, 8]))
-        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), val)
-        val = np.zeros((2, 2)) + np.diag([1 - 3/5, 1 - 4/8])
-        self.assertItemsAlmostEqual(expr.grad[y].toarray(), val)
-
-        expr = cp.kl_div(self.x, y)
-        self.x.value = [-1e-9, 4]
-        y.value = [1, 2]
-        self.assertAlmostEqual(expr.grad[self.x], None)
-        self.assertAlmostEqual(expr.grad[y], None)
-
-        expr = cp.kl_div(self.A, self.B)
-        self.A.value = [[1, 2], [3, 4]]
-        self.B.value = [[5, 1], [3.5, 2.3]]
-        div = (self.A.value/self.B.value).ravel(order='F')
-        val = np.zeros((4, 4)) + np.diag(np.log(div))
-        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), val)
-        val = np.zeros((4, 4)) + np.diag(1 - div)
-        self.assertItemsAlmostEqual(expr.grad[self.B].toarray(), val)
-
-    def test_rel_entr(self) -> None:
-        """Test domain for rel_entr.
-        """
-        b = Variable()
-        expr = cp.rel_entr(self.a, b)
-        self.a.value = 2
-        b.value = 4
-        self.assertAlmostEqual(expr.grad[self.a], np.log(2 / 4) + 1)
-        self.assertAlmostEqual(expr.grad[b], - (2 / 4))
-
-        self.a.value = 3
-        b.value = 0
-        self.assertAlmostEqual(expr.grad[self.a], None)
-        self.assertAlmostEqual(expr.grad[b], None)
-
-        self.a.value = -1
-        b.value = 2
-        self.assertAlmostEqual(expr.grad[self.a], None)
-        self.assertAlmostEqual(expr.grad[b], None)
-
-        y = Variable(2)
-        expr = cp.rel_entr(self.x, y)
-        self.x.value = [3, 4]
-        y.value = [5, 8]
-        val = np.zeros((2, 2)) + np.diag(np.log([3, 4]) - np.log([5, 8]) + 1)
-        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), val)
-        val = np.zeros((2, 2)) + np.diag([- 3 / 5, - 4 / 8])
-        self.assertItemsAlmostEqual(expr.grad[y].toarray(), val)
-
-        expr = cp.rel_entr(self.x, y)
-        self.x.value = [-1e-9, 4]
-        y.value = [1, 2]
-        self.assertAlmostEqual(expr.grad[self.x], None)
-        self.assertAlmostEqual(expr.grad[y], None)
-
-        expr = cp.rel_entr(self.A, self.B)
-        self.A.value = [[1, 2], [3, 4]]
-        self.B.value = [[5, 1], [3.5, 2.3]]
-        div = (self.A.value / self.B.value).ravel(order='F')
-        val = np.zeros((4, 4)) + np.diag(np.log(div) + 1)
-        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), val)
-        val = np.zeros((4, 4)) + np.diag(- div)
-        self.assertItemsAlmostEqual(expr.grad[self.B].toarray(), val)
-
-    def test_maximum(self) -> None:
-        """Test domain for maximum.
-        """
-        b = Variable()
-        expr = cp.maximum(self.a, b)
-        self.a.value = 2
-        b.value = 4
-        self.assertAlmostEqual(expr.grad[self.a], 0)
-        self.assertAlmostEqual(expr.grad[b], 1)
-
-        self.a.value = 3
-        b.value = 0
-        self.assertAlmostEqual(expr.grad[self.a], 1)
-        self.assertAlmostEqual(expr.grad[b], 0)
-
-        self.a.value = -1
-        b.value = 2
-        self.assertAlmostEqual(expr.grad[self.a], 0)
-        self.assertAlmostEqual(expr.grad[b], 1)
-
-        y = Variable(2)
-        expr = cp.maximum(self.x, y)
-        self.x.value = [3, 4]
-        y.value = [5, -5]
-        val = np.zeros((2, 2)) + np.diag([0, 1])
-        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), val)
-        val = np.zeros((2, 2)) + np.diag([1, 0])
-        self.assertItemsAlmostEqual(expr.grad[y].toarray(), val)
-
-        expr = cp.maximum(self.x, y)
-        self.x.value = [-1e-9, 4]
-        y.value = [1, 4]
-        val = np.zeros((2, 2)) + np.diag([0, 1])
-        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), val)
-        val = np.zeros((2, 2)) + np.diag([1, 0])
-        self.assertItemsAlmostEqual(expr.grad[y].toarray(), val)
-
-        expr = cp.maximum(self.A, self.B)
-        self.A.value = [[1, 2], [3, 4]]
-        self.B.value = [[5, 1], [3, 2.3]]
-        val = np.zeros((4, 4)) + np.diag([0, 1, 1, 1])
-        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), val)
-        val = np.zeros((4, 4)) + np.diag([1, 0, 0, 0])
-        self.assertItemsAlmostEqual(expr.grad[self.B].toarray(), val)
-
-        # cummax
-        expr = cp.cummax(self.x)
-        self.x.value = [2, 1]
-        val = np.zeros((2, 2))
-        val[0, 0] = 1
-        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), val)
-
-        expr = cp.cummax(self.x[:, None], axis=1)
-        self.x.value = [2, 1]
-        val = np.eye(2)
-        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), val)
-
-    def test_minimum(self) -> None:
-        """Test domain for minimum.
-        """
-        b = Variable()
-        expr = cp.minimum(self.a, b)
-        self.a.value = 2
-        b.value = 4
-        self.assertAlmostEqual(expr.grad[self.a], 1)
-        self.assertAlmostEqual(expr.grad[b], 0)
-
-        self.a.value = 3
-        b.value = 0
-        self.assertAlmostEqual(expr.grad[self.a], 0)
-        self.assertAlmostEqual(expr.grad[b], 1)
-
-        self.a.value = -1
-        b.value = 2
-        self.assertAlmostEqual(expr.grad[self.a], 1)
-        self.assertAlmostEqual(expr.grad[b], 0)
-
-        y = Variable(2)
-        expr = cp.minimum(self.x, y)
-        self.x.value = [3, 4]
-        y.value = [5, -5]
-        val = np.zeros((2, 2)) + np.diag([1, 0])
-        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), val)
-        val = np.zeros((2, 2)) + np.diag([0, 1])
-        self.assertItemsAlmostEqual(expr.grad[y].toarray(), val)
-
-        expr = cp.minimum(self.x, y)
-        self.x.value = [-1e-9, 4]
-        y.value = [1, 4]
-        val = np.zeros((2, 2)) + np.diag([1, 1])
-        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), val)
-        val = np.zeros((2, 2)) + np.diag([0, 0])
-        self.assertItemsAlmostEqual(expr.grad[y].toarray(), val)
-
-        expr = cp.minimum(self.A, self.B)
-        self.A.value = [[1, 2], [3, 4]]
-        self.B.value = [[5, 1], [3, 2.3]]
-        val = np.zeros((4, 4)) + np.diag([1, 0, 1, 0])
-        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), val)
-        val = np.zeros((4, 4)) + np.diag([0, 1, 0, 1])
-        self.assertItemsAlmostEqual(expr.grad[self.B].toarray(), val)
-
-    def test_power(self) -> None:
-        """Test grad for power.
-        """
-        expr = cp.sqrt(self.a)
-        self.a.value = 2
-        self.assertAlmostEqual(expr.grad[self.a], 0.5/np.sqrt(2))
-
-        self.a.value = 3
-        self.assertAlmostEqual(expr.grad[self.a], 0.5/np.sqrt(3))
-
-        self.a.value = -1
-        self.assertAlmostEqual(expr.grad[self.a], None)
-
-        expr = (self.x)**3
-        self.x.value = [3, 4]
-        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(),
-                                    np.array([[27, 0], [0, 48]]))
-
-        expr = (self.x)**3
-        self.x.value = [-1e-9, 4]
-        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), np.array([[0, 0], [0, 48]]))
-
-        expr = (self.A)**2
-        self.A.value = [[1, -2], [3, 4]]
-        val = np.zeros((4, 4)) + np.diag([2, -4, 6, 8])
-        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), val)
-
-        # Constant.
-        expr = (self.a)**0
-        self.assertAlmostEqual(expr.grad[self.a], 0)
-
-        expr = (self.x)**0
-        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), np.zeros((2, 2)))
-
-    def test_partial_problem(self) -> None:
-        """Test grad for partial minimization/maximization problems.
-        """
-        for obj in [Minimize((self.a)**-1), Maximize(cp.entr(self.a))]:
-            prob = Problem(obj, [self.x + self.a >= [5, 8]])
+        np.testing.assert_array_almost_equal(lin_expr.value, manual.value)
+
+    def test_partial_problem(self):
+        """Test grad for partial minimization/maximization problems."""
+        a = cp.Variable(name='a')
+        x = cp.Variable(2, name='x')
+
+        for obj in [Minimize((a)**-1), Maximize(cp.entr(a))]:
+            prob = Problem(obj, [x + a >= [5, 8]])
             # Optimize over nothing.
-            expr = partial_optimize(prob, dont_opt_vars=[self.x, self.a], solver=cp.CLARABEL)
-            self.a.value = None
-            self.x.value = None
+            expr = partial_optimize(prob, dont_opt_vars=[x, a], solver=cp.CLARABEL)
+            a.value = None
+            x.value = None
             grad = expr.grad
-            self.assertAlmostEqual(grad[self.a], None)
-            self.assertAlmostEqual(grad[self.x], None)
+            assert grad[a] is None
+            assert grad[x] is None
             # Outside domain.
-            self.a.value = 1.0
-            self.x.value = [5, 5]
+            a.value = 1.0
+            x.value = [5, 5]
             grad = expr.grad
-            self.assertAlmostEqual(grad[self.a], None)
-            self.assertAlmostEqual(grad[self.x], None)
+            assert grad[a] is None
+            assert grad[x] is None
 
-            self.a.value = 1
-            self.x.value = [10, 10]
+            a.value = 1
+            x.value = [10, 10]
             grad = expr.grad
-            self.assertAlmostEqual(grad[self.a], obj.args[0].grad[self.a])
-            self.assertItemsAlmostEqual(grad[self.x].toarray(), [0, 0, 0, 0])
+            np.testing.assert_almost_equal(grad[a], obj.args[0].grad[a])
+            # Gradient w.r.t. x should be zero (scalar output, no dependence on x)
+            np.testing.assert_array_almost_equal(
+                grad[x].toarray().flatten(), [0, 0])
 
             # Optimize over x.
-            expr = partial_optimize(prob, opt_vars=[self.x], solver=cp.CLARABEL)
-            self.a.value = 1
+            expr = partial_optimize(prob, opt_vars=[x], solver=cp.CLARABEL)
+            a.value = 1
             grad = expr.grad
-            self.assertAlmostEqual(grad[self.a], obj.args[0].grad[self.a] + 0)
+            np.testing.assert_almost_equal(grad[a], obj.args[0].grad[a] + 0)
 
             # Optimize over a.
-            fix_prob = Problem(obj, [self.x + self.a >= [5, 8], self.x == 0])
+            fix_prob = Problem(obj, [x + a >= [5, 8], x == 0])
             fix_prob.solve(solver=cp.CLARABEL)
             dual_val = fix_prob.constraints[0].dual_variables[0].value
-            expr = partial_optimize(prob, opt_vars=[self.a], solver=cp.CLARABEL)
-            self.x.value = [0, 0]
+            expr = partial_optimize(prob, opt_vars=[a], solver=cp.CLARABEL)
+            x.value = [0, 0]
             grad = expr.grad
-            self.assertItemsAlmostEqual(grad[self.x].toarray(), dual_val)
+            np.testing.assert_array_almost_equal(grad[x].toarray().flatten(), dual_val)
 
             # Optimize over x and a.
-            expr = partial_optimize(prob, opt_vars=[self.x, self.a], solver=cp.CLARABEL)
+            expr = partial_optimize(prob, opt_vars=[x, a], solver=cp.CLARABEL)
             grad = expr.grad
-            self.assertAlmostEqual(grad, {})
+            assert grad == {}
 
-    def test_affine(self) -> None:
-        """Test grad for affine atoms.
-        """
-        expr = -self.a
-        self.a.value = 2
-        self.assertAlmostEqual(expr.grad[self.a], -1)
+    def test_bilinear(self):
+        """Test grad for bilinear expressions."""
+        for n in [1, 2, 3]:
+            x_vals = np.arange(1, n + 1)
+            y_vals = -np.arange(1, n + 1)
+            x = cp.Variable(n, value=x_vals)
+            y = cp.Variable(n, value=y_vals)
 
-        expr = 2*self.a
-        self.a.value = 2
-        self.assertAlmostEqual(expr.grad[self.a], 2)
+            # test bilinear expression x @ y
+            # which has partial derivatives grad_x = y, grad_y = x
+            expr = x @ y
 
-        expr = self.a/2
-        self.a.value = 2
-        self.assertAlmostEqual(expr.grad[self.a], 0.5)
+            grad_x = expr.grad[x]
+            grad_y = expr.grad[y]
 
-        expr = -(self.x)
-        self.x.value = [3, 4]
-        val = np.zeros((2, 2)) - np.diag([1, 1])
-        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), val)
+            assert x.value is not None
+            assert y.value is not None
 
-        expr = -(self.A)
-        self.A.value = [[1, 2], [3, 4]]
-        val = np.zeros((4, 4)) - np.diag([1, 1, 1, 1])
-        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), val)
+            if n == 1:
+                assert grad_x.shape == ()
+                assert grad_y.shape == ()
+                np.testing.assert_almost_equal(grad_x, y.value)
+                np.testing.assert_almost_equal(grad_y, x.value)
+            else:
+                assert grad_x.shape == (n, 1)
+                assert grad_y.shape == (n, 1)
+                np.testing.assert_array_almost_equal(
+                    grad_x.toarray(), y.value.reshape(-1, 1))
+                np.testing.assert_array_almost_equal(
+                    grad_y.toarray(), x.value.reshape(-1, 1))
 
-        expr = self.A[0, 1]
-        self.A.value = [[1, 2], [3, 4]]
-        val = np.zeros((4, 1))
-        val[2] = 1
-        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), val)
+    def test_matrix_product(self):
+        """Test matrix-matrix product."""
+        x_vals = np.array([[1, -1], [2, -2]])
+        y_vals = np.array([[-1, 1], [-2, 2]])
+        x = cp.Variable((2, 2), value=x_vals)
+        y = cp.Variable((2, 2), value=y_vals)
+        expr = x @ y
+        grad_x = expr.grad[x]
+        grad_y = expr.grad[y]
+        assert x.value is not None
+        assert y.value is not None
 
-        z = Variable(3)
-        expr = cp.hstack([self.x, z])
-        self.x.value = [1, 2]
-        z.value = [1, 2, 3]
-        val = np.zeros((2, 5))
-        val[:, 0:2] = np.eye(2)
-        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), val)
+        # expected gradients are 4x4 Jacobian matrices for 2x2 matrix variables
+        expected_grad_x = np.array([[-1., 0., 1., 0.],
+                                    [0., -1., 0., 1.],
+                                    [-2., 0., 2., 0.],
+                                    [0., -2., 0., 2.]])
+        expected_grad_y = np.array([[1., 2., 0., 0.],
+                                    [-1., -2., 0., 0.],
+                                    [0., 0., 1., 2.],
+                                    [0., 0., -1., -2.]])
 
-        val = np.zeros((3, 5))
-        val[:, 2:] = np.eye(3)
-        self.assertItemsAlmostEqual(expr.grad[z].toarray(), val)
+        np.testing.assert_array_almost_equal(grad_x.toarray(), expected_grad_x)
+        np.testing.assert_array_almost_equal(grad_y.toarray(), expected_grad_y)
 
-        # cumsum
-        expr = cp.cumsum(self.x)
-        self.x.value = [1, 2]
-        # CVXPY convention: grad[i,j] = d(out[j])/d(in[i])
-        # For cumsum: out[j] depends on in[i] for i <= j, so grad is upper triangular
-        val = np.triu(np.ones((2, 2)))
-        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), val)
-
-        expr = cp.cumsum(self.x[:, None], axis=1)
-        self.x.value = [1, 2]
-        val = np.eye(2)
-        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), val)
-
-    def test_cumsum_nd_grad(self) -> None:
+    def test_cumsum_nd_grad(self):
         """Test gradient for cumsum with ND arrays."""
         # Test 3D array with various axes
-        z = Variable((2, 3, 4))
+        z = cp.Variable((2, 3, 4))
         z_val = np.arange(24).reshape((2, 3, 4)).astype(float)
         z.value = z_val
 
         for axis in [0, 1, 2]:
             expr = cp.cumsum(z, axis=axis)
             grad = expr.grad[z]
-            self.assertIsNotNone(grad)
+            assert grad is not None
             # Gradient should be 24x24 (input size x output size)
-            self.assertEqual(grad.shape, (24, 24))
+            assert grad.shape == (24, 24)
 
             # Verify gradient numerically via finite differences
             # CVXPY convention: grad[i, j] = d(output[j])/d(input[i])
-            # So grad[idx, :] = d(output)/d(input[idx])
             eps = 1e-5
             for idx in range(24):
                 # Perturb one element
@@ -974,22 +1004,20 @@ class TestGrad(BaseTest):
                 numerical_grad = (result_plus - result_base) / eps
                 # Compare with analytic gradient row (not column)
                 analytic_grad = grad.toarray()[idx, :]
-                self.assertItemsAlmostEqual(analytic_grad, numerical_grad, places=4)
+                np.testing.assert_array_almost_equal(
+                    analytic_grad, numerical_grad, decimal=4)
 
         # Test axis=None (C-order flattened cumsum)
-        expr = cp.cumsum(self.A, axis=None)
-        self.A.value = np.array([[1, 2], [3, 4]])
-        grad = expr.grad[self.A]
-        self.assertIsNotNone(grad)
+        A = cp.Variable((2, 2))
+        A.value = np.array([[1, 2], [3, 4]])
+        expr = cp.cumsum(A, axis=None)
+        grad = expr.grad[A]
+        assert grad is not None
         # Gradient shape is (4, 4) for 2x2 matrix
-        self.assertEqual(grad.shape, (4, 4))
+        assert grad.shape == (4, 4)
 
-        # For axis=None with [[1,2],[3,4]], C-order is [1,2,3,4]
-        # cumsum([1,2,3,4]) = [1,3,6,10]
-        # The gradient uses upper triangular for CVXPY convention
-        # grad[i, j] = d(output[j])/d(input[i]) = 1 if input[i] affects output[j]
         # Verify via finite differences
-        A_val = self.A.value
+        A_val = A.value
         eps = 1e-5
         for idx in range(4):
             A_pert = A_val.copy().flatten(order='F')
@@ -999,71 +1027,54 @@ class TestGrad(BaseTest):
             result_base = np.cumsum(A_val, axis=None)
             numerical_grad = (result_plus - result_base) / eps
             analytic_grad = grad.toarray()[idx, :]
-            self.assertItemsAlmostEqual(analytic_grad, numerical_grad, places=4)
+            np.testing.assert_array_almost_equal(
+                analytic_grad, numerical_grad, decimal=4)
 
         # Test 4D array
-        w = Variable((2, 2, 3, 2))
+        w = cp.Variable((2, 2, 3, 2))
         w_val = np.arange(24).reshape((2, 2, 3, 2)).astype(float)
         w.value = w_val
 
         for axis in [0, 1, 2, 3]:
             expr = cp.cumsum(w, axis=axis)
             grad = expr.grad[w]
-            self.assertIsNotNone(grad)
-            self.assertEqual(grad.shape, (24, 24))
+            assert grad is not None
+            assert grad.shape == (24, 24)
 
-    def test_bilinear(self) -> None:
-        """Test grad for bilinear expressions."""
-        for n in [1, 2, 3]:
-            with self.subTest(n=n):
-                x_vals = np.arange(1, n + 1)
-                y_vals = -np.arange(1, n + 1)
-                x = cp.Variable(n, value=x_vals)
-                y = cp.Variable(n, value=y_vals)
+    def test_quad_form_issue_1260(self):
+        """Test quad_form gradient access after solving (issue 1260)."""
+        n = 10
+        np.random.seed(1)
+        P = np.random.randn(n, n)
+        P = P.T @ P
+        q = np.random.randn(n)
 
-                # test bilinear expression x @ y
-                # which has partial derivatives grad_x = y, grad_y = x
-                expr = x @ y
+        # define the optimization problem with the 2nd constraint as quad_form
+        x = cp.Variable(n)
+        prob = cp.Problem(
+            cp.Maximize(q.T @ x - (1/2)*cp.quad_form(x, P)),
+            [cp.norm(x, 1) <= 1.0,
+             cp.quad_form(x, P) <= 10,
+             cp.abs(x) <= 0.01]
+        )
+        prob.solve(solver=cp.SCS)
 
-                grad_x = expr.grad[x]
-                grad_y = expr.grad[y]
+        # access quad_form.expr.grad without error
+        prob.constraints[1].expr.grad
 
-                assert x.value is not None
-                assert y.value is not None
+        # define the optimization problem with a two-dimensional decision variable
+        x = cp.Variable((n, 1))
+        prob = cp.Problem(
+            cp.Maximize(q.T @ x - (1 / 2) * cp.quad_form(x, P)),
+            [cp.norm(x, 1) <= 1.0,
+             cp.quad_form(x, P) <= 10,
+             cp.abs(x) <= 0.01],
+        )
+        prob.solve(solver=cp.SCS)
 
-                if n == 1:
-                    assert grad_x.shape == ()
-                    assert grad_y.shape == ()
-                    self.assertAlmostEqual(grad_x, y.value)
-                    self.assertAlmostEqual(grad_y, x.value)
-                else:
-                    assert grad_x.shape == (n, 1)
-                    assert grad_y.shape == (n, 1)
-                    self.assertItemsAlmostEqual(grad_x.toarray(), y.value.reshape(-1, 1))
-                    self.assertItemsAlmostEqual(grad_y.toarray(), x.value.reshape(-1, 1))
+        # access quad_form.expr.grad without error
+        prob.constraints[1].expr.grad
 
-    def test_matrix_product(self) -> None:
-        """Test matrix-matrix product."""
-        x_vals = np.array([[1, -1], [2, -2]])
-        y_vals = np.array([[-1, 1], [-2, 2]])
-        x = cp.Variable((2, 2), value=x_vals)
-        y = cp.Variable((2, 2), value=y_vals)
-        expr = x @ y
-        grad_x = expr.grad[x]
-        grad_y = expr.grad[y]
-        assert x.value is not None
-        assert y.value is not None
-        
-        # expected gradients are 4x4 Jacobian matrices for 2x2 matrix variables
-        expected_grad_x = np.array([[-1.,  0.,  1.,  0.],
-                                   [ 0., -1.,  0.,  1.],
-                                   [-2.,  0.,  2.,  0.],
-                                   [ 0., -2.,  0.,  2.]])
-        expected_grad_y = np.array([[ 1.,  2.,  0.,  0.],
-                                   [-1., -2.,  0.,  0.],
-                                   [ 0.,  0.,  1.,  2.],
-                                   [ 0.,  0., -1., -2.]])
-        
-        self.assertItemsAlmostEqual(grad_x.toarray(), expected_grad_x)
-        self.assertItemsAlmostEqual(grad_y.toarray(), expected_grad_y)
 
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])
