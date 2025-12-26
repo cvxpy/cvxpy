@@ -13,40 +13,29 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import List, Tuple
+import warnings
+from typing import Optional, Tuple
 
 import numpy as np
 import scipy.sparse as sp
+from numpy.lib.array_utils import normalize_axis_index
 
-import cvxpy.lin_ops.lin_op as lo
-import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.affine.affine_atom import AffAtom
-from cvxpy.atoms.affine.binary_operators import MulExpression
 from cvxpy.atoms.axis_atom import AxisAtom
-from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions.expression import Expression
-from cvxpy.expressions.variable import Variable
 
 
-def get_diff_mat(dim: int, axis: int) -> sp.csc_array:
-    """Return a sparse matrix representation of first order difference operator.
+def _sparse_tril_ones(dim: int) -> sp.csc_array:
+    """Create a sparse lower triangular matrix of ones.
 
-    Parameters
-    ----------
-    dim : int
-       The length of the matrix dimensions.
-    axis : int
-       The axis to take the difference along.
-
-    Returns
-    -------
-    sp.csc_array
-        A square matrix representing first order difference.
+    This avoids allocating a dense dim x dim matrix.
     """
-    mat = sp.diags_array([np.ones(dim), -np.ones(dim - 1)], offsets=[0, -1],
-                   shape=(dim, dim),
-                   format='csc')
-    return mat if axis == 0 else mat.T
+    # Column j has entries at rows j, j+1, ..., dim-1
+    # So column 0 has dim entries, column 1 has dim-1, etc.
+    rows = np.concatenate([np.arange(j, dim) for j in range(dim)])
+    cols = np.repeat(np.arange(dim), np.arange(dim, 0, -1))
+    data = np.ones(len(rows))
+    return sp.csc_array((data, (rows, cols)), shape=(dim, dim))
 
 
 class cumsum(AffAtom, AxisAtom):
@@ -57,11 +46,26 @@ class cumsum(AffAtom, AxisAtom):
     ----------
     expr : CVXPY expression
         The expression being summed.
-    axis : int
-        The axis to sum across if 2D.
+    axis : int, optional
+        The axis to sum across. If None, the array is flattened before cumsum.
+        Note: NumPy's default is axis=None, while CVXPY defaults to axis=0.
     """
-    def __init__(self, expr: Expression, axis: int = 0) -> None:
+    def __init__(self, expr: Expression, axis: Optional[int] = 0) -> None:
         super(cumsum, self).__init__(expr, axis)
+
+    def validate_arguments(self) -> None:
+        """Validate axis, but handle 0D arrays specially."""
+        if self.args[0].ndim == 0:
+            if self.axis is not None:
+                warnings.warn(
+                    "cumsum on 0-dimensional arrays currently returns a scalar, "
+                    "but in a future CVXPY version it will return a 1-element "
+                    "array to match numpy.cumsum behavior. Additionally, only "
+                    "axis=0, axis=-1, or axis=None will be valid for 0D arrays.",
+                    FutureWarning
+                )
+        else:
+            super().validate_arguments()
 
     @AffAtom.numpy_numeric
     def numeric(self, values):
@@ -70,15 +74,10 @@ class cumsum(AffAtom, AxisAtom):
         """
         return np.cumsum(values[0], axis=self.axis)
 
-    def validate_arguments(self):
-        if self.args[0].ndim > 2:
-            raise UserWarning(
-                "cumsum is only implemented for 1D or 2D arrays and might not "
-                "work as expected for higher dimensions."
-            )
-    
     def shape_from_args(self) -> Tuple[int, ...]:
-        """The same as the input."""
+        """Flattened if axis=None, otherwise same as input."""
+        if self.axis is None:
+            return (self.args[0].size,)
         return self.args[0].shape
 
     def _grad(self, values):
@@ -92,47 +91,37 @@ class cumsum(AffAtom, AxisAtom):
         Returns:
             A list of SciPy CSC sparse matrices or None.
         """
-        dim = values[0].shape[self.axis]
-        mat = sp.csc_array(np.tril(np.ones((dim, dim))))
-        var = Variable(self.args[0].shape)
-        if self.axis == 0:
-            grad = MulExpression(mat, var)._grad(values)[1]
-        else:
-            grad = MulExpression(var, mat.T)._grad(values)[0]
-        return [grad]
+        ndim = len(values[0].shape)
+        axis = self.axis
+
+        # Handle axis=None: treat as 1D cumsum over C-order flattened array
+        if axis is None:
+            dim = values[0].size
+            # Lower triangular matrix = cumsum gradient in C-order space
+            tril = _sparse_tril_ones(dim)
+            # Permutation to convert F-order vectorized input to C-order
+            # P[i, j] = 1 means output[i] = input[j], so P @ f_vec = c_vec
+            c_order_indices = np.arange(dim).reshape(values[0].shape, order='F').flatten(order='C')
+            P = sp.csc_array((np.ones(dim), (np.arange(dim), c_order_indices)), shape=(dim, dim))
+            # Gradient: input (F-order) -> C-order via P -> cumsum via tril -> output (1D)
+            # dy = tril @ P @ dx_f, so gradient is tril @ P
+            grad = tril @ P
+            return [sp.csc_array(grad)]
+
+        axis = normalize_axis_index(axis, ndim)
+        dim = values[0].shape[axis]
+
+        # Lower triangular matrix = cumsum gradient
+        tril = _sparse_tril_ones(dim)
+
+        # Kronecker product: I_post ⊗ tril ⊗ I_pre
+        # This works for all dimensions including 1D and 2D
+        pre_size = int(np.prod(values[0].shape[:axis])) if axis > 0 else 1
+        post_size = int(np.prod(values[0].shape[axis+1:])) if axis < ndim - 1 else 1
+
+        grad = sp.kron(sp.kron(sp.eye_array(post_size), tril), sp.eye_array(pre_size))
+        return [sp.csc_array(grad)]
 
     def get_data(self):
         """Returns the axis being summed."""
         return [self.axis]
-
-    def graph_implementation(
-        self, arg_objs, shape: Tuple[int, ...], data=None
-    ) -> Tuple[lo.LinOp, List[Constraint]]:
-        """Cumulative sum via difference matrix.
-
-        Parameters
-        ----------
-        arg_objs : list
-            LinExpr for each argument.
-        shape : tuple
-            The shape of the resulting expression.
-        data :
-            Additional data required by the atom.
-
-        Returns
-        -------
-        tuple
-            (LinOp for objective, list of constraints)
-        """
-        # Implicit O(n) definition:
-        # X = Y[1:,:] - Y[:-1, :]
-        Y = lu.create_var(shape)
-        axis = data[0]
-        dim = shape[axis]
-        diff_mat = get_diff_mat(dim, axis)
-        diff_mat = lu.create_const(diff_mat, (dim, dim), sparse=True)
-        if axis == 0:
-            diff = lu.mul_expr(diff_mat, Y)
-        else:
-            diff = lu.rmul_expr(Y, diff_mat)
-        return (Y, [lu.create_eq(arg_objs[0], diff)])
