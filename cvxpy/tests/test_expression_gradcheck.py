@@ -13,7 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Callable, List, Optional, Tuple
 
 import numpy as np
@@ -24,9 +24,8 @@ import cvxpy as cp
 """
 Systematic gradient validation for CVXPY expressions.
 
-This module provides a PyTorch-style gradcheck utility that validates
-expression-level gradients (expr.grad[var]) against numerical finite
-differences for all CVXPY atoms.
+Validates expression-level gradients (expr.grad[var]) against numerical
+finite differences for all CVXPY atoms.
 """
 
 # =============================================================================
@@ -399,7 +398,18 @@ class AtomTestConfig:
     rtol: float = 1e-4
     atol: float = 1e-4
     skip_reason: Optional[str] = None
-    extra_kwargs: dict = field(default_factory=dict)
+    symmetric: bool = False  # For PSD/symmetric matrix atoms
+
+
+@dataclass
+class MultiVarAtomConfig:
+    """Configuration for testing atoms with multiple variable arguments."""
+    name: str
+    atom_factory: Callable
+    var_specs: List[Tuple[str, Tuple[int, ...]]]  # [(input_type, shape), ...]
+    rtol: float = 1e-4
+    atol: float = 1e-4
+    skip_reason: Optional[str] = None
 
 
 # =============================================================================
@@ -504,20 +514,18 @@ SINGLE_VAR_ATOM_CONFIGS = [
     AtomTestConfig("index_single", lambda x: x[0], [(5,)], "unrestricted"),
     AtomTestConfig("index_slice", lambda x: x[1:4], [(5,)], "unrestricted"),
 
-    # === Matrix atoms requiring PSD input ===
-    # Note: These are tested separately in TestSymmetricMatrixAtoms using
-    # expression_gradcheck_symmetric which handles symmetry constraints.
+    # === Matrix atoms requiring symmetric PSD input ===
     AtomTestConfig("lambda_max", lambda x: cp.lambda_max(x), [(3, 3)], "psd",
-                   skip_reason="requires symmetric gradcheck - tested in TestSymmetricMatrixAtoms"),
+                   symmetric=True),
     AtomTestConfig("lambda_min", lambda x: cp.lambda_min(x), [(3, 3)], "psd",
-                   skip_reason="requires symmetric gradcheck - tested in TestSymmetricMatrixAtoms"),
-    AtomTestConfig("lambda_sum_largest",
-                   lambda x: cp.lambda_sum_largest(x, 2), [(3, 3)], "psd",
-                   skip_reason="lambda_sum_largest _grad raises NotImplementedError"),
+                   symmetric=True),
+    AtomTestConfig("lambda_sum_largest", lambda x: cp.lambda_sum_largest(x, 2),
+                   [(3, 3)], "psd",
+                   skip_reason="_grad raises NotImplementedError"),
     AtomTestConfig("log_det", lambda x: cp.log_det(x), [(3, 3)], "psd",
-                   skip_reason="requires symmetric gradcheck - tested in TestSymmetricMatrixAtoms"),
+                   symmetric=True),
     AtomTestConfig("tr_inv", lambda x: cp.tr_inv(x), [(3, 3)], "psd",
-                   skip_reason="requires symmetric gradcheck - tested in TestSymmetricMatrixAtoms"),
+                   symmetric=True),
 
     # === Other atoms ===
     AtomTestConfig("dotsort", lambda x: cp.dotsort(x, [3, 2, 1]), [(3,)],
@@ -530,18 +538,56 @@ SINGLE_VAR_ATOM_CONFIGS = [
                    "unrestricted",
                    skip_reason="subdifferential at ties - needs special handling"),
 
-    # === Atoms to skip (specialized or incomplete grad) ===
+    # === Atoms with unimplemented or trivial gradients ===
     AtomTestConfig("loggamma", lambda x: cp.loggamma(x), [(2,)], "positive",
-                   skip_reason="loggamma _grad not implemented"),
+                   skip_reason="_grad not implemented"),
     AtomTestConfig("log_normcdf", lambda x: cp.log_normcdf(x), [(2,)],
-                   "unrestricted",
-                   skip_reason="log_normcdf _grad not implemented"),
+                   "unrestricted", skip_reason="_grad not implemented"),
     AtomTestConfig("ceil", lambda x: cp.ceil(x), [(2,)], "unrestricted",
-                   skip_reason="ceil has zero gradient everywhere"),
+                   skip_reason="zero gradient everywhere"),
     AtomTestConfig("floor", lambda x: cp.floor(x), [(2,)], "unrestricted",
-                   skip_reason="floor has zero gradient everywhere"),
+                   skip_reason="zero gradient everywhere"),
     AtomTestConfig("sign", lambda x: cp.sign(x), [(2,)], "unrestricted",
-                   skip_reason="sign has zero gradient everywhere"),
+                   skip_reason="zero gradient everywhere"),
+    AtomTestConfig("cumprod", lambda x: cp.cumprod(x), [(4,)], "positive",
+                   skip_reason="_grad returns empty list (TODO in source)"),
+    AtomTestConfig("length", lambda x: cp.length(x), [(4,)], "unrestricted",
+                   skip_reason="_grad returns None (discrete)"),
+    AtomTestConfig("one_minus_pos", lambda x: cp.one_minus_pos(x), [(3,)],
+                   "unrestricted", skip_reason="constraint atom, trivial affine"),
+    AtomTestConfig("eye_minus_inv", lambda x: cp.eye_minus_inv(x), [(3, 3)],
+                   "unrestricted", skip_reason="specialized spectral atom"),
+    AtomTestConfig("von_neumann_entr", lambda x: cp.von_neumann_entr(x),
+                   [(3, 3)], "psd", skip_reason="_grad has TODO (scipy CSC)"),
+    AtomTestConfig("quantum_rel_entr", lambda x: cp.quantum_rel_entr(x, x),
+                   [(3, 3)], "psd", skip_reason="two-arg quantum atom"),
+]
+
+
+# =============================================================================
+# Multi-Variable Atom Configs
+# =============================================================================
+
+MULTI_VAR_ATOM_CONFIGS = [
+    # === Binary elementwise atoms ===
+    MultiVarAtomConfig("kl_div", lambda x, y: cp.kl_div(x, y),
+                       [("positive", (3,)), ("positive", (3,))]),
+    MultiVarAtomConfig("rel_entr", lambda x, y: cp.rel_entr(x, y),
+                       [("positive", (3,)), ("positive", (3,))]),
+    MultiVarAtomConfig("maximum", lambda x, y: cp.maximum(x, y),
+                       [("unrestricted", (3,)), ("unrestricted", (3,))]),
+    MultiVarAtomConfig("minimum", lambda x, y: cp.minimum(x, y),
+                       [("unrestricted", (3,)), ("unrestricted", (3,))]),
+    MultiVarAtomConfig("multiply", lambda x, y: cp.multiply(x, y),
+                       [("unrestricted", (3,)), ("unrestricted", (3,))]),
+
+    # === Matrix operations ===
+    MultiVarAtomConfig("matmul", lambda x, y: x @ y,
+                       [("unrestricted", (2, 3)), ("unrestricted", (3, 2))]),
+    MultiVarAtomConfig("quad_over_lin", lambda x, y: cp.quad_over_lin(x, y),
+                       [("unrestricted", (3,)), ("positive", (1,))]),
+    MultiVarAtomConfig("matrix_frac", lambda x, P: cp.matrix_frac(x, P),
+                       [("unrestricted", (3,)), ("psd", (3, 3))]),
 ]
 
 # =============================================================================
@@ -558,6 +604,11 @@ def get_atom_config_ids():
 def random_seed(request):
     """Multiple random seeds for robust testing."""
     return request.param
+
+
+def get_multi_var_config_ids():
+    """Generate test IDs for multi-var atom configs."""
+    return [c.name for c in MULTI_VAR_ATOM_CONFIGS]
 
 
 class TestExpressionGradcheck:
@@ -578,168 +629,42 @@ class TestExpressionGradcheck:
                 config.input_generator, var_shape, seed=random_seed
             )
 
-            passed, message = expression_gradcheck(
-                config.atom_factory,
-                var_shape,
-                var_value,
-                rtol=config.rtol,
-                atol=config.atol
-            )
+            if config.symmetric:
+                # Use symmetric gradcheck for PSD matrix atoms
+                n = var_shape[0]
+                passed, message = expression_gradcheck_symmetric(
+                    config.atom_factory, n, var_value,
+                    rtol=config.rtol, atol=config.atol
+                )
+            else:
+                passed, message = expression_gradcheck(
+                    config.atom_factory, var_shape, var_value,
+                    rtol=config.rtol, atol=config.atol
+                )
 
             assert passed, f"{config.name} shape={var_shape}: {message}"
 
+    @pytest.mark.parametrize(
+        "config",
+        MULTI_VAR_ATOM_CONFIGS,
+        ids=get_multi_var_config_ids()
+    )
+    def test_multi_var_atom(self, config: MultiVarAtomConfig, random_seed: int):
+        """Test gradient correctness for multi-variable atoms."""
+        if config.skip_reason:
+            pytest.skip(config.skip_reason)
 
-class TestMultiVariableAtoms:
-    """Tests for atoms with multiple variable arguments."""
+        var_shapes = [spec[1] for spec in config.var_specs]
+        var_values = [
+            AtomInputGenerator.generate(spec[0], spec[1], seed=random_seed + i)
+            for i, spec in enumerate(config.var_specs)
+        ]
 
-    @pytest.mark.parametrize("seed", [42, 123])
-    def test_kl_div(self, seed: int):
-        """Test kl_div(x, y) gradient with respect to both variables."""
-        x_val = AtomInputGenerator.positive((3,), seed)
-        y_val = AtomInputGenerator.positive((3,), seed + 1)
-
-        passed, msg = expression_gradcheck_multi(
-            lambda x, y: cp.kl_div(x, y),
-            [(3,), (3,)],
-            [x_val, y_val]
+        passed, message = expression_gradcheck_multi(
+            config.atom_factory, var_shapes, var_values,
+            rtol=config.rtol, atol=config.atol
         )
-        assert passed, f"kl_div: {msg}"
-
-    @pytest.mark.parametrize("seed", [42, 123])
-    def test_rel_entr(self, seed: int):
-        """Test rel_entr(x, y) gradient with respect to both variables."""
-        x_val = AtomInputGenerator.positive((3,), seed)
-        y_val = AtomInputGenerator.positive((3,), seed + 1)
-
-        passed, msg = expression_gradcheck_multi(
-            lambda x, y: cp.rel_entr(x, y),
-            [(3,), (3,)],
-            [x_val, y_val]
-        )
-        assert passed, f"rel_entr: {msg}"
-
-    @pytest.mark.parametrize("seed", [42, 123])
-    def test_quad_over_lin(self, seed: int):
-        """Test quad_over_lin(x, y) gradient."""
-        x_val = AtomInputGenerator.unrestricted((3,), seed)
-        y_val = np.array([AtomInputGenerator.positive((), seed + 1) + 1.0])
-
-        passed, msg = expression_gradcheck_multi(
-            lambda x, y: cp.quad_over_lin(x, y),
-            [(3,), (1,)],
-            [x_val, y_val]
-        )
-        assert passed, f"quad_over_lin: {msg}"
-
-    @pytest.mark.parametrize("seed", [42, 123])
-    def test_matrix_frac(self, seed: int):
-        """Test matrix_frac(x, P) gradient."""
-        n = 3
-        x_val = AtomInputGenerator.unrestricted((n,), seed)
-        P_val = AtomInputGenerator.psd_matrix(n, seed + 1)
-
-        passed, msg = expression_gradcheck_multi(
-            lambda x, P: cp.matrix_frac(x, P),
-            [(n,), (n, n)],
-            [x_val, P_val]
-        )
-        assert passed, f"matrix_frac: {msg}"
-
-    @pytest.mark.parametrize("seed", [42, 123])
-    def test_maximum_two_vars(self, seed: int):
-        """Test maximum(x, y) gradient with two variables."""
-        x_val = AtomInputGenerator.unrestricted((3,), seed)
-        y_val = AtomInputGenerator.unrestricted((3,), seed + 1)
-
-        passed, msg = expression_gradcheck_multi(
-            lambda x, y: cp.maximum(x, y),
-            [(3,), (3,)],
-            [x_val, y_val]
-        )
-        assert passed, f"maximum(x,y): {msg}"
-
-    @pytest.mark.parametrize("seed", [42, 123])
-    def test_minimum_two_vars(self, seed: int):
-        """Test minimum(x, y) gradient with two variables."""
-        x_val = AtomInputGenerator.unrestricted((3,), seed)
-        y_val = AtomInputGenerator.unrestricted((3,), seed + 1)
-
-        passed, msg = expression_gradcheck_multi(
-            lambda x, y: cp.minimum(x, y),
-            [(3,), (3,)],
-            [x_val, y_val]
-        )
-        assert passed, f"minimum(x,y): {msg}"
-
-    @pytest.mark.parametrize("seed", [42, 123])
-    def test_matmul(self, seed: int):
-        """Test matrix multiplication gradient."""
-        x_val = AtomInputGenerator.unrestricted((2, 3), seed)
-        y_val = AtomInputGenerator.unrestricted((3, 2), seed + 1)
-
-        passed, msg = expression_gradcheck_multi(
-            lambda x, y: x @ y,
-            [(2, 3), (3, 2)],
-            [x_val, y_val]
-        )
-        assert passed, f"matmul: {msg}"
-
-    @pytest.mark.parametrize("seed", [42, 123])
-    def test_multiply_elementwise(self, seed: int):
-        """Test elementwise multiplication gradient."""
-        x_val = AtomInputGenerator.unrestricted((3,), seed)
-        y_val = AtomInputGenerator.unrestricted((3,), seed + 1)
-
-        passed, msg = expression_gradcheck_multi(
-            lambda x, y: cp.multiply(x, y),
-            [(3,), (3,)],
-            [x_val, y_val]
-        )
-        assert passed, f"multiply: {msg}"
-
-
-class TestSymmetricMatrixAtoms:
-    """Tests for atoms that require symmetric/PSD matrix inputs."""
-
-    @pytest.mark.parametrize("seed", [42, 123])
-    def test_lambda_max(self, seed: int):
-        """Test lambda_max gradient with symmetric gradcheck."""
-        n = 3
-        psd_val = AtomInputGenerator.psd_matrix(n, seed)
-        passed, msg = expression_gradcheck_symmetric(
-            lambda x: cp.lambda_max(x), n, psd_val
-        )
-        assert passed, f"lambda_max: {msg}"
-
-    @pytest.mark.parametrize("seed", [42, 123])
-    def test_lambda_min(self, seed: int):
-        """Test lambda_min gradient with symmetric gradcheck."""
-        n = 3
-        psd_val = AtomInputGenerator.psd_matrix(n, seed)
-        passed, msg = expression_gradcheck_symmetric(
-            lambda x: cp.lambda_min(x), n, psd_val
-        )
-        assert passed, f"lambda_min: {msg}"
-
-    @pytest.mark.parametrize("seed", [42, 123])
-    def test_log_det(self, seed: int):
-        """Test log_det gradient with symmetric gradcheck."""
-        n = 3
-        psd_val = AtomInputGenerator.psd_matrix(n, seed)
-        passed, msg = expression_gradcheck_symmetric(
-            lambda x: cp.log_det(x), n, psd_val
-        )
-        assert passed, f"log_det: {msg}"
-
-    @pytest.mark.parametrize("seed", [42, 123])
-    def test_tr_inv(self, seed: int):
-        """Test tr_inv gradient with symmetric gradcheck."""
-        n = 3
-        psd_val = AtomInputGenerator.psd_matrix(n, seed)
-        passed, msg = expression_gradcheck_symmetric(
-            lambda x: cp.tr_inv(x), n, psd_val
-        )
-        assert passed, f"tr_inv: {msg}"
+        assert passed, f"{config.name}: {message}"
 
 
 class TestEdgeCases:
