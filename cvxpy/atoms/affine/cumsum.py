@@ -25,15 +25,16 @@ from cvxpy.atoms.axis_atom import AxisAtom
 from cvxpy.expressions.expression import Expression
 
 
-def _sparse_tril_ones(dim: int) -> sp.csc_array:
-    """Create a sparse lower triangular matrix of ones.
+def _sparse_triu_ones(dim: int) -> sp.csc_array:
+    """Create a sparse upper triangular matrix of ones.
 
     This avoids allocating a dense dim x dim matrix.
+    Used for cumsum gradient in CVXPY's convention: grad[i,j] = d(out[j])/d(in[i]).
     """
-    # Column j has entries at rows j, j+1, ..., dim-1
-    # So column 0 has dim entries, column 1 has dim-1, etc.
-    rows = np.concatenate([np.arange(j, dim) for j in range(dim)])
-    cols = np.repeat(np.arange(dim), np.arange(dim, 0, -1))
+    # Row i has entries at columns i, i+1, ..., dim-1
+    # So row 0 has dim entries, row 1 has dim-1, etc.
+    rows = np.repeat(np.arange(dim), np.arange(dim, 0, -1))
+    cols = np.concatenate([np.arange(i, dim) for i in range(dim)])
     data = np.ones(len(rows))
     return sp.csc_array((data, (rows, cols)), shape=(dim, dim))
 
@@ -84,6 +85,7 @@ class cumsum(AffAtom, AxisAtom):
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.
 
         Matrix expressions are vectorized, so the gradient is a matrix.
+        CVXPY convention: grad[i, j] = d(output[j]) / d(input[i]).
 
         Args:
             values: A list of numeric values for the arguments.
@@ -97,29 +99,34 @@ class cumsum(AffAtom, AxisAtom):
         # Handle axis=None: treat as 1D cumsum over C-order flattened array
         if axis is None:
             dim = values[0].size
-            # Lower triangular matrix = cumsum gradient in C-order space
-            tril = _sparse_tril_ones(dim)
-            # Permutation to convert F-order vectorized input to C-order
-            # P[i, j] = 1 means output[i] = input[j], so P @ f_vec = c_vec
+            # For cumsum with axis=None:
+            # - Input x is vectorized in F-order (CVXPY convention)
+            # - cumsum flattens in C-order then computes cumsum
+            # - Let x_f = F-order input, x_c = C-order = P @ x_f
+            # - y = L @ x_c = L @ P @ x_f (L is lower triangular)
+            # - dy/dx_f = L @ P
+            # - CVXPY wants grad[i,j] = dy[j]/dx_f[i] = (L @ P).T = P.T @ L.T = P.T @ U
+            # where U is upper triangular
+            triu = _sparse_triu_ones(dim)
+            # Permutation: P @ f_vec = c_vec
             c_order_indices = np.arange(dim).reshape(values[0].shape, order='F').flatten(order='C')
             P = sp.csc_array((np.ones(dim), (np.arange(dim), c_order_indices)), shape=(dim, dim))
-            # Gradient: input (F-order) -> C-order via P -> cumsum via tril -> output (1D)
-            # dy = tril @ P @ dx_f, so gradient is tril @ P
-            grad = tril @ P
+            grad = P.T @ triu
             return [sp.csc_array(grad)]
 
         axis = normalize_axis_index(axis, ndim)
         dim = values[0].shape[axis]
 
-        # Lower triangular matrix = cumsum gradient
-        tril = _sparse_tril_ones(dim)
+        # Upper triangular matrix for CVXPY gradient convention
+        # grad[i, j] = d(cumsum[j])/d(x[i]) = 1 if i <= j
+        triu = _sparse_triu_ones(dim)
 
-        # Kronecker product: I_post ⊗ tril ⊗ I_pre
+        # Kronecker product: I_post ⊗ triu ⊗ I_pre
         # This works for all dimensions including 1D and 2D
         pre_size = int(np.prod(values[0].shape[:axis])) if axis > 0 else 1
         post_size = int(np.prod(values[0].shape[axis+1:])) if axis < ndim - 1 else 1
 
-        grad = sp.kron(sp.kron(sp.eye_array(post_size), tril), sp.eye_array(pre_size))
+        grad = sp.kron(sp.kron(sp.eye_array(post_size), triu), sp.eye_array(pre_size))
         return [sp.csc_array(grad)]
 
     def get_data(self):
