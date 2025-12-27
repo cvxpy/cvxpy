@@ -204,7 +204,7 @@ class TestExpressions(BaseTest):
 
     def test_composite_quad_over_lin(self) -> None:
         """Test sum_squares(x) + quad_over_lin(x, y)"""
-        # https://github.com/cvxpy/cvxpy/issues/2773 
+        # https://github.com/cvxpy/cvxpy/issues/2773
         x = cp.Variable()
         y = cp.Variable()
         obj = cp.Minimize(cp.square(y) + cp.quad_over_lin(x, y))

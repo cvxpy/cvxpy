@@ -14,20 +14,36 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from typing import Optional, Tuple, Union
+
 from cvxpy.atoms.quad_over_lin import quad_over_lin
 
 
-def sum_squares(expr):
+def sum_squares(
+    expr,
+    axis: Optional[Union[int, Tuple[int, ...]]] = None,
+    keepdims: bool = False
+):
     """The sum of the squares of the entries.
 
     Parameters
     ----------
-    expr: Expression
+    expr : Expression
         The expression to take the sum of squares of.
+    axis : int or tuple of int, optional
+        The axis or axes along which to compute the sum of squares.
+        If None (default), sums over all elements and returns a scalar.
+        If an int, sums over that axis.
+        If a tuple, sums over multiple axes.
+    keepdims : bool, optional
+        If True, the reduced axes are retained as dimensions with size 1.
+        Default is False.
 
     Returns
     -------
     Expression
         An expression representing the sum of squares.
+        Scalar if axis is None, otherwise a vector/array (or with keepdims=True,
+        retains shape with reduced dimensions as 1).
     """
-    return quad_over_lin(expr, 1)
+    return quad_over_lin(expr, 1, axis=axis, keepdims=keepdims)
