@@ -142,8 +142,6 @@ class TestExpressions(BaseTest):
         self.assertFalse(t.is_quadratic())
         self.assertTrue(t.is_dcp())
 
-    # test_sum_squares_axis removed - covered by test_sum_squares_with_axis in test_expressions.py
-
     def test_indefinite_quadratic(self) -> None:
         x = Variable()
         y = Variable()
