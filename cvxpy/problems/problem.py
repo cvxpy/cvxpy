@@ -562,11 +562,6 @@ class Problem(u.Canonical):
         ignore_dpp : bool, optional
             When True, DPP problems will be treated as non-DPP,
             which may speed up compilation. Defaults to False.
-        ignore_nan : bool, optional
-            When True, bypasses CVXPY's validation check for NaN and Inf values
-            in the problem data. Note that solvers may still fail or produce
-            incorrect results when given such invalid data. If False (default),
-            raises a ValueError if such values are found.
         method : function, optional
             A custom solve method to use.
         kwargs : keywords, optional

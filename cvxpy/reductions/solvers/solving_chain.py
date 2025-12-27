@@ -486,7 +486,12 @@ class SolvingChain(Chain):
             A solution to the problem.
         """
         data, inverse_data = self.apply(problem)
+
+        # We validate the data both in SolvingChain.solve and 
+        # in SolvingChain.solve_via_data. These are the two possible 
+        # entry points for executing the solving chain.
         _validate_problem_data(data)
+
         solution = self.solver.solve_via_data(data, warm_start,
                                               verbose, solver_opts)
         return self.invert(solution, inverse_data)
@@ -530,6 +535,10 @@ class SolvingChain(Chain):
         if solver_opts is None:
             solver_opts = {}
 
+        # We validate the data both in SolvingChain.solve and 
+        # in SolvingChain.solve_via_data. These are the two possible 
+        # entry points for executing the solving chain.
         _validate_problem_data(data)
+
         return self.solver.solve_via_data(data, warm_start, verbose,
                                           solver_opts, problem._solver_cache)
