@@ -77,7 +77,7 @@ class quad_over_lin(AxisAtom):
         Returns:
             A list of SciPy CSC sparse matrices or None.
         """
-        # Gradient for axis case requires Jacobian; use numerical differentiation
+        # Gradient not implemented for axis case
         if self.axis is not None:
             return [None, None]
 

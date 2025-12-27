@@ -25,6 +25,7 @@ from cvxpy.expressions.variable import Variable
 def quad_over_lin_canon(expr, args):
     affine_expr = args[0]
     y = args[1]
+    assert y.is_scalar(), "quad_over_lin requires scalar y"
     axis = expr.axis
 
     # Simplify if y has no parameters.
@@ -83,39 +84,38 @@ def _compute_block_indices(shape, axes):
     reduce_shape = tuple(shape[i] for i in sorted(axes))
     reduce_size = int(np.prod(reduce_shape))
 
-    block_indices = []
+    # Vectorized computation of all indices at once
+    # out_multi: tuple of arrays, each shape (n_outputs,)
+    if output_shape:
+        out_multi = np.unravel_index(np.arange(n_outputs), output_shape, order='F')
+    else:
+        out_multi = ()
 
-    for out_idx in range(n_outputs):
-        # Convert flat output index to multi-index in output shape
-        if output_shape:
-            out_multi = np.unravel_index(out_idx, output_shape, order='F')
+    # reduce_multi: tuple of arrays, each shape (reduce_size,)
+    if reduce_shape:
+        reduce_multi = np.unravel_index(np.arange(reduce_size), reduce_shape, order='F')
+    else:
+        reduce_multi = ()
+
+    # Build input multi-index arrays with broadcasting
+    # Each element will have shape (n_outputs, reduce_size)
+    input_multi = []
+    out_ptr = 0
+    reduce_ptr = 0
+    for i in range(ndim):
+        if i in axes_set:
+            # Broadcast reduce indices: (reduce_size,) -> (n_outputs, reduce_size)
+            input_multi.append(np.broadcast_to(
+                reduce_multi[reduce_ptr], (n_outputs, reduce_size)))
+            reduce_ptr += 1
         else:
-            out_multi = ()
+            # Broadcast output indices: (n_outputs,) -> (n_outputs, reduce_size)
+            input_multi.append(np.broadcast_to(
+                out_multi[out_ptr][:, np.newaxis], (n_outputs, reduce_size)))
+            out_ptr += 1
 
-        indices = []
-        for reduce_idx in range(reduce_size):
-            # Convert reduce_idx to multi-index in reduce_shape
-            if reduce_shape:
-                reduce_multi = np.unravel_index(reduce_idx, reduce_shape, order='F')
-            else:
-                reduce_multi = ()
+    # Compute all flat indices at once: shape (n_outputs, reduce_size)
+    flat_indices_2d = np.ravel_multi_index(input_multi, shape, order='F')
 
-            # Build full input multi-index by interleaving
-            input_multi = [0] * ndim
-            out_ptr = 0
-            reduce_ptr = 0
-            for i in range(ndim):
-                if i in axes_set:
-                    input_multi[i] = reduce_multi[reduce_ptr]
-                    reduce_ptr += 1
-                else:
-                    input_multi[i] = out_multi[out_ptr]
-                    out_ptr += 1
-
-            # Convert to flat index
-            flat_idx = np.ravel_multi_index(input_multi, shape, order='F')
-            indices.append(flat_idx)
-
-        block_indices.append(np.array(indices))
-
-    return block_indices
+    # Return as list of arrays for compatibility with SymbolicQuadForm
+    return [flat_indices_2d[j] for j in range(n_outputs)]

@@ -35,7 +35,9 @@ def quad_over_lin_canon(expr, args):
                  => ||x||^2 <= t*y
     """
     x = args[0]
-    y = args[1].flatten(order='F')
+    y = args[1]
+    assert y.is_scalar(), "quad_over_lin requires scalar y"
+    y = y.flatten(order='F')
     axis = expr.axis
 
     if axis is None:
