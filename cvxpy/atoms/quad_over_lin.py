@@ -98,8 +98,6 @@ class quad_over_lin(AxisAtom):
             DX = scipy.sparse.csc_array(DX)
             return [DX, Dy]
 
-    # shape_from_args inherited from AxisAtom
-
     def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
@@ -149,8 +147,6 @@ class quad_over_lin(AxisAtom):
             raise ValueError("The second argument to quad_over_lin cannot be complex.")
         # AxisAtom.validate_arguments handles axis validation
         super(quad_over_lin, self).validate_arguments()
-
-    # get_data inherited from AxisAtom
 
     def is_quadratic(self) -> bool:
         """Quadratic if x is affine and y is constant.
