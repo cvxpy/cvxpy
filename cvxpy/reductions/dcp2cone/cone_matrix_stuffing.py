@@ -225,6 +225,7 @@ class ParamConeProg(ParamProb):
             self.q, param_vec, self.x.size, with_offset=True)
         q = q.toarray().flatten()
         A, b = self.reduced_A.get_matrix_from_tensor(param_vec, with_offset=True)
+
         if quad_obj:
             self.reduced_P.cache(keep_zeros)
             P, _ = self.reduced_P.get_matrix_from_tensor(param_vec, with_offset=False)
