@@ -142,60 +142,7 @@ class TestExpressions(BaseTest):
         self.assertFalse(t.is_quadratic())
         self.assertTrue(t.is_dcp())
 
-    def test_sum_squares_axis(self) -> None:
-        """Test sum_squares with axis parameter."""
-        # Test shape computation
-        X = Variable((3, 4))
-        s0 = cp.sum_squares(X, axis=0)
-        self.assertEqual(s0.shape, (4,))
-        self.assertTrue(s0.is_quadratic())
-        self.assertTrue(s0.is_dcp())
-
-        s1 = cp.sum_squares(X, axis=1)
-        self.assertEqual(s1.shape, (3,))
-        self.assertTrue(s1.is_quadratic())
-        self.assertTrue(s1.is_dcp())
-
-        # Test numeric values
-        X_val = np.array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]], dtype=float)
-        X.value = X_val
-        np.testing.assert_allclose(s0.value, np.sum(X_val**2, axis=0))
-        np.testing.assert_allclose(s1.value, np.sum(X_val**2, axis=1))
-
-        # Test QP optimization with axis=0
-        np.random.seed(42)
-        Y_target = np.random.randn(3, 4)
-        X = Variable((3, 4))
-        obj = cp.sum(cp.sum_squares(X - Y_target, axis=0))
-        prob = cp.Problem(cp.Minimize(obj))
-        prob.solve(solver=cp.OSQP)
-        self.assertEqual(prob.status, cp.OPTIMAL)
-        np.testing.assert_allclose(X.value, Y_target, atol=1e-4)
-
-        # Test QP optimization with axis=1
-        X = Variable((3, 4))
-        obj = cp.sum(cp.sum_squares(X - Y_target, axis=1))
-        prob = cp.Problem(cp.Minimize(obj))
-        prob.solve(solver=cp.OSQP)
-        self.assertEqual(prob.status, cp.OPTIMAL)
-        np.testing.assert_allclose(X.value, Y_target, atol=1e-4)
-
-        # Test that sum(sum_squares(..., axis=0)) == sum_squares(...)
-        X = Variable((4, 5))
-        Y = np.random.randn(4, 5)
-        scalar_obj = cp.sum_squares(X - Y)
-        axis_obj = cp.sum(cp.sum_squares(X - Y, axis=0))
-
-        prob1 = cp.Problem(cp.Minimize(scalar_obj))
-        result1 = prob1.solve(solver=cp.OSQP)
-        X1 = X.value.copy()
-
-        prob2 = cp.Problem(cp.Minimize(axis_obj))
-        result2 = prob2.solve(solver=cp.OSQP)
-        X2 = X.value.copy()
-
-        np.testing.assert_allclose(result1, result2, atol=1e-4)
-        np.testing.assert_allclose(X1, X2, atol=1e-4)
+    # test_sum_squares_axis removed - covered by test_sum_squares_with_axis in test_expressions.py
 
     def test_indefinite_quadratic(self) -> None:
         x = Variable()

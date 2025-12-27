@@ -19,15 +19,15 @@ from typing import List, Optional, Tuple, Union
 import numpy as np
 import scipy as scipy
 import scipy.sparse as sp
-from numpy.lib.array_utils import normalize_axis_index, normalize_axis_tuple
 
 import cvxpy.utilities as u
 from cvxpy.atoms.atom import Atom
+from cvxpy.atoms.axis_atom import AxisAtom
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions.constants.parameter import is_param_free
 
 
-class quad_over_lin(Atom):
+class quad_over_lin(AxisAtom):
     """:math:`(sum_{ij}X^2_{ij})/y`
 
     When axis is specified, computes the sum of squares along that axis,
@@ -44,7 +44,8 @@ class quad_over_lin(Atom):
     ) -> None:
         self.axis = axis
         self.keepdims = keepdims
-        super(quad_over_lin, self).__init__(x, y)
+        # Call Atom.__init__ directly since we have two args
+        Atom.__init__(self, x, y)
 
     @Atom.numpy_numeric
     def numeric(self, values):
@@ -97,31 +98,7 @@ class quad_over_lin(Atom):
             DX = scipy.sparse.csc_array(DX)
             return [DX, Dy]
 
-    def shape_from_args(self) -> Tuple[int, ...]:
-        """Returns the (row, col) shape of the expression.
-        """
-        if self.axis is None:
-            if self.keepdims:
-                return (1,) * self.args[0].ndim
-            return tuple()
-
-        shape = list(self.args[0].shape)
-        ndim = len(shape)
-
-        # Normalize axis/axes
-        if isinstance(self.axis, int):
-            axes = (normalize_axis_index(self.axis, ndim),)
-        else:
-            axes = normalize_axis_tuple(self.axis, ndim)
-
-        if self.keepdims:
-            for ax in axes:
-                shape[ax] = 1
-        else:
-            # Remove axes in reverse order to maintain correct indices
-            shape = [s for i, s in enumerate(shape) if i not in axes]
-
-        return tuple(shape)
+    # shape_from_args inherited from AxisAtom
 
     def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
@@ -170,24 +147,10 @@ class quad_over_lin(Atom):
             raise ValueError("The second argument to quad_over_lin must be a scalar.")
         if self.args[1].is_complex():
             raise ValueError("The second argument to quad_over_lin cannot be complex.")
-        if self.axis is not None:
-            ndim = self.args[0].ndim
-            if ndim < 2:
-                raise ValueError(
-                    "axis parameter requires at least 2D input, "
-                    f"got {ndim}D input."
-                )
-            # Validate axis is in range (normalize functions will raise if not)
-            if isinstance(self.axis, int):
-                _ = normalize_axis_index(self.axis, ndim)
-            else:
-                _ = normalize_axis_tuple(self.axis, ndim)
+        # AxisAtom.validate_arguments handles axis validation
         super(quad_over_lin, self).validate_arguments()
 
-    def get_data(self):
-        """Returns info needed to reconstruct the object besides the args.
-        """
-        return [self.axis, self.keepdims]
+    # get_data inherited from AxisAtom
 
     def is_quadratic(self) -> bool:
         """Quadratic if x is affine and y is constant.
