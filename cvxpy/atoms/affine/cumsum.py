@@ -25,19 +25,6 @@ from cvxpy.atoms.axis_atom import AxisAtom
 from cvxpy.expressions.expression import Expression
 
 
-def _sparse_tril_ones(dim: int) -> sp.csc_array:
-    """Create a sparse lower triangular matrix of ones.
-
-    This avoids allocating a dense dim x dim matrix.
-    """
-    # Column j has entries at rows j, j+1, ..., dim-1
-    # So column 0 has dim entries, column 1 has dim-1, etc.
-    rows = np.concatenate([np.arange(j, dim) for j in range(dim)])
-    cols = np.repeat(np.arange(dim), np.arange(dim, 0, -1))
-    data = np.ones(len(rows))
-    return sp.csc_array((data, (rows, cols)), shape=(dim, dim))
-
-
 def _sparse_triu_ones(dim: int) -> sp.csc_array:
     """Create a sparse upper triangular matrix of ones.
 
