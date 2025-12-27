@@ -419,16 +419,18 @@ def _validate_problem_data(data) -> None:
             continue
         val = data[key]
         arr = val.data if sp.issparse(val) else val
-        if np.any(np.isnan(arr)):
-            raise ValueError(
-                "Problem data contains NaN. "
-                "Check your parameter values and constants."
-            )
-        if key not in inf_allowed_keys and not np.all(np.isfinite(arr)):
-            raise ValueError(
-                "Problem data contains NaN or Inf. "
-                "Check your parameter values and constants."
-            )
+        if key in inf_allowed_keys:
+            if np.any(np.isnan(arr)):
+                raise ValueError(
+                    "Problem data contains NaN. "
+                    "Check your parameter values and constants."
+                )
+        else:
+            if not np.all(np.isfinite(arr)):
+                raise ValueError(
+                    "Problem data contains NaN or Inf. "
+                    "Check your parameter values and constants."
+                )
 
 
 class SolvingChain(Chain):
