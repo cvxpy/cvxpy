@@ -76,6 +76,10 @@ class SOC(Cone):
         if t is None or X is None:
             return None
 
+        # Convert scalars to arrays for uniform handling
+        t = np.atleast_1d(t)
+        X = np.atleast_1d(X)
+
         # Reduce axis = 0 to axis = 1.
         if self.axis == 0:
             X = X.T
@@ -124,12 +128,22 @@ class SOC(Cone):
         """
         return self.args[0].size
 
+    def _cone_size(self) -> int:
+        """The size of each second-order cone (1 + dimension of X).
+        """
+        X = self.args[1]
+        if len(X.shape) == 0:
+            X_dim = 1
+        else:
+            # X is 2D or 1D with axis = 0.
+            X_dim = X.shape[self.axis]
+        return 1 + X_dim
+
     @property
     def size(self) -> int:
         """The number of entries in the combined cones.
         """
-        cone_size = 1 + self.args[1].shape[self.axis]
-        return cone_size * self.num_cones()
+        return self._cone_size() * self.num_cones()
 
     def cone_sizes(self) -> List[int]:
         """The dimensions of the second-order cones.
@@ -139,8 +153,7 @@ class SOC(Cone):
         list
             A list of the sizes of the elementwise cones.
         """
-        cone_size = 1 + self.args[1].shape[self.axis]
-        return [cone_size] * self.num_cones()
+        return [self._cone_size()] * self.num_cones()
 
     def is_dcp(self, dpp: bool = False) -> bool:
         """An SOC constraint is DCP if each of its arguments is affine.
@@ -157,11 +170,14 @@ class SOC(Cone):
         return self.is_dcp()
 
     def save_dual_value(self, value) -> None:
-        cone_size = 1 + self.args[1].shape[self.axis]
+        cone_size = self._cone_size()
         value = np.reshape(value, (-1, cone_size))
         t = value[:, 0]
         X = value[:, 1:]
-        if self.axis == 0:
+        if len(self.args[1].shape) == 0:
+            # Scalar X: extract scalar from 2D array
+            X = X[0, 0]
+        elif self.axis == 0:
             X = X.T
         self.dual_variables[0].save_value(t)
         self.dual_variables[1].save_value(X)
