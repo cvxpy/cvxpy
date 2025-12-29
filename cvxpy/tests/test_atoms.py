@@ -125,6 +125,11 @@ class TestAtoms(BaseTest):
         self.assertTrue(str(cm.exception) in (
             "Unsupported norm option nuc for non-matrix."))
 
+        # Frobenius norm is only valid for matrices, not vectors
+        with self.assertRaises(ValueError) as cm:
+            cp.norm(x, 'fro')
+        self.assertEqual(str(cm.exception), "Invalid norm order 'fro' for vectors.")
+
     def test_quad_form(self) -> None:
         """Test quad_form atom.
         """

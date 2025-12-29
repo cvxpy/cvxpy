@@ -72,7 +72,8 @@ def norm(x, p: Union[int, str] = 2, axis=None, keepdims: bool = False):
         elif str(p).lower() == "inf":
             return norm_inf(x, axis=axis, keepdims=keepdims)
         elif str(p).lower() == "fro":
-            # TODO should not work for vectors.
+            if x.ndim < 2:
+                raise ValueError("Invalid norm order 'fro' for vectors.")
             return pnorm(vec(x, order='F'), 2, axis)
         elif isinstance(p, str):
             raise RuntimeError(f'Unsupported norm option {p} for non-matrix.')
