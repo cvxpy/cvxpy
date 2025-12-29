@@ -51,9 +51,9 @@ class TestSolverDataValidation(BaseTest):
         prob.solve(solver=cp.OSQP)
         self.assertAlmostEqual(x.value, 1.0, places=3)
 
-    def test_valid_problem_solves(self):
+    def test_inf_constant_in_objective(self):
         """A valid problem should still solve correctly."""
         x = cp.Variable()
-        prob = cp.Problem(cp.Minimize(x), [x >= 1])
-        prob.solve(solver=cp.SCS)
-        self.assertAlmostEqual(x.value, 1.0, places=3)
+        prob = cp.Problem(cp.Minimize(np.inf * x), [x >= 1])
+        with pytest.raises(ValueError, match="contains NaN or Inf"):
+            prob.solve(solver=cp.SCS)
