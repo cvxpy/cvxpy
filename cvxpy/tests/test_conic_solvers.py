@@ -368,7 +368,7 @@ class TestSCS(BaseTest):
         if Version(scs.__version__) >= Version('3.0.0'):
             # See https://github.com/cvxpy/cvxpy/issues/2059
             x = cp.Variable()
-            prob = cp.Problem(cp.Minimize(cp.power(x, 1.6, approx=True) + x**2), [x >= 1])
+            prob = cp.Problem(cp.Minimize(cp.power(x, 1.6, _approx=True) + x**2), [x >= 1])
             prob.solve(solver=cp.SCS, use_quad_obj=True)
             self.assertAlmostEqual(prob.value, 2)
             self.assertAlmostEqual(x.value, 1)
