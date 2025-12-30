@@ -156,6 +156,12 @@ class Minimize(Objective):
                 return self.args[0].is_convex()
         return self.args[0].is_convex()
 
+    def is_dnlp(self) -> bool:
+        """
+        The objective must be epigraph smooth representable.
+        """
+        return self.args[0].is_esr()
+
     def is_dgp(self, dpp: bool = False) -> bool:
         """The objective must be log-log convex.
         """
@@ -226,6 +232,12 @@ class Maximize(Objective):
             with scopes.dpp_scope():
                 return self.args[0].is_concave()
         return self.args[0].is_concave()
+
+    def is_dnlp(self) -> bool:
+        """
+        The objective must be hypograph smooth representable.
+        """
+        return self.args[0].is_hsr()
 
     def is_dgp(self, dpp: bool = False) -> bool:
         """The objective must be log-log concave.
