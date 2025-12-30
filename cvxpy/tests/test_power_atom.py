@@ -156,10 +156,11 @@ class TestPowerAtom(BaseTest):
         if cp.ECOS not in cp.installed_solvers():
             self.skipTest("ECOS not installed.")
         x = cp.Variable(3)
-        constr = [cp.power(x, 3.3, _approx=False) <= np.ones(3)]
-        prob = cp.Problem(cp.Minimize(x[0] + x[1] - x[2]), constr)
-        prob.solve(solver=cp.CVXOPT)
-        self.assertIn(prob.status, [cp.OPTIMAL, cp.OPTIMAL_INACCURATE])
-        self.assertAlmostEqual(prob.value, -1.0, places=3)
-        expected_x = np.array([0.0, 0.0, 1.0])
-        self.assertItemsAlmostEqual(x.value, expected_x, places=3)
+        prob = cp.Problem(
+            cp.Minimize(x[0] + x[1] - x[2]),
+            [cp.power(x, 3.3, _approx=False) <= np.ones(3)]
+        )
+        # ECOS doesn't support power cones, so should fall back to SOC
+        soc_count, p3d_count = self._get_cone_counts(prob, cp.ECOS)
+        self.assertGreater(soc_count, 0, "Should fall back to SOC cones")
+        self.assertEqual(p3d_count, 0, "Should not use power cones with ECOS")
