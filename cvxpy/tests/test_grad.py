@@ -700,16 +700,6 @@ def random_seed(request):
     return request.param
 
 
-def get_atom_config_ids():
-    """Generate test IDs for atom configs."""
-    return [c.name for c in SINGLE_VAR_ATOM_CONFIGS]
-
-
-def get_multi_var_config_ids():
-    """Generate test IDs for multi-var atom configs."""
-    return [c.name for c in MULTI_VAR_ATOM_CONFIGS]
-
-
 # =============================================================================
 # Systematic Gradient Tests
 # =============================================================================
@@ -721,7 +711,7 @@ class TestSingleVarAtomGradients:
     @pytest.mark.parametrize(
         "config",
         SINGLE_VAR_ATOM_CONFIGS,
-        ids=get_atom_config_ids()
+        ids=[c.name for c in SINGLE_VAR_ATOM_CONFIGS]
     )
     def test_single_var_atom(self, config: AtomTestConfig, random_seed: int):
         """Test gradient correctness for single-variable atoms."""
@@ -755,7 +745,7 @@ class TestMultiVarAtomGradients:
     @pytest.mark.parametrize(
         "config",
         MULTI_VAR_ATOM_CONFIGS,
-        ids=get_multi_var_config_ids()
+        ids=[c.name for c in MULTI_VAR_ATOM_CONFIGS]
     )
     def test_multi_var_atom(self, config: MultiVarAtomConfig, random_seed: int):
         """Test gradient correctness for multi-variable atoms."""
@@ -784,17 +774,13 @@ DOMAIN_VIOLATION_CONFIGS = [
 ]
 
 
-def get_domain_violation_ids():
-    return [c.name for c in DOMAIN_VIOLATION_CONFIGS]
-
-
 class TestDomainViolations:
     """Automated tests that gradient returns None outside domain."""
 
     @pytest.mark.parametrize(
         "config",
         DOMAIN_VIOLATION_CONFIGS,
-        ids=get_domain_violation_ids()
+        ids=[c.name for c in DOMAIN_VIOLATION_CONFIGS]
     )
     def test_domain_violation(self, config: AtomTestConfig):
         """Test that gradient is None when input violates domain."""
