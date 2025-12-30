@@ -25,25 +25,20 @@ from cvxpy.utilities.solver_context import SolverInfo
 
 
 def power_canon(expr, args, solver_context: SolverInfo | None = None):
-    # Decide whether to use approximation based on solver context.
-    # We approximate if the solver does not support power cones.
-
-    # If user explicitly set approx, respect that choice
-    if expr._approx is not None:
-        approx = expr._approx
-    # Otherwise, auto-detect based on solver capabilities
-    elif solver_context is None \
-            or PowCone3D not in solver_context.solver_supported_constraints:
-        approx = True
-    else:
-        approx = False
-
-    if expr._approx != approx:
-        expr = cp.power(args[0], expr._p_orig, max_denom=expr.max_denom, approx=approx)
-    if approx:
+    # If user requested approximation (default), use SOC
+    if expr._approx:
         return power_canon_approx(expr, args)
-    else:
+
+    # User requested power cones (_approx=False)
+    # Check if solver supports them
+    if solver_context is not None \
+            and PowCone3D in solver_context.solver_supported_constraints:
         return power_canon_cone(expr, args)
+
+    # Fallback to SOC if pow3d not supported
+    # Need to recreate expr with _approx=True for correct rational approx
+    expr = cp.power(args[0], expr._p_orig, max_denom=expr.max_denom, _approx=True)
+    return power_canon_approx(expr, [args[0]])
 
 
 def power_canon_approx(expr, args):

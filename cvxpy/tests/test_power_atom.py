@@ -15,7 +15,6 @@ limitations under the License.
 """
 
 import numpy as np
-import pytest
 
 import cvxpy as cp
 from cvxpy.tests.base_test import BaseTest
@@ -30,59 +29,34 @@ class TestPowerAtom(BaseTest):
         dims = data['dims']
         return len(dims.soc), len(dims.p3d)
 
-    def test_auto_detect_uses_power_cones_with_clarabel(self) -> None:
-        """Test that default behavior uses power cones with CLARABEL."""
-        x = cp.Variable(3)
-        prob = cp.Problem(
-            cp.Minimize(x[0] + x[1] - x[2]),
-            [cp.power(x, 3.3) <= np.ones(3)]  # No approx specified
-        )
-        soc_count, p3d_count = self._get_cone_counts(prob, cp.CLARABEL)
-        # Should use power cones, not SOC
-        self.assertGreater(p3d_count, 0, "Should use power cones with CLARABEL")
-        self.assertEqual(soc_count, 0, "Should not use SOC cones with CLARABEL")
-
-    @pytest.mark.skipif(cp.ECOS not in cp.installed_solvers(), reason="ECOS not installed")
-    def test_auto_detect_uses_soc_with_ecos(self) -> None:
-        """Test that default behavior uses SOC with ECOS (no power cone support)."""
-        x = cp.Variable(3)
-        prob = cp.Problem(
-            cp.Minimize(x[0] + x[1] - x[2]),
-            [cp.power(x, 3.3) <= np.ones(3)]  # No approx specified
-        )
-        soc_count, p3d_count = self._get_cone_counts(prob, cp.ECOS)
-        # Should use SOC, not power cones
-        self.assertGreater(soc_count, 0, "Should use SOC cones with ECOS")
-        self.assertEqual(p3d_count, 0, "Should not use power cones with ECOS")
-
     def test_explicit_approx_true_forces_soc(self) -> None:
-        """Test that approx=True forces SOC even with power-cone-capable solver."""
+        """Test that _approx=True forces SOC even with power-cone-capable solver."""
         x = cp.Variable(3)
         prob = cp.Problem(
             cp.Minimize(x[0] + x[1] - x[2]),
-            [cp.power(x, 3.3, approx=True) <= np.ones(3)]
+            [cp.power(x, 3.3, _approx=True) <= np.ones(3)]
         )
         soc_count, p3d_count = self._get_cone_counts(prob, cp.CLARABEL)
         # Should use SOC because user explicitly requested approximation
-        self.assertGreater(soc_count, 0, "approx=True should force SOC cones")
-        self.assertEqual(p3d_count, 0, "approx=True should not use power cones")
+        self.assertGreater(soc_count, 0, "_approx=True should force SOC cones")
+        self.assertEqual(p3d_count, 0, "_approx=True should not use power cones")
 
     def test_explicit_approx_false_forces_power_cones(self) -> None:
-        """Test that approx=False forces power cones."""
+        """Test that _approx=False forces power cones."""
         x = cp.Variable(3)
         prob = cp.Problem(
             cp.Minimize(x[0] + x[1] - x[2]),
-            [cp.power(x, 3.3, approx=False) <= np.ones(3)]
+            [cp.power(x, 3.3, _approx=False) <= np.ones(3)]
         )
         soc_count, p3d_count = self._get_cone_counts(prob, cp.CLARABEL)
         # Should use power cones
-        self.assertGreater(p3d_count, 0, "approx=False should use power cones")
-        self.assertEqual(soc_count, 0, "approx=False should not use SOC cones")
+        self.assertGreater(p3d_count, 0, "_approx=False should use power cones")
+        self.assertEqual(soc_count, 0, "_approx=False should not use SOC cones")
 
     def test_power_approx(self) -> None:
         """Test power atom with approximation."""
         x = cp.Variable(3)
-        constr = [cp.power(x, 3.3, approx=True) <= np.ones(3)]
+        constr = [cp.power(x, 3.3, _approx=True) <= np.ones(3)]
         prob = cp.Problem(cp.Minimize(x[0] + x[1] - x[2]), constr)
         prob.solve(solver=cp.SCS)
         self.assertIn(prob.status, [cp.OPTIMAL, cp.OPTIMAL_INACCURATE])
@@ -93,7 +67,7 @@ class TestPowerAtom(BaseTest):
     def test_power_no_approx(self) -> None:
         """Test power atom without approximation."""
         x = cp.Variable(3)
-        constr = [cp.power(x, 3.3, approx=False) <= np.ones(3)]
+        constr = [cp.power(x, 3.3, _approx=False) <= np.ones(3)]
         prob = cp.Problem(cp.Minimize(x[0] + x[1] - x[2]), constr)
         prob.solve(solver=cp.SCS)
         self.assertIn(prob.status, [cp.OPTIMAL, cp.OPTIMAL_INACCURATE])
@@ -105,14 +79,14 @@ class TestPowerAtom(BaseTest):
         """Compare answers with and without approximation on the same problem."""
         x = cp.Variable(3)
         constr = [
-            cp.power(x, -1.5, approx=True) <= np.ones(3),
+            cp.power(x, -1.5, _approx=True) <= np.ones(3),
         ]
         prob = cp.Problem(cp.Minimize(x[0] + x[1] - x[2] + (x[1] + x[2])**2), constr)
         prob.solve(solver=cp.CLARABEL)
         x_approx = x.value
 
         constr = [
-            cp.power(x, -1.5, approx=False) <= np.ones(3),
+            cp.power(x, -1.5, _approx=False) <= np.ones(3),
         ]
         prob = cp.Problem(cp.Minimize(x[0] + x[1] - x[2] + (x[1] + x[2])**2), constr)
         prob.solve(solver=cp.CLARABEL)
@@ -123,14 +97,14 @@ class TestPowerAtom(BaseTest):
         """Compare answers with and without approximation on the same problem."""
         x = cp.Variable(3)
         constr = [
-            cp.power(x, 0.8, approx=True) >= np.ones(3),
+            cp.power(x, 0.8, _approx=True) >= np.ones(3),
         ]
         prob = cp.Problem(cp.Minimize(x[0] + x[1] - x[2] + (x[1] + x[2])**2), constr)
         prob.solve(solver=cp.CLARABEL)
         x_approx = x.value
 
         constr = [
-            cp.power(x, 0.8, approx=False) >= np.ones(3),
+            cp.power(x, 0.8, _approx=False) >= np.ones(3),
         ]
         prob = cp.Problem(cp.Minimize(x[0] + x[1] - x[2] + (x[1] + x[2])**2), constr)
         prob.solve(solver=cp.CLARABEL)
@@ -141,14 +115,14 @@ class TestPowerAtom(BaseTest):
         """Compare answers with and without approximation on the same problem."""
         x = cp.Variable(3)
         constr = [
-            cp.power(x, 4.5, approx=True) <= np.ones(3),
+            cp.power(x, 4.5, _approx=True) <= np.ones(3),
         ]
         prob = cp.Problem(cp.Minimize(x[0] + x[1] - x[2] + (x[1] + x[2])**2), constr)
         prob.solve(solver=cp.CLARABEL)
         x_approx = x.value
 
         constr = [
-            cp.power(x, 4.5, approx=False) <= np.ones(3),
+            cp.power(x, 4.5, _approx=False) <= np.ones(3),
         ]
         prob = cp.Problem(cp.Minimize(x[0] + x[1] - x[2] + (x[1] + x[2])**2), constr)
         prob.solve(solver=cp.CLARABEL)
@@ -159,14 +133,14 @@ class TestPowerAtom(BaseTest):
         """Compare answers with and without approximation on the same problem."""
         x = cp.Variable(3)
         constr = [
-            cp.power(x, 8, approx=True) <= np.ones(3),
+            cp.power(x, 8, _approx=True) <= np.ones(3),
         ]
         prob = cp.Problem(cp.Minimize(x[0] + x[1] - x[2] + (x[1] + x[2])**2), constr)
         prob.solve(solver=cp.CLARABEL)
         x_approx = x.value
 
         constr = [
-            cp.power(x, 8, approx=False) <= np.ones(3),
+            cp.power(x, 8, _approx=False) <= np.ones(3),
         ]
         prob = cp.Problem(cp.Minimize(x[0] + x[1] - x[2] + (x[1] + x[2])**2), constr)
         prob.solve(solver=cp.CLARABEL)
@@ -175,13 +149,14 @@ class TestPowerAtom(BaseTest):
 
     def test_power_no_approx_unsupported_solver(self) -> None:
         """
-        Test power atom without approximation, using unsupported solver.
-        This tests is skipped if CVXOPT is not installed.
+        Test fallback behavior: _approx=False with a solver that doesn't
+        support power cones should fall back to SOC.
+        This test is skipped if ECOS is not installed.
         """
-        if cp.CVXOPT not in cp.installed_solvers():
-            self.skipTest("CVXOPT not installed.")
+        if cp.ECOS not in cp.installed_solvers():
+            self.skipTest("ECOS not installed.")
         x = cp.Variable(3)
-        constr = [cp.power(x, 3.3, approx=False) <= np.ones(3)]
+        constr = [cp.power(x, 3.3, _approx=False) <= np.ones(3)]
         prob = cp.Problem(cp.Minimize(x[0] + x[1] - x[2]), constr)
         prob.solve(solver=cp.CVXOPT)
         self.assertIn(prob.status, [cp.OPTIMAL, cp.OPTIMAL_INACCURATE])
