@@ -375,14 +375,9 @@ class power(Elementwise):
         if p == 0:
             # All zeros.
             return [sp.csc_array((rows, cols), dtype='float64')]
-        # Outside domain or on boundary.
+        # Outside domain: for non-power-of-2 exponents, domain is x >= 0
         if not is_power2(p) and np.min(values[0]) <= 0:
-            if p < 1:
-                # Non-differentiable.
-                return [None]
-            else:
-                # Round up to zero.
-                values[0] = np.maximum(values[0], 0)
+            return [None]
 
         grad_vals = float(p)*np.power(values[0], float(p)-1)
         return [power.elemwise_grad_to_diag(grad_vals, rows, cols)]

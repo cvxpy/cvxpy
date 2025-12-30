@@ -214,9 +214,11 @@ class ConicSolver(Solver):
                 #     coeffs[1][0:gap-1, :]
                 #     coeffs[0][1, :]
                 #     coeffs[1][gap-1:2*(gap-1), :]
+                # Handle scalar X (shape is empty tuple)
+                x_dim = constr.args[1].shape[0] if constr.args[1].shape else 1
                 t_spacer = ConicSolver.get_spacing_matrix(
                     shape=(total_height, constr.args[0].size),
-                    spacing=constr.args[1].shape[0],
+                    spacing=x_dim,
                     streak=1,
                     num_blocks=constr.args[0].size,
                     offset=0,
@@ -224,7 +226,7 @@ class ConicSolver(Solver):
                 X_spacer = ConicSolver.get_spacing_matrix(
                     shape=(total_height, constr.args[1].size),
                     spacing=1,
-                    streak=constr.args[1].shape[0],
+                    streak=x_dim,
                     num_blocks=constr.args[0].size,
                     offset=1,
                 )
