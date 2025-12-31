@@ -102,30 +102,32 @@ class TensorRepresentation:
         )
 
     def flatten_tensor(
-        self, num_param_slices: int, order: str = 'CSC'
-    ) -> sp.csc_array | sp.csr_array:
+        self, num_param_slices: int, order: str = 'F'
+    ) -> sp.csc_array:
         """
-        Flatten into 2D scipy sparse matrix in column-major order and transpose.
+        Flatten into 2D scipy sparse matrix in order-order and transpose.
 
         Parameters
         ----------
         num_param_slices: Number of parameter slices.
-        order: 'CSC' for column-major (default) or 'CSR' for row-major sparse format.
+        order: Whether to order output as 'F' for column-major (default) or 'C' for row-major
 
         Returns
         -------
         2D sparse array in the requested format.
         """
-        rows = (self.col.astype(np.int64) * np.int64(self.shape[0]) + self.row.astype(np.int64))
-        cols = self.parameter_offset.astype(np.int64)
+        if order == 'F':
+            rows = (self.col.astype(np.int64) * np.int64(self.shape[0]) + self.row.astype(np.int64))
+            cols = self.parameter_offset.astype(np.int64)
+        elif order == 'C':
+            rows = (self.col.astype(np.int64) + self.row.astype(np.int64) * np.int64(self.shape[1]))
+            cols = self.parameter_offset.astype(np.int64)
+        else:
+            raise ValueError(f"order must be 'F' or 'C', got '{order}'")
+
         shape = (np.prod(self.shape, dtype=np.int64), num_param_slices)
 
-        if order == 'CSR':
-            return sp.csr_array((self.data, (rows, cols)), shape=shape)
-        elif order == 'CSC':
-            return sp.csc_array((self.data, (rows, cols)), shape=shape)
-        else:
-            raise ValueError(f"order must be 'CSC' or 'CSR', got '{order}'")
+        return sp.csc_array((self.data, (rows, cols)), shape=shape)
 
     def get_param_slice(self, param_offset: int) -> sp.csc_array:
         """
@@ -159,8 +161,8 @@ class CanonBackend(ABC):
 
     @abstractmethod
     def build_matrix(
-        self, lin_ops: list[LinOp], order: str = 'CSC'
-    ) -> sp.csc_array | sp.csr_array:
+        self, lin_ops: list[LinOp], order: str = 'F'
+    ) -> sp.csc_array:
         """
         Main function called from canonInterface.
         Given a list of LinOp trees, each representing a constraint (or the objective), get the
@@ -170,7 +172,7 @@ class CanonBackend(ABC):
         Parameters
         ----------
         lin_ops: list of linOp trees.
-        order: 'CSC' for column-major (default) or 'CSR' for row-major sparse format.
+        order: Whether [A b] is written in column-major (default) or row-major order
 
         Returns
         -------
@@ -379,7 +381,7 @@ class PythonCanonBackend(CanonBackend):
     """
 
     def build_matrix(
-        self, lin_ops: list[LinOp], order: str = 'CSC'
+        self, lin_ops: list[LinOp], order: str = 'F'
     ) -> sp.csc_array | sp.csr_array:
         self.id_to_col[-1] = self.var_length
 

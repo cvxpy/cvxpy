@@ -60,22 +60,45 @@ def test_build_matrix_order(backend_name):
     }
     backend = get_backend(backend_name, **kwargs)
 
-    # Simple variable linop
+    # Simple variable linop of shape (2,) - creates a 2x2 identity in the variable columns
+    # Variable id=1 maps to column offset 0, so entries go in columns 0 and 1
     lin_op = linOpHelper(shape=(2,), type="variable", data=1, args=[])
 
-    # Test CSC (default)
-    csc_result = backend.build_matrix([lin_op], order='CSC')
-    assert isinstance(csc_result, sp.csc_array)
+    # Test F order (column-major)
+    f_result = backend.build_matrix([lin_op], order='F')
 
-    # Test CSR
-    csr_result = backend.build_matrix([lin_op], order='CSR')
-    assert isinstance(csr_result, sp.csr_array)
+    # Test C order (row-major)
+    c_result = backend.build_matrix([lin_op], order='C')
 
-    # Both should produce the same values
-    assert np.allclose(csc_result.toarray(), csr_result.toarray())
+    # Both results should have shape (total_rows * (var_length + 1), param_size_plus_one)
+    # total_rows = 2, var_length + 1 = 3, param_size_plus_one = 1
+    # So shape is (6, 1)
+    assert f_result.shape == (6, 1)
+    assert c_result.shape == (6, 1)
+
+    # The underlying tensor has entries at (row=0, col=0) and (row=1, col=1)
+    # with shape (2, 3).
+    #
+    # In F order (column-major): flat_row = col * num_rows + row
+    #   (0, 0) -> 0*2 + 0 = 0
+    #   (1, 1) -> 1*2 + 1 = 3
+    #
+    # In C order (row-major): flat_row = col + row * num_cols
+    #   (0, 0) -> 0 + 0*3 = 0
+    #   (1, 1) -> 1 + 1*3 = 4
+    f_dense = f_result.toarray().flatten()
+    c_dense = c_result.toarray().flatten()
+
+    # F order: entries at indices 0 and 3
+    expected_f = np.array([1., 0., 0., 1., 0., 0.])
+    np.testing.assert_array_equal(f_dense, expected_f)
+
+    # C order: entries at indices 0 and 4
+    expected_c = np.array([1., 0., 0., 0., 1., 0.])
+    np.testing.assert_array_equal(c_dense, expected_c)
 
     # Test invalid order
-    with pytest.raises(ValueError, match="order must be 'CSC' or 'CSR'"):
+    with pytest.raises(ValueError, match="order must be 'F' or 'C'"):
         backend.build_matrix([lin_op], order='INVALID')
 
 
