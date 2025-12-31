@@ -254,6 +254,12 @@ class MulExpression(BinaryOperator):
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.
 
         Matrix expressions are vectorized, so the gradient is a matrix.
+        CVXPY convention: grad[i, j] = d(output[j]) / d(input[i])
+        Uses Fortran (column-major) ordering for vectorization.
+
+        For matrix multiplication C = X @ Y:
+        - grad_X = kron(Y, I_m) where m = X.shape[0]
+        - grad_Y = kron(I_n, X).T where n = Y.shape[1] (or 1 for vectors)
 
         Args:
             values: A list of numeric values for the arguments.
@@ -264,29 +270,37 @@ class MulExpression(BinaryOperator):
         if self.args[0].is_constant() or self.args[1].is_constant():
             return super(MulExpression, self)._grad(values)
 
-        # TODO(akshayka): Verify that the following code is correct for
-        # non-affine arguments.
-        X = values[0]
-        Y = values[1]
+        X = np.atleast_2d(values[0])
+        Y = np.atleast_2d(values[1])
 
-        DX_rows = self.args[0].size
-        cols = self.args[0].size
+        # Handle 1D shapes: promote to 2D for consistent Kronecker computation
+        x_shape = self.args[0].shape
+        y_shape = self.args[1].shape
 
         # dot product of two vectors with shape (n,)
-        if len(self.args[0].shape) == 1 and len(self.args[1].shape) == 1:
-            DX = sp.csc_array(Y.reshape(-1, 1))  # y as column vector
-            DY = sp.csc_array(X.reshape(-1, 1))  # x as column vector
+        if len(x_shape) == 1 and len(y_shape) == 1:
+            # For 1D @ 1D -> scalar: grad is simply the other vector
+            DX = sp.csc_array(values[1].reshape(-1, 1))
+            DY = sp.csc_array(values[0].reshape(-1, 1))
             return [DX, DY]
 
-        # DX = [diag(Y11), diag(Y12), ...]
-        #      [diag(Y21), diag(Y22), ...]
-        #      [   ...        ...     ...]
-        DX = sp.dok_array((DX_rows, cols))
-        for k in range(self.args[0].shape[0]):
-            DX[k::self.args[0].shape[0], k::self.args[0].shape[0]] = Y
-        DX = sp.csc_array(DX)
-        cols = 1 if len(self.args[1].shape) == 1 else self.args[1].shape[1]
-        DY = sp.block_diag([np.atleast_2d(X.T) for k in range(cols)], "csc")
+        # For matrix @ vector, Y is (k,) -> treat as (k, 1)
+        # Note: atleast_2d converts (k,) to (1, k), so we transpose to get (k, 1)
+        if len(y_shape) == 1:
+            Y = Y.T  # (1, k) from atleast_2d -> (k, 1)
+
+        # For vector @ matrix, X is (k,) -> treat as (1, k)
+        if len(x_shape) == 1:
+            X = X  # already (1, k) from atleast_2d
+
+        m = X.shape[0]  # rows of X
+        n = Y.shape[1]  # cols of Y
+
+        # grad_X = kron(Y, I_m) with shape (m*k, m*n)
+        DX = sp.kron(Y, sp.eye_array(m), format='csc')
+
+        # grad_Y = kron(I_n, X).T with shape (k*n, m*n)
+        DY = sp.kron(sp.eye_array(n), X, format='csc').T
 
         return [DX, DY]
 
@@ -381,6 +395,35 @@ class multiply(MulExpression):
         """
         return (self.args[0].is_psd() and self.args[1].is_nsd()) or \
                (self.args[0].is_nsd() and self.args[1].is_psd())
+
+    def _grad(self, values):
+        """Gives the (sub/super)gradient of elementwise multiply.
+
+        For z = multiply(x, y), we have z[i] = x[i] * y[i].
+        Gradient is diagonal: grad_x = diag(y), grad_y = diag(x).
+        CVXPY convention: grad[i, j] = d(output[j]) / d(input[i])
+
+        Args:
+            values: A list of numeric values for the arguments.
+
+        Returns:
+            A list of SciPy CSC sparse matrices or None.
+        """
+        if self.args[0].is_constant() or self.args[1].is_constant():
+            return super(multiply, self)._grad(values)
+
+        X = values[0]
+        Y = values[1]
+
+        # Flatten in F-order for CVXPY convention
+        x_flat = np.asarray(X).flatten(order='F')
+        y_flat = np.asarray(Y).flatten(order='F')
+
+        # Gradient is diagonal: grad_x[i, i] = y[i], grad_y[i, i] = x[i]
+        DX = sp.diags(y_flat, format='csc')
+        DY = sp.diags(x_flat, format='csc')
+
+        return [DX, DY]
 
     def graph_implementation(
         self, arg_objs, shape: Tuple[int, ...], data=None
