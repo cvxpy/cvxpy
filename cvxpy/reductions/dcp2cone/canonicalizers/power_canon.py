@@ -16,17 +16,29 @@ limitations under the License.
 
 import numpy as np
 
+import cvxpy as cp
+from cvxpy.constraints import PowCone3D
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variable import Variable
 from cvxpy.utilities.power_tools import gm_constrs, powcone_constrs
+from cvxpy.utilities.solver_context import SolverInfo
 
 
-def power_canon(expr, args):
-    approx = expr._approx
-    if approx:
+def power_canon(expr, args, solver_context: SolverInfo | None = None):
+    # If user requested approximation (default), use SOC
+    if expr._approx:
         return power_canon_approx(expr, args)
-    else:
+
+    # User requested power cones (_approx=False)
+    # Check if solver supports them
+    if solver_context is not None \
+            and PowCone3D in solver_context.solver_supported_constraints:
         return power_canon_cone(expr, args)
+
+    # Fallback to SOC if pow3d not supported
+    # Need to recreate expr with _approx=True for correct rational approx
+    expr = cp.power(args[0], expr._p_orig, max_denom=expr.max_denom, _approx=True)
+    return power_canon_approx(expr, [args[0]])
 
 
 def power_canon_approx(expr, args):
@@ -58,7 +70,6 @@ def power_canon_approx(expr, args):
 def power_canon_cone(expr, args):
     x = args[0]
     p = expr.p_rational
-    w = expr.w[0]
 
     if p == 1:
         return x, []
@@ -67,19 +78,20 @@ def power_canon_cone(expr, args):
     ones = Constant(np.ones(shape))
     if p == 0:
         return ones, []
-    else:
-        t = Variable(shape)
 
-        if 0 < p < 1:
-            return t, powcone_constrs(t, [x, ones], w)
-        elif p > 1:
-            constrs = powcone_constrs(x, [t, ones], w)
-            if p % 2 != 0:
-                # noneven numerator: add x >= 0 constraint.
-                constrs += [x >= 0]
-            return t, constrs
-        elif p < 0:
-            return t, powcone_constrs(ones, [x, t], w)
-        else:
-            raise NotImplementedError('This power is not yet supported.')
+    w = expr.w[0]
+    t = Variable(shape)
+
+    if 0 < p < 1:
+        return t, powcone_constrs(t, [x, ones], w)
+    elif p > 1:
+        constrs = powcone_constrs(x, [t, ones], w)
+        if p % 2 != 0:
+            # noneven numerator: add x >= 0 constraint.
+            constrs += [x >= 0]
+        return t, constrs
+    elif p < 0:
+        return t, powcone_constrs(ones, [x, t], w)
+    else:
+        raise NotImplementedError('This power is not yet supported.')
 

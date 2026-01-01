@@ -176,11 +176,12 @@ class power(Elementwise):
                 w = None
 
             self.p_rational, self.w = p, w
-            if _approx:
+            if self._approx:
                 self.approx_error = float(abs(self.p_rational - p))
             else:
                 self.approx_error = 0.0
         super(power, self).__init__(x)
+
 
     @Elementwise.numpy_numeric
     def numeric(self, values):

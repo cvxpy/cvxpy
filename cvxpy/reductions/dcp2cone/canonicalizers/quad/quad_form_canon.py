@@ -16,9 +16,10 @@ limitations under the License.
 
 from cvxpy.atoms.quad_form import SymbolicQuadForm
 from cvxpy.expressions.variable import Variable
+from cvxpy.utilities.solver_context import SolverInfo
 
 
-def quad_form_canon(expr, args):
+def quad_form_canon(expr, args, solver_context: SolverInfo | None = None):
     affine_expr = expr.args[0]
     P = expr.args[1]
     if isinstance(affine_expr, Variable):

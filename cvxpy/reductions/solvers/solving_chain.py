@@ -48,6 +48,7 @@ from cvxpy.reductions.solvers.solver import Solver
 from cvxpy.settings import CLARABEL, COO_CANON_BACKEND, DPP_PARAM_THRESHOLD
 from cvxpy.utilities import scopes
 from cvxpy.utilities.debug_tools import build_non_disciplined_error_msg
+from cvxpy.utilities.solver_context import SolverInfo
 
 DPP_ERROR_MSG = (
     "You are solving a parameterized problem that is not DPP. "
@@ -330,6 +331,7 @@ def construct_solving_chain(problem, candidates,
         else:
             supported_constraints = solver_instance.SUPPORTED_CONSTRAINTS
 
+        solver_context = SolverInfo(solver=solver, supported_constraints=supported_constraints)
 
         ex_cos = (constr_types & set(EXOTIC_CONES)) - set(supported_constraints)
 
@@ -377,14 +379,14 @@ def construct_solving_chain(problem, candidates,
                     ConeMatrixStuffing(quad_obj=quad_obj, canon_backend=canon_backend),
                     solver_instance
                 ]
-                return SolvingChain(reductions=reductions)
+                return SolvingChain(reductions=reductions, solver_context=solver_context)
             elif all(c==SOC for c in unsupported_constraints) and PSD in supported_constraints:
                 reductions += [
                     SOC2PSD(),
                     ConeMatrixStuffing(quad_obj=quad_obj, canon_backend=canon_backend),
                     solver_instance
                 ]
-                return SolvingChain(reductions=reductions)
+                return SolvingChain(reductions=reductions, solver_context=solver_context)
 
     raise SolverError("Either candidate conic solvers (%s) do not support the "
                       "cones output by the problem (%s), or there are not "
@@ -450,12 +452,13 @@ class SolvingChain(Chain):
         The solver, i.e., reductions[-1].
     """
 
-    def __init__(self, problem=None, reductions=None) -> None:
+    def __init__(self, problem=None, reductions=None, solver_context=None) -> None:
         super(SolvingChain, self).__init__(problem=problem,
                                            reductions=reductions)
         if not isinstance(self.reductions[-1], Solver):
             raise ValueError("Solving chains must terminate with a Solver.")
         self.solver = self.reductions[-1]
+        self.solver_context = solver_context
 
     def prepend(self, chain) -> "SolvingChain":
         """
