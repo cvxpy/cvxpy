@@ -492,6 +492,14 @@ class TestAtoms(BaseTest):
         self.assertEqual(cp.sum(Variable(2)).shape, tuple())
         self.assertEqual(cp.sum(Variable(2)).curvature, s.AFFINE)
         self.assertEqual(cp.sum(Variable((2, 1)), keepdims=True).shape, (1, 1))
+
+        # Iterables and Generators
+        self.assertEqual(cp.sum([Variable(1) for _ in range(3)]).shape, (1,))
+        self.assertEqual(cp.sum([Variable(2) for _ in range(3)]).shape, (2,))
+        # self.assertEqual(cp.sum(Variable(1) for _ in range(3)).shape, (1,))
+        # self.assertEqual(cp.sum(Variable(2) for _ in range(3)).shape, (2,))
+        # self.assertEqual(cp.sum(range(3)).shape, tuple())
+
         # Mixed curvature.
         mat = np.array([[1, -1]])
         self.assertEqual(cp.sum(mat @ cp.square(Variable(2))).curvature, s.UNKNOWN)
