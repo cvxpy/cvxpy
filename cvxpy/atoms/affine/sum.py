@@ -145,7 +145,7 @@ def sum(expr, axis: Optional[int] = None, keepdims: bool = False):
     """
     Wrapper for Sum class.
     """
-    if isinstance(expr, list):
+    if isinstance(expr, list) or (hasattr(expr, '__next__') and hasattr(expr, '__iter__')):
         return builtins.sum(expr)
     else:
         return Sum(expr, axis, keepdims)
