@@ -26,6 +26,8 @@ from cvxpy.lin_ops.backends.base import (
     DictTensorView,
     PythonCanonBackend,
     TensorRepresentation,
+    get_nd_matmul_dims,
+    is_batch_varying,
 )
 
 # Module-level empty array constants to avoid repeated allocations
@@ -317,7 +319,7 @@ class CooTensor:
         )
 
 
-def _coo_kron_eye_r(tensor: CooTensor, reps: int) -> CooTensor:
+def _kron_eye_r(tensor: CooTensor, reps: int) -> CooTensor:
     """
     Apply Kronecker product kron(I_reps, A) to a CooTensor.
 
@@ -352,6 +354,190 @@ def _coo_kron_eye_r(tensor: CooTensor, reps: int) -> CooTensor:
         m=m * reps,
         n=k * reps,
         param_size=tensor.param_size
+    )
+
+
+def _kron_eye_l(tensor: CooTensor, reps: int) -> CooTensor:
+    """
+    Apply Kronecker product kron(A, I_reps) to a CooTensor.
+
+    For a tensor with shape (m, k), this produces a tensor with shape (m*reps, k*reps)
+    where each entry at (param_idx, row, col) becomes `reps` entries at
+    (param_idx, row*reps + r, col*reps + r) for r in 0..reps-1.
+
+    This creates a block diagonal structure where each scalar in A becomes a
+    diagonal block of size reps x reps.
+    """
+    if reps == 1:
+        return tensor
+
+    m, k = tensor.m, tensor.n
+    nnz = tensor.nnz
+
+    # Each original entry expands to reps entries
+    new_data = np.tile(tensor.data, reps)
+    new_param_idx = np.tile(tensor.param_idx, reps)
+
+    # new_row = old_row * reps + offset
+    # new_col = old_col * reps + offset
+    offsets = np.repeat(np.arange(reps), nnz)
+    new_row = np.tile(tensor.row * reps, reps) + offsets
+    new_col = np.tile(tensor.col * reps, reps) + offsets
+
+    return CooTensor(
+        data=new_data,
+        row=new_row,
+        col=new_col,
+        param_idx=new_param_idx,
+        m=m * reps,
+        n=k * reps,
+        param_size=tensor.param_size
+    )
+
+
+def _kron_nd_structure(tensor: CooTensor, batch_size: int, n: int) -> CooTensor:
+    """
+    Apply I_n ⊗ C ⊗ I_batch natively to a CooTensor.
+
+    Equivalent to: _kron_eye_r(_kron_eye_l(tensor, batch_size), n)
+    but computed in a single pass for efficiency.
+
+    Each entry at (p, i, j) expands to batch_size * n entries at:
+    (p, B*(i + r*m) + b, B*(j + r*k) + b)
+    for b in [0, batch_size) and r in [0, n).
+
+    Parameters
+    ----------
+    tensor : CooTensor
+        The input tensor C with shape (param_size, m, k)
+    batch_size : int
+        The batch dimension (B = prod of batch dims from variable)
+    n : int
+        The last dimension of the variable
+
+    Returns
+    -------
+    CooTensor
+        Expanded tensor with shape (param_size, m*B*n, k*B*n)
+    """
+    if batch_size == 1 and n == 1:
+        return tensor
+    if batch_size == 1:
+        return _kron_eye_r(tensor, n)
+    if n == 1:
+        return _kron_eye_l(tensor, batch_size)
+
+    m, k = tensor.m, tensor.n
+    nnz = tensor.nnz
+    expansion = batch_size * n
+
+    # Pre-compute all (b, r) combinations
+    # b_flat iterates slowest: [0,0,...,0, 1,1,...,1, ...]
+    # r_flat iterates fastest: [0,1,...,n-1, 0,1,...,n-1, ...]
+    b_vals, r_vals = np.meshgrid(np.arange(batch_size), np.arange(n), indexing='ij')
+    b_flat = b_vals.ravel()
+    r_flat = r_vals.ravel()
+
+    # Expand arrays: each entry replicates expansion times
+    new_data = np.tile(tensor.data, expansion)
+    new_param_idx = np.tile(tensor.param_idx, expansion)
+
+    # new_row = B*(i + r*m) + b
+    # new_col = B*(j + r*k) + b
+    base_row = np.tile(tensor.row, expansion)
+    base_col = np.tile(tensor.col, expansion)
+
+    b_offsets = np.repeat(b_flat, nnz)
+    r_offsets = np.repeat(r_flat, nnz)
+
+    new_row = batch_size * (base_row + r_offsets * m) + b_offsets
+    new_col = batch_size * (base_col + r_offsets * k) + b_offsets
+
+    return CooTensor(
+        data=new_data,
+        row=new_row,
+        col=new_col,
+        param_idx=new_param_idx,
+        m=m * batch_size * n,
+        n=k * batch_size * n,
+        param_size=tensor.param_size
+    )
+
+
+def _build_interleaved(
+    const_data: np.ndarray,
+    const_shape: tuple,
+    var_shape: tuple,
+) -> CooTensor:
+    """
+    Build interleaved matrix for batch-varying constant case, as CooTensor.
+
+    For C (..., m, k) @ X (..., k, n), builds I_n ⊗ M_interleaved where:
+    M_interleaved[b + B*i, b + B*r] = C[b, i, r]
+
+    This is the native CooTensor equivalent of build_interleaved_matrix.
+
+    Note: Batch broadcasting is handled symbolically in MulExpression, so
+    const_shape and var_shape batch dimensions are guaranteed to match here.
+
+    Parameters
+    ----------
+    const_data : np.ndarray
+        Raw constant data (will be reshaped to (B, m, k) in Fortran order)
+    const_shape : tuple
+        Shape of the constant (..., m, k)
+    var_shape : tuple
+        Shape of the variable (..., k, n)
+
+    Returns
+    -------
+    CooTensor
+        The interleaved matrix with I_n applied
+    """
+    B = int(np.prod(const_shape[:-2]))
+    m = const_shape[-2]
+    k = const_shape[-1]
+    n = var_shape[-1]
+
+    # Reshape to (B, m, k) in Fortran order
+    const_flat = np.reshape(const_data, (B, m, k), order="F")
+
+    # Build interleaved indices for all (b, i, r) combinations
+    b_idx = np.arange(B)
+    i_idx = np.arange(m)
+    r_idx = np.arange(k)
+
+    # bb, ii, rr are grids of indices corresponding to b, i, r in the formula below
+    bb, ii, rr = np.meshgrid(b_idx, i_idx, r_idx, indexing="ij")
+    bb, ii, rr = bb.ravel(), ii.ravel(), rr.ravel()
+
+    # M_interleaved[b + B*i, b + B*r] = C[b, i, r]
+    base_row = bb + B * ii
+    base_col = bb + B * rr
+    data = const_flat.ravel()
+
+    # Apply I_n ⊗ M_interleaved: replicate for each c in 0..n-1
+    if n > 1:
+        c_offsets = np.arange(n)
+        row_offsets = np.repeat(c_offsets * B * m, len(data))
+        col_offsets = np.repeat(c_offsets * B * k, len(data))
+
+        new_data = np.tile(data, n)
+        new_row = np.tile(base_row, n) + row_offsets
+        new_col = np.tile(base_col, n) + col_offsets
+    else:
+        new_data = data
+        new_row = base_row
+        new_col = base_col
+
+    return CooTensor(
+        data=new_data.astype(np.float64),
+        row=new_row.astype(np.int64),
+        col=new_col.astype(np.int64),
+        param_idx=np.zeros(len(new_data), dtype=np.int64),
+        m=B * m * n,
+        n=B * k * n,
+        param_size=1
     )
 
 
@@ -655,8 +841,15 @@ def coo_reshape(tensor: CooTensor, new_m: int, new_n: int) -> CooTensor:
     """
     Reshape the tensor (Fortran order, column-major).
 
-    For each entry at (param_idx, row, col), compute linear index = col * m + row,
+    For each entry at (row, col), compute linear index = col * m + row,
     then new_row = linear_idx % new_m, new_col = linear_idx // new_m.
+
+    The param_idx is preserved - it identifies which parameter value affects
+    each entry, not the position in the matrix.
+
+    This function is used by the `reshape` linop for general reshape operations.
+    For reshaping parametric constant data (from get_constant_data), use
+    reshape_parametric_constant instead.
     """
     # Compute linear index in column-major order
     linear_idx = tensor.col * tensor.m + tensor.row
@@ -674,6 +867,49 @@ def coo_reshape(tensor: CooTensor, new_m: int, new_n: int) -> CooTensor:
         n=new_n,
         param_size=tensor.param_size
     )
+
+
+def reshape_parametric_constant(tensor: CooTensor, new_m: int, new_n: int) -> CooTensor:
+    """
+    Reshape parametric constant data from column format to matrix format.
+
+    This is specifically for constant data extracted via get_constant_data,
+    where param_idx directly maps to positions in the parameter matrix
+    (column-major order).
+
+    For parametric tensors (param_size > 1):
+        Each param_idx value represents one element in the parameter matrix.
+        The position in the reshaped matrix is determined by param_idx:
+        new_row = param_idx % new_m, new_col = param_idx // new_m.
+        Duplicate entries (from broadcast operations) are deduplicated.
+
+    For non-parametric tensors (param_size == 1):
+        Uses standard linear index reshaping.
+    """
+    if tensor.param_size > 1:
+        # For parametric tensors, use param_idx as position indicator
+        # Each param_idx maps to one position in (new_m, new_n) in column-major order
+        new_row = tensor.param_idx % new_m
+        new_col = tensor.param_idx // new_m
+
+        # Deduplicate: keep first occurrence of each param_idx
+        # This handles broadcast operations that duplicate param entries
+        unique_param_idx, first_occurrence = np.unique(
+            tensor.param_idx, return_index=True
+        )
+
+        return CooTensor(
+            data=tensor.data[first_occurrence].copy(),
+            row=new_row[first_occurrence].astype(np.int64),
+            col=new_col[first_occurrence].astype(np.int64),
+            param_idx=unique_param_idx.astype(np.int64),
+            m=new_m,
+            n=new_n,
+            param_size=tensor.param_size
+        )
+    else:
+        # Non-parametric: use standard linear index reshaping
+        return coo_reshape(tensor, new_m, new_n)
 
 
 class CooTensorView(DictTensorView):
@@ -939,110 +1175,137 @@ class CooCanonBackend(PythonCanonBackend):
 
     # transpose: use base class implementation (via select_rows)
 
+    def _mul_kronecker(
+        self,
+        lhs_data,
+        const_shape: tuple,
+        var_shape: tuple,
+        view: CooTensorView,
+    ) -> CooTensorView:
+        """
+        2D constant @ ND variable: use Kronecker structure I_n ⊗ C ⊗ I_batch.
+
+        This is the most common case: a 2D constant matrix multiplies each
+        batch element of an ND variable.
+        """
+        batch_size, n, _ = get_nd_matmul_dims(const_shape, var_shape)
+
+        # Convert to CooTensor if needed
+        if isinstance(lhs_data, CooTensor):
+            lhs_tensor = lhs_data
+        else:
+            lhs_tensor = self._to_coo_tensor(lhs_data)
+
+        stacked_compact = _kron_nd_structure(lhs_tensor, batch_size, n)
+
+        def constant_mul(compact, p):
+            return coo_matmul(stacked_compact, compact)
+
+        view.accumulate_over_variables(constant_mul, is_param_free_function=True)
+        return view
+
+    def _mul_interleaved(
+        self,
+        lin_op,
+        var_shape: tuple,
+        view: CooTensorView,
+    ) -> CooTensorView:
+        """
+        Batch-varying constant @ variable: use interleaved matrix structure.
+
+        When the constant has batch dimensions (e.g., C(B,m,k) @ X(B,k,n)),
+        each batch element uses a different constant matrix.
+        """
+        const_shape = lin_op.data.shape
+        # Raw data access is intentional: batch-varying constants are never parametric.
+        # lin_op.data is a LinOp of type "*_const", so lin_op.data.data gets the numpy array.
+        stacked_compact = _build_interleaved(lin_op.data.data, const_shape, var_shape)
+
+        def constant_mul(compact, p):
+            return coo_matmul(stacked_compact, compact)
+
+        view.accumulate_over_variables(constant_mul, is_param_free_function=True)
+        return view
+
+    def _mul_parametric_lhs(
+        self,
+        lhs_data: dict,
+        const_shape: tuple,
+        var_shape: tuple,
+        view: CooTensorView,
+    ) -> CooTensorView:
+        """
+        Parametric constant @ variable: expand each parameter slice with Kronecker.
+
+        When the constant depends on Parameters, we expand each parameter slice
+        separately using the Kronecker structure.
+        """
+        batch_size, n, _ = get_nd_matmul_dims(const_shape, var_shape)
+
+        # Expand each parameter slice with Kronecker structure
+        expanded_lhs = {
+            param_id: _kron_nd_structure(tensor, batch_size, n)
+            for param_id, tensor in lhs_data.items()
+        }
+
+        def parametrized_mul(rhs_compact):
+            return {
+                param_id: coo_matmul(lhs_compact, rhs_compact)
+                for param_id, lhs_compact in expanded_lhs.items()
+            }
+
+        # Apply to each variable tensor in-place
+        for var_id, var_tensor in view.tensor.items():
+            const_compact = var_tensor[Constant.ID.value]
+            view.tensor[var_id] = parametrized_mul(const_compact)
+
+        view.is_parameter_free = False
+        return view
+
     def mul(self, lin_op, view: CooTensorView) -> CooTensorView:
         """
-        Matrix multiplication - the key optimized operation.
+        Matrix multiply: C @ X where C is constant/parametric, X is variable.
 
-        For parametrized A @ x, this is O(nnz) instead of O(param_size * m).
+        Three cases (explicitly branched for clarity):
+        1. Parametric LHS: Parameter @ Variable
+        2. Batch-varying constant: C(B,m,k) @ X(B,k,n) - uses interleaved matrix
+        3. 2D constant: C(m,k) @ X(B,k,n) - uses Kronecker I_n ⊗ C ⊗ I_B
         """
-        lhs = lin_op.data
+        const = lin_op.data
+        var_shape = lin_op.args[0].shape
+        const_shape = const.shape
 
-        # Get constant data for lhs
-        lhs_data, is_lhs_parametric = self._get_lhs_data(lhs, view)
-
-        if is_lhs_parametric:
-            # Parametrized lhs @ variable rhs - the expensive case
-            # Need to apply Kronecker expansion for ND variables
-            lhs_shape = lhs.shape
-            # For 1D lhs in matmul, treat as row vector (1, size) to match numpy behavior
-            lhs_shape_2d = lhs_shape if len(lhs_shape) == 2 else (1, int(np.prod(lhs_shape)))
-            lhs_k = lhs_shape_2d[-1]  # Inner dimension
-            reps = view.rows // lhs_k
-
-            # Apply Kronecker expansion if needed
-            if reps > 1:
-                expanded_lhs = {
-                    param_id: _coo_kron_eye_r(tensor, reps)
-                    for param_id, tensor in lhs_data.items()
-                }
-            else:
-                expanded_lhs = lhs_data
-
-            def parametrized_mul(rhs_compact):
-                # lhs_data is a dict {param_id: CooTensor}
-                result = {}
-                for param_id, lhs_compact in expanded_lhs.items():
-                    result[param_id] = coo_matmul(lhs_compact, rhs_compact)
-                return result
-
-            # Apply to each variable tensor in-place
-            for var_id, var_tensor in view.tensor.items():
-                # var_tensor is {Constant.ID: CooTensor}
-                const_compact = var_tensor[Constant.ID.value]
-                view.tensor[var_id] = parametrized_mul(const_compact)
-
-            view.is_parameter_free = False
-            return view
-
-        else:
-            # Constant lhs @ rhs - need to expand lhs with Kronecker product
-            # For A @ X where A is (m,k) and X is variable:
-            # We need kron(I_reps, A) where reps = X_rows / k
-            lhs_shape = lin_op.data.shape
-            lhs_shape_2d = lhs_shape if len(lhs_shape) == 2 else (1, lhs_shape[0])
-            lhs_k = lhs_shape_2d[-1]  # Inner dimension of A
-
-            # Convert to sparse and apply kron expansion
-            # get_constant_data may return CooTensor, sparse, or dense array
-            if isinstance(lhs_data, CooTensor):
-                lhs_sparse = lhs_data.to_stacked_sparse()
-            elif sp.issparse(lhs_data):
-                lhs_sparse = lhs_data
-            else:
-                lhs_sparse = sp.csr_array(np.atleast_2d(lhs_data))
-
-            reps = view.rows // lhs_k
-            if reps > 1:
-                stacked_lhs = sp.kron(sp.eye_array(reps, format="csr"), lhs_sparse)
-            else:
-                stacked_lhs = lhs_sparse
-
-            # Convert stacked lhs to CooTensor
-            stacked_compact = self._to_coo_tensor(stacked_lhs)
-
-            def constant_mul(compact, p):
-                return coo_matmul(stacked_compact, compact)
-
-            view.accumulate_over_variables(constant_mul, is_param_free_function=True)
-            return view
-
-    def _get_lhs_data(self, lhs, view):
-        """Get lhs data, detecting if it's parametric."""
-        if hasattr(lhs, 'type') and lhs.type == 'param':
-            # Parametric lhs
-            param_id = lhs.data
-            param_size = self.param_to_size[param_id]
-            size = int(np.prod(lhs.shape))
-            # For 1D lhs in matmul, treat as row vector (1, size) to match numpy behavior
-            m, k = lhs.shape if len(lhs.shape) == 2 else (1, size)
-
-            # Create CooTensor for parameter matrix
+        # Get constant data - check for direct param case first
+        if hasattr(const, 'type') and const.type == 'param':
+            # Direct parameter: construct CooTensor for parameter matrix
             # Parameters are stored in column-major (Fortran) order:
             # param_idx=0 -> A[0,0], param_idx=1 -> A[1,0], ..., param_idx=m -> A[0,1]
-            compact = CooTensor(
+            param_id = const.data
+            param_size = self.param_to_size[param_id]
+            size = int(np.prod(const.shape))
+            m, k = const.shape if len(const.shape) == 2 else (1, size)
+            lhs_data = {param_id: CooTensor(
                 data=np.ones(param_size, dtype=np.float64),
-                row=np.tile(np.arange(m), k),  # [0,1,2,0,1,2,...] for column-major
-                col=np.repeat(np.arange(k), m),  # [0,0,0,1,1,1,...] for column-major
+                row=np.tile(np.arange(m), k),
+                col=np.repeat(np.arange(k), m),
                 param_idx=np.arange(param_size, dtype=np.int64),
-                m=m,
-                n=k,
-                param_size=param_size
-            )
-            return {param_id: compact}, True
+                m=m, n=k, param_size=param_size
+            )}
+            is_param_free = False
         else:
-            # Constant lhs - use get_constant_data to handle complex expressions
-            lhs_data, is_param_free = self.get_constant_data(lhs, view, column=False)
-            return lhs_data, not is_param_free  # return (data, is_parametric)
+            # Compute 2D target shape (last 2 dims for ND, row vector for 1D)
+            target = const_shape[-2:] if len(const_shape) >= 2 else (1, const_shape[0])
+            lhs_data, is_param_free = self.get_constant_data(const, view, target_shape=target)
+
+        if not is_param_free:
+            # Case 1: Parametric LHS
+            return self._mul_parametric_lhs(lhs_data, const_shape, var_shape, view)
+        elif is_batch_varying(const_shape):
+            # Case 2: Batch-varying constant
+            return self._mul_interleaved(lin_op, var_shape, view)
+        else:
+            # Case 3: 2D constant (or trivial batch dims like (1, m, k))
+            return self._mul_kronecker(lhs_data, const_shape, var_shape, view)
 
     def get_constant_data_from_const(self, lin_op):
         """Extract constant data from a LinOp."""
@@ -1061,7 +1324,7 @@ class CooCanonBackend(PythonCanonBackend):
 
         Note: div currently doesn't support parameters in divisor.
         """
-        rhs, is_param_free_rhs = self.get_constant_data(lin_op.data, view, column=True)
+        rhs, is_param_free_rhs = self.get_constant_data(lin_op.data, view, target_shape=None)
         assert is_param_free_rhs, "div doesn't support parametrized divisor"
 
         # Get reciprocal values
@@ -1094,7 +1357,7 @@ class CooCanonBackend(PythonCanonBackend):
         """
         Element-wise multiplication: x * d.
         """
-        lhs, is_param_free_lhs = self.get_constant_data(lin_op.data, view, column=True)
+        lhs, is_param_free_lhs = self.get_constant_data(lin_op.data, view, target_shape=None)
 
         if is_param_free_lhs:
             lhs_compact = self._to_coo_tensor(lhs)
@@ -1176,29 +1439,38 @@ class CooCanonBackend(PythonCanonBackend):
     # upper_tri: use base class implementation (via select_rows)
 
     def _to_coo_tensor(self, matrix, param_id=None):
-        """Convert sparse matrix to CooTensor."""
+        """Convert sparse matrix or dense array to CooTensor."""
         if isinstance(matrix, dict):
-            # Already a dict of matrices
             raise ValueError("Expected single matrix, got dict")
 
-        coo = matrix.tocoo()
+        if isinstance(matrix, np.ndarray):
+            # Dense array: extract nonzeros directly
+            data_2d = np.atleast_2d(matrix)
+            rows, cols = np.nonzero(data_2d)
+            data = data_2d[rows, cols]
+            m, n = data_2d.shape
+        else:
+            # Sparse matrix
+            coo = matrix.tocoo()
+            rows, cols, data = coo.row, coo.col, coo.data.copy()
+            m, n = coo.shape
+
         if param_id is not None:
             p = self.param_to_size[param_id]
-            m = coo.shape[0] // p
-            param_idx, row = np.divmod(coo.row, m)
+            slice_m = m // p
+            param_idx, rows = np.divmod(rows, slice_m)
+            m = slice_m
         else:
             p = 1
-            m = coo.shape[0]
-            row = coo.row
-            param_idx = np.zeros(len(coo.data), dtype=np.int64)
+            param_idx = np.zeros(len(data), dtype=np.int64)
 
         return CooTensor(
-            data=coo.data.copy(),
-            row=row.astype(np.int64),
-            col=coo.col.astype(np.int64),
+            data=data.astype(np.float64),
+            row=rows.astype(np.int64),
+            col=cols.astype(np.int64),
             param_idx=param_idx.astype(np.int64),
             m=m,
-            n=coo.shape[1],
+            n=n,
             param_size=p
         )
 
@@ -1213,7 +1485,10 @@ class CooCanonBackend(PythonCanonBackend):
 
         Supports both constant and parametrized B.
         """
-        rhs, is_param_free_rhs = self.get_constant_data(lin_op.data, view, column=False)
+        # Compute target shape (2D shape, or row vector for 1D)
+        data_shape = lin_op.data.shape
+        target = data_shape if len(data_shape) == 2 else (1, data_shape[0])
+        rhs, is_param_free_rhs = self.get_constant_data(lin_op.data, view, target_shape=target)
 
         # Get dimensions
         arg_shape = lin_op.args[0].shape
@@ -1297,6 +1572,9 @@ class CooCanonBackend(PythonCanonBackend):
 
         The input CooTensor is in column format (m*n, 1). We reshape it
         to (m, n) for operations like mul that need the actual shape.
+
+        For parametric data, uses reshape_parametric_constant which handles
+        broadcast deduplication based on param_idx.
         """
         result = {}
         for k, v in constant_data.items():
@@ -1304,7 +1582,8 @@ class CooCanonBackend(PythonCanonBackend):
                 new_m = lin_op_shape[0] if len(lin_op_shape) > 0 else 1
                 new_n = lin_op_shape[1] if len(lin_op_shape) > 1 else 1
                 # Reshape from column (m*n, 1) to matrix (m, n)
-                result[k] = coo_reshape(v, new_m, new_n)
+                # Use reshape_parametric_constant for proper param_idx handling
+                result[k] = reshape_parametric_constant(v, new_m, new_n)
             else:
                 result[k] = v.reshape(lin_op_shape, order='F') if hasattr(v, 'reshape') else v
         return result
@@ -1332,7 +1611,15 @@ class CooCanonBackend(PythonCanonBackend):
 
         Note: conv currently doesn't support parameters.
         """
-        lhs, is_param_free_lhs = self.get_constant_data(lin_op.data, view, column=False)
+        # Compute target shape (2D shape, or row vector for 1D, or (1,1) for 0D)
+        data_shape = lin_op.data.shape
+        if len(data_shape) == 2:
+            target = data_shape
+        elif len(data_shape) == 1:
+            target = (1, data_shape[0])
+        else:  # 0D scalar
+            target = (1, 1)
+        lhs, is_param_free_lhs = self.get_constant_data(lin_op.data, view, target_shape=target)
         assert is_param_free_lhs, "conv doesn't support parametrized kernel"
 
         # Convert to sparse - may be CooTensor or sparse matrix
@@ -1382,7 +1669,9 @@ class CooCanonBackend(PythonCanonBackend):
         Reorders rows to match CVXPY's column-major ordering.
         Note: kron currently doesn't support parameters.
         """
-        const_data, is_param_free = self.get_constant_data(lin_op.data, view, column=True)
+        const_data, is_param_free = self.get_constant_data(
+            lin_op.data, view, target_shape=None
+        )
         assert is_param_free, "kron doesn't support parametrized operands"
 
         # Convert constant to sparse
