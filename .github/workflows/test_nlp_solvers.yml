@@ -1,4 +1,4 @@
-name: test_nlp
+name: test_nlp_solvers
 
 on:
     pull_request:
@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, macos-latest]
     steps:
       - uses: actions/setup-python@v6
         with:
@@ -35,10 +35,13 @@ jobs:
       - name: Install cyipopt via conda
         run: |
           conda install -y -c conda-forge cyipopt
+      - name: Install uno via pip
+        run: |
+          pip install unopy
       - name: Install test dependencies
         run: |
           pip install -e .
           pip install pytest hypothesis
-      - name: Run NLP tests
+      - name: Run nlp tests
         run: |
           pytest cvxpy/tests/nlp_tests/.

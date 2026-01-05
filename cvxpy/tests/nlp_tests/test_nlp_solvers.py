@@ -6,12 +6,14 @@ import cvxpy as cp
 from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS
 from cvxpy.tests.test_conic_solvers import is_knitro_available
 
-# Always parametrize both solvers, skip at runtime if not available
+# Always parametrize all solvers, skip at runtime if not available
 NLP_SOLVERS = [
     pytest.param('IPOPT', marks=pytest.mark.skipif(
         'IPOPT' not in INSTALLED_SOLVERS, reason='IPOPT is not installed.')),
     pytest.param('KNITRO', marks=pytest.mark.skipif(
         not is_knitro_available(), reason='KNITRO is not installed or license not available.')),
+    pytest.param('UNO', marks=pytest.mark.skipif(
+        'UNO' not in INSTALLED_SOLVERS, reason='UNO is not installed.')),
 ]
 
 
@@ -94,6 +96,9 @@ class TestNLPExamples:
         assert np.allclose(x.value, np.array([1.0, 1.0]))
 
     def test_qcp(self, solver):
+        # Use IPM for UNO on this test, SQP converges to a suboptimal point: (0, 0, 1)
+        if solver == 'UNO':
+            solver = 'UNO_IPM'
         x = cp.Variable(1)
         y = cp.Variable(1, bounds=[0, np.inf])
         z = cp.Variable(1, bounds=[0, np.inf])

@@ -595,3 +595,13 @@ CITATION_DICT["IPOPT"] = \
   volume={106},
   }
 """
+
+CITATION_DICT["UNO"] = \
+"""
+@unpublished{VanaretLeyffer2024,
+  author = {Vanaret, Charlie and Leyffer, Sven},
+  title = {Implementing a unified solver for nonlinearly constrained optimization},
+  year = {2024},
+  note = {Submitted to Mathematical Programming Computation}
+}
+"""

@@ -47,6 +47,7 @@ from cvxpy.reductions.solvers.conic_solvers.scs_conif import SCS as SCS_con
 from cvxpy.reductions.solvers.conic_solvers.sdpa_conif import SDPA as SDPA_con
 from cvxpy.reductions.solvers.conic_solvers.xpress_conif import XPRESS as XPRESS_con
 from cvxpy.reductions.solvers.nlp_solvers.ipopt_nlpif import IPOPT as IPOPT_nlp
+from cvxpy.reductions.solvers.nlp_solvers.uno_nlpif import UNO as UNO_nlp
 
 # QP interfaces
 from cvxpy.reductions.solvers.qp_solvers.copt_qpif import COPT as COPT_qp
@@ -84,7 +85,7 @@ solver_qp_intf = [
     MPAX_qp(),
     KNITRO_qp(),
 ]
-solver_nlp_intf = [IPOPT_nlp()]
+solver_nlp_intf = [IPOPT_nlp(), UNO_nlp()]
 
 SOLVER_MAP_CONIC = {solver.name(): solver for solver in solver_conic_intf}
 SOLVER_MAP_QP = {solver.name(): solver for solver in solver_qp_intf}
@@ -137,7 +138,7 @@ QP_SOLVERS = [
     s.MPAX,
     s.KNITRO,
 ]
-NLP_SOLVERS = [s.IPOPT]
+NLP_SOLVERS = [s.IPOPT, s.UNO]
 DISREGARD_CLARABEL_SDP_SUPPORT_FOR_DEFAULT_RESOLUTION = True
 MI_SOLVERS = [
     s.GLPK_MI,
