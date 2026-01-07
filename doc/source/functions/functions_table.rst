@@ -697,6 +697,16 @@
      - |incr| incr.
      - |affine| affine
 
+   * - :ref:`einsum(subscripts, ...) <einsum>`
+     - tensor contraction via Einstein summation:
+     
+       sum over repeated indices
+       
+       e.g. `einsum("ij,j->i", A, x)` gives :math:`\sum_j A_{ij} x_j`
+     - tensors with compatible dimensions (subscript-dependent)
+     - |unknown| unknown sign
+     - |affine| affine
+
    * - :ref:`hstack([X1, ..., Xk]) <hstack>`
 
      - :math:`\left[\begin{matrix}X^{(1)}  \cdots    X^{(k)}\end{matrix}\right]`

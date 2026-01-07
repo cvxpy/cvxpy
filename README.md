@@ -83,9 +83,9 @@ CVXPY has the following dependencies:
 
 - Python >= 3.11
 - Clarabel >= 0.5.0
-- OSQP >= 0.6.2
+- OSQP >= 1.0.0
 - SCS >= 3.2.4.post1
-- NumPy >= 1.22.4
+- NumPy >= 2.0.0
 - SciPy >= 1.13.0
 - highspy >= 1.11.0
 
@@ -122,7 +122,7 @@ Here are some simple ways to start contributing immediately:
 * Read the CVXPY source code and improve the documentation, or address TODOs
 * Enhance the [website documentation](https://github.com/cvxpy/cvxpy/tree/master/doc)
 * Browse the [issue tracker](https://github.com/cvxpy/cvxpy/issues), and look for issues tagged as "help wanted"
-* Polish the [example library](https://github.com/cvxpy/cvxpy/tree/master/examples)
+* Polish the [example library](https://github.com/cvxpy/examples)
 * Add a [benchmark](https://github.com/cvxpy/benchmarks)
 
 If you'd like to add a new example to our library, or implement a new feature,

@@ -187,13 +187,17 @@ NONPOS = "NONPOSITIVE"
 UNKNOWN = "UNKNOWN"
 
 # Canonicalization backends
-NUMPY_CANON_BACKEND = "NUMPY"
 SCIPY_CANON_BACKEND = "SCIPY"
 RUST_CANON_BACKEND = "RUST"
 CPP_CANON_BACKEND = "CPP"
+COO_CANON_BACKEND = "COO"  # 3D COO sparse tensor backend: O(nnz) operations for large parameters
 
 # Default canonicalization backend, pyodide uses SciPy
 DEFAULT_CANON_BACKEND = CPP_CANON_BACKEND if sys.platform != "emscripten" else SCIPY_CANON_BACKEND
+
+# DPP parameter threshold for auto-selecting COO backend
+# When problem is DPP and total parameter size >= this threshold, use COO backend
+DPP_PARAM_THRESHOLD = 1000
 
 # Numerical tolerances
 EIGVAL_TOL = 1e-10
@@ -203,9 +207,6 @@ SPARSE_PROJECTION_TOL = 1e-10
 ATOM_EVAL_TOL = 1e-4
 CHOL_SYM_TOL = 1e-14
 
-# DPP is slow when total size of parameters
-# exceed this threshold.
-PARAM_THRESHOLD = 1e4
 
 # threads to use during compilation
 # -1 defaults to system default (configurable via the OMP_NUM_THREADS

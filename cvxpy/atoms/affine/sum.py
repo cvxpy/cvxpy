@@ -15,6 +15,7 @@ limitations under the License.
 """
 import builtins
 from functools import wraps
+from types import GeneratorType
 from typing import Optional, Tuple
 
 import numpy as np
@@ -145,7 +146,7 @@ def sum(expr, axis: Optional[int] = None, keepdims: bool = False):
     """
     Wrapper for Sum class.
     """
-    if isinstance(expr, list):
+    if isinstance(expr, (list, GeneratorType)):
         return builtins.sum(expr)
     else:
         return Sum(expr, axis, keepdims)

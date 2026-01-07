@@ -8,12 +8,13 @@ import pytest
 import scipy.sparse as sp
 
 import cvxpy.settings as s
-from cvxpy.lin_ops.canon_backend import (
-    CanonBackend,
-    NumPyCanonBackend,
+from cvxpy.lin_ops.backends import (
+    CooCanonBackend,
+    CooTensor,
     PythonCanonBackend,
     SciPyCanonBackend,
     TensorRepresentation,
+    get_backend,
 )
 
 
@@ -47,21 +48,75 @@ def test_tensor_representation():
     assert np.all(flattened.toarray() == np.array([[0, 0], [0, 0], [10, 0], [0, 20]]))
 
 
+@pytest.mark.parametrize("backend_name", [s.SCIPY_CANON_BACKEND, s.COO_CANON_BACKEND])
+def test_build_matrix_order(backend_name):
+    """Test that build_matrix respects the order argument for both backends."""
+    kwargs = {
+        "id_to_col": {1: 0},
+        "param_to_size": {-1: 1},
+        "param_to_col": {-1: 0},
+        "param_size_plus_one": 1,
+        "var_length": 2,
+    }
+    backend = get_backend(backend_name, **kwargs)
+
+    # Simple variable linop of shape (2,) - creates a 2x2 identity in the variable columns
+    # Variable id=1 maps to column offset 0, so entries go in columns 0 and 1
+    lin_op = linOpHelper(shape=(2,), type="variable", data=1, args=[])
+
+    # Test F order (column-major)
+    f_result = backend.build_matrix([lin_op], order='F')
+
+    # Test C order (row-major)
+    c_result = backend.build_matrix([lin_op], order='C')
+
+    # Both results should have shape (total_rows * (var_length + 1), param_size_plus_one)
+    # total_rows = 2, var_length + 1 = 3, param_size_plus_one = 1
+    # So shape is (6, 1)
+    assert f_result.shape == (6, 1)
+    assert c_result.shape == (6, 1)
+
+    # The underlying tensor has entries at (row=0, col=0) and (row=1, col=1)
+    # with shape (2, 3).
+    #
+    # In F order (column-major): flat_row = col * num_rows + row
+    #   (0, 0) -> 0*2 + 0 = 0
+    #   (1, 1) -> 1*2 + 1 = 3
+    #
+    # In C order (row-major): flat_row = col + row * num_cols
+    #   (0, 0) -> 0 + 0*3 = 0
+    #   (1, 1) -> 1 + 1*3 = 4
+    f_dense = f_result.toarray().flatten()
+    c_dense = c_result.toarray().flatten()
+
+    # F order: entries at indices 0 and 3
+    expected_f = np.array([1., 0., 0., 1., 0., 0.])
+    np.testing.assert_array_equal(f_dense, expected_f)
+
+    # C order: entries at indices 0 and 4
+    expected_c = np.array([1., 0., 0., 0., 1., 0.])
+    np.testing.assert_array_equal(c_dense, expected_c)
+
+    # Test invalid order
+    with pytest.raises(ValueError, match="order must be 'F' or 'C'"):
+        backend.build_matrix([lin_op], order='INVALID')
+
+
 class TestBackendInstance:
     def test_get_backend(self):
         args = ({1: 0, 2: 2}, {-1: 1, 3: 1}, {3: 0, -1: 1}, 2, 4)
 
-        backend = CanonBackend.get_backend(s.SCIPY_CANON_BACKEND, *args)
+        backend = get_backend(s.SCIPY_CANON_BACKEND, *args)
         assert isinstance(backend, SciPyCanonBackend)
 
-        backend = CanonBackend.get_backend(s.NUMPY_CANON_BACKEND, *args)
-        assert isinstance(backend, NumPyCanonBackend)
+        backend = get_backend(s.COO_CANON_BACKEND, *args)
+        assert isinstance(backend, CooCanonBackend)
 
         with pytest.raises(KeyError):
-            CanonBackend.get_backend("notabackend")
+            get_backend("notabackend")
 
 
-backends = [s.SCIPY_CANON_BACKEND, s.NUMPY_CANON_BACKEND]
+backends = [s.SCIPY_CANON_BACKEND, s.COO_CANON_BACKEND]
 
 
 class TestBackends:
@@ -78,7 +133,7 @@ class TestBackends:
             "var_length": 4,
         }
 
-        backend = CanonBackend.get_backend(request.param, **kwargs)
+        backend = get_backend(request.param, **kwargs)
         assert isinstance(backend, PythonCanonBackend)
         return backend
 
@@ -1354,7 +1409,7 @@ class TestParametrizedBackends:
             "var_length": 2,
         }
 
-        backend = CanonBackend.get_backend(request.param, **kwargs)
+        backend = get_backend(request.param, **kwargs)
         assert isinstance(backend, PythonCanonBackend)
         return backend
 
@@ -2027,6 +2082,39 @@ class TestParametrizedBackends:
             0, 1
         )
 
+    @pytest.mark.parametrize("backend_name", backends)
+    def test_mul_1d_param_1d_var(self, backend_name):
+        """1D parameter @ 1D variable = scalar (dot product).
+
+        Bug regression test: 1D parameters must be treated as row vectors
+        (1, n) not column vectors (n, 1) for correct matrix dimensions.
+        """
+        n = 4
+        backend = get_backend(
+            backend_name,
+            id_to_col={1: 0},
+            param_to_size={-1: 1, 3: n},
+            param_to_col={-1: 0, 3: 1},
+            param_size_plus_one=n + 1,
+            var_length=n,
+        )
+        var = linOpHelper((n,), type="variable", data=1)
+        view = backend.process_constraint(var, backend.get_empty_view())
+
+        # param (n,) @ x (n,) -> scalar
+        param = linOpHelper((n,), type="param", data=3)
+        lin_op = linOpHelper(shape=(), data=param, args=[var])
+        out = backend.mul(lin_op, view)
+
+        # Result is 1 row (scalar output)
+        total_rows = 1
+        tr = out.get_tensor_representation(0, total_rows)
+
+        # Row indices must be within bounds
+        assert len(tr.row) > 0, "Should have non-zero entries"
+        assert tr.row.max() < total_rows, \
+            f"Row index {tr.row.max()} exceeds total_rows {total_rows}"
+
 
 class TestND_Backends:
     @staticmethod
@@ -2042,10 +2130,9 @@ class TestND_Backends:
             "var_length": 4,
         }
 
-        backend = CanonBackend.get_backend(request.param, **kwargs)
+        backend = get_backend(request.param, **kwargs)
         assert isinstance(backend, PythonCanonBackend)
         return backend
-
 
     def test_nd_sum_entries(self, backend):
         """
@@ -2333,7 +2420,7 @@ class TestParametrizedND_Backends:
             "var_length": 8,
         }
 
-        backend = CanonBackend.get_backend(request.param, **kwargs)
+        backend = get_backend(request.param, **kwargs)
         assert isinstance(backend, PythonCanonBackend)
         return backend
 
@@ -2408,73 +2495,6 @@ class TestParametrizedND_Backends:
         )
 
 
-class TestNumPyBackend:
-    @staticmethod
-    @pytest.fixture()
-    def numpy_backend():
-        kwargs = {
-            "id_to_col": {1: 0},
-            "param_to_size": {-1: 1, 2: 2},
-            "param_to_col": {2: 0, -1: 2},
-            "param_size_plus_one": 3,
-            "var_length": 2,
-        }
-        backend = CanonBackend.get_backend(s.NUMPY_CANON_BACKEND, **kwargs)
-        assert isinstance(backend, NumPyCanonBackend)
-        return backend
-
-    def test_get_variable_tensor(self, numpy_backend):
-        outer = numpy_backend.get_variable_tensor((2,), 1)
-        assert outer.keys() == {1}, "Should only be in variable with ID 1"
-        inner = outer[1]
-        assert inner.keys() == {-1}, "Should only be in parameter slice -1, i.e. non parametrized."
-        tensor = inner[-1]
-        assert isinstance(tensor, np.ndarray), "Should be a numpy array"
-        assert tensor.shape == (1, 2, 2), "Should be a 1x2x2 tensor"
-        assert np.all(tensor[0] == np.eye(2)), "Should be eye(2)"
-
-    @pytest.mark.parametrize("data", [np.array([[1, 2], [3, 4]]), sp.eye_array(2) * 4])
-    def test_get_data_tensor(self, numpy_backend, data):
-        outer = numpy_backend.get_data_tensor(data)
-        assert outer.keys() == {-1}, "Should only be constant variable ID."
-        inner = outer[-1]
-        assert inner.keys() == {-1}, "Should only be in parameter slice -1, i.e. non parametrized."
-        tensor = inner[-1]
-        assert isinstance(tensor, np.ndarray), "Should be a numpy array"
-        assert isinstance(tensor[0], np.ndarray), "Inner matrix should also be a numpy array"
-        assert tensor.shape == (1, 4, 1), "Should be a 1x4x1 tensor"
-        expected = numpy_backend._to_dense(data).reshape((-1, 1), order="F")
-        assert np.all(tensor[0] == expected)
-
-    def test_get_param_tensor(self, numpy_backend):
-        shape = (2, 2)
-        size = np.prod(shape)
-        outer = numpy_backend.get_param_tensor(shape, 3)
-        assert outer.keys() == {-1}, "Should only be constant variable ID."
-        inner = outer[-1]
-        assert inner.keys() == {3}, "Should only be the parameter slice of parameter with id 3."
-        tensor = inner[3]
-        assert isinstance(tensor, np.ndarray), "Should be a numpy array"
-        assert tensor.shape == (4, 4, 1), "Should be a 4x4x1 tensor"
-        assert np.all(tensor[:, :, 0] == np.eye(size)), "Should be eye(4) along axes 1 and 2"
-
-    def test_tensor_view_add_dicts(self, numpy_backend):
-        view = numpy_backend.get_empty_view()
-
-        one = np.array([1])
-        two = np.array([2])
-        three = np.array([3])
-
-        assert view.add_dicts({}, {}) == {}
-        assert view.add_dicts({"a": one}, {"a": two}) == {"a": three}
-        assert view.add_dicts({"a": one}, {"b": two}) == {"a": one, "b": two}
-        assert view.add_dicts({"a": {"c": one}}, {"a": {"c": one}}) == {"a": {"c": two}}
-        with pytest.raises(
-            ValueError, match="Values must either be dicts or <class 'numpy.ndarray'>"
-        ):
-            view.add_dicts({"a": 1}, {"a": 2})
-
-
 class TestSciPyBackend:
     @staticmethod
     @pytest.fixture()
@@ -2486,7 +2506,7 @@ class TestSciPyBackend:
             "param_size_plus_one": 3,
             "var_length": 2,
         }
-        backend = CanonBackend.get_backend(s.SCIPY_CANON_BACKEND, **kwargs)
+        backend = get_backend(s.SCIPY_CANON_BACKEND, **kwargs)
         assert isinstance(backend, SciPyCanonBackend)
         return backend
 
@@ -2587,3 +2607,102 @@ class TestSciPyBackend:
         transposed = scipy_backend._transpose_stacked(stacked, param_id)
         expected = sp.vstack([m.T for m in matrices])
         assert (expected != transposed).nnz == 0
+
+
+class TestCooBackend:
+    @staticmethod
+    @pytest.fixture()
+    def coo_backend():
+        kwargs = {
+            "id_to_col": {1: 0},
+            "param_to_size": {-1: 1, 2: 2},
+            "param_to_col": {2: 0, -1: 2},
+            "param_size_plus_one": 3,
+            "var_length": 2,
+        }
+        backend = get_backend(s.COO_CANON_BACKEND, **kwargs)
+        assert isinstance(backend, CooCanonBackend)
+        return backend
+
+    def test_coo_tensor_negation(self):
+        """Test CooTensor.__neg__ (unary negation)."""
+        tensor = CooTensor(
+            data=np.array([1.0, 2.0, 3.0]),
+            row=np.array([0, 1, 2]),
+            col=np.array([0, 1, 2]),
+            param_idx=np.array([0, 0, 0]),
+            m=3, n=3, param_size=1
+        )
+        negated = -tensor
+        assert np.all(negated.data == np.array([-1.0, -2.0, -3.0]))
+        assert np.all(negated.row == tensor.row)
+        assert np.all(negated.col == tensor.col)
+
+    def test_coo_tensor_addition(self):
+        """Test CooTensor.__add__ (tensor addition)."""
+        t1 = CooTensor(
+            data=np.array([1.0, 2.0]),
+            row=np.array([0, 1]),
+            col=np.array([0, 1]),
+            param_idx=np.array([0, 0]),
+            m=2, n=2, param_size=1
+        )
+        t2 = CooTensor(
+            data=np.array([3.0, 4.0]),
+            row=np.array([0, 1]),
+            col=np.array([1, 0]),
+            param_idx=np.array([0, 0]),
+            m=2, n=2, param_size=1
+        )
+        result = t1 + t2
+        assert result.nnz == 4
+        assert result.m == 2 and result.n == 2
+        # Convert to dense to verify values
+        dense = result.toarray()
+        expected = np.array([[1.0, 3.0], [4.0, 2.0]])
+        assert np.allclose(dense, expected)
+
+    def test_coo_tensor_select_rows(self):
+        """Test CooTensor.select_rows for row selection/reordering."""
+        # Diagonal matrix with values 1, 2, 3 at positions (0,0), (1,1), (2,2)
+        tensor = CooTensor(
+            data=np.array([1.0, 2.0, 3.0]),
+            row=np.array([0, 1, 2]),
+            col=np.array([0, 1, 2]),
+            param_idx=np.array([0, 0, 0]),
+            m=3, n=3, param_size=1
+        )
+        # Select rows [2, 0]: new row 0 <- old row 2, new row 1 <- old row 0
+        # Columns are preserved, so:
+        # - old (2,2)=3 -> new (0,2)=3
+        # - old (0,0)=1 -> new (1,0)=1
+        selected = tensor.select_rows(np.array([2, 0]))
+        assert selected.m == 2
+        dense = selected.toarray()
+        expected = np.array([[0.0, 0.0, 3.0], [1.0, 0.0, 0.0]])
+        assert np.allclose(dense, expected)
+
+    def test_get_variable_tensor(self, coo_backend):
+        """Test CooCanonBackend.get_variable_tensor."""
+        outer = coo_backend.get_variable_tensor((2,), 1)
+        assert outer.keys() == {1}, "Should only be in variable with ID 1"
+        inner = outer[1]
+        assert inner.keys() == {-1}, "Should only be in parameter slice -1"
+        tensor = inner[-1]
+        assert isinstance(tensor, CooTensor)
+        assert tensor.m == 2 and tensor.n == 2
+        assert np.all(tensor.toarray() == np.eye(2))
+
+    def test_get_data_tensor(self, coo_backend):
+        """Test CooCanonBackend.get_data_tensor."""
+        data = np.array([[1, 2], [3, 4]])
+        outer = coo_backend.get_data_tensor(data)
+        assert outer.keys() == {-1}, "Should only be constant variable ID"
+        inner = outer[-1]
+        assert inner.keys() == {-1}, "Should only be non-parametrized slice"
+        tensor = inner[-1]
+        assert isinstance(tensor, CooTensor)
+        assert tensor.m == 4 and tensor.n == 1
+        # Column vector in Fortran order: [1, 3, 2, 4]
+        expected = data.flatten(order='F').reshape(-1, 1)
+        assert np.allclose(tensor.toarray(), expected)

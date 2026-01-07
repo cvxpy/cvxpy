@@ -6,7 +6,6 @@ line-length = 100
 
 extend-exclude = [
     "build",
-    "examples",
     "doc",
     "cvxpy/cvxcore/*",
     "*__init__.py"

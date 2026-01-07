@@ -15,7 +15,7 @@ limitations under the License.
 """
 
 import logging
-from typing import Any, Dict, Generic, Iterator, List, Optional, Tuple, Union
+from typing import Any, Dict, Iterator, List, Optional, Tuple, Union
 
 import numpy as np
 from scipy.sparse import dok_array
@@ -39,7 +39,7 @@ try:
     from pyscipopt.scip import Model as ScipModel
 except ModuleNotFoundError:
     # If it fails continue and use a generic type instead.
-    ScipModel = Generic
+    ScipModel = Any
 
 
 # Mapping of SCIP to cvxpy status codes
@@ -138,6 +138,11 @@ class SCIP(ConicSolver):
         """Returns the solution to the original problem given the inverse_data."""
 
         status = solution['status']
+        attr = {
+            s.SOLVE_TIME: solution[s.SOLVE_TIME],
+            s.NUM_ITERS: solution[s.NUM_ITERS],
+            s.EXTRA_STATS: solution,
+        }
         dual_vars = None
 
         if status in s.SOLUTION_PRESENT:
@@ -159,9 +164,9 @@ class SCIP(ConicSolver):
                 eq_dual.update(leq_dual)
                 dual_vars = eq_dual
 
-            return Solution(status, opt_val, primal_vars, dual_vars, {})
+            return Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
-            return failure_solution(status)
+            return failure_solution(status, attr)
 
     def solve_via_data(
             self,
@@ -325,7 +330,12 @@ class SCIP(ConicSolver):
         except Exception as e:
             log.warning("Error encountered when optimising %s: %s", model, e)
 
-        solution = {}
+        solution = {
+            s.SOLVE_TIME: model.getSolvingTime(),
+            s.NUM_ITERS: model.getNLPIterations(),
+            "scip_status": model.getStatus(),
+            "model": model,
+        }
 
         if max(model.getNSols(), model.getNCountedSols()) > 0:
             sol = model.getBestSol()
@@ -358,7 +368,6 @@ class SCIP(ConicSolver):
                 solution[s.EQ_DUAL] = solution["y"][0:dims[s.EQ_DIM]]
                 solution[s.INEQ_DUAL] = solution["y"][dims[s.EQ_DIM]:]
 
-        solution[s.SOLVE_TIME] = model.getSolvingTime()
         solution["status"] = STATUS_MAP[model.getStatus()]
         if solution["status"] == s.SOLVER_ERROR and model.getNCountedSols() > 0:
             solution["status"] = s.OPTIMAL_INACCURATE
