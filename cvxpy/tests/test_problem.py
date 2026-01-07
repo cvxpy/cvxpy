@@ -630,6 +630,22 @@ class TestProblem(BaseTest):
                     [cp.constraints.ExpCone(self.y[0], self.y[1], self.y[2])])
         self.assertEqual(p.is_lp(), False)
 
+        # PWL objective (abs) is still LP (linearizes)
+        p = Problem(cp.Minimize(cp.sum(cp.abs(self.y))), [A @ self.y <= b])
+        self.assertEqual(p.is_lp(), True)
+
+        # PWL objective (max) is still LP (linearizes)
+        p = Problem(cp.Minimize(cp.max(self.y)), [A @ self.y <= b])
+        self.assertEqual(p.is_lp(), True)
+
+        # PWL constraint (abs) is still LP (linearizes)
+        p = Problem(cp.Minimize(c @ self.y), [cp.abs(self.y[0]) <= 1, self.y >= -1])
+        self.assertEqual(p.is_lp(), True)
+
+        # PWL constraint (max) is still LP (linearizes)
+        p = Problem(cp.Minimize(c @ self.y), [cp.max(self.y) <= 5, self.y >= 0])
+        self.assertEqual(p.is_lp(), True)
+
     # Test problems involving variables with the same name.
     def test_variable_name_conflict(self) -> None:
         var = Variable(name='a')

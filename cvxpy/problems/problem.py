@@ -394,15 +394,15 @@ class Problem(u.Canonical):
 
         A problem is an LP if:
         - It is DCP
-        - The objective is affine
-        - Inequality constraints (Inequality, NonPos, NonNeg) have affine expressions
+        - The objective is piecewise linear (PWL expressions linearize)
+        - Inequality constraints (Inequality, NonPos, NonNeg) have PWL expressions
         - Equality constraints (Equality, Zero) are allowed (DCP ensures affine args)
         - No other constraint types (e.g., SOC, PSD, ExpCone) are present
         - No PSD/NSD/Hermitian variables
         """
         for c in self.constraints:
             if type(c) in (Inequality, NonPos, NonNeg):
-                if not c.expr.is_affine():
+                if not c.expr.is_pwl():
                     return False
             elif type(c) not in (Equality, Zero):
                 # Reject conic constraints (SOC, PSD, ExpCone, etc.)
@@ -410,7 +410,7 @@ class Problem(u.Canonical):
         for var in self.variables():
             if var.attributes['PSD'] or var.attributes['NSD'] or var.attributes['hermitian']:
                 return False
-        return (self.is_dcp() and self.objective.args[0].is_affine())
+        return (self.is_dcp() and self.objective.args[0].is_pwl())
 
     @perf.compute_once
     def is_mixed_integer(self) -> bool:

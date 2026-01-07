@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import unittest
 import warnings
 
 import numpy as np
@@ -118,7 +117,6 @@ class TestMIPVariable(BaseTest):
 
         self.assertAlmostEqual(self.x_bool.value, 0)
 
-    @unittest.skipUnless(s.HIGHS in MIP_SOLVERS, 'HiGHS is not installed.')
     def test_highs_default_milp(self) -> None:
         """Test that HiGHS is used as default solver for MILP problems.
 
@@ -139,7 +137,6 @@ class TestMIPVariable(BaseTest):
         # Verify the solution is integer
         self.assertTrue(np.allclose(x.value, np.round(x.value)))
         
-    @unittest.skipUnless(s.HIGHS in MIP_SOLVERS, 'HiGHS is not installed.')
     def test_milp_no_warning(self) -> None:
         """Test that MILP problems don't raise a warning.
 
@@ -194,7 +191,6 @@ class TestMIPVariable(BaseTest):
             self.assertIn("pyscipopt",
                           str(minlp_warnings[0].message))
             
-    @unittest.skipUnless(s.HIGHS in MIP_SOLVERS, 'HiGHS is not installed.')
     def test_highs_milp_simple(self) -> None:
         """Test a simple MILP problem solves correctly with default solver.
 
