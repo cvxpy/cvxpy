@@ -43,7 +43,7 @@ INVALID_COLUMN_NAME_MESSAGE_TEMPLATE = (
 )
 
 
-def validate_column_name(name: str) -> bool:
+def validate_column_name(name: str) -> None:
     """Check if the name is a valid column name."""
     if not VALID_COLUMN_NAME_PATTERN.match(name):
         raise ValueError(INVALID_COLUMN_NAME_MESSAGE_TEMPLATE.format(name=name))
@@ -70,6 +70,21 @@ def collect_column_names(variable, column_names):
     # Checking the validity of only the last inserted name is sufficient because all var
     # names are derived from the same var name prefix and the last one is the longest
     validate_column_name(column_names[-1])
+
+
+def set_column_names_from_variables(lp, variables):
+    """Set column names on HiGHS LP model from CVXPY variables.
+
+    Args:
+        lp: HiGHS LP model (model.lp_)
+        variables: List of CVXPY variables from data[s.PARAM_PROB].variables
+    """
+    column_names = []
+    for variable in variables:
+        # variable_of_provenance() handles auto-generated vars (nonneg=True, etc.)
+        variable = variable.variable_of_provenance() or variable
+        collect_column_names(variable, column_names)
+    lp.col_names_ = column_names
 
 
 def unpack_highs_options_inplace(solver_opts) -> None:
@@ -288,19 +303,11 @@ class HIGHS(ConicSolver):
         if write_model_file:
             # TODO: Names can be collected upstream more systematically
             # (or in the parent class) to be used by all solvers.
-            column_names = []
-            for variable in data[s.PARAM_PROB].variables:
-                # NOTE: variable.variable_of_provenance() is a bit of a hack
-                # to make sure that auto generated vars are named correctly -- nonneg=True etc.
-                variable = variable.variable_of_provenance() or variable
-                collect_column_names(variable, column_names)
-            lp.col_names_ = column_names
+            set_column_names_from_variables(lp, data[s.PARAM_PROB].variables)
 
         solver.passModel(model)
 
         if write_model_file:
-            # TODO: This part can be removed once the following HiGS PR is released:
-            # https://github.com/ERGO-Code/HiGHS/pull/2274
             solver.writeModel(write_model_file)
 
         if warm_start and solver_cache is not None and self.name() in solver_cache:

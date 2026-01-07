@@ -23,7 +23,7 @@ from cvxpy.error import SolverError
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.highs_conif import (  # importing to avoid duplication
-    collect_column_names,
+    set_column_names_from_variables,
     unpack_highs_options_inplace,
 )
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
@@ -215,19 +215,11 @@ class HIGHS(QpSolver):
         if write_model_file:
             # TODO: Names can be collected upstream more systematically
             # (or in the parent class) to be used by all solvers.
-            column_names = []
-            for variable in data[s.PARAM_PROB].variables:
-                # NOTE: variable.variable_of_provenance() is a bit of a hack
-                # to make sure that auto generated vars are named correctly -- nonneg=True etc.
-                variable = variable.variable_of_provenance() or variable
-                collect_column_names(variable, column_names)
-            lp.col_names_ = column_names
+            set_column_names_from_variables(lp, data[s.PARAM_PROB].variables)
 
         solver.passModel(model)
 
         if write_model_file:
-            # TODO: This part can be removed once the following HiGS PR is released:
-            # https://github.com/ERGO-Code/HiGHS/pull/2274
             solver.writeModel(write_model_file)
 
         if warm_start and solver_cache is not None and self.name() in solver_cache:
