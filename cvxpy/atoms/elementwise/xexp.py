@@ -92,6 +92,9 @@ class xexp(Elementwise):
         Returns:
             A list of SciPy CSC sparse matrices or None.
         """
+        # Domain is x >= 0
+        if np.min(values[0]) < 0:
+            return [None]
         rows = self.args[0].size
         cols = self.size
         grad_vals = np.exp(values[0]) * (1 + values[0])
