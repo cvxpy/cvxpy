@@ -390,12 +390,25 @@ class Problem(u.Canonical):
 
     @perf.compute_once
     def is_lp(self) -> bool:
-        """Is problem a linear program?"""
+        """Is problem a linear program?
+
+        A problem is an LP if:
+        - It is DCP
+        - The objective is affine
+        - Inequality constraints (Inequality, NonPos, NonNeg) have affine expressions
+        - Equality constraints (Equality, Zero) are allowed (DCP ensures affine args)
+        - No other constraint types (e.g., SOC, PSD, ExpCone) are present
+        - No PSD/NSD/Hermitian variables
+        """
         for c in self.constraints:
-            if not c.expr.is_affine():
+            if type(c) in (Inequality, NonPos, NonNeg):
+                if not c.expr.is_affine():
+                    return False
+            elif type(c) not in (Equality, Zero):
+                # Reject conic constraints (SOC, PSD, ExpCone, etc.)
                 return False
         for var in self.variables():
-            if var.is_psd() or var.is_nsd():
+            if var.attributes['PSD'] or var.attributes['NSD'] or var.attributes['hermitian']:
                 return False
         return (self.is_dcp() and self.objective.args[0].is_affine())
 
@@ -912,10 +925,12 @@ class Problem(u.Canonical):
 
         if self.is_mixed_integer():
             if solver is None and not self.is_lp():
-                # Problem is mixed integer but not LP
+                # Problem is mixed integer but not LP (e.g., MIQP, MISOCP)
+                # HiGHS only supports MILP, so warn users about MINLP solvers
                 warnings.warn(
-                    "Your problem is mixed-integer but not an LP. " \
-                    "Consider installing a MINLP solver to solve your problem",
+                    "Your problem is mixed-integer but not an LP. "
+                    "If your problem is nonlinear, consider installing SCIP "
+                    "(pip install pyscipopt) to solve it.",
                     UserWarning
                 )
             candidates['qp_solvers'] = [

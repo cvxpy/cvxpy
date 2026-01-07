@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import unittest
 import warnings
 
 import numpy as np
@@ -117,51 +118,65 @@ class TestMIPVariable(BaseTest):
 
         self.assertAlmostEqual(self.x_bool.value, 0)
 
+    @unittest.skipUnless(s.HIGHS in MIP_SOLVERS, 'HiGHS is not installed.')
     def test_highs_default_milp(self) -> None:
-        """Test that HiGHS is used as default solver for MILP problems."""
+        """Test that HiGHS is used as default solver for MILP problems.
+
+        Note: This test does not parameterize the solver because it specifically
+        tests the default solver selection behavior when no solver is specified.
+        """
         # Simple MILP problem
         x = cp.Variable(3, integer=True)
         objective = cp.Minimize(cp.sum(x))
         constraints = [x >= 0, x <= 10, cp.sum(x) >= 5]
         prob = cp.Problem(objective, constraints)
-        
+
         # Solve without specifying solver (should use HiGHS by default)
         prob.solve()
-        
+
         self.assertEqual(prob.status, cp.OPTIMAL)
         self.assertAlmostEqual(prob.value, 5.0)
         # Verify the solution is integer
         self.assertTrue(np.allclose(x.value, np.round(x.value)))
         
+    @unittest.skipUnless(s.HIGHS in MIP_SOLVERS, 'HiGHS is not installed.')
     def test_milp_no_warning(self) -> None:
-        """Test that MILP problems don't raise a warning."""
+        """Test that MILP problems don't raise a warning.
+
+        Note: This test does not parameterize the solver because it specifically
+        tests the default solver selection behavior when no solver is specified.
+        """
         # MILP problem (mixed-integer linear program)
         x = cp.Variable(2, integer=True)
         y = cp.Variable(2)
         objective = cp.Minimize(cp.sum(x) + cp.sum(y))
         constraints = [x >= 0, x <= 5, y >= 0, y <= 10, cp.sum(x) + cp.sum(y) >= 3]
         prob = cp.Problem(objective, constraints)
-        
+
         # Should NOT raise warning since it's an MILP
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
             prob.solve()
             # Filter for the specific MINLP warning
-            minlp_warnings = [warning for warning in w 
-                            if "mixed-integer but not an LP" in str(warning.message)]
-            self.assertEqual(len(minlp_warnings), 0, 
-                           "MILP should not raise MINLP warning")
-        
+            minlp_warnings = [warning for warning in w
+                              if "mixed-integer but not an LP" in str(warning.message)]
+            self.assertEqual(len(minlp_warnings), 0,
+                             "MILP should not raise MINLP warning")
+
         self.assertEqual(prob.status, cp.OPTIMAL)
         
     def test_miqp_warning(self) -> None:
-        """Test that MIQP problems raise a warning about not being LP."""
+        """Test that MIQP problems raise a warning about not being LP.
+
+        Note: This test does not parameterize the solver because it specifically
+        tests the warning behavior when no solver is specified.
+        """
         # MIQP problem (mixed-integer quadratic program)
         x = cp.Variable(3, integer=True)
         objective = cp.Minimize(cp.sum_squares(x))
         constraints = [x >= 0, x <= 10, cp.sum(x) >= 5]
         prob = cp.Problem(objective, constraints)
-        
+
         # Should raise warning since it's MIQP (not LP)
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
@@ -170,23 +185,28 @@ class TestMIPVariable(BaseTest):
             except Exception:
                 # Solver might fail, but we're testing the warning
                 pass
-            
+
             # Check that the MINLP warning was raised
-            minlp_warnings = [warning for warning in w 
-                            if "mixed-integer but not an LP" in str(warning.message)]
-            self.assertGreater(len(minlp_warnings), 0, 
-                             "MIQP should raise MINLP warning")
-            self.assertIn("Consider installing a MINLP solver", 
-                         str(minlp_warnings[0].message))
+            minlp_warnings = [warning for warning in w
+                              if "mixed-integer but not an LP" in str(warning.message)]
+            self.assertGreater(len(minlp_warnings), 0,
+                               "MIQP should raise MINLP warning")
+            self.assertIn("pyscipopt",
+                          str(minlp_warnings[0].message))
             
+    @unittest.skipUnless(s.HIGHS in MIP_SOLVERS, 'HiGHS is not installed.')
     def test_highs_milp_simple(self) -> None:
-        """Test a simple MILP problem solves correctly with default solver."""
+        """Test a simple MILP problem solves correctly with default solver.
+
+        Note: This test does not parameterize the solver because it specifically
+        tests the default solver selection behavior when no solver is specified.
+        """
         # Knapsack-style problem
         x = cp.Variable(4, integer=True)
         values = np.array([3, 4, 5, 6])
         weights = np.array([2, 3, 4, 5])
         capacity = 8
-        
+
         objective = cp.Maximize(values @ x)
         constraints = [
             x >= 0,
@@ -194,10 +214,10 @@ class TestMIPVariable(BaseTest):
             weights @ x <= capacity
         ]
         prob = cp.Problem(objective, constraints)
-        
+
         # Solve without specifying solver
         prob.solve()
-        
+
         self.assertEqual(prob.status, cp.OPTIMAL)
         # Verify solution is integer
         self.assertTrue(np.allclose(x.value, np.round(x.value)))

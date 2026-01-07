@@ -578,6 +578,58 @@ class TestProblem(BaseTest):
         p = Problem(cp.Minimize(cp.trace(X)), [cp.real(X[0, 0]) >= 1])
         self.assertEqual(p.is_qp(), False)
 
+    # Test the is_lp method.
+    def test_is_lp(self) -> None:
+        A = numpy.random.randn(4, 3)
+        b = numpy.random.randn(4)
+        c = numpy.random.randn(3)
+        Aeq = numpy.random.randn(2, 3)
+        beq = numpy.random.randn(2)
+
+        # Simple LP: linear objective, linear constraints
+        p = Problem(cp.Minimize(c @ self.y), [A @ self.y <= b])
+        self.assertEqual(p.is_lp(), True)
+
+        p = Problem(cp.Minimize(c @ self.y), [A @ self.y <= b, Aeq @ self.y == beq])
+        self.assertEqual(p.is_lp(), True)
+
+        # Maximization LP
+        p = Problem(cp.Maximize(c @ self.y), [A @ self.y <= b])
+        self.assertEqual(p.is_lp(), True)
+
+        # QP is not LP (quadratic objective)
+        p = Problem(cp.Minimize(cp.sum_squares(self.y)), [A @ self.y <= b])
+        self.assertEqual(p.is_lp(), False)
+
+        # SOCP is not LP (SOC constraint)
+        t = Variable()
+        p = Problem(cp.Minimize(c @ self.y), [cp.SOC(t, self.y)])
+        self.assertEqual(p.is_lp(), False)
+
+        # Non-affine constraint makes it not LP
+        p = Problem(cp.Minimize(c @ self.y), [cp.sum_squares(self.y) <= 1])
+        self.assertEqual(p.is_lp(), False)
+
+        # PSD variable makes it not LP
+        X = Variable((2, 2), PSD=True)
+        p = Problem(cp.Minimize(cp.trace(X)), [X[0, 0] >= 1])
+        self.assertEqual(p.is_lp(), False)
+
+        # NSD variable makes it not LP
+        X = Variable((2, 2), NSD=True)
+        p = Problem(cp.Minimize(-cp.trace(X)), [X[0, 0] <= -1])
+        self.assertEqual(p.is_lp(), False)
+
+        # Hermitian variable makes it not LP
+        X = Variable((2, 2), hermitian=True)
+        p = Problem(cp.Minimize(cp.real(cp.trace(X))), [cp.real(X[0, 0]) >= 1])
+        self.assertEqual(p.is_lp(), False)
+
+        # ExpCone constraint makes it not LP
+        p = Problem(cp.Minimize(c @ self.y),
+                    [cp.constraints.ExpCone(self.y[0], self.y[1], self.y[2])])
+        self.assertEqual(p.is_lp(), False)
+
     # Test problems involving variables with the same name.
     def test_variable_name_conflict(self) -> None:
         var = Variable(name='a')
