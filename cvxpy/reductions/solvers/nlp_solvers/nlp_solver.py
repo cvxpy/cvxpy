@@ -190,7 +190,7 @@ class Oracles():
     def objective(self, x):
         """Returns the scalar value of the objective given x."""
         self.set_variable_value(x)
-        obj_value = self.problem.objective.args[0].value
+        obj_value = self.problem.objective.value
         return obj_value
     
     def gradient(self, x):
