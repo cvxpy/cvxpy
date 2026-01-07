@@ -24,6 +24,7 @@ from cvxpy.atoms.affine.cumsum import cumsum
 from cvxpy.atoms.cumprod import cumprod
 from cvxpy.atoms.affine.diag import diag
 from cvxpy.atoms.affine.diff import diff
+from cvxpy.atoms.affine.einsum import einsum
 from cvxpy.atoms.affine.hstack import hstack
 from cvxpy.atoms.affine.imag import imag
 from cvxpy.atoms.affine.kron import kron
@@ -34,6 +35,7 @@ from cvxpy.atoms.affine.real import real
 from cvxpy.atoms.affine.reshape import deep_flatten, reshape
 from cvxpy.atoms.affine.squeeze import squeeze
 from cvxpy.atoms.affine.concatenate import concatenate
+from cvxpy.atoms.affine.stack import stack
 from cvxpy.atoms.affine.sum import sum
 from cvxpy.atoms.affine.trace import trace, Trace
 from cvxpy.atoms.affine.transpose import (transpose, permute_dims, swapaxes, moveaxis)

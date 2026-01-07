@@ -67,7 +67,7 @@
 
    * - :ref:`lambda_sum_largest(X,k) <lambda-sum-largest>`
 
-       :math:`k = 1,\ldots, n`
+       :math:`k > 0`
      - :math:`\text{sum of $k$ largest}`
        :math:`\text{eigenvalues of $X$}`
      - :math:`X \in\mathbf{S}^{n}`
@@ -76,7 +76,7 @@
 
    * - :ref:`lambda_sum_smallest(X,k) <lambda-sum-smallest>`
 
-       :math:`k = 1,\ldots, n`
+       :math:`k > 0`
      - :math:`\text{sum of $k$ smallest}`
        :math:`\text{eigenvalues of $X$}`
      - :math:`X \in\mathbf{S}^{n}`
@@ -300,9 +300,9 @@
 
    * - :ref:`sum_largest(X, k) <sum-largest>`
 
-       :math:`k = 1,2,\ldots`
+       :math:`k > 0`
      - :math:`\text{sum of } k`
-     
+
        :math:`\text{largest }X_{ij}`
      - :math:`X \in\mathbf{R}^{m \times n}`
      - same sign as X
@@ -312,9 +312,9 @@
 
    * - :ref:`sum_smallest(X, k) <sum-smallest>`
 
-       :math:`k = 1,2,\ldots`
+       :math:`k > 0`
      - :math:`\text{sum of } k`
-     
+
        :math:`\text{smallest }X_{ij}`
      - :math:`X \in\mathbf{R}^{m \times n}`
      - same sign as X
@@ -695,6 +695,16 @@
      - kth order differences along given axis
      - :math:`X \in\mathbf{R}^{m \times n}`
      - |incr| incr.
+     - |affine| affine
+
+   * - :ref:`einsum(subscripts, ...) <einsum>`
+     - tensor contraction via Einstein summation:
+     
+       sum over repeated indices
+       
+       e.g. `einsum("ij,j->i", A, x)` gives :math:`\sum_j A_{ij} x_j`
+     - tensors with compatible dimensions (subscript-dependent)
+     - |unknown| unknown sign
      - |affine| affine
 
    * - :ref:`hstack([X1, ..., Xk]) <hstack>`

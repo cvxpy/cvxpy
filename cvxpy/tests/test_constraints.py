@@ -300,6 +300,43 @@ class TestConstraints(BaseTest):
             prob.solve()
             self.assertAlmostEqual(np.sqrt(dist.value), resid[i], places=4)
 
+    def test_soc_constraint_scalar(self) -> None:
+        """Test SOC constraint with scalar X (issue #3054)."""
+        # Test basic scalar SOC: min c s.t. |x| <= c
+        c = cp.Variable()
+        x = cp.Variable()
+        constr = SOC(c, x)
+
+        # Verify constraint properties
+        self.assertEqual(constr.size, 2)  # 1 for t + 1 for scalar x
+        self.assertEqual(constr.cone_sizes(), [2])
+        self.assertEqual(constr.num_cones(), 1)
+
+        # Solve problem: optimal is c=0, x=0
+        prob = cp.Problem(cp.Minimize(c), [constr])
+        prob.solve()
+        self.assertAlmostEqual(c.value, 0, places=4)
+        self.assertAlmostEqual(x.value, 0, places=4)
+
+        # Test with x constrained: min c s.t. |x| <= c, x == 3
+        c = cp.Variable()
+        x = cp.Variable()
+        prob = cp.Problem(cp.Minimize(c), [SOC(c, x), x == 3])
+        prob.solve()
+        self.assertAlmostEqual(c.value, 3, places=4)
+        self.assertAlmostEqual(x.value, 3, places=4)
+
+        # Test residual for scalar X
+        x0, t0 = 2.0, 3.0  # Feasible: |x0| < t0
+        x = cp.Variable(value=x0)
+        t = cp.Variable(value=t0)
+        resid = SOC(t, x).residual
+        self.assertEqual(resid.ndim, 0)
+        dist = cp.sum_squares(x - x0) + cp.square(t - t0)
+        prob = cp.Problem(cp.Minimize(dist), [SOC(t, x)])
+        prob.solve()
+        self.assertAlmostEqual(np.sqrt(dist.value), resid, places=4)
+
     def test_pow3d_constraint(self) -> None:
         n = 3
         np.random.seed(0)

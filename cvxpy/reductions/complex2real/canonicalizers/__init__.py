@@ -14,11 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import numpy as np
+
 from cvxpy.atoms import (MatrixFrac, Pnorm, QuadForm, abs, bmat, conj, conv,
-                         cumsum, imag, kron, lambda_max, lambda_sum_largest,
-                         log_det, norm1, norm_inf, quad_over_lin, real,
-                         reshape, sigma_max, Trace, upper_tri,
-                         von_neumann_entr, quantum_rel_entr)
+                         convolve, cumsum, imag, kron, lambda_max,
+                         lambda_sum_largest, log_det, norm1, norm_inf,
+                         quad_over_lin, real, reshape, sigma_max, Trace,
+                         upper_tri, von_neumann_entr, quantum_rel_entr)
 from cvxpy.atoms.affine.add_expr import AddExpression
 from cvxpy.atoms.affine.binary_operators import (DivExpression, MulExpression,
                                                  multiply,)
@@ -32,7 +34,8 @@ from cvxpy.atoms.affine.transpose import transpose
 from cvxpy.atoms.affine.unary_operators import NegExpression
 from cvxpy.atoms.affine.vstack import Vstack
 from cvxpy.atoms.affine.concatenate import Concatenate
-from cvxpy.atoms.affine.wraps import hermitian_wrap
+from cvxpy.atoms.affine.upper_tri import vec_to_upper_tri
+from cvxpy.atoms.affine.wraps import hermitian_wrap, skew_symmetric_wrap
 from cvxpy.atoms.norm_nuc import normNuc
 from cvxpy.constraints import (PSD, SOC, Equality, Inequality,
                                OpRelEntrConeQuad, Zero,)
@@ -82,6 +85,7 @@ CANON_METHODS = {
     Concatenate: separable_canon,
 
     conv: binary_canon,
+    convolve: binary_canon,
     DivExpression: binary_canon,
     kron: binary_canon,
     MulExpression: binary_canon,
@@ -117,3 +121,101 @@ CANON_METHODS = {
     von_neumann_entr: von_neumann_entr_canon,
     quantum_rel_entr: quantum_rel_entr_canon
 }
+
+
+class Complex2RealCanonMethods(dict):
+    """Stateful canonicalizers that track complex parameter mappings for DPP.
+
+    This class follows the same pattern as DgpCanonMethods: it creates new
+    Parameters for the real and imaginary parts of complex parameters, rather
+    than wrapping them in real()/imag() atoms. This enables DPP (Disciplined
+    Parameterized Programming) for problems with complex parameters.
+
+    The mapping from original complex parameters to their real/imag parameter
+    pairs is stored in _parameters, and used at solve time to transform
+    parameter values.
+    """
+
+    def __init__(self) -> None:
+        super().__init__()
+        self._parameters = {}  # {orig_param: (real_param, imag_param)}
+
+    def __contains__(self, key):
+        return key in CANON_METHODS
+
+    def __getitem__(self, key):
+        if key == Parameter:
+            return self._param_canon
+        return CANON_METHODS[key]
+
+    def _param_canon(self, expr, real_args, imag_args, real2imag):
+        """Canonicalize complex parameters to real/imag parameter pairs.
+
+        Instead of returning real(expr) and imag(expr) atoms (which lack
+        graph_implementation and cannot be canonicalized in DPP mode),
+        we create new Parameters for the real and imaginary parts.
+
+        At solve time, these parameters' values are set from the original
+        complex parameter's value using np.real() and np.imag().
+
+        For Hermitian parameters, we use an efficient representation matching
+        Hermitian variables: symmetric real part + skew-symmetric imaginary part.
+        """
+        if expr.is_real():
+            return expr, None
+
+        # Return cached result if already canonicalized
+        if expr in self._parameters:
+            real_param, imag_param = self._parameters[expr]
+            # For Hermitian, we need to reconstruct the skew-symmetric matrix
+            if expr.is_hermitian() and imag_param is not None:
+                n = expr.shape[0]
+                if n > 1:
+                    imag_upper_tri = vec_to_upper_tri(imag_param, strict=True)
+                    imag_matrix = skew_symmetric_wrap(imag_upper_tri - imag_upper_tri.T)
+                else:
+                    imag_matrix = Constant([[0.0]])
+                return real_param, imag_matrix
+            return real_param, imag_param
+
+        if expr.is_imag():
+            # Purely imaginary parameter
+            imag_param = Parameter(expr.shape, name=f"{expr.name()}_imag")
+            if expr.value is not None:
+                imag_param.value = np.imag(expr.value)
+            self._parameters[expr] = (None, imag_param)
+            return None, imag_param
+
+        if expr.is_hermitian():
+            # Hermitian parameter: real part is symmetric, imag part is skew-symmetric
+            n = expr.shape[0]
+            real_param = Parameter((n, n), symmetric=True, name=f"{expr.name()}_real")
+            if n > 1:
+                # Imaginary part uses compact representation: n*(n-1)/2 parameters
+                # for the strict upper triangle of the skew-symmetric matrix
+                imag_param = Parameter(shape=n*(n-1)//2, name=f"{expr.name()}_imag")
+                imag_upper_tri = vec_to_upper_tri(imag_param, strict=True)
+                imag_matrix = skew_symmetric_wrap(imag_upper_tri - imag_upper_tri.T)
+            else:
+                # 1x1 Hermitian matrix has zero imaginary part
+                imag_param = None
+                imag_matrix = Constant([[0.0]])
+
+            if expr.value is not None:
+                real_param.value = np.real(expr.value)
+                if imag_param is not None:
+                    # Extract strict upper triangle of imaginary part
+                    imag_full = np.imag(expr.value)
+                    imag_param.value = imag_full[np.triu_indices(n, k=1)]
+
+            self._parameters[expr] = (real_param, imag_param)
+            return real_param, imag_matrix
+
+        # General complex parameter
+        real_param = Parameter(expr.shape, name=f"{expr.name()}_real")
+        imag_param = Parameter(expr.shape, name=f"{expr.name()}_imag")
+        if expr.value is not None:
+            real_param.value = np.real(expr.value)
+            imag_param.value = np.imag(expr.value)
+        self._parameters[expr] = (real_param, imag_param)
+        return real_param, imag_param

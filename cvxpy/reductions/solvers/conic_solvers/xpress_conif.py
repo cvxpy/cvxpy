@@ -18,6 +18,7 @@ import numpy as np
 
 import cvxpy.settings as s
 from cvxpy.constraints import SOC
+from cvxpy.reductions.matrix_stuffing import extract_mip_idx
 from cvxpy.reductions.solution import Solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import (
@@ -94,10 +95,32 @@ class XPRESS(ConicSolver):
             (dict of arguments needed for the solver, inverse data)
         """
         data, inv_data = super(XPRESS, self).apply(problem)
-        variables = problem.x
-        data[s.BOOL_IDX] = [int(t[0]) for t in variables.boolean_idx]
-        data[s.INT_IDX] = [int(t[0]) for t in variables.integer_idx]
+        variables, x = problem.variables, problem.x
+        data[s.BOOL_IDX] = [int(t[0]) for t in x.boolean_idx]
+        data[s.INT_IDX] = [int(t[0]) for t in x.integer_idx]
         inv_data['is_mip'] = data[s.BOOL_IDX] or data[s.INT_IDX]
+
+        # Setup MIP warmstart
+        fortran_boolidxs, fortran_intidxs = extract_mip_idx(variables)
+        mipidxs = np.union1d(fortran_boolidxs, fortran_intidxs).astype(int)
+        values = utilities.stack_vals(variables, np.nan, order="F")
+        mipidxs = np.intersect1d(mipidxs, np.argwhere(~np.isnan(values)))
+        data["initial_mip_values"] = values[mipidxs] if mipidxs.size > 0 else []
+        data["initial_mip_idxs"] = mipidxs
+
+        # Setup names
+        data["variable_names"] = np.concatenate([
+            np.ravel([
+                f"{var.name()}_x_{i:09d}" for i in range(var.size)
+            ], order="F")
+            for var in variables
+        ]).tolist()
+        data["constraint_names"] = np.concatenate([
+            np.ravel([
+                f"{eq.constr_id}_eq_{i:09d}" for i in range(eq.size)
+            ], order="F")
+            for eq in problem.constraints
+        ]).tolist()
 
         return data, inv_data
 
@@ -165,8 +188,11 @@ class XPRESS(ConicSolver):
         # Uses flat naming. Warning: this mixes
         # original with auxiliary variables.
 
-        varnames = ['x_{0:05d}'. format(i) for i in range(len(c))]
-        linRownames = ['lc_{0:05d}'.format(i) for i in range(len(b))]
+        if len(c) == len(data["variable_names"]):
+            varnames = data["variable_names"]
+        else:
+            varnames = [f"x_{i:05d}" for i in range(len(c))]
+        lin_rownames = ['lc_{0:05d}'.format(i) for i in range(len(b))]
 
         if verbose:
             self.prob_.controls.miplog = 2
@@ -192,7 +218,7 @@ class XPRESS(ConicSolver):
                                lb=[-xp.infinity] * len(c),          # lower bound
                                ub=[xp.infinity] * len(c),           # upper bound
                                colnames=varnames,                   # column names
-                               rownames=linRownames)                # row    names
+                               rownames=lin_rownames)                # row    names
 
         # Set variable types for discrete variables
         self.prob_.chgcoltype(data[s.BOOL_IDX] + data[s.INT_IDX],
@@ -270,6 +296,12 @@ class XPRESS(ConicSolver):
 
         # End of the conditional (warm-start vs. no warm-start) code,
         # set options, solve, and report.
+        if warm_start and data["initial_mip_idxs"].size > 0:
+            self.prob_.addmipsol(
+                data["initial_mip_values"],
+                data["initial_mip_idxs"],
+                "warmstart",
+            )
 
         # Set options
         #

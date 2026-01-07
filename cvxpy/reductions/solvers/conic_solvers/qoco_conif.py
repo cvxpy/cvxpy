@@ -15,6 +15,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+import importlib
+
 from numpy import int32
 
 import cvxpy.settings as s
@@ -190,7 +192,15 @@ class QOCO(ConicSolver):
             G.indices = G.indices.astype(int32)
             G.indptr = G.indptr.astype(int32)
 
-        solver = qoco.QOCO()
+        version_tuple = importlib.metadata.version("qoco").split(".")
+        major_version = int(version_tuple[0])
+        minor_version = int(version_tuple[1])
+
+        # CUDA backend only available v0.2.0 and onwards.
+        if major_version >= 0 and minor_version >= 2 and "algebra" in solver_opts:
+            solver = qoco.QOCO(algebra=solver_opts["algebra"])
+        else:
+            solver = qoco.QOCO()
         solver.setup(n, m, p, P, data[s.C], A, data[s.B], G, data[s.H], num_nno, nsoc, q,
         verbose=verbose, **solver_opts)
         results = solver.solve()

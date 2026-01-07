@@ -18,6 +18,7 @@ import abc
 
 from cvxpy import settings as s
 from cvxpy.reductions.reduction import Reduction
+from cvxpy.reductions.solvers.solver_inverse_data import SolverInverseData
 
 
 class Solver(Reduction):
@@ -33,6 +34,7 @@ class Solver(Reduction):
     # Solver capabilities.
     MIP_CAPABLE = False
     BOUNDED_VARIABLES = False
+    SOC_DIM3_ONLY = False
 
     # Keys for inverse data.
     VAR_ID = 'var_id'
@@ -83,4 +85,5 @@ class Solver(Reduction):
         """
         data, inv_data = self.apply(problem)
         solution = self.solve_via_data(data, warm_start, verbose, solver_opts)
-        return self.invert(solution, inv_data)
+        inverse_data = SolverInverseData(inv_data, solver_instance=self, solver_options=solver_opts)
+        return self.invert(solution, inverse_data)

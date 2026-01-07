@@ -20,6 +20,7 @@ import scipy.sparse as sp
 import cvxpy.interface as intf
 import cvxpy.settings as s
 from cvxpy.reductions.solution import Solution, failure_solution
+from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
 from cvxpy.utilities.citations import CITATION_DICT
 
@@ -62,10 +63,21 @@ class QPALM(QpSolver):
                 QPALM.VAR_ID:
                 intf.DEFAULT_INTF.const_to_matrix(solution.solution.x.copy())
             }
-            dual_vars = {
-                QPALM.DUAL_VAR_ID:
-                intf.DEFAULT_INTF.const_to_matrix(solution.solution.y.copy())
-            }
+            # Build dual vars dict keyed by constraint IDs
+            # QPALM returns duals for [eq_constrs; ineq_constrs]
+            y = solution.solution.y.copy()
+            n_eq = inverse_data[self.DIMS].zero
+            eq_dual = utilities.get_dual_values(
+                y[:n_eq],
+                utilities.extract_dual_value,
+                inverse_data[self.EQ_CONSTR])
+            ineq_dual = utilities.get_dual_values(
+                y[n_eq:],
+                utilities.extract_dual_value,
+                inverse_data[self.NEQ_CONSTR])
+            dual_vars = {}
+            dual_vars.update(eq_dual)
+            dual_vars.update(ineq_dual)
             attr[s.NUM_ITERS] = solution.info.iter
             sol = Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:

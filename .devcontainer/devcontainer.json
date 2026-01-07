@@ -1,6 +1,6 @@
 {
 	"name": "Python 3",
-	"image": "mcr.microsoft.com/devcontainers/python:0-3.10",
+	"image": "mcr.microsoft.com/devcontainers/python:dev-3.12",
 	"onCreateCommand": "bash .devcontainer/startup.sh",
 	"customizations": {
 		"vscode": {

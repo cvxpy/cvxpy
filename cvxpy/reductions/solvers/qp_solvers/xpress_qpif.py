@@ -2,7 +2,9 @@ import numpy as np
 
 import cvxpy.interface as intf
 import cvxpy.settings as s
+from cvxpy.reductions.matrix_stuffing import extract_mip_idx
 from cvxpy.reductions.solution import Solution, failure_solution
+from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.xpress_conif import (
     get_status_map,
     makeMstart,
@@ -42,8 +44,34 @@ class XPRESS(QpSolver):
         tuple
             (dict of arguments needed for the solver, inverse data)
         """
+
         data, inv_data = super(XPRESS, self).apply(problem)
 
+        variables, x = problem.variables, problem.x
+        data[s.BOOL_IDX] = [int(t[0]) for t in x.boolean_idx]
+        data[s.INT_IDX] = [int(t[0]) for t in x.integer_idx]
+
+        # Setup MIP warmstart
+        fortran_boolidxs, fortran_intidxs = extract_mip_idx(variables)
+        mipidxs = np.union1d(fortran_boolidxs, fortran_intidxs).astype(int)
+        values = utilities.stack_vals(variables, np.nan, order="F")
+        mipidxs = np.intersect1d(mipidxs, np.argwhere(~np.isnan(values)))
+        data["initial_mip_values"] = values[mipidxs] if mipidxs.size > 0 else []
+        data["initial_mip_idxs"] = mipidxs
+
+        # Setup names
+        data["variable_names"] = np.concatenate([
+            np.ravel([
+                f"{var.name()}_x_{i:09d}" for i in range(var.size)
+            ], order="F")
+            for var in variables
+        ]).tolist()
+        data["constraint_names"] = np.concatenate([
+            np.ravel([
+                f"{eq.constr_id}_eq_{i:09d}" for i in range(eq.size)
+            ], order="F")
+            for eq in problem.constraints
+        ]).tolist()
         return data, inv_data
 
     def invert(self, results, inverse_data):
@@ -76,8 +104,21 @@ class XPRESS(QpSolver):
             # Only add duals if not a MIP and if duals exist (i.e. there are constraints present).
             dual_vars = None
             if 'getDual' in results.keys():
+                # Build dual vars dict keyed by constraint IDs
+                # Xpress returns duals for [eq_constrs; ineq_constrs]
                 y = -np.array(results['getDual'])
-                dual_vars = {XPRESS.DUAL_VAR_ID: y}
+                n_eq = inverse_data[self.DIMS].zero
+                eq_dual = utilities.get_dual_values(
+                    y[:n_eq],
+                    utilities.extract_dual_value,
+                    inverse_data[self.EQ_CONSTR])
+                ineq_dual = utilities.get_dual_values(
+                    y[n_eq:],
+                    utilities.extract_dual_value,
+                    inverse_data[self.NEQ_CONSTR])
+                dual_vars = {}
+                dual_vars.update(eq_dual)
+                dual_vars.update(ineq_dual)
 
             sol = Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
@@ -132,8 +173,8 @@ class XPRESS(QpSolver):
 
             mqcol1, mqcol2, dqe = [], [], []
 
-        colnames = ['x_{0:09d}'.format(i) for i in range(n_var)]
-        rownames = ['eq_{0:09d}'.format(i) for i in range(n_eq)]
+        colnames = data["variable_names"]
+        rownames = data["constraint_names"]
 
         if verbose:
             self.prob_.controls.miplog = 2
@@ -192,6 +233,13 @@ class XPRESS(QpSolver):
                 colind=F.indices[F.data != 0],      # column indices
                 rowcoef=F.data[F.data != 0],        # coefficient
                 names=rownames_ineq)                # row names
+
+        if warm_start and data["initial_mip_idxs"].size > 0:
+            self.prob_.addmipsol(
+                data["initial_mip_values"],
+                data["initial_mip_idxs"],
+                "warmstart",
+            )
 
         # Set options
         #

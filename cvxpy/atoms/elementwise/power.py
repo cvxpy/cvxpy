@@ -28,6 +28,7 @@ def _is_const(p) -> bool:
     return isinstance(p, cvxtypes.constant())
 
 
+
 class power(Elementwise):
     r""" Elementwise power function :math:`f(x) = x^p`.
 
@@ -129,19 +130,21 @@ class power(Elementwise):
         of ``p``; only relevant when solving as a DCP program.
     """
 
-    def __init__(self, x, p, max_denom: int = 1024) -> None:
+    def __init__(self, x, p, max_denom: int = 1024, _approx: bool = True) -> None:
         self._p_orig = p
         # NB: It is important that the exponent is an attribute, not
         # an argument. This prevents parametrized exponents from being replaced
         # with their logs in Dgp2Dcp.
         self.p = cvxtypes.expression().cast_to_const(p)
+        # TODO: allow to switch x and p
         if not (isinstance(self.p, cvxtypes.constant()) or
                 isinstance(self.p, cvxtypes.parameter())):
             raise ValueError("The exponent `p` must be either a Constant or "
                              "a Parameter; received ", type(p))
         self.max_denom = max_denom
-
+        self._approx = _approx
         self.p_rational = None
+
         if isinstance(self.p, cvxtypes.constant()):
             # Compute a rational approximation to p, for DCP (DGP doesn't need
             # an approximation).
@@ -154,11 +157,11 @@ class power(Elementwise):
                 p = self.p.value
             # how we convert p to a rational depends on the branch of the function
             if p > 1:
-                p, w = pow_high(p, max_denom)
+                p, w = pow_high(p, max_denom, approx=self._approx)
             elif 0 < p < 1:
-                p, w = pow_mid(p, max_denom)
+                p, w = pow_mid(p, max_denom, approx=self._approx)
             elif p < 0:
-                p, w = pow_neg(p, max_denom)
+                p, w = pow_neg(p, max_denom, approx=self._approx)
 
             # note: if, after making the rational approximation, p ends up
             # being 0 or 1, we default to using the 0 or 1 behavior of the
@@ -173,7 +176,10 @@ class power(Elementwise):
                 w = None
 
             self.p_rational, self.w = p, w
-            self.approx_error = float(abs(self.p_rational - p))
+            if _approx:
+                self.approx_error = float(abs(self.p_rational - p))
+            else:
+                self.approx_error = 0.0
         super(power, self).__init__(x)
 
     @Elementwise.numpy_numeric
@@ -368,14 +374,9 @@ class power(Elementwise):
         if p == 0:
             # All zeros.
             return [sp.csc_array((rows, cols), dtype='float64')]
-        # Outside domain or on boundary.
+        # Outside domain: for non-power-of-2 exponents, domain is x >= 0
         if not is_power2(p) and np.min(values[0]) <= 0:
-            if p < 1:
-                # Non-differentiable.
-                return [None]
-            else:
-                # Round up to zero.
-                values[0] = np.maximum(values[0], 0)
+            return [None]
 
         grad_vals = float(p)*np.power(values[0], float(p)-1)
         return [power.elemwise_grad_to_diag(grad_vals, rows, cols)]
@@ -397,7 +398,7 @@ class power(Elementwise):
             return []
 
     def get_data(self):
-        return [self._p_orig, self.max_denom]
+        return [self._p_orig, self.max_denom, self._approx]
 
     def copy(self, args=None, id_objects=None) -> "power":
         """Returns a shallow copy of the power atom.
@@ -423,3 +424,4 @@ class power(Elementwise):
         if self._label is not None:
             return self._label
         return f"{type(self).__name__}({self.args[0].format_labeled()}, {self.p.value})"
+

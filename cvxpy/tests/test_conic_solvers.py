@@ -655,6 +655,114 @@ class TestCuClarabel(BaseTest):
     def test_clarabel_pcp_2(self) -> None:
         StandardTestSOCPs.test_socp_2(solver='CUCLARABEL')
 
+@unittest.skipUnless('MOREAU' in INSTALLED_SOLVERS, 'MOREAU is not installed.')
+class TestMoreau(BaseTest):
+
+    """ Unit tests for Moreau. """
+    def setUp(self) -> None:
+
+        self.x = cp.Variable(2, name='x')
+        self.y = cp.Variable(3, name='y')
+
+        self.A = cp.Variable((2, 2), name='A')
+        self.B = cp.Variable((2, 2), name='B')
+        self.C = cp.Variable((3, 2), name='C')
+
+    def test_moreau_parameter_update(self) -> None:
+        """Test warm start.
+        """
+        x = cp.Variable(2)
+        P = cp.Parameter(nonneg=True),
+        A = cp.Parameter(4)
+        b = cp.Parameter(2, nonneg=True)
+        q = cp.Parameter(2)
+
+        def update_parameters(P, A, b, q):
+            P[0].value = np.random.rand()
+            A.value = np.random.randn(4)
+            b.value = np.random.rand(2)
+            q.value = np.random.randn(2)
+
+        prob = cp.Problem(
+                cp.Minimize(P[0]*cp.square(x[0]) + cp.quad_form(x, np.ones([2, 2])) + q.T @ x),
+                [A[0] * x[0] + A[1] * x[1] == b[0],
+                 A[2] * x[0] + A[3] * x[1] <= b[1]]
+            )
+
+        update_parameters(P, A, b, q)
+        result1 = prob.solve(solver=cp.MOREAU, warm_start=False)
+        result2 = prob.solve(solver=cp.MOREAU, warm_start=True)
+        self.assertAlmostEqual(result1, result2)
+
+        update_parameters(P, A, b, q)
+        result1 = prob.solve(solver=cp.MOREAU, warm_start=True)
+        result2 = prob.solve(solver=cp.MOREAU, warm_start=False)
+        self.assertAlmostEqual(result1, result2)
+
+        # consecutive solves, no data update
+        result1 = prob.solve(solver=cp.MOREAU, warm_start=False)
+        self.assertAlmostEqual(result1, result2)
+
+
+    def test_moreau_lp_0(self) -> None:
+        StandardTestLPs.test_lp_0(solver=cp.MOREAU)
+
+    def test_moreau_nonstandard_name(self) -> None:
+        # Test that solver name with non-standard capitalization works.
+        StandardTestLPs.test_lp_0(solver="MOREAU")
+
+    def test_moreau_lp_1(self) -> None:
+        StandardTestLPs.test_lp_1(solver='MOREAU')
+
+    def test_moreau_lp_2(self) -> None:
+        StandardTestLPs.test_lp_2(solver='MOREAU')
+
+    def test_moreau_lp_3(self) -> None:
+        StandardTestLPs.test_lp_3(solver='MOREAU')
+
+    def test_moreau_lp_4(self) -> None:
+        StandardTestLPs.test_lp_4(solver='MOREAU')
+
+    def test_moreau_lp_5(self) -> None:
+        StandardTestLPs.test_lp_5(solver='MOREAU')
+
+    def test_moreau_qp_0(self) -> None:
+        StandardTestQPs.test_qp_0(solver='MOREAU')
+
+    def test_moreau_qp_0_linear_obj(self) -> None:
+        StandardTestQPs.test_qp_0(solver='MOREAU', use_quad_obj=False)
+
+    def test_moreau_socp_0(self) -> None:
+        StandardTestSOCPs.test_socp_0(solver='MOREAU')
+
+    def test_moreau_socp_1(self) -> None:
+        StandardTestSOCPs.test_socp_1(solver='MOREAU')
+
+    def test_moreau_socp_2(self) -> None:
+        StandardTestSOCPs.test_socp_2(solver='MOREAU')
+
+    def test_moreau_socp_3(self) -> None:
+        # axis 0
+        StandardTestSOCPs.test_socp_3ax0(solver='MOREAU')
+        # axis 1
+        StandardTestSOCPs.test_socp_3ax1(solver='MOREAU')
+
+    def test_moreau_expcone_1(self) -> None:
+        StandardTestECPs.test_expcone_1(solver='MOREAU')
+
+    def test_moreau_exp_soc_1(self) -> None:
+        StandardTestMixedCPs.test_exp_soc_1(solver='MOREAU')
+
+    def test_moreau_pcp_0(self) -> None:
+        StandardTestSOCPs.test_socp_0(solver='MOREAU')
+
+    def test_moreau_pcp_1(self) -> None:
+        StandardTestSOCPs.test_socp_1(solver='MOREAU')
+
+    def test_moreau_pcp_2(self) -> None:
+        StandardTestSOCPs.test_socp_2(solver='MOREAU')
+
+
 def is_mosek_available():
     """Check if MOSEK is installed and a license is available."""
     if 'MOSEK' not in INSTALLED_SOLVERS:
@@ -1902,7 +2010,7 @@ class TestXPRESS(BaseTest):
         self.b = cp.Variable(name='b')
         self.c = cp.Variable(name='c')
 
-        self.x = cp.Variable(2, name='x')
+        self.x = cp.Variable(2, name='x', integer=True)
         self.y = cp.Variable(3, name='y')
         self.z = cp.Variable(2, name='z')
 
@@ -2257,6 +2365,18 @@ class TestSCIP(unittest.TestCase):
                   "Try another solver, or solve with verbose=True for more information."
             assert str(se.value) == exc
 
+    def test_scip_solver_stats(self) -> None:
+        import pyscipopt
+
+        sth = sths.lp_0()
+        sth.solve(solver="SCIP")
+        stats = sth.prob.solver_stats
+        assert stats.solver_name == "SCIP"
+        assert stats.solve_time is not None
+        assert stats.num_iters is not None
+        assert stats.extra_stats["scip_status"] == "optimal"
+        assert isinstance(stats.extra_stats["model"], pyscipopt.Model)
+
 
 # We can't inherit from unittest.TestCase since we access some advanced pytest features.
 # As a result, we use the pytest skipif decorator instead of unittest.skipUnless.
@@ -2281,7 +2401,7 @@ class TestHIGHS:
         ],
     )
     def test_highs_solving(self, problem) -> None:
-        # HACK needed to use the HiGHS conic interface rather than 
+        # HACK needed to use the HiGHS conic interface rather than
         # the QP interface for LPs.
         from cvxpy.reductions.solvers.conic_solvers.highs_conif import HIGHS
         solver = HIGHS()
@@ -2291,8 +2411,8 @@ class TestHIGHS:
     @pytest.mark.parametrize(
         ["problem", "confirmation_string"],
         [
-            (StandardTestLPs.test_lp_2, "Solving LP .* with basis"),
-            (StandardTestLPs.test_mi_lp_2, "MIP start solution is feasible"),
+            (StandardTestLPs.test_lp_2, "Solving LP with useful basis"),
+            (StandardTestLPs.test_mi_lp_2, "Assessing feasibility of MIP"),
         ],
     )
     def test_highs_warm_start(self, problem, confirmation_string, capfd) -> None:
@@ -2771,7 +2891,7 @@ class TestCOPT(unittest.TestCase):
 @unittest.skipUnless('COSMO' in INSTALLED_SOLVERS, 'COSMO is not installed.')
 class TestCOSMO(BaseTest):
     """Unit tests for COSMO solver interface."""
-    
+
     def setUp(self) -> None:
         self.a = cp.Variable(name='a')
         self.b = cp.Variable(name='b')
@@ -2789,7 +2909,7 @@ class TestCOSMO(BaseTest):
         """Test that COSMO solver options work."""
         # Test basic options with simple problem
         prob = cp.Problem(cp.Minimize(cp.norm(self.x, 1) + 1.0), [self.x == 0])
-        
+
         # Test with default settings
         prob.solve(solver=cp.COSMO, verbose=True)
         self.assertAlmostEqual(prob.value, 1.0)
@@ -2814,7 +2934,7 @@ class TestCOSMO(BaseTest):
 
     def test_cosmo_lp_4(self) -> None:
         StandardTestLPs.test_lp_4(solver='COSMO')
-    
+
     def test_cosmo_lp_5(self) -> None:
         StandardTestLPs.test_lp_5(solver='COSMO')
 
@@ -2833,7 +2953,7 @@ class TestCOSMO(BaseTest):
     def test_cosmo_socp_3(self) -> None:
         # axis 0
         StandardTestSOCPs.test_socp_3ax0(solver='COSMO')
-        # axis 1 
+        # axis 1
         StandardTestSOCPs.test_socp_3ax1(solver='COSMO')
 
     def test_cosmo_expcone_1(self) -> None:
@@ -2853,7 +2973,7 @@ class TestCOSMO(BaseTest):
 
     def test_cosmo_sdp_1min(self) -> None:
         StandardTestSDPs.test_sdp_1min(solver='COSMO')
-    
+
     def test_cosmo_sdp_2(self) -> None:
         places = 3
         sth = sths.sdp_2()
@@ -3064,8 +3184,10 @@ class TestCUOPT(unittest.TestCase):
 
     def test_cuopt_mi_lp_3(self) -> None:
         TestCUOPT.kwargs["time_limit"] = 5
-        StandardTestLPs.test_mi_lp_3(solver='CUOPT', **TestCUOPT.kwargs)
-        del TestCUOPT.kwargs["time_limit"]
+        try:
+            StandardTestLPs.test_mi_lp_3(solver='CUOPT', **TestCUOPT.kwargs)
+        finally:
+            del TestCUOPT.kwargs["time_limit"]
 
     # This is an unconstrained problem, which cuopt doesn't handle.
     # Error message from cvxpy should be returned

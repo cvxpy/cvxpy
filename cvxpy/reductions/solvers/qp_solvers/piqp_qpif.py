@@ -20,6 +20,7 @@ import numpy as np
 import cvxpy.interface as intf
 import cvxpy.settings as s
 from cvxpy.reductions.solution import Solution, failure_solution
+from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
 from cvxpy.utilities.citations import CITATION_DICT
 
@@ -56,8 +57,20 @@ class PIQP(QpSolver):
                 intf.DEFAULT_INTF.const_to_matrix(np.array(solution.x))
             }
 
-            dual_vars = {PIQP.DUAL_VAR_ID: np.concatenate(
-                (solution.y, solution.z if hasattr(solution, 'z') else solution.z_u))}
+            # Build dual vars dict keyed by constraint IDs
+            # PIQP returns solution.y (eq_duals) and solution.z or solution.z_u (ineq_duals)
+            ineq_duals = solution.z if hasattr(solution, 'z') else solution.z_u
+            eq_dual = utilities.get_dual_values(
+                solution.y,
+                utilities.extract_dual_value,
+                inverse_data[self.EQ_CONSTR])
+            ineq_dual = utilities.get_dual_values(
+                ineq_duals,
+                utilities.extract_dual_value,
+                inverse_data[self.NEQ_CONSTR])
+            dual_vars = {}
+            dual_vars.update(eq_dual)
+            dual_vars.update(ineq_dual)
             attr[s.NUM_ITERS] = solution.info.iter
             sol = Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
