@@ -601,9 +601,14 @@ class Leaf(expression.Expression):
                     attr_str = 'in bounds'
                 else:
                     attr_str = ([k for (k, v) in self.attributes.items() if v] + ['real'])[0]
-                if np.isnan(val).any():
+                if np.isnan(val).any() and self.variables():
                     # necessary for NLP package extension and computing the structural jacobian
+                    # Only allow NaN for Variables, not Parameters
                     return val
+                elif np.isnan(val).any():
+                    raise ValueError(
+                        "%s value must be real." % self.__class__.__name__
+                    )
                 else:
                     raise ValueError(
                        "%s value must be %s." % (self.__class__.__name__, attr_str)
