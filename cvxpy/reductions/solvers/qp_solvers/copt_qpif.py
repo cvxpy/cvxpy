@@ -175,6 +175,12 @@ class COPT(QpSolver):
             if key not in self.INTERFACE_ARGS:
                 model.setParam(key, value)
 
+        if warm_start and solver_cache is not None and self.name() in solver_cache:
+            old_model, _, old_solution = solver_cache[self.name()]
+            if old_solution[s.STATUS] in s.SOLUTION_PRESENT:
+                model.setMipStart(old_model.getVars(), old_model.getValues())
+                model.loadMipStart()
+
         if 'save_file' in solver_opts:
             model.write(solver_opts['save_file'])
 
@@ -206,6 +212,8 @@ class COPT(QpSolver):
             solution[s.STATUS] = s.INFEASIBLE_INACCURATE
 
         solution['model'] = model
+        if solver_cache is not None:
+            solver_cache[self.name()] = (model, data, solution)
 
         return solution
 
