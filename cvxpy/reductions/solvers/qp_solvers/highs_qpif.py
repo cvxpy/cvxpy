@@ -22,16 +22,12 @@ import cvxpy.settings as s
 from cvxpy.error import SolverError
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
+from cvxpy.reductions.solvers.conic_solvers.highs_conif import (  # importing to avoid duplication
+    set_column_names_from_variables,
+    unpack_highs_options_inplace,
+)
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
 from cvxpy.utilities.citations import CITATION_DICT
-
-
-def unpack_highs_options_inplace(solver_opts) -> None:
-    # Users can pass options inside a nested dict -- e.g. to circumvent a name clash
-    highs_options = solver_opts.pop("highs_options", dict())
-
-    # merge via update(dict(...)) is needed to avoid silently over-writing options
-    solver_opts.update(dict(**solver_opts, **highs_options))
 
 
 class HIGHS(QpSolver):
@@ -205,6 +201,7 @@ class HIGHS(QpSolver):
 
         # setup options
         unpack_highs_options_inplace(solver_opts)
+        write_model_file = solver_opts.pop("write_model_file", None)
         solver.setOptionValue("log_to_console", verbose)
         for name, value in solver_opts.items():
             # note that calling setOptionValue directly on the solver
@@ -215,8 +212,15 @@ class HIGHS(QpSolver):
                     f"HIGHS returned status kError for option (name, value): ({name}, {value})"
                 )
 
+        if write_model_file:
+            # TODO: Names can be collected upstream more systematically
+            # (or in the parent class) to be used by all solvers.
+            set_column_names_from_variables(lp, data[s.PARAM_PROB].variables)
 
         solver.passModel(model)
+
+        if write_model_file:
+            solver.writeModel(write_model_file)
 
         if warm_start and solver_cache is not None and self.name() in solver_cache:
             old_solver, old_data, old_result = solver_cache[self.name()]
