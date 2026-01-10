@@ -41,22 +41,6 @@ def dims_to_solver_cones(cone_dims):
     """
     import moreau
 
-    cones = moreau.Cones()
-
-    # Map CVXpy cone dimensions to Moreau cones
-    cones.num_zero_cones = cone_dims.zero
-    cones.num_nonneg_cones = cone_dims.nonneg
-
-    # SOC cones: Moreau expects list of SOC dimensions
-    cones.soc_dims = list(cone_dims.soc)
-
-    # Exponential cones
-    cones.num_exp_cones = cone_dims.exp
-
-    # Power cones (num_power_cones derived from power_alphas length)
-    if cone_dims.p3d:
-        cones.power_alphas = list(cone_dims.p3d)
-
     # Moreau does not support PSD cones yet
     if cone_dims.psd:
         raise ValueError("Moreau does not support PSD cones")
@@ -64,6 +48,18 @@ def dims_to_solver_cones(cone_dims):
     # Moreau does not support generalized power cones yet
     if cone_dims.pnd:
         raise ValueError("Moreau does not support generalized power cones (PowConeND)")
+
+    # Map CVXpy cone dimensions to Moreau cones
+    # SOC cones: All SOCs are dimension-3 (due to SOC_DIM3_ONLY=True)
+    num_soc = len(cone_dims.soc)
+
+    cones = moreau.Cones(
+        num_zero_cones=cone_dims.zero,
+        num_nonneg_cones=cone_dims.nonneg,
+        num_so_cones=num_soc,
+        num_exp_cones=cone_dims.exp,
+        power_alphas=list(cone_dims.p3d) if cone_dims.p3d else [],
+    )
 
     return cones
 
@@ -77,6 +73,7 @@ class MOREAU(ConicSolver):
 
     # Solver capabilities
     MIP_CAPABLE = False
+    BOUNDED_VARIABLES = True
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC, ExpCone, PowCone3D]
 
     # Moreau only supports dimension-3 SOC cones
@@ -142,6 +139,7 @@ class MOREAU(ConicSolver):
 
         status = status_map.get(str(solution.status), s.SOLVER_ERROR)
         attr[s.SOLVE_TIME] = solution.solve_time
+        attr[s.SETUP_TIME] = solution.setup_time
         attr[s.NUM_ITERS] = solution.iterations
 
         if status in s.SOLUTION_PRESENT:
@@ -182,22 +180,27 @@ class MOREAU(ConicSolver):
         -------
         tuple
             (settings, processed_opts) where settings is moreau.Settings and
-            processed_opts contains device, accept_unknown
+            processed_opts contains accept_unknown
         """
         import moreau
 
         solver_opts = solver_opts.copy() if solver_opts else {}
 
-        settings = moreau.Settings()
-        settings.verbose = verbose
-
         # Extract cvxpy-specific options
         processed_opts = {}
-        processed_opts['device'] = solver_opts.pop('device', 'auto')
-        processed_opts['accept_unknown'] = solver_opts.pop('accept_unknown', False)
+        processed_opts["accept_unknown"] = solver_opts.pop("accept_unknown", False)
+
+        # Extract device (now part of Settings)
+        device = solver_opts.pop("device", "auto")
 
         # Remove use_quad_obj (handled by reduction chain, not solver)
-        solver_opts.pop('use_quad_obj', None)
+        solver_opts.pop("use_quad_obj", None)
+
+        # Create Settings with device and verbose
+        settings = moreau.Settings(
+            device=device,
+            verbose=verbose,
+        )
 
         # Apply all remaining options directly to moreau.Settings
         for opt, value in solver_opts.items():
@@ -243,42 +246,46 @@ class MOREAU(ConicSolver):
             # Create empty sparse matrix with proper structure
             P = sp.csr_array((nvars, nvars))
 
-        # Convert to CSR format and take upper triangle
-        P = sp.triu(P, format='csr')
+        # Convert to CSR format
+        P = P.tocsr()
         A = A.tocsr()
 
         # Convert cone dimensions
         cones = dims_to_solver_cones(data[ConicSolver.DIMS])
 
-        # Handle options
+        # Handle options (device is now part of Settings)
         settings, processed_opts = self.handle_options(verbose, solver_opts or {})
-        device = processed_opts['device']
 
-        # Create solver with new API
+        # Get variable bounds (default to unbounded if None)
+        n = P.shape[0]
+        l = data.get(s.LOWER_BOUNDS)
+        u = data.get(s.UPPER_BOUNDS)
+        if l is None:
+            l = np.full(n, -np.inf, dtype=np.float64)
+        else:
+            l = l.astype(np.float64)
+        if u is None:
+            u = np.full(n, np.inf, dtype=np.float64)
+        else:
+            u = u.astype(np.float64)
+
+        # Create solver with all problem data in constructor
         solver = moreau.Solver(
-            n=P.shape[0],
-            m=A.shape[0],
-            P_row_offsets=P.indptr.astype(np.int64),
-            P_col_indices=P.indices.astype(np.int64),
-            A_row_offsets=A.indptr.astype(np.int64),
-            A_col_indices=A.indices.astype(np.int64),
+            P=P,
+            q=q.astype(np.float64),
+            A=A,
+            b=b.astype(np.float64),
+            l=l,
+            u=u,
             cones=cones,
             settings=settings,
-            device=device
         )
 
-        # Solve
-        result = solver.solve(
-            P_values=P.data,
-            A_values=A.data,
-            q=q,
-            b=b
-        )
+        # Solve (no arguments - all data was provided in constructor)
+        solution = solver.solve()
+        info = solver.info  # Metadata is on solver.info after solve()
 
-        status_val = moreau.SolverStatus(int(result['status']))
-        # Convert result to solution object
-
-        return MoreauSolution(result, status_val)
+        return MoreauSolution(solution, info)
     
     def cite(self, data):
         """Returns bibtex citation for the solver.
@@ -301,27 +308,16 @@ class MOREAU(ConicSolver):
 
 
 class MoreauSolution:
-    def __init__(self, result_dict, status):
-        self.x = result_dict['x']
-        self.s = result_dict['s']
-        self.z = result_dict['z']
-        self.status = status.name
+    """Wrapper for Moreau solver output."""
 
-        # Handle list format for iterations (moreau-cpu returns lists)
-        iters = result_dict['iterations']
-        if isinstance(iters, (list, np.ndarray)):
-            self.iterations = int(iters[0])
-        else:
-            self.iterations = int(iters)
-
-        # Handle list format for solve_time (moreau-cpu returns lists)
-        st = result_dict['solve_time']
-        if isinstance(st, (list, np.ndarray)):
-            self.solve_time = float(st[0])
-        else:
-            self.solve_time = float(st)
-
-        # Scalar or 0-dimensional array
-        self.obj_val = float(result_dict['obj_val'])
+    def __init__(self, sol, info):
+        self.x = sol.x
+        self.s = sol.s
+        self.z = sol.z
+        self.status = info.status.name
+        self.iterations = info.iterations
+        self.solve_time = info.solve_time
+        self.setup_time = info.setup_time
+        self.obj_val = info.obj_val
 
 
