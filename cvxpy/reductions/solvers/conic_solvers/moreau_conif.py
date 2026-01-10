@@ -24,6 +24,7 @@ from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.solver_inverse_data import SolverInverseData
+from cvxpy.utilities.citations import CITATION_DICT
 
 
 def dims_to_solver_cones(cone_dims):
@@ -305,11 +306,7 @@ class MOREAU(ConicSolver):
         str
             BibTeX citation
         """
-        return """@misc{moreau2025,
-  title={Moreau: GPU-Accelerated Conic Optimization},
-  year={2025},
-  note={https://pypi.org/project/moreau}
-}"""
+        return CITATION_DICT["MOREAU"]
 
 
 class MoreauSolution:
