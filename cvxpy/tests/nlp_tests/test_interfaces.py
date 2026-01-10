@@ -248,8 +248,21 @@ class TestKNITROInterface:
 @pytest.mark.skipif('COPT' not in INSTALLED_SOLVERS, reason='COPT is not installed.')
 class TestCOPTInterface:
 
-    def test_copt_call(self):
+    def test_copt_basic_solve(self):
+        """Test that COPT can solve a basic NLP problem."""
         x = cp.Variable()
         prob = cp.Problem(cp.Minimize((x - 2) ** 2), [x >= 1])
-        with pytest.raises(NotImplementedError):
-            prob.solve(solver=cp.COPT, nlp=True)
+        prob.solve(solver=cp.COPT, nlp=True)
+        assert prob.status == cp.OPTIMAL
+        assert np.isclose(x.value, 2.0, atol=1e-5)
+
+    def test_copt_maxit(self):
+        """Test maximum iterations option."""
+        x = cp.Variable(2)
+        x.value = np.array([1.0, 1.0])
+        prob = cp.Problem(cp.Minimize(x[0]**2 + x[1]**2), [x[0] + x[1] >= 1])
+
+        # Use a reasonable maxit value that allows convergence
+        prob.solve(solver=cp.COPT, nlp=True, NLPIterLimit=100)
+        assert prob.status == cp.OPTIMAL
+        assert np.allclose(x.value, [0.5, 0.5], atol=1e-4)

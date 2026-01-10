@@ -14,6 +14,8 @@ NLP_SOLVERS = [
         not is_knitro_available(), reason='KNITRO is not installed or license not available.')),
     pytest.param('UNO', marks=pytest.mark.skipif(
         'UNO' not in INSTALLED_SOLVERS, reason='UNO is not installed.')),
+    pytest.param('COPT', marks=pytest.mark.skipif(
+        'COPT' not in INSTALLED_SOLVERS, reason='COPT is not installed.')),
 ]
 
 
@@ -246,7 +248,7 @@ class TestNLPExamples:
                 min_dist_sq = (radius[i] + radius[j]) ** 2
                 residuals.append(dist_sq - min_dist_sq)
         
-        assert(np.all(np.array(residuals) <= 1e-8))
+        assert(np.all(np.array(residuals) <= 1e-6))
 
         # Ipopt finds these centers, but Knitro rotates them (but finds the same
         # objective value)

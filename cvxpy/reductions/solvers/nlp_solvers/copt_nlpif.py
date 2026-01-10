@@ -26,16 +26,19 @@ class COPT(NLPsolver):
     """
     NLP interface for the COPT solver.
     """
+    # Map between COPT status and CVXPY status
     STATUS_MAP = {
-        # Success cases
-        0: s.OPTIMAL,                    # Solve_Succeeded
-        1: s.OPTIMAL_INACCURATE,         # Solved_To_Acceptable_Level
-        6: s.OPTIMAL,                    # Feasible_Point_Found
-        
-        # Infeasibility/Unboundedness
-        2: s.INFEASIBLE,                 # Infeasible_Problem_Detected
-        4: s.UNBOUNDED,                  # Diverging_Iterates
-    }
+                  1: s.OPTIMAL,             # optimal
+                  2: s.INFEASIBLE,          # infeasible
+                  3: s.UNBOUNDED,           # unbounded
+                  4: s.INF_OR_UNB,          # infeasible or unbounded
+                  5: s.SOLVER_ERROR,        # numerical
+                  6: s.USER_LIMIT,          # node limit
+                  7: s.OPTIMAL_INACCURATE,  # imprecise
+                  8: s.USER_LIMIT,          # time out
+                  9: s.SOLVER_ERROR,        # unfinished
+                  10: s.USER_LIMIT          # interrupted
+                 }
 
     def name(self):
         """
@@ -47,16 +50,18 @@ class COPT(NLPsolver):
         """
         Imports the solver.
         """
-        import cyipopt  # noqa F401
+        import coptpy  # noqa F401
 
     def invert(self, solution, inverse_data):
         """
         Returns the solution to the original problem given the inverse_data.
         """
-        attr = {}
+        attr = {
+            s.NUM_ITERS: solution.get('num_iters'),
+            s.SOLVE_TIME: solution.get('solve_time_real'),
+        }
+
         status = self.STATUS_MAP[solution['status']]
-        attr[s.NUM_ITERS] = solution['iterations']
-    
         if status in s.SOLUTION_PRESENT:
             primal_val = solution['obj_val']
             opt_val = primal_val + inverse_data.offset
@@ -106,7 +111,163 @@ class COPT(NLPsolver):
         tuple
             (status, optimal value, primal, equality dual, inequality dual)
         """
-        raise NotImplementedError("COPT NLP interface is not yet implemented.")
+        import coptpy as copt
+
+        class COPTNlpCallbackCVXPY(copt.NlpCallbackBase):
+            def __init__(self, oracles, m):
+                super().__init__()
+                self._oracles = oracles
+                self._m = m
+
+            def EvalObj(self, xdata, outdata):
+                x = copt.NdArray(xdata)
+                outval = copt.NdArray(outdata)
+
+                x_np = x.tonumpy()
+                outval_np = self._oracles.objective(x_np)
+
+                outval[:] = outval_np
+                return 0
+
+            def EvalGrad(self, xdata, outdata):
+                x = copt.NdArray(xdata)
+                outval = copt.NdArray(outdata)
+
+                x_np = x.tonumpy()
+                outval_np = self._oracles.gradient(x_np)
+
+                outval[:] = np.asarray(outval_np).flatten()
+                return 0
+
+            def EvalCon(self, xdata, outdata):
+                if self._m > 0:
+                    x = copt.NdArray(xdata)
+                    outval = copt.NdArray(outdata)
+
+                    x_np = x.tonumpy()
+                    outval_np = self._oracles.constraints(x_np)
+
+                    outval[:] = np.asarray(outval_np).flatten()
+                return 0
+
+            def EvalJac(self, xdata, outdata):
+                if self._m > 0:
+                    x = copt.NdArray(xdata)
+                    outval = copt.NdArray(outdata)
+
+                    x_np = x.tonumpy()
+                    outval_np = self._oracles.jacobian(x_np)
+
+                    outval[:] = np.asarray(outval_np).flatten()
+                return 0
+
+            def EvalHess(self, xdata, sigma, lambdata, outdata):
+                x = copt.NdArray(xdata)
+                lagrange = copt.NdArray(lambdata)
+                outval = copt.NdArray(outdata)
+
+                x_np = x.tonumpy()
+                lagrange_np = lagrange.tonumpy()
+                outval_np = self._oracles.hessian(x_np, lagrange_np, sigma)
+
+                outval[:] = np.asarray(outval_np).flatten()
+                return 0
+
+        # Create COPT environment and model
+        envconfig = copt.EnvrConfig()
+        if not verbose:
+            envconfig.set('nobanner', '1')
+
+        env = copt.Envr(envconfig)
+        model = env.createModel()
+
+        # Pass through verbosity
+        model.setParam(copt.COPT.Param.Logging, verbose)
+
+        # Get oracles for function evaluation
+        oracles = data['oracles']
+
+        # Get the NLP problem data
+        x0 = data['x0']
+        lb, ub = data['lb'].copy(), data['ub'].copy()
+        cl, cu = data['cl'].copy(), data['cu'].copy()
+
+        lb[lb == -np.inf] = -copt.COPT.INFINITY
+        ub[ub == +np.inf] = +copt.COPT.INFINITY
+        cl[cl == -np.inf] = -copt.COPT.INFINITY
+        cu[cu == +np.inf] = +copt.COPT.INFINITY
+
+        n = len(lb)
+        m = len(cl)
+
+        cbtype = copt.COPT.EVALTYPE_OBJVAL | copt.COPT.EVALTYPE_CONSTRVAL | \
+                 copt.COPT.EVALTYPE_GRADIENT | copt.COPT.EVALTYPE_JACOBIAN | \
+                 copt.COPT.EVALTYPE_HESSIAN
+        cbfunc = COPTNlpCallbackCVXPY(oracles, m)
+
+        if m > 0:
+            jac_rows, jac_cols = oracles.jacobianstructure()
+            nnz_jac = len(jac_rows)
+        else:
+            jac_rows = None
+            jac_cols = None
+            nnz_jac = 0
+
+        if n > 0:
+            hess_rows, hess_cols = oracles.hessianstructure()
+            nnz_hess = len(hess_rows)
+        else:
+            hess_rows = None
+            hess_cols = None
+            nnz_hess = 0
+
+        # Load NLP problem data
+        model.loadNlData(n,                                  # Number of variables
+                         m,                                  # Number of constraints
+                         copt.COPT.MINIMIZE,                 # Objective sense
+                         copt.COPT.DENSETYPE_ROWMAJOR, None, # Dense objective gradient
+                         nnz_jac, jac_rows, jac_cols,        # Sparse jacobian
+                         nnz_hess, hess_rows, hess_cols,     # Sparse hessian
+                         lb, ub,                             # Variable bounds
+                         cl, cu,                             # Constraint bounds
+                         x0,                                 # Starting point
+                         cbtype, cbfunc                      # Callback function
+                         )
+
+        # Set parameters
+        for key, value in solver_opts.items():
+            model.setParam(key, value)
+
+        # Solve problem 
+        model.solve()
+
+        # Get solution
+        nlp_status = model.status
+        nlp_hassol = model.haslpsol
+
+        if nlp_hassol:
+            objval = model.objval
+            x_sol = model.getValues()
+            lambda_sol = model.getDuals()
+        else:
+            objval = +np.inf
+            x_sol = [0.0] * n
+            lambda_sol = [0.0] * m
+
+        num_iters = model.barrieriter
+        solve_time_real = model.solvingtime
+
+        # Return results in dictionary format expected by invert()
+        solution = {
+            'status': nlp_status,
+            'obj_val': objval,
+            'x': np.array(x_sol),
+            'lambda': np.array(lambda_sol),
+            'num_iters': num_iters,
+            'solve_time_real': solve_time_real
+        }
+
+        return solution
 
     def cite(self, data):
         """Returns bibtex citation for the solver.
