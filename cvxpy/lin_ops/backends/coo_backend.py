@@ -181,6 +181,30 @@ class CooTensor:
           - new row 0 <- old row 2
           - new row 1 <- old row 0
           - new row 2 <- old row 1
+
+        Duplicate Handling (Broadcasting)
+        ----------------------------------
+        When `rows` contains duplicate values, the same source row is copied to
+        multiple destination rows. This occurs during broadcasting operations.
+
+        Example: A parameter P of shape (2, 3) broadcast to (4, 2, 3):
+          - Original rows: [0, 1, 2, 3, 4, 5] (6 elements)
+          - After broadcast: [0, 1, 0, 1, 0, 1, 0, 1, 2, 3, 2, 3, ...] (24 elements)
+          - Each original row appears 4 times (once per batch)
+
+        For parametric tensors, this means the same param_idx values get replicated
+        to multiple output positions - which is correct because the same parameter
+        value is used in multiple places after broadcasting.
+
+        Parameters
+        ----------
+        rows : np.ndarray
+            Array of source row indices. Length determines the number of output rows.
+
+        Returns
+        -------
+        CooTensor
+            New tensor with selected/reordered rows.
         """
         new_m = len(rows)
 
@@ -191,15 +215,37 @@ class CooTensor:
         diffs = np.diff(rows)
         has_duplicates = (np.any(diffs == 0) if np.all(diffs >= 0)
                           else np.any(np.diff(np.sort(rows)) == 0))
-        # Fast path: no duplicate rows for transpose, simple indexing
+        # Fast path: no duplicate rows (used by transpose, simple indexing)
         if not has_duplicates:
             return self._select_rows_no_duplicates(rows, new_m)
-        # General path: handles duplicate rows (needed for broadcasting, etc.)
+        # General path: handles duplicate rows (used by broadcast_to, promote)
         else:
             return self._select_rows_with_duplicates(rows, new_m)
 
     def _select_rows_no_duplicates(self, rows: np.ndarray, new_m: int) -> CooTensor:
-        """Fast path for select_rows when there are no duplicate rows."""
+        """
+        Fast path for select_rows when there are no duplicate rows.
+
+        Uses a reverse mapping approach: for each old row, compute which new row
+        it maps to (or -1 if not selected). This is O(nnz) and avoids sorting.
+
+        Example: Select rows [2, 0] from a tensor with 3 rows
+        -----------------------------------------------------
+        rows = [2, 0] means: new_row_0 <- old_row_2, new_row_1 <- old_row_0
+
+        Build reverse map (old_row -> new_row):
+            row_map = [-1, -1, -1]  (initialize: nothing selected)
+            row_map[2] = 0  (old row 2 -> new row 0)
+            row_map[0] = 1  (old row 0 -> new row 1)
+            row_map = [1, -1, 0]
+
+        Apply to tensor entries:
+            If self.row = [0, 1, 2, 0, 2]
+            new_rows = row_map[self.row] = [1, -1, 0, 1, 0]
+            mask = [True, False, True, True, True]  (keep where >= 0)
+
+        Result: entries from old rows 0,2 are kept and renumbered.
+        """
         # Build reverse mapping: old_row -> new_row (or -1 if not selected)
         row_map = np.full(self.m, -1, dtype=np.int64)
         row_map[rows] = np.arange(new_m, dtype=np.int64)
@@ -221,20 +267,59 @@ class CooTensor:
         )
 
     def _select_rows_with_duplicates(self, rows: np.ndarray, new_m: int) -> CooTensor:
-        """General path for select_rows that handles duplicate rows.
+        """
+        General path for select_rows that handles duplicate rows.
 
-        Uses binary search to find destination positions for each tensor entry,
-        then replicates entries accordingly. O(nnz log n) complexity.
+        This method is used when broadcasting causes the same source row to be
+        copied to multiple destination rows. Uses binary search to find all
+        destination positions for each tensor entry, then replicates entries
+        accordingly. O(nnz log n) complexity.
+
+        When to Use This Path
+        ---------------------
+        - broadcast_to: Parameter (2,3) -> (4,2,3) creates rows with duplicates
+        - promote: Scalar broadcast to vector creates all-same rows
+
+        Example: Broadcast parameter from shape (2,) to (3, 2)
+        ------------------------------------------------------
+        Original parameter tensor (2 elements, param_size=2):
+            data = [1, 1]
+            row = [0, 1]           # param element positions
+            param_idx = [0, 1]    # each element is unique param slice
+
+        broadcast_to creates rows = [0, 1, 0, 1, 0, 1]
+        (3 copies of the 2-element vector, flattened column-major)
+
+        Algorithm steps:
+        1. Sort rows: row_sort_perm = [0, 2, 4, 1, 3, 5], rows_sorted = [0,0,0,1,1,1]
+        2. For each unique tensor row, count occurrences in rows:
+           - Tensor row 0 appears at positions 0,2,4 in rows -> count=3
+           - Tensor row 1 appears at positions 1,3,5 in rows -> count=3
+        3. Replicate each tensor entry by its count:
+           - Entry (row=0, param_idx=0) replicated 3 times
+           - Entry (row=1, param_idx=1) replicated 3 times
+        4. Compute output row indices from row_sort_perm
+
+        Result:
+            data = [1, 1, 1, 1, 1, 1]  (6 entries)
+            row = [0, 2, 4, 1, 3, 5]   (destination positions)
+            param_idx = [0, 0, 0, 1, 1, 1]  <- DUPLICATED! Same param used 3x
+
+        The duplicated param_idx values are correct: after broadcasting, the same
+        parameter value contributes to multiple output positions. At solve time,
+        when we multiply each param slice by its value, these duplicated entries
+        will all receive the same parameter value.
         """
         # Sort rows to enable binary search for range queries
         row_sort_perm = np.argsort(rows)
         rows_sorted = rows[row_sort_perm]
 
-        # Find unique tensor rows and count destinations for each
+        # Find unique tensor rows and count how many times each appears in `rows`
+        # This tells us how many output entries each tensor entry will generate
         unique_tensor_rows, inverse_idx = np.unique(self.row, return_inverse=True)
         left = np.searchsorted(rows_sorted, unique_tensor_rows, side='left')
         right = np.searchsorted(rows_sorted, unique_tensor_rows, side='right')
-        counts = right - left
+        counts = right - left  # Number of occurrences of each unique row in `rows`
 
         # Compute per-entry replication counts
         entry_counts = counts[inverse_idx]
@@ -242,13 +327,15 @@ class CooTensor:
         if total_nnz == 0:
             return CooTensor.empty(new_m, self.n, self.param_size)
 
-        # Replicate data, col, param arrays
+        # Replicate data, col, param_idx arrays according to counts
+        # This is where param_idx gets duplicated for broadcast parameters
         out_data = np.repeat(self.data, entry_counts)
         out_col = np.repeat(self.col, entry_counts)
         out_param = np.repeat(self.param_idx, entry_counts)
 
         # Build output row indices by gathering from row_sort_perm
-        # For each entry, gather from range [left, left+count)
+        # For each tensor entry, we need to output to all positions where its
+        # row value appears in `rows`. These positions are row_sort_perm[left:right].
         entry_lefts = np.repeat(left[inverse_idx], entry_counts)
         offsets = np.concatenate([[0], np.cumsum(entry_counts)[:-1]])
         positions = np.arange(total_nnz, dtype=np.int64) - np.repeat(offsets, entry_counts)
@@ -397,13 +484,76 @@ def _kron_eye_l(tensor: CooTensor, reps: int) -> CooTensor:
 
 def _kron_nd_structure(tensor: CooTensor, batch_size: int, n: int) -> CooTensor:
     """
-    Apply I_n ⊗ C ⊗ I_batch natively to a CooTensor.
+    Build the Kronecker structure for ND matrix multiplication: I_n ⊗ C ⊗ I_B.
 
+    This is the key operation for computing C @ X where C is a 2D constant (m, k)
+    and X is an ND variable with batch dimensions (..., k, n).
+
+    Why This Structure?
+    -------------------
+    For batched matmul C(m,k) @ X(B,k,n) = Y(B,m,n), each output element is:
+
+        Y[b, i, j] = Σ_r C[i, r] * X[b, r, j]
+
+    When we vectorize in column-major (Fortran) order:
+        - vec(X) has index: b + B*r + B*k*j  (b fastest, then r, then j)
+        - vec(Y) has index: b + B*i + B*m*j  (b fastest, then i, then j)
+
+    The matrix A where vec(Y) = A @ vec(X) must satisfy:
+        A[b + B*i + B*m*j, b' + B*r + B*k*j'] = C[i, r]  if b==b' and j==j'
+                                              = 0        otherwise
+
+    This sparsity pattern is exactly I_n ⊗ C ⊗ I_B:
+        - I_B: same batch index (b == b') - diagonal in batch dimension
+        - C:   the actual matmul coefficients C[i, r]
+        - I_n: same output column (j == j') - diagonal in output column dimension
+
+    Concrete Example
+    ----------------
+    C = [[1, 2, 3],    shape (2, 3)
+         [4, 5, 6]]
+
+    X has shape (B=2, k=3, n=2):
+        X[0,:,:] = [[x00, x01],    X[1,:,:] = [[x10, x11],
+                    [x02, x03],                 [x12, x13],
+                    [x04, x05]]                 [x14, x15]]
+
+    Result Y = C @ X has shape (2, 2, 2):
+        Y[b, i, j] = C[i, 0]*X[b,0,j] + C[i, 1]*X[b,1,j] + C[i, 2]*X[b,2,j]
+
+    Vectorized (F-order): vec(X) = [x00,x10, x02,x12, x04,x14, x01,x11, ...]
+                                    └─b=0,1─┘ └─b=0,1─┘ └─b=0,1─┘ └─ j=1 ─...
+                                      r=0       r=1       r=2
+
+    The matrix A = I_2 ⊗ C ⊗ I_2 has shape (2*2*2, 2*3*2) = (8, 12):
+
+        Block structure (showing j=0 block, j=1 block is identical):
+        ┌─────────────────────────────────────┐
+        │ C⊗I_2   0       0      │    0       │  ← j=0 output
+        │   0    C⊗I_2    0      │    0       │
+        │   0     0     C⊗I_2    │    0       │
+        ├─────────────────────────────────────┤
+        │   0     0       0      │  C⊗I_2 ...│  ← j=1 output
+        └─────────────────────────────────────┘
+              j=0 input              j=1 input
+
+        Where C⊗I_2 for the (2,3) matrix C is (4, 6):
+        ┌───────────────────┐
+        │ 1 0 │ 2 0 │ 3 0  │  ← i=0, b=0,1
+        │ 0 1 │ 0 2 │ 0 3  │
+        │─────┼─────┼──────│
+        │ 4 0 │ 5 0 │ 6 0  │  ← i=1, b=0,1
+        │ 0 4 │ 0 5 │ 0 6  │
+        └───────────────────┘
+          r=0   r=1   r=2
+
+    Implementation
+    --------------
     Equivalent to: _kron_eye_r(_kron_eye_l(tensor, batch_size), n)
     but computed in a single pass for efficiency.
 
-    Each entry at (p, i, j) expands to batch_size * n entries at:
-    (p, B*(i + r*m) + b, B*(j + r*k) + b)
+    Each entry at (row=i, col=j) in C expands to batch_size * n entries at:
+        (row = B*(i + r*m) + b, col = B*(j + r*k) + b)
     for b in [0, batch_size) and r in [0, n).
 
     Parameters
@@ -411,9 +561,9 @@ def _kron_nd_structure(tensor: CooTensor, batch_size: int, n: int) -> CooTensor:
     tensor : CooTensor
         The input tensor C with shape (param_size, m, k)
     batch_size : int
-        The batch dimension (B = prod of batch dims from variable)
+        The batch dimension B (= prod of batch dims from variable)
     n : int
-        The last dimension of the variable
+        The last dimension of the variable (output columns)
 
     Returns
     -------
@@ -470,15 +620,76 @@ def _build_interleaved(
     var_shape: tuple,
 ) -> CooTensor:
     """
-    Build interleaved matrix for batch-varying constant case, as CooTensor.
+    Build interleaved matrix for batch-varying constant case.
 
-    For C (..., m, k) @ X (..., k, n), builds I_n ⊗ M_interleaved where:
-    M_interleaved[b + B*i, b + B*r] = C[b, i, r]
+    This handles the case where each batch element uses a DIFFERENT constant
+    matrix: C(B,m,k) @ X(B,k,n) = Y(B,m,n) where C[b] differs for each b.
 
-    This is the native CooTensor equivalent of build_interleaved_matrix.
+    Why Not Use Kronecker?
+    ----------------------
+    The Kronecker structure I_n ⊗ C ⊗ I_B (from _kron_nd_structure) assumes
+    the SAME matrix C is applied to all batches. It creates a block-diagonal
+    structure where C appears repeatedly.
 
-    Note: Batch broadcasting is handled symbolically in MulExpression, so
-    const_shape and var_shape batch dimensions are guaranteed to match here.
+    But with batch-varying constants, each batch needs its OWN coefficients:
+        Y[b, i, j] = Σ_r C[b, i, r] * X[b, r, j]
+                         ↑
+                      Different C for each b!
+
+    The Interleaved Structure
+    -------------------------
+    We need matrix A where vec(Y) = A @ vec(X) with:
+        A[b + B*i + B*m*j, b' + B*r + B*k*j'] = C[b, i, r]  if b==b' and j==j'
+
+    The key insight is the indexing pattern: instead of block-diagonal,
+    we INTERLEAVE the batch dimension with the matrix dimensions:
+        M_interleaved[b + B*i, b + B*r] = C[b, i, r]
+
+    This places each batch's coefficients at positions that only interact
+    with that batch's input/output elements.
+
+    Concrete Example
+    ----------------
+    C has shape (B=2, m=2, k=2):
+        C[0] = [[a, b],      C[1] = [[e, f],
+                [c, d]]              [g, h]]
+
+    X has shape (B=2, k=2, n=1), so output Y has shape (B=2, m=2, n=1).
+
+    Vectorization (F-order, n=1 so j dimension is trivial):
+        vec(X) = [X[0,0,0], X[1,0,0], X[0,1,0], X[1,1,0]]
+               = [x0,       x1,       x2,       x3      ]
+                  └─b=0,1──┘ └──b=0,1──┘
+                    r=0         r=1
+
+        vec(Y) = [Y[0,0,0], Y[1,0,0], Y[0,1,0], Y[1,1,0]]
+               = [y0,       y1,       y2,       y3      ]
+                  └─b=0,1──┘ └──b=0,1──┘
+                    i=0         i=1
+
+    The computation:
+        y0 = Y[0,0,0] = C[0,0,0]*X[0,0,0] + C[0,0,1]*X[0,1,0] = a*x0 + b*x2
+        y1 = Y[1,0,0] = C[1,0,0]*X[1,0,0] + C[1,0,1]*X[1,1,0] = e*x1 + f*x3
+        y2 = Y[0,1,0] = C[0,1,0]*X[0,0,0] + C[0,1,1]*X[0,1,0] = c*x0 + d*x2
+        y3 = Y[1,1,0] = C[1,1,0]*X[1,0,0] + C[1,1,1]*X[1,1,0] = g*x1 + h*x3
+
+    Interleaved matrix M (4×4):
+                x0  x1  x2  x3
+            ┌───────────────────┐
+        y0  │  a   0   b   0   │   C[0,0,0]=a at (0,0), C[0,0,1]=b at (0,2)
+        y1  │  0   e   0   f   │   C[1,0,0]=e at (1,1), C[1,0,1]=f at (1,3)
+        y2  │  c   0   d   0   │   C[0,1,0]=c at (2,0), C[0,1,1]=d at (2,2)
+        y3  │  0   g   0   h   │   C[1,1,0]=g at (3,1), C[1,1,1]=h at (3,3)
+            └───────────────────┘
+
+    Pattern: M[b + B*i, b + B*r] = C[b, i, r]
+        - batch 0 elements (a,b,c,d) are at even rows/cols
+        - batch 1 elements (e,f,g,h) are at odd rows/cols
+        - No cross-batch interactions (zeros where b ≠ b')
+
+    Contrast with Kronecker (if C were NOT batch-varying):
+        Kronecker would put C in blocks: [[C,0],[0,C]]
+        Interleaved disperses C's elements: rows/cols alternate by batch
 
     Parameters
     ----------
@@ -492,7 +703,7 @@ def _build_interleaved(
     Returns
     -------
     CooTensor
-        The interleaved matrix with I_n applied
+        The interleaved matrix with I_n applied (for n > 1)
     """
     B = int(np.prod(const_shape[:-2]))
     m = const_shape[-2]
@@ -1183,10 +1394,13 @@ class CooCanonBackend(PythonCanonBackend):
         view: CooTensorView,
     ) -> CooTensorView:
         """
-        2D constant @ ND variable: use Kronecker structure I_n ⊗ C ⊗ I_batch.
+        Case 3: 2D constant @ ND variable using Kronecker structure.
 
-        This is the most common case: a 2D constant matrix multiplies each
-        batch element of an ND variable.
+        The SAME constant matrix C is applied to all batch elements.
+        Uses I_n ⊗ C ⊗ I_B structure (see _kron_nd_structure for details).
+
+        Example: C(2,3) @ X(4,3,5) → Y(4,2,5)
+            Same 2×3 matrix applied to all 4 batch elements.
         """
         batch_size, n, _ = get_nd_matmul_dims(const_shape, var_shape)
 
@@ -1211,10 +1425,14 @@ class CooCanonBackend(PythonCanonBackend):
         view: CooTensorView,
     ) -> CooTensorView:
         """
-        Batch-varying constant @ variable: use interleaved matrix structure.
+        Case 2: Batch-varying constant @ variable using interleaved structure.
 
-        When the constant has batch dimensions (e.g., C(B,m,k) @ X(B,k,n)),
-        each batch element uses a different constant matrix.
+        Each batch element uses a DIFFERENT constant matrix.
+        Cannot use Kronecker (which assumes same matrix for all batches).
+        Uses interleaved indexing (see _build_interleaved for details).
+
+        Example: C(4,2,3) @ X(4,3,5) → Y(4,2,5)
+            Four different 2×3 matrices, one per batch element.
         """
         const_shape = lin_op.data.shape
         # Raw data access is intentional: batch-varying constants are never parametric.
@@ -1235,10 +1453,17 @@ class CooCanonBackend(PythonCanonBackend):
         view: CooTensorView,
     ) -> CooTensorView:
         """
-        Parametric constant @ variable: expand each parameter slice with Kronecker.
+        Case 1: Parametric constant @ variable.
 
-        When the constant depends on Parameters, we expand each parameter slice
-        separately using the Kronecker structure.
+        The constant is a cp.Parameter - values unknown at canonicalization.
+        Each parameter element gets its own slice in the 3D tensor, tracking
+        how that element affects each output position.
+
+        Uses Kronecker structure per parameter slice (same as Case 3, but
+        applied to each param_idx separately).
+
+        Example: P(2,3) @ X(4,3,5) → Y(4,2,5) where P is cp.Parameter((2,3))
+            6 parameter elements, each with its own contribution matrix.
         """
         batch_size, n, _ = get_nd_matmul_dims(const_shape, var_shape)
 
@@ -1266,10 +1491,36 @@ class CooCanonBackend(PythonCanonBackend):
         """
         Matrix multiply: C @ X where C is constant/parametric, X is variable.
 
-        Three cases (explicitly branched for clarity):
-        1. Parametric LHS: Parameter @ Variable
-        2. Batch-varying constant: C(B,m,k) @ X(B,k,n) - uses interleaved matrix
-        3. 2D constant: C(m,k) @ X(B,k,n) - uses Kronecker I_n ⊗ C ⊗ I_B
+        Three Cases
+        -----------
+        The constant C can be in one of three forms, each requiring different handling:
+
+        1. **Parametric** (`_mul_parametric_lhs`):
+           C is a `cp.Parameter`. Values unknown at canonicalization time.
+           - Example: P(2,3) @ X(3,4) where P is cp.Parameter((2,3))
+           - Each parameter element gets its own slice in the 3D tensor
+           - Uses Kronecker structure per parameter slice
+
+        2. **Batch-varying constant** (`_mul_interleaved`):
+           C has shape (B,m,k) with B > 1. Different matrix for each batch.
+           - Example: C(4,2,3) @ X(4,3,5) - four different 2×3 matrices
+           - Cannot use Kronecker (that assumes SAME matrix for all batches)
+           - Uses interleaved indexing: M[b + B*i, b + B*r] = C[b,i,r]
+
+        3. **2D constant** (`_mul_kronecker`):
+           C has shape (m,k) or (1,m,k). Same matrix for all batches.
+           - Example: C(2,3) @ X(4,3,5) - same 2×3 matrix applied 4 times
+           - Uses Kronecker structure: I_n ⊗ C ⊗ I_B (see _kron_nd_structure)
+
+        Why Three Cases?
+        ----------------
+        - Case 1 vs 2,3: Parametric is fundamentally different because we don't
+          know values at canonicalization. We track param_idx to know which
+          parameter element affects which output.
+
+        - Case 2 vs 3: Both are known constants, but the matrix structure differs:
+          - Case 3: Same C repeated → block-diagonal (Kronecker)
+          - Case 2: Different C per batch → interleaved positions
         """
         const = lin_op.data
         var_shape = lin_op.args[0].shape
@@ -1387,19 +1638,60 @@ class CooCanonBackend(PythonCanonBackend):
 
     @staticmethod
     def promote(lin_op, view: CooTensorView) -> CooTensorView:
-        """Promote scalar by repeating."""
+        """
+        Promote a scalar to a higher-dimensional shape by repeating.
+
+        Creates rows = [0, 0, 0, ...] (all zeros), which causes the single
+        scalar entry to be replicated to all output positions via
+        _select_rows_with_duplicates.
+
+        For a parametric scalar, this means the same param_idx=0 entry
+        will appear multiple times in the output, once for each position
+        in the target shape.
+        """
         num_entries = int(np.prod(lin_op.shape))
+        # All zeros = copy the single row (scalar) to every output position
         rows = np.zeros(num_entries, dtype=np.int64)
         view.select_rows(rows)
         return view
 
     @staticmethod
     def broadcast_to(lin_op, view: CooTensorView) -> CooTensorView:
-        """Broadcast to shape."""
+        """
+        Broadcast tensor to a larger shape by replicating elements.
+
+        This operation creates duplicate row indices, which causes the same
+        tensor entries (including their param_idx values) to be replicated
+        to multiple output positions via _select_rows_with_duplicates.
+
+        Example: Parameter P of shape (2, 3) broadcast to (4, 2, 3)
+        -----------------------------------------------------------
+        Original row indices (column-major flattening of (2,3)):
+            [[0, 2, 4],
+             [1, 3, 5]]
+
+        After np.broadcast_to to (4, 2, 3) and flatten:
+            rows = [0, 1, 0, 1, 0, 1, 0, 1,  # batch dim varies fastest
+                    2, 3, 2, 3, 2, 3, 2, 3,  # then original rows
+                    4, 5, 4, 5, 4, 5, 4, 5]  # 24 total elements
+
+        Each original index appears 4 times (once per batch).
+
+        The select_rows call will replicate tensor entries accordingly,
+        so a parameter element at row 0 will contribute to output rows
+        0, 2, 4, 6 (all positions where original row 0 appears).
+
+        For parametric tensors, this means the same param_idx appears
+        multiple times in the output - which is semantically correct
+        because the same parameter value is used in all broadcast copies.
+        """
         broadcast_shape = lin_op.shape
         original_shape = lin_op.args[0].shape
+        # Create indices for original shape elements
         rows = np.arange(np.prod(original_shape, dtype=int)).reshape(original_shape, order='F')
+        # Broadcast creates duplicates: same original index appears multiple times
         rows = np.broadcast_to(rows, broadcast_shape).flatten(order="F")
+        # select_rows handles the duplication via _select_rows_with_duplicates
         view.select_rows(rows.astype(np.int64))
         return view
 
