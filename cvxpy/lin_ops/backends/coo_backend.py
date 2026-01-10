@@ -195,6 +195,7 @@ class CooTensor:
         For parametric tensors, this means the same param_idx values get replicated
         to multiple output positions - which is correct because the same parameter
         value is used in multiple places after broadcasting.
+        (See broadcast_to() and reshape_parametric_constant() for deduplication.)
 
         Parameters
         ----------
@@ -1496,6 +1497,8 @@ class CooCanonBackend(PythonCanonBackend):
         const_shape = lin_op.data.shape
         # Raw data access is intentional: batch-varying constants are never parametric.
         # lin_op.data is a LinOp of type "*_const", so lin_op.data.data gets the numpy array.
+        assert lin_op.data.type in {"dense_const", "sparse_const", "scalar_const"}, \
+            "Batch-varying constants must be non-parametric"
         stacked_compact = _build_interleaved(lin_op.data.data, const_shape, var_shape)
 
         def constant_mul(compact, p):
@@ -1580,6 +1583,12 @@ class CooCanonBackend(PythonCanonBackend):
         - Case 2 vs 3: Both are known constants, but the matrix structure differs:
           - Case 3: Same C repeated → block-diagonal (Kronecker)
           - Case 2: Different C per batch → interleaved positions
+
+        Detection Logic
+        ---------------
+        - Case 1: hasattr(const, 'type') and const.type == 'param'
+        - Case 2: len(const_shape) == 3 and const_shape[0] > 1  (batch-varying)
+        - Case 3: Otherwise (2D or trivial batch dim)
         """
         const = lin_op.data
         var_shape = lin_op.args[0].shape

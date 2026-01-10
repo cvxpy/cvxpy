@@ -281,7 +281,8 @@ class SciPyCanonBackend(PythonCanonBackend):
         coo = v.tocoo()
         data, stacked_rows = coo.data, coo.row
 
-        # p = number of copies from broadcast
+        # p = number of copies from broadcast operations (often > 1 for ND matmul,
+        # but can also occur from element-wise ops with broadcasting)
         p = np.prod(v.shape) // np.prod(lin_op_shape)
         slice_size = v.shape[0] // p
 
@@ -328,7 +329,9 @@ class SciPyCanonBackend(PythonCanonBackend):
         slice_size = v.shape[0] // param_size
         param_idx = stacked_rows // slice_size
 
-        # Deduplicate: broadcast creates copies with same param_idx
+        # Deduplicate: broadcast creates copies with same param_idx.
+        # For a param with param_size=12, param_idx should be 0-11 exactly once.
+        # If param_idx=5 appears 3 times, broadcast created duplicates - keep first only.
         unique_param_idx, first_occurrence = np.unique(param_idx, return_index=True)
 
         # Position in (m, k) matrix: column-major order
