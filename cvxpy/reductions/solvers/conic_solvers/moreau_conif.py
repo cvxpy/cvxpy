@@ -202,6 +202,11 @@ class MOREAU(ConicSolver):
             verbose=verbose,
         )
 
+        # Extract ipm_settings if provided
+        ipm_settings = solver_opts.pop("ipm_settings", None)
+        if ipm_settings is not None:
+            settings.ipm_settings = ipm_settings
+
         # Apply all remaining options directly to moreau.Settings
         for opt, value in solver_opts.items():
             try:
