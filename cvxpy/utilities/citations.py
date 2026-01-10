@@ -590,6 +590,6 @@ CITATION_DICT["MOREAU"] = \
 @misc{moreau2025,
   title={Moreau: GPU-Accelerated Conic Optimization},
   year={2025},
-  note={https://pypi.org/project/moreau}
+  note={https://www.optimalintellect.com/}
 }
 """
