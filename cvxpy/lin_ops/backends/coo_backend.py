@@ -1082,20 +1082,79 @@ def coo_reshape(tensor: CooTensor, new_m: int, new_n: int) -> CooTensor:
 
 def reshape_parametric_constant(tensor: CooTensor, new_m: int, new_n: int) -> CooTensor:
     """
-    Reshape parametric constant data from column format to matrix format.
+    Reshape parametric constant data from column format to matrix format,
+    with deduplication of broadcast entries.
 
-    This is specifically for constant data extracted via get_constant_data,
-    where param_idx directly maps to positions in the parameter matrix
-    (column-major order).
+    This function is used when extracting constant data (via get_constant_data)
+    that needs to be reshaped from column vector format to matrix format for
+    operations like matrix multiplication.
 
-    For parametric tensors (param_size > 1):
-        Each param_idx value represents one element in the parameter matrix.
-        The position in the reshaped matrix is determined by param_idx:
-        new_row = param_idx % new_m, new_col = param_idx // new_m.
-        Duplicate entries (from broadcast operations) are deduplicated.
+    Why Deduplication?
+    ------------------
+    When a parameter is broadcast to a larger shape (e.g., P(2,3) → P(4,2,3)),
+    the `select_rows` operation duplicates entries, including their param_idx
+    values. See `_select_rows_with_duplicates` for details.
 
-    For non-parametric tensors (param_size == 1):
-        Uses standard linear index reshaping.
+    After broadcast, the same param_idx appears multiple times:
+        param_idx = [0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, ...]
+                     └─4 copies─┘ └─4 copies─┘
+
+    Without deduplication, when we reshape to matrix format:
+        - We'd create 4 copies of each matrix position
+        - The resulting matrix would have duplicate entries at same (row, col)
+        - This wastes memory and can cause incorrect results when the sparse
+          matrix sums duplicate entries
+
+    The fix: keep only the FIRST occurrence of each param_idx value.
+
+    Concrete Example
+    ----------------
+    Parameter P has shape (2, 3), broadcast to (4, 2, 3) for batch matmul.
+
+    Original P (before broadcast):
+        param_idx = [0, 1, 2, 3, 4, 5]  (6 unique elements)
+        data = [1, 1, 1, 1, 1, 1]       (coefficients, all 1s)
+        row = [0, 1, 2, 3, 4, 5]        (column vector format)
+
+    After broadcast via select_rows (24 entries):
+        param_idx = [0,0,0,0, 1,1,1,1, 2,2,2,2, 3,3,3,3, 4,4,4,4, 5,5,5,5]
+        data = [1,1,1,1, 1,1,1,1, ...]  (24 entries)
+        row = [0,2,4,6, 1,3,5,7, ...]   (spread across output rows)
+
+    After reshape_parametric_constant to (2, 3):
+        param_idx = [0, 1, 2, 3, 4, 5]  (deduplicated!)
+        data = [1, 1, 1, 1, 1, 1]       (first occurrence of each)
+        row = [0, 1, 0, 1, 0, 1]        (param_idx % 2)
+        col = [0, 0, 1, 1, 2, 2]        (param_idx // 2)
+
+    The result is a proper (2, 3) sparse matrix with one entry per position,
+    ready for matrix multiplication.
+
+    Position Calculation
+    --------------------
+    For parametric tensors, param_idx directly encodes the position in the
+    parameter matrix (column-major/Fortran order):
+        new_row = param_idx % new_m
+        new_col = param_idx // new_m
+
+    For example, param_idx=3 in a (2, 3) matrix:
+        row = 3 % 2 = 1
+        col = 3 // 2 = 1
+        → position (1, 1) in the matrix
+
+    Parameters
+    ----------
+    tensor : CooTensor
+        Input tensor, typically in column format from get_constant_data
+    new_m : int
+        Number of rows in output matrix
+    new_n : int
+        Number of columns in output matrix
+
+    Returns
+    -------
+    CooTensor
+        Reshaped tensor with deduplicated entries (for parametric case)
     """
     if tensor.param_size > 1:
         # For parametric tensors, use param_idx as position indicator
