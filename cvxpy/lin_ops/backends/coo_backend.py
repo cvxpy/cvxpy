@@ -484,9 +484,9 @@ def _kron_eye_l(tensor: CooTensor, reps: int) -> CooTensor:
     )
 
 
-def _kron_nd_structure(tensor: CooTensor, batch_size: int, n: int) -> CooTensor:
+def _kron_nd_structure_mul(tensor: CooTensor, batch_size: int, n: int) -> CooTensor:
     """
-    Build the Kronecker structure for ND matrix multiplication: I_n ⊗ C ⊗ I_B.
+    Build the Kronecker structure for ND mul (C @ X): I_n ⊗ C ⊗ I_B.
 
     This is the key operation for computing C @ X where C is a 2D constant (m, k)
     and X is an ND variable with batch dimensions (..., k, n).
@@ -664,20 +664,20 @@ def _kron_nd_structure_rmul(tensor: CooTensor, batch_size: int, m: int) -> CooTe
     return _kron_eye_l(transposed, reps)
 
 
-def _build_interleaved(
+def _build_interleaved_mul(
     const_data: np.ndarray,
     const_shape: tuple,
     var_shape: tuple,
 ) -> CooTensor:
     """
-    Build interleaved matrix for batch-varying constant case.
+    Build interleaved matrix for batch-varying mul (C @ X).
 
     This handles the case where each batch element uses a DIFFERENT constant
     matrix: C(B,m,k) @ X(B,k,n) = Y(B,m,n) where C[b] differs for each b.
 
     Why Not Use Kronecker?
     ----------------------
-    The Kronecker structure I_n ⊗ C ⊗ I_B (from _kron_nd_structure) assumes
+    The Kronecker structure I_n ⊗ C ⊗ I_B (from _kron_nd_structure_mul) assumes
     the SAME matrix C is applied to all batches. It creates a block-diagonal
     structure where C appears repeatedly.
 
@@ -1595,7 +1595,7 @@ class CooCanonBackend(PythonCanonBackend):
         Case 3: 2D constant @ ND variable using Kronecker structure.
 
         The SAME constant matrix C is applied to all batch elements.
-        Uses I_n ⊗ C ⊗ I_B structure (see _kron_nd_structure for details).
+        Uses I_n ⊗ C ⊗ I_B structure (see _kron_nd_structure_mul for details).
 
         Example: C(2,3) @ X(4,3,5) → Y(4,2,5)
             Same 2×3 matrix applied to all 4 batch elements.
@@ -1608,7 +1608,7 @@ class CooCanonBackend(PythonCanonBackend):
         else:
             lhs_tensor = self._to_coo_tensor(lhs_data)
 
-        stacked_compact = _kron_nd_structure(lhs_tensor, batch_size, n)
+        stacked_compact = _kron_nd_structure_mul(lhs_tensor, batch_size, n)
 
         def constant_mul(compact, p):
             return coo_matmul(stacked_compact, compact)
@@ -1627,7 +1627,7 @@ class CooCanonBackend(PythonCanonBackend):
 
         Each batch element uses a DIFFERENT constant matrix.
         Cannot use Kronecker (which assumes same matrix for all batches).
-        Uses interleaved indexing (see _build_interleaved for details).
+        Uses interleaved indexing (see _build_interleaved_mul for details).
 
         Example: C(4,2,3) @ X(4,3,5) → Y(4,2,5)
             Four different 2×3 matrices, one per batch element.
@@ -1637,7 +1637,7 @@ class CooCanonBackend(PythonCanonBackend):
         # lin_op.data is a LinOp of type "*_const", so lin_op.data.data gets the numpy array.
         assert lin_op.data.type in {"dense_const", "sparse_const", "scalar_const"}, \
             "Batch-varying constants must be non-parametric"
-        stacked_compact = _build_interleaved(lin_op.data.data, const_shape, var_shape)
+        stacked_compact = _build_interleaved_mul(lin_op.data.data, const_shape, var_shape)
 
         def constant_mul(compact, p):
             return coo_matmul(stacked_compact, compact)
@@ -1669,7 +1669,7 @@ class CooCanonBackend(PythonCanonBackend):
 
         # Expand each parameter slice with Kronecker structure
         expanded_lhs = {
-            param_id: _kron_nd_structure(tensor, batch_size, n)
+            param_id: _kron_nd_structure_mul(tensor, batch_size, n)
             for param_id, tensor in lhs_data.items()
         }
 
@@ -1710,7 +1710,7 @@ class CooCanonBackend(PythonCanonBackend):
         3. **2D constant** (`_mul_kronecker`):
            C has shape (m,k) or (1,m,k). Same matrix for all batches.
            - Example: C(2,3) @ X(4,3,5) - same 2×3 matrix applied 4 times
-           - Uses Kronecker structure: I_n ⊗ C ⊗ I_B (see _kron_nd_structure)
+           - Uses Kronecker structure: I_n ⊗ C ⊗ I_B (see _kron_nd_structure_mul)
 
         Why Three Cases?
         ----------------
