@@ -58,69 +58,69 @@ CVXPY is distributed with the open source solvers `CLARABEL`_, `OSQP`_, and `SCS
 Many other solvers can be called by CVXPY if installed separately.
 The table below shows the types of problems the supported solvers can handle.
 
-+----------------+----+----+------+-----+-----+-----+-----+
-|                | LP | QP | SOCP | SDP | EXP | POW | MIP |
-+================+====+====+======+=====+=====+=====+=====+
-| `CBC`_         | X  |    |      |     |     |     | X   |
-+----------------+----+----+------+-----+-----+-----+-----+
-| `CLARABEL`_    | X  | X  | X    |  X  |  X  |  X  |     |
-+----------------+----+----+------+-----+-----+-----+-----+
-| `COPT`_        | X  | X  | X    |  X  |  X  |     | X** |
-+----------------+----+----+------+-----+-----+-----+-----+
-| `DAQP`_        | X  | X  |      |     |     |     |     |
-+----------------+----+----+------+-----+-----+-----+-----+
-| `GLOP`_        | X  |    |      |     |     |     |     |
-+----------------+----+----+------+-----+-----+-----+-----+
-| `GLPK`_        | X  |    |      |     |     |     |     |
-+----------------+----+----+------+-----+-----+-----+-----+
-| `GLPK_MI`_     | X  |    |      |     |     |     | X   |
-+----------------+----+----+------+-----+-----+-----+-----+
-| `OSQP`_        | X  | X  |      |     |     |     |     |
-+----------------+----+----+------+-----+-----+-----+-----+
-| `PIQP`_        | X  | X  |      |     |     |     |     |
-+----------------+----+----+------+-----+-----+-----+-----+
-| `PROXQP`_      | X  | X  |      |     |     |     |     |
-+----------------+----+----+------+-----+-----+-----+-----+
-| `QPALM`_       | X  | X  |      |     |     |     |     |
-+----------------+----+----+------+-----+-----+-----+-----+
-| `PDLP`_        | X  |    |      |     |     |     |     |
-+----------------+----+----+------+-----+-----+-----+-----+
-| `QOCO`_        | X  | X  | X    |     |     |     |     |
-+----------------+----+----+------+-----+-----+-----+-----+
-| `CPLEX`_       | X  | X  | X    |     |     |     | X   |
-+----------------+----+----+------+-----+-----+-----+-----+
-| `NAG`_         | X  | X  | X    |     |     |     |     |
-+----------------+----+----+------+-----+-----+-----+-----+
-| `ECOS`_        | X  | X  | X    |     | X   |     |     |
-+----------------+----+----+------+-----+-----+-----+-----+
-| `GUROBI`_      | X  | X  | X    |     |     |     | X   |
-+----------------+----+----+------+-----+-----+-----+-----+
-| `MOREAU`_       | X  | X  | X    |     | X  | X   |     |
-+----------------+----+----+------+-----+-----+-----+-----+
-| `MOSEK`_       | X  | X  | X    | X   | X   | X   | X** |
-+----------------+----+----+------+-----+-----+-----+-----+
-| `MPAX`_        | X  | X  |      |     |     |     |     |
-+----------------+----+----+------+-----+-----+-----+-----+
-| `CUCLARABEL`_  | X  | X  | X    |     | X   | X   |     |
-+----------------+----+----+------+-----+-----+-----+-----+
-| `CUOPT`_       | X  |    |      |     |     |     | X*  |
-+----------------+----+----+------+-----+-----+-----+-----+
-| `CVXOPT`_      | X  | X  | X    | X   |     |     |     |
-+----------------+----+----+------+-----+-----+-----+-----+
-| `SDPA`_ \*\*\* | X  | X  | X    | X   |     |     |     |
-+----------------+----+----+------+-----+-----+-----+-----+
-| `SCS`_         | X  | X  | X    | X   | X   | X   |     |
-+----------------+----+----+------+-----+-----+-----+-----+
-| `SCIP`_        | X  | X  | X    |     |     |     | X   |
-+----------------+----+----+------+-----+-----+-----+-----+
-| `XPRESS`_      | X  | X  | X    |     |     |     | X   |
-+----------------+----+----+------+-----+-----+-----+-----+
-| `SCIPY`_       | X  |    |      |     |     |     | X*  |
-+----------------+----+----+------+-----+-----+-----+-----+
-| `HiGHS`_       | X  | X  |      |     |     |     | X*  |
-+----------------+----+----+------+-----+-----+-----+-----+
-| `KNITRO`_      | X  | X  | X    | X   | X   | X   | X   |
-+----------------+----+----+------+-----+-----+-----+-----+
++----------------+----+----+------+-----+-----+-----+-----+-----+
+|                | LP | QP | SOCP | SDP | EXP | POW | MIP | GPU |
++================+====+====+======+=====+=====+=====+=====+=====+
+| `CBC`_         | X  |    |      |     |     |     | X   |     |
++----------------+----+----+------+-----+-----+-----+-----+-----+
+| `CLARABEL`_    | X  | X  | X    |  X  |  X  |  X  |     |     |
++----------------+----+----+------+-----+-----+-----+-----+-----+
+| `COPT`_        | X  | X  | X    |  X  |  X  |     | X** |     |
++----------------+----+----+------+-----+-----+-----+-----+-----+
+| `DAQP`_        | X  | X  |      |     |     |     |     |     |
++----------------+----+----+------+-----+-----+-----+-----+-----+
+| `GLOP`_        | X  |    |      |     |     |     |     |     |
++----------------+----+----+------+-----+-----+-----+-----+-----+
+| `GLPK`_        | X  |    |      |     |     |     |     |     |
++----------------+----+----+------+-----+-----+-----+-----+-----+
+| `GLPK_MI`_     | X  |    |      |     |     |     | X   |     |
++----------------+----+----+------+-----+-----+-----+-----+-----+
+| `OSQP`_        | X  | X  |      |     |     |     |     |     |
++----------------+----+----+------+-----+-----+-----+-----+-----+
+| `PIQP`_        | X  | X  |      |     |     |     |     |     |
++----------------+----+----+------+-----+-----+-----+-----+-----+
+| `PROXQP`_      | X  | X  |      |     |     |     |     |     |
++----------------+----+----+------+-----+-----+-----+-----+-----+
+| `QPALM`_       | X  | X  |      |     |     |     |     |     |
++----------------+----+----+------+-----+-----+-----+-----+-----+
+| `PDLP`_        | X  |    |      |     |     |     |     |     |
++----------------+----+----+------+-----+-----+-----+-----+-----+
+| `QOCO`_        | X  | X  | X    |     |     |     |     |     |
++----------------+----+----+------+-----+-----+-----+-----+-----+
+| `CPLEX`_       | X  | X  | X    |     |     |     | X   |     |
++----------------+----+----+------+-----+-----+-----+-----+-----+
+| `NAG`_         | X  | X  | X    |     |     |     |     |     |
++----------------+----+----+------+-----+-----+-----+-----+-----+
+| `ECOS`_        | X  | X  | X    |     | X   |     |     |     |
++----------------+----+----+------+-----+-----+-----+-----+-----+
+| `GUROBI`_      | X  | X  | X    |     |     |     | X   |     |
++----------------+----+----+------+-----+-----+-----+-----+-----+
+| `MOREAU`_      | X  | X  | X    |     | X   | X   |     | X   |
++----------------+----+----+------+-----+-----+-----+-----+-----+
+| `MOSEK`_       | X  | X  | X    | X   | X   | X   | X** |     |
++----------------+----+----+------+-----+-----+-----+-----+-----+
+| `MPAX`_        | X  | X  |      |     |     |     |     |     |
++----------------+----+----+------+-----+-----+-----+-----+-----+
+| `CUCLARABEL`_  | X  | X  | X    |     | X   | X   |     | X   |
++----------------+----+----+------+-----+-----+-----+-----+-----+
+| `CUOPT`_       | X  |    |      |     |     |     | X*  | X   |
++----------------+----+----+------+-----+-----+-----+-----+-----+
+| `CVXOPT`_      | X  | X  | X    | X   |     |     |     |     |
++----------------+----+----+------+-----+-----+-----+-----+-----+
+| `SDPA`_ \*\*\* | X  | X  | X    | X   |     |     |     |     |
++----------------+----+----+------+-----+-----+-----+-----+-----+
+| `SCS`_         | X  | X  | X    | X   | X   | X   |     |     |
++----------------+----+----+------+-----+-----+-----+-----+-----+
+| `SCIP`_        | X  | X  | X    |     |     |     | X   |     |
++----------------+----+----+------+-----+-----+-----+-----+-----+
+| `XPRESS`_      | X  | X  | X    |     |     |     | X   |     |
++----------------+----+----+------+-----+-----+-----+-----+-----+
+| `SCIPY`_       | X  |    |      |     |     |     | X*  |     |
++----------------+----+----+------+-----+-----+-----+-----+-----+
+| `HiGHS`_       | X  | X  |      |     |     |     | X*  |     |
++----------------+----+----+------+-----+-----+-----+-----+-----+
+| `KNITRO`_      | X  | X  | X    | X   | X   | X   | X   |     |
++----------------+----+----+------+-----+-----+-----+-----+-----+
 
 (*) Mixed-integer LP only.
 
@@ -152,6 +152,8 @@ type of constraint in your model, you will need to instantiate ``PowCone3D`` and
 objects manually.
 
 MIP - :ref:`Mixed-Integer Programming <Mixed-integer programs>` refers to problems where some decision variables are constrained to be integer values.
+
+GPU - Solver can utilize GPU acceleration for faster computation.
 
 By default CVXPY calls the solver most specialized to the problem type. For example, `CLARABEL`_ is called for SOCPs.
 `SCS`_ can handle all problems (except mixed-integer programs). If the problem is a QP, CVXPY will use `OSQP`_.
@@ -297,7 +299,9 @@ cached previous solution as described above (rather than from the ``value`` fiel
 Setting solver options
 ----------------------
 
-The `OSQP`_, `ECOS`_, `GLOP`_, `MOSEK`_, `MPAX`_, `CBC`_, `CVXOPT`_, `NAG`_, `PDLP`_, `QOCO`_, `GUROBI`_, `SCS`_ , `CLARABEL`_, `DAQP`_, `PIQP`_, `PROXQP`_, `CUOPT`_ and `KNITRO`_ Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.
+The `OSQP`_, `ECOS`_, `GLOP`_, `MOREAU`_, `MOSEK`_, `MPAX`_, `CBC`_, `CVXOPT`_, `NAG`_, `PDLP`_, `QOCO`_, `GUROBI`_, `SCS`_ ,
+ `CLARABEL`_, `DAQP`_, `PIQP`_, `PROXQP`_, `CUOPT`_ and `KNITRO`_ Python interfaces allow you to set solver options such 
+ as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.
 
 For example, here we tell SCS to use an indirect method for solving linear equations rather than a direct method.
 
@@ -847,6 +851,20 @@ Here is the complete list of solver options.
         - relative_gap_tolerance
 
     **Please note**: cuOpt internally has a specific API for setting variable bounds, and it uses the cvxpy interface for bounded variables.  While not strictly necessary, cuOpt may perform better on some problens if variable bounds are included in the cvxpy variable creation rather than expressed as constraints.
+
+.. info:: `MOREAU`_ options:
+    :collapsible:
+
+    ``'device'``
+        Computation device to use. Can be "cpu", "cuda" for GPU acceleration, or
+        "auto" (default) to automatically select "cuda" if an NVIDIA GPU is available.
+
+    ``'accept_unknown'``
+        If ``accept_unknown=True``, an inaccurate solution will be returned, even if
+        it is arbitrarily bad, when the solver does not generate an optimal
+        point under the given conditions.
+
+    Contact `Optimal Intellect <https://www.optimalintellect.com/>`_ for further documentation.
 
 .. info:: `KNITRO`_ options:
     :collapsible:
