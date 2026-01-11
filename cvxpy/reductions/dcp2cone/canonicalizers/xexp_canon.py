@@ -18,9 +18,10 @@ from cvxpy.atoms.elementwise.power import power
 from cvxpy.constraints.exponential import ExpCone
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.dcp2cone.canonicalizers.power_canon import power_canon
+from cvxpy.utilities.solver_context import SolverInfo
 
 
-def xexp_canon(expr, args):
+def xexp_canon(expr, args, solver_context: SolverInfo | None = None):
     x = args[0]
     u = Variable(expr.shape, nonneg=True)
     t = Variable(expr.shape, nonneg=True)

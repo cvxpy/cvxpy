@@ -16,9 +16,10 @@ limitations under the License.
 
 from cvxpy.expressions.variable import Variable
 from cvxpy.utilities.power_tools import gm_constrs
+from cvxpy.utilities.solver_context import SolverInfo
 
 
-def geo_mean_canon(expr, args):
+def geo_mean_canon(expr, args, solver_context: SolverInfo | None = None):
     x = args[0]
     w = expr.w
     shape = expr.shape

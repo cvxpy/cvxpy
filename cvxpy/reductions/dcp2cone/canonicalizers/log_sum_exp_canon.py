@@ -20,9 +20,10 @@ from cvxpy.atoms import exp, promote, reshape, sum
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.dcp2cone.canonicalizers.exp_canon import exp_canon
+from cvxpy.utilities.solver_context import SolverInfo
 
 
-def log_sum_exp_canon(expr, args):
+def log_sum_exp_canon(expr, args, solver_context: SolverInfo | None = None):
     x = args[0]
     shape = expr.shape
     axis = expr.axis

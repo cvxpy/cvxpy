@@ -21,9 +21,10 @@ from cvxpy.reductions.dcp2cone.canonicalizers.entr_canon import entr_canon
 from cvxpy.reductions.dcp2cone.canonicalizers.lambda_sum_largest_canon import (
     lambda_sum_largest_canon,
 )
+from cvxpy.utilities.solver_context import SolverInfo
 
 
-def von_neumann_entr_canon(expr, args):
+def von_neumann_entr_canon(expr, args, solver_context: SolverInfo | None = None):
     N = args[0]
     assert N.is_real()
     n = N.shape[0]

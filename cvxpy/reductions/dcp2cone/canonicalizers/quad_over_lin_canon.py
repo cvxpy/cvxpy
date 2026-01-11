@@ -23,9 +23,10 @@ from cvxpy.atoms.affine.transpose import transpose
 from cvxpy.atoms.affine.vstack import vstack
 from cvxpy.constraints.second_order import SOC
 from cvxpy.expressions.variable import Variable
+from cvxpy.utilities.solver_context import SolverInfo
 
 
-def quad_over_lin_canon(expr, args):
+def quad_over_lin_canon(expr, args, solver_context: SolverInfo | None = None):
     """Canonicalize quad_over_lin to SOC constraints.
 
     quad_over_lin(x, y) = ||x||_2^2 / y

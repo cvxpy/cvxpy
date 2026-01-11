@@ -16,9 +16,10 @@ limitations under the License.
 
 from cvxpy.atoms.affine.sum import sum
 from cvxpy.expressions.variable import Variable
+from cvxpy.utilities.solver_context import SolverInfo
 
 
-def sum_largest_canon(expr, args):
+def sum_largest_canon(expr, args, solver_context: SolverInfo | None = None):
     x = args[0]
     k = expr.k
 

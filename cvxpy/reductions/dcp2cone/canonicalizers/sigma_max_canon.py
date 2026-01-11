@@ -19,9 +19,10 @@ import scipy.sparse as sp
 from cvxpy.atoms.affine.bmat import bmat
 from cvxpy.constraints.psd import PSD
 from cvxpy.expressions.variable import Variable
+from cvxpy.utilities.solver_context import SolverInfo
 
 
-def sigma_max_canon(expr, args):
+def sigma_max_canon(expr, args, solver_context: SolverInfo | None = None):
     A = args[0]
     n, m = A.shape
     shape = expr.shape

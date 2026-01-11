@@ -22,9 +22,10 @@ from cvxpy.atoms.elementwise.log import log
 from cvxpy.constraints.psd import PSD
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.dcp2cone.canonicalizers.log_canon import log_canon
+from cvxpy.utilities.solver_context import SolverInfo
 
 
-def log_det_canon(expr, args):
+def log_det_canon(expr, args, solver_context: SolverInfo | None = None):
     """Reduces the atom to an affine expression and list of constraints.
 
     Creates the equivalent problem::

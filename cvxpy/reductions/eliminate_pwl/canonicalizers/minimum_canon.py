@@ -18,9 +18,10 @@ from cvxpy.atoms.elementwise.maximum import maximum
 from cvxpy.reductions.eliminate_pwl.canonicalizers.maximum_canon import (
     maximum_canon,
 )
+from cvxpy.utilities.solver_context import SolverInfo
 
 
-def minimum_canon(expr, args):
+def minimum_canon(expr, args, solver_context: SolverInfo | None = None):
     del expr
     tmp = maximum(*[-arg for arg in args])
     canon, constr = maximum_canon(tmp, tmp.args)
