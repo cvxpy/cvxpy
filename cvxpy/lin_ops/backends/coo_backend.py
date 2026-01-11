@@ -858,8 +858,7 @@ def _build_interleaved_rmul(
     j_idx = np.arange(n)
 
     bb, rr, jj = np.meshgrid(b_idx, r_idx, j_idx, indexing="ij")
-    bb, rr, jj = bb.ravel(), rr.ravel(), rr.ravel()  # Note: jj uses rr's values temporarily
-    jj = np.meshgrid(b_idx, r_idx, j_idx, indexing="ij")[2].ravel()
+    bb, rr, jj = bb.ravel(), rr.ravel(), jj.ravel()
     data = const_flat.ravel()
 
     # Base indices for i=0 case
