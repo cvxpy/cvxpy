@@ -799,13 +799,13 @@ class SOCDim3(Reduction):
                     all_duals.append(reconstructed)
 
                 if success:
-                    # Reconstruct flat dual array that save_dual_value expects
-                    # save_dual_value will reshape to (-1, cone_size) then extract t and X
-                    # So we need: [[t0, x0_0, x0_1, ...], [t1, x1_0, x1_1, ...], ...]
-                    t_duals = np.array([d[0] for d in all_duals])  # (num_cones,)
-                    x_duals = np.column_stack([d[1:] for d in all_duals])  # (x_size, num_cones)
-                    # Stack into (num_cones, cone_size) then flatten
-                    reshaped = np.column_stack([t_duals[:, np.newaxis], x_duals.T])
-                    dvars[orig_id] = reshaped.flatten()
+                    # CVXPY SOC expects duals as [t_array, x_array] for elementwise
+                    # Extract t (first element) and x (rest) from each cone
+                    t_duals = np.array([d[0] for d in all_duals])
+                    x_duals = np.column_stack([d[1:] for d in all_duals])
+                    # For axis=1, x_duals needs to be transposed
+                    if tree_data.axis == 1:
+                        x_duals = x_duals.T
+                    dvars[orig_id] = [t_duals, x_duals]
 
         return Solution(solution.status, solution.opt_val, pvars, dvars, solution.attr)
