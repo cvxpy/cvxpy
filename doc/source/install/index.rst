@@ -273,6 +273,7 @@ Install with Additional Solver Support
     See the `QOCO <https://qoco-org.github.io/qoco/qoco/install/python.html#python-installation>`_ website for installation instructions.
 
 .. info:: CUOPT
+    :collapsible:
 
     CVXPY supports the CUOPT solver.
     Simply install CUOPT such that you can ``import cuopt`` in Python.
