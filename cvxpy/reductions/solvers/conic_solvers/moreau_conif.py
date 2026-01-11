@@ -258,17 +258,17 @@ class MOREAU(ConicSolver):
         settings, processed_opts = self.handle_options(verbose, solver_opts or {})
 
         # Get variable bounds (default to unbounded if None)
-        n = P.shape[0]
-        l = data.get(s.LOWER_BOUNDS)
-        u = data.get(s.UPPER_BOUNDS)
-        if l is None:
-            l = np.full(n, -np.inf, dtype=np.float64)
+        nvars = P.shape[0]
+        lb = data.get(s.LOWER_BOUNDS)
+        ub = data.get(s.UPPER_BOUNDS)
+        if lb is None:
+            lb = np.full(nvars, -np.inf, dtype=np.float64)
         else:
-            l = l.astype(np.float64)
-        if u is None:
-            u = np.full(n, np.inf, dtype=np.float64)
+            lb = lb.astype(np.float64)
+        if ub is None:
+            ub = np.full(nvars, np.inf, dtype=np.float64)
         else:
-            u = u.astype(np.float64)
+            ub = ub.astype(np.float64)
 
         # Create solver with all problem data in constructor
         solver = moreau.Solver(
@@ -276,8 +276,8 @@ class MOREAU(ConicSolver):
             q=q.astype(np.float64),
             A=A,
             b=b.astype(np.float64),
-            l=l,
-            u=u,
+            l=lb,
+            u=ub,
             cones=cones,
             settings=settings,
         )
