@@ -28,12 +28,12 @@ from cvxpy.utilities.citations import CITATION_DICT
 
 
 def dims_to_solver_cones(cone_dims):
-    """Convert CVXpy cone dimensions to Moreau cone specification.
+    """Convert CVXPY cone dimensions to Moreau cone specification.
 
     Parameters
     ----------
     cone_dims : ConeDims
-        CVXpy cone dimensions object
+        CVXPY cone dimensions object
 
     Returns
     -------
@@ -50,8 +50,15 @@ def dims_to_solver_cones(cone_dims):
     if cone_dims.pnd:
         raise ValueError("Moreau does not support generalized power cones (PowConeND)")
 
-    # Map CVXpy cone dimensions to Moreau cones
+    # Map CVXPY cone dimensions to Moreau cones
     # SOC cones: All SOCs are dimension-3 (due to SOC_DIM3_ONLY=True)
+    # Validate that all SOC cones are dimension 3
+    for dim in cone_dims.soc:
+        if dim != 3:
+            raise ValueError(
+                f"Moreau requires all SOC cones to be dimension 3, got dimension {dim}. "
+                "This should not happen if SOC_DIM3_ONLY=True is set correctly."
+            )
     num_soc = len(cone_dims.soc)
 
     cones = moreau.Cones(
