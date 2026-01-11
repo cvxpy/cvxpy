@@ -464,6 +464,26 @@ class TestNDRmulParametric:
         # Results should be different when parameter changes
         assert not np.allclose(result1, result2)
 
+    @pytest.mark.parametrize("backend", BACKENDS)
+    def test_parametric_achieves_target(self, backend):
+        """Verify parametric ND rmul achieves an achievable target."""
+        B, m, k, n = 2, 3, 4, 5
+
+        X = cp.Variable((B, m, k))
+        P = cp.Parameter((k, n))
+        P.value = np.random.randn(k, n)
+
+        # Create achievable target
+        X_true = np.random.randn(B, m, k)
+        target = X_true @ P.value
+
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(X @ P - target)))
+        prob.solve(canon_backend=backend)
+
+        assert prob.status == cp.OPTIMAL
+        # Since target is achievable, optimal value should be near 0
+        assert prob.value < 1e-6
+
 
 class TestNDRmulBroadcasting:
     """Test batch dimension broadcasting for ND rmul."""
@@ -482,6 +502,22 @@ class TestNDRmulBroadcasting:
         prob = cp.Problem(cp.Minimize(cp.sum_squares(expr - target)))
         prob.solve(canon_backend=backend)
         assert prob.status == cp.OPTIMAL
+
+    @pytest.mark.parametrize("backend", BACKENDS)
+    def test_broadcast_both_batch_dims(self, backend):
+        """Test (B1, 1, m, k) @ (1, B2, k, n) broadcasts to (B1, B2, m, n)."""
+        B1, B2, m, k, n = 2, 3, 4, 5, 6
+        X = cp.Variable((B1, 1, m, k))
+        C = np.random.randn(1, B2, k, n)
+        expr = X @ C
+        assert expr.shape == (B1, B2, m, n)
+
+        X_true = np.random.randn(B1, 1, m, k)
+        target = X_true @ C
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(expr - target)))
+        prob.solve(canon_backend=backend)
+        assert prob.status == cp.OPTIMAL
+        np.testing.assert_allclose(X.value @ C, target, rtol=1e-5)
 
 
 class TestNDRmulEdgeCases:

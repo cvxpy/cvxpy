@@ -521,6 +521,36 @@ class SciPyCanonBackend(PythonCanonBackend):
 
         return view.accumulate_over_variables(parametrized_mul, is_param_free_function=False)
 
+    def _rmul_parametric_rhs(
+        self,
+        rhs: dict,
+        const_shape: Tuple[int, ...],
+        var_shape: Tuple[int, ...],
+        view: SciPyTensorView,
+    ) -> SciPyTensorView:
+        """
+        Parametric variable @ constant: expand each parameter slice with Kronecker.
+
+        When the constant depends on Parameters, we expand each parameter slice
+        separately using the Kronecker structure for rmul.
+        """
+        batch_size, m, n, _ = get_nd_rmul_dims(var_shape, const_shape)
+
+        # Expand each parameter slice and stack
+        stacked_rhs = {
+            param_id: sp.vstack(
+                list(_expand_parametric_slices_rmul(
+                    v, self.param_to_size[param_id], batch_size, m)),
+                format="csc"
+            )
+            for param_id, v in rhs.items()
+        }
+
+        def parametrized_rmul(x):
+            return {k: v @ x for k, v in stacked_rhs.items()}
+
+        return view.accumulate_over_variables(parametrized_rmul, is_param_free_function=False)
+
     def mul(self, lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
         """
         Matrix multiply: C @ X where C is constant/parametric, X is variable.
@@ -746,72 +776,35 @@ class SciPyCanonBackend(PythonCanonBackend):
 
             # Get constant data
             target = const_shape[-2:] if len(const_shape) >= 2 else (const_shape[0], 1)
-            lhs, is_param_free_lhs = self.get_constant_data(const, view, target_shape=target)
+            rhs, is_param_free_rhs = self.get_constant_data(const, view, target_shape=target)
 
-            if not is_param_free_lhs:
-                # Parametric case
-                param_id = next(iter(lhs.keys()))
-                param_size = self.param_to_size[param_id]
-
-                # Build expanded slices for each parameter element
-                expanded_slices = list(_expand_parametric_slices_rmul(
-                    lhs[param_id], param_size, batch_size, m
-                ))
-
-                def parametrized_rmul(x):
-                    result = {}
-                    for slice_idx, expanded in enumerate(expanded_slices):
-                        slice_result = (expanded @ x).tocsc()
-                        result[param_id] = result.get(param_id, sp.csc_array(
-                            (slice_result.shape[0] * param_size, slice_result.shape[1])
-                        ))
-                        # Stack results for each parameter slice
-                        if slice_idx == 0:
-                            all_data = [slice_result.tocoo().data]
-                            all_rows = [slice_result.tocoo().row]
-                            all_cols = [slice_result.tocoo().col]
-                        else:
-                            coo = slice_result.tocoo()
-                            all_data.append(coo.data)
-                            all_rows.append(coo.row + slice_idx * slice_result.shape[0])
-                            all_cols.append(coo.col)
-                    # Combine all slices
-                    combined_data = np.concatenate(all_data)
-                    combined_rows = np.concatenate(all_rows)
-                    combined_cols = np.concatenate(all_cols)
-                    total_rows = expanded_slices[0].shape[0] * param_size
-                    result[param_id] = sp.csc_array(
-                        (combined_data, (combined_rows, combined_cols)),
-                        shape=(total_rows, x.shape[1])
-                    )
-                    return result
-
-                return view.accumulate_over_variables(
-                    parametrized_rmul, is_param_free_function=False)
+            if not is_param_free_rhs:
+                # Case 1: Parametric RHS
+                return self._rmul_parametric_rhs(rhs, const_shape, var_shape, view)
 
             elif is_batch_varying(const_shape):
-                # Batch-varying case
+                # Case 2: Batch-varying constant
                 assert const.type in {"dense_const", "sparse_const", "scalar_const"}, \
                     "Batch-varying constants must be non-parametric"
-                stacked_lhs = _build_interleaved_matrix_rmul(const.data, const_shape, var_shape)
+                stacked_rhs = _build_interleaved_matrix_rmul(const.data, const_shape, var_shape)
 
                 def func(x, p):
                     if p == 1:
-                        return (stacked_lhs @ x).tocsr()
+                        return (stacked_rhs @ x).tocsr()
                     else:
-                        return ((sp.kron(sp.eye_array(p, format="csc"), stacked_lhs)) @ x).tocsc()
+                        return ((sp.kron(sp.eye_array(p, format="csc"), stacked_rhs)) @ x).tocsc()
 
                 return view.accumulate_over_variables(func, is_param_free_function=True)
 
             else:
-                # 2D constant case with ND variable
-                stacked_lhs = _apply_nd_kron_structure_rmul(lhs, batch_size, m)
+                # Case 3: 2D constant with ND variable
+                stacked_rhs = _apply_nd_kron_structure_rmul(rhs, batch_size, m)
 
                 def func(x, p):
                     if p == 1:
-                        return (stacked_lhs @ x).tocsr()
+                        return (stacked_rhs @ x).tocsr()
                     else:
-                        return ((sp.kron(sp.eye_array(p, format="csc"), stacked_lhs)) @ x).tocsc()
+                        return ((sp.kron(sp.eye_array(p, format="csc"), stacked_rhs)) @ x).tocsc()
 
                 return view.accumulate_over_variables(func, is_param_free_function=True)
 
