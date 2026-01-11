@@ -268,14 +268,6 @@ class TestNDMatmulEdgeCases:
         with pytest.raises(ValueError, match="Incompatible dimensions"):
             C @ X
 
-    def test_rmul_not_implemented(self):
-        """Test that ND rmul (X @ C) raises NotImplementedError."""
-        B, m, k, n = 2, 3, 4, 5
-        X = cp.Variable((B, m, k))
-        C = np.random.randn(k, n)
-        with pytest.raises(NotImplementedError, match="ND matmul for X @ C"):
-            X @ C
-
     @pytest.mark.parametrize("backend", BACKENDS)
     def test_batch_size_one(self, backend):
         """Test with B=1 batch dimension."""
@@ -360,6 +352,210 @@ class TestNDMatmulEdgeCases:
         assert expr.shape == (1, m, n)
 
         target = np.random.randn(1, m, n)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(expr - target)))
+        prob.solve(canon_backend=backend)
+        assert prob.status == cp.OPTIMAL
+
+
+class TestNDRmul:
+    """Core ND rmul functionality: higher-dim variable @ constant."""
+
+    @pytest.mark.parametrize("backend", BACKENDS)
+    def test_3d_var_2d_const(self, backend):
+        """Test (B,m,k) @ (k,n) -> (B,m,n)."""
+        B, m, k, n = 2, 3, 4, 5
+        X = cp.Variable((B, m, k))
+        C = np.random.randn(k, n)
+
+        expr = X @ C
+        assert expr.shape == (B, m, n)
+
+        target = np.random.randn(B, m, n)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(expr - target)))
+        prob.solve(canon_backend=backend)
+
+        assert prob.status == cp.OPTIMAL
+        # Verify result
+        for b in range(B):
+            expected = X.value[b] @ C
+            np.testing.assert_allclose(expr.value[b], expected, rtol=1e-5)
+
+    @pytest.mark.parametrize("backend", BACKENDS)
+    def test_4d_var_2d_const(self, backend):
+        """Test (B1,B2,m,k) @ (k,n) -> (B1,B2,m,n)."""
+        B1, B2, m, k, n = 2, 3, 4, 5, 6
+        X = cp.Variable((B1, B2, m, k))
+        C = np.random.randn(k, n)
+
+        expr = X @ C
+        assert expr.shape == (B1, B2, m, n)
+
+        # Use an achievable target (X_true @ C)
+        X_true = np.random.randn(B1, B2, m, k)
+        target = X_true @ C
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(expr - target)))
+        prob.solve(canon_backend=backend)
+
+        assert prob.status == cp.OPTIMAL
+        # Verify the solution matches X_true
+        np.testing.assert_allclose(X.value, X_true, rtol=1e-4)
+
+    @pytest.mark.parametrize("backend", BACKENDS)
+    def test_batch_varying_const(self, backend):
+        """Test (B,m,k) @ (B,k,n) -> (B,m,n) with batch-varying constant."""
+        B, m, k, n = 3, 4, 5, 6
+        X = cp.Variable((B, m, k))
+        C = np.random.randn(B, k, n)
+
+        expr = X @ C
+        assert expr.shape == (B, m, n)
+
+        target = np.random.randn(B, m, n)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(expr - target)))
+        prob.solve(canon_backend=backend)
+
+        assert prob.status == cp.OPTIMAL
+        # Verify result
+        for b in range(B):
+            expected = X.value[b] @ C[b]
+            np.testing.assert_allclose(expr.value[b], expected, rtol=1e-5)
+
+
+class TestNDRmulParametric:
+    """Test ND rmul with Parameters."""
+
+    @pytest.mark.parametrize("backend", BACKENDS)
+    def test_parametric_3d_var_2d_param(self, backend):
+        """Test X (B,m,k) @ P (k,n) where P is a Parameter."""
+        B, m, k, n = 2, 3, 4, 5
+        X = cp.Variable((B, m, k))
+        P = cp.Parameter((k, n))
+        P.value = np.random.randn(k, n)
+
+        expr = X @ P
+        assert expr.shape == (B, m, n)
+
+        target = np.random.randn(B, m, n)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(expr - target)))
+        prob.solve(canon_backend=backend)
+
+        assert prob.status == cp.OPTIMAL
+        expected = X.value @ P.value
+        np.testing.assert_allclose(expr.value, expected, rtol=1e-5)
+
+    @pytest.mark.parametrize("backend", BACKENDS)
+    def test_parametric_reoptimization(self, backend):
+        """Test that changing parameter value gives correct result."""
+        B, m, k, n = 2, 3, 4, 5
+        X = cp.Variable((B, m, k))
+        P = cp.Parameter((k, n))
+
+        target = np.random.randn(B, m, n)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(X @ P - target)))
+
+        P.value = np.eye(k, n)
+        prob.solve(canon_backend=backend)
+        result1 = X.value.copy()
+
+        P.value = 2 * np.eye(k, n)
+        prob.solve(canon_backend=backend)
+        result2 = X.value.copy()
+
+        # Results should be different when parameter changes
+        assert not np.allclose(result1, result2)
+
+
+class TestNDRmulBroadcasting:
+    """Test batch dimension broadcasting for ND rmul."""
+
+    @pytest.mark.parametrize("backend", BACKENDS)
+    def test_broadcast_const_batch_1(self, backend):
+        """Test (B, m, k) @ (1, k, n) broadcasts const to (B, m, n)."""
+        B, m, k, n = 3, 4, 5, 6
+        X = cp.Variable((B, m, k))
+        C = np.random.randn(1, k, n)
+        expr = X @ C
+        assert expr.shape == (B, m, n)
+
+        X_true = np.random.randn(B, m, k)
+        target = X_true @ C
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(expr - target)))
+        prob.solve(canon_backend=backend)
+        assert prob.status == cp.OPTIMAL
+
+
+class TestNDRmulEdgeCases:
+    """Test edge cases for ND rmul."""
+
+    @pytest.mark.parametrize("backend", BACKENDS)
+    def test_batch_size_one(self, backend):
+        """Test with B=1 batch dimension."""
+        m, k, n = 3, 4, 5
+        X = cp.Variable((1, m, k))
+        C = np.random.randn(k, n)
+
+        expr = X @ C
+        assert expr.shape == (1, m, n)
+
+        target = np.random.randn(1, m, n)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(expr - target)))
+        prob.solve(canon_backend=backend)
+        assert prob.status == cp.OPTIMAL
+
+    @pytest.mark.parametrize("backend", BACKENDS)
+    def test_n_equals_1(self, backend):
+        """Test with n=1 (column vector result)."""
+        B, m, k = 2, 3, 4
+        X = cp.Variable((B, m, k))
+        C = np.random.randn(k, 1)
+
+        expr = X @ C
+        assert expr.shape == (B, m, 1)
+
+        target = np.random.randn(B, m, 1)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(expr - target)))
+        prob.solve(canon_backend=backend)
+        assert prob.status == cp.OPTIMAL
+
+    @pytest.mark.parametrize("backend", BACKENDS)
+    def test_m_equals_1(self, backend):
+        """Test with m=1 (row vector variable)."""
+        B, k, n = 2, 4, 5
+        X = cp.Variable((B, 1, k))
+        C = np.random.randn(k, n)
+
+        expr = X @ C
+        assert expr.shape == (B, 1, n)
+
+        target = np.random.randn(B, 1, n)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(expr - target)))
+        prob.solve(canon_backend=backend)
+        assert prob.status == cp.OPTIMAL
+
+    @pytest.mark.parametrize("backend", BACKENDS)
+    def test_k_equals_1(self, backend):
+        """Test with k=1 (rank-1 matrices)."""
+        B, m, n = 2, 3, 4
+        X = cp.Variable((B, m, 1))
+        C = np.random.randn(1, n)
+
+        expr = X @ C
+        assert expr.shape == (B, m, n)
+
+        target = np.random.randn(B, m, n)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(expr - target)))
+        prob.solve(canon_backend=backend)
+        assert prob.status == cp.OPTIMAL
+
+    @pytest.mark.parametrize("backend", BACKENDS)
+    def test_large_batch_dimension(self, backend):
+        """Test with larger batch dimension."""
+        B, m, k, n = 10, 3, 4, 5
+        X = cp.Variable((B, m, k))
+        C = np.random.randn(k, n)
+
+        expr = X @ C
+        target = np.random.randn(B, m, n)
         prob = cp.Problem(cp.Minimize(cp.sum_squares(expr - target)))
         prob.solve(canon_backend=backend)
         assert prob.status == cp.OPTIMAL

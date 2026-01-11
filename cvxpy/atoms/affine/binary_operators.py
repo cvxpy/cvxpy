@@ -185,18 +185,6 @@ class MulExpression(BinaryOperator):
         else:
             return values[0] @ values[1]
 
-    def validate_arguments(self):
-        """Validate that the arguments can be multiplied together."""
-        # ND matmul for mul (C @ X) is fully supported, including batch-varying constants.
-        # ND matmul for rmul (X @ C) is not yet implemented.
-        if self.args[1].is_constant() and not self.args[0].is_constant():
-            # X @ C (rmul case) - not yet implemented for ND
-            if len(self.args[0].shape) > 2 or len(self.args[1].shape) > 2:
-                raise NotImplementedError(
-                    "ND matmul for X @ C (rmul) is not yet implemented. "
-                    "Use C.T @ X.T and transpose the result, or use einsum."
-                )
-    
     def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the (row, col) shape of the expression.
         """

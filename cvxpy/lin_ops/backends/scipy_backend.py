@@ -27,6 +27,7 @@ from cvxpy.lin_ops.backends.base import (
     PythonCanonBackend,
     TensorRepresentation,
     get_nd_matmul_dims,
+    get_nd_rmul_dims,
     is_batch_varying,
 )
 
@@ -114,6 +115,92 @@ def _expand_parametric_slices(
     for slice_idx in range(param_size):
         slice_matrix = stacked_matrix[slice_idx * m:(slice_idx + 1) * m, :]
         yield _apply_nd_kron_structure(slice_matrix, batch_size, n)
+
+
+def _apply_nd_kron_structure_rmul(
+    rhs: sp.sparray,
+    batch_size: int,
+    m: int,
+) -> sp.sparray:
+    """
+    Apply ND Kronecker structure for rmul: C.T tensor I_{batch*m}.
+
+    For ND rmul X @ C where C is 2D (k, n) and X has shape (..., m, k):
+    vec(X @ C) = (C.T tensor I_{batch*m}) @ vec(X)
+    """
+    rhs_t = rhs.T
+    reps = batch_size * m
+    if reps > 1:
+        return sp.kron(rhs_t, sp.eye_array(reps, format="csr"))
+    return rhs_t
+
+
+def _build_interleaved_matrix_rmul(
+    const_data: np.ndarray,
+    const_shape: Tuple[int, ...],
+    var_shape: Tuple[int, ...],
+) -> sp.csr_array:
+    """
+    Build the interleaved matrix for batch-varying rmul case.
+
+    For X (..., m, k) @ C (..., k, n), where each batch uses a different C.
+
+    Pattern: M[b + B*i + B*m*j, b + B*i + B*m*r] = C[b, r, j]
+    """
+    B = int(np.prod(const_shape[:-2]))
+    k = const_shape[-2]
+    n = const_shape[-1]
+    m = var_shape[-2]
+
+    # Reshape to (B, k, n) in Fortran order
+    const_flat = np.reshape(const_data, (B, k, n), order="F")
+
+    # Build interleaved indices for all (b, r, j) combinations
+    b_idx = np.arange(B)
+    r_idx = np.arange(k)
+    j_idx = np.arange(n)
+
+    bb, rr, jj = np.meshgrid(b_idx, r_idx, j_idx, indexing="ij")
+    bb, rr, jj = bb.ravel(), rr.ravel(), jj.ravel()
+    data = const_flat.ravel()
+
+    # Base indices for i=0 case
+    # Output: b + B*m*j, Input: b + B*m*r
+    base_row = bb + B * m * jj
+    base_col = bb + B * m * rr
+
+    # Apply I_m: replicate for each i in 0..m-1
+    if m > 1:
+        i_offsets = np.arange(m)
+        row_offsets = np.repeat(i_offsets * B, len(data))
+        col_offsets = np.repeat(i_offsets * B, len(data))
+
+        new_data = np.tile(data, m)
+        new_row = np.tile(base_row, m) + row_offsets
+        new_col = np.tile(base_col, m) + col_offsets
+    else:
+        new_data, new_row, new_col = data, base_row, base_col
+
+    return sp.csr_array((new_data, (new_row, new_col)), shape=(B * m * n, B * m * k))
+
+
+def _expand_parametric_slices_rmul(
+    stacked_matrix: sp.sparray,
+    param_size: int,
+    batch_size: int,
+    m: int,
+) -> Iterator[sp.sparray]:
+    """
+    Generator yielding expanded slices for parametric ND rmul.
+
+    For a stacked parameter matrix of shape (param_size * k, n), extracts each
+    (k, n) slice and applies C.T tensor I_{batch*m} structure.
+    """
+    k = stacked_matrix.shape[0] // param_size
+
+    for slice_idx in range(param_size):
+        slice_matrix = stacked_matrix[slice_idx * k:(slice_idx + 1) * k, :]
+        yield _apply_nd_kron_structure_rmul(slice_matrix, batch_size, m)
 
 
 class SciPyTensorView(DictTensorView):
@@ -634,14 +721,101 @@ class SciPyCanonBackend(PythonCanonBackend):
 
     def rmul(self, lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
         """
-        Multiply view with constant data from the right.
-        When the rhs is parametrized, multiply each slice of the tensor with the
-        single, constant slice of the lhs.
-        Otherwise, multiply the single slice of the tensor with each slice of the lhs.
+        Multiply view with constant data from the right: X @ C.
 
-        Note: Even though this is rmul, we still use "lhs", as is implemented via a
-        multiplication from the left in this function.
+        For X @ C where X is (m, k) variable and C is (k, n) constant:
+        vec(X @ C) = (C.T tensor I_m) @ vec(X)
+
+        For ND arrays, supports three cases:
+        1. Parametric RHS: X @ Parameter
+        2. Batch-varying constant: X(B,m,k) @ C(B,k,n)
+        3. 2D constant: X(B,m,k) @ C(k,n)
+
+        Supports both 2D and ND arrays, constant and parametrized C.
         """
+        const = lin.data
+        var_shape = lin.args[0].shape
+        const_shape = const.shape
+
+        # Check if this is ND rmul (needs special handling)
+        is_nd = len(var_shape) > 2 or len(const_shape) > 2
+
+        if is_nd:
+            # ND rmul: dispatch to three cases
+            batch_size, m, n, _ = get_nd_rmul_dims(var_shape, const_shape)
+
+            # Get constant data
+            target = const_shape[-2:] if len(const_shape) >= 2 else (const_shape[0], 1)
+            lhs, is_param_free_lhs = self.get_constant_data(const, view, target_shape=target)
+
+            if not is_param_free_lhs:
+                # Parametric case
+                param_id = next(iter(lhs.keys()))
+                param_size = self.param_to_size[param_id]
+
+                # Build expanded slices for each parameter element
+                expanded_slices = list(_expand_parametric_slices_rmul(
+                    lhs[param_id], param_size, batch_size, m
+                ))
+
+                def parametrized_rmul(x):
+                    result = {}
+                    for slice_idx, expanded in enumerate(expanded_slices):
+                        slice_result = (expanded @ x).tocsc()
+                        result[param_id] = result.get(param_id, sp.csc_array(
+                            (slice_result.shape[0] * param_size, slice_result.shape[1])
+                        ))
+                        # Stack results for each parameter slice
+                        if slice_idx == 0:
+                            all_data = [slice_result.tocoo().data]
+                            all_rows = [slice_result.tocoo().row]
+                            all_cols = [slice_result.tocoo().col]
+                        else:
+                            coo = slice_result.tocoo()
+                            all_data.append(coo.data)
+                            all_rows.append(coo.row + slice_idx * slice_result.shape[0])
+                            all_cols.append(coo.col)
+                    # Combine all slices
+                    combined_data = np.concatenate(all_data)
+                    combined_rows = np.concatenate(all_rows)
+                    combined_cols = np.concatenate(all_cols)
+                    total_rows = expanded_slices[0].shape[0] * param_size
+                    result[param_id] = sp.csc_array(
+                        (combined_data, (combined_rows, combined_cols)),
+                        shape=(total_rows, x.shape[1])
+                    )
+                    return result
+
+                return view.accumulate_over_variables(
+                    parametrized_rmul, is_param_free_function=False)
+
+            elif is_batch_varying(const_shape):
+                # Batch-varying case
+                assert const.type in {"dense_const", "sparse_const", "scalar_const"}, \
+                    "Batch-varying constants must be non-parametric"
+                stacked_lhs = _build_interleaved_matrix_rmul(const.data, const_shape, var_shape)
+
+                def func(x, p):
+                    if p == 1:
+                        return (stacked_lhs @ x).tocsr()
+                    else:
+                        return ((sp.kron(sp.eye_array(p, format="csc"), stacked_lhs)) @ x).tocsc()
+
+                return view.accumulate_over_variables(func, is_param_free_function=True)
+
+            else:
+                # 2D constant case with ND variable
+                stacked_lhs = _apply_nd_kron_structure_rmul(lhs, batch_size, m)
+
+                def func(x, p):
+                    if p == 1:
+                        return (stacked_lhs @ x).tocsr()
+                    else:
+                        return ((sp.kron(sp.eye_array(p, format="csc"), stacked_lhs)) @ x).tocsc()
+
+                return view.accumulate_over_variables(func, is_param_free_function=True)
+
+        # 2D rmul: use existing implementation
         # Compute target shape (2D shape, or row vector for 1D)
         data_shape = lin.data.shape
         target = data_shape if len(data_shape) == 2 else (1, data_shape[0])
