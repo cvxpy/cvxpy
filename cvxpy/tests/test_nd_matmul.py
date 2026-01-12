@@ -595,3 +595,28 @@ class TestNDRmulEdgeCases:
         prob = cp.Problem(cp.Minimize(cp.sum_squares(expr - target)))
         prob.solve(canon_backend=backend)
         assert prob.status == cp.OPTIMAL
+
+    @pytest.mark.parametrize("backend", BACKENDS)
+    def test_1d_var_1d_const(self, backend):
+        """Test 1D variable @ 1D constant (row vector @ column vector = scalar).
+
+        This is a regression test for the case where both variable and constant
+        are 1D vectors, which produces a scalar result. The variable is treated
+        as a row vector (1, k) and the constant as a column vector (k, 1).
+        """
+        k = 5
+        x = cp.Variable(k)
+        c = np.random.randn(k)
+
+        expr = x @ c
+        assert expr.shape == ()  # scalar result
+
+        # Minimize quadratic: (x @ c - target)^2 + ||x||^2
+        target = 3.0
+        prob = cp.Problem(cp.Minimize((expr - target) ** 2 + cp.sum_squares(x)))
+        prob.solve(canon_backend=backend)
+        assert prob.status == cp.OPTIMAL
+
+        # Verify: x @ c should be close to target (within regularization)
+        actual = x.value @ c
+        assert abs(actual - target) < 1.0  # some tolerance due to regularization
