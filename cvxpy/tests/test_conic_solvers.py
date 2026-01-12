@@ -736,7 +736,9 @@ class TestMoreau(BaseTest):
         StandardTestSOCPs.test_socp_0(solver='MOREAU')
 
     def test_moreau_socp_1(self) -> None:
-        StandardTestSOCPs.test_socp_1(solver='MOREAU')
+        import moreau
+        ipm_settings = moreau.IPMSettings(tol_gap_abs=1e-9, tol_gap_rel=1e-9, tol_feas=1e-9)
+        StandardTestSOCPs.test_socp_1(solver='MOREAU', ipm_settings=ipm_settings)
 
     def test_moreau_socp_2(self) -> None:
         StandardTestSOCPs.test_socp_2(solver='MOREAU')
@@ -753,14 +755,15 @@ class TestMoreau(BaseTest):
     def test_moreau_exp_soc_1(self) -> None:
         StandardTestMixedCPs.test_exp_soc_1(solver='MOREAU')
 
-    def test_moreau_pcp_0(self) -> None:
-        StandardTestSOCPs.test_socp_0(solver='MOREAU')
-
     def test_moreau_pcp_1(self) -> None:
-        StandardTestSOCPs.test_socp_1(solver='MOREAU')
+        import moreau
+        ipm_settings = moreau.IPMSettings(tol_gap_abs=1e-9, tol_gap_rel=1e-9, tol_feas=1e-9)
+        StandardTestPCPs.test_pcp_1(solver='MOREAU', ipm_settings=ipm_settings)
 
     def test_moreau_pcp_2(self) -> None:
-        StandardTestSOCPs.test_socp_2(solver='MOREAU')
+        import moreau
+        ipm_settings = moreau.IPMSettings(tol_gap_abs=1e-9, tol_gap_rel=1e-9, tol_feas=1e-9)
+        StandardTestPCPs.test_pcp_2(solver='MOREAU', ipm_settings=ipm_settings)
 
 
 def is_mosek_available():

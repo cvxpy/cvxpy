@@ -16,15 +16,22 @@ limitations under the License.
 
 from .cbc_conif import CBC
 from .clarabel_conif import CLARABEL
+from .cosmo_conif import COSMO
 from .copt_conif import COPT
 from .cplex_conif import CPLEX
+from .cuclarabel_conif import CUCLARABEL
+from .cuopt_conif import CUOPT
 from .cvxopt_conif import CVXOPT
 from .diffcp_conif import DIFFCP
+from .ecos_bb_conif import ECOS_BB
 from .ecos_conif import ECOS
 from .glop_conif import GLOP
 from .glpk_conif import GLPK
 from .glpk_mi_conif import GLPK_MI
 from .gurobi_conif import GUROBI
+from .highs_conif import HIGHS
+from .knitro_conif import KNITRO
+from .moreau_conif import MOREAU
 from .mosek_conif import MOSEK
 from .nag_conif import NAG
 from .pdlp_conif import PDLP
@@ -34,5 +41,3 @@ from .scipy_conif import SCIPY
 from .scs_conif import SCS
 from .sdpa_conif import SDPA
 from .xpress_conif import XPRESS
-from .highs_conif import HIGHS
-from .knitro_conif import KNITRO

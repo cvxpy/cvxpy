@@ -132,14 +132,9 @@ Install with Additional Solver Support
 .. info:: MOREAU
     :collapsible:
 
-    CVXPY supports the MOREAU solver.
-    Simply install MOREAU such that you can ``import moreau`` in Python.
-
-    ::
-
-        pip install moreau
-
-    See the `MOREAU <https://optimalintellect.com/>`_ website for installation instructions.
+    CVXPY supports the Moreau solver, a GPU-accelerated conic optimization solver.
+    Contact `Optimal Intellect <https://www.optimalintellect.com/>`_ for installation
+    instructions and system requirements.
 
 .. info:: MOSEK
     :collapsible:
@@ -278,6 +273,7 @@ Install with Additional Solver Support
     See the `QOCO <https://qoco-org.github.io/qoco/qoco/install/python.html#python-installation>`_ website for installation instructions.
 
 .. info:: CUOPT
+    :collapsible:
 
     CVXPY supports the CUOPT solver.
     Simply install CUOPT such that you can ``import cuopt`` in Python.

@@ -62,15 +62,29 @@ def _solve_with_reduction(prob):
 
 
 def _flatten_dual(dual_value):
-    """Flatten a dual value to 1D array for comparison."""
+    """Flatten a dual value to 1D array for comparison.
+
+    Normalizes both [t, X] format and flat array format to a consistent
+    ordering: [t0, x0..., t1, x1..., ...] (each cone's values together).
+    This matches what save_dual_value expects.
+    """
     if dual_value is None:
         return None
     if isinstance(dual_value, list) and len(dual_value) == 2:
         # SOC format: [t_array, x_array]
-        return np.concatenate([
-            np.atleast_1d(dual_value[0]).flatten(),
-            np.atleast_1d(dual_value[1]).flatten()
-        ])
+        # Convert to interleaved format: [t0, x0..., t1, x1..., ...]
+        t = np.atleast_1d(dual_value[0]).flatten()
+        x = np.atleast_2d(dual_value[1])
+        num_cones = len(t)
+        # Handle both axis cases: x shape is (num_cones, x_size) or (x_size, num_cones)
+        if x.shape[0] != num_cones and x.shape[1] == num_cones:
+            x = x.T
+        # Now x should be (num_cones, x_size)
+        result = []
+        for i in range(num_cones):
+            result.append(t[i])
+            result.extend(x[i].flatten())
+        return np.array(result)
     return np.atleast_1d(dual_value).flatten()
 
 
