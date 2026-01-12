@@ -616,54 +616,6 @@ def _kron_nd_structure_mul(tensor: CooTensor, batch_size: int, n: int) -> CooTen
     )
 
 
-def _kron_nd_structure_rmul(tensor: CooTensor, batch_size: int, m: int) -> CooTensor:
-    """
-    Build the Kronecker structure for ND rmul: C.T tensor I_{B*m}.
-
-    This is the key operation for computing X @ C where C is a 2D constant (k, n)
-    and X is an ND variable with batch dimensions (..., m, k).
-
-    Why This Structure?
-    -------------------
-    For batched rmul X(B,m,k) @ C(k,n) = Y(B,m,n), each output element is:
-
-        Y[b, i, j] = sum_r X[b, i, r] * C[r, j]
-
-    When we vectorize in column-major (Fortran) order:
-        - vec(X) has index: b + B*i + B*m*r  (b fastest, then i, then r)
-        - vec(Y) has index: b + B*i + B*m*j  (b fastest, then i, then j)
-
-    The matrix A where vec(Y) = A @ vec(X) must satisfy:
-        A[b + B*i + B*m*j, b' + B*i' + B*m*r] = C[r, j]  if b==b' and i==i'
-                                              = 0        otherwise
-
-    This sparsity pattern is exactly C.T tensor I_{B*m}:
-        - C.T provides the matmul coefficients C.T[j, r] = C[r, j]
-        - I_{B*m}: same batch index AND same row index (b==b' and i==i')
-
-    Parameters
-    ----------
-    tensor : CooTensor
-        The input tensor C with shape (param_size, k, n)
-    batch_size : int
-        The batch dimension B (= prod of batch dims from variable)
-    m : int
-        The second-to-last dimension of the variable (X's rows)
-
-    Returns
-    -------
-    CooTensor
-        Expanded tensor with shape (param_size, n*B*m, k*B*m)
-    """
-    reps = batch_size * m
-    if reps == 1:
-        return tensor._transpose_helper()
-
-    # First transpose C to get C.T, then apply kron(C.T, I_{B*m})
-    transposed = tensor._transpose_helper()
-    return _kron_eye_l(transposed, reps)
-
-
 def _build_interleaved_mul(
     const_data: np.ndarray,
     const_shape: tuple,
@@ -802,6 +754,97 @@ def _build_interleaved_mul(
     )
 
 
+def _kron_nd_structure_rmul(tensor: CooTensor, batch_size: int, m: int) -> CooTensor:
+    """
+    Build the Kronecker structure for ND rmul: C.T tensor I_{B*m}.
+
+    This is the key operation for computing X @ C where C is a 2D constant (k, n)
+    and X is an ND variable with batch dimensions (..., m, k).
+
+    Why This Structure?
+    -------------------
+    For batched rmul X(B,m,k) @ C(k,n) = Y(B,m,n), each output element is:
+
+        Y[b, i, j] = sum_r X[b, i, r] * C[r, j]
+
+    When we vectorize in column-major (Fortran) order:
+        - vec(X) has index: b + B*i + B*m*r  (b fastest, then i, then r)
+        - vec(Y) has index: b + B*i + B*m*j  (b fastest, then i, then j)
+
+    The matrix A where vec(Y) = A @ vec(X) must satisfy:
+        A[b + B*i + B*m*j, b' + B*i' + B*m*r] = C[r, j]  if b==b' and i==i'
+                                              = 0        otherwise
+
+    This sparsity pattern is exactly C.T tensor I_{B*m}:
+        - C.T provides the matmul coefficients C.T[j, r] = C[r, j]
+        - I_{B*m}: same batch index AND same row index (b==b' and i==i')
+
+    Concrete Example
+    ----------------
+    C = [[1, 2],    shape (k=2, n=2) so C.T = [[1, 3],
+         [3, 4]]                               [2, 4]]
+
+    X has shape (B=2, m=2, k=2):
+        X[0,:,:] = [[x00, x01],    X[1,:,:] = [[x10, x11],
+                    [x02, x03]]                [x12, x13]]
+
+    Result Y = X @ C has shape (B=2, m=2, n=2):
+        Y[b, i, j] = X[b,i,0]*C[0,j] + X[b,i,1]*C[1,j]
+
+    Vectorized (F-order): vec(X) = [x00,x10, x02,x12, x01,x11, x03,x13]
+                                    └─b=0,1─┘ └─b=0,1─┘ └─b=0,1─┘ └─b=0,1─┘
+                                      i=0,r=0   i=1,r=0   i=0,r=1   i=1,r=1
+
+    The matrix A = C.T ⊗ I_{B*m} = C.T ⊗ I_4 has shape (B*m*n, B*m*k) = (8, 8):
+
+        Block structure (C.T ⊗ I_4):
+        ┌─────────────────────────────┐
+        │ C.T[0,0]*I_4 │ C.T[0,1]*I_4 │   = │ 1*I_4 │ 2*I_4 │
+        │──────────────┼──────────────│     │───────┼───────│
+        │ C.T[1,0]*I_4 │ C.T[1,1]*I_4 │     │ 3*I_4 │ 4*I_4 │
+        └─────────────────────────────┘
+
+        Full 8×8 matrix:
+                 r=0,b=0,1,i=0,1  r=1,b=0,1,i=0,1
+                 x00 x10 x02 x12  x01 x11 x03 x13
+             ┌────────────────────────────────────┐
+        j=0  │  1   0   0   0  │  2   0   0   0   │
+        j=0  │  0   1   0   0  │  0   2   0   0   │
+        j=0  │  0   0   1   0  │  0   0   2   0   │
+        j=0  │  0   0   0   1  │  0   0   0   2   │
+             │─────────────────┼──────────────────│
+        j=1  │  3   0   0   0  │  4   0   0   0   │
+        j=1  │  0   3   0   0  │  0   4   0   0   │
+        j=1  │  0   0   3   0  │  0   0   4   0   │
+        j=1  │  0   0   0   3  │  0   0   0   4   │
+             └────────────────────────────────────┘
+
+    Each identity block I_4 ensures the same (b,i) pair in X maps to
+    the same (b,i) pair in Y, while C.T provides the matmul coefficients.
+
+    Parameters
+    ----------
+    tensor : CooTensor
+        The input tensor C with shape (param_size, k, n)
+    batch_size : int
+        The batch dimension B (= prod of batch dims from variable)
+    m : int
+        The second-to-last dimension of the variable (X's rows)
+
+    Returns
+    -------
+    CooTensor
+        Expanded tensor with shape (param_size, n*B*m, k*B*m)
+    """
+    reps = batch_size * m
+    if reps == 1:
+        return tensor._transpose_helper()
+
+    # First transpose C to get C.T, then apply kron(C.T, I_{B*m})
+    transposed = tensor._transpose_helper()
+    return _kron_eye_l(transposed, reps)
+
+
 def _build_interleaved_rmul(
     const_data: np.ndarray,
     const_shape: tuple,
@@ -813,22 +856,74 @@ def _build_interleaved_rmul(
     This handles the case where each batch element uses a DIFFERENT constant
     matrix: X(B,m,k) @ C(B,k,n) = Y(B,m,n) where C[b] differs for each b.
 
+    Why Not Use Kronecker?
+    ----------------------
+    The Kronecker structure C.T ⊗ I_{B*m} (from _kron_nd_structure_rmul) assumes
+    the SAME matrix C is applied to all batches. It creates a block-diagonal
+    structure where C.T appears repeatedly.
+
+    But with batch-varying constants, each batch needs its OWN coefficients:
+        Y[b, i, j] = Σ_r X[b, i, r] * C[b, r, j]
+                                      ↑
+                                   Different C for each b!
+
     The Interleaved Structure for rmul
     ----------------------------------
-    For batch-varying rmul, each output element is:
-        Y[b, i, j] = sum_r X[b, i, r] * C[b, r, j]
-                                        ↑
-                                      Different C for each b!
+    We need matrix A where vec(Y) = A @ vec(X) with:
+        A[b + B*i + B*m*j, b' + B*i' + B*m*r] = C[b, r, j]  if b==b' and i==i'
+
+    The key insight is the indexing pattern: instead of block-diagonal,
+    we INTERLEAVE the batch dimension with the matrix dimensions.
 
     Vectorization (F-order):
         - vec(X) has index: b + B*i + B*m*r
         - vec(Y) has index: b + B*i + B*m*j
 
-    The matrix A where vec(Y) = A @ vec(X) must satisfy:
-        A[b + B*i + B*m*j, b' + B*i' + B*m*r] = C[b, r, j]  if b==b' and i==i'
-
     Pattern: For each (b, r, j) in C and each row i:
         M[b + B*i + B*m*j, b + B*i + B*m*r] = C[b, r, j]
+
+    Concrete Example
+    ----------------
+    C has shape (B=2, k=2, n=2):
+        C[0] = [[a, b],      C[1] = [[e, f],
+                [c, d]]              [g, h]]
+
+    X has shape (B=2, m=1, k=2), so output Y has shape (B=2, m=1, n=2).
+
+    Vectorization (F-order, m=1 so i dimension is trivial):
+        vec(X) = [X[0,0,0], X[1,0,0], X[0,0,1], X[1,0,1]]
+               = [x0,       x1,       x2,       x3      ]
+                  └─b=0,1──┘ └──b=0,1──┘
+                    r=0         r=1
+
+        vec(Y) = [Y[0,0,0], Y[1,0,0], Y[0,0,1], Y[1,0,1]]
+               = [y0,       y1,       y2,       y3      ]
+                  └─b=0,1──┘ └──b=0,1──┘
+                    j=0         j=1
+
+    The computation:
+        y0 = Y[0,0,0] = X[0,0,0]*C[0,0,0] + X[0,0,1]*C[0,1,0] = x0*a + x2*c
+        y1 = Y[1,0,0] = X[1,0,0]*C[1,0,0] + X[1,0,1]*C[1,1,0] = x1*e + x3*g
+        y2 = Y[0,0,1] = X[0,0,0]*C[0,0,1] + X[0,0,1]*C[0,1,1] = x0*b + x2*d
+        y3 = Y[1,0,1] = X[1,0,0]*C[1,0,1] + X[1,0,1]*C[1,1,1] = x1*f + x3*h
+
+    Interleaved matrix M (4×4):
+                x0  x1  x2  x3
+            ┌───────────────────┐
+        y0  │  a   0   c   0   │   C[0,0,0]=a at (0,0), C[0,1,0]=c at (0,2)
+        y1  │  0   e   0   g   │   C[1,0,0]=e at (1,1), C[1,1,0]=g at (1,3)
+        y2  │  b   0   d   0   │   C[0,0,1]=b at (2,0), C[0,1,1]=d at (2,2)
+        y3  │  0   f   0   h   │   C[1,0,1]=f at (3,1), C[1,1,1]=h at (3,3)
+            └───────────────────┘
+
+    Pattern: M[b + B*m*j, b + B*m*r] = C[b, r, j]
+        - batch 0 elements (a,b,c,d) are at even rows/cols
+        - batch 1 elements (e,f,g,h) are at odd rows/cols
+        - No cross-batch interactions (zeros where b ≠ b')
+
+    Contrast with Kronecker (if C were NOT batch-varying):
+        Kronecker would put C.T in blocks: [[C.T,0],[0,C.T]]
+        Interleaved disperses C's elements: rows/cols alternate by batch
 
     Parameters
     ----------
@@ -2079,130 +2174,78 @@ class CooCanonBackend(PythonCanonBackend):
         For X @ C where X is (m, k) variable and C is (k, n) constant:
         vec(X @ C) = (C.T tensor I_m) @ vec(X)
 
-        For ND arrays, supports three cases:
-        1. Parametric RHS: X @ Parameter
-        2. Batch-varying constant: X(B,m,k) @ C(B,k,n)
-        3. 2D constant: X(B,m,k) @ C(k,n)
+        Three Cases
+        -----------
+        The constant C can be in one of three forms, each requiring different handling:
 
-        Supports both 2D and ND arrays, constant and parametrized C.
+        1. **Parametric** (`_rmul_parametric_rhs`):
+           C is a `cp.Parameter`. Values unknown at canonicalization time.
+           - Example: X(3,4) @ P(4,2) where P is cp.Parameter((4,2))
+           - Each parameter element gets its own slice in the 3D tensor
+           - Uses Kronecker structure per parameter slice
+
+        2. **Batch-varying constant** (`_rmul_interleaved`):
+           C has shape (B,k,n) with B > 1. Different matrix for each batch.
+           - Example: X(4,3,5) @ C(4,5,2) - four different 5×2 matrices
+           - Cannot use Kronecker (that assumes SAME matrix for all batches)
+           - Uses interleaved indexing
+
+        3. **2D constant** (`_rmul_kronecker`):
+           C has shape (k,n) or (1,k,n). Same matrix for all batches.
+           - Example: X(4,3,5) @ C(5,2) - same 5×2 matrix applied 4 times
+           - Uses Kronecker structure: C.T ⊗ I_{B*m} (see _kron_nd_structure_rmul)
+
+        Why Three Cases?
+        ----------------
+        - Case 1 vs 2,3: Parametric is fundamentally different because we don't
+          know values at canonicalization. We track param_idx to know which
+          parameter element affects which output.
+
+        - Case 2 vs 3: Both are known constants, but the matrix structure differs:
+          - Case 3: Same C repeated → Kronecker structure
+          - Case 2: Different C per batch → interleaved positions
+
+        Detection Logic
+        ---------------
+        - Case 1: hasattr(const, 'type') and const.type == 'param'
+        - Case 2: len(const_shape) == 3 and const_shape[0] > 1  (batch-varying)
+        - Case 3: Otherwise (2D or trivial batch dim)
         """
         const = lin_op.data
         var_shape = lin_op.args[0].shape
         const_shape = const.shape
 
-        # Check if this is ND rmul (needs special handling)
-        is_nd = len(var_shape) > 2 or len(const_shape) > 2
-
-        if is_nd:
-            # ND rmul: dispatch to three cases
-            # Check for direct param case first
-            if hasattr(const, 'type') and const.type == 'param':
-                param_id = const.data
-                param_size = self.param_to_size[param_id]
-                size = int(np.prod(const.shape))
-                k, n = const.shape[-2:] if len(const.shape) >= 2 else (size, 1)
-                rhs_data = {param_id: CooTensor(
-                    data=np.ones(param_size, dtype=np.float64),
-                    row=np.tile(np.arange(k), n),
-                    col=np.repeat(np.arange(n), k),
-                    param_idx=np.arange(param_size, dtype=np.int64),
-                    m=k, n=n, param_size=param_size
-                )}
-                is_param_free = False
-            else:
-                # Get constant data
-                target = const_shape[-2:] if len(const_shape) >= 2 else (const_shape[0], 1)
-                rhs_data, is_param_free = self.get_constant_data(
-                    const, view, target_shape=target)
-
-            if not is_param_free:
-                return self._rmul_parametric_rhs(rhs_data, const_shape, var_shape, view)
-            elif is_batch_varying(const_shape):
-                return self._rmul_interleaved(lin_op, var_shape, view)
-            else:
-                return self._rmul_kronecker(rhs_data, const_shape, var_shape, view)
-
-        # 2D rmul: use existing implementation
-        # Compute target shape (2D shape, or row vector for 1D)
-        data_shape = lin_op.data.shape
-        target = data_shape if len(data_shape) == 2 else (1, data_shape[0])
-        rhs, is_param_free_rhs = self.get_constant_data(lin_op.data, view, target_shape=target)
-
-        # Get dimensions
-        arg_shape = lin_op.args[0].shape
-        arg_cols = arg_shape[0] if len(arg_shape) == 1 else arg_shape[1]
-
-        if is_param_free_rhs:
-            # Constant B case
-            # Convert to sparse - may be CooTensor or sparse matrix
-            if isinstance(rhs, CooTensor):
-                rhs_sparse = rhs.to_stacked_sparse()
-            elif sp.issparse(rhs):
-                rhs_sparse = rhs
-            else:
-                rhs_sparse = sp.csr_array(np.atleast_2d(rhs))
-
-            # Handle 1D case - may need transpose
-            if len(lin_op.data.shape) == 1 and arg_cols != rhs_sparse.shape[0]:
-                rhs_sparse = rhs_sparse.T
-
-            # Compute kron(B.T, I_reps) where reps = X_rows / B_rows
-            reps = view.rows // rhs_sparse.shape[0]
-            if reps > 1:
-                stacked_rhs = sp.kron(rhs_sparse.T, sp.eye_array(reps, format="csr"))
-            else:
-                stacked_rhs = rhs_sparse.T
-
-            # Convert to CooTensor
-            stacked_compact = self._to_coo_tensor(stacked_rhs)
-
-            def rmul_func(compact, p):
-                return coo_matmul(stacked_compact, compact)
-
-            view.accumulate_over_variables(rmul_func, is_param_free_function=True)
-            return view
+        # Get constant data - check for direct param case first
+        if hasattr(const, 'type') and const.type == 'param':
+            # Direct parameter: construct CooTensor for parameter matrix
+            # Parameters are stored in column-major (Fortran) order:
+            # param_idx=0 -> C[0,0], param_idx=1 -> C[1,0], ..., param_idx=k -> C[0,1]
+            param_id = const.data
+            param_size = self.param_to_size[param_id]
+            size = int(np.prod(const.shape))
+            k, n = const.shape if len(const.shape) == 2 else (size, 1)
+            rhs_data = {param_id: CooTensor(
+                data=np.ones(param_size, dtype=np.float64),
+                row=np.tile(np.arange(k), n),
+                col=np.repeat(np.arange(n), k),
+                param_idx=np.arange(param_size, dtype=np.int64),
+                m=k, n=n, param_size=param_size
+            )}
+            is_param_free = False
         else:
-            # Parametrized B case
-            # rhs is dict {param_id: CooTensor}
+            # Compute 2D target shape (last 2 dims for ND, column vector for 1D)
+            target = const_shape[-2:] if len(const_shape) >= 2 else (const_shape[0], 1)
+            rhs_data, is_param_free = self.get_constant_data(const, view, target_shape=target)
 
-            # Get representative param slice to determine dimensions
-            param_id, first_compact = next(iter(rhs.items()))
-            rhs_rows = first_compact.m
-
-            # Handle 1D case - may need transpose
-            if len(lin_op.data.shape) == 1 and arg_cols != rhs_rows:
-                rhs = {k: v._transpose_helper() for k, v in rhs.items()}
-                param_id, first_compact = next(iter(rhs.items()))
-                rhs_rows = first_compact.m
-
-            reps = view.rows // rhs_rows
-
-            # Transpose each param slice (B.T)
-            rhs_transposed = {k: v._transpose_helper() for k, v in rhs.items()}
-
-            # Apply kron expansion if needed
-            if reps > 1:
-                # kron(B.T, I_reps) for each param slice
-                stacked_rhs = {}
-                for k, v in rhs_transposed.items():
-                    v_sparse = v.to_stacked_sparse()
-                    kron_result = sp.kron(v_sparse, sp.eye_array(reps, format="csr"))
-                    stacked_rhs[k] = self._to_coo_tensor(kron_result, param_id=k)
-            else:
-                stacked_rhs = {k: self._to_coo_tensor(v.to_stacked_sparse(), param_id=k)
-                               for k, v in rhs_transposed.items()}
-
-            def parametrized_rmul(var_compact):
-                # Multiply each param slice of stacked_rhs with the variable compact
-                return {k: coo_matmul(v, var_compact) for k, v in stacked_rhs.items()}
-
-            # Apply to each variable tensor in-place
-            for var_id, var_tensor in view.tensor.items():
-                const_compact = var_tensor[Constant.ID.value]
-                view.tensor[var_id] = parametrized_rmul(const_compact)
-
-            view.is_parameter_free = False
-            return view
+        if not is_param_free:
+            # Case 1: Parametric RHS
+            return self._rmul_parametric_rhs(rhs_data, const_shape, var_shape, view)
+        elif is_batch_varying(const_shape):
+            # Case 2: Batch-varying constant
+            return self._rmul_interleaved(lin_op, var_shape, view)
+        else:
+            # Case 3: 2D constant (or trivial batch dims like (1, k, n))
+            return self._rmul_kronecker(rhs_data, const_shape, var_shape, view)
 
     @staticmethod
     def reshape_constant_data(constant_data: dict, lin_op_shape: tuple) -> dict:
