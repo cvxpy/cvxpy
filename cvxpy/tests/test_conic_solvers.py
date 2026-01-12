@@ -756,7 +756,9 @@ class TestMoreau(BaseTest):
         StandardTestMixedCPs.test_exp_soc_1(solver='MOREAU')
 
     def test_moreau_pcp_1(self) -> None:
-        StandardTestPCPs.test_pcp_1(solver='MOREAU')
+        import moreau
+        ipm_settings = moreau.IPMSettings(tol_gap_abs=1e-9, tol_gap_rel=1e-9, tol_feas=1e-9)
+        StandardTestPCPs.test_pcp_1(solver='MOREAU', ipm_settings=ipm_settings)
 
     def test_moreau_pcp_2(self) -> None:
         import moreau

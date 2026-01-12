@@ -312,7 +312,12 @@ class MOREAU(ConicSolver):
 
 
 class MoreauSolution:
-    """Wrapper for Moreau solver output."""
+    """Wrapper combining solution vectors with solver metadata.
+
+    Moreau separates solution vectors (x, s, z from solver.solve()) from
+    metadata (status, timing, iterations from solver.info). This wrapper
+    combines them into a single object for use in invert().
+    """
 
     def __init__(self, sol, info):
         self.x = sol.x
