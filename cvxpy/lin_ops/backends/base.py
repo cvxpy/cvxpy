@@ -115,15 +115,17 @@ def get_nd_rmul_dims(
     batch_size : int
         Product of batch dimensions from X (1 if X is 2D)
     m : int
-        Second-to-last dimension of X (rows of X, or X[0] if 1D)
+        Second-to-last dimension of X (rows of X, or 1 if 1D row vector)
     n : int
-        Last dimension of C (columns of C / output columns)
+        Last dimension of C (columns of C, or 1 if 1D column vector)
     const_has_batch : bool
         Whether C has batch dimensions (len > 2)
     """
     batch_size = int(np.prod(var_shape[:-2])) if len(var_shape) > 2 else 1
-    m = var_shape[-2] if len(var_shape) >= 2 else var_shape[0]
-    n = const_shape[-1] if len(const_shape) >= 1 else 1
+    # 1D variable is a row vector (1, k), so m=1
+    m = var_shape[-2] if len(var_shape) >= 2 else 1
+    # 1D constant is a column vector (k, 1), so n=1
+    n = const_shape[-1] if len(const_shape) >= 2 else 1
     const_has_batch = len(const_shape) > 2
     return batch_size, m, n, const_has_batch
 
