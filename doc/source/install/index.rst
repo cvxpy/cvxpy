@@ -272,6 +272,13 @@ Install with Additional Solver Support
     Simply install QOCO such that you can ``import qoco`` in Python.
     See the `QOCO <https://qoco-org.github.io/qoco/qoco/install/python.html#python-installation>`_ website for installation instructions.
 
+.. info:: COSMO
+   :collapsible:
+
+   To install COSMO, install `Julia <https://julialang.org/install/>`_, and then run in a julia terminal ``using Pkg; Pkg.add("COSMO")``.
+
+   Then setup the python-julia interface by running ``pip install julia``, ``python -c "import julia; julia.install()"``, and finally ``python -m pip install git+https://github.com/oxfordcontrol/cosmo-python.git``
+
 .. info:: CUOPT
     :collapsible:
 
