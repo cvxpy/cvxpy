@@ -105,6 +105,8 @@ The table below shows the types of problems the supported solvers can handle.
 +----------------+----+----+------+-----+-----+-----+-----+
 | `CUOPT`_       | X  |    |      |     |     |     | X*  |
 +----------------+----+----+------+-----+-----+-----+-----+
+| `COSMO`_       | X  |  X | X    | X   | X   |  X  |     |
++----------------+----+----+------+-----+-----+-----+-----+
 | `CVXOPT`_      | X  | X  | X    | X   |     |     |     |
 +----------------+----+----+------+-----+-----+-----+-----+
 | `SDPA`_ \*\*\* | X  | X  | X    | X   |     |     |     |
@@ -828,6 +830,12 @@ Here is the complete list of solver options.
 
     For other options see `HiGHS documentation <https://ergo-code.github.io/HiGHS/dev/options/definitions/>`_.
 
+.. info:: `COSMO`_ options:
+    :collapsible:
+
+    For the COSMO solver can be specified within the ``solve`` command directly as keyword arguments. For example `solve(solver=cp.COSMO, max_iter=10000)`.
+    For all options see `COSMO documentation <https://oxfordcontrol.github.io/COSMO.jl/stable/getting_started/#Settings>`_.
+
 .. info:: `CUOPT`_ options:
     :collapsible:
 
@@ -950,4 +958,5 @@ will be the same as the class variable ``SUPPORTED_CONSTRAINTS``.
 .. _PROXQP: https://github.com/simple-robotics/proxsuite
 .. _QPALM: https://kul-optec.github.io/QPALM/Doxygen/index.html
 .. _CUOPT: https://github.com/NVIDIA/cuopt
+.. _COSMO: https://oxfordcontrol.github.io/COSMO.jl/stable/
 .. _KNITRO: https://www.artelys.com/knitro/
