@@ -184,7 +184,7 @@ class SparseCholeskyMessages:
 
     ASYMMETRIC = 'Input matrix is not symmetric to within provided tolerance.'
     INDEFINITE = 'Input matrix is neither positive nor negative definite.'
-    EIGEN_FAIL = 'Cholesky decomposition failed.'
+    FACTORIZATION_FAILED = 'Cholesky factorization failed.'
     NOT_CONST = 'The only allowed Expression inputs are Constant objects.'
     NOT_SPARSE = 'Non-Expression inputs must be SciPy sparse matrices.'
     NOT_REAL = 'Input matrix must be real.'
@@ -193,25 +193,27 @@ class SparseCholeskyMessages:
 def sparse_cholesky(A, sym_tol=settings.CHOL_SYM_TOL, assume_posdef=False):
     """
     The input matrix A must be real and symmetric. If A is positive definite then
-    Eigen will be used to compute its sparse Cholesky decomposition with AMD-ordering.
+    QDLDL will be used to compute its sparse LDL factorization with fill-reducing
+    ordering, which is then converted to Cholesky form.
     If A is negative definite, then the analogous operation will be applied to -A.
 
-    If Cholesky succeeds, then we return a lower-triangular matrix L in
+    If factorization succeeds, then we return a lower-triangular matrix L in
     CSR-format and a permutation vector p so (L[p, :]) @ (L[p, :]).T == A
     within numerical precision.
 
-    We raise a ValueError if Eigen's Cholesky fails or if we certify indefiniteness
-    before calling Eigen. While checking for indefiniteness, we also check that
+    We raise a ValueError if QDLDL's factorization fails or if we certify indefiniteness
+    before calling QDLDL. While checking for indefiniteness, we also check that
      ||A - A'||_Fro / sqrt(n) <= sym_tol, where n is the order of the matrix.
     """
-    import cvxpy.utilities.cpp.sparsecholesky as spchol  # noqa: I001
-    import cvxpy.expressions.cvxtypes as cvxtypes #noqa: I001
-    
+    import qdldl
+
+    import cvxpy.expressions.cvxtypes as cvxtypes
+
     if isinstance(A, cvxtypes.expression()):
         if not isinstance(A, cvxtypes.constant()):
             raise ValueError(SparseCholeskyMessages.NOT_CONST)
         A = A.value
-            
+
     if not spar.issparse(A):
         raise ValueError(SparseCholeskyMessages.NOT_SPARSE)
     if np.iscomplexobj(A):
@@ -234,31 +236,44 @@ def sparse_cholesky(A, sym_tol=settings.CHOL_SYM_TOL, assume_posdef=False):
             _, L, p = sparse_cholesky(-A, sym_tol, assume_posdef=True)
             return -1.0, L, p
 
-    A_coo = spar.coo_matrix(A)
     n = A.shape[0]
 
-    # Call our C++ extension
-    inrows = spchol.IntVector(A_coo.row)
-    incols = spchol.IntVector(A_coo.col)
-    invals = spchol.DoubleVector(A_coo.data)
-    outpivs = spchol.IntVector()
-    outrows = spchol.IntVector()
-    outcols = spchol.IntVector()
-    outvals = spchol.DoubleVector()
-    try:
-        spchol.sparse_chol_from_vecs(
-            n, inrows, incols, invals,
-            outpivs, outrows, outcols, outvals
-        )
-    except RuntimeError as e:
-        if e.args[0] == SparseCholeskyMessages.EIGEN_FAIL:
-            raise ValueError(e.args)
-        else:
-            raise RuntimeError(e.args)
+    # QDLDL expects upper triangular CSC format
+    A_upper = spar.triu(A, format='csc')
 
-    outvals = np.array(outvals)
-    outrows = np.array(outrows)
-    outcols = np.array(outcols)
-    outpivs = np.array(outpivs)
-    L = spar.csr_array((outvals, (outrows, outcols)), shape=(n, n))
-    return 1.0, L, outpivs
+    try:
+        solver = qdldl.Solver(A_upper, upper=True)
+        L_unit, D, p = solver.factors()
+
+        # QDLDL returns: A == P @ (I + L) @ diag(D) @ (I + L).T @ P.T
+        # For positive definite: all D > 0
+        # Convert to standard Cholesky: L_chol = (I + L) @ diag(sqrt(D))
+        if not np.all(D > 0):
+            raise ValueError(SparseCholeskyMessages.FACTORIZATION_FAILED)
+
+        # Build the Cholesky factor: L_chol = (I + L_unit) @ sqrt(D)
+        # L_unit is strictly lower triangular (zeros on diagonal)
+        sqrt_D_vals = np.sqrt(D)
+        I_plus_L = spar.eye(n, format='csr') + spar.csr_array(L_unit)
+        L_chol = I_plus_L @ spar.diags(sqrt_D_vals, format='csr')
+
+        # Ensure CSR format for consistency
+        L_chol = spar.csr_array(L_chol)
+
+        # QDLDL's permutation p defines P where P[i, p[i]] = 1, giving:
+        #   A = P @ L_chol @ L_chol.T @ P.T
+        # The caller expects L_out[p_out, :] @ L_out[p_out, :].T == A
+        # Since L[p, :] = P @ L, we need L[p_inv, :] where p_inv = argsort(p)
+        # so that L[p_inv, :] @ L[p_inv, :].T = A (verified empirically)
+        p_inv = np.argsort(p)
+
+        return 1.0, L_chol, p_inv
+
+    except ValueError:
+        # Re-raise our own ValueErrors (from D > 0 check or input validation)
+        raise
+    except Exception as e:
+        # Wrap QDLDL-specific errors with context
+        raise ValueError(
+            f"{SparseCholeskyMessages.FACTORIZATION_FAILED}: {e}"
+        ) from e
