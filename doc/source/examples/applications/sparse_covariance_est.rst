@@ -84,7 +84,7 @@ Solve for several :math:`\alpha` values
         S = cp.Variable(shape=(n,n), PSD=True)
         
         # Form the logdet(S) - tr(SY) objective.
-        obj = cp.Maximize(cp.log_det(S) - cp.trace(S@Y))
+        obj = cp.Maximize(cp.log_det(S) - cp.vdot(S, Y))
         
         # Set constraint.
         constraints = [cp.sum(cp.abs(S)) <= alpha]
