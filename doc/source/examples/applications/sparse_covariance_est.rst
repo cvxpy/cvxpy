@@ -83,11 +83,8 @@ Solve for several :math:`\alpha` values
         # Create a variable that is constrained to the positive semidefinite cone.
         S = cp.Variable(shape=(n,n), PSD=True)
         
-        # Form the logdet(S) - tr(SY) objective. Note the use of a set
-        # comprehension to form a set of the diagonal elements of S*Y, and the
-        # native sum function, which is compatible with cvxpy, to compute the trace.
-        # TODO: If a cvxpy trace operator becomes available, use it!
-        obj = cp.Maximize(cp.log_det(S) - sum([(S*Y)[i, i] for i in range(n)]))
+        # Form the logdet(S) - tr(SY) objective.
+        obj = cp.Maximize(cp.log_det(S) - cp.trace(S@Y))
         
         # Set constraint.
         constraints = [cp.sum(cp.abs(S)) <= alpha]
