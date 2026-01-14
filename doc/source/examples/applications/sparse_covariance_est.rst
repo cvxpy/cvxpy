@@ -84,18 +84,22 @@ Solve for several :math:`\alpha` values
         S = cp.Variable(shape=(n,n), PSD=True)
         
         # Form the logdet(S) - tr(SY) objective.
+        # Use vdot(S, Y) as alternate formulation for trace(S@Y)
+        # trace(S@Y) only requires diagonal entries of S@Y, which can be
+        # computed by taking the sum of the element-wise product of S.T and Y in O(n^2) time.
+        # vdot does this operation directly. 
         obj = cp.Maximize(cp.log_det(S) - cp.vdot(S, Y))
         
         # Set constraint.
         constraints = [cp.sum(cp.abs(S)) <= alpha]
         
-        # Form and solve optimization problem
+        # Form and solve optimization problem.
         prob = cp.Problem(obj, constraints)
         prob.solve(solver=cp.CVXOPT)
         if prob.status != cp.OPTIMAL:
             raise Exception('CVXPY Error')
     
-        # If the covariance matrix R is desired, here is how it to create it.
+        # If the covariance matrix R is desired, here is how to create it.
         R_hat = np.linalg.inv(S.value)
         
         # Threshold S element values to enforce exact zeros:
