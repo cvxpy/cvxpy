@@ -79,6 +79,31 @@
     </div>
     <div data-md-component="announce">
       
+        <aside class="md-banner">
+          <div class="md-banner__inner md-grid md-typeset">
+            
+              <button class="md-banner__button md-icon" aria-label="Don't show this again">
+                
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+              </button>
+            
+            
+<p style="font-size: 1.1em;">
+  🎉 <strong>Attend or speak at the inaugural
+  <a href="https://docs.google.com/forms/d/e/1FAIpQLSexWIvIfNlpkY4KK3rw47qNg8MiYUT6vL-dPt1emACH6ChPzw/viewform?usp=header">CVXPY Community Workshop</a></strong>
+  on February 20 and 21st at Stanford University and on Zoom! 🎉
+  <br>
+  📅 The CVXPY developers are also hosting
+  <a href="https://calendar.app.google/mRGBur1ZVMW1dcbR8"><strong>listening sessions</strong></a>
+  to learn more about what you are using CVXPY for and how we can better serve you.
+</p>
+
+          </div>
+          
+            <script>var el=document.querySelector("[data-md-component=announce]");if(el){var content=el.querySelector(".md-typeset");__md_hash(content.innerHTML)===__md_get("__announce")&&(el.hidden=!0)}</script>
+          
+        </aside>
+      
     </div>
     
       <div data-md-color-scheme="default" data-md-component="outdated" hidden>
@@ -644,49 +669,45 @@
 <span class="sd">limitations under the License.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
-
-<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.atoms.dotsort</span><span class="w"> </span><span class="kn">import</span> <span class="n">dotsort</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.atoms.sum_largest</span><span class="w"> </span><span class="kn">import</span> <span class="n">sum_largest</span>
 
 
 <div class="viewcode-block" id="cvar">
 <a class="viewcode-back" href="../../../api_reference/cvxpy.atoms.other_atoms.html#cvxpy.atoms.cvar.cvar">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">cvar</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">beta</span><span class="p">):</span>
-<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Conditional value at risk (CVaR) at probability level :math:`\beta` of a vector :math:`x`.</span>
-<span class="sd">    </span>
-<span class="sd">    It represents the average of the :math:`(1-\beta)` fraction of largest values in :math:`x`. </span>
-<span class="sd">    If a probability distribution is represented by a finite set of samples </span>
-<span class="sd">    :math:`x_1, \ldots, x_m \in \mathbb{R}`, the CVaR at level :math:`\beta`, denoted as </span>
-<span class="sd">    :math:`\phi_\beta(x): \mathbb{R}^m \rightarrow \mathbb{R}`, can be computed as: </span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;The conditional value at risk (CVaR) of a random variable represented by</span>
+<span class="sd">    the vector of samples ``x``.</span>
 
-<span class="sd">    .. math::</span>
-<span class="sd">        \phi_\beta(x) = \inf_{\alpha \in \mathbb{R}} \left\{ \alpha + </span>
-<span class="sd">        \frac{1}{(1-\beta)m}\sum_{i=1}^m(x_i-\alpha)_+ \right\}</span>
-
-<span class="sd">    where :math:`(x-\alpha)_+ = \max(x-\alpha, 0)` is the positive part of :math:`x-\alpha`.</span>
-
+<span class="sd">    For a probability level :math:`\beta \in [0,1)`, CVaR is the expected value of</span>
+<span class="sd">    ``x`` in the worst :math:`(1-\beta)` fraction of cases. Equivalently, it is the</span>
+<span class="sd">    average of the :math:`(1-\beta)` fraction of largest values in ``x``.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    x : Expression or numeric constant.</span>
-<span class="sd">        The vector of samples.</span>
+<span class="sd">    x : Expression or numeric constant</span>
+<span class="sd">        A vector of samples representing the distribution. Must be one-dimensional.</span>
 <span class="sd">    beta : float</span>
-<span class="sd">        The probability level, must be in the range :math:`[0, 1)`.</span>
+<span class="sd">        The probability level. Must be in the range :math:`[0, 1)`.</span>
+<span class="sd">        For example, :math:`\beta = 0.95` gives the average of the worst 5% of outcomes.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    Expression</span>
-<span class="sd">        The CVaR of :math:`x` at probability level :math:`\beta`.</span>
+<span class="sd">        .. math::</span>
+
+<span class="sd">            \frac{1}{(1-\beta)m} \sum\nolimits_{\text{largest } (1-\beta)m} x_i</span>
+
+<span class="sd">        where :math:`m` is the length of :math:`x`. When :math:`(1-\beta)m` is not an</span>
+<span class="sd">        integer, the fractional part is handled via linear interpolation.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">beta</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The probability level beta must be in the range [0, 1), got </span><span class="si">{</span><span class="n">beta</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;cvar input must be a 1d array, got shape </span><span class="si">{</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    
+
     <span class="n">k</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">beta</span><span class="p">)</span> <span class="o">*</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="n">w</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">k</span><span class="p">)),</span> <span class="n">k</span> <span class="o">-</span> <span class="nb">int</span><span class="p">(</span><span class="n">k</span><span class="p">))</span>
-    <span class="k">return</span> <span class="mi">1</span><span class="o">/</span><span class="n">k</span> <span class="o">*</span> <span class="n">dotsort</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">w</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">sum_largest</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span> <span class="o">/</span> <span class="n">k</span></div>
 
     
 </code></pre></div>
