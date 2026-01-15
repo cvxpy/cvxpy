@@ -79,6 +79,31 @@
     </div>
     <div data-md-component="announce">
       
+        <aside class="md-banner">
+          <div class="md-banner__inner md-grid md-typeset">
+            
+              <button class="md-banner__button md-icon" aria-label="Don't show this again">
+                
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+              </button>
+            
+            
+<p style="font-size: 1.1em;">
+  🎉 <strong>Attend or speak at the inaugural
+  <a href="https://docs.google.com/forms/d/e/1FAIpQLSexWIvIfNlpkY4KK3rw47qNg8MiYUT6vL-dPt1emACH6ChPzw/viewform?usp=header">CVXPY Community Workshop</a></strong>
+  on February 20 and 21st at Stanford University and on Zoom! 🎉
+  <br>
+  📅 The CVXPY developers are also hosting
+  <a href="https://calendar.app.google/mRGBur1ZVMW1dcbR8"><strong>listening sessions</strong></a>
+  to learn more about what you are using CVXPY for and how we can better serve you.
+</p>
+
+          </div>
+          
+            <script>var el=document.querySelector("[data-md-component=announce]");if(el){var content=el.querySelector(".md-typeset");__md_hash(content.innerHTML)===__md_get("__announce")&&(el.hidden=!0)}</script>
+          
+        </aside>
+      
     </div>
     
       <div data-md-color-scheme="default" data-md-component="outdated" hidden>
@@ -764,7 +789,7 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">ParamConeProg</span><span class="p">(</span><span class="n">ParamProb</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Represents a parameterized cone program</span>
 
-<span class="sd">    minimize   c&#39;x  + d + [(1/2)x&#39;Px]</span>
+<span class="sd">    minimize   q&#39;x  + d + [(1/2)x&#39;Px]</span>
 <span class="sd">    subject to cone_constr1(A_1*x + b_1, ...)</span>
 <span class="sd">               ...</span>
 <span class="sd">               cone_constrK(A_i*x + b_i, ...)</span>
@@ -772,7 +797,7 @@
 
 <span class="sd">    The constant offsets d and b are the last column of c and A.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span>
                  <span class="n">variables</span><span class="p">,</span>
                  <span class="n">var_id_to_col</span><span class="p">,</span>
                  <span class="n">constraints</span><span class="p">,</span>
@@ -783,9 +808,9 @@
                  <span class="n">lower_bounds</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                  <span class="n">upper_bounds</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                  <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="c1"># The problem data tensors; c is for the constraint, and A for</span>
+        <span class="c1"># The problem data tensors; q is for the objective, and A for</span>
         <span class="c1"># the problem data matrix</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">c</span> <span class="o">=</span> <span class="n">c</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">q</span> <span class="o">=</span> <span class="n">q</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">A</span> <span class="o">=</span> <span class="n">A</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">P</span>
         <span class="c1"># The variable</span>
@@ -851,16 +876,16 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">param_id_to_size</span><span class="p">,</span>
             <span class="n">param_value</span><span class="p">,</span>
             <span class="n">zero_offset</span><span class="o">=</span><span class="n">zero_offset</span><span class="p">)</span>
-        <span class="n">c</span><span class="p">,</span> <span class="n">d</span> <span class="o">=</span> <span class="n">canonInterface</span><span class="o">.</span><span class="n">get_matrix_from_tensor</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">c</span><span class="p">,</span> <span class="n">param_vec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">with_offset</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">c</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">toarray</span><span class="p">()</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+        <span class="n">q</span><span class="p">,</span> <span class="n">d</span> <span class="o">=</span> <span class="n">canonInterface</span><span class="o">.</span><span class="n">get_matrix_from_tensor</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">q</span><span class="p">,</span> <span class="n">param_vec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">with_offset</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">toarray</span><span class="p">()</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
         <span class="n">A</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduced_A</span><span class="o">.</span><span class="n">get_matrix_from_tensor</span><span class="p">(</span><span class="n">param_vec</span><span class="p">,</span> <span class="n">with_offset</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">quad_obj</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">reduced_P</span><span class="o">.</span><span class="n">cache</span><span class="p">(</span><span class="n">keep_zeros</span><span class="p">)</span>
             <span class="n">P</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduced_P</span><span class="o">.</span><span class="n">get_matrix_from_tensor</span><span class="p">(</span><span class="n">param_vec</span><span class="p">,</span> <span class="n">with_offset</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">P</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">P</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">c</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">b</span><span class="p">)</span></div>
+            <span class="k">return</span> <span class="n">q</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">b</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="ParamConeProg.apply_param_jac">
@@ -879,7 +904,7 @@
         <span class="k">if</span> <span class="n">active_params</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">active_params</span> <span class="o">=</span> <span class="p">{</span><span class="n">p</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">}</span>
 
-        <span class="n">del_param_vec</span> <span class="o">=</span> <span class="n">delc</span> <span class="o">@</span> <span class="bp">self</span><span class="o">.</span><span class="n">c</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">del_param_vec</span> <span class="o">=</span> <span class="n">delc</span> <span class="o">@</span> <span class="bp">self</span><span class="o">.</span><span class="n">q</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">flatdelA</span> <span class="o">=</span> <span class="n">delA</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">delA</span><span class="o">.</span><span class="n">shape</span><span class="p">),</span> <span class="mi">1</span><span class="p">),</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
         <span class="n">delAb</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">flatdelA</span><span class="p">,</span> <span class="n">sp</span><span class="o">.</span><span class="n">csc_array</span><span class="p">(</span><span class="n">delb</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">])])</span>
 

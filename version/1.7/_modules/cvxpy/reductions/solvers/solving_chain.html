@@ -79,6 +79,31 @@
     </div>
     <div data-md-component="announce">
       
+        <aside class="md-banner">
+          <div class="md-banner__inner md-grid md-typeset">
+            
+              <button class="md-banner__button md-icon" aria-label="Don't show this again">
+                
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+              </button>
+            
+            
+<p style="font-size: 1.1em;">
+  🎉 <strong>Attend or speak at the inaugural
+  <a href="https://docs.google.com/forms/d/e/1FAIpQLSexWIvIfNlpkY4KK3rw47qNg8MiYUT6vL-dPt1emACH6ChPzw/viewform?usp=header">CVXPY Community Workshop</a></strong>
+  on February 20 and 21st at Stanford University and on Zoom! 🎉
+  <br>
+  📅 The CVXPY developers are also hosting
+  <a href="https://calendar.app.google/mRGBur1ZVMW1dcbR8"><strong>listening sessions</strong></a>
+  to learn more about what you are using CVXPY for and how we can better serve you.
+</p>
+
+          </div>
+          
+            <script>var el=document.querySelector("[data-md-component=announce]");if(el){var content=el.querySelector(".md-typeset");__md_hash(content.innerHTML)===__md_get("__announce")&&(el.hidden=!0)}</script>
+          
+        </aside>
+      
     </div>
     
       <div data-md-color-scheme="default" data-md-component="outdated" hidden>
@@ -658,6 +683,7 @@
     <span class="n">Exotic2Common</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.cone2cone.soc2psd</span><span class="w"> </span><span class="kn">import</span> <span class="n">SOC2PSD</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.cone2cone.soc_dim3</span><span class="w"> </span><span class="kn">import</span> <span class="n">SOCDim3</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.cvx_attr2constr</span><span class="w"> </span><span class="kn">import</span> <span class="n">CvxAttr2Constr</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.dcp2cone.cone_matrix_stuffing</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConeMatrixStuffing</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.dcp2cone.dcp2cone</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dcp2Cone</span>
@@ -987,6 +1013,10 @@
                 <span class="n">CvxAttr2Constr</span><span class="p">(</span><span class="n">reduce_bounds</span><span class="o">=</span><span class="ow">not</span> <span class="n">solver_instance</span><span class="o">.</span><span class="n">BOUNDED_VARIABLES</span><span class="p">),</span>
             <span class="p">]</span>
             <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">c</span> <span class="ow">in</span> <span class="n">supported_constraints</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cones</span><span class="p">):</span>
+                <span class="c1"># Check if solver only supports dim-3 SOC cones</span>
+                <span class="k">if</span> <span class="n">solver_instance</span><span class="o">.</span><span class="n">SOC_DIM3_ONLY</span> <span class="ow">and</span> <span class="n">SOC</span> <span class="ow">in</span> <span class="n">cones</span><span class="p">:</span>
+                    <span class="c1"># Add SOCDim3 reduction to convert n-dim SOC to 3D SOC</span>
+                    <span class="n">reductions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">SOCDim3</span><span class="p">())</span>
                 <span class="c1"># Return the reduction chain.</span>
                 <span class="n">reductions</span> <span class="o">+=</span> <span class="p">[</span>
                     <span class="n">ConeMatrixStuffing</span><span class="p">(</span><span class="n">quad_obj</span><span class="o">=</span><span class="n">quad_obj</span><span class="p">,</span> <span class="n">canon_backend</span><span class="o">=</span><span class="n">canon_backend</span><span class="p">),</span>

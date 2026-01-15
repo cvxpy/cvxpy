@@ -88,6 +88,31 @@
     </div>
     <div data-md-component="announce">
       
+        <aside class="md-banner">
+          <div class="md-banner__inner md-grid md-typeset">
+            
+              <button class="md-banner__button md-icon" aria-label="Don't show this again">
+                
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+              </button>
+            
+            
+<p style="font-size: 1.1em;">
+  🎉 <strong>Attend or speak at the inaugural
+  <a href="https://docs.google.com/forms/d/e/1FAIpQLSexWIvIfNlpkY4KK3rw47qNg8MiYUT6vL-dPt1emACH6ChPzw/viewform?usp=header">CVXPY Community Workshop</a></strong>
+  on February 20 and 21st at Stanford University and on Zoom! 🎉
+  <br>
+  📅 The CVXPY developers are also hosting
+  <a href="https://calendar.app.google/mRGBur1ZVMW1dcbR8"><strong>listening sessions</strong></a>
+  to learn more about what you are using CVXPY for and how we can better serve you.
+</p>
+
+          </div>
+          
+            <script>var el=document.querySelector("[data-md-component=announce]");if(el){var content=el.querySelector(".md-typeset");__md_hash(content.innerHTML)===__md_get("__announce")&&(el.hidden=!0)}</script>
+          
+        </aside>
+      
     </div>
     
       <div data-md-color-scheme="default" data-md-component="outdated" hidden>
@@ -1604,7 +1629,11 @@ The table below shows the types of problems the supported solvers can handle.</p
 <td></td>
 <td><p>X</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference external" href="https://www.mosek.com/">MOSEK</a></p></td>
+<tr class="row-even"><td colspan="6"><p><a class="reference external" href="https://optimalintellect.com/">MOREAU</a>       | X  | X  | X    |     | X</p></td>
+<td><p>X</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference external" href="https://www.mosek.com/">MOSEK</a></p></td>
 <td><p>X</p></td>
 <td><p>X</p></td>
 <td><p>X</p></td>
@@ -1613,7 +1642,7 @@ The table below shows the types of problems the supported solvers can handle.</p
 <td><p>X</p></td>
 <td><p>X**</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference external" href="https://github.com/MIT-Lu-Lab/MPAX">MPAX</a></p></td>
+<tr class="row-even"><td><p><a class="reference external" href="https://github.com/MIT-Lu-Lab/MPAX">MPAX</a></p></td>
 <td><p>X</p></td>
 <td><p>X</p></td>
 <td></td>
@@ -1622,7 +1651,7 @@ The table below shows the types of problems the supported solvers can handle.</p
 <td></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference external" href="https://github.com/cvxgrp/CuClarabel">CUCLARABEL</a></p></td>
+<tr class="row-odd"><td><p><a class="reference external" href="https://github.com/cvxgrp/CuClarabel">CUCLARABEL</a></p></td>
 <td><p>X</p></td>
 <td><p>X</p></td>
 <td><p>X</p></td>
@@ -1631,7 +1660,7 @@ The table below shows the types of problems the supported solvers can handle.</p
 <td><p>X</p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference external" href="https://github.com/NVIDIA/cuopt">CUOPT</a></p></td>
+<tr class="row-even"><td><p><a class="reference external" href="https://github.com/NVIDIA/cuopt">CUOPT</a></p></td>
 <td><p>X</p></td>
 <td></td>
 <td></td>
@@ -1640,7 +1669,7 @@ The table below shows the types of problems the supported solvers can handle.</p
 <td></td>
 <td><p>X*</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference external" href="http://cvxopt.org/">CVXOPT</a></p></td>
+<tr class="row-odd"><td><p><a class="reference external" href="http://cvxopt.org/">CVXOPT</a></p></td>
 <td><p>X</p></td>
 <td><p>X</p></td>
 <td><p>X</p></td>
@@ -1649,7 +1678,7 @@ The table below shows the types of problems the supported solvers can handle.</p
 <td></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference external" href="https://sdpa-python.github.io">SDPA</a> ***</p></td>
+<tr class="row-even"><td><p><a class="reference external" href="https://sdpa-python.github.io">SDPA</a> ***</p></td>
 <td><p>X</p></td>
 <td><p>X</p></td>
 <td><p>X</p></td>
@@ -1658,7 +1687,7 @@ The table below shows the types of problems the supported solvers can handle.</p
 <td></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference external" href="http://github.com/cvxgrp/scs">SCS</a></p></td>
+<tr class="row-odd"><td><p><a class="reference external" href="http://github.com/cvxgrp/scs">SCS</a></p></td>
 <td><p>X</p></td>
 <td><p>X</p></td>
 <td><p>X</p></td>
@@ -1667,7 +1696,7 @@ The table below shows the types of problems the supported solvers can handle.</p
 <td><p>X</p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference external" href="https://scip.zib.de/">SCIP</a></p></td>
+<tr class="row-even"><td><p><a class="reference external" href="https://scip.zib.de/">SCIP</a></p></td>
 <td><p>X</p></td>
 <td><p>X</p></td>
 <td><p>X</p></td>
@@ -1676,7 +1705,7 @@ The table below shows the types of problems the supported solvers can handle.</p
 <td></td>
 <td><p>X</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference external" href="https://www.fico.com/en/products/fico-xpress-optimization">XPRESS</a></p></td>
+<tr class="row-odd"><td><p><a class="reference external" href="https://www.fico.com/en/products/fico-xpress-optimization">XPRESS</a></p></td>
 <td><p>X</p></td>
 <td><p>X</p></td>
 <td><p>X</p></td>
@@ -1685,7 +1714,7 @@ The table below shows the types of problems the supported solvers can handle.</p
 <td></td>
 <td><p>X</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linprog.html#scipy.optimize.linprog">SCIPY</a></p></td>
+<tr class="row-even"><td><p><a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linprog.html#scipy.optimize.linprog">SCIPY</a></p></td>
 <td><p>X</p></td>
 <td></td>
 <td></td>
@@ -1694,7 +1723,7 @@ The table below shows the types of problems the supported solvers can handle.</p
 <td></td>
 <td><p>X*</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference external" href="https://highs.dev/">HiGHS</a></p></td>
+<tr class="row-odd"><td><p><a class="reference external" href="https://highs.dev/">HiGHS</a></p></td>
 <td><p>X</p></td>
 <td><p>X</p></td>
 <td></td>
@@ -2207,7 +2236,7 @@ For the definition of PrimalDualHybridGradientParams, see
 <dt><code class="docutils literal notranslate"><span class="pre">'reltol'</span></code></dt><dd><p>relative accuracy (default: 1e-7).</p>
 </dd>
 </dl>
-<p>For others see <a class="reference external" href="https://qoco-org.github.io/qoco/api/settings.html">QOCO documentation</a>.</p>
+<p>For others see <a class="reference external" href="https://qoco-org.github.io/qoco/qoco/api/settings.html#settings">QOCO documentation</a>.</p>
 </details>
 <details class="info admonition">
 <summary class="admonition-title"><a class="reference external" href="https://www.gurobi.com/">GUROBI</a> options:</summary><p>Gurobi solver options are specified in CVXPY as keyword arguments. The full list of Gurobi parameters with defaults is listed <a class="reference external" href="https://www.gurobi.com/documentation/9.1/refman/parameters.html">here</a>.</p>

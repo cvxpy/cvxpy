@@ -88,6 +88,31 @@
     </div>
     <div data-md-component="announce">
       
+        <aside class="md-banner">
+          <div class="md-banner__inner md-grid md-typeset">
+            
+              <button class="md-banner__button md-icon" aria-label="Don't show this again">
+                
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+              </button>
+            
+            
+<p style="font-size: 1.1em;">
+  🎉 <strong>Attend or speak at the inaugural
+  <a href="https://docs.google.com/forms/d/e/1FAIpQLSexWIvIfNlpkY4KK3rw47qNg8MiYUT6vL-dPt1emACH6ChPzw/viewform?usp=header">CVXPY Community Workshop</a></strong>
+  on February 20 and 21st at Stanford University and on Zoom! 🎉
+  <br>
+  📅 The CVXPY developers are also hosting
+  <a href="https://calendar.app.google/mRGBur1ZVMW1dcbR8"><strong>listening sessions</strong></a>
+  to learn more about what you are using CVXPY for and how we can better serve you.
+</p>
+
+          </div>
+          
+            <script>var el=document.querySelector("[data-md-component=announce]");if(el){var content=el.querySelector(".md-typeset");__md_hash(content.innerHTML)===__md_get("__announce")&&(el.hidden=!0)}</script>
+          
+        </aside>
+      
     </div>
     
       <div data-md-color-scheme="default" data-md-component="outdated" hidden>
@@ -737,7 +762,7 @@ or a conda environment.</p>
 <div class="sd-card-title sd-font-weight-bold docutils">
 Instructions</div>
 <div class="tab-set docutils">
-<input checked="True" class="tab-input" id="tab-set--0-input--1" name="tab-set--0" type="radio"><label class="tab-label" for="tab-set--0-input--1">pip</label><div class="tab-content docutils">
+<input checked="True" class="tab-input" id="tab-set--0-input--1" name="tab-set--0" type="radio" /><label class="tab-label" for="tab-set--0-input--1">pip</label><div class="tab-content docutils">
 <p class="sd-card-text">(Windows only) <a class="reference external" href="https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&amp;rel=16">Download</a> the Visual Studio build tools for Python 3
 (<a class="reference external" href="https://docs.google.com/presentation/d/e/2PACX-1vT-p04simYhorAdKstO9F1RK-k6npuyrKWliJ8Wy9uuQoQq_TiFdJA-DK3Kz0irkCEUlmNEH4JScbkwUflXv9c/pub?start=false&amp;loop=false&amp;delayms=3000&amp;resourcekey=0-HEezB2NFstz1GjKDkroJSQ&amp;slide=id.p1">instructions</a>).</p>
 <p class="sd-card-text">(macOS only) Install the Xcode command line tools.</p>
@@ -752,7 +777,7 @@ additional Python packages.</p>
 </code></pre></div>
 </div>
 </div>
-<input class="tab-input" id="tab-set--0-input--2" name="tab-set--0" type="radio"><label class="tab-label" for="tab-set--0-input--2">conda</label><div class="tab-content docutils">
+<input class="tab-input" id="tab-set--0-input--2" name="tab-set--0" type="radio" /><label class="tab-label" for="tab-set--0-input--2">conda</label><div class="tab-content docutils">
 <p class="sd-card-text"><a class="reference external" href="https://docs.conda.io/en/latest/">conda</a> is a system for package and environment management.</p>
 <p class="sd-card-text">(Windows only) Download the <a class="reference external" href="https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&amp;rel=16">Visual Studio build tools for Python 3</a>.</p>
 <ol class="arabic simple">
@@ -769,7 +794,7 @@ additional Python packages.</p>
 </code></pre></div>
 </div>
 </div>
-<input class="tab-input" id="tab-set--0-input--3" name="tab-set--0" type="radio"><label class="tab-label" for="tab-set--0-input--3">Install from source</label><div class="tab-content docutils">
+<input class="tab-input" id="tab-set--0-input--3" name="tab-set--0" type="radio" /><label class="tab-label" for="tab-set--0-input--3">Install from source</label><div class="tab-content docutils">
 <p class="sd-card-text">We strongly recommend using a fresh virtual environment (virtualenv or conda) when installing CVXPY from source.</p>
 <p class="sd-card-text">CVXPY has the following dependencies:</p>
 <ul class="simple">
@@ -795,7 +820,7 @@ additional Python packages.</p>
 </code></pre></div>
 </div>
 </div>
-<input class="tab-input" id="tab-set--0-input--4" name="tab-set--0" type="radio"><label class="tab-label" for="tab-set--0-input--4">Using Codespaces</label><div class="tab-content docutils">
+<input class="tab-input" id="tab-set--0-input--4" name="tab-set--0" type="radio" /><label class="tab-label" for="tab-set--0-input--4">Using Codespaces</label><div class="tab-content docutils">
 <p class="sd-card-text">We provide support for <a class="reference external" href="https://github.com/features/codespaces">GitHub Codespaces</a> with
 preconfigured environments for CVXPY development via <a class="reference external" href="https://containers.dev/">devcontainers</a>.
 To get started, click the “Code” button on the CVXPY repository and select “Open with Codespaces”.</p>
@@ -832,6 +857,14 @@ platforms</a>,
 <summary class="admonition-title">GUROBI</summary><p>CVXPY supports the GUROBI solver.
 Install GUROBI version 7.5.2 or greater such that you can <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">gurobipy</span></code> in Python.
 See the <a class="reference external" href="https://www.gurobi.com/">GUROBI</a> website for installation instructions.</p>
+</details>
+<details class="info admonition">
+<summary class="admonition-title">MOREAU</summary><p>CVXPY supports the MOREAU solver.
+Simply install MOREAU such that you can <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">moreau</span></code> in Python.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="n">pip</span> <span class="n">install</span> <span class="n">moreau</span>
+</code></pre></div>
+</div>
+<p>See the <a class="reference external" href="https://optimalintellect.com/">MOREAU</a> website for installation instructions.</p>
 </details>
 <details class="info admonition">
 <summary class="admonition-title">MOSEK</summary><p>CVXPY supports the MOSEK solver.
@@ -894,6 +927,9 @@ See the <a class="reference external" href="https://github.com/SCIP-Interfaces/P
 </details>
 <details class="info admonition">
 <summary class="admonition-title">HiGHS</summary><p>CVXPY supports the HiGHS solver. Run the following command to install the HiGHS python interface.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="n">pip</span> <span class="n">install</span> <span class="n">highspy</span>
+</code></pre></div>
+</div>
 <p>See the <a class="reference external" href="https://ergo-code.github.io/HiGHS/dev/interfaces/python/">HiGHS</a> documentation for additional instructions.</p>
 </details>
 <details class="info admonition">
@@ -919,7 +955,7 @@ You may achieve better performance by setting <code class="docutils literal notr
 <details class="info admonition">
 <summary class="admonition-title">QOCO</summary><p>CVXPY supports the QOCO solver.
 Simply install QOCO such that you can <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">qoco</span></code> in Python.
-See the <a class="reference external" href="https://qoco-org.github.io/qoco/install/index.html">QOCO</a> website for installation instructions.</p>
+See the <a class="reference external" href="https://qoco-org.github.io/qoco/qoco/install/python.html#python-installation">QOCO</a> website for installation instructions.</p>
 </details>
 <div class="info admonition">
 <p class="admonition-title">CUOPT</p>
