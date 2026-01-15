@@ -18,15 +18,20 @@ from cvxpy.lin_ops.backends import (
     get_backend,
 )
 from cvxpy.lin_ops.backends.coo_backend import (
-    _build_interleaved,
+    _build_interleaved_mul,
+    _build_interleaved_rmul,
     _kron_eye_l,
     _kron_eye_r,
-    _kron_nd_structure,
+    _kron_nd_structure_mul,
+    _kron_nd_structure_rmul,
 )
 from cvxpy.lin_ops.backends.scipy_backend import (
-    _apply_nd_kron_structure,
-    _build_interleaved_matrix,
-    _expand_parametric_slices,
+    _apply_nd_kron_structure_mul,
+    _apply_nd_kron_structure_rmul,
+    _build_interleaved_matrix_mul,
+    _build_interleaved_matrix_rmul,
+    _expand_parametric_slices_mul,
+    _expand_parametric_slices_rmul,
 )
 
 
@@ -2893,10 +2898,36 @@ class TestSciPyBackend:
         matrices = [sp.random_array(shape, random_state=rng, density=0.5).tocsc()
                     for _ in range(p)]
         stacked = sp.vstack(matrices, format="csc")
-        result = sp.vstack(list(_expand_parametric_slices(stacked, p, batch_size, n)))
+        result = sp.vstack(list(_expand_parametric_slices_mul(stacked, p, batch_size, n)))
 
         # Expected: apply I_n ⊗ C ⊗ I_batch to each slice, then vstack
-        expected = sp.vstack([_apply_nd_kron_structure(m, batch_size, n) for m in matrices])
+        expected = sp.vstack([_apply_nd_kron_structure_mul(m, batch_size, n) for m in matrices])
+        assert (expected != result).nnz == 0
+
+    @staticmethod
+    @pytest.mark.parametrize("shape,batch_size,m", [
+        ((2, 2), 1, 3),   # 2D case: C.T ⊗ I_m
+        ((2, 2), 2, 3),   # ND case: C.T ⊗ I_{batch*m}
+        ((3, 2), 1, 4),   # 2D case with non-square matrix
+        ((3, 2), 3, 2),   # ND case with non-square matrix
+    ])
+    def test_expand_parametric_slices_rmul(shape, batch_size, m):
+        """
+        Test expand_parametric_slices_rmul which applies C.T ⊗ I_{batch*m} to each param slice.
+
+        For batch_size=1, this reduces to C.T ⊗ I_m (the 2D case).
+        """
+        rng = np.random.default_rng(42)
+        p = 2  # number of parameter slices
+        matrices = [sp.random_array(shape, random_state=rng, density=0.5).tocsc()
+                    for _ in range(p)]
+        stacked = sp.vstack(matrices, format="csc")
+        result = sp.vstack(list(_expand_parametric_slices_rmul(stacked, p, batch_size, m)))
+
+        # Expected: apply C.T ⊗ I_{batch*m} to each slice, then vstack
+        expected = sp.vstack([
+            _apply_nd_kron_structure_rmul(mat, batch_size, m) for mat in matrices
+        ])
         assert (expected != result).nnz == 0
 
     @staticmethod
@@ -3091,24 +3122,26 @@ class TestCooBackend:
         ((3, 2), 1, 4),   # 2D non-square
         ((3, 2), 3, 2),   # ND non-square
     ])
-    def test_kron_nd_structure(shape, batch_size, n):
-        """Test _kron_nd_structure against scipy-based approach."""
+    def test_kron_nd_structure_mul(shape, batch_size, n):
+        """Test _kron_nd_structure_mul against scipy-based approach."""
         rng = np.random.default_rng(42)
         param_size = 2
 
         matrices = [sp.random_array(shape, random_state=rng, density=0.5)
                     for _ in range(param_size)]
 
-        # Use CSR format because _expand_parametric_slices slices the matrix,
+        # Use CSR format because _expand_parametric_slices_mul slices the matrix,
         # and COO arrays don't support __getitem__ slicing.
         stacked = sp.vstack(matrices, format="csr")
         tensor = CooTensor.from_stacked_sparse(stacked, param_size)
 
         # Native COO implementation
-        result = _kron_nd_structure(tensor, batch_size, n)
+        result = _kron_nd_structure_mul(tensor, batch_size, n)
 
         # Reference: scipy-based implementation
-        expected = sp.vstack(list(_expand_parametric_slices(stacked, param_size, batch_size, n)))
+        expected = sp.vstack(list(
+            _expand_parametric_slices_mul(stacked, param_size, batch_size, n)
+        ))
 
         assert result.to_stacked_sparse().shape == expected.shape
         assert (expected != result.to_stacked_sparse()).nnz == 0
@@ -3119,16 +3152,68 @@ class TestCooBackend:
         ((3, 2, 2), (3, 2, 3)),     # B=3, m=2, k=2, n=3
         ((2, 2, 3, 4), (2, 2, 4, 2)),  # B=4, m=3, k=4, n=2
     ])
-    def test_build_interleaved(const_shape, var_shape):
-        """Test _build_interleaved against scipy-based _build_interleaved_matrix."""
+    def test_build_interleaved_mul(const_shape, var_shape):
+        """Test _build_interleaved_mul against scipy-based _build_interleaved_matrix_mul."""
         rng = np.random.default_rng(42)
         const_data = rng.random(np.prod(const_shape))
 
         # Native COO implementation
-        result = _build_interleaved(const_data, const_shape, var_shape)
+        result = _build_interleaved_mul(const_data, const_shape, var_shape)
 
         # Reference: scipy-based implementation
-        expected = _build_interleaved_matrix(const_data, const_shape, var_shape)
+        expected = _build_interleaved_matrix_mul(const_data, const_shape, var_shape)
+
+        assert result.to_stacked_sparse().shape == expected.shape
+        assert np.allclose(result.toarray(), expected.toarray())
+
+    @staticmethod
+    @pytest.mark.parametrize("shape, batch_size, m", [
+        ((2, 2), 1, 1),   # 2D square, no batch
+        ((2, 2), 1, 3),   # 2D square, m > 1
+        ((2, 2), 2, 1),   # 2D square, batch > 1
+        ((2, 2), 2, 3),   # 2D square, both > 1
+        ((3, 2), 1, 4),   # 2D non-square
+        ((3, 2), 3, 2),   # ND non-square
+    ])
+    def test_kron_nd_structure_rmul(shape, batch_size, m):
+        """Test _kron_nd_structure_rmul against scipy-based approach."""
+        rng = np.random.default_rng(42)
+        param_size = 2
+
+        matrices = [sp.random_array(shape, random_state=rng, density=0.5)
+                    for _ in range(param_size)]
+
+        # Use CSR format for slicing
+        stacked = sp.vstack(matrices, format="csr")
+        tensor = CooTensor.from_stacked_sparse(stacked, param_size)
+
+        # Native COO implementation
+        result = _kron_nd_structure_rmul(tensor, batch_size, m)
+
+        # Reference: scipy-based implementation
+        expected = sp.vstack(list(
+            _expand_parametric_slices_rmul(stacked, param_size, batch_size, m)
+        ))
+
+        assert result.to_stacked_sparse().shape == expected.shape
+        assert (expected != result.to_stacked_sparse()).nnz == 0
+
+    @staticmethod
+    @pytest.mark.parametrize("var_shape, const_shape", [
+        ((2, 3, 4), (2, 4, 5)),     # B=2, m=3, k=4, n=5
+        ((3, 2, 2), (3, 2, 3)),     # B=3, m=2, k=2, n=3
+        ((2, 2, 3, 4), (2, 2, 4, 2)),  # B=4, m=3, k=4, n=2
+    ])
+    def test_build_interleaved_rmul(var_shape, const_shape):
+        """Test _build_interleaved_rmul against scipy-based _build_interleaved_matrix_rmul."""
+        rng = np.random.default_rng(42)
+        const_data = rng.random(np.prod(const_shape))
+
+        # Native COO implementation
+        result = _build_interleaved_rmul(const_data, const_shape, var_shape)
+
+        # Reference: scipy-based implementation
+        expected = _build_interleaved_matrix_rmul(const_data, const_shape, var_shape)
 
         assert result.to_stacked_sparse().shape == expected.shape
         assert np.allclose(result.toarray(), expected.toarray())
