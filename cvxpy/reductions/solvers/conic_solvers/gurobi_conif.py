@@ -109,11 +109,7 @@ class GUROBI(ConicSolver):
         """
         status = solution['status']
 
-        try:
-            bar_iter_count = solution["model"].BarIterCount
-        except AttributeError:
-            bar_iter_count = None
-
+        bar_iter_count = solution["model"].BarIterCount if hasattr(solution["model"], "BarIterCount") else 0
         attr = {s.EXTRA_STATS: solution['model'],
                 s.SOLVE_TIME: solution[s.SOLVE_TIME],
                 s.NUM_ITERS: bar_iter_count}
