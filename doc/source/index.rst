@@ -114,7 +114,7 @@ For a complete list of changes, see the :doc:`changelog </updates/index>`.
 .. _Clarabel: https://github.com/oxfordcontrol/Clarabel.rs
 .. _OSQP: https://osqp.org/
 .. _SCS: http://github.com/cvxgrp/scs
-.. _HiGHS: https://github.com/ERGO-Code/HiGHS
+.. _HIGHS: https://github.com/ERGO-Code/HiGHS
 
 .. toctree::
    :hidden:
