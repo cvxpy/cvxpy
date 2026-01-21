@@ -69,7 +69,7 @@ more, browse the :doc:`library of examples </examples/index>`. For
 background on convex optimization, see the book `Convex Optimization
 <https://www.stanford.edu/~boyd/cvxbook/>`_ by Boyd and Vandenberghe.
 
-CVXPY relies on the open source solvers `Clarabel`_, `OSQP`_, `SCS`_, `HiGHS`.
+CVXPY relies on the open source solvers `Clarabel`_, `OSQP`_, `SCS`_, `HIGHS`_.
 Additional solvers are supported, but must be installed separately.
 
 **Community.**
