@@ -690,8 +690,8 @@ class SOCDim3(Reduction):
                     X = X.T
 
                 # Get dimensions
-                if len(X.shape) == 1:
-                    # Single cone case
+                if len(X.shape) <= 1:
+                    # Scalar (shape ()) or 1D (shape (n,)) - single cone case
                     X_reshaped = reshape(X, (X.size, 1), order='F')
                     t_reshaped = _to_scalar_shape(t)
                 else:

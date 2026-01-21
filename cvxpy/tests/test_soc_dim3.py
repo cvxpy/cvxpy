@@ -318,3 +318,33 @@ class TestSOCDim3EdgeCases:
         prob.solve(solver=cp.CLARABEL)
         inv_sol, new_prob = _solve_with_reduction(prob)
         _check_solution_matches(prob, inv_sol, new_prob)
+
+    def test_scalar_x_soc(self):
+        """SOC constraint with scalar X (shape ()).
+
+        Regression test for bug where len(X.shape) == 0 was not handled,
+        causing IndexError when accessing X_reshaped.shape[1].
+        """
+        # Basic scalar SOC: min t s.t. |x| <= t
+        t = cp.Variable(nonneg=True)
+        x = cp.Variable()  # Scalar variable, shape ()
+
+        soc = SOC(t, x)
+        assert x.shape == (), "x should be scalar with shape ()"
+
+        # Test 1: Unconstrained - optimal is t=0, x=0
+        prob = cp.Problem(cp.Minimize(t), [soc])
+        prob.solve(solver=cp.CLARABEL)
+        inv_sol, new_prob = _solve_with_reduction(prob)
+        assert np.abs(new_prob.value) < 1e-5, "Optimal value should be ~0"
+
+        # Test 2: With x constrained - optimal is t=|x_val|
+        t = cp.Variable(nonneg=True)
+        x = cp.Variable()
+        x_val = 3.0
+        prob = cp.Problem(cp.Minimize(t), [SOC(t, x), x == x_val])
+
+        prob.solve(solver=cp.CLARABEL)
+        inv_sol, new_prob = _solve_with_reduction(prob)
+        _check_solution_matches(prob, inv_sol, new_prob)
+        assert np.abs(new_prob.value - abs(x_val)) < 1e-4, f"Expected t={abs(x_val)}"
