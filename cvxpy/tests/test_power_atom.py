@@ -14,6 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import warnings
+
 import numpy as np
 
 import cvxpy as cp
@@ -164,3 +166,79 @@ class TestPowerAtom(BaseTest):
         soc_count, p3d_count = self._get_cone_counts(prob, cp.ECOS)
         self.assertGreater(soc_count, 0, "Should fall back to SOC cones")
         self.assertEqual(p3d_count, 0, "Should not use power cones with ECOS")
+
+    def test_approx_warning_triggered_many_soc(self) -> None:
+        """Warning should be triggered when many SOC constraints are needed."""
+        x = cp.Variable(3)
+        prob = cp.Problem(
+            cp.Minimize(x[0] + x[1] - x[2]),
+            [cp.power(x, 3.3, approx=True) <= np.ones(3)]
+        )
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            prob.solve(solver=cp.CLARABEL)
+            # Should have at least one warning about power approximation
+            power_warnings = [
+                warning for warning in w
+                if "Power atom" in str(warning.message)
+                and "SOC constraints" in str(warning.message)
+            ]
+            self.assertGreater(len(power_warnings), 0,
+                               "Should warn about SOC approximation")
+
+    def test_approx_warning_not_triggered_with_approx_false(self) -> None:
+        """Warning should NOT be triggered when using approx=False."""
+        x = cp.Variable(3)
+        prob = cp.Problem(
+            cp.Minimize(x[0] + x[1] - x[2]),
+            [cp.power(x, 3.3, approx=False) <= np.ones(3)]
+        )
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            prob.solve(solver=cp.CLARABEL)
+            power_warnings = [
+                warning for warning in w
+                if "Power atom" in str(warning.message)
+                and "SOC constraints" in str(warning.message)
+            ]
+            self.assertEqual(len(power_warnings), 0,
+                             "Should not warn when using power cones")
+
+    def test_approx_warning_not_triggered_unsupported_solver(self) -> None:
+        """Warning should NOT be triggered when solver doesn't support power cones."""
+        if cp.ECOS not in cp.installed_solvers():
+            self.skipTest("ECOS not installed.")
+        x = cp.Variable(3)
+        prob = cp.Problem(
+            cp.Minimize(x[0] + x[1] - x[2]),
+            [cp.power(x, 3.3, approx=True) <= np.ones(3)]
+        )
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            prob.solve(solver=cp.ECOS)
+            power_warnings = [
+                warning for warning in w
+                if "Power atom" in str(warning.message)
+                and "SOC constraints" in str(warning.message)
+            ]
+            self.assertEqual(len(power_warnings), 0,
+                             "Should not warn when solver doesn't support power cones")
+
+    def test_approx_warning_not_triggered_few_soc(self) -> None:
+        """Warning should NOT be triggered when few SOC constraints are needed."""
+        x = cp.Variable(3)
+        # x^2 uses only 3 SOC constraints, which is <= 4
+        prob = cp.Problem(
+            cp.Minimize(x[0] + x[1] - x[2]),
+            [cp.power(x, 2, approx=True) <= np.ones(3)]
+        )
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            prob.solve(solver=cp.CLARABEL)
+            power_warnings = [
+                warning for warning in w
+                if "Power atom" in str(warning.message)
+                and "SOC constraints" in str(warning.message)
+            ]
+            self.assertEqual(len(power_warnings), 0,
+                             "Should not warn when few SOC constraints are needed")

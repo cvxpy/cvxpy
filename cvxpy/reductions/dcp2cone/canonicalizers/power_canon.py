@@ -14,6 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import warnings
+
 import numpy as np
 
 import cvxpy as cp
@@ -27,7 +29,7 @@ from cvxpy.utilities.solver_context import SolverInfo
 def power_canon(expr, args, solver_context: SolverInfo | None = None):
     # If user requested approximation (default), use SOC
     if expr._approx:
-        return power_canon_approx(expr, args)
+        return power_canon_approx(expr, args, solver_context)
 
     # User requested power cones (approx=False)
     # Check if solver supports them
@@ -38,10 +40,10 @@ def power_canon(expr, args, solver_context: SolverInfo | None = None):
     # Fallback to SOC if pow3d not supported
     # Need to recreate expr with approx=True for correct rational approx
     expr = cp.power(args[0], expr._p_orig, max_denom=expr.max_denom, approx=True)
-    return power_canon_approx(expr, [args[0]])
+    return power_canon_approx(expr, [args[0]], solver_context=None)
 
 
-def power_canon_approx(expr, args):
+def power_canon_approx(expr, args, solver_context: SolverInfo | None = None):
     x = args[0]
     p = expr.p_rational
     w = expr.w
@@ -58,13 +60,32 @@ def power_canon_approx(expr, args):
         # TODO(akshayka): gm_constrs requires each of its inputs to be a Variable;
         # is this something that we want to change?
         if 0 < p < 1:
-            return t, gm_constrs(t, [x, ones], w)
+            constrs = gm_constrs(t, [x, ones], w)
         elif p > 1:
-            return t, gm_constrs(x, [t, ones], w)
+            constrs = gm_constrs(x, [t, ones], w)
         elif p < 0:
-            return t, gm_constrs(ones, [x, t], w)
+            constrs = gm_constrs(ones, [x, t], w)
         else:
             raise NotImplementedError('This power is not yet supported.')
+
+        # Warn if the solver supports power cones and the approximation is poor
+        solver_supports_powcone = (
+            solver_context is not None
+            and PowCone3D in solver_context.solver_supported_constraints
+        )
+        if solver_supports_powcone:
+            approx_error = getattr(expr, 'approx_error', 0.0)
+            num_soc = len(constrs)
+            if approx_error > 1e-6 or num_soc > 4:
+                warnings.warn(
+                    f"Power atom with exponent {float(expr._p_orig)} is being approximated "
+                    f"with rational {p} (error: {approx_error:.2e}) "
+                    f"using {num_soc} SOC constraints. "
+                    f"Consider using approx=False to use power cones instead.",
+                    stacklevel=6
+                )
+
+        return t, constrs
 
 
 def power_canon_cone(expr, args):
