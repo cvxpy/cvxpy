@@ -130,7 +130,7 @@ class power(Elementwise):
         of ``p``; only relevant when solving as a DCP program.
     """
 
-    def __init__(self, x, p, max_denom: int = 1024, _approx: bool = True) -> None:
+    def __init__(self, x, p, max_denom: int = 1024, approx: bool = True) -> None:
         self._p_orig = p
         # NB: It is important that the exponent is an attribute, not
         # an argument. This prevents parametrized exponents from being replaced
@@ -142,7 +142,7 @@ class power(Elementwise):
             raise ValueError("The exponent `p` must be either a Constant or "
                              "a Parameter; received ", type(p))
         self.max_denom = max_denom
-        self._approx = _approx
+        self._approx = approx
         self.p_rational = None
 
         if isinstance(self.p, cvxtypes.constant()):

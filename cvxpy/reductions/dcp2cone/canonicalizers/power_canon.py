@@ -29,15 +29,15 @@ def power_canon(expr, args, solver_context: SolverInfo | None = None):
     if expr._approx:
         return power_canon_approx(expr, args)
 
-    # User requested power cones (_approx=False)
+    # User requested power cones (approx=False)
     # Check if solver supports them
     if solver_context is not None \
             and PowCone3D in solver_context.solver_supported_constraints:
         return power_canon_cone(expr, args)
 
     # Fallback to SOC if pow3d not supported
-    # Need to recreate expr with _approx=True for correct rational approx
-    expr = cp.power(args[0], expr._p_orig, max_denom=expr.max_denom, _approx=True)
+    # Need to recreate expr with approx=True for correct rational approx
+    expr = cp.power(args[0], expr._p_orig, max_denom=expr.max_denom, approx=True)
     return power_canon_approx(expr, [args[0]])
 
 
