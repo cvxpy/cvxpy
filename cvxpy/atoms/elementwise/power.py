@@ -416,7 +416,7 @@ class power(Elementwise):
         """
         if args is None:
             args = self.args
-        return power(args[0], self._p_orig, self.max_denom)
+        return power(args[0], self._p_orig, self.max_denom, self._approx)
 
     def name(self) -> str:
         return f"{type(self).__name__}({self.args[0].name()}, {self.p.value})"
