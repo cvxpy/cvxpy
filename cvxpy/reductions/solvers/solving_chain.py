@@ -366,7 +366,7 @@ def construct_solving_chain(problem, candidates,
             quad_obj = use_quad_obj and solver_instance.supports_quad_obj() and \
                 problem.objective.expr.has_quadratic_term()
             reductions += [
-                Dcp2Cone(quad_obj=quad_obj),
+                Dcp2Cone(quad_obj=quad_obj, solver_context=solver_context),
                 CvxAttr2Constr(reduce_bounds=not solver_instance.BOUNDED_VARIABLES),
             ]
             if all(c in supported_constraints for c in cones):

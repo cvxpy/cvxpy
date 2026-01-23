@@ -25,7 +25,8 @@ from cvxpy.constraints.constraint import Constraint
 from cvxpy.utilities.power_tools import pow_high, pow_mid, pow_neg
 
 
-def pnorm(x, p: Union[int, str] = 2, axis=None, keepdims: bool = False, max_denom: int = 1024):
+def pnorm(x, p: Union[int, str] = 2, axis=None, keepdims: bool = False,
+          max_denom: int = 1024, approx: bool = True):
     """Factory function for a mathematical p-norm.
 
     Parameters
@@ -44,7 +45,8 @@ def pnorm(x, p: Union[int, str] = 2, axis=None, keepdims: bool = False, max_deno
     elif p in [np.inf, 'inf', 'Inf']:
         return norm_inf(x, axis=axis, keepdims=keepdims)
     else:
-        return Pnorm(x, p=p, axis=axis, keepdims=keepdims, max_denom=max_denom)
+        return Pnorm(x, p=p, axis=axis, keepdims=keepdims, max_denom=max_denom,
+                     approx=approx)
 
 
 class Pnorm(AxisAtom):
@@ -119,22 +121,35 @@ class Pnorm(AxisAtom):
     _allow_complex = True
 
     def __init__(self, x, p: int = 2, axis=None,
-                 keepdims: bool = False, max_denom: int = 1024) -> None:
-        if p < 0:
-            # TODO(akshayka): Why do we accept p < 0?
-            self.p, _ = pow_neg(p, max_denom)
-        elif 0 < p < 1:
-            self.p, _ = pow_mid(p, max_denom)
-        elif p > 1:
-            self.p, _ = pow_high(p, max_denom)
-        elif p == 1:
-            raise ValueError('Use the norm1 class to instantiate a one norm.')
-        elif p == 'inf' or p == 'Inf' or p == np.inf:
-            raise ValueError('Use the norm_inf class to instantiate an '
-                             'infinity norm.')
+                 keepdims: bool = False, max_denom: int = 1024,
+                 approx: bool = True) -> None:
+        self._approx = approx
+        if approx:
+            if p < 0:
+                # TODO(akshayka): Why do we accept p < 0?
+                self.p, _ = pow_neg(p, max_denom)
+            elif 0 < p < 1:
+                self.p, _ = pow_mid(p, max_denom)
+            elif p > 1:
+                self.p, _ = pow_high(p, max_denom)
+            elif p == 1:
+                raise ValueError('Use the norm1 class to instantiate a one norm.')
+            elif p == 'inf' or p == 'Inf' or p == np.inf:
+                raise ValueError('Use the norm_inf class to instantiate an '
+                                 'infinity norm.')
+            else:
+                raise ValueError('Invalid p: {}'.format(p))
+            self.approx_error = float(abs(self.p - p))
         else:
-            raise ValueError('Invalid p: {}'.format(p))
-        self.approx_error = float(abs(self.p - p))
+            if p == 1:
+                raise ValueError('Use the norm1 class to instantiate a one norm.')
+            elif p == 'inf' or p == 'Inf' or p == np.inf:
+                raise ValueError('Use the norm_inf class to instantiate an '
+                                 'infinity norm.')
+            elif p == 0:
+                raise ValueError('Invalid p: {}'.format(p))
+            self.p = p
+            self.approx_error = 0.0
         self.original_p = p
         super(Pnorm, self).__init__(x, axis=axis, keepdims=keepdims)
 
@@ -205,7 +220,7 @@ class Pnorm(AxisAtom):
         return False
 
     def get_data(self):
-        return [self.p, self.axis]
+        return [self.p, self.axis, self._approx]
 
     def name(self) -> str:
         return f"{type(self).__name__}({self.args[0].name()}, {self.p})"

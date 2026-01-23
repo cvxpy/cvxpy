@@ -178,7 +178,8 @@ class geo_mean(Atom):
         :math:`\\|p/\\mathbf{1}^T p - w \\|_\\infty`
     """
 
-    def __init__(self, x, p: Optional[List[int]] = None, max_denom: int = 1024) -> None:
+    def __init__(self, x, p: Optional[List[int]] = None, max_denom: int = 1024,
+                 approx: bool = True) -> None:
         """ Implementation details of geo_mean.
 
         Attributes
@@ -239,6 +240,7 @@ class geo_mean(Atom):
         if any(v < 0 for v in p) or sum(p) <= 0:
             raise ValueError('powers must be nonnegative and not all zero.')
 
+        self._approx = approx
         self.w, self.w_dyad = fracify(p, max_denom)
         self.approx_error = approx_error(p, self.w)
 
@@ -344,7 +346,7 @@ class geo_mean(Atom):
         return False
 
     def get_data(self):
-        return [self.w, self.w_dyad, self.tree]
+        return [self.w, self.w_dyad, self.tree, self._approx]
 
     def copy(self, args=None, id_objects=None):
         """Returns a shallow copy of the geo_mean atom.
@@ -365,7 +367,7 @@ class geo_mean(Atom):
         copy = type(self).__new__(type(self))
         super(type(self), copy).__init__(*args)
         # Emulate __init__()
-        copy.w, copy.w_dyad, copy.tree = self.get_data()
+        copy.w, copy.w_dyad, copy.tree, copy._approx = self.get_data()
         copy.approx_error = self.approx_error
         copy.cone_lb = self.cone_lb
         copy.cone_num_over = self.cone_num_over

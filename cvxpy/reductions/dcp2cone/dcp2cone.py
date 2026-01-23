@@ -34,14 +34,14 @@ class Dcp2Cone(Canonicalization):
     them into problems with affine or quadratic objectives and conic
     constraints whose arguments are affine.
     """
-    def __init__(self, problem=None, quad_obj: bool = False) -> None:
+    def __init__(self, problem=None, quad_obj: bool = False, solver_context=None) -> None:
         super(Canonicalization, self).__init__(problem=problem)
         self.cone_canon_methods = cone_canon_methods
         self.quad_canon_methods = quad_canon_methods
         self.quad_obj = quad_obj
 
-        # solver_context : The solver context: supported constrains and bounds.
-        self.solver_context = None
+        # solver_context : The solver context: supported constraints and bounds.
+        self.solver_context = solver_context
 
     def accepts(self, problem):
         """A problem is accepted if it is a minimization and is DCP.
@@ -55,9 +55,7 @@ class Dcp2Cone(Canonicalization):
             raise ValueError("Cannot reduce problem to cone program")
 
         inverse_data = InverseData(problem)
-        
-        self.solver_context = problem.solver_context
-        
+
         canon_objective, canon_constraints = self.canonicalize_tree(
             problem.objective, True)
         
