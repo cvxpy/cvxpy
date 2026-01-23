@@ -220,7 +220,9 @@ class Pnorm(AxisAtom):
         return False
 
     def get_data(self):
-        return [self.p, self.axis, self._approx]
+        # Must match __init__ signature: (x, p, axis, keepdims, max_denom, approx)
+        # max_denom is not stored but 1024 is safe since self.p already has the approximation
+        return [self.p, self.axis, self.keepdims, 1024, self._approx]
 
     def name(self) -> str:
         return f"{type(self).__name__}({self.args[0].name()}, {self.p})"
