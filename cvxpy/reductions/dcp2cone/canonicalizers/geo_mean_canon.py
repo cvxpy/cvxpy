@@ -18,6 +18,7 @@ import warnings
 
 import numpy as np
 
+from cvxpy import settings
 from cvxpy.atoms.affine.vstack import vstack
 from cvxpy.constraints.power import PowConeND
 from cvxpy.expressions.variable import Variable

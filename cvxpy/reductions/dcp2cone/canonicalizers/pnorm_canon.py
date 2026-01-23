@@ -19,6 +19,7 @@ from fractions import Fraction
 
 import numpy as np
 
+from cvxpy import settings
 from cvxpy.atoms.affine.sum import sum
 from cvxpy.atoms.affine.vec import vec
 from cvxpy.atoms.elementwise.abs import abs
