@@ -35,13 +35,19 @@ CVXPY adds the open source solver HiGHS as its default mixed-integer linear prog
 solver. HiGHS is a high performance serial and parallel solver for large scale sparse
 linear optimization problems developed by a team from the University of Edinburgh.
 
+Power cone canonicalization
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Three atoms, `power`, `geo_mean`, and `pnorm` now take a parameter `approx` that determines
+whether CVXPY canonicalizes the atom using many SOCs or one power cone. Feel free to set
+`approx=False` and report on whether it improves performance or accuracy!
+
 New features
 ~~~~~~~~~~~~
   - DPP with complex expressions
   - Support for ND matmul
   - Support for ND cumsum
   - unification of QP interface into quadratic conic pathway
-  - power cone canonicalization of x^p
   - solving chain context
   - New atom: :ref:`einsum <einsum>`
   - New atom: :ref:`stack <stack>`

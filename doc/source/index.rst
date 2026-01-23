@@ -24,6 +24,8 @@ Welcome to CVXPY 1.8
 
 **Convex optimization, for everyone.**
 
+*We are hosting a CVXPY community workshop on Feb 20 and 21, virtually and at Stanford University!* `Sign up today! <https://docs.google.com/forms/d/e/1FAIpQLSexWIvIfNlpkY4KK3rw47qNg8MiYUT6vL-dPt1emACH6ChPzw/viewform?usp=header>`_.
+*We are inviting CVXPY users to share their experience with the library and their application area so we can better serve you!* `Sign up for a listening session! <https://calendar.app.google/mRGBur1ZVMW1dcbR8>`_.
 *We are building a CVXPY community* `on Discord <https://discord.gg/4urRQeGBCr>`_. *Join the conversation!*
 
 CVXPY is an open source Python-embedded modeling language for convex
