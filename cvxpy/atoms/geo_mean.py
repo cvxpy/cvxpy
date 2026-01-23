@@ -168,6 +168,12 @@ class geo_mean(Atom):
         ``max_denom`` **may** offer a more accurate representation, at the
         cost of requiring more convex inequalities to represent the geometric mean.
 
+    approx : bool
+        When ``True`` (default), the geometric mean is canonicalized using a
+        second-order cone (SOC) approximation of the rational weights ``w``.
+        When ``False``, the geometric mean is canonicalized using the power
+        cone, which is exact.
+
 
     Attributes
     ----------

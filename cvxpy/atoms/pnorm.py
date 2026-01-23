@@ -110,6 +110,12 @@ class Pnorm(AxisAtom):
         The maximum denominator considered in forming a rational approximation
         for ``p``.
 
+    approx : bool
+        When ``True`` (default), the p-norm is canonicalized using a
+        second-order cone (SOC) approximation based on a rational approximation
+        of ``p``. When ``False``, the p-norm is canonicalized using the power
+        cone, which is exact.
+
     axis : 0 or 1
            The axis to apply the norm to.
 

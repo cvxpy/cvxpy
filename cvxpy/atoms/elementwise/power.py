@@ -128,6 +128,12 @@ class power(Elementwise):
     max_denom : int
         The maximum denominator considered in forming a rational approximation
         of ``p``; only relevant when solving as a DCP program.
+
+    approx : bool
+        When ``True`` (default), the power atom is canonicalized using a
+        second-order cone (SOC) approximation based on a rational approximation
+        of ``p``. When ``False``, the power atom is canonicalized using the
+        power cone, which is exact. Only relevant when solving as a DCP program.
     """
 
     def __init__(self, x, p, max_denom: int = 1024, approx: bool = True) -> None:
