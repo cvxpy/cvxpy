@@ -26,6 +26,20 @@ from cvxpy.utilities.solver_context import SolverInfo
 
 
 def geo_mean_canon(expr, args, solver_context: SolverInfo | None = None):
+    # If user requested approximation (default), use SOC
+    if expr._approx:
+        return geo_mean_canon_approx(expr, args, solver_context)
+
+    # User requested power cones (approx=False)
+    # Check if solver supports them
+    if solver_context is not None and PowConeND in solver_context.solver_supported_constraints:
+        return geo_mean_canon_cone(expr, args)
+
+    # Fallback to SOC if power cones not supported
+    return geo_mean_canon_approx(expr, args, solver_context=None)
+
+
+def geo_mean_canon_approx(expr, args, solver_context: SolverInfo | None = None):
     x = args[0]
     w = expr.w
     shape = expr.shape
@@ -36,36 +50,42 @@ def geo_mean_canon(expr, args, solver_context: SolverInfo | None = None):
     else:
         x_list = [x[i] for i in range(len(w))]
 
-    # Check if user requested power cones (approx=False)
-    if not expr._approx:
-        solver_supports_powcone = (
-            solver_context is not None
-            and PowConeND in solver_context.solver_supported_constraints
-        )
-        if solver_supports_powcone:
-            # Use PowConeND: prod(W^alpha) >= |z|
-            # Stack x_list into a column vector W
-            W = vstack(x_list)
-            alpha = np.array([float(wi) for wi in w]).reshape(-1, 1)
-            return t, [PowConeND(W, t, alpha, axis=0)]
-
-    # Use SOC approximation
     constrs = gm_constrs(t, x_list, w)
 
     # Warn if the solver supports power cones and the approximation is poor
     solver_supports_powcone = (
-        solver_context is not None
-        and PowConeND in solver_context.solver_supported_constraints
+        solver_context is not None and PowConeND in solver_context.solver_supported_constraints
     )
-    if solver_supports_powcone and expr._approx:
-        approx_error = getattr(expr, 'approx_error', 0.0)
+    if solver_supports_powcone:
+        approx_error = expr.approx_error
         num_soc = len(constrs)
-        if approx_error > 1e-6 or num_soc > 4:
+        if (
+            approx_error > settings.POWERCONE_APPROX_ERROR_THRESHOLD
+            or num_soc > settings.POWERCONE_APPROX_SOC_THRESHOLD
+        ):
             warnings.warn(
                 f"geo_mean is being approximated (error: {approx_error:.2e}) "
                 f"using {num_soc} SOC constraints. "
                 f"Consider using approx=False to use power cones instead.",
-                stacklevel=6
+                stacklevel=6,
             )
 
     return t, constrs
+
+
+def geo_mean_canon_cone(expr, args):
+    x = args[0]
+    w = expr.w
+    shape = expr.shape
+    t = Variable(shape)
+
+    if x.shape == ():
+        x_list = [x]
+    else:
+        x_list = [x[i] for i in range(len(w))]
+
+    # Use PowConeND: prod(W^alpha) >= |z|
+    # Stack x_list into a column vector W
+    W = vstack(x_list)
+    alpha = np.array([float(wi) for wi in w]).reshape(-1, 1)
+    return t, [PowConeND(W, t, alpha, axis=0)]

@@ -31,7 +31,7 @@ class TestPowerAtom(BaseTest):
         dims = data['dims']
         return len(dims.soc), len(dims.p3d)
 
-    def test_explicitapprox_true_forces_soc(self) -> None:
+    def test_explicit_approx_true_forces_soc(self) -> None:
         """Test that approx=True forces SOC even with power-cone-capable solver."""
         x = cp.Variable(3)
         prob = cp.Problem(
@@ -43,7 +43,7 @@ class TestPowerAtom(BaseTest):
         self.assertGreater(soc_count, 0, "approx=True should force SOC cones")
         self.assertEqual(p3d_count, 0, "approx=True should not use power cones")
 
-    def test_explicitapprox_false_forces_power_cones(self) -> None:
+    def test_explicit_approx_false_forces_power_cones(self) -> None:
         """Test that approx=False forces power cones."""
         x = cp.Variable(3)
         prob = cp.Problem(
@@ -55,7 +55,7 @@ class TestPowerAtom(BaseTest):
         self.assertGreater(p3d_count, 0, "approx=False should use power cones")
         self.assertEqual(soc_count, 0, "approx=False should not use SOC cones")
 
-    def test_powerapprox(self) -> None:
+    def test_power_approx(self) -> None:
         """Test power atom with approximation."""
         x = cp.Variable(3)
         constr = [cp.power(x, 3.3, approx=True) <= np.ones(3)]
@@ -66,7 +66,7 @@ class TestPowerAtom(BaseTest):
         expected_x = np.array([0.0, 0.0, 1.0])
         self.assertItemsAlmostEqual(x.value, expected_x, places=3)
 
-    def test_power_noapprox(self) -> None:
+    def test_power_no_approx(self) -> None:
         """Test power atom without approximation."""
         x = cp.Variable(3)
         constr = [cp.power(x, 3.3, approx=False) <= np.ones(3)]
@@ -77,7 +77,7 @@ class TestPowerAtom(BaseTest):
         expected_x = np.array([0.0, 0.0, 1.0])
         self.assertItemsAlmostEqual(x.value, expected_x, places=3)
 
-    def test_power_with_and_withoutapprox_low(self) -> None:
+    def test_power_with_and_without_approx_low(self) -> None:
         """Compare answers with and without approximation on the same problem."""
         x = cp.Variable(3)
         constr = [
@@ -95,7 +95,7 @@ class TestPowerAtom(BaseTest):
         self.assertIn(prob.status, [cp.OPTIMAL, cp.OPTIMAL_INACCURATE])
         self.assertItemsAlmostEqual(x.value, x_approx, places=3)
 
-    def test_power_with_and_withoutapprox_mid(self) -> None:
+    def test_power_with_and_without_approx_mid(self) -> None:
         """Compare answers with and without approximation on the same problem."""
         x = cp.Variable(3)
         constr = [
@@ -113,7 +113,7 @@ class TestPowerAtom(BaseTest):
         self.assertIn(prob.status, [cp.OPTIMAL, cp.OPTIMAL_INACCURATE])
         self.assertItemsAlmostEqual(x.value, x_approx, places=3)
 
-    def test_power_with_and_withoutapprox_high(self) -> None:
+    def test_power_with_and_without_approx_high(self) -> None:
         """Compare answers with and without approximation on the same problem."""
         x = cp.Variable(3)
         constr = [
@@ -131,7 +131,7 @@ class TestPowerAtom(BaseTest):
         self.assertIn(prob.status, [cp.OPTIMAL, cp.OPTIMAL_INACCURATE])
         self.assertItemsAlmostEqual(x.value, x_approx, places=3)
 
-    def test_power_with_and_withoutapprox_even(self) -> None:
+    def test_power_with_and_without_approx_even(self) -> None:
         """Compare answers with and without approximation on the same problem."""
         x = cp.Variable(3)
         constr = [
@@ -149,7 +149,7 @@ class TestPowerAtom(BaseTest):
         self.assertIn(prob.status, [cp.OPTIMAL, cp.OPTIMAL_INACCURATE])
         self.assertItemsAlmostEqual(x.value, x_approx, places=3)
 
-    def test_power_noapprox_unsupported_solver(self) -> None:
+    def test_power_no_approx_unsupported_solver(self) -> None:
         """
         Test fallback behavior: approx=False with a solver that doesn't
         support power cones should fall back to SOC.

@@ -19,6 +19,7 @@ import warnings
 import numpy as np
 
 import cvxpy as cp
+from cvxpy import settings
 from cvxpy.constraints import PowCone3D
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variable import Variable
@@ -33,8 +34,7 @@ def power_canon(expr, args, solver_context: SolverInfo | None = None):
 
     # User requested power cones (approx=False)
     # Check if solver supports them
-    if solver_context is not None \
-            and PowCone3D in solver_context.solver_supported_constraints:
+    if solver_context is not None and PowCone3D in solver_context.solver_supported_constraints:
         return power_canon_cone(expr, args)
 
     # Fallback to SOC if pow3d not supported
@@ -66,23 +66,25 @@ def power_canon_approx(expr, args, solver_context: SolverInfo | None = None):
         elif p < 0:
             constrs = gm_constrs(ones, [x, t], w)
         else:
-            raise NotImplementedError('This power is not yet supported.')
+            raise NotImplementedError("This power is not yet supported.")
 
         # Warn if the solver supports power cones and the approximation is poor
         solver_supports_powcone = (
-            solver_context is not None
-            and PowCone3D in solver_context.solver_supported_constraints
+            solver_context is not None and PowCone3D in solver_context.solver_supported_constraints
         )
         if solver_supports_powcone:
-            approx_error = getattr(expr, 'approx_error', 0.0)
+            approx_error = getattr(expr, "approx_error", 0.0)
             num_soc = len(constrs)
-            if approx_error > 1e-6 or num_soc > 4:
+            if (
+                approx_error > settings.POWERCONE_APPROX_ERROR_THRESHOLD
+                or num_soc > settings.POWERCONE_APPROX_SOC_THRESHOLD
+            ):
                 warnings.warn(
                     f"Power atom with exponent {float(expr._p_orig)} is being approximated "
                     f"with rational {p} (error: {approx_error:.2e}) "
                     f"using {num_soc} SOC constraints. "
                     f"Consider using approx=False to use power cones instead.",
-                    stacklevel=6
+                    stacklevel=6,
                 )
 
         return t, constrs
@@ -114,5 +116,4 @@ def power_canon_cone(expr, args):
     elif p < 0:
         return t, powcone_constrs(ones, [x, t], w)
     else:
-        raise NotImplementedError('This power is not yet supported.')
-
+        raise NotImplementedError("This power is not yet supported.")
