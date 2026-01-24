@@ -74,6 +74,12 @@ class Sum(AxisAtom, AffAtom):
         """Is the atom log-log concave?"""
         return False
 
+    def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
+        """Returns bounds for the sum based on argument bounds."""
+        from cvxpy.utilities import bounds as bounds_utils
+        lb, ub = self.args[0].get_bounds()
+        return bounds_utils.sum_bounds(lb, ub, axis=self.axis, keepdims=self.keepdims)
+
     def validate_arguments(self) -> None:
         """Validates arguments using NumPy's sum validation."""
         self.shape_from_args()

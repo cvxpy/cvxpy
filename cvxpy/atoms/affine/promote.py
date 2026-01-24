@@ -83,6 +83,12 @@ class Promote(AffAtom):
         """Is the atom log-log concave?"""
         return True
 
+    def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
+        """Returns bounds for promoted expression."""
+        from cvxpy.utilities import bounds as bounds_utils
+        lb, ub = self.args[0].get_bounds()
+        return bounds_utils.broadcast_bounds(lb, ub, self.promoted_shape)
+
     def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the (row, col) shape of the expression.
         """

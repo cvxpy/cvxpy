@@ -17,6 +17,8 @@ import operator as op
 from functools import reduce
 from typing import Any, Iterable, List, Tuple
 
+import numpy as np
+
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.utilities as u
@@ -78,6 +80,20 @@ class AddExpression(AffAtom):
         """Is the atom log-log concave?
         """
         return False
+
+    def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
+        """Returns bounds for addition based on argument bounds."""
+        from cvxpy.utilities import bounds as bounds_utils
+        # Start with first argument's bounds
+        lb, ub = self.args[0].get_bounds()
+        # Broadcast to output shape if needed
+        lb, ub = bounds_utils.broadcast_bounds(lb, ub, self.shape)
+        # Add remaining arguments
+        for arg in self.args[1:]:
+            arg_lb, arg_ub = arg.get_bounds()
+            arg_lb, arg_ub = bounds_utils.broadcast_bounds(arg_lb, arg_ub, self.shape)
+            lb, ub = bounds_utils.add_bounds(lb, ub, arg_lb, arg_ub)
+        return (lb, ub)
 
     def is_symmetric(self) -> bool:
         """Is the expression symmetric?

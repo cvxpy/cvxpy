@@ -16,6 +16,8 @@ limitations under the License.
 
 from typing import List, Optional, Tuple
 
+import numpy as np
+
 import cvxpy.settings as s
 import cvxpy.utilities as u
 from cvxpy.atoms import sum, trace
@@ -187,6 +189,14 @@ class PartialProblem(Expression):
         """Returns the (row, col) dimensions of the expression.
         """
         return tuple()
+
+    def get_bounds(self) -> Tuple[np.ndarray, np.ndarray]:
+        """Returns the bounds on the expression.
+
+        For PartialProblem, we return unbounded since computing tight bounds
+        would require solving the optimization problem.
+        """
+        return (np.array(-np.inf), np.array(np.inf))
 
     def name(self) -> str:
         """Returns the string representation of the expression.

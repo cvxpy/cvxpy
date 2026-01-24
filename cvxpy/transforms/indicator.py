@@ -94,6 +94,13 @@ class indicator(Expression):
         """
         return ()
 
+    def get_bounds(self) -> Tuple[np.ndarray, np.ndarray]:
+        """Returns the bounds on the expression.
+
+        Indicator is 0 if constraints hold, +inf otherwise.
+        """
+        return (np.array(0.0), np.array(np.inf))
+
     def is_dpp(self, context: str = 'dcp') -> bool:
         """The expression is a disciplined parameterized expression.
         """

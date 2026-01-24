@@ -16,6 +16,8 @@ limitations under the License.
 import operator as op
 from typing import List, Tuple
 
+import numpy as np
+
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.affine.affine_atom import AffAtom
@@ -74,6 +76,12 @@ class NegExpression(UnaryOperator):
         """Returns sign (is positive, is negative) of the expression.
         """
         return (self.args[0].is_nonpos(), self.args[0].is_nonneg())
+
+    def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
+        """Returns bounds for the negation based on argument bounds."""
+        from cvxpy.utilities import bounds as bounds_utils
+        lb, ub = self.args[0].get_bounds()
+        return bounds_utils.neg_bounds(lb, ub)
 
     def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?

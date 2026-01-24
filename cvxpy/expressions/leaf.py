@@ -745,3 +745,38 @@ class Leaf(expression.Expression):
                                 "or upper bound.")
 
         return value
+
+    def get_bounds(self) -> tuple[np.ndarray, np.ndarray]:
+        """Return bounds (lower, upper) for this leaf.
+
+        For Variables: combines explicit bounds with sign attributes.
+        For Constants: returns (value, value).
+        For Parameters: combines explicit bounds with sign attributes.
+
+        Returns
+        -------
+        tuple of np.ndarray
+            (lower_bound, upper_bound) arrays with shape matching self.shape.
+        """
+        from cvxpy.utilities import bounds as bounds_utils
+
+        # Start with unbounded
+        lb, ub = bounds_utils.unbounded(self.shape)
+
+        # Apply bounds attribute if present
+        if self.attributes['bounds'] is not None:
+            lb = np.maximum(lb, self.bounds[0])
+            ub = np.minimum(ub, self.bounds[1])
+
+        # Apply sign attributes
+        if self.attributes['nonneg'] or self.attributes['pos']:
+            lb = np.maximum(lb, 0)
+        if self.attributes['nonpos'] or self.attributes['neg']:
+            ub = np.minimum(ub, 0)
+
+        # For boolean variables, bounds are [0, 1]
+        if self.attributes['boolean'] is True:
+            lb = np.maximum(lb, 0)
+            ub = np.minimum(ub, 1)
+
+        return (lb, ub)

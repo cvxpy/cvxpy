@@ -51,6 +51,12 @@ class maximum(Elementwise):
         is_neg = all(arg.is_nonpos() for arg in self.args)
         return (is_pos, is_neg)
 
+    def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
+        """Returns bounds for elementwise maximum based on argument bounds."""
+        from cvxpy.utilities import bounds as bounds_utils
+        bounds_list = [arg.get_bounds() for arg in self.args]
+        return bounds_utils.maximum_bounds(bounds_list)
+
     def is_atom_convex(self) -> bool:
         """Is the atom convex?
         """

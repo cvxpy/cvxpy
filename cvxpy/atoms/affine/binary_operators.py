@@ -106,6 +106,13 @@ class BinaryOperator(AffAtom):
         return (self.args[0].is_complex() or self.args[1].is_complex()) and \
             not (self.args[0].is_imag() and self.args[1].is_imag())
 
+    def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
+        """Returns bounds for elementwise multiplication based on argument bounds."""
+        from cvxpy.utilities import bounds as bounds_utils
+        lb1, ub1 = self.args[0].get_bounds()
+        lb2, ub2 = self.args[1].get_bounds()
+        return bounds_utils.mul_bounds(lb1, ub1, lb2, ub2)
+
 
 def matmul(lh_exp, rh_exp) -> "MulExpression":
     """Matrix multiplication."""
@@ -228,6 +235,19 @@ class MulExpression(BinaryOperator):
         """
         return False
 
+    def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
+        """Returns bounds for matrix multiplication based on argument bounds."""
+        from cvxpy.utilities import bounds as bounds_utils
+        lb1, ub1 = self.args[0].get_bounds()
+        lb2, ub2 = self.args[1].get_bounds()
+
+        # For scalar multiplication, use elementwise bounds
+        if lb1.shape == () or lb2.shape == ():
+            return bounds_utils.mul_bounds(lb1, ub1, lb2, ub2)
+
+        # For matrix multiplication, use matmul bounds
+        return bounds_utils.matmul_bounds(lb1, ub1, lb2, ub2)
+
     def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """
@@ -339,6 +359,17 @@ class multiply(MulExpression):
     def is_atom_log_log_concave(self) -> bool:
         """Is the atom log-log concave?"""
         return True
+
+    def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
+        """Returns bounds for elementwise multiplication based on argument bounds.
+
+        Overrides MulExpression to use elementwise multiplication bounds
+        instead of matrix multiplication bounds.
+        """
+        from cvxpy.utilities import bounds as bounds_utils
+        lb1, ub1 = self.args[0].get_bounds()
+        lb2, ub2 = self.args[1].get_bounds()
+        return bounds_utils.mul_bounds(lb1, ub1, lb2, ub2)
 
     def is_atom_quasiconvex(self) -> bool:
         return (
@@ -504,6 +535,13 @@ class DivExpression(BinaryOperator):
 
     def is_atom_quasiconcave(self) -> bool:
         return self.is_atom_quasiconvex()
+
+    def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
+        """Returns bounds for division based on argument bounds."""
+        from cvxpy.utilities import bounds as bounds_utils
+        lb1, ub1 = self.args[0].get_bounds()
+        lb2, ub2 = self.args[1].get_bounds()
+        return bounds_utils.div_bounds(lb1, ub1, lb2, ub2)
 
     def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?

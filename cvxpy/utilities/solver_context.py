@@ -16,9 +16,10 @@ limitations under the License.
 
 
 class SolverInfo:
-    """A context class that propagates solver attributes 
+    """A context class that propagates solver attributes
     through the solving chain.
     """
-    def __init__(self, solver=None, supported_constraints=None):
+    def __init__(self, solver=None, supported_constraints=None, supports_bounds=False):
         self.solver_name = solver
         self.solver_supported_constraints = supported_constraints
+        self.solver_supports_bounds = supports_bounds

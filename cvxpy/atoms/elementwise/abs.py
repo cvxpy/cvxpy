@@ -39,6 +39,12 @@ class abs(Elementwise):
         # Always positive.
         return (True, False)
 
+    def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
+        """Returns bounds for absolute value based on argument bounds."""
+        from cvxpy.utilities import bounds as bounds_utils
+        lb, ub = self.args[0].get_bounds()
+        return bounds_utils.abs_bounds(lb, ub)
+
     def is_atom_convex(self) -> bool:
         """Is the atom convex?
         """
