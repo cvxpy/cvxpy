@@ -102,11 +102,34 @@ class PDCS(ConicSolver):
             Control the verbosity.
         solver_opts : dict
             PDCS-specific solver options.
+            - note that all options should be strings, since they are passed to the Julia code.
+            - for boolean options, use "true" or "false" instead of True or False.
+            - for integer options, use the string representation of the integer.
 
         Returns
         -------
         The result returned by a call to PDCS_GPU.solve_with_solver().
         """
+        solver_opts["verbose"] = 2 if verbose else 0
+        solver_opts.setdefault("abs_tol", 1e-6)
+        solver_opts.setdefault("rel_tol", 1e-6)
+        solver_opts.setdefault("logfile", "nothing")
+        solver_opts.setdefault("time_limit_secs", 1000.0)
+        solver_opts.setdefault("use_scaling", "true")
+        solver_opts.setdefault("rescaling_method", "ruiz_pock_chambolle")
+        solver_opts.setdefault("use_adaptive_restart", "true")
+        solver_opts.setdefault("use_adaptive_step_size_weight", "true")
+        solver_opts.setdefault("use_resolving", "true")
+        solver_opts.setdefault("use_accelerated", "false")
+        solver_opts.setdefault("use_aggressive", "true")
+        solver_opts.setdefault("print_freq", 2000)
+        solver_opts.setdefault("kkt_restart_freq", 2000)
+        solver_opts.setdefault("duality_gap_restart_freq", 2000)
+        solver_opts.setdefault("use_kkt_restart", "false")
+        solver_opts.setdefault("use_duality_gap_restart", "true")
+        solver_opts.setdefault("use_preconditioner", "true")
+        solver_opts.setdefault("method", "average")
+        print(f"solver_opts: {solver_opts}")
         import cupy
         from cupyx.scipy.sparse import csr_matrix as cucsr_matrix
         from juliacall import Main as jl
@@ -141,7 +164,7 @@ class PDCS(ConicSolver):
         assert len(cones.p3d) == 0, "PowCone3D is not supported"
         assert len(cones.pnd) == 0, "PowerCone is not supported"
         assert len(cones.psd) == 0, "PSD is not supported"
-        jl.seval("""
+        jl.seval(f"""
         m, n = size(G)
         solver = PDCS_GPU.PDCS_GPU_Solver(
             n = n,
@@ -152,33 +175,33 @@ class PDCS(ConicSolver):
             h = -b,
             mGzero = m_zero,
             mGnonnegative = m_nonnegative,
-            socG = Vector{Integer}(soc),
-            rsocG = Vector{Integer}([]),
+            socG = Vector{{Integer}}(soc),
+            rsocG = Vector{{Integer}}([]),
             expG = expG,
             dual_expG = 0,
             bl = CuArray(ones(n) * -Inf),
             bu = CuArray(ones(n) * Inf),
-            soc_x = Vector{Integer}([]),
-            rsoc_x = Vector{Integer}([]),
+            soc_x = Vector{{Integer}}([]),
+            rsoc_x = Vector{{Integer}}([]),
             exp_x = 0,
             dual_exp_x = 0,
-            use_preconditioner = true,
-            method = :average,
-            print_freq = 2000,
-            time_limit = 1000.0,
-            use_adaptive_restart = true,
-            use_adaptive_step_size_weight = true,
-            use_resolving = true,
-            use_accelerated = false,
-            use_aggressive = true,
-            verbose = 2,
-            rel_tol = 1e-6,
-            abs_tol = 1e-6,
-            kkt_restart_freq = 2000,
-            duality_gap_restart_freq = 2000,
-            use_kkt_restart = false,
-            use_duality_gap_restart = true,
-            logfile_name = nothing,
+            use_preconditioner = {solver_opts["use_preconditioner"]},
+            method = :{solver_opts["method"]},
+            print_freq = {solver_opts["print_freq"]},
+            time_limit = {solver_opts["time_limit_secs"]},
+            use_adaptive_restart = {solver_opts["use_adaptive_restart"]},
+            use_adaptive_step_size_weight = {solver_opts["use_adaptive_step_size_weight"]},
+            use_resolving = {solver_opts["use_resolving"]},
+            use_accelerated = {solver_opts["use_accelerated"]},
+            use_aggressive = {solver_opts["use_aggressive"]},
+            verbose = {solver_opts["verbose"]},
+            rel_tol = {solver_opts["rel_tol"]},
+            abs_tol = {solver_opts["abs_tol"]},
+            kkt_restart_freq = {solver_opts["kkt_restart_freq"]},
+            duality_gap_restart_freq = {solver_opts["duality_gap_restart_freq"]},
+            use_kkt_restart = {solver_opts["use_kkt_restart"]},
+            use_duality_gap_restart = {solver_opts["use_duality_gap_restart"]},
+            logfile_name = {solver_opts["logfile"]},
         )
         """)
         results = jl.PDCS_GPU.solve_with_solver(jl.solver)
