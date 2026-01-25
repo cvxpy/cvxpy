@@ -25,6 +25,7 @@ from cvxpy.reductions.solvers.conic_solvers.copt_conif import COPT as COPT_con
 from cvxpy.reductions.solvers.conic_solvers.cosmo_conif import COSMO as COSMO_con
 from cvxpy.reductions.solvers.conic_solvers.cplex_conif import CPLEX as CPLEX_con
 from cvxpy.reductions.solvers.conic_solvers.cuclarabel_conif import CUCLARABEL as CUCLARABEL_con
+from cvxpy.reductions.solvers.conic_solvers.pdcs_conif import PDCS as PDCS_con
 from cvxpy.reductions.solvers.conic_solvers.cuopt_conif import CUOPT as CUOPT_con
 from cvxpy.reductions.solvers.conic_solvers.cvxopt_conif import CVXOPT as CVXOPT_con
 from cvxpy.reductions.solvers.conic_solvers.diffcp_conif import DIFFCP as DIFFCP_con
@@ -66,7 +67,7 @@ solver_conic_intf = [
     CBC_con(), CLARABEL_con(), COSMO_con(), SCS_con(), SDPA_con(), GUROBI_con(),
     MOSEK_con(), MOREAU_con(), CPLEX_con(), NAG_con(), XPRESS_con(), SCIP_con(),
     SCIPY_con(), HIGHS_con(), GLOP_con(), PDLP_con(), QOCO_con(), CUCLARABEL_con(),
-    CUOPT_con(), ECOS_BB_con(), KNITRO_con(),
+    CUOPT_con(), ECOS_BB_con(), KNITRO_con(), PDCS_con(),
 ]
 
 solver_qp_intf = [
@@ -118,6 +119,7 @@ CONIC_SOLVERS = [
     s.ECOS_BB,
     s.KNITRO,
     s.COSMO,
+    s.PDCS,
 ]
 
 QP_SOLVERS = [
