@@ -20,7 +20,7 @@ import numpy as np
 
 from cvxpy import settings
 from cvxpy.atoms.affine.vstack import vstack
-from cvxpy.constraints.power import PowConeND
+from cvxpy.constraints.power import PowCone3D, PowConeND
 from cvxpy.expressions.variable import Variable
 from cvxpy.utilities.power_tools import gm_constrs
 from cvxpy.utilities.solver_context import SolverInfo
@@ -31,13 +31,20 @@ def geo_mean_canon(expr, args, solver_context: SolverInfo | None = None):
     if expr._approx:
         return geo_mean_canon_approx(expr, args, solver_context)
 
-    # User requested power cones (approx=False)
-    # Check if solver supports them
-    if solver_context is not None and PowConeND in solver_context.solver_supported_constraints:
-        return geo_mean_canon_cone(expr, args)
-
-    # Fallback to SOC if power cones not supported
-    return geo_mean_canon_approx(expr, args, solver_context=None)
+    # User requested power cones (approx=False).
+    # Produce PowConeND; the solving chain adds Exotic2Common to decompose
+    # to PowCone3D when the solver lacks native PowConeND support.
+    if solver_context is not None:
+        supports_pow = (
+            PowConeND in solver_context.solver_supported_constraints
+            or PowCone3D in solver_context.solver_supported_constraints
+        )
+        if not supports_pow:
+            raise ValueError(
+                "approx=False requires a solver that supports power cones, "
+                "but the current solver supports neither PowConeND nor PowCone3D."
+            )
+    return geo_mean_canon_cone(expr, args)
 
 
 def geo_mean_canon_approx(expr, args, solver_context: SolverInfo | None = None):

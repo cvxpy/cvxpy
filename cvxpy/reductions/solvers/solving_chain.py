@@ -7,6 +7,7 @@ import scipy.sparse as sp
 
 import cvxpy.settings as s
 from cvxpy.atoms import EXP_ATOMS, NONPOS_ATOMS, PSD_ATOMS, SOC_ATOMS
+from cvxpy.atoms.geo_mean import geo_mean
 from cvxpy.constraints import (
     PSD,
     SOC,
@@ -300,6 +301,19 @@ def construct_solving_chain(problem, candidates,
     # requiring that cone.
     cones = []
     atoms = problem.atoms()
+
+    # Check if any geo_mean atom in the problem uses approx=False,
+    # which produces PowConeND constraints during Dcp2Cone canonicalization.
+    def _has_exact_geo_mean(node):
+        if isinstance(node, geo_mean) and not node._approx:
+            return True
+        return any(_has_exact_geo_mean(arg) for arg in node.args)
+
+    needs_powcone_nd = (
+        geo_mean in atoms
+        and (_has_exact_geo_mean(problem.objective.expr)
+             or any(_has_exact_geo_mean(c) for c in problem.constraints))
+    )
     if SOC in constr_types or any(atom in SOC_ATOMS for atom in atoms):
         cones.append(SOC)
     if ExpCone in constr_types or any(atom in EXP_ATOMS for atom in atoms):
@@ -335,6 +349,12 @@ def construct_solving_chain(problem, candidates,
 
         ex_cos = (constr_types & set(EXOTIC_CONES)) - set(supported_constraints)
 
+        # geo_mean with approx=False produces PowConeND during Dcp2Cone.
+        # If the solver lacks native PowConeND, Exotic2Common will
+        # decompose it to PowCone3D.
+        if needs_powcone_nd and PowConeND not in supported_constraints:
+            ex_cos.add(PowConeND)
+
         for co in ex_cos:
             sim_cos = set(EXOTIC_CONES[co]) 
             constr_types.update(sim_cos)
@@ -353,8 +373,6 @@ def construct_solving_chain(problem, candidates,
         ]
 
         if has_constr or not solver_instance.REQUIRES_CONSTR:
-            if ex_cos:
-                reductions.append(Exotic2Common())
             if RelEntrConeQuad in approx_cos or OpRelEntrConeQuad in approx_cos:
                 reductions.append(QuadApprox())
 
@@ -365,10 +383,14 @@ def construct_solving_chain(problem, candidates,
                 use_quad_obj = solver_opts.get("use_quad_obj", True)
             quad_obj = use_quad_obj and solver_instance.supports_quad_obj() and \
                 problem.objective.expr.has_quadratic_term()
-            reductions += [
+            reductions.append(
                 Dcp2Cone(quad_obj=quad_obj, solver_context=solver_context),
+            )
+            if ex_cos:
+                reductions.append(Exotic2Common())
+            reductions.append(
                 CvxAttr2Constr(reduce_bounds=not solver_instance.BOUNDED_VARIABLES),
-            ]
+            )
             if all(c in supported_constraints for c in cones):
                 # Check if solver only supports dim-3 SOC cones
                 if solver_instance.SOC_DIM3_ONLY and SOC in cones:

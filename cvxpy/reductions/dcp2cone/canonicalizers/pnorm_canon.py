@@ -56,8 +56,10 @@ def pnorm_canon(expr, args, solver_context: SolverInfo | None = None):
     if solver_context is not None and PowCone3D in solver_context.solver_supported_constraints:
         return pnorm_canon_cone(expr, args)
 
-    # Fallback to SOC if power cones not supported
-    return pnorm_canon_approx(expr, args, solver_context=None)
+    raise ValueError(
+        "approx=False requires a solver that supports power cones, "
+        "but the current solver does not support PowCone3D."
+    )
 
 
 def pnorm_canon_approx(expr, args, solver_context: SolverInfo | None = None):

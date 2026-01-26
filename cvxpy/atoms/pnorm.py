@@ -130,6 +130,7 @@ class Pnorm(AxisAtom):
                  keepdims: bool = False, max_denom: int = 1024,
                  approx: bool = True) -> None:
         self._approx = approx
+        self.max_denom = max_denom
         if approx:
             if p < 0:
                 # TODO(akshayka): Why do we accept p < 0?
@@ -227,8 +228,7 @@ class Pnorm(AxisAtom):
 
     def get_data(self):
         # Must match __init__ signature: (x, p, axis, keepdims, max_denom, approx)
-        # max_denom is not stored but 1024 is safe since self.p already has the approximation
-        return [self.p, self.axis, self.keepdims, 1024, self._approx]
+        return [self.original_p, self.axis, self.keepdims, self.max_denom, self._approx]
 
     def name(self) -> str:
         return f"{type(self).__name__}({self.args[0].name()}, {self.p})"

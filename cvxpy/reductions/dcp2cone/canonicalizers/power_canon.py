@@ -18,7 +18,6 @@ import warnings
 
 import numpy as np
 
-import cvxpy as cp
 from cvxpy import settings
 from cvxpy.constraints import PowCone3D
 from cvxpy.expressions.constants import Constant
@@ -37,10 +36,10 @@ def power_canon(expr, args, solver_context: SolverInfo | None = None):
     if solver_context is not None and PowCone3D in solver_context.solver_supported_constraints:
         return power_canon_cone(expr, args)
 
-    # Fallback to SOC if pow3d not supported
-    # Need to recreate expr with approx=True for correct rational approx
-    expr = cp.power(args[0], expr._p_orig, max_denom=expr.max_denom, approx=True)
-    return power_canon_approx(expr, [args[0]], solver_context=None)
+    raise ValueError(
+        "approx=False requires a solver that supports power cones, "
+        "but the current solver does not support PowCone3D."
+    )
 
 
 def power_canon_approx(expr, args, solver_context: SolverInfo | None = None):

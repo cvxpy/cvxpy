@@ -22,139 +22,66 @@ import cvxpy as cp
 from cvxpy.tests.base_test import BaseTest
 
 
+def _get_cone_counts(prob, solver):
+    """Helper to get SOC and power cone counts from problem data."""
+    data, _, _ = prob.get_problem_data(solver)
+    dims = data['dims']
+    p3d = len(dims.p3d)
+    pnd = len(dims.pnd) if hasattr(dims, 'pnd') else 0
+    return len(dims.soc), p3d, pnd
+
+
 class TestPowerAtom(BaseTest):
-    """Unit tests for power atom."""
+    """Unit tests for power atom approx parameter."""
 
-    def _get_cone_counts(self, prob, solver):
-        """Helper to get SOC and power cone counts from problem data."""
-        data, _, _ = prob.get_problem_data(solver)
-        dims = data['dims']
-        return len(dims.soc), len(dims.p3d)
-
-    def test_explicit_approx_true_forces_soc(self) -> None:
-        """Test that approx=True forces SOC even with power-cone-capable solver."""
+    def test_approx_controls_cone_type(self) -> None:
+        """approx=True uses SOC; approx=False uses power cones."""
         x = cp.Variable(3)
-        prob = cp.Problem(
-            cp.Minimize(x[0] + x[1] - x[2]),
-            [cp.power(x, 3.3, approx=True) <= np.ones(3)]
-        )
-        soc_count, p3d_count = self._get_cone_counts(prob, cp.CLARABEL)
-        # Should use SOC because user explicitly requested approximation
-        self.assertGreater(soc_count, 0, "approx=True should force SOC cones")
-        self.assertEqual(p3d_count, 0, "approx=True should not use power cones")
+        obj = cp.Minimize(x[0] + x[1] - x[2])
 
-    def test_explicit_approx_false_forces_power_cones(self) -> None:
-        """Test that approx=False forces power cones."""
-        x = cp.Variable(3)
-        prob = cp.Problem(
-            cp.Minimize(x[0] + x[1] - x[2]),
-            [cp.power(x, 3.3, approx=False) <= np.ones(3)]
-        )
-        soc_count, p3d_count = self._get_cone_counts(prob, cp.CLARABEL)
-        # Should use power cones
-        self.assertGreater(p3d_count, 0, "approx=False should use power cones")
-        self.assertEqual(soc_count, 0, "approx=False should not use SOC cones")
+        prob = cp.Problem(obj, [cp.power(x, 3.3, approx=True) <= np.ones(3)])
+        soc, p3d, _ = _get_cone_counts(prob, cp.CLARABEL)
+        self.assertGreater(soc, 0)
+        self.assertEqual(p3d, 0)
 
-    def test_power_approx(self) -> None:
-        """Test power atom with approximation."""
-        x = cp.Variable(3)
-        constr = [cp.power(x, 3.3, approx=True) <= np.ones(3)]
-        prob = cp.Problem(cp.Minimize(x[0] + x[1] - x[2]), constr)
-        prob.solve(solver=cp.SCS)
-        self.assertIn(prob.status, [cp.OPTIMAL, cp.OPTIMAL_INACCURATE])
-        self.assertAlmostEqual(prob.value, -1.0, places=3)
-        expected_x = np.array([0.0, 0.0, 1.0])
-        self.assertItemsAlmostEqual(x.value, expected_x, places=3)
+        prob = cp.Problem(obj, [cp.power(x, 3.3, approx=False) <= np.ones(3)])
+        soc, p3d, _ = _get_cone_counts(prob, cp.CLARABEL)
+        self.assertEqual(soc, 0)
+        self.assertGreater(p3d, 0)
 
-    def test_power_no_approx(self) -> None:
-        """Test power atom without approximation."""
-        x = cp.Variable(3)
-        constr = [cp.power(x, 3.3, approx=False) <= np.ones(3)]
-        prob = cp.Problem(cp.Minimize(x[0] + x[1] - x[2]), constr)
-        prob.solve(solver=cp.SCS)
-        self.assertIn(prob.status, [cp.OPTIMAL, cp.OPTIMAL_INACCURATE])
-        self.assertAlmostEqual(prob.value, -1.0, places=3)
-        expected_x = np.array([0.0, 0.0, 1.0])
-        self.assertItemsAlmostEqual(x.value, expected_x, places=3)
-
-    def test_power_with_and_without_approx_low(self) -> None:
-        """Compare answers with and without approximation on the same problem."""
-        x = cp.Variable(3)
-        constr = [
-            cp.power(x, -1.5, approx=True) <= np.ones(3),
+    def test_approx_and_exact_agree(self) -> None:
+        """Approx and exact power cones give the same answer for all p ranges."""
+        # p < 0 (low), 0 < p < 1 (mid), p > 1 non-integer (high), p > 1 even integer
+        cases = [
+            (-1.5, "<="),
+            (0.8, ">="),
+            (4.5, "<="),
+            (8, "<="),
         ]
-        prob = cp.Problem(cp.Minimize(x[0] + x[1] - x[2] + (x[1] + x[2])**2), constr)
-        prob.solve(solver=cp.CLARABEL)
-        x_approx = x.value
+        for p, direction in cases:
+            with self.subTest(p=p):
+                x = cp.Variable(3)
+                if direction == "<=":
+                    constr = [cp.power(x, p, approx=True) <= np.ones(3)]
+                else:
+                    constr = [cp.power(x, p, approx=True) >= np.ones(3)]
+                obj = cp.Minimize(x[0] + x[1] - x[2] + (x[1] + x[2])**2)
+                prob = cp.Problem(obj, constr)
+                prob.solve(solver=cp.CLARABEL)
+                x_approx = x.value.copy()
 
-        constr = [
-            cp.power(x, -1.5, approx=False) <= np.ones(3),
-        ]
-        prob = cp.Problem(cp.Minimize(x[0] + x[1] - x[2] + (x[1] + x[2])**2), constr)
-        prob.solve(solver=cp.CLARABEL)
-        self.assertIn(prob.status, [cp.OPTIMAL, cp.OPTIMAL_INACCURATE])
-        self.assertItemsAlmostEqual(x.value, x_approx, places=3)
+                if direction == "<=":
+                    constr = [cp.power(x, p, approx=False) <= np.ones(3)]
+                else:
+                    constr = [cp.power(x, p, approx=False) >= np.ones(3)]
+                obj = cp.Minimize(x[0] + x[1] - x[2] + (x[1] + x[2])**2)
+                prob = cp.Problem(obj, constr)
+                prob.solve(solver=cp.CLARABEL)
+                self.assertIn(prob.status, [cp.OPTIMAL, cp.OPTIMAL_INACCURATE])
+                self.assertItemsAlmostEqual(x.value, x_approx, places=3)
 
-    def test_power_with_and_without_approx_mid(self) -> None:
-        """Compare answers with and without approximation on the same problem."""
-        x = cp.Variable(3)
-        constr = [
-            cp.power(x, 0.8, approx=True) >= np.ones(3),
-        ]
-        prob = cp.Problem(cp.Minimize(x[0] + x[1] - x[2] + (x[1] + x[2])**2), constr)
-        prob.solve(solver=cp.CLARABEL)
-        x_approx = x.value
-
-        constr = [
-            cp.power(x, 0.8, approx=False) >= np.ones(3),
-        ]
-        prob = cp.Problem(cp.Minimize(x[0] + x[1] - x[2] + (x[1] + x[2])**2), constr)
-        prob.solve(solver=cp.CLARABEL)
-        self.assertIn(prob.status, [cp.OPTIMAL, cp.OPTIMAL_INACCURATE])
-        self.assertItemsAlmostEqual(x.value, x_approx, places=3)
-
-    def test_power_with_and_without_approx_high(self) -> None:
-        """Compare answers with and without approximation on the same problem."""
-        x = cp.Variable(3)
-        constr = [
-            cp.power(x, 4.5, approx=True) <= np.ones(3),
-        ]
-        prob = cp.Problem(cp.Minimize(x[0] + x[1] - x[2] + (x[1] + x[2])**2), constr)
-        prob.solve(solver=cp.CLARABEL)
-        x_approx = x.value
-
-        constr = [
-            cp.power(x, 4.5, approx=False) <= np.ones(3),
-        ]
-        prob = cp.Problem(cp.Minimize(x[0] + x[1] - x[2] + (x[1] + x[2])**2), constr)
-        prob.solve(solver=cp.CLARABEL)
-        self.assertIn(prob.status, [cp.OPTIMAL, cp.OPTIMAL_INACCURATE])
-        self.assertItemsAlmostEqual(x.value, x_approx, places=3)
-
-    def test_power_with_and_without_approx_even(self) -> None:
-        """Compare answers with and without approximation on the same problem."""
-        x = cp.Variable(3)
-        constr = [
-            cp.power(x, 8, approx=True) <= np.ones(3),
-        ]
-        prob = cp.Problem(cp.Minimize(x[0] + x[1] - x[2] + (x[1] + x[2])**2), constr)
-        prob.solve(solver=cp.CLARABEL)
-        x_approx = x.value
-
-        constr = [
-            cp.power(x, 8, approx=False) <= np.ones(3),
-        ]
-        prob = cp.Problem(cp.Minimize(x[0] + x[1] - x[2] + (x[1] + x[2])**2), constr)
-        prob.solve(solver=cp.CLARABEL)
-        self.assertIn(prob.status, [cp.OPTIMAL, cp.OPTIMAL_INACCURATE])
-        self.assertItemsAlmostEqual(x.value, x_approx, places=3)
-
-    def test_power_no_approx_unsupported_solver(self) -> None:
-        """
-        Test fallback behavior: approx=False with a solver that doesn't
-        support power cones should fall back to SOC.
-        This test is skipped if ECOS is not installed.
-        """
+    def test_approx_false_errors_without_power_cone_support(self) -> None:
+        """approx=False raises ValueError when solver lacks power cone support."""
         if cp.ECOS not in cp.installed_solvers():
             self.skipTest("ECOS not installed.")
         x = cp.Variable(3)
@@ -162,321 +89,158 @@ class TestPowerAtom(BaseTest):
             cp.Minimize(x[0] + x[1] - x[2]),
             [cp.power(x, 3.3, approx=False) <= np.ones(3)]
         )
-        # ECOS doesn't support power cones, so should fall back to SOC
-        soc_count, p3d_count = self._get_cone_counts(prob, cp.ECOS)
-        self.assertGreater(soc_count, 0, "Should fall back to SOC cones")
-        self.assertEqual(p3d_count, 0, "Should not use power cones with ECOS")
-
-    def test_approx_warning_triggered_many_soc(self) -> None:
-        """Warning should be triggered when many SOC constraints are needed."""
-        x = cp.Variable(3)
-        prob = cp.Problem(
-            cp.Minimize(x[0] + x[1] - x[2]),
-            [cp.power(x, 3.3, approx=True) <= np.ones(3)]
-        )
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            prob.solve(solver=cp.CLARABEL)
-            # Should have at least one warning about power approximation
-            power_warnings = [
-                warning for warning in w
-                if "Power atom" in str(warning.message)
-                and "SOC constraints" in str(warning.message)
-            ]
-            self.assertGreater(len(power_warnings), 0,
-                               "Should warn about SOC approximation")
-
-    def test_approx_warning_not_triggered_with_approx_false(self) -> None:
-        """Warning should NOT be triggered when using approx=False."""
-        x = cp.Variable(3)
-        prob = cp.Problem(
-            cp.Minimize(x[0] + x[1] - x[2]),
-            [cp.power(x, 3.3, approx=False) <= np.ones(3)]
-        )
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            prob.solve(solver=cp.CLARABEL)
-            power_warnings = [
-                warning for warning in w
-                if "Power atom" in str(warning.message)
-                and "SOC constraints" in str(warning.message)
-            ]
-            self.assertEqual(len(power_warnings), 0,
-                             "Should not warn when using power cones")
-
-    def test_approx_warning_not_triggered_unsupported_solver(self) -> None:
-        """Warning should NOT be triggered when solver doesn't support power cones."""
-        if cp.ECOS not in cp.installed_solvers():
-            self.skipTest("ECOS not installed.")
-        x = cp.Variable(3)
-        prob = cp.Problem(
-            cp.Minimize(x[0] + x[1] - x[2]),
-            [cp.power(x, 3.3, approx=True) <= np.ones(3)]
-        )
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
+        with self.assertRaises(ValueError, msg="approx=False"):
             prob.solve(solver=cp.ECOS)
-            power_warnings = [
-                warning for warning in w
-                if "Power atom" in str(warning.message)
-                and "SOC constraints" in str(warning.message)
-            ]
-            self.assertEqual(len(power_warnings), 0,
-                             "Should not warn when solver doesn't support power cones")
 
-    def test_approx_warning_not_triggered_few_soc(self) -> None:
-        """Warning should NOT be triggered when few SOC constraints are needed."""
+    def test_approx_warning(self) -> None:
+        """Warning fires for approx=True with many SOCs, not for approx=False."""
         x = cp.Variable(3)
-        # x^2 uses only 3 SOC constraints, which is <= 4
-        prob = cp.Problem(
-            cp.Minimize(x[0] + x[1] - x[2]),
-            [cp.power(x, 2, approx=True) <= np.ones(3)]
-        )
+        constr_approx = [cp.power(x, 3.3, approx=True) <= np.ones(3)]
+        constr_exact = [cp.power(x, 3.3, approx=False) <= np.ones(3)]
+        obj = cp.Minimize(x[0] + x[1] - x[2])
+
+        # approx=True on a power-cone-capable solver should warn
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
-            prob.solve(solver=cp.CLARABEL)
-            power_warnings = [
-                warning for warning in w
-                if "Power atom" in str(warning.message)
-                and "SOC constraints" in str(warning.message)
-            ]
-            self.assertEqual(len(power_warnings), 0,
-                             "Should not warn when few SOC constraints are needed")
+            cp.Problem(obj, constr_approx).solve(solver=cp.CLARABEL)
+            self.assertTrue(
+                any("Power atom" in str(wi.message) for wi in w),
+                "Should warn about SOC approximation")
+
+        # approx=False should not warn
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            cp.Problem(obj, constr_exact).solve(solver=cp.CLARABEL)
+            self.assertFalse(
+                any("Power atom" in str(wi.message) for wi in w),
+                "Should not warn when using power cones")
 
 
 class TestGeoMeanApprox(BaseTest):
     """Unit tests for geo_mean approx parameter."""
 
-    def _get_cone_counts(self, prob, solver):
-        """Helper to get SOC and power cone counts from problem data."""
-        data, _, _ = prob.get_problem_data(solver)
-        dims = data['dims']
-        # pnd is n-dimensional power cones
-        pnd_count = len(dims.pnd) if hasattr(dims, 'pnd') else 0
-        return len(dims.soc), pnd_count
-
-    def test_geo_mean_approx_true_uses_soc(self) -> None:
-        """Test that geo_mean with approx=True uses SOC constraints."""
+    def test_approx_controls_cone_type(self) -> None:
+        """approx=True uses SOC; approx=False uses power cones."""
         x = cp.Variable(3, pos=True)
-        prob = cp.Problem(cp.Maximize(cp.geo_mean(x, approx=True)), [cp.sum(x) <= 3])
-        soc_count, pnd_count = self._get_cone_counts(prob, cp.CLARABEL)
-        self.assertGreater(soc_count, 0, "approx=True should use SOC cones")
-        self.assertEqual(pnd_count, 0, "approx=True should not use power cones")
+        obj = cp.Maximize(cp.geo_mean(x, approx=True))
+        prob = cp.Problem(obj, [cp.sum(x) <= 3])
+        soc, _, pnd = _get_cone_counts(prob, cp.CLARABEL)
+        self.assertGreater(soc, 0)
+        self.assertEqual(pnd, 0)
 
-    def test_geo_mean_approx_false_uses_power_cones(self) -> None:
-        """Test that geo_mean with approx=False uses power cones."""
-        x = cp.Variable(3, pos=True)
-        prob = cp.Problem(cp.Maximize(cp.geo_mean(x, approx=False)), [cp.sum(x) <= 3])
-        soc_count, pnd_count = self._get_cone_counts(prob, cp.CLARABEL)
-        self.assertGreater(pnd_count, 0, "approx=False should use power cones")
-        self.assertEqual(soc_count, 0, "approx=False should not use SOC cones")
+        obj = cp.Maximize(cp.geo_mean(x, approx=False))
+        prob = cp.Problem(obj, [cp.sum(x) <= 3])
+        soc, _, pnd = _get_cone_counts(prob, cp.CLARABEL)
+        self.assertEqual(soc, 0)
+        self.assertGreater(pnd, 0)
 
-    def test_geo_mean_approx_true_solves(self) -> None:
-        """Test that geo_mean with approx=True solves correctly."""
-        x = cp.Variable(3, pos=True)
-        prob = cp.Problem(cp.Maximize(cp.geo_mean(x, approx=True)), [cp.sum(x) <= 3])
-        prob.solve(solver=cp.CLARABEL)
-        self.assertIn(prob.status, [cp.OPTIMAL, cp.OPTIMAL_INACCURATE])
-        # Optimal is x = [1, 1, 1], geo_mean = 1
-        self.assertAlmostEqual(prob.value, 1.0, places=3)
-        self.assertItemsAlmostEqual(x.value, [1.0, 1.0, 1.0], places=3)
+    def test_approx_and_exact_agree(self) -> None:
+        """Approx and exact give the same answer, including weighted case."""
+        cases = [
+            (None, 3),   # uniform weights, 3 vars
+            ([1, 2, 1], 3),  # non-uniform weights
+            (None, 4),   # uniform weights, 4 vars
+        ]
+        for weights, n in cases:
+            with self.subTest(weights=weights, n=n):
+                x = cp.Variable(n, pos=True)
+                constr = [cp.sum(x) <= n, x[0] >= 0.5]
 
-    def test_geo_mean_approx_false_solves(self) -> None:
-        """Test that geo_mean with approx=False solves correctly."""
-        x = cp.Variable(3, pos=True)
-        prob = cp.Problem(cp.Maximize(cp.geo_mean(x, approx=False)), [cp.sum(x) <= 3])
-        prob.solve(solver=cp.CLARABEL)
-        self.assertIn(prob.status, [cp.OPTIMAL, cp.OPTIMAL_INACCURATE])
-        # Optimal is x = [1, 1, 1], geo_mean = 1
-        self.assertAlmostEqual(prob.value, 1.0, places=3)
-        self.assertItemsAlmostEqual(x.value, [1.0, 1.0, 1.0], places=3)
+                prob = cp.Problem(
+                    cp.Maximize(cp.geo_mean(x, weights, approx=True)), constr)
+                prob.solve(solver=cp.CLARABEL)
+                val_approx = prob.value
+                x_approx = x.value.copy()
 
-    def test_geo_mean_with_and_without_approx(self) -> None:
-        """Compare answers with and without approximation."""
-        x = cp.Variable(4, pos=True)
-        constr = [cp.sum(x) <= 4, x[0] >= 0.5]
-        prob = cp.Problem(cp.Maximize(cp.geo_mean(x, approx=True)), constr)
-        prob.solve(solver=cp.CLARABEL)
-        x_approx = x.value.copy()
-        val_approx = prob.value
+                prob = cp.Problem(
+                    cp.Maximize(cp.geo_mean(x, weights, approx=False)), constr)
+                prob.solve(solver=cp.CLARABEL)
+                self.assertIn(prob.status, [cp.OPTIMAL, cp.OPTIMAL_INACCURATE])
+                self.assertAlmostEqual(prob.value, val_approx, places=3)
+                self.assertItemsAlmostEqual(x.value, x_approx, places=3)
 
-        prob = cp.Problem(cp.Maximize(cp.geo_mean(x, approx=False)), constr)
-        prob.solve(solver=cp.CLARABEL)
-        self.assertIn(prob.status, [cp.OPTIMAL, cp.OPTIMAL_INACCURATE])
-        self.assertAlmostEqual(prob.value, val_approx, places=3)
-        self.assertItemsAlmostEqual(x.value, x_approx, places=3)
-
-    def test_geo_mean_weighted_approx(self) -> None:
-        """Test weighted geo_mean with approx parameter."""
-        x = cp.Variable(3, pos=True)
-        weights = [1, 2, 1]
-        prob = cp.Problem(
-            cp.Maximize(cp.geo_mean(x, weights, approx=True)),
-            [cp.sum(x) <= 4]
-        )
-        prob.solve(solver=cp.CLARABEL)
-        val_approx = prob.value
-        x_approx = x.value.copy()
-
-        prob = cp.Problem(
-            cp.Maximize(cp.geo_mean(x, weights, approx=False)),
-            [cp.sum(x) <= 4]
-        )
-        prob.solve(solver=cp.CLARABEL)
-        self.assertIn(prob.status, [cp.OPTIMAL, cp.OPTIMAL_INACCURATE])
-        self.assertAlmostEqual(prob.value, val_approx, places=3)
-        self.assertItemsAlmostEqual(x.value, x_approx, places=3)
-
-    def test_geo_mean_approx_warning_triggered(self) -> None:
-        """Warning should be triggered for geo_mean with many SOC constraints."""
+    def test_approx_warning(self) -> None:
+        """Warning fires for approx=True with many SOCs, not for approx=False."""
         x = cp.Variable(5, pos=True)
-        # 5 elements will require more SOC constraints
-        prob = cp.Problem(cp.Maximize(cp.geo_mean(x, approx=True)), [cp.sum(x) <= 5])
+        constr = [cp.sum(x) <= 5]
+
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
-            prob.solve(solver=cp.CLARABEL)
-            geo_mean_warnings = [
-                warning for warning in w
-                if "geo_mean" in str(warning.message)
-                and "SOC constraints" in str(warning.message)
-            ]
-            self.assertGreater(len(geo_mean_warnings), 0,
-                               "Should warn about SOC approximation")
+            cp.Problem(cp.Maximize(cp.geo_mean(x, approx=True)), constr).solve(
+                solver=cp.CLARABEL)
+            self.assertTrue(
+                any("geo_mean" in str(wi.message) for wi in w),
+                "Should warn about SOC approximation")
 
-    def test_geo_mean_approx_warning_not_triggered_with_approx_false(self) -> None:
-        """Warning should NOT be triggered when using approx=False."""
-        x = cp.Variable(5, pos=True)
-        prob = cp.Problem(cp.Maximize(cp.geo_mean(x, approx=False)), [cp.sum(x) <= 5])
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
-            prob.solve(solver=cp.CLARABEL)
-            geo_mean_warnings = [
-                warning for warning in w
-                if "geo_mean" in str(warning.message)
-                and "SOC constraints" in str(warning.message)
-            ]
-            self.assertEqual(len(geo_mean_warnings), 0,
-                             "Should not warn when using power cones")
+            cp.Problem(cp.Maximize(cp.geo_mean(x, approx=False)), constr).solve(
+                solver=cp.CLARABEL)
+            self.assertFalse(
+                any("geo_mean" in str(wi.message) for wi in w),
+                "Should not warn when using power cones")
 
 
 class TestPnormApprox(BaseTest):
     """Unit tests for pnorm approx parameter."""
 
-    def _get_cone_counts(self, prob, solver):
-        """Helper to get SOC and power cone counts from problem data."""
-        data, _, _ = prob.get_problem_data(solver)
-        dims = data['dims']
-        return len(dims.soc), len(dims.p3d)
-
-    def test_pnorm_approx_true_uses_soc(self) -> None:
-        """Test that pnorm with approx=True uses SOC constraints."""
+    def test_approx_controls_cone_type(self) -> None:
+        """approx=True uses SOC; approx=False uses power cones."""
         x = cp.Variable(3)
-        prob = cp.Problem(cp.Minimize(cp.pnorm(x, 3, approx=True)), [cp.sum(x) >= 3, x >= 0])
-        soc_count, p3d_count = self._get_cone_counts(prob, cp.CLARABEL)
-        self.assertGreater(soc_count, 0, "approx=True should use SOC cones")
-        self.assertEqual(p3d_count, 0, "approx=True should not use power cones")
+        constr = [cp.sum(x) >= 3, x >= 0]
 
-    def test_pnorm_approx_false_uses_power_cones(self) -> None:
-        """Test that pnorm with approx=False uses power cones."""
-        x = cp.Variable(3)
-        prob = cp.Problem(cp.Minimize(cp.pnorm(x, 3, approx=False)), [cp.sum(x) >= 3, x >= 0])
-        soc_count, p3d_count = self._get_cone_counts(prob, cp.CLARABEL)
-        self.assertGreater(p3d_count, 0, "approx=False should use power cones")
-
-    def test_pnorm_approx_true_solves(self) -> None:
-        """Test that pnorm with approx=True solves correctly."""
-        x = cp.Variable(3)
-        prob = cp.Problem(cp.Minimize(cp.pnorm(x, 3, approx=True)), [cp.sum(x) >= 3, x >= 0])
-        prob.solve(solver=cp.CLARABEL)
-        self.assertIn(prob.status, [cp.OPTIMAL, cp.OPTIMAL_INACCURATE])
-        # Optimal is x = [1, 1, 1], pnorm_3 = 3^(1/3)
-        expected_norm = 3 ** (1/3)
-        self.assertAlmostEqual(prob.value, expected_norm, places=3)
-        self.assertItemsAlmostEqual(x.value, [1.0, 1.0, 1.0], places=3)
-
-    def test_pnorm_approx_false_solves(self) -> None:
-        """Test that pnorm with approx=False solves correctly."""
-        x = cp.Variable(3)
-        prob = cp.Problem(cp.Minimize(cp.pnorm(x, 3, approx=False)), [cp.sum(x) >= 3, x >= 0])
-        prob.solve(solver=cp.CLARABEL)
-        self.assertIn(prob.status, [cp.OPTIMAL, cp.OPTIMAL_INACCURATE])
-        # Optimal is x = [1, 1, 1], pnorm_3 = 3^(1/3)
-        expected_norm = 3 ** (1/3)
-        self.assertAlmostEqual(prob.value, expected_norm, places=3)
-        self.assertItemsAlmostEqual(x.value, [1.0, 1.0, 1.0], places=3)
-
-    def test_pnorm_with_and_without_approx(self) -> None:
-        """Compare answers with and without approximation."""
-        x = cp.Variable(3)
-        constr = [cp.sum(x) >= 3, x >= 0, x[0] <= 2]
         prob = cp.Problem(cp.Minimize(cp.pnorm(x, 3, approx=True)), constr)
-        prob.solve(solver=cp.CLARABEL)
-        x_approx = x.value.copy()
-        val_approx = prob.value
+        soc, p3d, _ = _get_cone_counts(prob, cp.CLARABEL)
+        self.assertGreater(soc, 0)
+        self.assertEqual(p3d, 0)
 
         prob = cp.Problem(cp.Minimize(cp.pnorm(x, 3, approx=False)), constr)
-        prob.solve(solver=cp.CLARABEL)
-        self.assertIn(prob.status, [cp.OPTIMAL, cp.OPTIMAL_INACCURATE])
-        self.assertAlmostEqual(prob.value, val_approx, places=3)
-        self.assertItemsAlmostEqual(x.value, x_approx, places=3)
+        soc, p3d, _ = _get_cone_counts(prob, cp.CLARABEL)
+        self.assertGreater(p3d, 0)
 
-    def test_pnorm_fractional_p_with_and_without_approx(self) -> None:
-        """Compare answers with and without approximation for fractional p."""
+    def test_approx_and_exact_agree(self) -> None:
+        """Approx and exact give the same answer for convex and concave pnorm."""
+        cases = [
+            (3, cp.Minimize, ">=", 3),     # convex, integer p
+            (2.5, cp.Minimize, ">=", 3),   # convex, fractional p
+            (0.5, cp.Maximize, "<=", 3),   # concave p
+        ]
+        for p, sense, direction, rhs in cases:
+            with self.subTest(p=p):
+                x = cp.Variable(3, pos=(p < 1))
+                if direction == ">=":
+                    constr = [cp.sum(x) >= rhs, x >= 0, x[0] <= 2]
+                else:
+                    constr = [cp.sum(x) <= rhs, x >= 0.1]
+
+                prob = cp.Problem(sense(cp.pnorm(x, p, approx=True)), constr)
+                prob.solve(solver=cp.CLARABEL)
+                val_approx = prob.value
+                x_approx = x.value.copy()
+
+                prob = cp.Problem(sense(cp.pnorm(x, p, approx=False)), constr)
+                prob.solve(solver=cp.CLARABEL)
+                self.assertIn(prob.status, [cp.OPTIMAL, cp.OPTIMAL_INACCURATE])
+                self.assertAlmostEqual(prob.value, val_approx, places=3)
+                self.assertItemsAlmostEqual(x.value, x_approx, places=3)
+
+    def test_approx_warning(self) -> None:
+        """Warning fires for approx=True with many SOCs, not for approx=False."""
         x = cp.Variable(3)
-        constr = [cp.sum(x) >= 3, x >= 0, x[0] <= 2]
-        prob = cp.Problem(cp.Minimize(cp.pnorm(x, 2.5, approx=True)), constr)
-        prob.solve(solver=cp.CLARABEL)
-        x_approx = x.value.copy()
-        val_approx = prob.value
+        constr = [cp.sum(x) >= 3, x >= 0]
 
-        prob = cp.Problem(cp.Minimize(cp.pnorm(x, 2.5, approx=False)), constr)
-        prob.solve(solver=cp.CLARABEL)
-        self.assertIn(prob.status, [cp.OPTIMAL, cp.OPTIMAL_INACCURATE])
-        self.assertAlmostEqual(prob.value, val_approx, places=3)
-        self.assertItemsAlmostEqual(x.value, x_approx, places=3)
-
-    def test_pnorm_concave_with_and_without_approx(self) -> None:
-        """Compare answers with and without approximation for concave pnorm (p < 1)."""
-        x = cp.Variable(3, pos=True)
-        constr = [cp.sum(x) <= 3, x >= 0.1]
-        prob = cp.Problem(cp.Maximize(cp.pnorm(x, 0.5, approx=True)), constr)
-        prob.solve(solver=cp.CLARABEL)
-        x_approx = x.value.copy()
-        val_approx = prob.value
-
-        prob = cp.Problem(cp.Maximize(cp.pnorm(x, 0.5, approx=False)), constr)
-        prob.solve(solver=cp.CLARABEL)
-        self.assertIn(prob.status, [cp.OPTIMAL, cp.OPTIMAL_INACCURATE])
-        self.assertAlmostEqual(prob.value, val_approx, places=3)
-        self.assertItemsAlmostEqual(x.value, x_approx, places=3)
-
-    def test_pnorm_approx_warning_triggered(self) -> None:
-        """Warning should be triggered for pnorm with many SOC constraints."""
-        x = cp.Variable(3)
-        # p=3.3 will require more SOC constraints
-        prob = cp.Problem(cp.Minimize(cp.pnorm(x, 3.3, approx=True)), [cp.sum(x) >= 3, x >= 0])
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
-            prob.solve(solver=cp.CLARABEL)
-            pnorm_warnings = [
-                warning for warning in w
-                if "pnorm" in str(warning.message)
-                and "SOC constraints" in str(warning.message)
-            ]
-            self.assertGreater(len(pnorm_warnings), 0,
-                               "Should warn about SOC approximation")
+            cp.Problem(cp.Minimize(cp.pnorm(x, 3.3, approx=True)), constr).solve(
+                solver=cp.CLARABEL)
+            self.assertTrue(
+                any("pnorm" in str(wi.message) for wi in w),
+                "Should warn about SOC approximation")
 
-    def test_pnorm_approx_warning_not_triggered_with_approx_false(self) -> None:
-        """Warning should NOT be triggered when using approx=False."""
-        x = cp.Variable(3)
-        prob = cp.Problem(cp.Minimize(cp.pnorm(x, 3.3, approx=False)), [cp.sum(x) >= 3, x >= 0])
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
-            prob.solve(solver=cp.CLARABEL)
-            pnorm_warnings = [
-                warning for warning in w
-                if "pnorm" in str(warning.message)
-                and "SOC constraints" in str(warning.message)
-            ]
-            self.assertEqual(len(pnorm_warnings), 0,
-                             "Should not warn when using power cones")
+            cp.Problem(cp.Minimize(cp.pnorm(x, 3.3, approx=False)), constr).solve(
+                solver=cp.CLARABEL)
+            self.assertFalse(
+                any("pnorm" in str(wi.message) for wi in w),
+                "Should not warn when using power cones")
