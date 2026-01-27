@@ -105,7 +105,7 @@ class Not(LogicExpression):
 
     def name(self) -> str:
         child = self.args[0]
-        if isinstance(child, (And, Or, Xor)):
+        if isinstance(child, _NaryLogicExpression):
             return "~(" + child.name() + ")"
         return "~" + child.name()
 
@@ -113,7 +113,7 @@ class Not(LogicExpression):
         if self._label is not None:
             return self._label
         child = self.args[0]
-        if isinstance(child, (And, Or, Xor)):
+        if isinstance(child, _NaryLogicExpression):
             return "~(" + child.format_labeled() + ")"
         return "~" + child.format_labeled()
 
@@ -122,7 +122,40 @@ class Not(LogicExpression):
         return 1 - values[0]
 
 
-class And(LogicExpression):
+class _NaryLogicExpression(LogicExpression):
+    """Shared base for n-ary logic atoms (And, Or, Xor).
+
+    Subclasses set ``OP_NAME`` and ``_PAREN_TYPES`` class attributes;
+    formatting methods are inherited from here.
+    """
+
+    OP_NAME: str
+    _PAREN_TYPES: Tuple[str, ...]
+
+    def __init__(self, arg1, arg2, *args) -> None:
+        super().__init__(arg1, arg2, *args)
+
+    def _format_child(self, child, use_labels: bool = False) -> str:
+        text = child.format_labeled() if use_labels else child.name()
+        if isinstance(child, LogicExpression) and \
+                type(child).__name__ in self._PAREN_TYPES:
+            return "(" + text + ")"
+        return text
+
+    def name(self) -> str:
+        return self.OP_NAME.join(
+            self._format_child(a) for a in self.args
+        )
+
+    def format_labeled(self):
+        if self._label is not None:
+            return self._label
+        return self.OP_NAME.join(
+            self._format_child(a, use_labels=True) for a in self.args
+        )
+
+
+class And(_NaryLogicExpression):
     """Logical AND of boolean expressions.
 
     Returns 1 if and only if all arguments equal 1, and 0 otherwise.
@@ -152,37 +185,15 @@ class And(LogicExpression):
     # Or and Xor have lower precedence than &, so parenthesize them.
     _PAREN_TYPES = ("Or", "Xor")
 
-    def __init__(self, arg1, arg2, *args) -> None:
-        super().__init__(arg1, arg2, *args)
-
     def is_incr(self, idx) -> bool:
         return True
-
-    def _format_child(self, child, use_labels: bool = False) -> str:
-        text = child.format_labeled() if use_labels else child.name()
-        if isinstance(child, LogicExpression) and \
-                type(child).__name__ in self._PAREN_TYPES:
-            return "(" + text + ")"
-        return text
-
-    def name(self) -> str:
-        return self.OP_NAME.join(
-            self._format_child(a) for a in self.args
-        )
-
-    def format_labeled(self):
-        if self._label is not None:
-            return self._label
-        return self.OP_NAME.join(
-            self._format_child(a, use_labels=True) for a in self.args
-        )
 
     @Elementwise.numpy_numeric
     def numeric(self, values):
         return reduce(np.minimum, values)
 
 
-class Or(LogicExpression):
+class Or(_NaryLogicExpression):
     """Logical OR of boolean expressions.
 
     Returns 1 if and only if at least one argument equals 1, and 0 otherwise.
@@ -212,37 +223,15 @@ class Or(LogicExpression):
     # | has lowest precedence among logic ops; no children need parens.
     _PAREN_TYPES = ()
 
-    def __init__(self, arg1, arg2, *args) -> None:
-        super().__init__(arg1, arg2, *args)
-
     def is_incr(self, idx) -> bool:
         return True
-
-    def _format_child(self, child, use_labels: bool = False) -> str:
-        text = child.format_labeled() if use_labels else child.name()
-        if isinstance(child, LogicExpression) and \
-                type(child).__name__ in self._PAREN_TYPES:
-            return "(" + text + ")"
-        return text
-
-    def name(self) -> str:
-        return self.OP_NAME.join(
-            self._format_child(a) for a in self.args
-        )
-
-    def format_labeled(self):
-        if self._label is not None:
-            return self._label
-        return self.OP_NAME.join(
-            self._format_child(a, use_labels=True) for a in self.args
-        )
 
     @Elementwise.numpy_numeric
     def numeric(self, values):
         return reduce(np.maximum, values)
 
 
-class Xor(LogicExpression):
+class Xor(_NaryLogicExpression):
     """Logical XOR of boolean expressions.
 
     For two arguments: result is 1 iff exactly one is 1.
@@ -272,28 +261,6 @@ class Xor(LogicExpression):
     OP_NAME = " ^ "
     # Or has lower precedence than ^, so parenthesize it.
     _PAREN_TYPES = ("Or",)
-
-    def __init__(self, arg1, arg2, *args) -> None:
-        super().__init__(arg1, arg2, *args)
-
-    def _format_child(self, child, use_labels: bool = False) -> str:
-        text = child.format_labeled() if use_labels else child.name()
-        if isinstance(child, LogicExpression) and \
-                type(child).__name__ in self._PAREN_TYPES:
-            return "(" + text + ")"
-        return text
-
-    def name(self) -> str:
-        return self.OP_NAME.join(
-            self._format_child(a) for a in self.args
-        )
-
-    def format_labeled(self):
-        if self._label is not None:
-            return self._label
-        return self.OP_NAME.join(
-            self._format_child(a, use_labels=True) for a in self.args
-        )
 
     @Elementwise.numpy_numeric
     def numeric(self, values):
