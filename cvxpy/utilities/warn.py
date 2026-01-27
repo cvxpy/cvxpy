@@ -39,13 +39,39 @@ def _is_internal_frame(filename: str) -> bool:
     return not rel.startswith("tests")
 
 
-def warn(message, category=UserWarning):
+class CvxpyDeprecationWarning(DeprecationWarning):
+    """Deprecation warning specific to CVXPY."""
+    pass
+
+
+# On Python 3.12+, ``skip_file_prefixes`` lets ``warnings.warn`` do the
+# frame walk in C, avoiding Python-level frame object allocation.  We
+# enumerate every entry under the cvxpy package directory *except*
+# ``tests/`` so that test files are still treated as user code.
+if sys.version_info >= (3, 12):
+    _CVXPY_SKIP_PREFIXES: tuple[str, ...] = tuple(
+        os.path.join(_CVXPY_SRC, entry)
+        for entry in sorted(os.listdir(_CVXPY_SRC))
+        if entry != "tests"
+    )
+else:
+    _CVXPY_SKIP_PREFIXES = ()
+
+
+def warn(message, category: type[Warning] = UserWarning):
     """Issue a warning that appears to originate from user code.
 
     Walks up the call stack from the caller until a frame outside the
     cvxpy package (or inside ``cvxpy/tests/``) is found, then sets
     ``stacklevel`` so the warning is attributed to that frame.
     """
+    if _CVXPY_SKIP_PREFIXES:
+        # Python 3.12+: let the C implementation skip internal frames.
+        warnings.warn(
+            message, category, stacklevel=1,
+            skip_file_prefixes=_CVXPY_SKIP_PREFIXES,
+        )
+        return
     level = 2  # stacklevel=2 already points at the caller of warn()
     # sys._getframe is a CPython implementation detail; fall back to a
     # fixed stacklevel if it is unavailable.

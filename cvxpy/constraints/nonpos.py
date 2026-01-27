@@ -19,7 +19,7 @@ import numpy as np
 # Only need Variable from expressions, but that would create a circular import.
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.utilities import scopes
-from cvxpy.utilities.warn import warn
+from cvxpy.utilities.warn import CvxpyDeprecationWarning, warn
 
 
 class NonPos(Constraint):
@@ -53,7 +53,7 @@ class NonPos(Constraint):
     """
 
     def __init__(self, expr, constr_id=None) -> None:
-        warn(NonPos.DEPRECATION_MESSAGE, DeprecationWarning)
+        warn(NonPos.DEPRECATION_MESSAGE, CvxpyDeprecationWarning)
         super(NonPos, self).__init__([expr], constr_id)
         if not self.args[0].is_real():
             raise ValueError("Input to NonPos must be real.")

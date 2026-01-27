@@ -35,7 +35,7 @@ from cvxpy.reductions.solution import Solution
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.utilities import expcone_permutor
 from cvxpy.utilities.citations import CITATION_DICT
-from cvxpy.utilities.warn import warn
+from cvxpy.utilities.warn import CvxpyDeprecationWarning, warn
 
 __MSK_ENUM_PARAM_DEPRECATION__ = """
 Using MOSEK constants to specify parameters is deprecated.
@@ -676,7 +676,7 @@ class MOSEK(ConicSolver):
         mosek_params = solver_opts.pop('mosek_params', dict())
         # Issue a warning if Mosek enums are used as parameter names / keys
         if any(MOSEK.is_param(p) for p in mosek_params):
-            warn(__MSK_ENUM_PARAM_DEPRECATION__, DeprecationWarning)
+            warn(__MSK_ENUM_PARAM_DEPRECATION__, CvxpyDeprecationWarning)
             warn(__MSK_ENUM_PARAM_DEPRECATION__)
         # Now set parameters
         for param, value in mosek_params.items():

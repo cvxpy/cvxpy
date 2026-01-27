@@ -22,6 +22,7 @@ import cvxpy.problems.iterative as iterative
 import cvxpy.settings as s
 from cvxpy.lin_ops.tree_mat import prune_constants
 from cvxpy.tests.base_test import BaseTest
+from cvxpy.utilities.warn import CvxpyDeprecationWarning
 
 
 class TestConvolution(BaseTest):
@@ -35,7 +36,7 @@ class TestConvolution(BaseTest):
         f = np.array([1, 2, 3])
         g = np.array([0, 1, 0.5])
         f_conv_g = np.array([0., 1., 2.5,  4., 1.5])
-        with pytest.warns(DeprecationWarning, match="Use convolve"):
+        with pytest.warns(CvxpyDeprecationWarning, match="Use convolve"):
             expr = cp.conv(f, g)
         assert expr.is_constant()
         self.assertEqual(expr.shape, (5,))

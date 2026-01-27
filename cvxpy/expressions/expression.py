@@ -31,7 +31,7 @@ from cvxpy.constraints import PSD, Equality, Inequality
 from cvxpy.expressions import cvxtypes
 from cvxpy.utilities import scopes
 from cvxpy.utilities.shape import size_from_shape
-from cvxpy.utilities.warn import warn
+from cvxpy.utilities.warn import CvxpyDeprecationWarning, warn
 
 
 def _cast_other(binary_op):
@@ -748,7 +748,7 @@ class Expression(u.Canonical):
                 warnings.simplefilter("always", UserWarning, append=True)
                 msg = __STAR_MATMUL_WARNING__ % __STAR_MATMUL_COUNT__
                 warnings.warn(msg, UserWarning)
-                warnings.warn(msg, DeprecationWarning)
+                warnings.warn(msg, CvxpyDeprecationWarning)
                 __STAR_MATMUL_COUNT__ += 1
             return cvxtypes.matmul_expr()(self, other)
 
