@@ -346,3 +346,118 @@ class TestParametricBoundsMultiVariable:
         lb.value = 3
         prob.solve(solver=solver_name)
         assert np.isclose(x.value, 3, atol=1e-6)
+
+
+class TestParametricBoundsEdgeCases:
+    """Edge cases for parametric bounds."""
+
+    def test_numeric_infinite_lower_bound(self):
+        """Numeric -inf lower bound with parametric upper bound."""
+        ub = cp.Parameter()
+        x = cp.Variable(bounds=[-np.inf, ub])
+
+        ub.value = 5
+        prob = cp.Problem(cp.Minimize(x))
+        prob.solve(solver=cp.CLARABEL)
+        # Unbounded below.
+        assert prob.status in (cp.UNBOUNDED, cp.UNBOUNDED_INACCURATE)
+
+    def test_numeric_infinite_upper_bound(self):
+        """Numeric +inf upper bound with parametric lower bound."""
+        lb = cp.Parameter()
+        x = cp.Variable(bounds=[lb, np.inf])
+
+        lb.value = -5
+        prob = cp.Problem(cp.Maximize(x))
+        prob.solve(solver=cp.CLARABEL)
+        # Unbounded above.
+        assert prob.status in (cp.UNBOUNDED, cp.UNBOUNDED_INACCURATE)
+
+    def test_equal_bounds(self):
+        """Lower == upper pins the variable to a single value."""
+        b = cp.Parameter()
+        x = cp.Variable(bounds=[b, b])
+
+        b.value = 7
+        prob = cp.Problem(cp.Minimize(x))
+        prob.solve(solver=cp.CLARABEL)
+        assert prob.status == cp.OPTIMAL
+        assert np.isclose(x.value, 7, atol=1e-4)
+
+    def test_infeasible_bounds(self):
+        """Lower > upper should be infeasible."""
+        lb = cp.Parameter()
+        ub = cp.Parameter()
+        x = cp.Variable(bounds=[lb, ub])
+
+        lb.value = 10
+        ub.value = 5
+        prob = cp.Problem(cp.Minimize(x))
+        prob.solve(solver=cp.CLARABEL)
+        assert prob.status in (cp.INFEASIBLE, cp.INFEASIBLE_INACCURATE)
+
+    def test_unset_parameter_raises(self):
+        """Solving with an unset parameter in bounds raises an error."""
+        lb = cp.Parameter()
+        x = cp.Variable(bounds=[lb, 10])
+
+        prob = cp.Problem(cp.Minimize(x))
+        with pytest.raises(Exception):
+            prob.solve(solver=cp.CLARABEL)
+
+    def test_matrix_variable_param_bounds(self):
+        """2-D variable with parametric bounds."""
+        lb = cp.Parameter((2, 3))
+        ub = cp.Parameter((2, 3))
+        X = cp.Variable((2, 3), bounds=[lb, ub])
+
+        lb.value = np.ones((2, 3))
+        ub.value = 5 * np.ones((2, 3))
+        prob = cp.Problem(cp.Minimize(cp.sum(X)))
+        prob.solve(solver=cp.CLARABEL)
+        assert prob.status == cp.OPTIMAL
+        np.testing.assert_allclose(X.value, np.ones((2, 3)), atol=1e-4)
+
+    def test_matrix_variable_scalar_param_bounds(self):
+        """2-D variable with scalar parametric bounds (broadcast)."""
+        lb = cp.Parameter()
+        ub = cp.Parameter()
+        X = cp.Variable((2, 3), bounds=[lb, ub])
+
+        lb.value = -1
+        ub.value = 1
+        prob = cp.Problem(cp.Maximize(cp.sum(X)))
+        prob.solve(solver=cp.CLARABEL)
+        assert prob.status == cp.OPTIMAL
+        np.testing.assert_allclose(X.value, np.ones((2, 3)), atol=1e-4)
+
+    def test_matrix_variable_re_solve(self):
+        """Re-solve with changed bounds on a 2-D variable."""
+        lb = cp.Parameter((2, 2))
+        X = cp.Variable((2, 2), bounds=[lb, None])
+
+        lb.value = np.zeros((2, 2))
+        prob = cp.Problem(cp.Minimize(cp.sum(X)))
+        prob.solve(solver=cp.CLARABEL)
+        np.testing.assert_allclose(X.value, np.zeros((2, 2)), atol=1e-4)
+
+        lb.value = 3 * np.ones((2, 2))
+        prob.solve(solver=cp.CLARABEL)
+        np.testing.assert_allclose(X.value, 3 * np.ones((2, 2)), atol=1e-4)
+
+    @pytest.mark.parametrize("solver_name", ["HIGHS", "DAQP"])
+    def test_matrix_variable_bounded_solver(self, solver_name):
+        """2-D variable with parametric bounds on BOUNDED_VARIABLES solver."""
+        if not _solver_available(solver_name):
+            pytest.skip(f"{solver_name} not available")
+
+        lb = cp.Parameter((2, 3))
+        ub = cp.Parameter((2, 3))
+        X = cp.Variable((2, 3), bounds=[lb, ub])
+
+        lb.value = 2 * np.ones((2, 3))
+        ub.value = 4 * np.ones((2, 3))
+        prob = cp.Problem(cp.Minimize(cp.sum(X)))
+        prob.solve(solver=solver_name)
+        assert prob.status == cp.OPTIMAL
+        np.testing.assert_allclose(X.value, 2 * np.ones((2, 3)), atol=1e-6)

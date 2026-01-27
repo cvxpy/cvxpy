@@ -141,7 +141,9 @@ def extract_bounds_tensor(
 
     Returns
     -------
-    A sparse CSC matrix of shape (var_size * 1, param_size + 1) = (var_size, param_size + 1).
+    sp.sparray
+        Sparse matrix of shape (var_size, param_size + 1). The last column
+        holds the constant (parameter-free) part of the bounds.
     """
     from cvxpy.atoms.affine.vec import vec as vec_atom
 
@@ -150,7 +152,6 @@ def extract_bounds_tensor(
     default_val = -np.inf if which == 'lower' else np.inf
 
     op_list = []
-    vert_offset = 0
     for x in variables:
         bound_expr = None
         if which == 'lower' and x.is_nonneg():
@@ -167,8 +168,6 @@ def extract_bounds_tensor(
                     b = Promote(b, x.shape)
                 if b.ndim > 1:
                     bound_expr = vec_atom(b, order='F')
-                elif b.size == x.size:
-                    bound_expr = b
                 else:
                     bound_expr = b
             else:
@@ -178,7 +177,6 @@ def extract_bounds_tensor(
             bound_expr = Constant(np.full(x.size, default_val))
 
         op_list.append(bound_expr.canonical_form[0])
-        vert_offset += x.size
 
     # Build the problem matrix with x_length=0 (no variable columns,
     # only the constant/parameter mapping).

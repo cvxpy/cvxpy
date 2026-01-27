@@ -333,7 +333,7 @@ class Leaf(expression.Expression):
         Parameters
         ----------
         term: The term to encode in the constraints.
-        constraints: An existing list of constraitns to append to.
+        constraints: An existing list of constraints to append to.
         """
         if self.attributes['nonneg'] or self.attributes['pos']:
             constraints.append(term >= 0)
