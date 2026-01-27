@@ -38,6 +38,8 @@ from cvxpy.problems.param_prob import ParamProb
 from cvxpy.reductions import InverseData, Solution, cvx_attr2constr
 from cvxpy.reductions.matrix_stuffing import (
     MatrixStuffing,
+    _has_parametric_bounds,
+    extract_bounds_tensor,
     extract_lower_bounds,
     extract_mip_idx,
     extract_upper_bounds,
@@ -157,6 +159,8 @@ class ParamConeProg(ParamProb):
                  formatted: bool = False,
                  lower_bounds: np.ndarray | None = None,
                  upper_bounds: np.ndarray | None = None,
+                 lb_tensor=None,
+                 ub_tensor=None,
                  ) -> None:
         # The problem data tensors; q is for the objective, and A for
         # the problem data matrix
@@ -168,6 +172,9 @@ class ParamConeProg(ParamProb):
         # Lower and upper bounds for the variable, if present.
         self.lower_bounds = lower_bounds
         self.upper_bounds = upper_bounds
+        # Sparse tensors for parametric bounds (param_vec -> bounds_vec).
+        self.lb_tensor = lb_tensor
+        self.ub_tensor = ub_tensor
 
         # Form a reduced representation of A and P, for faster application
         # of parameters.
@@ -225,6 +232,21 @@ class ParamConeProg(ParamProb):
             self.q, param_vec, self.x.size, with_offset=True)
         q = q.toarray().flatten()
         A, b = self.reduced_A.get_matrix_from_tensor(param_vec, with_offset=True)
+
+        # Apply parametric bounds tensors if present.
+        if self.lb_tensor is not None:
+            if param_vec is None:
+                # No parameters: tensor is just the constant column.
+                self.lower_bounds = self.lb_tensor.toarray().flatten()
+            else:
+                self.lower_bounds = np.asarray(
+                    self.lb_tensor @ param_vec).flatten()
+        if self.ub_tensor is not None:
+            if param_vec is None:
+                self.upper_bounds = self.ub_tensor.toarray().flatten()
+            else:
+                self.upper_bounds = np.asarray(
+                    self.ub_tensor @ param_vec).flatten()
 
         if quad_obj:
             self.reduced_P.cache(keep_zeros)
@@ -406,8 +428,21 @@ class ConeMatrixStuffing(MatrixStuffing):
 
         inverse_data.minimize = type(problem.objective) == Minimize
         variables = problem.variables()
-        lower_bounds = extract_lower_bounds(variables, flattened_variable.size)
-        upper_bounds = extract_upper_bounds(variables, flattened_variable.size)
+        if _has_parametric_bounds(variables):
+            lb_tensor = extract_bounds_tensor(
+                variables, flattened_variable.size,
+                inverse_data.param_to_size, inverse_data.param_id_map,
+                canon_backend, which='lower')
+            ub_tensor = extract_bounds_tensor(
+                variables, flattened_variable.size,
+                inverse_data.param_to_size, inverse_data.param_id_map,
+                canon_backend, which='upper')
+            lower_bounds = None  # will be computed from tensor
+            upper_bounds = None
+        else:
+            lb_tensor = ub_tensor = None
+            lower_bounds = extract_lower_bounds(variables, flattened_variable.size)
+            upper_bounds = extract_upper_bounds(variables, flattened_variable.size)
         new_prob = ParamConeProg(
             params_to_c,
             flattened_variable,
@@ -420,6 +455,8 @@ class ConeMatrixStuffing(MatrixStuffing):
             P=params_to_P,
             lower_bounds=lower_bounds,
             upper_bounds=upper_bounds,
+            lb_tensor=lb_tensor,
+            ub_tensor=ub_tensor,
         )
         return new_prob, inverse_data
 

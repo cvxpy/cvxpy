@@ -15,7 +15,10 @@ limitations under the License.
 """
 from __future__ import annotations
 
-from typing import Any, Iterable, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Iterable, Optional, Tuple
+
+if TYPE_CHECKING:
+    from cvxpy.expressions.constants.parameter import Parameter
 
 import scipy.sparse as sp
 
@@ -69,6 +72,15 @@ class Variable(Leaf):
     def variables(self) -> list[Variable]:
         """Returns itself as a variable."""
         return [self]
+
+    def parameters(self) -> list[Parameter]:
+        """Returns parameters present in expression bounds, if any."""
+        params = []
+        if self.attributes.get('bounds') is not None:
+            for b in self.attributes['bounds']:
+                if isinstance(b, Expression):
+                    params.extend(b.parameters())
+        return params
 
     def canonicalize(self) -> Tuple[Expression, list[Constraint]]:
         """Returns the graph implementation of the object."""
