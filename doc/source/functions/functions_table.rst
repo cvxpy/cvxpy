@@ -660,6 +660,8 @@
      - :math:`1 - x`
      - :math:`x \in \{0,1\}`
      - |positive| positive
+
+       |decr| decr.
      - |affine| affine
 
    * - :ref:`logic.And(x1, ..., xn) <logic-and>`
@@ -668,6 +670,8 @@
      - 1 iff all :math:`x_i = 1`
      - :math:`x_i \in \{0,1\}`
      - |positive| positive
+
+       |incr| incr.
      - |affine| affine
 
    * - :ref:`logic.Or(x1, ..., xn) <logic-or>`
@@ -676,6 +680,8 @@
      - 1 iff any :math:`x_i = 1`
      - :math:`x_i \in \{0,1\}`
      - |positive| positive
+
+       |incr| incr.
      - |affine| affine
 
    * - :ref:`logic.Xor(x1, ..., xn) <logic-xor>`

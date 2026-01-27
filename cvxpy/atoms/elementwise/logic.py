@@ -106,6 +106,9 @@ class Not(LogicExpression):
             raise TypeError("Not takes exactly 1 argument.")
         super().validate_arguments()
 
+    def is_decr(self, idx) -> bool:
+        return True
+
     def name(self) -> str:
         child = self.args[0]
         if isinstance(child, (And, Or, Xor)):
@@ -157,6 +160,9 @@ class And(LogicExpression):
 
     def __init__(self, arg1, arg2, *args) -> None:
         super().__init__(arg1, arg2, *args)
+
+    def is_incr(self, idx) -> bool:
+        return True
 
     def _format_child(self, child, use_labels: bool = False) -> str:
         text = child.format_labeled() if use_labels else child.name()
@@ -214,6 +220,9 @@ class Or(LogicExpression):
 
     def __init__(self, arg1, arg2, *args) -> None:
         super().__init__(arg1, arg2, *args)
+
+    def is_incr(self, idx) -> bool:
+        return True
 
     def _format_child(self, child, use_labels: bool = False) -> str:
         text = child.format_labeled() if use_labels else child.name()

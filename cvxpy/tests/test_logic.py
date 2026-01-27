@@ -137,16 +137,63 @@ class TestLogicExpressions:
         assert isinstance(cp.logic.Xor(x, y), Xor)
 
 
+class TestLogicMonotonicity:
+    """Tests for monotonicity of logic atoms."""
+
+    def test_not_is_decreasing(self):
+        x = cp.Variable(boolean=True)
+        expr = Not(x)
+        assert expr.is_decr(0)
+        assert not expr.is_incr(0)
+
+    def test_and_is_increasing(self):
+        x = cp.Variable(boolean=True)
+        y = cp.Variable(boolean=True)
+        expr = And(x, y)
+        assert expr.is_incr(0)
+        assert expr.is_incr(1)
+        assert not expr.is_decr(0)
+        assert not expr.is_decr(1)
+
+    def test_or_is_increasing(self):
+        x = cp.Variable(boolean=True)
+        y = cp.Variable(boolean=True)
+        expr = Or(x, y)
+        assert expr.is_incr(0)
+        assert expr.is_incr(1)
+        assert not expr.is_decr(0)
+        assert not expr.is_decr(1)
+
+    def test_xor_is_neither(self):
+        x = cp.Variable(boolean=True)
+        y = cp.Variable(boolean=True)
+        expr = Xor(x, y)
+        assert not expr.is_incr(0)
+        assert not expr.is_incr(1)
+        assert not expr.is_decr(0)
+        assert not expr.is_decr(1)
+
+    def test_nary_and_is_increasing(self):
+        x = cp.Variable(boolean=True)
+        y = cp.Variable(boolean=True)
+        z = cp.Variable(boolean=True)
+        expr = And(x, y, z)
+        for i in range(3):
+            assert expr.is_incr(i)
+            assert not expr.is_decr(i)
+
+    def test_nary_or_is_increasing(self):
+        x = cp.Variable(boolean=True)
+        y = cp.Variable(boolean=True)
+        z = cp.Variable(boolean=True)
+        expr = Or(x, y, z)
+        for i in range(3):
+            assert expr.is_incr(i)
+            assert not expr.is_decr(i)
+
+
 class TestLogicSolve:
     """Solve-based truth table tests for logic atoms."""
-
-    @staticmethod
-    def _solve_with_fixed(expr, var_vals):
-        """Solve minimizing expr with variables fixed to given values."""
-        constraints = [v == val for v, val in var_vals.items()]
-        prob = cp.Problem(cp.Minimize(0), constraints + [expr >= 0])
-        prob.solve(solver=cp.HIGHS)
-        return prob
 
     @pytest.mark.parametrize("val,expected", [(0, 1), (1, 0)])
     def test_not_truth_table(self, val, expected):
