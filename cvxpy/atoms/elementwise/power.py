@@ -466,4 +466,8 @@ class PowerApprox(Power):
             w = None
 
         self.p_rational, self.w = p, w
-        self.approx_error = float(abs(self.p_rational - p))
+        if not isinstance(self._p_orig, cvxtypes.expression()):
+            original_p = self._p_orig
+        else:
+            original_p = self.p.value
+        self.approx_error = float(abs(self.p_rational - original_p))
