@@ -324,7 +324,7 @@ def construct_solving_chain(problem, candidates,
     if PowCone3D in constr_types or any(atom in POWCONE_ATOMS for atom in atoms):
         cones.append(PowCone3D)
     if PowConeND in constr_types or any(atom in POWCONE_ND_ATOMS for atom in atoms):
-        cones.add(PowConeND)
+        cones.append(PowConeND)
     # Here, we make use of the observation that canonicalization only
     # increases the number of constraints in our problem.
     var_domains = sum([var.domain for var in problem.variables()], start = [])
@@ -345,12 +345,13 @@ def construct_solving_chain(problem, candidates,
 
         solver_context = SolverInfo(solver=solver, supported_constraints=supported_constraints)
 
-        ex_cos = (set(cones) & set(EXOTIC_CONES)) - set(supported_constraints)
+        cones = set(cones)
+        ex_cos = (cones & set(EXOTIC_CONES)) - set(supported_constraints)
 
         for co in ex_cos:
             sim_cos = set(EXOTIC_CONES[co])
-            constr_types.update(sim_cos)
-            constr_types.discard(co)
+            cones.update(sim_cos)
+            cones.discard(co)
 
         unsupported_constraints = [
             cone for cone in cones if cone not in supported_constraints
