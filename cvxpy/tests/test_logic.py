@@ -21,6 +21,14 @@ import cvxpy as cp
 from cvxpy.atoms.elementwise.logic import And, Not, Or, Xor, iff, implies
 
 
+def _eval(expr, constraints=None):
+    """Solve a feasibility problem and return the value of expr via y == expr."""
+    y = cp.Variable(expr.shape)
+    prob = cp.Problem(cp.Minimize(0), [y == expr] + (constraints or []))
+    prob.solve(solver=cp.HIGHS)
+    return y.value
+
+
 class TestLogicName:
     """Tests for name() and format_labeled() pretty printing."""
 
@@ -50,59 +58,39 @@ class TestLogicName:
     def test_not_no_parens_for_leaf(self):
         x = cp.Variable(boolean=True, name='x')
         assert Not(x).name() == "~x"
-        # Not(Not(x)) should not parenthesize inner Not
         assert Not(Not(x)).name() == "~~x"
 
-    def test_and_parenthesizes_lower_precedence(self):
+    def test_precedence(self):
         x = cp.Variable(boolean=True, name='x')
         y = cp.Variable(boolean=True, name='y')
         z = cp.Variable(boolean=True, name='z')
         # & is higher precedence than | and ^
         assert And(Or(x, y), z).name() == "(x | y) & z"
         assert And(x, Xor(y, z)).name() == "x & (y ^ z)"
-        # & with & children: no parens needed
         assert And(And(x, y), z).name() == "x & y & z"
-
-    def test_xor_parenthesizes_or(self):
-        x = cp.Variable(boolean=True, name='x')
-        y = cp.Variable(boolean=True, name='y')
-        z = cp.Variable(boolean=True, name='z')
-        # ^ is higher precedence than |
+        # ^ parenthesizes | but not &
         assert Xor(Or(x, y), z).name() == "(x | y) ^ z"
-        # ^ with & child: no parens needed
         assert Xor(And(x, y), z).name() == "x & y ^ z"
-
-    def test_or_no_parens(self):
-        x = cp.Variable(boolean=True, name='x')
-        y = cp.Variable(boolean=True, name='y')
-        z = cp.Variable(boolean=True, name='z')
-        # | is lowest precedence: no children need parens
+        # | is lowest: never parenthesizes
         assert Or(And(x, y), z).name() == "x & y | z"
         assert Or(Xor(x, y), z).name() == "x ^ y | z"
 
     def test_complex_expression(self):
         x = cp.Variable(boolean=True, name='x')
         y = cp.Variable(boolean=True, name='y')
-        # XNOR: (x & y) | (~x & ~y)
         assert Or(And(x, y), And(Not(x), Not(y))).name() == \
             "x & y | ~x & ~y"
 
-    def test_format_labeled_uses_labels(self):
+    def test_format_labeled(self):
         x = cp.Variable(boolean=True, name='x')
         y = cp.Variable(boolean=True, name='y')
-        expr = And(x, y).set_label("my_and")
-        assert expr.format_labeled() == "my_and"
-
-    def test_format_labeled_recurses(self):
-        x = cp.Variable(boolean=True, name='x')
-        y = cp.Variable(boolean=True, name='y')
+        assert And(x, y).set_label("my_and").format_labeled() == "my_and"
         inner = And(x, y).set_label("both")
-        outer = Or(inner, Not(x))
-        assert outer.format_labeled() == "both | ~x"
+        assert Or(inner, Not(x)).format_labeled() == "both | ~x"
 
 
-class TestLogicExpressions:
-    """Tests for LogicExpression atom classes."""
+class TestLogicProperties:
+    """Tests for types, DCP, monotonicity, and log-log properties."""
 
     def test_expression_types(self):
         x = cp.Variable(boolean=True)
@@ -112,111 +100,44 @@ class TestLogicExpressions:
         assert isinstance(Or(x, y), Or)
         assert isinstance(Xor(x, y), Xor)
 
-    def test_composition(self):
-        x1 = cp.Variable(boolean=True)
-        x2 = cp.Variable(boolean=True)
-        x3 = cp.Variable(boolean=True)
-        expr = Or(And(x1, x2), Not(x3))
-        assert isinstance(expr, Or)
-
     def test_dcp_compliance(self):
         x = cp.Variable(boolean=True)
         y = cp.Variable(boolean=True)
-        assert And(x, y).is_dcp()
-        assert Or(x, y).is_dcp()
-        assert Not(x).is_dcp()
-        assert Xor(x, y).is_dcp()
+        for expr in [And(x, y), Or(x, y), Not(x), Xor(x, y)]:
+            assert expr.is_dcp()
 
     def test_namespace(self):
-        """Test that cp.logic namespace works."""
         x = cp.Variable(boolean=True)
         y = cp.Variable(boolean=True)
         assert isinstance(cp.logic.Not(x), Not)
         assert isinstance(cp.logic.And(x, y), And)
         assert isinstance(cp.logic.Or(x, y), Or)
         assert isinstance(cp.logic.Xor(x, y), Xor)
+        assert isinstance(cp.logic.implies(x, y), Or)
+        assert isinstance(cp.logic.iff(x, y), Not)
 
-
-class TestLogicMonotonicity:
-    """Tests for monotonicity of logic atoms."""
-
-    def test_not_is_decreasing(self):
-        x = cp.Variable(boolean=True)
-        expr = Not(x)
-        assert expr.is_decr(0)
-        assert not expr.is_incr(0)
-
-    def test_and_is_increasing(self):
+    def test_monotonicity(self):
         x = cp.Variable(boolean=True)
         y = cp.Variable(boolean=True)
-        expr = And(x, y)
-        assert expr.is_incr(0)
-        assert expr.is_incr(1)
-        assert not expr.is_decr(0)
-        assert not expr.is_decr(1)
-
-    def test_or_is_increasing(self):
-        x = cp.Variable(boolean=True)
-        y = cp.Variable(boolean=True)
-        expr = Or(x, y)
-        assert expr.is_incr(0)
-        assert expr.is_incr(1)
-        assert not expr.is_decr(0)
-        assert not expr.is_decr(1)
-
-    def test_xor_is_neither(self):
-        x = cp.Variable(boolean=True)
-        y = cp.Variable(boolean=True)
-        expr = Xor(x, y)
-        assert not expr.is_incr(0)
-        assert not expr.is_incr(1)
-        assert not expr.is_decr(0)
-        assert not expr.is_decr(1)
-
-    def test_nary_and_is_increasing(self):
-        x = cp.Variable(boolean=True)
-        y = cp.Variable(boolean=True)
-        z = cp.Variable(boolean=True)
-        expr = And(x, y, z)
-        for i in range(3):
-            assert expr.is_incr(i)
-            assert not expr.is_decr(i)
-
-    def test_nary_or_is_increasing(self):
-        x = cp.Variable(boolean=True)
-        y = cp.Variable(boolean=True)
-        z = cp.Variable(boolean=True)
-        expr = Or(x, y, z)
-        for i in range(3):
-            assert expr.is_incr(i)
-            assert not expr.is_decr(i)
+        # Not is decreasing
+        assert Not(x).is_decr(0) and not Not(x).is_incr(0)
+        # And/Or are increasing
+        for cls in (And, Or):
+            expr = cls(x, y)
+            for i in range(2):
+                assert expr.is_incr(i) and not expr.is_decr(i)
+        # Xor is neither
+        xor = Xor(x, y)
+        for i in range(2):
+            assert not xor.is_incr(i) and not xor.is_decr(i)
 
     def test_not_log_log(self):
-        x = cp.Variable(boolean=True)
-        expr = Not(x)
-        assert not expr.is_atom_log_log_convex()
-        assert not expr.is_atom_log_log_concave()
-
-    def test_and_not_log_log(self):
+        """Logic atoms are not log-log convex or concave (domain includes 0)."""
         x = cp.Variable(boolean=True)
         y = cp.Variable(boolean=True)
-        expr = And(x, y)
-        assert not expr.is_atom_log_log_convex()
-        assert not expr.is_atom_log_log_concave()
-
-    def test_or_not_log_log(self):
-        x = cp.Variable(boolean=True)
-        y = cp.Variable(boolean=True)
-        expr = Or(x, y)
-        assert not expr.is_atom_log_log_convex()
-        assert not expr.is_atom_log_log_concave()
-
-    def test_xor_not_log_log(self):
-        x = cp.Variable(boolean=True)
-        y = cp.Variable(boolean=True)
-        expr = Xor(x, y)
-        assert not expr.is_atom_log_log_convex()
-        assert not expr.is_atom_log_log_concave()
+        for expr in [Not(x), And(x, y), Or(x, y), Xor(x, y)]:
+            assert not expr.is_atom_log_log_convex()
+            assert not expr.is_atom_log_log_concave()
 
 
 class TestLogicSolve:
@@ -225,228 +146,121 @@ class TestLogicSolve:
     @pytest.mark.parametrize("val,expected", [(0, 1), (1, 0)])
     def test_not_truth_table(self, val, expected):
         x = cp.Variable(boolean=True)
-        expr = Not(x)
-        prob = cp.Problem(cp.Minimize(0), [x == val])
-        prob.solve(solver=cp.HIGHS)
-        assert np.isclose(expr.value, expected), \
-            f"Not({val}) = {expr.value}, expected {expected}"
+        assert np.isclose(_eval(Not(x), [x == val]), expected)
 
     @pytest.mark.parametrize("a,b,expected", [
         (0, 0, 0), (0, 1, 0), (1, 0, 0), (1, 1, 1),
     ])
     def test_and_truth_table(self, a, b, expected):
         x = cp.Variable(boolean=True)
-        y = cp.Variable(boolean=True)
-        expr = And(x, y)
-        prob = cp.Problem(cp.Minimize(0), [x == a, y == b])
-        prob.solve(solver=cp.HIGHS)
-        assert np.isclose(expr.value, expected), \
-            f"And({a}, {b}) = {expr.value}, expected {expected}"
+        z = cp.Variable(boolean=True)
+        assert np.isclose(_eval(And(x, z), [x == a, z == b]), expected)
 
     @pytest.mark.parametrize("a,b,expected", [
         (0, 0, 0), (0, 1, 1), (1, 0, 1), (1, 1, 1),
     ])
     def test_or_truth_table(self, a, b, expected):
         x = cp.Variable(boolean=True)
-        y = cp.Variable(boolean=True)
-        expr = Or(x, y)
-        prob = cp.Problem(cp.Minimize(0), [x == a, y == b])
-        prob.solve(solver=cp.HIGHS)
-        assert np.isclose(expr.value, expected), \
-            f"Or({a}, {b}) = {expr.value}, expected {expected}"
+        z = cp.Variable(boolean=True)
+        assert np.isclose(_eval(Or(x, z), [x == a, z == b]), expected)
 
     @pytest.mark.parametrize("a,b,expected", [
         (0, 0, 0), (0, 1, 1), (1, 0, 1), (1, 1, 0),
     ])
     def test_xor_truth_table(self, a, b, expected):
         x = cp.Variable(boolean=True)
-        y = cp.Variable(boolean=True)
-        expr = Xor(x, y)
-        prob = cp.Problem(cp.Minimize(0), [x == a, y == b])
-        prob.solve(solver=cp.HIGHS)
-        assert np.isclose(expr.value, expected), \
-            f"Xor({a}, {b}) = {expr.value}, expected {expected}"
+        z = cp.Variable(boolean=True)
+        assert np.isclose(_eval(Xor(x, z), [x == a, z == b]), expected)
 
+    @pytest.mark.parametrize("a,b,expected", [
+        (0, 0, 1), (0, 1, 1), (1, 0, 0), (1, 1, 1),
+    ])
+    def test_implies_truth_table(self, a, b, expected):
+        x = cp.Variable(boolean=True)
+        z = cp.Variable(boolean=True)
+        assert np.isclose(_eval(implies(x, z), [x == a, z == b]), expected)
 
-class TestLogicNary:
-    """N-ary logic operation tests."""
+    @pytest.mark.parametrize("a,b,expected", [
+        (0, 0, 1), (0, 1, 0), (1, 0, 0), (1, 1, 1),
+    ])
+    def test_iff_truth_table(self, a, b, expected):
+        x = cp.Variable(boolean=True)
+        z = cp.Variable(boolean=True)
+        assert np.isclose(_eval(iff(x, z), [x == a, z == b]), expected)
 
-    def test_and_3(self):
+    def test_nary(self):
         x1 = cp.Variable(boolean=True)
         x2 = cp.Variable(boolean=True)
         x3 = cp.Variable(boolean=True)
-        expr = And(x1, x2, x3)
-        # All true -> true
-        prob = cp.Problem(cp.Minimize(0), [x1 == 1, x2 == 1, x3 == 1])
-        prob.solve(solver=cp.HIGHS)
-        assert np.isclose(expr.value, 1)
-        # One false -> false
-        prob = cp.Problem(cp.Minimize(0), [x1 == 1, x2 == 0, x3 == 1])
-        prob.solve(solver=cp.HIGHS)
-        assert np.isclose(expr.value, 0)
+        def fix(a, b, c):
+            return [x1 == a, x2 == b, x3 == c]
+        # And: all-true -> 1, one-false -> 0
+        assert np.isclose(_eval(And(x1, x2, x3), fix(1, 1, 1)), 1)
+        assert np.isclose(_eval(And(x1, x2, x3), fix(1, 0, 1)), 0)
+        # Or: all-false -> 0, one-true -> 1
+        assert np.isclose(_eval(Or(x1, x2, x3), fix(0, 0, 0)), 0)
+        assert np.isclose(_eval(Or(x1, x2, x3), fix(0, 1, 0)), 1)
+        # Xor parity: 0->0, 1->1, 2->0, 3->1
+        assert np.isclose(_eval(Xor(x1, x2, x3), fix(0, 0, 0)), 0)
+        assert np.isclose(_eval(Xor(x1, x2, x3), fix(1, 0, 0)), 1)
+        assert np.isclose(_eval(Xor(x1, x2, x3), fix(1, 1, 0)), 0)
+        assert np.isclose(_eval(Xor(x1, x2, x3), fix(1, 1, 1)), 1)
 
-    def test_or_3(self):
-        x1 = cp.Variable(boolean=True)
-        x2 = cp.Variable(boolean=True)
-        x3 = cp.Variable(boolean=True)
-        expr = Or(x1, x2, x3)
-        # All false -> false
-        prob = cp.Problem(cp.Minimize(0), [x1 == 0, x2 == 0, x3 == 0])
-        prob.solve(solver=cp.HIGHS)
-        assert np.isclose(expr.value, 0)
-        # One true -> true
-        prob = cp.Problem(cp.Minimize(0), [x1 == 0, x2 == 1, x3 == 0])
-        prob.solve(solver=cp.HIGHS)
-        assert np.isclose(expr.value, 1)
-
-    def test_xor_3_parity(self):
-        x1 = cp.Variable(boolean=True)
-        x2 = cp.Variable(boolean=True)
-        x3 = cp.Variable(boolean=True)
-        expr = Xor(x1, x2, x3)
-        # 0 true (even) -> 0
-        prob = cp.Problem(cp.Minimize(0), [x1 == 0, x2 == 0, x3 == 0])
-        prob.solve(solver=cp.HIGHS)
-        assert np.isclose(expr.value, 0)
-        # 1 true (odd) -> 1
-        prob = cp.Problem(cp.Minimize(0), [x1 == 1, x2 == 0, x3 == 0])
-        prob.solve(solver=cp.HIGHS)
-        assert np.isclose(expr.value, 1)
-        # 2 true (even) -> 0
-        prob = cp.Problem(cp.Minimize(0), [x1 == 1, x2 == 1, x3 == 0])
-        prob.solve(solver=cp.HIGHS)
-        assert np.isclose(expr.value, 0)
-        # 3 true (odd) -> 1
-        prob = cp.Problem(cp.Minimize(0), [x1 == 1, x2 == 1, x3 == 1])
-        prob.solve(solver=cp.HIGHS)
-        assert np.isclose(expr.value, 1)
-
-
-class TestLogicVector:
-    """Element-wise vector logic operations."""
-
-    def test_vector_and(self):
+    def test_vector(self):
         x = cp.Variable(3, boolean=True)
-        y = cp.Variable(3, boolean=True)
-        expr = And(x, y)
-        assert expr.shape == (3,)
-        prob = cp.Problem(
-            cp.Minimize(0),
-            [x == np.array([1, 0, 1]), y == np.array([1, 1, 0])]
-        )
-        prob.solve(solver=cp.HIGHS)
-        np.testing.assert_array_almost_equal(expr.value, [1, 0, 0])
+        z = cp.Variable(3, boolean=True)
+        fix = [x == np.array([1, 0, 1]), z == np.array([1, 1, 0])]
+        np.testing.assert_array_almost_equal(_eval(And(x, z), fix), [1, 0, 0])
+        np.testing.assert_array_almost_equal(_eval(Or(x, z), fix), [1, 1, 1])
+        np.testing.assert_array_almost_equal(_eval(Not(x), fix), [0, 1, 0])
 
-    def test_vector_or(self):
-        x = cp.Variable(3, boolean=True)
-        y = cp.Variable(3, boolean=True)
-        expr = Or(x, y)
-        prob = cp.Problem(
-            cp.Minimize(0),
-            [x == np.array([1, 0, 0]), y == np.array([0, 0, 1])]
-        )
-        prob.solve(solver=cp.HIGHS)
-        np.testing.assert_array_almost_equal(expr.value, [1, 0, 1])
-
-    def test_vector_not(self):
-        x = cp.Variable(3, boolean=True)
-        expr = Not(x)
-        prob = cp.Problem(
-            cp.Minimize(0),
-            [x == np.array([1, 0, 1])]
-        )
-        prob.solve(solver=cp.HIGHS)
-        np.testing.assert_array_almost_equal(expr.value, [0, 1, 0])
-
-
-class TestLogicComposition:
-    """Test composed logic expressions solve correctly."""
-
-    def test_or_and_not(self):
+    def test_composition(self):
         """Or(And(x1, x2), Not(x3)) truth table."""
         x1 = cp.Variable(boolean=True)
         x2 = cp.Variable(boolean=True)
         x3 = cp.Variable(boolean=True)
-        expr = Or(And(x1, x2), Not(x3))
         for a in [0, 1]:
             for b in [0, 1]:
                 for c in [0, 1]:
-                    expected = (a and b) or (not c)
-                    prob = cp.Problem(
-                        cp.Minimize(0),
-                        [x1 == a, x2 == b, x3 == c]
-                    )
-                    prob.solve(solver=cp.HIGHS)
-                    assert np.isclose(expr.value, int(expected)), \
-                        f"Or(And({a},{b}), Not({c})) = {expr.value}, expected {int(expected)}"
+                    expected = int((a and b) or (not c))
+                    got = _eval(Or(And(x1, x2), Not(x3)),
+                                [x1 == a, x2 == b, x3 == c])
+                    assert np.isclose(got, expected)
 
 
 class TestLogicOperators:
     """Test ~, &, |, ^ operator syntax on boolean variables."""
 
-    def test_invert_operator(self):
+    def test_operators(self):
         x = cp.Variable(boolean=True)
-        expr = ~x
-        assert isinstance(expr, Not)
-        prob = cp.Problem(cp.Minimize(0), [x == 1])
-        prob.solve(solver=cp.HIGHS)
-        assert np.isclose(expr.value, 0)
-
-    def test_and_operator(self):
-        x = cp.Variable(boolean=True)
-        y = cp.Variable(boolean=True)
-        expr = x & y
-        assert isinstance(expr, And)
-        prob = cp.Problem(cp.Minimize(0), [x == 1, y == 0])
-        prob.solve(solver=cp.HIGHS)
-        assert np.isclose(expr.value, 0)
-
-    def test_or_operator(self):
-        x = cp.Variable(boolean=True)
-        y = cp.Variable(boolean=True)
-        expr = x | y
-        assert isinstance(expr, Or)
-        prob = cp.Problem(cp.Minimize(0), [x == 0, y == 1])
-        prob.solve(solver=cp.HIGHS)
-        assert np.isclose(expr.value, 1)
-
-    def test_xor_operator(self):
-        x = cp.Variable(boolean=True)
-        y = cp.Variable(boolean=True)
-        expr = x ^ y
-        assert isinstance(expr, Xor)
-        prob = cp.Problem(cp.Minimize(0), [x == 1, y == 1])
-        prob.solve(solver=cp.HIGHS)
-        assert np.isclose(expr.value, 0)
+        z = cp.Variable(boolean=True)
+        assert isinstance(~x, Not)
+        assert isinstance(x & z, And)
+        assert isinstance(x | z, Or)
+        assert isinstance(x ^ z, Xor)
+        assert np.isclose(_eval(~x, [x == 1]), 0)
+        assert np.isclose(_eval(x & z, [x == 1, z == 0]), 0)
+        assert np.isclose(_eval(x | z, [x == 0, z == 1]), 1)
+        assert np.isclose(_eval(x ^ z, [x == 1, z == 1]), 0)
 
     def test_composed_operators(self):
-        """Test (x & y) | (~x & ~y) which is XNOR."""
+        """(x & z) | (~x & ~z) is XNOR."""
         x = cp.Variable(boolean=True)
-        y = cp.Variable(boolean=True)
-        expr = (x & y) | (~x & ~y)
+        z = cp.Variable(boolean=True)
+        expr = (x & z) | (~x & ~z)
         for a in [0, 1]:
             for b in [0, 1]:
-                expected = int(a == b)
-                prob = cp.Problem(cp.Minimize(0), [x == a, y == b])
-                prob.solve(solver=cp.HIGHS)
-                assert np.isclose(expr.value, expected), \
-                    f"XNOR({a},{b}) = {expr.value}, expected {expected}"
+                assert np.isclose(_eval(expr, [x == a, z == b]), int(a == b))
 
     def test_invert_on_logic_expr(self):
-        """~(x & y) should produce Not(And(x, y))."""
         x = cp.Variable(boolean=True)
-        y = cp.Variable(boolean=True)
-        expr = ~(x & y)
+        z = cp.Variable(boolean=True)
+        expr = ~(x & z)
         assert isinstance(expr, Not)
-        prob = cp.Problem(cp.Minimize(0), [x == 1, y == 1])
-        prob.solve(solver=cp.HIGHS)
-        assert np.isclose(expr.value, 0)
-        prob = cp.Problem(cp.Minimize(0), [x == 1, y == 0])
-        prob.solve(solver=cp.HIGHS)
-        assert np.isclose(expr.value, 1)
+        assert np.isclose(_eval(expr, [x == 1, z == 1]), 0)
+        assert np.isclose(_eval(expr, [x == 1, z == 0]), 1)
 
-    def test_operator_non_boolean_raises(self):
-        """Operators should raise on non-boolean variables."""
+    def test_non_boolean_raises(self):
         x = cp.Variable()
         y = cp.Variable(boolean=True)
         with pytest.raises(ValueError, match="boolean"):
@@ -459,22 +273,13 @@ class TestLogicOperators:
             ~x
 
     def test_vector_operators(self):
-        """Operators work elementwise on vectors."""
         x = cp.Variable(3, boolean=True)
-        y = cp.Variable(3, boolean=True)
-        and_expr = x & y
-        or_expr = x | y
-        xor_expr = x ^ y
-        not_expr = ~x
-        prob = cp.Problem(
-            cp.Minimize(0),
-            [x == np.array([1, 0, 1]), y == np.array([1, 1, 0])]
-        )
-        prob.solve(solver=cp.HIGHS)
-        np.testing.assert_array_almost_equal(and_expr.value, [1, 0, 0])
-        np.testing.assert_array_almost_equal(or_expr.value, [1, 1, 1])
-        np.testing.assert_array_almost_equal(xor_expr.value, [0, 1, 1])
-        np.testing.assert_array_almost_equal(not_expr.value, [0, 1, 0])
+        z = cp.Variable(3, boolean=True)
+        fix = [x == np.array([1, 0, 1]), z == np.array([1, 1, 0])]
+        np.testing.assert_array_almost_equal(_eval(x & z, fix), [1, 0, 0])
+        np.testing.assert_array_almost_equal(_eval(x | z, fix), [1, 1, 1])
+        np.testing.assert_array_almost_equal(_eval(x ^ z, fix), [0, 1, 1])
+        np.testing.assert_array_almost_equal(_eval(~x, fix), [0, 1, 0])
 
 
 class TestLogicValidation:
@@ -485,36 +290,23 @@ class TestLogicValidation:
         y = cp.Variable(boolean=True)
         with pytest.raises(ValueError, match="boolean"):
             And(x, y)
-
-    def test_non_boolean_not_raises(self):
-        x = cp.Variable()
         with pytest.raises(ValueError, match="boolean"):
             Not(x)
 
-    def test_too_few_args_and(self):
+    def test_too_few_args(self):
         x = cp.Variable(boolean=True)
         with pytest.raises(TypeError):
             And(x)
-
-    def test_too_few_args_or(self):
-        x = cp.Variable(boolean=True)
         with pytest.raises(TypeError):
             Or(x)
-
-    def test_too_few_args_xor(self):
-        x = cp.Variable(boolean=True)
         with pytest.raises(TypeError):
             Xor(x)
 
-    def test_int_constant_raises(self):
-        """Integer constants (even 0/1) are not boolean-typed."""
+    def test_numeric_constant_raises(self):
+        """Integer/float constants (even 0/1) are not boolean-typed."""
         x = cp.Variable(boolean=True)
         with pytest.raises(ValueError, match="boolean"):
             And(x, 1)
-
-    def test_float_constant_raises(self):
-        """Float constants are not boolean-typed."""
-        x = cp.Variable(boolean=True)
         with pytest.raises(ValueError, match="boolean"):
             And(x, 1.0)
 
@@ -522,133 +314,37 @@ class TestLogicValidation:
 class TestLogicBoolConstant:
     """Test that Python bool and np.bool_ constants are accepted."""
 
-    def test_scalar_bool_constant(self):
+    def test_scalar_bool_constants(self):
         x = cp.Variable(boolean=True)
-        expr = And(x, True)
-        assert isinstance(expr, And)
-        prob = cp.Problem(cp.Minimize(0), [x == 1])
-        prob.solve(solver=cp.HIGHS)
-        assert np.isclose(expr.value, 1)
-
-    def test_scalar_bool_false(self):
-        x = cp.Variable(boolean=True)
-        expr = And(x, False)
-        prob = cp.Problem(cp.Minimize(0), [x == 1])
-        prob.solve(solver=cp.HIGHS)
-        assert np.isclose(expr.value, 0)
-
-    def test_np_bool_constant(self):
-        x = cp.Variable(boolean=True)
-        expr = Or(x, np.bool_(True))
-        prob = cp.Problem(cp.Minimize(0), [x == 0])
-        prob.solve(solver=cp.HIGHS)
-        assert np.isclose(expr.value, 1)
+        assert np.isclose(_eval(And(x, True), [x == 1]), 1)
+        assert np.isclose(_eval(And(x, False), [x == 1]), 0)
+        assert np.isclose(_eval(Or(x, np.bool_(True)), [x == 0]), 1)
+        assert np.isclose(_eval(Not(True)), 0)
+        assert np.isclose(_eval(Xor(x, True), [x == 1]), 0)
+        assert np.isclose(_eval(Xor(x, True), [x == 0]), 1)
 
     def test_bool_array_constant(self):
         x = cp.Variable(3, boolean=True)
         mask = np.array([True, False, True])
-        expr = And(x, mask)
-        prob = cp.Problem(
-            cp.Minimize(0),
-            [x == np.array([1, 1, 0])]
-        )
-        prob.solve(solver=cp.HIGHS)
-        np.testing.assert_array_almost_equal(expr.value, [1, 0, 0])
-
-    def test_not_bool_constant(self):
-        expr = Not(True)
-        prob = cp.Problem(cp.Minimize(0))
-        prob.solve(solver=cp.HIGHS)
-        assert np.isclose(expr.value, 0)
-
-    def test_xor_with_bool_constant(self):
-        x = cp.Variable(boolean=True)
-        expr = Xor(x, True)
-        prob = cp.Problem(cp.Minimize(0), [x == 1])
-        prob.solve(solver=cp.HIGHS)
-        assert np.isclose(expr.value, 0)
-        prob = cp.Problem(cp.Minimize(0), [x == 0])
-        prob.solve(solver=cp.HIGHS)
-        assert np.isclose(expr.value, 1)
+        fix = [x == np.array([1, 1, 0])]
+        np.testing.assert_array_almost_equal(_eval(And(x, mask), fix), [1, 0, 0])
+        np.testing.assert_array_almost_equal(_eval(x & mask, fix), [1, 0, 0])
 
     def test_operator_with_bool_constant(self):
-        """Operators should work with bool constants via & | ^."""
         x = cp.Variable(boolean=True)
-        and_expr = x & True
-        or_expr = x | False
-        xor_expr = x ^ True
-        prob = cp.Problem(cp.Minimize(0), [x == 1])
-        prob.solve(solver=cp.HIGHS)
-        assert np.isclose(and_expr.value, 1)
-        assert np.isclose(or_expr.value, 1)
-        assert np.isclose(xor_expr.value, 0)
-
-    def test_bool_array_operator(self):
-        x = cp.Variable(3, boolean=True)
-        mask = np.array([True, False, True])
-        expr = x & mask
-        prob = cp.Problem(
-            cp.Minimize(0),
-            [x == np.array([1, 1, 0])]
-        )
-        prob.solve(solver=cp.HIGHS)
-        np.testing.assert_array_almost_equal(expr.value, [1, 0, 0])
+        fix = [x == 1]
+        assert np.isclose(_eval(x & True, fix), 1)
+        assert np.isclose(_eval(x | False, fix), 1)
+        assert np.isclose(_eval(x ^ True, fix), 0)
 
     def test_sparse_bool_constant(self):
         import scipy.sparse as sp
         x = cp.Variable((2, 2), boolean=True)
         mask = sp.csc_matrix(np.array([[True, False], [False, True]]))
-        expr = And(x, mask)
-        prob = cp.Problem(
-            cp.Minimize(0),
-            [x == np.ones((2, 2))]
-        )
-        prob.solve(solver=cp.HIGHS)
         np.testing.assert_array_almost_equal(
-            expr.value, np.array([[1, 0], [0, 1]])
+            _eval(And(x, mask), [x == np.ones((2, 2))]),
+            np.array([[1, 0], [0, 1]])
         )
-
-
-class TestLogicImpliesIff:
-    """Solve-based truth table tests for implies and iff."""
-
-    @pytest.mark.parametrize("a,b,expected", [
-        (0, 0, 1), (0, 1, 1), (1, 0, 0), (1, 1, 1),
-    ])
-    def test_implies_truth_table(self, a, b, expected):
-        x = cp.Variable(boolean=True)
-        y = cp.Variable(boolean=True)
-        expr = implies(x, y)
-        prob = cp.Problem(cp.Minimize(0), [x == a, y == b])
-        prob.solve(solver=cp.HIGHS)
-        assert np.isclose(expr.value, expected), \
-            f"implies({a}, {b}) = {expr.value}, expected {expected}"
-
-    @pytest.mark.parametrize("a,b,expected", [
-        (0, 0, 1), (0, 1, 0), (1, 0, 0), (1, 1, 1),
-    ])
-    def test_iff_truth_table(self, a, b, expected):
-        x = cp.Variable(boolean=True)
-        y = cp.Variable(boolean=True)
-        expr = iff(x, y)
-        prob = cp.Problem(cp.Minimize(0), [x == a, y == b])
-        prob.solve(solver=cp.HIGHS)
-        assert np.isclose(expr.value, expected), \
-            f"iff({a}, {b}) = {expr.value}, expected {expected}"
-
-    def test_implies_namespace(self):
-        """Test that cp.logic.implies works."""
-        x = cp.Variable(boolean=True)
-        y = cp.Variable(boolean=True)
-        expr = cp.logic.implies(x, y)
-        assert isinstance(expr, Or)
-
-    def test_iff_namespace(self):
-        """Test that cp.logic.iff works."""
-        x = cp.Variable(boolean=True)
-        y = cp.Variable(boolean=True)
-        expr = cp.logic.iff(x, y)
-        assert isinstance(expr, Not)
 
 
 class TestLogicInConstraint:
@@ -657,10 +353,7 @@ class TestLogicInConstraint:
     def test_xor_constraint(self):
         x1 = cp.Variable(boolean=True)
         x2 = cp.Variable(boolean=True)
-        prob = cp.Problem(
-            cp.Minimize(0),
-            [Xor(x1, x2) == 1, x1 == 1]
-        )
+        prob = cp.Problem(cp.Minimize(0), [Xor(x1, x2) == 1, x1 == 1])
         prob.solve(solver=cp.HIGHS)
         assert np.isclose(x2.value, 0)
 
