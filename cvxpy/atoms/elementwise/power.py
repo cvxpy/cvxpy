@@ -211,20 +211,54 @@ class Power(Elementwise):
     def is_atom_convex(self) -> bool:
         """Is the atom convex?
         """
+        # Parametrized powers are not allowed for DCP (curvature analysis
+        # depends on the value of the power, not just the sign).
+        #
+        # p == 0 is affine here.
         return _is_const(self.p) and (self.p.value <= 0 or self.p.value >= 1)
 
     def is_atom_concave(self) -> bool:
         """Is the atom concave?
         """
+        # Parametrized powers are not allowed for DCP.
+        #
+        # p == 0 is affine here.
         return _is_const(self.p) and 0 <= self.p.value <= 1
 
     def parameters(self):
+        # This is somewhat of a hack. When checking DPP for DGP,
+        # we need to know whether the exponent p is a parameter, because
+        # expressions like power(power(x, parameter), parameter) are
+        # unallowed.
+        #
+        # It seems natural that p should be an argument, not
+        # a member of the atom. However, this doesn't work because power
+        # is a special case: while in general parameters in a DGP program
+        # must be positive, they can have any sign when appearing as an
+        # exponent, since in this case we don't need to take the log
+        # (eg, in a monomial x_1^a_1x_2a^2, a_1 and a_2 don't need to be
+        # positive). If the parameter p were an arg and was negative,
+        # then x^p would get falsely flagged as unknown curvature under DGP.
+        #
+        # So, as a workaround, we overload the parameters method.
         return self.args[0].parameters() + self.p.parameters()
 
     def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
         """
         if u.scopes.dpp_scope_active():
+            # This branch applies curvature rules for DPP.
+            #
+            # Because a DPP scope is active, parameters will be
+            # treated as affine (like variables, not constants) by curvature
+            # analysis methods.
+            #
+            # A power x^p is log-log convex (actually, affine) as long as
+            # at least one of x and p do not contain parameters.
+            #
+            # Note by construction (see __init__, p is either a Constant or
+            # a Parameter, ie, either isinstance(p, Constant) or isinstance(p,
+            # Parameter)).
             x = self.args[0]
             p = self.p
             return not (x.parameters() and p.parameters())
@@ -291,6 +325,10 @@ class Power(Elementwise):
 
     def has_quadratic_term(self) -> bool:
         """Does the affine head of the expression contain a quadratic term?
+
+        The affine head is all nodes with a path to the root node
+        that does not pass through any non-affine atom. If the root node
+        is non-affine, then the affine head is the root alone.
         """
         if not _is_const(self.p):
             return False
@@ -305,6 +343,7 @@ class Power(Elementwise):
 
     def is_qpwa(self) -> bool:
         if not _is_const(self.p):
+            # disallow parameters
             return False
 
         p = self.p_rational
