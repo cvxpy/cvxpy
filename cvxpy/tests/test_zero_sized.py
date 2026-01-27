@@ -187,6 +187,65 @@ class TestZeroSizedSolve(unittest.TestCase):
         self.assertLessEqual(x.value, 3)
 
 
+class TestZeroSizedFromBooleanIndex(unittest.TestCase):
+    """Test zero-sized expressions from boolean indexing with all-False masks."""
+
+    def test_all_false_boolean_index_1d(self):
+        """Indexing a 1D variable with an all-False mask gives a (0,) expression."""
+        x = Variable(5)
+        mask = np.array([False, False, False, False, False])
+        expr = x[mask]
+        self.assertEqual(expr.shape, (0,))
+        self.assertEqual(expr.size, 0)
+
+    def test_all_false_boolean_index_2d_rows(self):
+        """Indexing rows of a 2D variable with an all-False mask."""
+        X = Variable((3, 4))
+        mask = np.array([False, False, False])
+        expr = X[mask, :]
+        self.assertEqual(expr.shape, (0, 4))
+        self.assertEqual(expr.size, 0)
+
+    def test_all_false_boolean_index_2d_cols(self):
+        """Indexing columns of a 2D variable with an all-False mask."""
+        X = Variable((3, 4))
+        mask = np.array([False, False, False, False])
+        expr = X[:, mask]
+        self.assertEqual(expr.shape, (3, 0))
+        self.assertEqual(expr.size, 0)
+
+    def test_solve_with_all_false_boolean_constraint(self):
+        """An all-False boolean index produces a vacuous constraint."""
+        x = Variable(5)
+        mask = np.array([False, False, False, False, False])
+        prob = cp.Problem(cp.Minimize(cp.sum(x)), [x >= 1, x[mask] <= 0])
+        prob.solve()
+        np.testing.assert_allclose(x.value, np.ones(5), atol=1e-5)
+
+    def test_sum_of_all_false_boolean_index(self):
+        """sum of an all-False-indexed expression is zero."""
+        x = Variable(5)
+        mask = np.array([False, False, False, False, False])
+        expr = cp.sum(x[mask])
+        self.assertEqual(expr.shape, ())
+        prob = cp.Problem(cp.Minimize(cp.sum(x) + expr), [x >= 1])
+        prob.solve()
+        np.testing.assert_allclose(x.value, np.ones(5), atol=1e-5)
+
+    def test_bounded_var_only_in_all_false_boolean_constraint(self):
+        """Bounded variable connected to the problem only via an all-False mask."""
+        x = Variable((1, 1), nonneg=True, bounds=[2, 3])
+        y = Variable(5)
+        mask = np.array([[False]])
+        prob = cp.Problem(cp.Minimize(cp.sum(y)),
+                          [y >= 1, x[mask] <= 0])
+        prob.solve()
+        np.testing.assert_allclose(y.value, np.ones(5), atol=1e-5)
+        self.assertIsNotNone(x.value)
+        self.assertGreaterEqual(x.value.min(), 2 - 1e-5)
+        self.assertLessEqual(x.value.max(), 3 + 1e-5)
+
+
 class TestZeroSizedShapes(unittest.TestCase):
     """Test expression shape propagation with zero-sized inputs."""
 
