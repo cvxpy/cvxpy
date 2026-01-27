@@ -2513,22 +2513,31 @@ class TestHIGHS:
             ), f"Expected model file to be written to {model_path}."
 
             # Check that the model contains the variable names as expected.
+            # We search the entire model file because some variables (e.g.,
+            # nonneg variables with BOUNDED_VARIABLES=True) may not appear
+            # in the bounds section when their bounds match the LP default.
             with open(model_path, "r", encoding="utf-8") as model_file:
                 model = model_file.read()
-            found_variables = re.sub(
-                " <= 1| free| ", "", re.search(r"\nbounds\n([\w\W]*?)\n(bin|end)\n", model)[1]
-            ).split("\n")
 
             for expected_var in variables:
-                actual_var_count = 0
-                for actual_var in found_variables:
-                    if actual_var.startswith(expected_var.name()):
-                        actual_var_count += 1
-                expected_var_count = expected_var.size
-                assert expected_var_count == actual_var_count, (
-                    f"Expected variable {expected_var.name()} to appear "
-                    f"{expected_var.size} times in the model bounds section."
-                )
+                if expected_var.ndim == 0:
+                    # Scalar variables appear by their plain name.
+                    assert expected_var.name() in model, (
+                        f"Expected variable {expected_var.name()} to appear "
+                        f"in the model file."
+                    )
+                else:
+                    # Array variables appear as name[idx] entries.
+                    actual_var_count = len(re.findall(
+                        re.escape(expected_var.name()) + r"\[", model
+                    ))
+                    # Each element appears at least twice (objective + constraint),
+                    # and possibly once more in the bounds section.
+                    assert actual_var_count >= expected_var.size, (
+                        f"Expected variable {expected_var.name()} to appear "
+                        f"at least {expected_var.size} times in the model file "
+                        f"but found {actual_var_count}."
+                    )
         finally:
             with contextlib.suppress(FileNotFoundError):
                 os.remove(model_path)

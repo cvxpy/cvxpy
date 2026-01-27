@@ -102,6 +102,7 @@ class HIGHS(ConicSolver):
 
     # Solver capabilities.
     MIP_CAPABLE = True
+    BOUNDED_VARIABLES = True
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS
     MI_SUPPORTED_CONSTRAINTS = SUPPORTED_CONSTRAINTS
 
@@ -266,8 +267,10 @@ class HIGHS(ConicSolver):
         lp.a_matrix_.value_ = A.data
 
         # Define Variable bounds
-        col_lower = -inf * np.ones(shape=lp.num_col_, dtype=c.dtype)
-        col_upper = inf * np.ones(shape=lp.num_col_, dtype=c.dtype)
+        lb = data[s.LOWER_BOUNDS]
+        ub = data[s.UPPER_BOUNDS]
+        col_lower = np.full(lp.num_col_, -inf, dtype=c.dtype) if lb is None else lb.copy()
+        col_upper = np.full(lp.num_col_, inf, dtype=c.dtype) if ub is None else ub.copy()
         # update col_lower and col_upper to account for boolean variables,
         # also set integrality_ for boolean or integers variables
         if data[s.BOOL_IDX] or data[s.INT_IDX]:
@@ -277,8 +280,8 @@ class HIGHS(ConicSolver):
                 for ind in data[s.BOOL_IDX]:
                     integrality[ind] = hp.HighsVarType.kInteger
                 bool_mask = np.array(data[s.BOOL_IDX], dtype=int)
-                col_lower[bool_mask] = 0
-                col_upper[bool_mask] = 1
+                col_lower[bool_mask] = np.maximum(col_lower[bool_mask], 0)
+                col_upper[bool_mask] = np.minimum(col_upper[bool_mask], 1)
             for ind in data[s.INT_IDX]:
                 integrality[ind] = hp.HighsVarType.kInteger
             lp.integrality_ = integrality
