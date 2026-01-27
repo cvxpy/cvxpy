@@ -42,6 +42,9 @@ class Constant(Leaf):
     """
 
     def __init__(self, value, name: Optional[str] = None) -> None:
+        # Record whether the original value was boolean-typed before
+        # const_to_matrix converts it to float64.
+        self._boolean: bool = self._detect_boolean(value)
         # Keep sparse matrices sparse.
         if intf.is_sparse(value):
             self._value = intf.DEFAULT_SPARSE_INTF.const_to_matrix(
@@ -64,6 +67,20 @@ class Constant(Leaf):
         self._skew_symm = None
         self._name = name
         super(Constant, self).__init__(intf.shape(self.value))
+
+    @staticmethod
+    def _detect_boolean(value) -> bool:
+        """Check if the original value has boolean dtype."""
+        if isinstance(value, (bool, np.bool_)):
+            return True
+        if hasattr(value, 'dtype') and value.dtype == np.bool_:
+            return True
+        return False
+
+    @property
+    def is_boolean_valued(self) -> bool:
+        """Whether this constant was constructed from a boolean-typed value."""
+        return self._boolean
 
     def name(self) -> str:
         """

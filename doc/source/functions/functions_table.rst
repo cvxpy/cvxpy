@@ -654,6 +654,56 @@
        |incr| incr.
      - |convex| convex
 
+   * - :ref:`logic.Not(x) <logic-not>`
+
+       ``~x``
+     - :math:`1 - x`
+     - :math:`x \in \{0,1\}`
+     - |positive| positive
+
+       |decr| decr.
+     - |affine| affine
+
+   * - :ref:`logic.And(x1, ..., xn) <logic-and>`
+
+       ``x & y``
+     - 1 iff all :math:`x_i = 1`
+     - :math:`x_i \in \{0,1\}`
+     - |positive| positive
+
+       |incr| incr.
+     - |affine| affine
+
+   * - :ref:`logic.Or(x1, ..., xn) <logic-or>`
+
+       ``x | y``
+     - 1 iff any :math:`x_i = 1`
+     - :math:`x_i \in \{0,1\}`
+     - |positive| positive
+
+       |incr| incr.
+     - |affine| affine
+
+   * - :ref:`logic.Xor(x1, ..., xn) <logic-xor>`
+
+       ``x ^ y``
+     - 1 iff odd # of :math:`x_i = 1`
+     - :math:`x_i \in \{0,1\}`
+     - |positive| positive
+     - |affine| affine
+
+   * - :ref:`logic.implies(x, y) <logic-implies>`
+     - :math:`x \Rightarrow y` (1 unless :math:`x{=}1, y{=}0`)
+     - :math:`x,y \in \{0,1\}`
+     - |positive| positive
+     - |affine| affine
+
+   * - :ref:`logic.iff(x, y) <logic-iff>`
+     - :math:`x \Leftrightarrow y` (1 iff :math:`x = y`)
+     - :math:`x,y \in \{0,1\}`
+     - |positive| positive
+     - |affine| affine
+
    * - :ref:`bmat() <bmat>`
 
      - :math:`\left[\begin{matrix} X^{(1,1)} & .. &  X^{(1,q)} \\ \vdots &   & \vdots \\ X^{(p,1)} & .. &   X^{(p,q)} \end{matrix}\right]`
