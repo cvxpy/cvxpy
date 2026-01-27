@@ -41,6 +41,9 @@ from cvxpy.error import (
     enable_warnings as enable_warnings,
     warnings_enabled as warnings_enabled,
 )
+from cvxpy.utilities.warn import (
+    CvxpyDeprecationWarning as CvxpyDeprecationWarning,
+)
 from cvxpy.expressions.constants import (
     CallbackParam as CallbackParam,
     Constant as Constant,

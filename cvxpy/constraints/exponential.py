@@ -15,7 +15,6 @@ limitations under the License.
 """
 from __future__ import annotations
 
-import warnings
 from typing import List, Tuple, TypeVar
 
 import numpy as np
@@ -23,6 +22,7 @@ import numpy as np
 from cvxpy.constraints.cones import Cone
 from cvxpy.expressions import cvxtypes
 from cvxpy.utilities import scopes
+from cvxpy.utilities.warn import warn
 
 Expression = TypeVar('Expression')
 
@@ -324,7 +324,7 @@ class OpRelEntrConeQuad(Cone):
                    "do one of these things will cause this function to impose a symmetry or"
                    "conjugate-symmetry constraint internally, in a way that is very"
                    "inefficient.")
-            warnings.warn(msg)
+            warn(msg)
         self.m = m
         self.k = k
         Xs, Ys, Zs = self.X.shape, self.Y.shape, self.Z.shape

@@ -31,6 +31,7 @@ from cvxpy.constraints import PSD, Equality, Inequality
 from cvxpy.expressions import cvxtypes
 from cvxpy.utilities import scopes
 from cvxpy.utilities.shape import size_from_shape
+from cvxpy.utilities.warn import CvxpyDeprecationWarning, warn
 
 
 def _cast_other(binary_op):
@@ -561,7 +562,7 @@ class Expression(u.Canonical):
         """
         if order is None:
             flatten_order_warning = DEFAULT_ORDER_DEPRECATION_MSG.replace("FUNC_NAME", "flatten")
-            warnings.warn(flatten_order_warning, FutureWarning)
+            warn(flatten_order_warning, FutureWarning)
             order = 'F'
         assert order in ['F', 'C']
         return cvxtypes.vec()(self, order)
@@ -739,7 +740,7 @@ class Expression(u.Canonical):
             # don't check for that here.
             if not (self.is_constant() or other.is_constant()):
                 if error.warnings_enabled():
-                    warnings.warn("Forming a nonconvex expression.")
+                    warn("Forming a nonconvex expression.")
             # Because we want to discourage using ``*`` to call matmul, we
             # raise a warning to the user.
             with warnings.catch_warnings():
@@ -747,7 +748,7 @@ class Expression(u.Canonical):
                 warnings.simplefilter("always", UserWarning, append=True)
                 msg = __STAR_MATMUL_WARNING__ % __STAR_MATMUL_COUNT__
                 warnings.warn(msg, UserWarning)
-                warnings.warn(msg, DeprecationWarning)
+                warnings.warn(msg, CvxpyDeprecationWarning)
                 __STAR_MATMUL_COUNT__ += 1
             return cvxtypes.matmul_expr()(self, other)
 
@@ -1004,7 +1005,7 @@ class Expression(u.Canonical):
         """
         if order is None:
             reshape_order_warning = DEFAULT_ORDER_DEPRECATION_MSG.replace("FUNC_NAME", "reshape")
-            warnings.warn(reshape_order_warning, FutureWarning)
+            warn(reshape_order_warning, FutureWarning)
             order = 'F'
         from cvxpy import reshape
         return reshape(self, shape, order)

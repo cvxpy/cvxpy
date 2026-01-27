@@ -733,12 +733,12 @@ class TestExpressions(BaseTest):
             c * self.x
             self.assertEqual(2, len(w))
             self.assertEqual(w[0].category, UserWarning)
-            self.assertEqual(w[1].category, DeprecationWarning)
+            self.assertTrue(issubclass(w[1].category, DeprecationWarning))
             # repeat, to make sure warnings continue to be displayed
             c * self.x
             self.assertEqual(4, len(w))
             self.assertEqual(w[2].category, UserWarning)
-            self.assertEqual(w[3].category, DeprecationWarning)
+            self.assertTrue(issubclass(w[3].category, DeprecationWarning))
             # suppress one of the two warnings
             warnings.simplefilter('ignore', DeprecationWarning)
             c * self.x
