@@ -304,3 +304,56 @@ class Xor(LogicExpression):
     @Elementwise.numpy_numeric
     def numeric(self, values):
         return reduce(lambda a, b: np.mod(a + b, 2), values)
+
+
+def implies(x, y):
+    """Logical implication: x => y.
+
+    Returns 1 unless x = 1 and y = 0.  Equivalent to ``Or(Not(x), y)``.
+
+    Parameters
+    ----------
+    x : Expression
+        A boolean variable or LogicExpression.
+    y : Expression
+        A boolean variable or LogicExpression.
+
+    Examples
+    --------
+
+    .. code-block:: python
+
+        import cvxpy as cp
+
+        x = cp.Variable(boolean=True)
+        y = cp.Variable(boolean=True)
+        expr = cp.logic.implies(x, y)
+    """
+    return Or(Not(x), y)
+
+
+def iff(x, y):
+    """Logical biconditional: x <=> y.
+
+    Returns 1 if and only if x and y have the same value.
+    Equivalent to ``Not(Xor(x, y))``.
+
+    Parameters
+    ----------
+    x : Expression
+        A boolean variable or LogicExpression.
+    y : Expression
+        A boolean variable or LogicExpression.
+
+    Examples
+    --------
+
+    .. code-block:: python
+
+        import cvxpy as cp
+
+        x = cp.Variable(boolean=True)
+        y = cp.Variable(boolean=True)
+        expr = cp.logic.iff(x, y)
+    """
+    return Not(Xor(x, y))

@@ -18,7 +18,7 @@ import numpy as np
 import pytest
 
 import cvxpy as cp
-from cvxpy.atoms.elementwise.logic import And, Not, Or, Xor
+from cvxpy.atoms.elementwise.logic import And, Not, Or, Xor, iff, implies
 
 
 class TestLogicName:
@@ -580,6 +580,48 @@ class TestLogicBoolConstant:
         np.testing.assert_array_almost_equal(
             expr.value, np.array([[1, 0], [0, 1]])
         )
+
+
+class TestLogicImpliesIff:
+    """Solve-based truth table tests for implies and iff."""
+
+    @pytest.mark.parametrize("a,b,expected", [
+        (0, 0, 1), (0, 1, 1), (1, 0, 0), (1, 1, 1),
+    ])
+    def test_implies_truth_table(self, a, b, expected):
+        x = cp.Variable(boolean=True)
+        y = cp.Variable(boolean=True)
+        expr = implies(x, y)
+        prob = cp.Problem(cp.Minimize(0), [x == a, y == b])
+        prob.solve(solver=cp.HIGHS)
+        assert np.isclose(expr.value, expected), \
+            f"implies({a}, {b}) = {expr.value}, expected {expected}"
+
+    @pytest.mark.parametrize("a,b,expected", [
+        (0, 0, 1), (0, 1, 0), (1, 0, 0), (1, 1, 1),
+    ])
+    def test_iff_truth_table(self, a, b, expected):
+        x = cp.Variable(boolean=True)
+        y = cp.Variable(boolean=True)
+        expr = iff(x, y)
+        prob = cp.Problem(cp.Minimize(0), [x == a, y == b])
+        prob.solve(solver=cp.HIGHS)
+        assert np.isclose(expr.value, expected), \
+            f"iff({a}, {b}) = {expr.value}, expected {expected}"
+
+    def test_implies_namespace(self):
+        """Test that cp.logic.implies works."""
+        x = cp.Variable(boolean=True)
+        y = cp.Variable(boolean=True)
+        expr = cp.logic.implies(x, y)
+        assert isinstance(expr, Or)
+
+    def test_iff_namespace(self):
+        """Test that cp.logic.iff works."""
+        x = cp.Variable(boolean=True)
+        y = cp.Variable(boolean=True)
+        expr = cp.logic.iff(x, y)
+        assert isinstance(expr, Not)
 
 
 class TestLogicInConstraint:

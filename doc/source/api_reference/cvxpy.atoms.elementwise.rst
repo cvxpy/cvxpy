@@ -199,3 +199,17 @@ Xor (``x ^ y``)
 
 .. autoclass:: cvxpy.logic.Xor
     :show-inheritance:
+
+.. _logic-implies:
+
+implies (x => y)
+-------------------------------------
+
+.. autofunction:: cvxpy.logic.implies
+
+.. _logic-iff:
+
+iff (x <=> y)
+-------------------------------------
+
+.. autofunction:: cvxpy.logic.iff

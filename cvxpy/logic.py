@@ -18,3 +18,5 @@ from cvxpy.atoms.elementwise.logic import And as And
 from cvxpy.atoms.elementwise.logic import Not as Not
 from cvxpy.atoms.elementwise.logic import Or as Or
 from cvxpy.atoms.elementwise.logic import Xor as Xor
+from cvxpy.atoms.elementwise.logic import iff as iff
+from cvxpy.atoms.elementwise.logic import implies as implies

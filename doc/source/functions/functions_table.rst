@@ -692,6 +692,18 @@
      - |positive| positive
      - |affine| affine
 
+   * - :ref:`logic.implies(x, y) <logic-implies>`
+     - :math:`x \Rightarrow y` (1 unless :math:`x{=}1, y{=}0`)
+     - :math:`x,y \in \{0,1\}`
+     - |positive| positive
+     - |affine| affine
+
+   * - :ref:`logic.iff(x, y) <logic-iff>`
+     - :math:`x \Leftrightarrow y` (1 iff :math:`x = y`)
+     - :math:`x,y \in \{0,1\}`
+     - |positive| positive
+     - |affine| affine
+
    * - :ref:`bmat() <bmat>`
 
      - :math:`\left[\begin{matrix} X^{(1,1)} & .. &  X^{(1,q)} \\ \vdots &   & \vdots \\ X^{(p,1)} & .. &   X^{(p,q)} \end{matrix}\right]`

@@ -352,6 +352,10 @@ accept more than two arguments.
     # Functional syntax supports 3+ arguments
     any_of_three = cp.logic.Or(x, y, z)
 
+    # Convenience functions for implication and biconditional
+    x_implies_y = cp.logic.implies(x, y)  # x => y
+    x_iff_y = cp.logic.iff(x, y)          # x <=> y (1 iff x == y)
+
     # Use in a problem
     prob = cp.Problem(cp.Maximize(cp.sum(both)), [cp.sum(x) <= 2, cp.sum(y) <= 2])
     prob.solve()
