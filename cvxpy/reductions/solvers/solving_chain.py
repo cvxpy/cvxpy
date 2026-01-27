@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import warnings
-
 import numpy as np
 import scipy.sparse as sp
 
@@ -49,6 +47,7 @@ from cvxpy.settings import CLARABEL, COO_CANON_BACKEND, DPP_PARAM_THRESHOLD
 from cvxpy.utilities import scopes
 from cvxpy.utilities.debug_tools import build_non_disciplined_error_msg
 from cvxpy.utilities.solver_context import SolverInfo
+from cvxpy.utilities.warn import warn as _warn
 
 DPP_ERROR_MSG = (
     "You are solving a parameterized problem that is not DPP. "
@@ -248,7 +247,7 @@ def construct_solving_chain(problem, candidates,
         if ignore_dpp:
             reductions = [EvalParams()] + reductions
         elif not enforce_dpp:
-            warnings.warn(DPP_ERROR_MSG)
+            _warn(DPP_ERROR_MSG)
             reductions = [EvalParams()] + reductions
         else:
             raise DPPError(DPP_ERROR_MSG)

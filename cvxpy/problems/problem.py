@@ -16,7 +16,6 @@ limitations under the License.
 from __future__ import annotations
 
 import time
-import warnings
 from collections import namedtuple
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Union
@@ -57,6 +56,7 @@ from cvxpy.utilities import debug_tools
 from cvxpy.utilities.citations import CITATION_DICT
 from cvxpy.utilities.deterministic import unique_list
 from cvxpy.utilities.solver_context import SolverInfo
+from cvxpy.utilities.warn import warn as _warn
 
 SolveResult = namedtuple(
     'SolveResult',
@@ -165,14 +165,14 @@ class Problem(u.Canonical):
         self._objective = objective
         # Raise warning if objective has too many subexpressions.
         if debug_tools.node_count(self._objective) >= debug_tools.MAX_NODES:
-            warnings.warn("Objective contains too many subexpressions. "
-                          "Consider vectorizing your CVXPY code to speed up compilation.")
+            _warn("Objective contains too many subexpressions. "
+                  "Consider vectorizing your CVXPY code to speed up compilation.")
         self._constraints = [_validate_constraint(c) for c in constraints]
         # Raise warning if constraint has too many subexpressions.
         for i, constraint in enumerate(self._constraints):
             if debug_tools.node_count(constraint) >= debug_tools.MAX_NODES:
-                warnings.warn(f"Constraint #{i} contains too many subexpressions. "
-                              "Consider vectorizing your CVXPY code to speed up compilation.")
+                _warn(f"Constraint #{i} contains too many subexpressions. "
+                      "Consider vectorizing your CVXPY code to speed up compilation.")
 
         self._value = None
         self._status: Optional[str] = None
@@ -932,11 +932,10 @@ class Problem(u.Canonical):
             if solver is None and not self.is_lp():
                 # Problem is mixed integer but not LP (e.g., MIQP, MISOCP)
                 # HiGHS only supports MILP, so warn users about MINLP solvers
-                warnings.warn(
+                _warn(
                     "Your problem is mixed-integer but not an LP. "
                     "If your problem is nonlinear, consider installing SCIP "
-                    "(pip install pyscipopt) to solve it.",
-                    UserWarning
+                    "(pip install pyscipopt) to solve it."
                 )
             candidates['qp_solvers'] = [
                 s for s in candidates['qp_solvers']
@@ -1541,13 +1540,13 @@ class Problem(u.Canonical):
 
         solution = chain.invert(solution, inverse_data)
         if solution.status in s.INACCURATE:
-            warnings.warn(
+            _warn(
                 "Solution may be inaccurate. Try another solver, "
                 "adjusting the solver settings, or solve with "
                 "verbose=True for more information."
             )
         if solution.status == s.INFEASIBLE_OR_UNBOUNDED:
-            warnings.warn(INF_OR_UNB_MESSAGE)
+            _warn(INF_OR_UNB_MESSAGE)
         if solution.status in s.ERROR:
             raise error.SolverError(
                     "Solver '%s' failed. " % chain.solver.name() +
