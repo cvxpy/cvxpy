@@ -58,12 +58,6 @@ class LogicExpression(Elementwise):
     def is_atom_concave(self) -> bool:
         return True
 
-    def is_atom_log_log_convex(self) -> bool:
-        return True
-
-    def is_atom_log_log_concave(self) -> bool:
-        return True
-
     def is_incr(self, idx) -> bool:
         return False
 

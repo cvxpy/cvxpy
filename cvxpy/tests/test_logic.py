@@ -191,6 +191,33 @@ class TestLogicMonotonicity:
             assert expr.is_incr(i)
             assert not expr.is_decr(i)
 
+    def test_not_log_log(self):
+        x = cp.Variable(boolean=True)
+        expr = Not(x)
+        assert not expr.is_atom_log_log_convex()
+        assert not expr.is_atom_log_log_concave()
+
+    def test_and_not_log_log(self):
+        x = cp.Variable(boolean=True)
+        y = cp.Variable(boolean=True)
+        expr = And(x, y)
+        assert not expr.is_atom_log_log_convex()
+        assert not expr.is_atom_log_log_concave()
+
+    def test_or_not_log_log(self):
+        x = cp.Variable(boolean=True)
+        y = cp.Variable(boolean=True)
+        expr = Or(x, y)
+        assert not expr.is_atom_log_log_convex()
+        assert not expr.is_atom_log_log_concave()
+
+    def test_xor_not_log_log(self):
+        x = cp.Variable(boolean=True)
+        y = cp.Variable(boolean=True)
+        expr = Xor(x, y)
+        assert not expr.is_atom_log_log_convex()
+        assert not expr.is_atom_log_log_concave()
+
 
 class TestLogicSolve:
     """Solve-based truth table tests for logic atoms."""
