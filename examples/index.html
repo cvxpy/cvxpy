@@ -69,6 +69,8 @@
   
     
     
+      
+    
     
     
     
@@ -151,7 +153,43 @@
     </div>
     
       
+        <form class="md-header__option" data-md-component="palette">
+  
     
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m14.3 16-.7-2h-3.2l-.7 2H7.8L11 7h2l3.2 9zM20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12zm-9.15 3.96h2.3L12 9z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="green"  aria-label="Switch to system preference"  type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
     
     
     
@@ -915,12 +953,12 @@ interactive <a class="reference external" href="https://github.com/marimo-team/m
 <h2 id="basic-examples"><span id="basic"></span>Basic examples<a class="headerlink" href="#basic-examples" title="Link to this heading">¶</a></h2>
 <p><em>For geometric interpretations of linear and quadratic programs, see the marimo links.</em></p>
 <ul class="simple">
-<li><p><a class="reference internal" href="basic/least_squares.html"><span class="doc">Least squares</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/least_squares.ipynb">[.ipynb]</a> <a class="reference external" href="https://marimo.app/gh/marimo-team/learn/main?entrypoint=optimization%2F01_least_squares.py">[marimo]</a></p></li>
-<li><p><a class="reference internal" href="basic/linear_program.html"><span class="doc">Linear program</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/linear_program.ipynb">[.ipynb]</a> <a class="reference external" href="https://marimo.app/gh/marimo-team/learn/main?entrypoint=optimization%2F02_linear_program.py">[marimo]</a></p></li>
-<li><p><a class="reference internal" href="basic/quadratic_program.html"><span class="doc">Quadratic program</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/quadratic_program.ipynb">[.ipynb]</a> <a class="reference external" href="https://marimo.app/gh/marimo-team/learn/main?entrypoint=optimization%2F04_quadratic_program.py">[marimo]</a></p></li>
-<li><p><a class="reference internal" href="basic/sdp.html"><span class="doc">Semidefinite program</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/sdp.ipynb">[.ipynb]</a> <a class="reference external" href="https://marimo.app/gh/marimo-team/learn/main?entrypoint=optimization%2F07_sdp.py">[marimo]</a></p></li>
+<li><p><a class="reference internal" href="basic/least_squares.html"><span class="doc">Least squares</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/WWW/least_squares.ipynb">[.ipynb]</a> <a class="reference external" href="https://marimo.app/gh/marimo-team/learn/main?entrypoint=optimization%2F01_least_squares.py">[marimo]</a></p></li>
+<li><p><a class="reference internal" href="basic/linear_program.html"><span class="doc">Linear program</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/WWW/linear_program.ipynb">[.ipynb]</a> <a class="reference external" href="https://marimo.app/gh/marimo-team/learn/main?entrypoint=optimization%2F02_linear_program.py">[marimo]</a></p></li>
+<li><p><a class="reference internal" href="basic/quadratic_program.html"><span class="doc">Quadratic program</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/WWW/quadratic_program.ipynb">[.ipynb]</a> <a class="reference external" href="https://marimo.app/gh/marimo-team/learn/main?entrypoint=optimization%2F04_quadratic_program.py">[marimo]</a></p></li>
+<li><p><a class="reference internal" href="basic/sdp.html"><span class="doc">Semidefinite program</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/WWW/sdp.ipynb">[.ipynb]</a> <a class="reference external" href="https://marimo.app/gh/marimo-team/learn/main?entrypoint=optimization%2F07_sdp.py">[marimo]</a></p></li>
 <li><p><a class="reference external" href="https://marimo.app/gh/marimo-team/learn/main?entrypoint=optimization%2F06_convex_optimization.py">Disciplined convex programming</a></p></li>
-<li><p><a class="reference internal" href="basic/mixed_integer_quadratic_program.html"><span class="doc">Mixed-integer quadratic program</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/mixed_integer_quadratic_program.ipynb">[.ipynb]</a></p></li>
+<li><p><a class="reference internal" href="basic/mixed_integer_quadratic_program.html"><span class="doc">Mixed-integer quadratic program</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/WWW/mixed_integer_quadratic_program.ipynb">[.ipynb]</a></p></li>
 </ul>
 <h2 id="basic-applications"><span id="id9"></span>Basic applications<a class="headerlink" href="#basic-applications" title="Link to this heading">¶</a></h2>
 <ul class="simple">
@@ -931,34 +969,34 @@ interactive <a class="reference external" href="https://github.com/marimo-team/m
 <li><p><a class="reference external" href="https://colab.research.google.com/github/cvxgrp/cvx_short_course/blob/master/book/docs/applications/notebooks/worst_case_analysis.ipynb">Worst-case risk analysis</a></p></li>
 <li><p><a class="reference external" href="https://colab.research.google.com/github/cvxgrp/cvx_short_course/blob/master/book/docs/applications/notebooks/model_fitting.ipynb">Model fitting</a></p></li>
 <li><p><a class="reference external" href="https://colab.research.google.com/github/cvxgrp/cvx_short_course/blob/master/book/docs/applications/notebooks/optimal_ad.ipynb">Optimal advertising</a></p></li>
-<li><p><a class="reference internal" href="applications/tv_inpainting.html"><span class="doc">Total variation in-painting</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/tv_inpainting.ipynb">[.ipynb]</a></p></li>
+<li><p><a class="reference internal" href="applications/tv_inpainting.html"><span class="doc">Total variation in-painting</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/WWW/tv_inpainting.ipynb">[.ipynb]</a></p></li>
 </ul>
 <h2 id="disciplined-geometric-programming"><span id="dgp-examples"></span>Disciplined geometric programming<a class="headerlink" href="#disciplined-geometric-programming" title="Link to this heading">¶</a></h2>
 <ul class="simple">
-<li><p><a class="reference internal" href="dgp/dgp_fundamentals.html"><span class="doc">DGP fundamentals</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/dgp/dgp_fundamentals.ipynb">[.ipynb]</a></p></li>
-<li><p><a class="reference internal" href="dgp/max_volume_box.html"><span class="doc">Maximizing the volume of a box</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/dgp/max_volume_box.ipynb">[.ipynb]</a></p></li>
-<li><p><a class="reference internal" href="dgp/power_control.html"><span class="doc">Power control</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/dgp/power_control.ipynb">[.ipynb]</a></p></li>
-<li><p><a class="reference internal" href="dgp/pf_matrix_completion.html"><span class="doc">Perron-Frobenius matrix completion</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/dgp/pf_matrix_completion.ipynb">[.ipynb]</a></p></li>
-<li><p><a class="reference internal" href="dgp/rank_one_nmf.html"><span class="doc">Rank-one nonnegative matrix factorization</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/dgp/rank_one_nmf.ipynb">[.ipynb]</a></p></li>
+<li><p><a class="reference internal" href="dgp/dgp_fundamentals.html"><span class="doc">DGP fundamentals</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/dgp/dgp_fundamentals.ipynb">[.ipynb]</a></p></li>
+<li><p><a class="reference internal" href="dgp/max_volume_box.html"><span class="doc">Maximizing the volume of a box</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/dgp/max_volume_box.ipynb">[.ipynb]</a></p></li>
+<li><p><a class="reference internal" href="dgp/power_control.html"><span class="doc">Power control</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/dgp/power_control.ipynb">[.ipynb]</a></p></li>
+<li><p><a class="reference internal" href="dgp/pf_matrix_completion.html"><span class="doc">Perron-Frobenius matrix completion</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/dgp/pf_matrix_completion.ipynb">[.ipynb]</a></p></li>
+<li><p><a class="reference internal" href="dgp/rank_one_nmf.html"><span class="doc">Rank-one nonnegative matrix factorization</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/dgp/rank_one_nmf.ipynb">[.ipynb]</a></p></li>
 </ul>
 <h2 id="disciplined-quasiconvex-programming"><span id="dqcp-examples"></span>Disciplined quasiconvex programming<a class="headerlink" href="#disciplined-quasiconvex-programming" title="Link to this heading">¶</a></h2>
 <ul class="simple">
-<li><p><a class="reference internal" href="dqcp/concave_fractional_function.html"><span class="doc">Concave fractional function</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/dqcp/concave_fractional_function.ipynb">[.ipynb]</a></p></li>
-<li><p><a class="reference internal" href="dqcp/minimum_length_least_squares.html"><span class="doc">Minimum-length least squares</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/dqcp/minimum_length_least_squares.ipynb">[.ipynb]</a></p></li>
-<li><p><a class="reference internal" href="dqcp/hypersonic_shape_design.html"><span class="doc">Hypersonic shape design</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/dqcp/hypersonic_shape_design.ipynb">[.ipynb]</a></p></li>
+<li><p><a class="reference internal" href="dqcp/concave_fractional_function.html"><span class="doc">Concave fractional function</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/dqcp/concave_fractional_function.ipynb">[.ipynb]</a></p></li>
+<li><p><a class="reference internal" href="dqcp/minimum_length_least_squares.html"><span class="doc">Minimum-length least squares</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/dqcp/minimum_length_least_squares.ipynb">[.ipynb]</a></p></li>
+<li><p><a class="reference internal" href="dqcp/hypersonic_shape_design.html"><span class="doc">Hypersonic shape design</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/dqcp/hypersonic_shape_design.ipynb">[.ipynb]</a></p></li>
 </ul>
 <h2 id="derivatives"><span id="derivative-examples"></span>Derivatives<a class="headerlink" href="#derivatives" title="Link to this heading">¶</a></h2>
 <ul class="simple">
-<li><p><a class="reference internal" href="derivatives/fundamentals.html"><span class="doc">Fundamentals</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/derivatives/fundamentals.ipynb">[.ipynb]</a></p></li>
-<li><p><a class="reference internal" href="derivatives/queuing_design.html"><span class="doc">Queuing design</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/derivatives/queuing_design.ipynb">[.ipynb]</a></p></li>
-<li><p><a class="reference internal" href="derivatives/structured_prediction.html"><span class="doc">Structured prediction</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/derivatives/structured_prediction.ipynb">[.ipynb]</a></p></li>
+<li><p><a class="reference internal" href="derivatives/fundamentals.html"><span class="doc">Fundamentals</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/derivatives/fundamentals.ipynb">[.ipynb]</a></p></li>
+<li><p><a class="reference internal" href="derivatives/queuing_design.html"><span class="doc">Queuing design</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/derivatives/queuing_design.ipynb">[.ipynb]</a></p></li>
+<li><p><a class="reference internal" href="derivatives/structured_prediction.html"><span class="doc">Structured prediction</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/derivatives/structured_prediction.ipynb">[.ipynb]</a></p></li>
 </ul>
 <h2 id="machine-learning"><span id="id22"></span>Machine learning<a class="headerlink" href="#machine-learning" title="Link to this heading">¶</a></h2>
 <ul class="simple">
-<li><p><a class="reference internal" href="machine_learning/ridge_regression.html"><span class="doc">Ridge regression</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/machine_learning/ridge_regression.ipynb">[.ipynb]</a></p></li>
-<li><p><a class="reference internal" href="machine_learning/lasso_regression.html"><span class="doc">Lasso regression</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/machine_learning/lasso_regression.ipynb">[.ipynb]</a></p></li>
-<li><p><a class="reference internal" href="machine_learning/logistic_regression.html"><span class="doc">Logistic regression</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/machine_learning/logistic_regression.ipynb">[.ipynb]</a></p></li>
-<li><p><a class="reference internal" href="machine_learning/svm.html"><span class="doc">SVM classifier</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/machine_learning/svm.ipynb">[.ipynb]</a></p></li>
+<li><p><a class="reference internal" href="machine_learning/ridge_regression.html"><span class="doc">Ridge regression</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/examples/blob/master/machine_learning/ridge_regression.ipynb">[.ipynb]</a></p></li>
+<li><p><a class="reference internal" href="machine_learning/lasso_regression.html"><span class="doc">Lasso regression</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/examples/blob/master/machine_learning/lasso_regression.ipynb">[.ipynb]</a></p></li>
+<li><p><a class="reference internal" href="machine_learning/logistic_regression.html"><span class="doc">Logistic regression</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/examples/blob/master/machine_learning/logistic_regression.ipynb">[.ipynb]</a></p></li>
+<li><p><a class="reference internal" href="machine_learning/svm.html"><span class="doc">SVM classifier</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/examples/blob/master/machine_learning/svm.ipynb">[.ipynb]</a></p></li>
 <li><p><a class="reference external" href="https://colab.research.google.com/github/cvxgrp/cvx_short_course/blob/master/book/docs/applications/notebooks/huber_regression.ipynb">Huber regression</a></p></li>
 <li><p><a class="reference external" href="https://colab.research.google.com/github/cvxgrp/cvx_short_course/blob/master/book/docs/applications/notebooks/quantile_regression.ipynb">Quantile regression</a></p></li>
 </ul>
@@ -966,42 +1004,42 @@ interactive <a class="reference external" href="https://github.com/marimo-team/m
 <ul class="simple">
 <li><p><a class="reference external" href="https://colab.research.google.com/github/cvxgrp/cvx_short_course/blob/master/book/docs/applications/notebooks/portfolio_optimization.ipynb">Portfolio optimization</a></p></li>
 <li><p><a class="reference external" href="https://nbviewer.org/github/rcroessmann/sharing_public/blob/master/arbitrage_identification.ipynb">Cryptocurrency trading</a></p></li>
-<li><p><a class="reference external" href="https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/Entropic%20Portfolio.ipynb">Entropic Portfolio Optimization</a></p></li>
-<li><p><a class="reference external" href="https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/SOC%20Portfolio.ipynb">Portfolio Optimization using SOC constraints</a></p></li>
-<li><p><a class="reference external" href="https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/Gini%20Portfolio.ipynb">Gini Mean Difference Portfolio Optimization</a></p></li>
-<li><p><a class="reference external" href="https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/Kurtosis%20Portfolio.ipynb">Kurtosis Portfolio Optimization</a></p></li>
-<li><p><a class="reference external" href="https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/Relativistic%20Value%20at%20Risk%20Portfolio.ipynb">Relativistic Value at Risk Portfolio Optimization</a></p></li>
-<li><p><a class="reference external" href="https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/Approximate%20Kurtosis%20Portfolio.ipynb">Approximate Kurtosis Portfolio Optimization</a></p></li>
+<li><p><a class="reference external" href="https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/WWW/Entropic%20Portfolio.ipynb">Entropic Portfolio Optimization</a></p></li>
+<li><p><a class="reference external" href="https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/WWW/SOC%20Portfolio.ipynb">Portfolio Optimization using SOC constraints</a></p></li>
+<li><p><a class="reference external" href="https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/WWW/Gini%20Portfolio.ipynb">Gini Mean Difference Portfolio Optimization</a></p></li>
+<li><p><a class="reference external" href="https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/WWW/Kurtosis%20Portfolio.ipynb">Kurtosis Portfolio Optimization</a></p></li>
+<li><p><a class="reference external" href="https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/WWW/Relativistic%20Value%20at%20Risk%20Portfolio.ipynb">Relativistic Value at Risk Portfolio Optimization</a></p></li>
+<li><p><a class="reference external" href="https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/WWW/Approximate%20Kurtosis%20Portfolio.ipynb">Approximate Kurtosis Portfolio Optimization</a></p></li>
 </ul>
 <h2 id="advanced"><span id="advanced-python"></span>Advanced<a class="headerlink" href="#advanced" title="Link to this heading">¶</a></h2>
 <ul class="simple">
-<li><p><a class="reference internal" href="basic/socp.html"><span class="doc">Second-order cone program</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/socp.ipynb">[.ipynb]</a></p></li>
-<li><p><a class="reference internal" href="applications/OOCO.html"><span class="doc">Object-oriented convex optimization</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/OOCO.ipynb">[.ipynb]</a></p></li>
-<li><p><a class="reference internal" href="applications/consensus_opt.html"><span class="doc">Consensus optimization</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/consensus_opt.ipynb">[.ipynb]</a></p></li>
-<li><p><a class="reference internal" href="applications/MM.html"><span class="doc">Method of multipliers</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/MM.ipynb">[.ipynb]</a></p></li>
+<li><p><a class="reference internal" href="basic/socp.html"><span class="doc">Second-order cone program</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/WWW/socp.ipynb">[.ipynb]</a></p></li>
+<li><p><a class="reference internal" href="applications/OOCO.html"><span class="doc">Object-oriented convex optimization</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/WWW/OOCO.ipynb">[.ipynb]</a></p></li>
+<li><p><a class="reference internal" href="applications/consensus_opt.html"><span class="doc">Consensus optimization</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/WWW/consensus_opt.ipynb">[.ipynb]</a></p></li>
+<li><p><a class="reference internal" href="applications/MM.html"><span class="doc">Method of multipliers</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/WWW/MM.ipynb">[.ipynb]</a></p></li>
 </ul>
 <h2 id="advanced-applications"><span id="applications"></span>Advanced applications<a class="headerlink" href="#advanced-applications" title="Link to this heading">¶</a></h2>
 <ul class="simple">
-<li><p><a class="reference internal" href="applications/interdiction.html"><span class="doc">Allocating interdiction effort to catch a smuggler</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/interdiction.ipynb">[.ipynb]</a></p></li>
-<li><p><a class="reference internal" href="applications/ant_array_min_beamwidth.html"><span class="doc">Antenna array design</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/ant_array_min_beamwidth.ipynb">[.ipynb]</a></p></li>
-<li><p><a class="reference internal" href="applications/Channel_capacity_BV4.57.html"><span class="doc">Channel capacity</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/Channel_capacity_BV4.57.ipynb">[.ipynb]</a></p></li>
-<li><p><a class="reference internal" href="applications/sparse_solution.html"><span class="doc">Computing a sparse solution of a set of linear inequalities</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/sparse_solution.ipynb">[.ipynb]</a></p></li>
-<li><p><a class="reference internal" href="applications/max_entropy.html"><span class="doc">Entropy maximization</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/max_entropy.ipynb">[.ipynb]</a></p></li>
-<li><p><a class="reference internal" href="applications/fault_detection.html"><span class="doc">Fault detection</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/fault_detection.ipynb">[.ipynb]</a></p></li>
-<li><p><a class="reference internal" href="applications/fir_chebychev_design.html"><span class="doc">Filter design</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/fir_chebychev_design.ipynb">[.ipynb]</a></p></li>
-<li><p><a class="reference internal" href="applications/censored_data.html"><span class="doc">Fitting censored data</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/censored_data.ipynb">[.ipynb]</a></p></li>
-<li><p><a class="reference internal" href="applications/l1_trend_filter.html"><span class="doc">L1 trend filtering</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/l1_trend_filter.ipynb">[.ipynb]</a></p></li>
-<li><p><a class="reference internal" href="applications/nonneg_matrix_fact.html"><span class="doc">Nonnegative matrix factorization</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/nonneg_matrix_fact.ipynb">[.ipynb]</a></p></li>
-<li><p><a class="reference internal" href="applications/parade_route.html"><span class="doc">Optimal parade route</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/parade_route.ipynb">[.ipynb]</a></p></li>
-<li><p><a class="reference internal" href="applications/optimal_power_gaussian_channel_BV4.62.html"><span class="doc">Optimal power and bandwidth allocation in a Gaussian broadcast channel</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/optimal_power_gaussian_channel_BV4.62.ipynb">[.ipynb]</a></p></li>
-<li><p><a class="reference internal" href="applications/maximise_minimum_SINR_BV4.20.html"><span class="doc">Power assignment in a wireless communication system</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/maximise_minimum_SINR_BV4.20.ipynb">[.ipynb]</a></p></li>
-<li><p><span class="xref std std-doc">Predicting NBA game wins</span> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/nba_ranking.ipynb">[.ipynb]</a></p></li>
-<li><p><a class="reference internal" href="applications/robust_kalman.html"><span class="doc">Robust Kalman filtering for vehicle tracking</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/robust_kalman.ipynb">[.ipynb]</a></p></li>
-<li><p><a class="reference internal" href="applications/clock_mesh.html"><span class="doc">Sizing of clock meshes</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/clock_mesh.ipynb">[.ipynb]</a></p></li>
-<li><p><a class="reference internal" href="applications/sparse_covariance_est.html"><span class="doc">Sparse covariance estimation for Gaussian variables</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/sparse_covariance_est.ipynb">[.ipynb]</a></p></li>
-<li><p><a class="reference internal" href="applications/water_filling_BVex5.2.html"><span class="doc">Water filling</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/water_filling_BVex5.2.ipynb">[.ipynb]</a></p></li>
-<li><p><a class="reference external" href="https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/mTSP_en.ipynb">Multiple Traveling Salesman Problem</a></p></li>
-<li><p><a class="reference internal" href="applications/min_condition_number_by_scaling.html"><span class="doc">Minimize Condition Number by Scaling</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/min_condition_number_by_scaling.ipynb">[.ipynb]</a></p></li>
+<li><p><a class="reference internal" href="applications/interdiction.html"><span class="doc">Allocating interdiction effort to catch a smuggler</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/WWW/interdiction.ipynb">[.ipynb]</a></p></li>
+<li><p><a class="reference internal" href="applications/ant_array_min_beamwidth.html"><span class="doc">Antenna array design</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/WWW/ant_array_min_beamwidth.ipynb">[.ipynb]</a></p></li>
+<li><p><a class="reference internal" href="applications/Channel_capacity_BV4.57.html"><span class="doc">Channel capacity</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/WWW/Channel_capacity_BV4.57.ipynb">[.ipynb]</a></p></li>
+<li><p><a class="reference internal" href="applications/sparse_solution.html"><span class="doc">Computing a sparse solution of a set of linear inequalities</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/WWW/sparse_solution.ipynb">[.ipynb]</a></p></li>
+<li><p><a class="reference internal" href="applications/max_entropy.html"><span class="doc">Entropy maximization</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/WWW/max_entropy.ipynb">[.ipynb]</a></p></li>
+<li><p><a class="reference internal" href="applications/fault_detection.html"><span class="doc">Fault detection</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/WWW/fault_detection.ipynb">[.ipynb]</a></p></li>
+<li><p><a class="reference internal" href="applications/fir_chebychev_design.html"><span class="doc">Filter design</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/WWW/fir_chebychev_design.ipynb">[.ipynb]</a></p></li>
+<li><p><a class="reference internal" href="applications/censored_data.html"><span class="doc">Fitting censored data</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/WWW/censored_data.ipynb">[.ipynb]</a></p></li>
+<li><p><a class="reference internal" href="applications/l1_trend_filter.html"><span class="doc">L1 trend filtering</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/WWW/l1_trend_filter.ipynb">[.ipynb]</a></p></li>
+<li><p><a class="reference internal" href="applications/nonneg_matrix_fact.html"><span class="doc">Nonnegative matrix factorization</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/WWW/nonneg_matrix_fact.ipynb">[.ipynb]</a></p></li>
+<li><p><a class="reference internal" href="applications/parade_route.html"><span class="doc">Optimal parade route</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/WWW/parade_route.ipynb">[.ipynb]</a></p></li>
+<li><p><a class="reference internal" href="applications/optimal_power_gaussian_channel_BV4.62.html"><span class="doc">Optimal power and bandwidth allocation in a Gaussian broadcast channel</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/WWW/optimal_power_gaussian_channel_BV4.62.ipynb">[.ipynb]</a></p></li>
+<li><p><a class="reference internal" href="applications/maximise_minimum_SINR_BV4.20.html"><span class="doc">Power assignment in a wireless communication system</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/WWW/maximise_minimum_SINR_BV4.20.ipynb">[.ipynb]</a></p></li>
+<li><p><span class="xref std std-doc">Predicting NBA game wins</span> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/WWW/nba_ranking.ipynb">[.ipynb]</a></p></li>
+<li><p><a class="reference internal" href="applications/robust_kalman.html"><span class="doc">Robust Kalman filtering for vehicle tracking</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/WWW/robust_kalman.ipynb">[.ipynb]</a></p></li>
+<li><p><a class="reference internal" href="applications/clock_mesh.html"><span class="doc">Sizing of clock meshes</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/WWW/clock_mesh.ipynb">[.ipynb]</a></p></li>
+<li><p><a class="reference internal" href="applications/sparse_covariance_est.html"><span class="doc">Sparse covariance estimation for Gaussian variables</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/WWW/sparse_covariance_est.ipynb">[.ipynb]</a></p></li>
+<li><p><a class="reference internal" href="applications/water_filling_BVex5.2.html"><span class="doc">Water filling</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/WWW/water_filling_BVex5.2.ipynb">[.ipynb]</a></p></li>
+<li><p><a class="reference external" href="https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/WWW/mTSP_en.ipynb">Multiple Traveling Salesman Problem</a></p></li>
+<li><p><a class="reference internal" href="applications/min_condition_number_by_scaling.html"><span class="doc">Minimize Condition Number by Scaling</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/WWW/min_condition_number_by_scaling.ipynb">[.ipynb]</a></p></li>
 </ul>
 
 
@@ -1093,7 +1131,7 @@ interactive <a class="reference external" href="https://github.com/marimo-team/m
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "..", "features": ["header.autohide", "toc.follow", "navigation.path", "navigation.instant", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.tracking", "navigation.expand", "search.highlight", "search.share", "content.tabs.link", "announce.dismiss", "content.code.copy"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike", "staticVersions": [{"aliases": [], "title": "latest", "version": "https://www.cvxpy.org"}, {"aliases": [], "title": "1.6", "version": "https://www.cvxpy.org/version/1.6"}, {"aliases": [], "title": "1.5", "version": "https://www.cvxpy.org/version/1.5"}, {"aliases": [], "title": "1.4", "version": "https://www.cvxpy.org/version/1.4"}], "versionPath": null}}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": ["header.autohide", "toc.follow", "navigation.path", "navigation.instant", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.tracking", "navigation.expand", "search.highlight", "search.share", "content.tabs.link", "announce.dismiss", "content.code.copy"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike", "staticVersions": [{"aliases": [], "title": "latest", "version": "https://www.cvxpy.org"}, {"aliases": [], "title": "1.7", "version": "https://www.cvxpy.org/version/1.7"}, {"aliases": [], "title": "1.6", "version": "https://www.cvxpy.org/version/1.6"}, {"aliases": [], "title": "1.5", "version": "https://www.cvxpy.org/version/1.5"}, {"aliases": [], "title": "1.4", "version": "https://www.cvxpy.org/version/1.4"}], "versionPath": null}}</script>
     
       
         <script src="../_static/jquery.js?v=5d32c60e"></script>

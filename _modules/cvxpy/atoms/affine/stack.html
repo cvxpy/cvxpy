@@ -17,7 +17,7 @@
     
     
       
-        <title>cvxpy.reductions.qp2quad_form.qp2symbolic_qp - </title>
+        <title>cvxpy.atoms.affine.stack - </title>
       
     
     
@@ -64,6 +64,8 @@
   
   
     
+    
+      
     
     
     
@@ -134,7 +136,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              cvxpy.reductions.qp2quad_form.qp2symbolic_qp
+              cvxpy.atoms.affine.stack
             
           </span>
         </div>
@@ -142,7 +144,43 @@
     </div>
     
       
+        <form class="md-header__option" data-md-component="palette">
+  
     
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m14.3 16-.7-2h-3.2l-.7 2H7.8L11 7h2l3.2 9zM20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12zm-9.15 3.96h2.3L12 9z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="green"  aria-label="Switch to system preference"  type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
     
     
     
@@ -652,9 +690,9 @@
                   
 
 
-<h1>Source code for cvxpy.reductions.qp2quad_form.qp2symbolic_qp</h1><div class="highlight"><pre>
+<h1>Source code for cvxpy.atoms.affine.stack</h1><div class="highlight"><pre>
 <span></span><code><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Copyright 2017 Robin Verschueren</span>
+<span class="sd">Copyright, the CVXPY authors</span>
 
 <span class="sd">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
 <span class="sd">you may not use this file except in compliance with the License.</span>
@@ -667,63 +705,102 @@
 <span class="sd">WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
 <span class="sd">See the License for the specific language governing permissions and</span>
 <span class="sd">limitations under the License.</span>
+
+<span class="sd">NumPy-style stacking that inserts a new axis for CVXPY Expressions.</span>
+
+<span class="sd">This mirrors the semantics of ``np.stack``, where they make sense, for symbolic</span>
+<span class="sd">expressions: every input must share an identical shape, and the result gains a</span>
+<span class="sd">new axis of length ``len(arrays)`` at the requested position. Options that are</span>
+<span class="sd">specific to NumPy&#39;s ndarray type system (for example ``out`` or ``dtype``) are</span>
+<span class="sd">intentionally unsupported.</span>
+
+<span class="sd">Examples</span>
+<span class="sd">--------</span>
+<span class="sd">&gt;&gt;&gt; import cvxpy as cp</span>
+<span class="sd">&gt;&gt;&gt; a = cp.Parameter((3,))</span>
+<span class="sd">&gt;&gt;&gt; b = cp.Parameter((3,))</span>
+<span class="sd">&gt;&gt;&gt; y = cp.stack([a, b], axis=0)</span>
+<span class="sd">&gt;&gt;&gt; y.shape</span>
+<span class="sd">(2, 3)</span>
+<span class="sd">&gt;&gt;&gt; z = cp.stack([a, b], axis=-1)</span>
+<span class="sd">&gt;&gt;&gt; z.shape</span>
+<span class="sd">(3, 2)</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.constraints</span><span class="w"> </span><span class="kn">import</span> <span class="n">Equality</span><span class="p">,</span> <span class="n">Inequality</span><span class="p">,</span> <span class="n">NonNeg</span><span class="p">,</span> <span class="n">NonPos</span><span class="p">,</span> <span class="n">Zero</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.canonicalization</span><span class="w"> </span><span class="kn">import</span> <span class="n">Canonicalization</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.cvx_attr2constr</span><span class="w"> </span><span class="kn">import</span> <span class="n">convex_attributes</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.qp2quad_form.canonicalizers</span><span class="w"> </span><span class="kn">import</span> <span class="n">CANON_METHODS</span> <span class="k">as</span> <span class="n">qp_canon_methods</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">are_args_affine</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Sequence</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.atoms.affine.concatenate</span><span class="w"> </span><span class="kn">import</span> <span class="n">concatenate</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.atoms.affine.reshape</span><span class="w"> </span><span class="kn">import</span> <span class="n">reshape</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.expressions.expression</span><span class="w"> </span><span class="kn">import</span> <span class="n">Expression</span>
 
 
-<div class="viewcode-block" id="accepts">
-<a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.qp2quad_form.html#cvxpy.reductions.qp2quad_form.qp2symbolic_qp.accepts">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">accepts</span><span class="p">(</span><span class="n">problem</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Problems with quadratic, piecewise affine objectives,</span>
-<span class="sd">    piecewise-linear constraints inequality constraints, and</span>
-<span class="sd">    affine equality constraints are accepted by the reduction.</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_as_expression</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Expression</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Cast scalars/arrays to ``Constant`` while leaving Expressions intact.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">obj</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">Expression</span><span class="p">)</span> <span class="k">else</span> <span class="n">Expression</span><span class="o">.</span><span class="n">cast_to_const</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="stack">
+<a class="viewcode-back" href="../../../../api_reference/cvxpy.atoms.affine.html#cvxpy.stack">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">stack</span><span class="p">(</span><span class="n">arrays</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">object</span><span class="p">]</span> <span class="o">|</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">object</span><span class="p">],</span> <span class="n">axis</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Expression</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Join a sequence of expressions along a new axis.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    arrays</span>
+<span class="sd">        Sequence of expressions (or array-likes) that all have the same shape.</span>
+<span class="sd">    axis</span>
+<span class="sd">        Index of the new axis in the result. Values in ``[-(ndim + 1), ndim``</span>
+<span class="sd">        ``+ 1)`` are accepted, following ``numpy.stack``.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Expression</span>
+<span class="sd">        Expression whose shape equals the common input shape with the new axis</span>
+<span class="sd">        inserted at ``axis`` and length ``len(arrays)`` along that axis.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    TypeError</span>
+<span class="sd">        If ``axis`` is not an integer.</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If ``arrays`` is empty, shapes differ, or ``axis`` is out of bounds.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="p">(</span><span class="n">problem</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">expr</span><span class="o">.</span><span class="n">is_qpwa</span><span class="p">()</span>
-            <span class="ow">and</span> <span class="ow">not</span> <span class="nb">set</span><span class="p">([</span><span class="s1">&#39;PSD&#39;</span><span class="p">,</span> <span class="s1">&#39;NSD&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">convex_attributes</span><span class="p">(</span>
-                                                     <span class="n">problem</span><span class="o">.</span><span class="n">variables</span><span class="p">()))</span>
-            <span class="ow">and</span> <span class="nb">all</span><span class="p">((</span><span class="nb">type</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="ow">in</span> <span class="p">(</span><span class="n">Inequality</span><span class="p">,</span> <span class="n">NonPos</span><span class="p">,</span> <span class="n">NonNeg</span><span class="p">)</span> <span class="ow">and</span> <span class="n">c</span><span class="o">.</span><span class="n">expr</span><span class="o">.</span><span class="n">is_pwl</span><span class="p">())</span> <span class="ow">or</span>
-                    <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="ow">in</span> <span class="p">(</span><span class="n">Equality</span><span class="p">,</span> <span class="n">Zero</span><span class="p">)</span> <span class="ow">and</span> <span class="n">are_args_affine</span><span class="p">([</span><span class="n">c</span><span class="p">]))</span>
-                    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">problem</span><span class="o">.</span><span class="n">constraints</span><span class="p">))</span></div>
+    <span class="n">xs</span> <span class="o">=</span> <span class="p">[</span><span class="n">_as_expression</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">arrays</span><span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">xs</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;need at least one array to stack&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">axis</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;axis must be an int; received </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">shapes</span> <span class="o">=</span> <span class="p">{</span><span class="n">expr</span><span class="o">.</span><span class="n">shape</span> <span class="k">for</span> <span class="n">expr</span> <span class="ow">in</span> <span class="n">xs</span><span class="p">}</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">shapes</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;all input arrays must have the same shape; got &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">shapes</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+
+    <span class="n">base_shape</span> <span class="o">=</span> <span class="n">xs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">result_ndim</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">base_shape</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="o">-</span><span class="n">result_ndim</span> <span class="o">&lt;=</span> <span class="n">axis</span> <span class="o">&lt;</span> <span class="n">result_ndim</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;axis </span><span class="si">{</span><span class="n">axis</span><span class="si">}</span><span class="s2"> is out of bounds for result ndim </span><span class="si">{</span><span class="n">result_ndim</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+
+    <span class="n">axis_index</span> <span class="o">=</span> <span class="n">axis</span> <span class="k">if</span> <span class="n">axis</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">axis</span> <span class="o">+</span> <span class="n">result_ndim</span>
+    <span class="c1"># Slice the shape so we can splice a singleton axis where ``axis`` points.</span>
+    <span class="n">prefix</span> <span class="o">=</span> <span class="n">base_shape</span><span class="p">[:</span><span class="n">axis_index</span><span class="p">]</span>
+    <span class="n">suffix</span> <span class="o">=</span> <span class="n">base_shape</span><span class="p">[</span><span class="n">axis_index</span><span class="p">:]</span>
+    <span class="c1"># Reshape each argument to inject the new length-1 axis before concatenating.</span>
+    <span class="n">reshaped</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">reshape</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">prefix</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span><span class="p">,)</span> <span class="o">+</span> <span class="n">suffix</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">expr</span> <span class="ow">in</span> <span class="n">xs</span>
+    <span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">concatenate</span><span class="p">(</span><span class="n">reshaped</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis_index</span><span class="p">)</span></div>
 
 
 
-<div class="viewcode-block" id="Qp2SymbolicQp">
-<a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.qp2quad_form.html#cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">Qp2SymbolicQp</span><span class="p">(</span><span class="n">Canonicalization</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Reduces a quadratic problem to a problem that consists of affine</span>
-<span class="sd">    expressions and symbolic quadratic forms.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">Qp2SymbolicQp</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
-          <span class="n">problem</span><span class="o">=</span><span class="n">problem</span><span class="p">,</span> <span class="n">canon_methods</span><span class="o">=</span><span class="n">qp_canon_methods</span><span class="p">)</span>
-
-<div class="viewcode-block" id="Qp2SymbolicQp.accepts">
-<a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.qp2quad_form.html#cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp.accepts">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">accepts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Problems with quadratic, piecewise affine objectives,</span>
-<span class="sd">        piecewise-linear constraints inequality constraints, and</span>
-<span class="sd">        affine equality constraints are accepted.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">accepts</span><span class="p">(</span><span class="n">problem</span><span class="p">)</span></div>
-
-
-<div class="viewcode-block" id="Qp2SymbolicQp.apply">
-<a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.qp2quad_form.html#cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp.apply">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">apply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Converts a QP to an even more symbolic form.&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">accepts</span><span class="p">(</span><span class="n">problem</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot reduce problem to symbolic QP&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">Qp2SymbolicQp</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">problem</span><span class="p">)</span></div>
-</div>
-
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;stack&quot;</span><span class="p">]</span>
 </code></pre></div>
 
 
@@ -815,7 +892,7 @@
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "../../../..", "features": ["header.autohide", "toc.follow", "navigation.path", "navigation.instant", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.tracking", "navigation.expand", "search.highlight", "search.share", "content.tabs.link", "announce.dismiss", "content.code.copy"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike", "staticVersions": [{"aliases": [], "title": "latest", "version": "https://www.cvxpy.org"}, {"aliases": [], "title": "1.6", "version": "https://www.cvxpy.org/version/1.6"}, {"aliases": [], "title": "1.5", "version": "https://www.cvxpy.org/version/1.5"}, {"aliases": [], "title": "1.4", "version": "https://www.cvxpy.org/version/1.4"}], "versionPath": null}}</script>
+    <script id="__config" type="application/json">{"base": "../../../..", "features": ["header.autohide", "toc.follow", "navigation.path", "navigation.instant", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.tracking", "navigation.expand", "search.highlight", "search.share", "content.tabs.link", "announce.dismiss", "content.code.copy"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike", "staticVersions": [{"aliases": [], "title": "latest", "version": "https://www.cvxpy.org"}, {"aliases": [], "title": "1.7", "version": "https://www.cvxpy.org/version/1.7"}, {"aliases": [], "title": "1.6", "version": "https://www.cvxpy.org/version/1.6"}, {"aliases": [], "title": "1.5", "version": "https://www.cvxpy.org/version/1.5"}, {"aliases": [], "title": "1.4", "version": "https://www.cvxpy.org/version/1.4"}], "versionPath": null}}</script>
     
       
         <script src="../../../../_static/jquery.js?v=5d32c60e"></script>

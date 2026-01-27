@@ -65,6 +65,8 @@
   
     
     
+      
+    
     
     
     
@@ -142,7 +144,43 @@
     </div>
     
       
+        <form class="md-header__option" data-md-component="palette">
+  
     
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m14.3 16-.7-2h-3.2l-.7 2H7.8L11 7h2l3.2 9zM20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12zm-9.15 3.96h2.3L12 9z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="green"  aria-label="Switch to system preference"  type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
     
     
     
@@ -671,7 +709,6 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">namedtuple</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
@@ -692,7 +729,6 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.problems.objective</span><span class="w"> </span><span class="kn">import</span> <span class="n">Maximize</span><span class="p">,</span> <span class="n">Minimize</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions</span><span class="w"> </span><span class="kn">import</span> <span class="n">InverseData</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.chain</span><span class="w"> </span><span class="kn">import</span> <span class="n">Chain</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.dgp2dcp.dgp2dcp</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dgp2Dcp</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.dqcp2dcp</span><span class="w"> </span><span class="kn">import</span> <span class="n">dqcp2dcp</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.eval_params</span><span class="w"> </span><span class="kn">import</span> <span class="n">EvalParams</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.flip_objective</span><span class="w"> </span><span class="kn">import</span> <span class="n">FlipObjective</span>
@@ -703,6 +739,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.solvers.defines</span><span class="w"> </span><span class="kn">import</span> <span class="n">SOLVER_MAP_CONIC</span><span class="p">,</span> <span class="n">SOLVER_MAP_QP</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.solvers.qp_solvers.qp_solver</span><span class="w"> </span><span class="kn">import</span> <span class="n">QpSolver</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.solvers.solver</span><span class="w"> </span><span class="kn">import</span> <span class="n">Solver</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.solvers.solver_inverse_data</span><span class="w"> </span><span class="kn">import</span> <span class="n">SolverInverseData</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.solvers.solving_chain</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">SolvingChain</span><span class="p">,</span>
     <span class="n">construct_solving_chain</span><span class="p">,</span>
@@ -711,6 +748,8 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">debug_tools</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.utilities.citations</span><span class="w"> </span><span class="kn">import</span> <span class="n">CITATION_DICT</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.utilities.deterministic</span><span class="w"> </span><span class="kn">import</span> <span class="n">unique_list</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.utilities.solver_context</span><span class="w"> </span><span class="kn">import</span> <span class="n">SolverInfo</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.utilities.warn</span><span class="w"> </span><span class="kn">import</span> <span class="n">warn</span>
 
 <span class="n">SolveResult</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span>
     <span class="s1">&#39;SolveResult&#39;</span><span class="p">,</span>
@@ -821,14 +860,14 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_objective</span> <span class="o">=</span> <span class="n">objective</span>
         <span class="c1"># Raise warning if objective has too many subexpressions.</span>
         <span class="k">if</span> <span class="n">debug_tools</span><span class="o">.</span><span class="n">node_count</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_objective</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">debug_tools</span><span class="o">.</span><span class="n">MAX_NODES</span><span class="p">:</span>
-            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Objective contains too many subexpressions. &quot;</span>
-                          <span class="s2">&quot;Consider vectorizing your CVXPY code to speed up compilation.&quot;</span><span class="p">)</span>
+            <span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Objective contains too many subexpressions. &quot;</span>
+                  <span class="s2">&quot;Consider vectorizing your CVXPY code to speed up compilation.&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_constraints</span> <span class="o">=</span> <span class="p">[</span><span class="n">_validate_constraint</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">constraints</span><span class="p">]</span>
         <span class="c1"># Raise warning if constraint has too many subexpressions.</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">constraint</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_constraints</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">debug_tools</span><span class="o">.</span><span class="n">node_count</span><span class="p">(</span><span class="n">constraint</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">debug_tools</span><span class="o">.</span><span class="n">MAX_NODES</span><span class="p">:</span>
-                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Constraint #</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> contains too many subexpressions. &quot;</span>
-                              <span class="s2">&quot;Consider vectorizing your CVXPY code to speed up compilation.&quot;</span><span class="p">)</span>
+                <span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Constraint #</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> contains too many subexpressions. &quot;</span>
+                      <span class="s2">&quot;Consider vectorizing your CVXPY code to speed up compilation.&quot;</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_value</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_status</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
@@ -844,6 +883,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_objective</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constraints</span><span class="p">]</span>
         <span class="c1"># Needed for _aggregate_metrics.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ndim</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c1"># solver_context : The solver context: supported constrains and bounds.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">solver_context</span> <span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">SolverInfo</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="nd">@perf</span><span class="o">.</span><span class="n">compute_once</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_aggregate_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
@@ -1038,15 +1080,51 @@
     <span class="nd">@perf</span><span class="o">.</span><span class="n">compute_once</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">is_qp</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Is problem a quadratic program?</span>
+
+<span class="sd">        A problem is a QP if:</span>
+<span class="sd">        - It is DCP</span>
+<span class="sd">        - The objective is quadratic or piecewise-affine (QPWA)</span>
+<span class="sd">        - Inequality constraints (Inequality, NonPos, NonNeg) have PWL expressions</span>
+<span class="sd">        - Equality constraints (Equality, Zero) are allowed (DCP ensures affine args)</span>
+<span class="sd">        - No other constraint types (e.g., SOC, PSD, ExpCone) are present</span>
+<span class="sd">        - No PSD/NSD/Hermitian variables</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">constraints</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="p">(</span><span class="n">Equality</span><span class="p">,</span> <span class="n">Zero</span><span class="p">))</span> <span class="ow">or</span> <span class="n">c</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_pwl</span><span class="p">()):</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="ow">in</span> <span class="p">(</span><span class="n">Inequality</span><span class="p">,</span> <span class="n">NonPos</span><span class="p">,</span> <span class="n">NonNeg</span><span class="p">):</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">c</span><span class="o">.</span><span class="n">expr</span><span class="o">.</span><span class="n">is_pwl</span><span class="p">():</span>
+                    <span class="k">return</span> <span class="kc">False</span>
+            <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="n">Equality</span><span class="p">,</span> <span class="n">Zero</span><span class="p">):</span>
+                <span class="c1"># Reject conic constraints (SOC, PSD, ExpCone, etc.)</span>
                 <span class="k">return</span> <span class="kc">False</span>
         <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">():</span>
-            <span class="k">if</span> <span class="n">var</span><span class="o">.</span><span class="n">is_psd</span><span class="p">()</span> <span class="ow">or</span> <span class="n">var</span><span class="o">.</span><span class="n">is_nsd</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">var</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;PSD&#39;</span><span class="p">]</span> <span class="ow">or</span> <span class="n">var</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;NSD&#39;</span><span class="p">]</span> <span class="ow">or</span> <span class="n">var</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;hermitian&#39;</span><span class="p">]:</span>
                 <span class="k">return</span> <span class="kc">False</span>
         <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">is_dcp</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_qpwa</span><span class="p">())</span></div>
 
+
+    <span class="nd">@perf</span><span class="o">.</span><span class="n">compute_once</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_lp</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is problem a linear program?</span>
+
+<span class="sd">        A problem is an LP if:</span>
+<span class="sd">        - It is DCP</span>
+<span class="sd">        - The objective is piecewise linear (PWL expressions linearize)</span>
+<span class="sd">        - Inequality constraints (Inequality, NonPos, NonNeg) have PWL expressions</span>
+<span class="sd">        - Equality constraints (Equality, Zero) are allowed (DCP ensures affine args)</span>
+<span class="sd">        - No other constraint types (e.g., SOC, PSD, ExpCone) are present</span>
+<span class="sd">        - No PSD/NSD/Hermitian variables</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">constraints</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="ow">in</span> <span class="p">(</span><span class="n">Inequality</span><span class="p">,</span> <span class="n">NonPos</span><span class="p">,</span> <span class="n">NonNeg</span><span class="p">):</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">c</span><span class="o">.</span><span class="n">expr</span><span class="o">.</span><span class="n">is_pwl</span><span class="p">():</span>
+                    <span class="k">return</span> <span class="kc">False</span>
+            <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="n">Equality</span><span class="p">,</span> <span class="n">Zero</span><span class="p">):</span>
+                <span class="c1"># Reject conic constraints (SOC, PSD, ExpCone, etc.)</span>
+                <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">var</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;PSD&#39;</span><span class="p">]</span> <span class="ow">or</span> <span class="n">var</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;NSD&#39;</span><span class="p">]</span> <span class="ow">or</span> <span class="n">var</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;hermitian&#39;</span><span class="p">]:</span>
+                <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">is_dcp</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_pwl</span><span class="p">())</span>
 
     <span class="nd">@perf</span><span class="o">.</span><span class="n">compute_once</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">is_mixed_integer</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
@@ -1453,6 +1531,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="o">.</span><span class="n">key</span> <span class="o">=</span> <span class="n">key</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="o">.</span><span class="n">solving_chain</span> <span class="o">=</span> <span class="n">solving_chain</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_solver_cache</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">solver_context</span> <span class="o">=</span> <span class="n">solving_chain</span><span class="o">.</span><span class="n">solver_context</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">solving_chain</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="o">.</span><span class="n">solving_chain</span>
 
@@ -1465,18 +1544,11 @@
                 <span class="n">s</span><span class="o">.</span><span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                         <span class="s1">&#39;Using cached ASA map, for faster compilation &#39;</span>
                         <span class="s1">&#39;(bypassing reduction chain).&#39;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">gp</span><span class="p">:</span>
-                <span class="n">dgp2dcp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="o">.</span><span class="n">solving_chain</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Dgp2Dcp</span><span class="p">)</span>
-                <span class="c1"># Parameters in the param cone prog are the logs</span>
-                <span class="c1"># of parameters in the original problem (with one exception:</span>
-                <span class="c1"># parameters appearing as exponents (in power and gmatmul</span>
-                <span class="c1"># atoms) are unchanged.</span>
-                <span class="n">old_params_to_new_params</span> <span class="o">=</span> <span class="n">dgp2dcp</span><span class="o">.</span><span class="n">canon_methods</span><span class="o">.</span><span class="n">_parameters</span>
-                <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">():</span>
-
-                    <span class="k">if</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">old_params_to_new_params</span><span class="p">:</span>
-                        <span class="n">old_params_to_new_params</span><span class="p">[</span><span class="n">param</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span>
-                            <span class="n">param</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+            <span class="c1"># Update parameter values for reductions that transform them.</span>
+            <span class="c1"># Each reduction handles its own parameter transformations</span>
+            <span class="c1"># (e.g., Dgp2Dcp applies log(), Complex2Real splits into real/imag).</span>
+            <span class="k">for</span> <span class="n">reduction</span> <span class="ow">in</span> <span class="n">solving_chain</span><span class="o">.</span><span class="n">reductions</span><span class="p">:</span>
+                <span class="n">reduction</span><span class="o">.</span><span class="n">update_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
             <span class="n">data</span><span class="p">,</span> <span class="n">solver_inverse_data</span> <span class="o">=</span> <span class="n">solving_chain</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="o">.</span><span class="n">param_prog</span><span class="p">)</span>
@@ -1515,6 +1587,8 @@
                 <span class="c1"># the last datum in inverse_data corresponds to the solver,</span>
                 <span class="c1"># so we shouldn&#39;t cache it</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="o">.</span><span class="n">inverse_data</span> <span class="o">=</span> <span class="n">inverse_data</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="c1"># Convert last inverse data (which is from the solver) to a SolverInverseData object.</span>
+        <span class="n">inverse_data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">SolverInverseData</span><span class="p">(</span><span class="n">inverse_data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">solving_chain</span><span class="o">.</span><span class="n">solver</span><span class="p">,</span> <span class="n">solver_opts</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">data</span><span class="p">,</span> <span class="n">solving_chain</span><span class="p">,</span> <span class="n">inverse_data</span></div>
 
 
@@ -1586,25 +1660,14 @@
                 <span class="n">candidates</span><span class="p">[</span><span class="s1">&#39;qp_solvers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># No QP solvers allowed</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_mixed_integer</span><span class="p">():</span>
-            <span class="c1"># ECOS_BB must be called explicitly.</span>
-            <span class="k">if</span> <span class="n">slv_def</span><span class="o">.</span><span class="n">INSTALLED_MI_SOLVERS</span> <span class="o">==</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">ECOS_BB</span><span class="p">]</span> <span class="ow">and</span> <span class="n">solver</span> <span class="o">!=</span> <span class="n">s</span><span class="o">.</span><span class="n">ECOS_BB</span><span class="p">:</span>
-                <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
-
-<span class="s2">                    You need a mixed-integer solver for this model. Refer to the documentation</span>
-<span class="s2">                        https://www.cvxpy.org/tutorial/advanced/index.html#mixed-integer-programs</span>
-<span class="s2">                    for discussion on this topic.</span>
-
-<span class="s2">                    Quick fix 1: if you install the python package CVXOPT (pip install cvxopt),</span>
-<span class="s2">                    then CVXPY can use the open-source mixed-integer linear programming</span>
-<span class="s2">                    solver `GLPK`. If your problem is nonlinear then you can install SCIP</span>
-<span class="s2">                    (pip install pyscipopt).</span>
-
-<span class="s2">                    Quick fix 2: you can explicitly specify solver=&#39;ECOS_BB&#39;. This may result</span>
-<span class="s2">                    in incorrect solutions and is not recommended.</span>
-<span class="s2">                &quot;&quot;&quot;</span>
-                <span class="k">raise</span> <span class="n">error</span><span class="o">.</span><span class="n">SolverError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
-            <span class="c1"># TODO: provide a useful error message when the problem is nonlinear but</span>
-            <span class="c1">#  the only installed mixed-integer solvers are MILP solvers (e.g., GLPK_MI).</span>
+            <span class="k">if</span> <span class="n">solver</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_lp</span><span class="p">():</span>
+                <span class="c1"># Problem is mixed integer but not LP (e.g., MIQP, MISOCP)</span>
+                <span class="c1"># HiGHS only supports MILP, so warn users about MINLP solvers</span>
+                <span class="n">warn</span><span class="p">(</span>
+                    <span class="s2">&quot;Your problem is mixed-integer but not an LP. &quot;</span>
+                    <span class="s2">&quot;If your problem is nonlinear, consider installing SCIP &quot;</span>
+                    <span class="s2">&quot;(pip install pyscipopt) to solve it.&quot;</span>
+                <span class="p">)</span>
             <span class="n">candidates</span><span class="p">[</span><span class="s1">&#39;qp_solvers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
                 <span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">candidates</span><span class="p">[</span><span class="s1">&#39;qp_solvers&#39;</span><span class="p">]</span>
                 <span class="k">if</span> <span class="n">slv_def</span><span class="o">.</span><span class="n">SOLVER_MAP_QP</span><span class="p">[</span><span class="n">s</span><span class="p">]</span><span class="o">.</span><span class="n">MIP_CAPABLE</span><span class="p">]</span>
@@ -1618,7 +1681,6 @@
                     <span class="s2">&quot;QP/Conic solvers (</span><span class="si">%s</span><span class="s2">) are not MIP-capable.&quot;</span> <span class="o">%</span>
                     <span class="p">(</span><span class="n">candidates</span><span class="p">[</span><span class="s1">&#39;qp_solvers&#39;</span><span class="p">]</span> <span class="o">+</span>
                      <span class="n">candidates</span><span class="p">[</span><span class="s1">&#39;conic_solvers&#39;</span><span class="p">]))</span>
-
         <span class="k">return</span> <span class="n">candidates</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_add_custom_solver_candidates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">custom_solver</span><span class="p">:</span> <span class="n">Solver</span><span class="p">):</span>
@@ -2016,19 +2078,20 @@
         <span class="n">backward_cache</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solver_cache</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">DIFFCP</span><span class="p">]</span>
         <span class="n">DT</span> <span class="o">=</span> <span class="n">backward_cache</span><span class="p">[</span><span class="s2">&quot;DT&quot;</span><span class="p">]</span>
         <span class="n">zeros</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">backward_cache</span><span class="p">[</span><span class="s2">&quot;s&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="c1"># del_vars: dictionary of variable gradients (delta/∂ with respect to variables)</span>
+        <span class="c1"># Maps variable IDs to their gradient arrays for the backward pass</span>
         <span class="n">del_vars</span> <span class="o">=</span> <span class="p">{}</span>
 
-        <span class="n">gp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="o">.</span><span class="n">gp</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">variable</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">variable</span><span class="o">.</span><span class="n">gradient</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">del_vars</span><span class="p">[</span><span class="n">variable</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">variable</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">del_vars</span><span class="p">[</span><span class="n">variable</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">variable</span><span class="o">.</span><span class="n">gradient</span><span class="p">,</span>
                                                    <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">gp</span><span class="p">:</span>
-                <span class="c1"># x_gp = exp(x_cone_program),</span>
-                <span class="c1"># dx_gp/d x_cone_program = exp(x_cone_program) = x_gp</span>
-                <span class="n">del_vars</span><span class="p">[</span><span class="n">variable</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">*=</span> <span class="n">variable</span><span class="o">.</span><span class="n">value</span>
+            <span class="c1"># Apply chain rule through reductions that transform variables</span>
+            <span class="k">for</span> <span class="n">reduction</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="o">.</span><span class="n">solving_chain</span><span class="o">.</span><span class="n">reductions</span><span class="p">:</span>
+                <span class="n">del_vars</span><span class="p">[</span><span class="n">variable</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">reduction</span><span class="o">.</span><span class="n">var_backward</span><span class="p">(</span>
+                    <span class="n">variable</span><span class="p">,</span> <span class="n">del_vars</span><span class="p">[</span><span class="n">variable</span><span class="o">.</span><span class="n">id</span><span class="p">])</span>
 
         <span class="n">dx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="o">.</span><span class="n">param_prog</span><span class="o">.</span><span class="n">split_adjoint</span><span class="p">(</span><span class="n">del_vars</span><span class="p">)</span>
         <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
@@ -2037,29 +2100,18 @@
         <span class="n">backward_cache</span><span class="p">[</span><span class="s1">&#39;DT_TIME&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">end</span> <span class="o">-</span> <span class="n">start</span>
         <span class="n">dparams</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="o">.</span><span class="n">param_prog</span><span class="o">.</span><span class="n">apply_param_jac</span><span class="p">(</span><span class="n">dc</span><span class="p">,</span> <span class="o">-</span><span class="n">dA</span><span class="p">,</span> <span class="n">db</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">gp</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">():</span>
-                <span class="n">param</span><span class="o">.</span><span class="n">gradient</span> <span class="o">=</span> <span class="n">dparams</span><span class="p">[</span><span class="n">param</span><span class="o">.</span><span class="n">id</span><span class="p">]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">dgp2dcp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="o">.</span><span class="n">solving_chain</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Dgp2Dcp</span><span class="p">)</span>
-            <span class="n">old_params_to_new_params</span> <span class="o">=</span> <span class="n">dgp2dcp</span><span class="o">.</span><span class="n">canon_methods</span><span class="o">.</span><span class="n">_parameters</span>
-            <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">():</span>
-                <span class="c1"># Note: if param is an exponent in a power or gmatmul atom,</span>
-                <span class="c1"># then the parameter passes through unchanged to the DCP</span>
-                <span class="c1"># program; if the param is also used elsewhere (not as an</span>
-                <span class="c1"># exponent), then param will also be in</span>
-                <span class="c1"># old_params_to_new_params. Therefore, param.gradient =</span>
-                <span class="c1"># dparams[param.id] (or 0) + 1/param*dparams[new_param.id]</span>
-                <span class="c1">#</span>
-                <span class="c1"># Note that param.id is in dparams if and only if</span>
-                <span class="c1"># param was used as an exponent (because this means that</span>
-                <span class="c1"># the parameter entered the DCP problem unchanged.)</span>
-                <span class="n">grad</span> <span class="o">=</span> <span class="mf">0.0</span> <span class="k">if</span> <span class="n">param</span><span class="o">.</span><span class="n">id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dparams</span> <span class="k">else</span> <span class="n">dparams</span><span class="p">[</span><span class="n">param</span><span class="o">.</span><span class="n">id</span><span class="p">]</span>
-                <span class="k">if</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">old_params_to_new_params</span><span class="p">:</span>
-                    <span class="n">new_param</span> <span class="o">=</span> <span class="n">old_params_to_new_params</span><span class="p">[</span><span class="n">param</span><span class="p">]</span>
-                    <span class="c1"># new_param.value == log(param), apply chain rule</span>
-                    <span class="n">grad</span> <span class="o">+=</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="n">param</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="o">*</span> <span class="n">dparams</span><span class="p">[</span><span class="n">new_param</span><span class="o">.</span><span class="n">id</span><span class="p">]</span>
-                <span class="n">param</span><span class="o">.</span><span class="n">gradient</span> <span class="o">=</span> <span class="n">grad</span></div>
+        <span class="c1"># Compute gradients for each parameter, applying chain rule through</span>
+        <span class="c1"># reductions that transform parameters (e.g., DGP log transform,</span>
+        <span class="c1"># Complex2Real split into real/imag).</span>
+        <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">():</span>
+            <span class="c1"># Start with the direct gradient if the param passed through unchanged</span>
+            <span class="n">grad</span> <span class="o">=</span> <span class="mf">0.0</span> <span class="k">if</span> <span class="n">param</span><span class="o">.</span><span class="n">id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dparams</span> <span class="k">else</span> <span class="n">dparams</span><span class="p">[</span><span class="n">param</span><span class="o">.</span><span class="n">id</span><span class="p">]</span>
+            <span class="c1"># Apply chain rule through any reductions that transformed this param</span>
+            <span class="k">for</span> <span class="n">reduction</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="o">.</span><span class="n">solving_chain</span><span class="o">.</span><span class="n">reductions</span><span class="p">:</span>
+                <span class="n">reduction_grad</span> <span class="o">=</span> <span class="n">reduction</span><span class="o">.</span><span class="n">param_backward</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="n">dparams</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">reduction_grad</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">grad</span> <span class="o">=</span> <span class="n">grad</span> <span class="o">+</span> <span class="n">reduction_grad</span>
+            <span class="n">param</span><span class="o">.</span><span class="n">gradient</span> <span class="o">=</span> <span class="n">grad</span></div>
 
 
 <div class="viewcode-block" id="Problem.derivative">
@@ -2121,32 +2173,24 @@
         <span class="n">D</span> <span class="o">=</span> <span class="n">backward_cache</span><span class="p">[</span><span class="s2">&quot;D&quot;</span><span class="p">]</span>
         <span class="n">param_deltas</span> <span class="o">=</span> <span class="p">{}</span>
 
-        <span class="n">gp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="o">.</span><span class="n">gp</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">gp</span><span class="p">:</span>
-            <span class="n">dgp2dcp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="o">.</span><span class="n">solving_chain</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Dgp2Dcp</span><span class="p">)</span>
-
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">():</span>
             <span class="k">for</span> <span class="n">variable</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">():</span>
                 <span class="n">variable</span><span class="o">.</span><span class="n">delta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">variable</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
             <span class="k">return</span>
 
+        <span class="c1"># Compute deltas for transformed parameters, applying chain rule through</span>
+        <span class="c1"># reductions that transform parameters (e.g., DGP log transform,</span>
+        <span class="c1"># Complex2Real split into real/imag).</span>
         <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">():</span>
             <span class="n">delta</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">delta</span> <span class="k">if</span> <span class="n">param</span><span class="o">.</span><span class="n">delta</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">gp</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">dgp2dcp</span><span class="o">.</span><span class="n">canon_methods</span><span class="o">.</span><span class="n">_parameters</span><span class="p">:</span>
-                    <span class="n">new_param_id</span> <span class="o">=</span> <span class="n">dgp2dcp</span><span class="o">.</span><span class="n">canon_methods</span><span class="o">.</span><span class="n">_parameters</span><span class="p">[</span><span class="n">param</span><span class="p">]</span><span class="o">.</span><span class="n">id</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">new_param_id</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">id</span>
-                <span class="n">param_deltas</span><span class="p">[</span><span class="n">new_param_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-                    <span class="mf">1.0</span><span class="o">/</span><span class="n">param</span><span class="o">.</span><span class="n">value</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">delta</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">))</span>
-                <span class="k">if</span> <span class="n">param</span><span class="o">.</span><span class="n">id</span> <span class="ow">in</span> <span class="n">param_prog</span><span class="o">.</span><span class="n">param_id_to_col</span><span class="p">:</span>
-                    <span class="c1"># here, param generated a new parameter and also</span>
-                    <span class="c1"># passed through to the param cone prog unchanged</span>
-                    <span class="c1"># (because it was an exponent of a power)</span>
-                    <span class="n">param_deltas</span><span class="p">[</span><span class="n">param</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">delta</span><span class="p">,</span>
-                                                        <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># If param passed through unchanged, add its delta directly</span>
+            <span class="k">if</span> <span class="n">param</span><span class="o">.</span><span class="n">id</span> <span class="ow">in</span> <span class="n">param_prog</span><span class="o">.</span><span class="n">param_id_to_col</span><span class="p">:</span>
                 <span class="n">param_deltas</span><span class="p">[</span><span class="n">param</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">delta</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+            <span class="c1"># Apply chain rule through any reductions that transformed this param</span>
+            <span class="k">for</span> <span class="n">reduction</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="o">.</span><span class="n">solving_chain</span><span class="o">.</span><span class="n">reductions</span><span class="p">:</span>
+                <span class="n">transformed_deltas</span> <span class="o">=</span> <span class="n">reduction</span><span class="o">.</span><span class="n">param_forward</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="n">delta</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">transformed_deltas</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">param_deltas</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">transformed_deltas</span><span class="p">)</span>
         <span class="n">dc</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">dA</span><span class="p">,</span> <span class="n">db</span> <span class="o">=</span> <span class="n">param_prog</span><span class="o">.</span><span class="n">apply_parameters</span><span class="p">(</span><span class="n">param_deltas</span><span class="p">,</span>
                                                     <span class="n">zero_offset</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
@@ -2157,10 +2201,9 @@
             <span class="n">dx</span><span class="p">,</span> <span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">()])</span>
         <span class="k">for</span> <span class="n">variable</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">():</span>
             <span class="n">variable</span><span class="o">.</span><span class="n">delta</span> <span class="o">=</span> <span class="n">dvars</span><span class="p">[</span><span class="n">variable</span><span class="o">.</span><span class="n">id</span><span class="p">]</span>
-            <span class="k">if</span> <span class="n">gp</span><span class="p">:</span>
-                <span class="c1"># x_gp = exp(x_cone_program),</span>
-                <span class="c1"># dx_gp/d x_cone_program = exp(x_cone_program) = x_gp</span>
-                <span class="n">variable</span><span class="o">.</span><span class="n">delta</span> <span class="o">*=</span> <span class="n">variable</span><span class="o">.</span><span class="n">value</span></div>
+            <span class="c1"># Apply chain rule through reductions that transform variables</span>
+            <span class="k">for</span> <span class="n">reduction</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="o">.</span><span class="n">solving_chain</span><span class="o">.</span><span class="n">reductions</span><span class="p">:</span>
+                <span class="n">variable</span><span class="o">.</span><span class="n">delta</span> <span class="o">=</span> <span class="n">reduction</span><span class="o">.</span><span class="n">var_forward</span><span class="p">(</span><span class="n">variable</span><span class="p">,</span> <span class="n">variable</span><span class="o">.</span><span class="n">delta</span><span class="p">)</span></div>
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_clear_solution</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -2228,7 +2271,6 @@
 <span class="sd">            A solving chain that was used to solve the problem.</span>
 <span class="sd">        inverse_data : list</span>
 <span class="sd">            The inverse data returned by applying the chain to the problem.</span>
-
 <span class="sd">        Raises</span>
 <span class="sd">        ------</span>
 <span class="sd">        cvxpy.error.SolverError</span>
@@ -2237,13 +2279,13 @@
 
         <span class="n">solution</span> <span class="o">=</span> <span class="n">chain</span><span class="o">.</span><span class="n">invert</span><span class="p">(</span><span class="n">solution</span><span class="p">,</span> <span class="n">inverse_data</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">solution</span><span class="o">.</span><span class="n">status</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">INACCURATE</span><span class="p">:</span>
-            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="n">warn</span><span class="p">(</span>
                 <span class="s2">&quot;Solution may be inaccurate. Try another solver, &quot;</span>
                 <span class="s2">&quot;adjusting the solver settings, or solve with &quot;</span>
                 <span class="s2">&quot;verbose=True for more information.&quot;</span>
             <span class="p">)</span>
         <span class="k">if</span> <span class="n">solution</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">s</span><span class="o">.</span><span class="n">INFEASIBLE_OR_UNBOUNDED</span><span class="p">:</span>
-            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">INF_OR_UNB_MESSAGE</span><span class="p">)</span>
+            <span class="n">warn</span><span class="p">(</span><span class="n">INF_OR_UNB_MESSAGE</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">solution</span><span class="o">.</span><span class="n">status</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">ERROR</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">error</span><span class="o">.</span><span class="n">SolverError</span><span class="p">(</span>
                     <span class="s2">&quot;Solver &#39;</span><span class="si">%s</span><span class="s2">&#39; failed. &quot;</span> <span class="o">%</span> <span class="n">chain</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">name</span><span class="p">()</span> <span class="o">+</span>
@@ -2264,6 +2306,21 @@
                      <span class="n">subject_to</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">constraints</span><span class="p">[</span><span class="mi">0</span><span class="p">])]</span>
             <span class="k">for</span> <span class="n">constr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">constraints</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
                 <span class="n">lines</span> <span class="o">+=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">subject_to</span><span class="p">)</span> <span class="o">*</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">constr</span><span class="p">)]</span>
+            <span class="k">return</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">format_labeled</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Format problem with labels where available.</span>
+<span class="sd">        </span>
+<span class="sd">        Shows labels for both the objective expression and constraints.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">constraints</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">format_labeled</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">subject_to</span> <span class="o">=</span> <span class="s2">&quot;subject to &quot;</span>
+            <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">format_labeled</span><span class="p">(),</span>
+                     <span class="n">subject_to</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">constraints</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">format_labeled</span><span class="p">()]</span>
+            <span class="k">for</span> <span class="n">constr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">constraints</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+                <span class="n">lines</span> <span class="o">+=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">subject_to</span><span class="p">)</span> <span class="o">*</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="n">constr</span><span class="o">.</span><span class="n">format_labeled</span><span class="p">()]</span>
             <span class="k">return</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -2533,7 +2590,7 @@
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "../../..", "features": ["header.autohide", "toc.follow", "navigation.path", "navigation.instant", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.tracking", "navigation.expand", "search.highlight", "search.share", "content.tabs.link", "announce.dismiss", "content.code.copy"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike", "staticVersions": [{"aliases": [], "title": "latest", "version": "https://www.cvxpy.org"}, {"aliases": [], "title": "1.6", "version": "https://www.cvxpy.org/version/1.6"}, {"aliases": [], "title": "1.5", "version": "https://www.cvxpy.org/version/1.5"}, {"aliases": [], "title": "1.4", "version": "https://www.cvxpy.org/version/1.4"}], "versionPath": null}}</script>
+    <script id="__config" type="application/json">{"base": "../../..", "features": ["header.autohide", "toc.follow", "navigation.path", "navigation.instant", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.tracking", "navigation.expand", "search.highlight", "search.share", "content.tabs.link", "announce.dismiss", "content.code.copy"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike", "staticVersions": [{"aliases": [], "title": "latest", "version": "https://www.cvxpy.org"}, {"aliases": [], "title": "1.7", "version": "https://www.cvxpy.org/version/1.7"}, {"aliases": [], "title": "1.6", "version": "https://www.cvxpy.org/version/1.6"}, {"aliases": [], "title": "1.5", "version": "https://www.cvxpy.org/version/1.5"}, {"aliases": [], "title": "1.4", "version": "https://www.cvxpy.org/version/1.4"}], "versionPath": null}}</script>
     
       
         <script src="../../../_static/jquery.js?v=5d32c60e"></script>

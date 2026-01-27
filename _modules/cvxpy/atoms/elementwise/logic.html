@@ -17,7 +17,7 @@
     
     
       
-        <title>cvxpy.atoms.elementwise.logistic - </title>
+        <title>cvxpy.atoms.elementwise.logic - </title>
       
     
     
@@ -136,7 +136,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              cvxpy.atoms.elementwise.logistic
+              cvxpy.atoms.elementwise.logic
             
           </span>
         </div>
@@ -690,9 +690,9 @@
                   
 
 
-<h1>Source code for cvxpy.atoms.elementwise.logistic</h1><div class="highlight"><pre>
+<h1>Source code for cvxpy.atoms.elementwise.logic</h1><div class="highlight"><pre>
 <span></span><code><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Copyright 2013 Steven Diamond</span>
+<span class="sd">Copyright, the CVXPY authors</span>
 
 <span class="sd">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
 <span class="sd">you may not use this file except in compliance with the License.</span>
@@ -707,72 +707,327 @@
 <span class="sd">limitations under the License.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tuple</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">reduce</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.atoms.elementwise.elementwise</span><span class="w"> </span><span class="kn">import</span> <span class="n">Elementwise</span>
 
 
-<div class="viewcode-block" id="logistic">
-<a class="viewcode-back" href="../../../../api_reference/cvxpy.atoms.elementwise.html#cvxpy.logistic">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">logistic</span><span class="p">(</span><span class="n">Elementwise</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;:math:`\\log(1 + e^{x})`</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_is_boolean_arg</span><span class="p">(</span><span class="n">arg</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Check if an argument is a valid boolean logic input.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="n">LogicExpression</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.expressions.leaf</span><span class="w"> </span><span class="kn">import</span> <span class="n">Leaf</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="n">Leaf</span><span class="p">)</span> <span class="ow">and</span> <span class="n">arg</span><span class="o">.</span><span class="n">attributes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;boolean&#39;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.expressions.constants.constant</span><span class="w"> </span><span class="kn">import</span> <span class="n">Constant</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="n">Constant</span><span class="p">)</span> <span class="ow">and</span> <span class="n">arg</span><span class="o">.</span><span class="n">is_boolean_valued</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">return</span> <span class="kc">False</span>
 
-<span class="sd">    This is a special case of log(sum(exp)) that is evaluates to a vector rather</span>
-<span class="sd">    than to a scalar which is useful for logistic regression.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">logistic</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">LogicExpression</span><span class="p">(</span><span class="n">Elementwise</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for boolean logic atoms (Not, And, Or, Xor).&quot;&quot;&quot;</span>
 
-    <span class="nd">@Elementwise</span><span class="o">.</span><span class="n">numpy_numeric</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">numeric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Evaluates e^x elementwise, adds 1, and takes the log.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">logaddexp</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">validate_arguments</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">validate_arguments</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">_is_boolean_arg</span><span class="p">(</span><span class="n">arg</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;All arguments to </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> must be &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;boolean variables or LogicExpression instances. &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;Got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">.&quot;</span>
+                <span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">sign_from_args</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns sign (is positive, is negative) of the expression.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># Always positive.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Result is boolean (0 or 1), so nonneg.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">is_atom_convex</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the atom convex?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="kc">True</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">is_atom_concave</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the atom concave?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="kc">False</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">is_incr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the composition non-decreasing in argument idx?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="kc">True</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">is_decr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the composition non-increasing in argument idx?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_incr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">False</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_grad</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gives the (sub/super)gradient of the atom w.r.t. each argument.</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_decr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
 
-<span class="sd">        Matrix expressions are vectorized, so the gradient is a matrix.</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_grad</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="kc">None</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">values</span><span class="p">]</span>
 
-<span class="sd">        Args:</span>
-<span class="sd">            values: A list of numeric values for the arguments.</span>
 
-<span class="sd">        Returns:</span>
-<span class="sd">            A list of SciPy CSC sparse matrices or None.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">rows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">size</span>
-        <span class="n">cols</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span>
-        <span class="n">grad_vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">logaddexp</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
-        <span class="k">return</span> <span class="p">[</span><span class="n">logistic</span><span class="o">.</span><span class="n">elemwise_grad_to_diag</span><span class="p">(</span><span class="n">grad_vals</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">)]</span></div>
+<div class="viewcode-block" id="Not">
+<a class="viewcode-back" href="../../../../api_reference/cvxpy.atoms.elementwise.html#cvxpy.logic.Not">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Not</span><span class="p">(</span><span class="n">LogicExpression</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Logical NOT of a boolean expression.</span>
+
+<span class="sd">    Returns ``1 - x``, i.e., flips 0 to 1 and 1 to 0.</span>
+
+<span class="sd">    Can also be written with the ``~`` operator: ``~x``.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    arg : Expression</span>
+<span class="sd">        A boolean variable or LogicExpression.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        import cvxpy as cp</span>
+
+<span class="sd">        x = cp.Variable(boolean=True)</span>
+<span class="sd">        not_x = ~x                # operator syntax</span>
+<span class="sd">        not_x = cp.logic.Not(x)   # equivalent functional syntax</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arg</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">validate_arguments</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Not takes exactly 1 argument.&quot;</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">validate_arguments</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_decr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">child</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="n">_NaryLogicExpression</span><span class="p">):</span>
+            <span class="k">return</span> <span class="s2">&quot;~(&quot;</span> <span class="o">+</span> <span class="n">child</span><span class="o">.</span><span class="n">name</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;)&quot;</span>
+        <span class="k">return</span> <span class="s2">&quot;~&quot;</span> <span class="o">+</span> <span class="n">child</span><span class="o">.</span><span class="n">name</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">format_labeled</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_label</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_label</span>
+        <span class="n">child</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="n">_NaryLogicExpression</span><span class="p">):</span>
+            <span class="k">return</span> <span class="s2">&quot;~(&quot;</span> <span class="o">+</span> <span class="n">child</span><span class="o">.</span><span class="n">format_labeled</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;)&quot;</span>
+        <span class="k">return</span> <span class="s2">&quot;~&quot;</span> <span class="o">+</span> <span class="n">child</span><span class="o">.</span><span class="n">format_labeled</span><span class="p">()</span>
+
+    <span class="nd">@Elementwise</span><span class="o">.</span><span class="n">numpy_numeric</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">numeric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+        <span class="k">return</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
+
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">_NaryLogicExpression</span><span class="p">(</span><span class="n">LogicExpression</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Shared base for n-ary logic atoms (And, Or, Xor).</span>
+
+<span class="sd">    Subclasses set ``OP_NAME`` and ``_PAREN_TYPES`` class attributes;</span>
+<span class="sd">    formatting methods are inherited from here.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">OP_NAME</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">_PAREN_TYPES</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arg1</span><span class="p">,</span> <span class="n">arg2</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">arg1</span><span class="p">,</span> <span class="n">arg2</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_format_child</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">child</span><span class="p">,</span> <span class="n">use_labels</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="n">child</span><span class="o">.</span><span class="n">format_labeled</span><span class="p">()</span> <span class="k">if</span> <span class="n">use_labels</span> <span class="k">else</span> <span class="n">child</span><span class="o">.</span><span class="n">name</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="n">LogicExpression</span><span class="p">)</span> <span class="ow">and</span> \
+                <span class="nb">type</span><span class="p">(</span><span class="n">child</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_PAREN_TYPES</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;(&quot;</span> <span class="o">+</span> <span class="n">text</span> <span class="o">+</span> <span class="s2">&quot;)&quot;</span>
+        <span class="k">return</span> <span class="n">text</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">OP_NAME</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_format_child</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">format_labeled</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_label</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_label</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">OP_NAME</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_format_child</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">use_labels</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span>
+        <span class="p">)</span>
+
+
+<div class="viewcode-block" id="And">
+<a class="viewcode-back" href="../../../../api_reference/cvxpy.atoms.elementwise.html#cvxpy.logic.And">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">And</span><span class="p">(</span><span class="n">_NaryLogicExpression</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Logical AND of boolean expressions.</span>
+
+<span class="sd">    Returns 1 if and only if all arguments equal 1, and 0 otherwise.</span>
+
+<span class="sd">    For two operands, can also be written with the ``&amp;`` operator: ``x &amp; y``.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    *args : Expression</span>
+<span class="sd">        Two or more boolean variables or LogicExpressions.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        import cvxpy as cp</span>
+
+<span class="sd">        x = cp.Variable(boolean=True)</span>
+<span class="sd">        y = cp.Variable(boolean=True)</span>
+<span class="sd">        both = x &amp; y                  # operator syntax</span>
+<span class="sd">        both = cp.logic.And(x, y)     # equivalent functional syntax</span>
+<span class="sd">        all3 = cp.logic.And(x, y, z)  # n-ary (3+ args) requires functional syntax</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">OP_NAME</span> <span class="o">=</span> <span class="s2">&quot; &amp; &quot;</span>
+    <span class="c1"># Or and Xor have lower precedence than &amp;, so parenthesize them.</span>
+    <span class="n">_PAREN_TYPES</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;Or&quot;</span><span class="p">,</span> <span class="s2">&quot;Xor&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_incr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="nd">@Elementwise</span><span class="o">.</span><span class="n">numpy_numeric</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">numeric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">reduce</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Or">
+<a class="viewcode-back" href="../../../../api_reference/cvxpy.atoms.elementwise.html#cvxpy.logic.Or">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Or</span><span class="p">(</span><span class="n">_NaryLogicExpression</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Logical OR of boolean expressions.</span>
+
+<span class="sd">    Returns 1 if and only if at least one argument equals 1, and 0 otherwise.</span>
+
+<span class="sd">    For two operands, can also be written with the ``|`` operator: ``x | y``.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    *args : Expression</span>
+<span class="sd">        Two or more boolean variables or LogicExpressions.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        import cvxpy as cp</span>
+
+<span class="sd">        x = cp.Variable(boolean=True)</span>
+<span class="sd">        y = cp.Variable(boolean=True)</span>
+<span class="sd">        either = x | y                # operator syntax</span>
+<span class="sd">        either = cp.logic.Or(x, y)    # equivalent functional syntax</span>
+<span class="sd">        any3 = cp.logic.Or(x, y, z)   # n-ary (3+ args) requires functional syntax</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">OP_NAME</span> <span class="o">=</span> <span class="s2">&quot; | &quot;</span>
+    <span class="c1"># | has lowest precedence among logic ops; no children need parens.</span>
+    <span class="n">_PAREN_TYPES</span> <span class="o">=</span> <span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_incr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="nd">@Elementwise</span><span class="o">.</span><span class="n">numpy_numeric</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">numeric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">reduce</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Xor">
+<a class="viewcode-back" href="../../../../api_reference/cvxpy.atoms.elementwise.html#cvxpy.logic.Xor">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Xor</span><span class="p">(</span><span class="n">_NaryLogicExpression</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Logical XOR of boolean expressions.</span>
+
+<span class="sd">    For two arguments: result is 1 iff exactly one is 1.</span>
+<span class="sd">    For n arguments: result is 1 iff an odd number are 1 (parity).</span>
+
+<span class="sd">    For two operands, can also be written with the ``^`` operator: ``x ^ y``.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    *args : Expression</span>
+<span class="sd">        Two or more boolean variables or LogicExpressions.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        import cvxpy as cp</span>
+
+<span class="sd">        x = cp.Variable(boolean=True)</span>
+<span class="sd">        y = cp.Variable(boolean=True)</span>
+<span class="sd">        exclusive = x ^ y                 # operator syntax</span>
+<span class="sd">        exclusive = cp.logic.Xor(x, y)    # equivalent functional syntax</span>
+<span class="sd">        parity3 = cp.logic.Xor(x, y, z)   # n-ary (3+ args) requires functional syntax</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">OP_NAME</span> <span class="o">=</span> <span class="s2">&quot; ^ &quot;</span>
+    <span class="c1"># Or has lower precedence than ^, so parenthesize it.</span>
+    <span class="n">_PAREN_TYPES</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;Or&quot;</span><span class="p">,)</span>
+
+    <span class="nd">@Elementwise</span><span class="o">.</span><span class="n">numpy_numeric</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">numeric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">reduce</span><span class="p">(</span><span class="k">lambda</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">values</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="implies">
+<a class="viewcode-back" href="../../../../api_reference/cvxpy.atoms.elementwise.html#cvxpy.logic.implies">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">implies</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Logical implication: x =&gt; y.</span>
+
+<span class="sd">    Returns 1 unless x = 1 and y = 0.  Equivalent to ``Or(Not(x), y)``.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : Expression</span>
+<span class="sd">        A boolean variable or LogicExpression.</span>
+<span class="sd">    y : Expression</span>
+<span class="sd">        A boolean variable or LogicExpression.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        import cvxpy as cp</span>
+
+<span class="sd">        x = cp.Variable(boolean=True)</span>
+<span class="sd">        y = cp.Variable(boolean=True)</span>
+<span class="sd">        expr = cp.logic.implies(x, y)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">Or</span><span class="p">(</span><span class="n">Not</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">y</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="iff">
+<a class="viewcode-back" href="../../../../api_reference/cvxpy.atoms.elementwise.html#cvxpy.logic.iff">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">iff</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Logical biconditional: x &lt;=&gt; y.</span>
+
+<span class="sd">    Returns 1 if and only if x and y have the same value.</span>
+<span class="sd">    Equivalent to ``Not(Xor(x, y))``.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : Expression</span>
+<span class="sd">        A boolean variable or LogicExpression.</span>
+<span class="sd">    y : Expression</span>
+<span class="sd">        A boolean variable or LogicExpression.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        import cvxpy as cp</span>
+
+<span class="sd">        x = cp.Variable(boolean=True)</span>
+<span class="sd">        y = cp.Variable(boolean=True)</span>
+<span class="sd">        expr = cp.logic.iff(x, y)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">Not</span><span class="p">(</span><span class="n">Xor</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">))</span></div>
 
 </code></pre></div>
 

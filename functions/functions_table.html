@@ -65,6 +65,8 @@
   
     
     
+      
+    
     
     
     
@@ -142,7 +144,43 @@
     </div>
     
       
+        <form class="md-header__option" data-md-component="palette">
+  
     
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m14.3 16-.7-2h-3.2l-.7 2H7.8L11 7h2l3.2 9zM20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12zm-9.15 3.96h2.3L12 9z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="green"  aria-label="Switch to system preference"  type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
     
     
     
@@ -1263,6 +1301,56 @@ or <code class="docutils literal notranslate"><span class="pre">p</span> <span c
 </td>
 <td><p><a class="reference internal" href="../_images/convex.svg"><img alt="convex" src="../_images/convex.svg" style="width: 15px; height: 15px;" /></a> convex</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.elementwise.html#logic-not"><span class="std std-ref">logic.Not(x)</span></a></p>
+<p><code class="docutils literal notranslate"><span class="pre">~x</span></code></p>
+</td>
+<td><p><span class="math notranslate nohighlight">\(1 - x\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(x \in \{0,1\}\)</span></p></td>
+<td><p><a class="reference internal" href="../_images/positive.svg"><img alt="positive" src="../_images/positive.svg" style="width: 15px; height: 15px;" /></a> positive</p>
+<p><a class="reference internal" href="../_images/decreasing.svg"><img alt="decr" src="../_images/decreasing.svg" style="width: 15px; height: 15px;" /></a> decr.</p>
+</td>
+<td><p><a class="reference internal" href="../_images/affine.svg"><img alt="affine" src="../_images/affine.svg" style="width: 15px; height: 15px;" /></a> affine</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.elementwise.html#logic-and"><span class="std std-ref">logic.And(x1, …, xn)</span></a></p>
+<p><code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">&amp;</span> <span class="pre">y</span></code></p>
+</td>
+<td><p>1 iff all <span class="math notranslate nohighlight">\(x_i = 1\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(x_i \in \{0,1\}\)</span></p></td>
+<td><p><a class="reference internal" href="../_images/positive.svg"><img alt="positive" src="../_images/positive.svg" style="width: 15px; height: 15px;" /></a> positive</p>
+<p><a class="reference internal" href="../_images/increasing.svg"><img alt="incr" src="../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p>
+</td>
+<td><p><a class="reference internal" href="../_images/affine.svg"><img alt="affine" src="../_images/affine.svg" style="width: 15px; height: 15px;" /></a> affine</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.elementwise.html#logic-or"><span class="std std-ref">logic.Or(x1, …, xn)</span></a></p>
+<p><code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">|</span> <span class="pre">y</span></code></p>
+</td>
+<td><p>1 iff any <span class="math notranslate nohighlight">\(x_i = 1\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(x_i \in \{0,1\}\)</span></p></td>
+<td><p><a class="reference internal" href="../_images/positive.svg"><img alt="positive" src="../_images/positive.svg" style="width: 15px; height: 15px;" /></a> positive</p>
+<p><a class="reference internal" href="../_images/increasing.svg"><img alt="incr" src="../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p>
+</td>
+<td><p><a class="reference internal" href="../_images/affine.svg"><img alt="affine" src="../_images/affine.svg" style="width: 15px; height: 15px;" /></a> affine</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.elementwise.html#logic-xor"><span class="std std-ref">logic.Xor(x1, …, xn)</span></a></p>
+<p><code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">^</span> <span class="pre">y</span></code></p>
+</td>
+<td><p>1 iff odd # of <span class="math notranslate nohighlight">\(x_i = 1\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(x_i \in \{0,1\}\)</span></p></td>
+<td><p><a class="reference internal" href="../_images/positive.svg"><img alt="positive" src="../_images/positive.svg" style="width: 15px; height: 15px;" /></a> positive</p></td>
+<td><p><a class="reference internal" href="../_images/affine.svg"><img alt="affine" src="../_images/affine.svg" style="width: 15px; height: 15px;" /></a> affine</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.elementwise.html#logic-implies"><span class="std std-ref">logic.implies(x, y)</span></a></p></td>
+<td><p><span class="math notranslate nohighlight">\(x \Rightarrow y\)</span> (1 unless <span class="math notranslate nohighlight">\(x{=}1, y{=}0\)</span>)</p></td>
+<td><p><span class="math notranslate nohighlight">\(x,y \in \{0,1\}\)</span></p></td>
+<td><p><a class="reference internal" href="../_images/positive.svg"><img alt="positive" src="../_images/positive.svg" style="width: 15px; height: 15px;" /></a> positive</p></td>
+<td><p><a class="reference internal" href="../_images/affine.svg"><img alt="affine" src="../_images/affine.svg" style="width: 15px; height: 15px;" /></a> affine</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.elementwise.html#logic-iff"><span class="std std-ref">logic.iff(x, y)</span></a></p></td>
+<td><p><span class="math notranslate nohighlight">\(x \Leftrightarrow y\)</span> (1 iff <span class="math notranslate nohighlight">\(x = y\)</span>)</p></td>
+<td><p><span class="math notranslate nohighlight">\(x,y \in \{0,1\}\)</span></p></td>
+<td><p><a class="reference internal" href="../_images/positive.svg"><img alt="positive" src="../_images/positive.svg" style="width: 15px; height: 15px;" /></a> positive</p></td>
+<td><p><a class="reference internal" href="../_images/affine.svg"><img alt="affine" src="../_images/affine.svg" style="width: 15px; height: 15px;" /></a> affine</p></td>
+</tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.affine.html#bmat"><span class="std std-ref">bmat()</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\left[\begin{matrix} X^{(1,1)} &amp; .. &amp;  X^{(1,q)} \\ \vdots &amp;   &amp; \vdots \\ X^{(p,1)} &amp; .. &amp;   X^{(p,q)} \end{matrix}\right]\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X^{(i,j)} \in\mathbf{R}^{m_i \times n_j}\)</span></p></td>
@@ -1303,13 +1391,22 @@ or <code class="docutils literal notranslate"><span class="pre">p</span> <span c
 <td><p><a class="reference internal" href="../_images/increasing.svg"><img alt="incr" src="../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 <td><p><a class="reference internal" href="../_images/affine.svg"><img alt="affine" src="../_images/affine.svg" style="width: 15px; height: 15px;" /></a> affine</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.affine.html#hstack"><span class="std std-ref">hstack([X1, …, Xk])</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.affine.html#einsum"><span class="std std-ref">einsum(subscripts, …)</span></a></p></td>
+<td><p>tensor contraction via Einstein summation:</p>
+<p>sum over repeated indices</p>
+<p>e.g. <cite>einsum(“ij,j-&gt;i”, A, x)</cite> gives <span class="math notranslate nohighlight">\(\sum_j A_{ij} x_j\)</span></p>
+</td>
+<td><p>tensors with compatible dimensions (subscript-dependent)</p></td>
+<td><p><a class="reference internal" href="../_images/unknown.svg"><img alt="unknown" src="../_images/unknown.svg" style="width: 15px; height: 15px;" /></a> unknown sign</p></td>
+<td><p><a class="reference internal" href="../_images/affine.svg"><img alt="affine" src="../_images/affine.svg" style="width: 15px; height: 15px;" /></a> affine</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.affine.html#hstack"><span class="std std-ref">hstack([X1, …, Xk])</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\left[\begin{matrix}X^{(1)}  \cdots    X^{(k)}\end{matrix}\right]\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X^{(i)} \in\mathbf{R}^{m \times n_i}\)</span></p></td>
 <td><p><a class="reference internal" href="../_images/increasing.svg"><img alt="incr" src="../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 <td><p><a class="reference internal" href="../_images/affine.svg"><img alt="affine" src="../_images/affine.svg" style="width: 15px; height: 15px;" /></a> affine</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.affine.html#kron"><span class="std std-ref">kron(X, Y)</span></a></p>
+<tr class="row-even"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.affine.html#kron"><span class="std std-ref">kron(X, Y)</span></a></p>
 <p>constant <span class="math notranslate nohighlight">\(X\in\mathbf{R}^{p \times q}\)</span></p>
 </td>
 <td><p><span class="math notranslate nohighlight">\(\left[\begin{matrix}X_{11}Y &amp; .. &amp; X_{1q}Y \\ \vdots  &amp;        &amp; \vdots \\ X_{p1}Y &amp; .. &amp; X_{pq}Y     \end{matrix}\right]\)</span></p></td>
@@ -1317,7 +1414,7 @@ or <code class="docutils literal notranslate"><span class="pre">p</span> <span c
 <td><p>monotonicity depends on <span class="math notranslate nohighlight">\(X\)</span></p></td>
 <td><p><a class="reference internal" href="../_images/affine.svg"><img alt="affine" src="../_images/affine.svg" style="width: 15px; height: 15px;" /></a> affine</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.affine.html#kron"><span class="std std-ref">kron(X, Y)</span></a></p>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.affine.html#kron"><span class="std std-ref">kron(X, Y)</span></a></p>
 <p>constant <span class="math notranslate nohighlight">\(Y\in\mathbf{R}^{m \times n}\)</span></p>
 </td>
 <td><p><span class="math notranslate nohighlight">\(\left[\begin{matrix}X_{11}Y &amp; .. &amp; X_{1q}Y \\ \vdots  &amp;        &amp; \vdots \\ X_{p1}Y &amp; .. &amp; X_{pq}Y     \end{matrix}\right]\)</span></p></td>
@@ -1325,7 +1422,7 @@ or <code class="docutils literal notranslate"><span class="pre">p</span> <span c
 <td><p>monotonicity depends on <span class="math notranslate nohighlight">\(Y\)</span></p></td>
 <td><p><a class="reference internal" href="../_images/affine.svg"><img alt="affine" src="../_images/affine.svg" style="width: 15px; height: 15px;" /></a> affine</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.affine.html#outer"><span class="std std-ref">outer(x, y)</span></a></p>
+<tr class="row-even"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.affine.html#outer"><span class="std std-ref">outer(x, y)</span></a></p>
 <p>constant <span class="math notranslate nohighlight">\(y \in \mathbf{R}^m\)</span></p>
 </td>
 <td><p><span class="math notranslate nohighlight">\(x y^T\)</span></p></td>
@@ -1333,19 +1430,19 @@ or <code class="docutils literal notranslate"><span class="pre">p</span> <span c
 <td><p>monotonicity depends on <span class="math notranslate nohighlight">\(Y\)</span></p></td>
 <td><p><a class="reference internal" href="../_images/affine.svg"><img alt="affine" src="../_images/affine.svg" style="width: 15px; height: 15px;" /></a> affine</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.affine.html#ptrace"><span class="std std-ref">partial_trace(X, dims, axis=0)</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.affine.html#ptrace"><span class="std std-ref">partial_trace(X, dims, axis=0)</span></a></p></td>
 <td><p>partial trace</p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{n \times n}\)</span></p></td>
 <td><p><a class="reference internal" href="../_images/increasing.svg"><img alt="incr" src="../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 <td><p><a class="reference internal" href="../_images/affine.svg"><img alt="affine" src="../_images/affine.svg" style="width: 15px; height: 15px;" /></a> affine</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.affine.html#ptrans"><span class="std std-ref">partial_transpose(X, dims, axis=0)</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.affine.html#ptrans"><span class="std std-ref">partial_transpose(X, dims, axis=0)</span></a></p></td>
 <td><p>partial transpose</p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{n \times n}\)</span></p></td>
 <td><p><a class="reference internal" href="../_images/increasing.svg"><img alt="incr" src="../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 <td><p><a class="reference internal" href="../_images/affine.svg"><img alt="affine" src="../_images/affine.svg" style="width: 15px; height: 15px;" /></a> affine</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.affine.html#reshape"><span class="std std-ref">reshape(X, (m’, n’), order=’F’)</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.affine.html#reshape"><span class="std std-ref">reshape(X, (m’, n’), order=’F’)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(X' \in\mathbf{R}^{m' \times n'}\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{m \times n}\)</span></p>
 <p><span class="math notranslate nohighlight">\(m'n' = mn\)</span></p>
@@ -1353,19 +1450,19 @@ or <code class="docutils literal notranslate"><span class="pre">p</span> <span c
 <td><p><a class="reference internal" href="../_images/increasing.svg"><img alt="incr" src="../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 <td><p><a class="reference internal" href="../_images/affine.svg"><img alt="affine" src="../_images/affine.svg" style="width: 15px; height: 15px;" /></a> affine</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.affine.html#upper-tri"><span class="std std-ref">upper_tri(X)</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.affine.html#upper-tri"><span class="std std-ref">upper_tri(X)</span></a></p></td>
 <td><p>flatten the strictly upper-triangular part of <span class="math notranslate nohighlight">\(X\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in \mathbf{R}^{n \times n}\)</span></p></td>
 <td><p><a class="reference internal" href="../_images/increasing.svg"><img alt="incr" src="../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 <td><p><a class="reference internal" href="../_images/affine.svg"><img alt="affine" src="../_images/affine.svg" style="width: 15px; height: 15px;" /></a> affine</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.affine.html#vec"><span class="std std-ref">vec(X)</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.affine.html#vec"><span class="std std-ref">vec(X)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(x' \in\mathbf{R}^{mn}\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{m \times n}\)</span></p></td>
 <td><p><a class="reference internal" href="../_images/increasing.svg"><img alt="incr" src="../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 <td><p><a class="reference internal" href="../_images/affine.svg"><img alt="affine" src="../_images/affine.svg" style="width: 15px; height: 15px;" /></a> affine</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.affine.html#vec-to-upper-tri"><span class="std std-ref">vec_to_upper_tri(X, strict=False)</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.affine.html#vec-to-upper-tri"><span class="std std-ref">vec_to_upper_tri(X, strict=False)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(x' \in\mathbf{R}^{n(n-1)/2}\)</span> for <code class="docutils literal notranslate"><span class="pre">strict=True</span></code></p>
 <p><span class="math notranslate nohighlight">\(x' \in\mathbf{R}^{n(n+1)/2}\)</span> for <code class="docutils literal notranslate"><span class="pre">strict=False</span></code></p>
 </td>
@@ -1373,13 +1470,13 @@ or <code class="docutils literal notranslate"><span class="pre">p</span> <span c
 <td><p><a class="reference internal" href="../_images/increasing.svg"><img alt="incr" src="../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 <td><p><a class="reference internal" href="../_images/affine.svg"><img alt="affine" src="../_images/affine.svg" style="width: 15px; height: 15px;" /></a> affine</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.affine.html#vstack"><span class="std std-ref">vstack([X1, …, Xk])</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.affine.html#vstack"><span class="std std-ref">vstack([X1, …, Xk])</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\left[\begin{matrix}X^{(1)}  \\ \vdots  \\X^{(k)}\end{matrix}\right]\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X^{(i)} \in\mathbf{R}^{m_i \times n}\)</span></p></td>
 <td><p><a class="reference internal" href="../_images/increasing.svg"><img alt="incr" src="../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 <td><p><a class="reference internal" href="../_images/affine.svg"><img alt="affine" src="../_images/affine.svg" style="width: 15px; height: 15px;" /></a> affine</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.other_atoms.html#geo-mean"><span class="std std-ref">geo_mean(x)</span></a></p>
+<tr class="row-even"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.other_atoms.html#geo-mean"><span class="std std-ref">geo_mean(x)</span></a></p>
 <p><a class="reference internal" href="../api_reference/cvxpy.atoms.other_atoms.html#geo-mean"><span class="std std-ref">geo_mean(x, p)</span></a></p>
 <p><span class="math notranslate nohighlight">\(p \in \mathbf{R}^n_{+}\)</span></p>
 <p><span class="math notranslate nohighlight">\(p \neq 0\)</span></p>
@@ -1391,25 +1488,25 @@ or <code class="docutils literal notranslate"><span class="pre">p</span> <span c
 <td><p><a class="reference internal" href="../_images/increasing.svg"><img alt="incr" src="../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 <td><p><a class="reference internal" href="../_images/affine.svg"><img alt="affine" src="../_images/affine.svg" style="width: 15px; height: 15px;" /></a> log-log affine</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.other_atoms.html#harmonic-mean"><span class="std std-ref">harmonic_mean(x)</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.other_atoms.html#harmonic-mean"><span class="std std-ref">harmonic_mean(x)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\frac{n}{\frac{1}{x_1} + \cdots + \frac{1}{x_n}}\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(x \in \mathbf{R}^n_{+}\)</span></p></td>
 <td><p><a class="reference internal" href="../_images/increasing.svg"><img alt="incr" src="../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 <td><p><a class="reference internal" href="../_images/concave.svg"><img alt="concave" src="../_images/concave.svg" style="width: 15px; height: 15px;" /></a> log-log concave</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.other_atoms.html#max"><span class="std std-ref">max(X)</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.other_atoms.html#max"><span class="std std-ref">max(X)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\max_{ij}\left\{ X_{ij}\right\}\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{m \times n}_{++}\)</span></p></td>
 <td><p><a class="reference internal" href="../_images/increasing.svg"><img alt="incr" src="../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 <td><p><a class="reference internal" href="../_images/convex.svg"><img alt="convex" src="../_images/convex.svg" style="width: 15px; height: 15px;" /></a> log-log convex</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.other_atoms.html#min"><span class="std std-ref">min(X)</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.other_atoms.html#min"><span class="std std-ref">min(X)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\min_{ij}\left\{ X_{ij}\right\}\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{m \times n}_{++}\)</span></p></td>
 <td><p><a class="reference internal" href="../_images/increasing.svg"><img alt="incr" src="../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 <td><p><a class="reference internal" href="../_images/concave.svg"><img alt="concave" src="../_images/concave.svg" style="width: 15px; height: 15px;" /></a> log-log concave</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.other_atoms.html#norm"><span class="std std-ref">norm(x)</span></a></p>
+<tr class="row-even"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.other_atoms.html#norm"><span class="std std-ref">norm(x)</span></a></p>
 <p><a class="reference internal" href="../api_reference/cvxpy.atoms.other_atoms.html#norm"><span class="std std-ref">norm(x, 2)</span></a></p>
 </td>
 <td><p><span class="math notranslate nohighlight">\(\sqrt{\sum_{i} \lvert x_{i} \rvert^2 }\)</span></p></td>
@@ -1417,25 +1514,25 @@ or <code class="docutils literal notranslate"><span class="pre">p</span> <span c
 <td><p><a class="reference internal" href="../_images/increasing.svg"><img alt="incr" src="../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 <td><p><a class="reference internal" href="../_images/convex.svg"><img alt="convex" src="../_images/convex.svg" style="width: 15px; height: 15px;" /></a> log-log convex</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.other_atoms.html#norm"><span class="std std-ref">norm(X, “fro”)</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.other_atoms.html#norm"><span class="std std-ref">norm(X, “fro”)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\sqrt{\sum_{ij}X_{ij}^2 }\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{m \times n}_{++}\)</span></p></td>
 <td><p><a class="reference internal" href="../_images/increasing.svg"><img alt="incr" src="../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 <td><p><a class="reference internal" href="../_images/convex.svg"><img alt="convex" src="../_images/convex.svg" style="width: 15px; height: 15px;" /></a> log-log convex</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.other_atoms.html#norm"><span class="std std-ref">norm(X, 1)</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.other_atoms.html#norm"><span class="std std-ref">norm(X, 1)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\sum_{ij}\lvert X_{ij} \rvert\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{m \times n}_{++}\)</span></p></td>
 <td><p><a class="reference internal" href="../_images/increasing.svg"><img alt="incr" src="../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 <td><p><a class="reference internal" href="../_images/convex.svg"><img alt="convex" src="../_images/convex.svg" style="width: 15px; height: 15px;" /></a> log-log convex</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.other_atoms.html#norm"><span class="std std-ref">norm(X, “inf”)</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.other_atoms.html#norm"><span class="std std-ref">norm(X, “inf”)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\max_{ij} \{\lvert X_{ij} \rvert\}\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{m \times n}_{++}\)</span></p></td>
 <td><p><a class="reference internal" href="../_images/increasing.svg"><img alt="incr" src="../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 <td><p><a class="reference internal" href="../_images/convex.svg"><img alt="convex" src="../_images/convex.svg" style="width: 15px; height: 15px;" /></a> log-log convex</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.other_atoms.html#pnorm-func"><span class="std std-ref">pnorm(X, p)</span></a></p>
+<tr class="row-even"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.other_atoms.html#pnorm-func"><span class="std std-ref">pnorm(X, p)</span></a></p>
 <p><span class="math notranslate nohighlight">\(p \geq 1\)</span></p>
 <p>or <code class="docutils literal notranslate"><span class="pre">p</span> <span class="pre">=</span> <span class="pre">'inf'</span></code></p>
 </td>
@@ -1444,26 +1541,26 @@ or <code class="docutils literal notranslate"><span class="pre">p</span> <span c
 <td><p><a class="reference internal" href="../_images/increasing.svg"><img alt="incr" src="../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 <td><p><a class="reference internal" href="../_images/convex.svg"><img alt="convex" src="../_images/convex.svg" style="width: 15px; height: 15px;" /></a> log-log convex</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.other_atoms.html#pnorm-func"><span class="std std-ref">pnorm(X, p)</span></a>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.other_atoms.html#pnorm-func"><span class="std std-ref">pnorm(X, p)</span></a>
 <span class="math notranslate nohighlight">\(0 &lt; p &lt; 1\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(\left(\sum_{ij} X_{ij}^p \right)^{1/p}\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in \mathbf{R}^{m \times n}_{++}\)</span></p></td>
 <td><p><a class="reference internal" href="../_images/increasing.svg"><img alt="incr" src="../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 <td><p><a class="reference internal" href="../_images/convex.svg"><img alt="convex" src="../_images/convex.svg" style="width: 15px; height: 15px;" /></a> log-log convex</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.other_atoms.html#prod"><span class="std std-ref">prod(X)</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.other_atoms.html#prod"><span class="std std-ref">prod(X)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\prod_{ij}X_{ij}\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{m \times n}_{++}\)</span></p></td>
 <td><p><a class="reference internal" href="../_images/increasing.svg"><img alt="incr" src="../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 <td><p><a class="reference internal" href="../_images/affine.svg"><img alt="affine" src="../_images/affine.svg" style="width: 15px; height: 15px;" /></a> log-log affine</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.other_atoms.html#quad-form"><span class="std std-ref">quad_form(x, P)</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.other_atoms.html#quad-form"><span class="std std-ref">quad_form(x, P)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(x^T P x\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(x \in \mathbf{R}^n\)</span>, <span class="math notranslate nohighlight">\(P \in \mathbf{R}^{n \times n}_{++}\)</span></p></td>
 <td><p><a class="reference internal" href="../_images/increasing.svg"><img alt="incr" src="../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 <td><p><a class="reference internal" href="../_images/convex.svg"><img alt="convex" src="../_images/convex.svg" style="width: 15px; height: 15px;" /></a> log-log convex</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.other_atoms.html#quad-over-lin"><span class="std std-ref">quad_over_lin(X, y)</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.other_atoms.html#quad-over-lin"><span class="std std-ref">quad_over_lin(X, y)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\left(\sum_{ij}X_{ij}^2\right)/y\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(x \in \mathbf{R}^n_{++}\)</span></p>
 <p><span class="math notranslate nohighlight">\(y &gt; 0\)</span></p>
@@ -1473,31 +1570,31 @@ or <code class="docutils literal notranslate"><span class="pre">p</span> <span c
 </td>
 <td><p><a class="reference internal" href="../_images/convex.svg"><img alt="convex" src="../_images/convex.svg" style="width: 15px; height: 15px;" /></a> log-log convex</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.affine.html#sum"><span class="std std-ref">sum(X)</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.affine.html#sum"><span class="std std-ref">sum(X)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\sum_{ij}X_{ij}\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{m \times n}_{++}\)</span></p></td>
 <td><p><a class="reference internal" href="../_images/increasing.svg"><img alt="incr" src="../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 <td><p><a class="reference internal" href="../_images/convex.svg"><img alt="convex" src="../_images/convex.svg" style="width: 15px; height: 15px;" /></a> log-log convex</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.other_atoms.html#sum-squares"><span class="std std-ref">sum_squares(X)</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.other_atoms.html#sum-squares"><span class="std std-ref">sum_squares(X)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\sum_{ij}X_{ij}^2\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{m \times n}_{++}\)</span></p></td>
 <td><p><a class="reference internal" href="../_images/increasing.svg"><img alt="incr" src="../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 <td><p><a class="reference internal" href="../_images/convex.svg"><img alt="convex" src="../_images/convex.svg" style="width: 15px; height: 15px;" /></a> log-log convex</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.affine.html#trace"><span class="std std-ref">trace(X)</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.affine.html#trace"><span class="std std-ref">trace(X)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\mathrm{tr}\left(X \right)\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{n \times n}_{++}\)</span></p></td>
 <td><p><a class="reference internal" href="../_images/increasing.svg"><img alt="incr" src="../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 <td><p><a class="reference internal" href="../_images/convex.svg"><img alt="convex" src="../_images/convex.svg" style="width: 15px; height: 15px;" /></a> log-log convex</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.other_atoms.html#pf-eigenvalue"><span class="std std-ref">pf_eigenvalue(X)</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.other_atoms.html#pf-eigenvalue"><span class="std std-ref">pf_eigenvalue(X)</span></a></p></td>
 <td><p>spectral radius of <span class="math notranslate nohighlight">\(X\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{n \times n}_{++}\)</span></p></td>
 <td><p><a class="reference internal" href="../_images/increasing.svg"><img alt="incr" src="../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 <td><p><a class="reference internal" href="../_images/convex.svg"><img alt="convex" src="../_images/convex.svg" style="width: 15px; height: 15px;" /></a> log-log convex</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.other_atoms.html#diff-pos"><span class="std std-ref">diff_pos(x, y)</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.other_atoms.html#diff-pos"><span class="std std-ref">diff_pos(x, y)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(x - y\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(0 &lt; y &lt; x\)</span></p></td>
 <td><p><a class="reference internal" href="../_images/increasing.svg"><img alt="incr" src="../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.  in <span class="math notranslate nohighlight">\(x\)</span></p>
@@ -1505,55 +1602,55 @@ or <code class="docutils literal notranslate"><span class="pre">p</span> <span c
 </td>
 <td><p><a class="reference internal" href="../_images/concave.svg"><img alt="concave" src="../_images/concave.svg" style="width: 15px; height: 15px;" /></a> log-log concave</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.elementwise.html#entr"><span class="std std-ref">entr(x)</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.elementwise.html#entr"><span class="std std-ref">entr(x)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(-x \log (x)\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(0 &lt; x &lt; 1\)</span></p></td>
 <td><p>None</p></td>
 <td><p><a class="reference internal" href="../_images/concave.svg"><img alt="concave" src="../_images/concave.svg" style="width: 15px; height: 15px;" /></a> log-log concave</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.elementwise.html#exp"><span class="std std-ref">exp(x)</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.elementwise.html#exp"><span class="std std-ref">exp(x)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(e^x\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(x &gt; 0\)</span></p></td>
 <td><p><a class="reference internal" href="../_images/increasing.svg"><img alt="incr" src="../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 <td><p><a class="reference internal" href="../_images/convex.svg"><img alt="convex" src="../_images/convex.svg" style="width: 15px; height: 15px;" /></a> log-log convex</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.elementwise.html#log"><span class="std std-ref">log(x)</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.elementwise.html#log"><span class="std std-ref">log(x)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\log(x)\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(x &gt; 1\)</span></p></td>
 <td><p><a class="reference internal" href="../_images/increasing.svg"><img alt="incr" src="../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 <td><p><a class="reference internal" href="../_images/concave.svg"><img alt="concave" src="../_images/concave.svg" style="width: 15px; height: 15px;" /></a> log-log concave</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.elementwise.html#maximum"><span class="std std-ref">maximum(x, y)</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.elementwise.html#maximum"><span class="std std-ref">maximum(x, y)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\max \left\{x, y\right\}\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(x,y &gt; 0\)</span></p></td>
 <td><p><a class="reference internal" href="../_images/increasing.svg"><img alt="incr" src="../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 <td><p><a class="reference internal" href="../_images/convex.svg"><img alt="convex" src="../_images/convex.svg" style="width: 15px; height: 15px;" /></a> log-log convex</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.elementwise.html#minimum"><span class="std std-ref">minimum(x, y)</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.elementwise.html#minimum"><span class="std std-ref">minimum(x, y)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\min \left\{x, y\right\}\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(x, y &gt; 0\)</span></p></td>
 <td><p><a class="reference internal" href="../_images/increasing.svg"><img alt="incr" src="../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 <td><p><a class="reference internal" href="../_images/concave.svg"><img alt="concave" src="../_images/concave.svg" style="width: 15px; height: 15px;" /></a> log-log concave</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.affine.html#multiply"><span class="std std-ref">multiply(x, y)</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.affine.html#multiply"><span class="std std-ref">multiply(x, y)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(x*y\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(x, y &gt; 0\)</span></p></td>
 <td><p><a class="reference internal" href="../_images/increasing.svg"><img alt="incr" src="../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 <td><p><a class="reference internal" href="../_images/affine.svg"><img alt="affine" src="../_images/affine.svg" style="width: 15px; height: 15px;" /></a> log-log affine</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.other_atoms.html#one-minus-pos"><span class="std std-ref">one_minus_pos(x)</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.other_atoms.html#one-minus-pos"><span class="std std-ref">one_minus_pos(x)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(1 - x\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(0 &lt; x &lt; 1\)</span></p></td>
 <td><p><a class="reference internal" href="../_images/decreasing.svg"><img alt="decr" src="../_images/decreasing.svg" style="width: 15px; height: 15px;" /></a> decr.</p></td>
 <td><p><a class="reference internal" href="../_images/concave.svg"><img alt="concave" src="../_images/concave.svg" style="width: 15px; height: 15px;" /></a> log-log concave</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../tutorial/functions/index.html#power"><span class="std std-ref">power(x, 0)</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../tutorial/functions/index.html#power"><span class="std std-ref">power(x, 0)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(1\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(x &gt; 0\)</span></p></td>
 <td><p>constant</p></td>
 <td><p>constant</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../tutorial/functions/index.html#power"><span class="std std-ref">power(x, p)</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../tutorial/functions/index.html#power"><span class="std std-ref">power(x, p)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(x\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(x &gt; 0\)</span></p></td>
 <td><p><a class="reference internal" href="../_images/increasing.svg"><img alt="incr" src="../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> for <span class="math notranslate nohighlight">\(p &gt; 0\)</span></p>
@@ -1561,43 +1658,43 @@ or <code class="docutils literal notranslate"><span class="pre">p</span> <span c
 </td>
 <td><p><a class="reference internal" href="../_images/affine.svg"><img alt="affine" src="../_images/affine.svg" style="width: 15px; height: 15px;" /></a> log-log affine</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.elementwise.html#sqrt"><span class="std std-ref">sqrt(x)</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.elementwise.html#sqrt"><span class="std std-ref">sqrt(x)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\sqrt x\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(x &gt; 0\)</span></p></td>
 <td><p><a class="reference internal" href="../_images/increasing.svg"><img alt="incr" src="../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 <td><p><a class="reference internal" href="../_images/affine.svg"><img alt="affine" src="../_images/affine.svg" style="width: 15px; height: 15px;" /></a> log-log affine</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.elementwise.html#square"><span class="std std-ref">square(x)</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.elementwise.html#square"><span class="std std-ref">square(x)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(x^2\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(x &gt; 0\)</span></p></td>
 <td><p><a class="reference internal" href="../_images/increasing.svg"><img alt="incr" src="../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 <td><p><a class="reference internal" href="../_images/affine.svg"><img alt="affine" src="../_images/affine.svg" style="width: 15px; height: 15px;" /></a> log-log affine</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.elementwise.html#xexp"><span class="std std-ref">xexp(x)</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.elementwise.html#xexp"><span class="std std-ref">xexp(x)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(x e^x\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(x &gt; 0\)</span></p></td>
 <td><p><a class="reference internal" href="../_images/increasing.svg"><img alt="incr" src="../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 <td><p><a class="reference internal" href="../_images/convex.svg"><img alt="convex" src="../_images/convex.svg" style="width: 15px; height: 15px;" /></a> log-log convex</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.affine.html#bmat"><span class="std std-ref">bmat()</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.affine.html#bmat"><span class="std std-ref">bmat()</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\left[\begin{matrix} X^{(1,1)} &amp; .. &amp;  X^{(1,q)} \\ \vdots &amp;   &amp; \vdots \\ X^{(p,1)} &amp; .. &amp;   X^{(p,q)} \end{matrix}\right]\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X^{(i,j)} \in\mathbf{R}^{m_i \times n_j}_{++}\)</span></p></td>
 <td><p><a class="reference internal" href="../_images/increasing.svg"><img alt="incr" src="../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 <td><p><a class="reference internal" href="../_images/affine.svg"><img alt="affine" src="../_images/affine.svg" style="width: 15px; height: 15px;" /></a> log-log affine</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.affine.html#diag"><span class="std std-ref">diag(x)</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.affine.html#diag"><span class="std std-ref">diag(x)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\left[\begin{matrix}x_1  &amp; &amp;  \\&amp; \ddots &amp; \\&amp; &amp; x_n\end{matrix}\right]\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(x \in\mathbf{R}^{n}_{++}\)</span></p></td>
 <td><p><a class="reference internal" href="../_images/increasing.svg"><img alt="incr" src="../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 <td><p><a class="reference internal" href="../_images/affine.svg"><img alt="affine" src="../_images/affine.svg" style="width: 15px; height: 15px;" /></a> log-log affine</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.affine.html#diag"><span class="std std-ref">diag(X)</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.affine.html#diag"><span class="std std-ref">diag(X)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\left[\begin{matrix}X_{11}  \\\vdots \\X_{nn}\end{matrix}\right]\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{n \times n}_{++}\)</span></p></td>
 <td><p><a class="reference internal" href="../_images/increasing.svg"><img alt="incr" src="../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 <td><p><a class="reference internal" href="../_images/affine.svg"><img alt="affine" src="../_images/affine.svg" style="width: 15px; height: 15px;" /></a> log-log affine</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.other_atoms.html#eye-minus-inv"><span class="std std-ref">eye_minus_inv(X)</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.other_atoms.html#eye-minus-inv"><span class="std std-ref">eye_minus_inv(X)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\((I - X)^{-1}\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{n \times n}_{++}\)</span>,</p>
 <p><span class="math notranslate nohighlight">\(\lambda_{\text{pf}}(X) &lt; 1\)</span></p>
@@ -1605,7 +1702,7 @@ or <code class="docutils literal notranslate"><span class="pre">p</span> <span c
 <td><p><a class="reference internal" href="../_images/increasing.svg"><img alt="incr" src="../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 <td><p><a class="reference internal" href="../_images/convex.svg"><img alt="convex" src="../_images/convex.svg" style="width: 15px; height: 15px;" /></a> log-log convex</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.other_atoms.html#gmatmul"><span class="std std-ref">gmatmul(A, x)</span></a></p>
+<tr class="row-even"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.other_atoms.html#gmatmul"><span class="std std-ref">gmatmul(A, x)</span></a></p>
 <p><span class="math notranslate nohighlight">\(A \in \mathbf{R}^{m \times n}\)</span></p>
 </td>
 <td><p><span class="math notranslate nohighlight">\(\left[\begin{matrix}\prod_{j=1}^n x_j^{A_{1j}} \\\vdots \\\prod_{j=1}^n x_j^{A_{mj}}\end{matrix}\right]\)</span></p></td>
@@ -1615,13 +1712,13 @@ or <code class="docutils literal notranslate"><span class="pre">p</span> <span c
 </td>
 <td><p><a class="reference internal" href="../_images/affine.svg"><img alt="affine" src="../_images/affine.svg" style="width: 15px; height: 15px;" /></a> log-log affine</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.affine.html#hstack"><span class="std std-ref">hstack([X1, …, Xk])</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.affine.html#hstack"><span class="std std-ref">hstack([X1, …, Xk])</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\left[\begin{matrix}X^{(1)}  \cdots    X^{(k)}\end{matrix}\right]\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X^{(i)} \in\mathbf{R}^{m \times n_i}_{++}\)</span></p></td>
 <td><p><a class="reference internal" href="../_images/increasing.svg"><img alt="incr" src="../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 <td><p><a class="reference internal" href="../_images/affine.svg"><img alt="affine" src="../_images/affine.svg" style="width: 15px; height: 15px;" /></a> log-log affine</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.affine.html#matmul"><span class="std std-ref">matmul(X, Y)</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.affine.html#matmul"><span class="std std-ref">matmul(X, Y)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(XY\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{m \times n}_{++}\)</span></p>
 <p><span class="math notranslate nohighlight">\(Y \in\mathbf{R}^{n \times p}_{++}\)</span></p>
@@ -1629,7 +1726,7 @@ or <code class="docutils literal notranslate"><span class="pre">p</span> <span c
 <td><p><a class="reference internal" href="../_images/increasing.svg"><img alt="incr" src="../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 <td><p><a class="reference internal" href="../_images/convex.svg"><img alt="convex" src="../_images/convex.svg" style="width: 15px; height: 15px;" /></a> log-log convex</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.other_atoms.html#resolvent"><span class="std std-ref">resolvent(X)</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.other_atoms.html#resolvent"><span class="std std-ref">resolvent(X)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\((sI - X)^{-1}\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{n \times n}_{++}\)</span></p>
 <p><span class="math notranslate nohighlight">\(\lambda_{\text{pf}}(X) &lt; s\)</span></p>
@@ -1637,7 +1734,7 @@ or <code class="docutils literal notranslate"><span class="pre">p</span> <span c
 <td><p><a class="reference internal" href="../_images/increasing.svg"><img alt="incr" src="../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 <td><p><a class="reference internal" href="../_images/convex.svg"><img alt="convex" src="../_images/convex.svg" style="width: 15px; height: 15px;" /></a> log-log convex</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.affine.html#reshape"><span class="std std-ref">reshape(X, (m’, n’))</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.affine.html#reshape"><span class="std std-ref">reshape(X, (m’, n’))</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(X' \in\mathbf{R}^{m' \times n'}\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{m \times n}_{++}\)</span></p>
 <p><span class="math notranslate nohighlight">\(m'n' = mn\)</span></p>
@@ -1645,13 +1742,13 @@ or <code class="docutils literal notranslate"><span class="pre">p</span> <span c
 <td><p><a class="reference internal" href="../_images/increasing.svg"><img alt="incr" src="../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 <td><p><a class="reference internal" href="../_images/affine.svg"><img alt="affine" src="../_images/affine.svg" style="width: 15px; height: 15px;" /></a> log-log affine</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.affine.html#vec"><span class="std std-ref">vec(X)</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.affine.html#vec"><span class="std std-ref">vec(X)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(x' \in\mathbf{R}^{mn}\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{m \times n}_{++}\)</span></p></td>
 <td><p><a class="reference internal" href="../_images/increasing.svg"><img alt="incr" src="../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
 <td><p><a class="reference internal" href="../_images/affine.svg"><img alt="affine" src="../_images/affine.svg" style="width: 15px; height: 15px;" /></a> log-log affine</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.affine.html#vstack"><span class="std std-ref">vstack([X1, …, Xk])</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../api_reference/cvxpy.atoms.affine.html#vstack"><span class="std std-ref">vstack([X1, …, Xk])</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\left[\begin{matrix}X^{(1)}  \\ \vdots  \\X^{(k)}\end{matrix}\right]\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X^{(i)} \in\mathbf{R}^{m_i \times n}_{++}\)</span></p></td>
 <td><p><a class="reference internal" href="../_images/increasing.svg"><img alt="incr" src="../_images/increasing.svg" style="width: 15px; height: 15px;" /></a> incr.</p></td>
@@ -1749,7 +1846,7 @@ or <code class="docutils literal notranslate"><span class="pre">p</span> <span c
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "..", "features": ["header.autohide", "toc.follow", "navigation.path", "navigation.instant", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.tracking", "navigation.expand", "search.highlight", "search.share", "content.tabs.link", "announce.dismiss", "content.code.copy"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike", "staticVersions": [{"aliases": [], "title": "latest", "version": "https://www.cvxpy.org"}, {"aliases": [], "title": "1.6", "version": "https://www.cvxpy.org/version/1.6"}, {"aliases": [], "title": "1.5", "version": "https://www.cvxpy.org/version/1.5"}, {"aliases": [], "title": "1.4", "version": "https://www.cvxpy.org/version/1.4"}], "versionPath": null}}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": ["header.autohide", "toc.follow", "navigation.path", "navigation.instant", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.tracking", "navigation.expand", "search.highlight", "search.share", "content.tabs.link", "announce.dismiss", "content.code.copy"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike", "staticVersions": [{"aliases": [], "title": "latest", "version": "https://www.cvxpy.org"}, {"aliases": [], "title": "1.7", "version": "https://www.cvxpy.org/version/1.7"}, {"aliases": [], "title": "1.6", "version": "https://www.cvxpy.org/version/1.6"}, {"aliases": [], "title": "1.5", "version": "https://www.cvxpy.org/version/1.5"}, {"aliases": [], "title": "1.4", "version": "https://www.cvxpy.org/version/1.4"}], "versionPath": null}}</script>
     
       
         <script src="../_static/jquery.js?v=5d32c60e"></script>
