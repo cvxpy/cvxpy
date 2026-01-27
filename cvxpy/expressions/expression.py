@@ -693,7 +693,12 @@ class Expression(u.Canonical):
     def __add__(self, other: ExpressionLike) -> "Expression":
         """Expression : Sum two expressions.
         """
-        if isinstance(other, cvxtypes.constant()) and other.is_zero():
+        # Zero-sized constants (size == 0) are placeholders for
+        # eliminated variables and must not be folded away; they need
+        # to propagate through the expression tree so that the resulting
+        # shape is correct.
+        if isinstance(other, cvxtypes.constant()) and other.is_zero() \
+                and other.size > 0:
             return self
         self, other = self.broadcast(self, other)
         return cvxtypes.add_expr()([self, other])
@@ -702,7 +707,9 @@ class Expression(u.Canonical):
     def __radd__(self, other: ExpressionLike) -> "Expression":
         """Expression : Sum two expressions.
         """
-        if isinstance(other, cvxtypes.constant()) and other.is_zero():
+        # See __add__ for why we require size > 0.
+        if isinstance(other, cvxtypes.constant()) and other.is_zero() \
+                and other.size > 0:
             return self
         return other + self
 
