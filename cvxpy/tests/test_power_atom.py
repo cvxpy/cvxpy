@@ -20,6 +20,7 @@ import numpy as np
 
 import cvxpy as cp
 from cvxpy.atoms.elementwise.power import Power, PowerApprox
+from cvxpy.atoms.geo_mean import GeoMean, GeoMeanApprox
 from cvxpy.tests.base_test import BaseTest
 
 
@@ -258,3 +259,112 @@ class TestPnormApprox(BaseTest):
             self.assertFalse(
                 any("pnorm" in str(wi.message) for wi in w),
                 "Should not warn when using power cones")
+
+
+class TestGeoMeanSingleWeight(BaseTest):
+    """Tests for geo_mean with a single non-zero weight."""
+
+    def test_single_weight_is_affine(self) -> None:
+        """geo_mean with w=(0, 0, 1) should be affine."""
+        x = cp.Variable(3)
+        g = cp.geo_mean(x, [0, 0, 1])
+        self.assertTrue(g.is_convex())
+        self.assertTrue(g.is_concave())
+        self.assertTrue(g.is_affine())
+
+    def test_single_weight_value(self) -> None:
+        """geo_mean with w=(0, 0, 1) should equal x[2]."""
+        x = cp.Variable(3)
+        prob = cp.Problem(cp.Maximize(cp.geo_mean(x, [0, 0, 1])),
+                          [x <= [1, 2, 3], x >= 0])
+        prob.solve(solver=cp.SCS)
+        self.assertIn(prob.status, [cp.OPTIMAL, cp.OPTIMAL_INACCURATE])
+        self.assertAlmostEqual(prob.value, 3.0, places=3)
+
+    def test_single_weight_nonneg_domain(self) -> None:
+        """geo_mean with single weight still requires x >= 0."""
+        x = cp.Variable(3)
+        g = cp.geo_mean(x, [0, 0, 1])
+        domain = g.domain
+        # There should be a nonnegativity constraint on the selected element.
+        self.assertGreater(len(domain), 0)
+
+    def test_single_weight_nonneg_enforced(self) -> None:
+        """Solver should enforce x >= 0 for the single-weight element."""
+        x = cp.Variable(1)
+        # Minimizing geo_mean(x, [1]) with no lower bound: domain x >= 0
+        # means optimal is x = 0.
+        prob = cp.Problem(cp.Minimize(x[0]),
+                          [cp.geo_mean(x, [1]) >= 0, x <= 5])
+        prob.solve(solver=cp.SCS)
+        self.assertIn(prob.status, [cp.OPTIMAL, cp.OPTIMAL_INACCURATE])
+        # x should be 0 (not negative), enforced by geo_mean domain.
+        self.assertAlmostEqual(x.value[0], 0.0, places=3)
+
+    def test_single_weight_no_cones(self) -> None:
+        """Single non-zero weight should not produce any cone constraints."""
+        x = cp.Variable(3, pos=True)
+        for approx in [True, False]:
+            with self.subTest(approx=approx):
+                prob = cp.Problem(
+                    cp.Maximize(cp.geo_mean(x, [0, 0, 1], approx=approx)),
+                    [cp.sum(x) <= 3])
+                soc, p3d, pnd = _get_cone_counts(prob, cp.CLARABEL)
+                self.assertEqual(soc, 0,
+                                 f"approx={approx}: should not use SOC cones")
+                self.assertEqual(p3d, 0,
+                                 f"approx={approx}: should not use PowCone3D")
+                self.assertEqual(pnd, 0,
+                                 f"approx={approx}: should not use PowConeND")
+
+
+class TestInvProdApprox(BaseTest):
+    """Unit tests for inv_prod approx parameter."""
+
+    def test_approx_controls_cone_type(self) -> None:
+        """approx=True uses SOC; approx=False uses power cones."""
+        x = cp.Variable(3, pos=True)
+        constr = [cp.sum(x) >= 3]
+
+        prob = cp.Problem(cp.Minimize(cp.inv_prod(x, approx=True)), constr)
+        soc, p3d, pnd = _get_cone_counts(prob, cp.CLARABEL)
+        self.assertGreater(soc, 0)
+        self.assertEqual(p3d, 0)
+        self.assertEqual(pnd, 0)
+
+        prob = cp.Problem(cp.Minimize(cp.inv_prod(x, approx=False)), constr)
+        soc, p3d, pnd = _get_cone_counts(prob, cp.CLARABEL)
+        self.assertEqual(soc, 0)
+        # Exact inv_prod uses power cones (3D and/or ND).
+        self.assertGreater(p3d + pnd, 0)
+
+    def test_approx_produces_correct_types(self) -> None:
+        """approx flag propagates to inner geo_mean and power atoms."""
+        x = cp.Variable(3, pos=True)
+
+        expr_approx = cp.inv_prod(x, approx=True)
+        self.assertIsInstance(expr_approx, PowerApprox)
+        # The inner geo_mean arg should be GeoMeanApprox.
+        inner = expr_approx.args[0]
+        self.assertIsInstance(inner, GeoMeanApprox)
+
+        expr_exact = cp.inv_prod(x, approx=False)
+        self.assertIsInstance(expr_exact, Power)
+        self.assertNotIsInstance(expr_exact, PowerApprox)
+        inner = expr_exact.args[0]
+        self.assertIsInstance(inner, GeoMean)
+        self.assertNotIsInstance(inner, GeoMeanApprox)
+
+    def test_approx_and_exact_agree(self) -> None:
+        """Approx and exact inv_prod give the same answer."""
+        x = cp.Variable(3, pos=True)
+        constr = [cp.sum(x) >= 3, x <= 5]
+
+        prob = cp.Problem(cp.Minimize(cp.inv_prod(x, approx=True)), constr)
+        prob.solve(solver=cp.CLARABEL)
+        val_approx = prob.value
+
+        prob = cp.Problem(cp.Minimize(cp.inv_prod(x, approx=False)), constr)
+        prob.solve(solver=cp.CLARABEL)
+        self.assertIn(prob.status, [cp.OPTIMAL, cp.OPTIMAL_INACCURATE])
+        self.assertAlmostEqual(prob.value, val_approx, places=3)

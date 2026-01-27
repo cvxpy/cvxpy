@@ -45,7 +45,7 @@ def inverse(expr):
         return lambda t: atoms.exp(t) - 1
     elif type(expr) == atoms.logistic:
         return lambda t: atoms.log(atoms.exp(t) - 1) if t.is_nonneg() else -np.inf
-    elif isinstance(expr, atoms.Power):
+    elif isinstance(expr, atoms.Power):  # catches both Power and PowerApprox
         def power_inv(t):
             if expr.p.value == 1:
                 return t

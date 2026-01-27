@@ -46,6 +46,7 @@ def _pnorm_p2_canon(expr, args):
 
 
 def pnorm_exact_canon(expr, args, solver_context: SolverInfo | None = None):
+    """Canonicalize Pnorm using power cone constraints."""
     p = expr.p
 
     if p == 2:
@@ -87,6 +88,7 @@ def pnorm_exact_canon(expr, args, solver_context: SolverInfo | None = None):
 
 
 def pnorm_approx_canon(expr, args, solver_context: SolverInfo | None = None):
+    """Canonicalize PnormApprox using SOC constraints via rational approximation."""
     p = expr.p
 
     if p == 2:

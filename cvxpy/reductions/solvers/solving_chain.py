@@ -308,8 +308,8 @@ def construct_solving_chain(problem, candidates,
     cones = []
     atoms = problem.atoms()
 
-    needs_powcone_3d = any(atom in POWCONE_ATOMS for atom in atoms)
-    needs_powcone_nd = any(atom in POWCONE_ND_ATOMS for atom in atoms)
+    needs_powcone_3d = PowCone3D in constr_types or any(atom in POWCONE_ATOMS for atom in atoms)
+    needs_powcone_nd = PowConeND in constr_types or any(atom in POWCONE_ND_ATOMS for atom in atoms)
     if SOC in constr_types or any(atom in SOC_ATOMS for atom in atoms):
         cones.append(SOC)
     if ExpCone in constr_types or any(atom in EXP_ATOMS for atom in atoms):

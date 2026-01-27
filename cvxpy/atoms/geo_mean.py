@@ -237,8 +237,9 @@ class GeoMean(Atom):
         if any(v < 0 for v in p) or sum(p) <= 0:
             raise ValueError('powers must be nonnegative and not all zero.')
 
-        self.w, _ = fracify(p, max_denom)
-        self.approx_error = approx_error(p, self.w)
+        p_arr = np.array(p, dtype=float)
+        self.w = tuple(p_arr / p_arr.sum())
+        self.approx_error = 0.0
 
     # Returns the (weighted) geometric mean of the elements of x.
     def numeric(self, values) -> float:
@@ -301,7 +302,9 @@ class GeoMean(Atom):
     def is_atom_convex(self) -> bool:
         """Is the atom convex?
         """
-        return False
+        # Affine when only one non-zero weight (geo_mean reduces to a
+        # single element); otherwise concave but not convex.
+        return len(self.w) == 1
 
     def is_atom_concave(self) -> bool:
         """Is the atom concave?
@@ -395,7 +398,8 @@ class GeoMeanApprox(GeoMean):
                  max_denom: int = 1024) -> None:
         super().__init__(x, p=p, max_denom=max_denom)
 
-        _, self.w_dyad = fracify(self.p, max_denom)
+        self.w, self.w_dyad = fracify(self.p, max_denom)
+        self.approx_error = approx_error(self.p, self.w)
 
         self.tree = decompose(self.w_dyad)
 

@@ -27,10 +27,14 @@ from cvxpy.utilities.solver_context import SolverInfo
 
 
 def geo_mean_exact_canon(expr, args, solver_context: SolverInfo | None = None):
-    # Exact path: produce PowConeND; the solving chain adds Exotic2Common
-    # to decompose to PowCone3D when the solver lacks native PowConeND support.
+    """Canonicalize GeoMean using PowConeND constraints."""
     x = args[0]
     w = expr.w
+
+    # Single non-zero weight: geo_mean is just that element (affine).
+    if len(w) == 1:
+        return x, []
+
     shape = expr.shape
     t = Variable(shape)
 
@@ -45,8 +49,14 @@ def geo_mean_exact_canon(expr, args, solver_context: SolverInfo | None = None):
 
 
 def geo_mean_approx_canon(expr, args, solver_context: SolverInfo | None = None):
+    """Canonicalize GeoMeanApprox using SOC constraints via rational approximation."""
     x = args[0]
     w = expr.w
+
+    # Single non-zero weight: geo_mean is just that element (affine).
+    if len(w) == 1:
+        return x, []
+
     shape = expr.shape
     t = Variable(shape)
 

@@ -165,34 +165,14 @@ class Power(Elementwise):
             raise ValueError("The exponent `p` must be either a Constant or "
                              "a Parameter; received ", type(p))
         self.max_denom = max_denom
-        self.p_rational = None
 
         if isinstance(self.p, cvxtypes.constant()):
-            self._compute_rational(p, max_denom)
-        super(Power, self).__init__(x)
-
-    def _compute_rational(self, p, max_denom):
-        """Compute rational approximation of p. Base class uses exact (no approx)."""
-        if not isinstance(self._p_orig, cvxtypes.expression()):
-            p = self._p_orig
+            self.p_used = float(self.p.value)
         else:
-            p = self.p.value
-        if p > 1:
-            p, w = pow_high(p, max_denom, approx=False)
-        elif 0 < p < 1:
-            p, w = pow_mid(p, max_denom, approx=False)
-        elif p < 0:
-            p, w = pow_neg(p, max_denom, approx=False)
-
-        if p == 1:
-            p = 1
-            w = None
-        if p == 0:
-            p = 0
-            w = None
-
-        self.p_rational, self.w = p, w
+            self.p_used = None
         self.approx_error = 0.0
+
+        super(Power, self).__init__(x)
 
     @Elementwise.numpy_numeric
     def numeric(self, values):
@@ -281,7 +261,7 @@ class Power(Elementwise):
         if not _is_const(self.p):
             return self.p.is_nonneg() and self.args[idx].is_nonneg()
 
-        p = self.p_rational
+        p = self.p_used
         if 0 <= p <= 1:
             return True
         elif p > 1:
@@ -298,7 +278,7 @@ class Power(Elementwise):
         if not _is_const(self.p):
             return self.p.is_nonpos() and self.args[idx].is_nonneg()
 
-        p = self.p_rational
+        p = self.p_used
         if p <= 0:
             return True
         elif p > 1:
@@ -313,7 +293,7 @@ class Power(Elementwise):
         if not _is_const(self.p):
             return False
 
-        p = self.p_rational
+        p = self.p_used
         if p == 0:
             return True
         elif p == 1:
@@ -333,7 +313,7 @@ class Power(Elementwise):
         if not _is_const(self.p):
             return False
 
-        p = self.p_rational
+        p = self.p_used
         if p == 1:
             return self.args[0].has_quadratic_term()
         elif p == 2:
@@ -346,7 +326,7 @@ class Power(Elementwise):
             # disallow parameters
             return False
 
-        p = self.p_rational
+        p = self.p_used
         if p == 0:
             return True
         elif p == 1:
@@ -358,7 +338,7 @@ class Power(Elementwise):
 
     def _quadratic_power(self) -> bool:
         """Utility function to check if power is 0, 1 or 2."""
-        p = self.p_rational
+        p = self.p_used
         return p in [0, 1, 2]
 
     def _grad(self, values):
@@ -375,8 +355,8 @@ class Power(Elementwise):
         rows = self.args[0].size
         cols = self.size
 
-        if self.p_rational is not None:
-            p = self.p_rational
+        if self.p_used is not None:
+            p = self.p_used
         elif self.p.value is not None:
             p = self.p.value
         else:
@@ -441,33 +421,28 @@ class Power(Elementwise):
 class PowerApprox(Power):
     """Power with SOC-based rational approximation of p.
 
-    This subclass overrides ``_compute_rational`` to use a rational
-    approximation of the exponent, enabling canonicalization via SOC.
+    Overrides ``p_used`` and ``w`` with a rational approximation of the
+    exponent, enabling canonicalization via second-order cones.
     """
 
-    def _compute_rational(self, p, max_denom):
-        """Compute rational approximation of p (with approx=True)."""
-        if not isinstance(self._p_orig, cvxtypes.expression()):
-            p = self._p_orig
-        else:
-            p = self.p.value
-        if p > 1:
-            p, w = pow_high(p, max_denom, approx=True)
-        elif 0 < p < 1:
-            p, w = pow_mid(p, max_denom, approx=True)
-        elif p < 0:
-            p, w = pow_neg(p, max_denom, approx=True)
+    def __init__(self, x, p, max_denom: int = 1024) -> None:
+        super().__init__(x, p, max_denom)
 
-        if p == 1:
-            p = 1
-            w = None
-        if p == 0:
-            p = 0
+        if self.p_used is None:
+            # Parameter exponent — nothing to approximate at construction time.
+            return
+
+        p_val = self.p_used
+        if p_val > 1:
+            p_val, w = pow_high(p_val, max_denom, approx=True)
+        elif 0 < p_val < 1:
+            p_val, w = pow_mid(p_val, max_denom, approx=True)
+        elif p_val < 0:
+            p_val, w = pow_neg(p_val, max_denom, approx=True)
+        else:
+            # p == 0 or p == 1: no approximation needed
             w = None
 
-        self.p_rational, self.w = p, w
-        if not isinstance(self._p_orig, cvxtypes.expression()):
-            original_p = self._p_orig
-        else:
-            original_p = self.p.value
-        self.approx_error = float(abs(self.p_rational - original_p))
+        self.p_used = p_val
+        self.w = w
+        self.approx_error = float(abs(self.p_used - self.p.value))

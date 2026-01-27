@@ -123,13 +123,6 @@ class Pnorm(AxisAtom):
 
     def __init__(self, x, p: int = 2, axis=None,
                  keepdims: bool = False, max_denom: int = 1024) -> None:
-        self.max_denom = max_denom
-        self.original_p = p
-        self._compute_p(p, max_denom)
-        super(Pnorm, self).__init__(x, axis=axis, keepdims=keepdims)
-
-    def _compute_p(self, p, max_denom):
-        """Validate and set self.p. Base class uses exact p (no approximation)."""
         if p == 1:
             raise ValueError('Use the norm1 class to instantiate a one norm.')
         elif p == 'inf' or p == 'Inf' or p == np.inf:
@@ -137,8 +130,11 @@ class Pnorm(AxisAtom):
                              'infinity norm.')
         elif p == 0:
             raise ValueError('Invalid p: {}'.format(p))
+        self.max_denom = max_denom
+        self.original_p = p
         self.p = p
         self.approx_error = 0.0
+        super(Pnorm, self).__init__(x, axis=axis, keepdims=keepdims)
 
     def numeric(self, values):
         """Returns the p-norm of x.
@@ -276,23 +272,17 @@ class Pnorm(AxisAtom):
 class PnormApprox(Pnorm):
     """Pnorm with SOC-based rational approximation of p.
 
-    This subclass overrides ``_compute_p`` to use a rational approximation
-    of the exponent, which allows canonicalization via second-order cones.
+    Overrides ``self.p`` with a rational approximation of the exponent,
+    which allows canonicalization via second-order cones.
     """
 
-    def _compute_p(self, p, max_denom):
-        """Compute rational approximation of p."""
+    def __init__(self, x, p: int = 2, axis=None,
+                 keepdims: bool = False, max_denom: int = 1024) -> None:
+        super().__init__(x, p=p, axis=axis, keepdims=keepdims, max_denom=max_denom)
         if p < 0:
             self.p, _ = pow_neg(p, max_denom)
         elif 0 < p < 1:
             self.p, _ = pow_mid(p, max_denom)
         elif p > 1:
             self.p, _ = pow_high(p, max_denom)
-        elif p == 1:
-            raise ValueError('Use the norm1 class to instantiate a one norm.')
-        elif p == 'inf' or p == 'Inf' or p == np.inf:
-            raise ValueError('Use the norm_inf class to instantiate an '
-                             'infinity norm.')
-        else:
-            raise ValueError('Invalid p: {}'.format(p))
         self.approx_error = float(abs(self.p - p))

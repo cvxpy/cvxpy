@@ -127,6 +127,7 @@ class Dcp2Cone(Canonicalization):
 
         if self.quad_obj and affine_above and type(expr) in self.quad_canon_methods:
             # Special case for power.
+            # isinstance catches both Power and PowerApprox
             if isinstance(expr, Power) and not expr._quadratic_power():
                 return self.cone_canon_methods[type(expr)](expr, args,
                                                            solver_context=self.solver_context)

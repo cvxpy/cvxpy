@@ -27,8 +27,9 @@ from cvxpy.utilities.solver_context import SolverInfo
 
 
 def power_exact_canon(expr, args, solver_context: SolverInfo | None = None):
+    """Canonicalize Power using power cone constraints."""
     x = args[0]
-    p = expr.p_rational
+    p = expr.p_used
 
     if p == 1:
         return x, []
@@ -38,25 +39,28 @@ def power_exact_canon(expr, args, solver_context: SolverInfo | None = None):
     if p == 0:
         return ones, []
 
-    w = expr.w[0]
     t = Variable(shape)
 
     if 0 < p < 1:
-        return t, powcone_constrs(t, [x, ones], w)
+        alpha = float(p)
+        return t, powcone_constrs(t, [x, ones], alpha)
     elif p > 1:
-        constrs = powcone_constrs(x, [t, ones], w)
+        alpha = float(1 / p)
+        constrs = powcone_constrs(x, [t, ones], alpha)
         if p % 2 != 0:
             constrs += [x >= 0]
         return t, constrs
     elif p < 0:
-        return t, powcone_constrs(ones, [x, t], w)
+        alpha = float(p / (p - 1))
+        return t, powcone_constrs(ones, [x, t], alpha)
     else:
         raise NotImplementedError("This power is not yet supported.")
 
 
 def power_approx_canon(expr, args, solver_context: SolverInfo | None = None):
+    """Canonicalize PowerApprox using SOC constraints via rational approximation."""
     x = args[0]
-    p = expr.p_rational
+    p = expr.p_used
     w = expr.w
 
     if p == 1:
