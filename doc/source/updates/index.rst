@@ -11,15 +11,16 @@ CVXPY 1.8
 
 This release is consistent with our semantic versioning guarantee. It
 comes packed with many new features, bug fixes, and performance improvements.
-This version of CVXPY supports Python 3.11 through 3.14. While working on the next release,
-we continue to officially support CVXPY 1.7.
+This version of CVXPY supports Python 3.11 through 3.14. We will support CVXPY
+1.8 with bugfixes while developing the 1.9 release. CVXPY 1.7 and older are no
+longer supported.
 
 Adoption of SPEC 0
 ~~~~~~~~~~~~~~~~~~
 
 In this release we decided to adopt the `minimum supported dependencies <https://scientific-python.org/specs/spec-0000/>`_
 SPEC (Scientific Python Ecosystem Coordination). Notably, this means that we have dropped support for
-Python 3.10 and NumPy < 2.0. 
+Python 3.10 and NumPy < 2.0.
 
 New canonicalization backend
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -38,7 +39,7 @@ linear optimization problems developed by a team from the University of Edinburg
 Power cone canonicalization
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Three atoms, `power`, `geo_mean`, and `pnorm` now take a parameter `approx` that determines
+Four atoms, `power`, `geo_mean`, `pnorm`, and `inv_prod` now take a parameter `approx` that determines
 whether CVXPY canonicalizes the atom using many SOCs or one power cone. Feel free to set
 `approx=False` and report on whether it improves performance or accuracy!
 
@@ -49,6 +50,7 @@ New features
   - Support for ND cumsum
   - unification of QP interface into quadratic conic pathway
   - solving chain context
+  - New atoms: logical boolean operations (``cp.logic.AND``, ``cp.logic.OR``, ``cp.logic.NOT``, ``cp.logic.XOR``)
   - New atom: :ref:`einsum <einsum>`
   - New atom: :ref:`stack <stack>`
   - New solver interface: :ref:`MOREAU <MOREAU>`
