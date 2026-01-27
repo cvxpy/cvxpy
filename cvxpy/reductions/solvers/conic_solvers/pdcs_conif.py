@@ -129,15 +129,11 @@ class PDCS(ConicSolver):
         solver_opts.setdefault("use_duality_gap_restart", "true")
         solver_opts.setdefault("use_preconditioner", "true")
         solver_opts.setdefault("method", "average")
-        print(f"solver_opts: {solver_opts}")
         import cupy
         from cupyx.scipy.sparse import csr_matrix as cucsr_matrix
         from juliacall import Main as jl
-        jl.seval('using Pkg')
-        jl.seval("Pkg.activate(\"./PDCS_fork/pdcs_env\")")
-        jl.seval('using LinearAlgebra, SparseArrays')
-        jl.seval('using CUDA, CUDA.CUSPARSE, SparseMatricesCSR')
-        jl.seval('include("./PDCS_fork/src/pdcs_gpu/PDCS_GPU.jl")')
+        jl.seval('using CUDA, CUDA.CUSPARSE')
+        jl.seval('using PDCS: PDCS_GPU, PDCS_CPU')
         A = data[s.A]
         b = data[s.B]
         q = data[s.C]
