@@ -20,6 +20,7 @@ import numpy as np
 from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.axis_atom import AxisAtom
 from cvxpy.expressions import cvxtypes
+from cvxpy.utilities import bounds as bounds_utils
 
 
 class min(AxisAtom):
@@ -86,7 +87,6 @@ class min(AxisAtom):
 
     def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
         """Returns bounds for min reduction based on argument bounds."""
-        from cvxpy.utilities import bounds as bounds_utils
         lb, ub = self.args[0].get_bounds()
         return bounds_utils.min_reduction_bounds(lb, ub, axis=self.axis, keepdims=self.keepdims)
 

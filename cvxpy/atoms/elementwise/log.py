@@ -19,6 +19,7 @@ import numpy as np
 
 from cvxpy.atoms.elementwise.elementwise import Elementwise
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.utilities import bounds as bounds_utils
 
 
 class log(Elementwise):
@@ -42,7 +43,6 @@ class log(Elementwise):
 
     def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
         """Returns bounds for log based on argument bounds."""
-        from cvxpy.utilities import bounds as bounds_utils
         lb, ub = self.args[0].get_bounds()
         return bounds_utils.log_bounds(lb, ub)
 

@@ -19,6 +19,7 @@ from typing import Any, List, Tuple
 import numpy as np
 
 from cvxpy.atoms.elementwise.elementwise import Elementwise
+from cvxpy.utilities import bounds as bounds_utils
 
 
 class minimum(Elementwise):
@@ -45,7 +46,6 @@ class minimum(Elementwise):
 
     def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
         """Returns bounds for elementwise minimum based on argument bounds."""
-        from cvxpy.utilities import bounds as bounds_utils
         bounds_list = [arg.get_bounds() for arg in self.args]
         return bounds_utils.minimum_bounds(bounds_list)
 

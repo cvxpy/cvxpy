@@ -37,6 +37,7 @@ from cvxpy.expressions.constants.parameter import (
     is_param_free,
 )
 from cvxpy.expressions.expression import Expression
+from cvxpy.utilities import bounds as bounds_utils
 
 
 class BinaryOperator(AffAtom):
@@ -108,7 +109,6 @@ class BinaryOperator(AffAtom):
 
     def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
         """Returns bounds for elementwise multiplication based on argument bounds."""
-        from cvxpy.utilities import bounds as bounds_utils
         lb1, ub1 = self.args[0].get_bounds()
         lb2, ub2 = self.args[1].get_bounds()
         return bounds_utils.mul_bounds(lb1, ub1, lb2, ub2)
@@ -237,7 +237,6 @@ class MulExpression(BinaryOperator):
 
     def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
         """Returns bounds for matrix multiplication based on argument bounds."""
-        from cvxpy.utilities import bounds as bounds_utils
         lb1, ub1 = self.args[0].get_bounds()
         lb2, ub2 = self.args[1].get_bounds()
 
@@ -366,7 +365,6 @@ class multiply(MulExpression):
         Overrides MulExpression to use elementwise multiplication bounds
         instead of matrix multiplication bounds.
         """
-        from cvxpy.utilities import bounds as bounds_utils
         lb1, ub1 = self.args[0].get_bounds()
         lb2, ub2 = self.args[1].get_bounds()
         return bounds_utils.mul_bounds(lb1, ub1, lb2, ub2)
@@ -538,7 +536,6 @@ class DivExpression(BinaryOperator):
 
     def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
         """Returns bounds for division based on argument bounds."""
-        from cvxpy.utilities import bounds as bounds_utils
         lb1, ub1 = self.args[0].get_bounds()
         lb2, ub2 = self.args[1].get_bounds()
         return bounds_utils.div_bounds(lb1, ub1, lb2, ub2)

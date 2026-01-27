@@ -22,6 +22,7 @@ import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.utilities import bounds as bounds_utils
 
 
 class UnaryOperator(AffAtom):
@@ -79,7 +80,6 @@ class NegExpression(UnaryOperator):
 
     def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
         """Returns bounds for the negation based on argument bounds."""
-        from cvxpy.utilities import bounds as bounds_utils
         lb, ub = self.args[0].get_bounds()
         return bounds_utils.neg_bounds(lb, ub)
 

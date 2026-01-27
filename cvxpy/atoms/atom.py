@@ -29,6 +29,7 @@ from cvxpy import utilities as u
 from cvxpy.expressions import cvxtypes
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.expression import Expression
+from cvxpy.utilities import bounds as bounds_utils
 from cvxpy.utilities import performance_utils as perf
 from cvxpy.utilities.deterministic import unique_list
 
@@ -123,7 +124,6 @@ class Atom(Expression):
         tuple of np.ndarray
             (lower_bound, upper_bound) arrays with shape matching self.shape.
         """
-        from cvxpy.utilities import bounds as bounds_utils
         return bounds_utils.unbounded(self.shape)
 
     @perf.compute_once
@@ -137,8 +137,6 @@ class Atom(Expression):
         tuple of np.ndarray
             (lower_bound, upper_bound) arrays with shape matching self.shape.
         """
-        from cvxpy.utilities import bounds as bounds_utils
-
         # Get bounds from argument propagation
         lb, ub = self.bounds_from_args()
 

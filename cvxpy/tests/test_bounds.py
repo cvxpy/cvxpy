@@ -38,6 +38,13 @@ class TestBounds:
         assert np.allclose(lb, 0)
         assert np.allclose(ub, 1)
 
+    def test_variable_with_tuple_bounds(self) -> None:
+        """Test variable with tuple bounds."""
+        x = cp.Variable(3, bounds=(0, 1))
+        lb, ub = x.get_bounds()
+        assert np.allclose(lb, 0)
+        assert np.allclose(ub, 1)
+
     def test_variable_nonneg(self) -> None:
         """Test nonneg variable has lower bound of 0."""
         x = cp.Variable(3, nonneg=True)

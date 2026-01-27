@@ -754,30 +754,27 @@ def get_expr_bounds_if_supported(expr, solver_context) -> Optional[list]:
     """
     if solver_context is None or not solver_context.solver_supports_bounds:
         return None
-    try:
-        lb, ub = expr.get_bounds()
-        # Check if bounds are finite and worth using.
-        # Use sparse-aware checks to avoid densifying large sparse matrices.
-        if _all_isinf(lb) and _all_isinf(ub):
-            return None
-        # Check for NaN values which are not valid bounds
-        if _any_isnan(lb) or _any_isnan(ub):
-            return None
-        # Check if bounds only match sign info (avoid redundant constraints)
-        # If lb is all 0 or -inf, and ub is all inf, and expr is nonneg, skip
-        lb_trivial = _all_zero_or_inf(lb)
-        ub_trivial = _all_isinf(ub)
-        if lb_trivial and ub_trivial and expr.is_nonneg():
-            return None
-        # If ub is all 0 or inf, and lb is all -inf, and expr is nonpos, skip
-        ub_trivial_nonpos = _all_zero_or_inf(ub)
-        lb_trivial_nonpos = _all_isinf(lb)
-        if lb_trivial_nonpos and ub_trivial_nonpos and expr.is_nonpos():
-            return None
-        # Ensure dense for Variable(bounds=...) consumption.
-        return [_ensure_dense(lb), _ensure_dense(ub)]
-    except (NotImplementedError, AttributeError):
+    lb, ub = expr.get_bounds()
+    # Check if bounds are finite and worth using.
+    # Use sparse-aware checks to avoid densifying large sparse matrices.
+    if _all_isinf(lb) and _all_isinf(ub):
         return None
+    # Check for NaN values which are not valid bounds
+    if _any_isnan(lb) or _any_isnan(ub):
+        return None
+    # Check if bounds only match sign info (avoid redundant constraints)
+    # If lb is all 0 or -inf, and ub is all inf, and expr is nonneg, skip
+    lb_trivial = _all_zero_or_inf(lb)
+    ub_trivial = _all_isinf(ub)
+    if lb_trivial and ub_trivial and expr.is_nonneg():
+        return None
+    # If ub is all 0 or inf, and lb is all -inf, and expr is nonpos, skip
+    ub_trivial_nonpos = _all_zero_or_inf(ub)
+    lb_trivial_nonpos = _all_isinf(lb)
+    if lb_trivial_nonpos and ub_trivial_nonpos and expr.is_nonpos():
+        return None
+    # Ensure dense for Variable(bounds=...) consumption.
+    return [_ensure_dense(lb), _ensure_dense(ub)]
 
 
 def refine_bounds_from_sign(lb, ub,

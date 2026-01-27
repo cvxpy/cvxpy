@@ -18,6 +18,8 @@ from typing import Tuple
 
 import numpy as np
 
+from cvxpy.utilities import bounds as bounds_utils
+
 from .elementwise import Elementwise
 
 
@@ -41,7 +43,6 @@ class abs(Elementwise):
 
     def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
         """Returns bounds for absolute value based on argument bounds."""
-        from cvxpy.utilities import bounds as bounds_utils
         lb, ub = self.args[0].get_bounds()
         return bounds_utils.abs_bounds(lb, ub)
 

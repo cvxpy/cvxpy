@@ -25,6 +25,7 @@ import cvxpy.utilities as u
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions.expression import Expression
+from cvxpy.utilities import bounds as bounds_utils
 
 
 class AddExpression(AffAtom):
@@ -83,7 +84,6 @@ class AddExpression(AffAtom):
 
     def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
         """Returns bounds for addition based on argument bounds."""
-        from cvxpy.utilities import bounds as bounds_utils
         # Start with first argument's bounds
         lb, ub = self.args[0].get_bounds()
         # Broadcast to output shape if needed

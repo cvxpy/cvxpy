@@ -20,6 +20,7 @@ import scipy.sparse as sp
 
 from cvxpy.atoms.axis_atom import AxisAtom
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.utilities import bounds as bounds_utils
 
 
 class norm_inf(AxisAtom):
@@ -45,7 +46,6 @@ class norm_inf(AxisAtom):
 
     def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
         """Returns bounds for infinity-norm based on argument bounds."""
-        from cvxpy.utilities import bounds as bounds_utils
         lb, ub = self.args[0].get_bounds()
         return bounds_utils.norm_inf_bounds(lb, ub, axis=self.axis, keepdims=self.keepdims)
 

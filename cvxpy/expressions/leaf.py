@@ -36,6 +36,7 @@ from cvxpy.settings import (
     PSD_NSD_PROJECTION_TOL,
     SPARSE_PROJECTION_TOL,
 )
+from cvxpy.utilities import bounds as bounds_utils
 from cvxpy.utilities.coo_array_compat import get_coords
 from cvxpy.utilities.warn import warn
 
@@ -722,29 +723,34 @@ class Leaf(expression.Expression):
 
         # Promote upper and lower bounds to arrays.
         none_bounds = [-np.inf, np.inf]
+        promoted = []
         for idx, val in enumerate(value):
             if val is None:
-                value[idx] = np.full(self.shape, none_bounds[idx])
+                promoted.append(np.full(self.shape, none_bounds[idx]))
             elif np.isscalar(val):
-                value[idx] = np.full(self.shape, val)
+                promoted.append(np.full(self.shape, val))
+            else:
+                promoted.append(val)
+
+        lb, ub = promoted
 
         # Upper bound cannot be -np.inf.
-        if np.any(value[1] == -np.inf):
+        if np.any(ub == -np.inf):
             raise ValueError("-np.inf is not feasible as an upper bound.")
         # Lower bound cannot be np.inf.
-        if np.any(value[0] == np.inf):
+        if np.any(lb == np.inf):
             raise ValueError("np.inf is not feasible as a lower bound.")
 
         # Check that upper_bound >= lower_bound
-        if np.any(value[0] > value[1]):
+        if np.any(lb > ub):
             raise ValueError("Invalid bounds: some upper bounds are less "
                              "than corresponding lower bounds.")
 
-        if np.any(np.isnan(value[0])) or np.any(np.isnan(value[1])):
+        if np.any(np.isnan(lb)) or np.any(np.isnan(ub)):
             raise ValueError("np.nan is not feasible as lower "
                                 "or upper bound.")
 
-        return value
+        return promoted
 
     def get_bounds(self) -> tuple[np.ndarray, np.ndarray]:
         """Return bounds (lower, upper) for this leaf.
@@ -758,15 +764,16 @@ class Leaf(expression.Expression):
         tuple of np.ndarray
             (lower_bound, upper_bound) arrays with shape matching self.shape.
         """
-        from cvxpy.utilities import bounds as bounds_utils
-
         # Start with unbounded
         lb, ub = bounds_utils.unbounded(self.shape)
 
-        # Apply bounds attribute if present
+        # Apply bounds attribute if present (skip Expression bounds,
+        # which are symbolic and enforced at solve time).
         if self.attributes['bounds'] is not None:
-            lb = np.maximum(lb, self.bounds[0])
-            ub = np.minimum(ub, self.bounds[1])
+            if not isinstance(self.bounds[0], expression.Expression):
+                lb = np.maximum(lb, self.bounds[0])
+            if not isinstance(self.bounds[1], expression.Expression):
+                ub = np.minimum(ub, self.bounds[1])
 
         # Apply sign attributes
         if self.attributes['nonneg'] or self.attributes['pos']:
