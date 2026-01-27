@@ -59,6 +59,7 @@ from cvxpy.transforms import (
     partial_optimize as partial_optimize,
     suppfunc as suppfunc,
 )
+from cvxpy import logic as logic
 from cvxpy.reductions.solvers.defines import installed_solvers as installed_solvers
 from cvxpy.settings import (
     CBC as CBC,

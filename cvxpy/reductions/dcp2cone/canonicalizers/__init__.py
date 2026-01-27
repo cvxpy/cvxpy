@@ -46,6 +46,9 @@ from cvxpy.reductions.dcp2cone.canonicalizers.suppfunc_canon import (
     suppfunc_canon,)
 from cvxpy.reductions.dcp2cone.canonicalizers.tr_inv_canon import *
 from cvxpy.reductions.dcp2cone.canonicalizers.xexp_canon import *
+from cvxpy.reductions.dcp2cone.canonicalizers.logic_canon import (
+    not_canon, and_canon, or_canon, xor_canon,)
+from cvxpy.atoms.elementwise.logic import Not, And, Or, Xor
 from cvxpy.reductions.eliminate_pwl.canonicalizers import (abs_canon,
                                                            cummax_canon,
                                                            cumsum_canon,
@@ -101,4 +104,8 @@ CANON_METHODS = {
     von_neumann_entr : von_neumann_entr_canon_dispatch,
     quantum_rel_entr: quantum_rel_entr_canon,
     tr_inv : tr_inv_canon,
+    Not : not_canon,
+    And : and_canon,
+    Or : or_canon,
+    Xor : xor_canon,
 }
