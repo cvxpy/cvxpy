@@ -345,7 +345,7 @@ def construct_solving_chain(problem, candidates,
 
         solver_context = SolverInfo(solver=solver, supported_constraints=supported_constraints)
 
-        ex_cos = (cones & set(EXOTIC_CONES)) - set(supported_constraints)
+        ex_cos = (set(cones) & set(EXOTIC_CONES)) - set(supported_constraints)
 
         for co in ex_cos:
             sim_cos = set(EXOTIC_CONES[co])
