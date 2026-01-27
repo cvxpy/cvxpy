@@ -19,6 +19,7 @@ import warnings
 import numpy as np
 
 import cvxpy as cp
+from cvxpy.atoms.elementwise.power import Power, PowerApprox
 from cvxpy.tests.base_test import BaseTest
 
 
@@ -33,6 +34,19 @@ def _get_cone_counts(prob, solver):
 
 class TestPowerAtom(BaseTest):
     """Unit tests for power atom approx parameter."""
+
+    def test_dunder_pow_returns_approx(self) -> None:
+        """x**p uses PowerApprox so it canonicalizes via SOC."""
+        x = cp.Variable(3)
+        expr = x ** 2
+        self.assertIsInstance(expr, PowerApprox)
+        self.assertIsInstance(expr, Power)
+
+        expr2 = x ** 0.5
+        self.assertIsInstance(expr2, PowerApprox)
+
+        expr3 = x ** 3
+        self.assertIsInstance(expr3, PowerApprox)
 
     def test_approx_controls_cone_type(self) -> None:
         """approx=True uses SOC; approx=False uses power cones."""
