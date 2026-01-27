@@ -24,6 +24,8 @@ Welcome to CVXPY 1.8
 
 **Convex optimization, for everyone.**
 
+*We are hosting a CVXPY community workshop on Feb 20 and 21, virtually and at Stanford University!* `Sign up today! <https://docs.google.com/forms/d/e/1FAIpQLSexWIvIfNlpkY4KK3rw47qNg8MiYUT6vL-dPt1emACH6ChPzw/viewform?usp=header>`_.
+*We are inviting CVXPY users to share their experience with the library and their application area so we can better serve you!* `Sign up for a listening session! <https://calendar.app.google/mRGBur1ZVMW1dcbR8>`_.
 *We are building a CVXPY community* `on Discord <https://discord.gg/4urRQeGBCr>`_. *Join the conversation!*
 
 CVXPY is an open source Python-embedded modeling language for convex
@@ -69,7 +71,7 @@ more, browse the :doc:`library of examples </examples/index>`. For
 background on convex optimization, see the book `Convex Optimization
 <https://www.stanford.edu/~boyd/cvxbook/>`_ by Boyd and Vandenberghe.
 
-CVXPY relies on the open source solvers `Clarabel`_, `OSQP`_ and `SCS`_.
+CVXPY relies on the open source solvers `Clarabel`_, `OSQP`_, `SCS`_, `HIGHS`_.
 Additional solvers are supported, but must be installed separately.
 
 **Community.**
@@ -105,13 +107,16 @@ guide </contributing/index>` and join us `on Discord <https://discord.gg/4urRQeG
 
 **News.**
 
-CVXPY 1.7 is the first release of CVXPY that supports GPU solvers. It also includes many new features, such as new atoms
-for manipulating N-dimensional arrays, support for multiple variable attributes, and improvements to existing solver interfaces.
+CVXPY 1.8 includes many new solver interfaces such as MOREAU, KNITRO and COSMO,
+and it makes HiGHS its new default solver for MILPs.
+This release also includes many new features such as more complete support of ND expressions,
+unification of the quadratic conic canonicalization paths, and DPP support for complex expressions.
 For a complete list of changes, see the :doc:`changelog </updates/index>`.
 
 .. _Clarabel: https://github.com/oxfordcontrol/Clarabel.rs
 .. _OSQP: https://osqp.org/
 .. _SCS: http://github.com/cvxgrp/scs
+.. _HIGHS: https://github.com/ERGO-Code/HiGHS
 
 .. toctree::
    :hidden:
