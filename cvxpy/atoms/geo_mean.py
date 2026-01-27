@@ -237,19 +237,8 @@ class GeoMean(Atom):
         if any(v < 0 for v in p) or sum(p) <= 0:
             raise ValueError('powers must be nonnegative and not all zero.')
 
-        self.w, self.w_dyad = fracify(p, max_denom)
+        self.w, _ = fracify(p, max_denom)
         self.approx_error = approx_error(p, self.w)
-
-        self.tree = decompose(self.w_dyad)
-
-        # known lower bound on number of cones needed to represent w_dyad
-        self.cone_lb = lower_bound(self.w_dyad)
-
-        # number of cones used past known lower bound
-        self.cone_num_over = over_bound(self.w_dyad, self.tree)
-
-        # number of cones used
-        self.cone_num = self.cone_lb + self.cone_num_over
 
     # Returns the (weighted) geometric mean of the elements of x.
     def numeric(self, values) -> float:
@@ -297,8 +286,6 @@ class GeoMean(Atom):
         weights = ', '.join(str(v) for v in self.w)
         return f"{type(self).__name__}({self.args[0].format_labeled()}, ({weights}))"
 
-    def pretty_tree(self) -> None:
-        print(prettydict(self.tree))
 
     def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the (row, col) shape of the expression.
@@ -366,12 +353,7 @@ class GeoMean(Atom):
         copy.p = self.p
         copy.max_denom = self.max_denom
         copy.w = self.w
-        copy.w_dyad = self.w_dyad
-        copy.tree = self.tree
         copy.approx_error = self.approx_error
-        copy.cone_lb = self.cone_lb
-        copy.cone_num_over = self.cone_num_over
-        copy.cone_num = self.cone_num
         return copy
 
 
@@ -380,5 +362,70 @@ class GeoMeanApprox(GeoMean):
 
     Identical to GeoMean in construction; only the type identity differs,
     which drives canon dispatch to the SOC approximation path.
+
+    Attributes
+    ----------
+
+    w_dyad : tuple of ``Fractions`` whose denominators are all a power of two
+        The dyadic completion of ``w``, which is used internally to form the
+        inequalities representing the geometric mean.
+
+    tree : ``dict``
+        keyed by dyadic tuples, whose values are Sequences of children.
+        The children are also dyadic tuples.
+        This represents the graph that needs to be formed to represent the
+        weighted geometric mean.
+
+    cone_lb : int
+        A known lower bound (which is not always tight) on the number of cones
+        needed to represent this geometric mean.
+
+    cone_num_over : int
+        The number of cones beyond the lower bound that this geometric mean used.
+        If 0, we know that it used the minimum possible number of cones.
+        Since cone_lb is not always tight, it may be using the minimum number of cones even if
+        cone_num_over is not 0.
+
+    cone_num : int
+        The number of second order cones used to form this geometric mean
+
     """
-    pass
+
+    def __init__(self, x, p: Optional[List[int]] = None,
+                 max_denom: int = 1024) -> None:
+        super().__init__(x, p=p, max_denom=max_denom)
+
+        _, self.w_dyad = fracify(self.p, max_denom)
+
+        self.tree = decompose(self.w_dyad)
+
+        # known lower bound on number of cones needed to represent w_dyad
+        self.cone_lb = lower_bound(self.w_dyad)
+
+        # number of cones used past known lower bound
+        self.cone_num_over = over_bound(self.w_dyad, self.tree)
+
+        # number of cones used
+        self.cone_num = self.cone_lb + self.cone_num_over
+
+    def copy(self, args=None, id_objects=None):
+        """Returns a shallow copy of the GeoMeanApprox atom."""
+        if args is None:
+            args = self.args
+        # Avoid calling __init__() directly as we do not have p and max_denom.
+        copy = type(self).__new__(type(self))
+        super(type(self), copy).__init__(*args)
+        # Emulate __init__()
+        copy.p = self.p
+        copy.max_denom = self.max_denom
+        copy.w = self.w
+        copy.w_dyad = self.w_dyad
+        copy.tree = self.tree
+        copy.approx_error = self.approx_error
+        copy.cone_lb = self.cone_lb
+        copy.cone_num_over = self.cone_num_over
+        copy.cone_num = self.cone_num
+        return copy
+
+    def pretty_tree(self) -> None:
+        print(prettydict(self.tree))
