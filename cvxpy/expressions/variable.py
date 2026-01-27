@@ -82,6 +82,14 @@ class Variable(Leaf):
                     params.extend(b.parameters())
         return params
 
+    def is_dpp(self, context: str = 'dcp') -> bool:
+        """Check that any Expression bounds are also DPP."""
+        if self.attributes.get('bounds') is not None:
+            for b in self.attributes['bounds']:
+                if isinstance(b, Expression) and not b.is_dpp(context):
+                    return False
+        return True
+
     def canonicalize(self) -> Tuple[Expression, list[Constraint]]:
         """Returns the graph implementation of the object."""
         obj = lu.create_var(self.shape, self.id)

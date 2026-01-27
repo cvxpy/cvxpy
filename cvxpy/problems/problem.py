@@ -362,11 +362,15 @@ class Problem(u.Canonical):
             Whether the problem satisfies the DPP rules.
         """
         if context.lower() == 'dcp':
-            return self.is_dcp(dpp=True)
+            expr_dpp = self.is_dcp(dpp=True)
         elif context.lower() == 'dgp':
-            return self.is_dgp(dpp=True)
+            expr_dpp = self.is_dgp(dpp=True)
         else:
             raise ValueError("Unsupported context ", context)
+        if not expr_dpp:
+            return False
+        # Check that all variable bounds are also DPP.
+        return all(v.is_dpp(context) for v in self.variables())
 
     @perf.compute_once
     def is_qp(self) -> bool:

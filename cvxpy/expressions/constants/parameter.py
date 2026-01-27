@@ -47,6 +47,16 @@ class Parameter(Leaf):
         self, shape: int | tuple[int, ...] = (), name: str | None = None, value=None,
         id=None, **kwargs
     ) -> None:
+        from cvxpy.expressions.expression import Expression
+        bounds = kwargs.get('bounds')
+        if bounds is not None:
+            for b in bounds:
+                if isinstance(b, Expression):
+                    raise ValueError(
+                        "Parameter bounds must be numeric, not CVXPY "
+                        "Expressions. Parametric bounds are only "
+                        "supported on Variables."
+                    )
         if id is None:
             self.id = lu.get_id()
         else:

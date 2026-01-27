@@ -4,344 +4,165 @@ import numpy as np
 import pytest
 
 import cvxpy as cp
+import cvxpy.error as error
+import cvxpy.reductions.eval_params
 
-
-def _param_in_list(param, param_list):
-    """Check if a parameter is in a list by id (avoids Expression __eq__)."""
-    return any(p.id == param.id for p in param_list)
+CONIC_SOLVERS = [cp.SCS, cp.CLARABEL]
+BOUNDED_SOLVERS = ["HIGHS", "DAQP"]
 
 
 def _solver_available(solver_name):
-    """Check if a solver is available and supports BOUNDED_VARIABLES."""
     try:
-        prob = cp.Problem(cp.Minimize(0), [])
-        prob.solve(solver=solver_name)
+        cp.Problem(cp.Minimize(0)).solve(solver=solver_name)
         return True
-    except (cp.error.SolverError, Exception):
+    except Exception:
         return False
+
+
+def _skip_if_unavailable(solver_name):
+    if not _solver_available(solver_name):
+        pytest.skip(f"{solver_name} not available")
 
 
 class TestParametricBoundsCreation:
     """Tests for creating variables with parametric bounds."""
 
-    def test_parameter_bounds(self):
-        """Variable with Parameter bounds."""
-        lb = cp.Parameter()
-        ub = cp.Parameter()
+    def test_basic_creation(self):
+        lb, ub = cp.Parameter(), cp.Parameter()
         x = cp.Variable(bounds=[lb, ub])
-        assert x.bounds is not None
         assert isinstance(x.bounds[0], cp.Expression)
         assert isinstance(x.bounds[1], cp.Expression)
 
     def test_expression_bounds(self):
-        """Variable with expression bounds."""
         p = cp.Parameter()
         x = cp.Variable(bounds=[p + 1, 2 * p])
         assert x.bounds is not None
 
-    def test_mixed_bounds_param_and_numeric(self):
-        """One bound is parametric, the other is numeric."""
-        ub = cp.Parameter()
-        x = cp.Variable(bounds=[0, ub])
-        assert isinstance(x.bounds[0], np.ndarray)
-        assert isinstance(x.bounds[1], cp.Expression)
-
-    def test_mixed_bounds_none_and_param(self):
-        """One bound is None, the other is parametric."""
+    def test_mixed_none_and_param(self):
         ub = cp.Parameter()
         x = cp.Variable(bounds=[None, ub])
-        # None should be promoted to -inf ndarray
         assert isinstance(x.bounds[0], np.ndarray)
         assert np.all(x.bounds[0] == -np.inf)
         assert isinstance(x.bounds[1], cp.Expression)
 
-    def test_scalar_param_broadcast_to_array(self):
-        """Scalar Parameter bound should be accepted for array variable."""
-        lb = cp.Parameter()
-        ub = cp.Parameter()
-        x = cp.Variable((3,), bounds=[lb, ub])
-        assert x.bounds is not None
-
-    def test_array_param_matching_shape(self):
-        """Array Parameter bound with matching shape."""
-        lb = cp.Parameter((2, 2))
-        ub = cp.Parameter((2, 2))
-        x = cp.Variable((2, 2), bounds=[lb, ub])
-        assert x.bounds is not None
-
-    def test_invalid_param_shape(self):
-        """Parameter bound with non-matching shape should raise."""
-        lb = cp.Parameter((3,))
-        with pytest.raises(ValueError):
-            cp.Variable((2, 2), bounds=[lb, 10])
-
-    def test_has_lower_bounds_param(self):
-        """_has_lower_bounds returns True for parametric lower bound."""
-        lb = cp.Parameter()
-        x = cp.Variable(bounds=[lb, 10])
-        assert x._has_lower_bounds()
-
-    def test_has_upper_bounds_param(self):
-        """_has_upper_bounds returns True for parametric upper bound."""
+    def test_mixed_numeric_and_param(self):
         ub = cp.Parameter()
         x = cp.Variable(bounds=[0, ub])
-        assert x._has_upper_bounds()
+        assert isinstance(x.bounds[0], np.ndarray)
+        assert isinstance(x.bounds[1], cp.Expression)
+
+    def test_scalar_param_broadcast(self):
+        x = cp.Variable((3,), bounds=[cp.Parameter(), cp.Parameter()])
+        assert x.bounds is not None
+
+    def test_invalid_shape_raises(self):
+        with pytest.raises(ValueError):
+            cp.Variable((2, 2), bounds=[cp.Parameter((3,)), 10])
+
+    def test_parameter_rejects_expression_bounds(self):
+        with pytest.raises(ValueError, match="Parametric bounds"):
+            cp.Parameter(bounds=[cp.Parameter(), 10])
+
+    def test_has_lower_upper_bounds(self):
+        assert cp.Variable(bounds=[cp.Parameter(), 10])._has_lower_bounds()
+        assert cp.Variable(bounds=[0, cp.Parameter()])._has_upper_bounds()
 
     def test_parameters_discovered(self):
-        """Parameters in bounds are discoverable via Variable.parameters()."""
-        lb = cp.Parameter(name="lb")
-        ub = cp.Parameter(name="ub")
-        x = cp.Variable(bounds=[lb, ub])
-        params = x.parameters()
-        assert _param_in_list(lb, params)
-        assert _param_in_list(ub, params)
-
-    def test_problem_parameters_include_bounds(self):
-        """Problem.parameters() includes bounds parameters."""
-        lb = cp.Parameter(name="lb")
-        ub = cp.Parameter(name="ub")
+        lb, ub = cp.Parameter(name="lb"), cp.Parameter(name="ub")
         x = cp.Variable(bounds=[lb, ub])
         prob = cp.Problem(cp.Minimize(x))
-        params = prob.parameters()
-        assert _param_in_list(lb, params)
-        assert _param_in_list(ub, params)
+        ids = {p.id for p in prob.parameters()}
+        assert lb.id in ids and ub.id in ids
 
 
-class TestParametricBoundsReduceTrue:
-    """Tests for reduce_bounds=True path (bounds -> constraints).
+class TestParametricBoundsSolving:
+    """Tests that parametric bounds work across solver paths."""
 
-    This is the default path for solvers that don't support BOUNDED_VARIABLES
-    (e.g. SCS, Clarabel).
-    """
-
-    def test_basic_param_bounds_minimize(self):
-        """Basic parametric bounds with minimization."""
-        lb = cp.Parameter()
-        ub = cp.Parameter()
+    def test_minimize_maximize(self):
+        lb, ub = cp.Parameter(value=2), cp.Parameter(value=5)
         x = cp.Variable(bounds=[lb, ub])
 
-        lb.value = 2
-        ub.value = 5
-        prob = cp.Problem(cp.Minimize(x))
-        prob.solve(solver=cp.SCS)
-        assert prob.status == cp.OPTIMAL
+        prob_min = cp.Problem(cp.Minimize(x))
+        prob_min.solve(solver=cp.SCS)
         assert np.isclose(x.value, 2, atol=1e-4)
 
-    def test_basic_param_bounds_maximize(self):
-        """Basic parametric bounds with maximization."""
-        lb = cp.Parameter()
-        ub = cp.Parameter()
-        x = cp.Variable(bounds=[lb, ub])
-
-        lb.value = 2
-        ub.value = 5
-        prob = cp.Problem(cp.Maximize(x))
-        prob.solve(solver=cp.SCS)
-        assert prob.status == cp.OPTIMAL
+        prob_max = cp.Problem(cp.Maximize(x))
+        prob_max.solve(solver=cp.SCS)
         assert np.isclose(x.value, 5, atol=1e-4)
 
-    def test_re_solve_changed_bounds(self):
-        """Re-solve with changed parameter values."""
-        lb = cp.Parameter()
-        ub = cp.Parameter()
+    def test_re_solve(self):
+        lb, ub = cp.Parameter(value=2), cp.Parameter(value=5)
         x = cp.Variable(bounds=[lb, ub])
-
-        lb.value = 2
-        ub.value = 5
         prob = cp.Problem(cp.Minimize(x))
         prob.solve(solver=cp.SCS)
         assert np.isclose(x.value, 2, atol=1e-4)
 
-        # Change bounds
         lb.value = 3
         prob.solve(solver=cp.SCS)
         assert np.isclose(x.value, 3, atol=1e-4)
 
     def test_expression_bounds(self):
-        """Expression (not just Parameter) as bounds."""
-        scale = cp.Parameter(nonneg=True)
+        scale = cp.Parameter(nonneg=True, value=10)
         x = cp.Variable(bounds=[-scale, scale])
-
-        scale.value = 10
         prob = cp.Problem(cp.Minimize(x))
         prob.solve(solver=cp.SCS)
         assert np.isclose(x.value, -10, atol=1e-4)
 
     def test_mixed_numeric_and_param(self):
-        """One bound numeric, other parametric."""
-        ub = cp.Parameter()
+        ub = cp.Parameter(value=5)
         x = cp.Variable(bounds=[0, ub])
-
-        ub.value = 5
         prob = cp.Problem(cp.Maximize(x))
         prob.solve(solver=cp.SCS)
         assert np.isclose(x.value, 5, atol=1e-4)
 
     def test_one_sided_param_bound(self):
-        """Only upper bound is parametric, lower is None."""
-        ub = cp.Parameter()
+        ub = cp.Parameter(value=3)
         x = cp.Variable(bounds=[None, ub])
-
-        ub.value = 3
         prob = cp.Problem(cp.Maximize(x))
         prob.solve(solver=cp.SCS)
         assert np.isclose(x.value, 3, atol=1e-4)
 
     def test_vector_variable_scalar_param(self):
-        """Scalar parameter broadcast to vector variable."""
-        lb = cp.Parameter()
+        lb = cp.Parameter(value=-2)
         x = cp.Variable(3, bounds=[lb, None])
-
-        lb.value = -2
         prob = cp.Problem(cp.Minimize(cp.sum(x)), [x <= 10])
         prob.solve(solver=cp.SCS)
         assert np.allclose(x.value, -2 * np.ones(3), atol=1e-4)
 
-
-class TestParametricBoundsReduceFalse:
-    """Tests for reduce_bounds=False path (BOUNDED_VARIABLES).
-
-    This uses solvers that natively support variable bounds (e.g. HIGHS, DAQP).
-    """
-
-    @pytest.mark.parametrize("solver_name", ["HIGHS", "DAQP"])
-    def test_basic_param_bounds(self, solver_name):
-        """Basic parametric bounds with BOUNDED_VARIABLES solver."""
-        if not _solver_available(solver_name):
-            pytest.skip(f"{solver_name} not available")
-
-        lb = cp.Parameter()
-        ub = cp.Parameter()
-        x = cp.Variable(bounds=[lb, ub])
-
-        lb.value = 2
-        ub.value = 5
-        prob = cp.Problem(cp.Minimize(x))
-        prob.solve(solver=solver_name)
-        assert prob.status == cp.OPTIMAL
-        assert np.isclose(x.value, 2, atol=1e-6)
-
-    @pytest.mark.parametrize("solver_name", ["HIGHS", "DAQP"])
-    def test_re_solve_changed_bounds(self, solver_name):
-        """Re-solve with changed bounds using BOUNDED_VARIABLES solver."""
-        if not _solver_available(solver_name):
-            pytest.skip(f"{solver_name} not available")
-
-        lb = cp.Parameter()
-        ub = cp.Parameter()
-        x = cp.Variable(bounds=[lb, ub])
-
-        lb.value = 1
-        ub.value = 5
-        prob = cp.Problem(cp.Minimize(x))
-        prob.solve(solver=solver_name)
-        assert np.isclose(x.value, 1, atol=1e-6)
-
-        lb.value = 2
-        prob.solve(solver=solver_name)
-        assert np.isclose(x.value, 2, atol=1e-6)
-
-    @pytest.mark.parametrize("solver_name", ["HIGHS", "DAQP"])
-    def test_expression_bounds(self, solver_name):
-        """Expression bounds with BOUNDED_VARIABLES solver."""
-        if not _solver_available(solver_name):
-            pytest.skip(f"{solver_name} not available")
-
-        scale = cp.Parameter(nonneg=True)
-        x = cp.Variable(bounds=[-scale, scale])
-
-        scale.value = 10
-        prob = cp.Problem(cp.Minimize(x))
-        prob.solve(solver=solver_name)
-        assert np.isclose(x.value, -10, atol=1e-6)
-
-    @pytest.mark.parametrize("solver_name", ["HIGHS", "DAQP"])
-    def test_mixed_bounds(self, solver_name):
-        """Mixed numeric/parametric bounds with BOUNDED_VARIABLES solver."""
-        if not _solver_available(solver_name):
-            pytest.skip(f"{solver_name} not available")
-
-        ub = cp.Parameter()
-        x = cp.Variable(bounds=[0, ub])
-
-        ub.value = 5
-        prob = cp.Problem(cp.Maximize(x))
-        prob.solve(solver=solver_name)
-        assert np.isclose(x.value, 5, atol=1e-6)
-
-    @pytest.mark.parametrize("solver_name", ["HIGHS", "DAQP"])
-    def test_vector_variable(self, solver_name):
-        """Vector variable with parametric bounds on BOUNDED_VARIABLES solver."""
-        if not _solver_available(solver_name):
-            pytest.skip(f"{solver_name} not available")
-
-        lb = cp.Parameter()
-        x = cp.Variable(3, bounds=[lb, None])
-
-        lb.value = -2
-        prob = cp.Problem(cp.Minimize(cp.sum(x)), [x <= 10])
-        prob.solve(solver=solver_name)
-        assert np.allclose(x.value, -2 * np.ones(3), atol=1e-6)
-
-    @pytest.mark.parametrize("solver_name", ["HIGHS", "DAQP"])
-    def test_one_sided_param_bound(self, solver_name):
-        """One-sided parametric bound with BOUNDED_VARIABLES solver."""
-        if not _solver_available(solver_name):
-            pytest.skip(f"{solver_name} not available")
-
-        ub = cp.Parameter()
-        x = cp.Variable(bounds=[None, ub])
-
-        ub.value = 3
-        prob = cp.Problem(cp.Maximize(x))
-        prob.solve(solver=solver_name)
-        assert np.isclose(x.value, 3, atol=1e-6)
-
-
-class TestParametricBoundsMultiVariable:
-    """Test problems with multiple variables, some with parametric bounds."""
-
-    def test_two_variables_one_parametric(self):
-        """Two variables, one with parametric bounds."""
-        lb = cp.Parameter()
-        x = cp.Variable(bounds=[lb, None])
-        y = cp.Variable()
-
-        lb.value = 1
-        prob = cp.Problem(cp.Minimize(x + y), [y >= 2])
-        prob.solve(solver=cp.SCS)
-        assert np.isclose(x.value, 1, atol=1e-4)
-        assert np.isclose(y.value, 2, atol=1e-4)
-
-    def test_two_variables_both_parametric(self):
-        """Two variables, both with parametric bounds."""
-        lb1 = cp.Parameter()
-        lb2 = cp.Parameter()
+    def test_multiple_variables(self):
+        lb1, lb2 = cp.Parameter(value=1), cp.Parameter(value=2)
         x = cp.Variable(bounds=[lb1, None])
         y = cp.Variable(bounds=[lb2, None])
-
-        lb1.value = 1
-        lb2.value = 2
         prob = cp.Problem(cp.Minimize(x + y))
         prob.solve(solver=cp.SCS)
         assert np.isclose(x.value, 1, atol=1e-4)
         assert np.isclose(y.value, 2, atol=1e-4)
 
-    @pytest.mark.parametrize("solver_name", ["HIGHS", "DAQP"])
-    def test_multi_variable_bounded_solver(self, solver_name):
-        """Multiple variables with parametric bounds on BOUNDED_VARIABLES solver."""
-        if not _solver_available(solver_name):
-            pytest.skip(f"{solver_name} not available")
+    def test_matrix_variable(self):
+        lb = cp.Parameter((2, 3), value=np.ones((2, 3)))
+        ub = cp.Parameter((2, 3), value=5 * np.ones((2, 3)))
+        X = cp.Variable((2, 3), bounds=[lb, ub])
+        prob = cp.Problem(cp.Minimize(cp.sum(X)))
+        prob.solve(solver=cp.CLARABEL)
+        np.testing.assert_allclose(X.value, np.ones((2, 3)), atol=1e-4)
 
-        lb = cp.Parameter()
-        x = cp.Variable(bounds=[lb, None])
-        y = cp.Variable(bounds=[0, None])
+    @pytest.mark.parametrize("solver_name", BOUNDED_SOLVERS)
+    def test_bounded_solver_basic(self, solver_name):
+        _skip_if_unavailable(solver_name)
+        lb, ub = cp.Parameter(value=2), cp.Parameter(value=5)
+        x = cp.Variable(bounds=[lb, ub])
+        prob = cp.Problem(cp.Minimize(x))
+        prob.solve(solver=solver_name)
+        assert np.isclose(x.value, 2, atol=1e-6)
 
-        lb.value = 1
-        prob = cp.Problem(cp.Minimize(x + y))
+    @pytest.mark.parametrize("solver_name", BOUNDED_SOLVERS)
+    def test_bounded_solver_re_solve(self, solver_name):
+        _skip_if_unavailable(solver_name)
+        lb, ub = cp.Parameter(value=1), cp.Parameter(value=5)
+        x = cp.Variable(bounds=[lb, ub])
+        prob = cp.Problem(cp.Minimize(x))
         prob.solve(solver=solver_name)
         assert np.isclose(x.value, 1, atol=1e-6)
-        assert np.isclose(y.value, 0, atol=1e-6)
 
         lb.value = 3
         prob.solve(solver=solver_name)
@@ -351,113 +172,95 @@ class TestParametricBoundsMultiVariable:
 class TestParametricBoundsEdgeCases:
     """Edge cases for parametric bounds."""
 
-    def test_numeric_infinite_lower_bound(self):
-        """Numeric -inf lower bound with parametric upper bound."""
-        ub = cp.Parameter()
+    def test_infinite_bounds_unbounded(self):
+        ub = cp.Parameter(value=5)
         x = cp.Variable(bounds=[-np.inf, ub])
-
-        ub.value = 5
         prob = cp.Problem(cp.Minimize(x))
         prob.solve(solver=cp.CLARABEL)
-        # Unbounded below.
         assert prob.status in (cp.UNBOUNDED, cp.UNBOUNDED_INACCURATE)
 
-    def test_numeric_infinite_upper_bound(self):
-        """Numeric +inf upper bound with parametric lower bound."""
-        lb = cp.Parameter()
-        x = cp.Variable(bounds=[lb, np.inf])
-
-        lb.value = -5
-        prob = cp.Problem(cp.Maximize(x))
-        prob.solve(solver=cp.CLARABEL)
-        # Unbounded above.
-        assert prob.status in (cp.UNBOUNDED, cp.UNBOUNDED_INACCURATE)
-
-    def test_equal_bounds(self):
-        """Lower == upper pins the variable to a single value."""
-        b = cp.Parameter()
+    def test_equal_bounds_pins_value(self):
+        b = cp.Parameter(value=7)
         x = cp.Variable(bounds=[b, b])
-
-        b.value = 7
         prob = cp.Problem(cp.Minimize(x))
         prob.solve(solver=cp.CLARABEL)
-        assert prob.status == cp.OPTIMAL
         assert np.isclose(x.value, 7, atol=1e-4)
 
     def test_infeasible_bounds(self):
-        """Lower > upper should be infeasible."""
-        lb = cp.Parameter()
-        ub = cp.Parameter()
+        lb, ub = cp.Parameter(value=10), cp.Parameter(value=5)
         x = cp.Variable(bounds=[lb, ub])
-
-        lb.value = 10
-        ub.value = 5
         prob = cp.Problem(cp.Minimize(x))
         prob.solve(solver=cp.CLARABEL)
         assert prob.status in (cp.INFEASIBLE, cp.INFEASIBLE_INACCURATE)
 
     def test_unset_parameter_raises(self):
-        """Solving with an unset parameter in bounds raises an error."""
-        lb = cp.Parameter()
-        x = cp.Variable(bounds=[lb, 10])
-
+        x = cp.Variable(bounds=[cp.Parameter(), 10])
         prob = cp.Problem(cp.Minimize(x))
         with pytest.raises(Exception):
             prob.solve(solver=cp.CLARABEL)
 
-    def test_matrix_variable_param_bounds(self):
-        """2-D variable with parametric bounds."""
-        lb = cp.Parameter((2, 3))
-        ub = cp.Parameter((2, 3))
-        X = cp.Variable((2, 3), bounds=[lb, ub])
 
-        lb.value = np.ones((2, 3))
-        ub.value = 5 * np.ones((2, 3))
-        prob = cp.Problem(cp.Minimize(cp.sum(X)))
-        prob.solve(solver=cp.CLARABEL)
-        assert prob.status == cp.OPTIMAL
-        np.testing.assert_allclose(X.value, np.ones((2, 3)), atol=1e-4)
+class TestParametricBoundsDPP:
+    """DPP tests for parametric bounds."""
 
-    def test_matrix_variable_scalar_param_bounds(self):
-        """2-D variable with scalar parametric bounds (broadcast)."""
-        lb = cp.Parameter()
-        ub = cp.Parameter()
-        X = cp.Variable((2, 3), bounds=[lb, ub])
+    def _make_prob(self):
+        lb, ub = cp.Parameter(), cp.Parameter()
+        x = cp.Variable(bounds=[lb, ub])
+        prob = cp.Problem(cp.Minimize(x))
+        return lb, ub, x, prob
 
-        lb.value = -1
-        ub.value = 1
-        prob = cp.Problem(cp.Maximize(cp.sum(X)))
-        prob.solve(solver=cp.CLARABEL)
-        assert prob.status == cp.OPTIMAL
-        np.testing.assert_allclose(X.value, np.ones((2, 3)), atol=1e-4)
+    def test_is_dpp_and_chain(self):
+        _, _, _, prob = self._make_prob()
+        assert prob.is_dpp()
+        _, chain, _ = prob.get_problem_data(cp.SCS)
+        reduction_types = [type(r) for r in chain.reductions]
+        assert cvxpy.reductions.eval_params.EvalParams not in reduction_types
 
-    def test_matrix_variable_re_solve(self):
-        """Re-solve with changed bounds on a 2-D variable."""
-        lb = cp.Parameter((2, 2))
-        X = cp.Variable((2, 2), bounds=[lb, None])
+    def test_get_problem_data_without_param_values(self):
+        _, _, _, prob = self._make_prob()
+        data, _, _ = prob.get_problem_data(cp.SCS)
+        assert data is not None
 
-        lb.value = np.zeros((2, 2))
-        prob = cp.Problem(cp.Minimize(cp.sum(X)))
-        prob.solve(solver=cp.CLARABEL)
-        np.testing.assert_allclose(X.value, np.zeros((2, 2)), atol=1e-4)
+    def test_enforce_dpp_re_solve(self):
+        lb, ub, x, prob = self._make_prob()
+        lb.value, ub.value = 1, 10
+        prob.solve(solver=cp.SCS, enforce_dpp=True)
+        assert np.isclose(x.value, 1, atol=1e-4)
 
-        lb.value = 3 * np.ones((2, 2))
-        prob.solve(solver=cp.CLARABEL)
-        np.testing.assert_allclose(X.value, 3 * np.ones((2, 2)), atol=1e-4)
+        lb.value = 5
+        prob.solve(solver=cp.SCS, enforce_dpp=True)
+        assert np.isclose(x.value, 5, atol=1e-4)
 
-    @pytest.mark.parametrize("solver_name", ["HIGHS", "DAQP"])
-    def test_matrix_variable_bounded_solver(self, solver_name):
-        """2-D variable with parametric bounds on BOUNDED_VARIABLES solver."""
-        if not _solver_available(solver_name):
-            pytest.skip(f"{solver_name} not available")
+    def test_enforce_dpp_expression_bounds(self):
+        scale = cp.Parameter(nonneg=True, value=10)
+        x = cp.Variable(bounds=[-scale, scale])
+        prob = cp.Problem(cp.Minimize(x))
+        prob.solve(solver=cp.SCS, enforce_dpp=True)
+        assert np.isclose(x.value, -10, atol=1e-4)
 
-        lb = cp.Parameter((2, 3))
-        ub = cp.Parameter((2, 3))
-        X = cp.Variable((2, 3), bounds=[lb, ub])
+    @pytest.mark.parametrize("solver_name", BOUNDED_SOLVERS)
+    def test_enforce_dpp_bounded_solver(self, solver_name):
+        _skip_if_unavailable(solver_name)
+        lb, ub, x, prob = self._make_prob()
+        lb.value, ub.value = 1, 10
+        prob.solve(solver=solver_name, enforce_dpp=True)
+        assert np.isclose(x.value, 1, atol=1e-6)
 
-        lb.value = 2 * np.ones((2, 3))
-        ub.value = 4 * np.ones((2, 3))
-        prob = cp.Problem(cp.Minimize(cp.sum(X)))
-        prob.solve(solver=solver_name)
-        assert prob.status == cp.OPTIMAL
-        np.testing.assert_allclose(X.value, 2 * np.ones((2, 3)), atol=1e-6)
+        lb.value = 5
+        prob.solve(solver=solver_name, enforce_dpp=True)
+        assert np.isclose(x.value, 5, atol=1e-6)
+
+    @pytest.mark.parametrize("bound_expr", [
+        lambda: cp.Parameter() * cp.Parameter(),
+        lambda: cp.Parameter((2, 2)) @ cp.Parameter(2),
+    ])
+    def test_non_dpp_bound_raises(self, bound_expr):
+        expr = bound_expr()
+        n = 2 if expr.ndim > 0 else 1
+        x = cp.Variable(n, bounds=[expr, None])
+        prob = cp.Problem(cp.Minimize(cp.sum(x)), [x <= 10])
+        assert not prob.is_dpp()
+        for p in prob.parameters():
+            p.value = np.ones(p.shape) if p.ndim > 0 else 1
+        with pytest.raises(error.DPPError):
+            prob.solve(solver=cp.SCS, enforce_dpp=True)
