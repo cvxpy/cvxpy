@@ -18,7 +18,7 @@ from typing import Literal
 
 from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.expressions.expression import DEFAULT_ORDER_DEPRECATION_MSG, Expression
-from cvxpy.utilities.warn import warn as _warn
+from cvxpy.utilities.warn import warn
 
 
 def vec(X, order: Literal["F", "C", None] = None):
@@ -37,7 +37,7 @@ def vec(X, order: Literal["F", "C", None] = None):
     """
     if order is None:
         vec_order_warning = DEFAULT_ORDER_DEPRECATION_MSG.replace("FUNC_NAME", "vec")
-        _warn(vec_order_warning, FutureWarning)
+        warn(vec_order_warning, FutureWarning)
         order = 'F'
     assert order in ['F', 'C']
     X = Expression.cast_to_const(X)

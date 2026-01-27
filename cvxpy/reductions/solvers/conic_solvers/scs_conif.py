@@ -30,7 +30,7 @@ from cvxpy.reductions.solvers.conic_solvers.conic_solver import (
 )
 from cvxpy.utilities.citations import CITATION_DICT
 from cvxpy.utilities.versioning import Version
-from cvxpy.utilities.warn import warn as _warn
+from cvxpy.utilities.warn import warn
 
 
 def dims_to_solver_dict(cone_dims):
@@ -344,7 +344,7 @@ class SCS(ConicSolver):
         results, status = solve(solver_opts)
         if (status in s.INACCURATE and scs_version.major == 2
                 and "acceleration_lookback" not in solver_opts):
-            _warn(SCS.ACCELERATION_RETRY_MESSAGE % str(scs_version))
+            warn(SCS.ACCELERATION_RETRY_MESSAGE % str(scs_version))
             retry_opts = solver_opts.copy()
             retry_opts["acceleration_lookback"] = 0
             results, status = solve(retry_opts)

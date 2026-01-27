@@ -37,7 +37,7 @@ from cvxpy.settings import (
     SPARSE_PROJECTION_TOL,
 )
 from cvxpy.utilities.coo_array_compat import get_coords
-from cvxpy.utilities.warn import warn as _warn
+from cvxpy.utilities.warn import warn
 
 
 class Leaf(expression.Expression):
@@ -441,7 +441,7 @@ class Leaf(expression.Expression):
                 w[bad] = 0
             return (V * w).dot(V.T)
         elif self.attributes['sparsity'] and not sparse_path:
-            _warn('Accessing a sparse CVXPY expression via a dense representation.'
+            warn('Accessing a sparse CVXPY expression via a dense representation.'
                   ' Please report this as a bug to the CVXPY Discord or GitHub.',
                   RuntimeWarning)
             new_val = np.zeros(self.shape)
@@ -467,7 +467,7 @@ class Leaf(expression.Expression):
         if self.sparse_idx is None:
             return self._value
         else:
-            _warn('Reading from a sparse CVXPY expression via `.value` is discouraged.'
+            warn('Reading from a sparse CVXPY expression via `.value` is discouraged.'
                   ' Use `.value_sparse` instead', RuntimeWarning)
             if self._value is None:
                 return None
@@ -478,7 +478,7 @@ class Leaf(expression.Expression):
     @value.setter
     def value(self, val) -> None:
         if self.sparse_idx is not None and self._sparse_high_fill_in:
-            _warn('Writing to a sparse CVXPY expression via `.value` is discouraged.'
+            warn('Writing to a sparse CVXPY expression via `.value` is discouraged.'
                   ' Use `.value_sparse` instead', RuntimeWarning)
         self.save_value(self._validate_value(val))
 

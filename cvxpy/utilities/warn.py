@@ -46,8 +46,17 @@ def warn(message, category=UserWarning):
     cvxpy package (or inside ``cvxpy/tests/``) is found, then sets
     ``stacklevel`` so the warning is attributed to that frame.
     """
-    frame = sys._getframe(1)  # caller of warn()
     level = 2  # stacklevel=2 already points at the caller of warn()
+    # sys._getframe is a CPython implementation detail; fall back to a
+    # fixed stacklevel if it is unavailable.
+    if not hasattr(sys, "_getframe"):
+        warnings.warn(message, category, stacklevel=level)
+        return
+    frame = sys._getframe(1)  # caller of warn()
+    # If the entire stack is internal (f_back eventually returns None),
+    # level may exceed the actual stack depth.  That is fine:
+    # warnings.warn gracefully handles an out-of-range stacklevel by
+    # attributing the warning to "<sys>:0" rather than raising an error.
     while frame is not None:
         if not _is_internal_frame(frame.f_code.co_filename):
             break

@@ -31,7 +31,7 @@ from cvxpy.constraints import PSD, Equality, Inequality
 from cvxpy.expressions import cvxtypes
 from cvxpy.utilities import scopes
 from cvxpy.utilities.shape import size_from_shape
-from cvxpy.utilities.warn import warn as _warn
+from cvxpy.utilities.warn import warn
 
 
 def _cast_other(binary_op):
@@ -562,7 +562,7 @@ class Expression(u.Canonical):
         """
         if order is None:
             flatten_order_warning = DEFAULT_ORDER_DEPRECATION_MSG.replace("FUNC_NAME", "flatten")
-            _warn(flatten_order_warning, FutureWarning)
+            warn(flatten_order_warning, FutureWarning)
             order = 'F'
         assert order in ['F', 'C']
         return cvxtypes.vec()(self, order)
@@ -740,7 +740,7 @@ class Expression(u.Canonical):
             # don't check for that here.
             if not (self.is_constant() or other.is_constant()):
                 if error.warnings_enabled():
-                    _warn("Forming a nonconvex expression.")
+                    warn("Forming a nonconvex expression.")
             # Because we want to discourage using ``*`` to call matmul, we
             # raise a warning to the user.
             with warnings.catch_warnings():
@@ -953,7 +953,7 @@ class Expression(u.Canonical):
         """
         if order is None:
             reshape_order_warning = DEFAULT_ORDER_DEPRECATION_MSG.replace("FUNC_NAME", "reshape")
-            _warn(reshape_order_warning, FutureWarning)
+            warn(reshape_order_warning, FutureWarning)
             order = 'F'
         from cvxpy import reshape
         return reshape(self, shape, order)

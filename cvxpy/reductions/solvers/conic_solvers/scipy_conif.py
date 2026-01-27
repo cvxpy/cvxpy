@@ -25,7 +25,7 @@ from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.utilities.citations import CITATION_DICT
 from cvxpy.utilities.versioning import Version
-from cvxpy.utilities.warn import warn as _warn
+from cvxpy.utilities.warn import warn
 
 
 class SCIPY(ConicSolver):
@@ -223,7 +223,7 @@ class SCIPY(ConicSolver):
         return solution
 
     def _log_scipy_method_warning(self, meth):
-        _warn("It is best to specify the 'method' parameter "
+        warn("It is best to specify the 'method' parameter "
               "within scipy_options. The main advantage "
               "of this solver is its ability to use the "
               "HiGHS LP solvers via scipy.optimize.linprog(), "

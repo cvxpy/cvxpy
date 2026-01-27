@@ -25,7 +25,7 @@ import cvxpy.utilities as u
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions.constants.parameter import is_param_free
-from cvxpy.utilities.warn import warn as _warn
+from cvxpy.utilities.warn import warn
 
 
 class conv(AffAtom):
@@ -48,7 +48,7 @@ class conv(AffAtom):
     """
 
     def __init__(self, lh_expr, rh_expr) -> None:
-        _warn("conv is deprecated. Use convolve instead.", DeprecationWarning)
+        warn("conv is deprecated. Use convolve instead.", DeprecationWarning)
         super(conv, self).__init__(lh_expr, rh_expr)
 
     @AffAtom.numpy_numeric

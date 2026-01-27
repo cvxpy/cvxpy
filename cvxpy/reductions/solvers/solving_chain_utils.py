@@ -3,7 +3,7 @@ from cvxpy.settings import (
     CPP_CANON_BACKEND,
     SCIPY_CANON_BACKEND,
 )
-from cvxpy.utilities.warn import warn as _warn
+from cvxpy.utilities.warn import warn
 
 
 def get_canon_backend(problem, canon_backend: str) -> str:
@@ -30,7 +30,7 @@ def get_canon_backend(problem, canon_backend: str) -> str:
 
     if not problem._supports_cpp():
         if canon_backend is None:
-            _warn(
+            warn(
                 f"The problem includes expressions that don't support {CPP_CANON_BACKEND} backend. "
                 f"Defaulting to the {SCIPY_CANON_BACKEND} backend for canonicalization.")
             return SCIPY_CANON_BACKEND
@@ -41,7 +41,7 @@ def get_canon_backend(problem, canon_backend: str) -> str:
 
     if problem._max_ndim() > 2:
         if canon_backend is None:
-            _warn(
+            warn(
                 f"The problem has an expression with dimension greater than 2. "
                 f"Defaulting to the {SCIPY_CANON_BACKEND} backend for canonicalization.")
             return SCIPY_CANON_BACKEND

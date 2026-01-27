@@ -22,7 +22,7 @@ from numpy.lib.array_utils import normalize_axis_index
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.atoms.axis_atom import AxisAtom
 from cvxpy.expressions.expression import Expression
-from cvxpy.utilities.warn import warn as _warn
+from cvxpy.utilities.warn import warn
 
 
 def _sparse_triu_ones(dim: int) -> sp.csc_array:
@@ -58,7 +58,7 @@ class cumsum(AffAtom, AxisAtom):
         """Validate axis, but handle 0D arrays specially."""
         if self.args[0].ndim == 0:
             if self.axis is not None:
-                _warn(
+                warn(
                     "cumsum on 0-dimensional arrays currently returns a scalar, "
                     "but in a future CVXPY version it will return a 1-element "
                     "array to match numpy.cumsum behavior. Additionally, only "
