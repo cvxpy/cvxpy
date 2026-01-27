@@ -65,11 +65,6 @@ def scs_cone_selectors(K):
         arrays, or lists of numpy arrays. The numpy arrays give row indices
         of the affine operator (A, b) returned by SCS's apply function.
     """
-    if K.p3d:
-        msg = "SuppFunc doesn't yet support feasible sets represented \n"
-        msg += "with power cone constraints."
-        raise NotImplementedError(msg)
-        # TODO: implement
     idx = K.zero
     nonneg_idxs = np.arange(idx, idx + K.nonneg)
     idx += K.nonneg
@@ -85,11 +80,16 @@ def scs_cone_selectors(K):
         idx += veclen
     expsize = 3 * K.exp
     exp_idxs = np.arange(idx, idx + expsize)
+    p3d_size = 3 * len(K.p3d)
+    p3d_idxs = np.arange(idx, idx + p3d_size)
+    idx += p3d_size
     selectors = {
         'nonneg': nonneg_idxs,
         'exp': exp_idxs,
         'soc': soc_idxs,
-        'psd': psd_idxs
+        'psd': psd_idxs,
+        'p3d': p3d_idxs,
+        'p3d_alphas': K.p3d,
     }
     return selectors
 

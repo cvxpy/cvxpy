@@ -2,6 +2,7 @@ import numpy as np
 
 from cvxpy import SOC, Variable, hstack
 from cvxpy.constraints.exponential import ExpCone
+from cvxpy.constraints.power import PowCone3D
 from cvxpy.reductions.solvers.conic_solvers.scs_conif import (
     scs_psdvec_to_psdmat,
 )
@@ -56,5 +57,20 @@ def suppfunc_canon(expr, args, solver_context: SolverInfo | None = None):
         # this to a primal exponential cone as follows.
         ec = ExpCone(-curr_v, -curr_u, np.exp(1) * curr_w)
         local_cons.append(ec)
+    p3dsel = K_sels['p3d']
+    p3d_alphas = K_sels['p3d_alphas']
+    if p3dsel.size > 0:
+        matp3dsel = np.reshape(p3dsel, (-1, 3))
+        curr_x = eta[matp3dsel[:, 0]]
+        curr_y = eta[matp3dsel[:, 1]]
+        curr_z = eta[matp3dsel[:, 2]]
+        # (curr_x, curr_y, curr_z) needs to belong to the dual
+        # power cone. The dual of K_alpha = {(x,y,z) : x^a y^(1-a) >= |z|}
+        # is K_alpha^* = {(u,v,w) : (u/a)^a (v/(1-a))^(1-a) >= |w|},
+        # which we express as PowCone3D(u/a, v/(1-a), w, a).
+        alphas = np.array(p3d_alphas)
+        pc = PowCone3D(curr_x / alphas, curr_y / (1 - alphas),
+                        curr_z, alphas)
+        local_cons.append(pc)
     epigraph = b @ eta
     return epigraph, local_cons

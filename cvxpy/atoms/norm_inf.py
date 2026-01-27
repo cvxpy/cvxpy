@@ -118,5 +118,11 @@ class norm_inf(AxisAtom):
         Returns:
             A NumPy ndarray matrix or None.
         """
-        # TODO(akshayka): Implement this.
-        raise NotImplementedError
+        rows = value.size
+        value = np.array(value).flatten()
+        D = np.zeros((rows, 1), dtype='float64')
+        abs_value = np.abs(value)
+        max_idx = np.argmax(abs_value)
+        if abs_value[max_idx] > 0:
+            D[max_idx, 0] = np.sign(value[max_idx])
+        return D

@@ -273,8 +273,13 @@ class RelEntrConeQuad(Cone):
         return s
 
     def save_dual_value(self, value) -> None:
-        # TODO: implement me.
-        pass
+        value = np.reshape(value, (-1, 3))
+        dv0 = np.reshape(value[:, 0], self.x.shape)
+        dv1 = np.reshape(value[:, 1], self.y.shape)
+        dv2 = np.reshape(value[:, 2], self.z.shape)
+        self.dual_variables[0].save_value(dv0)
+        self.dual_variables[1].save_value(dv1)
+        self.dual_variables[2].save_value(dv2)
 
 
 class OpRelEntrConeQuad(Cone):
@@ -346,8 +351,27 @@ class OpRelEntrConeQuad(Cone):
 
     @property
     def residual(self):
-        # TODO: implement me
-        raise NotImplementedError()
+        from scipy.linalg import logm, sqrtm
+        if self.X.value is None or self.Y.value is None or self.Z.value is None:
+            return None
+        X_val = np.array(self.X.value)
+        Y_val = np.array(self.Y.value)
+        Z_val = np.array(self.Z.value)
+        try:
+            # D_op(X, Y) = X^{1/2} log(X^{1/2} Y^{-1} X^{1/2}) X^{1/2}
+            X_half = sqrtm(X_val)
+            M = X_half @ np.linalg.solve(Y_val, X_half)
+            D = X_half @ logm(M) @ X_half
+            if np.any(np.isnan(D)):
+                return np.inf
+            # Enforce Hermitian symmetry (numerical noise).
+            D = (D + D.conj().T) / 2
+            violation = D - Z_val
+            violation = (violation + violation.conj().T) / 2
+            eigs = np.linalg.eigvalsh(violation)
+            return max(-float(eigs.min()), 0.0)
+        except (np.linalg.LinAlgError, ValueError):
+            return np.inf
 
     @property
     def size(self) -> int:
@@ -390,5 +414,10 @@ class OpRelEntrConeQuad(Cone):
         return s
 
     def save_dual_value(self, value) -> None:
-        # TODO: implement me.
-        pass
+        value = np.reshape(value, (-1, 3))
+        dv0 = np.reshape(value[:, 0], self.X.shape)
+        dv1 = np.reshape(value[:, 1], self.Y.shape)
+        dv2 = np.reshape(value[:, 2], self.Z.shape)
+        self.dual_variables[0].save_value(dv0)
+        self.dual_variables[1].save_value(dv1)
+        self.dual_variables[2].save_value(dv2)
