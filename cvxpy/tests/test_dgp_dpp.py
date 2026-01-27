@@ -4,6 +4,7 @@ Tests for DGP (Disciplined Geometric Programming) with DPP (Disciplined Parametr
 This verifies the fix for issue #3004: DGP problems can now have get_problem_data(gp=True)
 called without all parameters having values. This is useful when the problem is DPP.
 """
+import numpy as np
 import pytest
 
 import cvxpy as cp
@@ -94,3 +95,101 @@ class TestDgpDpp(BaseTest):
         alpha.value = 3.0
         problem.solve(SOLVER, gp=True, ignore_dpp=True)
         self.assertAlmostEqual(x.value, 3.0, places=4)
+
+
+class TestDgpVariableBounds(BaseTest):
+    """Tests for DGP variable bounds (numeric and parametric)."""
+
+    def test_parametric_bounds(self) -> None:
+        lb = cp.Parameter(pos=True, value=2.0)
+        ub = cp.Parameter(pos=True, value=5.0)
+        x = cp.Variable(pos=True, bounds=[lb, ub])
+
+        cp.Problem(cp.Minimize(x)).solve(SOLVER, gp=True)
+        self.assertAlmostEqual(x.value, 2.0, places=4)
+
+        cp.Problem(cp.Maximize(x)).solve(SOLVER, gp=True)
+        self.assertAlmostEqual(x.value, 5.0, places=4)
+
+    def test_one_sided_parametric_bounds(self) -> None:
+        p = cp.Parameter(pos=True, value=0.5)
+        x = cp.Variable(pos=True, bounds=[p, None])
+        cp.Problem(cp.Minimize(x), [x <= 10.0]).solve(SOLVER, gp=True)
+        self.assertAlmostEqual(x.value, 0.5, places=4)
+
+        q = cp.Parameter(pos=True, value=3.0)
+        y = cp.Variable(pos=True, bounds=[None, q])
+        cp.Problem(cp.Maximize(y)).solve(SOLVER, gp=True)
+        self.assertAlmostEqual(y.value, 3.0, places=4)
+
+    def test_mixed_numeric_and_parametric(self) -> None:
+        ub = cp.Parameter(pos=True, value=4.0)
+        x = cp.Variable(pos=True, bounds=[0.5, ub])
+        cp.Problem(cp.Minimize(x)).solve(SOLVER, gp=True)
+        self.assertAlmostEqual(x.value, 0.5, places=4)
+
+    def test_re_solve(self) -> None:
+        lb = cp.Parameter(pos=True, value=2.0)
+        ub = cp.Parameter(pos=True, value=10.0)
+        x = cp.Variable(pos=True, bounds=[lb, ub])
+        prob = cp.Problem(cp.Minimize(x))
+
+        prob.solve(SOLVER, gp=True)
+        self.assertAlmostEqual(x.value, 2.0, places=4)
+
+        lb.value = 3.0
+        prob.solve(SOLVER, gp=True)
+        self.assertAlmostEqual(x.value, 3.0, places=4)
+
+    def test_is_dpp(self) -> None:
+        p = cp.Parameter(pos=True)
+        x = cp.Variable(pos=True, bounds=[p, None])
+        assert x.is_dpp('dgp')
+        assert cp.Problem(cp.Minimize(x), [x <= 10.0]).is_dpp('dgp')
+
+        # Product of params: DPP in DGP (monomial), not in DCP.
+        p2 = cp.Parameter(pos=True)
+        y = cp.Variable(pos=True, bounds=[p * p2, None])
+        assert y.is_dpp('dgp')
+        assert not y.is_dpp('dcp')
+
+    def test_enforce_dpp(self) -> None:
+        lb = cp.Parameter(pos=True, value=2.0)
+        x = cp.Variable(pos=True, bounds=[lb, None])
+        prob = cp.Problem(cp.Minimize(x), [x <= 100.0])
+
+        prob.solve(SOLVER, gp=True, enforce_dpp=True)
+        self.assertAlmostEqual(x.value, 2.0, places=4)
+
+        lb.value = 7.0
+        prob.solve(SOLVER, gp=True, enforce_dpp=True)
+        self.assertAlmostEqual(x.value, 7.0, places=4)
+
+    def test_get_problem_data_without_param_values(self) -> None:
+        p = cp.Parameter(pos=True)
+        x = cp.Variable(pos=True, bounds=[p, None])
+        data, _, _ = cp.Problem(cp.Minimize(x), [x <= 10.0]).get_problem_data(
+            SOLVER, gp=True)
+        assert data is not None
+
+    def test_vector_and_matrix(self) -> None:
+        lb = cp.Parameter(pos=True, value=2.0)
+        x = cp.Variable(3, pos=True, bounds=[lb, None])
+        cp.Problem(cp.Minimize(cp.sum(x)), [x <= 100.0]).solve(SOLVER, gp=True)
+        np.testing.assert_allclose(x.value, 2.0 * np.ones(3), atol=1e-4)
+
+        X = cp.Variable((2, 3), pos=True, bounds=[lb, None])
+        cp.Problem(cp.Minimize(cp.sum(X)), [X <= 100.0]).solve(SOLVER, gp=True)
+        np.testing.assert_allclose(X.value, 2.0 * np.ones((2, 3)), atol=1e-4)
+
+    def test_equal_parametric_bounds(self) -> None:
+        p = cp.Parameter(pos=True, value=3.0)
+        x = cp.Variable(pos=True, bounds=[p, p])
+        cp.Problem(cp.Minimize(x)).solve(SOLVER, gp=True)
+        self.assertAlmostEqual(x.value, 3.0, places=4)
+
+    def test_solve_without_param_value_raises(self) -> None:
+        p = cp.Parameter(pos=True)
+        x = cp.Variable(pos=True, bounds=[p, None])
+        with pytest.raises(Exception):
+            cp.Problem(cp.Minimize(x), [x <= 10.0]).solve(SOLVER, gp=True)
