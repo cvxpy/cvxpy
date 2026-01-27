@@ -308,8 +308,6 @@ def construct_solving_chain(problem, candidates,
     cones = []
     atoms = problem.atoms()
 
-    needs_powcone_3d = PowCone3D in constr_types or any(atom in POWCONE_ATOMS for atom in atoms)
-    needs_powcone_nd = PowConeND in constr_types or any(atom in POWCONE_ND_ATOMS for atom in atoms)
     if SOC in constr_types or any(atom in SOC_ATOMS for atom in atoms):
         cones.append(SOC)
     if ExpCone in constr_types or any(atom in EXP_ATOMS for atom in atoms):
@@ -323,6 +321,10 @@ def construct_solving_chain(problem, candidates,
             or any(atom in PSD_ATOMS for atom in atoms) \
             or any(v.is_psd() or v.is_nsd() for v in problem.variables()):
         cones.append(PSD)
+    if PowCone3D in constr_types or any(atom in POWCONE_ATOMS for atom in atoms):
+        cones.append(PowCone3D)
+    if PowConeND in constr_types or any(atom in POWCONE_ND_ATOMS for atom in atoms):
+        cones.add(PowConeND)
     # Here, we make use of the observation that canonicalization only
     # increases the number of constraints in our problem.
     var_domains = sum([var.domain for var in problem.variables()], start = [])
@@ -343,23 +345,12 @@ def construct_solving_chain(problem, candidates,
 
         solver_context = SolverInfo(solver=solver, supported_constraints=supported_constraints)
 
-        ex_cos = (constr_types & set(EXOTIC_CONES)) - set(supported_constraints)
-
-        # Exact atoms (e.g. GeoMean) produce PowConeND during Dcp2Cone.
-        # If the solver lacks native PowConeND, Exotic2Common will
-        # decompose it to PowCone3D.
-        if needs_powcone_nd and PowConeND not in supported_constraints:
-            ex_cos.add(PowConeND)
+        ex_cos = (cones & set(EXOTIC_CONES)) - set(supported_constraints)
 
         for co in ex_cos:
-            sim_cos = set(EXOTIC_CONES[co]) 
+            sim_cos = set(EXOTIC_CONES[co])
             constr_types.update(sim_cos)
             constr_types.discard(co)
-
-        if (PowCone3D in constr_types or needs_powcone_3d) and PowCone3D not in cones:
-            cones.append(PowCone3D)
-        if (PowConeND in constr_types or needs_powcone_nd) and PowConeND not in cones:
-            cones.append(PowConeND)
 
         unsupported_constraints = [
             cone for cone in cones if cone not in supported_constraints
