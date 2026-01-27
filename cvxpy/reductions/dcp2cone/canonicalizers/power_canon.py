@@ -38,77 +38,6 @@ def power_exact_canon(expr, args, solver_context: SolverInfo | None = None):
     if p == 0:
         return ones, []
 
-    # Exact path: use power cones
-    if solver_context is not None and PowCone3D in solver_context.solver_supported_constraints:
-        return _power_cone_canon(expr, args)
-
-    raise ValueError(
-        "Power (exact) requires a solver that supports power cones, "
-        "but the current solver does not support PowCone3D."
-    )
-
-
-def power_approx_canon(expr, args, solver_context: SolverInfo | None = None):
-    return _power_soc_canon(expr, args, solver_context)
-
-
-def _power_soc_canon(expr, args, solver_context: SolverInfo | None = None):
-    x = args[0]
-    p = expr.p_rational
-    w = expr.w
-
-    if p == 1:
-        return x, []
-
-    shape = expr.shape
-    ones = Constant(np.ones(shape))
-    if p == 0:
-        return ones, []
-    else:
-        t = Variable(shape)
-        if 0 < p < 1:
-            constrs = gm_constrs(t, [x, ones], w)
-        elif p > 1:
-            constrs = gm_constrs(x, [t, ones], w)
-        elif p < 0:
-            constrs = gm_constrs(ones, [x, t], w)
-        else:
-            raise NotImplementedError("This power is not yet supported.")
-
-        # Warn if the solver supports power cones and the approximation is poor
-        solver_supports_powcone = (
-            solver_context is not None and PowCone3D in solver_context.solver_supported_constraints
-        )
-        if solver_supports_powcone:
-            approx_error = getattr(expr, "approx_error", 0.0)
-            num_soc = len(constrs)
-            if (
-                approx_error > settings.POWERCONE_APPROX_ERROR_THRESHOLD
-                or num_soc > settings.POWERCONE_APPROX_SOC_THRESHOLD
-            ):
-                warnings.warn(
-                    f"Power atom with exponent {float(expr._p_orig)} is being approximated "
-                    f"with rational {p} (error: {approx_error:.2e}) "
-                    f"using {num_soc} SOC constraints. "
-                    f"Consider using approx=False to use power cones instead.",
-                    stacklevel=6,
-                )
-
-        return t, constrs
-
-
-def _power_cone_canon(expr, args):
-    x = args[0]
-    p = expr.p_rational
-
-    if p == 1:
-        return x, []
-
-    shape = expr.shape
-    ones = Constant(np.ones(shape))
-    if p == 0:
-        return ones, []
-
     w = expr.w[0]
     t = Variable(shape)
 
@@ -123,3 +52,48 @@ def _power_cone_canon(expr, args):
         return t, powcone_constrs(ones, [x, t], w)
     else:
         raise NotImplementedError("This power is not yet supported.")
+
+
+def power_approx_canon(expr, args, solver_context: SolverInfo | None = None):
+    x = args[0]
+    p = expr.p_rational
+    w = expr.w
+
+    if p == 1:
+        return x, []
+
+    shape = expr.shape
+    ones = Constant(np.ones(shape))
+    if p == 0:
+        return ones, []
+
+    t = Variable(shape)
+    if 0 < p < 1:
+        constrs = gm_constrs(t, [x, ones], w)
+    elif p > 1:
+        constrs = gm_constrs(x, [t, ones], w)
+    elif p < 0:
+        constrs = gm_constrs(ones, [x, t], w)
+    else:
+        raise NotImplementedError("This power is not yet supported.")
+
+    # Warn if the solver supports power cones and the approximation is poor
+    solver_supports_powcone = (
+        solver_context is not None and PowCone3D in solver_context.solver_supported_constraints
+    )
+    if solver_supports_powcone:
+        approx_error = getattr(expr, "approx_error", 0.0)
+        num_soc = len(constrs)
+        if (
+            approx_error > settings.POWERCONE_APPROX_ERROR_THRESHOLD
+            or num_soc > settings.POWERCONE_APPROX_SOC_THRESHOLD
+        ):
+            warnings.warn(
+                f"Power atom with exponent {float(expr._p_orig)} is being approximated "
+                f"with rational {p} (error: {approx_error:.2e}) "
+                f"using {num_soc} SOC constraints. "
+                f"Consider using approx=False to use power cones instead.",
+                stacklevel=6,
+            )
+
+    return t, constrs

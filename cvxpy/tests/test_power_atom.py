@@ -95,7 +95,7 @@ class TestPowerAtom(BaseTest):
                 self.assertItemsAlmostEqual(x.value, x_approx, places=3)
 
     def test_approx_false_errors_without_power_cone_support(self) -> None:
-        """approx=False raises ValueError when solver lacks power cone support."""
+        """approx=False raises SolverError when solver lacks power cone support."""
         if cp.ECOS not in cp.installed_solvers():
             self.skipTest("ECOS not installed.")
         x = cp.Variable(3)
@@ -103,7 +103,7 @@ class TestPowerAtom(BaseTest):
             cp.Minimize(x[0] + x[1] - x[2]),
             [cp.power(x, 3.3, approx=False) <= np.ones(3)]
         )
-        with self.assertRaises(ValueError, msg="approx=False"):
+        with self.assertRaises(cp.error.SolverError):
             prob.solve(solver=cp.ECOS)
 
     def test_approx_warning(self) -> None:

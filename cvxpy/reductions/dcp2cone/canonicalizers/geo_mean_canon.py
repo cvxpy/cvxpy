@@ -20,7 +20,7 @@ import numpy as np
 
 from cvxpy import settings
 from cvxpy.atoms.affine.vstack import vstack
-from cvxpy.constraints.power import PowCone3D, PowConeND
+from cvxpy.constraints.power import PowConeND
 from cvxpy.expressions.variable import Variable
 from cvxpy.utilities.power_tools import gm_constrs
 from cvxpy.utilities.solver_context import SolverInfo
@@ -29,24 +29,22 @@ from cvxpy.utilities.solver_context import SolverInfo
 def geo_mean_exact_canon(expr, args, solver_context: SolverInfo | None = None):
     # Exact path: produce PowConeND; the solving chain adds Exotic2Common
     # to decompose to PowCone3D when the solver lacks native PowConeND support.
-    if solver_context is not None:
-        supports_pow = (
-            PowConeND in solver_context.solver_supported_constraints
-            or PowCone3D in solver_context.solver_supported_constraints
-        )
-        if not supports_pow:
-            raise ValueError(
-                "GeoMean (exact) requires a solver that supports power cones, "
-                "but the current solver supports neither PowConeND nor PowCone3D."
-            )
-    return _geo_mean_cone_canon(expr, args)
+    x = args[0]
+    w = expr.w
+    shape = expr.shape
+    t = Variable(shape)
+
+    if x.shape == ():
+        x_list = [x]
+    else:
+        x_list = [x[i] for i in range(len(w))]
+
+    W = vstack(x_list)
+    alpha = np.array([float(wi) for wi in w]).reshape(-1, 1)
+    return t, [PowConeND(W, t, alpha, axis=0)]
 
 
 def geo_mean_approx_canon(expr, args, solver_context: SolverInfo | None = None):
-    return _geo_mean_soc_canon(expr, args, solver_context)
-
-
-def _geo_mean_soc_canon(expr, args, solver_context: SolverInfo | None = None):
     x = args[0]
     w = expr.w
     shape = expr.shape
@@ -78,19 +76,3 @@ def _geo_mean_soc_canon(expr, args, solver_context: SolverInfo | None = None):
             )
 
     return t, constrs
-
-
-def _geo_mean_cone_canon(expr, args):
-    x = args[0]
-    w = expr.w
-    shape = expr.shape
-    t = Variable(shape)
-
-    if x.shape == ():
-        x_list = [x]
-    else:
-        x_list = [x[i] for i in range(len(w))]
-
-    W = vstack(x_list)
-    alpha = np.array([float(wi) for wi in w]).reshape(-1, 1)
-    return t, [PowConeND(W, t, alpha, axis=0)]

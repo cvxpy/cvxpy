@@ -51,14 +51,39 @@ def pnorm_exact_canon(expr, args, solver_context: SolverInfo | None = None):
     if p == 2:
         return _pnorm_p2_canon(expr, args)
 
-    # Exact path: use power cones
-    if solver_context is not None and PowCone3D in solver_context.solver_supported_constraints:
-        return _pnorm_cone_canon(expr, args)
+    x = args[0]
+    shape = expr.shape
+    t = Variable(shape)
 
-    raise ValueError(
-        "Pnorm (exact) requires a solver that supports power cones, "
-        "but the current solver does not support PowCone3D."
-    )
+    constraints = []
+    if p > 1:
+        abs_expr = abs(x)
+        abs_x, abs_constraints = abs_canon(abs_expr, abs_expr.args)
+        x = abs_x
+        constraints += abs_constraints
+
+    r = Variable(x.shape)
+    constraints += [sum(r) == t]
+
+    promoted_t = Constant(np.ones(x.shape)) * t
+
+    if p < 0:
+        alpha = float(-p / (1 - p))
+        constraints += [
+            PowCone3D(vec(x, order="F"), vec(r, order="F"), vec(promoted_t, order="F"), alpha)
+        ]
+    elif 0 < p < 1:
+        alpha = float(p)
+        constraints += [
+            PowCone3D(vec(x, order="F"), vec(promoted_t, order="F"), vec(r, order="F"), alpha)
+        ]
+    elif p > 1:
+        alpha = float(1 / p)
+        constraints += [
+            PowCone3D(vec(r, order="F"), vec(promoted_t, order="F"), vec(x, order="F"), alpha)
+        ]
+
+    return t, constraints
 
 
 def pnorm_approx_canon(expr, args, solver_context: SolverInfo | None = None):
@@ -67,12 +92,8 @@ def pnorm_approx_canon(expr, args, solver_context: SolverInfo | None = None):
     if p == 2:
         return _pnorm_p2_canon(expr, args)
 
-    return _pnorm_soc_canon(expr, args, solver_context)
-
-
-def _pnorm_soc_canon(expr, args, solver_context: SolverInfo | None = None):
     x = args[0]
-    p = Fraction(expr.p)
+    p = Fraction(p)
     shape = expr.shape
     t = Variable(shape)
 
@@ -112,42 +133,5 @@ def _pnorm_soc_canon(expr, args, solver_context: SolverInfo | None = None):
                 f"Consider using approx=False to use power cones instead.",
                 stacklevel=6,
             )
-
-    return t, constraints
-
-
-def _pnorm_cone_canon(expr, args):
-    x = args[0]
-    p = expr.p
-    shape = expr.shape
-    t = Variable(shape)
-
-    constraints = []
-    if p > 1:
-        abs_expr = abs(x)
-        abs_x, abs_constraints = abs_canon(abs_expr, abs_expr.args)
-        x = abs_x
-        constraints += abs_constraints
-
-    r = Variable(x.shape)
-    constraints += [sum(r) == t]
-
-    promoted_t = Constant(np.ones(x.shape)) * t
-
-    if p < 0:
-        alpha = float(-p / (1 - p))
-        constraints += [
-            PowCone3D(vec(x, order="F"), vec(r, order="F"), vec(promoted_t, order="F"), alpha)
-        ]
-    elif 0 < p < 1:
-        alpha = float(p)
-        constraints += [
-            PowCone3D(vec(x, order="F"), vec(promoted_t, order="F"), vec(r, order="F"), alpha)
-        ]
-    elif p > 1:
-        alpha = float(1 / p)
-        constraints += [
-            PowCone3D(vec(r, order="F"), vec(promoted_t, order="F"), vec(x, order="F"), alpha)
-        ]
 
     return t, constraints
