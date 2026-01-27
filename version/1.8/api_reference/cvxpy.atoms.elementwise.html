@@ -1,0 +1,3738 @@
+
+
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="cvxpy.atoms.affine.html">
+      
+      
+        <link rel="next" href="cvxpy.atoms.other_atoms.html">
+      
+      
+      <link rel="icon" href="../_static/favicon.ico">
+    
+    
+      
+        <title>cvxpy.atoms.elementwise package - </title>
+      
+    
+    
+      
+        
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+        <link rel="stylesheet" type="text/css" href="../_static/sphinx_immaterial_theme.acf80fe7f4d9ef9e2.min.css?v=9e56d0d2" />
+        <link rel="stylesheet" type="text/css" href="../_static/tabs.css?v=4c969af8" />
+        <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+        <link rel="stylesheet" type="text/css" href="../_static/css/styling.css?v=84aacf86" />
+        <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/2.1.8/css/dataTables.dataTables.css" />
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  
+  
+
+<script id="__analytics">function __md_analytics(){function e(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],e("js",new Date),e("config","UA-50248335-1"),document.addEventListener("DOMContentLoaded",(function(){document.forms.search&&document.forms.search.query.addEventListener("blur",(function(){this.value&&e("event","search",{search_term:this.value})}));document$.subscribe((function(){var t=document.forms.feedback;if(void 0!==t)for(var a of t.querySelectorAll("[type=submit]"))a.addEventListener("click",(function(a){a.preventDefault();var n=document.location.pathname,d=this.getAttribute("data-md-value");e("event","feedback",{page:n,data:d}),t.firstElementChild.disabled=!0;var r=t.querySelector(".md-feedback__note [data-md-value='"+d+"']");r&&(r.hidden=!1)})),t.hidden=!1})),location$.subscribe((function(t){e("config","UA-50248335-1",{page_path:t.pathname})}))}));var t=document.createElement("script");t.async=!0,t.src="https://www.googletagmanager.com/gtag/js?id=UA-50248335-1",document.getElementById("__analytics").insertAdjacentElement("afterEnd",t)}</script>
+  
+    <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
+  
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#abs" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+        <aside class="md-banner">
+          <div class="md-banner__inner md-grid md-typeset">
+            
+              <button class="md-banner__button md-icon" aria-label="Don't show this again">
+                
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+              </button>
+            
+            
+<p style="font-size: 1.1em;">
+  🎉 <strong>Attend or speak at the inaugural
+  <a href="https://docs.google.com/forms/d/e/1FAIpQLSexWIvIfNlpkY4KK3rw47qNg8MiYUT6vL-dPt1emACH6ChPzw/viewform?usp=header">CVXPY Community Workshop</a></strong>
+  on February 20 and 21st at Stanford University and on Zoom! 🎉
+  <br>
+  📅 The CVXPY developers are also hosting
+  <a href="https://calendar.app.google/mRGBur1ZVMW1dcbR8"><strong>listening sessions</strong></a>
+  to learn more about what you are using CVXPY for and how we can better serve you.
+</p>
+
+          </div>
+          
+            <script>var el=document.querySelector("[data-md-component=announce]");if(el){var content=el.querySelector(".md-typeset");__md_hash(content.innerHTML)===__md_get("__announce")&&(el.hidden=!0)}</script>
+          
+        </aside>
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../index.html" title="" class="md-header__button md-logo" aria-label="" data-md-component="logo">
+      <img src="../_static/cvxpy-wordmark-light.png" alt="logo">
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              cvxpy.atoms.elementwise package
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m14.3 16-.7-2h-3.2l-.7 2H7.8L11 7h2l3.2 9zM20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12zm-9.15 3.96h2.3L12 9z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="green"  aria-label="Switch to system preference"  type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/cvxpy/cvxpy/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    CVXPY
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../install/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  <span>Install</span>
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../tutorial/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  <span>User Guide</span>
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../functions/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  <span>Functions</span>
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="cvxpy.html" class="md-tabs__link">
+        
+  
+    
+  
+  <span>API Documentation</span>
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../examples/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  <span>Examples</span>
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../contributing/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  <span>Contributing</span>
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../updates/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  <span>Changelog</span>
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../faq/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  <span>FAQ</span>
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../resources/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  <span>Resources</span>
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../index.html" title="" class="md-nav__button md-logo" aria-label="" data-md-component="logo">
+      <img src="../_static/cvxpy-wordmark-light.png" alt="logo">
+    </a>
+    
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/cvxpy/cvxpy/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    CVXPY
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../install/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>Install</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>User Guide</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../functions/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>Functions</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="cvxpy.html" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    <span>API Documentation</span>
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            <span>API Documentation</span>
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_1" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="cvxpy.atoms.html" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    <span>Atoms</span>
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4_1">
+            <span class="md-nav__icon md-icon"></span>
+            <span>Atoms</span>
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="cvxpy.atoms.affine.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>Affine Atoms</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    <span>Elementwise Atoms</span>
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="#" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>Elementwise Atoms</span>
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+  
+
+<nav class="md-nav md-nav--secondary">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#abs" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="abs (reference label)"><span>abs</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="abs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.abs" class="md-nav__link">
+    
+      <span aria-label="Python class" class="objinfo-icon objinfo-icon__data" title="Python class">C</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.abs (Python class) — Bases: Elementwise"><span>cvxpy.<wbr>abs</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#entr" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="entr (reference label)"><span>entr</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="entr">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.entr" class="md-nav__link">
+    
+      <span aria-label="Python class" class="objinfo-icon objinfo-icon__data" title="Python class">C</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.entr (Python class) — Bases: Elementwise"><span>cvxpy.<wbr>entr</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#exp" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="exp (reference label)"><span>exp</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="exp">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.exp" class="md-nav__link">
+    
+      <span aria-label="Python class" class="objinfo-icon objinfo-icon__data" title="Python class">C</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.exp (Python class) — Bases: Elementwise"><span>cvxpy.<wbr>exp</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#huber" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="huber (reference label)"><span>huber</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="huber">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.huber" class="md-nav__link">
+    
+      <span aria-label="Python class" class="objinfo-icon objinfo-icon__data" title="Python class">C</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.huber (Python class) — Bases: Elementwise"><span>cvxpy.<wbr>huber</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="cvxpy.huber">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.huber-parameters" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span>Parameters</span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Parameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.huber.__init__.x" class="md-nav__link">
+    
+      <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.huber.__init__.x (Python parameter) — The expression to which the huber function will be applied."><span>x</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.huber.__init__.M" class="md-nav__link">
+    
+      <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.huber.__init__.M (Python parameter) — A scalar constant."><span>M</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#inv-pos" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="inv-pos (reference label)"><span>inv_<wbr>pos</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="inv_pos">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.inv_pos" class="md-nav__link">
+    
+      <span aria-label="Python function" class="objinfo-icon objinfo-icon__procedure" title="Python function">F</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.inv_pos (Python function) — x^{-1} for x &gt; 0."><span>cvxpy.<wbr>inv_<wbr>pos</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#kl-div" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="kl-div (reference label)"><span>kl_<wbr>div</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="kl_div">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.kl_div" class="md-nav__link">
+    
+      <span aria-label="Python class" class="objinfo-icon objinfo-icon__data" title="Python class">C</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.kl_div (Python class) — Bases: Elementwise"><span>cvxpy.<wbr>kl_<wbr>div</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#log" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="log (reference label)"><span>log</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="log">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.log" class="md-nav__link">
+    
+      <span aria-label="Python class" class="objinfo-icon objinfo-icon__data" title="Python class">C</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.log (Python class) — Bases: Elementwise"><span>cvxpy.<wbr>log</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#log-normcdf" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="log-normcdf (reference label)"><span>log_<wbr>normcdf</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="log_normcdf">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.log_normcdf" class="md-nav__link">
+    
+      <span aria-label="Python class" class="objinfo-icon objinfo-icon__data" title="Python class">C</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.log_normcdf (Python class) — Bases:"><span>cvxpy.<wbr>log_<wbr>normcdf</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#log1p" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="log1p (reference label)"><span>log1p</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="log1p">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.log1p" class="md-nav__link">
+    
+      <span aria-label="Python class" class="objinfo-icon objinfo-icon__data" title="Python class">C</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.log1p (Python class) — Bases: log"><span>cvxpy.<wbr>log1p</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#loggamma" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="loggamma (reference label)"><span>loggamma</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="loggamma">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.loggamma" class="md-nav__link">
+    
+      <span aria-label="Python class" class="objinfo-icon objinfo-icon__data" title="Python class">C</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.loggamma (Python class) — Bases:"><span>cvxpy.<wbr>loggamma</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#logistic" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="logistic (reference label)"><span>logistic</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="logistic">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.logistic" class="md-nav__link">
+    
+      <span aria-label="Python class" class="objinfo-icon objinfo-icon__data" title="Python class">C</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.logistic (Python class) — Bases: Elementwise"><span>cvxpy.<wbr>logistic</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#maximum" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="maximum (reference label)"><span>maximum</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="maximum">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.maximum" class="md-nav__link">
+    
+      <span aria-label="Python class" class="objinfo-icon objinfo-icon__data" title="Python class">C</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.maximum (Python class) — Bases: Elementwise"><span>cvxpy.<wbr>maximum</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#minimum" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="minimum (reference label)"><span>minimum</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="minimum">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.minimum" class="md-nav__link">
+    
+      <span aria-label="Python function" class="objinfo-icon objinfo-icon__procedure" title="Python function">F</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.minimum (Python function) — Elementwise minimum of a sequence of expressions."><span>cvxpy.<wbr>minimum</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#neg" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="neg (reference label)"><span>neg</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="neg">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.neg" class="md-nav__link">
+    
+      <span aria-label="Python function" class="objinfo-icon objinfo-icon__procedure" title="Python function">F</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.neg (Python function) — Alias for -minimum{x, 0}."><span>cvxpy.<wbr>neg</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pos" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="pos (reference label)"><span>pos</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="pos">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.pos" class="md-nav__link">
+    
+      <span aria-label="Python function" class="objinfo-icon objinfo-icon__procedure" title="Python function">F</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.pos (Python function) — Alias for maximum{x,0}."><span>cvxpy.<wbr>pos</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#power" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span>power</span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="power">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.power" class="md-nav__link">
+    
+      <span aria-label="Python class" class="objinfo-icon objinfo-icon__data" title="Python class">C</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.power (Python class) — Bases:"><span>cvxpy.<wbr>power</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="cvxpy.power">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.power-parameters" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span>Parameters</span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Parameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.power.__init__.x" class="md-nav__link">
+    
+      <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.power.__init__.x (Python parameter) — The base expression."><span>x</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.power.__init__.p" class="md-nav__link">
+    
+      <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.power.__init__.p (Python parameter) — The exponent."><span>p</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.power.__init__.max_denom" class="md-nav__link">
+    
+      <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.power.__init__.max_denom (Python parameter) — Maximum denominator for rational approximation."><span>max_<wbr>denom</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.power.__init__.approx" class="md-nav__link">
+    
+      <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.power.__init__.approx (Python parameter) — When True (default), uses SOC approximation."><span>approx</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.power-return-type" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span>Return type</span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rel-entr" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="rel-entr (reference label)"><span>rel_<wbr>entr</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="rel_entr">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.rel_entr" class="md-nav__link">
+    
+      <span aria-label="Python class" class="objinfo-icon objinfo-icon__data" title="Python class">C</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.rel_entr (Python class) — Bases: Elementwise"><span>cvxpy.<wbr>rel_<wbr>entr</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scalene" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="scalene (reference label)"><span>scalene</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="scalene">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.scalene" class="md-nav__link">
+    
+      <span aria-label="Python function" class="objinfo-icon objinfo-icon__procedure" title="Python function">F</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.scalene (Python function) — Alias for alpha*pos(x) + beta*neg(x)."><span>cvxpy.<wbr>scalene</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sqrt" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="sqrt (reference label)"><span>sqrt</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="sqrt">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.sqrt" class="md-nav__link">
+    
+      <span aria-label="Python function" class="objinfo-icon objinfo-icon__procedure" title="Python function">F</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.sqrt (Python function) — The square root of an expression."><span>cvxpy.<wbr>sqrt</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#square" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="square (reference label)"><span>square</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="square">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.square" class="md-nav__link">
+    
+      <span aria-label="Python function" class="objinfo-icon objinfo-icon__procedure" title="Python function">F</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.square (Python function) — The square of an expression."><span>cvxpy.<wbr>square</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#xexp" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="xexp (reference label)"><span>xexp</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="xexp">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.xexp" class="md-nav__link">
+    
+      <span aria-label="Python class" class="objinfo-icon objinfo-icon__data" title="Python class">C</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.xexp (Python class) — Bases: Elementwise"><span>cvxpy.<wbr>xexp</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#not-x" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="not (``~x``) (reference label)"><span>Not <wbr>(~x)</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Not (~x)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.logic.Not" class="md-nav__link">
+    
+      <span aria-label="Python class" class="objinfo-icon objinfo-icon__data" title="Python class">C</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.logic.Not (Python class) — Bases: LogicExpression"><span>cvxpy.<wbr>logic.<wbr>Not</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="cvxpy.logic.Not">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.logic.Not-parameters" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span>Parameters</span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Parameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.logic.Not.__init__.arg" class="md-nav__link">
+    
+      <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.logic.Not.__init__.arg (Python parameter) — A boolean variable or LogicExpression."><span>arg</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#and-x-y" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="and (``x &amp; y``) (reference label)"><span>And <wbr>(x &amp; y)</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="And (x &amp; y)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.logic.And" class="md-nav__link">
+    
+      <span aria-label="Python class" class="objinfo-icon objinfo-icon__data" title="Python class">C</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.logic.And (Python class) — Bases: _NaryLogicExpression"><span>cvxpy.<wbr>logic.<wbr>And</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="cvxpy.logic.And">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.logic.And-parameters" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span>Parameters</span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Parameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.logic.And.__init__.args" class="md-nav__link">
+    
+      <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.logic.And.__init__.args (Python parameter) — Two or more boolean variables or LogicExpressions."><span>args</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#or-x-y" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="or (``x | y``) (reference label)"><span>Or <wbr>(x | y)</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Or (x | y)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.logic.Or" class="md-nav__link">
+    
+      <span aria-label="Python class" class="objinfo-icon objinfo-icon__data" title="Python class">C</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.logic.Or (Python class) — Bases: _NaryLogicExpression"><span>cvxpy.<wbr>logic.<wbr>Or</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="cvxpy.logic.Or">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.logic.Or-parameters" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span>Parameters</span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Parameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.logic.Or.__init__.args" class="md-nav__link">
+    
+      <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.logic.Or.__init__.args (Python parameter) — Two or more boolean variables or LogicExpressions."><span>args</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#xor-x-y" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="xor (``x ^ y``) (reference label)"><span>Xor <wbr>(x ^ y)</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Xor (x ^ y)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.logic.Xor" class="md-nav__link">
+    
+      <span aria-label="Python class" class="objinfo-icon objinfo-icon__data" title="Python class">C</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.logic.Xor (Python class) — Bases: _NaryLogicExpression"><span>cvxpy.<wbr>logic.<wbr>Xor</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="cvxpy.logic.Xor">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.logic.Xor-parameters" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span>Parameters</span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Parameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.logic.Xor.__init__.args" class="md-nav__link">
+    
+      <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.logic.Xor.__init__.args (Python parameter) — Two or more boolean variables or LogicExpressions."><span>args</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#implies-x-y" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="implies (x =&gt; y) (reference label)"><span>implies <wbr>(x =&gt; y)</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="implies (x =&gt; y)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.logic.implies" class="md-nav__link">
+    
+      <span aria-label="Python function" class="objinfo-icon objinfo-icon__procedure" title="Python function">F</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.logic.implies (Python function) — Logical implication: x =&gt; y."><span>cvxpy.<wbr>logic.<wbr>implies</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="cvxpy.logic.implies">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.logic.implies-parameters" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span>Parameters</span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Parameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.logic.implies.x" class="md-nav__link">
+    
+      <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.logic.implies.x (Python parameter) — A boolean variable or LogicExpression."><span>x</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.logic.implies.y" class="md-nav__link">
+    
+      <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.logic.implies.y (Python parameter) — A boolean variable or LogicExpression."><span>y</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#iff-x-y" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="iff (x &lt;=&gt; y) (reference label)"><span>iff <wbr>(x &lt;=&gt; y)</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="iff (x &lt;=&gt; y)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.logic.iff" class="md-nav__link">
+    
+      <span aria-label="Python function" class="objinfo-icon objinfo-icon__procedure" title="Python function">F</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.logic.iff (Python function) — Logical biconditional: x &lt;=&gt; y."><span>cvxpy.<wbr>logic.<wbr>iff</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="cvxpy.logic.iff">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.logic.iff-parameters" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span>Parameters</span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Parameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.logic.iff.x" class="md-nav__link">
+    
+      <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.logic.iff.x (Python parameter) — A boolean variable or LogicExpression."><span>x</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.logic.iff.y" class="md-nav__link">
+    
+      <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.logic.iff.y (Python parameter) — A boolean variable or LogicExpression."><span>y</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="cvxpy.atoms.other_atoms.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>Other Atoms</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="cvxpy.constraints.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>Constraints</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="cvxpy.expressions.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>Expressions</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="cvxpy.problems.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>Problems</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="cvxpy.transforms.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>Transforms</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="cvxpy.reductions.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>Reductions</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>Examples</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contributing/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>Contributing</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../updates/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>Changelog</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../faq/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>FAQ</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../resources/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>Resources</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+  
+
+<nav class="md-nav md-nav--secondary">
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#abs" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="abs (reference label)"><span>abs</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="abs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.abs" class="md-nav__link">
+    
+      <span aria-label="Python class" class="objinfo-icon objinfo-icon__data" title="Python class">C</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.abs (Python class) — Bases: Elementwise"><span>cvxpy.<wbr>abs</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#entr" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="entr (reference label)"><span>entr</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="entr">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.entr" class="md-nav__link">
+    
+      <span aria-label="Python class" class="objinfo-icon objinfo-icon__data" title="Python class">C</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.entr (Python class) — Bases: Elementwise"><span>cvxpy.<wbr>entr</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#exp" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="exp (reference label)"><span>exp</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="exp">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.exp" class="md-nav__link">
+    
+      <span aria-label="Python class" class="objinfo-icon objinfo-icon__data" title="Python class">C</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.exp (Python class) — Bases: Elementwise"><span>cvxpy.<wbr>exp</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#huber" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="huber (reference label)"><span>huber</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="huber">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.huber" class="md-nav__link">
+    
+      <span aria-label="Python class" class="objinfo-icon objinfo-icon__data" title="Python class">C</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.huber (Python class) — Bases: Elementwise"><span>cvxpy.<wbr>huber</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="cvxpy.huber">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.huber-parameters" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span>Parameters</span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Parameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.huber.__init__.x" class="md-nav__link">
+    
+      <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.huber.__init__.x (Python parameter) — The expression to which the huber function will be applied."><span>x</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.huber.__init__.M" class="md-nav__link">
+    
+      <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.huber.__init__.M (Python parameter) — A scalar constant."><span>M</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#inv-pos" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="inv-pos (reference label)"><span>inv_<wbr>pos</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="inv_pos">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.inv_pos" class="md-nav__link">
+    
+      <span aria-label="Python function" class="objinfo-icon objinfo-icon__procedure" title="Python function">F</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.inv_pos (Python function) — x^{-1} for x &gt; 0."><span>cvxpy.<wbr>inv_<wbr>pos</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#kl-div" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="kl-div (reference label)"><span>kl_<wbr>div</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="kl_div">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.kl_div" class="md-nav__link">
+    
+      <span aria-label="Python class" class="objinfo-icon objinfo-icon__data" title="Python class">C</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.kl_div (Python class) — Bases: Elementwise"><span>cvxpy.<wbr>kl_<wbr>div</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#log" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="log (reference label)"><span>log</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="log">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.log" class="md-nav__link">
+    
+      <span aria-label="Python class" class="objinfo-icon objinfo-icon__data" title="Python class">C</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.log (Python class) — Bases: Elementwise"><span>cvxpy.<wbr>log</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#log-normcdf" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="log-normcdf (reference label)"><span>log_<wbr>normcdf</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="log_normcdf">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.log_normcdf" class="md-nav__link">
+    
+      <span aria-label="Python class" class="objinfo-icon objinfo-icon__data" title="Python class">C</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.log_normcdf (Python class) — Bases:"><span>cvxpy.<wbr>log_<wbr>normcdf</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#log1p" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="log1p (reference label)"><span>log1p</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="log1p">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.log1p" class="md-nav__link">
+    
+      <span aria-label="Python class" class="objinfo-icon objinfo-icon__data" title="Python class">C</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.log1p (Python class) — Bases: log"><span>cvxpy.<wbr>log1p</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#loggamma" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="loggamma (reference label)"><span>loggamma</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="loggamma">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.loggamma" class="md-nav__link">
+    
+      <span aria-label="Python class" class="objinfo-icon objinfo-icon__data" title="Python class">C</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.loggamma (Python class) — Bases:"><span>cvxpy.<wbr>loggamma</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#logistic" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="logistic (reference label)"><span>logistic</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="logistic">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.logistic" class="md-nav__link">
+    
+      <span aria-label="Python class" class="objinfo-icon objinfo-icon__data" title="Python class">C</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.logistic (Python class) — Bases: Elementwise"><span>cvxpy.<wbr>logistic</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#maximum" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="maximum (reference label)"><span>maximum</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="maximum">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.maximum" class="md-nav__link">
+    
+      <span aria-label="Python class" class="objinfo-icon objinfo-icon__data" title="Python class">C</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.maximum (Python class) — Bases: Elementwise"><span>cvxpy.<wbr>maximum</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#minimum" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="minimum (reference label)"><span>minimum</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="minimum">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.minimum" class="md-nav__link">
+    
+      <span aria-label="Python function" class="objinfo-icon objinfo-icon__procedure" title="Python function">F</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.minimum (Python function) — Elementwise minimum of a sequence of expressions."><span>cvxpy.<wbr>minimum</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#neg" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="neg (reference label)"><span>neg</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="neg">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.neg" class="md-nav__link">
+    
+      <span aria-label="Python function" class="objinfo-icon objinfo-icon__procedure" title="Python function">F</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.neg (Python function) — Alias for -minimum{x, 0}."><span>cvxpy.<wbr>neg</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pos" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="pos (reference label)"><span>pos</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="pos">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.pos" class="md-nav__link">
+    
+      <span aria-label="Python function" class="objinfo-icon objinfo-icon__procedure" title="Python function">F</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.pos (Python function) — Alias for maximum{x,0}."><span>cvxpy.<wbr>pos</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#power" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span>power</span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="power">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.power" class="md-nav__link">
+    
+      <span aria-label="Python class" class="objinfo-icon objinfo-icon__data" title="Python class">C</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.power (Python class) — Bases:"><span>cvxpy.<wbr>power</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="cvxpy.power">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.power-parameters" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span>Parameters</span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Parameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.power.__init__.x" class="md-nav__link">
+    
+      <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.power.__init__.x (Python parameter) — The base expression."><span>x</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.power.__init__.p" class="md-nav__link">
+    
+      <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.power.__init__.p (Python parameter) — The exponent."><span>p</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.power.__init__.max_denom" class="md-nav__link">
+    
+      <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.power.__init__.max_denom (Python parameter) — Maximum denominator for rational approximation."><span>max_<wbr>denom</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.power.__init__.approx" class="md-nav__link">
+    
+      <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.power.__init__.approx (Python parameter) — When True (default), uses SOC approximation."><span>approx</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.power-return-type" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span>Return type</span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rel-entr" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="rel-entr (reference label)"><span>rel_<wbr>entr</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="rel_entr">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.rel_entr" class="md-nav__link">
+    
+      <span aria-label="Python class" class="objinfo-icon objinfo-icon__data" title="Python class">C</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.rel_entr (Python class) — Bases: Elementwise"><span>cvxpy.<wbr>rel_<wbr>entr</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scalene" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="scalene (reference label)"><span>scalene</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="scalene">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.scalene" class="md-nav__link">
+    
+      <span aria-label="Python function" class="objinfo-icon objinfo-icon__procedure" title="Python function">F</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.scalene (Python function) — Alias for alpha*pos(x) + beta*neg(x)."><span>cvxpy.<wbr>scalene</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sqrt" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="sqrt (reference label)"><span>sqrt</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="sqrt">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.sqrt" class="md-nav__link">
+    
+      <span aria-label="Python function" class="objinfo-icon objinfo-icon__procedure" title="Python function">F</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.sqrt (Python function) — The square root of an expression."><span>cvxpy.<wbr>sqrt</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#square" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="square (reference label)"><span>square</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="square">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.square" class="md-nav__link">
+    
+      <span aria-label="Python function" class="objinfo-icon objinfo-icon__procedure" title="Python function">F</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.square (Python function) — The square of an expression."><span>cvxpy.<wbr>square</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#xexp" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="xexp (reference label)"><span>xexp</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="xexp">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.xexp" class="md-nav__link">
+    
+      <span aria-label="Python class" class="objinfo-icon objinfo-icon__data" title="Python class">C</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.xexp (Python class) — Bases: Elementwise"><span>cvxpy.<wbr>xexp</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#not-x" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="not (``~x``) (reference label)"><span>Not <wbr>(~x)</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Not (~x)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.logic.Not" class="md-nav__link">
+    
+      <span aria-label="Python class" class="objinfo-icon objinfo-icon__data" title="Python class">C</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.logic.Not (Python class) — Bases: LogicExpression"><span>cvxpy.<wbr>logic.<wbr>Not</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="cvxpy.logic.Not">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.logic.Not-parameters" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span>Parameters</span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Parameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.logic.Not.__init__.arg" class="md-nav__link">
+    
+      <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.logic.Not.__init__.arg (Python parameter) — A boolean variable or LogicExpression."><span>arg</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#and-x-y" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="and (``x &amp; y``) (reference label)"><span>And <wbr>(x &amp; y)</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="And (x &amp; y)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.logic.And" class="md-nav__link">
+    
+      <span aria-label="Python class" class="objinfo-icon objinfo-icon__data" title="Python class">C</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.logic.And (Python class) — Bases: _NaryLogicExpression"><span>cvxpy.<wbr>logic.<wbr>And</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="cvxpy.logic.And">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.logic.And-parameters" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span>Parameters</span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Parameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.logic.And.__init__.args" class="md-nav__link">
+    
+      <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.logic.And.__init__.args (Python parameter) — Two or more boolean variables or LogicExpressions."><span>args</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#or-x-y" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="or (``x | y``) (reference label)"><span>Or <wbr>(x | y)</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Or (x | y)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.logic.Or" class="md-nav__link">
+    
+      <span aria-label="Python class" class="objinfo-icon objinfo-icon__data" title="Python class">C</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.logic.Or (Python class) — Bases: _NaryLogicExpression"><span>cvxpy.<wbr>logic.<wbr>Or</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="cvxpy.logic.Or">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.logic.Or-parameters" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span>Parameters</span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Parameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.logic.Or.__init__.args" class="md-nav__link">
+    
+      <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.logic.Or.__init__.args (Python parameter) — Two or more boolean variables or LogicExpressions."><span>args</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#xor-x-y" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="xor (``x ^ y``) (reference label)"><span>Xor <wbr>(x ^ y)</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Xor (x ^ y)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.logic.Xor" class="md-nav__link">
+    
+      <span aria-label="Python class" class="objinfo-icon objinfo-icon__data" title="Python class">C</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.logic.Xor (Python class) — Bases: _NaryLogicExpression"><span>cvxpy.<wbr>logic.<wbr>Xor</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="cvxpy.logic.Xor">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.logic.Xor-parameters" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span>Parameters</span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Parameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.logic.Xor.__init__.args" class="md-nav__link">
+    
+      <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.logic.Xor.__init__.args (Python parameter) — Two or more boolean variables or LogicExpressions."><span>args</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#implies-x-y" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="implies (x =&gt; y) (reference label)"><span>implies <wbr>(x =&gt; y)</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="implies (x =&gt; y)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.logic.implies" class="md-nav__link">
+    
+      <span aria-label="Python function" class="objinfo-icon objinfo-icon__procedure" title="Python function">F</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.logic.implies (Python function) — Logical implication: x =&gt; y."><span>cvxpy.<wbr>logic.<wbr>implies</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="cvxpy.logic.implies">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.logic.implies-parameters" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span>Parameters</span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Parameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.logic.implies.x" class="md-nav__link">
+    
+      <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.logic.implies.x (Python parameter) — A boolean variable or LogicExpression."><span>x</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.logic.implies.y" class="md-nav__link">
+    
+      <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.logic.implies.y (Python parameter) — A boolean variable or LogicExpression."><span>y</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#iff-x-y" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="iff (x &lt;=&gt; y) (reference label)"><span>iff <wbr>(x &lt;=&gt; y)</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="iff (x &lt;=&gt; y)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.logic.iff" class="md-nav__link">
+    
+      <span aria-label="Python function" class="objinfo-icon objinfo-icon__procedure" title="Python function">F</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.logic.iff (Python function) — Logical biconditional: x &lt;=&gt; y."><span>cvxpy.<wbr>logic.<wbr>iff</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="cvxpy.logic.iff">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.logic.iff-parameters" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span>Parameters</span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Parameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.logic.iff.x" class="md-nav__link">
+    
+      <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.logic.iff.x (Python parameter) — A boolean variable or LogicExpression."><span>x</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cvxpy.logic.iff.y" class="md-nav__link">
+    
+      <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.logic.iff.y (Python parameter) — A boolean variable or LogicExpression."><span>y</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset" role="main">
+                
+                
+                  
+
+
+<h1 id="cvxpy-atoms-elementwise-package">cvxpy.atoms.elementwise package<a class="headerlink" href="#cvxpy-atoms-elementwise-package" title="Link to this heading">¶</a></h1>
+<p>All of the atoms listed here operate elementwise on expressions. For example,
+<a class="reference internal" href="#cvxpy.exp" title="cvxpy.atoms.elementwise.exp.exp (Python class)"><code class="xref py py-class docutils literal notranslate"><span class="pre">exp</span></code></a> exponentiates each entry of
+expressions that are supplied to it.</p>
+<h2 id="abs"><span id="id1"></span>abs<a class="headerlink" href="#abs" title="Link to this heading">¶</a></h2>
+<dl class="py class objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.abs">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.</span></span><span class="sig-name descname"><span class="pre">abs</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.abs" title="cvxpy.abs.__init__.x (Python parameter)"><span class="n"><span class="pre">x</span></span></a></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/abs.html#abs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.abs" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Elementwise</span></code></p>
+<p>Elementwise absolute value</p>
+</dd></dl>
+
+<h2 id="entr"><span id="id2"></span>entr<a class="headerlink" href="#entr" title="Link to this heading">¶</a></h2>
+<dl class="py class objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.entr">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.</span></span><span class="sig-name descname"><span class="pre">entr</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.entr" title="cvxpy.entr.__init__.x (Python parameter)"><span class="n"><span class="pre">x</span></span></a></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/entr.html#entr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.entr" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Elementwise</span></code></p>
+<p>Elementwise <span class="math notranslate nohighlight">\(-x\log x\)</span>.</p>
+</dd></dl>
+
+<h2 id="exp"><span id="id3"></span>exp<a class="headerlink" href="#exp" title="Link to this heading">¶</a></h2>
+<dl class="py class objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.exp">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.</span></span><span class="sig-name descname"><span class="pre">exp</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.exp" title="cvxpy.exp.__init__.x (Python parameter)"><span class="n"><span class="pre">x</span></span></a></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/exp.html#exp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.exp" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Elementwise</span></code></p>
+<p>Elementwise <span class="math notranslate nohighlight">\(e^{x}\)</span>.</p>
+</dd></dl>
+
+<h2 id="huber"><span id="id4"></span>huber<a class="headerlink" href="#huber" title="Link to this heading">¶</a></h2>
+<dl class="py class objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.huber">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.</span></span><span class="sig-name descname"><span class="pre">huber</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.huber.__init__.x" title="cvxpy.huber.__init__.x (Python parameter) — The expression to which the huber function will be applied."><span class="n"><span class="pre">x</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.huber.__init__.M" title="cvxpy.huber.__init__.M (Python parameter) — A scalar constant."><span class="n"><span class="pre">M</span></span></a><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="desctype"><span class="pre">int</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><code class="code python default_value docutils literal highlight highlight-python"><span class="mi">1</span></code></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/huber.html#huber"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.huber" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Elementwise</span></code></p>
+<p>The Huber function</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\operatorname{Huber}(x, M) =
+    \begin{cases}
+        2M|x|-M^2 &amp; \text{for } |x| \geq |M| \\
+              |x|^2 &amp; \text{for } |x| \leq |M|.
+    \end{cases}\end{split}\]</div>
+<p><span class="math notranslate nohighlight">\(M\)</span> defaults to 1.</p>
+<dl class="field-list simple">
+<dt class="field-odd" id="cvxpy.huber-parameters">Parameters<span class="colon">:</span><a class="headerlink" href="#cvxpy.huber-parameters" title="Permalink to this headline">¶</a></dt>
+<dd class="field-odd"><dl class="simple api-field highlight">
+<dt id="cvxpy.huber.__init__.x"><span class="sig-name descname">x</span><span class="p"> : </span><span class="desctype"><span class="desctype"><a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression (Python class) — Bases: Canonical">Expression</a></span></span><a class="headerlink" href="#cvxpy.huber.__init__.x" title="Permalink to this definition">¶</a></dt><dd><p>The expression to which the huber function will be applied.</p>
+</dd>
+<dt id="cvxpy.huber.__init__.M"><span class="sig-name descname">M</span><span class="p"> : </span><span class="desctype"><span class="desctype"><a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.constants.Constant" title="cvxpy.expressions.constants.Constant (Python class) — Bases: Leaf">Constant</a> or <a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.constants.parameter.Parameter" title="cvxpy.expressions.constants.parameter.Parameter (Python class) — Bases: Leaf">Parameter</a></span></span><a class="headerlink" href="#cvxpy.huber.__init__.M" title="Permalink to this definition">¶</a></dt><dd><p>A scalar constant.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<h2 id="inv-pos"><span id="id5"></span>inv_pos<a class="headerlink" href="#inv-pos" title="Link to this heading">¶</a></h2>
+<dl class="py function objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.inv_pos">
+<span class="sig-prename descclassname"><span class="pre">cvxpy.</span></span><span class="sig-name descname"><span class="pre">inv_pos</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.inv_pos" title="cvxpy.inv_pos.x (Python parameter)"><span class="n"><span class="pre">x</span></span></a></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/inv_pos.html#inv_pos"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.inv_pos" title="Link to this definition">¶</a></dt>
+<dd><p><span class="math notranslate nohighlight">\(x^{-1}\)</span> for <span class="math notranslate nohighlight">\(x &gt; 0\)</span>.</p>
+</dd></dl>
+
+<h2 id="kl-div"><span id="id6"></span>kl_div<a class="headerlink" href="#kl-div" title="Link to this heading">¶</a></h2>
+<dl class="py class objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.kl_div">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.</span></span><span class="sig-name descname"><span class="pre">kl_div</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.kl_div" title="cvxpy.kl_div.__init__.x (Python parameter)"><span class="n"><span class="pre">x</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.kl_div" title="cvxpy.kl_div.__init__.y (Python parameter)"><span class="n"><span class="pre">y</span></span></a></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/kl_div.html#kl_div"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.kl_div" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Elementwise</span></code></p>
+<p><span class="math notranslate nohighlight">\(x\log(x/y) - x + y\)</span></p>
+<p>For disambiguation between kl_div and rel_entr, see <a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/733">https://github.com/cvxpy/cvxpy/issues/733</a></p>
+</dd></dl>
+
+<h2 id="log"><span id="id7"></span>log<a class="headerlink" href="#log" title="Link to this heading">¶</a></h2>
+<dl class="py class objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.log">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.</span></span><span class="sig-name descname"><span class="pre">log</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.log" title="cvxpy.log.__init__.x (Python parameter)"><span class="n"><span class="pre">x</span></span></a></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/log.html#log"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.log" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Elementwise</span></code></p>
+<p>Elementwise <span class="math notranslate nohighlight">\(\log x\)</span>.</p>
+</dd></dl>
+
+<h2 id="log-normcdf"><span id="id8"></span>log_normcdf<a class="headerlink" href="#log-normcdf" title="Link to this heading">¶</a></h2>
+<dl class="py class objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.log_normcdf">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.</span></span><span class="sig-name descname"><span class="pre">log_normcdf</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.log_normcdf" title="cvxpy.log_normcdf.__init__.x (Python parameter)"><span class="n"><span class="pre">x</span></span></a></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/log_normcdf.html#log_normcdf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.log_normcdf" title="Link to this definition">¶</a></dt>
+<dd><p>Bases:</p>
+<p>Elementwise log of the cumulative distribution function of a standard normal random variable.</p>
+<p>The implementation is a quadratic approximation with modest accuracy over [-4, 4].
+For details on the nature of the approximation, refer to
+<a class="reference external" href="https://github.com/cvxpy/cvxpy/pull/1224#issue-793221374">CVXPY GitHub PR #1224</a>.</p>
+<div class="note admonition">
+<p class="admonition-title">Note</p>
+<p>SciPy’s analog of <code class="docutils literal notranslate"><span class="pre">log_normcdf</span></code> is called <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.special.log_ndtr.html">log_ndtr</a>.
+We opted not to use that name because its meaning would not be obvious to the casual user.</p>
+</div>
+</dd></dl>
+
+<h2 id="log1p"><span id="id9"></span>log1p<a class="headerlink" href="#log1p" title="Link to this heading">¶</a></h2>
+<dl class="py class objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.log1p">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.</span></span><span class="sig-name descname"><span class="pre">log1p</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.log1p" title="cvxpy.log1p.__init__.x (Python parameter)"><span class="n"><span class="pre">x</span></span></a></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/log1p.html#log1p"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.log1p" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#cvxpy.log" title="cvxpy.atoms.elementwise.log.log (Python class)"><code class="xref py py-class docutils literal notranslate"><span class="pre">log</span></code></a></p>
+<p>Elementwise <span class="math notranslate nohighlight">\(\log (1 + x)\)</span>.</p>
+</dd></dl>
+
+<h2 id="loggamma"><span id="id10"></span>loggamma<a class="headerlink" href="#loggamma" title="Link to this heading">¶</a></h2>
+<dl class="py class objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.loggamma">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.</span></span><span class="sig-name descname"><span class="pre">loggamma</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.loggamma" title="cvxpy.loggamma.__init__.x (Python parameter)"><span class="n"><span class="pre">x</span></span></a></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/loggamma.html#loggamma"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.loggamma" title="Link to this definition">¶</a></dt>
+<dd><p>Bases:</p>
+<p>Elementwise log of the gamma function.</p>
+<p>Implementation has modest accuracy over the full range, approaching perfect
+accuracy as x goes to infinity. For details on the nature of the approximation,
+refer to <a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/228#issuecomment-544281906">CVXPY GitHub Issue #228</a>.</p>
+</dd></dl>
+
+<h2 id="logistic"><span id="id11"></span>logistic<a class="headerlink" href="#logistic" title="Link to this heading">¶</a></h2>
+<dl class="py class objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.logistic">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.</span></span><span class="sig-name descname"><span class="pre">logistic</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.logistic" title="cvxpy.logistic.__init__.x (Python parameter)"><span class="n"><span class="pre">x</span></span></a></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/logistic.html#logistic"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.logistic" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Elementwise</span></code></p>
+<p><span class="math notranslate nohighlight">\(\log(1 + e^{x})\)</span></p>
+<p>This is a special case of log(sum(exp)) that is evaluates to a vector rather
+than to a scalar which is useful for logistic regression.</p>
+</dd></dl>
+
+<h2 id="maximum"><span id="id12"></span>maximum<a class="headerlink" href="#maximum" title="Link to this heading">¶</a></h2>
+<dl class="py class objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.maximum">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.</span></span><span class="sig-name descname"><span class="pre">maximum</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.maximum" title="cvxpy.maximum.__init__.arg1 (Python parameter)"><span class="n"><span class="pre">arg1</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.maximum" title="cvxpy.maximum.__init__.arg2 (Python parameter)"><span class="n"><span class="pre">arg2</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><span class="o"><span class="pre">*</span></span><a class="n reference internal" href="#cvxpy.maximum" title="cvxpy.maximum.__init__.args (Python parameter)"><span class="n"><span class="pre">args</span></span></a></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/maximum.html#maximum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.maximum" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Elementwise</span></code></p>
+<p>Elementwise maximum of a sequence of expressions.</p>
+</dd></dl>
+
+<h2 id="minimum"><span id="id13"></span>minimum<a class="headerlink" href="#minimum" title="Link to this heading">¶</a></h2>
+<dl class="py function objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.minimum">
+<span class="sig-prename descclassname"><span class="pre">cvxpy.</span></span><span class="sig-name descname"><span class="pre">minimum</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.minimum" title="cvxpy.minimum.arg1 (Python parameter)"><span class="n"><span class="pre">arg1</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.minimum" title="cvxpy.minimum.arg2 (Python parameter)"><span class="n"><span class="pre">arg2</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><span class="o"><span class="pre">*</span></span><a class="n reference internal" href="#cvxpy.minimum" title="cvxpy.minimum.args (Python parameter)"><span class="n"><span class="pre">args</span></span></a></em></span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="desctype"><span class="pre">None</span></span></span></span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/minimum.html#minimum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.minimum" title="Link to this definition">¶</a></dt>
+<dd><p>Elementwise minimum of a sequence of expressions.</p>
+</dd></dl>
+
+<h2 id="neg"><span id="id14"></span>neg<a class="headerlink" href="#neg" title="Link to this heading">¶</a></h2>
+<dl class="py function objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.neg">
+<span class="sig-prename descclassname"><span class="pre">cvxpy.</span></span><span class="sig-name descname"><span class="pre">neg</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.neg" title="cvxpy.neg.x (Python parameter)"><span class="n"><span class="pre">x</span></span></a></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/neg.html#neg"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.neg" title="Link to this definition">¶</a></dt>
+<dd><p>Alias for -minimum{x, 0}.</p>
+</dd></dl>
+
+<h2 id="pos"><span id="id15"></span>pos<a class="headerlink" href="#pos" title="Link to this heading">¶</a></h2>
+<dl class="py function objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.pos">
+<span class="sig-prename descclassname"><span class="pre">cvxpy.</span></span><span class="sig-name descname"><span class="pre">pos</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.pos" title="cvxpy.pos.x (Python parameter)"><span class="n"><span class="pre">x</span></span></a></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/pos.html#pos"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.pos" title="Link to this definition">¶</a></dt>
+<dd><p>Alias for maximum{x,0}.</p>
+</dd></dl>
+
+<h2 id="power"><span id="id16"></span>power<a class="headerlink" href="#power" title="Link to this heading">¶</a></h2>
+<dl class="py class objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.power">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.</span></span><span class="sig-name descname"><span class="pre">power</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.power.__init__.x" title="cvxpy.power.__init__.x (Python parameter) — The base expression."><span class="n"><span class="pre">x</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.power.__init__.p" title="cvxpy.power.__init__.p (Python parameter) — The exponent."><span class="n"><span class="pre">p</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.power.__init__.max_denom" title="cvxpy.power.__init__.max_denom (Python parameter) — Maximum denominator for rational approximation."><span class="n"><span class="pre">max_denom</span></span></a><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="desctype"><span class="pre">int</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><code class="code python default_value docutils literal highlight highlight-python"><span class="mi">1024</span></code></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.power.__init__.approx" title="cvxpy.power.__init__.approx (Python parameter) — When True (default), uses SOC approximation."><span class="n"><span class="pre">approx</span></span></a><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="desctype"><span class="pre">bool</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><code class="code python default_value docutils literal highlight highlight-python"><span class="kc">True</span></code></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/power.html#power"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.power" title="Link to this definition">¶</a></dt>
+<dd><p>Bases:</p>
+<p>Factory function for elementwise power.</p>
+<dl class="field-list simple">
+<dt class="field-odd" id="cvxpy.power-parameters">Parameters<span class="colon">:</span><a class="headerlink" href="#cvxpy.power-parameters" title="Permalink to this headline">¶</a></dt>
+<dd class="field-odd"><dl class="simple api-field highlight">
+<dt id="cvxpy.power.__init__.x"><span class="sig-name descname">x</span><span class="p"> : </span><span class="desctype"><span class="desctype"><a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression (Python class) — Bases: Canonical">Expression</a></span></span><a class="headerlink" href="#cvxpy.power.__init__.x" title="Permalink to this definition">¶</a></dt><dd><p>The base expression.</p>
+</dd>
+<dt id="cvxpy.power.__init__.p"><span class="sig-name descname">p</span><span class="p"> : </span><span class="desctype"><span class="desctype">int, float, Fraction, or <a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.constants.parameter.Parameter" title="cvxpy.expressions.constants.parameter.Parameter (Python class) — Bases: Leaf">Parameter</a></span></span><a class="headerlink" href="#cvxpy.power.__init__.p" title="Permalink to this definition">¶</a></dt><dd><p>The exponent.</p>
+</dd>
+<dt id="cvxpy.power.__init__.max_denom"><span class="sig-name descname">max_denom</span><span class="p"> : </span><span class="desctype"><span class="desctype">int</span></span><a class="headerlink" href="#cvxpy.power.__init__.max_denom" title="Permalink to this definition">¶</a></dt><dd><p>Maximum denominator for rational approximation.</p>
+</dd>
+<dt id="cvxpy.power.__init__.approx"><span class="sig-name descname">approx</span><span class="p"> : </span><span class="desctype"><span class="desctype">bool</span></span><a class="headerlink" href="#cvxpy.power.__init__.approx" title="Permalink to this definition">¶</a></dt><dd><p>When True (default), uses SOC approximation. When False,
+uses power cone (exact).</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even" id="cvxpy.power-return-type">Return type<span class="colon">:</span><a class="headerlink" href="#cvxpy.power-return-type" title="Permalink to this headline">¶</a></dt>
+<dd class="field-even"><p>Power or PowerApprox</p>
+</dd>
+</dl>
+</dd></dl>
+
+<h2 id="rel-entr"><span id="id17"></span>rel_entr<a class="headerlink" href="#rel-entr" title="Link to this heading">¶</a></h2>
+<dl class="py class objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.rel_entr">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.</span></span><span class="sig-name descname"><span class="pre">rel_entr</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.rel_entr" title="cvxpy.rel_entr.__init__.x (Python parameter)"><span class="n"><span class="pre">x</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.rel_entr" title="cvxpy.rel_entr.__init__.y (Python parameter)"><span class="n"><span class="pre">y</span></span></a></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/rel_entr.html#rel_entr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.rel_entr" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Elementwise</span></code></p>
+<p><span class="math notranslate nohighlight">\(x\log(x/y)\)</span></p>
+<p>For disambiguation between rel_entr and kl_div, see <a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/733">https://github.com/cvxpy/cvxpy/issues/733</a></p>
+</dd></dl>
+
+<h2 id="scalene"><span id="id18"></span>scalene<a class="headerlink" href="#scalene" title="Link to this heading">¶</a></h2>
+<dl class="py function objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.scalene">
+<span class="sig-prename descclassname"><span class="pre">cvxpy.</span></span><span class="sig-name descname"><span class="pre">scalene</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.scalene" title="cvxpy.scalene.x (Python parameter)"><span class="n"><span class="pre">x</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.scalene" title="cvxpy.scalene.alpha (Python parameter)"><span class="n"><span class="pre">alpha</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.scalene" title="cvxpy.scalene.beta (Python parameter)"><span class="n"><span class="pre">beta</span></span></a></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/scalene.html#scalene"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.scalene" title="Link to this definition">¶</a></dt>
+<dd><p>Alias for <code class="docutils literal notranslate"><span class="pre">alpha*pos(x)</span> <span class="pre">+</span> <span class="pre">beta*neg(x)</span></code>.</p>
+</dd></dl>
+
+<h2 id="sqrt"><span id="id19"></span>sqrt<a class="headerlink" href="#sqrt" title="Link to this heading">¶</a></h2>
+<dl class="py function objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.sqrt">
+<span class="sig-prename descclassname"><span class="pre">cvxpy.</span></span><span class="sig-name descname"><span class="pre">sqrt</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.sqrt" title="cvxpy.sqrt.x (Python parameter)"><span class="n"><span class="pre">x</span></span></a></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/sqrt.html#sqrt"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.sqrt" title="Link to this definition">¶</a></dt>
+<dd><p>The square root of an expression.</p>
+</dd></dl>
+
+<h2 id="square"><span id="id20"></span>square<a class="headerlink" href="#square" title="Link to this heading">¶</a></h2>
+<dl class="py function objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.square">
+<span class="sig-prename descclassname"><span class="pre">cvxpy.</span></span><span class="sig-name descname"><span class="pre">square</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.square" title="cvxpy.square.x (Python parameter)"><span class="n"><span class="pre">x</span></span></a></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/square.html#square"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.square" title="Link to this definition">¶</a></dt>
+<dd><p>The square of an expression.</p>
+</dd></dl>
+
+<h2 id="xexp"><span id="id21"></span>xexp<a class="headerlink" href="#xexp" title="Link to this heading">¶</a></h2>
+<dl class="py class objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.xexp">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.</span></span><span class="sig-name descname"><span class="pre">xexp</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.xexp" title="cvxpy.xexp.__init__.x (Python parameter)"><span class="n"><span class="pre">x</span></span></a></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/xexp.html#xexp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.xexp" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Elementwise</span></code></p>
+<p>Elementwise <span class="math notranslate nohighlight">\({x}*e^{x}\)</span>.</p>
+</dd></dl>
+
+<h2 id="not-x"><span id="logic-not"></span>Not (<code class="docutils literal notranslate"><span class="pre">~x</span></code>)<a class="headerlink" href="#not-x" title="Link to this heading">¶</a></h2>
+<dl class="py class objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.logic.Not">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.logic.</span></span><span class="sig-name descname"><span class="pre">Not</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.logic.Not.__init__.arg" title="cvxpy.logic.Not.__init__.arg (Python parameter) — A boolean variable or LogicExpression."><span class="n"><span class="pre">arg</span></span></a></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/logic.html#Not"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.logic.Not" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">LogicExpression</span></code></p>
+<p>Logical NOT of a boolean expression.</p>
+<p>Returns <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">-</span> <span class="pre">x</span></code>, i.e., flips 0 to 1 and 1 to 0.</p>
+<p>Can also be written with the <code class="docutils literal notranslate"><span class="pre">~</span></code> operator: <code class="docutils literal notranslate"><span class="pre">~x</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd" id="cvxpy.logic.Not-parameters">Parameters<span class="colon">:</span><a class="headerlink" href="#cvxpy.logic.Not-parameters" title="Permalink to this headline">¶</a></dt>
+<dd class="field-odd"><dl class="simple api-field highlight">
+<dt id="cvxpy.logic.Not.__init__.arg"><span class="sig-name descname">arg</span><span class="p"> : </span><span class="desctype"><span class="desctype"><a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression (Python class) — Bases: Canonical">Expression</a></span></span><a class="headerlink" href="#cvxpy.logic.Not.__init__.arg" title="Permalink to this definition">¶</a></dt><dd><p>A boolean variable or LogicExpression.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="example rubric">Examples</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">cvxpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cp</span>
+
+<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">boolean</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">not_x</span> <span class="o">=</span> <span class="o">~</span><span class="n">x</span>                <span class="c1"># operator syntax</span>
+<span class="n">not_x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">logic</span><span class="o">.</span><span class="n">Not</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>   <span class="c1"># equivalent functional syntax</span>
+</code></pre></div>
+</div>
+</dd></dl>
+
+<h2 id="and-x-y"><span id="logic-and"></span>And (<code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">&amp;</span> <span class="pre">y</span></code>)<a class="headerlink" href="#and-x-y" title="Link to this heading">¶</a></h2>
+<dl class="py class objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.logic.And">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.logic.</span></span><span class="sig-name descname"><span class="pre">And</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.logic.And" title="cvxpy.logic.And.__init__.arg1 (Python parameter)"><span class="n"><span class="pre">arg1</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.logic.And" title="cvxpy.logic.And.__init__.arg2 (Python parameter)"><span class="n"><span class="pre">arg2</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><span class="o"><span class="pre">*</span></span><a class="n reference internal" href="#cvxpy.logic.And.__init__.args" title="cvxpy.logic.And.__init__.args (Python parameter) — Two or more boolean variables or LogicExpressions."><span class="n"><span class="pre">args</span></span></a></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/logic.html#And"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.logic.And" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_NaryLogicExpression</span></code></p>
+<p>Logical AND of boolean expressions.</p>
+<p>Returns 1 if and only if all arguments equal 1, and 0 otherwise.</p>
+<p>For two operands, can also be written with the <code class="docutils literal notranslate"><span class="pre">&amp;</span></code> operator: <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">&amp;</span> <span class="pre">y</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd" id="cvxpy.logic.And-parameters">Parameters<span class="colon">:</span><a class="headerlink" href="#cvxpy.logic.And-parameters" title="Permalink to this headline">¶</a></dt>
+<dd class="field-odd"><dl class="simple api-field highlight">
+<dt id="cvxpy.logic.And.__init__.args"><span class="sig-name descname">*args</span><span class="p"> : </span><span class="desctype"><span class="desctype"><a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression (Python class) — Bases: Canonical">Expression</a></span></span><a class="headerlink" href="#cvxpy.logic.And.__init__.args" title="Permalink to this definition">¶</a></dt><dd><p>Two or more boolean variables or LogicExpressions.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="example rubric">Examples</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">cvxpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cp</span>
+
+<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">boolean</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">boolean</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">both</span> <span class="o">=</span> <span class="n">x</span> <span class="o">&amp;</span> <span class="n">y</span>                  <span class="c1"># operator syntax</span>
+<span class="n">both</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">logic</span><span class="o">.</span><span class="n">And</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>     <span class="c1"># equivalent functional syntax</span>
+<span class="n">all3</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">logic</span><span class="o">.</span><span class="n">And</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>  <span class="c1"># n-ary (3+ args) requires functional syntax</span>
+</code></pre></div>
+</div>
+</dd></dl>
+
+<h2 id="or-x-y"><span id="logic-or"></span>Or (<code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">|</span> <span class="pre">y</span></code>)<a class="headerlink" href="#or-x-y" title="Link to this heading">¶</a></h2>
+<dl class="py class objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.logic.Or">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.logic.</span></span><span class="sig-name descname"><span class="pre">Or</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.logic.Or" title="cvxpy.logic.Or.__init__.arg1 (Python parameter)"><span class="n"><span class="pre">arg1</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.logic.Or" title="cvxpy.logic.Or.__init__.arg2 (Python parameter)"><span class="n"><span class="pre">arg2</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><span class="o"><span class="pre">*</span></span><a class="n reference internal" href="#cvxpy.logic.Or.__init__.args" title="cvxpy.logic.Or.__init__.args (Python parameter) — Two or more boolean variables or LogicExpressions."><span class="n"><span class="pre">args</span></span></a></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/logic.html#Or"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.logic.Or" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_NaryLogicExpression</span></code></p>
+<p>Logical OR of boolean expressions.</p>
+<p>Returns 1 if and only if at least one argument equals 1, and 0 otherwise.</p>
+<p>For two operands, can also be written with the <code class="docutils literal notranslate"><span class="pre">|</span></code> operator: <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">|</span> <span class="pre">y</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd" id="cvxpy.logic.Or-parameters">Parameters<span class="colon">:</span><a class="headerlink" href="#cvxpy.logic.Or-parameters" title="Permalink to this headline">¶</a></dt>
+<dd class="field-odd"><dl class="simple api-field highlight">
+<dt id="cvxpy.logic.Or.__init__.args"><span class="sig-name descname">*args</span><span class="p"> : </span><span class="desctype"><span class="desctype"><a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression (Python class) — Bases: Canonical">Expression</a></span></span><a class="headerlink" href="#cvxpy.logic.Or.__init__.args" title="Permalink to this definition">¶</a></dt><dd><p>Two or more boolean variables or LogicExpressions.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="example rubric">Examples</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">cvxpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cp</span>
+
+<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">boolean</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">boolean</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">either</span> <span class="o">=</span> <span class="n">x</span> <span class="o">|</span> <span class="n">y</span>                <span class="c1"># operator syntax</span>
+<span class="n">either</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">logic</span><span class="o">.</span><span class="n">Or</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>    <span class="c1"># equivalent functional syntax</span>
+<span class="n">any3</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">logic</span><span class="o">.</span><span class="n">Or</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>   <span class="c1"># n-ary (3+ args) requires functional syntax</span>
+</code></pre></div>
+</div>
+</dd></dl>
+
+<h2 id="xor-x-y"><span id="logic-xor"></span>Xor (<code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">^</span> <span class="pre">y</span></code>)<a class="headerlink" href="#xor-x-y" title="Link to this heading">¶</a></h2>
+<dl class="py class objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.logic.Xor">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.logic.</span></span><span class="sig-name descname"><span class="pre">Xor</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.logic.Xor" title="cvxpy.logic.Xor.__init__.arg1 (Python parameter)"><span class="n"><span class="pre">arg1</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.logic.Xor" title="cvxpy.logic.Xor.__init__.arg2 (Python parameter)"><span class="n"><span class="pre">arg2</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><span class="o"><span class="pre">*</span></span><a class="n reference internal" href="#cvxpy.logic.Xor.__init__.args" title="cvxpy.logic.Xor.__init__.args (Python parameter) — Two or more boolean variables or LogicExpressions."><span class="n"><span class="pre">args</span></span></a></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/logic.html#Xor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.logic.Xor" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_NaryLogicExpression</span></code></p>
+<p>Logical XOR of boolean expressions.</p>
+<p>For two arguments: result is 1 iff exactly one is 1.
+For n arguments: result is 1 iff an odd number are 1 (parity).</p>
+<p>For two operands, can also be written with the <code class="docutils literal notranslate"><span class="pre">^</span></code> operator: <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">^</span> <span class="pre">y</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd" id="cvxpy.logic.Xor-parameters">Parameters<span class="colon">:</span><a class="headerlink" href="#cvxpy.logic.Xor-parameters" title="Permalink to this headline">¶</a></dt>
+<dd class="field-odd"><dl class="simple api-field highlight">
+<dt id="cvxpy.logic.Xor.__init__.args"><span class="sig-name descname">*args</span><span class="p"> : </span><span class="desctype"><span class="desctype"><a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression (Python class) — Bases: Canonical">Expression</a></span></span><a class="headerlink" href="#cvxpy.logic.Xor.__init__.args" title="Permalink to this definition">¶</a></dt><dd><p>Two or more boolean variables or LogicExpressions.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="example rubric">Examples</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">cvxpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cp</span>
+
+<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">boolean</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">boolean</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">exclusive</span> <span class="o">=</span> <span class="n">x</span> <span class="o">^</span> <span class="n">y</span>                 <span class="c1"># operator syntax</span>
+<span class="n">exclusive</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">logic</span><span class="o">.</span><span class="n">Xor</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>    <span class="c1"># equivalent functional syntax</span>
+<span class="n">parity3</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">logic</span><span class="o">.</span><span class="n">Xor</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>   <span class="c1"># n-ary (3+ args) requires functional syntax</span>
+</code></pre></div>
+</div>
+</dd></dl>
+
+<h2 id="implies-x-y"><span id="logic-implies"></span>implies (x =&gt; y)<a class="headerlink" href="#implies-x-y" title="Link to this heading">¶</a></h2>
+<dl class="py function objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.logic.implies">
+<span class="sig-prename descclassname"><span class="pre">cvxpy.logic.</span></span><span class="sig-name descname"><span class="pre">implies</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.logic.implies.x" title="cvxpy.logic.implies.x (Python parameter) — A boolean variable or LogicExpression."><span class="n"><span class="pre">x</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.logic.implies.y" title="cvxpy.logic.implies.y (Python parameter) — A boolean variable or LogicExpression."><span class="n"><span class="pre">y</span></span></a></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/logic.html#implies"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.logic.implies" title="Link to this definition">¶</a></dt>
+<dd><p>Logical implication: x =&gt; y.</p>
+<p>Returns 1 unless x = 1 and y = 0.  Equivalent to <code class="docutils literal notranslate"><span class="pre">Or(Not(x),</span> <span class="pre">y)</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd" id="cvxpy.logic.implies-parameters">Parameters<span class="colon">:</span><a class="headerlink" href="#cvxpy.logic.implies-parameters" title="Permalink to this headline">¶</a></dt>
+<dd class="field-odd"><dl class="simple api-field highlight">
+<dt id="cvxpy.logic.implies.x"><span class="sig-name descname">x</span><span class="p"> : </span><span class="desctype"><span class="desctype"><a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression (Python class) — Bases: Canonical">Expression</a></span></span><a class="headerlink" href="#cvxpy.logic.implies.x" title="Permalink to this definition">¶</a></dt><dd><p>A boolean variable or LogicExpression.</p>
+</dd>
+<dt id="cvxpy.logic.implies.y"><span class="sig-name descname">y</span><span class="p"> : </span><span class="desctype"><span class="desctype"><a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression (Python class) — Bases: Canonical">Expression</a></span></span><a class="headerlink" href="#cvxpy.logic.implies.y" title="Permalink to this definition">¶</a></dt><dd><p>A boolean variable or LogicExpression.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="example rubric">Examples</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">cvxpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cp</span>
+
+<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">boolean</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">boolean</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">expr</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">logic</span><span class="o">.</span><span class="n">implies</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+</code></pre></div>
+</div>
+</dd></dl>
+
+<h2 id="iff-x-y"><span id="logic-iff"></span>iff (x &lt;=&gt; y)<a class="headerlink" href="#iff-x-y" title="Link to this heading">¶</a></h2>
+<dl class="py function objdesc">
+<dt class="sig sig-object highlight py" id="cvxpy.logic.iff">
+<span class="sig-prename descclassname"><span class="pre">cvxpy.logic.</span></span><span class="sig-name descname"><span class="pre">iff</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.logic.iff.x" title="cvxpy.logic.iff.x (Python parameter) — A boolean variable or LogicExpression."><span class="n"><span class="pre">x</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.logic.iff.y" title="cvxpy.logic.iff.y (Python parameter) — A boolean variable or LogicExpression."><span class="n"><span class="pre">y</span></span></a></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/logic.html#iff"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.logic.iff" title="Link to this definition">¶</a></dt>
+<dd><p>Logical biconditional: x &lt;=&gt; y.</p>
+<p>Returns 1 if and only if x and y have the same value.
+Equivalent to <code class="docutils literal notranslate"><span class="pre">Not(Xor(x,</span> <span class="pre">y))</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd" id="cvxpy.logic.iff-parameters">Parameters<span class="colon">:</span><a class="headerlink" href="#cvxpy.logic.iff-parameters" title="Permalink to this headline">¶</a></dt>
+<dd class="field-odd"><dl class="simple api-field highlight">
+<dt id="cvxpy.logic.iff.x"><span class="sig-name descname">x</span><span class="p"> : </span><span class="desctype"><span class="desctype"><a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression (Python class) — Bases: Canonical">Expression</a></span></span><a class="headerlink" href="#cvxpy.logic.iff.x" title="Permalink to this definition">¶</a></dt><dd><p>A boolean variable or LogicExpression.</p>
+</dd>
+<dt id="cvxpy.logic.iff.y"><span class="sig-name descname">y</span><span class="p"> : </span><span class="desctype"><span class="desctype"><a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression (Python class) — Bases: Canonical">Expression</a></span></span><a class="headerlink" href="#cvxpy.logic.iff.y" title="Permalink to this definition">¶</a></dt><dd><p>A boolean variable or LogicExpression.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="example rubric">Examples</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">cvxpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cp</span>
+
+<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">boolean</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">boolean</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">expr</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">logic</span><span class="o">.</span><span class="n">iff</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+</code></pre></div>
+</div>
+</dd></dl>
+
+
+
+
+
+
+
+  
+  
+
+
+
+  
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  
+  
+  <div class="md-footer-meta md-typeset">
+    
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-footer-copyright__highlight">
+        &#169; Copyright The CVXPY authors.
+        
+    </div>
+  
+    Created using
+    <a href="https://www.sphinx-doc.org/" target="_blank" rel="noopener">Sphinx</a>
+    8.2.3.
+     and
+    <a href="https://github.com/jbms/sphinx-immaterial/" target="_blank" rel="noopener">Sphinx-Immaterial</a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+    <a href="https://github.com/cvxpy/cvxpy" target="_blank" rel="noopener" title="Source on github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://pypi.org/project/cvxpy/" target="_blank" rel="noopener" title="pypi.org" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.8 200.5c-7.7-30.9-22.3-54.2-53.4-54.2h-40.1v47.4c0 36.8-31.2 67.8-66.8 67.8H172.7c-29.2 0-53.4 25-53.4 54.3v101.8c0 29 25.2 46 53.4 54.3 33.8 9.9 66.3 11.7 106.8 0 26.9-7.8 53.4-23.5 53.4-54.3v-40.7H226.2v-13.6h160.2c31.1 0 42.6-21.7 53.4-54.2 11.2-33.5 10.7-65.7 0-108.6M286.2 404c11.1 0 20.1 9.1 20.1 20.3 0 11.3-9 20.4-20.1 20.4-11 0-20.1-9.2-20.1-20.4.1-11.3 9.1-20.3 20.1-20.3M167.8 248.1h106.8c29.7 0 53.4-24.5 53.4-54.3V91.9c0-29-24.4-50.7-53.4-55.6-35.8-5.9-74.7-5.6-106.8.1-45.2 8-53.4 24.7-53.4 55.6v40.7h106.9v13.6h-147c-31.1 0-58.3 18.7-66.8 54.2-9.8 40.7-10.2 66.1 0 108.6 7.6 31.6 25.7 54.2 56.8 54.2H101v-48.8c0-35.3 30.5-66.4 66.8-66.4m-6.7-142.6c-11.1 0-20.1-9.1-20.1-20.3.1-11.3 9-20.4 20.1-20.4 11 0 20.1 9.2 20.1 20.4s-9 20.3-20.1 20.3"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+    
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "..", "features": ["header.autohide", "toc.follow", "navigation.path", "navigation.instant", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.tracking", "navigation.expand", "search.highlight", "search.share", "content.tabs.link", "announce.dismiss", "content.code.copy"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike", "staticVersions": [{"aliases": [], "title": "latest", "version": "https://www.cvxpy.org"}, {"aliases": [], "title": "1.7", "version": "https://www.cvxpy.org/version/1.7"}, {"aliases": [], "title": "1.6", "version": "https://www.cvxpy.org/version/1.6"}, {"aliases": [], "title": "1.5", "version": "https://www.cvxpy.org/version/1.5"}, {"aliases": [], "title": "1.4", "version": "https://www.cvxpy.org/version/1.4"}], "versionPath": null}}</script>
+    
+      
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/sphinx_immaterial_theme.32136f45f91ae6956.min.js?v=a7a9472a"></script>
+        <script src="../_static/tabs.js?v=3ee01567"></script>
+        <script src="../_static/design-tabs.js?v=f930bc37"></script>
+        <script id="MathJax-script" src="../_static/mathjax/tex-mml-chtml.js"></script>
+        <script src="https://cdn.datatables.net/2.1.8/js/dataTables.js"></script>
+    
+  </body>
+</html>
