@@ -28,8 +28,32 @@ def _is_const(p) -> bool:
     return isinstance(p, cvxtypes.constant())
 
 
+def power(x, p, max_denom: int = 1024, approx: bool = True):
+    """Factory function for elementwise power.
 
-class power(Elementwise):
+    Parameters
+    ----------
+    x : Expression
+        The base expression.
+    p : int, float, Fraction, or Parameter
+        The exponent.
+    max_denom : int
+        Maximum denominator for rational approximation.
+    approx : bool
+        When True (default), uses SOC approximation. When False,
+        uses power cone (exact).
+
+    Returns
+    -------
+    Power or PowerApprox
+    """
+    if approx:
+        return PowerApprox(x, p, max_denom)
+    else:
+        return Power(x, p, max_denom)
+
+
+class Power(Elementwise):
     r""" Elementwise power function :math:`f(x) = x^p`.
 
     If ``expr`` is a CVXPY expression, then ``expr**p``
@@ -130,58 +154,25 @@ class power(Elementwise):
         of ``p``; only relevant when solving as a DCP program.
     """
 
-    def __init__(self, x, p, max_denom: int = 1024, _approx: bool = True) -> None:
+    def __init__(self, x, p, max_denom: int = 1024) -> None:
         self._p_orig = p
         # NB: It is important that the exponent is an attribute, not
         # an argument. This prevents parametrized exponents from being replaced
         # with their logs in Dgp2Dcp.
         self.p = cvxtypes.expression().cast_to_const(p)
-        # TODO: allow to switch x and p
         if not (isinstance(self.p, cvxtypes.constant()) or
                 isinstance(self.p, cvxtypes.parameter())):
             raise ValueError("The exponent `p` must be either a Constant or "
                              "a Parameter; received ", type(p))
         self.max_denom = max_denom
-        self._approx = _approx
-        self.p_rational = None
 
         if isinstance(self.p, cvxtypes.constant()):
-            # Compute a rational approximation to p, for DCP (DGP doesn't need
-            # an approximation).
+            self.p_used = float(self.p.value)
+        else:
+            self.p_used = None
+        self.approx_error = 0.0
 
-            if not isinstance(self._p_orig, cvxtypes.expression()):
-                # converting to a CVXPY Constant loses the dtype (eg, int),
-                # so fetch the original exponent when possible
-                p = self._p_orig
-            else:
-                p = self.p.value
-            # how we convert p to a rational depends on the branch of the function
-            if p > 1:
-                p, w = pow_high(p, max_denom, approx=self._approx)
-            elif 0 < p < 1:
-                p, w = pow_mid(p, max_denom, approx=self._approx)
-            elif p < 0:
-                p, w = pow_neg(p, max_denom, approx=self._approx)
-
-            # note: if, after making the rational approximation, p ends up
-            # being 0 or 1, we default to using the 0 or 1 behavior of the
-            # atom, which affects the curvature, domain, etc... maybe
-            # unexpected behavior to the user if they put in 1.00001?
-            if p == 1:
-                # in case p is a fraction equivalent to 1
-                p = 1
-                w = None
-            if p == 0:
-                p = 0
-                w = None
-
-            self.p_rational, self.w = p, w
-            if self._approx:
-                self.approx_error = float(abs(self.p_rational - p))
-            else:
-                self.approx_error = 0.0
-        super(power, self).__init__(x)
-
+        super(Power, self).__init__(x)
 
     @Elementwise.numpy_numeric
     def numeric(self, values):
@@ -262,7 +253,7 @@ class power(Elementwise):
     def is_constant(self) -> bool:
         """Is the expression constant?
         """
-        return (_is_const(self.p) and self.p.value == 0) or super(power, self).is_constant()
+        return (_is_const(self.p) and self.p.value == 0) or super(Power, self).is_constant()
 
     def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
@@ -270,7 +261,7 @@ class power(Elementwise):
         if not _is_const(self.p):
             return self.p.is_nonneg() and self.args[idx].is_nonneg()
 
-        p = self.p_rational
+        p = self.p_used
         if 0 <= p <= 1:
             return True
         elif p > 1:
@@ -287,7 +278,7 @@ class power(Elementwise):
         if not _is_const(self.p):
             return self.p.is_nonpos() and self.args[idx].is_nonneg()
 
-        p = self.p_rational
+        p = self.p_used
         if p <= 0:
             return True
         elif p > 1:
@@ -302,7 +293,7 @@ class power(Elementwise):
         if not _is_const(self.p):
             return False
 
-        p = self.p_rational
+        p = self.p_used
         if p == 0:
             return True
         elif p == 1:
@@ -322,7 +313,7 @@ class power(Elementwise):
         if not _is_const(self.p):
             return False
 
-        p = self.p_rational
+        p = self.p_used
         if p == 1:
             return self.args[0].has_quadratic_term()
         elif p == 2:
@@ -335,7 +326,7 @@ class power(Elementwise):
             # disallow parameters
             return False
 
-        p = self.p_rational
+        p = self.p_used
         if p == 0:
             return True
         elif p == 1:
@@ -347,7 +338,7 @@ class power(Elementwise):
 
     def _quadratic_power(self) -> bool:
         """Utility function to check if power is 0, 1 or 2."""
-        p = self.p_rational
+        p = self.p_used
         return p in [0, 1, 2]
 
     def _grad(self, values):
@@ -364,8 +355,8 @@ class power(Elementwise):
         rows = self.args[0].size
         cols = self.size
 
-        if self.p_rational is not None:
-            p = self.p_rational
+        if self.p_used is not None:
+            p = self.p_used
         elif self.p.value is not None:
             p = self.p.value
         else:
@@ -380,7 +371,7 @@ class power(Elementwise):
             return [None]
 
         grad_vals = float(p)*np.power(values[0], float(p)-1)
-        return [power.elemwise_grad_to_diag(grad_vals, rows, cols)]
+        return [Power.elemwise_grad_to_diag(grad_vals, rows, cols)]
 
     def _domain(self) -> List[Constraint]:
         """Returns constraints describing the domain of the node.
@@ -399,10 +390,10 @@ class power(Elementwise):
             return []
 
     def get_data(self):
-        return [self._p_orig, self.max_denom, self._approx]
+        return [self._p_orig, self.max_denom]
 
-    def copy(self, args=None, id_objects=None) -> "power":
-        """Returns a shallow copy of the power atom.
+    def copy(self, args=None, id_objects=None) -> "Power":
+        """Returns a shallow copy of the Power atom.
 
         Parameters
         ----------
@@ -412,11 +403,11 @@ class power(Elementwise):
 
         Returns
         -------
-        power atom
+        Power atom
         """
         if args is None:
             args = self.args
-        return power(args[0], self._p_orig, self.max_denom)
+        return type(self)(args[0], self._p_orig, self.max_denom)
 
     def name(self) -> str:
         return f"{type(self).__name__}({self.args[0].name()}, {self.p.value})"
@@ -426,3 +417,32 @@ class power(Elementwise):
             return self._label
         return f"{type(self).__name__}({self.args[0].format_labeled()}, {self.p.value})"
 
+
+class PowerApprox(Power):
+    """Power with SOC-based rational approximation of p.
+
+    Overrides ``p_used`` and ``w`` with a rational approximation of the
+    exponent, enabling canonicalization via second-order cones.
+    """
+
+    def __init__(self, x, p, max_denom: int = 1024) -> None:
+        super().__init__(x, p, max_denom)
+
+        if self.p_used is None:
+            # Parameter exponent — nothing to approximate at construction time.
+            return
+
+        p_val = self.p_used
+        if p_val > 1:
+            p_val, w = pow_high(p_val, max_denom, approx=True)
+        elif 0 < p_val < 1:
+            p_val, w = pow_mid(p_val, max_denom, approx=True)
+        elif p_val < 0:
+            p_val, w = pow_neg(p_val, max_denom, approx=True)
+        else:
+            # p == 0 or p == 1: no approximation needed
+            w = None
+
+        self.p_used = p_val
+        self.w = w
+        self.approx_error = float(abs(self.p_used - self.p.value))

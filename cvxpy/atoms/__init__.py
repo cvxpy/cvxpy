@@ -65,7 +65,7 @@ from cvxpy.atoms.elementwise.maximum import maximum
 from cvxpy.atoms.elementwise.minimum import minimum
 from cvxpy.atoms.elementwise.neg import neg
 from cvxpy.atoms.elementwise.pos import pos
-from cvxpy.atoms.elementwise.power import power
+from cvxpy.atoms.elementwise.power import Power, PowerApprox, power
 from cvxpy.atoms.elementwise.rel_entr import rel_entr
 from cvxpy.atoms.elementwise.scalene import scalene
 from cvxpy.atoms.elementwise.sqrt import sqrt
@@ -73,7 +73,7 @@ from cvxpy.atoms.elementwise.square import square
 from cvxpy.atoms.elementwise.xexp import xexp
 from cvxpy.atoms.eye_minus_inv import eye_minus_inv, resolvent
 from cvxpy.atoms.gen_lambda_max import gen_lambda_max
-from cvxpy.atoms.geo_mean import geo_mean
+from cvxpy.atoms.geo_mean import GeoMean, GeoMeanApprox, geo_mean
 from cvxpy.atoms.gmatmul import gmatmul
 from cvxpy.atoms.harmonic_mean import harmonic_mean
 from cvxpy.atoms.inv_prod import inv_prod
@@ -96,7 +96,7 @@ from cvxpy.atoms.norm_nuc import normNuc
 from cvxpy.atoms.one_minus_pos import diff_pos, one_minus_pos
 from cvxpy.atoms.perspective import perspective
 from cvxpy.atoms.pf_eigenvalue import pf_eigenvalue
-from cvxpy.atoms.pnorm import Pnorm, pnorm
+from cvxpy.atoms.pnorm import Pnorm, PnormApprox, pnorm
 from cvxpy.atoms.prod import Prod, prod
 from cvxpy.atoms.quad_form import QuadForm, quad_form
 from cvxpy.atoms.quad_over_lin import quad_over_lin
@@ -115,15 +115,17 @@ from cvxpy.atoms.ptp import ptp
 # TODO(akshayka): Perhaps couple this information with the atom classes
 # themselves.
 SOC_ATOMS = [
-    geo_mean,
-    pnorm,
-    Pnorm,
+    GeoMeanApprox,
+    PnormApprox,
     QuadForm,
     quad_over_lin,
-    power,
+    PowerApprox,
     huber,
     std,
 ]
+
+POWCONE_ATOMS = [Pnorm, Power]
+POWCONE_ND_ATOMS = [GeoMean]
 
 EXP_ATOMS = [
     log_sum_exp,

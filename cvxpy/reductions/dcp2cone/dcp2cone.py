@@ -17,6 +17,7 @@ limitations under the License.
 from typing import Tuple
 
 from cvxpy import problems
+from cvxpy.atoms.elementwise.power import Power
 from cvxpy.atoms.quad_over_lin import quad_over_lin
 from cvxpy.expressions import cvxtypes
 from cvxpy.expressions.expression import Expression
@@ -34,14 +35,14 @@ class Dcp2Cone(Canonicalization):
     them into problems with affine or quadratic objectives and conic
     constraints whose arguments are affine.
     """
-    def __init__(self, problem=None, quad_obj: bool = False) -> None:
+    def __init__(self, problem=None, quad_obj: bool = False, solver_context=None) -> None:
         super(Canonicalization, self).__init__(problem=problem)
         self.cone_canon_methods = cone_canon_methods
         self.quad_canon_methods = quad_canon_methods
         self.quad_obj = quad_obj
 
-        # solver_context : The solver context: supported constrains and bounds.
-        self.solver_context = None
+        # solver_context : The solver context: supported constraints and bounds.
+        self.solver_context = solver_context
 
     def accepts(self, problem):
         """A problem is accepted if it is a minimization and is DCP.
@@ -55,9 +56,7 @@ class Dcp2Cone(Canonicalization):
             raise ValueError("Cannot reduce problem to cone program")
 
         inverse_data = InverseData(problem)
-        
-        self.solver_context = problem.solver_context
-        
+
         canon_objective, canon_constraints = self.canonicalize_tree(
             problem.objective, True)
         
@@ -128,7 +127,8 @@ class Dcp2Cone(Canonicalization):
 
         if self.quad_obj and affine_above and type(expr) in self.quad_canon_methods:
             # Special case for power.
-            if type(expr) == cvxtypes.power() and not expr._quadratic_power():
+            # isinstance catches both Power and PowerApprox
+            if isinstance(expr, Power) and not expr._quadratic_power():
                 return self.cone_canon_methods[type(expr)](expr, args,
                                                            solver_context=self.solver_context)
             elif type(expr) == quad_over_lin and not expr.is_qpwa():
