@@ -321,6 +321,45 @@ and 2000 constraints.
    please reach out to us at our `GitHub issues <https://github.com/cvxpy/cvxpy/issues>`_. We are
    particularly interested in incorporating a simple mixed-integer SOCP solver.
 
+.. _boolean-logic:
+
+Boolean logic operations
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+CVXPY supports logical operations on boolean variables via the Python
+operators ``~`` (NOT), ``&`` (AND), ``|`` (OR), and ``^`` (XOR).
+The equivalent functional forms :class:`~cvxpy.logic.Not`,
+:class:`~cvxpy.logic.And`, :class:`~cvxpy.logic.Or`, and
+:class:`~cvxpy.logic.Xor` are available in the ``cp.logic`` module and also
+accept more than two arguments.
+
+.. code:: python
+
+    import cvxpy as cp
+
+    x = cp.Variable(3, boolean=True)
+    y = cp.Variable(3, boolean=True)
+
+    # Operator syntax (preferred for two operands)
+    not_x = ~x            # Flip each entry
+    both = x & y          # 1 where both are 1
+    either = x | y        # 1 where at least one is 1
+    exclusive = x ^ y     # 1 where exactly one is 1
+
+    # Compose with operators
+    z = (x | y) & ~(x & y)          # XOR written out
+
+    # Functional syntax supports 3+ arguments
+    any_of_three = cp.logic.Or(x, y, z)
+
+    # Use in a problem
+    prob = cp.Problem(cp.Maximize(cp.sum(both)), [cp.sum(x) <= 2, cp.sum(y) <= 2])
+    prob.solve()
+
+All logic atoms are affine (they expand into linear expressions over their
+boolean arguments), so they are compatible with mixed-integer linear and
+conic solvers.
+
 .. _complex:
 
 Complex valued expressions

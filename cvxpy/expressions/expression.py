@@ -840,6 +840,58 @@ class Expression(u.Canonical):
         """
         return PSD(self - other)
 
+    # Boolean logic operators.
+    def __invert__(self) -> "Expression":
+        """Expression : Logical NOT (~x).
+
+        Equivalent to ``cp.logic.Not(x)``.
+        Requires ``x`` to be a boolean variable or logic expression.
+        """
+        from cvxpy.atoms.elementwise.logic import Not
+        return Not(self)
+
+    def __and__(self, other) -> "Expression":
+        """Expression : Logical AND (x & y).
+
+        Equivalent to ``cp.logic.And(x, y)``.
+        Both operands must be boolean variables or logic expressions.
+        """
+        from cvxpy.atoms.elementwise.logic import And
+        return And(self, other)
+
+    def __rand__(self, other) -> "Expression":
+        """Expression : Logical AND with reversed operands (y & x)."""
+        from cvxpy.atoms.elementwise.logic import And
+        return And(other, self)
+
+    def __or__(self, other) -> "Expression":
+        """Expression : Logical OR (x | y).
+
+        Equivalent to ``cp.logic.Or(x, y)``.
+        Both operands must be boolean variables or logic expressions.
+        """
+        from cvxpy.atoms.elementwise.logic import Or
+        return Or(self, other)
+
+    def __ror__(self, other) -> "Expression":
+        """Expression : Logical OR with reversed operands (y | x)."""
+        from cvxpy.atoms.elementwise.logic import Or
+        return Or(other, self)
+
+    def __xor__(self, other) -> "Expression":
+        """Expression : Logical XOR (x ^ y).
+
+        Equivalent to ``cp.logic.Xor(x, y)``.
+        Both operands must be boolean variables or logic expressions.
+        """
+        from cvxpy.atoms.elementwise.logic import Xor
+        return Xor(self, other)
+
+    def __rxor__(self, other) -> "Expression":
+        """Expression : Logical XOR with reversed operands (y ^ x)."""
+        from cvxpy.atoms.elementwise.logic import Xor
+        return Xor(other, self)
+
     # Needed for Python3:
     def __hash__(self) -> int:
         return id(self)

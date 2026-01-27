@@ -29,6 +29,9 @@ def _is_boolean_arg(arg):
     from cvxpy.expressions.leaf import Leaf
     if isinstance(arg, Leaf) and arg.attributes.get('boolean'):
         return True
+    from cvxpy.expressions.constants.constant import Constant
+    if isinstance(arg, Constant) and arg.is_boolean_valued:
+        return True
     return False
 
 
@@ -74,10 +77,25 @@ class LogicExpression(Elementwise):
 class Not(LogicExpression):
     """Logical NOT of a boolean expression.
 
+    Returns ``1 - x``, i.e., flips 0 to 1 and 1 to 0.
+
+    Can also be written with the ``~`` operator: ``~x``.
+
     Parameters
     ----------
     arg : Expression
         A boolean variable or LogicExpression.
+
+    Examples
+    --------
+
+    .. code-block:: python
+
+        import cvxpy as cp
+
+        x = cp.Variable(boolean=True)
+        not_x = ~x                # operator syntax
+        not_x = cp.logic.Not(x)   # equivalent functional syntax
     """
 
     def __init__(self, arg) -> None:
@@ -88,6 +106,20 @@ class Not(LogicExpression):
             raise TypeError("Not takes exactly 1 argument.")
         super().validate_arguments()
 
+    def name(self) -> str:
+        child = self.args[0]
+        if isinstance(child, (And, Or, Xor)):
+            return "~(" + child.name() + ")"
+        return "~" + child.name()
+
+    def format_labeled(self):
+        if self._label is not None:
+            return self._label
+        child = self.args[0]
+        if isinstance(child, (And, Or, Xor)):
+            return "~(" + child.format_labeled() + ")"
+        return "~" + child.format_labeled()
+
     @Elementwise.numpy_numeric
     def numeric(self, values):
         return 1 - values[0]
@@ -96,14 +128,54 @@ class Not(LogicExpression):
 class And(LogicExpression):
     """Logical AND of boolean expressions.
 
+    Returns 1 if and only if all arguments equal 1, and 0 otherwise.
+
+    For two operands, can also be written with the ``&`` operator: ``x & y``.
+
     Parameters
     ----------
     *args : Expression
         Two or more boolean variables or LogicExpressions.
+
+    Examples
+    --------
+
+    .. code-block:: python
+
+        import cvxpy as cp
+
+        x = cp.Variable(boolean=True)
+        y = cp.Variable(boolean=True)
+        both = x & y                  # operator syntax
+        both = cp.logic.And(x, y)     # equivalent functional syntax
+        all3 = cp.logic.And(x, y, z)  # n-ary (3+ args) requires functional syntax
     """
+
+    OP_NAME = " & "
+    # Or and Xor have lower precedence than &, so parenthesize them.
+    _PAREN_TYPES = ("Or", "Xor")
 
     def __init__(self, arg1, arg2, *args) -> None:
         super().__init__(arg1, arg2, *args)
+
+    def _format_child(self, child, use_labels: bool = False) -> str:
+        text = child.format_labeled() if use_labels else child.name()
+        if isinstance(child, LogicExpression) and \
+                type(child).__name__ in self._PAREN_TYPES:
+            return "(" + text + ")"
+        return text
+
+    def name(self) -> str:
+        return self.OP_NAME.join(
+            self._format_child(a) for a in self.args
+        )
+
+    def format_labeled(self):
+        if self._label is not None:
+            return self._label
+        return self.OP_NAME.join(
+            self._format_child(a, use_labels=True) for a in self.args
+        )
 
     @Elementwise.numpy_numeric
     def numeric(self, values):
@@ -113,14 +185,54 @@ class And(LogicExpression):
 class Or(LogicExpression):
     """Logical OR of boolean expressions.
 
+    Returns 1 if and only if at least one argument equals 1, and 0 otherwise.
+
+    For two operands, can also be written with the ``|`` operator: ``x | y``.
+
     Parameters
     ----------
     *args : Expression
         Two or more boolean variables or LogicExpressions.
+
+    Examples
+    --------
+
+    .. code-block:: python
+
+        import cvxpy as cp
+
+        x = cp.Variable(boolean=True)
+        y = cp.Variable(boolean=True)
+        either = x | y                # operator syntax
+        either = cp.logic.Or(x, y)    # equivalent functional syntax
+        any3 = cp.logic.Or(x, y, z)   # n-ary (3+ args) requires functional syntax
     """
+
+    OP_NAME = " | "
+    # | has lowest precedence among logic ops; no children need parens.
+    _PAREN_TYPES = ()
 
     def __init__(self, arg1, arg2, *args) -> None:
         super().__init__(arg1, arg2, *args)
+
+    def _format_child(self, child, use_labels: bool = False) -> str:
+        text = child.format_labeled() if use_labels else child.name()
+        if isinstance(child, LogicExpression) and \
+                type(child).__name__ in self._PAREN_TYPES:
+            return "(" + text + ")"
+        return text
+
+    def name(self) -> str:
+        return self.OP_NAME.join(
+            self._format_child(a) for a in self.args
+        )
+
+    def format_labeled(self):
+        if self._label is not None:
+            return self._label
+        return self.OP_NAME.join(
+            self._format_child(a, use_labels=True) for a in self.args
+        )
 
     @Elementwise.numpy_numeric
     def numeric(self, values):
@@ -133,14 +245,52 @@ class Xor(LogicExpression):
     For two arguments: result is 1 iff exactly one is 1.
     For n arguments: result is 1 iff an odd number are 1 (parity).
 
+    For two operands, can also be written with the ``^`` operator: ``x ^ y``.
+
     Parameters
     ----------
     *args : Expression
         Two or more boolean variables or LogicExpressions.
+
+    Examples
+    --------
+
+    .. code-block:: python
+
+        import cvxpy as cp
+
+        x = cp.Variable(boolean=True)
+        y = cp.Variable(boolean=True)
+        exclusive = x ^ y                 # operator syntax
+        exclusive = cp.logic.Xor(x, y)    # equivalent functional syntax
+        parity3 = cp.logic.Xor(x, y, z)   # n-ary (3+ args) requires functional syntax
     """
+
+    OP_NAME = " ^ "
+    # Or has lower precedence than ^, so parenthesize it.
+    _PAREN_TYPES = ("Or",)
 
     def __init__(self, arg1, arg2, *args) -> None:
         super().__init__(arg1, arg2, *args)
+
+    def _format_child(self, child, use_labels: bool = False) -> str:
+        text = child.format_labeled() if use_labels else child.name()
+        if isinstance(child, LogicExpression) and \
+                type(child).__name__ in self._PAREN_TYPES:
+            return "(" + text + ")"
+        return text
+
+    def name(self) -> str:
+        return self.OP_NAME.join(
+            self._format_child(a) for a in self.args
+        )
+
+    def format_labeled(self):
+        if self._label is not None:
+            return self._label
+        return self.OP_NAME.join(
+            self._format_child(a, use_labels=True) for a in self.args
+        )
 
     @Elementwise.numpy_numeric
     def numeric(self, values):
