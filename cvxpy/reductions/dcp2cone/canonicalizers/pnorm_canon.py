@@ -32,56 +32,57 @@ from cvxpy.utilities.power_tools import gm_constrs
 from cvxpy.utilities.solver_context import SolverInfo
 
 
-def pnorm_canon(expr, args, solver_context: SolverInfo | None = None):
+def _pnorm_p2_canon(expr, args):
+    """Handle p == 2 case via SOC directly (shared by exact and approx)."""
     x = args[0]
-    p = expr.p
     axis = expr.axis
     shape = expr.shape
     t = Variable(shape)
+    if axis is None:
+        assert shape == tuple()
+        return t, [SOC(t, vec(x, order="F"))]
+    else:
+        return t, [SOC(vec(t, order="F"), x, axis)]
 
-    # p == 2 is a special case handled via SOC directly
+
+def pnorm_exact_canon(expr, args, solver_context: SolverInfo | None = None):
+    p = expr.p
+
     if p == 2:
-        if axis is None:
-            assert shape == tuple()
-            return t, [SOC(t, vec(x, order="F"))]
-        else:
-            return t, [SOC(vec(t, order="F"), x, axis)]
+        return _pnorm_p2_canon(expr, args)
 
-    # If user requested approximation (default), use SOC
-    if expr._approx:
-        return pnorm_canon_approx(expr, args, solver_context)
-
-    # User requested power cones (approx=False)
-    # Check if solver supports them
+    # Exact path: use power cones
     if solver_context is not None and PowCone3D in solver_context.solver_supported_constraints:
-        return pnorm_canon_cone(expr, args)
+        return _pnorm_cone_canon(expr, args)
 
     raise ValueError(
-        "approx=False requires a solver that supports power cones, "
+        "Pnorm (exact) requires a solver that supports power cones, "
         "but the current solver does not support PowCone3D."
     )
 
 
-def pnorm_canon_approx(expr, args, solver_context: SolverInfo | None = None):
+def pnorm_approx_canon(expr, args, solver_context: SolverInfo | None = None):
+    p = expr.p
+
+    if p == 2:
+        return _pnorm_p2_canon(expr, args)
+
+    return _pnorm_soc_canon(expr, args, solver_context)
+
+
+def _pnorm_soc_canon(expr, args, solver_context: SolverInfo | None = None):
     x = args[0]
     p = Fraction(expr.p)
     shape = expr.shape
     t = Variable(shape)
 
-    # we need an absolute value constraint for the symmetric convex branches
-    # (p > 1)
     constraints = []
     if p > 1:
-        # TODO(akshayka): Express this more naturally (recursively), in terms
-        # of the other atoms
         abs_expr = abs(x)
         abs_x, abs_constraints = abs_canon(abs_expr, abs_expr.args)
         x = abs_x
         constraints += abs_constraints
 
-    # now, we take care of the remaining convex and concave branches
-    # to create the rational powers, we need a new variable, r, and
-    # the constraint sum(r) == t
     r = Variable(x.shape)
     constraints += [sum(r) == t]
 
@@ -115,50 +116,35 @@ def pnorm_canon_approx(expr, args, solver_context: SolverInfo | None = None):
     return t, constraints
 
 
-def pnorm_canon_cone(expr, args):
+def _pnorm_cone_canon(expr, args):
     x = args[0]
     p = expr.p
     shape = expr.shape
     t = Variable(shape)
 
-    # we need an absolute value constraint for the symmetric convex branches
-    # (p > 1)
     constraints = []
     if p > 1:
-        # TODO(akshayka): Express this more naturally (recursively), in terms
-        # of the other atoms
         abs_expr = abs(x)
         abs_x, abs_constraints = abs_canon(abs_expr, abs_expr.args)
         x = abs_x
         constraints += abs_constraints
 
-    # now, we take care of the remaining convex and concave branches
-    # to create the rational powers, we need a new variable, r, and
-    # the constraint sum(r) == t
     r = Variable(x.shape)
     constraints += [sum(r) == t]
 
     promoted_t = Constant(np.ones(x.shape)) * t
 
-    # Use power cone constraints
-    # PowCone3D: x^alpha * y^(1-alpha) >= |z|
     if p < 0:
-        # promoted_t >= x^(-p/(1-p)) * r^(1/(1-p))
-        # alpha = -p/(1-p), so x^alpha * r^(1-alpha) >= promoted_t
         alpha = float(-p / (1 - p))
         constraints += [
             PowCone3D(vec(x, order="F"), vec(r, order="F"), vec(promoted_t, order="F"), alpha)
         ]
     elif 0 < p < 1:
-        # r >= x^p * promoted_t^(1-p)
-        # alpha = p, so x^alpha * promoted_t^(1-alpha) >= r
         alpha = float(p)
         constraints += [
             PowCone3D(vec(x, order="F"), vec(promoted_t, order="F"), vec(r, order="F"), alpha)
         ]
     elif p > 1:
-        # x >= r^(1/p) * promoted_t^(1-1/p)
-        # alpha = 1/p, so r^alpha * promoted_t^(1-alpha) >= x
         alpha = float(1 / p)
         constraints += [
             PowCone3D(vec(r, order="F"), vec(promoted_t, order="F"), vec(x, order="F"), alpha)

@@ -26,23 +26,33 @@ from cvxpy.utilities.power_tools import gm_constrs, powcone_constrs
 from cvxpy.utilities.solver_context import SolverInfo
 
 
-def power_canon(expr, args, solver_context: SolverInfo | None = None):
-    # If user requested approximation (default), use SOC
-    if expr._approx:
-        return power_canon_approx(expr, args, solver_context)
+def power_exact_canon(expr, args, solver_context: SolverInfo | None = None):
+    x = args[0]
+    p = expr.p_rational
 
-    # User requested power cones (approx=False)
-    # Check if solver supports them
+    if p == 1:
+        return x, []
+
+    shape = expr.shape
+    ones = Constant(np.ones(shape))
+    if p == 0:
+        return ones, []
+
+    # Exact path: use power cones
     if solver_context is not None and PowCone3D in solver_context.solver_supported_constraints:
-        return power_canon_cone(expr, args)
+        return _power_cone_canon(expr, args)
 
     raise ValueError(
-        "approx=False requires a solver that supports power cones, "
+        "Power (exact) requires a solver that supports power cones, "
         "but the current solver does not support PowCone3D."
     )
 
 
-def power_canon_approx(expr, args, solver_context: SolverInfo | None = None):
+def power_approx_canon(expr, args, solver_context: SolverInfo | None = None):
+    return _power_soc_canon(expr, args, solver_context)
+
+
+def _power_soc_canon(expr, args, solver_context: SolverInfo | None = None):
     x = args[0]
     p = expr.p_rational
     w = expr.w
@@ -56,8 +66,6 @@ def power_canon_approx(expr, args, solver_context: SolverInfo | None = None):
         return ones, []
     else:
         t = Variable(shape)
-        # TODO(akshayka): gm_constrs requires each of its inputs to be a Variable;
-        # is this something that we want to change?
         if 0 < p < 1:
             constrs = gm_constrs(t, [x, ones], w)
         elif p > 1:
@@ -89,7 +97,7 @@ def power_canon_approx(expr, args, solver_context: SolverInfo | None = None):
         return t, constrs
 
 
-def power_canon_cone(expr, args):
+def _power_cone_canon(expr, args):
     x = args[0]
     p = expr.p_rational
 
@@ -109,7 +117,6 @@ def power_canon_cone(expr, args):
     elif p > 1:
         constrs = powcone_constrs(x, [t, ones], w)
         if p % 2 != 0:
-            # noneven numerator: add x >= 0 constraint.
             constrs += [x >= 0]
         return t, constrs
     elif p < 0:

@@ -6,8 +6,14 @@ import numpy as np
 import scipy.sparse as sp
 
 import cvxpy.settings as s
-from cvxpy.atoms import EXP_ATOMS, NONPOS_ATOMS, PSD_ATOMS, SOC_ATOMS
-from cvxpy.atoms.geo_mean import geo_mean
+from cvxpy.atoms import (
+    EXP_ATOMS,
+    NONPOS_ATOMS,
+    POWCONE_ATOMS,
+    POWCONE_ND_ATOMS,
+    PSD_ATOMS,
+    SOC_ATOMS,
+)
 from cvxpy.constraints import (
     PSD,
     SOC,
@@ -302,18 +308,8 @@ def construct_solving_chain(problem, candidates,
     cones = []
     atoms = problem.atoms()
 
-    # Check if any geo_mean atom in the problem uses approx=False,
-    # which produces PowConeND constraints during Dcp2Cone canonicalization.
-    def _has_exact_geo_mean(node):
-        if isinstance(node, geo_mean) and not node._approx:
-            return True
-        return any(_has_exact_geo_mean(arg) for arg in node.args)
-
-    needs_powcone_nd = (
-        geo_mean in atoms
-        and (_has_exact_geo_mean(problem.objective.expr)
-             or any(_has_exact_geo_mean(c) for c in problem.constraints))
-    )
+    needs_powcone_3d = any(atom in POWCONE_ATOMS for atom in atoms)
+    needs_powcone_nd = any(atom in POWCONE_ND_ATOMS for atom in atoms)
     if SOC in constr_types or any(atom in SOC_ATOMS for atom in atoms):
         cones.append(SOC)
     if ExpCone in constr_types or any(atom in EXP_ATOMS for atom in atoms):
@@ -349,7 +345,7 @@ def construct_solving_chain(problem, candidates,
 
         ex_cos = (constr_types & set(EXOTIC_CONES)) - set(supported_constraints)
 
-        # geo_mean with approx=False produces PowConeND during Dcp2Cone.
+        # Exact atoms (e.g. GeoMean) produce PowConeND during Dcp2Cone.
         # If the solver lacks native PowConeND, Exotic2Common will
         # decompose it to PowCone3D.
         if needs_powcone_nd and PowConeND not in supported_constraints:
@@ -360,12 +356,9 @@ def construct_solving_chain(problem, candidates,
             constr_types.update(sim_cos)
             constr_types.discard(co)
 
-        if PowCone3D in constr_types and PowCone3D not in cones:
-            # if we add in atoms that specifically use the 3D power cone
-            # (rather than the ND power cone), then we'll need to check
-            # for those atoms here as well.
+        if (PowCone3D in constr_types or needs_powcone_3d) and PowCone3D not in cones:
             cones.append(PowCone3D)
-        if PowConeND in constr_types and PowConeND not in cones:
+        if (PowConeND in constr_types or needs_powcone_nd) and PowConeND not in cones:
             cones.append(PowConeND)
 
         unsupported_constraints = [

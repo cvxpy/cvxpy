@@ -44,9 +44,10 @@ def pnorm(x, p: Union[int, str] = 2, axis=None, keepdims: bool = False,
         return norm1(x, axis=axis, keepdims=keepdims)
     elif p in [np.inf, 'inf', 'Inf']:
         return norm_inf(x, axis=axis, keepdims=keepdims)
+    elif approx:
+        return PnormApprox(x, p=p, axis=axis, keepdims=keepdims, max_denom=max_denom)
     else:
-        return Pnorm(x, p=p, axis=axis, keepdims=keepdims, max_denom=max_denom,
-                     approx=approx)
+        return Pnorm(x, p=p, axis=axis, keepdims=keepdims, max_denom=max_denom)
 
 
 class Pnorm(AxisAtom):
@@ -110,12 +111,6 @@ class Pnorm(AxisAtom):
         The maximum denominator considered in forming a rational approximation
         for ``p``.
 
-    approx : bool
-        When ``True`` (default), the p-norm is canonicalized using a
-        second-order cone (SOC) approximation based on a rational approximation
-        of ``p``. When ``False``, the p-norm is canonicalized using the power
-        cone, which is exact.
-
     axis : 0 or 1
            The axis to apply the norm to.
 
@@ -127,38 +122,23 @@ class Pnorm(AxisAtom):
     _allow_complex = True
 
     def __init__(self, x, p: int = 2, axis=None,
-                 keepdims: bool = False, max_denom: int = 1024,
-                 approx: bool = True) -> None:
-        self._approx = approx
+                 keepdims: bool = False, max_denom: int = 1024) -> None:
         self.max_denom = max_denom
-        if approx:
-            if p < 0:
-                # TODO(akshayka): Why do we accept p < 0?
-                self.p, _ = pow_neg(p, max_denom)
-            elif 0 < p < 1:
-                self.p, _ = pow_mid(p, max_denom)
-            elif p > 1:
-                self.p, _ = pow_high(p, max_denom)
-            elif p == 1:
-                raise ValueError('Use the norm1 class to instantiate a one norm.')
-            elif p == 'inf' or p == 'Inf' or p == np.inf:
-                raise ValueError('Use the norm_inf class to instantiate an '
-                                 'infinity norm.')
-            else:
-                raise ValueError('Invalid p: {}'.format(p))
-            self.approx_error = float(abs(self.p - p))
-        else:
-            if p == 1:
-                raise ValueError('Use the norm1 class to instantiate a one norm.')
-            elif p == 'inf' or p == 'Inf' or p == np.inf:
-                raise ValueError('Use the norm_inf class to instantiate an '
-                                 'infinity norm.')
-            elif p == 0:
-                raise ValueError('Invalid p: {}'.format(p))
-            self.p = p
-            self.approx_error = 0.0
         self.original_p = p
+        self._compute_p(p, max_denom)
         super(Pnorm, self).__init__(x, axis=axis, keepdims=keepdims)
+
+    def _compute_p(self, p, max_denom):
+        """Validate and set self.p. Base class uses exact p (no approximation)."""
+        if p == 1:
+            raise ValueError('Use the norm1 class to instantiate a one norm.')
+        elif p == 'inf' or p == 'Inf' or p == np.inf:
+            raise ValueError('Use the norm_inf class to instantiate an '
+                             'infinity norm.')
+        elif p == 0:
+            raise ValueError('Invalid p: {}'.format(p))
+        self.p = p
+        self.approx_error = 0.0
 
     def numeric(self, values):
         """Returns the p-norm of x.
@@ -178,7 +158,6 @@ class Pnorm(AxisAtom):
 
     def validate_arguments(self) -> None:
         super(Pnorm, self).validate_arguments()
-        # TODO(akshayka): Why is axis not supported for other norms?
         if self.axis is not None and self.p != 2:
             raise ValueError(
                 "The axis parameter is only supported for p=2.")
@@ -227,8 +206,7 @@ class Pnorm(AxisAtom):
         return False
 
     def get_data(self):
-        # Must match __init__ signature: (x, p, axis, keepdims, max_denom, approx)
-        return [self.original_p, self.axis, self.keepdims, self.max_denom, self._approx]
+        return [self.original_p, self.axis, self.keepdims, self.max_denom]
 
     def name(self) -> str:
         return f"{type(self).__name__}({self.args[0].name()}, {self.p})"
@@ -293,3 +271,28 @@ class Pnorm(AxisAtom):
             nominator = np.power(value, exp)
         frac = np.divide(nominator, denominator)
         return np.reshape(frac, (frac.size, 1))
+
+
+class PnormApprox(Pnorm):
+    """Pnorm with SOC-based rational approximation of p.
+
+    This subclass overrides ``_compute_p`` to use a rational approximation
+    of the exponent, which allows canonicalization via second-order cones.
+    """
+
+    def _compute_p(self, p, max_denom):
+        """Compute rational approximation of p."""
+        if p < 0:
+            self.p, _ = pow_neg(p, max_denom)
+        elif 0 < p < 1:
+            self.p, _ = pow_mid(p, max_denom)
+        elif p > 1:
+            self.p, _ = pow_high(p, max_denom)
+        elif p == 1:
+            raise ValueError('Use the norm1 class to instantiate a one norm.')
+        elif p == 'inf' or p == 'Inf' or p == np.inf:
+            raise ValueError('Use the norm_inf class to instantiate an '
+                             'infinity norm.')
+        else:
+            raise ValueError('Invalid p: {}'.format(p))
+        self.approx_error = float(abs(self.p - p))

@@ -16,7 +16,7 @@ limitations under the License.
 
 import numpy as np
 
-from cvxpy.atoms import (MatrixFrac, Pnorm, QuadForm, abs, bmat, conj, conv,
+from cvxpy.atoms import (MatrixFrac, Pnorm, PnormApprox, QuadForm, abs, bmat, conj, conv,
                          convolve, cumsum, imag, kron, lambda_max,
                          lambda_sum_largest, log_det, norm1, norm_inf,
                          quad_over_lin, real, reshape, sigma_max, Trace,
@@ -108,6 +108,7 @@ CANON_METHODS = {
     norm1: pnorm_canon,
     norm_inf: pnorm_canon,
     Pnorm: pnorm_canon,
+    PnormApprox: pnorm_canon,
 
     lambda_max: hermitian_canon,
     log_det: norm_nuc_canon,

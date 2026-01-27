@@ -599,25 +599,21 @@ class TestComplex(BaseTest):
         for atom in [cp.geo_mean, cp.log_sum_exp, cp.max,
                      cp.entr, cp.exp, cp.huber,
                      cp.log, cp.log1p, cp.logistic]:
-            name = atom.__name__
             with self.assertRaises(Exception) as cm:
-                print(name)
                 atom(x)
-            self.assertEqual(str(cm.exception), "Arguments to %s cannot be complex." % name)
+            self.assertIn("cannot be complex", str(cm.exception))
 
         x = Variable(2, complex=True)
         for atom in [cp.maximum, cp.kl_div]:
-            name = atom.__name__
             with self.assertRaises(Exception) as cm:
-                print(name)
                 atom(x, x)
-            self.assertEqual(str(cm.exception), "Arguments to %s cannot be complex." % name)
+            self.assertIn("cannot be complex", str(cm.exception))
 
         x = Variable(2, complex=True)
         for atom in [cp.inv_pos, cp.sqrt, lambda x: cp.power(x, .2)]:
             with self.assertRaises(Exception) as cm:
                 atom(x)
-            self.assertEqual(str(cm.exception), "Arguments to power cannot be complex.")
+            self.assertIn("cannot be complex", str(cm.exception))
 
         x = Variable(2, complex=True)
         for atom in [cp.harmonic_mean, lambda x: cp.pnorm(x, .2)]:
