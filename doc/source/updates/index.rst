@@ -43,6 +43,14 @@ Four atoms, `power`, `geo_mean`, `pnorm`, and `inv_prod` now take a parameter `a
 whether CVXPY canonicalizes the atom using many SOCs or one power cone. Feel free to set
 `approx=False` and report on whether it improves performance or accuracy!
 
+Logical boolean operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+CVXPY now supports logical boolean operations on boolean expressions via the
+``cp.logic`` module. The new atoms are ``cp.logic.AND``, ``cp.logic.OR``,
+``cp.logic.NOT``, and ``cp.logic.XOR``. See the :ref:`boolean-logic` tutorial
+for more details.
+
 New features
 ~~~~~~~~~~~~
   - DPP with complex expressions
@@ -50,13 +58,13 @@ New features
   - Support for ND cumsum
   - unification of QP interface into quadratic conic pathway
   - solving chain context
-  - New atoms: logical boolean operations (``cp.logic.AND``, ``cp.logic.OR``, ``cp.logic.NOT``, ``cp.logic.XOR``)
   - New atom: :ref:`einsum <einsum>`
   - New atom: :ref:`stack <stack>`
   - New solver interface: :ref:`MOREAU <MOREAU>`
   - New solver interface: :ref:`KNITRO <knitro>`
   - New solver interface: :ref:`COSMO <COSMO>`
   - New solver interface: :ref:`QPALM <QPALM>`
+  - Add ``num_iters`` to Gurobi conic solver solution info
 
 CVXPY 1.7
 ---------
