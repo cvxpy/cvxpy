@@ -428,6 +428,18 @@ class SciPyCanonBackend(PythonCanonBackend):
         # so we must use local_pos for position computation.
         local_pos = stacked_rows % slice_size
 
+        # Account for broadcast expansion.  For ND matmul like
+        # P(m,k) @ X(B,k,n), _broadcast_batch_dims wraps the parameter in
+        # broadcast_to(P, (B,m,k)).  This makes each parameter slice have
+        # slice_size = B*m*k entries instead of m*k.  In Fortran (column-major)
+        # order, each original entry is duplicated B consecutive times, so
+        # dividing local_pos by the broadcast factor (B = slice_size / (m*k))
+        # maps positions back to the original (m,k) space.
+        # When there is no broadcast, broadcast_factor == 1 and this is a no-op.
+        broadcast_factor = slice_size // (m * k)
+        if broadcast_factor > 1:
+            local_pos = local_pos // broadcast_factor
+
         # Deduplicate: broadcast creates copies with same param_idx.
         # For a param with param_size=12, param_idx should be 0-11 exactly once.
         # If param_idx=5 appears 3 times, broadcast created duplicates - keep first only.
