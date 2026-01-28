@@ -20,6 +20,8 @@ from typing import List, Optional, Tuple
 import numpy as np
 import scipy.sparse as sp
 
+from cvxpy.atoms.affine.promote import Promote
+from cvxpy.atoms.affine.vec import vec as vec_atom
 from cvxpy.cvxcore.python import canonInterface
 from cvxpy.expressions.constants.constant import Constant
 from cvxpy.expressions.expression import Expression
@@ -145,8 +147,6 @@ def extract_bounds_tensor(
         Sparse matrix of shape (var_size, param_size + 1). The last column
         holds the constant (parameter-free) part of the bounds.
     """
-    from cvxpy.atoms.affine.vec import vec as vec_atom
-
     assert which in ('lower', 'upper')
     bound_idx = 0 if which == 'lower' else 1
     default_val = -np.inf if which == 'lower' else np.inf
@@ -164,7 +164,6 @@ def extract_bounds_tensor(
                 # Flatten in Fortran order to match variable layout.
                 if b.is_scalar() and x.size > 1:
                     # Broadcast scalar expression to variable size.
-                    from cvxpy.atoms.affine.promote import Promote
                     b = Promote(b, x.shape)
                 if b.ndim > 1:
                     bound_expr = vec_atom(b, order='F')
