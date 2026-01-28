@@ -62,10 +62,13 @@ class EliminateZeroSized(Reduction):
         # sub-expressions with zero constants and dropping zero-sized
         # constraints.
         constraints = []
+        dropped_constraints = {}
+        cons_id_map = {}
         any_changed = False
         for c in problem.constraints:
             if c.size == 0:
                 any_changed = True
+                dropped_constraints[c.id] = c
                 continue
             new_args = []
             c_changed = False
@@ -78,9 +81,11 @@ class EliminateZeroSized(Reduction):
                 any_changed = True
                 data = c.get_data()
                 if data is not None:
-                    constraints.append(type(c)(*(new_args + data)))
+                    new_c = type(c)(*(new_args + data))
                 else:
-                    constraints.append(type(c)(*new_args))
+                    new_c = type(c)(*new_args)
+                constraints.append(new_c)
+                cons_id_map[c.id] = new_c.id
             else:
                 constraints.append(c)
 
@@ -115,14 +120,29 @@ class EliminateZeroSized(Reduction):
                 eliminated_vars[v.id] = v
 
         new_problem = Problem(objective, constraints)
-        return new_problem, eliminated_vars
+        inverse_data = {
+            'eliminated_vars': eliminated_vars,
+            'dropped_constraints': dropped_constraints,
+            'cons_id_map': cons_id_map,
+        }
+        return new_problem, inverse_data
 
     def invert(self, solution, inverse_data):
-        eliminated_vars = inverse_data
-        if not eliminated_vars:
+        if not inverse_data:
             return solution
+        eliminated_vars = inverse_data.get('eliminated_vars', {})
+        dropped_constraints = inverse_data.get('dropped_constraints', {})
+        cons_id_map = inverse_data.get('cons_id_map', {})
         # Add default values for all eliminated variables.
         if solution.primal_vars is not None:
             for vid, var in eliminated_vars.items():
                 solution.primal_vars[vid] = np.zeros(var.shape)
+        # Map dual values back to original constraint IDs and add
+        # zero duals for dropped zero-sized constraints.
+        if solution.dual_vars is not None:
+            for orig_id, new_id in cons_id_map.items():
+                if new_id in solution.dual_vars:
+                    solution.dual_vars[orig_id] = solution.dual_vars.pop(new_id)
+            for cid, c in dropped_constraints.items():
+                solution.dual_vars[cid] = np.zeros(c.shape)
         return solution

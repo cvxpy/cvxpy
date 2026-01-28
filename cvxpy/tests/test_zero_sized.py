@@ -80,7 +80,7 @@ class TestEliminateZeroSizedReduction(unittest.TestCase):
         new_prob, inverse_data = reduction.apply(prob)
         # The zero-sized constraint z >= 0 should be dropped.
         self.assertEqual(len(new_prob.constraints), 1)
-        self.assertIn(z.id, inverse_data)
+        self.assertIn(z.id, inverse_data['eliminated_vars'])
 
     def test_zero_sized_var_replaced_in_objective(self):
         """Zero-sized variables in the objective are replaced with constants."""
@@ -97,11 +97,13 @@ class TestEliminateZeroSizedReduction(unittest.TestCase):
         """Invert adds empty array values for eliminated variables."""
         z = Variable((0, 3))
         reduction = EliminateZeroSized()
-        zero_vars = {z.id: z}
+        inverse_data = {'eliminated_vars': {z.id: z},
+                        'dropped_constraints': {},
+                        'cons_id_map': {}}
 
         # Create a mock solution.
         sol = Solution("optimal", 0.0, {}, {}, {})
-        result = reduction.invert(sol, zero_vars)
+        result = reduction.invert(sol, inverse_data)
         self.assertIn(z.id, result.primal_vars)
         assert_array_equal(result.primal_vars[z.id], np.zeros((0, 3)))
 
@@ -148,6 +150,47 @@ class TestZeroSizedSolve(unittest.TestCase):
         prob.solve()
         self.assertIsNotNone(z.value)
         self.assertEqual(z.value.shape, (0,))
+
+    def test_zero_sized_constraint_dual_variable(self):
+        """Zero-sized constraints have non-None dual variables after solve."""
+        y = Variable(3)
+        z = Variable((0,))
+        constr = z >= 0
+        prob = cp.Problem(cp.Minimize(cp.sum(y)), [y >= 1, constr])
+        prob.solve()
+        self.assertIsNotNone(constr.dual_value)
+
+    def test_zero_sized_constraint_dual_shape(self):
+        """Dual variable of a dropped zero-sized constraint has the right shape."""
+        y = Variable(3)
+        z = Variable((2, 0))
+        constr = z >= 0
+        prob = cp.Problem(cp.Minimize(cp.sum(y)), [y >= 1, constr])
+        prob.solve()
+        self.assertIsNotNone(constr.dual_value)
+        self.assertEqual(constr.dual_value.shape, (2, 0))
+
+    def test_normal_constraint_dual_with_zero_sized_present(self):
+        """Non-zero-sized constraints still have correct duals when
+        zero-sized constraints are also present."""
+        y = Variable(3)
+        z = Variable((0,))
+        normal_constr = y >= 1
+        zero_constr = z >= 0
+        prob = cp.Problem(cp.Minimize(cp.sum(y)),
+                          [normal_constr, zero_constr])
+        prob.solve()
+        self.assertIsNotNone(normal_constr.dual_value)
+        np.testing.assert_allclose(normal_constr.dual_value,
+                                   np.ones(3), atol=1e-5)
+
+    def test_broadcast_zero_sized_constraint_dual(self):
+        """A broadcast-produced zero-sized constraint has a non-None dual."""
+        x = Variable()
+        constr = np.array([]) + x <= 0
+        prob = cp.Problem(cp.Minimize(0), [constr])
+        prob.solve()
+        self.assertIsNotNone(constr.dual_value)
 
     def test_mixed_problem_zero_constraint(self):
         """Normal objective with zero-sized constraints solves correctly."""
