@@ -28,7 +28,6 @@ from cvxpy.atoms.quad_over_lin import quad_over_lin
 from cvxpy.constraints.finite_set import FiniteSet
 from cvxpy.expressions.constants.constant import Constant
 from cvxpy.expressions.constants.parameter import Parameter
-from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.dgp2dcp.canonicalizers.add_canon import add_canon
 from cvxpy.reductions.dgp2dcp.canonicalizers.constant_canon import (
     constant_canon,)
@@ -95,7 +94,6 @@ CANON_METHODS = {
     Trace : trace_canon,
     Sum : sum_canon,
     xexp : xexp_canon,
-    Variable : None,
     Parameter : None,
 }
 
@@ -108,29 +106,16 @@ CANON_METHODS[minimum] = PWL_METHODS[minimum]
 class DgpCanonMethods(dict):
     def __init__(self, *args, **kwargs) -> None:
         super(DgpCanonMethods, self).__init__(*args, **kwargs)
-        self._variables = {}
         self._parameters = {}
 
     def __contains__(self, key):
         return key in CANON_METHODS
 
     def __getitem__(self, key):
-        if key == Variable:
-            return self.variable_canon
-        elif key == Parameter:
+        if key == Parameter:
             return self.parameter_canon
         else:
             return CANON_METHODS[key]
-
-    def variable_canon(self, variable, args):
-        del args
-        # Swaps out positive variables for unconstrained variables.
-        if variable in self._variables:
-            return self._variables[variable], []
-        else:
-            log_variable =  Variable(variable.shape, var_id=variable.id)
-            self._variables[variable] = log_variable
-            return log_variable, []
 
     def parameter_canon(self, parameter, args):
         del args

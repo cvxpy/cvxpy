@@ -249,3 +249,31 @@ class TestDgp(BaseTest):
     def test_sparse_constant_not_allowed(self) -> None:
         sparse_matrix = cvxpy.Constant(sp.csc_array(np.array([[1.0, 2.0]])))
         self.assertFalse(sparse_matrix.is_log_log_constant())
+
+    def test_numeric_bounds(self) -> None:
+        x = cvxpy.Variable(pos=True, bounds=[0.5, 5.0])
+
+        prob = cvxpy.Problem(cvxpy.Minimize(x))
+        prob.solve(gp=True)
+        self.assertAlmostEqual(x.value, 0.5, places=4)
+
+        prob = cvxpy.Problem(cvxpy.Maximize(x))
+        prob.solve(gp=True)
+        self.assertAlmostEqual(x.value, 5.0, places=4)
+
+    def test_numeric_bounds_one_sided(self) -> None:
+        x = cvxpy.Variable(pos=True, bounds=[2.0, None])
+        prob = cvxpy.Problem(cvxpy.Minimize(x), [x <= 10.0])
+        prob.solve(gp=True)
+        self.assertAlmostEqual(x.value, 2.0, places=4)
+
+        y = cvxpy.Variable(pos=True, bounds=[None, 3.0])
+        prob = cvxpy.Problem(cvxpy.Maximize(y))
+        prob.solve(gp=True)
+        self.assertAlmostEqual(y.value, 3.0, places=4)
+
+    def test_numeric_bounds_vector(self) -> None:
+        x = cvxpy.Variable(3, pos=True, bounds=[0.5, 5.0])
+        prob = cvxpy.Problem(cvxpy.Minimize(cvxpy.sum(x)))
+        prob.solve(gp=True)
+        np.testing.assert_allclose(x.value, 0.5 * np.ones(3), atol=1e-4)

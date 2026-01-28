@@ -122,25 +122,94 @@ class Dgp2Dcp(Canonicalization):
         if not self.accepts(problem):
             raise ValueError("The supplied problem is not DGP.")
 
+        self._dgp_variables = {}
         self.canon_methods = DgpCanonMethods()
         equiv_problem, inverse_data = super(Dgp2Dcp, self).apply(problem)
         inverse_data._problem = problem
         return equiv_problem, inverse_data
 
+    def canonicalize_tree(self, expr, canonicalize_params=True):
+        """Recursively canonicalize an Expression.
+
+        Overrides the base class to intercept Variable nodes and
+        transform their bounds in log-space via the normal tree walk.
+        """
+        from cvxpy.expressions.variable import Variable
+        if type(expr) is Variable:
+            return self._canonicalize_variable(expr)
+        return super().canonicalize_tree(expr, canonicalize_params)
+
+    def _canonicalize_variable(self, variable):
+        """Create a log-space Variable, walking bounds through the tree."""
+        from cvxpy.expressions.variable import Variable
+        if variable in self._dgp_variables:
+            return self._dgp_variables[variable], []
+
+        constrs = []
+        bounds = variable.attributes.get('bounds')
+        if bounds is not None:
+            log_lb, aux_lb = self._log_transform_bound(bounds[0])
+            constrs.extend(aux_lb)
+            log_ub, aux_ub = self._log_transform_bound(bounds[1])
+            constrs.extend(aux_ub)
+            log_variable = Variable(variable.shape, var_id=variable.id,
+                                    bounds=[log_lb, log_ub])
+        else:
+            log_variable = Variable(variable.shape, var_id=variable.id)
+        self._dgp_variables[variable] = log_variable
+        return log_variable, constrs
+
+    def _log_transform_bound(self, bound):
+        """Transform a DGP bound to log-space.
+
+        For a DGP variable x = exp(t), the bound value ``b`` in the
+        positive domain maps to ``log(b)`` in the log domain.
+
+        Parameters
+        ----------
+        bound : ndarray or Expression
+            A bound value from the original positive-domain variable.
+
+        Returns
+        -------
+        log_bound : ndarray or Expression
+            The log-transformed bound.
+        constraints : list
+            Auxiliary constraints from canonicalization (for Expression bounds).
+        """
+        from cvxpy.expressions.constants.constant import Constant
+        if isinstance(bound, Expression):
+            if bound.parameters():
+                # Parametric bound: canonicalize through the DGP tree
+                # to get the log-space expression.
+                return self.canonicalize_tree(bound)
+            else:
+                # Parameter-free Expression: evaluate numerically.
+                return Constant(np.log(bound.value)), []
+        else:
+            # Numeric ndarray: apply log element-wise, preserving
+            # sentinel values (-inf for no lower bound, inf for no upper
+            # bound).  np.log(inf) = inf is fine, but np.log(-inf) = nan,
+            # so we must map -inf → -inf explicitly.
+            with np.errstate(divide='ignore', invalid='ignore'):
+                log_bound = np.log(np.where(bound == -np.inf, 1.0, bound))
+            log_bound = np.where(bound == -np.inf, -np.inf, log_bound)
+            return log_bound, []
+
     def canonicalize_expr(
-            self, 
-            expr: Expression, 
-            args: list, 
+            self,
+            expr: Expression,
+            args: list,
             canonicalize_params: bool = True
         ):
         """Canonicalize an expression, w.r.t. canonicalized arguments.
-        
+
         Args:
             expr: Expression to canonicalize.
             args: Arguments to the expression.
-            canonicalize_params: Should constant subtrees 
+            canonicalize_params: Should constant subtrees
                 containing parameters be canonicalized?
-        
+
         Returns:
             canonicalized expression, constraints
         """

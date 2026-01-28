@@ -159,6 +159,7 @@ class Leaf(expression.Expression):
             )
         self.args = []
         self.bounds = self._ensure_valid_bounds(bounds)
+        self.attributes['bounds'] = self.bounds
         if value is not None:
             self.value = value
 
@@ -190,15 +191,17 @@ class Leaf(expression.Expression):
                 if isinstance(val, bool):
                     attr_str += ", %s=%s" % (attr, val)
                 elif attr == 'bounds' and val is not None:
-                    lower = np.array2string(val[0],
-                                    edgeitems=s.PRINT_EDGEITEMS,
-                                    threshold=s.PRINT_THRESHOLD,
-                                    formatter={'float': lambda x: f'{x:.2f}'})
-                    upper = np.array2string(val[1],
-                                    edgeitems=s.PRINT_EDGEITEMS,
-                                    threshold=s.PRINT_THRESHOLD,
-                                    formatter={'float': lambda x: f'{x:.2f}'})
-                    attr_str += ", %s=(%s, %s)" % (attr, lower, upper)
+                    parts = []
+                    for b in val:
+                        if isinstance(b, expression.Expression):
+                            parts.append(str(b))
+                        else:
+                            parts.append(np.array2string(
+                                b,
+                                edgeitems=s.PRINT_EDGEITEMS,
+                                threshold=s.PRINT_THRESHOLD,
+                                formatter={'float': lambda x: f'{x:.2f}'}))
+                    attr_str += ", %s=(%s, %s)" % (attr, parts[0], parts[1])
                 elif attr in ('sparsity', 'boolean', 'integer') and isinstance(val, Iterable):
                     attr_str += ", %s=%s" % (attr, val)
         return attr_str
@@ -300,6 +303,8 @@ class Leaf(expression.Expression):
             return True
         elif self.attributes['bounds'] is not None:
             lower_bound = self.attributes['bounds'][0]
+            if isinstance(lower_bound, expression.Expression):
+                return True
             if np.isscalar(lower_bound):
                 return lower_bound != -np.inf
             else:
@@ -313,6 +318,8 @@ class Leaf(expression.Expression):
             return True
         elif self.attributes['bounds'] is not None:
             upper_bound = self.attributes['bounds'][1]
+            if isinstance(upper_bound, expression.Expression):
+                return True
             if np.isscalar(upper_bound):
                 return upper_bound != np.inf
             else:
@@ -326,7 +333,7 @@ class Leaf(expression.Expression):
         Parameters
         ----------
         term: The term to encode in the constraints.
-        constraints: An existing list of constraitns to append to.
+        constraints: An existing list of constraints to append to.
         """
         if self.attributes['nonneg'] or self.attributes['pos']:
             constraints.append(term >= 0)
@@ -335,20 +342,21 @@ class Leaf(expression.Expression):
         if self.attributes['bounds']:
             bounds = self.bounds
             lower_bounds, upper_bounds = bounds
-            # Create masks if -inf or inf is present in the bounds
-            lower_bound_mask = (lower_bounds != -np.inf)
-            upper_bound_mask = (upper_bounds != np.inf)
 
-            if np.any(lower_bound_mask):
-                # At least one valid lower bound,
-                # so we apply the constraint only to those entries
+            # Expression bounds (e.g. cp.Parameter): no masking needed
+            if isinstance(lower_bounds, expression.Expression):
+                constraints.append(term >= lower_bounds)
+            elif np.any(lower_bounds != -np.inf):
+                lower_bound_mask = (lower_bounds != -np.inf)
                 if self.ndim > 0:
                     constraints.append(term[lower_bound_mask] >= lower_bounds[lower_bound_mask])
                 else:
                     constraints.append(term >= lower_bounds)
-            if np.any(upper_bound_mask):
-                # At least one valid upper bound,
-                # so we apply the constraint only to those entries
+
+            if isinstance(upper_bounds, expression.Expression):
+                constraints.append(term <= upper_bounds)
+            elif np.any(upper_bounds != np.inf):
+                upper_bound_mask = (upper_bounds != np.inf)
                 if self.ndim > 0:
                     constraints.append(term[upper_bound_mask] <= upper_bounds[upper_bound_mask])
                 else:
@@ -397,6 +405,9 @@ class Leaf(expression.Expression):
         elif self.attributes['nonneg'] or self.attributes['pos']:
             return np.maximum(val, 0.)
         elif self.attributes['bounds']:
+            if any(isinstance(b, expression.Expression) for b in self.bounds):
+                # Cannot project with expression bounds; return as-is.
+                return val
             return np.clip(val, self.bounds[0], self.bounds[1])
         elif self.attributes['imag']:
             return np.imag(val)*1j
@@ -641,6 +652,46 @@ class Leaf(expression.Expression):
         if not isinstance(value, Iterable) or len(value) != 2:
             raise ValueError("Bounds should be a list of two items.")
 
+        # Convert to a mutable list so we can promote entries.
+        value = list(value)
+
+        # Check whether either bound is a CVXPY Expression.
+        has_expr_bound = any(
+            isinstance(val, expression.Expression) for val in value
+        )
+
+        if has_expr_bound:
+            # Validate Expression bounds: must be scalar or matching shape,
+            # and must not depend on any Variable.
+            for idx, val in enumerate(value):
+                if isinstance(val, expression.Expression):
+                    if val.variables():
+                        raise ValueError(
+                            "Parametric bounds must not depend on Variables. "
+                            "Use Parameters or numeric values instead."
+                        )
+                    if not (val.is_scalar() or val.shape == self.shape):
+                        raise ValueError(
+                            "Expression bounds must be scalar or have the "
+                            "same dimensions as the variable."
+                        )
+                elif val is None:
+                    # Promote None to -inf / inf ndarray even when other
+                    # bound is an Expression.
+                    none_bounds = [-np.inf, np.inf]
+                    value[idx] = np.full(self.shape, none_bounds[idx])
+                elif np.isscalar(val):
+                    value[idx] = np.full(self.shape, val)
+                else:
+                    valid_array = isinstance(val, np.ndarray) and val.shape == self.shape
+                    if not valid_array:
+                        raise ValueError(
+                            "Bounds should be None, scalars, arrays, or "
+                            "CVXPY Expressions with matching dimensions."
+                        )
+            return value
+
+        # --- Non-expression (numeric) bounds path ---
         # Check that bounds contains two scalars or two arrays with matching shapes.
         for val in value:
             valid_array = isinstance(val, np.ndarray) and val.shape == self.shape
