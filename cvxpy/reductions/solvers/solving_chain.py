@@ -304,30 +304,30 @@ def construct_solving_chain(problem, candidates,
     # SOC, ExpCone, NonNeg, Zero, PSD, PowCone3D) and check if
     # they've appeared in constr_types or if the problem has an atom
     # requiring that cone.
-    cones = []
+    cones = set()
     atoms = problem.atoms()
 
     if SOC in constr_types or any(atom in SOC_ATOMS for atom in atoms):
-        cones.append(SOC)
+        cones.add(SOC)
     if ExpCone in constr_types or any(atom in EXP_ATOMS for atom in atoms):
-        cones.append(ExpCone)
+        cones.add(ExpCone)
     if any(t in constr_types for t in [Inequality, NonPos, NonNeg]) \
             or any(atom in NONPOS_ATOMS for atom in atoms):
-        cones.append(NonNeg)
+        cones.add(NonNeg)
     if Equality in constr_types or Zero in constr_types:
-        cones.append(Zero)
+        cones.add(Zero)
     if PSD in constr_types \
             or any(atom in PSD_ATOMS for atom in atoms) \
             or any(v.is_psd() or v.is_nsd() for v in problem.variables()):
-        cones.append(PSD)
+        cones.add(PSD)
     if PowCone3D in constr_types or any(atom in POWCONE_ATOMS for atom in atoms):
-        cones.append(PowCone3D)
+        cones.add(PowCone3D)
     if PowConeND in constr_types or any(atom in POWCONE_ND_ATOMS for atom in atoms):
-        cones.append(PowConeND)
+        cones.add(PowConeND)
     # Here, we make use of the observation that canonicalization only
     # increases the number of constraints in our problem.
-    var_domains = sum([var.domain for var in problem.variables()], start = [])
-    has_constr = len(cones) > 0 or len(problem.constraints) > 0 or len(var_domains) > 0
+    has_constr = (len(cones) > 0 or len(problem.constraints) > 0
+                  or any(var.domain for var in problem.variables()))
 
     if PSD in cones \
             and slv_def.DISREGARD_CLARABEL_SDP_SUPPORT_FOR_DEFAULT_RESOLUTION \
@@ -338,18 +338,15 @@ def construct_solving_chain(problem, candidates,
         solver_instance = slv_def.SOLVER_MAP_CONIC[solver]
         # Cones supported for MI problems may differ from non MI.
         if problem.is_mixed_integer():
-            supported_constraints = solver_instance.MI_SUPPORTED_CONSTRAINTS
+            supported_constraints = frozenset(solver_instance.MI_SUPPORTED_CONSTRAINTS)
         else:
-            supported_constraints = solver_instance.SUPPORTED_CONSTRAINTS
+            supported_constraints = frozenset(solver_instance.SUPPORTED_CONSTRAINTS)
 
         solver_context = SolverInfo(solver=solver, supported_constraints=supported_constraints)
 
         # --- Approximate cone expansion (solver-aware) ---
         # Only approximate cones the solver doesn't natively support.
-        approx_cos = [
-            ct for ct in constr_types
-            if ct in APPROX_CONE_CONVERSIONS and ct not in supported_constraints
-        ]
+        approx_cos = constr_types & APPROX_CONE_CONVERSIONS.keys() - supported_constraints
         solver_constr_types = set(constr_types)
         for co in approx_cos:
             app_cos = APPROX_CONE_CONVERSIONS[co]
@@ -357,7 +354,7 @@ def construct_solving_chain(problem, candidates,
             solver_constr_types.discard(co)
 
         # Rebuild cones list incorporating approximate expansions.
-        solver_cones = set(cones)
+        solver_cones = cones.copy()
         for co in approx_cos:
             solver_cones.discard(co)
             solver_cones.update(APPROX_CONE_CONVERSIONS[co])
@@ -366,7 +363,7 @@ def construct_solving_chain(problem, candidates,
         # Replace one-shot expansion with iterative loop.
         exotic_steps = []
         while True:
-            ex_cos = (solver_cones & set(EXACT_CONE_CONVERSIONS)) - set(supported_constraints)
+            ex_cos = (solver_cones & EXACT_CONE_CONVERSIONS.keys()) - supported_constraints
             if not ex_cos:
                 break
             # Source nodes: not produced by other unsupported exotic cones
@@ -400,7 +397,7 @@ def construct_solving_chain(problem, candidates,
 
             # Approximate cone conversions (single pass, all types)
             if approx_cos:
-                reductions.append(ApproxCone2Cone(target_cones=set(approx_cos)))
+                reductions.append(ApproxCone2Cone(target_cones=approx_cos))
 
             reductions.append(
                 CvxAttr2Constr(reduce_bounds=not solver_instance.BOUNDED_VARIABLES),
@@ -411,7 +408,7 @@ def construct_solving_chain(problem, candidates,
             # before zero-sized sub-expressions are replaced.
             reductions.append(EliminateZeroSized())
 
-            if all(c in supported_constraints for c in solver_cones):
+            if solver_cones <= supported_constraints:
                 # Check if solver only supports dim-3 SOC cones
                 if solver_instance.SOC_DIM3_ONLY and SOC in solver_cones:
                     # Add SOCDim3 reduction to convert n-dim SOC to 3D SOC
