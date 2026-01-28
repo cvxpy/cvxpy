@@ -234,10 +234,12 @@ def set_matrix_data(linC, linPy) -> None:
 
     if get_type(linPy) == cvxcore.SPARSE_CONST:
         coo = format_matrix(linPy.data, format="sparse")
+        # Ensure arrays are contiguous for C++ SWIG interface.
+        # scipy 1.17.0 may return non-contiguous arrays from sparse conversions.
         linC.set_sparse_data(
-            coo.data,
-            coo.row.astype(float),
-            coo.col.astype(float),
+            np.ascontiguousarray(coo.data),
+            np.ascontiguousarray(coo.row, dtype=float),
+            np.ascontiguousarray(coo.col, dtype=float),
             coo.shape[0],
             coo.shape[1],
         )

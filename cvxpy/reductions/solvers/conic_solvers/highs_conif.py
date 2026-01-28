@@ -14,6 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from re import compile
+
 import numpy as np
 
 import cvxpy.interface as intf
@@ -26,6 +28,63 @@ from cvxpy.reductions.solvers.conic_solvers.conic_solver import (
     dims_to_solver_dict,
 )
 from cvxpy.utilities.citations import CITATION_DICT
+
+PYTHON_LIST_SLICE_PATTERN = compile(r", \d+:\d+")
+VALID_COLUMN_NAME_PATTERN = compile(
+    r"^(?!st$|bounds$|min$|max$|bin$|binary$|gen$|semi$|end$)[a-df-zA-DF-Z\"!#$%&/}{,;?@_‘’'`|~]{1}[a-zA-Z0-9\"!#$%&/}{,;?@_‘’'`|~.=()<>[\]]{,254}$"
+)
+INVALID_COLUMN_NAME_MESSAGE_TEMPLATE = (
+    "Invalid column name: {name}"
+    "\nA column name must:"
+    "\n- not be equal to one of the keywords: st, bounds, min, max, bin, binary, gen, semi or end"
+    "\n- not begin with a number, the letter e or E or any of the following characters: .=()<>[]"
+    "\n- be alphanumeric (a-z, A-Z, 0-9) or one of these symbols: \"!#$%&/}}{{,;?@_‘’'`|~.=()<>[]"
+    "\n- be no longer than 255 characters."
+)
+
+
+def validate_column_name(name: str) -> None:
+    """Check if the name is a valid column name."""
+    if not VALID_COLUMN_NAME_PATTERN.match(name):
+        raise ValueError(INVALID_COLUMN_NAME_MESSAGE_TEMPLATE.format(name=name))
+
+
+def strip_column_name_of_python_list_slice_notation(name: str) -> str:
+    """Strip python list slice notation -- i.e., the part after the comma in [0, 0:#]
+    - space and colon characters are not allowed in column names and
+    - 0:# part is not needed in X[0, 0:#] because we label X[0][0] ... X[0][#] individually
+    """
+    return PYTHON_LIST_SLICE_PATTERN.sub("", name)
+
+
+def collect_column_names(variable, column_names):
+    """Recursively collect variable names."""
+    if variable.ndim == 0:  # scalar
+        column_names.append(variable.name())
+    elif variable.ndim == 1:  # simple array
+        var_name_prefix = strip_column_name_of_python_list_slice_notation(variable.name())
+        column_names.extend([f"{var_name_prefix}[{v}]" for v in range(variable.size)])
+    else:  # multi-dimensional array
+        for var in variable:
+            collect_column_names(var, column_names)  # recursive call
+    # Checking the validity of only the last inserted name is sufficient because all var
+    # names are derived from the same var name prefix and the last one is the longest
+    validate_column_name(column_names[-1])
+
+
+def set_column_names_from_variables(lp, variables):
+    """Set column names on HiGHS LP model from CVXPY variables.
+
+    Args:
+        lp: HiGHS LP model (model.lp_)
+        variables: List of CVXPY variables from data[s.PARAM_PROB].variables
+    """
+    column_names = []
+    for variable in variables:
+        # variable_of_provenance() handles auto-generated vars (nonneg=True, etc.)
+        variable = variable.variable_of_provenance() or variable
+        collect_column_names(variable, column_names)
+    lp.col_names_ = column_names
 
 
 def unpack_highs_options_inplace(solver_opts) -> None:
@@ -43,6 +102,7 @@ class HIGHS(ConicSolver):
 
     # Solver capabilities.
     MIP_CAPABLE = True
+    BOUNDED_VARIABLES = True
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS
     MI_SUPPORTED_CONSTRAINTS = SUPPORTED_CONSTRAINTS
 
@@ -207,8 +267,10 @@ class HIGHS(ConicSolver):
         lp.a_matrix_.value_ = A.data
 
         # Define Variable bounds
-        col_lower = -inf * np.ones(shape=lp.num_col_, dtype=c.dtype)
-        col_upper = inf * np.ones(shape=lp.num_col_, dtype=c.dtype)
+        lb = data[s.LOWER_BOUNDS]
+        ub = data[s.UPPER_BOUNDS]
+        col_lower = np.full(lp.num_col_, -inf, dtype=c.dtype) if lb is None else lb.copy()
+        col_upper = np.full(lp.num_col_, inf, dtype=c.dtype) if ub is None else ub.copy()
         # update col_lower and col_upper to account for boolean variables,
         # also set integrality_ for boolean or integers variables
         if data[s.BOOL_IDX] or data[s.INT_IDX]:
@@ -218,8 +280,8 @@ class HIGHS(ConicSolver):
                 for ind in data[s.BOOL_IDX]:
                     integrality[ind] = hp.HighsVarType.kInteger
                 bool_mask = np.array(data[s.BOOL_IDX], dtype=int)
-                col_lower[bool_mask] = 0
-                col_upper[bool_mask] = 1
+                col_lower[bool_mask] = np.maximum(col_lower[bool_mask], 0)
+                col_upper[bool_mask] = np.minimum(col_upper[bool_mask], 1)
             for ind in data[s.INT_IDX]:
                 integrality[ind] = hp.HighsVarType.kInteger
             lp.integrality_ = integrality
@@ -230,6 +292,7 @@ class HIGHS(ConicSolver):
 
         # setup options
         unpack_highs_options_inplace(solver_opts)
+        write_model_file = solver_opts.pop("write_model_file", None)
         solver.setOptionValue("log_to_console", verbose)
         for name, value in solver_opts.items():
             # note that calling setOptionValue directly on the solver
@@ -240,7 +303,15 @@ class HIGHS(ConicSolver):
                     f"HIGHS returned status kError for option (name, value): ({name}, {value})"
                 )
 
+        if write_model_file:
+            # TODO: Names can be collected upstream more systematically
+            # (or in the parent class) to be used by all solvers.
+            set_column_names_from_variables(lp, data[s.PARAM_PROB].variables)
+
         solver.passModel(model)
+
+        if write_model_file:
+            solver.writeModel(write_model_file)
 
         if warm_start and solver_cache is not None and self.name() in solver_cache:
             old_solver, old_data, old_result = solver_cache[self.name()]

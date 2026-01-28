@@ -13,24 +13,25 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 import numpy as np
 import scipy.sparse as sp
 
 from cvxpy.atoms.affine.bmat import bmat
 from cvxpy.constraints.psd import PSD
 from cvxpy.expressions.variable import Variable
+from cvxpy.utilities.solver_context import SolverInfo
 
 
-def sigma_max_canon(expr, args):
+def sigma_max_canon(expr, args, solver_context: SolverInfo | None = None):
     A = args[0]
     n, m = A.shape
     shape = expr.shape
     if not np.prod(shape) == 1:
-        raise RuntimeError('Invalid shape of expr in sigma_max canonicalization.')
+        raise RuntimeError("Invalid shape of expr in sigma_max canonicalization.")
     t = Variable(shape)
     tI_n = t * sp.eye_array(n)
     tI_m = t * sp.eye_array(m)
-    X = bmat([[tI_n, A],
-              [A.T, tI_m]])
+    X = bmat([[tI_n, A], [A.T, tI_m]])
     constraints = [PSD(X)]
     return t, constraints

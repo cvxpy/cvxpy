@@ -22,7 +22,7 @@ from cvxpy.atoms.quad_form import SymbolicQuadForm
 from cvxpy.expressions.variable import Variable
 
 
-def quad_over_lin_canon(expr, args):
+def quad_over_lin_canon(expr, args, solver_context=None):
     affine_expr = args[0]
     y = args[1]
     assert y.is_scalar(), "quad_over_lin requires scalar y"
@@ -87,13 +87,13 @@ def _compute_block_indices(shape, axes):
     # Vectorized computation of all indices at once
     # out_multi: tuple of arrays, each shape (n_outputs,)
     if output_shape:
-        out_multi = np.unravel_index(np.arange(n_outputs), output_shape, order='F')
+        out_multi = np.unravel_index(np.arange(n_outputs), output_shape, order="F")
     else:
         out_multi = ()
 
     # reduce_multi: tuple of arrays, each shape (reduce_size,)
     if reduce_shape:
-        reduce_multi = np.unravel_index(np.arange(reduce_size), reduce_shape, order='F')
+        reduce_multi = np.unravel_index(np.arange(reduce_size), reduce_shape, order="F")
     else:
         reduce_multi = ()
 
@@ -105,17 +105,17 @@ def _compute_block_indices(shape, axes):
     for i in range(ndim):
         if i in axes_set:
             # Broadcast reduce indices: (reduce_size,) -> (n_outputs, reduce_size)
-            input_multi.append(np.broadcast_to(
-                reduce_multi[reduce_ptr], (n_outputs, reduce_size)))
+            input_multi.append(np.broadcast_to(reduce_multi[reduce_ptr], (n_outputs, reduce_size)))
             reduce_ptr += 1
         else:
             # Broadcast output indices: (n_outputs,) -> (n_outputs, reduce_size)
-            input_multi.append(np.broadcast_to(
-                out_multi[out_ptr][:, np.newaxis], (n_outputs, reduce_size)))
+            input_multi.append(
+                np.broadcast_to(out_multi[out_ptr][:, np.newaxis], (n_outputs, reduce_size))
+            )
             out_ptr += 1
 
     # Compute all flat indices at once: shape (n_outputs, reduce_size)
-    flat_indices_2d = np.ravel_multi_index(input_multi, shape, order='F')
+    flat_indices_2d = np.ravel_multi_index(input_multi, shape, order="F")
 
     # Return as list of arrays for compatibility with SymbolicQuadForm
     return [flat_indices_2d[j] for j in range(n_outputs)]

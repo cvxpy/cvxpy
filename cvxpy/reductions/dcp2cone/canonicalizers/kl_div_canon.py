@@ -17,9 +17,10 @@ limitations under the License.
 from cvxpy.atoms.affine.promote import promote
 from cvxpy.constraints.exponential import ExpCone
 from cvxpy.expressions.variable import Variable
+from cvxpy.utilities.solver_context import SolverInfo
 
 
-def kl_div_canon(expr, args):
+def kl_div_canon(expr, args, solver_context: SolverInfo | None = None):
     shape = expr.shape
     x = promote(args[0], shape)
     y = promote(args[1], shape)

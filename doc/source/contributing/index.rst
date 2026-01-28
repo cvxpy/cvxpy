@@ -64,7 +64,6 @@ Medium scope projects
 
 Large scope projects
  - Problem serialization [`532 <https://github.com/cvxpy/cvxpy/issues/532>`_, `1333 <https://github.com/cvxpy/cvxpy/issues/1333>`_, `1438 <https://github.com/cvxpy/cvxpy/issues/1438>`_].
- - `Logical boolean operations <https://github.com/cvxpy/cvxpy/issues/1000>`_.
  - Batch support for parameters.
  - `Numerical debugging/analysis tool <https://github.com/cvxpy/cvxpy/issues/3022>`_.
  - Infeasibility debugging tool (IIS or slack minimization).

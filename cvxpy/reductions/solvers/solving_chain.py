@@ -1,12 +1,17 @@
 from __future__ import annotations
 
-import warnings
-
 import numpy as np
 import scipy.sparse as sp
 
 import cvxpy.settings as s
-from cvxpy.atoms import EXP_ATOMS, NONPOS_ATOMS, PSD_ATOMS, SOC_ATOMS
+from cvxpy.atoms import (
+    EXP_ATOMS,
+    NONPOS_ATOMS,
+    POWCONE_ATOMS,
+    POWCONE_ND_ATOMS,
+    PSD_ATOMS,
+    SOC_ATOMS,
+)
 from cvxpy.constraints import (
     PSD,
     SOC,
@@ -48,6 +53,8 @@ from cvxpy.reductions.solvers.solver import Solver
 from cvxpy.settings import CLARABEL, COO_CANON_BACKEND, DPP_PARAM_THRESHOLD
 from cvxpy.utilities import scopes
 from cvxpy.utilities.debug_tools import build_non_disciplined_error_msg
+from cvxpy.utilities.solver_context import SolverInfo
+from cvxpy.utilities.warn import warn
 
 DPP_ERROR_MSG = (
     "You are solving a parameterized problem that is not DPP. "
@@ -246,7 +253,7 @@ def construct_solving_chain(problem, candidates,
         if ignore_dpp:
             reductions = [EvalParams()] + reductions
         elif not enforce_dpp:
-            warnings.warn(DPP_ERROR_MSG)
+            warn(DPP_ERROR_MSG)
             reductions = [EvalParams()] + reductions
         else:
             raise DPPError(DPP_ERROR_MSG)
@@ -298,6 +305,7 @@ def construct_solving_chain(problem, candidates,
     # requiring that cone.
     cones = []
     atoms = problem.atoms()
+
     if SOC in constr_types or any(atom in SOC_ATOMS for atom in atoms):
         cones.append(SOC)
     if ExpCone in constr_types or any(atom in EXP_ATOMS for atom in atoms):
@@ -311,6 +319,10 @@ def construct_solving_chain(problem, candidates,
             or any(atom in PSD_ATOMS for atom in atoms) \
             or any(v.is_psd() or v.is_nsd() for v in problem.variables()):
         cones.append(PSD)
+    if PowCone3D in constr_types or any(atom in POWCONE_ATOMS for atom in atoms):
+        cones.append(PowCone3D)
+    if PowConeND in constr_types or any(atom in POWCONE_ND_ATOMS for atom in atoms):
+        cones.append(PowConeND)
     # Here, we make use of the observation that canonicalization only
     # increases the number of constraints in our problem.
     var_domains = sum([var.domain for var in problem.variables()], start = [])
@@ -329,29 +341,21 @@ def construct_solving_chain(problem, candidates,
         else:
             supported_constraints = solver_instance.SUPPORTED_CONSTRAINTS
 
+        solver_context = SolverInfo(solver=solver, supported_constraints=supported_constraints)
 
-        ex_cos = (constr_types & set(EXOTIC_CONES)) - set(supported_constraints)
+        cones = set(cones)
+        ex_cos = (cones & set(EXOTIC_CONES)) - set(supported_constraints)
 
         for co in ex_cos:
-            sim_cos = set(EXOTIC_CONES[co]) 
-            constr_types.update(sim_cos)
-            constr_types.discard(co)
-
-        if PowCone3D in constr_types and PowCone3D not in cones:
-            # if we add in atoms that specifically use the 3D power cone
-            # (rather than the ND power cone), then we'll need to check
-            # for those atoms here as well.
-            cones.append(PowCone3D)
-        if PowConeND in constr_types and PowConeND not in cones:
-            cones.append(PowConeND)
+            sim_cos = set(EXOTIC_CONES[co])
+            cones.update(sim_cos)
+            cones.discard(co)
 
         unsupported_constraints = [
             cone for cone in cones if cone not in supported_constraints
         ]
 
         if has_constr or not solver_instance.REQUIRES_CONSTR:
-            if ex_cos:
-                reductions.append(Exotic2Common())
             if RelEntrConeQuad in approx_cos or OpRelEntrConeQuad in approx_cos:
                 reductions.append(QuadApprox())
 
@@ -362,10 +366,14 @@ def construct_solving_chain(problem, candidates,
                 use_quad_obj = solver_opts.get("use_quad_obj", True)
             quad_obj = use_quad_obj and solver_instance.supports_quad_obj() and \
                 problem.objective.expr.has_quadratic_term()
-            reductions += [
-                Dcp2Cone(quad_obj=quad_obj),
+            reductions.append(
+                Dcp2Cone(quad_obj=quad_obj, solver_context=solver_context),
+            )
+            if ex_cos:
+                reductions.append(Exotic2Common())
+            reductions.append(
                 CvxAttr2Constr(reduce_bounds=not solver_instance.BOUNDED_VARIABLES),
-            ]
+            )
             if all(c in supported_constraints for c in cones):
                 # Check if solver only supports dim-3 SOC cones
                 if solver_instance.SOC_DIM3_ONLY and SOC in cones:
@@ -376,14 +384,14 @@ def construct_solving_chain(problem, candidates,
                     ConeMatrixStuffing(quad_obj=quad_obj, canon_backend=canon_backend),
                     solver_instance
                 ]
-                return SolvingChain(reductions=reductions)
+                return SolvingChain(reductions=reductions, solver_context=solver_context)
             elif all(c==SOC for c in unsupported_constraints) and PSD in supported_constraints:
                 reductions += [
                     SOC2PSD(),
                     ConeMatrixStuffing(quad_obj=quad_obj, canon_backend=canon_backend),
                     solver_instance
                 ]
-                return SolvingChain(reductions=reductions)
+                return SolvingChain(reductions=reductions, solver_context=solver_context)
 
     raise SolverError("Either candidate conic solvers (%s) do not support the "
                       "cones output by the problem (%s), or there are not "
@@ -449,12 +457,13 @@ class SolvingChain(Chain):
         The solver, i.e., reductions[-1].
     """
 
-    def __init__(self, problem=None, reductions=None) -> None:
+    def __init__(self, problem=None, reductions=None, solver_context=None) -> None:
         super(SolvingChain, self).__init__(problem=problem,
                                            reductions=reductions)
         if not isinstance(self.reductions[-1], Solver):
             raise ValueError("Solving chains must terminate with a Solver.")
         self.solver = self.reductions[-1]
+        self.solver_context = solver_context
 
     def prepend(self, chain) -> "SolvingChain":
         """

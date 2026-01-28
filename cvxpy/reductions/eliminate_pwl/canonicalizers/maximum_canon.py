@@ -16,9 +16,10 @@ limitations under the License.
 
 from cvxpy.atoms.affine.wraps import nonneg_wrap, nonpos_wrap
 from cvxpy.expressions.variable import Variable
+from cvxpy.utilities.solver_context import SolverInfo
 
 
-def maximum_canon(expr, args):
+def maximum_canon(expr, args, solver_context: SolverInfo | None = None):
     shape = expr.shape
     t = Variable(shape)
 

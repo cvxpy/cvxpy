@@ -95,7 +95,7 @@ The table below shows the types of problems the supported solvers can handle.
 +----------------+----+----+------+-----+-----+-----+-----+
 | `GUROBI`_      | X  | X  | X    |     |     |     | X   |
 +----------------+----+----+------+-----+-----+-----+-----+
-| `MOREAU`_       | X  | X  | X    |     | X  | X   |     |
+| `MOREAU`_      | X  | X  | X    |     | X   | X   |     |
 +----------------+----+----+------+-----+-----+-----+-----+
 | `MOSEK`_       | X  | X  | X    | X   | X   | X   | X** |
 +----------------+----+----+------+-----+-----+-----+-----+
@@ -104,6 +104,8 @@ The table below shows the types of problems the supported solvers can handle.
 | `CUCLARABEL`_  | X  | X  | X    |     | X   | X   |     |
 +----------------+----+----+------+-----+-----+-----+-----+
 | `CUOPT`_       | X  |    |      |     |     |     | X*  |
++----------------+----+----+------+-----+-----+-----+-----+
+| `COSMO`_       | X  |  X | X    | X   | X   |  X  |     |
 +----------------+----+----+------+-----+-----+-----+-----+
 | `CVXOPT`_      | X  | X  | X    | X   |     |     |     |
 +----------------+----+----+------+-----+-----+-----+-----+
@@ -297,7 +299,9 @@ cached previous solution as described above (rather than from the ``value`` fiel
 Setting solver options
 ----------------------
 
-The `OSQP`_, `ECOS`_, `GLOP`_, `MOSEK`_, `MPAX`_, `CBC`_, `CVXOPT`_, `NAG`_, `PDLP`_, `QOCO`_, `GUROBI`_, `SCS`_ , `CLARABEL`_, `DAQP`_, `PIQP`_, `PROXQP`_, `CUOPT`_ and `KNITRO`_ Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.
+The `OSQP`_, `ECOS`_, `GLOP`_, `MOREAU`_, `MOSEK`_, `MPAX`_, `CBC`_, `CVXOPT`_, `NAG`_, `PDLP`_, `QOCO`_, `GUROBI`_, `SCS`_ ,
+ `CLARABEL`_, `DAQP`_, `PIQP`_, `PROXQP`_, `CUOPT`_ and `KNITRO`_ Python interfaces allow you to set solver options such 
+ as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.
 
 For example, here we tell SCS to use an indirect method for solving linear equations rather than a direct method.
 
@@ -826,6 +830,12 @@ Here is the complete list of solver options.
 
     For other options see `HiGHS documentation <https://ergo-code.github.io/HiGHS/dev/options/definitions/>`_.
 
+.. info:: `COSMO`_ options:
+    :collapsible:
+
+    For the COSMO solver can be specified within the ``solve`` command directly as keyword arguments. For example `solve(solver=cp.COSMO, max_iter=10000)`.
+    For all options see `COSMO documentation <https://oxfordcontrol.github.io/COSMO.jl/stable/getting_started/#Settings>`_.
+
 .. info:: `CUOPT`_ options:
     :collapsible:
 
@@ -847,6 +857,20 @@ Here is the complete list of solver options.
         - relative_gap_tolerance
 
     **Please note**: cuOpt internally has a specific API for setting variable bounds, and it uses the cvxpy interface for bounded variables.  While not strictly necessary, cuOpt may perform better on some problens if variable bounds are included in the cvxpy variable creation rather than expressed as constraints.
+
+.. info:: `MOREAU`_ options:
+    :collapsible:
+
+    ``'device'``
+        Computation device to use. Can be "cpu", "cuda" for GPU acceleration, or
+        "auto" (default) to automatically select "cuda" if an NVIDIA GPU is available.
+
+    ``'accept_unknown'``
+        If ``accept_unknown=True``, an inaccurate solution will be returned, even if
+        it is arbitrarily bad, when the solver does not generate an optimal
+        point under the given conditions.
+
+    Contact `Optimal Intellect <https://www.optimalintellect.com/>`_ for further documentation.
 
 .. info:: `KNITRO`_ options:
     :collapsible:
@@ -934,4 +958,5 @@ will be the same as the class variable ``SUPPORTED_CONSTRAINTS``.
 .. _PROXQP: https://github.com/simple-robotics/proxsuite
 .. _QPALM: https://kul-optec.github.io/QPALM/Doxygen/index.html
 .. _CUOPT: https://github.com/NVIDIA/cuopt
+.. _COSMO: https://oxfordcontrol.github.io/COSMO.jl/stable/
 .. _KNITRO: https://www.artelys.com/knitro/

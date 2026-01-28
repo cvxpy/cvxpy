@@ -46,6 +46,9 @@ from cvxpy.reductions.dcp2cone.canonicalizers.suppfunc_canon import (
     suppfunc_canon,)
 from cvxpy.reductions.dcp2cone.canonicalizers.tr_inv_canon import *
 from cvxpy.reductions.dcp2cone.canonicalizers.xexp_canon import *
+from cvxpy.reductions.dcp2cone.canonicalizers.logic_canon import (
+    not_canon, and_canon, or_canon, xor_canon,)
+from cvxpy.atoms.elementwise.logic import Not, And, Or, Xor
 from cvxpy.reductions.eliminate_pwl.canonicalizers import (abs_canon,
                                                            cummax_canon,
                                                            cumsum_canon,
@@ -64,7 +67,8 @@ from cvxpy.transforms.indicator import indicator
 CANON_METHODS = {
     cummax : cummax_canon,
     cumsum : cumsum_canon,
-    geo_mean : geo_mean_canon,
+    GeoMean : geo_mean_exact_canon,
+    GeoMeanApprox : geo_mean_approx_canon,
     lambda_max : lambda_max_canon,
     lambda_sum_largest : lambda_sum_largest_canon,
     log_det : log_det_canon,
@@ -75,7 +79,8 @@ CANON_METHODS = {
     norm1 : norm1_canon,
     normNuc : normNuc_canon,
     norm_inf : norm_inf_canon,
-    Pnorm : pnorm_canon,
+    Pnorm : pnorm_exact_canon,
+    PnormApprox : pnorm_approx_canon,
     QuadForm : quad_form_canon,
     quad_over_lin : quad_over_lin_canon,
     sigma_max : sigma_max_canon,
@@ -91,7 +96,8 @@ CANON_METHODS = {
     maximum : maximum_canon,
     minimum : minimum_canon,
     perspective : perspective_canon,
-    power : power_canon,
+    Power : power_exact_canon,
+    PowerApprox : power_approx_canon,
     rel_entr : rel_entr_canon,
     indicator : indicator_canon,
     special_index : special_index_canon,
@@ -101,4 +107,8 @@ CANON_METHODS = {
     von_neumann_entr : von_neumann_entr_canon_dispatch,
     quantum_rel_entr: quantum_rel_entr_canon,
     tr_inv : tr_inv_canon,
+    Not : not_canon,
+    And : and_canon,
+    Or : or_canon,
+    Xor : xor_canon,
 }

@@ -15,6 +15,36 @@ limitations under the License.
 
 Base classes for canonicalization backends.
 
+Backend Architecture Overview
+=============================
+
+Tensor Representation
+---------------------
+The backends represent linear operators as sparse 3D tensors:
+- Axis 0 (rows): Corresponds to constraint rows
+- Axis 1 (cols): Corresponds to variable columns
+- Axis 2 (param): Parameter slices (param_size slices, or 1 if non-parametric)
+
+Key Terms
+---------
+- param_size: Number of parameter values (e.g., 12 for a 3x4 Parameter)
+- param_slice: One 2D slice of the 3D tensor for a specific parameter value
+- param_idx: Index identifying which parameter value (0 to param_size-1)
+- is_param_free: True if expression has no Parameters (param_size == 1)
+- batch_size: Product of batch dimensions in ND arrays (e.g., B1*B2 for shape (B1,B2,m,n))
+
+Class Hierarchy
+---------------
+CanonBackend (abstract)
+  └── PythonCanonBackend (abstract, defines all linop methods)
+        ├── SciPyCanonBackend (stacked sparse matrices)
+        └── CooCanonBackend (3D COO tensor)
+
+TensorView (abstract)
+  └── DictTensorView (abstract)
+        ├── SciPyTensorView
+        └── CooTensorView
+
 This module contains the abstract base classes used by all backends:
 - Constant: Enum for constant ID marker
 - TensorRepresentation: Sparse 3D tensor representation
@@ -28,13 +58,98 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Callable
+from typing import Any, Callable, Tuple
 
 import numpy as np
 import scipy.sparse as sp
 
 import cvxpy.settings as s
 from cvxpy.lin_ops import LinOp
+
+
+def get_nd_matmul_dims(
+    const_shape: Tuple[int, ...],
+    var_shape: Tuple[int, ...],
+) -> Tuple[int, int, bool]:
+    """
+    Compute dimensions for ND matmul C @ X.
+
+    Parameters
+    ----------
+    const_shape : tuple
+        Shape of the constant C
+    var_shape : tuple
+        Shape of the variable X
+
+    Returns
+    -------
+    batch_size : int
+        Product of batch dimensions from X (1 if X is 2D)
+    n : int
+        Last dimension of X (number of columns)
+    const_has_batch : bool
+        Whether C has batch dimensions (len > 2)
+    """
+    batch_size = int(np.prod(var_shape[:-2])) if len(var_shape) > 2 else 1
+    n = var_shape[-1] if len(var_shape) >= 2 else 1
+    const_has_batch = len(const_shape) > 2
+    return batch_size, n, const_has_batch
+
+
+def get_nd_rmul_dims(
+    var_shape: Tuple[int, ...],
+    const_shape: Tuple[int, ...],
+) -> Tuple[int, int, int, bool]:
+    """
+    Compute dimensions for ND rmul X @ C.
+
+    Parameters
+    ----------
+    var_shape : tuple
+        Shape of the variable X
+    const_shape : tuple
+        Shape of the constant C
+
+    Returns
+    -------
+    batch_size : int
+        Product of batch dimensions from X (1 if X is 2D)
+    m : int
+        Second-to-last dimension of X (rows of X, or 1 if 1D row vector)
+    n : int
+        Last dimension of C (columns of C, or 1 if 1D column vector)
+    const_has_batch : bool
+        Whether C has batch dimensions (len > 2)
+    """
+    batch_size = int(np.prod(var_shape[:-2])) if len(var_shape) > 2 else 1
+    # 1D variable is a row vector (1, k), so m=1
+    m = var_shape[-2] if len(var_shape) >= 2 else 1
+    # 1D constant is a column vector (k, 1), so n=1
+    n = const_shape[-1] if len(const_shape) >= 2 else 1
+    const_has_batch = len(const_shape) > 2
+    return batch_size, m, n, const_has_batch
+
+
+def is_batch_varying(const_shape: Tuple[int, ...]) -> bool:
+    """
+    Check if constant has batch dimensions with product > 1.
+
+    A batch-varying constant has different values for each batch element,
+    requiring the interleaved matrix structure for ND matmul.
+
+    Parameters
+    ----------
+    const_shape : tuple
+        Shape of the constant
+
+    Returns
+    -------
+    bool
+        True if the constant has batch dimensions (shape like (B, m, k) with B > 1)
+    """
+    if len(const_shape) <= 2:
+        return False
+    return int(np.prod(const_shape[:-2])) > 1
 
 
 class Constant(Enum):
@@ -446,27 +561,45 @@ class PythonCanonBackend(CanonBackend):
             assert res is not None
             return res
 
-    def get_constant_data(self, lin_op: LinOp, view: TensorView, column: bool) \
-            -> tuple[np.ndarray | sp.spmatrix, bool]:
+    def get_constant_data(
+        self, lin_op: LinOp, view: TensorView, target_shape: tuple[int, ...] | None
+    ) -> tuple[np.ndarray | sp.spmatrix, bool]:
         """
-        Extract the constant data from a LinOp node. In most cases, lin_op will be of
-        type "*_const" or "param", but can handle arbitrary types.
+        Extract constant data from a LinOp node.
+
+        Parameters
+        ----------
+        lin_op : LinOp
+            A LinOp node, typically "*_const" or "param", but handles arbitrary types.
+        view : TensorView
+            Current tensor view (needed for processing parametric expressions).
+        target_shape : tuple[int, ...] | None
+            Shape to reshape the constant data to.
+            - None: Keep column format (m*n, 1). Use for operations that work
+              on flattened data (mul_elem, div, kron_r, kron_l).
+            - tuple: Reshape to specified shape. Use for matrix operations
+              (mul, rmul, conv) that need explicit matrix dimensions.
+
+        Returns
+        -------
+        data : np.ndarray | sp.spmatrix | dict
+            For constants: numpy array or sparse matrix.
+            For parametric: dict mapping param_id -> tensor.
+        is_param_free : bool
+            True if no Parameters, False if parametric.
         """
         # Fast path for constant data to prevent reshape into column vector.
         constants = {"scalar_const", "dense_const", "sparse_const"}
-        if not column and lin_op.type in constants and len(lin_op.shape) == 2:
+        if target_shape is not None and lin_op.type in constants and lin_op.shape == target_shape:
             constant_data = self.get_constant_data_from_const(lin_op)
             return constant_data, True
 
         constant_view = self.process_constraint(lin_op, view)
         assert constant_view.variable_ids == {Constant.ID.value}
         constant_data = constant_view.tensor[Constant.ID.value]
-        if not column and len(lin_op.shape) >= 1:
-            # constant_view has the data stored in column format.
-            # Some operations (like mul) do not require column format, so we need to reshape
-            # according to lin_op.shape.
-            lin_op_shape = lin_op.shape if len(lin_op.shape) == 2 else [1, lin_op.shape[0]]
-            constant_data = self.reshape_constant_data(constant_data, lin_op_shape)
+        if target_shape is not None:
+            # Reshape from column format to the requested shape.
+            constant_data = self.reshape_constant_data(constant_data, target_shape)
 
         data_to_return = constant_data[Constant.ID.value] if constant_view.is_parameter_free \
             else constant_data
@@ -482,10 +615,9 @@ class PythonCanonBackend(CanonBackend):
 
     @staticmethod
     @abstractmethod
-    def reshape_constant_data(constant_data: Any, lin_op_shape: tuple[int, int]) -> Any:
+    def reshape_constant_data(constant_data: Any, target_shape: tuple[int, ...]) -> Any:
         """
-        Reshape constant data from column format to the required shape for operations that
-        do not require column format
+        Reshape constant data from column format to the target shape.
         """
         pass  # noqa
 

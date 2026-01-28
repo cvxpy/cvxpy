@@ -22,9 +22,10 @@ from cvxpy.atoms.elementwise.log import log
 from cvxpy.constraints.psd import PSD
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.dcp2cone.canonicalizers.log_canon import log_canon
+from cvxpy.utilities.solver_context import SolverInfo
 
 
-def log_det_canon(expr, args):
+def log_det_canon(expr, args, solver_context: SolverInfo | None = None):
     """Reduces the atom to an affine expression and list of constraints.
 
     Creates the equivalent problem::
@@ -64,12 +65,11 @@ def log_det_canon(expr, args):
     """
     A = args[0]  # n by n matrix.
     n, _ = A.shape
-    z = Variable(shape=(n*(n+1)//2,))
+    z = Variable(shape=(n * (n + 1) // 2,))
     Z = vec_to_upper_tri(z, strict=False)
     d = diag_mat(Z)  # a vector
     D = diag_vec(d)  # a matrix
-    X = bmat([[D, Z],
-              [Z.T, A]])
+    X = bmat([[D, Z], [Z.T, A]])
     constraints = [PSD(X)]
     log_expr = log(d)
     obj, constr = log_canon(log_expr, log_expr.args)

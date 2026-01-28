@@ -20,9 +20,10 @@ import scipy.sparse as sp
 from cvxpy.atoms.quad_form import SymbolicQuadForm
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variable import Variable
+from cvxpy.utilities.solver_context import SolverInfo
 
 
-def power_canon(expr, args):
+def power_canon(expr, args, solver_context: SolverInfo | None = None):
     affine_expr = args[0]
     p = float(expr.p.value)
     if expr.is_constant():
@@ -37,5 +38,4 @@ def power_canon(expr, args):
         else:
             t = Variable(affine_expr.shape)
             return SymbolicQuadForm(t, sp.eye_array(t.size), expr), [affine_expr == t]
-    raise ValueError("non-constant quadratic forms can't be raised to a power "
-                     "greater than 2.")
+    raise ValueError("non-constant quadratic forms can't be raised to a power greater than 2.")

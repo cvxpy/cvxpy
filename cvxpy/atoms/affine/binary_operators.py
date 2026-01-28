@@ -26,6 +26,7 @@ import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.utilities as u
 from cvxpy.atoms.affine.add_expr import AddExpression
 from cvxpy.atoms.affine.affine_atom import AffAtom
+from cvxpy.atoms.affine.broadcast_to import broadcast_to
 from cvxpy.atoms.affine.conj import conj
 from cvxpy.atoms.affine.promote import Promote
 from cvxpy.atoms.affine.reshape import deep_flatten, reshape
@@ -131,6 +132,52 @@ class MulExpression(BinaryOperator):
     OP_NAME = "@"
     OP_FUNC = op.mul
 
+    def __init__(self, lh_exp, rh_exp) -> None:
+        # Broadcast batch dimensions for ND matmul
+        lh_exp, rh_exp = self._broadcast_batch_dims(lh_exp, rh_exp)
+        super(MulExpression, self).__init__(lh_exp, rh_exp)
+
+    @staticmethod
+    def _broadcast_batch_dims(lh_exp, rh_exp):
+        """
+        Broadcast batch dimensions for ND matrix multiplication.
+
+        For A @ B where A has shape (...a, m, k) and B has shape (...b, k, n),
+        broadcasts both to have batch shape broadcast(...a, ...b).
+        """
+        lh_exp = Expression.cast_to_const(lh_exp)
+        rh_exp = Expression.cast_to_const(rh_exp)
+
+        lh_shape = lh_exp.shape
+        rh_shape = rh_exp.shape
+
+        # Only apply batch broadcasting for ND arrays (ndim > 2)
+        if len(lh_shape) <= 2 and len(rh_shape) <= 2:
+            return lh_exp, rh_exp
+
+        # Extract batch dimensions (all but last 2)
+        lh_batch = lh_shape[:-2] if len(lh_shape) > 2 else ()
+        rh_batch = rh_shape[:-2] if len(rh_shape) > 2 else ()
+
+        # Compute broadcast batch shape
+        try:
+            broadcast_batch = np.broadcast_shapes(lh_batch, rh_batch)
+        except ValueError:
+            # Let shape validation handle the error with a clearer message
+            return lh_exp, rh_exp
+
+        # Broadcast lhs if needed
+        if lh_batch != broadcast_batch:
+            target_shape = broadcast_batch + lh_shape[-2:]
+            lh_exp = broadcast_to(lh_exp, target_shape)
+
+        # Broadcast rhs if needed
+        if rh_batch != broadcast_batch:
+            target_shape = broadcast_batch + rh_shape[-2:]
+            rh_exp = broadcast_to(rh_exp, target_shape)
+
+        return lh_exp, rh_exp
+
     def numeric(self, values):
         """Matrix multiplication.
         """
@@ -139,11 +186,6 @@ class MulExpression(BinaryOperator):
         else:
             return values[0] @ values[1]
 
-    def validate_arguments(self):
-        """Validate that the arguments can be multiplied together."""
-        if self.args[0].ndim > 2 or self.args[1].ndim > 2:
-            raise ValueError("Multiplication with N-d arrays is not yet supported")
-    
     def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the (row, col) shape of the expression.
         """

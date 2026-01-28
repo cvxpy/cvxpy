@@ -16,7 +16,6 @@ limitations under the License.
 from __future__ import annotations
 
 import numbers
-import warnings
 from typing import List, Literal, Tuple
 
 import numpy as np
@@ -29,6 +28,7 @@ from cvxpy.atoms.affine.hstack import hstack
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions.expression import DEFAULT_ORDER_DEPRECATION_MSG, Expression
 from cvxpy.utilities.shape import size_from_shape
+from cvxpy.utilities.warn import warn
 
 
 class reshape(AffAtom):
@@ -65,7 +65,7 @@ class reshape(AffAtom):
         self._shape = tuple(shape)
         if order is None:
             reshape_order_warning = DEFAULT_ORDER_DEPRECATION_MSG.replace("FUNC_NAME", "reshape")
-            warnings.warn(reshape_order_warning, FutureWarning)
+            warn(reshape_order_warning, FutureWarning)
             order = 'F'
         assert order in ['F', 'C']
         self.order = order

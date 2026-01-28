@@ -16,7 +16,6 @@ limitations under the License.
 from __future__ import annotations
 
 import time
-import warnings
 from collections import namedtuple
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Union
@@ -62,6 +61,8 @@ from cvxpy.settings import SOLVERS
 from cvxpy.utilities import debug_tools
 from cvxpy.utilities.citations import CITATION_DICT
 from cvxpy.utilities.deterministic import unique_list
+from cvxpy.utilities.solver_context import SolverInfo
+from cvxpy.utilities.warn import warn
 
 SolveResult = namedtuple(
     'SolveResult',
@@ -170,14 +171,14 @@ class Problem(u.Canonical):
         self._objective = objective
         # Raise warning if objective has too many subexpressions.
         if debug_tools.node_count(self._objective) >= debug_tools.MAX_NODES:
-            warnings.warn("Objective contains too many subexpressions. "
-                          "Consider vectorizing your CVXPY code to speed up compilation.")
+            warn("Objective contains too many subexpressions. "
+                  "Consider vectorizing your CVXPY code to speed up compilation.")
         self._constraints = [_validate_constraint(c) for c in constraints]
         # Raise warning if constraint has too many subexpressions.
         for i, constraint in enumerate(self._constraints):
             if debug_tools.node_count(constraint) >= debug_tools.MAX_NODES:
-                warnings.warn(f"Constraint #{i} contains too many subexpressions. "
-                              "Consider vectorizing your CVXPY code to speed up compilation.")
+                warn(f"Constraint #{i} contains too many subexpressions. "
+                      "Consider vectorizing your CVXPY code to speed up compilation.")
 
         self._value = None
         self._status: Optional[str] = None
@@ -193,6 +194,9 @@ class Problem(u.Canonical):
         self.args = [self._objective, self._constraints]
         # Needed for _aggregate_metrics.
         self.ndim = 0
+
+        # solver_context : The solver context: supported constrains and bounds.
+        self.solver_context : Optional[SolverInfo] = None
 
     @perf.compute_once
     def _aggregate_metrics(self) -> dict:
@@ -400,6 +404,30 @@ class Problem(u.Canonical):
             if var.attributes['PSD'] or var.attributes['NSD'] or var.attributes['hermitian']:
                 return False
         return (self.is_dcp() and self.objective.args[0].is_qpwa())
+
+    @perf.compute_once
+    def is_lp(self) -> bool:
+        """Is problem a linear program?
+
+        A problem is an LP if:
+        - It is DCP
+        - The objective is piecewise linear (PWL expressions linearize)
+        - Inequality constraints (Inequality, NonPos, NonNeg) have PWL expressions
+        - Equality constraints (Equality, Zero) are allowed (DCP ensures affine args)
+        - No other constraint types (e.g., SOC, PSD, ExpCone) are present
+        - No PSD/NSD/Hermitian variables
+        """
+        for c in self.constraints:
+            if type(c) in (Inequality, NonPos, NonNeg):
+                if not c.expr.is_pwl():
+                    return False
+            elif type(c) not in (Equality, Zero):
+                # Reject conic constraints (SOC, PSD, ExpCone, etc.)
+                return False
+        for var in self.variables():
+            if var.attributes['PSD'] or var.attributes['NSD'] or var.attributes['hermitian']:
+                return False
+        return (self.is_dcp() and self.objective.args[0].is_pwl())
 
     @perf.compute_once
     def is_mixed_integer(self) -> bool:
@@ -786,6 +814,7 @@ class Problem(u.Canonical):
             self._cache.key = key
             self._cache.solving_chain = solving_chain
             self._solver_cache = {}
+            self.solver_context = solving_chain.solver_context
         else:
             solving_chain = self._cache.solving_chain
 
@@ -913,25 +942,14 @@ class Problem(u.Canonical):
                 candidates['qp_solvers'] = []  # No QP solvers allowed
 
         if self.is_mixed_integer():
-            # ECOS_BB must be called explicitly.
-            if slv_def.INSTALLED_MI_SOLVERS == [s.ECOS_BB] and solver != s.ECOS_BB:
-                msg = """
-
-                    You need a mixed-integer solver for this model. Refer to the documentation
-                        https://www.cvxpy.org/tutorial/advanced/index.html#mixed-integer-programs
-                    for discussion on this topic.
-
-                    Quick fix 1: if you install the python package CVXOPT (pip install cvxopt),
-                    then CVXPY can use the open-source mixed-integer linear programming
-                    solver `GLPK`. If your problem is nonlinear then you can install SCIP
-                    (pip install pyscipopt).
-
-                    Quick fix 2: you can explicitly specify solver='ECOS_BB'. This may result
-                    in incorrect solutions and is not recommended.
-                """
-                raise error.SolverError(msg)
-            # TODO: provide a useful error message when the problem is nonlinear but
-            #  the only installed mixed-integer solvers are MILP solvers (e.g., GLPK_MI).
+            if solver is None and not self.is_lp():
+                # Problem is mixed integer but not LP (e.g., MIQP, MISOCP)
+                # HiGHS only supports MILP, so warn users about MINLP solvers
+                warn(
+                    "Your problem is mixed-integer but not an LP. "
+                    "If your problem is nonlinear, consider installing SCIP "
+                    "(pip install pyscipopt) to solve it."
+                )
             candidates['qp_solvers'] = [
                 s for s in candidates['qp_solvers']
                 if slv_def.SOLVER_MAP_QP[s].MIP_CAPABLE]
@@ -945,7 +963,6 @@ class Problem(u.Canonical):
                     "QP/Conic solvers (%s) are not MIP-capable." %
                     (candidates['qp_solvers'] +
                      candidates['conic_solvers']))
-
         return candidates
 
     def _add_custom_solver_candidates(self, custom_solver: Solver):
@@ -1613,13 +1630,13 @@ class Problem(u.Canonical):
 
         solution = chain.invert(solution, inverse_data)
         if solution.status in s.INACCURATE:
-            warnings.warn(
+            warn(
                 "Solution may be inaccurate. Try another solver, "
                 "adjusting the solver settings, or solve with "
                 "verbose=True for more information."
             )
         if solution.status == s.INFEASIBLE_OR_UNBOUNDED:
-            warnings.warn(INF_OR_UNB_MESSAGE)
+            warn(INF_OR_UNB_MESSAGE)
         if solution.status in s.ERROR:
             raise error.SolverError(
                     "Solver '%s' failed. " % chain.solver.name() +

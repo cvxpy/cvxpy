@@ -15,7 +15,7 @@ limitations under the License.
 """
 from __future__ import annotations
 
-from typing import Any, Callable
+from typing import Any, Callable, Iterator, Tuple
 
 import numpy as np
 import scipy.sparse as sp
@@ -26,7 +26,187 @@ from cvxpy.lin_ops.backends.base import (
     DictTensorView,
     PythonCanonBackend,
     TensorRepresentation,
+    get_nd_matmul_dims,
+    get_nd_rmul_dims,
+    is_batch_varying,
 )
+
+
+def _build_interleaved_matrix_mul(
+    const_data: np.ndarray,
+    const_shape: Tuple[int, ...],
+    var_shape: Tuple[int, ...],
+) -> sp.csr_array:
+    """
+    Build the interleaved matrix for batch-varying constant case.
+
+    For C (..., m, k) @ X (..., k, n), builds I_n ⊗ M_interleaved where:
+    M_interleaved[b + B*i, b + B*r] = C[b, i, r]
+
+    This captures the Fortran-order vectorization where batch indices are interleaved:
+    - result[b, i, c] is at index b + B*i + B*m*c
+    - X[b, r, c] is at index b + B*r + B*k*c
+
+    Note: Batch broadcasting is handled symbolically in MulExpression, so
+    const_shape and var_shape batch dimensions are guaranteed to match here.
+    """
+    B = int(np.prod(const_shape[:-2]))
+    m_dim = const_shape[-2]
+    k_dim = const_shape[-1]
+    n = var_shape[-1]
+
+    # Reshape to (B, m, k) in Fortran order
+    const_flat = np.reshape(const_data, (B, m_dim, k_dim), order="F")
+
+    # Build interleaved matrix using vectorized operations
+    b_indices = np.arange(B)
+    i_indices = np.arange(m_dim)
+    r_indices = np.arange(k_dim)
+
+    # bb, ii, rr are grids of indices corresponding to b, i, r in the formula below
+    bb, ii, rr = np.meshgrid(b_indices, i_indices, r_indices, indexing="ij")
+
+    rows = (bb + B * ii).ravel()
+    cols = (bb + B * rr).ravel()
+    data = const_flat.ravel()
+
+    M_interleaved = sp.csr_array((data, (rows, cols)), shape=(B * m_dim, B * k_dim))
+
+    if n > 1:
+        return sp.kron(sp.eye_array(n, format="csr"), M_interleaved)
+    return M_interleaved
+
+
+def _apply_nd_kron_structure_mul(
+    lhs: sp.sparray,
+    batch_size: int,
+    n: int,
+) -> sp.sparray:
+    """
+    Apply ND Kronecker structure I_n ⊗ C ⊗ I_batch for mul (C @ X).
+
+    For ND matmul C @ X where C is 2D (m, k) and X has shape (..., k, n):
+    vec(C @ X) = (I_n ⊗ C ⊗ I_batch) @ vec(X)
+    """
+    if batch_size > 1:
+        inner = sp.kron(lhs, sp.eye_array(batch_size, format="csr"))
+    else:
+        inner = lhs
+
+    if n > 1:
+        return sp.kron(sp.eye_array(n, format="csr"), inner)
+    return inner
+
+
+def _expand_parametric_slices_mul(
+    stacked_matrix: sp.sparray,
+    param_size: int,
+    batch_size: int,
+    n: int,
+) -> Iterator[sp.sparray]:
+    """
+    Generator yielding expanded slices for parametric ND mul (C @ X).
+
+    For a stacked parameter matrix of shape (param_size * m, k), extracts each
+    (m, k) slice and applies I_n ⊗ C ⊗ I_batch structure.
+    """
+    m = stacked_matrix.shape[0] // param_size
+
+    for slice_idx in range(param_size):
+        slice_matrix = stacked_matrix[slice_idx * m:(slice_idx + 1) * m, :]
+        yield _apply_nd_kron_structure_mul(slice_matrix, batch_size, n)
+
+
+def _build_interleaved_matrix_rmul(
+    const_data: np.ndarray,
+    const_shape: Tuple[int, ...],
+    var_shape: Tuple[int, ...],
+) -> sp.csr_array:
+    """
+    Build the interleaved matrix for batch-varying rmul case.
+
+    For X (..., m, k) @ C (..., k, n), builds M_interleaved ⊗ I_m where:
+    M_interleaved[b + B*j, b + B*r] = C[b, r, j]
+
+    This captures the Fortran-order vectorization where batch indices are interleaved:
+    - X[b, i, r] is at index b + B*i + B*m*r
+    - result[b, i, j] is at index b + B*i + B*m*j
+
+    Note: Batch broadcasting is handled symbolically in MulExpression, so
+    const_shape and var_shape batch dimensions are guaranteed to match here.
+    """
+    B = int(np.prod(const_shape[:-2]))
+    k = const_shape[-2]
+    n = const_shape[-1]
+    m = var_shape[-2]
+
+    # Reshape to (B, k, n) in Fortran order
+    const_flat = np.reshape(const_data, (B, k, n), order="F")
+
+    # Build interleaved indices for all (b, r, j) combinations
+    b_indices = np.arange(B)
+    r_indices = np.arange(k)
+    j_indices = np.arange(n)
+
+    bb, rr, jj = np.meshgrid(b_indices, r_indices, j_indices, indexing="ij")
+    bb, rr, jj = bb.ravel(), rr.ravel(), jj.ravel()
+    data = const_flat.ravel()
+
+    # Base indices for i=0 case
+    # Output: b + B*m*j, Input: b + B*m*r
+    base_row = bb + B * m * jj
+    base_col = bb + B * m * rr
+
+    # Apply I_m: replicate for each i in 0..m-1
+    if m > 1:
+        i_offsets = np.arange(m)
+        row_offsets = np.repeat(i_offsets * B, len(data))
+        col_offsets = np.repeat(i_offsets * B, len(data))
+
+        new_data = np.tile(data, m)
+        new_row = np.tile(base_row, m) + row_offsets
+        new_col = np.tile(base_col, m) + col_offsets
+    else:
+        new_data, new_row, new_col = data, base_row, base_col
+
+    return sp.csr_array((new_data, (new_row, new_col)), shape=(B * m * n, B * m * k))
+
+
+def _apply_nd_kron_structure_rmul(
+    rhs: sp.sparray,
+    batch_size: int,
+    m: int,
+) -> sp.sparray:
+    """
+    Apply ND Kronecker structure for rmul: C.T tensor I_{batch*m}.
+
+    For ND rmul X @ C where C is 2D (k, n) and X has shape (..., m, k):
+    vec(X @ C) = (C.T tensor I_{batch*m}) @ vec(X)
+    """
+    rhs_t = rhs.T
+    reps = batch_size * m
+    if reps > 1:
+        return sp.kron(rhs_t, sp.eye_array(reps, format="csr"))
+    return rhs_t
+
+
+def _expand_parametric_slices_rmul(
+    stacked_matrix: sp.sparray,
+    param_size: int,
+    batch_size: int,
+    m: int,
+) -> Iterator[sp.sparray]:
+    """
+    Generator yielding expanded slices for parametric ND rmul.
+
+    For a stacked parameter matrix of shape (param_size * k, n), extracts each
+    (k, n) slice and applies C.T tensor I_{batch*m} structure.
+    """
+    k = stacked_matrix.shape[0] // param_size
+
+    for slice_idx in range(param_size):
+        slice_matrix = stacked_matrix[slice_idx * k:(slice_idx + 1) * k, :]
+        yield _apply_nd_kron_structure_rmul(slice_matrix, batch_size, m)
 
 
 class SciPyTensorView(DictTensorView):
@@ -144,8 +324,7 @@ class SciPyCanonBackend(PythonCanonBackend):
         assert constant.shape == lin_op.shape
         return constant
 
-    @staticmethod
-    def reshape_constant_data(constant_data: dict[int, sp.csc_array],
+    def reshape_constant_data(self, constant_data: dict[int, sp.csc_array],
                               lin_op_shape: tuple[int, int]) \
             -> dict[int, sp.csc_array]:
         """
@@ -153,29 +332,132 @@ class SciPyCanonBackend(PythonCanonBackend):
         do not require column format. This function unpacks the constant data dict and reshapes
         the stacked slices of the tensor 'v' according to the lin_op_shape argument.
         """
-        return {k: SciPyCanonBackend._reshape_single_constant_tensor(v, lin_op_shape)
+        return {k: self._reshape_single_constant_tensor(v, lin_op_shape, self.param_to_size[k])
                 for k, v in constant_data.items()}
 
     @staticmethod
-    def _reshape_single_constant_tensor(v: sp.csc_array, lin_op_shape: tuple[int, int]) \
-            -> sp.csc_array:
+    def _reshape_single_constant_tensor(v: sp.csc_array, lin_op_shape: tuple[int, int],
+                                        param_size: int) -> sp.csc_array:
         """
-        Given v, which is a matrix of shape (p * lin_op_shape[0] * lin_op_shape[1], 1),
-        reshape v into a matrix of shape (p * lin_op_shape[0], lin_op_shape[1]).
+        Reshape constant data from column format to matrix format.
+
+        Dispatches to specialized functions based on whether data is parametric.
+
+        Parameters
+        ----------
+        v : sparse column vector of shape (N, 1)
+        lin_op_shape : (m, k) target matrix dimensions
+        param_size : number of parameter slices (1 = non-parametric)
+
+        Returns
+        -------
+        Reshaped sparse matrix of shape (param_size * m, k)
+        """
+        if param_size == 1:
+            return SciPyCanonBackend._reshape_nonparametric(v, lin_op_shape)
+        else:
+            return SciPyCanonBackend._reshape_parametric(v, lin_op_shape, param_size)
+
+    @staticmethod
+    def _reshape_nonparametric(v: sp.csc_array, lin_op_shape: tuple[int, int]) -> sp.csc_array:
+        """
+        Reshape non-parametric constant data from column to matrix format.
+
+        For a column vector of shape (p * m * k, 1), reshape to (p * m, k)
+        where p is the number of copies (from broadcast operations).
+
+        The reshaping follows Fortran (column-major) order.
         """
         assert v.shape[1] == 1
-        p = np.prod(v.shape) // np.prod(lin_op_shape)
-        old_shape = (v.shape[0] // p, v.shape[1])
+        m, k = lin_op_shape
 
         coo = v.tocoo()
         data, stacked_rows = coo.data, coo.row
-        slices, rows = np.divmod(stacked_rows, old_shape[0])
 
-        new_cols, new_rows = np.divmod(rows, lin_op_shape[0])
-        new_rows = slices * lin_op_shape[0] + new_rows
+        # p = number of copies from broadcast operations (often > 1 for ND matmul,
+        # but can also occur from element-wise ops with broadcasting)
+        p = np.prod(v.shape) // np.prod(lin_op_shape)
+        slice_size = v.shape[0] // p
 
-        new_stacked_shape = (p * lin_op_shape[0], lin_op_shape[1])
+        # Extract slice index and position within slice
+        slices, rows = np.divmod(stacked_rows, slice_size)
+
+        # Reshape: linear index -> (row, col) in column-major order
+        new_cols, new_rows = np.divmod(rows, m)
+        new_rows = slices * m + new_rows
+
+        new_stacked_shape = (p * m, k)
         return sp.csc_array((data, (new_rows, new_cols)), shape=new_stacked_shape)
+
+    @staticmethod
+    def _reshape_parametric(v: sp.csc_array, lin_op_shape: tuple[int, int],
+                            param_size: int) -> sp.csc_array:
+        """
+        Reshape parametric constant data from column to matrix format.
+
+        For parametric data, entries may be duplicated by broadcast operations.
+        We deduplicate and compute positions based on param_idx.
+
+        The param_idx encodes which parameter value each entry corresponds to.
+        After broadcast_to, entries are duplicated but param_idx stays the same.
+        We keep only the first occurrence of each param_idx.
+
+        Parameters
+        ----------
+        v : sparse column of shape (broadcast_size * param_size, 1)
+        lin_op_shape : (m, k) target matrix dimensions
+        param_size : number of parameter values
+
+        Returns
+        -------
+        Sparse matrix of shape (param_size * m, k)
+        """
+        assert v.shape[1] == 1
+        m, k = lin_op_shape
+
+        coo = v.tocoo()
+        data, stacked_rows = coo.data, coo.row
+
+        # Each param slice has slice_size rows; param_idx = stacked_row // slice_size
+        slice_size = v.shape[0] // param_size
+        param_idx = stacked_rows // slice_size
+
+        # Local position within each slice gives the correct position in
+        # the flattened (m*k) output. After transformations (indexing,
+        # transpose, reshape), param_idx diverges from local position,
+        # so we must use local_pos for position computation.
+        local_pos = stacked_rows % slice_size
+
+        # Account for broadcast expansion.  For ND matmul like
+        # P(m,k) @ X(B,k,n), _broadcast_batch_dims wraps the parameter in
+        # broadcast_to(P, (B,m,k)).  This makes each parameter slice have
+        # slice_size = B*m*k entries instead of m*k.  In Fortran (column-major)
+        # order, each original entry is duplicated B consecutive times, so
+        # dividing local_pos by the broadcast factor (B = slice_size / (m*k))
+        # maps positions back to the original (m,k) space.
+        # When there is no broadcast, broadcast_factor == 1 and this is a no-op.
+        broadcast_factor = slice_size // (m * k)
+        if broadcast_factor > 1:
+            local_pos = local_pos // broadcast_factor
+
+        # Deduplicate: broadcast creates copies with same param_idx.
+        # For a param with param_size=12, param_idx should be 0-11 exactly once.
+        # If param_idx=5 appears 3 times, broadcast created duplicates - keep first only.
+        unique_param_idx, first_occurrence = np.unique(param_idx, return_index=True)
+
+        # Position in (m, k) matrix: column-major order
+        local_pos_dedup = local_pos[first_occurrence]
+        new_rows = local_pos_dedup % m
+        new_cols = local_pos_dedup // m
+
+        # In stacked format, offset by slice: unique_param_idx is the slice index
+        stacked_new_rows = unique_param_idx * m + new_rows
+
+        new_stacked_shape = (param_size * m, k)
+        return sp.csc_array(
+            (data[first_occurrence], (stacked_new_rows, new_cols)),
+            shape=new_stacked_shape
+        )
 
     def get_empty_view(self) -> SciPyTensorView:
         """
@@ -186,70 +468,189 @@ class SciPyCanonBackend(PythonCanonBackend):
                                               self.param_to_size, self.param_to_col,
                                               self.var_length)
 
+    def _mul_kronecker(
+        self,
+        lhs: sp.sparray,
+        const_shape: Tuple[int, ...],
+        var_shape: Tuple[int, ...],
+        view: SciPyTensorView,
+    ) -> SciPyTensorView:
+        """
+        2D constant @ ND variable: use Kronecker structure I_n ⊗ C ⊗ I_batch.
+
+        This is the most common case: a 2D constant matrix multiplies each
+        batch element of an ND variable.
+        """
+        batch_size, n, _ = get_nd_matmul_dims(const_shape, var_shape)
+        stacked_lhs = _apply_nd_kron_structure_mul(lhs, batch_size, n)
+
+        def func(x, p):
+            if p == 1:
+                return (stacked_lhs @ x).tocsr()
+            else:
+                return (sp.kron(sp.eye_array(p, format="csc"), stacked_lhs) @ x).tocsc()
+
+        return view.accumulate_over_variables(func, is_param_free_function=True)
+
+    def _mul_interleaved(
+        self,
+        const: LinOp,
+        var_shape: Tuple[int, ...],
+        view: SciPyTensorView,
+    ) -> SciPyTensorView:
+        """
+        Batch-varying constant @ variable: use interleaved matrix structure.
+
+        When the constant has batch dimensions (e.g., C(B,m,k) @ X(B,k,n)),
+        each batch element uses a different constant matrix.
+        """
+        const_shape = const.shape
+        # Raw data access is intentional: batch-varying constants are never parametric
+        # (they're concrete arrays with explicit batch dims), so we skip get_constant_data.
+        stacked_lhs = _build_interleaved_matrix_mul(const.data, const_shape, var_shape)
+
+        def func(x, p):
+            if p == 1:
+                return (stacked_lhs @ x).tocsr()
+            else:
+                return (sp.kron(sp.eye_array(p, format="csc"), stacked_lhs) @ x).tocsc()
+
+        return view.accumulate_over_variables(func, is_param_free_function=True)
+
+    def _mul_parametric_lhs(
+        self,
+        lhs: dict,
+        const_shape: Tuple[int, ...],
+        var_shape: Tuple[int, ...],
+        view: SciPyTensorView,
+    ) -> SciPyTensorView:
+        """
+        Parametric constant @ variable: expand each parameter slice with Kronecker.
+
+        When the constant depends on Parameters, we expand each parameter slice
+        separately using the Kronecker structure.
+        """
+        batch_size, n, _ = get_nd_matmul_dims(const_shape, var_shape)
+
+        # Expand each parameter slice and stack
+        stacked_lhs = {
+            param_id: sp.vstack(
+                list(_expand_parametric_slices_mul(v, self.param_to_size[param_id], batch_size, n)),
+                format="csc"
+            )
+            for param_id, v in lhs.items()
+        }
+
+        def parametrized_mul(x):
+            return {k: v @ x for k, v in stacked_lhs.items()}
+
+        return view.accumulate_over_variables(parametrized_mul, is_param_free_function=False)
+
+    def _rmul_kronecker(
+        self,
+        rhs: sp.sparray,
+        const_shape: Tuple[int, ...],
+        var_shape: Tuple[int, ...],
+        view: SciPyTensorView,
+    ) -> SciPyTensorView:
+        """
+        ND variable @ 2D constant: use Kronecker structure C.T ⊗ I_{batch*m}.
+
+        This is the most common case: a 2D constant matrix multiplies each
+        batch element of an ND variable from the right.
+        """
+        batch_size, m, n, _ = get_nd_rmul_dims(var_shape, const_shape)
+        stacked_rhs = _apply_nd_kron_structure_rmul(rhs, batch_size, m)
+
+        def func(x, p):
+            if p == 1:
+                return (stacked_rhs @ x).tocsr()
+            else:
+                return (sp.kron(sp.eye_array(p, format="csc"), stacked_rhs) @ x).tocsc()
+
+        return view.accumulate_over_variables(func, is_param_free_function=True)
+
+    def _rmul_interleaved(
+        self,
+        const: LinOp,
+        var_shape: Tuple[int, ...],
+        view: SciPyTensorView,
+    ) -> SciPyTensorView:
+        """
+        Batch-varying variable @ constant: use interleaved matrix structure.
+
+        When the constant has batch dimensions (e.g., X(B,m,k) @ C(B,k,n)),
+        each batch element uses a different constant matrix.
+        """
+        const_shape = const.shape
+        # Raw data access is intentional: batch-varying constants are never parametric
+        stacked_rhs = _build_interleaved_matrix_rmul(const.data, const_shape, var_shape)
+
+        def func(x, p):
+            if p == 1:
+                return (stacked_rhs @ x).tocsr()
+            else:
+                return (sp.kron(sp.eye_array(p, format="csc"), stacked_rhs) @ x).tocsc()
+
+        return view.accumulate_over_variables(func, is_param_free_function=True)
+
+    def _rmul_parametric_rhs(
+        self,
+        rhs: dict,
+        const_shape: Tuple[int, ...],
+        var_shape: Tuple[int, ...],
+        view: SciPyTensorView,
+    ) -> SciPyTensorView:
+        """
+        Parametric variable @ constant: expand each parameter slice with Kronecker.
+
+        When the constant depends on Parameters, we expand each parameter slice
+        separately using the Kronecker structure for rmul.
+        """
+        batch_size, m, n, _ = get_nd_rmul_dims(var_shape, const_shape)
+
+        # Expand each parameter slice and stack
+        stacked_rhs = {
+            param_id: sp.vstack(
+                list(_expand_parametric_slices_rmul(
+                    v, self.param_to_size[param_id], batch_size, m)),
+                format="csc"
+            )
+            for param_id, v in rhs.items()
+        }
+
+        def parametrized_rmul(x):
+            return {k: v @ x for k, v in stacked_rhs.items()}
+
+        return view.accumulate_over_variables(parametrized_rmul, is_param_free_function=False)
+
     def mul(self, lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
         """
-        Multiply view with constant data from the left.
-        When the lhs is parametrized, multiply each slice of the tensor with the
-        single, constant slice of the rhs.
-        Otherwise, multiply the single slice of the tensor with each slice of the rhs.
-        """
-        lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=False)
-        if is_param_free_lhs:
-            reps = view.rows // lhs.shape[-1]
-            if reps > 1:
-                stacked_lhs = (sp.kron(sp.eye_array(reps, format="csr"), lhs))
-            else:
-                stacked_lhs = lhs
+        Matrix multiply: C @ X where C is constant/parametric, X is variable.
 
-            def func(x, p):
-                if p == 1:
-                    return (stacked_lhs @ x).tocsr()
-                else:
-                    return ((sp.kron(sp.eye_array(p, format="csc"), stacked_lhs)) @ x).tocsc()
+        Three cases (explicitly branched for clarity):
+        1. Parametric LHS: Parameter @ Variable
+        2. Batch-varying constant: C(B,m,k) @ X(B,k,n) - uses interleaved matrix
+        3. 2D constant: C(m,k) @ X(B,k,n) - uses Kronecker I_n ⊗ C ⊗ I_B
+        """
+        const = lin.data
+        var_shape = lin.args[0].shape
+        const_shape = const.shape
+
+        # Get constant data - this also tells us if it's parametric
+        # Compute 2D target shape (last 2 dims for ND, row vector for 1D)
+        target = const_shape[-2:] if len(const_shape) >= 2 else (1, const_shape[0])
+        lhs, is_param_free = self.get_constant_data(const, view, target_shape=target)
+
+        if not is_param_free:
+            # Case 1: Parametric LHS
+            return self._mul_parametric_lhs(lhs, const_shape, var_shape, view)
+        elif is_batch_varying(const_shape):
+            # Case 2: Batch-varying constant
+            return self._mul_interleaved(const, var_shape, view)
         else:
-            reps = view.rows // next(iter(lhs.values())).shape[-1]
-            if reps > 1:
-                stacked_lhs = self._stacked_kron_r(lhs, reps)
-            else:
-                stacked_lhs = lhs
-
-            def parametrized_mul(x):
-                return {k: v @ x for k, v in stacked_lhs.items()}
-
-            func = parametrized_mul
-        return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
-
-    def _stacked_kron_r(self, lhs: dict[int, list[sp.csc_array]], reps: int) \
-            -> sp.csc_array:
-        """
-        Given a stacked lhs
-        [[A_0],
-         [A_1],
-         ...
-        apply the Kronecker product with the identity matrix of size reps
-        (kron(eye(reps), lhs)) to each slice, e.g., for reps = 2:
-        [[A_0, 0],
-         [0, A_0],
-         [A_1, 0],
-         [0, A_1],
-         ...
-        """
-        res = dict()
-        for param_id, v in lhs.items():
-            p = self.param_to_size[param_id]
-            old_shape = (v.shape[0] // p, v.shape[1])
-            coo = v.tocoo()
-            data, rows, cols = coo.data, coo.row, coo.col
-            slices, rows = np.divmod(rows, old_shape[0])
-            new_rows = np.repeat(rows + slices * old_shape[0] * reps, reps) + \
-                np.tile(np.arange(reps) * old_shape[0], len(rows))
-            new_cols = np.repeat(cols, reps) + \
-                np.tile(np.arange(reps) * old_shape[1], len(cols))
-            new_data = np.repeat(data, reps)
-            new_shape = (v.shape[0] * reps, v.shape[1] * reps)
-            res[param_id] = sp.csc_array(
-                (new_data, (new_rows, new_cols)), shape=new_shape)
-        return res
+            # Case 3: 2D constant (or trivial batch dims like (1, m, k))
+            return self._mul_kronecker(lhs, const_shape, var_shape, view)
 
     @staticmethod
     def promote(lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
@@ -280,7 +681,7 @@ class SciPyCanonBackend(PythonCanonBackend):
         and stack them vertically to ensure shape compatibility for elementwise multiplication
         with the parametrized expression.
         """
-        lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=True)
+        lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, target_shape=None)
         if is_param_free_lhs:
             def func(x, p):
                 if p == 1:
@@ -360,7 +761,7 @@ class SciPyCanonBackend(PythonCanonBackend):
 
         Note: div currently doesn't support parameters.
         """
-        lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=True)
+        lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, target_shape=None)
         assert is_param_free_lhs
         # dtype is important here, will do integer division if data is of dtype "int" otherwise.
         lhs.data = np.reciprocal(lhs.data, dtype=float)
@@ -423,58 +824,34 @@ class SciPyCanonBackend(PythonCanonBackend):
 
     def rmul(self, lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
         """
-        Multiply view with constant data from the right.
-        When the rhs is parametrized, multiply each slice of the tensor with the
-        single, constant slice of the lhs.
-        Otherwise, multiply the single slice of the tensor with each slice of the lhs.
+        Right multiplication: X @ C where X is variable, C is constant/parametric.
 
-        Note: Even though this is rmul, we still use "lhs", as is implemented via a
-        multiplication from the left in this function.
+        For X @ C where X is (m, k) variable and C is (k, n) constant:
+        vec(X @ C) = (C.T tensor I_m) @ vec(X)
+
+        Three cases (explicitly branched for clarity):
+        1. Parametric RHS: X @ Parameter
+        2. Batch-varying constant: X(B,m,k) @ C(B,k,n) - uses interleaved matrix
+        3. 2D constant: X(m,k) @ C(k,n) - uses Kronecker C.T ⊗ I_m
         """
-        lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=False)
+        const = lin.data
+        var_shape = lin.args[0].shape
+        const_shape = const.shape
 
-        arg_cols = lin.args[0].shape[0] if len(lin.args[0].shape) == 1 else lin.args[0].shape[1]
+        # Get constant data - this also tells us if it's parametric
+        # Compute 2D target shape (last 2 dims for ND, column vector for 1D)
+        target = const_shape[-2:] if len(const_shape) >= 2 else (const_shape[0], 1)
+        rhs, is_param_free = self.get_constant_data(const, view, target_shape=target)
 
-        if is_param_free_lhs:
-
-            if len(lin.data.shape) == 1 and arg_cols != lhs.shape[0]:
-                lhs = lhs.T
-            reps = view.rows // lhs.shape[0]
-            if reps > 1:
-                stacked_lhs = sp.kron(lhs.T, sp.eye_array(reps, format="csr"))
-            else:
-                stacked_lhs = lhs.T
-
-            def func(x, p):
-                if p == 1:
-                    return (stacked_lhs @ x).tocsr()
-                else:
-                    return ((sp.kron(sp.eye_array(p, format="csc"), stacked_lhs)) @ x).tocsc()
+        if not is_param_free:
+            # Case 1: Parametric RHS
+            return self._rmul_parametric_rhs(rhs, const_shape, var_shape, view)
+        elif is_batch_varying(const_shape):
+            # Case 2: Batch-varying constant
+            return self._rmul_interleaved(const, var_shape, view)
         else:
-            k, v = next(iter(lhs.items()))
-            lhs_rows = v.shape[0] // self.param_to_size[k]
-
-            if len(lin.data.shape) == 1 and arg_cols != lhs_rows:
-                # Example: (n,n) @ (n,), we need to interpret the rhs as a column vector,
-                # but it is a row vector by default, so we need to transpose
-                lhs = {k: self._transpose_stacked(v, k) for k, v in lhs.items()}
-                k, v = next(iter(lhs.items()))
-                lhs_rows = v.shape[0] // self.param_to_size[k]
-
-            reps = view.rows // lhs_rows
-
-            lhs = {k: self._transpose_stacked(v, k) for k, v in lhs.items()}
-
-            if reps > 1:
-                stacked_lhs = self._stacked_kron_l(lhs, reps)
-            else:
-                stacked_lhs = lhs
-
-            def parametrized_mul(x):
-                return {k: (v @ x).tocsc() for k, v in stacked_lhs.items()}
-
-            func = parametrized_mul
-        return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
+            # Case 3: 2D constant (or trivial batch dims like (1, k, n))
+            return self._rmul_kronecker(rhs, const_shape, var_shape, view)
 
     def _transpose_stacked(self, v: sp.csc_array, param_id: int) -> sp.csc_array:
         """
@@ -550,7 +927,15 @@ class SciPyCanonBackend(PythonCanonBackend):
 
         Note: conv currently doesn't support parameters.
         """
-        lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=False)
+        # Compute target shape (2D shape, or row vector for 1D, or (1,1) for 0D)
+        data_shape = lin.data.shape
+        if len(data_shape) == 2:
+            target = data_shape
+        elif len(data_shape) == 1:
+            target = (1, data_shape[0])
+        else:  # 0D scalar
+            target = (1, 1)
+        lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, target_shape=target)
         assert is_param_free_lhs, \
             "SciPy backend does not support parametrized left operand for conv."
         assert lhs.ndim == 2
@@ -585,7 +970,7 @@ class SciPyCanonBackend(PythonCanonBackend):
 
         Note: kron_r currently doesn't support parameters.
         """
-        lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=True)
+        lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, target_shape=None)
         assert is_param_free_lhs, \
             "SciPy backend does not support parametrized left operand for kron_r."
         assert lhs.ndim == 2
@@ -613,7 +998,7 @@ class SciPyCanonBackend(PythonCanonBackend):
 
         Note: kron_l currently doesn't support parameters.
         """
-        rhs, is_param_free_rhs = self.get_constant_data(lin.data, view, column=True)
+        rhs, is_param_free_rhs = self.get_constant_data(lin.data, view, target_shape=None)
         assert is_param_free_rhs, \
             "SciPy backend does not support parametrized right operand for kron_l."
         assert rhs.ndim == 2

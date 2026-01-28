@@ -18,9 +18,10 @@ import numpy as np
 
 from cvxpy.atoms.affine.bmat import bmat
 from cvxpy.expressions.variable import Variable
+from cvxpy.utilities.solver_context import SolverInfo
 
 
-def tr_inv_canon(expr, args):
+def tr_inv_canon(expr, args, solver_context: SolverInfo | None = None):
     """Reduces the atom to an affine expression and list of constraints.
 
     Creates the equivalent problem::
@@ -55,8 +56,7 @@ def tr_inv_canon(expr, args):
         ei = np.zeros((n, 1))
         ei[i] = 1.0
         ui = Variable((1, 1))
-        R = bmat([[X, ei],
-                  [ei.T, ui]])
+        R = bmat([[X, ei], [ei.T, ui]])
         constraints += [R >> 0]
         if su is None:
             su = ui

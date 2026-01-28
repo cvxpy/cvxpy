@@ -23,9 +23,10 @@ from cvxpy.atoms.affine.transpose import transpose
 from cvxpy.atoms.affine.vstack import vstack
 from cvxpy.constraints.second_order import SOC
 from cvxpy.expressions.variable import Variable
+from cvxpy.utilities.solver_context import SolverInfo
 
 
-def quad_over_lin_canon(expr, args):
+def quad_over_lin_canon(expr, args, solver_context: SolverInfo | None = None):
     """Canonicalize quad_over_lin to SOC constraints.
 
     quad_over_lin(x, y) = ||x||_2^2 / y
@@ -37,13 +38,15 @@ def quad_over_lin_canon(expr, args):
     x = args[0]
     y = args[1]
     assert y.is_scalar(), "quad_over_lin requires scalar y"
-    y = y.flatten(order='F')
+    y = y.flatten(order="F")
     axis = expr.axis
 
     if axis is None:
         # Scalar output - single SOC constraint
-        t = Variable(1,)
-        constraints = [SOC(t=y+t, X=hstack([y-t, 2*x.flatten(order='F')]), axis=0)]
+        t = Variable(
+            1,
+        )
+        constraints = [SOC(t=y + t, X=hstack([y - t, 2 * x.flatten(order="F")]), axis=0)]
         return t, constraints
 
     # Axis specified - use vectorized batched SOC
@@ -67,7 +70,7 @@ def quad_over_lin_canon(expr, args):
 
     # Create output variable with the correct shape
     t = Variable(expr.shape)
-    t_flat = t.flatten(order='F')
+    t_flat = t.flatten(order="F")
 
     # Permute dimensions: reduce_dims first, then output_dims
     # This ensures reduced elements are contiguous in Fortran order
@@ -78,13 +81,13 @@ def quad_over_lin_canon(expr, args):
         x_perm = x
 
     # Reshape to 2D: (reduce_size, n_outputs)
-    x_2d = reshape(x_perm, (reduce_size, n_outputs), order='F')
+    x_2d = reshape(x_perm, (reduce_size, n_outputs), order="F")
 
     # Build vectorized SOC constraint
     # For each output j: ||[y-t[j], 2*x_col_j]||_2 <= y+t[j]
     # X_soc has shape (1 + reduce_size, n_outputs), columns are cones
-    y_minus_t_row = reshape(y - t_flat, (1, n_outputs), order='F')
-    X_soc = vstack([y_minus_t_row, 2*x_2d])
+    y_minus_t_row = reshape(y - t_flat, (1, n_outputs), order="F")
+    X_soc = vstack([y_minus_t_row, 2 * x_2d])
     t_soc = y + t_flat
 
     return t, [SOC(t=t_soc, X=X_soc, axis=0)]

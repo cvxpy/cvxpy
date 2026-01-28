@@ -22,7 +22,6 @@ if TYPE_CHECKING:
     from cvxpy.atoms.atom import Atom
 
 import numbers
-import warnings
 
 import numpy as np
 import numpy.linalg as LA
@@ -38,6 +37,7 @@ from cvxpy.settings import (
     SPARSE_PROJECTION_TOL,
 )
 from cvxpy.utilities.coo_array_compat import get_coords
+from cvxpy.utilities.warn import warn
 
 
 class Leaf(expression.Expression):
@@ -449,9 +449,9 @@ class Leaf(expression.Expression):
                 w[bad] = 0
             return (V * w).dot(V.T)
         elif self.attributes['sparsity'] and not sparse_path:
-            warnings.warn('Accessing a sparse CVXPY expression via a dense representation.'
-                          ' Please report this as a bug to the CVXPY Discord or GitHub.',
-                          RuntimeWarning, 3)
+            warn('Accessing a sparse CVXPY expression via a dense representation.'
+                  ' Please report this as a bug to the CVXPY Discord or GitHub.',
+                  RuntimeWarning)
             new_val = np.zeros(self.shape)
             new_val[self.sparse_idx] = val[self.sparse_idx]
             return new_val
@@ -475,8 +475,8 @@ class Leaf(expression.Expression):
         if self.sparse_idx is None:
             return self._value
         else:
-            warnings.warn('Reading from a sparse CVXPY expression via `.value` is discouraged.'
-                          ' Use `.value_sparse` instead', RuntimeWarning, 1)
+            warn('Reading from a sparse CVXPY expression via `.value` is discouraged.'
+                  ' Use `.value_sparse` instead', RuntimeWarning)
             if self._value is None:
                 return None
             val = np.zeros(self.shape, dtype=self._value.dtype)
@@ -486,8 +486,8 @@ class Leaf(expression.Expression):
     @value.setter
     def value(self, val) -> None:
         if self.sparse_idx is not None and self._sparse_high_fill_in:
-            warnings.warn('Writing to a sparse CVXPY expression via `.value` is discouraged.'
-                          ' Use `.value_sparse` instead', RuntimeWarning, 1)
+            warn('Writing to a sparse CVXPY expression via `.value` is discouraged.'
+                  ' Use `.value_sparse` instead', RuntimeWarning)
         self.save_value(self._validate_value(val))
 
     @property

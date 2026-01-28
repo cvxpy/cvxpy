@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import warnings
 from typing import Tuple
 
 import numpy as np
@@ -27,6 +26,7 @@ from cvxpy.expressions.expression import Expression
 from cvxpy.expressions.variable import Variable
 from cvxpy.interface.matrix_utilities import is_sparse
 from cvxpy.utilities.linalg import sparse_cholesky
+from cvxpy.utilities.warn import warn
 
 
 class CvxPyDomainError(Exception):
@@ -277,7 +277,7 @@ def decomp_quad(P, cond=None, rcond=None, lower=True, check_finite: bool = True)
     maskn = w_scaled < -cond
     # TODO: allow indefinite quad_form
     if np.any(maskp) and np.any(maskn):
-        warnings.warn("Forming a nonconvex expression quad_form(x, indefinite).")
+        warn("Forming a nonconvex expression quad_form(x, indefinite).")
     M1 = V[:, maskp] * np.sqrt(w_scaled[maskp])
     M2 = V[:, maskn] * np.sqrt(-w_scaled[maskn])
     return scale, M1, M2

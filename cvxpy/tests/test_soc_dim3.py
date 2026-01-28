@@ -62,15 +62,29 @@ def _solve_with_reduction(prob):
 
 
 def _flatten_dual(dual_value):
-    """Flatten a dual value to 1D array for comparison."""
+    """Flatten a dual value to 1D array for comparison.
+
+    Normalizes both [t, X] format and flat array format to a consistent
+    ordering: [t0, x0..., t1, x1..., ...] (each cone's values together).
+    This matches what save_dual_value expects.
+    """
     if dual_value is None:
         return None
     if isinstance(dual_value, list) and len(dual_value) == 2:
         # SOC format: [t_array, x_array]
-        return np.concatenate([
-            np.atleast_1d(dual_value[0]).flatten(),
-            np.atleast_1d(dual_value[1]).flatten()
-        ])
+        # Convert to interleaved format: [t0, x0..., t1, x1..., ...]
+        t = np.atleast_1d(dual_value[0]).flatten()
+        x = np.atleast_2d(dual_value[1])
+        num_cones = len(t)
+        # Handle both axis cases: x shape is (num_cones, x_size) or (x_size, num_cones)
+        if x.shape[0] != num_cones and x.shape[1] == num_cones:
+            x = x.T
+        # Now x should be (num_cones, x_size)
+        result = []
+        for i in range(num_cones):
+            result.append(t[i])
+            result.extend(x[i].flatten())
+        return np.array(result)
     return np.atleast_1d(dual_value).flatten()
 
 
@@ -304,3 +318,33 @@ class TestSOCDim3EdgeCases:
         prob.solve(solver=cp.CLARABEL)
         inv_sol, new_prob = _solve_with_reduction(prob)
         _check_solution_matches(prob, inv_sol, new_prob)
+
+    def test_scalar_x_soc(self):
+        """SOC constraint with scalar X (shape ()).
+
+        Regression test for bug where len(X.shape) == 0 was not handled,
+        causing IndexError when accessing X_reshaped.shape[1].
+        """
+        # Basic scalar SOC: min t s.t. |x| <= t
+        t = cp.Variable(nonneg=True)
+        x = cp.Variable()  # Scalar variable, shape ()
+
+        soc = SOC(t, x)
+        assert x.shape == (), "x should be scalar with shape ()"
+
+        # Test 1: Unconstrained - optimal is t=0, x=0
+        prob = cp.Problem(cp.Minimize(t), [soc])
+        prob.solve(solver=cp.CLARABEL)
+        inv_sol, new_prob = _solve_with_reduction(prob)
+        assert np.abs(new_prob.value) < 1e-5, "Optimal value should be ~0"
+
+        # Test 2: With x constrained - optimal is t=|x_val|
+        t = cp.Variable(nonneg=True)
+        x = cp.Variable()
+        x_val = 3.0
+        prob = cp.Problem(cp.Minimize(t), [SOC(t, x), x == x_val])
+
+        prob.solve(solver=cp.CLARABEL)
+        inv_sol, new_prob = _solve_with_reduction(prob)
+        _check_solution_matches(prob, inv_sol, new_prob)
+        assert np.abs(new_prob.value - abs(x_val)) < 1e-4, f"Expected t={abs(x_val)}"

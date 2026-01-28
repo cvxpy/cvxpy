@@ -733,12 +733,12 @@ class TestExpressions(BaseTest):
             c * self.x
             self.assertEqual(2, len(w))
             self.assertEqual(w[0].category, UserWarning)
-            self.assertEqual(w[1].category, DeprecationWarning)
+            self.assertTrue(issubclass(w[1].category, DeprecationWarning))
             # repeat, to make sure warnings continue to be displayed
             c * self.x
             self.assertEqual(4, len(w))
             self.assertEqual(w[2].category, UserWarning)
-            self.assertEqual(w[3].category, DeprecationWarning)
+            self.assertTrue(issubclass(w[3].category, DeprecationWarning))
             # suppress one of the two warnings
             warnings.simplefilter('ignore', DeprecationWarning)
             c * self.x
@@ -1846,14 +1846,6 @@ class TestND_Expressions():
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
         assert np.allclose(x.value, target)
 
-    #TODO make tests pass, support nd matmul
-    def test_nd_matmul_exception(self) -> None:
-        error_str = "Multiplication with N-d arrays is not yet supported"
-        with pytest.raises(ValueError, match=error_str):
-            x = cp.Variable((5,20,3))
-            y = cp.Variable((3,10))
-            x @ y
-    
     def test_nd_cumsum(self) -> None:
         """Test that cumsum works correctly for ND arrays."""
         # Test 3D array

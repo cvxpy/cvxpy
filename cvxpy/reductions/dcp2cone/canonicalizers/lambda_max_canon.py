@@ -19,9 +19,10 @@ from cvxpy.atoms.affine.promote import promote
 from cvxpy.atoms.affine.upper_tri import upper_tri
 from cvxpy.constraints.psd import PSD
 from cvxpy.expressions.variable import Variable
+from cvxpy.utilities.solver_context import SolverInfo
 
 
-def lambda_max_canon(expr, args):
+def lambda_max_canon(expr, args, solver_context: SolverInfo | None = None):
     A = args[0]
     n = A.shape[0]
     t = Variable()
