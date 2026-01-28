@@ -558,12 +558,23 @@ class Leaf(expression.Expression):
                     )
             projection = self.project(val, sparse_path)
             # ^ might be a numpy array, or sparse scipy matrix.
-            delta = np.abs(val - projection)
+            with np.errstate(invalid='ignore'):
+                delta = np.abs(val - projection)
             # ^ might be a numpy array, scipy matrix, or sparse scipy matrix.
             if intf.is_sparse(delta):
                 # ^ based on current implementation of project(...),
                 #   it is not possible for this Leaf to be PSD/NSD *and*
                 #   a sparse matrix.
+                # Handle inf - inf = NaN: replace NaN with 0 where val
+                # and projection agree (both +inf or both -inf).
+                if delta.data.size > 0:
+                    nan_mask = np.isnan(delta.data)
+                    if np.any(nan_mask):
+                        val_sp = val.tocsr() if hasattr(val, 'tocsr') else val
+                        proj_sp = projection.tocsr() if hasattr(projection, 'tocsr') else projection
+                        val_arr = np.asarray(val_sp[delta.nonzero()]).ravel()
+                        proj_arr = np.asarray(proj_sp[delta.nonzero()]).ravel()
+                        delta.data[nan_mask & (val_arr == proj_arr)] = 0.0
                 close_enough = np.allclose(delta.data, 0,
                                            atol=SPARSE_PROJECTION_TOL)
                 # ^ only check for near-equality on nonzero values.
@@ -571,6 +582,14 @@ class Leaf(expression.Expression):
                 # the data could be a scipy matrix, or a numpy array.
                 # First we convert to a numpy array.
                 delta = np.array(delta)
+                # Handle inf - inf = NaN: replace NaN with 0 where val
+                # and projection agree (both +inf or both -inf).
+                nan_mask = np.isnan(delta)
+                if np.any(nan_mask):
+                    delta = np.where(
+                        nan_mask & (np.asarray(val) == np.asarray(projection)),
+                        0.0, delta
+                    )
                 # Now that we have the residual, we need to measure it
                 # in some canonical way.
                 if self.attributes['PSD'] or self.attributes['NSD']:
