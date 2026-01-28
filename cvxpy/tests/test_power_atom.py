@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import unittest
 import warnings
 
 import numpy as np
@@ -21,6 +22,16 @@ import numpy as np
 import cvxpy as cp
 from cvxpy.atoms.elementwise.power import Power, PowerApprox
 from cvxpy.atoms.geo_mean import GeoMean, GeoMeanApprox
+from cvxpy.constraints.power import PowCone3D, PowConeND
+from cvxpy.constraints.second_order import SOC
+from cvxpy.reductions.cone2cone.approx import (
+    APPROX_CONE_CONVERSIONS,
+    ApproxCone2Cone,
+)
+from cvxpy.reductions.cone2cone.exact import (
+    EXACT_CONE_CONVERSIONS,
+    ExactCone2Cone,
+)
 from cvxpy.tests.base_test import BaseTest
 
 
@@ -368,3 +379,93 @@ class TestInvProdApprox(BaseTest):
         prob.solve(solver=cp.CLARABEL)
         self.assertIn(prob.status, [cp.OPTIMAL, cp.OPTIMAL_INACCURATE])
         self.assertAlmostEqual(prob.value, val_approx, places=3)
+
+
+class TestUnifiedCone2Cone(BaseTest):
+    """Tests for the unified ExactCone2Cone / ApproxCone2Cone framework."""
+
+    def test_exact_cone_conversions_map(self) -> None:
+        """EXACT_CONE_CONVERSIONS contains PowConeND and SOC."""
+        from cvxpy.constraints.psd import PSD
+        self.assertIn(PowConeND, EXACT_CONE_CONVERSIONS)
+        self.assertEqual(EXACT_CONE_CONVERSIONS[PowConeND], {PowCone3D})
+        self.assertIn(SOC, EXACT_CONE_CONVERSIONS)
+        self.assertEqual(EXACT_CONE_CONVERSIONS[SOC], {PSD})
+        # PowCone3D should NOT be in exact conversions
+        self.assertNotIn(PowCone3D, EXACT_CONE_CONVERSIONS)
+
+    def test_approx_cone_conversions_map(self) -> None:
+        """APPROX_CONE_CONVERSIONS contains PowCone3D, RelEntrConeQuad, OpRelEntrConeQuad."""
+        self.assertIn(PowCone3D, APPROX_CONE_CONVERSIONS)
+        self.assertEqual(APPROX_CONE_CONVERSIONS[PowCone3D], {SOC})
+
+    def test_exact_cone2cone_target_cones_filtering(self) -> None:
+        """ExactCone2Cone(target_cones={PowConeND}) only converts PowConeND."""
+        reduction = ExactCone2Cone(target_cones={PowConeND})
+        self.assertIn(PowConeND, reduction.canon_methods)
+        self.assertNotIn(SOC, reduction.canon_methods)
+
+    def test_exact_cone2cone_target_cones_soc(self) -> None:
+        """ExactCone2Cone(target_cones={SOC}) only converts SOC."""
+        reduction = ExactCone2Cone(target_cones={SOC})
+        self.assertIn(SOC, reduction.canon_methods)
+        self.assertNotIn(PowConeND, reduction.canon_methods)
+
+    def test_approx_cone2cone_target_cones_filtering(self) -> None:
+        """ApproxCone2Cone(target_cones={PowCone3D}) only converts PowCone3D."""
+        from cvxpy.constraints.exponential import RelEntrConeQuad
+        reduction = ApproxCone2Cone(target_cones={PowCone3D})
+        self.assertIn(PowCone3D, reduction.canon_methods)
+        self.assertNotIn(RelEntrConeQuad, reduction.canon_methods)
+
+    @unittest.skipUnless(
+        cp.CVXOPT in cp.installed_solvers(),
+        'CVXOPT solver is not installed.'
+    )
+    def test_soc_to_psd_via_exact_cone2cone(self) -> None:
+        """SOC constraint solved via CVXOPT (PSD-only) uses ExactCone2Cone."""
+        x = cp.Variable(3)
+        prob = cp.Problem(
+            cp.Minimize(cp.sum(x)),
+            [cp.norm(x, 2) <= 1]
+        )
+        prob.solve(solver=cp.CVXOPT)
+        self.assertIn(prob.status, [cp.OPTIMAL, cp.OPTIMAL_INACCURATE])
+        self.assertAlmostEqual(prob.value, -np.sqrt(3), places=3)
+
+    @unittest.skipUnless(
+        cp.CVXOPT in cp.installed_solvers(),
+        'CVXOPT solver is not installed.'
+    )
+    def test_soc_to_psd_packed(self) -> None:
+        """Packed SOC constraints via CVXOPT (PSD-only) work correctly."""
+        x = cp.Variable(3)
+        t = cp.Variable(2)
+        # Two SOC constraints packed together
+        prob = cp.Problem(
+            cp.Minimize(t[0] + t[1]),
+            [cp.SOC(t, cp.vstack([x[:2], x[1:]]).T, axis=0),
+             cp.sum(x) == 1, x >= 0]
+        )
+        prob.solve(solver=cp.CVXOPT)
+        self.assertIn(prob.status, [cp.OPTIMAL, cp.OPTIMAL_INACCURATE])
+
+    def test_explicit_powcone3d_approximated_when_unsupported(self) -> None:
+        """Explicit PowCone3D constraint is approximated via ApproxCone2Cone
+        when the solver doesn't support PowCone3D."""
+        x = cp.Variable(pos=True)
+        y = cp.Variable(pos=True)
+        z = cp.Variable()
+        prob = cp.Problem(
+            cp.Maximize(z),
+            [PowCone3D(x, y, z, 0.5),
+             x + y <= 2]
+        )
+        # CVXOPT does not support PowCone3D, so it should be approximated
+        if cp.CVXOPT in cp.installed_solvers():
+            prob.solve(solver=cp.CVXOPT)
+            self.assertIn(prob.status, [cp.OPTIMAL, cp.OPTIMAL_INACCURATE])
+            # x^0.5 * y^0.5 >= |z|  with x+y<=2, max z
+            # at x=y=1, z=1
+            self.assertAlmostEqual(z.value, 1.0, places=2)
+
