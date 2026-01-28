@@ -63,6 +63,17 @@ class TestParametricBoundsCreation:
         with pytest.raises(ValueError, match="Parametric bounds"):
             cp.Parameter(bounds=[cp.Parameter(), 10])
 
+    def test_variable_rejects_variable_dependent_bounds(self):
+        y = cp.Variable()
+        with pytest.raises(ValueError, match="must not depend on Variables"):
+            cp.Variable(bounds=[y, 10])
+        with pytest.raises(ValueError, match="must not depend on Variables"):
+            cp.Variable(bounds=[0, y])
+        with pytest.raises(ValueError, match="must not depend on Variables"):
+            cp.Variable(bounds=[y, y + 1])
+        with pytest.raises(ValueError, match="must not depend on Variables"):
+            cp.Variable(bounds=[y + cp.Parameter(), 10])
+
     def test_has_lower_upper_bounds(self):
         assert cp.Variable(bounds=[cp.Parameter(), 10])._has_lower_bounds()
         assert cp.Variable(bounds=[0, cp.Parameter()])._has_upper_bounds()

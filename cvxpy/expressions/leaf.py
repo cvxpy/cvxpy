@@ -661,9 +661,15 @@ class Leaf(expression.Expression):
         )
 
         if has_expr_bound:
-            # Validate Expression bounds: must be scalar or matching shape.
+            # Validate Expression bounds: must be scalar or matching shape,
+            # and must not depend on any Variable.
             for idx, val in enumerate(value):
                 if isinstance(val, expression.Expression):
+                    if val.variables():
+                        raise ValueError(
+                            "Parametric bounds must not depend on Variables. "
+                            "Use Parameters or numeric values instead."
+                        )
                     if not (val.is_scalar() or val.shape == self.shape):
                         raise ValueError(
                             "Expression bounds must be scalar or have the "

@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy import settings as s
+from cvxpy.expressions.expression import Expression
 from cvxpy.expressions.leaf import Leaf
 from cvxpy.utilities import scopes
 
@@ -47,7 +48,6 @@ class Parameter(Leaf):
         self, shape: int | tuple[int, ...] = (), name: str | None = None, value=None,
         id=None, **kwargs
     ) -> None:
-        from cvxpy.expressions.expression import Expression
         bounds = kwargs.get('bounds')
         if bounds is not None:
             for b in bounds:
