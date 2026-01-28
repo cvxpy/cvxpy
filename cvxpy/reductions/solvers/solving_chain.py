@@ -332,18 +332,8 @@ def construct_solving_chain(problem, candidates,
 
         solver_context = SolverInfo(solver=solver, supported_constraints=supported_constraints)
 
-        # --- Approximate cone expansion (solver-aware) ---
-        # Only approximate cones the solver doesn't natively support.
-        approx_cos = constr_types & APPROX_CONE_CONVERSIONS.keys() - supported_constraints
-
-        # Rebuild cones list incorporating approximate expansions.
-        solver_cones = cones.copy()
-        for co in approx_cos:
-            solver_cones.discard(co)
-            solver_cones.update(APPROX_CONE_CONVERSIONS[co])
-
         # --- Iterative exact cone expansion ---
-        # Replace one-shot expansion with iterative loop.
+        solver_cones = cones.copy()
         exotic_steps = []
         while True:
             ex_cos = (solver_cones & EXACT_CONE_CONVERSIONS.keys()) - supported_constraints
@@ -361,6 +351,17 @@ def construct_solving_chain(problem, candidates,
             for co in sources:
                 solver_cones.update(EXACT_CONE_CONVERSIONS[co])
                 solver_cones.discard(co)
+
+        # --- Approximate cone expansion (solver-aware) ---
+        # Computed after exact expansion so cones introduced by exact
+        # conversion (e.g. PowCone3D from PowConeND) are also considered.
+        # Union with constr_types to catch specialized constraint types
+        # (e.g. RelEntrConeQuad) not tracked in the atom-derived cones set.
+        approx_cos = ((solver_cones | constr_types)
+                      & APPROX_CONE_CONVERSIONS.keys()) - supported_constraints
+        for co in approx_cos:
+            solver_cones.discard(co)
+            solver_cones.update(APPROX_CONE_CONVERSIONS[co])
 
         if has_constr or not solver_instance.REQUIRES_CONSTR:
             # Should the objective be canonicalized to a quadratic?
