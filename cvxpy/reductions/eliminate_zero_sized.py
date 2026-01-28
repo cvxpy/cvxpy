@@ -20,21 +20,21 @@ from cvxpy.expressions.constants.constant import Constant
 from cvxpy.reductions.reduction import Reduction
 
 
-def _has_zero_sized_var(expr, zero_var_ids):
-    """Check if any variable in expr is zero-sized."""
-    for v in expr.variables():
-        if v.id in zero_var_ids:
-            return True
-    return False
-
-
-def replace_zero_sized(expr, zero_var_ids):
+def replace_zero_sized(expr):
     """Recursively replace zero-sized expressions with zero constants."""
     if expr.size == 0:
         return Constant(np.zeros(expr.shape))
-    if not _has_zero_sized_var(expr, zero_var_ids):
+    if not expr.args:
         return expr
-    new_args = [replace_zero_sized(arg, zero_var_ids) for arg in expr.args]
+    new_args = []
+    changed = False
+    for arg in expr.args:
+        new_arg = replace_zero_sized(arg)
+        if new_arg is not arg:
+            changed = True
+        new_args.append(new_arg)
+    if not changed:
+        return expr
     return expr.copy(new_args)
 
 
@@ -58,16 +58,24 @@ class EliminateZeroSized(Reduction):
 
         zero_vars = {v.id: v for v in problem.variables() if v.size == 0}
 
-        # Filter out zero-sized constraints and replace zero-sized vars.
+        # Walk each constraint's expression tree, replacing zero-sized
+        # sub-expressions with zero constants and dropping zero-sized
+        # constraints.
         constraints = []
-        any_changed = bool(zero_vars)
+        any_changed = False
         for c in problem.constraints:
             if c.size == 0:
                 any_changed = True
                 continue
-            if zero_vars and _has_zero_sized_var(c, zero_vars):
-                new_args = [replace_zero_sized(arg, zero_vars)
-                            for arg in c.args]
+            new_args = []
+            c_changed = False
+            for arg in c.args:
+                new_arg = replace_zero_sized(arg)
+                if new_arg is not arg:
+                    c_changed = True
+                new_args.append(new_arg)
+            if c_changed:
+                any_changed = True
                 data = c.get_data()
                 if data is not None:
                     constraints.append(type(c)(*(new_args + data)))
@@ -76,15 +84,16 @@ class EliminateZeroSized(Reduction):
             else:
                 constraints.append(c)
 
-        if not any_changed:
-            return problem, {}
-
         # Replace zero-sized expressions in the objective.
-        if zero_vars:
-            obj_expr = replace_zero_sized(problem.objective.expr, zero_vars)
+        obj_expr = replace_zero_sized(problem.objective.expr)
+        if obj_expr is not problem.objective.expr:
+            any_changed = True
             objective = type(problem.objective)(obj_expr)
         else:
             objective = problem.objective
+
+        if not any_changed and not zero_vars:
+            return problem, {}
 
         # Find variables that were in the original problem but are
         # absent from the reduced problem.
