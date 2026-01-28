@@ -24,6 +24,7 @@ import cvxpy as cp
 from cvxpy.expressions.constants.constant import Constant
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.eliminate_zero_sized import EliminateZeroSized
+from cvxpy.reductions.solution import Solution
 
 
 class TestZeroSizedCreation(unittest.TestCase):
@@ -99,7 +100,6 @@ class TestEliminateZeroSizedReduction(unittest.TestCase):
         zero_vars = {z.id: z}
 
         # Create a mock solution.
-        from cvxpy.reductions.solution import Solution
         sol = Solution("optimal", 0.0, {}, {}, {})
         result = reduction.invert(sol, zero_vars)
         self.assertIn(z.id, result.primal_vars)
