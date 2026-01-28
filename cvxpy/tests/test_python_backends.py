@@ -3414,3 +3414,56 @@ class TestTransformedParameterReshape:
         val_scipy, val_coo = self._solve_both_backends(prob)
         assert val_coo is not None, "COO backend should produce a solution"
         np.testing.assert_allclose(val_scipy, val_coo, rtol=1e-3)
+
+    def test_issue_3092_nd_parameter_dynamics(self):
+        """Scaled-down reproducer from GitHub issue #3092: N-D parameter
+        indexing in a dynamics constraint loop
+        (A_d[i] @ dx[i] + B_d[i] @ du[i] + ...)."""
+        N = 5
+        n_states = 4
+        n_controls = 2
+
+        A_d = cp.Parameter((N - 1, n_states, n_states), name="A_d")
+        B_d = cp.Parameter((N - 1, n_states, n_controls), name="B_d")
+        C_d = cp.Parameter((N - 1, n_states, n_controls), name="C_d")
+        x_prop = cp.Parameter((N - 1, n_states), name="x_prop")
+
+        x = cp.Variable((N, n_states), name="x")
+        dx = cp.Variable((N, n_states), name="dx")
+        du = cp.Variable((N, n_controls), name="du")
+        nu = cp.Variable((N - 1, n_states), name="nu")
+
+        rng = np.random.RandomState(42)
+        A_d.value = rng.randn(N - 1, n_states, n_states)
+        B_d.value = rng.randn(N - 1, n_states, n_controls)
+        C_d.value = rng.randn(N - 1, n_states, n_controls)
+        x_prop.value = rng.randn(N - 1, n_states)
+
+        inv_S_x = np.eye(n_states)
+        c_x = np.zeros(n_states)
+
+        constraints = []
+        for i in range(1, N):
+            constraints.append(
+                inv_S_x @ (x[i] - c_x)
+                == inv_S_x @ (
+                    A_d[i - 1] @ dx[i - 1]
+                    + B_d[i - 1] @ du[i - 1]
+                    + C_d[i - 1] @ du[i]
+                    + x_prop[i - 1]
+                    - c_x
+                )
+                + nu[i - 1]
+            )
+
+        objective = cp.Minimize(
+            sum(cp.sum_squares(cp.hstack((dx[i], du[i]))) for i in range(N))
+        )
+        prob = cp.Problem(objective, constraints)
+
+        # The original issue crashed here with IndexError.
+        # Verify both backends solve without error and agree.
+        val_scipy, val_coo = self._solve_both_backends(prob)
+        assert val_scipy is not None
+        assert val_coo is not None
+        np.testing.assert_allclose(val_scipy, val_coo, rtol=1e-3, atol=1e-6)
