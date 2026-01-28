@@ -115,8 +115,7 @@ def _solve_as_qp(problem, candidates, ignore_dpp: bool = False):
     return candidates['qp_solvers'] and problem.is_qp()
 
 
-def _reductions_for_problem_class(problem, candidates, gp: bool = False,
-                                   ignore_dpp: bool = False, solver_opts=None) \
+def _reductions_for_problem_class(problem, gp: bool = False) \
         -> list[Reduction]:
     """
     Builds a chain that rewrites a problem into an intermediate
@@ -126,14 +125,9 @@ def _reductions_for_problem_class(problem, candidates, gp: bool = False,
     ----------
     problem : Problem
         The problem for which to build a chain.
-    candidates : dict
-        Dictionary of candidate solvers divided in qp_solvers
-        and conic_solvers.
     gp : bool
         If True, the problem is parsed as a Disciplined Geometric Program
         instead of as a Disciplined Convex Program.
-    ignore_dpp : bool
-        If True, DPP analysis is skipped when checking problem type.
     Returns
     -------
     list of Reduction objects
@@ -182,14 +176,6 @@ def _reductions_for_problem_class(problem, candidates, gp: bool = False,
     constr_types = {type(c) for c in problem.constraints}
     if FiniteSet in constr_types:
         reductions += [Valinvec2mixedint()]
-
-    use_quad = True if solver_opts is None else solver_opts.get('use_quad_obj', True)
-    valid_qp = _solve_as_qp(problem, candidates, ignore_dpp) and use_quad
-    valid_conic = len(candidates['conic_solvers']) > 0
-    if not valid_qp and not valid_conic:
-        raise SolverError("Problem could not be reduced to a QP, and no "
-                            "conic solvers exist among candidate solvers "
-                            "(%s)." % candidates)
 
     return reductions
 
@@ -246,8 +232,15 @@ def construct_solving_chain(problem, candidates,
     """
     if len(problem.variables()) == 0:
         return SolvingChain(reductions=[ConstantSolver()])
-    reductions = _reductions_for_problem_class(problem, candidates, gp, ignore_dpp,
-                                               solver_opts)
+    reductions = _reductions_for_problem_class(problem, gp)
+
+    # Determine solver pathway (QP vs conic).
+    use_quad = True if solver_opts is None else solver_opts.get('use_quad_obj', True)
+    valid_qp = _solve_as_qp(problem, candidates, ignore_dpp) and use_quad
+    if not valid_qp and not candidates['conic_solvers']:
+        raise SolverError("Problem could not be reduced to a QP, and no "
+                          "conic solvers exist among candidate solvers "
+                          "(%s)." % candidates)
 
     # Process DPP status of the problem.
     dpp_context = 'dcp' if not gp else 'dgp'
@@ -270,8 +263,7 @@ def construct_solving_chain(problem, candidates,
     # Conclude with matrix stuffing; choose one of the following paths:
     #   (1) ConeMatrixStuffing(quad_obj=True) --> [a QpSolver],
     #   (2) ConeMatrixStuffing --> [a ConicSolver]
-    use_quad = True if solver_opts is None else solver_opts.get('use_quad_obj', True)
-    if _solve_as_qp(problem, candidates, ignore_dpp) and use_quad:
+    if valid_qp:
         # Route to a QP solver via the conic canonicalization path
         solver = candidates['qp_solvers'][0]
         solver_instance = slv_def.SOLVER_MAP_QP[solver]
@@ -289,10 +281,6 @@ def construct_solving_chain(problem, candidates,
         return SolvingChain(reductions=reductions)
 
     # Canonicalize as a cone program
-    if not candidates['conic_solvers']:
-        raise SolverError("Problem could not be reduced to a QP, and no "
-                          "conic solvers exist among candidate solvers "
-                          "(%s)." % candidates)
 
     constr_types = set()
     # ^ We use constr_types to infer an incomplete list of cones that
@@ -347,11 +335,6 @@ def construct_solving_chain(problem, candidates,
         # --- Approximate cone expansion (solver-aware) ---
         # Only approximate cones the solver doesn't natively support.
         approx_cos = constr_types & APPROX_CONE_CONVERSIONS.keys() - supported_constraints
-        solver_constr_types = set(constr_types)
-        for co in approx_cos:
-            app_cos = APPROX_CONE_CONVERSIONS[co]
-            solver_constr_types.update(app_cos)
-            solver_constr_types.discard(co)
 
         # Rebuild cones list incorporating approximate expansions.
         solver_cones = cones.copy()
@@ -381,11 +364,7 @@ def construct_solving_chain(problem, candidates,
 
         if has_constr or not solver_instance.REQUIRES_CONSTR:
             # Should the objective be canonicalized to a quadratic?
-            if solver_opts is None:
-                use_quad_obj = True
-            else:
-                use_quad_obj = solver_opts.get("use_quad_obj", True)
-            quad_obj = use_quad_obj and solver_instance.supports_quad_obj() and \
+            quad_obj = use_quad and solver_instance.supports_quad_obj() and \
                 problem.objective.expr.has_quadratic_term()
             reductions.append(
                 Dcp2Cone(quad_obj=quad_obj, solver_context=solver_context),
@@ -534,7 +513,7 @@ class SolvingChain(Chain):
         return self.invert(solution, inverse_data)
 
     def solve_via_data(self, problem, data, warm_start: bool = False, verbose: bool = False,
-                       solver_opts={}):
+                       solver_opts=None):
         """Solves the problem using the data output by the an apply invocation.
 
         The semantics are:
