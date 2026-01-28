@@ -25,17 +25,18 @@ from cvxpy.constraints import (
     PowConeND,
     Zero,
 )
-from cvxpy.constraints.exponential import OpRelEntrConeQuad, RelEntrConeQuad
 from cvxpy.error import DCPError, DGPError, DPPError, SolverError
 from cvxpy.problems.objective import Maximize
 from cvxpy.reductions.chain import Chain
 from cvxpy.reductions.complex2real import complex2real
-from cvxpy.reductions.cone2cone.approximations import APPROX_CONES, QuadApprox
-from cvxpy.reductions.cone2cone.exotic2common import (
-    EXOTIC_CONES,
-    Exotic2Common,
+from cvxpy.reductions.cone2cone.approx import (
+    APPROX_CONE_CONVERSIONS,
+    ApproxCone2Cone,
 )
-from cvxpy.reductions.cone2cone.soc2psd import SOC2PSD
+from cvxpy.reductions.cone2cone.exact import (
+    EXACT_CONE_CONVERSIONS,
+    ExactCone2Cone,
+)
 from cvxpy.reductions.cone2cone.soc_dim3 import SOCDim3
 from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
@@ -298,15 +299,8 @@ def construct_solving_chain(problem, candidates,
     # the solver will need after canonicalization.
     for c in problem.constraints:
         constr_types.add(type(c))
-    approx_cos = [ct for ct in constr_types if ct in APPROX_CONES]
-    # ^ The way we populate "ex_cos" will need to change if and when
-    # we have atoms that require exotic cones.
 
-    for co in approx_cos:
-        app_cos = APPROX_CONES[co]
-        constr_types.update(app_cos)
-        constr_types.remove(co)
-    # We now go over individual elementary cones support by CVXPY (
+    # We now go over individual elementary cones supported by CVXPY (
     # SOC, ExpCone, NonNeg, Zero, PSD, PowCone3D) and check if
     # they've appeared in constr_types or if the problem has an atom
     # requiring that cone.
@@ -350,22 +344,45 @@ def construct_solving_chain(problem, candidates,
 
         solver_context = SolverInfo(solver=solver, supported_constraints=supported_constraints)
 
-        cones = set(cones)
-        ex_cos = (cones & set(EXOTIC_CONES)) - set(supported_constraints)
-
-        for co in ex_cos:
-            sim_cos = set(EXOTIC_CONES[co])
-            cones.update(sim_cos)
-            cones.discard(co)
-
-        unsupported_constraints = [
-            cone for cone in cones if cone not in supported_constraints
+        # --- Approximate cone expansion (solver-aware) ---
+        # Only approximate cones the solver doesn't natively support.
+        approx_cos = [
+            ct for ct in constr_types
+            if ct in APPROX_CONE_CONVERSIONS and ct not in supported_constraints
         ]
+        solver_constr_types = set(constr_types)
+        for co in approx_cos:
+            app_cos = APPROX_CONE_CONVERSIONS[co]
+            solver_constr_types.update(app_cos)
+            solver_constr_types.discard(co)
+
+        # Rebuild cones list incorporating approximate expansions.
+        solver_cones = set(cones)
+        for co in approx_cos:
+            solver_cones.discard(co)
+            solver_cones.update(APPROX_CONE_CONVERSIONS[co])
+
+        # --- Iterative exact cone expansion ---
+        # Replace one-shot expansion with iterative loop.
+        exotic_steps = []
+        while True:
+            ex_cos = (solver_cones & set(EXACT_CONE_CONVERSIONS)) - set(supported_constraints)
+            if not ex_cos:
+                break
+            # Source nodes: not produced by other unsupported exotic cones
+            sources = frozenset(
+                co for co in ex_cos
+                if not any(co in EXACT_CONE_CONVERSIONS.get(other, set())
+                           for other in ex_cos if other != co)
+            )
+            if not sources:
+                sources = frozenset(ex_cos)  # cycle fallback
+            exotic_steps.append(sources)
+            for co in sources:
+                solver_cones.update(EXACT_CONE_CONVERSIONS[co])
+                solver_cones.discard(co)
 
         if has_constr or not solver_instance.REQUIRES_CONSTR:
-            if RelEntrConeQuad in approx_cos or OpRelEntrConeQuad in approx_cos:
-                reductions.append(QuadApprox())
-
             # Should the objective be canonicalized to a quadratic?
             if solver_opts is None:
                 use_quad_obj = True
@@ -376,8 +393,15 @@ def construct_solving_chain(problem, candidates,
             reductions.append(
                 Dcp2Cone(quad_obj=quad_obj, solver_context=solver_context),
             )
-            if ex_cos:
-                reductions.append(Exotic2Common())
+
+            # Exact cone conversions (iterative, one pass per level)
+            for step_cones in exotic_steps:
+                reductions.append(ExactCone2Cone(target_cones=step_cones))
+
+            # Approximate cone conversions (single pass, all types)
+            if approx_cos:
+                reductions.append(ApproxCone2Cone(target_cones=set(approx_cos)))
+
             reductions.append(
                 CvxAttr2Constr(reduce_bounds=not solver_instance.BOUNDED_VARIABLES),
             )
@@ -386,20 +410,14 @@ def construct_solving_chain(problem, candidates,
             # are already materialized as concrete conic constraints
             # before zero-sized sub-expressions are replaced.
             reductions.append(EliminateZeroSized())
-            if all(c in supported_constraints for c in cones):
+
+            if all(c in supported_constraints for c in solver_cones):
                 # Check if solver only supports dim-3 SOC cones
-                if solver_instance.SOC_DIM3_ONLY and SOC in cones:
+                if solver_instance.SOC_DIM3_ONLY and SOC in solver_cones:
                     # Add SOCDim3 reduction to convert n-dim SOC to 3D SOC
                     reductions.append(SOCDim3())
                 # Return the reduction chain.
                 reductions += [
-                    ConeMatrixStuffing(quad_obj=quad_obj, canon_backend=canon_backend),
-                    solver_instance
-                ]
-                return SolvingChain(reductions=reductions, solver_context=solver_context)
-            elif all(c==SOC for c in unsupported_constraints) and PSD in supported_constraints:
-                reductions += [
-                    SOC2PSD(),
                     ConeMatrixStuffing(quad_obj=quad_obj, canon_backend=canon_backend),
                     solver_instance
                 ]
