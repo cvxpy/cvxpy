@@ -1391,10 +1391,11 @@ def reshape_parametric_constant(tensor: CooTensor, new_m: int, new_n: int) -> Co
         Reshaped tensor with deduplicated entries (for parametric case)
     """
     if tensor.param_size > 1:
-        # For parametric tensors, use param_idx as position indicator
-        # Each param_idx maps to one position in (new_m, new_n) in column-major order
-        new_row = tensor.param_idx % new_m
-        new_col = tensor.param_idx // new_m
+        # For parametric tensors, use row as position indicator.
+        # row always contains correct local positions after transformations,
+        # whereas param_idx encodes original parameter identity and may diverge.
+        new_row = tensor.row % new_m
+        new_col = tensor.row // new_m
 
         # Deduplicate: keep first occurrence of each param_idx
         # This handles broadcast operations that duplicate param entries

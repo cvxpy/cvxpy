@@ -422,16 +422,23 @@ class SciPyCanonBackend(PythonCanonBackend):
         slice_size = v.shape[0] // param_size
         param_idx = stacked_rows // slice_size
 
+        # Local position within each slice gives the correct position in
+        # the flattened (m*k) output. After transformations (indexing,
+        # transpose, reshape), param_idx diverges from local position,
+        # so we must use local_pos for position computation.
+        local_pos = stacked_rows % slice_size
+
         # Deduplicate: broadcast creates copies with same param_idx.
         # For a param with param_size=12, param_idx should be 0-11 exactly once.
         # If param_idx=5 appears 3 times, broadcast created duplicates - keep first only.
         unique_param_idx, first_occurrence = np.unique(param_idx, return_index=True)
 
         # Position in (m, k) matrix: column-major order
-        new_rows = unique_param_idx % m
-        new_cols = unique_param_idx // m
+        local_pos_dedup = local_pos[first_occurrence]
+        new_rows = local_pos_dedup % m
+        new_cols = local_pos_dedup // m
 
-        # In stacked format, offset by slice: unique_param_idx is also the slice index
+        # In stacked format, offset by slice: unique_param_idx is the slice index
         stacked_new_rows = unique_param_idx * m + new_rows
 
         new_stacked_shape = (param_size * m, k)
