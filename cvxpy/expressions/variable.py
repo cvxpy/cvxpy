@@ -27,6 +27,7 @@ from cvxpy import settings as s
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions.expression import Expression
 from cvxpy.expressions.leaf import Leaf
+from cvxpy.utilities import scopes
 
 
 class Variable(Leaf):
@@ -82,13 +83,32 @@ class Variable(Leaf):
                     params.extend(b.parameters())
         return params
 
-    def is_dpp(self, context: str = 'dcp') -> bool:
-        """Check that any Expression bounds are also DPP."""
-        if self.attributes.get('bounds') is not None:
-            for b in self.attributes['bounds']:
-                if isinstance(b, Expression) and not b.is_dpp(context):
-                    return False
+    def is_dcp(self, dpp: bool = False) -> bool:
+        """Check DCP compliance, including parameter-affine bounds."""
+        if dpp and self.attributes.get('bounds') is not None:
+            with scopes.dpp_scope():
+                for b in self.attributes['bounds']:
+                    if isinstance(b, Expression) and not b.is_affine():
+                        return False
         return True
+
+    def is_dgp(self, dpp: bool = False) -> bool:
+        """Check DGP compliance, including log-log-affine bounds."""
+        if dpp and self.attributes.get('bounds') is not None:
+            with scopes.dpp_scope():
+                for b in self.attributes['bounds']:
+                    if isinstance(b, Expression) and not b.is_log_log_affine():
+                        return False
+        return True
+
+    def is_dpp(self, context: str = 'dcp') -> bool:
+        """Check that the variable is DPP in the given context."""
+        if context == 'dcp':
+            return self.is_dcp(dpp=True)
+        elif context == 'dgp':
+            return self.is_dgp(dpp=True)
+        else:
+            raise ValueError(f'Unsupported context {context}')
 
     def canonicalize(self) -> Tuple[Expression, list[Constraint]]:
         """Returns the graph implementation of the object."""
