@@ -215,6 +215,9 @@ def sign(constant):
     if isinstance(constant, numbers.Number):
         max_val = constant
         min_val = constant
+    elif np.size(constant) == 0:
+        # Zero-sized arrays are vacuously nonneg and nonpos.
+        return (True, True)
     elif sp.issparse(constant):
         max_val = constant.max()
         min_val = constant.min()

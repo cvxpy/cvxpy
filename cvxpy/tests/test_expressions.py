@@ -83,9 +83,10 @@ class TestExpressions(BaseTest):
         # Test shape provided as list instead of tuple
         self.assertEqual(cp.Variable(shape=[2], integer=True).shape, (2,))
 
-        with self.assertRaises(Exception) as cm:
-            Variable((2, 0))
-        self.assertEqual(str(cm.exception), "Invalid dimensions (2, 0).")
+        # Zero-sized variables are allowed.
+        v = Variable((2, 0))
+        self.assertEqual(v.shape, (2, 0))
+        self.assertEqual(v.size, 0)
 
         with self.assertRaises(Exception) as cm:
             Variable((2, .5))
