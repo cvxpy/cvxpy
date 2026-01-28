@@ -1391,10 +1391,26 @@ def reshape_parametric_constant(tensor: CooTensor, new_m: int, new_n: int) -> Co
         Reshaped tensor with deduplicated entries (for parametric case)
     """
     if tensor.param_size > 1:
-        # For parametric tensors, use param_idx as position indicator
-        # Each param_idx maps to one position in (new_m, new_n) in column-major order
-        new_row = tensor.param_idx % new_m
-        new_col = tensor.param_idx // new_m
+        # For parametric tensors, use row as position indicator.
+        # row always contains correct local positions after transformations,
+        # whereas param_idx encodes original parameter identity and may diverge.
+        #
+        # Account for broadcast expansion.  For ND matmul like
+        # P(m,k) @ X(B,k,n), _broadcast_batch_dims wraps the parameter in
+        # broadcast_to(P, (B,m,k)).  The tensor then has m*n = B*m*k entries
+        # per slice, but the target reshape size is only new_m * new_n = m*k.
+        # In Fortran (column-major) order, each original entry is duplicated B
+        # consecutive times, so dividing pos by the broadcast factor
+        # (B = tensor_size / original_size) maps positions back to the
+        # original (new_m, new_n) space.
+        # When there is no broadcast, broadcast_factor == 1 and this is a no-op.
+        original_size = new_m * new_n
+        broadcast_factor = (tensor.m * tensor.n) // original_size
+        pos = tensor.row
+        if broadcast_factor > 1:
+            pos = pos // broadcast_factor
+        new_row = pos % new_m
+        new_col = pos // new_m
 
         # Deduplicate: keep first occurrence of each param_idx
         # This handles broadcast operations that duplicate param entries

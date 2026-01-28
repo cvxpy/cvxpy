@@ -3319,3 +3319,151 @@ class TestCooBackend:
             unique_params = np.unique(tensor.param_idx)
             assert len(unique_params) == param_to_size[param_id], \
                 f"Expected {param_to_size[param_id]} unique param_idx, got {len(unique_params)}"
+
+
+class TestTransformedParameterReshape:
+    """Regression tests for issue #3092: IndexError with transformed parameters
+    in reshape_parametric_constant (COO) and _reshape_parametric (SciPy)."""
+
+    @staticmethod
+    def _solve_both_backends(prob):
+        """Solve with both SciPy and COO backends, return both optimal values."""
+        prob.solve(solver=cp.SCS, canon_backend=s.SCIPY_CANON_BACKEND)
+        val_scipy = prob.value
+        prob.solve(solver=cp.SCS, canon_backend=s.COO_CANON_BACKEND)
+        val_coo = prob.value
+        return val_scipy, val_coo
+
+    def test_indexed_nd_parameter(self):
+        """Indexed N-D parameter (A_d[i] @ x) should not crash with COO backend."""
+        n = 3
+        x = cp.Variable(n)
+        A_d = cp.Parameter((2, n, n))
+        A_d.value = np.random.RandomState(0).randn(2, n, n)
+        b = np.ones(n)
+
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(x)), [A_d[0] @ x == b])
+        val_scipy, val_coo = self._solve_both_backends(prob)
+        assert val_coo is not None, "COO backend should produce a solution"
+        np.testing.assert_allclose(val_scipy, val_coo, rtol=1e-3)
+
+    def test_transposed_parameter(self):
+        """Transposed parameter (P.T @ x) should not crash with COO backend."""
+        n = 3
+        x = cp.Variable(n)
+        P = cp.Parameter((n, n))
+        P.value = np.eye(n) + 0.1 * np.random.RandomState(1).randn(n, n)
+        b = np.ones(n)
+
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(x)), [P.T @ x == b])
+        val_scipy, val_coo = self._solve_both_backends(prob)
+        assert val_coo is not None, "COO backend should produce a solution"
+        np.testing.assert_allclose(val_scipy, val_coo, rtol=1e-3)
+
+    def test_reshaped_parameter(self):
+        """Reshaped parameter in multiplication should not crash with COO backend."""
+        n = 4
+        x = cp.Variable(n)
+        P = cp.Parameter(n * n)
+        P.value = np.eye(n).flatten()
+
+        P_mat = cp.reshape(P, (n, n))
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(x)), [P_mat @ x == np.ones(n)])
+        val_scipy, val_coo = self._solve_both_backends(prob)
+        assert val_coo is not None, "COO backend should produce a solution"
+        np.testing.assert_allclose(val_scipy, val_coo, rtol=1e-3)
+
+    def test_rectangular_transposed_parameter(self):
+        """Transposed rectangular parameter exercises m != k in modular arithmetic."""
+        m, k = 4, 3
+        x = cp.Variable(m)
+        P = cp.Parameter((m, k))
+        P.value = np.random.RandomState(2).randn(m, k)
+        b = np.ones(k)
+
+        # P.T is (k, m), so P.T @ x has shape (k,)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(x)), [P.T @ x == b])
+        val_scipy, val_coo = self._solve_both_backends(prob)
+        assert val_coo is not None, "COO backend should produce a solution"
+        np.testing.assert_allclose(val_scipy, val_coo, rtol=1e-3)
+
+    def test_partial_slice_parameter(self):
+        """Partial row/column slicing of a parameter."""
+        m, k = 4, 5
+        x = cp.Variable(k - 1)
+        P = cp.Parameter((m, k))
+        P.value = np.random.RandomState(3).randn(m, k)
+        b = np.ones(m)
+
+        # Slice out columns 1: → shape (m, k-1)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(x)), [P[:, 1:] @ x == b])
+        val_scipy, val_coo = self._solve_both_backends(prob)
+        assert val_coo is not None, "COO backend should produce a solution"
+        np.testing.assert_allclose(val_scipy, val_coo, rtol=1e-3)
+
+    def test_rmul_transposed_parameter(self):
+        """Right-multiply with a transformed parameter exercises the rmul path."""
+        n = 3
+        x = cp.Variable(n)
+        P = cp.Parameter((n, n))
+        P.value = np.eye(n) + 0.1 * np.random.RandomState(4).randn(n, n)
+        b = np.ones(n)
+
+        # x @ P.T  →  rmul path with a transposed parameter
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(x)), [x @ P.T == b])
+        val_scipy, val_coo = self._solve_both_backends(prob)
+        assert val_coo is not None, "COO backend should produce a solution"
+        np.testing.assert_allclose(val_scipy, val_coo, rtol=1e-3)
+
+    def test_issue_3092_nd_parameter_dynamics(self):
+        """Scaled-down reproducer from GitHub issue #3092: N-D parameter
+        indexing in a dynamics constraint loop
+        (A_d[i] @ dx[i] + B_d[i] @ du[i] + ...)."""
+        N = 5
+        n_states = 4
+        n_controls = 2
+
+        A_d = cp.Parameter((N - 1, n_states, n_states), name="A_d")
+        B_d = cp.Parameter((N - 1, n_states, n_controls), name="B_d")
+        C_d = cp.Parameter((N - 1, n_states, n_controls), name="C_d")
+        x_prop = cp.Parameter((N - 1, n_states), name="x_prop")
+
+        x = cp.Variable((N, n_states), name="x")
+        dx = cp.Variable((N, n_states), name="dx")
+        du = cp.Variable((N, n_controls), name="du")
+        nu = cp.Variable((N - 1, n_states), name="nu")
+
+        rng = np.random.RandomState(42)
+        A_d.value = rng.randn(N - 1, n_states, n_states)
+        B_d.value = rng.randn(N - 1, n_states, n_controls)
+        C_d.value = rng.randn(N - 1, n_states, n_controls)
+        x_prop.value = rng.randn(N - 1, n_states)
+
+        inv_S_x = np.eye(n_states)
+        c_x = np.zeros(n_states)
+
+        constraints = []
+        for i in range(1, N):
+            constraints.append(
+                inv_S_x @ (x[i] - c_x)
+                == inv_S_x @ (
+                    A_d[i - 1] @ dx[i - 1]
+                    + B_d[i - 1] @ du[i - 1]
+                    + C_d[i - 1] @ du[i]
+                    + x_prop[i - 1]
+                    - c_x
+                )
+                + nu[i - 1]
+            )
+
+        objective = cp.Minimize(
+            sum(cp.sum_squares(cp.hstack((dx[i], du[i]))) for i in range(N))
+        )
+        prob = cp.Problem(objective, constraints)
+
+        # The original issue crashed here with IndexError.
+        # Verify both backends solve without error and agree.
+        val_scipy, val_coo = self._solve_both_backends(prob)
+        assert val_scipy is not None
+        assert val_coo is not None
+        np.testing.assert_allclose(val_scipy, val_coo, rtol=1e-3, atol=1e-6)
