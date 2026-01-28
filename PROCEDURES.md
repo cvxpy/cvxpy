@@ -113,6 +113,13 @@ If this file has changed between versions, the old patch will fail to apply and 
 ## Creating a release on GitHub
 Go to the [Releases](https://github.com/cvxpy/cvxpy/releases) tab and click "Draft a new release". Select the previously created tag and write release notes. For minor releases, this includes a summary of new features and deprecations. Additionally, we mention the PRs contained in the release and their contributors. Take care to select the "set as the latest release" only for minor releases or patches to the most recent major release.
 
+To generate the list of PRs and contributors, use the `tools/release_notes.py` script:
+```
+python tools/release_notes.py v1.8.0  # minor release
+python tools/release_notes.py v1.7.5  # patch release
+```
+For minor releases, the script automatically excludes PRs that were cherry-picked into the previous release branch's patch releases. For patch releases, it compares against the previous patch tag.
+
 ## Deploying updated documentation to gh-pages
 
 The web documentation is built and deployed using a GitHub action that can be found [here](https://github.com/cvxpy/cvxpy/blob/master/.github/workflows/docs.yml).
