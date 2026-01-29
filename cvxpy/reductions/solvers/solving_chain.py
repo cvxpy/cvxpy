@@ -170,8 +170,7 @@ def construct_solving_chain(problem, candidates,
     problem : Problem
         The problem for which to build a chain.
     candidates : dict
-        Dictionary of candidate solvers divided in qp_solvers
-        and conic_solvers.
+        Dictionary of candidate conic_solvers.
     gp : bool
         If True, the problem is parsed as a Disciplined Geometric Program
         instead of as a Disciplined Convex Program.
@@ -245,7 +244,29 @@ def construct_solving_chain(problem, candidates,
     cones = set()
     atoms = problem.atoms()
 
-    if SOC in constr_types or any(atom in SOC_ATOMS for atom in atoms):
+    # Get atoms from objective vs constraints separately.
+    # Some atoms (quad_over_lin, QuadForm, power, huber) in SOC_ATOMS can be
+    # represented as quadratic without SOC when in the objective and quad_obj=True.
+    from cvxpy.reductions.dcp2cone.canonicalizers.quad import QUAD_CANON_METHODS
+    obj_atoms = set(problem.objective.expr.atoms())
+    constr_atoms = set()
+    for c in problem.constraints:
+        constr_atoms.update(c.atoms())
+
+    # Check if SOC is required from constraints or from non-quadratic objective atoms
+    soc_from_constrs = SOC in constr_types or any(atom in SOC_ATOMS for atom in constr_atoms)
+    soc_obj_atoms = [atom for atom in obj_atoms if atom in SOC_ATOMS]
+    # SOC objective atoms that can NOT be expressed as quadratic
+    # Note: atoms() returns classes, not instances, so compare directly with QUAD_CANON_METHODS
+    soc_obj_atoms_need_soc = [atom for atom in soc_obj_atoms
+                              if atom not in QUAD_CANON_METHODS]
+    soc_from_obj_non_quad = len(soc_obj_atoms_need_soc) > 0
+
+    # Track if SOC can be avoided with quad_obj
+    soc_avoidable_with_quad = (not soc_from_constrs and not soc_from_obj_non_quad
+                               and len(soc_obj_atoms) > 0)
+
+    if soc_from_constrs or soc_from_obj_non_quad or len(soc_obj_atoms) > 0:
         cones.add(SOC)
     if ExpCone in constr_types or any(atom in EXP_ATOMS for atom in atoms):
         cones.add(ExpCone)
@@ -262,10 +283,6 @@ def construct_solving_chain(problem, candidates,
         cones.add(PowCone3D)
     if PowConeND in constr_types or any(atom in POWCONE_ND_ATOMS for atom in atoms):
         cones.add(PowConeND)
-    # Here, we make use of the observation that canonicalization only
-    # increases the number of constraints in our problem.
-    has_constr = (len(cones) > 0 or len(problem.constraints) > 0
-                  or any(var.domain for var in problem.variables()))
 
     if PSD in cones \
             and slv_def.DISREGARD_CLARABEL_SDP_SUPPORT_FOR_DEFAULT_RESOLUTION \
@@ -282,8 +299,24 @@ def construct_solving_chain(problem, candidates,
 
         solver_context = SolverInfo(solver=solver, supported_constraints=supported_constraints)
 
+        # Check if we should use quad_obj BEFORE cone expansion.
+        # This determines whether SOC atoms in the objective can be avoided.
+        if problem.is_mixed_integer():
+            solver_supports_quad = solver_instance.mi_supports_quad_obj()
+        else:
+            solver_supports_quad = solver_instance.supports_quad_obj()
+        quad_obj = use_quad and solver_supports_quad and \
+            problem.objective.expr.has_quadratic_term()
+
         # --- Iterative exact cone expansion ---
         solver_cones = cones.copy()
+
+        # If SOC is only required from objective atoms that can be expressed
+        # as quadratic, and we will use quad_obj, remove SOC BEFORE cone expansion.
+        # This prevents SOC from being converted to PSD unnecessarily.
+        if quad_obj and soc_avoidable_with_quad and SOC in solver_cones:
+            solver_cones.discard(SOC)
+
         exotic_steps = []
         while True:
             ex_cos = (solver_cones & EXACT_CONE_CONVERSIONS.keys()) - supported_constraints
@@ -313,16 +346,13 @@ def construct_solving_chain(problem, candidates,
             solver_cones.discard(co)
             solver_cones.update(APPROX_CONE_CONVERSIONS[co])
 
-        if has_constr or not solver_instance.REQUIRES_CONSTR:
-            # Should the objective be canonicalized to a quadratic?
-            # Use mi_supports_quad_obj() for mixed-integer problems (some solvers
-            # support QP but not MIQP, e.g., HiGHS).
-            if problem.is_mixed_integer():
-                solver_supports_quad = solver_instance.mi_supports_quad_obj()
-            else:
-                solver_supports_quad = solver_instance.supports_quad_obj()
-            quad_obj = use_quad and solver_supports_quad and \
-                problem.objective.expr.has_quadratic_term()
+        # Re-evaluate has_constr for this solver considering the adjusted cone set.
+        # This matters for REQUIRES_CONSTR solvers when SOC is removed via quad_obj.
+        solver_has_constr = (len(solver_cones) > 0 or len(problem.constraints) > 0
+                             or any(var.domain for var in problem.variables()))
+
+        if solver_has_constr or not solver_instance.REQUIRES_CONSTR:
+
             reductions.append(
                 Dcp2Cone(quad_obj=quad_obj, solver_context=solver_context),
             )

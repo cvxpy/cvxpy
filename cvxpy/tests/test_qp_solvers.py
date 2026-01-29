@@ -38,7 +38,6 @@ from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.solvers.defines import (
     INSTALLED_CONIC_SOLVERS,
     INSTALLED_SOLVERS,
-    QP_SOLVERS,
     SOLVER_MAP_CONIC,
 )
 from cvxpy.tests.base_test import BaseTest
@@ -496,8 +495,13 @@ class TestQp(QPTestBase):
     def setUp(self) -> None:
         super().setUp()
 
-        # Check for all installed QP solvers
-        self.solvers = [x for x in QP_SOLVERS if x in INSTALLED_SOLVERS]
+        # Check for all installed solvers that support quadratic objectives
+        # Exclude solvers with REQUIRES_CONSTR=True since some tests are unconstrained
+        self.solvers = [
+            x for x in INSTALLED_SOLVERS
+            if x in SOLVER_MAP_CONIC and SOLVER_MAP_CONIC[x].supports_quad_obj()
+            and not SOLVER_MAP_CONIC[x].REQUIRES_CONSTR
+        ]
         self.solvers = self.filter_licensed_solvers(self.solvers)
 
     def solve_QP(self, problem, solver_name):
@@ -989,7 +993,7 @@ class TestQpSolverValidation(unittest.TestCase):
     def test_qp_solver_rejects_exponential_cones(self) -> None:
         """Test that QP solver rejects problems with exponential cones."""
         from cvxpy.error import SolverError
-        from cvxpy.reductions.solvers.qp_solvers.osqp_qpif import OSQP
+        from cvxpy.reductions.solvers.conic_solvers.osqp_conif import OSQP
 
         # Create a problem with exponential cone (log)
         x = cp.Variable()
@@ -1011,7 +1015,7 @@ class TestQpSolverValidation(unittest.TestCase):
     def test_qp_solver_rejects_psd_cones(self) -> None:
         """Test that QP solver rejects problems with PSD cones."""
         from cvxpy.error import SolverError
-        from cvxpy.reductions.solvers.qp_solvers.osqp_qpif import OSQP
+        from cvxpy.reductions.solvers.conic_solvers.osqp_conif import OSQP
 
         # Create a problem with PSD cone
         X = cp.Variable((2, 2), symmetric=True)
@@ -1032,7 +1036,7 @@ class TestQpSolverValidation(unittest.TestCase):
     def test_qp_solver_rejects_soc_cones(self) -> None:
         """Test that QP solver rejects problems with second-order cones."""
         from cvxpy.error import SolverError
-        from cvxpy.reductions.solvers.qp_solvers.osqp_qpif import OSQP
+        from cvxpy.reductions.solvers.conic_solvers.osqp_conif import OSQP
 
         # Create a problem with SOC (norm)
         x = cp.Variable(3)

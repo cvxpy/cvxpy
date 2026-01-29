@@ -18,15 +18,19 @@ import unittest
 import numpy as np
 
 import cvxpy as cp
-from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS, QP_SOLVERS
-from cvxpy.reductions.solvers.qp_solvers.osqp_qpif import OSQP
+from cvxpy.reductions.solvers.conic_solvers.osqp_conif import OSQP
+from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS, SOLVER_MAP_CONIC
 from cvxpy.tests.base_test import BaseTest
 
 
 class TestParamQuadProg(BaseTest):
 
     def setUp(self) -> None:
-        self.solvers = [x for x in QP_SOLVERS if x in INSTALLED_SOLVERS]
+        # Get installed solvers that support quadratic objectives
+        self.solvers = [
+            x for x in INSTALLED_SOLVERS
+            if x in SOLVER_MAP_CONIC and SOLVER_MAP_CONIC[x].supports_quad_obj()
+        ]
 
     # Overridden method to assume lower accuracy.
     def assertItemsAlmostEqual(self, a, b, places: int = 2) -> None:

@@ -2609,7 +2609,6 @@ class TestAllSolvers(BaseTest):
         from cvxpy.reductions.solvers.defines import (
             INSTALLED_SOLVERS,
             SOLVER_MAP_CONIC,
-            SOLVER_MAP_QP,
         )
         prob = cp.Problem(cp.Minimize(cp.norm(self.x, 1) + 1.0), [self.x == 0])
         for solver in SOLVER_MAP_CONIC.keys():
@@ -2621,18 +2620,6 @@ class TestAllSolvers(BaseTest):
                 else:
                     prob.solve(solver=solver)
                     self.assertAlmostEqual(prob.value, 1.0)
-                    self.assertItemsAlmostEqual(self.x.value, [0, 0])
-            else:
-                with self.assertRaises(Exception) as cm:
-                    prob.solve(solver=solver)
-                self.assertEqual(str(cm.exception), "The solver %s is not installed." % solver)
-
-        for solver in SOLVER_MAP_QP.keys():
-            if solver in INSTALLED_SOLVERS:
-                if solver is cp.KNITRO and not is_knitro_available():
-                    pass
-                else:
-                    prob.solve(solver=solver)
                     self.assertItemsAlmostEqual(self.x.value, [0, 0])
             else:
                 with self.assertRaises(Exception) as cm:
