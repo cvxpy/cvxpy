@@ -47,7 +47,7 @@ limitations under the License.
 ```
 cvxpy/
 ├── atoms/              # Mathematical functions (exp, log, norm, etc.)
-│   ├── affine/         # Shape-preserving ops (reshape, sum, trace)
+│   ├── affine/         # Linear/affine ops (reshape, sum, trace, index)
 │   └── elementwise/    # Element-wise ops (exp, log, abs, sqrt)
 ├── constraints/        # Constraint types (Zero, NonNeg, SOC, PSD)
 ├── expressions/        # Variable, Parameter, Constant, Expression
@@ -231,6 +231,10 @@ Backends are critical to performance. They handle matrix construction during `Co
 - `COO` - 3D COO tensor, better for large DPP problems with many parameters
 
 Select via `CVXPY_DEFAULT_CANON_BACKEND=CPP` (default), `SCIPY`, or `COO`.
+
+## Pull Requests
+
+Always use the PR template in `.github/` when opening PRs. Fill out all sections. **Never check an item in the Contribution Checklist that has not actually been done.**
 
 ## Common Mistakes to Avoid
 
