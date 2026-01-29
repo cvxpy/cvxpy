@@ -96,20 +96,15 @@ class OSQP(AffineQpMixin, ConicSolver):
         import osqp
         is_pre_v1 = float(osqp.__version__.split('.')[0]) < 1
 
-        # Convert conic format to QP format
+        # Convert conic format to OSQP format: l <= Ax <= u
         cone_dims = data[self.DIMS]
-        qp_data = self.conic_to_qp_format(data, cone_dims)
+        qp_data = self.conic_to_osqp_format(data, cone_dims)
 
         P = qp_data[s.P] if s.P in qp_data else None
         q = qp_data[s.Q]
-
-        # Stack equality and inequality into OSQP format:
-        # l <= Ax <= u
-        # For equality: l = u = b_eq
-        # For inequality: l = -inf, u = g
-        A = sp.vstack([qp_data[s.A], qp_data[s.F]]).tocsc()
-        uA = np.concatenate((qp_data[s.B], qp_data[s.G]))
-        lA = np.concatenate([qp_data[s.B], -np.inf * np.ones(qp_data[s.G].shape)])
+        A = qp_data[s.A]
+        lA = qp_data['l']
+        uA = qp_data['u']
 
         # Store for caching
         cache_data = {
