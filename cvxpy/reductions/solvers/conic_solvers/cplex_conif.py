@@ -217,6 +217,10 @@ class CPLEX(ConicSolver):
         """The name of the solver. """
         return s.CPLEX
 
+    def supports_quad_obj(self) -> bool:
+        """CPLEX supports quadratic objectives."""
+        return True
+
     def import_solver(self) -> None:
         """Imports the solver."""
         import cplex  # noqa F401
@@ -225,7 +229,7 @@ class CPLEX(ConicSolver):
         """Can CPLEX solve the problem?
         """
         # TODO check if is matrix stuffed.
-        if not problem.objective.args[0].is_affine():
+        if not problem.objective.args[0].is_quadratic():
             return False
         for constr in problem.constraints:
             if type(constr) not in CPLEX.SUPPORTED_CONSTRAINTS:
@@ -350,6 +354,19 @@ class CPLEX(ConicSolver):
             cpx_constrs += [_CpxConstr(_LIN, x) for x in new_leq]
             variables += new_vars
             soc_start += constr_len
+
+        # Set quadratic objective (P matrix) if present
+        P = data.get(s.P)
+        if P is not None:
+            P = P.tocsr()
+            if P.count_nonzero():
+                qmat = []
+                for i in range(n):
+                    start = P.indptr[i]
+                    end = P.indptr[i+1]
+                    qmat.append([P.indices[start:end].tolist(),
+                                P.data[start:end].tolist()])
+                model.objective.set_quadratic(qmat)
 
         # Set verbosity
         if not verbose:
