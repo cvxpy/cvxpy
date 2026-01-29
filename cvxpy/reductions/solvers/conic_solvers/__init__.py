@@ -41,3 +41,4 @@ from .scipy_conif import SCIPY
 from .scs_conif import SCS
 from .sdpa_conif import SDPA
 from .xpress_conif import XPRESS
+from .osqp_conif import OSQP
