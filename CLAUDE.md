@@ -29,7 +29,7 @@ python setup.py develop
 - Pre-commit available: `pip install pre-commit && pre-commit install`
 
 ### Critical Rules
-- **IMPORTANT: IMPORTS AT THE TOP** of files - unavoidable import loops are the only exception
+- **IMPORTANT: IMPORTS AT THE TOP** of files - circular imports are the only exception
 - **IMPORTANT:** Add Apache 2.0 license header to all new files
 - Make sure pre-commit is installed and runs when committing.
 
@@ -181,6 +181,8 @@ from cvxpy.atoms.my_atom import my_atom
 
 Tests should be **comprehensive but concise and focused**. Cover edge cases without unnecessary verbosity.
 
+**IMPORTANT:** Use `solver=cp.CLARABEL` for tests that call `problem.solve()` - it's the default open-source solver.
+
 ### Base Test Pattern
 ```python
 from cvxpy.tests.base_test import BaseTest
@@ -202,7 +204,7 @@ class TestMyFeature(BaseTest):
     def test_solve(self) -> None:
         x = cp.Variable(2)
         prob = cp.Problem(cp.Minimize(cp.sum(x)), [x >= 1])
-        prob.solve()
+        prob.solve(solver=cp.CLARABEL)
         self.assertEqual(prob.status, cp.OPTIMAL)
 ```
 
