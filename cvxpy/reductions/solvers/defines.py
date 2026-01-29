@@ -39,6 +39,7 @@ from cvxpy.reductions.solvers.conic_solvers.knitro_conif import KNITRO as KNITRO
 from cvxpy.reductions.solvers.conic_solvers.moreau_conif import MOREAU as MOREAU_con
 from cvxpy.reductions.solvers.conic_solvers.mosek_conif import MOSEK as MOSEK_con
 from cvxpy.reductions.solvers.conic_solvers.nag_conif import NAG as NAG_con
+from cvxpy.reductions.solvers.conic_solvers.osqp_conif import OSQP as OSQP_con
 from cvxpy.reductions.solvers.conic_solvers.pdlp_conif import PDLP as PDLP_con
 from cvxpy.reductions.solvers.conic_solvers.qoco_conif import QOCO as QOCO_con
 from cvxpy.reductions.solvers.conic_solvers.scip_conif import SCIP as SCIP_con
@@ -62,6 +63,7 @@ from cvxpy.reductions.solvers.qp_solvers.qpalm_qpif import QPALM as QPALM_qp
 from cvxpy.reductions.solvers.qp_solvers.xpress_qpif import XPRESS as XPRESS_qp
 
 solver_conic_intf = [
+    OSQP_con(),
     DIFFCP_con(), ECOS_con(), CVXOPT_con(), GLPK_con(), COPT_con(), GLPK_MI_con(),
     CBC_con(), CLARABEL_con(), COSMO_con(), SCS_con(), SDPA_con(), GUROBI_con(),
     MOSEK_con(), MOREAU_con(), CPLEX_con(), NAG_con(), XPRESS_con(), SCIP_con(),
@@ -91,6 +93,7 @@ SOLVER_MAP_QP = {solver.name(): solver for solver in solver_qp_intf}
 # preference. QP_SOLVERS are those for which we have written interfaces
 # and are supported by QpSolver.
 CONIC_SOLVERS = [
+    s.OSQP,
     s.MOSEK,
     s.CLARABEL,
     s.SCS,
