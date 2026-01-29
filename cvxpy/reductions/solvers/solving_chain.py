@@ -367,11 +367,13 @@ def construct_solving_chain(problem, candidates,
                 reductions.append(QuadApprox())
 
             # Should the objective be canonicalized to a quadratic?
-            if solver_opts is None:
-                use_quad_obj = True
+            # Use mi_supports_quad_obj() for mixed-integer problems (some solvers
+            # support QP but not MIQP, e.g., HiGHS).
+            if problem.is_mixed_integer():
+                solver_supports_quad = solver_instance.mi_supports_quad_obj()
             else:
-                use_quad_obj = solver_opts.get("use_quad_obj", True)
-            quad_obj = use_quad_obj and solver_instance.supports_quad_obj() and \
+                solver_supports_quad = solver_instance.supports_quad_obj()
+            quad_obj = use_quad and solver_supports_quad and \
                 problem.objective.expr.has_quadratic_term()
             reductions.append(
                 Dcp2Cone(quad_obj=quad_obj, solver_context=solver_context),
