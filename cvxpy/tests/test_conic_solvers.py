@@ -2453,7 +2453,8 @@ class TestHIGHS:
         valid_names = (
             ["a" * 255]
             + [single_char_name for single_char_name in may_begin_with - must_not_be_a_keyword]
-            + [f"{beginning}{contains}" for beginning, contains in zip(may_begin_with, may_contain)]
+            + [name for beginning, contains in zip(may_begin_with, may_contain)
+               if (name := f"{beginning}{contains}") not in must_not_be_a_keyword]
         )
         for name in valid_names:
             validate_column_name(name)
