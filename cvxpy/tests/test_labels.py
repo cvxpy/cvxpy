@@ -205,7 +205,7 @@ def test_various_operations_with_labels():
     
     # Norms with custom name() methods
     norm_expr = cp.norm(x)
-    assert norm_expr.format_labeled() == "PnormApprox(x_vec, 2)"
+    assert norm_expr.format_labeled() == "Pnorm(x_vec, 2)"
     
     norm_inf_expr = cp.norm_inf(x)
     assert norm_inf_expr.format_labeled() == "norm_inf(x_vec)"
@@ -229,7 +229,7 @@ def test_various_operations_with_labels():
     )
     
     power_expr = cp.power(cp.sum(x), 2)
-    assert power_expr.format_labeled() == "PowerApprox(Sum(x_vec, None, False), 2.0)"
+    assert power_expr.format_labeled() == "Power(Sum(x_vec, None, False), 2.0)"
     
     # Test indexing (has custom name method)
     index_expr = x[0]
@@ -238,7 +238,7 @@ def test_various_operations_with_labels():
     # Test geo_mean (weights sum to 1 after normalization)
     weights = np.array([0.3, 0.3, 0.4])
     geo_mean_expr = cp.geo_mean(x, weights)
-    expected = "GeoMeanApprox(x_vec[True, True, True], (3/10, 3/10, 2/5))"
+    expected = "GeoMean(x_vec[True, True, True], (3/10, 3/10, 2/5))"
     assert geo_mean_expr.format_labeled() == expected
     
     # Test that operations can themselves be labeled
@@ -341,7 +341,7 @@ def test_matrix_expressions_with_labels():
 
     # In compound expression
     expr = trace_X + cp.norm(X, "fro")
-    assert expr.format_labeled() == "trace_X + PnormApprox(reshape(X, (9,), F), 2)"
+    assert expr.format_labeled() == "trace_X + Pnorm(reshape(X, (9,), F), 2)"
 
 
 def test_parameterized_expressions():
@@ -444,10 +444,10 @@ def test_label_display_catalog_exact():
     assert x[0].format_labeled() == "xL[0]"
 
     # Norms and power
-    assert cp.norm(x + y).format_labeled() == "PnormApprox(xL + yL, 2)"
+    assert cp.norm(x + y).format_labeled() == "Pnorm(xL + yL, 2)"
     assert cp.norm1(x).format_labeled() == "norm1(xL)"
     assert cp.norm_inf(x).format_labeled() == "norm_inf(xL)"
-    assert cp.power(cp.sum(x), 2).format_labeled() == "PowerApprox(Sum(xL, None, False), 2.0)"
+    assert cp.power(cp.sum(x), 2).format_labeled() == "Power(Sum(xL, None, False), 2.0)"
 
     # Quad form
     A = _np.diag([1, 2, 3])
@@ -460,7 +460,7 @@ def test_label_display_catalog_exact():
 
     # Geometric mean (weights show exactly)
     g = cp.geo_mean(x, [1, 2, 1])
-    assert g.format_labeled() == "GeoMeanApprox(xL[True, True, True], (1/4, 1/2, 1/4))"
+    assert g.format_labeled() == "GeoMean(xL[True, True, True], (1/4, 1/2, 1/4))"
 
     # Perron-Frobenius eigenvalue
     assert cp.pf_eigenvalue(X).format_labeled() == "pf_eigenvalue(XL)"

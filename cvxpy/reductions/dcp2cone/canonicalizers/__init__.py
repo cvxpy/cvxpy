@@ -68,7 +68,6 @@ CANON_METHODS = {
     cummax : cummax_canon,
     cumsum : cumsum_canon,
     GeoMean : geo_mean_canon,
-    GeoMeanApprox : geo_mean_canon,  # Use same canonicalizer, allow_approx handled via flag
     lambda_max : lambda_max_canon,
     lambda_sum_largest : lambda_sum_largest_canon,
     log_det : log_det_canon,
@@ -80,7 +79,6 @@ CANON_METHODS = {
     normNuc : normNuc_canon,
     norm_inf : norm_inf_canon,
     Pnorm : pnorm_canon,
-    PnormApprox : pnorm_canon,  # Use same canonicalizer, allow_approx handled via flag
     QuadForm : quad_form_canon,
     quad_over_lin : quad_over_lin_canon,
     sigma_max : sigma_max_canon,
@@ -97,7 +95,6 @@ CANON_METHODS = {
     minimum : minimum_canon,
     perspective : perspective_canon,
     Power : power_canon,
-    PowerApprox : power_canon,  # Use same canonicalizer, allow_approx handled via flag
     rel_entr : rel_entr_canon,
     indicator : indicator_canon,
     special_index : special_index_canon,

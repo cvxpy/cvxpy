@@ -138,8 +138,8 @@ def partial_problem():
 
 
 def power():
-    from cvxpy.atoms.elementwise.power import PowerApprox
-    return PowerApprox
+    from cvxpy.atoms.elementwise.power import power
+    return power
 
 
 def problem():

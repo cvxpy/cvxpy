@@ -35,6 +35,9 @@ def geo_mean_canon(expr, args, solver_context: SolverInfo | None = None):
 
     # Single non-zero weight: geo_mean is just that element (affine).
     if len(w) == 1:
+        # Ensure shape matches: geo_mean always returns a scalar, but x may be (1,)
+        if expr.shape == () and x.shape == (1,):
+            return x[0], []
         return x, []
 
     shape = expr.shape

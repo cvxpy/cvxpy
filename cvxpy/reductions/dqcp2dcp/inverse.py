@@ -26,7 +26,7 @@ from cvxpy.atoms.affine.unary_operators import NegExpression
 # `invertible` function.
 INVERTIBLE = set(
     [atoms.ceil, atoms.floor, NegExpression, atoms.exp, atoms.log, atoms.log1p,
-     atoms.logistic, atoms.Power, atoms.PowerApprox, atoms.abs])
+     atoms.logistic, atoms.Power, atoms.abs])
 
 
 # Inverses are extended-value functions
@@ -45,7 +45,7 @@ def inverse(expr):
         return lambda t: atoms.exp(t) - 1
     elif type(expr) == atoms.logistic:
         return lambda t: atoms.log(atoms.exp(t) - 1) if t.is_nonneg() else -np.inf
-    elif isinstance(expr, atoms.Power):  # catches both Power and PowerApprox
+    elif isinstance(expr, atoms.Power):
         def power_inv(t):
             if expr.p.value == 1:
                 return t

@@ -20,7 +20,7 @@ import warnings
 import numpy as np
 
 import cvxpy as cp
-from cvxpy.atoms.elementwise.power import Power, PowerApprox
+from cvxpy.atoms.elementwise.power import Power
 from cvxpy.atoms.geo_mean import GeoMean
 from cvxpy.constraints.power import PowCone3D, PowConeND
 from cvxpy.constraints.second_order import SOC
@@ -47,18 +47,20 @@ def _get_cone_counts(prob, solver):
 class TestPowerAtom(BaseTest):
     """Unit tests for power atom approx parameter."""
 
-    def test_dunder_pow_returns_approx(self) -> None:
-        """x**p uses PowerApprox so it canonicalizes via SOC."""
+    def test_dunder_pow_returns_power(self) -> None:
+        """x**p uses Power with allow_approx=True."""
         x = cp.Variable(3)
         expr = x ** 2
-        self.assertIsInstance(expr, PowerApprox)
         self.assertIsInstance(expr, Power)
+        self.assertTrue(expr.allow_approx)
 
         expr2 = x ** 0.5
-        self.assertIsInstance(expr2, PowerApprox)
+        self.assertIsInstance(expr2, Power)
+        self.assertTrue(expr2.allow_approx)
 
         expr3 = x ** 3
-        self.assertIsInstance(expr3, PowerApprox)
+        self.assertIsInstance(expr3, Power)
+        self.assertTrue(expr3.allow_approx)
 
     def test_approx_controls_cone_type(self) -> None:
         """approx flag controls cone type based on solver support.
@@ -154,7 +156,7 @@ class TestPowerAtom(BaseTest):
                 "Should not warn when using power cones")
 
 
-class TestGeoMeanApprox(BaseTest):
+class TestGeoMean(BaseTest):
     """Unit tests for geo_mean approx parameter."""
 
     def test_approx_controls_cone_type(self) -> None:
@@ -227,7 +229,7 @@ class TestGeoMeanApprox(BaseTest):
                 "Should not warn when using power cones")
 
 
-class TestPnormApprox(BaseTest):
+class TestPnorm(BaseTest):
     """Unit tests for pnorm approx parameter."""
 
     def test_approx_controls_cone_type(self) -> None:
@@ -356,7 +358,7 @@ class TestGeoMeanSingleWeight(BaseTest):
                                  f"approx={approx}: should not use PowConeND")
 
 
-class TestInvProdApprox(BaseTest):
+class TestInvProd(BaseTest):
     """Unit tests for inv_prod approx parameter."""
 
     def test_approx_controls_cone_type(self) -> None:
