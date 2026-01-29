@@ -40,6 +40,7 @@ from cvxpy.reductions.cone2cone.soc_dim3 import SOCDim3
 from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
 from cvxpy.reductions.dcp2cone.dcp2cone import Dcp2Cone
+from cvxpy.reductions.dcp2cone.quad_form2soc import QuadForm2SOC
 from cvxpy.reductions.dgp2dcp.dgp2dcp import Dgp2Dcp
 from cvxpy.reductions.discrete2mixedint.valinvec2mixedint import (
     Valinvec2mixedint,
@@ -371,10 +372,20 @@ def construct_solving_chain(problem, candidates,
                 use_quad_obj = True
             else:
                 use_quad_obj = solver_opts.get("use_quad_obj", True)
-            quad_obj = use_quad_obj and solver_instance.supports_quad_obj() and \
+            solver_supports_quad = solver_instance.supports_quad_obj()
+            quad_obj = use_quad_obj and solver_supports_quad and \
                 problem.objective.expr.has_quadratic_term()
+
+            # Always use quad_obj=True in Dcp2Cone to produce SymbolicQuadForm
+            # for all quadratic expressions (both objectives and constraints).
+            # QuadForm2SOC will then convert them to SOC constraints.
             reductions.append(
-                Dcp2Cone(quad_obj=quad_obj, solver_context=solver_context),
+                Dcp2Cone(quad_obj=True, solver_context=solver_context),
+            )
+            # QuadForm2SOC converts SymbolicQuadForm to SOC constraints.
+            # If solver supports quadratic objectives, leave objective unconverted.
+            reductions.append(
+                QuadForm2SOC(convert_objective=not quad_obj),
             )
             if ex_cos:
                 reductions.append(Exotic2Common())
