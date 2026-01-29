@@ -44,6 +44,7 @@ from cvxpy.reductions.solvers.conic_solvers.pdlp_conif import PDLP as PDLP_con
 from cvxpy.reductions.solvers.conic_solvers.piqp_conif import PIQP as PIQP_con
 from cvxpy.reductions.solvers.conic_solvers.proxqp_conif import PROXQP as PROXQP_con
 from cvxpy.reductions.solvers.conic_solvers.qoco_conif import QOCO as QOCO_con
+from cvxpy.reductions.solvers.conic_solvers.qpalm_conif import QPALM as QPALM_con
 from cvxpy.reductions.solvers.conic_solvers.scip_conif import SCIP as SCIP_con
 from cvxpy.reductions.solvers.conic_solvers.scipy_conif import SCIPY as SCIPY_con
 from cvxpy.reductions.solvers.conic_solvers.scs_conif import SCS as SCS_con
@@ -65,7 +66,7 @@ from cvxpy.reductions.solvers.qp_solvers.qpalm_qpif import QPALM as QPALM_qp
 from cvxpy.reductions.solvers.qp_solvers.xpress_qpif import XPRESS as XPRESS_qp
 
 solver_conic_intf = [
-    OSQP_con(), PIQP_con(), PROXQP_con(),
+    OSQP_con(), PIQP_con(), PROXQP_con(), QPALM_con(),
     DIFFCP_con(), ECOS_con(), CVXOPT_con(), GLPK_con(), COPT_con(), GLPK_MI_con(),
     CBC_con(), CLARABEL_con(), COSMO_con(), SCS_con(), SDPA_con(), GUROBI_con(),
     MOSEK_con(), MOREAU_con(), CPLEX_con(), NAG_con(), XPRESS_con(), SCIP_con(),
@@ -98,6 +99,7 @@ CONIC_SOLVERS = [
     s.OSQP,
     s.PIQP,
     s.PROXQP,
+    s.QPALM,
     s.MOSEK,
     s.CLARABEL,
     s.SCS,
