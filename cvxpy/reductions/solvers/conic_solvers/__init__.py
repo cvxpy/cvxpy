@@ -44,3 +44,4 @@ from .xpress_conif import XPRESS
 from .osqp_conif import OSQP
 from .piqp_conif import PIQP
 from .proxqp_conif import PROXQP
+from .qpalm_conif import QPALM
