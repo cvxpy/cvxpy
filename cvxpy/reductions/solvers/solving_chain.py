@@ -52,7 +52,6 @@ from cvxpy.reductions.solvers import defines as slv_def
 from cvxpy.reductions.solvers.constant_solver import ConstantSolver
 from cvxpy.reductions.solvers.solver import Solver
 from cvxpy.settings import CLARABEL, COO_CANON_BACKEND, DPP_PARAM_THRESHOLD
-from cvxpy.utilities import scopes
 from cvxpy.utilities.debug_tools import build_non_disciplined_error_msg
 from cvxpy.utilities.solver_context import SolverInfo
 from cvxpy.utilities.warn import warn
@@ -87,35 +86,7 @@ ECOS_DEPRECATION_MSG = (
 )
 
 
-def _is_lp(self):
-    """Is problem a linear program?
-    """
-    for c in self.constraints:
-        if not (isinstance(c, (Equality, Zero)) or c.args[0].is_pwl()):
-            return False
-    for var in self.variables():
-        if var.is_psd() or var.is_nsd():
-            return False
-    return (self.is_dcp() and self.objective.args[0].is_pwl())
-
-
-def _solve_as_qp(problem, candidates, ignore_dpp: bool = False):
-    if _is_lp(problem) and \
-            [s for s in candidates['conic_solvers'] if s not in candidates['qp_solvers']]:
-        # OSQP can take many iterations for LPs; use a conic solver instead
-        # GUROBI and CPLEX QP/LP interfaces are more efficient
-        #   -> Use them instead of conic if applicable.
-        return False
-    # For DPP problems with parameters, check is_qp in DPP scope
-    # because canonicalization will preserve parameters as non-constant
-    if not ignore_dpp and problem.parameters() and problem.is_dpp():
-        with scopes.dpp_scope():
-            return candidates['qp_solvers'] and problem.is_qp()
-    return candidates['qp_solvers'] and problem.is_qp()
-
-
-def _reductions_for_problem_class(problem, candidates, gp: bool = False,
-                                   ignore_dpp: bool = False, solver_opts=None) \
+def _reductions_for_problem_class(problem, gp: bool = False) \
         -> list[Reduction]:
     """
     Builds a chain that rewrites a problem into an intermediate
@@ -176,19 +147,10 @@ def _reductions_for_problem_class(problem, candidates, gp: bool = False,
     if type(problem.objective) == Maximize:
         reductions += [FlipObjective()]
 
-    # Special reduction for finite set constraint,
-    # used by both QP and conic pathways.
+    # Special reduction for finite set constraint.
     constr_types = {type(c) for c in problem.constraints}
     if FiniteSet in constr_types:
         reductions += [Valinvec2mixedint()]
-
-    use_quad = True if solver_opts is None else solver_opts.get('use_quad_obj', True)
-    valid_qp = _solve_as_qp(problem, candidates, ignore_dpp) and use_quad
-    valid_conic = len(candidates['conic_solvers']) > 0
-    if not valid_qp and not valid_conic:
-        raise SolverError("Problem could not be reduced to a QP, and no "
-                            "conic solvers exist among candidate solvers "
-                            "(%s)." % candidates)
 
     return reductions
 
@@ -245,8 +207,13 @@ def construct_solving_chain(problem, candidates,
     """
     if len(problem.variables()) == 0:
         return SolvingChain(reductions=[ConstantSolver()])
-    reductions = _reductions_for_problem_class(problem, candidates, gp, ignore_dpp,
-                                               solver_opts)
+    reductions = _reductions_for_problem_class(problem, gp)
+
+    # Check that we have conic solvers available
+    use_quad = True if solver_opts is None else solver_opts.get('use_quad_obj', True)
+    if not candidates['conic_solvers']:
+        raise SolverError("No conic solvers exist among candidate solvers "
+                          "(%s)." % candidates)
 
     # Process DPP status of the problem.
     dpp_context = 'dcp' if not gp else 'dgp'
@@ -266,32 +233,7 @@ def construct_solving_chain(problem, candidates,
             if total_param_size >= DPP_PARAM_THRESHOLD:
                 canon_backend = COO_CANON_BACKEND
 
-    # Conclude with matrix stuffing; choose one of the following paths:
-    #   (1) ConeMatrixStuffing(quad_obj=True) --> [a QpSolver],
-    #   (2) ConeMatrixStuffing --> [a ConicSolver]
-    use_quad = True if solver_opts is None else solver_opts.get('use_quad_obj', True)
-    if _solve_as_qp(problem, candidates, ignore_dpp) and use_quad:
-        # Route to a QP solver via the conic canonicalization path
-        solver = candidates['qp_solvers'][0]
-        solver_instance = slv_def.SOLVER_MAP_QP[solver]
-        reductions += [
-            Dcp2Cone(quad_obj=True),
-            CvxAttr2Constr(reduce_bounds=not solver_instance.BOUNDED_VARIABLES),
-            # EliminateZeroSized must run after Dcp2Cone so that
-            # atom-specific domain constraints (e.g. ExpCone from log)
-            # are already materialized as concrete conic constraints
-            # before zero-sized sub-expressions are replaced.
-            EliminateZeroSized(),
-            ConeMatrixStuffing(quad_obj=True, canon_backend=canon_backend),
-            solver_instance,
-        ]
-        return SolvingChain(reductions=reductions)
-
     # Canonicalize as a cone program
-    if not candidates['conic_solvers']:
-        raise SolverError("Problem could not be reduced to a QP, and no "
-                          "conic solvers exist among candidate solvers "
-                          "(%s)." % candidates)
 
     constr_types = set()
     # ^ We use constr_types to infer an incomplete list of cones that
