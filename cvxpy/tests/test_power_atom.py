@@ -469,3 +469,37 @@ class TestUnifiedCone2Cone(BaseTest):
             # at x=y=1, z=1
             self.assertAlmostEqual(z.value, 1.0, places=2)
 
+    def test_approx_cone2cone_dual_recovery(self) -> None:
+        """ApproxCone2Cone recovers dual variables for approximated constraints."""
+        from cvxpy.reductions.solution import Solution
+        x = cp.Variable(pos=True)
+        y = cp.Variable(pos=True)
+        z = cp.Variable()
+        pow_con = PowCone3D(x, y, z, 0.5)
+        prob = cp.Problem(cp.Maximize(z), [pow_con, x + y <= 2])
+
+        # Apply ApproxCone2Cone reduction
+        reduction = ApproxCone2Cone(problem=prob, target_cones={PowCone3D})
+        reduced_prob, inverse_data = reduction.apply(prob)
+
+        # Verify the constraint ID mapping is set up
+        self.assertIn(pow_con.id, inverse_data.cons_id_map)
+        canon_id = inverse_data.cons_id_map[pow_con.id]
+
+        # Create a mock solution with dual variables for the canonical constraint
+        mock_dual_value = np.array([1.0])
+        mock_solution = Solution(
+            status=cp.OPTIMAL,
+            opt_val=1.0,
+            primal_vars={},
+            dual_vars={canon_id: mock_dual_value},
+            attr={}
+        )
+
+        # Invert the solution
+        inverted = reduction.invert(mock_solution, inverse_data)
+
+        # Verify dual value is recovered for the original constraint
+        self.assertIn(pow_con.id, inverted.dual_vars)
+        self.assertEqual(inverted.dual_vars[pow_con.id], mock_dual_value)
+

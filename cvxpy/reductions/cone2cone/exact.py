@@ -242,4 +242,5 @@ class ExactCone2Cone(Canonicalization):
                         solution.attr)
 
 
+# EXACT_CONE_CONVERSIONS must be a DAG (no cycles allowed).
 EXACT_CONE_CONVERSIONS = {c.source: c.targets for c in ExactCone2Cone.CONVERSIONS}
