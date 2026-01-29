@@ -4,34 +4,24 @@
 
 ### Commands
 ```bash
+# Install in development mode
+pip install -e .
+
+# Install pre-commit hooks (required)
+pip install pre-commit && pre-commit install
+
 # Run all tests
 pytest cvxpy/tests/
 
 # Run specific test
 pytest cvxpy/tests/test_atoms.py::TestAtoms::test_norm_inf
-
-# Lint check
-ruff check cvxpy
-
-# Lint with auto-fix
-ruff check --fix cvxpy
-
-# Build from source
-python setup.py develop
 ```
 
 ## Code Style
 
-### Ruff Configuration
 - **Line length**: 100 characters
-- **Target Python**: 3.11+
-- **Checks**: E, F, I (isort), NPY201, W605
-- Pre-commit available: `pip install pre-commit && pre-commit install`
-
-### Critical Rules
 - **IMPORTANT: IMPORTS AT THE TOP** of files - circular imports are the only exception
 - **IMPORTANT:** Add Apache 2.0 license header to all new files
-- Make sure pre-commit is installed and runs when committing.
 
 ### License Header
 ```python
@@ -113,6 +103,22 @@ Atoms define curvature via:
 - `is_atom_convex()` / `is_atom_concave()` - Intrinsic curvature
 - `is_incr(idx)` / `is_decr(idx)` - Monotonicity per argument
 
+### DGP (Disciplined Geometric Programming)
+DGP problems use log-log curvature instead of standard curvature. Transformed to DCP via `dgp2dcp` reduction.
+
+### DQCP (Disciplined Quasiconvex Programming)
+DQCP extends DCP to quasiconvex functions. Solved via bisection on a parameter. Transformed via `dqcp2dcp` reduction.
+
+### DPP (Disciplined Parametrized Programming)
+DPP enables efficient re-solving when only `Parameter` values change. CVXPY caches the canonicalization and reuses it.
+
+**How it works**: Parameters are treated as affine (not constant) for curvature analysis. This means:
+- `param * param` → NOT DPP (quadratic in params)
+- `param * variable` → DPP (affine in params, params only in one factor)
+- `cp.norm(param)` in constraint → NOT DPP (nonlinear in params)
+
+Check with `problem.is_dpp()`. See `cvxpy/utilities/scopes.py` for implementation.
+
 ## Implementing New Atoms
 
 ### 1. Create Atom Class
@@ -158,9 +164,11 @@ from cvxpy.utilities.solver_context import SolverInfo
 def my_atom_canon(expr, args, solver_context: SolverInfo | None = None):
     x = args[0]
     t = Variable(expr.shape)
-    # For CONVEX atoms: use t >= f(x) (relaxation, equality via minimization)
-    # For CONCAVE atoms: use t <= f(x) (relaxation, equality via maximization)
-    constraints = [t >= x]  # Example: convex atom, objective pushes t down to f(x)
+    # For CONVEX atoms: use t >= f(x)
+    #   When minimizing, optimizer pushes t down to equality: t = f(x)
+    # For CONCAVE atoms: use t <= f(x)
+    #   When maximizing, optimizer pushes t up to equality: t = f(x)
+    constraints = [t >= x]  # Example for convex atom
     return t, constraints
 ```
 
@@ -238,7 +246,9 @@ OPTIMAL, OPTIMAL_INACCURATE, INFEASIBLE, UNBOUNDED,
 INFEASIBLE_OR_UNBOUNDED, USER_LIMIT, SOLVER_ERROR
 ```
 
-## Canon Backend Architecture
+## Canon Backend Architecture (Advanced)
+
+Most contributors don't need to modify backends. This section is for performance optimization work.
 
 Backends in `cvxpy/lin_ops/backends/`:
 
