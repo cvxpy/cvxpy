@@ -42,14 +42,6 @@ limitations under the License.
 """
 ```
 
-### Common Imports
-```python
-import cvxpy.settings as s          # Solver/status constants
-import cvxpy.utilities as u          # General utilities
-import cvxpy.lin_ops.lin_utils as lu # Linear op utilities
-from cvxpy.utilities import performance_utils as perf
-```
-
 ## Project Structure
 
 ```
@@ -90,13 +82,22 @@ Expression (base)
 ### Reduction Chain
 Problems are transformed through a chain of reductions:
 ```
-Problem → Dcp2Cone → ConeMatrixStuffing → Solver
+Problem → [Dgp2Dcp] → [FlipObjective] → Dcp2Cone → CvxAttr2Constr → ConeMatrixStuffing → Solver
 ```
+
+**Key reductions:**
+- `Dgp2Dcp` - Converts DGP to DCP (if `gp=True`)
+- `FlipObjective` - Converts Maximize to Minimize (negates objective)
+- `Dcp2Cone` - Canonicalizes atoms to conic constraints (calls canonicalizers)
+- `CvxAttr2Constr` - Converts variable attributes (e.g., `nonneg=True`) to constraints
+- `ConeMatrixStuffing` - Extracts A, b, c matrices for solver
 
 Each reduction implements:
 - `accepts(problem) → bool` - Can handle this problem?
 - `apply(problem) → (new_problem, inverse_data)` - Transform
-- `invert(solution, inverse_data) → solution` - Map back
+- `invert(solution, inverse_data) → solution` - Map solution back
+
+See `cvxpy/reductions/solvers/solving_chain.py` for chain construction.
 
 ### DCP Rules
 Atoms define curvature via:
@@ -220,61 +221,16 @@ class TestMyFeature(BaseTest):
 - `self.assertItemsAlmostEqual(a, b, places=5)` - Compare arrays
 - `self.assertAlmostEqual(a, b, places=5)` - Compare scalars
 
-## Performance Utilities
+## Canon Backend Architecture
 
-```python
-from cvxpy.utilities import performance_utils as perf
+Backends are critical to performance. They handle matrix construction during `ConeMatrixStuffing`. Located in `cvxpy/lin_ops/backends/`.
 
-class MyClass:
-    @perf.lazyprop
-    def expensive_prop(self):
-        """Computed once, cached."""
-        return compute()
-```
+**Backends:**
+- `CPP` (default) - C++ implementation, fastest for problems with large expression trees
+- `SCIPY` - Pure Python with SciPy sparse matrices, good for large problems
+- `COO` - 3D COO tensor, better for large DPP problems with many parameters
 
-## Constants Reference
-
-### Solvers (`cvxpy/settings.py`)
-```python
-CLARABEL, CVXOPT, ECOS, GLOP, GUROBI, HIGHS, MOSEK, OSQP,
-PIQP, PROXQP, SCS, SCIPY, XPRESS, ...
-```
-
-### Status
-```python
-OPTIMAL, OPTIMAL_INACCURATE, INFEASIBLE, UNBOUNDED,
-INFEASIBLE_OR_UNBOUNDED, USER_LIMIT, SOLVER_ERROR
-```
-
-## Canon Backend Architecture (Advanced)
-
-Most contributors don't need to modify backends. This section is for performance optimization work.
-
-Backends in `cvxpy/lin_ops/backends/`:
-
-```
-backends/
-├── __init__.py      # Re-exports, get_backend() factory
-├── base.py          # CanonBackend, TensorRepresentation, TensorView
-├── scipy_backend.py # SciPyCanonBackend - stacked sparse (default)
-├── coo_backend.py   # CooCanonBackend - 3D COO for large DPP
-└── rust_backend.py  # RustCanonBackend - future Rust impl
-```
-
-### Backend Selection
-```bash
-CVXPY_DEFAULT_CANON_BACKEND=SCIPY  # or COO
-```
-
-### Key Classes
-- `TensorRepresentation`: Sparse 3D COO (data, row, col, parameter_offset)
-- `CanonBackend`: Abstract base
-- `PythonCanonBackend`: Python implementation with linop methods
-- `TensorView`: Tensor operation abstraction
-
-### Backend Tests
-- `cvxpy/tests/test_python_backends.py` - Comprehensive tests
-- `cvxpy/tests/test_backend_linops.py` - Cross-backend consistency
+Select via `CVXPY_DEFAULT_CANON_BACKEND=CPP` (default), `SCIPY`, or `COO`.
 
 ## Common Mistakes to Avoid
 
@@ -283,3 +239,4 @@ CVXPY_DEFAULT_CANON_BACKEND=SCIPY  # or COO
 3. Missing `is_incr`/`is_decr` methods in atoms (breaks DCP analysis)
 4. Not testing with `Parameter` objects (DPP compliance)
 5. Missing license headers on new files
+6. **Forgetting to update documentation** - new features need docs at [cvxpy.org](https://www.cvxpy.org/) (see `doc/` folder)
