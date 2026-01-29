@@ -77,6 +77,10 @@ class COPT(ConicSolver):
         """
         return 'COPT'
 
+    def supports_quad_obj(self) -> bool:
+        """COPT supports quadratic objectives."""
+        return True
+
     def import_solver(self):
         """
         Imports the solver.
@@ -87,7 +91,7 @@ class COPT(ConicSolver):
         """
         Can COPT solve the problem?
         """
-        if not problem.objective.args[0].is_affine():
+        if not problem.objective.args[0].is_quadratic():
             return False
         for constr in problem.constraints:
             if type(constr) not in self.SUPPORTED_CONSTRAINTS:
@@ -331,6 +335,13 @@ class COPT(ConicSolver):
             # Load matrix data
             # TODO remove `sp.csc_matrix` when COPT starts supporting sparray
             model.loadMatrix(c, sp.csc_matrix(A), lhs, rhs, lb, ub, vtype)
+
+            # Load quadratic objective (P matrix) if present
+            P = data.get(s.P)
+            if P is not None and P.count_nonzero():
+                # TODO switch to `P = P.tocoo()` when COPT supports sparray
+                P = sp.coo_matrix(P)
+                model.loadQ(0.5*P)
 
             # Load cone data
             if dims[s.SOC_DIM]:
