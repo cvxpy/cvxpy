@@ -21,7 +21,7 @@ import cvxpy.utilities as u
 from cvxpy.atoms.elementwise.elementwise import Elementwise
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions import cvxtypes
-from cvxpy.utilities.power_tools import is_power2, pow_high, pow_mid, pow_neg
+from cvxpy.utilities.power_tools import is_power2
 
 
 def _is_const(p) -> bool:
@@ -40,17 +40,14 @@ def power(x, p, max_denom: int = 1024, approx: bool = True):
     max_denom : int
         Maximum denominator for rational approximation.
     approx : bool
-        When True (default), uses SOC approximation. When False,
-        uses power cone (exact).
+        When True (default), allows SOC approximation if solver doesn't
+        support power cones. When False, requires power cone support.
 
     Returns
     -------
-    Power or PowerApprox
+    Power
     """
-    if approx:
-        return PowerApprox(x, p, max_denom)
-    else:
-        return Power(x, p, max_denom)
+    return Power(x, p, max_denom, allow_approx=approx)
 
 
 class Power(Elementwise):
@@ -154,7 +151,7 @@ class Power(Elementwise):
         of ``p``; only relevant when solving as a DCP program.
     """
 
-    def __init__(self, x, p, max_denom: int = 1024) -> None:
+    def __init__(self, x, p, max_denom: int = 1024, allow_approx: bool = False) -> None:
         self._p_orig = p
         # NB: It is important that the exponent is an attribute, not
         # an argument. This prevents parametrized exponents from being replaced
@@ -165,6 +162,9 @@ class Power(Elementwise):
             raise ValueError("The exponent `p` must be either a Constant or "
                              "a Parameter; received ", type(p))
         self.max_denom = max_denom
+        # If True, ApproxCone2Cone may convert power cones to SOC.
+        # If False, solver must support power cones natively.
+        self.allow_approx = allow_approx
 
         if isinstance(self.p, cvxtypes.constant()):
             self.p_used = float(self.p.value)
@@ -416,33 +416,3 @@ class Power(Elementwise):
         if self._label is not None:
             return self._label
         return f"{type(self).__name__}({self.args[0].format_labeled()}, {self.p.value})"
-
-
-class PowerApprox(Power):
-    """Power with SOC-based rational approximation of p.
-
-    Overrides ``p_used`` and ``w`` with a rational approximation of the
-    exponent, enabling canonicalization via second-order cones.
-    """
-
-    def __init__(self, x, p, max_denom: int = 1024) -> None:
-        super().__init__(x, p, max_denom)
-
-        if self.p_used is None:
-            # Parameter exponent — nothing to approximate at construction time.
-            return
-
-        p_val = self.p_used
-        if p_val > 1:
-            p_val, w = pow_high(p_val, max_denom, approx=True)
-        elif 0 < p_val < 1:
-            p_val, w = pow_mid(p_val, max_denom, approx=True)
-        elif p_val < 0:
-            p_val, w = pow_neg(p_val, max_denom, approx=True)
-        else:
-            # p == 0 or p == 1: no approximation needed
-            w = None
-
-        self.p_used = p_val
-        self.w = w
-        self.approx_error = float(abs(self.p_used - self.p.value))

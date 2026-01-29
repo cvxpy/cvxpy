@@ -26,11 +26,7 @@ from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions import cvxtypes
 from cvxpy.utilities.power_tools import (
     approx_error,
-    decompose,
     fracify,
-    lower_bound,
-    over_bound,
-    prettydict,
 )
 
 
@@ -51,12 +47,9 @@ def geo_mean(x, p=None, max_denom=1024, approx=True):
 
     Returns
     -------
-    GeoMean or GeoMeanApprox
+    GeoMean
     """
-    if approx:
-        return GeoMeanApprox(x, p=p, max_denom=max_denom)
-    else:
-        return GeoMean(x, p=p, max_denom=max_denom)
+    return GeoMean(x, p=p, max_denom=max_denom, allow_approx=approx)
 
 
 class GeoMean(Atom):
@@ -204,7 +197,7 @@ class GeoMean(Atom):
     """
 
     def __init__(self, x, p: Optional[List[int]] = None,
-                 max_denom: int = 1024) -> None:
+                 max_denom: int = 1024, allow_approx: bool = False) -> None:
         Expression = cvxtypes.expression()
         if p is not None and isinstance(p, Expression):
             raise TypeError(SECOND_ARG_SHOULD_NOT_BE_EXPRESSION_ERROR_MESSAGE)
@@ -230,6 +223,7 @@ class GeoMean(Atom):
             p = [1]*n
         self.p = p
         self.max_denom = max_denom
+        self.allow_approx = allow_approx
 
         if len(p) != n:
             raise ValueError('x and p must have the same number of elements.')
@@ -237,9 +231,15 @@ class GeoMean(Atom):
         if any(v < 0 for v in p) or sum(p) <= 0:
             raise ValueError('powers must be nonnegative and not all zero.')
 
-        p_arr = np.array(p, dtype=float)
-        self.w = tuple(p_arr / p_arr.sum())
-        self.approx_error = 0.0
+        if allow_approx:
+            # Use rational approximation for SOC-based canonicalization
+            self.w, _ = fracify(p, max_denom)
+            self.approx_error = approx_error(p, self.w)
+        else:
+            # Use exact floats for power cone canonicalization
+            p_arr = np.array(p, dtype=float)
+            self.w = tuple(p_arr / p_arr.sum())
+            self.approx_error = 0.0
 
     # Returns the (weighted) geometric mean of the elements of x.
     def numeric(self, values) -> float:
@@ -332,7 +332,7 @@ class GeoMean(Atom):
         return False
 
     def get_data(self):
-        return [self.p, self.max_denom]
+        return [self.p, self.max_denom, self.allow_approx]
 
     def copy(self, args=None, id_objects=None):
         """Returns a shallow copy of the GeoMean atom.
@@ -355,81 +355,7 @@ class GeoMean(Atom):
         # Emulate __init__()
         copy.p = self.p
         copy.max_denom = self.max_denom
+        copy.allow_approx = self.allow_approx
         copy.w = self.w
         copy.approx_error = self.approx_error
         return copy
-
-
-class GeoMeanApprox(GeoMean):
-    """GeoMean with SOC-based canonicalization.
-
-    Identical to GeoMean in construction; only the type identity differs,
-    which drives canon dispatch to the SOC approximation path.
-
-    Attributes
-    ----------
-
-    w_dyad : tuple of ``Fractions`` whose denominators are all a power of two
-        The dyadic completion of ``w``, which is used internally to form the
-        inequalities representing the geometric mean.
-
-    tree : ``dict``
-        keyed by dyadic tuples, whose values are Sequences of children.
-        The children are also dyadic tuples.
-        This represents the graph that needs to be formed to represent the
-        weighted geometric mean.
-
-    cone_lb : int
-        A known lower bound (which is not always tight) on the number of cones
-        needed to represent this geometric mean.
-
-    cone_num_over : int
-        The number of cones beyond the lower bound that this geometric mean used.
-        If 0, we know that it used the minimum possible number of cones.
-        Since cone_lb is not always tight, it may be using the minimum number of cones even if
-        cone_num_over is not 0.
-
-    cone_num : int
-        The number of second order cones used to form this geometric mean
-
-    """
-
-    def __init__(self, x, p: Optional[List[int]] = None,
-                 max_denom: int = 1024) -> None:
-        super().__init__(x, p=p, max_denom=max_denom)
-
-        self.w, self.w_dyad = fracify(self.p, max_denom)
-        self.approx_error = approx_error(self.p, self.w)
-
-        self.tree = decompose(self.w_dyad)
-
-        # known lower bound on number of cones needed to represent w_dyad
-        self.cone_lb = lower_bound(self.w_dyad)
-
-        # number of cones used past known lower bound
-        self.cone_num_over = over_bound(self.w_dyad, self.tree)
-
-        # number of cones used
-        self.cone_num = self.cone_lb + self.cone_num_over
-
-    def copy(self, args=None, id_objects=None):
-        """Returns a shallow copy of the GeoMeanApprox atom."""
-        if args is None:
-            args = self.args
-        # Avoid calling __init__() directly as we do not have p and max_denom.
-        copy = type(self).__new__(type(self))
-        super(type(self), copy).__init__(*args)
-        # Emulate __init__()
-        copy.p = self.p
-        copy.max_denom = self.max_denom
-        copy.w = self.w
-        copy.w_dyad = self.w_dyad
-        copy.tree = self.tree
-        copy.approx_error = self.approx_error
-        copy.cone_lb = self.cone_lb
-        copy.cone_num_over = self.cone_num_over
-        copy.cone_num = self.cone_num
-        return copy
-
-    def pretty_tree(self) -> None:
-        print(prettydict(self.tree))

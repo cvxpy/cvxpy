@@ -27,7 +27,7 @@ from cvxpy.constraints.exponential import (
     OpRelEntrConeQuad,
     RelEntrConeQuad,
 )
-from cvxpy.constraints.power import PowCone3D
+from cvxpy.constraints.power import PowCone3D, PowConeND
 from cvxpy.constraints.second_order import SOC
 from cvxpy.constraints.zero import Zero
 from cvxpy.expressions.variable import Variable
@@ -42,6 +42,7 @@ APPROX_CONE_CONVERSIONS = {
     RelEntrConeQuad: {SOC},
     OpRelEntrConeQuad: {cp.PSD},
     PowCone3D: {SOC},
+    PowConeND: {SOC},
 }
 
 
@@ -182,7 +183,7 @@ def OpRelEntrConeQuad_canon(con: OpRelEntrConeQuad, args) -> Tuple[Constraint, L
     return lead_con, constrs
 
 
-def pow_3d_canon(con, args):
+def pow_3d_canon(con, args, solver_context: SolverInfo | None = None):
     """
     Convert PowCone3D to SOC constraints via rational approximation.
 
@@ -190,10 +191,33 @@ def pow_3d_canon(con, args):
         The power cone constraint x^alpha * y^(1-alpha) >= |z|
     args : tuple of length three
         x, y, z = args[0], args[1], args[2]
+    solver_context : SolverInfo | None
+        Information about the target solver
 
     Returns a tuple (canon_constr, aux_constrs) where canon_constr is the first
     SOC constraint (used for id mapping) and aux_constrs are the remaining SOC constraints.
+
+    If con.allow_approx is False (or not set) AND the solver supports power cones,
+    returns the constraint unchanged.
     """
+    import warnings
+
+    from cvxpy import settings
+
+    # Check if solver supports power cones
+    solver_supports_powcone = (
+        solver_context is not None and
+        PowCone3D in solver_context.solver_supported_constraints
+    )
+
+    # Check if approximation is allowed
+    # Default to False to preserve existing behavior for explicitly created constraints
+    allow_approx = getattr(con, 'allow_approx', False)
+
+    # If solver supports power cones and user doesn't want approximation, keep as-is
+    if solver_supports_powcone and not allow_approx:
+        return con, []
+
     alpha = con.alpha
     x, y, z = args
 
@@ -238,6 +262,17 @@ def pow_3d_canon(con, args):
             w, _ = fracify([alpha_val, 1 - alpha_val])
             all_constrs.extend(gm_constrs(z_flat[i], [x_flat[i], y_flat[i]], w))
 
+    # Warn if the solver supports power cones but we're converting to SOC
+    # (This only happens when allow_approx=True)
+    if solver_supports_powcone and allow_approx:
+        num_soc = len([c for c in all_constrs if isinstance(c, SOC)])
+        if num_soc > settings.POWERCONE_APPROX_SOC_THRESHOLD:
+            warnings.warn(
+                f"Power atom is being approximated using {num_soc} SOC constraints. "
+                f"Consider using approx=False to use power cones instead.",
+                stacklevel=6,
+            )
+
     # Return first constraint as canonical, rest as auxiliary
     # The Canonicalization class requires a non-None canon_constr for id mapping
     if all_constrs:
@@ -245,6 +280,101 @@ def pow_3d_canon(con, args):
     else:
         # Edge case: no constraints generated (shouldn't happen in practice)
         raise ValueError("PowCone3D canonicalization produced no constraints")
+
+
+def pow_nd_canon(con, args, solver_context: SolverInfo | None = None):
+    """
+    Convert PowConeND to SOC constraints via rational approximation.
+
+    con : PowConeND
+        The power cone constraint prod(W^alpha) >= |z|
+    args : tuple of length two
+        W, z = args[0], args[1]
+    solver_context : SolverInfo | None
+        Information about the target solver
+
+    Returns a tuple (canon_constr, aux_constrs) where canon_constr is the first
+    SOC constraint (used for id mapping) and aux_constrs are the remaining SOC constraints.
+
+    If con.allow_approx is False (or not set) AND the solver supports power cones,
+    returns the constraint unchanged.
+    """
+    import warnings
+
+    from cvxpy import settings
+
+    # Check if solver supports power cones (either ND or 3D via conversion)
+    solver_supports_powcone = (
+        solver_context is not None and
+        (PowConeND in solver_context.solver_supported_constraints or
+         PowCone3D in solver_context.solver_supported_constraints)
+    )
+
+    # Check if approximation is allowed
+    # Default to False to preserve existing behavior for explicitly created constraints
+    allow_approx = getattr(con, 'allow_approx', False)
+
+    # If solver supports power cones and user doesn't want approximation, keep as-is
+    if solver_supports_powcone and not allow_approx:
+        return con, []
+
+    W, z = args
+    alpha = con.alpha
+    axis = con.axis
+
+    # Get alpha values as numpy array
+    alpha_val = alpha.value if hasattr(alpha, 'value') else alpha
+
+    # Handle axis transposition
+    if axis == 1:
+        W = W.T
+        alpha_val = alpha_val.T
+
+    # Convert each column to SOC constraints
+    all_constrs = []
+    n_cones = z.size if hasattr(z, 'size') else 1
+
+    for j in range(n_cones):
+        if n_cones > 1:
+            w_col = W[:, j] if W.ndim > 1 else W
+            z_j = z[j]
+            alpha_col = alpha_val[:, j] if alpha_val.ndim > 1 else alpha_val
+        else:
+            w_col = W.flatten() if hasattr(W, 'flatten') else W
+            z_j = z
+            alpha_col = alpha_val.flatten() if hasattr(alpha_val, 'flatten') else alpha_val
+
+        # Convert alpha to list of weights for gm_constrs
+        weights = [float(a) for a in np.atleast_1d(alpha_col)]
+
+        # Create list of x values
+        if hasattr(w_col, '__len__') and len(w_col) > 1:
+            x_list = [w_col[i] for i in range(len(weights))]
+        else:
+            x_list = [w_col]
+
+        # Convert weights to rational approximation
+        w_rational, _ = fracify(weights)
+
+        # gm_constrs creates: t <= x[0]^w[0] * x[1]^w[1] * ...
+        all_constrs.extend(gm_constrs(z_j, x_list, w_rational))
+
+    # Warn if solver supports power cones but we're converting to SOC
+    # (This only happens when allow_approx=True)
+    if solver_supports_powcone and allow_approx:
+        num_soc = len([c for c in all_constrs if isinstance(c, SOC)])
+        if num_soc > settings.POWERCONE_APPROX_SOC_THRESHOLD:
+            warnings.warn(
+                f"geo_mean is being approximated using {num_soc} SOC constraints. "
+                f"Consider using approx=False to use power cones instead.",
+                stacklevel=6,
+            )
+
+    # Return first constraint as canonical, rest as auxiliary
+    if all_constrs:
+        return all_constrs[0], all_constrs[1:]
+    else:
+        raise ValueError("PowConeND canonicalization produced no constraints")
 
 
 def von_neumann_entr_QuadApprox(expr, args):
@@ -275,6 +405,7 @@ class ApproxCone2Cone(Canonicalization):
         RelEntrConeQuad: RelEntrConeQuad_canon,
         OpRelEntrConeQuad: OpRelEntrConeQuad_canon,
         PowCone3D: pow_3d_canon,
+        PowConeND: pow_nd_canon,
     }
 
     def __init__(self, problem=None, target_cones=None) -> None:

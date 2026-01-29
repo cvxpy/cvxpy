@@ -10,10 +10,10 @@ from cvxpy.atoms.elementwise.exp import exp
 from cvxpy.atoms.elementwise.log import log
 from cvxpy.atoms.elementwise.maximum import maximum
 from cvxpy.atoms.elementwise.minimum import minimum
-from cvxpy.atoms.elementwise.power import Power, PowerApprox
+from cvxpy.atoms.elementwise.power import Power
 from cvxpy.atoms.elementwise.xexp import xexp
 from cvxpy.atoms.eye_minus_inv import eye_minus_inv
-from cvxpy.atoms.geo_mean import GeoMean, GeoMeanApprox
+from cvxpy.atoms.geo_mean import GeoMean
 from cvxpy.atoms.gmatmul import gmatmul
 from cvxpy.atoms.max import max
 from cvxpy.atoms.min import min
@@ -21,7 +21,7 @@ from cvxpy.atoms.norm1 import norm1
 from cvxpy.atoms.norm_inf import norm_inf
 from cvxpy.atoms.one_minus_pos import one_minus_pos
 from cvxpy.atoms.pf_eigenvalue import pf_eigenvalue
-from cvxpy.atoms.pnorm import Pnorm, PnormApprox
+from cvxpy.atoms.pnorm import Pnorm
 from cvxpy.atoms.prod import Prod
 from cvxpy.atoms.quad_form import quad_form
 from cvxpy.atoms.quad_over_lin import quad_over_lin
@@ -75,7 +75,6 @@ CANON_METHODS = {
     eye_minus_inv : eye_minus_inv_canon,
     FiniteSet : finite_set_canon,
     GeoMean : geo_mean_canon,
-    GeoMeanApprox : geo_mean_canon,
     gmatmul : gmatmul_canon,
     log : log_canon,
     MulExpression : mulexpression_canon,
@@ -85,9 +84,7 @@ CANON_METHODS = {
     one_minus_pos : one_minus_pos_canon,
     pf_eigenvalue : pf_eigenvalue_canon,
     Pnorm : pnorm_canon,
-    PnormApprox : pnorm_canon,
     Power : power_canon,
-    PowerApprox : power_canon,
     Prod : prod_canon,
     quad_form : quad_form_canon,
     quad_over_lin : quad_over_lin_canon,

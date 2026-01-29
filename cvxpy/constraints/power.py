@@ -40,7 +40,7 @@ class PowCone3D(Cone):
     with respect to these flattened representations.
     """
 
-    def __init__(self, x, y, z, alpha, constr_id=None) -> None:
+    def __init__(self, x, y, z, alpha, constr_id=None, allow_approx=True) -> None:
         Expression = cvxtypes.expression()
         self.x = Expression.cast_to_const(x)
         self.y = Expression.cast_to_const(y)
@@ -71,6 +71,9 @@ class PowCone3D(Cone):
             msg = ("All arguments must have the same shapes. Provided arguments have"
                    "shapes %s" % str(arg_shapes))
             raise ValueError(msg)
+        # If True, ApproxCone2Cone may convert this to SOC constraints.
+        # If False, solver must support power cones natively.
+        self.allow_approx = allow_approx
         super(PowCone3D, self).__init__([self.x, self.y, self.z],
                                         constr_id)
     def __str__(self) -> str:
@@ -92,7 +95,7 @@ class PowCone3D(Cone):
         return problem.solve(solver='SCS', eps=1e-8)
 
     def get_data(self):
-        return [self.alpha, self.id]
+        return [self.alpha, self.id, self.allow_approx]
 
     def is_imag(self) -> bool:
         return False
@@ -181,7 +184,7 @@ class PowConeND(Cone):
 
     _TOL_ = 1e-6
 
-    def __init__(self, W, z, alpha, axis: int = 0, constr_id=None) -> None:
+    def __init__(self, W, z, alpha, axis: int = 0, constr_id=None, allow_approx=True) -> None:
         Expression = cvxtypes.expression()
         W = Expression.cast_to_const(W)
         if not (W.is_real() and W.is_affine()):
@@ -214,6 +217,9 @@ class PowConeND(Cone):
         self.z = z
         self.alpha = alpha
         self.axis = axis
+        # If True, ApproxCone2Cone may convert this to SOC constraints.
+        # If False, solver must support power cones natively.
+        self.allow_approx = allow_approx
         if z.ndim == 0:
             z = z.flatten(order='F')
         super(PowConeND, self).__init__([W, z], constr_id)
@@ -228,7 +234,7 @@ class PowConeND(Cone):
         return False
 
     def get_data(self):
-        return [self.alpha, self.axis, self.id]
+        return [self.alpha, self.axis, self.id, self.allow_approx]
     
     @property
     def shape(self) -> Tuple[int, int]:

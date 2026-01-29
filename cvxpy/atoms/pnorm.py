@@ -22,7 +22,6 @@ from cvxpy.atoms.axis_atom import AxisAtom
 from cvxpy.atoms.norm1 import norm1
 from cvxpy.atoms.norm_inf import norm_inf
 from cvxpy.constraints.constraint import Constraint
-from cvxpy.utilities.power_tools import pow_high, pow_mid, pow_neg
 
 
 def pnorm(x, p: Union[int, str] = 2, axis=None, keepdims: bool = False,
@@ -44,10 +43,9 @@ def pnorm(x, p: Union[int, str] = 2, axis=None, keepdims: bool = False,
         return norm1(x, axis=axis, keepdims=keepdims)
     elif p in [np.inf, 'inf', 'Inf']:
         return norm_inf(x, axis=axis, keepdims=keepdims)
-    elif approx:
-        return PnormApprox(x, p=p, axis=axis, keepdims=keepdims, max_denom=max_denom)
     else:
-        return Pnorm(x, p=p, axis=axis, keepdims=keepdims, max_denom=max_denom)
+        return Pnorm(x, p=p, axis=axis, keepdims=keepdims, max_denom=max_denom,
+                     allow_approx=approx)
 
 
 class Pnorm(AxisAtom):
@@ -122,7 +120,8 @@ class Pnorm(AxisAtom):
     _allow_complex = True
 
     def __init__(self, x, p: int = 2, axis=None,
-                 keepdims: bool = False, max_denom: int = 1024) -> None:
+                 keepdims: bool = False, max_denom: int = 1024,
+                 allow_approx: bool = False) -> None:
         if p == 1:
             raise ValueError('Use the norm1 class to instantiate a one norm.')
         elif p == 'inf' or p == 'Inf' or p == np.inf:
@@ -134,6 +133,7 @@ class Pnorm(AxisAtom):
         self.original_p = p
         self.p = p
         self.approx_error = 0.0
+        self.allow_approx = allow_approx
         super(Pnorm, self).__init__(x, axis=axis, keepdims=keepdims)
 
     def numeric(self, values):
@@ -202,7 +202,7 @@ class Pnorm(AxisAtom):
         return False
 
     def get_data(self):
-        return [self.original_p, self.axis, self.keepdims, self.max_denom]
+        return [self.original_p, self.axis, self.keepdims, self.max_denom, self.allow_approx]
 
     def name(self) -> str:
         return f"{type(self).__name__}({self.args[0].name()}, {self.p})"
@@ -267,22 +267,3 @@ class Pnorm(AxisAtom):
             nominator = np.power(value, exp)
         frac = np.divide(nominator, denominator)
         return np.reshape(frac, (frac.size, 1))
-
-
-class PnormApprox(Pnorm):
-    """Pnorm with SOC-based rational approximation of p.
-
-    Overrides ``self.p`` with a rational approximation of the exponent,
-    which allows canonicalization via second-order cones.
-    """
-
-    def __init__(self, x, p: int = 2, axis=None,
-                 keepdims: bool = False, max_denom: int = 1024) -> None:
-        super().__init__(x, p=p, axis=axis, keepdims=keepdims, max_denom=max_denom)
-        if p < 0:
-            self.p, _ = pow_neg(p, max_denom)
-        elif 0 < p < 1:
-            self.p, _ = pow_mid(p, max_denom)
-        elif p > 1:
-            self.p, _ = pow_high(p, max_denom)
-        self.approx_error = float(abs(self.p - p))

@@ -14,12 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import warnings
-from fractions import Fraction
-
 import numpy as np
 
-from cvxpy import settings
 from cvxpy.atoms.affine.sum import sum
 from cvxpy.atoms.affine.vec import vec
 from cvxpy.atoms.elementwise.abs import abs
@@ -28,32 +24,33 @@ from cvxpy.constraints.second_order import SOC
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.eliminate_pwl.canonicalizers.abs_canon import abs_canon
-from cvxpy.utilities.power_tools import gm_constrs
 from cvxpy.utilities.solver_context import SolverInfo
 
 
-def _pnorm_p2_canon(expr, args):
-    """Handle p == 2 case via SOC directly (shared by exact and approx)."""
+def pnorm_canon(expr, args, solver_context: SolverInfo | None = None):
+    """Canonicalize Pnorm to power cone or SOC constraints.
+
+    For p=2, uses SOC directly (exact).
+    For other p, produces PowCone3D constraints with allow_approx flag set based on
+    the atom's allow_approx attribute. If the solver doesn't support power cones
+    and allow_approx=True, ApproxCone2Cone will convert to SOC.
+    """
+    p = expr.p
     x = args[0]
     axis = expr.axis
     shape = expr.shape
-    t = Variable(shape)
-    if axis is None:
-        assert shape == tuple()
-        return t, [SOC(t, vec(x, order="F"))]
-    else:
-        return t, [SOC(vec(t, order="F"), x, axis)]
+    allow_approx = getattr(expr, 'allow_approx', False)
 
-
-def pnorm_exact_canon(expr, args, solver_context: SolverInfo | None = None):
-    """Canonicalize Pnorm using power cone constraints."""
-    p = expr.p
-
+    # p == 2 case: use SOC directly (exact, no approximation needed)
     if p == 2:
-        return _pnorm_p2_canon(expr, args)
+        t = Variable(shape)
+        if axis is None:
+            assert shape == tuple()
+            return t, [SOC(t, vec(x, order="F"))]
+        else:
+            return t, [SOC(vec(t, order="F"), x, axis)]
 
-    x = args[0]
-    shape = expr.shape
+    # For other p values, use power cone constraints
     t = Variable(shape)
 
     constraints = []
@@ -71,69 +68,20 @@ def pnorm_exact_canon(expr, args, solver_context: SolverInfo | None = None):
     if p < 0:
         alpha = float(-p / (1 - p))
         constraints += [
-            PowCone3D(vec(x, order="F"), vec(r, order="F"), vec(promoted_t, order="F"), alpha)
+            PowCone3D(vec(x, order="F"), vec(r, order="F"), vec(promoted_t, order="F"), alpha,
+                      allow_approx=allow_approx)
         ]
     elif 0 < p < 1:
         alpha = float(p)
         constraints += [
-            PowCone3D(vec(x, order="F"), vec(promoted_t, order="F"), vec(r, order="F"), alpha)
+            PowCone3D(vec(x, order="F"), vec(promoted_t, order="F"), vec(r, order="F"), alpha,
+                      allow_approx=allow_approx)
         ]
     elif p > 1:
         alpha = float(1 / p)
         constraints += [
-            PowCone3D(vec(r, order="F"), vec(promoted_t, order="F"), vec(x, order="F"), alpha)
+            PowCone3D(vec(r, order="F"), vec(promoted_t, order="F"), vec(x, order="F"), alpha,
+                      allow_approx=allow_approx)
         ]
-
-    return t, constraints
-
-
-def pnorm_approx_canon(expr, args, solver_context: SolverInfo | None = None):
-    """Canonicalize PnormApprox using SOC constraints via rational approximation."""
-    p = expr.p
-
-    if p == 2:
-        return _pnorm_p2_canon(expr, args)
-
-    x = args[0]
-    p = Fraction(p)
-    shape = expr.shape
-    t = Variable(shape)
-
-    constraints = []
-    if p > 1:
-        abs_expr = abs(x)
-        abs_x, abs_constraints = abs_canon(abs_expr, abs_expr.args)
-        x = abs_x
-        constraints += abs_constraints
-
-    r = Variable(x.shape)
-    constraints += [sum(r) == t]
-
-    promoted_t = Constant(np.ones(x.shape)) * t
-
-    if p < 0:
-        constraints += gm_constrs(promoted_t, [x, r], (-p / (1 - p), 1 / (1 - p)))
-    elif 0 < p < 1:
-        constraints += gm_constrs(r, [x, promoted_t], (p, 1 - p))
-    elif p > 1:
-        constraints += gm_constrs(x, [r, promoted_t], (1 / p, 1 - 1 / p))
-
-    # Warn if the solver supports power cones and the approximation is poor
-    solver_supports_powcone = (
-        solver_context is not None and PowCone3D in solver_context.solver_supported_constraints
-    )
-    if solver_supports_powcone:
-        approx_error = expr.approx_error
-        num_soc = len([c for c in constraints if isinstance(c, SOC)])
-        if (
-            approx_error > settings.POWERCONE_APPROX_ERROR_THRESHOLD
-            or num_soc > settings.POWERCONE_APPROX_SOC_THRESHOLD
-        ):
-            warnings.warn(
-                f"pnorm with p={expr.original_p} is being approximated "
-                f"(error: {approx_error:.2e}) using {num_soc} SOC constraints. "
-                f"Consider using approx=False to use power cones instead.",
-                stacklevel=6,
-            )
 
     return t, constraints
