@@ -37,10 +37,10 @@ def gm(t, x, y):
                axis=0)
 
 
-def powcone_constrs(t, x_list, p):
+def powcone_constrs(t, x_list, p, allow_approx=False):
     # We just need a single power cone constraint here.
-    
-    constraints = [PowCone3D(x_list[0], x_list[1], t, p)]
+
+    constraints = [PowCone3D(x_list[0], x_list[1], t, p, allow_approx=allow_approx)]
     return constraints
 
 

@@ -379,9 +379,11 @@ class TestSCS(BaseTest):
 
             # Check problem data.
             data = prob.get_problem_data(solver=cp.SCS, solver_opts={"use_quad_obj": True})
-            # Quadratic objective and SOC contraints.
+            # Quadratic objective and power cone (or SOC) constraints.
+            # SCS 3.0+ supports power cones, so uses them directly.
             assert "P" in data[0]
-            assert data[0]["dims"].soc
+            dims = data[0]["dims"]
+            assert dims.soc or dims.p3d  # Either SOC or power cones
 
     def test_scs_lp_3(self) -> None:
         StandardTestLPs.test_lp_3(solver='SCS')

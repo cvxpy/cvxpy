@@ -40,17 +40,14 @@ def power(x, p, max_denom: int = 1024, approx: bool = True):
     max_denom : int
         Maximum denominator for rational approximation.
     approx : bool
-        When True (default), uses SOC approximation. When False,
-        uses power cone (exact).
+        When True (default), allows SOC approximation if solver doesn't
+        support power cones. When False, requires power cone support.
 
     Returns
     -------
-    Power or PowerApprox
+    Power
     """
-    if approx:
-        return PowerApprox(x, p, max_denom)
-    else:
-        return Power(x, p, max_denom)
+    return Power(x, p, max_denom, allow_approx=approx)
 
 
 class Power(Elementwise):
@@ -154,7 +151,7 @@ class Power(Elementwise):
         of ``p``; only relevant when solving as a DCP program.
     """
 
-    def __init__(self, x, p, max_denom: int = 1024) -> None:
+    def __init__(self, x, p, max_denom: int = 1024, allow_approx: bool = False) -> None:
         self._p_orig = p
         # NB: It is important that the exponent is an attribute, not
         # an argument. This prevents parametrized exponents from being replaced
@@ -165,6 +162,9 @@ class Power(Elementwise):
             raise ValueError("The exponent `p` must be either a Constant or "
                              "a Parameter; received ", type(p))
         self.max_denom = max_denom
+        # If True, ApproxCone2Cone may convert power cones to SOC.
+        # If False, solver must support power cones natively.
+        self.allow_approx = allow_approx
 
         if isinstance(self.p, cvxtypes.constant()):
             self.p_used = float(self.p.value)
@@ -426,7 +426,7 @@ class PowerApprox(Power):
     """
 
     def __init__(self, x, p, max_denom: int = 1024) -> None:
-        super().__init__(x, p, max_denom)
+        super().__init__(x, p, max_denom, allow_approx=True)
 
         if self.p_used is None:
             # Parameter exponent — nothing to approximate at construction time.

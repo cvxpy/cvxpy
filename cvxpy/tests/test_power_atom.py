@@ -21,7 +21,7 @@ import numpy as np
 
 import cvxpy as cp
 from cvxpy.atoms.elementwise.power import Power, PowerApprox
-from cvxpy.atoms.geo_mean import GeoMean, GeoMeanApprox
+from cvxpy.atoms.geo_mean import GeoMean
 from cvxpy.constraints.power import PowCone3D, PowConeND
 from cvxpy.constraints.second_order import SOC
 from cvxpy.reductions.cone2cone.approx import (
@@ -61,14 +61,21 @@ class TestPowerAtom(BaseTest):
         self.assertIsInstance(expr3, PowerApprox)
 
     def test_approx_controls_cone_type(self) -> None:
-        """approx=True uses SOC; approx=False uses power cones."""
+        """approx flag controls cone type based on solver support.
+
+        With new semantics:
+        - approx=True: use power cones if supported, fall back to SOC otherwise
+        - approx=False: require power cones (don't allow SOC approximation)
+
+        When solver supports power cones, both use PowCone3D.
+        """
         x = cp.Variable(3)
         obj = cp.Minimize(x[0] + x[1] - x[2])
 
+        # CLARABEL supports power cones, so both should use PowCone3D
         prob = cp.Problem(obj, [cp.power(x, 3.3, approx=True) <= np.ones(3)])
         soc, p3d, _ = _get_cone_counts(prob, cp.CLARABEL)
-        self.assertGreater(soc, 0)
-        self.assertEqual(p3d, 0)
+        self.assertGreater(p3d, 0)  # Uses power cones when available
 
         prob = cp.Problem(obj, [cp.power(x, 3.3, approx=False) <= np.ones(3)])
         soc, p3d, _ = _get_cone_counts(prob, cp.CLARABEL)
@@ -119,26 +126,31 @@ class TestPowerAtom(BaseTest):
             prob.solve(solver=cp.ECOS)
 
     def test_approx_warning(self) -> None:
-        """Warning fires for approx=True with many SOCs, not for approx=False."""
+        """Warning fires when SOC approximation is used (solver lacks power cones).
+
+        With new semantics:
+        - When solver supports power cones: no SOC approximation, no warning
+        - When solver doesn't support power cones: SOC approximation, may warn
+        """
         x = cp.Variable(3)
         constr_approx = [cp.power(x, 3.3, approx=True) <= np.ones(3)]
         constr_exact = [cp.power(x, 3.3, approx=False) <= np.ones(3)]
         obj = cp.Minimize(x[0] + x[1] - x[2])
 
-        # approx=True on a power-cone-capable solver should warn
+        # approx=True on a power-cone-capable solver: uses power cones, no warning
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
             cp.Problem(obj, constr_approx).solve(solver=cp.CLARABEL)
-            self.assertTrue(
-                any("Power atom" in str(wi.message) for wi in w),
-                "Should warn about SOC approximation")
+            self.assertFalse(
+                any("SOC constraints" in str(wi.message) for wi in w),
+                "Should not warn when using power cones (solver supports them)")
 
         # approx=False should not warn
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
             cp.Problem(obj, constr_exact).solve(solver=cp.CLARABEL)
             self.assertFalse(
-                any("Power atom" in str(wi.message) for wi in w),
+                any("SOC constraints" in str(wi.message) for wi in w),
                 "Should not warn when using power cones")
 
 
@@ -146,13 +158,17 @@ class TestGeoMeanApprox(BaseTest):
     """Unit tests for geo_mean approx parameter."""
 
     def test_approx_controls_cone_type(self) -> None:
-        """approx=True uses SOC; approx=False uses power cones."""
+        """approx flag controls cone type based on solver support.
+
+        With new semantics: when solver supports power cones, both use PowConeND.
+        """
         x = cp.Variable(3, pos=True)
+
+        # CLARABEL supports power cones, so both should use PowConeND
         obj = cp.Maximize(cp.geo_mean(x, approx=True))
         prob = cp.Problem(obj, [cp.sum(x) <= 3])
         soc, _, pnd = _get_cone_counts(prob, cp.CLARABEL)
-        self.assertGreater(soc, 0)
-        self.assertEqual(pnd, 0)
+        self.assertGreater(pnd, 0)  # Uses power cones when available
 
         obj = cp.Maximize(cp.geo_mean(x, approx=False))
         prob = cp.Problem(obj, [cp.sum(x) <= 3])
@@ -186,24 +202,28 @@ class TestGeoMeanApprox(BaseTest):
                 self.assertItemsAlmostEqual(x.value, x_approx, places=3)
 
     def test_approx_warning(self) -> None:
-        """Warning fires for approx=True with many SOCs, not for approx=False."""
+        """Warning fires when SOC approximation is used (solver lacks power cones).
+
+        With new semantics: no warning when solver supports power cones.
+        """
         x = cp.Variable(5, pos=True)
         constr = [cp.sum(x) <= 5]
 
+        # approx=True on a power-cone-capable solver: uses power cones, no warning
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
             cp.Problem(cp.Maximize(cp.geo_mean(x, approx=True)), constr).solve(
                 solver=cp.CLARABEL)
-            self.assertTrue(
-                any("geo_mean" in str(wi.message) for wi in w),
-                "Should warn about SOC approximation")
+            self.assertFalse(
+                any("SOC constraints" in str(wi.message) for wi in w),
+                "Should not warn when using power cones (solver supports them)")
 
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
             cp.Problem(cp.Maximize(cp.geo_mean(x, approx=False)), constr).solve(
                 solver=cp.CLARABEL)
             self.assertFalse(
-                any("geo_mean" in str(wi.message) for wi in w),
+                any("SOC constraints" in str(wi.message) for wi in w),
                 "Should not warn when using power cones")
 
 
@@ -211,14 +231,17 @@ class TestPnormApprox(BaseTest):
     """Unit tests for pnorm approx parameter."""
 
     def test_approx_controls_cone_type(self) -> None:
-        """approx=True uses SOC; approx=False uses power cones."""
+        """approx flag controls cone type based on solver support.
+
+        With new semantics: when solver supports power cones, both use PowCone3D.
+        """
         x = cp.Variable(3)
         constr = [cp.sum(x) >= 3, x >= 0]
 
+        # CLARABEL supports power cones, so both should use PowCone3D
         prob = cp.Problem(cp.Minimize(cp.pnorm(x, 3, approx=True)), constr)
         soc, p3d, _ = _get_cone_counts(prob, cp.CLARABEL)
-        self.assertGreater(soc, 0)
-        self.assertEqual(p3d, 0)
+        self.assertGreater(p3d, 0)  # Uses power cones when available
 
         prob = cp.Problem(cp.Minimize(cp.pnorm(x, 3, approx=False)), constr)
         soc, p3d, _ = _get_cone_counts(prob, cp.CLARABEL)
@@ -251,24 +274,28 @@ class TestPnormApprox(BaseTest):
                 self.assertItemsAlmostEqual(x.value, x_approx, places=3)
 
     def test_approx_warning(self) -> None:
-        """Warning fires for approx=True with many SOCs, not for approx=False."""
+        """Warning fires when SOC approximation is used (solver lacks power cones).
+
+        With new semantics: no warning when solver supports power cones.
+        """
         x = cp.Variable(3)
         constr = [cp.sum(x) >= 3, x >= 0]
 
+        # approx=True on a power-cone-capable solver: uses power cones, no warning
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
             cp.Problem(cp.Minimize(cp.pnorm(x, 3.3, approx=True)), constr).solve(
                 solver=cp.CLARABEL)
-            self.assertTrue(
-                any("pnorm" in str(wi.message) for wi in w),
-                "Should warn about SOC approximation")
+            self.assertFalse(
+                any("SOC constraints" in str(wi.message) for wi in w),
+                "Should not warn when using power cones (solver supports them)")
 
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
             cp.Problem(cp.Minimize(cp.pnorm(x, 3.3, approx=False)), constr).solve(
                 solver=cp.CLARABEL)
             self.assertFalse(
-                any("pnorm" in str(wi.message) for wi in w),
+                any("SOC constraints" in str(wi.message) for wi in w),
                 "Should not warn when using power cones")
 
 
@@ -333,15 +360,17 @@ class TestInvProdApprox(BaseTest):
     """Unit tests for inv_prod approx parameter."""
 
     def test_approx_controls_cone_type(self) -> None:
-        """approx=True uses SOC; approx=False uses power cones."""
+        """approx flag controls cone type based on solver support.
+
+        With new semantics: when solver supports power cones, both use power cones.
+        """
         x = cp.Variable(3, pos=True)
         constr = [cp.sum(x) >= 3]
 
+        # CLARABEL supports power cones, so both should use power cones
         prob = cp.Problem(cp.Minimize(cp.inv_prod(x, approx=True)), constr)
         soc, p3d, pnd = _get_cone_counts(prob, cp.CLARABEL)
-        self.assertGreater(soc, 0)
-        self.assertEqual(p3d, 0)
-        self.assertEqual(pnd, 0)
+        self.assertGreater(p3d + pnd, 0)  # Uses power cones when available
 
         prob = cp.Problem(cp.Minimize(cp.inv_prod(x, approx=False)), constr)
         soc, p3d, pnd = _get_cone_counts(prob, cp.CLARABEL)
@@ -354,17 +383,19 @@ class TestInvProdApprox(BaseTest):
         x = cp.Variable(3, pos=True)
 
         expr_approx = cp.inv_prod(x, approx=True)
-        self.assertIsInstance(expr_approx, PowerApprox)
-        # The inner geo_mean arg should be GeoMeanApprox.
+        self.assertIsInstance(expr_approx, Power)
+        self.assertTrue(expr_approx.allow_approx)
+        # The inner geo_mean arg should have allow_approx=True.
         inner = expr_approx.args[0]
-        self.assertIsInstance(inner, GeoMeanApprox)
+        self.assertIsInstance(inner, GeoMean)
+        self.assertTrue(inner.allow_approx)
 
         expr_exact = cp.inv_prod(x, approx=False)
         self.assertIsInstance(expr_exact, Power)
-        self.assertNotIsInstance(expr_exact, PowerApprox)
+        self.assertFalse(expr_exact.allow_approx)
         inner = expr_exact.args[0]
         self.assertIsInstance(inner, GeoMean)
-        self.assertNotIsInstance(inner, GeoMeanApprox)
+        self.assertFalse(inner.allow_approx)
 
     def test_approx_and_exact_agree(self) -> None:
         """Approx and exact inv_prod give the same answer."""

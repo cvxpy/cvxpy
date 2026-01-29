@@ -51,12 +51,9 @@ def geo_mean(x, p=None, max_denom=1024, approx=True):
 
     Returns
     -------
-    GeoMean or GeoMeanApprox
+    GeoMean
     """
-    if approx:
-        return GeoMeanApprox(x, p=p, max_denom=max_denom)
-    else:
-        return GeoMean(x, p=p, max_denom=max_denom)
+    return GeoMean(x, p=p, max_denom=max_denom, allow_approx=approx)
 
 
 class GeoMean(Atom):
@@ -204,7 +201,7 @@ class GeoMean(Atom):
     """
 
     def __init__(self, x, p: Optional[List[int]] = None,
-                 max_denom: int = 1024) -> None:
+                 max_denom: int = 1024, allow_approx: bool = False) -> None:
         Expression = cvxtypes.expression()
         if p is not None and isinstance(p, Expression):
             raise TypeError(SECOND_ARG_SHOULD_NOT_BE_EXPRESSION_ERROR_MESSAGE)
@@ -230,6 +227,7 @@ class GeoMean(Atom):
             p = [1]*n
         self.p = p
         self.max_denom = max_denom
+        self.allow_approx = allow_approx
 
         if len(p) != n:
             raise ValueError('x and p must have the same number of elements.')
@@ -237,9 +235,15 @@ class GeoMean(Atom):
         if any(v < 0 for v in p) or sum(p) <= 0:
             raise ValueError('powers must be nonnegative and not all zero.')
 
-        p_arr = np.array(p, dtype=float)
-        self.w = tuple(p_arr / p_arr.sum())
-        self.approx_error = 0.0
+        if allow_approx:
+            # Use rational approximation for SOC-based canonicalization
+            self.w, _ = fracify(p, max_denom)
+            self.approx_error = approx_error(p, self.w)
+        else:
+            # Use exact floats for power cone canonicalization
+            p_arr = np.array(p, dtype=float)
+            self.w = tuple(p_arr / p_arr.sum())
+            self.approx_error = 0.0
 
     # Returns the (weighted) geometric mean of the elements of x.
     def numeric(self, values) -> float:
@@ -332,7 +336,7 @@ class GeoMean(Atom):
         return False
 
     def get_data(self):
-        return [self.p, self.max_denom]
+        return [self.p, self.max_denom, self.allow_approx]
 
     def copy(self, args=None, id_objects=None):
         """Returns a shallow copy of the GeoMean atom.
@@ -355,6 +359,7 @@ class GeoMean(Atom):
         # Emulate __init__()
         copy.p = self.p
         copy.max_denom = self.max_denom
+        copy.allow_approx = self.allow_approx
         copy.w = self.w
         copy.approx_error = self.approx_error
         return copy
@@ -396,7 +401,8 @@ class GeoMeanApprox(GeoMean):
 
     def __init__(self, x, p: Optional[List[int]] = None,
                  max_denom: int = 1024) -> None:
-        super().__init__(x, p=p, max_denom=max_denom)
+        # GeoMeanApprox always uses SOC approximation
+        super().__init__(x, p=p, max_denom=max_denom, allow_approx=True)
 
         self.w, self.w_dyad = fracify(self.p, max_denom)
         self.approx_error = approx_error(self.p, self.w)
@@ -418,10 +424,12 @@ class GeoMeanApprox(GeoMean):
             args = self.args
         # Avoid calling __init__() directly as we do not have p and max_denom.
         copy = type(self).__new__(type(self))
-        super(type(self), copy).__init__(*args)
+        # Note: GeoMean.__init__ is not called; we manually set attributes
+        Atom.__init__(copy, *args)
         # Emulate __init__()
         copy.p = self.p
         copy.max_denom = self.max_denom
+        copy.allow_approx = self.allow_approx
         copy.w = self.w
         copy.w_dyad = self.w_dyad
         copy.tree = self.tree
