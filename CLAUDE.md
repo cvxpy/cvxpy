@@ -29,8 +29,9 @@ python setup.py develop
 - Pre-commit available: `pip install pre-commit && pre-commit install`
 
 ### Critical Rules
-- **IMPORTS AT THE TOP** of files
-- Add Apache 2.0 license header to all new files
+- **IMPORTANT: IMPORTS AT THE TOP** of files - unavoidable import loops are the only exception
+- **IMPORTANT:** Add Apache 2.0 license header to all new files
+- Make sure pre-commit is installed and runs when committing.
 
 ### License Header
 ```python
@@ -151,10 +152,15 @@ class my_atom(Atom):
 Location: `cvxpy/reductions/dcp2cone/canonicalizers/`
 
 ```python
-def my_atom_canon(expr, args):
-    from cvxpy.expressions.variable import Variable
+from cvxpy.expressions.variable import Variable
+from cvxpy.utilities.solver_context import SolverInfo
+
+def my_atom_canon(expr, args, solver_context: SolverInfo | None = None):
+    x = args[0]
     t = Variable(expr.shape)
-    constraints = [...]  # Conic constraints enforcing t == my_atom(args[0])
+    # For CONVEX atoms: use t >= f(x) (relaxation, equality via minimization)
+    # For CONCAVE atoms: use t <= f(x) (relaxation, equality via maximization)
+    constraints = [t >= x]  # Example: convex atom, objective pushes t down to f(x)
     return t, constraints
 ```
 
@@ -258,12 +264,10 @@ CVXPY_DEFAULT_CANON_BACKEND=SCIPY  # or COO
 - `cvxpy/tests/test_python_backends.py` - Comprehensive tests
 - `cvxpy/tests/test_backend_linops.py` - Cross-backend consistency
 
-## Common Mistakes
+## Common Mistakes to Avoid
 
-1. Forgetting to register canonicalizers in `__init__.py`
-2. Missing license headers on new files
-3. Not running `ruff check` before committing
-4. Imports not at top of file
-5. Missing `is_incr`/`is_decr` in atoms (breaks DCP)
-6. Not testing with Parameters (DPP compliance)
-7. Forgetting to export atoms in `cvxpy/atoms/__init__.py`
+1. **Forgetting to register canonicalizers** in `canonicalizers/__init__.py`
+2. **Forgetting to export atoms** in `cvxpy/atoms/__init__.py`
+3. Missing `is_incr`/`is_decr` methods in atoms (breaks DCP analysis)
+4. Not testing with `Parameter` objects (DPP compliance)
+5. Missing license headers on new files
