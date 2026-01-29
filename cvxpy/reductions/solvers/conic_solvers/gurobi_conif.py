@@ -65,6 +65,10 @@ class GUROBI(ConicSolver):
         """
         return s.GUROBI
 
+    def supports_quad_obj(self) -> bool:
+        """Gurobi supports quadratic objectives."""
+        return True
+
     def import_solver(self) -> None:
         """Imports the solver.
         """
@@ -74,7 +78,7 @@ class GUROBI(ConicSolver):
         """Can Gurobi solve the problem?
         """
         # TODO check if is matrix stuffed.
-        if not problem.objective.args[0].is_affine():
+        if not problem.objective.args[0].is_quadratic():
             return False
         for constr in problem.constraints:
             if type(constr) not in self.SUPPORTED_CONSTRAINTS:
@@ -194,13 +198,22 @@ class GUROBI(ConicSolver):
                 vtype = gurobipy.GRB.CONTINUOUS
             variables.append(
                 model.addVar(
-                    obj=c[i],
+                    obj=0,  # Objective set separately to support quadratic terms
                     name="x_%d" % i,
                     vtype=vtype,
                     lb=lb[i],
                     ub=ub[i])
             )
         model.update()
+
+        # Set objective (linear and optionally quadratic)
+        P = data.get(s.P)
+        if P is not None and P.nnz > 0:
+            P = sp.coo_matrix(P)
+            model.setMObjective(0.5 * P, c, 0.0)
+        else:
+            # Pure linear objective
+            model.setMObjective(None, c, 0.0)
 
         # Set the start value of Gurobi vars to user provided values.
         x = model.getVars()
