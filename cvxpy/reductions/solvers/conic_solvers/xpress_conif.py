@@ -59,6 +59,10 @@ class XPRESS(ConicSolver):
         """
         return s.XPRESS
 
+    def supports_quad_obj(self) -> bool:
+        """XPRESS supports quadratic objectives."""
+        return True
+
     def import_solver(self) -> None:
         """Imports the solver.
         """
@@ -69,7 +73,7 @@ class XPRESS(ConicSolver):
         """Can Xpress solve the problem?
         """
         # TODO check if is matrix stuffed.
-        if not problem.objective.args[0].is_affine():
+        if not problem.objective.args[0].is_quadratic():
             return False
         for constr in problem.constraints:
             if type(constr) not in self.SUPPORTED_CONSTRAINTS:
@@ -204,6 +208,22 @@ class XPRESS(ConicSolver):
             self.prob_.controls.outputlog = 0
             self.prob_.controls.xslp_log = -1
 
+        # Prepare quadratic objective (P matrix) if present
+        P = data.get(s.P)
+        if P is not None and P.nnz > 0:
+            # Q matrix is input via row/col indices and value, but only
+            # for the upper triangle. We just make it symmetric and twice
+            # itself, then, just remove all lower-triangular elements.
+            from scipy.sparse import coo_matrix
+            P = P + P.transpose()
+            P = P / 2
+            P = coo_matrix(P)
+            mqcol1 = P.row[P.row <= P.col]
+            mqcol2 = P.col[P.row <= P.col]
+            dqe = P.data[P.row <= P.col]
+        else:
+            mqcol1, mqcol2, dqe = [], [], []
+
         self.prob_.loadproblem(probname="CVX_xpress_conic",
                                # constraint types
                                rowtype=['E'] * nrowsEQ + ['L'] * nrowsLEQ,
@@ -217,6 +237,10 @@ class XPRESS(ConicSolver):
                                rowcoef=A.data[A.data != 0],         # coefficients
                                lb=[-xp.infinity] * len(c),          # lower bound
                                ub=[xp.infinity] * len(c),           # upper bound
+                               # quadratic objective (only upper triangle)
+                               objqcol1=mqcol1,
+                               objqcol2=mqcol2,
+                               objqcoef=dqe,
                                colnames=varnames,                   # column names
                                rownames=lin_rownames)                # row    names
 
