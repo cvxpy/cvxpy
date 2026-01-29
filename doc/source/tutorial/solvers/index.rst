@@ -895,12 +895,12 @@ Custom Solvers
 ------------------------------------
 Although ``cvxpy`` supports many different solvers out of the box, it is also possible to define and use custom solvers. This can be helpful in prototyping or developing custom solvers tailored to a specific application.
 
-To do so, you have to implement a solver class that is a child of ``cvxpy.reductions.solvers.qp_solvers.qp_solver.QpSolver`` or ``cvxpy.reductions.solvers.conic_solvers.conic_solver.ConicSolver``. Then you pass an instance of this solver class to ``solver.solve(.)`` as following:
+To do so, you have to implement a solver class that is a child of ``cvxpy.reductions.solvers.conic_solvers.conic_solver.ConicSolver``. Then you pass an instance of this solver class to ``solver.solve(.)`` as following:
 
 .. code:: python3
 
     import cvxpy as cp
-    from cvxpy.reductions.solvers.qp_solvers.osqp_qpif import OSQP
+    from cvxpy.reductions.solvers.conic_solvers.osqp_conif import OSQP
 
 
     class CUSTOM_OSQP(OSQP):
@@ -910,7 +910,7 @@ To do so, you have to implement a solver class that is a child of ``cvxpy.reduct
             return "CUSTOM_OSQP"
 
         def solve_via_data(self, *args, **kwargs):
-            print("Solving with a custom QP solver!")
+            print("Solving with a custom solver!")
             super().solve_via_data(*args, **kwargs)
 
 

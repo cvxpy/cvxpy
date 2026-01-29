@@ -43,8 +43,7 @@ from cvxpy.reductions.solution import INF_OR_UNB_MESSAGE
 from cvxpy.reductions.solvers import bisection
 from cvxpy.reductions.solvers import defines as slv_def
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
-from cvxpy.reductions.solvers.defines import SOLVER_MAP_CONIC, SOLVER_MAP_QP
-from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
+from cvxpy.reductions.solvers.defines import SOLVER_MAP_CONIC
 from cvxpy.reductions.solvers.solver import Solver
 from cvxpy.reductions.solvers.solver_inverse_data import SolverInverseData
 from cvxpy.reductions.solvers.solving_chain import (
@@ -888,8 +887,7 @@ class Problem(u.Canonical):
         Returns
         -------
         dict
-            A dictionary of compatible solvers divided in `qp_solvers`
-            and `conic_solvers`.
+            A dictionary with `conic_solvers` list.
 
         Raises
         ------
@@ -898,8 +896,7 @@ class Problem(u.Canonical):
         cvxpy.error.DGPError
             Raised if the problem is not DGP and `gp` is True.
         """
-        candidates = {'qp_solvers': [],
-                      'conic_solvers': []}
+        candidates = {'conic_solvers': []}
         if isinstance(solver, Solver):
             return self._add_custom_solver_candidates(solver)
         # Convert solver to upper case.
@@ -910,12 +907,7 @@ class Problem(u.Canonical):
                 raise error.SolverError("The solver %s is not installed." % solver)
             if solver in slv_def.CONIC_SOLVERS:
                 candidates['conic_solvers'] += [solver]
-            if solver in slv_def.QP_SOLVERS:
-                candidates['qp_solvers'] += [solver]
         else:
-            candidates['qp_solvers'] = [s for s in slv_def.INSTALLED_SOLVERS
-                                        if s in slv_def.QP_SOLVERS]
-            candidates['conic_solvers'] = []
             # ECOS_BB can only be called explicitly.
             for slv in slv_def.INSTALLED_SOLVERS:
                 if slv in slv_def.CONIC_SOLVERS and slv != s.ECOS_BB:
@@ -929,8 +921,6 @@ class Problem(u.Canonical):
                   "(received '%s'); try calling " % solver +
                   " `solve()` with `solver=cvxpy.ECOS`."
                   )
-            elif solver is None:
-                candidates['qp_solvers'] = []  # No QP solvers allowed
 
         if self.is_mixed_integer():
             if solver is None and not self.is_lp():
@@ -941,19 +931,14 @@ class Problem(u.Canonical):
                     "If your problem is nonlinear, consider installing SCIP "
                     "(pip install pyscipopt) to solve it."
                 )
-            candidates['qp_solvers'] = [
-                s for s in candidates['qp_solvers']
-                if slv_def.SOLVER_MAP_QP[s].MIP_CAPABLE]
             candidates['conic_solvers'] = [
                 s for s in candidates['conic_solvers']
                 if slv_def.SOLVER_MAP_CONIC[s].MIP_CAPABLE]
-            if not candidates['conic_solvers'] and \
-                    not candidates['qp_solvers']:
+            if not candidates['conic_solvers']:
                 raise error.SolverError(
                     "Problem is mixed-integer, but candidate "
-                    "QP/Conic solvers (%s) are not MIP-capable." %
-                    (candidates['qp_solvers'] +
-                     candidates['conic_solvers']))
+                    "solvers (%s) are not MIP-capable." %
+                    candidates['conic_solvers'])
         return candidates
 
     def _add_custom_solver_candidates(self, custom_solver: Solver):
@@ -967,8 +952,7 @@ class Problem(u.Canonical):
         Returns
         -------
         dict
-            A dictionary of compatible solvers divided in `qp_solvers`
-            and `conic_solvers`.
+            A dictionary with `conic_solvers` list.
 
         Raises
         ------
@@ -980,12 +964,9 @@ class Problem(u.Canonical):
             message = "Custom solvers must have a different name than the officially supported ones"
             raise error.SolverError(message)
 
-        candidates = {'qp_solvers': [], 'conic_solvers': []}
+        candidates = {'conic_solvers': []}
         if not self.is_mixed_integer() or custom_solver.MIP_CAPABLE:
-            if isinstance(custom_solver, QpSolver):
-                SOLVER_MAP_QP[custom_solver.name()] = custom_solver
-                candidates['qp_solvers'] = [custom_solver.name()]
-            elif isinstance(custom_solver, ConicSolver):
+            if isinstance(custom_solver, ConicSolver):
                 SOLVER_MAP_CONIC[custom_solver.name()] = custom_solver
                 candidates['conic_solvers'] = [custom_solver.name()]
         return candidates
@@ -1043,13 +1024,12 @@ class Problem(u.Canonical):
 
     @staticmethod
     def _sort_candidate_solvers(solvers) -> None:
-        """Sorts candidate solvers lists according to slv_def.CONIC_SOLVERS/QP_SOLVERS
+        """Sorts candidate solvers list according to slv_def.CONIC_SOLVERS priority.
 
         Arguments
         ---------
         candidates : dict
-            Dictionary of candidate solvers divided in qp_solvers
-            and conic_solvers
+            Dictionary of candidate conic_solvers.
         Returns
         -------
         None
@@ -1057,10 +1037,6 @@ class Problem(u.Canonical):
         if len(solvers['conic_solvers']) > 1:
             solvers['conic_solvers'] = sorted(
                 solvers['conic_solvers'], key=lambda s: slv_def.CONIC_SOLVERS.index(s)
-            )
-        if len(solvers['qp_solvers']) > 1:
-            solvers['qp_solvers'] = sorted(
-                solvers['qp_solvers'], key=lambda s: slv_def.QP_SOLVERS.index(s)
             )
 
     def _invalidate_cache(self) -> None:

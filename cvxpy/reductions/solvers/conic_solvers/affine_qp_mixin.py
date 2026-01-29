@@ -73,7 +73,8 @@ class AffineQpMixin:
         import cvxpy.settings as s
 
         # Get dimensions
-        n = data[s.A].shape[1] if data[s.A].shape[0] > 0 else 0
+        # Note: even if A has no rows, we still need the number of variables
+        n = data[s.A].shape[1]
         len_eq = cone_dims.zero
         len_ineq = cone_dims.nonneg
 
