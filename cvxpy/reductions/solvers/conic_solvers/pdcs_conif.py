@@ -129,9 +129,14 @@ class PDCS(ConicSolver):
         solver_opts.setdefault("use_duality_gap_restart", "true")
         solver_opts.setdefault("use_preconditioner", "true")
         solver_opts.setdefault("method", "average")
+        solver_opts.setdefault("julia_env", "placeholder")
         import cupy
         from cupyx.scipy.sparse import csr_matrix as cucsr_matrix
         from juliacall import Main as jl
+
+        if solver_opts["julia_env"] != "placeholder":
+            jl.seval(f"using Pkg")
+            jl.seval(f"Pkg.activate(\"{solver_opts['julia_env']}\")")
         jl.seval('using CUDA, CUDA.CUSPARSE')
         jl.seval('using PDCS: PDCS_GPU, PDCS_CPU')
         A = data[s.A]
