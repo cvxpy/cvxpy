@@ -282,11 +282,9 @@ def construct_solving_chain(problem, candidates,
 
     # Canonicalize as a cone program
 
-    constr_types = set()
-    # ^ We use constr_types to infer an incomplete list of cones that
+    # We use constr_types to infer an incomplete list of cones that
     # the solver will need after canonicalization.
-    for c in problem.constraints:
-        constr_types.add(type(c))
+    constr_types = {type(c) for c in problem.constraints}
 
     # We now go over individual elementary cones supported by CVXPY (
     # SOC, ExpCone, NonNeg, Zero, PSD, PowCone3D) and check if
