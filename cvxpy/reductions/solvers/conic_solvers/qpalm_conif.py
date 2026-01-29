@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import numpy as np
 import scipy.sparse as sp
 
 import cvxpy.interface as intf
@@ -47,15 +46,15 @@ class QPALM(AffineQpMixin, ConicSolver):
                        solver_cache=None):
         import qpalm
 
-        # Convert conic format to QP format
+        # Convert conic format to OSQP/QPALM format: l <= Ax <= u
         cone_dims = data[self.DIMS]
-        qp_data = self.conic_to_qp_format(data, cone_dims)
+        qp_data = self.conic_to_osqp_format(data, cone_dims)
 
         P = qp_data[s.P] if s.P in qp_data else sp.csc_array((0, 0))
         q = qp_data[s.Q]
-        A = sp.vstack([qp_data[s.A], qp_data[s.F]]).tocsc()
-        b_max = np.concatenate((qp_data[s.B], qp_data[s.G]))
-        b_min = np.concatenate([qp_data[s.B], -np.inf * np.ones_like(qp_data[s.G])])
+        A = qp_data[s.A]
+        b_max = qp_data['u']
+        b_min = qp_data['l']
         n_con, n_var = A.shape
 
         qpalm_data = qpalm.Data(n_var, n_con)

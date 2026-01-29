@@ -86,29 +86,19 @@ class DAQP(AffineQpMixin, ConicSolver):
         """
         import daqp
 
-        # Convert conic format to QP format
+        # Convert conic format to OSQP/QPALM format: l <= Ax <= u
         cone_dims = data[self.DIMS]
-        qp_data = self.conic_to_qp_format(data, cone_dims)
+        qp_data = self.conic_to_osqp_format(data, cone_dims)
 
         # DAQP uses dense matrices
         H = np.array(qp_data[s.P].toarray(), dtype=c_double) if s.P in qp_data else None
         f = np.array(qp_data[s.Q], dtype=c_double)
+        A = np.array(qp_data[s.A].toarray(), dtype=c_double)
+        bupper = np.array(qp_data['u'], dtype=c_double)
+        blower = np.array(qp_data['l'], dtype=c_double)
 
-        # Stack equality and inequality constraints
-        A_eq = qp_data[s.A].toarray()
-        F = qp_data[s.F].toarray()
-        A = np.array(np.concatenate([A_eq, F]), dtype=c_double)
-
-        n_eq = A_eq.shape[0]
-        n_ineq = F.shape[0]
-
-        # DAQP uses upper/lower bound format
-        bupper = np.array(
-            np.concatenate([qp_data[s.B], qp_data[s.G]]),
-            dtype=c_double)
-        blower = np.array(
-            np.concatenate([qp_data[s.B], -np.inf * np.ones(n_ineq)]),
-            dtype=c_double)
+        n_eq = cone_dims.zero
+        n_ineq = cone_dims.nonneg
 
         # Sense flags: 5 = equality, 0 = inequality
         sense = np.array(

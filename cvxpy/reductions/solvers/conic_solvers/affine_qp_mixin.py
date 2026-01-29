@@ -126,3 +126,55 @@ class AffineQpMixin:
             qp_data[s.P] = sp.csc_array(data[s.P])
 
         return qp_data
+
+    @staticmethod
+    def conic_to_osqp_format(data, cone_dims):
+        """Convert stacked conic format to OSQP/QPALM format: l <= Ax <= u.
+
+        This is more efficient than conic_to_qp_format() for solvers that use
+        the l <= Ax <= u constraint format, as it avoids splitting and
+        re-stacking the constraint matrix.
+
+        Parameters
+        ----------
+        data : dict
+            Conic problem data with keys 'A', 'b', 'c', and optionally 'P'.
+        cone_dims : ConeDims
+            Cone dimensions containing .zero (equality) and .nonneg (inequality).
+
+        Returns
+        -------
+        dict
+            Problem data with keys:
+            - P: quadratic cost matrix (if present), as csc_array
+            - q: linear cost vector
+            - A: full constraint matrix, as csc_array
+            - l: lower bounds (b for equality, -inf for inequality)
+            - u: upper bounds (b for both)
+        """
+        import cvxpy.settings as s
+
+        len_eq = cone_dims.zero
+        len_ineq = cone_dims.nonneg
+
+        A = sp.csc_array(data[s.A])
+        b = data[s.B]
+        q = data[s.C]
+
+        # Build lower and upper bound vectors:
+        # - Equality rows (0 to len_eq-1): lower = upper = b
+        # - Inequality rows (len_eq to end): lower = -inf, upper = b
+        upper = b.copy()
+        lower = np.concatenate([b[:len_eq], -np.inf * np.ones(len_ineq)])
+
+        result = {
+            s.Q: q,
+            s.A: A,
+            'l': lower,
+            'u': upper,
+        }
+
+        if s.P in data:
+            result[s.P] = sp.csc_array(data[s.P])
+
+        return result
