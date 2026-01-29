@@ -125,6 +125,14 @@ class HIGHS(ConicSolver):
     def name(self):
         return s.HIGHS
 
+    def supports_quad_obj(self) -> bool:
+        """HiGHS supports quadratic objectives."""
+        return True
+
+    def mi_supports_quad_obj(self) -> bool:
+        """HiGHS does NOT support mixed-integer quadratic programs."""
+        return False
+
     def import_solver(self) -> None:
         import highspy
 
@@ -132,7 +140,12 @@ class HIGHS(ConicSolver):
 
     def accepts(self, problem) -> bool:
         """Can HiGHS solve the problem?"""
-        if not problem.objective.args[0].is_affine():
+        # HiGHS supports QP but not MIQP
+        is_mi = problem.is_mixed_integer()
+        obj_expr = problem.objective.args[0]
+        if is_mi and not obj_expr.is_affine():
+            return False
+        if not obj_expr.is_quadratic():
             return False
         for constr in problem.constraints:
             if type(constr) not in self.SUPPORTED_CONSTRAINTS:
@@ -202,12 +215,12 @@ class HIGHS(ConicSolver):
     ):
         """Returns the result of the call to the solver.
 
-        minimize          cx
+        minimize      (1/2) x' P x + c' x
             subject to    A x <=  b
 
         in HiGHS, the opt problem format is,
 
-        minimize          cx
+        minimize      (1/2) x' P x + c' x
             subject to    lboundA <= A x <= uboundA
 
         Parameters
@@ -287,6 +300,19 @@ class HIGHS(ConicSolver):
             lp.integrality_ = integrality
         lp.col_lower_ = col_lower
         lp.col_upper_ = col_upper
+
+        # Set up quadratic objective (P matrix) if present
+        P = data.get(s.P)
+        if P is not None:
+            P = P.tocsc()
+            # count_nonzero() excludes explicit zeros that may arise from parameters
+            if P.count_nonzero():
+                hessian = model.hessian_
+                hessian.dim_ = lp.num_col_
+                hessian.format_ = hp.HessianFormat.kSquare
+                hessian.start_ = P.indptr
+                hessian.index_ = P.indices
+                hessian.value_ = P.data
 
         solver = hp.Highs()
 
