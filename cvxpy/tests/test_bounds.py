@@ -630,6 +630,101 @@ class TestExtractBounds:
         assert np.allclose(ub, expected_ub)
 
 
+class TestHIGHSBoundsPropagation:
+    """Tests that HIGHS solver uses bounds propagation correctly."""
+
+    # -------------------- get_problem_data tests --------------------
+    # These verify bounds flow correctly through the pipeline to the solver.
+
+    def test_get_problem_data_scalar_bounds(self) -> None:
+        """Test scalar bounds are passed correctly to HIGHS."""
+        x = cp.Variable(3, bounds=[-2, 5])
+        prob = cp.Problem(cp.Minimize(cp.sum(x)))
+        data, _, _ = prob.get_problem_data(cp.HIGHS)
+
+        assert np.allclose(data['lower_bounds'], -2)
+        assert np.allclose(data['upper_bounds'], 5)
+
+    def test_get_problem_data_array_bounds(self) -> None:
+        """Test per-element array bounds are passed correctly to HIGHS."""
+        lb = np.array([1, 2, 3])
+        ub = np.array([10, 20, 30])
+        x = cp.Variable(3, bounds=(lb, ub))
+        prob = cp.Problem(cp.Minimize(cp.sum(x)))
+        data, _, _ = prob.get_problem_data(cp.HIGHS)
+
+        assert np.allclose(data['lower_bounds'], lb)
+        assert np.allclose(data['upper_bounds'], ub)
+
+    def test_get_problem_data_nonneg_bounds(self) -> None:
+        """Test nonneg attribute creates lower bound of 0 for HIGHS."""
+        x = cp.Variable(3, nonneg=True)
+        prob = cp.Problem(cp.Minimize(cp.sum(x)))
+        data, _, _ = prob.get_problem_data(cp.HIGHS)
+
+        assert np.allclose(data['lower_bounds'], 0)
+        assert data['upper_bounds'] is None  # No upper bound
+
+    def test_get_problem_data_nonpos_bounds(self) -> None:
+        """Test nonpos attribute creates upper bound of 0 for HIGHS."""
+        x = cp.Variable(3, nonpos=True)
+        prob = cp.Problem(cp.Maximize(cp.sum(x)))
+        data, _, _ = prob.get_problem_data(cp.HIGHS)
+
+        assert data['lower_bounds'] is None  # No lower bound
+        assert np.allclose(data['upper_bounds'], 0)
+
+    def test_get_problem_data_combined_nonneg_and_bounds(self) -> None:
+        """Test that combined nonneg + explicit bounds uses tighter bound."""
+        # nonneg gives lb=0, but explicit bound lb=2 is tighter
+        x = cp.Variable(3, nonneg=True, bounds=[2, 10])
+        prob = cp.Problem(cp.Minimize(cp.sum(x)))
+        data, _, _ = prob.get_problem_data(cp.HIGHS)
+
+        # Should use lb=2 (tighter than nonneg's lb=0)
+        assert np.allclose(data['lower_bounds'], 2)
+        assert np.allclose(data['upper_bounds'], 10)
+
+    def test_get_problem_data_combined_nonpos_and_bounds(self) -> None:
+        """Test that combined nonpos + explicit bounds uses tighter bound."""
+        # nonpos gives ub=0, but explicit bound ub=-2 is tighter
+        x = cp.Variable(3, nonpos=True, bounds=[-10, -2])
+        prob = cp.Problem(cp.Maximize(cp.sum(x)))
+        data, _, _ = prob.get_problem_data(cp.HIGHS)
+
+        assert np.allclose(data['lower_bounds'], -10)
+        # Should use ub=-2 (tighter than nonpos's ub=0)
+        assert np.allclose(data['upper_bounds'], -2)
+
+    def test_get_problem_data_matrix_bounds(self) -> None:
+        """Test matrix variable bounds are flattened correctly for HIGHS."""
+        X = cp.Variable((2, 3), bounds=[-1, 1])
+        prob = cp.Problem(cp.Minimize(cp.sum(X)))
+        data, _, _ = prob.get_problem_data(cp.HIGHS)
+
+        # Should be flattened to 6 elements
+        assert len(data['lower_bounds']) == 6
+        assert len(data['upper_bounds']) == 6
+        assert np.allclose(data['lower_bounds'], -1)
+        assert np.allclose(data['upper_bounds'], 1)
+
+    def test_get_problem_data_multiple_variables(self) -> None:
+        """Test bounds for multiple variables are concatenated correctly."""
+        x = cp.Variable(2, bounds=[0, 1])
+        y = cp.Variable(3, bounds=[-5, -3])
+        prob = cp.Problem(cp.Minimize(cp.sum(x) + cp.sum(y)))
+        data, _, _ = prob.get_problem_data(cp.HIGHS)
+
+        # Bounds should be concatenated: x bounds then y bounds
+        assert len(data['lower_bounds']) == 5
+        assert len(data['upper_bounds']) == 5
+        # First 2 for x, next 3 for y
+        assert np.allclose(data['lower_bounds'][:2], 0)
+        assert np.allclose(data['upper_bounds'][:2], 1)
+        assert np.allclose(data['lower_bounds'][2:], -5)
+        assert np.allclose(data['upper_bounds'][2:], -3)
+
+
 class TestBoundsMemoryOptimization:
     """Test memory optimization for bounds propagation."""
 
