@@ -121,6 +121,14 @@ class ConicSolver(Solver):
         """
         return False
 
+    def mi_supports_quad_obj(self) -> bool:
+        """Does solver support quadratic objectives for mixed-integer problems?
+
+        By default, returns same as supports_quad_obj(). Override this method
+        for solvers that support QP but not MIQP (e.g., HiGHS).
+        """
+        return self.supports_quad_obj()
+
     def accepts(self, problem):
         return (isinstance(problem, ParamConeProg)
                 and (self.MIP_CAPABLE or not problem.is_mixed_integer())

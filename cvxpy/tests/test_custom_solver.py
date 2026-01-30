@@ -1,8 +1,8 @@
 import unittest
 
 import cvxpy as cp
+from cvxpy.reductions.solvers.conic_solvers.osqp_conif import OSQP
 from cvxpy.reductions.solvers.conic_solvers.scs_conif import SCS
-from cvxpy.reductions.solvers.qp_solvers.osqp_qpif import OSQP
 
 
 class CustomQPSolverCalled(Exception):
@@ -14,6 +14,7 @@ class CustomConicSolverCalled(Exception):
 
 
 class CustomQPSolver(OSQP):
+    """Custom solver that inherits from OSQP conic interface (supports QP via supports_quad_obj)."""
     def name(self) -> str:
         return "CUSTOM_QP_SOLVER"
 
