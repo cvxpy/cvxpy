@@ -126,12 +126,17 @@ class Dcp2Cone(Canonicalization):
             return expr, []
 
         if self.quad_obj and affine_above and type(expr) in self.quad_canon_methods:
-            # Special case for power.
+            # Use quad canon methods only when affine_above=True (all atoms above are affine).
+            # This ensures SymbolicQuadForm only appears at the top level where
+            # QuadForm2SOC can convert it to SOC constraints.
+            # Special case for power: only use quad canon for quadratic powers.
             # isinstance catches both Power and PowerApprox
             if isinstance(expr, Power) and not expr._quadratic_power():
                 return self.cone_canon_methods[type(expr)](expr, args,
                                                            solver_context=self.solver_context)
             elif type(expr) == quad_over_lin and not expr.is_qpwa():
+                # Use cone canonicalizer for quad_over_lin when it's not QPWA.
+                # For axis parameter, the quad canonicalizer handles it via block_indices.
                 return self.cone_canon_methods[type(expr)](expr, args,
                                                            solver_context=self.solver_context)
             else:

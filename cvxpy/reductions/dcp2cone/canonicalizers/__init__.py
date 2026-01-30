@@ -38,7 +38,7 @@ from cvxpy.reductions.dcp2cone.canonicalizers.normNuc_canon import *
 from cvxpy.reductions.dcp2cone.canonicalizers.perspective_canon import *
 from cvxpy.reductions.dcp2cone.canonicalizers.pnorm_canon import *
 from cvxpy.reductions.dcp2cone.canonicalizers.power_canon import *
-from cvxpy.reductions.dcp2cone.canonicalizers.quad_form_canon import *
+from cvxpy.reductions.dcp2cone.canonicalizers.quad_form_canon import quad_form_canon
 from cvxpy.reductions.dcp2cone.canonicalizers.quad_over_lin_canon import *
 from cvxpy.reductions.dcp2cone.canonicalizers.rel_entr_canon import *
 from cvxpy.reductions.dcp2cone.canonicalizers.sigma_max_canon import *
@@ -49,6 +49,7 @@ from cvxpy.reductions.dcp2cone.canonicalizers.xexp_canon import *
 from cvxpy.reductions.dcp2cone.canonicalizers.logic_canon import (
     not_canon, and_canon, or_canon, xor_canon,)
 from cvxpy.atoms.elementwise.logic import Not, And, Or, Xor
+from cvxpy.atoms.quad_form import QuadForm
 from cvxpy.reductions.eliminate_pwl.canonicalizers import (abs_canon,
                                                            cummax_canon,
                                                            cumsum_canon,
