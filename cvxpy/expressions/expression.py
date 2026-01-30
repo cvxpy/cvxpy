@@ -20,6 +20,7 @@ from functools import wraps
 from typing import List, Literal, Optional, Self, Tuple
 
 import numpy as np
+import scipy.sparse as sp
 
 import cvxpy as cp
 import cvxpy.settings as s
@@ -518,13 +519,14 @@ class Expression(u.Canonical):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def get_bounds(self) -> Tuple[np.ndarray, np.ndarray]:
+    def get_bounds(self) -> tuple[np.ndarray | sp.sparray, np.ndarray | sp.sparray]:
         """Returns bounds (lower, upper) of the expression.
 
         Returns
         -------
-        tuple of np.ndarray
+        tuple of (np.ndarray | sp.sparray)
             (lower_bound, upper_bound) arrays with shape matching self.shape.
+            For sparse variables with sparse bounds, may return sparse arrays.
         """
         raise NotImplementedError()
 
