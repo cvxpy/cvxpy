@@ -22,11 +22,33 @@ import scipy.sparse as sp_sparse
 Bounds = Tuple[np.ndarray, np.ndarray]
 
 
-def _ensure_dense(arr):
-    """Convert sparse matrix to dense numpy array. Return dense arrays unchanged."""
+def _ensure_dense(arr, shape: Optional[Tuple[int, ...]] = None):
+    """Convert sparse matrix to dense numpy array and expand to shape if given.
+
+    Parameters
+    ----------
+    arr : array-like
+        The array to densify. May be sparse, a broadcast view, or a scalar.
+    shape : tuple of int, optional
+        Target shape to broadcast to. If None, returns the array as-is after
+        densifying sparse matrices.
+
+    Returns
+    -------
+    np.ndarray
+        Dense array, optionally broadcast to the target shape.
+    """
     if sp_sparse.issparse(arr):
-        return np.asarray(arr.todense())
-    return np.asarray(arr)
+        arr = np.asarray(arr.todense())
+    else:
+        arr = np.asarray(arr)
+
+    if shape is not None and arr.shape != shape:
+        # Use np.broadcast_to for memory-efficient expansion, then copy
+        # to get a writable array (some solvers may need to modify bounds)
+        arr = np.broadcast_to(arr, shape).copy()
+
+    return arr
 
 
 def _safe_maximum(a, b):
@@ -102,6 +124,32 @@ def unbounded(shape: Tuple[int, ...]) -> Bounds:
     lower = np.full(shape, -np.inf)
     upper = np.full(shape, np.inf)
     return (lower, upper)
+
+
+def uniform_bounds(shape: Tuple[int, ...], lb: float, ub: float) -> Bounds:
+    """Return uniform bounds as memory-efficient broadcast views.
+
+    This creates read-only views that broadcast a scalar to the given shape
+    without allocating memory for each element. Use this when all elements
+    have the same bounds.
+
+    Parameters
+    ----------
+    shape : tuple of ints
+        The shape of the bounds arrays.
+    lb : float
+        The lower bound value (same for all elements).
+    ub : float
+        The upper bound value (same for all elements).
+
+    Returns
+    -------
+    Bounds
+        A tuple of broadcast views (lower, upper).
+    """
+    lb_scalar = np.array(lb)
+    ub_scalar = np.array(ub)
+    return (np.broadcast_to(lb_scalar, shape), np.broadcast_to(ub_scalar, shape))
 
 
 def scalar_bounds(lb: float, ub: float) -> Bounds:
@@ -611,7 +659,8 @@ def broadcast_bounds(lb, ub, target_shape: Tuple[int, ...]) -> Bounds:
 
 
 def reshape_bounds(lb: np.ndarray, ub: np.ndarray,
-                   new_shape: Tuple[int, ...]) -> Bounds:
+                   new_shape: Tuple[int, ...],
+                   order: str = 'F') -> Bounds:
     """Reshape bounds to a new shape.
 
     Parameters
@@ -620,13 +669,15 @@ def reshape_bounds(lb: np.ndarray, ub: np.ndarray,
         Bounds to reshape.
     new_shape : tuple of ints
         New shape.
+    order : str
+        'C' for row-major (C-style) or 'F' for column-major (Fortran-style).
 
     Returns
     -------
     Bounds
         Reshaped bounds.
     """
-    return (lb.reshape(new_shape), ub.reshape(new_shape))
+    return (lb.reshape(new_shape, order=order), ub.reshape(new_shape, order=order))
 
 
 def transpose_bounds(lb: np.ndarray, ub: np.ndarray,
@@ -773,8 +824,9 @@ def get_expr_bounds_if_supported(expr, solver_context) -> Optional[list]:
     lb_trivial_nonpos = _all_isinf(lb)
     if lb_trivial_nonpos and ub_trivial_nonpos and expr.is_nonpos():
         return None
-    # Ensure dense for Variable(bounds=...) consumption.
-    return [_ensure_dense(lb), _ensure_dense(ub)]
+    # Ensure dense and expand to full shape for solver consumption.
+    # This handles broadcast views and sparse matrices.
+    return [_ensure_dense(lb, expr.shape), _ensure_dense(ub, expr.shape)]
 
 
 def refine_bounds_from_sign(lb, ub,
