@@ -102,34 +102,51 @@ class PDCS(ConicSolver):
             Control the verbosity.
         solver_opts : dict
             PDCS-specific solver options.
-            - note that all options should be strings, since they are passed to the Julia code.
-            - for boolean options, use "true" or "false" instead of True or False.
-            - for integer options, use the string representation of the integer.
+            Options can be passed in Python-native types (bool, int, float, str, etc.); booleans will be converted to "true"/"false" strings for Julia automatically.
 
         Returns
         -------
         The result returned by a call to PDCS_GPU.solve_with_solver().
         """
-        solver_opts["verbose"] = 2 if verbose else 0
+
+        # Helper to preprocess solver_opts so that bools and ints are stringified as Julia expects
+        def normalize_opts(opts):
+            norm_opts = {}
+            for k, v in opts.items():
+                if isinstance(v, bool):
+                    norm_opts[k] = "true" if v else "false"
+                elif isinstance(v, int) and k != "verbose":  # verbose can be left as int for logging level
+                    norm_opts[k] = str(v)
+                else:
+                    norm_opts[k] = v
+            return norm_opts
+
+        # update default options first (as Python types)
         solver_opts.setdefault("abs_tol", 1e-6)
         solver_opts.setdefault("rel_tol", 1e-6)
         solver_opts.setdefault("logfile", "nothing")
         solver_opts.setdefault("time_limit_secs", 1000.0)
-        solver_opts.setdefault("use_scaling", "true")
+        solver_opts.setdefault("use_scaling", True)
         solver_opts.setdefault("rescaling_method", "ruiz_pock_chambolle")
-        solver_opts.setdefault("use_adaptive_restart", "true")
-        solver_opts.setdefault("use_adaptive_step_size_weight", "true")
-        solver_opts.setdefault("use_resolving", "true")
-        solver_opts.setdefault("use_accelerated", "false")
-        solver_opts.setdefault("use_aggressive", "true")
+        solver_opts.setdefault("use_adaptive_restart", True)
+        solver_opts.setdefault("use_adaptive_step_size_weight", True)
+        solver_opts.setdefault("use_resolving", True)
+        solver_opts.setdefault("use_accelerated", False)
+        solver_opts.setdefault("use_aggressive", True)
         solver_opts.setdefault("print_freq", 2000)
         solver_opts.setdefault("kkt_restart_freq", 2000)
         solver_opts.setdefault("duality_gap_restart_freq", 2000)
-        solver_opts.setdefault("use_kkt_restart", "false")
-        solver_opts.setdefault("use_duality_gap_restart", "true")
-        solver_opts.setdefault("use_preconditioner", "true")
+        solver_opts.setdefault("use_kkt_restart", False)
+        solver_opts.setdefault("use_duality_gap_restart", True)
+        solver_opts.setdefault("use_preconditioner", True)
         solver_opts.setdefault("method", "average")
         solver_opts.setdefault("julia_env", "placeholder")
+
+        # handle verbose pythonically & normalize
+        solver_opts["verbose"] = 2 if verbose else 0
+
+        # Convert pythonic boolean/integer options to Julia-friendly strings where needed
+        solver_opts = normalize_opts(solver_opts)
         import cupy
         from cupyx.scipy.sparse import csr_matrix as cucsr_matrix
         from juliacall import Main as jl
@@ -137,6 +154,9 @@ class PDCS(ConicSolver):
         if solver_opts["julia_env"] != "placeholder":
             jl.seval(f"using Pkg")
             jl.seval(f"Pkg.activate(\"{solver_opts['julia_env']}\")")
+        # jl.seval(f"using Pkg")
+        # jl.seval(f"Pkg.develop(path=\"./PDCS\")")
+        # jl.seval(f"Pkg.resolve()")
         jl.seval('using CUDA, CUDA.CUSPARSE')
         jl.seval('using PDCS: PDCS_GPU, PDCS_CPU')
         A = data[s.A]
