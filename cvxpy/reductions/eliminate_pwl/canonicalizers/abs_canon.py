@@ -15,11 +15,13 @@ limitations under the License.
 """
 
 from cvxpy.expressions.variable import Variable
+from cvxpy.utilities.bounds import get_expr_bounds_if_supported
 from cvxpy.utilities.solver_context import SolverInfo
 
 
 def abs_canon(expr, args, solver_context: SolverInfo | None = None):
     x = args[0]
-    t = Variable(expr.shape)
+    bounds = get_expr_bounds_if_supported(expr, solver_context)
+    t = Variable(expr.shape, bounds=bounds)
     constraints = [t >= x, t >= -x]
     return t, constraints

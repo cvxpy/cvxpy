@@ -21,6 +21,7 @@ import cvxpy.utilities as u
 from cvxpy.atoms.elementwise.elementwise import Elementwise
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions import cvxtypes
+from cvxpy.utilities import bounds as bounds_utils
 from cvxpy.utilities.power_tools import is_power2, pow_high, pow_mid, pow_neg
 
 
@@ -187,6 +188,12 @@ class Power(Elementwise):
         else:
             # Always positive.
             return (True, False)
+
+    def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
+        """Returns bounds for power based on argument bounds."""
+        lb, ub = self.args[0].get_bounds()
+        p = float(self.p.value) if self.p.value is not None else 1.0
+        return bounds_utils.power_bounds(lb, ub, p)
 
     def is_atom_convex(self) -> bool:
         """Is the atom convex?

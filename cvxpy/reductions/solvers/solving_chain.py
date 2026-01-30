@@ -348,7 +348,11 @@ def construct_solving_chain(problem, candidates,
         else:
             supported_constraints = solver_instance.SUPPORTED_CONSTRAINTS
 
-        solver_context = SolverInfo(solver=solver, supported_constraints=supported_constraints)
+        solver_context = SolverInfo(
+            solver=solver,
+            supported_constraints=supported_constraints,
+            supports_bounds=solver_instance.BOUNDED_VARIABLES
+        )
 
         cones = set(cones)
         ex_cos = (cones & set(EXOTIC_CONES)) - set(supported_constraints)

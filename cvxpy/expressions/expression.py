@@ -517,6 +517,17 @@ class Expression(u.Canonical):
         """
         raise NotImplementedError()
 
+    @abc.abstractmethod
+    def get_bounds(self) -> Tuple[np.ndarray, np.ndarray]:
+        """Returns bounds (lower, upper) of the expression.
+
+        Returns
+        -------
+        tuple of np.ndarray
+            (lower_bound, upper_bound) arrays with shape matching self.shape.
+        """
+        raise NotImplementedError()
+
     @property
     @abc.abstractmethod
     def shape(self) -> Tuple[int, ...]:
