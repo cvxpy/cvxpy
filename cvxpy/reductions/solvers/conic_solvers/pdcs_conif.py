@@ -42,6 +42,7 @@ class PDCS(ConicSolver):
     def import_solver(self) -> None:
         """Imports the solver.
         """
+        import cupy  # noqa F401
     
     def supports_quad_obj(self) -> bool:
         """PDCS does not support quadratic objective with any combination
