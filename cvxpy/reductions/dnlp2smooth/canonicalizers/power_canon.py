@@ -24,7 +24,7 @@ MIN_INIT = 1e-4
 
 def power_canon(expr, args):
     x = args[0]
-    p = expr.p_rational 
+    p = expr.p_used
     shape = expr.shape
     ones = Constant(np.ones(shape))
     if p == 0:

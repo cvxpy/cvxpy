@@ -4,6 +4,7 @@ import pytest
 
 import cvxpy as cp
 from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS
+from cvxpy.reductions.solvers.nlp_solvers.nlp_solver import DerivativeChecker
 
 
 @pytest.mark.skipif('IPOPT' not in INSTALLED_SOLVERS, reason='IPOPT is not installed.')
@@ -24,6 +25,8 @@ class TestEntropy():
        q_opt_clarabel = q.value
        assert(LA.norm(q_opt_nlp - q_opt_clarabel) <= 1e-4)
 
+       checker = DerivativeChecker(problem)
+       checker.run_and_assert()
 
     # nonconvex problem, compute minimum entropy distribution
     # over simplex (the analytical solution is any of the vertices)
@@ -40,6 +43,9 @@ class TestEntropy():
                       hessian_approximation='limited-memory')
         q_opt_nlp = q.value 
         assert(np.sum(q_opt_nlp > 1e-8) == 1)
+
+        checker = DerivativeChecker(problem)
+        checker.run_and_assert()
 
     # convex formulation, relative entropy f(x, y) = x log (x / y)
     def test_rel_entropy_one(self):
@@ -58,6 +64,9 @@ class TestEntropy():
         q_opt_clarabel = q.value
         assert(LA.norm(q_opt_nlp - q_opt_clarabel) <= 1e-4)
 
+        checker = DerivativeChecker(problem)
+        checker.run_and_assert()
+
     def test_rel_entropy_one_switched_arguments(self):
         np.random.seed(0)
         n = 40
@@ -73,6 +82,9 @@ class TestEntropy():
         problem.solve(solver=cp.CLARABEL, verbose=True)
         q_opt_clarabel = q.value
         assert(LA.norm(q_opt_nlp - q_opt_clarabel) <= 1e-4)
+
+        checker = DerivativeChecker(problem)
+        checker.run_and_assert()
 
     def test_KL_one(self):
         np.random.seed(0)
@@ -90,6 +102,9 @@ class TestEntropy():
         q_opt_clarabel = q.value
         assert(LA.norm(q_opt_nlp - q_opt_clarabel) <= 1e-4)
 
+        checker = DerivativeChecker(problem)
+        checker.run_and_assert()
+
     def test_KL_two(self):
         np.random.seed(0)
         n = 40
@@ -105,6 +120,9 @@ class TestEntropy():
         problem.solve(solver=cp.CLARABEL, verbose=True)
         q_opt_clarabel = q.value
         assert(LA.norm(q_opt_nlp - q_opt_clarabel) <= 1e-4)
+
+        checker = DerivativeChecker(problem)
+        checker.run_and_assert()
 
     # nonnegative matrix factorization with KL objective (nonconvex)
     def test_KL_three_graph_form(self):
@@ -129,6 +147,9 @@ class TestEntropy():
         problem.solve(solver=cp.IPOPT, nlp=True, verbose=False, derivative_test='none')
         assert(obj.value <= 1e-10)
 
+        checker = DerivativeChecker(problem)
+        checker.run_and_assert()
+
     # nonnegative matrix factorization with KL objective (nonconvex)
     def test_KL_three_not_graph_form(self):
         np.random.seed(0)
@@ -145,3 +166,6 @@ class TestEntropy():
         problem = cp.Problem(cp.Minimize(obj))
         problem.solve(solver=cp.IPOPT, nlp=True, verbose=False, derivative_test='none')
         assert(obj.value <= 1e-10)
+
+        checker = DerivativeChecker(problem)
+        checker.run_and_assert()

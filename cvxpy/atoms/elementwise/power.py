@@ -386,7 +386,7 @@ class Power(Elementwise):
 
     def _verify_hess_vec_args(self):
         # we can't compute the hessian if p is not constant and specified
-        if (self.p_rational is None and self.p.value is None) or \
+        if (self.p_used is None and self.p.value is None) or \
             not isinstance(self.args[0], Variable):
             return False
 
@@ -394,8 +394,8 @@ class Power(Elementwise):
 
     def _hess_vec(self, vec):
         """ See the docstring of the hess_vec method of the atom class. """
-        if self.p_rational is not None:
-            p = self.p_rational
+        if self.p_used is not None:
+            p = self.p_used
         elif self.p.value is not None:
             p = self.p.value
         
@@ -409,7 +409,7 @@ class Power(Elementwise):
         return {(x, x): (idxs, idxs, vals)}
     
     def _verify_jacobian_args(self):
-        if (self.p_rational is None and self.p.value is None):
+        if (self.p_used is None and self.p.value is None):
             return False
 
         if not isinstance(self.args[0], Variable):
@@ -423,8 +423,8 @@ class Power(Elementwise):
         entries p * x_i^(p-1). We vectorize matrix expressions, so we flatten the
         values in column-major (Fortran) order.
         """
-        if self.p_rational is not None:
-            p = self.p_rational
+        if self.p_used is not None:
+            p = self.p_used
         elif self.p.value is not None:
             p = self.p.value
 

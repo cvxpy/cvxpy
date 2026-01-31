@@ -4,6 +4,7 @@ import pytest
 
 import cvxpy as cp
 from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS
+from cvxpy.reductions.solvers.nlp_solvers.nlp_solver import DerivativeChecker
 
 
 @pytest.mark.skipif('IPOPT' not in INSTALLED_SOLVERS, reason='IPOPT is not installed.')
@@ -34,6 +35,10 @@ class TestAbs():
             obj_star_nlp = obj.value
             assert(np.abs(obj_star_nlp - obj_star_dcp) / obj_star_nlp <= 1e-4)
 
+            checker = DerivativeChecker(problem)
+            checker.run_and_assert()
+
+
     def test_lasso_square(self):
         np.random.seed(0)
         m, n = 50, 50
@@ -59,6 +64,8 @@ class TestAbs():
             obj_star_nlp = obj.value
             assert(np.abs(obj_star_nlp - obj_star_dcp) / obj_star_nlp <= 1e-4)
 
+            
+
     def test_lasso_underdetermined(self):
         np.random.seed(0)
         m, n = 100, 200
@@ -83,6 +90,8 @@ class TestAbs():
                             derivative_test='none', verbose=False)
             obj_star_nlp = obj.value
             assert(np.abs(obj_star_nlp - obj_star_dcp) / obj_star_nlp <= 1e-4)
+
+
 
     def test_lasso_overdetermined(self):
         np.random.seed(0)

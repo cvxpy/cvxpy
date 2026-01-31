@@ -3,6 +3,7 @@ import pytest
 
 import cvxpy as cp
 from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS
+from cvxpy.reductions.solvers.nlp_solvers.nlp_solver import DerivativeChecker
 
 
 @pytest.mark.skipif('IPOPT' not in INSTALLED_SOLVERS, reason='IPOPT is not installed.')
@@ -38,6 +39,9 @@ class TestNonsmoothNontrivial():
             conic_value = prob.value    
             assert(np.abs(nlp_value - conic_value) <= 1e-4)
 
+            checker = DerivativeChecker(prob)
+            checker.run_and_assert()
+
     # convex optimization, sum largest
     def test_sum_largest(self):
         x = cp.Variable(5)
@@ -58,6 +62,9 @@ class TestNonsmoothNontrivial():
 
         assert(np.abs(nlp_value - conic_value) <= 1e-4)
 
+        checker = DerivativeChecker(prob)
+        checker.run_and_assert()
+
     # convex optimization, sum smallest
     def test_sum_smallest(self):
         x = cp.Variable(5)
@@ -77,4 +84,7 @@ class TestNonsmoothNontrivial():
         conic_value = prob.value
 
         assert(np.abs(nlp_value - conic_value) <= 1e-4)
+
+        checker = DerivativeChecker(prob)
+        checker.run_and_assert()
 

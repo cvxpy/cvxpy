@@ -4,6 +4,7 @@ import pytest
 
 import cvxpy as cp
 from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS
+from cvxpy.reductions.solvers.nlp_solvers.nlp_solver import DerivativeChecker
 
 np.random.seed(0)
 
@@ -40,6 +41,9 @@ class TestRiskParity:
         risk_contributions = w.value * (Sigma @ w.value)
         risk_contributions /= np.sum(risk_contributions)
         assert np.linalg.norm(risk_contributions - risk_target) < 1e-5
+
+        checker = DerivativeChecker(problem)
+        checker.run_and_assert()
     
     # we do not expand the objective, and use square roots
     def test_vanilla_risk_parity_formulation_two(self):
@@ -73,6 +77,9 @@ class TestRiskParity:
         risk_contributions = np.array([np.sum(risk_contributions[g]) for g in groups])
         assert np.linalg.norm(risk_contributions - b) < 1e-5
 
+        checker = DerivativeChecker(problem)
+        checker.run_and_assert()
+
     # other formulation
     def test_group_risk_parity_formulation_two(self, Sigma):
         n = 8
@@ -95,3 +102,6 @@ class TestRiskParity:
         risk_contributions /= np.sum(risk_contributions)
         risk_contributions = np.array([np.sum(risk_contributions[g]) for g in groups])
         assert np.linalg.norm(risk_contributions - b) < 1e-5
+
+        checker = DerivativeChecker(problem)
+        checker.run_and_assert()

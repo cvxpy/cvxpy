@@ -22,6 +22,8 @@ jobs:
         with:
           python-version: "3.12"
       - uses: actions/checkout@v5
+        with:
+          submodules: recursive
       - name: Set up Conda
         uses: conda-incubator/setup-miniconda@v3
         with:
@@ -35,13 +37,10 @@ jobs:
       - name: Install cyipopt via conda
         run: |
           conda install -y -c conda-forge cyipopt
-      - name: Install uno via pip
-        run: |
-          pip install unopy
       - name: Install test dependencies
         run: |
           pip install -e .
           pip install pytest hypothesis
       - name: Run nlp tests
         run: |
-          pytest cvxpy/tests/nlp_tests/.
+          pytest -s -v cvxpy/tests/nlp_tests/.

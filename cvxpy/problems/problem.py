@@ -1285,10 +1285,21 @@ class Problem(u.Canonical):
                     canon_problem, inverse_data = nlp_chain.apply(problem=self)
                     solution = nlp_chain.solver.solve_via_data(canon_problem, warm_start,
                                                                 verbose, solver_opts=kwargs)
+                    
+                    # This gives the objective value of the C problem
+                    # which can be slightly different from the original NLP 
+                    # so we use the below approach with unpacking. Preferably 
+                    # we would have a way to do this without unpacking.
+                    #obj_value = canon_problem['objective'](solution['x'])
+                    
+                    # set cvxpy variable
+                    self.unpack_results(solution, nlp_chain, inverse_data)
                     obj_value = self.objective.value
+
                     all_objs[run] = obj_value
                     if obj_value < best_obj:
                         best_obj = obj_value
+                        print("best_obj: ", best_obj)
                         best_solution = solution
 
                 # unpack best solution    
@@ -1610,7 +1621,7 @@ class Problem(u.Canonical):
     def unpack_results(self, solution, chain: SolvingChain, inverse_data) -> None:
         """Updates the problem state given the solver results.
 
-        Updates problem.status, problem.value and value of
+        Updates problem.status, problem.value and value ofro
         primal and dual variables.
 
         Arguments

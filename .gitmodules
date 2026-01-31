@@ -1,0 +1,3 @@
+[submodule "diff_engine_core"]
+	path = diff_engine_core
+	url = https://github.com/dance858/DNLP-diff-engine

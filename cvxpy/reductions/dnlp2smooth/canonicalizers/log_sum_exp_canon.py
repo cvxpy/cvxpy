@@ -31,7 +31,7 @@ def log_sum_exp_canon(expr, args):
     
     if x.value is not None:
         t.value = expr.numeric(x.value)
-        v.value = x.value - t.value
+        v.value = np.minimum(x.value - t.value, -1)
     else:
         t.value = np.ones(expr.shape)
         v.value = -np.ones(x.shape)

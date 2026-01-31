@@ -166,6 +166,13 @@ class KNITRO(NLPsolver):
             (status, optimal value, primal, equality dual, inequality dual)
         """
         import knitro
+
+        from cvxpy.reductions.solvers.nlp_solvers.nlp_solver import Oracles
+
+        # Create oracles object (deferred from apply() so we have access to verbose)
+        bounds = data["_bounds"]
+        oracles = Oracles(bounds.new_problem, bounds.x0, len(bounds.cl), verbose=verbose)
+
         # Extract data from the data dictionary
         x0 = data["x0"]
         lb, ub = data["lb"].copy(), data["ub"].copy()
@@ -203,9 +210,6 @@ class KNITRO(NLPsolver):
             # Set verbosity
             if not verbose:
                 knitro.KN_set_int_param(kc, knitro.KN_PARAM_OUTLEV, 0)
-
-            # Get oracles for function evaluations
-            oracles = data["oracles"]
 
             # Define the callback for evaluating objective and constraints (EVALFC)
             def callbackEvalFC(kc, cb, evalRequest, evalResult, userParams):

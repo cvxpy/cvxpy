@@ -15,7 +15,6 @@ limitations under the License.
 """
 
 import numpy as np
-import scipy.sparse as sp
 
 from cvxpy.constraints import (
     Equality,
@@ -67,15 +66,7 @@ class NLPsolver(Solver):
         data["cl"], data["cu"] = bounds.cl, bounds.cu
         data["lb"], data["ub"] = bounds.lb, bounds.ub
         data["x0"] = bounds.x0
-        oracles = Oracles(bounds.new_problem, bounds.x0, len(bounds.cl))
-        data["objective"] = oracles.objective
-        data["gradient"] = oracles.gradient
-        data["constraints"] = oracles.constraints
-        data["jacobian"] = oracles.jacobian
-        data["jacobianstructure"] = oracles.jacobianstructure
-        data["hessian"] = oracles.hessian
-        data["hessianstructure"] = oracles.hessianstructure
-        data["oracles"] = oracles
+        data["_bounds"] = bounds  # Store for deferred Oracles creation in solve_via_data
         return problem, data, inverse_data
 
 class Bounds():
@@ -157,249 +148,345 @@ class Bounds():
         self.x0 = np.concatenate(x0, axis=0)
 
 class Oracles():
-    def __init__(self, problem, initial_point, num_constraints):
-        self.problem = problem
-        self.grad_obj = np.zeros(initial_point.size, dtype=np.float64)
+    """
+    Oracle interface for NLP solvers using the C-based diff engine.
 
-        # for evaluating hessian
-        self.hess_lagrangian_coo = ([], [], [])
-        self.hess_lagrangian_coo_rows_cols = ([], [])
-        self.has_computed_hess_sparsity = False
-        self.num_constraints = num_constraints
+    Provides function and derivative oracles (objective, gradient, constraints,
+    jacobian, hessian) by wrapping the C_problem class from dnlp_diff_engine.
+    """
 
-        # for evaluating jacobian
-        self.jacobian_coo = ([], [], [])
-        self.jacobian_coo_rows_cols = ([], [])
-        self.jacobian_affine_coo = ([], [], [])
-        self.has_computed_jac_sparsity = False
-        self.has_stored_affine_jacobian = False
+    def __init__(self, problem, initial_point, num_constraints, verbose: bool = True):
+        # Import from cvxpy's diff_engine integration layer
+        from cvxpy.reductions.solvers.nlp_solvers.diff_engine import C_problem
 
-        self.main_var = []
+        self.c_problem = C_problem(problem, verbose=verbose)
+        self.c_problem.init_derivatives()
         self.initial_point = initial_point
+        self.num_constraints = num_constraints
         self.iterations = 0
-        for var in self.problem.variables():
-            self.main_var.append(var)
 
-    def set_variable_value(self, x):
-        offset = 0
-        for var in self.main_var:
-            size = var.size
-            var.value = x[offset:offset+size].reshape(var.shape, order='F')
-            offset += size
+        # Cached sparsity structures
+        self._jac_structure = None
+        self._hess_structure = None
+        self.constraints_forward_passed = False
+        self.objective_forward_passed = False
 
     def objective(self, x):
         """Returns the scalar value of the objective given x."""
-        self.set_variable_value(x)
-        obj_value = self.problem.objective.value
-        return obj_value
-    
+        self.objective_forward_passed = True
+        return self.c_problem.objective_forward(x)
+
     def gradient(self, x):
         """Returns the gradient of the objective with respect to x."""
-        self.set_variable_value(x)
+        
+        if not self.objective_forward_passed:
+            self.objective(x)
 
-        # fill with zeros to reset from previous call
-        self.grad_obj.fill(0)
-
-        grad_offset = 0
-        grad_dict = self.problem.objective.expr.jacobian()
-
-        for var in self.main_var:
-            size = var.size
-            if var in grad_dict:
-                _, cols, vals = grad_dict[var]
-                self.grad_obj[grad_offset + cols] = vals
-            grad_offset += size
-
-        return self.grad_obj
+        return self.c_problem.gradient()
 
     def constraints(self, x):
         """Returns the constraint values."""
-        self.set_variable_value(x)
-        # Evaluate all constraints
-        constraint_values = []
-        for constraint in self.problem.constraints:
-            constraint_values.append(np.asarray(constraint.args[0].value).flatten(order='F'))
-        return np.concatenate(constraint_values)
-
-    def parse_jacobian_dict(self, grad_dict, constr_offset, is_affine):
-        col_offset = 0
-        for var in self.main_var:
-            if var in grad_dict:
-                rows, cols, vals = grad_dict[var]
-                if not isinstance(rows, np.ndarray):
-                    rows = np.array(rows)
-                if not isinstance(cols, np.ndarray):
-                    cols = np.array(cols)
-
-                self.jacobian_coo[0].extend(rows + constr_offset)
-                self.jacobian_coo[1].extend(cols + col_offset)
-                self.jacobian_coo[2].extend(vals)
-
-                if is_affine:
-                    self.jacobian_affine_coo[0].extend(rows + constr_offset)
-                    self.jacobian_affine_coo[1].extend(cols + col_offset)
-                    self.jacobian_affine_coo[2].extend(vals)
-
-            col_offset += var.size
-    
-    def insert_missing_zeros_jacobian(self):
-        rows, cols, vals = self.jacobian_coo
-        rows_true, cols_true = self.jacobian_coo_rows_cols
-        if not self.permutation_needed:
-            return vals
-        dim = self.initial_point.size
-        m = self.num_constraints
-        J = sp.csr_matrix((vals, (rows, cols)), shape=(m, dim))
-        vals_true = J[rows_true, cols_true].data
-        return vals_true
+        self.constraints_forward_passed = True
+        return self.c_problem.constraint_forward(x)
 
     def jacobian(self, x):
-        self.set_variable_value(x)
-    
-        # reset previous call
-        if not self.has_stored_affine_jacobian:
-            self.jacobian_coo = ([], [], [])
-        else:
-            self.jacobian_coo = (self.jacobian_affine_coo[0].copy(), 
-                                    self.jacobian_affine_coo[1].copy(),
-                                    self.jacobian_affine_coo[2].copy())
+        """Returns the Jacobian values in COO format at the sparsity structure. """
 
-        # compute jacobian of each constraint
-        constr_offset = 0
-        for constraint in self.problem.constraints:
-            is_affine = constraint.expr.is_affine()
-            if is_affine and self.has_stored_affine_jacobian:
-                constr_offset += constraint.size
-                continue
-            
-            grad_dict = constraint.expr.jacobian()
-            self.parse_jacobian_dict(grad_dict, constr_offset, is_affine)
-            constr_offset += constraint.size
-        
-        # insert missing zeros (ie., entries that turned out to be zero but
-        # are not structurally zero)
-        if self.has_computed_jac_sparsity:
-            vals = self.insert_missing_zeros_jacobian()
-        else:
-            vals = self.jacobian_coo[2]
-        return vals
-        
+        if not self.constraints_forward_passed:
+            self.constraints(x)
+
+        jac_csr = self.c_problem.jacobian()
+        jac_coo = jac_csr.tocoo()
+        return jac_coo.data.copy()
+
     def jacobianstructure(self):
-        # if we have already computed the sparsity structure, return it
-        # (Ipopt only calls this function once, so this if is not strictly
-        #  necessary)
-        if self.has_computed_jac_sparsity:
-            return self.jacobian_coo_rows_cols
-        
-        # set values to nans for full jacobian structure
-        x = np.nan * np.ones(self.initial_point.size)
-        self.jacobian(x)
-        self.has_computed_jac_sparsity = True
-        self.has_stored_affine_jacobian = True
+        """Returns the sparsity structure of the Jacobian."""
+        if self._jac_structure is not None:
+            return self._jac_structure
 
-        # permutation inside "insert_missing_zeros_jacobian" is needed if the 
-        # problem has both affine and none-affine constraints.
-        self.permutation_needed = False
-        for constraint in self.problem.constraints:
-            if not constraint.expr.is_affine():
-                self.permutation_needed = True
-                break
+        jac_csr = self.c_problem.get_jacobian()
+        jac_coo = jac_csr.tocoo()
 
-        # store sparsity pattern (as integer arrays for solver compatibility)
-        rows, cols = self.jacobian_coo[0], self.jacobian_coo[1]
-        rows = np.asarray(rows, dtype=np.int32)
-        cols = np.asarray(cols, dtype=np.int32)
-        self.jacobian_coo_rows_cols = (rows, cols)
-        return self.jacobian_coo_rows_cols
+        self._jac_structure = (jac_coo.row.astype(np.int32),
+                               jac_coo.col.astype(np.int32))
+        return self._jac_structure
 
-    def parse_hess_dict(self, hess_dict):
-        """ Adds the contribution of blocks defined in hess_dict to the full
-            hessian matrix 
-        """
-        row_offset = 0
-        for var1 in self.main_var:
-            col_offset = 0
-            for var2 in self.main_var:
-                if (var1, var2) in hess_dict:
-                    rows, cols, vals = hess_dict[(var1, var2)]
-                    if not isinstance(rows, np.ndarray):
-                        rows = np.array(rows)
-                    if not isinstance(cols, np.ndarray):
-                        cols = np.array(cols)
-
-                    self.hess_lagrangian_coo[0].extend(rows + row_offset)
-                    self.hess_lagrangian_coo[1].extend(cols + col_offset)
-                    self.hess_lagrangian_coo[2].extend(vals)
-
-                col_offset += var2.size
-            row_offset += var1.size
-
-    def sum_coo(self):
-        shape = (self.initial_point.size, self.initial_point.size)
-        rows, cols, vals = self.hess_lagrangian_coo
-        coo = sp.coo_matrix((vals, (rows, cols)), shape=shape)
-        coo.sum_duplicates()
-        self.hess_lagrangian_coo = (coo.row, coo.col, coo.data)
-    
-    def insert_missing_zeros_hessian(self):
-        rows, cols, vals = self.hess_lagrangian_coo
-        rows_true, cols_true = self.hess_lagrangian_coo_rows_cols
-        dim = self.initial_point.size
-        H = sp.csr_matrix((vals, (rows, cols)), shape=(dim, dim))
-        vals_true = H[rows_true, cols_true].data
-        return vals_true
-
-    def hessianstructure(self):            
-        # if we have already computed the sparsity structure, return it
-        # (Ipopt only calls this function once, so this if is not strictly
-        #  necessary)
-        if self.has_computed_hess_sparsity:
-            return self.hess_lagrangian_coo_rows_cols
-        
-        # set values to nans for full hessian structure
-        x = np.nan * np.ones(self.initial_point.size)
-        self.hessian(x, np.ones(self.num_constraints), 1.0)
-        self.has_computed_hess_sparsity = True
-
-        # extract lower triangular part (as integer arrays for solver compatibility)
-        rows, cols = self.hess_lagrangian_coo[0], self.hess_lagrangian_coo[1]
-        mask = rows >= cols
-        rows = np.asarray(rows[mask], dtype=np.int32)
-        cols = np.asarray(cols[mask], dtype=np.int32)
-        self.hess_lagrangian_coo_rows_cols = (rows, cols)
-        return self.hess_lagrangian_coo_rows_cols
-        
     def hessian(self, x, duals, obj_factor):
-        self.set_variable_value(x)
-        
-        # reset previous call
-        self.hess_lagrangian_coo = ([], [], [])
-        
-        # compute hessian of objective times obj_factor
-        obj_hess_dict = self.problem.objective.expr.hess_vec(np.array([obj_factor]))
-        self.parse_hess_dict(obj_hess_dict)
+        """Returns the lower triangular Hessian values in COO format. """
 
-        # compute hessian of constraints times duals
-        constr_offset = 0
-        for constraint in self.problem.constraints:    
-            lmbda = duals[constr_offset:constr_offset + constraint.size]
-            constraint_hess_dict = constraint.expr.hess_vec(lmbda)
-            self.parse_hess_dict(constraint_hess_dict)
-            constr_offset += constraint.size
+        if not self.objective_forward_passed:
+            self.objective(x)
+        if not self.constraints_forward_passed:
+            self.constraints(x)
 
-        # merge duplicate entries together
-        self.sum_coo()
+        hess_csr = self.c_problem.hessian(obj_factor, duals)
+        hess_coo = hess_csr.tocoo()
 
-        # insert missing zeros (ie., entries that turned out to be zero but are not 
-        # structurally zero)
-        if self.has_computed_hess_sparsity:
-            vals = self.insert_missing_zeros_hessian()
-        else:
-            vals = self.hess_lagrangian_coo[2]
-        return vals
+        # Extract lower triangular values
+        mask = hess_coo.row >= hess_coo.col
+
+        return hess_coo.data[mask]
+
+    def hessianstructure(self):
+        """Returns the sparsity structure of the lower triangular Hessian."""
+        if self._hess_structure is not None:
+            return self._hess_structure
+
+        hess_csr = self.c_problem.get_hessian()
+        hess_coo = hess_csr.tocoo()
+
+        # Keep only lower triangular
+        mask = hess_coo.row >= hess_coo.col
+        self._hess_structure = (
+            hess_coo.row[mask].astype(np.int32),
+            hess_coo.col[mask].astype(np.int32)
+        )
+        return self._hess_structure
 
     def intermediate(self, alg_mod, iter_count, obj_value, inf_pr, inf_du, mu,
-                    d_norm, regularization_size, alpha_du, alpha_pr,
-                    ls_trials):
+                     d_norm, regularization_size, alpha_du, alpha_pr,
+                     ls_trials):
         """Prints information at every Ipopt iteration."""
         self.iterations = iter_count
+        self.objective_forward_passed = False
+        self.constraints_forward_passed = False
+
+
+# TODO: maybe add a cchecker like this to the diff-engine? Or rather do a checker that
+# uses cvxpy expressions to evaluate values. It will be slower, but will better test 
+# consistency with cvxpy.
+class DerivativeChecker:
+    """
+    A utility class to verify derivative computations by comparing
+    C-based diff engine results against Python-based evaluations.
+    """
+    
+    def __init__(self, problem):
+        """
+        Initialize the derivative checker with a CVXPY problem.
+        
+        Parameters
+        ----------
+        problem : cvxpy.Problem
+            The CVXPY problem to check derivatives for.
+        """
+        from cvxpy.reductions.dnlp2smooth.dnlp2smooth import Dnlp2Smooth
+        from cvxpy.reductions.solvers.nlp_solvers.diff_engine import C_problem
+        
+        self.original_problem = problem
+        
+        # Apply Dnlp2Smooth to get canonicalized problem
+        canon = Dnlp2Smooth().apply(problem)
+        self.canonicalized_problem = canon[0]
+        
+        # Construct the C version
+        print("Constructing C diff engine problem for derivative checking...")
+        self.c_problem = C_problem(self.canonicalized_problem)
+        print("Done constructing C diff engine problem.")
+        
+        # Construct initial point using Bounds functionality
+        self.bounds = Bounds(self.canonicalized_problem)
+        self.x0 = self.bounds.x0
+        
+        # Initialize constraint bounds for checking
+        self.cl = self.bounds.cl
+        self.cu = self.bounds.cu
+        
+    def check_constraint_values(self, x=None):
+        if x is None:
+            x = self.x0
+            
+        # Evaluate constraints using C implementation
+        c_values = self.c_problem.constraint_forward(x)
+        
+        # Evaluate constraints using Python implementation
+        # First, set variable values
+        x_offset = 0
+        for var in self.canonicalized_problem.variables():
+            var_size = var.size
+            var.value = x[x_offset:x_offset + var_size].reshape(var.shape, order='F')
+            x_offset += var_size
+        
+        # Now evaluate each constraint
+        python_values = []
+        for constr in self.canonicalized_problem.constraints:
+            constr_val = constr.expr.value.flatten(order='F')
+            python_values.append(constr_val)
+        
+        python_values = np.hstack(python_values) if python_values else np.array([])
+        
+        match = np.allclose(c_values, python_values, rtol=1e-10, atol=1e-10)        
+        return match
+    
+    def check_jacobian(self, x=None, epsilon=1e-8): 
+        if x is None:
+            x = self.x0
+        
+        # Get Jacobian from C implementation
+        self.c_problem.init_derivatives()
+        self.c_problem.constraint_forward(x) 
+        c_jac_csr = self.c_problem.jacobian()
+        c_jac_dense = c_jac_csr.toarray()
+        
+        # Compute numerical Jacobian using central differences
+        n_vars = len(x)
+        n_constraints = len(self.cl)
+        numerical_jac = np.zeros((n_constraints, n_vars))
+        
+        # Define constraint function for finite differences
+        def constraint_func(x_eval):
+            return self.c_problem.constraint_forward(x_eval)
+        
+        # Compute each column using central differences
+        for j in range(n_vars):
+            x_plus = x.copy()
+            x_minus = x.copy()
+            x_plus[j] += epsilon
+            x_minus[j] -= epsilon
+            
+            c_plus = constraint_func(x_plus)
+            c_minus = constraint_func(x_minus)
+            
+            numerical_jac[:, j] = (c_plus - c_minus) / (2 * epsilon)
+        
+        match = np.allclose(c_jac_dense, numerical_jac, rtol=1e-4, atol=1e-5)
+        return match
+    
+    def check_hessian(self, x=None, duals=None, obj_factor=1.0, epsilon=1e-8):
+        if x is None:
+            x = self.x0
+        
+        if duals is None:
+            duals = np.random.rand(len(self.cl))
+        
+        # Get Hessian from C implementation
+        self.c_problem.objective_forward(x)
+        self.c_problem.constraint_forward(x)
+        #jac = self.c_problem.jacobian()
+        
+        # must run gradient because for logistic it fills some values
+        self.c_problem.gradient()
+        c_hess_csr = self.c_problem.hessian(obj_factor, duals)
+        
+        # Convert to full dense matrix (C returns lower triangular)
+        c_hess_coo = c_hess_csr.tocoo()
+        n_vars = len(x)
+        c_hess_dense = np.zeros((n_vars, n_vars))
+        
+        # Fill in the full symmetric matrix from lower triangular
+        for i, j, v in zip(c_hess_coo.row, c_hess_coo.col, c_hess_coo.data):
+            c_hess_dense[i, j] = v
+            if i != j:
+                c_hess_dense[j, i] = v
+        
+        # Compute numerical Hessian using finite differences of the Lagrangian gradient
+        # Lagrangian gradient: ∇L = obj_factor * ∇f + J^T * duals
+        def lagrangian_gradient(x_eval):
+            self.c_problem.objective_forward(x_eval)
+            grad_f = self.c_problem.gradient()
+            
+            self.c_problem.constraint_forward(x_eval)
+            jac = self.c_problem.jacobian()
+            
+            # Lagrangian gradient = obj_factor * grad_f + J^T * duals
+            return obj_factor * grad_f + jac.T @ duals
+        
+        # Compute Hessian via central differences of gradient
+        numerical_hess = np.zeros((n_vars, n_vars))
+        for j in range(n_vars):
+            x_plus = x.copy()
+            x_minus = x.copy()
+            x_plus[j] += epsilon
+            x_minus[j] -= epsilon
+            
+            grad_plus = lagrangian_gradient(x_plus)
+            grad_minus = lagrangian_gradient(x_minus)
+            
+            numerical_hess[:, j] = (grad_plus - grad_minus) / (2 * epsilon)
+        
+        # Symmetrize the numerical Hessian (average with transpose to reduce numerical errors)
+        numerical_hess = (numerical_hess + numerical_hess.T) / 2
+        
+        match = np.allclose(c_hess_dense, numerical_hess, rtol=1e-4, atol=1e-6)
+        return match
+    
+    def check_objective_value(self, x=None):
+        """ Compare objective value from C implementation with Python implementation. """
+        print("Checking objective value...")
+        if x is None:
+            x = self.x0
+        
+        # Evaluate objective using C implementation
+        c_obj_value = self.c_problem.objective_forward(x)
+        
+        # Evaluate objective using Python implementation
+        x_offset = 0
+        for var in self.canonicalized_problem.variables():
+            var_size = var.size
+            var.value = x[x_offset:x_offset + var_size].reshape(var.shape, order='F')
+            x_offset += var_size
+        
+        python_obj_value = self.canonicalized_problem.objective.expr.value
+        
+        # Compare results
+        match = np.allclose(c_obj_value, python_obj_value, rtol=1e-10, atol=1e-10)
+        
+        return match
+    
+    def check_gradient(self, x=None, epsilon=1e-8):
+        """ Compare C-based gradient with numerical approximation using finite differences. """
+        if x is None:
+            x = self.x0
+        print("Checking gradient...")
+        # Get gradient from C implementation
+        self.c_problem.objective_forward(x)
+        c_grad = self.c_problem.gradient()
+        
+        # Compute numerical gradient using central differences
+        n_vars = len(x)
+        numerical_grad = np.zeros(n_vars)
+        
+        def objective_func(x_eval):
+            return self.c_problem.objective_forward(x_eval)
+        
+        # Compute each component using central differences
+        for j in range(n_vars):
+            x_plus = x.copy()
+            x_minus = x.copy()
+            x_plus[j] += epsilon
+            x_minus[j] -= epsilon
+            
+            f_plus = objective_func(x_plus)
+            f_minus = objective_func(x_minus)
+            
+            numerical_grad[j] = (f_plus - f_minus) / (2 * epsilon)
+            
+        match = np.allclose(c_grad, numerical_grad, rtol= 5 * 1e-3, atol=1e-5)
+        assert(match)
+        return match
+    
+    def run(self, x=None):
+        """ Run all derivative checks (constraints, Jacobian, and Hessian). """
+
+        print("initializing derivatives for derivative checking...")
+        self.c_problem.init_derivatives()
+        print("done initializing derivatives.")
+        objective_result = self.check_objective_value(x)
+        gradient_result = self.check_gradient(x)
+        constraints_result = self.check_constraint_values()
+        jacobian_result = self.check_jacobian(x)
+        hessian_result = self.check_hessian(x)
+       
+        result = {'objective': objective_result,
+                  'gradient': gradient_result,
+                  'constraints': constraints_result,
+                  'jacobian': jacobian_result,
+                  'hessian': hessian_result}
+        
+        return result
+    
+    def run_and_assert(self, x=None):
+        """ Run all derivative checks and assert correctness. """
+        results = self.run(x)
+        for key, passed in results.items():
+            assert passed, f"Derivative check failed for {key}."

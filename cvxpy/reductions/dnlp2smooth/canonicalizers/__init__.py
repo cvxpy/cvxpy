@@ -13,7 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from cvxpy.atoms.geo_mean import geo_mean
+from cvxpy.atoms.geo_mean import GeoMean, GeoMeanApprox
 from cvxpy.atoms.prod import Prod
 from cvxpy.atoms.quad_over_lin import quad_over_lin
 from cvxpy.atoms.elementwise.exp import exp
@@ -24,13 +24,13 @@ from cvxpy.atoms.elementwise.rel_entr import rel_entr
 from cvxpy.atoms.elementwise.kl_div import kl_div
 from cvxpy.atoms.elementwise.minimum import minimum
 from cvxpy.atoms.elementwise.maximum import maximum
-from cvxpy.atoms.elementwise.power import power
+from cvxpy.atoms.elementwise.power import Power, PowerApprox
 from cvxpy.atoms.elementwise.trig import cos, sin, tan
 from cvxpy.atoms.elementwise.hyperbolic import sinh, asinh, tanh, atanh
 from cvxpy.atoms.elementwise.huber import huber
 from cvxpy.atoms.norm1 import norm1
 from cvxpy.atoms.norm_inf import norm_inf
-from cvxpy.atoms.pnorm import Pnorm
+from cvxpy.atoms.pnorm import Pnorm, PnormApprox
 from cvxpy.atoms.sum_largest import sum_largest
 from cvxpy.atoms.elementwise.abs import abs
 from cvxpy.atoms.max import max
@@ -77,15 +77,18 @@ SMOOTH_CANON_METHODS = {
     tanh: tanh_canon,
     atanh: atanh_canon,
     quad_over_lin: quad_over_lin_canon,
-    power: power_canon,
-    Pnorm : pnorm_canon,
+    Power: power_canon,
+    PowerApprox: power_canon,
+    Pnorm: pnorm_canon,
+    PnormApprox: pnorm_canon,
     DivExpression: div_canon,
     entr: entr_canon,
     rel_entr: rel_entr_canon,
     kl_div: kl_div_canon,
     multiply: multiply_canon,
     MulExpression: matmul_canon,
-    geo_mean: geo_mean_canon,
+    GeoMean: geo_mean_canon,
+    GeoMeanApprox: geo_mean_canon,
     log_sum_exp: log_sum_exp_canon,
     Prod: prod_canon,
 

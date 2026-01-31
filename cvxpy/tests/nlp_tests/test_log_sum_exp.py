@@ -3,6 +3,7 @@ import pytest
 
 import cvxpy as cp
 from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS
+from cvxpy.reductions.solvers.nlp_solvers.nlp_solver import DerivativeChecker
 
 
 @pytest.mark.skipif('IPOPT' not in INSTALLED_SOLVERS, reason='IPOPT is not installed.')
@@ -16,6 +17,9 @@ class TestLogSumExp():
         prob.solve(nlp=True, verbose=True, derivative_test='none')
         expected = np.log(3 * np.exp(1))
         assert np.isclose(obj.value, expected)
+
+        checker = DerivativeChecker(prob)
+        checker.run_and_assert()
        
     def test_two(self):
         m = 50
@@ -30,6 +34,10 @@ class TestLogSumExp():
         prob.solve(solver=cp.CLARABEL, verbose=True)
         DCP_opt_val = obj.value
         assert np.isclose(DNLP_opt_val, DCP_opt_val)
+
+        x.value = x.value + 0.1  # perturb to avoid boundary issues
+        checker = DerivativeChecker(prob)
+        checker.run_and_assert()
     
     @pytest.mark.parametrize(
     "m, n",
@@ -47,4 +55,7 @@ class TestLogSumExp():
         prob.solve(solver=cp.CLARABEL, verbose=True)
         DCP_opt_val = obj.value
         assert np.isclose(DNLP_opt_val, DCP_opt_val)
+
+        checker = DerivativeChecker(prob)
+        checker.run_and_assert()
 

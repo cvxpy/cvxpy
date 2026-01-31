@@ -52,7 +52,13 @@ if sys.platform == 'darwin':
 
 setup_versioning.write_version_py()
 VERSION = setup_versioning.VERSION
-extensions = [setup_extensions.cvxcore, setup_extensions.sparsecholesky]
+extensions = [
+    setup_extensions.cvxcore,
+    setup_extensions.sparsecholesky,
+    setup_extensions.diffengine,
+]
+# Filter out None (diffengine is None if submodule not initialized)
+extensions = [ext for ext in extensions if ext is not None]
 
 setup(
     name="cvxpy",
