@@ -94,6 +94,9 @@ class Variable(Leaf):
 
     def is_dgp(self, dpp: bool = False) -> bool:
         """Check DGP compliance, including log-log-affine bounds."""
+        # Sparse variables are not supported in DGP
+        if self.attributes.get('sparsity'):
+            return False
         if dpp and self.attributes.get('bounds') is not None:
             with scopes.dpp_scope():
                 for b in self.attributes['bounds']:
