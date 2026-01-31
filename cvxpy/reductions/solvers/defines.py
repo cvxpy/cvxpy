@@ -25,7 +25,6 @@ from cvxpy.reductions.solvers.conic_solvers.copt_conif import COPT as COPT_con
 from cvxpy.reductions.solvers.conic_solvers.cosmo_conif import COSMO as COSMO_con
 from cvxpy.reductions.solvers.conic_solvers.cplex_conif import CPLEX as CPLEX_con
 from cvxpy.reductions.solvers.conic_solvers.cuclarabel_conif import CUCLARABEL as CUCLARABEL_con
-from cvxpy.reductions.solvers.conic_solvers.pdcs_conif import PDCS as PDCS_con
 from cvxpy.reductions.solvers.conic_solvers.cuopt_conif import CUOPT as CUOPT_con
 from cvxpy.reductions.solvers.conic_solvers.cvxopt_conif import CVXOPT as CVXOPT_con
 from cvxpy.reductions.solvers.conic_solvers.diffcp_conif import DIFFCP as DIFFCP_con
@@ -40,6 +39,7 @@ from cvxpy.reductions.solvers.conic_solvers.knitro_conif import KNITRO as KNITRO
 from cvxpy.reductions.solvers.conic_solvers.moreau_conif import MOREAU as MOREAU_con
 from cvxpy.reductions.solvers.conic_solvers.mosek_conif import MOSEK as MOSEK_con
 from cvxpy.reductions.solvers.conic_solvers.nag_conif import NAG as NAG_con
+from cvxpy.reductions.solvers.conic_solvers.pdcs_conif import PDCS as PDCS_con
 from cvxpy.reductions.solvers.conic_solvers.pdlp_conif import PDLP as PDLP_con
 from cvxpy.reductions.solvers.conic_solvers.qoco_conif import QOCO as QOCO_con
 from cvxpy.reductions.solvers.conic_solvers.scip_conif import SCIP as SCIP_con

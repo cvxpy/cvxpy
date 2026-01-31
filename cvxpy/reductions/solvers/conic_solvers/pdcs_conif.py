@@ -3,10 +3,9 @@
 
 
 import numpy as np
-import scipy.sparse as sp
 
 import cvxpy.settings as s
-from cvxpy.constraints import SOC, ExpCone, PowCone3D
+from cvxpy.constraints import SOC, ExpCone
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
@@ -43,7 +42,6 @@ class PDCS(ConicSolver):
     def import_solver(self) -> None:
         """Imports the solver.
         """
-        import cupy
     
     def supports_quad_obj(self) -> bool:
         """PDCS does not support quadratic objective with any combination
@@ -102,7 +100,8 @@ class PDCS(ConicSolver):
             Control the verbosity.
         solver_opts : dict
             PDCS-specific solver options.
-            Options can be passed in Python-native types (bool, int, float, str, etc.); booleans will be converted to "true"/"false" strings for Julia automatically.
+            Options can be passed in Python-native types (bool, int, float, str, etc.); 
+            booleans will be converted to "true"/"false" strings for Julia automatically.
 
         Returns
         -------
@@ -115,7 +114,8 @@ class PDCS(ConicSolver):
             for k, v in opts.items():
                 if isinstance(v, bool):
                     norm_opts[k] = "true" if v else "false"
-                elif isinstance(v, int) and k != "verbose":  # verbose can be left as int for logging level
+                elif isinstance(v, int) and k != "verbose":
+                    # verbose can be left as int for logging level
                     norm_opts[k] = str(v)
                 else:
                     norm_opts[k] = v
@@ -143,7 +143,7 @@ class PDCS(ConicSolver):
         solver_opts.setdefault("julia_env", "placeholder")
 
         # handle verbose pythonically & normalize
-        solver_opts["verbose"] = 2 if verbose else 0
+        solver_opts["verbose"] = 1 if verbose else 0
 
         # Convert pythonic boolean/integer options to Julia-friendly strings where needed
         solver_opts = normalize_opts(solver_opts)
@@ -152,7 +152,7 @@ class PDCS(ConicSolver):
         from juliacall import Main as jl
 
         if solver_opts["julia_env"] != "placeholder":
-            jl.seval(f"using Pkg")
+            jl.seval("using Pkg")
             jl.seval(f"Pkg.activate(\"{solver_opts['julia_env']}\")")
         # jl.seval(f"using Pkg")
         # jl.seval(f"Pkg.develop(path=\"./PDCS\")")
@@ -163,7 +163,7 @@ class PDCS(ConicSolver):
         b = data[s.B]
         q = data[s.C]
         if s.P in data:
-            raise ValueError("PDCS does not support quadratic objective with any combination of conic constraints.")
+            raise ValueError("PDCS does not support quadratic objective.")
         
         cones = data[ConicSolver.DIMS]
         cgpu = cupy.array(q)
