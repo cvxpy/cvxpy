@@ -39,6 +39,7 @@ from cvxpy.reductions.solvers.conic_solvers.knitro_conif import KNITRO as KNITRO
 from cvxpy.reductions.solvers.conic_solvers.moreau_conif import MOREAU as MOREAU_con
 from cvxpy.reductions.solvers.conic_solvers.mosek_conif import MOSEK as MOSEK_con
 from cvxpy.reductions.solvers.conic_solvers.nag_conif import NAG as NAG_con
+from cvxpy.reductions.solvers.conic_solvers.pdcs_conif import PDCS as PDCS_con
 from cvxpy.reductions.solvers.conic_solvers.pdlp_conif import PDLP as PDLP_con
 from cvxpy.reductions.solvers.conic_solvers.qoco_conif import QOCO as QOCO_con
 from cvxpy.reductions.solvers.conic_solvers.scip_conif import SCIP as SCIP_con
@@ -66,7 +67,7 @@ solver_conic_intf = [
     CBC_con(), CLARABEL_con(), COSMO_con(), SCS_con(), SDPA_con(), GUROBI_con(),
     MOSEK_con(), MOREAU_con(), CPLEX_con(), NAG_con(), XPRESS_con(), SCIP_con(),
     SCIPY_con(), HIGHS_con(), GLOP_con(), PDLP_con(), QOCO_con(), CUCLARABEL_con(),
-    CUOPT_con(), ECOS_BB_con(), KNITRO_con(),
+    CUOPT_con(), ECOS_BB_con(), KNITRO_con(), PDCS_con(),
 ]
 
 solver_qp_intf = [
@@ -118,6 +119,7 @@ CONIC_SOLVERS = [
     s.ECOS_BB,
     s.KNITRO,
     s.COSMO,
+    s.PDCS,
 ]
 
 QP_SOLVERS = [

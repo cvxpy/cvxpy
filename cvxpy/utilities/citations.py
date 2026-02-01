@@ -503,6 +503,19 @@ CITATION_DICT["CUCLARABEL"] = \
 }
 """
 
+CITATION_DICT["PDCS"] = \
+"""
+@misc{PDCS,
+      title={PDCS: A Primal-Dual Large-Scale Conic Programming Solver with GPU Enhancements}, 
+      author={Zhenwei Lin and Zikai Xiong and Dongdong Ge and Yinyu Ye},
+      year={2025},
+      eprint={2505.00311},
+      archivePrefix={arXiv},
+      primaryClass={math.OC},
+      url={https://arxiv.org/abs/2505.00311}, 
+}
+"""
+
 CITATION_DICT["DAQP"] = \
 """
 @article{arnstrom2022dual,
