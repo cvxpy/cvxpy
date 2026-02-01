@@ -42,12 +42,18 @@ class C_problem:
         c_obj = convert_expr(cvxpy_problem.objective.expr, var_dict, n_vars)
         c_constraints = [convert_expr(c.expr, var_dict, n_vars) for c in cvxpy_problem.constraints]
         self._capsule = _diffengine.make_problem(c_obj, c_constraints, verbose)
-        self._allocated = False
+        self._jacobian_allocated = False
+        self._hessian_allocated = False
 
-    def init_derivatives(self):
-        """Initialize derivative structures. Must be called before forward/gradient/jacobian."""
-        _diffengine.problem_init_derivatives(self._capsule)
-        self._allocated = True
+    def init_jacobian(self):
+        """Initialize Jacobian structures only. Must be called before jacobian()."""
+        _diffengine.problem_init_jacobian(self._capsule)
+        self._jacobian_allocated = True
+
+    def init_hessian(self):
+        """Initialize Hessian structures only. Must be called before hessian()."""
+        _diffengine.problem_init_hessian(self._capsule)
+        self._hessian_allocated = True
 
     def objective_forward(self, u: np.ndarray) -> float:
         """Evaluate objective. Returns obj_value float."""

@@ -117,7 +117,12 @@ class COPT(NLPsolver):
 
         # Create oracles object (deferred from apply() so we have access to verbose)
         bounds = data["_bounds"]
-        oracles = Oracles(bounds.new_problem, bounds.x0, len(bounds.cl), verbose=verbose)
+
+        # COPT always uses exact Hessian (no quasi-Newton option currently)
+        use_hessian = True
+
+        oracles = Oracles(bounds.new_problem, bounds.x0, len(bounds.cl),
+                          verbose=verbose, use_hessian=use_hessian)
 
         class COPTNlpCallbackCVXPY(copt.NlpCallbackBase):
             def __init__(self, oracles, m):

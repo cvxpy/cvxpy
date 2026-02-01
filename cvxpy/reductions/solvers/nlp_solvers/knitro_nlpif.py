@@ -171,7 +171,14 @@ class KNITRO(NLPsolver):
 
         # Create oracles object (deferred from apply() so we have access to verbose)
         bounds = data["_bounds"]
-        oracles = Oracles(bounds.new_problem, bounds.x0, len(bounds.cl), verbose=verbose)
+
+        # Detect quasi-Newton mode: hessopt 1=exact, 2=BFGS, 3=SR1, 6=L-BFGS
+        # Only use exact Hessian when hessopt is 1 (default)
+        hessopt = solver_opts.get('hessopt', 1) if solver_opts else 1
+        use_hessian = (hessopt == 1)
+
+        oracles = Oracles(bounds.new_problem, bounds.x0, len(bounds.cl),
+                          verbose=verbose, use_hessian=use_hessian)
 
         # Extract data from the data dictionary
         x0 = data["x0"]

@@ -155,12 +155,21 @@ class Oracles():
     jacobian, hessian) by wrapping the C_problem class from dnlp_diff_engine.
     """
 
-    def __init__(self, problem, initial_point, num_constraints, verbose: bool = True):
+    def __init__(self, problem, initial_point, num_constraints,
+                 verbose: bool = True, use_hessian: bool = True):
         # Import from cvxpy's diff_engine integration layer
         from cvxpy.reductions.solvers.nlp_solvers.diff_engine import C_problem
 
         self.c_problem = C_problem(problem, verbose=verbose)
-        self.c_problem.init_derivatives()
+        self.use_hessian = use_hessian
+
+        # Always initialize Jacobian
+        self.c_problem.init_jacobian()
+
+        # Only initialize Hessian if needed (not for quasi-Newton methods)
+        if use_hessian:
+            self.c_problem.init_hessian()
+
         self.initial_point = initial_point
         self.num_constraints = num_constraints
         self.iterations = 0
@@ -213,6 +222,9 @@ class Oracles():
 
     def hessian(self, x, duals, obj_factor):
         """Returns the lower triangular Hessian values in COO format. """
+        if not self.use_hessian:
+            # Shouldn't be called when using quasi-Newton, but return empty array
+            return np.array([])
 
         if not self.objective_forward_passed:
             self.objective(x)
@@ -229,6 +241,10 @@ class Oracles():
 
     def hessianstructure(self):
         """Returns the sparsity structure of the lower triangular Hessian."""
+        if not self.use_hessian:
+            # Return empty structure when using quasi-Newton approximation
+            return (np.array([], dtype=np.int32), np.array([], dtype=np.int32))
+
         if self._hess_structure is not None:
             return self._hess_structure
 
@@ -323,7 +339,8 @@ class DerivativeChecker:
             x = self.x0
         
         # Get Jacobian from C implementation
-        self.c_problem.init_derivatives()
+        self.c_problem.init_jacobian()
+        self.c_problem.init_hessian()
         self.c_problem.constraint_forward(x) 
         c_jac_csr = self.c_problem.jacobian()
         c_jac_dense = c_jac_csr.toarray()
@@ -469,7 +486,8 @@ class DerivativeChecker:
         """ Run all derivative checks (constraints, Jacobian, and Hessian). """
 
         print("initializing derivatives for derivative checking...")
-        self.c_problem.init_derivatives()
+        self.c_problem.init_jacobian()
+        self.c_problem.init_hessian()
         print("done initializing derivatives.")
         objective_result = self.check_objective_value(x)
         gradient_result = self.check_gradient(x)

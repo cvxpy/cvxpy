@@ -143,7 +143,15 @@ class IPOPT(NLPsolver):
 
         # Create oracles object (deferred from apply() so we have access to verbose)
         bounds = data["_bounds"]
-        oracles = Oracles(bounds.new_problem, bounds.x0, len(bounds.cl), verbose=verbose)
+
+        # Detect quasi-Newton mode (L-BFGS) - skip Hessian initialization if not needed
+        hessian_approx = 'exact'
+        if solver_opts:
+            hessian_approx = solver_opts.get('hessian_approximation', 'exact')
+        use_hessian = (hessian_approx == 'exact')
+
+        oracles = Oracles(bounds.new_problem, bounds.x0, len(bounds.cl),
+                          verbose=verbose, use_hessian=use_hessian)
 
         nlp = cyipopt.Problem(
         n=len(data["x0"]),

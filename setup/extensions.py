@@ -65,9 +65,11 @@ sparsecholesky = Pybind11Extension(
 # Diff engine C extension for NLP support (optional)
 # Source: https://github.com/dance858/DNLP-Differentiation-Engine
 # Only built if the submodule is initialized (git submodule update --init)
+# Python bindings are in cvxpy/.../diff_engine/_bindings/ (separate from C library)
 diffengine = None
-_diffengine_bindings = 'diff_engine_core/python/bindings.c'
-if os.path.exists(_diffengine_bindings):
+_diffengine_bindings = 'cvxpy/reductions/solvers/nlp_solvers/diff_engine/_bindings/bindings.c'
+_diffengine_include = 'diff_engine_core/include/'
+if os.path.exists(_diffengine_bindings) and os.path.exists(_diffengine_include):
     diff_engine_sources = [
         s for s in glob.glob('diff_engine_core/src/**/*.c', recursive=True)
         if 'dnlp_diff_engine' not in s  # Exclude standalone Python package
@@ -84,7 +86,7 @@ if os.path.exists(_diffengine_bindings):
         include_dirs=[
             'diff_engine_core/include/',
             'diff_engine_core/src/',
-            'diff_engine_core/python/',
+            'cvxpy/reductions/solvers/nlp_solvers/diff_engine/_bindings/',
         ],
         define_macros=diffengine_defines,
         extra_compile_args=[

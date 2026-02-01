@@ -131,7 +131,12 @@ class UNO(NLPsolver):
 
         # Create oracles object (deferred from apply() so we have access to verbose)
         bounds = data["_bounds"]
-        oracles = Oracles(bounds.new_problem, bounds.x0, len(bounds.cl), verbose=verbose)
+
+        # UNO always uses exact Hessian (no quasi-Newton option currently)
+        use_hessian = True
+
+        oracles = Oracles(bounds.new_problem, bounds.x0, len(bounds.cl),
+                          verbose=verbose, use_hessian=use_hessian)
 
         # Extract data from the data dictionary
         x0 = data["x0"]
