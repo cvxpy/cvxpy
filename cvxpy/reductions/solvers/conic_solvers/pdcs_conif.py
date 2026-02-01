@@ -1,5 +1,5 @@
 """
-Copyright 2022, the CVXPY Authors
+Copyright 2026, the CVXPY Authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 
