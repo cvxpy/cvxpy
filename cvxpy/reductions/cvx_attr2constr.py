@@ -156,6 +156,8 @@ class CvxAttr2Constr(Reduction):
                 elif var.attributes['sparsity']:
                     n = len(var.sparse_idx[0])
                     sparse_var = Variable(n, var_id=var.id, **new_attr)
+                    if var.value_sparse is not None:
+                        sparse_var.value = var.value_sparse.data
                     sparse_var.set_variable_of_provenance(var)
                     id2new_var[var.id] = sparse_var
                     row_idx = np.ravel_multi_index(var.sparse_idx, var.shape, order='F')
@@ -166,6 +168,10 @@ class CvxAttr2Constr(Reduction):
                     obj = reshape(coeff_matrix @ sparse_var, var.shape, order='F')
                 elif var.attributes['diag']:
                     diag_var = Variable(var.shape[0], var_id=var.id, **new_attr)
+                    if var.value is not None and sp.issparse(var.value):
+                        diag_var.value = var.value.diagonal()
+                    elif var.value is not None:
+                        diag_var.value = np.diag(var.value)
                     diag_var.set_variable_of_provenance(var)
                     id2new_var[var.id] = diag_var
                     obj = diag(diag_var)

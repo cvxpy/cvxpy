@@ -244,3 +244,28 @@ Always use the PR template in `.github/` when opening PRs. Fill out all sections
 4. Not testing with `Parameter` objects (DPP compliance)
 5. Missing license headers on new files
 6. **Forgetting to update documentation** - new features need docs at [cvxpy.org](https://www.cvxpy.org/) (see `doc/` folder)
+
+## DNLP Extension
+
+DNLP (Disciplined Nonlinear Programming) extends CVXPY to general nonlinear programming.
+
+### Additional Setup
+```bash
+# Install IPOPT (use conda, NOT pip)
+conda install -c conda-forge cyipopt
+
+# NLP tests
+pytest cvxpy/tests/nlp_tests/
+```
+
+### Architecture
+
+**Reduction chain for DNLP:**
+```
+Problem → CvxAttr2Constr → Dnlp2Smooth → NLPSolver (IPOPT/Knitro)
+```
+
+**Key components:**
+- `cvxpy/reductions/dnlp2smooth/` - Converts non-smooth atoms to smooth equivalents
+- `cvxpy/reductions/solvers/nlp_solvers/` - NLP solver interfaces (IPOPT, Knitro, COPT, Uno)
+- `diff_engine_core/` - Git submodule with C library for automatic differentiation

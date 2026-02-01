@@ -59,6 +59,16 @@ class xexp(Elementwise):
         """Is the atom log-log concave?
         """
         return False
+    
+    def is_atom_esr(self) -> bool:
+        """Is the atom esr?
+        """
+        return True
+
+    def is_atom_hsr(self) -> bool:
+        """Is the atom hsr?
+        """
+        return True
 
     def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?

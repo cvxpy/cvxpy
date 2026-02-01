@@ -58,10 +58,10 @@ With CVXPY, you can model
 * geometric programs, and
 * quasiconvex programs.
 
-CVXPY is not a solver. It relies upon the open source solvers 
+CVXPY is not a solver. It relies upon the open source solvers
 [Clarabel](https://github.com/oxfordcontrol/Clarabel.rs), [SCS](https://github.com/bodono/scs-python),
-[OSQP](https://github.com/oxfordcontrol/osqp) and [HiGHS](https://github.com/ERGO-Code/HiGHS).
-Additional solvers are [available](https://www.cvxpy.org/tutorial/solvers/index.html#choosing-a-solver),
+and [OSQP](https://github.com/oxfordcontrol/osqp). Additional solvers are
+[available](https://www.cvxpy.org/tutorial/solvers/index.html#choosing-a-solver),
 but must be installed separately.
 
 CVXPY began as a Stanford University research project. It is now developed by
@@ -83,11 +83,10 @@ CVXPY has the following dependencies:
 
 - Python >= 3.11
 - Clarabel >= 0.5.0
-- OSQP >= 1.0.0
+- OSQP >= 0.6.2
 - SCS >= 3.2.4.post1
-- NumPy >= 2.0.0
+- NumPy >= 1.22.4
 - SciPy >= 1.13.0
-- highspy >= 1.11.0
 
 For detailed instructions, see the [installation
 guide](https://www.cvxpy.org/install/index.html).
@@ -122,12 +121,12 @@ Here are some simple ways to start contributing immediately:
 * Read the CVXPY source code and improve the documentation, or address TODOs
 * Enhance the [website documentation](https://github.com/cvxpy/cvxpy/tree/master/doc)
 * Browse the [issue tracker](https://github.com/cvxpy/cvxpy/issues), and look for issues tagged as "help wanted"
-* Polish the [example library](https://github.com/cvxpy/examples)
+* Polish the [example library](https://github.com/cvxpy/cvxpy/tree/master/examples)
 * Add a [benchmark](https://github.com/cvxpy/benchmarks)
 
 If you'd like to add a new example to our library, or implement a new feature,
 please get in touch with us first to make sure that your priorities align with
-ours. 
+ours.
 
 Contributions should be submitted as [pull requests](https://github.com/cvxpy/cvxpy/pulls).
 A member of the CVXPY development team will review the pull request and guide
@@ -141,7 +140,7 @@ researchers and engineers.
 
 CVXPY is developed and maintained by [Steven
 Diamond](https://stevendiamond.me/), [Akshay
-Agrawal](https://akshayagrawal.com), [Riley Murray](https://rileyjmurray.wordpress.com/), 
+Agrawal](https://akshayagrawal.com), [Riley Murray](https://rileyjmurray.wordpress.com/),
 [Philipp Schiele](https://www.philippschiele.com/),
 [Bartolomeo Stellato](https://stellato.io/),
 and [Parth Nobel](https://ptnobel.github.io), with many others contributing
@@ -155,3 +154,35 @@ For more information about the team and our processes, see our [governance docum
 
 ## Citing
 If you use CVXPY for academic work, we encourage you to [cite our papers](https://www.cvxpy.org/resources/citing/index.html). If you use CVXPY in industry, we'd love to hear from you as well, on Discord or over email.
+
+## DNLP Extension
+
+CVXPY supports Disciplined Nonlinear Programming (DNLP), extending the modeling language to general nonlinear programming. DNLP allows smooth functions to be mixed with nonsmooth convex/concave functions.
+
+For details, see:
+- [DNLP paper](https://web.stanford.edu/~boyd/papers/dnlp.html)
+- [DNLP examples](https://github.com/cvxgrp/dnlp-examples)
+
+### Quick Start
+
+```python
+import cvxpy as cp
+import numpy as np
+
+x = cp.Variable(3)
+prob = cp.Problem(cp.Maximize(cp.quad_form(x, A)), [cp.sum_squares(x) == 1])
+
+# Initialize (required for NLP)
+x.value = np.ones(3)
+
+# Solve with IPOPT
+prob.solve(nlp=True, solver=cp.IPOPT)
+```
+
+### NLP Solvers
+
+| Solver | License | Installation |
+|--------|---------|--------------|
+| [IPOPT](https://github.com/coin-or/Ipopt) | EPL-2.0 | `conda install -c conda-forge cyipopt` |
+| [Knitro](https://www.artelys.com/solvers/knitro/) | Commercial | `pip install knitro` (requires license) |
+| [COPT](https://www.copt.de/) | Commercial | Requires license |

@@ -52,6 +52,16 @@ class logistic(Elementwise):
         """Is the atom concave?
         """
         return False
+    
+    def is_atom_esr(self) -> bool:
+        """Is the atom esr?
+        """
+        return True
+
+    def is_atom_hsr(self) -> bool:
+        """Is the atom hsr?
+        """
+        return True
 
     def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
@@ -78,3 +88,6 @@ class logistic(Elementwise):
         cols = self.size
         grad_vals = np.exp(values[0] - np.logaddexp(0, values[0]))
         return [logistic.elemwise_grad_to_diag(grad_vals, rows, cols)]
+
+    def point_in_domain(self):
+        return np.zeros(self.shape)

@@ -57,6 +57,16 @@ class entr(Elementwise):
         """Is the atom concave?
         """
         return True
+    
+    def is_atom_esr(self) -> bool:
+        """Is the atom esr?
+        """
+        return True
+
+    def is_atom_hsr(self) -> bool:
+        """Is the atom hsr?
+        """
+        return True
 
     def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
@@ -93,3 +103,6 @@ class entr(Elementwise):
         """Returns constraints describing the domain of the node.
         """
         return [self.args[0] >= 0]
+    
+    def point_in_domain(self):
+        return np.ones(self.shape)

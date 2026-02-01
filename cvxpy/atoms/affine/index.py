@@ -141,11 +141,12 @@ class special_index(AffAtom):
         self.key = key
         # Order the entries of expr and select them using key.
         expr = index.cast_to_const(expr)
-        idx_mat = np.arange(expr.size)
-        idx_mat = np.reshape(idx_mat, expr.shape, order='F')
+        idxs = np.arange(expr.size)
+        idx_mat = np.reshape(idxs, expr.shape, order='F')
         self._select_mat = idx_mat[key]
         self._shape = self._select_mat.shape
         super(special_index, self).__init__(expr)
+        self._jacobian_operator = None
 
     def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?

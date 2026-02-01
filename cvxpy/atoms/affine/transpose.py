@@ -116,6 +116,7 @@ class transpose(AffAtom):
         """
         return (lu.transpose(arg_objs[0], self.axes), [])
 
+
 def permute_dims(expr, axes: List[int]):
     """Permute the dimensions of the expression.
 
