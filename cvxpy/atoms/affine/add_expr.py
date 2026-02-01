@@ -18,7 +18,6 @@ from functools import reduce
 from typing import Any, Iterable, List, Tuple
 
 import numpy as np
-from scipy.sparse import coo_matrix
 
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
@@ -156,81 +155,3 @@ class AddExpression(AffAtom):
             if arg.shape != shape and lu.is_scalar(arg):
                 arg_objs[i] = lu.promote(arg, shape)
         return (lu.sum_expr(arg_objs), [])
-
-    def _verify_hess_vec_args(self):
-        return True
-
-    def _hess_vec(self, vec):
-        """
-        Computes the merged Hessian-vector product dictionary for all arguments.
-        If a key appears in several, their values are summed.
-        """
-        hess_dict = {}
-        keys_require_summing = []
-        
-        for arg in self.args:
-            if not arg.is_affine():
-                arg_hess = arg.hess_vec(vec)
-                for k, v in arg_hess.items():
-                    if k in hess_dict:
-                        hess_dict[k][0].extend(v[0])
-                        hess_dict[k][1].extend(v[1])
-                        hess_dict[k][2].extend(v[2])
-                        keys_require_summing.append(k)
-                    else:
-                        hess_dict[k] = ([], [], [])
-                        hess_dict[k][0].extend(np.atleast_1d(v[0]))
-                        hess_dict[k][1].extend(np.atleast_1d(v[1]))
-                        hess_dict[k][2].extend(np.atleast_1d(v[2]))
-
-        # sum duplicates
-        for key in set(keys_require_summing): 
-            rows, cols, vals = hess_dict[key]
-            shape = (key[0].size, key[0].size)
-            coo = coo_matrix((vals, (rows, cols)), shape=shape)
-            coo.sum_duplicates()
-            hess_dict[key] = (coo.row, coo.col, coo.data)
-
-        # convert lists to arrays
-        for k, v in hess_dict.items():
-            rows, cols, vals = v
-            hess_dict[k] = (np.array(rows), np.array(cols), np.array(vals))
-
-        return hess_dict
-
-    def _verify_jacobian_args(self):
-        return True
-
-    def _jacobian(self):
-        jacobian_dict = {}
-        keys_require_summing = []
-
-        for arg in self.args:
-            if not arg.is_constant():
-                arg_jac = arg.jacobian()
-            
-                for k, v in arg_jac.items():
-                    if k in jacobian_dict:
-                        jacobian_dict[k][0].extend(v[0])
-                        jacobian_dict[k][1].extend(v[1])
-                        jacobian_dict[k][2].extend(v[2])
-                        keys_require_summing.append(k)
-                    else:
-                        jacobian_dict[k] = ([], [], [])
-                        jacobian_dict[k][0].extend(np.atleast_1d(v[0]))
-                        jacobian_dict[k][1].extend(np.atleast_1d(v[1]))
-                        jacobian_dict[k][2].extend(np.atleast_1d(v[2]))
-
-        # sum duplicates
-        for key in set(keys_require_summing): 
-            rows, cols, vals = jacobian_dict[key]
-            coo = coo_matrix((vals, (rows, cols)), shape=(self.size, key.size))
-            coo.sum_duplicates()
-            jacobian_dict[key] = (coo.row, coo.col, coo.data)
-
-        # convert lists to arrays
-        for k, v in jacobian_dict.items():
-            rows, cols, vals = v
-            jacobian_dict[k] = (np.array(rows), np.array(cols), np.array(vals))
-
-        return jacobian_dict

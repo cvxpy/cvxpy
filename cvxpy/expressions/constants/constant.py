@@ -133,14 +133,6 @@ class Constant(Leaf):
         """
         return {}
 
-    def hess_vec(self, vec):
-        """
-        The hessian-vector product of a constant is zero.
-        This is necessary for taking second derivatives in NLP problems.
-        In particular, when the objective is a constant.
-        """
-        return {}
-
     @property
     def shape(self) -> Tuple[int, ...]:
         """Returns the (row, col) dimensions of the expression.
@@ -285,10 +277,6 @@ class Constant(Leaf):
             self._nsd_test = eig_util.is_psd_within_tol(-self.value, s.EIGVAL_TOL)
 
         return self._nsd_test
-
-    # needed if we minimize a constant
-    def jacobian(self):
-        return {}
 
     def get_bounds(self) -> Tuple[np.ndarray, np.ndarray]:
         """Return bounds for this constant.

@@ -19,7 +19,6 @@ import numpy as np
 
 from cvxpy.atoms.elementwise.elementwise import Elementwise
 from cvxpy.constraints.constraint import Constraint
-from cvxpy.expressions.variable import Variable
 
 
 class sin(Elementwise):
@@ -84,24 +83,7 @@ class sin(Elementwise):
         grad_vals = np.cos(values[0])
         return [sin.elemwise_grad_to_diag(grad_vals, rows, cols)]
 
-    def _verify_hess_vec_args(self):
-        return isinstance(self.args[0], Variable)
 
-    def _hess_vec(self, vec):
-        var = self.args[0]
-        idxs = np.arange(var.size, dtype=int)
-        vals = -np.sin(var.value.flatten(order='F')) * vec
-        return {(var, var): (idxs, idxs, vals)}
-    
-    def _verify_jacobian_args(self):
-        return isinstance(self.args[0], Variable)
-
-    def _jacobian(self):
-        x = self.args[0]
-        idxs = np.arange(x.size, dtype=int)
-        vals = np.cos(x.value.flatten(order='F'))
-        return {x: (idxs, idxs, vals)}
-        
 class cos(Elementwise):
     """Elementwise :math:`\\cos x`.
     """
@@ -163,24 +145,6 @@ class cos(Elementwise):
         cols = self.size
         grad_vals = -np.sin(values[0])
         return [cos.elemwise_grad_to_diag(grad_vals, rows, cols)]
-    
-    def _verify_hess_vec_args(self):
-        return isinstance(self.args[0], Variable)
-
-    def _hess_vec(self, vec):
-        var = self.args[0]
-        idxs = np.arange(var.size, dtype=int)
-        vals = -np.cos(var.value.flatten(order='F')) * vec
-        return {(var, var): (idxs, idxs, vals)}
-    
-    def _verify_jacobian_args(self):
-        return isinstance(self.args[0], Variable)
-
-    def _jacobian(self):
-        x = self.args[0]
-        idxs = np.arange(x.size, dtype=int)
-        vals = -np.sin(x.value.flatten(order='F'))
-        return {x: (idxs, idxs, vals)}
 
 
 class tan(Elementwise):
@@ -244,22 +208,3 @@ class tan(Elementwise):
         cols = self.size
         grad_vals = 1/np.cos(values[0])**2
         return [tan.elemwise_grad_to_diag(grad_vals, rows, cols)]
-
-    def _verify_hess_vec_args(self):
-        return isinstance(self.args[0], Variable)
-
-    def _hess_vec(self, vec):
-        var = self.args[0]
-        idxs = np.arange(var.size, dtype=int)
-        vals = 2*np.tan(var.value) / np.cos(var.value)**2 
-        vals = vals.flatten(order='F') * vec
-        return {(var, var): (idxs, idxs, vals)}
-    
-    def _verify_jacobian_args(self):
-        return isinstance(self.args[0], Variable)
-
-    def _jacobian(self):
-        x = self.args[0]
-        idxs = np.arange(x.size, dtype=int)
-        vals = 1/np.cos(x.value).flatten(order='F')**2
-        return {x: (idxs, idxs, vals)}

@@ -19,7 +19,6 @@ from typing import Tuple
 import numpy as np
 
 from cvxpy.atoms.elementwise.elementwise import Elementwise
-from cvxpy.expressions.variable import Variable
 from cvxpy.utilities import bounds as bounds_utils
 
 
@@ -101,27 +100,3 @@ class exp(Elementwise):
         cols = self.size
         grad_vals = np.exp(values[0])
         return [exp.elemwise_grad_to_diag(grad_vals, rows, cols)]
-
-    def _verify_hess_vec_args(self):
-        return isinstance(self.args[0], Variable)
-
-    def _hess_vec(self, vec):
-        """ See the docstring of the hess_vec method of the atom class. """
-        x = self.args[0]
-        idxs = np.arange(x.size, dtype=int)
-        vals = np.exp(x.value.flatten(order='F')) * vec
-        return {(x, x): (idxs, idxs, vals)}
-
-    def _verify_jacobian_args(self):
-        return isinstance(self.args[0], Variable)
-
-    def _jacobian(self):
-        """
-        The jacobian of the exp of a variable is a diagonal matrix with
-        entries exp(x_i). We vectorize matrix expressions, so we flatten the
-        values in column-major (Fortran) order.
-        """
-        x = self.args[0]
-        idxs = np.arange(x.size, dtype=int)
-        vals = np.exp(x.value.flatten(order='F'))
-        return {x: (idxs, idxs, vals)}

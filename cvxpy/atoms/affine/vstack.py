@@ -16,7 +16,6 @@ limitations under the License.
 from typing import List, Tuple
 
 import numpy as np
-from scipy.sparse import coo_matrix
 
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
@@ -80,70 +79,3 @@ class Vstack(AffAtom):
             (LinOp for objective, list of constraints)
         """
         return (lu.vstack(arg_objs, shape), [])
-
-    def _verify_jacobian_args(self):
-        return True
-
-    def _jacobian(self):
-        result = {}
-        M = self.shape[0]
-
-        row_offset = 0
-        for arg in self.args:
-            jac = arg.jacobian()
-            m_j = arg.shape[0] if arg.ndim >= 2 else 1
-            for k, (rows, cols, vals) in jac.items():
-                new_rows = (rows % m_j) + row_offset + (rows // m_j) * M
-                if k in result:
-                    old_rows, old_cols, old_vals = result[k]
-                    result[k] = (
-                        np.concatenate([old_rows, new_rows]),
-                        np.concatenate([old_cols, cols]),
-                        np.concatenate([old_vals, vals]),
-                    )
-                else:
-                    result[k] = (new_rows, cols, vals)
-            row_offset += m_j
-
-        return result
-
-    def _verify_hess_vec_args(self):
-        return True
-
-    def _hess_vec(self, vec):
-        M = self.shape[0]
-        result = {}
-        keys_require_summing = []
-
-        row_offset = 0
-        for arg in self.args:
-            m_j = arg.shape[0] if arg.ndim >= 2 else 1
-
-            arg_indices = np.arange(arg.size)
-            output_indices = (arg_indices % m_j) + row_offset + (arg_indices // m_j) * M
-            arg_vec = vec[output_indices]
-
-            arg_result = arg.hess_vec(arg_vec)
-            for k, v in arg_result.items():
-                if k in result:
-                    old_rows, old_cols, old_vals = result[k]
-                    new_rows, new_cols, new_vals = v
-                    result[k] = (
-                        np.concatenate([old_rows, new_rows]),
-                        np.concatenate([old_cols, new_cols]),
-                        np.concatenate([old_vals, new_vals]),
-                    )
-                    keys_require_summing.append(k)
-                else:
-                    result[k] = v
-
-            row_offset += m_j
-
-        for k in set(keys_require_summing):
-            rows, cols, vals = result[k]
-            var1, var2 = k
-            hess = coo_matrix((vals, (rows, cols)), shape=(var1.size, var2.size))
-            hess.sum_duplicates()
-            result[k] = (hess.row, hess.col, hess.data)
-
-        return result

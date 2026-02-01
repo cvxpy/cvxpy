@@ -23,7 +23,6 @@ from scipy import linalg as LA
 from cvxpy.atoms.affine.wraps import psd_wrap
 from cvxpy.atoms.atom import Atom
 from cvxpy.expressions.expression import Expression
-from cvxpy.expressions.variable import Variable
 from cvxpy.interface.matrix_utilities import is_sparse
 from cvxpy.utilities.linalg import sparse_cholesky
 from cvxpy.utilities.warn import warn
@@ -137,28 +136,6 @@ class QuadForm(Atom):
         P = np.array(values[1])
         D = (P + np.conj(P.T)) @ x
         return [sp.csc_array([D.ravel(order="F")]).T]
-
-    def _verify_hess_vec_args(self):
-        return isinstance(self.args[0], Variable)
-
-    def _hess_vec(self, vec):
-        x = self.args[0]
-        Q = self.args[1]
-        Q_coo = sp.coo_matrix(Q.value)
-        # it is correct to do vec * Q_coo.data because Q_coo is symmetric
-        # so it doesn't matter if Q_coo is row or column major
-        return {(x, x): (Q_coo.row, Q_coo.col, 2 * vec * Q_coo.data)}
-
-    def _verify_jacobian_args(self):
-        return isinstance(self.args[0], Variable)
-    
-    def _jacobian(self):
-        x = self.args[0]
-        Q = self.args[1]
-        vals = 2 * (Q.value @ x.value).T 
-        rows = np.zeros(x.size, dtype=int)
-        cols = np.arange(x.size, dtype=int)
-        return {x: (rows, cols, vals)}
 
     def shape_from_args(self) -> Tuple[int, ...]:
         return tuple()

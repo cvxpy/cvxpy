@@ -160,17 +160,6 @@ class reshape(AffAtom):
                 result = lu.reshape(arg, shape[::-1])
                 return (lu.transpose(result), [])
 
-    def _verify_jacobian_args(self):
-        return self.order == 'F'
-
-    def _jacobian(self):
-        return self.args[0].jacobian()
-
-    def _verify_hess_vec_args(self):
-        return self.order == 'F'
-
-    def _hess_vec(self, vec):
-        return self.args[0].hess_vec(vec)
 
 def deep_flatten(x):
     # base cases

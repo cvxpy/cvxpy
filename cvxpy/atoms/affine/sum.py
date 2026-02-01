@@ -20,7 +20,6 @@ from typing import Optional, Tuple
 
 import numpy as np
 from numpy.exceptions import AxisError
-from scipy.sparse import coo_matrix
 
 import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_op as lo
@@ -147,48 +146,6 @@ class Sum(AxisAtom, AffAtom):
                 obj = lu.mul_expr(ones, arg_objs[0], shape)
         return (obj, [])
 
-    def _verify_hess_vec_args(self):
-        return True
-
-    def _hess_vec(self, vec):
-        """ See the docstring of the hess_vec method of the atom class. """
-        arg0 = self.args[0]
-        if self.axis is None:
-            return arg0.hess_vec(vec * np.ones(arg0.size))
-        else:
-            m, n = arg0.shape
-            if self.axis == 0:
-                rep_vec = np.repeat(vec, m)
-            elif self.axis == 1:
-                rep_vec = np.tile(vec, n)
-            return arg0.hess_vec(rep_vec)
-    
-    def _verify_jacobian_args(self):
-        """
-        We only support axis=None, 0, or 1 for the Jacobian.
-        """
-        return self.axis in {None, 0, 1}
-    
-    def _jacobian(self):
-        """
-        Compute the Jacobian of the sum atom.
-        """
-        jac_dict = self.args[0].jacobian()
-        for k in jac_dict:
-            rows, cols, vals = jac_dict[k]
-            if self.axis is None:
-                rows = np.zeros(len(cols), dtype=int)
-            else:
-                m, _ = self.args[0].shape
-                if self.axis == 0:
-                    rows = rows // m
-                elif self.axis == 1:
-                    rows = rows % m
-            jacobian = coo_matrix((vals, (rows, cols)), shape=(self.size, k.size))
-            jacobian.sum_duplicates()
-            jac_dict[k] = (jacobian.row, jacobian.col, jacobian.data)
-
-        return jac_dict
 
 @wraps(Sum)
 def sum(expr, axis: Optional[int] = None, keepdims: bool = False):

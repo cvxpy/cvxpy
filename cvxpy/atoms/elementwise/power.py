@@ -21,7 +21,6 @@ import cvxpy.utilities as u
 from cvxpy.atoms.elementwise.elementwise import Elementwise
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions import cvxtypes
-from cvxpy.expressions.variable import Variable
 from cvxpy.utilities import bounds as bounds_utils
 from cvxpy.utilities.power_tools import is_power2, pow_high, pow_mid, pow_neg
 
@@ -391,58 +390,6 @@ class Power(Elementwise):
         grad_vals = float(p)*np.power(values[0], float(p)-1)
         return [Power.elemwise_grad_to_diag(grad_vals, rows, cols)]
 
-    def _verify_hess_vec_args(self):
-        # we can't compute the hessian if p is not constant and specified
-        if (self.p_used is None and self.p.value is None) or \
-            not isinstance(self.args[0], Variable):
-            return False
-
-        return True
-
-    def _hess_vec(self, vec):
-        """ See the docstring of the hess_vec method of the atom class. """
-        if self.p_used is not None:
-            p = self.p_used
-        elif self.p.value is not None:
-            p = self.p.value
-        
-        if p == 0 or p == 1:
-            return {}
-    
-        x = self.args[0]
-        hess_vals = float(p)*float(p-1)*np.power(x.value.flatten(order='F'), float(p)-2)
-        idxs = np.arange(x.size, dtype=int)
-        vals = hess_vals * vec
-        return {(x, x): (idxs, idxs, vals)}
-    
-    def _verify_jacobian_args(self):
-        if (self.p_used is None and self.p.value is None):
-            return False
-
-        if not isinstance(self.args[0], Variable):
-            return False
-        
-        return True
-
-    def _jacobian(self):
-        """
-        The jacobian of the power of a variable is a diagonal matrix with
-        entries p * x_i^(p-1). We vectorize matrix expressions, so we flatten the
-        values in column-major (Fortran) order.
-        """
-        if self.p_used is not None:
-            p = self.p_used
-        elif self.p.value is not None:
-            p = self.p.value
-
-        if p == 0:
-            return {}
-        
-        x = self.args[0]
-        idxs = np.arange(x.size, dtype=int)
-        vals = float(p)*np.power(x.value.flatten(order='F'), float(p)-1)
-        return {x: (idxs, idxs, vals)}
-        
     def _domain(self) -> List[Constraint]:
         """Returns constraints describing the domain of the node.
         """

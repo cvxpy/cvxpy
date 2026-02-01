@@ -28,7 +28,6 @@ from cvxpy.atoms.affine.add_expr import AddExpression
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.atoms.affine.broadcast_to import broadcast_to
 from cvxpy.atoms.affine.conj import conj
-from cvxpy.atoms.affine.promote import Promote
 from cvxpy.atoms.affine.reshape import deep_flatten, reshape
 from cvxpy.atoms.affine.sum import sum as cvxpy_sum
 from cvxpy.constraints.constraint import Constraint
@@ -38,7 +37,6 @@ from cvxpy.expressions.constants.parameter import (
     is_param_free,
 )
 from cvxpy.expressions.expression import Expression
-from cvxpy.expressions.variable import Variable
 from cvxpy.utilities import bounds as bounds_utils
 
 
@@ -311,137 +309,6 @@ class MulExpression(BinaryOperator):
         DY = sp.kron(sp.eye_array(n), X, format='csc').T
 
         return [DX, DY]
-    
-    def _verify_hess_vec_args(self):
-        X = self.args[0]
-        Y = self.args[1]
-
-        # if X is an atom, Y must be constant
-        if not isinstance(X, Variable) and not X.is_constant():
-            if not Y.is_constant():
-                return False
-        
-        # if Y is an atom, X must be constant
-        if not isinstance(Y, Variable) and not Y.is_constant():
-            if not X.is_constant():
-                return False
-
-        # if both are variables, check that they are not the same variable
-        if isinstance(X, Variable) and isinstance(Y, Variable):
-            if X.id == Y.id:
-                return False
-
-        return True
-    
-    def _hess_vec(self, vec):
-        X = self.args[0]
-        Y = self.args[1]
-
-        m, n = self.get_dimensions(X)
-        _, p = self.get_dimensions(Y)
-
-        if X.is_constant():
-            B = X.value.T @ np.reshape(vec, (m, p), order='F')
-            hess_dict = Y.hess_vec(B.flatten(order='F'))
-            return hess_dict 
-            
-        if Y.is_constant():
-            B = np.reshape(vec, (m, p), order='F') @ Y.value.T
-            hess_dict = X.hess_vec(B.flatten(order='F'))
-            return hess_dict
-
-        # here both are variables by themselves so we only get a cross term
-        rows = np.tile(np.arange(m * n), p)
-        cols = np.repeat(np.arange(n * p), m)
-        vals = vec[(cols // n) * m + (rows % m)]
-        return {(X, Y): (rows, cols, vals), (Y, X): (cols, rows, vals)}
-            
-    def _verify_jacobian_args(self):
-        X = self.args[0]
-        Y = self.args[1]
-
-        X_vars = X.variables()
-        Y_vars = Y.variables()
-
-        # no variable can appear in both arguments
-        for x_var in X_vars:
-            for y_var in Y_vars:
-                if x_var.id == y_var.id:
-                    return False
-        
-        return True
-
-    def get_dimensions(self, X):
-        """Get the dimensions of X as (rows, cols).   
-        """
-        if len(X.shape) == 0:
-            return (1, 1)
-        elif len(X.shape) == 1:
-            return (X.shape[0], 1)
-        else:
-            return X.shape
-
-    def _jacobian(self):
-        """
-        The atom is phi(X, Y) = X @ Y. It is vectorized as
-        z = vec(phi(X, Y)) = (I ⊗ X) vec(Y) = (Y.T ⊗ I) vec(X).
-        Let x = vec(X) and y = vec(Y). Then the Jacobian is given by
-        dz/dx = kron(Y.T, I) and dz/dy = kron(I, X).
-        """
-
-        X = self.args[0]
-        Y = self.args[1]
-        
-        m, _ = self.get_dimensions(X)
-        _, p = self.get_dimensions(Y)
-
-        dx_dict = {}
-        dy_dict = {}
-
-        if not X.is_constant():
-            dx = sp.kron(Y.value.T, sp.eye(m), format='csr')
-            
-            if not isinstance(X, Variable):
-                X_jac_dict = X.jacobian()
-                for var in X_jac_dict:
-                    rows, cols, vals = X_jac_dict[var]
-                    X_jac = sp.coo_array((vals, (rows, cols)), 
-                                         shape=(dx.shape[1], var.size)).tocsc()
-                    X_jac = (dx @ X_jac).tocoo()
-                    X_jac_dict[var] = (X_jac.row, X_jac.col, X_jac.data)
-                
-                dx_dict = X_jac_dict 
-            else: 
-                dx = dx.tocoo()
-                dx_dict = {X: (dx.row, dx.col, dx.data)}
-            
-            
-        if not Y.is_constant():
-            dy = sp.kron(sp.eye(p), X.value, format='csr')
-
-            if not isinstance(Y, Variable):
-                Y_jac_dict = Y.jacobian()
-                for var in Y_jac_dict:
-                    rows, cols, vals = Y_jac_dict[var]
-                    Y_jac = sp.coo_array((vals, (rows, cols)),
-                                          shape=(dy.shape[1], var.size)).tocsc()
-                    Y_jac = (dy @ Y_jac).tocoo()
-                    Y_jac_dict[var] = (Y_jac.row, Y_jac.col, Y_jac.data)
-                
-                dy_dict = Y_jac_dict 
-            else: 
-                dy = dy.tocoo()
-                dy_dict = {Y: (dy.row, dy.col, dy.data)}
-
-        if X.is_constant() and not Y.is_constant():
-            return dy_dict
-        
-        if not X.is_constant() and Y.is_constant():
-            return dx_dict
-
-        # merge the two dictionaries together
-        dx_dict.update(dy_dict)
-        return dx_dict
 
     def graph_implementation(
         self, arg_objs, shape: Tuple[int, ...], data=None
@@ -574,114 +441,6 @@ class multiply(MulExpression):
 
         return [DX, DY]
 
-    def _verify_hess_vec_args(self):
-        x = self.args[0]
-        y = self.args[1]
-        if x.size != y.size:
-            return False
-
-        if x.is_constant() and y.is_constant():
-            return False
-
-        # one of the following must be true:
-        # 1. both arguments are variables
-        # 2. one argument is a constant
-        # 3. one argument is a Promote of a variable and the other is a variable
-        both_are_variables = isinstance(x, Variable) and isinstance(y, Variable)
-        one_is_constant = x.is_constant() or y.is_constant()
-        x_is_promote = type(x) == Promote and isinstance(y, Variable)
-        y_is_promote = type(y) == Promote and isinstance(x, Variable)
-
-        if not (both_are_variables or one_is_constant or x_is_promote or y_is_promote):
-            return False
-        
-        if both_are_variables and x.id == y.id:
-            return False
-
-        return True
-
-    def _hess_vec(self, vec):
-        x = self.args[0]
-        y = self.args[1]
-        
-        # constant * atom
-        if x.is_constant(): 
-            y_hess_vec = y.hess_vec(x.value.flatten(order='F') * vec)
-            return y_hess_vec
-        
-        # atom * constant
-        if y.is_constant():
-            x_hess_vec = x.hess_vec(y.value.flatten(order='F') * vec)
-            return x_hess_vec
-
-        # x * y with x a scalar variable, y a vector variable
-        if not isinstance(x, Variable) and x.is_affine():
-            assert(type(x) == Promote)
-            x_var = x.args[0] # here x is a Promote because of how we canonicalize
-            zeros_x = np.zeros(x_var.size, dtype=int)
-            cols = np.arange(y.size,  dtype=int)
-            return {(x_var, y): (zeros_x, cols, vec),
-                    (y, x_var): (cols, zeros_x, vec)}
-        
-        # x * y with x a vector variable, y a scalar
-        if not isinstance(y, Variable) and y.is_affine():
-            assert(type(y) == Promote)
-            y_var = y.args[0] # here y is a Promote because of how we canonicalize
-            zeros_y = np.zeros(y_var.size, dtype=int)
-            cols = np.arange(x.size,  dtype=int)
-            return {(x, y_var): (cols, zeros_y, vec),
-                    (y_var, x): (zeros_y, cols, vec)}
-        
-        # if we arrive here both arguments are variables of the same size
-        rows = np.arange(x.size,  dtype=int)
-        cols = np.arange(x.size,  dtype=int)
-        return {(x, y): (rows, cols, vec), (y, x): (rows, cols, vec)}
-
-    def _verify_jacobian_args(self):
-        return self._verify_hess_vec_args()
-    
-
-    def _jacobian(self):
-        x = self.args[0]
-        y = self.args[1]
-
-        if x.is_constant():
-            dy = y.jacobian()
-            for k in dy:
-                rows, cols, vals = dy[k]
-                # this is equivalent to forming the matrix defined
-                # rows, cols, vals and scaling each row i by y.value[i]
-                dy[k] = (rows, cols, np.atleast_1d(x.value).flatten(order='F')[rows] * vals)
-            return dy
-
-        if y.is_constant():
-            dx = x.jacobian()
-            for k in dx:
-                rows, cols, vals = dx[k]
-                dx[k] = (rows, cols, np.atleast_1d(y.value).flatten(order='F')[rows] * vals)
-            return dx
-
-        if not isinstance(x, Variable) and x.is_affine():
-            assert(type(x) == Promote)
-            x_var = x.args[0] # here x is a Promote because of how we canonicalize
-            idxs = np.arange(y.size,  dtype=int)
-            return {(x_var): (idxs, np.zeros(y.size, dtype=int), y.value),
-                    (y): (idxs, idxs, x.value)}
-        
-        # x * y with x a vector variable, y a scalar
-        if not isinstance(y, Variable) and y.is_affine():
-            assert(type(y) == Promote)
-            y_var = y.args[0] # here y is a Promote because of how we canonicalize
-            idxs = np.arange(x.size, dtype=int)
-            return {(x): (idxs, idxs, y.value),
-                    (y_var): (idxs, np.zeros(x.size, dtype=int), x.value)}
-        
-        # here both are variables
-        idxs = np.arange(x.size, dtype=int)
-        jacobian_dict = {x: (idxs, idxs, y.value.flatten(order='F')),
-                        y: (idxs, idxs, x.value.flatten(order='F'))}
-        return jacobian_dict
-
     def graph_implementation(
         self, arg_objs, shape: Tuple[int, ...], data=None
     ) -> Tuple[lo.LinOp, List[Constraint]]:
@@ -798,14 +557,6 @@ class DivExpression(BinaryOperator):
     
     def point_in_domain(self):
         return np.ones(self.args[1].shape)
-
-    def _verify_hess_vec_args(self):
-        raise RuntimeError("The _verify_hess_vec_args method of"
-                           " the division atom should never be called.")
-
-    def _hess_vec(self, vec):
-        raise RuntimeError("The hess_vec method of the division atom should never "
-                           "be called.")
 
     def graph_implementation(
         self, arg_objs, shape: Tuple[int, ...], data=None

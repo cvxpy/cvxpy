@@ -119,23 +119,3 @@ class Promote(AffAtom):
             (LinOp for objective, list of constraints)
         """
         return (lu.promote(arg_objs[0], shape), [])
-
-    def _verify_hess_vec_args(self):
-        return True
-
-    def _hess_vec(self, values):
-        return self.args[0]._hess_vec(np.sum(values))
-
-    def _verify_jacobian_args(self):
-        return (self.args[0].size == 1)
-
-    def _jacobian(self):
-        jacobian_dict = self.args[0].jacobian()
-        size = self.size
-    
-        for k in jacobian_dict:
-            _, cols, vals = jacobian_dict[k]
-            rows = np.repeat(np.arange(size), len(cols))
-            jacobian_dict[k] = (rows, np.tile(cols, size), np.tile(vals, size)) 
-
-        return jacobian_dict

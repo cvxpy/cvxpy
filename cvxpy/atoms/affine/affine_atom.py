@@ -170,6 +170,3 @@ class AffAtom(Atom):
                 var_start = var_end
 
         return grad_list
-
-    def _verify_jacobian_args(self):
-        return True

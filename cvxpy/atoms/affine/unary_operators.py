@@ -123,22 +123,3 @@ class NegExpression(UnaryOperator):
             (LinOp for objective, list of constraints)
         """
         return (lu.neg_expr(arg_objs[0]), [])
-
-    def _verify_hess_vec_args(self):
-        return True
-
-    def _hess_vec(self, vec):
-        """ See the docstring of the hess_vec method of the atom class. """
-        return self.args[0].hess_vec(-vec)
-    
-    def _verify_jacobian_args(self):
-        return True
-
-    def _jacobian(self):
-        jacobian_dict = self.args[0].jacobian()
-        
-        for k in jacobian_dict:
-            rows, cols, vals = jacobian_dict[k]
-            jacobian_dict[k] = (rows, cols, -vals)
-       
-        return jacobian_dict

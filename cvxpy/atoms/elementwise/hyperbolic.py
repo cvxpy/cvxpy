@@ -19,7 +19,6 @@ import numpy as np
 
 from cvxpy.atoms.elementwise.elementwise import Elementwise
 from cvxpy.constraints.constraint import Constraint
-from cvxpy.expressions.variable import Variable
 
 
 class sinh(Elementwise):
@@ -79,24 +78,7 @@ class sinh(Elementwise):
     def _grad(self, values) -> List[Constraint]:
         raise NotImplementedError("Gradient not implemented for sinh.")
 
-    def _verify_hess_vec_args(self):
-        return isinstance(self.args[0], Variable)
 
-    def _hess_vec(self, vec):
-        var = self.args[0]
-        idxs = np.arange(var.size)
-        vals = np.sinh(var.value.flatten(order='F')) * vec
-        return {(var, var): (idxs, idxs, vals)}
-    
-    def _verify_jacobian_args(self):
-        return isinstance(self.args[0], Variable)
-
-    def _jacobian(self):
-        x = self.args[0]
-        idxs = np.arange(x.size, dtype=int)
-        vals = np.cosh(x.value.flatten(order='F'))
-        return {x: (idxs, idxs, vals)}
-        
 class tanh(Elementwise):
     """Elementwise :math:`\\tan x`.
     """
@@ -154,24 +136,7 @@ class tanh(Elementwise):
     def _grad(self, values) -> List[Constraint]:
         raise NotImplementedError("Gradient not implemented for tanh.")
 
-    def _verify_hess_vec_args(self):
-        return isinstance(self.args[0], Variable)
 
-    def _hess_vec(self, vec):
-        var = self.args[0]
-        idxs = np.arange(var.size)
-        vals = -2 * (np.tanh(var.value) / np.cosh(var.value) ** 2).flatten(order='F') * vec
-        return {(var, var): (idxs, idxs, vals)}
-    
-    def _verify_jacobian_args(self):
-        return isinstance(self.args[0], Variable)
-
-    def _jacobian(self):
-        x = self.args[0]
-        idxs = np.arange(x.size, dtype=int)
-        vals = 1 / np.cosh(x.value.flatten(order='F'))**2
-        return {x: (idxs, idxs, vals.flatten(order='F'))}
-    
 class asinh(Elementwise):
     """Elementwise :math:`\\operatorname{asinh} x` (inverse hyperbolic sine).
     """
@@ -213,23 +178,6 @@ class asinh(Elementwise):
     def _grad(self, values) -> List[Constraint]:
         raise NotImplementedError("Gradient not implemented for asinh.")
 
-    def _verify_hess_vec_args(self):
-        return isinstance(self.args[0], Variable)
-
-    def _hess_vec(self, vec):
-        x = self.args[0]
-        idxs = np.arange(x.size, dtype=int)
-        vals = (-x.value / (1.0 + x.value ** 2) ** 1.5).flatten(order='F') * vec
-        return {(x, x): (idxs, idxs, vals)}
-
-    def _verify_jacobian_args(self):
-        return isinstance(self.args[0], Variable)
-
-    def _jacobian(self):
-        x = self.args[0]
-        idxs = np.arange(x.size, dtype=int)
-        vals = 1.0 / np.sqrt(1.0 + x.value**2).flatten(order='F')
-        return {x: (idxs, idxs, vals)}
 
 class atanh(Elementwise):
     """Elementwise :math:`\\operatorname{atanh} x` (inverse hyperbolic tangent).
@@ -271,21 +219,3 @@ class atanh(Elementwise):
 
     def _grad(self, values) -> List[Constraint]:
         raise NotImplementedError("Gradient not implemented for atanh.")
-
-    def _verify_hess_vec_args(self):
-        return isinstance(self.args[0], Variable)
-
-    def _hess_vec(self, vec):
-        x = self.args[0]
-        idxs = np.arange(x.size, dtype=int)
-        vals = (2.0 * x.value / (1.0 - x.value ** 2) ** 2).flatten(order='F') * vec
-        return {(x, x): (idxs, idxs, vals)}
-
-    def _verify_jacobian_args(self):
-        return isinstance(self.args[0], Variable)
-
-    def _jacobian(self):
-        x = self.args[0]
-        idxs = np.arange(x.size, dtype=int)
-        vals = 1.0 / (1.0 - x.value**2).flatten(order='F')
-        return {x: (idxs, idxs, vals)}

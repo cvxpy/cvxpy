@@ -100,15 +100,6 @@ class kl_div(Elementwise):
                                                            rows, cols)]
             return grad_list
 
-    def _verify_hess_vec_args(self):
-        raise NotImplementedError("Second derivative of kl_div should not be called. "
-                                  "(KL is canonicalized using rel_entr.)")
-
-    def _hess_vec(self, vec):
-        """ See the docstring of the hess_vec method of the atom class. """
-        raise NotImplementedError("Second derivative of kl_div should not be called. "
-                                  "(KL is canonicalized using rel_entr.)")
-    
     def _domain(self) -> List[Constraint]:
         """Returns constraints describing the domain of the node.
         """

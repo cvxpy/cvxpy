@@ -20,7 +20,6 @@ import numpy as np
 
 from cvxpy.atoms.elementwise.elementwise import Elementwise
 from cvxpy.constraints.constraint import Constraint
-from cvxpy.expressions.variable import Variable
 
 
 class xexp(Elementwise):
@@ -104,21 +103,3 @@ class xexp(Elementwise):
         """Returns constraints describing the domain of the node.
         """
         return [self.args[0] >= 0]
-
-    def _verify_jacobian_args(self):
-        return isinstance(self.args[0], Variable)
-    
-    def _jacobian(self):
-        x = self.args[0]
-        idxs = np.arange(x.size, dtype=int)
-        vals = np.exp(x.value).flatten(order='F') * (1 + x.value.flatten(order='F'))
-        return {x: (idxs, idxs, vals)}
-    
-    def _verify_hess_vec_args(self):
-        return isinstance(self.args[0], Variable)
-    
-    def _hess_vec(self, vec):
-        x = self.args[0]
-        idxs = np.arange(x.size, dtype=int)
-        vals = np.exp(x.value.flatten(order='F')) * (2 + x.value.flatten(order='F')) * vec
-        return {(x, x): (idxs, idxs, vals)}
