@@ -151,7 +151,6 @@ def _reductions_for_problem_class(problem, candidates, gp: bool = False,
         reductions += [complex2real.Complex2Real()]
     if gp:
         reductions += [Dgp2Dcp()]
-
     if not gp and not problem.is_dcp():
         append = build_non_disciplined_error_msg(problem, 'DCP')
         if problem.is_dgp():

@@ -66,6 +66,16 @@ class maximum(Elementwise):
         """Is the atom concave?
         """
         return False
+    
+    def is_atom_esr(self) -> bool:
+        """Is the atom esr?
+        """
+        return True
+
+    def is_atom_hsr(self) -> bool:
+        """Is the atom hsr?
+        """
+        return False
 
     def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
@@ -115,3 +125,4 @@ class maximum(Elementwise):
             grad_list += [maximum.elemwise_grad_to_diag(grad_vals,
                                                         rows, cols)]
         return grad_list
+

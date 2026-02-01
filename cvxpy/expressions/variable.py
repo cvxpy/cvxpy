@@ -20,6 +20,7 @@ from typing import TYPE_CHECKING, Any, Iterable, Optional, Tuple
 if TYPE_CHECKING:
     from cvxpy.expressions.constants.parameter import Parameter
 
+import numpy as np
 import scipy.sparse as sp
 
 import cvxpy.lin_ops.lin_utils as lu
@@ -52,6 +53,8 @@ class Variable(Leaf):
         self._value = None
         self.delta = None
         self.gradient = None
+        # bounds for sampling initial points in DNLP problems
+        self.sample_bounds = None
         super(Variable, self).__init__(shape, **kwargs)
 
     def name(self) -> str:
@@ -69,6 +72,15 @@ class Variable(Leaf):
         """
         # TODO(akshayka): Do not assume shape is 2D.
         return {self: sp.eye_array(self.size, format='csc')}
+
+    # TODO (DCED): should this be _hess_vec? Will this ever be called directly?
+    def hess_vec(self, vec):
+        return {}
+    
+    def jacobian(self):
+        rows = np.arange(self.size)
+        vals = np.ones(self.size)
+        return {self: (rows, rows, vals)}
 
     def variables(self) -> list[Variable]:
         """Returns itself as a variable."""

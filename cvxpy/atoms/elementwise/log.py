@@ -19,6 +19,7 @@ import numpy as np
 
 from cvxpy.atoms.elementwise.elementwise import Elementwise
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.expressions.variable import Variable
 from cvxpy.utilities import bounds as bounds_utils
 
 
@@ -53,6 +54,16 @@ class log(Elementwise):
 
     def is_atom_concave(self) -> bool:
         """Is the atom concave?
+        """
+        return True
+    
+    def is_atom_esr(self) -> bool:
+        """Is the atom esr?
+        """
+        return True
+
+    def is_atom_hsr(self) -> bool:
+        """Is the atom hsr?
         """
         return True
 
@@ -96,8 +107,38 @@ class log(Elementwise):
         else:
             grad_vals = 1.0/values[0]
             return [log.elemwise_grad_to_diag(grad_vals, rows, cols)]
+            
+    def _verify_hess_vec_args(self):
+        return isinstance(self.args[0], Variable)
+    
+    def _hess_vec(self, vec):
+        """ See the docstring of the hess_vec method of the atom class. """
+        x = self.args[0]
+        idxs = np.arange(x.size, dtype=int)
+        vals = -vec / (x.value.flatten(order='F') ** 2)
+        return {(x, x): (idxs, idxs, vals)}
+    
+    def _verify_jacobian_args(self):
+        return isinstance(self.args[0], Variable)
+
+    def _jacobian(self):
+        """
+        The jacobian of the log of a variable is a diagonal matrix with
+        entries 1/x_i. We vectorize matrix expressions, so we flatten the
+        values in column-major (Fortran) order.
+        """
+        x = self.args[0]
+        idxs = np.arange(x.size, dtype=int)
+        vals = 1.0 / x.value.flatten(order='F')
+        return {x: (idxs, idxs, vals)}
 
     def _domain(self) -> List[Constraint]:
         """Returns constraints describing the domain of the node.
         """
         return [self.args[0] >= 0]
+
+    def point_in_domain(self) -> np.ndarray:
+        """Returns a point in the domain of the node.
+        """
+        dim = (1, ) if self.size == 1 else self.shape
+        return np.ones(dim)

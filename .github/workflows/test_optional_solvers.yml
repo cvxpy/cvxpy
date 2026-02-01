@@ -31,7 +31,6 @@ jobs:
         with:
           python-version: 3.12
           enable-cache: true
-      - uses: actions/checkout@v5
       - name: Setup Julia 
         uses: julia-actions/setup-julia@v2
         with:

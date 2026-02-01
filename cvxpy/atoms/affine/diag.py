@@ -134,6 +134,45 @@ class diag_vec(AffAtom):
         """
         return (lu.diag_vec(arg_objs[0], self.k), [])
 
+    def _verify_jacobian_args(self):
+        # Only support k=0 (main diagonal) for now
+        return self.k == 0
+
+    def _jacobian(self):
+        """Jacobian for diag_vec: maps vector elements to diagonal positions.
+
+        For an n-element input vector, diag_vec produces an (n x n) matrix
+        with the input on the main diagonal (k=0).
+
+        In Fortran order (column-major), input element i maps to output
+        position i * (n + 1), which is the (i, i) position in the matrix.
+        """
+        n = self.args[0].shape[0]  # Input vector size
+
+        jac = self.args[0].jacobian()
+        for k, (rows, cols, vals) in jac.items():
+            # Input element i maps to output position i*(n+1) in Fortran order
+            # (diagonal positions in column-major layout)
+            new_rows = rows * (n + 1)
+            jac[k] = (new_rows, cols, vals)
+        return jac
+
+    def _verify_hess_vec_args(self):
+        # Only support k=0 (main diagonal) for now
+        return self.k == 0
+
+    def _hess_vec(self, v):
+        """Hessian-vector product for diag_vec.
+
+        Extract diagonal elements from the (n x n) input vector v (flattened in
+        Fortran order) and pass to child's hess_vec.
+        """
+        n = self.args[0].shape[0]
+        # Extract diagonal positions: 0, n+1, 2*(n+1), ...
+        diag_indices = np.arange(n) * (n + 1)
+        diag_v = v[diag_indices]
+        return self.args[0].hess_vec(diag_v)
+
 
 class diag_mat(AffAtom):
     """Extracts the diagonal from a square matrix.
