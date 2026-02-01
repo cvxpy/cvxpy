@@ -289,3 +289,17 @@ class Constant(Leaf):
     # needed if we minimize a constant
     def jacobian(self):
         return {}
+
+    def get_bounds(self) -> Tuple[np.ndarray, np.ndarray]:
+        """Return bounds for this constant.
+
+        For constants, the bounds are exactly (value, value).
+        Sparse matrices are returned as-is to avoid memory blowup.
+
+        Returns
+        -------
+        tuple of np.ndarray or sparse matrix
+            (lower_bound, upper_bound) equal to the constant's value.
+        """
+        val = self._value
+        return (val.copy(), val.copy())

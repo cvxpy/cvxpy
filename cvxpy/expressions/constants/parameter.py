@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy import settings as s
+from cvxpy.expressions.expression import Expression
 from cvxpy.expressions.leaf import Leaf
 from cvxpy.utilities import scopes
 
@@ -47,6 +48,15 @@ class Parameter(Leaf):
         self, shape: int | tuple[int, ...] = (), name: str | None = None, value=None,
         id=None, **kwargs
     ) -> None:
+        bounds = kwargs.get('bounds')
+        if bounds is not None:
+            for b in bounds:
+                if isinstance(b, Expression):
+                    raise ValueError(
+                        "Parameter bounds must be numeric, not CVXPY "
+                        "Expressions. Parametric bounds are only "
+                        "supported on Variables."
+                    )
         if id is None:
             self.id = lu.get_id()
         else:

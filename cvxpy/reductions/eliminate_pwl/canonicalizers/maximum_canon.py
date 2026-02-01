@@ -16,14 +16,16 @@ limitations under the License.
 
 from cvxpy.atoms.affine.wraps import nonneg_wrap, nonpos_wrap
 from cvxpy.expressions.variable import Variable
+from cvxpy.utilities.bounds import get_expr_bounds_if_supported
 from cvxpy.utilities.solver_context import SolverInfo
 
 
 def maximum_canon(expr, args, solver_context: SolverInfo | None = None):
     shape = expr.shape
-    t = Variable(shape)
+    bounds = get_expr_bounds_if_supported(expr, solver_context)
+    t = Variable(shape, bounds=bounds)
 
-    # for DNLP we must initialize the new variable (DNLP guarantees that 
+    # for DNLP we must initialize the new variable (DNLP guarantees that
     # x.value will be set when this function is called)
     if expr.value is not None:
         t.value = expr.value

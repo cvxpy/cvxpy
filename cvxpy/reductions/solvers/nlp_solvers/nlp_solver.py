@@ -107,31 +107,20 @@ class Bounds():
     def get_variable_bounds(self):
         """
         Get variable bounds for all variables.
-        Also takes into account nonneg/nonpos attributes.
+        Uses the variable's get_bounds() method which handles bounds attributes,
+        nonneg/nonpos attributes, and properly broadcasts scalar bounds.
         """
         var_lower, var_upper = [], []
         for var in self.main_var:
-            size = var.size
-            if var.bounds:
-                lb = var.bounds[0].flatten(order='F')
-                ub = var.bounds[1].flatten(order='F')
-                if var.is_nonneg():
-                    lb = np.maximum(lb, 0)
-                if var.is_nonpos():
-                    ub = np.minimum(ub, 0)
-                var_lower.extend(lb)
-                var_upper.extend(ub)
-            else:
-                # No bounds specified, use infinite bounds or bounds
-                # set by the nonnegative or nonpositive attribute
-                if var.is_nonneg():
-                    var_lower.extend([0.0] * size)
-                else:
-                    var_lower.extend([-np.inf] * size)
-                if var.is_nonpos():
-                    var_upper.extend([0.0] * size)
-                else:
-                    var_upper.extend([np.inf] * size)
+            # get_bounds() returns arrays broadcastable to var.shape
+            # and handles all edge cases (scalar bounds, sign attributes, etc.)
+            lb, ub = var.get_bounds()
+            # Flatten in column-major (Fortran) order and convert to contiguous array
+            # (broadcast_to creates read-only views that need to be copied)
+            lb_flat = np.asarray(lb).flatten(order='F')
+            ub_flat = np.asarray(ub).flatten(order='F')
+            var_lower.extend(lb_flat)
+            var_upper.extend(ub_flat)
         self.lb = np.array(var_lower)
         self.ub = np.array(var_upper)
     

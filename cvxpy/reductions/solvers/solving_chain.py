@@ -44,6 +44,7 @@ from cvxpy.reductions.dgp2dcp.dgp2dcp import Dgp2Dcp
 from cvxpy.reductions.discrete2mixedint.valinvec2mixedint import (
     Valinvec2mixedint,
 )
+from cvxpy.reductions.eliminate_zero_sized import EliminateZeroSized
 from cvxpy.reductions.eval_params import EvalParams
 from cvxpy.reductions.flip_objective import FlipObjective
 from cvxpy.reductions.reduction import Reduction
@@ -275,6 +276,11 @@ def construct_solving_chain(problem, candidates,
         reductions += [
             Dcp2Cone(quad_obj=True),
             CvxAttr2Constr(reduce_bounds=not solver_instance.BOUNDED_VARIABLES),
+            # EliminateZeroSized must run after Dcp2Cone so that
+            # atom-specific domain constraints (e.g. ExpCone from log)
+            # are already materialized as concrete conic constraints
+            # before zero-sized sub-expressions are replaced.
+            EliminateZeroSized(),
             ConeMatrixStuffing(quad_obj=True, canon_backend=canon_backend),
             solver_instance,
         ]
@@ -341,7 +347,11 @@ def construct_solving_chain(problem, candidates,
         else:
             supported_constraints = solver_instance.SUPPORTED_CONSTRAINTS
 
-        solver_context = SolverInfo(solver=solver, supported_constraints=supported_constraints)
+        solver_context = SolverInfo(
+            solver=solver,
+            supported_constraints=supported_constraints,
+            supports_bounds=solver_instance.BOUNDED_VARIABLES
+        )
 
         cones = set(cones)
         ex_cos = (cones & set(EXOTIC_CONES)) - set(supported_constraints)
@@ -374,6 +384,11 @@ def construct_solving_chain(problem, candidates,
             reductions.append(
                 CvxAttr2Constr(reduce_bounds=not solver_instance.BOUNDED_VARIABLES),
             )
+            # EliminateZeroSized must run after Dcp2Cone so that
+            # atom-specific domain constraints (e.g. ExpCone from log)
+            # are already materialized as concrete conic constraints
+            # before zero-sized sub-expressions are replaced.
+            reductions.append(EliminateZeroSized())
             if all(c in supported_constraints for c in cones):
                 # Check if solver only supports dim-3 SOC cones
                 if solver_instance.SOC_DIM3_ONLY and SOC in cones:

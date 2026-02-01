@@ -19,6 +19,7 @@ import numpy as np
 from cvxpy.atoms import promote, reshape
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variable import Variable
+from cvxpy.utilities.bounds import get_expr_bounds_if_supported
 from cvxpy.utilities.solver_context import SolverInfo
 
 
@@ -26,7 +27,8 @@ def norm_inf_canon(expr, args, solver_context: SolverInfo | None = None):
     x = args[0]
     axis = expr.axis
     shape = expr.shape
-    t = Variable(shape)
+    bounds = get_expr_bounds_if_supported(expr, solver_context)
+    t = Variable(shape, bounds=bounds)
 
     if axis is None:  # shape = (1, 1)
         promoted_t = promote(t, x.shape)

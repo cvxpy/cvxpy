@@ -312,6 +312,8 @@ class ConicSolver(Solver):
             formatted=True,
             lower_bounds=problem.lower_bounds,
             upper_bounds=problem.upper_bounds,
+            lb_tensor=problem.lb_tensor,
+            ub_tensor=problem.ub_tensor,
         )
         return new_param_cone_prog
 

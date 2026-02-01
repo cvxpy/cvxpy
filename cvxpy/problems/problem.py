@@ -375,11 +375,15 @@ class Problem(u.Canonical):
             Whether the problem satisfies the DPP rules.
         """
         if context.lower() == 'dcp':
-            return self.is_dcp(dpp=True)
+            expr_dpp = self.is_dcp(dpp=True)
         elif context.lower() == 'dgp':
-            return self.is_dgp(dpp=True)
+            expr_dpp = self.is_dgp(dpp=True)
         else:
             raise ValueError("Unsupported context ", context)
+        if not expr_dpp:
+            return False
+        # Check that all variable bounds are also DPP.
+        return all(v.is_dpp(context) for v in self.variables())
 
     @perf.compute_once
     def is_qp(self) -> bool:
@@ -1700,6 +1704,8 @@ class Problem(u.Canonical):
                 init = (lb_finite * ub_finite * 0.5 * (lb0 + ub0) +
                         lb_finite * (~ub_finite) * (lb0 + 1.0) +
                         (~lb_finite) * ub_finite * (ub0 - 1.0))
+                # Broadcast to variable shape (handles scalar bounds)
+                init = np.broadcast_to(init, var.shape).copy()
                 var.save_value(init)
 
 

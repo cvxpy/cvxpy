@@ -83,9 +83,10 @@ class TestExpressions(BaseTest):
         # Test shape provided as list instead of tuple
         self.assertEqual(cp.Variable(shape=[2], integer=True).shape, (2,))
 
-        with self.assertRaises(Exception) as cm:
-            Variable((2, 0))
-        self.assertEqual(str(cm.exception), "Invalid dimensions (2, 0).")
+        # Zero-sized variables are allowed.
+        v = Variable((2, 0))
+        self.assertEqual(v.shape, (2, 0))
+        self.assertEqual(v.size, 0)
 
         with self.assertRaises(Exception) as cm:
             Variable((2, .5))
@@ -368,6 +369,42 @@ class TestExpressions(BaseTest):
         p = Parameter((2, 2), diag=True)
         p.value = sp.csc_array(np.eye(2))
         self.assertItemsAlmostEqual(p.value.todense(), np.eye(2), places=10)
+
+    def test_parameter_infinite_values(self) -> None:
+        """Test that +-inf values are accepted/rejected correctly."""
+        # Unconstrained scalar parameters accept +inf and -inf.
+        p = Parameter()
+        p.value = np.inf
+        self.assertEqual(p.value, np.inf)
+        p.value = -np.inf
+        self.assertEqual(p.value, -np.inf)
+
+        # Nonneg parameter accepts +inf but rejects -inf.
+        p = Parameter(nonneg=True)
+        p.value = np.inf
+        self.assertEqual(p.value, np.inf)
+        with self.assertRaises(Exception) as cm:
+            p.value = -np.inf
+        self.assertEqual(str(cm.exception), "Parameter value must be nonnegative.")
+
+        # Nonpos parameter accepts -inf but rejects +inf.
+        p = Parameter(nonpos=True)
+        p.value = -np.inf
+        self.assertEqual(p.value, -np.inf)
+        with self.assertRaises(Exception) as cm:
+            p.value = np.inf
+        self.assertEqual(str(cm.exception), "Parameter value must be nonpositive.")
+
+        # Vector parameter with mixed finite and infinite values.
+        p = Parameter(3)
+        p.value = np.array([1.0, np.inf, -np.inf])
+        self.assertItemsAlmostEqual(p.value, [1.0, np.inf, -np.inf])
+
+        # Setting inf values must not emit NumPy warnings.
+        p = Parameter(3)
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            p.value = np.array([np.inf, -np.inf, 0.0])
 
     def test_psd_nsd_parameters(self) -> None:
         # Test valid rank-deficeint PSD parameter.

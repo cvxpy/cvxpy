@@ -21,6 +21,7 @@ import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.utilities import bounds as bounds_utils
 
 
 class transpose(AffAtom):
@@ -62,6 +63,11 @@ class transpose(AffAtom):
         """Is the atom log-log concave?
         """
         return True
+
+    def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
+        """Returns bounds for transposed expression."""
+        lb, ub = self.args[0].get_bounds()
+        return bounds_utils.transpose_bounds(lb, ub, self.axes)
 
     def is_symmetric(self) -> bool:
         """Is the expression symmetric?

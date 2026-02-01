@@ -155,10 +155,13 @@ class TestAttributes:
         assert np.allclose(X.value.toarray(), z)
 
     def test_variable_bounds(self):
-        # Valid bounds: Scalars promoted to arrays
+        # Valid bounds: Scalars stored as 0-d arrays for memory efficiency
         x = cp.Variable((2, 2), name="x", bounds=[0, 10])
-        assert np.array_equal(x.bounds[0], np.zeros((2, 2)))
-        assert np.array_equal(x.bounds[1], np.full((2, 2), 10))
+        # Scalar bounds are stored as 0-d arrays, broadcast for comparison
+        assert np.all(np.broadcast_to(x.bounds[0], (2, 2)) == 0)
+        assert np.all(np.broadcast_to(x.bounds[1], (2, 2)) == 10)
+        assert x.bounds[0].ndim == 0  # Memory-efficient: stored as scalar
+        assert x.bounds[1].ndim == 0  # Memory-efficient: stored as scalar
 
         # Valid bounds: Arrays with matching shape
         bounds = [np.zeros((2, 2)), np.ones((2, 2)) * 5]
@@ -166,11 +169,13 @@ class TestAttributes:
         assert np.array_equal(x.bounds[0], np.zeros((2, 2)))
         assert np.array_equal(x.bounds[1], np.ones((2, 2)) * 5)
 
-        # Valid bounds: One bound is None
+        # Valid bounds: One bound is None (stored as 0-d array for memory efficiency)
         bounds = [None, 5]
         x = cp.Variable((2, 2), name="x", bounds=bounds)
-        assert np.array_equal(x.bounds[0], np.full((2, 2), -np.inf))
-        assert np.array_equal(x.bounds[1], np.full((2, 2), 5))
+        assert np.all(np.broadcast_to(x.bounds[0], (2, 2)) == -np.inf)
+        assert np.all(np.broadcast_to(x.bounds[1], (2, 2)) == 5)
+        assert x.bounds[0].ndim == 0  # Memory-efficient: stored as scalar
+        assert x.bounds[1].ndim == 0  # Memory-efficient: stored as scalar
 
         # Invalid bounds: Length not equal to 2
         bounds = [0]  # Only one item
@@ -471,19 +476,9 @@ class TestMultipleAttributes:
         x = cp.Variable((10, 10), name="x", nonneg=True)
         assert x.__repr__() == "Variable((10, 10), x, nonneg=True)"
 
-        # test bounds representation
+        # test bounds representation (scalars are stored as 0-d arrays for memory efficiency)
         y = cp.Variable((10, 10), name="y", bounds=[0, 10])
-        assert y.__repr__() == (
-            "Variable((10, 10), y, bounds=([[0 0 ... 0 0]\n"
-            " [0 0 ... 0 0]\n"
-            " ...\n"
-            " [0 0 ... 0 0]\n"
-            " [0 0 ... 0 0]], [[10 10 ... 10 10]\n"
-            " [10 10 ... 10 10]\n"
-            " ...\n"
-            " [10 10 ... 10 10]\n"
-            " [10 10 ... 10 10]]))"
-        )
+        assert y.__repr__() == "Variable((10, 10), y, bounds=(0, 10))"
 
         # test sparse, mixed-integer/boolean representation
         z = cp.Variable((10, 10), name="z", sparsity=[(0, 1), (0, 2)])

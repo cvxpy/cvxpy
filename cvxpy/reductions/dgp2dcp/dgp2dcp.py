@@ -122,7 +122,7 @@ class Dgp2Dcp(Canonicalization):
         if not self.accepts(problem):
             raise ValueError("The supplied problem is not DGP.")
 
-        self.canon_methods = DgpCanonMethods()
+        self.canon_methods = DgpCanonMethods(reduction=self)
         equiv_problem, inverse_data = super(Dgp2Dcp, self).apply(problem)
         inverse_data._problem = problem
         return equiv_problem, inverse_data
