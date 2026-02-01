@@ -707,7 +707,6 @@ class TestPDCS(BaseTest):
     def test_pdcs_socp_0(self) -> None:
         StandardTestSOCPs.test_socp_0(solver='PDCS')
 
-
     def test_pdcs_expcone_1(self) -> None:
         StandardTestECPs.test_expcone_1(solver='PDCS')
 
@@ -726,12 +725,6 @@ class TestPDCS(BaseTest):
     def test_pdcs_socp_2(self) -> None:
         print("test_pdcs_socp_2")
         StandardTestSOCPs.test_socp_2(solver='PDCS')
-
-    # def test_pdcs_socp_3(self) -> None:
-    #     # axis 0
-    #     StandardTestSOCPs.test_socp_3ax0(solver='PDCS', duals=False)
-    #     # # axis 1
-    #     StandardTestSOCPs.test_socp_3ax1(solver='PDCS', duals=False)
 
 
 @unittest.skipUnless('MOREAU' in INSTALLED_SOLVERS, 'MOREAU is not installed.')
