@@ -328,8 +328,8 @@ class Problem(u.Canonical):
             True if the Expression is DGP, False otherwise.
         """
         return all(
-          expr.is_dgp(dpp) for expr in self.constraints + [self.objective]
-        ) and all(var.is_dgp(dpp) for var in self.variables())
+            expr.is_dgp(dpp) for expr in self.constraints + [self.objective]
+        )
 
     @perf.compute_once
     def is_dqcp(self) -> bool:
