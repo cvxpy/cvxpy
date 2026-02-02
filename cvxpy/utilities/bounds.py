@@ -829,6 +829,26 @@ def get_expr_bounds_if_supported(expr, solver_context) -> Optional[list]:
     return [_ensure_dense(lb, expr.shape), _ensure_dense(ub, expr.shape)]
 
 
+def coords_equal(coords1, coords2) -> bool:
+    """Check if two coordinate tuples represent the same sparsity pattern.
+
+    Parameters
+    ----------
+    coords1 : tuple of array-like
+        First coordinate tuple (e.g., (rows, cols) for 2D sparse).
+    coords2 : tuple of array-like
+        Second coordinate tuple.
+
+    Returns
+    -------
+    bool
+        True if the coordinate tuples are equal.
+    """
+    if len(coords1) != len(coords2):
+        return False
+    return all(np.array_equal(c1, c2) for c1, c2 in zip(coords1, coords2))
+
+
 def refine_bounds_from_sign(lb, ub,
                             is_nonneg: bool, is_nonpos: bool) -> Bounds:
     """Refine bounds based on sign information.

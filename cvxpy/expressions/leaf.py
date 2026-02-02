@@ -36,15 +36,9 @@ from cvxpy.settings import (
     PSD_NSD_PROJECTION_TOL,
     SPARSE_PROJECTION_TOL,
 )
+from cvxpy.utilities.bounds import coords_equal
 from cvxpy.utilities.coo_array_compat import get_coords
 from cvxpy.utilities.warn import warn
-
-
-def _coords_equal(coords1, coords2):
-    """Check if two coordinate tuples represent the same sparsity pattern."""
-    if len(coords1) != len(coords2):
-        return False
-    return all(np.array_equal(c1, c2) for c1, c2 in zip(coords1, coords2))
 
 
 class Leaf(expression.Expression):
@@ -779,7 +773,7 @@ class Leaf(expression.Expression):
                     coo.sum_duplicates()
                     # Get coordinates (works for any dimensionality)
                     val_coords = get_coords(coo)
-                    if not _coords_equal(val_coords, self.sparse_idx):
+                    if not coords_equal(val_coords, self.sparse_idx):
                         raise ValueError(
                             "Sparse bounds must have the same sparsity pattern "
                             "as the sparse variable."
