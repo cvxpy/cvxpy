@@ -193,3 +193,22 @@ class TestDgpVariableBounds(BaseTest):
         x = cp.Variable(pos=True, bounds=[p, None])
         with pytest.raises(Exception):
             cp.Problem(cp.Minimize(x), [x <= 10.0]).solve(SOLVER, gp=True)
+
+    def test_non_log_log_affine_bounds_rejected(self) -> None:
+        """Bounds that are not log-log-affine should make the variable not DGP DPP."""
+        p = cp.Parameter(3, pos=True)
+
+        # cp.norm(p) is not log-log-affine, so this should not be DPP in DGP
+        x = cp.Variable(pos=True, bounds=[cp.norm(p), None])
+        assert not x.is_dpp('dgp')
+        assert not cp.Problem(cp.Minimize(cp.sqrt(x))).is_dpp('dgp')
+
+        # cp.sum(p) is log-log-convex but not log-log-affine
+        y = cp.Variable(pos=True, bounds=[cp.sum(p), None])
+        assert not y.is_dpp('dgp')
+        assert not cp.Problem(cp.Minimize(cp.sqrt(y))).is_dpp('dgp')
+
+        # For comparison, p[0] (indexing) is log-log-affine, so this should be DPP
+        z = cp.Variable(pos=True, bounds=[p[0], None])
+        assert z.is_dpp('dgp')
+        assert cp.Problem(cp.Minimize(cp.sqrt(z))).is_dpp('dgp')
