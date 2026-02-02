@@ -68,6 +68,7 @@ from cvxpy.settings import (
     CBC as CBC,
     CLARABEL as CLARABEL,
     CUCLARABEL as CUCLARABEL,
+    PDCS as PDCS,
     COPT as COPT,
     COSMO as COSMO,
     CPLEX as CPLEX,
