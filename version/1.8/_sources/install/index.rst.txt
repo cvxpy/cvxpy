@@ -30,7 +30,7 @@ or a conda environment.
 
         ::
 
-            pip install "cvxpy[CBC,CVXOPT,GLOP,GLPK,GUROBI,MOSEK,PDLP,SCIP,XPRESS]"
+            pip install "cvxpy[CBC,CVXOPT,GLOP,GLPK,GUROBI,MOSEK,PDLP,SCIP,XPRESS,KNITRO]"
 
     .. tab:: conda
 
@@ -286,6 +286,18 @@ Install with Additional Solver Support
     Simply install CUOPT such that you can ``import cuopt`` in Python.
     See the `CUOPT github page <http://github.com/NVIDIA/cuopt>`_ for system requirments and installation instructions (pip, conda, or build from source).
     Follow this link for additional documentation on CUOPT_
+
+.. info:: KNITRO
+    :collapsible:
+
+    CVXPY supports the KNITRO solver.
+    Simply install KNITRO such that you can ``import knitro`` in Python. You can do this by running
+
+    .. code-block:: python
+
+       pip install knitro
+
+    See the `KNITRO <https://www.artelys.com/solvers/knitro/>`_ website for additional instructions.
 
 .. info:: Without default solvers
     :collapsible:
