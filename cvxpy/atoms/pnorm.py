@@ -179,7 +179,7 @@ class Pnorm(AxisAtom):
     def is_atom_esr(self) -> bool:
         """Is the atom esr?
         """
-        return self.p > 1
+        return self.p >= 1
 
     def is_atom_hsr(self) -> bool:
         """Is the atom hsr?

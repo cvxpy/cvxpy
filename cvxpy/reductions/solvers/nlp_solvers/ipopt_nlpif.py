@@ -154,13 +154,13 @@ class IPOPT(NLPsolver):
                           verbose=verbose, use_hessian=use_hessian)
 
         nlp = cyipopt.Problem(
-        n=len(data["x0"]),
-        m=len(data["cl"]),
-        problem_obj=oracles,
-        lb=data["lb"],
-        ub=data["ub"],
-        cl=data["cl"],
-        cu=data["cu"],
+            n=len(data["x0"]),
+            m=len(data["cl"]),
+            problem_obj=oracles,
+            lb=data["lb"],
+            ub=data["ub"],
+            cl=data["cl"],
+            cu=data["cu"],
         )
         # Set default IPOPT options, but use solver_opts if provided
         default_options = {

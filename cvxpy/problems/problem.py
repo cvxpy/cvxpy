@@ -37,7 +37,7 @@ from cvxpy.problems.objective import Maximize, Minimize
 from cvxpy.reductions import InverseData
 from cvxpy.reductions.chain import Chain
 from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr
-from cvxpy.reductions.dnlp2smooth.dnlp2smooth import Dnlp2Smooth
+from cvxpy.reductions.dnlp2smooth.dnlp2smooth import DNLP2Smooth
 from cvxpy.reductions.dqcp2dcp import dqcp2dcp
 from cvxpy.reductions.eval_params import EvalParams
 from cvxpy.reductions.flip_objective import FlipObjective
@@ -1235,7 +1235,7 @@ class Problem(u.Canonical):
                 reductions = [FlipObjective()]
             else:
                 reductions = []
-            reductions = reductions + [CvxAttr2Constr(reduce_bounds=False), Dnlp2Smooth()]
+            reductions = reductions + [CvxAttr2Constr(reduce_bounds=False), DNLP2Smooth()]
             # instantiate based on user provided solver
             # (default to Ipopt)
             if solver is s.IPOPT or solver is None:
@@ -1625,7 +1625,7 @@ class Problem(u.Canonical):
     def unpack_results(self, solution, chain: SolvingChain, inverse_data) -> None:
         """Updates the problem state given the solver results.
 
-        Updates problem.status, problem.value and value ofro
+        Updates problem.status, problem.value and value of
         primal and dual variables.
 
         Arguments
