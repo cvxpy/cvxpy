@@ -179,3 +179,70 @@ class TestPowConeND(BaseTest):
             prob = cp.Problem(cp.Minimize(cp.norm(x)), constraints)
             self.solve_prob(prob, solver)
 
+    def test_pow_cone_nd_balanced_tree_decomposition(self) -> None:
+        """
+        Test the balanced tree decomposition for various n values.
+
+        Uses SCS which requires reduction to 3D cones, verifying the
+        balanced tree decomposition produces correct results.
+        """
+        for n in [3, 4, 5, 8, 10, 16, 32]:
+            W = cp.Variable(n, pos=True)
+            z = cp.Variable()
+            alpha = np.ones(n) / n
+
+            con = cp.constraints.PowConeND(W, z, alpha)
+            prob = cp.Problem(cp.Maximize(z), [con, W <= 2])
+            self.solve_prob(prob, cp.SCS)
+            self.assertAlmostEqual(z.value, 2.0, places=3)
+
+    def test_pow_cone_nd_balanced_tree_nonuniform_alpha(self) -> None:
+        """
+        Test balanced tree decomposition with non-uniform alpha weights.
+        """
+        n = 8
+        W = cp.Variable(n, pos=True)
+        z = cp.Variable()
+        # Non-uniform weights
+        alpha = np.array([0.05, 0.1, 0.15, 0.2, 0.2, 0.15, 0.1, 0.05])
+
+        bounds = np.array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0])
+        expected = np.prod(bounds ** alpha)
+
+        con = cp.constraints.PowConeND(W, z, alpha)
+        constraints = [con] + [W[i] <= bounds[i] for i in range(n)]
+        prob = cp.Problem(cp.Maximize(z), constraints)
+        self.solve_prob(prob, cp.SCS)
+        self.assertAlmostEqual(z.value, expected, places=3)
+
+    def test_pow_cone_nd_balanced_tree_large_n(self) -> None:
+        """
+        Test balanced tree decomposition with large n.
+
+        The balanced tree has depth O(log n) vs O(n) for linear chain,
+        which should handle large n efficiently.
+        """
+        n = 100
+        W = cp.Variable(n, pos=True)
+        z = cp.Variable()
+        alpha = np.ones(n) / n
+
+        con = cp.constraints.PowConeND(W, z, alpha)
+        prob = cp.Problem(cp.Maximize(z), [con, W <= 3])
+        self.solve_prob(prob, cp.SCS)
+        self.assertAlmostEqual(z.value, 3.0, places=3)
+
+    def test_pow_cone_nd_balanced_tree_multiple_cones(self) -> None:
+        """
+        Test balanced tree decomposition with multiple cones (k > 1).
+        """
+        n, k = 8, 3
+        W = cp.Variable((n, k), pos=True)
+        z = cp.Variable(k)
+        alpha = np.ones((n, k)) / n
+
+        con = cp.constraints.PowConeND(W, z, alpha, axis=0)
+        prob = cp.Problem(cp.Maximize(cp.sum(z)), [con, W <= 2])
+        self.solve_prob(prob, cp.SCS)
+        np.testing.assert_allclose(z.value, [2.0, 2.0, 2.0], rtol=1e-3)
+

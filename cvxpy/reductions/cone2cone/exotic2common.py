@@ -36,6 +36,11 @@ this file.
 
 def pow_nd_canon(con, args):
     """
+    Canonicalize PowConeND to PowCone3D using a balanced binary tree decomposition.
+
+    This reduces tree depth from O(n) to O(log n) compared to a linear chain,
+    which can improve numerical stability and solver performance.
+
     con : PowConeND
         We can extract metadata from this.
         For example, con.alpha and con.axis.
@@ -55,27 +60,108 @@ def pow_nd_canon(con, args):
     if n == 2:
         can_con = PowCone3D(W[0, :], W[1, :], z, alpha[0, :])
     else:
-        T = Variable(shape=(n-2, k))
+        # Balanced tree decomposition
+        # We need n-2 auxiliary variables total (same as linear chain)
         x_3d, y_3d, z_3d, alpha_3d = [], [], [], []
+        aux_vars = []  # Will hold all auxiliary variables created
+
+        def decompose(indices, alphas, j):
+            """
+            Recursively decompose indices into a balanced binary tree.
+
+            indices: list of row indices into W for column j
+            alphas: corresponding alpha values (same length as indices)
+            j: column index
+
+            Returns: (expr, alpha_sum) where expr is either W[i,j] or an aux variable
+                     representing prod(W[indices]^(alphas/alpha_sum))
+            """
+            if len(indices) == 1:
+                # Base case: single variable, no cone needed
+                return W[indices[0], j], alphas[0]
+
+            if len(indices) == 2:
+                # Base case: two variables, create one 3D cone
+                i0, i1 = indices
+                a0, a1 = alphas
+                total = a0 + a1
+                r = a0 / total
+
+                # Create auxiliary variable for output
+                aux = Variable(shape=())
+                aux_vars.append(aux)
+
+                x_3d.append(W[i0, j])
+                y_3d.append(W[i1, j])
+                z_3d.append(aux)
+                alpha_3d.append(r)
+
+                return aux, total
+
+            # Recursive case: split into two halves
+            mid = len(indices) // 2
+            left_indices = indices[:mid]
+            right_indices = indices[mid:]
+            left_alphas = alphas[:mid]
+            right_alphas = alphas[mid:]
+
+            # Recursively decompose each half
+            left_expr, left_sum = decompose(left_indices, left_alphas, j)
+            right_expr, right_sum = decompose(right_indices, right_alphas, j)
+
+            # Combine with a new 3D cone
+            total = left_sum + right_sum
+            r = left_sum / total
+
+            # Create auxiliary variable for output
+            aux = Variable(shape=())
+            aux_vars.append(aux)
+
+            x_3d.append(left_expr)
+            y_3d.append(right_expr)
+            z_3d.append(aux)
+            alpha_3d.append(r)
+
+            return aux, total
+
+        # Process each column
         for j in range(k):
-            x_3d.append(W[:-1, j])
-            y_3d.append(T[:, j])
-            y_3d.append(W[n-1, j])
-            z_3d.append(z[j])
-            z_3d.append(T[:, j])
-            r_nums = alpha[:, j]
-            r_dens = np.cumsum(r_nums[::-1])[::-1]
-            # ^ equivalent to [np.sum(alpha[i:, j]) for i in range(n)]
-            r = r_nums / r_dens
-            alpha_3d.append(r[:n-1])
-        x_3d = hstack(x_3d)
-        y_3d = hstack(y_3d)
-        z_3d = hstack(z_3d)
-        alpha_p3d = hstack(alpha_3d)
+            indices = list(range(n))
+            alphas = list(alpha[:, j])
+
+            # Build balanced tree, but the root outputs to z[j] instead of aux var
+            if n == 2:
+                # Already handled above
+                pass
+            else:
+                # Split at root level
+                mid = n // 2
+                left_indices = indices[:mid]
+                right_indices = indices[mid:]
+                left_alphas = alphas[:mid]
+                right_alphas = alphas[mid:]
+
+                # Recursively decompose each half
+                left_expr, left_sum = decompose(left_indices, left_alphas, j)
+                right_expr, right_sum = decompose(right_indices, right_alphas, j)
+
+                # Root cone outputs to z[j]
+                total = left_sum + right_sum
+                r = left_sum / total
+
+                x_3d.append(left_expr)
+                y_3d.append(right_expr)
+                z_3d.append(z[j])
+                alpha_3d.append(r)
+
         # TODO: Ideally we should construct x,y,z,alpha_p3d by
         #   applying suitable sparse matrices to W,z,T, rather
         #   than using the hstack atom. (hstack will probably
         #   result in longer compile times).
+        x_3d = hstack(x_3d)
+        y_3d = hstack(y_3d)
+        z_3d = hstack(z_3d)
+        alpha_p3d = hstack(alpha_3d)
         can_con = PowCone3D(x_3d, y_3d, z_3d, alpha_p3d)
     # Return a single PowCone3D constraint defined over all auxiliary
     # variables needed for the reduction to go through.
