@@ -41,7 +41,23 @@ All times are in Pacific Time (UTC−8).
 
 .. raw:: html
 
-   <button id="tz-toggle-btn" style="display:none; margin-bottom:1em; padding:0.4em 1.2em; cursor:pointer; border:1px solid #ccc; border-radius:4px; background:#f5f5f5; font-size:0.95em;" aria-label="Toggle timezone display" aria-pressed="false"></button>
+   <style>
+   #tz-toggle-btn {
+     display: none;
+     margin-bottom: 1em;
+     padding: 0.4em 1.2em;
+     cursor: pointer;
+     border: 1px solid var(--md-default-fg-color--lightest, #ccc);
+     border-radius: 4px;
+     background: var(--md-default-bg-color, #f5f5f5);
+     color: var(--md-default-fg-color, #333);
+     font-size: 0.95em;
+   }
+   #tz-toggle-btn:hover {
+     background: var(--md-accent-fg-color--transparent, rgba(0,0,0,0.05));
+   }
+   </style>
+   <button id="tz-toggle-btn" aria-label="Toggle timezone display" aria-pressed="false"></button>
    <script>
    (function() {
      var userTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
