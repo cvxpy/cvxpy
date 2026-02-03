@@ -41,36 +41,39 @@ All times are in Pacific Time (UTC−8).
 
 .. raw:: html
 
-   <button id="tz-toggle-btn" style="display:none; margin-bottom:1em; padding:0.4em 1.2em; cursor:pointer; border:1px solid #ccc; border-radius:4px; background:#f5f5f5; font-size:0.95em;" onclick="toggleTimezone()"></button>
+   <button id="tz-toggle-btn" style="display:none; margin-bottom:1em; padding:0.4em 1.2em; cursor:pointer; border:1px solid #ccc; border-radius:4px; background:#f5f5f5; font-size:0.95em;" aria-label="Toggle timezone display" aria-pressed="false"></button>
    <script>
    (function() {
      var userTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
      var showingLocal = false;
      var timeEls = [];
-     // Check if user is in Pacific Time
+     // Compare formatted times to detect whether the user is in Pacific Time.
      var testDate = new Date('2026-02-20T12:00:00-08:00');
      var pacificStr = testDate.toLocaleString('en-US', {timeZone: 'America/Los_Angeles', hour: 'numeric', minute: '2-digit', hour12: true});
      var userStr = testDate.toLocaleString('en-US', {timeZone: userTZ, hour: 'numeric', minute: '2-digit', hour12: true});
      var isSameTZ = (pacificStr === userStr);
 
      function findTimeElements() {
-       var strongs = document.querySelectorAll('strong');
+       // Scope search to schedule list-tables to avoid matching unrelated elements.
+       var tables = document.querySelectorAll('.table-wrapper, table.docutils');
        var re = /^(\d{1,2}):(\d{2})\s*(AM|PM)$/;
-       for (var i = 0; i < strongs.length; i++) {
-         var text = strongs[i].textContent.trim();
-         var m = text.match(re);
-         if (m) {
-           var hours = parseInt(m[1], 10);
-           var minutes = m[2];
-           var ampm = m[3];
-           // Convert to 24h for ISO string
-           var h24 = hours;
-           if (ampm === 'AM' && h24 === 12) h24 = 0;
-           if (ampm === 'PM' && h24 !== 12) h24 += 12;
-           var iso = '2026-02-20T' + String(h24).padStart(2,'0') + ':' + minutes + ':00-08:00';
-           strongs[i].setAttribute('data-pt-time', text);
-           strongs[i].setAttribute('data-utc', iso);
-           timeEls.push(strongs[i]);
+       for (var t = 0; t < tables.length; t++) {
+         var strongs = tables[t].querySelectorAll('strong');
+         for (var i = 0; i < strongs.length; i++) {
+           var text = strongs[i].textContent.trim();
+           var m = text.match(re);
+           if (m) {
+             var hours = parseInt(m[1], 10);
+             var minutes = m[2];
+             var ampm = m[3];
+             var h24 = hours;
+             if (ampm === 'AM' && h24 === 12) h24 = 0;
+             if (ampm === 'PM' && h24 !== 12) h24 += 12;
+             var iso = '2026-02-20T' + String(h24).padStart(2,'0') + ':' + minutes + ':00-08:00';
+             strongs[i].setAttribute('data-pt-time', text);
+             strongs[i].setAttribute('data-utc', iso);
+             timeEls.push(strongs[i]);
+           }
          }
        }
      }
@@ -85,25 +88,31 @@ All times are in Pacific Time (UTC−8).
        return userTZ;
      }
 
-     window.toggleTimezone = function() {
+     function toggleTimezone() {
        showingLocal = !showingLocal;
        for (var i = 0; i < timeEls.length; i++) {
          var el = timeEls[i];
          if (showingLocal) {
-           var d = new Date(el.getAttribute('data-utc'));
-           var local = d.toLocaleTimeString('en-US', {timeZone: userTZ, hour: 'numeric', minute: '2-digit', hour12: true});
-           el.textContent = local;
+           try {
+             var d = new Date(el.getAttribute('data-utc'));
+             if (isNaN(d.getTime())) { continue; }
+             var local = d.toLocaleTimeString('en-US', {timeZone: userTZ, hour: 'numeric', minute: '2-digit', hour12: true});
+             el.textContent = local;
+           } catch(e) {
+             el.textContent = el.getAttribute('data-pt-time');
+           }
          } else {
            el.textContent = el.getAttribute('data-pt-time');
          }
        }
        var btn = document.getElementById('tz-toggle-btn');
+       btn.setAttribute('aria-pressed', showingLocal ? 'true' : 'false');
        if (showingLocal) {
          btn.textContent = 'Show in Pacific Time (UTC\u22128)';
        } else {
          btn.textContent = 'Show in my timezone (' + shortTZName() + ')';
        }
-     };
+     }
 
      document.addEventListener('DOMContentLoaded', function() {
        findTimeElements();
@@ -111,6 +120,7 @@ All times are in Pacific Time (UTC−8).
          var btn = document.getElementById('tz-toggle-btn');
          btn.textContent = 'Show in my timezone (' + shortTZName() + ')';
          btn.style.display = 'inline-block';
+         btn.addEventListener('click', toggleTimezone);
        }
      });
    })();
