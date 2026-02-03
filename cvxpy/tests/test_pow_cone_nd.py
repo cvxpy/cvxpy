@@ -246,3 +246,62 @@ class TestPowConeND(BaseTest):
         self.solve_prob(prob, cp.SCS)
         np.testing.assert_allclose(z.value, [2.0, 2.0, 2.0], rtol=1e-3)
 
+    def test_pow_cone_nd_dual_variables_n2(self) -> None:
+        """
+        Test that dual variables are correct for n=2 (no tree decomposition).
+
+        For n=2, PowConeND maps directly to PowCone3D without any tree
+        decomposition, so dual variables from SCS should match CLARABEL.
+        """
+        n = 2
+        W = cp.Variable((n, 1), pos=True)
+        z = cp.Variable(1)
+        alpha = np.array([[0.3], [0.7]])
+
+        con = cp.constraints.PowConeND(W, z, alpha, axis=0)
+        prob = cp.Problem(cp.Maximize(z[0]), [con, W <= 2])
+
+        # Get CLARABEL reference
+        self.solve_prob(prob, cp.CLARABEL)
+        clarabel_w_dual = con.dual_value[0].flatten()
+        clarabel_z_dual = con.dual_value[1].flatten()
+
+        # Get SCS values
+        self.solve_prob(prob, cp.SCS)
+        scs_w_dual = con.dual_value[0].flatten()
+        scs_z_dual = con.dual_value[1].flatten()
+
+        # Dual values should match
+        np.testing.assert_allclose(scs_w_dual, clarabel_w_dual, rtol=1e-3)
+        np.testing.assert_allclose(scs_z_dual, clarabel_z_dual, rtol=1e-3)
+
+    def test_pow_cone_nd_dual_variables_n4(self) -> None:
+        """
+        Test that dual variables are correct for n=4 (balanced tree decomposition).
+
+        For n > 2, PowConeND uses a balanced tree decomposition. This test
+        verifies that the dual variable recovery correctly maps back from
+        the 3D cones to the original n-D cone.
+        """
+        n = 4
+        W = cp.Variable((n, 1), pos=True)
+        z = cp.Variable(1)
+        alpha = np.ones((n, 1)) / n
+
+        con = cp.constraints.PowConeND(W, z, alpha, axis=0)
+        prob = cp.Problem(cp.Maximize(cp.sum(z)), [con, W <= 2])
+
+        # Get CLARABEL reference (native n-D power cone support)
+        self.solve_prob(prob, cp.CLARABEL)
+        clarabel_w_dual = con.dual_value[0].flatten()
+        clarabel_z_dual = con.dual_value[1].flatten()
+
+        # Get SCS values (uses balanced tree decomposition)
+        self.solve_prob(prob, cp.SCS)
+        scs_w_dual = con.dual_value[0].flatten()
+        scs_z_dual = con.dual_value[1].flatten()
+
+        # Dual values should match
+        np.testing.assert_allclose(scs_w_dual, clarabel_w_dual, rtol=1e-2)
+        np.testing.assert_allclose(scs_z_dual, clarabel_z_dual, rtol=1e-2)
+
