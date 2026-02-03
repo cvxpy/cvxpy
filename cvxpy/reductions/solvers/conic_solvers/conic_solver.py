@@ -254,7 +254,11 @@ class ConicSolver(Solver):
                 restruct_mat.append(sp.hstack(arg_mats))
             elif type(constr) == PowConeND:
                 arg_mats = []
-                m, n = constr.args[0].shape
+                if constr.args[0].ndim == 1:
+                    m = constr.args[0].shape[0]
+                    n = 1
+                else:
+                    m, n = constr.args[0].shape
                 for j in range(n):
                     space_mat = ConicSolver.get_spacing_matrix(
                         shape=(total_height, m), spacing=0,
