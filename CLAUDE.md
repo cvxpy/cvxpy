@@ -1,3 +1,7 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 # CVXPY Development Guide
 
 ## Quick Reference
@@ -262,7 +266,7 @@ pytest cvxpy/tests/nlp_tests/
 
 **Reduction chain for DNLP:**
 ```
-Problem → CvxAttr2Constr → Dnlp2Smooth → NLPSolver (IPOPT/Knitro)
+Problem → CvxAttr2Constr → DNLP2Smooth → NLPSolver (IPOPT/Knitro)
 ```
 
 **Key components:**

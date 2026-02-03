@@ -275,13 +275,13 @@ class DerivativeChecker:
         problem : cvxpy.Problem
             The CVXPY problem to check derivatives for.
         """
-        from cvxpy.reductions.dnlp2smooth.dnlp2smooth import Dnlp2Smooth
+        from cvxpy.reductions.dnlp2smooth.dnlp2smooth import DNLP2Smooth
         from cvxpy.reductions.solvers.nlp_solvers.diff_engine import C_problem
         
         self.original_problem = problem
         
-        # Apply Dnlp2Smooth to get canonicalized problem
-        canon = Dnlp2Smooth().apply(problem)
+        # Apply DNLP2Smooth to get canonicalized problem
+        canon = DNLP2Smooth().apply(problem)
         self.canonicalized_problem = canon[0]
         
         # Construct the C version

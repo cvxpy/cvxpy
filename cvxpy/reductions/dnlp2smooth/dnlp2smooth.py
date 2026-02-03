@@ -24,7 +24,7 @@ from cvxpy.reductions.dnlp2smooth.canonicalizers import SMOOTH_CANON_METHODS as 
 from cvxpy.reductions.inverse_data import InverseData
 
 
-class Dnlp2Smooth(Canonicalization):
+class DNLP2Smooth(Canonicalization):
     """
     Reduce a disciplined nonlinear program to an equivalent smooth program
 
