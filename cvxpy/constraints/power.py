@@ -237,7 +237,12 @@ class PowConeND(Cone):
         # This constitutes the shape of the hypograph variable z
         # appended to W in the standard conic form.
         # TODO: support arbitrary z.dim
-        m, n = self.W.shape if self.axis == 0 else (self.W.shape[1], self.W.shape[0])
+        if self.W.ndim == 1:
+            m, n = self.W.shape[0], 1
+        elif self.axis == 0:
+            m, n = self.W.shape
+        else:
+            m, n = self.W.shape[1], self.W.shape[0]
         s = (m + 1, n)
         return s
     

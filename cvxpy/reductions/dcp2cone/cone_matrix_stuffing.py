@@ -98,7 +98,13 @@ class ConeDims:
 
         pnd = []
         if constr_map[PowConeND]:
-            pnd = np.concatenate([c.alpha.value.T for c in constr_map[PowConeND]]).tolist()
+            alphas = []
+            for c in constr_map[PowConeND]:
+                a = c.alpha.value
+                if a.ndim == 1:
+                    a = a[:, np.newaxis]
+                alphas.append(a.T)
+            pnd = np.concatenate(alphas).tolist()
         self.pnd = pnd
 
     def __repr__(self) -> str: 

@@ -24,9 +24,9 @@ from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.canonicalization import Canonicalization
 from cvxpy.reductions.cone2cone.cone_tree import (
     LeafNode,
+    SingleVarNode,
     SplitNode,
     TreeNode,
-    get_leaf_nodes,
     get_root_cone_id,
 )
 from cvxpy.reductions.solution import Solution
@@ -60,7 +60,8 @@ def _build_pow_tree(
 
     if n == 1:
         # Base case: single variable, no cone needed
-        return W[indices[0], j], alphas[0], None
+        tree = SingleVarNode(var_index=indices[0]) if j == 0 else None
+        return W[indices[0], j], alphas[0], tree
 
     if n == 2:
         # Base case: two variables, create one 3D cone
@@ -121,7 +122,7 @@ def _build_pow_tree(
     alpha_3d.append(r)
 
     # Build tree node only for first column
-    if j == 0 and left_tree is not None and right_tree is not None:
+    if j == 0:
         tree = SplitNode(
             cone_id=len(x_3d) - 1,
             left=left_tree,
@@ -197,6 +198,46 @@ def pow_nd_canon(con, args):
     return can_con, [], tree
 
 
+def _extract_pow_duals_recursive(
+    node: TreeNode,
+    parent_cone_id: int | None,
+    is_left_child: bool,
+    raw_duals: np.ndarray,
+    w_duals: np.ndarray,
+    j: int,
+    num_cones_per_col: int,
+) -> None:
+    """Recursively extract W duals from the tree.
+
+    For each node:
+    - SingleVarNode: the variable's dual comes from the parent cone's
+      x (row 0) or y (row 1) position depending on whether this is
+      the left or right child.
+    - LeafNode: both variable duals come from this node's own cone
+      (x in row 0, y in row 1).
+    - SplitNode: recurse into children. The split node's cone combines
+      the left and right subtree outputs.
+    """
+    if isinstance(node, SingleVarNode):
+        assert parent_cone_id is not None
+        col = j * num_cones_per_col + parent_cone_id
+        row = 0 if is_left_child else 1
+        w_duals[node.var_index, j] = raw_duals[row, col]
+    elif isinstance(node, LeafNode):
+        col = j * num_cones_per_col + node.cone_id
+        w_duals[node.var_indices[0], j] = raw_duals[0, col]
+        w_duals[node.var_indices[1], j] = raw_duals[1, col]
+    elif isinstance(node, SplitNode):
+        _extract_pow_duals_recursive(
+            node.left, node.cone_id, True,
+            raw_duals, w_duals, j, num_cones_per_col
+        )
+        _extract_pow_duals_recursive(
+            node.right, node.cone_id, False,
+            raw_duals, w_duals, j, num_cones_per_col
+        )
+
+
 def _extract_pow_duals(
     tree: TreeNode,
     raw_duals: np.ndarray,
@@ -208,20 +249,13 @@ def _extract_pow_duals(
     w_duals = np.zeros((n, k))
     z_duals = np.zeros(k)
 
-    # Get leaf nodes to extract W duals
-    leaves = get_leaf_nodes(tree)
-
-    # Get root cone index for z duals
     root_idx = get_root_cone_id(tree)
 
     for j in range(k):
-        # Extract W duals from leaf cones
-        for leaf in leaves:
-            cone_idx = leaf.cone_id
-            col = j * num_cones_per_col + cone_idx
-            # var_indices[0] -> x position (row 0), var_indices[1] -> y position (row 1)
-            w_duals[leaf.var_indices[0], j] = raw_duals[0, col]
-            w_duals[leaf.var_indices[1], j] = raw_duals[1, col]
+        _extract_pow_duals_recursive(
+            tree, None, True,
+            raw_duals, w_duals, j, num_cones_per_col
+        )
 
         # Extract z dual from root cone
         if root_idx is not None:
@@ -247,7 +281,7 @@ class Exotic2Common(Canonicalization):
         if type(expr) in self.canon_methods:
             result = self.canon_methods[type(expr)](expr, args)
             # pow_nd_canon returns (can_con, [], tree)
-            if len(result) == 3:
+            if isinstance(expr, PowConeND):
                 can_expr, constraints, tree = result
                 if tree is not None:
                     if self._tree_mappings is None:

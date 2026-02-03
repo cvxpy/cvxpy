@@ -39,6 +39,12 @@ class SplitNode:
 
 
 @dataclass(frozen=True)
+class SingleVarNode:
+    """A single variable with no associated cone (n=1 base case in tree decomposition)."""
+    var_index: int
+
+
+@dataclass(frozen=True)
 class SpecialNode:
     """Node for special cases (e.g., SOC dim-1, dim-2, dim-4)."""
     node_type: str
@@ -47,7 +53,7 @@ class SpecialNode:
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
-TreeNode = LeafNode | SplitNode | SpecialNode
+TreeNode = LeafNode | SplitNode | SingleVarNode | SpecialNode
 
 
 def get_all_cone_ids(node: TreeNode) -> set[int]:
@@ -59,6 +65,8 @@ def get_all_cone_ids(node: TreeNode) -> set[int]:
         ids.update(get_all_cone_ids(node.left))
         ids.update(get_all_cone_ids(node.right))
         return ids
+    elif isinstance(node, SingleVarNode):
+        return set()
     elif isinstance(node, SpecialNode):
         return set(node.cone_ids)
     return set()
@@ -70,6 +78,8 @@ def get_leaf_nodes(node: TreeNode) -> list[LeafNode]:
         return [node]
     elif isinstance(node, SplitNode):
         return get_leaf_nodes(node.left) + get_leaf_nodes(node.right)
+    elif isinstance(node, SingleVarNode):
+        return []
     elif isinstance(node, SpecialNode):
         return []
     return []
