@@ -19,8 +19,16 @@ import numpy as np
 from cvxpy.atoms.affine.hstack import hstack
 from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.constraints.power import PowCone3D, PowConeND
+from cvxpy.expressions.expression import Expression
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.canonicalization import Canonicalization
+from cvxpy.reductions.cone2cone.cone_tree import (
+    LeafNode,
+    SplitNode,
+    TreeNode,
+    get_leaf_nodes,
+    get_root_cone_id,
+)
 from cvxpy.reductions.solution import Solution
 
 EXOTIC_CONES = {
@@ -32,6 +40,97 @@ supported by ParamConeProg. If ParamConeProg is updated
 to support more cones, then it may be necessary to change
 this file.
 """
+
+
+def _build_pow_tree(
+    W: Expression,
+    alpha: np.ndarray,
+    z: Expression,
+    j: int,
+    indices: list[int],
+    alphas: list[float],
+    x_3d: list[Expression],
+    y_3d: list[Expression],
+    z_3d: list[Expression],
+    alpha_3d: list[float],
+    is_root: bool = False
+) -> tuple[Expression, float, TreeNode | None]:
+    """Recursively build a balanced binary tree for PowConeND decomposition."""
+    n = len(indices)
+
+    if n == 1:
+        # Base case: single variable, no cone needed
+        return W[indices[0], j], alphas[0], None
+
+    if n == 2:
+        # Base case: two variables, create one 3D cone
+        i0, i1 = indices
+        a0, a1 = alphas
+        total = a0 + a1
+        r = a0 / total
+
+        # Output variable
+        if is_root:
+            out_expr = z[j]
+        else:
+            out_expr = Variable(shape=())
+
+        x_3d.append(W[i0, j])
+        y_3d.append(W[i1, j])
+        z_3d.append(out_expr)
+        alpha_3d.append(r)
+
+        # Build tree node only for first column
+        tree = LeafNode(
+            cone_id=len(x_3d) - 1,  # Index of this cone
+            var_indices=(i0, i1)
+        ) if j == 0 else None
+
+        return out_expr, total, tree
+
+    # Recursive case: split into two halves
+    mid = n // 2
+    left_indices = indices[:mid]
+    right_indices = indices[mid:]
+    left_alphas = alphas[:mid]
+    right_alphas = alphas[mid:]
+
+    # Recursively decompose each half
+    left_expr, left_sum, left_tree = _build_pow_tree(
+        W, alpha, z, j, left_indices, left_alphas,
+        x_3d, y_3d, z_3d, alpha_3d, is_root=False
+    )
+    right_expr, right_sum, right_tree = _build_pow_tree(
+        W, alpha, z, j, right_indices, right_alphas,
+        x_3d, y_3d, z_3d, alpha_3d, is_root=False
+    )
+
+    # Combine with a new 3D cone
+    total = left_sum + right_sum
+    r = left_sum / total
+
+    # Output variable
+    if is_root:
+        out_expr = z[j]
+    else:
+        out_expr = Variable(shape=())
+
+    x_3d.append(left_expr)
+    y_3d.append(right_expr)
+    z_3d.append(out_expr)
+    alpha_3d.append(r)
+
+    # Build tree node only for first column
+    if j == 0 and left_tree is not None and right_tree is not None:
+        tree = SplitNode(
+            cone_id=len(x_3d) - 1,
+            left=left_tree,
+            right=right_tree
+        )
+    else:
+        tree = None
+
+    return out_expr, total, tree
 
 
 def pow_nd_canon(con, args):
@@ -57,142 +156,79 @@ def pow_nd_canon(con, args):
         W = reshape(W, (W.size, 1), order='F')
         alpha = np.reshape(alpha, (W.size, 1))
     n, k = W.shape
-    tree_mapping = None  # Will be set for n > 2
+
     if n == 2:
+        # Direct mapping, no tree needed
         can_con = PowCone3D(W[0, :], W[1, :], z, alpha[0, :])
-    else:
-        # Balanced tree decomposition
-        # We need n-2 auxiliary variables total (same as linear chain)
-        x_3d, y_3d, z_3d, alpha_3d = [], [], [], []
-        aux_vars = []  # Will hold all auxiliary variables created
+        return can_con, [], None
 
-        # Track mapping from W indices to 3D cone positions for dual recovery
-        # w_to_cone[i] = (cone_index, 'x' or 'y') means W[i] appears in that position
-        # We track per-column, but all columns have the same structure
-        cone_counter = 0
-        w_to_cone = {}
+    # Balanced tree decomposition for n > 2
+    x_3d: list = []
+    y_3d: list = []
+    z_3d: list = []
+    alpha_3d: list = []
+    tree: TreeNode | None = None
 
-        def decompose(indices, alphas, j):
-            """
-            Recursively decompose indices into a balanced binary tree.
+    # Process each column
+    for j in range(k):
+        indices = list(range(n))
+        alphas = list(alpha[:, j])
 
-            indices: list of row indices into W for column j
-            alphas: corresponding alpha values (same length as indices)
-            j: column index
+        _, _, col_tree = _build_pow_tree(
+            W, alpha, z, j, indices, alphas,
+            x_3d, y_3d, z_3d, alpha_3d, is_root=True
+        )
 
-            Returns: (expr, alpha_sum) where expr is either W[i,j] or an aux variable
-                     representing prod(W[indices]^(alphas/alpha_sum))
-            """
-            nonlocal cone_counter
+        # Store tree from first column
+        if j == 0:
+            tree = col_tree
 
-            if len(indices) == 1:
-                # Base case: single variable, no cone needed
-                return W[indices[0], j], alphas[0]
+    # TODO: Ideally we should construct x,y,z,alpha_p3d by
+    #   applying suitable sparse matrices to W,z,T, rather
+    #   than using the hstack atom. (hstack will probably
+    #   result in longer compile times).
+    x_3d_expr = hstack(x_3d)
+    y_3d_expr = hstack(y_3d)
+    z_3d_expr = hstack(z_3d)
+    alpha_p3d = hstack(alpha_3d)
+    can_con = PowCone3D(x_3d_expr, y_3d_expr, z_3d_expr, alpha_p3d)
 
-            if len(indices) == 2:
-                # Base case: two variables, create one 3D cone
-                i0, i1 = indices
-                a0, a1 = alphas
-                total = a0 + a1
-                r = a0 / total
+    # Return tree for dual variable recovery
+    return can_con, [], tree
 
-                # Create auxiliary variable for output
-                aux = Variable(shape=())
-                aux_vars.append(aux)
 
-                # Track mapping (only on first column since structure is same)
-                if j == 0:
-                    w_to_cone[i0] = (cone_counter, 'x')
-                    w_to_cone[i1] = (cone_counter, 'y')
-                    cone_counter += 1
+def _extract_pow_duals(
+    tree: TreeNode,
+    raw_duals: np.ndarray,
+    n: int,
+    k: int,
+    num_cones_per_col: int
+) -> tuple[np.ndarray, np.ndarray]:
+    """Extract W and z duals from raw 3D cone duals using tree structure."""
+    w_duals = np.zeros((n, k))
+    z_duals = np.zeros(k)
 
-                x_3d.append(W[i0, j])
-                y_3d.append(W[i1, j])
-                z_3d.append(aux)
-                alpha_3d.append(r)
+    # Get leaf nodes to extract W duals
+    leaves = get_leaf_nodes(tree)
 
-                return aux, total
+    # Get root cone index for z duals
+    root_idx = get_root_cone_id(tree)
 
-            # Recursive case: split into two halves
-            mid = len(indices) // 2
-            left_indices = indices[:mid]
-            right_indices = indices[mid:]
-            left_alphas = alphas[:mid]
-            right_alphas = alphas[mid:]
+    for j in range(k):
+        # Extract W duals from leaf cones
+        for leaf in leaves:
+            cone_idx = leaf.cone_id
+            col = j * num_cones_per_col + cone_idx
+            # var_indices[0] -> x position (row 0), var_indices[1] -> y position (row 1)
+            w_duals[leaf.var_indices[0], j] = raw_duals[0, col]
+            w_duals[leaf.var_indices[1], j] = raw_duals[1, col]
 
-            # Recursively decompose each half
-            left_expr, left_sum = decompose(left_indices, left_alphas, j)
-            right_expr, right_sum = decompose(right_indices, right_alphas, j)
+        # Extract z dual from root cone
+        if root_idx is not None:
+            root_col = j * num_cones_per_col + root_idx
+            z_duals[j] = raw_duals[2, root_col]
 
-            # Combine with a new 3D cone
-            total = left_sum + right_sum
-            r = left_sum / total
-
-            # Create auxiliary variable for output
-            aux = Variable(shape=())
-            aux_vars.append(aux)
-
-            # Track cone counter for intermediate cones (only on first column)
-            if j == 0:
-                cone_counter += 1
-
-            x_3d.append(left_expr)
-            y_3d.append(right_expr)
-            z_3d.append(aux)
-            alpha_3d.append(r)
-
-            return aux, total
-
-        # Process each column
-        for j in range(k):
-            indices = list(range(n))
-            alphas = list(alpha[:, j])
-
-            # Build balanced tree, but the root outputs to z[j] instead of aux var
-            if n == 2:
-                # Already handled above
-                pass
-            else:
-                # Split at root level
-                mid = n // 2
-                left_indices = indices[:mid]
-                right_indices = indices[mid:]
-                left_alphas = alphas[:mid]
-                right_alphas = alphas[mid:]
-
-                # Recursively decompose each half
-                left_expr, left_sum = decompose(left_indices, left_alphas, j)
-                right_expr, right_sum = decompose(right_indices, right_alphas, j)
-
-                # Root cone outputs to z[j]
-                total = left_sum + right_sum
-                r = left_sum / total
-
-                x_3d.append(left_expr)
-                y_3d.append(right_expr)
-                z_3d.append(z[j])
-                alpha_3d.append(r)
-
-        # TODO: Ideally we should construct x,y,z,alpha_p3d by
-        #   applying suitable sparse matrices to W,z,T, rather
-        #   than using the hstack atom. (hstack will probably
-        #   result in longer compile times).
-        x_3d = hstack(x_3d)
-        y_3d = hstack(y_3d)
-        z_3d = hstack(z_3d)
-        alpha_p3d = hstack(alpha_3d)
-        can_con = PowCone3D(x_3d, y_3d, z_3d, alpha_p3d)
-
-        # Return tree mapping for dual variable recovery:
-        # w_to_cone: dict mapping W index to (cone_index, 'x' or 'y')
-        # root_cone_index: index of root cone (whose z is the original z)
-        # num_cones: total cones per column
-        tree_mapping = (w_to_cone, cone_counter, cone_counter + 1)
-    # Return a single PowCone3D constraint defined over all auxiliary
-    # variables needed for the reduction to go through.
-    # There are no "auxiliary constraints" beyond this one.
-    # Third element is tree_mapping for dual recovery (None for n==2).
-    return can_con, [], tree_mapping if n > 2 else None
+    return w_duals, z_duals
 
 
 class Exotic2Common(Canonicalization):
@@ -204,19 +240,19 @@ class Exotic2Common(Canonicalization):
     def __init__(self, problem=None) -> None:
         super(Exotic2Common, self).__init__(
             problem=problem, canon_methods=Exotic2Common.CANON_METHODS)
-        self._tree_mappings = None  # Temporarily store mappings during canonicalization
+        self._tree_mappings: dict[int, TreeNode] | None = None
 
     def canonicalize_expr(self, expr, args, canonicalize_params: bool = True):
         """Override to handle extra return value from pow_nd_canon."""
         if type(expr) in self.canon_methods:
             result = self.canon_methods[type(expr)](expr, args)
-            # pow_nd_canon returns (can_con, [], tree_mapping)
+            # pow_nd_canon returns (can_con, [], tree)
             if len(result) == 3:
-                can_expr, constraints, tree_mapping = result
-                if tree_mapping is not None:
+                can_expr, constraints, tree = result
+                if tree is not None:
                     if self._tree_mappings is None:
                         self._tree_mappings = {}
-                    self._tree_mappings[expr.id] = tree_mapping
+                    self._tree_mappings[expr.id] = tree
                 return can_expr, constraints
             return result
         return super().canonicalize_expr(expr, args, canonicalize_params)
@@ -237,12 +273,14 @@ class Exotic2Common(Canonicalization):
                  if vid in solution.dual_vars}
 
         if dvars == {}:
-            #NOTE: pre-maturely trigger return of the method in case the problem
+            # NOTE: pre-maturely trigger return of the method in case the problem
             # is infeasible (otherwise will run into some opaque errors)
             return Solution(solution.status, solution.opt_val, pvars, dvars,
-                        solution.attr)
+                            solution.attr)
 
-        tree_mappings = getattr(inverse_data, 'tree_mappings', None)
+        tree_mappings: dict[int, TreeNode] | None = getattr(
+            inverse_data, 'tree_mappings', None
+        )
 
         for cons_id, cons in inverse_data.id2cons.items():
             if isinstance(cons, PowConeND):
@@ -252,21 +290,12 @@ class Exotic2Common(Canonicalization):
                 raw_duals = dvars[cons_id]  # Shape: (3, num_3d_cones)
 
                 if tree_mappings is not None and cons_id in tree_mappings:
-                    # Use balanced tree mapping for n > 2
-                    w_to_cone, root_idx, num_cones = tree_mappings[cons_id]
-                    w_duals = np.zeros((n, k))
-                    z_duals = np.zeros(k)
-
-                    for j in range(k):
-                        # Extract W duals from leaf cones
-                        for w_idx, (cone_idx, pos) in w_to_cone.items():
-                            col = j * num_cones + cone_idx
-                            row = 0 if pos == 'x' else 1
-                            w_duals[w_idx, j] = raw_duals[row, col]
-
-                        # Extract z dual from root cone
-                        root_col = j * num_cones + root_idx
-                        z_duals[j] = raw_duals[2, root_col]
+                    # Use tree structure for n > 2
+                    tree = tree_mappings[cons_id]
+                    num_cones_per_col = raw_duals.shape[1] // k
+                    w_duals, z_duals = _extract_pow_duals(
+                        tree, raw_duals, n, k, num_cones_per_col
+                    )
                 else:
                     # n == 2: direct mapping, no tree decomposition
                     # Raw duals shape is (3, k) where each column is one 3D cone

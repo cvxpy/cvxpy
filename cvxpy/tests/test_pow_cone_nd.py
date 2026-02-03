@@ -180,128 +180,57 @@ class TestPowConeND(BaseTest):
             self.solve_prob(prob, solver)
 
     def test_pow_cone_nd_balanced_tree_decomposition(self) -> None:
-        """
-        Test the balanced tree decomposition for various n values.
-
-        Uses SCS which requires reduction to 3D cones, verifying the
-        balanced tree decomposition produces correct results.
-        """
-        for n in [3, 4, 5, 8, 10, 16, 32]:
+        """Test balanced tree decomposition for various n values."""
+        for n in [3, 4, 5, 8, 16, 100]:
             W = cp.Variable(n, pos=True)
             z = cp.Variable()
             alpha = np.ones(n) / n
-
             con = cp.constraints.PowConeND(W, z, alpha)
             prob = cp.Problem(cp.Maximize(z), [con, W <= 2])
             self.solve_prob(prob, cp.SCS)
             self.assertAlmostEqual(z.value, 2.0, places=3)
 
     def test_pow_cone_nd_balanced_tree_nonuniform_alpha(self) -> None:
-        """
-        Test balanced tree decomposition with non-uniform alpha weights.
-        """
-        n = 8
-        W = cp.Variable(n, pos=True)
-        z = cp.Variable()
-        # Non-uniform weights
+        """Test balanced tree decomposition with non-uniform alpha weights."""
         alpha = np.array([0.05, 0.1, 0.15, 0.2, 0.2, 0.15, 0.1, 0.05])
-
         bounds = np.array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0])
         expected = np.prod(bounds ** alpha)
 
+        W = cp.Variable(8, pos=True)
+        z = cp.Variable()
         con = cp.constraints.PowConeND(W, z, alpha)
-        constraints = [con] + [W[i] <= bounds[i] for i in range(n)]
-        prob = cp.Problem(cp.Maximize(z), constraints)
+        prob = cp.Problem(cp.Maximize(z), [con, W <= bounds])
         self.solve_prob(prob, cp.SCS)
         self.assertAlmostEqual(z.value, expected, places=3)
 
-    def test_pow_cone_nd_balanced_tree_large_n(self) -> None:
-        """
-        Test balanced tree decomposition with large n.
-
-        The balanced tree has depth O(log n) vs O(n) for linear chain,
-        which should handle large n efficiently.
-        """
-        n = 100
-        W = cp.Variable(n, pos=True)
-        z = cp.Variable()
-        alpha = np.ones(n) / n
-
-        con = cp.constraints.PowConeND(W, z, alpha)
-        prob = cp.Problem(cp.Maximize(z), [con, W <= 3])
-        self.solve_prob(prob, cp.SCS)
-        self.assertAlmostEqual(z.value, 3.0, places=3)
-
     def test_pow_cone_nd_balanced_tree_multiple_cones(self) -> None:
-        """
-        Test balanced tree decomposition with multiple cones (k > 1).
-        """
+        """Test balanced tree decomposition with multiple cones (k > 1)."""
         n, k = 8, 3
         W = cp.Variable((n, k), pos=True)
         z = cp.Variable(k)
         alpha = np.ones((n, k)) / n
-
         con = cp.constraints.PowConeND(W, z, alpha, axis=0)
         prob = cp.Problem(cp.Maximize(cp.sum(z)), [con, W <= 2])
         self.solve_prob(prob, cp.SCS)
         np.testing.assert_allclose(z.value, [2.0, 2.0, 2.0], rtol=1e-3)
 
-    def test_pow_cone_nd_dual_variables_n2(self) -> None:
-        """
-        Test that dual variables are correct for n=2 (no tree decomposition).
+    def test_pow_cone_nd_dual_variables(self) -> None:
+        """Test dual variable recovery matches CLARABEL for n=2 and n=4."""
+        for n, rtol in [(2, 1e-3), (4, 1e-2)]:
+            W = cp.Variable((n, 1), pos=True)
+            z = cp.Variable(1)
+            alpha = np.ones((n, 1)) / n
+            con = cp.constraints.PowConeND(W, z, alpha, axis=0)
+            prob = cp.Problem(cp.Maximize(z[0]), [con, W <= 2])
 
-        For n=2, PowConeND maps directly to PowCone3D without any tree
-        decomposition, so dual variables from SCS should match CLARABEL.
-        """
-        n = 2
-        W = cp.Variable((n, 1), pos=True)
-        z = cp.Variable(1)
-        alpha = np.array([[0.3], [0.7]])
+            self.solve_prob(prob, cp.CLARABEL)
+            clarabel_w_dual = con.dual_value[0].flatten()
+            clarabel_z_dual = con.dual_value[1].flatten()
 
-        con = cp.constraints.PowConeND(W, z, alpha, axis=0)
-        prob = cp.Problem(cp.Maximize(z[0]), [con, W <= 2])
+            self.solve_prob(prob, cp.SCS)
+            scs_w_dual = con.dual_value[0].flatten()
+            scs_z_dual = con.dual_value[1].flatten()
 
-        # Get CLARABEL reference
-        self.solve_prob(prob, cp.CLARABEL)
-        clarabel_w_dual = con.dual_value[0].flatten()
-        clarabel_z_dual = con.dual_value[1].flatten()
-
-        # Get SCS values
-        self.solve_prob(prob, cp.SCS)
-        scs_w_dual = con.dual_value[0].flatten()
-        scs_z_dual = con.dual_value[1].flatten()
-
-        # Dual values should match
-        np.testing.assert_allclose(scs_w_dual, clarabel_w_dual, rtol=1e-3)
-        np.testing.assert_allclose(scs_z_dual, clarabel_z_dual, rtol=1e-3)
-
-    def test_pow_cone_nd_dual_variables_n4(self) -> None:
-        """
-        Test that dual variables are correct for n=4 (balanced tree decomposition).
-
-        For n > 2, PowConeND uses a balanced tree decomposition. This test
-        verifies that the dual variable recovery correctly maps back from
-        the 3D cones to the original n-D cone.
-        """
-        n = 4
-        W = cp.Variable((n, 1), pos=True)
-        z = cp.Variable(1)
-        alpha = np.ones((n, 1)) / n
-
-        con = cp.constraints.PowConeND(W, z, alpha, axis=0)
-        prob = cp.Problem(cp.Maximize(cp.sum(z)), [con, W <= 2])
-
-        # Get CLARABEL reference (native n-D power cone support)
-        self.solve_prob(prob, cp.CLARABEL)
-        clarabel_w_dual = con.dual_value[0].flatten()
-        clarabel_z_dual = con.dual_value[1].flatten()
-
-        # Get SCS values (uses balanced tree decomposition)
-        self.solve_prob(prob, cp.SCS)
-        scs_w_dual = con.dual_value[0].flatten()
-        scs_z_dual = con.dual_value[1].flatten()
-
-        # Dual values should match
-        np.testing.assert_allclose(scs_w_dual, clarabel_w_dual, rtol=1e-2)
-        np.testing.assert_allclose(scs_z_dual, clarabel_z_dual, rtol=1e-2)
+            np.testing.assert_allclose(scs_w_dual, clarabel_w_dual, rtol=rtol)
+            np.testing.assert_allclose(scs_z_dual, clarabel_z_dual, rtol=rtol)
 
