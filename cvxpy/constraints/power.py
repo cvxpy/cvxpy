@@ -237,7 +237,12 @@ class PowConeND(Cone):
         # This constitutes the shape of the hypograph variable z
         # appended to W in the standard conic form.
         # TODO: support arbitrary z.dim
-        m, n = self.W.shape if self.axis == 0 else (self.W.shape[1], self.W.shape[0])
+        if self.W.ndim == 1:
+            m, n = self.W.shape[0], 1
+        elif self.axis == 0:
+            m, n = self.W.shape
+        else:
+            m, n = self.W.shape[1], self.W.shape[0]
         s = (m + 1, n)
         return s
     
@@ -285,13 +290,14 @@ class PowConeND(Cone):
         return self.is_dcp()
 
     def save_dual_value(self, value) -> None:
-        dW = value[:, :-1]
-        dz = value[:, -1]
-        if self.axis == 0:
+        # Value has shape (n+1, k) from ConeMatrixStuffing (constraint.shape).
+        # First n rows are W duals, last row is z duals.
+        dW = value[:-1, :]  # Shape (n, k)
+        dz = value[-1, :]   # Shape (k,)
+        if self.axis == 1:
             dW = dW.T
-            dz = dz.T
-        if dW.shape[1] == 1:
-            #NOTE: Targetting problems where duals have the shape
+        if dW.shape[-1] == 1:
+            # NOTE: Targetting problems where duals have the shape
             # (n, 1) --- dropping the extra dimension is crucial for
             # the `_dual_cone` and `dual_residual` methods to work properly
             dW = np.squeeze(dW)
