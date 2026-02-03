@@ -44,17 +44,17 @@ Morning Session
    * - **10:00 AM**
      - | **Disciplined Biconvex Programming** — Hao Zhu *(Virtual)*
        |
-       | We introduce disciplined biconvex programming (DBCP), a modeling framework for specifying and solving biconvex optimization problems. DBCP extends the principles of disciplined convex programming to biconvex problems, allowing users to specify biconvex optimization problems in a natural way based on a small number of syntax rules.
+       | We introduce disciplined biconvex programming (DBCP), a modeling framework for specifying and solving biconvex optimization problems. Biconvex optimization problems arise in various applications, including machine learning, signal processing, computational science, and control. Solving a biconvex optimization problem in practice usually resolves to heuristic methods based on alternate convex search (ACS), which iteratively optimizes over one block of variables while keeping the other fixed, so that the resulting subproblems are convex and can be efficiently solved. However, designing and implementing an ACS solver for a specific biconvex optimization problem usually requires significant effort from the user, which can be tedious and error-prone. DBCP extends the principles of disciplined convex programming to biconvex problems, allowing users to specify biconvex optimization problems in a natural way based on a small number of syntax rules. The resulting problem can then be automatically split and transformed into convex subproblems, for which a customized ACS solver is then generated and applied. DBCP allows users to quickly experiment with different biconvex problem formulations, without expertise in convex optimization. We implement DBCP into the open source Python package dbcp, as an extension to the famous domain specific language CVXPY for convex optimization.
 
    * - **10:30 AM**
      - | **Optimal Matching with CVXPY** — Michael Howes *(In-Person)*
        |
-       | The Stanford Statistics Department uses CVXPY to assign PhD students to courses to TA based on their preferences. The assignments are made by gathering the students' preferences and then solving a linear program to find an optimal matching.
+       | The Stanford Statistics Department uses CVXPY to assign PhD students to courses to TA based on their preferences. The assignments are made by gathering the students' preferences and then solving a linear program to find an optimal matching. Although the linear program is a relaxation of the original objective, CVXPY returns a valid assignment if the solver is correctly specified. CVXPY also makes it easy to add a variety of constraints based on students' experience and availability.
 
    * - **10:45 AM**
      - | **Adapting CVXPY for Optimization on Curved Spaces** — Nikhesh Kumar Murali *(Virtual)*
        |
-       | We explore strategies for adapting and redefining notions of convexity for curved spaces, especially hyperbolic spaces with g-convexity and h-convexity.
+       | Convex optimization has emerged as a fundamental approach in machine learning, AI systems, and core engineering fields due to its global optimality guarantees and progress in computational techniques. Modern frameworks like CVXPY enable high-level problem specification via Python and offer high precision solvers. However, adapting CVXPY convex optimization solver for curved spaces present some problems like including hierarchical representation learning, hyperbolic embeddings, and structured latent space modeling in neural systems, where classical notions of optimisation and convexity on Euclidean spaces are challenged. We explore some strategies for adapting, redefining those notions for curved spaces, especially hyperbolic spaces with g-convexity and its refinement h-convexity. While g-convexity generalises convexity to curved spaces where local minima coincide with global minima under appropriate conditions, the concept of h-convexity introduces curvature independent guarantees on certain curved spaces with non-positive sectional curvature called as Hadamard manifolds. We propose some techniques to model proximal problems via tangent spaces, integrate g-convexity & h-convexity into solvers, and construct differentiable optimization layers in CVXPY to support the convex sub problems for curved spaces.
 
    * - **11:00 AM**
      - | **Panel: Contributing to CVXPY** — William Zhang & Nikhil Devenathan *(In-Person)*
@@ -75,17 +75,17 @@ Afternoon Session
    * - **1:00 PM**
      - | **A Tutorial on Graphs of Convex Sets** — Tobia Marcucci *(In-Person)*
        |
-       | In this talk, I will give a tutorial on graphs of convex sets, with emphasis on their applications in robotics, planning, and decision making. I will present GCSOPT, an open-source Python library based on CVXPY that enables solving complex GCS problems in just a few lines of code.
+       | In this talk, I will give a tutorial on graphs of convex sets, with emphasis on their applications in robotics, planning, and, more broadly, decision making. Mathematically, a Graph of Convex Sets (GCS) is a graph in which vertices are associated with convex optimization problems and edges couple pairs of these problems through additional convex costs and constraints. Classical problems defined over ordinary weighted graphs (such as the shortest path, the traveling salesman, and the minimum spanning tree) naturally generalize to a GCS, giving rise to a rich class of problems at the interface of combinatorial and convex optimization. First, I will discuss how GCS problems can be solved efficiently and show a variety of real-world applications. Secondly, I will present GCSOPT, an open-source and easy-to-use Python library, based on CVXPY, that enables solving complex GCS problems in just a few lines of code.
 
    * - **1:30 PM**
      - | **Disciplined Nonlinear Programming** — Daniel Cederberg *(In-Person)*
        |
-       | I introduce disciplined nonlinear programming (DNLP), a new syntax for specifying nonlinear programming problems. DNLP allows smooth functions to be freely mixed with nonsmooth convex and concave functions, with rules governing how the nonsmooth functions can be used.
+       | In this talk I introduce disciplined nonlinear programming (DNLP), a new syntax for specifying nonlinear programming problems. DNLP allows smooth functions to be freely mixed with nonsmooth convex and concave functions, with rules governing how the nonsmooth functions can be used. Problems expressed in DNLP form can be automatically canonicalized to a standard nonlinear programming (NLP) form and passed to a suitable NLP solver. I conclude by describing the DNLP language in more detail, comparing it with existing NLP modeling languages, and presenting our open-source implementation of DNLP as an extension of CVXPY.
 
    * - **2:00 PM**
      - | **pycvxset: Convex Sets in Python for Control and Analysis** — Abraham Vinod *(Virtual)*
        |
-       | pycvxset is a new Python package to manipulate and visualize convex sets. We support polytopes and ellipsoids, and provide user-friendly methods to perform a variety of set operations.
+       | pycvxset is a new Python package to manipulate and visualize convex sets. We support polytopes and ellipsoids, and provide user-friendly methods to perform a variety of set operations. For polytopes, pycvxset supports the standard halfspace/vertex representation as well as the constrained zonotope representation. The main advantage of constrained zonotope representations over standard halfspace/vertex representations is that constrained zonotopes admit closed-form expressions for several set operations. pycvxset uses CVXPY to solve various convex programs arising in set operations, and uses pycddlib to perform vertex-halfspace enumeration. We demonstrate the use of pycvxset in analyzing and controlling dynamical systems in Python. pycvxset is available at https://github.com/merlresearch/pycvxset under the AGPL-3.0-or-later license, along with documentation and examples.
 
    * - **2:15 PM**
      - | **Riskfolio-Lib: Advanced Portfolio Optimization** — Dany Cejas *(Virtual)*
@@ -98,12 +98,12 @@ Afternoon Session
    * - **3:00 PM**
      - | **Minimizing Electricity-Related Costs and Emissions with EECO** — Fletcher Chapin *(In-Person)*
        |
-       | We present Electric Emissions & Cost Optimizer (EECO), a software package for optimizing electricity-related emissions and costs. After discussing the technical details, we present a case study demonstrating how to use EECO with a CVXPY battery model.
+       | Electricity tariff structures are extremely complex due to features such as time-of-use pricing, tiered charges, and bundling (whether generation and distribution are billed together). Industrial energy flexibility, or the ability of industrial electricity consumers to modify the timing of electricity consumption, has been the subject of much research due to its potential to reduce both costs and emissions. However, the magnitudes of bill savings or carbon emission reductions are a strong function of the prevailing electricity tariffs. In this work, we expand on our previous research, which compiled industrial electricity tariffs from across the United States, by presenting Electric Emissions & Cost Optimizer (EECO), a software package for optimizing electricity-related emissions and costs using the format from our published tariff dataset. After briefly discussing the technical details of EECO, we present a simple case study demonstrating how to use EECO to optimize an industrial consumer's electricity bill with a simple CVXPY battery model. The case study emphasizes the ease with which users can select from thousands of available tariffs representing the entire United States.
 
    * - **3:15 PM**
      - | **Development Plans for CVXR** — Balasubramanian Narasimhan & Anqi Fu *(In-Person)*
        |
-       | CVXR is the R port of CVXPY. In this talk we describe our plans for catching up with CVXPY features and present data from early experiments with new AI development tools.
+       | CVXR is the R port of CVXPY and has a developer community of two. As a result, it has fallen behind CVXPY in features but new AI development tools plus facilities in R offer hope of catching up. In this talk we describe our plans and present data from some early experiments that sound promising. The talk will be quite interactive and we welcome feedback from seasoned CVXPY community.
 
    * - **3:30 PM**
      - | **Moreau: The Convex Optimization Solver for the Modern Workload** — Steven Diamond *(In-Person, Sponsored)*
@@ -111,12 +111,12 @@ Afternoon Session
    * - **3:45 PM**
      - | **Electrified Transportation Optimization with CVXPY** — Kyle Goodrick *(In-Person)*
        |
-       | This presentation introduces a site optimization tool designed to identify the lowest-cost electrification strategy for shared transportation infrastructure serving multiple sectors.
+       | To achieve the lowest cost operation, electrified transportation must maximize the utilization of charging and grid infrastructure. This presentation introduces a site optimization tool designed to identify the lowest-cost electrification strategy for shared transportation infrastructure serving multiple sectors, including heavy-duty trucks, buses, regional rail, and light rail. Implemented with CVXPY, the tool models the system as a convex optimization problem that jointly considers energy demand profiles, infrastructure constraints, and cost drivers across the site and the upstream power system. The model evaluates tradeoffs between on-site investments and grid upgrades, considering interconnection capacity limits, distribution impacts, and utility rate structures. It optimizes on-site energy storage and co-optimizes across transportation modes to reduce total system cost. This presentation will describe a real-world application of CVXPY where coordinated planning across transportation sectors can minimize total cost, reduce emissions, and more fully utilize existing grid infrastructure. The tool is intended to support fleets, utilities, planners, and policymakers in evaluating scalable, economically efficient approaches to transportation electrification at complex, multi-user sites.
 
    * - **4:00 PM**
      - | **MOCVXPY: A CVXPY Extension for Multiobjective Optimization** — Ludovic Salomon *(Virtual)*
        |
-       | MOCVXPY is a library built on top of CVXPY for convex vector optimization. It enables practitioners to describe their convex vector optimization problems using an intuitive algebraic language.
+       | MOCVXPY is a library built on top of CVXPY for convex vector optimization. It enables practitioners to describe their convex vector optimization problems using an intuitive algebraic language that closely follows the mathematical formulation. This talk presents the main features of MOCVXPY and the algorithms employed by the library. We also illustrate its functionality with examples and an application in energy.
 
    * - **4:15 PM**
      - | **Sponsored Talk** *(TBD)*
@@ -138,7 +138,7 @@ Speakers
 Julian Hall
 ~~~~~~~~~~~
 
-Julian Hall has a BA in Mathematics from the University of Oxford, a PhD from the University of Dundee, and since 1990 has been employed as a lecturer by the University of Edinburgh. His work has yielded journal articles that have won four best paper prizes. In 2016, with Ivet Galabova, he founded HiGHS, which has grown to be the world's best open-source linear optimization software.
+Julian Hall has a BA in Mathematics from the University of Oxford, a PhD from the University of Dundee supervised by Roger Fletcher (FRS) and, since 1990, has been employed as a lecturer by the University of Edinburgh. His occasional research activity has been in the field of computational techniques for continuous linear optimization on serial and parallel architectures, notably the simplex method. His work (with others) has yielded journal articles that have won four best paper prizes. Since the mid-90s, he has been engaged in consultancy, notably providing linear optimization technology to Format International, whose software formulates half the world's manufactured animal feed. In 2016, with Ivet Galabova, he founded HiGHS, which has grown to be the world's best open-source linear optimization software.
 
 Hao Zhu
 ~~~~~~~
@@ -148,12 +148,17 @@ Hao Zhu completed his bachelor's degree in computational chemistry at Nankai Uni
 Michael Howes
 ~~~~~~~~~~~~~
 
-Michael Howes is a fifth year graduate student in the Statistics Department at Stanford University. He works on the theory of auxiliary variables Markov Chain Monte Carlo algorithms and is advised by Prof. Persi Diaconis.
+Michael Howes is a fifth year graduate student in the Statistics Department at Stanford University. He works on the theory of auxiliary variables Markov Chain Monte Carlo algorithms and is advised by Prof. Persi Diaconis. He has also published interdisciplinary work on using large language models for valid inference in computational social science. In Summer 2025, Michael was a data science intern at Waymo where he designed algorithms for improved triage sampling.
+
+Nikhesh Kumar Murali
+~~~~~~~~~~~~~~~~~~~~
+
+Nikhesh Kumar Murali is a Data Scientist and interdisciplinary researcher working at the intersection of mathematics, optimization, and modern artificial intelligence. He holds an undergraduate degree in Mathematics from the Indian Institute of Science, Bengaluru, and a joint Master's degree in Artificial Intelligence and Data Science from IIT Madras and the University of Birmingham. His research interests span convex optimization, AI4Mathematics, and geometry of latent spaces for mechanistic interpretability. He has worked on topics ranging from metric geometry and Fuchsian groups, automated theorem proving using Lean to Responsible AI and computer vision tasks such as object detection. He is particularly focused on how tools from differential/hyperbolic geometry, optimal transport, and convex analysis can be integrated into solving fundamental problems. Currently, Nikhesh works as a Data Scientist in industry, where he designs and deploys machine learning systems and Agentic AI architectures for code automation.
 
 Tobia Marcucci
 ~~~~~~~~~~~~~~
 
-Tobia Marcucci is an Assistant Professor in the Department of Electrical and Computer Engineering at UC Santa Barbara. He received his PhD in Computer Science from MIT under the supervision of Russ Tedrake and Pablo Parrilo. His doctoral dissertation was awarded the 2025 MIT EECS George M. Sprowls Thesis Award in Artificial Intelligence and Decision Making.
+Tobia Marcucci is an Assistant Professor in the Department of Electrical and Computer Engineering at the University of California, Santa Barbara (UCSB). He is also affiliated with the Department of Mechanical Engineering and the Center for Control, Dynamical Systems, and Computation (CCDC) at UCSB. Before joining UCSB, he was a Postdoctoral Scientist at Amazon Robotics. He received a PhD in Computer Science from the Massachusetts Institute of Technology (MIT), under the supervision of Russ Tedrake and Pablo Parrilo. During his PhD, he also spent one year at Stanford University visiting Stephen Boyd's group. His doctoral dissertation was awarded the 2025 MIT EECS George M. Sprowls Thesis Award in Artificial Intelligence and Decision Making. He holds a Bachelor's and a Master's degree cum laude in Mechanical Engineering from the University of Pisa. His research lies at the intersection of convex and combinatorial optimization, with applications to robotics, motion planning, and optimal control.
 
 Daniel Cederberg
 ~~~~~~~~~~~~~~~~
@@ -163,7 +168,7 @@ Daniel Cederberg is a PhD student at Stanford University.
 Abraham Vinod
 ~~~~~~~~~~~~~
 
-Abraham P. Vinod is a Principal Research Scientist at Mitsubishi Electric Research Laboratories (MERL). He is the primary developer of pycvxset and co-developed SReachTools.
+Abraham P. Vinod is a Principal Research Scientist at Mitsubishi Electric Research Laboratories (MERL), Cambridge, MA, USA. His main research interests are in the areas of constrained control, robotics, and learning. Prior to joining MERL in 2020, he held a postdoctoral position at the University of Texas at Austin. He received his B.Tech. and M.Tech. degrees from the Indian Institute of Technology-Madras (IIT-M), India, and his Ph.D. degree from the University of New Mexico, USA, all in electrical engineering. He was the recipient of the Best Student Paper Award at the 2017 ACM Hybrid Systems: Computation and Control Conference, Finalist for the Best Paper Award in the 2018 ACM Hybrid Systems: Computation and Control Conference, and the best undergraduate student research project award at IIT-M. He is the primary developer of pycvxset, a set computation toolbox in Python, and co-developed SReachTools, a stochastic reachability toolbox in MATLAB.
 
 Dany Cejas
 ~~~~~~~~~~
@@ -173,7 +178,7 @@ Dany Cejas holds a BSc in Economic Engineering and Master in Finance. He is the 
 Fletcher Chapin
 ~~~~~~~~~~~~~~~
 
-Fletcher Chapin is a 5th-year environmental engineering PhD candidate advised by Dr. Meagan Mauter in the WE3Lab at Stanford. His research focuses on data management solutions for the water sector and minimizing costs and emissions of wastewater treatment through flexible operation.
+Fletcher Chapin is a 5th-year environmental engineering PhD candidate advised by Dr. Meagan Mauter in the WE3Lab. His research focuses on data management solutions for the water sector, minimizing costs and emissions of wastewater treatment through flexible operation, and formal verification of proposed control schemes. Before coming to Stanford, Fletcher graduated from Cornell with a BS in Environmental Engineering and minor in Computer Science. After Cornell, he first worked as a software engineer at Microsoft before returning to the water sector as India Program Project Manager for AguaClara Reach. Fletcher will be defending his dissertation in May, so we'll see what comes next!
 
 Balasubramanian Narasimhan
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -183,7 +188,7 @@ Balasubramanian Narasimhan is a Senior Research Scientist in Departments of Biom
 Kyle Goodrick
 ~~~~~~~~~~~~~
 
-Kyle Goodrick is a Senior Power Systems Research Engineer at ASPIRE, focusing on research at the intersection of electric power systems and electrified transportation. He earned his PhD in Electrical Engineering from the University of Colorado Boulder.
+Kyle Goodrick is a Senior Power Systems Research Engineer at ASPIRE, where he focuses on research at the intersection of electric power systems and electrified transportation. His work is centered on enabling economic growth while reducing costs and emissions through better utilization of existing grid infrastructure. He is particularly interested in how large, flexible electric loads, primarily electric vehicles, can be coordinated with the power system to improve efficiency, defer infrastructure upgrades, and support reliable system operation. Kyle earned his PhD in Electrical Engineering from the University of Colorado Boulder, studying the optimization of power distribution architectures.
 
 Steven Diamond
 ~~~~~~~~~~~~~~
@@ -193,12 +198,12 @@ Steven Diamond is the founder of CVXPY and its head maintainer. He is also a fou
 Ludovic Salomon
 ~~~~~~~~~~~~~~~
 
-Ludovic Salomon is a researcher at Hydro-Québec. He holds a PhD in applied mathematics and computer science from Polytechnique Montréal. His research interests are in numerical optimization with a focus on multiobjective optimization.
+Ludovic Salomon is a researcher at Hydro-Québec, the primary producer and distributor of electricity in Quebec, Canada. He holds a Ph.D. in applied mathematics and computer science from Polytechnique Montréal. His research interests are in numerical optimization, at the intersection of computer science and mathematics, with a focus on multiobjective optimization.
 
 Stephen Boyd
 ~~~~~~~~~~~~
 
-Stephen P. Boyd is the Samsung Professor of Engineering and Professor of Electrical Engineering at Stanford University. His current research focus is on convex optimization applications in control, signal processing, machine learning, and finance. In 2017 he received the IEEE James H. Mulligan, Jr. Education Medal.
+Stephen P. Boyd is the Samsung Professor of Engineering, Professor of Electrical Engineering, and a member of the Institute for Computational and Mathematical Engineering at Stanford University. His current research focus is on convex optimization applications in control, signal processing, machine learning, and finance. He has developed and taught many undergraduate and graduate courses, including Signals & Systems, Linear Dynamical Systems, Convex Optimization, and a recent undergraduate course on Matrix Methods. His graduate convex optimization course attracts 300 students from 25 departments. In 2003, he received the AACC Ragazzini Education award, for contributions to control education. In 2016 he received the Walter J. Gores award, the highest award for teaching at Stanford University. In 2017 he received the IEEE James H. Mulligan, Jr. Education Medal, the highest education award of the IEEE, for a career of outstanding contributions to education.
 
 Contact
 -------
