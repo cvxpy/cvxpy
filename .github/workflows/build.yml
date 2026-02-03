@@ -133,8 +133,8 @@ jobs:
           sed -i.bak -e 's/name = "cvxpy"/name = "cvxpy-base"/g' pyproject.toml
           sed -i.bak '/clarabel >= /d' pyproject.toml
           sed -i.bak '/osqp >= /d' pyproject.toml
-          sed -i.bak '/ecos >= /d' pyproject.toml
           sed -i.bak '/scs >= /d' pyproject.toml
+          sed -i.bak '/highspy >= /d' pyproject.toml
           sed -i.bak -e 's/name="cvxpy",/name="cvxpy-base",/g' setup.py
           rm -rf pyproject.toml.bak setup.py.bak
 
