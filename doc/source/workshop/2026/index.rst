@@ -49,7 +49,7 @@ Morning Session
    * - **10:30 AM**
      - | **Optimal Matching with CVXPY** — Michael Howes *(In-Person)*
        |
-       | The Stanford Statistics Department uses CVXPY to assign PhD students to courses to TA based on their preferences. The assignments are made by gathering the students preferences and then solving a linear program to find an optimal matching.
+       | The Stanford Statistics Department uses CVXPY to assign PhD students to courses to TA based on their preferences. The assignments are made by gathering the students' preferences and then solving a linear program to find an optimal matching.
 
    * - **10:45 AM**
      - | **Adapting CVXPY for Optimization on Curved Spaces** — Nikhesh Kumar Murali *(Virtual)*
