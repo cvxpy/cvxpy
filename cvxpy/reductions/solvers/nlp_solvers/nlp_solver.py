@@ -84,25 +84,33 @@ class Bounds():
         as well as equalities to zero constraints and forms
         a new problem from the canonicalized problem.
         """
-        lower, upper = [], []
+        # Preallocate arrays for constraint bounds
+        total_constr_size = sum(c.size for c in self.problem.constraints)
+        lower = np.zeros(total_constr_size)
+        upper = np.zeros(total_constr_size)
+
         new_constr = []
+        offset = 0
         for constraint in self.problem.constraints:
+            size = constraint.size
             if isinstance(constraint, Equality):
-                lower.extend([0.0] * constraint.size)
-                upper.extend([0.0] * constraint.size)
+                # lower[offset:offset+size] already 0.0
+                # upper[offset:offset+size] already 0.0
                 new_constr.append(lower_equality(constraint))
             elif isinstance(constraint, Inequality):
-                lower.extend([0.0] * constraint.size)
-                upper.extend([np.inf] * constraint.size)
+                # lower[offset:offset+size] already 0.0
+                upper[offset:offset + size] = np.inf
                 new_constr.append(lower_ineq_to_nonneg(constraint))
             elif isinstance(constraint, NonPos):
-                lower.extend([0.0] * constraint.size)
-                upper.extend([np.inf] * constraint.size)
+                # lower[offset:offset+size] already 0.0
+                upper[offset:offset + size] = np.inf
                 new_constr.append(nonpos2nonneg(constraint))
+            offset += size
+
         canonicalized_prob = self.problem.copy([self.problem.objective, new_constr])
         self.new_problem = canonicalized_prob
-        self.cl = np.array(lower)
-        self.cu = np.array(upper)
+        self.cl = lower
+        self.cu = upper
 
     def get_variable_bounds(self):
         """
@@ -110,19 +118,25 @@ class Bounds():
         Uses the variable's get_bounds() method which handles bounds attributes,
         nonneg/nonpos attributes, and properly broadcasts scalar bounds.
         """
-        var_lower, var_upper = [], []
+        # Preallocate arrays for variable bounds
+        total_var_size = sum(v.size for v in self.main_var)
+        var_lower = np.full(total_var_size, -np.inf)
+        var_upper = np.full(total_var_size, np.inf)
+
+        offset = 0
         for var in self.main_var:
+            size = var.size
             # get_bounds() returns arrays broadcastable to var.shape
             # and handles all edge cases (scalar bounds, sign attributes, etc.)
             lb, ub = var.get_bounds()
             # Flatten in column-major (Fortran) order and convert to contiguous array
             # (broadcast_to creates read-only views that need to be copied)
-            lb_flat = np.asarray(lb).flatten(order='F')
-            ub_flat = np.asarray(ub).flatten(order='F')
-            var_lower.extend(lb_flat)
-            var_upper.extend(ub_flat)
-        self.lb = np.array(var_lower)
-        self.ub = np.array(var_upper)
+            var_lower[offset:offset + size] = np.asarray(lb).flatten(order='F')
+            var_upper[offset:offset + size] = np.asarray(ub).flatten(order='F')
+            offset += size
+
+        self.lb = var_lower
+        self.ub = var_upper
     
 
     def construct_initial_point(self):
@@ -213,7 +227,7 @@ class Oracles():
         """Returns the lower triangular Hessian values in COO format. """
         if not self.use_hessian:
             # Shouldn't be called when using quasi-Newton, but return empty array
-            return np.array([])
+            return np.array([], dtype=np.float64)
 
         if not self.objective_forward_passed:
             self.objective(x)
@@ -230,11 +244,15 @@ class Oracles():
 
     def hessianstructure(self):
         """Returns the sparsity structure of the lower triangular Hessian."""
-        if not self.use_hessian:
-            # Return empty structure when using quasi-Newton approximation
-            return (np.array([], dtype=np.int32), np.array([], dtype=np.int32))
-
         if self._hess_structure is not None:
+            return self._hess_structure
+
+        if not self.use_hessian:
+            # Cache and return empty structure when using quasi-Newton approximation
+            self._hess_structure = (
+                np.array([], dtype=np.int32),
+                np.array([], dtype=np.int32)
+            )
             return self._hess_structure
 
         hess_csr = self.c_problem.get_hessian()

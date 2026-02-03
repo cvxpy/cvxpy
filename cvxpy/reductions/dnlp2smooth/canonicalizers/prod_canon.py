@@ -16,7 +16,7 @@ limitations under the License.
 
 import numpy as np
 
-from cvxpy.expressions.variable import Variable
+from cvxpy.reductions.dnlp2smooth.canonicalizers._common import canonicalize_unary_smooth
 
 
 def prod_canon(expr, args):
@@ -26,14 +26,4 @@ def prod_canon(expr, args):
     Since prod is a smooth function with implemented gradients,
     we simply ensure the argument is a Variable.
     """
-    if isinstance(args[0], Variable):
-        return expr.copy([args[0]]), []
-
-    t = Variable(args[0].shape)
-
-    if args[0].value is not None:
-        t.value = args[0].value
-    else:
-        t.value = np.ones(args[0].shape)
-
-    return expr.copy([t]), [t == args[0]]
+    return canonicalize_unary_smooth(expr, args, default_value=np.ones)
