@@ -1,0 +1,1080 @@
+
+
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+      
+      
+      <link rel="icon" href="../../_static/favicon.ico">
+    
+    
+      
+        <title>CVXPY Workshop 2026 - </title>
+      
+    
+    
+      
+        
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+        <link rel="stylesheet" type="text/css" href="../../_static/sphinx_immaterial_theme.acf80fe7f4d9ef9e2.min.css?v=9e56d0d2" />
+        <link rel="stylesheet" type="text/css" href="../../_static/tabs.css?v=4c969af8" />
+        <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
+        <link rel="stylesheet" type="text/css" href="../../_static/css/styling.css?v=84aacf86" />
+        <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/2.1.8/css/dataTables.dataTables.css" />
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+    </div>
+    <div data-md-component="announce">
+      
+        <aside class="md-banner">
+          <div class="md-banner__inner md-grid md-typeset">
+            
+              <button class="md-banner__button md-icon" aria-label="Don't show this again">
+                
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+              </button>
+            
+            
+<p style="font-size: 1.1em;">
+  🎉 <strong>Attend the inaugural
+  <a href="workshop/2026/">CVXPY Community Workshop</a></strong>
+  on February 20 and 21 at Stanford University and on Zoom! 🎉
+  <br>
+  📅 The CVXPY developers are also hosting
+  <a href="https://calendar.app.google/mRGBur1ZVMW1dcbR8"><strong>listening sessions</strong></a>
+  to learn more about what you are using CVXPY for and how we can better serve you.
+</p>
+
+          </div>
+          
+            <script>var el=document.querySelector("[data-md-component=announce]");if(el){var content=el.querySelector(".md-typeset");__md_hash(content.innerHTML)===__md_get("__announce")&&(el.hidden=!0)}</script>
+          
+        </aside>
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../index.html" title="" class="md-header__button md-logo" aria-label="" data-md-component="logo">
+      <img src="../../_static/cvxpy-wordmark-light.png" alt="logo">
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              CVXPY Workshop 2026
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m14.3 16-.7-2h-3.2l-.7 2H7.8L11 7h2l3.2 9zM20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12zm-9.15 3.96h2.3L12 9z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="green"  aria-label="Switch to system preference"  type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/cvxpy/cvxpy/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    CVXPY
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../install/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  <span>Install</span>
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../tutorial/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  <span>User Guide</span>
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../functions/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  <span>Functions</span>
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../api_reference/cvxpy.html" class="md-tabs__link">
+        
+  
+    
+  
+  <span>API Documentation</span>
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../examples/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  <span>Examples</span>
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../contributing/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  <span>Contributing</span>
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../updates/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  <span>Changelog</span>
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../faq/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  <span>FAQ</span>
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../resources/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  <span>Resources</span>
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../index.html" class="md-tabs__link">
+        
+  
+    
+  
+  <span>CVXPY Workshop</span>
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../index.html" title="" class="md-nav__button md-logo" aria-label="" data-md-component="logo">
+      <img src="../../_static/cvxpy-wordmark-light.png" alt="logo">
+    </a>
+    
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/cvxpy/cvxpy/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    CVXPY
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../install/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>Install</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorial/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>User Guide</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../functions/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>Functions</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api_reference/cvxpy.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>API Documentation</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>Examples</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>Contributing</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../updates/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>Changelog</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../faq/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>FAQ</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../resources/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>Resources</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>CVXPY Workshop</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+  
+
+<nav class="md-nav md-nav--secondary">
+  
+  
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset" role="main">
+                
+                
+                  
+
+
+<style>
+details.sd-dropdown > summary { list-style: none; }
+details.sd-dropdown > summary::-webkit-details-marker { display: none; }
+details.sd-dropdown > summary::marker { display: none; }
+details.sd-dropdown > summary::before { display: none !important; }
+.sd-summary-state-marker { display: none !important; }
+.sd-summary-text { margin-right: 0.5em; }
+</style><h1 id="cvxpy-workshop-2026">CVXPY Workshop 2026<a class="headerlink" href="#cvxpy-workshop-2026" title="Link to this heading">¶</a></h1>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
+<p>The CVXPY Workshop brings together users and developers of CVXPY for tutorials,
+talks, and discussions about convex optimization in Python.</p>
+<h2 id="date-location">Date &amp; Location<a class="headerlink" href="#date-location" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><strong>Talks:</strong> February 20, 2026</p></li>
+<li><p><strong>Hackathon:</strong> February 21, 2026</p></li>
+<li><p><strong>Location:</strong> <a class="reference external" href="https://maps.app.goo.gl/ANfH9ZehwgvSNnS76">CoDa E160</a>, Stanford University</p></li>
+</ul>
+<h2 id="registration">Registration<a class="headerlink" href="#registration" title="Link to this heading">¶</a></h2>
+<p><a class="reference external" href="https://docs.google.com/forms/d/e/1FAIpQLSexWIvIfNlpkY4KK3rw47qNg8MiYUT6vL-dPt1emACH6ChPzw/viewform?usp=header">Register here</a></p>
+<p>The Zoom link (for virtual participants) will be emailed to registered participants the day before the workshop.</p>
+<h2 id="schedule">Schedule<a class="headerlink" href="#schedule" title="Link to this heading">¶</a></h2>
+<h3 id="morning-session">Morning Session<a class="headerlink" href="#morning-session" title="Link to this heading">¶</a></h3>
+<table class="docutils data align-default">
+<colgroup>
+<col style="width: 15.0%" />
+<col style="width: 85.0%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><strong>9:00 AM</strong></p></td>
+<td><p><strong>Introductory Remarks</strong></p></td>
+</tr>
+<tr class="row-even"><td><p><strong>9:30 AM</strong></p></td>
+<td><div class="line-block">
+<div class="line"><strong>HiGHS for CVXPY</strong> — <a class="reference external" href="#speaker-julian-hall">Julian Hall</a> <em>(Virtual)</em></div>
+<div class="line"><br /></div>
+<div class="line">HiGHS is the world’s best open-source linear optimization software. Although it’s been callable from CVXPY for a few years, its presence has grown, and it is the default MIP solver from CVXPY 1.8. This talk introduces HiGHS: its history, its solvers, its users, its people and its future.</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p><strong>10:00 AM</strong></p></td>
+<td><div class="line-block">
+<div class="line"><strong>Disciplined Biconvex Programming</strong> — <a class="reference external" href="#speaker-hao-zhu">Hao Zhu</a> <em>(Virtual)</em></div>
+<div class="line"><br /></div>
+<div class="line">We introduce disciplined biconvex programming (DBCP), a modeling framework for specifying and solving biconvex optimization problems. Biconvex optimization problems arise in various applications, including machine learning, signal processing, computational science, and control. Solving a biconvex optimization problem in practice usually resolves to heuristic methods based on alternate convex search (ACS), which iteratively optimizes over one block of variables while keeping the other fixed, so that the resulting subproblems are convex and can be efficiently solved. However, designing and implementing an ACS solver for a specific biconvex optimization problem usually requires significant effort from the user, which can be tedious and error-prone. DBCP extends the principles of disciplined convex programming to biconvex problems, allowing users to specify biconvex optimization problems in a natural way based on a small number of syntax rules. The resulting problem can then be automatically split and transformed into convex subproblems, for which a customized ACS solver is then generated and applied. DBCP allows users to quickly experiment with different biconvex problem formulations, without expertise in convex optimization. We implement DBCP into the open source Python package dbcp, as an extension to the famous domain specific language CVXPY for convex optimization.</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p><strong>10:30 AM</strong></p></td>
+<td><div class="line-block">
+<div class="line"><strong>Optimal Matching with CVXPY</strong> — <a class="reference external" href="#speaker-michael-howes">Michael Howes</a> <em>(In-Person)</em></div>
+<div class="line"><br /></div>
+<div class="line">The Stanford Statistics Department uses CVXPY to assign PhD students to courses to TA based on their preferences. The assignments are made by gathering the students’ preferences and then solving a linear program to find an optimal matching. Although the linear program is a relaxation of the original objective, CVXPY returns a valid assignment if the solver is correctly specified. CVXPY also makes it easy to add a variety of constraints based on students’ experience and availability.</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p><strong>10:45 AM</strong></p></td>
+<td><div class="line-block">
+<div class="line"><strong>Adapting CVXPY for Optimization on Curved Spaces</strong> — <a class="reference external" href="#speaker-nikhesh-kumar-murali">Nikhesh Kumar Murali</a> <em>(Virtual)</em></div>
+<div class="line"><br /></div>
+<div class="line">Convex optimization has emerged as a fundamental approach in machine learning, AI systems, and core engineering fields due to its global optimality guarantees and progress in computational techniques. Modern frameworks like CVXPY enable high-level problem specification via Python and offer high precision solvers. However, adapting CVXPY convex optimization solver for curved spaces present some problems like including hierarchical representation learning, hyperbolic embeddings, and structured latent space modeling in neural systems, where classical notions of optimisation and convexity on Euclidean spaces are challenged. We explore some strategies for adapting, redefining those notions for curved spaces, especially hyperbolic spaces with g-convexity and its refinement h-convexity. While g-convexity generalises convexity to curved spaces where local minima coincide with global minima under appropriate conditions, the concept of h-convexity introduces curvature independent guarantees on certain curved spaces with non-positive sectional curvature called as Hadamard manifolds. We propose some techniques to model proximal problems via tangent spaces, integrate g-convexity &amp; h-convexity into solvers, and construct differentiable optimization layers in CVXPY to support the convex sub problems for curved spaces.</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p><strong>11:00 AM</strong></p></td>
+<td><div class="line-block">
+<div class="line"><strong>Panel: Contributing to CVXPY</strong> — William Zhang &amp; Nikhil Devenathan <em>(In-Person)</em></div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p><strong>11:30 AM</strong></p></td>
+<td><div class="line-block">
+<div class="line"><strong>Talkback: CVXPY New Features</strong> <em>(Hybrid)</em></div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p><strong>12:00 PM</strong></p></td>
+<td><p><strong>Lunch Break</strong></p></td>
+</tr>
+</tbody>
+</table>
+<h3 id="afternoon-session">Afternoon Session<a class="headerlink" href="#afternoon-session" title="Link to this heading">¶</a></h3>
+<table class="docutils data align-default">
+<colgroup>
+<col style="width: 15.0%" />
+<col style="width: 85.0%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><strong>1:00 PM</strong></p></td>
+<td><div class="line-block">
+<div class="line"><strong>A Tutorial on Graphs of Convex Sets</strong> — <a class="reference external" href="#speaker-tobia-marcucci">Tobia Marcucci</a> <em>(In-Person)</em></div>
+<div class="line"><br /></div>
+<div class="line">In this talk, I will give a tutorial on graphs of convex sets, with emphasis on their applications in robotics, planning, and, more broadly, decision making. Mathematically, a Graph of Convex Sets (GCS) is a graph in which vertices are associated with convex optimization problems and edges couple pairs of these problems through additional convex costs and constraints. Classical problems defined over ordinary weighted graphs (such as the shortest path, the traveling salesman, and the minimum spanning tree) naturally generalize to a GCS, giving rise to a rich class of problems at the interface of combinatorial and convex optimization. First, I will discuss how GCS problems can be solved efficiently and show a variety of real-world applications. Secondly, I will present GCSOPT, an open-source and easy-to-use Python library, based on CVXPY, that enables solving complex GCS problems in just a few lines of code.</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p><strong>1:30 PM</strong></p></td>
+<td><div class="line-block">
+<div class="line"><strong>Disciplined Nonlinear Programming</strong> — <a class="reference external" href="#speaker-daniel-cederberg">Daniel Cederberg</a> <em>(In-Person)</em></div>
+<div class="line"><br /></div>
+<div class="line">In this talk I introduce disciplined nonlinear programming (DNLP), a new syntax for specifying nonlinear programming problems. DNLP allows smooth functions to be freely mixed with nonsmooth convex and concave functions, with rules governing how the nonsmooth functions can be used. Problems expressed in DNLP form can be automatically canonicalized to a standard nonlinear programming (NLP) form and passed to a suitable NLP solver. I conclude by describing the DNLP language in more detail, comparing it with existing NLP modeling languages, and presenting our open-source implementation of DNLP as an extension of CVXPY.</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p><strong>2:00 PM</strong></p></td>
+<td><div class="line-block">
+<div class="line"><strong>pycvxset: Convex Sets in Python for Control and Analysis</strong> — <a class="reference external" href="#speaker-abraham-vinod">Abraham Vinod</a> <em>(Virtual)</em></div>
+<div class="line"><br /></div>
+<div class="line">pycvxset is a new Python package to manipulate and visualize convex sets. We support polytopes and ellipsoids, and provide user-friendly methods to perform a variety of set operations. For polytopes, pycvxset supports the standard halfspace/vertex representation as well as the constrained zonotope representation. The main advantage of constrained zonotope representations over standard halfspace/vertex representations is that constrained zonotopes admit closed-form expressions for several set operations. pycvxset uses CVXPY to solve various convex programs arising in set operations, and uses pycddlib to perform vertex-halfspace enumeration. We demonstrate the use of pycvxset in analyzing and controlling dynamical systems in Python. pycvxset is available at <a class="reference external" href="https://github.com/merlresearch/pycvxset">https://github.com/merlresearch/pycvxset</a> under the AGPL-3.0-or-later license, along with documentation and examples.</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p><strong>2:15 PM</strong></p></td>
+<td><div class="line-block">
+<div class="line"><strong>Riskfolio-Lib: Advanced Portfolio Optimization</strong> — <a class="reference external" href="#speaker-dany-cejas">Dany Cejas</a> <em>(Virtual)</em></div>
+<div class="line"><br /></div>
+<div class="line">Advanced portfolio optimization with convex and integer programming in Python.</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p><strong>2:30 PM</strong></p></td>
+<td><div class="line-block">
+<div class="line"><strong>Talkback: Serialization Specifications</strong> <em>(Hybrid)</em></div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p><strong>3:00 PM</strong></p></td>
+<td><div class="line-block">
+<div class="line"><strong>Minimizing Electricity-Related Costs and Emissions with EECO</strong> — <a class="reference external" href="#speaker-fletcher-chapin">Fletcher Chapin</a> <em>(In-Person)</em></div>
+<div class="line"><br /></div>
+<div class="line">Electricity tariff structures are extremely complex due to features such as time-of-use pricing, tiered charges, and bundling (whether generation and distribution are billed together). Industrial energy flexibility, or the ability of industrial electricity consumers to modify the timing of electricity consumption, has been the subject of much research due to its potential to reduce both costs and emissions. However, the magnitudes of bill savings or carbon emission reductions are a strong function of the prevailing electricity tariffs. In this work, we expand on our previous research, which compiled industrial electricity tariffs from across the United States, by presenting Electric Emissions &amp; Cost Optimizer (EECO), a software package for optimizing electricity-related emissions and costs using the format from our published tariff dataset. After briefly discussing the technical details of EECO, we present a simple case study demonstrating how to use EECO to optimize an industrial consumer’s electricity bill with a simple CVXPY battery model. The case study emphasizes the ease with which users can select from thousands of available tariffs representing the entire United States.</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p><strong>3:15 PM</strong></p></td>
+<td><div class="line-block">
+<div class="line"><strong>Development Plans for CVXR</strong> — <a class="reference external" href="#speaker-balasubramanian-narasimhan">Balasubramanian Narasimhan</a> &amp; Anqi Fu <em>(In-Person)</em></div>
+<div class="line"><br /></div>
+<div class="line">CVXR is the R port of CVXPY and has a developer community of two. As a result, it has fallen behind CVXPY in features but new AI development tools plus facilities in R offer hope of catching up. In this talk we describe our plans and present data from some early experiments that sound promising. The talk will be quite interactive and we welcome feedback from seasoned CVXPY community.</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p><strong>3:30 PM</strong></p></td>
+<td><div class="line-block">
+<div class="line"><strong>Moreau: The Convex Optimization Solver for the Modern Workload</strong> — <a class="reference external" href="#speaker-steven-diamond">Steven Diamond</a> <em>(In-Person, Sponsored)</em></div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p><strong>3:45 PM</strong></p></td>
+<td><div class="line-block">
+<div class="line"><strong>Electrified Transportation Optimization with CVXPY</strong> — <a class="reference external" href="#speaker-kyle-goodrick">Kyle Goodrick</a> <em>(In-Person)</em></div>
+<div class="line"><br /></div>
+<div class="line">To achieve the lowest cost operation, electrified transportation must maximize the utilization of charging and grid infrastructure. This presentation introduces a site optimization tool designed to identify the lowest-cost electrification strategy for shared transportation infrastructure serving multiple sectors, including heavy-duty trucks, buses, regional rail, and light rail. Implemented with CVXPY, the tool models the system as a convex optimization problem that jointly considers energy demand profiles, infrastructure constraints, and cost drivers across the site and the upstream power system. The model evaluates tradeoffs between on-site investments and grid upgrades, considering interconnection capacity limits, distribution impacts, and utility rate structures. It optimizes on-site energy storage and co-optimizes across transportation modes to reduce total system cost. This presentation will describe a real-world application of CVXPY where coordinated planning across transportation sectors can minimize total cost, reduce emissions, and more fully utilize existing grid infrastructure. The tool is intended to support fleets, utilities, planners, and policymakers in evaluating scalable, economically efficient approaches to transportation electrification at complex, multi-user sites.</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p><strong>4:00 PM</strong></p></td>
+<td><div class="line-block">
+<div class="line"><strong>MOCVXPY: A CVXPY Extension for Multiobjective Optimization</strong> — <a class="reference external" href="#speaker-ludovic-salomon">Ludovic Salomon</a> <em>(Virtual)</em></div>
+<div class="line"><br /></div>
+<div class="line">MOCVXPY is a library built on top of CVXPY for convex vector optimization. It enables practitioners to describe their convex vector optimization problems using an intuitive algebraic language that closely follows the mathematical formulation. This talk presents the main features of MOCVXPY and the algorithms employed by the library. We also illustrate its functionality with examples and an application in energy.</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p><strong>4:15 PM</strong></p></td>
+<td><div class="line-block">
+<div class="line"><strong>Sponsored Talk</strong> <em>(TBD)</em></div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p><strong>4:30 PM</strong></p></td>
+<td><div class="line-block">
+<div class="line"><strong>Keynote</strong> — <a class="reference external" href="#speaker-stephen-boyd">Stephen Boyd</a> <em>(In-Person)</em></div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p><strong>5:00 PM</strong></p></td>
+<td><div class="line-block">
+<div class="line"><strong>Social</strong> <em>(Location TBD)</em></div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<h2 id="hackathon-february-21">Hackathon (February 21)<a class="headerlink" href="#hackathon-february-21" title="Link to this heading">¶</a></h2>
+<p>Details coming soon.</p>
+<h2 id="speakers">Speakers<a class="headerlink" href="#speakers" title="Link to this heading">¶</a></h2>
+<details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3" id="speaker-julian-hall">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">Julian Hall</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<p class="sd-card-text">Julian Hall has a BA in Mathematics from the University of Oxford, a PhD from the University of Dundee supervised by Roger Fletcher (FRS) and, since 1990, has been employed as a lecturer by the University of Edinburgh. His occasional research activity has been in the field of computational techniques for continuous linear optimization on serial and parallel architectures, notably the simplex method. His work (with others) has yielded journal articles that have won four best paper prizes. Since the mid-90s, he has been engaged in consultancy, notably providing linear optimization technology to Format International, whose software formulates half the world’s manufactured animal feed. In 2016, with Ivet Galabova, he founded HiGHS, which has grown to be the world’s best open-source linear optimization software.</p>
+</div>
+</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3" id="speaker-hao-zhu">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">Hao Zhu</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<p class="sd-card-text">Hao Zhu completed his bachelor’s degree in computational chemistry at Nankai University in China, followed by a master’s degree in neuroscience at the University of Freiburg, Germany. He is currently a PhD student in the Department of Computer Science at the University of Freiburg, jointly supervised by Prof. Joschka Boedecker and Prof. Moritz Diehl.</p>
+</div>
+</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3" id="speaker-michael-howes">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">Michael Howes</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<p class="sd-card-text">Michael Howes is a fifth year graduate student in the Statistics Department at Stanford University. He works on the theory of auxiliary variables Markov Chain Monte Carlo algorithms and is advised by Prof. Persi Diaconis. He has also published interdisciplinary work on using large language models for valid inference in computational social science. In Summer 2025, Michael was a data science intern at Waymo where he designed algorithms for improved triage sampling.</p>
+</div>
+</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3" id="speaker-nikhesh-kumar-murali">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">Nikhesh Kumar Murali</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<p class="sd-card-text">Nikhesh Kumar Murali is a Data Scientist and interdisciplinary researcher working at the intersection of mathematics, optimization, and modern artificial intelligence. He holds an undergraduate degree in Mathematics from the Indian Institute of Science, Bengaluru, and a joint Master’s degree in Artificial Intelligence and Data Science from IIT Madras and the University of Birmingham. His research interests span convex optimization, AI4Mathematics, and geometry of latent spaces for mechanistic interpretability. He has worked on topics ranging from metric geometry and Fuchsian groups, automated theorem proving using Lean to Responsible AI and computer vision tasks such as object detection. He is particularly focused on how tools from differential/hyperbolic geometry, optimal transport, and convex analysis can be integrated into solving fundamental problems. Currently, Nikhesh works as a Data Scientist in industry, where he designs and deploys machine learning systems and Agentic AI architectures for code automation.</p>
+</div>
+</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3" id="speaker-tobia-marcucci">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">Tobia Marcucci</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<p class="sd-card-text">Tobia Marcucci is an Assistant Professor in the Department of Electrical and Computer Engineering at the University of California, Santa Barbara (UCSB). He is also affiliated with the Department of Mechanical Engineering and the Center for Control, Dynamical Systems, and Computation (CCDC) at UCSB. Before joining UCSB, he was a Postdoctoral Scientist at Amazon Robotics. He received a PhD in Computer Science from the Massachusetts Institute of Technology (MIT), under the supervision of Russ Tedrake and Pablo Parrilo. During his PhD, he also spent one year at Stanford University visiting Stephen Boyd’s group. His doctoral dissertation was awarded the 2025 MIT EECS George M. Sprowls Thesis Award in Artificial Intelligence and Decision Making. He holds a Bachelor’s and a Master’s degree cum laude in Mechanical Engineering from the University of Pisa. His research lies at the intersection of convex and combinatorial optimization, with applications to robotics, motion planning, and optimal control.</p>
+</div>
+</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3" id="speaker-daniel-cederberg">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">Daniel Cederberg</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<p class="sd-card-text">Daniel Cederberg is a PhD student at Stanford University, advised by Stephen Boyd.</p>
+</div>
+</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3" id="speaker-abraham-vinod">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">Abraham Vinod</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<p class="sd-card-text">Abraham P. Vinod is a Principal Research Scientist at Mitsubishi Electric Research Laboratories (MERL), Cambridge, MA, USA. His main research interests are in the areas of constrained control, robotics, and learning. Prior to joining MERL in 2020, he held a postdoctoral position at the University of Texas at Austin. He received his B.Tech. and M.Tech. degrees from the Indian Institute of Technology-Madras (IIT-M), India, and his Ph.D. degree from the University of New Mexico, USA, all in electrical engineering. He was the recipient of the Best Student Paper Award at the 2017 ACM Hybrid Systems: Computation and Control Conference, Finalist for the Best Paper Award in the 2018 ACM Hybrid Systems: Computation and Control Conference, and the best undergraduate student research project award at IIT-M. He is the primary developer of pycvxset, a set computation toolbox in Python, and co-developed SReachTools, a stochastic reachability toolbox in MATLAB.</p>
+</div>
+</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3" id="speaker-dany-cejas">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">Dany Cejas</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<p class="sd-card-text">Dany Cejas holds a BSc in Economic Engineering and Master in Finance. He is the creator and sole maintainer of Riskfolio-Lib (3,723 Github stars and +1.1M downloads) and author of “Advanced Portfolio Optimization: a Cutting-edge Quantitative Approach”.</p>
+</div>
+</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3" id="speaker-fletcher-chapin">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">Fletcher Chapin</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<p class="sd-card-text">Fletcher Chapin is a 5th-year environmental engineering PhD candidate advised by Dr. Meagan Mauter in the WE3Lab. His research focuses on data management solutions for the water sector, minimizing costs and emissions of wastewater treatment through flexible operation, and formal verification of proposed control schemes. Before coming to Stanford, Fletcher graduated from Cornell with a BS in Environmental Engineering and minor in Computer Science. After Cornell, he first worked as a software engineer at Microsoft before returning to the water sector as India Program Project Manager for AguaClara Reach. Fletcher will be defending his dissertation in May, so we’ll see what comes next!</p>
+</div>
+</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3" id="speaker-balasubramanian-narasimhan">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">Balasubramanian Narasimhan</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<p class="sd-card-text">Balasubramanian Narasimhan is a Senior Research Scientist in Departments of Biomedical Data Sciences and Statistics at Stanford. Together with Anqi Fu, he is the maintainer of CVXR, the R port of CVXPY.</p>
+</div>
+</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3" id="speaker-kyle-goodrick">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">Kyle Goodrick</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<p class="sd-card-text">Kyle Goodrick is a Senior Power Systems Research Engineer at ASPIRE, where he focuses on research at the intersection of electric power systems and electrified transportation. His work is centered on enabling economic growth while reducing costs and emissions through better utilization of existing grid infrastructure. He is particularly interested in how large, flexible electric loads, primarily electric vehicles, can be coordinated with the power system to improve efficiency, defer infrastructure upgrades, and support reliable system operation. Kyle earned his PhD in Electrical Engineering from the University of Colorado Boulder, studying the optimization of power distribution architectures.</p>
+</div>
+</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3" id="speaker-steven-diamond">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">Steven Diamond</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<p class="sd-card-text">Steven Diamond is the founder of CVXPY and its head maintainer. He is also a founder and COO of Optimal Intellect.</p>
+</div>
+</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3" id="speaker-ludovic-salomon">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">Ludovic Salomon</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<p class="sd-card-text">Ludovic Salomon is a researcher at Hydro-Québec, the primary producer and distributor of electricity in Quebec, Canada. He holds a Ph.D. in applied mathematics and computer science from Polytechnique Montréal. His research interests are in numerical optimization, at the intersection of computer science and mathematics, with a focus on multiobjective optimization.</p>
+</div>
+</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3" id="speaker-stephen-boyd">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">Stephen Boyd</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<p class="sd-card-text">Stephen P. Boyd is the Samsung Professor of Engineering, Professor of Electrical Engineering, and a member of the Institute for Computational and Mathematical Engineering at Stanford University. His current research focus is on convex optimization applications in control, signal processing, machine learning, and finance. He has developed and taught many undergraduate and graduate courses, including Signals &amp; Systems, Linear Dynamical Systems, Convex Optimization, and a recent undergraduate course on Matrix Methods. His graduate convex optimization course attracts 300 students from 25 departments. In 2003, he received the AACC Ragazzini Education award, for contributions to control education. In 2016 he received the Walter J. Gores award, the highest award for teaching at Stanford University. In 2017 he received the IEEE James H. Mulligan, Jr. Education Medal, the highest education award of the IEEE, for a career of outstanding contributions to education.</p>
+</div>
+</details><h2 id="contact">Contact<a class="headerlink" href="#contact" title="Link to this heading">¶</a></h2>
+<p>For questions about the workshop, please email <a class="reference external" href="mailto:cvxpydevs&#37;&#52;&#48;gmail&#46;com">cvxpydevs<span>&#64;</span>gmail<span>&#46;</span>com</a>.</p>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  
+  
+  <div class="md-footer-meta md-typeset">
+    
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-footer-copyright__highlight">
+        &#169; Copyright The CVXPY authors.
+        
+    </div>
+  
+    Created using
+    <a href="https://www.sphinx-doc.org/" target="_blank" rel="noopener">Sphinx</a>
+    8.2.3.
+     and
+    <a href="https://github.com/jbms/sphinx-immaterial/" target="_blank" rel="noopener">Sphinx-Immaterial</a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+    <a href="https://github.com/cvxpy/cvxpy" target="_blank" rel="noopener" title="Source on github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://pypi.org/project/cvxpy/" target="_blank" rel="noopener" title="pypi.org" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.8 200.5c-7.7-30.9-22.3-54.2-53.4-54.2h-40.1v47.4c0 36.8-31.2 67.8-66.8 67.8H172.7c-29.2 0-53.4 25-53.4 54.3v101.8c0 29 25.2 46 53.4 54.3 33.8 9.9 66.3 11.7 106.8 0 26.9-7.8 53.4-23.5 53.4-54.3v-40.7H226.2v-13.6h160.2c31.1 0 42.6-21.7 53.4-54.2 11.2-33.5 10.7-65.7 0-108.6M286.2 404c11.1 0 20.1 9.1 20.1 20.3 0 11.3-9 20.4-20.1 20.4-11 0-20.1-9.2-20.1-20.4.1-11.3 9.1-20.3 20.1-20.3M167.8 248.1h106.8c29.7 0 53.4-24.5 53.4-54.3V91.9c0-29-24.4-50.7-53.4-55.6-35.8-5.9-74.7-5.6-106.8.1-45.2 8-53.4 24.7-53.4 55.6v40.7h106.9v13.6h-147c-31.1 0-58.3 18.7-66.8 54.2-9.8 40.7-10.2 66.1 0 108.6 7.6 31.6 25.7 54.2 56.8 54.2H101v-48.8c0-35.3 30.5-66.4 66.8-66.4m-6.7-142.6c-11.1 0-20.1-9.1-20.1-20.3.1-11.3 9-20.4 20.1-20.4 11 0 20.1 9.2 20.1 20.4s-9 20.3-20.1 20.3"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+    
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["header.autohide", "toc.follow", "navigation.path", "navigation.instant", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.tracking", "navigation.expand", "search.highlight", "search.share", "content.tabs.link", "announce.dismiss", "content.code.copy"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike", "staticVersions": [{"aliases": [], "title": "latest", "version": "https://www.cvxpy.org"}, {"aliases": [], "title": "1.7", "version": "https://www.cvxpy.org/version/1.7"}, {"aliases": [], "title": "1.6", "version": "https://www.cvxpy.org/version/1.6"}, {"aliases": [], "title": "1.5", "version": "https://www.cvxpy.org/version/1.5"}, {"aliases": [], "title": "1.4", "version": "https://www.cvxpy.org/version/1.4"}], "versionPath": null}}</script>
+    
+      
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/sphinx_immaterial_theme.32136f45f91ae6956.min.js?v=a7a9472a"></script>
+        <script src="../../_static/tabs.js?v=3ee01567"></script>
+        <script src="../../_static/design-tabs.js?v=f930bc37"></script>
+        <script src="https://cdn.datatables.net/2.1.8/js/dataTables.js"></script>
+    
+  </body>
+</html>

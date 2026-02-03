@@ -50,16 +50,6 @@
     <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
-  
-
-
-  
-  
-
-<script id="__analytics">function __md_analytics(){function e(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],e("js",new Date),e("config","UA-50248335-1"),document.addEventListener("DOMContentLoaded",(function(){document.forms.search&&document.forms.search.query.addEventListener("blur",(function(){this.value&&e("event","search",{search_term:this.value})}));document$.subscribe((function(){var t=document.forms.feedback;if(void 0!==t)for(var a of t.querySelectorAll("[type=submit]"))a.addEventListener("click",(function(a){a.preventDefault();var n=document.location.pathname,d=this.getAttribute("data-md-value");e("event","feedback",{page:n,data:d}),t.firstElementChild.disabled=!0;var r=t.querySelector(".md-feedback__note [data-md-value='"+d+"']");r&&(r.hidden=!1)})),t.hidden=!1})),location$.subscribe((function(t){e("config","UA-50248335-1",{page_path:t.pathname})}))}));var t=document.createElement("script");t.async=!0,t.src="https://www.googletagmanager.com/gtag/js?id=UA-50248335-1",document.getElementById("__analytics").insertAdjacentElement("afterEnd",t)}</script>
-  
-    <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
-  
 
     
     
@@ -100,9 +90,9 @@
             
             
 <p style="font-size: 1.1em;">
-  🎉 <strong>Attend or speak at the inaugural
-  <a href="https://docs.google.com/forms/d/e/1FAIpQLSexWIvIfNlpkY4KK3rw47qNg8MiYUT6vL-dPt1emACH6ChPzw/viewform?usp=header">CVXPY Community Workshop</a></strong>
-  on February 20 and 21st at Stanford University and on Zoom! 🎉
+  🎉 <strong>Attend the inaugural
+  <a href="workshop/2026/">CVXPY Community Workshop</a></strong>
+  on February 20 and 21 at Stanford University and on Zoom! 🎉
   <br>
   📅 The CVXPY developers are also hosting
   <a href="https://calendar.app.google/mRGBur1ZVMW1dcbR8"><strong>listening sessions</strong></a>
@@ -405,6 +395,23 @@
     
   
   <span>Resources</span>
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../workshop/index.html" class="md-tabs__link">
+        
+  
+    
+  
+  <span>CVXPY Workshop</span>
 
       </a>
     </li>
@@ -729,6 +736,29 @@
   
 
     
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../workshop/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>CVXPY Workshop</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
   </ul>
 </nav>
                   </div>
@@ -811,7 +841,7 @@ Instructions</div>
 </div>
 <p class="sd-card-text">You can add solver names as “extras”; <cite>pip</cite> will then install the necessary
 additional Python packages.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="n">pip</span> <span class="n">install</span> <span class="s2">&quot;cvxpy[CBC,CVXOPT,GLOP,GLPK,GUROBI,MOSEK,PDLP,SCIP,XPRESS]&quot;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="n">pip</span> <span class="n">install</span> <span class="s2">&quot;cvxpy[CBC,CVXOPT,GLOP,GLPK,GUROBI,MOSEK,PDLP,SCIP,XPRESS,KNITRO]&quot;</span>
 </code></pre></div>
 </div>
 </div>
@@ -1010,6 +1040,14 @@ See the <a class="reference external" href="http://github.com/NVIDIA/cuopt">CUOP
 Follow this link for additional documentation on <a class="reference external" href="https://docs.nvidia.com/cuopt/">CUOPT</a></p>
 </details>
 <details class="info admonition">
+<summary class="admonition-title">KNITRO</summary><p>CVXPY supports the KNITRO solver.
+Simply install KNITRO such that you can <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">knitro</span></code> in Python. You can do this by running</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="n">pip</span> <span class="n">install</span> <span class="n">knitro</span>
+</code></pre></div>
+</div>
+<p>See the <a class="reference external" href="https://www.artelys.com/solvers/knitro/">KNITRO</a> website for additional instructions.</p>
+</details>
+<details class="info admonition">
 <summary class="admonition-title">Without default solvers</summary><p>CVXPY can also be installed without the default solver dependencies.
 This can be useful if the intention is to only use non-default solvers.</p>
 <p>The solver-less installation, <code class="docutils literal notranslate"><span class="pre">cvxpy-base</span></code>, can currently be installed through pip and conda.</p>
@@ -1043,8 +1081,6 @@ If installed from source, navigate to the root of the repository and run</p>
   
 
 
-
-  
 
 
 
