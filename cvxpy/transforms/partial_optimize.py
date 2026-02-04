@@ -147,7 +147,10 @@ class PartialProblem(Expression):
     def is_dpp(self, context: str = 'dcp') -> bool:
         """The expression is a disciplined parameterized expression.
         """
-        return self.args[0].is_dpp(context)
+        if context.lower() in ['dcp', 'dgp']:
+            return self.args[0].is_dpp(context)
+        else:
+            raise ValueError("Unsupported context", context)
 
     def is_log_log_convex(self) -> bool:
         """Is the expression convex?

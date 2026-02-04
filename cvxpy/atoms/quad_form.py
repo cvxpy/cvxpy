@@ -65,35 +65,31 @@ class QuadForm(Atom):
 
     def is_atom_convex(self) -> bool:
         """Is the atom convex?
+
+        In quad_form_dpp_scope (QP solver path), allows parametric P:
+        - x must be param-free (avoid quadratic-in-params)
+        - P must be param-affine (DPP requirement)
+        - P must be PSD (for convexity)
         """
         P = self.args[1]
+        if scopes.quad_form_dpp_scope_active():
+            x = self.args[0]
+            return is_param_free(x) and is_param_affine(P) and P.is_psd()
         return P.is_constant() and P.is_psd()
 
     def is_atom_concave(self) -> bool:
         """Is the atom concave?
+
+        In quad_form_dpp_scope (QP solver path), allows parametric P:
+        - x must be param-free (avoid quadratic-in-params)
+        - P must be param-affine (DPP requirement)
+        - P must be NSD (for concavity)
         """
         P = self.args[1]
-        return P.is_constant() and P.is_nsd()
-
-    def is_dpp(self, context='dcp') -> bool:
-        """Check if quad_form is DPP in the given context.
-
-        In 'quad_dcp' context, quad_form(x, P) is DPP if:
-        - x is parameter-free (just variables, no parameters)
-        - P is parameter-affine (affine in parameters, no variables)
-
-        Convexity (P.is_psd/nsd) is checked separately by is_atom_convex/concave.
-
-        In 'dcp' or 'dgp' context, falls back to default behavior.
-        """
-        if context.lower() == 'quad_dcp':
+        if scopes.quad_form_dpp_scope_active():
             x = self.args[0]
-            P = self.args[1]
-            with scopes.dpp_scope():
-                x_ok = is_param_free(x)
-                P_ok = is_param_affine(P)
-            return x_ok and P_ok
-        return super().is_dpp(context)
+            return is_param_free(x) and is_param_affine(P) and P.is_nsd()
+        return P.is_constant() and P.is_nsd()
 
     def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?

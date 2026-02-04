@@ -360,11 +360,8 @@ class Problem(u.Canonical):
         bool
             Whether the problem satisfies the DPP rules.
         """
-        if context.lower() in ('dcp', 'quad_dcp'):
-            expr_dpp = all(
-                e.is_dpp(context=context)
-                for e in [self.objective] + self.constraints
-            )
+        if context.lower() == 'dcp':
+            expr_dpp = self.is_dcp(dpp=True)
         elif context.lower() == 'dgp':
             expr_dpp = self.is_dgp(dpp=True)
         else:

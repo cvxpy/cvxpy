@@ -219,7 +219,7 @@ class Inequality(Constraint):
                 self.args[1].is_log_log_concave())
 
     def is_dpp(self, context='dcp') -> bool:
-        if context.lower() in ('dcp', 'quad_dcp'):
+        if context.lower() == 'dcp':
             return self.is_dcp(dpp=True)
         elif context.lower() == 'dgp':
             return self.is_dgp(dpp=True)
