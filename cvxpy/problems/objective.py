@@ -166,8 +166,9 @@ class Minimize(Objective):
 
     def is_dpp(self, context='dcp') -> bool:
         with scopes.dpp_scope():
-            if context.lower() == 'dcp':
-                return self.is_dcp(dpp=True)
+            if context.lower() in ('dcp', 'quad_dcp'):
+                # For quad_dcp, pass context to expression so QuadForm can handle it
+                return self.args[0].is_dpp(context=context)
             elif context.lower() == 'dgp':
                 return self.is_dgp(dpp=True)
             else:
@@ -237,8 +238,9 @@ class Maximize(Objective):
 
     def is_dpp(self, context='dcp') -> bool:
         with scopes.dpp_scope():
-            if context.lower() == 'dcp':
-                return self.is_dcp(dpp=True)
+            if context.lower() in ('dcp', 'quad_dcp'):
+                # For quad_dcp, pass context to expression so QuadForm can handle it
+                return self.args[0].is_dpp(context=context)
             elif context.lower() == 'dgp':
                 return self.is_dgp(dpp=True)
             else:

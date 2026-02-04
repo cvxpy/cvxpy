@@ -22,8 +22,10 @@ from scipy import linalg as LA
 
 from cvxpy.atoms.affine.wraps import psd_wrap
 from cvxpy.atoms.atom import Atom
+from cvxpy.expressions.constants.parameter import is_param_affine, is_param_free
 from cvxpy.expressions.expression import Expression
 from cvxpy.interface.matrix_utilities import is_sparse
+from cvxpy.utilities import scopes
 from cvxpy.utilities.linalg import sparse_cholesky
 from cvxpy.utilities.warn import warn
 
@@ -72,6 +74,26 @@ class QuadForm(Atom):
         """
         P = self.args[1]
         return P.is_constant() and P.is_nsd()
+
+    def is_dpp(self, context='dcp') -> bool:
+        """Check if quad_form is DPP in the given context.
+
+        In 'quad_dcp' context, quad_form(x, P) is DPP if:
+        - x is parameter-free (just variables, no parameters)
+        - P is parameter-affine (affine in parameters, no variables)
+
+        Convexity (P.is_psd/nsd) is checked separately by is_atom_convex/concave.
+
+        In 'dcp' or 'dgp' context, falls back to default behavior.
+        """
+        if context.lower() == 'quad_dcp':
+            x = self.args[0]
+            P = self.args[1]
+            with scopes.dpp_scope():
+                x_ok = is_param_free(x)
+                P_ok = is_param_affine(P)
+            return x_ok and P_ok
+        return super().is_dpp(context)
 
     def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
