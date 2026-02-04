@@ -36,6 +36,7 @@ from cvxpy.reductions.solvers.constant_solver import ConstantSolver
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
 from cvxpy.reductions.solvers.solver import Solver, expand_cones
 from cvxpy.settings import COO_CANON_BACKEND, DPP_PARAM_THRESHOLD
+from cvxpy.utilities import scopes
 from cvxpy.utilities.solver_context import SolverInfo
 from cvxpy.utilities.warn import warn
 
@@ -186,7 +187,14 @@ def _build_solving_chain(
 
     # --- DPP handling ---
     dpp_context = 'dcp' if not gp else 'dgp'
-    if ignore_dpp or not problem.is_dpp(dpp_context):
+    # For QP solvers, enter quad_form_dpp_scope to allow parametric P
+    # This makes QuadForm.is_atom_convex/concave() accept param-affine P
+    if solver_instance.supports_quad_obj():
+        with scopes.quad_form_dpp_scope():
+            is_dpp = problem.is_dpp(dpp_context)
+    else:
+        is_dpp = problem.is_dpp(dpp_context)
+    if ignore_dpp or not is_dpp:
         if not ignore_dpp and enforce_dpp:
             raise DPPError(DPP_ERROR_MSG)
         if not ignore_dpp:
