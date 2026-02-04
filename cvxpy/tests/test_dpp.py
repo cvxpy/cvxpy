@@ -163,8 +163,6 @@ class TestDcp(BaseTest):
         self.assertFalse(cp.reductions.eval_params.EvalParams
                          in [type(r) for r in chain.reductions])
 
-    # NOTE: quad_form DPP tests have been moved to test_quad_dpp.py
-
     def test_paper_example_logreg_is_dpp(self) -> None:
         N, n = 3, 2
         beta = cp.Variable((n, 1))

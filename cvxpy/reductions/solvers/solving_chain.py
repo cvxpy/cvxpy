@@ -578,7 +578,7 @@ class SolvingChain(Chain):
         return self.invert(solution, inverse_data)
 
     def solve_via_data(self, problem, data, warm_start: bool = False, verbose: bool = False,
-                       solver_opts={}):
+                       solver_opts=None):
         """Solves the problem using the data output by the an apply invocation.
 
         The semantics are:
