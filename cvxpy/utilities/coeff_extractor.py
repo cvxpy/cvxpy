@@ -139,11 +139,8 @@ class CoeffExtractor:
                 P_is_param = isinstance(P_expr, Parameter)
 
                 if P_is_param:
-                    # For parametric P, we need to track P's entries as parameters.
-                    # P_expr.value must be set for shape/structure info.
-                    assert (
-                        P_expr.value is not None
-                    ), "P matrix must be instantiated before calling extract_quadratic_coeffs."
+                    # For parametric P, track its entries as parameters.
+                    # Only need shape info, not value.
                     n = P_expr.shape[0]
                     P_param_offset = self.param_id_map[P_expr.id]
                 else:
