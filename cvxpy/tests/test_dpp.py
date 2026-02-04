@@ -284,6 +284,26 @@ class TestDcp(BaseTest):
             self.assertTrue(y.is_concave())
             self.assertTrue(y.is_dpp())
 
+    def test_nsd_param_quad_form_solve(self) -> None:
+        """Solve Maximize(quad_form(x, P)) with NSD Parameter P."""
+        x = cp.Variable(2)
+        P = cp.Parameter((2, 2), NSD=True)
+        P.value = -np.eye(2)  # quad_form = -x1^2 - x2^2, concave
+
+        # Maximize quad_form subject to sum(x) == 1
+        # Optimal: x = [0.5, 0.5], objective = -0.5
+        prob = cp.Problem(cp.Maximize(cp.quad_form(x, P)), [cp.sum(x) == 1])
+        prob.solve(solver=cp.CLARABEL)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        self.assertAlmostEqual(prob.value, -0.5, places=4)
+        self.assertItemsAlmostEqual(x.value, [0.5, 0.5], places=4)
+
+        # Re-solve with different P value
+        P.value = -2 * np.eye(2)  # quad_form = -2*x1^2 - 2*x2^2
+        prob.solve(solver=cp.CLARABEL)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        self.assertAlmostEqual(prob.value, -1.0, places=4)
+
     def test_maximize_param_quad_form(self) -> None:
         """Test Maximize(-quad_form(x, P)) with parametric P."""
         x = cp.Variable(2)

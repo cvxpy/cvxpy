@@ -151,10 +151,11 @@ class CoeffExtractor:
                     assert (
                         P_expr.value is not None
                     ), "P matrix must be instantiated before calling extract_quadratic_coeffs."
-                    if sp.issparse(P_expr) and not isinstance(P_expr, sp.coo_matrix):
-                        P = P_expr.value.tocoo()
+                    P_val = P_expr.value
+                    if sp.issparse(P_val) and not isinstance(P_val, sp.coo_matrix):
+                        P = P_val.tocoo()
                     else:
-                        P = sp.coo_matrix(P_expr.value)
+                        P = sp.coo_matrix(P_val)
 
                 # Get block structure if available
                 block_indices = quad_form_atom.block_indices
@@ -171,14 +172,10 @@ class CoeffExtractor:
                     n = P_expr.shape[0]
                     # Create indices for all n*n entries of P in column-major order.
                     # The parameter offset for P[i,j] is P_param_offset + j*n + i.
-                    rows = []
-                    cols = []
-                    param_offsets = []
-                    for j in range(n):
-                        for i in range(n):
-                            rows.append(i)
-                            cols.append(j)
-                            param_offsets.append(P_param_offset + j * n + i)
+                    # Use numpy for efficient index generation.
+                    rows = np.tile(np.arange(n), n)         # [0,1,...,n-1, 0,1,...,n-1, ...]
+                    cols = np.repeat(np.arange(n), n)       # [0,0,...,0, 1,1,...,1, ...]
+                    param_offsets = P_param_offset + np.arange(n * n)
 
                     # c_part contains the scalar coefficient (usually 1.0 for identity).
                     # We need to combine the c_part coefficients with P's parameter entries.
@@ -187,33 +184,26 @@ class CoeffExtractor:
                         P_tup = TensorRepresentation.empty_with_shape((n, n))
                     else:
                         # For each nonzero coefficient in c_part, replicate P's structure.
-                        all_data = []
-                        all_row = []
-                        all_col = []
-                        all_param = []
                         c_nonzero_vals = c_part[0, nonzero_idxs]
                         c_nonzero_idxs = np.arange(num_params)[nonzero_idxs]
 
-                        for coef_val, coef_param_idx in zip(c_nonzero_vals, c_nonzero_idxs):
-                            if coef_param_idx == num_params - 1:
-                                # This is the constant slice - P entries are parameters.
-                                all_data.extend([coef_val] * len(rows))
-                                all_row.extend(rows)
-                                all_col.extend(cols)
-                                all_param.extend(param_offsets)
-                            else:
-                                # This coefficient is itself parametric - would make
-                                # the expression quadratic in parameters, not allowed.
-                                raise ValueError(
-                                    "DPP quad_form requires the expression to be "
-                                    "affine in parameters. Found quadratic parameter dependence."
-                                )
+                        # Check that all nonzero coefficients are in the constant slice.
+                        # Any parametric coefficient would make this quadratic in parameters.
+                        non_const_mask = c_nonzero_idxs != (num_params - 1)
+                        if np.any(non_const_mask):
+                            raise ValueError(
+                                "DPP quad_form requires x to be parameter-free. "
+                                "Found parameter dependence in x, which would make "
+                                "the expression quadratic in parameters."
+                            )
 
+                        # All coefficients are in the constant slice.
+                        coef_val = c_nonzero_vals[0]
                         P_tup = TensorRepresentation(
-                            np.array(all_data),
-                            np.array(all_row, dtype=int),
-                            np.array(all_col, dtype=int),
-                            np.array(all_param, dtype=int),
+                            np.full(len(rows), coef_val),
+                            rows,
+                            cols,
+                            param_offsets,
                             (n, n)
                         )
                 elif var_size == 1:

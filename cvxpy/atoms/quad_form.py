@@ -63,6 +63,16 @@ class QuadForm(Atom):
         """
         return (self.is_atom_convex(), self.is_atom_concave())
 
+    def _check_dpp_args(self) -> bool:
+        """Check if args satisfy DPP requirements for quad_form.
+
+        For DPP with parametric P (in quad_form_dpp_scope):
+        - x must be param-free (avoid quadratic-in-params)
+        - P must be param-affine (DPP requirement)
+        """
+        x, P = self.args[0], self.args[1]
+        return is_param_free(x) and is_param_affine(P)
+
     def is_atom_convex(self) -> bool:
         """Is the atom convex?
 
@@ -73,8 +83,7 @@ class QuadForm(Atom):
         """
         P = self.args[1]
         if scopes.quad_form_dpp_scope_active():
-            x = self.args[0]
-            return is_param_free(x) and is_param_affine(P) and P.is_psd()
+            return self._check_dpp_args() and P.is_psd()
         return P.is_constant() and P.is_psd()
 
     def is_atom_concave(self) -> bool:
@@ -87,8 +96,7 @@ class QuadForm(Atom):
         """
         P = self.args[1]
         if scopes.quad_form_dpp_scope_active():
-            x = self.args[0]
-            return is_param_free(x) and is_param_affine(P) and P.is_nsd()
+            return self._check_dpp_args() and P.is_nsd()
         return P.is_constant() and P.is_nsd()
 
     def is_atom_log_log_convex(self) -> bool:
