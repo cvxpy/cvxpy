@@ -262,7 +262,8 @@ class Atom(Expression):
     def is_dpp(self, context='dcp') -> bool:
         """The expression is a disciplined parameterized expression.
         """
-        if context.lower() == 'dcp':
+        if context.lower() in ('dcp', 'quad_dcp'):
+            # quad_dcp behaves like dcp for most atoms; QuadForm overrides this
             return self.is_dcp(dpp=True)
         elif context.lower() == 'dgp':
             return self.is_dgp(dpp=True)

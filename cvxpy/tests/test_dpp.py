@@ -163,13 +163,60 @@ class TestDcp(BaseTest):
         self.assertFalse(cp.reductions.eval_params.EvalParams
                          in [type(r) for r in chain.reductions])
 
-    def test_param_quad_form_not_dpp(self) -> None:
+    def test_param_quad_form_not_dpp_in_dcp_context(self) -> None:
+        """Test that quad_form(x, P) with PSD Parameter P is NOT DPP in 'dcp' context."""
         x = cp.Variable((2, 1))
         P = cp.Parameter((2, 2), PSD=True)
         P.value = np.eye(2)
         y = cp.quad_form(x, P)
+        # Not DPP in default 'dcp' context (conic solvers can't handle parametric P)
         self.assertFalse(y.is_dpp())
+        self.assertFalse(y.is_dpp(context='dcp'))
+        # But IS DPP in 'quad_dcp' context (QP solvers can handle parametric P)
+        self.assertTrue(y.is_dpp(context='quad_dcp'))
         self.assertTrue(y.is_dcp())
+
+    def test_param_quad_form_dpp_solve(self) -> None:
+        """Test solving a DPP problem with quad_form(x, P) where P is a Parameter."""
+        x = cp.Variable(2)
+        P = cp.Parameter((2, 2), PSD=True)
+        P.value = np.array([[2, 0], [0, 1]])
+
+        prob = cp.Problem(cp.Minimize(cp.quad_form(x, P)), [cp.sum(x) == 1])
+        # DPP in 'quad_dcp' context
+        self.assertTrue(prob.is_dpp(context='quad_dcp'))
+
+        # First solve (uses QP path, so parametric P works)
+        prob.solve(solver=cp.CLARABEL)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        x1 = x.value.copy()
+
+        # Change P and re-solve (should use cached canonicalization)
+        P.value = np.array([[1, 0], [0, 2]])
+        prob.solve(solver=cp.CLARABEL)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        x2 = x.value.copy()
+
+        # Results should be different (verifying P.value change took effect)
+        self.assertFalse(np.allclose(x1, x2))
+
+        # For P = [[2, 0], [0, 1]], minimizing x'Px s.t. sum(x)=1
+        # Solution should favor x[1] (smaller weight)
+        # For P = [[1, 0], [0, 2]], solution should favor x[0]
+        self.assertGreater(x1[1], x1[0])  # First solve: x[1] > x[0]
+        self.assertGreater(x2[0], x2[1])  # Second solve: x[0] > x[1]
+
+    def test_param_quad_form_symmetric_not_psd_not_dcp(self) -> None:
+        """Test that quad_form(x, P) with symmetric but non-PSD Parameter P is NOT DCP."""
+        x = cp.Variable((2, 1))
+        # symmetric=True is required for quad_form validation, but PSD is not set
+        P = cp.Parameter((2, 2), symmetric=True)
+        P.value = np.eye(2)
+        y = cp.quad_form(x, P)
+        # Not DCP because P.is_psd() returns False (no PSD attribute)
+        self.assertFalse(y.is_dcp())
+        # But IS DPP in 'quad_dcp' context (DPP doesn't care about PSD, just parametric structure)
+        self.assertTrue(y.is_dpp(context='quad_dcp'))
 
     def test_const_quad_form_is_dpp(self) -> None:
         x = cp.Variable((2, 1))

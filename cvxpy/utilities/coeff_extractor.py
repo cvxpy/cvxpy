@@ -23,6 +23,7 @@ import numpy as np
 import scipy.sparse as sp
 
 from cvxpy.cvxcore.python import canonInterface
+from cvxpy.expressions.constants.parameter import Parameter
 from cvxpy.lin_ops.canon_backend import TensorRepresentation
 from cvxpy.lin_ops.lin_op import NO_OP, LinOp
 from cvxpy.reductions.inverse_data import InverseData
@@ -130,22 +131,92 @@ class CoeffExtractor:
                 var_size = affine_id_map[var_id][1]
                 c_part = c[var_offset:var_offset+var_size, :]
 
-                # Convert to sparse matrix.
+                # Convert to sparse matrix or handle parametric P.
                 quad_form_atom = quad_forms[var_id][2]
-                P = quad_form_atom.P
-                assert (
-                    P.value is not None
-                ), "P matrix must be instantiated before calling extract_quadratic_coeffs."
-                if sp.issparse(P) and not isinstance(P, sp.coo_matrix):
-                    P = P.value.tocoo()
+                P_expr = quad_form_atom.P
+
+                # Check if P is a Parameter (for DPP support)
+                P_is_param = isinstance(P_expr, Parameter)
+
+                if P_is_param:
+                    # For parametric P, we need to track P's entries as parameters.
+                    # P_expr.value must be set for shape/structure info.
+                    assert (
+                        P_expr.value is not None
+                    ), "P matrix must be instantiated before calling extract_quadratic_coeffs."
+                    n = P_expr.shape[0]
+                    P_param_offset = self.param_id_map[P_expr.id]
                 else:
-                    P = sp.coo_matrix(P.value)
+                    # For constant P, use the numeric value.
+                    assert (
+                        P_expr.value is not None
+                    ), "P matrix must be instantiated before calling extract_quadratic_coeffs."
+                    if sp.issparse(P_expr) and not isinstance(P_expr, sp.coo_matrix):
+                        P = P_expr.value.tocoo()
+                    else:
+                        P = sp.coo_matrix(P_expr.value)
 
                 # Get block structure if available
                 block_indices = quad_form_atom.block_indices
 
                 # We multiply P by the parameter coefficients.
-                if var_size == 1:
+                if P_is_param:
+                    # PARAMETRIC P PATH - P is a Parameter, track its entries as parameters.
+                    # For DPP, we assume var_size == 1 (single quad_form in objective).
+                    # The P matrix entries map to parameter offsets in column-major order.
+                    assert var_size == 1, (
+                        "DPP quad_form with parametric P only supports scalar output. "
+                        "Multiple quad_forms with parametric P are not supported."
+                    )
+                    n = P_expr.shape[0]
+                    # Create indices for all n*n entries of P in column-major order.
+                    # The parameter offset for P[i,j] is P_param_offset + j*n + i.
+                    rows = []
+                    cols = []
+                    param_offsets = []
+                    for j in range(n):
+                        for i in range(n):
+                            rows.append(i)
+                            cols.append(j)
+                            param_offsets.append(P_param_offset + j * n + i)
+
+                    # c_part contains the scalar coefficient (usually 1.0 for identity).
+                    # We need to combine the c_part coefficients with P's parameter entries.
+                    nonzero_idxs = c_part[0] != 0
+                    if not np.any(nonzero_idxs):
+                        P_tup = TensorRepresentation.empty_with_shape((n, n))
+                    else:
+                        # For each nonzero coefficient in c_part, replicate P's structure.
+                        all_data = []
+                        all_row = []
+                        all_col = []
+                        all_param = []
+                        c_nonzero_vals = c_part[0, nonzero_idxs]
+                        c_nonzero_idxs = np.arange(num_params)[nonzero_idxs]
+
+                        for coef_val, coef_param_idx in zip(c_nonzero_vals, c_nonzero_idxs):
+                            if coef_param_idx == num_params - 1:
+                                # This is the constant slice - P entries are parameters.
+                                all_data.extend([coef_val] * len(rows))
+                                all_row.extend(rows)
+                                all_col.extend(cols)
+                                all_param.extend(param_offsets)
+                            else:
+                                # This coefficient is itself parametric - would make
+                                # the expression quadratic in parameters, not allowed.
+                                raise ValueError(
+                                    "DPP quad_form requires the expression to be "
+                                    "affine in parameters. Found quadratic parameter dependence."
+                                )
+
+                        P_tup = TensorRepresentation(
+                            np.array(all_data),
+                            np.array(all_row, dtype=int),
+                            np.array(all_col, dtype=int),
+                            np.array(all_param, dtype=int),
+                            (n, n)
+                        )
+                elif var_size == 1:
                     # SCALAR PATH - Single quad form in the expression, i.e.,
                     # we multiply the full P matrix by the non-zero entries of c_part.
                     nonzero_idxs = c_part[0] != 0
@@ -191,12 +262,13 @@ class CoeffExtractor:
                     # No q for dummy variables.
                     coeffs[orig_id] = dict()
                     coeffs[orig_id]['P'] = P_tup
-                    shape = (P.shape[0], c.shape[1])
+                    # Use P_tup.shape for the q matrix shape (works for both param and const P)
+                    q_shape = (P_tup.shape[0], c.shape[1])
                     if num_params == 1:
                         # Fast path for no parameters, keep q dense.
-                        coeffs[orig_id]['q'] = np.zeros(shape)
+                        coeffs[orig_id]['q'] = np.zeros(q_shape)
                     else:
-                        coeffs[orig_id]['q'] = sp.coo_matrix(([], ([], [])), shape=shape) 
+                        coeffs[orig_id]['q'] = sp.coo_matrix(([], ([], [])), shape=q_shape) 
             else:
                 # This was a true variable, so it can only have a q term.
                 var_offset = affine_id_map[var.id][0]
