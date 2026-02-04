@@ -108,15 +108,18 @@ def _check_dpp(problem, gp: bool, enforce_dpp: bool, ignore_dpp: bool,
     if ignore_dpp:
         return False
 
-    # Determine DPP context based on solver capabilities
-    if gp:
-        dpp_context = 'dgp'
-    elif solver_supports_quad_obj:
-        dpp_context = 'quad_dcp'
-    else:
-        dpp_context = 'dcp'
+    # Determine DPP context
+    dpp_context = 'dgp' if gp else 'dcp'
 
-    if not problem.is_dpp(dpp_context):
+    # For QP solvers, enter quad_form_dpp_scope to allow parametric P
+    # This makes QuadForm.is_atom_convex/concave() accept param-affine P
+    if solver_supports_quad_obj:
+        with scopes.quad_form_dpp_scope():
+            is_dpp = problem.is_dpp(dpp_context)
+    else:
+        is_dpp = problem.is_dpp(dpp_context)
+
+    if not is_dpp:
         if enforce_dpp:
             raise DPPError(DPP_ERROR_MSG)
         warn(DPP_ERROR_MSG)
