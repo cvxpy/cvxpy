@@ -103,9 +103,9 @@ class Variable(Leaf):
 
     def is_dpp(self, context: str = 'dcp') -> bool:
         """Check that the variable is DPP in the given context."""
-        if context.lower() in ('dcp', 'quad_dcp'):
+        if context == 'dcp':
             return self.is_dcp(dpp=True)
-        elif context.lower() == 'dgp':
+        elif context == 'dgp':
             return self.is_dgp(dpp=True)
         else:
             raise ValueError(f'Unsupported context {context}')

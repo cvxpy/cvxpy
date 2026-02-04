@@ -47,3 +47,29 @@ def dpp_scope() -> Generator[None, None, None]:
 def dpp_scope_active() -> bool:
     """Returns True if a `dpp_scope` is active. """
     return _dpp_scope_active
+
+
+_quad_form_dpp_scope_active = False
+
+
+@contextlib.contextmanager
+def quad_form_dpp_scope() -> Generator[None, None, None]:
+    """Context manager for quad_form DPP analysis with QP solvers.
+
+    When active, QuadForm.is_atom_convex/concave() relaxes the P.is_constant()
+    requirement, allowing parametric P matrices for QP solvers that can handle
+    quadratic objectives directly.
+
+    This scope is entered by the solving chain when a QP solver is selected,
+    enabling DPP caching for problems like min x'Px where P is a Parameter.
+    """
+    global _quad_form_dpp_scope_active
+    prev = _quad_form_dpp_scope_active
+    _quad_form_dpp_scope_active = True
+    yield
+    _quad_form_dpp_scope_active = prev
+
+
+def quad_form_dpp_scope_active() -> bool:
+    """Returns True if a `quad_form_dpp_scope` is active."""
+    return _quad_form_dpp_scope_active
