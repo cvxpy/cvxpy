@@ -6,6 +6,7 @@ import pytest
 import cvxpy as cp
 import cvxpy.error as error
 from cvxpy.tests.base_test import BaseTest
+from cvxpy.utilities import scopes
 
 SOLVER = cp.CLARABEL
 
@@ -164,16 +165,16 @@ class TestDcp(BaseTest):
                          in [type(r) for r in chain.reductions])
 
     def test_param_quad_form_not_dpp_in_dcp_context(self) -> None:
-        """Test that quad_form(x, P) with PSD Parameter P is NOT DPP in 'dcp' context."""
+        """Test that quad_form(x, P) with PSD Parameter P is NOT DPP by default."""
         x = cp.Variable((2, 1))
         P = cp.Parameter((2, 2), PSD=True)
         P.value = np.eye(2)
         y = cp.quad_form(x, P)
-        # Not DPP in default 'dcp' context (conic solvers can't handle parametric P)
+        # Not DPP without the scope (conic solvers can't handle parametric P)
         self.assertFalse(y.is_dpp())
-        self.assertFalse(y.is_dpp(context='dcp'))
-        # But IS DPP in 'quad_dcp' context (QP solvers can handle parametric P)
-        self.assertTrue(y.is_dpp(context='quad_dcp'))
+        # IS DPP within quad_form_dpp_scope (QP solvers can handle it)
+        with scopes.quad_form_dpp_scope():
+            self.assertTrue(y.is_dpp())
         self.assertTrue(y.is_dcp())
 
     def test_param_quad_form_dpp_solve(self) -> None:
@@ -183,8 +184,9 @@ class TestDcp(BaseTest):
         P.value = np.array([[2, 0], [0, 1]])
 
         prob = cp.Problem(cp.Minimize(cp.quad_form(x, P)), [cp.sum(x) == 1])
-        # DPP in 'quad_dcp' context
-        self.assertTrue(prob.is_dpp(context='quad_dcp'))
+        # DPP within quad_form_dpp_scope
+        with scopes.quad_form_dpp_scope():
+            self.assertTrue(prob.is_dpp())
 
         # First solve (uses QP path, so parametric P works)
         prob.solve(solver=cp.CLARABEL)
@@ -215,8 +217,9 @@ class TestDcp(BaseTest):
         y = cp.quad_form(x, P)
         # Not DCP because P.is_psd() returns False (no PSD attribute)
         self.assertFalse(y.is_dcp())
-        # But IS DPP in 'quad_dcp' context (DPP doesn't care about PSD, just parametric structure)
-        self.assertTrue(y.is_dpp(context='quad_dcp'))
+        # Also NOT DPP even with scope (scope checks P.is_psd() too)
+        with scopes.quad_form_dpp_scope():
+            self.assertFalse(y.is_dpp())
 
     def test_const_quad_form_is_dpp(self) -> None:
         x = cp.Variable((2, 1))
@@ -231,8 +234,9 @@ class TestDcp(BaseTest):
         P = np.eye(2)
         y = cp.quad_form(p, P)
         # Quadratic in parameter, not affine
-        self.assertFalse(y.is_dpp(context='quad_dcp'))
-        self.assertFalse(y.is_dpp(context='dcp'))
+        with scopes.quad_form_dpp_scope():
+            self.assertFalse(y.is_dpp())
+        self.assertFalse(y.is_dpp())
 
     def test_quad_form_x_plus_param_not_dpp(self) -> None:
         """quad_form(x + param, P) is NOT DPP - x is not param-free."""
@@ -242,7 +246,8 @@ class TestDcp(BaseTest):
         P.value = np.eye(2)
         y = cp.quad_form(x + p, P)
         # x + p is not param-free
-        self.assertFalse(y.is_dpp(context='quad_dcp'))
+        with scopes.quad_form_dpp_scope():
+            self.assertFalse(y.is_dpp())
 
     def test_quad_form_sum_of_params_is_dpp(self) -> None:
         """quad_form(x, P1 + P2) where both are parameters IS DPP - affine in params."""
@@ -253,7 +258,8 @@ class TestDcp(BaseTest):
         P2.value = np.eye(2)
         y = cp.quad_form(x, P1 + P2)
         # P1 + P2 is affine in parameters
-        self.assertTrue(y.is_dpp(context='quad_dcp'))
+        with scopes.quad_form_dpp_scope():
+            self.assertTrue(y.is_dpp())
 
     def test_quad_form_param_times_param_not_dpp(self) -> None:
         """quad_form(x, alpha * P) where alpha is scalar param is NOT DPP - quadratic in params."""
@@ -262,18 +268,21 @@ class TestDcp(BaseTest):
         P = cp.Parameter((2, 2), PSD=True)
         alpha.value = 1.0
         P.value = np.eye(2)
-        y = cp.quad_form(x, alpha * P)
+        # Use assume_PSD to bypass hermitian check for alpha * P
+        y = cp.quad_form(x, alpha * P, assume_PSD=True)
         # alpha * P is quadratic in parameters (product of two params)
-        self.assertFalse(y.is_dpp(context='quad_dcp'))
+        with scopes.quad_form_dpp_scope():
+            self.assertFalse(y.is_dpp())
 
     def test_quad_form_nsd_param_concave(self) -> None:
-        """quad_form(x, P) with NSD Parameter P is concave and DPP in quad_dcp."""
+        """quad_form(x, P) with NSD Parameter P is concave and DPP with scope."""
         x = cp.Variable(2)
         P = cp.Parameter((2, 2), NSD=True)
         P.value = -np.eye(2)
         y = cp.quad_form(x, P)
-        self.assertTrue(y.is_concave())
-        self.assertTrue(y.is_dpp(context='quad_dcp'))
+        with scopes.quad_form_dpp_scope():
+            self.assertTrue(y.is_concave())
+            self.assertTrue(y.is_dpp())
 
     def test_maximize_param_quad_form(self) -> None:
         """Test Maximize(-quad_form(x, P)) with parametric P."""
@@ -283,7 +292,8 @@ class TestDcp(BaseTest):
 
         # Maximize(-quad_form) is valid since -quad_form is concave
         prob = cp.Problem(cp.Maximize(-cp.quad_form(x, P)), [cp.sum(x) == 1])
-        self.assertTrue(prob.is_dpp(context='quad_dcp'))
+        with scopes.quad_form_dpp_scope():
+            self.assertTrue(prob.is_dpp())
         prob.solve(solver=cp.CLARABEL)
         self.assertIsNotNone(x.value)
 

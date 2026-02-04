@@ -186,8 +186,7 @@ class Constraint(u.Canonical):
         raise NotImplementedError()
 
     def is_dpp(self, context='dcp') -> bool:
-        if context.lower() in ('dcp', 'quad_dcp'):
-            # quad_dcp behaves like dcp for constraints
+        if context.lower() == 'dcp':
             return self.is_dcp(dpp=True)
         elif context.lower() == 'dgp':
             return self.is_dgp(dpp=True)
