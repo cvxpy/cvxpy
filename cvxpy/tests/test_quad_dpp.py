@@ -72,21 +72,19 @@ class TestQuadFormDPPCompilation:
     """Test that DPP compilation works without P.value set."""
 
     def test_get_problem_data_without_P_value(self) -> None:
-        """BUG: get_problem_data requires P.value to be set.
-
-        This violates the DPP promise that you can compile a problem
-        without parameter values. The coeff_extractor.py asserts that
-        P.value is not None at line 145.
-        """
+        """get_problem_data works without P.value set (DPP promise)."""
         x = cp.Variable(2)
         P = cp.Parameter((2, 2), PSD=True)
         # P.value intentionally NOT set
 
         prob = cp.Problem(cp.Minimize(cp.quad_form(x, P)), [cp.sum(x) == 1])
 
-        # BUG: This should work but raises AssertionError
-        with pytest.raises(AssertionError, match="P matrix must be instantiated"):
-            prob.get_problem_data(solver=cp.CLARABEL)
+        # DPP path should work without P.value set
+        data, chain, inv_data = prob.get_problem_data(solver=cp.CLARABEL)
+
+        # Verify DPP path is used (no EvalParams)
+        reduction_types = [type(r).__name__ for r in chain.reductions]
+        assert 'EvalParams' not in reduction_types
 
     def test_get_problem_data_with_P_value(self) -> None:
         """get_problem_data works when P.value is set and uses DPP path."""
@@ -307,17 +305,3 @@ class TestQuadFormDPPKnownLimitations:
         with pytest.raises(ValueError, match="[Ss]ymmetric|[Hh]ermitian"):
             cp.quad_form(x, alpha * P)
 
-    def test_compilation_requires_P_value(self) -> None:
-        """KNOWN ISSUE: DPP compilation requires P.value to be set.
-
-        This violates the DPP promise that compilation should work
-        without parameter values. See TestQuadFormDPPCompilation for details.
-        """
-        x = cp.Variable(2)
-        P = cp.Parameter((2, 2), PSD=True)
-        # P.value NOT set
-
-        prob = cp.Problem(cp.Minimize(cp.quad_form(x, P)), [cp.sum(x) == 1])
-
-        with pytest.raises(AssertionError):
-            prob.get_problem_data(solver=cp.CLARABEL)
