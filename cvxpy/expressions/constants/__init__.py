@@ -16,4 +16,5 @@ limitations under the License.
 
 from .callback_param import CallbackParam
 from .constant import Constant
+from .matrix_sqrt import MatrixSqrt
 from .parameter import Parameter
