@@ -240,14 +240,11 @@ class CoeffExtractor:
                         P.shape
                     )
 
-                if orig_id in coeffs:
-                    if 'P' in coeffs[orig_id]:
-                        coeffs[orig_id]['P'] =  coeffs[orig_id]['P'] + P_tup
-                    else:
-                        coeffs[orig_id]['P'] = P_tup
+                if orig_id not in coeffs:
+                    coeffs[orig_id] = {}
+                if 'P' in coeffs[orig_id]:
+                    coeffs[orig_id]['P'] = coeffs[orig_id]['P'] + P_tup
                 else:
-                    # No q for dummy variables.
-                    coeffs[orig_id] = dict()
                     coeffs[orig_id]['P'] = P_tup
                     # Use P_tup.shape for the q matrix shape (works for both param and const P)
                     q_shape = (P_tup.shape[0], c.shape[1])

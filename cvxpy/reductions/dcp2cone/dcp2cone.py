@@ -59,7 +59,6 @@ class Dcp2Cone(Canonicalization):
 
         canon_objective, canon_constraints = self.canonicalize_tree(
             problem.objective, True)
-        
 
         for constraint in problem.constraints:
             # canon_constr is the constraint rexpressed in terms of
