@@ -171,8 +171,10 @@ class CvxAttr2Constr(Reduction):
                                 # Scalar bounds - keep as-is
                                 transformed_bounds.append(bound)
                             else:
-                                # Dense array bounds - extract values at sparse indices
-                                transformed_bounds.append(bound[var.sparse_idx])
+                                raise ValueError(
+                                    "Unexpected dense array bound on sparse "
+                                    "variable during reduction."
+                                )
                         new_attr['bounds'] = transformed_bounds
 
                     sparse_var = Variable(n, var_id=var.id, **new_attr)

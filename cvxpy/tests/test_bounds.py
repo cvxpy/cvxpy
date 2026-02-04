@@ -851,3 +851,49 @@ class TestSparseBounds:
 
         with pytest.raises(ValueError, match="same shape"):
             cp.Variable((3, 3), sparsity=sparsity, bounds=(lb_sparse, ub_sparse))
+
+    def test_sparse_variable_rejects_dense_array_bounds(self) -> None:
+        """Test that sparse variables reject dense array bounds."""
+        rows = np.array([0, 1, 2])
+        cols = np.array([0, 1, 2])
+        sparsity = (rows, cols)
+
+        lb_dense = -np.ones((3, 3))
+        ub_dense = np.ones((3, 3))
+
+        with pytest.raises(ValueError, match="Dense array bounds are not supported"):
+            cp.Variable((3, 3), sparsity=sparsity, bounds=(lb_dense, ub_dense))
+
+    def test_sparse_variable_rejects_expression_bounds(self) -> None:
+        """Test that sparse variables reject expression bounds."""
+        rows = np.array([0, 1, 2])
+        cols = np.array([0, 1, 2])
+        sparsity = (rows, cols)
+
+        p = cp.Parameter()
+        with pytest.raises(ValueError, match="Expression bounds are not yet supported"):
+            cp.Variable((3, 3), sparsity=sparsity, bounds=(p, 1))
+
+    def test_sparse_variable_scalar_bounds_must_contain_zero(self) -> None:
+        """Test that scalar bounds on sparse variables must contain 0."""
+        rows = np.array([0, 1, 2])
+        cols = np.array([0, 1, 2])
+        sparsity = (rows, cols)
+
+        # Lower bound > 0 should be rejected
+        with pytest.raises(ValueError, match="Scalar lower bound.*<= 0"):
+            cp.Variable((3, 3), sparsity=sparsity, bounds=(1, 2))
+
+        # Upper bound < 0 should be rejected
+        with pytest.raises(ValueError, match="Scalar upper bound.*>= 0"):
+            cp.Variable((3, 3), sparsity=sparsity, bounds=(-2, -1))
+
+        # Bounds containing 0 should be accepted
+        x = cp.Variable((3, 3), sparsity=sparsity, bounds=(-1, 1))
+        assert x.bounds is not None
+
+        # Edge case: bounds exactly at 0 should be accepted
+        x = cp.Variable((3, 3), sparsity=sparsity, bounds=(0, 1))
+        assert x.bounds is not None
+        x = cp.Variable((3, 3), sparsity=sparsity, bounds=(-1, 0))
+        assert x.bounds is not None

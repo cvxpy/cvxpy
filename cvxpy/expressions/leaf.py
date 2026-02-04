@@ -709,6 +709,15 @@ class Leaf(expression.Expression):
         )
 
         if has_expr_bound:
+            # Expression bounds not supported on sparse variables.
+            if self.attributes.get('sparsity'):
+                raise ValueError(
+                    "Expression bounds are not yet supported for sparse "
+                    "variables. If you need this feature, please contact "
+                    "the CVXPY developers at "
+                    "https://github.com/cvxpy/cvxpy/issues as we have "
+                    "design questions we want user feedback on."
+                )
             # Validate Expression bounds: must be scalar or matching shape,
             # and must not depend on any Variable.
             for idx, val in enumerate(value):
@@ -793,6 +802,13 @@ class Leaf(expression.Expression):
                         "Bounds should be None, scalars, or arrays with the "
                         "same dimensions as the variable/parameter."
                     )
+                # Reject dense array bounds on sparse variables.
+                if valid_array and self.attributes.get('sparsity'):
+                    raise ValueError(
+                        "Dense array bounds are not supported for sparse "
+                        "variables. Use sparse bounds with the same "
+                        "sparsity pattern, or scalar bounds."
+                    )
 
         # Promote upper and lower bounds to arrays.
         # Keep scalars as 0-d arrays for memory efficiency.
@@ -838,6 +854,24 @@ class Leaf(expression.Expression):
         if np.any(np.isnan(lb_data)) or np.any(np.isnan(ub_data)):
             raise ValueError("np.nan is not feasible as lower "
                                 "or upper bound.")
+
+        # For sparse variables with scalar bounds, require that 0 is
+        # between lb and ub. This is because the zero entries of a
+        # sparse variable are fixed at 0, so bounds that exclude 0
+        # would be inconsistent.
+        if self.attributes.get('sparsity'):
+            lb_is_scalar = isinstance(lb, np.ndarray) and lb.ndim == 0
+            ub_is_scalar = isinstance(ub, np.ndarray) and ub.ndim == 0
+            if lb_is_scalar and float(lb) > 0:
+                raise ValueError(
+                    "Scalar lower bound for a sparse variable must be "
+                    "<= 0, since the zero entries are fixed at 0."
+                )
+            if ub_is_scalar and float(ub) < 0:
+                raise ValueError(
+                    "Scalar upper bound for a sparse variable must be "
+                    ">= 0, since the zero entries are fixed at 0."
+                )
 
         return promoted
 
