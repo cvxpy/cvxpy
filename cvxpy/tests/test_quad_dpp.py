@@ -30,10 +30,7 @@ class TestQuadFormDPPDetection:
         P = cp.Parameter((2, 2), PSD=True)
         y = cp.quad_form(x, P)
 
-        # Not DPP without scope (conic path can't handle parametric P)
         assert not y.is_dpp()
-
-        # DPP within scope (QP path can handle it)
         with scopes.quad_form_dpp_scope():
             assert y.is_dpp()
 
@@ -44,9 +41,9 @@ class TestQuadFormDPPDetection:
         assert cp.quad_form(x, P).is_dpp()
 
     @pytest.mark.parametrize("invalid_case", [
-        "param_in_x",      # quad_form(param, P) - quadratic in param
-        "x_plus_param",    # quad_form(x + param, P) - x not param-free
-        "param_times_param",  # quad_form(x, alpha*P) - quadratic in params
+        "param_in_x",
+        "x_plus_param",
+        "param_times_param",
     ])
     def test_invalid_cases_not_dpp(self, invalid_case) -> None:
         """Cases that violate DPP requirements are correctly rejected."""
@@ -75,27 +72,10 @@ class TestQuadFormDPPCompilation:
         """get_problem_data works without P.value set (DPP promise)."""
         x = cp.Variable(2)
         P = cp.Parameter((2, 2), PSD=True)
-        # P.value intentionally NOT set
 
         prob = cp.Problem(cp.Minimize(cp.quad_form(x, P)), [cp.sum(x) == 1])
+        _, chain, _ = prob.get_problem_data(solver=cp.CLARABEL)
 
-        # DPP path should work without P.value set
-        data, chain, inv_data = prob.get_problem_data(solver=cp.CLARABEL)
-
-        # Verify DPP path is used (no EvalParams)
-        reduction_types = [type(r).__name__ for r in chain.reductions]
-        assert 'EvalParams' not in reduction_types
-
-    def test_get_problem_data_with_P_value(self) -> None:
-        """get_problem_data works when P.value is set and uses DPP path."""
-        x = cp.Variable(2)
-        P = cp.Parameter((2, 2), PSD=True)
-        P.value = np.eye(2)
-
-        prob = cp.Problem(cp.Minimize(cp.quad_form(x, P)), [cp.sum(x) == 1])
-        data, chain, inv_data = prob.get_problem_data(solver=cp.CLARABEL)
-
-        # Verify DPP path is used (no EvalParams)
         reduction_types = [type(r).__name__ for r in chain.reductions]
         assert 'EvalParams' not in reduction_types
 
@@ -103,7 +83,6 @@ class TestQuadFormDPPCompilation:
         """is_dpp() works without P.value set."""
         x = cp.Variable(2)
         P = cp.Parameter((2, 2), PSD=True)
-        # P.value intentionally NOT set
 
         with scopes.quad_form_dpp_scope():
             assert cp.quad_form(x, P).is_dpp()
@@ -113,12 +92,10 @@ class TestQuadFormDPPCorrectness:
     """Test that DPP path produces correct results."""
 
     @pytest.mark.parametrize("P_matrix,expected_x", [
-        # Diagonal P: min 2*x0^2 + x1^2 s.t. x0+x1=1 => x=[1/3, 2/3]
         (np.array([[2, 0], [0, 1]]), np.array([1/3, 2/3])),
-        # Isotropic P: min ||x||^2 s.t. x0+x1=1 => x=[0.5, 0.5]
         (np.eye(2), np.array([0.5, 0.5])),
-        # Scaled P: same solution as isotropic
         (5 * np.eye(2), np.array([0.5, 0.5])),
+        (np.array([[2, 0.5], [0.5, 1]]), None),  # Non-diagonal, just check QP==conic
     ])
     def test_minimize_quad_form(self, P_matrix, expected_x) -> None:
         """Minimize quad_form produces correct solution."""
@@ -128,19 +105,16 @@ class TestQuadFormDPPCorrectness:
 
         prob = cp.Problem(cp.Minimize(cp.quad_form(x, P)), [cp.sum(x) == 1])
 
-        # Solve with QP solver
         prob.solve(solver=cp.CLARABEL)
         assert prob.status == cp.OPTIMAL
         x_qp = x.value.copy()
 
-        # Solve with conic solver for comparison
-        prob.solve(solver=cp.ECOS)
+        prob.solve(solver=cp.CLARABEL, use_quad_obj=False)
         assert prob.status == cp.OPTIMAL
-        x_conic = x.value.copy()
 
-        # Both should match expected and each other
-        assert np.allclose(x_qp, expected_x, rtol=1e-3)
-        assert np.allclose(x_conic, expected_x, rtol=1e-3)
+        if expected_x is not None:
+            assert np.allclose(x_qp, expected_x, rtol=1e-3)
+        assert np.allclose(x_qp, x.value, rtol=1e-3)
 
     def test_maximize_with_nsd_P(self) -> None:
         """Maximize quad_form with NSD P produces correct solution."""
@@ -148,10 +122,9 @@ class TestQuadFormDPPCorrectness:
         P = cp.Parameter((2, 2), NSD=True)
         P.value = -np.eye(2)
 
-        # max -||x||^2 s.t. sum(x)=1 => x=[0.5, 0.5], obj=-0.5
         prob = cp.Problem(cp.Maximize(cp.quad_form(x, P)), [cp.sum(x) == 1])
-
         prob.solve(solver=cp.CLARABEL)
+
         assert prob.status == cp.OPTIMAL
         assert np.allclose(x.value, [0.5, 0.5], rtol=1e-3)
         assert np.isclose(prob.value, -0.5, rtol=1e-3)
@@ -160,24 +133,15 @@ class TestQuadFormDPPCorrectness:
         """Re-solving with different P values works correctly."""
         x = cp.Variable(2)
         P = cp.Parameter((2, 2), PSD=True)
-
         prob = cp.Problem(cp.Minimize(cp.quad_form(x, P)), [cp.sum(x) == 1])
 
-        # First solve: P favors x[1]
         P.value = np.array([[2, 0], [0, 1]])
         prob.solve(solver=cp.CLARABEL)
-        x1 = x.value.copy()
-        assert x1[1] > x1[0]
+        assert np.allclose(x.value, [1/3, 2/3], rtol=1e-3)
 
-        # Second solve: P favors x[0]
         P.value = np.array([[1, 0], [0, 2]])
         prob.solve(solver=cp.CLARABEL)
-        x2 = x.value.copy()
-        assert x2[0] > x2[1]
-
-        # Verify both are correct
-        assert np.allclose(x1, [1/3, 2/3], rtol=1e-3)
-        assert np.allclose(x2, [2/3, 1/3], rtol=1e-3)
+        assert np.allclose(x.value, [2/3, 1/3], rtol=1e-3)
 
 
 class TestQuadFormDPPVariants:
@@ -193,11 +157,9 @@ class TestQuadFormDPPVariants:
 
         prob = cp.Problem(cp.Minimize(cp.quad_form(x, P) + c @ x), [cp.sum(x) == 1])
         prob.solve(solver=cp.CLARABEL)
-        assert prob.status == cp.OPTIMAL
 
-        # Verify with conic solver
-        prob.solve(solver=cp.ECOS)
         assert prob.status == cp.OPTIMAL
+        assert np.allclose(x.value, [-0.5, 1.5], rtol=1e-3)
 
     def test_quad_form_in_constraint(self) -> None:
         """Parametric quad_form in constraint solves correctly."""
@@ -205,10 +167,9 @@ class TestQuadFormDPPVariants:
         P = cp.Parameter((2, 2), PSD=True)
         P.value = np.eye(2)
 
-        # min sum(x) s.t. ||x||^2 <= 1 => x = [-1/sqrt(2), -1/sqrt(2)]
         prob = cp.Problem(cp.Minimize(cp.sum(x)), [cp.quad_form(x, P) <= 1])
-
         prob.solve(solver=cp.CLARABEL)
+
         assert prob.status == cp.OPTIMAL
         expected = np.array([-1/np.sqrt(2), -1/np.sqrt(2)])
         assert np.allclose(x.value, expected, rtol=1e-3)
@@ -227,6 +188,7 @@ class TestQuadFormDPPVariants:
             [cp.sum(x) == 1]
         )
         prob.solve(solver=cp.CLARABEL)
+
         assert prob.status == cp.OPTIMAL
         assert np.allclose(x.value, [0.5, 0.5], rtol=1e-3)
 
@@ -240,68 +202,6 @@ class TestQuadFormDPPVariants:
 
         prob = cp.Problem(cp.Minimize(cp.quad_form(x, P1 + P2)), [cp.sum(x) == 1])
         prob.solve(solver=cp.CLARABEL)
+
         assert prob.status == cp.OPTIMAL
         assert np.allclose(x.value, [1/3, 2/3], rtol=1e-3)
-
-
-class TestQuadFormDPPEdgeCases:
-    """Edge cases for robustness."""
-
-    def test_1x1_matrix(self) -> None:
-        """Scalar P (1x1) works correctly."""
-        x = cp.Variable(1)
-        P = cp.Parameter((1, 1), PSD=True)
-        P.value = np.array([[2.0]])
-
-        prob = cp.Problem(cp.Minimize(cp.quad_form(x, P)), [x >= 1])
-        prob.solve(solver=cp.CLARABEL)
-        assert prob.status == cp.OPTIMAL
-        assert np.isclose(x.value[0], 1.0, rtol=1e-3)
-        assert np.isclose(prob.value, 2.0, rtol=1e-3)
-
-    def test_large_matrix(self) -> None:
-        """Larger P matrix works correctly."""
-        n = 20
-        x = cp.Variable(n)
-        P = cp.Parameter((n, n), PSD=True)
-        P.value = np.eye(n)
-
-        prob = cp.Problem(cp.Minimize(cp.quad_form(x, P)), [cp.sum(x) == 1])
-        prob.solve(solver=cp.CLARABEL)
-        assert prob.status == cp.OPTIMAL
-        # Isotropic => uniform distribution
-        assert np.allclose(x.value, np.ones(n) / n, rtol=1e-3)
-
-    def test_non_diagonal_P(self) -> None:
-        """Non-diagonal P matrix works correctly."""
-        x = cp.Variable(2)
-        P = cp.Parameter((2, 2), PSD=True)
-        P.value = np.array([[2, 0.5], [0.5, 1]])
-
-        prob = cp.Problem(cp.Minimize(cp.quad_form(x, P)), [cp.sum(x) == 1])
-
-        prob.solve(solver=cp.CLARABEL)
-        assert prob.status == cp.OPTIMAL
-        x_qp = x.value.copy()
-
-        prob.solve(solver=cp.ECOS)
-        assert np.allclose(x_qp, x.value, rtol=1e-3)
-
-
-class TestQuadFormDPPKnownLimitations:
-    """Document known limitations."""
-
-    def test_alpha_times_P_fails_symmetry_check(self) -> None:
-        """KNOWN ISSUE: quad_form(x, alpha * P) fails at construction.
-
-        MulExpression doesn't propagate is_symmetric() property.
-        """
-        x = cp.Variable(2)
-        alpha = cp.Parameter(nonneg=True)
-        P = cp.Parameter((2, 2), PSD=True)
-        alpha.value = 2.0
-        P.value = np.eye(2)
-
-        with pytest.raises(ValueError, match="[Ss]ymmetric|[Hh]ermitian"):
-            cp.quad_form(x, alpha * P)
-

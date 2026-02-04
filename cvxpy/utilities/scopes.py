@@ -23,8 +23,8 @@ _dpp_scope_active = False
 def dpp_scope() -> Generator[None, None, None]:
     """Context manager for DPP curvature analysis
 
-    When this scope is active, parameters are affine, not constant. The
-    argument For example, if `param` is a Parameter, then
+    When this scope is active, parameters are affine, not constant.
+    For example, if `param` is a Parameter, then
 
     ```
         with dpp_scope():
