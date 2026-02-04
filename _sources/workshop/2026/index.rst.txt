@@ -204,7 +204,7 @@ Afternoon Session
        | pycvxset is a new Python package to manipulate and visualize convex sets. We support polytopes and ellipsoids, and provide user-friendly methods to perform a variety of set operations. For polytopes, pycvxset supports the standard halfspace/vertex representation as well as the constrained zonotope representation. The main advantage of constrained zonotope representations over standard halfspace/vertex representations is that constrained zonotopes admit closed-form expressions for several set operations. pycvxset uses CVXPY to solve various convex programs arising in set operations, and uses pycddlib to perform vertex-halfspace enumeration. We demonstrate the use of pycvxset in analyzing and controlling dynamical systems in Python. pycvxset is available at https://github.com/merlresearch/pycvxset under the AGPL-3.0-or-later license, along with documentation and examples.
 
    * - **2:15 PM**
-     - | **Riskfolio-Lib: Advanced Portfolio Optimization** — `Dany Cejas <#speaker-dany-cejas>`_ *(Virtual)*
+     - | **Riskfolio-Lib: Advanced Portfolio Optimization** — `Dany Cajas <#speaker-dany-cajas>`_ *(Virtual)*
        |
        | Advanced portfolio optimization with convex and integer programming in Python.
 
@@ -286,10 +286,10 @@ Speakers
 
    Abraham P. Vinod is a Principal Research Scientist at Mitsubishi Electric Research Laboratories (MERL), Cambridge, MA, USA. His main research interests are in the areas of constrained control, robotics, and learning. Prior to joining MERL in 2020, he held a postdoctoral position at the University of Texas at Austin. He received his B.Tech. and M.Tech. degrees from the Indian Institute of Technology-Madras (IIT-M), India, and his Ph.D. degree from the University of New Mexico, USA, all in electrical engineering. He was the recipient of the Best Student Paper Award at the 2017 ACM Hybrid Systems: Computation and Control Conference, Finalist for the Best Paper Award in the 2018 ACM Hybrid Systems: Computation and Control Conference, and the best undergraduate student research project award at IIT-M. He is the primary developer of pycvxset, a set computation toolbox in Python, and co-developed SReachTools, a stochastic reachability toolbox in MATLAB.
 
-.. dropdown:: Dany Cejas
-   :name: speaker-dany-cejas
+.. dropdown:: Dany Cajas
+   :name: speaker-dany-cajas
 
-   Dany Cejas holds a BSc in Economic Engineering and Master in Finance. He is the creator and sole maintainer of Riskfolio-Lib (3,723 Github stars and +1.1M downloads) and author of "Advanced Portfolio Optimization: a Cutting-edge Quantitative Approach".
+   Dany Cajas holds a BSc in Economic Engineering and Master in Finance. He is the creator and sole maintainer of Riskfolio-Lib (3,723 Github stars and +1.1M downloads) and author of "Advanced Portfolio Optimization: a Cutting-edge Quantitative Approach".
 
 .. dropdown:: Fletcher Chapin
    :name: speaker-fletcher-chapin
