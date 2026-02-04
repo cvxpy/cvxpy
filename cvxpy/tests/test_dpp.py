@@ -225,6 +225,82 @@ class TestDcp(BaseTest):
         self.assertTrue(y.is_dpp())
         self.assertTrue(y.is_dcp())
 
+    def test_quad_form_param_in_x_not_dpp(self) -> None:
+        """quad_form(param, constant) is NOT DPP - quadratic in parameter."""
+        p = cp.Parameter(2)
+        P = np.eye(2)
+        y = cp.quad_form(p, P)
+        # Quadratic in parameter, not affine
+        self.assertFalse(y.is_dpp(context='quad_dcp'))
+        self.assertFalse(y.is_dpp(context='dcp'))
+
+    def test_quad_form_x_plus_param_not_dpp(self) -> None:
+        """quad_form(x + param, P) is NOT DPP - x is not param-free."""
+        x = cp.Variable(2)
+        p = cp.Parameter(2)
+        P = cp.Parameter((2, 2), PSD=True)
+        P.value = np.eye(2)
+        y = cp.quad_form(x + p, P)
+        # x + p is not param-free
+        self.assertFalse(y.is_dpp(context='quad_dcp'))
+
+    def test_quad_form_sum_of_params_is_dpp(self) -> None:
+        """quad_form(x, P1 + P2) where both are parameters IS DPP - affine in params."""
+        x = cp.Variable(2)
+        P1 = cp.Parameter((2, 2), PSD=True)
+        P2 = cp.Parameter((2, 2), PSD=True)
+        P1.value = np.eye(2)
+        P2.value = np.eye(2)
+        y = cp.quad_form(x, P1 + P2)
+        # P1 + P2 is affine in parameters
+        self.assertTrue(y.is_dpp(context='quad_dcp'))
+
+    def test_quad_form_param_times_param_not_dpp(self) -> None:
+        """quad_form(x, alpha * P) where alpha is scalar param is NOT DPP - quadratic in params."""
+        x = cp.Variable(2)
+        alpha = cp.Parameter(nonneg=True)
+        P = cp.Parameter((2, 2), PSD=True)
+        alpha.value = 1.0
+        P.value = np.eye(2)
+        y = cp.quad_form(x, alpha * P)
+        # alpha * P is quadratic in parameters (product of two params)
+        self.assertFalse(y.is_dpp(context='quad_dcp'))
+
+    def test_quad_form_nsd_param_concave(self) -> None:
+        """quad_form(x, P) with NSD Parameter P is concave and DPP in quad_dcp."""
+        x = cp.Variable(2)
+        P = cp.Parameter((2, 2), NSD=True)
+        P.value = -np.eye(2)
+        y = cp.quad_form(x, P)
+        self.assertTrue(y.is_concave())
+        self.assertTrue(y.is_dpp(context='quad_dcp'))
+
+    def test_maximize_param_quad_form(self) -> None:
+        """Test Maximize(-quad_form(x, P)) with parametric P."""
+        x = cp.Variable(2)
+        P = cp.Parameter((2, 2), PSD=True)
+        P.value = np.array([[2, 0], [0, 1]])
+
+        # Maximize(-quad_form) is valid since -quad_form is concave
+        prob = cp.Problem(cp.Maximize(-cp.quad_form(x, P)), [cp.sum(x) == 1])
+        self.assertTrue(prob.is_dpp(context='quad_dcp'))
+        prob.solve(solver=cp.CLARABEL)
+        self.assertIsNotNone(x.value)
+
+    def test_param_quad_form_dpp_uses_cache(self) -> None:
+        """Verify that DPP quad_form problems use caching (no EvalParams in chain)."""
+        x = cp.Variable(2)
+        P = cp.Parameter((2, 2), PSD=True)
+        P.value = np.eye(2)
+        prob = cp.Problem(cp.Minimize(cp.quad_form(x, P)), [cp.sum(x) == 1])
+
+        # Get the solving chain
+        data, chain, _ = prob.get_problem_data(solver=cp.CLARABEL)
+
+        # EvalParams should NOT be in the chain for DPP problems
+        reduction_types = [type(r).__name__ for r in chain.reductions]
+        self.assertNotIn('EvalParams', reduction_types)
+
     def test_paper_example_logreg_is_dpp(self) -> None:
         N, n = 3, 2
         beta = cp.Variable((n, 1))
