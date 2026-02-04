@@ -897,3 +897,52 @@ class TestSparseBounds:
         assert x.bounds is not None
         x = cp.Variable((3, 3), sparsity=sparsity, bounds=(-1, 0))
         assert x.bounds is not None
+
+
+class TestDiagBounds:
+    """Tests for bounds validation on diagonal variables."""
+
+    def test_diag_variable_with_scalar_bounds(self) -> None:
+        """Test diagonal variable with scalar bounds containing 0."""
+        x = cp.Variable((3, 3), diag=True, bounds=(-1, 1))
+        assert x.bounds is not None
+
+    def test_diag_variable_scalar_bounds_must_contain_zero(self) -> None:
+        """Test that scalar bounds on diagonal variables must contain 0."""
+        # Lower bound > 0 should be rejected
+        with pytest.raises(ValueError, match="Scalar lower bound.*<= 0"):
+            cp.Variable((3, 3), diag=True, bounds=(1, 2))
+
+        # Upper bound < 0 should be rejected
+        with pytest.raises(ValueError, match="Scalar upper bound.*>= 0"):
+            cp.Variable((3, 3), diag=True, bounds=(-2, -1))
+
+        # Edge case: bounds exactly at 0 should be accepted
+        x = cp.Variable((3, 3), diag=True, bounds=(0, 1))
+        assert x.bounds is not None
+        x = cp.Variable((3, 3), diag=True, bounds=(-1, 0))
+        assert x.bounds is not None
+
+    def test_diag_variable_rejects_dense_array_bounds(self) -> None:
+        """Test that diagonal variables reject dense array bounds."""
+        lb_dense = -np.ones((3, 3))
+        ub_dense = np.ones((3, 3))
+
+        with pytest.raises(ValueError, match="Dense array bounds are not supported"):
+            cp.Variable((3, 3), diag=True, bounds=(lb_dense, ub_dense))
+
+    def test_diag_variable_rejects_expression_bounds(self) -> None:
+        """Test that diagonal variables reject expression bounds."""
+        p = cp.Parameter()
+        with pytest.raises(ValueError, match="Expression bounds are not yet supported"):
+            cp.Variable((3, 3), diag=True, bounds=(p, 1))
+
+    def test_diag_variable_with_scalar_bounds_solves(self) -> None:
+        """Test diagonal variable with scalar bounds solves correctly."""
+        x = cp.Variable((3, 3), diag=True, bounds=(-1, 2))
+        prob = cp.Problem(cp.Minimize(cp.trace(x)))
+        prob.solve(solver=cp.CLARABEL)
+
+        assert prob.status == cp.OPTIMAL
+        # Minimum trace is -1 * 3 = -3
+        assert np.isclose(prob.value, -3.0)

@@ -708,13 +708,19 @@ class Leaf(expression.Expression):
             isinstance(val, expression.Expression) for val in value
         )
 
+        # Variables with structural zeros: off-pattern entries (sparse)
+        # or off-diagonal entries (diag) are fixed at 0.
+        has_structural_zeros = (
+            self.attributes.get('sparsity') or self.attributes.get('diag')
+        )
+
         if has_expr_bound:
-            # Expression bounds not supported on sparse variables.
-            if self.attributes.get('sparsity'):
+            # Expression bounds not supported on variables with structural zeros.
+            if has_structural_zeros:
                 raise ValueError(
                     "Expression bounds are not yet supported for sparse "
-                    "variables. If you need this feature, please contact "
-                    "the CVXPY developers at "
+                    "or diagonal variables. If you need this feature, "
+                    "please contact the CVXPY developers at "
                     "https://github.com/cvxpy/cvxpy/issues as we have "
                     "design questions we want user feedback on."
                 )
@@ -802,12 +808,11 @@ class Leaf(expression.Expression):
                         "Bounds should be None, scalars, or arrays with the "
                         "same dimensions as the variable/parameter."
                     )
-                # Reject dense array bounds on sparse variables.
-                if valid_array and self.attributes.get('sparsity'):
+                # Reject dense array bounds on variables with structural zeros.
+                if valid_array and has_structural_zeros:
                     raise ValueError(
                         "Dense array bounds are not supported for sparse "
-                        "variables. Use sparse bounds with the same "
-                        "sparsity pattern, or scalar bounds."
+                        "or diagonal variables. Use scalar bounds instead."
                     )
 
         # Promote upper and lower bounds to arrays.
@@ -855,22 +860,23 @@ class Leaf(expression.Expression):
             raise ValueError("np.nan is not feasible as lower "
                                 "or upper bound.")
 
-        # For sparse variables with scalar bounds, require that 0 is
-        # between lb and ub. This is because the zero entries of a
-        # sparse variable are fixed at 0, so bounds that exclude 0
-        # would be inconsistent.
-        if self.attributes.get('sparsity'):
+        # For variables with structural zeros and scalar bounds, require
+        # that 0 is between lb and ub. The structurally zero entries are
+        # fixed at 0, so bounds that exclude 0 would be inconsistent.
+        if has_structural_zeros:
             lb_is_scalar = isinstance(lb, np.ndarray) and lb.ndim == 0
             ub_is_scalar = isinstance(ub, np.ndarray) and ub.ndim == 0
             if lb_is_scalar and float(lb) > 0:
                 raise ValueError(
-                    "Scalar lower bound for a sparse variable must be "
-                    "<= 0, since the zero entries are fixed at 0."
+                    "Scalar lower bound for a sparse or diagonal variable "
+                    "must be <= 0, since the structurally zero entries "
+                    "are fixed at 0."
                 )
             if ub_is_scalar and float(ub) < 0:
                 raise ValueError(
-                    "Scalar upper bound for a sparse variable must be "
-                    ">= 0, since the zero entries are fixed at 0."
+                    "Scalar upper bound for a sparse or diagonal variable "
+                    "must be >= 0, since the structurally zero entries "
+                    "are fixed at 0."
                 )
 
         return promoted
