@@ -15,8 +15,10 @@ limitations under the License.
 """
 
 import numpy as np
+import pytest
 
 import cvxpy as cp
+from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS
 from cvxpy.utilities.solver_context import SolverInfo
 from cvxpy.utilities.values import get_expr_value_if_supported
 
@@ -277,3 +279,68 @@ class TestValuePropagationNegative:
         expr = cp.log(x)
         t, _ = log_canon(expr, expr.args, solver_context=None)
         assert t.value is None
+
+
+# ──────────────────────────────────────────────────────────────
+#  End-to-end integration tests: solve with warm starting
+# ──────────────────────────────────────────────────────────────
+
+def _solve_and_seed(atom_fn, constraints_fn, n, solver=cp.SCS):
+    """Solve a problem cold, then re-solve warm-seeded at the optimum.
+
+    Returns (cold_iters, warm_iters, cold_val, warm_val).
+    """
+    x = cp.Variable(n)
+    prob = cp.Problem(atom_fn(x), constraints_fn(x))
+    prob.solve(solver=solver)
+    cold_iters = prob.solver_stats.num_iters
+    cold_val = prob.value
+    opt_x = x.value.copy()
+
+    # Fresh problem seeded at the optimum.
+    x2 = cp.Variable(n)
+    x2.value = opt_x
+    prob2 = cp.Problem(atom_fn(x2), constraints_fn(x2))
+    prob2.solve(solver=solver, warm_start=True)
+    warm_iters = prob2.solver_stats.num_iters
+    warm_val = prob2.value
+    return cold_iters, warm_iters, cold_val, warm_val
+
+
+@pytest.mark.skipif('SCS' not in INSTALLED_SOLVERS, reason='SCS not installed.')
+class TestWarmStartEndToEnd:
+    """End-to-end: warm-seeded SCS solves should use fewer iterations."""
+
+    @pytest.mark.parametrize("atom_fn,constr_fn,n", [
+        (lambda x: cp.Minimize(cp.sum(cp.exp(x))),
+         lambda x: [cp.sum(x) == 1], 10),
+        (lambda x: cp.Maximize(cp.sum(cp.log(x))),
+         lambda x: [cp.sum(x) == 1], 10),
+        (lambda x: cp.Maximize(cp.sum(cp.entr(x))),
+         lambda x: [cp.sum(x) == 1], 10),
+        (lambda x: cp.Minimize(cp.sum(cp.logistic(x))),
+         lambda x: [cp.sum(x) == 0], 10),
+        (lambda x: cp.Minimize(cp.norm(x, 2)),
+         lambda x: [x >= 1], 10),
+    ], ids=["exp", "log", "entr", "logistic", "norm2"])
+    def test_fewer_iters_when_seeded(self, atom_fn, constr_fn, n):
+        cold, warm, cold_v, warm_v = _solve_and_seed(atom_fn, constr_fn, n)
+        np.testing.assert_allclose(warm_v, cold_v, rtol=1e-2)
+        assert warm <= cold, f"warm {warm} > cold {cold}"
+
+    def test_no_values_set_still_works(self):
+        """warm_start=True with no values degrades gracefully."""
+        x = cp.Variable(3)
+        prob = cp.Problem(cp.Minimize(cp.norm(x, 1)), [cp.sum(x) == 1, x >= 0])
+        prob.solve(solver=cp.SCS, warm_start=True)
+        assert prob.status in {cp.OPTIMAL, cp.OPTIMAL_INACCURATE}
+
+    def test_partial_values_still_works(self):
+        """Only some variables have values; should not crash."""
+        x = cp.Variable(3)
+        y = cp.Variable(3)
+        x.value = np.ones(3)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(x) + cp.sum_squares(y)),
+                          [x + y == 2])
+        prob.solve(solver=cp.SCS, warm_start=True)
+        assert prob.status in {cp.OPTIMAL, cp.OPTIMAL_INACCURATE}
