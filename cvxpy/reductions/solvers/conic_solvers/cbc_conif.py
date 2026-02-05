@@ -31,6 +31,7 @@ class CBC(ConicSolver):
 
     # Solver capabilities.
     MIP_CAPABLE = True
+    BOUNDED_VARIABLES = True
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS
     MI_SUPPORTED_CONSTRAINTS = SUPPORTED_CONSTRAINTS
 
@@ -137,6 +138,16 @@ class CBC(ConicSolver):
 
         # Convert model
         model = CyClpSimplex(model)
+
+        # Apply variable bounds from data
+        lb = data[s.LOWER_BOUNDS]
+        ub = data[s.UPPER_BOUNDS]
+        if lb is not None:
+            all_idxs = np.arange(n, dtype=np.int32)
+            model.setColumnLowerSubset(all_idxs, all_idxs, lb)
+        if ub is not None:
+            all_idxs = np.arange(n, dtype=np.int32)
+            model.setColumnUpperSubset(all_idxs, all_idxs, ub)
 
         # No boolean vars available in Cbc -> model as int + restrict to [0,1]
         if data[s.BOOL_IDX] or data[s.INT_IDX]:

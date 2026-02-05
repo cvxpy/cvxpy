@@ -29,6 +29,7 @@ class PROXQP(QpSolver):
     """QP interface for the PROXQP solver"""
 
     MIP_CAPABLE = False
+    BOUNDED_VARIABLES = True
 
     # Map of Proxqp status to CVXPY status.
     STATUS_MAP = {"PROXQP_SOLVED": s.OPTIMAL,
@@ -110,6 +111,10 @@ class PROXQP(QpSolver):
         lb = -np.inf*np.ones(data[s.G].shape)
         data['lb'] = lb
 
+        # Variable bounds
+        x_lb = data.get(s.LOWER_BOUNDS)
+        x_ub = data.get(s.UPPER_BOUNDS)
+
         n_var = data['n_var']
         n_eq = data['n_eq']
         n_ineq = data['n_ineq']
@@ -138,6 +143,13 @@ class PROXQP(QpSolver):
                     F.data != old_data[s.F].data):
                 new_args['C'] = F
 
+            old_x_lb = old_data.get(s.LOWER_BOUNDS)
+            old_x_ub = old_data.get(s.UPPER_BOUNDS)
+            if x_lb is not None and (old_x_lb is None or any(x_lb != old_x_lb)):
+                new_args['l_box'] = x_lb
+            if x_ub is not None and (old_x_ub is None or any(x_ub != old_x_ub)):
+                new_args['u_box'] = x_ub
+
             if new_args:
                 solver.update(**new_args)
 
@@ -153,7 +165,8 @@ class PROXQP(QpSolver):
             elif backend == "sparse":
                 solver = proxsuite.proxqp.sparse.QP(n_var, n_eq, n_ineq)
 
-            solver.init(H=P,
+            init_kwargs = dict(
+                        H=P,
                         g=q,
                         A=A,
                         b=b,
@@ -163,6 +176,11 @@ class PROXQP(QpSolver):
                         rho=solver_opts['rho'],
                         mu_eq=solver_opts['mu_eq'],
                         mu_in=solver_opts['mu_in'])
+            if x_lb is not None:
+                init_kwargs['l_box'] = x_lb
+            if x_ub is not None:
+                init_kwargs['u_box'] = x_ub
+            solver.init(**init_kwargs)
 
             solver.settings.eps_abs = solver_opts['eps_abs']
             solver.settings.eps_rel = solver_opts['eps_rel']

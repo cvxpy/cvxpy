@@ -17,6 +17,7 @@ class COPT(QpSolver):
     """
     # Solve capabilities
     MIP_CAPABLE = True
+    BOUNDED_VARIABLES = True
 
     # Keyword arguments for the CVXPY interface.
     INTERFACE_ARGS = ["save_file", "reoptimize"]
@@ -146,8 +147,16 @@ class COPT(QpSolver):
             lhs = None
             rhs = None
 
-        lb = np.full(n, -copt.COPT.INFINITY)
-        ub = np.full(n, +copt.COPT.INFINITY)
+        lb = data[s.LOWER_BOUNDS]
+        ub = data[s.UPPER_BOUNDS]
+        if lb is None:
+            lb = np.full(n, -copt.COPT.INFINITY)
+        else:
+            lb = np.copy(lb)
+        if ub is None:
+            ub = np.full(n, +copt.COPT.INFINITY)
+        else:
+            ub = np.copy(ub)
 
         vtype = None
         if data[s.BOOL_IDX] or data[s.INT_IDX]:

@@ -1399,6 +1399,9 @@ class TestCBC:
         verbose_output = capfd.readouterr()
         assert len(verbose_output.out) > len(quiet_output.out)
 
+    def test_cbc_lp_bound_attr(self) -> None:
+        StandardTestLPs.test_lp_bound_attr(solver='CBC', duals=False)
+
 
 @unittest.skipUnless('GLPK' in INSTALLED_SOLVERS, 'GLPK is not installed.')
 class TestGLPK(unittest.TestCase):
@@ -1517,6 +1520,9 @@ class TestGLOP(unittest.TestCase):
         # Checks that the option doesn't error. A better test would be to solve
         # a large instance and check that the time limit is hit.
         sth.solve(solver='GLOP', time_limit_sec=1.0)
+
+    def test_glop_lp_bound_attr(self) -> None:
+        StandardTestLPs.test_lp_bound_attr(solver='GLOP', duals=False)
 
 
 @unittest.skipUnless('PDLP' in INSTALLED_SOLVERS, 'PDLP is not installed.')
@@ -1797,6 +1803,9 @@ class TestCPLEX(BaseTest):
 
     def test_cplex_mi_socp_2(self) -> None:
         StandardTestSOCPs.test_mi_socp_2(solver='CPLEX')
+
+    def test_cplex_lp_bound_attr(self) -> None:
+        StandardTestLPs.test_lp_bound_attr(solver='CPLEX')
 
 
 @unittest.skipUnless('GUROBI' in INSTALLED_SOLVERS, 'GUROBI is not installed.')
@@ -2256,6 +2265,9 @@ class TestXPRESS(BaseTest):
     def test_xpress_mi_socp_2(self) -> None:
         StandardTestSOCPs.test_mi_socp_2(solver='XPRESS')
 
+    def test_xpress_lp_bound_attr(self) -> None:
+        StandardTestLPs.test_lp_bound_attr(solver='XPRESS')
+
 
 @unittest.skipUnless('NAG' in INSTALLED_SOLVERS, 'NAG is not installed.')
 class TestNAG(BaseTest):
@@ -2451,6 +2463,9 @@ class TestSCIP(unittest.TestCase):
         assert stats.num_iters is not None
         assert stats.extra_stats["scip_status"] == "optimal"
         assert isinstance(stats.extra_stats["model"], pyscipopt.Model)
+
+    def test_scip_lp_bound_attr(self) -> None:
+        StandardTestLPs.test_lp_bound_attr(solver='SCIP', duals=False)
 
 
 # We can't inherit from unittest.TestCase since we access some advanced pytest features.
@@ -2880,6 +2895,9 @@ class TestSCIPY(unittest.TestCase):
         self.assertTrue("mip_node_count" in sth.prob.solver_stats.extra_stats)
         self.assertTrue("mip_dual_bound" in sth.prob.solver_stats.extra_stats)
 
+    def test_scipy_lp_bound_attr(self) -> None:
+        StandardTestLPs.test_lp_bound_attr(solver='SCIPY', duals=self.d)
+
 @unittest.skipUnless('COPT' in INSTALLED_SOLVERS, 'COPT is not installed.')
 class TestCOPT(unittest.TestCase):
 
@@ -2971,6 +2989,9 @@ class TestCOPT(unittest.TestCase):
 
         # Valid arg.
         problem.solve(solver=cp.COPT, feastol=1e-9)
+
+    def test_copt_lp_bound_attr(self) -> None:
+        StandardTestLPs.test_lp_bound_attr(solver='COPT', duals=False)
 
 
 @unittest.skipUnless('COSMO' in INSTALLED_SOLVERS, 'COSMO is not installed.')

@@ -210,6 +210,7 @@ class CPLEX(ConicSolver):
 
     # Solver capabilities.
     MIP_CAPABLE = True
+    BOUNDED_VARIABLES = True
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC]
     MI_SUPPORTED_CONSTRAINTS = SUPPORTED_CONSTRAINTS
 
@@ -317,10 +318,20 @@ class CPLEX(ConicSolver):
             # here, will ensure that the problem type remains an LP.
             pass
         # Add the variables in a batch
+        lb = data[s.LOWER_BOUNDS]
+        ub = data[s.UPPER_BOUNDS]
+        if lb is None:
+            lb = [-cplex.infinity]*n
+        else:
+            lb = [max(v, -cplex.infinity) for v in lb]
+        if ub is None:
+            ub = [cplex.infinity]*n
+        else:
+            ub = [min(v, cplex.infinity) for v in ub]
         variables = list(model.variables.add(
             obj=[c[i] for i in range(n)],
-            lb=[-cplex.infinity]*n,  # default LB is 0
-            ub=[cplex.infinity]*n,
+            lb=lb,
+            ub=ub,
             types="".join(vtype),
             names=["x_%d" % i for i in range(n)]))
 
