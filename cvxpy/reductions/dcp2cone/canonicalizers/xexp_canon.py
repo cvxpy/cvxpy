@@ -18,15 +18,22 @@ from cvxpy.atoms.elementwise.power import power
 from cvxpy.constraints.exponential import ExpCone
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.dcp2cone.canonicalizers.power_canon import power_approx_canon
+from cvxpy.utilities.bounds import get_expr_bounds_if_supported
 from cvxpy.utilities.solver_context import SolverInfo
+from cvxpy.utilities.values import get_expr_value_if_supported
 
 
 def xexp_canon(expr, args, solver_context: SolverInfo | None = None):
     x = args[0]
     u = Variable(expr.shape, nonneg=True)
-    t = Variable(expr.shape, nonneg=True)
+    bounds = get_expr_bounds_if_supported(expr, solver_context)
+    t = Variable(expr.shape, nonneg=True, bounds=bounds)
+    value = get_expr_value_if_supported(expr, solver_context)
+    if value is not None:
+        t.value = value
     power_expr = power(x, 2)
-    power_obj, constraints = power_approx_canon(power_expr, power_expr.args)
+    power_obj, constraints = power_approx_canon(power_expr, power_expr.args,
+                                                solver_context=solver_context)
 
     constraints += [ExpCone(u, x, t), u >= power_obj, x >= 0]
     return t, constraints

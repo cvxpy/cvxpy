@@ -164,6 +164,78 @@ class TestValuePropagation:
         assert t.value is not None
         np.testing.assert_allclose(t.value, np.array(5.0))
 
+    def test_entr_canon_propagates_value(self):
+        from cvxpy.reductions.dcp2cone.canonicalizers.entr_canon import entr_canon
+        x = cp.Variable(3)
+        x.value = np.array([1.0, 2.0, 0.5])
+        expr = cp.entr(x)
+        t, _ = entr_canon(expr, expr.args, solver_context=self._warm_start_context())
+        assert t.value is not None
+        expected = -np.array([1.0, 2.0, 0.5]) * np.log([1.0, 2.0, 0.5])
+        np.testing.assert_allclose(t.value, expected)
+
+    def test_log_sum_exp_canon_propagates_value(self):
+        from cvxpy.reductions.dcp2cone.canonicalizers.log_sum_exp_canon import (
+            log_sum_exp_canon,
+        )
+        x = cp.Variable(3)
+        x.value = np.array([1.0, 2.0, 3.0])
+        expr = cp.log_sum_exp(x)
+        t, _ = log_sum_exp_canon(expr, expr.args,
+                                 solver_context=self._warm_start_context())
+        assert t.value is not None
+        np.testing.assert_allclose(t.value,
+                                   np.log(np.sum(np.exp([1.0, 2.0, 3.0]))),
+                                   rtol=1e-5)
+
+    def test_logistic_canon_propagates_value(self):
+        from cvxpy.reductions.dcp2cone.canonicalizers.logistic_canon import logistic_canon
+        x = cp.Variable(3)
+        x.value = np.array([0.0, 1.0, -1.0])
+        expr = cp.logistic(x)
+        t, _ = logistic_canon(expr, expr.args,
+                              solver_context=self._warm_start_context())
+        assert t.value is not None
+        expected = np.log(1 + np.exp([0.0, 1.0, -1.0]))
+        np.testing.assert_allclose(t.value, expected, rtol=1e-5)
+
+    def test_sigma_max_canon_propagates_value(self):
+        from cvxpy.reductions.dcp2cone.canonicalizers.sigma_max_canon import sigma_max_canon
+        A = cp.Variable((2, 3))
+        A.value = np.array([[3.0, 0.0, 0.0], [0.0, 2.0, 0.0]])
+        expr = cp.sigma_max(A)
+        t, _ = sigma_max_canon(expr, expr.args,
+                               solver_context=self._warm_start_context())
+        assert t.value is not None
+        np.testing.assert_allclose(t.value, np.array([3.0]), rtol=1e-5)
+
+    def test_rel_entr_canon_propagates_value(self):
+        from cvxpy.reductions.dcp2cone.canonicalizers.rel_entr_canon import rel_entr_canon
+        x = cp.Variable(3)
+        y = cp.Variable(3)
+        x.value = np.array([1.0, 2.0, 3.0])
+        y.value = np.array([2.0, 2.0, 6.0])
+        expr = cp.rel_entr(x, y)
+        obj, _ = rel_entr_canon(expr, expr.args,
+                                solver_context=self._warm_start_context())
+        # obj is -t, and t should have value = -expr_value
+        # So obj.value should equal expr.value
+        assert obj.value is not None
+        expected = x.value * np.log(x.value / y.value)
+        np.testing.assert_allclose(obj.value, expected, rtol=1e-5)
+
+    def test_quad_over_lin_canon_propagates_value(self):
+        from cvxpy.reductions.dcp2cone.canonicalizers.quad_over_lin_canon import (
+            quad_over_lin_canon,
+        )
+        x = cp.Variable(3)
+        x.value = np.array([1.0, 2.0, 3.0])
+        expr = cp.quad_over_lin(x, 1)
+        t, _ = quad_over_lin_canon(expr, expr.args,
+                                   solver_context=self._warm_start_context())
+        assert t.value is not None
+        np.testing.assert_allclose(t.value, np.array([14.0]), rtol=1e-5)
+
 
 # ──────────────────────────────────────────────────────────────
 #  Negative tests: no warm-start context

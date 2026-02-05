@@ -19,16 +19,22 @@ import numpy as np
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.dcp2cone.canonicalizers.exp_canon import exp_canon
+from cvxpy.utilities.bounds import get_expr_bounds_if_supported
 from cvxpy.utilities.solver_context import SolverInfo
+from cvxpy.utilities.values import get_expr_value_if_supported
 
 
 def logistic_canon(expr, args, solver_context: SolverInfo | None = None):
     x = args[0]
     shape = expr.shape
     # log(1 + exp(x)) <= t <=> exp(-t) + exp(x - t) <= 1
-    t0 = Variable(shape)
-    t1, constr1 = exp_canon(expr, [-t0])
-    t2, constr2 = exp_canon(expr, [x - t0])
+    bounds = get_expr_bounds_if_supported(expr, solver_context)
+    t0 = Variable(shape, bounds=bounds)
+    value = get_expr_value_if_supported(expr, solver_context)
+    if value is not None:
+        t0.value = value
+    t1, constr1 = exp_canon(expr, [-t0], solver_context=solver_context)
+    t2, constr2 = exp_canon(expr, [x - t0], solver_context=solver_context)
     ones = Constant(np.ones(shape))
     constraints = constr1 + constr2 + [t1 + t2 <= ones]
     return t0, constraints
