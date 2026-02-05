@@ -35,16 +35,12 @@ def get_expr_value_if_supported(
     - solver_context is None
     - The solver does not support warm starting
     - The expression's value is None (e.g., variables have no value set)
-    - Computing the value raises an exception
 
     Otherwise, returns a dense ndarray matching expr.shape.
     """
     if solver_context is None or not solver_context.solver_supports_warm_start:
         return None
-    try:
-        val = expr.value
-    except Exception:
-        return None
+    val = expr.value
     if val is None:
         return None
     return np.atleast_1d(np.array(val, dtype=float)).reshape(expr.shape)
