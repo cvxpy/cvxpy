@@ -19,7 +19,9 @@ class SolverInfo:
     """A context class that propagates solver attributes
     through the solving chain.
     """
-    def __init__(self, solver=None, supported_constraints=None, supports_bounds=False):
+    def __init__(self, solver=None, supported_constraints=None,
+                 supports_bounds=False, supports_warm_start=False):
         self.solver_name = solver
         self.solver_supported_constraints = supported_constraints
         self.solver_supports_bounds = supports_bounds
+        self.solver_supports_warm_start = supports_warm_start

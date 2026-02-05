@@ -21,6 +21,7 @@ from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variable import Variable
 from cvxpy.utilities.bounds import get_expr_bounds_if_supported
 from cvxpy.utilities.solver_context import SolverInfo
+from cvxpy.utilities.values import get_expr_value_if_supported
 
 
 def max_canon(expr, args, solver_context: SolverInfo | None = None):
@@ -29,6 +30,9 @@ def max_canon(expr, args, solver_context: SolverInfo | None = None):
     axis = expr.axis
     bounds = get_expr_bounds_if_supported(expr, solver_context)
     t = Variable(shape, bounds=bounds)
+    value = get_expr_value_if_supported(expr, solver_context)
+    if value is not None:
+        t.value = value
 
     if axis is None:  # shape = (1, 1)
         promoted_t = promote(t, x.shape)
