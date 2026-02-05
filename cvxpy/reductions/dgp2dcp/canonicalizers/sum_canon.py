@@ -20,7 +20,7 @@ from cvxpy.reductions.dgp2dcp.canonicalizers.add_canon import add_canon
 from cvxpy.reductions.dgp2dcp.util import explicit_sum
 
 
-def sum_canon(expr, args):
+def sum_canon(expr, args, solver_context=None):
     X = args[0]
     if expr.axis is None:
         summation = explicit_sum(X)

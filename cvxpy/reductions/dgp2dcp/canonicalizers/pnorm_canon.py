@@ -5,7 +5,7 @@ from cvxpy.atoms.affine.vstack import vstack
 from cvxpy.atoms.log_sum_exp import log_sum_exp
 
 
-def pnorm_canon(expr, args):
+def pnorm_canon(expr, args, solver_context=None):
     x = args[0]
     p = expr.original_p
     if x.shape == tuple():

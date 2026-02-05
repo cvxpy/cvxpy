@@ -20,7 +20,9 @@ from cvxpy.atoms import exp, promote, reshape, sum
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.dcp2cone.canonicalizers.exp_canon import exp_canon
+from cvxpy.utilities.bounds import get_expr_bounds_if_supported
 from cvxpy.utilities.solver_context import SolverInfo
+from cvxpy.utilities.values import get_expr_value_if_supported
 
 
 def log_sum_exp_canon(expr, args, solver_context: SolverInfo | None = None):
@@ -28,7 +30,11 @@ def log_sum_exp_canon(expr, args, solver_context: SolverInfo | None = None):
     shape = expr.shape
     axis = expr.axis
     keepdims = expr.keepdims
-    t = Variable(shape)
+    bounds = get_expr_bounds_if_supported(expr, solver_context)
+    t = Variable(shape, bounds=bounds)
+    value = get_expr_value_if_supported(expr, solver_context)
+    if value is not None:
+        t.value = value
 
     # log(sum(exp(x))) <= t <=> sum(exp(x-t)) <= 1
     if axis is None:  # shape = (1, 1)
@@ -39,7 +45,7 @@ def log_sum_exp_canon(expr, args, solver_context: SolverInfo | None = None):
         promoted_t = reshape(t, x.shape[:-1] + (1,), order="F") @ Constant(np.ones((1, x.shape[1])))
 
     exp_expr = exp(x - promoted_t)
-    obj, constraints = exp_canon(exp_expr, exp_expr.args)
+    obj, constraints = exp_canon(exp_expr, exp_expr.args, solver_context=solver_context)
     obj = sum(obj, axis=axis, keepdims=keepdims)
     ones = Constant(np.ones(shape))
     constraints.append(obj <= ones)

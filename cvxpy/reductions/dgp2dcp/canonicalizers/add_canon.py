@@ -21,7 +21,7 @@ from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.atoms.log_sum_exp import log_sum_exp
 
 
-def add_canon(expr, args):
+def add_canon(expr, args, solver_context=None):
     if expr.is_scalar():
         return log_sum_exp(hstack(args)), []
 
