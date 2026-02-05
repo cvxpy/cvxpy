@@ -18,7 +18,7 @@ from cvxpy.atoms.affine.wraps import nonneg_wrap, nonpos_wrap
 from cvxpy.expressions.variable import Variable
 from cvxpy.utilities.bounds import get_expr_bounds_if_supported
 from cvxpy.utilities.solver_context import SolverInfo
-from cvxpy.utilities.values import get_expr_value_if_supported
+from cvxpy.utilities.values import get_expr_value_if_supported, propagate_dual_values_to_constraints
 
 
 def maximum_canon(expr, args, solver_context: SolverInfo | None = None):
@@ -35,4 +35,5 @@ def maximum_canon(expr, args, solver_context: SolverInfo | None = None):
         t = nonpos_wrap(t)
     
     constraints = [t >= elem for elem in args]
+    propagate_dual_values_to_constraints(expr, constraints, solver_context)
     return t, constraints

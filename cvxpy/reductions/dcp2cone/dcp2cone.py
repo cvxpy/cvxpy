@@ -59,7 +59,9 @@ class Dcp2Cone(Canonicalization):
 
         canon_objective, canon_constraints = self.canonicalize_tree(
             problem.objective, True)
-        
+
+        # Collect all auxiliary constraints for dual value propagation.
+        all_aux_constraints = list(canon_constraints)
 
         for constraint in problem.constraints:
             # canon_constr is the constraint rexpressed in terms of
@@ -69,7 +71,10 @@ class Dcp2Cone(Canonicalization):
             canon_constr, aux_constr = self.canonicalize_tree(
                 constraint, False)
             canon_constraints += aux_constr + [canon_constr]
+            all_aux_constraints += aux_constr
             inverse_data.cons_id_map.update({constraint.id: canon_constr.id})
+
+        inverse_data.aux_constraints = all_aux_constraints
 
         new_problem = problems.problem.Problem(canon_objective,
                                                canon_constraints)

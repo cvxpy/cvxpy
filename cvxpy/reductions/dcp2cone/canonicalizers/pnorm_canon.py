@@ -31,7 +31,7 @@ from cvxpy.reductions.eliminate_pwl.canonicalizers.abs_canon import abs_canon
 from cvxpy.utilities.bounds import get_expr_bounds_if_supported
 from cvxpy.utilities.power_tools import gm_constrs
 from cvxpy.utilities.solver_context import SolverInfo
-from cvxpy.utilities.values import get_expr_value_if_supported
+from cvxpy.utilities.values import get_expr_value_if_supported, propagate_dual_values_to_constraints
 
 
 def _pnorm_p2_canon(expr, args, bounds=None, value=None):
@@ -57,7 +57,9 @@ def pnorm_exact_canon(expr, args, solver_context: SolverInfo | None = None):
     value = get_expr_value_if_supported(expr, solver_context)
 
     if p == 2:
-        return _pnorm_p2_canon(expr, args, bounds=bounds, value=value)
+        t, constraints = _pnorm_p2_canon(expr, args, bounds=bounds, value=value)
+        propagate_dual_values_to_constraints(expr, constraints, solver_context)
+        return t, constraints
 
     x = args[0]
     shape = expr.shape
@@ -93,6 +95,7 @@ def pnorm_exact_canon(expr, args, solver_context: SolverInfo | None = None):
             PowCone3D(vec(r, order="F"), vec(promoted_t, order="F"), vec(x, order="F"), alpha)
         ]
 
+    propagate_dual_values_to_constraints(expr, constraints, solver_context)
     return t, constraints
 
 
@@ -104,7 +107,9 @@ def pnorm_approx_canon(expr, args, solver_context: SolverInfo | None = None):
     value = get_expr_value_if_supported(expr, solver_context)
 
     if p == 2:
-        return _pnorm_p2_canon(expr, args, bounds=bounds, value=value)
+        t, constraints = _pnorm_p2_canon(expr, args, bounds=bounds, value=value)
+        propagate_dual_values_to_constraints(expr, constraints, solver_context)
+        return t, constraints
 
     x = args[0]
     p = Fraction(p)
@@ -150,4 +155,5 @@ def pnorm_approx_canon(expr, args, solver_context: SolverInfo | None = None):
                 stacklevel=6,
             )
 
+    propagate_dual_values_to_constraints(expr, constraints, solver_context)
     return t, constraints

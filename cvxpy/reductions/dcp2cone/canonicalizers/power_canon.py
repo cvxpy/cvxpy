@@ -25,7 +25,7 @@ from cvxpy.expressions.variable import Variable
 from cvxpy.utilities.bounds import get_expr_bounds_if_supported
 from cvxpy.utilities.power_tools import gm_constrs, powcone_constrs
 from cvxpy.utilities.solver_context import SolverInfo
-from cvxpy.utilities.values import get_expr_value_if_supported
+from cvxpy.utilities.values import get_expr_value_if_supported, propagate_dual_values_to_constraints
 
 
 def power_exact_canon(expr, args, solver_context: SolverInfo | None = None):
@@ -50,16 +50,21 @@ def power_exact_canon(expr, args, solver_context: SolverInfo | None = None):
 
     if 0 < p < 1:
         alpha = float(p)
-        return t, powcone_constrs(t, [x, ones], alpha)
+        constrs = powcone_constrs(t, [x, ones], alpha)
+        propagate_dual_values_to_constraints(expr, constrs, solver_context)
+        return t, constrs
     elif p > 1:
         alpha = float(1 / p)
         constrs = powcone_constrs(x, [t, ones], alpha)
         if p % 2 != 0:
             constrs += [x >= 0]
+        propagate_dual_values_to_constraints(expr, constrs, solver_context)
         return t, constrs
     elif p < 0:
         alpha = float(p / (p - 1))
-        return t, powcone_constrs(ones, [x, t], alpha)
+        constrs = powcone_constrs(ones, [x, t], alpha)
+        propagate_dual_values_to_constraints(expr, constrs, solver_context)
+        return t, constrs
     else:
         raise NotImplementedError("This power is not yet supported.")
 
@@ -112,4 +117,5 @@ def power_approx_canon(expr, args, solver_context: SolverInfo | None = None):
                 stacklevel=6,
             )
 
+    propagate_dual_values_to_constraints(expr, constrs, solver_context)
     return t, constrs

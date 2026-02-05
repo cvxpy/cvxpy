@@ -21,7 +21,7 @@ from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variable import Variable
 from cvxpy.utilities.bounds import get_expr_bounds_if_supported
 from cvxpy.utilities.solver_context import SolverInfo
-from cvxpy.utilities.values import get_expr_value_if_supported
+from cvxpy.utilities.values import get_expr_value_if_supported, propagate_dual_values_to_constraints
 
 
 def max_canon(expr, args, solver_context: SolverInfo | None = None):
@@ -42,4 +42,5 @@ def max_canon(expr, args, solver_context: SolverInfo | None = None):
         promoted_t = reshape(t, (x.shape[0], 1), order='F') @ Constant(np.ones((1, x.shape[1])))
 
     constraints = [x <= promoted_t]
+    propagate_dual_values_to_constraints(expr, constraints, solver_context)
     return t, constraints

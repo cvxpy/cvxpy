@@ -59,6 +59,9 @@ class Canonicalization(Reduction):
         canon_objective, canon_constraints = self.canonicalize_tree(
             problem.objective)
 
+        # Collect all auxiliary constraints for dual value propagation.
+        all_aux_constraints = list(canon_constraints)
+
         for constraint in problem.constraints:
             # canon_constr is the constraint rexpressed in terms of
             # its canonicalized arguments, and aux_constr are the constraints
@@ -67,7 +70,10 @@ class Canonicalization(Reduction):
             canon_constr, aux_constr = self.canonicalize_tree(
                 constraint)
             canon_constraints += aux_constr + [canon_constr]
+            all_aux_constraints += aux_constr
             inverse_data.cons_id_map.update({constraint.id: canon_constr.id})
+
+        inverse_data.aux_constraints = all_aux_constraints
 
         new_problem = problems.problem.Problem(canon_objective,
                                                canon_constraints)
@@ -79,6 +85,12 @@ class Canonicalization(Reduction):
         dvars = {orig_id: solution.dual_vars[vid]
                  for orig_id, vid in inverse_data.cons_id_map.items()
                  if vid in solution.dual_vars}
+
+        # Save dual values on auxiliary constraints so they can be
+        # propagated as warm-start hints on the next re-canonicalization.
+        for con in getattr(inverse_data, 'aux_constraints', []):
+            if con.id in solution.dual_vars:
+                con.save_dual_value(solution.dual_vars[con.id])
 
         return Solution(solution.status, solution.opt_val, pvars, dvars,
                         solution.attr)
