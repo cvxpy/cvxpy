@@ -21,7 +21,7 @@ from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variable import Variable
 from cvxpy.utilities.bounds import get_expr_bounds_if_supported
 from cvxpy.utilities.solver_context import SolverInfo
-from cvxpy.utilities.values import get_expr_value_if_supported
+from cvxpy.utilities.values import get_expr_value_if_supported, propagate_dual_values_to_constraints
 
 
 def log_canon(expr, args, solver_context: SolverInfo | None = None):
@@ -36,4 +36,5 @@ def log_canon(expr, args, solver_context: SolverInfo | None = None):
     # TODO(akshayka): ExpCone requires each of its inputs to be a Variable;
     # is this something that we want to change?
     constraints = [ExpCone(t, ones, x)]
+    propagate_dual_values_to_constraints(expr, constraints, solver_context)
     return t, constraints

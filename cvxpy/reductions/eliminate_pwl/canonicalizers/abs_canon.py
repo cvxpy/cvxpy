@@ -17,7 +17,7 @@ limitations under the License.
 from cvxpy.expressions.variable import Variable
 from cvxpy.utilities.bounds import get_expr_bounds_if_supported
 from cvxpy.utilities.solver_context import SolverInfo
-from cvxpy.utilities.values import get_expr_value_if_supported
+from cvxpy.utilities.values import get_expr_value_if_supported, propagate_dual_values_to_constraints
 
 
 def abs_canon(expr, args, solver_context: SolverInfo | None = None):
@@ -28,4 +28,5 @@ def abs_canon(expr, args, solver_context: SolverInfo | None = None):
     if value is not None:
         t.value = value
     constraints = [t >= x, t >= -x]
+    propagate_dual_values_to_constraints(expr, constraints, solver_context)
     return t, constraints
