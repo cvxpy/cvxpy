@@ -50,6 +50,10 @@ Solvers
 
 - `GUROBI <https://www.gurobi.com/>`_ is a commercial solver for mixed integer second-order cone programs.
 
+- `HiGHS <https://highs.dev/>`_ is an open-source C++ library for linear, mixed integer, and quadratic optimization.
+
+- `Moreau <https://www.moreau.so/>`_ is a commercial GPU-native, differentiable convex optimization solver with PyTorch and JAX integration.
+
 - `MOSEK <https://www.mosek.com/>`_ is a commercial solver for mixed integer second-order cone programs and semidefinite programs.
 
 - `XPRESS <https://www.fico.com/en/products/fico-xpress-optimization>`_ is a commercial solver for mixed integer linear, quadratic, and second-order cone optimization problems.

@@ -115,11 +115,10 @@ def _solve_as_qp(problem, candidates, ignore_dpp: bool = False):
     return candidates['qp_solvers'] and problem.is_qp()
 
 
-def _reductions_for_problem_class(problem, gp: bool = False) \
+def _pre_canonicalization_reductions(problem, gp: bool = False) \
         -> list[Reduction]:
     """
-    Builds a chain that rewrites a problem into an intermediate
-    representation suitable for numeric reductions.
+    Builds reductions that must run before DCP/DGP canonicalization.
 
     Parameters
     ----------
@@ -232,9 +231,10 @@ def construct_solving_chain(problem, candidates,
     """
     if len(problem.variables()) == 0:
         return SolvingChain(reductions=[ConstantSolver()])
-    reductions = _reductions_for_problem_class(problem, gp)
+    reductions = _pre_canonicalization_reductions(problem, gp)
 
     # Determine solver pathway (QP vs conic).
+    # TODO: Deprecate and remove the user-facing use_quad_obj=False option.
     use_quad = True if solver_opts is None else solver_opts.get('use_quad_obj', True)
     valid_qp = _solve_as_qp(problem, candidates, ignore_dpp) and use_quad
     if not valid_qp and not candidates['conic_solvers']:
@@ -328,33 +328,29 @@ def construct_solving_chain(problem, candidates,
         else:
             supported_constraints = frozenset(solver_instance.SUPPORTED_CONSTRAINTS)
 
-        solver_context = SolverInfo(solver=solver, supported_constraints=supported_constraints)
+        solver_context = SolverInfo(
+            solver=solver,
+            supported_constraints=supported_constraints,
+            supports_bounds=solver_instance.BOUNDED_VARIABLES
+        )
 
-        # --- Iterative exact cone expansion ---
+        # --- Exact cone expansion (single pass) ---
+        # Identify cones that need exact conversion (present in the
+        # problem but not supported by this solver).
         solver_cones = cones.copy()
-        exotic_steps = []
-        while True:
-            ex_cos = (solver_cones & EXACT_CONE_CONVERSIONS.keys()) - supported_constraints
-            if not ex_cos:
-                break
-            # Source nodes: not produced by other unsupported exotic cones
-            sources = frozenset(
-                co for co in ex_cos
-                if not any(co in EXACT_CONE_CONVERSIONS.get(other, set())
-                           for other in ex_cos if other != co)
-            )
-            if not sources:
-                sources = frozenset(ex_cos)  # cycle fallback
-            exotic_steps.append(sources)
-            for co in sources:
-                solver_cones.update(EXACT_CONE_CONVERSIONS[co])
-                solver_cones.discard(co)
+        exact_targets = (solver_cones & EXACT_CONE_CONVERSIONS.keys()) - supported_constraints
+        for co in exact_targets:
+            solver_cones.discard(co)
+            solver_cones.update(EXACT_CONE_CONVERSIONS[co])
 
         # --- Approximate cone expansion (solver-aware) ---
         # Computed after exact expansion so cones introduced by exact
         # conversion (e.g. PowCone3D from PowConeND) are also considered.
-        # Union with constr_types to catch specialized constraint types
-        # (e.g. RelEntrConeQuad) not tracked in the atom-derived cones set.
+        # Union with constr_types: specialized constraint types like
+        # RelEntrConeQuad, OpRelEntrConeQuad, and PowCone3DApprox are
+        # user-constructed constraints (not produced by atom
+        # canonicalization), so they only appear in constr_types, not
+        # in the atom-derived cones set.
         approx_cos = ((solver_cones | constr_types)
                       & APPROX_CONE_CONVERSIONS.keys()) - supported_constraints
         for co in approx_cos:
@@ -369,9 +365,8 @@ def construct_solving_chain(problem, candidates,
                 Dcp2Cone(quad_obj=quad_obj, solver_context=solver_context),
             )
 
-            # Exact cone conversions (iterative, one pass per level)
-            for step_cones in exotic_steps:
-                reductions.append(ExactCone2Cone(target_cones=step_cones))
+            if exact_targets:
+                reductions.append(ExactCone2Cone(target_cones=exact_targets))
 
             # Approximate cone conversions (single pass, all types)
             if approx_cos:
@@ -386,7 +381,7 @@ def construct_solving_chain(problem, candidates,
             # before zero-sized sub-expressions are replaced.
             reductions.append(EliminateZeroSized())
 
-            if solver_cones <= supported_constraints:
+            if solver_cones.issubset(supported_constraints):
                 # Check if solver only supports dim-3 SOC cones
                 if solver_instance.SOC_DIM3_ONLY and SOC in solver_cones:
                     # Add SOCDim3 reduction to convert n-dim SOC to 3D SOC

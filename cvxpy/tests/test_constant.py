@@ -22,11 +22,9 @@ def test_is_psd() -> None:
     assert cp.Constant(nsd).is_nsd()
     assert not cp.Constant(nsd).is_psd()
 
-    # We simulate a scenario where a matrix is PSD but a ArpackNoConvergence is raised.
-    # With the current numpy random number generator, this happens with seed 97.
-    # We test a range of seeds to make sure that this scenario is not always triggered.
-
-    failures = set()
+    # Test that is_psd works for random PSD matrices.
+    # ArpackNoConvergence can occur for numerical reasons on some matrices;
+    # when it does, verify the error message is helpful.
     for seed in range(95, 100):
         np.random.seed(seed)
 
@@ -34,13 +32,29 @@ def test_is_psd() -> None:
         P = P.T @ P
 
         try:
-            cp.Constant(P).is_psd()
+            assert cp.Constant(P).is_psd()
         except sparla.ArpackNoConvergence as e:
             assert "CVXPY note" in str(e)
-            failures.add(seed)
-    assert failures == {97}
 
     assert psd_wrap(cp.Constant(P)).is_psd()
+
+
+def test_is_psd_arpack_no_convergence(monkeypatch) -> None:
+    """Test that ArpackNoConvergence is augmented with a helpful message."""
+    n = 10
+
+    def mock_eigsh(*args, **kwargs):
+        raise sparla.ArpackNoConvergence("mock failure", np.array([]), np.array([[]]))
+
+    monkeypatch.setattr(sparla, 'eigsh', mock_eigsh)
+
+    # Construct a matrix that bypasses the Gershgorin and diagonal fast paths
+    # so it reaches the ARPACK code path.
+    A = np.full((n, n), 0.5)
+    np.fill_diagonal(A, 1.0)
+
+    with pytest.raises(sparla.ArpackNoConvergence, match="CVXPY note"):
+        cp.Constant(A).is_psd()
 
 
 def test_print():

@@ -343,12 +343,19 @@ class Leaf(expression.Expression):
             bounds = self.bounds
             lower_bounds, upper_bounds = bounds
 
+            # Helper to check if bounds are scalar (0-d array or Python scalar)
+            def is_scalar_bound(b):
+                return np.isscalar(b) or (hasattr(b, 'ndim') and b.ndim == 0)
+
             # Expression bounds (e.g. cp.Parameter): no masking needed
             if isinstance(lower_bounds, expression.Expression):
                 constraints.append(term >= lower_bounds)
             elif np.any(lower_bounds != -np.inf):
-                lower_bound_mask = (lower_bounds != -np.inf)
-                if self.ndim > 0:
+                # Scalar/0-d bounds apply to all elements uniformly
+                if is_scalar_bound(lower_bounds):
+                    constraints.append(term >= float(lower_bounds))
+                elif self.ndim > 0:
+                    lower_bound_mask = (lower_bounds != -np.inf)
                     constraints.append(term[lower_bound_mask] >= lower_bounds[lower_bound_mask])
                 else:
                     constraints.append(term >= lower_bounds)
@@ -356,8 +363,11 @@ class Leaf(expression.Expression):
             if isinstance(upper_bounds, expression.Expression):
                 constraints.append(term <= upper_bounds)
             elif np.any(upper_bounds != np.inf):
-                upper_bound_mask = (upper_bounds != np.inf)
-                if self.ndim > 0:
+                # Scalar/0-d bounds apply to all elements uniformly
+                if is_scalar_bound(upper_bounds):
+                    constraints.append(term <= float(upper_bounds))
+                elif self.ndim > 0:
+                    upper_bound_mask = (upper_bounds != np.inf)
                     constraints.append(term[upper_bound_mask] <= upper_bounds[upper_bound_mask])
                 else:
                     constraints.append(term <= upper_bounds)
@@ -695,12 +705,15 @@ class Leaf(expression.Expression):
                             "same dimensions as the variable."
                         )
                 elif val is None:
-                    # Promote None to -inf / inf ndarray even when other
-                    # bound is an Expression.
+                    # Promote None to -inf / inf as a scalar (memory efficient).
                     none_bounds = [-np.inf, np.inf]
-                    value[idx] = np.full(self.shape, none_bounds[idx])
+                    value[idx] = np.array(none_bounds[idx])
                 elif np.isscalar(val):
-                    value[idx] = np.full(self.shape, val)
+                    # Keep scalar as 0-d array (memory efficient).
+                    value[idx] = np.array(val)
+                elif isinstance(val, np.ndarray) and val.ndim == 0:
+                    # 0-d array is scalar-like, keep as-is
+                    pass
                 else:
                     valid_array = isinstance(val, np.ndarray) and val.shape == self.shape
                     if not valid_array:
@@ -711,37 +724,140 @@ class Leaf(expression.Expression):
             return value
 
         # --- Non-expression (numeric) bounds path ---
+        # Convert list-like bounds to numpy arrays for validation
+        for idx, val in enumerate(value):
+            if val is not None and not np.isscalar(val):
+                if not isinstance(val, np.ndarray):
+                    # Try converting to numpy array (handles Python lists)
+                    try:
+                        value[idx] = np.asarray(val)
+                    except (TypeError, ValueError):
+                        pass  # Will fail validation below
+
+        # Helper to check if a value is scalar-like (Python scalar or 0-d array)
+        def is_scalar_like(v):
+            return np.isscalar(v) or (isinstance(v, np.ndarray) and v.ndim == 0)
+
         # Check that bounds contains two scalars or two arrays with matching shapes.
         for val in value:
+            valid_scalar = is_scalar_like(val)
             valid_array = isinstance(val, np.ndarray) and val.shape == self.shape
-            if not (val is None or np.isscalar(val) or valid_array):
+            if not (val is None or valid_scalar or valid_array):
                 raise ValueError(
                     "Bounds should be None, scalars, or arrays with the "
                     "same dimensions as the variable/parameter."
                 )
 
         # Promote upper and lower bounds to arrays.
+        # Keep scalars as 0-d arrays for memory efficiency.
         none_bounds = [-np.inf, np.inf]
+        promoted = []
         for idx, val in enumerate(value):
             if val is None:
-                value[idx] = np.full(self.shape, none_bounds[idx])
+                # Keep as scalar (0-d array) for memory efficiency.
+                promoted.append(np.array(none_bounds[idx]))
             elif np.isscalar(val):
-                value[idx] = np.full(self.shape, val)
+                # Keep scalar as 0-d array (memory efficient).
+                promoted.append(np.array(val))
+            else:
+                promoted.append(val)
+
+        lb, ub = promoted
 
         # Upper bound cannot be -np.inf.
-        if np.any(value[1] == -np.inf):
+        if np.any(ub == -np.inf):
             raise ValueError("-np.inf is not feasible as an upper bound.")
         # Lower bound cannot be np.inf.
-        if np.any(value[0] == np.inf):
+        if np.any(lb == np.inf):
             raise ValueError("np.inf is not feasible as a lower bound.")
 
         # Check that upper_bound >= lower_bound
-        if np.any(value[0] > value[1]):
+        if np.any(lb > ub):
             raise ValueError("Invalid bounds: some upper bounds are less "
                              "than corresponding lower bounds.")
 
-        if np.any(np.isnan(value[0])) or np.any(np.isnan(value[1])):
+        if np.any(np.isnan(lb)) or np.any(np.isnan(ub)):
             raise ValueError("np.nan is not feasible as lower "
                                 "or upper bound.")
 
-        return value
+        return promoted
+
+    def get_bounds(self) -> tuple[np.ndarray, np.ndarray]:
+        """Return bounds (lower, upper) for this leaf.
+
+        For Variables: combines explicit bounds with sign attributes.
+        For Constants: returns (value, value).
+        For Parameters: combines explicit bounds with sign attributes.
+
+        This method is memory-efficient: it uses broadcast views for uniform
+        scalar bounds and preserves sparse matrices without densifying.
+
+        Returns
+        -------
+        tuple of np.ndarray
+            (lower_bound, upper_bound) arrays broadcastable to self.shape.
+        """
+        # Determine effective lower and upper bounds, starting with unbounded.
+        # We track scalar vs array bounds to enable memory-efficient broadcast.
+        lb_val: float = -np.inf
+        ub_val: float = np.inf
+        lb_arr = None  # Non-None if bounds are non-uniform (array or sparse)
+        ub_arr = None
+
+        # Apply bounds attribute if present (skip Expression bounds,
+        # which are symbolic and enforced at solve time).
+        bounds_attr = self.attributes['bounds']
+        if bounds_attr is not None:
+            bound_lb, bound_ub = bounds_attr[0], bounds_attr[1]
+            if not isinstance(bound_lb, expression.Expression):
+                # Check for scalar or 0-d array (memory-efficient bounds)
+                if np.isscalar(bound_lb) or (hasattr(bound_lb, 'ndim') and bound_lb.ndim == 0):
+                    lb_val = max(lb_val, float(bound_lb))
+                else:
+                    # Array or sparse bound
+                    lb_arr = np.maximum(lb_val, bound_lb)
+            if not isinstance(bound_ub, expression.Expression):
+                # Check for scalar or 0-d array (memory-efficient bounds)
+                if np.isscalar(bound_ub) or (hasattr(bound_ub, 'ndim') and bound_ub.ndim == 0):
+                    ub_val = min(ub_val, float(bound_ub))
+                else:
+                    # Array or sparse bound
+                    ub_arr = np.minimum(ub_val, bound_ub)
+
+        # Apply sign attributes
+        if self.attributes['nonneg'] or self.attributes['pos']:
+            if lb_arr is not None:
+                lb_arr = np.maximum(lb_arr, 0)
+            else:
+                lb_val = max(lb_val, 0)
+        if self.attributes['nonpos'] or self.attributes['neg']:
+            if ub_arr is not None:
+                ub_arr = np.minimum(ub_arr, 0)
+            else:
+                ub_val = min(ub_val, 0)
+
+        # For boolean variables, bounds are [0, 1]
+        if self.attributes['boolean'] is True:
+            if lb_arr is not None:
+                lb_arr = np.maximum(lb_arr, 0)
+            else:
+                lb_val = max(lb_val, 0)
+            if ub_arr is not None:
+                ub_arr = np.minimum(ub_arr, 1)
+            else:
+                ub_val = min(ub_val, 1)
+
+        # Build final bounds: use broadcast views for uniform scalars
+        if lb_arr is not None:
+            lb = lb_arr
+        else:
+            # Use memory-efficient broadcast view
+            lb = np.broadcast_to(np.array(lb_val), self.shape)
+
+        if ub_arr is not None:
+            ub = ub_arr
+        else:
+            # Use memory-efficient broadcast view
+            ub = np.broadcast_to(np.array(ub_val), self.shape)
+
+        return (lb, ub)

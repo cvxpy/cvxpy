@@ -19,6 +19,7 @@ from typing import Tuple
 import numpy as np
 
 from cvxpy.atoms.elementwise.elementwise import Elementwise
+from cvxpy.utilities import bounds as bounds_utils
 
 
 class exp(Elementwise):
@@ -38,6 +39,11 @@ class exp(Elementwise):
         """
         # Always positive.
         return (True, False)
+
+    def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
+        """Returns bounds for exp based on argument bounds."""
+        lb, ub = self.args[0].get_bounds()
+        return bounds_utils.exp_bounds(lb, ub)
 
     def is_atom_convex(self) -> bool:
         """Is the atom convex?

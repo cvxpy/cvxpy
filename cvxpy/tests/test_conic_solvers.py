@@ -655,6 +655,78 @@ class TestCuClarabel(BaseTest):
     def test_clarabel_pcp_2(self) -> None:
         StandardTestSOCPs.test_socp_2(solver='CUCLARABEL')
 
+
+@unittest.skipUnless('PDCS' in INSTALLED_SOLVERS, 'PDCS is not installed.')
+class TestPDCS(BaseTest):
+
+    """ Unit tests for PDCS. """
+    def setUp(self) -> None:
+
+        self.x = cp.Variable(2, name='x')
+        self.y = cp.Variable(3, name='y')
+
+        self.A = cp.Variable((2, 2), name='A')
+        self.B = cp.Variable((2, 2), name='B')
+        self.C = cp.Variable((3, 2), name='C')
+
+    def test_pdcs_parameter_update(self) -> None:
+        """Test warm start.
+        """
+        x = cp.Variable(2)
+        P = cp.Parameter(nonneg=True),
+        A = cp.Parameter(4)
+        b = cp.Parameter(2, nonneg=True)
+        q = cp.Parameter(2)
+
+        def update_parameters(P, A, b, q):
+            P[0].value = np.random.rand()
+            A.value = np.random.randn(4)
+            b.value = np.random.rand(2)
+            q.value = np.random.randn(2)
+
+        prob = cp.Problem(
+                cp.Minimize(P[0]*cp.square(x[0]) + cp.quad_form(x, np.ones([2, 2])) + q.T @ x),
+                [A[0] * x[0] + A[1] * x[1] == b[0],
+                 A[2] * x[0] + A[3] * x[1] <= b[1]]
+            )
+
+        update_parameters(P, A, b, q)
+        result1 = prob.solve(solver=cp.PDCS, warm_start=False)
+        result2 = prob.solve(solver=cp.PDCS, warm_start=True)
+        self.assertAlmostEqual(result1, result2)
+
+        update_parameters(P, A, b, q)
+        result1 = prob.solve(solver=cp.PDCS, warm_start=True)
+        result2 = prob.solve(solver=cp.PDCS, warm_start=False)
+        self.assertAlmostEqual(result1, result2)
+
+        # consecutive solves, no data update
+        result1 = prob.solve(solver=cp.PDCS, warm_start=False)
+        self.assertAlmostEqual(result1, result2)
+
+    def test_pdcs_socp_0(self) -> None:
+        StandardTestSOCPs.test_socp_0(solver='PDCS')
+
+    def test_pdcs_expcone_1(self) -> None:
+        StandardTestECPs.test_expcone_1(solver='PDCS')
+
+    def test_pdcs_exp_soc_1(self) -> None:
+        print("test_pdcs_exp_soc_1")
+        StandardTestMixedCPs.test_exp_soc_1(solver='PDCS')
+
+    def test_pdcs_pcp_0(self) -> None:
+        print("test_pdcs_pcp_0")
+        StandardTestSOCPs.test_socp_0(solver='PDCS')
+
+    def test_pdcs_socp_1(self) -> None:
+        print("test_pdcs_socp_1")
+        StandardTestSOCPs.test_socp_1(solver='PDCS')
+
+    def test_pdcs_socp_2(self) -> None:
+        print("test_pdcs_socp_2")
+        StandardTestSOCPs.test_socp_2(solver='PDCS')
+
+
 @unittest.skipUnless('MOREAU' in INSTALLED_SOLVERS, 'MOREAU is not installed.')
 class TestMoreau(BaseTest):
 
@@ -2453,7 +2525,8 @@ class TestHIGHS:
         valid_names = (
             ["a" * 255]
             + [single_char_name for single_char_name in may_begin_with - must_not_be_a_keyword]
-            + [f"{beginning}{contains}" for beginning, contains in zip(may_begin_with, may_contain)]
+            + [name for beginning, contains in zip(may_begin_with, may_contain)
+               if (name := f"{beginning}{contains}") not in must_not_be_a_keyword]
         )
         for name in valid_names:
             validate_column_name(name)

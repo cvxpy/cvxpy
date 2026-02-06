@@ -44,13 +44,15 @@ def extract_lower_bounds(variables: list, var_size: int) -> Optional[np.ndarray]
     lower_bounds = np.full(var_size, -np.inf)
     vert_offset = 0
     for x in variables:
-        if x.is_nonneg():
-            lower_bounds[vert_offset:vert_offset+x.size] = 0
-        elif x.attributes["bounds"] is not None:
+        if x.attributes["bounds"] is not None:
             # Store lower bound in Fortran order.
-            var_lower_bound = x.attributes['bounds'][0]
+            # Use broadcast_to for memory-efficient scalar bounds.
+            var_lower_bound = np.broadcast_to(x.attributes['bounds'][0], x.shape)
             flattened = np.reshape(var_lower_bound, x.size, order="F")
             lower_bounds[vert_offset:vert_offset+x.size] = flattened
+        if x.is_nonneg():
+            np.maximum(lower_bounds[vert_offset:vert_offset+x.size], 0,
+                       out=lower_bounds[vert_offset:vert_offset+x.size])
         vert_offset += x.size
     return lower_bounds
 
@@ -71,13 +73,15 @@ def extract_upper_bounds(variables: list, var_size: int) -> Optional[np.ndarray]
     upper_bounds = np.full(var_size, np.inf)
     vert_offset = 0
     for x in variables:
-        if x.is_nonpos():
-            upper_bounds[vert_offset:vert_offset+x.size] = 0
-        elif x.attributes["bounds"] is not None:
+        if x.attributes["bounds"] is not None:
             # Store upper bound in Fortran order.
-            var_upper_bound = x.attributes['bounds'][1]
+            # Use broadcast_to for memory-efficient scalar bounds.
+            var_upper_bound = np.broadcast_to(x.attributes['bounds'][1], x.shape)
             flattened = np.reshape(var_upper_bound, x.size, order="F")
             upper_bounds[vert_offset:vert_offset+x.size] = flattened
+        if x.is_nonpos():
+            np.minimum(upper_bounds[vert_offset:vert_offset+x.size], 0,
+                       out=upper_bounds[vert_offset:vert_offset+x.size])
         vert_offset += x.size
     return upper_bounds
 
@@ -170,7 +174,9 @@ def extract_bounds_tensor(
                 else:
                     bound_expr = b
             else:
-                flattened = np.reshape(b, x.size, order="F")
+                # Use broadcast_to for memory-efficient scalar bounds.
+                b_broadcast = np.broadcast_to(b, x.shape)
+                flattened = np.reshape(b_broadcast, x.size, order="F")
                 bound_expr = Constant(flattened)
         else:
             bound_expr = Constant(np.full(x.size, default_val))

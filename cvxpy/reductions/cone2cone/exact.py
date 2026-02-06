@@ -26,23 +26,176 @@ from cvxpy.constraints.psd import PSD
 from cvxpy.constraints.second_order import SOC
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.canonicalization import Canonicalization
+from cvxpy.reductions.cone2cone.cone_tree import (
+    LeafNode,
+    SingleVarNode,
+    SplitNode,
+    get_root_cone_id,
+)
 from cvxpy.reductions.inverse_data import InverseData
 from cvxpy.reductions.solution import Solution
 
+# Maps each "exact" cone to the set of simpler cones it converts to.
+# Must form a DAG (no cycles).
+EXACT_CONE_CONVERSIONS = {
+    PowConeND: {PowCone3D},
+    SOC: {PSD},
+}
+
+
+def _build_pow_tree(
+    W, alpha, z, j, indices, alphas,
+    x_3d, y_3d, z_3d, alpha_3d,
+    is_root=False,
+):
+    """Recursively build a balanced binary tree for PowConeND decomposition."""
+    n = len(indices)
+
+    if n == 1:
+        # Base case: single variable, no cone needed
+        tree = SingleVarNode(var_index=indices[0]) if j == 0 else None
+        return W[indices[0], j], alphas[0], tree
+
+    if n == 2:
+        # Base case: two variables, create one 3D cone
+        i0, i1 = indices
+        a0, a1 = alphas
+        total = a0 + a1
+        r = a0 / total
+
+        if is_root:
+            out_expr = z[j]
+        else:
+            out_expr = Variable(shape=())
+
+        x_3d.append(W[i0, j])
+        y_3d.append(W[i1, j])
+        z_3d.append(out_expr)
+        alpha_3d.append(r)
+
+        tree = LeafNode(
+            cone_id=len(x_3d) - 1,
+            var_indices=(i0, i1)
+        ) if j == 0 else None
+
+        return out_expr, total, tree
+
+    # Recursive case: split into two halves
+    mid = n // 2
+    left_indices = indices[:mid]
+    right_indices = indices[mid:]
+    left_alphas = alphas[:mid]
+    right_alphas = alphas[mid:]
+
+    left_expr, left_sum, left_tree = _build_pow_tree(
+        W, alpha, z, j, left_indices, left_alphas,
+        x_3d, y_3d, z_3d, alpha_3d, is_root=False
+    )
+    right_expr, right_sum, right_tree = _build_pow_tree(
+        W, alpha, z, j, right_indices, right_alphas,
+        x_3d, y_3d, z_3d, alpha_3d, is_root=False
+    )
+
+    total = left_sum + right_sum
+    r = left_sum / total
+
+    if is_root:
+        out_expr = z[j]
+    else:
+        out_expr = Variable(shape=())
+
+    x_3d.append(left_expr)
+    y_3d.append(right_expr)
+    z_3d.append(out_expr)
+    alpha_3d.append(r)
+
+    if j == 0:
+        tree = SplitNode(
+            cone_id=len(x_3d) - 1,
+            left=left_tree,
+            right=right_tree
+        )
+    else:
+        tree = None
+
+    return out_expr, total, tree
+
+
+def _extract_pow_duals_recursive(
+    node, parent_cone_id, is_left_child,
+    raw_duals, w_duals, j, num_cones_per_col,
+):
+    """Recursively extract W duals from the tree.
+
+    For each node:
+    - SingleVarNode: the variable's dual comes from the parent cone's
+      x (row 0) or y (row 1) position depending on whether this is
+      the left or right child.
+    - LeafNode: both variable duals come from this node's own cone
+      (x in row 0, y in row 1).
+    - SplitNode: recurse into children. The split node's cone combines
+      the left and right subtree outputs.
+    """
+    if isinstance(node, SingleVarNode):
+        assert parent_cone_id is not None
+        col = j * num_cones_per_col + parent_cone_id
+        row = 0 if is_left_child else 1
+        w_duals[node.var_index, j] = raw_duals[row, col]
+    elif isinstance(node, LeafNode):
+        col = j * num_cones_per_col + node.cone_id
+        w_duals[node.var_indices[0], j] = raw_duals[0, col]
+        w_duals[node.var_indices[1], j] = raw_duals[1, col]
+    elif isinstance(node, SplitNode):
+        _extract_pow_duals_recursive(
+            node.left, node.cone_id, True,
+            raw_duals, w_duals, j, num_cones_per_col
+        )
+        _extract_pow_duals_recursive(
+            node.right, node.cone_id, False,
+            raw_duals, w_duals, j, num_cones_per_col
+        )
+
+
+def _extract_pow_duals(tree, raw_duals, n, k, num_cones_per_col):
+    """Extract W and z duals from raw 3D cone duals using tree structure."""
+    w_duals = np.zeros((n, k))
+    z_duals = np.zeros(k)
+
+    root_idx = get_root_cone_id(tree)
+
+    for j in range(k):
+        _extract_pow_duals_recursive(
+            tree, None, True,
+            raw_duals, w_duals, j, num_cones_per_col
+        )
+
+        if root_idx is not None:
+            root_col = j * num_cones_per_col + root_idx
+            z_duals[j] = raw_duals[2, root_col]
+
+    return w_duals, z_duals
+
 
 class PowNDConversion:
-    """PowConeND -> PowCone3D via binary tree decomposition."""
+    """PowConeND -> PowCone3D via balanced binary tree decomposition.
+
+    Consolidated from the former exotic2common.py. Uses O(log n) tree
+    depth instead of a linear chain for improved numerical stability.
+    """
     source = PowConeND
     targets = {PowCone3D}
 
     @staticmethod
     def canonicalize(con, args):
         """
+        Canonicalize PowConeND to PowCone3D using balanced binary tree
+        decomposition.
+
         con : PowConeND
             We can extract metadata from this.
             For example, con.alpha and con.axis.
         args : tuple of length two
-            W,z = args[0], args[1]
+            W, z = args[0], args[1]
         """
         alpha, axis, _ = con.get_data()
         alpha = alpha.value
@@ -54,50 +207,79 @@ class PowNDConversion:
             W = reshape(W, (W.size, 1), order='F')
             alpha = np.reshape(alpha, (W.size, 1))
         n, k = W.shape
+
         if n == 2:
             can_con = PowCone3D(W[0, :], W[1, :], z, alpha[0, :])
-        else:
-            T = Variable(shape=(n-2, k))
-            x_3d, y_3d, z_3d, alpha_3d = [], [], [], []
-            for j in range(k):
-                x_3d.append(W[:-1, j])
-                y_3d.append(T[:, j])
-                y_3d.append(W[n-1, j])
-                z_3d.append(z[j])
-                z_3d.append(T[:, j])
-                r_nums = alpha[:, j]
-                r_dens = np.cumsum(r_nums[::-1])[::-1]
-                # ^ equivalent to [np.sum(alpha[i:, j]) for i in range(n)]
-                r = r_nums / r_dens
-                alpha_3d.append(r[:n-1])
-            x_3d = hstack(x_3d)
-            y_3d = hstack(y_3d)
-            z_3d = hstack(z_3d)
-            alpha_p3d = hstack(alpha_3d)
-            # TODO: Ideally we should construct x,y,z,alpha_p3d by
-            #   applying suitable sparse matrices to W,z,T, rather
-            #   than using the hstack atom. (hstack will probably
-            #   result in longer compile times).
-            can_con = PowCone3D(x_3d, y_3d, z_3d, alpha_p3d)
-        # Return a single PowCone3D constraint defined over all auxiliary
-        # variables needed for the reduction to go through.
-        # There are no "auxiliary constraints" beyond this one.
+            return can_con, []
+
+        # Balanced tree decomposition for n > 2
+        x_3d, y_3d, z_3d, alpha_3d = [], [], [], []
+        tree = None
+
+        for j in range(k):
+            indices = list(range(n))
+            alphas = list(alpha[:, j])
+
+            _, _, col_tree = _build_pow_tree(
+                W, alpha, z, j, indices, alphas,
+                x_3d, y_3d, z_3d, alpha_3d, is_root=True
+            )
+
+            if j == 0:
+                tree = col_tree
+
+        x_3d_expr = hstack(x_3d)
+        y_3d_expr = hstack(y_3d)
+        z_3d_expr = hstack(z_3d)
+        alpha_p3d = hstack(alpha_3d)
+        # TODO: Ideally we should construct x,y,z,alpha_p3d by
+        #   applying suitable sparse matrices to W,z,T, rather
+        #   than using the hstack atom. (hstack will probably
+        #   result in longer compile times).
+        can_con = PowCone3D(x_3d_expr, y_3d_expr, z_3d_expr, alpha_p3d)
+
+        # Store tree on the constraint for the apply_hook to retrieve.
+        can_con._pow_tree = tree
+
         return can_con, []
 
     @staticmethod
+    def apply_hook(constraint, canon_constr, aux_constr, inverse_data):
+        """Store the binary tree structure for dual variable recovery.
+
+        Called by ExactCone2Cone.apply() after canonicalizing each
+        PowConeND constraint. The tree records the balanced binary
+        decomposition so that recover_dual() can map PowCone3D duals
+        back to PowConeND duals.
+        """
+        tree = getattr(canon_constr, '_pow_tree', None)
+        if tree is not None:
+            if not hasattr(inverse_data, 'pow_tree_mappings'):
+                inverse_data.pow_tree_mappings = {}
+            inverse_data.pow_tree_mappings[constraint.id] = tree
+
+    @staticmethod
     def recover_dual(cons, dual_var, inverse_data, solution):
-        div_size = int(dual_var.shape[1] // cons.args[1].shape[0])
-        dv_list = []
-        for i in range(cons.args[1].shape[0]):
-            dv_list.append([])
-            tmp_duals = dual_var[:, i * div_size: (i + 1) * div_size]
-            for j, col_dvars in enumerate(tmp_duals.T):
-                if j == len(tmp_duals.T) - 1:
-                    dv_list[-1] += [col_dvars[0], col_dvars[1]]
-                else:
-                    dv_list[-1].append(col_dvars[0])
-            dv_list[-1].append(tmp_duals.T[0][-1])
-        return np.array(dv_list)
+        """Recover PowConeND dual variables from PowCone3D duals."""
+        alpha, axis, _ = cons.get_data()
+        n = alpha.shape[0] if axis == 0 else alpha.shape[1]
+        k = cons.args[1].shape[0]
+
+        tree_mappings = getattr(inverse_data, 'pow_tree_mappings', None)
+
+        if tree_mappings is not None and cons.id in tree_mappings:
+            tree = tree_mappings[cons.id]
+            num_cones_per_col = dual_var.shape[1] // k
+            w_duals, z_duals = _extract_pow_duals(
+                tree, dual_var, n, k, num_cones_per_col
+            )
+        else:
+            # n == 2: direct mapping, no tree decomposition
+            w_duals = dual_var[:2, :]
+            z_duals = dual_var[2, :]
+
+        # Format as (n+1, k): W duals stacked above z duals
+        return np.vstack([w_duals, z_duals[np.newaxis, :]])
 
 
 class SOCConversion:
@@ -164,7 +346,14 @@ class SOCConversion:
 
     @staticmethod
     def apply_hook(constraint, canon_constr, aux_constr, inverse_data):
-        """Track auxiliary PSD constraint IDs for packed SOC dual recovery."""
+        """Track auxiliary PSD constraint IDs for packed SOC dual recovery.
+
+        Called by ExactCone2Cone.apply() after canonicalizing each SOC
+        constraint. For packed SOC constraints (vector t), multiple PSD
+        constraints are produced. This hook records the auxiliary PSD
+        constraint IDs so that recover_dual() can reassemble the full
+        SOC dual from all the PSD duals.
+        """
         aux_psd_ids = [c.id for c in aux_constr if isinstance(c, PSD)]
         if aux_psd_ids:
             if not hasattr(inverse_data, 'soc_packed_aux'):
@@ -197,6 +386,10 @@ class ExactCone2Cone(Canonicalization):
         canon_methods = {c.source: c.canonicalize for c in conversions}
         self._dual_recovery = {c.source: c.recover_dual
                                for c in conversions if hasattr(c, 'recover_dual')}
+        # _apply_hooks: called after canonicalizing each constraint.
+        # Hooks allow conversions to store extra metadata on inverse_data
+        # for use during dual variable recovery (e.g. tree structures
+        # for PowND or auxiliary constraint IDs for packed SOC).
         self._apply_hooks = {c.source: c.apply_hook
                              for c in conversions if hasattr(c, 'apply_hook')}
         super(ExactCone2Cone, self).__init__(
@@ -213,6 +406,9 @@ class ExactCone2Cone(Canonicalization):
             canon_constraints += aux_constr + [canon_constr]
             inverse_data.cons_id_map.update({constraint.id: canon_constr.id})
 
+            # Call per-conversion hooks to record metadata (e.g. tree
+            # structures or auxiliary constraint IDs) needed for dual
+            # variable recovery in invert().
             hook = self._apply_hooks.get(type(constraint))
             if hook is not None:
                 hook(constraint, canon_constr, aux_constr, inverse_data)
@@ -240,7 +436,3 @@ class ExactCone2Cone(Canonicalization):
 
         return Solution(solution.status, solution.opt_val, pvars, dvars,
                         solution.attr)
-
-
-# EXACT_CONE_CONVERSIONS must be a DAG (no cycles allowed).
-EXACT_CONE_CONVERSIONS = {c.source: c.targets for c in ExactCone2Cone.CONVERSIONS}

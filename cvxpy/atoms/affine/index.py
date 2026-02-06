@@ -25,6 +25,7 @@ from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.atoms.affine.vec import vec
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions.expression import Expression
+from cvxpy.utilities import bounds as bounds_utils
 from cvxpy.utilities import key_utils as ku
 
 
@@ -72,6 +73,11 @@ class index(AffAtom):
     def is_atom_log_log_concave(self) -> bool:
         """Is the atom log-log concave?"""
         return True
+
+    def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
+        """Returns bounds for indexed expression."""
+        lb, ub = self.args[0].get_bounds()
+        return bounds_utils.index_bounds(lb, ub, self._orig_key)
 
     def name(self):
         """String representation of the index expression."""
@@ -125,6 +131,11 @@ class special_index(AffAtom):
     key : tuple
         ndarrays or lists.
     """
+
+    def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
+        """Returns bounds for special indexed expression."""
+        lb, ub = self.args[0].get_bounds()
+        return bounds_utils.index_bounds(lb, ub, self.key)
 
     def __init__(self, expr: Expression, key) -> None:
         self.key = key

@@ -22,6 +22,7 @@ from cvxpy import settings
 from cvxpy.constraints import PowCone3D
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variable import Variable
+from cvxpy.utilities.bounds import get_expr_bounds_if_supported
 from cvxpy.utilities.power_tools import gm_constrs, powcone_constrs
 from cvxpy.utilities.solver_context import SolverInfo
 
@@ -39,7 +40,9 @@ def power_exact_canon(expr, args, solver_context: SolverInfo | None = None):
     if p == 0:
         return ones, []
 
-    t = Variable(shape)
+    bounds = get_expr_bounds_if_supported(expr, solver_context)
+
+    t = Variable(shape, bounds=bounds)
 
     if 0 < p < 1:
         alpha = float(p)
@@ -71,7 +74,9 @@ def power_approx_canon(expr, args, solver_context: SolverInfo | None = None):
     if p == 0:
         return ones, []
 
-    t = Variable(shape)
+    bounds = get_expr_bounds_if_supported(expr, solver_context)
+
+    t = Variable(shape, bounds=bounds)
     if 0 < p < 1:
         constrs = gm_constrs(t, [x, ones], w)
     elif p > 1:

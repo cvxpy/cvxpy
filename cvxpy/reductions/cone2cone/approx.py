@@ -27,7 +27,7 @@ from cvxpy.constraints.exponential import (
     OpRelEntrConeQuad,
     RelEntrConeQuad,
 )
-from cvxpy.constraints.power import PowCone3D
+from cvxpy.constraints.power import PowCone3DApprox
 from cvxpy.constraints.second_order import SOC
 from cvxpy.constraints.zero import Zero
 from cvxpy.expressions.variable import Variable
@@ -41,7 +41,7 @@ from cvxpy.utilities.solver_context import SolverInfo
 APPROX_CONE_CONVERSIONS = {
     RelEntrConeQuad: {SOC},
     OpRelEntrConeQuad: {cp.PSD},
-    PowCone3D: {SOC},
+    PowCone3DApprox: {SOC},
 }
 
 
@@ -197,16 +197,16 @@ def pow_3d_canon(con, args):
     alpha = con.alpha
     x, y, z = args
 
-    # Extract the numeric value from alpha (which may be a CVXPY expression)
-    if hasattr(alpha, 'value'):
-        alpha_val = alpha.value
-    else:
-        alpha_val = alpha
+    # alpha is always a CVXPY Expression (PowCone3D.__init__ wraps it
+    # via cast_to_const), so .value always exists.
+    alpha_val = alpha.value
 
     # Convert alpha to numpy array for consistent handling
     alpha_arr = np.atleast_1d(np.asarray(alpha_val, dtype=float).flatten())
 
-    # Handle scalar vs vector alpha
+    # Scalar alpha: all elements share the same exponent, so we call
+    # fracify once. Vector alpha: each element has its own exponent,
+    # so we call fracify per element.
     if alpha_arr.size == 1:
         alpha_val = float(alpha_arr[0])
         # Convert alpha to rational approximation
@@ -274,7 +274,7 @@ class ApproxCone2Cone(Canonicalization):
     CANON_METHODS = {
         RelEntrConeQuad: RelEntrConeQuad_canon,
         OpRelEntrConeQuad: OpRelEntrConeQuad_canon,
-        PowCone3D: pow_3d_canon,
+        PowCone3DApprox: pow_3d_canon,
     }
 
     def __init__(self, problem=None, target_cones=None) -> None:

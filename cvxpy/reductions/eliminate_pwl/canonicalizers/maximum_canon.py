@@ -16,12 +16,14 @@ limitations under the License.
 
 from cvxpy.atoms.affine.wraps import nonneg_wrap, nonpos_wrap
 from cvxpy.expressions.variable import Variable
+from cvxpy.utilities.bounds import get_expr_bounds_if_supported
 from cvxpy.utilities.solver_context import SolverInfo
 
 
 def maximum_canon(expr, args, solver_context: SolverInfo | None = None):
     shape = expr.shape
-    t = Variable(shape)
+    bounds = get_expr_bounds_if_supported(expr, solver_context)
+    t = Variable(shape, bounds=bounds)
     
     if expr.is_nonneg():
         t = nonneg_wrap(t)
