@@ -188,12 +188,12 @@ class ProblemForm:
             return
 
         problem = self._problem
-        ep = self._eval_params
+        eval_params = self._eval_params
 
         # When eval_params is set, constraints that are entirely
         # parameter-determined (no variables) will become trivial after
         # EvalParams runs, so exclude them from cone analysis.
-        if ep:
+        if eval_params:
             relevant_constrs = [c for c in problem.constraints if c.variables()]
         else:
             relevant_constrs = problem.constraints
@@ -204,7 +204,7 @@ class ProblemForm:
         # Collect atoms from constraints.
         constr_atoms: list[type] = []
         for constr in relevant_constrs:
-            if ep:
+            if eval_params:
                 constr_atoms += _expr_cone_atoms(constr, eval_params=True)
             else:
                 constr_atoms += constr.atoms()
@@ -214,9 +214,9 @@ class ProblemForm:
         # QP path (all of which map to SOC).
         if self.has_quadratic_objective():
             base_obj_atoms = _objective_cone_atoms(
-                problem.objective.expr, eval_params=ep)
+                problem.objective.expr, eval_params=eval_params)
         else:
-            if ep:
+            if eval_params:
                 base_obj_atoms = _expr_cone_atoms(
                     problem.objective.expr, eval_params=True)
             else:

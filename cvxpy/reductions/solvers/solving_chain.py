@@ -34,7 +34,6 @@ from cvxpy.reductions.eval_params import EvalParams
 from cvxpy.reductions.flip_objective import FlipObjective
 from cvxpy.reductions.reduction import Reduction
 from cvxpy.reductions.solvers import defines as slv_def
-from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.constant_solver import ConstantSolver
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
 from cvxpy.reductions.solvers.solver import Solver
@@ -351,11 +350,6 @@ def resolve_and_build_chain(
             raise SolverError(
                 "The solver %s cannot solve this problem." % solver.name()
             )
-        # Register in the appropriate map so build_solving_chain can find it.
-        if isinstance(solver, QpSolver):
-            slv_def.SOLVER_MAP_QP[solver.name()] = solver
-        elif isinstance(solver, ConicSolver):
-            slv_def.SOLVER_MAP_CONIC[solver.name()] = solver
         solver_instance = solver
 
     elif isinstance(solver, str):
