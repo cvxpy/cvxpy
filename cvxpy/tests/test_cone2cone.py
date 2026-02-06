@@ -23,14 +23,26 @@ import cvxpy as cp
 from cvxpy import settings as s
 from cvxpy.atoms.affine.trace import trace
 from cvxpy.constraints.exponential import ExpCone
-from cvxpy.constraints.power import PowCone3D, PowConeND
+from cvxpy.constraints.power import PowCone3D, PowCone3DApprox, PowConeND
+from cvxpy.constraints.psd import PSD
 from cvxpy.constraints.second_order import SOC
 from cvxpy.reductions.chain import Chain
 from cvxpy.reductions.cone2cone import affine2direct as a2d
+from cvxpy.reductions.cone2cone.approx import (
+    APPROX_CONE_CONVERSIONS,
+    ApproxCone2Cone,
+)
+from cvxpy.reductions.cone2cone.exact import (
+    EXACT_CONE_CONVERSIONS,
+    ExactCone2Cone,
+)
 from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
 from cvxpy.reductions.dcp2cone.dcp2cone import Dcp2Cone
 from cvxpy.reductions.solution import Solution
+from cvxpy.reductions.solvers.conic_solvers.clarabel_conif import (
+    CLARABEL as ClarabelSolver,
+)
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.defines import INSTALLED_MI_SOLVERS as INSTALLED_MI
 from cvxpy.reductions.solvers.defines import MI_SOCP_SOLVERS as MI_SOCP
@@ -774,3 +786,129 @@ class TestOpRelConeQuad(BaseTest):
         sth.solve(self.solver)
         sth.verify_primal_values(places=2)
         sth.verify_objective(places=2)
+
+
+class _PSDOnlyClarabel(ClarabelSolver):
+    """Test-only Clarabel wrapper exposing only PSD (no SOC)."""
+    SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [PSD]
+
+    def name(self):
+        return "_PSD_ONLY_CLARABEL"
+
+
+class _SOCOnlyClarabel(ClarabelSolver):
+    """Test-only Clarabel wrapper exposing only SOC (no PowCone3D)."""
+    SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC]
+
+    def name(self):
+        return "_SOC_ONLY_CLARABEL"
+
+
+class TestExactApproxCone2Cone(BaseTest):
+    """Tests for the ExactCone2Cone / ApproxCone2Cone framework."""
+
+    def test_exact_cone_conversions_map(self) -> None:
+        """EXACT_CONE_CONVERSIONS contains PowConeND and SOC."""
+        self.assertIn(PowConeND, EXACT_CONE_CONVERSIONS)
+        self.assertEqual(EXACT_CONE_CONVERSIONS[PowConeND], {PowCone3D})
+        self.assertIn(SOC, EXACT_CONE_CONVERSIONS)
+        self.assertEqual(EXACT_CONE_CONVERSIONS[SOC], {PSD})
+        self.assertNotIn(PowCone3D, EXACT_CONE_CONVERSIONS)
+
+    def test_approx_cone_conversions_map(self) -> None:
+        """APPROX_CONE_CONVERSIONS keys on PowCone3DApprox, not PowCone3D."""
+        self.assertIn(PowCone3DApprox, APPROX_CONE_CONVERSIONS)
+        self.assertEqual(APPROX_CONE_CONVERSIONS[PowCone3DApprox], {SOC})
+        self.assertNotIn(PowCone3D, APPROX_CONE_CONVERSIONS)
+
+    def test_exact_cone2cone_target_cones_filtering(self) -> None:
+        """ExactCone2Cone(target_cones={PowConeND}) only converts PowConeND."""
+        reduction = ExactCone2Cone(target_cones={PowConeND})
+        self.assertIn(PowConeND, reduction.canon_methods)
+        self.assertNotIn(SOC, reduction.canon_methods)
+
+    def test_exact_cone2cone_target_cones_soc(self) -> None:
+        """ExactCone2Cone(target_cones={SOC}) only converts SOC."""
+        reduction = ExactCone2Cone(target_cones={SOC})
+        self.assertIn(SOC, reduction.canon_methods)
+        self.assertNotIn(PowConeND, reduction.canon_methods)
+
+    def test_approx_cone2cone_target_cones_filtering(self) -> None:
+        """ApproxCone2Cone(target_cones=...) filters correctly."""
+        reduction = ApproxCone2Cone(target_cones={PowCone3DApprox})
+        self.assertIn(PowCone3DApprox, reduction.canon_methods)
+
+    def test_soc_to_psd_via_exact_cone2cone(self) -> None:
+        """SOC constraint solved via PSD-only solver uses ExactCone2Cone."""
+        x = cp.Variable(3)
+        prob = cp.Problem(
+            cp.Minimize(cp.sum(x)),
+            [cp.norm(x, 2) <= 1]
+        )
+        prob.solve(solver=_PSDOnlyClarabel())
+        self.assertIn(prob.status, [cp.OPTIMAL, cp.OPTIMAL_INACCURATE])
+        self.assertAlmostEqual(prob.value, -np.sqrt(3), places=3)
+
+    def test_soc_to_psd_packed(self) -> None:
+        """Packed SOC constraints via PSD-only solver work correctly."""
+        x = cp.Variable(3)
+        t = cp.Variable(2)
+        prob = cp.Problem(
+            cp.Minimize(t[0] + t[1]),
+            [cp.SOC(t, cp.vstack([x[:2], x[1:]]).T, axis=0),
+             cp.sum(x) == 1, x >= 0]
+        )
+        prob.solve(solver=_PSDOnlyClarabel())
+        self.assertIn(prob.status, [cp.OPTIMAL, cp.OPTIMAL_INACCURATE])
+
+    def test_explicit_powcone3d_errors_when_unsupported(self) -> None:
+        """Explicit PowCone3D errors when solver doesn't support it."""
+        x = cp.Variable(pos=True)
+        y = cp.Variable(pos=True)
+        z = cp.Variable()
+        prob = cp.Problem(
+            cp.Maximize(z),
+            [PowCone3D(x, y, z, 0.5), x + y <= 2]
+        )
+        with self.assertRaises(cp.error.SolverError):
+            prob.solve(solver=_SOCOnlyClarabel())
+
+    def test_powcone3d_approx_via_subclass(self) -> None:
+        """PowCone3DApprox is approximated when solver lacks PowCone3D."""
+        x = cp.Variable(pos=True)
+        y = cp.Variable(pos=True)
+        z = cp.Variable()
+        prob = cp.Problem(
+            cp.Maximize(z),
+            [PowCone3DApprox(x, y, z, 0.5), x + y <= 2]
+        )
+        prob.solve(solver=_SOCOnlyClarabel())
+        self.assertIn(prob.status, [cp.OPTIMAL, cp.OPTIMAL_INACCURATE])
+        self.assertAlmostEqual(z.value, 1.0, places=2)
+
+    def test_approx_cone2cone_dual_recovery(self) -> None:
+        """ApproxCone2Cone recovers dual variables for approximated constraints."""
+        x = cp.Variable(pos=True)
+        y = cp.Variable(pos=True)
+        z = cp.Variable()
+        pow_con = PowCone3DApprox(x, y, z, 0.5)
+        prob = cp.Problem(cp.Maximize(z), [pow_con, x + y <= 2])
+
+        reduction = ApproxCone2Cone(problem=prob, target_cones={PowCone3DApprox})
+        reduced_prob, inverse_data = reduction.apply(prob)
+
+        self.assertIn(pow_con.id, inverse_data.cons_id_map)
+        canon_id = inverse_data.cons_id_map[pow_con.id]
+
+        mock_dual_value = np.array([1.0])
+        mock_solution = Solution(
+            status=cp.OPTIMAL,
+            opt_val=1.0,
+            primal_vars={},
+            dual_vars={canon_id: mock_dual_value},
+            attr={}
+        )
+
+        inverted = reduction.invert(mock_solution, inverse_data)
+        self.assertIn(pow_con.id, inverted.dual_vars)
+        self.assertEqual(inverted.dual_vars[pow_con.id], mock_dual_value)

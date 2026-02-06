@@ -157,6 +157,17 @@ class PowCone3D(Cone):
                              args[2], self.alpha)
 
 
+class PowCone3DApprox(PowCone3D):
+    """PowCone3D with SOC-based rational approximation.
+
+    Identical semantics to PowCone3D, but the solving chain will
+    convert this constraint to second-order cone (SOC) constraints
+    via rational approximation of the exponent, following the same
+    pattern as PowerApprox / PnormApprox for atoms.
+    """
+    pass
+
+
 class PowConeND(Cone):
     """
     Represents a collection of N-dimensional power cone constraints

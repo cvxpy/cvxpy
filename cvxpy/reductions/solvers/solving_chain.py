@@ -25,17 +25,18 @@ from cvxpy.constraints import (
     PowConeND,
     Zero,
 )
-from cvxpy.constraints.exponential import OpRelEntrConeQuad, RelEntrConeQuad
 from cvxpy.error import DCPError, DGPError, DPPError, SolverError
 from cvxpy.problems.objective import Maximize
 from cvxpy.reductions.chain import Chain
 from cvxpy.reductions.complex2real import complex2real
-from cvxpy.reductions.cone2cone.approximations import APPROX_CONES, QuadApprox
-from cvxpy.reductions.cone2cone.exotic2common import (
-    EXOTIC_CONES,
-    Exotic2Common,
+from cvxpy.reductions.cone2cone.approx import (
+    APPROX_CONE_CONVERSIONS,
+    ApproxCone2Cone,
 )
-from cvxpy.reductions.cone2cone.soc2psd import SOC2PSD
+from cvxpy.reductions.cone2cone.exact import (
+    EXACT_CONE_CONVERSIONS,
+    ExactCone2Cone,
+)
 from cvxpy.reductions.cone2cone.soc_dim3 import SOCDim3
 from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
@@ -114,25 +115,18 @@ def _solve_as_qp(problem, candidates, ignore_dpp: bool = False):
     return candidates['qp_solvers'] and problem.is_qp()
 
 
-def _reductions_for_problem_class(problem, candidates, gp: bool = False,
-                                   ignore_dpp: bool = False, solver_opts=None) \
+def _pre_canonicalization_reductions(problem, gp: bool = False) \
         -> list[Reduction]:
     """
-    Builds a chain that rewrites a problem into an intermediate
-    representation suitable for numeric reductions.
+    Builds reductions that must run before DCP/DGP canonicalization.
 
     Parameters
     ----------
     problem : Problem
         The problem for which to build a chain.
-    candidates : dict
-        Dictionary of candidate solvers divided in qp_solvers
-        and conic_solvers.
     gp : bool
         If True, the problem is parsed as a Disciplined Geometric Program
         instead of as a Disciplined Convex Program.
-    ignore_dpp : bool
-        If True, DPP analysis is skipped when checking problem type.
     Returns
     -------
     list of Reduction objects
@@ -181,14 +175,6 @@ def _reductions_for_problem_class(problem, candidates, gp: bool = False,
     constr_types = {type(c) for c in problem.constraints}
     if FiniteSet in constr_types:
         reductions += [Valinvec2mixedint()]
-
-    use_quad = True if solver_opts is None else solver_opts.get('use_quad_obj', True)
-    valid_qp = _solve_as_qp(problem, candidates, ignore_dpp) and use_quad
-    valid_conic = len(candidates['conic_solvers']) > 0
-    if not valid_qp and not valid_conic:
-        raise SolverError("Problem could not be reduced to a QP, and no "
-                            "conic solvers exist among candidate solvers "
-                            "(%s)." % candidates)
 
     return reductions
 
@@ -245,8 +231,16 @@ def construct_solving_chain(problem, candidates,
     """
     if len(problem.variables()) == 0:
         return SolvingChain(reductions=[ConstantSolver()])
-    reductions = _reductions_for_problem_class(problem, candidates, gp, ignore_dpp,
-                                               solver_opts)
+    reductions = _pre_canonicalization_reductions(problem, gp)
+
+    # Determine solver pathway (QP vs conic).
+    # TODO: Deprecate and remove the user-facing use_quad_obj=False option.
+    use_quad = True if solver_opts is None else solver_opts.get('use_quad_obj', True)
+    valid_qp = _solve_as_qp(problem, candidates, ignore_dpp) and use_quad
+    if not valid_qp and not candidates['conic_solvers']:
+        raise SolverError("Problem could not be reduced to a QP, and no "
+                          "conic solvers exist among candidate solvers "
+                          "(%s)." % candidates)
 
     # Process DPP status of the problem.
     dpp_context = 'dcp' if not gp else 'dgp'
@@ -269,8 +263,7 @@ def construct_solving_chain(problem, candidates,
     # Conclude with matrix stuffing; choose one of the following paths:
     #   (1) ConeMatrixStuffing(quad_obj=True) --> [a QpSolver],
     #   (2) ConeMatrixStuffing --> [a ConicSolver]
-    use_quad = True if solver_opts is None else solver_opts.get('use_quad_obj', True)
-    if _solve_as_qp(problem, candidates, ignore_dpp) and use_quad:
+    if valid_qp:
         # Route to a QP solver via the conic canonicalization path
         solver = candidates['qp_solvers'][0]
         solver_instance = slv_def.SOLVER_MAP_QP[solver]
@@ -288,52 +281,39 @@ def construct_solving_chain(problem, candidates,
         return SolvingChain(reductions=reductions)
 
     # Canonicalize as a cone program
-    if not candidates['conic_solvers']:
-        raise SolverError("Problem could not be reduced to a QP, and no "
-                          "conic solvers exist among candidate solvers "
-                          "(%s)." % candidates)
 
-    constr_types = set()
-    # ^ We use constr_types to infer an incomplete list of cones that
+    # We use constr_types to infer an incomplete list of cones that
     # the solver will need after canonicalization.
-    for c in problem.constraints:
-        constr_types.add(type(c))
-    approx_cos = [ct for ct in constr_types if ct in APPROX_CONES]
-    # ^ The way we populate "ex_cos" will need to change if and when
-    # we have atoms that require exotic cones.
+    constr_types = {type(c) for c in problem.constraints}
 
-    for co in approx_cos:
-        app_cos = APPROX_CONES[co]
-        constr_types.update(app_cos)
-        constr_types.remove(co)
-    # We now go over individual elementary cones support by CVXPY (
+    # We now go over individual elementary cones supported by CVXPY (
     # SOC, ExpCone, NonNeg, Zero, PSD, PowCone3D) and check if
     # they've appeared in constr_types or if the problem has an atom
     # requiring that cone.
-    cones = []
+    cones = set()
     atoms = problem.atoms()
 
     if SOC in constr_types or any(atom in SOC_ATOMS for atom in atoms):
-        cones.append(SOC)
+        cones.add(SOC)
     if ExpCone in constr_types or any(atom in EXP_ATOMS for atom in atoms):
-        cones.append(ExpCone)
+        cones.add(ExpCone)
     if any(t in constr_types for t in [Inequality, NonPos, NonNeg]) \
             or any(atom in NONPOS_ATOMS for atom in atoms):
-        cones.append(NonNeg)
+        cones.add(NonNeg)
     if Equality in constr_types or Zero in constr_types:
-        cones.append(Zero)
+        cones.add(Zero)
     if PSD in constr_types \
             or any(atom in PSD_ATOMS for atom in atoms) \
             or any(v.is_psd() or v.is_nsd() for v in problem.variables()):
-        cones.append(PSD)
+        cones.add(PSD)
     if PowCone3D in constr_types or any(atom in POWCONE_ATOMS for atom in atoms):
-        cones.append(PowCone3D)
+        cones.add(PowCone3D)
     if PowConeND in constr_types or any(atom in POWCONE_ND_ATOMS for atom in atoms):
-        cones.append(PowConeND)
+        cones.add(PowConeND)
     # Here, we make use of the observation that canonicalization only
     # increases the number of constraints in our problem.
-    var_domains = sum([var.domain for var in problem.variables()], start = [])
-    has_constr = len(cones) > 0 or len(problem.constraints) > 0 or len(var_domains) > 0
+    has_constr = (len(cones) > 0 or len(problem.constraints) > 0
+                  or any(var.domain for var in problem.variables()))
 
     if PSD in cones \
             and slv_def.DISREGARD_CLARABEL_SDP_SUPPORT_FOR_DEFAULT_RESOLUTION \
@@ -344,9 +324,9 @@ def construct_solving_chain(problem, candidates,
         solver_instance = slv_def.SOLVER_MAP_CONIC[solver]
         # Cones supported for MI problems may differ from non MI.
         if problem.is_mixed_integer():
-            supported_constraints = solver_instance.MI_SUPPORTED_CONSTRAINTS
+            supported_constraints = frozenset(solver_instance.MI_SUPPORTED_CONSTRAINTS)
         else:
-            supported_constraints = solver_instance.SUPPORTED_CONSTRAINTS
+            supported_constraints = frozenset(solver_instance.SUPPORTED_CONSTRAINTS)
 
         solver_context = SolverInfo(
             solver=solver,
@@ -354,34 +334,44 @@ def construct_solving_chain(problem, candidates,
             supports_bounds=solver_instance.BOUNDED_VARIABLES
         )
 
-        cones = set(cones)
-        ex_cos = (cones & set(EXOTIC_CONES)) - set(supported_constraints)
+        # --- Exact cone expansion (single pass) ---
+        # Identify cones that need exact conversion (present in the
+        # problem but not supported by this solver).
+        solver_cones = cones.copy()
+        exact_targets = (solver_cones & EXACT_CONE_CONVERSIONS.keys()) - supported_constraints
+        for co in exact_targets:
+            solver_cones.discard(co)
+            solver_cones.update(EXACT_CONE_CONVERSIONS[co])
 
-        for co in ex_cos:
-            sim_cos = set(EXOTIC_CONES[co])
-            cones.update(sim_cos)
-            cones.discard(co)
-
-        unsupported_constraints = [
-            cone for cone in cones if cone not in supported_constraints
-        ]
+        # --- Approximate cone expansion (solver-aware) ---
+        # Computed after exact expansion so cones introduced by exact
+        # conversion (e.g. PowCone3D from PowConeND) are also considered.
+        # Union with constr_types: specialized constraint types like
+        # RelEntrConeQuad, OpRelEntrConeQuad, and PowCone3DApprox are
+        # user-constructed constraints (not produced by atom
+        # canonicalization), so they only appear in constr_types, not
+        # in the atom-derived cones set.
+        approx_cos = ((solver_cones | constr_types)
+                      & APPROX_CONE_CONVERSIONS.keys()) - supported_constraints
+        for co in approx_cos:
+            solver_cones.discard(co)
+            solver_cones.update(APPROX_CONE_CONVERSIONS[co])
 
         if has_constr or not solver_instance.REQUIRES_CONSTR:
-            if RelEntrConeQuad in approx_cos or OpRelEntrConeQuad in approx_cos:
-                reductions.append(QuadApprox())
-
             # Should the objective be canonicalized to a quadratic?
-            if solver_opts is None:
-                use_quad_obj = True
-            else:
-                use_quad_obj = solver_opts.get("use_quad_obj", True)
-            quad_obj = use_quad_obj and solver_instance.supports_quad_obj() and \
+            quad_obj = use_quad and solver_instance.supports_quad_obj() and \
                 problem.objective.expr.has_quadratic_term()
             reductions.append(
                 Dcp2Cone(quad_obj=quad_obj, solver_context=solver_context),
             )
-            if ex_cos:
-                reductions.append(Exotic2Common())
+
+            if exact_targets:
+                reductions.append(ExactCone2Cone(target_cones=exact_targets))
+
+            # Approximate cone conversions (single pass, all types)
+            if approx_cos:
+                reductions.append(ApproxCone2Cone(target_cones=approx_cos))
+
             reductions.append(
                 CvxAttr2Constr(reduce_bounds=not solver_instance.BOUNDED_VARIABLES),
             )
@@ -390,20 +380,14 @@ def construct_solving_chain(problem, candidates,
             # are already materialized as concrete conic constraints
             # before zero-sized sub-expressions are replaced.
             reductions.append(EliminateZeroSized())
-            if all(c in supported_constraints for c in cones):
+
+            if solver_cones.issubset(supported_constraints):
                 # Check if solver only supports dim-3 SOC cones
-                if solver_instance.SOC_DIM3_ONLY and SOC in cones:
+                if solver_instance.SOC_DIM3_ONLY and SOC in solver_cones:
                     # Add SOCDim3 reduction to convert n-dim SOC to 3D SOC
                     reductions.append(SOCDim3())
                 # Return the reduction chain.
                 reductions += [
-                    ConeMatrixStuffing(quad_obj=quad_obj, canon_backend=canon_backend),
-                    solver_instance
-                ]
-                return SolvingChain(reductions=reductions, solver_context=solver_context)
-            elif all(c==SOC for c in unsupported_constraints) and PSD in supported_constraints:
-                reductions += [
-                    SOC2PSD(),
                     ConeMatrixStuffing(quad_obj=quad_obj, canon_backend=canon_backend),
                     solver_instance
                 ]
@@ -523,7 +507,7 @@ class SolvingChain(Chain):
         return self.invert(solution, inverse_data)
 
     def solve_via_data(self, problem, data, warm_start: bool = False, verbose: bool = False,
-                       solver_opts={}):
+                       solver_opts=None):
         """Solves the problem using the data output by the an apply invocation.
 
         The semantics are:

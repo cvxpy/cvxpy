@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 Tree node types for balanced binary tree decomposition of cones.
-Used by SOCDim3 and Exotic2Common reductions.
+Used by SOCDim3 and ExactCone2Cone reductions.
 """
 
 from __future__ import annotations

@@ -26,6 +26,7 @@ from cvxpy.constraints import (
     NonNeg as NonNeg,
     Zero as Zero,
     PowCone3D as PowCone3D,
+    PowCone3DApprox as PowCone3DApprox,
     PowConeND as PowConeND,
     ExpCone as ExpCone,
     OpRelEntrConeQuad as OpRelEntrConeQuad,
