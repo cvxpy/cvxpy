@@ -519,6 +519,142 @@ def build_solving_chain(
     return SolvingChain(reductions=reductions, solver_context=solver_context)
 
 
+def resolve_and_build_chain(
+    problem,
+    solver=None,
+    enforce_dpp: bool = False,
+    ignore_dpp: bool = False,
+    canon_backend: str | None = None,
+    solver_opts: dict | None = None,
+) -> "SolvingChain":
+    """Resolve a solver argument and build a solving chain.
+
+    Resolves *solver* (``None``, a string name, or a :class:`Solver` instance)
+    to a concrete solver, validates it against the problem structure, then
+    delegates to :func:`build_solving_chain`.
+
+    Parameters
+    ----------
+    problem : Problem
+        The problem for which to build a chain.
+    solver : str, Solver, or None
+        The solver to use. ``None`` selects a default based on problem
+        structure. A string is looked up in the installed solver maps.
+        A :class:`Solver` instance is used directly (custom solver).
+    enforce_dpp : bool
+        When True, raise DPPError for non-DPP problems.
+    ignore_dpp : bool
+        When True, treat DPP problems as non-DPP.
+    canon_backend : str or None
+        Canonicalization backend (``'CPP'``, ``'SCIPY'``, or ``'COO'``).
+    solver_opts : dict or None
+        Solver-specific options.
+
+    Returns
+    -------
+    SolvingChain
+        A SolvingChain that can be used to solve the problem.
+
+    Raises
+    ------
+    SolverError
+        If no suitable solver is found or the specified solver cannot handle
+        the problem.
+    """
+    from cvxpy.problems.problem_form import ProblemForm, pick_default_solver
+    from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
+    from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
+
+    problem_form = ProblemForm(problem)
+
+    if isinstance(solver, Solver):
+        # --- Custom solver instance ---
+        if solver.name() in s.SOLVERS:
+            raise SolverError(
+                "Custom solvers must have a different name "
+                "than the officially supported ones"
+            )
+        # Register in the appropriate map so build_solving_chain can find it.
+        if isinstance(solver, QpSolver):
+            slv_def.SOLVER_MAP_QP[solver.name()] = solver
+        elif isinstance(solver, ConicSolver):
+            slv_def.SOLVER_MAP_CONIC[solver.name()] = solver
+        solver_instance = solver
+
+    elif isinstance(solver, str):
+        # --- Named solver ---
+        solver_upper = solver.upper()
+        qp_inst = slv_def.SOLVER_MAP_QP.get(solver_upper)
+        conic_inst = slv_def.SOLVER_MAP_CONIC.get(solver_upper)
+
+        if qp_inst is None and conic_inst is None:
+            raise SolverError("The solver %s is not installed." % solver_upper)
+
+        # When the solver appears in both maps, prefer QP when the problem
+        # has a quadratic objective and the QP instance can handle it.
+        if qp_inst is not None and conic_inst is not None:
+            if (problem_form.has_quadratic_objective()
+                    and qp_inst.can_solve(problem_form)):
+                solver_instance = qp_inst
+            elif conic_inst.can_solve(problem_form):
+                solver_instance = conic_inst
+            else:
+                raise SolverError(
+                    "The solver %s cannot solve this problem." % solver_upper
+                )
+        elif qp_inst is not None:
+            if not qp_inst.can_solve(problem_form):
+                raise SolverError(
+                    "The solver %s cannot solve this problem." % solver_upper
+                )
+            solver_instance = qp_inst
+        else:
+            assert conic_inst is not None  # guaranteed by the None-check above
+            if not conic_inst.can_solve(problem_form):
+                raise SolverError(
+                    "The solver %s cannot solve this problem." % solver_upper
+                )
+            solver_instance = conic_inst
+
+    elif solver is None:
+        # --- Default solver selection ---
+        default = pick_default_solver(problem_form)
+        if default is not None:
+            solver_instance = default
+        else:
+            # Fallback: iterate all installed solvers.
+            solver_instance = None
+            for inst in list(slv_def.SOLVER_MAP_CONIC.values()) + \
+                    list(slv_def.SOLVER_MAP_QP.values()):
+                if inst.is_installed() and inst.can_solve(problem_form):
+                    solver_instance = inst
+                    warn(
+                        "The default solvers are not available. "
+                        "Using %s. Consider specifying a solver "
+                        "explicitly via the ``solver`` argument." %
+                        inst.name()
+                    )
+                    break
+            if solver_instance is None:
+                raise SolverError(
+                    "No installed solver could handle this problem."
+                )
+    else:
+        raise SolverError(
+            "The solver argument must be a string, a Solver instance, or None."
+        )
+
+    return build_solving_chain(
+        problem,
+        solver_instance,
+        problem_form=problem_form,
+        enforce_dpp=enforce_dpp,
+        ignore_dpp=ignore_dpp,
+        canon_backend=canon_backend,
+        solver_opts=solver_opts,
+    )
+
+
 def _validate_problem_data(data) -> None:
     """Validate problem data for NaN and Inf values.
 

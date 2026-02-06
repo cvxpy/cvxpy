@@ -13,16 +13,19 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from unittest.mock import patch
+
 import numpy as np
 
 import cvxpy as cp
 from cvxpy.constraints import PSD, SOC, ExpCone, NonNeg, PowCone3D, PowConeND, Zero
+from cvxpy.error import SolverError
 from cvxpy.problems.problem_form import ProblemForm, pick_default_solver
 from cvxpy.reductions.solvers.conic_solvers.clarabel_conif import CLARABEL as ClarabelSolver
 from cvxpy.reductions.solvers.conic_solvers.ecos_conif import ECOS as EcosSolver
 from cvxpy.reductions.solvers.conic_solvers.scs_conif import SCS as ScsSolver
 from cvxpy.reductions.solvers.qp_solvers.osqp_qpif import OSQP as OsqpSolver
-from cvxpy.reductions.solvers.solving_chain import build_solving_chain
+from cvxpy.reductions.solvers.solving_chain import build_solving_chain, resolve_and_build_chain
 from cvxpy.tests.base_test import BaseTest
 
 
@@ -590,6 +593,104 @@ class TestBuildSolvingChain(BaseTest):
         form = ProblemForm(prob)
         chain = build_solving_chain(prob, ClarabelSolver(),
                                     problem_form=form)
+        soln = chain.solve(prob, warm_start=False, verbose=False, solver_opts={})
+        prob.unpack(soln)
+        self.assertItemsAlmostEqual(x.value, [1.0, 1.0])
+
+
+class TestResolveAndBuildChain(BaseTest):
+    """Tests for resolve_and_build_chain()."""
+
+    def test_solver_none_picks_default(self) -> None:
+        """solver=None, LP -> solves correctly."""
+        x = cp.Variable(2)
+        prob = cp.Problem(cp.Minimize(cp.sum(x)), [x >= 1])
+        chain = resolve_and_build_chain(prob, solver=None)
+        soln = chain.solve(prob, warm_start=False, verbose=False, solver_opts={})
+        prob.unpack(soln)
+        self.assertItemsAlmostEqual(x.value, [1.0, 1.0])
+
+    def test_solver_string_clarabel(self) -> None:
+        """solver='CLARABEL', SOCP -> solves correctly."""
+        x = cp.Variable(2)
+        prob = cp.Problem(cp.Minimize(cp.norm(x, 2)), [x >= 1])
+        chain = resolve_and_build_chain(prob, solver="CLARABEL")
+        self.assertEqual(chain.solver.name(), cp.CLARABEL)
+        soln = chain.solve(prob, warm_start=False, verbose=False, solver_opts={})
+        prob.unpack(soln)
+        self.assertItemsAlmostEqual(x.value, [1.0, 1.0])
+
+    def test_solver_string_osqp(self) -> None:
+        """solver='OSQP', QP -> solves correctly."""
+        x = cp.Variable(2)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(x)), [x >= 1])
+        chain = resolve_and_build_chain(prob, solver="OSQP")
+        self.assertEqual(chain.solver.name(), cp.OSQP)
+        soln = chain.solve(prob, warm_start=False, verbose=False, solver_opts={})
+        prob.unpack(soln)
+        self.assertItemsAlmostEqual(x.value, [1.0, 1.0])
+
+    def test_solver_string_case_insensitive(self) -> None:
+        """solver='clarabel' (lowercase) works."""
+        x = cp.Variable(2)
+        prob = cp.Problem(cp.Minimize(cp.sum(x)), [x >= 1])
+        chain = resolve_and_build_chain(prob, solver="clarabel")
+        self.assertEqual(chain.solver.name(), cp.CLARABEL)
+
+    def test_solver_not_installed(self) -> None:
+        """solver='NONEXISTENT' -> SolverError."""
+        x = cp.Variable(2)
+        prob = cp.Problem(cp.Minimize(cp.sum(x)), [x >= 1])
+        with self.assertRaises(SolverError):
+            resolve_and_build_chain(prob, solver="NONEXISTENT")
+
+    def test_solver_cannot_handle(self) -> None:
+        """solver='OSQP', SOCP -> SolverError."""
+        x = cp.Variable(2)
+        prob = cp.Problem(cp.Minimize(cp.norm(x, 2)), [x >= 1])
+        with self.assertRaises(SolverError):
+            resolve_and_build_chain(prob, solver="OSQP")
+
+    def test_custom_solver_instance(self) -> None:
+        """Solver instance passed directly -> works."""
+        class MyConicSolver(ScsSolver):
+            def name(self) -> str:
+                return "MY_CUSTOM_SOLVER"
+
+        x = cp.Variable(2)
+        prob = cp.Problem(cp.Minimize(cp.sum(x)), [x >= 1])
+        chain = resolve_and_build_chain(prob, solver=MyConicSolver())
+        self.assertEqual(chain.solver.name(), "MY_CUSTOM_SOLVER")
+
+    def test_solver_string_dual_map_prefers_qp(self) -> None:
+        """solver='HIGHS', QP problem -> picks QP instance."""
+        from cvxpy.reductions.solvers.qp_solvers.highs_qpif import HIGHS as HighsQpSolver
+        x = cp.Variable(2)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(x)), [x >= 1])
+        chain = resolve_and_build_chain(prob, solver="HIGHS")
+        # Should pick the QP instance for a quadratic problem.
+        self.assertIsInstance(chain.solver, HighsQpSolver)
+
+    def test_fallback_when_default_missing(self) -> None:
+        """Mock pick_default_solver to return None, verify fallback warns."""
+        x = cp.Variable(2)
+        prob = cp.Problem(cp.Minimize(cp.sum(x)), [x >= 1])
+        with patch(
+            "cvxpy.problems.problem_form.pick_default_solver",
+            return_value=None,
+        ) as mock_pick:
+            import warnings
+            with warnings.catch_warnings(record=True) as w:
+                warnings.simplefilter("always")
+                chain = resolve_and_build_chain(prob, solver=None)
+                mock_pick.assert_called_once()
+                # Should have issued a warning about default solvers.
+                warn_msgs = [str(wi.message) for wi in w]
+                self.assertTrue(
+                    any("default solvers" in m.lower() for m in warn_msgs),
+                    f"Expected a warning about default solvers, got: {warn_msgs}"
+                )
+        # Chain should still be functional.
         soln = chain.solve(prob, warm_start=False, verbose=False, solver_opts={})
         prob.unpack(soln)
         self.assertItemsAlmostEqual(x.value, [1.0, 1.0])
