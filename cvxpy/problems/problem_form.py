@@ -19,6 +19,8 @@ from typing import TYPE_CHECKING
 
 from cvxpy.atoms import (
     EXP_ATOMS,
+    GP_EXP_ATOMS,
+    GP_NONPOS_ATOMS,
     NONPOS_ATOMS,
     POWCONE_ATOMS,
     POWCONE_ND_ATOMS,
@@ -89,8 +91,9 @@ class ProblemForm:
     and whether the problem has constraints are computed lazily and cached.
     """
 
-    def __init__(self, problem: Problem) -> None:
+    def __init__(self, problem: Problem, gp: bool = False) -> None:
         self._problem = problem
+        self._gp = gp
         self._has_quadratic_objective: bool | None = None
         self._is_mixed_integer: bool | None = None
         self._cones_full: set[type] | None = None
@@ -128,6 +131,10 @@ class ProblemForm:
         We compute the QP-filtered set as the base and derive the full
         set by checking if unfiltered objective atoms add SOC.
         """
+        if self._gp:
+            self._compute_gp_cones()
+            return
+
         from cvxpy.reductions.cone2cone.approx import APPROX_CONE_CONVERSIONS
 
         problem = self._problem
@@ -184,6 +191,40 @@ class ProblemForm:
                 return
 
         # No difference — share the same object.
+        self._cones_full = cones
+
+    def _compute_gp_cones(self) -> None:
+        """Compute cone sets for a DGP problem.
+
+        DGP atoms map to different DCP atoms than their standard DCP
+        canonicalization. For example, norm1 needs NonNeg in DCP but
+        ExpCone in GP (via log_sum_exp). There is no QP path for GP,
+        so _cones_quad and _cones_full are identical.
+        """
+        from cvxpy.reductions.cone2cone.approx import APPROX_CONE_CONVERSIONS
+
+        problem = self._problem
+        constr_types = {type(c) for c in problem.constraints}
+        cones: set[type] = set()
+
+        atoms = problem.atoms()
+
+        if any(atom in GP_EXP_ATOMS for atom in atoms):
+            cones.add(ExpCone)
+        if any(t in constr_types for t in [Inequality, NonPos, NonNeg]) \
+                or any(atom in GP_NONPOS_ATOMS for atom in atoms):
+            cones.add(NonNeg)
+        if Equality in constr_types or Zero in constr_types:
+            cones.add(Zero)
+        if PSD in constr_types \
+                or any(v.is_psd() or v.is_nsd() for v in problem.variables()):
+            cones.add(PSD)
+
+        for ct in constr_types:
+            if ct in APPROX_CONE_CONVERSIONS:
+                cones.add(ct)
+
+        self._cones_quad = cones
         self._cones_full = cones
 
     def is_mixed_integer(self) -> bool:

@@ -522,6 +522,7 @@ def build_solving_chain(
 def resolve_and_build_chain(
     problem,
     solver=None,
+    gp: bool = False,
     enforce_dpp: bool = False,
     ignore_dpp: bool = False,
     canon_backend: str | None = None,
@@ -541,6 +542,9 @@ def resolve_and_build_chain(
         The solver to use. ``None`` selects a default based on problem
         structure. A string is looked up in the installed solver maps.
         A :class:`Solver` instance is used directly (custom solver).
+    gp : bool
+        If True, the problem is parsed as a Disciplined Geometric Program
+        instead of as a Disciplined Convex Program.
     enforce_dpp : bool
         When True, raise DPPError for non-DPP problems.
     ignore_dpp : bool
@@ -565,7 +569,7 @@ def resolve_and_build_chain(
     from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
     from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
 
-    problem_form = ProblemForm(problem)
+    problem_form = ProblemForm(problem, gp=gp)
 
     if isinstance(solver, Solver):
         # --- Custom solver instance ---
@@ -648,6 +652,7 @@ def resolve_and_build_chain(
         problem,
         solver_instance,
         problem_form=problem_form,
+        gp=gp,
         enforce_dpp=enforce_dpp,
         ignore_dpp=ignore_dpp,
         canon_backend=canon_backend,

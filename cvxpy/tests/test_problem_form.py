@@ -694,3 +694,127 @@ class TestResolveAndBuildChain(BaseTest):
         soln = chain.solve(prob, warm_start=False, verbose=False, solver_opts={})
         prob.unpack(soln)
         self.assertItemsAlmostEqual(x.value, [1.0, 1.0])
+
+
+class TestGPProblemForm(BaseTest):
+    """Tests for GP-aware ProblemForm cone detection."""
+
+    def test_gp_posynomial_needs_exp_cone(self) -> None:
+        """Posynomial addition (AddExpression) requires ExpCone in GP."""
+        x = cp.Variable(pos=True)
+        y = cp.Variable(pos=True)
+        prob = cp.Problem(cp.Minimize(x + y), [x * y >= 1])
+        form = ProblemForm(prob, gp=True)
+        self.assertIn(ExpCone, form.cones())
+
+    def test_gp_geo_mean_affine(self) -> None:
+        """GeoMean is affine in log-space — should NOT require ExpCone."""
+        x = cp.Variable(2, pos=True)
+        prob = cp.Problem(cp.Maximize(cp.geo_mean(x)), [x <= 2])
+        form = ProblemForm(prob, gp=True)
+        self.assertNotIn(ExpCone, form.cones())
+
+    def test_gp_with_constraint_types(self) -> None:
+        """GP Inequality constraint adds NonNeg cone."""
+        x = cp.Variable(pos=True)
+        y = cp.Variable(pos=True)
+        prob = cp.Problem(cp.Minimize(x), [x * y <= 1, y >= 0.5])
+        form = ProblemForm(prob, gp=True)
+        self.assertIn(NonNeg, form.cones())
+
+    def test_gp_norm_inf_needs_nonneg(self) -> None:
+        """norm_inf in GP maps to PWL -> NonNeg."""
+        x = cp.Variable(2, pos=True)
+        prob = cp.Problem(cp.Minimize(cp.norm_inf(x)), [x >= 0.5])
+        form = ProblemForm(prob, gp=True)
+        self.assertIn(NonNeg, form.cones())
+
+    def test_gp_no_qp_filtering(self) -> None:
+        """GP has no QP path: cones(quad_obj=True) == cones()."""
+        x = cp.Variable(pos=True)
+        y = cp.Variable(pos=True)
+        prob = cp.Problem(cp.Minimize(x + y), [x * y >= 1])
+        form = ProblemForm(prob, gp=True)
+        self.assertEqual(form.cones(quad_obj=True), form.cones())
+
+
+class TestGPCanSolve(BaseTest):
+    """Tests for Solver.can_solve with GP ProblemForm."""
+
+    def test_gp_clarabel_can_solve(self) -> None:
+        """Clarabel can handle GP problems (supports ExpCone)."""
+        x = cp.Variable(pos=True)
+        y = cp.Variable(pos=True)
+        prob = cp.Problem(cp.Minimize(x + y), [x * y >= 1])
+        form = ProblemForm(prob, gp=True)
+        self.assertTrue(ClarabelSolver().can_solve(form))
+
+    def test_gp_osqp_cannot_solve(self) -> None:
+        """OSQP cannot handle GP problems (no ExpCone support)."""
+        x = cp.Variable(pos=True)
+        y = cp.Variable(pos=True)
+        prob = cp.Problem(cp.Minimize(x + y), [x * y >= 1])
+        form = ProblemForm(prob, gp=True)
+        self.assertFalse(OsqpSolver().can_solve(form))
+
+
+class TestGPPickDefaultSolver(TestPickDefaultSolver):
+    """Tests for pick_default_solver with GP problems."""
+
+    def test_gp_gets_clarabel(self) -> None:
+        """GP with ExpCone -> Clarabel (not OSQP)."""
+        x = cp.Variable(pos=True)
+        y = cp.Variable(pos=True)
+        prob = cp.Problem(cp.Minimize(x + y), [x * y >= 1])
+        form = ProblemForm(prob, gp=True)
+        solver = pick_default_solver(form)
+        self.assertTrue(
+            self._is_premium(solver) or isinstance(solver, ClarabelSolver))
+
+
+class TestGPResolveAndBuildChain(BaseTest):
+    """Tests for resolve_and_build_chain with gp=True."""
+
+    def test_gp_solver_none(self) -> None:
+        """GP + solver=None -> solves correctly."""
+        x = cp.Variable(pos=True)
+        y = cp.Variable(pos=True)
+        prob = cp.Problem(cp.Minimize(x + y), [x * y >= 1])
+        chain = resolve_and_build_chain(prob, solver=None, gp=True)
+        soln = chain.solve(prob, warm_start=False, verbose=False, solver_opts={})
+        prob.unpack(soln)
+        self.assertAlmostEqual(prob.value, 2.0, places=3)
+
+    def test_gp_solver_string_clarabel(self) -> None:
+        """GP + 'CLARABEL' -> works."""
+        x = cp.Variable(pos=True)
+        y = cp.Variable(pos=True)
+        prob = cp.Problem(cp.Minimize(x + y), [x * y >= 1])
+        chain = resolve_and_build_chain(prob, solver="CLARABEL", gp=True)
+        self.assertEqual(chain.solver.name(), cp.CLARABEL)
+        soln = chain.solve(prob, warm_start=False, verbose=False, solver_opts={})
+        prob.unpack(soln)
+        self.assertAlmostEqual(prob.value, 2.0, places=3)
+
+    def test_gp_solver_string_scs(self) -> None:
+        """GP + 'SCS' -> works."""
+        x = cp.Variable(pos=True)
+        y = cp.Variable(pos=True)
+        prob = cp.Problem(cp.Minimize(x + y), [x * y >= 1])
+        chain = resolve_and_build_chain(prob, solver="SCS", gp=True)
+        self.assertEqual(chain.solver.name(), cp.SCS)
+        soln = chain.solve(prob, warm_start=False, verbose=False, solver_opts={})
+        prob.unpack(soln)
+        self.assertAlmostEqual(prob.value, 2.0, places=2)
+
+    def test_gp_custom_conic_solver(self) -> None:
+        """GP + custom ConicSolver -> works."""
+        class MyConicSolver(ScsSolver):
+            def name(self) -> str:
+                return "MY_GP_SOLVER"
+
+        x = cp.Variable(pos=True)
+        y = cp.Variable(pos=True)
+        prob = cp.Problem(cp.Minimize(x + y), [x * y >= 1])
+        chain = resolve_and_build_chain(prob, solver=MyConicSolver(), gp=True)
+        self.assertEqual(chain.solver.name(), "MY_GP_SOLVER")
