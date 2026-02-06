@@ -42,7 +42,6 @@ from cvxpy.constraints import (
 from cvxpy.expressions.leaf import Leaf
 from cvxpy.reductions.dcp2cone.canonicalizers import CANON_METHODS
 from cvxpy.reductions.dcp2cone.canonicalizers.quad import QUAD_CANON_METHODS
-from cvxpy.utilities.performance_utils import compute_once
 
 if TYPE_CHECKING:
     from cvxpy.expressions.expression import Expression
@@ -91,15 +90,48 @@ class ProblemForm:
 
     def __init__(self, problem: Problem) -> None:
         self._problem = problem
+        self._has_quadratic_objective: bool | None = None
+        self._is_mixed_integer: bool | None = None
+        self._cones_full: set[type] | None = None
+        self._cones_quad: set[type] | None = None
 
-    @compute_once
     def has_quadratic_objective(self) -> bool:
         """Whether the objective contains a quadratic term."""
-        return self._problem.objective.expr.has_quadratic_term()
+        if self._has_quadratic_objective is None:
+            self._has_quadratic_objective = (
+                self._problem.objective.expr.has_quadratic_term()
+            )
+        return self._has_quadratic_objective
 
-    @compute_once
-    def cones(self) -> set[type]:
-        """Set of cone constraint types required after canonicalization."""
+    def cones(self, quad_obj: bool = False) -> set[type]:
+        """Set of cone constraint types required after canonicalization.
+
+        Parameters
+        ----------
+        quad_obj : bool
+            If True, exclude objective atoms handled by the QP path when
+            the objective is quadratic. If False (default), return the
+            conservative full cone set.
+        """
+        if quad_obj:
+            if self._cones_quad is None:
+                self._cones_quad = self._compute_cones(quad_obj=True)
+            return self._cones_quad
+        else:
+            if self._cones_full is None:
+                self._cones_full = self._compute_cones(quad_obj=False)
+            return self._cones_full
+
+    def _compute_cones(self, quad_obj: bool) -> set[type]:
+        """Compute the set of cones required by the problem.
+
+        Parameters
+        ----------
+        quad_obj : bool
+            If True, exclude objective atoms handled by the QP path.
+        """
+        from cvxpy.reductions.cone2cone.approx import APPROX_CONE_CONVERSIONS
+
         problem = self._problem
         constr_types = {type(c) for c in problem.constraints}
         cones: set[type] = set()
@@ -109,9 +141,10 @@ class ProblemForm:
         for constr in problem.constraints:
             constr_atoms += constr.atoms()
 
-        # Collect atoms from the objective. When the objective is quadratic,
-        # use _objective_cone_atoms to exclude atoms handled by the QP path.
-        if self.has_quadratic_objective():
+        # Collect atoms from the objective. When quad_obj is True and the
+        # objective is quadratic, use _objective_cone_atoms to exclude atoms
+        # handled by the QP path.
+        if quad_obj and self.has_quadratic_objective():
             obj_atoms = _objective_cone_atoms(problem.objective.expr)
         else:
             obj_atoms = problem.objective.expr.atoms()
@@ -136,14 +169,19 @@ class ProblemForm:
         if PowConeND in constr_types or any(atom in POWCONE_ND_ATOMS for atom in atoms):
             cones.add(PowConeND)
 
+        # Include specialized constraint types that need cone conversions.
+        for ct in constr_types:
+            if ct in APPROX_CONE_CONVERSIONS:
+                cones.add(ct)
+
         return cones
 
-    @compute_once
     def is_mixed_integer(self) -> bool:
         """Whether the problem has integer or boolean variables."""
-        return self._problem.is_mixed_integer()
+        if self._is_mixed_integer is None:
+            self._is_mixed_integer = self._problem.is_mixed_integer()
+        return self._is_mixed_integer
 
-    @compute_once
     def has_constraints(self) -> bool:
         """Whether the problem will have constraints after canonicalization."""
         return (len(self.cones()) > 0

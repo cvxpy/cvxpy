@@ -36,6 +36,10 @@ class Solver(Reduction):
     BOUNDED_VARIABLES = False
     SOC_DIM3_ONLY = False
 
+    # Constraint support (overridden by ConicSolver and QpSolver).
+    SUPPORTED_CONSTRAINTS = []
+    REQUIRES_CONSTR = False
+
     # Keys for inverse data.
     VAR_ID = 'var_id'
     DUAL_VAR_ID = 'dual_var_id'
@@ -79,6 +83,55 @@ class Solver(Reduction):
         """Return bibtex citation for the solver.
         """
         raise NotImplementedError()
+
+    def supports_quad_obj(self) -> bool:
+        """Whether the solver supports quadratic objectives."""
+        return False
+
+    def can_solve(self, problem_form) -> bool:
+        """Check if this solver can handle a problem with the given structure.
+
+        Parameters
+        ----------
+        problem_form : ProblemForm
+            Pre-canonicalization structural analysis of the problem.
+        """
+        from cvxpy.reductions.cone2cone.approx import APPROX_CONE_CONVERSIONS
+        from cvxpy.reductions.cone2cone.exact import EXACT_CONE_CONVERSIONS
+
+        # Check MIP capability.
+        if problem_form.is_mixed_integer() and not self.MIP_CAPABLE:
+            return False
+
+        # Get supported constraints (MI vs non-MI).
+        if problem_form.is_mixed_integer():
+            supported = frozenset(
+                getattr(self, 'MI_SUPPORTED_CONSTRAINTS', self.SUPPORTED_CONSTRAINTS)
+            )
+        else:
+            supported = frozenset(self.SUPPORTED_CONSTRAINTS)
+
+        # Use QP-filtered cones when solver supports quad objectives.
+        quad_obj = self.supports_quad_obj() and problem_form.has_quadratic_objective()
+        cones = problem_form.cones(quad_obj=quad_obj).copy()
+
+        # Exact cone expansion (PowConeND -> PowCone3D, SOC -> PSD).
+        exact_targets = (cones & EXACT_CONE_CONVERSIONS.keys()) - supported
+        for co in exact_targets:
+            cones.discard(co)
+            cones.update(EXACT_CONE_CONVERSIONS[co])
+
+        # Approximate cone expansion (RelEntrConeQuad -> SOC, etc.).
+        approx_cos = (cones & APPROX_CONE_CONVERSIONS.keys()) - supported
+        for co in approx_cos:
+            cones.discard(co)
+            cones.update(APPROX_CONE_CONVERSIONS[co])
+
+        # Check REQUIRES_CONSTR.
+        if not problem_form.has_constraints() and self.REQUIRES_CONSTR:
+            return False
+
+        return cones.issubset(supported)
 
     def solve(self, problem, warm_start: bool, verbose: bool, solver_opts):
         """Solve the problem and return a Solution object.

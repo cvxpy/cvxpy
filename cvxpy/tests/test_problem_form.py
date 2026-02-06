@@ -16,8 +16,12 @@ limitations under the License.
 import numpy as np
 
 import cvxpy as cp
-from cvxpy.constraints import PSD, SOC, ExpCone, NonNeg, PowCone3D, Zero
+from cvxpy.constraints import PSD, SOC, ExpCone, NonNeg, PowCone3D, PowConeND, Zero
 from cvxpy.problems.problem_form import ProblemForm
+from cvxpy.reductions.solvers.conic_solvers.clarabel_conif import CLARABEL as ClarabelSolver
+from cvxpy.reductions.solvers.conic_solvers.ecos_conif import ECOS as EcosSolver
+from cvxpy.reductions.solvers.conic_solvers.scs_conif import SCS as ScsSolver
+from cvxpy.reductions.solvers.qp_solvers.osqp_qpif import OSQP as OsqpSolver
 from cvxpy.tests.base_test import BaseTest
 
 
@@ -51,9 +55,11 @@ class TestProblemForm(BaseTest):
         form = ProblemForm(prob)
 
         self.assertTrue(form.has_quadratic_objective())
+        # Default cones() returns the conservative full set (includes SOC).
+        self.assertIn(SOC, form.cones())
         # quad_over_lin is in SOC_ATOMS but the QP path handles it,
-        # so cones() should NOT include SOC.
-        self.assertNotIn(SOC, form.cones())
+        # so cones(quad_obj=True) should NOT include SOC.
+        self.assertNotIn(SOC, form.cones(quad_obj=True))
 
     def test_quadratic_of_log_needs_exp_cone(self) -> None:
         """sum_squares(log(x)) has quadratic term but needs ExpCone for log."""
@@ -63,9 +69,10 @@ class TestProblemForm(BaseTest):
 
         self.assertTrue(form.has_quadratic_objective())
         self.assertIn(ExpCone, form.cones())
+        self.assertIn(ExpCone, form.cones(quad_obj=True))
         # The outer sum_squares (quad_over_lin) is handled by QP path,
-        # so SOC is NOT needed — only ExpCone for the inner log.
-        self.assertNotIn(SOC, form.cones())
+        # so cones(quad_obj=True) should NOT include SOC.
+        self.assertNotIn(SOC, form.cones(quad_obj=True))
 
     def test_quadratic_of_quadratic_needs_soc(self) -> None:
         """sum_squares(sum_squares(x)) has quadratic term but needs SOC."""
@@ -187,6 +194,10 @@ class TestProblemForm(BaseTest):
         cones2 = form.cones()
         self.assertIs(cones1, cones2)
 
+        cones_q1 = form.cones(quad_obj=True)
+        cones_q2 = form.cones(quad_obj=True)
+        self.assertIs(cones_q1, cones_q2)
+
     def test_solve_lp(self) -> None:
         """Verify ProblemForm analysis matches a solvable LP."""
         x = cp.Variable(2)
@@ -218,7 +229,8 @@ class TestProblemForm(BaseTest):
 
         self.assertTrue(form.has_quadratic_objective())
         self.assertIn(ExpCone, form.cones())
-        self.assertNotIn(SOC, form.cones())
+        self.assertIn(ExpCone, form.cones(quad_obj=True))
+        self.assertNotIn(SOC, form.cones(quad_obj=True))
 
     def test_mixed_objective(self) -> None:
         """sum_squares(x) + log(y): QP handles sum_squares, ExpCone for log."""
@@ -229,7 +241,8 @@ class TestProblemForm(BaseTest):
 
         self.assertTrue(form.has_quadratic_objective())
         self.assertIn(ExpCone, form.cones())
-        self.assertNotIn(SOC, form.cones())
+        self.assertIn(ExpCone, form.cones(quad_obj=True))
+        self.assertNotIn(SOC, form.cones(quad_obj=True))
 
     def test_qp_with_soc_constraint(self) -> None:
         """QP objective + SOC constraint: SOC comes from constraint."""
@@ -250,3 +263,115 @@ class TestProblemForm(BaseTest):
         self.assertFalse(form.has_quadratic_objective())
         self.assertIn(SOC, form.cones())
         self.assertIn(NonNeg, form.cones())
+
+
+class TestCanSolve(BaseTest):
+    """Tests for Solver.can_solve(problem_form)."""
+
+    def test_lp_clarabel(self) -> None:
+        """LP is solvable by Clarabel."""
+        x = cp.Variable(2)
+        prob = cp.Problem(cp.Minimize(cp.sum(x)), [x >= 1])
+        form = ProblemForm(prob)
+        self.assertTrue(ClarabelSolver().can_solve(form))
+
+    def test_socp_clarabel(self) -> None:
+        """SOCP is solvable by Clarabel."""
+        x = cp.Variable(2)
+        prob = cp.Problem(cp.Minimize(cp.norm(x, 2)), [x >= 1])
+        form = ProblemForm(prob)
+        self.assertTrue(ClarabelSolver().can_solve(form))
+
+    def test_socp_not_qp_solver(self) -> None:
+        """SOCP is not solvable by a QP solver (OSQP)."""
+        x = cp.Variable(2)
+        prob = cp.Problem(cp.Minimize(cp.norm(x, 2)), [x >= 1])
+        form = ProblemForm(prob)
+        self.assertFalse(OsqpSolver().can_solve(form))
+
+    def test_sdp_not_ecos(self) -> None:
+        """SDP is not solvable by ECOS (no PSD support)."""
+        X = cp.Variable((2, 2), symmetric=True)
+        prob = cp.Problem(cp.Minimize(cp.lambda_max(X)), [X >> 0])
+        form = ProblemForm(prob)
+        self.assertFalse(EcosSolver().can_solve(form))
+
+    def test_sdp_clarabel(self) -> None:
+        """SDP is solvable by Clarabel."""
+        X = cp.Variable((2, 2), symmetric=True)
+        prob = cp.Problem(cp.Minimize(cp.lambda_max(X)), [X >> 0])
+        form = ProblemForm(prob)
+        self.assertTrue(ClarabelSolver().can_solve(form))
+
+    def test_mip_rejected_by_non_mip_solver(self) -> None:
+        """MIP rejected by non-MIP solver (Clarabel)."""
+        x = cp.Variable(2, integer=True)
+        prob = cp.Problem(cp.Minimize(cp.sum(x)), [x >= 0, x <= 5])
+        form = ProblemForm(prob)
+        self.assertFalse(ClarabelSolver().can_solve(form))
+
+    def test_requires_constr_respected(self) -> None:
+        """SCS needs constraints (REQUIRES_CONSTR=True)."""
+        x = cp.Variable()
+        prob = cp.Problem(cp.Minimize(x))
+        form = ProblemForm(prob)
+        # SCS requires constraints and this problem has none.
+        self.assertFalse(ScsSolver().can_solve(form))
+
+    def test_requires_constr_with_constraints(self) -> None:
+        """SCS can solve when constraints are present."""
+        x = cp.Variable()
+        prob = cp.Problem(cp.Minimize(x), [x >= 0])
+        form = ProblemForm(prob)
+        self.assertTrue(ScsSolver().can_solve(form))
+
+    def test_qp_solver_accepts_qp(self) -> None:
+        """QP solver accepts simple QP."""
+        x = cp.Variable(2)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(x)), [x >= 1])
+        form = ProblemForm(prob)
+        self.assertTrue(OsqpSolver().can_solve(form))
+
+    def test_qp_solver_rejects_socp(self) -> None:
+        """QP solver rejects problem needing SOC from constraint."""
+        x = cp.Variable(2)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(x)),
+                          [cp.norm(x, 2) <= 1])
+        form = ProblemForm(prob)
+        self.assertFalse(OsqpSolver().can_solve(form))
+
+    def test_pow_cone_nd_via_exact_conversion(self) -> None:
+        """PowConeND problem solvable by Clarabel via exact conversion."""
+        x = cp.Variable(3, nonneg=True)
+        z = cp.Variable()
+        prob = cp.Problem(cp.Maximize(z),
+                          [PowConeND(x, z, np.array([0.3, 0.3, 0.4])),
+                           x <= 1])
+        form = ProblemForm(prob)
+        # Clarabel supports PowConeND directly.
+        self.assertTrue(ClarabelSolver().can_solve(form))
+
+    def test_pow_cone_nd_exact_expansion(self) -> None:
+        """PowConeND expands to PowCone3D for solvers without PowConeND."""
+        x = cp.Variable(3, nonneg=True)
+        z = cp.Variable()
+        prob = cp.Problem(cp.Maximize(z),
+                          [PowConeND(x, z, np.array([0.3, 0.3, 0.4])),
+                           x <= 1])
+        form = ProblemForm(prob)
+        # SCS supports PowCone3D but not PowConeND; exact conversion applies.
+        self.assertTrue(ScsSolver().can_solve(form))
+
+    def test_exp_cone_not_qp_solver(self) -> None:
+        """ExpCone problem not solvable by QP solver."""
+        x = cp.Variable(2, pos=True)
+        prob = cp.Problem(cp.Maximize(cp.sum(cp.log(x))), [x <= 2])
+        form = ProblemForm(prob)
+        self.assertFalse(OsqpSolver().can_solve(form))
+
+    def test_exp_cone_ecos(self) -> None:
+        """ExpCone problem solvable by ECOS."""
+        x = cp.Variable(2, pos=True)
+        prob = cp.Problem(cp.Maximize(cp.sum(cp.log(x))), [x <= 2])
+        form = ProblemForm(prob)
+        self.assertTrue(EcosSolver().can_solve(form))
