@@ -17,6 +17,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import cvxpy.settings as s
 from cvxpy.atoms import (
     EXP_ATOMS,
     GP_EXP_ATOMS,
@@ -41,9 +42,12 @@ from cvxpy.constraints import (
     PowConeND,
     Zero,
 )
+from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions.leaf import Leaf
+from cvxpy.reductions.cone2cone.approx import APPROX_CONE_CONVERSIONS
 from cvxpy.reductions.dcp2cone.canonicalizers import CANON_METHODS
 from cvxpy.reductions.dcp2cone.canonicalizers.quad import QUAD_CANON_METHODS
+from cvxpy.reductions.solvers import defines as slv_def
 
 if TYPE_CHECKING:
     from cvxpy.expressions.expression import Expression
@@ -67,7 +71,6 @@ def _objective_cone_atoms(
         When True, treat parameter-only sub-expressions as constant
         (they will be evaluated by EvalParams before canonicalization).
     """
-    from cvxpy.constraints.constraint import Constraint
     if isinstance(expr, Leaf):
         return []
     # Constraints (e.g. Equality) may appear as args of atoms like indicator.
@@ -113,7 +116,6 @@ def _expr_cone_atoms(expr: Expression, eval_params: bool = False) -> list[type]:
     eval_params : bool
         When True, treat parameter-only sub-expressions as constant.
     """
-    from cvxpy.constraints.constraint import Constraint
     if isinstance(expr, Leaf):
         return []
     if isinstance(expr, Constraint):
@@ -184,8 +186,6 @@ class ProblemForm:
         if self._gp:
             self._compute_gp_cones()
             return
-
-        from cvxpy.reductions.cone2cone.approx import APPROX_CONE_CONVERSIONS
 
         problem = self._problem
         ep = self._eval_params
@@ -269,8 +269,6 @@ class ProblemForm:
         ExpCone in GP (via log_sum_exp). There is no QP path for GP,
         so _cones_quad and _cones_full are identical.
         """
-        from cvxpy.reductions.cone2cone.approx import APPROX_CONE_CONVERSIONS
-
         problem = self._problem
         constr_types = {type(c) for c in problem.constraints}
         cones: set[type] = set()
@@ -327,9 +325,6 @@ def pick_default_solver(problem_form: ProblemForm) -> Solver | None:
     Solver or None
         A solver instance, or None if no suitable installed solver is found.
     """
-    import cvxpy.settings as s
-    from cvxpy.reductions.solvers import defines as slv_def
-
     # 1-3: Premium solvers — use if installed and capable.
     for solver_name in (s.MOSEK, s.MOREAU, s.GUROBI):
         solver = slv_def.SOLVER_MAP_CONIC.get(solver_name)

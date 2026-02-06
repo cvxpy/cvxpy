@@ -676,7 +676,7 @@ class TestResolveAndBuildChain(BaseTest):
         x = cp.Variable(2)
         prob = cp.Problem(cp.Minimize(cp.sum(x)), [x >= 1])
         with patch(
-            "cvxpy.problems.problem_form.pick_default_solver",
+            "cvxpy.reductions.solvers.solving_chain.pick_default_solver",
             return_value=None,
         ) as mock_pick:
             import warnings

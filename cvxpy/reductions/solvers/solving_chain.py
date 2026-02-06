@@ -10,6 +10,7 @@ from cvxpy.constraints import (
 )
 from cvxpy.error import DCPError, DGPError, DPPError, SolverError
 from cvxpy.problems.objective import Maximize
+from cvxpy.problems.problem_form import ProblemForm, pick_default_solver
 from cvxpy.reductions.chain import Chain
 from cvxpy.reductions.complex2real import complex2real
 from cvxpy.reductions.cone2cone.approx import (
@@ -33,7 +34,9 @@ from cvxpy.reductions.eval_params import EvalParams
 from cvxpy.reductions.flip_objective import FlipObjective
 from cvxpy.reductions.reduction import Reduction
 from cvxpy.reductions.solvers import defines as slv_def
+from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.constant_solver import ConstantSolver
+from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
 from cvxpy.reductions.solvers.solver import Solver
 from cvxpy.settings import COO_CANON_BACKEND, DPP_PARAM_THRESHOLD
 from cvxpy.utilities.debug_tools import build_non_disciplined_error_msg
@@ -151,8 +154,6 @@ def build_solving_chain(
     SolvingChain
         A SolvingChain targeting the given solver.
     """
-    from cvxpy.problems.problem_form import ProblemForm
-
     if len(problem.variables()) == 0:
         return SolvingChain(reductions=[ConstantSolver()])
 
@@ -197,7 +198,6 @@ def build_solving_chain(
     # Determine cone conversions needed.
     # QP solvers always need quad_obj=True in the matrix stuffing step
     # because their apply() expects the P matrix from ConeMatrixStuffing.
-    from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
     is_qp_solver = isinstance(solver_instance, QpSolver)
     quad_obj = (use_quad and solver_instance.supports_quad_obj()
                 and (is_qp_solver or problem_form.has_quadratic_objective()))
@@ -280,10 +280,6 @@ def resolve_and_build_chain(
         If no suitable solver is found or the specified solver cannot handle
         the problem.
     """
-    from cvxpy.problems.problem_form import ProblemForm, pick_default_solver
-    from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
-    from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
-
     # Validate DCP/DGP compliance before solver resolution.
     # This must happen first so that non-DCP problems raise DCPError
     # (not SolverError from can_solve failing on ill-formed cones).
