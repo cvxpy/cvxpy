@@ -406,6 +406,12 @@ def resolve_and_build_chain(
         if default is not None:
             solver_instance = default
         else:
+            if problem_form.is_mixed_integer() and not problem_form.is_lp():
+                warn(
+                    "Your problem is mixed-integer but not an LP. "
+                    "If your problem is nonlinear, consider installing SCIP "
+                    "(pip install pyscipopt) to solve it."
+                )
             # Fallback: iterate all installed solvers.
             solver_instance = None
             for inst in list(slv_def.SOLVER_MAP_CONIC.values()) + \
