@@ -201,12 +201,15 @@ def pow_3d_canon(con, args):
     # via cast_to_const), so .value always exists.
     alpha_val = alpha.value
 
-    # Convert alpha to numpy array for consistent handling
+    # Normalize to a 1-D numpy array so the branches below can
+    # distinguish scalar from vector alpha.
     alpha_arr = np.atleast_1d(np.asarray(alpha_val, dtype=float).flatten())
 
-    # Scalar alpha: all elements share the same exponent, so we call
-    # fracify once. Vector alpha: each element has its own exponent,
-    # so we call fracify per element.
+    # Scalar alpha (the common case, e.g. x^0.5 * y^0.5 for every
+    # element): one call to fracify suffices for all elements.
+    # Vector alpha (each element has a distinct exponent): we must
+    # call fracify per element because each rational approximation
+    # is different.
     if alpha_arr.size == 1:
         alpha_val = float(alpha_arr[0])
         # Convert alpha to rational approximation

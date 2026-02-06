@@ -12,6 +12,24 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
+
+Exact cone-to-cone conversions that preserve problem equivalence.
+
+Each conversion is a class with:
+  - source / targets: the cone type converted and the set it maps to.
+  - canonicalize(con, args): rewrite one constraint.
+  - apply_hook(constraint, canon_constr, aux_constr, inverse_data)
+        [optional]: store metadata on inverse_data after canonicalization,
+        used later by recover_dual.
+  - recover_dual(cons, dual_var, inverse_data, solution)
+        [optional]: map solver duals back to the original cone's duals.
+
+Current conversions:
+  PowConeND -> PowCone3D  (balanced binary tree decomposition)
+  SOC       -> PSD        (Schur complement)
+
+EXACT_CONE_CONVERSIONS maps {source_cone: {target_cones}} and must
+form a DAG (no cycles).
 """
 
 import numpy as np
@@ -386,10 +404,16 @@ class ExactCone2Cone(Canonicalization):
         canon_methods = {c.source: c.canonicalize for c in conversions}
         self._dual_recovery = {c.source: c.recover_dual
                                for c in conversions if hasattr(c, 'recover_dual')}
-        # _apply_hooks: called after canonicalizing each constraint.
-        # Hooks allow conversions to store extra metadata on inverse_data
-        # for use during dual variable recovery (e.g. tree structures
-        # for PowND or auxiliary constraint IDs for packed SOC).
+        # _apply_hooks: per-conversion callbacks invoked by apply() right
+        # after a constraint is canonicalized.  The flow is:
+        #   1. apply() calls canonicalize_tree(constraint) to get
+        #      (canon_constr, aux_constr).
+        #   2. The hook for that constraint type is called with
+        #      (original_constraint, canon_constr, aux_constr, inverse_data).
+        #   3. The hook stores metadata on inverse_data (e.g.
+        #      pow_tree_mappings for PowND, soc_packed_aux for packed SOC).
+        #   4. Later, invert() calls recover_dual() which reads that
+        #      metadata to reconstruct the original dual variables.
         self._apply_hooks = {c.source: c.apply_hook
                              for c in conversions if hasattr(c, 'apply_hook')}
         super(ExactCone2Cone, self).__init__(
