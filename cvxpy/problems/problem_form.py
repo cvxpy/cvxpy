@@ -114,22 +114,19 @@ class ProblemForm:
             the objective is quadratic. If False (default), return the
             conservative full cone set.
         """
+        if self._cones_quad is None:
+            self._compute_cones()
         if quad_obj:
-            if self._cones_quad is None:
-                self._cones_quad = self._compute_cones(quad_obj=True)
             return self._cones_quad
-        else:
-            if self._cones_full is None:
-                self._cones_full = self._compute_cones(quad_obj=False)
-            return self._cones_full
+        return self._cones_full
 
-    def _compute_cones(self, quad_obj: bool) -> set[type]:
-        """Compute the set of cones required by the problem.
+    def _compute_cones(self) -> None:
+        """Compute both the QP-filtered and full cone sets.
 
-        Parameters
-        ----------
-        quad_obj : bool
-            If True, exclude objective atoms handled by the QP path.
+        All QUAD_CANON_METHODS atoms canonicalize to SOC, so the only
+        possible difference between the two sets is the presence of SOC.
+        We compute the QP-filtered set as the base and derive the full
+        set by checking if unfiltered objective atoms add SOC.
         """
         from cvxpy.reductions.cone2cone.approx import APPROX_CONE_CONVERSIONS
 
@@ -137,20 +134,20 @@ class ProblemForm:
         constr_types = {type(c) for c in problem.constraints}
         cones: set[type] = set()
 
-        # Collect atoms from constraints (always use full atom set).
+        # Collect atoms from constraints (always the full atom set).
         constr_atoms: list[type] = []
         for constr in problem.constraints:
             constr_atoms += constr.atoms()
 
-        # Collect atoms from the objective. When quad_obj is True and the
-        # objective is quadratic, use _objective_cone_atoms to exclude atoms
-        # handled by the QP path.
-        if quad_obj and self.has_quadratic_objective():
-            obj_atoms = _objective_cone_atoms(problem.objective.expr)
+        # Use QP-filtered objective atoms as the base: when the objective
+        # is quadratic, _objective_cone_atoms excludes atoms handled by the
+        # QP path (all of which map to SOC).
+        if self.has_quadratic_objective():
+            base_obj_atoms = _objective_cone_atoms(problem.objective.expr)
         else:
-            obj_atoms = problem.objective.expr.atoms()
+            base_obj_atoms = problem.objective.expr.atoms()
 
-        atoms = obj_atoms + constr_atoms
+        atoms = base_obj_atoms + constr_atoms
 
         if SOC in constr_types or any(atom in SOC_ATOMS for atom in atoms):
             cones.add(SOC)
@@ -175,7 +172,19 @@ class ProblemForm:
             if ct in APPROX_CONE_CONVERSIONS:
                 cones.add(ct)
 
-        return cones
+        # This is the QP-filtered set (base).
+        self._cones_quad = cones
+
+        # Full set: if SOC is absent and the unfiltered objective would
+        # add it, create a new set with SOC included.
+        if SOC not in cones and self.has_quadratic_objective():
+            full_obj_atoms = problem.objective.expr.atoms()
+            if any(atom in SOC_ATOMS for atom in full_obj_atoms):
+                self._cones_full = cones | {SOC}
+                return
+
+        # No difference — share the same object.
+        self._cones_full = cones
 
     def is_mixed_integer(self) -> bool:
         """Whether the problem has integer or boolean variables."""
