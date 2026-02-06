@@ -299,6 +299,10 @@ class ProblemForm:
             self._is_mixed_integer = self._problem.is_mixed_integer()
         return self._is_mixed_integer
 
+    def is_lp(self) -> bool:
+        """Whether the problem is a linear program (only NonNeg/Zero cones)."""
+        return self.cones() <= _QP_CONES and not self.has_quadratic_objective()
+
     def has_constraints(self) -> bool:
         """Whether the problem will have constraints after canonicalization."""
         return (len(self.cones()) > 0
@@ -332,9 +336,14 @@ def pick_default_solver(problem_form: ProblemForm) -> Solver | None:
                 and solver.can_solve(problem_form):
             return solver
 
-    # 4: Mixed-integer → HIGHS.
+    # 4: Mixed-integer LP → HIGHS.
+    # 4b: Mixed-integer non-LP → SCIP (HIGHS only supports MILP).
     if problem_form.is_mixed_integer():
-        solver = slv_def.SOLVER_MAP_CONIC.get(s.HIGHS)
+        if problem_form.is_lp():
+            solver = slv_def.SOLVER_MAP_CONIC.get(s.HIGHS)
+            if solver is not None and solver.is_installed():
+                return solver
+        solver = slv_def.SOLVER_MAP_CONIC.get(s.SCIP)
         if solver is not None and solver.is_installed():
             return solver
         return None

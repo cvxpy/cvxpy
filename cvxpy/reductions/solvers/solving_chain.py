@@ -402,12 +402,6 @@ def resolve_and_build_chain(
 
     elif solver is None:
         # --- Default solver selection ---
-        if problem_form.is_mixed_integer() and not problem.is_lp():
-            warn(
-                "Your problem is mixed-integer but not an LP. "
-                "If your problem is nonlinear, consider installing SCIP "
-                "(pip install pyscipopt) to solve it."
-            )
         default = pick_default_solver(problem_form)
         if default is not None:
             solver_instance = default
@@ -426,6 +420,17 @@ def resolve_and_build_chain(
                     )
                     break
             if solver_instance is None:
+                if problem_form.is_mixed_integer():
+                    raise SolverError(
+                        "You need a mixed-integer solver for this model. "
+                        "Refer to the documentation "
+                        "https://www.cvxpy.org/tutorial/advanced/"
+                        "index.html#mixed-integer-programs "
+                        "for discussion on this topic. "
+                        "Install the SCIP solver (pip install pyscipopt) "
+                        "for mixed-integer nonlinear problems, or HiGHS "
+                        "(pip install highspy) for mixed-integer LPs."
+                    )
                 raise SolverError(
                     "No installed solver could handle this problem."
                 )
