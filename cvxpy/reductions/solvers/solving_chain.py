@@ -307,6 +307,30 @@ def resolve_and_build_chain(
                        "Consider calling solve() with `qcp=True`.")
         raise DGPError("Problem does not follow DGP rules." + append)
 
+    # Quick validation: reject unknown or uninstalled solver names
+    # before the zero-variable early return, so that e.g.
+    # Problem(Minimize(0)).solve(solver='DAQP') still raises SolverError
+    # when DAQP is not installed.
+    if isinstance(solver, str):
+        _upper = solver.upper()
+        _qp = slv_def.SOLVER_MAP_QP.get(_upper)
+        _co = slv_def.SOLVER_MAP_CONIC.get(_upper)
+        if _qp is None and _co is None:
+            raise SolverError("The solver %s is not installed." % _upper)
+        if not (_qp is not None and _qp.is_installed()) \
+                and not (_co is not None and _co.is_installed()):
+            raise SolverError("The solver %s is not installed." % _upper)
+    elif isinstance(solver, Solver):
+        if solver.name() in s.SOLVERS:
+            raise SolverError(
+                "Custom solvers must have a different name "
+                "than the officially supported ones"
+            )
+    elif solver is not None:
+        raise SolverError(
+            "The solver argument must be a string, a Solver instance, or None."
+        )
+
     # Zero-variable problems are handled directly by ConstantSolver,
     # no solver resolution needed.
     if len(problem.variables()) == 0:
@@ -321,11 +345,7 @@ def resolve_and_build_chain(
 
     if isinstance(solver, Solver):
         # --- Custom solver instance ---
-        if solver.name() in s.SOLVERS:
-            raise SolverError(
-                "Custom solvers must have a different name "
-                "than the officially supported ones"
-            )
+        # (name-vs-SOLVERS check already done above)
         if problem_form.is_mixed_integer() and not solver.MIP_CAPABLE:
             raise SolverError(
                 "Problem is mixed-integer, but the custom solver "
@@ -344,22 +364,14 @@ def resolve_and_build_chain(
 
     elif isinstance(solver, str):
         # --- Named solver ---
+        # (existence and is_installed checks already done above;
+        #  recompute installed instances for QP/conic routing)
         solver_upper = solver.upper()
         qp_inst = slv_def.SOLVER_MAP_QP.get(solver_upper)
         conic_inst = slv_def.SOLVER_MAP_CONIC.get(solver_upper)
-
-        if qp_inst is None and conic_inst is None:
-            raise SolverError("The solver %s is not installed." % solver_upper)
-
-        # Check that at least one variant is actually installed.
-        # The solver maps contain entries for all solvers (installed or not).
-        qp_installed = qp_inst is not None and qp_inst.is_installed()
-        conic_installed = conic_inst is not None and conic_inst.is_installed()
-        if not qp_installed and not conic_installed:
-            raise SolverError("The solver %s is not installed." % solver_upper)
-        if not qp_installed:
+        if qp_inst is not None and not qp_inst.is_installed():
             qp_inst = None
-        if not conic_installed:
+        if conic_inst is not None and not conic_inst.is_installed():
             conic_inst = None
 
         # GP problems must use conic solvers (no QP path).
@@ -428,9 +440,7 @@ def resolve_and_build_chain(
                     "No installed solver could handle this problem."
                 )
     else:
-        raise SolverError(
-            "The solver argument must be a string, a Solver instance, or None."
-        )
+        assert False, "unreachable: early validation rejects invalid solver types"
 
     return build_solving_chain(
         problem,
