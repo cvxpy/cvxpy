@@ -368,6 +368,3 @@ class TestInvProdApprox(BaseTest):
         prob.solve(solver=cp.CLARABEL)
         self.assertIn(prob.status, [cp.OPTIMAL, cp.OPTIMAL_INACCURATE])
         self.assertAlmostEqual(prob.value, val_approx, places=3)
-
-
-
