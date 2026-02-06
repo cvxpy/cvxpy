@@ -22,6 +22,7 @@ from cvxpy.reductions.solvers.conic_solvers.clarabel_conif import CLARABEL as Cl
 from cvxpy.reductions.solvers.conic_solvers.ecos_conif import ECOS as EcosSolver
 from cvxpy.reductions.solvers.conic_solvers.scs_conif import SCS as ScsSolver
 from cvxpy.reductions.solvers.qp_solvers.osqp_qpif import OSQP as OsqpSolver
+from cvxpy.reductions.solvers.solving_chain import build_solving_chain
 from cvxpy.tests.base_test import BaseTest
 
 
@@ -501,3 +502,94 @@ class TestPickDefaultSolver(BaseTest):
             form = ProblemForm(prob)
             solver = pick_default_solver(form)
             self.assertIsNotNone(solver)
+
+
+class TestBuildSolvingChain(BaseTest):
+    """Tests for build_solving_chain()."""
+
+    def test_lp_with_clarabel(self) -> None:
+        """Build and solve an LP with Clarabel."""
+        x = cp.Variable(2)
+        prob = cp.Problem(cp.Minimize(cp.sum(x)), [x >= 1])
+        chain = build_solving_chain(prob, ClarabelSolver())
+        self.assertEqual(chain.solver.name(), cp.CLARABEL)
+        soln = chain.solve(prob, warm_start=False, verbose=False, solver_opts={})
+        prob.unpack(soln)
+        self.assertItemsAlmostEqual(x.value, [1.0, 1.0])
+
+    def test_socp_with_clarabel(self) -> None:
+        """Build and solve a SOCP with Clarabel."""
+        x = cp.Variable(2)
+        prob = cp.Problem(cp.Minimize(cp.norm(x, 2)), [x >= 1])
+        chain = build_solving_chain(prob, ClarabelSolver())
+        soln = chain.solve(prob, warm_start=False, verbose=False, solver_opts={})
+        prob.unpack(soln)
+        self.assertItemsAlmostEqual(x.value, [1.0, 1.0])
+
+    def test_qp_with_osqp(self) -> None:
+        """Build and solve a QP with OSQP."""
+        x = cp.Variable(2)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(x)), [x >= 1])
+        chain = build_solving_chain(prob, OsqpSolver())
+        self.assertEqual(chain.solver.name(), cp.OSQP)
+        soln = chain.solve(prob, warm_start=False, verbose=False, solver_opts={})
+        prob.unpack(soln)
+        self.assertItemsAlmostEqual(x.value, [1.0, 1.0])
+
+    def test_sdp_with_scs(self) -> None:
+        """Build and solve an SDP with SCS."""
+        X = cp.Variable((2, 2), symmetric=True)
+        prob = cp.Problem(cp.Minimize(cp.trace(X)), [X >> np.eye(2)])
+        chain = build_solving_chain(prob, ScsSolver())
+        self.assertEqual(chain.solver.name(), cp.SCS)
+        soln = chain.solve(prob, warm_start=False, verbose=False, solver_opts={})
+        prob.unpack(soln)
+        self.assertAlmostEqual(prob.value, 2.0, places=3)
+
+    def test_exp_cone_with_clarabel(self) -> None:
+        """Build and solve an exponential cone problem."""
+        x = cp.Variable(2, pos=True)
+        prob = cp.Problem(cp.Maximize(cp.sum(cp.log(x))), [x <= 2])
+        chain = build_solving_chain(prob, ClarabelSolver())
+        soln = chain.solve(prob, warm_start=False, verbose=False, solver_opts={})
+        prob.unpack(soln)
+        self.assertItemsAlmostEqual(x.value, [2.0, 2.0], places=3)
+
+    def test_pow_cone_nd_with_scs(self) -> None:
+        """PowConeND gets exact conversion to PowCone3D for SCS."""
+        x = cp.Variable(3, nonneg=True)
+        z = cp.Variable()
+        prob = cp.Problem(cp.Maximize(z),
+                          [PowConeND(x, z, np.array([0.3, 0.3, 0.4])),
+                           x <= 1])
+        chain = build_solving_chain(prob, ScsSolver())
+        soln = chain.solve(prob, warm_start=False, verbose=False, solver_opts={})
+        prob.unpack(soln)
+        self.assertAlmostEqual(z.value, 1.0, places=3)
+
+    def test_constant_problem(self) -> None:
+        """Problem with 0 variables uses ConstantSolver."""
+        from cvxpy.reductions.solvers.constant_solver import ConstantSolver
+        prob = cp.Problem(cp.Minimize(cp.Constant(42)))
+        chain = build_solving_chain(prob, ClarabelSolver())
+        self.assertIsInstance(chain.solver, ConstantSolver)
+
+    def test_maximize_flipped(self) -> None:
+        """Maximize objectives are flipped correctly."""
+        x = cp.Variable()
+        prob = cp.Problem(cp.Maximize(x), [x <= 5])
+        chain = build_solving_chain(prob, ClarabelSolver())
+        soln = chain.solve(prob, warm_start=False, verbose=False, solver_opts={})
+        prob.unpack(soln)
+        self.assertAlmostEqual(x.value, 5.0, places=3)
+
+    def test_with_problem_form(self) -> None:
+        """Passing a pre-computed ProblemForm works."""
+        x = cp.Variable(2)
+        prob = cp.Problem(cp.Minimize(cp.sum(x)), [x >= 1])
+        form = ProblemForm(prob)
+        chain = build_solving_chain(prob, ClarabelSolver(),
+                                    problem_form=form)
+        soln = chain.solve(prob, warm_start=False, verbose=False, solver_opts={})
+        prob.unpack(soln)
+        self.assertItemsAlmostEqual(x.value, [1.0, 1.0])

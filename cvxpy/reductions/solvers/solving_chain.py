@@ -400,6 +400,125 @@ def construct_solving_chain(problem, candidates,
                           ", ".join([cone.__name__ for cone in cones])))
 
 
+def build_solving_chain(
+    problem,
+    solver_instance: Solver,
+    problem_form=None,
+    gp: bool = False,
+    enforce_dpp: bool = False,
+    ignore_dpp: bool = False,
+    canon_backend: str | None = None,
+    solver_opts: dict | None = None,
+) -> "SolvingChain":
+    """Build a reduction chain for a specific solver.
+
+    Unlike construct_solving_chain, this function does not search for a
+    solver — it builds the chain directly for the given solver instance.
+
+    Parameters
+    ----------
+    problem : Problem
+        The problem for which to build a chain.
+    solver_instance : Solver
+        The solver to target.
+    problem_form : ProblemForm, optional
+        Pre-computed structural analysis. Created automatically if not
+        supplied.
+    gp : bool
+        If True, parse as a Disciplined Geometric Program.
+    enforce_dpp : bool
+        When True, raise DPPError for non-DPP problems.
+    ignore_dpp : bool
+        When True, treat DPP problems as non-DPP.
+    canon_backend : str, optional
+        Canonicalization backend ('CPP', 'SCIPY', or 'COO').
+    solver_opts : dict, optional
+        Solver-specific options.
+
+    Returns
+    -------
+    SolvingChain
+        A SolvingChain targeting the given solver.
+    """
+    from cvxpy.problems.problem_form import ProblemForm
+
+    if len(problem.variables()) == 0:
+        return SolvingChain(reductions=[ConstantSolver()])
+
+    if problem_form is None:
+        problem_form = ProblemForm(problem)
+
+    reductions = _pre_canonicalization_reductions(problem, gp)
+
+    # --- DPP handling ---
+    dpp_context = 'dcp' if not gp else 'dgp'
+    if ignore_dpp or not problem.is_dpp(dpp_context):
+        if ignore_dpp:
+            reductions = [EvalParams()] + reductions
+        elif not enforce_dpp:
+            warn(DPP_ERROR_MSG)
+            reductions = [EvalParams()] + reductions
+        else:
+            raise DPPError(DPP_ERROR_MSG)
+    else:
+        if canon_backend is None:
+            total_param_size = sum(p.size for p in problem.parameters())
+            if total_param_size >= DPP_PARAM_THRESHOLD:
+                canon_backend = COO_CANON_BACKEND
+
+    use_quad = True if solver_opts is None else solver_opts.get('use_quad_obj', True)
+
+    # --- Build reduction chain ---
+    if problem.is_mixed_integer():
+        supported = frozenset(
+            getattr(solver_instance, 'MI_SUPPORTED_CONSTRAINTS',
+                    solver_instance.SUPPORTED_CONSTRAINTS)
+        )
+    else:
+        supported = frozenset(solver_instance.SUPPORTED_CONSTRAINTS)
+
+    solver_context = SolverInfo(
+        solver=solver_instance.name(),
+        supported_constraints=supported,
+        supports_bounds=solver_instance.BOUNDED_VARIABLES,
+    )
+
+    # Determine cone conversions needed.
+    quad_obj = (use_quad and solver_instance.supports_quad_obj()
+                and problem_form.has_quadratic_objective())
+    cones = problem_form.cones(quad_obj=quad_obj).copy()
+
+    exact_targets = (cones & EXACT_CONE_CONVERSIONS.keys()) - supported
+    for co in exact_targets:
+        cones.discard(co)
+        cones.update(EXACT_CONE_CONVERSIONS[co])
+
+    approx_cos = (cones & APPROX_CONE_CONVERSIONS.keys()) - supported
+    for co in approx_cos:
+        cones.discard(co)
+        cones.update(APPROX_CONE_CONVERSIONS[co])
+
+    reductions.append(Dcp2Cone(quad_obj=quad_obj, solver_context=solver_context))
+
+    if exact_targets:
+        reductions.append(ExactCone2Cone(target_cones=exact_targets))
+    if approx_cos:
+        reductions.append(ApproxCone2Cone(target_cones=approx_cos))
+
+    reductions.append(
+        CvxAttr2Constr(reduce_bounds=not solver_instance.BOUNDED_VARIABLES))
+    reductions.append(EliminateZeroSized())
+
+    if solver_instance.SOC_DIM3_ONLY and SOC in cones:
+        reductions.append(SOCDim3())
+
+    reductions += [
+        ConeMatrixStuffing(quad_obj=quad_obj, canon_backend=canon_backend),
+        solver_instance,
+    ]
+    return SolvingChain(reductions=reductions, solver_context=solver_context)
+
+
 def _validate_problem_data(data) -> None:
     """Validate problem data for NaN and Inf values.
 
