@@ -45,9 +45,16 @@ def extract_lower_bounds(variables: list, var_size: int) -> Optional[np.ndarray]
     vert_offset = 0
     for x in variables:
         if x.attributes["bounds"] is not None:
+            bound = x.attributes['bounds'][0]
+            # Sparse bounds should have been transformed in CvxAttr2Constr
+            if sp.issparse(bound):
+                raise ValueError(
+                    "Sparse bounds should not reach matrix_stuffing. "
+                    "This is an internal error - please report it."
+                )
             # Store lower bound in Fortran order.
             # Use broadcast_to for memory-efficient scalar bounds.
-            var_lower_bound = np.broadcast_to(x.attributes['bounds'][0], x.shape)
+            var_lower_bound = np.broadcast_to(bound, x.shape)
             flattened = np.reshape(var_lower_bound, x.size, order="F")
             lower_bounds[vert_offset:vert_offset+x.size] = flattened
         if x.is_nonneg():
@@ -74,9 +81,16 @@ def extract_upper_bounds(variables: list, var_size: int) -> Optional[np.ndarray]
     vert_offset = 0
     for x in variables:
         if x.attributes["bounds"] is not None:
+            bound = x.attributes['bounds'][1]
+            # Sparse bounds should have been transformed in CvxAttr2Constr
+            if sp.issparse(bound):
+                raise ValueError(
+                    "Sparse bounds should not reach matrix_stuffing. "
+                    "This is an internal error - please report it."
+                )
             # Store upper bound in Fortran order.
             # Use broadcast_to for memory-efficient scalar bounds.
-            var_upper_bound = np.broadcast_to(x.attributes['bounds'][1], x.shape)
+            var_upper_bound = np.broadcast_to(bound, x.shape)
             flattened = np.reshape(var_upper_bound, x.size, order="F")
             upper_bounds[vert_offset:vert_offset+x.size] = flattened
         if x.is_nonpos():

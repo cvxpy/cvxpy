@@ -311,8 +311,13 @@ class TestMultipleAttributes:
             cp.Variable(shape=(2, 2), symmetric=True, sparsity=[(0, 1), (0, 1)])
 
     def test_sparse_bounded_variable(self) -> None:
+        import scipy.sparse as sp
+        rows, cols = np.array([0, 1]), np.array([0, 1])
+        lb_sparse = sp.coo_array(
+            (np.array([-1.5, -2.5]), (rows, cols)), shape=(2, 2)
+        )
         x = cp.Variable(shape=(2,2), sparsity=[(0,1),(0,1)],
-                        bounds=[np.array([[-1.5, -4], [-3, -2.5]]), 10])
+                        bounds=[lb_sparse, 10])
         prob = cp.Problem(cp.Minimize(cp.sum(x)), [])
         prob.solve()
         assert np.allclose(prob.value, -4)
