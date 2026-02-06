@@ -17,7 +17,7 @@ import numpy as np
 
 import cvxpy as cp
 from cvxpy.constraints import PSD, SOC, ExpCone, NonNeg, PowCone3D, PowConeND, Zero
-from cvxpy.problems.problem_form import ProblemForm
+from cvxpy.problems.problem_form import ProblemForm, pick_default_solver
 from cvxpy.reductions.solvers.conic_solvers.clarabel_conif import CLARABEL as ClarabelSolver
 from cvxpy.reductions.solvers.conic_solvers.ecos_conif import ECOS as EcosSolver
 from cvxpy.reductions.solvers.conic_solvers.scs_conif import SCS as ScsSolver
@@ -375,3 +375,129 @@ class TestCanSolve(BaseTest):
         prob = cp.Problem(cp.Maximize(cp.sum(cp.log(x))), [x <= 2])
         form = ProblemForm(prob)
         self.assertTrue(EcosSolver().can_solve(form))
+
+
+class TestPickDefaultSolver(BaseTest):
+    """Tests for pick_default_solver().
+
+    Premium solvers (MOSEK, MOREAU, GUROBI) are checked first by
+    pick_default_solver. When any of them is installed, it wins for all
+    problems it can handle. The tests below account for this by accepting
+    premium solvers as valid results alongside the expected open-source
+    default.
+    """
+
+    # Premium solver classes that may be installed and take priority.
+    PREMIUM_SOLVER_CLASSES: tuple[type, ...] = ()
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        from cvxpy.reductions.solvers.conic_solvers.gurobi_conif import GUROBI as GurobiSolver
+        from cvxpy.reductions.solvers.conic_solvers.moreau_conif import MOREAU as MoreauSolver
+        from cvxpy.reductions.solvers.conic_solvers.mosek_conif import MOSEK as MosekSolver
+        cls.PREMIUM_SOLVER_CLASSES = (MosekSolver, MoreauSolver, GurobiSolver)
+
+    def _is_premium(self, solver) -> bool:
+        return isinstance(solver, self.PREMIUM_SOLVER_CLASSES)
+
+    def test_lp_gets_clarabel(self) -> None:
+        """LP goes to Clarabel (or a premium solver)."""
+        x = cp.Variable(2)
+        prob = cp.Problem(cp.Minimize(cp.sum(x)), [x >= 1])
+        form = ProblemForm(prob)
+        solver = pick_default_solver(form)
+        self.assertTrue(
+            self._is_premium(solver) or isinstance(solver, ClarabelSolver))
+
+    def test_qp_gets_osqp(self) -> None:
+        """QP goes to OSQP (or a premium solver)."""
+        x = cp.Variable(2)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(x)), [x >= 1])
+        form = ProblemForm(prob)
+        solver = pick_default_solver(form)
+        self.assertTrue(
+            self._is_premium(solver) or isinstance(solver, OsqpSolver))
+
+    def test_sdp_gets_scs(self) -> None:
+        """SDP goes to SCS (or a premium solver)."""
+        X = cp.Variable((2, 2), symmetric=True)
+        prob = cp.Problem(cp.Minimize(cp.lambda_max(X)), [X >> 0])
+        form = ProblemForm(prob)
+        solver = pick_default_solver(form)
+        self.assertTrue(
+            self._is_premium(solver) or isinstance(solver, ScsSolver))
+
+    def test_socp_gets_clarabel(self) -> None:
+        """SOCP goes to Clarabel (or a premium solver)."""
+        x = cp.Variable(2)
+        prob = cp.Problem(cp.Minimize(cp.norm(x, 2)), [x >= 1])
+        form = ProblemForm(prob)
+        solver = pick_default_solver(form)
+        self.assertTrue(
+            self._is_premium(solver) or isinstance(solver, ClarabelSolver))
+
+    def test_exp_cone_gets_clarabel(self) -> None:
+        """ExpCone problem goes to Clarabel (or a premium solver)."""
+        x = cp.Variable(2, pos=True)
+        prob = cp.Problem(cp.Maximize(cp.sum(cp.log(x))), [x <= 2])
+        form = ProblemForm(prob)
+        solver = pick_default_solver(form)
+        self.assertTrue(
+            self._is_premium(solver) or isinstance(solver, ClarabelSolver))
+
+    def test_unconstrained_lp(self) -> None:
+        """Unconstrained linear objective is an LP (or premium solver)."""
+        x = cp.Variable()
+        prob = cp.Problem(cp.Minimize(x))
+        form = ProblemForm(prob)
+        solver = pick_default_solver(form)
+        self.assertTrue(
+            self._is_premium(solver) or isinstance(solver, ClarabelSolver))
+
+    def test_unconstrained_qp(self) -> None:
+        """Unconstrained QP → OSQP (or a premium solver)."""
+        x = cp.Variable()
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(x)))
+        form = ProblemForm(prob)
+        solver = pick_default_solver(form)
+        self.assertTrue(
+            self._is_premium(solver) or isinstance(solver, OsqpSolver))
+
+    def test_mi_gets_highs_or_premium(self) -> None:
+        """MI problem goes to HIGHS (or a premium solver)."""
+        from cvxpy.reductions.solvers.conic_solvers.highs_conif import HIGHS as HighsSolver
+        x = cp.Variable(2, integer=True)
+        prob = cp.Problem(cp.Minimize(cp.sum(x)), [x >= 0, x <= 5])
+        form = ProblemForm(prob)
+        solver = pick_default_solver(form)
+        # Premium MI-capable solvers (MOSEK, GUROBI) can also handle this.
+        self.assertTrue(
+            self._is_premium(solver) or isinstance(solver, HighsSolver)
+            or solver is None)
+
+    def test_psd_variable_gets_scs(self) -> None:
+        """PSD variable (implies PSD cone) → SCS (or premium solver)."""
+        X = cp.Variable((2, 2), PSD=True)
+        prob = cp.Problem(cp.Minimize(cp.trace(X)))
+        form = ProblemForm(prob)
+        solver = pick_default_solver(form)
+        self.assertTrue(
+            self._is_premium(solver) or isinstance(solver, ScsSolver))
+
+    def test_always_returns_solver(self) -> None:
+        """pick_default_solver always returns a solver for basic problems."""
+        problems = [
+            # LP
+            cp.Problem(cp.Minimize(cp.sum(cp.Variable(2))),
+                       [cp.Variable(2) >= 0]),
+            # QP
+            cp.Problem(cp.Minimize(cp.sum_squares(cp.Variable(2))),
+                       [cp.Variable(2) >= 0]),
+            # SOCP
+            cp.Problem(cp.Minimize(cp.norm(cp.Variable(2), 2)),
+                       [cp.Variable(2) >= 0]),
+        ]
+        for prob in problems:
+            form = ProblemForm(prob)
+            solver = pick_default_solver(form)
+            self.assertIsNotNone(solver)

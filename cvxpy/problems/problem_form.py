@@ -46,6 +46,7 @@ from cvxpy.reductions.dcp2cone.canonicalizers.quad import QUAD_CANON_METHODS
 if TYPE_CHECKING:
     from cvxpy.expressions.expression import Expression
     from cvxpy.problems.problem import Problem
+    from cvxpy.reductions.solvers.solver import Solver
 
 
 def _objective_cone_atoms(expr: Expression, affine_above: bool = True) -> list[type]:
@@ -187,3 +188,68 @@ class ProblemForm:
         return (len(self.cones()) > 0
                 or len(self._problem.constraints) > 0
                 or any(var.domain for var in self._problem.variables()))
+
+
+_QP_CONES = frozenset([NonNeg, Zero])
+
+
+def pick_default_solver(problem_form: ProblemForm) -> Solver | None:
+    """Pick the default solver for a problem based on its structure.
+
+    Checks premium solvers first (MOSEK, MOREAU, GUROBI), then falls back
+    to open-source defaults based on problem type.
+
+    Parameters
+    ----------
+    problem_form : ProblemForm
+        Pre-canonicalization structural analysis of the problem.
+
+    Returns
+    -------
+    Solver or None
+        A solver instance, or None if no suitable installed solver is found.
+    """
+    import cvxpy.settings as s
+    from cvxpy.reductions.solvers import defines as slv_def
+
+    # 1-3: Premium solvers — use if installed and capable.
+    for solver_name in (s.MOSEK, s.MOREAU, s.GUROBI):
+        solver = slv_def.SOLVER_MAP_CONIC.get(solver_name)
+        if solver is not None and solver.is_installed() \
+                and solver.can_solve(problem_form):
+            return solver
+
+    # 4: Mixed-integer → HIGHS.
+    if problem_form.is_mixed_integer():
+        solver = slv_def.SOLVER_MAP_CONIC.get(s.HIGHS)
+        if solver is not None and solver.is_installed():
+            return solver
+        return None
+
+    # 5: LP → Clarabel.
+    if problem_form.cones() <= _QP_CONES:
+        solver = slv_def.SOLVER_MAP_CONIC.get(s.CLARABEL)
+        if solver is not None and solver.is_installed():
+            return solver
+        return None
+
+    # 6: QP → OSQP.
+    if problem_form.has_quadratic_objective() \
+            and problem_form.cones(quad_obj=True) <= _QP_CONES:
+        solver = slv_def.SOLVER_MAP_QP.get(s.OSQP)
+        if solver is not None and solver.is_installed():
+            return solver
+        return None
+
+    # 7: SDP → SCS.
+    if PSD in problem_form.cones():
+        solver = slv_def.SOLVER_MAP_CONIC.get(s.SCS)
+        if solver is not None and solver.is_installed():
+            return solver
+        return None
+
+    # 8: Everything else (SOCP, ExpCone, PowCone, etc.) → Clarabel.
+    solver = slv_def.SOLVER_MAP_CONIC.get(s.CLARABEL)
+    if solver is not None and solver.is_installed():
+        return solver
+    return None
