@@ -92,26 +92,6 @@ class Variable(Leaf):
                         return False
         return True
 
-    def is_log_log_convex(self) -> bool:
-        """Is the expression log-log convex?
-
-        Sparse variables are not supported in DGP because DGP operates in
-        log-space and requires positive variables, but sparsity forces zeros.
-        """
-        if self.attributes.get('sparsity'):
-            return False
-        return self.is_pos()
-
-    def is_log_log_concave(self) -> bool:
-        """Is the expression log-log concave?
-
-        Sparse variables are not supported in DGP because DGP operates in
-        log-space and requires positive variables, but sparsity forces zeros.
-        """
-        if self.attributes.get('sparsity'):
-            return False
-        return self.is_pos()
-
     def is_dgp(self, dpp: bool = False) -> bool:
         """Check DGP compliance, including log-log-affine bounds."""
         if dpp and self.attributes.get('bounds') is not None:
