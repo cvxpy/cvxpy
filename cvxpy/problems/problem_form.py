@@ -59,8 +59,17 @@ def _objective_cone_atoms(expr: Expression, affine_above: bool = True) -> list[t
     QP path and do NOT produce conic constraints. Atoms below that head, or
     atoms without a quad canon, still need cone canonicalization.
     """
+    from cvxpy.constraints.constraint import Constraint
     if isinstance(expr, Leaf):
         return []
+    # Constraints (e.g. Equality) may appear as args of atoms like indicator.
+    # They aren't atoms themselves, but their expression args can contain
+    # atoms that need conic canonicalization.
+    if isinstance(expr, Constraint):
+        result: list[type] = []
+        for arg in expr.args:
+            result += _objective_cone_atoms(arg, False)
+        return result
     if expr.is_constant() and not expr.parameters():
         return []
 
