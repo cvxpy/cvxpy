@@ -20,8 +20,10 @@ from cvxpy.atoms.affine.diag import diag
 from cvxpy.atoms.affine.vec import vec
 from cvxpy.expressions.variable import Variable
 from cvxpy.problems.objective import Maximize, Minimize
+from cvxpy.utilities.bounds import get_expr_bounds_if_supported
 from cvxpy.utilities.perspective_utils import form_cone_constraint
 from cvxpy.utilities.solver_context import SolverInfo
+from cvxpy.utilities.values import get_expr_value_if_supported
 
 
 def perspective_canon(expr, args, solver_context: SolverInfo | None = None):
@@ -55,7 +57,18 @@ def perspective_canon(expr, args, solver_context: SolverInfo | None = None):
 
     # Actually, all we need is Ax + 0*t + sb \in K, -q^Tx + t - ds >= 0
 
-    t = Variable()
+    sign = 1 if expr.f.is_convex() else -1
+    expr_bounds = get_expr_bounds_if_supported(expr, solver_context)
+    t_bounds = None
+    if expr_bounds is not None:
+        if sign == 1:
+            t_bounds = expr_bounds
+        else:
+            t_bounds = [-expr_bounds[1], -expr_bounds[0]]
+    t = Variable(bounds=t_bounds)
+    expr_value = get_expr_value_if_supported(expr, solver_context)
+    if expr_value is not None:
+        t.value = sign * expr_value
     s = args[0]
     x_canon = prob_canon.x
     constraints = []
@@ -91,4 +104,4 @@ def perspective_canon(expr, args, solver_context: SolverInfo | None = None):
         else:
             constraints.append(vec(var, order="F") == x_canon[start_ind:end_ind])
 
-    return (1 if expr.f.is_convex() else -1) * t, constraints
+    return sign * t, constraints

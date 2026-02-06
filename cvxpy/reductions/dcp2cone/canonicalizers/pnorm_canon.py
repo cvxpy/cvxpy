@@ -31,14 +31,17 @@ from cvxpy.reductions.eliminate_pwl.canonicalizers.abs_canon import abs_canon
 from cvxpy.utilities.bounds import get_expr_bounds_if_supported
 from cvxpy.utilities.power_tools import gm_constrs
 from cvxpy.utilities.solver_context import SolverInfo
+from cvxpy.utilities.values import get_expr_value_if_supported
 
 
-def _pnorm_p2_canon(expr, args, bounds=None):
+def _pnorm_p2_canon(expr, args, bounds=None, value=None):
     """Handle p == 2 case via SOC directly (shared by exact and approx)."""
     x = args[0]
     axis = expr.axis
     shape = expr.shape
     t = Variable(shape, bounds=bounds)
+    if value is not None:
+        t.value = value
     if axis is None:
         assert shape == tuple()
         return t, [SOC(t, vec(x, order="F"))]
@@ -51,13 +54,16 @@ def pnorm_exact_canon(expr, args, solver_context: SolverInfo | None = None):
     p = expr.p
 
     bounds = get_expr_bounds_if_supported(expr, solver_context)
+    value = get_expr_value_if_supported(expr, solver_context)
 
     if p == 2:
-        return _pnorm_p2_canon(expr, args, bounds=bounds)
+        return _pnorm_p2_canon(expr, args, bounds=bounds, value=value)
 
     x = args[0]
     shape = expr.shape
     t = Variable(shape, bounds=bounds)
+    if value is not None:
+        t.value = value
 
     constraints = []
     if p > 1:
@@ -95,14 +101,17 @@ def pnorm_approx_canon(expr, args, solver_context: SolverInfo | None = None):
     p = expr.p
 
     bounds = get_expr_bounds_if_supported(expr, solver_context)
+    value = get_expr_value_if_supported(expr, solver_context)
 
     if p == 2:
-        return _pnorm_p2_canon(expr, args, bounds=bounds)
+        return _pnorm_p2_canon(expr, args, bounds=bounds, value=value)
 
     x = args[0]
     p = Fraction(p)
     shape = expr.shape
     t = Variable(shape, bounds=bounds)
+    if value is not None:
+        t.value = value
 
     constraints = []
     if p > 1:

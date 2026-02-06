@@ -119,6 +119,7 @@ class SCS(ConicSolver):
 
     # Solver capabilities.
     MIP_CAPABLE = False
+    WARM_STARTABLE = True
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS \
         + [SOC, ExpCone, PSD, PowCone3D]
     REQUIRES_CONSTR = True
@@ -213,7 +214,10 @@ class SCS(ConicSolver):
         tuple
             (dict of arguments needed for the solver, inverse data)
         """
-        return super(SCS, self).apply(problem)
+        data, inv_data = super(SCS, self).apply(problem)
+        # Add initial guess for warm-starting.
+        data['init_value'] = utilities.stack_vals(problem.variables, np.nan)
+        return data, inv_data
 
     @staticmethod
     def extract_dual_value(result_vec, offset, constraint):
@@ -329,6 +333,8 @@ class SCS(ConicSolver):
             args["x"] = solver_cache[self.name()]["x"]
             args["y"] = solver_cache[self.name()]["y"]
             args["s"] = solver_cache[self.name()]["s"]
+        elif warm_start and not np.any(np.isnan(data['init_value'])):
+            args["x"] = data['init_value']
         cones = dims_to_solver_dict(data[ConicSolver.DIMS])
 
         def solve(_solver_opts):

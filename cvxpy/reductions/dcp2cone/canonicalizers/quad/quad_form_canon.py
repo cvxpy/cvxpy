@@ -16,7 +16,9 @@ limitations under the License.
 
 from cvxpy.atoms.quad_form import SymbolicQuadForm
 from cvxpy.expressions.variable import Variable
+from cvxpy.utilities.bounds import get_expr_bounds_if_supported
 from cvxpy.utilities.solver_context import SolverInfo
+from cvxpy.utilities.values import get_expr_value_if_supported
 
 
 def quad_form_canon(expr, args, solver_context: SolverInfo | None = None):
@@ -25,5 +27,9 @@ def quad_form_canon(expr, args, solver_context: SolverInfo | None = None):
     if isinstance(affine_expr, Variable):
         return SymbolicQuadForm(affine_expr, P, expr), []
     else:
-        t = Variable(affine_expr.shape)
+        bounds = get_expr_bounds_if_supported(affine_expr, solver_context)
+        t = Variable(affine_expr.shape, bounds=bounds)
+        value = get_expr_value_if_supported(affine_expr, solver_context)
+        if value is not None:
+            t.value = value
         return SymbolicQuadForm(t, P, expr), [affine_expr == t]

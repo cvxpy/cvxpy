@@ -331,7 +331,8 @@ def construct_solving_chain(problem, candidates,
         solver_context = SolverInfo(
             solver=solver,
             supported_constraints=supported_constraints,
-            supports_bounds=solver_instance.BOUNDED_VARIABLES
+            supports_bounds=solver_instance.BOUNDED_VARIABLES,
+            supports_warm_start=solver_instance.WARM_STARTABLE,
         )
 
         # --- Exact cone expansion (single pass) ---

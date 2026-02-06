@@ -18,6 +18,7 @@ class XPRESS(QpSolver):
     """Quadratic interface for the FICO Xpress solver"""
 
     MIP_CAPABLE = True
+    WARM_STARTABLE = True
 
     def __init__(self) -> None:
         self.prob_ = None

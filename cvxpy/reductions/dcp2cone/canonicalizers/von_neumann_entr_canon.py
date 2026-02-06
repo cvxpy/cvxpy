@@ -22,7 +22,9 @@ from cvxpy.reductions.dcp2cone.canonicalizers.entr_canon import entr_canon
 from cvxpy.reductions.dcp2cone.canonicalizers.lambda_sum_largest_canon import (
     lambda_sum_largest_canon,
 )
+from cvxpy.utilities.bounds import get_expr_bounds_if_supported
 from cvxpy.utilities.solver_context import SolverInfo
+from cvxpy.utilities.values import get_expr_value_if_supported
 
 
 def von_neumann_entr_canon(expr, args, solver_context: SolverInfo | None = None):
@@ -30,14 +32,19 @@ def von_neumann_entr_canon(expr, args, solver_context: SolverInfo | None = None)
     assert N.is_real()
     n = N.shape[0]
     x = Variable(shape=(n,))
-    t = Variable()
+    bounds = get_expr_bounds_if_supported(expr, solver_context)
+    t = Variable(bounds=bounds)
+    value = get_expr_value_if_supported(expr, solver_context)
+    if value is not None:
+        t.value = value
 
     # START code that applies to all spectral functions #
     constrs = []
     for r in range(1, n):
         # lambda_sum_largest(N, r) <= sum(x[:r])
         expr_r = lambda_sum_largest(N, r)
-        epi, cons = lambda_sum_largest_canon(expr_r, expr_r.args)
+        epi, cons = lambda_sum_largest_canon(expr_r, expr_r.args,
+                                             solver_context=solver_context)
         constrs.extend(cons)
         con = NonNeg(sum(x[:r]) - epi)
         constrs.append(con)
@@ -58,7 +65,7 @@ def von_neumann_entr_canon(expr, args, solver_context: SolverInfo | None = None)
     # END code that applies to all spectral functions #
 
     # sum(entr(x)) >= t
-    hypos, entr_cons = entr_canon(x, [x])
+    hypos, entr_cons = entr_canon(x, [x], solver_context=solver_context)
     constrs.extend(entr_cons)
     con = NonNeg(sum(hypos) - t)
     constrs.append(con)
