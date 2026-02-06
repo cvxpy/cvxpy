@@ -312,7 +312,12 @@ def resolve_and_build_chain(
     if len(problem.variables()) == 0:
         return SolvingChain(reductions=[ConstantSolver()])
 
-    problem_form = ProblemForm(problem, gp=gp)
+    # When ignore_dpp is set and the problem has parameters, EvalParams
+    # will evaluate all parameters to constants before canonicalization.
+    # Tell ProblemForm so it can exclude parameter-only sub-expressions
+    # from cone detection (they won't need conic canonicalization).
+    eval_params = ignore_dpp and bool(problem.parameters())
+    problem_form = ProblemForm(problem, gp=gp, eval_params=eval_params)
 
     if isinstance(solver, Solver):
         # --- Custom solver instance ---
@@ -325,6 +330,10 @@ def resolve_and_build_chain(
             raise SolverError(
                 "Problem is mixed-integer, but the custom solver "
                 "%s is not MIP-capable." % solver.name()
+            )
+        if not solver.can_solve(problem_form):
+            raise SolverError(
+                "The solver %s cannot solve this problem." % solver.name()
             )
         # Register in the appropriate map so build_solving_chain can find it.
         if isinstance(solver, QpSolver):
@@ -341,6 +350,17 @@ def resolve_and_build_chain(
 
         if qp_inst is None and conic_inst is None:
             raise SolverError("The solver %s is not installed." % solver_upper)
+
+        # Check that at least one variant is actually installed.
+        # The solver maps contain entries for all solvers (installed or not).
+        qp_installed = qp_inst is not None and qp_inst.is_installed()
+        conic_installed = conic_inst is not None and conic_inst.is_installed()
+        if not qp_installed and not conic_installed:
+            raise SolverError("The solver %s is not installed." % solver_upper)
+        if not qp_installed:
+            qp_inst = None
+        if not conic_installed:
+            conic_inst = None
 
         # GP problems must use conic solvers (no QP path).
         if gp and conic_inst is None:
@@ -380,6 +400,12 @@ def resolve_and_build_chain(
 
     elif solver is None:
         # --- Default solver selection ---
+        if problem_form.is_mixed_integer() and not problem.is_lp():
+            warn(
+                "Your problem is mixed-integer but not an LP. "
+                "If your problem is nonlinear, consider installing SCIP "
+                "(pip install pyscipopt) to solve it."
+            )
         default = pick_default_solver(problem_form)
         if default is not None:
             solver_instance = default

@@ -51,13 +51,21 @@ if TYPE_CHECKING:
     from cvxpy.reductions.solvers.solver import Solver
 
 
-def _objective_cone_atoms(expr: Expression, affine_above: bool = True) -> list[type]:
+def _objective_cone_atoms(
+    expr: Expression, affine_above: bool = True, eval_params: bool = False,
+) -> list[type]:
     """Collect atom types that need conic canonicalization under quad_obj=True.
 
     Mirrors the Dcp2Cone.canonicalize_tree walk: atoms in the affine head
     of the objective that have a quadratic canonicalization are handled by the
     QP path and do NOT produce conic constraints. Atoms below that head, or
     atoms without a quad canon, still need cone canonicalization.
+
+    Parameters
+    ----------
+    eval_params : bool
+        When True, treat parameter-only sub-expressions as constant
+        (they will be evaluated by EvalParams before canonicalization).
     """
     from cvxpy.constraints.constraint import Constraint
     if isinstance(expr, Leaf):
@@ -68,16 +76,16 @@ def _objective_cone_atoms(expr: Expression, affine_above: bool = True) -> list[t
     if isinstance(expr, Constraint):
         result: list[type] = []
         for arg in expr.args:
-            result += _objective_cone_atoms(arg, False)
+            result += _objective_cone_atoms(arg, False, eval_params)
         return result
-    if expr.is_constant() and not expr.parameters():
+    if expr.is_constant() and (eval_params or not expr.parameters()):
         return []
 
     is_affine = type(expr) not in CANON_METHODS
     child_affine_above = is_affine and affine_above
     result: list[type] = []
     for arg in expr.args:
-        result += _objective_cone_atoms(arg, child_affine_above)
+        result += _objective_cone_atoms(arg, child_affine_above, eval_params)
 
     if affine_above and type(expr) in QUAD_CANON_METHODS:
         # Power with non-quadratic exponent falls back to cone canon.
@@ -93,6 +101,36 @@ def _objective_cone_atoms(expr: Expression, affine_above: bool = True) -> list[t
     return result
 
 
+def _expr_cone_atoms(expr: Expression, eval_params: bool = False) -> list[type]:
+    """Collect atom types needing conic canonicalization from an expression.
+
+    Unlike ``_objective_cone_atoms``, this does not apply QP-path filtering.
+    Used for constraint expressions and for the objective when the QP path
+    is not active.
+
+    Parameters
+    ----------
+    eval_params : bool
+        When True, treat parameter-only sub-expressions as constant.
+    """
+    from cvxpy.constraints.constraint import Constraint
+    if isinstance(expr, Leaf):
+        return []
+    if isinstance(expr, Constraint):
+        result: list[type] = []
+        for arg in expr.args:
+            result += _expr_cone_atoms(arg, eval_params)
+        return result
+    if expr.is_constant() and (eval_params or not expr.parameters()):
+        return []
+    result: list[type] = []
+    for arg in expr.args:
+        result += _expr_cone_atoms(arg, eval_params)
+    if type(expr) in CANON_METHODS:
+        result.append(type(expr))
+    return result
+
+
 class ProblemForm:
     """Analyzes a CVXPY Problem to determine its structural properties.
 
@@ -100,9 +138,12 @@ class ProblemForm:
     and whether the problem has constraints are computed lazily and cached.
     """
 
-    def __init__(self, problem: Problem, gp: bool = False) -> None:
+    def __init__(
+        self, problem: Problem, gp: bool = False, eval_params: bool = False,
+    ) -> None:
         self._problem = problem
         self._gp = gp
+        self._eval_params = eval_params
         self._has_quadratic_objective: bool | None = None
         self._is_mixed_integer: bool | None = None
         self._cones_full: set[type] | None = None
@@ -147,21 +188,39 @@ class ProblemForm:
         from cvxpy.reductions.cone2cone.approx import APPROX_CONE_CONVERSIONS
 
         problem = self._problem
-        constr_types = {type(c) for c in problem.constraints}
+        ep = self._eval_params
+
+        # When eval_params is set, constraints that are entirely
+        # parameter-determined (no variables) will become trivial after
+        # EvalParams runs, so exclude them from cone analysis.
+        if ep:
+            relevant_constrs = [c for c in problem.constraints if c.variables()]
+        else:
+            relevant_constrs = problem.constraints
+
+        constr_types = {type(c) for c in relevant_constrs}
         cones: set[type] = set()
 
-        # Collect atoms from constraints (always the full atom set).
+        # Collect atoms from constraints.
         constr_atoms: list[type] = []
-        for constr in problem.constraints:
-            constr_atoms += constr.atoms()
+        for constr in relevant_constrs:
+            if ep:
+                constr_atoms += _expr_cone_atoms(constr, eval_params=True)
+            else:
+                constr_atoms += constr.atoms()
 
         # Use QP-filtered objective atoms as the base: when the objective
         # is quadratic, _objective_cone_atoms excludes atoms handled by the
         # QP path (all of which map to SOC).
         if self.has_quadratic_objective():
-            base_obj_atoms = _objective_cone_atoms(problem.objective.expr)
+            base_obj_atoms = _objective_cone_atoms(
+                problem.objective.expr, eval_params=ep)
         else:
-            base_obj_atoms = problem.objective.expr.atoms()
+            if ep:
+                base_obj_atoms = _expr_cone_atoms(
+                    problem.objective.expr, eval_params=True)
+            else:
+                base_obj_atoms = problem.objective.expr.atoms()
 
         atoms = base_obj_atoms + constr_atoms
 
