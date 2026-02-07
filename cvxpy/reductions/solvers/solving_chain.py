@@ -62,12 +62,6 @@ def _lookup_by_name(solver_name: str, gp: bool):
 
 def _fallback_solver(problem_form: ProblemForm) -> Solver:
     """Last-resort: try every installed solver, warn, or raise."""
-    if problem_form.is_mixed_integer() and not problem_form.is_lp():
-        warn(
-            "Your problem is mixed-integer but not an LP. "
-            "If your problem is nonlinear, consider installing SCIP "
-            "(pip install pyscipopt) to solve it."
-        )
     for name in slv_def.INSTALLED_SOLVERS:
         for inst in (slv_def.SOLVER_MAP_CONIC.get(name),
                      slv_def.SOLVER_MAP_QP.get(name)):
@@ -79,6 +73,12 @@ def _fallback_solver(problem_form: ProblemForm) -> Solver:
                     inst.name()
                 )
                 return inst
+    if problem_form.is_mixed_integer() and not problem_form.is_lp():
+        warn(
+            "Your problem is mixed-integer but not an LP. "
+            "If your problem is nonlinear, consider installing SCIP "
+            "(pip install pyscipopt) to solve it."
+        )
     if problem_form.is_mixed_integer():
         raise SolverError(
             "You need a mixed-integer solver for this model. "
