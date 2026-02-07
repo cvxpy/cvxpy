@@ -42,7 +42,60 @@ DPP_ERROR_MSG = (
     "https://www.cvxpy.org/tutorial/dpp/index.html"
 )
 
-def build_solving_chain(
+
+def _lookup_by_name(solver_name: str, gp: bool):
+    """Look up installed QP and conic instances for a solver name.
+
+    Returns (qp_inst | None, conic_inst | None). GP mode suppresses QP.
+    """
+    upper = solver_name.upper()
+    qp = slv_def.SOLVER_MAP_QP.get(upper)
+    if qp is not None and not qp.is_installed():
+        qp = None
+    conic = slv_def.SOLVER_MAP_CONIC.get(upper)
+    if conic is not None and not conic.is_installed():
+        conic = None
+    if gp:
+        qp = None
+    return qp, conic
+
+
+def _fallback_solver(problem_form: ProblemForm) -> Solver:
+    """Last-resort: try every installed solver, warn, or raise."""
+    if problem_form.is_mixed_integer() and not problem_form.is_lp():
+        warn(
+            "Your problem is mixed-integer but not an LP. "
+            "If your problem is nonlinear, consider installing SCIP "
+            "(pip install pyscipopt) to solve it."
+        )
+    for name in slv_def.INSTALLED_SOLVERS:
+        for inst in (slv_def.SOLVER_MAP_CONIC.get(name),
+                     slv_def.SOLVER_MAP_QP.get(name)):
+            if inst is not None and inst.can_solve(problem_form):
+                warn(
+                    "The default solvers are not available. "
+                    "Using %s. Consider specifying a solver "
+                    "explicitly via the ``solver`` argument." %
+                    inst.name()
+                )
+                return inst
+    if problem_form.is_mixed_integer():
+        raise SolverError(
+            "You need a mixed-integer solver for this model. "
+            "Refer to the documentation "
+            "https://www.cvxpy.org/tutorial/advanced/"
+            "index.html#mixed-integer-programs "
+            "for discussion on this topic. "
+            "Install the SCIP solver (pip install pyscipopt) "
+            "for mixed-integer nonlinear problems, or HiGHS "
+            "(pip install highspy) for mixed-integer LPs."
+        )
+    raise SolverError(
+        "No installed solver could handle this problem."
+    )
+
+
+def _build_solving_chain(
     problem,
     solver_instance: Solver,
     problem_form=None,
@@ -170,47 +223,19 @@ def build_solving_chain(
     return SolvingChain(reductions=reductions, solver_context=solver_context)
 
 
-def _validate_solver_arg(solver) -> None:
-    """Validate the solver argument type and availability.
-
-    Raises
-    ------
-    SolverError
-        If the solver string is not installed, if a custom Solver uses a
-        reserved name, or if the argument is not a valid type.
-    """
-    if isinstance(solver, str):
-        _upper = solver.upper()
-        _qp = slv_def.SOLVER_MAP_QP.get(_upper)
-        _co = slv_def.SOLVER_MAP_CONIC.get(_upper)
-        qp_ok = _qp is not None and _qp.is_installed()
-        co_ok = _co is not None and _co.is_installed()
-        if not qp_ok and not co_ok:
-            raise SolverError("The solver %s is not installed." % _upper)
-    elif isinstance(solver, Solver):
-        if solver.name() in s.SOLVERS:
-            raise SolverError(
-                "Custom solvers must have a different name "
-                "than the officially supported ones"
-            )
-    elif solver is not None:
-        raise SolverError(
-            "The solver argument must be a string, a Solver instance, or None."
-        )
-
-
 def _resolve_solver(
     solver,
     problem_form: ProblemForm,
     gp: bool,
 ) -> Solver:
-    """Resolve a validated solver argument to a concrete Solver instance.
+    """Validate and resolve a solver argument to a concrete Solver instance.
 
     Parameters
     ----------
     solver : str, Solver, or None
-        The solver to resolve.  Must have already been validated by
-        ``_validate_solver_arg``.
+        The solver to resolve.  ``None`` selects a default based on
+        problem structure.  A string is looked up in the installed solver
+        maps.  A :class:`Solver` instance is used directly (custom solver).
     problem_form : ProblemForm
         Pre-canonicalization structural analysis of the problem.
     gp : bool
@@ -224,37 +249,48 @@ def _resolve_solver(
     Raises
     ------
     SolverError
-        If the solver cannot handle the problem or no suitable solver is found.
+        If the solver argument is invalid, not installed, cannot handle
+        the problem, or no suitable solver is found.
     """
+    constant = len(problem_form._problem.variables()) == 0
+
     if isinstance(solver, Solver):
-        if problem_form.is_mixed_integer() and not solver.MIP_CAPABLE:
+        if solver.name() in s.SOLVERS:
             raise SolverError(
-                "Problem is mixed-integer, but the custom solver "
-                "%s is not MIP-capable." % solver.name()
+                "Custom solvers must have a different name "
+                "than the officially supported ones"
             )
-        if not solver.can_solve(problem_form):
-            raise SolverError(
-                "The solver %s cannot solve this problem." % solver.name()
-            )
+        if not constant:
+            if problem_form.is_mixed_integer() and not solver.MIP_CAPABLE:
+                raise SolverError(
+                    "Problem is mixed-integer, but the custom solver "
+                    "%s is not MIP-capable." % solver.name()
+                )
+            if not solver.can_solve(problem_form):
+                raise SolverError(
+                    "The solver %s cannot solve this problem." % solver.name()
+                )
         return solver
 
     if isinstance(solver, str):
-        solver_upper = solver.upper()
-        qp_inst = slv_def.SOLVER_MAP_QP.get(solver_upper)
-        conic_inst = slv_def.SOLVER_MAP_CONIC.get(solver_upper)
-        if qp_inst is not None and not qp_inst.is_installed():
-            qp_inst = None
-        if conic_inst is not None and not conic_inst.is_installed():
-            conic_inst = None
+        qp_inst, conic_inst = _lookup_by_name(solver, gp)
+
+        if qp_inst is None and conic_inst is None:
+            raise SolverError(
+                "The solver %s is not installed." % solver.upper()
+            )
 
         if gp and conic_inst is None:
             raise SolverError(
                 "When `gp=True`, `solver` must be a conic solver "
                 "(received '%s'); try calling "
-                "`solve()` with `solver=cvxpy.CLARABEL`." % solver_upper
+                "`solve()` with `solver=cvxpy.CLARABEL`." % solver.upper()
             )
-        if gp:
-            qp_inst = None
+
+        if constant:
+            # Constant problems are handled by ConstantSolver; any
+            # installed solver is acceptable.
+            return conic_inst or qp_inst  # type: ignore[return-value]
 
         # Prefer QP when the problem has a quadratic objective; fall back
         # to conic; try QP last for non-quadratic problems.
@@ -270,44 +306,29 @@ def _resolve_solver(
             if inst.can_solve(problem_form):
                 return inst
         raise SolverError(
-            "The solver %s cannot solve this problem." % solver_upper
+            "The solver %s cannot solve this problem." % solver.upper()
+        )
+
+    if solver is not None:
+        raise SolverError(
+            "The solver argument must be a string, a Solver instance, or None."
         )
 
     # solver is None
+    if constant:
+        # Constant problems are handled by ConstantSolver; return any
+        # installed solver to satisfy the chain construction.
+        for name in slv_def.INSTALLED_SOLVERS:
+            for inst in (slv_def.SOLVER_MAP_CONIC.get(name),
+                         slv_def.SOLVER_MAP_QP.get(name)):
+                if inst is not None:
+                    return inst
+
     default = pick_default_solver(problem_form)
     if default is not None:
         return default
 
-    if problem_form.is_mixed_integer() and not problem_form.is_lp():
-        warn(
-            "Your problem is mixed-integer but not an LP. "
-            "If your problem is nonlinear, consider installing SCIP "
-            "(pip install pyscipopt) to solve it."
-        )
-    for inst in list(slv_def.SOLVER_MAP_CONIC.values()) + \
-            list(slv_def.SOLVER_MAP_QP.values()):
-        if inst.is_installed() and inst.can_solve(problem_form):
-            warn(
-                "The default solvers are not available. "
-                "Using %s. Consider specifying a solver "
-                "explicitly via the ``solver`` argument." %
-                inst.name()
-            )
-            return inst
-    if problem_form.is_mixed_integer():
-        raise SolverError(
-            "You need a mixed-integer solver for this model. "
-            "Refer to the documentation "
-            "https://www.cvxpy.org/tutorial/advanced/"
-            "index.html#mixed-integer-programs "
-            "for discussion on this topic. "
-            "Install the SCIP solver (pip install pyscipopt) "
-            "for mixed-integer nonlinear problems, or HiGHS "
-            "(pip install highspy) for mixed-integer LPs."
-        )
-    raise SolverError(
-        "No installed solver could handle this problem."
-    )
+    return _fallback_solver(problem_form)
 
 
 def resolve_and_build_chain(
@@ -323,7 +344,7 @@ def resolve_and_build_chain(
 
     Resolves *solver* (``None``, a string name, or a :class:`Solver` instance)
     to a concrete solver, validates it against the problem structure, then
-    delegates to :func:`build_solving_chain`.
+    delegates to :func:`_build_solving_chain`.
 
     Parameters
     ----------
@@ -356,12 +377,9 @@ def resolve_and_build_chain(
         If no suitable solver is found or the specified solver cannot handle
         the problem.
     """
-    _validate_solver_arg(solver)
-    if len(problem.variables()) == 0:
-        return SolvingChain(reductions=[ConstantSolver()])
     problem_form = make_problem_form(problem, gp, ignore_dpp)
     solver_instance = _resolve_solver(solver, problem_form, gp)
-    return build_solving_chain(
+    return _build_solving_chain(
         problem,
         solver_instance,
         problem_form=problem_form,
