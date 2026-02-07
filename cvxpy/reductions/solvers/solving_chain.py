@@ -67,39 +67,15 @@ def _pre_canonicalization_reductions(problem, gp: bool = False) \
     list of Reduction objects
         A list of reductions that can be used to convert the problem to an
         intermediate form.
-    Raises
-    ------
-    DCPError
-        Raised if the problem is not DCP and `gp` is False.
-    DGPError
-        Raised if the problem is not DGP and `gp` is True.
     """
+    # DCP/DGP validation is done by resolve_and_build_chain() before
+    # this function is reached.  Do not duplicate it here.
     reductions = []
     # TODO Handle boolean constraints.
     if complex2real.accepts(problem):
         reductions += [complex2real.Complex2Real()]
     if gp:
         reductions += [Dgp2Dcp()]
-
-    if not gp and not problem.is_dcp():
-        append = build_non_disciplined_error_msg(problem, 'DCP')
-        if problem.is_dgp():
-            append += ("\nHowever, the problem does follow DGP rules. "
-                       "Consider calling solve() with `gp=True`.")
-        elif problem.is_dqcp():
-            append += ("\nHowever, the problem does follow DQCP rules. "
-                       "Consider calling solve() with `qcp=True`.")
-        raise DCPError(
-            "Problem does not follow DCP rules. Specifically:\n" + append)
-    elif gp and not problem.is_dgp():
-        append = build_non_disciplined_error_msg(problem, 'DGP')
-        if problem.is_dcp():
-            append += ("\nHowever, the problem does follow DCP rules. "
-                       "Consider calling solve() with `gp=False`.")
-        elif problem.is_dqcp():
-            append += ("\nHowever, the problem does follow DQCP rules. "
-                       "Consider calling solve() with `qcp=True`.")
-        raise DGPError("Problem does not follow DGP rules." + append)
 
     # Dcp2Cone requires problems to minimize their objectives.
     if type(problem.objective) == Maximize:
