@@ -18,6 +18,8 @@ class XPRESS(QpSolver):
     """Quadratic interface for the FICO Xpress solver"""
 
     MIP_CAPABLE = True
+    BOUNDED_VARIABLES = True
+    WARM_STARTABLE = True
 
     def __init__(self) -> None:
         self.prob_ = None
@@ -197,8 +199,12 @@ class XPRESS(QpSolver):
                                # linear coefficients
                                rowind=A.indices[A.data != 0],       # row indices
                                rowcoef=A.data[A.data != 0],         # coefficients
-                               lb=[-xp.infinity] * len(q),         # lower bound
-                               ub=[xp.infinity] * len(q),          # upper bound
+                               lb=(list(data[s.LOWER_BOUNDS])  # lower bound
+                                   if data.get(s.LOWER_BOUNDS) is not None
+                                   else [-xp.infinity] * len(q)),
+                               ub=(list(data[s.UPPER_BOUNDS])  # upper bound
+                                   if data.get(s.UPPER_BOUNDS) is not None
+                                   else [xp.infinity] * len(q)),
                                # quadratic objective (only upper triangle)
                                objqcol1=mqcol1,
                                objqcol2=mqcol2,
