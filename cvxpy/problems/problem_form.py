@@ -329,49 +329,37 @@ def pick_default_solver(problem_form: ProblemForm) -> Solver | None:
     Solver or None
         A solver instance, or None if no suitable installed solver is found.
     """
-    # 1-3: Premium solvers — use if installed and capable.
+    def _get(solver_map, name):
+        inst = solver_map.get(name)
+        return inst if inst is not None and inst.is_installed() else None
+
+    # Premium solvers — use if installed and capable.
     for solver_name in (s.MOSEK, s.MOREAU, s.GUROBI):
-        solver = slv_def.SOLVER_MAP_CONIC.get(solver_name)
-        if solver is not None and solver.is_installed() \
-                and solver.can_solve(problem_form):
+        solver = _get(slv_def.SOLVER_MAP_CONIC, solver_name)
+        if solver is not None and solver.can_solve(problem_form):
             return solver
 
-    # 4: Mixed-integer LP → HIGHS.
-    # 4b: Mixed-integer non-LP → SCIP (HIGHS only supports MILP).
+    # Mixed-integer: LP → HIGHS, non-LP → SCIP.
     if problem_form.is_mixed_integer():
         if problem_form.is_lp():
-            solver = slv_def.SOLVER_MAP_CONIC.get(s.HIGHS)
-            if solver is not None and solver.is_installed():
+            solver = _get(slv_def.SOLVER_MAP_CONIC, s.HIGHS)
+            if solver is not None:
                 return solver
-        solver = slv_def.SOLVER_MAP_CONIC.get(s.SCIP)
-        if solver is not None and solver.is_installed():
-            return solver
-        return None
+        solver = _get(slv_def.SOLVER_MAP_CONIC, s.SCIP)
+        return solver
 
-    # 5: LP → Clarabel.
+    # LP → Clarabel.
     if problem_form.cones() <= _QP_CONES:
-        solver = slv_def.SOLVER_MAP_CONIC.get(s.CLARABEL)
-        if solver is not None and solver.is_installed():
-            return solver
-        return None
+        return _get(slv_def.SOLVER_MAP_CONIC, s.CLARABEL)
 
-    # 6: QP → OSQP.
+    # QP → OSQP.
     if problem_form.has_quadratic_objective() \
             and problem_form.cones(quad_obj=True) <= _QP_CONES:
-        solver = slv_def.SOLVER_MAP_QP.get(s.OSQP)
-        if solver is not None and solver.is_installed():
-            return solver
-        return None
+        return _get(slv_def.SOLVER_MAP_QP, s.OSQP)
 
-    # 7: SDP → SCS.
+    # SDP → SCS.
     if PSD in problem_form.cones():
-        solver = slv_def.SOLVER_MAP_CONIC.get(s.SCS)
-        if solver is not None and solver.is_installed():
-            return solver
-        return None
+        return _get(slv_def.SOLVER_MAP_CONIC, s.SCS)
 
-    # 8: Everything else (SOCP, ExpCone, PowCone, etc.) → Clarabel.
-    solver = slv_def.SOLVER_MAP_CONIC.get(s.CLARABEL)
-    if solver is not None and solver.is_installed():
-        return solver
-    return None
+    # Everything else (SOCP, ExpCone, PowCone, etc.) → Clarabel.
+    return _get(slv_def.SOLVER_MAP_CONIC, s.CLARABEL)

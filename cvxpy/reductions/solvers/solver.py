@@ -21,26 +21,50 @@ from cvxpy.reductions.reduction import Reduction
 from cvxpy.reductions.solvers.solver_inverse_data import SolverInverseData
 
 
+def expand_cones(cones, supported):
+    """Expand unsupported cones via exact and approximate conversions.
+
+    Parameters
+    ----------
+    cones : set[type]
+        Mutable set of cone constraint types (modified in place).
+    supported : frozenset[type]
+        Cones the target solver natively supports.
+
+    Returns
+    -------
+    (cones, exact_targets, approx_targets) where *cones* is the
+    (mutated) input set and the targets are the cones that were expanded.
+    """
+    from cvxpy.reductions.cone2cone.approx import APPROX_CONE_CONVERSIONS
+    from cvxpy.reductions.cone2cone.exact import EXACT_CONE_CONVERSIONS
+
+    exact_targets = (cones & EXACT_CONE_CONVERSIONS.keys()) - supported
+    for co in exact_targets:
+        cones.discard(co)
+        cones.update(EXACT_CONE_CONVERSIONS[co])
+
+    approx_targets = (cones & APPROX_CONE_CONVERSIONS.keys()) - supported
+    for co in approx_targets:
+        cones.discard(co)
+        cones.update(APPROX_CONE_CONVERSIONS[co])
+
+    return cones, exact_targets, approx_targets
+
+
 class Solver(Reduction):
     """Generic interface for a solver that uses reduction semantics
     """
 
     DIMS = "dims"
-    # ^ The key that maps to "ConeDims" in the data returned by apply().
-    #
-    #   There are separate ConeDims classes for cone programs vs QPs.
-    #   See cone_matrix_stuffing.py and qp_matrix_stuffing.py for details.
 
-    # Solver capabilities.
     MIP_CAPABLE = False
     BOUNDED_VARIABLES = False
     SOC_DIM3_ONLY = False
 
-    # Constraint support (overridden by ConicSolver and QpSolver).
     SUPPORTED_CONSTRAINTS = []
     REQUIRES_CONSTR = False
 
-    # Keys for inverse data.
     VAR_ID = 'var_id'
     DUAL_VAR_ID = 'dual_var_id'
     EQ_CONSTR = 'eq_constr'
@@ -96,14 +120,9 @@ class Solver(Reduction):
         problem_form : ProblemForm
             Pre-canonicalization structural analysis of the problem.
         """
-        from cvxpy.reductions.cone2cone.approx import APPROX_CONE_CONVERSIONS
-        from cvxpy.reductions.cone2cone.exact import EXACT_CONE_CONVERSIONS
-
-        # Check MIP capability.
         if problem_form.is_mixed_integer() and not self.MIP_CAPABLE:
             return False
 
-        # Get supported constraints (MI vs non-MI).
         if problem_form.is_mixed_integer():
             supported = frozenset(
                 getattr(self, 'MI_SUPPORTED_CONSTRAINTS', self.SUPPORTED_CONSTRAINTS)
@@ -111,23 +130,10 @@ class Solver(Reduction):
         else:
             supported = frozenset(self.SUPPORTED_CONSTRAINTS)
 
-        # Use QP-filtered cones when solver supports quad objectives.
         quad_obj = self.supports_quad_obj() and problem_form.has_quadratic_objective()
         cones = problem_form.cones(quad_obj=quad_obj).copy()
+        expand_cones(cones, supported)
 
-        # Exact cone expansion (PowConeND -> PowCone3D, SOC -> PSD).
-        exact_targets = (cones & EXACT_CONE_CONVERSIONS.keys()) - supported
-        for co in exact_targets:
-            cones.discard(co)
-            cones.update(EXACT_CONE_CONVERSIONS[co])
-
-        # Approximate cone expansion (RelEntrConeQuad -> SOC, etc.).
-        approx_cos = (cones & APPROX_CONE_CONVERSIONS.keys()) - supported
-        for co in approx_cos:
-            cones.discard(co)
-            cones.update(APPROX_CONE_CONVERSIONS[co])
-
-        # Check REQUIRES_CONSTR.
         if not problem_form.has_constraints() and self.REQUIRES_CONSTR:
             return False
 

@@ -13,14 +13,8 @@ from cvxpy.problems.objective import Maximize
 from cvxpy.problems.problem_form import ProblemForm, pick_default_solver
 from cvxpy.reductions.chain import Chain
 from cvxpy.reductions.complex2real import complex2real
-from cvxpy.reductions.cone2cone.approx import (
-    APPROX_CONE_CONVERSIONS,
-    ApproxCone2Cone,
-)
-from cvxpy.reductions.cone2cone.exact import (
-    EXACT_CONE_CONVERSIONS,
-    ExactCone2Cone,
-)
+from cvxpy.reductions.cone2cone.approx import ApproxCone2Cone
+from cvxpy.reductions.cone2cone.exact import ExactCone2Cone
 from cvxpy.reductions.cone2cone.soc_dim3 import SOCDim3
 from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
@@ -36,7 +30,7 @@ from cvxpy.reductions.reduction import Reduction
 from cvxpy.reductions.solvers import defines as slv_def
 from cvxpy.reductions.solvers.constant_solver import ConstantSolver
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
-from cvxpy.reductions.solvers.solver import Solver
+from cvxpy.reductions.solvers.solver import Solver, expand_cones
 from cvxpy.settings import COO_CANON_BACKEND, DPP_PARAM_THRESHOLD
 from cvxpy.utilities.debug_tools import build_non_disciplined_error_msg
 from cvxpy.utilities.solver_context import SolverInfo
@@ -68,21 +62,15 @@ def _pre_canonicalization_reductions(problem, gp: bool = False) \
         A list of reductions that can be used to convert the problem to an
         intermediate form.
     """
-    # DCP/DGP validation is done by resolve_and_build_chain() before
-    # this function is reached.  Do not duplicate it here.
     reductions = []
-    # TODO Handle boolean constraints.
     if complex2real.accepts(problem):
         reductions += [complex2real.Complex2Real()]
     if gp:
         reductions += [Dgp2Dcp()]
 
-    # Dcp2Cone requires problems to minimize their objectives.
     if type(problem.objective) == Maximize:
         reductions += [FlipObjective()]
 
-    # Special reduction for finite set constraint,
-    # used by both QP and conic pathways.
     constr_types = {type(c) for c in problem.constraints}
     if FiniteSet in constr_types:
         reductions += [Valinvec2mixedint()]
@@ -137,16 +125,13 @@ def build_solving_chain(
 
     reductions = _pre_canonicalization_reductions(problem, gp)
 
-    # --- DPP handling ---
     dpp_context = 'dcp' if not gp else 'dgp'
     if ignore_dpp or not problem.is_dpp(dpp_context):
-        if ignore_dpp:
-            reductions = [EvalParams()] + reductions
-        elif not enforce_dpp:
-            warn(DPP_ERROR_MSG)
-            reductions = [EvalParams()] + reductions
-        else:
+        if not ignore_dpp and enforce_dpp:
             raise DPPError(DPP_ERROR_MSG)
+        if not ignore_dpp:
+            warn(DPP_ERROR_MSG)
+        reductions = [EvalParams()] + reductions
     else:
         if canon_backend is None:
             total_param_size = sum(p.size for p in problem.parameters())
@@ -170,30 +155,20 @@ def build_solving_chain(
         supports_bounds=solver_instance.BOUNDED_VARIABLES,
     )
 
-    # Determine cone conversions needed.
     # QP solvers always need quad_obj=True in the matrix stuffing step
     # because their apply() expects the P matrix from ConeMatrixStuffing.
     is_qp_solver = isinstance(solver_instance, QpSolver)
     quad_obj = (use_quad and solver_instance.supports_quad_obj()
                 and (is_qp_solver or problem_form.has_quadratic_objective()))
     cones = problem_form.cones(quad_obj=quad_obj).copy()
-
-    exact_targets = (cones & EXACT_CONE_CONVERSIONS.keys()) - supported
-    for co in exact_targets:
-        cones.discard(co)
-        cones.update(EXACT_CONE_CONVERSIONS[co])
-
-    approx_cos = (cones & APPROX_CONE_CONVERSIONS.keys()) - supported
-    for co in approx_cos:
-        cones.discard(co)
-        cones.update(APPROX_CONE_CONVERSIONS[co])
+    cones, exact_targets, approx_targets = expand_cones(cones, supported)
 
     reductions.append(Dcp2Cone(quad_obj=quad_obj, solver_context=solver_context))
 
     if exact_targets:
         reductions.append(ExactCone2Cone(target_cones=exact_targets))
-    if approx_cos:
-        reductions.append(ApproxCone2Cone(target_cones=approx_cos))
+    if approx_targets:
+        reductions.append(ApproxCone2Cone(target_cones=approx_targets))
 
     reductions.append(
         CvxAttr2Constr(reduce_bounds=not solver_instance.BOUNDED_VARIABLES))
@@ -278,18 +253,13 @@ def resolve_and_build_chain(
                        "Consider calling solve() with `qcp=True`.")
         raise DGPError("Problem does not follow DGP rules." + append)
 
-    # Quick validation: reject unknown or uninstalled solver names
-    # before the zero-variable early return, so that e.g.
-    # Problem(Minimize(0)).solve(solver='DAQP') still raises SolverError
-    # when DAQP is not installed.
     if isinstance(solver, str):
         _upper = solver.upper()
         _qp = slv_def.SOLVER_MAP_QP.get(_upper)
         _co = slv_def.SOLVER_MAP_CONIC.get(_upper)
-        if _qp is None and _co is None:
-            raise SolverError("The solver %s is not installed." % _upper)
-        if not (_qp is not None and _qp.is_installed()) \
-                and not (_co is not None and _co.is_installed()):
+        qp_ok = _qp is not None and _qp.is_installed()
+        co_ok = _co is not None and _co.is_installed()
+        if not qp_ok and not co_ok:
             raise SolverError("The solver %s is not installed." % _upper)
     elif isinstance(solver, Solver):
         if solver.name() in s.SOLVERS:
@@ -302,21 +272,13 @@ def resolve_and_build_chain(
             "The solver argument must be a string, a Solver instance, or None."
         )
 
-    # Zero-variable problems are handled directly by ConstantSolver,
-    # no solver resolution needed.
     if len(problem.variables()) == 0:
         return SolvingChain(reductions=[ConstantSolver()])
 
-    # When ignore_dpp is set and the problem has parameters, EvalParams
-    # will evaluate all parameters to constants before canonicalization.
-    # Tell ProblemForm so it can exclude parameter-only sub-expressions
-    # from cone detection (they won't need conic canonicalization).
     eval_params = ignore_dpp and bool(problem.parameters())
     problem_form = ProblemForm(problem, gp=gp, eval_params=eval_params)
 
     if isinstance(solver, Solver):
-        # --- Custom solver instance ---
-        # (name-vs-SOLVERS check already done above)
         if problem_form.is_mixed_integer() and not solver.MIP_CAPABLE:
             raise SolverError(
                 "Problem is mixed-integer, but the custom solver "
@@ -329,9 +291,6 @@ def resolve_and_build_chain(
         solver_instance = solver
 
     elif isinstance(solver, str):
-        # --- Named solver ---
-        # (existence and is_installed checks already done above;
-        #  recompute installed instances for QP/conic routing)
         solver_upper = solver.upper()
         qp_inst = slv_def.SOLVER_MAP_QP.get(solver_upper)
         conic_inst = slv_def.SOLVER_MAP_CONIC.get(solver_upper)
@@ -340,7 +299,6 @@ def resolve_and_build_chain(
         if conic_inst is not None and not conic_inst.is_installed():
             conic_inst = None
 
-        # GP problems must use conic solvers (no QP path).
         if gp and conic_inst is None:
             raise SolverError(
                 "When `gp=True`, `solver` must be a conic solver "
@@ -350,34 +308,27 @@ def resolve_and_build_chain(
         if gp:
             qp_inst = None
 
-        # When the solver appears in both maps, prefer QP when the problem
-        # has a quadratic objective and the QP instance can handle it.
-        if qp_inst is not None and conic_inst is not None:
-            if (problem_form.has_quadratic_objective()
-                    and qp_inst.can_solve(problem_form)):
-                solver_instance = qp_inst
-            elif conic_inst.can_solve(problem_form):
-                solver_instance = conic_inst
-            else:
-                raise SolverError(
-                    "The solver %s cannot solve this problem." % solver_upper
-                )
-        elif qp_inst is not None:
-            if not qp_inst.can_solve(problem_form):
-                raise SolverError(
-                    "The solver %s cannot solve this problem." % solver_upper
-                )
-            solver_instance = qp_inst
-        else:
-            assert conic_inst is not None  # guaranteed by the None-check above
-            if not conic_inst.can_solve(problem_form):
-                raise SolverError(
-                    "The solver %s cannot solve this problem." % solver_upper
-                )
-            solver_instance = conic_inst
+        # Prefer QP when the problem has a quadratic objective; fall back
+        # to conic; try QP last for non-quadratic problems.
+        candidates = []
+        if qp_inst is not None and problem_form.has_quadratic_objective():
+            candidates.append(qp_inst)
+        if conic_inst is not None:
+            candidates.append(conic_inst)
+        if qp_inst is not None and not problem_form.has_quadratic_objective():
+            candidates.append(qp_inst)
+
+        solver_instance = None
+        for inst in candidates:
+            if inst.can_solve(problem_form):
+                solver_instance = inst
+                break
+        if solver_instance is None:
+            raise SolverError(
+                "The solver %s cannot solve this problem." % solver_upper
+            )
 
     elif solver is None:
-        # --- Default solver selection ---
         default = pick_default_solver(problem_form)
         if default is not None:
             solver_instance = default
@@ -388,7 +339,6 @@ def resolve_and_build_chain(
                     "If your problem is nonlinear, consider installing SCIP "
                     "(pip install pyscipopt) to solve it."
                 )
-            # Fallback: iterate all installed solvers.
             solver_instance = None
             for inst in list(slv_def.SOLVER_MAP_CONIC.values()) + \
                     list(slv_def.SOLVER_MAP_QP.values()):
