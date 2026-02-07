@@ -43,11 +43,13 @@ from cvxpy.constraints import (
     Zero,
 )
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.error import DCPError, DGPError
 from cvxpy.expressions.leaf import Leaf
 from cvxpy.reductions.cone2cone.approx import APPROX_CONE_CONVERSIONS
 from cvxpy.reductions.dcp2cone.canonicalizers import CANON_METHODS
 from cvxpy.reductions.dcp2cone.canonicalizers.quad import QUAD_CANON_METHODS
 from cvxpy.reductions.solvers import defines as slv_def
+from cvxpy.utilities.debug_tools import build_non_disciplined_error_msg
 
 if TYPE_CHECKING:
     from cvxpy.expressions.expression import Expression
@@ -362,3 +364,51 @@ def pick_default_solver(problem_form: ProblemForm) -> Solver | None:
 
     # Everything else (SOCP, ExpCone, PowCone, etc.) → Clarabel.
     return _get(slv_def.SOLVER_MAP_CONIC, s.CLARABEL)
+
+
+def make_problem_form(problem: Problem, gp: bool, ignore_dpp: bool) -> ProblemForm:
+    """Validate DCP/DGP compliance and build a ProblemForm.
+
+    Parameters
+    ----------
+    problem : Problem
+        The problem to analyze.
+    gp : bool
+        If True, validate DGP rules instead of DCP.
+    ignore_dpp : bool
+        When True, treat parameters as constants for cone analysis.
+
+    Returns
+    -------
+    ProblemForm
+        Structural analysis of the problem.
+
+    Raises
+    ------
+    DCPError
+        If ``gp`` is False and the problem is not DCP.
+    DGPError
+        If ``gp`` is True and the problem is not DGP.
+    """
+    if not gp and not problem.is_dcp():
+        append = build_non_disciplined_error_msg(problem, 'DCP')
+        if problem.is_dgp():
+            append += ("\nHowever, the problem does follow DGP rules. "
+                       "Consider calling solve() with `gp=True`.")
+        elif problem.is_dqcp():
+            append += ("\nHowever, the problem does follow DQCP rules. "
+                       "Consider calling solve() with `qcp=True`.")
+        raise DCPError(
+            "Problem does not follow DCP rules. Specifically:\n" + append)
+    elif gp and not problem.is_dgp():
+        append = build_non_disciplined_error_msg(problem, 'DGP')
+        if problem.is_dcp():
+            append += ("\nHowever, the problem does follow DCP rules. "
+                       "Consider calling solve() with `gp=False`.")
+        elif problem.is_dqcp():
+            append += ("\nHowever, the problem does follow DQCP rules. "
+                       "Consider calling solve() with `qcp=True`.")
+        raise DGPError("Problem does not follow DGP rules." + append)
+
+    eval_params = ignore_dpp and bool(problem.parameters())
+    return ProblemForm(problem, gp=gp, eval_params=eval_params)
