@@ -333,8 +333,7 @@ def pick_default_solver(problem_form: ProblemForm) -> Solver | None:
         inst = solver_map.get(name)
         return inst if inst is not None and inst.is_installed() else None
 
-    # Premium solvers — use if installed and capable.
-    for solver_name in (s.MOSEK, s.MOREAU, s.GUROBI):
+    for solver_name in slv_def.COMMERCIAL_SOLVERS:
         solver = _get(slv_def.SOLVER_MAP_CONIC, solver_name)
         if solver is not None and solver.can_solve(problem_form):
             return solver

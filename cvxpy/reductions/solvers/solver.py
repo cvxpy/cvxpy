@@ -57,14 +57,21 @@ class Solver(Reduction):
     """
 
     DIMS = "dims"
+    # ^ The key that maps to "ConeDims" in the data returned by apply().
+    #
+    #   There are separate ConeDims classes for cone programs vs QPs.
+    #   See cone_matrix_stuffing.py and qp_matrix_stuffing.py for details.
 
+    # Solver capabilities.
     MIP_CAPABLE = False
     BOUNDED_VARIABLES = False
     SOC_DIM3_ONLY = False
 
+    # Constraint support (overridden by ConicSolver and QpSolver).
     SUPPORTED_CONSTRAINTS = []
     REQUIRES_CONSTR = False
 
+    # Keys for inverse data.
     VAR_ID = 'var_id'
     DUAL_VAR_ID = 'dual_var_id'
     EQ_CONSTR = 'eq_constr'

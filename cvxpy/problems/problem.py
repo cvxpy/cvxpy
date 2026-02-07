@@ -18,7 +18,10 @@ from __future__ import annotations
 import time
 from collections import namedtuple
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Dict, List, Optional, Union
+
+if TYPE_CHECKING:
+    from cvxpy.reductions.solvers.solver import Solver
 
 import numpy as np
 
@@ -862,7 +865,7 @@ class Problem(u.Canonical):
 
     def _construct_chain(
             self,
-            solver=None,
+            solver: str | Solver | None = None,
             gp: bool = False,
             enforce_dpp: bool = False,
             ignore_dpp: bool = False,

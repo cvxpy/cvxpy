@@ -152,6 +152,7 @@ MI_SOLVERS = [
     s.SCIPY,
 ]
 MI_SOCP_SOLVERS = [s.MOSEK, s.GUROBI, s.CPLEX, s.XPRESS, s.SCIP, s.ECOS_BB, s.KNITRO]
+COMMERCIAL_SOLVERS = [s.MOSEK, s.MOREAU, s.GUROBI]
 
 
 def installed_solvers():
