@@ -42,7 +42,23 @@ def lambda_sum_largest_canon(expr, args, solver_context: SolverInfo | None = Non
     """
     X = expr.args[0]
     k = expr.k
-    Z = Variable((X.shape[0], X.shape[0]), PSD=True)
-    obj, constr = lambda_max_canon(expr, [X - Z])
-    obj = k * obj + trace(Z)
-    return obj, constr
+    n = X.shape[-1]
+    if X.ndim == 2:
+        Z = Variable((n, n), PSD=True)
+        obj, constr = lambda_max_canon(expr, [X - Z])
+        obj = k * obj + trace(Z)
+        return obj, constr
+    else:
+        # nd case: X has shape (*batch, n, n)
+        batch_shape = X.shape[:-2]
+        m = batch_shape[0]  # Only support 1 batch dim for now
+        objs = []
+        constr = []
+        for i in range(m):
+            Z_i = Variable((n, n), PSD=True)
+            obj_i, constr_i = lambda_max_canon(expr, [X[i] - Z_i])
+            objs.append(k * obj_i + trace(Z_i))
+            constr.extend(constr_i)
+        from cvxpy.atoms.affine.hstack import hstack
+        obj = hstack(objs)
+        return obj, constr

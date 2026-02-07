@@ -1121,6 +1121,67 @@ class TestAtoms(BaseTest):
         expected = 0.3 * 8.0
         self.assertAlmostEqual(expr.value, expected)
 
+    def test_lambda_sum_largest_nd(self) -> None:
+        """Test lambda_sum_largest and lambda_sum_smallest with nd (batch) input."""
+        # 3D constant input
+        A1 = np.array([[2.0, 0.0], [0.0, 1.0]])  # eigs: [1, 2]
+        A2 = np.array([[3.0, 0.0], [0.0, 4.0]])  # eigs: [3, 4]
+        A3d = np.array([A1, A2])  # shape (2, 2, 2)
+
+        # lambda_sum_largest shape and value
+        expr = cp.lambda_sum_largest(A3d, 1)
+        self.assertEqual(expr.shape, (2,))
+        np.testing.assert_allclose(expr.value, [2.0, 4.0])
+
+        expr = cp.lambda_sum_largest(A3d, 2)
+        np.testing.assert_allclose(expr.value, [3.0, 7.0])
+
+        expr = cp.lambda_sum_largest(A3d, 1.5)
+        np.testing.assert_allclose(expr.value, [2.0 + 0.5 * 1.0, 4.0 + 0.5 * 3.0])
+
+        # lambda_sum_smallest shape and value (gets nd for free)
+        expr = cp.lambda_sum_smallest(A3d, 1)
+        self.assertEqual(expr.shape, (2,))
+        np.testing.assert_allclose(expr.value, [1.0, 3.0])
+
+        expr = cp.lambda_sum_smallest(A3d, 2)
+        np.testing.assert_allclose(expr.value, [3.0, 7.0])
+
+        # lambda_max nd
+        expr = cp.lambda_max(A3d)
+        self.assertEqual(expr.shape, (2,))
+        np.testing.assert_allclose(expr.value, [2.0, 4.0])
+
+    def test_lambda_sum_largest_nd_solve(self) -> None:
+        """Test solving optimization problems with nd lambda_sum_largest."""
+        n = 2
+        X = cp.Variable((n, n), symmetric=True)
+        Y = cp.Variable((n, n), symmetric=True)
+
+        batch = cp.vstack([
+            cp.reshape(X, (1, n, n), order='C'),
+            cp.reshape(Y, (1, n, n), order='C'),
+        ])
+
+        # Minimize sum of lambda_max over batch
+        prob = cp.Problem(
+            cp.Minimize(cp.sum(cp.lambda_max(batch))),
+            [X >> np.eye(n), Y >> 2 * np.eye(n)]
+        )
+        prob.solve(solver=cp.CLARABEL)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        np.testing.assert_allclose(prob.value, 3.0, atol=1e-5)
+
+        # Minimize sum of lambda_sum_largest(batch, 2)
+        prob = cp.Problem(
+            cp.Minimize(cp.sum(cp.lambda_sum_largest(batch, 2))),
+            [X >> np.eye(n), Y >> 2 * np.eye(n)]
+        )
+        prob.solve(solver=cp.CLARABEL)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        # sum of all eigenvalues = trace: trace(I) + trace(2I) = 2 + 4 = 6
+        np.testing.assert_allclose(prob.value, 6.0, atol=1e-5)
+
     def test_sum_smallest(self) -> None:
         """Test the sum_smallest atom and related atoms.
         """

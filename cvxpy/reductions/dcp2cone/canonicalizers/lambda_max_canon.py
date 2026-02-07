@@ -24,14 +24,30 @@ from cvxpy.utilities.solver_context import SolverInfo
 
 def lambda_max_canon(expr, args, solver_context: SolverInfo | None = None):
     A = args[0]
-    n = A.shape[0]
-    t = Variable()
-    prom_t = promote(t, (n,))
-    # Constrain I*t - A to be PSD; note that this expression must be symmetric.
-    tmp_expr = diag_vec(prom_t) - A
-    constr = [PSD(tmp_expr)]
-    if not A.is_symmetric():
-        ut = upper_tri(A)
-        lt = upper_tri(A.T)
-        constr.append(ut == lt)
-    return t, constr
+    n = A.shape[-1]
+    if A.ndim == 2:
+        t = Variable()
+        prom_t = promote(t, (n,))
+        # Constrain I*t - A to be PSD; note that this expression must be symmetric.
+        tmp_expr = diag_vec(prom_t) - A
+        constr = [PSD(tmp_expr)]
+        if not A.is_symmetric():
+            ut = upper_tri(A)
+            lt = upper_tri(A.T)
+            constr.append(ut == lt)
+        return t, constr
+    else:
+        # nd case: A has shape (*batch, n, n)
+        batch_shape = A.shape[:-2]
+        m = batch_shape[0]  # Only support 1 batch dim for now
+        t = Variable(m)
+        constr = []
+        for i in range(m):
+            prom_ti = promote(t[i], (n,))
+            tmp_expr = diag_vec(prom_ti) - A[i]
+            constr.append(PSD(tmp_expr))
+            if not A[i].is_symmetric():
+                ut = upper_tri(A[i])
+                lt = upper_tri(A[i].T)
+                constr.append(ut == lt)
+        return t, constr
