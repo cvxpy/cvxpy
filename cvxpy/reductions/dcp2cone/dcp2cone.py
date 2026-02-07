@@ -131,7 +131,10 @@ class Dcp2Cone(Canonicalization):
             if isinstance(expr, Power) and not expr._quadratic_power():
                 return self.cone_canon_methods[type(expr)](expr, args,
                                                            solver_context=self.solver_context)
-            elif type(expr) == quad_over_lin and not expr.is_qpwa():
+            # quad_over_lin requires a constant denominator for the quad canon.
+            # Check the canonicalized args (not expr.args) since children may
+            # have been replaced with auxiliary variables.
+            elif type(expr) == quad_over_lin and not args[1].is_constant():
                 return self.cone_canon_methods[type(expr)](expr, args,
                                                            solver_context=self.solver_context)
             else:

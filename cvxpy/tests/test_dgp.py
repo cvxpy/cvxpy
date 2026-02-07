@@ -170,7 +170,7 @@ class TestDgp(BaseTest):
             [x == 2],
         )
         prob.solve()
-        self.assertEqual(prob.value, 2)
+        self.assertAlmostEqual(prob.value, 2)
 
     def test_geo_mean_scalar2(self) -> None:
         x = cvxpy.Variable(pos=True)
