@@ -18,7 +18,7 @@ import numpy as np
 import scipy.sparse as sp
 
 import cvxpy.settings as s
-from cvxpy.constraints import PSD, SOC, ExpCone, PowCone3D
+from cvxpy.constraints import PSD, SOC, ComplexPSD, ExpCone, PowCone3D
 from cvxpy.expressions.expression import Expression
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
@@ -39,6 +39,7 @@ def dims_to_solver_dict(cone_dims):
     import scs
     if Version(scs.__version__) >= Version('3.0.0'):
         cones['z'] = cones.pop('f')  # renamed to 'z' in SCS 3.0.0
+    # SCS uses 'cs' for Hermitian PSD cone dimensions (same as CVXPY)
     return cones
 
 
@@ -74,6 +75,29 @@ def tri_to_full(lower_tri, n):
     full[np.tril_indices(n, k=-1)] /= np.sqrt(2)
     full[np.triu_indices(n, k=1)] /= np.sqrt(2)
     return np.reshape(full, n*n, order="F")
+
+
+def _cvec_to_complex_full(cvec, n):
+    """Expand n^2 cvec to flat complex array of length n^2.
+
+    cvec format: for each column j, diagonal entry S_jj is stored as-is,
+    then for each i > j, two entries [sqrt(2)*Re(S_ij), sqrt(2)*Im(S_ij)].
+
+    Returns a column-major flat complex array of the full n x n matrix.
+    """
+    real = np.zeros((n, n))
+    imag = np.zeros((n, n))
+    idx = 0
+    for j in range(n):
+        real[j, j] = cvec[idx]
+        idx += 1
+        for i in range(j + 1, n):
+            real[i, j] = real[j, i] = cvec[idx] / np.sqrt(2)
+            idx += 1
+            imag[i, j] = cvec[idx] / np.sqrt(2)
+            imag[j, i] = -imag[i, j]
+            idx += 1
+    return np.reshape(real + 1j * imag, n * n, order='F')
 
 
 def scs_psdvec_to_psdmat(vec: Expression, indices: np.ndarray) -> Expression:
@@ -120,7 +144,7 @@ class SCS(ConicSolver):
     # Solver capabilities.
     MIP_CAPABLE = False
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS \
-        + [SOC, ExpCone, PSD, PowCone3D]
+        + [SOC, ExpCone, PSD, PowCone3D, ComplexPSD]
     REQUIRES_CONSTR = True
 
     # Map of SCS status value to CVXPY status.
@@ -205,23 +229,84 @@ class SCS(ConicSolver):
 
         return scaled_lower_tri @ symm_matrix
 
-    def apply(self, problem):
-        """Returns a new problem and data for inverting the new solution.
+    @staticmethod
+    def complex_psd_format_mat(constr):
+        """Return a linear operator to multiply by ComplexPSD constraint coefficients.
 
-        Returns
-        -------
-        tuple
-            (dict of arguments needed for the solver, inverse data)
+        Maps stacked [R_flat, I_flat] (2*n^2 entries) to SCS cvec format (n^2 entries).
+
+        SCS cvec format for k x k Hermitian matrix S:
+          cvec(S) = (S_11, sqrt(2)*Re(S_21), sqrt(2)*Im(S_21), ...,
+                     sqrt(2)*Re(S_k1), sqrt(2)*Im(S_k1), S_22, ...)
+
+        The input is [vec(R), vec(I)] where R is the real part and I is the
+        imaginary part (both column-major). We apply Hermitianization:
+          - Diagonal (j,j): output = R[j,j]
+          - Off-diagonal (i,j) i>j: Re entry = sqrt(2)/2 * (R[i,j] + R[j,i])
+                                     Im entry = sqrt(2)/2 * (I[i,j] - I[j,i])
         """
-        return super(SCS, self).apply(problem)
+        n = constr.args[0].shape[0]
+        n2 = n * n
+        cvec_size = n * n  # output size
+
+        rows = []
+        cols = []
+        vals = []
+        out_idx = 0
+
+        for j in range(n):
+            # Diagonal entry: output = R[j,j]
+            r_idx = j * n + j  # column-major index in R
+            rows.append(out_idx)
+            cols.append(r_idx)
+            vals.append(1.0)
+            out_idx += 1
+
+            for i in range(j + 1, n):
+                # Real part of off-diagonal: sqrt(2)/2 * (R[i,j] + R[j,i])
+                r_ij = j * n + i  # R[i,j] in column-major
+                r_ji = i * n + j  # R[j,i] in column-major
+                s2_2 = np.sqrt(2) / 2.0
+
+                rows.append(out_idx)
+                cols.append(r_ij)
+                vals.append(s2_2)
+
+                rows.append(out_idx)
+                cols.append(r_ji)
+                vals.append(s2_2)
+                out_idx += 1
+
+                # Imaginary part of off-diagonal: sqrt(2)/2 * (I[i,j] - I[j,i])
+                i_ij = n2 + j * n + i  # I[i,j] in column-major, offset by n^2
+                i_ji = n2 + i * n + j  # I[j,i] in column-major, offset by n^2
+
+                rows.append(out_idx)
+                cols.append(i_ij)
+                vals.append(s2_2)
+
+                rows.append(out_idx)
+                cols.append(i_ji)
+                vals.append(-s2_2)
+                out_idx += 1
+
+        shape = (cvec_size, 2 * n2)
+        return sp.csc_array((vals, (rows, cols)), shape)
 
     @staticmethod
     def extract_dual_value(result_vec, offset, constraint):
         """Extracts the dual value for constraint starting at offset.
 
-        Special cases PSD constraints, as per the SCS specification.
+        Special cases PSD and ComplexPSD constraints, as per the SCS specification.
         """
-        if isinstance(constraint, PSD):
+        if isinstance(constraint, ComplexPSD):
+            dim = constraint.args[0].shape[0]
+            cvec_dim = dim * dim
+            new_offset = offset + cvec_dim
+            cvec = result_vec[offset:new_offset]
+            full = _cvec_to_complex_full(cvec, dim)
+            return full, new_offset
+        elif isinstance(constraint, PSD):
             dim = constraint.shape[0]
             lower_tri_dim = dim * (dim + 1) // 2
             new_offset = offset + lower_tri_dim
@@ -231,6 +316,16 @@ class SCS(ConicSolver):
         else:
             return utilities.extract_dual_value(result_vec, offset,
                                                 constraint)
+
+    def apply(self, problem):
+        """Returns a new problem and data for inverting the new solution.
+
+        Returns
+        -------
+        tuple
+            (dict of arguments needed for the solver, inverse data)
+        """
+        return super(SCS, self).apply(problem)
 
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data.
