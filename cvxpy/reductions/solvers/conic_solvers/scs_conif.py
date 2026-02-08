@@ -169,15 +169,9 @@ class SCS(ConicSolver):
         return Version(scs.__version__) >= Version('3.0.0')
 
     @staticmethod
-    def psd_format_mat(constr):
-        """Return a linear operator to multiply by PSD constraint coefficients.
-
-        Special cases PSD constraints, as SCS expects constraints to be
-        imposed on solely the lower triangular part of the variable matrix.
-        Moreover, it requires the off-diagonal coefficients to be scaled by
-        sqrt(2), and applies to the symmetric part of the constrained expression.
-        """
-        rows = cols = constr.expr.shape[0]
+    def _psd_format_mat_single(n):
+        """Return a format matrix for a single n x n PSD constraint."""
+        rows = cols = n
         entries = rows * (cols + 1)//2
 
         row_arr = np.arange(0, entries)
@@ -205,6 +199,37 @@ class SCS(ConicSolver):
 
         return scaled_lower_tri @ symm_matrix
 
+    @staticmethod
+    def psd_format_mat(constr):
+        """Return a linear operator to multiply by PSD constraint coefficients.
+
+        Special cases PSD constraints, as SCS expects constraints to be
+        imposed on solely the lower triangular part of the variable matrix.
+        Moreover, it requires the off-diagonal coefficients to be scaled by
+        sqrt(2), and applies to the symmetric part of the constrained expression.
+        """
+        n = constr.args[0].shape[-1]
+        single_block = SCS._psd_format_mat_single(n)
+        num = constr.num_cones()
+        if num == 1:
+            return single_block
+        # For batched PSD, the constraint data is F-order flattened from
+        # (*batch, n, n), which interleaves batch elements. We need a
+        # permutation to de-interleave before applying per-block formatting.
+        block_format = sp.block_diag([single_block] * num, format='csc')
+        # Build permutation: F-order index of (b, i, j) in (*batch, n, n)
+        # is b + num * (i + n * j). We need to map this to
+        # b * n^2 + (i + n * j), i.e., contiguous blocks per batch element.
+        nn = n * n
+        perm = np.empty(num * nn, dtype=int)
+        for b in range(num):
+            for k in range(nn):
+                perm[b + num * k] = b * nn + k
+        perm_mat = sp.csc_array(
+            (np.ones(num * nn), (perm, np.arange(num * nn))),
+            shape=(num * nn, num * nn))
+        return block_format @ perm_mat
+
     def apply(self, problem):
         """Returns a new problem and data for inverting the new solution.
 
@@ -222,12 +247,16 @@ class SCS(ConicSolver):
         Special cases PSD constraints, as per the SCS specification.
         """
         if isinstance(constraint, PSD):
-            dim = constraint.shape[0]
+            dim = constraint._cone_size()
             lower_tri_dim = dim * (dim + 1) // 2
-            new_offset = offset + lower_tri_dim
-            lower_tri = result_vec[offset:new_offset]
-            full = tri_to_full(lower_tri, dim)
-            return full, new_offset
+            num = constraint.num_cones()
+            blocks = []
+            for _ in range(num):
+                new_offset = offset + lower_tri_dim
+                lower_tri = result_vec[offset:new_offset]
+                blocks.append(tri_to_full(lower_tri, dim))
+                offset = new_offset
+            return np.concatenate(blocks), offset
         else:
             return utilities.extract_dual_value(result_vec, offset,
                                                 constraint)
