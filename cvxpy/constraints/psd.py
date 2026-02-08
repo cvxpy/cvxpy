@@ -102,6 +102,8 @@ class PSD(Cone):
         """
         if self.expr.value is None:
             return None
+        # Deferred import to avoid circular import:
+        # psd -> transpose -> affine_atom -> atom -> expression -> psd
         from cvxpy.atoms.affine.transpose import swapaxes as cp_swapaxes
         min_eig = cvxtypes.lambda_min()(
             self.args[0] + cp_swapaxes(self.args[0], -2, -1))/2
