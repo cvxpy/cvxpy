@@ -14,18 +14,24 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import numpy as np
-
 from cvxpy.constraints.cones import Cone
+from cvxpy.expressions import cvxtypes
 from cvxpy.utilities import scopes
 
 
 class ComplexPSD(Cone):
-    """Hermitian positive semidefinite cone: R + i*I >= 0.
+    r"""Hermitian positive semidefinite cone.
 
-    Two args: [real_part (n x n), imag_part (n x n)].
-    real_part should be symmetric, imag_part should be skew-symmetric,
-    so that R + i*I is Hermitian.
+    Constrains the Hermitian part of ``R + i*I`` to be positive semidefinite,
+    i.e., constrains ``R`` and ``I`` such that
+
+    .. math::
+
+        \frac{1}{2}(H + H^*) \succcurlyeq 0,
+
+    where :math:`H = R + iI` and :math:`H^*` is its conjugate transpose.
+    In particular, the solver implicitly symmetrizes ``R`` and
+    skew-symmetrizes ``I``.
 
     Parameters
     ----------
@@ -81,6 +87,8 @@ class ComplexPSD(Cone):
     def residual(self):
         if self.args[0].value is None or self.args[1].value is None:
             return None
+        from cvxpy.expressions.constants import Constant
         H = self.args[0].value + 1j * self.args[1].value
-        eigs = np.linalg.eigvalsh(H)
-        return np.maximum(-np.min(eigs), 0)
+        H_herm = Constant((H + H.conj().T) / 2)
+        min_eig = cvxtypes.lambda_min()(H_herm)
+        return cvxtypes.neg()(min_eig).value

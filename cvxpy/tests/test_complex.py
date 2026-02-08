@@ -20,9 +20,10 @@ import scipy.sparse as sp
 
 import cvxpy as cp
 from cvxpy import Minimize, Problem
+from cvxpy.constraints.complex_psd import ComplexPSD
 from cvxpy.expressions.constants import Constant, Parameter
 from cvxpy.expressions.variable import Variable
-from cvxpy.reductions.solvers.defines import INSTALLED_MI_SOLVERS
+from cvxpy.reductions.solvers.defines import INSTALLED_MI_SOLVERS, SOLVER_MAP_CONIC
 from cvxpy.tests.base_test import BaseTest
 
 
@@ -832,6 +833,16 @@ class TestComplex(BaseTest):
         with self.assertRaises(ValueError):
             cp.NonPos(x)
 
+    def test_complex_psd_validation(self) -> None:
+        """Test that ComplexPSD validates matrix dimensions."""
+        with self.assertRaises(ValueError):
+            # Non-square matrix should raise
+            ComplexPSD(cp.Variable((2, 3)), cp.Variable((2, 3)))
+
+        with self.assertRaises(ValueError):
+            # Mismatched shapes should raise
+            ComplexPSD(cp.Variable((2, 2)), cp.Variable((3, 3)))
+
     def test_complex_psd_scs(self) -> None:
         """Test ComplexPSD with SCS (native Hermitian PSD cone)."""
         X = cp.Variable((3, 3), hermitian=True)
@@ -848,6 +859,8 @@ class TestComplex(BaseTest):
 
     def test_complex_psd_clarabel(self) -> None:
         """Test ComplexPSD with Clarabel (ExactCone2Cone fallback to real PSD)."""
+        clarabel = SOLVER_MAP_CONIC[cp.CLARABEL]
+        self.assertNotIn(ComplexPSD, clarabel.SUPPORTED_CONSTRAINTS)
         X = cp.Variable((3, 3), hermitian=True)
         prob = cp.Problem(cp.Minimize(cp.real(cp.trace(X))),
                           [X >> 0, cp.real(X[0, 0]) >= 1])
