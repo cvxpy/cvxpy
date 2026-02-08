@@ -831,3 +831,100 @@ class TestComplex(BaseTest):
             cp.NonNeg(x)
         with self.assertRaises(ValueError):
             cp.NonPos(x)
+
+    def test_complex_psd_scs(self) -> None:
+        """Test ComplexPSD with SCS (native Hermitian PSD cone)."""
+        X = cp.Variable((3, 3), hermitian=True)
+        prob = cp.Problem(cp.Minimize(cp.real(cp.trace(X))),
+                          [X >> 0, cp.real(X[0, 0]) >= 1])
+        prob.solve(solver=cp.SCS, eps=1e-6)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        # Eigenvalues should be non-negative
+        eigs = np.linalg.eigvalsh(X.value)
+        self.assertTrue(np.all(eigs >= -1e-6))
+        # Result should be Hermitian
+        self.assertItemsAlmostEqual(X.value, X.value.conj().T, places=5)
+        self.assertAlmostEqual(prob.value, 1.0, places=4)
+
+    def test_complex_psd_clarabel(self) -> None:
+        """Test ComplexPSD with Clarabel (ExactCone2Cone fallback to real PSD)."""
+        X = cp.Variable((3, 3), hermitian=True)
+        prob = cp.Problem(cp.Minimize(cp.real(cp.trace(X))),
+                          [X >> 0, cp.real(X[0, 0]) >= 1])
+        prob.solve(solver=cp.CLARABEL)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        eigs = np.linalg.eigvalsh(X.value)
+        self.assertTrue(np.all(eigs >= -1e-6))
+        self.assertItemsAlmostEqual(X.value, X.value.conj().T, places=5)
+        self.assertAlmostEqual(prob.value, 1.0, places=4)
+
+    def test_complex_psd_infeasible(self) -> None:
+        """Test ComplexPSD with infeasible problem."""
+        X = cp.Variable((2, 2), hermitian=True)
+        # Require X >> 0 but also X[0,0] == -1 (infeasible)
+        prob = cp.Problem(cp.Minimize(0),
+                          [X >> 0, X[0, 0] == -1])
+        prob.solve(solver=cp.SCS)
+        self.assertEqual(prob.status, cp.INFEASIBLE)
+
+    def test_complex_psd_equivalence(self) -> None:
+        """Verify SCS and Clarabel give same results for complex PSD problems."""
+        np.random.seed(42)
+        A = np.random.randn(3, 3) + 1j * np.random.randn(3, 3)
+        P = A @ A.conj().T + 0.1 * np.eye(3)
+
+        X = cp.Variable((3, 3), hermitian=True)
+        prob = cp.Problem(cp.Minimize(cp.real(cp.trace(X))),
+                          [X >> 0, X == P])
+
+        prob.solve(solver=cp.SCS, eps=1e-8)
+        val_scs = prob.value
+        X_scs = X.value.copy()
+
+        prob.solve(solver=cp.CLARABEL)
+        val_clarabel = prob.value
+        X_clarabel = X.value.copy()
+
+        self.assertAlmostEqual(val_scs, val_clarabel, places=3)
+        self.assertItemsAlmostEqual(X_scs, X_clarabel, places=3)
+
+    def test_complex_psd_dual_recovery(self) -> None:
+        """Test that dual variables are correctly recovered for complex PSD."""
+        X = cp.Variable((2, 2), hermitian=True)
+        con = X >> 0
+        prob = cp.Problem(cp.Minimize(cp.real(cp.trace(X))),
+                          [con, cp.real(X[0, 0]) >= 1, cp.real(X[1, 1]) >= 1])
+        prob.solve(solver=cp.SCS, eps=1e-6)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        dual = con.dual_value
+        self.assertIsNotNone(dual)
+        # Dual should be complex Hermitian PSD
+        self.assertEqual(dual.shape, (2, 2))
+        self.assertTrue(np.issubdtype(dual.dtype, np.complexfloating))
+        # Dual should be Hermitian
+        self.assertItemsAlmostEqual(dual, dual.conj().T, places=4)
+        # Dual should be PSD (eigenvalues >= 0)
+        eigs = np.linalg.eigvalsh(dual)
+        self.assertTrue(np.all(eigs >= -1e-5))
+
+    def test_complex_psd_dpp(self) -> None:
+        """Test DPP with complex PSD constraints."""
+        P = cp.Parameter((2, 2), hermitian=True)
+        X = cp.Variable((2, 2), hermitian=True)
+        prob = cp.Problem(cp.Minimize(cp.real(cp.trace(X))),
+                          [X >> 0, X == P])
+        self.assertTrue(prob.is_dpp())
+
+        # First solve
+        P.value = np.array([[2, 1+1j], [1-1j, 3]])
+        prob.solve(solver=cp.SCS, eps=1e-6)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        self.assertAlmostEqual(prob.value, 5.0, places=4)
+        self.assertItemsAlmostEqual(X.value, P.value, places=4)
+
+        # Second solve with different parameter (should use cached compilation)
+        P.value = np.array([[4, 0.5j], [-0.5j, 2]])
+        prob.solve(solver=cp.SCS, eps=1e-6)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        self.assertAlmostEqual(prob.value, 6.0, places=4)
+        self.assertItemsAlmostEqual(X.value, P.value, places=4)

@@ -39,6 +39,7 @@ import cvxpy as cp
 from cvxpy import problems
 from cvxpy.atoms.affine.hstack import hstack
 from cvxpy.atoms.affine.reshape import reshape
+from cvxpy.constraints.complex_psd import ComplexPSD
 from cvxpy.constraints.power import PowCone3D, PowConeND
 from cvxpy.constraints.psd import PSD
 from cvxpy.constraints.second_order import SOC
@@ -58,6 +59,7 @@ from cvxpy.reductions.solution import Solution
 EXACT_CONE_CONVERSIONS = {
     PowConeND: {PowCone3D},
     SOC: {PSD},
+    ComplexPSD: {PSD},
 }
 
 
@@ -391,9 +393,28 @@ class SOCConversion:
             return 2 * dual_var[0]
 
 
+class ComplexPSDConversion:
+    """ComplexPSD -> PSD via 2n x 2n block matrix [[R, -I], [I, R]]."""
+    source = ComplexPSD
+    targets = {PSD}
+
+    @staticmethod
+    def canonicalize(con, args):
+        real_part, imag_part = args
+        block_matrix = cp.bmat([[real_part, -imag_part],
+                                [imag_part, real_part]])
+        return PSD(block_matrix), []
+
+    @staticmethod
+    def recover_dual(cons, dual_var, inverse_data, solution):
+        n = cons.args[0].shape[0]
+        # dual_var is (2n, 2n); extract complex n x n
+        return dual_var[:n, :n] + 1j * dual_var[n:, :n]
+
+
 class ExactCone2Cone(Canonicalization):
 
-    CONVERSIONS = [PowNDConversion, SOCConversion]
+    CONVERSIONS = [PowNDConversion, SOCConversion, ComplexPSDConversion]
 
     CANON_METHODS = {c.source: c.canonicalize for c in CONVERSIONS}
 

@@ -15,6 +15,7 @@ from cvxpy.atoms import (
 from cvxpy.constraints import (
     PSD,
     SOC,
+    ComplexPSD,
     Equality,
     ExpCone,
     FiniteSet,
@@ -306,6 +307,9 @@ def construct_solving_chain(problem, candidates,
             or any(atom in PSD_ATOMS for atom in atoms) \
             or any(v.is_psd() or v.is_nsd() for v in problem.variables()):
         cones.add(PSD)
+        # Complex2Real will convert complex PSD constraints to ComplexPSD
+        if complex2real.accepts(problem):
+            cones.add(ComplexPSD)
     if PowCone3D in constr_types or any(atom in POWCONE_ATOMS for atom in atoms):
         cones.add(PowCone3D)
     if PowConeND in constr_types or any(atom in POWCONE_ND_ATOMS for atom in atoms):
