@@ -19,6 +19,7 @@ import numpy as np
 import scipy.sparse as sp
 from scipy import linalg as LA
 
+from cvxpy.atoms.affine.conj import conj
 from cvxpy.atoms.affine.transpose import swapaxes as expr_swapaxes
 from cvxpy.atoms.atom import Atom
 from cvxpy.constraints.constraint import Constraint
@@ -59,7 +60,6 @@ class lambda_max(Atom):
             if A.is_real():
                 return [expr_swapaxes(A, -2, -1) == A]
             else:
-                from cvxpy.atoms.affine.conj import conj
                 return [expr_swapaxes(conj(A), -2, -1) == A]
 
     def _single_matrix_grad(self, mat):
