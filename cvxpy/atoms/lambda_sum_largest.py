@@ -15,7 +15,6 @@ limitations under the License.
 """
 
 import numpy as np
-import scipy.sparse as sp
 from scipy import linalg as LA
 
 from cvxpy.atoms.lambda_max import lambda_max
@@ -62,64 +61,24 @@ class lambda_sum_largest(lambda_max):
         """
         return [self.k]
 
-    def _grad(self, values):
-        """Gives the (sub/super)gradient of the atom w.r.t. each argument.
+    # _grad is inherited from lambda_max; only _single_matrix_grad is overridden.
 
-        Matrix expressions are vectorized, so the gradient is a matrix.
-
-        Args:
-            values: A list of numeric values for the arguments.
-
-        Returns:
-            A list of SciPy CSC sparse matrices or None.
-        """
-        A = values[0]
+    def _single_matrix_grad(self, mat):
+        """Compute the gradient matrix for a single 2D symmetric matrix."""
         k = self.k
         k_floor = int(np.floor(k))
         k_frac = k - k_floor
-
-        if A.ndim == 2:
-            w, v = LA.eigh(A)
-            n = A.shape[0]
-            # Eigenvalues are sorted ascending, so largest k are the last k.
-            D = np.zeros((n, n))
-            if k_floor > 0:
-                V_top = v[:, -k_floor:]
-                D += V_top @ V_top.T
-            if k_frac > 0 and k_floor < n:
-                v_next = v[:, -(k_floor + 1)]
-                D += k_frac * np.outer(v_next, v_next)
-            return [sp.csc_array([D.ravel(order='F')]).T]
-        else:
-            batch_shape = A.shape[:-2]
-            n = A.shape[-1]
-            total_batch = int(np.prod(batch_shape))
-            n2 = n * n
-            total_output = total_batch * n2
-            rows = []
-            cols = []
-            vals = []
-            for flat_i, idx in enumerate(np.ndindex(batch_shape)):
-                mat = A[idx]
-                w, v = LA.eigh(mat)
-                D = np.zeros((n, n))
-                if k_floor > 0:
-                    V_top = v[:, -k_floor:]
-                    D += V_top @ V_top.T
-                if k_frac > 0 and k_floor < n:
-                    v_next = v[:, -(k_floor + 1)]
-                    D += k_frac * np.outer(v_next, v_next)
-                D_flat = D.ravel(order='F')
-                for j in range(n2):
-                    if D_flat[j] != 0:
-                        row = flat_i * n2 + j
-                        rows.append(row)
-                        cols.append(flat_i)
-                        vals.append(D_flat[j])
-            grad = sp.csc_array(
-                (vals, (rows, cols)), shape=(total_output, total_batch)
-            )
-            return [grad]
+        n = mat.shape[0]
+        _, v = LA.eigh(mat)
+        # Eigenvalues are sorted ascending, so largest k are the last k.
+        D = np.zeros((n, n))
+        if k_floor > 0:
+            V_top = v[:, -k_floor:]
+            D += V_top @ V_top.T
+        if k_frac > 0 and k_floor < n:
+            v_next = v[:, -(k_floor + 1)]
+            D += k_frac * np.outer(v_next, v_next)
+        return D
 
     @property
     def value(self):
