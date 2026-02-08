@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import numpy as np
 import scipy.sparse as sp
 
@@ -11,6 +13,9 @@ from cvxpy.constraints import (
 from cvxpy.error import DPPError, SolverError
 from cvxpy.problems.objective import Maximize
 from cvxpy.problems.problem_form import ProblemForm, make_problem_form, pick_default_solver
+
+if TYPE_CHECKING:
+    from cvxpy.problems.problem import Problem
 from cvxpy.reductions.chain import Chain
 from cvxpy.reductions.complex2real import complex2real
 from cvxpy.reductions.cone2cone.approx import ApproxCone2Cone
@@ -63,6 +68,8 @@ def _lookup_by_name(solver_name: str, gp: bool):
 def _fallback_solver(problem_form: ProblemForm) -> Solver:
     """Last-resort: try every installed solver, warn, or raise."""
     for name in slv_def.INSTALLED_SOLVERS:
+        if name in slv_def.COMMERCIAL_SOLVERS:
+            continue
         for inst in (slv_def.SOLVER_MAP_CONIC.get(name),
                      slv_def.SOLVER_MAP_QP.get(name)):
             if inst is not None and inst.can_solve(problem_form):
@@ -96,9 +103,9 @@ def _fallback_solver(problem_form: ProblemForm) -> Solver:
 
 
 def _build_solving_chain(
-    problem,
+    problem: Problem,
     solver_instance: Solver,
-    problem_form=None,
+    problem_form: ProblemForm | None = None,
     gp: bool = False,
     enforce_dpp: bool = False,
     ignore_dpp: bool = False,
@@ -332,8 +339,8 @@ def _resolve_solver(
 
 
 def resolve_and_build_chain(
-    problem,
-    solver=None,
+    problem: Problem,
+    solver: str | Solver | None = None,
     gp: bool = False,
     enforce_dpp: bool = False,
     ignore_dpp: bool = False,

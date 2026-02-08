@@ -92,7 +92,9 @@ MI_SOCP_SOLVERS = [
 ]
 
 # Policy list (not derivable from solver attributes).
-COMMERCIAL_SOLVERS = ["MOSEK", "MOREAU", "GUROBI"]
+COMMERCIAL_SOLVERS = [
+    "MOSEK", "MOREAU", "GUROBI", "CPLEX", "COPT", "XPRESS", "NAG", "KNITRO",
+]
 
 
 def installed_solvers():

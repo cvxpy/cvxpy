@@ -19,6 +19,7 @@ import cvxpy as cp
 from cvxpy.constraints import PSD, SOC, ExpCone, NonNeg, PowCone3D, Zero
 from cvxpy.error import SolverError
 from cvxpy.problems.problem_form import ProblemForm, pick_default_solver
+from cvxpy.reductions.solvers import defines as slv_def
 from cvxpy.reductions.solvers.conic_solvers.clarabel_conif import CLARABEL as ClarabelSolver
 from cvxpy.reductions.solvers.conic_solvers.scs_conif import SCS as ScsSolver
 from cvxpy.reductions.solvers.qp_solvers.osqp_qpif import OSQP as OsqpSolver
@@ -71,6 +72,30 @@ class TestProblemForm(BaseTest):
             cp.Problem(cp.Minimize(cp.sum_squares(cp.sum_squares(x)))))
         self.assertTrue(form.has_quadratic_objective())
         self.assertIn(SOC, form.cones())
+
+    def test_quad_over_lin_constant_denom_qp_path(self) -> None:
+        """quad_over_lin with non-PWL numerator and constant denominator.
+
+        Regression for dcp2cone fix (25ef23da9): the old guard in
+        Dcp2Cone.canonicalize_expr used expr.is_qpwa(), which requires the
+        numerator to be piecewise-linear.  For quad_over_lin(exp(x), 1),
+        exp(x) is not PWL so is_qpwa() returned False, making Dcp2Cone
+        fall through to cone canon (SOC) even though the denominator is
+        constant and the quad canon is valid.
+
+        The fix checks only args[1].is_constant() (the canonicalized
+        denominator).  We verify that Dcp2Cone produces ExpCone (for exp)
+        but no SOC (quad_over_lin handled by QP path).
+        """
+        from cvxpy.reductions.dcp2cone.dcp2cone import Dcp2Cone
+
+        x = cp.Variable()
+        prob = cp.Problem(cp.Minimize(cp.quad_over_lin(cp.exp(x), 1)))
+        dcp2cone = Dcp2Cone(quad_obj=True)
+        new_prob, _ = dcp2cone.apply(prob)
+        constr_types = {type(c) for c in new_prob.constraints}
+        self.assertIn(ExpCone, constr_types)
+        self.assertNotIn(SOC, constr_types)
 
     def test_socp(self) -> None:
         """SOCP: SOC in cones."""
@@ -142,46 +167,36 @@ class TestProblemForm(BaseTest):
 class TestPickDefaultSolver(BaseTest):
     """Tests for pick_default_solver()."""
 
-    # Premium solver classes that may be installed and take priority.
-    PREMIUM_SOLVER_CLASSES: tuple[type, ...] = ()
-
-    @classmethod
-    def setUpClass(cls) -> None:
-        from cvxpy.reductions.solvers.conic_solvers.gurobi_conif import GUROBI as GurobiSolver
-        from cvxpy.reductions.solvers.conic_solvers.moreau_conif import MOREAU as MoreauSolver
-        from cvxpy.reductions.solvers.conic_solvers.mosek_conif import MOSEK as MosekSolver
-        cls.PREMIUM_SOLVER_CLASSES = (MosekSolver, MoreauSolver, GurobiSolver)
-
-    def _is_premium(self, solver) -> bool:
-        return isinstance(solver, self.PREMIUM_SOLVER_CLASSES)
+    def _is_commercial(self, solver) -> bool:
+        return solver is not None and solver.name() in slv_def.COMMERCIAL_SOLVERS
 
     def test_lp_gets_clarabel(self) -> None:
         x = cp.Variable(2)
         prob = cp.Problem(cp.Minimize(cp.sum(x)), [x >= 1])
         solver = pick_default_solver(ProblemForm(prob))
         self.assertTrue(
-            self._is_premium(solver) or isinstance(solver, ClarabelSolver))
+            self._is_commercial(solver) or isinstance(solver, ClarabelSolver))
 
     def test_qp_gets_osqp(self) -> None:
         x = cp.Variable(2)
         prob = cp.Problem(cp.Minimize(cp.sum_squares(x)), [x >= 1])
         solver = pick_default_solver(ProblemForm(prob))
         self.assertTrue(
-            self._is_premium(solver) or isinstance(solver, OsqpSolver))
+            self._is_commercial(solver) or isinstance(solver, OsqpSolver))
 
     def test_sdp_gets_scs(self) -> None:
         X = cp.Variable((2, 2), symmetric=True)
         prob = cp.Problem(cp.Minimize(cp.lambda_max(X)), [X >> 0])
         solver = pick_default_solver(ProblemForm(prob))
         self.assertTrue(
-            self._is_premium(solver) or isinstance(solver, ScsSolver))
+            self._is_commercial(solver) or isinstance(solver, ScsSolver))
 
     def test_socp_gets_clarabel(self) -> None:
         x = cp.Variable(2)
         prob = cp.Problem(cp.Minimize(cp.norm(x, 2)), [x >= 1])
         solver = pick_default_solver(ProblemForm(prob))
         self.assertTrue(
-            self._is_premium(solver) or isinstance(solver, ClarabelSolver))
+            self._is_commercial(solver) or isinstance(solver, ClarabelSolver))
 
     def test_mi_gets_highs_or_premium(self) -> None:
         from cvxpy.reductions.solvers.conic_solvers.highs_conif import HIGHS as HighsSolver
@@ -189,7 +204,7 @@ class TestPickDefaultSolver(BaseTest):
         prob = cp.Problem(cp.Minimize(cp.sum(x)), [x >= 0, x <= 5])
         solver = pick_default_solver(ProblemForm(prob))
         self.assertTrue(
-            self._is_premium(solver) or isinstance(solver, HighsSolver)
+            self._is_commercial(solver) or isinstance(solver, HighsSolver)
             or solver is None)
 
 

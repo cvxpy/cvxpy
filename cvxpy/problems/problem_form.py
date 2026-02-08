@@ -347,7 +347,9 @@ def pick_default_solver(problem_form: ProblemForm) -> Solver | None:
             if solver is not None:
                 return solver
         solver = _get(slv_def.SOLVER_MAP_CONIC, s.SCIP)
-        return solver
+        if solver is not None and solver.can_solve(problem_form):
+            return solver
+        return None
 
     # LP → Clarabel.
     if problem_form.cones() <= _QP_CONES:

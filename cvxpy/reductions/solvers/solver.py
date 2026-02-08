@@ -17,6 +17,8 @@ limitations under the License.
 import abc
 
 from cvxpy import settings as s
+from cvxpy.reductions.cone2cone.approx import APPROX_CONE_CONVERSIONS
+from cvxpy.reductions.cone2cone.exact import EXACT_CONE_CONVERSIONS
 from cvxpy.reductions.reduction import Reduction
 from cvxpy.reductions.solvers.solver_inverse_data import SolverInverseData
 
@@ -36,9 +38,6 @@ def expand_cones(cones, supported):
     (cones, exact_targets, approx_targets) where *cones* is the
     (mutated) input set and the targets are the cones that were expanded.
     """
-    from cvxpy.reductions.cone2cone.approx import APPROX_CONE_CONVERSIONS
-    from cvxpy.reductions.cone2cone.exact import EXACT_CONE_CONVERSIONS
-
     exact_targets = (cones & EXACT_CONE_CONVERSIONS.keys()) - supported
     for co in exact_targets:
         cones.discard(co)
