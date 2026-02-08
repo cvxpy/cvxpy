@@ -14,6 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import numpy as np
+
 from cvxpy.atoms.affine.diag import diag_vec
 from cvxpy.atoms.affine.promote import promote
 from cvxpy.atoms.affine.upper_tri import upper_tri
@@ -39,15 +41,14 @@ def lambda_max_canon(expr, args, solver_context: SolverInfo | None = None):
     else:
         # nd case: A has shape (*batch, n, n)
         batch_shape = A.shape[:-2]
-        m = batch_shape[0]  # Only support 1 batch dim for now
-        t = Variable(m)
+        t = Variable(batch_shape)
         constr = []
-        for i in range(m):
-            prom_ti = promote(t[i], (n,))
-            tmp_expr = diag_vec(prom_ti) - A[i]
+        for idx in np.ndindex(batch_shape):
+            prom_ti = promote(t[idx], (n,))
+            tmp_expr = diag_vec(prom_ti) - A[idx]
             constr.append(PSD(tmp_expr))
-            if not A[i].is_symmetric():
-                ut = upper_tri(A[i])
-                lt = upper_tri(A[i].T)
+            if not A[idx].is_symmetric():
+                ut = upper_tri(A[idx])
+                lt = upper_tri(A[idx].T)
                 constr.append(ut == lt)
         return t, constr

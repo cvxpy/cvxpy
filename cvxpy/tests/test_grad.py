@@ -986,5 +986,141 @@ class TestSpecialCases:
         prob.constraints[1].expr.grad
 
 
+def expression_gradcheck_batched_symmetric(
+    expr_factory: Callable[[cp.Variable], cp.Expression],
+    full_shape: Tuple[int, ...],
+    var_value: np.ndarray,
+    eps: float = DEFAULT_FD_EPS,
+    rtol: float = DEFAULT_RTOL,
+    atol: float = DEFAULT_ATOL,
+) -> Tuple[bool, Optional[str]]:
+    """
+    Validate expression gradient for batched symmetric matrix inputs.
+
+    For shape (*batch, n, n), perturbs each (n, n) slice symmetrically.
+    """
+    n = full_shape[-1]
+    batch_shape = full_shape[:-2]
+
+    var = cp.Variable(full_shape)
+    var.value = var_value.copy()
+    expr = expr_factory(var)
+
+    analytic_grad = expr.grad.get(var)
+    if analytic_grad is None:
+        return True, "Gradient is None (outside domain)"
+
+    if hasattr(analytic_grad, 'toarray'):
+        analytic_grad = analytic_grad.toarray()
+    analytic_grad = np.asarray(analytic_grad)
+
+    output_size = expr.size
+    input_size = int(np.prod(full_shape))
+    jacobian = np.zeros((output_size, input_size))
+
+    for batch_idx in np.ndindex(batch_shape):
+        for i in range(n):
+            for j in range(n):
+                perturbation = np.zeros(full_shape)
+                if i == j:
+                    perturbation[batch_idx + (i, j)] = eps
+                else:
+                    perturbation[batch_idx + (i, j)] = eps
+                    perturbation[batch_idx + (j, i)] = eps
+
+                var.value = var_value + perturbation
+                result_plus = np.asarray(expr.value).flatten(order='F')
+
+                var.value = var_value - perturbation
+                result_minus = np.asarray(expr.value).flatten(order='F')
+
+                flat_idx = np.ravel_multi_index(
+                    batch_idx + (i, j), full_shape, order='F'
+                )
+                diff = (result_plus - result_minus) / (2 * eps)
+
+                if i == j:
+                    jacobian[:, flat_idx] = diff
+                else:
+                    flat_idx_ji = np.ravel_multi_index(
+                        batch_idx + (j, i), full_shape, order='F'
+                    )
+                    jacobian[:, flat_idx] = diff / 2
+                    jacobian[:, flat_idx_ji] = diff / 2
+
+    var.value = var_value
+    numerical_grad = jacobian.T
+
+    if not np.allclose(analytic_grad, numerical_grad, rtol=rtol, atol=atol):
+        max_diff = np.max(np.abs(analytic_grad - numerical_grad))
+        max_idx = np.unravel_index(
+            np.argmax(np.abs(analytic_grad - numerical_grad)),
+            analytic_grad.shape
+        )
+        return False, (
+            f"Max difference: {max_diff:.2e} at index {max_idx}. "
+            f"Analytic: {analytic_grad[max_idx]:.6f}, "
+            f"Numerical: {numerical_grad[max_idx]:.6f}"
+        )
+
+    return True, None
+
+
+def _random_symmetric_batch(batch_shape, n, seed=42):
+    """Generate a batch of symmetric matrices with shape (*batch_shape, n, n)."""
+    rng = np.random.default_rng(seed)
+    full_shape = batch_shape + (n, n)
+    A = rng.standard_normal(full_shape)
+    return (A + np.swapaxes(A, -2, -1)) / 2
+
+
+class TestBatchedSymmetricGradients:
+    """Tests for _grad of ND batched symmetric matrix atoms."""
+
+    @pytest.mark.parametrize("seed", [42, 123])
+    @pytest.mark.parametrize("batch_shape", [(2,), (2, 3)])
+    def test_lambda_max_nd_grad(self, seed, batch_shape):
+        n = 3
+        A_val = _random_symmetric_batch(batch_shape, n, seed)
+        full_shape = batch_shape + (n, n)
+        passed, msg = expression_gradcheck_batched_symmetric(
+            lambda x: cp.lambda_max(x), full_shape, A_val
+        )
+        assert passed, f"lambda_max nd grad {batch_shape}: {msg}"
+
+    @pytest.mark.parametrize("seed", [42, 123])
+    @pytest.mark.parametrize("batch_shape", [(2,), (2, 3)])
+    def test_lambda_min_nd_grad(self, seed, batch_shape):
+        n = 3
+        A_val = _random_symmetric_batch(batch_shape, n, seed)
+        full_shape = batch_shape + (n, n)
+        passed, msg = expression_gradcheck_batched_symmetric(
+            lambda x: cp.lambda_min(x), full_shape, A_val
+        )
+        assert passed, f"lambda_min nd grad {batch_shape}: {msg}"
+
+    @pytest.mark.parametrize("seed", [42, 123])
+    @pytest.mark.parametrize("batch_shape", [(2,), (2, 3)])
+    def test_lambda_sum_largest_nd_grad(self, seed, batch_shape):
+        n = 3
+        A_val = _random_symmetric_batch(batch_shape, n, seed)
+        full_shape = batch_shape + (n, n)
+        passed, msg = expression_gradcheck_batched_symmetric(
+            lambda x: cp.lambda_sum_largest(x, 2), full_shape, A_val
+        )
+        assert passed, f"lambda_sum_largest nd grad {batch_shape}: {msg}"
+
+    @pytest.mark.parametrize("seed", [42, 123])
+    @pytest.mark.parametrize("batch_shape", [(2,), (2, 3)])
+    def test_lambda_sum_largest_frac_nd_grad(self, seed, batch_shape):
+        n = 3
+        A_val = _random_symmetric_batch(batch_shape, n, seed)
+        full_shape = batch_shape + (n, n)
+        passed, msg = expression_gradcheck_batched_symmetric(
+            lambda x: cp.lambda_sum_largest(x, 1.5), full_shape, A_val
+        )
+        assert passed, f"lambda_sum_largest frac nd grad {batch_shape}: {msg}"
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
