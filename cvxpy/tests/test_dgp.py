@@ -277,3 +277,24 @@ class TestDgp(BaseTest):
         prob = cvxpy.Problem(cvxpy.Minimize(cvxpy.sum(x)))
         prob.solve(gp=True)
         np.testing.assert_allclose(x.value, 0.5 * np.ones(3), atol=1e-4)
+
+    def test_sparse_variable_not_dgp(self) -> None:
+        """Test that sparse/diag + pos/neg variables are rejected at construction."""
+        rows = np.array([0, 1, 2])
+        cols = np.array([0, 1, 2])
+
+        # pos + sparsity
+        with self.assertRaises(ValueError):
+            cvxpy.Variable((3, 3), sparsity=(rows, cols), pos=True)
+
+        # neg + sparsity
+        with self.assertRaises(ValueError):
+            cvxpy.Variable((3, 3), sparsity=(rows, cols), neg=True)
+
+        # pos + diag
+        with self.assertRaises(ValueError):
+            cvxpy.Variable(3, diag=True, pos=True)
+
+        # neg + diag
+        with self.assertRaises(ValueError):
+            cvxpy.Variable(3, diag=True, neg=True)

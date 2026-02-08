@@ -158,6 +158,14 @@ class Leaf(expression.Expression):
                 "A CVXPY Variable cannot have more than one of the following attributes: "
                 f"{dim_reducing_attr}"
             )
+        sign_attrs = [k for k in ['pos', 'neg'] if self.attributes[k]]
+        sparse_attrs = [k for k in ['sparsity', 'diag'] if self.attributes[k]]
+        if sign_attrs and sparse_attrs:
+            raise ValueError(
+                f"Cannot combine {sign_attrs} with {sparse_attrs}. "
+                "Sparsity and diag attributes force zeros, which contradicts "
+                "strict positivity/negativity."
+            )
         self.args = []
         self.bounds = self._ensure_valid_bounds(bounds)
         self.attributes['bounds'] = self.bounds
