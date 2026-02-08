@@ -171,17 +171,14 @@ class MOSEK(ConicSolver):
         return True
 
     @staticmethod
-    def psd_format_mat(constr):
-        """Return a linear operator to multiply by PSD constraint coefficients.
+    def _psd_format_mat_single(n):
+        """Return a format matrix for a single n x n PSD constraint.
 
-        Special cases PSD constraints, as MOSEK expects constraints to be
-        imposed on solely the lower triangular part of the variable matrix.
-
-        This function differs from ``SCS.psd_format_mat`` only in that it does not
+        This differs from ``SCS._psd_format_mat_single`` only in that it does not
         apply sqrt(2) scaling on off-diagonal entries. This difference from SCS is
         necessary based on how we implement ``MOSEK.bar_data``.
         """
-        rows = cols = constr.expr.shape[0]
+        rows = cols = n
         entries = rows * (cols + 1)//2
 
         row_arr = np.arange(0, entries)
@@ -208,6 +205,32 @@ class MOSEK(ConicSolver):
         symm_matrix = sp.sparse.csc_array((val_symm, (row_symm, col_symm)))
 
         return scaled_lower_tri @ symm_matrix
+
+    @staticmethod
+    def psd_format_mat(constr):
+        """Return a linear operator to multiply by PSD constraint coefficients.
+
+        Special cases PSD constraints, as MOSEK expects constraints to be
+        imposed on solely the lower triangular part of the variable matrix.
+        """
+        n = constr.args[0].shape[-1]
+        single_block = MOSEK._psd_format_mat_single(n)
+        num = constr.num_cones()
+        if num == 1:
+            return single_block
+        # For batched PSD, the constraint data is F-order flattened from
+        # (*batch, n, n), which interleaves batch elements. We need a
+        # permutation to de-interleave before applying per-block formatting.
+        block_format = sp.sparse.block_diag([single_block] * num, format='csc')
+        nn = n * n
+        perm = np.empty(num * nn, dtype=int)
+        for b in range(num):
+            for k in range(nn):
+                perm[b + num * k] = b * nn + k
+        perm_mat = sp.sparse.csc_array(
+            (np.ones(num * nn), (perm, np.arange(num * nn))),
+            shape=(num * nn, num * nn))
+        return block_format @ perm_mat
 
     @staticmethod
     def bar_data(A_psd, c_psd, K):
