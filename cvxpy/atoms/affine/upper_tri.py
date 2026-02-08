@@ -174,3 +174,30 @@ def upper_tri_to_full(n: int) -> sp.csc_array:
 
     # Construct and return the sparse matrix
     return sp.csc_array((values, (row_idx, col_idx)), shape=(n * n, entries))
+
+
+def batched_upper_tri_to_full(batch_size: int, n: int) -> sp.csc_array:
+    """
+    Returns a coefficient matrix that maps a vector of batch_size * tri entries
+    (F-order layout of (batch_size, tri)) to batch_size * n*n entries
+    (F-order layout of (batch_size, n, n)).
+
+    Uses Kronecker product kron(upper_tri_to_full(n), eye(batch_size)) because
+    F-order reshape interleaves batch elements.
+
+    Parameters
+    ----------
+    batch_size : int
+        The number of batch elements.
+    n : int
+        The dimension of the square matrix.
+
+    Returns
+    -------
+    sp.csc_array
+        The coefficient matrix.
+    """
+    single = upper_tri_to_full(n)
+    if batch_size == 1:
+        return single
+    return sp.csc_array(sp.kron(single, sp.eye(batch_size), format='csc'))

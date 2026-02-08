@@ -14,6 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from typing import List
+
+import numpy as np
+
 from cvxpy.constraints.cones import Cone
 from cvxpy.expressions import cvxtypes
 from cvxpy.utilities import scopes
@@ -47,8 +51,8 @@ class PSD(Cone):
     """
 
     def __init__(self, expr, constr_id=None) -> None:
-        # Argument must be square matrix.
-        if len(expr.shape) != 2 or expr.shape[0] != expr.shape[1]:
+        # Argument must be square matrix (possibly batched).
+        if len(expr.shape) < 2 or expr.shape[-2] != expr.shape[-1]:
             raise ValueError(
                 "Non-square matrix in positive definite constraint."
             )
@@ -71,6 +75,23 @@ class PSD(Cone):
     def is_dqcp(self) -> bool:
         return self.is_dcp()
 
+    def num_cones(self) -> int:
+        """The number of PSD cones."""
+        return int(np.prod(self.args[0].shape[:-2])) if len(self.args[0].shape) > 2 else 1
+
+    def _cone_size(self) -> int:
+        """The dimension of each PSD cone (the matrix side length n)."""
+        return int(self.args[0].shape[-1])
+
+    def cone_sizes(self) -> List[int]:
+        """The dimensions of the PSD cones."""
+        return [self._cone_size()] * self.num_cones()
+
+    @property
+    def size(self) -> int:
+        """The number of entries in the combined cones."""
+        return self._cone_size() ** 2 * self.num_cones()
+
     @property
     def residual(self):
         """The residual of the constraint.
@@ -81,7 +102,9 @@ class PSD(Cone):
         """
         if self.expr.value is None:
             return None
-        min_eig = cvxtypes.lambda_min()(self.args[0] + self.args[0].T)/2
+        from cvxpy.atoms.affine.transpose import swapaxes as cp_swapaxes
+        min_eig = cvxtypes.lambda_min()(
+            self.args[0] + cp_swapaxes(self.args[0], -2, -1))/2
         return cvxtypes.neg()(min_eig).value
 
     def _dual_cone(self, *args):

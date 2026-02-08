@@ -17,13 +17,38 @@ limitations under the License.
 import numpy as np
 
 from cvxpy.atoms import trace
-from cvxpy.atoms.affine.hstack import hstack
 from cvxpy.atoms.affine.reshape import reshape
+from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.dcp2cone.canonicalizers.lambda_max_canon import (
     lambda_max_canon,
 )
 from cvxpy.utilities.solver_context import SolverInfo
+
+
+def _batched_trace(Z, batch_shape, n):
+    """Compute trace of each (n, n) slice in a (*batch, n, n) expression.
+
+    Returns an expression with shape batch_shape.
+    """
+    batch_size = int(np.prod(batch_shape))
+    # Flatten Z to (batch_size * n * n, 1) in F-order,
+    # then multiply by a coefficient matrix that picks diagonals.
+    # In F-order layout of (batch_size, n, n), the diagonal entries of
+    # the k-th matrix are at positions k + batch_size * (i * n + i)
+    # for i = 0..n-1.
+    flat = reshape(Z, (batch_size * n * n, 1), order='F')
+    diag_indices = np.arange(n) * n + np.arange(n)  # i * n + i for F-order n x n
+    # For each batch element b, the entry is at b + batch_size * diag_index
+    import scipy.sparse as sp
+    row_idx = np.repeat(np.arange(batch_size), n)
+    col_idx = (np.tile(diag_indices, batch_size) * batch_size
+               + np.repeat(np.arange(batch_size), n))
+    coeff = Constant(sp.csc_array(
+        (np.ones(batch_size * n), (row_idx, col_idx)),
+        shape=(batch_size, batch_size * n * n)))
+    result = coeff @ flat
+    return reshape(result, batch_shape, order='F')
 
 
 def lambda_sum_largest_canon(expr, args, solver_context: SolverInfo | None = None):
@@ -55,12 +80,11 @@ def lambda_sum_largest_canon(expr, args, solver_context: SolverInfo | None = Non
     else:
         # nd case: X has shape (*batch, n, n)
         batch_shape = X.shape[:-2]
-        objs = []
-        constr = []
-        for idx in np.ndindex(batch_shape):
-            Z_i = Variable((n, n), PSD=True)
-            obj_i, constr_i = lambda_max_canon(expr, [X[idx] - Z_i])
-            objs.append(k * obj_i + trace(Z_i))
-            constr.extend(constr_i)
-        obj = reshape(hstack(objs), batch_shape, order='C')
+        Z = Variable(batch_shape + (n, n), PSD=True)
+
+        obj, constr = lambda_max_canon(expr, [X - Z])
+
+        # Batched trace via coefficient matrix
+        batch_trace = _batched_trace(Z, batch_shape, n)
+        obj = k * obj + batch_trace
         return obj, constr
