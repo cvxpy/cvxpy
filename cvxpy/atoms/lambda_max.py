@@ -62,6 +62,12 @@ class lambda_max(Atom):
                 from cvxpy.atoms.affine.conj import conj
                 return [expr_swapaxes(conj(A), -2, -1) == A]
 
+    def _single_matrix_grad(self, mat):
+        """Compute the gradient matrix for a single 2D symmetric matrix."""
+        _, v = LA.eigh(mat)
+        v_max = v[:, -1]
+        return np.outer(v_max, v_max)
+
     def _grad(self, values):
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.
 
@@ -75,37 +81,30 @@ class lambda_max(Atom):
         """
         A = values[0]
         if A.ndim == 2:
-            w, v = LA.eigh(A)
-            d = np.zeros(w.shape)
-            d[-1] = 1
-            d = np.diag(d)
-            D = v.dot(d).dot(v.T)
+            D = self._single_matrix_grad(A)
             return [sp.csc_array([D.ravel(order='F')]).T]
         else:
             batch_shape = A.shape[:-2]
             n = A.shape[-1]
             total_batch = int(np.prod(batch_shape))
             n2 = n * n
-            total_output = total_batch * n2
             rows = []
             cols = []
             vals = []
-            for flat_i, idx in enumerate(np.ndindex(batch_shape)):
-                mat = A[idx]
-                w, v = LA.eigh(mat)
-                d = np.zeros(w.shape)
-                d[-1] = 1
-                d = np.diag(d)
-                D = v.dot(d).dot(v.T)
+            # F-order flat index: batch_fi + total_batch * matrix_fi
+            for idx in np.ndindex(batch_shape):
+                D = self._single_matrix_grad(A[idx])
                 D_flat = D.ravel(order='F')
-                for j in range(n2):
-                    if D_flat[j] != 0:
-                        row = flat_i * n2 + j
-                        rows.append(row)
-                        cols.append(flat_i)
-                        vals.append(D_flat[j])
+                nz = np.nonzero(D_flat)[0]
+                batch_fi = np.ravel_multi_index(
+                    idx, batch_shape, order='F'
+                )
+                rows.extend(batch_fi + total_batch * nz)
+                cols.extend([batch_fi] * len(nz))
+                vals.extend(D_flat[nz])
             grad = sp.csc_array(
-                (vals, (rows, cols)), shape=(total_output, total_batch)
+                (vals, (rows, cols)),
+                shape=(total_batch * n2, total_batch)
             )
             return [grad]
 

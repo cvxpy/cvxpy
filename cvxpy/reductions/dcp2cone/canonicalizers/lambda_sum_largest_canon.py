@@ -14,7 +14,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import numpy as np
+
 from cvxpy.atoms import trace
+from cvxpy.atoms.affine.hstack import hstack
+from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.dcp2cone.canonicalizers.lambda_max_canon import (
     lambda_max_canon,
@@ -51,14 +55,12 @@ def lambda_sum_largest_canon(expr, args, solver_context: SolverInfo | None = Non
     else:
         # nd case: X has shape (*batch, n, n)
         batch_shape = X.shape[:-2]
-        m = batch_shape[0]  # Only support 1 batch dim for now
         objs = []
         constr = []
-        for i in range(m):
+        for idx in np.ndindex(batch_shape):
             Z_i = Variable((n, n), PSD=True)
-            obj_i, constr_i = lambda_max_canon(expr, [X[i] - Z_i])
+            obj_i, constr_i = lambda_max_canon(expr, [X[idx] - Z_i])
             objs.append(k * obj_i + trace(Z_i))
             constr.extend(constr_i)
-        from cvxpy.atoms.affine.hstack import hstack
-        obj = hstack(objs)
+        obj = reshape(hstack(objs), batch_shape, order='C')
         return obj, constr
