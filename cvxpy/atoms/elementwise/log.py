@@ -23,7 +23,22 @@ from cvxpy.utilities import bounds as bounds_utils
 
 
 class log(Elementwise):
-    """Elementwise :math:`\\log x`.
+    """Elementwise natural logarithm.
+
+    Computes the elementwise natural logarithm of the input.
+
+    Mathematical definition:
+        .. math::
+
+            f(x) = \\log(x)
+
+    Domain:
+        :math:`x > 0`
+
+    Parameters
+    ----------
+    x : Expression
+        Input expression. Must be elementwise positive.
     """
 
     def __init__(self, x) -> None:
