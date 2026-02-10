@@ -179,14 +179,14 @@ Morning Session
      - | **Talkback: CVXPY New Features** *(Hybrid)*
 
    * - **11:30 AM**
-     - | **A Tutorial on Graphs of Convex Sets** — `Tobia Marcucci <#speaker-tobia-marcucci>`_ *(In-Person)*
-       |
-       | In this talk, I will give a tutorial on graphs of convex sets, with emphasis on their applications in robotics, planning, and, more broadly, decision making. Mathematically, a Graph of Convex Sets (GCS) is a graph in which vertices are associated with convex optimization problems and edges couple pairs of these problems through additional convex costs and constraints. Classical problems defined over ordinary weighted graphs (such as the shortest path, the traveling salesman, and the minimum spanning tree) naturally generalize to a GCS, giving rise to a rich class of problems at the interface of combinatorial and convex optimization. First, I will discuss how GCS problems can be solved efficiently and show a variety of real-world applications. Secondly, I will present GCSOPT, an open-source and easy-to-use Python library, based on CVXPY, that enables solving complex GCS problems in just a few lines of code.
-
-   * - **12:00 PM**
      - | **Optimizing Water and Wastewater Treatment Systems with CVXPY** — `Daly Wettermark <#speaker-daly-wettermark>`_ *(In-Person)*
        |
        | Pumping and treatment of water comprises approximately 4% of global electricity consumption, with up to 20% in regions where water scarcity necessitates advanced treatment or long-distance pumping like California. Recent research has highlighted the potential for water systems to reduce their electricity-related costs and emissions through flexible operation. In this presentation, we present an overview of how water sector facilities such as desalination, water distribution, and wastewater treatment are well positioned to contribute to grid flexibility. We will specifically discuss an optimization problem in CVXPY for a wastewater treatment facility with a biogas microgrid, using physics-informed constraints and real-world electricity tariffs and Scope 2 emissions factors. We will discuss the results, which demonstrate the potential for energy flexibility to reduce operating costs by 12% compared to baseline operation, and how the optimization tool can be used to compare different flexibility technologies.
+
+   * - **11:40 AM**
+     - | **A Tutorial on Graphs of Convex Sets** — `Tobia Marcucci <#speaker-tobia-marcucci>`_ *(In-Person)*
+       |
+       | In this talk, I will give a tutorial on graphs of convex sets, with emphasis on their applications in robotics, planning, and, more broadly, decision making. Mathematically, a Graph of Convex Sets (GCS) is a graph in which vertices are associated with convex optimization problems and edges couple pairs of these problems through additional convex costs and constraints. Classical problems defined over ordinary weighted graphs (such as the shortest path, the traveling salesman, and the minimum spanning tree) naturally generalize to a GCS, giving rise to a rich class of problems at the interface of combinatorial and convex optimization. First, I will discuss how GCS problems can be solved efficiently and show a variety of real-world applications. Secondly, I will present GCSOPT, an open-source and easy-to-use Python library, based on CVXPY, that enables solving complex GCS problems in just a few lines of code.
 
    * - **12:10 PM**
      - **Lunch Break**
