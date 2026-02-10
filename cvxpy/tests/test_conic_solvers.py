@@ -302,6 +302,29 @@ class TestSCS(BaseTest):
         time2 = prob.solver_stats.solve_time
         self.assertAlmostEqual(result2, result, places=2)
         print(time > time2)
+    
+    def test_scs_solver_cache_reuse(self) -> None:
+        """Test that SCS reuses the solver workspace when warm_start=True.
+        """
+        import numpy as np
+        
+        m, n = 100, 50
+        np.random.seed(0)
+        A = np.random.randn(m, n)
+        b = cp.Parameter(m)
+        x = cp.Variable(n)
+        prob = cp.Problem(
+            cp.Minimize(cp.norm(A @ x - b)),
+            [x >= 0]
+        )
+        b.value = np.random.randn(m)
+        prob.solve(solver=cp.SCS)
+        solver1 = prob._solver_cache.get(cp.SCS, None)
+        assert solver1 is not None
+        b.value = np.random.randn(m)
+        prob.solve(solver=cp.SCS, warm_start=True)
+        solver2 = prob._solver_cache.get(cp.SCS, None)
+        assert solver1 is solver2
 
     def test_warm_start_diffcp(self) -> None:
         """Test warm starting in diffcvx.
