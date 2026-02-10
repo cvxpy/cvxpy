@@ -246,7 +246,7 @@ Afternoon Session
      - | **Keynote** — `Stephen Boyd <#speaker-stephen-boyd>`_ *(In-Person)*
 
    * - **5:00 PM**
-     - | **Social** *(Location TBD)*
+     - | **Social** *(`Accel Partners, Palo Alto <https://maps.app.goo.gl/akDpcVErYi859q6V9>`_)*
 
 Hackathon (February 21)
 -----------------------
