@@ -251,7 +251,49 @@ Afternoon Session
 Hackathon (February 21)
 -----------------------
 
-Details coming soon.
+Schedule
+~~~~~~~~
+
+.. list-table::
+   :widths: 15 85
+   :header-rows: 0
+
+   * - **9:00 AM**
+     - Welcome and introductions
+   * - **9:15 AM**
+     - Theme overview and team formation
+   * - **9:45 AM**
+     - Hacking begins
+   * - **12:00 PM**
+     - Mid-day check-in
+   * - **12:30 PM**
+     - Lunch break
+   * - **1:15 PM**
+     - Hacking continues
+   * - **4:00 PM**
+     - Demo prep
+   * - **4:15 PM**
+     - Demos (3–5 minutes each)
+   * - **5:15 PM**
+     - Wrap-up and closing
+
+Themes
+~~~~~~
+
+Work is organized into 10 themes. See the
+`hackathon repo <https://github.com/cvxpy/hackathon>`_ for details and
+reference projects.
+
+- **Benchmarking** — Help us understand the performance profiles of default CVXPY solvers.
+- **Developer Tools** — Build debugging and visualization tools for CVXPY.
+- **Energy** — Build new projects for energy and power systems.
+- **Engineering Design** — Model engineering design problems as convex or geometric programs.
+- **Finance** — Build portfolio construction and other finance projects with CVXPY.
+- **Interfaces** — Develop new ways to interact with CVXPY (visual editors, database integration, etc.).
+- **Languages** — Build or extend a CVX* implementation in a new language.
+- **Optimization Extensions** — Leverage extensions like GCSOPT, DBCP, pycvxset, and MOCVXPY.
+- **Physical Sciences** — Use CVXPY in biology, chemistry, or physics.
+- **Other** — Any project related to optimization is welcome!
 
 Speakers
 --------
