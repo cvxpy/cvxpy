@@ -1,5 +1,6 @@
-import cvxpy as cp
 import numpy as np
+
+import cvxpy as cp
 
 
 def test_block_scalar_promotion():

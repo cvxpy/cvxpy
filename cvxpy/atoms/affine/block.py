@@ -2,9 +2,9 @@
 NumPy-like block matrix constructor for CVXPY.
 """
 
+from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.atoms.affine.hstack import hstack
 from cvxpy.atoms.affine.vstack import vstack
-from cvxpy.atoms.affine.affine_atom import AffAtom
 
 
 def _atleast_2d(expr):
