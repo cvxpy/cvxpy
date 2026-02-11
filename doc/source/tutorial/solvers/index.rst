@@ -298,16 +298,6 @@ stored in the ``value`` field of variables will be used as the solver's initial
 primal iterates. Depending on the solver, warm starting may reuse cached solver
 state or previous iterates instead.
 
-For solvers that support warm starting, a solver must be explicitly specified, for example::
-
-    prob.solve(solver=cp.OSQP, warm_start=True)
-
-.. note::
-
-   Warm starting behavior varies by solver. Users should consult the
-   documentation of the chosen solver for details on what information
-   is reused when warm starting is enabled.
-
 .. _solveropts:
 
 Setting solver options
