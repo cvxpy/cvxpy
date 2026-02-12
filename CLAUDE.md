@@ -145,9 +145,9 @@ The NLP infrastructure provides oracle-based interfaces for nonlinear solvers:
 - DNLP validation: expressions must be smooth (ESR and HSR)
 - Problem validity checked via `problem.is_dnlp()` method
 
-### Diff Engine (Subproject)
+### Diff Engine (SparseDiffPy)
 
-The `diff_engine_core/` directory contains a C library with Python bindings for automatic differentiation. It builds expression trees from CVXPY problems and computes derivatives (gradients, Jacobians, Hessians) for NLP solvers.
+The automatic differentiation engine is provided by the [SparseDiffPy](https://github.com/SparseDifferentiation/SparseDiffPy) package (`pip install sparsediffpy`), which wraps the [SparseDiffEngine](https://github.com/SparseDifferentiation/SparseDiffEngine) C library. It builds expression trees from CVXPY problems and computes derivatives (gradients, Jacobians, Hessians) for NLP solvers. New diff engine atoms require C-level additions in SparseDiffPy.
 
 ## Implementing New Atoms
 

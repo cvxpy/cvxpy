@@ -22,10 +22,10 @@ import cvxpy as cp
 
 # Import the low-level C bindings
 try:
-    import _diffengine
+    from sparsediffpy import _sparsediffengine as _diffengine
 except ImportError as e:
     raise ImportError(
-        "NLP support requires diff-engine. Rebuild with: pip install -e ."
+        "NLP support requires sparsediffpy. Install with: pip install sparsediffpy"
     ) from e
 
 from cvxpy.reductions.solvers.nlp_solvers.diff_engine.converters import (

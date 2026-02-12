@@ -13,8 +13,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import glob
-import os
 import platform
 
 from pybind11.setup_helpers import Pybind11Extension
@@ -61,40 +59,3 @@ sparsecholesky = Pybind11Extension(
     extra_compile_args=compiler_args,
     extra_link_args=['-O3'],
 )
-
-# Diff engine C extension for NLP support (optional)
-# Source: https://github.com/dance858/DNLP-Differentiation-Engine
-# Only built if the submodule is initialized (git submodule update --init)
-# Python bindings are in cvxpy/.../diff_engine/_bindings/ (separate from C library)
-diffengine = None
-_diffengine_bindings = 'cvxpy/reductions/solvers/nlp_solvers/diff_engine/_bindings/bindings.c'
-_diffengine_include = 'diff_engine_core/include/'
-if os.path.exists(_diffengine_bindings) and os.path.exists(_diffengine_include):
-    diff_engine_sources = [
-        s for s in glob.glob('diff_engine_core/src/**/*.c', recursive=True)
-        if 'dnlp_diff_engine' not in s  # Exclude standalone Python package
-    ] + [_diffengine_bindings]
-
-    # Define _POSIX_C_SOURCE on Linux for clock_gettime and struct timespec
-    diffengine_defines = []
-    if platform.system().lower() == 'linux':
-        diffengine_defines.append(('_POSIX_C_SOURCE', '200809L'))
-
-    diffengine = Extension(
-        '_diffengine',
-        sources=diff_engine_sources,
-        include_dirs=[
-            'diff_engine_core/include/',
-            'diff_engine_core/src/',
-            'cvxpy/reductions/solvers/nlp_solvers/diff_engine/_bindings/',
-        ],
-        define_macros=diffengine_defines,
-        extra_compile_args=[
-            '-O3',
-            '-std=c99',
-            '-Wall',
-            not_on_windows('-Wextra'),
-            '-DDIFF_ENGINE_VERSION="0.0.1"',
-        ],
-        extra_link_args=['-lm'] if platform.system().lower() != 'windows' else [],
-    )
