@@ -229,7 +229,7 @@ Afternoon Session
    * - **3:15 PM**
      - | **Moreau: The Convex Optimization Solver for the Modern Workload** — `Steven Diamond <#speaker-steven-diamond>`_ *(In-Person, Sponsored)*
        |
-       | Moreau is a new GPU-native convex optimization solver designed for modern AI workloads. Moreau is up to 100× faster than comparable CPU solvers, and supports batching and exact differentiation. Moreau interfaces with PyTorch and JAX, enabling efficient backpropagation through convex optimization layers. This talk shows how Moreau unlocks new applications of convex optimization in robotics, energy, and finance. Visit https://www.moreau.so/ to learn more about the solver.
+       | Moreau is a new GPU-native convex optimization solver designed for modern AI workloads. Moreau is up to 100× faster than comparable CPU solvers, and supports batching and exact differentiation. Moreau interfaces with PyTorch and JAX, enabling efficient backpropagation through convex optimization layers. This talk shows how Moreau unlocks new applications of convex optimization in robotics, energy, and finance. Visit `moreau.so <https://www.moreau.so/>`_ to learn more about the solver.
 
    * - **3:30 PM**
      - | **Electrified Transportation Optimization with CVXPY** — `Kyle Goodrick <#speaker-kyle-goodrick>`_ *(In-Person)*
