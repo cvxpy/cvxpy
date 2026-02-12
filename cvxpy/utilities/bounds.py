@@ -189,6 +189,18 @@ def add_bounds(lb1: np.ndarray, ub1: np.ndarray,
     return (lb1 + lb2, ub1 + ub2)
 
 
+def _sparse_sum(arr, axis, keepdims):
+    """Sum a sparse array, handling keepdims which scipy doesn't support."""
+    result = arr.sum(axis=axis)
+    # scipy sparse .sum() returns np.matrix; convert to ndarray.
+    result = np.asarray(result)
+    if keepdims:
+        result = np.expand_dims(result, axis=axis)
+    else:
+        result = result.squeeze()
+    return result
+
+
 def sum_bounds(lb: np.ndarray, ub: np.ndarray,
                axis: Optional[Union[int, Tuple[int, ...]]] = None,
                keepdims: bool = False) -> Bounds:
@@ -196,8 +208,8 @@ def sum_bounds(lb: np.ndarray, ub: np.ndarray,
 
     Parameters
     ----------
-    lb, ub : np.ndarray
-        Bounds for the expression being summed.
+    lb, ub : array-like
+        Bounds for the expression being summed (may be sparse).
     axis : None or int or tuple of ints
         Axis or axes along which to sum.
     keepdims : bool
@@ -208,8 +220,14 @@ def sum_bounds(lb: np.ndarray, ub: np.ndarray,
     Bounds
         Bounds for the sum.
     """
-    new_lb = np.sum(lb, axis=axis, keepdims=keepdims)
-    new_ub = np.sum(ub, axis=axis, keepdims=keepdims)
+    if sp_sparse.issparse(lb):
+        new_lb = _sparse_sum(lb, axis, keepdims)
+    else:
+        new_lb = np.sum(lb, axis=axis, keepdims=keepdims)
+    if sp_sparse.issparse(ub):
+        new_ub = _sparse_sum(ub, axis, keepdims)
+    else:
+        new_ub = np.sum(ub, axis=axis, keepdims=keepdims)
     return (new_lb, new_ub)
 
 
@@ -665,8 +683,8 @@ def reshape_bounds(lb: np.ndarray, ub: np.ndarray,
 
     Parameters
     ----------
-    lb, ub : np.ndarray
-        Bounds to reshape.
+    lb, ub : array-like
+        Bounds to reshape (may be sparse).
     new_shape : tuple of ints
         New shape.
     order : str
@@ -827,6 +845,26 @@ def get_expr_bounds_if_supported(expr, solver_context) -> Optional[list]:
     # Ensure dense and expand to full shape for solver consumption.
     # This handles broadcast views and sparse matrices.
     return [_ensure_dense(lb, expr.shape), _ensure_dense(ub, expr.shape)]
+
+
+def coords_equal(coords1, coords2) -> bool:
+    """Check if two coordinate tuples represent the same sparsity pattern.
+
+    Parameters
+    ----------
+    coords1 : tuple of array-like
+        First coordinate tuple (e.g., (rows, cols) for 2D sparse).
+    coords2 : tuple of array-like
+        Second coordinate tuple.
+
+    Returns
+    -------
+    bool
+        True if the coordinate tuples are equal.
+    """
+    if len(coords1) != len(coords2):
+        return False
+    return all(np.array_equal(c1, c2) for c1, c2 in zip(coords1, coords2))
 
 
 def refine_bounds_from_sign(lb, ub,

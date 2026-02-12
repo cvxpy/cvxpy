@@ -155,6 +155,28 @@ class CvxAttr2Constr(Reduction):
                     obj = reshape(full_mat, (n, n), order='F')
                 elif var.attributes['sparsity']:
                     n = len(var.sparse_idx[0])
+
+                    # Transform bounds for reduced variable if bounds are not being reduced
+                    if 'bounds' not in reduction_attributes and new_attr.get('bounds'):
+                        bounds = new_attr['bounds']
+                        transformed_bounds = []
+                        for bound in bounds:
+                            if sp.issparse(bound):
+                                # Extract data from sparse bound
+                                # (already validated to match sparsity)
+                                coo = sp.coo_array(bound)
+                                coo.sum_duplicates()
+                                transformed_bounds.append(coo.data)
+                            elif np.isscalar(bound) or (hasattr(bound, 'ndim') and bound.ndim == 0):
+                                # Scalar bounds - keep as-is
+                                transformed_bounds.append(bound)
+                            else:
+                                raise ValueError(
+                                    "Unexpected dense array bound on sparse "
+                                    "variable during reduction."
+                                )
+                        new_attr['bounds'] = transformed_bounds
+
                     sparse_var = Variable(n, var_id=var.id, **new_attr)
                     if var.value_sparse is not None:
                         sparse_var.value = var.value_sparse.data

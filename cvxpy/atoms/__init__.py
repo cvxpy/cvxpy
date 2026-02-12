@@ -14,7 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.atoms.affine.binary_operators import (matmul, multiply,
+from cvxpy.atoms.affine.add_expr import AddExpression
+from cvxpy.atoms.affine.binary_operators import (matmul, MulExpression, multiply,
                                                  vdot, scalar_product, outer,)
 from cvxpy.atoms.affine.bmat import bmat
 from cvxpy.atoms.affine.broadcast_to import broadcast_to
@@ -36,7 +37,7 @@ from cvxpy.atoms.affine.reshape import deep_flatten, reshape
 from cvxpy.atoms.affine.squeeze import squeeze
 from cvxpy.atoms.affine.concatenate import concatenate
 from cvxpy.atoms.affine.stack import stack
-from cvxpy.atoms.affine.sum import sum
+from cvxpy.atoms.affine.sum import Sum, sum
 from cvxpy.atoms.affine.trace import trace, Trace
 from cvxpy.atoms.affine.transpose import (transpose, permute_dims, swapaxes, moveaxis)
 from cvxpy.atoms.affine.upper_tri import upper_tri, vec_to_upper_tri
@@ -166,4 +167,31 @@ NON_SMOOTH_ATOMS = [
     abs,
     maximum,
     minimum,
+]
+
+# DGP atoms whose Dgp2Dcp canonicalization produces ExpCone-requiring DCP atoms.
+GP_EXP_ATOMS = [
+    AddExpression,
+    exp,
+    eye_minus_inv,
+    log,
+    MulExpression,
+    norm1,
+    one_minus_pos,
+    Pnorm,
+    PnormApprox,
+    QuadForm,
+    Sum,
+    Trace,
+    xexp,
+]
+
+# DGP atoms whose Dgp2Dcp canonicalization produces NonNeg constraints.
+GP_NONPOS_ATOMS = [
+    norm_inf,
+    max,
+    min,
+    maximum,
+    minimum,
+    pf_eigenvalue,
 ]

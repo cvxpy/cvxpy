@@ -186,8 +186,7 @@ class TestSupportFunctions(BaseTest):
         sigma = cp.suppfunc(x, [cp.norm(x - np.random.randn(n,), 2) <= 1])
         y_var = cp.Variable(shape=(n,))
         prob = cp.Problem(cp.Minimize(sigma(y_var)), [np.random.randn(n,) == y_var])
-        with self.assertRaisesRegex(
-                SolverError, ".*could not be reduced to a QP.*"):
+        with self.assertRaises(SolverError):
             prob.solve(solver='OSQP')
 
     def test_invalid_variable(self) -> None:

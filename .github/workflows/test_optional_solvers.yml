@@ -37,6 +37,9 @@ jobs:
           version: 'lts'
       - name: Install COSMO
         run: julia -e 'using Pkg; Pkg.add("COSMO")'
+      - name: Install SuiteSparse (macOS)
+        if: runner.os == 'macOS'
+        run: brew install suite-sparse
       - name: Install cvxpy dependencies and all optional solvers
         run: uv sync --all-extras --dev
       - name: Print installed solvers

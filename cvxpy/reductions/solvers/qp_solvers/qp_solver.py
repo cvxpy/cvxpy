@@ -68,6 +68,10 @@ class QpSolver(Solver):
 
     IS_MIP = "IS_MIP"
 
+    def supports_quad_obj(self) -> bool:
+        """QP solvers support quadratic objectives."""
+        return True
+
     def accepts(self, problem):
         return (isinstance(problem, ParamConeProg)
                 and (self.MIP_CAPABLE or not problem.is_mixed_integer())

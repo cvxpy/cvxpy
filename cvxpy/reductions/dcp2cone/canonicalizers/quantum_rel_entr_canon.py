@@ -22,7 +22,7 @@ def quantum_rel_entr_canon(expr, args, solver_context: SolverInfo | None = None)
     )
     # at this point we can be certain that we're dealing with an OpRelEnterConeQuad
     # constraint with real inputs. Canonicalize it, and return the results!
-    main_con, aux_cons = cp.reductions.cone2cone.approximations.OpRelEntrConeQuad_canon(
+    main_con, aux_cons = cp.reductions.cone2cone.approx.OpRelEntrConeQuad_canon(
         orec_con, None
     )
     constrs = [main_con] + aux_cons

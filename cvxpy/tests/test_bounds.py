@@ -16,6 +16,7 @@ limitations under the License.
 
 import numpy as np
 import pytest
+import scipy.sparse as sp
 
 import cvxpy as cp
 
@@ -755,3 +756,437 @@ class TestBoundsMemoryOptimization:
         assert np.allclose(ub, ub_values)
         assert lb.strides != (0, 0)
         assert ub.strides != (0, 0)
+
+
+class TestSparseBounds:
+    """Tests for sparse bounds on sparse variables."""
+
+    def test_sparse_variable_with_matching_sparse_bounds(self) -> None:
+        """Test sparse variable with sparse bounds having matching pattern."""
+
+
+        rows = np.array([0, 1, 2])
+        cols = np.array([0, 1, 2])
+        sparsity = (rows, cols)
+
+        lb_sparse = sp.coo_array(
+            (np.array([-1, -2, -3], dtype=float), (rows, cols)), shape=(3, 3)
+        )
+        ub_sparse = sp.coo_array(
+            (np.array([1, 2, 3], dtype=float), (rows, cols)), shape=(3, 3)
+        )
+
+        x = cp.Variable((3, 3), sparsity=sparsity, bounds=(lb_sparse, ub_sparse))
+
+        # Bounds should be stored as sparse
+        assert sp.issparse(x.bounds[0])
+        assert sp.issparse(x.bounds[1])
+
+        # get_bounds should return sparse
+        lb, ub = x.get_bounds()
+        assert sp.issparse(lb)
+        assert sp.issparse(ub)
+
+    def test_sparse_variable_rejects_mismatched_sparse_bounds(self) -> None:
+        """Test that sparse bounds with wrong pattern are rejected."""
+
+
+        rows = np.array([0, 1, 2])
+        cols = np.array([0, 1, 2])
+        sparsity = (rows, cols)
+
+        # Different sparsity pattern
+        wrong_rows = np.array([0, 0])
+        wrong_cols = np.array([0, 1])
+        lb_sparse = sp.coo_array(
+            (np.array([-1, -2], dtype=float), (wrong_rows, wrong_cols)), shape=(3, 3)
+        )
+        ub_sparse = sp.coo_array(
+            (np.array([1, 2], dtype=float), (wrong_rows, wrong_cols)), shape=(3, 3)
+        )
+
+        with pytest.raises(ValueError, match="same sparsity pattern"):
+            cp.Variable((3, 3), sparsity=sparsity, bounds=(lb_sparse, ub_sparse))
+
+    def test_sparse_variable_with_scalar_bounds(self) -> None:
+        """Test sparse variable with scalar bounds (still allowed)."""
+
+
+        rows = np.array([0, 1, 2])
+        cols = np.array([0, 1, 2])
+        sparsity = (rows, cols)
+
+        # Scalar bounds should still work
+        x = cp.Variable((3, 3), sparsity=sparsity, bounds=(-1, 1))
+        lb, ub = x.get_bounds()
+
+        # Should be broadcast views (not sparse)
+        assert not sp.issparse(lb)
+        assert not sp.issparse(ub)
+
+    def test_sparse_bounds_validation(self) -> None:
+        """Test that invalid sparse bounds are rejected."""
+
+
+        rows = np.array([0])
+        cols = np.array([0])
+        sparsity = (rows, cols)
+
+        lb_sparse = sp.coo_array(
+            (np.array([10], dtype=float), (rows, cols)), shape=(3, 3)
+        )
+        ub_sparse = sp.coo_array(
+            (np.array([5], dtype=float), (rows, cols)), shape=(3, 3)
+        )
+
+        with pytest.raises(ValueError, match="upper bounds are less"):
+            cp.Variable((3, 3), sparsity=sparsity, bounds=(lb_sparse, ub_sparse))
+
+    def test_1d_sparse_variable_with_sparse_bounds(self) -> None:
+        """Test 1D sparse variable with matching sparse bounds."""
+
+
+        indices = np.array([1, 3, 5])
+        sparsity = (indices,)
+
+        lb_sparse = sp.coo_array(
+            (np.array([-1, -2, -3], dtype=float), (indices,)), shape=(7,)
+        )
+        ub_sparse = sp.coo_array(
+            (np.array([1, 2, 3], dtype=float), (indices,)), shape=(7,)
+        )
+
+        x = cp.Variable(7, sparsity=sparsity, bounds=(lb_sparse, ub_sparse))
+
+        # Bounds should be stored as sparse
+        assert sp.issparse(x.bounds[0])
+        assert sp.issparse(x.bounds[1])
+
+        lb, ub = x.get_bounds()
+        assert sp.issparse(lb)
+        assert sp.issparse(ub)
+
+    def test_sparse_bounds_with_highs_solver(self) -> None:
+        """Test sparse bounds work with HIGHS (BOUNDED_VARIABLES solver)."""
+
+
+        rows = np.array([0, 1, 2])
+        cols = np.array([0, 1, 2])
+        sparsity = (rows, cols)
+
+        lb_sparse = sp.coo_array(
+            (np.array([-1, -2, -3], dtype=float), (rows, cols)), shape=(3, 3)
+        )
+        ub_sparse = sp.coo_array(
+            (np.array([1, 2, 3], dtype=float), (rows, cols)), shape=(3, 3)
+        )
+
+        x = cp.Variable((3, 3), sparsity=sparsity, bounds=(lb_sparse, ub_sparse))
+        prob = cp.Problem(cp.Minimize(cp.sum(x)))
+        prob.solve(solver=cp.HIGHS)
+
+        assert prob.status == cp.OPTIMAL
+        # Minimum is sum of lower bounds: -1 + -2 + -3 = -6
+        assert np.isclose(prob.value, -6.0)
+
+    def test_sparse_bounds_with_clarabel_solver(self) -> None:
+        """Test sparse bounds work with CLARABEL (constraint-based bounds)."""
+
+
+        rows = np.array([0, 1, 2])
+        cols = np.array([0, 1, 2])
+        sparsity = (rows, cols)
+
+        lb_sparse = sp.coo_array(
+            (np.array([-1, -2, -3], dtype=float), (rows, cols)), shape=(3, 3)
+        )
+        ub_sparse = sp.coo_array(
+            (np.array([1, 2, 3], dtype=float), (rows, cols)), shape=(3, 3)
+        )
+
+        x = cp.Variable((3, 3), sparsity=sparsity, bounds=(lb_sparse, ub_sparse))
+        prob = cp.Problem(cp.Minimize(cp.sum(x)))
+        prob.solve(solver=cp.CLARABEL)
+
+        assert prob.status == cp.OPTIMAL
+        # Minimum is sum of lower bounds: -1 + -2 + -3 = -6
+        assert np.isclose(prob.value, -6.0)
+
+    def test_dense_variable_rejects_sparse_bounds(self) -> None:
+        """Test that dense variables reject sparse bounds."""
+
+
+        rows = np.array([0, 1, 2])
+        cols = np.array([0, 1, 2])
+
+        lb_sparse = sp.coo_array(
+            (np.array([-1, -2, -3], dtype=float), (rows, cols)), shape=(3, 3)
+        )
+        ub_sparse = sp.coo_array(
+            (np.array([1, 2, 3], dtype=float), (rows, cols)), shape=(3, 3)
+        )
+
+        with pytest.raises(ValueError, match="only supported for sparse variables"):
+            cp.Variable((3, 3), bounds=(lb_sparse, ub_sparse))
+
+    def test_sparse_bounds_shape_mismatch(self) -> None:
+        """Test that sparse bounds with wrong shape are rejected."""
+
+
+        rows = np.array([0, 1, 2])
+        cols = np.array([0, 1, 2])
+        sparsity = (rows, cols)
+
+        # Wrong shape (4x4 instead of 3x3)
+        lb_sparse = sp.coo_array(
+            (np.array([-1, -2, -3], dtype=float), (rows, cols)), shape=(4, 4)
+        )
+        ub_sparse = sp.coo_array(
+            (np.array([1, 2, 3], dtype=float), (rows, cols)), shape=(4, 4)
+        )
+
+        with pytest.raises(ValueError, match="same shape"):
+            cp.Variable((3, 3), sparsity=sparsity, bounds=(lb_sparse, ub_sparse))
+
+    def test_sparse_variable_rejects_dense_array_bounds(self) -> None:
+        """Test that sparse variables reject dense array bounds."""
+        rows = np.array([0, 1, 2])
+        cols = np.array([0, 1, 2])
+        sparsity = (rows, cols)
+
+        lb_dense = -np.ones((3, 3))
+        ub_dense = np.ones((3, 3))
+
+        with pytest.raises(ValueError, match="Dense array bounds are not supported"):
+            cp.Variable((3, 3), sparsity=sparsity, bounds=(lb_dense, ub_dense))
+
+    def test_sparse_variable_rejects_expression_bounds(self) -> None:
+        """Test that sparse variables reject expression bounds."""
+        rows = np.array([0, 1, 2])
+        cols = np.array([0, 1, 2])
+        sparsity = (rows, cols)
+
+        p = cp.Parameter()
+        with pytest.raises(ValueError, match="Expression bounds are not yet supported"):
+            cp.Variable((3, 3), sparsity=sparsity, bounds=(p, 1))
+
+    def test_sparse_variable_scalar_bounds_must_contain_zero(self) -> None:
+        """Test that scalar bounds on sparse variables must contain 0."""
+        rows = np.array([0, 1, 2])
+        cols = np.array([0, 1, 2])
+        sparsity = (rows, cols)
+
+        # Lower bound > 0 should be rejected
+        with pytest.raises(ValueError, match="Scalar lower bound.*<= 0"):
+            cp.Variable((3, 3), sparsity=sparsity, bounds=(1, 2))
+
+        # Upper bound < 0 should be rejected
+        with pytest.raises(ValueError, match="Scalar upper bound.*>= 0"):
+            cp.Variable((3, 3), sparsity=sparsity, bounds=(-2, -1))
+
+        # Bounds containing 0 should be accepted
+        x = cp.Variable((3, 3), sparsity=sparsity, bounds=(-1, 1))
+        assert x.bounds is not None
+
+        # Edge case: bounds exactly at 0 should be accepted
+        x = cp.Variable((3, 3), sparsity=sparsity, bounds=(0, 1))
+        assert x.bounds is not None
+        x = cp.Variable((3, 3), sparsity=sparsity, bounds=(-1, 0))
+        assert x.bounds is not None
+
+    def test_sparse_bounds_with_nonneg(self) -> None:
+        """Test sparse bounds combined with nonneg attribute."""
+
+
+        rows = np.array([0, 1, 2])
+        cols = np.array([0, 1, 2])
+        sparsity = (rows, cols)
+
+        lb_sparse = sp.coo_array(
+            (np.array([-1, -2, -3], dtype=float), (rows, cols)), shape=(3, 3)
+        )
+        ub_sparse = sp.coo_array(
+            (np.array([1, 2, 3], dtype=float), (rows, cols)), shape=(3, 3)
+        )
+
+        x = cp.Variable(
+            (3, 3), nonneg=True, sparsity=sparsity,
+            bounds=(lb_sparse, ub_sparse)
+        )
+        lb, ub = x.get_bounds()
+
+        # nonneg should tighten lower bounds from [-1,-2,-3] to [0,0,0]
+        assert sp.issparse(lb)
+        assert sp.issparse(ub)
+        lb_dense = lb.toarray()
+        ub_dense = ub.toarray()
+        np.testing.assert_array_equal(lb_dense[rows, cols], [0, 0, 0])
+        np.testing.assert_array_equal(ub_dense[rows, cols], [1, 2, 3])
+
+    def test_sparse_bounds_with_nonpos(self) -> None:
+        """Test sparse bounds combined with nonpos attribute."""
+
+
+        rows = np.array([0, 1, 2])
+        cols = np.array([0, 1, 2])
+        sparsity = (rows, cols)
+
+        lb_sparse = sp.coo_array(
+            (np.array([-3, -2, -1], dtype=float), (rows, cols)), shape=(3, 3)
+        )
+        ub_sparse = sp.coo_array(
+            (np.array([1, 2, 3], dtype=float), (rows, cols)), shape=(3, 3)
+        )
+
+        x = cp.Variable(
+            (3, 3), nonpos=True, sparsity=sparsity,
+            bounds=(lb_sparse, ub_sparse)
+        )
+        lb, ub = x.get_bounds()
+
+        # nonpos should tighten upper bounds from [1,2,3] to [0,0,0]
+        assert sp.issparse(lb)
+        assert sp.issparse(ub)
+        lb_dense = lb.toarray()
+        ub_dense = ub.toarray()
+        np.testing.assert_array_equal(lb_dense[rows, cols], [-3, -2, -1])
+        np.testing.assert_array_equal(ub_dense[rows, cols], [0, 0, 0])
+
+    def test_sparse_bounds_propagation_through_sum(self) -> None:
+        """Test that sparse bounds propagate correctly through cp.sum."""
+
+
+        rows = np.array([0, 1, 2])
+        cols = np.array([0, 1, 2])
+        sparsity = (rows, cols)
+
+        lb_sparse = sp.coo_array(
+            (np.array([-1, -2, -3], dtype=float), (rows, cols)), shape=(3, 3)
+        )
+        ub_sparse = sp.coo_array(
+            (np.array([1, 2, 3], dtype=float), (rows, cols)), shape=(3, 3)
+        )
+
+        x = cp.Variable((3, 3), sparsity=sparsity, bounds=(lb_sparse, ub_sparse))
+        expr = cp.sum(x)
+        lb, ub = expr.get_bounds()
+
+        # sum of lower bounds: -1 + -2 + -3 + 0*6 = -6
+        # sum of upper bounds: 1 + 2 + 3 + 0*6 = 6
+        assert np.isscalar(lb) or lb.ndim == 0
+        assert np.isclose(float(lb), -6.0)
+        assert np.isclose(float(ub), 6.0)
+
+    def test_sparse_bounds_propagation_through_sum_axis(self) -> None:
+        """Test sparse bounds propagate through cp.sum with axis and keepdims."""
+
+
+        rows = np.array([0, 1, 2])
+        cols = np.array([0, 1, 2])
+        sparsity = (rows, cols)
+
+        lb_sparse = sp.coo_array(
+            (np.array([-1, -2, -3], dtype=float), (rows, cols)), shape=(3, 3)
+        )
+        ub_sparse = sp.coo_array(
+            (np.array([1, 2, 3], dtype=float), (rows, cols)), shape=(3, 3)
+        )
+
+        x = cp.Variable((3, 3), sparsity=sparsity, bounds=(lb_sparse, ub_sparse))
+
+        # axis=0: sum down columns
+        expr0 = cp.sum(x, axis=0)
+        lb0, ub0 = expr0.get_bounds()
+        # col 0: lb=-1, col 1: lb=-2, col 2: lb=-3 (only diagonal nonzeros)
+        np.testing.assert_array_almost_equal(lb0, [-1, -2, -3])
+        np.testing.assert_array_almost_equal(ub0, [1, 2, 3])
+
+        # axis=1: sum across rows
+        expr1 = cp.sum(x, axis=1)
+        lb1, ub1 = expr1.get_bounds()
+        np.testing.assert_array_almost_equal(lb1, [-1, -2, -3])
+        np.testing.assert_array_almost_equal(ub1, [1, 2, 3])
+
+        # keepdims=True
+        expr_kd = cp.sum(x, axis=0, keepdims=True)
+        lb_kd, ub_kd = expr_kd.get_bounds()
+        assert lb_kd.shape == (1, 3)
+        assert ub_kd.shape == (1, 3)
+        np.testing.assert_array_almost_equal(lb_kd, [[-1, -2, -3]])
+        np.testing.assert_array_almost_equal(ub_kd, [[1, 2, 3]])
+
+    def test_sparse_bounds_propagation_through_addition(self) -> None:
+        """Test that sparse bounds propagate correctly through addition."""
+
+
+        rows = np.array([0, 1])
+        cols = np.array([0, 1])
+        sparsity = (rows, cols)
+
+        lb_sparse = sp.coo_array(
+            (np.array([-1, -2], dtype=float), (rows, cols)), shape=(2, 2)
+        )
+        ub_sparse = sp.coo_array(
+            (np.array([1, 2], dtype=float), (rows, cols)), shape=(2, 2)
+        )
+
+        x = cp.Variable((2, 2), sparsity=sparsity, bounds=(lb_sparse, ub_sparse))
+        c = np.array([[10, 20], [30, 40]])
+        expr = x + c
+        lb, ub = expr.get_bounds()
+
+        # lb = sparse_lb + c: on-pattern [-1+10, -2+40]=[9, 38],
+        #                      off-pattern [0+20, 0+30]=[20, 30]
+        expected_lb = np.array([[9, 20], [30, 38]])
+        expected_ub = np.array([[11, 20], [30, 42]])
+        np.testing.assert_array_almost_equal(lb, expected_lb)
+        np.testing.assert_array_almost_equal(ub, expected_ub)
+
+
+class TestDiagBounds:
+    """Tests for bounds validation on diagonal variables."""
+
+    def test_diag_variable_with_scalar_bounds(self) -> None:
+        """Test diagonal variable with scalar bounds containing 0."""
+        x = cp.Variable((3, 3), diag=True, bounds=(-1, 1))
+        assert x.bounds is not None
+
+    def test_diag_variable_scalar_bounds_must_contain_zero(self) -> None:
+        """Test that scalar bounds on diagonal variables must contain 0."""
+        # Lower bound > 0 should be rejected
+        with pytest.raises(ValueError, match="Scalar lower bound.*<= 0"):
+            cp.Variable((3, 3), diag=True, bounds=(1, 2))
+
+        # Upper bound < 0 should be rejected
+        with pytest.raises(ValueError, match="Scalar upper bound.*>= 0"):
+            cp.Variable((3, 3), diag=True, bounds=(-2, -1))
+
+        # Edge case: bounds exactly at 0 should be accepted
+        x = cp.Variable((3, 3), diag=True, bounds=(0, 1))
+        assert x.bounds is not None
+        x = cp.Variable((3, 3), diag=True, bounds=(-1, 0))
+        assert x.bounds is not None
+
+    def test_diag_variable_rejects_dense_array_bounds(self) -> None:
+        """Test that diagonal variables reject dense array bounds."""
+        lb_dense = -np.ones((3, 3))
+        ub_dense = np.ones((3, 3))
+
+        with pytest.raises(ValueError, match="Dense array bounds are not supported"):
+            cp.Variable((3, 3), diag=True, bounds=(lb_dense, ub_dense))
+
+    def test_diag_variable_rejects_expression_bounds(self) -> None:
+        """Test that diagonal variables reject expression bounds."""
+        p = cp.Parameter()
+        with pytest.raises(ValueError, match="Expression bounds are not yet supported"):
+            cp.Variable((3, 3), diag=True, bounds=(p, 1))
+
+    def test_diag_variable_with_scalar_bounds_solves(self) -> None:
+        """Test diagonal variable with scalar bounds solves correctly."""
+        x = cp.Variable((3, 3), diag=True, bounds=(-1, 2))
+        prob = cp.Problem(cp.Minimize(cp.trace(x)))
+        prob.solve(solver=cp.CLARABEL)
+
+        assert prob.status == cp.OPTIMAL
+        # Minimum trace is -1 * 3 = -3
+        assert np.isclose(prob.value, -3.0)

@@ -101,7 +101,8 @@ class Variable(Leaf):
                 for b in self.attributes['bounds']:
                     if isinstance(b, Expression) and not b.is_log_log_affine():
                         return False
-        return True
+        # Use base class logic: check log-log convexity/concavity
+        return self.is_log_log_convex() or self.is_log_log_concave()
 
     def is_dpp(self, context: str = 'dcp') -> bool:
         """Check that the variable is DPP in the given context."""

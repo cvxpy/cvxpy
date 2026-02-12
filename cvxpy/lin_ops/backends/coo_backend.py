@@ -20,6 +20,7 @@ from typing import Any, Callable
 
 import numpy as np
 import scipy.sparse as sp
+from numpy.lib.array_utils import normalize_axis_tuple
 
 from cvxpy.lin_ops.backends.base import (
     Constant,
@@ -1646,7 +1647,7 @@ class CooCanonBackend(PythonCanonBackend):
             # Sum along specific axis
             # row_map[i] tells us which output row input row i maps to
             row_map = self._get_sum_row_map(shape, axis)
-            axis_tuple = axis if isinstance(axis, tuple) else (axis,)
+            axis_tuple = normalize_axis_tuple(axis, len(shape))
             out_axes = [i for i in range(len(shape)) if i not in axis_tuple]
             new_m = int(np.prod([shape[i] for i in out_axes])) if out_axes else 1
 
@@ -1670,7 +1671,7 @@ class CooCanonBackend(PythonCanonBackend):
 
         Returns array where row_map[i] is the output row for input row i.
         """
-        axis = axis if isinstance(axis, tuple) else (axis,)
+        axis = normalize_axis_tuple(axis, len(shape))
         out_axes = np.isin(range(len(shape)), axis, invert=True)
         out_idx = np.indices(shape)[out_axes]
         out_dims = np.array(shape)[out_axes]

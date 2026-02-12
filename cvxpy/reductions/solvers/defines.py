@@ -14,9 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import numpy as np
-
-import cvxpy.settings as s
+from cvxpy.constraints import SOC
 
 # Conic interfaces
 from cvxpy.reductions.solvers.conic_solvers.cbc_conif import CBC as CBC_con
@@ -39,6 +37,7 @@ from cvxpy.reductions.solvers.conic_solvers.knitro_conif import KNITRO as KNITRO
 from cvxpy.reductions.solvers.conic_solvers.moreau_conif import MOREAU as MOREAU_con
 from cvxpy.reductions.solvers.conic_solvers.mosek_conif import MOSEK as MOSEK_con
 from cvxpy.reductions.solvers.conic_solvers.nag_conif import NAG as NAG_con
+from cvxpy.reductions.solvers.conic_solvers.pdcs_conif import PDCS as PDCS_con
 from cvxpy.reductions.solvers.conic_solvers.pdlp_conif import PDLP as PDLP_con
 from cvxpy.reductions.solvers.conic_solvers.qoco_conif import QOCO as QOCO_con
 from cvxpy.reductions.solvers.conic_solvers.scip_conif import SCIP as SCIP_con
@@ -66,121 +65,57 @@ from cvxpy.reductions.solvers.qp_solvers.proxqp_qpif import PROXQP as PROXQP_qp
 from cvxpy.reductions.solvers.qp_solvers.qpalm_qpif import QPALM as QPALM_qp
 from cvxpy.reductions.solvers.qp_solvers.xpress_qpif import XPRESS as XPRESS_qp
 
-solver_conic_intf = [
-    DIFFCP_con(), ECOS_con(), CVXOPT_con(), GLPK_con(), COPT_con(), GLPK_MI_con(),
-    CBC_con(), CLARABEL_con(), COSMO_con(), SCS_con(), SDPA_con(), GUROBI_con(),
-    MOSEK_con(), MOREAU_con(), CPLEX_con(), NAG_con(), XPRESS_con(), SCIP_con(),
-    SCIPY_con(), HIGHS_con(), GLOP_con(), PDLP_con(), QOCO_con(), CUCLARABEL_con(),
-    CUOPT_con(), ECOS_BB_con(), KNITRO_con(),
-]
+# Solver maps in preference order. Dict insertion order gives the preference
+# ordering (previously maintained as separate CONIC_SOLVERS / QP_SOLVERS lists).
+SOLVER_MAP_CONIC = {inst.name(): inst for inst in [
+    MOSEK_con(), CLARABEL_con(), SCS_con(), ECOS_con(), MOREAU_con(),
+    SDPA_con(), CPLEX_con(), GUROBI_con(), COPT_con(), GLPK_con(),
+    NAG_con(), GLPK_MI_con(), CBC_con(), CVXOPT_con(), XPRESS_con(),
+    DIFFCP_con(), SCIP_con(), SCIPY_con(), HIGHS_con(), GLOP_con(),
+    PDLP_con(), QOCO_con(), CUCLARABEL_con(), CUOPT_con(), ECOS_BB_con(),
+    KNITRO_con(), COSMO_con(), PDCS_con(),
+]}
 
-solver_qp_intf = [
-    OSQP_qp(),
-    GUROBI_qp(),
-    CPLEX_qp(),
-    XPRESS_qp(),
-    COPT_qp(),
-    PIQP_qp(),
-    PROXQP_qp(),
-    QPALM_qp(),
-    DAQP_qp(),
-    HIGHS_qp(),
-    MPAX_qp(),
-    KNITRO_qp(),
-]
-solver_nlp_intf = [IPOPT_nlp(), UNO_nlp(), COPT_nlp()]
+SOLVER_MAP_QP = {inst.name(): inst for inst in [
+    OSQP_qp(), GUROBI_qp(), CPLEX_qp(), XPRESS_qp(), HIGHS_qp(),
+    COPT_qp(), PIQP_qp(), PROXQP_qp(), QPALM_qp(), DAQP_qp(),
+    MPAX_qp(), KNITRO_qp(),
+]}
 
-SOLVER_MAP_CONIC = {solver.name(): solver for solver in solver_conic_intf}
-SOLVER_MAP_QP = {solver.name(): solver for solver in solver_qp_intf}
-SOLVER_MAP_NLP = {solver.name(): solver for solver in solver_nlp_intf}
+SOLVER_MAP_NLP = {inst.name(): inst for inst in [
+    IPOPT_nlp(), UNO_nlp(), COPT_nlp(),
+]}
 
-# CONIC_SOLVERS and QP_SOLVERS are sorted in order of decreasing solver
-# preference. QP_SOLVERS are those for which we have written interfaces
-# and are supported by QpSolver.
-CONIC_SOLVERS = [
-    s.MOSEK,
-    s.CLARABEL,
-    s.SCS,
-    s.ECOS,
-    s.MOREAU,
-    s.SDPA,
-    s.CPLEX,
-    s.GUROBI,
-    s.COPT,
-    s.GLPK,
-    s.NAG,
-    s.GLPK_MI,
-    s.CBC,
-    s.CVXOPT,
-    s.XPRESS,
-    s.DIFFCP,
-    s.SCIP,
-    s.SCIPY,
-    s.HIGHS,
-    s.GLOP,
-    s.PDLP,
-    s.QOCO,
-    s.CUCLARABEL,
-    s.CUOPT,
-    s.ECOS_BB,
-    s.KNITRO,
-    s.COSMO,
-]
+# Preference-ordered solver name lists, derived from the maps above.
+CONIC_SOLVERS = list(SOLVER_MAP_CONIC)
+QP_SOLVERS = list(SOLVER_MAP_QP)
+NLP_SOLVERS = list(SOLVER_MAP_NLP)
 
-QP_SOLVERS = [
-    s.OSQP,
-    s.GUROBI,
-    s.CPLEX,
-    s.XPRESS,
-    s.HIGHS,
-    s.COPT,
-    s.PIQP,
-    s.PROXQP,
-    s.QPALM,
-    s.DAQP,
-    s.MPAX,
-    s.KNITRO,
-]
-NLP_SOLVERS = [s.IPOPT, s.UNO, s.COPT]
-DISREGARD_CLARABEL_SDP_SUPPORT_FOR_DEFAULT_RESOLUTION = True
+# Mixed-integer solver lists, derived from solver class attributes.
 MI_SOLVERS = [
-    s.GLPK_MI,
-    s.MOSEK,
-    s.GUROBI,
-    s.CPLEX,
-    s.XPRESS,
-    s.CBC,
-    s.SCIP,
-    s.HIGHS,
-    s.COPT,
-    s.CUOPT,
-    s.ECOS_BB,
-    s.KNITRO,
-    s.SCIPY,
+    name for name, slv in SOLVER_MAP_CONIC.items() if slv.MIP_CAPABLE
 ]
-MI_SOCP_SOLVERS = [s.MOSEK, s.GUROBI, s.CPLEX, s.XPRESS, s.SCIP, s.ECOS_BB, s.KNITRO]
+MI_SOCP_SOLVERS = [
+    name for name, slv in SOLVER_MAP_CONIC.items()
+    if slv.MIP_CAPABLE
+    and SOC in getattr(slv, 'MI_SUPPORTED_CONSTRAINTS', slv.SUPPORTED_CONSTRAINTS)
+]
+
+# Policy list (not derivable from solver attributes).
+COMMERCIAL_SOLVERS = [
+    "MOSEK", "MOREAU", "GUROBI", "CPLEX", "COPT", "XPRESS", "NAG", "KNITRO",
+]
 
 
 def installed_solvers():
     """List the installed solvers."""
-    installed = []
-    # Check conic solvers
-    for name, solver in SOLVER_MAP_CONIC.items():
-        if solver.is_installed():
-            installed.append(name)
-    # Check QP solvers
-    for name, solver in SOLVER_MAP_QP.items():
-        if solver.is_installed():
-            installed.append(name)
-    # Check NLP solvers
-    for name, solver in SOLVER_MAP_NLP.items():
-        if solver.is_installed():
-            installed.append(name)
-
-    # Remove duplicate names (for solvers that handle both conic and QP)
-    return np.unique(installed).tolist()
+    return list(dict.fromkeys(
+        name for name, slv in {**SOLVER_MAP_CONIC, **SOLVER_MAP_QP, **SOLVER_MAP_NLP}.items()
+        if slv.is_installed()
+    ))
 
 
+# Installed solver lists.
 INSTALLED_SOLVERS = installed_solvers()
-INSTALLED_CONIC_SOLVERS = [slv for slv in INSTALLED_SOLVERS if slv in CONIC_SOLVERS]
+INSTALLED_CONIC_SOLVERS = [slv for slv in INSTALLED_SOLVERS if slv in SOLVER_MAP_CONIC]
 INSTALLED_MI_SOLVERS = [slv for slv in INSTALLED_SOLVERS if slv in MI_SOLVERS]

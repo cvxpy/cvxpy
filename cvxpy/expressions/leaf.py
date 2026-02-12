@@ -36,6 +36,7 @@ from cvxpy.settings import (
     PSD_NSD_PROJECTION_TOL,
     SPARSE_PROJECTION_TOL,
 )
+from cvxpy.utilities.bounds import coords_equal
 from cvxpy.utilities.coo_array_compat import get_coords
 from cvxpy.utilities.warn import warn
 
@@ -156,6 +157,14 @@ class Leaf(expression.Expression):
             raise ValueError(
                 "A CVXPY Variable cannot have more than one of the following attributes: "
                 f"{dim_reducing_attr}"
+            )
+        sign_attrs = [k for k in ['pos', 'neg'] if self.attributes[k]]
+        sparse_attrs = [k for k in ['sparsity', 'diag'] if self.attributes[k]]
+        if sign_attrs and sparse_attrs:
+            raise ValueError(
+                f"Cannot combine {sign_attrs} with {sparse_attrs}. "
+                "Sparsity and diag attributes force zeros, which contradicts "
+                "strict positivity/negativity."
             )
         self.args = []
         self.bounds = self._ensure_valid_bounds(bounds)
@@ -358,6 +367,17 @@ class Leaf(expression.Expression):
             # Expression bounds (e.g. cp.Parameter): no masking needed
             if isinstance(lower_bounds, expression.Expression):
                 constraints.append(term >= lower_bounds)
+            elif sp.issparse(lower_bounds):
+                # Sparse lower bounds: use the sparse indices directly.
+                # Defensive COO conversion: bounds are stored as COO from
+                # _ensure_valid_bounds, but re-canonicalize to be safe.
+                sparse_lb = sp.coo_array(lower_bounds)
+                sparse_lb.sum_duplicates()
+                mask = sparse_lb.data != -np.inf
+                if np.any(mask):
+                    # Get coordinates for the finite bounds
+                    indices = tuple(coord[mask] for coord in get_coords(sparse_lb))
+                    constraints.append(term[indices] >= sparse_lb.data[mask])
             elif np.any(lower_bounds != -np.inf):
                 # Scalar/0-d bounds apply to all elements uniformly
                 if is_scalar_bound(lower_bounds):
@@ -370,6 +390,16 @@ class Leaf(expression.Expression):
 
             if isinstance(upper_bounds, expression.Expression):
                 constraints.append(term <= upper_bounds)
+            elif sp.issparse(upper_bounds):
+                # Sparse upper bounds: use the sparse indices directly.
+                # Defensive COO conversion: see comment above for lower bounds.
+                sparse_ub = sp.coo_array(upper_bounds)
+                sparse_ub.sum_duplicates()
+                mask = sparse_ub.data != np.inf
+                if np.any(mask):
+                    # Get coordinates for the finite bounds
+                    indices = tuple(coord[mask] for coord in get_coords(sparse_ub))
+                    constraints.append(term[indices] <= sparse_ub.data[mask])
             elif np.any(upper_bounds != np.inf):
                 # Scalar/0-d bounds apply to all elements uniformly
                 if is_scalar_bound(upper_bounds):
@@ -689,24 +719,143 @@ class Leaf(expression.Expression):
     def atoms(self) -> list[Atom]:
         return []
 
+    def _validate_sparse_bound(self, val):
+        """Validate a single sparse bound entry.
+
+        Checks that the sparse bound has matching shape and sparsity pattern.
+
+        Raises
+        ------
+        ValueError
+            If the sparse bound is invalid.
+        """
+        if val.shape != self.shape:
+            raise ValueError(
+                "Sparse bounds must have the same shape as the variable."
+            )
+        if self.sparse_idx is not None:
+            coo = sp.coo_array(val)
+            coo.sum_duplicates()
+            val_coords = get_coords(coo)
+            if not coords_equal(val_coords, self.sparse_idx):
+                raise ValueError(
+                    "Sparse bounds must have the same sparsity pattern "
+                    "as the sparse variable."
+                )
+        else:
+            raise ValueError(
+                "Sparse bounds are only supported for sparse variables."
+            )
+
+    @staticmethod
+    def _promote_bounds(value):
+        """Promote bound entries to canonical form.
+
+        None → 0-d array (-inf/inf), scalars → 0-d arrays,
+        sparse → COO arrays, dense arrays kept as-is.
+
+        Returns
+        -------
+        list
+            Two-element list of promoted bounds [lb, ub].
+        """
+        none_defaults = [-np.inf, np.inf]
+        promoted = []
+        for idx, val in enumerate(value):
+            if val is None:
+                promoted.append(np.array(none_defaults[idx]))
+            elif sp.issparse(val):
+                promoted.append(sp.coo_array(val))
+            elif np.isscalar(val):
+                promoted.append(np.array(val))
+            else:
+                promoted.append(val)
+        return promoted
+
+    @staticmethod
+    def _check_bound_feasibility(lb, ub, has_structural_zeros):
+        """Check that promoted bounds are feasible.
+
+        Validates: no -inf upper bounds, no +inf lower bounds,
+        lb <= ub, no NaN, and structural zero consistency.
+
+        Raises
+        ------
+        ValueError
+            If bounds are infeasible.
+        """
+        lb_data = lb.data if sp.issparse(lb) else lb
+        ub_data = ub.data if sp.issparse(ub) else ub
+
+        if np.any(ub_data == -np.inf):
+            raise ValueError("-np.inf is not feasible as an upper bound.")
+        if np.any(lb_data == np.inf):
+            raise ValueError("np.inf is not feasible as a lower bound.")
+
+        # Check that upper_bound >= lower_bound.
+        # For mixed sparse/scalar bounds, we only check on-pattern entries here.
+        # Off-pattern entries are implicitly 0, and the scalar bounds validation
+        # below ensures scalars contain 0 (lb <= 0, ub >= 0), so off-pattern
+        # entries are always feasible.
+        if sp.issparse(lb) and sp.issparse(ub):
+            if np.any(lb.data > ub.data):
+                raise ValueError("Invalid bounds: some upper bounds are less "
+                                 "than corresponding lower bounds.")
+        elif np.any(lb_data > ub_data):
+            raise ValueError("Invalid bounds: some upper bounds are less "
+                             "than corresponding lower bounds.")
+
+        if np.any(np.isnan(lb_data)) or np.any(np.isnan(ub_data)):
+            raise ValueError("np.nan is not feasible as lower "
+                             "or upper bound.")
+
+        # For variables with structural zeros and scalar bounds, require
+        # that 0 is between lb and ub. The structurally zero entries are
+        # fixed at 0, so bounds that exclude 0 would be inconsistent.
+        if has_structural_zeros:
+            lb_is_scalar = isinstance(lb, np.ndarray) and lb.ndim == 0
+            ub_is_scalar = isinstance(ub, np.ndarray) and ub.ndim == 0
+            if lb_is_scalar and float(lb) > 0:
+                raise ValueError(
+                    "Scalar lower bound for a sparse or diagonal variable "
+                    "must be <= 0, since the structurally zero entries "
+                    "are fixed at 0."
+                )
+            if ub_is_scalar and float(ub) < 0:
+                raise ValueError(
+                    "Scalar upper bound for a sparse or diagonal variable "
+                    "must be >= 0, since the structurally zero entries "
+                    "are fixed at 0."
+                )
+
     def _ensure_valid_bounds(self, value) -> Iterable | None:
-        # In case for a constant or no bounds
         if value is None:
             return
 
-        # Check that bounds is an iterable of two items
         if not isinstance(value, Iterable) or len(value) != 2:
             raise ValueError("Bounds should be a list of two items.")
 
-        # Convert to a mutable list so we can promote entries.
         value = list(value)
 
-        # Check whether either bound is a CVXPY Expression.
         has_expr_bound = any(
             isinstance(val, expression.Expression) for val in value
         )
 
+        # Variables with structural zeros: off-pattern entries (sparse)
+        # or off-diagonal entries (diag) are fixed at 0.
+        has_structural_zeros = (
+            self.attributes.get('sparsity') or self.attributes.get('diag')
+        )
+
         if has_expr_bound:
+            if has_structural_zeros:
+                raise ValueError(
+                    "Expression bounds are not yet supported for sparse "
+                    "or diagonal variables. If you need this feature, "
+                    "please contact the CVXPY developers at "
+                    "https://github.com/cvxpy/cvxpy/issues as we have "
+                    "design questions we want user feedback on."
+                )
             # Validate Expression bounds: must be scalar or matching shape,
             # and must not depend on any Variable.
             for idx, val in enumerate(value):
@@ -722,14 +871,11 @@ class Leaf(expression.Expression):
                             "same dimensions as the variable."
                         )
                 elif val is None:
-                    # Promote None to -inf / inf as a scalar (memory efficient).
                     none_bounds = [-np.inf, np.inf]
                     value[idx] = np.array(none_bounds[idx])
                 elif np.isscalar(val):
-                    # Keep scalar as 0-d array (memory efficient).
                     value[idx] = np.array(val)
                 elif isinstance(val, np.ndarray) and val.ndim == 0:
-                    # 0-d array is scalar-like, keep as-is
                     pass
                 else:
                     valid_array = isinstance(val, np.ndarray) and val.shape == self.shape
@@ -741,65 +887,41 @@ class Leaf(expression.Expression):
             return value
 
         # --- Non-expression (numeric) bounds path ---
-        # Convert list-like bounds to numpy arrays for validation
+        # Convert list-like bounds to numpy arrays for validation (skip sparse)
         for idx, val in enumerate(value):
-            if val is not None and not np.isscalar(val):
+            if val is not None and not np.isscalar(val) and not sp.issparse(val):
                 if not isinstance(val, np.ndarray):
-                    # Try converting to numpy array (handles Python lists)
                     try:
                         value[idx] = np.asarray(val)
                     except (TypeError, ValueError):
                         pass  # Will fail validation below
 
-        # Helper to check if a value is scalar-like (Python scalar or 0-d array)
         def is_scalar_like(v):
             return np.isscalar(v) or (isinstance(v, np.ndarray) and v.ndim == 0)
 
-        # Check that bounds contains two scalars or two arrays with matching shapes.
-        for val in value:
-            valid_scalar = is_scalar_like(val)
-            valid_array = isinstance(val, np.ndarray) and val.shape == self.shape
-            if not (val is None or valid_scalar or valid_array):
-                raise ValueError(
-                    "Bounds should be None, scalars, or arrays with the "
-                    "same dimensions as the variable/parameter."
-                )
-
-        # Promote upper and lower bounds to arrays.
-        # Keep scalars as 0-d arrays for memory efficiency.
-        none_bounds = [-np.inf, np.inf]
-        promoted = []
+        # Validate shapes and sparsity patterns.
         for idx, val in enumerate(value):
-            if val is None:
-                # Keep as scalar (0-d array) for memory efficiency.
-                promoted.append(np.array(none_bounds[idx]))
-            elif np.isscalar(val):
-                # Keep scalar as 0-d array (memory efficient).
-                promoted.append(np.array(val))
+            if sp.issparse(val):
+                self._validate_sparse_bound(val)
             else:
-                promoted.append(val)
+                valid_scalar = is_scalar_like(val)
+                valid_array = isinstance(val, np.ndarray) and val.shape == self.shape
+                if not (val is None or valid_scalar or valid_array):
+                    raise ValueError(
+                        "Bounds should be None, scalars, or arrays with the "
+                        "same dimensions as the variable/parameter."
+                    )
+                if valid_array and has_structural_zeros:
+                    raise ValueError(
+                        "Dense array bounds are not supported for sparse "
+                        "or diagonal variables. Use scalar bounds instead."
+                    )
 
-        lb, ub = promoted
-
-        # Upper bound cannot be -np.inf.
-        if np.any(ub == -np.inf):
-            raise ValueError("-np.inf is not feasible as an upper bound.")
-        # Lower bound cannot be np.inf.
-        if np.any(lb == np.inf):
-            raise ValueError("np.inf is not feasible as a lower bound.")
-
-        # Check that upper_bound >= lower_bound
-        if np.any(lb > ub):
-            raise ValueError("Invalid bounds: some upper bounds are less "
-                             "than corresponding lower bounds.")
-
-        if np.any(np.isnan(lb)) or np.any(np.isnan(ub)):
-            raise ValueError("np.nan is not feasible as lower "
-                                "or upper bound.")
-
+        promoted = self._promote_bounds(value)
+        self._check_bound_feasibility(promoted[0], promoted[1], has_structural_zeros)
         return promoted
 
-    def get_bounds(self) -> tuple[np.ndarray, np.ndarray]:
+    def get_bounds(self) -> tuple[np.ndarray | sp.sparray, np.ndarray | sp.sparray]:
         """Return bounds (lower, upper) for this leaf.
 
         For Variables: combines explicit bounds with sign attributes.
@@ -811,8 +933,9 @@ class Leaf(expression.Expression):
 
         Returns
         -------
-        tuple of np.ndarray
+        tuple of (np.ndarray | sp.sparray)
             (lower_bound, upper_bound) arrays broadcastable to self.shape.
+            For sparse variables with sparse bounds, returns sparse arrays.
         """
         # Determine effective lower and upper bounds, starting with unbounded.
         # We track scalar vs array bounds to enable memory-efficient broadcast.
@@ -830,37 +953,61 @@ class Leaf(expression.Expression):
                 # Check for scalar or 0-d array (memory-efficient bounds)
                 if np.isscalar(bound_lb) or (hasattr(bound_lb, 'ndim') and bound_lb.ndim == 0):
                     lb_val = max(lb_val, float(bound_lb))
+                elif sp.issparse(bound_lb):
+                    # Sparse lower bound - use sparse-aware max
+                    if lb_val > -np.inf:
+                        lb_arr = bound_lb.maximum(lb_val)
+                    else:
+                        lb_arr = bound_lb
                 else:
-                    # Array or sparse bound
+                    # Array bound
                     lb_arr = np.maximum(lb_val, bound_lb)
             if not isinstance(bound_ub, expression.Expression):
                 # Check for scalar or 0-d array (memory-efficient bounds)
                 if np.isscalar(bound_ub) or (hasattr(bound_ub, 'ndim') and bound_ub.ndim == 0):
                     ub_val = min(ub_val, float(bound_ub))
+                elif sp.issparse(bound_ub):
+                    # Sparse upper bound - use sparse-aware min
+                    if ub_val < np.inf:
+                        ub_arr = bound_ub.minimum(ub_val)
+                    else:
+                        ub_arr = bound_ub
                 else:
-                    # Array or sparse bound
+                    # Array bound
                     ub_arr = np.minimum(ub_val, bound_ub)
 
         # Apply sign attributes
         if self.attributes['nonneg'] or self.attributes['pos']:
             if lb_arr is not None:
-                lb_arr = np.maximum(lb_arr, 0)
+                if sp.issparse(lb_arr):
+                    lb_arr = lb_arr.maximum(0)
+                else:
+                    lb_arr = np.maximum(lb_arr, 0)
             else:
                 lb_val = max(lb_val, 0)
         if self.attributes['nonpos'] or self.attributes['neg']:
             if ub_arr is not None:
-                ub_arr = np.minimum(ub_arr, 0)
+                if sp.issparse(ub_arr):
+                    ub_arr = ub_arr.minimum(0)
+                else:
+                    ub_arr = np.minimum(ub_arr, 0)
             else:
                 ub_val = min(ub_val, 0)
 
         # For boolean variables, bounds are [0, 1]
         if self.attributes['boolean'] is True:
             if lb_arr is not None:
-                lb_arr = np.maximum(lb_arr, 0)
+                if sp.issparse(lb_arr):
+                    lb_arr = lb_arr.maximum(0)
+                else:
+                    lb_arr = np.maximum(lb_arr, 0)
             else:
                 lb_val = max(lb_val, 0)
             if ub_arr is not None:
-                ub_arr = np.minimum(ub_arr, 1)
+                if sp.issparse(ub_arr):
+                    ub_arr = ub_arr.minimum(1)
+                else:
+                    ub_arr = np.minimum(ub_arr, 1)
             else:
                 ub_val = min(ub_val, 1)
 
