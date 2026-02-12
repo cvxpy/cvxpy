@@ -1,37 +1,61 @@
 """
-NumPy-like block matrix constructor for CVXPY.
+NumPy-compatible block implementation for CVXPY.
 """
 
+from typing import Any
+
 from cvxpy.atoms.affine.affine_atom import AffAtom
-from cvxpy.atoms.affine.hstack import hstack
-from cvxpy.atoms.affine.vstack import vstack
+from cvxpy.atoms.affine.concatenate import concatenate
 
 
-def _atleast_2d(expr):
-    expr = AffAtom.cast_to_const(expr)
-
-    # Promote scalars to (1,1)
-    if expr.ndim == 0:
-        return expr.reshape((1, 1), order="F")
-
-    # Promote 1D to row vector (1,n) like numpy.block
-    if expr.ndim == 1:
-        return expr.reshape((1, expr.shape[0]), order="F")
-
-    return expr
+def _as_expr(x):
+    return AffAtom.cast_to_const(x)
 
 
-def block(block_lists):
-    """
-    NumPy-like block matrix assembly.
+def _ndim(x):
+    return _as_expr(x).ndim
 
-    Scalars become (1,1).
-    1D arrays become row vectors (1,n).
-    """
 
-    promoted = []
-    for row in block_lists:
-        promoted.append([_atleast_2d(elem) for elem in row])
+def _max_ndim(arr):
+    if isinstance(arr, list):
+        return max(_max_ndim(a) for a in arr)
+    return _ndim(arr)
 
-    row_blocks = [hstack(row) for row in promoted]
-    return vstack(row_blocks)
+
+def _block_depth(arr):
+    depth = 0
+    while isinstance(arr, list):
+        depth += 1
+        arr = arr[0]
+    return depth
+
+
+def _block_rec(arr, level, depth, ndim):
+    if not isinstance(arr, list):
+        return _as_expr(arr)
+
+    sub = [_block_rec(a, level + 1, depth, ndim) for a in arr]
+
+    axis = ndim - depth + level
+    return concatenate(sub, axis=axis)
+
+
+def block(arr: Any):
+    if not isinstance(arr, list):
+        raise ValueError("Input must be a nested list structure.")
+
+    depth = _block_depth(arr)
+    ndim = max(_max_ndim(arr), depth)
+
+    def promote(x):
+        if isinstance(x, list):
+            return [promote(a) for a in x]
+        expr = _as_expr(x)
+        if expr.ndim < ndim:
+            new_shape = (1,) * (ndim - expr.ndim) + expr.shape
+            return expr.reshape(new_shape, order="F")
+        return expr
+
+    promoted = promote(arr)
+
+    return _block_rec(promoted, level=0, depth=depth, ndim=ndim)
