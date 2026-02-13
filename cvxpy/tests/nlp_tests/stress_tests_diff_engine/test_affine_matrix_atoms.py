@@ -147,3 +147,27 @@ class TestAffineMatrixAtomsDiffEngine:
         checker = DerivativeChecker(prob)
         checker.run_and_assert()
 
+    def test_one_left_matmul(self):
+        np.random.seed(0)
+        Y = cp.Variable((15, 5), bounds=[0.5, 1])
+        X = cp.Variable((15, 5), bounds=[0.5, 1])
+        A = np.random.rand(5, 15)
+        obj = cp.Minimize(cp.Trace(A @ (cp.log(Y) - 3 * cp.log(X))))
+        constr =[]
+        prob = cp.Problem(obj, constr)
+        prob.solve(solver=cp.IPOPT, nlp=True, verbose=False)
+        checker = DerivativeChecker(prob)
+        checker.run_and_assert()
+    
+    def test_two_left_matmul(self):
+        np.random.seed(0)
+        Y = cp.Variable((15, 5), bounds=[0.5, 1])
+        X = cp.Variable((15, 5), bounds=[0.5, 1])
+        A = np.random.rand(5, 15)
+        obj = cp.Minimize(cp.Trace(A @ (cp.log(Y) - 3 * cp.log(X))))
+        constr = [A @ Y <= 2 * A @ X]
+        prob = cp.Problem(obj, constr)
+        prob.solve(solver=cp.IPOPT, nlp=True, verbose=False)
+        checker = DerivativeChecker(prob)
+        checker.run_and_assert()
+

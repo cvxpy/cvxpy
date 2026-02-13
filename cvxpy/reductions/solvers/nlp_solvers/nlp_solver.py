@@ -418,7 +418,6 @@ class DerivativeChecker:
     
     def check_objective_value(self, x=None):
         """ Compare objective value from C implementation with Python implementation. """
-        print("Checking objective value...")
         if x is None:
             x = self.x0
         
@@ -443,7 +442,6 @@ class DerivativeChecker:
         """ Compare C-based gradient with numerical approximation using finite differences. """
         if x is None:
             x = self.x0
-        print("Checking gradient...")
         # Get gradient from C implementation
         self.c_problem.objective_forward(x)
         c_grad = self.c_problem.gradient()
@@ -474,10 +472,8 @@ class DerivativeChecker:
     def run(self, x=None):
         """ Run all derivative checks (constraints, Jacobian, and Hessian). """
 
-        print("initializing derivatives for derivative checking...")
         self.c_problem.init_jacobian()
         self.c_problem.init_hessian()
-        print("done initializing derivatives.")
         objective_result = self.check_objective_value(x)
         gradient_result = self.check_gradient(x)
         constraints_result = self.check_constraint_values()
