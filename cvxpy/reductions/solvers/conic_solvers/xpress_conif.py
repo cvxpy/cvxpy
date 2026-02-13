@@ -46,6 +46,8 @@ class XPRESS(ConicSolver):
 
     # Solver capabilities.
     MIP_CAPABLE = True
+    BOUNDED_VARIABLES = True
+    WARM_STARTABLE = True
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC]
     MI_SUPPORTED_CONSTRAINTS = SUPPORTED_CONSTRAINTS
 
@@ -215,8 +217,12 @@ class XPRESS(ConicSolver):
                                # linear coefficients
                                rowind=A.indices[A.data != 0],       # row indices
                                rowcoef=A.data[A.data != 0],         # coefficients
-                               lb=[-xp.infinity] * len(c),          # lower bound
-                               ub=[xp.infinity] * len(c),           # upper bound
+                               lb=(list(data[s.LOWER_BOUNDS])  # lower bound
+                                   if data.get(s.LOWER_BOUNDS) is not None
+                                   else [-xp.infinity] * len(c)),
+                               ub=(list(data[s.UPPER_BOUNDS])  # upper bound
+                                   if data.get(s.UPPER_BOUNDS) is not None
+                                   else [xp.infinity] * len(c)),
                                colnames=varnames,                   # column names
                                rownames=lin_rownames)                # row    names
 
