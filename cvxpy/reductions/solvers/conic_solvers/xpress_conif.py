@@ -46,6 +46,7 @@ class XPRESS(ConicSolver):
 
     # Solver capabilities.
     MIP_CAPABLE = True
+    BOUNDED_VARIABLES = True
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC]
     MI_SUPPORTED_CONSTRAINTS = SUPPORTED_CONSTRAINTS
 
@@ -208,6 +209,13 @@ class XPRESS(ConicSolver):
         coltype = ['B'] * len(data[s.BOOL_IDX]) + ['I'] * len(data[s.INT_IDX])
         entind = data[s.BOOL_IDX] + data[s.INT_IDX]
 
+        # Variable bounds (use native bounds if available, otherwise unbounded)
+        n_vars = len(c)
+        lower_bounds = data[s.LOWER_BOUNDS]
+        upper_bounds = data[s.UPPER_BOUNDS]
+        lb = [-xp.infinity] * n_vars if lower_bounds is None else list(lower_bounds)
+        ub = [xp.infinity] * n_vars if upper_bounds is None else list(upper_bounds)
+
         # Load problem using new API (Xpress 9.8+), fall back to deprecated API
         # Always use loadMIP - if coltype/entind are empty, it becomes an LP
         try:
@@ -219,8 +227,8 @@ class XPRESS(ConicSolver):
                 start=mstart,
                 rowind=A.indices[A.data != 0],
                 rowcoef=A.data[A.data != 0],
-                lb=[-xp.infinity] * len(c),
-                ub=[xp.infinity] * len(c),
+                lb=lb,
+                ub=ub,
                 coltype=coltype,
                 entind=entind)
 
@@ -240,8 +248,8 @@ class XPRESS(ConicSolver):
                 start=mstart,
                 rowind=A.indices[A.data != 0],
                 rowcoef=A.data[A.data != 0],
-                lb=[-xp.infinity] * len(c),
-                ub=[xp.infinity] * len(c),
+                lb=lb,
+                ub=ub,
                 coltype=coltype if coltype else None,
                 entind=entind if entind else None,
                 colnames=varnames,
