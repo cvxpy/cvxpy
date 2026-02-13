@@ -18,6 +18,7 @@ class XPRESS(QpSolver):
     """Quadratic interface for the FICO Xpress solver"""
 
     MIP_CAPABLE = True
+    BOUNDED_VARIABLES = True
 
     def __init__(self) -> None:
         self.prob_ = None
@@ -189,6 +190,13 @@ class XPRESS(QpSolver):
         coltype = ['B'] * len(data[s.BOOL_IDX]) + ['I'] * len(data[s.INT_IDX])
         entind = data[s.BOOL_IDX] + data[s.INT_IDX]
 
+        # Variable bounds (use native bounds if available, otherwise unbounded)
+        n_vars = len(q)
+        lower_bounds = data[s.LOWER_BOUNDS]
+        upper_bounds = data[s.UPPER_BOUNDS]
+        lb = [-xp.infinity] * n_vars if lower_bounds is None else list(lower_bounds)
+        ub = [xp.infinity] * n_vars if upper_bounds is None else list(upper_bounds)
+
         # Load problem using new API (Xpress 9.8+), fall back to deprecated API
         # Always use loadMIQP - empty args are handled gracefully
         try:
@@ -200,8 +208,8 @@ class XPRESS(QpSolver):
                 start=mstart,
                 rowind=A.indices[A.data != 0],
                 rowcoef=A.data[A.data != 0],
-                lb=[-xp.infinity] * len(q),
-                ub=[xp.infinity] * len(q),
+                lb=lb,
+                ub=ub,
                 objqcol1=mqcol1,
                 objqcol2=mqcol2,
                 objqcoef=dqe,
@@ -226,8 +234,8 @@ class XPRESS(QpSolver):
                 start=mstart,
                 rowind=A.indices[A.data != 0],
                 rowcoef=A.data[A.data != 0],
-                lb=[-xp.infinity] * len(q),
-                ub=[xp.infinity] * len(q),
+                lb=lb,
+                ub=ub,
                 objqcol1=mqcol1,
                 objqcol2=mqcol2,
                 objqcoef=dqe,
