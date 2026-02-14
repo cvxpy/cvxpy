@@ -23,9 +23,10 @@ talks, and discussions about convex optimization in Python.
 Date & Location
 ---------------
 
-* **Talks:** February 20, 2026
-* **Hackathon:** February 21, 2026
+* **Talks:** Friday, February 20, 2026
+* **Hackathon:** Saturday, February 21, 2026
 * **Location:** `CoDa E160 <https://maps.app.goo.gl/ANfH9ZehwgvSNnS76>`_, Stanford University
+* **Parking:** `Roble Field Garage <https://campus-map.stanford.edu/?srch=Roble%20Field%20Garage>`_ or `Via Ortega Garage <https://campus-map.stanford.edu/?srch=Via%20Ortega%20Garage>`_ (`paid on Friday <https://transportation.stanford.edu/parking-stanford/purchase-parking/visitor-parking>`_, free on Saturday)
 
 Registration
 ------------
