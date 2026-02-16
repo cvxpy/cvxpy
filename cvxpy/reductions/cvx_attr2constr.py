@@ -228,7 +228,7 @@ class CvxAttr2Constr(Reduction):
                 for key in reduction_attributes:
                     if new_attr[key]:
                         new_attr[key] = None if key == 'bounds' else False
-                reduced_param = Parameter(n, **new_attr)
+                reduced_param = Parameter(n, id=param.id, **new_attr)
                 reduced_param.set_leaf_of_provenance(param)
                 self._parameters[param] = reduced_param
                 if param.value is not None:

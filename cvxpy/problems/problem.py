@@ -1224,13 +1224,17 @@ class Problem(u.Canonical):
         # reductions that transform parameters (e.g., DGP log transform,
         # Complex2Real split into real/imag).
         for param in self.parameters():
-            # Start with the direct gradient if the param passed through unchanged
-            grad = 0.0 if param.id not in dparams else dparams[param.id]
+            grad = 0.0
+            handled = False
             # Apply chain rule through any reductions that transformed this param
             for reduction in self._cache.solving_chain.reductions:
                 reduction_grad = reduction.param_backward(param, dparams)
                 if reduction_grad is not None:
                     grad = grad + reduction_grad
+                    handled = True
+            # Fall back to the direct gradient if no reduction transformed this param
+            if not handled and param.id in dparams:
+                grad = dparams[param.id]
             param.gradient = grad
 
     def derivative(self) -> None:
@@ -1300,14 +1304,16 @@ class Problem(u.Canonical):
         # Complex2Real split into real/imag).
         for param in self.parameters():
             delta = param.delta if param.delta is not None else np.zeros(param.shape)
-            # If param passed through unchanged, add its delta directly
-            if param.id in param_prog.param_id_to_col:
-                param_deltas[param.id] = np.asarray(delta, dtype=np.float64)
+            handled = False
             # Apply chain rule through any reductions that transformed this param
             for reduction in self._cache.solving_chain.reductions:
                 transformed_deltas = reduction.param_forward(param, delta)
                 if transformed_deltas is not None:
                     param_deltas.update(transformed_deltas)
+                    handled = True
+            # If no reduction transformed this param, add its delta directly
+            if not handled and param.id in param_prog.param_id_to_col:
+                param_deltas[param.id] = np.asarray(delta, dtype=np.float64)
         dc, _, dA, db = param_prog.apply_parameters(param_deltas,
                                                     zero_offset=True)
         start = time.time()
