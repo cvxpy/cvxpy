@@ -247,9 +247,8 @@ class CvxAttr2Constr(Reduction):
 
     def update_parameters(self, problem) -> None:
         """Update reduced parameter values from original parameters."""
-        for param in problem.parameters():
-            if param in self._parameters:
-                self._parameters[param].value = lower_value(param)
+        for param, reduced_param in self._parameters.items():
+            reduced_param.value = lower_value(param)
 
     def param_backward(self, param, dparams):
         """Recover full-size gradient from reduced-size gradient."""
