@@ -61,6 +61,10 @@ Medium scope projects
  - `QP support for PDLP solver <https://github.com/cvxpy/cvxpy/issues/2868>`_.
  - `More array manipulation atoms <https://github.com/cvxpy/cvxpy/issues/2567>`_.
  - Support for a set and indexing API similar to `AMPL <https://ampl.com/wp-content/uploads/Chapter-5-Simple-Sets-and-Indexing-AMPL-Book.pdf>`_.
+ - Explicit variable/dual recovery maps in reductions. Currently, reductions use ad-hoc logic
+   (e.g., provenance tracking on leaves) to map between reduced and original variables/duals
+   during solution recovery. Reductions should instead return explicit forward and inverse maps
+   for primal and dual variables, which could replace the provenance mechanism.
 
 Large scope projects
  - Problem serialization [`532 <https://github.com/cvxpy/cvxpy/issues/532>`_, `1333 <https://github.com/cvxpy/cvxpy/issues/1333>`_, `1438 <https://github.com/cvxpy/cvxpy/issues/1438>`_].
