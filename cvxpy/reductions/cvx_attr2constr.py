@@ -135,6 +135,7 @@ class CvxAttr2Constr(Reduction):
     def __init__(self, problem=None, reduce_bounds: bool = False) -> None:
         """If reduce_bounds, reduce lower and upper bounds on variables."""
         self.reduce_bounds = reduce_bounds
+        self._parameters = {}  # {orig_param: reduced_param}
         super(CvxAttr2Constr, self).__init__(problem=problem)
 
     def reduction_attributes(self) -> List[str]:
@@ -227,8 +228,11 @@ class CvxAttr2Constr(Reduction):
                 for key in reduction_attributes:
                     if new_attr[key]:
                         new_attr[key] = None if key == 'bounds' else False
-                reduced_param = Parameter(n, id=param.id, **new_attr)
+                reduced_param = Parameter(n, **new_attr)
                 reduced_param.set_leaf_of_provenance(param)
+                self._parameters[param] = reduced_param
+                if param.value is not None:
+                    reduced_param.value = lower_value(param)
                 obj = build_dim_reduced_expression(param, reduced_param)
                 id2new_obj[id(param)] = obj
 
@@ -240,6 +244,28 @@ class CvxAttr2Constr(Reduction):
             cons_id_map[cons.id] = constr[-1].id
         inverse_data = (id2new_var, id2old_var, cons_id_map)
         return cvxtypes.problem()(obj, constr), inverse_data
+
+    def update_parameters(self, problem) -> None:
+        """Update reduced parameter values from original parameters."""
+        for param in problem.parameters():
+            if param in self._parameters:
+                self._parameters[param].value = lower_value(param)
+
+    def param_backward(self, param, dparams):
+        """Recover full-size gradient from reduced-size gradient."""
+        if param not in self._parameters:
+            return None
+        reduced_param = self._parameters[param]
+        if reduced_param.id not in dparams:
+            return None
+        return recover_value_for_variable(param, dparams[reduced_param.id])
+
+    def param_forward(self, param, delta):
+        """Transform full-size delta to reduced-size delta."""
+        if param not in self._parameters:
+            return None
+        reduced_param = self._parameters[param]
+        return {reduced_param.id: lower_value(param, delta)}
 
     def invert(self, solution, inverse_data) -> Solution:
         if not inverse_data:

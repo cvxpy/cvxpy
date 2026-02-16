@@ -553,3 +553,4 @@ class TestParameterDimReducingAttributes:
         assert prob.status == cp.OPTIMAL
         np.testing.assert_allclose(
             x.value, np.array([[1.0, 2.0], [2.0, 3.0]]), atol=1e-5)
+

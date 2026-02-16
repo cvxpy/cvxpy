@@ -227,13 +227,7 @@ class ParamConeProg(ParamProb):
         def param_value(idx):
             if id_to_param_value is not None:
                 return id_to_param_value[idx]
-            param = self.id_to_param[idx]
-            orig = param.leaf_of_provenance()
-            if orig is not None:
-                if orig.sparse_idx is not None:
-                    return np.array(orig._value)
-                return np.array(cvx_attr2constr.lower_value(orig, orig.value))
-            return np.array(param.value)
+            return np.array(self.id_to_param[idx].value)
 
         param_vec = canonInterface.get_parameter_vector(
             self.total_param_size,
@@ -305,13 +299,8 @@ class ParamConeProg(ParamProb):
                 param = self.id_to_param[param_id]
                 size = self.param_id_to_size[param_id]
                 delta = del_param_vec[col:col + size]
-                orig = param.leaf_of_provenance()
-                if orig is not None:
-                    param_id_to_delta_param[param_id] = \
-                        cvx_attr2constr.recover_value_for_variable(orig, delta)
-                else:
-                    param_id_to_delta_param[param_id] = np.reshape(
-                        delta, param.shape, order='F')
+                param_id_to_delta_param[param_id] = np.reshape(
+                    delta, param.shape, order='F')
         return param_id_to_delta_param
 
     def split_solution(self, sltn, active_vars=None):
