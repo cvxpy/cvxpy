@@ -195,7 +195,15 @@ class DgpCanonMethods(dict):
             # DPP support: Create the log-parameter structure WITHOUT requiring
             # an initial value. This allows get_problem_data(gp=True) to work
             # with uninitialized parameters (issue #3004).
-            log_parameter = Parameter(parameter.shape, name=parameter.name())
+            # Copy dim-reducing attributes to log-space parameter
+            dim_attrs = {}
+            for attr in ['symmetric', 'diag', 'PSD', 'NSD']:
+                if parameter.attributes.get(attr):
+                    dim_attrs[attr] = parameter.attributes[attr]
+            # Note: sparsity not copied — log(0) is undefined,
+            # and DGP requires positive values
+            log_parameter = Parameter(parameter.shape, name=parameter.name(),
+                                      **dim_attrs)
             if parameter.value is not None:
                 log_parameter.value = np.log(parameter.value)
             self._parameters[parameter] = log_parameter

@@ -47,7 +47,9 @@ def get_parameter_vector(param_size,
     -------
         A flattened NumPy array of parameter values, of length param_size + 1
     """
-    #TODO handle parameters with structure.
+    # Parameters with dim-reducing attributes (sparsity, diag, symmetric, PSD,
+    # NSD) are handled by CvxAttr2Constr, which replaces them with reduced-size
+    # parameters before this point.
     if param_size == 0:
         return None
     param_vec = np.zeros(param_size + 1)

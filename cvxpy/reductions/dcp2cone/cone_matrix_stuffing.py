@@ -225,8 +225,19 @@ class ParamConeProg(ParamProb):
         self.reduced_A.cache(keep_zeros)
 
         def param_value(idx):
-            return (np.array(self.id_to_param[idx].value) if id_to_param_value
-                    is None else id_to_param_value[idx])
+            if id_to_param_value is not None:
+                return id_to_param_value[idx]
+            param = self.id_to_param[idx]
+            orig = param.leaf_of_provenance()
+            if orig is not None:
+                if orig.sparse_idx is not None:
+                    # _value is either a coo_array or a plain ndarray of data
+                    val = orig._value
+                    if sp.issparse(val):
+                        return np.array(val.data)
+                    return np.array(val)
+                return np.array(cvx_attr2constr.lower_value(orig, orig.value))
+            return np.array(param.value)
 
         param_vec = canonInterface.get_parameter_vector(
             self.total_param_size,
@@ -296,9 +307,15 @@ class ParamConeProg(ParamProb):
         for param_id, col in self.param_id_to_col.items():
             if param_id in active_params:
                 param = self.id_to_param[param_id]
-                delta = del_param_vec[col:col + param.size]
-                param_id_to_delta_param[param_id] = np.reshape(
-                    delta, param.shape, order='F')
+                size = self.param_id_to_size[param_id]
+                delta = del_param_vec[col:col + size]
+                orig = param.leaf_of_provenance()
+                if orig is not None:
+                    param_id_to_delta_param[param_id] = \
+                        cvx_attr2constr.recover_value_for_variable(orig, delta)
+                else:
+                    param_id_to_delta_param[param_id] = np.reshape(
+                        delta, param.shape, order='F')
         return param_id_to_delta_param
 
     def split_solution(self, sltn, active_vars=None):
@@ -313,7 +330,7 @@ class ParamConeProg(ParamProb):
                 var = self.id_to_var[var_id]
                 value = sltn[col:var.size+col]
                 if var.attributes_were_lowered():
-                    orig_var = var.variable_of_provenance()
+                    orig_var = var.leaf_of_provenance()
                     value = cvx_attr2constr.recover_value_for_variable(
                         orig_var, value, project=False)
                     sltn_dict[orig_var.id] = np.reshape(
@@ -331,7 +348,7 @@ class ParamConeProg(ParamProb):
             var = self.id_to_var[var_id]
             col = self.var_id_to_col[var_id]
             if var.attributes_were_lowered():
-                orig_var = var.variable_of_provenance()
+                orig_var = var.leaf_of_provenance()
                 if cvx_attr2constr.attributes_present(
                         [orig_var], cvx_attr2constr.SYMMETRIC_ATTRIBUTES):
                     delta = delta + delta.T - np.diag(np.diag(delta))
