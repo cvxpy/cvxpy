@@ -495,62 +495,61 @@ class TestMultipleAttributes:
 class TestParameterDimReducingAttributes:
     """Tests for parameters with dimension-reducing attributes."""
 
-    def test_sparse_parameter_solve(self) -> None:
-        """Sparse parameter is correctly lowered and used in solve."""
-        sparsity = [(0, 1, 2), (1, 0, 2)]
-        A = cp.Parameter((3, 3), sparsity=sparsity)
-        A.value_sparse = sp.coo_array(
-            (np.array([1.0, 2.0, 3.0]), sparsity), shape=(3, 3))
+    @staticmethod
+    def _param_size(prob):
+        return list(prob._cache.param_prog.param_id_to_size.values())
 
-        x = cp.Variable(3)
-        prob = cp.Problem(cp.Minimize(cp.sum(x)), [x >= cp.sum(A, axis=0)])
-        prob.solve(solver=cp.CLARABEL)
-        assert prob.status == cp.OPTIMAL
-        # A has columns sums: col0=2, col1=1, col2=3
-        np.testing.assert_allclose(x.value, [2.0, 1.0, 3.0], atol=1e-5)
-
-    def test_sparse_parameter_dpp_resolve(self) -> None:
-        """Sparse parameter works with DPP re-solve."""
+    def test_sparse_parameter(self) -> None:
         sparsity = [(0, 1), (1, 0)]
         A = cp.Parameter((2, 2), sparsity=sparsity)
         x = cp.Variable(2)
         prob = cp.Problem(cp.Minimize(cp.sum(x)), [x >= cp.sum(A, axis=0)])
 
-        # First solve
         A.value_sparse = sp.coo_array(
             (np.array([3.0, 4.0]), sparsity), shape=(2, 2))
         prob.solve(solver=cp.CLARABEL)
         assert prob.status == cp.OPTIMAL
-        # col sums: col0=4, col1=3
         np.testing.assert_allclose(x.value, [4.0, 3.0], atol=1e-5)
+        assert self._param_size(prob) == [2]  # 2 nonzeros, not 4
 
-        # Re-solve with new values (DPP path)
+        # DPP re-solve
         A.value_sparse = sp.coo_array(
             (np.array([10.0, 20.0]), sparsity), shape=(2, 2))
         prob.solve(solver=cp.CLARABEL)
         assert prob.status == cp.OPTIMAL
         np.testing.assert_allclose(x.value, [20.0, 10.0], atol=1e-5)
 
-    def test_diag_parameter_solve(self) -> None:
-        """Diagonal parameter is correctly lowered and used in solve."""
+    def test_diag_parameter(self) -> None:
         D = cp.Parameter((3, 3), diag=True)
-        D.value = np.diag([1.0, 2.0, 3.0])
-
         x = cp.Variable(3)
         prob = cp.Problem(cp.Minimize(cp.sum(x)), [x >= cp.diag(D)])
+
+        D.value = np.diag([1.0, 2.0, 3.0])
         prob.solve(solver=cp.CLARABEL)
         assert prob.status == cp.OPTIMAL
         np.testing.assert_allclose(x.value, [1.0, 2.0, 3.0], atol=1e-5)
+        assert self._param_size(prob) == [3]  # 3 diagonal, not 9
 
-    def test_symmetric_parameter_solve(self) -> None:
-        """Symmetric parameter is correctly lowered and used in solve."""
-        S = cp.Parameter((2, 2), symmetric=True)
-        S.value = np.array([[1.0, 2.0], [2.0, 3.0]])
-
-        x = cp.Variable((2, 2))
-        prob = cp.Problem(cp.Minimize(cp.sum(x)), [x >= S])
+        # DPP re-solve
+        D.value = np.diag([10.0, 20.0, 30.0])
         prob.solve(solver=cp.CLARABEL)
         assert prob.status == cp.OPTIMAL
-        np.testing.assert_allclose(
-            x.value, np.array([[1.0, 2.0], [2.0, 3.0]]), atol=1e-5)
+        np.testing.assert_allclose(x.value, [10.0, 20.0, 30.0], atol=1e-5)
+
+    def test_symmetric_parameter(self) -> None:
+        S = cp.Parameter((3, 3), symmetric=True)
+        x = cp.Variable((3, 3))
+        prob = cp.Problem(cp.Minimize(cp.sum(x)), [x >= S])
+
+        S.value = np.array([[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]])
+        prob.solve(solver=cp.CLARABEL)
+        assert prob.status == cp.OPTIMAL
+        np.testing.assert_allclose(x.value, S.value, atol=1e-5)
+        assert self._param_size(prob) == [6]  # n*(n+1)/2 = 6, not 9
+
+        # DPP re-solve
+        S.value = np.array([[10.0, 20.0, 30.0], [20.0, 40.0, 50.0], [30.0, 50.0, 60.0]])
+        prob.solve(solver=cp.CLARABEL)
+        assert prob.status == cp.OPTIMAL
+        np.testing.assert_allclose(x.value, S.value, atol=1e-5)
 
