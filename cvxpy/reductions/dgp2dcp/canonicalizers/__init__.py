@@ -169,13 +169,13 @@ class DgpCanonMethods(dict):
             return self._variables[variable], []
 
         constrs = []
-        # Copy symmetric attribute for dimension reduction in log-space.
-        # PSD/NSD imply symmetry but the semidefiniteness constraint doesn't
-        # transfer to log-space, so we only copy symmetric.
-        # Sparsity and diag have structural zeros, and log(0) is undefined.
+        for attr in ['sparsity', 'diag', 'PSD', 'NSD']:
+            if variable.attributes.get(attr):
+                raise ValueError(
+                    f"DGP does not support the '{attr}' attribute on variables."
+                )
         dim_attrs = {}
-        if any(variable.attributes.get(attr)
-               for attr in ['symmetric', 'PSD', 'NSD']):
+        if variable.attributes.get('symmetric'):
             dim_attrs['symmetric'] = True
         bounds = variable.attributes.get('bounds')
         if bounds is not None:
@@ -204,13 +204,13 @@ class DgpCanonMethods(dict):
             # DPP support: Create the log-parameter structure WITHOUT requiring
             # an initial value. This allows get_problem_data(gp=True) to work
             # with uninitialized parameters (issue #3004).
-            # Copy symmetric attribute for dimension reduction in log-space.
-            # PSD/NSD imply symmetry but the semidefiniteness constraint
-            # doesn't transfer to log-space, so we only copy symmetric.
-            # Sparsity and diag have structural zeros, and log(0) is undefined.
+            for attr in ['sparsity', 'diag', 'PSD', 'NSD']:
+                if parameter.attributes.get(attr):
+                    raise ValueError(
+                        f"DGP does not support the '{attr}' attribute on parameters."
+                    )
             dim_attrs = {}
-            if any(parameter.attributes.get(attr)
-                   for attr in ['symmetric', 'PSD', 'NSD']):
+            if parameter.attributes.get('symmetric'):
                 dim_attrs['symmetric'] = True
             log_parameter = Parameter(parameter.shape, name=parameter.name(),
                                       **dim_attrs)

@@ -225,9 +225,8 @@ class ParamConeProg(ParamProb):
         self.reduced_A.cache(keep_zeros)
 
         def param_value(idx):
-            if id_to_param_value is not None:
-                return id_to_param_value[idx]
-            return np.array(self.id_to_param[idx].value)
+            return (np.array(self.id_to_param[idx].value) if id_to_param_value
+                    is None else id_to_param_value[idx])
 
         param_vec = canonInterface.get_parameter_vector(
             self.total_param_size,
