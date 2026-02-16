@@ -718,7 +718,7 @@ class Leaf(expression.Expression):
                 self.attributes['NSD'])
 
     @property
-    def reduced_size(self) -> int:
+    def _reduced_size(self) -> int:
         if self.sparse_idx is not None:
             return len(self.sparse_idx[0])
         elif self.attributes['diag']:

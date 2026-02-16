@@ -175,7 +175,7 @@ class CvxAttr2Constr(Reduction):
                         new_attr[key] = None if key == 'bounds' else False
 
                 if var._has_dim_reducing_attr:
-                    n = var.reduced_size
+                    n = var._reduced_size
 
                     # Transform bounds for sparse reduced variable
                     if var.attributes['sparsity'] and \
@@ -223,7 +223,7 @@ class CvxAttr2Constr(Reduction):
         # reduced parameter and a reconstruction expression.
         for param in problem.parameters():
             if param._has_dim_reducing_attr and id(param) not in id2new_obj:
-                n = param.reduced_size
+                n = param._reduced_size
                 new_attr = param.attributes.copy()
                 for key in reduction_attributes:
                     if new_attr[key]:
