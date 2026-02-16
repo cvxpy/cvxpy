@@ -20,7 +20,7 @@ import numpy as np
 import scipy.sparse as sp
 
 from cvxpy.atoms import diag, reshape
-from cvxpy.atoms.affine.upper_tri import upper_tri_to_full
+from cvxpy.atoms.affine.upper_tri import batched_upper_tri_to_full, upper_tri_to_full
 from cvxpy.expressions import cvxtypes
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variable import Variable
@@ -77,11 +77,18 @@ def recover_value_for_variable(variable, lowered_value, project: bool = True):
     if variable.attributes['diag']:
         return sp.diags_array(lowered_value.flatten(order='F'))
     elif attributes_present([variable], SYMMETRIC_ATTRIBUTES):
-        n = variable.shape[0]
-        value = np.zeros(variable.shape)
+        n = variable.shape[-1]
+        tri = n * (n + 1) // 2
+        batch_shape = variable.shape[:-2]
         idxs = np.triu_indices(n)
-        value[idxs] = lowered_value.flatten(order='F')
-        return value + value.T - np.diag(value.diagonal())
+        value = np.zeros(variable.shape)
+        tri_values = lowered_value.flatten(order='F').reshape(
+            (*batch_shape, tri), order='F')
+        value[..., idxs[0], idxs[1]] = tri_values
+        result = value + np.swapaxes(value, -2, -1)
+        di = np.arange(n)
+        result[..., di, di] -= value[..., di, di]
+        return result
     #TODO keep sparse / return coo_tensor
     elif variable.attributes['sparsity']:
         value = np.zeros(variable.shape)
@@ -95,7 +102,9 @@ def recover_value_for_variable(variable, lowered_value, project: bool = True):
 
 def lower_value(variable, value) -> np.ndarray:
     if attributes_present([variable], SYMMETRIC_ATTRIBUTES):
-        return value[np.triu_indices(variable.shape[0])]
+        n = variable.shape[-1]
+        idxs = np.triu_indices(n)
+        return value[..., idxs[0], idxs[1]].ravel(order='F')
     elif variable.attributes['diag']:
         return np.diag(value)
     else:
@@ -145,14 +154,27 @@ class CvxAttr2Constr(Reduction):
                         new_attr[key] = None if key == 'bounds' else False
 
                 if attributes_present([var], SYMMETRIC_ATTRIBUTES):
-                    n = var.shape[0]
-                    shape = (n*(n+1)//2, 1)
-                    upper_tri = Variable(shape, var_id=var.id, **new_attr)
-                    upper_tri.set_variable_of_provenance(var)
-                    id2new_var[var.id] = upper_tri
-                    fill_coeff = Constant(upper_tri_to_full(n))
-                    full_mat = fill_coeff @ upper_tri
-                    obj = reshape(full_mat, (n, n), order='F')
+                    n = var.shape[-1]
+                    tri = n * (n + 1) // 2
+                    if var.ndim == 2:
+                        shape = (tri, 1)
+                        upper_tri_var = Variable(shape, var_id=var.id, **new_attr)
+                        upper_tri_var.set_variable_of_provenance(var)
+                        id2new_var[var.id] = upper_tri_var
+                        fill_coeff = Constant(upper_tri_to_full(n))
+                        full_mat = fill_coeff @ upper_tri_var
+                        obj = reshape(full_mat, (n, n), order='F')
+                    else:
+                        batch_shape = var.shape[:-2]
+                        batch_size = int(np.prod(batch_shape))
+                        shape = (batch_size * tri, 1)
+                        upper_tri_var = Variable(shape, var_id=var.id, **new_attr)
+                        upper_tri_var.set_variable_of_provenance(var)
+                        id2new_var[var.id] = upper_tri_var
+                        fill_coeff = Constant(
+                            batched_upper_tri_to_full(batch_size, n))
+                        full_mat = fill_coeff @ upper_tri_var
+                        obj = reshape(full_mat, var.shape, order='F')
                 elif var.attributes['sparsity']:
                     n = len(var.sparse_idx[0])
 

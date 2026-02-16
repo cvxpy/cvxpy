@@ -116,8 +116,8 @@ class Leaf(expression.Expression):
         self._shape = shape
         super(Leaf, self).__init__()
 
-        if (PSD or NSD or symmetric or diag or hermitian) and (len(shape) != 2
-                                                               or shape[0] != shape[1]):
+        if (PSD or NSD or symmetric or diag or hermitian) and (len(shape) < 2
+                                                               or shape[-2] != shape[-1]):
             raise ValueError("Invalid dimensions %s. Must be a square matrix."
                              % (shape,))
 
