@@ -169,6 +169,14 @@ class DgpCanonMethods(dict):
             return self._variables[variable], []
 
         constrs = []
+        # Copy symmetric attribute for dimension reduction in log-space.
+        # PSD/NSD imply symmetry but the semidefiniteness constraint doesn't
+        # transfer to log-space, so we only copy symmetric.
+        # Sparsity and diag have structural zeros, and log(0) is undefined.
+        dim_attrs = {}
+        if any(variable.attributes.get(attr)
+               for attr in ['symmetric', 'PSD', 'NSD']):
+            dim_attrs['symmetric'] = True
         bounds = variable.attributes.get('bounds')
         if bounds is not None:
             log_lb, aux_lb = self._log_transform_bound(bounds[0])
@@ -176,9 +184,10 @@ class DgpCanonMethods(dict):
             log_ub, aux_ub = self._log_transform_bound(bounds[1])
             constrs.extend(aux_ub)
             log_variable = Variable(variable.shape, var_id=variable.id,
-                                    bounds=[log_lb, log_ub])
+                                    bounds=[log_lb, log_ub], **dim_attrs)
         else:
-            log_variable = Variable(variable.shape, var_id=variable.id)
+            log_variable = Variable(variable.shape, var_id=variable.id,
+                                    **dim_attrs)
         self._variables[variable] = log_variable
         return log_variable, constrs
 
@@ -195,13 +204,14 @@ class DgpCanonMethods(dict):
             # DPP support: Create the log-parameter structure WITHOUT requiring
             # an initial value. This allows get_problem_data(gp=True) to work
             # with uninitialized parameters (issue #3004).
-            # Copy dim-reducing attributes to log-space parameter
+            # Copy symmetric attribute for dimension reduction in log-space.
+            # PSD/NSD imply symmetry but the semidefiniteness constraint
+            # doesn't transfer to log-space, so we only copy symmetric.
+            # Sparsity and diag have structural zeros, and log(0) is undefined.
             dim_attrs = {}
-            for attr in ['symmetric', 'diag', 'PSD', 'NSD']:
-                if parameter.attributes.get(attr):
-                    dim_attrs[attr] = parameter.attributes[attr]
-            # Note: sparsity not copied — log(0) is undefined,
-            # and DGP requires positive values
+            if any(parameter.attributes.get(attr)
+                   for attr in ['symmetric', 'PSD', 'NSD']):
+                dim_attrs['symmetric'] = True
             log_parameter = Parameter(parameter.shape, name=parameter.name(),
                                       **dim_attrs)
             if parameter.value is not None:
