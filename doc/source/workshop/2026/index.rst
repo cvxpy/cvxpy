@@ -246,7 +246,9 @@ Afternoon Session
      - | **Sponsored Talk** *(TBD)*
 
    * - **4:15 PM**
-     - | **Keynote** — `Stephen Boyd <#speaker-stephen-boyd>`_ *(In-Person)*
+     - | **Keynote: Convex Optimization** — `Stephen Boyd <#speaker-stephen-boyd>`_ *(In-Person)*
+       |
+       | In this high level talk we step back and ask why and how we use optimization in general, and what role convex optimization plays.
 
    * - **5:00 PM**
      - | **Social** — `Accel Partners, Palo Alto <https://maps.app.goo.gl/akDpcVErYi859q6V9>`_
