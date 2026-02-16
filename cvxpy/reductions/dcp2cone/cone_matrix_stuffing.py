@@ -231,11 +231,7 @@ class ParamConeProg(ParamProb):
             orig = param.leaf_of_provenance()
             if orig is not None:
                 if orig.sparse_idx is not None:
-                    # _value is either a coo_array or a plain ndarray of data
-                    val = orig._value
-                    if sp.issparse(val):
-                        return np.array(val.data)
-                    return np.array(val)
+                    return np.array(orig._value)
                 return np.array(cvx_attr2constr.lower_value(orig, orig.value))
             return np.array(param.value)
 

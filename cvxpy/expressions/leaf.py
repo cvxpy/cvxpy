@@ -507,7 +507,7 @@ class Leaf(expression.Expression):
         if val is None:
             self._value = None
         elif self.sparse_idx is not None and not sparse_path:
-            self._value = sp.coo_array((val[self.sparse_idx], self.sparse_idx), shape=self.shape)
+            self._value = val[self.sparse_idx]
         elif self.sparse_idx is not None and sparse_path:
             self._value = val.data
         else:
@@ -524,7 +524,7 @@ class Leaf(expression.Expression):
             if self._value is None:
                 return None
             val = np.zeros(self.shape, dtype=self._value.dtype)
-            val[self.sparse_idx] = self._value.data
+            val[self.sparse_idx] = self._value
             return val
 
     @value.setter
@@ -539,10 +539,7 @@ class Leaf(expression.Expression):
         """The numeric value of the expression if it is a sparse variable."""
         if self._value is None:
             return None
-        if isinstance(self._value, np.ndarray):
-            return sp.coo_array((self._value, self.sparse_idx), shape=self.shape)
-        else:
-            return self._value
+        return sp.coo_array((self._value, self.sparse_idx), shape=self.shape)
 
     @value_sparse.setter
     def value_sparse(self, val) -> None:
