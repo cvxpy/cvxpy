@@ -166,6 +166,7 @@ class Leaf(expression.Expression):
                 "Sparsity and diag attributes force zeros, which contradicts "
                 "strict positivity/negativity."
             )
+        self._leaf_of_provenance = None
         self.args = []
         self.bounds = self._ensure_valid_bounds(bounds)
         self.attributes['bounds'] = self.bounds
@@ -506,7 +507,7 @@ class Leaf(expression.Expression):
         if val is None:
             self._value = None
         elif self.sparse_idx is not None and not sparse_path:
-            self._value = sp.coo_array((val[self.sparse_idx], self.sparse_idx), shape=self.shape)
+            self._value = val[self.sparse_idx]
         elif self.sparse_idx is not None and sparse_path:
             self._value = val.data
         else:
@@ -523,7 +524,7 @@ class Leaf(expression.Expression):
             if self._value is None:
                 return None
             val = np.zeros(self.shape, dtype=self._value.dtype)
-            val[self.sparse_idx] = self._value.data
+            val[self.sparse_idx] = self._value
             return val
 
     @value.setter
@@ -538,10 +539,7 @@ class Leaf(expression.Expression):
         """The numeric value of the expression if it is a sparse variable."""
         if self._value is None:
             return None
-        if isinstance(self._value, np.ndarray):
-            return sp.coo_array((self._value, self.sparse_idx), shape=self.shape)
-        else:
-            return self._value
+        return sp.coo_array((self._value, self.sparse_idx), shape=self.shape)
 
     @value_sparse.setter
     def value_sparse(self, val) -> None:
@@ -701,6 +699,34 @@ class Leaf(expression.Expression):
 
     def atoms(self) -> list[Atom]:
         return []
+
+    def attributes_were_lowered(self) -> bool:
+        """True iff this leaf was generated when lowering a leaf with attributes."""
+        return self._leaf_of_provenance is not None
+
+    def set_leaf_of_provenance(self, leaf: Leaf) -> None:
+        assert leaf.attributes
+        self._leaf_of_provenance = leaf
+
+    def leaf_of_provenance(self) -> Leaf | None:
+        """Returns a leaf with attributes from which this leaf was generated."""
+        return self._leaf_of_provenance
+
+    @property
+    def _has_dim_reducing_attr(self) -> bool:
+        return (self.sparse_idx is not None or self.attributes['diag'] or
+                self.attributes['symmetric'] or self.attributes['PSD'] or
+                self.attributes['NSD'])
+
+    @property
+    def _reduced_size(self) -> int:
+        if self.sparse_idx is not None:
+            return len(self.sparse_idx[0])
+        elif self.attributes['diag']:
+            return self.shape[0]
+        elif self.attributes['symmetric'] or self.attributes['PSD'] or self.attributes['NSD']:
+            return self.shape[0] * (self.shape[0] + 1) // 2
+        return self.size
 
     def _validate_sparse_bound(self, val):
         """Validate a single sparse bound entry.

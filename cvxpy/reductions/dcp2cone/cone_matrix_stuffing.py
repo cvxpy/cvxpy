@@ -296,7 +296,8 @@ class ParamConeProg(ParamProb):
         for param_id, col in self.param_id_to_col.items():
             if param_id in active_params:
                 param = self.id_to_param[param_id]
-                delta = del_param_vec[col:col + param.size]
+                size = self.param_id_to_size[param_id]
+                delta = del_param_vec[col:col + size]
                 param_id_to_delta_param[param_id] = np.reshape(
                     delta, param.shape, order='F')
         return param_id_to_delta_param
@@ -313,8 +314,8 @@ class ParamConeProg(ParamProb):
                 var = self.id_to_var[var_id]
                 value = sltn[col:var.size+col]
                 if var.attributes_were_lowered():
-                    orig_var = var.variable_of_provenance()
-                    value = cvx_attr2constr.recover_value_for_variable(
+                    orig_var = var.leaf_of_provenance()
+                    value = cvx_attr2constr.recover_value_for_leaf(
                         orig_var, value, project=False)
                     sltn_dict[orig_var.id] = np.reshape(
                         value, orig_var.shape, order='F')
@@ -331,7 +332,7 @@ class ParamConeProg(ParamProb):
             var = self.id_to_var[var_id]
             col = self.var_id_to_col[var_id]
             if var.attributes_were_lowered():
-                orig_var = var.variable_of_provenance()
+                orig_var = var.leaf_of_provenance()
                 if cvx_attr2constr.attributes_present(
                         [orig_var], cvx_attr2constr.SYMMETRIC_ATTRIBUTES):
                     delta = delta + delta.T - np.diag(np.diag(delta))
