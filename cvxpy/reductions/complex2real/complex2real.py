@@ -91,72 +91,46 @@ class Complex2Real(Reduction):
                     else:
                         imag_param.value = np.imag(param.value)
 
-    def param_backward(self, param, dparams):
-        """Combine real/imag gradients into complex gradient for backward diff.
-
-        For complex param -> (real_param, imag_param), we compute:
-        param.gradient = ∂L/∂(real_param) + 1j * ∂L/∂(imag_param)
-
-        This follows PyTorch's convention for complex gradients, treating the
-        complex parameter as a pair of independent real parameters. This is
-        the gradient needed for gradient descent (p -= lr * p.gradient).
-
-        Note: This is NOT the Wirtinger derivative. For Wirtinger calculus,
-        ∂L/∂z = (∂L/∂a - j*∂L/∂b)/2 for z = a + jb.
-
-        For Hermitian parameters, the imaginary gradient is stored in compact
-        form (strict upper triangle) and must be expanded to skew-symmetric.
-        """
+    def param_backward(self, dparams):
+        """Combine real/imag gradients into complex gradient for backward diff."""
         if self.canon_methods is None:
-            return None
-        if param not in self.canon_methods._parameters:
-            return None
-        real_param, imag_param = self.canon_methods._parameters[param]
-        grad = 0.0
-        if real_param is not None and real_param.id in dparams:
-            grad = grad + dparams[real_param.id]
-        if imag_param is not None and imag_param.id in dparams:
-            imag_grad = dparams[imag_param.id]
-            if param.is_hermitian():
-                # Expand compact upper triangle to full skew-symmetric matrix
-                n = param.shape[0]
-                full_imag_grad = np.zeros((n, n))
-                full_imag_grad[np.triu_indices(n, k=1)] = imag_grad
-                full_imag_grad = full_imag_grad - full_imag_grad.T
-                grad = grad + 1j * full_imag_grad
-            else:
-                grad = grad + 1j * imag_grad
-        return grad
+            return dparams
+        result = dict(dparams)
+        for param, (real_param, imag_param) in self.canon_methods._parameters.items():
+            grad = 0.0
+            if real_param is not None and real_param.id in result:
+                grad = grad + result.pop(real_param.id)
+            if imag_param is not None and imag_param.id in result:
+                imag_grad = result.pop(imag_param.id)
+                if param.is_hermitian():
+                    n = param.shape[0]
+                    full_imag_grad = np.zeros((n, n))
+                    full_imag_grad[np.triu_indices(n, k=1)] = imag_grad
+                    full_imag_grad = full_imag_grad - full_imag_grad.T
+                    grad = grad + 1j * full_imag_grad
+                else:
+                    grad = grad + 1j * imag_grad
+            if isinstance(grad, np.ndarray) or grad != 0.0:
+                result[param.id] = grad
+        return result
 
-    def param_forward(self, param, delta):
-        """Split complex delta into real/imag deltas for forward diff.
-
-        For complex param -> (real_param, imag_param), we split the
-        complex perturbation into its real and imaginary components:
-        real_param.delta = Re(param.delta), imag_param.delta = Im(param.delta)
-
-        This treats the complex parameter as a pair of independent real
-        parameters, consistent with the backward pass convention.
-
-        For Hermitian parameters, the imaginary delta is extracted as the
-        strict upper triangle of the skew-symmetric imaginary part.
-        """
+    def param_forward(self, param_deltas):
+        """Split complex deltas into real/imag deltas for forward diff."""
         if self.canon_methods is None:
-            return None
-        if param not in self.canon_methods._parameters:
-            return None
-        real_param, imag_param = self.canon_methods._parameters[param]
-        result = {}
-        if real_param is not None:
-            result[real_param.id] = np.real(np.asarray(delta, dtype=np.complex128))
-        if imag_param is not None:
-            imag_delta = np.imag(np.asarray(delta, dtype=np.complex128))
-            if param.is_hermitian():
-                # Extract strict upper triangle for compact representation
-                n = param.shape[0]
-                result[imag_param.id] = imag_delta[np.triu_indices(n, k=1)]
-            else:
-                result[imag_param.id] = imag_delta
+            return param_deltas
+        result = dict(param_deltas)
+        for param, (real_param, imag_param) in self.canon_methods._parameters.items():
+            if param.id in result:
+                delta = np.asarray(result.pop(param.id), dtype=np.complex128)
+                if real_param is not None:
+                    result[real_param.id] = np.real(delta)
+                if imag_param is not None:
+                    imag_delta = np.imag(delta)
+                    if param.is_hermitian():
+                        n = param.shape[0]
+                        result[imag_param.id] = imag_delta[np.triu_indices(n, k=1)]
+                    else:
+                        result[imag_param.id] = imag_delta
         return result
 
     def apply(self, problem):

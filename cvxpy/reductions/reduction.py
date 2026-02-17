@@ -84,87 +84,33 @@ class Reduction(metaclass=ABCMeta):
         """
         pass
 
-    def param_backward(self, param, dparams):
-        """Compute gradient for an original parameter from transformed gradients.
+    def var_forward(self, dvars):
+        """Transform variable deltas from inner to outer representation.
 
-        Called during backward differentiation (requires_grad=True). Reductions
-        that transform parameters override this to apply the chain rule.
-
-        Parameters
-        ----------
-        param : Parameter
-            The original parameter in the problem.
-        dparams : dict
-            Gradients w.r.t. transformed parameter IDs in the cone program.
-
-        Returns
-        -------
-        gradient or None
-            The gradient for the original parameter, applying any chain rule.
-            Returns None if this reduction doesn't transform the parameter.
+        Takes and returns {var_id: delta_value}. Default: identity.
         """
-        return None
+        return dvars
 
-    def param_forward(self, param, delta):
-        """Compute transformed parameter deltas for forward differentiation.
+    def var_backward(self, del_vars):
+        """Transform variable gradients from outer to inner representation.
 
-        Called during forward differentiation (derivative()). Reductions that
-        transform parameters override this to map deltas through the chain rule.
-
-        Parameters
-        ----------
-        param : Parameter
-            The original parameter in the problem.
-        delta : ndarray
-            The perturbation to the original parameter.
-
-        Returns
-        -------
-        dict or None
-            A dict mapping transformed param IDs to their deltas, or None
-            if this reduction doesn't transform the parameter.
+        Takes and returns {var_id: gradient_value}. Default: identity.
         """
-        return None
+        return del_vars
 
-    def var_backward(self, var, value):
-        """Transform variable gradient for backward differentiation.
+    def param_forward(self, param_deltas):
+        """Transform parameter deltas from outer to inner representation.
 
-        Called during backward differentiation. Reductions that transform
-        variables override this to apply the chain rule.
-
-        Parameters
-        ----------
-        var : Variable
-            The original variable in the problem.
-        value : ndarray
-            The gradient value to transform.
-
-        Returns
-        -------
-        ndarray
-            The transformed gradient value.
+        Takes and returns {param_id: delta_value}. Default: identity.
         """
-        return value
+        return param_deltas
 
-    def var_forward(self, var, value):
-        """Transform variable delta for forward differentiation.
+    def param_backward(self, dparams):
+        """Transform parameter gradients from inner to outer representation.
 
-        Called during forward differentiation. Reductions that transform
-        variables override this to apply the chain rule.
-
-        Parameters
-        ----------
-        var : Variable
-            The original variable in the problem.
-        value : ndarray
-            The delta value to transform.
-
-        Returns
-        -------
-        ndarray
-            The transformed delta value.
+        Takes and returns {param_id: gradient_value}. Default: identity.
         """
-        return value
+        return dparams
 
     def reduce(self):
         """Reduces the owned problem to an equivalent problem.

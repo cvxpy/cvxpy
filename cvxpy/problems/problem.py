@@ -1198,20 +1198,21 @@ class Problem(u.Canonical):
         backward_cache = self._solver_cache[s.DIFFCP]
         DT = backward_cache["DT"]
         zeros = np.zeros(backward_cache["s"].shape)
-        # del_vars: dictionary of variable gradients (delta/∂ with respect to variables)
-        # Maps variable IDs to their gradient arrays for the backward pass
-        del_vars = {}
+        _ONE = np.float64(1.0)
+        _ZERO = np.float64(0.0)
 
+        # Build del_vars dict: variable gradients (outer representation)
+        del_vars = {}
         for variable in self.variables():
             if variable.gradient is None:
-                del_vars[variable.id] = np.ones(variable.shape)
+                del_vars[variable.id] = np.broadcast_to(_ONE, variable.shape)
             else:
                 del_vars[variable.id] = np.asarray(variable.gradient,
                                                    dtype=np.float64)
-            # Apply chain rule through reductions that transform variables
-            for reduction in self._cache.solving_chain.reductions:
-                del_vars[variable.id] = reduction.var_backward(
-                    variable, del_vars[variable.id])
+
+        # Apply chain rule through reductions (forward: outer -> inner)
+        for reduction in self._cache.solving_chain.reductions:
+            del_vars = reduction.var_backward(del_vars)
 
         dx = self._cache.param_prog.split_adjoint(del_vars)
         start = time.time()
@@ -1220,22 +1221,12 @@ class Problem(u.Canonical):
         backward_cache['DT_TIME'] = end - start
         dparams = self._cache.param_prog.apply_param_jac(dc, -dA, db)
 
-        # Compute gradients for each parameter, applying chain rule through
-        # reductions that transform parameters (e.g., DGP log transform,
-        # Complex2Real split into real/imag).
+        # Apply chain rule for parameters (reverse: inner -> outer)
+        for reduction in reversed(self._cache.solving_chain.reductions):
+            dparams = reduction.param_backward(dparams)
+
         for param in self.parameters():
-            grad = 0.0
-            handled = False
-            # Apply chain rule through any reductions that transformed this param
-            for reduction in self._cache.solving_chain.reductions:
-                reduction_grad = reduction.param_backward(param, dparams)
-                if reduction_grad is not None:
-                    grad = grad + reduction_grad
-                    handled = True
-            # Fall back to the direct gradient if no reduction transformed this param
-            if not handled and param.id in dparams:
-                grad = dparams[param.id]
-            param.gradient = grad
+            param.gradient = dparams.get(param.id, _ZERO)
 
     def derivative(self) -> None:
         """Apply the derivative of the solution map to perturbations in the Parameters
@@ -1292,41 +1283,40 @@ class Problem(u.Canonical):
         backward_cache = self._solver_cache[s.DIFFCP]
         param_prog = self._cache.param_prog
         D = backward_cache["D"]
-        param_deltas = {}
+        _ZERO = np.float64(0.0)
 
         if not self.parameters():
             for variable in self.variables():
                 variable.delta = np.zeros(variable.shape)
             return
 
-        # Compute deltas for transformed parameters, applying chain rule through
-        # reductions that transform parameters (e.g., DGP log transform,
-        # Complex2Real split into real/imag).
+        # Build param_deltas dict (outer representation)
+        param_deltas = {}
         for param in self.parameters():
-            delta = param.delta if param.delta is not None else np.zeros(param.shape)
-            handled = False
-            # Apply chain rule through any reductions that transformed this param
-            for reduction in self._cache.solving_chain.reductions:
-                transformed_deltas = reduction.param_forward(param, delta)
-                if transformed_deltas is not None:
-                    param_deltas.update(transformed_deltas)
-                    handled = True
-            # If no reduction transformed this param, add its delta directly
-            if not handled and param.id in param_prog.param_id_to_col:
-                param_deltas[param.id] = np.asarray(delta, dtype=np.float64)
+            if param.delta is not None:
+                param_deltas[param.id] = np.asarray(param.delta)
+            else:
+                param_deltas[param.id] = np.broadcast_to(_ZERO, param.shape)
+
+        # Apply chain rule for parameters (forward: outer -> inner)
+        for reduction in self._cache.solving_chain.reductions:
+            param_deltas = reduction.param_forward(param_deltas)
+
         dc, _, dA, db = param_prog.apply_parameters(param_deltas,
                                                     zero_offset=True)
         start = time.time()
         dx, _, _ = D(-dA, db, dc)
         end = time.time()
         backward_cache['D_TIME'] = end - start
-        dvars = param_prog.split_solution(
-            dx, [v.id for v in self.variables()])
+        dvars = param_prog.split_solution(dx)
+
+        # Apply chain rule for variables (reverse: inner -> outer)
+        for reduction in reversed(self._cache.solving_chain.reductions):
+            dvars = reduction.var_forward(dvars)
+
         for variable in self.variables():
-            variable.delta = dvars[variable.id]
-            # Apply chain rule through reductions that transform variables
-            for reduction in self._cache.solving_chain.reductions:
-                variable.delta = reduction.var_forward(variable, variable.delta)
+            variable.delta = dvars.get(variable.id,
+                                       np.broadcast_to(_ZERO, variable.shape))
 
     def _clear_solution(self) -> None:
         for v in self.variables():

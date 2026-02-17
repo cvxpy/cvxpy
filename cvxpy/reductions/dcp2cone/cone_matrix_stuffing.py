@@ -307,21 +307,12 @@ class ParamConeProg(ParamProb):
         """
         if active_vars is None:
             active_vars = [v.id for v in self.variables]
-        # var id to solution.
         sltn_dict = {}
         for var_id, col in self.var_id_to_col.items():
             if var_id in active_vars:
                 var = self.id_to_var[var_id]
                 value = sltn[col:var.size+col]
-                if var.attributes_were_lowered():
-                    orig_var = var.leaf_of_provenance()
-                    value = cvx_attr2constr.recover_value_for_leaf(
-                        orig_var, value, project=False)
-                    sltn_dict[orig_var.id] = np.reshape(
-                        value, orig_var.shape, order='F')
-                else:
-                    sltn_dict[var_id] = np.reshape(
-                        value, var.shape, order='F')
+                sltn_dict[var_id] = np.reshape(value, var.shape, order='F')
         return sltn_dict
 
     def split_adjoint(self, del_vars=None):
@@ -331,12 +322,6 @@ class ParamConeProg(ParamProb):
         for var_id, delta in del_vars.items():
             var = self.id_to_var[var_id]
             col = self.var_id_to_col[var_id]
-            if var.attributes_were_lowered():
-                orig_var = var.leaf_of_provenance()
-                if cvx_attr2constr.attributes_present(
-                        [orig_var], cvx_attr2constr.SYMMETRIC_ATTRIBUTES):
-                    delta = delta + delta.T - np.diag(np.diag(delta))
-                delta = cvx_attr2constr.lower_value(orig_var, delta)
             var_vec[col:col + var.size] = delta.flatten(order='F')
         return var_vec
 
