@@ -160,11 +160,10 @@ class CoeffExtractor:
                 # We multiply P by the parameter coefficients.
                 if P_is_param:
                     # PARAMETRIC P PATH - P is a Parameter, track its entries as parameters.
-                    # For DPP, we assume var_size == 1 (single quad_form in objective).
+                    # Each quad_form(x, P) produces a scalar dummy variable (var_size == 1).
                     # The P matrix entries map to parameter offsets in column-major order.
                     assert var_size == 1, (
-                        "DPP quad_form with parametric P only supports scalar output. "
-                        "Multiple quad_forms with parametric P are not supported."
+                        "DPP quad_form with parametric P requires a scalar quad_form output."
                     )
                     n = P_expr.shape[0]
                     # Create indices for all n*n entries of P in column-major order.
