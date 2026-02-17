@@ -705,6 +705,7 @@ class Leaf(expression.Expression):
         return self._leaf_of_provenance is not None
 
     def set_leaf_of_provenance(self, leaf: Leaf) -> None:
+        assert leaf.attributes
         self._leaf_of_provenance = leaf
 
     def leaf_of_provenance(self) -> Leaf | None:
