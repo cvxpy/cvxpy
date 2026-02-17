@@ -84,6 +84,22 @@ class Reduction(metaclass=ABCMeta):
         """
         pass
 
+    @property
+    def var_id_map(self):
+        """Map from original to reduced variable IDs.
+
+        Reductions that replace variables (e.g., CvxAttr2Constr) override
+        this to expose their mapping.  Used by Chain.compose_var_id_map()
+        to build a global mapping across the full reduction chain.
+
+        Returns
+        -------
+        dict
+            ``{orig_var_id: reduced_var_id}`` for every variable that was
+            replaced.  Default: empty dict (no variables replaced).
+        """
+        return {}
+
     def var_forward(self, dvars):
         """Transform variable deltas from inner to outer representation.
 
