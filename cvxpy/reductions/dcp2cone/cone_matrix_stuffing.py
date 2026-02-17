@@ -315,7 +315,7 @@ class ParamConeProg(ParamProb):
                 value = sltn[col:var.size+col]
                 if var.attributes_were_lowered():
                     orig_var = var.leaf_of_provenance()
-                    value = cvx_attr2constr.recover_value_for_variable(
+                    value = cvx_attr2constr.recover_value_for_leaf(
                         orig_var, value, project=False)
                     sltn_dict[orig_var.id] = np.reshape(
                         value, orig_var.shape, order='F')

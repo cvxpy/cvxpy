@@ -74,7 +74,7 @@ def attributes_present(variables, attr_map) -> list[str]:
                                              in variables)]
 
 
-def recover_value_for_variable(variable, lowered_value, project: bool = True):
+def recover_value_for_leaf(variable, lowered_value, project: bool = True):
     if variable.attributes['diag']:
         return sp.diags_array(lowered_value.flatten(order='F'))
     elif attributes_present([variable], SYMMETRIC_ATTRIBUTES):
@@ -275,7 +275,7 @@ class CvxAttr2Constr(Reduction):
         reduced_param = self._parameters[param]
         if reduced_param.id not in dparams:
             return None
-        return recover_value_for_variable(param, dparams[reduced_param.id])
+        return recover_value_for_leaf(param, dparams[reduced_param.id])
 
     def param_forward(self, param, delta):
         """Transform full-size delta to reduced-size delta."""
@@ -293,7 +293,7 @@ class CvxAttr2Constr(Reduction):
         for id, var in id2old_var.items():
             new_var = id2new_var[id]
             if new_var.id in solution.primal_vars:
-                pvars[id] = recover_value_for_variable(
+                pvars[id] = recover_value_for_leaf(
                     var, solution.primal_vars[new_var.id])
 
         dvars = {orig_id: solution.dual_vars[vid]
