@@ -77,6 +77,32 @@ class Chain(Reduction):
             inverse_data.append(inv)
         return problem, inverse_data
 
+    def compose_var_id_map(self):
+        """Compose variable ID mappings across all reductions.
+
+        Returns a single ``{orig_var_id: final_var_id}`` dict that
+        accounts for every variable replacement in the chain.  If
+        reduction *i* maps ``A → A'`` and reduction *j* (j > i) maps
+        ``A' → A''``, the result contains ``A → A''``.
+
+        Returns
+        -------
+        dict
+            Maps original variable IDs to their final (innermost) IDs.
+        """
+        result = {}
+        for r in self.reductions:
+            step_map = r.var_id_map
+            # Update existing mappings that were further renamed.
+            for orig_id in result:
+                if result[orig_id] in step_map:
+                    result[orig_id] = step_map[result[orig_id]]
+            # Add new mappings from this reduction step.
+            for orig_id, new_id in step_map.items():
+                if orig_id not in result:
+                    result[orig_id] = new_id
+        return result
+
     def invert(self, solution, inverse_data):
         """Returns a solution to the original problem given the inverse_data.
         """
