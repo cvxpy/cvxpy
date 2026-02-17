@@ -407,8 +407,19 @@ class ComplexPSDConversion:
 
     @staticmethod
     def recover_dual(cons, dual_var, inverse_data, solution):
+        # Suppose we have a constraint con_x = X >> 0 where X is Hermitian.
+        #
+        # Define the matrix
+        #     Y := [re(X) , im(X)]
+        #          [-im(X), re(X)]
+        # and the constraint con_y = Y >> 0.
+        #
+        # The real part of the dual variable for con_x is the upper-left
+        # block of the dual variable for con_y.
+        #
+        # The imaginary part of the dual variable for con_x is the
+        # lower-left block of the dual variable for con_y.
         n = cons.args[0].shape[0]
-        # dual_var is (2n, 2n); extract complex n x n
         return dual_var[:n, :n] + 1j * dual_var[n:, :n]
 
 
