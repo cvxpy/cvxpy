@@ -76,29 +76,26 @@ class TestParamConeProg(BaseTest):
 
     def test_psd_var(self) -> None:
         """Test PSD variable.
+
+        PSD implies symmetric, so CvxAttr2Constr creates a reduced variable
+        (upper triangle) with its own ID.  Use the solving chain to invert
+        the raw solver output back to the original variable.
         """
         s = cp.Variable((2, 2), PSD=True)
-        var_dict = {s.id: s}
         obj = cp.Maximize(cp.minimum(s[0, 1], 10))
         const = [cp.diag(s) == np.ones(2)]
         problem = cp.Problem(obj, const)
-        data, _, _ = problem.get_problem_data(solver=cp.SCS)
-        param_cone_prog = data[cp.settings.PARAM_PROB]
+        data, chain, inverse_data = problem.get_problem_data(solver=cp.SCS)
         solver = SCS()
-        raw_solution = solver.solve_via_data(
-            data, warm_start=False, verbose=False, solver_opts={})['x']
-        sltn_dict = param_cone_prog.split_solution(
-            raw_solution, active_vars=var_dict)
-        self.assertEqual(sltn_dict[s.id].shape, s.shape)
-        sltn_value = sltn_dict[s.id]
-        adjoint = param_cone_prog.split_adjoint(sltn_dict)
-        self.assertEqual(adjoint.shape, raw_solution.shape)
-        self.assertTrue(any(sltn_value[0, 0] == adjoint))
-        self.assertTrue(any(sltn_value[1, 1] == adjoint))
-        # off-diagonals of adjoint will be scaled by two
-        self.assertTrue(any(np.isclose(2 * sltn_value[0, 1], adjoint)))
-        self.assertTrue(any(np.isclose(2 * sltn_value[1, 0], adjoint)))
+        raw_result = solver.solve_via_data(
+            data, warm_start=False, verbose=False, solver_opts={})
 
+        # Invert through the full reduction chain to recover original vars.
+        solution = chain.invert(raw_result, inverse_data)
+        self.assertEqual(solution.primal_vars[s.id].shape, s.shape)
+        sltn_value = solution.primal_vars[s.id]
+
+        # Verify full solve matches the chain-inverted solution.
         problem.solve(solver=cp.SCS, eps=1e-5)
         self.assertItemsAlmostEqual(s.value, sltn_value)
 
