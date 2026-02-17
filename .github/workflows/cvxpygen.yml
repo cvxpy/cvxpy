@@ -8,7 +8,7 @@ on:
         tags:
           - '*'
 jobs:
-  test_backends:
+  test_cvxpygen:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/setup-python@v6
