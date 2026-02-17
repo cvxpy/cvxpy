@@ -263,6 +263,10 @@ class CvxAttr2Constr(Reduction):
         inverse_data = (id2new_var, id2old_var, cons_id_map)
         return cvxtypes.problem()(obj, constr), inverse_data
 
+    @property
+    def var_id_map(self):
+        return {orig.id: new.id for orig, new in self._variables.items()}
+
     def update_parameters(self, problem) -> None:
         """Update reduced parameter values from original parameters."""
         for param, reduced_param in self._parameters.items():
