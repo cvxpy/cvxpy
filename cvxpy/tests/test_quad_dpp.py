@@ -244,13 +244,14 @@ class TestQuadFormDPPVariants:
             cp.Minimize(cp.quad_form(x, P1 + P2)), [cp.sum(x) == 1]
         )
 
+        # P1+P2 = [[2,0],[0,1]] — weights x[0] more, so x[1] preferred.
         P1.value = np.array([[2, 0], [0, 0]])
         P2.value = np.array([[0, 0], [0, 1]])
         prob.solve(solver=cp.CLARABEL)
         assert np.allclose(x.value, [1/3, 2/3], rtol=1e-3)
 
-        # Swap P1 and P2 — solution should swap too.
-        P1.value = np.array([[0, 0], [0, 1]])
-        P2.value = np.array([[2, 0], [0, 0]])
+        # P1+P2 = [[1,0],[0,2]] — weights x[1] more, so x[0] preferred.
+        P1.value = np.array([[1, 0], [0, 0]])
+        P2.value = np.array([[0, 0], [0, 2]])
         prob.solve(solver=cp.CLARABEL)
         assert np.allclose(x.value, [2/3, 1/3], rtol=1e-3)

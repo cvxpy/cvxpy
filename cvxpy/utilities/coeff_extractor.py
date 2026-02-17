@@ -23,7 +23,6 @@ import numpy as np
 import scipy.sparse as sp
 
 from cvxpy.cvxcore.python import canonInterface
-from cvxpy.expressions.constants.parameter import Parameter
 from cvxpy.lin_ops.canon_backend import TensorRepresentation
 from cvxpy.lin_ops.lin_op import NO_OP, LinOp
 from cvxpy.reductions.inverse_data import InverseData
@@ -135,15 +134,11 @@ class CoeffExtractor:
                 quad_form_atom = quad_forms[var_id][2]
                 P_expr = quad_form_atom.P
 
-                # Check if P is a Parameter (for DPP support)
-                P_is_param = isinstance(P_expr, Parameter)
+                # Check if P depends on parameters (for DPP support).
+                # This handles bare Parameters, 2*P, P1+P2, etc.
+                P_is_parametric = len(P_expr.parameters()) > 0
 
-                if P_is_param:
-                    # For parametric P, track its entries as parameters.
-                    # Only need shape info, not value.
-                    n = P_expr.shape[0]
-                    P_param_offset = self.param_id_map[P_expr.id]
-                else:
+                if not P_is_parametric:
                     # For constant P, use the numeric value.
                     assert (
                         P_expr.value is not None
@@ -158,28 +153,21 @@ class CoeffExtractor:
                 block_indices = quad_form_atom.block_indices
 
                 # We multiply P by the parameter coefficients.
-                if P_is_param:
-                    # PARAMETRIC P PATH - P is a Parameter, track its entries as parameters.
+                if P_is_parametric:
+                    # PARAMETRIC P PATH - P depends on parameters.
+                    # Handles bare Parameter, scalar*Parameter, sums of Parameters, etc.
                     # Each quad_form(x, P) produces a scalar dummy variable (var_size == 1).
-                    # The P matrix entries map to parameter offsets in column-major order.
                     assert var_size == 1, (
                         "DPP quad_form with parametric P requires a scalar quad_form output."
                     )
                     n = P_expr.shape[0]
-                    # Create indices for all n*n entries of P in column-major order.
-                    # The parameter offset for P[i,j] is P_param_offset + j*n + i.
-                    # Use numpy for efficient index generation.
-                    rows = np.tile(np.arange(n), n)         # [0,1,...,n-1, 0,1,...,n-1, ...]
-                    cols = np.repeat(np.arange(n), n)       # [0,0,...,0, 1,1,...,1, ...]
-                    param_offsets = P_param_offset + np.arange(n * n)
 
-                    # c_part contains the scalar coefficient (usually 1.0 for identity).
+                    # c_part contains the scalar coefficient from the affine head.
                     # We need to combine the c_part coefficients with P's parameter entries.
                     nonzero_idxs = c_part[0] != 0
                     if not np.any(nonzero_idxs):
                         P_tup = TensorRepresentation.empty_with_shape((n, n))
                     else:
-                        # For each nonzero coefficient in c_part, replicate P's structure.
                         c_nonzero_vals = c_part[0, nonzero_idxs]
                         c_nonzero_idxs = np.arange(num_params)[nonzero_idxs]
 
@@ -193,13 +181,39 @@ class CoeffExtractor:
                                 "the expression quadratic in parameters."
                             )
 
-                        # All coefficients are in the constant slice.
                         coef_val = c_nonzero_vals[0]
+
+                        # Extract the affine dependence of vec(P_expr) on parameters.
+                        # P_expr has no CVXPY variables, only parameters and constants.
+                        # With x_length=0, get_problem_matrix returns a matrix of shape
+                        # (n*n, num_params) encoding the affine relationship:
+                        #   vec(P_expr) = sum_p  P_coeffs[:, p] * param[p]
+                        op_list = [P_expr.canonical_form[0]]
+                        P_coeffs = canonInterface.get_problem_matrix(
+                            op_list,
+                            0,
+                            {},
+                            self.param_to_size,
+                            self.param_id_map,
+                            n * n,
+                            self.canon_backend
+                        )
+
+                        # P_coeffs is sparse, shape (n*n, num_params).
+                        # Row k corresponds to vec(P)[k] = P[k % n, k // n] (col-major).
+                        P_coeffs_coo = sp.coo_matrix(P_coeffs)
+
+                        # Convert flat index k to (row, col) in column-major order.
+                        rows = P_coeffs_coo.row % n
+                        cols = P_coeffs_coo.row // n
+                        p_indices = P_coeffs_coo.col
+                        values = P_coeffs_coo.data * coef_val
+
                         P_tup = TensorRepresentation(
-                            np.full(len(rows), coef_val),
+                            values,
                             rows,
                             cols,
-                            param_offsets,
+                            p_indices,
                             (n, n)
                         )
                 elif var_size == 1:
