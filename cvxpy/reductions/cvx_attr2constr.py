@@ -154,6 +154,7 @@ class CvxAttr2Constr(Reduction):
         """If reduce_bounds, reduce lower and upper bounds on variables."""
         self.reduce_bounds = reduce_bounds
         self._parameters = {}  # {orig_param: reduced_param}
+        self._variables = {}   # {orig_var: new_var} — only for changed vars
         super(CvxAttr2Constr, self).__init__(problem=problem)
 
     def reduction_attributes(self) -> List[str]:
@@ -215,13 +216,13 @@ class CvxAttr2Constr(Reduction):
                                 )
                         new_attr['bounds'] = transformed_bounds
 
-                    reduced_var = Variable(n, var_id=var.id, **new_attr)
-                    reduced_var.set_leaf_of_provenance(var)
+                    reduced_var = Variable(n, name=var.name(), **new_attr)
+                    self._variables[var] = reduced_var
                     id2new_var[var.id] = reduced_var
                     obj = build_dim_reduced_expression(var, reduced_var)
                 elif new_var:
-                    obj = Variable(var.shape, var_id=var.id, **new_attr)
-                    obj.set_leaf_of_provenance(var)
+                    obj = Variable(var.shape, name=var.name(), **new_attr)
+                    self._variables[var] = obj
                     id2new_var[var.id] = obj
                 else:
                     obj = var
@@ -246,8 +247,7 @@ class CvxAttr2Constr(Reduction):
                 for key in reduction_attributes:
                     if new_attr[key]:
                         new_attr[key] = None if key == 'bounds' else False
-                reduced_param = Parameter(n, id=param.id, name=param.name(), **new_attr)
-                reduced_param.set_leaf_of_provenance(param)
+                reduced_param = Parameter(n, name=param.name(), **new_attr)
                 self._parameters[param] = reduced_param
                 if param.value is not None:
                     reduced_param.value = lower_value(param)
@@ -269,21 +269,46 @@ class CvxAttr2Constr(Reduction):
             if param.value is not None:
                 reduced_param.value = lower_value(param)
 
-    def param_backward(self, param, dparams):
-        """Recover full-size gradient from reduced-size gradient."""
-        if param not in self._parameters:
-            return None
-        reduced_param = self._parameters[param]
-        if reduced_param.id not in dparams:
-            return None
-        return recover_value_for_leaf(param, dparams[reduced_param.id])
+    def var_forward(self, dvars):
+        """Transform variable deltas from inner (reduced) to outer (original)."""
+        result = dict(dvars)
+        for orig_var, new_var in self._variables.items():
+            if new_var.id in result:
+                value = result.pop(new_var.id)
+                if orig_var._has_dim_reducing_attr:
+                    value = recover_value_for_leaf(orig_var, value, project=False)
+                result[orig_var.id] = value
+        return result
 
-    def param_forward(self, param, delta):
-        """Transform full-size delta to reduced-size delta."""
-        if param not in self._parameters:
-            return None
-        reduced_param = self._parameters[param]
-        return {reduced_param.id: lower_value(param, delta)}
+    def var_backward(self, del_vars):
+        """Transform variable gradients from outer (original) to inner (reduced)."""
+        result = dict(del_vars)
+        for orig_var, new_var in self._variables.items():
+            if orig_var.id in result:
+                value = result.pop(orig_var.id)
+                if orig_var._has_dim_reducing_attr:
+                    if attributes_present([orig_var], SYMMETRIC_ATTRIBUTES):
+                        value = value + value.T - np.diag(np.diag(value))
+                    value = lower_value(orig_var, value)
+                result[new_var.id] = value
+        return result
+
+    def param_backward(self, dparams):
+        """Recover full-size gradients from reduced-size gradients."""
+        result = dict(dparams)
+        for param, reduced_param in self._parameters.items():
+            if reduced_param.id in result:
+                result[param.id] = recover_value_for_leaf(
+                    param, result.pop(reduced_param.id))
+        return result
+
+    def param_forward(self, param_deltas):
+        """Transform full-size deltas to reduced-size deltas."""
+        result = dict(param_deltas)
+        for param, reduced_param in self._parameters.items():
+            if param.id in result:
+                result[reduced_param.id] = lower_value(param, result.pop(param.id))
+        return result
 
     def invert(self, solution, inverse_data) -> Solution:
         if not inverse_data:
