@@ -94,13 +94,12 @@ class Chain(Reduction):
         for r in self.reductions:
             step_map = r.var_id_map
             # Update existing mappings that were further renamed.
-            for orig_id in result:
-                if result[orig_id] in step_map:
-                    result[orig_id] = step_map[result[orig_id]]
+            for orig_id, cur_id in result.items():
+                if cur_id in step_map:
+                    result[orig_id] = step_map[cur_id]
             # Add new mappings from this reduction step.
-            for orig_id, new_id in step_map.items():
-                if orig_id not in result:
-                    result[orig_id] = new_id
+            for orig_id in step_map.keys() - result.keys():
+                result[orig_id] = step_map[orig_id]
         return result
 
     def invert(self, solution, inverse_data):
