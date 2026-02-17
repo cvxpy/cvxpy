@@ -1198,6 +1198,8 @@ class Problem(u.Canonical):
         backward_cache = self._solver_cache[s.DIFFCP]
         DT = backward_cache["DT"]
         zeros = np.zeros(backward_cache["s"].shape)
+        # broadcast_to creates O(1) read-only views; safe because chain rule
+        # ops in var_backward/param_backward create new arrays, never mutate.
         _ONE = np.float64(1.0)
         _ZERO = np.float64(0.0)
 
@@ -1283,6 +1285,8 @@ class Problem(u.Canonical):
         backward_cache = self._solver_cache[s.DIFFCP]
         param_prog = self._cache.param_prog
         D = backward_cache["D"]
+        # broadcast_to creates O(1) read-only views; safe because chain rule
+        # ops in param_forward/var_forward create new arrays, never mutate.
         _ZERO = np.float64(0.0)
 
         if not self.parameters():
