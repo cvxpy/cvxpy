@@ -340,6 +340,18 @@ class TestBackward(BaseTest):
         self.assertIn(0.0, A.data)
 
 
+    def test_sparse_variable_derivative(self) -> None:
+        sparsity = [(0, 1), (1, 0)]
+        x = cp.Variable((2, 2), sparsity=sparsity)
+        b = cp.Parameter(2)
+        b.value = np.array([1.0, 2.0])
+        # Constrain only the nonzero entries (x[1,0] and x[0,1]) via
+        # column sums, which picks up one nonzero per column.
+        prob = cp.Problem(cp.Minimize(cp.sum(x)), [cp.sum(x, axis=0) >= b])
+        gradcheck(prob)
+        perturbcheck(prob)
+
+
 class TestBackwardComplex(BaseTest):
     """Test backward/forward differentiation with complex parameters."""
     def setUp(self) -> None:

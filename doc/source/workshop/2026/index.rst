@@ -23,9 +23,10 @@ talks, and discussions about convex optimization in Python.
 Date & Location
 ---------------
 
-* **Talks:** February 20, 2026
-* **Hackathon:** February 21, 2026
+* **Talks:** Friday, February 20, 2026
+* **Hackathon:** Saturday, February 21, 2026
 * **Location:** `CoDa E160 <https://maps.app.goo.gl/ANfH9ZehwgvSNnS76>`_, Stanford University
+* **Parking:** `Roble Field Garage <https://campus-map.stanford.edu/?srch=Roble%20Field%20Garage>`_ or `Via Ortega Garage <https://campus-map.stanford.edu/?srch=Via%20Ortega%20Garage>`_ (`paid on Friday <https://transportation.stanford.edu/parking-stanford/purchase-parking/visitor-parking>`_, free on Saturday)
 
 Registration
 ------------
@@ -228,6 +229,8 @@ Afternoon Session
 
    * - **3:15 PM**
      - | **Moreau: The Convex Optimization Solver for the Modern Workload** — `Steven Diamond <#speaker-steven-diamond>`_ *(In-Person, Sponsored)*
+       |
+       | Moreau is a new GPU-native convex optimization solver designed for modern AI workloads. Moreau is up to 100× faster than comparable CPU solvers, and supports batching and exact differentiation. Moreau interfaces with PyTorch and JAX, enabling efficient backpropagation through convex optimization layers. This talk shows how Moreau unlocks new applications of convex optimization in robotics, energy, and finance. Visit `moreau.so <https://www.moreau.so/>`_ to learn more about the solver.
 
    * - **3:30 PM**
      - | **Electrified Transportation Optimization with CVXPY** — `Kyle Goodrick <#speaker-kyle-goodrick>`_ *(In-Person)*
@@ -243,7 +246,9 @@ Afternoon Session
      - | **Sponsored Talk** *(TBD)*
 
    * - **4:15 PM**
-     - | **Keynote** — `Stephen Boyd <#speaker-stephen-boyd>`_ *(In-Person)*
+     - | **Keynote: Convex Optimization** — `Stephen Boyd <#speaker-stephen-boyd>`_ *(In-Person)*
+       |
+       | In this high level talk we step back and ask why and how we use optimization in general, and what role convex optimization plays.
 
    * - **5:00 PM**
      - | **Social** — `Accel Partners, Palo Alto <https://maps.app.goo.gl/akDpcVErYi859q6V9>`_

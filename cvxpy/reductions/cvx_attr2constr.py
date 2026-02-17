@@ -23,6 +23,7 @@ from cvxpy.atoms import diag, reshape
 from cvxpy.atoms.affine.upper_tri import upper_tri_to_full
 from cvxpy.expressions import cvxtypes
 from cvxpy.expressions.constants import Constant
+from cvxpy.expressions.constants.parameter import Parameter
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.reduction import Reduction
 from cvxpy.reductions.solution import Solution
@@ -73,7 +74,7 @@ def attributes_present(variables, attr_map) -> list[str]:
                                              in variables)]
 
 
-def recover_value_for_variable(variable, lowered_value, project: bool = True):
+def recover_value_for_leaf(variable, lowered_value, project: bool = True):
     if variable.attributes['diag']:
         return sp.diags_array(lowered_value.flatten(order='F'))
     elif attributes_present([variable], SYMMETRIC_ATTRIBUTES):
@@ -93,13 +94,57 @@ def recover_value_for_variable(variable, lowered_value, project: bool = True):
         return lowered_value
 
 
-def lower_value(variable, value) -> np.ndarray:
+def lower_value(variable, value=None) -> np.ndarray:
+    """Extract the reduced representation of a leaf's value.
+
+    Args:
+        variable: The leaf whose attributes determine the reduction.
+        value: If provided, a full-size value (e.g. a differentiation delta)
+            to reduce.  If ``None``, reads the leaf's stored ``_value``.
+
+    Notes:
+        Called without *value* by ``update_parameters`` and ``apply`` to read
+        the current parameter value into the reduced parameter.  Called *with*
+        an explicit value by ``param_forward`` to reduce a full-size delta.
+
+        For sparse leaves ``Leaf.save_value`` already stores only the nonzero
+        entries, so when ``value is None`` the sparse branch can return
+        ``_value`` directly.  An explicit *value* is always full-size and must
+        be extracted at the sparse indices.
+    """
+    # Track whether the caller supplied a full-size value.  When value is None
+    # we read _value, which for sparse leaves is already in reduced form.
+    full_size = value is not None
+    if value is None:
+        value = variable._value
     if attributes_present([variable], SYMMETRIC_ATTRIBUTES):
         return value[np.triu_indices(variable.shape[0])]
     elif variable.attributes['diag']:
         return np.diag(value)
+    elif variable.attributes['sparsity']:
+        if full_size:
+            return np.asarray(value)[variable.sparse_idx]
+        else:
+            # _value already stores only the nonzero data (see Leaf.save_value).
+            return np.asarray(value)
     else:
         return value
+
+
+def build_dim_reduced_expression(leaf, reduced_leaf):
+    """Build Expression that reconstructs full shape from a reduced-size leaf."""
+    if attributes_present([leaf], SYMMETRIC_ATTRIBUTES):
+        n = leaf.shape[0]
+        return reshape(Constant(upper_tri_to_full(n)) @ reduced_leaf, (n, n), order='F')
+    elif leaf.sparse_idx is not None:
+        n = len(leaf.sparse_idx[0])
+        row_idx = np.ravel_multi_index(leaf.sparse_idx, leaf.shape, order='F')
+        coeff = Constant(sp.csc_array((np.ones(n), (row_idx, np.arange(n))),
+                         shape=(np.prod(leaf.shape, dtype=int), n)), name="sparse_coeff")
+        return reshape(coeff @ reduced_leaf, leaf.shape, order='F')
+    elif leaf.attributes['diag']:
+        return diag(reduced_leaf)
+    return reduced_leaf
 
 
 class CvxAttr2Constr(Reduction):
@@ -108,6 +153,7 @@ class CvxAttr2Constr(Reduction):
     def __init__(self, problem=None, reduce_bounds: bool = False) -> None:
         """If reduce_bounds, reduce lower and upper bounds on variables."""
         self.reduce_bounds = reduce_bounds
+        self._parameters = {}  # {orig_param: reduced_param}
         super(CvxAttr2Constr, self).__init__(problem=problem)
 
     def reduction_attributes(self) -> List[str]:
@@ -123,7 +169,9 @@ class CvxAttr2Constr(Reduction):
         return True
 
     def apply(self, problem):
-        if not attributes_present(problem.variables(), CONVEX_ATTRIBUTES):
+        has_var_attrs = attributes_present(problem.variables(), CONVEX_ATTRIBUTES)
+        has_param_attrs = any(p._has_dim_reducing_attr for p in problem.parameters())
+        if not has_var_attrs and not has_param_attrs:
             return problem, ()
 
         # The attributes to be reduced.
@@ -144,31 +192,21 @@ class CvxAttr2Constr(Reduction):
                         new_var = True
                         new_attr[key] = None if key == 'bounds' else False
 
-                if attributes_present([var], SYMMETRIC_ATTRIBUTES):
-                    n = var.shape[0]
-                    shape = (n*(n+1)//2, 1)
-                    upper_tri = Variable(shape, var_id=var.id, **new_attr)
-                    upper_tri.set_variable_of_provenance(var)
-                    id2new_var[var.id] = upper_tri
-                    fill_coeff = Constant(upper_tri_to_full(n))
-                    full_mat = fill_coeff @ upper_tri
-                    obj = reshape(full_mat, (n, n), order='F')
-                elif var.attributes['sparsity']:
-                    n = len(var.sparse_idx[0])
+                if var._has_dim_reducing_attr:
+                    n = var._reduced_size
 
-                    # Transform bounds for reduced variable if bounds are not being reduced
-                    if 'bounds' not in reduction_attributes and new_attr.get('bounds'):
+                    # Transform bounds for sparse reduced variable
+                    if var.attributes['sparsity'] and \
+                            'bounds' not in reduction_attributes and new_attr.get('bounds'):
                         bounds = new_attr['bounds']
                         transformed_bounds = []
                         for bound in bounds:
                             if sp.issparse(bound):
-                                # Extract data from sparse bound
-                                # (already validated to match sparsity)
                                 coo = sp.coo_array(bound)
                                 coo.sum_duplicates()
                                 transformed_bounds.append(coo.data)
-                            elif np.isscalar(bound) or (hasattr(bound, 'ndim') and bound.ndim == 0):
-                                # Scalar bounds - keep as-is
+                            elif np.isscalar(bound) or (
+                                    hasattr(bound, 'ndim') and bound.ndim == 0):
                                 transformed_bounds.append(bound)
                             else:
                                 raise ValueError(
@@ -177,29 +215,13 @@ class CvxAttr2Constr(Reduction):
                                 )
                         new_attr['bounds'] = transformed_bounds
 
-                    sparse_var = Variable(n, var_id=var.id, **new_attr)
-                    if var.value_sparse is not None:
-                        sparse_var.value = var.value_sparse.data
-                    sparse_var.set_variable_of_provenance(var)
-                    id2new_var[var.id] = sparse_var
-                    row_idx = np.ravel_multi_index(var.sparse_idx, var.shape, order='F')
-                    col_idx = np.arange(n)
-                    coeff_matrix = Constant(sp.csc_array((np.ones(n), (row_idx, col_idx)),
-                                                    shape=(np.prod(var.shape, dtype=int), n)),
-                                                    name="sparse_coeff")
-                    obj = reshape(coeff_matrix @ sparse_var, var.shape, order='F')
-                elif var.attributes['diag']:
-                    diag_var = Variable(var.shape[0], var_id=var.id, **new_attr)
-                    if var.value is not None and sp.issparse(var.value):
-                        diag_var.value = var.value.diagonal()
-                    elif var.value is not None:
-                        diag_var.value = np.diag(var.value)
-                    diag_var.set_variable_of_provenance(var)
-                    id2new_var[var.id] = diag_var
-                    obj = diag(diag_var)
+                    reduced_var = Variable(n, var_id=var.id, **new_attr)
+                    reduced_var.set_leaf_of_provenance(var)
+                    id2new_var[var.id] = reduced_var
+                    obj = build_dim_reduced_expression(var, reduced_var)
                 elif new_var:
                     obj = Variable(var.shape, var_id=var.id, **new_attr)
-                    obj.set_variable_of_provenance(var)
+                    obj.set_leaf_of_provenance(var)
                     id2new_var[var.id] = obj
                 else:
                     obj = var
@@ -215,6 +237,23 @@ class CvxAttr2Constr(Reduction):
                 if self.reduce_bounds:
                     var._bound_domain(obj, constr)
 
+        # For each unique parameter with dim-reducing attributes, create a
+        # reduced parameter and a reconstruction expression.
+        for param in problem.parameters():
+            if param._has_dim_reducing_attr and id(param) not in id2new_obj:
+                n = param._reduced_size
+                new_attr = param.attributes.copy()
+                for key in reduction_attributes:
+                    if new_attr[key]:
+                        new_attr[key] = None if key == 'bounds' else False
+                reduced_param = Parameter(n, id=param.id, **new_attr)
+                reduced_param.set_leaf_of_provenance(param)
+                self._parameters[param] = reduced_param
+                if param.value is not None:
+                    reduced_param.value = lower_value(param)
+                obj = build_dim_reduced_expression(param, reduced_param)
+                id2new_obj[id(param)] = obj
+
         # Create new problem.
         obj = problem.objective.tree_copy(id_objects=id2new_obj)
         cons_id_map = {}
@@ -223,6 +262,27 @@ class CvxAttr2Constr(Reduction):
             cons_id_map[cons.id] = constr[-1].id
         inverse_data = (id2new_var, id2old_var, cons_id_map)
         return cvxtypes.problem()(obj, constr), inverse_data
+
+    def update_parameters(self, problem) -> None:
+        """Update reduced parameter values from original parameters."""
+        for param, reduced_param in self._parameters.items():
+            reduced_param.value = lower_value(param)
+
+    def param_backward(self, param, dparams):
+        """Recover full-size gradient from reduced-size gradient."""
+        if param not in self._parameters:
+            return None
+        reduced_param = self._parameters[param]
+        if reduced_param.id not in dparams:
+            return None
+        return recover_value_for_leaf(param, dparams[reduced_param.id])
+
+    def param_forward(self, param, delta):
+        """Transform full-size delta to reduced-size delta."""
+        if param not in self._parameters:
+            return None
+        reduced_param = self._parameters[param]
+        return {reduced_param.id: lower_value(param, delta)}
 
     def invert(self, solution, inverse_data) -> Solution:
         if not inverse_data:
@@ -233,7 +293,7 @@ class CvxAttr2Constr(Reduction):
         for id, var in id2old_var.items():
             new_var = id2new_var[id]
             if new_var.id in solution.primal_vars:
-                pvars[id] = recover_value_for_variable(
+                pvars[id] = recover_value_for_leaf(
                     var, solution.primal_vars[new_var.id])
 
         dvars = {orig_id: solution.dual_vars[vid]

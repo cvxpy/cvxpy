@@ -46,6 +46,7 @@ class XPRESS(ConicSolver):
 
     # Solver capabilities.
     MIP_CAPABLE = True
+    BOUNDED_VARIABLES = True
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC]
     MI_SUPPORTED_CONSTRAINTS = SUPPORTED_CONSTRAINTS
 
@@ -204,25 +205,55 @@ class XPRESS(ConicSolver):
             self.prob_.controls.outputlog = 0
             self.prob_.controls.xslp_log = -1
 
-        self.prob_.loadproblem(probname="CVX_xpress_conic",
-                               # constraint types
-                               rowtype=['E'] * nrowsEQ + ['L'] * nrowsLEQ,
-                               rhs=b,                               # rhs
-                               rng=None,                            # range
-                               objcoef=c,                           # obj coeff
-                               start=mstart,                        # mstart
-                               collen=None,                         # mnel (unused)
-                               # linear coefficients
-                               rowind=A.indices[A.data != 0],       # row indices
-                               rowcoef=A.data[A.data != 0],         # coefficients
-                               lb=[-xp.infinity] * len(c),          # lower bound
-                               ub=[xp.infinity] * len(c),           # upper bound
-                               colnames=varnames,                   # column names
-                               rownames=lin_rownames)                # row    names
+        # Prepare MIP variable types (empty lists for LP)
+        coltype = ['B'] * len(data[s.BOOL_IDX]) + ['I'] * len(data[s.INT_IDX])
+        entind = data[s.BOOL_IDX] + data[s.INT_IDX]
 
-        # Set variable types for discrete variables
-        self.prob_.chgcoltype(data[s.BOOL_IDX] + data[s.INT_IDX],
-                              'B' * len(data[s.BOOL_IDX]) + 'I' * len(data[s.INT_IDX]))
+        # Variable bounds (use native bounds if available, otherwise unbounded)
+        n_vars = len(c)
+        lower_bounds = data[s.LOWER_BOUNDS]
+        upper_bounds = data[s.UPPER_BOUNDS]
+        lb = [-xp.infinity] * n_vars if lower_bounds is None else list(lower_bounds)
+        ub = [xp.infinity] * n_vars if upper_bounds is None else list(upper_bounds)
+
+        # Load problem using new API (Xpress 9.8+), fall back to deprecated API
+        # Always use loadMIP - if coltype/entind are empty, it becomes an LP
+        try:
+            self.prob_.loadMIP(
+                probname="CVX_xpress_conic",
+                rowtype=['E'] * nrowsEQ + ['L'] * nrowsLEQ,
+                rhs=b,
+                objcoef=c,
+                start=mstart,
+                rowind=A.indices[A.data != 0],
+                rowcoef=A.data[A.data != 0],
+                lb=lb,
+                ub=ub,
+                coltype=coltype,
+                entind=entind)
+
+            # Add variable and constraint names separately (new API)
+            if varnames:
+                self.prob_.addNames(xp.Namespaces.COLUMN, varnames, 0, len(varnames) - 1)
+            if lin_rownames:
+                self.prob_.addNames(xp.Namespaces.ROW, lin_rownames, 0, len(lin_rownames) - 1)
+        except AttributeError:
+            # Xpress < 9.8 API (deprecated functions)
+            # Pass coltype/entind to loadproblem to avoid chgcoltype which resets bounds
+            self.prob_.loadproblem(
+                probname="CVX_xpress_conic",
+                rowtype=['E'] * nrowsEQ + ['L'] * nrowsLEQ,
+                rhs=b,
+                objcoef=c,
+                start=mstart,
+                rowind=A.indices[A.data != 0],
+                rowcoef=A.data[A.data != 0],
+                lb=lb,
+                ub=ub,
+                coltype=coltype if coltype else None,
+                entind=entind if entind else None,
+                colnames=varnames,
+                rownames=lin_rownames)
 
         currow = nrows
 
@@ -264,15 +295,26 @@ class XPRESS(ConicSolver):
             trNames = ['linT_qc{0:d}_{1:d}'.format(iCone, i) for i in range(k)]
 
             # Linear transformation for cone variables <--> original variables
-            self.prob_.addrows(['E'] * k,        # qrtypes
-                               b,                # rhs
-                               mstart,           # mstart
-                               A.indices[A.data != 0],        # ind
-                               A.data[A.data != 0],           # dmatval
-                               names=trNames)  # row names
-
-            self.prob_.chgmcoef([initrow + i for i in range(k)],
-                                conevar, [1] * k)
+            try:  # New API (Xpress 9.8+)
+                self.prob_.addRows(rowtype=['E'] * k,
+                                   rhs=b,
+                                   start=list(mstart),
+                                   colind=list(A.indices[A.data != 0]),
+                                   rowcoef=list(A.data[A.data != 0]))
+                endrow = self.prob_.attributes.rows - 1
+                self.prob_.addNames(xp.Namespaces.ROW, trNames, initrow, endrow)
+                self.prob_.chgMCoef([initrow + i for i in range(k)],
+                                    conevar, [1] * k)
+            except AttributeError:  # Fallback to deprecated API
+                self.prob_.addrows(
+                    rowtype=['E'] * k,
+                    rhs=b,
+                    start=mstart,
+                    colind=A.indices[A.data != 0],
+                    rowcoef=A.data[A.data != 0],
+                    names=trNames)
+                self.prob_.chgmcoef([initrow + i for i in range(k)],
+                                    conevar, [1] * k)
 
             conename = 'cone_qc{0:d}'.format(iCone)
             # Real cone on the cone variables (if k == 1 there's no
@@ -297,11 +339,18 @@ class XPRESS(ConicSolver):
         # End of the conditional (warm-start vs. no warm-start) code,
         # set options, solve, and report.
         if warm_start and data["initial_mip_idxs"].size > 0:
-            self.prob_.addmipsol(
-                data["initial_mip_values"],
-                data["initial_mip_idxs"],
-                "warmstart",
-            )
+            try:  # New API (Xpress 9.8+)
+                self.prob_.addMipSol(
+                    data["initial_mip_values"],
+                    data["initial_mip_idxs"],
+                    "warmstart",
+                )
+            except AttributeError:  # Fallback to deprecated API
+                self.prob_.addmipsol(
+                    data["initial_mip_values"],
+                    data["initial_mip_idxs"],
+                    "warmstart",
+                )
 
         # Set options
         #
@@ -321,10 +370,13 @@ class XPRESS(ConicSolver):
 
         # If option given, write file before solving
         if 'write_mps' in solver_opts:
-            self.prob_.write(solver_opts['write_mps'])
+            try:  # New API (Xpress 9.8+)
+                self.prob_.writeProb(solver_opts['write_mps'])
+            except AttributeError:  # Fallback to deprecated API
+                self.prob_.write(solver_opts['write_mps'])
 
         # Solve
-        self.prob_.solve()
+        self.prob_.optimize()
 
         results_dict = {
 
@@ -352,39 +404,71 @@ class XPRESS(ConicSolver):
 
             iisIndex = 0
 
-            self.prob_.iisfirst(0)  # compute all IIS
+            try:  # New API (Xpress 9.8+)
+                self.prob_.firstIIS(0)  # compute all IIS
+                row, col, rtype, btype, duals, rdcs, isrows, icols = self.prob_.getIISData(0)
 
-            row, col, rtype, btype, duals, rdcs, isrows, icols = [], [], [], [], [], [], [], []
+                # Convert row indices to constraint objects to access their names
+                origrow = []
+                if row:
+                    ctrs = self.prob_.getConstraint(row)
+                    for ctr in ctrs:
+                        row_name = ctr.name
+                        name = transf2Orig.get(row_name, row_name)
+                        if name not in origrow:
+                            origrow.append(name)
 
-            self.prob_.getiisdata(0, row, col, rtype, btype, duals, rdcs, isrows, icols)
+                results_dict[s.XPRESS_IIS] = [{'orig_row': origrow,
+                                               'row':      row,
+                                               'col':      col,
+                                               'rtype':    rtype,
+                                               'btype':    btype,
+                                               'duals':    duals,
+                                               'redcost':  rdcs,
+                                               'isolrow':  isrows,
+                                               'isolcol':  icols}]
 
-            origrow = []
-            for iRow in row:
-                if iRow.name in transf2Orig:
-                    name = transf2Orig[iRow.name]
-                else:
-                    name = iRow.name
+                while self.prob_.nextIIS() == 0 and (solver_opts['save_iis'] < 0 or
+                                                     iisIndex < solver_opts['save_iis']):
+                    iisIndex += 1
+                    iis_data = self.prob_.getIISData(iisIndex)
+                    row, col, rtype, btype, duals, rdcs, isrows, icols = iis_data
+                    results_dict[s.XPRESS_IIS].append((
+                        row, col, rtype, btype, duals, rdcs, isrows, icols))
+            except AttributeError:  # Fallback to deprecated API
+                self.prob_.iisfirst(0)  # compute all IIS
+                row, col, rtype, btype, duals, rdcs, isrows, icols = [], [], [], [], [], [], [], []
+                self.prob_.getiisdata(0, row, col, rtype, btype, duals, rdcs, isrows, icols)
 
-                if name not in origrow:
-                    origrow.append(name)
+                origrow = []
+                for iRow in row:
+                    # iRow is an object with .name attribute in old API
+                    if iRow.name in transf2Orig:
+                        name = transf2Orig[iRow.name]
+                    else:
+                        name = iRow.name
+                    if name not in origrow:
+                        origrow.append(name)
 
-            results_dict[s.XPRESS_IIS] = [{'orig_row': origrow,
-                                           'row':      row,
-                                           'col':      col,
-                                           'rtype':    rtype,
-                                           'btype':    btype,
-                                           'duals':    duals,
-                                           'redcost':  rdcs,
-                                           'isolrow':  isrows,
-                                           'isolcol':  icols}]
+                results_dict[s.XPRESS_IIS] = [{'orig_row': origrow,
+                                               'row':      row,
+                                               'col':      col,
+                                               'rtype':    rtype,
+                                               'btype':    btype,
+                                               'duals':    duals,
+                                               'redcost':  rdcs,
+                                               'isolrow':  isrows,
+                                               'isolcol':  icols}]
 
-            while self.prob_.iisnext() == 0 and (solver_opts['save_iis'] < 0 or
-                                                 iisIndex < solver_opts['save_iis']):
-                iisIndex += 1
-                self.prob_.getiisdata(iisIndex,
-                                      row, col, rtype, btype, duals, rdcs, isrows, icols)
-                results_dict[s.XPRESS_IIS].append((
-                    row, col, rtype, btype, duals, rdcs, isrows, icols))
+                while self.prob_.iisnext() == 0 and (solver_opts['save_iis'] < 0 or
+                                                     iisIndex < solver_opts['save_iis']):
+                    iisIndex += 1
+                    row, col = [], []
+                    rtype, btype, duals, rdcs, isrows, icols = [], [], [], [], [], []
+                    self.prob_.getiisdata(
+                        iisIndex, row, col, rtype, btype, duals, rdcs, isrows, icols)
+                    results_dict[s.XPRESS_IIS].append((
+                        row, col, rtype, btype, duals, rdcs, isrows, icols))
 
         # Generate solution.
         solution = {}
