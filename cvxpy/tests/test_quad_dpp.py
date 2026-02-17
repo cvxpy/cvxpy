@@ -205,3 +205,52 @@ class TestQuadFormDPPVariants:
 
         assert prob.status == cp.OPTIMAL
         assert np.allclose(x.value, [1/3, 2/3], rtol=1e-3)
+
+    def test_resolve_scaled_param(self) -> None:
+        """Re-solving quad_form(x, 2*P) updates P correctly."""
+        x = cp.Variable(2)
+        P = cp.Parameter((2, 2), PSD=True)
+
+        prob = cp.Problem(
+            cp.Minimize(cp.quad_form(x, 2 * P) + 5 * x[0] + 3 * x[1])
+        )
+
+        P.value = np.array([[2, 0], [0, 1]])
+        prob.solve(solver=cp.CLARABEL)
+        x1 = x.value.copy()
+
+        P.value = np.array([[1, 0], [0, 5]])
+        prob.solve(solver=cp.CLARABEL)
+        x2 = x.value.copy()
+
+        # Verify against a fresh solve with the second P value.
+        prob2 = cp.Problem(
+            cp.Minimize(cp.quad_form(x, 2 * P) + 5 * x[0] + 3 * x[1])
+        )
+        prob2.solve(solver=cp.CLARABEL)
+
+        assert not np.allclose(x1, x2, atol=1e-3), \
+            "x should change when P changes"
+        assert np.allclose(x2, x.value, rtol=1e-3), \
+            "re-solve should match fresh solve"
+
+    def test_resolve_affine_combination_of_params(self) -> None:
+        """Re-solving quad_form(x, P1 + P2) updates correctly."""
+        x = cp.Variable(2)
+        P1 = cp.Parameter((2, 2), PSD=True)
+        P2 = cp.Parameter((2, 2), PSD=True)
+
+        prob = cp.Problem(
+            cp.Minimize(cp.quad_form(x, P1 + P2)), [cp.sum(x) == 1]
+        )
+
+        P1.value = np.array([[2, 0], [0, 0]])
+        P2.value = np.array([[0, 0], [0, 1]])
+        prob.solve(solver=cp.CLARABEL)
+        assert np.allclose(x.value, [1/3, 2/3], rtol=1e-3)
+
+        # Swap P1 and P2 — solution should swap too.
+        P1.value = np.array([[0, 0], [0, 1]])
+        P2.value = np.array([[2, 0], [0, 0]])
+        prob.solve(solver=cp.CLARABEL)
+        assert np.allclose(x.value, [2/3, 1/3], rtol=1e-3)
