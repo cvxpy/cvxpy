@@ -161,6 +161,26 @@ class DgpCanonMethods(dict):
             log_bound = np.where(bound == -np.inf, -np.inf, log_bound)
             return log_bound, []
 
+    @staticmethod
+    def _validate_dgp_attrs(leaf):
+        """Check for unsupported DGP attributes and return supported ones.
+
+        Raises ValueError if the leaf uses an attribute that DGP cannot enforce
+        (sparsity, diag, PSD, NSD).  Returns a dict of supported dimension-
+        reducing attributes (currently only ``symmetric``) to forward to the
+        log-space replacement leaf.
+        """
+        leaf_kind = 'variables' if isinstance(leaf, Variable) else 'parameters'
+        for attr in ('sparsity', 'diag', 'PSD', 'NSD'):
+            if leaf.attributes.get(attr):
+                raise ValueError(
+                    f"DGP does not support the '{attr}' attribute on {leaf_kind}."
+                )
+        dim_attrs = {}
+        if leaf.attributes.get('symmetric'):
+            dim_attrs['symmetric'] = True
+        return dim_attrs
+
     def variable_canon(self, variable, args):
         del args
         # Swaps out positive variables for unconstrained variables,
@@ -169,14 +189,7 @@ class DgpCanonMethods(dict):
             return self._variables[variable], []
 
         constrs = []
-        for attr in ['sparsity', 'diag', 'PSD', 'NSD']:
-            if variable.attributes.get(attr):
-                raise ValueError(
-                    f"DGP does not support the '{attr}' attribute on variables."
-                )
-        dim_attrs = {}
-        if variable.attributes.get('symmetric'):
-            dim_attrs['symmetric'] = True
+        dim_attrs = self._validate_dgp_attrs(variable)
         bounds = variable.attributes.get('bounds')
         if bounds is not None:
             log_lb, aux_lb = self._log_transform_bound(bounds[0])
@@ -204,14 +217,7 @@ class DgpCanonMethods(dict):
             # DPP support: Create the log-parameter structure WITHOUT requiring
             # an initial value. This allows get_problem_data(gp=True) to work
             # with uninitialized parameters (issue #3004).
-            for attr in ['sparsity', 'diag', 'PSD', 'NSD']:
-                if parameter.attributes.get(attr):
-                    raise ValueError(
-                        f"DGP does not support the '{attr}' attribute on parameters."
-                    )
-            dim_attrs = {}
-            if parameter.attributes.get('symmetric'):
-                dim_attrs['symmetric'] = True
+            dim_attrs = self._validate_dgp_attrs(parameter)
             log_parameter = Parameter(parameter.shape, name=parameter.name(),
                                       **dim_attrs)
             if parameter.value is not None:

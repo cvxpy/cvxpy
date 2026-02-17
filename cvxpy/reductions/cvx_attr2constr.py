@@ -95,6 +95,26 @@ def recover_value_for_variable(variable, lowered_value, project: bool = True):
 
 
 def lower_value(variable, value=None) -> np.ndarray:
+    """Extract the reduced representation of a leaf's value.
+
+    Args:
+        variable: The leaf whose attributes determine the reduction.
+        value: If provided, a full-size value (e.g. a differentiation delta)
+            to reduce.  If ``None``, reads the leaf's stored ``_value``.
+
+    Notes:
+        Called without *value* by ``update_parameters`` and ``apply`` to read
+        the current parameter value into the reduced parameter.  Called *with*
+        an explicit value by ``param_forward`` to reduce a full-size delta.
+
+        For sparse leaves ``Leaf.save_value`` already stores only the nonzero
+        entries, so when ``value is None`` the sparse branch can return
+        ``_value`` directly.  An explicit *value* is always full-size and must
+        be extracted at the sparse indices.
+    """
+    # Track whether the caller supplied a full-size value.  When value is None
+    # we read _value, which for sparse leaves is already in reduced form.
+    full_size = value is not None
     if value is None:
         value = variable._value
     if attributes_present([variable], SYMMETRIC_ATTRIBUTES):
@@ -102,12 +122,10 @@ def lower_value(variable, value=None) -> np.ndarray:
     elif variable.attributes['diag']:
         return np.diag(value)
     elif variable.attributes['sparsity']:
-        # For sparse leaves, _value already stores just the nonzero data;
-        # for dense values (e.g. from solver), extract at sparse indices.
-        if hasattr(value, 'shape') and value.shape == variable.shape:
+        if full_size:
             return np.asarray(value)[variable.sparse_idx]
         else:
-            # Already reduced (e.g. from leaf._value)
+            # _value already stores only the nonzero data (see Leaf.save_value).
             return np.asarray(value)
     else:
         return value
