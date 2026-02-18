@@ -49,7 +49,7 @@ from cvxpy.reductions.solvers.conic_solvers.xpress_conif import XPRESS as XPRESS
 # QP interfaces
 from cvxpy.reductions.solvers.qp_solvers.copt_qpif import COPT as COPT_qp
 from cvxpy.reductions.solvers.qp_solvers.cplex_qpif import CPLEX as CPLEX_qp
-from cvxpy.reductions.solvers.qp_solvers.gurobi_qpif import CUOPT as CUOPT_qp
+from cvxpy.reductions.solvers.qp_solvers.cuopt_qpif import CUOPT as CUOPT_qp
 from cvxpy.reductions.solvers.qp_solvers.daqp_qpif import DAQP as DAQP_qp
 from cvxpy.reductions.solvers.qp_solvers.gurobi_qpif import GUROBI as GUROBI_qp
 from cvxpy.reductions.solvers.qp_solvers.highs_qpif import HIGHS as HIGHS_qp
