@@ -267,7 +267,7 @@ class CUOPT(QpSolver):
             d = cuopt_result.get_dual_solution()
             if d is not None:
                 dual_vars[s.EQ_DUAL] = -d[0:leq_start]
-                dual_vars[s.INEQ_DUAL] = -d[leq_start:lneq_end]
+                dual_vars[s.INEQ_DUAL] = -d[leq_start:leq_end]
             sol_status = self.STATUS_MAP_LP[cuopt_result.get_termination_status()]
             extra_stats = cuopt_result.get_lp_stats()
             iters = extra_stats["nb_iterations"]
