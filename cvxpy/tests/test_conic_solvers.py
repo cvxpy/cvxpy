@@ -3280,7 +3280,7 @@ class TestCUOPT(unittest.TestCase):
         try:
             StandardTestLPs.test_mi_lp_4(solver='CUOPT', **TestCUOPT.kwargs)
         except Exception as e:
-            assert "there are not enough constraints in the problem" in str(e)
+            assert "cannot solve this problem" in str(e)
 
     def test_cuopt_mi_lp_5(self) -> None:
         StandardTestLPs.test_mi_lp_5(solver='CUOPT', **TestCUOPT.kwargs, time_limit=5)
