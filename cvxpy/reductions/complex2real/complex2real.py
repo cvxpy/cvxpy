@@ -64,6 +64,36 @@ class Complex2Real(Reduction):
     def accepts(self, problem) -> None:
         accepts(problem)
 
+    @property
+    def var_id_map(self):
+        if self.canon_methods is None:
+            return {}
+        result = {}
+        for orig, (real_var, imag_var) in self.canon_methods._variables.items():
+            ids = []
+            if real_var is not None:
+                ids.append(real_var.id)
+            if imag_var is not None:
+                ids.append(imag_var.id)
+            if ids:
+                result[orig.id] = ids
+        return result
+
+    @property
+    def param_id_map(self):
+        if self.canon_methods is None:
+            return {}
+        result = {}
+        for orig, (real_param, imag_param) in self.canon_methods._parameters.items():
+            ids = []
+            if real_param is not None:
+                ids.append(real_param.id)
+            if imag_param is not None:
+                ids.append(imag_param.id)
+            if ids:
+                result[orig.id] = ids
+        return result
+
     def update_parameters(self, problem) -> None:
         """Update real/imag parameter values from complex parameters.
 
@@ -158,6 +188,59 @@ class Complex2Real(Reduction):
                         result[imag_param.id] = imag_delta
         return result
 
+    def var_backward(self, del_vars):
+        """Split complex gradients into real/imag gradients for backward diff.
+
+        Transforms from outer (original complex) var IDs to inner
+        (real/imag) var IDs.
+        """
+        if self.canon_methods is None:
+            return del_vars
+        result = dict(del_vars)
+        for orig, (real_var, imag_var) in self.canon_methods._variables.items():
+            if orig.id in result:
+                complex_grad = result.pop(orig.id)
+                if real_var is not None:
+                    result[real_var.id] = np.real(complex_grad)
+                if imag_var is not None:
+                    imag_grad = np.imag(complex_grad)
+                    if orig.is_hermitian():
+                        n = orig.shape[0]
+                        # Extract strict upper triangle from skew-symmetric
+                        result[imag_var.id] = imag_grad[np.triu_indices(n, k=1)]
+                    else:
+                        result[imag_var.id] = imag_grad
+        return result
+
+    def var_forward(self, dvars):
+        """Combine real/imag deltas into complex deltas for forward diff.
+
+        Transforms from inner (real/imag) var IDs to outer (original complex)
+        var IDs.
+        """
+        if self.canon_methods is None:
+            return dvars
+        result = dict(dvars)
+        for orig, (real_var, imag_var) in self.canon_methods._variables.items():
+            real_delta = 0.0
+            imag_delta = 0.0
+            if real_var is not None and real_var.id in result:
+                real_delta = result.pop(real_var.id)
+            if imag_var is not None and imag_var.id in result:
+                imag_delta = result.pop(imag_var.id)
+                if orig.is_hermitian():
+                    # Expand compact strict upper triangle to skew-symmetric
+                    n = orig.shape[0]
+                    full_imag = np.zeros((n, n))
+                    full_imag[np.triu_indices(n, k=1)] = np.asarray(
+                        imag_delta).flatten()
+                    full_imag = full_imag - full_imag.T
+                    imag_delta = full_imag
+            combined = real_delta + 1j * imag_delta
+            if isinstance(combined, np.ndarray) or combined != 0.0:
+                result[orig.id] = combined
+        return result
+
     def apply(self, problem):
         # Create fresh stateful canonicalizers for this problem.
         # This enables DPP by tracking the mapping from complex parameters
@@ -205,28 +288,28 @@ class Complex2Real(Reduction):
             #
             for vid, var in inverse_data.id2var.items():
                 if var.is_real():
-                    # Purely real variables
+                    # Purely real variables — not in _variables, ID unchanged
                     pvars[vid] = solution.primal_vars[vid]
-                elif var.is_imag():
-                    # Purely imaginary variables
-                    imag_id = inverse_data.real2imag[vid]
-                    pvars[vid] = 1j*solution.primal_vars[imag_id]
-                elif var.is_complex() and var.is_hermitian():
-                    # Hermitian variables
-                    pvars[vid] = solution.primal_vars[vid]
-                    imag_id = inverse_data.real2imag[vid]
-                    if imag_id in solution.primal_vars:
-                        imag_val = solution.primal_vars[imag_id]
-                        imag_val = vec_to_upper_tri(imag_val, True).value
-                        imag_val -= imag_val.T
-                        pvars[vid] = pvars[vid] + 1j*imag_val
-                elif var.is_complex():
-                    # General complex variables
-                    pvars[vid] = solution.primal_vars[vid]
-                    imag_id = inverse_data.real2imag[vid]
-                    if imag_id in solution.primal_vars:
-                        imag_val = solution.primal_vars[imag_id]
-                        pvars[vid] = pvars[vid] + 1j*imag_val
+                elif var in self.canon_methods._variables:
+                    real_var, imag_var = self.canon_methods._variables[var]
+                    if var.is_imag():
+                        # Purely imaginary variables
+                        pvars[vid] = 1j*solution.primal_vars[imag_var.id]
+                    elif var.is_hermitian():
+                        # Hermitian variables
+                        pvars[vid] = solution.primal_vars[real_var.id]
+                        if imag_var is not None and \
+                                imag_var.id in solution.primal_vars:
+                            imag_val = solution.primal_vars[imag_var.id]
+                            imag_val = vec_to_upper_tri(imag_val, True).value
+                            imag_val -= imag_val.T
+                            pvars[vid] = pvars[vid] + 1j*imag_val
+                    else:
+                        # General complex variables
+                        pvars[vid] = solution.primal_vars[real_var.id]
+                        if imag_var.id in solution.primal_vars:
+                            imag_val = solution.primal_vars[imag_var.id]
+                            pvars[vid] = pvars[vid] + 1j*imag_val
             if solution.dual_vars:
                 #
                 #   Dual variables

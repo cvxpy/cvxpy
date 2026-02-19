@@ -265,7 +265,11 @@ class CvxAttr2Constr(Reduction):
 
     @property
     def var_id_map(self):
-        return {orig.id: new.id for orig, new in self._variables.items()}
+        return {orig.id: [new.id] for orig, new in self._variables.items()}
+
+    @property
+    def param_id_map(self):
+        return {orig.id: [new.id] for orig, new in self._parameters.items()}
 
     def update_parameters(self, problem) -> None:
         """Update reduced parameter values from original parameters."""
