@@ -41,6 +41,7 @@ from cvxpy.atoms.affine.hstack import hstack
 from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.constraints.power import PowCone3D, PowConeND
 from cvxpy.constraints.psd import PSD
+from cvxpy.constraints.rotated_soc import RSOC
 from cvxpy.constraints.second_order import SOC
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.canonicalization import Canonicalization
@@ -58,6 +59,7 @@ from cvxpy.reductions.solution import Solution
 EXACT_CONE_CONVERSIONS = {
     PowConeND: {PowCone3D},
     SOC: {PSD},
+    RSOC: {SOC},
 }
 
 
@@ -390,10 +392,36 @@ class SOCConversion:
         else:
             return 2 * dual_var[0]
 
+class RSOCConversion:
+    """RSOC -> SOC"""
+
+    source = RSOC
+    targets = {SOC}
+
+    @staticmethod
+    def canonicalize(con, args):
+        from cvxpy.atoms.affine.vstack import vstack
+
+        x, y, z = args
+
+        soc_vec = vstack([2 * x, y - z])
+        soc_rhs = y + z
+
+        soc_con = SOC(soc_rhs, soc_vec)
+
+        nonneg_y = y >= 0
+        nonneg_z = z >= 0
+
+        return soc_con, [nonneg_y, nonneg_z]
+
+    @staticmethod
+    def recover_dual(cons, dual_var, inverse_data, solution):
+        # For now, direct mapping is fine
+        return dual_var
 
 class ExactCone2Cone(Canonicalization):
 
-    CONVERSIONS = [PowNDConversion, SOCConversion]
+    CONVERSIONS = [PowNDConversion, SOCConversion, RSOCConversion]
 
     CANON_METHODS = {c.source: c.canonicalize for c in CONVERSIONS}
 
