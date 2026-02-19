@@ -121,14 +121,8 @@ class quad_over_lin(AxisAtom):
         """
         return False
 
-    def is_atom_esr(self) -> bool:
-        """Is the atom esr?
-        """
-        return True
-
-    def is_atom_hsr(self) -> bool:
-        """Is the atom hsr?
-        """
+    def is_atom_smooth(self) -> bool:
+        """Is the atom smooth?"""
         return True
 
     def is_atom_log_log_convex(self) -> bool:

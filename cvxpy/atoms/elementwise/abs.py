@@ -56,15 +56,9 @@ class abs(Elementwise):
         """
         return False
     
-    def is_atom_esr(self) -> bool:
-        """Is the atom esr?
-        """
+    def is_atom_nonsmooth_convex(self) -> bool:
+        """Is the atom nonsmooth and convex?"""
         return True
-
-    def is_atom_hsr(self) -> bool:
-        """Is the atom hsr?
-        """
-        return False
 
     def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?

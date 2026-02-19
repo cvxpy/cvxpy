@@ -10,24 +10,23 @@ class TestProdDNLP:
     """Test that prod expressions are correctly identified as DNLP."""
 
     def test_prod_is_smooth(self):
-        """Test that prod is identified as smooth (both ESR and HSR)."""
+        """Test that prod is smooth (both linearizable convex and concave)."""
         x = cp.Variable(3, pos=True)
         p = cp.prod(x)
-        assert p.is_atom_esr()
-        assert p.is_atom_hsr()
+        assert p.is_atom_smooth()
         assert p.is_smooth()
 
-    def test_prod_is_esr(self):
-        """Test that prod is ESR."""
+    def test_prod_is_smooth_convex(self):
+        """Test that prod is smooth convex."""
         x = cp.Variable(3, pos=True)
         p = cp.prod(x)
-        assert p.is_esr()
+        assert p.is_linearizable_convex()
 
-    def test_prod_is_hsr(self):
-        """Test that prod is HSR."""
+    def test_prod_is_smooth_concave(self):
+        """Test that prod is smooth concave."""
         x = cp.Variable(3, pos=True)
         p = cp.prod(x)
-        assert p.is_hsr()
+        assert p.is_linearizable_concave()
 
     def test_prod_composition_smooth(self):
         """Test that compositions with prod are smooth."""

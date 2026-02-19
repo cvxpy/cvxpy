@@ -8,11 +8,11 @@ class TestDNLP():
     """
     This class tests whether problems are correctly identified as DNLP
     (disciplined nonlinear programs) and whether the objective and constraints
-    are correctly identified as smooth, esr or hsr.
+    are correctly identified as linearizable, linearizable convex or linearizable concave.
 
     We adopt the convention that a function is smooth if and only if it is
-    both esr and hsr. This convention is analogous to DCP and convex programming
-    where a function is affine if and only if it is both convex and concave.
+    both linearizable convex and linearizable concave. This convention is analogous to DCP
+    and convex programming where a function is affine iff it is both convex and concave.
     """
 
     def test_simple_smooth(self):
@@ -27,18 +27,18 @@ class TestDNLP():
         assert prob.objective.expr.is_smooth()
         assert prob.constraints[0].expr.is_smooth()
 
-    def test_abs_esr(self):
+    def test_abs_linearizable_convex(self):
         x = cp.Variable()
         objective = cp.Minimize(cp.abs(x))
         prob = cp.Problem(objective)
-        assert objective.expr.is_esr()
+        assert objective.expr.is_linearizable_convex()
         assert prob.is_dnlp()
 
-    def test_sqrt_hsr(self):
+    def test_sqrt_linearizable_concave(self):
         x = cp.Variable()
         objective = cp.Maximize(cp.sqrt(x))
         prob = cp.Problem(objective)
-        assert objective.expr.is_hsr()
+        assert objective.expr.is_linearizable_concave()
         assert prob.is_dnlp()
 
     def test_simple_neg_expr(self):
@@ -46,17 +46,17 @@ class TestDNLP():
         y = cp.Variable()
         constraints = [cp.abs(x) - cp.sqrt(y) <= 5]
         assert constraints[0].is_dnlp()
-        assert constraints[0].expr.is_esr()
+        assert constraints[0].expr.is_linearizable_convex()
 
     def test_non_dnlp(self):
         """
-        The constraint abs(x) >= 5 is hsr but makes 
+        The constraint abs(x) >= 5 is smooth concave but makes 
         the problem non-DNLP.
         """
         x = cp.Variable()
         constraints = [cp.abs(x) >= 5]
         # the expression is 5 + -abs(x)
-        assert constraints[0].expr.is_hsr()
+        assert constraints[0].expr.is_linearizable_concave()
         assert not constraints[0].is_dnlp()
 
     def test_simple_composition(self):
@@ -68,16 +68,16 @@ class TestDNLP():
         assert obj2.is_dnlp()
 
         expr = cp.sqrt(cp.abs(x))
-        # we treat sqrt as smooth
+        # we treat sqrt as linearizable
         assert expr.is_dnlp()
     
     def test_complicated_composition(self):
         x = cp.Variable()
         y = cp.Variable()
         expr = cp.minimum(cp.sqrt(cp.exp(x)), -cp.abs(y))
-        assert expr.is_hsr()
+        assert expr.is_linearizable_concave()
 
-        # cannot minimize an hsr function
+        # cannot minimize a linearizable concave function
         obj = cp.Minimize(expr)
         prob = cp.Problem(obj)
         assert not prob.is_dnlp()

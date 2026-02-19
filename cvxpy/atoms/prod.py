@@ -70,14 +70,8 @@ class Prod(AxisAtom):
         """
         return True
 
-    def is_atom_esr(self) -> bool:
-        """Is the atom ESR (epigraph smooth representable)?
-        """
-        return True
-
-    def is_atom_hsr(self) -> bool:
-        """Is the atom HSR (hypograph smooth representable)?
-        """
+    def is_atom_smooth(self) -> bool:
+        """Is the atom smooth?"""
         return True
 
     def is_incr(self, idx) -> bool:

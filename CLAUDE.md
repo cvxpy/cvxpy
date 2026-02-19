@@ -76,13 +76,15 @@ prob.solve(nlp=True, solver=cp.IPOPT, best_of=5)
 - Target Python version: 3.11+
 - Line length: 100 characters
 - **IMPORTANT: IMPORTS AT THE TOP** of files - circular imports are the only exception
+- Ruff excludes all `*__init__.py` files (configured in `pyproject.toml`)
+- Pre-commit hooks include: ruff (with `--fix`), check-jsonschema (GitHub workflows/dependabot), actionlint, and validate-pyproject
 
 ## License Header
 
-New files should include the Apache 2.0 license header:
+New files should include the Apache 2.0 license header (matching the convention used in the majority of the codebase):
 ```python
 """
-Copyright 2025, the CVXPY developers
+Copyright, the CVXPY authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -129,6 +131,8 @@ Key reduction classes in `cvxpy/reductions/`:
 
 For DNLP: `CvxAttr2Constr` → `Dnlp2Smooth` → `NLPSolver`
 
+Note: The standard `SolvingChain` in `solving_chain.py` handles DCP/DGP/DQCP solver selection automatically. NLP solving is triggered explicitly via `prob.solve(nlp=True)` and bypasses the standard chain.
+
 ### Solver Categories
 
 - **ConicSolvers** (`cvxpy/reductions/solvers/conic_solvers/`) - SCS, Clarabel, ECOS, etc.
@@ -142,12 +146,20 @@ The NLP infrastructure provides oracle-based interfaces for nonlinear solvers:
   - `Bounds` class: extracts variable/constraint bounds from problem
   - `Oracles` class: provides function and derivative oracles (objective, gradient, constraints, jacobian, hessian)
 - `dnlp2smooth.py` - Transforms DNLP problems to smooth form via `Dnlp2Smooth` reduction
-- DNLP validation: expressions must be smooth (ESR and HSR)
+- DNLP validation: expressions must be linearizable (linearizable convex and linearizable concave)
 - Problem validity checked via `problem.is_dnlp()` method
 
 ### Diff Engine (SparseDiffPy)
 
-The automatic differentiation engine is provided by the [SparseDiffPy](https://github.com/SparseDifferentiation/SparseDiffPy) package (`pip install sparsediffpy`), which wraps the [SparseDiffEngine](https://github.com/SparseDifferentiation/SparseDiffEngine) C library. It builds expression trees from CVXPY problems and computes derivatives (gradients, Jacobians, Hessians) for NLP solvers. New diff engine atoms require C-level additions in SparseDiffPy.
+The automatic differentiation engine is provided by the [SparseDiffPy](https://github.com/SparseDifferentiation/SparseDiffPy) package (installed automatically as a hard dependency), which wraps the [SparseDiffEngine](https://github.com/SparseDifferentiation/SparseDiffEngine) C library. It builds expression trees from CVXPY problems and computes derivatives (gradients, Jacobians, Hessians) for NLP solvers.
+
+Adding a new diff engine atom requires:
+1. C-level implementation in SparseDiffPy
+2. Python-side converter in `cvxpy/reductions/solvers/nlp_solvers/diff_engine/converters.py` (add to `ATOM_CONVERTERS` dict)
+
+The diff engine supports CVXPY `Parameter` objects: `C_problem` registers parameters with the C engine and `update_params()` re-pushes values without rebuilding the expression tree. Sparse parameter values are fused into sparse matmul operations.
+
+`DerivativeChecker` in `nlp_solver.py` provides finite-difference verification of gradients, Jacobians, and Hessians during development.
 
 ## Implementing New Atoms
 
@@ -164,15 +176,25 @@ The automatic differentiation engine is provided by the [SparseDiffPy](https://g
 1. Create a canonicalizer in `cvxpy/reductions/dnlp2smooth/canonicalizers/`
 2. The canonicalizer converts non-smooth atoms to smooth equivalents using auxiliary variables
 3. Register in `canonicalizers/__init__.py` by adding to `SMOOTH_CANON_METHODS` dict
-4. Ensure the atom has proper `is_smooth()`, `is_esr()`, `is_hsr()` methods
+4. Classify the atom using the three-way atom-level API (see below)
 
-### DNLP Rules (ESR/HSR)
+### DNLP Atom Classification (Three-way)
 
-- **Smooth**: functions that are both ESR and HSR (analogous to affine in DCP)
-- **ESR** (Essentially Smooth Respecting): can be minimized or appear in `<= 0` constraints
-- **HSR** (Hierarchically Smooth Respecting): can be maximized or appear in `>= 0` constraints
+Each atom implements exactly one of three atom-level methods:
 
-Use `expr.is_smooth()`, `expr.is_esr()`, `expr.is_hsr()` to check expression properties.
+| Category | Method | Examples |
+|---|---|---|
+| **Smooth** | `is_atom_smooth() → True` | exp, log, power, sin, prod, quad_form |
+| **NS-convex** | `is_atom_nonsmooth_convex() → True` | abs, max, norm1, norm_inf, huber |
+| **NS-concave** | `is_atom_nonsmooth_concave() → True` | min, minimum |
+
+### DNLP Expression-level Rules
+
+- **Smooth**: functions that are both linearizable convex and linearizable concave (analogous to affine in DCP)
+- **Linearizable Convex**: can be minimized or appear in `<= 0` constraints
+- **Linearizable Concave**: can be maximized or appear in `>= 0` constraints
+
+Use `expr.is_smooth()`, `expr.is_linearizable_convex()`, `expr.is_linearizable_concave()` to check expression properties.
 
 ## Testing
 
@@ -192,3 +214,12 @@ class TestMyFeature(BaseTest):
 ```
 
 NLP tests are in `cvxpy/tests/nlp_tests/` with Jacobian and Hessian verification tests.
+
+## Benchmarks
+
+Benchmarks use [Airspeed Velocity](https://asv.readthedocs.io/) and live in the `benchmarks/` directory. To run locally:
+```bash
+cd benchmarks
+pip install -e .
+asv run
+```

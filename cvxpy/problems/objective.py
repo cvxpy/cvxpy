@@ -160,7 +160,7 @@ class Minimize(Objective):
         """
         The objective must be epigraph smooth representable.
         """
-        return self.args[0].is_esr()
+        return self.args[0].is_linearizable_convex()
 
     def is_dgp(self, dpp: bool = False) -> bool:
         """The objective must be log-log convex.
@@ -237,7 +237,7 @@ class Maximize(Objective):
         """
         The objective must be hypograph smooth representable.
         """
-        return self.args[0].is_hsr()
+        return self.args[0].is_linearizable_concave()
 
     def is_dgp(self, dpp: bool = False) -> bool:
         """The objective must be log-log concave.

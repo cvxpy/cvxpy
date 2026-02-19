@@ -50,14 +50,8 @@ class sinh(Elementwise):
         """
         return False
 
-    def is_atom_esr(self) -> bool:
-        """Is the atom esr?
-        """
-        return True
-
-    def is_atom_hsr(self) -> bool:
-        """Is the atom hsr?
-        """
+    def is_atom_smooth(self) -> bool:
+        """Is the atom smooth?"""
         return True
 
     def is_incr(self, idx) -> bool:
@@ -74,7 +68,7 @@ class sinh(Elementwise):
         """Returns constraints describing the domain of the node.
         """
         return []
-    
+
     def _grad(self, values) -> List[Constraint]:
         raise NotImplementedError("Gradient not implemented for sinh.")
 
@@ -107,15 +101,9 @@ class tanh(Elementwise):
         """Is the atom concave?
         """
         return False
-    
-    def is_atom_esr(self) -> bool:
-        """Is the atom esr?
-        """
-        return True
 
-    def is_atom_hsr(self) -> bool:
-        """Is the atom hsr?
-        """
+    def is_atom_smooth(self) -> bool:
+        """Is the atom smooth?"""
         return True
 
     def is_incr(self, idx) -> bool:
@@ -160,10 +148,7 @@ class asinh(Elementwise):
     def is_atom_concave(self) -> bool:
         return False
 
-    def is_atom_esr(self) -> bool:
-        return True
-
-    def is_atom_hsr(self) -> bool:
+    def is_atom_smooth(self) -> bool:
         return True
 
     def is_incr(self, idx) -> bool:
@@ -202,10 +187,7 @@ class atanh(Elementwise):
     def is_atom_concave(self) -> bool:
         return False
 
-    def is_atom_esr(self) -> bool:
-        return True
-
-    def is_atom_hsr(self) -> bool:
+    def is_atom_smooth(self) -> bool:
         return True
 
     def is_incr(self, idx) -> bool:

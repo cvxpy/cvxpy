@@ -212,14 +212,8 @@ class Power(Elementwise):
         # p == 0 is affine here.
         return _is_const(self.p) and 0 <= self.p.value <= 1
 
-    def is_atom_esr(self) -> bool:
-        """Is the atom esr?
-        """
-        return _is_const(self.p)
-
-    def is_atom_hsr(self) -> bool:
-        """Is the atom hsr?
-        """
+    def is_atom_smooth(self) -> bool:
+        """Is the atom smooth?"""
         return _is_const(self.p)
 
     def parameters(self):

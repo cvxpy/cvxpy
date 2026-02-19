@@ -59,14 +59,8 @@ class minimum(Elementwise):
         """
         return True
     
-    def is_atom_esr(self) -> bool:
-        """Is the atom esr?
-        """
-        return False
-
-    def is_atom_hsr(self) -> bool:
-        """Is the atom hsr?
-        """
+    def is_atom_nonsmooth_concave(self) -> bool:
+        """Is the atom nonsmooth and concave?"""
         return True
 
     def is_atom_log_log_convex(self) -> bool:

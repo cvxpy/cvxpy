@@ -264,12 +264,12 @@ class Leaf(expression.Expression):
         """Is the expression concave?"""
         return True
 
-    def is_esr(self) -> bool:
-        """Is the expression esr?"""
+    def is_linearizable_convex(self) -> bool:
+        """Is the expression convex after linearizing all smooth subexpressions?"""
         return True
 
-    def is_hsr(self) -> bool:
-        """Is the expression hsr?"""
+    def is_linearizable_concave(self) -> bool:
+        """Is the expression concave after linearizing all smooth subexpressions?"""
         return True
 
     def is_log_log_convex(self) -> bool:
