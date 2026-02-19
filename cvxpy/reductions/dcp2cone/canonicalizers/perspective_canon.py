@@ -84,7 +84,7 @@ def perspective_canon(expr, args, solver_context: SolverInfo | None = None):
     end_inds = sorted(prob_canon.var_id_to_col.values()) + [x_canon.shape[0]]
 
     for var in expr.f.variables():
-        reduced_id = var_id_map.get(var.id, var.id)
+        reduced_id = var_id_map.get(var.id, [var.id])[0]
         start_ind = prob_canon.var_id_to_col[reduced_id]
         end_ind = end_inds[end_inds.index(start_ind) + 1]
         if var.attributes["diag"]:  # checking for diagonal first because diagonal is also symmetric

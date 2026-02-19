@@ -65,6 +65,20 @@ class Dgp2Dcp(Canonicalization):
         """
         return problem.is_dgp()
 
+    @property
+    def var_id_map(self):
+        if self.canon_methods is None:
+            return {}
+        return {orig.id: [new.id]
+                for orig, new in self.canon_methods._variables.items()}
+
+    @property
+    def param_id_map(self):
+        if self.canon_methods is None:
+            return {}
+        return {orig.id: [new.id]
+                for orig, new in self.canon_methods._parameters.items()}
+
     def update_parameters(self, problem) -> None:
         """Update log-parameter values from original parameters.
 
@@ -82,21 +96,35 @@ class Dgp2Dcp(Canonicalization):
         """Apply chain rule for exp transformation in backward diff.
 
         For DGP, x_gp = exp(x_cone), so dx_gp/dx_cone = exp(x_cone) = x_gp.
-        Only transforms original problem variables; auxiliary variables pass through.
+        Transforms from outer (original) var IDs to inner (log-space) var IDs.
         """
-        return {var_id: value * self._id_to_var[var_id].value
-                if var_id in self._id_to_var else value
-                for var_id, value in del_vars.items()}
+        orig_to_new = {orig.id: new.id
+                       for orig, new in self.canon_methods._variables.items()}
+        result = {}
+        for var_id, value in del_vars.items():
+            if var_id in self._id_to_var:
+                new_id = orig_to_new[var_id]
+                result[new_id] = value * self._id_to_var[var_id].value
+            else:
+                result[var_id] = value
+        return result
 
     def var_forward(self, dvars):
         """Apply chain rule for exp transformation in forward diff.
 
         For DGP, x_gp = exp(x_cone), so dx_gp/dx_cone = exp(x_cone) = x_gp.
-        Only transforms original problem variables; auxiliary variables pass through.
+        Transforms from inner (log-space) var IDs to outer (original) var IDs.
         """
-        return {var_id: value * self._id_to_var[var_id].value
-                if var_id in self._id_to_var else value
-                for var_id, value in dvars.items()}
+        new_to_orig = {new.id: orig
+                       for orig, new in self.canon_methods._variables.items()}
+        result = {}
+        for var_id, value in dvars.items():
+            if var_id in new_to_orig:
+                orig = new_to_orig[var_id]
+                result[orig.id] = value * orig.value
+            else:
+                result[var_id] = value
+        return result
 
     def param_backward(self, dparams):
         """Apply chain rule for log transformation in backward diff.
@@ -170,11 +198,20 @@ class Dgp2Dcp(Canonicalization):
             return expr.copy(args), []
 
     def invert(self, solution, inverse_data):
+        # Remap log-space variable IDs to original IDs so that
+        # super().invert() (Canonicalization) can find them in id_map.
+        new_to_orig = {new.id: orig.id
+                       for orig, new in self.canon_methods._variables.items()}
+        if solution.primal_vars:
+            solution.primal_vars = {
+                new_to_orig.get(vid, vid): val
+                for vid, val in solution.primal_vars.items()
+            }
         solution = super(Dgp2Dcp, self).invert(solution, inverse_data)
         if solution.status == settings.SOLVER_ERROR:
             return solution
-        for vid, value in solution.primal_vars.items():
-            solution.primal_vars[vid] = np.exp(value)
+        for vid in list(solution.primal_vars):
+            solution.primal_vars[vid] = np.exp(solution.primal_vars[vid])
         # f(x) = e^{F(u)}.
         solution.opt_val = np.exp(solution.opt_val)
         return solution
