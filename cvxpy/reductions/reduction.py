@@ -95,8 +95,28 @@ class Reduction(metaclass=ABCMeta):
         Returns
         -------
         dict
-            ``{orig_var_id: reduced_var_id}`` for every variable that was
-            replaced.  Default: empty dict (no variables replaced).
+            ``{orig_var_id: [new_var_id, ...]}`` for every variable that
+            was replaced.  The list has one element for 1:1 mappings and
+            multiple elements for 1:many (e.g., Complex2Real splits a
+            complex variable into real and imaginary parts).
+            Default: empty dict (no variables replaced).
+        """
+        return {}
+
+    @property
+    def param_id_map(self):
+        """Map from original to reduced parameter IDs.
+
+        Reductions that replace parameters (e.g., CvxAttr2Constr, Dgp2Dcp)
+        override this to expose their mapping.  Used by
+        Chain.compose_param_id_map() to build a global mapping across the
+        full reduction chain.
+
+        Returns
+        -------
+        dict
+            ``{orig_param_id: [new_param_id, ...]}`` for every parameter
+            that was replaced.  Default: empty dict (no parameters replaced).
         """
         return {}
 
