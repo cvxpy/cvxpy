@@ -49,7 +49,6 @@ from cvxpy.reductions.solvers.conic_solvers.xpress_conif import XPRESS as XPRESS
 # QP interfaces
 from cvxpy.reductions.solvers.qp_solvers.copt_qpif import COPT as COPT_qp
 from cvxpy.reductions.solvers.qp_solvers.cplex_qpif import CPLEX as CPLEX_qp
-from cvxpy.reductions.solvers.qp_solvers.cuopt_qpif import CUOPT as CUOPT_qp
 from cvxpy.reductions.solvers.qp_solvers.daqp_qpif import DAQP as DAQP_qp
 from cvxpy.reductions.solvers.qp_solvers.gurobi_qpif import GUROBI as GUROBI_qp
 from cvxpy.reductions.solvers.qp_solvers.highs_qpif import HIGHS as HIGHS_qp
@@ -75,7 +74,7 @@ SOLVER_MAP_CONIC = {inst.name(): inst for inst in [
 SOLVER_MAP_QP = {inst.name(): inst for inst in [
     OSQP_qp(), GUROBI_qp(), CPLEX_qp(), XPRESS_qp(), HIGHS_qp(),
     COPT_qp(), PIQP_qp(), PROXQP_qp(), QPALM_qp(), DAQP_qp(),
-    MPAX_qp(), KNITRO_qp(), CUOPT_qp(),
+    MPAX_qp(), KNITRO_qp(),
 ]}
 
 # Preference-ordered solver name lists, derived from the maps above.

@@ -52,24 +52,6 @@ try:
 except Exception:
     cuopt_present = False
 
-    from enum import IntEnum
-    class MILPTerminationStatus(IntEnum):
-        NoTermination = 0,
-        Optimal = 1,
-        FeasibleFound = 2,
-        Infeasible = 3,
-        Unbounded = 4,
-        TimeLimit = 5
-
-    class LPTerminationStatus(IntEnum):
-        NoTermination = 0,
-        NumericalError = 1,
-        Optimal = 2,
-        PrimalInfeasible = 3,
-        DualInfeasible = 4,
-        IterationLimit = 5,
-        TimeLimit = 6,
-        PrimalFeasible = 7
 
 class CUOPT(ConicSolver):
     """ An interface to the cuOpt solver
@@ -80,25 +62,33 @@ class CUOPT(ConicSolver):
     MI_SUPPORTED_CONSTRAINTS = SUPPORTED_CONSTRAINTS
     BOUNDED_VARIABLES = True
     REQUIRES_CONSTR = True
-    STATUS_MAP_MIP = {
-        MILPTerminationStatus.NoTermination: s.SOLVER_ERROR,
-        MILPTerminationStatus.Optimal: s.OPTIMAL,
-        MILPTerminationStatus.FeasibleFound: s.USER_LIMIT,
-        MILPTerminationStatus.Infeasible: s.INFEASIBLE,
-        MILPTerminationStatus.Unbounded: s.UNBOUNDED,
-        MILPTerminationStatus.TimeLimit: s.USER_LIMIT
-    }
+    STATUS_MAP_MIP = {}
+    STATUS_MAP_LP = {}
 
-    STATUS_MAP_LP = {
-        LPTerminationStatus.NoTermination: s.SOLVER_ERROR,
-        LPTerminationStatus.NumericalError: s.SOLVER_ERROR,
-        LPTerminationStatus.Optimal: s.OPTIMAL,
-        LPTerminationStatus.PrimalInfeasible: s.INFEASIBLE,
-        LPTerminationStatus.DualInfeasible: s.UNBOUNDED,
-        LPTerminationStatus.IterationLimit: s.USER_LIMIT,
-        LPTerminationStatus.TimeLimit: s.USER_LIMIT,
-        LPTerminationStatus.PrimalFeasible: s.USER_LIMIT
-    }
+
+    def _get_status_mip(self, cuopt_status):
+        STATUS_MAP_MIP = {
+            MILPTerminationStatus.NoTermination: s.SOLVER_ERROR,
+            MILPTerminationStatus.Optimal: s.OPTIMAL,
+            MILPTerminationStatus.FeasibleFound: s.USER_LIMIT,
+            MILPTerminationStatus.Infeasible: s.INFEASIBLE,
+            MILPTerminationStatus.Unbounded: s.UNBOUNDED,
+            MILPTerminationStatus.TimeLimit: s.USER_LIMIT
+        }
+        return STATUS_MAP_MIP[cuopt_status]
+
+    def _get_status_lp(self, cuopt_status):
+        STATUS_MAP_LP = {
+            LPTerminationStatus.NoTermination: s.SOLVER_ERROR,
+            LPTerminationStatus.NumericalError: s.SOLVER_ERROR,
+            LPTerminationStatus.Optimal: s.OPTIMAL,
+            LPTerminationStatus.PrimalInfeasible: s.INFEASIBLE,
+            LPTerminationStatus.DualInfeasible: s.UNBOUNDED,
+            LPTerminationStatus.IterationLimit: s.USER_LIMIT,
+            LPTerminationStatus.TimeLimit: s.USER_LIMIT,
+            LPTerminationStatus.PrimalFeasible: s.USER_LIMIT
+        }
+        return STATUS_MAP_LP[cuopt_status]
 
     def _solver_mode(self, m):
         try:
@@ -142,6 +132,11 @@ class CUOPT(ConicSolver):
         if not cuopt_present:
             raise ModuleNotFoundError()
 
+    def supports_quad_obj(self) -> bool:
+        """Cuopt supports quadratic objective.
+        """
+        return True
+
     def apply(self, problem):
         """Returns a new problem and data for inverting the new solution.
 
@@ -154,7 +149,7 @@ class CUOPT(ConicSolver):
 
         # Save the objective offset so that it can be set in the solver
         data[s.OFFSET] = inv_data[s.OFFSET]
-        
+
         variables = problem.x
         data[s.BOOL_IDX] = [int(t[0]) for t in variables.boolean_idx]
         data[s.INT_IDX] = [int(t[0]) for t in variables.integer_idx]
@@ -220,20 +215,26 @@ class CUOPT(ConicSolver):
 
         return ss
 
-
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
         verbose = verbose or solver_opts.get("solver_verbose", False) in [True,"True","true"]
-        csr = data[s.A].tocsr(copy=False)
-        num_vars = data['c'].shape[0]
+        Acsr = data[s.A].tocsr(copy=False)
+        B = data[s.B]
+        C = data[s.C]
+
+        Qcsr = None
+        if s.P in data:
+            Qcsr = data[s.P].tocsr()/2
+
+        num_vars = data[s.C].shape[0]
         dims = dims_to_solver_dict(data[s.DIMS])
         leq_start = dims[s.EQ_DIM]
         leq_end = dims[s.EQ_DIM] + dims[s.LEQ_DIM]
 
         # Get constraint bounds
         lower_bounds = np.empty(leq_end)
-        lower_bounds[:leq_start] = data['b'][:leq_start]
+        lower_bounds[:leq_start] = B[:leq_start]
         lower_bounds[leq_start:leq_end] = float('-inf')
-        upper_bounds = data['b'][:leq_end].copy()
+        upper_bounds = B[:leq_end].copy()
 
         # Initialize variable types and bounds
         variable_types = np.full(num_vars, 'C', dtype='U1')
@@ -258,11 +259,13 @@ class CUOPT(ConicSolver):
         from cuopt.linear_programming.solver import Solve
 
         data_model = DataModel()
-        data_model.set_csr_constraint_matrix(csr.data, csr.indices, csr.indptr)
-        data_model.set_objective_coefficients(data['c'])
+        data_model.set_csr_constraint_matrix(Acsr.data, Acsr.indices, Acsr.indptr)
+        data_model.set_objective_coefficients(C)
         data_model.set_objective_offset(data[s.OFFSET])
         data_model.set_constraint_lower_bounds(lower_bounds)
         data_model.set_constraint_upper_bounds(upper_bounds)
+        if Qcsr is not None:
+            data_model.set_quadratic_objective_matrix(Qcsr.data, Qcsr.indices, Qcsr.indptr)
 
         data_model.set_variable_lower_bounds(variable_lower_bounds)
         data_model.set_variable_upper_bounds(variable_upper_bounds)
@@ -278,7 +281,7 @@ class CUOPT(ConicSolver):
 
         dual_vars = {}
         if is_mip:
-            sol_status = self.STATUS_MAP_MIP[cuopt_result.get_termination_status()]
+            sol_status = self._get_status_mip(cuopt_result.get_termination_status())
             extra_stats = cuopt_result.get_milp_stats()
             iters = extra_stats["num_simplex_iterations"]
         else:
@@ -286,7 +289,7 @@ class CUOPT(ConicSolver):
             if d is not None:
                 dual_vars[s.EQ_DUAL] = -d[0:leq_start]
                 dual_vars[s.INEQ_DUAL] = -d[leq_start:leq_end]
-            sol_status = self.STATUS_MAP_LP[cuopt_result.get_termination_status()]
+            sol_status = self._get_status_lp(cuopt_result.get_termination_status())
             extra_stats = cuopt_result.get_lp_stats()
             iters = extra_stats["nb_iterations"]
 
