@@ -14,8 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-
-
 import numpy as np
 
 import cvxpy.settings as s
@@ -54,8 +52,8 @@ except Exception:
 
 
 class CUOPT(ConicSolver):
-    """ An interface to the cuOpt solver
-    """
+    """An interface to the cuOpt solver"""
+
     # Solver capabilities.
     MIP_CAPABLE = True
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS
@@ -65,7 +63,6 @@ class CUOPT(ConicSolver):
     STATUS_MAP_MIP = {}
     STATUS_MAP_LP = {}
 
-
     def _get_status_mip(self, cuopt_status):
         STATUS_MAP_MIP = {
             MILPTerminationStatus.NoTermination: s.SOLVER_ERROR,
@@ -73,7 +70,7 @@ class CUOPT(ConicSolver):
             MILPTerminationStatus.FeasibleFound: s.USER_LIMIT,
             MILPTerminationStatus.Infeasible: s.INFEASIBLE,
             MILPTerminationStatus.Unbounded: s.UNBOUNDED,
-            MILPTerminationStatus.TimeLimit: s.USER_LIMIT
+            MILPTerminationStatus.TimeLimit: s.USER_LIMIT,
         }
         return STATUS_MAP_MIP[cuopt_status]
 
@@ -86,7 +83,7 @@ class CUOPT(ConicSolver):
             LPTerminationStatus.DualInfeasible: s.UNBOUNDED,
             LPTerminationStatus.IterationLimit: s.USER_LIMIT,
             LPTerminationStatus.TimeLimit: s.USER_LIMIT,
-            LPTerminationStatus.PrimalFeasible: s.USER_LIMIT
+            LPTerminationStatus.PrimalFeasible: s.USER_LIMIT,
         }
         return STATUS_MAP_LP[cuopt_status]
 
@@ -110,7 +107,7 @@ class CUOPT(ConicSolver):
         from cuopt.linear_programming.solver import solver_parameters
 
         # Get all attributes that start with CUOPT_
-        cuopt_attrs = [attr for attr in dir(solver_parameters) if attr.startswith('CUOPT_')]
+        cuopt_attrs = [attr for attr in dir(solver_parameters) if attr.startswith("CUOPT_")]
 
         # Extract string values
         result = []
@@ -122,19 +119,16 @@ class CUOPT(ConicSolver):
         return result
 
     def name(self):
-        """The name of the solver.
-        """
+        """The name of the solver."""
         return s.CUOPT
 
     def import_solver(self) -> None:
-        """Imports the solver.
-        """
+        """Imports the solver."""
         if not cuopt_present:
             raise ModuleNotFoundError()
 
     def supports_quad_obj(self) -> bool:
-        """Cuopt supports quadratic objective.
-        """
+        """Cuopt supports quadratic objective."""
         return True
 
     def apply(self, problem):
@@ -153,32 +147,33 @@ class CUOPT(ConicSolver):
         variables = problem.x
         data[s.BOOL_IDX] = [int(t[0]) for t in variables.boolean_idx]
         data[s.INT_IDX] = [int(t[0]) for t in variables.integer_idx]
-        inv_data['lp'] = not (data[s.BOOL_IDX] or data[s.INT_IDX])
+        inv_data["lp"] = not (data[s.BOOL_IDX] or data[s.INT_IDX])
 
         return data, inv_data
 
     def invert(self, solution, inverse_data):
-        """Returns the solution to the original problem given the inverse_data.
-        """
+        """Returns the solution to the original problem given the inverse_data."""
         status = solution.status
 
         if status in s.SOLUTION_PRESENT:
             dual_vars = None
             opt_val = solution.opt_val + inverse_data[s.OFFSET]
             primal_vars = {inverse_data[self.VAR_ID]: solution.primal_vars}
-            if s.EQ_DUAL in solution.dual_vars and inverse_data['lp']:
+            if s.EQ_DUAL in solution.dual_vars and inverse_data["lp"]:
                 dual_vars = {}
                 if len(inverse_data[self.EQ_CONSTR]) > 0:
                     eq_dual = utilities.get_dual_values(
                         solution.dual_vars[s.EQ_DUAL],
                         utilities.extract_dual_value,
-                        inverse_data[self.EQ_CONSTR])
+                        inverse_data[self.EQ_CONSTR],
+                    )
                     dual_vars.update(eq_dual)
                 if len(inverse_data[self.NEQ_CONSTR]) > 0:
                     leq_dual = utilities.get_dual_values(
                         solution.dual_vars[s.INEQ_DUAL],
                         utilities.extract_dual_value,
-                        inverse_data[self.NEQ_CONSTR])
+                        inverse_data[self.NEQ_CONSTR],
+                    )
                     dual_vars.update(leq_dual)
 
             return Solution(status, opt_val, primal_vars, dual_vars, solution.attr)
@@ -199,7 +194,7 @@ class CUOPT(ConicSolver):
 
         # Name collision with "method" in cvxpy
         if "solver_method" in solver_opts:
-            m =  self._solver_method(solver_opts["solver_method"])
+            m = self._solver_method(solver_opts["solver_method"])
             if m is not None:
                 ss.set_parameter(CUOPT_METHOD, m)
             solver_opts.pop("solver_method")
@@ -209,21 +204,21 @@ class CUOPT(ConicSolver):
             solver_opts.pop("optimality")
 
         valid = self._get_cuopt_parameter_strings()
-        for p,v in solver_opts.items():
+        for p, v in solver_opts.items():
             if p in valid:
                 ss.set_parameter(p, solver_opts[p])
 
         return ss
 
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
-        verbose = verbose or solver_opts.get("solver_verbose", False) in [True,"True","true"]
+        verbose = verbose or solver_opts.get("solver_verbose", False) in [True, "True", "true"]
         Acsr = data[s.A].tocsr(copy=False)
         B = data[s.B]
         C = data[s.C]
 
         Qcsr = None
         if s.P in data:
-            Qcsr = data[s.P].tocsr()/2
+            Qcsr = data[s.P].tocsr() / 2
 
         num_vars = data[s.C].shape[0]
         dims = dims_to_solver_dict(data[s.DIMS])
@@ -233,11 +228,11 @@ class CUOPT(ConicSolver):
         # Get constraint bounds
         lower_bounds = np.empty(leq_end)
         lower_bounds[:leq_start] = B[:leq_start]
-        lower_bounds[leq_start:leq_end] = float('-inf')
+        lower_bounds[leq_start:leq_end] = float("-inf")
         upper_bounds = B[:leq_end].copy()
 
         # Initialize variable types and bounds
-        variable_types = np.full(num_vars, 'C', dtype='U1')
+        variable_types = np.full(num_vars, "C", dtype="U1")
         variable_lower_bounds = data[s.LOWER_BOUNDS]
         variable_upper_bounds = data[s.UPPER_BOUNDS]
         if variable_lower_bounds is None:
@@ -249,7 +244,7 @@ class CUOPT(ConicSolver):
         is_mip = data[s.BOOL_IDX] or data[s.INT_IDX]
         if is_mip:
             # Set variable types
-            variable_types[data[s.BOOL_IDX] + data[s.INT_IDX]] = 'I'
+            variable_types[data[s.BOOL_IDX] + data[s.INT_IDX]] = "I"
 
             # Make sure bounds for bool variables are [0,1]
             variable_lower_bounds[data[s.BOOL_IDX]] = 0
@@ -275,7 +270,7 @@ class CUOPT(ConicSolver):
         cuopt_result = Solve(data_model, ss)
 
         if verbose:
-            print('Termination reason: ', cuopt_result.get_termination_reason())
+            print("Termination reason: ", cuopt_result.get_termination_reason())
         if cuopt_result.get_error_status() != ErrorStatus.Success:
             raise SolverError(cuopt_result.get_error_message())
 
@@ -295,13 +290,17 @@ class CUOPT(ConicSolver):
 
         # Note, this is not the final solution. It is processed in invert()
         # and an updated Solution is returned
-        solution = Solution(sol_status,
-                            cuopt_result.get_primal_objective(),
-                            cuopt_result.get_primal_solution(),
-                            dual_vars,
-                            attr={s.SOLVE_TIME: cuopt_result.get_solve_time(),
-                                  s.NUM_ITERS: iters,
-                                  s.EXTRA_STATS: extra_stats})
+        solution = Solution(
+            sol_status,
+            cuopt_result.get_primal_objective(),
+            cuopt_result.get_primal_solution(),
+            dual_vars,
+            attr={
+                s.SOLVE_TIME: cuopt_result.get_solve_time(),
+                s.NUM_ITERS: iters,
+                s.EXTRA_STATS: extra_stats,
+            },
+        )
 
         return solution
 
