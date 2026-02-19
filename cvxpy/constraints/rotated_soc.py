@@ -14,23 +14,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 from typing import List
-
 from cvxpy.constraints.cones import Cone
-from cvxpy.expressions import cvxtypes
 from cvxpy.utilities import scopes
+from cvxpy.expressions import cvxtypes
 
 """
 Rotated Second Order Cone constraint.
-
 Implements:
 
     2 y z >= ||x||_2^2
     y >= 0
     z >= 0
 """
-
-
-
 
 class RSOC(Cone):
     """
@@ -72,9 +67,9 @@ class RSOC(Cone):
             || [2x ; y - z] ||_2 <= y + z
         """
 
-        # 🔴 Import locally to avoid circular import
-        from cvxpy.atoms.affine.vstack import vstack
+        # Import locally to avoid circular import
         from cvxpy.constraints.second_order import SOC
+        from cvxpy.atoms.affine.vstack import vstack
 
         x, y, z = self.args
 
@@ -104,8 +99,8 @@ class RSOC(Cone):
         Compute residual by converting to equivalent SOC
         and using its residual.
         """
-        from cvxpy.atoms.affine.vstack import vstack
         from cvxpy.constraints.second_order import SOC
+        from cvxpy.atoms.affine.vstack import vstack
 
         x, y, z = self.args
 
