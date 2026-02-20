@@ -43,5 +43,5 @@ def quad_form_canon(expr, args, solver_context: SolverInfo | None = None):
     else:
         scale = -scale
         expr = sum_squares(Constant(M2.T) @ args[0])
-    obj, constr = quad_over_lin_canon(expr, expr.args)
+    obj, constr = quad_over_lin_canon(expr, expr.args, solver_context)
     return scale * obj, constr
