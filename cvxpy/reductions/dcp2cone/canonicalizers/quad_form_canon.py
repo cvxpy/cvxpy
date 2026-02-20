@@ -30,9 +30,17 @@ def quad_form_canon(expr, args, solver_context: SolverInfo | None = None):
     if M1.size == M2.size == 0:
         return Constant(0), []
 
+    if M1.size > 0 and M2.size > 0:
+        raise ValueError(
+            "quad_form canonicalization does not support indefinite matrices. "
+            "P must be positive or negative semidefinite. "
+            "If P is intended to be PSD, check for numerical errors in its construction "
+            "(e.g., use P = (P + P.T) / 2 and clip negative eigenvalues)."
+        )
+
     if M1.size > 0:
         expr = sum_squares(Constant(M1.T) @ args[0])
-    if M2.size > 0:
+    else:
         scale = -scale
         expr = sum_squares(Constant(M2.T) @ args[0])
     obj, constr = quad_over_lin_canon(expr, expr.args)
