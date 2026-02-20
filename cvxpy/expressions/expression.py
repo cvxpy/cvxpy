@@ -348,13 +348,13 @@ class Expression(u.Canonical):
         """
         raise NotImplementedError()
     
-    #@abc.abstractmethod
+    @abc.abstractmethod
     def is_linearizable_convex(self) -> bool:
         """Is the expression convex after linearizing all smooth subexpressions?
         """
         raise NotImplementedError()
 
-    #@abc.abstractmethod
+    @abc.abstractmethod
     def is_linearizable_concave(self) -> bool:
         """Is the expression concave after linearizing all smooth subexpressions?
         """

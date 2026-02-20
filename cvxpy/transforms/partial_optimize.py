@@ -144,6 +144,12 @@ class PartialProblem(Expression):
         return self.args[0].is_dcp() and \
             type(self.args[0].objective) == Maximize
 
+    def is_linearizable_convex(self) -> bool:
+        return self.is_convex()
+
+    def is_linearizable_concave(self) -> bool:
+        return self.is_concave()
+
     def is_dpp(self, context: str = 'dcp') -> bool:
         """The expression is a disciplined parameterized expression.
         """
