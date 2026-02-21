@@ -58,3 +58,9 @@ print("Maximum eigenvalue:      " , np.max(eigenvalues))
 |--------|---------|--------------|
 | [IPOPT](https://github.com/coin-or/Ipopt) | EPL-2.0 | `conda install -c conda-forge cyipopt` |
 | [Knitro](https://www.artelys.com/solvers/knitro/) | Commercial | `pip install knitro` (requires license) |
+
+---
+## Differentiation Engine
+DNLP uses [SparseDiffPy](https://github.com/SparseDifferentiation/SparseDiffPy) as its differentiation engine. SparseDiffPy is a Python wrapper around the [SparseDiffEngine](https://github.com/SparseDifferentiation/SparseDiffEngine) C library, and is installed automatically as a dependency of DNLP.
+
+SparseDiffPy builds an expression tree from the CVXPY problem and computes exact sparse gradients, Jacobians, and Hessians required by the NLP solvers.
