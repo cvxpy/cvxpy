@@ -46,11 +46,9 @@ from cvxpy.reductions.dcp2cone.canonicalizers.suppfunc_canon import (
     suppfunc_canon,)
 from cvxpy.reductions.dcp2cone.canonicalizers.tr_inv_canon import *
 from cvxpy.reductions.dcp2cone.canonicalizers.xexp_canon import *
-from cvxpy.reductions.dcp2cone.canonicalizers.rsoc_canon import rsoc_canon
 from cvxpy.reductions.dcp2cone.canonicalizers.logic_canon import (
     not_canon, and_canon, or_canon, xor_canon,)
 from cvxpy.atoms.elementwise.logic import Not, And, Or, Xor
-from cvxpy.constraints.rotated_soc import RSOC
 from cvxpy.reductions.eliminate_pwl.canonicalizers import (abs_canon,
                                                            cummax_canon,
                                                            cumsum_canon,
@@ -113,5 +111,4 @@ CANON_METHODS = {
     And : and_canon,
     Or : or_canon,
     Xor : xor_canon,
-    RSOC : rsoc_canon,
 }

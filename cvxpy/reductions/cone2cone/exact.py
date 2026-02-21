@@ -41,8 +41,7 @@ from cvxpy.atoms.affine.hstack import hstack
 from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.constraints.power import PowCone3D, PowConeND
 from cvxpy.constraints.psd import PSD
-from cvxpy.constraints.rotated_soc import RSOC
-from cvxpy.constraints.second_order import SOC
+from cvxpy.constraints.second_order import RSOC, SOC
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.canonicalization import Canonicalization
 from cvxpy.reductions.cone2cone.cone_tree import (
@@ -416,8 +415,14 @@ class RSOCConversion:
 
     @staticmethod
     def recover_dual(cons, dual_var, inverse_data, solution):
-        # For now, direct mapping is fine
+        # The raw SOC dual vector is passed to RSOC.save_dual_value, which
+        # untransforms it into the correct RSOC dual components.  The dual
+        # variable for the RSOC cone is NOT the same as the SOC dual; the
+        # mapping is: dual_x = 2*lam_x, dual_y = lam_t + lam_yz,
+        # dual_z = lam_t - lam_yz.  That transformation lives in
+        # RSOC.save_dual_value so we pass the SOC vector through unchanged.
         return dual_var
+
 
 class ExactCone2Cone(Canonicalization):
 

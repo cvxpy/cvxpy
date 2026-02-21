@@ -22,7 +22,6 @@ from cvxpy.constraints.finite_set import FiniteSet
 from cvxpy.constraints.nonpos import Inequality, NonNeg, NonPos
 from cvxpy.constraints.power import PowCone3D, PowCone3DApprox, PowConeND
 from cvxpy.constraints.psd import PSD
-from cvxpy.constraints.second_order import SOC
+from cvxpy.constraints.second_order import RSOC, SOC
 from cvxpy.constraints.zero import Equality, Zero
-from cvxpy.constraints.rotated_soc import RSOC
 

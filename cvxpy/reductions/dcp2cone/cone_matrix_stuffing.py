@@ -21,6 +21,7 @@ import scipy.sparse as sp
 import cvxpy.settings as s
 from cvxpy.constraints import (
     PSD,
+    RSOC,
     SOC,
     Equality,
     ExpCone,
@@ -393,6 +394,24 @@ class ConeMatrixStuffing(MatrixStuffing):
             elif isinstance(con, SOC) and con.axis == 1:
                 con = SOC(con.args[0], con.args[1].T, axis=0,
                           constr_id=con.constr_id)
+            elif isinstance(con, RSOC):
+                from cvxpy.atoms.affine.reshape import reshape
+                from cvxpy.atoms.affine.vstack import vstack
+                x, y, z = con.args
+                # Promote 1D x and scalar y, z to 2D for vstack compatibility.
+                if x.ndim == 1:
+                    x = reshape(x, (x.size, 1), order='F')
+                if y.ndim == 0:
+                    y = reshape(y, (1, 1), order='F')
+                if z.ndim == 0:
+                    z = reshape(z, (1, 1), order='F')
+                soc_vec = vstack([2 * x, y - z])
+                t = y + z
+                if t.ndim == 2:
+                    t = reshape(t, (1,), order='F')
+                cons.append(NonNeg(y, constr_id=None))
+                cons.append(NonNeg(z, constr_id=None))
+                con = SOC(t, soc_vec, constr_id=con.id)
             elif isinstance(con, PowCone3D) and con.args[0].ndim > 1:
                 x, y, z = con.args
                 alpha = con.alpha
@@ -425,8 +444,8 @@ class ConeMatrixStuffing(MatrixStuffing):
         ordered_cons = constr_map[Zero] + constr_map[NonNeg] + \
             constr_map[SOC] + constr_map[PSD] + constr_map[ExpCone] + \
             constr_map[PowCone3D] + constr_map[PowConeND]
-        inverse_data.cons_id_map = {con.id: con.id for con in ordered_cons}
-
+        inverse_data.cons_id_map = {con.id: con.id for con in ordered_cons
+                                    if con.id in inverse_data.id2cons}
         inverse_data.constraints = ordered_cons
         # Batch expressions together, then split apart.
         expr_list = [arg for c in ordered_cons for arg in c.args]
@@ -494,7 +513,7 @@ class ConeMatrixStuffing(MatrixStuffing):
                 con_obj = inverse_data.id2cons[old_con]
                 shape = con_obj.shape
                 # TODO rationalize Exponential.
-                if shape == () or isinstance(con_obj, (ExpCone, SOC)):
+                if shape == () or isinstance(con_obj, (ExpCone, SOC, RSOC)):
                     dual_vars[old_con] = solution.dual_vars[new_con]
                 else:
                     dual_vars[old_con] = np.reshape(
