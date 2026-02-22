@@ -463,7 +463,7 @@ class MOSEK(ConicSolver):
 
             # Dual variables
             if task.getnumintvar() > 0:
-                dual_vars = {}
+                dual_vars = None
             else:
                 num_con = task.getnumcon()
                 if num_con > 0:
