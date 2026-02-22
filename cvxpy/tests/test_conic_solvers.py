@@ -845,9 +845,10 @@ def is_mosek_available():
     try:
         import mosek  # type: ignore
         env = mosek.Env()
-        # Try to get license status (returns 0 if OK)
-        status = env.getlicense()
-        return status == mosek.rescode.ok
+        # getlicense() raises mosek.Error if no license is available;
+        # on success it returns a positive token integer (not 0).
+        env.getlicense()
+        return True
     except Exception:
         return False
 

@@ -88,8 +88,10 @@ class QPTestBase(BaseTest):
         try:
             import mosek  # type: ignore
             env = mosek.Env()
-            status = env.getlicense()
-            return status == mosek.rescode.ok
+            # getlicense() raises mosek.Error if no license is available;
+            # on success it returns a positive token integer (not 0).
+            env.getlicense()
+            return True
         except Exception:
             return False
 
