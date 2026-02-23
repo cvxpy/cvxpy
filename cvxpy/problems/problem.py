@@ -1372,7 +1372,7 @@ class Problem(u.Canonical):
         # Complex2Real split into real/imag).
         for param in self.parameters():
             # Start with the direct gradient if the param passed through unchanged
-            grad = 0.0 if param.id not in dparams else dparams[param.id]
+            grad = np.zeros(param.shape) if param.id not in dparams else dparams[param.id]
             # Apply chain rule through any reductions that transformed this param
             for reduction in self._cache.solving_chain.reductions:
                 reduction_grad = reduction.param_backward(param, dparams)
