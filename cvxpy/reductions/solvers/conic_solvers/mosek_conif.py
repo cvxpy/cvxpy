@@ -441,6 +441,61 @@ class MOSEK(ConicSolver):
         else:
             return utilities.extract_dual_value(result_vec, offset, constraint)
 
+    def _extract_dual_vars(self, task, sol_type, cone_dims, inverse_data):
+        """Extract dual variables from a MOSEK task.
+
+        Used for both optimal solutions and infeasibility certificates (IIS).
+
+        Returns
+        -------
+        dict
+            Mapping from constraint id to numpy array of dual values.
+        """
+        num_con = task.getnumcon()
+        if num_con > 0:
+            y = np.array(task.gety(sol_type))
+        else:
+            y = np.array([])
+
+        eq_dual = y[:cone_dims.zero]
+        nonneg_dual = y[cone_dims.zero:
+                        cone_dims.zero + cone_dims.nonneg]
+        psd_linking_dual = y[cone_dims.zero + cone_dims.nonneg:]
+
+        # ACC duals (SOC, exp, pow3d, powND — PSD uses barvar)
+        acc_duals = []
+        num_acc = task.getnumacc()
+        for i in range(num_acc):
+            doty = np.array(task.getaccdoty(sol_type, i))
+            acc_duals.append(doty)
+
+        # Split ACC duals: first len(soc) are SOC, rest are exp/pow
+        num_soc_acc = len(cone_dims.soc)
+        soc_acc_duals = acc_duals[:num_soc_acc]
+        other_acc_duals = acc_duals[num_soc_acc:]
+
+        # Concatenate in NEQ_CONSTR order:
+        # NonNeg, SOC, PSD, Exp, Pow3D, PowND
+        ineq_dual = np.concatenate(
+            [nonneg_dual] + soc_acc_duals
+            + [psd_linking_dual] + other_acc_duals
+        )
+
+        eq_dual_vars = utilities.get_dual_values(
+            eq_dual,
+            utilities.extract_dual_value,
+            inverse_data[self.EQ_CONSTR],
+        )
+        ineq_dual_vars = utilities.get_dual_values(
+            ineq_dual,
+            self.extract_dual_value,
+            inverse_data[self.NEQ_CONSTR],
+        )
+        dual_vars = {}
+        dual_vars.update(eq_dual_vars)
+        dual_vars.update(ineq_dual_vars)
+        return dual_vars
+
     def invert(self, solver_output, inverse_data):
         """Map MOSEK solution back to CVXPY's standard form.
 
@@ -517,52 +572,23 @@ class MOSEK(ConicSolver):
             if task.getnumintvar() > 0:
                 dual_vars = None
             else:
-                num_con = task.getnumcon()
-                if num_con > 0:
-                    y = np.array(task.gety(sol_type))
-                else:
-                    y = np.array([])
-
-                eq_dual = y[:cone_dims.zero]
-                nonneg_dual = y[cone_dims.zero:
-                                cone_dims.zero + cone_dims.nonneg]
-                psd_linking_dual = y[cone_dims.zero + cone_dims.nonneg:]
-
-                # ACC duals (SOC, exp, pow3d, powND — PSD uses barvar)
-                acc_duals = []
-                num_acc = task.getnumacc()
-                for i in range(num_acc):
-                    doty = np.array(task.getaccdoty(sol_type, i))
-                    acc_duals.append(doty)
-
-                # Split ACC duals: first len(soc) are SOC, rest are exp/pow
-                num_soc_acc = len(cone_dims.soc)
-                soc_acc_duals = acc_duals[:num_soc_acc]
-                other_acc_duals = acc_duals[num_soc_acc:]
-
-                # Concatenate in NEQ_CONSTR order:
-                # NonNeg, SOC, PSD, Exp, Pow3D, PowND
-                ineq_dual = np.concatenate(
-                    [nonneg_dual] + soc_acc_duals
-                    + [psd_linking_dual] + other_acc_duals
+                dual_vars = self._extract_dual_vars(
+                    task, sol_type, cone_dims, inverse_data
                 )
-
-                eq_dual_vars = utilities.get_dual_values(
-                    eq_dual,
-                    utilities.extract_dual_value,
-                    inverse_data[self.EQ_CONSTR],
-                )
-                ineq_dual_vars = utilities.get_dual_values(
-                    ineq_dual,
-                    self.extract_dual_value,
-                    inverse_data[self.NEQ_CONSTR],
-                )
-                dual_vars = {}
-                dual_vars.update(eq_dual_vars)
-                dual_vars.update(ineq_dual_vars)
 
             sol = Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
+            # Extract IIS (Farkas certificate) for infeasible continuous problems.
+            # MOSEK's dual variables for solsta.prim_infeas_cer are the Farkas
+            # certificate — non-zero entries indicate participating constraints.
+            if status == s.INFEASIBLE and task.getnumintvar() == 0:
+                try:
+                    iis = self._extract_dual_vars(
+                        task, sol_type, cone_dims, inverse_data
+                    )
+                    attr[s.EXTRA_STATS]["IIS"] = iis
+                except Exception:
+                    pass
             sol = failure_solution(status, attr)
 
         # Delete the mosek Task and Environment
