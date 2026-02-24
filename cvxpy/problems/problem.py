@@ -1224,7 +1224,7 @@ class Problem(u.Canonical):
         # reductions that transform parameters (e.g., DGP log transform,
         # Complex2Real split into real/imag).
         for param in self.parameters():
-            grad = np.broadcast_to(0.0, param.shape)
+            grad = np.zeros(param.shape)
             handled = False
             # Apply chain rule through any reductions that transformed this param
             for reduction in self._cache.solving_chain.reductions:
