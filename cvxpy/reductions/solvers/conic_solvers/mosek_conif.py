@@ -177,9 +177,6 @@ class MOSEK(ConicSolver):
         data[s.BOOL_IDX] = [int(t[0]) for t in problem.x.boolean_idx]
         data[s.INT_IDX] = [int(t[0]) for t in problem.x.integer_idx]
         data['psd_variable_info'] = problem.psd_variable_info
-        inv_data['num_psd_var_linking'] = sum(
-            rs for _, rs, _, _ in problem.psd_variable_info
-        )
         return data, inv_data
 
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts,
@@ -210,17 +207,25 @@ class MOSEK(ConicSolver):
         return {'task': task, 'solver_options': solver_opts}
 
     @staticmethod
-    def _add_afe_acc(task, A, b, row, dim, domain_idx):
-        """Add an ACC for rows A[row:row+dim, :] x + b[row:row+dim] in domain."""
-        afe_base = task.getnumafe()
-        task.appendafes(dim)
-        A_block = A[row:row + dim, :]
+    def _sparse_coo(A_block):
+        """Extract (row, col, val) COO entries from a dense or sparse matrix."""
         if sp.sparse.issparse(A_block):
             A_coo = A_block.tocoo()
-            rows_i, cols_j, vals = A_coo.row, A_coo.col, A_coo.data
+            return A_coo.row, A_coo.col, A_coo.data
         else:
-            rows_i, cols_j = np.nonzero(A_block)
-            vals = np.asarray(A_block[rows_i, cols_j]).ravel()
+            rows, cols = np.nonzero(A_block)
+            vals = np.asarray(A_block[rows, cols]).ravel()
+            return rows, cols, vals
+
+    @staticmethod
+    def _add_afe_acc(task, A, b, row, dim, domain_idx):
+        """Add an ACC for rows A[row:row+dim, :] x + b[row:row+dim] in domain.
+
+        Returns the AFE base index.
+        """
+        afe_base = task.getnumafe()
+        task.appendafes(dim)
+        rows_i, cols_j, vals = MOSEK._sparse_coo(A[row:row + dim, :])
         if len(vals) > 0:
             task.putafefentrylist(
                 (rows_i + afe_base).tolist(),
@@ -229,6 +234,7 @@ class MOSEK(ConicSolver):
             )
         task.putafegslice(afe_base, afe_base + dim, b[row:row + dim].tolist())
         task.appendacc(domain_idx, list(range(afe_base, afe_base + dim)), None)
+        return afe_base
 
     @staticmethod
     def _build_task(task, data):
@@ -236,6 +242,10 @@ class MOSEK(ConicSolver):
 
         Linear (zero/nonneg) constraints use efficient MOSEK linear constraints.
         All other cones (SOC, PSD, exp, pow3d, powND) use ACC.
+
+        PSD variables are handled without linking constraints: barvar coefficients
+        are injected directly into the objective, linear constraints, and AFE rows
+        via putbarcblocktriplet / putbarablocktriplet / putafebarfblocktriplet.
         """
         import mosek
 
@@ -247,6 +257,19 @@ class MOSEK(ConicSolver):
 
         # Variables
         task.appendvars(n)
+
+        # Create barvars for PSD variables early.
+        psd_var_info = data.get('psd_variable_info', [])
+        psd_var_barvars = []
+        for var_offset, reduced_size, psd_dim, is_nsd in psd_var_info:
+            barvar_idx = task.getnumbarvar()
+            task.appendbarvars([psd_dim])
+            tri_rows, tri_cols = np.tril_indices(psd_dim)
+            order = np.lexsort((tri_rows, tri_cols))
+            psd_var_barvars.append((
+                var_offset, reduced_size, psd_dim, is_nsd,
+                barvar_idx, tri_rows[order], tri_cols[order],
+            ))
 
         # Variable bounds
         if data[s.LOWER_BOUNDS] is not None and data[s.UPPER_BOUNDS] is not None:
@@ -266,9 +289,22 @@ class MOSEK(ConicSolver):
             task.putvarboundlist(np.arange(n, dtype=np.int32),
                                 [mosek.boundkey.fr] * n, o, o)
 
+        # Fix PSD variable scalar entries to zero.
+        # Their A-matrix coefficients contribute nothing; barvar coefficients
+        # (added later) provide the actual contribution.
+        for var_offset, reduced_size, *_ in psd_var_barvars:
+            idx = np.arange(var_offset, var_offset + reduced_size,
+                            dtype=np.int32)
+            task.putvarboundlist(idx, [mosek.boundkey.fx] * reduced_size,
+                                [0.0] * reduced_size, [0.0] * reduced_size)
+
         # Objective: min c'x
         task.putclist(np.arange(n, dtype=np.int32), c)
         task.putobjsense(mosek.objsense.minimize)
+
+        # Track A-row to MOSEK-index mappings for PSD variable post-processing.
+        linear_maps = []  # (A_row_start, A_row_end, mosek_con_offset)
+        afe_maps = []     # (A_row_start, A_row_end, mosek_afe_base)
 
         row = 0
 
@@ -278,13 +314,7 @@ class MOSEK(ConicSolver):
         if num_eq > 0:
             con_offset = task.getnumcon()
             task.appendcons(num_eq)
-            A_eq = A[row:row + num_eq, :]
-            if sp.sparse.issparse(A_eq):
-                A_coo = A_eq.tocoo()
-                eq_rows, eq_cols, eq_vals = A_coo.row, A_coo.col, A_coo.data
-            else:
-                eq_rows, eq_cols = np.nonzero(A_eq)
-                eq_vals = np.asarray(A_eq[eq_rows, eq_cols]).ravel()
+            eq_rows, eq_cols, eq_vals = MOSEK._sparse_coo(A[row:row + num_eq, :])
             if len(eq_vals) > 0:
                 task.putaijlist(
                     (eq_rows + con_offset).tolist(),
@@ -297,6 +327,7 @@ class MOSEK(ConicSolver):
                 [mosek.boundkey.fx] * num_eq,
                 bounds, bounds,
             )
+            linear_maps.append((row, row + num_eq, con_offset))
             row += num_eq
 
         # NonNeg cone -> MOSEK linear inequality constraints
@@ -305,13 +336,7 @@ class MOSEK(ConicSolver):
         if num_nn > 0:
             con_offset = task.getnumcon()
             task.appendcons(num_nn)
-            A_nn = A[row:row + num_nn, :]
-            if sp.sparse.issparse(A_nn):
-                A_coo = A_nn.tocoo()
-                nn_rows, nn_cols, nn_vals = A_coo.row, A_coo.col, A_coo.data
-            else:
-                nn_rows, nn_cols = np.nonzero(A_nn)
-                nn_vals = np.asarray(A_nn[nn_rows, nn_cols]).ravel()
+            nn_rows, nn_cols, nn_vals = MOSEK._sparse_coo(A[row:row + num_nn, :])
             if len(nn_vals) > 0:
                 task.putaijlist(
                     (nn_rows + con_offset).tolist(),
@@ -325,130 +350,51 @@ class MOSEK(ConicSolver):
                 [mosek.boundkey.lo] * num_nn,
                 lb, ub,
             )
+            linear_maps.append((row, row + num_nn, con_offset))
             row += num_nn
 
         # SOC cones via ACC
         for dim in cone_dims.soc:
-            MOSEK._add_afe_acc(task, A, b, row, dim,
-                               task.appendquadraticconedomain(dim))
+            afe_base = MOSEK._add_afe_acc(
+                task, A, b, row, dim, task.appendquadraticconedomain(dim))
+            afe_maps.append((row, row + dim, afe_base))
             row += dim
 
-        # PSD cones via barvar API (native MOSEK semidefinite variables)
-        # Using barvar instead of ACC+svecpsdcone gives much better SDP performance.
-        # See https://docs.mosek.com/latest/faq/faq.html#why-is-my-sdp-lmi-slow
-        sqrt2_half = np.sqrt(2) / 2.0
+        # PSD cones via ACC with svec PSD domain
         for psd_dim in cone_dims.psd:
             vec_len = psd_dim * (psd_dim + 1) // 2
-
-            # Compute svec-to-(row,col) mapping for lower triangle (column-major)
-            tri_rows, tri_cols = np.tril_indices(psd_dim)
-            order = np.lexsort((tri_rows, tri_cols))
-            tri_rows = tri_rows[order]
-            tri_cols = tri_cols[order]
-
-            # Create PSD matrix variable
-            barvar_idx = task.getnumbarvar()
-            task.appendbarvars([psd_dim])
-
-            # Add vec_len equality constraints: A_psd[k,:] @ x - <M_k, X> = -b[k]
-            con_offset = task.getnumcon()
-            task.appendcons(vec_len)
-
-            # Set scalar variable coefficients from A_psd
-            A_psd = A[row:row + vec_len, :]
-            if sp.sparse.issparse(A_psd):
-                A_coo = A_psd.tocoo()
-                psd_rows, psd_cols, psd_vals = A_coo.row, A_coo.col, A_coo.data
-            else:
-                psd_rows, psd_cols = np.nonzero(A_psd)
-                psd_vals = np.asarray(A_psd[psd_rows, psd_cols]).ravel()
-            if len(psd_vals) > 0:
-                task.putaijlist(
-                    (psd_rows + con_offset).tolist(),
-                    psd_cols.tolist(),
-                    psd_vals.tolist(),
-                )
-
-            # For each svec element k, create sparse symmat and link to barvar.
-            # Diagonal: M_k value = 1.0 (trace gives X[i,i])
-            # Off-diagonal: M_k value = sqrt(2)/2 (trace gives 2*sqrt(2)/2*X[i,j])
-            for k in range(vec_len):
-                i_k, j_k = int(tri_rows[k]), int(tri_cols[k])
-                val = 1.0 if i_k == j_k else sqrt2_half
-                mat_id = task.appendsparsesymmat(
-                    psd_dim, [i_k], [j_k], [val]
-                )
-                task.putbaraij(con_offset + k, barvar_idx, [mat_id], [-1.0])
-
-            # Set constraint bounds: A_psd[k,:] @ x - <M_k, X> = -b_psd[k]
-            bounds = (-b[row:row + vec_len]).tolist()
-            task.putconboundlist(
-                np.arange(con_offset, con_offset + vec_len, dtype=np.int32),
-                [mosek.boundkey.fx] * vec_len,
-                bounds, bounds,
-            )
+            afe_base = MOSEK._add_afe_acc(
+                task, A, b, row, vec_len,
+                task.appendsvecpsdconedomain(vec_len))
+            afe_maps.append((row, row + vec_len, afe_base))
             row += vec_len
 
         # Exp cones via ACC
         for _ in range(cone_dims.exp):
-            MOSEK._add_afe_acc(task, A, b, row, 3,
-                               task.appendprimalexpconedomain())
+            afe_base = MOSEK._add_afe_acc(
+                task, A, b, row, 3, task.appendprimalexpconedomain())
+            afe_maps.append((row, row + 3, afe_base))
             row += 3
 
         # Pow3D cones via ACC
         for alpha in cone_dims.p3d:
             dom = task.appendprimalpowerconedomain(3, [alpha, 1.0 - alpha])
-            MOSEK._add_afe_acc(task, A, b, row, 3, dom)
+            afe_base = MOSEK._add_afe_acc(task, A, b, row, 3, dom)
+            afe_maps.append((row, row + 3, afe_base))
             row += 3
 
         # PowND cones via ACC
         for alpha in cone_dims.pnd:
             dim = len(alpha) + 1
             dom = task.appendprimalpowerconedomain(dim, list(alpha))
-            MOSEK._add_afe_acc(task, A, b, row, dim, dom)
+            afe_base = MOSEK._add_afe_acc(task, A, b, row, dim, dom)
+            afe_maps.append((row, row + dim, afe_base))
             row += dim
 
-        # PSD variables via barvar API (native MOSEK semidefinite variables).
-        # When PSD_VARIABLES is True, PSD variable attributes are NOT converted
-        # to explicit PSD constraints. Instead we create barvars directly and
-        # link them to the scalar variables via equality constraints.
-        for var_offset, reduced_size, psd_dim, is_nsd in data.get(
-                'psd_variable_info', []):
-            # Compute svec-to-(row,col) mapping for lower triangle
-            tri_rows, tri_cols = np.tril_indices(psd_dim)
-            order = np.lexsort((tri_rows, tri_cols))
-            tri_rows = tri_rows[order]
-            tri_cols = tri_cols[order]
-
-            barvar_idx = task.getnumbarvar()
-            task.appendbarvars([psd_dim])
-
-            con_offset = task.getnumcon()
-            task.appendcons(reduced_size)
-
-            # For each svec entry k, add constraint: v_k - <M_k, X> = 0
-            # (or v_k + <M_k, Y> = 0 for NSD, where Y is PSD and X = -Y).
-            sign = 1.0 if is_nsd else -1.0
-            for k in range(reduced_size):
-                i_k, j_k = int(tri_rows[k]), int(tri_cols[k])
-                # Off-diagonal: val=0.5 so trace gives 2*0.5*X[i,j] = X[i,j]
-                # Diagonal: val=1.0 so trace gives X[i,i]
-                val = 1.0 if i_k == j_k else 0.5
-                mat_id = task.appendsparsesymmat(psd_dim, [i_k], [j_k], [val])
-                task.putbaraij(con_offset + k, barvar_idx, [mat_id], [sign])
-
-            # Scalar variable coefficients: v_k has coefficient 1.0
-            var_indices = list(range(var_offset, var_offset + reduced_size))
-            con_indices = list(range(con_offset, con_offset + reduced_size))
-            task.putaijlist(con_indices, var_indices, [1.0] * reduced_size)
-
-            # NSD: v_k + <M_k, Y> = 0 => v_k = -Y[i,j] = X[i,j]
-            # PSD: v_k - <M_k, X> = 0 => v_k = X[i,j]
-            task.putconboundlist(
-                np.arange(con_offset, con_offset + reduced_size, dtype=np.int32),
-                [mosek.boundkey.fx] * reduced_size,
-                [0.0] * reduced_size, [0.0] * reduced_size,
-            )
+        # Add barvar coefficients for PSD variables into
+        # objective, linear constraints, and AFE rows.
+        MOSEK._add_psd_var_barvar_coefficients(
+            task, c, A, psd_var_barvars, linear_maps, afe_maps)
 
         # Integer constraints
         bool_idx = data[s.BOOL_IDX]
@@ -463,6 +409,96 @@ class MOSEK(ConicSolver):
                                 [0] * num_bool, [1] * num_bool)
 
         return task
+
+    @staticmethod
+    def _psd_var_barvar_triplets(A, row_start, row_end, idx_offset,
+                                 psd_var_barvars):
+        """Compute barvar block triplet entries for A[row_start:row_end, psd_cols].
+
+        For each PSD variable barvar, extracts nonzero entries from the
+        corresponding columns of A and converts them to MOSEK's sparse
+        symmetric matrix format for putbarablocktriplet / putafebarfblocktriplet.
+
+        Returns (indices, barvar_indices, subk, subl, vals).
+        """
+        all_idx, all_bv, all_k, all_l, all_v = [], [], [], [], []
+        for (var_offset, reduced_size, psd_dim, is_nsd,
+             barvar_idx, tri_rows, tri_cols) in psd_var_barvars:
+            row_indices, col_indices, a_vals = MOSEK._sparse_coo(
+                A[row_start:row_end, var_offset:var_offset + reduced_size])
+            if len(a_vals) == 0:
+                continue
+
+            sign = -1.0 if is_nsd else 1.0
+            i_k = tri_rows[col_indices]
+            j_k = tri_cols[col_indices]
+            # Diagonal: val=1.0 so <M,X> = X[i,i].
+            # Off-diagonal: val=0.5 so <M,X> = 2*0.5*X[i,j] = X[i,j].
+            scale = np.where(i_k == j_k, 1.0, 0.5)
+
+            all_idx.extend((row_indices + idx_offset).tolist())
+            all_bv.extend([barvar_idx] * len(row_indices))
+            all_k.extend(i_k.astype(np.int32).tolist())
+            all_l.extend(j_k.astype(np.int32).tolist())
+            all_v.extend((sign * a_vals * scale).tolist())
+        return all_idx, all_bv, all_k, all_l, all_v
+
+    @staticmethod
+    def _add_psd_var_barvar_coefficients(task, c, A, psd_var_barvars,
+                                         linear_maps, afe_maps):
+        """Add barvar coefficients for PSD variables to objective, constraints, AFEs.
+
+        Instead of linking constraints (v_k = <M_k, X>), we inject barvar
+        coefficients directly into the rows where the scalar PSD variable
+        entries appear, achieving the same effect with zero extra constraints.
+        """
+        # Objective: putbarcblocktriplet
+        all_j, all_k, all_l, all_v = [], [], [], []
+        for (var_offset, reduced_size, psd_dim, is_nsd,
+             barvar_idx, tri_rows, tri_cols) in psd_var_barvars:
+            c_psd = c[var_offset:var_offset + reduced_size]
+            nz = np.nonzero(c_psd)[0]
+            if len(nz) == 0:
+                continue
+            sign = -1.0 if is_nsd else 1.0
+            i_k, j_k = tri_rows[nz], tri_cols[nz]
+            scale = np.where(i_k == j_k, 1.0, 0.5)
+            all_j.extend([barvar_idx] * len(nz))
+            all_k.extend(i_k.astype(np.int32).tolist())
+            all_l.extend(j_k.astype(np.int32).tolist())
+            all_v.extend((sign * c_psd[nz] * scale).tolist())
+        if all_j:
+            task.putbarcblocktriplet(all_j, all_k, all_l, all_v)
+
+        # Linear constraints: putbarablocktriplet
+        all_subi, all_subj, all_subk, all_subl, all_vals = (
+            [], [], [], [], []
+        )
+        for row_start, row_end, con_offset in linear_maps:
+            t = MOSEK._psd_var_barvar_triplets(
+                A, row_start, row_end, con_offset, psd_var_barvars)
+            all_subi.extend(t[0])
+            all_subj.extend(t[1])
+            all_subk.extend(t[2])
+            all_subl.extend(t[3])
+            all_vals.extend(t[4])
+        if all_subi:
+            task.putbarablocktriplet(
+                all_subi, all_subj, all_subk, all_subl, all_vals)
+
+        # AFE constraints: putafebarfblocktriplet
+        all_afe, all_bv, all_k, all_l, all_v = [], [], [], [], []
+        for row_start, row_end, afe_base in afe_maps:
+            t = MOSEK._psd_var_barvar_triplets(
+                A, row_start, row_end, afe_base, psd_var_barvars)
+            all_afe.extend(t[0])
+            all_bv.extend(t[1])
+            all_k.extend(t[2])
+            all_l.extend(t[3])
+            all_v.extend(t[4])
+        if all_afe:
+            task.putafebarfblocktriplet(
+                all_afe, all_bv, all_k, all_l, all_v)
 
     @staticmethod
     def extract_dual_value(result_vec, offset, constraint):
@@ -507,28 +543,14 @@ class MOSEK(ConicSolver):
         eq_dual = y[:cone_dims.zero]
         nonneg_dual = y[cone_dims.zero:
                         cone_dims.zero + cone_dims.nonneg]
-        num_psd_con_linking = sum(d * (d + 1) // 2 for d in cone_dims.psd)
-        psd_con_start = cone_dims.zero + cone_dims.nonneg
-        psd_linking_dual = y[psd_con_start:psd_con_start + num_psd_con_linking]
 
-        # ACC duals (SOC, exp, pow3d, powND — PSD uses barvar)
+        # ACC duals in creation order: SOC, PSD, exp, pow3d, powND
+        # This matches NEQ_CONSTR order (after nonneg).
         acc_duals = []
-        num_acc = task.getnumacc()
-        for i in range(num_acc):
-            doty = np.array(task.getaccdoty(sol_type, i))
-            acc_duals.append(doty)
+        for i in range(task.getnumacc()):
+            acc_duals.append(np.array(task.getaccdoty(sol_type, i)))
 
-        # Split ACC duals: first len(soc) are SOC, rest are exp/pow
-        num_soc_acc = len(cone_dims.soc)
-        soc_acc_duals = acc_duals[:num_soc_acc]
-        other_acc_duals = acc_duals[num_soc_acc:]
-
-        # Concatenate in NEQ_CONSTR order:
-        # NonNeg, SOC, PSD, Exp, Pow3D, PowND
-        ineq_dual = np.concatenate(
-            [nonneg_dual] + soc_acc_duals
-            + [psd_linking_dual] + other_acc_duals
-        )
+        ineq_dual = np.concatenate([nonneg_dual] + acc_duals)
 
         eq_dual_vars = utilities.get_dual_values(
             eq_dual,
@@ -549,8 +571,8 @@ class MOSEK(ConicSolver):
         """Map MOSEK solution back to CVXPY's standard form.
 
         Extracts primal variables via ``getxx``, duals via ``gety``
-        (for zero/nonneg/PSD-linking linear constraints), and ACC duals
-        via ``getaccdoty`` (for SOC/exp/pow constraints).
+        (for zero/nonneg linear constraints), and ACC duals via
+        ``getaccdoty`` (for SOC/PSD/exp/pow constraints).
         """
         import mosek
 
