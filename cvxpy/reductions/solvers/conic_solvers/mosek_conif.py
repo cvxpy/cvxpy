@@ -264,11 +264,13 @@ class MOSEK(ConicSolver):
         for var_offset, reduced_size, psd_dim, is_nsd in psd_var_info:
             barvar_idx = task.getnumbarvar()
             task.appendbarvars([psd_dim])
-            tri_rows, tri_cols = np.tril_indices(psd_dim)
-            order = np.lexsort((tri_rows, tri_cols))
+            # PSD variable reduced form uses upper triangular row-major ordering
+            # (from upper_tri_to_full). MOSEK needs lower triangular (k >= l),
+            # so we swap row/col.
+            tri_rows, tri_cols = np.triu_indices(psd_dim)
             psd_var_barvars.append((
                 var_offset, reduced_size, psd_dim, is_nsd,
-                barvar_idx, tri_rows[order], tri_cols[order],
+                barvar_idx, tri_cols, tri_rows,
             ))
 
         # Variable bounds
