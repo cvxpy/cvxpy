@@ -1,0 +1,26 @@
+name: test_derivative
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+
+jobs:
+  test_derivative:
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        shell: bash -l {0}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.12"
+          enable-cache: true
+      - name: Install cvxpy and diffcp
+        run: |
+          uv sync --dev
+          uv pip install diffcp
+      - name: Run test_derivative
+        run: uv run pytest -rs cvxpy/tests/test_derivative.py
