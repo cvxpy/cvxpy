@@ -24,6 +24,22 @@ from cvxpy.utilities import bounds as bounds_utils
 
 class minimum(Elementwise):
     """Elementwise minimum of a sequence of expressions.
+
+    Computes the elementwise minimum over two or more input expressions.
+
+    Mathematical definition:
+        .. math::
+
+            f(x_1, x_2, \\dots, x_n) = \\min\\{x_1, x_2, \\dots, x_n\\}
+
+    Parameters
+    ----------
+    arg1 : Expression
+        First input expression.
+    arg2 : Expression
+        Second input expression.
+    *args : Expression
+        Additional input expressions.
     """
 
     def __init__(self, arg1, arg2, *args) -> None:

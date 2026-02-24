@@ -23,7 +23,19 @@ from cvxpy.utilities import bounds as bounds_utils
 
 
 class exp(Elementwise):
-    """Elementwise :math:`e^{x}`.
+    """Elementwise exponential function.
+
+    Computes the elementwise exponential of the input.
+
+    Mathematical definition:
+        .. math::
+
+            f(x) = e^{x}
+
+    Parameters
+    ----------
+    x : Expression
+        Input expression.
     """
 
     def __init__(self, x) -> None:
