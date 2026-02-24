@@ -217,7 +217,10 @@ def _build_solving_chain(
         reductions.append(ApproxCone2Cone(target_cones=approx_targets))
 
     reductions.append(
-        CvxAttr2Constr(reduce_bounds=not solver_instance.BOUNDED_VARIABLES))
+        CvxAttr2Constr(
+            reduce_bounds=not solver_instance.BOUNDED_VARIABLES,
+            reduce_psd=not solver_instance.PSD_VARIABLES,
+        ))
     reductions.append(EliminateZeroSized())
 
     if solver_instance.SOC_DIM3_ONLY and SOC in cones:

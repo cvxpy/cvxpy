@@ -79,6 +79,7 @@ class MOSEK(ConicSolver):
 
     MIP_CAPABLE = True
     BOUNDED_VARIABLES = True
+    PSD_VARIABLES = True
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [
         SOC, PSD, ExpCone, PowCone3D, PowConeND,
     ]
@@ -175,6 +176,10 @@ class MOSEK(ConicSolver):
         data[s.UPPER_BOUNDS] = problem.upper_bounds
         data[s.BOOL_IDX] = [int(t[0]) for t in problem.x.boolean_idx]
         data[s.INT_IDX] = [int(t[0]) for t in problem.x.integer_idx]
+        data['psd_variable_info'] = problem.psd_variable_info
+        inv_data['num_psd_var_linking'] = sum(
+            rs for _, rs, _, _ in problem.psd_variable_info
+        )
         return data, inv_data
 
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts,
@@ -403,6 +408,48 @@ class MOSEK(ConicSolver):
             MOSEK._add_afe_acc(task, A, b, row, dim, dom)
             row += dim
 
+        # PSD variables via barvar API (native MOSEK semidefinite variables).
+        # When PSD_VARIABLES is True, PSD variable attributes are NOT converted
+        # to explicit PSD constraints. Instead we create barvars directly and
+        # link them to the scalar variables via equality constraints.
+        for var_offset, reduced_size, psd_dim, is_nsd in data.get(
+                'psd_variable_info', []):
+            # Compute svec-to-(row,col) mapping for lower triangle
+            tri_rows, tri_cols = np.tril_indices(psd_dim)
+            order = np.lexsort((tri_rows, tri_cols))
+            tri_rows = tri_rows[order]
+            tri_cols = tri_cols[order]
+
+            barvar_idx = task.getnumbarvar()
+            task.appendbarvars([psd_dim])
+
+            con_offset = task.getnumcon()
+            task.appendcons(reduced_size)
+
+            # For each svec entry k, add constraint: v_k - <M_k, X> = 0
+            # (or v_k + <M_k, Y> = 0 for NSD, where Y is PSD and X = -Y).
+            sign = 1.0 if is_nsd else -1.0
+            for k in range(reduced_size):
+                i_k, j_k = int(tri_rows[k]), int(tri_cols[k])
+                # Off-diagonal: val=0.5 so trace gives 2*0.5*X[i,j] = X[i,j]
+                # Diagonal: val=1.0 so trace gives X[i,i]
+                val = 1.0 if i_k == j_k else 0.5
+                mat_id = task.appendsparsesymmat(psd_dim, [i_k], [j_k], [val])
+                task.putbaraij(con_offset + k, barvar_idx, [mat_id], [sign])
+
+            # Scalar variable coefficients: v_k has coefficient 1.0
+            var_indices = list(range(var_offset, var_offset + reduced_size))
+            con_indices = list(range(con_offset, con_offset + reduced_size))
+            task.putaijlist(con_indices, var_indices, [1.0] * reduced_size)
+
+            # NSD: v_k + <M_k, Y> = 0 => v_k = -Y[i,j] = X[i,j]
+            # PSD: v_k - <M_k, X> = 0 => v_k = X[i,j]
+            task.putconboundlist(
+                np.arange(con_offset, con_offset + reduced_size, dtype=np.int32),
+                [mosek.boundkey.fx] * reduced_size,
+                [0.0] * reduced_size, [0.0] * reduced_size,
+            )
+
         # Integer constraints
         bool_idx = data[s.BOOL_IDX]
         int_idx = data[s.INT_IDX]
@@ -460,7 +507,9 @@ class MOSEK(ConicSolver):
         eq_dual = y[:cone_dims.zero]
         nonneg_dual = y[cone_dims.zero:
                         cone_dims.zero + cone_dims.nonneg]
-        psd_linking_dual = y[cone_dims.zero + cone_dims.nonneg:]
+        num_psd_con_linking = sum(d * (d + 1) // 2 for d in cone_dims.psd)
+        psd_con_start = cone_dims.zero + cone_dims.nonneg
+        psd_linking_dual = y[psd_con_start:psd_con_start + num_psd_con_linking]
 
         # ACC duals (SOC, exp, pow3d, powND — PSD uses barvar)
         acc_duals = []
