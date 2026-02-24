@@ -616,7 +616,12 @@ class TestBackwardDgp(BaseTest):
     def test_param_used_in_exponent_and_elsewhere(self) -> None:
         # construct a problem with solution
         # x^\star(\alpha) = 1 - 0.3^alpha - alpha^2, and derivative
-        # x^\star'(\alpha) = -log(0.3) * 0.2^\alpha - 2*alpha
+        # x^\star'(\alpha) = -log(0.3) * 0.3^\alpha - 2*alpha
+        #
+        # alpha appears both as a base (alpha^2 → log-transformed) and as an
+        # exponent (0.3^alpha → used directly).  On CVXPY 1.8.1, backward()
+        # returned the wrong gradient because the direct contribution was lost,
+        # and derivative() crashed with KeyError for the same reason.
         base = 0.3
         alpha = cp.Parameter(pos=True, value=0.5)
         x = cp.Variable(pos=True)
@@ -627,9 +632,11 @@ class TestBackwardDgp(BaseTest):
         alpha.delta = 1e-5
         problem.solve(solver=cp.DIFFCP, gp=True, requires_grad=True, eps=1e-5)
         self.assertAlmostEqual(x.value, 1 - base**(0.5) - 0.5**2)
+        # Check backward first — on CVXPY 1.8.1 this gave wrong gradient
         problem.backward()
-        problem.derivative()
         self.assertAlmostEqual(alpha.gradient, -np.log(base)*base**(0.5) - 2*0.5)
+        # Check derivative — on CVXPY 1.8.1 this raised KeyError
+        problem.derivative()
         self.assertAlmostEqual(x.delta, alpha.gradient*1e-5, places=3)
 
     def test_basic_gp(self) -> None:
