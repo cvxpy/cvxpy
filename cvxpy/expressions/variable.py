@@ -115,14 +115,6 @@ class Variable(Leaf):
         obj = lu.create_var(self.shape, self.id)
         return (obj, [])
 
-    def set_variable_of_provenance(self, variable: Variable) -> None:
-        """Deprecated: use set_leaf_of_provenance instead."""
-        self.set_leaf_of_provenance(variable)
-
-    def variable_of_provenance(self) -> Optional[Variable]:
-        """Deprecated: use leaf_of_provenance instead."""
-        return self.leaf_of_provenance()
-
     def __repr__(self) -> str:
         """String to recreate the variable."""
         attr_str = self._get_attr_str()
