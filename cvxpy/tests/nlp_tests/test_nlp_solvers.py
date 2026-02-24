@@ -4,7 +4,7 @@ import pytest
 
 import cvxpy as cp
 from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS
-from cvxpy.reductions.solvers.nlp_solvers.nlp_solver import DerivativeChecker
+from cvxpy.tests.nlp_tests.derivative_checker import DerivativeChecker
 from cvxpy.tests.test_conic_solvers import is_knitro_available
 
 # Always parametrize all solvers, skip at runtime if not available

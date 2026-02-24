@@ -4,7 +4,7 @@ import pytest
 
 import cvxpy as cp
 from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS
-from cvxpy.reductions.solvers.nlp_solvers.nlp_solver import DerivativeChecker
+from cvxpy.tests.nlp_tests.derivative_checker import DerivativeChecker
 
 np.random.seed(0)
 

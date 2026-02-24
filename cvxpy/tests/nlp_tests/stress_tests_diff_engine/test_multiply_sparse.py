@@ -4,7 +4,7 @@ import scipy.sparse as sp
 
 import cvxpy as cp
 from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS
-from cvxpy.reductions.solvers.nlp_solvers.nlp_solver import DerivativeChecker
+from cvxpy.tests.nlp_tests.derivative_checker import DerivativeChecker
 
 
 @pytest.mark.skipif('IPOPT' not in INSTALLED_SOLVERS, reason='IPOPT is not installed.')

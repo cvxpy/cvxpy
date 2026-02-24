@@ -161,6 +161,12 @@ The diff engine supports CVXPY `Parameter` objects: `C_problem` registers parame
 
 `DerivativeChecker` in `nlp_solver.py` provides finite-difference verification of gradients, Jacobians, and Hessians during development.
 
+Key files in `cvxpy/reductions/solvers/nlp_solvers/diff_engine/`:
+- `converters.py` - Converts CVXPY expression AST to C diff engine trees. Contains `ATOM_CONVERTERS` dict mapping ~40 atom types to C constructors. Includes optimizations like sparse parameter matmul fusion.
+- `c_problem.py` - `C_problem` wrapper around the C diff engine capsule, providing `objective_forward()`, `gradient()`, `jacobian()`, `hessian()` methods.
+
+Convention: all arrays are flattened in **Fortran order** ('F') for column-major compatibility with the C library.
+
 ## Implementing New Atoms
 
 ### For DCP Atoms
@@ -213,7 +219,28 @@ class TestMyFeature(BaseTest):
         self.assertEqual(prob.status, cp.OPTIMAL)
 ```
 
-NLP tests are in `cvxpy/tests/nlp_tests/` with Jacobian and Hessian verification tests.
+NLP tests are in `cvxpy/tests/nlp_tests/`. Use `DerivativeChecker` from `derivative_checker.py` to verify derivatives:
+
+```python
+import pytest
+from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS
+from cvxpy.tests.nlp_tests.derivative_checker import DerivativeChecker
+
+@pytest.mark.skipif('IPOPT' not in INSTALLED_SOLVERS, reason='IPOPT is not installed.')
+class TestMyNLPFeature:
+    def test_derivatives(self) -> None:
+        x = cp.Variable(2)
+        x.value = np.ones(2)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(x)), [x >= 0.1])
+        prob.solve(solver=cp.IPOPT, nlp=True)
+        assert prob.status == cp.OPTIMAL
+
+        # Verify gradients, Jacobian, and Hessian against finite differences
+        checker = DerivativeChecker(prob)
+        checker.run_and_assert()
+```
+
+A common pattern is to solve with both a DCP solver (CLARABEL) and an NLP solver (IPOPT) and verify the results match.
 
 ## Benchmarks
 
