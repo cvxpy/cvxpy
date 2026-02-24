@@ -70,10 +70,6 @@ class huber(Elementwise):
     def is_atom_concave(self) -> bool:
         """Is the atom concave?"""
         return False
-    
-    def is_atom_nonsmooth_convex(self) -> bool:
-        """Is the atom nonsmooth and convex?"""
-        return True
 
     def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?"""

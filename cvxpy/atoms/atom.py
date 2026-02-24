@@ -192,14 +192,6 @@ class Atom(Expression):
         """Is the atom smooth?"""
         return False
 
-    def is_atom_nonsmooth_convex(self) -> bool:
-        """Is the atom nonsmooth and convex?"""
-        return False
-
-    def is_atom_nonsmooth_concave(self) -> bool:
-        """Is the atom nonsmooth and concave?"""
-        return False
-
     def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
         """
@@ -278,7 +270,7 @@ class Atom(Expression):
         # Applies DNLP composition rule.
         if self.is_constant():
             return True
-        elif self.is_atom_smooth() or self.is_atom_nonsmooth_convex():
+        elif self.is_atom_smooth() or self.is_atom_convex():
             for idx, arg in enumerate(self.args):
                 if not (arg.is_smooth() or
                         (arg.is_linearizable_convex() and self.is_incr(idx)) or
@@ -287,7 +279,7 @@ class Atom(Expression):
             return True
         else:
             return False
-        
+
     @perf.compute_once
     def is_linearizable_concave(self) -> bool:
         """Is the expression concave after linearizing all smooth subexpressions?
@@ -295,7 +287,7 @@ class Atom(Expression):
         # Applies DNLP composition rule.
         if self.is_constant():
             return True
-        elif self.is_atom_smooth() or self.is_atom_nonsmooth_concave():
+        elif self.is_atom_smooth() or self.is_atom_concave():
             for idx, arg in enumerate(self.args):
                 if not (arg.is_smooth() or
                         (arg.is_linearizable_concave() and self.is_incr(idx)) or

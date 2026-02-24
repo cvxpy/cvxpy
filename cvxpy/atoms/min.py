@@ -99,10 +99,6 @@ class min(AxisAtom):
         """Is the atom concave?
         """
         return True
-    
-    def is_atom_nonsmooth_concave(self) -> bool:
-        """Is the atom nonsmooth and concave?"""
-        return True
 
     def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?

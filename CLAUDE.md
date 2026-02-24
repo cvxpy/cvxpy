@@ -159,7 +159,7 @@ Adding a new diff engine atom requires:
 
 The diff engine supports CVXPY `Parameter` objects: `C_problem` registers parameters with the C engine and `update_params()` re-pushes values without rebuilding the expression tree. Sparse parameter values are fused into sparse matmul operations.
 
-`DerivativeChecker` in `nlp_solver.py` provides finite-difference verification of gradients, Jacobians, and Hessians during development.
+`DerivativeChecker` in `cvxpy/tests/nlp_tests/derivative_checker.py` provides finite-difference verification of gradients, Jacobians, and Hessians during development.
 
 Key files in `cvxpy/reductions/solvers/nlp_solvers/diff_engine/`:
 - `converters.py` - Converts CVXPY expression AST to C diff engine trees. Contains `ATOM_CONVERTERS` dict mapping ~40 atom types to C constructors. Includes optimizations like sparse parameter matmul fusion.
@@ -182,17 +182,17 @@ Convention: all arrays are flattened in **Fortran order** ('F') for column-major
 1. Create a canonicalizer in `cvxpy/reductions/dnlp2smooth/canonicalizers/`
 2. The canonicalizer converts non-smooth atoms to smooth equivalents using auxiliary variables
 3. Register in `canonicalizers/__init__.py` by adding to `SMOOTH_CANON_METHODS` dict
-4. Classify the atom using the three-way atom-level API (see below)
+4. If the atom is smooth, override `is_atom_smooth()` to return `True` (see classification below)
 
-### DNLP Atom Classification (Three-way)
+### DNLP Atom Classification
 
-Each atom implements exactly one of three atom-level methods:
+Atoms are classified as smooth or non-smooth.  Non-smooth atoms reuse the existing `is_atom_convex()`/`is_atom_concave()` methods for the DNLP composition rules—no separate method is needed.
 
 | Category | Method | Examples |
 |---|---|---|
 | **Smooth** | `is_atom_smooth() → True` | exp, log, power, sin, prod, quad_form |
-| **NS-convex** | `is_atom_nonsmooth_convex() → True` | abs, max, norm1, norm_inf, huber |
-| **NS-concave** | `is_atom_nonsmooth_concave() → True` | min, minimum |
+| **Non-smooth convex** | `is_atom_convex() → True` (and not smooth) | abs, max, norm1, norm_inf, huber |
+| **Non-smooth concave** | `is_atom_concave() → True` (and not smooth) | min, minimum |
 
 ### DNLP Expression-level Rules
 

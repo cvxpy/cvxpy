@@ -66,10 +66,6 @@ class maximum(Elementwise):
         """Is the atom concave?
         """
         return False
-    
-    def is_atom_nonsmooth_convex(self) -> bool:
-        """Is the atom nonsmooth and convex?"""
-        return True
 
     def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
