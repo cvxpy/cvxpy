@@ -443,6 +443,75 @@ class TestBackwardComplex(BaseTest):
         # x.delta should be scalar (perturbation of max eigenvalue)
         self.assertTrue(np.isscalar(x.delta) or x.delta.size == 1)
 
+    def test_derivative_complex_variable_imag_param(self) -> None:
+        """Forward diff: perturbing param that affects imaginary part of complex variable.
+
+        On CVXPY 1.8.1, the imaginary variable's delta was lost in
+        split_solution because only outer variable IDs were passed as active_vars.
+        """
+        a = cp.Parameter()
+        b = cp.Parameter()
+        z = cp.Variable(complex=True)
+        # z* = a + bj at optimum
+        prob = cp.Problem(
+            cp.Minimize(
+                cp.sum_squares(cp.real(z) - a) + cp.sum_squares(cp.imag(z) - b)
+            )
+        )
+        a.value = 3.0
+        b.value = 4.0
+        prob.solve(requires_grad=True, solver=cp.SCS)
+        self.assertAlmostEqual(np.real(z.value), 3.0, places=2)
+        self.assertAlmostEqual(np.imag(z.value), 4.0, places=2)
+
+        # Perturb b only: dz*/db = j, so z.delta should be 1j
+        a.delta = 0.0
+        b.delta = 1.0
+        prob.derivative()
+        self.assertAlmostEqual(np.imag(z.delta), 1.0, places=2)
+        self.assertAlmostEqual(np.real(z.delta), 0.0, places=2)
+
+    def test_derivative_complex_variable_purely_imaginary(self) -> None:
+        """Forward diff: complex variable whose solution is purely imaginary."""
+        p = cp.Parameter()
+        w = cp.Variable(complex=True)
+        # w* = pj at optimum
+        prob = cp.Problem(
+            cp.Minimize(
+                cp.sum_squares(cp.real(w)) + cp.sum_squares(cp.imag(w) - p)
+            )
+        )
+        p.value = 5.0
+        prob.solve(requires_grad=True, solver=cp.SCS)
+        self.assertAlmostEqual(np.imag(w.value), 5.0, places=2)
+
+        # dw*/dp = j, so w.delta should be 1j
+        p.delta = 1.0
+        prob.derivative()
+        self.assertAlmostEqual(np.imag(w.delta), 1.0, places=2)
+
+    def test_derivative_complex_param_complex_variable(self) -> None:
+        """Forward diff: complex param and complex variable."""
+        q = cp.Parameter(complex=True)
+        v = cp.Variable(complex=True)
+        # v* = q at optimum
+        prob = cp.Problem(
+            cp.Minimize(
+                cp.sum_squares(cp.real(v) - cp.real(q))
+                + cp.sum_squares(cp.imag(v) - cp.imag(q))
+            )
+        )
+        q.value = np.array(2.0 + 3.0j)
+        prob.solve(requires_grad=True, solver=cp.SCS)
+        self.assertAlmostEqual(np.real(v.value), 2.0, places=2)
+        self.assertAlmostEqual(np.imag(v.value), 3.0, places=2)
+
+        # v* = q, dv*/dq = 1, so v.delta = q.delta
+        q.delta = 1.0 + 0.5j
+        prob.derivative()
+        self.assertAlmostEqual(np.real(v.delta), 1.0, places=2)
+        self.assertAlmostEqual(np.imag(v.delta), 0.5, places=2)
+
 
 class TestBackwardDgp(BaseTest):
     """Test problem.backward() and problem.derivative()."""

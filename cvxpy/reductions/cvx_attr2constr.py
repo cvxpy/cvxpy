@@ -277,17 +277,6 @@ class CvxAttr2Constr(Reduction):
             if param.value is not None:
                 reduced_param.value = lower_value(param)
 
-    def var_forward(self, dvars):
-        """Transform variable deltas from inner (reduced) to outer (original)."""
-        result = dict(dvars)
-        for orig_var, new_var in self._variables.items():
-            if new_var.id in result:
-                value = result.pop(new_var.id)
-                if orig_var._has_dim_reducing_attr:
-                    value = recover_value_for_leaf(orig_var, value, project=False)
-                result[orig_var.id] = value
-        return result
-
     def var_backward(self, del_vars):
         """Transform variable gradients from outer (original) to inner (reduced)."""
         result = dict(del_vars)
@@ -299,6 +288,17 @@ class CvxAttr2Constr(Reduction):
                         value = value + value.T - np.diag(np.diag(value))
                     value = lower_value(orig_var, value)
                 result[new_var.id] = value
+        return result
+
+    def var_forward(self, dvars):
+        """Transform variable deltas from inner (reduced) to outer (original)."""
+        result = dict(dvars)
+        for orig_var, new_var in self._variables.items():
+            if new_var.id in result:
+                value = result.pop(new_var.id)
+                if orig_var._has_dim_reducing_attr:
+                    value = recover_value_for_leaf(orig_var, value, project=False)
+                result[orig_var.id] = value
         return result
 
     def param_backward(self, dparams):
