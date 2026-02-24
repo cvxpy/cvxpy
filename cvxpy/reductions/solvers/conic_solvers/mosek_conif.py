@@ -395,6 +395,15 @@ class MOSEK(ConicSolver):
 
         # Add barvar coefficients for PSD variables into
         # objective, linear constraints, and AFE rows.
+        import sys
+        print(f"DEBUG: psd_var_barvars={len(psd_var_barvars)}", file=sys.stderr)
+        for i, (vo, rs, pd, nsd, bi, tr, tc) in enumerate(psd_var_barvars):
+            print(f"  [{i}] offset={vo} size={rs} dim={pd} nsd={nsd} "
+                  f"barvar={bi} rows={list(tr)} cols={list(tc)}", file=sys.stderr)
+            c_psd = c[vo:vo + rs]
+            print(f"  [{i}] c_psd={list(c_psd)}", file=sys.stderr)
+        print(f"DEBUG: linear_maps={linear_maps}", file=sys.stderr)
+        print(f"DEBUG: afe_maps={afe_maps}", file=sys.stderr)
         MOSEK._add_psd_var_barvar_coefficients(
             task, c, A, psd_var_barvars, linear_maps, afe_maps)
 
@@ -469,6 +478,9 @@ class MOSEK(ConicSolver):
             all_k.extend(i_k.astype(np.int32).tolist())
             all_l.extend(j_k.astype(np.int32).tolist())
             all_v.extend((sign * c_psd[nz] * scale).tolist())
+        import sys
+        print(f"DEBUG barC: j={all_j} k={all_k} l={all_l} v={all_v}",
+              file=sys.stderr)
         if all_j:
             task.putbarcblocktriplet(all_j, all_k, all_l, all_v)
 
@@ -484,6 +496,8 @@ class MOSEK(ConicSolver):
             all_subk.extend(t[2])
             all_subl.extend(t[3])
             all_vals.extend(t[4])
+        print(f"DEBUG barA: i={all_subi} j={all_subj} k={all_subk} "
+              f"l={all_subl} v={all_vals}", file=sys.stderr)
         if all_subi:
             task.putbarablocktriplet(
                 all_subi, all_subj, all_subk, all_subl, all_vals)
@@ -638,7 +652,17 @@ class MOSEK(ConicSolver):
         if status in s.SOLUTION_PRESENT:
             # Primal variables
             primal = np.array(task.getxx(sol_type))
-            opt_val = task.getprimalobj(sol_type) + inverse_data[s.OFFSET]
+            pobj = task.getprimalobj(sol_type)
+            offset = inverse_data[s.OFFSET]
+            opt_val = pobj + offset
+            import sys
+            print(f"DEBUG invert: primalobj={pobj} offset={offset} "
+                  f"opt_val={opt_val} numbarvar={task.getnumbarvar()}",
+                  file=sys.stderr)
+            for j in range(task.getnumbarvar()):
+                bx = [0.0] * (task.getdimbarvarj(j) * (task.getdimbarvarj(j) + 1) // 2)
+                task.getbarxj(sol_type, j, bx)
+                print(f"DEBUG barx[{j}]={bx}", file=sys.stderr)
             primal_vars = {inverse_data[self.VAR_ID]: primal}
 
             # Dual variables
