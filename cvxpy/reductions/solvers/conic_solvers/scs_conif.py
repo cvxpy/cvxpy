@@ -324,35 +324,37 @@ class SCS(ConicSolver):
         args = {"A": data[s.A], "b": data[s.B], "c": data[s.C]}
         if s.P in data:
             args["P"] = data[s.P]
-        if warm_start and solver_cache is not None and \
-                self.name() in solver_cache:
-            args["x"] = solver_cache[self.name()]["x"]
-            args["y"] = solver_cache[self.name()]["y"]
-            args["s"] = solver_cache[self.name()]["s"]
         cones = dims_to_solver_dict(data[ConicSolver.DIMS])
-
-        def solve(_solver_opts):
-            if scs_version.major < 3:
-                _results = scs.solve(args, cones, verbose=verbose, **_solver_opts)
-                _status = self.STATUS_MAP[_results["info"]["statusVal"]]
-            else:
-                _results = scs.solve(args, cones, verbose=verbose, **_solver_opts)
-                _status = self.STATUS_MAP[_results["info"]["status_val"]]
-            return _results, _status
-
         solver_opts = SCS.parse_solver_options(solver_opts)
-        results, status = solve(solver_opts)
+        scs_solver = None
+        if solver_cache is not None:
+            scs_solver = solver_cache.get(self.name(), None)
+        if scs_solver is None:
+            scs_solver = scs.SCS(args, cones, verbose=verbose, **solver_opts)
+        else:
+            if "P" in args:
+                scs_solver = scs.SCS(args, cones, verbose=verbose, **solver_opts)
+            else:
+                scs_solver.update(b=args["b"], c=args["c"])
+        results = scs_solver.solve()
+        if scs_version.major < 3:
+            status = self.STATUS_MAP[results["info"]["statusVal"]]
+        else:
+            status = self.STATUS_MAP[results["info"]["status_val"]]
         if (status in s.INACCURATE and scs_version.major == 2
                 and "acceleration_lookback" not in solver_opts):
             warn(SCS.ACCELERATION_RETRY_MESSAGE % str(scs_version))
             retry_opts = solver_opts.copy()
             retry_opts["acceleration_lookback"] = 0
-            results, status = solve(retry_opts)
-
+            scs_solver = scs.SCS(args, cones, verbose=verbose, **retry_opts)
+            results = scs_solver.solve()
+            status = self.STATUS_MAP[ 
+            results["info"]["statusVal"]
+            ]
         if solver_cache is not None and status == s.OPTIMAL:
-            solver_cache[self.name()] = results
+            solver_cache[self.name()] = scs_solver
         return results
-    
+
     def cite(self, data):
         """Returns bibtex citation for the solver.
 
