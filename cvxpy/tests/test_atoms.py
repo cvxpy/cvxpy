@@ -733,6 +733,18 @@ class TestAtoms(BaseTest):
         A_reshaped = cp.reshape(A, -1, order='F')
         assert np.allclose(A_reshaped.value, A.reshape(-1, order='F'))
 
+        # Regression test: -1 inference must work for N-D (N > 2) shapes.
+        # Before the fix, _infer_shape used a 2D-only idiom that produced wrong
+        # dimensions and crashed for all three -1 positions in 3D+ shapes.
+        nd_expr = cp.Variable((2, 3, 4))
+        nd_numpy = np.arange(24).reshape((2, 3, 4))
+        for shape in [(-1, 3, 4), (2, -1, 4), (2, 3, -1)]:
+            r = cp.reshape(nd_expr, shape, order='F')
+            assert r.shape == (2, 3, 4), f"Expected (2, 3, 4), got {r.shape} for shape={shape}"
+            r_const = cp.reshape(nd_numpy, shape, order='F')
+            expected = np.reshape(nd_numpy, shape, order='F')
+            assert np.allclose(r_const.value, expected), f"Numeric mismatch for shape={shape}"
+
     def test_squeeze(self) -> None:
         A = np.random.rand(2, 1, 3, 1, 1, 4)
         A_squeezed_np = np.squeeze(A)
