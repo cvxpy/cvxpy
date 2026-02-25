@@ -27,7 +27,6 @@ class KNITRO(NLPsolver):
     NLP interface for the KNITRO solver
     """
 
-    BOUNDED_VARIABLES = True
     # Keys:
     CONTEXT_KEY = "context"
     X_INIT_KEY = "x_init"

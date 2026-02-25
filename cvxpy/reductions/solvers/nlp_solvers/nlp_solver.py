@@ -43,6 +43,7 @@ class NLPsolver(Solver):
     """
     REQUIRES_CONSTR = False
     MIP_CAPABLE = False
+    BOUNDED_VARIABLES = True
 
     def accepts(self, problem: Problem) -> bool:
         """

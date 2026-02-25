@@ -65,7 +65,7 @@ prob.solve(nlp=True, solver=cp.IPOPT, best_of=5)
 
 | Solver | License | Installation |
 |--------|---------|--------------|
-| [IPOPT](https://github.com/coin-or/Ipopt) | EPL-2.0 | `conda install -c conda-forge cyipopt` |
+| [IPOPT](https://github.com/coin-or/Ipopt) | EPL-2.0 | `conda install -c conda-forge cyipopt` (conda only — pip install is unreliable) |
 | [Knitro](https://www.artelys.com/solvers/knitro/) | Commercial | `pip install knitro` (requires license) |
 | [COPT](https://www.copt.de/) | Commercial | Requires license |
 | [Uno](https://github.com/cuter-testing/uno) | Open source | See Uno documentation |
@@ -129,9 +129,9 @@ Key reduction classes in `cvxpy/reductions/`:
 - `Chain` composes multiple reductions
 - `SolvingChain` orchestrates the full solve process
 
-For DNLP: `CvxAttr2Constr` → `Dnlp2Smooth` → `NLPSolver`
+For DNLP: `FlipObjective` (if Maximize) → `CvxAttr2Constr` → `Dnlp2Smooth` → `NLPSolver`
 
-Note: The standard `SolvingChain` in `solving_chain.py` handles DCP/DGP/DQCP solver selection automatically. NLP solving is triggered explicitly via `prob.solve(nlp=True)` and bypasses the standard chain.
+Note: The standard `SolvingChain` in `solving_chain.py` handles DCP/DGP/DQCP solver selection automatically. NLP solving is triggered explicitly via `prob.solve(nlp=True)` and bypasses the standard chain — `problem.py` delegates to `solve_nlp()` in `cvxpy/reductions/solvers/nlp_solving_chain.py`, which builds the chain, handles initial point construction (via `_set_nlp_initial_point`), and orchestrates the `best_of` multi-start logic. Solver algorithm variants (e.g., `"knitro_sqp"`) are mapped via `NLP_SOLVER_VARIANTS` in `nlp_solving_chain.py`.
 
 ### Solver Categories
 
@@ -241,6 +241,10 @@ class TestMyNLPFeature:
 ```
 
 A common pattern is to solve with both a DCP solver (CLARABEL) and an NLP solver (IPOPT) and verify the results match.
+
+## Build System
+
+Uses a custom build backend (`setup/build_meta.py`) that re-exports `setuptools.build_meta`. The `setup/` directory handles C extensions (cvxcore, sparsecholesky) and version management. Solver registration is in `cvxpy/reductions/solvers/defines.py` (`SOLVER_MAP_CONIC`, `SOLVER_MAP_QP`, `SOLVER_MAP_NLP`).
 
 ## Benchmarks
 

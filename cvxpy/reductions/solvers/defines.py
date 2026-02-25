@@ -49,6 +49,7 @@ from cvxpy.reductions.solvers.conic_solvers.xpress_conif import XPRESS as XPRESS
 # NLP interfaces
 from cvxpy.reductions.solvers.nlp_solvers.copt_nlpif import COPT as COPT_nlp
 from cvxpy.reductions.solvers.nlp_solvers.ipopt_nlpif import IPOPT as IPOPT_nlp
+from cvxpy.reductions.solvers.nlp_solvers.knitro_nlpif import KNITRO as KNITRO_nlp
 from cvxpy.reductions.solvers.nlp_solvers.uno_nlpif import UNO as UNO_nlp
 
 # QP interfaces
@@ -83,13 +84,22 @@ SOLVER_MAP_QP = {inst.name(): inst for inst in [
 ]}
 
 SOLVER_MAP_NLP = {inst.name(): inst for inst in [
-    IPOPT_nlp(), UNO_nlp(), COPT_nlp(),
+    IPOPT_nlp(), KNITRO_nlp(), UNO_nlp(), COPT_nlp(),
 ]}
 
 # Preference-ordered solver name lists, derived from the maps above.
 CONIC_SOLVERS = list(SOLVER_MAP_CONIC)
 QP_SOLVERS = list(SOLVER_MAP_QP)
 NLP_SOLVERS = list(SOLVER_MAP_NLP)
+
+# Solver variants: maps variant name → (base solver name, extra kwargs).
+NLP_SOLVER_VARIANTS = {
+    "knitro_ipm": ("KNITRO", {"algorithm": 1}),
+    "knitro_sqp": ("KNITRO", {"algorithm": 4}),
+    "knitro_alm": ("KNITRO", {"algorithm": 6}),
+    "uno_ipm": ("UNO", {"preset": "ipopt", "linear_solver": "MUMPS"}),
+    "uno_sqp": ("UNO", {"preset": "filtersqp"}),
+}
 
 # Mixed-integer solver lists, derived from solver class attributes.
 MI_SOLVERS = [

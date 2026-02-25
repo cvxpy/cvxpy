@@ -39,18 +39,12 @@ from cvxpy.interface.matrix_utilities import scalar_value
 from cvxpy.problems.objective import Maximize, Minimize
 from cvxpy.reductions import InverseData
 from cvxpy.reductions.chain import Chain
-from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr
-from cvxpy.reductions.dnlp2smooth.dnlp2smooth import Dnlp2Smooth
 from cvxpy.reductions.dqcp2dcp import dqcp2dcp
 from cvxpy.reductions.eval_params import EvalParams
 from cvxpy.reductions.flip_objective import FlipObjective
 from cvxpy.reductions.solution import INF_OR_UNB_MESSAGE
 from cvxpy.reductions.solvers import bisection
 from cvxpy.reductions.solvers import defines as slv_def
-from cvxpy.reductions.solvers.nlp_solvers.copt_nlpif import COPT as COPT_nlp
-from cvxpy.reductions.solvers.nlp_solvers.ipopt_nlpif import IPOPT as IPOPT_nlp
-from cvxpy.reductions.solvers.nlp_solvers.knitro_nlpif import KNITRO as KNITRO_nlp
-from cvxpy.reductions.solvers.nlp_solvers.uno_nlpif import UNO as UNO_nlp
 from cvxpy.reductions.solvers.solver_inverse_data import SolverInverseData
 from cvxpy.reductions.solvers.solving_chain import (
     SolvingChain,
@@ -1080,89 +1074,10 @@ class Problem(u.Canonical):
                 return self.value
 
         if nlp and self.is_dnlp():
-            if type(self.objective) == Maximize:
-                reductions = [FlipObjective()]
-            else:
-                reductions = []
-            reductions = reductions + [CvxAttr2Constr(reduce_bounds=False), Dnlp2Smooth()]
-            # instantiate based on user provided solver
-            # (default to Ipopt)
-            if solver is s.IPOPT or solver is None:
-                nlp_reductions = reductions + [IPOPT_nlp()]
-            elif "knitro" in solver.lower():
-                if solver == "knitro_ipm":
-                    kwargs["algorithm"] = 1
-                elif solver == "knitro_sqp":
-                    kwargs["algorithm"] = 4
-                elif solver == "knitro_alm":
-                    kwargs["algorithm"] = 6
-                nlp_reductions = reductions + [KNITRO_nlp()]
-            elif solver is s.COPT:
-                nlp_reductions = reductions + [COPT_nlp()]
-            elif "uno" in solver.lower():
-                if solver.lower() == "uno_ipm":
-                    # Interior-point method (requires MUMPS linear solver)
-                    kwargs["preset"] = "ipopt"
-                    kwargs["linear_solver"] = "MUMPS"
-                elif solver.lower() == "uno_sqp":
-                    # SQP method (default)
-                    kwargs["preset"] = "filtersqp"
-                nlp_reductions = reductions + [UNO_nlp()]
-            else:
-                raise error.SolverError(
-                    "Solver %s is not supported for NLP problems." % solver
-                )
-            # canonicalize disciplined nlp problems to smooth form
-            nlp_chain = SolvingChain(reductions=nlp_reductions)
-            best_of = kwargs.pop("best_of", 1)
-
-            # standard solve
-            if best_of == 1:
-                self.set_NLP_initial_point()
-                canon_problem, inverse_data = nlp_chain.apply(problem=self)
-                solution = nlp_chain.solver.solve_via_data(canon_problem, warm_start,
-                                                            verbose, solver_opts=kwargs)
-                self.unpack_results(solution, nlp_chain, inverse_data)
-                return self.value
-            # best-of-N solve
-            else:
-                if (not isinstance(best_of, int)) or best_of < 1:
-                    raise ValueError("best_of must be a positive integer.")
-            
-                best_obj, best_solution = float("inf"), None
-                all_objs = np.zeros(shape=(best_of,))
-                
-                for run in range(best_of):
-                    print("Starting NLP solve %d of %d" % (run + 1, best_of))
-                    self.set_random_NLP_initial_point(run)
-                    canon_problem, inverse_data = nlp_chain.apply(problem=self)
-                    solution = nlp_chain.solver.solve_via_data(canon_problem, warm_start,
-                                                                verbose, solver_opts=kwargs)
-                    
-                    # This gives the objective value of the C problem
-                    # which can be slightly different from the original NLP 
-                    # so we use the below approach with unpacking. Preferably 
-                    # we would have a way to do this without unpacking.
-                    #obj_value = canon_problem['objective'](solution['x'])
-                    
-                    # set cvxpy variable
-                    self.unpack_results(solution, nlp_chain, inverse_data)
-                    obj_value = self.objective.value
-
-                    all_objs[run] = obj_value
-                    if obj_value < best_obj:
-                        best_obj = obj_value
-                        print("best_obj: ", best_obj)
-                        best_solution = solution
-
-                # unpack best solution    
-                if type(self.objective) == Maximize:
-                    all_objs = -all_objs
-
-                # propagate all objective values to the user
-                best_solution['all_objs_from_best_of'] = all_objs
-                self.unpack_results(best_solution, nlp_chain, inverse_data)
-                return self.value
+            # Deferred import to avoid circular import:
+            # nlp_solving_chain → dnlp2smooth → cvxpy → problem
+            from cvxpy.reductions.solvers.nlp_solving_chain import solve_nlp
+            return solve_nlp(self, solver, warm_start, verbose, **kwargs)
         elif nlp and not self.is_dnlp():
             raise error.DNLPError("The problem you specified is not DNLP.")
 
@@ -1517,103 +1432,7 @@ class Problem(u.Canonical):
         self._solver_stats = SolverStats.from_dict(self._solution.attr,
                                          chain.solver.name())
 
-    
-    def set_NLP_initial_point(self) -> dict:
-        """ Constructs an initial point for the optimization problem. If no
-        initial value is specified, look at the bounds. If both lb and ub are 
-        specified, we initialize the variables to be their midpoints. If only
-        one of them is specified, we initialize the variable one unit from 
-        the bound. If none of them is specified, we initialize it to zero.
-        """
-        for var in self.variables():
-            if var.value is not None:
-                continue
 
-            bounds = var.bounds
-            is_nonneg = var.is_nonneg()
-            is_nonpos = var.is_nonpos()
-            
-            if bounds is None:
-                if is_nonneg:
-                    x0 = np.ones(var.shape)
-                elif is_nonpos:
-                    x0 = -np.ones(var.shape)
-                else:
-                    x0 = np.zeros(var.shape)
-
-                var.save_value(x0)
-            else:
-                lb, ub = bounds
-
-                if is_nonneg:
-                    lb = np.maximum(lb, 0)
-                elif is_nonpos:
-                    ub = np.maximum(ub, 0)
-
-                lb_finite = np.isfinite(lb)
-                ub_finite = np.isfinite(ub)
-                # Replace infs with zero for arithmetic
-                lb0 = np.where(lb_finite, lb, 0.0)
-                ub0 = np.where(ub_finite, ub, 0.0)
-                # Midpoint if both finite, one from bound if only one finite, zero if none
-                init = (lb_finite * ub_finite * 0.5 * (lb0 + ub0) +
-                        lb_finite * (~ub_finite) * (lb0 + 1.0) +
-                        (~lb_finite) * ub_finite * (ub0 - 1.0))
-                # Broadcast to variable shape (handles scalar bounds)
-                init = np.broadcast_to(init, var.shape).copy()
-                var.save_value(init)
-
-
-    def set_random_NLP_initial_point(self, run) -> dict:
-        """ Generates a random initial point for DNLP problems.
-        A variable is initialized randomly in the following cases:
-        1. 'sample_bounds' is set for that variable.
-        2. the initial value specified by the user is None,
-           'sample_bounds' is not set for that variable, but the
-           variable has both finite lower and upper bounds.
-        """
-
-        # store user-specified initial values for variables that do 
-        # not have sample bounds assigned
-        if run == 0:
-            self._user_initials = {}
-            for var in self.variables():
-                if var.sample_bounds is not None:
-                    self._user_initials[var.id] = None
-                else:
-                    self._user_initials[var.id] = var.value
-        
-        for var in self.variables():
-            
-            # skip variables with user-specified initial value
-            # (note that any variable with sample bounds set will have
-            #  _user_initials[var.id] == None)
-            if self._user_initials[var.id] is not None:
-                # reset to user-specified initial value from last solve
-                var.value = self._user_initials[var.id]
-                continue
-            else:
-                # reset to None from last solve
-                var.value = None 
-            
-            # set sample_bounds to variable bounds if sample_bounds is None
-            # and variable bounds (possibly infinite) are set
-            if var.sample_bounds is None and var.bounds is not None:
-                var.sample_bounds = var.bounds
-                
-            # sample initial value if sample_bounds is set
-            if var.sample_bounds is not None:
-                low, high = var.sample_bounds
-                if not np.all(np.isfinite(low)) or not np.all(np.isfinite(high)):
-                    raise ValueError(
-                        "Variable %s has non-finite sample_bounds %s. Cannot generate"
-                        " random initial point. Either add sample bounds or set the value. "
-                        % (var.name(), var.sample_bounds)
-                    )
-
-                initial_val = np.random.uniform(low=low, high=high, size=var.shape)
-                var.save_value(initial_val)
-                
     def __str__(self) -> str:
         if len(self.constraints) == 0:
             return str(self.objective)
