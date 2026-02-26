@@ -20,10 +20,80 @@ import numpy as np
 import pytest
 import scipy.sparse as sp
 from numpy.testing import assert_allclose, assert_equal
+from scipy.linalg import ldl
 
 import cvxpy as cp
+from cvxpy.atoms.quad_form import decomp_quad
 from cvxpy.settings import EIGVAL_TOL
 from cvxpy.tests.base_test import BaseTest
+
+
+class TestDecompQuad(BaseTest):
+    """Tests for the decomp_quad helper function."""
+
+    @staticmethod
+    def _check(P) -> None:
+        """Assert P = scale * (M1 @ M1.T - M2 @ M2.T) within tolerance."""
+        scale, M1, M2 = decomp_quad(P)
+        P_dense = P.toarray() if sp.issparse(P) else np.asarray(P)
+        pos = scale * (M1 @ M1.conj().T) if M1.size else np.zeros_like(P_dense)
+        neg = scale * (M2 @ M2.conj().T) if M2.size else np.zeros_like(P_dense)
+        assert_allclose(P_dense, pos - neg, atol=1e-10)
+
+    def test_psd_nsd(self) -> None:
+        rng = np.random.default_rng(0)
+        for n in (2, 5, 20):
+            A = rng.standard_normal((n, n))
+            self._check(A @ A.T)           # PSD, full rank
+            self._check(-(A @ A.T))        # NSD
+        A = rng.standard_normal((10, 7))
+        self._check(A @ A.T)               # PSD, rank-deficient
+
+    def test_indefinite(self) -> None:
+        rng = np.random.default_rng(0)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            for n in (3, 10, 30):
+                A = rng.standard_normal((n, n))
+                P = A + A.T
+                # Verify LDL uses nontrivial permutation
+                _, _, perm = ldl(P)
+                assert not np.array_equal(perm, np.arange(n))
+                self._check(P)
+
+    def test_2x2_blocks(self) -> None:
+        """Zero diagonal forces Bunch-Kaufman 2x2 pivots."""
+        rng = np.random.default_rng(0)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            for n in (6, 10, 30):
+                A = rng.standard_normal((n, n))
+                P = A + A.T
+                np.fill_diagonal(P, 0.0)
+                _, d, _ = ldl(P)
+                assert np.any(np.diag(d, -1) != 0)
+                self._check(P)
+
+    def test_special(self) -> None:
+        scale, M1, M2 = decomp_quad(np.zeros((4, 4)))
+        assert_equal(scale, 0.0)
+        assert_equal(M1.size, 0)
+        assert_equal(M2.size, 0)
+        self._check(np.diag([3.0, 0.0, 5.0, 0.0]))
+
+    def test_complex_hermitian(self) -> None:
+        rng = np.random.default_rng(0)
+        A = rng.standard_normal((5, 5)) + 1j * rng.standard_normal((5, 5))
+        self._check(A @ A.conj().T)        # PSD
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            self._check(A + A.conj().T)    # indefinite
+
+    def test_sparse(self) -> None:
+        self._check(sp.eye_array(5, format="csc") * 3.0)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            self._check(sp.diags_array([1., -1, 2, -2, 3], format="csc"))
 
 
 class TestNonOptimal(BaseTest):
