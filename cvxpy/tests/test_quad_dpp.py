@@ -161,6 +161,41 @@ class TestQuadFormDPPVariants:
         assert prob.status == cp.OPTIMAL
         assert np.allclose(x.value, [-0.5, 1.5], rtol=1e-3)
 
+    def test_quad_form_plus_constant_linear(self) -> None:
+        """quad_form(x, P) + c @ x with constant c solves correctly.
+
+        Regression test: ensures the q coefficient from the linear term is
+        not overwritten when the quad_form dummy variable is processed after
+        the true variable in extract_quadratic_coeffs.
+        """
+        x = cp.Variable(2)
+        P = cp.Parameter((2, 2), PSD=True)
+        P.value = np.eye(2)
+        c = np.array([2.0, -2.0])
+
+        # min x'Px + c'x s.t. sum(x) == 1
+        # Analytic: x* = (1 - P^{-1} c) / (1' P^{-1} 1) adjusted for constraint
+        prob = cp.Problem(cp.Minimize(cp.quad_form(x, P) + c @ x), [cp.sum(x) == 1])
+        prob.solve(solver=cp.CLARABEL)
+        assert prob.status == cp.OPTIMAL
+        x_qp = x.value.copy()
+
+        # Cross-check against conic path.
+        prob.solve(solver=cp.CLARABEL, use_quad_obj=False)
+        assert prob.status == cp.OPTIMAL
+        assert np.allclose(x_qp, x.value, rtol=1e-3)
+        assert np.allclose(x_qp, [-0.5, 1.5], rtol=1e-3)
+
+        # Re-solve with a different P to ensure DPP caching works.
+        P.value = np.array([[2, 0], [0, 1]])
+        prob.solve(solver=cp.CLARABEL)
+        assert prob.status == cp.OPTIMAL
+        x_resolv = x.value.copy()
+
+        prob.solve(solver=cp.CLARABEL, use_quad_obj=False)
+        assert prob.status == cp.OPTIMAL
+        assert np.allclose(x_resolv, x.value, rtol=1e-3)
+
     def test_quad_form_in_constraint(self) -> None:
         """Parametric quad_form in constraint solves correctly."""
         x = cp.Variable(2)

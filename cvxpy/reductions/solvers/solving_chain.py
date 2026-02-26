@@ -187,8 +187,11 @@ def _build_solving_chain(
 
     # --- DPP handling ---
     dpp_context = 'dcp' if not gp else 'dgp'
-    # For QP solvers, enter quad_form_dpp_scope to allow parametric P
-    # This makes QuadForm.is_atom_convex/concave() accept param-affine P
+    # For QP/conic-QP solvers, we can loosen the DPP rules for quad_form.
+    # These solvers accept quadratic objectives directly (P matrix), so the
+    # mapping from parameters to problem data (P, q) stays linear — the
+    # standard DPP requirement. P can remain parametric since its value is
+    # only needed at solve time, not at canonicalization time.
     if solver_instance.supports_quad_obj():
         with scopes.quad_form_dpp_scope():
             is_dpp = problem.is_dpp(dpp_context)

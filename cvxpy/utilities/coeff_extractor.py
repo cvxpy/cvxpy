@@ -259,13 +259,16 @@ class CoeffExtractor:
                     coeffs[orig_id]['P'] = coeffs[orig_id]['P'] + P_tup
                 else:
                     coeffs[orig_id]['P'] = P_tup
-                    # Use P_tup.shape for the q matrix shape (works for both param and const P)
+                # Initialize q only if not already set (e.g., from a linear term).
+                if 'q' not in coeffs[orig_id]:
                     q_shape = (P_tup.shape[0], c.shape[1])
                     if num_params == 1:
                         # Fast path for no parameters, keep q dense.
                         coeffs[orig_id]['q'] = np.zeros(q_shape)
                     else:
-                        coeffs[orig_id]['q'] = sp.coo_matrix(([], ([], [])), shape=q_shape) 
+                        coeffs[orig_id]['q'] = sp.coo_matrix(
+                            ([], ([], [])), shape=q_shape
+                        )
             else:
                 # This was a true variable, so it can only have a q term.
                 var_offset = affine_id_map[var.id][0]
