@@ -33,6 +33,9 @@ class cumprod(AffAtom, AxisAtom):
     axis : int
         The axis to multiply across.
     """
+
+    _reduce_all_axes_to_none = False
+
     def __init__(self, expr: Expression, axis: int = 0) -> None:
         super(cumprod, self).__init__(expr, axis)
 

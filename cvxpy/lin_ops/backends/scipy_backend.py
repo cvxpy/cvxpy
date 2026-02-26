@@ -735,7 +735,11 @@ class SciPyCanonBackend(PythonCanonBackend):
         Internal function that computes the row indices corresponding to the sum
         along a specified axis.
         """
+        axis = normalize_axis_tuple(axis, len(shape))
         out_axes = np.isin(range(len(shape)), axis, invert=True)
+        if not np.any(out_axes):
+            # All axes summed — everything maps to row 0.
+            return np.zeros(np.prod(shape, dtype=int), dtype=int)
         out_idx = np.indices(shape)[out_axes]
         out_dims = np.array(shape)[out_axes]
         row_idx = np.ravel_multi_index(out_idx, dims=out_dims, order='F')

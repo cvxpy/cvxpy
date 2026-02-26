@@ -14,8 +14,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import math
+
 from cvxpy.atoms.affine.hstack import hstack
 from cvxpy.atoms.affine.reshape import reshape
+from cvxpy.atoms.affine.transpose import transpose
 from cvxpy.reductions.dgp2dcp.canonicalizers.add_canon import add_canon
 from cvxpy.reductions.dgp2dcp.util import explicit_sum
 
@@ -27,12 +30,23 @@ def sum_canon(expr, args):
         canon, _ = add_canon(summation, summation.args)
         return reshape(canon, expr.shape, order='F'), []
 
-    if expr.axis == 0:
-        X = X.T
+    axis = expr.axis
+    axes = (axis,) if isinstance(axis, int) else tuple(axis)
+    ndim = len(X.shape)
+
+    # Permute so non-reduce axes come first, reduce axes come last
+    keep = [i for i in range(ndim) if i not in axes]
+    perm = keep + list(axes)
+    X_perm = transpose(X, axes=perm) if perm != list(range(ndim)) else X
+
+    # Reshape to 2D: (n_output, n_reduce)
+    n_output = math.prod(X.shape[i] for i in keep)
+    n_reduce = math.prod(X.shape[i] for i in axes)
+    X_2d = reshape(X_perm, (n_output, n_reduce), order='C')
 
     rows = []
-    for i in range(X.shape[0]):
-        summation = explicit_sum(X[i])
+    for i in range(n_output):
+        summation = explicit_sum(X_2d[i])
         canon, _ = add_canon(summation, summation.args)
         rows.append(canon)
     canon = hstack(rows)

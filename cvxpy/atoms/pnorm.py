@@ -25,8 +25,8 @@ from cvxpy.constraints.constraint import Constraint
 from cvxpy.utilities.power_tools import pow_high, pow_mid, pow_neg
 
 
-def pnorm(x, p: Union[int, str] = 2, axis=None, keepdims: bool = False,
-          max_denom: int = 1024, approx: bool = True):
+def pnorm(x, p: Union[int, str] = 2, axis: None | int | tuple[int, ...] = None,
+          keepdims: bool = False, max_denom: int = 1024, approx: bool = True):
     """Factory function for a mathematical p-norm.
 
     Parameters
@@ -121,7 +121,7 @@ class Pnorm(AxisAtom):
     """
     _allow_complex = True
 
-    def __init__(self, x, p: int = 2, axis=None,
+    def __init__(self, x, p: int = 2, axis: None | int | tuple[int, ...] = None,
                  keepdims: bool = False, max_denom: int = 1024) -> None:
         if p == 1:
             raise ValueError('Use the norm1 class to instantiate a one norm.')
@@ -276,7 +276,7 @@ class PnormApprox(Pnorm):
     which allows canonicalization via second-order cones.
     """
 
-    def __init__(self, x, p: int = 2, axis=None,
+    def __init__(self, x, p: int = 2, axis: None | int | tuple[int, ...] = None,
                  keepdims: bool = False, max_denom: int = 1024) -> None:
         super().__init__(x, p=p, axis=axis, keepdims=keepdims, max_denom=max_denom)
         if p < 0:

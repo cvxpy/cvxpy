@@ -14,11 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import List, Optional, Tuple, Union
+from typing import List, Tuple
 
 import numpy as np
 import scipy as scipy
 import scipy.sparse as sp
+from numpy.lib.array_utils import normalize_axis_tuple
 
 import cvxpy.utilities as u
 from cvxpy.atoms.atom import Atom
@@ -39,13 +40,23 @@ class quad_over_lin(AxisAtom):
         self,
         x,
         y,
-        axis: Optional[Union[int, Tuple[int, ...]]] = None,
+        axis: None | int | tuple[int, ...] = None,
         keepdims: bool = False
     ) -> None:
         self.axis = axis
         self.keepdims = keepdims
         # Call Atom.__init__ directly since we have two args
         Atom.__init__(self, x, y)
+        # Normalize axis after init so self.args is available.
+        if self.axis is not None:
+            ndim = len(self.args[0].shape)
+            axes = normalize_axis_tuple(self.axis, ndim)
+            if len(axes) == ndim:
+                self.axis = None
+            elif len(axes) == 1:
+                self.axis = axes[0]
+            else:
+                self.axis = axes
 
     @Atom.numpy_numeric
     def numeric(self, values):

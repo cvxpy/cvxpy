@@ -14,10 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import numpy as np
-
 from cvxpy.atoms import promote, reshape
-from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variable import Variable
 from cvxpy.utilities.bounds import get_expr_bounds_if_supported
 from cvxpy.utilities.solver_context import SolverInfo
@@ -30,12 +27,12 @@ def max_canon(expr, args, solver_context: SolverInfo | None = None):
     bounds = get_expr_bounds_if_supported(expr, solver_context)
     t = Variable(shape, bounds=bounds)
 
-    if axis is None:  # shape = (1, 1)
+    if axis is None:
         promoted_t = promote(t, x.shape)
-    elif axis == 0:  # shape = (1, n)
-        promoted_t = Constant(np.ones((x.shape[0], 1))) @ reshape(t, (1, x.shape[1]), order='F')
-    else:  # shape = (m, 1)
-        promoted_t = reshape(t, (x.shape[0], 1), order='F') @ Constant(np.ones((1, x.shape[1])))
+    else:
+        axes = {axis} if isinstance(axis, int) else set(axis)
+        keepdims_shape = tuple(1 if i in axes else s for i, s in enumerate(x.shape))
+        promoted_t = reshape(t, keepdims_shape, order='F')
 
     constraints = [x <= promoted_t]
     return t, constraints
