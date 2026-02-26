@@ -21,7 +21,6 @@ from hypothesis import strategies as st
 import cvxpy as cp
 from cvxpy.tests.base_test import BaseTest
 
-
 # ---------------------------------------------------------------------------
 # Composite strategies
 # ---------------------------------------------------------------------------
