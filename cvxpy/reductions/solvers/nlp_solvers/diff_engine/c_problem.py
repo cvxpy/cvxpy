@@ -49,10 +49,23 @@ class C_problem:
         """Initialize Jacobian structures only. Must be called before jacobian()."""
         _diffengine.problem_init_jacobian(self._capsule)
         self._jacobian_allocated = True
+    
+    def init_jacobian_coo(self):
+        """Initialize Jacobian COO structures only.
+
+        Must be called before get_jacobian_sparsity_coo().
+        """
+        _diffengine.problem_init_jacobian_coo(self._capsule)
+        self._jacobian_allocated = True
 
     def init_hessian(self):
         """Initialize Hessian structures only. Must be called before hessian()."""
         _diffengine.problem_init_hessian(self._capsule)
+        self._hessian_allocated = True
+
+    def init_hessian_coo_lower_tri(self):
+        """Initialize Hessian COO structures only. Must be called before get_hessian()."""
+        _diffengine.problem_init_hessian_coo_lower_triangular(self._capsule)
         self._hessian_allocated = True
 
     def objective_forward(self, u: np.ndarray) -> float:
@@ -72,10 +85,36 @@ class C_problem:
         data, indices, indptr, shape = _diffengine.problem_jacobian(self._capsule)
         return sparse.csr_matrix((data, indices, indptr), shape=shape)
     
+    def get_jacobian_sparsity_coo(self) -> tuple[np.ndarray, np.ndarray]:
+        """Get Jacobian sparsity pattern as COO. This function does not evaluate the jacobian."""
+        rows, cols, unused_shape = _diffengine.get_jacobian_sparsity_coo(self._capsule)
+        return rows, cols
+
+    def eval_jacobian_vals(self) -> np.ndarray:
+        """Evaluate Jacobian values only.
+
+        Call constraint_forward first. Returns jacobian values array.
+        """
+        return _diffengine.problem_eval_jacobian_vals(self._capsule)
+    
     def get_jacobian(self) -> sparse.csr_matrix:
         """Get constraint Jacobian. This function does not evaluate the jacobian. """
         data, indices, indptr, shape = _diffengine.get_jacobian(self._capsule)
         return sparse.csr_matrix((data, indices, indptr), shape=shape)
+
+    def get_problem_hessian_sparsity_coo(self) -> tuple[np.ndarray, np.ndarray]:
+        """Get Hessian sparsity pattern as COO. This function does not evaluate the hessian."""
+        rows, cols, unused_shape = _diffengine.get_problem_hessian_sparsity_coo(self._capsule)
+        return rows, cols
+    
+    def eval_hessian_vals_coo_lower_tri(
+        self, obj_factor: float, lagrange: np.ndarray
+    ) -> np.ndarray:
+        """Evaluate Hessian values only for lower triangular part.
+
+        Call objective_forward and constraint_forward first.
+        """
+        return _diffengine.problem_eval_hessian_vals_coo(self._capsule, obj_factor, lagrange)
 
     def hessian(self, obj_factor: float, lagrange: np.ndarray) -> sparse.csr_matrix:
         """Compute Lagrangian Hessian.

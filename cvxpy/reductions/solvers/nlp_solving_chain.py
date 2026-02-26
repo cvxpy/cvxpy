@@ -132,21 +132,21 @@ def _set_random_nlp_initial_point(problem, run, user_initials):
             var.value = None
 
         # Determine effective sample bounds: use explicit sample_bounds if set,
-        # otherwise fall back to variable bounds if both are finite.
+        # otherwise fall back to variable bounds.
         sb = var.sample_bounds
         if sb is None:
-            lb, ub = var.get_bounds()
-            if np.all(np.isfinite(lb)) and np.all(np.isfinite(ub)):
-                sb = (lb, ub)
-
-        # Sample initial value if effective sample bounds are available
+            sb = var.get_bounds()
+          
+        # Sample initial value if effective sample bounds are available. Otherwise
+        # raise an error.
         if sb is not None:
             low, high = sb
             if not np.all(np.isfinite(low)) or not np.all(np.isfinite(high)):
                 raise ValueError(
-                    "Variable %s has non-finite sample_bounds %s. Cannot generate"
+                    "Variable %s has non-finite sample_bounds. Cannot generate"
                     " random initial point. Either add sample bounds or set the value. "
-                    % (var.name(), sb)
+                    " You can add sample bounds via var.sample_bounds = (low, high)."
+                    % (var.name())
                 )
 
             initial_val = np.random.uniform(low=low, high=high, size=var.shape)

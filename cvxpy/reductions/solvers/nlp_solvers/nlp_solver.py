@@ -186,11 +186,11 @@ class Oracles:
         self.use_hessian = use_hessian
 
         # Always initialize Jacobian
-        self.c_problem.init_jacobian()
+        self.c_problem.init_jacobian_coo()
 
         # Only initialize Hessian if needed (not for quasi-Newton methods)
         if use_hessian:
-            self.c_problem.init_hessian()
+            self.c_problem.init_hessian_coo_lower_tri()
 
         self.initial_point = initial_point
         self.num_constraints = num_constraints
@@ -226,20 +226,15 @@ class Oracles:
         if not self.constraints_forward_passed:
             self.constraints(x)
 
-        jac_csr = self.c_problem.jacobian()
-        jac_coo = jac_csr.tocoo()
-        return jac_coo.data.copy()
-
+        return self.c_problem.eval_jacobian_vals()
+        
     def jacobianstructure(self) -> tuple[np.ndarray, np.ndarray]:
         """Returns the sparsity structure of the Jacobian."""
         if self._jac_structure is not None:
             return self._jac_structure
 
-        jac_csr = self.c_problem.get_jacobian()
-        jac_coo = jac_csr.tocoo()
-
-        self._jac_structure = (jac_coo.row.astype(np.int32),
-                               jac_coo.col.astype(np.int32))
+        rows, cols = self.c_problem.get_jacobian_sparsity_coo() 
+        self._jac_structure = (rows, cols)
         return self._jac_structure
 
     def hessian(self, x: np.ndarray, duals: np.ndarray, obj_factor: float) -> np.ndarray:
@@ -247,40 +242,29 @@ class Oracles:
         if not self.use_hessian:
             # Shouldn't be called when using quasi-Newton, but return empty array
             return np.array([])
-
+        
         if not self.objective_forward_passed:
             self.objective(x)
         if not self.constraints_forward_passed:
             self.constraints(x)
 
-        hess_csr = self.c_problem.hessian(obj_factor, duals)
-        hess_coo = hess_csr.tocoo()
-
-        # Extract lower triangular values
-        mask = hess_coo.row >= hess_coo.col
-
-        return hess_coo.data[mask]
+        return self.c_problem.eval_hessian_vals_coo_lower_tri(obj_factor, duals)
 
     def hessianstructure(self) -> tuple[np.ndarray, np.ndarray]:
-        """Returns the sparsity structure of the lower triangular Hessian."""
+        """Returns the COO sparsity structure of the lower part of the Hessian.
+           The returned rows are ascending, and within each row the columns are 
+           ascending."""
         if not self.use_hessian:
             # Return empty structure when using quasi-Newton approximation
             return (np.array([], dtype=np.int32), np.array([], dtype=np.int32))
 
         if self._hess_structure is not None:
             return self._hess_structure
-
-        hess_csr = self.c_problem.get_hessian()
-        hess_coo = hess_csr.tocoo()
-
-        # Keep only lower triangular
-        mask = hess_coo.row >= hess_coo.col
-        self._hess_structure = (
-            hess_coo.row[mask].astype(np.int32),
-            hess_coo.col[mask].astype(np.int32)
-        )
+        
+        rows, cols = self.c_problem.get_problem_hessian_sparsity_coo()
+        self._hess_structure = (rows, cols)
         return self._hess_structure
-
+        
     def intermediate(
         self,
         alg_mod: int,
