@@ -314,3 +314,44 @@ class TestDgp(BaseTest):
         prob.solve(gp=True)
         self.assertEqual(prob.status, cvxpy.OPTIMAL)
         np.testing.assert_allclose(x.value, 4.0, atol=1e-4)
+
+    def test_dgp_sum_3d_axis(self) -> None:
+        """Test DGP sum on 3D arrays with axis reduction."""
+        x = cvxpy.Variable((2, 3, 4), pos=True)
+        c = np.random.RandomState(42).uniform(0.5, 2.0, (2, 3, 4))
+
+        # axis=0: reduce first axis, output shape (3, 4)
+        prob = cvxpy.Problem(cvxpy.Minimize(cvxpy.sum(cvxpy.sum(x, axis=0))), [x == c])
+        prob.solve(gp=True)
+        result = cvxpy.sum(x, axis=0).value
+        expected = np.sum(c, axis=0)
+        np.testing.assert_allclose(result, expected, atol=1e-3)
+
+        # axis=1: reduce middle axis, output shape (2, 4)
+        prob = cvxpy.Problem(cvxpy.Minimize(cvxpy.sum(cvxpy.sum(x, axis=1))), [x == c])
+        prob.solve(gp=True)
+        result = cvxpy.sum(x, axis=1).value
+        expected = np.sum(c, axis=1)
+        np.testing.assert_allclose(result, expected, atol=1e-3)
+
+        # axis=2: reduce last axis, output shape (2, 3)
+        prob = cvxpy.Problem(cvxpy.Minimize(cvxpy.sum(cvxpy.sum(x, axis=2))), [x == c])
+        prob.solve(gp=True)
+        result = cvxpy.sum(x, axis=2).value
+        expected = np.sum(c, axis=2)
+        np.testing.assert_allclose(result, expected, atol=1e-3)
+
+    def test_dgp_pnorm_3d_axis(self) -> None:
+        """Test DGP pnorm on 3D arrays with axis reduction."""
+        x = cvxpy.Variable((2, 3, 4), pos=True)
+        c = np.random.RandomState(43).uniform(0.5, 2.0, (2, 3, 4))
+
+        # axis=1, p=2: reduce middle axis
+        prob = cvxpy.Problem(
+            cvxpy.Minimize(cvxpy.sum(cvxpy.pnorm(x, p=2, axis=1))),
+            [x == c]
+        )
+        prob.solve(gp=True)
+        result = cvxpy.pnorm(x, p=2, axis=1).value
+        expected = np.linalg.norm(c, ord=2, axis=1)
+        np.testing.assert_allclose(result, expected, atol=1e-3)

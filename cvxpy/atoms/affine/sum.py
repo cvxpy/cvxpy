@@ -16,10 +16,11 @@ limitations under the License.
 import builtins
 from functools import wraps
 from types import GeneratorType
-from typing import Optional, Tuple
+from typing import Tuple
 
 import numpy as np
 from numpy.exceptions import AxisError
+from numpy.lib.array_utils import normalize_axis_tuple
 
 import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_op as lo
@@ -123,7 +124,16 @@ class Sum(AxisAtom, AffAtom):
             The axis and keepdims parameters of the sum expression.
         """
         axis, keepdims = data
-        # Note: added new case for summing with n-dimensional shapes and 
+        # Normalize tuple axes so they use the fast path when possible.
+        if isinstance(axis, tuple):
+            ndim = len(arg_objs[0].shape)
+            axis = normalize_axis_tuple(axis, ndim)
+            if len(axis) == ndim:
+                # Summing over all axes is equivalent to axis=None.
+                axis = None
+            elif len(axis) == 1:
+                axis = axis[0]
+        # Note: added new case for summing with n-dimensional shapes and
         # multiple axes. Previous behavior is kept in the else statement.
         if len(arg_objs[0].shape) > 2 or axis not in {None, 0, 1}:
             obj = lu.sum_entries(arg_objs[0], shape=shape, axis=axis, keepdims=keepdims)
@@ -148,7 +158,7 @@ class Sum(AxisAtom, AffAtom):
 
 
 @wraps(Sum)
-def sum(expr, axis: Optional[int] = None, keepdims: bool = False):
+def sum(expr, axis: None | int | tuple[int, ...] = None, keepdims: bool = False):
     """
     Wrapper for Sum class.
     """
