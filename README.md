@@ -7,12 +7,19 @@ with some rules governing how the nonsmooth functions can be used. For details, 
 ## Installation
 The installation consists of two steps.
 
-#### Step 1: Install IPOPT via Conda
-DNLP requires an NLP solver. The recommended solver is [Ipopt](https://coin-or.github.io/Ipopt/), which can be installed together with its Python interface [cyipopt](https://github.com/mechmotum/cyipopt):
+#### Step 1: Install IPOPT
+DNLP requires an NLP solver. The recommended solver is [Ipopt](https://coin-or.github.io/Ipopt/). First install the IPOPT system library, then install the Python interface [cyipopt](https://github.com/mechmotum/cyipopt):
 ```bash
-conda install -c conda-forge cyipopt
+# Ubuntu/Debian
+sudo apt-get install coinor-libipopt-dev
+
+# macOS
+brew install ipopt
 ```
-Installing cyipopt via pip may lead to issues, so we strongly recommend using the Conda installation above, even if the rest of your environment uses pip.
+Then install the Python interface:
+```bash
+pip install cyipopt
+```
 
 #### Step 2: Install DNLP
 DNLP is installed by cloning this repository and installing it locally:
@@ -56,7 +63,7 @@ print("Maximum eigenvalue:      " , np.max(eigenvalues))
 ## Supported Solvers
 | Solver | License | Installation |
 |--------|---------|--------------|
-| [IPOPT](https://github.com/coin-or/Ipopt) | EPL-2.0 | `conda install -c conda-forge cyipopt` |
+| [IPOPT](https://github.com/coin-or/Ipopt) | EPL-2.0 | Install system IPOPT (see above), then `pip install cyipopt` |
 | [Knitro](https://www.artelys.com/solvers/knitro/) | Commercial | `pip install knitro` (requires license) |
 
 ---

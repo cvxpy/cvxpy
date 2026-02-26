@@ -11,11 +11,16 @@ For theoretical foundation, see: [Disciplined Nonlinear Programming](https://web
 ## Build and Development Commands
 
 ```bash
-# Install IPOPT solver (required for NLP - use conda, NOT pip)
-conda install -c conda-forge cyipopt
+# Install IPOPT solver (required for NLP)
+# Ubuntu/Debian:
+sudo apt-get install coinor-libipopt-dev
+# macOS:
+brew install ipopt
+# Then: uv sync --extra IPOPT  (or: pip install cyipopt)
 
-# Install from source (development mode)
-pip install -e .
+# Install from source (development mode) — uv or pip
+uv sync --all-extras --dev   # preferred (uv.lock is committed)
+pip install -e .              # alternative
 
 # Install pre-commit hooks
 pip install pre-commit && pre-commit install
@@ -65,7 +70,7 @@ prob.solve(nlp=True, solver=cp.IPOPT, best_of=5)
 
 | Solver | License | Installation |
 |--------|---------|--------------|
-| [IPOPT](https://github.com/coin-or/Ipopt) | EPL-2.0 | `conda install -c conda-forge cyipopt` (conda only — pip install is unreliable) |
+| [IPOPT](https://github.com/coin-or/Ipopt) | EPL-2.0 | Install system IPOPT (`apt install coinor-libipopt-dev` / `brew install ipopt`), then `pip install cyipopt` |
 | [Knitro](https://www.artelys.com/solvers/knitro/) | Commercial | `pip install knitro` (requires license) |
 | [COPT](https://www.copt.de/) | Commercial | Requires license |
 | [Uno](https://github.com/cuter-testing/uno) | Open source | See Uno documentation |
@@ -245,6 +250,15 @@ A common pattern is to solve with both a DCP solver (CLARABEL) and an NLP solver
 ## Build System
 
 Uses a custom build backend (`setup/build_meta.py`) that re-exports `setuptools.build_meta`. The `setup/` directory handles C extensions (cvxcore, sparsecholesky) and version management. Solver registration is in `cvxpy/reductions/solvers/defines.py` (`SOLVER_MAP_CONIC`, `SOLVER_MAP_QP`, `SOLVER_MAP_NLP`).
+
+## CI Checks
+
+PRs must pass these GitHub Actions workflows:
+- **pre-commit** — ruff linting, JSON schema validation (workflows/dependabot), actionlint, pyproject validation
+- **build** — full test suite on Ubuntu/macOS/Windows × Python 3.11–3.14, plus wheel builds
+- **test_nlp_solvers** — NLP solver tests (IPOPT via system package + uv, Knitro if available)
+- **test_optional_solvers** — optional solver integration tests (uses `uv sync --all-extras`)
+- **test_backends** — tests SCIPY and COO canonicalization backends
 
 ## Benchmarks
 

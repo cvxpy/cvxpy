@@ -94,7 +94,7 @@ SCS = []
 XPRESS = ["xpress>=9.5"]
 DAQP = ["daqp"]
 KNITRO = ["knitro"]
-# IPOPT = ["cyipopt"]
+# IPOPT = ["cyipopt"]  # requires system IPOPT; excluded from --all-extras
 testing = ["pytest", "hypothesis"]
 doc = ["sphinx",
        "sphinxcontrib.jquery",

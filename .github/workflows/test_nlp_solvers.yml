@@ -10,37 +10,30 @@ on:
 jobs:
   run_nlp_tests:
     runs-on: ${{ matrix.os }}
-    defaults:
-      run:
-        shell: bash -l {0}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
     steps:
-      - uses: actions/setup-python@v6
-        with:
-          python-version: "3.12"
       - uses: actions/checkout@v5
         with:
           submodules: recursive
-      - name: Set up Conda
-        uses: conda-incubator/setup-miniconda@v3
+      - uses: astral-sh/setup-uv@v7
         with:
-          activate-environment: nlp-test
-          python-version: 3.12
-          channels: conda-forge
-          channel-priority: strict
-          auto-update-conda: true
-          miniforge-version: latest
-          use-mamba: true
-      - name: Install cyipopt via conda
+          python-version: "3.12"
+          enable-cache: true
+      - name: Install IPOPT (Ubuntu)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y coinor-libipopt-dev liblapack-dev libblas-dev
+      - name: Install IPOPT (macOS)
+        if: runner.os == 'macOS'
+        run: brew install ipopt
+      - name: Install dependencies
         run: |
-          conda install -y -c conda-forge cyipopt
-      - name: Install test dependencies
-        run: |
-          pip install -e .
-          pip install pytest hypothesis
+          uv venv
+          uv pip install -e ".[testing]"
+          uv pip install cyipopt
+      - name: Print installed solvers
+        run: uv run python -c "import cvxpy; print(cvxpy.installed_solvers())"
       - name: Run nlp tests
-        run: |
-          pytest -s -v cvxpy/tests/nlp_tests/.
+        run: uv run pytest -s -v cvxpy/tests/nlp_tests/
