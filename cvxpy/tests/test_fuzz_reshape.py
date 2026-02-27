@@ -97,7 +97,7 @@ class TestFuzzReshapeNdInference(BaseTest):
       4. Error-type consistency when multiple -1s are present
     """
 
-    @settings(max_examples=200, deadline=None)
+    @settings(max_examples=200, deadline=None, derandomize=True)
     @given(
         data=nd_shape_with_single_neg1(min_ndim=2, max_ndim=6),
         order=st.sampled_from(['F', 'C']),
@@ -138,7 +138,7 @@ class TestFuzzReshapeNdInference(BaseTest):
             err_msg=f"Value mismatch: shape_with_neg1={shape_with_neg1}, order={order!r}",
         )
 
-    @settings(max_examples=150, deadline=None)
+    @settings(max_examples=150, deadline=None, derandomize=True)
     @given(
         shapes=same_size_shape_pair(),
         order=st.sampled_from(['F', 'C']),
@@ -181,7 +181,7 @@ class TestFuzzReshapeNdInference(BaseTest):
             ),
         )
 
-    @settings(max_examples=200, deadline=None)
+    @settings(max_examples=200, deadline=None, derandomize=True)
     @given(
         shapes=same_size_shape_pair(),
         order=st.sampled_from(['F', 'C']),
@@ -228,7 +228,7 @@ class TestFuzzReshapeNdInference(BaseTest):
                 f"shape1={shape1}, shape2={shape2}, order={order!r}"
             )
 
-    @settings(max_examples=200, deadline=None)
+    @settings(max_examples=200, deadline=None, derandomize=True)
     @given(
         dims=st.lists(st.integers(min_value=1, max_value=8), min_size=2, max_size=5),
         order=st.sampled_from(['F', 'C']),
