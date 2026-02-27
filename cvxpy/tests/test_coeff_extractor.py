@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 import numpy as np
 import pytest
+import scipy.sparse as sp
 
 import cvxpy as cp
 from cvxpy.atoms.quad_form import SymbolicQuadForm
@@ -428,3 +429,136 @@ class TestBlockQuadExtraction:
         data = sqf.get_data()
         assert len(data) == 2
         assert data[1] is None
+
+    def test_block_extraction_sparse_c_part(self, block_extractor):
+        """Test block extraction with sparse c_part (CSC matrix).
+
+        Regression test: sparse c_part triggered IndexError because
+        csc_array[j, :] returns a 1-D coo_array with different .nonzero()
+        semantics than csc_matrix.
+        """
+        N = 6
+        P_coo = sp.eye(N, format='coo')
+        block_indices = [np.arange(0, 3), np.arange(3, 6)]
+
+        c_dense = np.array([[1.0], [2.0]])
+        c_sparse = sp.csc_matrix(c_dense)
+
+        result_dense = block_extractor._extract_block_quad(
+            P_coo, c_dense, block_indices, 1,
+        )
+        result_sparse = block_extractor._extract_block_quad(
+            P_coo, c_sparse, block_indices, 1,
+        )
+
+        # Sort by row for deterministic comparison.
+        d_order = np.argsort(result_dense.row)
+        s_order = np.argsort(result_sparse.row)
+
+        np.testing.assert_array_equal(
+            result_dense.row[d_order], result_sparse.row[s_order],
+        )
+        np.testing.assert_array_equal(
+            result_dense.col[d_order], result_sparse.col[s_order],
+        )
+        np.testing.assert_array_almost_equal(
+            result_dense.data[d_order], result_sparse.data[s_order],
+        )
+        np.testing.assert_array_equal(
+            result_dense.parameter_offset[d_order],
+            result_sparse.parameter_offset[s_order],
+        )
+
+    def test_block_extraction_sparse_c_part_multiparams(self, block_extractor):
+        """Test block extraction with sparse c_part and multiple parameters."""
+        N = 4
+        P_coo = sp.eye(N, format='coo')
+        block_indices = [np.arange(0, 2), np.arange(2, 4)]
+
+        # 2 outputs x 3 params, some entries zero to test sparsity.
+        c_dense = np.array([[1.0, 0.0, 2.0], [0.0, 3.0, 0.0]])
+        c_sparse = sp.csc_matrix(c_dense)
+
+        result_dense = block_extractor._extract_block_quad(
+            P_coo, c_dense, block_indices, 3,
+        )
+        result_sparse = block_extractor._extract_block_quad(
+            P_coo, c_sparse, block_indices, 3,
+        )
+
+        assert len(result_sparse.data) == len(result_dense.data)
+
+        # Sort by (param, row) for deterministic comparison.
+        d_key = result_dense.parameter_offset * N + result_dense.row
+        s_key = result_sparse.parameter_offset * N + result_sparse.row
+        d_order = np.argsort(d_key)
+        s_order = np.argsort(s_key)
+
+        np.testing.assert_array_equal(
+            result_dense.row[d_order], result_sparse.row[s_order],
+        )
+        np.testing.assert_array_equal(
+            result_dense.col[d_order], result_sparse.col[s_order],
+        )
+        np.testing.assert_array_almost_equal(
+            result_dense.data[d_order], result_sparse.data[s_order],
+        )
+        np.testing.assert_array_equal(
+            result_dense.parameter_offset[d_order],
+            result_sparse.parameter_offset[s_order],
+        )
+
+
+class TestSparseBlockPathEndToEnd:
+    """End-to-end tests for parameterized problems that trigger the
+    block path with sparse c (num_params > 1 + block_indices)."""
+
+    def test_sum_squares_axis_with_parameter(self):
+        """sum_squares(X, axis=1) with a parameter triggers the block path."""
+        X = cp.Variable((3, 2))
+        alpha = cp.Parameter(nonneg=True, value=2.0)
+
+        obj = cp.Minimize(alpha * cp.sum(cp.sum_squares(X, axis=1)))
+        prob = cp.Problem(obj, [X == np.ones((3, 2))])
+        prob.solve(solver=cp.CLARABEL)
+
+        # Each row has sum_squares = 1^2 + 1^2 = 2, sum over 3 rows = 6, * 2 = 12
+        assert np.isclose(prob.value, 12.0, atol=1e-4)
+        assert np.allclose(X.value, 1.0, atol=1e-4)
+
+    def test_sum_squares_axis_two_parameters(self):
+        """Two parameters multiplying different axis-reduced quad forms."""
+        X = cp.Variable((4, 3))
+        alpha = cp.Parameter(nonneg=True, value=1.0)
+        beta = cp.Parameter(nonneg=True, value=0.5)
+
+        obj = cp.Minimize(
+            alpha * cp.sum(cp.sum_squares(X, axis=1))
+            + beta * cp.sum_squares(X)
+        )
+        fixed = np.ones((4, 3))
+        prob = cp.Problem(obj, [X == fixed])
+        prob.solve(solver=cp.CLARABEL)
+
+        # sum_squares(X, axis=1) per row = 3, sum = 12, * alpha = 12
+        # sum_squares(X) = 12, * beta = 6
+        expected = 1.0 * 12.0 + 0.5 * 12.0
+        assert np.isclose(prob.value, expected, atol=1e-4)
+        assert np.allclose(X.value, 1.0, atol=1e-4)
+
+    def test_sum_squares_axis_resolves_with_varied_params(self):
+        """Verify correctness when re-solving with different parameter values."""
+        X = cp.Variable((3, 2))
+        alpha = cp.Parameter(nonneg=True, value=1.0)
+
+        obj = cp.Minimize(alpha * cp.sum(cp.sum_squares(X, axis=1)))
+        prob = cp.Problem(obj, [X >= 1, cp.sum(X) <= 10])
+
+        for a_val in [0.5, 1.0, 2.0]:
+            alpha.value = a_val
+            prob.solve(solver=cp.CLARABEL)
+            assert prob.status == cp.OPTIMAL
+            # Objective = alpha * sum(sum_squares(X, axis=1))
+            row_ss = np.sum(X.value ** 2, axis=1)
+            expected = a_val * np.sum(row_ss)
+            assert np.isclose(prob.value, expected, atol=1e-3)
