@@ -55,6 +55,7 @@ dependencies = [
     "numpy >= 2.0.0",
     "scipy >= 1.13.0",
     "highspy >= 1.11.0",
+    "qdldl >= 0.1.7",
 ]
 requires-python = ">=3.11"
 urls = {Homepage = "https://github.com/cvxpy/cvxpy"}
