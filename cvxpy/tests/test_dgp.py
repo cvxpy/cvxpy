@@ -306,11 +306,11 @@ class TestDgp(BaseTest):
         x = cvxpy.Variable(pos=True)
         prob = cvxpy.Problem(cvxpy.Minimize(cvxpy.pnorm(x, p=2)), [x >= 2.5])
         prob.solve(gp=True)
-        self.assertEqual(prob.status, "optimal")
+        self.assertEqual(prob.status, cvxpy.OPTIMAL)
         np.testing.assert_allclose(x.value, 2.5, atol=1e-4)
 
         x = cvxpy.Variable(pos=True)
         prob = cvxpy.Problem(cvxpy.Minimize(cvxpy.pnorm(x, p=3)), [x >= 4.0])
         prob.solve(gp=True)
-        self.assertEqual(prob.status, "optimal")
+        self.assertEqual(prob.status, cvxpy.OPTIMAL)
         np.testing.assert_allclose(x.value, 4.0, atol=1e-4)
