@@ -2043,6 +2043,32 @@ class TestAtoms(BaseTest):
         # The optimized result should be smaller than the naive result,
         # where X of the naive result is I.
         self.assertTrue(prob.value < naiveRes)
+    def test_trapz_atom(self) -> None:
+        """Test the integrate.trapz atom."""
+        w = cp.Variable()
+        x = np.linspace(0, 1, 100)
+        y = cp.square(x - w)
+        integral = cp.integrate.trapz(y, x=x)
+
+        prob = cp.Problem(cp.Minimize(integral))
+        prob.solve()
+
+        self.assertAlmostEqual(w.value, 0.5, places=3)
+        self.assertAlmostEqual(integral.value, 1/12, places=3)
+
+
+    def test_simpson_atom(self) -> None:
+        """Test the integrate.simpson atom."""
+        w = cp.Variable()
+        x = np.linspace(0, 1, 101)  # Must be odd number of points
+        y = cp.square(x - w)
+        integral = cp.integrate.simpson(y, x=x)
+
+        prob = cp.Problem(cp.Minimize(integral))
+        prob.solve()
+
+        self.assertAlmostEqual(w.value, 0.5, places=3)
+        self.assertAlmostEqual(integral.value, 1/12, places=3)
 
 class TestDotsort(BaseTest):
     """ Unit tests for the dotsort atom. """
