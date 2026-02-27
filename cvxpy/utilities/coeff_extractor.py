@@ -106,9 +106,11 @@ class CoeffExtractor:
         # These are then combined into matrices [P1.flatten(), P2.flatten(), ...]
         # and [q1, q2, ...]
         constant = param_coeffs[[-1], :]
-        # TODO keep sparse.
-        c = param_coeffs[:-1, :].toarray()
         num_params = param_coeffs.shape[1]
+        if num_params == 1:
+            c = param_coeffs[:-1, :].toarray()
+        else:
+            c = param_coeffs[:-1, :].tocsc()
 
         # coeffs stores the P and q for each quad_form,
         # as well as for true variable nodes in the objective.
@@ -148,9 +150,15 @@ class CoeffExtractor:
                 if var_size == 1:
                     # SCALAR PATH - Single quad form in the expression, i.e.,
                     # we multiply the full P matrix by the non-zero entries of c_part.
-                    nonzero_idxs = c_part[0] != 0
-                    data = P.data[:, None] * c_part[:, nonzero_idxs]
-                    param_idxs = np.arange(num_params)[nonzero_idxs]
+                    if sp.issparse(c_part):
+                        _, nz_cols = c_part.nonzero()
+                        nz_vals = np.asarray(c_part[0, nz_cols].toarray()).ravel()
+                        data = P.data[:, None] * nz_vals[None, :]
+                        param_idxs = nz_cols
+                    else:
+                        nonzero_idxs = c_part[0] != 0
+                        data = P.data[:, None] * c_part[:, nonzero_idxs]
+                        param_idxs = np.arange(num_params)[nonzero_idxs]
                     P_tup = TensorRepresentation(
                         data.flatten(order="F"),
                         np.tile(P.row, len(param_idxs)),
@@ -172,8 +180,14 @@ class CoeffExtractor:
                         "use SymbolicQuadForm with block_indices parameter."
 
                     scaled_c_part = P @ c_part
-                    paramx_idx_row, param_idx_col = np.nonzero(scaled_c_part)
-                    c_vals = c_part[paramx_idx_row, param_idx_col]
+                    if sp.issparse(scaled_c_part):
+                        paramx_idx_row, param_idx_col = scaled_c_part.nonzero()
+                    else:
+                        paramx_idx_row, param_idx_col = np.nonzero(scaled_c_part)
+                    # Element-wise fancy indexing on sparse returns dense.
+                    c_vals = np.asarray(
+                        c_part[paramx_idx_row, param_idx_col]
+                    ).ravel()
                     P_tup = TensorRepresentation(
                         c_vals,
                         paramx_idx_row,
@@ -219,7 +233,7 @@ class CoeffExtractor:
     def _extract_block_quad(
         self,
         P: sp.coo_matrix,
-        c_part: np.ndarray,
+        c_part: np.ndarray | sp.spmatrix,
         block_indices: List[np.ndarray],
         num_params: int,
     ) -> TensorRepresentation:
@@ -257,14 +271,21 @@ class CoeffExtractor:
 
             # Coefficient for this output element
             coef_row = c_part[j, :]
-            nonzero_params = np.nonzero(coef_row)[0]
+            if sp.issparse(coef_row):
+                nonzero_params = coef_row.nonzero()[1]
+            else:
+                nonzero_params = np.nonzero(coef_row)[0]
 
             if len(nonzero_params) == 0:
                 continue
 
             # Scale by each non-zero coefficient
             for param_idx in nonzero_params:
-                scaled_data = block_data * coef_row[param_idx]
+                if sp.issparse(coef_row):
+                    coef_val = coef_row[0, param_idx]
+                else:
+                    coef_val = coef_row[param_idx]
+                scaled_data = block_data * coef_val
                 all_data.append(scaled_data)
                 all_row.append(block_row)  # Already global coordinates
                 all_col.append(block_col)
