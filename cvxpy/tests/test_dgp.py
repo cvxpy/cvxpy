@@ -249,3 +249,24 @@ class TestDgp(BaseTest):
     def test_sparse_constant_not_allowed(self) -> None:
         sparse_matrix = cvxpy.Constant(sp.csc_array(np.array([[1.0, 2.0]])))
         self.assertFalse(sparse_matrix.is_log_log_constant())
+
+    def test_sparse_variable_not_dgp(self) -> None:
+        """Test that sparse/diag + pos/neg variables are rejected at construction."""
+        rows = np.array([0, 1, 2])
+        cols = np.array([0, 1, 2])
+
+        # pos + sparsity
+        with self.assertRaises(ValueError):
+            cvxpy.Variable((3, 3), sparsity=(rows, cols), pos=True)
+
+        # neg + sparsity
+        with self.assertRaises(ValueError):
+            cvxpy.Variable((3, 3), sparsity=(rows, cols), neg=True)
+
+        # pos + diag
+        with self.assertRaises(ValueError):
+            cvxpy.Variable(3, diag=True, pos=True)
+
+        # neg + diag
+        with self.assertRaises(ValueError):
+            cvxpy.Variable(3, diag=True, neg=True)
