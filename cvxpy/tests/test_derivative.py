@@ -747,3 +747,25 @@ class TestBackwardDgp(BaseTest):
                               cp.sum(w) <= kappa])
         gradcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-1)
         perturbcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-1)
+
+
+class TestDgp2DcpReduction(BaseTest):
+    """Tests for Dgp2Dcp reduction internals (no diffcp required)."""
+
+    def test_param_backward_absent_log_param(self) -> None:
+        """param_backward must return None when log-param id is absent from dparams.
+
+        Before the fix, Dgp2Dcp.param_backward accessed dparams[new_param.id]
+        without checking for the key, raising KeyError when the log-parameter
+        was not present in dparams (e.g. during partial backward passes).
+        """
+        from cvxpy.reductions.dgp2dcp.dgp2dcp import Dgp2Dcp
+        p = cp.Parameter(pos=True, value=2.0)
+        x = cp.Variable(pos=True)
+        prob = cp.Problem(cp.Minimize(p * x), [x >= 1])
+        dgp = Dgp2Dcp()
+        dgp.apply(prob)
+        # Pass an empty dparams dict: the log-param id is absent.
+        # With the guard this returns None; without it raises KeyError.
+        result = dgp.param_backward(p, {})
+        self.assertIsNone(result)
