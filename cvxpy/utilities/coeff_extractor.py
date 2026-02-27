@@ -110,7 +110,9 @@ class CoeffExtractor:
         if num_params == 1:
             c = param_coeffs[:-1, :].toarray()
         else:
-            c = param_coeffs[:-1, :].tocsc()
+            # param_coeffs is already CSC from canonInterface; slicing
+            # preserves the format, so no conversion needed.
+            c = param_coeffs[:-1, :]
 
         # coeffs stores the P and q for each quad_form,
         # as well as for true variable nodes in the objective.
@@ -151,8 +153,10 @@ class CoeffExtractor:
                     # SCALAR PATH - Single quad form in the expression, i.e.,
                     # we multiply the full P matrix by the non-zero entries of c_part.
                     if sp.issparse(c_part):
-                        _, nz_cols = c_part.nonzero()
-                        nz_vals = np.asarray(c_part[0, nz_cols].toarray()).ravel()
+                        # c_part is a 1-row CSC matrix; extract nonzero
+                        # columns and values directly from the CSC structure.
+                        nz_cols = np.where(np.diff(c_part.indptr) > 0)[0]
+                        nz_vals = c_part.data
                         data = P.data[:, None] * nz_vals[None, :]
                         param_idxs = nz_cols
                     else:
@@ -179,10 +183,16 @@ class CoeffExtractor:
                         "without block_indices. If you need non-diagonal structure, " \
                         "use SymbolicQuadForm with block_indices parameter."
 
-                    scaled_c_part = P @ c_part
-                    if sp.issparse(scaled_c_part):
+                    # P is diagonal, so P @ c_part is just row-scaling.
+                    # Use element-wise multiply to avoid full sparse matmul.
+                    diag_vals = P.data
+                    if sp.issparse(c_part):
+                        scaled_c_part = c_part.multiply(
+                            diag_vals[:, None]
+                        )
                         paramx_idx_row, param_idx_col = scaled_c_part.nonzero()
                     else:
+                        scaled_c_part = c_part * diag_vals[:, None]
                         paramx_idx_row, param_idx_col = np.nonzero(scaled_c_part)
                     # Element-wise fancy indexing on sparse returns dense.
                     c_vals = np.asarray(
@@ -256,22 +266,45 @@ class CoeffExtractor:
         all_col = []
         all_param = []
 
+        # Pre-build a mapping from P index to block, so we avoid
+        # O(nnz * n_blocks) np.isin scans.  For each P entry we
+        # need both row and col to belong to the same block.
+        N = P.shape[0]
+        idx_to_block = np.full(N, -1, dtype=int)
         for j, indices in enumerate(block_indices):
-            # Filter P entries where both row and col are in this block
-            row_mask = np.isin(P.row, indices)
-            col_mask = np.isin(P.col, indices)
-            mask = row_mask & col_mask
+            idx_to_block[indices] = j
+        row_block = idx_to_block[P.row]
+        col_block = idx_to_block[P.col]
+        same_block = (row_block == col_block) & (row_block >= 0)
 
-            if not mask.any():
+        # Group P entries by block.
+        block_ids_per_entry = row_block[same_block]
+        p_data = P.data[same_block]
+        p_row = P.row[same_block]
+        p_col = P.col[same_block]
+        sort_idx = np.argsort(block_ids_per_entry, kind="mergesort")
+        block_ids_sorted = block_ids_per_entry[sort_idx]
+        split_points = np.searchsorted(
+            block_ids_sorted,
+            np.arange(len(block_indices)),
+        )
+        split_points = np.append(split_points, len(block_ids_sorted))
+
+        c_is_sparse = sp.issparse(c_part)
+
+        for j in range(len(block_indices)):
+            lo, hi = split_points[j], split_points[j + 1]
+            if lo == hi:
                 continue
 
-            block_data = P.data[mask]
-            block_row = P.row[mask]
-            block_col = P.col[mask]
+            seg = sort_idx[lo:hi]
+            block_data = p_data[seg]
+            block_row = p_row[seg]
+            block_col = p_col[seg]
 
             # Coefficient for this output element
             coef_row = c_part[j, :]
-            if sp.issparse(coef_row):
+            if c_is_sparse:
                 nonzero_params = coef_row.nonzero()[1]
             else:
                 nonzero_params = np.nonzero(coef_row)[0]
@@ -281,7 +314,7 @@ class CoeffExtractor:
 
             # Scale by each non-zero coefficient
             for param_idx in nonzero_params:
-                if sp.issparse(coef_row):
+                if c_is_sparse:
                     coef_val = coef_row[0, param_idx]
                 else:
                     coef_val = coef_row[param_idx]
