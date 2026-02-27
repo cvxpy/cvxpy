@@ -78,16 +78,14 @@ class reshape(AffAtom):
             shape = (size,)
         else:
             unspecified_index = shape.index(-1)
-            specified_dims = [d for i, d in enumerate(shape) if i != unspecified_index]
-            for d in specified_dims:
-                assert d >= 0, "Specified dimension must be nonnegative."
-            divisor = int(np.prod(specified_dims))
-            unspecified, remainder = np.divmod(size, divisor)
+            specified = shape[1 - unspecified_index]
+            assert specified >= 0, "Specified dimension must be nonnegative."
+            unspecified, remainder = np.divmod(size, shape[1 - unspecified_index])
             if remainder != 0:
                 raise ValueError(
                     f"Cannot reshape expression of size {size} into shape {shape}."
                 )
-            shape = tuple(int(unspecified) if d == -1 else d for d in shape)
+            shape = tuple(unspecified if d == -1 else specified for d in shape)
         return shape
 
     def is_atom_log_log_convex(self) -> bool:

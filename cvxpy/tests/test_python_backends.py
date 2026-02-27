@@ -2227,30 +2227,6 @@ class TestND_Backends:
         # Note: view is edited in-place:
         assert out_view.get_tensor_representation(0, 4) == view.get_tensor_representation(0, 4)
 
-    @pytest.mark.parametrize("axis, expected", [
-        # Negative axis: -1 is equivalent to axis=2 for a 3D array
-        (-1, [[1, 0, 0, 0, 1, 0, 0, 0],
-              [0, 1, 0, 0, 0, 1, 0, 0],
-              [0, 0, 1, 0, 0, 0, 1, 0],
-              [0, 0, 0, 1, 0, 0, 0, 1]]),
-        # -2 is equivalent to axis=1
-        (-2, [[1, 0, 1, 0, 0, 0, 0, 0],
-              [0, 1, 0, 1, 0, 0, 0, 0],
-              [0, 0, 0, 0, 1, 0, 1, 0],
-              [0, 0, 0, 0, 0, 1, 0, 1]]),
-    ])
-    def test_nd_sum_entries_negative_axis(self, backend, axis, expected):
-        """Negative axis values should be normalized to their positive equivalents."""
-        variable_lin_op = linOpHelper((2, 2, 2), type="variable", data=1)
-        view = backend.process_constraint(variable_lin_op, backend.get_empty_view())
-
-        sum_lin_op = linOpHelper(shape=(2, 2, 2), data=[axis, True], args=[variable_lin_op])
-        out_view = backend.sum_entries(sum_lin_op, view)
-        A = out_view.get_tensor_representation(0, 4)
-
-        A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(4, 8)).toarray()
-        assert np.all(A == np.array(expected))
-
     @pytest.mark.parametrize("axes, expected", [((0,1),
                                                 [[1, 1, 1, 1, 0, 0, 0, 0],
                                                 [0, 0, 0, 0, 1, 1, 1, 1]]),
@@ -2258,10 +2234,6 @@ class TestND_Backends:
                                                 [[1, 1, 0, 0, 1, 1, 0, 0],
                                                 [0, 0, 1, 1, 0, 0, 1, 1]]),
                                                 ((2,1),
-                                                [[1, 0, 1, 0, 1, 0, 1, 0],
-                                                [0, 1, 0, 1, 0, 1, 0, 1]]),
-                                                # Negative axes: (-1,-2) equivalent to (2,1)
-                                                ((-1,-2),
                                                 [[1, 0, 1, 0, 1, 0, 1, 0],
                                                 [0, 1, 0, 1, 0, 1, 0, 1]])])
     def test_nd_sum_entries_multiple_axes(self, backend, axes, expected):

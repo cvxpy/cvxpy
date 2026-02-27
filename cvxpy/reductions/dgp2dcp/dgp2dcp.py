@@ -87,8 +87,6 @@ class Dgp2Dcp(Canonicalization):
         if param not in self.canon_methods._parameters:
             return None
         new_param = self.canon_methods._parameters[param]
-        if new_param.id not in dparams:
-            return None
         # Apply chain rule: d(log(x))/dx = 1/x
         return (1.0 / param.value) * dparams[new_param.id]
 

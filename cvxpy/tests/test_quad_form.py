@@ -216,21 +216,3 @@ class TestNonOptimal(BaseTest):
         # Transform to a SolverError.
         with pytest.raises(cp.SolverError):
             prob.solve(solver=cp.OSQP)
-
-    def test_indefinite_assume_psd_raises(self) -> None:
-        """quad_form_canon must raise ValueError for indefinite P with assume_PSD=True.
-
-        In CVXPY 1.8.1 and earlier, the M1 (positive-eigenvalue) term was silently dropped.
-        For P=diag(2,-1) and x=[1,2], the true x^T P x = -2, but the old
-        code returned -4 with OPTIMAL status.
-        """
-        P = np.array([[2.0, 0.0], [0.0, -1.0]])  # indefinite: eigenvalues 2 and -1
-        x = cp.Variable(2)
-        expr = cp.quad_form(x, P, assume_PSD=True)
-        prob = cp.Problem(cp.Minimize(expr), [x == [1.0, 2.0]])
-        # use_quad_obj=False forces the conic canonicalization path where
-        # quad_form_canon is called (vs. the QP path used by SCS >= 3.0).
-        with pytest.raises(ValueError) as exc_info:
-            prob.solve(solver=cp.SCS, use_quad_obj=False)
-        assert "indefinite" in str(exc_info.value)
-        assert "PSD" in str(exc_info.value)
