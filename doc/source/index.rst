@@ -131,6 +131,11 @@ For a complete list of changes, see the :doc:`changelog </updates/index>`.
 .. toctree::
    :hidden:
 
+   CVXPYgen <cvxpygen/index>
+
+.. toctree::
+   :hidden:
+
    functions/index
 
 .. toctree::
