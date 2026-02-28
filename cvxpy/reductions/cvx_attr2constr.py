@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import List
 
 import numpy as np
 import scipy.sparse as sp
@@ -156,7 +155,7 @@ class CvxAttr2Constr(Reduction):
         self._parameters = {}  # {orig_param: reduced_param}
         super(CvxAttr2Constr, self).__init__(problem=problem)
 
-    def reduction_attributes(self) -> List[str]:
+    def reduction_attributes(self) -> list[str]:
         """Returns the attributes that will be reduced."""
         if self.reduce_bounds:
             return CONVEX_ATTRIBUTES

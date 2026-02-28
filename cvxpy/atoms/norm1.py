@@ -13,7 +13,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import List, Tuple
 
 import numpy as np
 import scipy.sparse as sp
@@ -35,13 +34,13 @@ class norm1(AxisAtom):
             values = np.array(values[0])
         return np.linalg.norm(values, 1, axis=self.axis, keepdims=self.keepdims)
 
-    def sign_from_args(self) -> Tuple[bool, bool]:
+    def sign_from_args(self) -> tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         # Always positive.
         return (True, False)
 
-    def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
+    def bounds_from_args(self) -> tuple[np.ndarray, np.ndarray]:
         """Returns bounds for 1-norm based on argument bounds."""
         lb, ub = self.args[0].get_bounds()
         return bounds_utils.norm1_bounds(lb, ub, axis=self.axis, keepdims=self.keepdims)
@@ -83,7 +82,7 @@ class norm1(AxisAtom):
             return self._label
         return f"{type(self).__name__}({self.args[0].format_labeled()})"
 
-    def _domain(self) -> List[Constraint]:
+    def _domain(self) -> list[Constraint]:
         """Returns constraints describing the domain of the node.
         """
         return []

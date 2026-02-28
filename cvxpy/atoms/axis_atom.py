@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import List, Optional, Tuple
 
 import numpy as np
 import scipy.sparse as sp
@@ -28,12 +27,12 @@ class AxisAtom(Atom):
     An abstract base class for atoms that can be applied along an axis.
     """
 
-    def __init__(self, expr, axis: Optional[int] = None, keepdims: bool = False) -> None:
+    def __init__(self, expr, axis: int | None = None, keepdims: bool = False) -> None:
         self.axis = axis
         self.keepdims = keepdims
         super(AxisAtom, self).__init__(expr)
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> tuple[int, ...]:
         """
         Returns the shape of the atom after applying a function along an axis.
         Handles negative axis inputs by normalizing them to positive indices.
@@ -75,7 +74,7 @@ class AxisAtom(Atom):
             _ = normalize_axis_tuple(axes, dim)
         super(AxisAtom, self).validate_arguments()
 
-    def _axis_grad(self, values) -> Optional[List[sp.csc_array]]:
+    def _axis_grad(self, values) -> list[sp.csc_array] | None:
         """
         Gives the (sub/super)gradient of the atom w.r.t. each argument.
 

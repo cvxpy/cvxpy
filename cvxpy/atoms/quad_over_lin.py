@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import List, Optional, Tuple, Union
 
 import numpy as np
 import scipy as scipy
@@ -39,7 +38,7 @@ class quad_over_lin(AxisAtom):
         self,
         x,
         y,
-        axis: Optional[Union[int, Tuple[int, ...]]] = None,
+        axis: int | tuple[int, ...] | None = None,
         keepdims: bool = False
     ) -> None:
         self.axis = axis
@@ -60,7 +59,7 @@ class quad_over_lin(AxisAtom):
 
         return squared.sum(axis=self.axis, keepdims=self.keepdims) / y_val
 
-    def _domain(self) -> List[Constraint]:
+    def _domain(self) -> list[Constraint]:
         """Returns constraints describing the domain of the node.
         """
         # y > 0.
@@ -101,7 +100,7 @@ class quad_over_lin(AxisAtom):
             DX = scipy.sparse.csc_array(DX)
             return [DX, Dy]
 
-    def sign_from_args(self) -> Tuple[bool, bool]:
+    def sign_from_args(self) -> tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         # Always positive.
