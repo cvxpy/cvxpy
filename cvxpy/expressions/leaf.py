@@ -536,7 +536,7 @@ class Leaf(expression.Expression):
         self.save_value(self._validate_value(val))
 
     @property
-    def value_sparse(self) -> ... | None:
+    def value_sparse(self) -> sp.coo_array | None:
         """The numeric value of the expression if it is a sparse variable."""
         if self._value is None:
             return None
