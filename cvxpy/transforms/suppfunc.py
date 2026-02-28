@@ -1,7 +1,10 @@
+from collections.abc import Sequence
+
 import numpy as np
 from scipy import sparse
 
 from cvxpy.atoms.suppfunc import SuppFuncAtom
+from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.cvx_attr2constr import CONVEX_ATTRIBUTES
 
@@ -155,7 +158,7 @@ class SuppFunc:
     `this Wikipedia page <https://en.wikipedia.org/wiki/Support_function>`_.
     """
 
-    def __init__(self, x, constraints):
+    def __init__(self, x: Variable, constraints: Sequence[Constraint]) -> None:
         if not isinstance(x, Variable):
             raise ValueError('The first argument must be an unmodified cvxpy Variable object.')
         if any(x.attributes[attr] for attr in CONVEX_ATTRIBUTES):

@@ -48,7 +48,6 @@ reportGeneralTypeIssues = false     # 33 errors
 reportAssignmentType = false        # 31 errors
 reportInvalidTypeForm = false       # 28 errors
 reportIndexIssue = false            # 25 errors
-reportOptionalOperand = false       # 21 errors
 reportOperatorIssue = false         # 21 errors
 
 [tool.pytest.ini_options]

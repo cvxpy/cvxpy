@@ -15,6 +15,8 @@ limitations under the License.
 """
 
 
+from collections.abc import Sequence
+
 import numpy as np
 
 import cvxpy.utilities.performance_utils as perf
@@ -34,7 +36,7 @@ class indicator(Expression):
        A numeric tolerance for determining whether the constraints hold.
     """
 
-    def __init__(self, constraints: list[Constraint], err_tol: float = 1e-3) -> None:
+    def __init__(self, constraints: Sequence[Constraint], err_tol: float = 1e-3) -> None:
         self.args = constraints
         self.err_tol = err_tol
         super(indicator, self).__init__()

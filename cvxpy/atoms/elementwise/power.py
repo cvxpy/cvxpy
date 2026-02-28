@@ -13,6 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from typing import TYPE_CHECKING, TypeGuard
+
 import numpy as np
 import scipy.sparse as sp
 
@@ -23,8 +25,11 @@ from cvxpy.expressions import cvxtypes
 from cvxpy.utilities import bounds as bounds_utils
 from cvxpy.utilities.power_tools import is_power2, pow_high, pow_mid, pow_neg
 
+if TYPE_CHECKING:
+    from cvxpy.expressions.constants.constant import Constant
 
-def _is_const(p) -> bool:
+
+def _is_const(p) -> TypeGuard[Constant]:
     return isinstance(p, cvxtypes.constant())
 
 
@@ -268,6 +273,8 @@ class Power(Elementwise):
             return self.p.is_nonneg() and self.args[idx].is_nonneg()
 
         p = self.p_used
+        # p_used is always float when self.p is a Constant (set in __init__).
+        assert p is not None
         if 0 <= p <= 1:
             return True
         elif p > 1:
@@ -285,6 +292,8 @@ class Power(Elementwise):
             return self.p.is_nonpos() and self.args[idx].is_nonneg()
 
         p = self.p_used
+        # p_used is always float when self.p is a Constant (set in __init__).
+        assert p is not None
         if p <= 0:
             return True
         elif p > 1:

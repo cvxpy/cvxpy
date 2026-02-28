@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import time
 from collections import namedtuple
+from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
@@ -152,7 +153,7 @@ class Problem(u.Canonical):
     REGISTERED_SOLVE_METHODS = {}
 
     def __init__(
-        self, objective: Minimize | Maximize, constraints: list[Constraint] | None = None
+        self, objective: Minimize | Maximize, constraints: Sequence[Constraint] | None = None
     ) -> None:
         if constraints is None:
             constraints = []

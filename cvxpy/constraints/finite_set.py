@@ -93,6 +93,8 @@ class FiniteSet(Constraint):
             return False
         # Not a parameter, so value is fixed.
         vec_val = self.vec.value
+        if vec_val is None:
+            return False
         # DGP if expr is monomial and all values in set are positive.
         if dpp:
             with scopes.dpp_scope():

@@ -14,15 +14,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from collections.abc import Iterable
+
 import numpy as np
 
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.expressions.expression import Expression
 
 
-def hstack(arg_list) -> "Hstack":
+def hstack(arg_list: Iterable[Expression]) -> "Hstack":
     """Horizontal concatenation of an arbitrary number of Expressions.
 
     Parameters

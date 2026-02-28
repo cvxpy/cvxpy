@@ -87,9 +87,12 @@ def length_sub(expr, t):
     arg = expr.args[0]
     if isinstance(t, Parameter):
         def sublevel_set():
-            if t.value < 0:
+            t_val = t.value
+            if t_val is None:
+                raise ValueError("Parameter t must have a numeric value.")
+            if t_val < 0:
                 return False
-            if t.value >= arg.size:
+            if t_val >= arg.size:
                 return True
             return arg[int(atoms.floor(t).value):] == 0
         return [sublevel_set]

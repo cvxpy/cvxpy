@@ -91,8 +91,8 @@ def format_slice(key_val, dim, axis) -> slice | None:
             stop = np.clip(wrap_neg_index(to_int(key_val.stop, -dim-1), dim, True), -1, dim-1)
         return slice(start, stop, step)
     else:
-        # Convert to int.
-        orig_key_val = to_int(key_val)
+        # Convert to int (key_val is not None or slice at this point).
+        orig_key_val = int(key_val)
         key_val = wrap_neg_index(orig_key_val, dim)
         if 0 <= key_val < dim:
             return slice(key_val, key_val + 1, 1)

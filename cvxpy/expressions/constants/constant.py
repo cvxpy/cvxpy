@@ -104,9 +104,8 @@ class Constant(Leaf):
         return True
 
     @property
-    def value(self):
-        """NumPy.ndarray or None: The numeric value of the constant.
-        """
+    def value(self) -> np.ndarray:
+        """NumPy.ndarray: The numeric value of the constant."""
         return self._value
 
     def is_pos(self) -> bool:

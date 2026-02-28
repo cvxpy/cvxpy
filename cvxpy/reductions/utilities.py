@@ -15,12 +15,14 @@ limitations under the License.
 """
 
 from collections import defaultdict
+from collections.abc import Iterable
 
 import numpy as np
 import scipy.sparse as sp
 
 from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.atoms.affine.vec import vec
+from cvxpy.constraints.constraint import Constraint
 from cvxpy.constraints.nonpos import NonNeg, NonPos
 from cvxpy.constraints.zero import Zero
 from cvxpy.cvxcore.python import canonInterface
@@ -59,12 +61,14 @@ def special_index_canon(expr, args, solver_context=None):
     return lowered, []
 
 
-def are_args_affine(constraints) -> bool:
+def are_args_affine(constraints: Iterable[Constraint]) -> bool:
     return all(arg.is_affine() for constr in constraints
                for arg in constr.args)
 
 
-def group_constraints(constraints):
+def group_constraints(
+    constraints: Iterable[Constraint],
+) -> defaultdict[type[Constraint], list[Constraint]]:
     """Organize the constraints into a dictionary keyed by constraint names.
 
     Parameters
@@ -149,7 +153,9 @@ class ReducedMat:
             self.mapping_nonzero = canonInterface.A_mapping_nonzero_rows(
                 self.matrix_data, self.var_len)
 
-    def get_matrix_from_tensor(self, param_vec: np.ndarray, with_offset: bool = True) -> tuple:
+    def get_matrix_from_tensor(
+        self, param_vec: np.ndarray, with_offset: bool = True,
+    ) -> tuple[sp.spmatrix, np.ndarray]:
         """Wraps get_matrix_from_tensor in canonInterface.
 
         Parameters

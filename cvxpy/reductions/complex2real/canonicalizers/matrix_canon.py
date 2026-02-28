@@ -45,6 +45,8 @@ def expand_complex(real_part: Expression | None,
     repeated twice.
     """
     if real_part is None:
+        if imag_part is None:
+            raise ValueError("At least one of real_part and imag_part must be non-None.")
         real_part = Constant(np.zeros(imag_part.shape))
     elif imag_part is None:
         imag_part = Constant(np.zeros(real_part.shape))
@@ -185,12 +187,18 @@ def quad_canon(expr,
     else:
         vec = vstack([at_least_2D(real_args[0]),
                       at_least_2D(imag_args[0])])
-        if real_args[1] is None:
-            real_args[1] = np.zeros(imag_args[1].shape)
-        elif imag_args[1] is None:
-            imag_args[1] = np.zeros(real_args[1].shape)
-        matrix = bmat([[real_args[1], -imag_args[1]],
-                       [imag_args[1], real_args[1]]])
+        real1 = real_args[1]
+        imag1 = imag_args[1]
+        if real1 is None:
+            if imag1 is None:
+                raise ValueError(
+                    "At least one of real and imaginary parts must be non-None."
+                )
+            real1 = np.zeros(imag1.shape)
+        elif imag1 is None:
+            imag1 = np.zeros(real1.shape)
+        matrix = bmat([[real1, -imag1],
+                       [imag1, real1]])
         matrix = psd_wrap(matrix)
     return expr.copy([vec, matrix]), None
 
@@ -218,10 +226,16 @@ def matrix_frac_canon(expr,
         imag_args[0] = np.zeros(real_args[0].shape)
     vec = vstack([at_least_2D(real_args[0]),
                   at_least_2D(imag_args[0])])
-    if real_args[1] is None:
-        real_args[1] = np.zeros(imag_args[1].shape)
-    elif imag_args[1] is None:
-        imag_args[1] = np.zeros(real_args[1].shape)
-    matrix = bmat([[real_args[1], -imag_args[1]],
-                   [imag_args[1], real_args[1]]])
+    real1 = real_args[1]
+    imag1 = imag_args[1]
+    if real1 is None:
+        if imag1 is None:
+            raise ValueError(
+                "At least one of real and imaginary parts must be non-None."
+            )
+        real1 = np.zeros(imag1.shape)
+    elif imag1 is None:
+        imag1 = np.zeros(real1.shape)
+    matrix = bmat([[real1, -imag1],
+                   [imag1, real1]])
     return expr.copy([vec, matrix]), None

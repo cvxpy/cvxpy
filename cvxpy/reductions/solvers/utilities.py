@@ -14,14 +14,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import Any
+from collections.abc import Callable, Iterable
 
 import numpy as np
 
 import cvxpy.interface as intf
+from cvxpy.constraints.constraint import Constraint
+from cvxpy.expressions.variable import Variable
 
 
-def stack_vals(variables: list, default: float, order: str = "F") -> np.ndarray:
+def stack_vals(variables: Iterable[Variable], default: float, order: str = "F") -> np.ndarray:
     """Stacks the values of the given variables.
 
     Parameters
@@ -58,7 +60,11 @@ def extract_dual_value(result_vec, offset, constraint):
     return value, offset
 
 
-def get_dual_values(result_vec, parse_func, constraints) -> dict[Any, Any]:
+def get_dual_values(
+    result_vec: np.ndarray,
+    parse_func: Callable[[np.ndarray, int, Constraint], tuple[np.ndarray | float, int]],
+    constraints: Iterable[Constraint],
+) -> dict[int, np.ndarray | float]:
     """Gets the values of the dual variables.
 
     Parameters

@@ -15,6 +15,8 @@ limitations under the License.
 """
 from __future__ import annotations
 
+from typing import Literal, overload
+
 import numpy as np
 import scipy.sparse as sp
 
@@ -210,8 +212,22 @@ class ParamConeProg(ParamProb):
         return self.x.attributes['boolean'] or \
             self.x.attributes['integer']
 
-    def apply_parameters(self, id_to_param_value=None, zero_offset: bool = False,
-                         keep_zeros: bool = False, quad_obj: bool = False):
+    @overload
+    def apply_parameters(
+        self, id_to_param_value=..., zero_offset: bool = ...,
+        keep_zeros: bool = ..., *, quad_obj: Literal[True],
+    ) -> tuple[sp.spmatrix, np.ndarray, float, sp.spmatrix, np.ndarray]: ...
+
+    @overload
+    def apply_parameters(
+        self, id_to_param_value=..., zero_offset: bool = ...,
+        keep_zeros: bool = ..., quad_obj: Literal[False] = ...,
+    ) -> tuple[np.ndarray, float, sp.spmatrix, np.ndarray]: ...
+
+    def apply_parameters(
+        self, id_to_param_value=None, zero_offset: bool = False,
+        keep_zeros: bool = False, quad_obj: bool = False,
+    ):
         """Returns A, b after applying parameters (and reshaping).
 
         Args:

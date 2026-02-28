@@ -15,6 +15,8 @@ limitations under the License.
 """
 
 
+from collections.abc import Sequence
+
 import numpy as np
 from numpy.exceptions import AxisError
 
@@ -22,11 +24,12 @@ import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.expressions.expression import Expression
 
 
-def concatenate(arg_list, axis: int | None = 0):
+def concatenate(arg_list: Sequence[Expression], axis: int | None = 0):
     assert axis is None or (isinstance(axis, int) and axis >= 0)
-    return Concatenate(*(arg_list + [axis]))
+    return Concatenate(*(list(arg_list) + [axis]))
 
 
 class Concatenate(AffAtom):

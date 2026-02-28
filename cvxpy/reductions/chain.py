@@ -1,5 +1,12 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from cvxpy import settings as s
 from cvxpy.reductions.reduction import Reduction
+
+if TYPE_CHECKING:
+    from cvxpy.problems.problem import Problem
 
 
 class Chain(Reduction):
@@ -51,7 +58,7 @@ class Chain(Reduction):
             problem, _ = r.apply(problem)
         return True
 
-    def apply(self, problem, verbose: bool = False):
+    def apply(self, problem, verbose: bool = False) -> tuple[Problem, list]:
         """Applies the chain to a problem and returns an equivalent problem.
 
         Parameters

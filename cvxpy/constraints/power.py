@@ -59,7 +59,10 @@ class PowCone3D(Cone):
                 alpha_promoted_to_vec = True
                 alpha = cvxtypes.promote()(alpha, (1,))
         self.alpha = alpha
-        if np.any(self.alpha.value <= 0) or np.any(self.alpha.value >= 1):
+        alpha_val = self.alpha.value
+        if alpha_val is None:
+            raise ValueError("Argument alpha must have a numeric value.")
+        if np.any(alpha_val <= 0) or np.any(alpha_val >= 1):
             msg = "Argument alpha must have entries in the open interval (0, 1)."
             raise ValueError(msg)
         if alpha_promoted_to_vec:
@@ -216,9 +219,12 @@ class PowConeND(Cone):
         if alpha.shape != W.shape:
             raise ValueError("Argument dimensions %s and %s are not equal."
                              % (W.shape, alpha.shape))
-        if np.any(alpha.value <= 0):
+        alpha_val = alpha.value
+        if alpha_val is None:
+            raise ValueError("Argument alpha must have a numeric value.")
+        if np.any(alpha_val <= 0):
             raise ValueError("Argument alpha must be entry-wise positive.")
-        if np.any(np.abs(1 - np.sum(alpha.value, axis=axis)) > PowConeND._TOL_):
+        if np.any(np.abs(1 - np.sum(alpha_val, axis=axis)) > PowConeND._TOL_):
             raise ValueError("Argument alpha must sum to 1 along axis %s." % axis)
         self.W = W
         self.z = z
