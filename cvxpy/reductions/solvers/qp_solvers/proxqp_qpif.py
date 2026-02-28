@@ -160,10 +160,11 @@ class PROXQP(QpSolver):
             else:
                 solver.solve()
         else:
+            has_box = x_lb is not None or x_ub is not None
             if backend == "dense":
-                solver = proxsuite.proxqp.dense.QP(n_var, n_eq, n_ineq)
+                solver = proxsuite.proxqp.dense.QP(n_var, n_eq, n_ineq, has_box)
             elif backend == "sparse":
-                solver = proxsuite.proxqp.sparse.QP(n_var, n_eq, n_ineq)
+                solver = proxsuite.proxqp.sparse.QP(n_var, n_eq, n_ineq, has_box)
 
             init_kwargs = dict(
                         H=P,

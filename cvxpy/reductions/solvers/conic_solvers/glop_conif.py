@@ -116,6 +116,8 @@ class GLOP(ConicSolver):
             model.constraint.append(constraint)
 
         data[self.MODEL_PROTO] = model
+        data[s.LOWER_BOUNDS] = lb
+        data[s.UPPER_BOUNDS] = ub
         return data, inv_data
 
     def invert(self, solution: Dict[str, Any],
