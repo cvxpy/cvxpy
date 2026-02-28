@@ -2047,10 +2047,10 @@ class TestAtoms(BaseTest):
 
     def test_sum_tuple_axis_constraint(self) -> None:
         """Test that cp.sum with tuple axis correctly enforces constraints."""
-        np.random.seed(42)
+        rng = np.random.default_rng(42)
         n = 5
         P = cp.Variable((n, n), nonneg=True)
-        weights = np.random.randn(n, n)
+        weights = rng.standard_normal((n, n))
 
         # Solve with tuple axis
         prob_tuple = cp.Problem(
@@ -2143,9 +2143,9 @@ class TestAtoms(BaseTest):
 
     def test_max_nd_axis(self) -> None:
         """Test cp.max on 3D arrays with various axis arguments."""
-        np.random.seed(42)
+        rng = np.random.default_rng(42)
         shape = (2, 3, 4)
-        c = np.random.randn(*shape)
+        c = rng.standard_normal(shape)
         x = cp.Variable(shape)
 
         for axis in [0, 1, 2, (0,), (0, 2), -1, (0, -1)]:
@@ -2159,9 +2159,9 @@ class TestAtoms(BaseTest):
 
     def test_norm_inf_nd_axis(self) -> None:
         """Test norm_inf on 3D arrays with int axis arguments."""
-        np.random.seed(43)
+        rng = np.random.default_rng(43)
         shape = (2, 3, 4)
-        c = np.random.randn(*shape)
+        c = rng.standard_normal(shape)
         x = cp.Variable(shape)
 
         for axis in [0, 1, 2]:
@@ -2175,9 +2175,9 @@ class TestAtoms(BaseTest):
 
     def test_log_sum_exp_nd_axis(self) -> None:
         """Test log_sum_exp on 3D arrays with various axis arguments."""
-        np.random.seed(44)
+        rng = np.random.default_rng(44)
         shape = (2, 3, 4)
-        c = np.random.randn(*shape)
+        c = rng.standard_normal(shape)
         x = cp.Variable(shape)
 
         for axis in [0, 1, 2, (0, 2)]:
@@ -2191,9 +2191,9 @@ class TestAtoms(BaseTest):
 
     def test_cummax_nd_axis(self) -> None:
         """Test cummax on 3D arrays with axis=2."""
-        np.random.seed(45)
+        rng = np.random.default_rng(45)
         shape = (2, 3, 4)
-        c = np.random.randn(*shape)
+        c = rng.standard_normal(shape)
         x = cp.Variable(shape)
 
         expected = np.maximum.accumulate(c, axis=2)
