@@ -40,8 +40,7 @@ class OSQP(QpSolver):
         return s.OSQP
 
     def import_solver(self) -> None:
-        import osqp
-        osqp
+        import osqp  # noqa: F401
 
     def invert(self, solution, inverse_data):
         import osqp

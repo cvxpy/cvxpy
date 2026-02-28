@@ -57,11 +57,12 @@ class NegativeIdentityOperator(LinearOperator):
     def __call__(self, X):
         return -X
 
-def as_linear_operator(linear_op):
+def as_linear_operator(linear_op) -> LinearOperator:
     if isinstance(linear_op, LinearOperator):
         return linear_op
     elif sp.issparse(linear_op):
         return LinearOperator(linear_op, linear_op.shape)
+    raise TypeError(f"Cannot convert {type(linear_op)} to LinearOperator")
 
 
 def as_block_diag_linear_operator(matrices) -> LinearOperator:

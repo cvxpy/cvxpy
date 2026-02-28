@@ -16,6 +16,10 @@ limitations under the License.
 from __future__ import annotations
 
 from collections import defaultdict
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import mosek
 
 import numpy as np
 import scipy as sp
@@ -730,7 +734,7 @@ class MOSEK(ConicSolver):
         return processed_opts
 
     @staticmethod
-    def is_param(param: str | "iparam" | "dparam" | "sparam") -> bool:  # noqa: F821
+    def is_param(param: str | mosek.iparam | mosek.dparam | mosek.sparam) -> bool:
         import mosek
         return isinstance(param, (mosek.iparam, mosek.dparam,  mosek.sparam))
 

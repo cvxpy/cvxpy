@@ -93,8 +93,7 @@ class SCIP(ConicSolver):
 
     def import_solver(self) -> None:
         """Imports the solver."""
-        import pyscipopt
-        pyscipopt
+        import pyscipopt  # noqa: F401
 
     def apply(self, problem: ParamConeProg) -> tuple[dict, dict]:
         """Returns a new problem and data for inverting the new solution."""

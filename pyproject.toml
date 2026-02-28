@@ -50,11 +50,6 @@ reportInvalidTypeForm = false       # 28 errors
 reportIndexIssue = false            # 25 errors
 reportOptionalOperand = false       # 21 errors
 reportOperatorIssue = false         # 21 errors
-reportUnusedExpression = false      # 10 (intentional import-check pattern in solvers)
-reportUndefinedVariable = false     # 3 errors (mosek optional type forward refs)
-reportOptionalIterable = false      # 2 errors
-reportOptionalCall = false          # 1 error
-reportInvalidTypeArguments = false  # 1 error
 
 [tool.pytest.ini_options]
 testpaths = [

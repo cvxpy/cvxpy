@@ -77,6 +77,7 @@ def partial_optimize(
         )
     # If opt_vars is not specified, it's the complement of dont_opt_vars.
     elif opt_vars is None:
+        assert dont_opt_vars is not None
         ids = [id(var) for var in dont_opt_vars]
         opt_vars = [var for var in prob.variables() if id(var) not in ids]
     # If dont_opt_vars is not specified, it's the complement of opt_vars.

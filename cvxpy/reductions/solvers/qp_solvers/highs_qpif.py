@@ -57,9 +57,7 @@ class HIGHS(QpSolver):
         return s.HIGHS
 
     def import_solver(self) -> None:
-        import highspy
-
-        highspy
+        import highspy  # noqa: F401
 
     def apply(self, problem):
         """
