@@ -56,9 +56,10 @@ This module contains the abstract base classes used by all backends:
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Callable, Tuple
+from typing import Any
 
 import numpy as np
 import scipy.sparse as sp
@@ -68,9 +69,9 @@ from cvxpy.lin_ops import LinOp
 
 
 def get_nd_matmul_dims(
-    const_shape: Tuple[int, ...],
-    var_shape: Tuple[int, ...],
-) -> Tuple[int, int, bool]:
+    const_shape: tuple[int, ...],
+    var_shape: tuple[int, ...],
+) -> tuple[int, int, bool]:
     """
     Compute dimensions for ND matmul C @ X.
 
@@ -97,9 +98,9 @@ def get_nd_matmul_dims(
 
 
 def get_nd_rmul_dims(
-    var_shape: Tuple[int, ...],
-    const_shape: Tuple[int, ...],
-) -> Tuple[int, int, int, bool]:
+    var_shape: tuple[int, ...],
+    const_shape: tuple[int, ...],
+) -> tuple[int, int, int, bool]:
     """
     Compute dimensions for ND rmul X @ C.
 
@@ -130,7 +131,7 @@ def get_nd_rmul_dims(
     return batch_size, m, n, const_has_batch
 
 
-def is_batch_varying(const_shape: Tuple[int, ...]) -> bool:
+def is_batch_varying(const_shape: tuple[int, ...]) -> bool:
     """
     Check if constant has batch dimensions with product > 1.
 

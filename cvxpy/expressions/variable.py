@@ -15,7 +15,8 @@ limitations under the License.
 """
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Iterable, Optional, Tuple
+from collections.abc import Iterable
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from cvxpy.expressions.constants.parameter import Parameter
@@ -61,7 +62,7 @@ class Variable(Leaf):
         return False
 
     @property
-    def grad(self) -> Optional[dict[Variable, sp.csc_array]]:
+    def grad(self) -> dict[Variable, sp.csc_array] | None:
         """Gives the (sub/super)gradient of the expression w.r.t. each variable.
 
         Matrix expressions are vectorized, so the gradient is a matrix.
@@ -110,7 +111,7 @@ class Variable(Leaf):
         else:
             raise ValueError(f'Unsupported context {context}')
 
-    def canonicalize(self) -> Tuple[Expression, list[Constraint]]:
+    def canonicalize(self) -> tuple[Expression, list[Constraint]]:
         """Returns the graph implementation of the object."""
         obj = lu.create_var(self.shape, self.id)
         return (obj, [])
@@ -119,7 +120,7 @@ class Variable(Leaf):
         """Deprecated: use set_leaf_of_provenance instead."""
         self.set_leaf_of_provenance(variable)
 
-    def variable_of_provenance(self) -> Optional[Variable]:
+    def variable_of_provenance(self) -> Variable | None:
         """Deprecated: use leaf_of_provenance instead."""
         return self.leaf_of_provenance()
 

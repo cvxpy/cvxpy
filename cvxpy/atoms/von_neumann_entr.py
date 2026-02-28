@@ -13,7 +13,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import List, Tuple
 
 import numpy as np
 from scipy import linalg as LA
@@ -55,7 +54,7 @@ class von_neumann_entr(Atom):
     for most uses of this function in the context of quantum information theory. 
     """
 
-    def __init__(self, X, quad_approx: Tuple[int, ...] = ()) -> None:
+    def __init__(self, X, quad_approx: tuple[int, ...] = ()) -> None:
         self.quad_approx = quad_approx
         super(von_neumann_entr, self).__init__(X)
 
@@ -78,7 +77,7 @@ class von_neumann_entr(Atom):
                 """
             )
         
-    def sign_from_args(self) -> Tuple[bool, bool]:
+    def sign_from_args(self) -> tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         return (False, False)
@@ -88,7 +87,7 @@ class von_neumann_entr(Atom):
         """
         return False
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> tuple[int, ...]:
         """Returns the shape of the expression.
         """
         return tuple()
@@ -129,7 +128,7 @@ class von_neumann_entr(Atom):
         #  compare to log_det atom.
         raise NotImplementedError()
 
-    def _domain(self) -> List[Constraint]:
+    def _domain(self) -> list[Constraint]:
         """Returns constraints describing the domain of the node.
         """
         return [self.args[0] >> 0]

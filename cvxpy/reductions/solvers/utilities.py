@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import Any, Dict
+from typing import Any
 
 import numpy as np
 
@@ -58,7 +58,7 @@ def extract_dual_value(result_vec, offset, constraint):
     return value, offset
 
 
-def get_dual_values(result_vec, parse_func, constraints) -> Dict[Any, Any]:
+def get_dual_values(result_vec, parse_func, constraints) -> dict[Any, Any]:
     """Gets the values of the dual variables.
 
     Parameters

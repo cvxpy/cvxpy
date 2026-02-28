@@ -15,7 +15,7 @@ limitations under the License.
 """
 from __future__ import annotations
 
-from typing import List, Tuple, TypeVar
+from typing import TypeVar
 
 import numpy as np
 
@@ -107,7 +107,7 @@ class ExpCone(Cone):
     def as_quad_approx(self, m: int, k: int) -> RelEntrConeQuad:
         return RelEntrConeQuad(self.y, self.z, -self.x, m, k)
 
-    def cone_sizes(self) -> List[int]:
+    def cone_sizes(self) -> list[int]:
         """The dimensions of the exponential cones.
 
         Returns
@@ -132,7 +132,7 @@ class ExpCone(Cone):
         return self.is_dcp()
 
     @property
-    def shape(self) -> Tuple[int, ...]:
+    def shape(self) -> tuple[int, ...]:
         s = (3,) + self.x.shape
         return s
 
@@ -243,7 +243,7 @@ class RelEntrConeQuad(Cone):
         """
         return self.x.size
 
-    def cone_sizes(self) -> List[int]:
+    def cone_sizes(self) -> list[int]:
         """The dimensions of the exponential cones.
 
         Returns
@@ -268,7 +268,7 @@ class RelEntrConeQuad(Cone):
         return self.is_dcp()
 
     @property
-    def shape(self) -> Tuple[int, ...]:
+    def shape(self) -> tuple[int, ...]:
         s = (3,) + self.x.shape
         return s
 
@@ -360,7 +360,7 @@ class OpRelEntrConeQuad(Cone):
         """
         return self.X.size
 
-    def cone_sizes(self) -> List[int]:
+    def cone_sizes(self) -> list[int]:
         """The dimensions of the exponential cones.
 
         Returns
@@ -385,7 +385,7 @@ class OpRelEntrConeQuad(Cone):
         return self.is_dcp()
 
     @property
-    def shape(self) -> Tuple[int, ...]:
+    def shape(self) -> tuple[int, ...]:
         s = (3,) + self.X.shape
         return s
 

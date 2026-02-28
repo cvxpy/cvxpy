@@ -12,7 +12,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import List, Tuple
 
 import numpy as np
 import scipy.sparse as sp
@@ -179,7 +178,7 @@ class Power(Elementwise):
     def numeric(self, values):
         return np.power(values[0], float(self.p.value))
 
-    def sign_from_args(self) -> Tuple[bool, bool]:
+    def sign_from_args(self) -> tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         if self.p.value == 1:
@@ -189,7 +188,7 @@ class Power(Elementwise):
             # Always positive.
             return (True, False)
 
-    def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
+    def bounds_from_args(self) -> tuple[np.ndarray, np.ndarray]:
         """Returns bounds for power based on argument bounds."""
         lb, ub = self.args[0].get_bounds()
         p = float(self.p.value) if self.p.value is not None else 1.0
@@ -380,7 +379,7 @@ class Power(Elementwise):
         grad_vals = float(p)*np.power(values[0], float(p)-1)
         return [Power.elemwise_grad_to_diag(grad_vals, rows, cols)]
 
-    def _domain(self) -> List[Constraint]:
+    def _domain(self) -> list[Constraint]:
         """Returns constraints describing the domain of the node.
         """
         if not isinstance(self._p_orig, cvxtypes.expression()):

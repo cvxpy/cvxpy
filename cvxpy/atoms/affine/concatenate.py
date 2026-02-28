@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import List, Optional, Tuple
 
 import numpy as np
 from numpy.exceptions import AxisError
@@ -25,7 +24,7 @@ from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.constraints.constraint import Constraint
 
 
-def concatenate(arg_list, axis: Optional[int] = 0):
+def concatenate(arg_list, axis: int | None = 0):
     assert axis is None or (isinstance(axis, int) and axis >= 0)
     return Concatenate(*(arg_list + [axis]))
 
@@ -56,7 +55,7 @@ class Concatenate(AffAtom):
     def numeric(self, values):
         return np.concatenate(values, axis=self.axis)
 
-    def get_data(self) -> List[Optional[int]]:
+    def get_data(self) -> list[int | None]:
         return [self.axis]
 
     def validate_arguments(self) -> None:
@@ -64,7 +63,7 @@ class Concatenate(AffAtom):
         # concatenation along a specified axis using numpy API with empty arrays
         self.shape_from_args()
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> tuple[int, ...]:
         try:
             return np.concatenate(
                 [np.empty(arg.shape, dtype=np.dtype([])) for arg in self.args],
@@ -76,9 +75,9 @@ class Concatenate(AffAtom):
     def graph_implementation(
         self,
         arg_objs,
-        shape: Tuple[int, ...],
+        shape: tuple[int, ...],
         data=None,
-    ) -> Tuple[lo.LinOp, List[Constraint]]:
+    ) -> tuple[lo.LinOp, list[Constraint]]:
         """Concatenate the expressions along an existing axis.
 
         Parameters

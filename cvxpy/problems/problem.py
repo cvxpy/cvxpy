@@ -18,7 +18,7 @@ from __future__ import annotations
 import time
 from collections import namedtuple
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Dict, List, Optional, Union
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from cvxpy.reductions.solvers.solver import Solver
@@ -105,9 +105,9 @@ _FOOTER = (
 class Cache:
     def __init__(self) -> None:
         self.key = None
-        self.solving_chain: Optional[SolvingChain] = None
+        self.solving_chain: SolvingChain | None = None
         self.param_prog = None
-        self.inverse_data: Optional[InverseData] = None
+        self.inverse_data: InverseData | None = None
 
     def invalidate(self) -> None:
         self.key = None
@@ -152,7 +152,7 @@ class Problem(u.Canonical):
     REGISTERED_SOLVE_METHODS = {}
 
     def __init__(
-        self, objective: Union[Minimize, Maximize], constraints: Optional[List[Constraint]] = None
+        self, objective: Minimize | Maximize, constraints: list[Constraint] | None = None
     ) -> None:
         if constraints is None:
             constraints = []
@@ -173,22 +173,22 @@ class Problem(u.Canonical):
                       "Consider vectorizing your CVXPY code to speed up compilation.")
 
         self._value = None
-        self._status: Optional[str] = None
+        self._status: str | None = None
         self._solution = None
         self._cache = Cache()
         self._solver_cache = {}
         # Information about the shape of the problem and its constituent parts
-        self._size_metrics: Optional["SizeMetrics"] = None
+        self._size_metrics: 'SizeMetrics' | None = None
         # Benchmarks reported by the solver:
-        self._solver_stats: Optional["SolverStats"] = None
-        self._compilation_time: Optional[float] = None
-        self._solve_time: Optional[float] = None
+        self._solver_stats: 'SolverStats' | None = None
+        self._compilation_time: float | None = None
+        self._solve_time: float | None = None
         self.args = [self._objective, self._constraints]
         # Needed for _aggregate_metrics.
         self.ndim = 0
 
         # solver_context : The solver context: supported constrains and bounds.
-        self.solver_context : Optional[SolverInfo] = None
+        self.solver_context : SolverInfo | None = None
 
     @perf.compute_once
     def _aggregate_metrics(self) -> dict:
@@ -236,7 +236,7 @@ class Problem(u.Canonical):
         return self._solution
 
     @property
-    def objective(self) -> Union[Minimize, Maximize]:
+    def objective(self) -> Minimize | Maximize:
         """Minimize or Maximize : The problem's objective.
 
         Note that the objective cannot be reassigned after creation,
@@ -246,7 +246,7 @@ class Problem(u.Canonical):
         return self._objective
 
     @property
-    def constraints(self) -> List[Constraint]:
+    def constraints(self) -> list[Constraint]:
         """A shallow copy of the problem's constraints.
 
         Note that constraints cannot be reassigned, appended to, or otherwise
@@ -262,7 +262,7 @@ class Problem(u.Canonical):
         return {parameters.name(): parameters for parameters in self.parameters()}
 
     @property
-    def var_dict(self) -> Dict[str, Variable]:
+    def var_dict(self) -> dict[str, Variable]:
         """
         Expose all variables as a dictionary
         """
@@ -425,7 +425,7 @@ class Problem(u.Canonical):
                    for v in self.variables())
 
     @perf.compute_once
-    def variables(self) -> List[Variable]:
+    def variables(self) -> list[Variable]:
         """Accessor method for variables.
 
         Returns
@@ -453,7 +453,7 @@ class Problem(u.Canonical):
         return unique_list(params)
 
     @perf.compute_once
-    def constants(self) -> List[Constant]:
+    def constants(self) -> list[Constant]:
         """Accessor method for constants.
 
         Returns
@@ -470,7 +470,7 @@ class Problem(u.Canonical):
         const_dict = {id(constant): constant for constant in constants_}
         return list(const_dict.values())
 
-    def atoms(self) -> List[Atom]:
+    def atoms(self) -> list[Atom]:
         """Accessor method for atoms.
 
         Returns
@@ -505,7 +505,7 @@ class Problem(u.Canonical):
         """
         return self._compilation_time
 
-    def _solve_solver_path(self, solve_func, solvers:List[tuple[str, Dict] | str],
+    def _solve_solver_path(self, solve_func, solvers:list[tuple[str, dict] | str],
                                 args, kwargs):
         """Solve a problem using multiple solvers.
 
@@ -672,7 +672,7 @@ class Problem(u.Canonical):
         ignore_dpp: bool = False,
         verbose: bool = False,
         canon_backend: str | None = None,
-        solver_opts: Optional[dict] = None
+        solver_opts: dict | None = None
     ):
         """Returns the problem data used in the call to the solver.
 
@@ -871,7 +871,7 @@ class Problem(u.Canonical):
             enforce_dpp: bool = False,
             ignore_dpp: bool = False,
             canon_backend: str | None = None,
-            solver_opts: Optional[dict] = None
+            solver_opts: dict | None = None
     ) -> SolvingChain:
         """
         Construct the chains required to reformulate and solve the problem.
@@ -1516,10 +1516,10 @@ class SolverStats:
     """
 
     solver_name: str
-    solve_time: Optional[float] = None
-    setup_time: Optional[float] = None
-    num_iters: Optional[int] = None
-    extra_stats: Optional[dict] = None
+    solve_time: float | None = None
+    setup_time: float | None = None
+    num_iters: int | None = None
+    extra_stats: dict | None = None
 
     @classmethod
     def from_dict(cls, attr: dict, solver_name: str) -> "SolverStats":

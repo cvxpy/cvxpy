@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import Tuple
 
 import numpy as np
 import scipy.sparse as sp
@@ -56,7 +55,7 @@ class QuadForm(Atom):
         if not self.args[1].is_hermitian():
             raise ValueError("Quadratic form matrices must be symmetric/Hermitian.")
 
-    def sign_from_args(self) -> Tuple[bool, bool]:
+    def sign_from_args(self) -> tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         return (self.is_atom_convex(), self.is_atom_concave())
@@ -127,7 +126,7 @@ class QuadForm(Atom):
         D = (P + np.conj(P.T)) @ x
         return [sp.csc_array([D.ravel(order="F")]).T]
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> tuple[int, ...]:
         return tuple()
 
 
@@ -173,10 +172,10 @@ class SymbolicQuadForm(Atom):
     def is_incr(self, idx) -> bool:
         return self.original_expression.is_incr(idx)
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> tuple[int, ...]:
         return self.original_expression.shape_from_args()
 
-    def sign_from_args(self) -> Tuple[bool, bool]:
+    def sign_from_args(self) -> tuple[bool, bool]:
         return self.original_expression.sign_from_args()
 
     def is_quadratic(self) -> bool:

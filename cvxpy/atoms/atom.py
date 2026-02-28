@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import abc
-from typing import TYPE_CHECKING, List, Tuple
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from cvxpy.constraints.constraint import Constraint
@@ -98,22 +98,22 @@ class Atom(Expression):
             )
 
     @abc.abstractmethod
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> tuple[int, ...]:
         """Returns the shape of the expression.
         """
         raise NotImplementedError()
 
     @property
-    def shape(self) -> Tuple[int, ...]:
+    def shape(self) -> tuple[int, ...]:
         return self._shape
 
     @abc.abstractmethod
-    def sign_from_args(self) -> Tuple[bool, bool]:
+    def sign_from_args(self) -> tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         raise NotImplementedError()
 
-    def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
+    def bounds_from_args(self) -> tuple[np.ndarray, np.ndarray]:
         """Returns bounds (lower, upper) of the expression based on argument bounds.
 
         Default implementation returns unbounded. Override in subclasses that can
@@ -127,7 +127,7 @@ class Atom(Expression):
         return bounds_utils.unbounded(self.shape)
 
     @perf.compute_once
-    def get_bounds(self) -> Tuple[np.ndarray, np.ndarray]:
+    def get_bounds(self) -> tuple[np.ndarray, np.ndarray]:
         """Returns bounds (lower, upper) of the expression.
 
         Combines bounds_from_args() with sign information for potentially tighter bounds.
@@ -304,7 +304,7 @@ class Atom(Expression):
             return False
 
     @perf.compute_once
-    def _non_const_idx(self) -> List[int]:
+    def _non_const_idx(self) -> list[int]:
         return [i for i, arg in enumerate(self.args) if not arg.is_constant()]
 
     @perf.compute_once
@@ -389,8 +389,8 @@ class Atom(Expression):
             return graph_obj, constraints + graph_constr
 
     def graph_implementation(
-        self, arg_objs, shape: Tuple[int, ...], data=None
-    ) -> Tuple[lo.LinOp, List['Constraint']]:
+        self, arg_objs, shape: tuple[int, ...], data=None
+    ) -> tuple[lo.LinOp, list['Constraint']]:
         """Reduces the atom to an affine expression and list of constraints.
 
         Parameters
@@ -500,13 +500,13 @@ class Atom(Expression):
         raise NotImplementedError()
 
     @property
-    def domain(self) -> List['Constraint']:
+    def domain(self) -> list['Constraint']:
         """A list of constraints describing the closure of the region
            where the expression is finite.
         """
         return self._domain() + [con for arg in self.args for con in arg.domain]
 
-    def _domain(self) -> List['Constraint']:
+    def _domain(self) -> list['Constraint']:
         """Returns constraints describing the domain of the atom.
         """
         # Default is no constraints.
@@ -526,7 +526,7 @@ class Atom(Expression):
             return intf.DEFAULT_INTF.const_to_matrix(result)
         return new_numeric
 
-    def atoms(self) -> List['Atom']:
+    def atoms(self) -> list['Atom']:
         """A list of the atom types present amongst this atom's arguments.
         """
         atom_list = []

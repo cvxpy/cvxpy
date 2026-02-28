@@ -17,6 +17,9 @@ select = [
     "F",
     "I",
     "NPY201",
+    "UP006",  # Use builtin types (list, dict, tuple, set, frozenset, type) instead of typing
+    "UP007",  # Use X | Y for union types instead of Union/Optional
+    "UP035",  # Use collections.abc / builtins instead of deprecated typing imports
     "W605",  # Check for invalid escape sequences in docstrings (errors in py >= 3.11)
 ]
 

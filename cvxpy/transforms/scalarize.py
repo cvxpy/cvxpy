@@ -13,14 +13,13 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import List, Union
 
 import cvxpy.atoms as atoms
 from cvxpy.problems.objective import Maximize, Minimize
 from cvxpy.transforms import indicator
 
 
-def weighted_sum(objectives: List[Union[Minimize, Maximize]], weights) -> Union[Minimize, Maximize]:
+def weighted_sum(objectives: list[Minimize | Maximize], weights) -> Minimize | Maximize:
     """Combines objectives as a weighted sum.
 
     Args:
@@ -35,12 +34,12 @@ def weighted_sum(objectives: List[Union[Minimize, Maximize]], weights) -> Union[
 
 
 def targets_and_priorities(
-  objectives: List[Union[Minimize, Maximize]],
+  objectives: list[Minimize | Maximize],
   priorities,
   targets,
   limits=None,
   off_target: float = 1e-5
-) -> Union[Minimize, Maximize]:
+) -> Minimize | Maximize:
     """
     Combines objectives with penalties within a range between target and limit.
 
@@ -84,7 +83,7 @@ def targets_and_priorities(
     assert off_target >= 0, "The off_target argument must be nonnegative."
 
     num_objs = len(objectives)
-    new_objs: List[Union[Minimize, Maximize]] = []
+    new_objs: list[Minimize | Maximize] = []
     for i in range(num_objs):
         obj, tar, lim = objectives[i], targets[i], limits[i] if limits is not None else None
         if priorities[i] < 0:
@@ -106,7 +105,7 @@ def targets_and_priorities(
     else:
         raise ValueError("Scalarized objective is neither convex nor concave.")
 
-def max(objectives: List[Union[Minimize, Maximize]], weights) -> Minimize:
+def max(objectives: list[Minimize | Maximize], weights) -> Minimize:
     """Combines objectives as max of weighted terms.
 
     Args:
@@ -122,7 +121,7 @@ def max(objectives: List[Union[Minimize, Maximize]], weights) -> Minimize:
 
 
 def log_sum_exp(
-  objectives: List[Union[Minimize, Maximize]], weights, gamma: float = 1.0
+  objectives: list[Minimize | Maximize], weights, gamma: float = 1.0
 ) -> Minimize:
     """Combines objectives as log_sum_exp of weighted terms.
 

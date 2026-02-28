@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import List, Optional, Tuple
 
 import numpy as np
 
@@ -44,7 +43,7 @@ class broadcast_to(AffAtom):
     def numeric(self, values):
         return np.broadcast_to(values[0], shape=self.broadcast_shape)
 
-    def get_data(self) -> List[Optional[int]]:
+    def get_data(self) -> list[int | None]:
         return [self.broadcast_shape]
 
     def validate_arguments(self) -> None:
@@ -53,15 +52,15 @@ class broadcast_to(AffAtom):
             shape=self.broadcast_shape
         )
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> tuple[int, ...]:
         return self.broadcast_shape
 
     def graph_implementation(
         self,
         arg_objs,
-        shape: Tuple[int, ...],
+        shape: tuple[int, ...],
         data=None,
-    ) -> Tuple[lo.LinOp, List[Constraint]]:
+    ) -> tuple[lo.LinOp, list[Constraint]]:
         """Broadcast an expression to a given shape.
 
         Parameters

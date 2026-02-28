@@ -13,7 +13,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import List, Tuple
 
 import numpy as np
 
@@ -51,7 +50,7 @@ class Trace(AffAtom):
     def __init__(self, expr) -> None:
         super(Trace, self).__init__(expr)
 
-    def sign_from_args(self) -> Tuple[bool, bool]:
+    def sign_from_args(self) -> tuple[bool, bool]:
         """Trace is nonneg (nonpos) if its argument is elementwise nonneg
         (nonpos) or psd (nsd).
         """
@@ -73,7 +72,7 @@ class Trace(AffAtom):
         if self.args[0].ndim != 2 or shape[0] != shape[1]:
             raise ValueError("Argument to trace must be a 2-d square array.")
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> tuple[int, ...]:
         """Always scalar.
         """
         return tuple()
@@ -95,8 +94,8 @@ class Trace(AffAtom):
         return False
 
     def graph_implementation(
-        self, arg_objs, shape: Tuple[int, ...], data=None
-    ) -> Tuple[lo.LinOp, List[Constraint]]:
+        self, arg_objs, shape: tuple[int, ...], data=None
+    ) -> tuple[lo.LinOp, list[Constraint]]:
         """Sum the diagonal entries of the linear expression.
 
         Parameters

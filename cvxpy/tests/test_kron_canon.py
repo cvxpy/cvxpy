@@ -13,7 +13,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import Tuple
 
 import numpy as np
 
@@ -32,8 +31,8 @@ class TestKron(BaseTest):
     """
 
     @staticmethod
-    def make_kron_prob(z_dims: Tuple[int],
-                       c_dims: Tuple[int],
+    def make_kron_prob(z_dims: tuple[int],
+                       c_dims: tuple[int],
                        param: bool,
                        var_left: bool,
                        seed: int):

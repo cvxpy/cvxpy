@@ -17,7 +17,7 @@ limitations under the License.
 import abc
 import warnings
 from functools import wraps
-from typing import List, Literal, Optional, Self, Tuple
+from typing import Literal, Self
 
 import numpy as np
 import scipy.sparse as sp
@@ -131,12 +131,12 @@ class Expression(u.Canonical):
 
     @property
     @abc.abstractmethod
-    def value(self) -> Optional[np.ndarray]:
+    def value(self) -> np.ndarray | None:
         """Returns: The numeric value of the expression.
         """
         raise NotImplementedError()
 
-    def _value_impl(self) -> Optional[np.ndarray]:
+    def _value_impl(self) -> np.ndarray | None:
         """Implementation of .value.
         """
         return self.value
@@ -251,7 +251,7 @@ class Expression(u.Canonical):
 
     # Curvature properties.
     @property
-    def curvatures(self) -> List[str]:
+    def curvatures(self) -> list[str]:
         """List : Returns a list of the curvatures of the expression."""
         curvatures = [
             (self.is_constant, s.CONSTANT),
@@ -532,7 +532,7 @@ class Expression(u.Canonical):
 
     @property
     @abc.abstractmethod
-    def shape(self) -> Tuple[int, ...]:
+    def shape(self) -> tuple[int, ...]:
         """tuple : The expression dimensions.
         """
         raise NotImplementedError()

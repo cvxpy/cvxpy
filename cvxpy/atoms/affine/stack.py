@@ -34,7 +34,7 @@ Examples
 (3, 2)
 """
 
-from typing import Iterable, Sequence
+from collections.abc import Iterable, Sequence
 
 from cvxpy.atoms.affine.concatenate import concatenate
 from cvxpy.atoms.affine.reshape import reshape

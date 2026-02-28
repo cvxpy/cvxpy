@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import Tuple
 
 from cvxpy import problems
 from cvxpy.atoms.elementwise.power import Power
@@ -75,7 +74,7 @@ class Dcp2Cone(Canonicalization):
                                                canon_constraints)
         return new_problem, inverse_data
 
-    def canonicalize_tree(self, expr, affine_above: bool) -> Tuple[Expression, list]:
+    def canonicalize_tree(self, expr, affine_above: bool) -> tuple[Expression, list]:
         """Recursively canonicalize an Expression.
 
         Parameters
@@ -106,7 +105,7 @@ class Dcp2Cone(Canonicalization):
             constrs += c
         return canon_expr, constrs
 
-    def canonicalize_expr(self, expr, args, affine_above: bool) -> Tuple[Expression, list]:
+    def canonicalize_expr(self, expr, args, affine_above: bool) -> tuple[Expression, list]:
         """Canonicalize an expression, w.r.t. canonicalized arguments.
 
         Parameters

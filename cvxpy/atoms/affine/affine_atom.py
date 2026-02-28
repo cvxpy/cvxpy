@@ -13,7 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import Any, List, Tuple
+from typing import Any
 
 import scipy.sparse as sp
 
@@ -30,7 +30,7 @@ class AffAtom(Atom):
     """ Abstract base class for affine atoms. """
     _allow_complex = True
 
-    def sign_from_args(self) -> Tuple[bool, bool]:
+    def sign_from_args(self) -> tuple[bool, bool]:
         """By default, the sign is the most general of all the argument signs.
         """
         return u.sign.sum_signs([arg for arg in self.args])
@@ -108,7 +108,7 @@ class AffAtom(Atom):
                 return False
         return True
 
-    def _grad(self, values) -> List[Any]:
+    def _grad(self, values) -> list[Any]:
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.
 
         Matrix expressions are vectorized, so the gradient is a matrix.

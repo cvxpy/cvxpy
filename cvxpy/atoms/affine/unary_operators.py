@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import operator as op
-from typing import List, Tuple
 
 import numpy as np
 
@@ -68,17 +67,17 @@ class NegExpression(UnaryOperator):
             retval = self.OP_NAME + self.args[0].format_labeled()
         return retval
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> tuple[int, ...]:
         """Returns the (row, col) shape of the expression.
         """
         return self.args[0].shape
 
-    def sign_from_args(self) -> Tuple[bool, bool]:
+    def sign_from_args(self) -> tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         return (self.args[0].is_nonpos(), self.args[0].is_nonneg())
 
-    def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
+    def bounds_from_args(self) -> tuple[np.ndarray, np.ndarray]:
         """Returns bounds for the negation based on argument bounds."""
         lb, ub = self.args[0].get_bounds()
         return bounds_utils.neg_bounds(lb, ub)
@@ -104,8 +103,8 @@ class NegExpression(UnaryOperator):
         return self.args[0].is_hermitian()
 
     def graph_implementation(
-        self, arg_objs, shape: Tuple[int, ...], data=None
-    ) -> Tuple[lo.LinOp, List[Constraint]]:
+        self, arg_objs, shape: tuple[int, ...], data=None
+    ) -> tuple[lo.LinOp, list[Constraint]]:
         """Negate the affine objective.
 
         Parameters
