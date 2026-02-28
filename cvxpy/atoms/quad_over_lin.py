@@ -19,11 +19,10 @@ from typing import List, Tuple
 import numpy as np
 import scipy as scipy
 import scipy.sparse as sp
-from numpy.lib.array_utils import normalize_axis_tuple
 
 import cvxpy.utilities as u
 from cvxpy.atoms.atom import Atom
-from cvxpy.atoms.axis_atom import AxisAtom
+from cvxpy.atoms.axis_atom import AxisAtom, normalize_axis
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions.constants.parameter import is_param_free
 
@@ -50,13 +49,7 @@ class quad_over_lin(AxisAtom):
         # Normalize axis after init so self.args is available.
         if self.axis is not None:
             ndim = len(self.args[0].shape)
-            axes = normalize_axis_tuple(self.axis, ndim)
-            if len(axes) == ndim:
-                self.axis = None
-            elif len(axes) == 1:
-                self.axis = axes[0]
-            else:
-                self.axis = axes
+            self.axis = normalize_axis(self.axis, ndim)
 
     @Atom.numpy_numeric
     def numeric(self, values):

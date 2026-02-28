@@ -23,6 +23,24 @@ from numpy.lib.array_utils import normalize_axis_index, normalize_axis_tuple
 from cvxpy.atoms.atom import Atom
 
 
+def normalize_axis(
+    axis: int | tuple[int, ...], ndim: int, reduce_all_to_none: bool = True
+) -> None | int | tuple[int, ...]:
+    """Normalize an axis argument to a canonical form.
+
+    - Negative indices become positive.
+    - Single-element tuples become an int.
+    - If all axes are listed and *reduce_all_to_none* is True, returns None.
+    """
+    axes = normalize_axis_tuple(axis, ndim)
+    if reduce_all_to_none and len(axes) == ndim:
+        return None
+    elif len(axes) == 1:
+        return axes[0]
+    else:
+        return axes
+
+
 class AxisAtom(Atom):
     """
     An abstract base class for atoms that can be applied along an axis.
@@ -42,15 +60,10 @@ class AxisAtom(Atom):
         # Normalize axis after init so self.args is available.
         if self.axis is not None:
             ndim = len(self.args[0].shape)
-            if ndim == 0:
-                return  # 0D arrays: leave axis as-is for subclass to handle
-            axes = normalize_axis_tuple(self.axis, ndim)
-            if self._reduce_all_axes_to_none and len(axes) == ndim:
-                self.axis = None
-            elif len(axes) == 1:
-                self.axis = axes[0]
-            else:
-                self.axis = axes
+            if ndim > 0:
+                self.axis = normalize_axis(
+                    self.axis, ndim, self._reduce_all_axes_to_none
+                )
 
     def shape_from_args(self) -> Tuple[int, ...]:
         """
@@ -148,8 +161,8 @@ class AxisAtom(Atom):
 
         # All reduce-axis multi-indices
         reduce_multis = np.array(
-            list(np.ndindex(*reduce_dims))
-        )  # shape: (reduce_size, len(axes))
+            np.unravel_index(np.arange(reduce_size), reduce_dims)
+        ).T  # shape: (reduce_size, len(axes))
 
         all_rows = []
         all_cols = []
