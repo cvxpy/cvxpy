@@ -442,7 +442,7 @@ class TestBlockQuadExtraction:
         block_indices = [np.arange(0, 3), np.arange(3, 6)]
 
         c_dense = np.array([[1.0], [2.0]])
-        c_sparse = sp.csc_matrix(c_dense)
+        c_sparse = sp.csc_array(c_dense)
 
         result_dense = block_extractor._extract_block_quad(
             P_coo, c_dense, block_indices, 1,
@@ -477,7 +477,7 @@ class TestBlockQuadExtraction:
 
         # 2 outputs x 3 params, some entries zero to test sparsity.
         c_dense = np.array([[1.0, 0.0, 2.0], [0.0, 3.0, 0.0]])
-        c_sparse = sp.csc_matrix(c_dense)
+        c_sparse = sp.csc_array(c_dense)
 
         result_dense = block_extractor._extract_block_quad(
             P_coo, c_dense, block_indices, 3,
@@ -507,6 +507,107 @@ class TestBlockQuadExtraction:
             result_dense.parameter_offset[d_order],
             result_sparse.parameter_offset[s_order],
         )
+
+
+class TestScalarQuadTensor:
+    """Tests for _scalar_quad_tensor with sparse c_part."""
+
+    def test_sparse_c_part_matches_dense(self):
+        """Verify sparse and dense c_part produce identical results."""
+        P = sp.coo_array(sp.eye(5))
+        c_dense = np.array([[1.0, 0.0, 2.0]])
+        c_sparse = sp.csc_array(c_dense)
+
+        result_dense = CoeffExtractor._scalar_quad_tensor(P, c_dense, 3)
+        result_sparse = CoeffExtractor._scalar_quad_tensor(P, c_sparse, 3)
+
+        d_order = np.argsort(result_dense.parameter_offset * 5 + result_dense.row)
+        s_order = np.argsort(result_sparse.parameter_offset * 5 + result_sparse.row)
+
+        np.testing.assert_array_equal(result_dense.row[d_order], result_sparse.row[s_order])
+        np.testing.assert_array_equal(result_dense.col[d_order], result_sparse.col[s_order])
+        np.testing.assert_array_almost_equal(
+            result_dense.data[d_order], result_sparse.data[s_order],
+        )
+        np.testing.assert_array_equal(
+            result_dense.parameter_offset[d_order],
+            result_sparse.parameter_offset[s_order],
+        )
+
+
+class TestDiagonalQuadTensor:
+    """Tests for _diagonal_quad_tensor with sparse c_part."""
+
+    def test_sparse_c_part_matches_dense(self):
+        """Verify sparse and dense c_part produce identical results."""
+        P = sp.coo_array(sp.eye(4))
+        c_dense = np.array([[1.0, 0.0], [0.0, 2.0], [0.5, 0.0], [0.0, 1.5]])
+        c_sparse = sp.csc_array(c_dense)
+
+        result_dense = CoeffExtractor._diagonal_quad_tensor(P, c_dense, 2)
+        result_sparse = CoeffExtractor._diagonal_quad_tensor(P, c_sparse, 2)
+
+        d_order = np.argsort(result_dense.parameter_offset * 4 + result_dense.row)
+        s_order = np.argsort(result_sparse.parameter_offset * 4 + result_sparse.row)
+
+        np.testing.assert_array_equal(result_dense.row[d_order], result_sparse.row[s_order])
+        np.testing.assert_array_equal(result_dense.col[d_order], result_sparse.col[s_order])
+        np.testing.assert_array_almost_equal(
+            result_dense.data[d_order], result_sparse.data[s_order],
+        )
+        np.testing.assert_array_equal(
+            result_dense.parameter_offset[d_order],
+            result_sparse.parameter_offset[s_order],
+        )
+
+    def test_non_identity_diagonal_p(self):
+        """Verify P diagonal values are included in the tensor data."""
+        diag_vals = np.array([2.0, 3.0, 0.5])
+        P = sp.coo_array(sp.diags(diag_vals))
+        c_part = np.array([[1.0], [1.0], [1.0]])
+
+        result = CoeffExtractor._diagonal_quad_tensor(P, c_part, 1)
+
+        sorted_order = np.argsort(result.row)
+        sorted_data = result.data[sorted_order]
+        # Data should be P[i,i] * c[i, 0] = diag_vals * 1.0
+        np.testing.assert_array_almost_equal(sorted_data, diag_vals)
+
+
+def test_q_is_sparse_with_multiple_params(coeff_extractor):
+    """Verify q coefficients stay sparse when num_params > 1.
+
+    This is the primary behavioral guarantee of the sparse-c optimization:
+    when there are parameters, extract_quadratic_coeffs should keep q sparse
+    rather than densifying it.
+    """
+    x1 = cp.Variable(2, var_id=1)
+    x14 = cp.Variable((1, 1), var_id=14)
+    x16 = cp.Variable(var_id=16)
+
+    p2 = cp.Parameter(value=1.0, nonneg=True, id=2)
+    p3 = cp.Parameter(value=0.0, nonneg=True, id=3)
+
+    affine_expr = p2 * x14 + p3 * x16
+
+    quad_forms = {
+        x14.id: (
+            p2 * x14, 1,
+            SymbolicQuadForm(x1, cp.Constant(np.eye(2)), cp.quad_form(x1, np.eye(2))),
+        ),
+        x16.id: (
+            p3 * x16, 1,
+            SymbolicQuadForm(x1, cp.Constant(np.eye(2)), cp.quad_over_lin(x1, 1.0)),
+        ),
+    }
+    coeffs, constant = coeff_extractor.extract_quadratic_coeffs(affine_expr, quad_forms)
+
+    # With num_params > 1 (3 in this fixture: 2 params + 1 constant column),
+    # q must stay sparse.
+    q = coeffs[1]["q"]
+    assert sp.issparse(q), f"q should be sparse but is {type(q)}"
+    # Values should still be correct.
+    np.testing.assert_array_almost_equal(q.toarray(), np.zeros((2, 3)))
 
 
 class TestSparseBlockPathEndToEnd:

@@ -140,10 +140,10 @@ class CoeffExtractor:
                 assert (
                     P.value is not None
                 ), "P matrix must be instantiated before calling extract_quadratic_coeffs."
-                if sp.issparse(P) and not isinstance(P, sp.coo_matrix):
+                if sp.issparse(P) and not isinstance(P, sp.coo_array):
                     P = P.value.tocoo()
                 else:
-                    P = sp.coo_matrix(P.value)
+                    P = sp.coo_array(P.value)
 
                 # Get block structure if available
                 block_indices = quad_form_atom.block_indices
@@ -172,7 +172,7 @@ class CoeffExtractor:
                         # Fast path for no parameters, keep q dense.
                         coeffs[orig_id]['q'] = np.zeros(shape)
                     else:
-                        coeffs[orig_id]['q'] = sp.coo_matrix(([], ([], [])), shape=shape) 
+                        coeffs[orig_id]['q'] = sp.coo_array(([], ([], [])), shape=shape)
             else:
                 # This was a true variable, so it can only have a q term.
                 var_offset = affine_id_map[var.id][0]
@@ -194,8 +194,8 @@ class CoeffExtractor:
 
     @staticmethod
     def _scalar_quad_tensor(
-        P: sp.coo_matrix,
-        c_part: np.ndarray | sp.spmatrix,
+        P: sp.coo_array,
+        c_part: np.ndarray | sp.sparray,
         num_params: int,
     ) -> TensorRepresentation:
         """Build tensor for the scalar path (var_size == 1).
@@ -233,8 +233,8 @@ class CoeffExtractor:
 
     @staticmethod
     def _diagonal_quad_tensor(
-        P: sp.coo_matrix,
-        c_part: np.ndarray | sp.spmatrix,
+        P: sp.coo_array,
+        c_part: np.ndarray | sp.sparray,
         num_params: int,
     ) -> TensorRepresentation:
         """Build tensor for the diagonal path (multiple element-wise quad forms).
@@ -257,19 +257,25 @@ class CoeffExtractor:
         )
 
         # P is diagonal, so P @ c_part is just row-scaling.
-        # Use element-wise multiply to avoid full sparse matmul.
-        diag_vals = P.data
+        # Build a dense diagonal vector indexed by row position to handle
+        # COO entries that may not be in row-sorted order.
+        diag_vals = np.zeros(P.shape[0])
+        diag_vals[P.row] = P.data
         if sp.issparse(c_part):
-            scaled_c_part = c_part.multiply(diag_vals[:, None])
-            paramx_idx_row, param_idx_col = scaled_c_part.nonzero()
+            # .multiply() is element-wise and preserves sparsity (unlike @).
+            # Result is COO; read .row/.col/.data directly instead of
+            # converting format for fancy indexing.
+            scaled_coo = c_part.multiply(diag_vals[:, None])
+            scaled_coo.eliminate_zeros()
+            paramx_idx_row = scaled_coo.row
+            param_idx_col = scaled_coo.col
+            c_vals = scaled_coo.data
         else:
             scaled_c_part = c_part * diag_vals[:, None]
             paramx_idx_row, param_idx_col = np.nonzero(scaled_c_part)
-
-        # Element-wise fancy indexing on sparse returns dense.
-        c_vals = np.asarray(
-            c_part[paramx_idx_row, param_idx_col]
-        ).ravel()
+            # Use the scaled values (P_ii * c[i, k]), not the raw c values,
+            # so the tensor data is consistent with the scalar and block paths.
+            c_vals = scaled_c_part[paramx_idx_row, param_idx_col]
 
         return TensorRepresentation(
             c_vals,
@@ -281,8 +287,8 @@ class CoeffExtractor:
 
     def _extract_block_quad(
         self,
-        P: sp.coo_matrix,
-        c_part: np.ndarray | sp.spmatrix,
+        P: sp.coo_array,
+        c_part: np.ndarray | sp.sparray,
         block_indices: List[np.ndarray],
         num_params: int,
     ) -> TensorRepresentation:
@@ -415,7 +421,7 @@ class CoeffExtractor:
                 if num_params == 1:
                     q = np.zeros((size, num_params))
                 else:
-                    q = sp.coo_matrix(([], ([], [])), (size, num_params))
+                    q = sp.coo_array(([], ([], [])), (size, num_params))
 
             P_list.append(P)
             q_list.append(q)
@@ -471,7 +477,7 @@ class CoeffExtractor:
 
     def merge_q_list(
         self,
-        q_list: List[sp.spmatrix | np.ndarray],
+        q_list: List[sp.spmatrix | sp.sparray | np.ndarray],
         constant: sp.csc_array,
         num_params: int,
     ) -> sp.csr_array:
