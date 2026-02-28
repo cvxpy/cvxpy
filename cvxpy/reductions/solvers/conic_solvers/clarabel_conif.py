@@ -188,15 +188,9 @@ class CLARABEL(ConicSolver):
         return True
 
     @staticmethod
-    def psd_format_mat(constr):
-        """Return a linear operator to multiply by PSD constraint coefficients.
-
-        Special cases PSD constraints, as Clarabel expects constraints to be
-        imposed on the upper triangular part of the variable matrix with
-        symmetric scaling (i.e. off-diagonal sqrt(2) scalinig) applied.
-
-        """
-        rows = cols = constr.expr.shape[0]
+    def _psd_format_mat_single(n):
+        """Return a format matrix for a single n x n PSD constraint."""
+        rows = cols = n
         entries = rows * (cols + 1)//2
 
         row_arr = np.arange(0, entries)
@@ -225,6 +219,33 @@ class CLARABEL(ConicSolver):
         return scaled_upper_tri @ symm_matrix
 
     @staticmethod
+    def psd_format_mat(constr):
+        """Return a linear operator to multiply by PSD constraint coefficients.
+
+        Special cases PSD constraints, as Clarabel expects constraints to be
+        imposed on the upper triangular part of the variable matrix with
+        symmetric scaling (i.e. off-diagonal sqrt(2) scaling) applied.
+        """
+        n = constr.args[0].shape[-1]
+        single_block = CLARABEL._psd_format_mat_single(n)
+        num = constr.num_cones()
+        if num == 1:
+            return single_block
+        # For batched PSD, the constraint data is F-order flattened from
+        # (*batch, n, n), which interleaves batch elements. We need a
+        # permutation to de-interleave before applying per-block formatting.
+        block_format = sp.block_diag([single_block] * num, format='csc')
+        nn = n * n
+        perm = np.empty(num * nn, dtype=int)
+        for b in range(num):
+            for k in range(nn):
+                perm[b + num * k] = b * nn + k
+        perm_mat = sp.csc_array(
+            (np.ones(num * nn), (perm, np.arange(num * nn))),
+            shape=(num * nn, num * nn))
+        return block_format @ perm_mat
+
+    @staticmethod
     def extract_dual_value(result_vec, offset, constraint):
         """Extracts the dual value for constraint starting at offset.
         """
@@ -232,12 +253,16 @@ class CLARABEL(ConicSolver):
         # special case: PSD constraints treated internally in
         # svec (scaled triangular) form
         if isinstance(constraint, PSD):
-            dim = constraint.shape[0]
+            dim = constraint._cone_size()
             upper_tri_dim = dim * (dim + 1) >> 1
-            new_offset = offset + upper_tri_dim
-            upper_tri = result_vec[offset:new_offset]
-            full = triu_to_full(upper_tri, dim)
-            return full, new_offset
+            num = constraint.num_cones()
+            blocks = []
+            for _ in range(num):
+                new_offset = offset + upper_tri_dim
+                upper_tri = result_vec[offset:new_offset]
+                blocks.append(triu_to_full(upper_tri, dim))
+                offset = new_offset
+            return np.concatenate(blocks), offset
 
         else:
             return utilities.extract_dual_value(result_vec, offset, constraint)

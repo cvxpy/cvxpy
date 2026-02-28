@@ -15,10 +15,8 @@ limitations under the License.
 """
 
 import numpy as np
-from scipy import linalg as LA
 
 from cvxpy.atoms.lambda_max import lambda_max
-from cvxpy.atoms.sum_largest import sum_largest
 
 
 class lambda_sum_largest(lambda_max):
@@ -34,40 +32,58 @@ class lambda_sum_largest(lambda_max):
         """Verify that the argument A is square.
         """
         X = self.args[0]
-        if not X.ndim == 2 or X.shape[0] != X.shape[1]:
+        if X.ndim < 2 or X.shape[-2] != X.shape[-1]:
             raise ValueError("First argument must be a square matrix.")
         elif self.k <= 0:
             raise ValueError("Second argument must be a positive number.")
 
     def numeric(self, values):
-        """Returns the largest eigenvalue of A.
+        """Returns the sum of the k largest eigenvalues of A.
 
         Requires that A be symmetric.
         """
-        eigs = LA.eigvalsh(values[0])
-        return sum_largest(eigs, self.k).value
+        # eigvalsh returns eigenvalues sorted ascending along the last axis.
+        eigs = np.linalg.eigvalsh(values[0])
+        k_floor = int(np.floor(self.k))
+        k_frac = self.k - k_floor
+        result = np.zeros(eigs.shape[:-1]) if eigs.ndim > 1 else 0.0
+        if k_floor > 0:
+            result = result + eigs[..., -k_floor:].sum(axis=-1)
+        if k_frac > 0 and k_floor < eigs.shape[-1]:
+            result = result + k_frac * eigs[..., -(k_floor + 1)]
+        return result
 
     def get_data(self):
         """Returns the parameter k.
         """
         return [self.k]
 
-    def _grad(self, values):
-        """Gives the (sub/super)gradient of the atom w.r.t. each argument.
+    # _grad is inherited from lambda_max; only _grad_matrices is overridden.
 
-        Matrix expressions are vectorized, so the gradient is a matrix.
+    def _grad_matrices(self, A):
+        """Compute gradient matrices for all batch elements.
 
-        Args:
-            values: A list of numeric values for the arguments.
-
-        Returns:
-            A list of SciPy CSC sparse matrices or None.
+        Returns an array of shape (*batch, n, n).
         """
-        raise NotImplementedError()
+        k = self.k
+        k_floor = int(np.floor(k))
+        k_frac = k - k_floor
+        n = A.shape[-1]
+        _, v = np.linalg.eigh(A)
+        # Eigenvalues sorted ascending; largest k are the last k columns.
+        D = np.zeros(A.shape)
+        if k_floor > 0:
+            V_top = v[..., :, -k_floor:]  # (..., n, k_floor)
+            D = D + V_top @ np.swapaxes(V_top, -2, -1)
+        if k_frac > 0 and k_floor < n:
+            v_next = v[..., :, -(k_floor + 1)]  # (..., n)
+            D = D + k_frac * (v_next[..., :, np.newaxis] * v_next[..., np.newaxis, :])
+        return D
 
     @property
     def value(self):
-        if not np.allclose(self.args[0].value, self.args[0].value.T.conj()):
+        val = self.args[0].value
+        if not np.allclose(val, np.swapaxes(val, -2, -1).conj()):
             raise ValueError("Input matrix was not Hermitian/symmetric.")
         if any([p.value is None for p in self.parameters()]):
             return None

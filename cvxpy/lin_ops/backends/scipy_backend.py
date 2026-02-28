@@ -902,13 +902,27 @@ class SciPyCanonBackend(PythonCanonBackend):
         Select the rows corresponding to the diagonal entries in the expression and sum along
         axis 0.
         Apply kron(eye(p), lhs) to deal with parametrized expressions.
-        """
-        shape = lin.args[0].shape
-        indices = np.arange(shape[0]) * shape[0] + np.arange(shape[0])
 
-        data = np.ones(len(indices))
-        idx = (np.zeros(len(indices)), indices.astype(int))
-        lhs = sp.csr_array((data, idx), shape=(1, np.prod(shape)))
+        Supports ND inputs with shape (*batch, n, n), producing output shape (*batch,).
+        """
+        arg_shape = lin.args[0].shape
+        n = arg_shape[-1]
+        batch_size = int(np.prod(arg_shape[:-2])) if len(arg_shape) > 2 else 1
+        total_input = int(np.prod(arg_shape))
+        output_size = batch_size
+
+        # In F-order layout of (*batch_flat, n, n), diagonal entry (b, i, i)
+        # is at position b + batch_size * i * (n + 1).
+        # Each maps to output row b.
+        diag_offsets = np.arange(n) * (n + 1)  # i * (n + 1)
+        row_idx = np.tile(np.arange(batch_size), n)
+        col_idx = (np.repeat(diag_offsets, batch_size) * batch_size
+                   + np.tile(np.arange(batch_size), n))
+
+        lhs = sp.csr_array(
+            (np.ones(batch_size * n), (row_idx, col_idx)),
+            shape=(output_size, total_input)
+        )
 
         def func(x, p) -> sp.csc_array:
             if p == 1:
