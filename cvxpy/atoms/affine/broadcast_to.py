@@ -41,6 +41,7 @@ class broadcast_to(AffAtom):
     def is_atom_log_log_concave(self) -> bool:
         return True
 
+    @AffAtom.numpy_numeric
     def numeric(self, values):
         return np.broadcast_to(values[0], shape=self.broadcast_shape)
 
