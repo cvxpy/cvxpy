@@ -30,7 +30,7 @@ def pnorm_canon(expr, args):
     # Reshape to 2D: (n_output, n_reduce)
     n_output = math.prod(x.shape[i] for i in keep)
     n_reduce = math.prod(x.shape[i] for i in axes)
-    x_2d = reshape(x_perm, (n_output, n_reduce), order='C')
+    x_2d = reshape(x_perm, (n_output, n_reduce), order='F')
 
     rows = []
     for i in range(n_output):
