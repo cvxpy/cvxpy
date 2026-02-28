@@ -1,0 +1,2 @@
+# Modernize type hints to use builtin types and PEP 604 union syntax
+98e59f1285376df9cbafed133a1bcbb1c28d053d
