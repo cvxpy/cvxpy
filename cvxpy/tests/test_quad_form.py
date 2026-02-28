@@ -95,6 +95,19 @@ class TestDecompQuad(BaseTest):
             warnings.simplefilter("ignore")
             self._check(sp.diags_array([1., -1, 2, -2, 3], format="csc"))
 
+    def test_sparse_nsd(self) -> None:
+        """Regression test: sparse NSD must use row permutation L[p,:], not column L[:,p].
+
+        For NSD matrices, decomp_quad calls sparse_cholesky(-P) which returns (L, p) with
+        L[p,:] @ L[p,:].T == -P.  The fix is M2 = L[p,:] (row perm), not L[:,p] (col perm).
+        A tridiagonal matrix produces a non-trivial AMD ordering that exposes the bug.
+        """
+        n = 6
+        off = np.ones(n - 1)
+        # Negative discrete Laplacian: NSD, tridiagonal, AMD gives non-identity permutation.
+        P_nsd = sp.diags([-4 * np.ones(n), off, off], [0, -1, 1], format="csc")
+        self._check(P_nsd)
+
 
 class TestNonOptimal(BaseTest):
     def test_singular_quad_form(self) -> None:

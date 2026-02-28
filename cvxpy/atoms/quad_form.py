@@ -224,7 +224,7 @@ def decomp_quad(P, cond=None, rcond=None, lower=True, check_finite: bool = True)
             if sign > 0:
                 return 1.0, L[p, :], np.empty((0, 0))
             else:
-                return 1.0, np.empty((0, 0)), L[:, p]
+                return 1.0, np.empty((0, 0)), L[p, :]
         except (ValueError, ModuleNotFoundError):
             P = np.array(P.todense())  # make dense (needs to happen for ldl).
     lu, d, _perm = LA.ldl(P, lower=lower, check_finite=check_finite)
