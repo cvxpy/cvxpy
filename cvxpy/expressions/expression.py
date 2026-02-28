@@ -16,8 +16,9 @@ limitations under the License.
 
 import abc
 import warnings
+from collections.abc import Callable
 from functools import wraps
-from typing import Literal, Self
+from typing import Literal, Self, TypeVar
 
 import numpy as np
 import scipy.sparse as sp
@@ -34,8 +35,12 @@ from cvxpy.utilities import scopes
 from cvxpy.utilities.shape import size_from_shape
 from cvxpy.utilities.warn import CvxpyDeprecationWarning, warn
 
+_T = TypeVar('_T')
 
-def _cast_other(binary_op):
+
+def _cast_other(
+    binary_op: "Callable[[Expression, Expression], _T]",
+) -> "Callable[[Expression, ExpressionLike], _T]":
     """Casts the second argument of a binary operator as an Expression.
 
     Args:
@@ -46,7 +51,7 @@ def _cast_other(binary_op):
     """
 
     @wraps(binary_op)
-    def cast_op(self, other):
+    def cast_op(self: "Expression", other: "ExpressionLike") -> _T:
         """A wrapped binary operator that can handle non-Expression arguments.
         """
         other = self.cast_to_const(other)
