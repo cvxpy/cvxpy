@@ -46,6 +46,7 @@ class COPT(ConicSolver):
     """
     # Solver capabilities
     MIP_CAPABLE = True
+    BOUNDED_VARIABLES = True
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC, ExpCone, PSD]
     REQUIRES_CONSTR = True
 
@@ -250,6 +251,27 @@ class COPT(ConicSolver):
             A = data[s.A]
             b = data[s.B]
 
+            # For PSD path (dualized), variable bounds must be added as
+            # explicit constraints since loadConeMatrix doesn't support bounds.
+            psd_lb = data[s.LOWER_BOUNDS]
+            psd_ub = data[s.UPPER_BOUNDS]
+            if psd_lb is not None or psd_ub is not None:
+                n = c.shape[0]
+                extra_rows = []
+                extra_b = []
+                if psd_ub is not None:
+                    # x_i <= ub_i  =>  x_i <= ub_i  (LEQ constraint: I @ x <= ub)
+                    extra_rows.append(sp.eye_array(n, format='csc'))
+                    extra_b.append(psd_ub)
+                    dims[s.LEQ_DIM] += n
+                if psd_lb is not None:
+                    # x_i >= lb_i  =>  -x_i <= -lb_i  (LEQ constraint: -I @ x <= -lb)
+                    extra_rows.append(-sp.eye_array(n, format='csc'))
+                    extra_b.append(-psd_lb)
+                    dims[s.LEQ_DIM] += n
+                A = sp.vstack([A] + extra_rows, format='csc')
+                b = np.concatenate([b] + extra_b)
+
             # Solve the dualized problem
             # TODO switch to `A.transpose().tocsc()` when COPT supports sparray
             rowmap = model.loadConeMatrix(-b, sp.csc_matrix(A.transpose()), -c, dims)
@@ -265,8 +287,16 @@ class COPT(ConicSolver):
             lhs[range(dims[s.EQ_DIM], dims[s.EQ_DIM] + dims[s.LEQ_DIM])] = -copt.COPT.INFINITY
             rhs = np.copy(data[s.B])
 
-            lb = np.full(n, -copt.COPT.INFINITY)
-            ub = np.full(n, +copt.COPT.INFINITY)
+            lb = data[s.LOWER_BOUNDS]
+            ub = data[s.UPPER_BOUNDS]
+            if lb is None:
+                lb = np.full(n, -copt.COPT.INFINITY)
+            else:
+                lb = np.copy(lb)
+            if ub is None:
+                ub = np.full(n, +copt.COPT.INFINITY)
+            else:
+                ub = np.copy(ub)
 
             vtype = None
             if data[s.BOOL_IDX] or data[s.INT_IDX]:

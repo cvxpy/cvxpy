@@ -33,6 +33,7 @@ class SCIPY(ConicSolver):
     Note: This requires a version of SciPy which is >= 1.6.1
     """
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS
+    BOUNDED_VARIABLES = True
 
     # Solver capabilities.
     if (Version(scipy.__version__) < Version('1.9.0')):
@@ -101,6 +102,8 @@ class SCIPY(ConicSolver):
         data[s.H] = b[len_eq:].flatten(order='F')
         if 0 in data[s.H].shape:
             data[s.H] = None
+        data[s.LOWER_BOUNDS] = problem.lower_bounds
+        data[s.UPPER_BOUNDS] = problem.upper_bounds
         return data, inv_data
 
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
@@ -115,22 +118,39 @@ class SCIPY(ConicSolver):
         # Check if the problem is a MIP.
         problem_is_a_mip = data[s.BOOL_IDX] or data[s.INT_IDX]
 
+        # Build variable bounds from BOUNDED_VARIABLES data
+        n = data[s.C].shape[0]
+        lb = data.get(s.LOWER_BOUNDS)
+        ub = data.get(s.UPPER_BOUNDS)
+
         # Track variable integrality options. An entry of zero implies that
         # the variable is continuous. An entry of one implies that the
         # variable is either binary or an integer with bounds.
         if problem_is_a_mip:
-            integrality = [0] * data[s.C].shape[0]
+            integrality = [0] * n
 
             for index in data[s.BOOL_IDX] + data[s.INT_IDX]:
                 integrality[index] = 1
 
-            bounds = [(None, None)] * data[s.C].shape[0]
+            bounds = [(
+                lb[i] if lb is not None else None,
+                ub[i] if ub is not None else None,
+            ) for i in range(n)]
 
             for index in data[s.BOOL_IDX]:
-                bounds[index] = (0, 1)
+                cur_lb, cur_ub = bounds[index]
+                new_lb = max(0, cur_lb) if cur_lb is not None else 0
+                new_ub = min(1, cur_ub) if cur_ub is not None else 1
+                bounds[index] = (new_lb, new_ub)
         else:
             integrality = None
-            bounds = (None, None)
+            if lb is not None or ub is not None:
+                bounds = [(
+                    lb[i] if lb is not None else None,
+                    ub[i] if ub is not None else None,
+                ) for i in range(n)]
+            else:
+                bounds = (None, None)
 
         # Extract solver options which are not part of the options dictionary
         if solver_opts:
