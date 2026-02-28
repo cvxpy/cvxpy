@@ -139,7 +139,8 @@ class CBC(ConicSolver):
         # Convert model
         model = CyClpSimplex(model)
 
-        # Apply variable bounds from data
+        # Apply variable bounds from data.
+        # int32 is required by cylp's C interface (setColumnLowerSubset).
         lb = data[s.LOWER_BOUNDS]
         ub = data[s.UPPER_BOUNDS]
         if lb is not None:

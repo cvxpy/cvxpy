@@ -138,9 +138,9 @@ class PIQP(QpSolver):
                 old_x_lb = old_data.get(s.LOWER_BOUNDS)
                 old_x_ub = old_data.get(s.UPPER_BOUNDS)
                 if x_lb is not None and (old_x_lb is None or any(x_lb != old_x_lb)):
-                    new_args['x_lb'] = x_lb
+                    new_args['x_l'] = x_lb
                 if x_ub is not None and (old_x_ub is None or any(x_ub != old_x_ub)):
-                    new_args['x_ub'] = x_ub
+                    new_args['x_u'] = x_ub
 
             if backend == 'dense' and not isinstance(solver, piqp.DenseSolver):
                 structure_changed = True
@@ -181,9 +181,9 @@ class PIQP(QpSolver):
             else:
                 setup_kwargs = dict(P=P, c=q, A=A, b=b, G=F, h_u=g)
                 if x_lb is not None:
-                    setup_kwargs['x_lb'] = x_lb
+                    setup_kwargs['x_l'] = x_lb
                 if x_ub is not None:
-                    setup_kwargs['x_ub'] = x_ub
+                    setup_kwargs['x_u'] = x_ub
                 solver.setup(**setup_kwargs)
 
         solver.solve()

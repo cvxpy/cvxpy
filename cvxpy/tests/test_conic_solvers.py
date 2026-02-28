@@ -2993,6 +2993,18 @@ class TestCOPT(unittest.TestCase):
     def test_copt_lp_bound_attr(self) -> None:
         StandardTestLPs.test_lp_bound_attr(solver='COPT', duals=False)
 
+    def test_copt_sdp_bound_attr(self) -> None:
+        """Test COPT PSD path with variable bounds.
+
+        Exercises the PSD branch in copt_conif.py where bounds are
+        converted to explicit inequality constraints for loadConeMatrix.
+        """
+        X = cp.Variable((2, 2), symmetric=True)
+        t = cp.Variable(bounds=[-10, 10])
+        prob = cp.Problem(cp.Minimize(t), [X >> 0, cp.trace(X) == 1, t >= 1])
+        prob.solve(solver='COPT')
+        self.assertAlmostEqual(t.value, 1.0, places=3)
+
 
 @unittest.skipUnless('COSMO' in INSTALLED_SOLVERS, 'COSMO is not installed.')
 class TestCOSMO(BaseTest):

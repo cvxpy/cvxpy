@@ -536,12 +536,9 @@ class TestQp(QPTestBase):
                 self.equivalent_forms_3(solver)
 
     def test_qp_bound_attr(self) -> None:
+        from cvxpy.reductions.solvers.defines import SOLVER_MAP_QP
         for solver in self.solvers:
-            if SOLVER_MAP_CONIC.get(solver) is not None:
-                solver_cls = SOLVER_MAP_CONIC[solver]
-            else:
-                from cvxpy.reductions.solvers.defines import SOLVER_MAP_QP
-                solver_cls = SOLVER_MAP_QP.get(solver)
+            solver_cls = SOLVER_MAP_QP.get(solver)
             if solver_cls is not None and getattr(solver_cls, 'BOUNDED_VARIABLES', False):
                 StandardTestQPs.test_qp_bound_attr(solver=solver)
 

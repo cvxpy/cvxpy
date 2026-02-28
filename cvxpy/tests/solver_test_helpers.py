@@ -18,6 +18,7 @@ import warnings
 import numpy as np
 
 import cvxpy as cp
+import cvxpy.settings as s
 from cvxpy.tests.base_test import BaseTest
 
 
@@ -1179,7 +1180,6 @@ class StandardTestLPs:
             duals: bool = True,
             **kwargs
         ) -> SolverTestHelper:
-        import cvxpy.settings as s
         sth = lp_bound_attr()
         # Verify the bounded variables data path is used
         data, _, _ = sth.prob.get_problem_data(solver)
@@ -1272,7 +1272,6 @@ class StandardTestQPs:
             places: int = 4,
             **kwargs
         ) -> SolverTestHelper:
-        import cvxpy.settings as s
         sth = qp_bound_attr()
         # Verify the bounded variables data path is used
         data, _, _ = sth.prob.get_problem_data(solver)
