@@ -20,13 +20,12 @@ from typing import Tuple
 
 import numpy as np
 from numpy.exceptions import AxisError
-from numpy.lib.array_utils import normalize_axis_tuple
 
 import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.affine.affine_atom import AffAtom
-from cvxpy.atoms.axis_atom import AxisAtom
+from cvxpy.atoms.axis_atom import AxisAtom, normalize_axis
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.utilities import bounds as bounds_utils
 
@@ -127,12 +126,7 @@ class Sum(AxisAtom, AffAtom):
         # Normalize tuple axes so they use the fast path when possible.
         if isinstance(axis, tuple):
             ndim = len(arg_objs[0].shape)
-            axis = normalize_axis_tuple(axis, ndim)
-            if len(axis) == ndim:
-                # Summing over all axes is equivalent to axis=None.
-                axis = None
-            elif len(axis) == 1:
-                axis = axis[0]
+            axis = normalize_axis(axis, ndim)
         # Note: added new case for summing with n-dimensional shapes and
         # multiple axes. Previous behavior is kept in the else statement.
         if len(arg_objs[0].shape) > 2 or axis not in {None, 0, 1}:
