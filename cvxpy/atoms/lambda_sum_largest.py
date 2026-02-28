@@ -15,10 +15,8 @@ limitations under the License.
 """
 
 import numpy as np
-from scipy import linalg as LA
 
 from cvxpy.atoms.lambda_max import lambda_max
-from cvxpy.atoms.sum_largest import sum_largest
 
 
 class lambda_sum_largest(lambda_max):
@@ -44,40 +42,42 @@ class lambda_sum_largest(lambda_max):
 
         Requires that A be symmetric.
         """
-        A = values[0]
-        if A.ndim == 2:
-            eigs = LA.eigvalsh(A)
-            return sum_largest(eigs, self.k).value
-        else:
-            batch_shape = A.shape[:-2]
-            result = np.empty(batch_shape)
-            for idx in np.ndindex(batch_shape):
-                eigs = LA.eigvalsh(A[idx])
-                result[idx] = sum_largest(eigs, self.k).value
-            return result
+        # eigvalsh returns eigenvalues sorted ascending along the last axis.
+        eigs = np.linalg.eigvalsh(values[0])
+        k_floor = int(np.floor(self.k))
+        k_frac = self.k - k_floor
+        result = np.zeros(eigs.shape[:-1]) if eigs.ndim > 1 else 0.0
+        if k_floor > 0:
+            result = result + eigs[..., -k_floor:].sum(axis=-1)
+        if k_frac > 0 and k_floor < eigs.shape[-1]:
+            result = result + k_frac * eigs[..., -(k_floor + 1)]
+        return result
 
     def get_data(self):
         """Returns the parameter k.
         """
         return [self.k]
 
-    # _grad is inherited from lambda_max; only _single_matrix_grad is overridden.
+    # _grad is inherited from lambda_max; only _grad_matrices is overridden.
 
-    def _single_matrix_grad(self, mat):
-        """Compute the gradient matrix for a single 2D symmetric matrix."""
+    def _grad_matrices(self, A):
+        """Compute gradient matrices for all batch elements.
+
+        Returns an array of shape (*batch, n, n).
+        """
         k = self.k
         k_floor = int(np.floor(k))
         k_frac = k - k_floor
-        n = mat.shape[0]
-        _, v = LA.eigh(mat)
-        # Eigenvalues are sorted ascending, so largest k are the last k.
-        D = np.zeros((n, n))
+        n = A.shape[-1]
+        _, v = np.linalg.eigh(A)
+        # Eigenvalues sorted ascending; largest k are the last k columns.
+        D = np.zeros(A.shape)
         if k_floor > 0:
-            V_top = v[:, -k_floor:]
-            D += V_top @ V_top.T
+            V_top = v[..., :, -k_floor:]  # (..., n, k_floor)
+            D = D + V_top @ np.swapaxes(V_top, -2, -1)
         if k_frac > 0 and k_floor < n:
-            v_next = v[:, -(k_floor + 1)]
-            D += k_frac * np.outer(v_next, v_next)
+            v_next = v[..., :, -(k_floor + 1)]  # (..., n)
+            D = D + k_frac * (v_next[..., :, np.newaxis] * v_next[..., np.newaxis, :])
         return D
 
     @property

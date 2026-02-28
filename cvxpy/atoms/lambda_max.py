@@ -13,11 +13,10 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import List, Tuple
+from typing import Tuple
 
 import numpy as np
 import scipy.sparse as sp
-from scipy import linalg as LA
 
 from cvxpy.atoms.affine.conj import conj
 from cvxpy.atoms.affine.transpose import swapaxes as expr_swapaxes
@@ -37,20 +36,9 @@ class lambda_max(Atom):
 
         Requires that A be symmetric.
         """
-        A = values[0]
-        if A.ndim == 2:
-            lo = hi = A.shape[0] - 1
-            return LA.eigvalsh(A, subset_by_index=(lo, hi))[0]
-        else:
-            batch_shape = A.shape[:-2]
-            result = np.empty(batch_shape)
-            for idx in np.ndindex(batch_shape):
-                mat = A[idx]
-                n = mat.shape[0]
-                result[idx] = LA.eigvalsh(mat, subset_by_index=(n - 1, n - 1))[0]
-            return result
+        return np.linalg.eigvalsh(values[0])[..., -1]
 
-    def _domain(self) -> List[Constraint]:
+    def _domain(self) -> list[Constraint]:
         """Returns constraints describing the domain of the node.
         """
         A = self.args[0]
@@ -62,11 +50,15 @@ class lambda_max(Atom):
             else:
                 return [expr_swapaxes(conj(A), -2, -1) == A]
 
-    def _single_matrix_grad(self, mat):
-        """Compute the gradient matrix for a single 2D symmetric matrix."""
-        _, v = LA.eigh(mat)
-        v_max = v[:, -1]
-        return np.outer(v_max, v_max)
+    def _grad_matrices(self, A):
+        """Compute gradient matrices for all batch elements.
+
+        Returns an array of shape (*batch, n, n) where each (n, n) slice
+        is the (sub)gradient of the atom w.r.t. that matrix.
+        """
+        _, v = np.linalg.eigh(A)
+        v_max = v[..., :, -1]  # (..., n)
+        return v_max[..., :, np.newaxis] * v_max[..., np.newaxis, :]
 
     def _grad(self, values):
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.
@@ -80,33 +72,17 @@ class lambda_max(Atom):
             A list of SciPy CSC sparse matrices or None.
         """
         A = values[0]
-        if A.ndim == 2:
-            D = self._single_matrix_grad(A)
-            return [sp.csc_array([D.ravel(order='F')]).T]
-        else:
-            batch_shape = A.shape[:-2]
-            n = A.shape[-1]
-            total_batch = int(np.prod(batch_shape))
-            n2 = n * n
-            rows = []
-            cols = []
-            vals = []
-            # F-order flat index: batch_fi + total_batch * matrix_fi
-            for idx in np.ndindex(batch_shape):
-                D = self._single_matrix_grad(A[idx])
-                D_flat = D.ravel(order='F')
-                nz = np.nonzero(D_flat)[0]
-                batch_fi = np.ravel_multi_index(
-                    idx, batch_shape, order='F'
-                )
-                rows.extend(batch_fi + total_batch * nz)
-                cols.extend([batch_fi] * len(nz))
-                vals.extend(D_flat[nz])
-            grad = sp.csc_array(
-                (vals, (rows, cols)),
-                shape=(total_batch * n2, total_batch)
-            )
-            return [grad]
+        D = self._grad_matrices(A)
+        total_batch = max(1, int(np.prod(A.shape[:-2])))
+        total_size = D.size
+        D_flat = D.ravel(order='F')
+        all_indices = np.arange(total_size)
+        col_indices = all_indices % total_batch
+        grad = sp.csc_array(
+            (D_flat, (all_indices, col_indices)),
+            shape=(total_size, total_batch)
+        )
+        return [grad]
 
     def validate_arguments(self) -> None:
         """Verify that the argument A is a square matrix (or batch of square matrices).
