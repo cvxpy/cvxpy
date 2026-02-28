@@ -40,9 +40,10 @@ def sum_canon(expr, args):
     X_perm = transpose(X, axes=perm) if perm != list(range(ndim)) else X
 
     # Reshape to 2D: (n_output, n_reduce)
+    # Use F-order to match the final reshape back to expr.shape.
     n_output = math.prod(X.shape[i] for i in keep)
     n_reduce = math.prod(X.shape[i] for i in axes)
-    X_2d = reshape(X_perm, (n_output, n_reduce), order='C')
+    X_2d = reshape(X_perm, (n_output, n_reduce), order='F')
 
     rows = []
     for i in range(n_output):
