@@ -40,6 +40,7 @@ from cvxpy.reductions.solvers.defines import (
     INSTALLED_SOLVERS,
     QP_SOLVERS,
     SOLVER_MAP_CONIC,
+    SOLVER_MAP_QP,
 )
 from cvxpy.tests.base_test import BaseTest
 from cvxpy.tests.solver_test_helpers import SolverTestHelper, StandardTestLPs, StandardTestQPs
@@ -536,7 +537,6 @@ class TestQp(QPTestBase):
                 self.equivalent_forms_3(solver)
 
     def test_qp_bound_attr(self) -> None:
-        from cvxpy.reductions.solvers.defines import SOLVER_MAP_QP
         for solver in self.solvers:
             solver_cls = SOLVER_MAP_QP.get(solver)
             if solver_cls is not None and getattr(solver_cls, 'BOUNDED_VARIABLES', False):
