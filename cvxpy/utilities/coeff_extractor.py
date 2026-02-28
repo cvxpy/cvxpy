@@ -216,6 +216,8 @@ class CoeffExtractor:
             # columns and values directly from the CSC structure.
             nz_cols = np.where(np.diff(c_part.indptr) > 0)[0]
             nz_vals = c_part.data
+            # Dense outer product of the nonzero values only (nnz(P) x nnz(c)),
+            # not the full sparse dimensions — this is intentionally dense.
             data = P.data[:, None] * nz_vals[None, :]
             param_idxs = nz_cols
         else:

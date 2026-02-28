@@ -663,3 +663,17 @@ class TestSparseBlockPathEndToEnd:
             row_ss = np.sum(X.value ** 2, axis=1)
             expected = a_val * np.sum(row_ss)
             assert np.isclose(prob.value, expected, atol=1e-3)
+
+    def test_sparsity_preserved_in_problem_data(self):
+        """Verify the q matrix stays sparse through the full pipeline."""
+        X = cp.Variable((3, 2))
+        alpha = cp.Parameter(nonneg=True, value=1.0)
+
+        obj = cp.Minimize(alpha * cp.sum(cp.sum_squares(X, axis=1)))
+        prob = cp.Problem(obj, [X >= 1, cp.sum(X) <= 10])
+        data, _, _ = prob.get_problem_data(solver=cp.CLARABEL)
+
+        # With a parameter, q should be sparse (the point of this PR).
+        param_prob = data["param_prob"]
+        assert sp.issparse(param_prob.P), f"P should be sparse but is {type(param_prob.P)}"
+        assert sp.issparse(param_prob.q), f"q should be sparse but is {type(param_prob.q)}"
