@@ -67,7 +67,7 @@ class Trace(AffAtom):
     def numeric(self, values):
         """Sums the diagonal entries.
         """
-        return np.trace(values[0], axis1=-2, axis2=-1)
+        return np.linalg.trace(values[0])
 
     def validate_arguments(self) -> None:
         """Checks that the argument is a square matrix (possibly batched).
