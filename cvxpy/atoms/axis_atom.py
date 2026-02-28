@@ -116,11 +116,17 @@ class AxisAtom(Atom):
                 D = sp.csc_array(D)
             return [D]
 
-        axis = self.axis
         input_shape = self.args[0].shape
         ndim = len(input_shape)
-        reduce_dim = input_shape[axis]
-        output_shape = input_shape[:axis] + input_shape[axis+1:]
+
+        # Normalize axis to tuple
+        axis = self.axis
+        axes = (axis,) if isinstance(axis, int) else tuple(axis)
+        keep = [i for i in range(ndim) if i not in axes]
+
+        reduce_dims = [input_shape[a] for a in axes]
+        reduce_size = int(np.prod(reduce_dims))
+        output_shape = tuple(input_shape[i] for i in keep)
         input_size = int(np.prod(input_shape))
         output_size = max(1, int(np.prod(output_shape)))
 
@@ -128,7 +134,6 @@ class AxisAtom(Atom):
         f_strides = np.ones(ndim, dtype=int)
         for k in range(1, ndim):
             f_strides[k] = f_strides[k-1] * input_shape[k-1]
-        stride_k = int(f_strides[axis])
 
         # Flat input in F-order
         flat_input = values[0].ravel(order='F')
@@ -139,23 +144,29 @@ class AxisAtom(Atom):
         else:
             out_multis = np.array(
                 np.unravel_index(np.arange(output_size), output_shape, order='F')
-            )  # shape: (ndim-1, output_size)
+            )  # shape: (len(keep), output_size)
+
+        # All reduce-axis multi-indices
+        reduce_multis = np.array(
+            list(np.ndindex(*reduce_dims))
+        )  # shape: (reduce_size, len(axes))
 
         all_rows = []
         all_cols = []
         all_data = []
 
         for j in range(output_size):
-            # Reconstruct input multi-index with i_k = 0
             om = out_multis[:, j]
-            in_multi = np.empty(ndim, dtype=int)
-            in_multi[:axis] = om[:axis]
-            in_multi[axis] = 0
-            in_multi[axis+1:] = om[axis:]
-            base_idx = int(np.dot(in_multi, f_strides))
 
-            # Input F-indices for this fiber along the reduction axis
-            fiber_indices = base_idx + np.arange(reduce_dim) * stride_k
+            # Build input multi-indices: fix keep axes, vary reduce axes
+            in_multis = np.zeros((reduce_size, ndim), dtype=int)
+            for idx, k in enumerate(keep):
+                in_multis[:, k] = om[idx]
+            for idx, a in enumerate(axes):
+                in_multis[:, a] = reduce_multis[:, idx]
+
+            # Compute flat F-order indices for this fiber
+            fiber_indices = in_multis @ f_strides
             fiber_values = flat_input[fiber_indices]
 
             d = self._column_grad(fiber_values.reshape(-1, 1))
@@ -164,7 +175,7 @@ class AxisAtom(Atom):
             d = np.asarray(d).flatten()
 
             all_rows.append(fiber_indices)
-            all_cols.append(np.full(reduce_dim, j, dtype=int))
+            all_cols.append(np.full(reduce_size, j, dtype=int))
             all_data.append(d)
 
         rows = np.concatenate(all_rows)
