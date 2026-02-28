@@ -22,4 +22,4 @@ jobs:
         run: uv sync --no-install-project
 
       - name: Run pyright
-        run: uv run pyright
+        run: uvx pyright
