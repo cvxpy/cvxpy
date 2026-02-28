@@ -157,6 +157,8 @@ class Pnorm(AxisAtom):
         if self.axis is not None and self.p != 2:
             raise ValueError(
                 "The axis parameter is only supported for p=2.")
+        if isinstance(self.axis, tuple):
+            raise ValueError("The axis parameter of pnorm must be an int or None.")
         if self.p < 1 and self.args[0].is_complex():
             raise ValueError("pnorm(x, p) cannot have x complex for p < 1.")
 

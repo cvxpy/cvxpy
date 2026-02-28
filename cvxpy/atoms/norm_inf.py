@@ -84,6 +84,11 @@ class norm_inf(AxisAtom):
         """
         return self.args[0].is_pwl()
 
+    def validate_arguments(self) -> None:
+        super(norm_inf, self).validate_arguments()
+        if isinstance(self.axis, tuple):
+            raise ValueError("The axis parameter of norm_inf must be an int or None.")
+
     def get_data(self):
         return [self.axis]
 
