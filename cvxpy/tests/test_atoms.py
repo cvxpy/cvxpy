@@ -1121,6 +1121,86 @@ class TestAtoms(BaseTest):
         expected = 0.3 * 8.0
         self.assertAlmostEqual(expr.value, expected)
 
+    def test_sum_largest_axis(self) -> None:
+        """Test sum_largest with axis parameter."""
+        rng = np.random.default_rng(42)
+
+        # --- 2D numeric tests ---
+        X = rng.standard_normal((3, 4))
+        c = Constant(X)
+
+        # axis=0: reduce over rows, output shape (4,)
+        expr0 = cp.sum_largest(c, 2, axis=0)
+        self.assertEqual(expr0.shape, (4,))
+        expected0 = np.sort(X, axis=0)[-2:].sum(axis=0)
+        self.assertItemsAlmostEqual(expr0.value, expected0)
+
+        # axis=1: reduce over cols, output shape (3,)
+        expr1 = cp.sum_largest(c, 2, axis=1)
+        self.assertEqual(expr1.shape, (3,))
+        expected1 = np.sort(X, axis=1)[:, -2:].sum(axis=1)
+        self.assertItemsAlmostEqual(expr1.value, expected1)
+
+        # axis=None: scalar (same as no axis)
+        expr_none = cp.sum_largest(c, 2, axis=None)
+        self.assertEqual(expr_none.shape, ())
+        flat = X.flatten()
+        expected_none = np.sort(flat)[-2:].sum()
+        self.assertAlmostEqual(expr_none.value, expected_none)
+
+        # keepdims=True
+        expr_kd = cp.sum_largest(c, 2, axis=0, keepdims=True)
+        self.assertEqual(expr_kd.shape, (1, 4))
+        self.assertItemsAlmostEqual(expr_kd.value, expected0.reshape(1, 4))
+
+        # fractional k with axis
+        expr_frac = cp.sum_largest(c, 1.5, axis=0)
+        self.assertEqual(expr_frac.shape, (4,))
+        for j in range(4):
+            col = X[:, j]
+            sorted_col = np.sort(col)[::-1]
+            expected_val = sorted_col[0] + 0.5 * sorted_col[1]
+            self.assertAlmostEqual(expr_frac.value[j], expected_val)
+
+        # --- 3D with tuple axis ---
+        Y = rng.standard_normal((2, 3, 4))
+        c3 = Constant(Y)
+        expr_tuple = cp.sum_largest(c3, 3, axis=(0, 2))
+        self.assertEqual(expr_tuple.shape, (3,))
+        for j in range(3):
+            fiber = Y[:, j, :].flatten()
+            expected_val = np.sort(fiber)[-3:].sum()
+            self.assertAlmostEqual(expr_tuple.value[j], expected_val)
+
+        # --- DCP properties ---
+        x = cp.Variable((3, 4))
+        atom = cp.sum_largest(x, 2, axis=0)
+        self.assertTrue(atom.is_convex())
+        self.assertFalse(atom.is_concave())
+        self.assertTrue(atom.is_pwl())
+
+        # --- Copy ---
+        copy = atom.copy()
+        self.assertTrue(type(copy) is type(atom))
+        self.assertEqual(copy.get_data(), atom.get_data())
+        copy2 = atom.copy(args=[cp.Variable((3, 4))])
+        self.assertEqual(copy2.get_data(), atom.get_data())
+
+        # --- Solve ---
+        x = cp.Variable((3, 4))
+        prob = cp.Problem(cp.Minimize(cp.sum(cp.sum_largest(x, 2, axis=0))),
+                          [x == X])
+        prob.solve(solver=cp.CLARABEL)
+        self.assertItemsAlmostEqual(
+            cp.sum_largest(x, 2, axis=0).value, expected0, places=4
+        )
+
+        # sum_smallest with axis
+        expr_sm = cp.sum_smallest(c, 2, axis=1)
+        self.assertEqual(expr_sm.shape, (3,))
+        expected_sm = np.sort(X, axis=1)[:, :2].sum(axis=1)
+        self.assertItemsAlmostEqual(expr_sm.value, expected_sm)
+
     def test_sum_smallest(self) -> None:
         """Test the sum_smallest atom and related atoms.
         """
