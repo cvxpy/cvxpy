@@ -16,6 +16,8 @@ jobs:
         with:
           python-version: "3.12"
       - uses: actions/checkout@v5
+        with:
+          submodules: recursive
       - name: Install cvxpy dependencies
         run: |
           pip install -e .

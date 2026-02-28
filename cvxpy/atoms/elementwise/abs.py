@@ -90,3 +90,4 @@ class abs(Elementwise):
         D += (values[0] > 0)
         D -= (values[0] < 0)
         return [abs.elemwise_grad_to_diag(D, rows, cols)]
+

@@ -182,11 +182,15 @@ class Atom(Expression):
         """Is the atom concave?
         """
         raise NotImplementedError()
-
+    
     def is_atom_affine(self) -> bool:
         """Is the atom affine?
         """
         return self.is_atom_concave() and self.is_atom_convex()
+
+    def is_atom_smooth(self) -> bool:
+        """Is the atom smooth?"""
+        return False
 
     def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
@@ -254,6 +258,40 @@ class Atom(Expression):
                 if not (arg.is_affine() or
                         (arg.is_concave() and self.is_incr(idx)) or
                         (arg.is_convex() and self.is_decr(idx))):
+                    return False
+            return True
+        else:
+            return False
+        
+    @perf.compute_once
+    def is_linearizable_convex(self) -> bool:
+        """Is the expression convex after linearizing all smooth subexpressions?
+        """
+        # Applies DNLP composition rule.
+        if self.is_constant():
+            return True
+        elif self.is_atom_smooth() or self.is_atom_convex():
+            for idx, arg in enumerate(self.args):
+                if not (arg.is_smooth() or
+                        (arg.is_linearizable_convex() and self.is_incr(idx)) or
+                        (arg.is_linearizable_concave() and self.is_decr(idx))):
+                    return False
+            return True
+        else:
+            return False
+
+    @perf.compute_once
+    def is_linearizable_concave(self) -> bool:
+        """Is the expression concave after linearizing all smooth subexpressions?
+        """
+        # Applies DNLP composition rule.
+        if self.is_constant():
+            return True
+        elif self.is_atom_smooth() or self.is_atom_concave():
+            for idx, arg in enumerate(self.args):
+                if not (arg.is_smooth() or
+                        (arg.is_linearizable_concave() and self.is_incr(idx)) or
+                        (arg.is_linearizable_convex() and self.is_decr(idx))):
                     return False
             return True
         else:
@@ -511,6 +549,10 @@ class Atom(Expression):
         """
         # Default is no constraints.
         return []
+    
+    def point_in_domain(self) -> np.ndarray:
+        """default point in domain of zero"""
+        return np.zeros(self.shape)
 
     @staticmethod
     def numpy_numeric(numeric_func):

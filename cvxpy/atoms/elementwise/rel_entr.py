@@ -52,6 +52,10 @@ class rel_entr(Elementwise):
         """Is the atom concave?
         """
         return False
+    
+    def is_atom_smooth(self) -> bool:
+        """Is the atom smooth?"""
+        return True
 
     def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
@@ -95,3 +99,6 @@ class rel_entr(Elementwise):
         """Returns constraints describing the domain of the node.
         """
         return [self.args[0] >= 0, self.args[1] >= 0]
+
+    def point_in_domain(self, argument=0):
+        return np.ones(self.args[argument].shape)

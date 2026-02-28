@@ -31,7 +31,16 @@ from cvxpy.utilities import scopes
 
 
 class Variable(Leaf):
-    """The optimization variables in a problem."""
+    """The optimization variables in a problem.
+
+    Attributes
+    ----------
+    sample_bounds : tuple[np.ndarray, np.ndarray] | None
+        Explicit bounds ``(low, high)`` for random initial point sampling in
+        ``best_of`` NLP solves.  When set, overrides the variable's ``value``
+        during random initialization.  When ``None`` and finite ``bounds`` are
+        present, those are used instead.
+    """
 
     def __init__(
         self, shape: int | Iterable[int] = (), name: str | None = None,
@@ -51,6 +60,7 @@ class Variable(Leaf):
         self._value = None
         self.delta = None
         self.gradient = None
+        self.sample_bounds = None
         super(Variable, self).__init__(shape, **kwargs)
 
     def name(self) -> str:

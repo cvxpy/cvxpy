@@ -30,6 +30,7 @@ class broadcast_to(AffAtom):
     def __init__(self, expr, shape) -> None:
         self.broadcast_shape = shape
         self._shape = expr.shape
+        self.broadcast_type = None
         super(broadcast_to, self).__init__(expr)
 
     def _supports_cpp(self) -> bool:

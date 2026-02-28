@@ -1,0 +1,107 @@
+"""
+Copyright 2025 CVXPY developers
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+"""
+from cvxpy.atoms.geo_mean import GeoMean, GeoMeanApprox
+from cvxpy.atoms.prod import Prod
+from cvxpy.atoms.quad_over_lin import quad_over_lin
+from cvxpy.atoms.elementwise.exp import exp
+from cvxpy.atoms.elementwise.logistic import logistic
+from cvxpy.atoms.elementwise.log import log
+from cvxpy.atoms.elementwise.entr import entr
+from cvxpy.atoms.elementwise.rel_entr import rel_entr
+from cvxpy.atoms.elementwise.kl_div import kl_div
+from cvxpy.atoms.elementwise.minimum import minimum
+from cvxpy.atoms.elementwise.maximum import maximum
+from cvxpy.atoms.elementwise.power import Power, PowerApprox
+from cvxpy.atoms.elementwise.trig import cos, sin, tan
+from cvxpy.atoms.elementwise.hyperbolic import sinh, asinh, tanh, atanh
+from cvxpy.atoms.elementwise.huber import huber
+from cvxpy.atoms.norm1 import norm1
+from cvxpy.atoms.norm_inf import norm_inf
+from cvxpy.atoms.pnorm import Pnorm, PnormApprox
+from cvxpy.atoms.sum_largest import sum_largest
+from cvxpy.atoms.elementwise.abs import abs
+from cvxpy.atoms.max import max
+from cvxpy.atoms.min import min
+from cvxpy.atoms.log_sum_exp import log_sum_exp
+from cvxpy.atoms.affine.binary_operators import DivExpression, MulExpression, multiply
+from cvxpy.reductions.dnlp2smooth.canonicalizers.geo_mean_canon import geo_mean_canon
+from cvxpy.reductions.dnlp2smooth.canonicalizers.prod_canon import prod_canon
+from cvxpy.reductions.dnlp2smooth.canonicalizers.quad_over_lin_canon import quad_over_lin_canon
+from cvxpy.reductions.dnlp2smooth.canonicalizers.div_canon import div_canon
+from cvxpy.reductions.dnlp2smooth.canonicalizers.log_canon import log_canon
+from cvxpy.reductions.dnlp2smooth.canonicalizers.exp_canon import exp_canon
+from cvxpy.reductions.dnlp2smooth.canonicalizers.logistic_canon import logistic_canon
+from cvxpy.reductions.dnlp2smooth.canonicalizers.multiply_canon import matmul_canon, multiply_canon
+from cvxpy.reductions.dnlp2smooth.canonicalizers.pnorm_canon import pnorm_canon
+from cvxpy.reductions.dnlp2smooth.canonicalizers.power_canon import power_canon
+from cvxpy.reductions.dnlp2smooth.canonicalizers.entr_canon import entr_canon
+from cvxpy.reductions.dnlp2smooth.canonicalizers.rel_entr_canon import rel_entr_canon
+from cvxpy.reductions.dnlp2smooth.canonicalizers.kl_div_canon import kl_div_canon
+from cvxpy.reductions.dnlp2smooth.canonicalizers.trig_canon import cos_canon, sin_canon, tan_canon
+from cvxpy.reductions.dnlp2smooth.canonicalizers.hyperbolic_canon import (sinh_canon, asinh_canon,
+                                                                          tanh_canon, atanh_canon)
+from cvxpy.reductions.dnlp2smooth.canonicalizers.log_sum_exp_canon import log_sum_exp_canon
+from cvxpy.reductions.dnlp2smooth.canonicalizers.huber_canon import huber_canon
+from cvxpy.reductions.eliminate_pwl.canonicalizers.norm1_canon import norm1_canon
+from cvxpy.reductions.eliminate_pwl.canonicalizers.norm_inf_canon import norm_inf_canon
+from cvxpy.reductions.eliminate_pwl.canonicalizers.max_canon import max_canon
+from cvxpy.reductions.eliminate_pwl.canonicalizers.min_canon import min_canon
+from cvxpy.reductions.eliminate_pwl.canonicalizers.maximum_canon import maximum_canon
+from cvxpy.reductions.eliminate_pwl.canonicalizers.minimum_canon import minimum_canon
+from cvxpy.reductions.eliminate_pwl.canonicalizers.abs_canon import abs_canon
+from cvxpy.reductions.eliminate_pwl.canonicalizers.sum_largest_canon import sum_largest_canon
+
+
+SMOOTH_CANON_METHODS = {
+    log: log_canon,
+    exp: exp_canon,
+    logistic: logistic_canon,
+    sin: sin_canon,
+    cos: cos_canon,
+    tan: tan_canon,
+    sinh: sinh_canon,
+    asinh: asinh_canon,
+    tanh: tanh_canon,
+    atanh: atanh_canon,
+    quad_over_lin: quad_over_lin_canon,
+    Power: power_canon,
+    PowerApprox: power_canon,
+    Pnorm: pnorm_canon,
+    PnormApprox: pnorm_canon,
+    DivExpression: div_canon,
+    entr: entr_canon,
+    rel_entr: rel_entr_canon,
+    kl_div: kl_div_canon,
+    multiply: multiply_canon,
+    MulExpression: matmul_canon,
+    GeoMean: geo_mean_canon,
+    GeoMeanApprox: geo_mean_canon,
+    log_sum_exp: log_sum_exp_canon,
+    Prod: prod_canon,
+
+    # ESR atoms
+    abs: abs_canon,
+    maximum: maximum_canon,
+    max: max_canon,
+    norm1: norm1_canon,
+    norm_inf: norm_inf_canon,
+    huber: huber_canon,
+    sum_largest: sum_largest_canon,
+
+    # HSR atoms
+    minimum: minimum_canon,
+    min: min_canon,
+}

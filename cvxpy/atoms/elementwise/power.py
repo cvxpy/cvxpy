@@ -212,6 +212,10 @@ class Power(Elementwise):
         # p == 0 is affine here.
         return _is_const(self.p) and 0 <= self.p.value <= 1
 
+    def is_atom_smooth(self) -> bool:
+        """Is the atom smooth?"""
+        return _is_const(self.p)
+
     def parameters(self):
         # This is somewhat of a hack. When checking DPP for DGP,
         # we need to know whether the exponent p is a parameter, because
@@ -395,6 +399,11 @@ class Power(Elementwise):
             return [self.args[0] >= 0]
         else:
             return []
+    
+    def point_in_domain(self) -> np.ndarray:
+        """Returns a point in the domain of the node.
+        """
+        return np.ones(self.shape)
 
     def get_data(self):
         return [self._p_orig, self.max_denom]

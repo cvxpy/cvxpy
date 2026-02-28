@@ -290,6 +290,13 @@ class Problem(u.Canonical):
         """
         return all(
           expr.is_dcp(dpp) for expr in self.constraints + [self.objective])
+    
+    @perf.compute_once
+    def is_dnlp(self) -> bool:
+        """
+        Does the problem satisfy disciplined nonlinear programming (DNLP) rules?
+        """
+        return all(expr.is_dnlp() for expr in self.constraints + [self.objective])
 
     @perf.compute_once
     def _max_ndim(self) -> int:
@@ -672,7 +679,7 @@ class Problem(u.Canonical):
         ignore_dpp: bool = False,
         verbose: bool = False,
         canon_backend: str | None = None,
-        solver_opts: Optional[dict] = None
+        solver_opts: Optional[dict] = None,
     ):
         """Returns the problem data used in the call to the solver.
 
@@ -929,6 +936,7 @@ class Problem(u.Canonical):
                enforce_dpp: bool = False,
                ignore_dpp: bool = False,
                canon_backend: str | None = None,
+               nlp: bool = False,
                **kwargs):
         """Solves a DCP compliant optimization problem.
 
@@ -1064,6 +1072,14 @@ class Problem(u.Canonical):
                     chain.reduce(), solver=solver, verbose=verbose, **kwargs)
                 self.unpack(chain.retrieve(soln))
                 return self.value
+
+        if nlp and self.is_dnlp():
+            # Deferred import to avoid circular import:
+            # nlp_solving_chain → dnlp2smooth → cvxpy → problem
+            from cvxpy.reductions.solvers.nlp_solving_chain import solve_nlp
+            return solve_nlp(self, solver, warm_start, verbose, **kwargs)
+        elif nlp and not self.is_dnlp():
+            raise error.DNLPError("The problem you specified is not DNLP.")
 
         data, solving_chain, inverse_data = self.get_problem_data(
             solver, gp, enforce_dpp, ignore_dpp, verbose, canon_backend, kwargs
@@ -1415,6 +1431,7 @@ class Problem(u.Canonical):
         self.unpack(solution)
         self._solver_stats = SolverStats.from_dict(self._solution.attr,
                                          chain.solver.name())
+
 
     def __str__(self) -> str:
         if len(self.constraints) == 0:

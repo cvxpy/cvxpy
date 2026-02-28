@@ -598,6 +598,27 @@ CITATION_DICT["CUOPT"] = \
 }
 """
 
+CITATION_DICT["IPOPT"] = \
+"""
+@article{wachter2006implementation,
+  title={On the implementation of a primal-dual interior point filter line search algorithm for
+    large-scale nonlinear programming},
+  author={W{\"a}chter, Andreas and Biegler, Lorenz T},
+  journal={Mathematical Programming},
+  volume={106},
+  }
+"""
+
+CITATION_DICT["UNO"] = \
+"""
+@unpublished{VanaretLeyffer2024,
+  author = {Vanaret, Charlie and Leyffer, Sven},
+  title = {Implementing a unified solver for nonlinearly constrained optimization},
+  year = {2024},
+  note = {Submitted to Mathematical Programming Computation}
+}
+"""
+
 CITATION_DICT["MOREAU"] = \
 """
 @misc{moreau2025,

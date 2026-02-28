@@ -42,6 +42,11 @@ class DCPError(Exception):
     """
 
 
+class DNLPError(Exception):
+    """Error thrown for DNLP violations.
+    """
+
+
 class DPPError(Exception):
     """Error thrown for DPP violations.
     """

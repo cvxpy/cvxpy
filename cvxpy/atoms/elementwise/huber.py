@@ -113,3 +113,4 @@ class huber(Elementwise):
         min_val = np.minimum(np.abs(values[0]), self.M.value)
         grad_vals = 2 * np.multiply(np.sign(values[0]), min_val)
         return [huber.elemwise_grad_to_diag(grad_vals, rows, cols)]
+

@@ -55,6 +55,10 @@ class log(Elementwise):
         """Is the atom concave?
         """
         return True
+    
+    def is_atom_smooth(self) -> bool:
+        """Is the atom smooth?"""
+        return True
 
     def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
@@ -101,3 +105,9 @@ class log(Elementwise):
         """Returns constraints describing the domain of the node.
         """
         return [self.args[0] >= 0]
+
+    def point_in_domain(self) -> np.ndarray:
+        """Returns a point in the domain of the node.
+        """
+        dim = (1, ) if self.size == 1 else self.shape
+        return np.ones(dim)

@@ -52,7 +52,10 @@ if sys.platform == 'darwin':
 
 setup_versioning.write_version_py()
 VERSION = setup_versioning.VERSION
-extensions = [setup_extensions.cvxcore, setup_extensions.sparsecholesky]
+extensions = [
+    setup_extensions.cvxcore,
+    setup_extensions.sparsecholesky,
+]
 
 setup(
     name="cvxpy",

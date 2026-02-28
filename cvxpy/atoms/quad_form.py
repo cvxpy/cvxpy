@@ -73,6 +73,10 @@ class QuadForm(Atom):
         P = self.args[1]
         return P.is_constant() and P.is_nsd()
 
+    def is_atom_smooth(self) -> bool:
+        """Is the atom smooth?"""
+        return True
+
     def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
         """
@@ -181,7 +185,6 @@ class SymbolicQuadForm(Atom):
 
     def is_quadratic(self) -> bool:
         return True
-
 
 def decomp_quad(P, cond=None, rcond=None, lower=True, check_finite: bool = True):
     """

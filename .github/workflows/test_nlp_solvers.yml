@@ -1,0 +1,39 @@
+name: test_nlp_solvers
+
+on:
+    pull_request:
+    push:
+        branches:
+            - master
+        tags:
+          - '*'
+jobs:
+  run_nlp_tests:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          submodules: recursive
+      - uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.12"
+          enable-cache: true
+      - name: Install IPOPT (Ubuntu)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y coinor-libipopt-dev liblapack-dev libblas-dev
+      - name: Install IPOPT (macOS)
+        if: runner.os == 'macOS'
+        run: brew install ipopt
+      - name: Install dependencies
+        run: |
+          uv venv
+          uv pip install -e ".[testing]"
+          uv pip install cyipopt
+      - name: Print installed solvers
+        run: uv run python -c "import cvxpy; print(cvxpy.installed_solvers())"
+      - name: Run nlp tests
+        run: uv run pytest -s -v cvxpy/tests/nlp_tests/

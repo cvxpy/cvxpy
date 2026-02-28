@@ -264,6 +264,14 @@ class Leaf(expression.Expression):
         """Is the expression concave?"""
         return True
 
+    def is_linearizable_convex(self) -> bool:
+        """Is the expression convex after linearizing all smooth subexpressions?"""
+        return True
+
+    def is_linearizable_concave(self) -> bool:
+        """Is the expression concave after linearizing all smooth subexpressions?"""
+        return True
+
     def is_log_log_convex(self) -> bool:
         """Is the expression log-log convex?"""
         return self.is_pos()
@@ -661,9 +669,18 @@ class Leaf(expression.Expression):
                     attr_str = 'in bounds'
                 else:
                     attr_str = ([k for (k, v) in self.attributes.items() if v] + ['real'])[0]
-                raise ValueError(
-                    "%s value must be %s." % (self.__class__.__name__, attr_str)
-                )
+                if np.isnan(val).any() and self.variables():
+                    # necessary for NLP package extension and computing the structural jacobian
+                    # Only allow NaN for Variables, not Parameters
+                    return val
+                elif np.isnan(val).any():
+                    raise ValueError(
+                        "%s value must be real." % self.__class__.__name__
+                    )
+                else:
+                    raise ValueError(
+                       "%s value must be %s." % (self.__class__.__name__, attr_str)
+                    )
         return val
 
     def is_psd(self) -> bool:

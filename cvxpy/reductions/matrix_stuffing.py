@@ -234,6 +234,7 @@ class MatrixStuffing(Reduction):
         InverseData
             Data for solution retrieval
         """
+
     def invert(self, solution, inverse_data):
         raise NotImplementedError()
 
