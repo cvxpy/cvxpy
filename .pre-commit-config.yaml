@@ -24,3 +24,12 @@ repos:
     rev: v0.23
     hooks:
       - id: validate-pyproject
+
+  - repo: local
+    hooks:
+      - id: pyright
+        name: pyright
+        entry: uv run pyright
+        language: system
+        types: [python]
+        pass_filenames: false
