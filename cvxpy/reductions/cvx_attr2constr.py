@@ -204,25 +204,16 @@ class CvxAttr2Constr(Reduction):
                 if attributes_present([var], SYMMETRIC_ATTRIBUTES):
                     n = var.shape[-1]
                     tri = n * (n + 1) // 2
-                    if var.ndim == 2:
-                        shape = (tri, 1)
-                        upper_tri_var = Variable(shape, var_id=var.id, **new_attr)
-                        upper_tri_var.set_variable_of_provenance(var)
-                        id2new_var[var.id] = upper_tri_var
-                        fill_coeff = Constant(upper_tri_to_full(n))
-                        full_mat = fill_coeff @ upper_tri_var
-                        obj = reshape(full_mat, (n, n), order='F')
-                    else:
-                        batch_shape = var.shape[:-2]
-                        batch_size = int(np.prod(batch_shape))
-                        shape = (batch_size * tri, 1)
-                        upper_tri_var = Variable(shape, var_id=var.id, **new_attr)
-                        upper_tri_var.set_variable_of_provenance(var)
-                        id2new_var[var.id] = upper_tri_var
-                        fill_coeff = Constant(
-                            batched_upper_tri_to_full(batch_size, n))
-                        full_mat = fill_coeff @ upper_tri_var
-                        obj = reshape(full_mat, var.shape, order='F')
+                    batch_shape = var.shape[:-2]
+                    batch_size = int(np.prod(batch_shape))
+                    shape = (batch_size * tri, 1)
+                    upper_tri_var = Variable(shape, var_id=var.id, **new_attr)
+                    upper_tri_var.set_variable_of_provenance(var)
+                    id2new_var[var.id] = upper_tri_var
+                    fill_coeff = Constant(
+                        batched_upper_tri_to_full(batch_size, n))
+                    full_mat = fill_coeff @ upper_tri_var
+                    obj = reshape(full_mat, var.shape, order='F')
                 elif var._has_dim_reducing_attr:
                     n = var._reduced_size
 
