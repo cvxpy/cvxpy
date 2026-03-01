@@ -200,7 +200,7 @@ CITATION_DICT["SDPA"] = \
     author    = {Yamashita, Makoto
                  and Fujisawa, Katsuki
                  and Kojima, Masakazu},
-    title     = {Implementation and evaluation of SDPA 6.0 
+    title     = {Implementation and evaluation of SDPA 6.0
     (Semidefinite Programming Algorithm 6.0)},
     journal   = {Optimization Methods and Software},
     volume    = {18},
@@ -235,9 +235,9 @@ CITATION_DICT["SDPA"] = \
 
 @inproceedings{doi:10.1109/CACSD.2010.5612693,
     author    = {Nakata, Maho},
-    booktitle = {2010 IEEE International Symposium on Computer-Aided Control System Design}, 
+    booktitle = {2010 IEEE International Symposium on Computer-Aided Control System Design},
     title     = {A numerical evaluation of highly accurate multiple-precision arithmetic version
-    of semidefinite programming solver: SDPA-GMP, -QD and -DD.}, 
+    of semidefinite programming solver: SDPA-GMP, -QD and -DD.},
     year      = {2010},
     volume    = {},
     number    = {},
@@ -268,13 +268,13 @@ CITATION_DICT["SDPA"] = \
 CITATION_DICT["DIFFCP"] = \
 """
 @misc{agrawal2020differentiating,
-    title={Differentiating Through a Cone Program}, 
+    title={Differentiating Through a Cone Program},
     author={Akshay Agrawal and Shane Barratt and Stephen Boyd and Enzo Busseti and Walaa M. Moursi},
     year={2020},
     eprint={1904.09043},
     archivePrefix={arXiv},
     primaryClass={math.OC},
-    url={https://arxiv.org/abs/1904.09043}, 
+    url={https://arxiv.org/abs/1904.09043},
 }
 """
 
@@ -481,7 +481,7 @@ CITATION_DICT["SCIPY"] = \
 CITATION_DICT["CLARABEL"] = \
 """
 @misc{Clarabel_2024,
-      title={Clarabel: An interior-point solver for conic programs with quadratic objectives}, 
+      title={Clarabel: An interior-point solver for conic programs with quadratic objectives},
       author={Paul J. Goulart and Yuwen Chen},
       year={2024},
       eprint={2405.12762},
@@ -493,26 +493,26 @@ CITATION_DICT["CLARABEL"] = \
 CITATION_DICT["CUCLARABEL"] = \
 """
 @misc{CuClarabel,
-      title={CuClarabel: GPU Acceleration for a Conic Optimization Solver}, 
+      title={CuClarabel: GPU Acceleration for a Conic Optimization Solver},
       author={Yuwen Chen and Danny Tse and Parth Nobel and Paul Goulart and Stephen Boyd},
       year={2024},
       eprint={2412.19027},
       archivePrefix={arXiv},
       primaryClass={math.OC},
-      url={https://arxiv.org/abs/2412.19027}, 
+      url={https://arxiv.org/abs/2412.19027},
 }
 """
 
 CITATION_DICT["PDCS"] = \
 """
 @misc{PDCS,
-      title={PDCS: A Primal-Dual Large-Scale Conic Programming Solver with GPU Enhancements}, 
+      title={PDCS: A Primal-Dual Large-Scale Conic Programming Solver with GPU Enhancements},
       author={Zhenwei Lin and Zikai Xiong and Dongdong Ge and Yinyu Ye},
       year={2025},
       eprint={2505.00311},
       archivePrefix={arXiv},
       primaryClass={math.OC},
-      url={https://arxiv.org/abs/2505.00311}, 
+      url={https://arxiv.org/abs/2505.00311},
 }
 """
 

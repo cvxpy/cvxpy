@@ -58,7 +58,7 @@ class ScalarizeTest(BaseTest):
         limits = [1, 0.25]
         targets = [0, 0]
         priorities = [1, 1e-4]
-        scalarized = scalarize.targets_and_priorities(self.objectives, priorities, targets, limits, 
+        scalarized = scalarize.targets_and_priorities(self.objectives, priorities, targets, limits,
                                                       off_target=1e-5)
         prob = cp.Problem(scalarized)
         prob.solve()
@@ -67,7 +67,7 @@ class ScalarizeTest(BaseTest):
         targets = [-1, 0]
         priorities = [1, 1]
         max_objectives = [cp.Maximize(-obj.args[0]) for obj in self.objectives]
-        scalarized = scalarize.targets_and_priorities(max_objectives, priorities, targets, 
+        scalarized = scalarize.targets_and_priorities(max_objectives, priorities, targets,
                                                       off_target=1e-5)
         assert scalarized.args[0].is_concave()
         prob = cp.Problem(scalarized)
@@ -78,7 +78,7 @@ class ScalarizeTest(BaseTest):
         targets = [0, 0]
         priorities = [1, 1e-4]
         max_objectives = [cp.Maximize(-obj.args[0]) for obj in self.objectives]
-        scalarized = scalarize.targets_and_priorities(max_objectives, priorities, targets, limits, 
+        scalarized = scalarize.targets_and_priorities(max_objectives, priorities, targets, limits,
                                                       off_target=1e-5)
         assert scalarized.args[0].is_concave()
         prob = cp.Problem(scalarized)
@@ -120,7 +120,7 @@ class ScalarizeTest(BaseTest):
         with pytest.raises(AssertionError, match="Number of objectives and targets"):
             scalarize.targets_and_priorities(self.objectives, priorities, targets)
 
-        priorities = [1, 1] 
+        priorities = [1, 1]
         targets = [1, 1]
         limits = [1]
         with pytest.raises(AssertionError, match="Number of objectives and limits"):
@@ -129,7 +129,7 @@ class ScalarizeTest(BaseTest):
         limits = [1, 1]
         off_target = -1
         with pytest.raises(AssertionError, match="The off_target argument must be nonnegative"):
-            scalarize.targets_and_priorities(self.objectives, priorities, targets, limits, 
+            scalarize.targets_and_priorities(self.objectives, priorities, targets, limits,
                                              off_target)
 
 

@@ -52,7 +52,7 @@ class von_neumann_entr(Atom):
     Notes
     -----
     This function does not assume :math:`\\operatorname{tr}(X)=1,` which would be required
-    for most uses of this function in the context of quantum information theory. 
+    for most uses of this function in the context of quantum information theory.
     """
 
     def __init__(self, X, quad_approx: Tuple[int, ...] = ()) -> None:

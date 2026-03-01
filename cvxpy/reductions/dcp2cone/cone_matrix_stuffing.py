@@ -107,7 +107,7 @@ class ConeDims:
             pnd = np.concatenate(alphas).tolist()
         self.pnd = pnd
 
-    def __repr__(self) -> str: 
+    def __repr__(self) -> str:
         return "(zero: {0}, nonneg: {1}, exp: {2}, soc: {3}, psd: {4}, p3d: {5}, pnd: {6})".format(
             self.zero, self.nonneg, self.exp, self.soc, self.psd, self.p3d, self.pnd)
 

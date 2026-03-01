@@ -27,12 +27,12 @@ from cvxpy.constraints.constraint import Constraint
 def trace(expr):
     """
     TLDR: Use alternate formulation for trace(A@B) for more efficient computation.
-    trace(A@B) normally is O(n^3) because of the A@B operation. 
+    trace(A@B) normally is O(n^3) because of the A@B operation.
     However, trace(A@B) only requires diagonal entries of A@B, which can be
     computed by taking the sum of element-wise product of A.T * B in O(n^2) time.
-    In fact, vdot does this operation more robustly, using conj(A) instead of transpose. 
+    In fact, vdot does this operation more robustly, using conj(A) instead of transpose.
     """
-    if isinstance(expr, MulExpression): 
+    if isinstance(expr, MulExpression):
         from cvxpy.atoms.affine.binary_operators import vdot
         return vdot(expr.args[0], expr.args[1])
     else:
