@@ -292,6 +292,75 @@ class TestQuadFormDPPVariants:
         assert np.allclose(x.value, [2/3, 1/3], rtol=1e-3)
 
 
+class TestQuadFormDPPConstraintResolve:
+    """Regression tests: parametric quad_form in constraints must update on re-solve.
+
+    When quad_form(x, P) appears in a constraint (not the objective), the conic
+    canonicalizer bakes in numeric Cholesky factors from the first P.value.
+    If the problem is incorrectly classified as DPP, re-solving with a different
+    P.value reuses stale factors and produces wrong results.
+    """
+
+    def test_constraint_quad_form_resolve(self) -> None:
+        """Re-solving with different P in constraint must update the constraint."""
+        x = cp.Variable(2)
+        P = cp.Parameter((2, 2), PSD=True)
+
+        prob = cp.Problem(cp.Minimize(cp.sum(x)), [cp.quad_form(x, P) <= 1])
+
+        P.value = np.eye(2)
+        prob.solve(solver=cp.CLARABEL)
+        x1 = x.value.copy()
+        assert np.allclose(x1, [-1/np.sqrt(2), -1/np.sqrt(2)], rtol=1e-3)
+
+        # Tighter on x[0]: solution should shift toward x[1].
+        P.value = np.array([[4, 0], [0, 1]])
+        prob.solve(solver=cp.CLARABEL)
+        x2 = x.value.copy()
+
+        # Cross-check against a fresh problem with the same P.
+        prob_fresh = cp.Problem(cp.Minimize(cp.sum(x)), [cp.quad_form(x, P) <= 1])
+        prob_fresh.solve(solver=cp.CLARABEL)
+
+        assert not np.allclose(x1, x2, atol=1e-3), \
+            "x should change when P changes"
+        assert np.allclose(x2, x.value, rtol=1e-3), \
+            "re-solve should match fresh solve"
+
+    def test_mixed_objective_and_constraint_resolve(self) -> None:
+        """Parametric P in both objective and constraint must both update."""
+        x = cp.Variable(2)
+        P_obj = cp.Parameter((2, 2), PSD=True)
+        P_constr = cp.Parameter((2, 2), PSD=True)
+
+        prob = cp.Problem(
+            cp.Minimize(cp.quad_form(x, P_obj)),
+            [cp.quad_form(x, P_constr) <= 4, cp.sum(x) == 1]
+        )
+
+        P_obj.value = np.eye(2)
+        P_constr.value = np.eye(2)
+        prob.solve(solver=cp.CLARABEL)
+        x1 = x.value.copy()
+
+        # Change constraint P only — tighter on x[0].
+        P_constr.value = np.array([[100, 0], [0, 1]])
+        prob.solve(solver=cp.CLARABEL)
+        x2 = x.value.copy()
+
+        # Cross-check against a fresh problem.
+        prob_fresh = cp.Problem(
+            cp.Minimize(cp.quad_form(x, P_obj)),
+            [cp.quad_form(x, P_constr) <= 4, cp.sum(x) == 1]
+        )
+        prob_fresh.solve(solver=cp.CLARABEL)
+
+        assert not np.allclose(x1, x2, atol=1e-3), \
+            "x should change when constraint P changes"
+        assert np.allclose(x2, x.value, rtol=1e-3), \
+            "re-solve should match fresh solve"
+
+
 def test_hermitian_param_resolve() -> None:
     """Test quad_form DPP re-solve with complex hermitian P."""
     x = cp.Variable(2, complex=True)
