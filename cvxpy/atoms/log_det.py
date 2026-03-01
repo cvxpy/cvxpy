@@ -61,7 +61,7 @@ class log_det(Atom):
     def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
-        return (True, False)
+        return (False, False)
 
     def is_atom_convex(self) -> bool:
         """Is the atom convex?
