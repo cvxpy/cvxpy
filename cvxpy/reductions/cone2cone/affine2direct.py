@@ -427,5 +427,6 @@ class Slacks:
             x = prim_vars[FREE]
             del prim_vars[FREE]
             prim_vars[inv_data['x_id']] = x
-        solution.opt_val += inv_data[s.OBJ_OFFSET]
+        if solution.opt_val is not None:
+            solution.opt_val += inv_data[s.OBJ_OFFSET]
         return solution
