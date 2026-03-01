@@ -87,9 +87,9 @@ def gradcheck(problem, gp: bool = False, solve_methods: list = SOLVE_METHODS,
     """
     if deriv_solver == s.MOREAU:
         # Moreau backward mode: use SCS with tight tolerances for numerical
-        # verification (moreau default precision is not tight enough for
-        # accurate finite differences, and different solvers can give
-        # slightly different solutions on ill-conditioned problems).
+        # verification. Finite-difference gradients are sensitive to
+        # solver-specific noise at the ~1e-6 level, so we use SCS (same as
+        # the diffcp gradcheck) for consistent numerical perturbation.
         num_solver = s.SCS
         num_eps_opt = {"eps": eps}
         num_kwargs = {"max_iters": 15_000}
