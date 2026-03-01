@@ -526,6 +526,7 @@ class Atom(Expression):
             return intf.DEFAULT_INTF.const_to_matrix(result)
         return new_numeric
 
+    @perf.compute_once
     def atoms(self) -> List['Atom']:
         """A list of the atom types present amongst this atom's arguments.
         """
