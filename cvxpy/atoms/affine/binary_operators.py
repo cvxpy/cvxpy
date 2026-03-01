@@ -343,6 +343,7 @@ class MulExpression(BinaryOperator):
 
 
 class multiply(MulExpression):
+    """Multiplies two expressions elementwise."""
     def is_hermitian(self) -> bool:
         """Is the expression a Hermitian matrix?"""
         arg1, arg2 = self.args
