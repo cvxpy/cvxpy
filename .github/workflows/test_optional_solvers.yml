@@ -21,6 +21,8 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Set Additional Envs
+        env:
+          MOSEK_CI_BASE64: ${{ secrets.MOSEK_CI_BASE64 }}
         run: |
           echo "PYTHON_SUBVERSION=$(echo $PYTHON_VERSION | cut -c 3-)" >> $GITHUB_ENV
           echo $MOSEK_CI_BASE64 | base64 -d > mosek.lic
