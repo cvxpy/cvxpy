@@ -42,26 +42,26 @@ def test_expression_label_basics():
     # Clear label using set_label
     expr.set_label(None)
     assert expr.label is None
-    
+
     # Test deleter
     expr.label = "test"
     assert expr.label == "test"
     del expr.label
     assert expr.label is None
-    
+
     # Non-string values should be converted to string
     expr.label = 42
     assert expr.label == "42"
     assert isinstance(expr.label, str)
-    
+
     expr.set_label(3.14)
     assert expr.label == "3.14"
     assert isinstance(expr.label, str)
-    
+
     # Property setter can also clear label
     expr.label = None
     assert expr.label is None
-    
+
     # Test with Path-like object
     from pathlib import Path
     expr.label = Path("my/path")
@@ -119,13 +119,13 @@ def test_constraint_label_shows_in_str():
 
     # format_labeled should be same as str for constraints
     assert con.format_labeled() == str(con)
-    
+
     # Non-string values should be converted to string
     con.label = 123
     assert con.label == "123"
     assert isinstance(con.label, str)
     assert "123:" in str(con)
-    
+
     # Test deleter for constraints
     del con.label
     assert con.label is None
@@ -188,72 +188,72 @@ def test_various_operations_with_labels():
     x = cp.Variable(3, name="x")
     y = cp.Variable(3, name="y")
     A = np.array([[1, 0, 0], [0, 2, 0], [0, 0, 3]])  # Diagonal matrix for quad_form
-    
+
     # Set labels
     x.set_label("x_vec")
     y.set_label("y_vec")
-    
+
     # Test various operations inherit format_labeled correctly
     # These use default implementation from Expression
-    
+
     # Multi-arg operations
     vstack_expr = cp.vstack([x, y])
     assert vstack_expr.format_labeled() == "Vstack(x_vec, y_vec)"
-    
+
     hstack_expr = cp.hstack([x, y])
     assert hstack_expr.format_labeled() == "Hstack(x_vec, y_vec)"
-    
+
     # Norms with custom name() methods
     norm_expr = cp.norm(x)
     assert norm_expr.format_labeled() == "PnormApprox(x_vec, 2)"
-    
+
     norm_inf_expr = cp.norm_inf(x)
     assert norm_inf_expr.format_labeled() == "norm_inf(x_vec)"
-    
+
     norm1_expr = cp.norm1(x)
     assert norm1_expr.format_labeled() == "norm1(x_vec)"
-    
+
     # Other atoms with custom name() methods
     sum_expr = cp.sum(x)
     # Sum shows axis=None and keepdims=False explicitly
     assert sum_expr.format_labeled() == "Sum(x_vec, None, False)"
-    
+
     transpose_expr = cp.transpose(x)
     assert transpose_expr.format_labeled() == "x_vec.T"
-    
+
     quad_form_expr = cp.quad_form(x, A)
     assert quad_form_expr.format_labeled() == (
         "QuadForm(x_vec, [[1.00 0.00 0.00]\n"
         " [0.00 2.00 0.00]\n"
         " [0.00 0.00 3.00]])"
     )
-    
+
     power_expr = cp.power(cp.sum(x), 2)
     assert power_expr.format_labeled() == "PowerApprox(Sum(x_vec, None, False), 2.0)"
-    
+
     # Test indexing (has custom name method)
     index_expr = x[0]
     assert index_expr.format_labeled() == "x_vec[0]"
-    
+
     # Test geo_mean (weights sum to 1 after normalization)
     weights = np.array([0.3, 0.3, 0.4])
     geo_mean_expr = cp.geo_mean(x, weights)
     expected = "GeoMeanApprox(x_vec[True, True, True], (3/10, 3/10, 2/5))"
     assert geo_mean_expr.format_labeled() == expected
-    
+
     # Test that operations can themselves be labeled
     norm_expr.set_label("x_magnitude")
     assert norm_expr.format_labeled() == "x_magnitude"
-    
+
     norm1_expr.set_label("l1_norm")
     assert norm1_expr.format_labeled() == "l1_norm"
-    
+
     # Test in a compound expression
     objective = norm_expr + sum_expr.set_label("x_total")
     formatted = objective.format_labeled()
     assert "x_magnitude" in formatted
     assert "x_total" in formatted
-    
+
     # Test compound with multiple labeled norms
     compound = norm1_expr + 2 * norm_expr
     formatted = compound.format_labeled()
@@ -290,41 +290,41 @@ def test_division_multiplication_precedence():
     x = cp.Variable(name="x")
     y = cp.Variable(name="y")
     z = cp.Variable(name="z")
-    
+
     # Test division with multiplication on right needs parentheses
     expr = x / (y * z)
     assert str(expr) == "x / (y * z)"  # Should have parentheses
-    
+
     # Test with labels
     a = x.set_label("a")
     b = y.set_label("b")
     c = z.set_label("c")
-    
+
     expr_labeled = a / (b * c)
     assert expr_labeled.format_labeled() == "a / (b * c)"
-    
+
     # Test that multiplication followed by division doesn't add extra parens
     expr2 = x * y / z
     assert str(expr2) == "x * y / z"  # No parentheses needed
-    
+
     # Test with labeled version
     expr2_labeled = a * b / c
     assert expr2_labeled.format_labeled() == "a * b / c"
-    
+
     # Additional precedence tests
     # a + b * c should not have parens (multiplication has higher precedence)
     expr3 = a + b * c
     assert expr3.format_labeled() == "a + b * c"
-    
+
     # a * (b + c) should have parens
     expr4 = a * (b + c)
     assert expr4.format_labeled() == "a * (b + c)"
-    
+
     # (a / b) * c vs a / (b * c)
     expr5 = (a / b) * c
     # Division gets parens when used in multiplication
     assert expr5.format_labeled() == "(a / b) * c"
-    
+
     expr6 = a / (b * c)
     assert expr6.format_labeled() == "a / (b * c)"  # Needs parens
 
@@ -407,7 +407,7 @@ def test_label_flattening_limitation():
     # LIMITATION: Labeled compound (left_total) gets flattened
     # Expected might be: 'left_total - Pnorm(x, 2)'
     # Actually get: 'x_sum + Sum(y) + -(Pnorm(x, 2))'
-    
+
     # The "left_total" label is lost because CVXPY flattens (a+b)-c into a+b+(-c)
     # This is expected behavior, not a bug
     assert "x_sum" in formatted  # Individual labels are preserved

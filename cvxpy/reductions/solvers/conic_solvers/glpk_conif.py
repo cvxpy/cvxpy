@@ -107,7 +107,7 @@ class GLPK(CVXOPT):
                 cvxopt.solvers.options[key] = old_options[key]
             else:
                 del cvxopt.solvers.options[key]
-    
+
     def cite(self, data):
         """Returns bibtex citation for the solver.
 

@@ -134,7 +134,7 @@ class DAQP(QpSolver):
             var_upper_bounds = np.ones(len(f), dtype=c_double) * np.inf
         else:
             var_upper_bounds = data[s.UPPER_BOUNDS]
-                    
+
         bupper = np.array(np.concatenate((
                 var_upper_bounds,
                 data[s.B],

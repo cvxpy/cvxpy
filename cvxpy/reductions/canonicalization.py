@@ -85,12 +85,12 @@ class Canonicalization(Reduction):
 
     def canonicalize_tree(self, expr, canonicalize_params: bool = True):
         """Recursively canonicalize an Expression.
-        
+
         Args:
             expr: Expression to canonicalize.
             canonicalize_params: Should constant subtrees
                 containing parameters be canonicalized?
-        
+
         Returns:
             canonicalized expression, constraints
         """
@@ -129,13 +129,13 @@ class Canonicalization(Reduction):
             canonicalize_params: bool = True
         ):
         """Canonicalize an expression, w.r.t. canonicalized arguments.
-        
+
         Args:
             expr: Expression to canonicalize.
             args: Arguments to the expression.
             canonicalize_params: Should constant subtrees
                 containing parameters be canonicalized?
-        
+
         Returns:
             canonicalized expression, constraints
         """

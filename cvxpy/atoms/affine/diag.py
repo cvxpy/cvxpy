@@ -63,7 +63,7 @@ class diag_vec(AffAtom):
 
     def get_data(self) -> list[int]:
         return [self.k]
-    
+
     def validate_arguments(self) -> None:
         """Checks that the argument is a vector.
         """
@@ -71,7 +71,7 @@ class diag_vec(AffAtom):
             raise ValueError(
                 "Argument to diag_vec must be a 1-d array"
             )
-        
+
     def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
         """
@@ -142,7 +142,7 @@ class diag_mat(AffAtom):
     def __init__(self, expr, k: int = 0) -> None:
         self.k = k
         super(diag_mat, self).__init__(expr)
-    
+
     def get_data(self) -> list[int]:
         return [self.k]
 

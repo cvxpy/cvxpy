@@ -720,7 +720,7 @@ class TestDqcp(base_test.BaseTest):
 
     def test_psd_constraint_bug(self) -> None:
         """Test bug with DQCP and PSD constraints.
-        
+
         https://github.com/cvxpy/cvxpy/issues/2373
         """
         A = cp.Variable((2,2),symmetric=True)

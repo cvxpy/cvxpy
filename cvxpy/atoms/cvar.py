@@ -51,4 +51,4 @@ def cvar(x, beta):
 
     k = (1 - beta) * x.shape[0]
     return sum_largest(x, k) / k
-    
+

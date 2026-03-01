@@ -355,7 +355,7 @@ class CoeffExtractor:
             P_entries: number of entries in the merged P matrix.
             P_height: number of rows in the merged P matrix.
             num_params: number of parameters in the problem.
-        
+
         Returns:
             A CSC sparse representation of the merged P matrix.
         """
@@ -370,7 +370,7 @@ class CoeffExtractor:
             P.row += offset
             P.col += offset
             P.shape = (P_height, P_height)
-    
+
             offset += m
 
         combined = TensorRepresentation.combine(P_list)

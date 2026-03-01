@@ -500,12 +500,12 @@ class TestExpressions(BaseTest):
         with self.assertRaises(Exception) as cm:
              p = Parameter((2, 2), boolean=[(0, 0), (0, 1)], value=[[0, 2], [1, 0]])
         self.assertEqual(str(cm.exception), "Parameter value must be boolean.")
- 
+
         # Integer indices
         with self.assertRaises(Exception) as cm:
              p = Parameter((2, 2), integer=[(0, 0), (0, 1)], value=[[1, 1.5], [1.4, 2.8]])
         self.assertEqual(str(cm.exception), "Parameter value must be integer.")
-        
+
         # Diag.
         with self.assertRaises(Exception) as cm:
             p = Parameter((2, 2), diag=True, value=[[1, 1], [1, -1]])

@@ -633,11 +633,11 @@ class TestBackends:
         [[1  0  0],
          [0  1  0],
          [0  0  1]]
-        
+
         broadcast_to(x, (2, 3)) means we repeat every variable twice along the row axis.
 
         Thus we expect the following A matrix:
-        
+
          x1 x2 x3
         [[1  0  0],
          [1  0  0],
@@ -681,11 +681,11 @@ class TestBackends:
          x1 x2
         [[1  0],
          [0  1]]
-        
+
         broadcast_to(x, (2, 3)) means we tile the variables three times along the rows
 
         Thus we expect the following A matrix:
-        
+
          x1 x2
         [[1  0],
          [0  1],
@@ -2401,11 +2401,11 @@ class TestND_Backends:
          [0   1   0   0],
          [0   0   1   0],
          [0   0   0   1]]
-        
+
         broadcast_to(x, (2, 3, 2)) means we repeat columns of x three times each subsequently.
 
         Thus we expect the following A matrix:
-        
+
         x11 x21 x12 x22
         [[1   0   0   0],
          [0   1   0   0],

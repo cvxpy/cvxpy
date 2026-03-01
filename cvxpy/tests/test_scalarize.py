@@ -11,7 +11,7 @@ class ScalarizeTest(BaseTest):
     """
 
     def setUp(self) -> None:
-        
+
         self.x = cp.Variable()
         obj1 = cp.Minimize(cp.square(self.x))
         obj2 = cp.Minimize(cp.square(self.x-1))
@@ -147,7 +147,7 @@ class ScalarizeTest(BaseTest):
         prob.solve()
         self.assertItemsAlmostEqual(self.x.value, 0.4142, places=3)
 
-    
+
     def test_log_sum_exp(self) -> None:
         weights = [1, 2]
         scalarized = scalarize.log_sum_exp(self.objectives, weights)

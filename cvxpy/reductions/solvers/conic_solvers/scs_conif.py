@@ -352,7 +352,7 @@ class SCS(ConicSolver):
         if solver_cache is not None and status == s.OPTIMAL:
             solver_cache[self.name()] = results
         return results
-    
+
     def cite(self, data):
         """Returns bibtex citation for the solver.
 

@@ -121,7 +121,7 @@ class GLPK_MI(GLPK):
                 cvxopt.glpk.options[key] = old_options[key]
             else:
                 del cvxopt.glpk.options[key]
-    
+
     def cite(self, data):
         """Returns bibtex citation for the solver.
 

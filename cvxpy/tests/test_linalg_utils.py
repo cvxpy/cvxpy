@@ -77,7 +77,7 @@ class TestSparseCholesky(BaseTest):
     @pytest.mark.skipif(missing_extension, reason="requires sparse_cholesky")
     def test_expression(self):
         self.test_generic(use_expression=True)
-    
+
     @pytest.mark.skipif(missing_extension, reason="requires sparse_cholesky")
     def test_singular(self):
         # error on singular PSD matrix

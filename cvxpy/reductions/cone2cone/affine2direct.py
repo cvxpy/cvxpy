@@ -415,7 +415,7 @@ class Slacks:
         """Extend the bounds vector to be length num_vars, filling with fill_value."""
         if bounds_vector is None:
             return np.full(num_vars, fill_value)
-        
+
         new_vars = num_vars - bounds_vector.size
         new_bounds = np.full(new_vars, -np.inf)
         return np.concatenate([bounds_vector, new_bounds])

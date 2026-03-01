@@ -49,7 +49,7 @@ class pf_eigenvalue(Atom):
             raise ValueError(
                 f"The argument {self.args[0].name()} to pf_eigenvalue must be a 2-d square array."
             )
-    
+
     def name(self) -> str:
         return f"{type(self).__name__}({self.args[0]})"
 

@@ -26,7 +26,7 @@ from cvxpy.utilities import bounds as bounds_utils
 
 class transpose(AffAtom):
     """Transpose an expression.
-    
+
     For an n-D expression, if axes are given, the order indicates the permutation of axes.
     """
 
@@ -175,7 +175,7 @@ def moveaxis(expr, source: List[int], destination: List[int]):
     """
     if not isinstance(source, list) or not isinstance(destination, list):
         raise TypeError("Source and destination must be lists of integers.")
-    
+
     if len(source) != len(destination):
         raise ValueError("Source and destination must have the same length.")
 

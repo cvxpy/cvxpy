@@ -85,7 +85,7 @@ class OSQP(QpSolver):
                        solver_cache=None):
         import osqp
         is_pre_v1 = float(osqp.__version__.split('.')[0]) < 1
-        
+
         P = data[s.P]
         q = data[s.Q]
         A = sp.vstack([data[s.A], data[s.F]]).tocsc()

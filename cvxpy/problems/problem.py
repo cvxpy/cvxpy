@@ -1426,10 +1426,10 @@ class Problem(u.Canonical):
             for constr in self.constraints[1:]:
                 lines += [len(subject_to) * " " + str(constr)]
             return '\n'.join(lines)
-    
+
     def format_labeled(self):
         """Format problem with labels where available.
-        
+
         Shows labels for both the objective expression and constraints.
         """
         if len(self.constraints) == 0:

@@ -141,7 +141,7 @@ class CLARABEL(ConicSolver):
     MIP_CAPABLE = False
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS \
         + [SOC, ExpCone, PowCone3D, PSD, PowConeND]
-    
+
     # Status messages from clarabel.
     SOLVED = "Solved"
     PRIMAL_INFEASIBLE = "PrimalInfeasible"
@@ -386,7 +386,7 @@ class CLARABEL(ConicSolver):
             solver_cache[self.name()] = solver
 
         return results
-    
+
     def cite(self, data):
         """Returns bibtex citation for the solver.
 

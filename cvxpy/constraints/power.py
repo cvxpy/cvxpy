@@ -240,7 +240,7 @@ class PowConeND(Cone):
 
     def get_data(self):
         return [self.alpha, self.axis, self.id]
-    
+
     @property
     def shape(self) -> Tuple[int, int]:
         # The shape property is a tuple (m, n) where each
@@ -256,7 +256,7 @@ class PowConeND(Cone):
             m, n = self.W.shape[1], self.W.shape[0]
         s = (m + 1, n)
         return s
-    
+
     @property
     def residual(self):
         # TODO: The projection should be implemented directly.

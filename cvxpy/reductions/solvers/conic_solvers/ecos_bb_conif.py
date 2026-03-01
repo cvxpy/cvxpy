@@ -135,7 +135,7 @@ class ECOS_BB(ECOS):
                               int_vars_idx=data[s.INT_IDX],
                               **solver_opts)
         return solution
-    
+
     def cite(self, data):
         """Returns bibtex citation for the solver.
 

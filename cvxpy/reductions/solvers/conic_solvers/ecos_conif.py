@@ -185,7 +185,7 @@ class ECOS(ConicSolver):
             return Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
             return failure_solution(status, attr)
-    
+
     def cite(self, data):
         """Returns bibtex citation for the solver.
 

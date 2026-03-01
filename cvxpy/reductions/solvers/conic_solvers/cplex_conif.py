@@ -520,7 +520,7 @@ class CPLEX(ConicSolver):
             rhs=0.0,
             name="")
         return (qconstr, new_lin_constrs, soc_vars)
-    
+
     def cite(self, data):
         """Returns bibtex citation for the solver.
 

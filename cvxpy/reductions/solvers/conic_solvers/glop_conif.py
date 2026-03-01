@@ -224,7 +224,7 @@ class GLOP(ConicSolver):
                         linear_solver_pb2.MPSolverResponseStatus.Name(status),
                         response.status_str)
             return s.SOLVER_ERROR
-    
+
     def cite(self, data):
         """Returns bibtex citation for the solver.
 
