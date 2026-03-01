@@ -27,14 +27,25 @@ from cvxpy.constraints.constraint import Constraint
 def trace(expr):
     """
     TLDR: Use alternate formulation for trace(A@B) for more efficient computation.
-    trace(A@B) normally is O(n^3) because of the A@B operation. 
+    trace(A@B) normally is O(n^3) because of the A@B operation.
     However, trace(A@B) only requires diagonal entries of A@B, which can be
     computed by taking the sum of element-wise product of A.T * B in O(n^2) time.
-    In fact, vdot does this operation more robustly, using conj(A) instead of transpose. 
+    In fact, vdot does this operation more robustly, using conj(A) instead of transpose.
+
+    When the MulExpression is Hermitian (e.g. X @ X for Hermitian X), vdot is
+    still used to keep the O(n^2) fast path.  The result is wrapped with real()
+    so that is_real() correctly returns True without computing the full O(n^3)
+    matrix product that routing to Trace(expr) would require.
     """
-    if isinstance(expr, MulExpression): 
+    if isinstance(expr, MulExpression):
         from cvxpy.atoms.affine.binary_operators import vdot
-        return vdot(expr.args[0], expr.args[1])
+        result = vdot(expr.args[0], expr.args[1])
+        if expr.is_hermitian():
+            # vdot(H, H) = sum(conj(H_ij) * H_ij) = sum(|H_ij|^2), provably real.
+            # Wrap with real() so is_real() == True propagates upward.
+            from cvxpy.atoms.affine.real import real as real_atom
+            return real_atom(result)
+        return result
     else:
         return Trace(expr)
 
