@@ -344,7 +344,7 @@ class MulExpression(BinaryOperator):
 
 class multiply(MulExpression):
     """Multiplies two expressions elementwise."""
-    
+
     OP_NAME = "*"
 
     def __init__(self, lh_expr, rh_expr) -> None:
