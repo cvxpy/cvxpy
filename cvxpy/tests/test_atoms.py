@@ -546,9 +546,8 @@ class TestAtoms(BaseTest):
 
     def test_multiply_hermitian(self) -> None:
         """Test that Hermitian property is preserved in multiplication."""
-        import cvxpy as cp
         
-        # Test real scalar multiplication
+          # Test real scalar multiplication
         X = cp.Variable((3, 3), hermitian=True)
         self.assertTrue((1 * X).is_hermitian())
         self.assertTrue((X * 2.5).is_hermitian())
@@ -557,7 +556,7 @@ class TestAtoms(BaseTest):
         # Test Hadamard product of two Hermitians
         Y = cp.Variable((3, 3), hermitian=True)
         self.assertTrue(cp.multiply(X, Y).is_hermitian())
-        
+
     # Test the vstack class.
     def test_vstack(self) -> None:
         atom = cp.vstack([self.x, self.y, self.x])
