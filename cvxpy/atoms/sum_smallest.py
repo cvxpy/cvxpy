@@ -18,8 +18,8 @@ from cvxpy.atoms.sum_largest import sum_largest
 from cvxpy.expressions.expression import Expression
 
 
-def sum_smallest(x, k):
-    """Sum of the smallest k values.
+def sum_smallest(x, k, axis=None, keepdims=False):
+    """Sum of the smallest k values, optionally along an axis.
     """
     x = Expression.cast_to_const(x)
-    return -sum_largest(-x, k)
+    return -sum_largest(-x, k, axis=axis, keepdims=keepdims)

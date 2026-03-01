@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from cvxpy.atoms import promote, reshape
 from cvxpy.atoms.affine.sum import sum
 from cvxpy.expressions.variable import Variable
 from cvxpy.utilities.solver_context import SolverInfo
@@ -22,12 +23,21 @@ from cvxpy.utilities.solver_context import SolverInfo
 def sum_largest_canon(expr, args, solver_context: SolverInfo | None = None):
     x = args[0]
     k = expr.k
+    axis = expr.axis
 
-    # min sum(t) + kq
+    # min sum(t, axis) + k*q
     # s.t. x <= t + q
     #      0 <= t
     t = Variable(x.shape)
-    q = Variable()
-    obj = sum(t) + k*q
-    constraints = [x <= t + q, t >= 0]
+    q = Variable(expr.shape)
+
+    if axis is None:
+        promoted_q = promote(q, x.shape)
+    else:
+        axes = {axis} if isinstance(axis, int) else set(axis)
+        keepdims_shape = tuple(1 if i in axes else s for i, s in enumerate(x.shape))
+        promoted_q = reshape(q, keepdims_shape, order='F')
+
+    obj = sum(t, axis=axis, keepdims=expr.keepdims) + k * q
+    constraints = [x <= t + promoted_q, t >= 0]
     return obj, constraints
