@@ -153,7 +153,7 @@ class Dgp2Dcp(Canonicalization):
 
     def invert(self, solution, inverse_data):
         solution = super(Dgp2Dcp, self).invert(solution, inverse_data)
-        if solution.status == settings.SOLVER_ERROR:
+        if solution.status not in settings.SOLUTION_PRESENT:
             return solution
         for vid, value in solution.primal_vars.items():
             solution.primal_vars[vid] = np.exp(value)
