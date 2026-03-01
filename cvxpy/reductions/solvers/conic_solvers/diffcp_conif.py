@@ -181,6 +181,7 @@ class DIFFCP(scs_conif.SCS):
 
         if solver_cache is not None:
             solver_cache[self.name()] = results
+            solver_cache[s.DERIV_CACHE] = results
         return results
     
     def cite(self, data):

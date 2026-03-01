@@ -1023,9 +1023,15 @@ class Problem(u.Canonical):
             elif not self.is_dpp(dpp_context):
                 raise error.DPPError("Problem is not DPP (when requires_grad "
                                      "is True, problem must be DPP).")
+            elif solver is not None and solver in [s.MOREAU]:
+                # Moreau has built-in backward differentiation.
+                # Force use_quad_obj=False since apply_param_jac doesn't
+                # support quadratic objectives.
+                kwargs['requires_grad'] = True
+                kwargs['use_quad_obj'] = False
             elif solver is not None and solver not in [s.SCS, s.DIFFCP]:
                 raise ValueError("When requires_grad is True, the only "
-                                 "supported solver is SCS "
+                                 "supported solvers are SCS and MOREAU "
                                  "(received %s)." % solver)
             elif s.DIFFCP not in slv_def.INSTALLED_SOLVERS:
                 raise ModuleNotFoundError(
@@ -1185,7 +1191,7 @@ class Problem(u.Canonical):
             SolverError
                 if the problem is infeasible or unbounded
         """
-        if s.DIFFCP not in self._solver_cache:
+        if s.DERIV_CACHE not in self._solver_cache:
             raise ValueError("backward can only be called after calling "
                              "solve with `requires_grad=True`")
         elif self.status not in s.SOLUTION_PRESENT:
@@ -1195,7 +1201,7 @@ class Problem(u.Canonical):
                                     "Github if you need this feature.")
 
         # TODO(akshayka): Backpropagate through dual variables as well.
-        backward_cache = self._solver_cache[s.DIFFCP]
+        backward_cache = self._solver_cache[s.DERIV_CACHE]
         DT = backward_cache["DT"]
         zeros = np.zeros(backward_cache["s"].shape)
         # del_vars: dictionary of variable gradients (delta/∂ with respect to variables)
@@ -1281,7 +1287,7 @@ class Problem(u.Canonical):
             SolverError
                 if the problem is infeasible or unbounded
         """
-        if s.DIFFCP not in self._solver_cache:
+        if s.DERIV_CACHE not in self._solver_cache:
             raise ValueError("derivative can only be called after calling "
                              "solve with `requires_grad=True`")
         elif self.status not in s.SOLUTION_PRESENT:
@@ -1289,7 +1295,10 @@ class Problem(u.Canonical):
                              "problems is not yet supported. Please file an "
                              "issue on Github if you need this feature.")
         # TODO(akshayka): Forward differentiate dual variables as well
-        backward_cache = self._solver_cache[s.DIFFCP]
+        backward_cache = self._solver_cache[s.DERIV_CACHE]
+        if "D" not in backward_cache:
+            raise ValueError("derivative (forward mode) is not supported "
+                             "by the solver used. Use backward() instead.")
         param_prog = self._cache.param_prog
         D = backward_cache["D"]
         param_deltas = {}
