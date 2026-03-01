@@ -36,7 +36,6 @@ from cvxpy.reductions.solvers.constant_solver import ConstantSolver
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
 from cvxpy.reductions.solvers.solver import Solver, expand_cones
 from cvxpy.settings import COO_CANON_BACKEND, DPP_PARAM_THRESHOLD
-from cvxpy.utilities import scopes
 from cvxpy.utilities.solver_context import SolverInfo
 from cvxpy.utilities.warn import warn
 
@@ -187,16 +186,14 @@ def _build_solving_chain(
 
     # --- DPP handling ---
     dpp_context = 'dcp' if not gp else 'dgp'
-    # For QP/conic-QP solvers, we can loosen the DPP rules for quad_form.
-    # These solvers accept quadratic objectives directly (P matrix), so the
-    # mapping from parameters to problem data (P, q) stays linear — the
-    # standard DPP requirement. P can remain parametric since its value is
-    # only needed at solve time, not at canonicalization time.
-    if solver_instance.supports_quad_obj():
-        with scopes.quad_form_dpp_scope():
-            is_dpp = problem.is_dpp(dpp_context)
-    else:
-        is_dpp = problem.is_dpp(dpp_context)
+    # For QP/conic-QP solvers, we can loosen the DPP rules for quad_form
+    # in the objective. These solvers accept quadratic objectives directly
+    # (P matrix), so the mapping from parameters to problem data (P, q) stays
+    # linear — the standard DPP requirement. Constraint quad_forms still go
+    # through the conic canonicalizer which bakes in numeric Cholesky factors,
+    # so parametric P in constraints is NOT DPP-safe for the QP path.
+    quad_form_dpp = 'qp' if solver_instance.supports_quad_obj() else None
+    is_dpp = problem.is_dpp(dpp_context, quad_form_dpp=quad_form_dpp)
     if ignore_dpp or not is_dpp:
         if not ignore_dpp and enforce_dpp:
             raise DPPError(DPP_ERROR_MSG)
