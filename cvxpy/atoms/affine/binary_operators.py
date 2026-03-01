@@ -343,6 +343,21 @@ class MulExpression(BinaryOperator):
 
 
 class multiply(MulExpression):
+    def is_hermitian(self) -> bool:
+        """Is the expression a Hermitian matrix?"""
+        arg1, arg2 = self.args
+        
+        # A real scalar times a Hermitian matrix is Hermitian.
+        if arg1.is_scalar() and arg1.is_real() and arg2.is_hermitian():
+            return True
+        if arg2.is_scalar() and arg2.is_real() and arg1.is_hermitian():
+            return True
+            
+        # The Hadamard (elementwise) product of two Hermitian matrices is Hermitian.
+        if arg1.is_hermitian() and arg2.is_hermitian():
+            return True
+            
+        return False
     """Multiplies two expressions elementwise."""
 
     OP_NAME = "*"
