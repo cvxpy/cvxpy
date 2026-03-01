@@ -114,7 +114,17 @@ class Complex2Real(Reduction):
         real_param, imag_param = self.canon_methods._parameters[param]
         grad = 0.0
         if real_param is not None and real_param.id in dparams:
-            grad = grad + dparams[real_param.id]
+            real_grad = dparams[real_param.id]
+            if param.is_hermitian():
+                # Expand compact upper triangle to full symmetric matrix
+                n = param.shape[0]
+                full_real_grad = np.zeros((n, n))
+                full_real_grad[np.triu_indices(n)] = real_grad
+                full_real_grad = full_real_grad + full_real_grad.T - np.diag(
+                    np.diag(full_real_grad))
+                grad = grad + full_real_grad
+            else:
+                grad = grad + real_grad
         if imag_param is not None and imag_param.id in dparams:
             imag_grad = dparams[imag_param.id]
             if param.is_hermitian():
@@ -148,7 +158,13 @@ class Complex2Real(Reduction):
         real_param, imag_param = self.canon_methods._parameters[param]
         result = {}
         if real_param is not None:
-            result[real_param.id] = np.real(np.asarray(delta, dtype=np.complex128))
+            real_delta = np.real(np.asarray(delta, dtype=np.complex128))
+            if param.is_hermitian():
+                # Extract upper triangle for compact symmetric representation
+                n = param.shape[0]
+                result[real_param.id] = real_delta[np.triu_indices(n)]
+            else:
+                result[real_param.id] = real_delta
         if imag_param is not None:
             imag_delta = np.imag(np.asarray(delta, dtype=np.complex128))
             if param.is_hermitian():

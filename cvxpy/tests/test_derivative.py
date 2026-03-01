@@ -8,6 +8,23 @@ from cvxpy.tests.base_test import BaseTest
 
 warnings.filterwarnings("ignore")
 
+
+def _has_diffcp():
+    try:
+        import diffcp  # noqa: F401
+        return True
+    except ModuleNotFoundError:
+        return False
+
+
+def _has_moreau():
+    try:
+        import moreau  # noqa: F401
+        return True
+    except ModuleNotFoundError:
+        return False
+
+
 SOLVE_METHODS = [s.CLARABEL, s.SCS, ]
 EPS_NAME = {s.SCS: "eps",
             s.CLARABEL: "tol_gap_abs"}
@@ -57,8 +74,69 @@ def perturbcheck(problem, gp: bool = False, solve_methods: list = SOLVE_METHODS,
 
 
 def gradcheck(problem, gp: bool = False, solve_methods: list = SOLVE_METHODS,
-              delta: float = 1e-5, atol: float = 1e-4, eps: float = 1e-9, **kwargs) -> None:
-    """Checks the analytical adjoint derivative against a numerical computation."""
+              delta: float = 1e-5, atol: float = 1e-4, eps: float = 1e-9,
+              deriv_solver: str = s.DIFFCP, **kwargs) -> None:
+    """Checks the analytical adjoint derivative against a numerical computation.
+
+    Parameters
+    ----------
+    deriv_solver : str
+        Which solver to use for derivative computation.
+        s.DIFFCP (default): use diffcp with solve_method iteration.
+        s.MOREAU: use moreau's built-in backward differentiation.
+    """
+    if deriv_solver == s.MOREAU:
+        # Moreau backward mode: use SCS with tight tolerances for numerical
+        # verification. Finite-difference gradients are sensitive to
+        # solver-specific noise at the ~1e-6 level, so we use SCS (same as
+        # the diffcp gradcheck) for consistent numerical perturbation.
+        num_solver = s.SCS
+        num_eps_opt = {"eps": eps}
+        num_kwargs = {"max_iters": 15_000}
+
+        size = sum(p.size for p in problem.parameters())
+        values = np.zeros(size)
+        offset = 0
+
+        for param in problem.parameters():
+            values[offset:offset + param.size] = np.asarray(param.value).flatten()
+            param.value = values[offset:offset + param.size].reshape(param.shape)
+            offset += param.size
+
+        numgrad = np.zeros(values.shape)
+        for i in range(values.size):
+            old = values[i]
+            values[i] = old + 0.5 * delta
+            problem.solve(solver=num_solver, gp=gp, **num_eps_opt, **num_kwargs)
+            left_solns = np.concatenate([x.value.flatten() for x in problem.variables()])
+
+            values[i] = old - 0.5 * delta
+            problem.solve(solver=num_solver, gp=gp, **num_eps_opt, **num_kwargs)
+            right_solns = np.concatenate([x.value.flatten() for x in problem.variables()])
+
+            numgrad[i] = (np.sum(left_solns) - np.sum(right_solns)) / delta
+            values[i] = old
+        numgrads = []
+        offset = 0
+        for param in problem.parameters():
+            numgrads.append(
+                numgrad[offset:offset + param.size].reshape(param.shape))
+            offset += param.size
+
+        old_gradients = {}
+        for x in problem.variables():
+            old_gradients[x] = x.gradient
+            x.gradient = None
+        problem.solve(solver=s.MOREAU, requires_grad=True, gp=gp)
+        problem.backward()
+
+        for param, numgrad_val in zip(problem.parameters(), numgrads):
+            np.testing.assert_allclose(param.gradient, numgrad_val, atol=atol)
+
+        for x in problem.variables():
+            x.gradient = old_gradients[x]
+        return
+
     for solver in solve_methods:
         eps_opt = {EPS_NAME[solver]: eps}
         # Default of 15k iterations for SCS.
@@ -112,11 +190,8 @@ def gradcheck(problem, gp: bool = False, solve_methods: list = SOLVE_METHODS,
 class TestBackward(BaseTest):
     """Test problem.backward() and problem.derivative()."""
     def setUp(self) -> None:
-        try:
-            import diffcp
-            diffcp  # for flake8
-        except ModuleNotFoundError:
-            self.skipTest("diffcp not installed.")
+        if not _has_diffcp() and not _has_moreau():
+            self.skipTest("neither diffcp nor moreau installed.")
 
     def test_scalar_quadratic(self) -> None:
         b = cp.Parameter()
@@ -124,23 +199,36 @@ class TestBackward(BaseTest):
         quadratic = cp.square(x - 2 * b)
         problem = cp.Problem(cp.Minimize(quadratic), [x >= 0])
         b.value = 3.
-        problem.solve(solver=cp.DIFFCP, requires_grad=True, eps=1e-10)
-        self.assertAlmostEqual(x.value, 6.)
-        problem.backward()
+        if _has_diffcp():
+            problem.solve(solver=cp.DIFFCP, requires_grad=True, eps=1e-10)
+            self.assertAlmostEqual(x.value, 6.)
+            problem.backward()
 
-        # x* = 2 * b, dx*/db = 2
-        # x.gradient == None defaults to 1.0
-        self.assertAlmostEqual(b.gradient, 2.)
-        x.gradient = 4.
-        problem.backward()
-        self.assertAlmostEqual(b.gradient, 8.)
-        gradcheck(problem, atol=1e-4)
-        perturbcheck(problem, atol=1e-4)
+            # x* = 2 * b, dx*/db = 2
+            # x.gradient == None defaults to 1.0
+            self.assertAlmostEqual(b.gradient, 2.)
+            x.gradient = 4.
+            problem.backward()
+            self.assertAlmostEqual(b.gradient, 8.)
+            gradcheck(problem, atol=1e-4)
+            perturbcheck(problem, atol=1e-4)
 
-        problem.solve(solver=cp.DIFFCP, requires_grad=True, eps=1e-10)
-        b.delta = 1e-3
-        problem.derivative()
-        self.assertAlmostEqual(x.delta, 2e-3)
+            problem.solve(solver=cp.DIFFCP, requires_grad=True, eps=1e-10)
+            b.delta = 1e-3
+            problem.derivative()
+            self.assertAlmostEqual(x.delta, 2e-3)
+
+        if _has_moreau():
+            b.value = 3.
+            x.gradient = None
+            problem.solve(solver=cp.MOREAU, requires_grad=True)
+            self.assertAlmostEqual(x.value, 6., places=4)
+            problem.backward()
+            self.assertAlmostEqual(b.gradient, 2., places=3)
+            x.gradient = 4.
+            problem.backward()
+            self.assertAlmostEqual(b.gradient, 8., places=3)
+            gradcheck(problem, atol=1e-3, deriv_solver=s.MOREAU)
 
     def test_l1_square(self) -> None:
         np.random.seed(0)
@@ -155,8 +243,11 @@ class TestBackward(BaseTest):
         L = np.random.randn(n, n)
         A.value = L.T @ L + np.eye(n)
         b.value = np.random.randn(n)
-        gradcheck(problem)
-        perturbcheck(problem)
+        if _has_diffcp():
+            gradcheck(problem)
+            perturbcheck(problem)
+        if _has_moreau():
+            gradcheck(problem, deriv_solver=s.MOREAU)
 
     def test_l1_rectangle(self) -> None:
         np.random.seed(0)
@@ -170,8 +261,11 @@ class TestBackward(BaseTest):
 
         A.value = np.random.randn(m, n)
         b.value = np.random.randn(m)
-        gradcheck(problem, atol=1e-3)
-        perturbcheck(problem, atol=1e-3)
+        if _has_diffcp():
+            gradcheck(problem, atol=1e-3)
+            perturbcheck(problem, atol=1e-3)
+        if _has_moreau():
+            gradcheck(problem, atol=1e-3, deriv_solver=s.MOREAU)
 
     def test_least_squares(self) -> None:
         np.random.seed(0)
@@ -184,8 +278,11 @@ class TestBackward(BaseTest):
 
         A.value = np.random.randn(m, n)
         b.value = np.random.randn(m)
-        gradcheck(problem, solve_methods=[s.SCS])
-        perturbcheck(problem, solve_methods=[s.SCS])
+        if _has_diffcp():
+            gradcheck(problem, solve_methods=[s.SCS])
+            perturbcheck(problem, solve_methods=[s.SCS])
+        if _has_moreau():
+            gradcheck(problem, deriv_solver=s.MOREAU)
 
     def test_logistic_regression(self) -> None:
         np.random.seed(0)
@@ -211,8 +308,11 @@ class TestBackward(BaseTest):
         X.value = X_np
         lam.value = 1
         # TODO(akshayka): too low but this problem is ill-conditioned
-        gradcheck(problem, solve_methods=[s.SCS], atol=1e-1, eps=1e-8)
-        perturbcheck(problem, solve_methods=[s.SCS], atol=1e-4)
+        if _has_diffcp():
+            gradcheck(problem, solve_methods=[s.SCS], atol=1e-1, eps=1e-8)
+            perturbcheck(problem, solve_methods=[s.SCS], atol=1e-4)
+        if _has_moreau():
+            gradcheck(problem, atol=1e-1, deriv_solver=s.MOREAU)
 
     def test_entropy_maximization(self) -> None:
         np.random.seed(0)
@@ -237,8 +337,11 @@ class TestBackward(BaseTest):
         b.value = b_np
         F.value = F_np
         g.value = g_np
-        gradcheck(problem, solve_methods=[s.SCS], atol=1e-2, eps=1e-8, max_iters=10_000)
-        perturbcheck(problem, solve_methods=[s.SCS], atol=1e-4)
+        if _has_diffcp():
+            gradcheck(problem, solve_methods=[s.SCS], atol=1e-2, eps=1e-8, max_iters=10_000)
+            perturbcheck(problem, solve_methods=[s.SCS], atol=1e-4)
+        if _has_moreau():
+            gradcheck(problem, atol=1e-2, deriv_solver=s.MOREAU)
 
     def test_lml(self) -> None:
         np.random.seed(0)
@@ -251,10 +354,15 @@ class TestBackward(BaseTest):
 
         x.value = np.array([1., -1., -1., -1.])
         # TODO(akshayka): This tolerance is too low.
-        gradcheck(problem, solve_methods=[s.SCS], atol=1e-2)
-        perturbcheck(problem, solve_methods=[s.SCS], atol=1e-4)
+        if _has_diffcp():
+            gradcheck(problem, solve_methods=[s.SCS], atol=1e-2)
+            perturbcheck(problem, solve_methods=[s.SCS], atol=1e-4)
+        if _has_moreau():
+            gradcheck(problem, atol=1e-2, deriv_solver=s.MOREAU)
 
     def test_sdp(self) -> None:
+        if not _has_diffcp():
+            self.skipTest("diffcp not installed.")
         np.random.seed(0)
         n = 3
         p = 3
@@ -273,6 +381,7 @@ class TestBackward(BaseTest):
                              constraints)
         gradcheck(problem, solve_methods=[s.SCS], atol=1e-3, eps=1e-10)
         perturbcheck(problem, solve_methods=[s.SCS])
+        # Note: moreau does not support PSD cones, so no moreau test here.
 
     def test_forget_requires_grad(self) -> None:
         np.random.seed(0)
@@ -294,7 +403,25 @@ class TestBackward(BaseTest):
                                     "solve with `requires_grad=True`"):
             problem.derivative()
 
+        if _has_moreau():
+            # Moreau without requires_grad should also fail
+            problem.solve(cp.MOREAU)
+            with self.assertRaisesRegex(ValueError,
+                                        "backward can only be called after calling "
+                                        "solve with `requires_grad=True`"):
+                problem.backward()
+
+            # Moreau with requires_grad should work for backward...
+            problem.solve(cp.MOREAU, requires_grad=True)
+            problem.backward()
+            # ...but not for derivative (forward mode)
+            with self.assertRaisesRegex(ValueError,
+                                        "derivative .* is not supported"):
+                problem.derivative()
+
     def test_infeasible(self) -> None:
+        if not _has_diffcp():
+            self.skipTest("diffcp not installed.")
         x = cp.Variable()
         param = cp.Parameter()
         problem = cp.Problem(cp.Minimize(param), [x >= 1, x <= -1])
@@ -308,6 +435,8 @@ class TestBackward(BaseTest):
             problem.derivative()
 
     def test_unbounded(self) -> None:
+        if not _has_diffcp():
+            self.skipTest("diffcp not installed.")
         x = cp.Variable()
         param = cp.Parameter()
         problem = cp.Problem(cp.Minimize(x), [x <= param])
@@ -327,10 +456,12 @@ class TestBackward(BaseTest):
         param.value = 1
         with self.assertRaisesRegex(ValueError,
                                     "When requires_grad is True, the "
-                                    "only supported solver is SCS.*"):
+                                    "only supported solvers are SCS and MOREAU.*"):
             problem.solve(cp.CLARABEL, requires_grad=True)
 
     def test_zero_in_problem_data(self) -> None:
+        if not _has_diffcp():
+            self.skipTest("diffcp not installed.")
         x = cp.Variable()
         param = cp.Parameter()
         param.value = 0.0
@@ -355,10 +486,7 @@ class TestBackward(BaseTest):
 class TestBackwardComplex(BaseTest):
     """Test backward/forward differentiation with complex parameters."""
     def setUp(self) -> None:
-        try:
-            import diffcp
-            diffcp  # for flake8
-        except ModuleNotFoundError:
+        if not _has_diffcp():
             self.skipTest("diffcp not installed.")
 
     def test_backward_real_and_imag(self) -> None:
@@ -447,11 +575,8 @@ class TestBackwardComplex(BaseTest):
 class TestBackwardDgp(BaseTest):
     """Test problem.backward() and problem.derivative()."""
     def setUp(self) -> None:
-        try:
-            import diffcp
-            diffcp  # for flake8
-        except ModuleNotFoundError:
-            self.skipTest("diffcp not installed.")
+        if not _has_diffcp() and not _has_moreau():
+            self.skipTest("neither diffcp nor moreau installed.")
 
     def test_one_minus_analytic(self) -> None:
         # construct a problem with solution
@@ -463,29 +588,34 @@ class TestBackwardDgp(BaseTest):
         constr = [cp.one_minus_pos(x) >= alpha**2]
         problem = cp.Problem(objective, constr)
 
-        alpha.value = 0.4
-        alpha.delta = 1e-5
-        problem.solve(solver=cp.DIFFCP, gp=True, requires_grad=True, eps=1e-5)
-        self.assertAlmostEqual(x.value, 1 - 0.4**2, places=3)
-        problem.backward()
-        problem.derivative()
-        self.assertAlmostEqual(alpha.gradient, -2*0.4, places=3)
-        self.assertAlmostEqual(x.delta, -2*0.4*1e-5, places=3)
+        if _has_diffcp():
+            alpha.value = 0.4
+            alpha.delta = 1e-5
+            problem.solve(solver=cp.DIFFCP, gp=True, requires_grad=True, eps=1e-5)
+            self.assertAlmostEqual(x.value, 1 - 0.4**2, places=3)
+            problem.backward()
+            problem.derivative()
+            self.assertAlmostEqual(alpha.gradient, -2*0.4, places=3)
+            self.assertAlmostEqual(x.delta, -2*0.4*1e-5, places=3)
 
-        gradcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-3)
-        perturbcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-3)
+            gradcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-3)
+            perturbcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-3)
 
-        alpha.value = 0.5
-        alpha.delta = 1e-5
-        problem.solve(solver=cp.DIFFCP, gp=True, requires_grad=True, eps=1e-5)
-        problem.backward()
-        problem.derivative()
-        self.assertAlmostEqual(x.value, 1 - 0.5**2, places=3)
-        self.assertAlmostEqual(alpha.gradient, -2*0.5, places=3)
-        self.assertAlmostEqual(x.delta, -2*0.5*1e-5, places=3)
+            alpha.value = 0.5
+            alpha.delta = 1e-5
+            problem.solve(solver=cp.DIFFCP, gp=True, requires_grad=True, eps=1e-5)
+            problem.backward()
+            problem.derivative()
+            self.assertAlmostEqual(x.value, 1 - 0.5**2, places=3)
+            self.assertAlmostEqual(alpha.gradient, -2*0.5, places=3)
+            self.assertAlmostEqual(x.delta, -2*0.5*1e-5, places=3)
 
-        gradcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-3)
-        perturbcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-3)
+            gradcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-3)
+            perturbcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-3)
+
+        if _has_moreau():
+            alpha.value = 0.4
+            gradcheck(problem, gp=True, atol=1e-3, deriv_solver=s.MOREAU)
 
     def test_analytic_param_in_exponent(self) -> None:
         # construct a problem with solution
@@ -498,31 +628,38 @@ class TestBackwardDgp(BaseTest):
         constr = [cp.one_minus_pos(x) >= cp.Constant(base)**alpha]
         problem = cp.Problem(objective, constr)
 
-        alpha.value = -1.0
-        alpha.delta = 1e-5
-        problem.solve(solver=cp.DIFFCP, gp=True, requires_grad=True, eps=1e-6)
-        self.assertAlmostEqual(x.value, 1 - base**(-1.0))
-        problem.backward()
-        problem.derivative()
-        self.assertAlmostEqual(alpha.gradient, -np.log(base)*base**(-1.0))
-        self.assertAlmostEqual(x.delta, alpha.gradient*1e-5, places=3)
+        if _has_diffcp():
+            alpha.value = -1.0
+            alpha.delta = 1e-5
+            problem.solve(solver=cp.DIFFCP, gp=True, requires_grad=True, eps=1e-6)
+            self.assertAlmostEqual(x.value, 1 - base**(-1.0))
+            problem.backward()
+            problem.derivative()
+            self.assertAlmostEqual(alpha.gradient, -np.log(base)*base**(-1.0))
+            self.assertAlmostEqual(x.delta, alpha.gradient*1e-5, places=3)
 
-        gradcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-3)
-        perturbcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-3)
+            gradcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-3)
+            perturbcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-3)
 
-        alpha.value = -1.2
-        alpha.delta = 1e-5
-        problem.solve(solver=cp.DIFFCP, gp=True, requires_grad=True, eps=1e-6)
-        self.assertAlmostEqual(x.value, 1 - base**(-1.2))
-        problem.backward()
-        problem.derivative()
-        self.assertAlmostEqual(alpha.gradient, -np.log(base)*base**(-1.2))
-        self.assertAlmostEqual(x.delta, alpha.gradient*1e-5, places=3)
+            alpha.value = -1.2
+            alpha.delta = 1e-5
+            problem.solve(solver=cp.DIFFCP, gp=True, requires_grad=True, eps=1e-6)
+            self.assertAlmostEqual(x.value, 1 - base**(-1.2))
+            problem.backward()
+            problem.derivative()
+            self.assertAlmostEqual(alpha.gradient, -np.log(base)*base**(-1.2))
+            self.assertAlmostEqual(x.delta, alpha.gradient*1e-5, places=3)
 
-        gradcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-3)
-        perturbcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-3)
+            gradcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-3)
+            perturbcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-3)
+
+        if _has_moreau():
+            alpha.value = -1.0
+            gradcheck(problem, gp=True, atol=1e-3, deriv_solver=s.MOREAU)
 
     def test_param_used_twice(self) -> None:
+        if not _has_diffcp():
+            self.skipTest("diffcp not installed.")
         # construct a problem with solution
         # x^\star(\alpha) = 1 - \alpha^2 - alpha^3, and derivative
         # x^\star'(\alpha) = -2\alpha - 3\alpha^2
@@ -545,6 +682,8 @@ class TestBackwardDgp(BaseTest):
         perturbcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-3)
 
     def test_param_used_in_exponent_and_elsewhere(self) -> None:
+        if not _has_diffcp():
+            self.skipTest("diffcp not installed.")
         # construct a problem with solution
         # x^\star(\alpha) = 1 - 0.3^alpha - alpha^2, and derivative
         # x^\star'(\alpha) = -log(0.3) * 0.2^\alpha - 2*alpha
@@ -577,10 +716,15 @@ class TestBackwardDgp(BaseTest):
         a.value = 2.0
         b.value = 1.0
         c.value = 0.5
-        gradcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-3)
-        perturbcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-3)
+        if _has_diffcp():
+            gradcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-3)
+            perturbcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-3)
+        if _has_moreau():
+            gradcheck(problem, gp=True, atol=1e-3, deriv_solver=s.MOREAU)
 
     def test_maximum(self) -> None:
+        if not _has_diffcp():
+            self.skipTest("diffcp not installed.")
         x = cp.Variable(pos=True)
         y = cp.Variable(pos=True)
         a = cp.Parameter(value=0.5)
@@ -597,6 +741,8 @@ class TestBackwardDgp(BaseTest):
         perturbcheck(problem, gp=True, atol=1e-3)
 
     def test_max(self) -> None:
+        if not _has_diffcp():
+            self.skipTest("diffcp not installed.")
         x = cp.Variable(pos=True)
         y = cp.Variable(pos=True)
         a = cp.Parameter(value=0.5)
@@ -618,8 +764,11 @@ class TestBackwardDgp(BaseTest):
         a = cp.Parameter(pos=True, value=3)
         b = cp.Parameter(pos=True, value=1)
         problem = cp.Problem(cp.Minimize(x * y), [y/a <= x, y >= b])
-        gradcheck(problem, gp=True)
-        perturbcheck(problem, gp=True)
+        if _has_diffcp():
+            gradcheck(problem, gp=True)
+            perturbcheck(problem, gp=True)
+        if _has_moreau():
+            gradcheck(problem, gp=True, deriv_solver=s.MOREAU)
 
     def test_one_minus_pos(self) -> None:
         x = cp.Variable(pos=True)
@@ -628,8 +777,11 @@ class TestBackwardDgp(BaseTest):
         obj = cp.Maximize(x)
         constr = [cp.one_minus_pos(a*x) >= a*b]
         problem = cp.Problem(obj, constr)
-        gradcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-3)
-        perturbcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-3)
+        if _has_diffcp():
+            gradcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-3)
+            perturbcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-3)
+        if _has_moreau():
+            gradcheck(problem, gp=True, atol=1e-3, deriv_solver=s.MOREAU)
 
     def test_paper_example_one_minus_pos(self) -> None:
         x = cp.Variable(pos=True)
@@ -640,10 +792,15 @@ class TestBackwardDgp(BaseTest):
         obj = cp.Minimize(x * y)
         constr = [(y * cp.one_minus_pos(x / y)) ** a >= b, x >= y/c]
         problem = cp.Problem(obj, constr)
-        gradcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-3)
-        perturbcheck(problem, solve_methods=[s.SCS], gp=True, atol=1e-3)
+        if _has_diffcp():
+            gradcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-3)
+            perturbcheck(problem, solve_methods=[s.SCS], gp=True, atol=1e-3)
+        if _has_moreau():
+            gradcheck(problem, gp=True, atol=1e-3, deriv_solver=s.MOREAU)
 
     def test_matrix_constraint(self) -> None:
+        if not _has_diffcp():
+            self.skipTest("diffcp not installed.")
         X = cp.Variable((2, 2), pos=True)
         a = cp.Parameter(pos=True, value=0.1)
         obj = cp.Minimize(cp.geo_mean(cp.vec(X, order='F')))
@@ -661,10 +818,15 @@ class TestBackwardDgp(BaseTest):
         obj = cp.Minimize(x * y)
         constr = [cp.exp(a*y/x) <= cp.log(b*y)]
         problem = cp.Problem(obj, constr)
-        gradcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-2, max_iters=10_000)
-        perturbcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-2, max_iters=5000)
+        if _has_diffcp():
+            gradcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-2, max_iters=10_000)
+            perturbcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-2, max_iters=5000)
+        if _has_moreau():
+            gradcheck(problem, gp=True, atol=1e-2, deriv_solver=s.MOREAU)
 
     def test_matrix_completion(self) -> None:
+        if not _has_diffcp():
+            self.skipTest("diffcp not installed.")
         X = cp.Variable((3, 3), pos=True)
         # TODO(akshayka): pf matrix completion not differentiable ...?
         # I could believe that ... or a bug?
@@ -683,6 +845,8 @@ class TestBackwardDgp(BaseTest):
         perturbcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-4)
 
     def test_rank_one_nmf(self) -> None:
+        if not _has_diffcp():
+            self.skipTest("diffcp not installed.")
         X = cp.Variable((3, 3), pos=True)
         x = cp.Variable((3,), pos=True)
         y = cp.Variable((3,), pos=True)
@@ -721,10 +885,15 @@ class TestBackwardDgp(BaseTest):
         constraints = [
           a * x * y * z + b * x * z <= c, x <= b*y, y <= b*x, z >= d]
         problem = cp.Problem(cp.Maximize(objective_fn), constraints)
-        gradcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-2)
-        perturbcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-2)
+        if _has_diffcp():
+            gradcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-2)
+            perturbcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-2)
+        if _has_moreau():
+            gradcheck(problem, gp=True, atol=1e-2, deriv_solver=s.MOREAU)
 
     def test_sum_squares_vector(self) -> None:
+        if not _has_diffcp():
+            self.skipTest("diffcp not installed.")
         alpha = cp.Parameter(shape=(2,), pos=True, value=[1.0, 1.0])
         beta = cp.Parameter(pos=True, value=20)
         kappa = cp.Parameter(pos=True, value=10)
@@ -737,6 +906,8 @@ class TestBackwardDgp(BaseTest):
         perturbcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-1, max_iters=1000)
 
     def test_sum_matrix(self) -> None:
+        if not _has_diffcp():
+            self.skipTest("diffcp not installed.")
         w = cp.Variable((2, 2), pos=True)
         h = cp.Variable((2, 2), pos=True)
         alpha = cp.Parameter(pos=True, value=1.0)

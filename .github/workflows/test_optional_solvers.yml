@@ -54,6 +54,9 @@ jobs:
       - name: Run test_qp_solvers
         if: always()
         run: uv run pytest -rs cvxpy/tests/test_qp_solvers.py
+      - name: Run test_derivative
+        if: always()
+        run: uv run pytest -rs cvxpy/tests/test_derivative.py
 
     env:
       RUNNER_OS: ${{ matrix.os }}
