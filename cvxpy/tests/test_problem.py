@@ -2326,3 +2326,18 @@ class TestProblem(BaseTest):
             cp.Problem(cp.Maximize(0), [c >= 0])
             assert len(w) == 0
 
+    def test_canonicalization_invert_none_duals(self) -> None:
+        """Canonicalization.invert should handle None dual_vars."""
+        from cvxpy.reductions import Dcp2Cone, Solution
+
+        x = cp.Variable(2)
+        prob = cp.Problem(cp.Minimize(cp.sum(x)), [x >= 1])
+        reduction = Dcp2Cone()
+        new_prob, inv_data = reduction.apply(prob)
+
+        # Simulate a solver returning None dual_vars (e.g., MIP solvers).
+        pv = {vid: np.ones(2) for vid in inv_data.id_map}
+        sol = Solution("optimal", 2.0, pv, None, {})
+        result = reduction.invert(sol, inv_data)
+        assert result.dual_vars is None
+

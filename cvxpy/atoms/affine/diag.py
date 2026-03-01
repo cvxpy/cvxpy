@@ -101,7 +101,7 @@ class diag_vec(AffAtom):
     def is_hermitian(self) -> bool:
         """Is the expression hermitian?
         """
-        return self.k == 0
+        return self.k == 0 and self.args[0].is_real()
 
     def is_psd(self) -> bool:
         """Is the expression a positive semidefinite matrix?

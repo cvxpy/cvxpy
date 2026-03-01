@@ -150,5 +150,5 @@ class gmatmul(Atom):
         """
         return self.A.is_nonpos()
 
-    def _grad(self, values) -> None:
-        return None
+    def _grad(self, values):
+        return [None]

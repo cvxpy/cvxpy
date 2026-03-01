@@ -654,6 +654,16 @@ class TestComplex(BaseTest):
         result = prob.solve(solver="SCS")
         self.assertAlmostEqual(result, 2)
 
+    def test_diag_vec_hermitian(self) -> None:
+        """diag(complex_vector) is not Hermitian unless entries are real."""
+        v_complex = cp.Variable(3, complex=True)
+        D_complex = cp.diag(v_complex)
+        assert not D_complex.is_hermitian()
+
+        v_real = cp.Variable(3)
+        D_real = cp.diag(v_real)
+        assert D_real.is_hermitian()
+
     def test_complex_qp(self) -> None:
         """Test a QP with a complex variable.
         """
