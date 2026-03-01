@@ -470,6 +470,7 @@ class Problem(u.Canonical):
         }
         return list(const_dict.values())
 
+    @perf.compute_once
     def atoms(self) -> List[Atom]:
         """Accessor method for atoms.
 
