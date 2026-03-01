@@ -297,8 +297,11 @@ class CvxAttr2Constr(Reduction):
                 pvars[id] = recover_value_for_leaf(
                     var, solution.primal_vars[new_var.id])
 
-        dvars = {orig_id: solution.dual_vars[vid]
-                 for orig_id, vid in cons_id_map.items()
-                 if vid in solution.dual_vars}
+        if solution.dual_vars is not None:
+            dvars = {orig_id: solution.dual_vars[vid]
+                     for orig_id, vid in cons_id_map.items()
+                     if vid in solution.dual_vars}
+        else:
+            dvars = None
         return Solution(solution.status, solution.opt_val, pvars, dvars,
                         solution.attr)
