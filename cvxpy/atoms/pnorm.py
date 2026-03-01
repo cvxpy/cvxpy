@@ -179,12 +179,12 @@ class Pnorm(AxisAtom):
     def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
         """
-        return True
+        return self.p > 0
 
     def is_atom_log_log_concave(self) -> bool:
         """Is the atom log-log concave?
         """
-        return False
+        return self.p < 0
 
     def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
