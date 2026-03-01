@@ -62,7 +62,7 @@ class MPAX(QpSolver):
         attr[s.NUM_ITERS] = solution.iteration_count
 
         if status in s.SOLUTION_PRESENT:
-            opt_val = float(solution.primal_objective)
+            opt_val = float(solution.primal_objective) + inverse_data[s.OFFSET]
             primal_vars = {
                 MPAX.VAR_ID: np.array(solution.primal_solution, dtype=float)
             }

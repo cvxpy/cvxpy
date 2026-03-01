@@ -322,7 +322,7 @@ class ConicSolver(Solver):
         status = solution['status']
 
         if status in s.SOLUTION_PRESENT:
-            opt_val = solution['value']
+            opt_val = solution['value'] + inverse_data[s.OFFSET]
             primal_vars = {inverse_data[self.VAR_ID]: solution['primal']}
             eq_dual = utilities.get_dual_values(
                 solution['eq_dual'],
