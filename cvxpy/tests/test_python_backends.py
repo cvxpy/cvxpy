@@ -633,11 +633,11 @@ class TestBackends:
         [[1  0  0],
          [0  1  0],
          [0  0  1]]
-        
+
         broadcast_to(x, (2, 3)) means we repeat every variable twice along the row axis.
 
         Thus we expect the following A matrix:
-        
+
          x1 x2 x3
         [[1  0  0],
          [1  0  0],
@@ -674,18 +674,18 @@ class TestBackends:
     def test_broadcast_to_cols(self, backend):
         """
         define x = Variable((2,1)) with
-        [[x1], 
+        [[x1],
          [x2]]
 
         x is represented as eye(2) in the A matrix, i.e.,
          x1 x2
         [[1  0],
          [0  1]]
-        
+
         broadcast_to(x, (2, 3)) means we tile the variables three times along the rows
 
         Thus we expect the following A matrix:
-        
+
          x1 x2
         [[1  0],
          [0  1],
@@ -2392,7 +2392,7 @@ class TestND_Backends:
     def test_nd_broadcast_to(self, backend):
         """
         define x = Variable((2,1,2)) with
-        [[x11, x12], 
+        [[x11, x12],
          [x21, x22]]
 
         x is represented as eye(4) in the A matrix, i.e.,
@@ -2401,11 +2401,11 @@ class TestND_Backends:
          [0   1   0   0],
          [0   0   1   0],
          [0   0   0   1]]
-        
+
         broadcast_to(x, (2, 3, 2)) means we repeat columns of x three times each subsequently.
 
         Thus we expect the following A matrix:
-        
+
         x11 x21 x12 x22
         [[1   0   0   0],
          [0   1   0   0],

@@ -1048,7 +1048,7 @@ class Problem(u.Canonical):
                     if bibtex:
                         print(_CITATION_STR)
                         print(CITATION_DICT["CVXPY"])
-                        print(CITATION_DICT["DQCP"])                             
+                        print(CITATION_DICT["DQCP"])
                 reductions = [dqcp2dcp.Dqcp2Dcp()]
                 start = time.time()
                 if type(self.objective) == Maximize:
@@ -1086,9 +1086,9 @@ class Problem(u.Canonical):
 
             # Cite problem grammar.
             if self.is_dcp():
-                print(CITATION_DICT["DCP"]) 
+                print(CITATION_DICT["DCP"])
             if gp:
-                print(CITATION_DICT["DGP"]) 
+                print(CITATION_DICT["DGP"])
 
             # Cite solver.
             print(solving_chain.reductions[-1].cite(data))
@@ -1426,10 +1426,10 @@ class Problem(u.Canonical):
             for constr in self.constraints[1:]:
                 lines += [len(subject_to) * " " + str(constr)]
             return '\n'.join(lines)
-    
+
     def format_labeled(self):
         """Format problem with labels where available.
-        
+
         Shows labels for both the objective expression and constraints.
         """
         if len(self.constraints) == 0:

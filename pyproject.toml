@@ -17,6 +17,9 @@ select = [
     "F",
     "I",
     "NPY201",
+    "W291",  # Trailing whitespace
+    "W292",  # No newline at end of file
+    "W293",  # No whitespace on blank lines
     "W605",  # Check for invalid escape sequences in docstrings (errors in py >= 3.11)
 ]
 

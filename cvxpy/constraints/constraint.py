@@ -68,7 +68,7 @@ class Constraint(u.Canonical):
     def label(self):
         """Get the label of the constraint."""
         return self._label
-    
+
     @label.setter
     def label(self, value: object | None):
         """Set the label of the constraint."""
@@ -82,30 +82,30 @@ class Constraint(u.Canonical):
                 )
         else:
             self._label = None
-    
+
     @label.deleter
     def label(self):
         """Delete the label of the constraint."""
         self._label = None
-    
+
     def set_label(self, label: object | None) -> Self:
         """Set a custom label for this constraint.
-        
+
         This method exists alongside the property setter (con.label = "name")
         to enable method chaining, allowing labels to be set fluently when
         constructing constraints.
-        
+
         Parameters
         ----------
         label : object | None
             Custom label for the constraint. Will be converted to string.
             If None, clears the label.
-            
+
         Returns
         -------
         Self
             Returns self to allow method chaining.
-            
+
         Examples
         --------
         >>> x = cp.Variable(3)
@@ -118,10 +118,10 @@ class Constraint(u.Canonical):
         """
         self.label = label
         return self
-    
+
     def format_labeled(self):
         """Format constraint with label if available.
-        
+
         For constraints, this is the same as str() since constraints always show labels.
         """
         return str(self)

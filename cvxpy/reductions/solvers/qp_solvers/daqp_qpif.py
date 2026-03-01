@@ -120,7 +120,7 @@ class DAQP(QpSolver):
         import daqp
 
         # using naming conventions in
-        # https://darnstrom.github.io/daqp/start/python 
+        # https://darnstrom.github.io/daqp/start/python
 
         H = np.array(data[s.P].todense(), dtype=c_double)
         f = np.array(data[s.Q], dtype=c_double)
@@ -134,10 +134,10 @@ class DAQP(QpSolver):
             var_upper_bounds = np.ones(len(f), dtype=c_double) * np.inf
         else:
             var_upper_bounds = data[s.UPPER_BOUNDS]
-                    
+
         bupper = np.array(np.concatenate((
                 var_upper_bounds,
-                data[s.B], 
+                data[s.B],
                 data[s.G])),
             dtype=c_double)
 
@@ -150,7 +150,7 @@ class DAQP(QpSolver):
         blower = np.array(
             np.concatenate((
                 var_lower_bounds,
-                data[s.B], 
+                data[s.B],
                 -np.inf*np.ones(data[s.G].shape))),
             dtype=c_double)
 

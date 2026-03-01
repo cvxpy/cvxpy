@@ -223,7 +223,7 @@ class CBC(ConicSolver):
             solution["value"] = model.objectiveValue
 
         return solution
-    
+
     def cite(self, data):
         """Returns bibtex citation for the solver.
 

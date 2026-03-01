@@ -96,10 +96,10 @@ def einsum(subscripts, *exprs, optimize="greedy"):
 
     3. Contraction.
         A. If only one input, simply perform an axis sum.
-        B. Otherwise, we iterate over pairs of tensors and contract them. Contracting 
-        two tensors involves (i) reshaping and permuting them to compatible shapes where 
-        corresponding indices align, (ii) performing elementwise multiplication, and 
-        (iii) summing over the contracted dimensions. The order of the contractions is 
+        B. Otherwise, we iterate over pairs of tensors and contract them. Contracting
+        two tensors involves (i) reshaping and permuting them to compatible shapes where
+        corresponding indices align, (ii) performing elementwise multiplication, and
+        (iii) summing over the contracted dimensions. The order of the contractions is
         given by the contraction path.
 
     4. Permute the final result to match output subscript order.

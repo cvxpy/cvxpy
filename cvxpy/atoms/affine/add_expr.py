@@ -56,13 +56,13 @@ class AddExpression(AffAtom):
         for i in range(1, len(self.args)):
             result += " + " + str(self.args[i])
         return result
-    
+
     def format_labeled(self):
         """Format addition with labels where available."""
         # Check for own label first
         if self._label is not None:
             return self._label
-        
+
         # Build from sub-expressions using their labels
         result = self.args[0].format_labeled()
         for i in range(1, len(self.args)):
@@ -125,9 +125,9 @@ class AddExpression(AffAtom):
         if args is None:
             # The __init__ method of AddExpression recreates the args,
             # but passes *arg_groups to the super class for checks.
-            # Since these checks are already done for self, we pass [self], i.e., 
+            # Since these checks are already done for self, we pass [self], i.e.,
             # a single [AddExpression], before the args are recreated.
-            args = [self]  
+            args = [self]
         copy = type(self).__new__(type(self))
         copy.__init__(args)
         return copy

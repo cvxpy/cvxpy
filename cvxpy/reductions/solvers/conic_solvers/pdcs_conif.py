@@ -58,19 +58,19 @@ class PDCS(ConicSolver):
         """Imports the solver.
         """
         import cupy  # noqa F401
-    
+
     def supports_quad_obj(self) -> bool:
         """PDCS does not support quadratic objective with any combination
         of conic constraints.
         """
         return False
-    
+
     @staticmethod
     def extract_dual_value(result_vec, offset, constraint):
         """Extracts the dual value for constraint starting at offset.
         """
         return utilities.extract_dual_value(result_vec, offset, constraint)
-    
+
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem give the inverse_data.
         """
@@ -116,7 +116,7 @@ class PDCS(ConicSolver):
             Control the verbosity.
         solver_opts : dict
             PDCS-specific solver options.
-            Options can be passed in Python-native types (bool, int, float, str, etc.); 
+            Options can be passed in Python-native types (bool, int, float, str, etc.);
             booleans will be converted to "true"/"false" strings for Julia automatically.
 
         Returns
@@ -180,7 +180,7 @@ class PDCS(ConicSolver):
         q = data[s.C]
         if s.P in data:
             raise ValueError("PDCS does not support quadratic objective.")
-        
+
         cones = data[ConicSolver.DIMS]
         cgpu = cupy.array(q)
 

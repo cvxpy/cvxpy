@@ -56,9 +56,9 @@ def dims_to_solver_cones(cone_dims):
 
     for pow in cone_dims.pnd:
         # TODO: On the right hand side, we may want to
-        # extend to support higher dim values for z 
+        # extend to support higher dim values for z
         # instead of hardcoding 1.
-        cones.append(clarabel.GenPowerConeT(pow, 1)) 
+        cones.append(clarabel.GenPowerConeT(pow, 1))
     return cones
 
 
@@ -141,7 +141,7 @@ class CLARABEL(ConicSolver):
     MIP_CAPABLE = False
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS \
         + [SOC, ExpCone, PowCone3D, PSD, PowConeND]
-    
+
     # Status messages from clarabel.
     SOLVED = "Solved"
     PRIMAL_INFEASIBLE = "PrimalInfeasible"
@@ -386,7 +386,7 @@ class CLARABEL(ConicSolver):
             solver_cache[self.name()] = solver
 
         return results
-    
+
     def cite(self, data):
         """Returns bibtex citation for the solver.
 

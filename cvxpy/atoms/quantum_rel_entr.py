@@ -26,12 +26,12 @@ from cvxpy.constraints.constraint import Constraint
 
 class quantum_rel_entr(Atom):
     """
-    An approximation of the quantum relative entropy between systems with (possibly un-normalized) 
+    An approximation of the quantum relative entropy between systems with (possibly un-normalized)
     density matrices :math:`X` and :math`Y:`
-     
+
     .. math::
         \\operatorname{tr}\\left( X ( \\log X - \\log Y ) \\right).
-      
+
     The approximation uses a quadrature scheme described in https://arxiv.org/abs/1705.00812.
 
     Parameters
@@ -81,7 +81,7 @@ class quantum_rel_entr(Atom):
             raise ValueError(
                 "The arguments to quantum_rel_entr must both be hermitian."
             )
-        
+
     def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """

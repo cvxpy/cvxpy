@@ -41,8 +41,8 @@ def quantum_cond_entr(
     Notes
     -----
     This function does not assume :math:`\\operatorname{tr}(\rho)=1,` which would be required
-    for most uses of this function in the context of quantum information theory. See 
-    https://en.wikipedia.org/wiki/Conditional_quantum_entropy for more information. 
+    for most uses of this function in the context of quantum information theory. See
+    https://en.wikipedia.org/wiki/Conditional_quantum_entropy for more information.
     """
     if len(dims) != 2:
         err = 'This function is only defined for a tensor product of two subsystems,' + \

@@ -240,7 +240,7 @@ class PowConeND(Cone):
 
     def get_data(self):
         return [self.alpha, self.axis, self.id]
-    
+
     @property
     def shape(self) -> Tuple[int, int]:
         # The shape property is a tuple (m, n) where each
@@ -256,7 +256,7 @@ class PowConeND(Cone):
             m, n = self.W.shape[1], self.W.shape[0]
         s = (m + 1, n)
         return s
-    
+
     @property
     def residual(self):
         # TODO: The projection should be implemented directly.
@@ -267,7 +267,7 @@ class PowConeND(Cone):
         z = Variable(self.z.shape)
         constr = [PowConeND(W, z, self.alpha, axis=self.axis)]
         obj = Minimize(norm2(hstack([W.flatten(order='F'), z.flatten(order='F')]) -
-                             hstack([self.W.flatten(order='F').value, 
+                             hstack([self.W.flatten(order='F').value,
                                      self.z.flatten(order='F').value])))
         problem = Problem(obj, constr)
         return problem.solve(solver='SCS', eps=1e-8)

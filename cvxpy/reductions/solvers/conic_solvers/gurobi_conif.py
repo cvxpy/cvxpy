@@ -404,7 +404,7 @@ class GUROBI(ConicSolver):
         return (model.addQConstr(x_term <= t_term),
                 new_lin_constrs,
                 soc_vars)
-    
+
     def cite(self, data):
         """Returns bibtex citation for the solver.
 

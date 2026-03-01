@@ -369,7 +369,7 @@ class CVXOPT(ConicSolver):
         else:
             kktsolver = 'chol'
         return kktsolver
-    
+
     def cite(self, data):
         """Returns bibtex citation for the solver.
 

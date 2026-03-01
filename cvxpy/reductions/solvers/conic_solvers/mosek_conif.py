@@ -417,7 +417,7 @@ class MOSEK(ConicSolver):
         # Create mosek bound keys if variables have bounds
         if data[s.LOWER_BOUNDS] is not None and data[s.UPPER_BOUNDS] is not None:
             bl, bu = data[s.LOWER_BOUNDS], data[s.UPPER_BOUNDS]
-            # Initialize bound key array as defined in 
+            # Initialize bound key array as defined in
             # https://docs.mosek.com/10.2/pythonapi/constants.html#mosek.boundkey
             bk = np.empty(n, dtype=np.object_)
             mask = np.isfinite([bl, bu])
@@ -573,7 +573,7 @@ class MOSEK(ConicSolver):
 
         # Delete the mosek Task and Environment
         task.__exit__(None, None, None)
- 
+
         return sol
 
     @staticmethod
@@ -756,7 +756,7 @@ class MOSEK(ConicSolver):
             solver_opts['mosek_params'][tol_param] = \
                 solver_opts['mosek_params'].get(tol_param, eps)
         return solver_opts
-    
+
     @staticmethod
     def tolerance_params() -> tuple[str]:
         # tolerance parameters from

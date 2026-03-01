@@ -75,7 +75,7 @@ class QOCO(ConicSolver):
         import qoco  # noqa F401
 
     def supports_quad_obj(self) -> bool:
-        """QOCO supports quadratic objective with second order 
+        """QOCO supports quadratic objective with second order
         cone constraints.
         """
         return True
@@ -209,7 +209,7 @@ class QOCO(ConicSolver):
             solver_cache[self.name()] = results
 
         return results
-    
+
     def cite(self, data):
         """Returns bibtex citation for the solver.
 

@@ -154,7 +154,7 @@ class CUOPT(ConicSolver):
 
         # Save the objective offset so that it can be set in the solver
         data[s.OFFSET] = inv_data[s.OFFSET]
-        
+
         variables = problem.x
         data[s.BOOL_IDX] = [int(t[0]) for t in variables.boolean_idx]
         data[s.INT_IDX] = [int(t[0]) for t in variables.integer_idx]

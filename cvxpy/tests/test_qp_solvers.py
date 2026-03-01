@@ -711,7 +711,7 @@ class TestQp(QPTestBase):
             result = prob.solve(solver=cp.PIQP, warm_start=True)
             result2 = prob.solve(solver=cp.PIQP, warm_start=False)
             self.assertAlmostEqual(result, result2)
-    
+
     def test_copt_warmstart(self) -> None:
         """Test warm start.
         """
@@ -721,7 +721,7 @@ class TestQp(QPTestBase):
             np.random.seed(1)
             A = np.random.randn(m, n)
             b = Parameter(m)
-            
+
             # Construct the problem.
             x = Variable(n)
             prob = Problem(Minimize(sum_squares(A @ x - b)))

@@ -60,7 +60,7 @@ def targets_and_priorities(
 
         -infinity when objectives[i] < limits[i]
 
-    A negative priority flips the objective sense, i.e., we 
+    A negative priority flips the objective sense, i.e., we
     use -objectives[i], -targets[i], and -limits[i] with abs(priorities[i]).
 
     Args:
@@ -80,7 +80,7 @@ def targets_and_priorities(
     assert len(objectives) == len(targets), "Number of objectives and targets must match."
     if limits is not None:
         assert len(objectives) == len(limits), "Number of objectives and limits must match."
-  
+
     assert off_target >= 0, "The off_target argument must be nonnegative."
 
     num_objs = len(objectives)
@@ -89,7 +89,7 @@ def targets_and_priorities(
         obj, tar, lim = objectives[i], targets[i], limits[i] if limits is not None else None
         if priorities[i] < 0:
             obj, tar, lim = -obj, -tar, -lim if lim is not None else None
-        
+
         sign = 1 if obj.args[0].is_convex() else -1
 
         delta = sign*(obj.args[0] - targets[i])

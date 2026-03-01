@@ -36,7 +36,7 @@ class sigma_max(Atom):
             raise ValueError(
                 f"The argument {self.args[0].name()} to sigma_max must be a 2-d array."
             )
-    
+
     @Atom.numpy_numeric
     def numeric(self, values):
         """Returns the largest singular value of A.

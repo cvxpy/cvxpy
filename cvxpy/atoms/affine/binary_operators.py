@@ -64,13 +64,13 @@ class BinaryOperator(AffAtom):
             else:
                 pretty_args.append(a.name())
         return pretty_args[0] + ' ' + self.OP_NAME + ' ' + pretty_args[1]
-    
+
     def format_labeled(self):
         """Format binary operation with labels where available."""
         # Check for own label first
         if self._label is not None:
             return self._label
-        
+
         # Build from sub-expressions using their labels
         pretty_args = []
         for i, a in enumerate(self.args):
@@ -646,7 +646,7 @@ def outer(x, y):
     y = Expression.cast_to_const(y)
     if y.ndim > 1:
         raise ValueError("y must be a 1-d array.")
-    
+
     x = reshape(x, (x.size, 1), order='F')
     y = reshape(y, (1, y.size), order='F')
     return x @ y

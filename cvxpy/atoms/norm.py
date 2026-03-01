@@ -41,7 +41,7 @@ def norm(x, p: Union[int, str] = 2, axis=None, keepdims: bool = False):
         'fro' (for frobenius), 'nuc' (sum of singular values), np.inf or
         'inf' (infinity norm).
     axis : The axis along which to apply the norm, if any.
-    keepdims: If this is set to True, the axes which are reduced are left 
+    keepdims: If this is set to True, the axes which are reduced are left
         in the result as dimensions with size one.
 
     Returns

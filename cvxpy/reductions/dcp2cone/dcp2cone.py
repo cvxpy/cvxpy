@@ -59,7 +59,7 @@ class Dcp2Cone(Canonicalization):
 
         canon_objective, canon_constraints = self.canonicalize_tree(
             problem.objective, True)
-        
+
 
         for constraint in problem.constraints:
             # canon_constr is the constraint rexpressed in terms of
@@ -142,7 +142,7 @@ class Dcp2Cone(Canonicalization):
                                                            solver_context=self.solver_context)
 
         if type(expr) in self.cone_canon_methods:
-            return self.cone_canon_methods[type(expr)](expr, args, 
+            return self.cone_canon_methods[type(expr)](expr, args,
                                                        solver_context=self.solver_context)
 
         return expr.copy(args), []
