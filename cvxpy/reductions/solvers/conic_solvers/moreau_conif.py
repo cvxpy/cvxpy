@@ -245,6 +245,9 @@ class MOREAU(ConicSolver):
         """
         import moreau
 
+        solver_opts = solver_opts.copy() if solver_opts else {}
+        requires_grad = solver_opts.pop("requires_grad", False)
+
         A = data[s.A]
         b = data[s.B]
         q = data[s.C]
@@ -266,6 +269,9 @@ class MOREAU(ConicSolver):
         # Handle options (device is now part of Settings)
         settings, processed_opts = self.handle_options(verbose, solver_opts or {})
 
+        if requires_grad:
+            settings.enable_grad = True
+
         # Create solver with all problem data in constructor
         solver = moreau.Solver(
             P=P,
@@ -279,6 +285,46 @@ class MOREAU(ConicSolver):
         # Solve (no arguments - all data was provided in constructor)
         solution = solver.solve()
         info = solver.info  # Metadata is on solver.info after solve()
+
+        if requires_grad and solver_cache is not None:
+            # Store CSR structure for reconstructing sparse dA
+            A_indices = A.indices.copy()
+            A_indptr = A.indptr.copy()
+            A_shape = A.shape
+
+            def DT(dx, dy, ds):
+                """Backward differentiation wrapper matching diffcp's DT signature.
+
+                Parameters
+                ----------
+                dx : array
+                    Perturbation of primal variable x.
+                dy : array
+                    Perturbation of dual variable (moreau calls this z).
+                ds : array
+                    Perturbation of slack variable s.
+
+                Returns
+                -------
+                tuple (dA, db, dc)
+                    Gradients w.r.t. A, b, and c (objective vector).
+                """
+                grads = solver.backward(dx, dz=dy, ds=ds)
+
+                # Reconstruct full sparse dA from CSR values
+                dA = sp.csr_array(
+                    (grads['dA_values'], A_indices, A_indptr),
+                    shape=A_shape,
+                )
+
+                return dA, grads['db'], grads['dq']
+
+            solver_cache[s.DERIV_CACHE] = {
+                "DT": DT,
+                "s": solution.s,
+                "x": solution.x,
+                "y": solution.z,
+            }
 
         return MoreauSolution(solution, info)
 
