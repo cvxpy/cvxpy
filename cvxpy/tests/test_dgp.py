@@ -314,3 +314,10 @@ class TestDgp(BaseTest):
         prob.solve(gp=True)
         self.assertEqual(prob.status, cvxpy.OPTIMAL)
         np.testing.assert_allclose(x.value, 4.0, atol=1e-4)
+
+    def test_dgp_infeasible_no_crash(self) -> None:
+        """Infeasible DGP problem should not crash in invert()."""
+        x = cvxpy.Variable(pos=True)
+        prob = cvxpy.Problem(cvxpy.Minimize(x), [x >= 2, x <= 1])
+        prob.solve(solver=cvxpy.CLARABEL, gp=True)
+        self.assertIn(prob.status, [cvxpy.INFEASIBLE, cvxpy.INFEASIBLE_INACCURATE])
