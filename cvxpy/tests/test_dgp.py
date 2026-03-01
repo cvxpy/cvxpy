@@ -249,3 +249,40 @@ class TestDgp(BaseTest):
     def test_sparse_constant_not_allowed(self) -> None:
         sparse_matrix = cvxpy.Constant(sp.csc_array(np.array([[1.0, 2.0]])))
         self.assertFalse(sparse_matrix.is_log_log_constant())
+
+    def test_sparse_variable_not_dgp(self) -> None:
+        """Test that sparse/diag + pos/neg variables are rejected at construction."""
+        rows = np.array([0, 1, 2])
+        cols = np.array([0, 1, 2])
+
+        # pos + sparsity
+        with self.assertRaises(ValueError):
+            cvxpy.Variable((3, 3), sparsity=(rows, cols), pos=True)
+
+        # neg + sparsity
+        with self.assertRaises(ValueError):
+            cvxpy.Variable((3, 3), sparsity=(rows, cols), neg=True)
+
+        # pos + diag
+        with self.assertRaises(ValueError):
+            cvxpy.Variable(3, diag=True, pos=True)
+
+        # neg + diag
+        with self.assertRaises(ValueError):
+            cvxpy.Variable(3, diag=True, neg=True)
+
+    def test_pnorm_scalar(self) -> None:
+        """Regression test: scalar DGP pnorm must canonicalize x, not the exponent p."""
+        # pnorm of a single positive scalar equals that scalar,
+        # so the minimum subject to x >= lb must be lb.
+        x = cvxpy.Variable(pos=True)
+        prob = cvxpy.Problem(cvxpy.Minimize(cvxpy.pnorm(x, p=2)), [x >= 2.5])
+        prob.solve(gp=True)
+        self.assertEqual(prob.status, cvxpy.OPTIMAL)
+        np.testing.assert_allclose(x.value, 2.5, atol=1e-4)
+
+        x = cvxpy.Variable(pos=True)
+        prob = cvxpy.Problem(cvxpy.Minimize(cvxpy.pnorm(x, p=3)), [x >= 4.0])
+        prob.solve(gp=True)
+        self.assertEqual(prob.status, cvxpy.OPTIMAL)
+        np.testing.assert_allclose(x.value, 4.0, atol=1e-4)

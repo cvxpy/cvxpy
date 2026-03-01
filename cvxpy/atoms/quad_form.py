@@ -187,17 +187,17 @@ def decomp_quad(P, cond=None, rcond=None, lower=True, check_finite: bool = True)
     """
     Compute a matrix decomposition.
 
-    Compute sgn, scale, M such that P = sgn * scale * dot(M, M.T).
-    The strategy of determination of eigenvalue negligibility follows
-    the pinvh contributions from the scikit-learn project to scipy.
+    Compute scale, M1, M2 such that P = scale * (dot(M1, M1.T) - dot(M2, M2.T)).
+    Uses LDL decomposition for dense matrices, which is faster than
+    eigendecomposition while providing the same factorization structure.
 
     Parameters
     ----------
     P : matrix or ndarray
         A real symmetric positive or negative (semi)definite input matrix
     cond, rcond : float, optional
-        Cutoff for small eigenvalues.
-        Singular values smaller than rcond * largest_eigenvalue
+        Cutoff for small pivot values.
+        Pivot values smaller than rcond * largest_pivot
         are considered negligible.
         If None or -1, suitable machine precision is used (default).
     lower : bool, optional
@@ -212,7 +212,7 @@ def decomp_quad(P, cond=None, rcond=None, lower=True, check_finite: bool = True)
     Returns
     -------
     scale : float
-        induced matrix 2-norm of P
+        largest absolute pivot value from the LDL decomposition of P
     M1, M2 : 2d ndarray
         A rectangular ndarray such that P = scale * (dot(M1, M1.T) - dot(M2, M2.T))
 
@@ -224,30 +224,50 @@ def decomp_quad(P, cond=None, rcond=None, lower=True, check_finite: bool = True)
             if sign > 0:
                 return 1.0, L[p, :], np.empty((0, 0))
             else:
-                return 1.0, np.empty((0, 0)), L[:, p]
+                return 1.0, np.empty((0, 0)), L[p, :]
         except (ValueError, ModuleNotFoundError):
-            P = np.array(P.todense())  # make dense (needs to happen for eigh).
-    w, V = LA.eigh(P, lower=lower, check_finite=check_finite)
+            P = np.array(P.todense())  # make dense (needs to happen for ldl).
+    lu, d, _perm = LA.ldl(P, lower=lower, check_finite=check_finite)
+
+    # Extract effective diagonal values from D, handling any 2x2 blocks.
+    # For PSD/NSD matrices D is diagonal (no 2x2 blocks). For indefinite
+    # matrices, Bunch-Kaufman pivoting may introduce 2x2 blocks which we
+    # resolve by batching all 2x2 blocks into a single eigh call.
+    sub_diag = np.diag(d, -1)
+    block_starts = np.nonzero(sub_diag)[0]
+    diag_vals = np.real(np.diag(d)).copy()
+    if len(block_starts) > 0:
+        bs = block_starts
+        idx = bs[:, None] + np.arange(2)[None, :]  # (k, 2)
+        blocks = d[idx[:, :, None], idx[:, None, :]]  # (k, 2, 2)
+        eigvals, eigvecs = np.linalg.eigh(blocks)  # (k, 2), (k, 2, 2)
+        diag_vals[bs] = eigvals[:, 0]
+        diag_vals[bs + 1] = eigvals[:, 1]
+        # Apply eigenvector rotations to lu columns
+        lu_i = lu[:, bs].copy()
+        lu_ip1 = lu[:, bs + 1].copy()
+        lu[:, bs] = lu_i * eigvecs[:, 0, 0] + lu_ip1 * eigvecs[:, 1, 0]
+        lu[:, bs + 1] = lu_i * eigvecs[:, 0, 1] + lu_ip1 * eigvecs[:, 1, 1]
 
     if rcond is not None:
         cond = rcond
     if cond in (None, -1):
-        t = V.dtype.char.lower()
+        t = lu.dtype.char.lower()
         factor = {'f': 1e3, 'd': 1e6}
         cond = factor[t] * np.finfo(t).eps
 
-    scale = max(np.absolute(w))
+    scale = max(np.absolute(diag_vals))
     if scale == 0:
-        w_scaled = w
+        d_scaled = diag_vals
     else:
-        w_scaled = w / scale
-    maskp = w_scaled > cond
-    maskn = w_scaled < -cond
+        d_scaled = diag_vals / scale
+    maskp = d_scaled > cond
+    maskn = d_scaled < -cond
     # TODO: allow indefinite quad_form
     if np.any(maskp) and np.any(maskn):
         warn("Forming a nonconvex expression quad_form(x, indefinite).")
-    M1 = V[:, maskp] * np.sqrt(w_scaled[maskp])
-    M2 = V[:, maskn] * np.sqrt(-w_scaled[maskn])
+    M1 = lu[:, maskp] * np.sqrt(d_scaled[maskp])
+    M2 = lu[:, maskn] * np.sqrt(-d_scaled[maskn])
     return scale, M1, M2
 
 
