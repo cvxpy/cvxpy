@@ -747,3 +747,21 @@ class TestDqcp(base_test.BaseTest):
                   "Unable to find suitable interval for bisection)"
         ):
             problem.solve(qcp=True, solver=cp.SCS, max_iters=1)
+
+    def test_dist_ratio_dqcp(self) -> None:
+        """dist_ratio DQCP problem should give correct result."""
+        x = cp.Variable(2)
+        a = np.array([0.0, 0.0])
+        b = np.array([3.0, 0.0])
+        atom = cp.dist_ratio(x, a, b)
+        prob = cp.Problem(cp.Minimize(atom), [cp.norm(x) <= 2])
+        prob.solve(solver=SOLVER, qcp=True)
+        self.assertEqual(prob.status, s.OPTIMAL)
+        self.assertAlmostEqual(prob.value, 0.0, places=3)
+
+    def test_dqcp_power_infeasible(self) -> None:
+        """DQCP with power(ceil(x), 2) <= -5 should be infeasible."""
+        x = cp.Variable(nonneg=True)
+        problem = cp.Problem(cp.Minimize(0), [cp.power(cp.ceil(x), 2) <= -5])
+        problem.solve(SOLVER, qcp=True)
+        self.assertEqual(problem.status, s.INFEASIBLE)

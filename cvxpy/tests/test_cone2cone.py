@@ -912,3 +912,23 @@ class TestExactApproxCone2Cone(BaseTest):
         inverted = reduction.invert(mock_solution, inverse_data)
         self.assertIn(pow_con.id, inverted.dual_vars)
         self.assertEqual(inverted.dual_vars[pow_con.id], mock_dual_value)
+
+
+class TestSlacksInvert(BaseTest):
+
+    def test_slacks_invert_none_opt_val(self) -> None:
+        """Slacks.invert should not crash when opt_val is None."""
+        solution = Solution(s.SOLVER_ERROR, None, {}, {}, {})
+        inv_data = {'x_id': 0, s.OBJ_OFFSET: 5.0}
+        result = a2d.Slacks.invert(solution, inv_data)
+        self.assertIsNone(result.opt_val)
+
+    def test_pow_cone_nd_is_dcp(self) -> None:
+        """PowConeND.is_dcp() should check affinity of arguments."""
+        x = cp.Variable(2, nonneg=True)
+        z = cp.Variable()
+        alpha = np.array([0.5, 0.5])
+        constr = PowConeND(x, z, alpha)
+        self.assertTrue(constr.is_dcp())
+        self.assertTrue(constr.args[0].is_affine())
+        self.assertTrue(constr.args[1].is_affine())

@@ -619,3 +619,43 @@ class TestConstraints(BaseTest):
             cp.Variable((2,), bounds=[np.array([1, np.nan]), np.nan])
         with pytest.raises(ValueError, match="np.nan is not feasible as lower or upper bound."):
             cp.Variable((2,), bounds=[np.array([1, np.nan]), np.array([2, np.nan])])
+
+    def test_psd_residual_complex(self) -> None:
+        """PSD.residual should use .H (not .T) for complex Hermitian matrices."""
+        X = cp.Variable((2, 2), hermitian=True)
+        constr = X >> 0
+        # A Hermitian PSD matrix
+        X.value = np.array([[2, 1+1j], [1-1j, 2]])
+        self.assertAlmostEqual(constr.residual, 0.0)
+        # A non-PSD Hermitian matrix
+        X.value = np.array([[1, 3+1j], [3-1j, 1]])
+        self.assertTrue(constr.residual > 0)
+
+    def test_finite_set_residual_none(self) -> None:
+        """FiniteSet.residual should return None when variable has no value."""
+        from cvxpy.constraints.finite_set import FiniteSet
+        x = cp.Variable()
+        constr = FiniteSet(x, [1, 2, 3])
+        self.assertIsNone(constr.residual)
+
+    def test_dual_cone_no_args(self) -> None:
+        """_dual_cone() without args should work for PSD and SOC."""
+        from cvxpy.constraints.psd import PSD
+        # PSD
+        X = cp.Variable((2, 2), symmetric=True)
+        psd_constr = X >> 0
+        prob = cp.Problem(cp.Minimize(cp.trace(X)), [psd_constr, cp.trace(X) >= 1])
+        prob.solve(solver=cp.CLARABEL)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        dual_constr = psd_constr._dual_cone()
+        self.assertIsInstance(dual_constr, PSD)
+
+        # SOC
+        x = cp.Variable(3)
+        t = cp.Variable()
+        soc_constr = SOC(t, x)
+        prob = cp.Problem(cp.Minimize(t), [soc_constr, x == np.ones(3)])
+        prob.solve(solver=cp.CLARABEL)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        dual_constr = soc_constr._dual_cone()
+        self.assertIsInstance(dual_constr, SOC)
