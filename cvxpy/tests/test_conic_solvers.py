@@ -843,11 +843,12 @@ def is_mosek_available():
     if 'MOSEK' not in INSTALLED_SOLVERS:
         return False
     try:
-        import mosek  # type: ignore
-        env = mosek.Env()
-        # Try to get license status (returns 0 if OK)
-        status = env.getlicense()
-        return status == mosek.rescode.ok
+        # Verify license by solving a trivial LP; avoids MOSEK version-specific
+        # license API differences (e.g., getlicense() behaviour changed in MOSEK 11).
+        x = cp.Variable()
+        prob = cp.Problem(cp.Minimize(x), [x >= 0])
+        prob.solve(solver=cp.MOSEK, verbose=False)
+        return prob.status in (cp.OPTIMAL, cp.OPTIMAL_INACCURATE)
     except Exception:
         return False
 
@@ -1124,6 +1125,58 @@ class TestMosek(unittest.TestCase):
             prob.solve(solver=cp.MOSEK,
                        eps=1e-1,
                        mosek_params={mosek.dparam.intpnt_co_tol_dfeas: 1e-6})
+
+    def test_mosek_psd_variable(self) -> None:
+        """Test PSD variable via native barvar (no explicit PSD constraint)."""
+        n = 3
+        X = cp.Variable((n, n), PSD=True)
+        # min trace(X) s.t. X[i,i] >= 1
+        prob = cp.Problem(cp.Minimize(cp.trace(X)), [cp.diag(X) >= 1])
+        prob.solve(solver=cp.MOSEK)
+        assert prob.status == cp.OPTIMAL
+        np.testing.assert_allclose(prob.value, n, atol=1e-5)
+        # X should be diagonal with 1s on the diagonal (minimizes trace)
+        np.testing.assert_allclose(X.value, np.eye(n), atol=1e-5)
+
+    def test_mosek_psd_variable_dual(self) -> None:
+        """Test dual recovery for PSD variable problem."""
+        n = 2
+        X = cp.Variable((n, n), PSD=True)
+        c1 = cp.diag(X) >= 1
+        prob = cp.Problem(cp.Minimize(cp.trace(X)), [c1])
+        prob.solve(solver=cp.MOSEK)
+        assert prob.status == cp.OPTIMAL
+        # Dual should be non-trivial
+        assert c1.dual_value is not None
+        np.testing.assert_allclose(c1.dual_value, np.ones(n), atol=1e-5)
+
+    def test_mosek_psd_var_and_constraint(self) -> None:
+        """Test PSD variable + explicit PSD constraint coexist."""
+        n = 2
+        X = cp.Variable((n, n), PSD=True)
+        Y = cp.Variable((n, n), symmetric=True)
+        # Explicit PSD constraint on Y
+        prob = cp.Problem(
+            cp.Minimize(cp.trace(X) + cp.trace(Y)),
+            [cp.diag(X) >= 1, Y >> 0, cp.diag(Y) >= 2],
+        )
+        prob.solve(solver=cp.MOSEK)
+        assert prob.status == cp.OPTIMAL
+        np.testing.assert_allclose(prob.value, n + 2 * n, atol=1e-5)
+        np.testing.assert_allclose(X.value, np.eye(n), atol=1e-5)
+        np.testing.assert_allclose(Y.value, 2 * np.eye(n), atol=1e-5)
+
+    def test_mosek_nsd_variable(self) -> None:
+        """Test NSD variable works correctly."""
+        n = 2
+        X = cp.Variable((n, n), NSD=True)
+        # min trace(X) s.t. diag(X) >= -1
+        # X is NSD so X[i,i] <= 0; optimal is X = -I with trace = -n.
+        prob = cp.Problem(cp.Minimize(cp.trace(X)), [cp.diag(X) >= -1])
+        prob.solve(solver=cp.MOSEK)
+        assert prob.status == cp.OPTIMAL
+        np.testing.assert_allclose(prob.value, -n, atol=1e-5)
+        np.testing.assert_allclose(X.value, -np.eye(n), atol=1e-5)
 
 
 @unittest.skipUnless('CVXOPT' in INSTALLED_SOLVERS, 'CVXOPT is not installed.')

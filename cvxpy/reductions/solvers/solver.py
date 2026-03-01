@@ -64,6 +64,7 @@ class Solver(Reduction):
     # Solver capabilities.
     MIP_CAPABLE = False
     BOUNDED_VARIABLES = False
+    PSD_VARIABLES = False
     SOC_DIM3_ONLY = False
 
     # Constraint support (overridden by ConicSolver and QpSolver).
