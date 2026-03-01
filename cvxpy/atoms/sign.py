@@ -73,5 +73,5 @@ class sign(Atom):
         """
         return False
 
-    def _grad(self, values) -> None:
-        return None
+    def _grad(self, values):
+        return [None]
