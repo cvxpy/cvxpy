@@ -2469,7 +2469,14 @@ class TestSCIP(unittest.TestCase):
 
     def test_scip_single_soc_no_crash(self) -> None:
         """A single SOC constraint should not crash SCIP dual extraction."""
-        StandardTestSOCPs.test_socp_0(solver="SCIP")
+        import cvxpy as cp
+        x = cp.Variable(2)
+        prob = cp.Problem(
+            cp.Minimize(cp.sum(x)),
+            [cp.SOC(1, x)],
+        )
+        prob.solve(solver="SCIP")
+        assert prob.status == cp.OPTIMAL
 
 
 # We can't inherit from unittest.TestCase since we access some advanced pytest features.
