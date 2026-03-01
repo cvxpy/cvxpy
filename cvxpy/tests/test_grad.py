@@ -982,6 +982,17 @@ class TestSpecialCases:
         # access quad_form.expr.grad without error
         prob.constraints[1].expr.grad
 
+    def test_ceil_floor_grad(self):
+        """ceil and floor _grad should return a list of zero sparse matrices."""
+        x = cp.Variable(3)
+        x.value = np.array([1.5, 2.3, -0.7])
+
+        for atom in [cp.ceil(x), cp.floor(x)]:
+            grad = atom.grad
+            assert isinstance(grad, dict)
+            assert x in grad
+            np.testing.assert_array_equal(grad[x].toarray(), np.zeros((3, 3)))
+
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
