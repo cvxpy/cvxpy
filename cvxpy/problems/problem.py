@@ -433,10 +433,10 @@ class Problem(u.Canonical):
         list of :class:`~cvxpy.expressions.variable.Variable`
             A list of the variables in the problem.
         """
-        vars_ = self.objective.variables()
-        for constr in self.constraints:
-            vars_ += constr.variables()
-        return unique_list(vars_)
+        return unique_list(
+            v for source in [self.objective, *self.constraints]
+            for v in source.variables()
+        )
 
     @perf.compute_once
     def parameters(self):
@@ -447,10 +447,10 @@ class Problem(u.Canonical):
         list of :class:`~cvxpy.expressions.constants.parameter.Parameter`
             A list of the parameters in the problem.
         """
-        params = self.objective.parameters()
-        for constr in self.constraints:
-            params += constr.parameters()
-        return unique_list(params)
+        return unique_list(
+            p for source in [self.objective, *self.constraints]
+            for p in source.parameters()
+        )
 
     @perf.compute_once
     def constants(self) -> List[Constant]:
@@ -461,15 +461,16 @@ class Problem(u.Canonical):
         list of :class:`~cvxpy.expressions.constants.constant.Constant`
             A list of the constants in the problem.
         """
-        const_dict = {}
-        constants_ = self.objective.constants()
-        for constr in self.constraints:
-            constants_ += constr.constants()
         # Note that numpy matrices are not hashable, so we use the built-in
         # function "id"
-        const_dict = {id(constant): constant for constant in constants_}
+        const_dict = {
+            id(c): c
+            for source in [self.objective, *self.constraints]
+            for c in source.constants()
+        }
         return list(const_dict.values())
 
+    @perf.compute_once
     def atoms(self) -> List[Atom]:
         """Accessor method for atoms.
 
@@ -479,10 +480,10 @@ class Problem(u.Canonical):
             A list of the atom types in the problem; note that this list
             contains classes, not instances.
         """
-        atoms = self.objective.atoms()
-        for constr in self.constraints:
-            atoms += constr.atoms()
-        return unique_list(atoms)
+        return unique_list(
+            a for source in [self.objective, *self.constraints]
+            for a in source.atoms()
+        )
 
     @property
     def size_metrics(self) -> "SizeMetrics":

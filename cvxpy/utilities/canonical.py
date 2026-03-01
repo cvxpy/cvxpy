@@ -53,20 +53,21 @@ class Canonical(metaclass=abc.ABCMeta):
         """
         return self.canonicalize()
 
-    # TODO(akshayka): some code relies on these not being cached, figure out
-    # which code and fix it
+    @pu.compute_once
     def variables(self):
         """Returns all the variables present in the arguments.
         """
         return unique_list(
             [var for arg in self.args for var in arg.variables()])
 
+    @pu.compute_once
     def parameters(self):
         """Returns all the parameters present in the arguments.
         """
         return unique_list(
             [param for arg in self.args for param in arg.parameters()])
 
+    @pu.compute_once
     def constants(self):
         """Returns all the constants present in the arguments.
         """
@@ -160,6 +161,7 @@ class Canonical(metaclass=abc.ABCMeta):
         """
         return None
 
+    @pu.compute_once
     def atoms(self):
         """Returns all the atoms present in the args.
 
