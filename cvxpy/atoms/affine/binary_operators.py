@@ -344,17 +344,7 @@ class MulExpression(BinaryOperator):
 
 class multiply(MulExpression):
     """Multiplies two expressions elementwise."""
-    def is_hermitian(self) -> bool:
-        """Is the expression a Hermitian matrix?"""
-        arg1, arg2 = self.args
-        if arg1.is_scalar() and arg1.is_real() and arg2.is_hermitian():
-            return True
-        if arg2.is_scalar() and arg2.is_real() and arg1.is_hermitian():
-            return True
-        if arg1.is_hermitian() and arg2.is_hermitian():
-            return True
-        return False
-
+    
     OP_NAME = "*"
 
     def __init__(self, lh_expr, rh_expr) -> None:
@@ -422,6 +412,11 @@ class multiply(MulExpression):
         """
         return (self.args[0].is_psd() and self.args[1].is_nsd()) or \
                (self.args[0].is_nsd() and self.args[1].is_psd())
+
+    def is_hermitian(self) -> bool:
+        """Is the expression Hermitian?
+        """
+        return (self.args[0].is_hermitian() and self.args[1].is_hermitian())
 
     def _grad(self, values):
         """Gives the (sub/super)gradient of elementwise multiply.
