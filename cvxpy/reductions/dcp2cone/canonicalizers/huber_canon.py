@@ -24,19 +24,20 @@ from cvxpy.utilities.solver_context import SolverInfo
 
 def huber_canon(expr, args, solver_context: SolverInfo | None = None):
     M = expr.M
+    t = expr.t
     x = args[0]
     shape = expr.shape
     n = Variable(shape)
     s = Variable(shape)
 
-    # n**2 + 2*M*|s|
+    # t * (n**2 + 2*M*|s|)
     # TODO(akshayka): Make use of recursion inherent to canonicalization
     # process and just return a power / abs expressions for readability sake
     power_expr = power(n, 2)
     n2, constr_sq = power_approx_canon(power_expr, power_expr.args)
     abs_expr = abs(s)
     abs_s, constr_abs = abs_canon(abs_expr, abs_expr.args)
-    obj = n2 + 2 * M * abs_s
+    obj = t * (n2 + 2 * M * abs_s)
 
     # x == s + n
     constraints = constr_sq + constr_abs

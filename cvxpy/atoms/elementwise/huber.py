@@ -45,18 +45,36 @@ class huber(Elementwise):
         A scalar constant.
     """
 
-    def __init__(self, x, M: int = 1) -> None:
+    def __init__(self, x, M: int = 1, t: float = 1.0) -> None:
         self.M = self.cast_to_const(M)
+        self.t = self.cast_to_const(t) 
         super(huber, self).__init__(x)
 
     def parameters(self):
         """If M is a Parameter, include it in the list of Parameters"""
-        return super().parameters() + self.M.parameters()
+        return super().parameters() + self.M.parameters() + self.t.parameters()
 
     @Elementwise.numpy_numeric
     def numeric(self, values) -> float:
-        """Returns the huber function applied elementwise to x."""
-        return 2 * scipy.special.huber(self.M.value, values[0])
+        """Returns the scaled huber function applied elementwise to x.
+        
+        Computes: t * z * (2 * |x| - z) where z = min(|x|, M)
+        Returns Inf where t <= 0.
+        """
+        abs_x = np.abs(values[0])
+        z = np.minimum(abs_x, self.M.value)
+        result = self.t.value * z * (2 * abs_x - z)
+        
+        # Handle t <= 0: set to Inf
+        if np.isscalar(self.t.value):
+            if self.t.value <= 0:
+                result = np.full_like(result, np.inf)
+        else:
+            neg_mask = self.t.value <= 0
+            if np.any(neg_mask):
+                result = np.where(neg_mask, np.inf, result)
+        
+        return result
 
     def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression."""
@@ -89,7 +107,7 @@ class huber(Elementwise):
 
     def get_data(self):
         """Returns the parameter M."""
-        return [self.M]
+        return [self.M, self.t]
 
     def validate_arguments(self) -> None:
         """Checks that M >= 0 and is a constant or Parameter."""
