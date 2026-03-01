@@ -49,4 +49,4 @@ class imag(AffAtom):
     def is_symmetric(self) -> bool:
         """Is the expression symmetric?
         """
-        return self.args[0].is_hermitian()
+        return self.args[0].is_symmetric()
