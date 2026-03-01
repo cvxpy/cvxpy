@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import List, Optional, Tuple
+from typing import Tuple
 
 import numpy as np
 import scipy.sparse as sp
@@ -23,15 +23,47 @@ from numpy.lib.array_utils import normalize_axis_index, normalize_axis_tuple
 from cvxpy.atoms.atom import Atom
 
 
+def normalize_axis(
+    axis: int | tuple[int, ...], ndim: int, reduce_all_to_none: bool = True
+) -> None | int | tuple[int, ...]:
+    """Normalize an axis argument to a canonical form.
+
+    - Negative indices become positive.
+    - Single-element tuples become an int.
+    - If all axes are listed and *reduce_all_to_none* is True, returns None.
+    """
+    axes = normalize_axis_tuple(axis, ndim)
+    if reduce_all_to_none and len(axes) == ndim:
+        return None
+    elif len(axes) == 1:
+        return axes[0]
+    else:
+        return axes
+
+
 class AxisAtom(Atom):
     """
     An abstract base class for atoms that can be applied along an axis.
     """
 
-    def __init__(self, expr, axis: Optional[int] = None, keepdims: bool = False) -> None:
+    # Whether reducing over all axes is equivalent to axis=None.
+    # True for reduction atoms (sum, max, min, etc.).
+    # False for cumulative atoms (cumsum, cummax, cumprod) that preserve shape.
+    _reduce_all_axes_to_none = True
+
+    def __init__(
+        self, expr, axis: None | int | tuple[int, ...] = None, keepdims: bool = False
+    ) -> None:
         self.axis = axis
         self.keepdims = keepdims
         super(AxisAtom, self).__init__(expr)
+        # Normalize axis after init so self.args is available.
+        if self.axis is not None:
+            ndim = len(self.args[0].shape)
+            if ndim > 0:
+                self.axis = normalize_axis(
+                    self.axis, ndim, self._reduce_all_axes_to_none
+                )
 
     def shape_from_args(self) -> Tuple[int, ...]:
         """
@@ -75,12 +107,14 @@ class AxisAtom(Atom):
             _ = normalize_axis_tuple(axes, dim)
         super(AxisAtom, self).validate_arguments()
 
-    def _axis_grad(self, values) -> Optional[List[sp.csc_array]]:
+    def _axis_grad(self, values) -> list[sp.csc_array] | None:
         """
         Gives the (sub/super)gradient of the atom w.r.t. each argument.
 
         Matrix expressions are vectorized, so the gradient is a matrix.
-        Takes axis into account.
+        Takes axis into account. Works for any number of dimensions.
+
+        CVXPY convention: grad[i, j] = d(output_flat_F[j]) / d(input_flat_F[i])
 
         Args:
             values: A list of numeric values for the arguments.
@@ -93,33 +127,74 @@ class AxisAtom(Atom):
             D = self._column_grad(value)
             if D is not None:
                 D = sp.csc_array(D)
+            return [D]
+
+        input_shape = self.args[0].shape
+        ndim = len(input_shape)
+
+        # Normalize axis to tuple
+        axis = self.axis
+        axes = (axis,) if isinstance(axis, int) else tuple(axis)
+        keep = [i for i in range(ndim) if i not in axes]
+
+        reduce_dims = [input_shape[a] for a in axes]
+        reduce_size = int(np.prod(reduce_dims))
+        output_shape = tuple(input_shape[i] for i in keep)
+        input_size = int(np.prod(input_shape))
+        output_size = max(1, int(np.prod(output_shape)))
+
+        # F-order strides: stride[k] = prod(input_shape[:k])
+        f_strides = np.ones(ndim, dtype=int)
+        for k in range(1, ndim):
+            f_strides[k] = f_strides[k-1] * input_shape[k-1]
+
+        # Flat input in F-order
+        flat_input = values[0].ravel(order='F')
+
+        # All output multi-indices in F-order
+        if len(output_shape) == 0:
+            out_multis = np.zeros((0, 1), dtype=int)
         else:
-            m, n = self.args[0].shape
-            if self.axis == 0:  # function apply to each column
-                D = sp.csc_array((m*n, n), dtype=float)
-                for i in range(n):
-                    value = values[0][:, i]
-                    d = self._column_grad(value).T
-                    if d is None:
-                        return [None]
-                    else:
-                        d = np.array(d).flatten()
-                    row = np.linspace(i*m, i*m+m-1, m)  # [i*m, i*m+1, ..., i*m+m-1]
-                    col = np.ones((m))*i
-                    D = D + sp.csc_array((d, (row, col)),
-                                          shape=(m*n, n))  # d must be 1-D
-            else:  # function apply to each row
-                values = np.transpose(values[0])
-                D = sp.csc_array((m*n, m), dtype=float)
-                for i in range(m):
-                    value = values[:, i]
-                    d = self._column_grad(value).T
-                    if d is None:
-                        return [None]
-                    row = np.linspace(i, i+(n-1)*m, n)  # [0+i, m+i, ..., m(n-1)+i]
-                    col = np.ones((n))*i
-                    D = D + sp.csc_array((np.array(d)[0], (row, col)),
-                                          shape=(m*n, m))  # d must be 1-D
+            out_multis = np.array(
+                np.unravel_index(np.arange(output_size), output_shape, order='F')
+            )  # shape: (len(keep), output_size)
+
+        # All reduce-axis multi-indices
+        reduce_multis = np.array(
+            np.unravel_index(np.arange(reduce_size), reduce_dims)
+        ).T  # shape: (reduce_size, len(axes))
+
+        all_rows = []
+        all_cols = []
+        all_data = []
+
+        for j in range(output_size):
+            om = out_multis[:, j]
+
+            # Build input multi-indices: fix keep axes, vary reduce axes
+            in_multis = np.zeros((reduce_size, ndim), dtype=int)
+            for idx, k in enumerate(keep):
+                in_multis[:, k] = om[idx]
+            for idx, a in enumerate(axes):
+                in_multis[:, a] = reduce_multis[:, idx]
+
+            # Compute flat F-order indices for this fiber
+            fiber_indices = in_multis @ f_strides
+            fiber_values = flat_input[fiber_indices]
+
+            d = self._column_grad(fiber_values.reshape(-1, 1))
+            if d is None:
+                return [None]
+            d = np.asarray(d).flatten()
+
+            all_rows.append(fiber_indices)
+            all_cols.append(np.full(reduce_size, j, dtype=int))
+            all_data.append(d)
+
+        rows = np.concatenate(all_rows)
+        cols = np.concatenate(all_cols)
+        data = np.concatenate(all_data)
+        D = sp.csc_array((data, (rows, cols)), shape=(input_size, output_size))
         return [D]
 
     def _column_grad(self, value):

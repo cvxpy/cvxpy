@@ -25,6 +25,8 @@ class cummax(AxisAtom):
     """Cumulative maximum.
     """
 
+    _reduce_all_axes_to_none = False
+
     def __init__(self, x, axis: int = 0) -> None:
         super(cummax, self).__init__(x, axis=axis)
 

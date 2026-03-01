@@ -314,3 +314,49 @@ class TestDgp(BaseTest):
         prob.solve(gp=True)
         self.assertEqual(prob.status, cvxpy.OPTIMAL)
         np.testing.assert_allclose(x.value, 4.0, atol=1e-4)
+
+    def test_dgp_sum_3d_axis(self) -> None:
+        """Test DGP sum canonicalizer on 3D with 2+ keep dimensions.
+
+        Uses non-uniform weights on sum(x, axis=1) in the objective so
+        element ordering matters.  A reshape-order bug would transpose
+        the canonical expression, multiplying wrong weights with wrong
+        sums and producing a different objective value.
+        """
+        # x shape (2, 3, 4), reduce axis=1 → output shape (2, 4)
+        x = cvxpy.Variable((2, 3, 4), pos=True)
+        c = np.random.RandomState(42).uniform(0.5, 2.0, (2, 3, 4))
+        s = cvxpy.sum(x, axis=1)  # shape (2, 4)
+
+        # Non-uniform weights — transposition changes which weight
+        # multiplies which sum element, altering the optimal value.
+        w = np.array([[1, 2, 3, 4],
+                      [5, 6, 7, 8]], dtype=float)
+
+        # Minimize weighted sum; at optimum x == c (tight lower bound).
+        prob = cvxpy.Problem(cvxpy.Minimize(cvxpy.sum(cvxpy.multiply(w, s))),
+                             [x >= c])
+        prob.solve(gp=True)
+
+        expected_s = np.sum(c, axis=1)  # shape (2, 4)
+        expected_obj = float(np.sum(w * expected_s))
+        self.assertAlmostEqual(prob.value, expected_obj, places=2)
+
+    def test_dgp_pnorm_3d_axis(self) -> None:
+        """Test DGP pnorm canonicalizer on 3D with 2+ keep dimensions.
+
+        Constrains x == c so the pnorm result is deterministic, then
+        checks that the objective value matches the expected pnorm.
+        Because pnorm(x, axis=1) appears in the objective (not just
+        as a .value query), element ordering matters.
+        """
+        x = cvxpy.Variable((2, 3, 4), pos=True)
+        c = np.random.RandomState(43).uniform(0.5, 2.0, (2, 3, 4))
+
+        # axis=1, p=2: reduce middle axis, output shape (2, 4)
+        pn = cvxpy.pnorm(x, p=2, axis=1)
+        prob = cvxpy.Problem(cvxpy.Minimize(cvxpy.sum(pn)), [x == c])
+        prob.solve(gp=True)
+
+        expected = np.linalg.norm(c, ord=2, axis=1)  # shape (2, 4)
+        self.assertAlmostEqual(prob.value, float(np.sum(expected)), places=2)

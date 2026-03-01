@@ -19,22 +19,25 @@ from cvxpy.utilities.solver_context import SolverInfo
 
 
 def cummax_canon(expr, args, solver_context: SolverInfo | None = None):
-    """Cumulative max.
-    """
+    """Cumulative max."""
     X = args[0]
     axis = expr.axis
+    ndim = len(expr.shape)
+
+    if expr.shape[axis] == 1:
+        return X, []
+
     # Implicit O(n) definition:
     # Y_{k} = maximum(Y_{k-1}, X_k)
     Y = Variable(expr.shape)
     constr = [X <= Y]
-    if axis == 0:
-        if expr.shape[0] == 1:
-            return X, []
-        else:
-            constr += [Y[:-1] <= Y[1:]]
-    else:
-        if expr.shape[1] == 1:
-            return X, []
-        else:
-            constr += [Y[:, :-1] <= Y[:, 1:]]
+
+    # Build slices for "all but last" and "all but first" along axis
+    slice_prev = tuple(
+        slice(None, -1) if i == axis else slice(None) for i in range(ndim)
+    )
+    slice_next = tuple(
+        slice(1, None) if i == axis else slice(None) for i in range(ndim)
+    )
+    constr += [Y[slice_prev] <= Y[slice_next]]
     return Y, constr

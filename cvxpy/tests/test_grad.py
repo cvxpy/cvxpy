@@ -556,12 +556,12 @@ SINGLE_VAR_ATOM_CONFIGS = [
     AtomTestConfig("max_axis0", lambda x: cp.max(x, axis=0), [(2, 3)],
                    "unrestricted"),
     AtomTestConfig("max_3d_axis1", lambda x: cp.max(x, axis=1), [(2, 3, 4)],
-                   "unrestricted", skip_reason="_axis_grad doesn't support 3D"),
+                   "unrestricted"),
     AtomTestConfig("min", lambda x: cp.min(x), [(5,), (2, 3, 4)], "unrestricted"),
     AtomTestConfig("min_axis0", lambda x: cp.min(x, axis=0), [(2, 3)],
                    "unrestricted"),
     AtomTestConfig("min_3d_axis2", lambda x: cp.min(x, axis=2), [(2, 3, 4)],
-                   "unrestricted", skip_reason="_axis_grad doesn't support 3D"),
+                   "unrestricted"),
     AtomTestConfig("geo_mean", lambda x: cp.geo_mean(x), [(3,)], "positive"),
     AtomTestConfig("harmonic_mean", lambda x: cp.harmonic_mean(x), [(3,)],
                    "positive"),
@@ -572,7 +572,7 @@ SINGLE_VAR_ATOM_CONFIGS = [
                    "unrestricted"),
     AtomTestConfig("log_sum_exp_3d_axis1",
                    lambda x: cp.log_sum_exp(x, axis=1), [(2, 3, 4)],
-                   "unrestricted", skip_reason="_axis_grad doesn't support 3D"),
+                   "unrestricted"),
     AtomTestConfig("prod", lambda x: cp.prod(x), [(3,)], "unrestricted"),
 
     # === Affine atoms ===

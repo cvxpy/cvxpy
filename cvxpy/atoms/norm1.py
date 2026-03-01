@@ -72,6 +72,11 @@ class norm1(AxisAtom):
         return self.args[0].is_pwl() and \
             (self.args[0].is_real() or self.args[0].is_imag())
 
+    def validate_arguments(self) -> None:
+        super(norm1, self).validate_arguments()
+        if isinstance(self.axis, tuple):
+            raise ValueError("The axis parameter of norm1 must be an int or None.")
+
     def get_data(self):
         return [self.axis]
 
