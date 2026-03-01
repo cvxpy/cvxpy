@@ -61,8 +61,8 @@ class Complex2Real(Reduction):
         # Set in apply() to enable DPP for complex parameters.
         self.canon_methods = None
 
-    def accepts(self, problem) -> None:
-        accepts(problem)
+    def accepts(self, problem) -> bool:
+        return accepts(problem)
 
     def update_parameters(self, problem) -> None:
         """Update real/imag parameter values from complex parameters.

@@ -2467,6 +2467,10 @@ class TestSCIP(unittest.TestCase):
     def test_scip_lp_bound_attr(self) -> None:
         StandardTestLPs.test_lp_bound_attr(solver='SCIP', duals=False)
 
+    def test_scip_single_soc_no_crash(self) -> None:
+        """A single SOC constraint should not crash SCIP dual extraction."""
+        StandardTestSOCPs.test_socp_0(solver="SCIP")
+
 
 # We can't inherit from unittest.TestCase since we access some advanced pytest features.
 # As a result, we use the pytest skipif decorator instead of unittest.skipUnless.
