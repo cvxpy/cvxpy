@@ -290,3 +290,23 @@ class TestQuadFormDPPVariants:
         P2.value = np.array([[0, 0], [0, 2]])
         prob.solve(solver=cp.CLARABEL)
         assert np.allclose(x.value, [2/3, 1/3], rtol=1e-3)
+
+
+def test_hermitian_param_resolve() -> None:
+    """Test quad_form DPP re-solve with complex hermitian P."""
+    x = cp.Variable(2, complex=True)
+    P = cp.Parameter((2, 2), PSD=True, complex=True)
+    constrs = [cp.real(x[0]) >= 1, cp.real(x[1]) >= 1]
+    prob = cp.Problem(cp.Minimize(cp.quad_form(x, P)), constrs)
+
+    P.value = np.array([[2, 1 + 1j], [1 - 1j, 3]])
+    prob.solve(solver=cp.CLARABEL)
+    x1 = x.value.copy()
+
+    P.value = np.array([[4, 1 + 2j], [1 - 2j, 5]])
+    prob.solve(solver=cp.CLARABEL)
+    x2 = x.value.copy()
+
+    assert not np.allclose(x1, x2, atol=1e-3)
+    prob.solve(solver=cp.CLARABEL, use_quad_obj=False)
+    assert np.allclose(x2, x.value, rtol=1e-3)
