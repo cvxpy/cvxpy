@@ -318,7 +318,7 @@ class SCIP(ConicSolver):
                 )
 
         is_mip = data[s.BOOL_IDX] or data[s.INT_IDX]
-        has_soc_constr = len(dims[s.SOC_DIM]) > 0
+        has_soc_constr = len(dims[s.SOC_DIM]) > 1
         if not (is_mip or has_soc_constr):
             # These settings are needed  to allow the dual to be calculated
             model.setPresolve(SCIP_PARAMSETTING.OFF)
@@ -361,7 +361,7 @@ class SCIP(ConicSolver):
                 solution["value"] = model.getObjVal()
 
             is_mip = data[s.BOOL_IDX] or data[s.INT_IDX]
-            has_soc_constr = len(dims[s.SOC_DIM]) > 0
+            has_soc_constr = len(dims[s.SOC_DIM]) > 1
             if not (is_mip or has_soc_constr):
                 # Not the following code calculating the dual values does not
                 # always return the correct values, see tests `test_scip_lp_2`

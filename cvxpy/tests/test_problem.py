@@ -38,6 +38,8 @@ from cvxpy.error import DCPError, ParameterError, SolverError
 from cvxpy.expressions.constants import Constant, Parameter
 from cvxpy.expressions.variable import Variable
 from cvxpy.problems.problem import Problem
+from cvxpy.reductions import Dcp2Cone
+from cvxpy.reductions.solution import Solution
 from cvxpy.reductions.solvers.conic_solvers import scs_conif
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.defines import (
@@ -2328,8 +2330,6 @@ class TestProblem(BaseTest):
 
     def test_canonicalization_invert_none_duals(self) -> None:
         """Canonicalization.invert should handle None dual_vars."""
-        from cvxpy.reductions import Dcp2Cone, Solution
-
         x = cp.Variable(2)
         prob = cp.Problem(cp.Minimize(cp.sum(x)), [x >= 1])
         reduction = Dcp2Cone()
