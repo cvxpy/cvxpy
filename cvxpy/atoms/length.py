@@ -35,7 +35,10 @@ class length(Atom):
         """Returns the length of x.
         """
         outside_tol = np.abs(values[0]) > s.ATOM_EVAL_TOL
-        return np.max(np.nonzero(outside_tol)) + 1
+        nz = np.nonzero(outside_tol)
+        if nz[0].size == 0:
+            return 0
+        return np.max(nz) + 1
 
     def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the (row, col) shape of the expression.
