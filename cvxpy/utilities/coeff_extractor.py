@@ -26,10 +26,7 @@ from cvxpy.cvxcore.python import canonInterface
 from cvxpy.lin_ops.canon_backend import TensorRepresentation
 from cvxpy.lin_ops.lin_op import NO_OP, LinOp
 from cvxpy.reductions.inverse_data import InverseData
-from cvxpy.utilities.replace_quad_forms import (
-    replace_quad_forms,
-    restore_quad_forms,
-)
+from cvxpy.utilities.replace_quad_forms import replace_quad_forms
 
 
 # TODO find best format for sparse matrices: csr, csc, dok, lil, ...
@@ -125,13 +122,13 @@ class CoeffExtractor:
             if var.id in quad_forms:
                 # This was a dummy variable
                 var_id = var.id
-                orig_id = quad_forms[var_id][2].args[0].id
+                quad_form_atom = quad_forms[var_id]
+                orig_id = quad_form_atom.args[0].id
                 var_offset = affine_id_map[var_id][0]
                 var_size = affine_id_map[var_id][1]
                 c_part = c[var_offset:var_offset+var_size, :]
 
                 # Convert to sparse matrix.
-                quad_form_atom = quad_forms[var_id][2]
                 P = quad_form_atom.P
                 assert (
                     P.value is not None
@@ -289,14 +286,13 @@ class CoeffExtractor:
         root = LinOp(NO_OP, expr.shape, [expr], [])
 
         # Replace quadratic forms with dummy variables.
-        quad_forms = replace_quad_forms(root, {})
+        # This returns a new tree; the original is not modified.
+        new_root, quad_forms = replace_quad_forms(root, {})
 
         # Calculate affine parts and combine them with quadratic forms to get
         # the coefficients.
-        coeffs, constant = self.extract_quadratic_coeffs(root.args[0],
+        coeffs, constant = self.extract_quadratic_coeffs(new_root.args[0],
                                                          quad_forms)
-        # Restore expression.
-        restore_quad_forms(root.args[0], quad_forms)
 
         # Sort variables corresponding to their starting indices, in ascending
         # order.

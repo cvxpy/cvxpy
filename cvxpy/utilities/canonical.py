@@ -53,9 +53,7 @@ class Canonical(metaclass=abc.ABCMeta):
         """
         return self.canonicalize()
 
-    # NOTE: variables() is intentionally NOT cached. replace_quad_forms()
-    # mutates expr.args in-place, and extract_quadratic_coeffs() then calls
-    # variables() on the modified tree to discover the dummy variables.
+    @pu.compute_once
     def variables(self):
         """Returns all the variables present in the arguments.
         """
