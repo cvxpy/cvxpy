@@ -765,3 +765,11 @@ class TestDqcp(base_test.BaseTest):
         problem = cp.Problem(cp.Minimize(0), [cp.power(cp.ceil(x), 2) <= -5])
         problem.solve(SOLVER, qcp=True)
         self.assertEqual(problem.status, s.INFEASIBLE)
+
+    def test_bisection_low_zero(self) -> None:
+        """Bisection with low=0 should not infinite-loop."""
+        x = cp.Variable()
+        problem = cp.Problem(cp.Minimize(cp.ceil(x)), [x >= 15, x <= 17])
+        problem.solve(SOLVER, qcp=True, low=0, high=100)
+        self.assertEqual(problem.status, s.OPTIMAL)
+        self.assertAlmostEqual(problem.value, 15.0, places=3)
