@@ -15,16 +15,15 @@ limitations under the License.
 """
 from functools import reduce
 from operator import mul
-from typing import List, Tuple
 
 import numpy as np
 
 
-def squeezed(shape: Tuple[int, ...]) -> Tuple[int, ...]:
+def squeezed(shape: tuple[int, ...]) -> tuple[int, ...]:
     return tuple(dim for dim in shape if dim != 1)
 
 
-def sum_shapes(shapes: List[Tuple[int, ...]]) -> Tuple[int, ...]:
+def sum_shapes(shapes: list[tuple[int, ...]]) -> tuple[int, ...]:
     """
     Give the shape resulting from summing a list of shapes.
 
@@ -50,8 +49,8 @@ def sum_shapes(shapes: List[Tuple[int, ...]]) -> Tuple[int, ...]:
 
 
 def mul_shapes_promote(
-    lh_shape: Tuple[int, ...], rh_shape: Tuple[int, ...]
-) -> Tuple[Tuple[int, ...], Tuple[int, ...], Tuple[int, ...]]:
+    lh_shape: tuple[int, ...], rh_shape: tuple[int, ...]
+) -> tuple[tuple[int, ...], tuple[int, ...], tuple[int, ...]]:
     """
     Promotes shapes as necessary and returns promoted shape of product.
 
@@ -102,7 +101,7 @@ def mul_shapes_promote(
     return (lh_shape, rh_shape, shape)
 
 
-def mul_shapes(lh_shape: Tuple[int, ...], rh_shape: Tuple[int, ...]) -> Tuple[int, ...]:
+def mul_shapes(lh_shape: tuple[int, ...], rh_shape: tuple[int, ...]) -> tuple[int, ...]:
     """
     Give the shape resulting from multiplying two shapes.
 

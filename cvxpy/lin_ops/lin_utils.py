@@ -16,7 +16,6 @@ limitations under the License.
 THIS FILE IS DEPRECATED AND MAY BE REMOVED WITHOUT WARNING!
 DO NOT CALL THESE FUNCTIONS IN YOUR CODE!
 """
-from typing import Optional, Tuple
 
 import numpy as np
 
@@ -56,7 +55,7 @@ def get_id() -> int:
     return new_id
 
 
-def create_var(shape: Tuple[int, ...], var_id=None):
+def create_var(shape: tuple[int, ...], var_id=None):
     """Creates a new internal variable.
 
     Parameters
@@ -76,7 +75,7 @@ def create_var(shape: Tuple[int, ...], var_id=None):
     return lo.LinOp(lo.VARIABLE, shape, [], var_id)
 
 
-def create_param(shape: Tuple[int, ...], param_id=None):
+def create_param(shape: tuple[int, ...], param_id=None):
     """Wraps a parameter.
 
     Parameters
@@ -94,7 +93,7 @@ def create_param(shape: Tuple[int, ...], param_id=None):
     return lo.LinOp(lo.PARAM, shape, [], param_id)
 
 
-def create_const(value, shape: Tuple[int, ...], sparse: bool = False):
+def create_const(value, shape: tuple[int, ...], sparse: bool = False):
     """Wraps a constant.
 
     Parameters
@@ -235,7 +234,7 @@ def promote_lin_ops_for_mul(lh_op, rh_op):
     return lh_op, rh_op, shape
 
 
-def mul_expr(lh_op, rh_op, shape: Tuple[int, ...]):
+def mul_expr(lh_op, rh_op, shape: tuple[int, ...]):
     """Multiply two linear operators, with the constant on the left.
 
     Parameters
@@ -253,7 +252,7 @@ def mul_expr(lh_op, rh_op, shape: Tuple[int, ...]):
     return lo.LinOp(lo.MUL, shape, [rh_op], lh_op)
 
 
-def rmul_expr(lh_op, rh_op, shape: Tuple[int, ...]):
+def rmul_expr(lh_op, rh_op, shape: tuple[int, ...]):
     """Multiply two linear operators, with the constant on the right.
 
     Parameters
@@ -292,7 +291,7 @@ def multiply(lh_op, rh_op):
     return lo.LinOp(lo.MUL_ELEM, shape, [rh_op], lh_op)
 
 
-def kron_r(lh_op, rh_op, shape: Tuple[int, ...]):
+def kron_r(lh_op, rh_op, shape: tuple[int, ...]):
     """Kronecker product of two matrices, where the right operand is a Variable
 
     Parameters
@@ -310,7 +309,7 @@ def kron_r(lh_op, rh_op, shape: Tuple[int, ...]):
     return lo.LinOp(lo.KRON_R, shape, [rh_op], lh_op)
 
 
-def kron_l(lh_op, rh_op, shape: Tuple[int, ...]):
+def kron_l(lh_op, rh_op, shape: tuple[int, ...]):
     """Kronecker product of two matrices, where the left operand is a Variable
 
     Parameters
@@ -350,7 +349,7 @@ def div_expr(lh_op, rh_op):
     return lo.LinOp(lo.DIV, lh_op.shape, [lh_op], rh_op)
 
 
-def promote(operator, shape: Tuple[int, ...]):
+def promote(operator, shape: tuple[int, ...]):
     """Promotes a scalar operator to the given shape.
 
     Parameters
@@ -368,13 +367,13 @@ def promote(operator, shape: Tuple[int, ...]):
     return lo.LinOp(lo.PROMOTE, shape, [operator], None)
 
 
-def broadcast_to(operators, shape: Tuple[int, ...]):
+def broadcast_to(operators, shape: tuple[int, ...]):
     """Broadcasts operators to a common shape.
     """
     return lo.LinOp(lo.BROADCAST_TO, shape, operators, [])
 
 
-def sum_entries(operator, shape: Tuple[int, ...], axis=None, keepdims=None):
+def sum_entries(operator, shape: tuple[int, ...], axis=None, keepdims=None):
     """Sum the entries of an operator.
 
     Parameters
@@ -408,7 +407,7 @@ def trace(operator):
     return lo.LinOp(lo.TRACE, (1, 1), [operator], None)
 
 
-def index(operator, shape: Tuple[int, ...], keys):
+def index(operator, shape: tuple[int, ...], keys):
     """Indexes/slices an operator.
 
     Parameters
@@ -428,7 +427,7 @@ def index(operator, shape: Tuple[int, ...], keys):
     return lo.LinOp(lo.INDEX, shape, [operator], keys)
 
 
-def conv(lh_op, rh_op, shape: Tuple[int, ...]):
+def conv(lh_op, rh_op, shape: tuple[int, ...]):
     """1D discrete convolution of two vectors.
 
     Parameters
@@ -475,7 +474,7 @@ def transpose(operator, axes=None):
         return lo.LinOp(lo.TRANSPOSE, shape, [operator], data=[axes])
 
 
-def reshape(operator, shape: Tuple[int, ...]):
+def reshape(operator, shape: tuple[int, ...]):
     """Reshapes an operator.
 
     Parameters
@@ -550,7 +549,7 @@ def upper_tri(operator):
     return lo.LinOp(lo.UPPER_TRI, shape, [operator], None)
 
 
-def hstack(operators, shape: Tuple[int, ...]):
+def hstack(operators, shape: tuple[int, ...]):
     """Concatenates operators horizontally.
 
     Parameters
@@ -568,7 +567,7 @@ def hstack(operators, shape: Tuple[int, ...]):
     return lo.LinOp(lo.HSTACK, shape, operators, None)
 
 
-def vstack(operators, shape: Tuple[int, ...]):
+def vstack(operators, shape: tuple[int, ...]):
     """Concatenates operators vertically.
 
     Parameters
@@ -585,7 +584,7 @@ def vstack(operators, shape: Tuple[int, ...]):
     """
     return lo.LinOp(lo.VSTACK, shape, operators, None)
 
-def concatenate(operators, shape: Tuple[int, ...], axis: Optional[int] = 0):
+def concatenate(operators, shape: tuple[int, ...], axis: int | None = 0):
     """Concatenate operators on axis.
 
     Parameters

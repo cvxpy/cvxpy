@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import List, Tuple
 
 import numpy as np
 
@@ -35,7 +34,7 @@ class indicator(Expression):
        A numeric tolerance for determining whether the constraints hold.
     """
 
-    def __init__(self, constraints: List[Constraint], err_tol: float = 1e-3) -> None:
+    def __init__(self, constraints: list[Constraint], err_tol: float = 1e-3) -> None:
         self.args = constraints
         self.err_tol = err_tol
         super(indicator, self).__init__()
@@ -83,18 +82,18 @@ class indicator(Expression):
         """
         return False
 
-    def get_data(self) -> List[float]:
+    def get_data(self) -> list[float]:
         """Returns info needed to reconstruct the expression besides the args.
         """
         return [self.err_tol]
 
     @property
-    def shape(self) -> Tuple[int, ...]:
+    def shape(self) -> tuple[int, ...]:
         """Returns the (row, col) dimensions of the expression.
         """
         return ()
 
-    def get_bounds(self) -> Tuple[np.ndarray, np.ndarray]:
+    def get_bounds(self) -> tuple[np.ndarray, np.ndarray]:
         """Returns the bounds on the expression.
 
         Indicator is 0 if constraints hold, +inf otherwise.
@@ -111,7 +110,7 @@ class indicator(Expression):
         """
         return f"Indicator({self.args})"
 
-    def domain(self) -> List[Constraint]:
+    def domain(self) -> list[Constraint]:
         """A list of constraints describing the closure of the region
            where the expression is finite.
         """

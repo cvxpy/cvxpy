@@ -14,7 +14,7 @@ limitations under the License.
 """
 
 from functools import reduce
-from typing import Any, List, Tuple
+from typing import Any
 
 import numpy as np
 
@@ -37,14 +37,14 @@ class minimum(Elementwise):
         """
         return reduce(np.minimum, values)
 
-    def sign_from_args(self) -> Tuple[bool, bool]:
+    def sign_from_args(self) -> tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         is_pos = all(arg.is_nonneg() for arg in self.args)
         is_neg = any(arg.is_nonpos() for arg in self.args)
         return (is_pos, is_neg)
 
-    def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
+    def bounds_from_args(self) -> tuple[np.ndarray, np.ndarray]:
         """Returns bounds for elementwise minimum based on argument bounds."""
         bounds_list = [arg.get_bounds() for arg in self.args]
         return bounds_utils.minimum_bounds(bounds_list)
@@ -84,7 +84,7 @@ class minimum(Elementwise):
         """
         return all(arg.is_pwl() for arg in self.args)
 
-    def _grad(self, values) -> List[Any]:
+    def _grad(self, values) -> list[Any]:
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.
 
         Matrix expressions are vectorized, so the gradient is a matrix.

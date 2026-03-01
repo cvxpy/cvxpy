@@ -1,4 +1,3 @@
-from typing import Tuple
 
 import numpy as np
 import scipy.sparse as sp
@@ -24,7 +23,7 @@ class SuppFuncAtom(Atom):
         self.args = [Atom.cast_to_const(y)]
         self._parent = parent
         self._eta = None  # store for debugging purposes
-        self._shape: Tuple[int, ...] = tuple()
+        self._shape: tuple[int, ...] = tuple()
         self.validate_arguments()
 
     def validate_arguments(self) -> None:
@@ -43,10 +42,10 @@ class SuppFuncAtom(Atom):
     def constants(self):
         return []
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> tuple[int, ...]:
         return self._shape
 
-    def sign_from_args(self) -> Tuple[bool, bool]:
+    def sign_from_args(self) -> tuple[bool, bool]:
         return (False, False)
 
     def is_nonneg(self) -> bool:

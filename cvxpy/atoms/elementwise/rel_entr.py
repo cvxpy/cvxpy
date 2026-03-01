@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import List, Optional, Tuple
 
 import numpy as np
 from scipy.sparse import csc_array
@@ -38,7 +37,7 @@ class rel_entr(Elementwise):
         y = values[1]
         return rel_entr_scipy(x, y)
 
-    def sign_from_args(self) -> Tuple[bool, bool]:
+    def sign_from_args(self) -> tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         return (False, False)
@@ -66,7 +65,7 @@ class rel_entr(Elementwise):
         else:
             return True
 
-    def _grad(self, values) -> List[Optional[csc_array]]:
+    def _grad(self, values) -> list[csc_array | None]:
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.
 
         Matrix expressions are vectorized, so the gradient is a matrix.

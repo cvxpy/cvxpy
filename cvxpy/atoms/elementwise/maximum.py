@@ -15,7 +15,7 @@ limitations under the License.
 """
 
 from functools import reduce
-from typing import Any, List, Tuple
+from typing import Any
 
 import numpy as np
 
@@ -38,7 +38,7 @@ class maximum(Elementwise):
         """
         return reduce(np.maximum, values)
 
-    def sign_from_args(self) -> Tuple[bool, bool]:
+    def sign_from_args(self) -> tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         # Reduces the list of argument signs according to the following rules:
@@ -52,7 +52,7 @@ class maximum(Elementwise):
         is_neg = all(arg.is_nonpos() for arg in self.args)
         return (is_pos, is_neg)
 
-    def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
+    def bounds_from_args(self) -> tuple[np.ndarray, np.ndarray]:
         """Returns bounds for elementwise maximum based on argument bounds."""
         bounds_list = [arg.get_bounds() for arg in self.args]
         return bounds_utils.maximum_bounds(bounds_list)
@@ -92,7 +92,7 @@ class maximum(Elementwise):
         """
         return all(arg.is_pwl() for arg in self.args)
 
-    def _grad(self, values) -> List[Any]:
+    def _grad(self, values) -> list[Any]:
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.
 
         Matrix expressions are vectorized, so the gradient is a matrix.

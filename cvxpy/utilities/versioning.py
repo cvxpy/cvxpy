@@ -13,7 +13,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import Tuple, Union
 
 
 class Version:
@@ -24,7 +23,7 @@ class Version:
     We don't actually store the local version identifier for comparisons.
     """
 
-    def __init__(self, v: Union[str, Tuple[int, int, int]]):
+    def __init__(self, v: str | tuple[int, int, int]):
         if isinstance(v, str):
             v = v.split('rc')[0].split('.')
             assert len(v) >= 3  # anything after the third place doesn't matter

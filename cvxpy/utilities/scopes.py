@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import contextlib
-from typing import Generator
+from collections.abc import Generator
 
 _dpp_scope_active = False
 

@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import List, Optional, Tuple
 
 import numpy as np
 import scipy.sparse as sp
@@ -203,7 +202,7 @@ class GeoMean(Atom):
         :math:`\\|p/\\mathbf{1}^T p - w \\|_\\infty`
     """
 
-    def __init__(self, x, p: Optional[List[int]] = None,
+    def __init__(self, x, p: list[int] | None = None,
                  max_denom: int = 1024) -> None:
         Expression = cvxtypes.expression()
         if p is not None and isinstance(p, Expression):
@@ -249,7 +248,7 @@ class GeoMean(Atom):
             val *= x**float(p)
         return val
 
-    def _domain(self) -> List[Constraint]:
+    def _domain(self) -> list[Constraint]:
         """Returns constraints describing the domain of the node.
         """
         # No special case when only one non-zero weight.
@@ -288,12 +287,12 @@ class GeoMean(Atom):
         return f"{type(self).__name__}({self.args[0].format_labeled()}, ({weights}))"
 
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> tuple[int, ...]:
         """Returns the (row, col) shape of the expression.
         """
         return tuple()
 
-    def sign_from_args(self) -> Tuple[bool, bool]:
+    def sign_from_args(self) -> tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         # Always positive.
@@ -394,7 +393,7 @@ class GeoMeanApprox(GeoMean):
 
     """
 
-    def __init__(self, x, p: Optional[List[int]] = None,
+    def __init__(self, x, p: list[int] | None = None,
                  max_denom: int = 1024) -> None:
         super().__init__(x, p=p, max_denom=max_denom)
 

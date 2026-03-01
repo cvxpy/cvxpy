@@ -17,6 +17,9 @@ select = [
     "F",
     "I",
     "NPY201",
+    "UP006",  # Use builtin types (list, dict, tuple, set, frozenset, type) instead of typing
+    "UP007",  # Use X | Y for union types instead of Union/Optional
+    "UP035",  # Use collections.abc / builtins instead of deprecated typing imports
     "W605",  # Check for invalid escape sequences in docstrings (errors in py >= 3.11)
 ]
 
@@ -24,6 +27,34 @@ ignore = [
     "E721" # Do not compare types, use 'isinstance()'
 ]
 
+[tool.pyright]
+pythonVersion = "3.11"
+typeCheckingMode = "basic"
+include = ["cvxpy"]
+exclude = ["cvxpy/tests", "cvxpy/cvxcore"]
+
+# Optional solver dependencies are not installed in CI.
+reportMissingImports = false
+reportMissingModuleSource = false
+
+# Existing violations to be fixed incrementally (error counts as of 2026-02-27):
+reportArgumentType = false          # 250 errors
+reportAttributeAccessIssue = false  # 186 errors
+reportReturnType = false            # 79 errors
+reportOptionalSubscript = false     # 54 errors
+reportCallIssue = false             # 49 errors
+reportOptionalMemberAccess = false  # 36 errors
+reportGeneralTypeIssues = false     # 33 errors
+reportAssignmentType = false        # 31 errors
+reportInvalidTypeForm = false       # 28 errors
+reportIndexIssue = false            # 25 errors
+reportOptionalOperand = false       # 21 errors
+reportOperatorIssue = false         # 21 errors
+reportUnusedExpression = false      # 10 (intentional import-check pattern in solvers)
+reportUndefinedVariable = false     # 3 errors (mosek optional type forward refs)
+reportOptionalIterable = false      # 2 errors
+reportOptionalCall = false          # 1 error
+reportInvalidTypeArguments = false  # 1 error
 
 [tool.pytest.ini_options]
 testpaths = [

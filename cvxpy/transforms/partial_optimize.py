@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import List, Optional, Tuple
 
 import numpy as np
 
@@ -30,8 +29,8 @@ from cvxpy.problems.problem import Problem
 
 def partial_optimize(
     prob: Problem,
-    opt_vars: Optional[List[Variable]] = None,
-    dont_opt_vars: Optional[List[Variable]] = None,
+    opt_vars: list[Variable] | None = None,
+    dont_opt_vars: list[Variable] | None = None,
     solver=None,
     **kwargs
 ) -> "PartialProblem":
@@ -115,8 +114,8 @@ class PartialProblem(Expression):
     """
 
     def __init__(
-            self, prob: Problem, opt_vars: List[Variable],
-            dont_opt_vars: List[Variable], solver, **kwargs) -> None:
+            self, prob: Problem, opt_vars: list[Variable],
+            dont_opt_vars: list[Variable], solver, **kwargs) -> None:
         self.opt_vars = opt_vars
         self.dont_opt_vars = dont_opt_vars
         self.solver = solver
@@ -185,12 +184,12 @@ class PartialProblem(Expression):
         return False
 
     @property
-    def shape(self) -> Tuple[int, ...]:
+    def shape(self) -> tuple[int, ...]:
         """Returns the (row, col) dimensions of the expression.
         """
         return tuple()
 
-    def get_bounds(self) -> Tuple[np.ndarray, np.ndarray]:
+    def get_bounds(self) -> tuple[np.ndarray, np.ndarray]:
         """Returns the bounds on the expression.
 
         For PartialProblem, we return unbounded since computing tight bounds
@@ -203,7 +202,7 @@ class PartialProblem(Expression):
         """
         return f"PartialProblem({self.args[0]})"
 
-    def variables(self) -> List[Variable]:
+    def variables(self) -> list[Variable]:
         """Returns the variables in the problem.
         """
         return self.args[0].variables()
@@ -213,7 +212,7 @@ class PartialProblem(Expression):
         """
         return self.args[0].parameters()
 
-    def constants(self) -> List[Constant]:
+    def constants(self) -> list[Constant]:
         """Returns the constants in the problem.
         """
         return self.args[0].constants()

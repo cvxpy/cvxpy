@@ -1,4 +1,4 @@
-from typing import Literal, Tuple
+from typing import Literal
 
 import numpy as np
 
@@ -10,7 +10,7 @@ from cvxpy.expressions.expression import Expression
 
 
 def quantum_cond_entr(
-        rho: Expression , dims: Tuple[int, int], sys: Literal[0, 1] = 0, quad_approx=(3, 3)
+        rho: Expression , dims: tuple[int, int], sys: Literal[0, 1] = 0, quad_approx=(3, 3)
     ):
     """
     Returns (an approximation of) the quantum conditional entropy for a bipartite state,

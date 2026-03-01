@@ -13,7 +13,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import Optional
 
 import numpy as np
 import scipy as sp
@@ -409,7 +408,7 @@ class Slacks:
     @staticmethod
     def extend_bounds(
         num_vars: int, 
-        bounds_vector: Optional[np.ndarray], 
+        bounds_vector: np.ndarray | None, 
         fill_value: float
     ) -> np.ndarray:
         """Extend the bounds vector to be length num_vars, filling with fill_value."""

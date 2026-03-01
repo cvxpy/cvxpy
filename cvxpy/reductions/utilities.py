@@ -15,7 +15,6 @@ limitations under the License.
 """
 
 from collections import defaultdict
-from typing import Tuple
 
 import numpy as np
 import scipy.sparse as sp
@@ -150,7 +149,7 @@ class ReducedMat:
             self.mapping_nonzero = canonInterface.A_mapping_nonzero_rows(
                 self.matrix_data, self.var_len)
 
-    def get_matrix_from_tensor(self, param_vec: np.ndarray, with_offset: bool = True) -> Tuple:
+    def get_matrix_from_tensor(self, param_vec: np.ndarray, with_offset: bool = True) -> tuple:
         """Wraps get_matrix_from_tensor in canonInterface.
 
         Parameters

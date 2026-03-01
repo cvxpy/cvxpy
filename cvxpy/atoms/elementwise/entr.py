@@ -13,7 +13,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import List, Tuple
 
 import numpy as np
 from scipy.special import xlogy
@@ -42,7 +41,7 @@ class entr(Elementwise):
             results[np.isnan(results)] = -np.inf
         return results
 
-    def sign_from_args(self) -> Tuple[bool, bool]:
+    def sign_from_args(self) -> tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         # Always unknown.
@@ -89,7 +88,7 @@ class entr(Elementwise):
             grad_vals = -np.log(values[0]) - 1
             return [entr.elemwise_grad_to_diag(grad_vals, rows, cols)]
 
-    def _domain(self) -> List[Constraint]:
+    def _domain(self) -> list[Constraint]:
         """Returns constraints describing the domain of the node.
         """
         return [self.args[0] >= 0]
