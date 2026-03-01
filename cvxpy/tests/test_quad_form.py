@@ -317,3 +317,68 @@ class TestNonOptimal(BaseTest):
             prob.solve(solver=cp.SCS, use_quad_obj=False)
         assert "indefinite" in str(exc_info.value)
         assert "PSD" in str(exc_info.value)
+
+    def test_is_incr_idx0(self) -> None:
+        P_pos = np.array([[1.0, 0.0], [0.0, 2.0]])
+        P_neg = -P_pos
+
+        x = cp.Variable(2, nonneg=True)
+        qf = cp.quad_form(x, P_pos)
+        assert qf.is_incr(0)
+        assert not qf.is_decr(0)
+
+        x = cp.Variable(2, nonpos=True)
+        qf = cp.quad_form(x, P_neg)
+        assert qf.is_incr(0)
+        assert not qf.is_decr(0)
+
+    def test_is_decr_idx0(self) -> None:
+        P_pos = np.array([[1.0, 0.0], [0.0, 2.0]])
+        P_neg = -P_pos
+
+        x = cp.Variable(2, nonneg=True)
+        qf = cp.quad_form(x, P_neg)
+        assert not qf.is_incr(0)
+        assert qf.is_decr(0)
+
+        x = cp.Variable(2, nonpos=True)
+        qf = cp.quad_form(x, P_pos)
+        assert not qf.is_incr(0)
+        assert qf.is_decr(0)
+
+    def test_is_incr_idx1(self) -> None:
+        P = np.array([[1.0, 0.0], [0.0, 2.0]])
+
+        x = cp.Variable(2, nonneg=True)
+        qf = cp.quad_form(x, P)
+        assert qf.is_incr(1)
+
+        x = cp.Variable(2, nonpos=True)
+        qf = cp.quad_form(x, P)
+        assert qf.is_incr(1)
+
+        x = cp.Variable(2)
+        qf = cp.quad_form(x, P)
+        assert not qf.is_incr(1)
+
+    def test_is_decr_idx1(self) -> None:
+        P = np.array([[1.0, 0.0], [0.0, 2.0]])
+        for nonneg, nonpos in [(True, False), (False, True), (False, False)]:
+            x = cp.Variable(2, nonneg=nonneg, nonpos=nonpos)
+            qf = cp.quad_form(x, P)
+            assert not qf.is_decr(1)
+
+    def test_monotonicity_swapped_branches_regression(self) -> None:
+        """Regression test for swapped is_incr/is_decr branches."""
+        P_pos = np.array([[1.0, 0.0], [0.0, 2.0]])
+        P_neg = -P_pos
+
+        x = cp.Variable(2, nonpos=True)
+        qf = cp.quad_form(x, P_pos)
+        assert not qf.is_incr(0)
+        assert qf.is_decr(0)
+
+        x = cp.Variable(2, nonpos=True)
+        qf = cp.quad_form(x, P_neg)
+        assert qf.is_incr(0)
+        assert not qf.is_decr(0)
