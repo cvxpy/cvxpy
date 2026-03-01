@@ -250,6 +250,15 @@ class TestAttributes:
         x.value = val
         np.testing.assert_array_equal(x.value, val.astype(float), strict=True)
 
+    def test_cvx_attr2constr_invert_none_duals(self):
+        """CvxAttr2Constr.invert should not crash when dual_vars is None."""
+        x = cp.Variable(2, nonneg=True, integer=True)
+        prob = cp.Problem(cp.Minimize(cp.sum(x)), [x >= 1])
+        prob.solve(solver=cp.HIGHS)
+        assert prob.status == cp.OPTIMAL
+        np.testing.assert_allclose(x.value, [1, 1], atol=1e-5)
+
+
 class TestMultipleAttributes:
 
     def test_multiple_attributes(self) -> None:

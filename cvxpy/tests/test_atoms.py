@@ -2057,6 +2057,64 @@ class TestAtoms(BaseTest):
         # where X of the naive result is I.
         self.assertTrue(prob.value < naiveRes)
 
+    def test_log_det_sign(self) -> None:
+        """log_det can be negative, e.g. log(det(0.5*I)) < 0."""
+        X = Variable((2, 2), symmetric=True)
+        atom = cp.log_det(X)
+        self.assertFalse(atom.is_nonneg())
+        X.value = 0.5 * np.eye(2)
+        self.assertTrue(atom.value < 0)
+
+    def test_sign_shape(self) -> None:
+        """cp.sign should preserve the shape of its argument."""
+        atom = cp.sign(self.x)
+        self.assertEqual(atom.shape, (2,))
+        self.assertEqual(cp.sign(self.A).shape, (2, 2))
+
+    def test_lambda_max_value_none_parameter(self) -> None:
+        """lambda_max.value should return None when parameter has no value."""
+        P = Parameter((3, 3), symmetric=True)
+        atom = cp.lambda_max(P)
+        self.assertIsNone(atom.value)
+        P.value = np.eye(3)
+        self.assertAlmostEqual(atom.value, 1.0)
+
+    def test_length_all_zeros(self) -> None:
+        """length of an all-zero vector should return 0."""
+        atom = cp.length(self.x)
+        self.x.value = np.zeros(2)
+        self.assertEqual(atom.value, 0)
+
+    def test_one_minus_pos_grad(self) -> None:
+        """one_minus_pos._grad should return a list of sparse matrices."""
+        from cvxpy.atoms.one_minus_pos import one_minus_pos
+        atom = one_minus_pos(self.x)
+        grad = atom._grad([np.array([0.5, 0.3])])
+        self.assertIsInstance(grad, list)
+        self.assertEqual(len(grad), 1)
+        np.testing.assert_array_equal(grad[0].toarray(), -np.eye(2))
+
+    def test_imag_hermitian_not_symmetric(self) -> None:
+        """imag(Hermitian) is skew-symmetric, not symmetric."""
+        H = Variable((3, 3), hermitian=True)
+        self.assertFalse(cp.imag(H).is_symmetric())
+
+    def test_imag_symmetric_is_symmetric(self) -> None:
+        """imag(symmetric real matrix) is symmetric (zero matrix)."""
+        S = Variable((3, 3), symmetric=True)
+        self.assertTrue(cp.imag(S).is_symmetric())
+
+    def test_real_hermitian_is_symmetric(self) -> None:
+        """real(Hermitian) is symmetric."""
+        H = Variable((3, 3), hermitian=True)
+        self.assertTrue(cp.real(H).is_symmetric())
+
+    def test_real_symmetric_is_symmetric(self) -> None:
+        """real(symmetric) is symmetric."""
+        S = Variable((3, 3), symmetric=True)
+        self.assertTrue(cp.real(S).is_symmetric())
+
+
 class TestDotsort(BaseTest):
     """ Unit tests for the dotsort atom. """
 

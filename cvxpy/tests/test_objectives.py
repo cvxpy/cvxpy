@@ -133,3 +133,7 @@ class TestObjectives(unittest.TestCase):
         assert (-alpha*cp.Maximize(-expr1)).is_dcp()
 
         assert (-alpha*cp.Maximize(-expr1)).is_dcp()
+
+        # Test Maximize + Minimize raises DCPError (not bare Exception)
+        with self.assertRaises(DCPError):
+            cp.Maximize(-expr1) + cp.Minimize(expr2)

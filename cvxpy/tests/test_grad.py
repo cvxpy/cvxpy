@@ -982,6 +982,40 @@ class TestSpecialCases:
         # access quad_form.expr.grad without error
         prob.constraints[1].expr.grad
 
+    def test_ceil_floor_grad(self):
+        """ceil and floor _grad should return a list of zero sparse matrices."""
+        x = cp.Variable(3)
+        x.value = np.array([1.5, 2.3, -0.7])
+
+        for atom in [cp.ceil(x), cp.floor(x)]:
+            grad = atom.grad
+            assert isinstance(grad, dict)
+            assert x in grad
+            np.testing.assert_array_equal(grad[x].toarray(), np.zeros((3, 3)))
+
+    def test_grad_undefined_atoms(self):
+        """Atoms with undefined gradients should return None per variable, not crash."""
+        from cvxpy.atoms.sign import sign
+        x = cp.Variable(3)
+        x.value = np.array([1.0, -2.0, 3.0])
+        grad = sign(x).grad
+        assert isinstance(grad, dict)
+        assert grad[x] is None
+
+        from cvxpy.atoms.length import length
+        v = cp.Variable(4)
+        v.value = np.array([1.0, 2.0, 0.0, 0.0])
+        grad = length(v).grad
+        assert isinstance(grad, dict)
+        assert grad[v] is None
+
+        from cvxpy.atoms.pf_eigenvalue import pf_eigenvalue
+        M = cp.Variable((2, 2))
+        M.value = np.array([[0.5, 0.1], [0.2, 0.3]])
+        grad = pf_eigenvalue(M).grad
+        assert isinstance(grad, dict)
+        assert grad[M] is None
+
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

@@ -576,7 +576,7 @@ class TestExpressions(BaseTest):
         expr = cp.real(v)
         assert expr.is_hermitian()
         expr = cp.imag(v)
-        assert expr.is_hermitian()
+        assert not expr.is_hermitian()  # imag(H) is skew-symmetric for Hermitian H
         expr = cp.conj(v)
         assert expr.is_hermitian()
         expr = cp.promote(Variable(), (2, 2))

@@ -58,7 +58,8 @@ class one_minus_pos(Atom):
 
     def _grad(self, values):
         del values
-        return sp.csc_array(-1.0 * self._ones)
+        rows = self.args[0].size
+        return [sp.dia_array((-np.ones(rows), [0]), shape=(rows, rows)).tocsc()]
 
     def name(self) -> str:
         return f"{self.__class__.__name__}({self.args[0]})"
