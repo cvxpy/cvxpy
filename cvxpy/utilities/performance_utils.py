@@ -28,10 +28,13 @@ def lazyprop(func):
     @property
     @functools.wraps(func)
     def _lazyprop(self):
+        # Build cache key suffix based on active scopes
+        suffix = ''
         if scopes.dpp_scope_active():
-            attr_name = '_lazy_dpp_' + func.__name__
-        else:
-            attr_name = '_lazy_' + func.__name__
+            suffix += '_dpp'
+        if scopes.quad_form_dpp_scope_active():
+            suffix += '_qfdpp'
+        attr_name = '_lazy' + suffix + '_' + func.__name__
 
         try:
             return getattr(self, attr_name)
@@ -49,6 +52,8 @@ def _cache_key(args, kwargs):
         key = args
     if scopes.dpp_scope_active():
         key = ('__dpp_scope_active__',) + key
+    if scopes.quad_form_dpp_scope_active():
+        key = ('__quad_form_dpp_scope_active__',) + key
     return key
 
 

@@ -401,6 +401,11 @@ class multiply(MulExpression):
         """Call np.broadcast on multiply arguments."""
         return np.broadcast_shapes(self.args[0].shape, self.args[1].shape)
 
+    def is_symmetric(self) -> bool:
+        """Is the expression symmetric?"""
+        return self.shape[0] == self.shape[1] and \
+               all(arg.is_symmetric() for arg in self.args)
+
     def is_psd(self) -> bool:
         """Is the expression a positive semidefinite matrix?
         """
