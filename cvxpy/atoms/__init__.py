@@ -18,6 +18,7 @@ from cvxpy.atoms.affine.add_expr import AddExpression
 from cvxpy.atoms.affine.binary_operators import (matmul, MulExpression, multiply,
                                                  vdot, scalar_product, outer,)
 from cvxpy.atoms.affine.bmat import bmat
+from cvxpy.atoms.affine.block import block
 from cvxpy.atoms.affine.broadcast_to import broadcast_to
 from cvxpy.atoms.affine.conj import conj
 from cvxpy.atoms.affine.conv import conv, convolve
