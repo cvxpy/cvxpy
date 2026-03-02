@@ -289,10 +289,14 @@ The speed up in this case comes from caching the KKT matrix factorization.
 If ``A`` were a parameter, factorization caching would not be possible and the benefit of
 warm start would only be a good initial point.
 
-Warm start can also be used to provide an initial guess the first time a problem is solved.
-The initial guess is constructed from the ``value`` field of the problem variables.
-If the same problem is solved a second time, the initial guess is constructed from the
-cached previous solution as described above (rather than from the ``value`` field).
+Warm starting behavior is solver-dependent: some solvers support it, while others
+ignore this option. To use warm starting, a solver that supports it must be
+explicitly specified.
+
+Even when warm starting is enabled, CVXPY does not guarantee that the values
+stored in the ``value`` field of variables will be used as the solver's initial
+primal iterates. Depending on the solver, warm starting may reuse cached solver
+state or previous iterates instead.
 
 .. _solveropts:
 
