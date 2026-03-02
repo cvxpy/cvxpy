@@ -15,6 +15,7 @@ limitations under the License.
 """
 
 import contextlib
+import io
 import math
 import os
 import re
@@ -595,7 +596,21 @@ class TestCuClarabel(BaseTest):
         # consecutive solves, no data update
         result1 = prob.solve(solver=cp.CLARABEL, warm_start=False)
         self.assertAlmostEqual(result1, result2)
-
+    
+    def test_cuclarabel_respects_verbose_flag(self):
+        """CUCLARABEL should not print solver output when verbose=False."""
+        x = cp.Variable()
+        prob = cp.Problem(cp.Minimize(x), [x >= 1])
+        old_stdout = sys.stdout
+        sys.stdout = io.StringIO()
+        try:
+            prob.solve(solver=cp.CUCLARABEL, verbose=False)
+            output = sys.stdout.getvalue()
+        finally:
+            sys.stdout = old_stdout
+        # Clarabel prints iteration logs when verbose=True
+        # with verbose=False, output should be empty
+        assert output.strip() == ""
 
     def test_clarabel_lp_0(self) -> None:
         StandardTestLPs.test_lp_0(solver=cp.CUCLARABEL)
