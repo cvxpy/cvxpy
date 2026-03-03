@@ -1082,7 +1082,6 @@ class TestAtoms(BaseTest):
         
         # Test t as Parameter
         t_param = cp.Parameter(pos=True)
-        expr_t = cp.huber(self.x, M=1, t=t_param)
         t_param.value = 2.0
         self.assertAlmostEqual(cp.huber(0.5, M=1, t=t_param).value, 0.125)
         t_param.value = 3.0

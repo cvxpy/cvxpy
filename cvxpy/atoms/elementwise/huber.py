@@ -14,14 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import List, Optional, Tuple
+from typing import Tuple
 
 import numpy as np
 import scipy.special
 
 from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.elementwise.elementwise import Elementwise
-from cvxpy.constraints.constraint import Constraint
 
 # TODO(akshayka): DGP support.
 
