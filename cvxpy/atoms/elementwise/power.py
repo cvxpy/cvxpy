@@ -400,11 +400,6 @@ class Power(Elementwise):
         else:
             return []
     
-    def point_in_domain(self) -> np.ndarray:
-        """Returns a point in the domain of the node.
-        """
-        return np.ones(self.shape)
-
     def get_data(self):
         return [self._p_orig, self.max_denom]
 

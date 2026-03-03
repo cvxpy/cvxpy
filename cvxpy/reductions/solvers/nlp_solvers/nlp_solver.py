@@ -174,8 +174,6 @@ class Oracles:
     def __init__(
         self,
         problem: Problem,
-        initial_point: np.ndarray,
-        num_constraints: int,
         verbose: bool = True,
         use_hessian: bool = True,
     ) -> None:
@@ -191,40 +189,24 @@ class Oracles:
         if use_hessian:
             self.c_problem.init_hessian_coo_lower_tri()
 
-        self.initial_point = initial_point
-        self.num_constraints = num_constraints
-        self.iterations = 0
-
         # Cached sparsity structures
         self._jac_structure: tuple[np.ndarray, np.ndarray] | None = None
         self._hess_structure: tuple[np.ndarray, np.ndarray] | None = None
-        self.constraints_forward_passed = False
-        self.objective_forward_passed = False
 
     def objective(self, x: np.ndarray) -> float:
         """Returns the scalar value of the objective given x."""
-        self.objective_forward_passed = True
         return self.c_problem.objective_forward(x)
 
     def gradient(self, x: np.ndarray) -> np.ndarray:
         """Returns the gradient of the objective with respect to x."""
-
-        if not self.objective_forward_passed:
-            self.objective(x)
-
         return self.c_problem.gradient()
 
     def constraints(self, x: np.ndarray) -> np.ndarray:
         """Returns the constraint values."""
-        self.constraints_forward_passed = True
         return self.c_problem.constraint_forward(x)
 
     def jacobian(self, x: np.ndarray) -> np.ndarray:
         """Returns the Jacobian values in COO format at the sparsity structure. """
-
-        if not self.constraints_forward_passed:
-            self.constraints(x)
-
         return self.c_problem.eval_jacobian_vals()
         
     def jacobianstructure(self) -> tuple[np.ndarray, np.ndarray]:
@@ -239,14 +221,9 @@ class Oracles:
     def hessian(self, x: np.ndarray, duals: np.ndarray, obj_factor: float) -> np.ndarray:
         """Returns the lower triangular Hessian values in COO format. """
         if not self.use_hessian:
-            # Shouldn't be called when using quasi-Newton, but return empty array
-            return np.array([])
-        
-        if not self.objective_forward_passed:
-            self.objective(x)
-        if not self.constraints_forward_passed:
-            self.constraints(x)
-
+            raise ValueError("Hessian oracle called but use_hessian is False. "
+                             "This is a bug and should be reported.")
+       
         return self.c_problem.eval_hessian_vals_coo_lower_tri(obj_factor, duals)
 
     def hessianstructure(self) -> tuple[np.ndarray, np.ndarray]:
@@ -254,31 +231,13 @@ class Oracles:
            The returned rows are ascending, and within each row the columns are 
            ascending."""
         if not self.use_hessian:
-            # Return empty structure when using quasi-Newton approximation
-            return (np.array([], dtype=np.int32), np.array([], dtype=np.int32))
-
+            # IPOPT calls this function even when hessian_approximation='limited-memory', 
+            # so return empty structure
+            return (np.array([]), np.array([]))  
+         
         if self._hess_structure is not None:
             return self._hess_structure
         
         rows, cols = self.c_problem.get_problem_hessian_sparsity_coo()
         self._hess_structure = (rows, cols)
         return self._hess_structure
-        
-    def intermediate(
-        self,
-        alg_mod: int,
-        iter_count: int,
-        obj_value: float,
-        inf_pr: float,
-        inf_du: float,
-        mu: float,
-        d_norm: float,
-        regularization_size: float,
-        alpha_du: float,
-        alpha_pr: float,
-        ls_trials: int,
-    ) -> None:
-        """Prints information at every Ipopt iteration."""
-        self.iterations = iter_count
-        self.objective_forward_passed = False
-        self.constraints_forward_passed = False

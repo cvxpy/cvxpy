@@ -76,12 +76,14 @@ class IPOPT(NLPsolver):
         """
         Returns the solution to the original problem given the inverse_data.
         """
-        attr = {}
+        attr = {
+            s.NUM_ITERS: solution.get('num_iters'),
+        }
         status = self.STATUS_MAP[solution['status']]
         # the info object does not contain all the attributes we want
         # see https://github.com/mechmotum/cyipopt/issues/17
         # attr[s.SOLVE_TIME] = solution.solve_time
-        attr[s.NUM_ITERS] = solution['iterations']
+        #attr[s.NUM_ITERS] = solution['iterations']
         # more detailed statistics here when available
         # attr[s.EXTRA_STATS] = solution.extra.FOO
         if 'all_objs_from_best_of' in solution:
@@ -150,13 +152,11 @@ class IPOPT(NLPsolver):
         use_hessian = (hessian_approx == 'exact')
 
         if solver_cache is None:
-            oracles = Oracles(bounds.new_problem, bounds.x0, len(bounds.cl),
-                            verbose=verbose, use_hessian=use_hessian)
+            oracles = Oracles(bounds.new_problem, verbose=verbose, use_hessian=use_hessian)
         elif 'oracles' in solver_cache:
             oracles = solver_cache['oracles']
         else:
-            oracles = Oracles(bounds.new_problem, bounds.x0, len(bounds.cl),
-                            verbose=verbose, use_hessian=use_hessian)
+            oracles = Oracles(bounds.new_problem, verbose=verbose, use_hessian=use_hessian)
             solver_cache['oracles'] = oracles
           
         nlp = cyipopt.Problem(
@@ -186,16 +186,19 @@ class IPOPT(NLPsolver):
         for option_name, option_value in default_options.items():
             nlp.add_option(option_name, option_value)
 
+        # ipopt will evaluate the gradient of the Lagrangian at the initial point to decide 
+        # without doing the forward pass for the objective and constraints, so we need to do
+        # a forward pass here to fill in any necessary values for the derivative evaluation.
+        oracles.objective(data["x0"])
+        oracles.constraints(data["x0"])
+    
         _, info = nlp.solve(data["x0"])
 
-        if oracles.iterations == 0 and info['status'] == s.OPTIMAL:
-            print("Warning: IPOPT returned after 0 iterations. This may indicate that\n"
-                  "the initial point passed to Ipopt is a stationary point, and it is\n"
-                  "quite unlikely that the initial point is also a local minimizer. \n"
-                  "Perturb the initial point and try again.")
-
-        # add number of iterations to info dict from oracles
-        info['iterations'] = oracles.iterations
+        # cyipopt does currently not expose the number of iterations, see
+        # https://github.com/mechmotum/cyipopt/issues/17. We set it to "Not available" for now,
+        # but we should update this when the information becomes available.
+        info['num_iters'] = "Not available"
+        
         return info
 
     def cite(self, data):

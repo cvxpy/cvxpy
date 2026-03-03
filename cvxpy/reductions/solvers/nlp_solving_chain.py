@@ -194,8 +194,7 @@ def solve_nlp(problem, solver, warm_start, verbose, **kwargs):
     all_objs = np.zeros(shape=(best_of,))
     user_initials = {}
 
-    # inside solve_via_data we cache the construction of the C problem
-    # (which includes the construction of the oracles)
+    # inside solve_via_data we cache the construction of oracles
     solver_cache = {} 
 
     for run in range(best_of):

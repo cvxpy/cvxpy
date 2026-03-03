@@ -550,10 +550,6 @@ class Atom(Expression):
         # Default is no constraints.
         return []
     
-    def point_in_domain(self) -> np.ndarray:
-        """default point in domain of zero"""
-        return np.zeros(self.shape)
-
     @staticmethod
     def numpy_numeric(numeric_func):
         """Wraps an atom's numeric function that requires numpy ndarrays as input.

@@ -136,13 +136,11 @@ class UNO(NLPsolver):
         use_hessian = True
 
         if solver_cache is None:
-            oracles = Oracles(bounds.new_problem, bounds.x0, len(bounds.cl),
-                            verbose=verbose, use_hessian=use_hessian)
+            oracles = Oracles(bounds.new_problem, verbose=verbose, use_hessian=use_hessian)
         elif 'oracles' in solver_cache:
             oracles = solver_cache['oracles']
         else:
-            oracles = Oracles(bounds.new_problem, bounds.x0, len(bounds.cl),
-                            verbose=verbose, use_hessian=use_hessian)
+            oracles = Oracles(bounds.new_problem, verbose=verbose, use_hessian=use_hessian)
             solver_cache['oracles'] = oracles
 
         # Extract data from the data dictionary

@@ -15,6 +15,7 @@ limitations under the License.
 """
 
 import numpy as np
+from scipy import sparse
 
 from cvxpy.reductions.solvers.nlp_solvers.nlp_solver import Bounds
 
@@ -38,6 +39,7 @@ class DerivativeChecker:
         from cvxpy.reductions.solvers.nlp_solvers.diff_engine import C_problem
 
         self.original_problem = problem
+        self._coo_initialized = False
 
         # Apply Dnlp2Smooth to get canonicalized problem
         canon = Dnlp2Smooth().apply(problem)
@@ -55,6 +57,15 @@ class DerivativeChecker:
         # Initialize constraint bounds for checking
         self.cl = self.bounds.cl
         self.cu = self.bounds.cu
+
+    def _init_coo(self):
+        if self._coo_initialized:
+            return
+        self.c_problem.init_jacobian_coo()
+        self.c_problem.init_hessian_coo_lower_tri()
+        self.jac_rows, self.jac_cols = self.c_problem.get_jacobian_sparsity_coo()
+        self.hess_rows, self.hess_cols = self.c_problem.get_problem_hessian_sparsity_coo()
+        self._coo_initialized = True
 
     def check_constraint_values(self, x=None):
         if x is None:
@@ -87,11 +98,13 @@ class DerivativeChecker:
             x = self.x0
 
         # Get Jacobian from C implementation
-        self.c_problem.init_jacobian()
-        self.c_problem.init_hessian()
+        self._init_coo()
         self.c_problem.constraint_forward(x)
-        c_jac_csr = self.c_problem.jacobian()
-        c_jac_dense = c_jac_csr.toarray()
+        jac_vals = self.c_problem.eval_jacobian_vals()
+        n_constraints = len(self.cl)
+        n_vars = len(x)
+        c_jac_dense = np.zeros((n_constraints, n_vars))
+        c_jac_dense[self.jac_rows, self.jac_cols] = jac_vals
 
         # Compute numerical Jacobian using central differences
         n_vars = len(x)
@@ -124,25 +137,16 @@ class DerivativeChecker:
         if duals is None:
             duals = np.random.rand(len(self.cl))
 
-        # Get Hessian from C implementation
-        self.c_problem.objective_forward(x)
-        self.c_problem.constraint_forward(x)
-        #jac = self.c_problem.jacobian()
-
         # must run gradient because for logistic it fills some values
+        self._init_coo()
         self.c_problem.gradient()
-        c_hess_csr = self.c_problem.hessian(obj_factor, duals)
-
-        # Convert to full dense matrix (C returns lower triangular)
-        c_hess_coo = c_hess_csr.tocoo()
+        c_hess_vals = self.c_problem.eval_hessian_vals_coo_lower_tri(obj_factor, duals)
         n_vars = len(x)
         c_hess_dense = np.zeros((n_vars, n_vars))
-
-        # Fill in the full symmetric matrix from lower triangular
-        for i, j, v in zip(c_hess_coo.row, c_hess_coo.col, c_hess_coo.data):
-            c_hess_dense[i, j] = v
-            if i != j:
-                c_hess_dense[j, i] = v
+        c_hess_dense[self.hess_rows, self.hess_cols] = c_hess_vals
+        # Symmetrize: fill upper triangle from lower
+        mask = self.hess_rows != self.hess_cols
+        c_hess_dense[self.hess_cols[mask], self.hess_rows[mask]] = c_hess_vals[mask]
 
         # Compute numerical Hessian using finite differences of the Lagrangian gradient
         # Lagrangian gradient: ∇L = obj_factor * ∇f + J^T * duals
@@ -151,7 +155,11 @@ class DerivativeChecker:
             grad_f = self.c_problem.gradient()
 
             self.c_problem.constraint_forward(x_eval)
-            jac = self.c_problem.jacobian()
+            jac_vals = self.c_problem.eval_jacobian_vals()
+            jac = sparse.coo_matrix(
+                (jac_vals, (self.jac_rows, self.jac_cols)),
+                shape=(len(self.cl), len(x))
+            )
 
             # Lagrangian gradient = obj_factor * grad_f + J^T * duals
             return obj_factor * grad_f + jac.T @ duals
@@ -231,8 +239,7 @@ class DerivativeChecker:
     def run(self, x=None):
         """ Run all derivative checks (constraints, Jacobian, and Hessian). """
 
-        self.c_problem.init_jacobian()
-        self.c_problem.init_hessian()
+        self._init_coo()
         objective_result = self.check_objective_value(x)
         gradient_result = self.check_gradient(x)
         constraints_result = self.check_constraint_values()

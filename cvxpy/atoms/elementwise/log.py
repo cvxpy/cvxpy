@@ -109,5 +109,4 @@ class log(Elementwise):
     def point_in_domain(self) -> np.ndarray:
         """Returns a point in the domain of the node.
         """
-        dim = (1, ) if self.size == 1 else self.shape
-        return np.ones(dim)
+        return np.ones(self.shape)
