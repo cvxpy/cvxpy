@@ -110,7 +110,6 @@ class IPOPT(NLPsolver):
         data : dict
         Data used by the solver.
         This consists of:
-        - "oracles": An Oracles object that computes the objective and constraints
         - "x0": Initial guess for the primal variables
         - "lb": Lower bounds on the primal variables
         - "ub": Upper bounds on the primal variables
@@ -150,9 +149,16 @@ class IPOPT(NLPsolver):
             hessian_approx = solver_opts.get('hessian_approximation', 'exact')
         use_hessian = (hessian_approx == 'exact')
 
-        oracles = Oracles(bounds.new_problem, bounds.x0, len(bounds.cl),
-                          verbose=verbose, use_hessian=use_hessian)
-
+        if solver_cache is None:
+            oracles = Oracles(bounds.new_problem, bounds.x0, len(bounds.cl),
+                            verbose=verbose, use_hessian=use_hessian)
+        elif 'oracles' in solver_cache:
+            oracles = solver_cache['oracles']
+        else:
+            oracles = Oracles(bounds.new_problem, bounds.x0, len(bounds.cl),
+                            verbose=verbose, use_hessian=use_hessian)
+            solver_cache['oracles'] = oracles
+          
         nlp = cyipopt.Problem(
         n=len(data["x0"]),
         m=len(data["cl"]),

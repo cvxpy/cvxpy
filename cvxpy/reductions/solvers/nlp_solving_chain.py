@@ -175,30 +175,35 @@ def solve_nlp(problem, solver, warm_start, verbose, **kwargs):
         The optimal problem value.
     """
     nlp_chain, kwargs = _build_nlp_chain(problem, solver, kwargs)
-    best_of = kwargs.pop("best_of", 1)
-
-    if not isinstance(best_of, int) or best_of < 1:
-        raise ValueError("best_of must be a positive integer.")
-
+    
     # Standard single solve
-    if best_of == 1:
+    if "best_of" not in kwargs:
         _set_nlp_initial_point(problem)
         canon_problem, inverse_data = nlp_chain.apply(problem=problem)
         solution = nlp_chain.solver.solve_via_data(canon_problem, warm_start,
                                                    verbose, solver_opts=kwargs)
         problem.unpack_results(solution, nlp_chain, inverse_data)
         return problem.value
+    
+    best_of = kwargs.pop("best_of")
+    if not isinstance(best_of, int) or best_of < 1:
+        raise ValueError("best_of must be a positive integer.")
 
     # Best-of-N solve
     best_obj, best_solution = float("inf"), None
     all_objs = np.zeros(shape=(best_of,))
     user_initials = {}
 
+    # inside solve_via_data we cache the construction of the C problem
+    # (which includes the construction of the oracles)
+    solver_cache = {} 
+
     for run in range(best_of):
         _set_random_nlp_initial_point(problem, run, user_initials)
         canon_problem, inverse_data = nlp_chain.apply(problem=problem)
         solution = nlp_chain.solver.solve_via_data(canon_problem, warm_start,
-                                                   verbose, solver_opts=kwargs)
+                                                   verbose, solver_opts=kwargs, 
+                                                   solver_cache=solver_cache)
 
         # Unpack to get the objective value in the original problem space
         problem.unpack_results(solution, nlp_chain, inverse_data)
@@ -212,6 +217,7 @@ def solve_nlp(problem, solver, warm_start, verbose, **kwargs):
         if verbose:
             print("Run %d/%d: obj = %.6e | best so far = %.6e"
                   % (run + 1, best_of, obj_value, best_obj))
+            print("-" * 60)
 
     # Unpack best solution
     if type(problem.objective) == Maximize:

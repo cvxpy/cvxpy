@@ -121,8 +121,15 @@ class COPT(NLPsolver):
         # COPT always uses exact Hessian (no quasi-Newton option currently)
         use_hessian = True
 
-        oracles = Oracles(bounds.new_problem, bounds.x0, len(bounds.cl),
-                          verbose=verbose, use_hessian=use_hessian)
+        if solver_cache is None:
+            oracles = Oracles(bounds.new_problem, bounds.x0, len(bounds.cl),
+                            verbose=verbose, use_hessian=use_hessian)
+        elif 'oracles' in solver_cache:
+            oracles = solver_cache['oracles']
+        else:
+            oracles = Oracles(bounds.new_problem, bounds.x0, len(bounds.cl),
+                            verbose=verbose, use_hessian=use_hessian)
+            solver_cache['oracles'] = oracles
 
         class COPTNlpCallbackCVXPY(copt.NlpCallbackBase):
             def __init__(self, oracles, m):
