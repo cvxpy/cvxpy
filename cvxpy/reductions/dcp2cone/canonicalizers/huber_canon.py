@@ -16,9 +16,10 @@ limitations under the License.
 
 from cvxpy.atoms.elementwise.abs import abs
 from cvxpy.atoms.elementwise.power import power
-from cvxpy.expressions.variable import Variable
 from cvxpy.atoms.quad_over_lin import quad_over_lin
+from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.dcp2cone.canonicalizers.power_canon import power_approx_canon
+from cvxpy.reductions.dcp2cone.canonicalizers.quad_over_lin_canon import quad_over_lin_canon
 from cvxpy.reductions.eliminate_pwl.canonicalizers.abs_canon import abs_canon
 from cvxpy.utilities.solver_context import SolverInfo
 
@@ -73,14 +74,17 @@ def huber_perspective_canon(expr, args: list, solver_context: SolverInfo | None 
     n_tilde = Variable(shape, name="huber_persp_n")
     s_tilde = Variable(shape, name="huber_persp_s")
 
+    # Canonicalize quad_over_lin(n_tilde, t) inline to SOC constraints
     qol_expr = quad_over_lin(n_tilde, t)
+    qol_obj, constr_qol = quad_over_lin_canon(qol_expr, qol_expr.args)
+
     # t * |s| --> abs(s_tilde)
     abs_expr = abs(s_tilde)
     abs_s, constr_abs = abs_canon(abs_expr, abs_expr.args)
 
-    obj = qol_expr + 2 * M * abs_s
+    obj = qol_obj + 2 * M * abs_s
 
-    constraints = constr_abs
+    constraints = constr_qol + constr_abs
     constraints.append(x == s_tilde + n_tilde)
     constraints.append(t >= 0)
 

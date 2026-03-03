@@ -57,7 +57,7 @@ def huber(x, M=1, t=None):
     if t is None:
         return _HuberAtom(x, M)
     else:
-        return _HuberPerspectiveAtom(x, M, t)
+        return _HuberPerspectiveAtom(x, t, M)
 
 class _HuberAtom(Elementwise):
     """The standard two-argument Huber penalty atom.
@@ -184,7 +184,7 @@ class _HuberPerspectiveAtom(Atom):
         to enable concomitant scale estimation.
     """
 
-    def __init__(self, x, M=1, t=None) -> None:
+    def __init__(self, x, t, M=1) -> None:
         self.M = self.cast_to_const(M)
         t = self.cast_to_const(t)
         super(_HuberPerspectiveAtom, self).__init__(x, t)
