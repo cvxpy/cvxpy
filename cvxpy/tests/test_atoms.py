@@ -544,6 +544,19 @@ class TestAtoms(BaseTest):
         self.assertEqual(cp.multiply(self.x, [1, -1]).curvature, s.AFFINE)
         self.assertEqual(cp.multiply(self.x, [1, -1]).shape, (2,))
 
+    def test_multiply_hermitian(self) -> None:
+        """Test that Hermitian property is preserved in multiplication."""
+        
+        # Test real scalar multiplication
+        X = cp.Variable((3, 3), hermitian=True)
+        self.assertTrue((1 * X).is_hermitian())
+        self.assertTrue((X * 2.5).is_hermitian())
+        self.assertTrue((-1 * X).is_hermitian())
+
+        # Test Hadamard product of two Hermitians
+        Y = cp.Variable((3, 3), hermitian=True)
+        self.assertTrue(cp.multiply(X, Y).is_hermitian())
+
     # Test the vstack class.
     def test_vstack(self) -> None:
         atom = cp.vstack([self.x, self.y, self.x])
