@@ -246,7 +246,7 @@ class CvxAttr2Constr(Reduction):
                 for key in reduction_attributes:
                     if new_attr[key]:
                         new_attr[key] = None if key == 'bounds' else False
-                reduced_param = Parameter(n, id=param.id, **new_attr)
+                reduced_param = Parameter(n, id=param.id, name=param.name(), **new_attr)
                 reduced_param.set_leaf_of_provenance(param)
                 self._parameters[param] = reduced_param
                 if param.value is not None:
@@ -266,7 +266,8 @@ class CvxAttr2Constr(Reduction):
     def update_parameters(self, problem) -> None:
         """Update reduced parameter values from original parameters."""
         for param, reduced_param in self._parameters.items():
-            reduced_param.value = lower_value(param)
+            if param.value is not None:
+                reduced_param.value = lower_value(param)
 
     def param_backward(self, param, dparams):
         """Recover full-size gradient from reduced-size gradient."""

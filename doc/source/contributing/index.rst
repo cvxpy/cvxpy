@@ -49,6 +49,7 @@ Small scope projects
  - `Huber function with concomitant scale estimation <https://github.com/cvxpy/cvxpy/issues/1377>`_.
  - `More verbose logging info (expression tree nodes, DCP time) <https://github.com/cvxpy/cvxpy/issues/2674>`_.
  - Improve type checking for compatibility with Pyright.
+ - `Change docstrings for psd_wrap and other _wrap functions to clarify undefined behavior <https://github.com/cvxpy/cvxpy/issues/2362#issuecomment-2029669331>`_.
 
 Medium scope projects
  - `Post-solver feasibility checks <https://github.com/cvxpy/cvxpy/issues/434>`_.

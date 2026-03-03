@@ -29,6 +29,7 @@ class PIQP(QpSolver):
     """QP interface for the PIQP solver"""
 
     MIP_CAPABLE = False
+    BOUNDED_VARIABLES = True
 
     # Map of PIQP status to CVXPY status.
     STATUS_MAP = {"PIQP_SOLVED": s.OPTIMAL,
@@ -131,6 +132,16 @@ class PIQP(QpSolver):
                     data[s.F].data != old_data[s.F].data):
                 new_args['G'] = data[s.F] if backend == 'sparse' else data[s.F].toarray()
 
+            if not old_interface:
+                x_lb = data.get(s.LOWER_BOUNDS)
+                x_ub = data.get(s.UPPER_BOUNDS)
+                old_x_lb = old_data.get(s.LOWER_BOUNDS)
+                old_x_ub = old_data.get(s.UPPER_BOUNDS)
+                if x_lb is not None and (old_x_lb is None or any(x_lb != old_x_lb)):
+                    new_args['x_l'] = x_lb
+                if x_ub is not None and (old_x_ub is None or any(x_ub != old_x_ub)):
+                    new_args['x_u'] = x_ub
+
             if backend == 'dense' and not isinstance(solver, piqp.DenseSolver):
                 structure_changed = True
             if backend == 'sparse' and not isinstance(solver, piqp.SparseSolver):
@@ -163,10 +174,17 @@ class PIQP(QpSolver):
             b = data[s.B]
             g = data[s.G]
 
+            x_lb = data.get(s.LOWER_BOUNDS)
+            x_ub = data.get(s.UPPER_BOUNDS)
             if old_interface:
                 solver.setup(P=P, c=q, A=A, b=b, G=F, h=g)
             else:
-                solver.setup(P=P, c=q, A=A, b=b, G=F, h_u=g)
+                setup_kwargs = dict(P=P, c=q, A=A, b=b, G=F, h_u=g)
+                if x_lb is not None:
+                    setup_kwargs['x_l'] = x_lb
+                if x_ub is not None:
+                    setup_kwargs['x_u'] = x_ub
+                solver.setup(**setup_kwargs)
 
         solver.solve()
 

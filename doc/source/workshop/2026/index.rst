@@ -243,7 +243,9 @@ Afternoon Session
        | MOCVXPY is a library built on top of CVXPY for convex vector optimization. It enables practitioners to describe their convex vector optimization problems using an intuitive algebraic language that closely follows the mathematical formulation. This talk presents the main features of MOCVXPY and the algorithms employed by the library. We also illustrate its functionality with examples and an application in energy.
 
    * - **4:00 PM**
-     - | **Sponsored Talk** *(TBD)*
+     - | **Learning Parametric Convex Functions** — Maximilian Schaller *(In-Person)*
+       |
+       | LPCF is a framework for fitting a parametrized convex function to some given data, compatible with disciplined convex programming. This allows to fit a function that can be used in a convex optimization formulation, directly to observed or simulated data.
 
    * - **4:15 PM**
      - | **Keynote: Convex Optimization** — `Stephen Boyd <#speaker-stephen-boyd>`_ *(In-Person)*

@@ -298,3 +298,19 @@ class TestDgp(BaseTest):
         # neg + diag
         with self.assertRaises(ValueError):
             cvxpy.Variable(3, diag=True, neg=True)
+
+    def test_pnorm_scalar(self) -> None:
+        """Regression test: scalar DGP pnorm must canonicalize x, not the exponent p."""
+        # pnorm of a single positive scalar equals that scalar,
+        # so the minimum subject to x >= lb must be lb.
+        x = cvxpy.Variable(pos=True)
+        prob = cvxpy.Problem(cvxpy.Minimize(cvxpy.pnorm(x, p=2)), [x >= 2.5])
+        prob.solve(gp=True)
+        self.assertEqual(prob.status, cvxpy.OPTIMAL)
+        np.testing.assert_allclose(x.value, 2.5, atol=1e-4)
+
+        x = cvxpy.Variable(pos=True)
+        prob = cvxpy.Problem(cvxpy.Minimize(cvxpy.pnorm(x, p=3)), [x >= 4.0])
+        prob.solve(gp=True)
+        self.assertEqual(prob.status, cvxpy.OPTIMAL)
+        np.testing.assert_allclose(x.value, 4.0, atol=1e-4)
