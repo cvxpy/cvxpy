@@ -158,7 +158,7 @@ class Minimize(Objective):
 
     def is_dnlp(self) -> bool:
         """
-        The objective must be epigraph smooth representable.
+        The objective must be linearizable convex.
         """
         return self.args[0].is_linearizable_convex()
 
@@ -235,7 +235,7 @@ class Maximize(Objective):
 
     def is_dnlp(self) -> bool:
         """
-        The objective must be hypograph smooth representable.
+        The objective must be linearizable concave.
         """
         return self.args[0].is_linearizable_concave()
 

@@ -179,7 +179,6 @@ class Oracles:
         verbose: bool = True,
         use_hessian: bool = True,
     ) -> None:
-        # Import from cvxpy's diff_engine integration layer
         from cvxpy.reductions.solvers.nlp_solvers.diff_engine import C_problem
 
         self.c_problem = C_problem(problem, verbose=verbose)

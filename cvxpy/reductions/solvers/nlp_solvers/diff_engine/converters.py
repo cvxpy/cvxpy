@@ -34,6 +34,12 @@ except ImportError as e:
     ) from e
 
 
+def normalize_shape(shape):
+    """Normalize shape to 2D (d1, d2) for the C engine."""
+    shape = tuple(shape)
+    return (1,) * (2 - len(shape)) + shape
+
+
 def _chain_add(children):
     """Chain multiple children with binary adds: a + b + c -> add(add(a, b), c)."""
     result = children[0]
@@ -208,9 +214,7 @@ def _convert_reshape(expr, children):
             "Only order='F' (Fortran) is currently supported."
         )
 
-    x_shape = tuple(expr.shape)
-    x_shape = (1,) * (2 - len(x_shape)) + x_shape
-    d1, d2 = x_shape
+    d1, d2 = normalize_shape(expr.shape)
     return _diffengine.make_reshape(children[0], d1, d2)
 
 def _convert_broadcast(expr, children):
@@ -228,9 +232,7 @@ def _convert_sum(expr, children):
     return _diffengine.make_sum(children[0], axis)
 
 def _convert_promote(expr, children):
-    x_shape = tuple(expr.shape)
-    x_shape = (1,) * (2 - len(x_shape)) + x_shape
-    d1, d2 = x_shape
+    d1, d2 = normalize_shape(expr.shape)
     return _diffengine.make_promote(children[0], d1, d2)
 
 def _convert_NegExpression(_expr, children):
@@ -241,18 +243,12 @@ def _convert_quad_over_lin(_expr, children):
 
 def _convert_index(expr, children):
     idxs = _extract_flat_indices_from_index(expr)
-    x_shape = tuple(expr.shape)
-    x_shape = (1,) * (2 - len(x_shape)) + x_shape
-    d1, d2 = x_shape
-
+    d1, d2 = normalize_shape(expr.shape)
     return _diffengine.make_index(children[0], d1, d2, idxs)
 
 def _convert_special_index(expr, children):
     idxs = _extract_flat_indices_from_special_index(expr)
-    x_shape = tuple(expr.shape)
-    x_shape = (1,) * (2 - len(x_shape)) + x_shape
-    d1, d2 = x_shape
-
+    d1, d2 = normalize_shape(expr.shape)
     return _diffengine.make_index(children[0], d1, d2, idxs)
 
 def _convert_prod(expr, children):
@@ -266,8 +262,7 @@ def _convert_prod(expr, children):
     
 def _convert_transpose(expr, children):
     # If the child is a vector (shape (n,) or (n,1) or (1,n)), use reshape to transpose
-    child_shape = tuple(expr.args[0].shape)
-    child_shape = (1,) * (2 - len(child_shape)) + child_shape
+    child_shape = normalize_shape(expr.args[0].shape)
     
     if 1 in child_shape:
         return _diffengine.make_reshape(children[0], child_shape[1], child_shape[0])
@@ -381,9 +376,7 @@ def convert_expr(expr, var_dict: dict, n_vars: int):
             c = c.todense()
         
         c = np.asarray(c, dtype=np.float64)
-        x_shape = tuple(expr.shape)
-        x_shape = (1,) * (2 - len(x_shape)) + x_shape
-        d1, d2 = x_shape
+        d1, d2 = normalize_shape(expr.shape)
         return _diffengine.make_constant(d1, d2, n_vars, c.flatten(order='F'))
 
     # Recursive case: atoms
@@ -396,9 +389,7 @@ def convert_expr(expr, var_dict: dict, n_vars: int):
 
         # check that python dimension is consistent with C dimension
         d1_C, d2_C = _diffengine.get_expr_dimensions(C_expr)
-        x_shape = tuple(expr.shape)
-        x_shape = (1,) * (2 - len(x_shape)) + x_shape
-        d1_Python, d2_Python = x_shape
+        d1_Python, d2_Python = normalize_shape(expr.shape)
 
         if d1_C != d1_Python or d2_C != d2_Python:
             raise ValueError(

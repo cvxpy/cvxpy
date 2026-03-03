@@ -16,8 +16,6 @@ jobs:
         os: [ubuntu-latest, macos-latest]
     steps:
       - uses: actions/checkout@v5
-        with:
-          submodules: recursive
       - uses: astral-sh/setup-uv@v7
         with:
           python-version: "3.12"
