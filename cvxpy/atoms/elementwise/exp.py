@@ -23,7 +23,20 @@ from cvxpy.utilities import bounds as bounds_utils
 
 
 class exp(Elementwise):
-    """Elementwise :math:`e^{x}`.
+    r"""Elementwise natural exponential :math:`e^{x}`.
+
+    .. math::
+
+        f(x) = e^{x}
+
+    Convex, increasing, and always positive on all reals.
+
+    Domain: :math:`x \in \mathbb{R}`.
+
+    Parameters
+    ----------
+    x : Expression
+        The expression to exponentiate.
     """
 
     def __init__(self, x) -> None:

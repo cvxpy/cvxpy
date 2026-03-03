@@ -20,5 +20,19 @@ from cvxpy.atoms.elementwise.power import power
 
 
 def sqrt(x):
-    """The square root of an expression."""
+    r"""The elementwise square root :math:`\sqrt{x}`.
+
+    .. math::
+
+        f(x) = \sqrt{x} = x^{1/2}
+
+    Concave, increasing, and nonnegative on its domain.
+
+    Domain: :math:`x \geq 0`.
+
+    Parameters
+    ----------
+    x : Expression
+        The expression to take the square root of.
+    """
     return power(x, Fraction(1, 2))

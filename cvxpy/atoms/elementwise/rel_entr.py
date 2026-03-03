@@ -24,9 +24,26 @@ from cvxpy.atoms.elementwise.elementwise import Elementwise
 
 
 class rel_entr(Elementwise):
-    """:math:`x\\log(x/y)`
+    r"""Elementwise relative entropy function :math:`x \log(x/y)`.
 
-    For disambiguation between rel_entr and kl_div, see https://github.com/cvxpy/cvxpy/issues/733
+    .. math::
+
+        f(x, y) = x \log\left(\frac{x}{y}\right)
+
+    Convex on its domain. Unlike :func:`kl_div`, does *not* include the
+    :math:`-x + y` correction term.
+
+    Domain: :math:`x \geq 0,\ y \geq 0`.
+
+    For disambiguation between ``rel_entr`` and ``kl_div``, see
+    https://github.com/cvxpy/cvxpy/issues/733
+
+    Parameters
+    ----------
+    x : Expression
+        First argument.
+    y : Expression
+        Second argument.
     """
 
     def __init__(self, x, y) -> None:

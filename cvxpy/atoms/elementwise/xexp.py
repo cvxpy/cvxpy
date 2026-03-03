@@ -23,7 +23,21 @@ from cvxpy.constraints.constraint import Constraint
 
 
 class xexp(Elementwise):
-    """Elementwise :math:`{x}*e^{x}`.
+    r"""Elementwise function :math:`x e^{x}`.
+
+    .. math::
+
+        f(x) = x e^{x}
+
+    Convex for :math:`x \geq 0`. The function is log-log convex on all
+    positive reals.
+
+    Domain: :math:`x \geq 0`.
+
+    Parameters
+    ----------
+    x : Expression
+        The expression to apply :math:`x e^{x}` to.
     """
 
     def __init__(self, x) -> None:
