@@ -56,7 +56,7 @@ class AffAtom(Atom):
         """Is the atom concave?
         """
         return True
-    
+
     def is_atom_smooth(self) -> bool:
         """Is the atom smooth?"""
         return True

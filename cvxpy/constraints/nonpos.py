@@ -71,7 +71,7 @@ class NonPos(Constraint):
     def is_dnlp(self) -> bool:
         """
         A NonPos constraint is DNLP if its
-        argument is epigraph smooth representable.
+        argument is linearizable convex.
         """
         return self.args[0].is_linearizable_convex()
 
@@ -136,8 +136,8 @@ class NonNeg(Constraint):
 
     def is_dnlp(self) -> bool:
         """
-        A non-negative constraint is DNLP if 
-        its argument is hypograph smooth representable.
+        A non-negative constraint is DNLP if
+        its argument is linearizable concave.
         """
         return self.args[0].is_linearizable_concave()
 
@@ -227,7 +227,7 @@ class Inequality(Constraint):
     def is_dnlp(self) -> bool:
         """
         An Inequality constraint is DNLP if its
-        argument is epigraph smooth representable.
+        argument is linearizable convex.
         """
         return self.expr.is_linearizable_convex()
 

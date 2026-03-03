@@ -61,7 +61,7 @@ class Zero(Constraint):
     def is_dnlp(self) -> bool:
         """A zero constraint is DNLP if its argument is smooth representable."""
         return self.args[0].is_smooth()
-    
+
     def is_dgp(self, dpp: bool = False) -> bool:
         return False
 

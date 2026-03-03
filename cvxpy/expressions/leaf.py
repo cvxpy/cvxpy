@@ -669,14 +669,9 @@ class Leaf(expression.Expression):
                     attr_str = 'in bounds'
                 else:
                     attr_str = ([k for (k, v) in self.attributes.items() if v] + ['real'])[0]
-                if np.isnan(val).any():
-                    raise ValueError(
-                        "%s value must be real." % self.__class__.__name__
-                    )
-                else:
-                    raise ValueError(
-                       "%s value must be %s." % (self.__class__.__name__, attr_str)
-                    )
+                raise ValueError(
+                    "%s value must be %s." % (self.__class__.__name__, attr_str)
+                )
         return val
 
     def is_psd(self) -> bool:

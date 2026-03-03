@@ -186,6 +186,7 @@ class SymbolicQuadForm(Atom):
     def is_quadratic(self) -> bool:
         return True
 
+
 def decomp_quad(P, cond=None, rcond=None, lower=True, check_finite: bool = True):
     """
     Compute a matrix decomposition.
