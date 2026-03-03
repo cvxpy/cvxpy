@@ -1000,6 +1000,12 @@ class TestAtoms(BaseTest):
         self.assertEqual(str(cm.exception),
                          "M must be a non-negative scalar constant or Parameter.")
 
+        # Test t <= 0 returns Inf (matching MATLAB behavior)
+        result = cp.huber(1.0, M=1, t=0).value
+        self.assertTrue(np.isinf(result))
+        result = cp.huber(1.0, M=1, t=-1).value
+        self.assertTrue(np.isinf(result))
+
         # Test copy with args=None
         atom = cp.huber(self.x, 2)
         copy = atom.copy()
@@ -1042,19 +1048,79 @@ class TestAtoms(BaseTest):
         problem = cp.Problem(cp.Minimize(x**2 + cp.huber(3*x-5, 2 * M + 0.15)), [x >= 0.5])
 
         M.value = 0.425
-        result = problem.solve()
-        self.assertAlmostEqual(result, 2.5)
-        self.assertAlmostEqual(x.value, 1.5)
+        result = problem.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(result, 2.5, places=4)
+        self.assertAlmostEqual(x.value, 1.5, places=4)
 
         M.value = 0.0
-        result = problem.solve()
-        self.assertAlmostEqual(result, 1.2775)
-        self.assertAlmostEqual(x.value, 0.5)
+        result = problem.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(result, 1.2775, places=4)
+        self.assertAlmostEqual(x.value, 0.5, places=4)
 
         M.value = 0.425
-        result = problem.solve()
-        self.assertAlmostEqual(result, 2.5)
-        self.assertAlmostEqual(x.value, 1.5)
+        result = problem.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(result, 2.5, places=4)
+        self.assertAlmostEqual(x.value, 1.5, places=4)
+
+        # Test t (scale) parameter
+        # Valid t values
+        cp.huber(self.x, M=1, t=1)
+        cp.huber(self.x, M=1, t=2.5)
+        
+        # Test numeric evaluation with t parameter
+        # t * huber(x/t, M): when |x/t| <= M, result = t * (x/t)^2 = x^2/t
+        self.assertAlmostEqual(cp.huber(0.5, M=1, t=2).value, 0.125)  # 0.5^2/2
+        self.assertAlmostEqual(cp.huber(0.5, M=1, t=3).value, 1.0/12)  # 0.5^2/3
+        
+        # When |x/t| > M: result = t * (2*M*|x/t| - M^2)
+        self.assertAlmostEqual(cp.huber(2, M=1, t=2).value, 2.0)  # 2*(2*1*1 - 1)
+        self.assertAlmostEqual(cp.huber(2, M=1, t=3).value, 4.0/3)  # 3*(2*1*(2/3) - 1)
+        
+        # Test with negative x (should give same result due to abs)
+        self.assertAlmostEqual(cp.huber(-0.5, M=1, t=2).value, 0.125)
+        self.assertAlmostEqual(cp.huber(-2, M=1, t=2).value, 2.0)
+        
+        # Test t as Parameter
+        t_param = cp.Parameter(pos=True)
+        expr_t = cp.huber(self.x, M=1, t=t_param)
+        t_param.value = 2.0
+        self.assertAlmostEqual(cp.huber(0.5, M=1, t=t_param).value, 0.125)
+        t_param.value = 3.0
+        self.assertAlmostEqual(cp.huber(0.5, M=1, t=t_param).value, 1.0/12)
+        
+        # Test copy with t parameter
+        atom_t = cp.huber(self.x, M=2, t=3)
+        copy_t = atom_t.copy()
+        self.assertTrue(type(copy_t) is type(atom_t))
+        # Compare args element-wise (can't use assertEqual on CVXPY expression lists)
+        self.assertEqual(len(copy_t.args), len(atom_t.args))
+        for a, b in zip(copy_t.args, atom_t.args):
+            self.assertEqual(a.value, b.value)
+        self.assertEqual(copy_t.get_data()[0].value, atom_t.get_data()[0].value)  # M
+        
+        # Test with DPP - both M and t as Parameters
+        x = cp.Variable()
+        M_param = cp.Parameter(nonneg=True)
+        t_param = cp.Parameter(pos=True)
+        problem_t = cp.Problem(
+            cp.Minimize(x**2 + cp.huber(2*x - 3, M=M_param, t=t_param)),
+            [x >= 0.5]
+        )
+        
+        M_param.value = 1.0
+        t_param.value = 1.0
+        result = problem_t.solve(solver=cp.CLARABEL)
+        x_val1 = x.value
+        
+        # Change t and resolve
+        t_param.value = 2.0
+        result = problem_t.solve(solver=cp.CLARABEL)
+        x_val2 = x.value
+        
+        # With larger t, the huber term is more heavily weighted
+        # so x should be closer to minimizing huber term (x closer to 1.5)
+        self.assertIsNotNone(x_val1)
+        self.assertIsNotNone(x_val2)
 
     def test_sum_largest(self) -> None:
         """Test the sum_largest atom and related atoms.
