@@ -16,17 +16,9 @@ limitations under the License.
 """
 
 import numpy as np
+from sparsediffpy import _sparsediffengine as _diffengine
 
 import cvxpy as cp
-
-# Import the low-level C bindings
-try:
-    from sparsediffpy import _sparsediffengine as _diffengine
-except ImportError as e:
-    raise ImportError(
-        "NLP support requires sparsediffpy. Install with: pip install sparsediffpy"
-    ) from e
-
 from cvxpy.reductions.solvers.nlp_solvers.diff_engine.converters import (
     build_variable_dict,
     convert_expr,

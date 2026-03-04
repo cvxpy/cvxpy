@@ -21,17 +21,10 @@ limitations under the License.
 
 import numpy as np
 from scipy import sparse
+from sparsediffpy import _sparsediffengine as _diffengine
 
 import cvxpy as cp
 from cvxpy.reductions.inverse_data import InverseData
-
-# Import the low-level C bindings
-try:
-    from sparsediffpy import _sparsediffengine as _diffengine
-except ImportError as e:
-    raise ImportError(
-        "NLP support requires sparsediffpy. Install with: pip install sparsediffpy"
-    ) from e
 
 
 def normalize_shape(shape):
