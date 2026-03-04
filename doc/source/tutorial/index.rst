@@ -14,4 +14,5 @@ User Guide
     dqcp/index
     constraints/index
     advanced/index
+    performance/index
     solvers/index
