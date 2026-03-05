@@ -160,14 +160,15 @@ class IPOPT(NLPsolver):
             solver_cache['oracles'] = oracles
           
         nlp = cyipopt.Problem(
-        n=len(data["x0"]),
-        m=len(data["cl"]),
-        problem_obj=oracles,
-        lb=data["lb"],
-        ub=data["ub"],
-        cl=data["cl"],
-        cu=data["cu"],
+            n=len(data["x0"]),
+            m=len(data["cl"]),
+            problem_obj=oracles,
+            lb=data["lb"],
+            ub=data["ub"],
+            cl=data["cl"],
+            cu=data["cu"],  
         )
+
         # Set default IPOPT options, but use solver_opts if provided
         default_options = {
             'mu_strategy': 'adaptive',
@@ -175,7 +176,7 @@ class IPOPT(NLPsolver):
             'bound_relax_factor': 0.0,
             'hessian_approximation': 'exact',
             'derivative_test': 'none',
-            'least_square_init_duals': 'yes'
+            'least_square_init_duals': 'no'
         }
         # Update defaults with user-provided options
         if solver_opts:

@@ -38,7 +38,7 @@ class sinh(Elementwise):
         """Returns sign (is positive, is negative) of the expression.
         """
         # Always unknown.
-        raise NotImplementedError("sign_from_args not implemented for sinh.")
+        return (False, False)
 
     def is_atom_convex(self) -> bool:
         """Is the atom convex?
@@ -74,7 +74,7 @@ class sinh(Elementwise):
 
 
 class tanh(Elementwise):
-    """Elementwise :math:`\\tan x`.
+    """Elementwise :math:`\\tanh x`.
     """
 
     def __init__(self, x) -> None:
@@ -90,7 +90,7 @@ class tanh(Elementwise):
         """Returns sign (is positive, is negative) of the expression.
         """
         # Always unknown.
-        raise NotImplementedError("sign_from_args not implemented for tanh.")
+        return (False, False)
 
     def is_atom_convex(self) -> bool:
         """Is the atom convex?
@@ -140,7 +140,7 @@ class asinh(Elementwise):
 
     def sign_from_args(self) -> Tuple[bool, bool]:
         # Always unknown.
-        raise NotImplementedError("sign_from_args not implemented for asinh.")
+        return (False, False)
 
     def is_atom_convex(self) -> bool:
         return False
@@ -179,7 +179,7 @@ class atanh(Elementwise):
 
     def sign_from_args(self) -> Tuple[bool, bool]:
         # Always unknown.
-        raise NotImplementedError("sign_from_args not implemented for atanh.")
+        return (False, False)
 
     def is_atom_convex(self) -> bool:
         return False

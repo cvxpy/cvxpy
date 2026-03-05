@@ -1,17 +1,31 @@
 """
-Tests for quasi-Newton (L-BFGS) mode in NLP solvers.
+Copyright, the CVXPY authors
 
-These tests verify that the quasi-Newton (hessian_approximation='limited-memory')
-mode works correctly with IPOPT. In this mode, the Hessian is approximated using
-L-BFGS rather than computed exactly, which can be faster for large problems
-and allows solving problems where the Hessian is difficult to compute.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
-
 import numpy as np
 import pytest
 
 import cvxpy as cp
 from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS
+
+"""
+Tests for quasi-Newton (L-BFGS) mode in NLP solvers.
+
+These tests verify that the quasi-Newton (hessian_approximation='limited-memory')
+mode works correctly with IPOPT. In this mode, the Hessian is approximated using
+L-BFGS rather than computed exactly.
+"""
 
 
 @pytest.mark.skipif('IPOPT' not in INSTALLED_SOLVERS, reason='IPOPT is not installed.')

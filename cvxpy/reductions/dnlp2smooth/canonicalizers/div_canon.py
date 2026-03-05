@@ -19,37 +19,37 @@ import numpy as np
 from cvxpy.atoms.affine.binary_operators import multiply
 from cvxpy.expressions.variable import Variable
 
-MIN_INIT = 1e-4
+MIN_INIT = 1e-3
 
 # We canonicalize div(f(x), g(x)) as z * y = f(x), y = g(x), y >= 0.
 # In other words, it assumes that the denominator is nonnegative.
 def div_canon(expr, args):
+    
+    # raise an error if the denominator is not nonnegative
+    if not args[1].is_nonneg():
+        raise ValueError("The denominator of a division must be nonnegative. "
+                          "Did you forget to specify bounds?")
+    
     dim = args[0].shape 
     sgn_z = args[0].sign
 
     if sgn_z == 'NONNEGATIVE':
-        z = Variable(dim, bounds=[0, None])
+        z = Variable(dim, nonneg=True)
     elif sgn_z == 'NONPOSITIVE':
-        z = Variable(dim, bounds=[None, 0])
+        z = Variable(dim, nonpos=True)
     else:
         z = Variable(dim)
     
-    y = Variable(args[1].shape, bounds=[0, None])
+    y = Variable(args[1].shape, nonneg=True)
 
-    if args[1].value is not None:
+    if args[0].value is not None and args[1].value is not None:
         y.value = np.maximum(args[1].value, MIN_INIT)   
-    else:
-        y.value = expr.point_in_domain()
-
-    if args[0].value is not None:
-        val = args[0].value / y.value    
-    else:
-        val = expr.point_in_domain()
+        val = args[0].value / y.value
     
-    # dimension hack
-    if dim == () and val.shape == (1,):
-        z.value = val[0]
-    else:
-        z.value = val
+        # dimension hack
+        if dim == () and val.shape == (1,):
+            z.value = val[0]
+        else:
+            z.value = val
 
     return z, [multiply(z, y) == args[0], y == args[1]]

@@ -1,21 +1,36 @@
+"""
+Copyright, the CVXPY authors
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+"""
+
 import numpy as np
 import numpy.linalg as LA
 import pytest
 
 import cvxpy as cp
+from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS
+from cvxpy.tests.nlp_tests.derivative_checker import DerivativeChecker
 
-# TODO (DCED): should try eg. student-t regression
 
-#@pytest.mark.skipif('IPOPT' not in INSTALLED_SOLVERS, reason='IPOPT is not installed.')
-@pytest.mark.skipif(True, reason='We skip now.')
+@pytest.mark.skipif('IPOPT' not in INSTALLED_SOLVERS, reason='IPOPT is not installed.')
 class TestStressMLE():
     
     def test_zero_mean(self):
         np.random.seed(1234)
         TOL = 1e-3
-        METHODS = [1, 2, 3, 4, 5]
+        METHODS = [1, 2, 3]
         all_n = np.arange(2, 100, 5)
-        #scaling_factors = [0.1, 1e0, 10]
         scaling_factors = [1e0]
 
         for n in all_n:
@@ -25,47 +40,31 @@ class TestStressMLE():
                 sigma_opt = (1 / np.sqrt(n)) * LA.norm(data)
                 res = LA.norm(data) ** 2
                 for method in METHODS:
-                    print("Method, n, scale factor: ", method, n, factor)
                     if method == 1:
                         sigma = cp.Variable((1, ), nonneg=True)
                         obj = (n / 2) * cp.log(2*np.pi*cp.square(sigma)) + \
-                              (1 / (2 * cp.square(sigma))) * res
+                                (1 / (2 * cp.square(sigma))) * res
                         constraints = []
                     elif method == 2:
-                        sigma2 = cp.Variable((1, ))
+                        sigma2 = cp.Variable((1, ), nonneg=True)
                         obj = (n / 2) * cp.log( 2 * np.pi * sigma2) + (1 / (2 * sigma2)) * res
                         constraints = []
                         sigma = cp.sqrt(sigma2)
                     elif method == 3:
-                        sigma = cp.Variable((1, ))
+                        sigma = cp.Variable((1, ), nonneg=True)
                         obj = n  * cp.log(np.sqrt(2*np.pi)*sigma) + \
-                              (1 / (2 * cp.square(sigma))) * res
+                                (1 / (2 * cp.square(sigma))) * res
                         constraints = []
-                    elif method == 4:
-                        sigma2 = cp.Variable((1, ))
-                        obj = (n / 2) * cp.log(sigma2 * 2 * np.pi * -1 * -1) + \
-                              (1 / (2 * sigma2)) * res
-                        constraints = []
-                        sigma = cp.sqrt(sigma2)
-                    elif method == 5:
-                        sigma = cp.Variable((1, ))
-                        obj = n  * cp.log(np.sqrt(2*np.pi)*sigma * -1 * -1 * 2 * 0.5) + \
-                              (1 / (2 * cp.square(sigma))) * res
-                        constraints = []
-
+            
                     problem = cp.Problem(cp.Minimize(obj), constraints)
-                    problem.solve(solver=cp.IPOPT, nlp=True, hessian_approximation="exact",
-                                  derivative_test='none')
-                    print("sigma.value: ", sigma.value)
-                    print("sigma_opt: ", sigma_opt)
+                    problem.solve(solver=cp.IPOPT, nlp=True)
+                    DerivativeChecker(problem).run_and_assert()
                     assert(np.abs(sigma.value - sigma_opt) / np.max([1, np.abs(sigma_opt)]) <= TOL)
-
 
     def test_nonzero_mean(self):
         np.random.seed(1234)
         TOL = 1e-3
-        # we do not run method 1 because it fails sometimes
-        METHODS = [2, 3, 4, 5]
+        METHODS = [1, 2, 3]
         all_n = np.arange(2, 100, 5)
         scaling_factors = [1e0]
         mu = cp.Variable((1, ), name="mu")
@@ -80,43 +79,24 @@ class TestStressMLE():
                     mu.value = None
                     print("Method, n, scale factor: ", method, n, factor)
                     if method == 1:
-                        # here we wont deduce that sigma is nonnegative so it can be useful
-                        # to mention it
                         sigma = cp.Variable((1, ), nonneg=True)
                         obj = (n / 2) * cp.log(2*np.pi*cp.square(sigma)) + \
-                              (1 / (2 * cp.square(sigma))) * cp.sum(cp.square(data-mu))
+                                (1 / (2 * cp.square(sigma))) * cp.sum(cp.square(data-mu))
                         constraints = []
                     elif method == 2:
-                        # here we will deduce that sigma2 is nonnegative so no need to mention it
-                        sigma2 = cp.Variable((1, ), name="Sigma2")
+                        sigma2 = cp.Variable((1, ), nonneg=True)
                         obj = (n / 2) * cp.log( 2 * np.pi * sigma2) + \
-                              (1 / (2 * sigma2)) * cp.sum(cp.square(data-mu))
+                                (1 / (2 * sigma2)) * cp.sum(cp.square(data-mu))
                         constraints = []
                         sigma = cp.sqrt(sigma2)
                     elif method == 3:
-                        # here we will deduce that sigma is nonnegative so no need to mention it
-                        sigma = cp.Variable((1, ), name="Sigma")
+                        sigma = cp.Variable((1, ), nonneg=True)
                         obj = n  * cp.log(np.sqrt(2*np.pi)*sigma) + \
-                              (1 / (2 * cp.square(sigma))) * cp.sum(cp.square(data-mu))
+                                (1 / (2 * cp.square(sigma))) * cp.sum(cp.square(data-mu))
                         constraints = []
-                    elif method == 4:
-                        # here we will deduce that sigma is nonnegative so no need to mention it
-                        sigma2 = cp.Variable((1, ), name="Sigma2")
-                        obj = (n / 2) * cp.log(sigma2 * 2 * np.pi * -1 * -1) + \
-                            (1 / (2 * sigma2)) * cp.sum(cp.square(data-mu))
-                        constraints = []
-                        sigma = cp.sqrt(sigma2)
-                    elif method == 5:
-                        # here we will deduce that sigma is nonnegative so no need to mention it
-                        sigma = cp.Variable((1, ), name="Sigma")
-                        obj = n  * cp.log(np.sqrt(2*np.pi)*sigma * -1 * -1 * 2 * 0.5) + \
-                              (1 / (2 * cp.square(sigma))) * cp.sum(cp.square(data-mu))
-                        constraints = []
-
-                    problem = cp.Problem(cp.Minimize(obj), constraints)
-                    problem.solve(solver=cp.IPOPT, nlp=True, hessian_approximation="exact",
-                                  derivative_test='none')
-                    print("sigma.value: ", sigma.value)
-                    print("sigma_opt: ", sigma_opt)
+                    
+                    problem = cp.Problem(cp.Minimize(obj), constraints)    
+                    problem.solve(solver=cp.IPOPT, nlp=True, verbose=True)
+                    DerivativeChecker(problem).run_and_assert()
                     assert(np.abs(sigma.value - sigma_opt) / np.max([1, np.abs(sigma_opt)]) <= TOL)
                     assert(np.abs(mu.value - mu_opt) / np.max([1, np.abs(mu_opt)]) <= TOL)

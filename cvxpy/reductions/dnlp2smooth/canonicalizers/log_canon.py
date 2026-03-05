@@ -18,14 +18,12 @@ import numpy as np
 
 from cvxpy.expressions.variable import Variable
 
-MIN_INIT = 1e-4
+MIN_INIT = 1e-3
 
 def log_canon(expr, args):
-    t = Variable(args[0].shape, bounds=[0, None])
+    t = Variable(args[0].shape, nonneg=True)
 
     if args[0].value is not None:
         t.value = np.maximum(args[0].value, MIN_INIT)
-    else:
-        t.value = expr.point_in_domain()
-
+   
     return expr.copy([t]), [t == args[0]]

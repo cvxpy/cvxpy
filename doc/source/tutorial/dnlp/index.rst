@@ -104,7 +104,13 @@ retain their convexity/concavity and can appear in L-convex and L-concave expres
 
 Some existing CVXPY atoms gain new meaning in DNLP. These are summarized in the table below.
 For example, in DCP, the ``multiply`` atom requires that one of the arguments is a constant,
-but in DNLP, ``multiply`` is smooth and can be used with two variable arguments. 
+but in DNLP, ``multiply`` is smooth and can be used with two variable arguments.
+
+.. warning::
+
+   When using division as in ``1/x`` or ``1/f(x)`` in DNLP, it is always assumed that the denominator
+   is nonnegative. If not, an error will be raised. If you wish to model ``1/(-x^2)``,
+   you must formulate it as ``-1/x^2``.
 
 .. list-table::
    :header-rows: 1
