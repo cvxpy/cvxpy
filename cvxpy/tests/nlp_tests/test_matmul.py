@@ -71,7 +71,7 @@ class TestMatmul():
         problem = cp.Problem(cp.Minimize(obj))
 
         problem.solve(solver=cp.IPOPT, nlp=True, hessian_approximation='exact',
-                    derivative_test='none', verbose=True)
+                    derivative_test='none', verbose=False)
         assert(problem.status == cp.OPTIMAL)
 
         checker = DerivativeChecker(problem)
@@ -87,7 +87,7 @@ class TestMatmul():
         problem = cp.Problem(cp.Minimize(obj))
 
         problem.solve(solver=cp.IPOPT, nlp=True, hessian_approximation='exact',
-                    derivative_test='none', verbose=True)
+                    derivative_test='none', verbose=False)
         assert(problem.status == cp.OPTIMAL)
 
         checker = DerivativeChecker(problem)
@@ -104,7 +104,7 @@ class TestMatmul():
         problem = cp.Problem(cp.Minimize(obj))
 
         problem.solve(solver=cp.IPOPT, nlp=True, hessian_approximation='exact',
-                    derivative_test='none', verbose=True)
+                    derivative_test='none', verbose=False)
         assert(problem.status == cp.OPTIMAL)
 
         checker = DerivativeChecker(problem)
