@@ -181,7 +181,7 @@ class tan(Elementwise):
     def _domain(self) -> List[Constraint]:
         """Returns constraints describing the domain of the node.
         """
-        return [-np.pi/2 < self.args[0], self.args[0] < np.pi/2]
+        return [-np.pi/2 <= self.args[0], self.args[0] <= np.pi/2]
 
     def _grad(self, values) -> List[Constraint]:
         """Returns the gradient of the node.

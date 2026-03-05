@@ -46,9 +46,7 @@ def quad_over_lin_canon(expr, args):
         t2 = Variable(t2.shape, nonneg=True)
         constraints += [t2 == args[1]]
 
-        if args[1].value is not None and args[1].value > MIN_INIT:
-            t2.value = args[1].value
-        else:
-            t2.value = np.ones(t2.shape)
-    
+        if args[1].value is not None:
+            t2.value = np.maximum(args[1].value, MIN_INIT)
+       
         return expr.copy([t1, t2]), constraints

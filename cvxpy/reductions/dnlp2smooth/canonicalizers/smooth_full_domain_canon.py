@@ -16,11 +16,19 @@ limitations under the License.
 from cvxpy.expressions.variable import Variable
 
 
-def exp_canon(expr, args):
+def smooth_full_domain_canon(expr, args):
     if isinstance(args[0], Variable):
-        return expr.copy([args[0]]), []
-    else:
-        t = Variable(args[0].shape)
-        if args[0].value is not None:
-            t.value = args[0].value
-        return expr.copy([t]), [t == args[0]]
+        return expr, []
+    t = Variable(args[0].shape)
+    if args[0].value is not None:
+        t.value = args[0].value
+    return expr.copy([t]), [t == args[0]]
+
+sinh_canon = smooth_full_domain_canon
+tanh_canon = smooth_full_domain_canon
+asinh_canon = smooth_full_domain_canon
+exp_canon = smooth_full_domain_canon
+logistic_canon = smooth_full_domain_canon
+sin_canon = smooth_full_domain_canon
+cos_canon = smooth_full_domain_canon
+prod_canon = smooth_full_domain_canon

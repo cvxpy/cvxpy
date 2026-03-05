@@ -16,24 +16,6 @@ limitations under the License.
 from cvxpy.expressions.variable import Variable
 
 
-def sin_canon(expr, args):
-    if isinstance(args[0], Variable):
-        return expr, []
-    else:
-        t = Variable(args[0].shape)
-        if args[0].value is not None:
-            t.value = args[0].value
-        return expr.copy([t]), [t == args[0]]
-
-def cos_canon(expr, args):
-    if isinstance(args[0], Variable):
-        return expr, []
-    else:
-        t = Variable(args[0].shape)
-        if args[0].value is not None:
-            t.value = args[0].value
-        return expr.copy([t]), [t == args[0]]
-
 def tan_canon(expr, args):
     t = Variable(args[0].shape, bounds=[-3.14159/2, 3.14159/2])
     if args[0].value is not None:
