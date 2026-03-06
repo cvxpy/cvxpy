@@ -150,9 +150,12 @@ def build_dim_reduced_expression(leaf, reduced_leaf):
 class CvxAttr2Constr(Reduction):
     """Expand convex variable attributes into constraints."""
 
-    def __init__(self, problem=None, reduce_bounds: bool = False) -> None:
-        """If reduce_bounds, reduce lower and upper bounds on variables."""
+    def __init__(self, problem=None, reduce_bounds: bool = False,
+                 reduce_psd: bool = True) -> None:
+        """If reduce_bounds, reduce lower and upper bounds on variables.
+        If reduce_psd, add explicit PSD/NSD constraints for PSD/NSD variables."""
         self.reduce_bounds = reduce_bounds
+        self.reduce_psd = reduce_psd
         self._parameters = {}  # {orig_param: reduced_param}
         super(CvxAttr2Constr, self).__init__(problem=problem)
 
@@ -215,6 +218,12 @@ class CvxAttr2Constr(Reduction):
                                 )
                         new_attr['bounds'] = transformed_bounds
 
+                    # PSD/NSD can't be on a 1D reduced variable (would raise
+                    # ValueError). Always strip them here; the PSD/NSD
+                    # constraint is added below (conditionally on reduce_psd).
+                    new_attr['PSD'] = False
+                    new_attr['NSD'] = False
+
                     reduced_var = Variable(n, var_id=var.id, **new_attr)
                     reduced_var.set_leaf_of_provenance(var)
                     id2new_var[var.id] = reduced_var
@@ -229,10 +238,11 @@ class CvxAttr2Constr(Reduction):
 
                 id2new_obj[id(var)] = obj
                 # Attributes related to positive and negative definiteness.
-                if var.is_psd():
-                    constr.append(obj >> 0)
-                elif var.attributes['NSD']:
-                    constr.append(obj << 0)
+                if self.reduce_psd:
+                    if var.is_psd():
+                        constr.append(obj >> 0)
+                    elif var.attributes['NSD']:
+                        constr.append(obj << 0)
                 # Add in constraints from bounds.
                 if self.reduce_bounds:
                     var._bound_domain(obj, constr)

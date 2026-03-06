@@ -202,8 +202,25 @@ class ParamConeProg(ParamProb):
         self.var_id_to_col = var_id_to_col
         self.id_to_var = {v.id: v for v in self.variables}
 
+        self.psd_variable_info = self._extract_psd_variable_info()
+
         # whether this param cone prog has been formatted for a solver
         self.formatted = formatted
+
+    def _extract_psd_variable_info(self):
+        """Extract metadata for variables that were PSD/NSD before reduction.
+
+        Returns list of (var_offset, reduced_size, matrix_dim, is_nsd).
+        """
+        info = []
+        for var in self.variables:
+            if var.attributes_were_lowered():
+                orig = var.leaf_of_provenance()
+                if orig.is_psd() or orig.is_nsd():
+                    offset = self.var_id_to_col[var.id]
+                    n = orig.shape[0]
+                    info.append((offset, n * (n + 1) // 2, n, orig.is_nsd()))
+        return info
 
     def is_mixed_integer(self) -> bool:
         """Is the problem mixed-integer?"""

@@ -87,10 +87,12 @@ class QPTestBase(BaseTest):
         if 'MOSEK' not in INSTALLED_SOLVERS:
             return False
         try:
-            import mosek  # type: ignore
-            env = mosek.Env()
-            status = env.getlicense()
-            return status == mosek.rescode.ok
+            # Verify license by solving a trivial LP; avoids MOSEK version-specific
+            # license API differences (e.g., getlicense() behaviour changed in MOSEK 11).
+            x = cp.Variable()
+            prob = cp.Problem(cp.Minimize(x), [x >= 0])
+            prob.solve(solver=cp.MOSEK, verbose=False)
+            return prob.status in (cp.OPTIMAL, cp.OPTIMAL_INACCURATE)
         except Exception:
             return False
 
