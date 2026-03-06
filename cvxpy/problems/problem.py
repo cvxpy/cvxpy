@@ -997,8 +997,10 @@ class Problem(u.Canonical):
                     '%d constraints, and ' '%d parameters.',
                     n_variables, n_constraints, n_parameters)
             curvatures = []
+            _t0 = time.time()
             if self.is_dcp():
                 curvatures.append('DCP')
+            _t1 = time.time()
             if self.is_dgp():
                 curvatures.append('DGP')
             if self.is_dqcp():
@@ -1006,6 +1008,9 @@ class Problem(u.Canonical):
             s.LOGGER.info(
                     'It is compliant with the following grammars: %s',
                     ', '.join(curvatures))
+            s.LOGGER.info('DCP verification time: %.4f seconds.', _t1 - _t0)
+            n_nodes = len(self.atoms())
+            s.LOGGER.info('Expression tree has %d nodes.', n_nodes)
             if n_parameters == 0:
                 s.LOGGER.info(
                     '(If you need to solve this problem multiple times, '
