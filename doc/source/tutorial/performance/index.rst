@@ -69,7 +69,29 @@ Similarly, for simple bound constraints, consider using the ``bounds`` attribute
     constraints = [x >= 0, x <= 1]
 
     # Best (use bounds attribute)
-    x = cp.Variable(n, nonneg=True)
+    x = cp.Variable(n, bounds=[0, 1])
+
+The ``bounds`` attribute is the most efficient way to specify simple variable bounds.
+It supports scalars, NumPy arrays, parameters, and affine functions of parameters:
+
+.. code:: python
+
+    import numpy as np
+    import cvxpy as cp
+
+    n = 10
+    # Scalar bounds
+    x = cp.Variable(n, bounds=[0, 1])
+
+    # NumPy array bounds
+    lb = np.zeros(n)
+    ub = np.ones(n)
+    x = cp.Variable(n, bounds=[lb, ub])
+
+    # Parameter bounds (useful for repeated solves with changing bounds)
+    lb_param = cp.Parameter(n, nonneg=True)
+    ub_param = cp.Parameter(n, nonneg=True)
+    x = cp.Variable(n, bounds=[lb_param, ub_param])
 
 .. _use-cvxpy-sum:
 
