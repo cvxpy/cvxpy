@@ -89,7 +89,7 @@ It supports scalars, NumPy arrays, parameters, and affine functions of parameter
     x = cp.Variable(n, bounds=[lb, ub])
 
     # Parameter bounds (useful for repeated solves with changing bounds)
-    lb_param = cp.Parameter(n, nonneg=True)
+    lb_param = cp.Parameter(n)
     ub_param = cp.Parameter(n, nonneg=True)
     x = cp.Variable(n, bounds=[lb_param, ub_param])
 
