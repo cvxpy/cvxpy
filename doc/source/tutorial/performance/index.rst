@@ -90,7 +90,7 @@ It supports scalars, NumPy arrays, parameters, and affine functions of parameter
 
     # Parameter bounds (useful for repeated solves with changing bounds)
     lb_param = cp.Parameter(n)
-    ub_param = cp.Parameter(n, nonneg=True)
+    ub_param = cp.Parameter(n)
     x = cp.Variable(n, bounds=[lb_param, ub_param])
 
 .. _use-cvxpy-sum:
