@@ -17,7 +17,7 @@ The single most impactful thing you can do to reduce compile time is to **vector
 expressions. This means expressing constraints and objectives over entire vectors or matrices at
 once, rather than writing scalar operations in Python loops.
 
-As a rule of thumb, you should minimize the number of CVXPY ``Variable``, ``Constraint``, and
+As a rule of thumb, you should minimize the number (and not just the dimension) of CVXPY ``Variable``, ``Constraint``, and
 ``Expression`` objects needed to specify your model. Each CVXPY object adds overhead during
 compilation, so fewer objects means faster compile times.
 
@@ -56,17 +56,20 @@ compilation, so fewer objects means faster compile times.
     prob.solve()
 
 The vectorized version creates a single constraint object instead of ``m`` separate ones.
-For large ``m``, this difference can be the gap between seconds and hours of compile time.
+For large ``m``, this difference can be the gap between milliseconds and seconds of compile time.
 
-Similarly, bound constraints should be vectorized:
+Similarly, for simple bound constraints, consider using the ``bounds`` attribute on the variable directly, which is the most efficient approach:
 
 .. code:: python
 
     # Slow
     constraints = [x[i] >= 0 for i in range(n)] + [x[i] <= 1 for i in range(n)]
 
-    # Fast
+    # Better (vectorized)
     constraints = [x >= 0, x <= 1]
+
+    # Best (use bounds attribute)
+    x = cp.Variable(n, nonneg=True)
 
 .. _use-cvxpy-sum:
 
@@ -94,7 +97,7 @@ Use parameters for repeated solves
 
 If you need to solve the same problem multiple times with different data values, use
 :class:`~cvxpy.atoms.affine.add_expr.Parameter` objects instead of creating a new problem
-each time. Parameters allow CVXPY to compile the problem structure once and reuse it across
+each time. Parameters, used correctly, allow CVXPY to compile the problem structure once and reuse it across
 solves, which is known as **DPP (Disciplined Parameterized Programming)**.
 
 .. code:: python
