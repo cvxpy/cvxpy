@@ -27,14 +27,30 @@ from cvxpy.constraints.constraint import Constraint
 def trace(expr):
     """
     TLDR: Use alternate formulation for trace(A@B) for more efficient computation.
-    trace(A@B) normally is O(n^3) because of the A@B operation. 
+    trace(A@B) normally is O(n^3) because of the A@B operation.
     However, trace(A@B) only requires diagonal entries of A@B, which can be
-    computed by taking the sum of element-wise product of A.T * B in O(n^2) time.
-    In fact, vdot does this operation more robustly, using conj(A) instead of transpose. 
+    computed in O(n^2) time using the identity:
+
+        trace(A @ B) = sum_ij A_ij * B_ji = sum(A * B.T)
+
+    This avoids forming the full matrix product while remaining correct for
+    both real and complex matrices (no conjugation on A is needed).
+
+    When the MulExpression is Hermitian (e.g. X @ X^H for Hermitian X), the
+    result is provably real; it is wrapped with real() so that is_real()
+    correctly returns True without routing to the O(n^3) Trace(expr) path.
     """
-    if isinstance(expr, MulExpression): 
-        from cvxpy.atoms.affine.binary_operators import vdot
-        return vdot(expr.args[0], expr.args[1])
+    if isinstance(expr, MulExpression):
+        from cvxpy.atoms.affine.binary_operators import multiply
+        from cvxpy.atoms.affine.sum import sum as cvxpy_sum
+        # trace(A @ B) = sum(A * B.T), correct for real and complex matrices.
+        result = cvxpy_sum(multiply(expr.args[0], expr.args[1].T))
+        if expr.is_hermitian():
+            # trace of a Hermitian matrix is provably real.
+            # Wrap with real() so is_real() == True propagates upward.
+            from cvxpy.atoms.affine.real import real as real_atom
+            return real_atom(result)
+        return result
     else:
         return Trace(expr)
 

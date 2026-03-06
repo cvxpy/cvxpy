@@ -882,20 +882,28 @@ class TestAtoms(BaseTest):
         assert isinstance(t, cp.Trace)
 
     def test_trace_AB(self) -> None:
-        """Test the trace(AB) gets canonicalized to vdot(A,B)
+        """Test that trace(A @ B) = sum(A * B.T), correct for non-symmetric matrices.
         """
-        A = cp.Variable((4,5))
-        B = cp.Variable((5,4))
+        A = cp.Variable((4, 5))
+        B = cp.Variable((5, 4))
         t = cp.trace(A @ B)
-        
-        # Ensure that Trace(A @ B) resolved to vdot(A, B)
-        assert len(t.args) == 1
-        assert isinstance(t.args[0], multiply)
-        assert len(t.args[0].args) == 2
-        assert isinstance(t.args[0].args[0], conj)
-        assert len(t.args[0].args[0].args) == 1
-        assert isinstance(t.args[0].args[0].args[0], reshape)
-        assert isinstance(t.args[0].args[1], reshape)
+
+        # Structural check: trace(A@B) is a scalar Sum of an element-wise multiply.
+        from cvxpy.atoms.affine.sum import Sum
+        assert isinstance(t, Sum)
+        assert t.shape == ()
+
+        # Numerical correctness for non-symmetric matrices (the core bug check).
+        # Previously, vdot(A, B) = sum(conj(A)*B) was used, giving trace(A^H @ B),
+        # which differs from trace(A @ B) when A is not Hermitian.
+        A_val = np.array([[1., 2., 3.], [4., 5., 6.]])
+        B_val = np.array([[7., 8.], [9., 10.], [11., 12.]])
+        A2 = cp.Variable((2, 3))
+        B2 = cp.Variable((3, 2))
+        A2.value = A_val
+        B2.value = B_val
+        t2 = cp.trace(A2 @ B2)
+        self.assertAlmostEqual(t2.value, np.trace(A_val @ B_val))
 
     def test_trace_complex2real(self) -> None:
         X = cp.Variable((2, 2), complex=True)
