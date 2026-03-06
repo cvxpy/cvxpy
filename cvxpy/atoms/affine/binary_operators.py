@@ -247,6 +247,18 @@ class MulExpression(BinaryOperator):
         # For matrix multiplication, use matmul bounds
         return bounds_utils.matmul_bounds(lb1, ub1, lb2, ub2)
 
+    def is_hermitian(self) -> bool:
+        """Is the expression Hermitian?
+
+        A @ A is Hermitian whenever A is Hermitian, because
+        (A @ A)† = A† @ A† = A @ A.  Other products are not
+        Hermitian in general (they require commutativity), so
+        fall back to the real-and-symmetric check.
+        """
+        if self.args[0] is self.args[1] and self.args[0].is_hermitian():
+            return True
+        return self.is_real() and self.is_symmetric()
+
     def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """

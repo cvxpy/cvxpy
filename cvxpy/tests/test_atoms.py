@@ -557,6 +557,18 @@ class TestAtoms(BaseTest):
         Y = cp.Variable((3, 3), hermitian=True)
         self.assertTrue(cp.multiply(X, Y).is_hermitian())
 
+        # Test matmul self-product: X @ X is Hermitian when X is Hermitian.
+        # (X @ X)† = X† @ X† = X @ X.
+        # Regression: MulExpression lacked is_hermitian(), so (X @ X).is_hermitian()
+        # returned False, which caused trace(X @ X).is_real() to return False,
+        # which caused Minimize(trace(X @ X)) to crash with
+        # "objective must be real valued" before even reaching the DCP check.
+        self.assertTrue((X @ X).is_hermitian())
+        self.assertTrue(cp.trace(X @ X).is_real())
+
+        # Distinct Hermitian matrices: A @ B is NOT generally Hermitian.
+        self.assertFalse((X @ Y).is_hermitian())
+
     # Test the vstack class.
     def test_vstack(self) -> None:
         atom = cp.vstack([self.x, self.y, self.x])
