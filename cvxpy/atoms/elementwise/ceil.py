@@ -23,7 +23,19 @@ from cvxpy.atoms.elementwise.elementwise import Elementwise
 
 
 class ceil(Elementwise):
-    """Elementwise ceiling."""
+    r"""Elementwise ceiling.
+
+    .. math::
+
+        f(x) = \lceil x \rceil
+
+    Increasing and quasiconvex.
+
+    Parameters
+    ----------
+    x : Expression
+        The expression to apply the ceiling function to.
+    """
 
     def __init__(self, x) -> None:
         return super(ceil, self).__init__(x)
@@ -100,7 +112,19 @@ class ceil(Elementwise):
 
 
 class floor(Elementwise):
-    """Elementwise floor."""
+    r"""Elementwise floor.
+
+    .. math::
+
+        f(x) = \lfloor x \rfloor
+
+    Increasing and quasiconcave.
+
+    Parameters
+    ----------
+    x : Expression
+        The expression to apply the floor function to.
+    """
 
     def __init__(self, x) -> None:
         return super(floor, self).__init__(x)

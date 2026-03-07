@@ -27,7 +27,24 @@ from cvxpy.constraints.constraint import Constraint
 
 
 class MatrixFrac(Atom):
-    """ tr X.T*P^-1*X """
+    r"""The matrix fractional function :math:`\text{tr}(X^T P^{-1} X)`.
+
+    .. math::
+
+        f(X, P) = \text{tr}(X^T P^{-1} X)
+
+    For :math:`X \in \mathbb{R}^{n \times m}`, :math:`P \in \mathbb{R}^{n \times n}`.
+    Jointly convex in :math:`X` and :math:`P`.
+
+    Domain: :math:`X \in \mathbb{R}^{n \times m}`, :math:`P \in \mathbf{S}^n_{++}`.
+
+    Parameters
+    ----------
+    X : Expression
+        A matrix or vector.
+    P : Expression
+        A square, positive definite matrix.
+    """
     _allow_complex = True
 
     def __init__(self, X, P) -> None:

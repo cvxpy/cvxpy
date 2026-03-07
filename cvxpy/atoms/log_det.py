@@ -26,8 +26,18 @@ from cvxpy.constraints.constraint import Constraint
 
 
 class log_det(Atom):
-    """:math:`\\log\\det A`
+    r"""The natural logarithm of the determinant of a matrix.
 
+    .. math::
+
+        f(X) = \log \det X
+
+    Concave on :math:`\mathbf{S}^n_{++}`.
+
+    Parameters
+    ----------
+    A : Expression
+        A square, positive definite matrix.
     """
 
     def __init__(self, A) -> None:

@@ -19,7 +19,22 @@ from cvxpy.expressions.expression import Expression
 
 
 def lambda_sum_smallest(X, k):
-    """Sum of the smallest k eigenvalues.
+    r"""The sum of the smallest :math:`k` eigenvalues of a Hermitian matrix.
+
+    .. math::
+
+        f(X) = \sum_{i=n-k+1}^n \lambda_i(X)
+
+    where :math:`\lambda_i(X)` is the :math:`i`-th largest eigenvalue of :math:`X`.
+
+    Concave and always real-valued.
+
+    Parameters
+    ----------
+    X : Expression
+        The Hermitian matrix expression.
+    k : int
+        The number of eigenvalues to sum.
     """
     X = Expression.cast_to_const(X)
     return -lambda_sum_largest(-X, k)

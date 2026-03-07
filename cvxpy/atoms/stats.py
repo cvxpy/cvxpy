@@ -22,8 +22,22 @@ from cvxpy.atoms.sum_squares import sum_squares
 
 
 def mean(x, axis=None, keepdims=False):
-    """
-    Returns the mean of x.
+    r"""The mean of all entries in an expression.
+
+    .. math::
+
+        f(x) = \frac{1}{n} \sum_{i,j} x_{ij}
+
+    Affine and increasing.
+
+    Parameters
+    ----------
+    x : Expression
+        The expression to take the mean of.
+    axis : int, optional
+        The axis along which to apply the reduction (default: all elements).
+    keepdims : bool, optional
+        Whether to keep the reduced dimension (default: False).
     """
     if axis is None:
         return cvxpy_sum(x, axis, keepdims) / x.size
@@ -34,10 +48,25 @@ def mean(x, axis=None, keepdims=False):
 
 
 def std(x, axis=None, keepdims=False, ddof=0):
-    """
-    Returns the standard deviation of x.
+    r"""The standard deviation of all entries in an expression.
 
-    `ddof` is the quantity to use in the Bessel correction.
+    .. math::
+
+        f(x) = \sqrt{\frac{1}{n-d} \sum_{ij} (x_{ij} - \bar{x})^2}
+
+    where :math:`d` is the degrees of freedom (``ddof``).
+    Convex and nonnegative.
+
+    Parameters
+    ----------
+    x : Expression
+        The expression to take the standard deviation of.
+    axis : int, optional
+        The axis along which to apply the reduction (default: all elements).
+    keepdims : bool, optional
+        Whether to keep the reduced dimension (default: False).
+    ddof : int, optional
+        Delta degrees of freedom (default: 0).
     """
     if axis is None:
         return norm((x - mean(x)).flatten(order='F'), 2) / np.sqrt(x.size - ddof)
@@ -48,10 +77,25 @@ def std(x, axis=None, keepdims=False, ddof=0):
         raise ValueError("cp.std doesn't yet support axis values other than 0 or 1.")
 
 def var(x, axis=None, keepdims=False, ddof=0):
-    """
-    Returns the variance of x.
+    r"""The variance of all entries in an expression.
 
-    `ddof` is the quantity to use in the Bessel correction.
+    .. math::
+
+        f(x) = \frac{1}{n-d} \sum_{ij} (x_{ij} - \bar{x})^2
+
+    where :math:`d` is the degrees of freedom (``ddof``).
+    Convex and nonnegative.
+
+    Parameters
+    ----------
+    x : Expression
+        The expression to take the variance of.
+    axis : int, optional
+        The axis along which to apply the reduction (default: all elements).
+    keepdims : bool, optional
+        Whether to keep the reduced dimension (default: False).
+    ddof : int, optional
+        Delta degrees of freedom (default: 0).
     """
     if axis is None:
         return sum_squares(x - mean(x)) / (x.size - ddof)

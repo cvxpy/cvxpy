@@ -272,13 +272,24 @@ def decomp_quad(P, cond=None, rcond=None, lower=True, check_finite: bool = True)
 
 
 def quad_form(x, P, assume_PSD: bool = False):
-    """ Alias for :math:`x^T P x`.
+    r"""The quadratic form :math:`x^T P x`.
+
+    .. math::
+
+        f(x, P) = x^T P x
+
+    If :math:`x` is a vector and :math:`P` is a constant matrix, this is
+    convex if :math:`P` is positive semidefinite (PSD) and concave if :math:`P`
+    is negative semidefinite (NSD).
 
     Parameters
     ----------
-    x : vector argument.
-    P : matrix argument.
-    assume_PSD : P is assumed to be PSD without checking.
+    x : Expression
+        A vector or matrix.
+    P : Expression
+        A square matrix.
+    assume_PSD : bool, optional
+        If True, :math:`P` is assumed to be PSD without checking. (Default: False)
     """
     x, P = map(Expression.cast_to_const, (x, P))
     # Check dimensions.

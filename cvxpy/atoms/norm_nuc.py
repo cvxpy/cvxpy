@@ -23,7 +23,18 @@ from cvxpy.atoms.atom import Atom
 
 
 class normNuc(Atom):
-    """Sum of the singular values.
+    r"""The nuclear norm (sum of singular values).
+
+    .. math::
+
+        f(X) = \|X\|_* = \sum_i \sigma_i(X)
+
+    Convex and always nonnegative.
+
+    Parameters
+    ----------
+    A : Expression
+        the expression to take the nuclear norm of.
     """
     _allow_complex = True
 

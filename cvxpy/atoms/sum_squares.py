@@ -24,26 +24,21 @@ def sum_squares(
     axis: Optional[Union[int, Tuple[int, ...]]] = None,
     keepdims: bool = False
 ):
-    """The sum of the squares of the entries.
+    r"""The sum of the squares of the entries.
+
+    .. math::
+
+        f(x) = \sum_{ij} x_{ij}^2 = \|x\|_F^2
+
+    Convex, always nonnegative, and quadratic.
 
     Parameters
     ----------
     expr : Expression
         The expression to take the sum of squares of.
     axis : int or tuple of int, optional
-        The axis or axes along which to compute the sum of squares.
-        If None (default), sums over all elements and returns a scalar.
-        If an int, sums over that axis.
-        If a tuple, sums over multiple axes.
+        The axis along which to compute the sum of squares (default: all elements).
     keepdims : bool, optional
-        If True, the reduced axes are retained as dimensions with size 1.
-        Default is False.
-
-    Returns
-    -------
-    Expression
-        An expression representing the sum of squares.
-        Scalar if axis is None, otherwise a vector/array (or with keepdims=True,
-        retains shape with reduced dimensions as 1).
+        Whether to keep the reduced dimension (default: False).
     """
     return quad_over_lin(expr, 1, axis=axis, keepdims=keepdims)

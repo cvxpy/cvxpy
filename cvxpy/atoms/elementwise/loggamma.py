@@ -18,11 +18,22 @@ from cvxpy.atoms.elementwise.maximum import maximum
 
 # ruff: noqa: E501
 def loggamma(x):
-    """Elementwise log of the gamma function.
+    r"""Elementwise log of the gamma function.
+
+    .. math::
+
+        f(x) = \log \Gamma(x)
 
     Implementation has modest accuracy over the full range, approaching perfect
     accuracy as x goes to infinity. For details on the nature of the approximation,
     refer to `CVXPY GitHub Issue #228 <https://github.com/cvxpy/cvxpy/issues/228#issuecomment-544281906>`_.
+
+    Domain: :math:`x > 0`.
+
+    Parameters
+    ----------
+    x : Expression
+        The expression to apply the function to.
     """
 
     return maximum(

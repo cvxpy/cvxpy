@@ -24,7 +24,22 @@ from cvxpy.utilities import bounds as bounds_utils
 
 
 class max(AxisAtom):
-    """:math:`\\max_{i,j}\\{X_{i,j}\\}`.
+    r"""The maximum of all entries in an expression.
+
+    .. math::
+
+        f(x) = \max_{ij} x_{ij}
+
+    Convex, increasing, and piecewise-linear.
+
+    Parameters
+    ----------
+    x : Expression
+        The expression to take the maximum of.
+    axis : int, optional
+        The axis along which to apply the reduction (default: all elements).
+    keepdims : bool, optional
+        Whether to keep the reduced dimension (default: False).
     """
 
     __EXPR_AXIS_ERROR__ = """

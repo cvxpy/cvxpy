@@ -24,8 +24,22 @@ from cvxpy.atoms.atom import Atom
 
 
 class sum_largest(Atom):
-    """
-    Sum of the largest k values in the expression X
+    r"""Sum of the largest :math:`k` values.
+
+    .. math::
+
+        f(x) = \sum_{i=1}^k x_{[i]}
+
+    where :math:`x_{[i]}` is the :math:`i`-th largest value of :math:`x`.
+
+    Convex and always non-decreasing.
+
+    Parameters
+    ----------
+    x : Expression
+        the expression to take the sum of largest values of.
+    k : int
+        the number of largest values to sum.
     """
 
     def __init__(self, x, k) -> None:

@@ -19,7 +19,18 @@ from cvxpy.expressions.expression import Expression
 
 
 def lambda_min(X):
-    """ Minimum eigenvalue; :math:`\\lambda_{\\min}(A)`.
+    r"""The minimum eigenvalue of a Hermitian matrix.
+
+    .. math::
+
+        f(X) = \lambda_{\min}(X)
+
+    Concave and always real-valued.
+
+    Parameters
+    ----------
+    X : Expression
+        The Hermitian matrix expression.
     """
     X = Expression.cast_to_const(X)
     return -lambda_max(-X)

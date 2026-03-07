@@ -19,7 +19,22 @@ from cvxpy.expressions.expression import Expression
 
 
 def sum_smallest(x, k):
-    """Sum of the smallest k values.
+    r"""Sum of the smallest :math:`k` values.
+
+    .. math::
+
+        f(x) = \sum_{i=n-k+1}^n x_{[i]}
+
+    where :math:`x_{[i]}` is the :math:`i`-th largest value of :math:`x`.
+
+    Concave and always non-decreasing.
+
+    Parameters
+    ----------
+    x : Expression
+        the expression to take the sum of smallest values of.
+    k : int
+        the number of smallest values to sum.
     """
     x = Expression.cast_to_const(x)
     return -sum_largest(-x, k)

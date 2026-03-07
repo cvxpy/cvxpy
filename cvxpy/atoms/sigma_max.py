@@ -24,7 +24,19 @@ from cvxpy.atoms.atom import Atom
 
 
 class sigma_max(Atom):
-    """ Maximum singular value. """
+    r"""The maximum singular value.
+
+    .. math::
+
+        f(X) = \sigma_{\max}(X) = \|X\|_2
+
+    Convex and always nonnegative.
+
+    Parameters
+    ----------
+    A : Expression
+        the expression to take the maximum singular value of.
+    """
     _allow_complex = True
 
     def __init__(self, A) -> None:

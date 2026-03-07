@@ -27,18 +27,40 @@ from cvxpy.utilities.power_tools import pow_high, pow_mid, pow_neg
 
 def pnorm(x, p: Union[int, str] = 2, axis=None, keepdims: bool = False,
           max_denom: int = 1024, approx: bool = True):
-    """Factory function for a mathematical p-norm.
+    r"""The vector p-norm :math:`\|x\|_p`.
+
+    .. math::
+
+        \|x\|_p = \left(\sum_i |x_i|^p \right)^{1/p}
+
+    If given a matrix variable, ``pnorm`` will treat it as a vector, and
+    compute the p-norm of the concatenated columns.
+
+    For :math:`p \geq 1`, the p-norm is convex.
+    For :math:`p < 1, p \neq 0`, the expression is given by
+    :math:`(\sum_i x_i^p)^{1/p}` and is concave on :math:`\mathbb{R}^n_+`.
 
     Parameters
     ----------
-    p : numeric type or string
-       The type of norm to construct; set this to np.inf or 'inf' to
-       construct an infinity norm.
+    x : Expression
+        A variable or expression.
+    p : int, float, or str, optional
+        The type of norm to construct; set this to ``np.inf`` or ``'inf'`` to
+        construct an infinity norm.
+    axis : int, optional
+        The axis to apply the norm to.
+    keepdims : bool, optional
+        Whether to keep the dimensions of the input.
+    max_denom : int, optional
+        The maximum denominator considered in forming a rational approximation
+        for ``p``. (Default: 1024)
+    approx : bool, optional
+        Whether to use a rational approximation of ``p``. (Default: True)
 
     Returns
     -------
     Atom
-       A norm1, norm_inf, or Pnorm object.
+        A norm1, norm_inf, or Pnorm object.
     """
     if p == 1:
         return norm1(x, axis=axis, keepdims=keepdims)

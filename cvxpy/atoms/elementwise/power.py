@@ -30,7 +30,14 @@ def _is_const(p) -> bool:
 
 
 def power(x, p, max_denom: int = 1024, approx: bool = True):
-    """Factory function for elementwise power.
+    r"""Elementwise power function :math:`f(x) = x^p`.
+
+    .. math::
+
+        f(x) = x^p
+
+    For DCP problems, the exponent ``p`` must be a numeric constant. For DGP
+    problems, ``p`` can also be a scalar Parameter.
 
     Parameters
     ----------
@@ -38,15 +45,16 @@ def power(x, p, max_denom: int = 1024, approx: bool = True):
         The base expression.
     p : int, float, Fraction, or Parameter
         The exponent.
-    max_denom : int
-        Maximum denominator for rational approximation.
-    approx : bool
+    max_denom : int, optional
+        Maximum denominator for rational approximation. (Default: 1024)
+    approx : bool, optional
         When True (default), uses SOC approximation. When False,
         uses power cone (exact).
 
     Returns
     -------
     Power or PowerApprox
+        A Power or PowerApprox object.
     """
     if approx:
         return PowerApprox(x, p, max_denom)
@@ -55,14 +63,13 @@ def power(x, p, max_denom: int = 1024, approx: bool = True):
 
 
 class Power(Elementwise):
-    r""" Elementwise power function :math:`f(x) = x^p`.
+    r"""Elementwise power function :math:`f(x) = x^p`.
 
     If ``expr`` is a CVXPY expression, then ``expr**p``
     is equivalent to ``power(expr, p)``.
 
-    For DCP problems, the exponent `p` must be a numeric constant. For DGP
-    problems, `p` can also be a scalar Parameter.
-
+    For DCP problems, the exponent ``p`` must be a numeric constant. For DGP
+    problems, ``p`` can also be a scalar Parameter.
 
     Specifically, the atom is given by the cases
 
@@ -70,7 +77,7 @@ class Power(Elementwise):
 
         \begin{array}{ccl}
         p = 0 & f(x) = 1 & \text{constant, positive} \\
-        p = 1 & f(x) = x & \text{affine, increasing, same sign as $x$} \\
+        p = 1 & f(x) = x & \text{affine, increasing, same sign as } x \\
         p = 2,4,8,\ldots &f(x) = |x|^p  & \text{convex, signed monotonicity, positive} \\
         p < 0 & f(x) = \begin{cases} x^p & x > 0 \\ +\infty & x \leq 0 \end{cases}
           & \text{convex, decreasing, positive} \\
@@ -123,7 +130,7 @@ class Power(Elementwise):
 
         results in an affine atom with no constraint on ``x``.
 
-    - When :math:`p > 1` and ``p`` is not a power of two, the monotonically increasing version
+    * When :math:`p > 1` and ``p`` is not a power of two, the monotonically increasing version
       of the function with full domain,
 
       .. math::
@@ -132,7 +139,7 @@ class Power(Elementwise):
 
       can be formed with the composition ``power(pos(x), p)``.
 
-    - The symmetric version with full domain,
+    * The symmetric version with full domain,
 
       .. math::
 
@@ -143,14 +150,12 @@ class Power(Elementwise):
 
     Parameters
     ----------
-
-    x : cvxpy.Variable
-
-    p : int, float, Fraction, or Parameter.
+    x : Expression
+        The base expression.
+    p : int, float, Fraction, or Parameter
         Scalar power. ``p`` may be a Parameter in DGP programs, but not
         in DCP programs.
-
-    max_denom : int
+    max_denom : int, optional
         The maximum denominator considered in forming a rational approximation
         of ``p``; only relevant when solving as a DCP program.
     """
