@@ -26,9 +26,6 @@ from numpy import linalg as LA
 import cvxpy as cp
 import cvxpy.settings as s
 from cvxpy import Minimize, Problem
-from cvxpy.atoms.affine.binary_operators import multiply
-from cvxpy.atoms.affine.conj import conj
-from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.atoms.affine.sum import Sum
 from cvxpy.atoms.affine.upper_tri import upper_tri_to_full
 from cvxpy.atoms.errormsg import SECOND_ARG_SHOULD_NOT_BE_EXPRESSION_ERROR_MESSAGE
