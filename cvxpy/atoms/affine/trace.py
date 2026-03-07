@@ -20,7 +20,9 @@ import numpy as np
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.affine.affine_atom import AffAtom
-from cvxpy.atoms.affine.binary_operators import MulExpression
+from cvxpy.atoms.affine.binary_operators import MulExpression, multiply
+from cvxpy.atoms.affine.real import real as real_atom
+from cvxpy.atoms.affine.sum import sum as cvxpy_sum
 from cvxpy.constraints.constraint import Constraint
 
 
@@ -41,14 +43,11 @@ def trace(expr):
     correctly returns True without routing to the O(n^3) Trace(expr) path.
     """
     if isinstance(expr, MulExpression):
-        from cvxpy.atoms.affine.binary_operators import multiply
-        from cvxpy.atoms.affine.sum import sum as cvxpy_sum
         # trace(A @ B) = sum(A * B.T), correct for real and complex matrices.
         result = cvxpy_sum(multiply(expr.args[0], expr.args[1].T))
         if expr.is_hermitian():
             # trace of a Hermitian matrix is provably real.
             # Wrap with real() so is_real() == True propagates upward.
-            from cvxpy.atoms.affine.real import real as real_atom
             return real_atom(result)
         return result
     else:
