@@ -16,6 +16,7 @@ limitations under the License.
 
 
 from cvxpy.expressions.variable import Variable
+from cvxpy.utilities.bounds import get_expr_bounds
 
 
 # If a user insert x * x where x is a variable it gets canonicalized to 
@@ -30,12 +31,14 @@ def multiply_canon(expr, args):
         return expr.copy([t1, t2]), []
 
     if not isinstance(t1, Variable):
-        t1 = Variable(t1.shape)
+        bounds1 = get_expr_bounds(t1)
+        t1 = Variable(t1.shape, bounds=bounds1)
         constraints += [t1 == args[0]]
         t1.value = args[0].value
 
     if not isinstance(t2, Variable):
-        t2 = Variable(t2.shape)
+        bounds2 = get_expr_bounds(t2)
+        t2 = Variable(t2.shape, bounds=bounds2)
         constraints += [t2 == args[1]]
         t2.value = args[1].value
 
@@ -51,12 +54,14 @@ def matmul_canon(expr, args):
         return expr.copy([t1, t2]), []
 
     if not isinstance(t1, Variable):
-        t1 = Variable(t1.shape)
+        bounds1 = get_expr_bounds(t1)
+        t1 = Variable(t1.shape, bounds=bounds1)
         constraints += [t1 == args[0]]
         t1.value = args[0].value
 
     if not isinstance(t2, Variable):
-        t2 = Variable(t2.shape)
+        bounds2 = get_expr_bounds(t2)
+        t2 = Variable(t2.shape, bounds=bounds2)
         constraints += [t2 == args[1]]
         t2.value = args[1].value
 

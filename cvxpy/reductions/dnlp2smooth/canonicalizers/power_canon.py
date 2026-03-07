@@ -19,6 +19,7 @@ import numpy as np
 
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variable import Variable
+from cvxpy.utilities.bounds import get_expr_bounds
 
 MIN_INIT = 1e-4
 
@@ -35,13 +36,15 @@ def power_canon(expr, args):
         if isinstance(x, Variable):
             return expr.copy(args), []
 
-        t = Variable(shape)
+        bounds = get_expr_bounds(x)
+        t = Variable(shape, bounds=bounds)
         if x.value is not None:
             t.value = x.value
-        
+
         return expr.copy([t]), [t == x]
     elif p > 0:
-        t = Variable(shape, nonneg=True)
+        bounds = get_expr_bounds(x)
+        t = Variable(shape, nonneg=True, bounds=bounds)
 
         if x.value is not None:
             t.value = np.maximum(x.value, MIN_INIT)

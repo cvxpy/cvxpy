@@ -21,6 +21,7 @@ import numpy as np
 import cvxpy.interface as intf
 from cvxpy.atoms.affine.hstack import hstack
 from cvxpy.atoms.axis_atom import AxisAtom
+from cvxpy.utilities import bounds as bounds_utils
 
 
 class Prod(AxisAtom):
@@ -49,6 +50,11 @@ class Prod(AxisAtom):
         if self.args[0].is_nonneg():
             return (True, False)
         return (False, False)
+
+    def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
+        lb, ub = self.args[0].get_bounds()
+        return bounds_utils.prod_bounds(lb, ub, axis=self.axis,
+                                        keepdims=self.keepdims)
 
     def is_atom_convex(self) -> bool:
         """Is the atom convex?

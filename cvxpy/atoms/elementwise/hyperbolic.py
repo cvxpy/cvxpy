@@ -19,6 +19,7 @@ import numpy as np
 
 from cvxpy.atoms.elementwise.elementwise import Elementwise
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.utilities import bounds as bounds_utils
 
 
 class sinh(Elementwise):
@@ -33,12 +34,16 @@ class sinh(Elementwise):
         """Returns the elementwise sinh of x.
         """
         return np.sinh(values[0])
-    
+
     def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         # Always unknown.
         return (False, False)
+
+    def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
+        lb, ub = self.args[0].get_bounds()
+        return bounds_utils.sinh_bounds(lb, ub)
 
     def is_atom_convex(self) -> bool:
         """Is the atom convex?
@@ -92,6 +97,10 @@ class tanh(Elementwise):
         # Always unknown.
         return (False, False)
 
+    def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
+        lb, ub = self.args[0].get_bounds()
+        return bounds_utils.tanh_bounds(lb, ub)
+
     def is_atom_convex(self) -> bool:
         """Is the atom convex?
         """
@@ -142,6 +151,10 @@ class asinh(Elementwise):
         # Always unknown.
         return (False, False)
 
+    def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
+        lb, ub = self.args[0].get_bounds()
+        return bounds_utils.asinh_bounds(lb, ub)
+
     def is_atom_convex(self) -> bool:
         return False
 
@@ -180,6 +193,10 @@ class atanh(Elementwise):
     def sign_from_args(self) -> Tuple[bool, bool]:
         # Always unknown.
         return (False, False)
+
+    def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
+        lb, ub = self.args[0].get_bounds()
+        return bounds_utils.atanh_bounds(lb, ub)
 
     def is_atom_convex(self) -> bool:
         return False

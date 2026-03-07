@@ -23,6 +23,7 @@ from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.dnlp2smooth.canonicalizers.entr_canon import entr_canon
 from cvxpy.reductions.dnlp2smooth.canonicalizers.log_canon import log_canon
 from cvxpy.reductions.dnlp2smooth.canonicalizers.multiply_canon import multiply_canon
+from cvxpy.utilities.bounds import get_expr_bounds
 
 MIN_INIT = 1e-3
 
@@ -44,8 +45,10 @@ def rel_entr_canon(expr, args):
         return -entr_expr - mult_expr, constr_entr + constr_mult
 
     # here we know that neither argument is constant
-    t1 = Variable(args[0].shape, nonneg=True)
-    t2 = Variable(args[1].shape, nonneg=True)
+    bounds1 = get_expr_bounds(args[0])
+    bounds2 = get_expr_bounds(args[1])
+    t1 = Variable(args[0].shape, nonneg=True, bounds=bounds1)
+    t2 = Variable(args[1].shape, nonneg=True, bounds=bounds2)
     constraints = [t1 == args[0], t2 == args[1]]
 
     if args[0].value is not None:

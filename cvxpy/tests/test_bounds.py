@@ -1190,3 +1190,263 @@ class TestDiagBounds:
         assert prob.status == cp.OPTIMAL
         # Minimum trace is -1 * 3 = -3
         assert np.isclose(prob.value, -3.0)
+
+
+class TestDNLPBoundsPropagation:
+    """Tests for bounds propagation through DNLP atoms."""
+
+    # -------------------- Monotonic elementwise atoms --------------------
+    def test_logistic_bounds(self) -> None:
+        """logistic(x) = log(1 + exp(x)) is monotonically increasing."""
+        x = cp.Variable(3, bounds=[1, 2])
+        expr = cp.logistic(x)
+        lb, ub = expr.get_bounds()
+        assert np.allclose(lb, np.logaddexp(0, 1))
+        assert np.allclose(ub, np.logaddexp(0, 2))
+
+    def test_logistic_bounds_negative(self) -> None:
+        """logistic with negative inputs."""
+        x = cp.Variable(3, bounds=[-2, -1])
+        expr = cp.logistic(x)
+        lb, ub = expr.get_bounds()
+        assert np.allclose(lb, np.logaddexp(0, -2))
+        assert np.allclose(ub, np.logaddexp(0, -1))
+
+    def test_sinh_bounds(self) -> None:
+        """sinh is monotonically increasing."""
+        x = cp.Variable(3, bounds=[1, 2])
+        expr = cp.sinh(x)
+        lb, ub = expr.get_bounds()
+        assert np.allclose(lb, np.sinh(1))
+        assert np.allclose(ub, np.sinh(2))
+
+    def test_sinh_bounds_negative(self) -> None:
+        """sinh with negative inputs."""
+        x = cp.Variable(3, bounds=[-2, -1])
+        expr = cp.sinh(x)
+        lb, ub = expr.get_bounds()
+        assert np.allclose(lb, np.sinh(-2))
+        assert np.allclose(ub, np.sinh(-1))
+
+    def test_tanh_bounds(self) -> None:
+        """tanh is monotonically increasing with output in (-1, 1)."""
+        x = cp.Variable(3, bounds=[-1, 1])
+        expr = cp.tanh(x)
+        lb, ub = expr.get_bounds()
+        assert np.allclose(lb, np.tanh(-1))
+        assert np.allclose(ub, np.tanh(1))
+
+    def test_asinh_bounds(self) -> None:
+        """asinh is monotonically increasing."""
+        x = cp.Variable(3, bounds=[0.5, 2])
+        expr = cp.asinh(x)
+        lb, ub = expr.get_bounds()
+        assert np.allclose(lb, np.arcsinh(0.5))
+        assert np.allclose(ub, np.arcsinh(2))
+
+    def test_atanh_bounds(self) -> None:
+        """atanh is monotonically increasing on (-1, 1)."""
+        x = cp.Variable(3, bounds=[-0.5, 0.5])
+        expr = cp.atanh(x)
+        lb, ub = expr.get_bounds()
+        assert np.allclose(lb, np.arctanh(-0.5))
+        assert np.allclose(ub, np.arctanh(0.5))
+
+    def test_atanh_bounds_unbounded_input(self) -> None:
+        """atanh returns unbounded when input exceeds domain."""
+        x = cp.Variable(3)
+        expr = cp.atanh(x)
+        lb, ub = expr.get_bounds()
+        assert np.all(lb == -np.inf)
+        assert np.all(ub == np.inf)
+
+    # -------------------- Trig atoms --------------------
+    def test_sin_bounds(self) -> None:
+        """sin has range [-1, 1]."""
+        x = cp.Variable(3, bounds=[0, 1])
+        expr = cp.sin(x)
+        lb, ub = expr.get_bounds()
+        assert np.allclose(lb, -1)
+        assert np.allclose(ub, 1)
+
+    def test_cos_bounds(self) -> None:
+        """cos has range [-1, 1]."""
+        x = cp.Variable(3, bounds=[0, 1])
+        expr = cp.cos(x)
+        lb, ub = expr.get_bounds()
+        assert np.allclose(lb, -1)
+        assert np.allclose(ub, 1)
+
+    def test_tan_bounds_in_domain(self) -> None:
+        """tan is monotonically increasing on (-pi/2, pi/2)."""
+        x = cp.Variable(3, bounds=[-1, 1])
+        expr = cp.tan(x)
+        lb, ub = expr.get_bounds()
+        assert np.allclose(lb, np.tan(-1))
+        assert np.allclose(ub, np.tan(1))
+
+    def test_tan_bounds_unbounded_input(self) -> None:
+        """tan returns unbounded when input may exceed domain."""
+        x = cp.Variable(3)
+        expr = cp.tan(x)
+        lb, ub = expr.get_bounds()
+        assert np.all(lb == -np.inf)
+        assert np.all(ub == np.inf)
+
+    # -------------------- Entropy atoms --------------------
+    def test_entr_bounds(self) -> None:
+        """entr(x) = -x*log(x) is concave, max at 1/e."""
+        x = cp.Variable(3, bounds=[0.1, 0.5])
+        expr = cp.entr(x)
+        lb, ub = expr.get_bounds()
+        entr_01 = -0.1 * np.log(0.1)
+        entr_05 = -0.5 * np.log(0.5)
+        # [0.1, 0.5] contains 1/e, so max is 1/e
+        assert np.allclose(ub, 1.0 / np.e)
+        assert np.allclose(lb, min(entr_01, entr_05))
+
+    def test_entr_bounds_beyond_peak(self) -> None:
+        """entr is decreasing after 1/e."""
+        x = cp.Variable(3, bounds=[1, 2])
+        expr = cp.entr(x)
+        lb, ub = expr.get_bounds()
+        entr_1 = -1 * np.log(1)  # 0
+        entr_2 = -2 * np.log(2)
+        assert np.allclose(ub, max(entr_1, entr_2))
+        assert np.allclose(lb, min(entr_1, entr_2))
+
+    def test_rel_entr_bounds(self) -> None:
+        """rel_entr(x, y) = x*log(x/y)."""
+        x = cp.Variable(3, bounds=[0.5, 2])
+        y = cp.Variable(3, bounds=[1, 3])
+        expr = cp.rel_entr(x, y)
+        lb, ub = expr.get_bounds()
+        # Should produce finite bounds
+        assert np.all(np.isfinite(lb))
+        assert np.all(np.isfinite(ub))
+        assert np.all(lb <= ub)
+
+    def test_kl_div_bounds(self) -> None:
+        """kl_div(x, y) = x*log(x/y) - x + y, always nonneg."""
+        x = cp.Variable(3, bounds=[0.5, 2])
+        y = cp.Variable(3, bounds=[1, 3])
+        expr = cp.kl_div(x, y)
+        lb, ub = expr.get_bounds()
+        assert np.all(lb >= 0)
+        assert np.all(np.isfinite(ub))
+        assert np.all(lb <= ub)
+
+    # -------------------- Huber --------------------
+    def test_huber_bounds_nonneg_input(self) -> None:
+        """huber(x, M) with nonneg input."""
+        x = cp.Variable(3, bounds=[1, 2])
+        expr = cp.huber(x)  # M=1
+        lb, ub = expr.get_bounds()
+        # huber(1, 1) = 1^2 = 1, huber(2, 1) = 2*1*2 - 1 = 3
+        assert np.allclose(lb, 1)
+        assert np.allclose(ub, 3)
+
+    def test_huber_bounds_spanning_zero(self) -> None:
+        """huber with input spanning zero."""
+        x = cp.Variable(3, bounds=[-1, 2])
+        expr = cp.huber(x)
+        lb, ub = expr.get_bounds()
+        assert np.allclose(lb, 0)  # huber(0) = 0
+        assert np.allclose(ub, 3)  # huber(2) = 3
+
+    # -------------------- Reduction atoms --------------------
+    def test_log_sum_exp_bounds(self) -> None:
+        """log_sum_exp is monotonically increasing in each arg."""
+        x = cp.Variable(3, bounds=[1, 2])
+        expr = cp.log_sum_exp(x)
+        lb, ub = expr.get_bounds()
+        from scipy.special import logsumexp
+        assert np.allclose(lb, logsumexp([1, 1, 1]))
+        assert np.allclose(ub, logsumexp([2, 2, 2]))
+
+    def test_log_sum_exp_bounds_with_axis(self) -> None:
+        """log_sum_exp with axis parameter."""
+        x = cp.Variable((2, 3), bounds=[0, 1])
+        expr = cp.log_sum_exp(x, axis=0)
+        lb, ub = expr.get_bounds()
+        from scipy.special import logsumexp
+        assert lb.shape == (3,)
+        assert np.allclose(lb, logsumexp([0, 0], axis=0))
+        assert np.allclose(ub, logsumexp([1, 1], axis=0))
+
+    def test_pnorm_bounds_p2(self) -> None:
+        """pnorm with p=2 (Euclidean norm)."""
+        x = cp.Variable(3, bounds=[1, 2])
+        expr = cp.pnorm(x, 2)
+        lb, ub = expr.get_bounds()
+        assert np.allclose(lb, np.sqrt(3))  # norm([1,1,1])
+        assert np.allclose(ub, np.sqrt(12))  # norm([2,2,2])
+
+    def test_pnorm_bounds_p3(self) -> None:
+        """pnorm with p=3."""
+        x = cp.Variable(3, bounds=[1, 2])
+        expr = cp.pnorm(x, 3)
+        lb, ub = expr.get_bounds()
+        assert np.allclose(lb, 3**(1/3))  # (1^3+1^3+1^3)^(1/3)
+        assert np.allclose(ub, (3 * 8)**(1/3))  # (2^3+2^3+2^3)^(1/3)
+
+    def test_pnorm_bounds_spanning_zero(self) -> None:
+        """pnorm with input spanning zero."""
+        x = cp.Variable(3, bounds=[-1, 2])
+        expr = cp.pnorm(x, 2)
+        lb, ub = expr.get_bounds()
+        assert np.allclose(lb, 0)  # minimum abs is 0
+        assert np.allclose(ub, np.sqrt(12))  # max abs is 2
+
+    def test_quad_over_lin_bounds(self) -> None:
+        """quad_over_lin(x, y) = sum(x^2)/y."""
+        x = cp.Variable(3, bounds=[1, 2])
+        y = cp.Variable(bounds=[1, 2])
+        expr = cp.quad_over_lin(x, y)
+        lb, ub = expr.get_bounds()
+        # sum(1^2)/2 = 1.5, sum(2^2)/1 = 12
+        assert np.allclose(lb, 1.5)
+        assert np.allclose(ub, 12)
+
+    def test_geo_mean_bounds(self) -> None:
+        """geo_mean is increasing in each argument."""
+        x = cp.Variable(3, bounds=[1, 2])
+        expr = cp.geo_mean(x)
+        lb, ub = expr.get_bounds()
+        assert np.allclose(lb, 1)  # geo_mean([1,1,1]) = 1
+        assert np.allclose(ub, 2)  # geo_mean([2,2,2]) = 2
+
+    def test_geo_mean_bounds_with_weights(self) -> None:
+        """geo_mean with non-uniform weights."""
+        x = cp.Variable(2, bounds=[1, 4])
+        expr = cp.geo_mean(x, [1, 3])
+        lb, ub = expr.get_bounds()
+        # weights normalized: [0.25, 0.75]
+        # lb = 1^0.25 * 1^0.75 = 1
+        # ub = 4^0.25 * 4^0.75 = 4
+        assert np.allclose(lb, 1)
+        assert np.allclose(ub, 4)
+
+    def test_sum_largest_bounds(self) -> None:
+        """sum_largest is increasing in each argument."""
+        x = cp.Variable(5, bounds=[1, 3])
+        expr = cp.sum_largest(x, 3)
+        lb, ub = expr.get_bounds()
+        assert np.allclose(lb, 3)  # 3 largest of [1,1,1,1,1] = 3
+        assert np.allclose(ub, 9)  # 3 largest of [3,3,3,3,3] = 9
+
+    def test_prod_bounds_nonneg(self) -> None:
+        """prod with nonneg inputs."""
+        x = cp.Variable(3, bounds=[1, 2])
+        expr = cp.prod(x)
+        lb, ub = expr.get_bounds()
+        assert np.allclose(lb, 1)
+        assert np.allclose(ub, 8)
+
+    def test_prod_bounds_spanning_zero(self) -> None:
+        """prod with inputs spanning zero returns unbounded."""
+        x = cp.Variable(3, bounds=[-1, 2])
+        expr = cp.prod(x)
+        lb, ub = expr.get_bounds()
+        assert lb == -np.inf
+        assert ub == np.inf

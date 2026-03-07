@@ -18,6 +18,7 @@ import numpy as np
 
 from cvxpy.atoms.affine.binary_operators import multiply
 from cvxpy.expressions.variable import Variable
+from cvxpy.utilities.bounds import get_expr_bounds
 
 MIN_INIT = 1e-3
 
@@ -26,21 +27,24 @@ MIN_INIT = 1e-3
 def div_canon(expr, args):
     
     # raise an error if the denominator is not nonnegative
-    if not args[1].is_nonneg():
+    lb = args[1].get_bounds()[0]
+    if not np.all(lb >= 0):
         raise ValueError("The denominator of a division must be nonnegative. "
                           "Did you forget to specify bounds?")
     
-    dim = args[0].shape 
+    dim = args[0].shape
     sgn_z = args[0].sign
+    bounds_z = get_expr_bounds(expr)
 
     if sgn_z == 'NONNEGATIVE':
-        z = Variable(dim, nonneg=True)
+        z = Variable(dim, nonneg=True, bounds=bounds_z)
     elif sgn_z == 'NONPOSITIVE':
-        z = Variable(dim, nonpos=True)
+        z = Variable(dim, nonpos=True, bounds=bounds_z)
     else:
-        z = Variable(dim)
-    
-    y = Variable(args[1].shape, nonneg=True)
+        z = Variable(dim, bounds=bounds_z)
+
+    bounds_y = get_expr_bounds(args[1])
+    y = Variable(args[1].shape, nonneg=True, bounds=bounds_y)
 
     if args[0].value is not None and args[1].value is not None:
         y.value = np.maximum(args[1].value, MIN_INIT)   

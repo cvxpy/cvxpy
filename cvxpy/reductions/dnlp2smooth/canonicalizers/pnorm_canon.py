@@ -17,13 +17,15 @@ limitations under the License.
 from cvxpy.atoms.quad_over_lin import quad_over_lin
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.dnlp2smooth.canonicalizers.quad_over_lin_canon import quad_over_lin_canon
+from cvxpy.utilities.bounds import get_expr_bounds
 
 
 def pnorm_canon(expr, args):
     x = args[0]
     p = expr.p
     shape = expr.shape
-    t = Variable(shape, nonneg=True)
+    bounds_t = get_expr_bounds(expr)
+    t = Variable(shape, nonneg=True, bounds=bounds_t)
 
     # expression will always have a value here in DNLP
     t.value = expr.value

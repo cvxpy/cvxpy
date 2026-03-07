@@ -21,6 +21,7 @@ from scipy.sparse import csc_array
 from scipy.special import rel_entr as rel_entr_scipy
 
 from cvxpy.atoms.elementwise.elementwise import Elementwise
+from cvxpy.utilities import bounds as bounds_utils
 
 
 class rel_entr(Elementwise):
@@ -42,6 +43,11 @@ class rel_entr(Elementwise):
         """Returns sign (is positive, is negative) of the expression.
         """
         return (False, False)
+
+    def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
+        lb1, ub1 = self.args[0].get_bounds()
+        lb2, ub2 = self.args[1].get_bounds()
+        return bounds_utils.rel_entr_bounds(lb1, ub1, lb2, ub2)
 
     def is_atom_convex(self) -> bool:
         """Is the atom convex?

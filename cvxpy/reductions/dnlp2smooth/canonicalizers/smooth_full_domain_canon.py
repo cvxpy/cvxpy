@@ -14,12 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 from cvxpy.expressions.variable import Variable
+from cvxpy.utilities.bounds import get_expr_bounds
 
 
 def smooth_full_domain_canon(expr, args):
     if isinstance(args[0], Variable):
         return expr, []
-    t = Variable(args[0].shape)
+    bounds = get_expr_bounds(args[0])
+    t = Variable(args[0].shape, bounds=bounds)
     if args[0].value is not None:
         t.value = args[0].value
     return expr.copy([t]), [t == args[0]]

@@ -21,6 +21,7 @@ from cvxpy.atoms.affine.sum import sum
 from cvxpy.atoms.elementwise.log import log
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.dnlp2smooth.canonicalizers.log_canon import log_canon
+from cvxpy.utilities.bounds import get_expr_bounds
 
 MIN_INIT = 1e-3
 
@@ -28,7 +29,8 @@ def geo_mean_canon(expr, args):
     """
     Canonicalization for the geometric mean function.
     """
-    t = Variable(expr.shape, nonneg=True)
+    bounds_t = get_expr_bounds(expr)
+    t = Variable(expr.shape, nonneg=True, bounds=bounds_t)
 
     if args[0].value is not None:
         t.value = np.max((expr.numeric(args[0].value), MIN_INIT))

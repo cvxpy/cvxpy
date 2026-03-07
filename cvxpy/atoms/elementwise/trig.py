@@ -19,6 +19,7 @@ import numpy as np
 
 from cvxpy.atoms.elementwise.elementwise import Elementwise
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.utilities import bounds as bounds_utils
 
 
 class sin(Elementwise):
@@ -39,6 +40,10 @@ class sin(Elementwise):
         """
         # Always unknown.
         return (False, False)
+
+    def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
+        lb, ub = self.args[0].get_bounds()
+        return bounds_utils.sin_bounds(lb, ub)
 
     def is_atom_convex(self) -> bool:
         """Is the atom convex?
@@ -97,6 +102,10 @@ class cos(Elementwise):
         # Always unknown.
         return (False, False)
 
+    def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
+        lb, ub = self.args[0].get_bounds()
+        return bounds_utils.cos_bounds(lb, ub)
+
     def is_atom_convex(self) -> bool:
         """Is the atom convex?
         """
@@ -153,6 +162,10 @@ class tan(Elementwise):
         """
         # Always unknown.
         return (False, False)
+
+    def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
+        lb, ub = self.args[0].get_bounds()
+        return bounds_utils.tan_bounds(lb, ub)
 
     def is_atom_convex(self) -> bool:
         """Is the atom convex?

@@ -17,6 +17,9 @@ from typing import List, Optional, Tuple, Union
 
 import numpy as np
 import scipy.sparse as sp_sparse
+from scipy.special import kl_div as kl_div_scipy
+from scipy.special import logsumexp
+from scipy.special import rel_entr as rel_entr_scipy
 
 # Type alias for bounds: (lower_bound, upper_bound)
 Bounds = Tuple[np.ndarray, np.ndarray]
@@ -845,6 +848,564 @@ def get_expr_bounds_if_supported(expr, solver_context) -> Optional[list]:
     # Ensure dense and expand to full shape for solver consumption.
     # This handles broadcast views and sparse matrices.
     return [_ensure_dense(lb, expr.shape), _ensure_dense(ub, expr.shape)]
+
+
+def get_expr_bounds(expr) -> Optional[list]:
+    """Get bounds from expression for use on auxiliary variables.
+
+    Like get_expr_bounds_if_supported but without a solver_context check.
+    Returns a [lb, ub] list suitable for passing to Variable(bounds=...),
+    or None if bounds are trivial.
+
+    Parameters
+    ----------
+    expr : Expression
+        The expression whose bounds to compute.
+
+    Returns
+    -------
+    list or None
+        [lb, ub] arrays, or None.
+    """
+    lb, ub = expr.get_bounds()
+    if _all_isinf(lb) and _all_isinf(ub):
+        return None
+    if _any_isnan(lb) or _any_isnan(ub):
+        return None
+    lb_trivial = _all_zero_or_inf(lb)
+    ub_trivial = _all_isinf(ub)
+    if lb_trivial and ub_trivial and expr.is_nonneg():
+        return None
+    ub_trivial_nonpos = _all_zero_or_inf(ub)
+    lb_trivial_nonpos = _all_isinf(lb)
+    if lb_trivial_nonpos and ub_trivial_nonpos and expr.is_nonpos():
+        return None
+    return [_ensure_dense(lb, expr.shape), _ensure_dense(ub, expr.shape)]
+
+
+def logistic_bounds(lb: np.ndarray, ub: np.ndarray) -> Bounds:
+    """Bounds for elementwise logistic: log(1 + exp(x)).
+
+    logistic is monotonically increasing with range (0, inf).
+
+    Parameters
+    ----------
+    lb, ub : np.ndarray
+        Bounds for the argument.
+
+    Returns
+    -------
+    Bounds
+        Bounds for the logistic function.
+    """
+    return (np.logaddexp(0, lb), np.logaddexp(0, ub))
+
+
+def sinh_bounds(lb: np.ndarray, ub: np.ndarray) -> Bounds:
+    """Bounds for elementwise sinh.
+
+    sinh is monotonically increasing with range (-inf, inf).
+
+    Parameters
+    ----------
+    lb, ub : np.ndarray
+        Bounds for the argument.
+
+    Returns
+    -------
+    Bounds
+        Bounds for sinh.
+    """
+    return (np.sinh(lb), np.sinh(ub))
+
+
+def asinh_bounds(lb: np.ndarray, ub: np.ndarray) -> Bounds:
+    """Bounds for elementwise asinh (inverse hyperbolic sine).
+
+    asinh is monotonically increasing with range (-inf, inf).
+
+    Parameters
+    ----------
+    lb, ub : np.ndarray
+        Bounds for the argument.
+
+    Returns
+    -------
+    Bounds
+        Bounds for asinh.
+    """
+    return (np.arcsinh(lb), np.arcsinh(ub))
+
+
+def tanh_bounds(lb: np.ndarray, ub: np.ndarray) -> Bounds:
+    """Bounds for elementwise tanh.
+
+    tanh is monotonically increasing with range (-1, 1).
+
+    Parameters
+    ----------
+    lb, ub : np.ndarray
+        Bounds for the argument.
+
+    Returns
+    -------
+    Bounds
+        Bounds for tanh.
+    """
+    return (np.tanh(lb), np.tanh(ub))
+
+
+def atanh_bounds(lb: np.ndarray, ub: np.ndarray) -> Bounds:
+    """Bounds for elementwise atanh (inverse hyperbolic tangent).
+
+    atanh is monotonically increasing on (-1, 1).
+
+    Parameters
+    ----------
+    lb, ub : np.ndarray
+        Bounds for the argument (should be in (-1, 1)).
+
+    Returns
+    -------
+    Bounds
+        Bounds for atanh.
+    """
+    valid_lb = lb > -1
+    valid_ub = ub < 1
+    safe_lb = np.clip(lb, -1 + 1e-15, 1 - 1e-15)
+    safe_ub = np.clip(ub, -1 + 1e-15, 1 - 1e-15)
+    new_lb = np.where(valid_lb, np.arctanh(safe_lb), -np.inf)
+    new_ub = np.where(valid_ub, np.arctanh(safe_ub), np.inf)
+    return (new_lb, new_ub)
+
+
+def sin_bounds(lb: np.ndarray, ub: np.ndarray) -> Bounds:
+    """Bounds for elementwise sin.
+
+    sin has range [-1, 1]. Returns conservative bounds.
+
+    Parameters
+    ----------
+    lb, ub : np.ndarray
+        Bounds for the argument.
+
+    Returns
+    -------
+    Bounds
+        Bounds for sin.
+    """
+    shape = np.broadcast_shapes(np.shape(lb), np.shape(ub))
+    return uniform_bounds(shape, -1.0, 1.0)
+
+
+def cos_bounds(lb: np.ndarray, ub: np.ndarray) -> Bounds:
+    """Bounds for elementwise cos.
+
+    cos has range [-1, 1]. Returns conservative bounds.
+
+    Parameters
+    ----------
+    lb, ub : np.ndarray
+        Bounds for the argument.
+
+    Returns
+    -------
+    Bounds
+        Bounds for cos.
+    """
+    shape = np.broadcast_shapes(np.shape(lb), np.shape(ub))
+    return uniform_bounds(shape, -1.0, 1.0)
+
+
+def tan_bounds(lb: np.ndarray, ub: np.ndarray) -> Bounds:
+    """Bounds for elementwise tan.
+
+    tan is monotonically increasing on (-pi/2, pi/2).
+
+    Parameters
+    ----------
+    lb, ub : np.ndarray
+        Bounds for the argument.
+
+    Returns
+    -------
+    Bounds
+        Bounds for tan.
+    """
+    half_pi = np.pi / 2
+    in_domain = (lb > -half_pi) & (ub < half_pi)
+    with np.errstate(invalid='ignore'):
+        new_lb = np.where(in_domain, np.tan(lb), -np.inf)
+        new_ub = np.where(in_domain, np.tan(ub), np.inf)
+    return (new_lb, new_ub)
+
+
+def entr_bounds(lb: np.ndarray, ub: np.ndarray) -> Bounds:
+    """Bounds for elementwise entropy: -x*log(x).
+
+    entr is concave with domain x >= 0, maximum 1/e at x = 1/e.
+
+    Parameters
+    ----------
+    lb, ub : np.ndarray
+        Bounds for the argument.
+
+    Returns
+    -------
+    Bounds
+        Bounds for entropy.
+    """
+    INV_E = 1.0 / np.e
+
+    def _entr_val(x):
+        with np.errstate(divide='ignore', invalid='ignore'):
+            return np.where(x > 0, -x * np.log(x), np.where(x == 0, 0.0, -np.inf))
+
+    entr_at_lb = _entr_val(np.maximum(lb, 0))
+    entr_at_ub = _entr_val(np.maximum(ub, 0))
+
+    # Lower bound: min of endpoints (concave function attains min at boundary)
+    new_lb = np.minimum(entr_at_lb, entr_at_ub)
+
+    # Upper bound: 1/e if maximum point is in [lb, ub], otherwise max of endpoints
+    contains_max = (lb <= INV_E) & (ub >= INV_E)
+    new_ub = np.where(contains_max, INV_E, np.maximum(entr_at_lb, entr_at_ub))
+
+    return (new_lb, new_ub)
+
+
+def rel_entr_bounds(lb1: np.ndarray, ub1: np.ndarray,
+                    lb2: np.ndarray, ub2: np.ndarray) -> Bounds:
+    """Bounds for elementwise relative entropy: x*log(x/y).
+
+    rel_entr is jointly convex in (x, y) with domain x >= 0, y >= 0.
+
+    Parameters
+    ----------
+    lb1, ub1 : np.ndarray
+        Bounds for x.
+    lb2, ub2 : np.ndarray
+        Bounds for y.
+
+    Returns
+    -------
+    Bounds
+        Bounds for relative entropy.
+    """
+    # For a convex function, maximum over a box is at a corner.
+    # Compute all four corners and take the max for upper bound.
+    x_lb = np.maximum(lb1, 0.0)
+    x_ub = np.maximum(ub1, 0.0)
+    y_lb = np.maximum(lb2, 1e-300)  # avoid log(0)
+    y_ub = np.maximum(ub2, 1e-300)
+
+    with np.errstate(divide='ignore', invalid='ignore'):
+        corners = np.stack([
+            rel_entr_scipy(x_lb, y_lb),
+            rel_entr_scipy(x_lb, y_ub),
+            rel_entr_scipy(x_ub, y_lb),
+            rel_entr_scipy(x_ub, y_ub),
+        ], axis=0)
+    corners = np.nan_to_num(corners, nan=np.inf, posinf=np.inf, neginf=-np.inf)
+
+    new_ub = np.max(corners, axis=0)
+
+    # For the lower bound of a convex function over a box, use -inf conservatively
+    # since the minimum can be in the interior.
+    # But we know rel_entr(x, y) >= -x (since log(x/y) >= 1 - y/x is not useful)
+    # Actually rel_entr(x,x) = 0 and it can be negative (when x < y).
+    # Use min of corners as a (possibly loose) lower bound.
+    new_lb = np.min(corners, axis=0)
+
+    return (new_lb, new_ub)
+
+
+def kl_div_bounds(lb1: np.ndarray, ub1: np.ndarray,
+                  lb2: np.ndarray, ub2: np.ndarray) -> Bounds:
+    """Bounds for elementwise KL divergence: x*log(x/y) - x + y.
+
+    kl_div is jointly convex in (x, y) with domain x >= 0, y >= 0.
+    Always nonneg by Gibbs' inequality.
+
+    Parameters
+    ----------
+    lb1, ub1 : np.ndarray
+        Bounds for x.
+    lb2, ub2 : np.ndarray
+        Bounds for y.
+
+    Returns
+    -------
+    Bounds
+        Bounds for KL divergence.
+    """
+    x_lb = np.maximum(lb1, 0.0)
+    x_ub = np.maximum(ub1, 0.0)
+    y_lb = np.maximum(lb2, 1e-300)
+    y_ub = np.maximum(ub2, 1e-300)
+
+    with np.errstate(divide='ignore', invalid='ignore'):
+        corners = np.stack([
+            kl_div_scipy(x_lb, y_lb),
+            kl_div_scipy(x_lb, y_ub),
+            kl_div_scipy(x_ub, y_lb),
+            kl_div_scipy(x_ub, y_ub),
+        ], axis=0)
+    corners = np.nan_to_num(corners, nan=np.inf, posinf=np.inf, neginf=0.0)
+
+    new_ub = np.max(corners, axis=0)
+    # kl_div >= 0 always, so lower bound is 0
+    new_lb = np.zeros_like(new_ub)
+
+    return (new_lb, new_ub)
+
+
+def huber_bounds(lb: np.ndarray, ub: np.ndarray, M: float) -> Bounds:
+    """Bounds for elementwise Huber function.
+
+    huber(x, M) = x^2 for |x| <= M, 2M|x| - M^2 for |x| >= M.
+    Always nonneg, even function.
+
+    Parameters
+    ----------
+    lb, ub : np.ndarray
+        Bounds for the argument.
+    M : float
+        Huber threshold parameter.
+
+    Returns
+    -------
+    Bounds
+        Bounds for the Huber function.
+    """
+    abs_lb, abs_ub = abs_bounds(lb, ub)
+
+    def _huber_val(x, m):
+        return np.where(x <= m, x**2, 2 * m * x - m**2)
+
+    new_lb = _huber_val(abs_lb, M)
+    new_ub = _huber_val(abs_ub, M)
+    return (new_lb, new_ub)
+
+
+def log_sum_exp_bounds(lb: np.ndarray, ub: np.ndarray,
+                       axis: Optional[Union[int, Tuple[int, ...]]] = None,
+                       keepdims: bool = False) -> Bounds:
+    """Bounds for log-sum-exp: log(sum(exp(x))).
+
+    log_sum_exp is monotonically increasing in each argument.
+
+    Parameters
+    ----------
+    lb, ub : np.ndarray
+        Bounds for the argument.
+    axis : None or int or tuple of ints
+        Axis along which to reduce.
+    keepdims : bool
+        Whether to keep reduced dimensions.
+
+    Returns
+    -------
+    Bounds
+        Bounds for log-sum-exp.
+    """
+    new_lb = logsumexp(lb, axis=axis, keepdims=keepdims)
+    new_ub = logsumexp(ub, axis=axis, keepdims=keepdims)
+    return (np.asarray(new_lb), np.asarray(new_ub))
+
+
+def sum_largest_bounds(lb: np.ndarray, ub: np.ndarray, k: float) -> Bounds:
+    """Bounds for sum_largest: sum of k largest values.
+
+    sum_largest is monotonically increasing in each argument.
+
+    Parameters
+    ----------
+    lb, ub : np.ndarray
+        Bounds for the argument.
+    k : float
+        Number of largest values to sum (may be fractional).
+
+    Returns
+    -------
+    Bounds
+        Bounds for sum_largest.
+    """
+    def _sum_largest_val(arr, k):
+        flat = arr.flatten()
+        n = len(flat)
+        k_floor = int(np.floor(k))
+        k_frac = k - k_floor
+        sorted_vals = np.sort(flat)[::-1]  # descending
+        result = np.sum(sorted_vals[:k_floor]) if k_floor > 0 else 0.0
+        if k_frac > 0 and k_floor < n:
+            result += k_frac * sorted_vals[k_floor]
+        return result
+
+    new_lb = _sum_largest_val(np.asarray(lb), k)
+    new_ub = _sum_largest_val(np.asarray(ub), k)
+    return (np.asarray(new_lb), np.asarray(new_ub))
+
+
+def quad_over_lin_bounds(lb_x: np.ndarray, ub_x: np.ndarray,
+                         lb_y: np.ndarray, ub_y: np.ndarray,
+                         axis: Optional[Union[int, Tuple[int, ...]]] = None,
+                         keepdims: bool = False) -> Bounds:
+    """Bounds for quad_over_lin: sum(x^2)/y.
+
+    Always nonneg when y > 0.
+
+    Parameters
+    ----------
+    lb_x, ub_x : np.ndarray
+        Bounds for x.
+    lb_y, ub_y : np.ndarray
+        Bounds for y (scalar).
+    axis : None or int or tuple of ints
+        Axis along which to sum x^2.
+    keepdims : bool
+        Whether to keep reduced dimensions.
+
+    Returns
+    -------
+    Bounds
+        Bounds for quad_over_lin.
+    """
+    # Compute bounds on x^2 elementwise
+    x_sq_lb, x_sq_ub = power_bounds(lb_x, ub_x, 2.0)
+
+    # Sum along axis
+    sum_sq_lb = np.sum(x_sq_lb, axis=axis, keepdims=keepdims)
+    sum_sq_ub = np.sum(x_sq_ub, axis=axis, keepdims=keepdims)
+
+    # Divide by y (y must be positive for valid domain)
+    y_lo = float(np.min(lb_y))
+    y_hi = float(np.max(ub_y))
+
+    if y_lo <= 0:
+        # y might be zero or negative, bounds are unbounded
+        shape = np.shape(sum_sq_lb)
+        return unbounded(shape)
+
+    # sum(x^2)/y: min when numerator min and denominator max
+    new_lb = sum_sq_lb / y_hi
+    new_ub = sum_sq_ub / y_lo
+    return (new_lb, new_ub)
+
+
+def geo_mean_bounds(lb: np.ndarray, ub: np.ndarray,
+                    w: tuple) -> Bounds:
+    """Bounds for weighted geometric mean: prod(x_i^w_i).
+
+    geo_mean is monotonically increasing in each argument (for positive args).
+    Always nonneg.
+
+    Parameters
+    ----------
+    lb, ub : np.ndarray
+        Bounds for the argument vector (should be nonneg).
+    w : tuple
+        Weights summing to 1.
+
+    Returns
+    -------
+    Bounds
+        Scalar bounds for the geometric mean.
+    """
+    lb_flat = np.maximum(np.asarray(lb).flatten(), 0.0)
+    ub_flat = np.maximum(np.asarray(ub).flatten(), 0.0)
+    w_arr = np.array([float(wi) for wi in w])
+
+    # geo_mean is increasing in each arg, so bounds are at corners
+    new_lb = np.prod(lb_flat ** w_arr)
+    new_ub = np.prod(ub_flat ** w_arr)
+    return (np.asarray(new_lb), np.asarray(new_ub))
+
+
+def pnorm_bounds(lb: np.ndarray, ub: np.ndarray, p: float,
+                 axis: Optional[Union[int, Tuple[int, ...]]] = None,
+                 keepdims: bool = False) -> Bounds:
+    """Bounds for p-norm: (sum |x_i|^p)^(1/p).
+
+    Always nonneg.
+
+    Parameters
+    ----------
+    lb, ub : np.ndarray
+        Bounds for the argument.
+    p : float
+        The norm parameter (p != 0, 1, inf).
+    axis : None or int or tuple of ints
+        Axis along which to compute the norm.
+    keepdims : bool
+        Whether to keep reduced dimensions.
+
+    Returns
+    -------
+    Bounds
+        Bounds for the p-norm.
+    """
+    p_float = float(p)
+
+    if p_float > 1:
+        # Convex norm: ||x||_p. Increasing in |x_i|.
+        abs_lb, abs_ub = abs_bounds(lb, ub)
+        if axis is None:
+            abs_lb = abs_lb.flatten()
+            abs_ub = abs_ub.flatten()
+        # Lower bound: norm of minimum absolute values
+        # Upper bound: norm of maximum absolute values
+        new_lb = np.linalg.norm(abs_lb, p_float, axis=axis, keepdims=keepdims)
+        new_ub = np.linalg.norm(abs_ub, p_float, axis=axis, keepdims=keepdims)
+        return (np.asarray(new_lb), np.asarray(new_ub))
+    elif 0 < p_float < 1:
+        # Concave: requires x >= 0. Increasing in each x_i.
+        x_lb = np.maximum(lb, 0.0)
+        x_ub = np.maximum(ub, 0.0)
+        if axis is None:
+            x_lb = x_lb.flatten()
+            x_ub = x_ub.flatten()
+        new_lb = np.linalg.norm(x_lb, p_float, axis=axis, keepdims=keepdims)
+        new_ub = np.linalg.norm(x_ub, p_float, axis=axis, keepdims=keepdims)
+        return (np.asarray(new_lb), np.asarray(new_ub))
+    else:
+        # Negative p or unusual cases: return nonneg bounds
+        if axis is not None:
+            result = np.linalg.norm(lb, p_float, axis=axis, keepdims=keepdims)
+            return uniform_bounds(result.shape, 0.0, np.inf)
+        return uniform_bounds(tuple(), 0.0, np.inf)
+
+
+def prod_bounds(lb: np.ndarray, ub: np.ndarray,
+                axis: Optional[Union[int, Tuple[int, ...]]] = None,
+                keepdims: bool = False) -> Bounds:
+    """Bounds for product: prod(x).
+
+    When all entries are nonneg, prod is monotonically increasing.
+
+    Parameters
+    ----------
+    lb, ub : np.ndarray
+        Bounds for the argument.
+    axis : None or int or tuple of ints
+        Axis along which to take the product.
+    keepdims : bool
+        Whether to keep reduced dimensions.
+
+    Returns
+    -------
+    Bounds
+        Bounds for the product.
+    """
+    all_nonneg = np.all(lb >= 0)
+    if all_nonneg:
+        new_lb = np.prod(lb, axis=axis, keepdims=keepdims)
+        new_ub = np.prod(ub, axis=axis, keepdims=keepdims)
+        return (new_lb, new_ub)
+
+    # General case: product can flip sign. Return unbounded.
+    result_shape = np.prod(lb, axis=axis, keepdims=keepdims).shape
+    return unbounded(result_shape)
 
 
 def coords_equal(coords1, coords2) -> bool:

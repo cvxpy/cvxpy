@@ -19,6 +19,7 @@ from cvxpy.atoms.affine.sum import Sum
 from cvxpy.atoms.elementwise.power import power
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.dnlp2smooth.canonicalizers.power_canon import power_canon
+from cvxpy.utilities.bounds import get_expr_bounds
 
 MIN_INIT = 1e-4
 
@@ -38,12 +39,14 @@ def quad_over_lin_canon(expr, args):
         t2 = args[1]
         constraints = []
         if not isinstance(t1, Variable):
-            t1 = Variable(t1.shape)
+            bounds1 = get_expr_bounds(t1)
+            t1 = Variable(t1.shape, bounds=bounds1)
             constraints += [t1 == args[0]]
             t1.value = args[0].value
         # always introduce a new variable for the denominator
         # so that we can initialize it to 1 (point in domain)
-        t2 = Variable(t2.shape, nonneg=True)
+        bounds2 = get_expr_bounds(args[1])
+        t2 = Variable(t2.shape, nonneg=True, bounds=bounds2)
         constraints += [t2 == args[1]]
 
         if args[1].value is not None:

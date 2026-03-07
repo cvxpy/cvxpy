@@ -22,6 +22,7 @@ from cvxpy.atoms.axis_atom import AxisAtom
 from cvxpy.atoms.norm1 import norm1
 from cvxpy.atoms.norm_inf import norm_inf
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.utilities import bounds as bounds_utils
 from cvxpy.utilities.power_tools import pow_high, pow_mid, pow_neg
 
 
@@ -165,6 +166,11 @@ class Pnorm(AxisAtom):
         """
         # Always positive.
         return (True, False)
+
+    def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
+        lb, ub = self.args[0].get_bounds()
+        return bounds_utils.pnorm_bounds(
+            lb, ub, float(self.p), axis=self.axis, keepdims=self.keepdims)
 
     def is_atom_convex(self) -> bool:
         """Is the atom convex?

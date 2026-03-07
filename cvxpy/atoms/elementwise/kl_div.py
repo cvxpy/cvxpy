@@ -22,6 +22,7 @@ from scipy.special import kl_div as kl_div_scipy
 
 from cvxpy.atoms.elementwise.elementwise import Elementwise
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.utilities import bounds as bounds_utils
 
 
 class kl_div(Elementwise):
@@ -44,6 +45,11 @@ class kl_div(Elementwise):
         """
         # Always positive.
         return (True, False)
+
+    def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
+        lb1, ub1 = self.args[0].get_bounds()
+        lb2, ub2 = self.args[1].get_bounds()
+        return bounds_utils.kl_div_bounds(lb1, ub1, lb2, ub2)
 
     def is_atom_convex(self) -> bool:
         """Is the atom convex?

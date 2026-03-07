@@ -20,6 +20,7 @@ from scipy.special import xlogy
 
 from cvxpy.atoms.elementwise.elementwise import Elementwise
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.utilities import bounds as bounds_utils
 
 # TODO(akshayka): DGP support.
 
@@ -48,6 +49,10 @@ class entr(Elementwise):
         # Always unknown.
         return (False, False)
 
+    def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
+        lb, ub = self.args[0].get_bounds()
+        return bounds_utils.entr_bounds(lb, ub)
+
     def is_atom_convex(self) -> bool:
         """Is the atom convex?
         """
@@ -57,7 +62,7 @@ class entr(Elementwise):
         """Is the atom concave?
         """
         return True
-    
+
     def is_atom_smooth(self) -> bool:
         """Is the atom smooth?"""
         return True

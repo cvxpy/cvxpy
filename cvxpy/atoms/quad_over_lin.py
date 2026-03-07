@@ -25,6 +25,7 @@ from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.axis_atom import AxisAtom
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions.constants.parameter import is_param_free
+from cvxpy.utilities import bounds as bounds_utils
 
 
 class quad_over_lin(AxisAtom):
@@ -106,6 +107,12 @@ class quad_over_lin(AxisAtom):
         """
         # Always positive.
         return (True, False)
+
+    def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
+        lb_x, ub_x = self.args[0].get_bounds()
+        lb_y, ub_y = self.args[1].get_bounds()
+        return bounds_utils.quad_over_lin_bounds(
+            lb_x, ub_x, lb_y, ub_y, axis=self.axis, keepdims=self.keepdims)
 
     def is_atom_convex(self) -> bool:
         """Is the atom convex?

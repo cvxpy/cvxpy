@@ -24,14 +24,32 @@ from cvxpy.atoms.elementwise.power import power
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.dnlp2smooth.canonicalizers.power_canon import power_canon
 from cvxpy.reductions.eliminate_pwl.canonicalizers.abs_canon import abs_canon
+from cvxpy.utilities.bounds import get_expr_bounds
 
 
 def huber_canon(expr, args):
     M = expr.M
+    M_val = float(M.value) if M.value is not None else 1.0
     x = args[0]
     shape = expr.shape
-    n = Variable(shape)
-    s = Variable(shape)
+
+    # n = clip(x, -M, M), so n is bounded by [-M, M] intersected with x bounds
+    x_bounds = get_expr_bounds(x)
+    n_lb = -M_val * np.ones(shape) if shape else np.array(-M_val)
+    n_ub = M_val * np.ones(shape) if shape else np.array(M_val)
+    if x_bounds is not None:
+        n_lb = np.maximum(n_lb, x_bounds[0])
+        n_ub = np.minimum(n_ub, x_bounds[1])
+    n = Variable(shape, bounds=[n_lb, n_ub])
+
+    # s = x - n
+    if x_bounds is not None:
+        s_lb = x_bounds[0] - n_ub
+        s_ub = x_bounds[1] - n_lb
+        bounds_s = [s_lb, s_ub]
+    else:
+        bounds_s = None
+    s = Variable(shape, bounds=bounds_s)
 
     if x.value is None:
         x.value = np.zeros(x.shape)

@@ -20,6 +20,7 @@ import numpy as np
 import scipy.special
 
 from cvxpy.atoms.elementwise.elementwise import Elementwise
+from cvxpy.utilities import bounds as bounds_utils
 
 # TODO(akshayka): DGP support.
 
@@ -62,6 +63,11 @@ class huber(Elementwise):
         """Returns sign (is positive, is negative) of the expression."""
         # Always positive.
         return (True, False)
+
+    def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
+        lb, ub = self.args[0].get_bounds()
+        M = float(self.M.value) if self.M.value is not None else 1.0
+        return bounds_utils.huber_bounds(lb, ub, M)
 
     def is_atom_convex(self) -> bool:
         """Is the atom convex?"""

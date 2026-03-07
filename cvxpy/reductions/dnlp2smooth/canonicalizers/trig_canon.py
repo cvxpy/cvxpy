@@ -13,11 +13,21 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import numpy as np
+
 from cvxpy.expressions.variable import Variable
+from cvxpy.utilities.bounds import get_expr_bounds
+
+HALF_PI = np.pi / 2
 
 
 def tan_canon(expr, args):
-    t = Variable(args[0].shape, bounds=[-3.14159/2, 3.14159/2])
+    domain_bounds = [-HALF_PI, HALF_PI]
+    expr_bounds = get_expr_bounds(args[0])
+    if expr_bounds is not None:
+        domain_bounds = [np.maximum(domain_bounds[0], expr_bounds[0]),
+                         np.minimum(domain_bounds[1], expr_bounds[1])]
+    t = Variable(args[0].shape, bounds=domain_bounds)
     if args[0].value is not None:
         t.value = args[0].value
     return expr.copy([t]), [t == args[0]]
