@@ -425,6 +425,28 @@ class TestSCS(BaseTest):
     def test_scs_pcp_3(self) -> None:
         StandardTestPCPs.test_pcp_3(solver='SCS', eps=1e-12)
 
+    def test_primal_infeasible_dual_variable_propagation(self) -> None:
+        x = cp.Variable()
+        y = cp.Variable()
+        constraints = [x <= 0, x >= 1, y >= 0]
+        prob = cp.Problem(cp.Minimize(y), constraints)
+        prob.solve(solver="SCS")
+        assert prob.status == "infeasible"
+
+        # Only the first two constraints participate in the infeasibility certificate (i.e., have
+        # nonzero duals).
+        self.assertAlmostEqual(constraints[0].dual_value, 1)
+        self.assertAlmostEqual(constraints[1].dual_value, 1)
+        self.assertAlmostEqual(constraints[2].dual_value, 0)
+
+        # For each constraint, the dual variable value propagates to
+        #   1. the `.dual_variables` attribute of the constraint, and
+        #   2. the `.value` property of the Variable(s) in the constraint's `.dual_variables`
+        #      attribute.
+        assert constraints[0].dual_variables[0].value == constraints[0].dual_value
+        assert constraints[1].dual_variables[0].value == constraints[1].dual_value
+        assert constraints[2].dual_variables[0].value == constraints[2].dual_value
+
 
 @unittest.skipUnless('CLARABEL' in INSTALLED_SOLVERS, 'CLARABEL is not installed.')
 class TestClarabel(BaseTest):

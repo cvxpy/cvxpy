@@ -1371,9 +1371,9 @@ class Problem(u.Canonical):
         elif solution.status in s.INF_OR_UNB:
             for v in self.variables():
                 v.save_value(None)
-            for constr in self.constraints:
-                for dv in constr.dual_variables:
-                    dv.save_value(None)
+            for c in self.constraints:
+                if c.id in solution.dual_vars:
+                    c.save_dual_value(solution.dual_vars[c.id])
             self._value = solution.opt_val
         else:
             raise ValueError("Cannot unpack invalid solution: %s" % solution)
