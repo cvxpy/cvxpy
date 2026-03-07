@@ -26,9 +26,7 @@ from numpy import linalg as LA
 import cvxpy as cp
 import cvxpy.settings as s
 from cvxpy import Minimize, Problem
-from cvxpy.atoms.affine.binary_operators import multiply
-from cvxpy.atoms.affine.conj import conj
-from cvxpy.atoms.affine.reshape import reshape
+from cvxpy.atoms.affine.sum import Sum
 from cvxpy.atoms.affine.upper_tri import upper_tri_to_full
 from cvxpy.atoms.errormsg import SECOND_ARG_SHOULD_NOT_BE_EXPRESSION_ERROR_MESSAGE
 from cvxpy.expressions.constants import Constant, Parameter
@@ -882,20 +880,52 @@ class TestAtoms(BaseTest):
         assert isinstance(t, cp.Trace)
 
     def test_trace_AB(self) -> None:
-        """Test the trace(AB) gets canonicalized to vdot(A,B)
+        """Test that trace(A @ B) = sum(A * B.T), correct for non-symmetric matrices.
         """
-        A = cp.Variable((4,5))
-        B = cp.Variable((5,4))
+        A = cp.Variable((4, 5))
+        B = cp.Variable((5, 4))
         t = cp.trace(A @ B)
-        
-        # Ensure that Trace(A @ B) resolved to vdot(A, B)
-        assert len(t.args) == 1
-        assert isinstance(t.args[0], multiply)
-        assert len(t.args[0].args) == 2
-        assert isinstance(t.args[0].args[0], conj)
-        assert len(t.args[0].args[0].args) == 1
-        assert isinstance(t.args[0].args[0].args[0], reshape)
-        assert isinstance(t.args[0].args[1], reshape)
+
+        # Structural check: trace(A@B) is a scalar Sum of an element-wise multiply.
+        assert isinstance(t, Sum)
+        assert t.shape == ()
+
+        # Numerical correctness for non-symmetric real matrices (core bug check).
+        # The old vdot(A, B) = sum(conj(A)*B) computed trace(A^H @ B), which
+        # differs from trace(A @ B) for non-Hermitian A.
+        A_val = np.array([[1., 2., 3.], [4., 5., 6.]])
+        B_val = np.array([[7., 8.], [9., 10.], [11., 12.]])
+        A2 = cp.Variable((2, 3))
+        B2 = cp.Variable((3, 2))
+        A2.value = A_val
+        B2.value = B_val
+        self.assertAlmostEqual(cp.trace(A2 @ B2).value, np.trace(A_val @ B_val))
+
+        # Non-square factors: trace(A @ B) where A is 3x4 and B is 4x3.
+        A_val2 = np.arange(1., 13.).reshape(3, 4)
+        B_val2 = np.arange(1., 13.).reshape(4, 3) * 0.5
+        A3 = cp.Variable((3, 4))
+        B3 = cp.Variable((4, 3))
+        A3.value = A_val2
+        B3.value = B_val2
+        self.assertAlmostEqual(cp.trace(A3 @ B3).value, np.trace(A_val2 @ B_val2))
+
+        # Complex non-Hermitian matrices.
+        A_c = np.array([[1+2j, 3.], [4., 5-1j]])
+        B_c = np.array([[2-1j, 0.], [1., 3+2j]])
+        A4 = cp.Variable((2, 2), complex=True)
+        B4 = cp.Variable((2, 2), complex=True)
+        A4.value = A_c
+        B4.value = B_c
+        self.assertAlmostEqual(cp.trace(A4 @ B4).value, np.trace(A_c @ B_c))
+
+        # Solve-level check: minimize trace(C @ X) with asymmetric C.
+        # The optimal value must match the numpy reference on the returned solution.
+        C = np.array([[1., 3.], [2., 4.]])   # asymmetric cost matrix
+        X = cp.Variable((2, 2), nonneg=True)
+        prob = cp.Problem(cp.Minimize(cp.trace(C @ X)), [cp.sum(X) == 1])
+        prob.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(prob.value, np.trace(C @ X.value), places=4)
 
     def test_trace_complex2real(self) -> None:
         X = cp.Variable((2, 2), complex=True)
