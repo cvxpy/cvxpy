@@ -146,6 +146,36 @@ solves, which is known as **DPP (Disciplined Parameterized Programming)**.
 
 You can verify your problem is DPP-compliant by calling ``prob.is_dpp()``.
 
+
+.. _quadratic-objectives:
+
+Use cp.sum_squares for quadratic objectives
+--------------------------------------------
+
+When your objective is a sum of squares, always use ``cp.sum_squares`` rather than
+``cp.quad_form`` with an identity matrix. Using ``cp.quad_form(x, np.eye(n))`` constructs
+a dense n×n matrix explicitly, which causes excessive memory usage and slow compile times
+for large problems.
+
+.. code:: python
+
+    import cvxpy as cp
+    import numpy as np
+
+    n = 1000
+    x = cp.Variable(n)
+
+    # Slow and memory-intensive: constructs a dense 1000x1000 identity matrix
+    objective = cp.Minimize(cp.quad_form(x, np.eye(n)))
+
+    # Fast: purpose-built atom, no matrix construction
+    objective = cp.Minimize(cp.sum_squares(x))
+
+More generally, ``cp.quad_form(x, P)`` should only be used when ``P`` is a
+non-trivial positive semidefinite matrix. For diagonal ``P``, use
+``cp.sum_squares(cp.multiply(cp.sqrt(np.diag(P)), x))`` or restructure
+your problem to avoid it entirely.
+
 .. _canon-backends:
 
 Choose the right canonicalization backend
