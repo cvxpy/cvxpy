@@ -70,6 +70,10 @@ class Prod(AxisAtom):
         """
         return True
 
+    def is_atom_smooth(self) -> bool:
+        """Is the atom smooth?"""
+        return True
+
     def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """
