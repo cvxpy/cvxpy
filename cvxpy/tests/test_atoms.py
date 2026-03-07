@@ -1048,19 +1048,19 @@ class TestAtoms(BaseTest):
         problem = cp.Problem(cp.Minimize(x**2 + cp.huber(3*x-5, 2 * M + 0.15)), [x >= 0.5])
 
         M.value = 0.425
-        result = problem.solve(solver=cp.CLARABEL)
-        self.assertAlmostEqual(result, 2.5, places=4)
-        self.assertAlmostEqual(x.value, 1.5, places=4)
+        result = problem.solve()
+        self.assertAlmostEqual(result, 2.5)
+        self.assertAlmostEqual(x.value, 1.5)
 
         M.value = 0.0
-        result = problem.solve(solver=cp.CLARABEL)
-        self.assertAlmostEqual(result, 1.2775, places=4)
-        self.assertAlmostEqual(x.value, 0.5, places=4)
+        result = problem.solve()
+        self.assertAlmostEqual(result, 1.2775)
+        self.assertAlmostEqual(x.value, 0.5)
 
         M.value = 0.425
-        result = problem.solve(solver=cp.CLARABEL)
-        self.assertAlmostEqual(result, 2.5, places=4)
-        self.assertAlmostEqual(x.value, 1.5, places=4)
+        result = problem.solve()
+        self.assertAlmostEqual(result, 2.5)
+        self.assertAlmostEqual(x.value, 1.5)
 
         # Test t (scale) parameter
         # Valid t values
@@ -1123,9 +1123,9 @@ class TestAtoms(BaseTest):
 
     def test_huber_variable_t(self) -> None:
         """Test huber with t as a Variable (concomitant scale estimation)."""
+        # --- Basic scalar problem ---
         x = cp.Variable()
         t = cp.Variable()
-        # min x^2 + huber(x - 2, M=1, t=t) + t  s.t. t >= 0.1
         prob = cp.Problem(
             cp.Minimize(x**2 + cp.huber(x - 2, M=1, t=t) + t),
             [t >= 0.1]
@@ -1133,43 +1133,32 @@ class TestAtoms(BaseTest):
         prob.solve(solver=cp.CLARABEL)
         self.assertEqual(prob.status, cp.OPTIMAL)
         self.assertIsNotNone(x.value)
-        self.assertIsNotNone(t.value)
-        # t should be positive at optimum
         self.assertGreater(t.value, 0)
 
-        # Verify the objective numerically matches the reported value
+        # Verify objective value matches manual calculation
         x_val, t_val = float(x.value), float(t.value)
-        expected_huber = t_val * 2 * np.clip(
-            np.abs(x_val - 2) / t_val, 0, 1
-        ) * np.abs(x_val - 2) / t_val
-        # Use scipy for reference
-        import scipy.special
         expected_huber = t_val * 2 * scipy.special.huber(1.0, (x_val - 2) / t_val)
-        expected_obj = x_val**2 + expected_huber + t_val
-        self.assertAlmostEqual(prob.value, expected_obj, places=3)
+        self.assertAlmostEqual(prob.value, x_val**2 + expected_huber + t_val, places=3)
 
-        # Concomitant scale estimation: the classic use case.
+        # --- Concomitant scale estimation with outliers ---
         np.random.seed(42)
         n = 20
-        # Data: mostly normal, with a couple of outliers
         data = np.concatenate([np.random.randn(n - 2), [10.0, -10.0]])
         x = cp.Variable()
         t = cp.Variable()
-        residuals = data - x
         prob = cp.Problem(
-            cp.Minimize(cp.sum(cp.huber(residuals, M=1.345, t=t)) + n * t),
+            cp.Minimize(cp.sum(cp.huber(data - x, M=1.345, t=t)) + n * t),
             [t >= 0.01]
         )
         prob.solve(solver=cp.CLARABEL)
         self.assertEqual(prob.status, cp.OPTIMAL)
-        # x should be close to the median of the inliers (approx 0)
         self.assertAlmostEqual(x.value, np.median(data[:-2]), places=0)
         self.assertGreater(t.value, 0)
 
-        # Vector x with scalar t
+        # --- Vector x, scalar t ---
+        target = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
         x = cp.Variable(5)
         t = cp.Variable()
-        target = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
         prob = cp.Problem(
             cp.Minimize(cp.sum(cp.huber(x - target, M=1, t=t)) + 5 * t),
             [t >= 0.01]
@@ -1179,12 +1168,10 @@ class TestAtoms(BaseTest):
         np.testing.assert_allclose(x.value, target, atol=0.5)
         self.assertGreater(t.value, 0)
 
-        # DCP check: huber(x, M, t) should be convex when x is affine
-        # and t is concave (a bare Variable is both convex and concave)
+        # --- DCP check: huber(affine x, M, t=Variable) is convex ---
         x = cp.Variable(3)
         t = cp.Variable()
-        expr = cp.huber(x, M=1, t=t)
-        self.assertTrue(expr.is_convex())
+        self.assertTrue(cp.huber(x, M=1, t=t).is_convex())
 
     def test_sum_largest(self) -> None:
         """Test the sum_largest atom and related atoms.
