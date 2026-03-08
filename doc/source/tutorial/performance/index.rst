@@ -6,7 +6,7 @@ Performance Tips
 This page provides guidance on how to write CVXPY code that compiles and solves efficiently.
 CVXPY problems have two main cost components: **compile time** (how long CVXPY takes to transform
 your problem for a solver) and **solve time** (how long the solver takes to find a solution).
-The tips below primarily address compile time, which is often the bottleneck for large problems.
+The tips below primarily address compile time, which can be the bottleneck for large problems.
 
 .. _vectorization:
 
@@ -34,7 +34,9 @@ compilation, so fewer objects means faster compile times.
     x = cp.Variable(n)
 
     # Slow: creates m separate Constraint objects
-    constraints = [A[i, :] @ x == b[i] for i in range(m)]
+    constraints = []
+    for i in range(m):
+        constraints.append(A[i, :] @ x == b[i])
     prob = cp.Problem(cp.Minimize(cp.sum_squares(x)), constraints)
     prob.solve()
 
@@ -104,10 +106,8 @@ that is slow to compile. ``cp.sum`` handles the entire sum in a single, efficien
 
 .. code:: python
 
-    exprs = [cp.square(x[i]) for i in range(n)]
-
-    # Slow: creates a deep binary tree of additions
-    objective = cp.Minimize(sum(exprs))
+    # Slow: Python's sum() creates a deep binary tree of additions
+    objective = cp.Minimize(sum(cp.square(x)))
 
     # Fast: single efficient operation
     objective = cp.Minimize(cp.sum(cp.square(x)))
@@ -118,7 +118,7 @@ Use parameters for repeated solves
 ------------------------------------
 
 If you need to solve the same problem multiple times with different data values, use
-:class:`~cvxpy.atoms.affine.add_expr.Parameter` objects instead of creating a new problem
+:class:`~cvxpy.expressions.constants.parameter.Parameter` objects instead of creating a new problem
 each time. Parameters, used correctly, allow CVXPY to compile the problem structure once and reuse it across
 solves, which is known as **DPP (Disciplined Parameterized Programming)**.
 
@@ -130,7 +130,7 @@ solves, which is known as **DPP (Disciplined Parameterized Programming)**.
     n = 100
     x = cp.Variable(n)
     gamma = cp.Parameter(nonneg=True)
-    data = cp.Parameter((n,))
+    data = cp.Parameter(n)
 
     prob = cp.Problem(cp.Minimize(cp.sum_squares(x - data) + gamma * cp.norm1(x)))
 
@@ -174,7 +174,7 @@ for large problems.
 More generally, ``cp.quad_form(x, P)`` should only be used when ``P`` is a
 non-trivial positive semidefinite matrix. Sparse matrices work perfectly fine
 with ``cp.quad_form`` and do not cause the memory issues described above.
-For diagonal ``P``, use ``cp.sum_squares(cp.multiply(cp.sqrt(np.diag(P)), x))``
+For diagonal ``P``, use ``cp.quad_form(x, scipy.sparse.diags_array(P_diag))`` or ``cp.sum(cp.multiply(P_diag, cp.square(x)))``
 or restructure your problem to avoid it entirely.
 
 .. _canon-backends:
