@@ -106,9 +106,13 @@ class CoeffExtractor:
         # These are then combined into matrices [P1.flatten(), P2.flatten(), ...]
         # and [q1, q2, ...]
         constant = param_coeffs[[-1], :]
-        # TODO keep sparse.
-        c = param_coeffs[:-1, :].toarray()
         num_params = param_coeffs.shape[1]
+        if num_params == 1:
+            c = param_coeffs[:-1, :].toarray()
+        else:
+            # param_coeffs is already CSC from canonInterface; slicing
+            # preserves the format, so no conversion needed.
+            c = param_coeffs[:-1, :]
 
         # coeffs stores the P and q for each quad_form,
         # as well as for true variable nodes in the objective.
@@ -136,51 +140,23 @@ class CoeffExtractor:
                 assert (
                     P.value is not None
                 ), "P matrix must be instantiated before calling extract_quadratic_coeffs."
-                if sp.issparse(P) and not isinstance(P, sp.coo_matrix):
+                if sp.issparse(P) and not isinstance(P, sp.coo_array):
                     P = P.value.tocoo()
                 else:
-                    P = sp.coo_matrix(P.value)
+                    P = sp.coo_array(P.value)
 
                 # Get block structure if available
                 block_indices = quad_form_atom.block_indices
 
-                # We multiply P by the parameter coefficients.
+                # Multiply P by parameter coefficients via the appropriate path.
                 if var_size == 1:
-                    # SCALAR PATH - Single quad form in the expression, i.e.,
-                    # we multiply the full P matrix by the non-zero entries of c_part.
-                    nonzero_idxs = c_part[0] != 0
-                    data = P.data[:, None] * c_part[:, nonzero_idxs]
-                    param_idxs = np.arange(num_params)[nonzero_idxs]
-                    P_tup = TensorRepresentation(
-                        data.flatten(order="F"),
-                        np.tile(P.row, len(param_idxs)),
-                        np.tile(P.col, len(param_idxs)),
-                        np.repeat(param_idxs, len(P.data)),
-                        P.shape
-                    )
+                    P_tup = self._scalar_quad_tensor(P, c_part, num_params)
                 elif block_indices is not None:
-                    # BLOCK-STRUCTURED PATH - Non-scalar output with block structure.
-                    # Each output element j depends on input indices block_indices[j].
-                    P_tup = self._extract_block_quad(P, c_part, block_indices, num_params)
-                else:
-                    # DIAGONAL PATH - Multiple quad forms in the one expression,
-                    # i.e., c_part is now a matrix where each row corresponds to
-                    # a different variable.
-                    assert (P.col == P.row).all(), \
-                        "Only diagonal P matrices are supported for multiple quad forms " \
-                        "without block_indices. If you need non-diagonal structure, " \
-                        "use SymbolicQuadForm with block_indices parameter."
-
-                    scaled_c_part = P @ c_part
-                    paramx_idx_row, param_idx_col = np.nonzero(scaled_c_part)
-                    c_vals = c_part[paramx_idx_row, param_idx_col]
-                    P_tup = TensorRepresentation(
-                        c_vals,
-                        paramx_idx_row,
-                        paramx_idx_row.copy(),
-                        param_idx_col,
-                        P.shape
+                    P_tup = self._extract_block_quad(
+                        P, c_part, block_indices, num_params,
                     )
+                else:
+                    P_tup = self._diagonal_quad_tensor(P, c_part, num_params)
 
                 if orig_id in coeffs:
                     if 'P' in coeffs[orig_id]:
@@ -196,7 +172,7 @@ class CoeffExtractor:
                         # Fast path for no parameters, keep q dense.
                         coeffs[orig_id]['q'] = np.zeros(shape)
                     else:
-                        coeffs[orig_id]['q'] = sp.coo_matrix(([], ([], [])), shape=shape) 
+                        coeffs[orig_id]['q'] = sp.coo_array(([], ([], [])), shape=shape)
             else:
                 # This was a true variable, so it can only have a q term.
                 var_offset = affine_id_map[var.id][0]
@@ -216,10 +192,105 @@ class CoeffExtractor:
                         coeffs[var.id]['q'] = param_coeffs[var_offset:var_offset+var_size, :]
         return coeffs, constant
 
+    @staticmethod
+    def _scalar_quad_tensor(
+        P: sp.coo_array,
+        c_part: np.ndarray | sp.sparray,
+        num_params: int,
+    ) -> TensorRepresentation:
+        """Build tensor for the scalar path (var_size == 1).
+
+        Multiplies the full P matrix by each nonzero parameter coefficient
+        in the single-row ``c_part``.
+
+        Args:
+            P: COO sparse matrix (N x N).
+            c_part: 1-row coefficient matrix (1 x num_params), dense or sparse.
+            num_params: Number of parameter columns.
+
+        Returns:
+            TensorRepresentation for the scaled P matrix.
+        """
+        if sp.issparse(c_part):
+            # c_part is a 1-row CSC matrix; extract nonzero
+            # columns and values directly from the CSC structure.
+            nz_cols = np.where(np.diff(c_part.indptr) > 0)[0]
+            nz_vals = c_part.data
+            # Dense outer product of the nonzero values only (nnz(P) x nnz(c)),
+            # not the full sparse dimensions — this is intentionally dense.
+            data = P.data[:, None] * nz_vals[None, :]
+            param_idxs = nz_cols
+        else:
+            nonzero_idxs = c_part[0] != 0
+            data = P.data[:, None] * c_part[:, nonzero_idxs]
+            param_idxs = np.arange(num_params)[nonzero_idxs]
+
+        return TensorRepresentation(
+            data.flatten(order="F"),
+            np.tile(P.row, len(param_idxs)),
+            np.tile(P.col, len(param_idxs)),
+            np.repeat(param_idxs, len(P.data)),
+            P.shape,
+        )
+
+    @staticmethod
+    def _diagonal_quad_tensor(
+        P: sp.coo_array,
+        c_part: np.ndarray | sp.sparray,
+        num_params: int,
+    ) -> TensorRepresentation:
+        """Build tensor for the diagonal path (multiple element-wise quad forms).
+
+        ``P`` must be diagonal.  Each row of ``c_part`` corresponds to a
+        different diagonal entry, so ``P @ c_part`` is just row-scaling.
+
+        Args:
+            P: Diagonal COO sparse matrix (N x N).
+            c_part: Coefficient matrix (N x num_params), dense or sparse.
+            num_params: Number of parameter columns.
+
+        Returns:
+            TensorRepresentation for the scaled P matrix.
+        """
+        assert (P.col == P.row).all(), (
+            "Only diagonal P matrices are supported for multiple quad forms "
+            "without block_indices. If you need non-diagonal structure, "
+            "use SymbolicQuadForm with block_indices parameter."
+        )
+
+        # P is diagonal, so P @ c_part is just row-scaling.
+        # Build a dense diagonal vector indexed by row position to handle
+        # COO entries that may not be in row-sorted order.
+        diag_vals = np.zeros(P.shape[0])
+        diag_vals[P.row] = P.data
+        if sp.issparse(c_part):
+            # .multiply() is element-wise and preserves sparsity (unlike @).
+            # Result is COO; read .row/.col/.data directly instead of
+            # converting format for fancy indexing.
+            scaled_coo = c_part.multiply(diag_vals[:, None])
+            scaled_coo.eliminate_zeros()
+            paramx_idx_row = scaled_coo.row
+            param_idx_col = scaled_coo.col
+            c_vals = scaled_coo.data
+        else:
+            scaled_c_part = c_part * diag_vals[:, None]
+            paramx_idx_row, param_idx_col = np.nonzero(scaled_c_part)
+            # Use the scaled values (P_ii * c[i, k]), not the raw c values,
+            # so the tensor data is consistent with the scalar and block paths.
+            c_vals = scaled_c_part[paramx_idx_row, param_idx_col]
+
+        return TensorRepresentation(
+            c_vals,
+            paramx_idx_row,
+            paramx_idx_row.copy(),
+            param_idx_col,
+            P.shape,
+        )
+
     def _extract_block_quad(
         self,
-        P: sp.coo_matrix,
-        c_part: np.ndarray,
+        P: sp.coo_array,
+        c_part: np.ndarray | sp.sparray,
         block_indices: List[np.ndarray],
         num_params: int,
     ) -> TensorRepresentation:
@@ -242,21 +313,49 @@ class CoeffExtractor:
         all_col = []
         all_param = []
 
+        # Pre-build a mapping from P index to block, so we avoid
+        # O(nnz * n_blocks) np.isin scans.  For each P entry we
+        # need both row and col to belong to the same block.
+        N = P.shape[0]
+        idx_to_block = np.full(N, -1, dtype=int)
         for j, indices in enumerate(block_indices):
-            # Filter P entries where both row and col are in this block
-            row_mask = np.isin(P.row, indices)
-            col_mask = np.isin(P.col, indices)
-            mask = row_mask & col_mask
+            idx_to_block[indices] = j
+        row_block = idx_to_block[P.row]
+        col_block = idx_to_block[P.col]
+        same_block = (row_block == col_block) & (row_block >= 0)
 
-            if not mask.any():
+        # Group P entries by block.
+        block_ids_per_entry = row_block[same_block]
+        p_data = P.data[same_block]
+        p_row = P.row[same_block]
+        p_col = P.col[same_block]
+        sort_idx = np.argsort(block_ids_per_entry, kind="mergesort")
+        block_ids_sorted = block_ids_per_entry[sort_idx]
+        split_points = np.searchsorted(
+            block_ids_sorted,
+            np.arange(len(block_indices)),
+        )
+        split_points = np.append(split_points, len(block_ids_sorted))
+
+        c_is_sparse = sp.issparse(c_part)
+
+        for j in range(len(block_indices)):
+            lo, hi = split_points[j], split_points[j + 1]
+            if lo == hi:
                 continue
 
-            block_data = P.data[mask]
-            block_row = P.row[mask]
-            block_col = P.col[mask]
+            seg = sort_idx[lo:hi]
+            block_data = p_data[seg]
+            block_row = p_row[seg]
+            block_col = p_col[seg]
 
-            # Coefficient for this output element
-            coef_row = c_part[j, :]
+            # Coefficient for this output element.  Densify the
+            # single row so we can use plain scalar indexing regardless
+            # of whether c_part is sparse (1-D coo_array, 2-D csc, etc.).
+            if c_is_sparse:
+                coef_row = np.asarray(c_part[[j], :].todense()).ravel()
+            else:
+                coef_row = c_part[j, :]
             nonzero_params = np.nonzero(coef_row)[0]
 
             if len(nonzero_params) == 0:
@@ -264,7 +363,8 @@ class CoeffExtractor:
 
             # Scale by each non-zero coefficient
             for param_idx in nonzero_params:
-                scaled_data = block_data * coef_row[param_idx]
+                coef_val = coef_row[param_idx]
+                scaled_data = block_data * coef_val
                 all_data.append(scaled_data)
                 all_row.append(block_row)  # Already global coordinates
                 all_col.append(block_col)
@@ -323,7 +423,7 @@ class CoeffExtractor:
                 if num_params == 1:
                     q = np.zeros((size, num_params))
                 else:
-                    q = sp.coo_matrix(([], ([], [])), (size, num_params))
+                    q = sp.coo_array(([], ([], [])), (size, num_params))
 
             P_list.append(P)
             q_list.append(q)
@@ -379,7 +479,7 @@ class CoeffExtractor:
 
     def merge_q_list(
         self,
-        q_list: List[sp.spmatrix | np.ndarray],
+        q_list: List[sp.spmatrix | sp.sparray | np.ndarray],
         constant: sp.csc_array,
         num_params: int,
     ) -> sp.csr_array:
