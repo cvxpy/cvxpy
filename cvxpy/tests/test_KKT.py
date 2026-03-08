@@ -17,6 +17,7 @@ class TestKKT_LPs(BaseTest):
         sth.check_dual_domains(places)
         sth.check_stationary_lagrangian(places)
 
+
     def test_lp_2(self, places=4):
         # typical LP
         sth = STH.lp_2()
@@ -375,6 +376,35 @@ class TestKKT_Flags(BaseTest):
     def test_kkt_nonpos_var(self, places=4):
         sth = TestKKT_Flags.nonpos_flag()
         sth.solve(solver='SCS')
+        sth.check_primal_feasibility(places)
+        sth.check_complementarity(places)
+        sth.check_dual_domains(places)
+        sth.check_stationary_lagrangian(places)
+
+class TestKKT_PCPs(BaseTest):
+
+    def test_pcp_1(self, places=4):
+        # power cone problem 1
+        sth = STH.pcp_1()
+        sth.solve(solver='CLARABEL')
+        sth.check_primal_feasibility(places)
+        sth.check_complementarity(places)
+        sth.check_dual_domains(places)
+        sth.check_stationary_lagrangian(places)
+
+    def test_pcp_2(self, places=4):
+        # power cone problem 2
+        sth = STH.pcp_2()
+        sth.solve(solver='CLARABEL')
+        sth.check_primal_feasibility(places)
+        sth.check_complementarity(places)
+        sth.check_dual_domains(places)
+        sth.check_stationary_lagrangian(places)
+
+    def test_pcp_3(self, places=4):
+        # power cone problem 3
+        sth = STH.pcp_3()
+        sth.solve(solver='CLARABEL')
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
         sth.check_dual_domains(places)
