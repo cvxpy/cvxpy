@@ -172,9 +172,10 @@ for large problems.
     objective = cp.Minimize(cp.sum_squares(x))
 
 More generally, ``cp.quad_form(x, P)`` should only be used when ``P`` is a
-non-trivial positive semidefinite matrix. For diagonal ``P``, use
-``cp.sum_squares(cp.multiply(cp.sqrt(np.diag(P)), x))`` or restructure
-your problem to avoid it entirely.
+non-trivial positive semidefinite matrix. Sparse matrices work perfectly fine
+with ``cp.quad_form`` and do not cause the memory issues described above.
+For diagonal ``P``, use ``cp.sum_squares(cp.multiply(cp.sqrt(np.diag(P)), x))``
+or restructure your problem to avoid it entirely.
 
 .. _canon-backends:
 
