@@ -43,6 +43,9 @@ jobs:
         run: brew install suite-sparse
       - name: Install cvxpy dependencies and all optional solvers
         run: uv sync --all-extras --dev
+      - name: Install Moreau
+        if: runner.os == 'Linux' && env.FURY_TOKEN != ''
+        run: uv pip install moreau --extra-index-url https://${FURY_TOKEN}:@pypi.fury.io/optimalintellect/
       - name: Print installed solvers
         run: uv run python -c "import cvxpy; print(cvxpy.installed_solvers())"
       - name: Run test_conic_solvers
@@ -55,4 +58,7 @@ jobs:
       UV_SYSTEM_PYTHON: 1
       RUNNER_OS: ${{ matrix.os }}
       PYTHON_VERSION: 3.12
+      MOSEK_CI_BASE64: ${{ secrets.MOSEK_CI_BASE64 }}
       KNITRO_LICENSE: ${{ secrets.KNITRO_LICENSE }}
+      FURY_TOKEN: ${{ secrets.FURY_TOKEN }}
+      MOREAU_LICENSE_KEY: ${{ secrets.MOREAU_KEY }}
