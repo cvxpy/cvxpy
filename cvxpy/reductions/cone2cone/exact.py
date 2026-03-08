@@ -41,7 +41,7 @@ from cvxpy.atoms.affine.hstack import hstack
 from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.constraints.power import PowCone3D, PowConeND
 from cvxpy.constraints.psd import PSD
-from cvxpy.constraints.second_order import SOC
+from cvxpy.constraints.second_order import RSOC, SOC
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.canonicalization import Canonicalization
 from cvxpy.reductions.cone2cone.cone_tree import (
@@ -58,6 +58,7 @@ from cvxpy.reductions.solution import Solution
 EXACT_CONE_CONVERSIONS = {
     PowConeND: {PowCone3D},
     SOC: {PSD},
+    RSOC: {SOC},
 }
 
 
@@ -391,9 +392,75 @@ class SOCConversion:
             return 2 * dual_var[0]
 
 
+
+class RSocConversion:
+    """RSOC -> SOC conversion.
+
+    The rotated second-order cone constraint:
+        2*y*z >= ||x||_2^2,  y >= 0,  z >= 0
+
+    is equivalent to the standard SOC constraint:
+        ||(sqrt(2)*x, y-z)||_2 <= y+z
+
+    via the substitution u = y+z, v = y-z:
+        ||(sqrt(2)*x, v)||_2 <= u
+    """
+    source = RSOC
+    targets = {SOC}
+
+    @staticmethod
+    def canonicalize(con, args):
+        X, y, z = args
+        y_flat = reshape(y, (y.size,), order='F')
+        z_flat = reshape(z, (z.size,), order='F')
+
+        from cvxpy.atoms.affine.vstack import vstack
+        if con.axis == 1:
+            X = X.T
+        # Unified scalar + batched: SOC supports batching natively
+        # t shape: (n_cones,), vec shape: (n+1, n_cones)
+        t = y_flat + z_flat
+        diff = reshape(y_flat - z_flat, (1, y.size), order='F')
+        n_x = X.shape[0] if X.ndim > 1 else X.size
+        two_X = reshape(np.sqrt(2) * X, (n_x, y.size), order='F')
+        vec = vstack([two_X, diff])
+        can_con = SOC(t, vec, axis=0)
+        return can_con, []
+
+    @staticmethod
+    def recover_dual(cons, dual_var, inverse_data, solution):
+        """Recover RSOC dual variables from SOC duals.
+
+        The conversion maps RSOC(x, y, z) to SOC(t, X) where:
+            t = y + z   (scalar)
+            X = [sqrt(2)*x, y - z]  (vector of length n+1)
+
+        The SOC dual (dt, dX) maps back to RSOC duals as:
+            dx = sqrt(2) * dX[:n]
+            dy = dt + dX[n]
+            dz = dt - dX[n]
+        """
+        # dual_var is a flat list of length n_cones*(n_x+2):
+        # each cone i contributes [dt_i, dx_0,...,dx_{n_x-1}, d_yz_i]
+        n_x = cons.args[0].shape[0]   # dimension of x per cone
+        n_cones = cons.args[1].size   # number of cones
+        dual = np.asarray(dual_var, dtype=float).ravel()
+        stride = n_x + 2
+        dt = dual[0::stride]
+        d_yz = dual[stride - 1::stride]
+        dx_flat = np.vstack([dual[i*stride+1:i*stride+1+n_x]
+                              for i in range(n_cones)])   # (n_cones, n_x)
+        dx_dual = np.sqrt(2) * dx_flat
+        dy_dual = dt + d_yz
+        dz_dual = dt - d_yz
+        if n_cones == 1:
+            return np.concatenate([dx_dual[0], [dy_dual[0]], [dz_dual[0]]])
+        return [dx_dual, dy_dual, dz_dual]
+
+
 class ExactCone2Cone(Canonicalization):
 
-    CONVERSIONS = [PowNDConversion, SOCConversion]
+    CONVERSIONS = [PowNDConversion, SOCConversion, RSocConversion]
 
     CANON_METHODS = {c.source: c.canonicalize for c in CONVERSIONS}
 
