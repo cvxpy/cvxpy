@@ -932,3 +932,133 @@ class TestSlacksInvert(BaseTest):
         self.assertTrue(constr.is_dcp())
         self.assertTrue(constr.args[0].is_affine())
         self.assertTrue(constr.args[1].is_affine())
+
+
+class TestRSOC(unittest.TestCase):
+    """Tests for the RSOC (Rotated Second-Order Cone) constraint."""
+
+    def test_invalid_y_not_scalar(self):
+        """Test that non-scalar y raises ValueError."""
+        x = cp.Variable(3)
+        y = cp.Variable(2)
+        z = cp.Variable(nonneg=True)
+        with pytest.raises(Exception):
+            cp.RSOC(x, y, z)
+
+    def test_invalid_z_not_scalar(self):
+        """Test that non-scalar z raises ValueError."""
+        x = cp.Variable(3)
+        y = cp.Variable(nonneg=True)
+        z = cp.Variable(2)
+        with pytest.raises(Exception):
+            cp.RSOC(x, y, z)
+
+    def test_is_dcp(self):
+        """Test that RSOC is DCP when arguments are affine."""
+        x = cp.Variable(3)
+        y = cp.Variable(nonneg=True)
+        z = cp.Variable(nonneg=True)
+        con = cp.RSOC(x, y, z)
+        assert con.is_dcp()
+
+    def test_solve_basic(self):
+        """Test solving a basic RSOC problem."""
+        n = 5
+        x = cp.Variable(n)
+        y = cp.Variable(nonneg=True)
+        z = cp.Variable(nonneg=True)
+        prob = cp.Problem(cp.Minimize(y + z),
+                          [cp.RSOC(x, y, z), x == np.ones(n)])
+        prob.solve()
+        assert prob.status == cp.OPTIMAL
+        y_opt, z_opt, x_opt = y.value, z.value, x.value
+        # Check RSOC constraint: 2yz >= ||x||^2
+        assert 2 * y_opt * z_opt >= np.dot(x_opt, x_opt) - 1e-4
+        assert y_opt >= -1e-6 and z_opt >= -1e-6
+
+    def test_equivalence_with_quad_over_lin(self):
+        """Test equivalence of RSOC with quad_over_lin formulation."""
+        n = 4
+        x_val = np.array([1.0, 2.0, 3.0, 4.0])
+        y_val = 3.0
+
+        # RSOC formulation
+        x1 = cp.Variable(n)
+        y1 = cp.Variable(nonneg=True)
+        z1 = cp.Variable()
+        prob1 = cp.Problem(cp.Minimize(z1),
+                           [cp.RSOC(x1, y1, z1),
+                            x1 == x_val, y1 == y_val])
+        prob1.solve()
+
+        # quad_over_lin formulation: z >= ||x||^2 / (2y)
+        x2 = cp.Variable(n)
+        y2 = cp.Variable(nonneg=True)
+        z2 = cp.Variable()
+        prob2 = cp.Problem(cp.Minimize(z2),
+                           [z2 >= cp.quad_over_lin(x2, 2 * y_val),
+                            x2 == x_val])
+        prob2.solve()
+
+        # Both should give z = ||x_val||^2 / (2*y_val)
+        expected = np.dot(x_val, x_val) / (2 * y_val)
+        assert np.isclose(prob1.value, expected, atol=1e-4)
+        assert np.isclose(prob2.value, expected, atol=1e-4)
+
+    def test_dual_variables(self):
+        """Test dual variable recovery correctness for RSOC constraint."""
+        n = 3
+        x = cp.Variable(n)
+        y = cp.Variable(nonneg=True)
+        z = cp.Variable(nonneg=True)
+        con = cp.RSOC(x, y, z)
+        prob = cp.Problem(cp.Minimize(y + z),
+                          [con, x == np.array([1.0, 1.0, 1.0])])
+        prob.solve()
+        assert prob.status == cp.OPTIMAL
+        # Dual variable should be recoverable and finite
+        assert con.dual_value is not None
+        # dual_value is a list [soc_dual_array, None, None]
+        dual_arr = con.dual_value[0]
+        assert dual_arr is not None
+        assert np.all(np.isfinite(dual_arr))
+
+    def test_residual_feasible(self):
+        """Test residual is near zero for a feasible point."""
+        x = cp.Variable(3)
+        y = cp.Variable(nonneg=True)
+        z = cp.Variable(nonneg=True)
+        con = cp.RSOC(x, y, z)
+        prob = cp.Problem(cp.Minimize(y + z),
+                          [con, x == np.array([1.0, 1.0, 1.0])])
+        prob.solve()
+        assert prob.status == cp.OPTIMAL
+        assert con.residual < 1e-4
+
+    def test_batch_rsoc(self):
+        """Test batched RSOC: X matrix, y and z vectors."""
+        n, k = 4, 3  # n-dim vectors, k cones
+        X = cp.Variable((n, k))
+        y = cp.Variable(k, nonneg=True)
+        z = cp.Variable(k, nonneg=True)
+        X_val = np.random.randn(n, k)
+        con = cp.RSOC(X, y, z)
+        prob = cp.Problem(cp.Minimize(cp.sum(y + z)),
+                          [con, X == X_val])
+        prob.solve()
+        assert prob.status == cp.OPTIMAL
+        # Check each cone: 2*y[i]*z[i] >= ||X[:,i]||^2
+        X_opt = X.value
+        y_opt = y.value
+        z_opt = z.value
+        for i in range(k):
+            lhs = 2 * y_opt[i] * z_opt[i]
+            rhs = np.dot(X_opt[:, i], X_opt[:, i])
+            assert lhs >= rhs - 1e-4
+        # Check batched dual is recoverable
+        assert con.dual_value is not None
+        dx, dy, dz = con.dual_value[0]
+        assert dx.shape == (k, n)
+        assert dy.shape == (k,)
+        assert dz.shape == (k,)
+
