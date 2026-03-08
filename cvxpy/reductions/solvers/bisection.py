@@ -31,9 +31,12 @@ def _lower_problem(problem):
 
 def _solve(problem, solver) -> None:
     with warnings.catch_warnings():
-        # TODO(akshayka): Try to emit DPP problems in Dqcp2Dcp
+        
         warnings.filterwarnings('ignore', message=r'.*DPP.*')
-        problem.solve(solver=solver)
+        try:
+            problem.solve(solver=solver)
+        except error.SolverError:
+            problem._status = s.SOLVER_ERROR
 
 
 def _infeasible(problem) -> bool:
@@ -128,9 +131,8 @@ def _bisect(problem, solver, t, low, high, tighten_lower, tighten_higher,
             high = tighten_higher(query_pt)
         else:
             if verbose:
-                print("Aborting; the solver failed ...\n")
-            raise error.SolverError(
-                "Solver failed with status %s" % lowered.status)
+                print("(iteration %d) solver failed, skipping.\n" % i)
+            continue
     raise error.SolverError("Max iters hit during bisection.")
 
 
