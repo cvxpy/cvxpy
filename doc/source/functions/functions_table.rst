@@ -408,15 +408,19 @@
        |incr| incr.
      - |convex| convex
 
-   * - :ref:`huber(x, M=1) <huber>`
-
-       :math:`M \geq 0`
-     - :math:`\begin{aligned} & \text{if } |x| \leq M\colon \\& x^2 \end{aligned}`
-     
-       :math:`\begin{aligned} & \text{if } |x| > M\colon \\& 2M|x| - M^2 \end{aligned}`
+   * - :ref:`huber(x, M=1, t=None) <huber>`
+   
+       :math:`M \geq 0,\ t > 0`
+     - :math:`\begin{aligned}
+         & t = \text{None}: \\
+         &\quad \text{if } |x| \leq M\colon \\&\quad x^2 \\
+         &\quad \text{if } |x| > M\colon \\&\quad 2M|x| - M^2 \\
+         & \\
+         & t > 0\colon \\&\quad t\,\mathrm{huber}(x/t, M)
+       \end{aligned}`
      - :math:`x \in \mathbf{R}`
      - |positive| positive
-
+   
        |incr| for :math:`x \geq 0`
        
        |decr| for :math:`x \leq 0`
