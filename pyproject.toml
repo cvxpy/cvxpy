@@ -55,6 +55,7 @@ dependencies = [
     "numpy >= 2.0.0",
     "scipy >= 1.13.0",
     "highspy >= 1.11.0",
+    "sparsediffpy",
 ]
 requires-python = ">=3.11"
 urls = {Homepage = "https://github.com/cvxpy/cvxpy"}
@@ -93,6 +94,7 @@ SCS = []
 XPRESS = ["xpress>=9.5"]
 DAQP = ["daqp"]
 KNITRO = ["knitro"]
+# IPOPT = ["cyipopt"]  # requires system IPOPT; excluded from --all-extras
 testing = ["pytest", "hypothesis"]
 doc = ["sphinx",
        "sphinxcontrib.jquery",
