@@ -54,7 +54,7 @@ from cvxpy.atoms.elementwise.abs import abs
 from cvxpy.atoms.elementwise.ceil import ceil, floor
 from cvxpy.atoms.elementwise.entr import entr
 from cvxpy.atoms.elementwise.exp import exp
-from cvxpy.atoms.elementwise.huber import huber, _HuberAtom, _HuberPerspectiveAtom
+from cvxpy.atoms.elementwise.huber import huber, HuberAtom, HuberPerspectiveAtom
 from cvxpy.atoms.elementwise.inv_pos import inv_pos
 from cvxpy.atoms.elementwise.kl_div import kl_div
 from cvxpy.atoms.elementwise.log import log
@@ -121,8 +121,8 @@ SOC_ATOMS = [
     QuadForm,
     quad_over_lin,
     PowerApprox,
-    _HuberAtom,
-    _HuberPerspectiveAtom,
+    HuberAtom,
+    HuberPerspectiveAtom,
     std,
 ]
 

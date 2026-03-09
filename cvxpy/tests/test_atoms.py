@@ -1000,12 +1000,6 @@ class TestAtoms(BaseTest):
         self.assertEqual(str(cm.exception),
                          "M must be a non-negative scalar constant or Parameter.")
 
-        # Test t <= 0 returns Inf (matching MATLAB behavior)
-        result = cp.huber(1.0, M=1, t=0).value
-        self.assertTrue(np.isinf(result))
-        result = cp.huber(1.0, M=1, t=-1).value
-        self.assertTrue(np.isinf(result))
-
         # Test copy with args=None
         atom = cp.huber(self.x, 2)
         copy = atom.copy()
@@ -1062,116 +1056,215 @@ class TestAtoms(BaseTest):
         self.assertAlmostEqual(result, 2.5)
         self.assertAlmostEqual(x.value, 1.5)
 
-        # Test t (scale) parameter
-        # Valid t values
-        cp.huber(self.x, M=1, t=1)
-        cp.huber(self.x, M=1, t=2.5)
-        
-        # Test numeric evaluation with t parameter
-        # t * huber(x/t, M): when |x/t| <= M, result = t * (x/t)^2 = x^2/t
-        self.assertAlmostEqual(cp.huber(0.5, M=1, t=2).value, 0.125)  # 0.5^2/2
-        self.assertAlmostEqual(cp.huber(0.5, M=1, t=3).value, 1.0/12)  # 0.5^2/3
-        
-        # When |x/t| > M: result = t * (2*M*|x/t| - M^2)
-        self.assertAlmostEqual(cp.huber(2, M=1, t=2).value, 2.0)  # 2*(2*1*1 - 1)
-        self.assertAlmostEqual(cp.huber(2, M=1, t=3).value, 4.0/3)  # 3*(2*1*(2/3) - 1)
-        
-        # Test with negative x (should give same result due to abs)
+    def test_huber_perspective(self) -> None:
+        """Tests for the three-argument perspective Huber atom (HuberPerspectiveAtom)."""
+        # -- t <= 0 → Inf --
+        self.assertTrue(np.isinf(cp.huber(1.0, M=1, t=0).value))
+        self.assertTrue(np.isinf(cp.huber(1.0, M=1, t=-1).value))
+
+        # -- Inner region: |x/t| <= M → x^2/t --
+        self.assertAlmostEqual(cp.huber(0.5, M=1, t=2).value, 0.125)   # 0.25/2
+        self.assertAlmostEqual(cp.huber(0.5, M=1, t=3).value, 1.0/12)  # 0.25/3
+
+        # -- Boundary: |x/t| == M → M^2 * t (both branches agree) --
+        # x=2, M=1, t=2: inner → 4/2=2; outer → 2*1*2 - 1*2=2
+        self.assertAlmostEqual(cp.huber(2.0, M=1, t=2).value, 2.0)
+        # x=3, M=1, t=3: inner → 9/3=3; outer → 2*1*3 - 1*3=3
+        self.assertAlmostEqual(cp.huber(3.0, M=1, t=3).value, 3.0)
+
+        # -- Outer region: |x/t| > M → 2M|x| - M^2*t --
+        # x=3, M=1, t=2: |3/2|=1.5>1 → 2*1*3 - 1*2 = 4
+        self.assertAlmostEqual(cp.huber(3.0, M=1, t=2).value, 4.0)
+
+        # -- Symmetry --
         self.assertAlmostEqual(cp.huber(-0.5, M=1, t=2).value, 0.125)
-        self.assertAlmostEqual(cp.huber(-2, M=1, t=2).value, 2.0)
-        
-        # Test t as Parameter
+        self.assertAlmostEqual(cp.huber(-3.0, M=1, t=2).value, 4.0)
+
+        # -- Reduction to standard Huber when t=1 --
+        for x_val, M_val in [(0.5, 1.0), (1.0, 1.0), (2.0, 1.0), (3.0, 2.0)]:
+            self.assertAlmostEqual(
+                cp.huber(x_val, M=M_val, t=1).value,
+                cp.huber(x_val, M=M_val).value,
+            )
+
+        # -- Scaling property: huber(α*x, M, α*t) == α * huber(x, M, t) --
+        for alpha in [0.5, 2.0, 3.0]:
+            x_val, M_val, t_val = 1.5, 1.0, 2.0
+            self.assertAlmostEqual(
+                cp.huber(alpha * x_val, M=M_val, t=alpha * t_val).value,
+                alpha * cp.huber(x_val, M=M_val, t=t_val).value,
+            )
+
+        # -- Vector input: [inner, boundary, outer] with M=1, t=2 --
+        # |x/t|: 0.25, 1.0, 1.5 → inner, boundary, outer
+        self.assertItemsAlmostEqual(
+            cp.huber(np.array([0.5, 2.0, 3.0]), M=1, t=2).value,
+            [0.125, 2.0, 4.0],
+        )
+
+        # -- 2-D matrix input --
+        # M=1, t=2: 0.5→0.125 (inner), 3.0→4.0 (outer), 2.0→2.0 (boundary), 1.0→0.5 (inner)
+        self.assertItemsAlmostEqual(
+            cp.huber(np.array([[0.5, 3.0], [2.0, 1.0]]), M=1, t=2).value,
+            np.array([[0.125, 4.0], [2.0, 0.5]]),
+        )
+
+        # -- t as Parameter --
         t_param = cp.Parameter(pos=True)
         t_param.value = 2.0
         self.assertAlmostEqual(cp.huber(0.5, M=1, t=t_param).value, 0.125)
         t_param.value = 3.0
         self.assertAlmostEqual(cp.huber(0.5, M=1, t=t_param).value, 1.0/12)
-        
-        # Test copy with t parameter
-        atom_t = cp.huber(self.x, M=2, t=3)
-        copy_t = atom_t.copy()
-        self.assertTrue(type(copy_t) is type(atom_t))
-        # Compare args element-wise (can't use assertEqual on CVXPY expression lists)
-        self.assertEqual(len(copy_t.args), len(atom_t.args))
-        for a, b in zip(copy_t.args, atom_t.args):
-            self.assertEqual(a.value, b.value)
-        self.assertEqual(copy_t.get_data()[0].value, atom_t.get_data()[0].value)  # M
-        
-        # Test with DPP - both M and t as Parameters
+
+        # -- Copy --
+        atom = cp.huber(self.x, M=2, t=3)
+        copy = atom.copy()
+        self.assertIs(type(copy), type(atom))
+        self.assertEqual(len(copy.args), len(atom.args))
+        self.assertEqual(copy.get_data()[0].value, atom.get_data()[0].value)
+
+    def test_huber_dcp(self) -> None:
+        """DCP curvature, sign, and monotonicity properties for Huber atoms."""
         x = cp.Variable()
-        M_param = cp.Parameter(nonneg=True)
-        t_param = cp.Parameter(pos=True)
-        problem_t = cp.Problem(
-            cp.Minimize(x**2 + cp.huber(2*x - 3, M=M_param, t=t_param)),
-            [x >= 0.5]
-        )
-        
-        M_param.value = 1.0
-        t_param.value = 1.0
-        result = problem_t.solve(solver=cp.CLARABEL)
-        x_val1 = x.value
-        
-        # Change t and resolve
-        t_param.value = 2.0
-        result = problem_t.solve(solver=cp.CLARABEL)
-        x_val2 = x.value
-        
-        # With larger t, the huber term is more heavily weighted
-        # so x should be closer to minimizing huber term (x closer to 1.5)
-        self.assertIsNotNone(x_val1)
-        self.assertIsNotNone(x_val2)
+        xv = cp.Variable(3)
+
+        # -- HuberAtom --
+        atom2 = cp.huber(x, M=1)
+        self.assertTrue(atom2.is_convex())
+        self.assertFalse(atom2.is_concave())
+        self.assertTrue(atom2.is_nonneg())
+        self.assertTrue(atom2.is_quadratic())
+        self.assertTrue(atom2.has_quadratic_term())
+
+        # Monotonicity: non-decreasing for x >= 0, non-increasing for x <= 0
+        self.assertTrue(cp.huber(cp.Variable(nonneg=True), 1).is_incr(0))
+        self.assertFalse(cp.huber(cp.Variable(nonneg=True), 1).is_decr(0))
+        self.assertTrue(cp.huber(cp.Variable(nonpos=True), 1).is_decr(0))
+        self.assertFalse(cp.huber(cp.Variable(nonpos=True), 1).is_incr(0))
+
+        # -- HuberPerspectiveAtom --
+        t_const = 2.0
+        t_var = cp.Variable(nonneg=True)
+        atom3 = cp.huber(x, M=1, t=t_const)
+        self.assertTrue(atom3.is_convex())
+        self.assertFalse(atom3.is_concave())
+        self.assertTrue(atom3.is_nonneg())
+
+        # is_quadratic / has_quadratic_term: True iff t is constant
+        self.assertTrue(cp.huber(x, M=1, t=t_const).is_quadratic())
+        self.assertTrue(cp.huber(xv, M=1, t=t_const).is_quadratic())
+        self.assertFalse(cp.huber(x, M=1, t=t_var).is_quadratic())
+        self.assertTrue(cp.huber(x, M=1, t=t_const).has_quadratic_term())
+        self.assertFalse(cp.huber(x, M=1, t=t_var).has_quadratic_term())
+
+        # Monotonicity in x and t
+        self.assertTrue(cp.huber(cp.Variable(nonneg=True), 1, t=t_const).is_incr(0))
+        self.assertFalse(cp.huber(cp.Variable(nonneg=True), 1, t=t_const).is_decr(0))
+        self.assertTrue(cp.huber(cp.Variable(nonpos=True), 1, t=t_const).is_decr(0))
+        self.assertFalse(cp.huber(x, 1, t=t_const).is_incr(1))  # non-increasing in t
+        self.assertTrue(cp.huber(x, 1, t=t_const).is_decr(1))
+
+    def test_huber_dpp(self) -> None:
+        """DPP compliance for Huber atoms with Parameter arguments."""
+        x = cp.Variable()
+        M_p = cp.Parameter(nonneg=True)
+        t_p = cp.Parameter(pos=True)
+
+        # All basic configurations are DPP
+        self.assertTrue(cp.huber(x, M_p).is_dpp())
+        self.assertTrue(cp.huber(x, 1, t=t_p).is_dpp())
+        self.assertTrue(cp.huber(x, M_p, t=t_p).is_dpp())
+        self.assertTrue(cp.Problem(cp.Minimize(cp.huber(x, M_p))).is_dpp())
+        self.assertTrue(cp.Problem(cp.Minimize(cp.huber(x, M_p, t=t_p))).is_dpp())
+
+        # Parameter multiplying a parameterized expression breaks DPP
+        self.assertFalse(cp.Problem(cp.Minimize(M_p * cp.huber(x, M_p))).is_dpp())
+
+        # Re-solve under parameter changes exercises the DPP caching path
+        prob = cp.Problem(cp.Minimize(x**2 + cp.huber(3*x - 5, 2*M_p + 0.15)), [x >= 0.5])
+        M_p.value = 0.425
+        self.assertAlmostEqual(prob.solve(solver=cp.CLARABEL), 2.5)
+        self.assertAlmostEqual(float(x.value), 1.5)
+
+        M_p.value = 0.0
+        self.assertAlmostEqual(prob.solve(solver=cp.CLARABEL), 1.2775)
+        self.assertAlmostEqual(float(x.value), 0.5)
+
+        M_p.value = 0.425  # restore and verify result is identical
+        self.assertAlmostEqual(prob.solve(solver=cp.CLARABEL), 2.5)
+        self.assertAlmostEqual(float(x.value), 1.5)
+
+        # Perspective form with both M and t as Parameters also re-solves
+        M_p.value = 1.0
+        t_p.value = 1.0
+        prob2 = cp.Problem(cp.Minimize(x**2 + cp.huber(2*x - 3, M=M_p, t=t_p)), [x >= 0.5])
+        v1 = prob2.solve(solver=cp.CLARABEL)
+        t_p.value = 2.0
+        v2 = prob2.solve(solver=cp.CLARABEL)
+        self.assertEqual(prob2.status, cp.OPTIMAL)
+        self.assertIsNotNone(v1)
+        self.assertIsNotNone(v2)
 
     def test_huber_variable_t(self) -> None:
-        """Test huber with t as a Variable (concomitant scale estimation)."""
-        # --- Basic scalar problem ---
+        """Solve tests for huber with t as a Variable (concomitant scale estimation)."""
+        # -- Scalar x: verify analytic formula at optimal solution --
         x = cp.Variable()
-        t = cp.Variable()
+        t = cp.Variable(nonneg=True)
         prob = cp.Problem(
-            cp.Minimize(x**2 + cp.huber(x - 2, M=1, t=t) + t),
+            cp.Minimize(cp.huber(x - 2.0, M=1, t=t) + t),
             [t >= 0.1]
         )
         prob.solve(solver=cp.CLARABEL)
         self.assertEqual(prob.status, cp.OPTIMAL)
-        self.assertIsNotNone(x.value)
-        self.assertGreater(t.value, 0)
-
-        # Verify objective value matches manual calculation
         x_val, t_val = float(x.value), float(t.value)
-        expected_huber = t_val * 2 * scipy.special.huber(1.0, (x_val - 2) / t_val)
-        self.assertAlmostEqual(prob.value, x_val**2 + expected_huber + t_val, places=3)
+        expected_huber = 2 * t_val * scipy.special.huber(1.0, (x_val - 2.0) / t_val)
+        self.assertAlmostEqual(prob.value, expected_huber + t_val, places=3)
 
-        # --- Concomitant scale estimation with outliers ---
-        np.random.seed(42)
-        n = 20
-        data = np.concatenate([np.random.randn(n - 2), [10.0, -10.0]])
-        x = cp.Variable()
-        t = cp.Variable()
+        # -- Vector x: verify analytic formula and elementwise canonicalization --
+        target = np.array([0.0, 1.0, 2.0])
+        xv = cp.Variable(3)
+        t = cp.Variable(nonneg=True)
         prob = cp.Problem(
-            cp.Minimize(cp.sum(cp.huber(data - x, M=1.345, t=t)) + n * t),
+            cp.Minimize(cp.sum(cp.huber(xv - target, M=1, t=t)) + 3 * t),
             [t >= 0.01]
         )
         prob.solve(solver=cp.CLARABEL)
         self.assertEqual(prob.status, cp.OPTIMAL)
-        self.assertAlmostEqual(x.value, np.median(data[:-2]), places=0)
-        self.assertGreater(t.value, 0)
+        x_sol, t_sol = xv.value, float(t.value)
+        expected = sum(
+            2 * t_sol * scipy.special.huber(1.0, (x_sol[i] - target[i]) / t_sol)
+            for i in range(3)
+        )
+        self.assertAlmostEqual(prob.value, expected + 3 * t_sol, places=3)
 
-        # --- Vector x, scalar t ---
-        target = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
-        x = cp.Variable(5)
-        t = cp.Variable()
+        # -- 2-D matrix x: tests the reshape path in the canonicalization --
+        Xv = cp.Variable((2, 3))
+        t = cp.Variable(nonneg=True)
+        X_tgt = np.zeros((2, 3))
         prob = cp.Problem(
-            cp.Minimize(cp.sum(cp.huber(x - target, M=1, t=t)) + 5 * t),
+            cp.Minimize(cp.sum(cp.huber(Xv - X_tgt, M=1, t=t)) + 6 * t),
             [t >= 0.01]
         )
         prob.solve(solver=cp.CLARABEL)
         self.assertEqual(prob.status, cp.OPTIMAL)
-        np.testing.assert_allclose(x.value, target, atol=0.5)
-        self.assertGreater(t.value, 0)
 
-        # --- DCP check: huber(affine x, M, t=Variable) is convex ---
-        x = cp.Variable(3)
-        t = cp.Variable()
-        self.assertTrue(cp.huber(x, M=1, t=t).is_convex())
+        # -- Concomitant M-estimation: robust location and scale from contaminated data --
+        # 25 observations from N(5, 1) plus 3 gross outliers; M=1.345 gives 95% efficiency.
+        # The perspective form Σ huber(y_i - μ, M, σ) + n*σ is jointly convex in (μ, σ).
+        rng = np.random.default_rng(0)
+        y = np.concatenate([rng.standard_normal(22) + 5.0, [50.0, -40.0, 30.0]])
+        mu = cp.Variable()
+        sigma = cp.Variable(nonneg=True)
+        n = len(y)
+        prob = cp.Problem(
+            cp.Minimize(cp.sum(cp.huber(y - mu, M=1.345, t=sigma)) + n * sigma),
+            [sigma >= 0.01]
+        )
+        prob.solve(solver=cp.CLARABEL)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        # Location estimate should be near the true mean (5.0) despite three extreme outliers
+        self.assertLess(abs(float(mu.value) - 5.0), 0.5)
+        self.assertGreater(float(sigma.value), 0.0)
 
     def test_sum_largest(self) -> None:
         """Test the sum_largest atom and related atoms.

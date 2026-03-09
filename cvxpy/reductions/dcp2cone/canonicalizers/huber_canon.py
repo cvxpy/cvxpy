@@ -74,9 +74,17 @@ def huber_perspective_canon(expr, args: list, solver_context: SolverInfo | None 
     n_tilde = Variable(shape, name="huber_persp_n")
     s_tilde = Variable(shape, name="huber_persp_s")
 
-    # Canonicalize quad_over_lin(n_tilde, t) inline to SOC constraints
-    qol_expr = quad_over_lin(n_tilde, t)
-    qol_obj, constr_qol = quad_over_lin_canon(qol_expr, qol_expr.args)
+    if shape:
+        size = n_tilde.size
+        n_col = n_tilde.flatten(order='F').reshape((size, 1), order='F')
+        qol_expr = quad_over_lin(n_col, t, axis=1)
+        qol_obj_flat, constr_qol = quad_over_lin_canon(qol_expr, qol_expr.args)
+        # qol_obj_flat is shape (size,); un-flatten for 2-D inputs
+        qol_obj = qol_obj_flat.reshape(shape, order='F') if len(shape) > 1 else qol_obj_flat
+    else:
+        # Scalar x: a single quad_over_lin is exact.
+        qol_expr = quad_over_lin(n_tilde, t)
+        qol_obj, constr_qol = quad_over_lin_canon(qol_expr, qol_expr.args)
 
     # t * |s| --> abs(s_tilde)
     abs_expr = abs(s_tilde)

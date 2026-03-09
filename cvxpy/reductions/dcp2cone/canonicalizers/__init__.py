@@ -23,7 +23,7 @@ from cvxpy.reductions.dcp2cone.canonicalizers.quantum_rel_entr_canon import *
 from cvxpy.reductions.dcp2cone.canonicalizers.entr_canon import *
 from cvxpy.reductions.dcp2cone.canonicalizers.exp_canon import *
 from cvxpy.reductions.dcp2cone.canonicalizers.geo_mean_canon import *
-from cvxpy.atoms.elementwise.huber import _HuberAtom, _HuberPerspectiveAtom
+from cvxpy.atoms.elementwise.huber import HuberAtom, HuberPerspectiveAtom
 from cvxpy.reductions.dcp2cone.canonicalizers.huber_canon import *
 from cvxpy.reductions.dcp2cone.canonicalizers.indicator_canon import *
 from cvxpy.reductions.dcp2cone.canonicalizers.kl_div_canon import *
@@ -89,8 +89,8 @@ CANON_METHODS = {
     abs : abs_canon,
     entr : entr_canon,
     exp : exp_canon,
-    _HuberAtom : huber_canon,
-    _HuberPerspectiveAtom : huber_perspective_canon,
+    HuberAtom : huber_canon,
+    HuberPerspectiveAtom : huber_perspective_canon,
     kl_div : kl_div_canon,
     log : log_canon,
     log1p : log1p_canon,

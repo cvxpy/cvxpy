@@ -54,11 +54,11 @@ def huber(x, M=1, t=None):
         When None or omitted, the standard two-argument huber is returned.
     """
     if t is None:
-        return _HuberAtom(x, M)
+        return HuberAtom(x, M)
     else:
-        return _HuberPerspectiveAtom(x, t, M)
+        return HuberPerspectiveAtom(x, t, M)
 
-class _HuberAtom(Elementwise):
+class HuberAtom(Elementwise):
     """The standard two-argument Huber penalty atom.
 
     .. math::
@@ -84,7 +84,7 @@ class _HuberAtom(Elementwise):
 
     def __init__(self, x, M: int = 1) -> None:
         self.M = self.cast_to_const(M)
-        super(_HuberAtom, self).__init__(x)
+        super(HuberAtom, self).__init__(x)
 
     def parameters(self):
         """If M is a Parameter, include it in the list of Parameters."""
@@ -132,7 +132,7 @@ class _HuberAtom(Elementwise):
         """Checks that M >= 0 and is a constant scalar."""
         if not (self.M.is_nonneg() and self.M.is_scalar() and self.M.is_constant()):
             raise ValueError("M must be a non-negative scalar constant or Parameter.")
-        super(_HuberAtom, self).validate_arguments()
+        super(HuberAtom, self).validate_arguments()
 
     def _grad(self, values):
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.
@@ -149,10 +149,10 @@ class _HuberAtom(Elementwise):
         cols = self.size
         min_val = np.minimum(np.abs(values[0]), self.M.value)
         grad_vals = 2 * np.multiply(np.sign(values[0]), min_val)
-        return [_HuberAtom.elemwise_grad_to_diag(grad_vals, rows, cols)]
+        return [HuberAtom.elemwise_grad_to_diag(grad_vals, rows, cols)]
 
 
-class _HuberPerspectiveAtom(Atom):
+class HuberPerspectiveAtom(Atom):
     """The three-argument perspective Huber atom: ``t * huber(x/t, M)``.
 
     Jointly convex in ``(x, t)`` with ``t > 0``. This is the perspective
@@ -186,7 +186,7 @@ class _HuberPerspectiveAtom(Atom):
     def __init__(self, x, t, M=1) -> None:
         self.M = self.cast_to_const(M)
         t = self.cast_to_const(t)
-        super(_HuberPerspectiveAtom, self).__init__(x, t)
+        super(HuberPerspectiveAtom, self).__init__(x, t)
 
     @property
     def _x(self):
@@ -249,11 +249,12 @@ class _HuberPerspectiveAtom(Atom):
             return True
 
     def is_quadratic(self) -> bool:
-        """Not quadratic in general when t is a variable."""
-        return False
+        """Quadratic when t is constant and x is affine (reduces to scalar * huber(affine_arg))."""
+        return self._t.is_constant() and self._x.is_affine()
 
     def has_quadratic_term(self) -> bool:
-        return False
+        """Has a quadratic term when t is constant and x is affine."""
+        return self._t.is_constant() and self._x.is_affine()
 
     def validate_arguments(self) -> None:
         """Check M is a non-negative scalar constant; t must be concave/affine."""
@@ -269,7 +270,7 @@ class _HuberPerspectiveAtom(Atom):
                 "t must be a concave or affine expression (DCP requirement: "
                 "the Huber perspective is non-increasing in t)."
             )
-        super(_HuberPerspectiveAtom, self).validate_arguments()
+        super(HuberPerspectiveAtom, self).validate_arguments()
 
     def _grad(self, values):
         """Gradient w.r.t. x and t.
