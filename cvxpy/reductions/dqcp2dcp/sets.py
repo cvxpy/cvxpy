@@ -87,6 +87,8 @@ def length_sub(expr, t):
     arg = expr.args[0]
     if isinstance(t, Parameter):
         def sublevel_set():
+            if t.value is None:
+                return False
             if t.value < 0:
                 return False
             if t.value >= arg.size:
