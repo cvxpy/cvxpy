@@ -12,6 +12,7 @@ User Guide
     dgp/index
     dpp/index
     dqcp/index
+    dnlp/index
     constraints/index
     advanced/index
     solvers/index

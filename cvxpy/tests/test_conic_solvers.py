@@ -548,6 +548,7 @@ class TestClarabel(BaseTest):
         sth.check_complementarity(places)
         sth.check_dual_domains(places)
 
+
 @unittest.skipUnless('CUCLARABEL' in INSTALLED_SOLVERS, 'CLARABEL is not installed.')
 class TestCuClarabel(BaseTest):
 

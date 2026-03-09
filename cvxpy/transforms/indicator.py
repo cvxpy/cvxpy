@@ -57,6 +57,12 @@ class indicator(Expression):
         """
         return False
 
+    def is_linearizable_convex(self) -> bool:
+        return True
+
+    def is_linearizable_concave(self) -> bool:
+        return False
+
     def is_log_log_convex(self) -> bool:
         return False
 
