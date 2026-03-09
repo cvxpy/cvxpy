@@ -55,8 +55,7 @@ def huber(x, M=1, t=None):
     """
     if t is None:
         return HuberAtom(x, M)
-    else:
-        return HuberPerspectiveAtom(x, t, M)
+    return HuberPerspectiveAtom(x, t, M)
 
 class HuberAtom(Elementwise):
     """The standard two-argument Huber penalty atom.
