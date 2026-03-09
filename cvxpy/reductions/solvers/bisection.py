@@ -36,6 +36,7 @@ def _solve(problem, solver) -> None:
         try:
             problem.solve(solver=solver)
         except error.SolverError:
+            # Catch solver failures gracefully so bisection can continue instead of crashing.
             problem._status = s.SOLVER_ERROR
 
 
@@ -132,6 +133,8 @@ def _bisect(problem, solver, t, low, high, tighten_lower, tighten_higher,
         else:
             if verbose:
                 print("(iteration %d) solver failed, skipping.\n" % i)
+            # Skip failed iterations - bisection continues with next query point.
+            # Skip failed iterations - bisection continues with next query point.
             continue
     raise error.SolverError("Max iters hit during bisection.")
 
