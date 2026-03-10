@@ -1791,7 +1791,7 @@ class TestND_Expressions():
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
         assert np.allclose(expr.value, y)
 
-    @pytest.mark.parametrize("source, destination", [([0], [2]), ([0, 1], [3, 2]), 
+    @pytest.mark.parametrize("source, destination", [([0], [2]), ([0, 1], [3, 2]),
                                                      ([0, 1, 2], [3, 2, 1])])
     def test_moveaxis(self, source, destination) -> None:
         var = cp.Variable((5, 2, 6, 12))

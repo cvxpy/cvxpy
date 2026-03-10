@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-# This file is identical to the dcp2cone version, except that it uses the 
+# This file is identical to the dcp2cone version, except that it uses the
 # dnlp2smooth canonicalizer for the power atom. This is necessary.
 
 import numpy as np

@@ -70,7 +70,7 @@ class TestBroadcast():
         assert(np.allclose(x.value.flatten(), np.mean(A, axis=1)))
 
         checker = DerivativeChecker(problem)
-        checker.run_and_assert()    
+        checker.run_and_assert()
 
     def test_subtle_broadcast1(self):
         n = 5
@@ -81,7 +81,7 @@ class TestBroadcast():
 
         prob = cp.Problem(cp.Minimize(0), constraints)
         checker = DerivativeChecker(prob)
-        checker.run_and_assert()  
+        checker.run_and_assert()
     
     def test_subtle_broadcast2(self):
         n = 5
@@ -92,4 +92,4 @@ class TestBroadcast():
 
         prob = cp.Problem(cp.Minimize(0), constraints)
         checker = DerivativeChecker(prob)
-        checker.run_and_assert() 
+        checker.run_and_assert()

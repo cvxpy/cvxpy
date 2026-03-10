@@ -52,7 +52,7 @@ def _convert_matmul(expr, children):
           A = sparse.csr_matrix(A)
           
         return _diffengine.make_left_matmul(
-            children[1],  
+            children[1],
             A.data.astype(np.float64),
             A.indices.astype(np.int32),
             A.indptr.astype(np.int32),
@@ -66,7 +66,7 @@ def _convert_matmul(expr, children):
             A = sparse.csr_matrix(A)
 
         return _diffengine.make_right_matmul(
-            children[0],  
+            children[0],
             A.data.astype(np.float64),
             A.indices.astype(np.int32),
             A.indptr.astype(np.int32),
@@ -74,7 +74,7 @@ def _convert_matmul(expr, children):
             A.shape[1],
         )
     else:
-        return _diffengine.make_matmul(children[0], children[1])  
+        return _diffengine.make_matmul(children[0], children[1])
 
 def _convert_hstack(expr, children):
     """Convert horizontal stack (hstack) of expressions."""
@@ -95,7 +95,7 @@ def _convert_multiply(expr, children):
         if a.size == 1:
             scalar = float(a.flat[0])
             if scalar == 1.0:
-                return children[1]  
+                return children[1]
             else:
                 return _diffengine.make_const_scalar_mult(children[1], scalar)
 
@@ -113,7 +113,7 @@ def _convert_multiply(expr, children):
         if a.size == 1:
             scalar = float(a.flat[0])
             if scalar == 1.0:
-                return children[0]  
+                return children[0]
             else:
                 return _diffengine.make_const_scalar_mult(children[0], scalar)
 
@@ -187,7 +187,7 @@ def _convert_quad_form(expr, children):
           P = sparse.csr_matrix(P)
 
     return _diffengine.make_quad_form(
-        children[0],  
+        children[0],
         P.data.astype(np.float64),
         P.indices.astype(np.int32),
         P.indptr.astype(np.int32),

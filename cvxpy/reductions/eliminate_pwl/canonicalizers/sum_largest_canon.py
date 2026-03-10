@@ -33,8 +33,8 @@ def sum_largest_canon(expr, args, solver_context: SolverInfo | None = None):
     obj = sum(t) + k*q
     constraints = [x <= t + q, t >= 0]
 
-    # for DNLP we must initialize the new variable (DNLP guarantees that 
-    # x.value will be set when this function is called). The initialization 
+    # for DNLP we must initialize the new variable (DNLP guarantees that
+    # x.value will be set when this function is called). The initialization
     # below is motivated by the optimal solution of min sum(t) + kq subject
     # to x <= t + q, 0 <= t
     if x.value is not None:
