@@ -179,20 +179,22 @@ class CUCLARABEL(ConicSolver):
         Agpu = cucsr_matrix(A)
         bgpu = cupy.array(b)
 
+        # Access PythonExt extension for GPU data transfer functions
+        pyext = jl.Base.get_extension(jl.Clarabel, jl.Symbol("PythonExt"))
         if Pgpu.nnz != 0:
-            jl.P = jl.Clarabel.cupy_to_cucsrmat(
+            jl.P = pyext.cupy_to_cucsrmat(
                 jl.Float64, int(Pgpu.data.data.ptr), int(Pgpu.indices.data.ptr),
                 int(Pgpu.indptr.data.ptr), *Pgpu.shape, Pgpu.nnz)
         else:
             jl.seval(f"""
             P = CuSparseMatrixCSR(sparse(Float64[], Float64[], Float64[], {nvars}, {nvars}))
             """)
-        jl.q = jl.Clarabel.cupy_to_cuvector(jl.Float64, int(qgpu.data.ptr), qgpu.size)
+        jl.q = pyext.cupy_to_cuvector(jl.Float64, int(qgpu.data.ptr), qgpu.size)
 
-        jl.A = jl.Clarabel.cupy_to_cucsrmat(
+        jl.A = pyext.cupy_to_cucsrmat(
                 jl.Float64, int(Agpu.data.data.ptr), int(Agpu.indices.data.ptr),
                 int(Agpu.indptr.data.ptr), *Agpu.shape, Agpu.nnz)
-        jl.b = jl.Clarabel.cupy_to_cuvector(jl.Float64, int(bgpu.data.ptr), bgpu.size)
+        jl.b = pyext.cupy_to_cuvector(jl.Float64, int(bgpu.data.ptr), bgpu.size)
 
 
         dims_to_solver_cones(jl, cones)

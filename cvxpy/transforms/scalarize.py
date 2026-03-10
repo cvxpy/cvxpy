@@ -60,7 +60,7 @@ def targets_and_priorities(
 
         -infinity when objectives[i] < limits[i]
 
-    A negative priority flips the objective sense, i.e., we 
+    A negative priority flips the objective sense, i.e., we
     use -objectives[i], -targets[i], and -limits[i] with abs(priorities[i]).
 
     Args:

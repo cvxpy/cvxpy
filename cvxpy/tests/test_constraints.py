@@ -477,32 +477,32 @@ class TestConstraints(BaseTest):
         con = (x == c)
         assert con.shape == (3, 3)
         prob = cp.Problem(cp.Minimize(0), [con])
-        prob.solve(solver=cp.CLARABEL) 
+        prob.solve(solver=cp.CLARABEL)
         assert np.allclose(x.value, c.value)
 
         with pytest.raises(ValueError, match="The CPP backend cannot be used"):
             prob = cp.Problem(cp.Minimize(0), [con])
-            prob.solve(solver=cp.CLARABEL, canon_backend=cp.CPP_CANON_BACKEND) 
+            prob.solve(solver=cp.CLARABEL, canon_backend=cp.CPP_CANON_BACKEND)
 
         # Test QP codepath.
         prob = cp.Problem(cp.Minimize(cp.sum_squares(x)), [con])
-        prob.solve(solver=cp.OSQP) 
+        prob.solve(solver=cp.OSQP)
         assert np.allclose(x.value, c.value)
 
         with pytest.raises(ValueError, match="The CPP backend cannot be used"):
             prob = cp.Problem(cp.Minimize(cp.sum_squares(x)), [con])
-            prob.solve(solver=cp.OSQP, canon_backend=cp.CPP_CANON_BACKEND) 
+            prob.solve(solver=cp.OSQP, canon_backend=cp.CPP_CANON_BACKEND)
 
         # Inequality constraint.
         con = (x >= c)
         assert con.shape == (3, 3)
         prob = cp.Problem(cp.Minimize(cp.sum(x)), [con])
-        prob.solve(solver=cp.CLARABEL) 
+        prob.solve(solver=cp.CLARABEL)
         assert np.allclose(x.value, c.value)
 
         with pytest.raises(ValueError, match="The CPP backend cannot be used"):
             prob = cp.Problem(cp.Minimize(cp.sum(x)), [con])
-            prob.solve(solver=cp.CLARABEL, canon_backend=cp.CPP_CANON_BACKEND) 
+            prob.solve(solver=cp.CLARABEL, canon_backend=cp.CPP_CANON_BACKEND)
 
         # TODO other constraints
 
