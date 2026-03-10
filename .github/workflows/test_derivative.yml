@@ -21,6 +21,6 @@ jobs:
       - name: Install cvxpy and diffcp
         run: |
           uv sync --dev
-          uv pip install diffcp
+          uv pip install pytest diffcp
       - name: Run test_derivative
         run: uv run pytest -rs cvxpy/tests/test_derivative.py
