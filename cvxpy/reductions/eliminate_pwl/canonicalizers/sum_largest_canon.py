@@ -16,6 +16,7 @@ limitations under the License.
 
 import numpy as np
 
+from cvxpy.atoms import promote, reshape
 from cvxpy.atoms.affine.sum import sum
 from cvxpy.expressions.variable import Variable
 from cvxpy.utilities.solver_context import SolverInfo
@@ -24,25 +25,33 @@ from cvxpy.utilities.solver_context import SolverInfo
 def sum_largest_canon(expr, args, solver_context: SolverInfo | None = None):
     x = args[0]
     k = expr.k
+    axis = expr.axis
 
-    # min sum(t) + kq
+    # min sum(t, axis) + k*q
     # s.t. x <= t + q
     #      0 <= t
     t = Variable(x.shape)
-    q = Variable()
-    obj = sum(t) + k*q
-    constraints = [x <= t + q, t >= 0]
+    q = Variable(expr.shape)
 
-    # for DNLP we must initialize the new variable (DNLP guarantees that 
-    # x.value will be set when this function is called). The initialization 
+    if axis is None:
+        promoted_q = promote(q, x.shape)
+    else:
+        axes = {axis} if isinstance(axis, int) else set(axis)
+        keepdims_shape = tuple(1 if i in axes else s for i, s in enumerate(x.shape))
+        promoted_q = reshape(q, keepdims_shape, order='F')
+
+    obj = sum(t, axis=axis, keepdims=expr.keepdims) + k * q
+    constraints = [x <= t + promoted_q, t >= 0]
+
+    # for DNLP we must initialize the new variable (DNLP guarantees that
+    # x.value will be set when this function is called). The initialization
     # below is motivated by the optimal solution of min sum(t) + kq subject
     # to x <= t + q, 0 <= t
-    if x.value is not None:
+    if axis is None and x.value is not None:
         sorted_indices = np.argsort(x.value)
         idx_of_smallest = sorted_indices[:k]
         idx_of_largest = sorted_indices[-k:]
         q.value = np.max(x.value[idx_of_smallest])
         t.value = np.zeros_like(x.value)
         t.value[idx_of_largest] = x.value[idx_of_largest] - q.value
-        
     return obj, constraints
