@@ -296,7 +296,8 @@ class CvxAttr2Constr(Reduction):
         if not inverse_data:
             return solution
 
-        id2new_var, id2old_var, cons_id_map, attr_constr_map = inverse_data if len(inverse_data) == 4 else (*inverse_data, {})
+        inverse_data_4 = inverse_data if len(inverse_data) == 4 else (*inverse_data, {})
+        id2new_var, id2old_var, cons_id_map, attr_constr_map = inverse_data_4
         pvars = {}
         for id, var in id2old_var.items():
             new_var = id2new_var[id]
