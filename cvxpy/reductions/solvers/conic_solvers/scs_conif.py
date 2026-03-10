@@ -252,13 +252,18 @@ class SCS(ConicSolver):
         attr[s.NUM_ITERS] = solution["info"]["iter"]
         attr[s.EXTRA_STATS] = solution
 
-        dual_vars = utilities.extract_dual_vars_from_solver(
-            solution["y"],
-            inverse_data[ConicSolver.DIMS].zero,
+        zero_idx = inverse_data[ConicSolver.DIMS].zero
+        eq_dual_vars = utilities.get_dual_values(
+            solution["y"][:zero_idx],
             self.extract_dual_value,
-            inverse_data[SCS.EQ_CONSTR],
+            inverse_data[SCS.EQ_CONSTR]
+        )
+        ineq_dual_vars = utilities.get_dual_values(
+            solution["y"][zero_idx:],
+            self.extract_dual_value,
             inverse_data[SCS.NEQ_CONSTR]
         )
+        dual_vars = eq_dual_vars | ineq_dual_vars
 
         if status in s.SOLUTION_PRESENT:
             primal_val = solution["info"]["pobj"]
