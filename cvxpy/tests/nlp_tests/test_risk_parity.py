@@ -63,7 +63,7 @@ class TestRiskParity:
     
     # we do not expand the objective, and use square roots
     def test_vanilla_risk_parity_formulation_two(self):
-        pass 
+        pass
 
     # we expand the objective manually to get rid of the square root
     def test_group_risk_parity_formulation_one(self, Sigma):
