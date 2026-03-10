@@ -30,7 +30,7 @@ def div_canon(expr, args):
         raise ValueError("The denominator of a division must be nonnegative. "
                           "Did you forget to specify bounds?")
     
-    dim = args[0].shape 
+    dim = args[0].shape
     sgn_z = args[0].sign
 
     if sgn_z == 'NONNEGATIVE':
@@ -43,7 +43,7 @@ def div_canon(expr, args):
     y = Variable(args[1].shape, nonneg=True)
 
     if args[0].value is not None and args[1].value is not None:
-        y.value = np.maximum(args[1].value, MIN_INIT)   
+        y.value = np.maximum(args[1].value, MIN_INIT)
         val = args[0].value / y.value
     
         # dimension hack

@@ -66,7 +66,7 @@ class TestDNLP():
 
     def test_non_dnlp(self):
         """
-        The constraint abs(x) >= 5 is smooth concave but makes 
+        The constraint abs(x) >= 5 is smooth concave but makes
         the problem non-DNLP.
         """
         x = cp.Variable()
