@@ -829,7 +829,7 @@ class TestDgp2DcpReduction(BaseTest):
     """Tests for Dgp2Dcp reduction internals (no diffcp required)."""
 
     def test_param_backward_absent_log_param(self) -> None:
-        """param_backward must return None when log-param id is absent from dparams.
+        """param_backward must pass through when log-param id is absent from dparams.
 
         Before the fix, Dgp2Dcp.param_backward accessed dparams[new_param.id]
         without checking for the key, raising KeyError when the log-parameter
@@ -842,6 +842,6 @@ class TestDgp2DcpReduction(BaseTest):
         dgp = Dgp2Dcp()
         dgp.apply(prob)
         # Pass an empty dparams dict: the log-param id is absent.
-        # With the guard this returns None; without it raises KeyError.
-        result = dgp.param_backward(p, {})
-        self.assertIsNone(result)
+        # With the guard this returns an empty dict; without it raises KeyError.
+        result = dgp.param_backward({})
+        self.assertEqual(result, {})
