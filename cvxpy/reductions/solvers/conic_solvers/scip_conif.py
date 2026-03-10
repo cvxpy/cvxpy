@@ -82,6 +82,7 @@ class SCIP(ConicSolver):
     """An interface to the SCIP solver."""
 
     MIP_CAPABLE = True
+    BOUNDED_VARIABLES = True
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC]
     MI_SUPPORTED_CONSTRAINTS = SUPPORTED_CONSTRAINTS
 
@@ -131,6 +132,8 @@ class SCIP(ConicSolver):
         data[s.BOOL_IDX] = set(int(t[0]) for t in variables.boolean_idx)
         data[s.INT_IDX] = set(int(t[0]) for t in variables.integer_idx)
         inv_data['is_mip'] = data[s.BOOL_IDX] or data[s.INT_IDX]
+        data[s.LOWER_BOUNDS] = problem.lower_bounds
+        data[s.UPPER_BOUNDS] = problem.upper_bounds
 
         return data, inv_data
 
@@ -201,16 +204,23 @@ class SCIP(ConicSolver):
 
     def _create_variables(self, model: ScipModel, data: Dict[str, Any], c: np.ndarray) -> List:
         """Create a list of variables."""
+        lb_arr = data.get(s.LOWER_BOUNDS)
+        ub_arr = data.get(s.UPPER_BOUNDS)
         variables = []
         for n, obj in enumerate(c):
             var_type = get_variable_type(n=n, data=data)
+            if var_type == VariableTypes.BINARY:
+                var_lb, var_ub = 0, 1
+            else:
+                var_lb = lb_arr[n] if lb_arr is not None else None
+                var_ub = ub_arr[n] if ub_arr is not None else None
             variables.append(
                 model.addVar(
                     obj=obj,
                     name="x_%d" % n,
                     vtype=var_type,
-                    lb=None if var_type != VariableTypes.BINARY else 0,
-                    ub=None if var_type != VariableTypes.BINARY else 1,
+                    lb=var_lb,
+                    ub=var_ub,
                 )
             )
         return variables

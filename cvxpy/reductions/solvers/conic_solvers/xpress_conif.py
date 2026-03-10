@@ -116,12 +116,15 @@ class XPRESS(ConicSolver):
             ], order="F")
             for var in variables
         ]).tolist()
-        data["constraint_names"] = np.concatenate([
-            np.ravel([
-                f"{eq.constr_id}_eq_{i:09d}" for i in range(eq.size)
-            ], order="F")
-            for eq in problem.constraints
-        ]).tolist()
+        if problem.constraints:
+            data["constraint_names"] = np.concatenate([
+                np.ravel([
+                    f"{eq.constr_id}_eq_{i:09d}" for i in range(eq.size)
+                ], order="F")
+                for eq in problem.constraints
+            ]).tolist()
+        else:
+            data["constraint_names"] = []
 
         return data, inv_data
 
@@ -395,7 +398,10 @@ class XPRESS(ConicSolver):
         if status in s.SOLUTION_PRESENT:
             results_dict['x'] = self.prob_.getSolution()
             if not (data[s.BOOL_IDX] or data[s.INT_IDX]):
-                results_dict['y'] = - np.array(self.prob_.getDuals())
+                if nrows > 0:
+                    results_dict['y'] = - np.array(self.prob_.getDuals())
+                else:
+                    results_dict['y'] = np.array([])
 
         elif status == s.INFEASIBLE and 'save_iis' in solver_opts and solver_opts['save_iis'] != 0:
 

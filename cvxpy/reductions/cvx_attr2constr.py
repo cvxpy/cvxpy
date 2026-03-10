@@ -120,7 +120,7 @@ def lower_value(variable, value=None) -> np.ndarray:
     if attributes_present([variable], SYMMETRIC_ATTRIBUTES):
         return value[np.triu_indices(variable.shape[0])]
     elif variable.attributes['diag']:
-        return np.diag(value)
+        return value.diagonal() if sp.issparse(value) else np.diag(value)
     elif variable.attributes['sparsity']:
         if full_size:
             return np.asarray(value)[variable.sparse_idx]
@@ -217,6 +217,8 @@ class CvxAttr2Constr(Reduction):
 
                     reduced_var = Variable(n, var_id=var.id, **new_attr)
                     reduced_var.set_leaf_of_provenance(var)
+                    if var.value is not None:
+                        reduced_var.value = lower_value(var)
                     id2new_var[var.id] = reduced_var
                     obj = build_dim_reduced_expression(var, reduced_var)
                 elif new_var:
@@ -246,7 +248,7 @@ class CvxAttr2Constr(Reduction):
                 for key in reduction_attributes:
                     if new_attr[key]:
                         new_attr[key] = None if key == 'bounds' else False
-                reduced_param = Parameter(n, id=param.id, **new_attr)
+                reduced_param = Parameter(n, id=param.id, name=param.name(), **new_attr)
                 reduced_param.set_leaf_of_provenance(param)
                 self._parameters[param] = reduced_param
                 if param.value is not None:
@@ -266,7 +268,8 @@ class CvxAttr2Constr(Reduction):
     def update_parameters(self, problem) -> None:
         """Update reduced parameter values from original parameters."""
         for param, reduced_param in self._parameters.items():
-            reduced_param.value = lower_value(param)
+            if param.value is not None:
+                reduced_param.value = lower_value(param)
 
     def param_backward(self, param, dparams):
         """Recover full-size gradient from reduced-size gradient."""

@@ -18,6 +18,7 @@ import warnings
 import numpy as np
 
 import cvxpy as cp
+import cvxpy.settings as s
 from cvxpy.tests.base_test import BaseTest
 
 
@@ -384,6 +385,16 @@ def lp_bound_attr() -> SolverTestHelper:
     objective = cp.Minimize(x[0] + 0.5 * x[1])
     var_pairs = [(x, np.array([-100, 1]))]
     obj_pair = (objective, -99.5)
+    sth = SolverTestHelper(obj_pair, var_pairs, [])
+    return sth
+
+
+def qp_bound_attr() -> SolverTestHelper:
+    """A QP using the variable bounds attribute."""
+    x = cp.Variable(shape=(2,), name='x', bounds=[np.array([1, -5]), np.array([10, 5])])
+    objective = cp.Minimize(cp.sum_squares(x))
+    var_pairs = [(x, np.array([1, 0]))]
+    obj_pair = (objective, 1)
     sth = SolverTestHelper(obj_pair, var_pairs, [])
     return sth
 
@@ -1170,6 +1181,15 @@ class StandardTestLPs:
             **kwargs
         ) -> SolverTestHelper:
         sth = lp_bound_attr()
+        # Verify the bounded variables data path is used
+        data, _, _ = sth.prob.get_problem_data(solver)
+        assert data[s.LOWER_BOUNDS] is not None, \
+            f"{solver}: LOWER_BOUNDS should be populated"
+        assert data[s.UPPER_BOUNDS] is not None, \
+            f"{solver}: UPPER_BOUNDS should be populated"
+        dims = data[s.DIMS]
+        assert dims.nonneg == 0, \
+            f"{solver}: bounds should not be converted to {dims.nonneg} inequality constraints"
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
         sth.verify_primal_values(places)
@@ -1244,6 +1264,26 @@ class StandardTestQPs:
         if duals:
             sth.check_complementarity(places)
             sth.verify_dual_values(places)
+        return sth
+
+    @staticmethod
+    def test_qp_bound_attr(
+            solver,
+            places: int = 4,
+            **kwargs
+        ) -> SolverTestHelper:
+        sth = qp_bound_attr()
+        # Verify the bounded variables data path is used
+        data, _, _ = sth.prob.get_problem_data(solver)
+        assert data[s.LOWER_BOUNDS] is not None, \
+            f"{solver}: LOWER_BOUNDS should be populated"
+        assert data[s.UPPER_BOUNDS] is not None, \
+            f"{solver}: UPPER_BOUNDS should be populated"
+        assert data['n_ineq'] == 0, \
+            f"{solver}: bounds should not be converted to {data['n_ineq']} inequality constraints"
+        sth.solve(solver, **kwargs)
+        sth.verify_objective(places)
+        sth.verify_primal_values(places)
         return sth
 
 
