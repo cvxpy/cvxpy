@@ -426,6 +426,7 @@ class TestSCS(BaseTest):
         StandardTestPCPs.test_pcp_3(solver='SCS', eps=1e-12)
 
 
+
 @unittest.skipUnless('CLARABEL' in INSTALLED_SOLVERS, 'CLARABEL is not installed.')
 class TestClarabel(BaseTest):
 
@@ -1524,9 +1525,6 @@ class TestGLOP(unittest.TestCase):
     def test_glop_lp_bound_attr(self) -> None:
         StandardTestLPs.test_lp_bound_attr(solver='GLOP', duals=False)
 
-    def test_glop_lp_bound_attr(self) -> None:
-        StandardTestLPs.test_lp_bound_attr(solver='GLOP', duals=False)
-
 
 @unittest.skipUnless('PDLP' in INSTALLED_SOLVERS, 'PDLP is not installed.')
 class TestPDLP(unittest.TestCase):
@@ -1806,9 +1804,6 @@ class TestCPLEX(BaseTest):
 
     def test_cplex_mi_socp_2(self) -> None:
         StandardTestSOCPs.test_mi_socp_2(solver='CPLEX')
-
-    def test_cplex_lp_bound_attr(self) -> None:
-        StandardTestLPs.test_lp_bound_attr(solver='CPLEX')
 
     def test_cplex_lp_bound_attr(self) -> None:
         StandardTestLPs.test_lp_bound_attr(solver='CPLEX')
@@ -2270,9 +2265,6 @@ class TestXPRESS(BaseTest):
 
     def test_xpress_mi_socp_2(self) -> None:
         StandardTestSOCPs.test_mi_socp_2(solver='XPRESS')
-
-    def test_xpress_lp_bound_attr(self) -> None:
-        StandardTestLPs.test_lp_bound_attr(solver='XPRESS')
 
     def test_xpress_lp_bound_attr(self) -> None:
         StandardTestLPs.test_lp_bound_attr(solver='XPRESS')
