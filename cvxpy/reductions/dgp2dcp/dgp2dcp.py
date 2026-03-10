@@ -92,33 +92,6 @@ class Dgp2Dcp(Canonicalization):
             if param in self.canon_methods._parameters:
                 self.canon_methods._parameters[param].value = np.log(param.value)
 
-    def param_backward(self, param, dparams):
-        """Apply chain rule for log transformation in backward diff.
-
-        For DGP, param -> log(param), so d(loss)/d(param) = d(loss)/d(log_param) / param.
-        """
-        if self.canon_methods is None:
-            return None
-        if param not in self.canon_methods._parameters:
-            return None
-        new_param = self.canon_methods._parameters[param]
-        if new_param.id not in dparams:
-            return None
-        # Apply chain rule: d(log(x))/dx = 1/x
-        return (1.0 / param.value) * dparams[new_param.id]
-
-    def param_forward(self, param, delta):
-        """Apply chain rule for log transformation in forward diff.
-
-        For DGP, param -> log(param), so d(log_param) = d(param) / param.
-        """
-        if self.canon_methods is None:
-            return None
-        if param not in self.canon_methods._parameters:
-            return None
-        new_param = self.canon_methods._parameters[param]
-        return {new_param.id: (1.0 / param.value) * np.asarray(delta, dtype=np.float64)}
-
     def var_backward(self, del_vars):
         """Apply chain rule for exp transformation in backward diff.
 
