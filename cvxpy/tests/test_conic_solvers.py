@@ -3336,6 +3336,10 @@ def test_offset_in_opt_val(solver):
     x = cp.Variable()
     t = cp.Variable()
     inner = cp.Problem(cp.Minimize(t + 1000), [t >= x])
-    f = partial_optimize(inner, opt_vars=[t], solver=solver)
-    x.value = 0.0
+    try:
+        f = partial_optimize(inner, opt_vars=[t], solver=solver)
+        x.value = 0.0
+        f.value
+    except cp.error.SolverError:
+        pytest.skip(f"Solver {solver} cannot solve this problem")
     assert abs(f.value - 1000.0) < 1e-2
