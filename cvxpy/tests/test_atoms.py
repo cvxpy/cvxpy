@@ -2109,6 +2109,14 @@ class TestAtoms(BaseTest):
         P.value = np.eye(3)
         self.assertAlmostEqual(atom.value, 1.0)
 
+    def test_spectral_atoms_value_none_variable(self) -> None:
+        """value should return None when argument is an unset Variable."""
+        X = cp.Variable((3, 3), symmetric=True)
+        self.assertIsNone(cp.lambda_max(X).value)
+        self.assertIsNone(cp.lambda_sum_largest(X, 2).value)
+        self.assertIsNone(cp.log_det(X).value)
+        self.assertIsNone(cp.tr_inv(X).value)
+
     def test_length_all_zeros(self) -> None:
         """length of an all-zero vector should return 0."""
         atom = cp.length(self.x)

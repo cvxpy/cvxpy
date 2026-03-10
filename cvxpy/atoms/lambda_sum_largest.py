@@ -67,7 +67,7 @@ class lambda_sum_largest(lambda_max):
 
     @property
     def value(self):
-        if any([p.value is None for p in self.parameters()]):
+        if self.args[0].value is None:
             return None
         if not np.allclose(self.args[0].value, self.args[0].value.T.conj()):
             raise ValueError("Input matrix was not Hermitian/symmetric.")
