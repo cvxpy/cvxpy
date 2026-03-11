@@ -86,6 +86,29 @@ class ScalarizeTest(BaseTest):
         self.assertItemsAlmostEqual(self.x.value, 0.5, places=3)
 
 
+    def test_negative_priority_regression(self) -> None:
+        # Regression: before the fix, delta and the indicator still used the
+        # original targets[i]/limits[i] indices instead of the locally-flipped
+        # tar/lim variables.  For priorities[i] < 0 this produced an indicator
+        # constraint like (x-1)^2 <= -0.5 (never satisfiable), making the
+        # problem INFEASIBLE.  With the fix the flipped values are used correctly
+        # and the optimal x is 0.5.
+        obj_2 = cp.Maximize(-self.objectives[1].args[0])
+        objectives = [self.objectives[0], obj_2]
+        priorities = [1, -1]
+        targets = [1, -1]
+        limits = [0.5, -0.5]
+        off_target = 1e-2
+
+        scalarized = scalarize.targets_and_priorities(
+            objectives, priorities, targets, limits, off_target=off_target
+        )
+        prob = cp.Problem(scalarized)
+        prob.solve(solver=cp.CLARABEL)
+
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        self.assertAlmostEqual(float(self.x.value), 0.5, places=3)
+
     def test_mixed_convexity(self) -> None:
         obj_1 = self.objectives[0]
         obj_2 = cp.Maximize(-self.objectives[1].args[0])
