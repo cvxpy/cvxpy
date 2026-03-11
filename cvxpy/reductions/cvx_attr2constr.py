@@ -308,9 +308,11 @@ class CvxAttr2Constr(Reduction):
         dvars = {orig_id: solution.dual_vars[vid]
                  for orig_id, vid in cons_id_map.items()
                  if vid in solution.dual_vars}
-        # Recover dual variables for PSD/NSD attribute constraints
+        attr_duals = {}
         for var_id, constr_id in attr_constr_map.items():
             if constr_id in solution.dual_vars:
-                id2old_var[var_id].dual_value = solution.dual_vars[constr_id]
+                attr_duals[var_id] = solution.dual_vars[constr_id]
+        new_attr = solution.attr.copy()
+        new_attr['attr_duals'] = attr_duals
         return Solution(solution.status, solution.opt_val, pvars, dvars,
-                        solution.attr)
+                        new_attr)
