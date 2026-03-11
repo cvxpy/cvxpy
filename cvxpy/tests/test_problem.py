@@ -2326,3 +2326,13 @@ class TestProblem(BaseTest):
             cp.Problem(cp.Maximize(0), [c >= 0])
             assert len(w) == 0
 
+
+    def test_dual_variable_recovery(self) -> None:
+        """Regression test for GitHub issue #3200.
+        Dual variables should be recovered after solving."""
+        x = cp.Variable(nonneg=True)
+        prob = cp.Problem(cp.Minimize(x), [x >= 1])
+        prob.solve(solver=cp.SCS)
+        self.assertEqual(prob.status, "optimal")
+        for c in prob.constraints:
+            self.assertIsNotNone(c.dual_value)
