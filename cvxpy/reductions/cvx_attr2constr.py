@@ -262,7 +262,11 @@ class CvxAttr2Constr(Reduction):
         for cons in problem.constraints:
             constr.append(cons.tree_copy(id_objects=id2new_obj))
             cons_id_map[cons.id] = constr[-1].id
-        inverse_data = (id2new_var, id2old_var, cons_id_map)
+        attr_constr_map = {}
+        for var_id, var in id2old_var.items():
+            if var.is_psd() or var.attributes['NSD']:
+                attr_constr_map[var_id] = constr[-1].id
+        inverse_data = (id2new_var, id2old_var, cons_id_map, attr_constr_map)
         return cvxtypes.problem()(obj, constr), inverse_data
 
     def update_parameters(self, problem) -> None:
@@ -291,7 +295,7 @@ class CvxAttr2Constr(Reduction):
         if not inverse_data:
             return solution
 
-        id2new_var, id2old_var, cons_id_map = inverse_data
+        id2new_var, id2old_var, cons_id_map, attr_constr_map = inverse_data
         pvars = {}
         for id, var in id2old_var.items():
             new_var = id2new_var[id]
@@ -302,5 +306,11 @@ class CvxAttr2Constr(Reduction):
         dvars = {orig_id: solution.dual_vars[vid]
                  for orig_id, vid in cons_id_map.items()
                  if vid in solution.dual_vars}
+        attr_duals = {}
+        for var_id, constr_id in attr_constr_map.items():
+            if constr_id in solution.dual_vars:
+                attr_duals[var_id] = solution.dual_vars[constr_id]
+        new_attr = solution.attr.copy()
+        new_attr['attr_duals'] = attr_duals
         return Solution(solution.status, solution.opt_val, pvars, dvars,
-                        solution.attr)
+                        new_attr)
