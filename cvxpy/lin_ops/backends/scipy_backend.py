@@ -1054,7 +1054,7 @@ class SciPyCanonBackend(PythonCanonBackend):
             # Slightly faster compared to reshaping after casting
             tensor = sp.csr_array(data.reshape((-1, 1), order="F"))
         else:
-            tensor = sp.coo_matrix(data).reshape((-1, 1), order="F").tocsr()
+            tensor = sp.coo_array(data).reshape((-1, 1), order="F").tocsr()
         return {Constant.ID.value: {Constant.ID.value: tensor}}
 
     def get_param_tensor(self, shape: tuple[int, ...], parameter_id: int) -> \

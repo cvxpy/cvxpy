@@ -20,6 +20,7 @@ import scipy.sparse as sp
 from cvxpy.atoms.affine.binary_operators import multiply
 from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.atoms.affine.transpose import swapaxes
+from cvxpy.atoms.affine.upper_tri import upper_tri
 from cvxpy.constraints.psd import PSD
 from cvxpy.expressions.variable import Variable
 from cvxpy.utilities.solver_context import SolverInfo
@@ -33,14 +34,24 @@ def lambda_max_canon(expr, args, solver_context: SolverInfo | None = None):
 
     # Build t * I_n as (*batch, n, n):
     # reshape t to (*batch, 1, 1), elementwise multiply with eye(n)
-    t_expanded = reshape(t, batch_shape + (1, 1), order='C')
-    # scipy sparse doesn't support 3D, so use dense eye for batched case
-    eye_n = np.eye(n) if batch_shape else sp.eye_array(n)
-    t_eye = multiply(t_expanded, eye_n)  # broadcasts to (*batch, n, n)
+    t_expanded = reshape(t, batch_shape + (1, 1), order='F')
+    # Construct eye(n) as ND COO array with shape (*batch, n, n)
+    diag = np.arange(n)
+    batch_size = int(np.prod(batch_shape)) if batch_shape else 1
+    data = np.ones(batch_size * n)
+    rows = np.tile(diag, batch_size)
+    cols = np.tile(diag, batch_size)
+    if batch_shape:
+        batch_flat = np.repeat(np.arange(batch_size), n)
+        coords = np.unravel_index(batch_flat, batch_shape) + (rows, cols)
+    else:
+        coords = (rows, cols)
+    eye_n = sp.coo_array((data, coords), shape=batch_shape + (n, n))
+    t_eye = multiply(t_expanded, eye_n)  # (*batch, n, n)
 
     constr = [PSD(t_eye - A)]
 
     if not A.is_symmetric():
-        constr.append(swapaxes(A, -2, -1) == A)
+        constr.append(upper_tri(A) == upper_tri(swapaxes(A, -2, -1)))
 
     return t, constr

@@ -547,8 +547,10 @@ def upper_tri(operator):
     LinOp
        LinOp representing the vectorized upper triangle.
     """
-    entries = operator.shape[0]*operator.shape[1]
-    shape = ((entries - operator.shape[0])//2, 1)
+    n = operator.shape[-1]
+    batch_shape = operator.shape[:-2]
+    tri = n * (n - 1) // 2
+    shape = batch_shape + (tri, 1)
     return lo.LinOp(lo.UPPER_TRI, shape, [operator], None)
 
 

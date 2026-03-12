@@ -57,22 +57,27 @@ class upper_tri(AffAtom):
         """
         Vectorize the strictly upper triangular entries.
         """
-        upper_idx = np.triu_indices(n=values[0].shape[0], k=1, m=values[0].shape[1])
-        return values[0][upper_idx]
+        n = values[0].shape[-1]
+        rows, cols = np.triu_indices(n, k=1)
+        return values[0][..., rows, cols]
 
     def validate_arguments(self) -> None:
-        """Checks that the argument is a square matrix.
+        """Checks that the argument is a square matrix with ndim >= 2.
         """
-        if not self.args[0].ndim == 2 or self.args[0].shape[0] != self.args[0].shape[1]:
+        shape = self.args[0].shape
+        if len(shape) < 2 or shape[-2] != shape[-1]:
             raise ValueError(
-                "Argument to upper_tri must be a 2-d square array."
+                "Argument to upper_tri must be a square array with ndim >= 2."
             )
 
-    def shape_from_args(self) -> Tuple[int, int]:
-        """A vector.
+    def shape_from_args(self) -> Tuple[int, ...]:
+        """Batch shape + vector of upper triangular entries.
         """
-        rows, cols = self.args[0].shape
-        return (rows*(cols-1)//2, 1)
+        shape = self.args[0].shape
+        n = shape[-1]
+        batch_shape = shape[:-2]
+        tri = n * (n - 1) // 2
+        return batch_shape + (tri, 1)
 
     def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
