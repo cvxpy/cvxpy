@@ -90,7 +90,7 @@ class Trace(AffAtom):
         shape = self.args[0].shape
         if self.args[0].ndim < 2 or shape[-2] != shape[-1]:
             raise ValueError(
-                "Argument to trace must be a square array with ndim >= 2."
+                "Argument to trace must have ndim >= 2 with equal last two dimensions."
             )
 
     def shape_from_args(self) -> Tuple[int, ...]:

@@ -1044,7 +1044,7 @@ class SciPyCanonBackend(PythonCanonBackend):
         n = int(np.prod(shape))
         return {variable_id: {Constant.ID.value: sp.eye_array(n, format="csc")}}
 
-    def get_data_tensor(self, data: np.ndarray | sp.spmatrix) -> \
+    def get_data_tensor(self, data: np.ndarray | sp.sparray | sp.spmatrix | float) -> \
             dict[int, dict[int, sp.csr_array]]:
         """
         Returns tensor of constant node as a column vector.
@@ -1053,6 +1053,8 @@ class SciPyCanonBackend(PythonCanonBackend):
         if isinstance(data, np.ndarray):
             # Slightly faster compared to reshaping after casting
             tensor = sp.csr_array(data.reshape((-1, 1), order="F"))
+        elif np.isscalar(data):
+            tensor = sp.csr_array(np.array([[data]]))
         else:
             tensor = sp.coo_array(data).reshape((-1, 1), order="F").tocsr()
         return {Constant.ID.value: {Constant.ID.value: tensor}}

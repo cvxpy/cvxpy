@@ -323,7 +323,7 @@ class TestExpressionMethods(BaseTest):
         with self.assertRaises(Exception) as cm:
             self.C.trace()
         self.assertEqual(str(cm.exception),
-                         "Argument to trace must be a square array with ndim >= 2.")
+                         "Argument to trace must have ndim >= 2 with equal last two dimensions.")
 
     def test_trace_sign_psd(self) -> None:
         """Test sign of trace for psd/nsd inputs.

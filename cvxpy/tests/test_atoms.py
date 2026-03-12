@@ -856,7 +856,7 @@ class TestAtoms(BaseTest):
         with self.assertRaises(Exception) as cm:
             cp.trace(self.C)
         self.assertEqual(str(cm.exception),
-                         "Argument to trace must be a square array with ndim >= 2.")
+                         "Argument to trace must have ndim >= 2 with equal last two dimensions.")
 
     def test_trace_sign_psd(self) -> None:
         """Test sign of trace for psd/nsd inputs.
@@ -954,8 +954,11 @@ class TestAtoms(BaseTest):
     def test_upper_tri(self) -> None:
         with self.assertRaises(Exception) as cm:
             cp.upper_tri(self.C)
-        self.assertEqual(str(cm.exception),
-                         "Argument to upper_tri must be a 2-d square array.")
+        self.assertEqual(
+            str(cm.exception),
+            "Argument to upper_tri must have ndim >= 2"
+            " with equal last two dimensions."
+        )
 
     def test_vec_to_upper_tri(self) -> None:
         x = Variable(shape=(3,))
