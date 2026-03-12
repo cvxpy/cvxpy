@@ -32,7 +32,6 @@ def normalize_shape(shape):
     shape = tuple(shape)
     return (1,) * (2 - len(shape)) + shape
 
-
 def _chain_add(children):
     """Chain multiple children with binary adds: a + b + c -> add(add(a, b), c)."""
     result = children[0]
@@ -48,31 +47,49 @@ def _convert_matmul(expr, children):
     if left_arg.is_constant():
         A = left_arg.value
     
-        if not isinstance(A, sparse.csr_matrix):
-          A = sparse.csr_matrix(A)
-          
-        return _diffengine.make_left_matmul(
-            children[1],
-            A.data.astype(np.float64),
-            A.indices.astype(np.int32),
-            A.indptr.astype(np.int32),
-            A.shape[0],
-            A.shape[1],
-        )
+        if sparse.issparse(A):
+            if not isinstance(A, sparse.csr_matrix):
+                A = sparse.csr_matrix(A)
+
+            return _diffengine.make_sparse_left_matmul(
+                children[1],
+                A.data.astype(np.float64, copy=False),
+                A.indices.astype(np.int32, copy=False),
+                A.indptr.astype(np.int32, copy=False),
+                A.shape[0],
+                A.shape[1],
+            )
+        else:
+            m, n = normalize_shape(A.shape)
+            return _diffengine.make_dense_left_matmul(
+                children[1],
+                A.flatten(order='C'),
+                m,
+                n,
+            )
     elif right_arg.is_constant():
         A = right_arg.value
-       
-        if not isinstance(A, sparse.csr_matrix):
-            A = sparse.csr_matrix(A)
 
-        return _diffengine.make_right_matmul(
-            children[0],
-            A.data.astype(np.float64),
-            A.indices.astype(np.int32),
-            A.indptr.astype(np.int32),
-            A.shape[0],
-            A.shape[1],
-        )
+        if sparse.issparse(A):
+            if not isinstance(A, sparse.csr_matrix):
+                A = sparse.csr_matrix(A)
+
+            return _diffengine.make_sparse_right_matmul(
+                children[0],
+                A.data.astype(np.float64, copy=False),
+                A.indices.astype(np.int32, copy=False),
+                A.indptr.astype(np.int32, copy=False),
+                A.shape[0],
+                A.shape[1],
+            )
+        else:
+            m, n = normalize_shape(A.shape)
+            return _diffengine.make_dense_right_matmul(
+                children[0],
+                A.flatten(order='C'),
+                m,
+                n,
+            )
     else:
         return _diffengine.make_matmul(children[0], children[1])
 
