@@ -19,12 +19,9 @@ import pytest
 
 import cvxpy as cp
 from cvxpy.constraints.second_order import SOC
+from cvxpy.reductions.cone2cone.cone_tree import LeafNode, SpecialNode, SplitNode
 from cvxpy.reductions.cone2cone.soc_dim3 import (
-    ChainTree,
-    LeafTree,
-    NonNegTree,
     SOCDim3,
-    SplitTree,
     _decompose_soc_single,
 )
 from cvxpy.reductions.solution import Solution
@@ -171,11 +168,11 @@ class TestSOCDim3Decomposition:
 
         assert len(cones) == 0
         assert len(nonneg_constrs) == 2
-        assert isinstance(tree, NonNegTree)
-        assert tree.original_dim == 2
+        assert isinstance(tree, SpecialNode)
+        assert tree.node_type == 'nonneg_dim2'
 
     def test_dim3_is_leaf(self):
-        """Dimension 3 passes through as LeafTree."""
+        """Dimension 3 passes through as LeafNode."""
         t = cp.Variable(nonneg=True)
         x = cp.Variable(2)
 
@@ -184,10 +181,10 @@ class TestSOCDim3Decomposition:
 
         assert len(cones) == 1
         assert cones[0].cone_sizes() == [3]
-        assert isinstance(tree, LeafTree)
+        assert isinstance(tree, LeafNode)
 
     def test_dim4_is_chain(self):
-        """Dimension 4 uses ChainTree structure."""
+        """Dimension 4 uses chain SpecialNode structure."""
         t = cp.Variable(nonneg=True)
         x = cp.Variable(3)
 
@@ -196,10 +193,11 @@ class TestSOCDim3Decomposition:
 
         assert len(cones) == 2
         assert all(c.cone_sizes() == [3] for c in cones)
-        assert isinstance(tree, ChainTree)
+        assert isinstance(tree, SpecialNode)
+        assert tree.node_type == 'chain_dim4'
 
     def test_dim5_is_split(self):
-        """Dimension 5+ uses SplitTree structure."""
+        """Dimension 5+ uses SplitNode structure."""
         t = cp.Variable(nonneg=True)
         x = cp.Variable(4)
 
@@ -208,7 +206,7 @@ class TestSOCDim3Decomposition:
 
         assert len(cones) == 3
         assert all(c.cone_sizes() == [3] for c in cones)
-        assert isinstance(tree, SplitTree)
+        assert isinstance(tree, SplitNode)
 
 
 # =============================================================================

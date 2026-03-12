@@ -20,6 +20,7 @@ from typing import Any, Callable
 
 import numpy as np
 import scipy.sparse as sp
+from numpy.lib.array_utils import normalize_axis_tuple
 
 from cvxpy.lin_ops.backends.base import (
     Constant,
@@ -1391,10 +1392,26 @@ def reshape_parametric_constant(tensor: CooTensor, new_m: int, new_n: int) -> Co
         Reshaped tensor with deduplicated entries (for parametric case)
     """
     if tensor.param_size > 1:
-        # For parametric tensors, use param_idx as position indicator
-        # Each param_idx maps to one position in (new_m, new_n) in column-major order
-        new_row = tensor.param_idx % new_m
-        new_col = tensor.param_idx // new_m
+        # For parametric tensors, use row as position indicator.
+        # row always contains correct local positions after transformations,
+        # whereas param_idx encodes original parameter identity and may diverge.
+        #
+        # Account for broadcast expansion.  For ND matmul like
+        # P(m,k) @ X(B,k,n), _broadcast_batch_dims wraps the parameter in
+        # broadcast_to(P, (B,m,k)).  The tensor then has m*n = B*m*k entries
+        # per slice, but the target reshape size is only new_m * new_n = m*k.
+        # In Fortran (column-major) order, each original entry is duplicated B
+        # consecutive times, so dividing pos by the broadcast factor
+        # (B = tensor_size / original_size) maps positions back to the
+        # original (new_m, new_n) space.
+        # When there is no broadcast, broadcast_factor == 1 and this is a no-op.
+        original_size = new_m * new_n
+        broadcast_factor = (tensor.m * tensor.n) // original_size
+        pos = tensor.row
+        if broadcast_factor > 1:
+            pos = pos // broadcast_factor
+        new_row = pos % new_m
+        new_col = pos // new_m
 
         # Deduplicate: keep first occurrence of each param_idx
         # This handles broadcast operations that duplicate param entries
@@ -1630,7 +1647,7 @@ class CooCanonBackend(PythonCanonBackend):
             # Sum along specific axis
             # row_map[i] tells us which output row input row i maps to
             row_map = self._get_sum_row_map(shape, axis)
-            axis_tuple = axis if isinstance(axis, tuple) else (axis,)
+            axis_tuple = normalize_axis_tuple(axis, len(shape))
             out_axes = [i for i in range(len(shape)) if i not in axis_tuple]
             new_m = int(np.prod([shape[i] for i in out_axes])) if out_axes else 1
 
@@ -1654,7 +1671,7 @@ class CooCanonBackend(PythonCanonBackend):
 
         Returns array where row_map[i] is the output row for input row i.
         """
-        axis = axis if isinstance(axis, tuple) else (axis,)
+        axis = normalize_axis_tuple(axis, len(shape))
         out_axes = np.isin(range(len(shape)), axis, invert=True)
         out_idx = np.indices(shape)[out_axes]
         out_dims = np.array(shape)[out_axes]

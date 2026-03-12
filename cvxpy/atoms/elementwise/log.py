@@ -19,6 +19,7 @@ import numpy as np
 
 from cvxpy.atoms.elementwise.elementwise import Elementwise
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.utilities import bounds as bounds_utils
 
 
 class log(Elementwise):
@@ -40,6 +41,11 @@ class log(Elementwise):
         # Always unknown.
         return (False, False)
 
+    def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
+        """Returns bounds for log based on argument bounds."""
+        lb, ub = self.args[0].get_bounds()
+        return bounds_utils.log_bounds(lb, ub)
+
     def is_atom_convex(self) -> bool:
         """Is the atom convex?
         """
@@ -48,6 +54,10 @@ class log(Elementwise):
     def is_atom_concave(self) -> bool:
         """Is the atom concave?
         """
+        return True
+    
+    def is_atom_smooth(self) -> bool:
+        """Is the atom smooth?"""
         return True
 
     def is_atom_log_log_convex(self) -> bool:
@@ -95,3 +105,4 @@ class log(Elementwise):
         """Returns constraints describing the domain of the node.
         """
         return [self.args[0] >= 0]
+    

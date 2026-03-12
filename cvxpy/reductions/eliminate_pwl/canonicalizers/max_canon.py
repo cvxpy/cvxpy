@@ -19,6 +19,7 @@ import numpy as np
 from cvxpy.atoms import promote, reshape
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variable import Variable
+from cvxpy.utilities.bounds import get_expr_bounds_if_supported
 from cvxpy.utilities.solver_context import SolverInfo
 
 
@@ -26,7 +27,8 @@ def max_canon(expr, args, solver_context: SolverInfo | None = None):
     x = args[0]
     shape = expr.shape
     axis = expr.axis
-    t = Variable(shape)
+    bounds = get_expr_bounds_if_supported(expr, solver_context)
+    t = Variable(shape, bounds=bounds)
 
     if axis is None:  # shape = (1, 1)
         promoted_t = promote(t, x.shape)
@@ -36,4 +38,10 @@ def max_canon(expr, args, solver_context: SolverInfo | None = None):
         promoted_t = reshape(t, (x.shape[0], 1), order='F') @ Constant(np.ones((1, x.shape[1])))
 
     constraints = [x <= promoted_t]
+
+    # for DNLP we must initialize the new variable (DNLP guarantees that
+    # x.value will be set when this function is called)
+    if expr.value is not None:
+        t.value = expr.value
+        
     return t, constraints

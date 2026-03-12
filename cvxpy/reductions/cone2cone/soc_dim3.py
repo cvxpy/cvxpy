@@ -40,7 +40,7 @@ Example:
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Tuple
 
 if TYPE_CHECKING:
     from cvxpy.problems.problem import Problem
@@ -54,103 +54,15 @@ from cvxpy.constraints.second_order import SOC
 from cvxpy.expressions import cvxtypes
 from cvxpy.expressions.expression import Expression
 from cvxpy.expressions.variable import Variable
+from cvxpy.reductions.cone2cone.cone_tree import (
+    LeafNode,
+    SpecialNode,
+    SplitNode,
+    TreeNode,
+    get_all_cone_ids,
+)
 from cvxpy.reductions.reduction import Reduction
 from cvxpy.reductions.solution import Solution
-
-# =============================================================================
-# Tree Node Dataclasses
-# =============================================================================
-
-@dataclass(frozen=True)
-class NonNegTree:
-    """Tree node for cases that reduce to NonNeg constraints.
-
-    - Dim-1 (||[]|| <= t): reduces to t >= 0
-    - Dim-2 (|x| <= t): reduces to t-x >= 0, t+x >= 0
-
-    Attributes
-    ----------
-    original_dim : int
-        Original dimension (1 or 2).
-    nonneg_ids : tuple
-        Constraint IDs of the NonNeg constraints.
-        For dim-1: (id of t >= 0,)
-        For dim-2: (id of t-x >= 0, id of t+x >= 0)
-    """
-    original_dim: int = 1
-    nonneg_ids: tuple = ()
-
-
-@dataclass(frozen=True)
-class LeafTree:
-    """Tree node for a single 3D cone.
-
-    Represents a leaf in the decomposition tree - an actual 3D SOC constraint.
-
-    Attributes
-    ----------
-    cone_id : int
-        The constraint ID of the 3D SOC cone.
-    original_dim : int
-        The original dimension of this cone (always 3 for LeafTree).
-    """
-    cone_id: int
-    original_dim: int = 3
-
-
-@dataclass(frozen=True)
-class ChainTree:
-    """Tree node for dim-4 special case: two chained cones.
-
-    For dimension 4 (||(x1, x2, x3)|| <= t), we use a chain structure:
-        ||(x1, x2)|| <= s
-        ||(s, x3)|| <= t
-
-    This avoids the unbalanced 1+2 split that would occur with generic binary split.
-
-    Attributes
-    ----------
-    leaf_cone_id : int
-        Constraint ID of the leaf cone (contains x1, x2).
-    root_cone_id : int
-        Constraint ID of the root cone (contains s, x3).
-    original_dim : int
-        Always 4 for chain decomposition.
-    """
-    leaf_cone_id: int
-    root_cone_id: int
-    original_dim: int = 4
-
-
-@dataclass(frozen=True)
-class SplitTree:
-    """Tree node for binary split decomposition.
-
-    For dimension n > 4, we split x into two halves and recursively decompose:
-        ||x_left|| <= s1
-        ||x_right|| <= s2
-        ||(s1, s2)|| <= t
-
-    Attributes
-    ----------
-    root_cone_id : int
-        Constraint ID of the root cone (contains s1, s2).
-    left : DecompositionTree
-        Left subtree (decomposition of x_left).
-    right : DecompositionTree
-        Right subtree (decomposition of x_right).
-    original_dim : int
-        Original dimension of this cone.
-    """
-    root_cone_id: int
-    left: DecompositionTree
-    right: DecompositionTree
-    original_dim: int
-
-
-# Type alias for any tree node type
-DecompositionTree = Union[NonNegTree, LeafTree, ChainTree, SplitTree]
-
 
 # =============================================================================
 # Inverse Data Dataclasses
@@ -162,7 +74,7 @@ class SOCTreeData:
 
     Attributes
     ----------
-    trees : List[DecompositionTree]
+    trees : List[TreeNode]
         List of decomposition trees, one per cone in elementwise SOC.
     num_cones : int
         Number of individual cones (1 for simple SOC, >1 for elementwise).
@@ -171,7 +83,7 @@ class SOCTreeData:
     axis : int
         Axis parameter from original SOC constraint.
     """
-    trees: List[DecompositionTree]
+    trees: List[TreeNode]
     num_cones: int
     original_dim: int
     axis: int = 0
@@ -197,18 +109,7 @@ class SOCDim3InverseData:
 # =============================================================================
 
 def _to_scalar_shape(expr: Expression) -> Expression:
-    """Reshape expression to scalar form (1,) for SOC constructor.
-
-    Parameters
-    ----------
-    expr : Expression
-        Expression to reshape (should be scalar or shape (1,)).
-
-    Returns
-    -------
-    Expression
-        Expression with shape (1,).
-    """
+    """Reshape expression to scalar form (1,) for SOC constructor."""
     return reshape(expr, (1,), order='F')
 
 
@@ -220,16 +121,6 @@ def _get_flat_dual(dual_value: Optional[Any]) -> Optional[np.ndarray]:
     - Split list: [lambda_array, mu_array] (after save_dual_value)
 
     This function normalizes to flat array format.
-
-    Parameters
-    ----------
-    dual_value : Optional[Any]
-        Dual value in either format, or None.
-
-    Returns
-    -------
-    Optional[np.ndarray]
-        Flat array [lambda, mu1, mu2, ...] or None if input is None.
     """
     if dual_value is None:
         return None
@@ -247,33 +138,6 @@ def _get_flat_dual(dual_value: Optional[Any]) -> Optional[np.ndarray]:
     return np.atleast_1d(dual_value)
 
 
-def _get_cone_ids_from_tree(tree: DecompositionTree) -> set:
-    """Get all constraint IDs from a decomposition tree.
-
-    Parameters
-    ----------
-    tree : DecompositionTree
-        The decomposition tree to traverse.
-
-    Returns
-    -------
-    set
-        Set of all constraint IDs (SOC and NonNeg) in the tree.
-    """
-    if isinstance(tree, NonNegTree):
-        return set(tree.nonneg_ids)
-    elif isinstance(tree, LeafTree):
-        return {tree.cone_id}
-    elif isinstance(tree, ChainTree):
-        return {tree.leaf_cone_id, tree.root_cone_id}
-    elif isinstance(tree, SplitTree):
-        ids = {tree.root_cone_id}
-        ids.update(_get_cone_ids_from_tree(tree.left))
-        ids.update(_get_cone_ids_from_tree(tree.right))
-        return ids
-    return set()
-
-
 # =============================================================================
 # Decomposition Functions
 # =============================================================================
@@ -283,11 +147,8 @@ def _decompose_soc_single(
     x_expr: Expression,
     soc3_out: List[SOC],
     nonneg_out: List[NonNeg]
-) -> DecompositionTree:
+) -> TreeNode:
     """Decompose a single ||x|| <= t constraint into tree of exactly 3D cones.
-
-    This function recursively decomposes an n-dimensional SOC constraint into
-    a tree of 3D SOC constraints using binary splitting.
 
     Parameters
     ----------
@@ -302,15 +163,9 @@ def _decompose_soc_single(
 
     Returns
     -------
-    DecompositionTree
+    TreeNode
         Tree structure for dual variable reconstruction.
-
-    Raises
-    ------
-    ValueError
-        If t_expr or x_expr is None, or if t_expr is not scalar.
     """
-    # Input validation
     if t_expr is None or x_expr is None:
         raise ValueError("t_expr and x_expr cannot be None")
 
@@ -320,34 +175,36 @@ def _decompose_soc_single(
     if n == 0:
         c = NonNeg(t_expr)
         nonneg_out.append(c)
-        return NonNegTree(original_dim=1, nonneg_ids=(c.id,))
+        return SpecialNode(
+            node_type='nonneg_dim1',
+            cone_ids=(c.id,),
+            var_indices=()
+        )
 
     # Dimension 2: |x| <= t  ->  t - x >= 0, t + x >= 0 (no SOC needed)
     if n == 1:
         x_flat = x_expr.flatten(order='F')
-        # |x| <= t is equivalent to: -t <= x <= t
-        # Which is: t - x >= 0 AND t + x >= 0
         c1 = NonNeg(t_expr - x_flat)  # t - x >= 0
         c2 = NonNeg(t_expr + x_flat)  # t + x >= 0
         nonneg_out.extend([c1, c2])
-        return NonNegTree(original_dim=2, nonneg_ids=(c1.id, c2.id))
+        return SpecialNode(
+            node_type='nonneg_dim2',
+            cone_ids=(c1.id, c2.id),
+            var_indices=(0,)
+        )
 
     # Dimension 3: Already valid, pass through unchanged
     if n == 2:
         cone = SOC(_to_scalar_shape(t_expr), x_expr.flatten(order='F'))
         soc3_out.append(cone)
-        return LeafTree(cone_id=cone.id)
+        return LeafNode(cone_id=cone.id, var_indices=(0, 1))
 
     # Dimension 4: Special chain structure to avoid unbalanced 1+2 split
-    # Decompose as: ||(x1, x2)|| <= s, ||(s, x3)|| <= t
     if n == 3:
-        # Note: We use explicit NonNeg constraints rather than Variable(nonneg=True)
-        # to make this reduction position-independent in the solving chain.
-        # With nonneg=True, this reduction would need to come before CvxAttr2Constr.
         s = Variable()
         nonneg_out.append(NonNeg(s))
-        x_left = x_expr[:2]  # First two elements
-        x_last = x_expr[2]   # Last element
+        x_left = x_expr[:2]
+        x_last = x_expr[2]
 
         # First cone: ||(x1, x2)|| <= s
         cone1 = SOC(_to_scalar_shape(s), x_left.flatten(order='F'))
@@ -358,19 +215,19 @@ def _decompose_soc_single(
         cone2 = SOC(_to_scalar_shape(t_expr), root_x.flatten(order='F'))
         soc3_out.append(cone2)
 
-        return ChainTree(
-            leaf_cone_id=cone1.id,
-            root_cone_id=cone2.id,
-            original_dim=4
+        return SpecialNode(
+            node_type='chain_dim4',
+            cone_ids=(cone1.id, cone2.id),
+            var_indices=(0, 1, 2),
+            metadata={'leaf_cone_id': cone1.id, 'root_cone_id': cone2.id}
         )
 
     # n >= 4: Standard binary split
-    # Split x into two halves and recursively decompose each
-    mid = (n + 1) // 2  # Ceiling division, slightly favors left side
+    mid = (n + 1) // 2
     x_left = x_expr[:mid]
     x_right = x_expr[mid:]
 
-    # Create auxiliary variables for partial norms (with explicit NonNeg constraints)
+    # Create auxiliary variables
     s1 = Variable()
     s2 = Variable()
     nonneg_out.append(NonNeg(s1))
@@ -385,11 +242,10 @@ def _decompose_soc_single(
     root_cone = SOC(_to_scalar_shape(t_expr), root_x.flatten(order='F'))
     soc3_out.append(root_cone)
 
-    return SplitTree(
-        root_cone_id=root_cone.id,
+    return SplitNode(
+        cone_id=root_cone.id,
         left=left_tree,
-        right=right_tree,
-        original_dim=n + 1
+        right=right_tree
     )
 
 
@@ -398,55 +254,48 @@ def _decompose_soc_single(
 # =============================================================================
 
 def _collect_x_duals_into_array(
-    tree: DecompositionTree,
+    tree: TreeNode,
     dual_vars: Dict[int, Any],
     out: np.ndarray,
     offset: int
 ) -> Optional[int]:
-    """Collect x-component duals from leaf cones into pre-allocated array.
-
-    For an SOC constraint ||x|| <= t, the dual is a flat array [lambda, mu1, mu2, ...]
-    where lambda is the dual for t and mu is the dual for x.
-
-    This function traverses the decomposition tree and writes all mu components
-    from leaf cones into the output array in order.
-
-    Parameters
-    ----------
-    tree : DecompositionTree
-        The decomposition tree structure.
-    dual_vars : Dict[int, Any]
-        Mapping from constraint ID to dual variable value.
-    out : np.ndarray
-        Pre-allocated output array to write duals into.
-    offset : int
-        Current write position in the output array.
-
-    Returns
-    -------
-    Optional[int]
-        New offset after writing, or None if reconstruction failed.
-    """
-    if isinstance(tree, NonNegTree):
-        if tree.original_dim == 1:
-            # Dim-1: no x components
+    """Collect x-component duals from leaf cones into pre-allocated array."""
+    if isinstance(tree, SpecialNode):
+        if tree.node_type == 'nonneg_dim1':
             return offset
-        elif tree.original_dim == 2 and len(tree.nonneg_ids) == 2:
-            # Dim-2: |x| <= t was converted to t-x >= 0, t+x >= 0
-            # Duals: α for (t-x), β for (t+x)
-            # x dual μ = β - α (coefficient of x in Lagrangian)
-            alpha_raw = dual_vars.get(tree.nonneg_ids[0])
-            beta_raw = dual_vars.get(tree.nonneg_ids[1])
+        elif tree.node_type == 'nonneg_dim2' and len(tree.cone_ids) == 2:
+            alpha_raw = dual_vars.get(tree.cone_ids[0])
+            beta_raw = dual_vars.get(tree.cone_ids[1])
             if alpha_raw is None or beta_raw is None:
                 return None
             alpha = float(np.atleast_1d(alpha_raw).flat[0])
             beta = float(np.atleast_1d(beta_raw).flat[0])
             out[offset] = beta - alpha
             return offset + 1
+        elif tree.node_type == 'chain_dim4':
+            leaf_id = tree.metadata.get('leaf_cone_id')
+            root_id = tree.metadata.get('root_cone_id')
+            if leaf_id is None or root_id is None:
+                return None
+
+            leaf_dual = _get_flat_dual(dual_vars.get(leaf_id))
+            root_dual = _get_flat_dual(dual_vars.get(root_id))
+            if leaf_dual is None or root_dual is None:
+                return None
+
+            if len(leaf_dual) >= 3:
+                out[offset] = leaf_dual[1]
+                out[offset + 1] = leaf_dual[2]
+                offset += 2
+
+            if len(root_dual) >= 3:
+                out[offset] = root_dual[2]
+                offset += 1
+
+            return offset
         return offset
 
-    if isinstance(tree, LeafTree):
-        # Leaf cone: extract x-component duals
+    if isinstance(tree, LeafNode):
         dual_raw = dual_vars.get(tree.cone_id)
         if dual_raw is None:
             return None
@@ -455,43 +304,12 @@ def _collect_x_duals_into_array(
         if dual is None or len(dual) < 2:
             return None
 
-        # x components are all elements after the first (lambda)
         x_dual = dual[1:]
-
-        # Write to output array
         n_write = len(x_dual)
         out[offset:offset + n_write] = x_dual
         return offset + n_write
 
-    if isinstance(tree, ChainTree):
-        # Chain structure for dim-4: ||(x1, x2)|| <= s, ||(s, x3)|| <= t
-        leaf_dual_raw = dual_vars.get(tree.leaf_cone_id)
-        root_dual_raw = dual_vars.get(tree.root_cone_id)
-
-        if leaf_dual_raw is None or root_dual_raw is None:
-            return None
-
-        leaf_dual = _get_flat_dual(leaf_dual_raw)
-        root_dual = _get_flat_dual(root_dual_raw)
-
-        if leaf_dual is None or root_dual is None:
-            return None
-
-        # Get x1, x2 from leaf cone (elements 1, 2 of [lambda, mu1, mu2])
-        if len(leaf_dual) >= 3:
-            out[offset] = leaf_dual[1]
-            out[offset + 1] = leaf_dual[2]
-            offset += 2
-
-        # Get x3 from root cone (element 2 of [lambda, s_dual, x3_dual])
-        if len(root_dual) >= 3:
-            out[offset] = root_dual[2]
-            offset += 1
-
-        return offset
-
-    if isinstance(tree, SplitTree):
-        # Binary split: collect from left and right subtrees
+    if isinstance(tree, SplitNode):
         new_offset = _collect_x_duals_into_array(tree.left, dual_vars, out, offset)
         if new_offset is None:
             return None
@@ -500,103 +318,73 @@ def _collect_x_duals_into_array(
     return None
 
 
-def _get_root_t_dual(tree: DecompositionTree, dual_vars: Dict[int, Any]) -> Optional[float]:
-    """Get the t-component dual (lambda) from the root cone.
-
-    Parameters
-    ----------
-    tree : DecompositionTree
-        The decomposition tree structure.
-    dual_vars : Dict[int, Any]
-        Mapping from constraint ID to dual variable value.
-
-    Returns
-    -------
-    Optional[float]
-        The dual value for t from the root cone, or None if not available.
-    """
-    if isinstance(tree, NonNegTree):
-        if tree.original_dim == 1:
-            # Dim-1: just t >= 0, dual is the NonNeg dual
-            if len(tree.nonneg_ids) >= 1:
-                dual_raw = dual_vars.get(tree.nonneg_ids[0])
+def _get_root_t_dual(tree: TreeNode, dual_vars: Dict[int, Any]) -> Optional[float]:
+    """Get the t-component dual (lambda) from the root cone."""
+    if isinstance(tree, SpecialNode):
+        if tree.node_type == 'nonneg_dim1':
+            if len(tree.cone_ids) >= 1:
+                dual_raw = dual_vars.get(tree.cone_ids[0])
                 if dual_raw is not None:
                     return float(np.atleast_1d(dual_raw).flat[0])
             return None
-        elif tree.original_dim == 2 and len(tree.nonneg_ids) == 2:
-            # Dim-2: |x| <= t was converted to t-x >= 0, t+x >= 0
-            # Duals: α for (t-x), β for (t+x)
-            # t dual λ = α + β (coefficient of t in Lagrangian)
-            alpha_raw = dual_vars.get(tree.nonneg_ids[0])
-            beta_raw = dual_vars.get(tree.nonneg_ids[1])
+        elif tree.node_type == 'nonneg_dim2' and len(tree.cone_ids) == 2:
+            alpha_raw = dual_vars.get(tree.cone_ids[0])
+            beta_raw = dual_vars.get(tree.cone_ids[1])
             if alpha_raw is None or beta_raw is None:
                 return None
             alpha = float(np.atleast_1d(alpha_raw).flat[0])
             beta = float(np.atleast_1d(beta_raw).flat[0])
             return alpha + beta
+        elif tree.node_type == 'chain_dim4':
+            root_id = tree.metadata.get('root_cone_id')
+            if root_id is None:
+                return None
+            dual = _get_flat_dual(dual_vars.get(root_id))
+            return dual[0] if dual is not None and len(dual) >= 1 else None
         return None
 
-    if isinstance(tree, LeafTree):
-        # Single leaf is also root
-        dual_raw = dual_vars.get(tree.cone_id)
-        if dual_raw is None:
-            return None
-        dual = _get_flat_dual(dual_raw)
+    if isinstance(tree, LeafNode):
+        dual = _get_flat_dual(dual_vars.get(tree.cone_id))
         return dual[0] if dual is not None and len(dual) >= 1 else None
 
-    if isinstance(tree, ChainTree):
-        # Root is the second cone
-        dual_raw = dual_vars.get(tree.root_cone_id)
-        if dual_raw is None:
-            return None
-        dual = _get_flat_dual(dual_raw)
-        return dual[0] if dual is not None and len(dual) >= 1 else None
-
-    if isinstance(tree, SplitTree):
-        dual_raw = dual_vars.get(tree.root_cone_id)
-        if dual_raw is None:
-            return None
-        dual = _get_flat_dual(dual_raw)
+    if isinstance(tree, SplitNode):
+        dual = _get_flat_dual(dual_vars.get(tree.cone_id))
         return dual[0] if dual is not None and len(dual) >= 1 else None
 
     return None
 
 
+def _get_original_dim(tree: TreeNode) -> int:
+    """Get the original dimension of a tree."""
+    if isinstance(tree, SpecialNode):
+        if tree.node_type == 'nonneg_dim1':
+            return 1
+        elif tree.node_type == 'nonneg_dim2':
+            return 2
+        elif tree.node_type == 'chain_dim4':
+            return 4
+        return len(tree.var_indices) + 1
+    if isinstance(tree, LeafNode):
+        return 3
+    if isinstance(tree, SplitNode):
+        return _get_original_dim(tree.left) + _get_original_dim(tree.right) - 1
+    return 0
+
+
 def _reconstruct_soc_dual(
-    tree: DecompositionTree,
+    tree: TreeNode,
     dual_vars: Dict[int, Any]
 ) -> Optional[np.ndarray]:
-    """Reconstruct the original SOC dual from decomposed cone duals.
-
-    For an SOC constraint ||x|| <= t, the dual is a flat array [lambda, mu1, mu2, ...]
-    where lambda is the dual for t and mu is the dual for x.
-
-    This function reconstructs the original dual by:
-    1. Getting lambda from the root cone
-    2. Collecting all mu components from leaf cones in order
-
-    Parameters
-    ----------
-    tree : DecompositionTree
-        The decomposition tree structure.
-    dual_vars : Dict[int, Any]
-        Mapping from constraint ID to dual variable value (flat arrays).
-
-    Returns
-    -------
-    Optional[np.ndarray]
-        Reconstructed dual as flat array [lambda, mu1, mu2, ...] or None if failed.
-    """
+    """Reconstruct the original SOC dual from decomposed cone duals."""
     t_dual = _get_root_t_dual(tree, dual_vars)
     if t_dual is None:
         return None
 
-    # Calculate x dimension from tree's original_dim
-    x_size = tree.original_dim - 1
+    original_dim = _get_original_dim(tree)
+    x_size = original_dim - 1
     if x_size == 0:
         return np.array([t_dual])
 
-    # Pre-allocate array for x duals
     x_duals = np.empty(x_size)
     final_offset = _collect_x_duals_into_array(tree, dual_vars, x_duals, 0)
 
@@ -606,72 +394,31 @@ def _reconstruct_soc_dual(
     return np.concatenate([[t_dual], x_duals])
 
 
+def _get_all_tree_cone_ids(tree: TreeNode) -> Set[int]:
+    """Get all constraint IDs from a tree, including SpecialNode cases."""
+    if isinstance(tree, SpecialNode):
+        return set(tree.cone_ids)
+    return get_all_cone_ids(tree)
+
+
 # =============================================================================
 # Main Reduction Class
 # =============================================================================
 
 class SOCDim3(Reduction):
-    """Convert n-dimensional SOC constraints to dimension-3 SOC constraints.
-
-    This reduction enables solvers that only support 3D SOC to handle
-    arbitrary dimensional SOC constraints.
-
-    The decomposition uses a binary tree structure:
-
-    - Dimension 1 (||[]|| <= t): Convert to NonNeg(t)
-    - Dimension 2 (|x| <= t): Pad with auxiliary variable to 3D
-    - Dimension 3: Pass through unchanged
-    - Dimension 4: Special chain structure (two 3D cones)
-    - Dimension n > 4: Recursively split into tree of 3D cones
-
-    Example
-    -------
-    >>> x = cp.Variable(4)
-    >>> t = cp.Variable(nonneg=True)
-    >>> prob = cp.Problem(cp.Minimize(t), [cp.norm(x, 2) <= t])
-    >>> reduction = SOCDim3()
-    >>> new_prob, inv_data = reduction.apply(prob)
-    >>> # new_prob has only 3D SOC constraints
-    """
+    """Convert n-dimensional SOC constraints to dimension-3 SOC constraints."""
 
     def accepts(self, problem: Problem) -> bool:
-        """Check if this reduction accepts the given problem.
-
-        This reduction accepts any problem.
-
-        Parameters
-        ----------
-        problem : Problem
-            The optimization problem.
-
-        Returns
-        -------
-        bool
-            Always True.
-        """
+        """Check if this reduction accepts the given problem."""
         return True
 
     def apply(self, problem: Problem) -> Tuple[Problem, SOCDim3InverseData]:
-        """Apply SOCDim3 decomposition to all SOC constraints.
-
-        Parameters
-        ----------
-        problem : Problem
-            The optimization problem to transform.
-
-        Returns
-        -------
-        new_problem : Problem
-            Problem with all SOC constraints decomposed to dim-3.
-        inverse_data : SOCDim3InverseData
-            Data needed to reconstruct original dual variables.
-        """
+        """Apply SOCDim3 decomposition to all SOC constraints."""
         inverse_data = SOCDim3InverseData(
             soc_trees={},
             old_constraints=problem.constraints
         )
 
-        # Check if there are any SOC constraints to decompose
         has_soc = any(isinstance(c, SOC) for c in problem.constraints)
         if not has_soc:
             return problem, inverse_data
@@ -680,18 +427,14 @@ class SOCDim3(Reduction):
 
         for con in problem.constraints:
             if isinstance(con, SOC):
-                # Decompose this SOC constraint
                 t = con.args[0]
                 X = con.args[1]
                 axis = con.axis
 
-                # Handle axis: if axis == 1, transpose X to work with columns
                 if axis == 1:
                     X = X.T
 
-                # Get dimensions
                 if len(X.shape) <= 1:
-                    # Scalar (shape ()) or 1D (shape (n,)) - single cone case
                     X_reshaped = reshape(X, (X.size, 1), order='F')
                     t_reshaped = _to_scalar_shape(t)
                 else:
@@ -700,19 +443,16 @@ class SOCDim3(Reduction):
 
                 num_cones = t_reshaped.size
 
-                # Validate dimensions match
                 if X_reshaped.shape[1] != num_cones and num_cones > 1:
                     raise ValueError(
                         f"Dimension mismatch: t has {num_cones} elements but "
                         f"X has {X_reshaped.shape[1]} columns"
                     )
 
-                all_trees: List[DecompositionTree] = []
+                all_trees: List[TreeNode] = []
                 soc3_out: List[SOC] = []
                 nonneg_out: List[NonNeg] = []
 
-                # Note on vectorization: This loop processes each cone sequentially.
-                # TODO add vectorization.
                 for i in range(num_cones):
                     t_i = t_reshaped[i] if num_cones > 1 else t_reshaped[0]
                     x_i = X_reshaped[:, i] if num_cones > 1 else X_reshaped[:, 0]
@@ -723,7 +463,6 @@ class SOCDim3(Reduction):
                 new_constraints.extend(soc3_out)
                 new_constraints.extend(nonneg_out)
 
-                # Store tree structure for dual reconstruction
                 cone_sizes = con.cone_sizes()
                 inverse_data.soc_trees[con.id] = SOCTreeData(
                     trees=all_trees,
@@ -732,7 +471,6 @@ class SOCDim3(Reduction):
                     axis=axis
                 )
             else:
-                # Non-SOC constraint: pass through
                 new_constraints.append(con)
 
         new_problem = cvxtypes.problem()(problem.objective, new_constraints)
@@ -743,35 +481,19 @@ class SOCDim3(Reduction):
         solution: Solution,
         inverse_data: SOCDim3InverseData
     ) -> Solution:
-        """Reconstruct solution with original SOC dual variables.
-
-        Parameters
-        ----------
-        solution : Solution
-            Solution from the decomposed problem.
-        inverse_data : SOCDim3InverseData
-            Data from apply() containing tree structures.
-
-        Returns
-        -------
-        Solution
-            Solution with reconstructed dual variables.
-        """
-        # Pass through primal variables unchanged
+        """Reconstruct solution with original SOC dual variables."""
         pvars = solution.primal_vars.copy() if solution.primal_vars else {}
 
-        # Handle failed solutions early
         if not solution.dual_vars:
             return Solution(solution.status, solution.opt_val, pvars, {}, solution.attr)
 
-        # Reconstruct dual variables
         dvars: Dict[int, Any] = {}
 
         # Identify which constraint IDs belong to decomposed cones
-        decomposed_cone_ids: set = set()
+        decomposed_cone_ids: Set[int] = set()
         for tree_data in inverse_data.soc_trees.values():
             for tree in tree_data.trees:
-                decomposed_cone_ids.update(_get_cone_ids_from_tree(tree))
+                decomposed_cone_ids.update(_get_all_tree_cone_ids(tree))
 
         # Copy non-decomposed duals
         for cid, dual in solution.dual_vars.items():
@@ -782,13 +504,10 @@ class SOCDim3(Reduction):
         for orig_id, tree_data in inverse_data.soc_trees.items():
             trees = tree_data.trees
             if len(trees) == 1:
-                # Single cone - returns flat array [lambda, mu1, mu2, ...]
                 reconstructed = _reconstruct_soc_dual(trees[0], solution.dual_vars)
                 if reconstructed is not None:
                     dvars[orig_id] = reconstructed
             else:
-                # Multiple cones (elementwise SOC)
-                # Reconstruct each cone's dual as flat array [t, x1, x2, ...]
                 all_duals: List[np.ndarray] = []
                 success = True
                 for tree in trees:
@@ -799,12 +518,8 @@ class SOCDim3(Reduction):
                     all_duals.append(reconstructed)
 
                 if success:
-                    # Reconstruct flat dual array that save_dual_value expects
-                    # save_dual_value will reshape to (-1, cone_size) then extract t and X
-                    # So we need: [[t0, x0_0, x0_1, ...], [t1, x1_0, x1_1, ...], ...]
-                    t_duals = np.array([d[0] for d in all_duals])  # (num_cones,)
-                    x_duals = np.column_stack([d[1:] for d in all_duals])  # (x_size, num_cones)
-                    # Stack into (num_cones, cone_size) then flatten
+                    t_duals = np.array([d[0] for d in all_duals])
+                    x_duals = np.column_stack([d[1:] for d in all_duals])
                     reshaped = np.column_stack([t_duals[:, np.newaxis], x_duals.T])
                     dvars[orig_id] = reshaped.flatten()
 

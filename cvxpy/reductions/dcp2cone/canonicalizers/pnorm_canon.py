@@ -28,16 +28,17 @@ from cvxpy.constraints.second_order import SOC
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.eliminate_pwl.canonicalizers.abs_canon import abs_canon
+from cvxpy.utilities.bounds import get_expr_bounds_if_supported
 from cvxpy.utilities.power_tools import gm_constrs
 from cvxpy.utilities.solver_context import SolverInfo
 
 
-def _pnorm_p2_canon(expr, args):
+def _pnorm_p2_canon(expr, args, bounds=None):
     """Handle p == 2 case via SOC directly (shared by exact and approx)."""
     x = args[0]
     axis = expr.axis
     shape = expr.shape
-    t = Variable(shape)
+    t = Variable(shape, bounds=bounds)
     if axis is None:
         assert shape == tuple()
         return t, [SOC(t, vec(x, order="F"))]
@@ -49,12 +50,14 @@ def pnorm_exact_canon(expr, args, solver_context: SolverInfo | None = None):
     """Canonicalize Pnorm using power cone constraints."""
     p = expr.p
 
+    bounds = get_expr_bounds_if_supported(expr, solver_context)
+
     if p == 2:
-        return _pnorm_p2_canon(expr, args)
+        return _pnorm_p2_canon(expr, args, bounds=bounds)
 
     x = args[0]
     shape = expr.shape
-    t = Variable(shape)
+    t = Variable(shape, bounds=bounds)
 
     constraints = []
     if p > 1:
@@ -91,13 +94,15 @@ def pnorm_approx_canon(expr, args, solver_context: SolverInfo | None = None):
     """Canonicalize PnormApprox using SOC constraints via rational approximation."""
     p = expr.p
 
+    bounds = get_expr_bounds_if_supported(expr, solver_context)
+
     if p == 2:
-        return _pnorm_p2_canon(expr, args)
+        return _pnorm_p2_canon(expr, args, bounds=bounds)
 
     x = args[0]
     p = Fraction(p)
     shape = expr.shape
-    t = Variable(shape)
+    t = Variable(shape, bounds=bounds)
 
     constraints = []
     if p > 1:

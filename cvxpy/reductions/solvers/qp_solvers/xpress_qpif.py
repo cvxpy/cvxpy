@@ -18,6 +18,7 @@ class XPRESS(QpSolver):
     """Quadratic interface for the FICO Xpress solver"""
 
     MIP_CAPABLE = True
+    BOUNDED_VARIABLES = True
 
     def __init__(self) -> None:
         self.prob_ = None
@@ -174,7 +175,6 @@ class XPRESS(QpSolver):
             mqcol1, mqcol2, dqe = [], [], []
 
         colnames = data["variable_names"]
-        rownames = data["constraint_names"]
 
         if verbose:
             self.prob_.controls.miplog = 2
@@ -186,29 +186,63 @@ class XPRESS(QpSolver):
             self.prob_.controls.outputlog = 0
             self.prob_.controls.xslp_log = -1
 
-        self.prob_.loadproblem(probname='CVX_xpress_qp',
-                               # constraint types
-                               rowtype=['E'] * n_eq,
-                               rhs=b,                               # rhs
-                               rng=None,                            # range
-                               objcoef=q,                           # obj coeff
-                               start=mstart,                        # mstart
-                               collen=None,                         # mnel (unused)
-                               # linear coefficients
-                               rowind=A.indices[A.data != 0],       # row indices
-                               rowcoef=A.data[A.data != 0],         # coefficients
-                               lb=[-xp.infinity] * len(q),         # lower bound
-                               ub=[xp.infinity] * len(q),          # upper bound
-                               # quadratic objective (only upper triangle)
-                               objqcol1=mqcol1,
-                               objqcol2=mqcol2,
-                               objqcoef=dqe,
-                               # binary and integer variables
-                               coltype=['B']*len(data[s.BOOL_IDX]) + ['I']*len(data[s.INT_IDX]),
-                               entind=data[s.BOOL_IDX] + data[s.INT_IDX],
-                               # variables' and constraints' names
-                               colnames=colnames,
-                               rownames=rownames if len(rownames) > 0 else None)
+        # Prepare MIP variable types (empty lists for LP/QP without integers)
+        coltype = ['B'] * len(data[s.BOOL_IDX]) + ['I'] * len(data[s.INT_IDX])
+        entind = data[s.BOOL_IDX] + data[s.INT_IDX]
+
+        # Variable bounds (use native bounds if available, otherwise unbounded)
+        n_vars = len(q)
+        lower_bounds = data[s.LOWER_BOUNDS]
+        upper_bounds = data[s.UPPER_BOUNDS]
+        lb = [-xp.infinity] * n_vars if lower_bounds is None else list(lower_bounds)
+        ub = [xp.infinity] * n_vars if upper_bounds is None else list(upper_bounds)
+
+        # Load problem using new API (Xpress 9.8+), fall back to deprecated API
+        # Always use loadMIQP - empty args are handled gracefully
+        try:
+            self.prob_.loadMIQP(
+                probname='CVX_xpress_qp',
+                rowtype=['E'] * n_eq,
+                rhs=b,
+                objcoef=q,
+                start=mstart,
+                rowind=A.indices[A.data != 0],
+                rowcoef=A.data[A.data != 0],
+                lb=lb,
+                ub=ub,
+                objqcol1=mqcol1,
+                objqcol2=mqcol2,
+                objqcoef=dqe,
+                coltype=coltype,
+                entind=entind)
+
+            # Add variable and constraint names separately (new API)
+            n_cols = len(q)
+            if colnames and n_cols > 0:
+                self.prob_.addNames(xp.Namespaces.COLUMN, colnames[:n_cols], 0, n_cols - 1)
+            if n_eq > 0:
+                eq_rownames = ['eq_{0:09d}'.format(i) for i in range(n_eq)]
+                self.prob_.addNames(xp.Namespaces.ROW, eq_rownames, 0, n_eq - 1)
+        except AttributeError:
+            # Xpress < 9.8 API (deprecated functions)
+            # Pass coltype/entind to loadproblem to avoid chgcoltype which resets bounds
+            self.prob_.loadproblem(
+                probname='CVX_xpress_qp',
+                rowtype=['E'] * n_eq,
+                rhs=b,
+                objcoef=q,
+                start=mstart,
+                rowind=A.indices[A.data != 0],
+                rowcoef=A.data[A.data != 0],
+                lb=lb,
+                ub=ub,
+                objqcol1=mqcol1,
+                objqcol2=mqcol2,
+                objqcoef=dqe,
+                coltype=coltype if coltype else None,
+                entind=entind if entind else None,
+                colnames=colnames,
+                rownames=['eq_{0:09d}'.format(i) for i in range(n_eq)])
 
         # The problem currently has the quadratic objective function
         # and the linear equations. Add the linear inequalities
@@ -226,20 +260,38 @@ class XPRESS(QpSolver):
 
             rownames_ineq = ['ineq_{0:09d}'.format(i) for i in range(n_ineq)]
 
-            self.prob_.addrows(  # constraint types
-                rowtype=['L'] * n_ineq,              # inequalities sign
-                rhs=g,                              # rhs
-                start=mstartIneq,                  # starting indices
-                colind=F.indices[F.data != 0],      # column indices
-                rowcoef=F.data[F.data != 0],        # coefficient
-                names=rownames_ineq)                # row names
+            try:  # New API (Xpress 9.8+)
+                initrow_ineq = self.prob_.attributes.rows
+                self.prob_.addRows(
+                    rowtype=['L'] * n_ineq,
+                    rhs=g,
+                    start=mstartIneq,
+                    colind=F.indices[F.data != 0],
+                    rowcoef=F.data[F.data != 0])
+                endrow_ineq = self.prob_.attributes.rows - 1
+                self.prob_.addNames(xp.Namespaces.ROW, rownames_ineq, initrow_ineq, endrow_ineq)
+            except AttributeError:  # Fallback to deprecated API
+                self.prob_.addrows(
+                    rowtype=['L'] * n_ineq,
+                    rhs=g,
+                    start=mstartIneq,
+                    colind=F.indices[F.data != 0],
+                    rowcoef=F.data[F.data != 0],
+                    names=rownames_ineq)
 
         if warm_start and data["initial_mip_idxs"].size > 0:
-            self.prob_.addmipsol(
-                data["initial_mip_values"],
-                data["initial_mip_idxs"],
-                "warmstart",
-            )
+            try:  # New API (Xpress 9.8+)
+                self.prob_.addMipSol(
+                    data["initial_mip_values"],
+                    data["initial_mip_idxs"],
+                    "warmstart",
+                )
+            except AttributeError:  # Fallback to deprecated API
+                self.prob_.addmipsol(
+                    data["initial_mip_values"],
+                    data["initial_mip_idxs"],
+                    "warmstart",
+                )
 
         # Set options
         #
@@ -265,9 +317,12 @@ class XPRESS(QpSolver):
 
             # If option given, write file before solving
             if 'write_mps' in solver_opts.keys():
-                self.prob_.write(solver_opts['write_mps'])
+                try:  # New API (Xpress 9.8+)
+                    self.prob_.writeProb(solver_opts['write_mps'])
+                except AttributeError:  # Fallback to deprecated API
+                    self.prob_.write(solver_opts['write_mps'])
 
-            self.prob_.solve()
+            self.prob_.optimize()
 
             results_dict[s.SOLVE_TIME] = self.prob_.attributes.time
         except xp.ModelError:  # Error in the solution

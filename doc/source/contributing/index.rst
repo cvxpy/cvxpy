@@ -49,6 +49,7 @@ Small scope projects
  - `Huber function with concomitant scale estimation <https://github.com/cvxpy/cvxpy/issues/1377>`_.
  - `More verbose logging info (expression tree nodes, DCP time) <https://github.com/cvxpy/cvxpy/issues/2674>`_.
  - Improve type checking for compatibility with Pyright.
+ - `Change docstrings for psd_wrap and other _wrap functions to clarify undefined behavior <https://github.com/cvxpy/cvxpy/issues/2362#issuecomment-2029669331>`_.
 
 Medium scope projects
  - `Post-solver feasibility checks <https://github.com/cvxpy/cvxpy/issues/434>`_.
@@ -70,6 +71,10 @@ Large scope projects
  - Full parity with NumPy for ND array behavior.
  - Support for GSCOPT [`2889 <https://github.com/cvxpy/cvxpy/discussions/2889>`_].
  - Disable constraints using parameters [`3041 <https://github.com/cvxpy/cvxpy/discussions/3041>`_]
+ - Explicit variable/dual recovery maps in reductions. Currently, reductions use ad-hoc logic
+   (e.g., provenance tracking on leaves) to map between reduced and original variables/duals
+   during solution recovery. Reductions should instead return explicit forward and inverse maps
+   for primal and dual variables, which could replace the provenance mechanism.
 
 General principles
 ------------------

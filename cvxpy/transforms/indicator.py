@@ -57,6 +57,12 @@ class indicator(Expression):
         """
         return False
 
+    def is_linearizable_convex(self) -> bool:
+        return True
+
+    def is_linearizable_concave(self) -> bool:
+        return False
+
     def is_log_log_convex(self) -> bool:
         return False
 
@@ -93,6 +99,13 @@ class indicator(Expression):
         """Returns the (row, col) dimensions of the expression.
         """
         return ()
+
+    def get_bounds(self) -> Tuple[np.ndarray, np.ndarray]:
+        """Returns the bounds on the expression.
+
+        Indicator is 0 if constraints hold, +inf otherwise.
+        """
+        return (np.array(0.0), np.array(np.inf))
 
     def is_dpp(self, context: str = 'dcp') -> bool:
         """The expression is a disciplined parameterized expression.

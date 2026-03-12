@@ -44,7 +44,6 @@ from cvxpy.reductions.solvers.defines import (
     INSTALLED_SOLVERS,
     SOLVER_MAP_CONIC,
 )
-from cvxpy.reductions.solvers.solving_chain import ECOS_DEPRECATION_MSG
 from cvxpy.tests.base_test import BaseTest
 from cvxpy.utilities.citations import CITATION_DICT
 
@@ -2327,24 +2326,3 @@ class TestProblem(BaseTest):
             cp.Problem(cp.Maximize(0), [c >= 0])
             assert len(w) == 0
 
-    def test_ecos_warning(self) -> None:
-        """Test that a warning is raised when ECOS
-           is called by default.
-        """
-        # Setup a QCQP.
-        x = cp.Variable()
-        prob = cp.Problem(cp.Maximize(x), [x**2 <= 1])
-
-        # Check if ECOS is the top default solver.
-        candidate_solvers = prob._find_candidate_solvers(solver=None, gp=False)
-        prob._sort_candidate_solvers(candidate_solvers)
-        if candidate_solvers['conic_solvers'][0] == cp.ECOS:
-            with warnings.catch_warnings(record=True) as w:
-                prob.solve()
-                assert isinstance(w[0].message, FutureWarning)
-                assert str(w[0].message) == ECOS_DEPRECATION_MSG
-
-            # No warning if CLARABEL solver specified.
-            with warnings.catch_warnings(record=True) as w:
-                prob.solve(solver=cp.CLARABEL)
-                assert len(w) == 0

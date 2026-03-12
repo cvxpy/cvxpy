@@ -27,6 +27,7 @@ import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.atoms.axis_atom import AxisAtom
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.utilities import bounds as bounds_utils
 
 
 class Sum(AxisAtom, AffAtom):
@@ -74,6 +75,11 @@ class Sum(AxisAtom, AffAtom):
         """Is the atom log-log concave?"""
         return False
 
+    def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
+        """Returns bounds for the sum based on argument bounds."""
+        lb, ub = self.args[0].get_bounds()
+        return bounds_utils.sum_bounds(lb, ub, axis=self.axis, keepdims=self.keepdims)
+
     def validate_arguments(self) -> None:
         """Validates arguments using NumPy's sum validation."""
         self.shape_from_args()
@@ -117,7 +123,7 @@ class Sum(AxisAtom, AffAtom):
             The axis and keepdims parameters of the sum expression.
         """
         axis, keepdims = data
-        # Note: added new case for summing with n-dimensional shapes and 
+        # Note: added new case for summing with n-dimensional shapes and
         # multiple axes. Previous behavior is kept in the else statement.
         if len(arg_objs[0].shape) > 2 or axis not in {None, 0, 1}:
             obj = lu.sum_entries(arg_objs[0], shape=shape, axis=axis, keepdims=keepdims)

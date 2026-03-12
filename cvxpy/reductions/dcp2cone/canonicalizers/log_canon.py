@@ -19,13 +19,15 @@ import numpy as np
 from cvxpy.constraints.exponential import ExpCone
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variable import Variable
+from cvxpy.utilities.bounds import get_expr_bounds_if_supported
 from cvxpy.utilities.solver_context import SolverInfo
 
 
 def log_canon(expr, args, solver_context: SolverInfo | None = None):
     x = args[0]
     shape = expr.shape
-    t = Variable(shape)
+    bounds = get_expr_bounds_if_supported(expr, solver_context)
+    t = Variable(shape, bounds=bounds)
     ones = Constant(np.ones(shape))
     # TODO(akshayka): ExpCone requires each of its inputs to be a Variable;
     # is this something that we want to change?

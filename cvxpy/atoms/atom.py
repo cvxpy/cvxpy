@@ -29,6 +29,7 @@ from cvxpy import utilities as u
 from cvxpy.expressions import cvxtypes
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.expression import Expression
+from cvxpy.utilities import bounds as bounds_utils
 from cvxpy.utilities import performance_utils as perf
 from cvxpy.utilities.deterministic import unique_list
 
@@ -112,6 +113,38 @@ class Atom(Expression):
         """
         raise NotImplementedError()
 
+    def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
+        """Returns bounds (lower, upper) of the expression based on argument bounds.
+
+        Default implementation returns unbounded. Override in subclasses that can
+        compute tighter bounds from their arguments.
+
+        Returns
+        -------
+        tuple of np.ndarray
+            (lower_bound, upper_bound) arrays with shape matching self.shape.
+        """
+        return bounds_utils.unbounded(self.shape)
+
+    @perf.compute_once
+    def get_bounds(self) -> Tuple[np.ndarray, np.ndarray]:
+        """Returns bounds (lower, upper) of the expression.
+
+        Combines bounds_from_args() with sign information for potentially tighter bounds.
+
+        Returns
+        -------
+        tuple of np.ndarray
+            (lower_bound, upper_bound) arrays with shape matching self.shape.
+        """
+        # Get bounds from argument propagation
+        lb, ub = self.bounds_from_args()
+
+        # Refine using sign information
+        lb, ub = bounds_utils.refine_bounds_from_sign(lb, ub, self.is_nonneg(), self.is_nonpos())
+
+        return (lb, ub)
+
     @perf.compute_once
     def is_nonneg(self) -> bool:
         """Is the expression nonnegative?
@@ -149,11 +182,15 @@ class Atom(Expression):
         """Is the atom concave?
         """
         raise NotImplementedError()
-
+    
     def is_atom_affine(self) -> bool:
         """Is the atom affine?
         """
         return self.is_atom_concave() and self.is_atom_convex()
+
+    def is_atom_smooth(self) -> bool:
+        """Is the atom smooth?"""
+        return False
 
     def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
@@ -221,6 +258,40 @@ class Atom(Expression):
                 if not (arg.is_affine() or
                         (arg.is_concave() and self.is_incr(idx)) or
                         (arg.is_convex() and self.is_decr(idx))):
+                    return False
+            return True
+        else:
+            return False
+        
+    @perf.compute_once
+    def is_linearizable_convex(self) -> bool:
+        """Is the expression convex after linearizing all smooth subexpressions?
+        """
+        # Applies DNLP composition rule.
+        if self.is_constant():
+            return True
+        elif self.is_atom_smooth() or self.is_atom_convex():
+            for idx, arg in enumerate(self.args):
+                if not (arg.is_smooth() or
+                        (arg.is_linearizable_convex() and self.is_incr(idx)) or
+                        (arg.is_linearizable_concave() and self.is_decr(idx))):
+                    return False
+            return True
+        else:
+            return False
+
+    @perf.compute_once
+    def is_linearizable_concave(self) -> bool:
+        """Is the expression concave after linearizing all smooth subexpressions?
+        """
+        # Applies DNLP composition rule.
+        if self.is_constant():
+            return True
+        elif self.is_atom_smooth() or self.is_atom_concave():
+            for idx, arg in enumerate(self.args):
+                if not (arg.is_smooth() or
+                        (arg.is_linearizable_concave() and self.is_incr(idx)) or
+                        (arg.is_linearizable_convex() and self.is_decr(idx))):
                     return False
             return True
         else:
@@ -478,7 +549,7 @@ class Atom(Expression):
         """
         # Default is no constraints.
         return []
-
+    
     @staticmethod
     def numpy_numeric(numeric_func):
         """Wraps an atom's numeric function that requires numpy ndarrays as input.

@@ -17,12 +17,15 @@ import operator as op
 from functools import reduce
 from typing import Any, Iterable, List, Tuple
 
+import numpy as np
+
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.utilities as u
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions.expression import Expression
+from cvxpy.utilities import bounds as bounds_utils
 
 
 class AddExpression(AffAtom):
@@ -79,6 +82,19 @@ class AddExpression(AffAtom):
         """
         return False
 
+    def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
+        """Returns bounds for addition based on argument bounds."""
+        # Start with first argument's bounds
+        lb, ub = self.args[0].get_bounds()
+        # Broadcast to output shape if needed
+        lb, ub = bounds_utils.broadcast_bounds(lb, ub, self.shape)
+        # Add remaining arguments
+        for arg in self.args[1:]:
+            arg_lb, arg_ub = arg.get_bounds()
+            arg_lb, arg_ub = bounds_utils.broadcast_bounds(arg_lb, arg_ub, self.shape)
+            lb, ub = bounds_utils.add_bounds(lb, ub, arg_lb, arg_ub)
+        return (lb, ub)
+
     def is_symmetric(self) -> bool:
         """Is the expression symmetric?
         """
@@ -109,9 +125,9 @@ class AddExpression(AffAtom):
         if args is None:
             # The __init__ method of AddExpression recreates the args,
             # but passes *arg_groups to the super class for checks.
-            # Since these checks are already done for self, we pass [self], i.e., 
+            # Since these checks are already done for self, we pass [self], i.e.,
             # a single [AddExpression], before the args are recreated.
-            args = [self]  
+            args = [self]
         copy = type(self).__new__(type(self))
         copy.__init__(args)
         return copy

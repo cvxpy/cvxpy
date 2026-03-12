@@ -19,6 +19,7 @@ from typing import Any, List, Tuple
 import numpy as np
 
 from cvxpy.atoms.elementwise.elementwise import Elementwise
+from cvxpy.utilities import bounds as bounds_utils
 
 
 class minimum(Elementwise):
@@ -42,6 +43,11 @@ class minimum(Elementwise):
         is_pos = all(arg.is_nonneg() for arg in self.args)
         is_neg = any(arg.is_nonpos() for arg in self.args)
         return (is_pos, is_neg)
+
+    def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
+        """Returns bounds for elementwise minimum based on argument bounds."""
+        bounds_list = [arg.get_bounds() for arg in self.args]
+        return bounds_utils.minimum_bounds(bounds_list)
 
     def is_atom_convex(self) -> bool:
         """Is the atom convex?

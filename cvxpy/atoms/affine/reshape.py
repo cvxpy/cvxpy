@@ -27,6 +27,7 @@ from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.atoms.affine.hstack import hstack
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions.expression import DEFAULT_ORDER_DEPRECATION_MSG, Expression
+from cvxpy.utilities import bounds as bounds_utils
 from cvxpy.utilities.shape import size_from_shape
 from cvxpy.utilities.warn import warn
 
@@ -78,14 +79,16 @@ class reshape(AffAtom):
             shape = (size,)
         else:
             unspecified_index = shape.index(-1)
-            specified = shape[1 - unspecified_index]
-            assert specified >= 0, "Specified dimension must be nonnegative."
-            unspecified, remainder = np.divmod(size, shape[1 - unspecified_index])
+            specified_dims = [d for i, d in enumerate(shape) if i != unspecified_index]
+            for d in specified_dims:
+                assert d >= 0, "Specified dimension must be nonnegative."
+            divisor = int(np.prod(specified_dims))
+            unspecified, remainder = np.divmod(size, divisor)
             if remainder != 0:
                 raise ValueError(
                     f"Cannot reshape expression of size {size} into shape {shape}."
                 )
-            shape = tuple(unspecified if d == -1 else specified for d in shape)
+            shape = tuple(int(unspecified) if d == -1 else d for d in shape)
         return shape
 
     def is_atom_log_log_convex(self) -> bool:
@@ -97,6 +100,11 @@ class reshape(AffAtom):
         """Is the atom log-log concave?
         """
         return True
+
+    def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
+        """Returns bounds for reshaped expression."""
+        lb, ub = self.args[0].get_bounds()
+        return bounds_utils.reshape_bounds(lb, ub, self._shape, order=self.order)
 
     @AffAtom.numpy_numeric
     def numeric(self, values):
