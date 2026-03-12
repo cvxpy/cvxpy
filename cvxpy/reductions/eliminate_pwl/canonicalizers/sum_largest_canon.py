@@ -39,10 +39,8 @@ def sum_largest_canon(expr, args, solver_context: SolverInfo | None = None):
     # to x <= t + q, 0 <= t
     if x.value is not None:
         sorted_indices = np.argsort(x.value)
-        idx_of_smallest = sorted_indices[:k]
         idx_of_largest = sorted_indices[-k:]
-        q.value = np.max(x.value[idx_of_smallest])
-        t.value = np.zeros_like(x.value)
-        t.value[idx_of_largest] = x.value[idx_of_largest] - q.value
+        q.value = np.min(x.value[idx_of_largest])
+        t.value = np.maximum(0, x.value - q.value)
         
     return obj, constraints
