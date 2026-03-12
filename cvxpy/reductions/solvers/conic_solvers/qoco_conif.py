@@ -213,13 +213,14 @@ class QOCO(ConicSolver):
 
             solver = solver_cache[self.name()]
 
-            if not hasattr(solver, "update_vector_data") and not hasattr(solver, "update_matrix_data"):
+            if not hasattr(solver, "update_vector_data") and \
+               not hasattr(solver, "update_matrix_data"):
                 return None
             else:
-                # Overwrites all data in the solver but will not reallocate internal memory or redo the 
-                # symbolic factorization. Note that if an existing solver object is used and if a solve is performed verbosely,
-                # the solver output will still claim there is some setup time. However, this is merely
-                # the setup time for the initial solve.
+                # Overwrites all data in the solver but will not reallocate internal memory or redo
+                # the symbolic factorization. Note that if an existing solver object is used and if 
+                # a solve is performed verbosely, the solver output will still claim there is some 
+                # setup time. However, this is merely the setup time for the initial solve.
                 # Will raise ValueError if dimensions or sparsity has changed
                 solver.update_vector_data(c=data[s.C], b=data[s.B], h=data[s.H])
                 solver.update_matrix_data(P=P.data, A=A.data, G=G.data)
