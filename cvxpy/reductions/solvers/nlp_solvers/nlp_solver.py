@@ -23,14 +23,12 @@ import numpy as np
 from cvxpy.constraints import (
     Equality,
     Inequality,
-    NonPos,
 )
 from cvxpy.reductions.inverse_data import InverseData
 from cvxpy.reductions.solvers.solver import Solver
 from cvxpy.reductions.utilities import (
     lower_equality,
     lower_ineq_to_nonneg,
-    nonpos2nonneg,
 )
 
 if TYPE_CHECKING:
@@ -116,10 +114,6 @@ class Bounds:
                 lower.extend([0.0] * constraint.size)
                 upper.extend([np.inf] * constraint.size)
                 new_constr.append(lower_ineq_to_nonneg(constraint))
-            elif isinstance(constraint, NonPos):
-                lower.extend([0.0] * constraint.size)
-                upper.extend([np.inf] * constraint.size)
-                new_constr.append(nonpos2nonneg(constraint))
         canonicalized_prob = self.problem.copy([self.problem.objective, new_constr])
         self.new_problem = canonicalized_prob
         self.cl = np.array(lower)

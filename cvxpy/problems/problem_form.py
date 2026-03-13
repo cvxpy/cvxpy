@@ -233,6 +233,8 @@ class ProblemForm:
         if any(t in constr_types for t in [Inequality, NonPos, NonNeg]) \
                 or any(atom in NONPOS_ATOMS for atom in atoms):
             cones.add(NonNeg)
+        if NonPos in constr_types:
+            cones.add(NonPos)
         if Equality in constr_types or Zero in constr_types:
             cones.add(Zero)
         if PSD in constr_types \
