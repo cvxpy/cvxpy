@@ -262,7 +262,23 @@ class CvxAttr2Constr(Reduction):
         for cons in problem.constraints:
             constr.append(cons.tree_copy(id_objects=id2new_obj))
             cons_id_map[cons.id] = constr[-1].id
-        inverse_data = (id2new_var, id2old_var, cons_id_map)
+        attr_constr_map = {}
+        constr_idx = len(cons_id_map)
+        for var_id, var in id2old_var.items():
+            var_attr_duals = {}
+            for i, c in enumerate(constr):
+                if i >= constr_idx:
+                    if var.is_psd():
+                        var_attr_duals['PSD'] = c.id
+                    elif var.attributes['NSD']:
+                        var_attr_duals['NSD'] = c.id
+                    elif var.attributes['nonneg'] or var.attributes['pos']:
+                        var_attr_duals['nonneg'] = c.id
+                    elif var.attributes['nonpos'] or var.attributes['neg']:
+                        var_attr_duals['nonpos'] = c.id
+            if var_attr_duals:
+                attr_constr_map[var_id] = var_attr_duals
+        inverse_data = (id2new_var, id2old_var, cons_id_map, attr_constr_map)
         return cvxtypes.problem()(obj, constr), inverse_data
 
     def update_parameters(self, problem) -> None:
@@ -291,7 +307,7 @@ class CvxAttr2Constr(Reduction):
         if not inverse_data:
             return solution
 
-        id2new_var, id2old_var, cons_id_map = inverse_data
+        id2new_var, id2old_var, cons_id_map, attr_constr_map = inverse_data
         pvars = {}
         for id, var in id2old_var.items():
             new_var = id2new_var[id]
@@ -302,5 +318,15 @@ class CvxAttr2Constr(Reduction):
         dvars = {orig_id: solution.dual_vars[vid]
                  for orig_id, vid in cons_id_map.items()
                  if vid in solution.dual_vars}
+        attr_duals = {}
+        for var_id, attr_dict in attr_constr_map.items():
+            var_duals = {}
+            for attr_name, constr_id in attr_dict.items():
+                if constr_id in solution.dual_vars:
+                    var_duals[attr_name] = solution.dual_vars[constr_id]
+            if var_duals:
+                attr_duals[var_id] = var_duals
+        new_attr = solution.attr.copy()
+        new_attr['attr_duals'] = attr_duals
         return Solution(solution.status, solution.opt_val, pvars, dvars,
-                        solution.attr)
+                        new_attr)
