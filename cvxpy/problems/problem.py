@@ -177,6 +177,7 @@ class Problem(u.Canonical):
         self._solution = None
         self._cache = Cache()
         self._solver_cache = {}
+        self.var_dual_values = {}
         # Information about the shape of the problem and its constituent parts
         self._size_metrics: Optional["SizeMetrics"] = None
         # Benchmarks reported by the solver:
@@ -210,6 +211,29 @@ class Problem(u.Canonical):
             "all_support_cpp": cpp_support
         }
         return metrics
+
+    def get_attr_dual(self, var, attr=None):
+        """Return dual value(s) for attribute constraints on a variable.
+
+        Parameters
+        ----------
+        var : Variable
+            A variable with convex attributes.
+        attr : str or None
+            Attribute name e.g. 'PSD', 'nonneg'. If None, returns dict of
+            all attribute duals for the variable.
+
+        Returns
+        -------
+        numpy.ndarray or dict or None
+            The dual value(s), or None if not available.
+        """
+        var_duals = self.var_dual_values.get(var.id, None)
+        if var_duals is None:
+            return None
+        if attr is None:
+            return var_duals
+        return var_duals.get(attr, None)
 
     @property
     def value(self):
@@ -1382,6 +1406,8 @@ class Problem(u.Canonical):
             for c in self.constraints:
                 if c.id in solution.dual_vars:
                     c.save_dual_value(solution.dual_vars[c.id])
+            if 'attr_duals' in solution.attr:
+                self.var_dual_values = solution.attr['attr_duals']
             # Eliminate confusion of problem.value versus objective.value.
             self._value = self.objective.value
         elif solution.status in s.INF_OR_UNB:
