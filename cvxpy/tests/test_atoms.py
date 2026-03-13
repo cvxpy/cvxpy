@@ -544,6 +544,19 @@ class TestAtoms(BaseTest):
         self.assertEqual(cp.multiply(self.x, [1, -1]).curvature, s.AFFINE)
         self.assertEqual(cp.multiply(self.x, [1, -1]).shape, (2,))
 
+    def test_multiply_hermitian(self) -> None:
+        """Test that Hermitian property is preserved in multiplication."""
+        
+        # Test real scalar multiplication
+        X = cp.Variable((3, 3), hermitian=True)
+        self.assertTrue((1 * X).is_hermitian())
+        self.assertTrue((X * 2.5).is_hermitian())
+        self.assertTrue((-1 * X).is_hermitian())
+
+        # Test Hadamard product of two Hermitians
+        Y = cp.Variable((3, 3), hermitian=True)
+        self.assertTrue(cp.multiply(X, Y).is_hermitian())
+
     # Test the vstack class.
     def test_vstack(self) -> None:
         atom = cp.vstack([self.x, self.y, self.x])
@@ -732,6 +745,18 @@ class TestAtoms(BaseTest):
         assert np.allclose(A_reshaped.value, A.reshape(-1, order='C'))
         A_reshaped = cp.reshape(A, -1, order='F')
         assert np.allclose(A_reshaped.value, A.reshape(-1, order='F'))
+
+        # Regression test: -1 inference must work for N-D (N > 2) shapes.
+        # Before the fix, _infer_shape used a 2D-only idiom that produced wrong
+        # dimensions and crashed for all three -1 positions in 3D+ shapes.
+        nd_expr = cp.Variable((2, 3, 4))
+        nd_numpy = np.arange(24).reshape((2, 3, 4))
+        for shape in [(-1, 3, 4), (2, -1, 4), (2, 3, -1)]:
+            r = cp.reshape(nd_expr, shape, order='F')
+            assert r.shape == (2, 3, 4), f"Expected (2, 3, 4), got {r.shape} for shape={shape}"
+            r_const = cp.reshape(nd_numpy, shape, order='F')
+            expected = np.reshape(nd_numpy, shape, order='F')
+            assert np.allclose(r_const.value, expected), f"Numeric mismatch for shape={shape}"
 
     def test_squeeze(self) -> None:
         A = np.random.rand(2, 1, 3, 1, 1, 4)
