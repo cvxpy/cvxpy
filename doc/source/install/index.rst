@@ -72,6 +72,22 @@ or a conda environment.
 
         1. Clone the official `CVXPY git repository`_, or a newly minted fork of the CVXPY repository.
         2. Navigate to the top-level of the cloned directory.
+
+        .. note::
+           On Windows, ``pip install -e .`` may fail when building the ``numpy`` dependency.
+           Before running ``pip install``, open a **Visual Studio Developer Command Prompt**
+           (or run the appropriate ``vcvarsall.bat`` script) and set the ``DISTUTILS_USE_SDK``
+           environment variable:
+
+           .. code-block:: bat
+
+               SET DISTUTILS_USE_SDK=1
+               "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvarsall.bat" x64
+
+           The exact path to ``vcvarsall.bat`` depends on your Visual Studio installation.
+           See the `scikit-learn compiler guide <https://scikit-learn.org/stable/developers/advanced_installation.html#compiler-windows>`_
+           for more details.
+
         3. If you want to use CVXPY with editable source code, run
         ::
 
