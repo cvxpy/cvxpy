@@ -27,13 +27,17 @@ INF_OR_UNB_MESSAGE = """
     """
 
 
-def failure_solution(status, attr=None) -> "Solution":
+def failure_solution(status, attr=None, dual_vars=None) -> "Solution":
     """Factory function for infeasible or unbounded solutions.
 
     Parameters
     ----------
     status : str
         The problem status.
+    attr : dict
+        Miscellaneous information propagated up from a solver.
+    dual_vars : dict of id to NumPy ndarray
+        A map from constraint ids to dual values.
 
     Returns
     -------
@@ -48,9 +52,11 @@ def failure_solution(status, attr=None) -> "Solution":
         opt_val = None
     if attr is None:
         attr = {}
+    if dual_vars is None:
+        dual_vars = {}
     if status == s.INFEASIBLE_OR_UNBOUNDED:
         attr['message'] = INF_OR_UNB_MESSAGE
-    return Solution(status, opt_val, {}, {}, attr)
+    return Solution(status, opt_val, {}, dual_vars, attr)
 
 
 class Solution:
@@ -67,7 +73,7 @@ class Solution:
     dual_vars : dict of id to NumPy ndarray
         A map from constraint ids to dual values.
     attr : dict
-        Miscelleneous information propagated up from a solver.
+        Miscellaneous information propagated up from a solver.
     """
     def __init__(self, status, opt_val, primal_vars, dual_vars, attr) -> None:
         self.status = status

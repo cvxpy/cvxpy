@@ -252,6 +252,19 @@ class SCS(ConicSolver):
         attr[s.NUM_ITERS] = solution["info"]["iter"]
         attr[s.EXTRA_STATS] = solution
 
+        zero_idx = inverse_data[ConicSolver.DIMS].zero
+        eq_dual_vars = utilities.get_dual_values(
+            solution["y"][:zero_idx],
+            self.extract_dual_value,
+            inverse_data[SCS.EQ_CONSTR]
+        )
+        ineq_dual_vars = utilities.get_dual_values(
+            solution["y"][zero_idx:],
+            self.extract_dual_value,
+            inverse_data[SCS.NEQ_CONSTR]
+        )
+        dual_vars = eq_dual_vars | ineq_dual_vars
+
         if status in s.SOLUTION_PRESENT:
             primal_val = solution["info"]["pobj"]
             opt_val = primal_val + inverse_data[s.OFFSET]
@@ -260,22 +273,9 @@ class SCS(ConicSolver):
             primal_vars = {
                 inverse_data[SCS.VAR_ID]: solution["x"]
             }
-            eq_dual_vars = utilities.get_dual_values(
-                solution["y"][:inverse_data[ConicSolver.DIMS].zero],
-                self.extract_dual_value,
-                inverse_data[SCS.EQ_CONSTR]
-            )
-            ineq_dual_vars = utilities.get_dual_values(
-                solution["y"][inverse_data[ConicSolver.DIMS].zero:],
-                self.extract_dual_value,
-                inverse_data[SCS.NEQ_CONSTR]
-            )
-            dual_vars = {}
-            dual_vars.update(eq_dual_vars)
-            dual_vars.update(ineq_dual_vars)
             return Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
-            return failure_solution(status, attr)
+            return failure_solution(status, attr, dual_vars)
 
     @staticmethod
     def parse_solver_options(solver_opts):
