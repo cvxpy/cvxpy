@@ -15,7 +15,6 @@ limitations under the License.
 """
 import numpy as np
 
-from cvxpy import settings
 from cvxpy.expressions.expression import Expression
 from cvxpy.reductions.canonicalization import Canonicalization
 from cvxpy.reductions.dgp2dcp.canonicalizers import DgpCanonMethods
@@ -153,7 +152,7 @@ class Dgp2Dcp(Canonicalization):
 
     def invert(self, solution, inverse_data):
         solution = super(Dgp2Dcp, self).invert(solution, inverse_data)
-        if solution.status == settings.SOLVER_ERROR:
+        if solution.opt_val is None:
             return solution
         for vid, value in solution.primal_vars.items():
             solution.primal_vars[vid] = np.exp(value)
