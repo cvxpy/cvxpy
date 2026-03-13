@@ -44,8 +44,11 @@ class TestSumLargestCanonWarmStart:
         t = obj.args[0].args[0]
         q = obj.args[1].args[1]
 
-        assert q.value == pytest.approx(9.0)  # min of top-2
-        np.testing.assert_allclose(t.value, np.maximum(0, x.value - q.value))
+        assert q.value == pytest.approx(8.0)  # max of non-top-k, i.e. x_{[k+1]}
+        expected_t = np.zeros(6)
+        expected_t[1] = 10.0 - 8.0  # top-k element
+        expected_t[5] = 9.0 - 8.0   # top-k element
+        np.testing.assert_allclose(t.value, expected_t)
         assert np.all(x.value <= t.value + q.value + 1e-10)
         assert np.all(t.value >= -1e-10)
 
