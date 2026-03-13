@@ -1275,6 +1275,36 @@ class TestExpressions(BaseTest):
         self.assertEqual(exp.curvature, s.CONCAVE)
         exp = self.x**-1
         self.assertEqual(exp.curvature, s.CONVEX)
+ 
+    def test_rpow(self) -> None:
+        """Test Expression.__rpow__ for expressions of the form a**x."""
+        import numpy as np
+        x = Variable()
+
+        # Test 1: basic expression is created correctly
+        expr = 2 ** x
+        self.assertIsNotNone(expr)
+
+        # Test 2: minimize 2**x with x >= 1, optimal at x=1, value=2
+        prob = cp.Problem(cp.Minimize(2 ** x), [x >= 1, x <= 3])
+        prob.solve()
+        self.assertAlmostEqual(float(x.value), 1.0, places=3)
+        self.assertAlmostEqual(float(prob.value), 2.0, places=3)
+
+       
+        # Test 3: base=10, minimize with x >= 2, optimal at x=2, value=100
+        prob2 = cp.Problem(cp.Minimize(10 ** x), [x >= 2])
+        prob2.solve()
+        self.assertAlmostEqual(float(x.value), 2.0, places=3)
+        self.assertAlmostEqual(float(prob2.value), 100.0, places=3)
+        # Test 4: base=1 gives value 1 regardless of x
+        prob3 = cp.Problem(cp.Minimize(1 ** x), [x >= 0])
+        prob3.solve()
+        self.assertAlmostEqual(float(prob3.value), 1.0, places=3)
+
+        # Test 5: negative base raises ValueError
+        with self.assertRaises(ValueError):
+            (-2) ** x
 
     def test_sum(self) -> None:
         """Test cvxpy sum function.
