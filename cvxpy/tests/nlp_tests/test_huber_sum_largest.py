@@ -18,8 +18,39 @@ import numpy as np
 import pytest
 
 import cvxpy as cp
+from cvxpy.atoms.sum_largest import sum_largest
+from cvxpy.expressions.variable import Variable
+from cvxpy.reductions.eliminate_pwl.canonicalizers.sum_largest_canon import sum_largest_canon
 from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS
 from cvxpy.tests.nlp_tests.derivative_checker import DerivativeChecker
+
+
+class TestSumLargestCanonWarmStart:
+    """Regression test for sum_largest_canon DNLP warm-start initialization."""
+
+    def test_warmstart_feasibility(self):
+        """Middle elements must satisfy x_i <= t_i + q after warm-start.
+
+        Before the fix, q was set to max(k smallest) and t was only set for
+        top-k elements, so elements between q and top-k violated x <= t + q.
+        """
+        x = Variable(6)
+        # k=2, top-2 are {10, 9}. Middle elements 6, 8 triggered the bug.
+        x.value = np.array([1.0, 10.0, 6.0, 8.0, 3.0, 9.0])
+        expr = sum_largest(x, 2)
+
+        obj, constraints = sum_largest_canon(expr, [x])
+        # obj = sum(t) + k*q
+        t = obj.args[0].args[0]
+        q = obj.args[1].args[1]
+
+        assert q.value == pytest.approx(8.0)  # max of non-top-k, i.e. x_{[k+1]}
+        expected_t = np.zeros(6)
+        expected_t[1] = 10.0 - 8.0  # top-k element
+        expected_t[5] = 9.0 - 8.0   # top-k element
+        np.testing.assert_allclose(t.value, expected_t)
+        assert np.all(x.value <= t.value + q.value + 1e-10)
+        assert np.all(t.value >= -1e-10)
 
 
 @pytest.mark.skipif('IPOPT' not in INSTALLED_SOLVERS, reason='IPOPT is not installed.')
