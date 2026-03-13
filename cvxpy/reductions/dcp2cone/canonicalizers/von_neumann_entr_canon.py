@@ -42,10 +42,6 @@ def von_neumann_entr_canon(expr, args, solver_context: SolverInfo | None = None)
         con = NonNeg(sum(x[:r]) - epi)
         constrs.append(con)
 
-    # trace(N) \leq sum(x)
-    con = trace(N) == sum(x)
-    constrs.append(con)
-
     # trace(N) == sum(x)
     con = Zero(trace(N) - sum(x))
     constrs.append(con)
