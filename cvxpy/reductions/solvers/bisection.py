@@ -35,6 +35,10 @@ def _solve(problem, solver) -> None:
         try:
             problem.solve(solver=solver)
         except error.SolverError:
+            warnings.warn(
+                "Solver failed, attempting to continue bisection.",
+                RuntimeWarning
+            )
             problem._status = s.SOLVER_ERROR
 
 
