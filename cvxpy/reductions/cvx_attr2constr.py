@@ -182,6 +182,7 @@ class CvxAttr2Constr(Reduction):
         id2new_obj = {}
         id2old_var = {}
         constr = []
+        attr_constr_map = {}
         for var in problem.variables():
             if var.id not in id2new_var:
                 id2old_var[var.id] = var
@@ -232,9 +233,13 @@ class CvxAttr2Constr(Reduction):
                 id2new_obj[id(var)] = obj
                 # Attributes related to positive and negative definiteness.
                 if var.is_psd():
-                    constr.append(obj >> 0)
+                    psd_constr = (obj >> 0)
+                    constr.append(psd_constr)
+                    attr_constr_map[var.id] = psd_constr.id
                 elif var.attributes['NSD']:
-                    constr.append(obj << 0)
+                    nsd_constr = (obj << 0)
+                    constr.append(nsd_constr)
+                    attr_constr_map[var.id] = nsd_constr.id
                 # Add in constraints from bounds.
                 if self.reduce_bounds:
                     var._bound_domain(obj, constr)
@@ -262,7 +267,7 @@ class CvxAttr2Constr(Reduction):
         for cons in problem.constraints:
             constr.append(cons.tree_copy(id_objects=id2new_obj))
             cons_id_map[cons.id] = constr[-1].id
-        inverse_data = (id2new_var, id2old_var, cons_id_map)
+        inverse_data = (id2new_var, id2old_var, cons_id_map, attr_constr_map)
         return cvxtypes.problem()(obj, constr), inverse_data
 
     def update_parameters(self, problem) -> None:
@@ -291,7 +296,8 @@ class CvxAttr2Constr(Reduction):
         if not inverse_data:
             return solution
 
-        id2new_var, id2old_var, cons_id_map = inverse_data
+        inverse_data_4 = inverse_data if len(inverse_data) == 4 else (*inverse_data, {})
+        id2new_var, id2old_var, cons_id_map, attr_constr_map = inverse_data_4
         pvars = {}
         for id, var in id2old_var.items():
             new_var = id2new_var[id]
@@ -302,5 +308,9 @@ class CvxAttr2Constr(Reduction):
         dvars = {orig_id: solution.dual_vars[vid]
                  for orig_id, vid in cons_id_map.items()
                  if vid in solution.dual_vars}
+        # Recover dual variables for PSD/NSD attribute constraints
+        for var_id, constr_id in attr_constr_map.items():
+            if constr_id in solution.dual_vars:
+                id2old_var[var_id].dual_value = solution.dual_vars[constr_id]
         return Solution(solution.status, solution.opt_val, pvars, dvars,
                         solution.attr)

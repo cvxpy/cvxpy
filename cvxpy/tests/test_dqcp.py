@@ -747,3 +747,20 @@ class TestDqcp(base_test.BaseTest):
                   "Unable to find suitable interval for bisection)"
         ):
             problem.solve(qcp=True, solver=cp.SCS, max_iters=1)
+
+    def test_none_parameter_sets(self) -> None:
+        """Regression test for GitHub issue #2780.
+        Sets.py functions should handle None t.value gracefully."""
+        from cvxpy.reductions.dqcp2dcp.sets import length_sub
+        x = cp.Variable(pos=True)
+        t = cp.Parameter()
+        try:
+            length_sub(cp.norm(x), t)
+        except TypeError:
+            self.fail("length_sub raised TypeError with None t.value")
+        t.value = 2.0
+        try:
+            length_sub(cp.norm(x), t)
+        except TypeError:
+            self.fail("length_sub raised TypeError with set t.value")
+
