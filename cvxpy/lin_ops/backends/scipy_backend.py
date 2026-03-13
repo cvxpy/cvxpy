@@ -15,7 +15,8 @@ limitations under the License.
 """
 from __future__ import annotations
 
-from typing import Any, Callable, Iterator, Tuple
+from collections.abc import Callable, Iterator
+from typing import Any
 
 import numpy as np
 import scipy.sparse as sp
@@ -35,8 +36,8 @@ from cvxpy.lin_ops.backends.base import (
 
 def _build_interleaved_matrix_mul(
     const_data: np.ndarray,
-    const_shape: Tuple[int, ...],
-    var_shape: Tuple[int, ...],
+    const_shape: tuple[int, ...],
+    var_shape: tuple[int, ...],
 ) -> sp.csr_array:
     """
     Build the interleaved matrix for batch-varying constant case.
@@ -120,8 +121,8 @@ def _expand_parametric_slices_mul(
 
 def _build_interleaved_matrix_rmul(
     const_data: np.ndarray,
-    const_shape: Tuple[int, ...],
-    var_shape: Tuple[int, ...],
+    const_shape: tuple[int, ...],
+    var_shape: tuple[int, ...],
 ) -> sp.csr_array:
     """
     Build the interleaved matrix for batch-varying rmul case.
@@ -472,8 +473,8 @@ class SciPyCanonBackend(PythonCanonBackend):
     def _mul_kronecker(
         self,
         lhs: sp.sparray,
-        const_shape: Tuple[int, ...],
-        var_shape: Tuple[int, ...],
+        const_shape: tuple[int, ...],
+        var_shape: tuple[int, ...],
         view: SciPyTensorView,
     ) -> SciPyTensorView:
         """
@@ -496,7 +497,7 @@ class SciPyCanonBackend(PythonCanonBackend):
     def _mul_interleaved(
         self,
         const: LinOp,
-        var_shape: Tuple[int, ...],
+        var_shape: tuple[int, ...],
         view: SciPyTensorView,
     ) -> SciPyTensorView:
         """
@@ -521,8 +522,8 @@ class SciPyCanonBackend(PythonCanonBackend):
     def _mul_parametric_lhs(
         self,
         lhs: dict,
-        const_shape: Tuple[int, ...],
-        var_shape: Tuple[int, ...],
+        const_shape: tuple[int, ...],
+        var_shape: tuple[int, ...],
         view: SciPyTensorView,
     ) -> SciPyTensorView:
         """
@@ -550,8 +551,8 @@ class SciPyCanonBackend(PythonCanonBackend):
     def _rmul_kronecker(
         self,
         rhs: sp.sparray,
-        const_shape: Tuple[int, ...],
-        var_shape: Tuple[int, ...],
+        const_shape: tuple[int, ...],
+        var_shape: tuple[int, ...],
         view: SciPyTensorView,
     ) -> SciPyTensorView:
         """
@@ -574,7 +575,7 @@ class SciPyCanonBackend(PythonCanonBackend):
     def _rmul_interleaved(
         self,
         const: LinOp,
-        var_shape: Tuple[int, ...],
+        var_shape: tuple[int, ...],
         view: SciPyTensorView,
     ) -> SciPyTensorView:
         """
@@ -598,8 +599,8 @@ class SciPyCanonBackend(PythonCanonBackend):
     def _rmul_parametric_rhs(
         self,
         rhs: dict,
-        const_shape: Tuple[int, ...],
-        var_shape: Tuple[int, ...],
+        const_shape: tuple[int, ...],
+        var_shape: tuple[int, ...],
         view: SciPyTensorView,
     ) -> SciPyTensorView:
         """

@@ -16,7 +16,6 @@ limitations under the License.
 import builtins
 from functools import wraps
 from types import GeneratorType
-from typing import Optional, Tuple
 
 import numpy as np
 from numpy.exceptions import AxisError
@@ -75,7 +74,7 @@ class Sum(AxisAtom, AffAtom):
         """Is the atom log-log concave?"""
         return False
 
-    def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
+    def bounds_from_args(self) -> tuple[np.ndarray, np.ndarray]:
         """Returns bounds for the sum based on argument bounds."""
         lb, ub = self.args[0].get_bounds()
         return bounds_utils.sum_bounds(lb, ub, axis=self.axis, keepdims=self.keepdims)
@@ -85,7 +84,7 @@ class Sum(AxisAtom, AffAtom):
         self.shape_from_args()
         super(AxisAtom, self).validate_arguments()
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> tuple[int, ...]:
         """Returns shape using NumPy's sum shape calculation."""
         try:
             return np.sum(
@@ -148,7 +147,7 @@ class Sum(AxisAtom, AffAtom):
 
 
 @wraps(Sum)
-def sum(expr, axis: Optional[int] = None, keepdims: bool = False):
+def sum(expr, axis: int | None = None, keepdims: bool = False):
     """
     Wrapper for Sum class.
     """

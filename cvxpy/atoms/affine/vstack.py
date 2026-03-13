@@ -13,7 +13,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import List, Tuple
 
 import numpy as np
 
@@ -47,7 +46,7 @@ class Vstack(AffAtom):
         return np.vstack(values)
 
     # The shape is the common width and the sum of the heights.
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> tuple[int, ...]:
         try:
             return np.vstack(
                 [np.empty(arg.shape, dtype=np.dtype([])) for arg in self.args]
@@ -60,8 +59,8 @@ class Vstack(AffAtom):
         self.shape_from_args()
 
     def graph_implementation(
-        self, arg_objs, shape: Tuple[int, ...], data=None
-    ) -> Tuple[lo.LinOp, List[Constraint]]:
+        self, arg_objs, shape: tuple[int, ...], data=None
+    ) -> tuple[lo.LinOp, list[Constraint]]:
         """Stack the expressions vertically.
 
         Parameters

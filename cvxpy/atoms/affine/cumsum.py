@@ -13,7 +13,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import Optional, Tuple
 
 import numpy as np
 import scipy.sparse as sp
@@ -51,7 +50,7 @@ class cumsum(AffAtom, AxisAtom):
         The axis to sum across. If None, the array is flattened before cumsum.
         Note: NumPy's default is axis=None, while CVXPY defaults to axis=0.
     """
-    def __init__(self, expr: Expression, axis: Optional[int] = 0) -> None:
+    def __init__(self, expr: Expression, axis: int | None = 0) -> None:
         super(cumsum, self).__init__(expr, axis)
 
     def validate_arguments(self) -> None:
@@ -75,7 +74,7 @@ class cumsum(AffAtom, AxisAtom):
         """
         return np.cumsum(values[0], axis=self.axis)
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> tuple[int, ...]:
         """Flattened if axis=None, otherwise same as input."""
         if self.axis is None:
             return (self.args[0].size,)

@@ -15,7 +15,7 @@ limitations under the License.
 """
 
 import logging
-from typing import Any, Dict, Tuple
+from typing import Any
 
 import numpy as np
 from scipy.sparse import csr_array
@@ -59,7 +59,7 @@ class PDLP(ConicSolver):
                                'Please open a feature request on cvxpy to '
                                'enable support for this version.')
 
-    def apply(self, problem: ParamConeProg) -> Tuple[Dict, Dict]:
+    def apply(self, problem: ParamConeProg) -> tuple[dict, dict]:
         """Returns a new problem and data for inverting the new solution."""
         from ortools.pdlp.python import pdlp
 
@@ -113,8 +113,8 @@ class PDLP(ConicSolver):
         data['A'], data['c'] = A, c
         return data, inv_data
 
-    def invert(self, solution: Dict[str, Any],
-               inverse_data: Dict[str, Any]) -> Solution:
+    def invert(self, solution: dict[str, Any],
+               inverse_data: dict[str, Any]) -> Solution:
         """Returns the solution to the original problem."""
         status = solution["status"]
 
@@ -134,11 +134,11 @@ class PDLP(ConicSolver):
 
     def solve_via_data(
             self,
-            data: Dict[str, Any],
+            data: dict[str, Any],
             warm_start: bool,
             verbose: bool,
-            solver_opts: Dict[str, Any],
-            solver_cache: Dict = None,
+            solver_opts: dict[str, Any],
+            solver_cache: dict = None,
     ) -> Solution:
         """Returns the result of the call to the solver."""
         from ortools.pdlp import solvers_pb2
