@@ -69,3 +69,6 @@ cvxpy/version.py
 
 # uv
 uv.lock
+
+# Autoresearch
+.autoresearch-key
