@@ -22,10 +22,22 @@ from cvxpy.atoms.elementwise.elementwise import Elementwise
 
 
 class logistic(Elementwise):
-    """:math:`\\log(1 + e^{x})`
+    r"""Elementwise softplus (log-sum-exp) function :math:`\log(1 + e^{x})`.
 
-    This is a special case of log(sum(exp)) that is evaluates to a vector rather
-    than to a scalar which is useful for logistic regression.
+    .. math::
+
+        f(x) = \log(1 + e^{x})
+
+    A smooth, convex, increasing approximation to :math:`\max(x, 0)`.
+    Known as the *softplus* function. It is a vector-valued special case
+    of :math:`\log\sum_i e^{x_i}`, useful in logistic regression.
+
+    Domain: :math:`x \in \mathbb{R}`.
+
+    Parameters
+    ----------
+    x : Expression
+        The expression to apply the softplus function to.
     """
 
     def __init__(self, x) -> None:

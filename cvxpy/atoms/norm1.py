@@ -24,6 +24,26 @@ from cvxpy.utilities import bounds as bounds_utils
 
 
 class norm1(AxisAtom):
+    r"""The :math:`\ell_1`-norm of a vector.
+
+    .. math::
+
+        f(x) = \|x\|_1 = \sum_i |x_i|
+
+    Convex, piecewise-linear, and always nonnegative.
+    When ``axis`` is specified, the norm is computed along that axis.
+
+    Domain: :math:`x \in \mathbb{R}^n`.
+
+    Parameters
+    ----------
+    x : Expression
+        The vector (or matrix) expression.
+    axis : int, optional
+        The axis along which to compute the norm (default: all elements).
+    keepdims : bool, optional
+        Whether to keep the reduced dimension (default: False).
+    """
     _allow_complex = True
 
     def numeric(self, values):

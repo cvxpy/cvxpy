@@ -18,5 +18,19 @@ from cvxpy.atoms.elementwise.power import power
 
 
 def square(x):
-    """The square of an expression."""
+    r"""The elementwise square :math:`x^2`.
+
+    .. math::
+
+        f(x) = x^2
+
+    Convex and nonnegative everywhere.
+
+    Domain: :math:`x \in \mathbb{R}`.
+
+    Parameters
+    ----------
+    x : Expression
+        The expression to square.
+    """
     return power(x, 2)

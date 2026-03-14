@@ -25,9 +25,26 @@ from cvxpy.constraints.constraint import Constraint
 
 
 class kl_div(Elementwise):
-    """:math:`x\\log(x/y) - x + y`
+    r"""Elementwise Kullback-Leibler divergence-like function.
 
-    For disambiguation between kl_div and rel_entr, see https://github.com/cvxpy/cvxpy/issues/733
+    .. math::
+
+        f(x, y) = x \log\left(\frac{x}{y}\right) - x + y
+
+    Convex and nonnegative for :math:`x, y > 0`. Note the extra :math:`-x + y`
+    term compared to :func:`rel_entr`.
+
+    Domain: :math:`x \geq 0,\ y \geq 0`.
+
+    For disambiguation between ``kl_div`` and ``rel_entr``, see
+    https://github.com/cvxpy/cvxpy/issues/733
+
+    Parameters
+    ----------
+    x : Expression
+        First argument (analogous to the "true" distribution).
+    y : Expression
+        Second argument (analogous to the "reference" distribution).
     """
 
     def __init__(self, x, y) -> None:
