@@ -292,36 +292,112 @@ def make_dpp_multi_param(n_vars: int, n_constraints: int) -> Callable:
     return factory
 
 
+def make_dpp_giant_lp(n_vars: int, n_constraints: int) -> Callable:
+    """DPP with huge single parameter matrix. Tests O(nnz) vs O(param_size*rows)."""
+    def factory():
+        x = cp.Variable(n_vars)
+        A_param = cp.Parameter((n_constraints, n_vars))
+        b = np.random.randn(n_constraints) + 10
+        c = np.random.randn(n_vars)
+        prob = cp.Problem(cp.Minimize(c @ x), [A_param @ x <= b, x >= 0])
+
+        def init_params():
+            np.random.seed(int(time.time() * 1000) % 2**31)
+            A_param.value = np.random.randn(n_constraints, n_vars)
+
+        return prob, init_params
+    return factory
+
+
+def make_dpp_3_matrices(n: int) -> Callable:
+    """DPP with 3 large parameter matrices (3*n*n total params)."""
+    def factory():
+        x = cp.Variable(n)
+        A1 = cp.Parameter((n, n))
+        A2 = cp.Parameter((n, n))
+        A3 = cp.Parameter((n, n))
+        b1 = np.random.randn(n) + 10
+        b2 = np.random.randn(n) + 10
+        b3 = np.random.randn(n) + 10
+        c = np.random.randn(n)
+        prob = cp.Problem(
+            cp.Minimize(c @ x),
+            [A1 @ x <= b1, A2 @ x <= b2, A3 @ x <= b3, x >= 0]
+        )
+
+        def init_params():
+            np.random.seed(int(time.time() * 1000) % 2**31)
+            A1.value = np.random.randn(n, n)
+            A2.value = np.random.randn(n, n)
+            A3.value = np.random.randn(n, n)
+
+        return prob, init_params
+    return factory
+
+
+def make_dpp_many_param_objs(n_params: int, n_vars: int = 100) -> Callable:
+    """DPP with many separate Parameter objects (tests param object overhead)."""
+    def factory():
+        x = cp.Variable(n_vars)
+        params = [cp.Parameter(n_vars) for _ in range(n_params)]
+        cons = [p @ x <= 1 for p in params]
+        prob = cp.Problem(cp.Minimize(cp.sum(x)), cons)
+
+        def init_params():
+            np.random.seed(int(time.time() * 1000) % 2**31)
+            for p in params:
+                p.value = np.random.randn(n_vars)
+
+        return prob, init_params
+    return factory
+
+
 # =============================================================================
 # Problem Suite Definition
 # =============================================================================
 
 QUICK_SUITE = [
+    # Vectorized (non-DPP)
     ("sparse_lp_100", make_sparse_lp(100), 5),
     ("dense_qp_50", make_dense_qp(50), 5),
     ("lasso_50x100", make_lasso(50, 100), 5),
     ("many_constraints_50x100", make_many_constraints(50, 100), 5),
+    # Scalarized trees
     ("scalar_squares_200", make_scalar_squares(200), 3),
     ("deep_chain_200", make_deep_chain(200), 3),
     ("scalar_grid_50", make_scalar_grid(50), 3),
+    # DPP (small-medium params)
     ("dpp_param_lp_100x100", make_dpp_param_lp(100, 100), 5),
     ("dpp_lasso_50x100", make_dpp_lasso(50, 100), 5),
     ("dpp_multi_param_100x100", make_dpp_multi_param(100, 100), 5),
     ("dpp_scalar_lp_100", make_dpp_scalar_lp(100), 3),
+    # DPP (huge params)
+    ("dpp_giant_lp_1000x500", make_dpp_giant_lp(500, 1000), 2),
+    ("dpp_3matrices_200", make_dpp_3_matrices(200), 3),
+    ("dpp_many_param_objs_200", make_dpp_many_param_objs(200), 3),
 ]
 
 FULL_SUITE = QUICK_SUITE + [
+    # Vectorized (non-DPP) - larger
     ("sparse_lp_500", make_sparse_lp(500), 3),
     ("dense_qp_200", make_dense_qp(200), 3),
     ("lasso_200x500", make_lasso(200, 500), 3),
     ("many_constraints_50x500", make_many_constraints(50, 500), 3),
+    # Scalarized trees - larger
     ("scalar_squares_1000", make_scalar_squares(1000), 2),
     ("deep_chain_500", make_deep_chain(500), 2),
     ("scalar_grid_100", make_scalar_grid(100), 2),
+    # DPP (medium params)
     ("dpp_param_lp_500x200", make_dpp_param_lp(500, 200), 3),
     ("dpp_lasso_200x500", make_dpp_lasso(200, 500), 3),
     ("dpp_multi_param_200x500", make_dpp_multi_param(200, 500), 3),
     ("dpp_scalar_lp_500", make_dpp_scalar_lp(500), 2),
+    # DPP (huge params) - stress test
+    ("dpp_giant_lp_2000x1000", make_dpp_giant_lp(1000, 2000), 2),
+    ("dpp_giant_lp_500x2000", make_dpp_giant_lp(2000, 500), 2),
+    ("dpp_3matrices_500", make_dpp_3_matrices(500), 2),
+    ("dpp_lasso_500x2000", make_dpp_lasso(500, 2000), 2),
+    ("dpp_many_param_objs_500", make_dpp_many_param_objs(500), 2),
 ]
 
 
