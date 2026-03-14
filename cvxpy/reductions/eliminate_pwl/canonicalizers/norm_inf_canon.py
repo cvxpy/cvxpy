@@ -14,10 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import numpy as np
-
 from cvxpy.atoms import promote, reshape
-from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variable import Variable
 from cvxpy.utilities.solver_context import SolverInfo
 
@@ -28,11 +25,11 @@ def norm_inf_canon(expr, args, solver_context: SolverInfo | None = None):
     shape = expr.shape
     t = Variable(shape)
 
-    if axis is None:  # shape = (1, 1)
+    if axis is None:
         promoted_t = promote(t, x.shape)
-    elif axis == 0:  # shape = (1, n)
-        promoted_t = Constant(np.ones((x.shape[0], 1))) @ reshape(t, (1, x.shape[1]), order='F')
-    else:  # shape = (m, 1)
-        promoted_t = reshape(t, (x.shape[0], 1), order='F') @ Constant(np.ones((1, x.shape[1])))
+    else:
+        axes = {axis} if isinstance(axis, int) else set(axis)
+        keepdims_shape = tuple(1 if i in axes else s for i, s in enumerate(x.shape))
+        promoted_t = reshape(t, keepdims_shape, order='F')
 
     return t, [x <= promoted_t, x + promoted_t >= 0]
