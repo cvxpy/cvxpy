@@ -24,7 +24,7 @@ from cvxpy.tests.nlp_tests.derivative_checker import DerivativeChecker
 
 @pytest.mark.skipif('IPOPT' not in INSTALLED_SOLVERS, reason='IPOPT is not installed.')
 class TestAffineDiffEngine:
-    # Stress tests for affine vector atoms in the diff engine.		
+    # Stress tests for affine vector atoms in the diff engine.
     def test_row_broadcast(self):
         # x is 1 x n, Y is m x n
         np.random.seed(0)
@@ -33,7 +33,7 @@ class TestAffineDiffEngine:
         Y = cp.Variable((m, n), bounds=[-1, 1])
         obj = cp.Minimize(cp.sum(x + Y))
         prob = cp.Problem(obj)
-        x.value = np.random.rand(1, n)  
+        x.value = np.random.rand(1, n)
         Y.value = np.random.rand(m, n)
         checker = DerivativeChecker(prob)
         checker.run_and_assert()
@@ -150,7 +150,7 @@ class TestAffineDiffEngine:
         A = np.random.rand(4, 2)
         obj = cp.Minimize(cp.sum_squares(cp.reshape(x, (4, 2), order='F') - A))
         prob = cp.Problem(obj)
-        x.value = np.linspace(-2, 2, 8)  
+        x.value = np.linspace(-2, 2, 8)
         checker = DerivativeChecker(prob)
         checker.run_and_assert()
         prob.solve(solver=cp.IPOPT, nlp=True)
@@ -163,7 +163,7 @@ class TestAffineDiffEngine:
         A = np.random.rand(8, 1)
         obj = cp.Minimize(cp.sum_squares(x - A))
         prob = cp.Problem(obj)
-        x.value = np.linspace(-2, 2, 8)  
+        x.value = np.linspace(-2, 2, 8)
         checker = DerivativeChecker(prob)
         checker.run_and_assert()
         prob.solve(solver=cp.IPOPT, nlp=True, verbose=False)

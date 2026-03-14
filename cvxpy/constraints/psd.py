@@ -112,7 +112,7 @@ class PSD(Cone):
     def _dual_cone(self, *args):
         """Implements the dual cone of the PSD cone See Pg 85 of the
         MOSEK modelling cookbook for more information"""
-        if args is None:
+        if not args:
             return self.dual_variables[0] >> 0
         else:
             # some assertions for verifying `args`

@@ -15,4 +15,5 @@ User Guide
     dnlp/index
     constraints/index
     advanced/index
+    performance/index
     solvers/index

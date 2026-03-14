@@ -128,6 +128,8 @@ class FiniteSet(Constraint):
         -------
         float
         """
+        if self.expre.value is None:
+            return None
         expr_val = np.array(self.expre.value).flatten(order='F')
         vec_val = self.vec.value
         resids = [np.min(np.abs(val - vec_val)) for val in expr_val]

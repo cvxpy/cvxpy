@@ -53,7 +53,7 @@ class TestScalarProblems():
     def test_KL_matrix(self):
         Y = cp.Variable((3, 3))
         X = cp.Variable((3, 3))
-        prob = cp.Problem(cp.Minimize(cp.sum(cp.kl_div(X, Y))), 
+        prob = cp.Problem(cp.Minimize(cp.sum(cp.kl_div(X, Y))),
                         [X >= 0.1, Y >= 0.1, cp.sum(X) + cp.sum(Y) == 6])
         prob.solve(nlp=True, solver=cp.IPOPT)
         assert prob.status == cp.OPTIMAL

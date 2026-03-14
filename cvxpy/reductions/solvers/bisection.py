@@ -63,7 +63,7 @@ def _find_bisection_interval(problem, t, solver=None, low=None, high=None,
             _solve(lowered, solver)
             if _infeasible(lowered):
                 low = high
-                high *= 2
+                high = high * 2 if high != 0 else 1
                 continue
             elif lowered.status in s.SOLUTION_PRESENT:
                 feasible_high = True
@@ -79,7 +79,7 @@ def _find_bisection_interval(problem, t, solver=None, low=None, high=None,
                 infeasible_low = True
             elif lowered.status in s.SOLUTION_PRESENT:
                 high = low
-                low *= 2
+                low = low * 2 if low != 0 else -1
                 continue
             else:
                 raise error.SolverError(
