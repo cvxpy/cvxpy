@@ -30,7 +30,8 @@ def _lower_problem(problem):
 
 
 def _solve(problem, solver) -> None:
-    with warnings.catch_warnings():  
+    with warnings.catch_warnings():
+        # TODO(akshayka): Try to emit DPP problems in Dqcp2Dcp
         warnings.filterwarnings('ignore', message=r'.*DPP.*')
         try:
             problem.solve(solver=solver)
@@ -40,7 +41,7 @@ def _solve(problem, solver) -> None:
                 RuntimeWarning
             )
             problem._status = s.SOLVER_ERROR
-
+            
 
 def _infeasible(problem) -> bool:
     return problem is None or problem.status in (s.INFEASIBLE,
