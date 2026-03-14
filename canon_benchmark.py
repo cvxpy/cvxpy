@@ -13,13 +13,16 @@ Usage:
 """
 
 import argparse
+import cProfile
 import gc
 import json
 import math
+import pstats
 import statistics
 import sys
 import time
 from dataclasses import asdict, dataclass, field
+from io import StringIO
 from typing import Callable
 
 import numpy as np
@@ -32,6 +35,15 @@ import cvxpy as cp
 # =============================================================================
 
 @dataclass
+class TraceEntry:
+    """Single function in an execution trace."""
+    func: str
+    cumtime_ms: float
+    calls: int
+    pct: float
+
+
+@dataclass
 class ProblemResult:
     """Timing result for a single problem."""
     name: str
@@ -41,6 +53,7 @@ class ProblemResult:
     std_ms: float = 0.0
     min_ms: float = 0.0
     times_ms: list = field(default_factory=list)
+    trace: list = field(default_factory=list)
     error: str = ""
 
 
@@ -63,16 +76,59 @@ class BenchmarkSuite:
         }
 
 
+# Paths we care about in traces (filter out noise from stdlib, numpy internals, etc.)
+_TRACE_PATHS = [
+    "lin_ops/backends/",
+    "reductions/dcp2cone/",
+    "reductions/solvers/",
+    "cvxpy_rust",
+    "utilities/coeff_extractor",
+]
+
+
+def _extract_trace(profiler: cProfile.Profile, total_ms: float, top_n: int = 15) -> list[dict]:
+    """Extract top-N relevant functions from a cProfile run."""
+    stats = pstats.Stats(profiler, stream=StringIO())
+    entries = []
+
+    for (filename, lineno, funcname), (cc, nc, tt, ct, callers) in stats.stats.items():
+        # Filter to CVXPY/backend code only
+        if not any(p in filename for p in _TRACE_PATHS):
+            continue
+        # Shorten path: keep just the relevant part
+        short = filename
+        for p in _TRACE_PATHS:
+            idx = filename.find(p)
+            if idx >= 0:
+                short = filename[idx:]
+                break
+        cumtime_ms = ct * 1000
+        pct = (cumtime_ms / total_ms * 100) if total_ms > 0 else 0
+        entries.append({
+            "func": f"{short}:{funcname}",
+            "cumtime_ms": round(cumtime_ms, 2),
+            "tottime_ms": round(tt * 1000, 2),
+            "calls": nc,
+            "pct": round(pct, 1),
+        })
+
+    # Sort by tottime (self time) — most actionable for optimization
+    entries.sort(key=lambda e: e["tottime_ms"], reverse=True)
+    return entries[:top_n]
+
+
 def time_canonicalization(
     problem_factory: Callable,
     backend: str,
     warmup: int = 2,
     iterations: int = 5,
     ignore_dpp: bool = False,
+    trace: bool = False,
 ) -> ProblemResult:
     """Time the canonicalization phase of a problem."""
     times = []
     is_dpp = False
+    trace_data = []
 
     # Warmup
     for _ in range(warmup):
@@ -88,7 +144,7 @@ def time_canonicalization(
         gc.collect()
 
     # Timed runs
-    for _ in range(iterations):
+    for i in range(iterations):
         prob, init_params = problem_factory()
         if init_params is not None:
             is_dpp = True
@@ -98,13 +154,27 @@ def time_canonicalization(
         # Clear cache to force re-canonicalization
         prob._cache = type(prob._cache)()
 
+        # Profile the last iteration (representative, after JIT warmup)
+        do_profile = trace and (i == iterations - 1)
+        profiler = cProfile.Profile() if do_profile else None
+
         start = time.perf_counter()
         try:
+            if do_profile:
+                profiler.enable()
             prob.get_problem_data(cp.CLARABEL, canon_backend=backend, ignore_dpp=ignore_dpp)
+            if do_profile:
+                profiler.disable()
         except Exception as e:
+            if do_profile:
+                profiler.disable()
             return ProblemResult(name="", backend=backend, is_dpp=is_dpp, error=str(e))
         elapsed_ms = (time.perf_counter() - start) * 1000
         times.append(elapsed_ms)
+
+        if do_profile:
+            trace_data = _extract_trace(profiler, elapsed_ms)
+
         del prob
         gc.collect()
 
@@ -116,6 +186,7 @@ def time_canonicalization(
         mean_ms=statistics.mean(times),
         std_ms=statistics.stdev(times) if len(times) > 1 else 0,
         min_ms=min(times),
+        trace=trace_data,
     )
 
 
@@ -409,6 +480,7 @@ def run_suite(
     suite: list[tuple[str, Callable, int]],
     backend: str,
     verbose: bool = True,
+    trace: bool = False,
 ) -> BenchmarkSuite:
     """Run the benchmark suite for a single backend."""
     results = BenchmarkSuite(
@@ -419,7 +491,7 @@ def run_suite(
     valid_means = []
 
     for name, factory, iters in suite:
-        result = time_canonicalization(factory, backend, iterations=iters)
+        result = time_canonicalization(factory, backend, iterations=iters, trace=trace)
         result.name = name
 
         if result.error:
@@ -431,6 +503,10 @@ def run_suite(
                 dpp_tag = " [DPP]" if result.is_dpp else ""
                 print(f"  {name:35s} {result.mean_ms:8.2f}ms "
                       f"(±{result.std_ms:5.2f}){dpp_tag}", file=sys.stderr)
+                if trace and result.trace:
+                    for t in result.trace[:5]:
+                        print(f"    {t['pct']:5.1f}%  {t['tottime_ms']:7.1f}ms  "
+                              f"{t['calls']:>6d}x  {t['func']}", file=sys.stderr)
 
         results.problems.append(result)
 
@@ -449,6 +525,7 @@ def run_all_backends(
     suite: list[tuple[str, Callable, int]],
     backends: list[str],
     verbose: bool = True,
+    trace: bool = False,
 ) -> dict[str, BenchmarkSuite]:
     """Run suite across all backends and return combined results."""
     all_results = {}
@@ -457,7 +534,7 @@ def run_all_backends(
             print(f"\n{'=' * 60}", file=sys.stderr)
             print(f"Backend: {backend}", file=sys.stderr)
             print(f"{'=' * 60}", file=sys.stderr)
-        all_results[backend] = run_suite(suite, backend, verbose=verbose)
+        all_results[backend] = run_suite(suite, backend, verbose=verbose, trace=trace)
 
     # Print comparison
     if verbose and len(backends) > 1:
@@ -502,6 +579,8 @@ def main():
     parser.add_argument("--all-backends", action="store_true",
                         help="Run all backends (CPP, SCIPY, COO)")
     parser.add_argument("--quiet", action="store_true", help="Suppress stderr output")
+    parser.add_argument("--trace", action="store_true",
+                        help="Capture execution trace (cProfile) for each problem")
     args = parser.parse_args()
 
     suite = QUICK_SUITE if args.quick else FULL_SUITE
@@ -509,11 +588,11 @@ def main():
 
     if args.all_backends:
         backends = ["CPP", "SCIPY", "COO"]
-        all_results = run_all_backends(suite, backends, verbose=verbose)
+        all_results = run_all_backends(suite, backends, verbose=verbose, trace=args.trace)
         output = combine_results(all_results)
     else:
         backend = args.backend or "CPP"
-        result = run_suite(suite, backend, verbose=verbose)
+        result = run_suite(suite, backend, verbose=verbose, trace=args.trace)
         output = result.to_dict()
         output["geomean_ms"] = result.geomean_ms
 
