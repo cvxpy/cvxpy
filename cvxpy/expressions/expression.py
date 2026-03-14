@@ -665,10 +665,34 @@ class Expression(u.Canonical):
         return cvxtypes.power()(self, power)
 
     def __rpow__(self, base: float) -> "Expression":
-        raise NotImplementedError("CVXPY currently does not support variables "
-                                  "on the right side of **. Consider using the"
-                                  " identity that a**x = cp.exp(cp.multiply(np"
-                                  ".log(a), x)).")
+        """Raise base to the power of this expression (base ** self).
+
+    Uses the identity: a**x = exp(x * log(a))
+
+    Parameters
+    ----------
+    base : float
+        A positive constant base.
+
+    Returns
+    -------
+    Expression
+        exp(self * log(base))
+    """
+   
+        from cvxpy.atoms.elementwise.exp import exp
+        base = cvxtypes.expression().cast_to_const(base)
+        if not base.is_constant():
+            raise ValueError(
+                "The base of ** must be a constant when the exponent "
+                "is a variable."
+            )
+        if not base.is_pos():
+            raise ValueError(
+                "The base of ** must be positive since we use the "
+                "identity a**x = exp(x * log(a))."
+            )
+        return exp(self * np.log(base.value))
 
     @staticmethod
     def cast(expr_like) -> "Expression":
