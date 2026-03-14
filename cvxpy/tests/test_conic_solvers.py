@@ -425,6 +425,30 @@ class TestSCS(BaseTest):
     def test_scs_pcp_3(self) -> None:
         StandardTestPCPs.test_pcp_3(solver='SCS', eps=1e-12)
 
+    def test_primal_infeasible_dual_variable_propagation(self) -> None:
+        x = cp.Variable(10)
+        constraints = [x[0] + x[1] == x[2], cp.log_sum_exp(x) <= 1, cp.norm2(x) <= 1]
+        prob = cp.Problem(cp.Minimize(0), constraints)
+        # Using SCS, this problem will get reduced to a problem with a linear cone constraint,
+        # an exponential cone constraint, a second-order cone constraint, and a zero cone
+        # (equality) constraint.
+        prob.solve(solver="SCS")
+
+        # The problem is infeasible - assert this as a sanity check.
+        assert prob.status == "infeasible"
+
+        # Verify that the dual variables have been propagated through the inverse solving chain.
+        # The specific values don't matter for this test.
+        assert isinstance(constraints[0].dual_value, float)
+        assert isinstance(constraints[1].dual_value, float)
+        assert isinstance(constraints[2].dual_value, float)
+
+        # Verify the dual variables have also been propagated to the `.value` attribute of the
+        # Variable(s) in each constraint's `.dual_variables` attribute.
+        assert constraints[0].dual_variables[0].value == constraints[0].dual_value
+        assert constraints[1].dual_variables[0].value == constraints[1].dual_value
+        assert constraints[2].dual_variables[0].value == constraints[2].dual_value
+
 
 @unittest.skipUnless('CLARABEL' in INSTALLED_SOLVERS, 'CLARABEL is not installed.')
 class TestClarabel(BaseTest):
@@ -3258,11 +3282,12 @@ class TestKNITRO(BaseTest):
 
 @unittest.skipUnless("CUOPT" in INSTALLED_SOLVERS, "CUOPT is not installed.")
 class TestCUOPT(unittest.TestCase):
-
     import os
-    kwargs={"pdlp_solver_mode": os.environ.get("CUOPT_PDLP_SOLVER_MODE", "Stable2"),
-            "solver_method": os.environ.get("CUOPT_SOLVER_METHOD", 0)
-            }
+
+    kwargs = {
+        "pdlp_solver_mode": os.environ.get("CUOPT_PDLP_SOLVER_MODE", "Stable2"),
+        "solver_method": os.environ.get("CUOPT_SOLVER_METHOD", 0),
+    }
 
     def test_cuopt_lp_0(self) -> None:
         StandardTestLPs.test_lp_0(solver="CUOPT", duals=True, places=4, **TestCUOPT.kwargs)
@@ -3285,27 +3310,27 @@ class TestCUOPT(unittest.TestCase):
             assert "crossing bounds" in str(e)
 
     def test_cuopt_lp_5(self) -> None:
-        StandardTestLPs.test_lp_5(solver='CUOPT', duals=True, places=4, **TestCUOPT.kwargs)
+        StandardTestLPs.test_lp_5(solver="CUOPT", duals=True, places=4, **TestCUOPT.kwargs)
 
     def test_cuopt_lp_6(self) -> None:
-        StandardTestLPs.test_lp_5(solver='CUOPT', duals=True, places=4, **TestCUOPT.kwargs)
+        StandardTestLPs.test_lp_5(solver="CUOPT", duals=True, places=4, **TestCUOPT.kwargs)
 
     def test_cuopt_lp_7(self) -> None:
-        StandardTestLPs.test_lp_5(solver='CUOPT', duals=True, places=4, **TestCUOPT.kwargs)
+        StandardTestLPs.test_lp_5(solver="CUOPT", duals=True, places=4, **TestCUOPT.kwargs)
 
     def test_cuopt_mi_lp_0(self) -> None:
-        StandardTestLPs.test_mi_lp_0(solver='CUOPT', **TestCUOPT.kwargs)
+        StandardTestLPs.test_mi_lp_0(solver="CUOPT", **TestCUOPT.kwargs)
 
     def test_cuopt_mi_lp_1(self) -> None:
-        StandardTestLPs.test_mi_lp_1(solver='CUOPT', **TestCUOPT.kwargs)
+        StandardTestLPs.test_mi_lp_1(solver="CUOPT", **TestCUOPT.kwargs)
 
     def test_cuopt_mi_lp_2(self) -> None:
-        StandardTestLPs.test_mi_lp_2(solver='CUOPT', **TestCUOPT.kwargs)
+        StandardTestLPs.test_mi_lp_2(solver="CUOPT", **TestCUOPT.kwargs)
 
     def test_cuopt_mi_lp_3(self) -> None:
         TestCUOPT.kwargs["time_limit"] = 5
         try:
-            StandardTestLPs.test_mi_lp_3(solver='CUOPT', **TestCUOPT.kwargs)
+            StandardTestLPs.test_mi_lp_3(solver="CUOPT", **TestCUOPT.kwargs)
         finally:
             del TestCUOPT.kwargs["time_limit"]
 
@@ -3313,12 +3338,15 @@ class TestCUOPT(unittest.TestCase):
     # Error message from cvxpy should be returned
     def test_cuopt_mi_lp_4(self) -> None:
         try:
-            StandardTestLPs.test_mi_lp_4(solver='CUOPT', **TestCUOPT.kwargs)
+            StandardTestLPs.test_mi_lp_4(solver="CUOPT", **TestCUOPT.kwargs)
         except Exception as e:
-            assert "there are not enough constraints in the problem" in str(e)
+            assert "cannot solve this problem" in str(e)
 
     def test_cuopt_mi_lp_5(self) -> None:
-        StandardTestLPs.test_mi_lp_5(solver='CUOPT', **TestCUOPT.kwargs, time_limit=5)
+        StandardTestLPs.test_mi_lp_5(solver="CUOPT", **TestCUOPT.kwargs, time_limit=5)
 
     def test_cuopt_mi_lp_7(self) -> None:
-        StandardTestLPs.test_mi_lp_5(solver='CUOPT', **TestCUOPT.kwargs, time_limit=5)
+        StandardTestLPs.test_mi_lp_5(solver="CUOPT", **TestCUOPT.kwargs, time_limit=5)
+
+    def test_cuopt_qp_0(self) -> None:
+        StandardTestQPs.test_qp_0(solver="CUOPT", **TestCUOPT.kwargs, time_limit=5)

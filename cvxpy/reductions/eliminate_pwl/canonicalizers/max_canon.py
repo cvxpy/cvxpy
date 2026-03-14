@@ -36,7 +36,7 @@ def max_canon(expr, args, solver_context: SolverInfo | None = None):
 
     constraints = [x <= promoted_t]
 
-    # for DNLP we must initialize the new variable (DNLP guarantees that 
+    # for DNLP we must initialize the new variable (DNLP guarantees that
     # x.value will be set when this function is called)
     if expr.value is not None:
         t.value = expr.value

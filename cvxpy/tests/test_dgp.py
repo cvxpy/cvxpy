@@ -360,3 +360,31 @@ class TestDgp(BaseTest):
 
         expected = np.linalg.norm(c, ord=2, axis=1)  # shape (2, 4)
         self.assertAlmostEqual(prob.value, float(np.sum(expected)), places=2)
+
+    def test_dgp_infeasible_no_crash(self) -> None:
+        """Infeasible DGP problem should not crash in invert()."""
+        x = cvxpy.Variable(pos=True)
+        prob = cvxpy.Problem(cvxpy.Minimize(x), [x >= 2, x <= 1])
+        prob.solve(solver=cvxpy.CLARABEL, gp=True)
+        self.assertIn(prob.status, [cvxpy.INFEASIBLE, cvxpy.INFEASIBLE_INACCURATE])
+
+    def test_pnorm_negative_p_dgp(self) -> None:
+        """pnorm with p < 0 is log-log concave, so Maximize should be DGP."""
+        x = cvxpy.Variable(3, pos=True)
+        # Maximize pnorm(x, p=-1) s.t. x <= 2, x >= 0.5
+        # Optimal: all x_i = 2, pnorm = (3 * 2^(-1))^(-1) = 2/3
+        prob = cvxpy.Problem(
+            cvxpy.Maximize(cvxpy.pnorm(x, p=-1)),
+            [x <= 2, x >= 0.5],
+        )
+        self.assertTrue(prob.is_dgp())
+        prob.solve(gp=True, solver=cvxpy.SCS)
+        self.assertEqual(prob.status, cvxpy.OPTIMAL)
+        self.assertAlmostEqual(prob.value, 2.0 / 3.0, places=3)
+
+        # Minimize pnorm(x, p=-1) should NOT be DGP.
+        prob2 = cvxpy.Problem(
+            cvxpy.Minimize(cvxpy.pnorm(x, p=-1)),
+            [x <= 2, x >= 0.5],
+        )
+        self.assertFalse(prob2.is_dgp())

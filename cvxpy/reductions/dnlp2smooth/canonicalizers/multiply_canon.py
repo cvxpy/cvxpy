@@ -18,7 +18,7 @@ limitations under the License.
 from cvxpy.expressions.variable import Variable
 
 
-# If a user insert x * x where x is a variable it gets canonicalized to 
+# If a user insert x * x where x is a variable it gets canonicalized to
 # square(x) before this function is called.
 def multiply_canon(expr, args):
     t1 = args[0]

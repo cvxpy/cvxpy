@@ -56,9 +56,9 @@ def dims_to_solver_cones(cone_dims):
 
     for pow in cone_dims.pnd:
         # TODO: On the right hand side, we may want to
-        # extend to support higher dim values for z 
+        # extend to support higher dim values for z
         # instead of hardcoding 1.
-        cones.append(clarabel.GenPowerConeT(pow, 1)) 
+        cones.append(clarabel.GenPowerConeT(pow, 1))
     return cones
 
 
@@ -370,9 +370,13 @@ class CLARABEL(ConicSolver):
                 # this overwrites all data in the solver but will not
                 # reallocate internal memory.  Could be faster if it
                 # were known which terms (or partial terms) have changed.
-                # Will error ail if dimensions are sparsity has changed
-                _solver.update(P=P, q=q, A=A, b=b, settings=newsettings)
-                return _solver
+                try:
+                    _solver.update(P=P, q=q, A=A, b=b, settings=newsettings)
+                    return _solver
+                except Exception:
+                    # If sparsity pattern or dimensions changed, update() fails.
+                    # Return None to trigger a full new_solver() re-initialization.
+                    return None
 
         # Try to get cached data
         solver = updated_solver()

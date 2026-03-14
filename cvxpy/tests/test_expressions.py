@@ -576,7 +576,7 @@ class TestExpressions(BaseTest):
         expr = cp.real(v)
         assert expr.is_hermitian()
         expr = cp.imag(v)
-        assert expr.is_hermitian()
+        assert not expr.is_hermitian()  # imag(H) is skew-symmetric for Hermitian H
         expr = cp.conj(v)
         assert expr.is_hermitian()
         expr = cp.promote(Variable(), (2, 2))
@@ -1791,7 +1791,7 @@ class TestND_Expressions():
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
         assert np.allclose(expr.value, y)
 
-    @pytest.mark.parametrize("source, destination", [([0], [2]), ([0, 1], [3, 2]), 
+    @pytest.mark.parametrize("source, destination", [([0], [2]), ([0, 1], [3, 2]),
                                                      ([0, 1, 2], [3, 2, 1])])
     def test_moveaxis(self, source, destination) -> None:
         var = cp.Variable((5, 2, 6, 12))

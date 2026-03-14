@@ -171,3 +171,16 @@ class TestQuantumRelEntr:
         sth.solve(**self.MOSEK_ARGS)
         sth.verify_objective(places=3)
         sth.verify_primal_values(places=3)
+
+    def test_real_inputs(self):
+        """quantum_rel_entr with real inputs should solve without error."""
+        n = 2
+        X = cp.Variable((n, n), symmetric=True)
+        Y = np.eye(n)
+        prob = cp.Problem(
+            cp.Minimize(cp.quantum_rel_entr(X, Y)),
+            [cp.trace(X) == 1, X >> 0]
+        )
+        prob.solve(**self.CLARABEL_ARGS)
+        assert prob.status == cp.OPTIMAL
+        np.testing.assert_allclose(prob.value, -np.log(n), atol=1e-3)
