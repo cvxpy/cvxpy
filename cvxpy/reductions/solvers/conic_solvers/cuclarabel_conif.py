@@ -171,8 +171,6 @@ class CUCLARABEL(ConicSolver):
 
         P = sp.triu(P).tocsr()
 
-        cones = data[ConicSolver.DIMS]
-
         Pgpu = cucsr_matrix(P)
         qgpu = cupy.array(q)
 
@@ -194,15 +192,28 @@ class CUCLARABEL(ConicSolver):
         jl.A = pyext.cupy_to_cucsrmat(
                 jl.Float64, int(Agpu.data.data.ptr), int(Agpu.indices.data.ptr),
                 int(Agpu.indptr.data.ptr), *Agpu.shape, Agpu.nnz)
-        jl.b = pyext.cupy_to_cuvector(jl.Float64, int(bgpu.data.ptr), bgpu.size)
+        jl.b = jl.Clarabel.cupy_to_cuvector(jl.Float64, int(bgpu.data.ptr), bgpu.size)
 
+        # Fix Ruff F841 by using the data directly in the call
+        dims_to_solver_cones(jl, data[ConicSolver.DIMS])
 
-        dims_to_solver_cones(jl, cones)
+        jl.verbose_flag = verbose
+        jl.seval("""
+        settings_dict = Dict{Symbol, Any}()
+        settings_dict[:direct_solve_method] = :cudss
+        settings_dict[:verbose] = verbose_flag
+        """)
+
+        for key, val in solver_opts.items():
+            if key in ["use_quad_obj", "accept_unknown"]:
+                continue
+            jl.opt_val = val
+            jl.seval(f"settings_dict[:{key}] = opt_val")
 
         results = jl.seval("""
-        settings = Clarabel.Settings(direct_solve_method = :cudss)
+        settings = Clarabel.Settings(; settings_dict...)
         solver   = Clarabel.Solver(settings)
-        solver   = Clarabel.setup!(solver, P,q,A,b,cones)
+        solver   = Clarabel.setup!(solver, P, q, A, b, cones)
         Clarabel.solve!(solver)
         """)
         return results
