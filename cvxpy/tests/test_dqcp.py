@@ -750,14 +750,21 @@ class TestDqcp(base_test.BaseTest):
 
     def test_none_parameter_sets(self) -> None:
         """Regression test for GitHub issue #2780.
-        Sets.py functions should handle None t.value gracefully."""
+        Sets.py sublevel_set functions should not raise TypeError
+        when t.value is None during bisection setup."""
         from cvxpy.reductions.dqcp2dcp.sets import length_sub
         x = cp.Variable(pos=True)
         t = cp.Parameter()
+        # Must call the returned sublevel_set function  that is where
+        # the TypeError was raised when t.value is None
+        fns = length_sub(cp.norm(x), t)
+        sublevel_set = fns[0]
         try:
-            length_sub(cp.norm(x), t)
-        except TypeError:
-            self.fail("length_sub raised TypeError with None t.value")
+            sublevel_set()
+        except TypeError as e:
+            self.fail(
+                f"sublevel_set raised TypeError with None t.value: {e}"
+            )
         t.value = 2.0
         try:
             length_sub(cp.norm(x), t)
