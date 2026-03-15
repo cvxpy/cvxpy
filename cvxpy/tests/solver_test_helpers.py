@@ -1491,3 +1491,160 @@ class StandardTestPCPs:
         sth.check_primal_feasibility(places)
         sth.verify_primal_values(places)
         return sth
+
+
+class StandardTestInfeasibleProblems:
+
+    @staticmethod
+    def verify_post_solve_guarantees(prob: cp.Problem):
+
+        # Problem status is infeasible.
+        assert prob.status == "infeasible"
+        assert prob.solution.status == "infeasible"
+
+        # Problem value is +/- inf.
+        prob_value = float("inf") if isinstance(prob.objective, cp.Minimize) else -float("inf")
+        assert prob.value == prob_value
+        assert prob.solution.opt_val == prob_value
+
+        # Variable values are None.
+        for v in prob.var_dict.values():
+            assert v.value is None
+
+        # Constraint dual variables exist and are consistent through Problem object structure.
+        for c in prob.constraints:
+            assert c.dual_value is not None
+
+            # Scalar / array-valued duals (e.g., NonPos, PSD).
+            if not isinstance(c.dual_value, (list, tuple)):
+                np.testing.assert_array_equal(c.dual_value, c.dual_variables[0].value)
+
+                solution_dual = prob.solution.dual_vars[c.id]
+                np.testing.assert_array_equal(c.dual_value, solution_dual)
+
+            # Composite duals (e.g., SOC, ExpCone, PowCone3D).
+            else:
+                assert len(c.dual_value) == len(c.dual_variables)
+                for dv, dv_var in zip(c.dual_value, c.dual_variables):
+                    assert dv is not None
+                    np.testing.assert_array_equal(dv, dv_var.value)
+
+                # Note: prob.solution.dual_vars[c.id] looks like it's still in flattened form.
+                # Unsure whether this is a deliberate choice; leave it out of the assertions.
+
+        # TODO: Assertions for dual variables for constraints specified via Variables attributes,
+        #  e.g., nonneg, bounds. First need to propagate these through the solver chain and store
+        #  them somewhere.
+
+    @classmethod
+    def test_lp(cls, solver: str):
+        A = np.array([[1, 2], [3, 4], [5, 6]])
+        b = np.array([1, 0, -1])
+        x = cp.Variable(2, nonneg=True)
+
+        prob = cp.Problem(
+            objective=cp.Minimize(0),
+            constraints=[A @ x <= b]
+        )
+
+        prob.solve(solver=solver)
+        cls.verify_post_solve_guarantees(prob)
+
+        # The infeasibility certificate is a Farkas certificate, y, satisfying
+        # y >= 0, A.T @ y >= 0, b.T @ y < 0
+        y = prob.constraints[0].dual_value
+        np.testing.assert_array_less(0, y)
+        np.testing.assert_array_less(0, A.T @ y)
+        assert b.T @ y < 0
+
+    @classmethod
+    def test_soc(cls, solver: str):
+        x = cp.Variable(2)
+
+        prob = cp.Problem(
+            objective=cp.Minimize(0),
+            constraints=[cp.SOC(-1, x)]
+        )
+
+        prob.solve(solver=solver)
+        cls.verify_post_solve_guarantees(prob)
+
+    @classmethod
+    def test_power_cone_3d(cls, solver: str):
+        z = cp.Variable()
+
+        prob = cp.Problem(
+            objective=cp.Minimize(0),
+            constraints=[cp.PowCone3D(-1, 1, z, alpha=0.5)]
+        )
+
+        prob.solve(solver=solver)
+        cls.verify_post_solve_guarantees(prob)
+
+    @classmethod
+    def test_power_cone_nd(cls, solver: str):
+        x = cp.Variable(3)
+        z = cp.Variable()
+
+        prob = cp.Problem(
+            objective=cp.Minimize(0),
+            constraints=[
+                cp.PowConeND(x, z, alpha=np.array([0.2, 0.3, 0.5])),
+                x == np.ones(3),
+                z == 2.0,
+            ]
+        )
+
+        prob.solve(solver=solver)
+        cls.verify_post_solve_guarantees(prob)
+
+    @classmethod
+    def test_exp_cone(cls, solver: str):
+        x = cp.Variable()
+        y = cp.Variable()
+        z = cp.Variable()
+
+        prob = cp.Problem(
+            objective=cp.Minimize(0),
+            constraints=[
+                cp.ExpCone(x, y, z),
+                x == 1,
+                y == 1,
+                z == 1,
+            ]
+        )
+
+        prob.solve(solver=solver)
+        cls.verify_post_solve_guarantees(prob)
+
+    @classmethod
+    def test_psd_cone(cls, solver: str):
+        X = cp.Variable((2, 2))
+
+        prob = cp.Problem(
+            objective=cp.Minimize(0),
+            constraints=[
+                X >> 0,
+                X[0, 0] == -1,
+            ]
+        )
+
+        prob.solve(solver=solver)
+        cls.verify_post_solve_guarantees(prob)
+
+    @classmethod
+    def test_soc_exp_mixed(cls, solver: str):
+        x = cp.Variable()
+        y = cp.Variable()
+
+        prob = cp.Problem(
+            objective=cp.Maximize(0),
+            constraints=[
+                x == y,
+                cp.SOC(x, cp.hstack([1])),  # => x >= 1
+                cp.ExpCone(x, y, 1),  # => x <= 0
+            ],
+        )
+
+        prob.solve(solver=solver)
+        cls.verify_post_solve_guarantees(prob)
