@@ -238,8 +238,8 @@ def set_matrix_data(linC, linPy) -> None:
         # scipy 1.17.0 may return non-contiguous arrays from sparse conversions.
         linC.set_sparse_data(
             np.ascontiguousarray(coo.data),
-            np.ascontiguousarray(coo.row, dtype=float),
-            np.ascontiguousarray(coo.col, dtype=float),
+            np.ascontiguousarray(coo.row, dtype=np.int32),
+            np.ascontiguousarray(coo.col, dtype=np.int32),
             coo.shape[0],
             coo.shape[1],
         )

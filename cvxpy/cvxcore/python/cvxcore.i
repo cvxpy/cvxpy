@@ -32,9 +32,9 @@
 %apply (double* IN_FARRAY2, int DIM1, int DIM2) {(double* matrix, int rows, int cols)};
 
 /* Typemap for the addSparseData C++ routine in LinOp.hpp */
-%apply (double* INPLACE_ARRAY1, int DIM1) {(double *data, int data_len),
-	(double *row_idxs, int rows_len),
-	(double *col_idxs, int cols_len)};
+%apply (double* INPLACE_ARRAY1, int DIM1) {(double *data, int data_len)};
+%apply (int* INPLACE_ARRAY1, int DIM1) {(int *row_idxs, int rows_len),
+	(int *col_idxs, int cols_len)};
 
 %include "LinOp.hpp"
 %include "Utils.hpp"
@@ -42,7 +42,7 @@
 /* Typemap for the getV, getI, getJ, and getConstVec C++ routines in
 	 problemData.hpp */
 %apply (double* ARGOUT_ARRAY1, int DIM1) {(double* values, int num_values)}
-%apply (long long* ARGOUT_ARRAY1, int DIM1) {(long long* values, int num_values)}
+%apply (int* ARGOUT_ARRAY1, int DIM1) {(int* values, int num_values)}
 %include "ProblemData.hpp"
 
 /* Useful wrappers for the LinOp class */

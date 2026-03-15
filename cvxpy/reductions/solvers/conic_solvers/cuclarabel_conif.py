@@ -192,7 +192,7 @@ class CUCLARABEL(ConicSolver):
         jl.A = pyext.cupy_to_cucsrmat(
                 jl.Float64, int(Agpu.data.data.ptr), int(Agpu.indices.data.ptr),
                 int(Agpu.indptr.data.ptr), *Agpu.shape, Agpu.nnz)
-        jl.b = jl.Clarabel.cupy_to_cuvector(jl.Float64, int(bgpu.data.ptr), bgpu.size)
+        jl.b = pyext.cupy_to_cuvector(jl.Float64, int(bgpu.data.ptr), bgpu.size)
 
         # Fix Ruff F841 by using the data directly in the call
         dims_to_solver_cones(jl, data[ConicSolver.DIMS])
