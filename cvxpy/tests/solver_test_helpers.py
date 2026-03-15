@@ -1494,6 +1494,14 @@ class StandardTestPCPs:
 
 
 class StandardTestInfeasibleProblems:
+    """
+    Tests the behaviour of infeasible problems for several problem examples covering the main cone
+    constraints (SOC, ExpCone, etc.). In particular, checks that dual variables have been set.
+
+    `test_lp` is the only method that verifies that the dual variables hold a valid infeasibility
+    certificate, while the others simply check that the dual variables are non-None (probably
+    could be strengthened).
+    """
 
     @staticmethod
     def verify_post_solve_guarantees(prob: cp.Problem):
