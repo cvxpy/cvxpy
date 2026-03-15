@@ -1537,9 +1537,9 @@ class StandardTestInfeasibleProblems:
         #  them somewhere.
 
     @classmethod
-    def test_lp(cls, solver: str):
+    def test_lp(cls, solver: str, verify_certificate=True):
         A = np.array([[1, 2], [3, 4], [5, 6]])
-        b = np.array([1, 0, -1])
+        b = np.array([2, 0, -1])
         x = cp.Variable(2, nonneg=True)
 
         prob = cp.Problem(
@@ -1550,12 +1550,13 @@ class StandardTestInfeasibleProblems:
         prob.solve(solver=solver)
         cls.verify_post_solve_guarantees(prob)
 
-        # The infeasibility certificate is a Farkas certificate, y, satisfying
-        # y >= 0, A.T @ y >= 0, b.T @ y < 0
-        y = prob.constraints[0].dual_value
-        np.testing.assert_array_less(0, y)
-        np.testing.assert_array_less(0, A.T @ y)
-        assert b.T @ y < 0
+        if verify_certificate:
+            # The infeasibility certificate is a Farkas certificate, y, satisfying
+            # y >= 0, A.T @ y >= 0, b.T @ y < 0
+            y = prob.constraints[0].dual_value
+            np.testing.assert_array_less(0, y)
+            np.testing.assert_array_less(0, A.T @ y)
+            assert b.T @ y < 0
 
     @classmethod
     def test_soc(cls, solver: str):

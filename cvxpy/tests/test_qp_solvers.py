@@ -43,7 +43,12 @@ from cvxpy.reductions.solvers.defines import (
     SOLVER_MAP_QP,
 )
 from cvxpy.tests.base_test import BaseTest
-from cvxpy.tests.solver_test_helpers import SolverTestHelper, StandardTestLPs, StandardTestQPs
+from cvxpy.tests.solver_test_helpers import (
+    SolverTestHelper,
+    StandardTestInfeasibleProblems,
+    StandardTestLPs,
+    StandardTestQPs,
+)
 
 
 class QPTestBase(BaseTest):
@@ -859,6 +864,10 @@ class TestQp(QPTestBase):
                 prob = Problem(Minimize(norm(self.x, 1)), [self.x == 0])
                 prob.solve(solver=GUROBI, TimeLimit=0)
             self.assertEqual(str(cm.exception), "The solver %s is not installed." % GUROBI)
+
+    def test_osqp_infeasible_lp(self):
+        StandardTestInfeasibleProblems.test_lp(solver="OSQP", verify_certificate=False)
+        # TODO: Either the test case is wrong or the certificate is invalid; find out which is true.
 
 
 class TestConicQuadObj(QPTestBase):

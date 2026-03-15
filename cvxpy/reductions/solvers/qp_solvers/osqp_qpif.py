@@ -54,31 +54,32 @@ class OSQP(QpSolver):
         status_map = self.STATUS_MAP_PRE_V1 if is_pre_v1 else self.STATUS_MAP
         status = status_map.get(solution.info.status_val, s.SOLVER_ERROR)
 
+        # Build dual vars dict keyed by constraint IDs
+        # OSQP returns y as [eq_duals; ineq_duals]
+        y = solution.y
+        n_eq = inverse_data[self.DIMS].zero
+        eq_dual = utilities.get_dual_values(
+            y[:n_eq],
+            utilities.extract_dual_value,
+            inverse_data[self.EQ_CONSTR])
+        ineq_dual = utilities.get_dual_values(
+            y[n_eq:],
+            utilities.extract_dual_value,
+            inverse_data[self.NEQ_CONSTR])
+        dual_vars = {}
+        dual_vars.update(eq_dual)
+        dual_vars.update(ineq_dual)
+
         if status in s.SOLUTION_PRESENT:
             opt_val = solution.info.obj_val + inverse_data[s.OFFSET]
             primal_vars = {
                 OSQP.VAR_ID:
                 intf.DEFAULT_INTF.const_to_matrix(np.array(solution.x))
             }
-            # Build dual vars dict keyed by constraint IDs
-            # OSQP returns y as [eq_duals; ineq_duals]
-            y = solution.y
-            n_eq = inverse_data[self.DIMS].zero
-            eq_dual = utilities.get_dual_values(
-                y[:n_eq],
-                utilities.extract_dual_value,
-                inverse_data[self.EQ_CONSTR])
-            ineq_dual = utilities.get_dual_values(
-                y[n_eq:],
-                utilities.extract_dual_value,
-                inverse_data[self.NEQ_CONSTR])
-            dual_vars = {}
-            dual_vars.update(eq_dual)
-            dual_vars.update(ineq_dual)
             attr[s.NUM_ITERS] = solution.info.iter
             sol = Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
-            sol = failure_solution(status, attr)
+            sol = failure_solution(status, attr, dual_vars)
         return sol
 
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts,
