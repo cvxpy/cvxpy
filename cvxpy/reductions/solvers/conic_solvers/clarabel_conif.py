@@ -285,18 +285,21 @@ class CLARABEL(ConicSolver):
         # more detailed statistics here when available
         # attr[s.EXTRA_STATS] = solution.extra.FOO
 
-        zero_idx = inverse_data[ConicSolver.DIMS].zero
-        eq_dual_vars = utilities.get_dual_values(
-            solution.z[:zero_idx],
-            self.extract_dual_value,
-            inverse_data[self.EQ_CONSTR]
-        )
-        ineq_dual_vars = utilities.get_dual_values(
-            solution.z[zero_idx:],
-            self.extract_dual_value,
-            inverse_data[self.NEQ_CONSTR]
-        )
-        dual_vars = eq_dual_vars | ineq_dual_vars
+        if solution.z is not None:
+            zero_idx = inverse_data[ConicSolver.DIMS].zero
+            eq_dual_vars = utilities.get_dual_values(
+                solution.z[:zero_idx],
+                self.extract_dual_value,
+                inverse_data[self.EQ_CONSTR]
+            )
+            ineq_dual_vars = utilities.get_dual_values(
+                solution.z[zero_idx:],
+                self.extract_dual_value,
+                inverse_data[self.NEQ_CONSTR]
+            )
+            dual_vars = eq_dual_vars | ineq_dual_vars
+        else:
+            dual_vars = {}
 
         if status in s.SOLUTION_PRESENT:
             primal_val = solution.obj_val
