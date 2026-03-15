@@ -1278,7 +1278,6 @@ class TestExpressions(BaseTest):
  
     def test_rpow(self) -> None:
         """Test Expression.__rpow__ for expressions of the form a**x."""
-        import numpy as np
         x = Variable()
 
         # Test 1: basic expression is created correctly
