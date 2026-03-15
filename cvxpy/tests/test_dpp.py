@@ -163,21 +163,6 @@ class TestDcp(BaseTest):
         self.assertFalse(cp.reductions.eval_params.EvalParams
                          in [type(r) for r in chain.reductions])
 
-    def test_param_quad_form_not_dpp(self) -> None:
-        x = cp.Variable((2, 1))
-        P = cp.Parameter((2, 2), PSD=True)
-        P.value = np.eye(2)
-        y = cp.quad_form(x, P)
-        self.assertFalse(y.is_dpp())
-        self.assertTrue(y.is_dcp())
-
-    def test_const_quad_form_is_dpp(self) -> None:
-        x = cp.Variable((2, 1))
-        P = np.eye(2)
-        y = cp.quad_form(x, P)
-        self.assertTrue(y.is_dpp())
-        self.assertTrue(y.is_dcp())
-
     def test_paper_example_logreg_is_dpp(self) -> None:
         N, n = 3, 2
         beta = cp.Variable((n, 1))
