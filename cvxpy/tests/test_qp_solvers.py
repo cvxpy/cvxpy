@@ -866,10 +866,16 @@ class TestQp(QPTestBase):
             self.assertEqual(str(cm.exception), "The solver %s is not installed." % GUROBI)
 
     def test_osqp_infeasible_lp_ineq_constraints(self):
-        StandardTestInfeasibleProblems.test_lp_ineq_constraints(solver="OSQP")
+        StandardTestInfeasibleProblems.test_lp_ineq_constraints(solver=cp.OSQP)
 
     def test_osqp_infeasible_lp_eq_constraints(self):
-        StandardTestInfeasibleProblems.test_lp_eq_constraints(solver="OSQP")
+        StandardTestInfeasibleProblems.test_lp_eq_constraints(solver=cp.OSQP)
+
+    def test_highs_infeasible_lp_ineq_constraints(self):
+        StandardTestInfeasibleProblems.test_lp_ineq_constraints(solver=cp.HIGHS)
+
+    def test_highs_infeasible_lp_eq_constraints(self):
+        StandardTestInfeasibleProblems.test_lp_eq_constraints(solver=cp.HIGHS)
 
 
 class TestConicQuadObj(QPTestBase):

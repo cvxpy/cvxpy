@@ -194,7 +194,17 @@ class HIGHS(ConicSolver):
             )
             sol = Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
-            sol = failure_solution(status, attr)
+            if status == s.INFEASIBLE:
+                dual_ray = -np.array(results["dual_ray"][2])
+                dual_vars = utilities.get_dual_values(
+                    dual_ray,
+                    utilities.extract_dual_value,
+                    inverse_data[HIGHS.EQ_CONSTR] + inverse_data[HIGHS.NEQ_CONSTR])
+            else:
+                # E.g., could be UNBOUNDED. Later we might propagate the primal ray for unbounded
+                # problems.
+                dual_vars = {}
+            sol = failure_solution(status, attr, dual_vars)
         return sol
 
     def solve_via_data(
@@ -329,6 +339,8 @@ class HIGHS(ConicSolver):
                 "model_status": solver.getModelStatus().name,
                 "run_time": solver.getRunTime(),
             }
+            if results["model_status"] == "kInfeasible":
+                results["dual_ray"] = solver.getDualRay()
         except ValueError as e:
             raise SolverError(e)
 
