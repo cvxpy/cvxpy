@@ -415,8 +415,8 @@ class TestComplex(BaseTest):
         P_nsd = -P
         x_nsd = cp.Variable(3, complex=True)
         expr_nsd = cp.quad_form(x_nsd, P_nsd)
-        prob = cp.Problem(cp.Maximize(cp.real(expr_nsd)), [cp.norm(x_nsd) <= 1])
-        prob.solve (solver="CLARABEL")
+        prob = cp.Problem(cp.Maximize(expr_nsd), [cp.norm(x_nsd) <= 1])
+        prob.solve(solver="CLARABEL")
         self.assertEqual(prob.status, cp.OPTIMAL)
 
     def test_matrix_frac(self) -> None:
