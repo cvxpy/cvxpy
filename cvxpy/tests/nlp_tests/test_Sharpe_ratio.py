@@ -29,13 +29,13 @@ class TestSharpeRatio():
     def test_formulation_one(self):
         n = 100
         Sigma = np.random.rand(n, n)
-        Sigma = Sigma @ Sigma.T  
+        Sigma = Sigma @ Sigma.T
         mu = np.random.rand(n, )
 
         x = cp.Variable((n, ), nonneg=True)
 
         # This type of initialization makes ipopt muich more robust.
-        # With no initialization it sometimes fails. Perhaps this is 
+        # With no initialization it sometimes fails. Perhaps this is
         # because we initialize in a very infeasible point?
         x.value = np.ones(n) / n
 

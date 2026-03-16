@@ -395,7 +395,7 @@ class Slacks:
 
         # Extend lower and upper bounds to cover slack variables.
         num_vars = G.shape[1]
-        data[s.LOWER_BOUNDS] = Slacks.extend_bounds(num_vars, prob.lower_bounds, -np.inf) 
+        data[s.LOWER_BOUNDS] = Slacks.extend_bounds(num_vars, prob.lower_bounds, -np.inf)
         data[s.UPPER_BOUNDS] = Slacks.extend_bounds(num_vars, prob.upper_bounds, np.inf)
 
         inv_data = dict()
@@ -408,13 +408,13 @@ class Slacks:
 
     @staticmethod
     def extend_bounds(
-        num_vars: int, 
-        bounds_vector: Optional[np.ndarray], 
+        num_vars: int,
+        bounds_vector: Optional[np.ndarray],
         fill_value: float
     ) -> np.ndarray:
         """Extend the bounds vector to be length num_vars, filling with fill_value."""
         if bounds_vector is None:
-            return np.full(num_vars, fill_value) 
+            return np.full(num_vars, fill_value)
         
         new_vars = num_vars - bounds_vector.size
         new_bounds = np.full(new_vars, -np.inf)

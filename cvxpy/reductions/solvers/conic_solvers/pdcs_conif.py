@@ -116,7 +116,7 @@ class PDCS(ConicSolver):
             Control the verbosity.
         solver_opts : dict
             PDCS-specific solver options.
-            Options can be passed in Python-native types (bool, int, float, str, etc.); 
+            Options can be passed in Python-native types (bool, int, float, str, etc.);
             booleans will be converted to "true"/"false" strings for Julia automatically.
 
         Returns

@@ -26,7 +26,6 @@ from cvxpy.constraints import (
     ExpCone,
     Inequality,
     NonNeg,
-    NonPos,
     PowCone3D,
     PowConeND,
     Zero,
@@ -51,7 +50,6 @@ from cvxpy.reductions.utilities import (
     group_constraints,
     lower_equality,
     lower_ineq_to_nonneg,
-    nonpos2nonneg,
 )
 from cvxpy.utilities.coeff_extractor import CoeffExtractor
 
@@ -107,7 +105,7 @@ class ConeDims:
             pnd = np.concatenate(alphas).tolist()
         self.pnd = pnd
 
-    def __repr__(self) -> str: 
+    def __repr__(self) -> str:
         return "(zero: {0}, nonneg: {1}, exp: {2}, soc: {3}, psd: {4}, p3d: {5}, pnd: {6})".format(
             self.zero, self.nonneg, self.exp, self.soc, self.psd, self.p3d, self.pnd)
 
@@ -389,8 +387,6 @@ class ConeMatrixStuffing(MatrixStuffing):
                 con = lower_equality(con)
             elif isinstance(con, Inequality):
                 con = lower_ineq_to_nonneg(con)
-            elif isinstance(con, NonPos):
-                con = nonpos2nonneg(con)
             elif isinstance(con, SOC) and con.axis == 1:
                 con = SOC(con.args[0], con.args[1].T, axis=0,
                           constr_id=con.constr_id)

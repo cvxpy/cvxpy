@@ -33,26 +33,26 @@ class TestNonsmoothNontrivial():
         beta_true = 5 * np.random.normal(size=(n, 1))
         X = np.random.randn(n, SAMPLES)
         Y = np.zeros((SAMPLES, 1))
-        v = np.random.normal(size=(SAMPLES, 1)) 
+        v = np.random.normal(size=(SAMPLES, 1))
         TESTS = 5
         p_vals = np.linspace(0, 0.15, num=TESTS)
         for idx, p in enumerate(p_vals):
             # generate the sign changes.
             factor = 2 * np.random.binomial(1, 1 - p, size=(SAMPLES, 1)) - 1
-            Y = factor * X.T.dot(beta_true) + v 
+            Y = factor * X.T.dot(beta_true) + v
 
             # form problem
             beta = cp.Variable((n, 1))
             cost = cp.sum(cp.huber(X.T @ beta - Y, 1))
-            prob = cp.Problem(cp.Minimize(cost))    
+            prob = cp.Problem(cp.Minimize(cost))
 
             # solve using NLP solver
             prob.solve(nlp=True, solver=cp.IPOPT, verbose=False)
-            nlp_value = prob.value  
+            nlp_value = prob.value
 
             # solve using conic solver
             prob.solve()
-            conic_value = prob.value    
+            conic_value = prob.value
             assert(np.abs(nlp_value - conic_value) <= 1e-4)
 
             checker = DerivativeChecker(prob)
