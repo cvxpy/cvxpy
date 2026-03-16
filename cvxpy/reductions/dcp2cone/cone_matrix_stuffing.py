@@ -88,7 +88,7 @@ class ConeDims:
         self.nonneg = int(sum(c.size for c in constr_map[NonNeg]))
         self.exp = int(sum(c.num_cones() for c in constr_map[ExpCone]))
         self.soc = [int(dim) for c in constr_map[SOC] for dim in c.cone_sizes()]
-        self.psd = [int(c.shape[0]) for c in constr_map[PSD]]
+        self.psd = [int(dim) for c in constr_map[PSD] for dim in c.cone_sizes()]
         p3d = []
         if constr_map[PowCone3D]:
             p3d = np.concatenate([c.alpha.value for c in constr_map[PowCone3D]]).tolist()
@@ -472,18 +472,30 @@ class ConeMatrixStuffing(MatrixStuffing):
         if solution.status not in s.ERROR and not inverse_data.minimize:
             opt_val = -solution.opt_val
 
-        primal_vars, dual_vars = {}, {}
+        # Remap dual variables if dual exists (problem is convex).
+        dual_vars = {}
+        if solution.dual_vars is not None:
+            for old_con, new_con in con_map.items():
+                con_obj = inverse_data.id2cons[old_con]
+                shape = con_obj.shape
+                dual_value = solution.dual_vars.get(new_con)
+                # TODO rationalize Exponential.
+                if dual_value is not None:
+                    if shape == () or isinstance(con_obj, (ExpCone, SOC)):
+                        dual_vars[old_con] = dual_value
+                    else:
+                        dual_vars[old_con] = np.reshape(dual_value, shape, order="F")
+
+        primal_vars = {}
         if solution.status not in s.SOLUTION_PRESENT:
-            return Solution(solution.status, opt_val, primal_vars, dual_vars,
-                            solution.attr)
+            return Solution(solution.status, opt_val, primal_vars, dual_vars, solution.attr)
 
         # Split vectorized variable into components.
         x_opt = list(solution.primal_vars.values())[0]
         for var_id, offset in var_map.items():
             shape = inverse_data.var_shapes[var_id]
             size = np.prod(shape, dtype=int)
-            primal_vars[var_id] = np.reshape(x_opt[offset:offset+size], shape,
-                                             order='F')
+            primal_vars[var_id] = np.reshape(x_opt[offset: offset + size], shape, order="F")
 
         # Remap dual variables if dual exists (problem is convex).
         if solution.dual_vars is not None:
@@ -491,7 +503,8 @@ class ConeMatrixStuffing(MatrixStuffing):
                 con_obj = inverse_data.id2cons[old_con]
                 shape = con_obj.shape
                 # TODO rationalize Exponential.
-                if shape == () or isinstance(con_obj, (ExpCone, SOC)):
+                if shape == () or isinstance(con_obj, (ExpCone, SOC)) or \
+                        (isinstance(con_obj, PSD) and con_obj.num_cones() > 1):
                     dual_vars[old_con] = solution.dual_vars[new_con]
                 else:
                     dual_vars[old_con] = np.reshape(

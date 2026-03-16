@@ -137,7 +137,7 @@ def quantum_rel_entr_canon(expr: quantum_rel_entr,
     """
     no_imag = all(ia is None for ia in imag_args)
     if no_imag:
-        return expr.copy(real_args)
+        return expr.copy(real_args), None
     assert all(ra is not None for ra in real_args)
     expanded_X = expand_complex(real_args[0], imag_args[0])
     expanded_Y = expand_complex(real_args[1], imag_args[1])
