@@ -3350,3 +3350,25 @@ class TestCUOPT(unittest.TestCase):
 
     def test_cuopt_qp_0(self) -> None:
         StandardTestQPs.test_qp_0(solver="CUOPT", **TestCUOPT.kwargs, time_limit=5)
+
+
+@pytest.mark.parametrize("solver", INSTALLED_SOLVERS)
+def test_offset_in_opt_val(solver):
+    """Solvers must add the constant OFFSET back in invert().
+
+    partial_optimize uses prob._solution.opt_val directly, so a missing
+    OFFSET causes it to return the wrong value.  A large constant in the
+    objective makes the error obvious.
+    """
+    import cvxpy.interface.matrix_utilities as mu
+    from cvxpy.transforms.partial_optimize import partial_optimize
+    x = cp.Variable()
+    t = cp.Variable()
+    inner = cp.Problem(cp.Minimize(t + 1000), [t >= x])
+    try:
+        f = partial_optimize(inner, opt_vars=[t], solver=solver)
+        x.value = 0.0
+        f.value
+    except cp.error.SolverError:
+        pytest.skip(f"Solver {solver} cannot solve this problem")
+    assert abs(f.value - 1000.0) < 1e-2
