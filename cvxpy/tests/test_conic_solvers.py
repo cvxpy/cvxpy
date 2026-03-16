@@ -44,6 +44,7 @@ from cvxpy.tests.solver_test_helpers import (
     StandardTestSDPs,
     StandardTestSOCPs,
 )
+from cvxpy.transforms.partial_optimize import partial_optimize
 from cvxpy.utilities.versioning import Version
 
 
@@ -3360,8 +3361,7 @@ def test_offset_in_opt_val(solver):
     OFFSET causes it to return the wrong value.  A large constant in the
     objective makes the error obvious.
     """
-    import cvxpy.interface.matrix_utilities as mu
-    from cvxpy.transforms.partial_optimize import partial_optimize
+
     x = cp.Variable()
     t = cp.Variable()
     inner = cp.Problem(cp.Minimize(t + 1000), [t >= x])
