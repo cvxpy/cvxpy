@@ -317,3 +317,25 @@ class TestNonOptimal(BaseTest):
             prob.solve(solver=cp.SCS, use_quad_obj=False)
         assert "indefinite" in str(exc_info.value)
         assert "PSD" in str(exc_info.value)
+
+    def test_quad_form_monotonicity_in_x(self) -> None:
+        """Test DCP compositions requiring correct quad_form monotonicity in x."""
+        P = np.array([[2.0, 0.5], [0.5, 1.0]])
+
+        # x = square(z) is convex nonneg; quad_form nondecreasing in nonneg x → convex.
+        z = cp.Variable(2, nonneg=True)
+        assert cp.quad_form(cp.square(z), P).is_convex()
+
+        # x = square(z) - 1 is convex but can be negative; monotonicity unknown → not DCP.
+        assert not cp.quad_form(cp.square(z) - 1, P).is_convex()
+
+    def test_quad_form_monotonicity_in_P(self) -> None:
+        """Test DCP with P as a convex expression of a variable."""
+        y = cp.Variable(2, nonneg=True)
+        P = cp.diag(cp.square(y))
+
+        # Nonneg x: quad_form is nondecreasing in P, so convex ∘ nondecreasing = convex.
+        assert cp.quad_form(np.array([1.0, 2.0]), P).is_convex()
+
+        # Mixed-sign x: monotonicity unknown, so not DCP-convex.
+        assert not cp.quad_form(np.array([1.0, -2.0]), P).is_convex()

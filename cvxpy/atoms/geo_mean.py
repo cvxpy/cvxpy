@@ -309,6 +309,10 @@ class GeoMean(Atom):
         """
         return True
 
+    def is_atom_smooth(self) -> bool:
+        """Is the atom smooth?"""
+        return True
+
     def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
         """

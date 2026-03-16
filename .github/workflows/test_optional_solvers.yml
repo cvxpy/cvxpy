@@ -63,5 +63,7 @@ jobs:
     env:
       RUNNER_OS: ${{ matrix.os }}
       PYTHON_VERSION: 3.12
+      MOSEK_CI_BASE64: ${{ secrets.MOSEK_CI_BASE64 }}
       KNITRO_LICENSE: ${{ secrets.KNITRO_LICENSE }}
+      FURY_TOKEN: ${{ secrets.FURY_TOKEN }}
       MOREAU_LICENSE_KEY: ${{ secrets.MOREAU_KEY }}

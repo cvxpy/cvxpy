@@ -130,3 +130,4 @@ class maximum(Elementwise):
             grad_list += [maximum.elemwise_grad_to_diag(grad_vals,
                                                         rows, cols)]
         return grad_list
+

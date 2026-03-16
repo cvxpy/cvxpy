@@ -144,9 +144,10 @@ class PowCone3D(Cone):
     def _dual_cone(self, *args):
         """Implements the dual cone of PowCone3D See Pg 85
         of the MOSEK modelling cookbook for more information"""
-        if args is None:
-            PowCone3D(self.dual_variables[0]/self.alpha, self.dual_variables[1]/(1-self.alpha),
-                      self.dual_variables[2], self.alpha)
+        if not args:
+            return PowCone3D(self.dual_variables[0]/self.alpha,
+                             self.dual_variables[1]/(1-self.alpha),
+                             self.dual_variables[2], self.alpha)
         else:
             # some assertions for verifying `args`
             args_shapes = [arg.shape for arg in args]
@@ -267,7 +268,7 @@ class PowConeND(Cone):
         z = Variable(self.z.shape)
         constr = [PowConeND(W, z, self.alpha, axis=self.axis)]
         obj = Minimize(norm2(hstack([W.flatten(order='F'), z.flatten(order='F')]) -
-                             hstack([self.W.flatten(order='F').value, 
+                             hstack([self.W.flatten(order='F').value,
                                      self.z.flatten(order='F').value])))
         problem = Problem(obj, constr)
         return problem.solve(solver='SCS', eps=1e-8)
@@ -292,7 +293,7 @@ class PowConeND(Cone):
                 args_ok = self.args[0].is_affine() and self.args[1].is_affine()
                 exps_ok = not isinstance(self.alpha, cvxtypes.parameter())
                 return args_ok and exps_ok
-        return True
+        return self.args[0].is_affine() and self.args[1].is_affine()
 
     def is_dgp(self, dpp: bool = False) -> bool:
         return False
@@ -318,7 +319,7 @@ class PowConeND(Cone):
     def _dual_cone(self, *args):
         """Implements the dual cone of PowConeND See Pg 85
         of the MOSEK modelling cookbook for more information"""
-        if args is None or args == ():
+        if not args:
             scaled_duals = self.dual_variables[0]/self.alpha
             return PowConeND(scaled_duals, self.dual_variables[1], self.alpha, axis=self.axis)
         else:

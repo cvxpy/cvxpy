@@ -156,7 +156,7 @@ class TestEinsum(BaseTest):
         with self.assertRaises(ValueError) as cm:
             cp.einsum('ij,jkl->ikl', A, E)  # j dimension mismatch
         self.assertIn(
-            "Size of label 'j' for operand 1 (5) does not match previous terms (4).", 
+            "Size of label 'j' for operand 1 (5) does not match previous terms (4).",
             str(cm.exception)
         )
 
@@ -214,7 +214,7 @@ class TestEinsum(BaseTest):
 
         # Test with a single argument with repeated dimensions
         D_var = cp.Variable(self.D_np.shape)
-        expr2 = cp.einsum('iji->i', D_var) 
+        expr2 = cp.einsum('iji->i', D_var)
         problem2 = cp.Problem(cp.Minimize(cp.sum(expr2)), [D_var == self.D_np])
         problem2.solve()
         result2 = expr2.value
@@ -223,7 +223,7 @@ class TestEinsum(BaseTest):
         self.assertItemsAlmostEqual(result2, expected_result2)
 
         # Test with repeated dimensions and multiple arguments
-        expr3 = cp.einsum('ijik,lkl->l', F, D) 
+        expr3 = cp.einsum('ijik,lkl->l', F, D)
         problem3 = cp.Problem(cp.Minimize(cp.sum(expr3)), [F == self.F_np])
         problem3.solve()
         result3 = expr3.value
@@ -232,7 +232,7 @@ class TestEinsum(BaseTest):
         self.assertItemsAlmostEqual(result3, expected_result3)
 
         # Test multi-argument einsum with compatible dimensions
-        expr4 = cp.einsum('ij,jkl->ikl', A, B) 
+        expr4 = cp.einsum('ij,jkl->ikl', A, B)
         problem4 = cp.Problem(cp.Minimize(cp.sum(expr4)), [A == self.A_np])
         problem4.solve()
         result4 = expr4.value
@@ -253,7 +253,7 @@ class TestEinsum(BaseTest):
 
         # Test einsum DPP
         C_const = cp.Constant(self.C_np)
-        expr6 = cp.einsum('ii,ijk,j,lil->ijl', A, B, C_const, D) 
+        expr6 = cp.einsum('ii,ijk,j,lil->ijl', A, B, C_const, D)
         problem6 = cp.Problem(cp.Minimize(cp.sum(expr6)), [A == self.A_np])
         self.assertEqual(problem6.is_dpp(), True)
         problem6.solve()

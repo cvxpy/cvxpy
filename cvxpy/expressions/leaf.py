@@ -116,8 +116,8 @@ class Leaf(expression.Expression):
         self._shape = shape
         super(Leaf, self).__init__()
 
-        if (PSD or NSD or symmetric or diag or hermitian) and (len(shape) != 2
-                                                               or shape[0] != shape[1]):
+        if (PSD or NSD or symmetric or diag or hermitian) and (len(shape) < 2
+                                                               or shape[-2] != shape[-1]):
             raise ValueError("Invalid dimensions %s. Must be a square matrix."
                              % (shape,))
 
@@ -262,6 +262,14 @@ class Leaf(expression.Expression):
 
     def is_concave(self) -> bool:
         """Is the expression concave?"""
+        return True
+
+    def is_linearizable_convex(self) -> bool:
+        """Is the expression convex after linearizing all smooth subexpressions?"""
+        return True
+
+    def is_linearizable_concave(self) -> bool:
+        """Is the expression concave after linearizing all smooth subexpressions?"""
         return True
 
     def is_log_log_convex(self) -> bool:
