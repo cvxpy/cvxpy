@@ -40,7 +40,8 @@ class Prod(AxisAtom):
         Whether to drop dimensions after summing.
     """
 
-    def __init__(self, expr, axis=None, keepdims: bool = False) -> None:
+    def __init__(self, expr, axis: None | int | tuple[int, ...] = None,
+                 keepdims: bool = False) -> None:
         super(Prod, self).__init__(expr, axis=axis, keepdims=keepdims)
 
     def sign_from_args(self) -> Tuple[bool, bool]:
@@ -68,6 +69,10 @@ class Prod(AxisAtom):
     def is_atom_log_log_concave(self) -> bool:
         """Is the atom log-log concave?
         """
+        return True
+
+    def is_atom_smooth(self) -> bool:
+        """Is the atom smooth?"""
         return True
 
     def is_incr(self, idx) -> bool:

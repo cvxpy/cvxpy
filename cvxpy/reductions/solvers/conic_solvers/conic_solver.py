@@ -116,11 +116,6 @@ class ConicSolver(Solver):
     # Whenever a solver uses this convention, EXP_CONE_ORDER should be [0, 1, 2].
     EXP_CONE_ORDER = None
 
-    def supports_quad_obj(self) -> bool:
-        """By default does not support a quadratic objective.
-        """
-        return False
-
     def accepts(self, problem):
         return (isinstance(problem, ParamConeProg)
                 and (self.MIP_CAPABLE or not problem.is_mixed_integer())
@@ -327,7 +322,7 @@ class ConicSolver(Solver):
         status = solution['status']
 
         if status in s.SOLUTION_PRESENT:
-            opt_val = solution['value']
+            opt_val = solution['value'] + inverse_data[s.OFFSET]
             primal_vars = {inverse_data[self.VAR_ID]: solution['primal']}
             eq_dual = utilities.get_dual_values(
                 solution['eq_dual'],

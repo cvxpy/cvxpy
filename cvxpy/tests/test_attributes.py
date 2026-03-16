@@ -136,7 +136,7 @@ class TestAttributes:
         assert np.allclose(X_value_sparse.toarray(), z)
 
     def test_infeasible_sparse(self):
-        # Create a sparse variable 
+        # Create a sparse variable
         x = cp.Variable(100, sparsity=(np.array([1, 15, 45, 67, 89]),))
         objective = cp.Minimize(cp.sum_squares(x))
 
@@ -250,6 +250,15 @@ class TestAttributes:
         x.value = val
         np.testing.assert_array_equal(x.value, val.astype(float), strict=True)
 
+    def test_cvx_attr2constr_invert_none_duals(self):
+        """CvxAttr2Constr.invert should not crash when dual_vars is None."""
+        x = cp.Variable(2, nonneg=True, integer=True)
+        prob = cp.Problem(cp.Minimize(cp.sum(x)), [x >= 1])
+        prob.solve(solver=cp.HIGHS)
+        assert prob.status == cp.OPTIMAL
+        np.testing.assert_allclose(x.value, [1, 1], atol=1e-5)
+
+
 class TestMultipleAttributes:
 
     def test_multiple_attributes(self) -> None:
@@ -305,14 +314,19 @@ class TestMultipleAttributes:
     
     def test_sparse_symmetric_variable(self) -> None:
         with pytest.raises(
-            ValueError, 
+            ValueError,
             match="A CVXPY Variable cannot have more than one of the following attributes"
         ):
             cp.Variable(shape=(2, 2), symmetric=True, sparsity=[(0, 1), (0, 1)])
 
     def test_sparse_bounded_variable(self) -> None:
+        import scipy.sparse as sp
+        rows, cols = np.array([0, 1]), np.array([0, 1])
+        lb_sparse = sp.coo_array(
+            (np.array([-1.5, -2.5]), (rows, cols)), shape=(2, 2)
+        )
         x = cp.Variable(shape=(2,2), sparsity=[(0,1),(0,1)],
-                        bounds=[np.array([[-1.5, -4], [-3, -2.5]]), 10])
+                        bounds=[lb_sparse, 10])
         prob = cp.Problem(cp.Minimize(cp.sum(x)), [])
         prob.solve()
         assert np.allclose(prob.value, -4)
@@ -359,7 +373,7 @@ class TestMultipleAttributes:
         # with pytest.raises(ValueError, match="Parameter value must be nonnegative."):
         #     p.value = -np.ones((2, 2))
         
-        # with pytest.raises(ValueError, 
+        # with pytest.raises(ValueError,
         #  match="Parameter value must be less than or equal to upper bound."):
         #     p.value = np.ones((2, 2)) * 15
     
@@ -386,7 +400,7 @@ class TestMultipleAttributes:
             
         # # Value out of sparsity pattern
         # p_value = np.ones((2, 2))
-        # with pytest.raises(ValueError, 
+        # with pytest.raises(ValueError,
         #  match="Parameter value must be zero outside of sparsity pattern."):
         #     p.value = p_value
     
@@ -406,8 +420,8 @@ class TestMultipleAttributes:
         
         # Set up and solve problem
         prob = cp.Problem(
-            cp.Minimize(cp.norm(x, 'fro')), 
-            [x[0, 0] == target[0, 0], 
+            cp.Minimize(cp.norm(x, 'fro')),
+            [x[0, 0] == target[0, 0],
             x[1, 1] == target[1, 1]]
         )
         prob.solve(solver=cp.CLARABEL)
@@ -485,3 +499,87 @@ class TestMultipleAttributes:
         assert z.__repr__() == (
             "Variable((10, 10), z, sparsity=[(0, 1), (0, 2)])"
         )
+
+
+class TestParameterDimReducingAttributes:
+    """Tests for parameters with dimension-reducing attributes."""
+
+    @staticmethod
+    def _param_size(prob):
+        return list(prob._cache.param_prog.param_id_to_size.values())
+
+    def test_sparse_parameter(self) -> None:
+        sparsity = [(0, 1), (1, 0)]
+        A = cp.Parameter((2, 2), sparsity=sparsity)
+        x = cp.Variable(2)
+        prob = cp.Problem(cp.Minimize(cp.sum(x)), [x >= cp.sum(A, axis=0)])
+
+        # Verify the parameter is detected as dim-reducing.
+        assert A._has_dim_reducing_attr
+        assert A._reduced_size == 2  # 2 nonzeros, not 4
+
+        assert prob.is_dpp()
+
+        A.value_sparse = sp.coo_array(
+            (np.array([3.0, 4.0]), sparsity), shape=(2, 2))
+        prob.solve(solver=cp.CLARABEL)
+        assert prob.status == cp.OPTIMAL
+        np.testing.assert_allclose(x.value, [4.0, 3.0], atol=1e-5)
+        # The cone program parameter vector uses the reduced size.
+        assert self._param_size(prob) == [2]  # 2 nonzeros, not 4
+
+        # DPP re-solve
+        A.value_sparse = sp.coo_array(
+            (np.array([10.0, 20.0]), sparsity), shape=(2, 2))
+        prob.solve(solver=cp.CLARABEL)
+        assert prob.status == cp.OPTIMAL
+        np.testing.assert_allclose(x.value, [20.0, 10.0], atol=1e-5)
+
+    def test_diag_parameter(self) -> None:
+        D = cp.Parameter((3, 3), diag=True)
+        x = cp.Variable(3)
+        prob = cp.Problem(cp.Minimize(cp.sum(x)), [x >= cp.diag(D)])
+
+        # Verify the parameter is detected as dim-reducing.
+        assert D._has_dim_reducing_attr
+        assert D._reduced_size == 3  # 3 diagonal entries, not 9
+
+        assert prob.is_dpp()
+
+        D.value = np.diag([1.0, 2.0, 3.0])
+        prob.solve(solver=cp.CLARABEL)
+        assert prob.status == cp.OPTIMAL
+        np.testing.assert_allclose(x.value, [1.0, 2.0, 3.0], atol=1e-5)
+        # The cone program parameter vector uses the reduced size.
+        assert self._param_size(prob) == [3]  # 3 diagonal, not 9
+
+        # DPP re-solve
+        D.value = np.diag([10.0, 20.0, 30.0])
+        prob.solve(solver=cp.CLARABEL)
+        assert prob.status == cp.OPTIMAL
+        np.testing.assert_allclose(x.value, [10.0, 20.0, 30.0], atol=1e-5)
+
+    def test_symmetric_parameter(self) -> None:
+        S = cp.Parameter((3, 3), symmetric=True)
+        x = cp.Variable((3, 3))
+        prob = cp.Problem(cp.Minimize(cp.sum(x)), [x >= S])
+
+        # Verify the parameter is detected as dim-reducing.
+        assert S._has_dim_reducing_attr
+        assert S._reduced_size == 6  # n*(n+1)/2 = 6, not 9
+
+        assert prob.is_dpp()
+
+        S.value = np.array([[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]])
+        prob.solve(solver=cp.CLARABEL)
+        assert prob.status == cp.OPTIMAL
+        np.testing.assert_allclose(x.value, S.value, atol=1e-5)
+        # The cone program parameter vector uses the reduced size.
+        assert self._param_size(prob) == [6]  # n*(n+1)/2 = 6, not 9
+
+        # DPP re-solve
+        S.value = np.array([[10.0, 20.0, 30.0], [20.0, 40.0, 50.0], [30.0, 50.0, 60.0]])
+        prob.solve(solver=cp.CLARABEL)
+        assert prob.status == cp.OPTIMAL
+        np.testing.assert_allclose(x.value, S.value, atol=1e-5)
+

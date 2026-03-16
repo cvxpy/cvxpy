@@ -19,6 +19,7 @@ from typing import Any, Callable, Iterator, Tuple
 
 import numpy as np
 import scipy.sparse as sp
+from numpy.lib.array_utils import normalize_axis_tuple
 
 from cvxpy.lin_ops import LinOp
 from cvxpy.lin_ops.backends.base import (
@@ -734,7 +735,11 @@ class SciPyCanonBackend(PythonCanonBackend):
         Internal function that computes the row indices corresponding to the sum
         along a specified axis.
         """
+        axis = normalize_axis_tuple(axis, len(shape))
         out_axes = np.isin(range(len(shape)), axis, invert=True)
+        if not np.any(out_axes):
+            # All axes summed — everything maps to row 0.
+            return np.zeros(np.prod(shape, dtype=int), dtype=int)
         out_idx = np.indices(shape)[out_axes]
         out_dims = np.array(shape)[out_axes]
         row_idx = np.ravel_multi_index(out_idx, dims=out_dims, order='F')
@@ -744,7 +749,7 @@ class SciPyCanonBackend(PythonCanonBackend):
         """
         Internal function that computes the sum coefficient matrix for a given shape and axis.
         """
-        axis = axis if isinstance(axis, tuple) else (axis,)
+        axis = normalize_axis_tuple(axis, len(shape))
         n = np.prod(shape, dtype=int)
         d = np.prod([shape[i] for i in axis], dtype=int)
         row_idx = self._get_sum_row_indices(shape, axis)
@@ -901,13 +906,27 @@ class SciPyCanonBackend(PythonCanonBackend):
         Select the rows corresponding to the diagonal entries in the expression and sum along
         axis 0.
         Apply kron(eye(p), lhs) to deal with parametrized expressions.
-        """
-        shape = lin.args[0].shape
-        indices = np.arange(shape[0]) * shape[0] + np.arange(shape[0])
 
-        data = np.ones(len(indices))
-        idx = (np.zeros(len(indices)), indices.astype(int))
-        lhs = sp.csr_array((data, idx), shape=(1, np.prod(shape)))
+        Supports ND inputs with shape (*batch, n, n), producing output shape (*batch,).
+        """
+        arg_shape = lin.args[0].shape
+        n = arg_shape[-1]
+        batch_size = int(np.prod(arg_shape[:-2])) if len(arg_shape) > 2 else 1
+        total_input = int(np.prod(arg_shape))
+        output_size = batch_size
+
+        # In F-order layout of (*batch_flat, n, n), diagonal entry (b, i, i)
+        # is at position b + batch_size * i * (n + 1).
+        # Each maps to output row b.
+        diag_offsets = np.arange(n) * (n + 1)  # i * (n + 1)
+        row_idx = np.tile(np.arange(batch_size), n)
+        col_idx = (np.repeat(diag_offsets, batch_size) * batch_size
+                   + np.tile(np.arange(batch_size), n))
+
+        lhs = sp.csr_array(
+            (np.ones(batch_size * n), (row_idx, col_idx)),
+            shape=(output_size, total_input)
+        )
 
         def func(x, p) -> sp.csc_array:
             if p == 1:
@@ -1029,7 +1048,7 @@ class SciPyCanonBackend(PythonCanonBackend):
         n = int(np.prod(shape))
         return {variable_id: {Constant.ID.value: sp.eye_array(n, format="csc")}}
 
-    def get_data_tensor(self, data: np.ndarray | sp.spmatrix) -> \
+    def get_data_tensor(self, data: np.ndarray | sp.sparray | sp.spmatrix | float) -> \
             dict[int, dict[int, sp.csr_array]]:
         """
         Returns tensor of constant node as a column vector.
@@ -1038,8 +1057,10 @@ class SciPyCanonBackend(PythonCanonBackend):
         if isinstance(data, np.ndarray):
             # Slightly faster compared to reshaping after casting
             tensor = sp.csr_array(data.reshape((-1, 1), order="F"))
+        elif np.isscalar(data):
+            tensor = sp.csr_array(np.array([[data]]))
         else:
-            tensor = sp.coo_matrix(data).reshape((-1, 1), order="F").tocsr()
+            tensor = sp.coo_array(data).reshape((-1, 1), order="F").tocsr()
         return {Constant.ID.value: {Constant.ID.value: tensor}}
 
     def get_param_tensor(self, shape: tuple[int, ...], parameter_id: int) -> \

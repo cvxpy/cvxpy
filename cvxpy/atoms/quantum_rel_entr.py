@@ -26,7 +26,7 @@ from cvxpy.constraints.constraint import Constraint
 
 class quantum_rel_entr(Atom):
     """
-    An approximation of the quantum relative entropy between systems with (possibly un-normalized) 
+    An approximation of the quantum relative entropy between systems with (possibly un-normalized)
     density matrices :math:`X` and :math`Y:`
      
     .. math::

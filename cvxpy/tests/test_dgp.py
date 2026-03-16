@@ -170,7 +170,7 @@ class TestDgp(BaseTest):
             [x == 2],
         )
         prob.solve()
-        self.assertEqual(prob.value, 2)
+        self.assertAlmostEqual(prob.value, 2)
 
     def test_geo_mean_scalar2(self) -> None:
         x = cvxpy.Variable(pos=True)
@@ -277,3 +277,114 @@ class TestDgp(BaseTest):
         prob = cvxpy.Problem(cvxpy.Minimize(cvxpy.sum(x)))
         prob.solve(gp=True)
         np.testing.assert_allclose(x.value, 0.5 * np.ones(3), atol=1e-4)
+
+    def test_sparse_variable_not_dgp(self) -> None:
+        """Test that sparse/diag + pos/neg variables are rejected at construction."""
+        rows = np.array([0, 1, 2])
+        cols = np.array([0, 1, 2])
+
+        # pos + sparsity
+        with self.assertRaises(ValueError):
+            cvxpy.Variable((3, 3), sparsity=(rows, cols), pos=True)
+
+        # neg + sparsity
+        with self.assertRaises(ValueError):
+            cvxpy.Variable((3, 3), sparsity=(rows, cols), neg=True)
+
+        # pos + diag
+        with self.assertRaises(ValueError):
+            cvxpy.Variable(3, diag=True, pos=True)
+
+        # neg + diag
+        with self.assertRaises(ValueError):
+            cvxpy.Variable(3, diag=True, neg=True)
+
+    def test_pnorm_scalar(self) -> None:
+        """Regression test: scalar DGP pnorm must canonicalize x, not the exponent p."""
+        # pnorm of a single positive scalar equals that scalar,
+        # so the minimum subject to x >= lb must be lb.
+        x = cvxpy.Variable(pos=True)
+        prob = cvxpy.Problem(cvxpy.Minimize(cvxpy.pnorm(x, p=2)), [x >= 2.5])
+        prob.solve(gp=True)
+        self.assertEqual(prob.status, cvxpy.OPTIMAL)
+        np.testing.assert_allclose(x.value, 2.5, atol=1e-4)
+
+        x = cvxpy.Variable(pos=True)
+        prob = cvxpy.Problem(cvxpy.Minimize(cvxpy.pnorm(x, p=3)), [x >= 4.0])
+        prob.solve(gp=True)
+        self.assertEqual(prob.status, cvxpy.OPTIMAL)
+        np.testing.assert_allclose(x.value, 4.0, atol=1e-4)
+
+    def test_dgp_sum_3d_axis(self) -> None:
+        """Test DGP sum canonicalizer on 3D with 2+ keep dimensions.
+
+        Uses non-uniform weights on sum(x, axis=1) in the objective so
+        element ordering matters.  A reshape-order bug would transpose
+        the canonical expression, multiplying wrong weights with wrong
+        sums and producing a different objective value.
+        """
+        # x shape (2, 3, 4), reduce axis=1 → output shape (2, 4)
+        x = cvxpy.Variable((2, 3, 4), pos=True)
+        c = np.random.RandomState(42).uniform(0.5, 2.0, (2, 3, 4))
+        s = cvxpy.sum(x, axis=1)  # shape (2, 4)
+
+        # Non-uniform weights — transposition changes which weight
+        # multiplies which sum element, altering the optimal value.
+        w = np.array([[1, 2, 3, 4],
+                      [5, 6, 7, 8]], dtype=float)
+
+        # Minimize weighted sum; at optimum x == c (tight lower bound).
+        prob = cvxpy.Problem(cvxpy.Minimize(cvxpy.sum(cvxpy.multiply(w, s))),
+                             [x >= c])
+        prob.solve(gp=True)
+
+        expected_s = np.sum(c, axis=1)  # shape (2, 4)
+        expected_obj = float(np.sum(w * expected_s))
+        self.assertAlmostEqual(prob.value, expected_obj, places=2)
+
+    def test_dgp_pnorm_3d_axis(self) -> None:
+        """Test DGP pnorm canonicalizer on 3D with 2+ keep dimensions.
+
+        Constrains x == c so the pnorm result is deterministic, then
+        checks that the objective value matches the expected pnorm.
+        Because pnorm(x, axis=1) appears in the objective (not just
+        as a .value query), element ordering matters.
+        """
+        x = cvxpy.Variable((2, 3, 4), pos=True)
+        c = np.random.RandomState(43).uniform(0.5, 2.0, (2, 3, 4))
+
+        # axis=1, p=2: reduce middle axis, output shape (2, 4)
+        pn = cvxpy.pnorm(x, p=2, axis=1)
+        prob = cvxpy.Problem(cvxpy.Minimize(cvxpy.sum(pn)), [x == c])
+        prob.solve(gp=True)
+
+        expected = np.linalg.norm(c, ord=2, axis=1)  # shape (2, 4)
+        self.assertAlmostEqual(prob.value, float(np.sum(expected)), places=2)
+
+    def test_dgp_infeasible_no_crash(self) -> None:
+        """Infeasible DGP problem should not crash in invert()."""
+        x = cvxpy.Variable(pos=True)
+        prob = cvxpy.Problem(cvxpy.Minimize(x), [x >= 2, x <= 1])
+        prob.solve(solver=cvxpy.CLARABEL, gp=True)
+        self.assertIn(prob.status, [cvxpy.INFEASIBLE, cvxpy.INFEASIBLE_INACCURATE])
+
+    def test_pnorm_negative_p_dgp(self) -> None:
+        """pnorm with p < 0 is log-log concave, so Maximize should be DGP."""
+        x = cvxpy.Variable(3, pos=True)
+        # Maximize pnorm(x, p=-1) s.t. x <= 2, x >= 0.5
+        # Optimal: all x_i = 2, pnorm = (3 * 2^(-1))^(-1) = 2/3
+        prob = cvxpy.Problem(
+            cvxpy.Maximize(cvxpy.pnorm(x, p=-1)),
+            [x <= 2, x >= 0.5],
+        )
+        self.assertTrue(prob.is_dgp())
+        prob.solve(gp=True, solver=cvxpy.SCS)
+        self.assertEqual(prob.status, cvxpy.OPTIMAL)
+        self.assertAlmostEqual(prob.value, 2.0 / 3.0, places=3)
+
+        # Minimize pnorm(x, p=-1) should NOT be DGP.
+        prob2 = cvxpy.Problem(
+            cvxpy.Minimize(cvxpy.pnorm(x, p=-1)),
+            [x <= 2, x >= 0.5],
+        )
+        self.assertFalse(prob2.is_dgp())

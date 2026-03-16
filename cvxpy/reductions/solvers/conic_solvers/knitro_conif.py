@@ -358,7 +358,8 @@ class KNITRO(ConicSolver):
 
                 dual_vars = None
                 is_mip = bool(inverse_data.get("is_mip", False))
-                y_kn = kn.KN_get_con_dual_values(kc)
+                y_kn = (kn.KN_get_con_dual_values(kc)
+                        if n_cons > 0 else None)
                 if y_kn is not None and not is_mip:
                     dims = dims_to_solver_dict(inverse_data[s.DIMS] or {})
                     y_kn = y_kn[:n_cons]

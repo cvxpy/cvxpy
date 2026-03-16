@@ -17,7 +17,7 @@ limitations under the License.
 from cvxpy.atoms import *
 from cvxpy.atoms.affine.index import special_index
 from cvxpy.atoms.suppfunc import SuppFuncAtom
-from cvxpy.reductions.cone2cone.approximations import (
+from cvxpy.reductions.cone2cone.approx import (
     von_neumann_entr_canon_dispatch,)
 from cvxpy.reductions.dcp2cone.canonicalizers.quantum_rel_entr_canon import *
 from cvxpy.reductions.dcp2cone.canonicalizers.entr_canon import *
