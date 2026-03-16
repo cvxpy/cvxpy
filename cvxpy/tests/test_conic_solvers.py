@@ -426,8 +426,11 @@ class TestSCS(BaseTest):
     def test_scs_pcp_3(self) -> None:
         StandardTestPCPs.test_pcp_3(solver='SCS', eps=1e-12)
 
-    def test_infeasible_lp(self):
-        StandardTestInfeasibleProblems.test_lp(solver="SCS")
+    def test_infeasible_lp_ineq_constraints(self):
+        StandardTestInfeasibleProblems.test_lp_ineq_constraints(solver="SCS")
+
+    def test_infeasible_lp_eq_constraints(self):
+        StandardTestInfeasibleProblems.test_lp_eq_constraints(solver="SCS")
 
     def test_infeasible_soc(self):
         StandardTestInfeasibleProblems.test_soc(solver="SCS")
@@ -570,8 +573,11 @@ class TestClarabel(BaseTest):
         sth.check_complementarity(places)
         sth.check_dual_domains(places)
 
-    def test_infeasible_lp(self):
-        StandardTestInfeasibleProblems.test_lp(solver="CLARABEL")
+    def test_infeasible_lp_ineq_constraints(self):
+        StandardTestInfeasibleProblems.test_lp_ineq_constraints(solver="CLARABEL")
+
+    def test_infeasible_lp_eq_constraints(self):
+        StandardTestInfeasibleProblems.test_lp_eq_constraints(solver="CLARABEL")
 
     def test_infeasible_soc(self):
         StandardTestInfeasibleProblems.test_soc(solver="CLARABEL")

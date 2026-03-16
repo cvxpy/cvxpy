@@ -43,6 +43,22 @@ class OSQP(QpSolver):
         import osqp
         osqp
 
+    def extract_duals_from_solution_attribute(
+            self, solution_attribute, inverse_data
+    ) -> dict[int, np.ndarray]:
+        # Build dual vars dict keyed by constraint IDs
+        # solution_attribute can either be solution.y or solution.prim_inf_cert
+        n_eq = inverse_data[self.DIMS].zero
+        eq_dual = utilities.get_dual_values(
+            solution_attribute[:n_eq],
+            utilities.extract_dual_value,
+            inverse_data[self.EQ_CONSTR])
+        ineq_dual = utilities.get_dual_values(
+            solution_attribute[n_eq:],
+            utilities.extract_dual_value,
+            inverse_data[self.NEQ_CONSTR])
+        return eq_dual | ineq_dual
+
     def invert(self, solution, inverse_data):
         import osqp
         is_pre_v1 = float(osqp.__version__.split('.')[0]) < 1
@@ -54,22 +70,6 @@ class OSQP(QpSolver):
         status_map = self.STATUS_MAP_PRE_V1 if is_pre_v1 else self.STATUS_MAP
         status = status_map.get(solution.info.status_val, s.SOLVER_ERROR)
 
-        # Build dual vars dict keyed by constraint IDs
-        # OSQP returns y as [eq_duals; ineq_duals]
-        y = solution.y
-        n_eq = inverse_data[self.DIMS].zero
-        eq_dual = utilities.get_dual_values(
-            y[:n_eq],
-            utilities.extract_dual_value,
-            inverse_data[self.EQ_CONSTR])
-        ineq_dual = utilities.get_dual_values(
-            y[n_eq:],
-            utilities.extract_dual_value,
-            inverse_data[self.NEQ_CONSTR])
-        dual_vars = {}
-        dual_vars.update(eq_dual)
-        dual_vars.update(ineq_dual)
-
         if status in s.SOLUTION_PRESENT:
             opt_val = solution.info.obj_val + inverse_data[s.OFFSET]
             primal_vars = {
@@ -77,8 +77,16 @@ class OSQP(QpSolver):
                 intf.DEFAULT_INTF.const_to_matrix(np.array(solution.x))
             }
             attr[s.NUM_ITERS] = solution.info.iter
+
+            # OSQP returns y as [eq_duals; ineq_duals]
+            dual_vars = self.extract_duals_from_solution_attribute(solution.y, inverse_data)
             sol = Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
+            # y does not represent an infeasibility certificate, instead there is an explicit
+            # attribute: prim_inf_cert. OSQP returns prim_inf_cert as [eq_duals; ineq_duals]
+            dual_vars = self.extract_duals_from_solution_attribute(
+                solution.prim_inf_cert, inverse_data
+            )
             sol = failure_solution(status, attr, dual_vars)
         return sol
 

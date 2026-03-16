@@ -1545,10 +1545,10 @@ class StandardTestInfeasibleProblems:
         #  them somewhere.
 
     @classmethod
-    def test_lp(cls, solver: str, verify_certificate=True):
-        A = np.array([[1, 2], [3, 4], [5, 6]])
-        b = np.array([2, 0, -1])
-        x = cp.Variable(2, nonneg=True)
+    def test_lp_ineq_constraints(cls, solver: str):
+        A = np.array([[1, 2], [3, -4], [-1, 0]])
+        b = np.array([1, 0, -2])
+        x = cp.Variable(2)
 
         prob = cp.Problem(
             objective=cp.Minimize(0),
@@ -1558,13 +1558,32 @@ class StandardTestInfeasibleProblems:
         prob.solve(solver=solver)
         cls.verify_post_solve_guarantees(prob)
 
-        if verify_certificate:
-            # The infeasibility certificate is a Farkas certificate, y, satisfying
-            # y >= 0, A.T @ y >= 0, b.T @ y < 0
-            y = prob.constraints[0].dual_value
-            np.testing.assert_array_less(0, y)
-            np.testing.assert_array_less(0, A.T @ y)
-            assert b.T @ y < 0
+        # The infeasibility certificate is a Farkas certificate, y, satisfying
+        # y >= 0, A.T @ y == 0, b.T @ y < 0
+        y = prob.constraints[0].dual_value
+        assert all(np.less_equal(0, y))
+        np.testing.assert_almost_equal(0, A.T @ y, decimal=4)
+        assert b.T @ y < 0
+
+    @classmethod
+    def test_lp_eq_constraints(cls, solver: str):
+        A = np.array([[1, 2], [3, -4], [-1, 0]])
+        b = np.array([1, 0, -4])
+        x = cp.Variable(2)
+
+        prob = cp.Problem(
+            objective=cp.Minimize(0),
+            constraints=[A @ x == b]
+        )
+
+        prob.solve(solver=solver)
+        cls.verify_post_solve_guarantees(prob)
+
+        # The infeasibility certificate is a Farkas certificate, y, satisfying
+        # A.T @ y >= 0, b.T @ y < 0
+        y = prob.constraints[0].dual_value
+        assert min(A.T @ y) >= -1e-4
+        assert b.T @ y < 0
 
     @classmethod
     def test_soc(cls, solver: str):

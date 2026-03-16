@@ -865,9 +865,11 @@ class TestQp(QPTestBase):
                 prob.solve(solver=GUROBI, TimeLimit=0)
             self.assertEqual(str(cm.exception), "The solver %s is not installed." % GUROBI)
 
-    def test_osqp_infeasible_lp(self):
-        StandardTestInfeasibleProblems.test_lp(solver="OSQP", verify_certificate=False)
-        # TODO: Either the test case is wrong or the certificate is invalid; find out which is true.
+    def test_osqp_infeasible_lp_ineq_constraints(self):
+        StandardTestInfeasibleProblems.test_lp_ineq_constraints(solver="OSQP")
+
+    def test_osqp_infeasible_lp_eq_constraints(self):
+        StandardTestInfeasibleProblems.test_lp_eq_constraints(solver="OSQP")
 
 
 class TestConicQuadObj(QPTestBase):
