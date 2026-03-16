@@ -25,7 +25,7 @@ from cvxpy.tests.nlp_tests.derivative_checker import DerivativeChecker
 
 @pytest.mark.skipif('IPOPT' not in INSTALLED_SOLVERS, reason='IPOPT is not installed.')
 class TestAffineMatrixAtomsDiffEngine:
-    # Stress tests for affine matrix atoms in the diff engine.		
+    # Stress tests for affine matrix atoms in the diff engine.
     
     def test_one_trace(self):
         np.random.seed(0)
@@ -63,7 +63,7 @@ class TestAffineMatrixAtomsDiffEngine:
     def test_one_transpose(self):
         np.random.seed(0)
         n = 10
-        k = 3 
+        k = 3
         A = np.random.rand(n, k)
         X = cp.Variable((n, k), bounds = [1, 5])
         obj = cp.sum(A @ cp.transpose(cp.log(X)))

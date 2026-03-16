@@ -95,7 +95,7 @@ class TestStressMLE():
                                 (1 / (2 * cp.square(sigma))) * cp.sum(cp.square(data-mu))
                         constraints = []
                     
-                    problem = cp.Problem(cp.Minimize(obj), constraints)    
+                    problem = cp.Problem(cp.Minimize(obj), constraints)
                     problem.solve(solver=cp.IPOPT, nlp=True, verbose=True)
                     DerivativeChecker(problem).run_and_assert()
                     assert(np.abs(sigma.value - sigma_opt) / np.max([1, np.abs(sigma_opt)]) <= TOL)

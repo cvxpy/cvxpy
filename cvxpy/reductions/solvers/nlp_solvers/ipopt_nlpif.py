@@ -166,7 +166,7 @@ class IPOPT(NLPsolver):
             lb=data["lb"],
             ub=data["ub"],
             cl=data["cl"],
-            cu=data["cu"],  
+            cu=data["cu"],
         )
 
         # Set default IPOPT options, but use solver_opts if provided
@@ -187,7 +187,7 @@ class IPOPT(NLPsolver):
         for option_name, option_value in default_options.items():
             nlp.add_option(option_name, option_value)
 
-        # ipopt will evaluate the gradient of the Lagrangian at the initial point to decide 
+        # ipopt will evaluate the gradient of the Lagrangian at the initial point to decide
         # without doing the forward pass for the objective and constraints, so we need to do
         # a forward pass here to fill in any necessary values for the derivative evaluation.
         oracles.objective(data["x0"])

@@ -55,9 +55,9 @@ class TestEntropy():
         obj = cp.sum(cp.entr(q))
         constraints = [cp.sum(q) == 1]
         problem = cp.Problem(cp.Minimize(obj), constraints)
-        problem.solve(solver=cp.IPOPT, nlp=True, verbose=True, 
+        problem.solve(solver=cp.IPOPT, nlp=True, verbose=True,
                       hessian_approximation='limited-memory')
-        q_opt_nlp = q.value 
+        q_opt_nlp = q.value
         assert(np.sum(q_opt_nlp > 1e-8) == 1)
 
         checker = DerivativeChecker(problem)
@@ -75,7 +75,7 @@ class TestEntropy():
         constraints = [cp.sum(q) == 1]
         problem = cp.Problem(cp.Minimize(obj), constraints)
         problem.solve(solver=cp.IPOPT, nlp=True, verbose=True,  derivative_test='none')
-        q_opt_nlp = q.value 
+        q_opt_nlp = q.value
         problem.solve(solver=cp.CLARABEL, verbose=True)
         q_opt_clarabel = q.value
         assert(LA.norm(q_opt_nlp - q_opt_clarabel) <= 1e-4)
@@ -94,7 +94,7 @@ class TestEntropy():
         constraints = [cp.sum(q) == 1]
         problem = cp.Problem(cp.Minimize(obj), constraints)
         problem.solve(solver=cp.IPOPT, nlp=True, verbose=True,  derivative_test='none')
-        q_opt_nlp = q.value 
+        q_opt_nlp = q.value
         problem.solve(solver=cp.CLARABEL, verbose=True)
         q_opt_clarabel = q.value
         assert(LA.norm(q_opt_nlp - q_opt_clarabel) <= 1e-4)
@@ -113,7 +113,7 @@ class TestEntropy():
         constraints = [cp.sum(q) == 1]
         problem = cp.Problem(cp.Minimize(obj), constraints)
         problem.solve(solver=cp.IPOPT, nlp=True, verbose=True,  derivative_test='none')
-        q_opt_nlp = q.value 
+        q_opt_nlp = q.value
         problem.solve(solver=cp.CLARABEL, verbose=True)
         q_opt_clarabel = q.value
         assert(LA.norm(q_opt_nlp - q_opt_clarabel) <= 1e-4)
@@ -132,7 +132,7 @@ class TestEntropy():
         constraints = [cp.sum(q) == 1]
         problem = cp.Problem(cp.Minimize(obj), constraints)
         problem.solve(solver=cp.IPOPT, nlp=True, verbose=True,  derivative_test='none')
-        q_opt_nlp = q.value 
+        q_opt_nlp = q.value
         problem.solve(solver=cp.CLARABEL, verbose=True)
         q_opt_clarabel = q.value
         assert(LA.norm(q_opt_nlp - q_opt_clarabel) <= 1e-4)
@@ -146,12 +146,12 @@ class TestEntropy():
         n, m, k = 40, 20, 4
         X_true = np.random.rand(n, k)
         Y_true = np.random.rand(k, m)
-        A = X_true @ Y_true 
+        A = X_true @ Y_true
         A = np.clip(A, 0, None)
         X = cp.Variable((n, k), bounds=[0, None])
         Y = cp.Variable((k, m), bounds=[0, None])
         # without random initialization we converge to a very structured
-        # point that is not the global minimizer 
+        # point that is not the global minimizer
         X.value = np.random.rand(n, k)
         Y.value = np.random.rand(k, m)
         
@@ -172,7 +172,7 @@ class TestEntropy():
         n, m, k = 40, 20, 4
         X_true = np.random.rand(n, k)
         Y_true = np.random.rand(k, m)
-        A = X_true @ Y_true 
+        A = X_true @ Y_true
         A = np.clip(A, 0, None)
         X = cp.Variable((n, k), bounds=[0, None])
         Y = cp.Variable((k, m), bounds=[0, None])
