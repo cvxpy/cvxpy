@@ -35,7 +35,7 @@ class sign(Atom):
     def shape_from_args(self) -> tuple[int, ...]:
         """Returns the (row, col) shape of the expression.
         """
-        return tuple()
+        return self.args[0].shape
 
     def sign_from_args(self) -> tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
@@ -72,5 +72,5 @@ class sign(Atom):
         """
         return False
 
-    def _grad(self, values) -> None:
-        return None
+    def _grad(self, values):
+        return [None]

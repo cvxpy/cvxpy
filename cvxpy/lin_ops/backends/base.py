@@ -885,8 +885,11 @@ class PythonCanonBackend(CanonBackend):
         in the original expression.
         Note: The diagonal itself is not included.
         """
-        indices = np.arange(np.prod(lin.args[0].shape)).reshape(lin.args[0].shape, order="F")
-        triu_indices = indices[np.triu_indices_from(indices, k=1)]
+        arg_shape = lin.args[0].shape
+        n = arg_shape[-1]
+        indices = np.arange(int(np.prod(arg_shape))).reshape(arg_shape, order="F")
+        rows, cols = np.triu_indices(n, k=1)
+        triu_indices = indices[..., rows, cols].ravel(order="F")
         view.select_rows(triu_indices)
         return view
 

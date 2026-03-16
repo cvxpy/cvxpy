@@ -24,8 +24,8 @@ from cvxpy.constraints.constraint import Constraint
 from cvxpy.utilities.power_tools import pow_high, pow_mid, pow_neg
 
 
-def pnorm(x, p: int | str = 2, axis=None, keepdims: bool = False,
-          max_denom: int = 1024, approx: bool = True):
+def pnorm(x, p: int | str = 2, axis: int | tuple[int, ...] | None = None,
+          keepdims: bool = False, max_denom: int = 1024, approx: bool = True):
     """Factory function for a mathematical p-norm.
 
     Parameters
@@ -120,7 +120,7 @@ class Pnorm(AxisAtom):
     """
     _allow_complex = True
 
-    def __init__(self, x, p: int = 2, axis=None,
+    def __init__(self, x, p: int = 2, axis: None | int | tuple[int, ...] = None,
                  keepdims: bool = False, max_denom: int = 1024) -> None:
         if p == 1:
             raise ValueError('Use the norm1 class to instantiate a one norm.')
@@ -156,6 +156,8 @@ class Pnorm(AxisAtom):
         if self.axis is not None and self.p != 2:
             raise ValueError(
                 "The axis parameter is only supported for p=2.")
+        if isinstance(self.axis, tuple):
+            raise ValueError("The axis parameter of pnorm must be an int or None.")
         if self.p < 1 and self.args[0].is_complex():
             raise ValueError("pnorm(x, p) cannot have x complex for p < 1.")
 
@@ -178,12 +180,12 @@ class Pnorm(AxisAtom):
     def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
         """
-        return True
+        return self.p > 0
 
     def is_atom_log_log_concave(self) -> bool:
         """Is the atom log-log concave?
         """
-        return False
+        return self.p < 0
 
     def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
@@ -275,7 +277,7 @@ class PnormApprox(Pnorm):
     which allows canonicalization via second-order cones.
     """
 
-    def __init__(self, x, p: int = 2, axis=None,
+    def __init__(self, x, p: int = 2, axis: None | int | tuple[int, ...] = None,
                  keepdims: bool = False, max_denom: int = 1024) -> None:
         super().__init__(x, p=p, axis=axis, keepdims=keepdims, max_denom=max_denom)
         if p < 0:

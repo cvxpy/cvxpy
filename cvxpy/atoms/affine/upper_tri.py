@@ -56,22 +56,27 @@ class upper_tri(AffAtom):
         """
         Vectorize the strictly upper triangular entries.
         """
-        upper_idx = np.triu_indices(n=values[0].shape[0], k=1, m=values[0].shape[1])
-        return values[0][upper_idx]
+        n = values[0].shape[-1]
+        rows, cols = np.triu_indices(n, k=1)
+        return values[0][..., rows, cols]
 
     def validate_arguments(self) -> None:
-        """Checks that the argument is a square matrix.
+        """Checks that the argument is a square matrix with ndim >= 2.
         """
-        if not self.args[0].ndim == 2 or self.args[0].shape[0] != self.args[0].shape[1]:
+        shape = self.args[0].shape
+        if len(shape) < 2 or shape[-2] != shape[-1]:
             raise ValueError(
-                "Argument to upper_tri must be a 2-d square array."
+                "Argument to upper_tri must have ndim >= 2 with equal last two dimensions."
             )
 
-    def shape_from_args(self) -> tuple[int, int]:
-        """A vector.
+    def shape_from_args(self) -> tuple[int, ...]:
+        """Batch shape + vector of upper triangular entries.
         """
-        rows, cols = self.args[0].shape
-        return (rows*(cols-1)//2, 1)
+        shape = self.args[0].shape
+        n = shape[-1]
+        batch_shape = shape[:-2]
+        tri = n * (n - 1) // 2
+        return batch_shape + (tri, 1)
 
     def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
@@ -173,3 +178,30 @@ def upper_tri_to_full(n: int) -> sp.csc_array:
 
     # Construct and return the sparse matrix
     return sp.csc_array((values, (row_idx, col_idx)), shape=(n * n, entries))
+
+
+def batched_upper_tri_to_full(batch_size: int, n: int) -> sp.csc_array:
+    """
+    Returns a coefficient matrix that maps a vector of batch_size * tri entries
+    (F-order layout of (batch_size, tri)) to batch_size * n*n entries
+    (F-order layout of (batch_size, n, n)).
+
+    Uses Kronecker product kron(upper_tri_to_full(n), eye(batch_size)) because
+    F-order reshape interleaves batch elements.
+
+    Parameters
+    ----------
+    batch_size : int
+        The number of batch elements.
+    n : int
+        The dimension of the square matrix.
+
+    Returns
+    -------
+    sp.csc_array
+        The coefficient matrix.
+    """
+    single = upper_tri_to_full(n)
+    if batch_size == 1:
+        return single
+    return sp.csc_array(sp.kron(single, sp.eye(batch_size), format='csc'))

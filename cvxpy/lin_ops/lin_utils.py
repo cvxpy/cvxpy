@@ -391,20 +391,22 @@ def sum_entries(operator, shape: tuple[int, ...], axis=None, keepdims=None):
     return lo.LinOp(lo.SUM_ENTRIES, shape, [operator], data=[axis, keepdims])
 
 
-def trace(operator):
+def trace(operator, shape: tuple[int, ...] = ()):
     """Sum the diagonal entries of an operator.
 
     Parameters
     ----------
-    expr : LinOp
+    operator : LinOp
         The operator to sum the diagonal entries of.
+    shape : tuple
+        The shape of the output (scalar for 2D, batch shape for ND).
 
     Returns
     -------
     LinOp
         An operator representing the sum of the diagonal entries.
     """
-    return lo.LinOp(lo.TRACE, (1, 1), [operator], None)
+    return lo.LinOp(lo.TRACE, shape, [operator], None)
 
 
 def index(operator, shape: tuple[int, ...], keys):
@@ -544,8 +546,10 @@ def upper_tri(operator):
     LinOp
        LinOp representing the vectorized upper triangle.
     """
-    entries = operator.shape[0]*operator.shape[1]
-    shape = ((entries - operator.shape[0])//2, 1)
+    n = operator.shape[-1]
+    batch_shape = operator.shape[:-2]
+    tri = n * (n - 1) // 2
+    shape = batch_shape + (tri, 1)
     return lo.LinOp(lo.UPPER_TRI, shape, [operator], None)
 
 

@@ -91,11 +91,11 @@ def targets_and_priorities(
         
         sign = 1 if obj.args[0].is_convex() else -1
 
-        delta = sign*(obj.args[0] - targets[i])
+        delta = sign*(obj.args[0] - tar)
         expr = sign*(abs(priorities[i]) - off_target)*atoms.pos(delta)
         expr += off_target*obj.args[0]
         if limits is not None:
-            expr += sign*indicator([sign*obj.args[0] <= sign*limits[i]])
+            expr += sign*indicator([sign*obj.args[0] <= sign*lim])
         new_objs.append(expr)
     obj_expr = sum(new_objs)
     if obj_expr.is_convex():

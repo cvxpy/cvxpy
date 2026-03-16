@@ -60,7 +60,7 @@ class log_det(Atom):
     def sign_from_args(self) -> tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
-        return (True, False)
+        return (False, False)
 
     def is_atom_convex(self) -> bool:
         """Is the atom convex?
@@ -110,11 +110,11 @@ class log_det(Atom):
 
     @property
     def value(self) -> float:
+        if self.args[0].value is None:
+            return None
         if not np.allclose(self.args[0].value,
                            self.args[0].value.T.conj(),
                            rtol=s.ATOM_EVAL_TOL,
                            atol=s.ATOM_EVAL_TOL):
             raise ValueError("Input matrix was not Hermitian/symmetric.")
-        if any([p.value is None for p in self.parameters()]):
-            return None
         return self._value_impl()

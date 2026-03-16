@@ -50,6 +50,9 @@ class cumsum(AffAtom, AxisAtom):
         The axis to sum across. If None, the array is flattened before cumsum.
         Note: NumPy's default is axis=None, while CVXPY defaults to axis=0.
     """
+
+    _reduce_all_axes_to_none = False
+
     def __init__(self, expr: Expression, axis: int | None = 0) -> None:
         super(cumsum, self).__init__(expr, axis)
 
