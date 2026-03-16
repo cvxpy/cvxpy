@@ -20,7 +20,22 @@ from cvxpy.atoms.lambda_max import lambda_max
 
 
 class lambda_sum_largest(lambda_max):
-    """Sum of the largest k eigenvalues.
+    r"""The sum of the largest :math:`k` eigenvalues of a Hermitian matrix.
+
+    .. math::
+
+        f(X) = \sum_{i=1}^k \lambda_i(X)
+
+    where :math:`\lambda_i(X)` is the :math:`i`-th largest eigenvalue of :math:`X`.
+
+    Convex and always real-valued.
+
+    Parameters
+    ----------
+    X : Expression
+        The Hermitian matrix expression.
+    k : int
+        The number of eigenvalues to sum.
     """
     _allow_complex = True
 

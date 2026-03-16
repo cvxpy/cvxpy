@@ -25,7 +25,21 @@ from cvxpy.constraints.constraint import Constraint
 
 
 class entr(Elementwise):
-    """Elementwise :math:`-x\\log x`.
+    r"""Elementwise entropy function :math:`-x \log x`.
+
+    .. math::
+
+        f(x) = \begin{cases} -x \log x & x > 0 \\ 0 & x = 0 \\ -\infty & x < 0 \end{cases}
+
+    Concave and nonnegative on :math:`x \geq 0`. At :math:`x = 0` the value is
+    zero by convention (the continuous limit of :math:`-x\log x` as :math:`x \to 0^+`).
+
+    Domain: :math:`x \geq 0`.
+
+    Parameters
+    ----------
+    x : Expression
+        The expression to feed into the entropy function.
     """
 
     def __init__(self, x) -> None:

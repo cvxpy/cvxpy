@@ -18,7 +18,17 @@ from cvxpy.atoms.elementwise.maximum import maximum
 
 
 def pos(x):
-    """ Alias for maximum{x,0}.
+    r"""The elementwise function :math:`\max\{x, 0\}`.
 
+    .. math::
+
+        f(x) = \max\{x, 0\}
+
+    Convex, increasing, and nonnegative.
+
+    Parameters
+    ----------
+    x : Expression
+        The expression to apply the function to.
     """
     return maximum(x, 0)

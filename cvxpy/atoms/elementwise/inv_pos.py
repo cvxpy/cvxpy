@@ -18,6 +18,19 @@ from cvxpy.atoms.elementwise.power import power
 
 
 def inv_pos(x):
-    """:math:`x^{-1}` for :math:`x > 0`.
+    r"""The elementwise reciprocal :math:`1/x` for :math:`x > 0`.
+
+    .. math::
+
+        f(x) = \frac{1}{x}
+
+    Convex, decreasing, and positive on its domain.
+
+    Domain: :math:`x > 0`.
+
+    Parameters
+    ----------
+    x : Expression
+        The expression to take the reciprocal of.
     """
     return power(x, -1)

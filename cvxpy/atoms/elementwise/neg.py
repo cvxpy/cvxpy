@@ -18,7 +18,17 @@ from cvxpy.atoms.elementwise.minimum import minimum
 
 
 def neg(x):
-    """ Alias for -minimum{x, 0}.
+    r"""The elementwise function :math:`-\min\{x, 0\}`.
 
+    .. math::
+
+        f(x) = -\min\{x, 0\}
+
+    Convex, decreasing, and nonnegative.
+
+    Parameters
+    ----------
+    x : Expression
+        The expression to apply the function to.
     """
     return -minimum(x, 0)

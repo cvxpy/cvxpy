@@ -25,24 +25,26 @@ from cvxpy.atoms.elementwise.elementwise import Elementwise
 
 
 class huber(Elementwise):
-    """The Huber function
+    r"""The Huber function.
 
     .. math::
 
-        \\operatorname{Huber}(x, M) =
-            \\begin{cases}
-                2M|x|-M^2 & \\text{for } |x| \\geq |M| \\\\
-                      |x|^2 & \\text{for } |x| \\leq |M|.
-            \\end{cases}
+        f(x) =
+            \begin{cases}
+                x^2 & \text{for } |x| \leq M \\
+                2M|x| - M^2 & \text{for } |x| > M
+            \end{cases}
 
-    :math:`M` defaults to 1.
+    $M$ defaults to 1. Convex and smooth.
+
+    Domain: :math:`x \in \mathbb{R}`, :math:`M \geq 0`.
 
     Parameters
     ----------
     x : Expression
-        The expression to which the huber function will be applied.
-    M : Constant or Parameter
-        A scalar constant.
+        The expression to apply the huber function to.
+    M : Constant or Parameter, optional
+        A positive scalar constant (default: 1).
     """
 
     def __init__(self, x, M: int = 1) -> None:

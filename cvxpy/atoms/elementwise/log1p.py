@@ -23,7 +23,21 @@ from cvxpy.constraints.constraint import Constraint
 
 
 class log1p(log):
-    """Elementwise :math:`\\log (1 + x)`.
+    r"""Elementwise natural logarithm :math:`\log(1 + x)`.
+
+    .. math::
+
+        f(x) = \log(1 + x)
+
+    Concave and increasing on its domain. Returns :math:`-\infty` for
+    :math:`x \leq -1`.
+
+    Domain: :math:`x > -1`.
+
+    Parameters
+    ----------
+    x : Expression
+        The expression to take the logarithm of (after adding 1).
     """
 
     def __init__(self, x) -> None:

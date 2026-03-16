@@ -24,7 +24,22 @@ from cvxpy.utilities import bounds as bounds_utils
 
 
 class min(AxisAtom):
-    """:math:`\\min{i,j}\\{X_{i,j}\\}`.
+    r"""The minimum of all entries in an expression.
+
+    .. math::
+
+        f(x) = \min_{ij} x_{ij}
+
+    Concave, increasing, and piecewise-linear.
+
+    Parameters
+    ----------
+    x : Expression
+        The expression to take the minimum of.
+    axis : int, optional
+        The axis along which to apply the reduction (default: all elements).
+    keepdims : bool, optional
+        Whether to keep the reduced dimension (default: False).
     """
 
     __EXPR_AXIS_ERROR__ = """

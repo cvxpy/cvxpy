@@ -25,7 +25,18 @@ from cvxpy.constraints.constraint import Constraint
 
 
 class lambda_max(Atom):
-    """ Maximum eigenvalue; :math:`\\lambda_{\\max}(A)`.
+    r"""The maximum eigenvalue of a Hermitian matrix.
+
+    .. math::
+
+        f(X) = \lambda_{\max}(X)
+
+    Convex and always real-valued.
+
+    Parameters
+    ----------
+    A : Expression
+        The Hermitian matrix expression.
     """
 
     def __init__(self, A) -> None:

@@ -23,7 +23,22 @@ from cvxpy.utilities import bounds as bounds_utils
 
 
 class minimum(Elementwise):
-    """Elementwise minimum of a sequence of expressions.
+    r"""Elementwise minimum of a sequence of expressions.
+
+    .. math::
+
+        f(x_1, x_2, \dots, x_k) = \min\{x_1, x_2, \dots, x_k\}
+
+    Concave, increasing in all arguments, and piecewise-linear.
+
+    Parameters
+    ----------
+    arg1 : Expression
+        The first expression.
+    arg2 : Expression
+        The second expression.
+    *args : Expression
+        Additional expressions.
     """
 
     def __init__(self, arg1, arg2, *args) -> None:

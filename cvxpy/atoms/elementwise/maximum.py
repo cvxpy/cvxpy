@@ -24,7 +24,22 @@ from cvxpy.utilities import bounds as bounds_utils
 
 
 class maximum(Elementwise):
-    """Elementwise maximum of a sequence of expressions.
+    r"""Elementwise maximum of a sequence of expressions.
+
+    .. math::
+
+        f(x_1, x_2, \dots, x_k) = \max\{x_1, x_2, \dots, x_k\}
+
+    Convex, increasing in all arguments, and piecewise-linear.
+
+    Parameters
+    ----------
+    arg1 : Expression
+        The first expression.
+    arg2 : Expression
+        The second expression.
+    *args : Expression
+        Additional expressions.
     """
 
     def __init__(self, arg1, arg2, *args) -> None:

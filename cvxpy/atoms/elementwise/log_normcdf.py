@@ -22,11 +22,22 @@ from cvxpy.expressions.expression import Expression
 
 # ruff: noqa: E501
 def log_normcdf(x):
-    """Elementwise log of the cumulative distribution function of a standard normal random variable.
+    r"""Elementwise log of the cumulative distribution function of a standard normal random variable.
+
+    .. math::
+
+        f(x) = \log \Phi(x)
 
     The implementation is a quadratic approximation with modest accuracy over [-4, 4].
     For details on the nature of the approximation, refer to
     `CVXPY GitHub PR #1224 <https://github.com/cvxpy/cvxpy/pull/1224#issue-793221374>`_.
+
+    Domain: :math:`x \in \mathbb{R}`.
+
+    Parameters
+    ----------
+    x : Expression
+        The expression to apply the function to.
 
     .. note::
 

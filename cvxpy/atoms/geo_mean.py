@@ -60,11 +60,11 @@ def geo_mean(x, p=None, max_denom=1024, approx=True):
 
 
 class GeoMean(Atom):
-    """ The (weighted) geometric mean of vector ``x``, with optional powers given by ``p``:
+    r"""The (weighted) geometric mean of vector ``x``, with optional powers given by ``p``:
 
     .. math::
 
-        \\left(x_1^{p_1} \\cdots x_n^{p_n} \\right)^{\\frac{1}{\\mathbf{1}^Tp}}
+        \left(x_1^{p_1} \cdots x_n^{p_n} \right)^{\frac{1}{\mathbf{1}^Tp}}
 
     The powers ``p`` can be a ``list``, ``tuple``, or ``numpy.array`` of nonnegative
     ``int``, ``float``, or ``Fraction`` objects with nonzero sum.
@@ -74,15 +74,15 @@ class GeoMean(Atom):
 
     .. math::
 
-        x_1^{1/n} \\cdots x_n^{1/n}.
+        x_1^{1/n} \cdots x_n^{1/n}.
 
-    The geometric mean includes an implicit constraint that :math:`x_i \\geq 0`
+    The geometric mean includes an implicit constraint that :math:`x_i \geq 0`
     whenever :math:`p_i > 0`. If :math:`p_i = 0`, :math:`x_i` will be unconstrained.
 
     The only exception to this rule occurs when
     ``p`` has exactly one nonzero element, say, ``p_i``, in which case
     ``geo_mean(x, p)`` is equivalent to ``x_i`` (without the nonnegativity constraint).
-    A specific case of this is when :math:`x \\in \\mathbf{R}^1`.
+    A specific case of this is when :math:`x \in \mathbf{R}^1`.
 
 
     .. note::
@@ -91,12 +91,12 @@ class GeoMean(Atom):
         i.e., fractional, **approximation** must be made.
 
         Internally, ``geo_mean`` immediately computes an approximate normalized
-        weight vector :math:`w \\approx p/\\mathbf{1}^Tp`
+        weight vector :math:`w \approx p/\mathbf{1}^Tp`
         and the ``geo_mean`` atom is represented as
 
         .. math::
 
-            x_1^{w_1} \\cdots x_n^{w_n},
+            x_1^{w_1} \cdots x_n^{w_n},
 
         where the elements of ``w`` are ``Fraction`` objects that sum to exactly 1.
 
@@ -176,18 +176,16 @@ class GeoMean(Atom):
 
     Parameters
     ----------
-    x : Variable
+    x : Expression
         A column or row vector whose elements we will take the geometric mean of.
-
-    p : Sequence (list, tuple, ...) of ``int``, ``float``, or ``Fraction`` objects
-        A vector of weights for the weighted geometric mean
-
+    p : Sequence, optional
+        A sequence (list, tuple, ...) of ``int``, ``float``, or ``Fraction`` objects.
+        A vector of weights for the weighted geometric mean.
         When ``p`` is a sequence of ``int`` and/or ``Fraction`` objects,
         ``w`` can often be an **exact** representation of the weights.
         An exact representation is sometimes possible when ``p`` has ``float``
         elements with only a few decimal places.
-
-    max_denom : int
+    max_denom : int, optional
         The maximum denominator to use in approximating ``p/sum(p)`` with
         ``geo_mean.w``. If ``w`` is not an exact representation, increasing
         ``max_denom`` **may** offer a more accurate representation, at the
@@ -196,11 +194,11 @@ class GeoMean(Atom):
 
     Attributes
     ----------
-    w : tuple of ``Fractions``
+    w : tuple of Fractions
         A rational approximation of ``p/sum(p)``.
     approx_error : float
         The error in approximating ``p/sum(p)`` with ``w``, given by
-        :math:`\\|p/\\mathbf{1}^T p - w \\|_\\infty`
+        :math:`\|p/\mathbf{1}^T p - w \|_\infty`.
     """
 
     def __init__(self, x, p: Optional[List[int]] = None,

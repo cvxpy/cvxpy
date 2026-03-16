@@ -24,8 +24,26 @@ from cvxpy.atoms.axis_atom import AxisAtom
 
 
 class log_sum_exp(AxisAtom):
-    """:math:`\\log\\sum_i e^{x_i}`
+    r"""Log-sum-exp (soft maximum) function :math:`\log \sum_i e^{x_i}`.
 
+    .. math::
+
+        f(x) = \log \sum_i e^{x_i}
+
+    Convex and smooth. An upper bound on :math:`\max_i x_i`, sometimes called
+    the *soft maximum*. When ``axis`` is specified, the reduction is applied
+    along that axis.
+
+    Domain: :math:`x \in \mathbb{R}^n`.
+
+    Parameters
+    ----------
+    x : Expression
+        The expression to apply log-sum-exp to.
+    axis : int, optional
+        The axis along which to apply the reduction (default: all elements).
+    keepdims : bool, optional
+        Whether to keep the reduced dimension (default: False).
     """
 
     def __init__(self, x, axis: None | int | tuple[int, ...] = None,

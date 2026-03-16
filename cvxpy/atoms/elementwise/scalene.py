@@ -19,6 +19,21 @@ from cvxpy.atoms.elementwise.pos import pos
 
 
 def scalene(x, alpha, beta):
-    """ Alias for ``alpha*pos(x) + beta*neg(x)``.
+    r"""The elementwise function :math:`\alpha \max\{x, 0\} + \beta \max\{-x, 0\}`.
+
+    .. math::
+
+        f(x) = \alpha \max\{x, 0\} + \beta \max\{-x, 0\}
+
+    Convex if :math:`\alpha, \beta \geq 0`.
+
+    Parameters
+    ----------
+    x : Expression
+        The expression to apply the function to.
+    alpha : Constant or Parameter
+        The weight for the positive part.
+    beta : Constant or Parameter
+        The weight for the negative part.
     """
     return alpha*pos(x) + beta*neg(x)

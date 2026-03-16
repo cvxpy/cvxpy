@@ -19,21 +19,21 @@ from cvxpy.expressions.expression import Expression
 
 
 def harmonic_mean(x):
-    """The harmonic mean of ``x``.
+    r"""The harmonic mean of ``x``.
+
+    .. math::
+
+        f(x) = \frac{n}{\sum_{i=1}^{n} x_i^{-1}}
+
+    where :math:`n` is the length of :math:`x`. Concave, increasing, and
+    nonnegative on its domain.
+
+    Domain: :math:`x > 0`.
 
     Parameters
     ----------
-    x : Expression or numeric
-        The expression whose harmonic mean is to be computed. Must have
-        positive entries.
-
-    Returns
-    -------
-    Expression
-        .. math::
-            \\frac{n}{\\left(\\sum_{i=1}^{n} x_i^{-1} \\right)},
-
-        where :math:`n` is the length of :math:`x`.
+    x : Expression
+        The expression whose harmonic mean is to be computed.
     """
     x = Expression.cast_to_const(x)
     # TODO(akshayka): Behavior of the below is incorrect when x has negative

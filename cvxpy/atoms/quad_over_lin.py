@@ -28,10 +28,27 @@ from cvxpy.expressions.constants.parameter import is_param_free
 
 
 class quad_over_lin(AxisAtom):
-    """:math:`(sum_{ij}X^2_{ij})/y`
+    r"""Sum of squares over a linear (positive) term, :math:`\|x\|_2^2 / y`.
 
-    When axis is specified, computes the sum of squares along that axis,
-    returning a vector instead of a scalar.
+    .. math::
+
+        f(X, y) = \frac{\sum_{ij} X_{ij}^2}{y}
+
+    Convex (jointly in :math:`X` and :math:`y`) on the domain :math:`y > 0`.
+    When ``axis`` is specified, the sum of squares runs along that axis only.
+
+    Domain: :math:`y > 0`.
+
+    Parameters
+    ----------
+    x : Expression
+        The numerator expression (real or complex).
+    y : Expression
+        A positive scalar expression in the denominator.
+    axis : int or tuple of int, optional
+        Axis along which to sum squares (default: all elements).
+    keepdims : bool, optional
+        Whether to keep the reduced dimension (default: False).
     """
     _allow_complex = True
 

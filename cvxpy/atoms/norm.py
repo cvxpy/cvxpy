@@ -29,20 +29,30 @@ from cvxpy.expressions.expression import Expression
 
 
 def norm(x, p: Union[int, str] = 2, axis=None, keepdims: bool = False):
-    """Wrapper on the different norm atoms.
+    r"""Wrapper on the different norm atoms.
+
+    For vectors, the p-norm is defined as:
+
+    .. math::
+
+        \|x\|_p = \left(\sum_i |x_i|^p \right)^{1/p}
+
+    For matrices, the matrix norm is computed depending on the value of ``p``.
 
     Parameters
     ----------
-    x : Expression or numeric constant
-        The value to take the norm of.  If `x` is 2D and `axis` is None,
+    x : Expression
+        The value to take the norm of. If ``x`` is 2D and ``axis`` is None,
         this function constructs a matrix norm.
     p : int or str, optional
         The type of norm. Valid options include any positive integer,
-        'fro' (for frobenius), 'nuc' (sum of singular values), np.inf or
-        'inf' (infinity norm).
-    axis : The axis along which to apply the norm, if any.
-    keepdims: If this is set to True, the axes which are reduced are left
-        in the result as dimensions with size one.
+        ``'fro'`` (for Frobenius), ``'nuc'`` (sum of singular values),
+        ``np.inf`` or ``'inf'`` (infinity norm). (Default: 2)
+    axis : int, optional
+        The axis along which to apply the norm, if any.
+    keepdims : bool, optional
+        If this is set to True, the axes which are reduced are left
+        in the result as dimensions with size one. (Default: False)
 
     Returns
     -------
@@ -81,13 +91,19 @@ def norm(x, p: Union[int, str] = 2, axis=None, keepdims: bool = False):
 
 
 def norm2(x, axis=None):
-    """The 2-norm of x.
+    r"""The 2-norm of ``x``.
+
+    .. math::
+
+        \|x\|_2 = \sqrt{\sum_i x_i^2}
 
     Parameters
     ----------
-    x : Expression or numeric constant
-        The value to take the norm of.  If `x` is 2D and `axis` is None,
+    x : Expression
+        The value to take the norm of. If ``x`` is 2D and ``axis`` is None,
         this function constructs a matrix norm.
+    axis : int, optional
+        The axis along which to apply the norm, if any.
 
     Returns
     -------

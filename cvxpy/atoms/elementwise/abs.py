@@ -24,7 +24,21 @@ from .elementwise import Elementwise
 
 
 class abs(Elementwise):
-    """ Elementwise absolute value """
+    r"""Elementwise absolute value.
+
+    .. math::
+
+        f(x) = |x|
+
+    This is a convex, piecewise-linear function that is always nonnegative.
+
+    Domain: :math:`x \in \mathbb{R}` (or :math:`\mathbb{C}` for complex inputs).
+
+    Parameters
+    ----------
+    x : Expression
+        The expression to take the absolute value of.
+    """
     _allow_complex = True
 
     def __init__(self, x) -> None:
