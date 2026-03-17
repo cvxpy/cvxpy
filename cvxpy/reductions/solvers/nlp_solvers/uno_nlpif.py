@@ -132,7 +132,7 @@ class UNO(NLPsolver):
         # Create oracles object (deferred from apply() so we have access to verbose)
         bounds = data["_bounds"]
 
-        # UNO always uses exact Hessian (no quasi-Newton option currently)
+        # UNO uses the exact Hessian, or reverts to L-BFGS when no Hessian is provided
         use_hessian = True
 
         if solver_cache is None:
@@ -159,39 +159,24 @@ class UNO(NLPsolver):
         model = unopy.Model(
             unopy.PROBLEM_NONLINEAR,
             n,
-            lb.tolist(),
-            ub.tolist(),
+            lb,
+            ub,
             unopy.ZERO_BASED_INDEXING
         )
 
-        # Helper to convert unopy.Vector to numpy array
-        # unopy.Vector doesn't support len() but supports indexing
-        def to_numpy(vec, size):
-            return np.array([vec[i] for i in range(size)])
+        # Define callbacks. unopy catches possible exceptions
 
         # Define objective function callback
-        # Signature: objective(number_variables, x, objective_value, user_data) -> int
-        # Must write result to objective_value[0] and return 0 on success
-        def objective_callback(number_variables, x, objective_value, user_data):
-            try:
-                x_arr = to_numpy(x, number_variables)
-                objective_value[0] = oracles.objective(x_arr)
-                return 0
-            except Exception:
-                return 1
+        # Signature: objective(x) -> double
+        # Must return result
+        def objective_callback(x):
+            return oracles.objective(x)
 
         # Define objective gradient callback
-        # Signature: gradient(number_variables, x, gradient, user_data) -> int
-        # Must write result to gradient array and return 0 on success
-        def gradient_callback(number_variables, x, gradient, user_data):
-            try:
-                x_arr = to_numpy(x, number_variables)
-                grad = oracles.gradient(x_arr)
-                for i in range(n):
-                    gradient[i] = grad[i]
-                return 0
-            except Exception:
-                return 1
+        # Signature: gradient(x, gradient) -> void
+        # Must write result to gradient array
+        def gradient_callback(x, gradient):
+            gradient[:] = oracles.gradient(x)
 
         # Set objective (minimization)
         model.set_objective(unopy.MINIMIZE, objective_callback, gradient_callback)
@@ -199,36 +184,20 @@ class UNO(NLPsolver):
         # Set constraints if there are any
         if m > 0:
             # Define constraints callback
-            # Signature: constraints(n, m, x, constraint_values, user_data) -> int
-            def constraints_callback(number_variables, number_constraints, x,
-                                     constraint_values, user_data):
-                try:
-                    x_arr = to_numpy(x, number_variables)
-                    cons = oracles.constraints(x_arr)
-                    for i in range(m):
-                        constraint_values[i] = cons[i]
-                    return 0
-                except Exception:
-                    return 1
+            # Signature: constraints(x, constraint_values) -> void
+            def constraints_callback(x, constraint_values):
+                constraint_values[:] = oracles.constraints(x)
 
             # Get Jacobian sparsity structure
             jac_rows, jac_cols = oracles.jacobianstructure()
             nnz_jacobian = len(jac_rows)
 
             # Define Jacobian callback
-            # Signature: jacobian(n, nnz, x, jacobian_values, user_data) -> int
-            def jacobian_callback(number_variables, number_jacobian_nonzeros, x,
-                                  jacobian_values, user_data):
-                try:
-                    x_arr = to_numpy(x, number_variables)
-                    jac_vals = oracles.jacobian(x_arr)
-                    # Flatten in case it's returned as a 2D memoryview
-                    jac_vals_arr = np.asarray(jac_vals).flatten()
-                    for i in range(nnz_jacobian):
-                        jacobian_values[i] = float(jac_vals_arr[i])
-                    return 0
-                except Exception:
-                    return 1
+            # Signature: jacobian(x, jacobian_values) -> void
+            def jacobian_callback(x, jacobian_values):
+                jac_vals = oracles.jacobian(x)
+                # Flatten in case it's returned as a 2D memoryview
+                jacobian_values[:] = np.asarray(jac_vals).flatten()
 
             # set_constraints(number_constraints, constraint_functions,
             #     constraints_lower_bounds, constraints_upper_bounds,
@@ -237,11 +206,11 @@ class UNO(NLPsolver):
             model.set_constraints(
                 m,
                 constraints_callback,
-                cl.tolist(),
-                cu.tolist(),
+                cl,
+                cu,
                 nnz_jacobian,
-                jac_rows.tolist(),
-                jac_cols.tolist(),
+                jac_rows,
+                jac_cols,
                 jacobian_callback
             )
 
@@ -251,39 +220,29 @@ class UNO(NLPsolver):
         nnz_hessian = len(hess_rows)
 
         # Define Lagrangian Hessian callback
-        # Signature: hessian(n, m, nnz, x, obj_factor, multipliers, hessian_values, user_data)
-        # Uno's MULTIPLIER_POSITIVE convention: L = sigma*f + sum_i lambda_i * g_i
-        # This matches our oracles.hessian convention
-        def hessian_callback(number_variables, number_constraints, number_hessian_nonzeros,
-                             x, objective_multiplier, multipliers, hessian_values, user_data):
-            try:
-                x_arr = to_numpy(x, number_variables)
-                mult_arr = to_numpy(multipliers, number_constraints) if m > 0 else np.array([])
-                hess_vals = oracles.hessian(x_arr, mult_arr, objective_multiplier)
-                # Flatten in case it's returned as a 2D array
-                hess_vals_arr = np.asarray(hess_vals).flatten()
-                for i in range(nnz_hessian):
-                    hessian_values[i] = float(hess_vals_arr[i])
-                return 0
-            except Exception:
-                return 1
+        # Signature: hessian(x, objective_multiplier, multipliers, hessian_values)
+        def hessian_callback(x, objective_multiplier, multipliers, hessian_values):
+            hess_vals = oracles.hessian(x, multipliers, objective_multiplier)
+            # Flatten in case it's returned as a 2D array
+            hessian_values[:] = np.asarray(hess_vals).flatten()
 
         # set_lagrangian_hessian(number_hessian_nonzeros, hessian_triangular_part,
-        #     hessian_row_indices, hessian_column_indices, lagrangian_hessian,
-        #     lagrangian_sign_convention)
+        #     hessian_row_indices, hessian_column_indices, lagrangian_hessian)
         # hessian_triangular_part: LOWER_TRIANGLE since we store lower triangular
-        # lagrangian_sign_convention: MULTIPLIER_POSITIVE means L = sigma*f + lambda*g
         model.set_lagrangian_hessian(
             nnz_hessian,
             unopy.LOWER_TRIANGLE,
-            hess_rows.tolist(),
-            hess_cols.tolist(),
-            hessian_callback,
-            unopy.MULTIPLIER_POSITIVE
+            hess_rows,
+            hess_cols,
+            hessian_callback
         )
+        # set_lagrangian_sign_convention(lagrangian_sign_convention)
+        # lagrangian_sign_convention: MULTIPLIER_POSITIVE means L = sigma*f + lambda*g
+        # This matches our oracles.hessian convention
+        model.set_lagrangian_sign_convention(unopy.MULTIPLIER_POSITIVE)
 
         # Set initial primal iterate
-        model.set_initial_primal_iterate(x0.tolist())
+        model.set_initial_primal_iterate(x0)
 
         # Create solver and configure
         uno_solver = unopy.UnoSolver()
@@ -298,7 +257,6 @@ class UNO(NLPsolver):
         # Set verbosity
         if not verbose:
             uno_solver.set_option("print_solution", False)
-            uno_solver.set_option("statistics_print_header_frequency", 0)
 
         # Apply user-provided solver options
         for option_name, option_value in opts.items():
@@ -312,13 +270,11 @@ class UNO(NLPsolver):
         opt_status = str(result.optimization_status).split('.')[-1]
         sol_status = str(result.solution_status).split('.')[-1]
 
-        # Convert unopy.Vector to numpy array via list()
-        # (np.array(unopy.Vector) returns a 0-d object array, not what we want)
         solution = {
             'optimization_status': opt_status,
             'solution_status': sol_status,
             'obj_val': result.solution_objective,
-            'x': np.array(list(result.primal_solution)),
+            'x': result.primal_solution,
             'iterations': result.number_iterations,
             'cpu_time': result.cpu_time,
             'primal_feasibility': result.solution_primal_feasibility,
