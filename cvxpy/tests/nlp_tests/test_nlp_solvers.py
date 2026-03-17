@@ -449,6 +449,16 @@ class TestNLPExamples:
         checker = DerivativeChecker(prob)
         checker.run_and_assert()
 
+    def test_div_composition(self, solver):
+        x = cp.Variable(nonneg=True, bounds=[1, 5])
+        prob = cp.Problem(cp.Maximize(cp.exp(1 / x)))
+        prob.solve(solver=solver, nlp=True)
+        x_true = 1.0
+        assert prob.status == cp.OPTIMAL
+        assert np.allclose(x.value, x_true)
+        checker = DerivativeChecker(prob)
+        checker.run_and_assert()
+
     def test_clnlbeam(self, solver):
         N = 1000
         h = 1 / N

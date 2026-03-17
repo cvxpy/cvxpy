@@ -28,6 +28,7 @@ from cvxpy.atoms.elementwise.power import Power, PowerApprox
 from cvxpy.atoms.elementwise.trig import cos, sin, tan
 from cvxpy.atoms.elementwise.hyperbolic import sinh, asinh, tanh, atanh
 from cvxpy.atoms.elementwise.huber import huber
+from cvxpy.atoms.elementwise.normcdf import normcdf
 from cvxpy.atoms.norm1 import norm1
 from cvxpy.atoms.norm_inf import norm_inf
 from cvxpy.atoms.pnorm import Pnorm, PnormApprox
@@ -44,7 +45,7 @@ from cvxpy.reductions.dnlp2smooth.canonicalizers.div_canon import div_canon
 from cvxpy.reductions.dnlp2smooth.canonicalizers.log_canon import log_canon
 from cvxpy.reductions.dnlp2smooth.canonicalizers.smooth_full_domain_canon import (
     exp_canon, logistic_canon, sinh_canon, asinh_canon, tanh_canon,
-    sin_canon, cos_canon)
+    sin_canon, cos_canon, normcdf_canon,)
 from cvxpy.reductions.dnlp2smooth.canonicalizers.multiply_canon import matmul_canon, multiply_canon
 from cvxpy.reductions.dnlp2smooth.canonicalizers.pnorm_canon import pnorm_canon
 from cvxpy.reductions.dnlp2smooth.canonicalizers.power_canon import power_canon
@@ -76,6 +77,7 @@ SMOOTH_CANON_METHODS = {
     asinh: asinh_canon,
     tanh: tanh_canon,
     atanh: atanh_canon,
+    normcdf: normcdf_canon,
     quad_over_lin: quad_over_lin_canon,
     Power: power_canon,
     PowerApprox: power_canon,

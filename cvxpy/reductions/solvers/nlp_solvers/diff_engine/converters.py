@@ -324,6 +324,7 @@ ATOM_CONVERTERS = {
     "entr": lambda _expr, children: _diffengine.make_entr(children[0]),
     "logistic": lambda _expr, children: _diffengine.make_logistic(children[0]),
     "xexp": lambda _expr, children: _diffengine.make_xexp(children[0]),
+    "normcdf": lambda _expr, children: _diffengine.make_normal_cdf(children[0]),
     # Indexing/slicing
     "index": _convert_index,
     "special_index": _convert_special_index,
