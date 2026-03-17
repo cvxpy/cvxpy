@@ -35,5 +35,5 @@ def geo_mean_canon(expr, args, solver_context=None):
 
     weights = np.array([float(w) for w in expr.w])
     log_expr = log(args[0])
-    var, constr = log_canon(log_expr, expr.args)
+    var, constr = log_canon(log_expr, expr.args, solver_context=solver_context)
     return t, [log(t) == sum(multiply(weights, var))] + constr

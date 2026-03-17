@@ -31,16 +31,16 @@ def rel_entr_canon(expr, args, solver_context=None):
     # if the first argument is constant we canonicalize using log
     if args[0].is_constant():
         _log = log(args[1])
-        log_expr, constr_log = log_canon(_log, _log.args)
+        log_expr, constr_log = log_canon(_log, _log.args, solver_context=solver_context)
         x = args[0].value
         return  x * np.log(x) - multiply(x, log_expr), constr_log
 
     # if the second argument is constant we canonicalize using entropy
     if args[1].is_constant():
         _entr = entr(args[0])
-        entr_expr, constr_entr = entr_canon(_entr, _entr.args)
+        entr_expr, constr_entr = entr_canon(_entr, _entr.args, solver_context=solver_context)
         _mult = multiply(args[0], np.log(args[1].value))
-        mult_expr, constr_mult = multiply_canon(_mult, _mult.args)
+        mult_expr, constr_mult = multiply_canon(_mult, _mult.args, solver_context=solver_context)
         return -entr_expr - mult_expr, constr_entr + constr_mult
 
     # here we know that neither argument is constant

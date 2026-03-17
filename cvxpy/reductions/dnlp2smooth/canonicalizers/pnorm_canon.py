@@ -32,7 +32,7 @@ def pnorm_canon(expr, args, solver_context=None):
     # ||x||_2 <= t  <=>  quad_over_lin(x, t) <= t
     if p == 2:
         expr = quad_over_lin(x, t)
-        new_expr, constr = quad_over_lin_canon(expr, expr.args)
+        new_expr, constr = quad_over_lin_canon(expr, expr.args, solver_context=solver_context)
         return t, constr + [new_expr <= t]
     else:
         raise ValueError("Only p=2 is supported as Pnorm.")
