@@ -30,6 +30,7 @@ import scipy.stats as st
 
 import cvxpy as cp
 import cvxpy.tests.solver_test_helpers as sths
+from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.defines import (
     INSTALLED_MI_SOLVERS,
     INSTALLED_SOLVERS,
@@ -834,8 +835,7 @@ class TestMoreau(BaseTest):
         StandardTestSOCPs.test_socp_0(solver='MOREAU')
 
     def test_moreau_socp_1(self) -> None:
-        import moreau
-        ipm_settings = moreau.IPMSettings(tol_gap_abs=1e-9, tol_gap_rel=1e-9, tol_feas=1e-9)
+        ipm_settings = {"tol_gap_abs": 1e-9, "tol_gap_rel": 1e-9, "tol_feas": 1e-9}
         StandardTestSOCPs.test_socp_1(solver='MOREAU', ipm_settings=ipm_settings)
 
     def test_moreau_socp_2(self) -> None:
@@ -854,14 +854,27 @@ class TestMoreau(BaseTest):
         StandardTestMixedCPs.test_exp_soc_1(solver='MOREAU')
 
     def test_moreau_pcp_1(self) -> None:
-        import moreau
-        ipm_settings = moreau.IPMSettings(tol_gap_abs=1e-9, tol_gap_rel=1e-9, tol_feas=1e-9)
+        ipm_settings = {"tol_gap_abs": 1e-9, "tol_gap_rel": 1e-9, "tol_feas": 1e-9}
         StandardTestPCPs.test_pcp_1(solver='MOREAU', ipm_settings=ipm_settings)
 
     def test_moreau_pcp_2(self) -> None:
-        import moreau
-        ipm_settings = moreau.IPMSettings(tol_gap_abs=1e-9, tol_gap_rel=1e-9, tol_feas=1e-9)
+        ipm_settings = {"tol_gap_abs": 1e-9, "tol_gap_rel": 1e-9, "tol_feas": 1e-9}
         StandardTestPCPs.test_pcp_2(solver='MOREAU', ipm_settings=ipm_settings)
+
+    def test_moreau_variable_soc_dims(self) -> None:
+        """Test that Moreau handles SOC constraints of dimension > 3 directly."""
+        x = cp.Variable(5)
+        t = cp.Variable()
+        # SOC constraint: ||x|| <= t, which is a dim-6 SOC
+        prob = cp.Problem(cp.Minimize(t), [cp.SOC(t, x), x == 1])
+        prob.solve(solver=cp.MOREAU)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        self.assertAlmostEqual(prob.value, np.sqrt(5), places=4)
+
+        # Verify the solver receives variable-length SOC dims (not all dim-3)
+        data, _, _ = prob.get_problem_data(solver=cp.MOREAU)
+        soc_dims = data[ConicSolver.DIMS].soc
+        self.assertTrue(any(d > 3 for d in soc_dims))
 
 
 def is_mosek_available():
