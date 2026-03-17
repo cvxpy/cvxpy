@@ -175,7 +175,7 @@ class KNITRO(QpSolver):
                 x = np.array(x_kn)
                 primal_vars = {KNITRO.VAR_ID: x}
                 dual_vars = None
-                is_mip = bool(inverse_data.get("is_mip", False))
+                is_mip = bool(inverse_data.get(self.IS_MIP, False))
                 if y_kn is not None and not is_mip:
                     # Build dual vars dict keyed by constraint IDs
                     # Knitro returns duals for [eq_constrs; ineq_constrs]

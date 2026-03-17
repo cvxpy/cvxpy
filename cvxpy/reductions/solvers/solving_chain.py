@@ -495,8 +495,8 @@ class SolvingChain(Chain):
         """
         data, inverse_data = self.apply(problem)
 
-        # We validate the data both in SolvingChain.solve and 
-        # in SolvingChain.solve_via_data. These are the two possible 
+        # We validate the data both in SolvingChain.solve and
+        # in SolvingChain.solve_via_data. These are the two possible
         # entry points for executing the solving chain.
         _validate_problem_data(data)
 
@@ -543,8 +543,8 @@ class SolvingChain(Chain):
         if solver_opts is None:
             solver_opts = {}
 
-        # We validate the data both in SolvingChain.solve and 
-        # in SolvingChain.solve_via_data. These are the two possible 
+        # We validate the data both in SolvingChain.solve and
+        # in SolvingChain.solve_via_data. These are the two possible
         # entry points for executing the solving chain.
         _validate_problem_data(data)
 
