@@ -22,6 +22,16 @@ from cvxpy.problems.objective import Minimize
 from cvxpy.reductions.canonicalization import Canonicalization
 from cvxpy.reductions.dnlp2smooth.canonicalizers import SMOOTH_CANON_METHODS as smooth_canon_methods
 from cvxpy.reductions.inverse_data import InverseData
+from cvxpy.utilities.solver_context import SolverInfo
+
+# DNLP solvers need auxiliary variables initialized with values for warm-starting.
+# This context signals to shared canonicalizers (from eliminate_pwl) that value
+# propagation should be performed.
+_DNLP_SOLVER_CONTEXT = SolverInfo(
+    solver="DNLP", supported_constraints=[],
+    supports_bounds=True,
+    supports_warm_start=True,
+)
 
 
 class Dnlp2Smooth(Canonicalization):
@@ -106,6 +116,7 @@ class Dnlp2Smooth(Canonicalization):
             return expr, []
 
         if type(expr) in self.smooth_canon_methods:
-            return self.smooth_canon_methods[type(expr)](expr, args)
+            return self.smooth_canon_methods[type(expr)](
+                expr, args, solver_context=_DNLP_SOLVER_CONTEXT)
 
         return expr.copy(args), []

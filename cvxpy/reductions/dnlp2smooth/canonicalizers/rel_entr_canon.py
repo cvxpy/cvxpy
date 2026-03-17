@@ -26,7 +26,7 @@ from cvxpy.reductions.dnlp2smooth.canonicalizers.multiply_canon import multiply_
 
 MIN_INIT = 1e-3
 
-def rel_entr_canon(expr, args):
+def rel_entr_canon(expr, args, solver_context=None):
 
     # if the first argument is constant we canonicalize using log
     if args[0].is_constant():

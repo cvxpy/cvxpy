@@ -22,7 +22,7 @@ from cvxpy.reductions.dnlp2smooth.canonicalizers.power_canon import power_canon
 
 MIN_INIT = 1e-4
 
-def quad_over_lin_canon(expr, args):
+def quad_over_lin_canon(expr, args, solver_context=None):
     """
     Canonicalize a quadratic over linear expression.
     If the denominator is constant, we can use the power canonicalizer.

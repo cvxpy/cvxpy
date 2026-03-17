@@ -23,7 +23,7 @@ MIN_INIT = 1e-3
 
 # We canonicalize div(f(x), g(x)) as z * y = f(x), y = g(x), y >= 0.
 # In other words, it assumes that the denominator is nonnegative.
-def div_canon(expr, args):
+def div_canon(expr, args, solver_context=None):
     
     # raise an error if the denominator is not nonnegative
     if not args[1].is_nonneg():
