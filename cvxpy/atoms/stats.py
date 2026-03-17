@@ -21,7 +21,7 @@ from cvxpy.atoms.norm import norm
 from cvxpy.atoms.sum_squares import sum_squares
 
 
-def mean(x, axis=None, keepdims=False):
+def mean(x, axis=None, keepdims=False, dtype=None, out=None, **kwargs):
     """
     Returns the mean of x.
     """
@@ -33,7 +33,7 @@ def mean(x, axis=None, keepdims=False):
         raise UserWarning("cp.mean doesn't yet support axis values other than 0 or 1.")
 
 
-def std(x, axis=None, keepdims=False, ddof=0):
+def std(x, axis=None, keepdims=False, ddof=0, dtype=None, out=None, **kwargs):
     """
     Returns the standard deviation of x.
 
@@ -47,7 +47,7 @@ def std(x, axis=None, keepdims=False, ddof=0):
     else:
         raise ValueError("cp.std doesn't yet support axis values other than 0 or 1.")
 
-def var(x, axis=None, keepdims=False, ddof=0):
+def var(x, axis=None, keepdims=False, ddof=0, dtype=None, out=None, **kwargs):
     """
     Returns the variance of x.
 

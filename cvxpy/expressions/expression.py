@@ -1010,40 +1010,40 @@ class Expression(u.Canonical):
         from cvxpy import cumsum
         return cumsum(self, axis)
 
-    def max(self, axis=None, *, keepdims=False) -> "Expression":
+    def max(self, axis=None, *, keepdims=False, out=None, **kwargs) -> "Expression":
         """
-        Equivalent to `cp.max(self, axis, keepdims)`.
+        Equivalent to `cp.max(self, axis, keepdims, out, **kwargs)`.
         """
         from cvxpy import max as max_
-        return max_(self, axis, keepdims)
+        return max_(self, axis=axis, keepdims=keepdims, out=out, **kwargs)
 
-    def mean(self, axis=None, *, keepdims=False) -> "Expression":
+    def mean(self, axis=None, *, keepdims=False, dtype=None, out=None, **kwargs) -> "Expression":
         """
-        Equivalent to `cp.mean(self, axis, keepdims)`.
+        Equivalent to `cp.mean(self, axis, keepdims, dtype, out, **kwargs)`.
         """
         from cvxpy import mean
-        return mean(self, axis, keepdims)
+        return mean(self, axis=axis, keepdims=keepdims, dtype=dtype, out=out, **kwargs)
 
-    def min(self, axis=None, *, keepdims=False) -> "Expression":
+    def min(self, axis=None, *, keepdims=False, out=None, **kwargs) -> "Expression":
         """
-        Equivalent to `cp.min(self, axis, keepdims)`.
+        Equivalent to `cp.min(self, axis, keepdims, out, **kwargs)`.
         """
         from cvxpy import min as min_
-        return min_(self, axis, keepdims)
+        return min_(self, axis=axis, keepdims=keepdims, out=out, **kwargs)
 
-    def prod(self, axis=None, *, keepdims=False) -> "Expression":
+    def prod(self, axis=None, *, keepdims=False, dtype=None, out=None, **kwargs) -> "Expression":
         """
-        Equivalent to `cp.prod(self, axis, keepdims)`.
+        Equivalent to `cp.prod(self, axis, keepdims, dtype, out, **kwargs)`.
         """
         from cvxpy import prod
-        return prod(self, axis, keepdims)
+        return prod(self, axis=axis, keepdims=keepdims, dtype=dtype, out=out, **kwargs)
 
-    def ptp(self, axis=None, *, keepdims=False) -> "Expression":
+    def ptp(self, axis=None, *, keepdims=False, out=None, **kwargs) -> "Expression":
         """
-        Equivalent to `cp.ptp(self, axis, keepdims)`.
+        Equivalent to `cp.ptp(self, axis, keepdims, out, **kwargs)`.
         """
         from cvxpy import ptp
-        return ptp(self, axis, keepdims)
+        return ptp(self, axis=axis, keepdims=keepdims, out=out, **kwargs)
 
     def reshape(self, shape, order: Literal["F", "C", None] = None) -> "Expression":
         """
@@ -1056,19 +1056,19 @@ class Expression(u.Canonical):
         from cvxpy import reshape
         return reshape(self, shape, order)
 
-    def std(self, axis=None, *, ddof=0, keepdims=False) -> "Expression":
+    def std(self, axis=None, *, ddof=0, keepdims=False, dtype=None, out=None, **kwargs) -> "Expression":
         """
-        Equivalent to `cp.std(self, axis, keepdims)`.
+        Equivalent to `cp.std(self, axis, keepdims, ddof, dtype, out, **kwargs)`.
         """
         from cvxpy import std
-        return std(self, axis=axis, ddof=ddof, keepdims=keepdims)
+        return std(self, axis=axis, ddof=ddof, keepdims=keepdims, dtype=dtype, out=out, **kwargs)
  
-    def sum(self, axis=None, *, keepdims=False) -> "Expression":
+    def sum(self, axis=None, *, keepdims=False, dtype=None, out=None, **kwargs) -> "Expression":
         """
-        Equivalent to `cp.sum(self, axis, keepdims)`.
+        Equivalent to `cp.sum(self, axis, keepdims, dtype, out, **kwargs)`.
         """
         from cvxpy import sum as sum_
-        return sum_(self, axis, keepdims)
+        return sum_(self, axis=axis, keepdims=keepdims, dtype=dtype, out=out, **kwargs)
 
     def trace(self) -> "Expression":
         """
@@ -1077,9 +1077,9 @@ class Expression(u.Canonical):
         from cvxpy import trace
         return trace(self)
 
-    def var(self, *, ddof=0) -> "Expression":
+    def var(self, axis=None, *, ddof=0, keepdims=False, dtype=None, out=None, **kwargs) -> "Expression":
         """
-        Equivalent to `cp.var(self)`.
+        Equivalent to `cp.var(self, axis, keepdims, ddof, dtype, out, **kwargs)`.
         """
         from cvxpy import var
-        return var(self, ddof=ddof)
+        return var(self, axis=axis, ddof=ddof, keepdims=keepdims, dtype=dtype, out=out, **kwargs)
