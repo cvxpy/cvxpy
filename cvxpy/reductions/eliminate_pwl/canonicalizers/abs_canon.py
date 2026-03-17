@@ -29,10 +29,4 @@ def abs_canon(expr, args, solver_context: SolverInfo | None = None):
     if value is not None:
         t.value = value
     constraints = [t >= x, t >= -x]
-
-    # for DNLP we must initialize the new variable (DNLP guarantees that
-    # x.value will be set when this function is called)
-    if expr.value is not None:
-        t.value = expr.value
-
     return t, constraints

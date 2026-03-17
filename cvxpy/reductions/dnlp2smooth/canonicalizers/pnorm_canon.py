@@ -19,7 +19,7 @@ from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.dnlp2smooth.canonicalizers.quad_over_lin_canon import quad_over_lin_canon
 
 
-def pnorm_canon(expr, args):
+def pnorm_canon(expr, args, solver_context=None):
     x = args[0]
     p = expr.p
     shape = expr.shape

@@ -38,9 +38,4 @@ def norm_inf_canon(expr, args, solver_context: SolverInfo | None = None):
         keepdims_shape = tuple(1 if i in axes else s for i, s in enumerate(x.shape))
         promoted_t = reshape(t, keepdims_shape, order='F')
 
-    # for DNLP we must initialize the new variable (DNLP guarantees that
-    # x.value will be set when this function is called)
-    if expr.value is not None:
-        t.value = expr.value
-
     return t, [x <= promoted_t, x + promoted_t >= 0]
