@@ -30,7 +30,7 @@ def quad_over_lin_canon(expr, args, solver_context=None):
     """
     if args[1].is_constant():
         expr = power(args[0], 2)
-        var, constr = power_canon(expr, expr.args)
+        var, constr = power_canon(expr, expr.args, solver_context=solver_context)
         summation = Sum(var)
         return 1/args[1].value * summation, constr
     else:

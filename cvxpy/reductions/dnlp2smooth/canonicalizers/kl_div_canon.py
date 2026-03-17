@@ -20,6 +20,6 @@ from cvxpy.reductions.dnlp2smooth.canonicalizers.rel_entr_canon import rel_entr_
 
 def kl_div_canon(expr, args, solver_context=None):
     _rel_entr = rel_entr(args[0], args[1])
-    rel_entr_expr, constr = rel_entr_canon(_rel_entr, _rel_entr.args)
+    rel_entr_expr, constr = rel_entr_canon(_rel_entr, _rel_entr.args, solver_context=solver_context)
     return rel_entr_expr - args[0] + args[1] , constr
 

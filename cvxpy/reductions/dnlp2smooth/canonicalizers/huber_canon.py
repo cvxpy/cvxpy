@@ -43,9 +43,9 @@ def huber_canon(expr, args, solver_context=None):
 
     # n**2 + 2*M*|s|
     power_expr = power(n, 2)
-    n2, constr_sq = power_canon(power_expr, power_expr.args)
+    n2, constr_sq = power_canon(power_expr, power_expr.args, solver_context=solver_context)
     abs_expr = abs(s)
-    abs_s, constr_abs = abs_canon(abs_expr, abs_expr.args)
+    abs_s, constr_abs = abs_canon(abs_expr, abs_expr.args, solver_context=solver_context)
     obj = n2 + 2 * M * abs_s
 
     # x == s + n
