@@ -86,14 +86,23 @@ class QuadForm(Atom):
     def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """
-        return (self.args[0].is_nonneg() and self.args[1].is_nonneg()) or \
-               (self.args[0].is_nonpos() and self.args[1].is_nonneg())
+        if idx == 0:
+            # ∇_x f = 2Px: nonneg when (x≥0, P≥0) or (x≤0, P≤0)
+            return (self.args[0].is_nonneg() and self.args[1].is_nonneg()) or \
+                   (self.args[0].is_nonpos() and self.args[1].is_nonpos())
+        elif idx == 1:
+            # ∂f/∂P_{ij} = x_i x_j: nonneg when x is all nonneg or all nonpos
+            return self.args[0].is_nonneg() or self.args[0].is_nonpos()
+        return False
 
     def is_decr(self, idx) -> bool:
         """Is the composition non-increasing in argument idx?
         """
-        return (self.args[0].is_nonneg() and self.args[1].is_nonpos()) or \
-               (self.args[0].is_nonpos() and self.args[1].is_nonpos())
+        if idx == 0:
+            # ∇_x f = 2Px: nonpos when (x≥0, P≤0) or (x≤0, P≥0)
+            return (self.args[0].is_nonneg() and self.args[1].is_nonpos()) or \
+                   (self.args[0].is_nonpos() and self.args[1].is_nonneg())
+        return False
 
     def is_quadratic(self) -> bool:
         """Is the atom quadratic?

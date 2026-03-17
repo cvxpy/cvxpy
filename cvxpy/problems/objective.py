@@ -211,7 +211,7 @@ class Maximize(Objective):
         if type(other) is Maximize:
             return Maximize(self.args[0] + other.args[0])
         else:
-            raise Exception("Problem does not follow DCP rules.")
+            raise DCPError("Problem does not follow DCP rules.")
 
     def canonicalize(self):
         """Negates the target expression's objective.
