@@ -38,6 +38,7 @@ from cvxpy.reductions.solvers.defines import (
 from cvxpy.tests.base_test import BaseTest
 from cvxpy.tests.solver_test_helpers import (
     StandardTestECPs,
+    StandardTestInfeasibleProblems,
     StandardTestLPs,
     StandardTestMixedCPs,
     StandardTestPCPs,
@@ -427,29 +428,29 @@ class TestSCS(BaseTest):
     def test_scs_pcp_3(self) -> None:
         StandardTestPCPs.test_pcp_3(solver='SCS', eps=1e-12)
 
-    def test_primal_infeasible_dual_variable_propagation(self) -> None:
-        x = cp.Variable(10)
-        constraints = [x[0] + x[1] == x[2], cp.log_sum_exp(x) <= 1, cp.norm2(x) <= 1]
-        prob = cp.Problem(cp.Minimize(0), constraints)
-        # Using SCS, this problem will get reduced to a problem with a linear cone constraint,
-        # an exponential cone constraint, a second-order cone constraint, and a zero cone
-        # (equality) constraint.
-        prob.solve(solver="SCS")
+    def test_infeasible_lp_ineq_constraints(self):
+        StandardTestInfeasibleProblems.test_lp_ineq_constraints(solver="SCS")
 
-        # The problem is infeasible - assert this as a sanity check.
-        assert prob.status == "infeasible"
+    def test_infeasible_lp_eq_constraints(self):
+        StandardTestInfeasibleProblems.test_lp_eq_constraints(solver="SCS")
 
-        # Verify that the dual variables have been propagated through the inverse solving chain.
-        # The specific values don't matter for this test.
-        assert isinstance(constraints[0].dual_value, float)
-        assert isinstance(constraints[1].dual_value, float)
-        assert isinstance(constraints[2].dual_value, float)
+    def test_infeasible_soc(self):
+        StandardTestInfeasibleProblems.test_soc(solver="SCS")
 
-        # Verify the dual variables have also been propagated to the `.value` attribute of the
-        # Variable(s) in each constraint's `.dual_variables` attribute.
-        assert constraints[0].dual_variables[0].value == constraints[0].dual_value
-        assert constraints[1].dual_variables[0].value == constraints[1].dual_value
-        assert constraints[2].dual_variables[0].value == constraints[2].dual_value
+    def test_infeasible_power_cone_3d(self):
+        StandardTestInfeasibleProblems.test_power_cone_3d(solver="SCS")
+
+    def test_infeasible_power_cone_nd(self):
+        StandardTestInfeasibleProblems.test_power_cone_nd(solver="SCS")
+
+    def test_infeasible_exp_cone(self):
+        StandardTestInfeasibleProblems.test_exp_cone(solver="SCS")
+
+    def test_infeasible_psd_cone(self):
+        StandardTestInfeasibleProblems.test_psd_cone(solver="SCS")
+
+    def test_infeasible_soc_exp_mixed(self):
+        StandardTestInfeasibleProblems.test_soc_exp_mixed(solver="SCS")
 
 
 @unittest.skipUnless('CLARABEL' in INSTALLED_SOLVERS, 'CLARABEL is not installed.')
@@ -573,6 +574,31 @@ class TestClarabel(BaseTest):
         # sth.verify_primal_values(places) # skip
         sth.check_complementarity(places)
         sth.check_dual_domains(places)
+
+    def test_infeasible_lp_ineq_constraints(self):
+        StandardTestInfeasibleProblems.test_lp_ineq_constraints(solver="CLARABEL")
+
+    def test_infeasible_lp_eq_constraints(self):
+        StandardTestInfeasibleProblems.test_lp_eq_constraints(solver="CLARABEL")
+
+    def test_infeasible_soc(self):
+        StandardTestInfeasibleProblems.test_soc(solver="CLARABEL")
+
+    def test_infeasible_power_cone_3d(self):
+        StandardTestInfeasibleProblems.test_power_cone_3d(solver="CLARABEL")
+
+    def test_infeasible_power_cone_nd(self):
+        StandardTestInfeasibleProblems.test_power_cone_nd(solver="CLARABEL")
+
+    def test_infeasible_exp_cone(self):
+        StandardTestInfeasibleProblems.test_exp_cone(solver="CLARABEL")
+
+    def test_infeasible_psd_cone(self):
+        StandardTestInfeasibleProblems.test_psd_cone(solver="CLARABEL")
+
+    def test_infeasible_soc_exp_mixed(self):
+        StandardTestInfeasibleProblems.test_soc_exp_mixed(solver="CLARABEL")
+
 
 
 @unittest.skipUnless('CUCLARABEL' in INSTALLED_SOLVERS, 'CLARABEL is not installed.')

@@ -759,7 +759,7 @@ class TestProblem(BaseTest):
         assert numpy.isinf(p.value)
         assert p.value > 0
         assert self.a.value is None
-        assert p.constraints[0].dual_value is None
+        assert p.constraints[0].dual_value is not None
 
         if s.CVXOPT in INSTALLED_SOLVERS:
             p = Problem(cp.Minimize(-self.a), [self.a >= 2])
@@ -780,7 +780,7 @@ class TestProblem(BaseTest):
         assert numpy.isinf(p.value)
         assert p.value < 0
         assert self.a.value is None
-        assert p.constraints[0].dual_value is None
+        assert p.constraints[0].dual_value is not None
 
         p = Problem(cp.Minimize(-self.a), [self.a >= 2, self.a <= 1])
         result = p.solve(solver=s.CLARABEL)
