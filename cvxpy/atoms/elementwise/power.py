@@ -49,7 +49,6 @@ def power(x, p, max_denom: int = 1024, approx: bool = True):
     -------
     Power, PowerApprox, or exp expression
     """
-    import numpy as np
 
     from cvxpy.atoms.elementwise.exp import exp
     from cvxpy.expressions.expression import Expression
@@ -66,7 +65,9 @@ def power(x, p, max_denom: int = 1024, approx: bool = True):
                 "The base of cp.power(b, x) must be positive when the "
                 "exponent is a variable, since we use b**x = exp(x * log(b))."
             )
-        return exp(p_expr * float(np.log(x_expr.value)))
+        from cvxpy.atoms.affine.binary_operators import multiply
+        from cvxpy.atoms.elementwise.log import log
+        return exp(multiply(p_expr, log(x_expr)))
 
     # Default case: x**p where x is variable and p is constant
     if approx:
