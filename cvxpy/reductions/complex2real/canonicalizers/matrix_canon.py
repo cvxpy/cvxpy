@@ -195,7 +195,7 @@ def quad_canon(expr,
         
         if expr.args[1].is_psd():
             matrix = psd_wrap(matrix)
-        elif expr.args[1].is_nsd():
+        elif (expr.args[0].is_complex() or expr.args[1].is_complex()) and expr.args[1].is_nsd():
             matrix = nsd_wrap(matrix)
             
     return expr.copy([vec, matrix]), None
