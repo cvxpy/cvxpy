@@ -95,6 +95,19 @@ class TestDecompQuad(BaseTest):
             warnings.simplefilter("ignore")
             self._check(sp.diags_array([1., -1, 2, -2, 3], format="csc"))
 
+    def test_sparse_nsd(self) -> None:
+        """Regression test: sparse NSD must use row permutation L[p,:], not column L[:,p].
+
+        For NSD matrices, decomp_quad calls sparse_cholesky(-P) which returns (L, p) with
+        L[p,:] @ L[p,:].T == -P.  The fix is M2 = L[p,:] (row perm), not L[:,p] (col perm).
+        A tridiagonal matrix produces a non-trivial AMD ordering that exposes the bug.
+        """
+        n = 6
+        off = np.ones(n - 1)
+        # Negative discrete Laplacian: NSD, tridiagonal, AMD gives non-identity permutation.
+        P_nsd = sp.diags([-4 * np.ones(n), off, off], [0, -1, 1], format="csc")
+        self._check(P_nsd)
+
 
 class TestNonOptimal(BaseTest):
     def test_singular_quad_form(self) -> None:
@@ -304,3 +317,25 @@ class TestNonOptimal(BaseTest):
             prob.solve(solver=cp.SCS, use_quad_obj=False)
         assert "indefinite" in str(exc_info.value)
         assert "PSD" in str(exc_info.value)
+
+    def test_quad_form_monotonicity_in_x(self) -> None:
+        """Test DCP compositions requiring correct quad_form monotonicity in x."""
+        P = np.array([[2.0, 0.5], [0.5, 1.0]])
+
+        # x = square(z) is convex nonneg; quad_form nondecreasing in nonneg x → convex.
+        z = cp.Variable(2, nonneg=True)
+        assert cp.quad_form(cp.square(z), P).is_convex()
+
+        # x = square(z) - 1 is convex but can be negative; monotonicity unknown → not DCP.
+        assert not cp.quad_form(cp.square(z) - 1, P).is_convex()
+
+    def test_quad_form_monotonicity_in_P(self) -> None:
+        """Test DCP with P as a convex expression of a variable."""
+        y = cp.Variable(2, nonneg=True)
+        P = cp.diag(cp.square(y))
+
+        # Nonneg x: quad_form is nondecreasing in P, so convex ∘ nondecreasing = convex.
+        assert cp.quad_form(np.array([1.0, 2.0]), P).is_convex()
+
+        # Mixed-sign x: monotonicity unknown, so not DCP-convex.
+        assert not cp.quad_form(np.array([1.0, -2.0]), P).is_convex()

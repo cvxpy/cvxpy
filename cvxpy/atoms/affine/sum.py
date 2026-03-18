@@ -25,7 +25,7 @@ import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.affine.affine_atom import AffAtom
-from cvxpy.atoms.axis_atom import AxisAtom
+from cvxpy.atoms.axis_atom import AxisAtom, normalize_axis
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.utilities import bounds as bounds_utils
 
@@ -144,7 +144,8 @@ class Sum(AxisAtom, AffAtom):
         # Normalize tuple axes so they use the fast path when possible.
         if isinstance(axis, tuple):
             ndim = len(arg_objs[0].shape)
-            axis = tuple(a if a >= 0 else a + ndim for a in axis)
+            axis = normalize_axis(axis, ndim)
+
         # Note: added new case for summing with n-dimensional shapes and
         # multiple axes. Previous behavior is kept in the else statement.
         if len(arg_objs[0].shape) > 2 or axis not in {None, 0, 1}:

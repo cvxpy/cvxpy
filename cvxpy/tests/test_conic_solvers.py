@@ -30,6 +30,7 @@ import scipy.stats as st
 
 import cvxpy as cp
 import cvxpy.tests.solver_test_helpers as sths
+from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.defines import (
     INSTALLED_MI_SOLVERS,
     INSTALLED_SOLVERS,
@@ -37,6 +38,7 @@ from cvxpy.reductions.solvers.defines import (
 from cvxpy.tests.base_test import BaseTest
 from cvxpy.tests.solver_test_helpers import (
     StandardTestECPs,
+    StandardTestInfeasibleProblems,
     StandardTestLPs,
     StandardTestMixedCPs,
     StandardTestPCPs,
@@ -44,6 +46,7 @@ from cvxpy.tests.solver_test_helpers import (
     StandardTestSDPs,
     StandardTestSOCPs,
 )
+from cvxpy.transforms.partial_optimize import partial_optimize
 from cvxpy.utilities.versioning import Version
 
 
@@ -425,6 +428,30 @@ class TestSCS(BaseTest):
     def test_scs_pcp_3(self) -> None:
         StandardTestPCPs.test_pcp_3(solver='SCS', eps=1e-12)
 
+    def test_infeasible_lp_ineq_constraints(self):
+        StandardTestInfeasibleProblems.test_lp_ineq_constraints(solver="SCS")
+
+    def test_infeasible_lp_eq_constraints(self):
+        StandardTestInfeasibleProblems.test_lp_eq_constraints(solver="SCS")
+
+    def test_infeasible_soc(self):
+        StandardTestInfeasibleProblems.test_soc(solver="SCS")
+
+    def test_infeasible_power_cone_3d(self):
+        StandardTestInfeasibleProblems.test_power_cone_3d(solver="SCS")
+
+    def test_infeasible_power_cone_nd(self):
+        StandardTestInfeasibleProblems.test_power_cone_nd(solver="SCS")
+
+    def test_infeasible_exp_cone(self):
+        StandardTestInfeasibleProblems.test_exp_cone(solver="SCS")
+
+    def test_infeasible_psd_cone(self):
+        StandardTestInfeasibleProblems.test_psd_cone(solver="SCS")
+
+    def test_infeasible_soc_exp_mixed(self):
+        StandardTestInfeasibleProblems.test_soc_exp_mixed(solver="SCS")
+
 
 @unittest.skipUnless('CLARABEL' in INSTALLED_SOLVERS, 'CLARABEL is not installed.')
 class TestClarabel(BaseTest):
@@ -547,6 +574,32 @@ class TestClarabel(BaseTest):
         # sth.verify_primal_values(places) # skip
         sth.check_complementarity(places)
         sth.check_dual_domains(places)
+
+    def test_infeasible_lp_ineq_constraints(self):
+        StandardTestInfeasibleProblems.test_lp_ineq_constraints(solver="CLARABEL")
+
+    def test_infeasible_lp_eq_constraints(self):
+        StandardTestInfeasibleProblems.test_lp_eq_constraints(solver="CLARABEL")
+
+    def test_infeasible_soc(self):
+        StandardTestInfeasibleProblems.test_soc(solver="CLARABEL")
+
+    def test_infeasible_power_cone_3d(self):
+        StandardTestInfeasibleProblems.test_power_cone_3d(solver="CLARABEL")
+
+    def test_infeasible_power_cone_nd(self):
+        StandardTestInfeasibleProblems.test_power_cone_nd(solver="CLARABEL")
+
+    def test_infeasible_exp_cone(self):
+        StandardTestInfeasibleProblems.test_exp_cone(solver="CLARABEL")
+
+    def test_infeasible_psd_cone(self):
+        StandardTestInfeasibleProblems.test_psd_cone(solver="CLARABEL")
+
+    def test_infeasible_soc_exp_mixed(self):
+        StandardTestInfeasibleProblems.test_soc_exp_mixed(solver="CLARABEL")
+
+
 
 @unittest.skipUnless('CUCLARABEL' in INSTALLED_SOLVERS, 'CLARABEL is not installed.')
 class TestCuClarabel(BaseTest):
@@ -808,8 +861,7 @@ class TestMoreau(BaseTest):
         StandardTestSOCPs.test_socp_0(solver='MOREAU')
 
     def test_moreau_socp_1(self) -> None:
-        import moreau
-        ipm_settings = moreau.IPMSettings(tol_gap_abs=1e-9, tol_gap_rel=1e-9, tol_feas=1e-9)
+        ipm_settings = {"tol_gap_abs": 1e-9, "tol_gap_rel": 1e-9, "tol_feas": 1e-9}
         StandardTestSOCPs.test_socp_1(solver='MOREAU', ipm_settings=ipm_settings)
 
     def test_moreau_socp_2(self) -> None:
@@ -828,14 +880,27 @@ class TestMoreau(BaseTest):
         StandardTestMixedCPs.test_exp_soc_1(solver='MOREAU')
 
     def test_moreau_pcp_1(self) -> None:
-        import moreau
-        ipm_settings = moreau.IPMSettings(tol_gap_abs=1e-9, tol_gap_rel=1e-9, tol_feas=1e-9)
+        ipm_settings = {"tol_gap_abs": 1e-9, "tol_gap_rel": 1e-9, "tol_feas": 1e-9}
         StandardTestPCPs.test_pcp_1(solver='MOREAU', ipm_settings=ipm_settings)
 
     def test_moreau_pcp_2(self) -> None:
-        import moreau
-        ipm_settings = moreau.IPMSettings(tol_gap_abs=1e-9, tol_gap_rel=1e-9, tol_feas=1e-9)
+        ipm_settings = {"tol_gap_abs": 1e-9, "tol_gap_rel": 1e-9, "tol_feas": 1e-9}
         StandardTestPCPs.test_pcp_2(solver='MOREAU', ipm_settings=ipm_settings)
+
+    def test_moreau_variable_soc_dims(self) -> None:
+        """Test that Moreau handles SOC constraints of dimension > 3 directly."""
+        x = cp.Variable(5)
+        t = cp.Variable()
+        # SOC constraint: ||x|| <= t, which is a dim-6 SOC
+        prob = cp.Problem(cp.Minimize(t), [cp.SOC(t, x), x == 1])
+        prob.solve(solver=cp.MOREAU)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        self.assertAlmostEqual(prob.value, np.sqrt(5), places=4)
+
+        # Verify the solver receives variable-length SOC dims (not all dim-3)
+        data, _, _ = prob.get_problem_data(solver=cp.MOREAU)
+        soc_dims = data[ConicSolver.DIMS].soc
+        self.assertTrue(any(d > 3 for d in soc_dims))
 
 
 def is_mosek_available():
@@ -3257,11 +3322,12 @@ class TestKNITRO(BaseTest):
 
 @unittest.skipUnless("CUOPT" in INSTALLED_SOLVERS, "CUOPT is not installed.")
 class TestCUOPT(unittest.TestCase):
-
     import os
-    kwargs={"pdlp_solver_mode": os.environ.get("CUOPT_PDLP_SOLVER_MODE", "Stable2"),
-            "solver_method": os.environ.get("CUOPT_SOLVER_METHOD", 0)
-            }
+
+    kwargs = {
+        "pdlp_solver_mode": os.environ.get("CUOPT_PDLP_SOLVER_MODE", "Stable2"),
+        "solver_method": os.environ.get("CUOPT_SOLVER_METHOD", 0),
+    }
 
     def test_cuopt_lp_0(self) -> None:
         StandardTestLPs.test_lp_0(solver="CUOPT", duals=True, places=4, **TestCUOPT.kwargs)
@@ -3284,27 +3350,27 @@ class TestCUOPT(unittest.TestCase):
             assert "crossing bounds" in str(e)
 
     def test_cuopt_lp_5(self) -> None:
-        StandardTestLPs.test_lp_5(solver='CUOPT', duals=True, places=4, **TestCUOPT.kwargs)
+        StandardTestLPs.test_lp_5(solver="CUOPT", duals=True, places=4, **TestCUOPT.kwargs)
 
     def test_cuopt_lp_6(self) -> None:
-        StandardTestLPs.test_lp_5(solver='CUOPT', duals=True, places=4, **TestCUOPT.kwargs)
+        StandardTestLPs.test_lp_5(solver="CUOPT", duals=True, places=4, **TestCUOPT.kwargs)
 
     def test_cuopt_lp_7(self) -> None:
-        StandardTestLPs.test_lp_5(solver='CUOPT', duals=True, places=4, **TestCUOPT.kwargs)
+        StandardTestLPs.test_lp_5(solver="CUOPT", duals=True, places=4, **TestCUOPT.kwargs)
 
     def test_cuopt_mi_lp_0(self) -> None:
-        StandardTestLPs.test_mi_lp_0(solver='CUOPT', **TestCUOPT.kwargs)
+        StandardTestLPs.test_mi_lp_0(solver="CUOPT", **TestCUOPT.kwargs)
 
     def test_cuopt_mi_lp_1(self) -> None:
-        StandardTestLPs.test_mi_lp_1(solver='CUOPT', **TestCUOPT.kwargs)
+        StandardTestLPs.test_mi_lp_1(solver="CUOPT", **TestCUOPT.kwargs)
 
     def test_cuopt_mi_lp_2(self) -> None:
-        StandardTestLPs.test_mi_lp_2(solver='CUOPT', **TestCUOPT.kwargs)
+        StandardTestLPs.test_mi_lp_2(solver="CUOPT", **TestCUOPT.kwargs)
 
     def test_cuopt_mi_lp_3(self) -> None:
         TestCUOPT.kwargs["time_limit"] = 5
         try:
-            StandardTestLPs.test_mi_lp_3(solver='CUOPT', **TestCUOPT.kwargs)
+            StandardTestLPs.test_mi_lp_3(solver="CUOPT", **TestCUOPT.kwargs)
         finally:
             del TestCUOPT.kwargs["time_limit"]
 
@@ -3312,12 +3378,35 @@ class TestCUOPT(unittest.TestCase):
     # Error message from cvxpy should be returned
     def test_cuopt_mi_lp_4(self) -> None:
         try:
-            StandardTestLPs.test_mi_lp_4(solver='CUOPT', **TestCUOPT.kwargs)
+            StandardTestLPs.test_mi_lp_4(solver="CUOPT", **TestCUOPT.kwargs)
         except Exception as e:
-            assert "there are not enough constraints in the problem" in str(e)
+            assert "cannot solve this problem" in str(e)
 
     def test_cuopt_mi_lp_5(self) -> None:
-        StandardTestLPs.test_mi_lp_5(solver='CUOPT', **TestCUOPT.kwargs, time_limit=5)
+        StandardTestLPs.test_mi_lp_5(solver="CUOPT", **TestCUOPT.kwargs, time_limit=5)
 
     def test_cuopt_mi_lp_7(self) -> None:
-        StandardTestLPs.test_mi_lp_5(solver='CUOPT', **TestCUOPT.kwargs, time_limit=5)
+        StandardTestLPs.test_mi_lp_5(solver="CUOPT", **TestCUOPT.kwargs, time_limit=5)
+
+    def test_cuopt_qp_0(self) -> None:
+        StandardTestQPs.test_qp_0(solver="CUOPT", **TestCUOPT.kwargs, time_limit=5)
+
+
+@pytest.mark.parametrize("solver", INSTALLED_SOLVERS)
+def test_offset_in_opt_val(solver):
+    """Solvers must add the constant OFFSET back in invert().
+
+    partial_optimize uses prob._solution.opt_val directly, so a missing
+    OFFSET causes it to return the wrong value.  A large constant in the
+    objective makes the error obvious.
+    """
+    x = cp.Variable()
+    t = cp.Variable()
+    inner = cp.Problem(cp.Minimize(t + 1000), [t >= x])
+    try:
+        f = partial_optimize(inner, opt_vars=[t], solver=solver)
+        x.value = 0.0
+        f.value
+    except cp.error.SolverError:
+        pytest.skip(f"Solver {solver} cannot solve this problem")
+    assert abs(f.value - 1000.0) < 1e-2

@@ -73,6 +73,10 @@ class QuadForm(Atom):
         P = self.args[1]
         return P.is_constant() and P.is_nsd()
 
+    def is_atom_smooth(self) -> bool:
+        """Is the atom smooth?"""
+        return True
+
     def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
         """
@@ -86,14 +90,23 @@ class QuadForm(Atom):
     def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """
-        return (self.args[0].is_nonneg() and self.args[1].is_nonneg()) or \
-               (self.args[0].is_nonpos() and self.args[1].is_nonneg())
+        if idx == 0:
+            # ∇_x f = 2Px: nonneg when (x≥0, P≥0) or (x≤0, P≤0)
+            return (self.args[0].is_nonneg() and self.args[1].is_nonneg()) or \
+                   (self.args[0].is_nonpos() and self.args[1].is_nonpos())
+        elif idx == 1:
+            # ∂f/∂P_{ij} = x_i x_j: nonneg when x is all nonneg or all nonpos
+            return self.args[0].is_nonneg() or self.args[0].is_nonpos()
+        return False
 
     def is_decr(self, idx) -> bool:
         """Is the composition non-increasing in argument idx?
         """
-        return (self.args[0].is_nonneg() and self.args[1].is_nonpos()) or \
-               (self.args[0].is_nonpos() and self.args[1].is_nonpos())
+        if idx == 0:
+            # ∇_x f = 2Px: nonpos when (x≥0, P≤0) or (x≤0, P≥0)
+            return (self.args[0].is_nonneg() and self.args[1].is_nonpos()) or \
+                   (self.args[0].is_nonpos() and self.args[1].is_nonneg())
+        return False
 
     def is_quadratic(self) -> bool:
         """Is the atom quadratic?
@@ -224,7 +237,7 @@ def decomp_quad(P, cond=None, rcond=None, lower=True, check_finite: bool = True)
             if sign > 0:
                 return 1.0, L[p, :], np.empty((0, 0))
             else:
-                return 1.0, np.empty((0, 0)), L[:, p]
+                return 1.0, np.empty((0, 0)), L[p, :]
         except (ValueError, ModuleNotFoundError):
             P = np.array(P.todense())  # make dense (needs to happen for ldl).
     lu, d, _perm = LA.ldl(P, lower=lower, check_finite=check_finite)

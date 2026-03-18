@@ -413,6 +413,11 @@ class multiply(MulExpression):
         return (self.args[0].is_psd() and self.args[1].is_nsd()) or \
                (self.args[0].is_nsd() and self.args[1].is_psd())
 
+    def is_hermitian(self) -> bool:
+        """Is the expression Hermitian?
+        """
+        return (self.args[0].is_hermitian() and self.args[1].is_hermitian())
+
     def _grad(self, values):
         """Gives the (sub/super)gradient of elementwise multiply.
 
