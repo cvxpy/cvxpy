@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 import builtins
 from functools import wraps
 from types import GeneratorType
@@ -85,8 +86,7 @@ class Sum(AxisAtom, AffAtom):
         super(AxisAtom, self).validate_arguments()
 
     def shape_from_args(self) -> Tuple[int, ...]:
-        """Returns the shape of the expression.
-        """
+        """Returns the shape of the expression."""
         arg_shape = self.args[0].shape
         ndim = len(arg_shape)
 
@@ -95,12 +95,12 @@ class Sum(AxisAtom, AffAtom):
 
         # Convert to list for consistent validation
         axes_to_check = [self.axis] if isinstance(self.axis, (int, np.integer)) else self.axis
-        
+
         axes = set()
         for a in axes_to_check:
             if a < -ndim or a >= ndim:
                 raise ValueError(f"Invalid axis {a} for {ndim}D input.")
-            
+
             norm_a = a if a >= 0 else a + ndim
             if norm_a in axes:
                 raise ValueError(f"duplicate value in 'axis': {a}")
@@ -125,10 +125,9 @@ class Sum(AxisAtom, AffAtom):
             result = np.sum(values[0], axis=self.axis, keepdims=self.keepdims)
         return result
 
-    def graph_implementation(self,
-                            arg_objs: list[lo.LinOp],
-                            shape: tuple[int, ...],
-                            data=None) -> tuple[lo.LinOp, list[Constraint]]:
+    def graph_implementation(
+        self, arg_objs: list[lo.LinOp], shape: tuple[int, ...], data=None
+    ) -> tuple[lo.LinOp, list[Constraint]]:
         """
         Sum the linear expression's entries.
 
