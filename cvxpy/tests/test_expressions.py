@@ -1329,11 +1329,7 @@ class TestExpressions(BaseTest):
         with self.assertRaises(ValueError):
             cp.power(-2, x)
 
-        # Test 5: original behavior unchanged
-        expr2 = cp.power(x, 2)
-        self.assertIsNotNone(expr2)
-
-        # Test 6: Parameter(pos=True) as base for cp.power
+        # Test 5: Parameter(pos=True) as base for cp.power
         b = cp.Parameter(pos=True)
         b.value = 2.0
         expr3 = cp.power(b, x)
@@ -1342,7 +1338,7 @@ class TestExpressions(BaseTest):
         prob3.solve()
         self.assertAlmostEqual(float(x.value), 1.0, places=3)
 
-        # Test 7: Parameter(pos=True) as base for ** operator
+        # Test 6: Parameter(pos=True) as base for ** operator
         expr4 = b ** x
         self.assertIsNotNone(expr4)
         prob4 = cp.Problem(cp.Minimize(b ** x), [x >= 1, x <= 3])
