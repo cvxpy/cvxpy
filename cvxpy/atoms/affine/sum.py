@@ -88,9 +88,24 @@ class Sum(AxisAtom, AffAtom):
 
     def shape_from_args(self) -> Tuple[int, ...]:
         """Returns shape using NumPy's sum shape calculation."""
+        # Build a zero-byte proxy: zero out the summed axes so
+        # np.empty allocates no memory, while preserving the
+        # non-summed dimensions for correct shape inference.
+        input_shape = self.args[0].shape
+        axis = self.axis
+        if axis is None:
+            proxy_shape = tuple(0 for _ in input_shape)
+        else:
+            if isinstance(axis, int):
+                axis = (axis,)
+            ndim = len(input_shape)
+            ax_set = {a % ndim for a in axis}
+            proxy_shape = tuple(
+                0 if i in ax_set else s for i, s in enumerate(input_shape)
+            )
         try:
             return np.sum(
-                np.empty(self.args[0].shape, dtype=np.int8),
+                np.empty(proxy_shape),
                 axis=self.axis,
                 keepdims=self.keepdims
             ).shape
