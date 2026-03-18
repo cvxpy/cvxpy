@@ -1546,8 +1546,8 @@ class StandardTestInfeasibleProblems:
 
     @classmethod
     def test_lp_ineq_constraints(cls, solver: str):
-        A = np.array([[1, 2], [3, -4], [-1, 0]])
-        b = np.array([1, 0, -2])
+        A = np.array([[1, 0], [0, 1], [-1, -1]])
+        b = np.array([0, 0, -1])
         x = cp.Variable(2)
 
         prob = cp.Problem(
@@ -1567,13 +1567,13 @@ class StandardTestInfeasibleProblems:
 
     @classmethod
     def test_lp_eq_constraints(cls, solver: str):
-        A = np.array([[1, 2], [3, -4], [-1, 0]])
-        b = np.array([1, 0, -4])
+        A = np.array([[1, 0], [0, 1], [1, 1]])
+        b = np.array([0, 0, 1])
         x = cp.Variable(2)
 
         prob = cp.Problem(
             objective=cp.Minimize(0),
-            constraints=[A @ x == b]
+            constraints=[A @ x == b, x >= 0]
         )
 
         prob.solve(solver=solver)
