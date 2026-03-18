@@ -20,6 +20,7 @@ from types import GeneratorType
 from typing import Tuple
 
 import numpy as np
+from numpy.exceptions import AxisError
 
 import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_op as lo
@@ -86,34 +87,15 @@ class Sum(AxisAtom, AffAtom):
         super(AxisAtom, self).validate_arguments()
 
     def shape_from_args(self) -> Tuple[int, ...]:
-        """Returns the shape of the expression."""
-        arg_shape = self.args[0].shape
-        ndim = len(arg_shape)
-
-        if self.axis is None:
-            return (1,) * ndim if self.keepdims else ()
-
-        # Convert to list for consistent validation
-        axes_to_check = [self.axis] if isinstance(self.axis, (int, np.integer)) else self.axis
-
-        axes = set()
-        for a in axes_to_check:
-            if a < -ndim or a >= ndim:
-                raise ValueError(f"Invalid axis {a} for {ndim}D input.")
-
-            norm_a = a if a >= 0 else a + ndim
-            if norm_a in axes:
-                raise ValueError(f"duplicate value in 'axis': {a}")
-            axes.add(norm_a)
-
-        new_shape = []
-        for i, dim in enumerate(arg_shape):
-            if i in axes:
-                if self.keepdims:
-                    new_shape.append(1)
-            else:
-                new_shape.append(dim)
-        return tuple(new_shape)
+        """Returns shape using NumPy's sum shape calculation."""
+        try:
+            return np.sum(
+                np.empty(self.args[0].shape, dtype=np.int8),
+                axis=self.axis,
+                keepdims=self.keepdims
+            ).shape
+        except (ValueError, AxisError, TypeError) as e:
+            raise ValueError(f"Invalid arguments for cp.sum: {e}") from e
 
     def numeric(self, values):
         """Sums the entries of value."""
