@@ -16,16 +16,15 @@ limitations under the License.
 import builtins
 from functools import wraps
 from types import GeneratorType
-from typing import Optional, Tuple
+from typing import Tuple
 
 import numpy as np
-from numpy.exceptions import AxisError
 
 import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.affine.affine_atom import AffAtom
-from cvxpy.atoms.axis_atom import AxisAtom
+from cvxpy.atoms.axis_atom import AxisAtom, normalize_axis
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.utilities import bounds as bounds_utils
 
@@ -86,15 +85,25 @@ class Sum(AxisAtom, AffAtom):
         super(AxisAtom, self).validate_arguments()
 
     def shape_from_args(self) -> Tuple[int, ...]:
-        """Returns shape using NumPy's sum shape calculation."""
-        try:
-            return np.sum(
-                np.empty(self.args[0].shape),
-                axis=self.axis,
-                keepdims=self.keepdims
-            ).shape
-        except (ValueError, AxisError, TypeError) as e:
-            raise ValueError(f"Invalid arguments for cp.sum: {e}") from e
+        """Returns the shape of the expression.
+        """
+        arg_shape = self.args[0].shape
+        ndim = len(arg_shape)
+
+        if self.axis is None:
+            return (1,) * ndim if self.keepdims else ()
+
+        # Normalize axes to positive integers for set lookup
+        axes = {a if a >= 0 else a + ndim for a in self.axis}
+
+        new_shape = []
+        for i, dim in enumerate(arg_shape):
+            if i in axes:
+                if self.keepdims:
+                    new_shape.append(1)
+            else:
+                new_shape.append(dim)
+        return tuple(new_shape)
 
     def numeric(self, values):
         """Sums the entries of value."""
@@ -123,7 +132,11 @@ class Sum(AxisAtom, AffAtom):
             The axis and keepdims parameters of the sum expression.
         """
         axis, keepdims = data
-        # Note: added new case for summing with n-dimensional shapes and 
+        # Normalize tuple axes so they use the fast path when possible.
+        if isinstance(axis, tuple):
+            ndim = len(arg_objs[0].shape)
+            axis = normalize_axis(axis, ndim)
+        # Note: added new case for summing with n-dimensional shapes and
         # multiple axes. Previous behavior is kept in the else statement.
         if len(arg_objs[0].shape) > 2 or axis not in {None, 0, 1}:
             obj = lu.sum_entries(arg_objs[0], shape=shape, axis=axis, keepdims=keepdims)
@@ -148,7 +161,7 @@ class Sum(AxisAtom, AffAtom):
 
 
 @wraps(Sum)
-def sum(expr, axis: Optional[int] = None, keepdims: bool = False):
+def sum(expr, axis: None | int | tuple[int, ...] = None, keepdims: bool = False):
     """
     Wrapper for Sum class.
     """
