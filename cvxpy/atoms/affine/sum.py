@@ -24,7 +24,7 @@ import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.affine.affine_atom import AffAtom
-from cvxpy.atoms.axis_atom import AxisAtom, normalize_axis
+from cvxpy.atoms.axis_atom import AxisAtom
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.utilities import bounds as bounds_utils
 
@@ -93,8 +93,18 @@ class Sum(AxisAtom, AffAtom):
         if self.axis is None:
             return (1,) * ndim if self.keepdims else ()
 
-        # Normalize axes to positive integers for set lookup
-        axes = {a if a >= 0 else a + ndim for a in self.axis}
+        # Convert to list for consistent validation
+        axes_to_check = [self.axis] if isinstance(self.axis, (int, np.integer)) else self.axis
+        
+        axes = set()
+        for a in axes_to_check:
+            if a < -ndim or a >= ndim:
+                raise ValueError(f"Invalid axis {a} for {ndim}D input.")
+            
+            norm_a = a if a >= 0 else a + ndim
+            if norm_a in axes:
+                raise ValueError(f"duplicate value in 'axis': {a}")
+            axes.add(norm_a)
 
         new_shape = []
         for i, dim in enumerate(arg_shape):
@@ -135,7 +145,7 @@ class Sum(AxisAtom, AffAtom):
         # Normalize tuple axes so they use the fast path when possible.
         if isinstance(axis, tuple):
             ndim = len(arg_objs[0].shape)
-            axis = normalize_axis(axis, ndim)
+            axis = tuple(a if a >= 0 else a + ndim for a in axis)
         # Note: added new case for summing with n-dimensional shapes and
         # multiple axes. Previous behavior is kept in the else statement.
         if len(arg_objs[0].shape) > 2 or axis not in {None, 0, 1}:
