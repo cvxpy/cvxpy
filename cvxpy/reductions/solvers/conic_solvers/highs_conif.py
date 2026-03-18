@@ -201,8 +201,8 @@ class HIGHS(ConicSolver):
                     utilities.extract_dual_value,
                     inverse_data[HIGHS.EQ_CONSTR] + inverse_data[HIGHS.NEQ_CONSTR])
             else:
-                # E.g., could be UNBOUNDED. Later we might propagate the primal ray for unbounded
-                # problems.
+                # E.g., could be UNBOUNDED. TODO: Later we might propagate the primal ray for
+                # unbounded problems.
                 dual_vars = {}
             sol = failure_solution(status, attr, dual_vars)
         return sol
