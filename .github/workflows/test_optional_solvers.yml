@@ -31,8 +31,7 @@ jobs:
         with:
           python-version: 3.12
           enable-cache: true
-      - uses: actions/checkout@v5
-      - name: Setup Julia 
+      - name: Setup Julia
         uses: julia-actions/setup-julia@v2
         with:
           version: 'lts'
@@ -55,7 +54,6 @@ jobs:
         run: uv run pytest -rs cvxpy/tests/test_qp_solvers.py
 
     env:
-      UV_SYSTEM_PYTHON: 1
       RUNNER_OS: ${{ matrix.os }}
       PYTHON_VERSION: 3.12
       MOSEK_CI_BASE64: ${{ secrets.MOSEK_CI_BASE64 }}
