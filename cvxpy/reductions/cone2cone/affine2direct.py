@@ -36,6 +36,7 @@ SOC = 'q'
 PSD = 's'
 POW3D = 'pp3'
 DUAL_POW3D = 'dp3'
+QUAD_SLACK = 'w'
 
 
 class Dualize:
@@ -95,7 +96,11 @@ class Dualize:
 
     @staticmethod
     def apply(problem):
-        c, d, A, b = problem.apply_parameters()
+        if problem.P is not None:
+            P, c, d, A, b = problem.apply_parameters(quad_obj=True)
+        else:
+            c, d, A, b = problem.apply_parameters()
+            P = None
         Kp = problem.cone_dims  # zero, nonneg, exp, soc, psd
         Kd = {
             FREE: Kp.zero,  # length of block of unconstrained variables.
@@ -119,6 +124,9 @@ class Dualize:
             'K_dir': Kd,
             'dualized': True
         }
+        if P is not None:
+            data[s.P] = P
+            inv_data['has_quad'] = True
         return data, inv_data
 
     @staticmethod
@@ -170,8 +178,12 @@ class Dualize:
         primal_vars, dual_vars = None, None
         if status in s.SOLUTION_PRESENT:
             opt_val = solution.opt_val + inv_data[s.OBJ_OFFSET]
-            primal_vars = {inv_data['x_id']:
-                           solution.dual_vars[s.EQ_DUAL]}
+            if inv_data.get('has_quad'):
+                primal_vars = {inv_data['x_id']:
+                               solution.primal_vars[QUAD_SLACK]}
+            else:
+                primal_vars = {inv_data['x_id']:
+                               solution.dual_vars[s.EQ_DUAL]}
             dual_vars = dict()
             direct_prims = solution.primal_vars
             constr_map = inv_data['constr_map']
