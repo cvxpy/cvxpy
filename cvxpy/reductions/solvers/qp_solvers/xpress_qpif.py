@@ -158,6 +158,7 @@ class XPRESS(QpSolver):
         # (which is inefficient due to a necessary Python loop), call
         # loadproblem() for A and then use addrow()
 
+        A = A.tocsc()  # Ensure CSC for .indices access below
         mstart = makeMstart(A, n_var, 1)
 
         if len(Q.data) != 0:

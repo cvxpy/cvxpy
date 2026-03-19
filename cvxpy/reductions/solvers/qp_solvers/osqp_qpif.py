@@ -97,11 +97,28 @@ class OSQP(QpSolver):
         
         P = data[s.P]
         q = data[s.Q]
-        A = sp.vstack([data[s.A], data[s.F]]).tocsc()
+
+        # Fast path: use pre-combined AF matrix directly (avoids split + vstack)
+        AF = data.get('AF')
+        if AF is not None:
+            len_eq = data['len_eq']
+            bg = data['bg']
+            A = AF.tocsc()  # no-op if already CSC; safety guard
+            b_eq = -bg[:len_eq]
+            uA = np.empty(len(bg))
+            uA[:len_eq] = b_eq
+            uA[len_eq:] = np.inf
+            lA = np.empty(len(bg))
+            lA[:len_eq] = b_eq
+            lA[len_eq:] = -bg[len_eq:]
+        else:
+            # Fallback: vstack separate A and F
+            A = sp.vstack([data[s.A], data[s.F]]).tocsc()
+            uA = np.concatenate((data[s.B], data[s.G]))
+            lA = np.concatenate([data[s.B], -np.inf*np.ones(data[s.G].shape)])
+
         data['Ax'] = A
-        uA = np.concatenate((data[s.B], data[s.G]))
         data['u'] = uA
-        lA = np.concatenate([data[s.B], -np.inf*np.ones(data[s.G].shape)])
         data['l'] = lA
 
         if P is not None:
@@ -154,6 +171,15 @@ class OSQP(QpSolver):
                 raise SolverError(e)
 
         results = solver.solve(raise_error=False)
+
+        # When using the AF fast path, inequality rows are negated (-F instead of F),
+        # which flips the sign of OSQP's dual variables for those rows. Correct this.
+        if data.get('AF') is not None:
+            len_eq = data['len_eq']
+            if results.y is not None:
+                results.y[len_eq:] = -results.y[len_eq:]
+            if results.prim_inf_cert is not None:
+                results.prim_inf_cert[len_eq:] = -results.prim_inf_cert[len_eq:]
 
         if solver_cache is not None:
             solver_cache[self.name()] = (solver, data, results)
