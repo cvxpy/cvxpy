@@ -38,8 +38,8 @@ from scipy import sparse
 import cvxpy as cp
 from cvxpy import problems
 from cvxpy.atoms.affine.hstack import hstack
-from cvxpy.atoms.affine.vstack import vstack
 from cvxpy.atoms.affine.reshape import reshape
+from cvxpy.atoms.affine.vstack import vstack
 from cvxpy.constraints.nonpos import NonNeg, NonPos
 from cvxpy.constraints.power import PowCone3D, PowConeND
 from cvxpy.constraints.psd import PSD
