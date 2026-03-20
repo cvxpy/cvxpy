@@ -38,6 +38,7 @@ from scipy import sparse
 import cvxpy as cp
 from cvxpy import problems
 from cvxpy.atoms.affine.hstack import hstack
+from cvxpy.atoms.affine.vstack import vstack
 from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.constraints.nonpos import NonNeg, NonPos
 from cvxpy.constraints.power import PowCone3D, PowConeND
@@ -437,7 +438,6 @@ class RSocConversion:
         y_flat = reshape(y, (y.size,), order='F')
         z_flat = reshape(z, (z.size,), order='F')
 
-        from cvxpy.atoms.affine.vstack import vstack
         if con.axis == 1:
             X = X.T
         # Unified scalar + batched: SOC supports batching natively
@@ -450,36 +450,33 @@ class RSocConversion:
         can_con = SOC(t, vec, axis=0)
         return can_con, []
 
+
+
+
     @staticmethod
     def recover_dual(cons, dual_var, inverse_data, solution):
         """Recover RSOC dual variables from SOC duals.
 
-        The conversion maps RSOC(x, y, z) to SOC(t, X) where:
-            t = y + z   (scalar)
-            X = [sqrt(2)*x, y - z]  (vector of length n+1)
+        The RSOC→SOC conversion maps (x, y, z) to SOC(t, X) where:
+            t = y + z
+            X = [sqrt(2)*x, y - z]  (length n_x + 1)
 
-        The SOC dual (dt, dX) maps back to RSOC duals as:
-            dx = sqrt(2) * dX[:n]
-            dy = dt + dX[n]
-            dz = dt - dX[n]
+        The adjoint maps SOC duals (dt, dX) back to RSOC duals:
+            dx = sqrt(2) * dX[:n_x]
+            dy = dt + dX[n_x]
+            dz = dt - dX[n_x]
         """
-        # dual_var is a flat list of length n_cones*(n_x+2):
-        # each cone i contributes [dt_i, dx_0,...,dx_{n_x-1}, d_yz_i]
-        n_x = cons.args[0].shape[0]   # dimension of x per cone
-        n_cones = cons.args[1].size   # number of cones
+        n_x = cons.args[0].shape[0]
+        n_cones = cons.args[1].size
         dual = np.asarray(dual_var, dtype=float).ravel()
         stride = n_x + 2
-        dt = dual[0::stride]
-        d_yz = dual[stride - 1::stride]
-        dx_flat = np.vstack([dual[i*stride+1:i*stride+1+n_x]
-                              for i in range(n_cones)])   # (n_cones, n_x)
+        dt = dual[0::stride]                                    # shape (n_cones,)
+        d_yz = dual[stride - 1::stride]                        # shape (n_cones,)
+        dx_flat = dual.reshape(n_cones, stride)[:, 1:n_x+1]   # shape (n_cones, n_x)
         dx_dual = np.sqrt(2) * dx_flat
         dy_dual = dt + d_yz
         dz_dual = dt - d_yz
-        if n_cones == 1:
-            return np.concatenate([dx_dual[0], [dy_dual[0]], [dz_dual[0]]])
         return [dx_dual, dy_dual, dz_dual]
-
 
 class ExactCone2Cone(Canonicalization):
 

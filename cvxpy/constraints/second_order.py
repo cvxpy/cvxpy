@@ -282,30 +282,32 @@ class RSOC(Cone):
         viol_y = -y                          # > 0 means y < 0
         viol_z = -z                          # > 0 means z < 0
         residuals = np.maximum(0.0, np.maximum(viol_cone, np.maximum(viol_y, viol_z)))
-        return float(residuals[0]) if residuals.size == 1 else residuals
+        return residuals[0] if residuals.size == 1 else residuals
 
     def save_dual_value(self, value) -> None:
-        import numpy as _np
         n_x = self.args[0].shape[0]
         n_cones = self.args[1].size
         if isinstance(value, (list, tuple)):
-            # Batched: value arrives pre-split as [X_dual (k,n_x), y_dual (k,), z_dual (k,)]
-            # Transpose X_dual to (n_x, k) to match primal X shape.
-            dx = _np.asarray(value[0]).T   # (k, n_x) -> (n_x, k)
-            dy = _np.asarray(value[1])     # (k,)
-            dz = _np.asarray(value[2])     # (k,)
-            self.dual_variables[0].save_value(dx)
-            self.dual_variables[1].save_value(dy)
-            self.dual_variables[2].save_value(dz)
+            # recover_dual returns [dx_dual (n_cones, n_x), dy_dual (n_cones,), dz_dual (n_cones,)]
+            dx = np.asarray(value[0])   # (n_cones, n_x)
+            dy = np.asarray(value[1])   # (n_cones,)
+            dz = np.asarray(value[2])   # (n_cones,)
         else:
-            # Scalar: value arrives as flat vector [x (n_x), y, z]
-            value = _np.reshape(value, (-1, n_x + 2))
+            # Fallback: flat vector [x (n_x), y, z] — should not occur with recover_dual
+            value = np.reshape(value, (-1, n_x + 2))
             dx = value[:, :n_x]
             dy = value[:, n_x]
             dz = value[:, n_x + 1]
-            self.dual_variables[0].save_value(dx[0])
-            self.dual_variables[1].save_value(float(dy[0]))
-            self.dual_variables[2].save_value(float(dz[0]))
+        if n_cones == 1:
+            # Scalar case: squeeze to match primal shapes
+            self.dual_variables[0].save_value(dx[0])   # (n_x,)
+            self.dual_variables[1].save_value(dy[0])   # scalar
+            self.dual_variables[2].save_value(dz[0])   # scalar
+        else:
+            # Batched case: dx is (n_cones, n_x), transpose to (n_x, n_cones)
+            self.dual_variables[0].save_value(dx.T)
+            self.dual_variables[1].save_value(dy)
+            self.dual_variables[2].save_value(dz)
 
     def get_data(self):
         return [self.axis, self.id]
