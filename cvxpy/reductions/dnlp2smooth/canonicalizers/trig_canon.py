@@ -21,8 +21,8 @@ from cvxpy.expressions.variable import Variable
 def tan_canon(expr, args):
     _HALF_PI = 3.14159265358979 / 2
     lb, ub = args[0].get_bounds()
-    lb = np.maximum(lb, -_HALF_PI)
-    ub = np.minimum(ub, _HALF_PI)
+    lb = np.fmax(lb, -_HALF_PI)
+    ub = np.fmin(ub, _HALF_PI)
     t = Variable(args[0].shape, bounds=[lb, ub])
     if args[0].value is not None:
         t.value = args[0].value
