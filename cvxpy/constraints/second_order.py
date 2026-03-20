@@ -273,14 +273,39 @@ class RSOC(Cone):
             X = X.reshape(-1, 1)
         if self.axis == 1:
             X = X.T
-        # Vectorized residual computation
-        norms_sq = np.sum(X ** 2, axis=0)  # shape (n_cones,)
+        # After any transpose, X is (n_x, n_cones); sum over axis=0 gives (n_cones,)
+        # But if axis==1 transposed to (n_cones, n_x), sum over axis=1 gives (n_cones,)
+        sum_axis = 1 if (self.axis == 1) else 0
+        norms_sq = np.sum(X ** 2, axis=sum_axis)  # shape (n_cones,)
         lhs = 2 * y * z
         viol_cone = norms_sq - lhs          # > 0 means violated
         viol_y = -y                          # > 0 means y < 0
         viol_z = -z                          # > 0 means z < 0
         residuals = np.maximum(0.0, np.maximum(viol_cone, np.maximum(viol_y, viol_z)))
         return float(residuals[0]) if residuals.size == 1 else residuals
+
+    def save_dual_value(self, value) -> None:
+        import numpy as _np
+        n_x = self.args[0].shape[0]
+        n_cones = self.args[1].size
+        if isinstance(value, (list, tuple)):
+            # Batched: value arrives pre-split as [X_dual (k,n_x), y_dual (k,), z_dual (k,)]
+            # Transpose X_dual to (n_x, k) to match primal X shape.
+            dx = _np.asarray(value[0]).T   # (k, n_x) -> (n_x, k)
+            dy = _np.asarray(value[1])     # (k,)
+            dz = _np.asarray(value[2])     # (k,)
+            self.dual_variables[0].save_value(dx)
+            self.dual_variables[1].save_value(dy)
+            self.dual_variables[2].save_value(dz)
+        else:
+            # Scalar: value arrives as flat vector [x (n_x), y, z]
+            value = _np.reshape(value, (-1, n_x + 2))
+            dx = value[:, :n_x]
+            dy = value[:, n_x]
+            dz = value[:, n_x + 1]
+            self.dual_variables[0].save_value(dx[0])
+            self.dual_variables[1].save_value(float(dy[0]))
+            self.dual_variables[2].save_value(float(dz[0]))
 
     def get_data(self):
         return [self.axis, self.id]
