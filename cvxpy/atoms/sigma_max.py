@@ -55,7 +55,7 @@ class sigma_max(Atom):
             A list of SciPy CSC sparse matrices or None.
         """
         # Grad: U diag(e_1) V.T
-        U, s, V = LA.svd(values[0])
+        U, s, V = LA.svd(values[0], full_matrices=False)
         ds = np.zeros(len(s))
         ds[0] = 1
         D = U.dot(np.diag(ds)).dot(V)
