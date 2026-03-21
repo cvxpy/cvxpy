@@ -1,7 +1,7 @@
 """Tests for cp.nlp namespace."""
 import cvxpy as cp
-from cvxpy.atoms.elementwise.trig import sin, cos, tan
-from cvxpy.atoms.elementwise.hyperbolic import sinh, tanh, asinh, atanh
+from cvxpy.atoms.elementwise.hyperbolic import tanh
+from cvxpy.atoms.elementwise.trig import cos, sin
 
 
 class TestNLPNamespace:
