@@ -409,14 +409,27 @@
      - |convex| convex
 
    * - :ref:`huber(x, M=1) <huber>`
-
+   
        :math:`M \geq 0`
-     - :math:`\begin{aligned} & \text{if } |x| \leq M\colon \\& x^2 \end{aligned}`
-     
-       :math:`\begin{aligned} & \text{if } |x| > M\colon \\& 2M|x| - M^2 \end{aligned}`
+     - :math:`\begin{aligned}
+         &\text{if } |x| \leq M\colon \\&\quad x^2 \\
+         &\text{if } |x| > M\colon \\&\quad 2M|x| - M^2
+       \end{aligned}`
      - :math:`x \in \mathbf{R}`
      - |positive| positive
+   
+       |incr| for :math:`x \geq 0`
+       
+       |decr| for :math:`x \leq 0`
+     - |convex| convex
 
+   * - :ref:`HuberPerspective(x, M=1, t) <huberperspective>`
+   
+       :math:`M \geq 0,\ t > 0`
+     - :math:`t\,\mathrm{huber}(x/t, M)`
+     - :math:`x \in \mathbf{R}`
+     - |positive| positive
+   
        |incr| for :math:`x \geq 0`
        
        |decr| for :math:`x \leq 0`
