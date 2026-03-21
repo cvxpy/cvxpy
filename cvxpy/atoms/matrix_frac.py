@@ -74,7 +74,7 @@ class MatrixFrac(Atom):
         # partial_P = - (P^-1 * X * X^T * P^-1)^T
         else:
             DX = np.dot(P_inv+np.transpose(P_inv), X)
-            DX = DX.T.ravel(order='F')
+            DX = DX.ravel(order='F')
             DX = sp.csc_array([DX]).T
 
             DP = np.dot(P_inv, X)
