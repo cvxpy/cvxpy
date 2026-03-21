@@ -694,6 +694,8 @@ MULTI_VAR_ATOM_CONFIGS = [
                        [("unrestricted", (3,)), ("positive", (1,))]),
     MultiVarAtomConfig("matrix_frac", lambda x, P: cp.matrix_frac(x, P),
                        [("unrestricted", (3,)), ("psd", (3, 3))]),
+    MultiVarAtomConfig("matrix_frac_matrix_x", lambda x, P: cp.matrix_frac(x, P),
+                       [("unrestricted", (3, 2)), ("psd", (3, 3))]),
 ]
 
 
