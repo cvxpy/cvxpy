@@ -61,7 +61,7 @@ dependencies = [
 ]
 requires-python = ">=3.11"
 urls = {Homepage = "https://github.com/cvxpy/cvxpy"}
-license = {text = "Apache License, Version 2.0"}
+license = "Apache-2.0"
 authors = [{name = "Steven Diamond", email = "stevend2@stanford.edu"},
            {name = "", email = "akshayka@cs.stanford.edu"},
            {name = "Eric Chu", email = "echu508@stanford.edu"},
