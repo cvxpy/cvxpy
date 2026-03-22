@@ -13,11 +13,18 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
+import numpy as np
+
 from cvxpy.expressions.variable import Variable
 
 
 def tan_canon(expr, args):
-    t = Variable(args[0].shape, bounds=[-3.14159/2, 3.14159/2])
+    _HALF_PI = 3.14159265358979 / 2
+    lb, ub = args[0].get_bounds()
+    lb = np.fmax(lb, -_HALF_PI)
+    ub = np.fmin(ub, _HALF_PI)
+    t = Variable(args[0].shape, bounds=[lb, ub])
     if args[0].value is not None:
         t.value = args[0].value
     return expr.copy([t]), [t == args[0]]

@@ -26,6 +26,7 @@ from cvxpy.reductions.dnlp2smooth.canonicalizers.multiply_canon import multiply_
 
 MIN_INIT = 1e-3
 
+
 def rel_entr_canon(expr, args):
 
     # if the first argument is constant we canonicalize using log
@@ -33,7 +34,7 @@ def rel_entr_canon(expr, args):
         _log = log(args[1])
         log_expr, constr_log = log_canon(_log, _log.args)
         x = args[0].value
-        return  x * np.log(x) - multiply(x, log_expr), constr_log
+        return x * np.log(x) - multiply(x, log_expr), constr_log
 
     # if the second argument is constant we canonicalize using entropy
     if args[1].is_constant():
@@ -44,14 +45,16 @@ def rel_entr_canon(expr, args):
         return -entr_expr - mult_expr, constr_entr + constr_mult
 
     # here we know that neither argument is constant
-    t1 = Variable(args[0].shape, nonneg=True)
-    t2 = Variable(args[1].shape, nonneg=True)
+    lb0, ub0 = args[0].get_bounds()
+    lb1, ub1 = args[1].get_bounds()
+    t1 = Variable(args[0].shape, bounds=[np.fmax(lb0, MIN_INIT), ub0])
+    t2 = Variable(args[1].shape, bounds=[np.fmax(lb1, MIN_INIT), ub1])
     constraints = [t1 == args[0], t2 == args[1]]
 
     if args[0].value is not None:
         t1.value = np.maximum(args[0].value, MIN_INIT)
-  
+
     if args[1].value is not None:
         t2.value = np.maximum(args[1].value, MIN_INIT)
-    
+
     return expr.copy([t1, t2]), constraints
