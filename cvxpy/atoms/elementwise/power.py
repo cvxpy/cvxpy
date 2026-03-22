@@ -65,6 +65,7 @@ def power(x, p, max_denom: int = 1024, approx: bool = True):
                 "The base of cp.power(b, x) must be positive when the "
                 "exponent is a variable, since we use b**x = exp(x * log(b))."
             )
+        # Imported here to avoid circular imports at module load time
         from cvxpy.atoms.affine.binary_operators import multiply
         from cvxpy.atoms.elementwise.log import log
         return exp(multiply(p_expr, log(x_expr)))

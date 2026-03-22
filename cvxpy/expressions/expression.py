@@ -662,6 +662,7 @@ class Expression(u.Canonical):
         Expression
             The expression raised to ``power``.
         """
+        # Imported here to avoid circular imports at module load time
         from cvxpy.atoms.affine.binary_operators import multiply
         from cvxpy.atoms.elementwise.exp import exp
         from cvxpy.atoms.elementwise.log import log
@@ -691,6 +692,7 @@ class Expression(u.Canonical):
         exp(self * log(base))
     """
    
+        # Imported here to avoid circular imports at module load time
         from cvxpy.atoms.elementwise.exp import exp
         base = cvxtypes.expression().cast_to_const(base)
         if not base.is_constant():
@@ -703,7 +705,10 @@ class Expression(u.Canonical):
                 "The base of ** must be positive since we use the "
                 "identity a**x = exp(x * log(a))."
             )
-        return exp(cp.multiply(self, cp.log(base)))
+        # Imported here to avoid circular imports at module load time
+        from cvxpy.atoms.affine.binary_operators import multiply
+        from cvxpy.atoms.elementwise.log import log
+        return exp(multiply(self, log(base)))
 
     @staticmethod
     def cast(expr_like) -> "Expression":
