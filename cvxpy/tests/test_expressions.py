@@ -1305,6 +1305,22 @@ class TestExpressions(BaseTest):
         with self.assertRaises(ValueError):
             (-2) ** x
 
+        # Test 6: non-integer base 0.5**x, minimize with x in [-2, 0]
+        prob4 = cp.Problem(cp.Minimize(0.5 ** x), [x >= -2, x <= 0])
+        prob4.solve()
+        self.assertAlmostEqual(float(x.value), 0.0, places=3)
+        self.assertAlmostEqual(float(prob4.value), 1.0, places=3)
+
+        # Test 7: 2**x used in constraint, minimize 2**x subject to 2**x <= 8
+        prob5 = cp.Problem(cp.Minimize(x), [2 ** x <= 8, x >= 0])
+        prob5.solve()
+        self.assertAlmostEqual(float(x.value), 0.0, places=3)
+
+        # Test 8: non-constant base raises ValueError
+        y = Variable()
+        with self.assertRaises(ValueError):
+            y ** x    
+
     def test_power_const_base(self) -> None:
         """Test cp.power(b, x) where b is constant and x is variable."""
         x = Variable()

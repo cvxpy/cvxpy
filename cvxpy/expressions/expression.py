@@ -679,18 +679,18 @@ class Expression(u.Canonical):
     def __rpow__(self, base: float) -> "Expression":
         """Raise base to the power of this expression (base ** self).
 
-    Uses the identity: a**x = exp(x * log(a))
+        Uses the identity: a**x = exp(x * log(a))
 
-    Parameters
-    ----------
-    base : float
-        A positive constant base.
+        Parameters
+        ----------
+        base : float
+            A positive constant base.
 
-    Returns
-    -------
-    Expression
-        exp(self * log(base))
-    """
+        Returns
+        -------
+        Expression
+            exp(self * log(base))
+        """                                            
    
         # Imported here to avoid circular imports at module load time
         from cvxpy.atoms.elementwise.exp import exp
