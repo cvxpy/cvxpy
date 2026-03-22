@@ -21,9 +21,12 @@ from cvxpy.expressions.variable import Variable
 MIN_INIT = 1e-3
 
 def entr_canon(expr, args):
-    t = Variable(args[0].shape, nonneg=True)
+    lb, ub = args[0].get_bounds()
+    lb = np.fmax(lb, MIN_INIT)
+    ub = np.fmax(ub, MIN_INIT)
+    t = Variable(args[0].shape, bounds=[lb, ub])
     if args[0].value is not None:
-        t.value = np.maximum(args[0].value, MIN_INIT)
+        t.value = np.fmax(args[0].value, MIN_INIT)
 
     return expr.copy([t]), [t == args[0]]
 

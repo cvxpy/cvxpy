@@ -41,10 +41,13 @@ def power_canon(expr, args):
         
         return expr.copy([t]), [t == x]
     elif p > 0:
-        t = Variable(shape, nonneg=True)
+        lb, ub = x.get_bounds()
+        lb = np.fmax(lb, MIN_INIT)
+        ub = np.fmax(ub, MIN_INIT)
+        t = Variable(shape, bounds=[lb, ub])
 
         if x.value is not None:
-            t.value = np.maximum(x.value, MIN_INIT)
+            t.value = np.fmax(x.value, MIN_INIT)
         
         return expr.copy([t]), [t == x]
     else:

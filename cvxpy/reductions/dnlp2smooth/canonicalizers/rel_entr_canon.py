@@ -44,14 +44,22 @@ def rel_entr_canon(expr, args):
         return -entr_expr - mult_expr, constr_entr + constr_mult
 
     # here we know that neither argument is constant
-    t1 = Variable(args[0].shape, nonneg=True)
-    t2 = Variable(args[1].shape, nonneg=True)
+    lb1, ub1 = args[0].get_bounds()
+    lb1 = np.fmax(lb1, MIN_INIT)
+    ub1 = np.fmax(ub1, MIN_INIT)
+    t1 = Variable(args[0].shape, bounds=[lb1, ub1])
+
+    lb2, ub2 = args[1].get_bounds()
+    lb2 = np.fmax(lb2, MIN_INIT)
+    ub2 = np.fmax(ub2, MIN_INIT)
+    t2 = Variable(args[1].shape, bounds=[lb2, ub2])
+
     constraints = [t1 == args[0], t2 == args[1]]
 
     if args[0].value is not None:
-        t1.value = np.maximum(args[0].value, MIN_INIT)
-  
+        t1.value = np.fmax(args[0].value, MIN_INIT)
+
     if args[1].value is not None:
-        t2.value = np.maximum(args[1].value, MIN_INIT)
-    
+        t2.value = np.fmax(args[1].value, MIN_INIT)
+
     return expr.copy([t1, t2]), constraints
