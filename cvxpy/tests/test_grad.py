@@ -540,6 +540,10 @@ SINGLE_VAR_ATOM_CONFIGS = [
                    "unrestricted"),
     AtomTestConfig("sigma_max", lambda x: cp.sigma_max(x), [(3, 3)],
                    "unrestricted"),
+    AtomTestConfig("sigma_max_nonsquare", lambda x: cp.sigma_max(x), [(2, 3)],
+                   "unrestricted"),
+    AtomTestConfig("sigma_max_tall", lambda x: cp.sigma_max(x), [(4, 2)],
+                   "unrestricted"),
     AtomTestConfig("mixed_norm_21", lambda x: cp.mixed_norm(x, 2, 1), [(3, 2)],
                    "unrestricted"),
     AtomTestConfig("sum_squares", lambda x: cp.sum_squares(x), [(3,), (2, 2)],
@@ -556,12 +560,12 @@ SINGLE_VAR_ATOM_CONFIGS = [
     AtomTestConfig("max_axis0", lambda x: cp.max(x, axis=0), [(2, 3)],
                    "unrestricted"),
     AtomTestConfig("max_3d_axis1", lambda x: cp.max(x, axis=1), [(2, 3, 4)],
-                   "unrestricted", skip_reason="_axis_grad doesn't support 3D"),
+                   "unrestricted"),
     AtomTestConfig("min", lambda x: cp.min(x), [(5,), (2, 3, 4)], "unrestricted"),
     AtomTestConfig("min_axis0", lambda x: cp.min(x, axis=0), [(2, 3)],
                    "unrestricted"),
     AtomTestConfig("min_3d_axis2", lambda x: cp.min(x, axis=2), [(2, 3, 4)],
-                   "unrestricted", skip_reason="_axis_grad doesn't support 3D"),
+                   "unrestricted"),
     AtomTestConfig("geo_mean", lambda x: cp.geo_mean(x), [(3,)], "positive"),
     AtomTestConfig("harmonic_mean", lambda x: cp.harmonic_mean(x), [(3,)],
                    "positive"),
@@ -572,7 +576,7 @@ SINGLE_VAR_ATOM_CONFIGS = [
                    "unrestricted"),
     AtomTestConfig("log_sum_exp_3d_axis1",
                    lambda x: cp.log_sum_exp(x, axis=1), [(2, 3, 4)],
-                   "unrestricted", skip_reason="_axis_grad doesn't support 3D"),
+                   "unrestricted"),
     AtomTestConfig("prod", lambda x: cp.prod(x), [(3,)], "unrestricted"),
 
     # === Affine atoms ===
@@ -687,6 +691,8 @@ MULTI_VAR_ATOM_CONFIGS = [
                        [("unrestricted", (3,)), ("positive", (1,))]),
     MultiVarAtomConfig("matrix_frac", lambda x, P: cp.matrix_frac(x, P),
                        [("unrestricted", (3,)), ("psd", (3, 3))]),
+    MultiVarAtomConfig("matrix_frac_matrix_x", lambda x, P: cp.matrix_frac(x, P),
+                       [("unrestricted", (3, 2)), ("psd", (3, 3))]),
 ]
 
 
@@ -981,6 +987,40 @@ class TestSpecialCases:
 
         # access quad_form.expr.grad without error
         prob.constraints[1].expr.grad
+
+    def test_ceil_floor_grad(self):
+        """ceil and floor _grad should return a list of zero sparse matrices."""
+        x = cp.Variable(3)
+        x.value = np.array([1.5, 2.3, -0.7])
+
+        for atom in [cp.ceil(x), cp.floor(x)]:
+            grad = atom.grad
+            assert isinstance(grad, dict)
+            assert x in grad
+            np.testing.assert_array_equal(grad[x].toarray(), np.zeros((3, 3)))
+
+    def test_grad_undefined_atoms(self):
+        """Atoms with undefined gradients should return None per variable, not crash."""
+        from cvxpy.atoms.sign import sign
+        x = cp.Variable(3)
+        x.value = np.array([1.0, -2.0, 3.0])
+        grad = sign(x).grad
+        assert isinstance(grad, dict)
+        assert grad[x] is None
+
+        from cvxpy.atoms.length import length
+        v = cp.Variable(4)
+        v.value = np.array([1.0, 2.0, 0.0, 0.0])
+        grad = length(v).grad
+        assert isinstance(grad, dict)
+        assert grad[v] is None
+
+        from cvxpy.atoms.pf_eigenvalue import pf_eigenvalue
+        M = cp.Variable((2, 2))
+        M.value = np.array([[0.5, 0.1], [0.2, 0.3]])
+        grad = pf_eigenvalue(M).grad
+        assert isinstance(grad, dict)
+        assert grad[M] is None
 
 
 if __name__ == "__main__":

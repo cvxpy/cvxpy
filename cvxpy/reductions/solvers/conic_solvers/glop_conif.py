@@ -37,6 +37,7 @@ class GLOP(ConicSolver):
     """An interface to Glop via OR-Tools."""
 
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS
+    BOUNDED_VARIABLES = True
 
     # The key that maps to the MPModelProto in the data returned by apply().
     MODEL_PROTO = "model_proto"
@@ -82,10 +83,17 @@ class GLOP(ConicSolver):
         # available in OR-Tools.
         model = linear_solver_pb2.MPModelProto()
         model.objective_offset = d.item() if isinstance(d, ndarray) else d
+        lb = problem.lower_bounds
+        ub = problem.upper_bounds
         for var_index, obj_coef in enumerate(c):
-            var = linear_solver_pb2.MPVariableProto(
+            var_kwargs = dict(
                 objective_coefficient=obj_coef,
                 name="x_%d" % var_index)
+            if lb is not None:
+                var_kwargs["lower_bound"] = lb[var_index]
+            if ub is not None:
+                var_kwargs["upper_bound"] = ub[var_index]
+            var = linear_solver_pb2.MPVariableProto(**var_kwargs)
             model.variable.append(var)
 
         for row_index in range(A.shape[0]):
@@ -108,6 +116,8 @@ class GLOP(ConicSolver):
             model.constraint.append(constraint)
 
         data[self.MODEL_PROTO] = model
+        data[s.LOWER_BOUNDS] = lb
+        data[s.UPPER_BOUNDS] = ub
         return data, inv_data
 
     def invert(self, solution: Dict[str, Any],

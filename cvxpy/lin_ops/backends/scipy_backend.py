@@ -19,6 +19,7 @@ from typing import Any, Callable, Iterator, Tuple
 
 import numpy as np
 import scipy.sparse as sp
+from numpy.lib.array_utils import normalize_axis_tuple
 
 from cvxpy.lin_ops import LinOp
 from cvxpy.lin_ops.backends.base import (
@@ -734,7 +735,11 @@ class SciPyCanonBackend(PythonCanonBackend):
         Internal function that computes the row indices corresponding to the sum
         along a specified axis.
         """
+        axis = normalize_axis_tuple(axis, len(shape))
         out_axes = np.isin(range(len(shape)), axis, invert=True)
+        if not np.any(out_axes):
+            # All axes summed — everything maps to row 0.
+            return np.zeros(np.prod(shape, dtype=int), dtype=int)
         out_idx = np.indices(shape)[out_axes]
         out_dims = np.array(shape)[out_axes]
         row_idx = np.ravel_multi_index(out_idx, dims=out_dims, order='F')
@@ -744,7 +749,7 @@ class SciPyCanonBackend(PythonCanonBackend):
         """
         Internal function that computes the sum coefficient matrix for a given shape and axis.
         """
-        axis = axis if isinstance(axis, tuple) else (axis,)
+        axis = normalize_axis_tuple(axis, len(shape))
         n = np.prod(shape, dtype=int)
         d = np.prod([shape[i] for i in axis], dtype=int)
         row_idx = self._get_sum_row_indices(shape, axis)

@@ -30,6 +30,7 @@ import scipy.stats as st
 
 import cvxpy as cp
 import cvxpy.tests.solver_test_helpers as sths
+from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.defines import (
     INSTALLED_MI_SOLVERS,
     INSTALLED_SOLVERS,
@@ -44,6 +45,7 @@ from cvxpy.tests.solver_test_helpers import (
     StandardTestSDPs,
     StandardTestSOCPs,
 )
+from cvxpy.transforms.partial_optimize import partial_optimize
 from cvxpy.utilities.versioning import Version
 
 
@@ -736,8 +738,7 @@ class TestMoreau(BaseTest):
         StandardTestSOCPs.test_socp_0(solver='MOREAU')
 
     def test_moreau_socp_1(self) -> None:
-        import moreau
-        ipm_settings = moreau.IPMSettings(tol_gap_abs=1e-9, tol_gap_rel=1e-9, tol_feas=1e-9)
+        ipm_settings = {"tol_gap_abs": 1e-9, "tol_gap_rel": 1e-9, "tol_feas": 1e-9}
         StandardTestSOCPs.test_socp_1(solver='MOREAU', ipm_settings=ipm_settings)
 
     def test_moreau_socp_2(self) -> None:
@@ -756,14 +757,27 @@ class TestMoreau(BaseTest):
         StandardTestMixedCPs.test_exp_soc_1(solver='MOREAU')
 
     def test_moreau_pcp_1(self) -> None:
-        import moreau
-        ipm_settings = moreau.IPMSettings(tol_gap_abs=1e-9, tol_gap_rel=1e-9, tol_feas=1e-9)
+        ipm_settings = {"tol_gap_abs": 1e-9, "tol_gap_rel": 1e-9, "tol_feas": 1e-9}
         StandardTestPCPs.test_pcp_1(solver='MOREAU', ipm_settings=ipm_settings)
 
     def test_moreau_pcp_2(self) -> None:
-        import moreau
-        ipm_settings = moreau.IPMSettings(tol_gap_abs=1e-9, tol_gap_rel=1e-9, tol_feas=1e-9)
+        ipm_settings = {"tol_gap_abs": 1e-9, "tol_gap_rel": 1e-9, "tol_feas": 1e-9}
         StandardTestPCPs.test_pcp_2(solver='MOREAU', ipm_settings=ipm_settings)
+
+    def test_moreau_variable_soc_dims(self) -> None:
+        """Test that Moreau handles SOC constraints of dimension > 3 directly."""
+        x = cp.Variable(5)
+        t = cp.Variable()
+        # SOC constraint: ||x|| <= t, which is a dim-6 SOC
+        prob = cp.Problem(cp.Minimize(t), [cp.SOC(t, x), x == 1])
+        prob.solve(solver=cp.MOREAU)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        self.assertAlmostEqual(prob.value, np.sqrt(5), places=4)
+
+        # Verify the solver receives variable-length SOC dims (not all dim-3)
+        data, _, _ = prob.get_problem_data(solver=cp.MOREAU)
+        soc_dims = data[ConicSolver.DIMS].soc
+        self.assertTrue(any(d > 3 for d in soc_dims))
 
 
 def is_mosek_available():
@@ -1327,6 +1341,9 @@ class TestCBC:
         verbose_output = capfd.readouterr()
         assert len(verbose_output.out) > len(quiet_output.out)
 
+    def test_cbc_lp_bound_attr(self) -> None:
+        StandardTestLPs.test_lp_bound_attr(solver='CBC', duals=False)
+
 
 @unittest.skipUnless('GLPK' in INSTALLED_SOLVERS, 'GLPK is not installed.')
 class TestGLPK(unittest.TestCase):
@@ -1445,6 +1462,9 @@ class TestGLOP(unittest.TestCase):
         # Checks that the option doesn't error. A better test would be to solve
         # a large instance and check that the time limit is hit.
         sth.solve(solver='GLOP', time_limit_sec=1.0)
+
+    def test_glop_lp_bound_attr(self) -> None:
+        StandardTestLPs.test_lp_bound_attr(solver='GLOP', duals=False)
 
 
 @unittest.skipUnless('PDLP' in INSTALLED_SOLVERS, 'PDLP is not installed.')
@@ -1725,6 +1745,9 @@ class TestCPLEX(BaseTest):
 
     def test_cplex_mi_socp_2(self) -> None:
         StandardTestSOCPs.test_mi_socp_2(solver='CPLEX')
+
+    def test_cplex_lp_bound_attr(self) -> None:
+        StandardTestLPs.test_lp_bound_attr(solver='CPLEX')
 
 
 @unittest.skipUnless('GUROBI' in INSTALLED_SOLVERS, 'GUROBI is not installed.')
@@ -2184,6 +2207,9 @@ class TestXPRESS(BaseTest):
     def test_xpress_mi_socp_2(self) -> None:
         StandardTestSOCPs.test_mi_socp_2(solver='XPRESS')
 
+    def test_xpress_lp_bound_attr(self) -> None:
+        StandardTestLPs.test_lp_bound_attr(solver='XPRESS')
+
 
 @unittest.skipUnless('NAG' in INSTALLED_SOLVERS, 'NAG is not installed.')
 class TestNAG(BaseTest):
@@ -2380,6 +2406,9 @@ class TestSCIP(unittest.TestCase):
         assert stats.extra_stats["scip_status"] == "optimal"
         assert isinstance(stats.extra_stats["model"], pyscipopt.Model)
 
+    def test_scip_lp_bound_attr(self) -> None:
+        StandardTestLPs.test_lp_bound_attr(solver='SCIP', duals=False)
+
 
 # We can't inherit from unittest.TestCase since we access some advanced pytest features.
 # As a result, we use the pytest skipif decorator instead of unittest.skipUnless.
@@ -2453,7 +2482,8 @@ class TestHIGHS:
         valid_names = (
             ["a" * 255]
             + [single_char_name for single_char_name in may_begin_with - must_not_be_a_keyword]
-            + [f"{beginning}{contains}" for beginning, contains in zip(may_begin_with, may_contain)]
+            + [name for beginning, contains in zip(may_begin_with, may_contain)
+               if (name := f"{beginning}{contains}") not in must_not_be_a_keyword]
         )
         for name in valid_names:
             validate_column_name(name)
@@ -2807,6 +2837,9 @@ class TestSCIPY(unittest.TestCase):
         self.assertTrue("mip_node_count" in sth.prob.solver_stats.extra_stats)
         self.assertTrue("mip_dual_bound" in sth.prob.solver_stats.extra_stats)
 
+    def test_scipy_lp_bound_attr(self) -> None:
+        StandardTestLPs.test_lp_bound_attr(solver='SCIPY', duals=self.d)
+
 @unittest.skipUnless('COPT' in INSTALLED_SOLVERS, 'COPT is not installed.')
 class TestCOPT(unittest.TestCase):
 
@@ -2898,6 +2931,22 @@ class TestCOPT(unittest.TestCase):
 
         # Valid arg.
         problem.solve(solver=cp.COPT, feastol=1e-9)
+
+    def test_copt_lp_bound_attr(self) -> None:
+        StandardTestLPs.test_lp_bound_attr(solver='COPT', duals=False)
+
+    def test_copt_sdp_bound_attr(self) -> None:
+        """Test COPT PSD path with variable bounds.
+
+        Exercises the PSD branch in copt_conif.py where bounds are
+        converted to explicit inequality constraints for loadConeMatrix.
+        Uses tight bounds so the bound constraint is active.
+        """
+        X = cp.Variable((2, 2), symmetric=True)
+        t = cp.Variable(bounds=[2, 5])
+        prob = cp.Problem(cp.Minimize(t), [X >> 0, cp.trace(X) == 1])
+        prob.solve(solver='COPT')
+        self.assertAlmostEqual(t.value, 2.0, places=3)
 
 
 @unittest.skipUnless('COSMO' in INSTALLED_SOLVERS, 'COSMO is not installed.')
@@ -3214,3 +3263,23 @@ class TestCUOPT(unittest.TestCase):
 
     def test_cuopt_mi_lp_7(self) -> None:
         StandardTestLPs.test_mi_lp_5(solver='CUOPT', **TestCUOPT.kwargs, time_limit=5)
+
+
+@pytest.mark.parametrize("solver", INSTALLED_SOLVERS)
+def test_offset_in_opt_val(solver):
+    """Solvers must add the constant OFFSET back in invert().
+
+    partial_optimize uses prob._solution.opt_val directly, so a missing
+    OFFSET causes it to return the wrong value.  A large constant in the
+    objective makes the error obvious.
+    """
+    x = cp.Variable()
+    t = cp.Variable()
+    inner = cp.Problem(cp.Minimize(t + 1000), [t >= x])
+    try:
+        f = partial_optimize(inner, opt_vars=[t], solver=solver)
+        x.value = 0.0
+        f.value
+    except cp.error.SolverError:
+        pytest.skip(f"Solver {solver} cannot solve this problem")
+    assert abs(f.value - 1000.0) < 1e-2
