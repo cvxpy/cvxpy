@@ -34,8 +34,6 @@ def dist_ratio_sub(expr, t):
     b = expr.b
 
     def sublevel_set():
-        if t.value is None:      
-            return False
         if t.value > 1:
             return False
         tsq = t.value**2
@@ -89,8 +87,6 @@ def length_sub(expr, t):
     arg = expr.args[0]
     if isinstance(t, Parameter):
         def sublevel_set():
-            if t.value is None:
-                return False
             if t.value < 0:
                 return False
             if t.value >= arg.size:
@@ -105,8 +101,6 @@ def sign_sup(expr, t):
     x = expr.args[0]
 
     def superlevel_set():
-        if t.value is None:      
-            return False
         if t.value <= -1:
             return True
         elif t.value <= 1:
@@ -120,8 +114,6 @@ def sign_sub(expr, t):
     x = expr.args[0]
 
     def sublevel_set():
-        if t.value is None:      
-            return False
         if t.value >= 1:
             return True
         elif t.value >= -1:
