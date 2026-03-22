@@ -186,7 +186,15 @@ def _build_solving_chain(
 
     # --- DPP handling ---
     dpp_context = 'dcp' if not gp else 'dgp'
-    if ignore_dpp or not problem.is_dpp(dpp_context):
+    # For QP/conic-QP solvers, we can loosen the DPP rules for quad_form
+    # in the objective. These solvers accept quadratic objectives directly
+    # (P matrix), so the mapping from parameters to problem data (P, q) stays
+    # linear — the standard DPP requirement. Constraint quad_forms still go
+    # through the conic canonicalizer which bakes in numeric Cholesky factors,
+    # so parametric P in constraints is NOT DPP-safe for the QP path.
+    quad_form_dpp = 'qp' if solver_instance.supports_quad_obj() else None
+    is_dpp = problem.is_dpp(dpp_context, quad_form_dpp=quad_form_dpp)
+    if ignore_dpp or not is_dpp:
         if not ignore_dpp and enforce_dpp:
             raise DPPError(DPP_ERROR_MSG)
         if not ignore_dpp:
