@@ -1163,7 +1163,8 @@
             <span class="n">x</span> <span class="o">=</span> <span class="n">prim_vars</span><span class="p">[</span><span class="n">FREE</span><span class="p">]</span>
             <span class="k">del</span> <span class="n">prim_vars</span><span class="p">[</span><span class="n">FREE</span><span class="p">]</span>
             <span class="n">prim_vars</span><span class="p">[</span><span class="n">inv_data</span><span class="p">[</span><span class="s1">&#39;x_id&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">x</span>
-        <span class="n">solution</span><span class="o">.</span><span class="n">opt_val</span> <span class="o">+=</span> <span class="n">inv_data</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">OBJ_OFFSET</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">solution</span><span class="o">.</span><span class="n">opt_val</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">solution</span><span class="o">.</span><span class="n">opt_val</span> <span class="o">+=</span> <span class="n">inv_data</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">OBJ_OFFSET</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">solution</span></div>
 
 </code></pre></div>

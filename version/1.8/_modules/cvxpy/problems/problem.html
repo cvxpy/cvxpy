@@ -1057,7 +1057,8 @@
 <span class="sd">            True if the Expression is DGP, False otherwise.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">all</span><span class="p">(</span>
-          <span class="n">expr</span><span class="o">.</span><span class="n">is_dgp</span><span class="p">(</span><span class="n">dpp</span><span class="p">)</span> <span class="k">for</span> <span class="n">expr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">constraints</span> <span class="o">+</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">objective</span><span class="p">])</span></div>
+            <span class="n">expr</span><span class="o">.</span><span class="n">is_dgp</span><span class="p">(</span><span class="n">dpp</span><span class="p">)</span> <span class="k">for</span> <span class="n">expr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">constraints</span> <span class="o">+</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">objective</span><span class="p">]</span>
+        <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="Problem.is_dqcp">
@@ -2134,7 +2135,7 @@
         <span class="c1"># Complex2Real split into real/imag).</span>
         <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">():</span>
             <span class="c1"># Start with the direct gradient if the param passed through unchanged</span>
-            <span class="n">grad</span> <span class="o">=</span> <span class="mf">0.0</span> <span class="k">if</span> <span class="n">param</span><span class="o">.</span><span class="n">id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dparams</span> <span class="k">else</span> <span class="n">dparams</span><span class="p">[</span><span class="n">param</span><span class="o">.</span><span class="n">id</span><span class="p">]</span>
+            <span class="n">grad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="k">if</span> <span class="n">param</span><span class="o">.</span><span class="n">id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dparams</span> <span class="k">else</span> <span class="n">dparams</span><span class="p">[</span><span class="n">param</span><span class="o">.</span><span class="n">id</span><span class="p">]</span>
             <span class="c1"># Apply chain rule through any reductions that transformed this param</span>
             <span class="k">for</span> <span class="n">reduction</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="o">.</span><span class="n">solving_chain</span><span class="o">.</span><span class="n">reductions</span><span class="p">:</span>
                 <span class="n">reduction_grad</span> <span class="o">=</span> <span class="n">reduction</span><span class="o">.</span><span class="n">param_backward</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="n">dparams</span><span class="p">)</span>

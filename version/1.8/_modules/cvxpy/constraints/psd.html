@@ -808,13 +808,13 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">expr</span><span class="o">.</span><span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
-        <span class="n">min_eig</span> <span class="o">=</span> <span class="n">cvxtypes</span><span class="o">.</span><span class="n">lambda_min</span><span class="p">()(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span>
+        <span class="n">min_eig</span> <span class="o">=</span> <span class="n">cvxtypes</span><span class="o">.</span><span class="n">lambda_min</span><span class="p">()(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">H</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span>
         <span class="k">return</span> <span class="n">cvxtypes</span><span class="o">.</span><span class="n">neg</span><span class="p">()(</span><span class="n">min_eig</span><span class="p">)</span><span class="o">.</span><span class="n">value</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_dual_cone</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Implements the dual cone of the PSD cone See Pg 85 of the</span>
 <span class="sd">        MOSEK modelling cookbook for more information&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">args</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">args</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dual_variables</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;&gt;</span> <span class="mi">0</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># some assertions for verifying `args`</span>

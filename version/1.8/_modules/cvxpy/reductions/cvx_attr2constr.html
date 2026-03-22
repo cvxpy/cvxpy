@@ -943,9 +943,12 @@
                 <span class="n">pvars</span><span class="p">[</span><span class="nb">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">recover_value_for_variable</span><span class="p">(</span>
                     <span class="n">var</span><span class="p">,</span> <span class="n">solution</span><span class="o">.</span><span class="n">primal_vars</span><span class="p">[</span><span class="n">new_var</span><span class="o">.</span><span class="n">id</span><span class="p">])</span>
 
-        <span class="n">dvars</span> <span class="o">=</span> <span class="p">{</span><span class="n">orig_id</span><span class="p">:</span> <span class="n">solution</span><span class="o">.</span><span class="n">dual_vars</span><span class="p">[</span><span class="n">vid</span><span class="p">]</span>
-                 <span class="k">for</span> <span class="n">orig_id</span><span class="p">,</span> <span class="n">vid</span> <span class="ow">in</span> <span class="n">cons_id_map</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
-                 <span class="k">if</span> <span class="n">vid</span> <span class="ow">in</span> <span class="n">solution</span><span class="o">.</span><span class="n">dual_vars</span><span class="p">}</span>
+        <span class="k">if</span> <span class="n">solution</span><span class="o">.</span><span class="n">dual_vars</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">dvars</span> <span class="o">=</span> <span class="p">{</span><span class="n">orig_id</span><span class="p">:</span> <span class="n">solution</span><span class="o">.</span><span class="n">dual_vars</span><span class="p">[</span><span class="n">vid</span><span class="p">]</span>
+                     <span class="k">for</span> <span class="n">orig_id</span><span class="p">,</span> <span class="n">vid</span> <span class="ow">in</span> <span class="n">cons_id_map</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                     <span class="k">if</span> <span class="n">vid</span> <span class="ow">in</span> <span class="n">solution</span><span class="o">.</span><span class="n">dual_vars</span><span class="p">}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">dvars</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">return</span> <span class="n">Solution</span><span class="p">(</span><span class="n">solution</span><span class="o">.</span><span class="n">status</span><span class="p">,</span> <span class="n">solution</span><span class="o">.</span><span class="n">opt_val</span><span class="p">,</span> <span class="n">pvars</span><span class="p">,</span> <span class="n">dvars</span><span class="p">,</span>
                         <span class="n">solution</span><span class="o">.</span><span class="n">attr</span><span class="p">)</span></div>
 </div>

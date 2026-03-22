@@ -796,7 +796,7 @@
         <span class="c1"># partial_P = - (P^-1 * X * X^T * P^-1)^T</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">DX</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">P_inv</span><span class="o">+</span><span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">P_inv</span><span class="p">),</span> <span class="n">X</span><span class="p">)</span>
-            <span class="n">DX</span> <span class="o">=</span> <span class="n">DX</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
+            <span class="n">DX</span> <span class="o">=</span> <span class="n">DX</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
             <span class="n">DX</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">csc_array</span><span class="p">([</span><span class="n">DX</span><span class="p">])</span><span class="o">.</span><span class="n">T</span>
 
             <span class="n">DP</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">P_inv</span><span class="p">,</span> <span class="n">X</span><span class="p">)</span>

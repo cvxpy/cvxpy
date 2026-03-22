@@ -738,7 +738,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">builtins</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">wraps</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">types</span><span class="w"> </span><span class="kn">import</span> <span class="n">GeneratorType</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tuple</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">numpy.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">AxisError</span>
@@ -747,7 +747,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">cvxpy.lin_ops.lin_op</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">lo</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">cvxpy.lin_ops.lin_utils</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">lu</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.atoms.affine.affine_atom</span><span class="w"> </span><span class="kn">import</span> <span class="n">AffAtom</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.atoms.axis_atom</span><span class="w"> </span><span class="kn">import</span> <span class="n">AxisAtom</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.atoms.axis_atom</span><span class="w"> </span><span class="kn">import</span> <span class="n">AxisAtom</span><span class="p">,</span> <span class="n">normalize_axis</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.constraints.constraint</span><span class="w"> </span><span class="kn">import</span> <span class="n">Constraint</span>
 
 
@@ -839,7 +839,11 @@
 <span class="sd">            The axis and keepdims parameters of the sum expression.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">axis</span><span class="p">,</span> <span class="n">keepdims</span> <span class="o">=</span> <span class="n">data</span>
-        <span class="c1"># Note: added new case for summing with n-dimensional shapes and </span>
+        <span class="c1"># Normalize tuple axes so they use the fast path when possible.</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">axis</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+            <span class="n">ndim</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">arg_objs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+            <span class="n">axis</span> <span class="o">=</span> <span class="n">normalize_axis</span><span class="p">(</span><span class="n">axis</span><span class="p">,</span> <span class="n">ndim</span><span class="p">)</span>
+        <span class="c1"># Note: added new case for summing with n-dimensional shapes and</span>
         <span class="c1"># multiple axes. Previous behavior is kept in the else statement.</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">arg_objs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span> <span class="ow">or</span> <span class="n">axis</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{</span><span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">}:</span>
             <span class="n">obj</span> <span class="o">=</span> <span class="n">lu</span><span class="o">.</span><span class="n">sum_entries</span><span class="p">(</span><span class="n">arg_objs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">shape</span><span class="o">=</span><span class="n">shape</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="n">keepdims</span><span class="p">)</span>
@@ -866,7 +870,7 @@
 <div class="viewcode-block" id="sum">
 <a class="viewcode-back" href="../../../../api_reference/cvxpy.atoms.affine.html#cvxpy.sum">[docs]</a>
 <span class="nd">@wraps</span><span class="p">(</span><span class="n">Sum</span><span class="p">)</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">sum</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">axis</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">keepdims</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">sum</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">axis</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">keepdims</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Wrapper for Sum class.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
