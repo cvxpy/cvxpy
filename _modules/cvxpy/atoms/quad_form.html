@@ -808,14 +808,23 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">is_incr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the composition non-decreasing in argument idx?</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_nonneg</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">is_nonneg</span><span class="p">())</span> <span class="ow">or</span> \
-               <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_nonpos</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">is_nonneg</span><span class="p">())</span>
+        <span class="k">if</span> <span class="n">idx</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># ∇_x f = 2Px: nonneg when (x≥0, P≥0) or (x≤0, P≤0)</span>
+            <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_nonneg</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">is_nonneg</span><span class="p">())</span> <span class="ow">or</span> \
+                   <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_nonpos</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">is_nonpos</span><span class="p">())</span>
+        <span class="k">elif</span> <span class="n">idx</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># ∂f/∂P_{ij} = x_i x_j: nonneg when x is all nonneg or all nonpos</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_nonneg</span><span class="p">()</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_nonpos</span><span class="p">()</span>
+        <span class="k">return</span> <span class="kc">False</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">is_decr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the composition non-increasing in argument idx?</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_nonneg</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">is_nonpos</span><span class="p">())</span> <span class="ow">or</span> \
-               <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_nonpos</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">is_nonpos</span><span class="p">())</span>
+        <span class="k">if</span> <span class="n">idx</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># ∇_x f = 2Px: nonpos when (x≥0, P≤0) or (x≤0, P≥0)</span>
+            <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_nonneg</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">is_nonpos</span><span class="p">())</span> <span class="ow">or</span> \
+                   <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_nonpos</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">is_nonneg</span><span class="p">())</span>
+        <span class="k">return</span> <span class="kc">False</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">is_quadratic</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the atom quadratic?</span>
@@ -909,17 +918,17 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Compute a matrix decomposition.</span>
 
-<span class="sd">    Compute sgn, scale, M such that P = sgn * scale * dot(M, M.T).</span>
-<span class="sd">    The strategy of determination of eigenvalue negligibility follows</span>
-<span class="sd">    the pinvh contributions from the scikit-learn project to scipy.</span>
+<span class="sd">    Compute scale, M1, M2 such that P = scale * (dot(M1, M1.T) - dot(M2, M2.T)).</span>
+<span class="sd">    Uses LDL decomposition for dense matrices, which is faster than</span>
+<span class="sd">    eigendecomposition while providing the same factorization structure.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    P : matrix or ndarray</span>
 <span class="sd">        A real symmetric positive or negative (semi)definite input matrix</span>
 <span class="sd">    cond, rcond : float, optional</span>
-<span class="sd">        Cutoff for small eigenvalues.</span>
-<span class="sd">        Singular values smaller than rcond * largest_eigenvalue</span>
+<span class="sd">        Cutoff for small pivot values.</span>
+<span class="sd">        Pivot values smaller than rcond * largest_pivot</span>
 <span class="sd">        are considered negligible.</span>
 <span class="sd">        If None or -1, suitable machine precision is used (default).</span>
 <span class="sd">    lower : bool, optional</span>
@@ -934,7 +943,7 @@
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    scale : float</span>
-<span class="sd">        induced matrix 2-norm of P</span>
+<span class="sd">        largest absolute pivot value from the LDL decomposition of P</span>
 <span class="sd">    M1, M2 : 2d ndarray</span>
 <span class="sd">        A rectangular ndarray such that P = scale * (dot(M1, M1.T) - dot(M2, M2.T))</span>
 
@@ -946,30 +955,50 @@
             <span class="k">if</span> <span class="n">sign</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="k">return</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">L</span><span class="p">[</span><span class="n">p</span><span class="p">,</span> <span class="p">:],</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">return</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)),</span> <span class="n">L</span><span class="p">[:,</span> <span class="n">p</span><span class="p">]</span>
+                <span class="k">return</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)),</span> <span class="n">L</span><span class="p">[</span><span class="n">p</span><span class="p">,</span> <span class="p">:]</span>
         <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">ModuleNotFoundError</span><span class="p">):</span>
-            <span class="n">P</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">P</span><span class="o">.</span><span class="n">todense</span><span class="p">())</span>  <span class="c1"># make dense (needs to happen for eigh).</span>
-    <span class="n">w</span><span class="p">,</span> <span class="n">V</span> <span class="o">=</span> <span class="n">LA</span><span class="o">.</span><span class="n">eigh</span><span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="n">lower</span><span class="p">,</span> <span class="n">check_finite</span><span class="o">=</span><span class="n">check_finite</span><span class="p">)</span>
+            <span class="n">P</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">P</span><span class="o">.</span><span class="n">todense</span><span class="p">())</span>  <span class="c1"># make dense (needs to happen for ldl).</span>
+    <span class="n">lu</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">_perm</span> <span class="o">=</span> <span class="n">LA</span><span class="o">.</span><span class="n">ldl</span><span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="n">lower</span><span class="p">,</span> <span class="n">check_finite</span><span class="o">=</span><span class="n">check_finite</span><span class="p">)</span>
+
+    <span class="c1"># Extract effective diagonal values from D, handling any 2x2 blocks.</span>
+    <span class="c1"># For PSD/NSD matrices D is diagonal (no 2x2 blocks). For indefinite</span>
+    <span class="c1"># matrices, Bunch-Kaufman pivoting may introduce 2x2 blocks which we</span>
+    <span class="c1"># resolve by batching all 2x2 blocks into a single eigh call.</span>
+    <span class="n">sub_diag</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">block_starts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">sub_diag</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">diag_vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">d</span><span class="p">))</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">block_starts</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">bs</span> <span class="o">=</span> <span class="n">block_starts</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="n">bs</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">2</span><span class="p">)[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>  <span class="c1"># (k, 2)</span>
+        <span class="n">blocks</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="n">idx</span><span class="p">[:,</span> <span class="p">:,</span> <span class="kc">None</span><span class="p">],</span> <span class="n">idx</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">:]]</span>  <span class="c1"># (k, 2, 2)</span>
+        <span class="n">eigvals</span><span class="p">,</span> <span class="n">eigvecs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">eigh</span><span class="p">(</span><span class="n">blocks</span><span class="p">)</span>  <span class="c1"># (k, 2), (k, 2, 2)</span>
+        <span class="n">diag_vals</span><span class="p">[</span><span class="n">bs</span><span class="p">]</span> <span class="o">=</span> <span class="n">eigvals</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">diag_vals</span><span class="p">[</span><span class="n">bs</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">eigvals</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="c1"># Apply eigenvector rotations to lu columns</span>
+        <span class="n">lu_i</span> <span class="o">=</span> <span class="n">lu</span><span class="p">[:,</span> <span class="n">bs</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">lu_ip1</span> <span class="o">=</span> <span class="n">lu</span><span class="p">[:,</span> <span class="n">bs</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">lu</span><span class="p">[:,</span> <span class="n">bs</span><span class="p">]</span> <span class="o">=</span> <span class="n">lu_i</span> <span class="o">*</span> <span class="n">eigvecs</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">lu_ip1</span> <span class="o">*</span> <span class="n">eigvecs</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">lu</span><span class="p">[:,</span> <span class="n">bs</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">lu_i</span> <span class="o">*</span> <span class="n">eigvecs</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">lu_ip1</span> <span class="o">*</span> <span class="n">eigvecs</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
 
     <span class="k">if</span> <span class="n">rcond</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">cond</span> <span class="o">=</span> <span class="n">rcond</span>
     <span class="k">if</span> <span class="n">cond</span> <span class="ow">in</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
-        <span class="n">t</span> <span class="o">=</span> <span class="n">V</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">char</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">lu</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">char</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
         <span class="n">factor</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;f&#39;</span><span class="p">:</span> <span class="mf">1e3</span><span class="p">,</span> <span class="s1">&#39;d&#39;</span><span class="p">:</span> <span class="mf">1e6</span><span class="p">}</span>
         <span class="n">cond</span> <span class="o">=</span> <span class="n">factor</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">finfo</span><span class="p">(</span><span class="n">t</span><span class="p">)</span><span class="o">.</span><span class="n">eps</span>
 
-    <span class="n">scale</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">absolute</span><span class="p">(</span><span class="n">w</span><span class="p">))</span>
+    <span class="n">scale</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">absolute</span><span class="p">(</span><span class="n">diag_vals</span><span class="p">))</span>
     <span class="k">if</span> <span class="n">scale</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="n">w_scaled</span> <span class="o">=</span> <span class="n">w</span>
+        <span class="n">d_scaled</span> <span class="o">=</span> <span class="n">diag_vals</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">w_scaled</span> <span class="o">=</span> <span class="n">w</span> <span class="o">/</span> <span class="n">scale</span>
-    <span class="n">maskp</span> <span class="o">=</span> <span class="n">w_scaled</span> <span class="o">&gt;</span> <span class="n">cond</span>
-    <span class="n">maskn</span> <span class="o">=</span> <span class="n">w_scaled</span> <span class="o">&lt;</span> <span class="o">-</span><span class="n">cond</span>
+        <span class="n">d_scaled</span> <span class="o">=</span> <span class="n">diag_vals</span> <span class="o">/</span> <span class="n">scale</span>
+    <span class="n">maskp</span> <span class="o">=</span> <span class="n">d_scaled</span> <span class="o">&gt;</span> <span class="n">cond</span>
+    <span class="n">maskn</span> <span class="o">=</span> <span class="n">d_scaled</span> <span class="o">&lt;</span> <span class="o">-</span><span class="n">cond</span>
     <span class="c1"># TODO: allow indefinite quad_form</span>
     <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">maskp</span><span class="p">)</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">maskn</span><span class="p">):</span>
         <span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Forming a nonconvex expression quad_form(x, indefinite).&quot;</span><span class="p">)</span>
-    <span class="n">M1</span> <span class="o">=</span> <span class="n">V</span><span class="p">[:,</span> <span class="n">maskp</span><span class="p">]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">w_scaled</span><span class="p">[</span><span class="n">maskp</span><span class="p">])</span>
-    <span class="n">M2</span> <span class="o">=</span> <span class="n">V</span><span class="p">[:,</span> <span class="n">maskn</span><span class="p">]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="o">-</span><span class="n">w_scaled</span><span class="p">[</span><span class="n">maskn</span><span class="p">])</span>
+    <span class="n">M1</span> <span class="o">=</span> <span class="n">lu</span><span class="p">[:,</span> <span class="n">maskp</span><span class="p">]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">d_scaled</span><span class="p">[</span><span class="n">maskp</span><span class="p">])</span>
+    <span class="n">M2</span> <span class="o">=</span> <span class="n">lu</span><span class="p">[:,</span> <span class="n">maskn</span><span class="p">]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="o">-</span><span class="n">d_scaled</span><span class="p">[</span><span class="n">maskn</span><span class="p">])</span>
     <span class="k">return</span> <span class="n">scale</span><span class="p">,</span> <span class="n">M1</span><span class="p">,</span> <span class="n">M2</span>
 
 

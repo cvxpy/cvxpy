@@ -737,7 +737,6 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">settings</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.expressions.expression</span><span class="w"> </span><span class="kn">import</span> <span class="n">Expression</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.canonicalization</span><span class="w"> </span><span class="kn">import</span> <span class="n">Canonicalization</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.dgp2dcp.canonicalizers</span><span class="w"> </span><span class="kn">import</span> <span class="n">DgpCanonMethods</span>
@@ -819,6 +818,8 @@
         <span class="k">if</span> <span class="n">param</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">canon_methods</span><span class="o">.</span><span class="n">_parameters</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
         <span class="n">new_param</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">canon_methods</span><span class="o">.</span><span class="n">_parameters</span><span class="p">[</span><span class="n">param</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">new_param</span><span class="o">.</span><span class="n">id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dparams</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
         <span class="c1"># Apply chain rule: d(log(x))/dx = 1/x</span>
         <span class="k">return</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="n">param</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="o">*</span> <span class="n">dparams</span><span class="p">[</span><span class="n">new_param</span><span class="o">.</span><span class="n">id</span><span class="p">]</span></div>
 
@@ -901,7 +902,7 @@
 <a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.middle_end.html#cvxpy.reductions.dgp2dcp.dgp2dcp.Dgp2Dcp.invert">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">invert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">solution</span><span class="p">,</span> <span class="n">inverse_data</span><span class="p">):</span>
         <span class="n">solution</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">Dgp2Dcp</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">invert</span><span class="p">(</span><span class="n">solution</span><span class="p">,</span> <span class="n">inverse_data</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">solution</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">settings</span><span class="o">.</span><span class="n">SOLVER_ERROR</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">solution</span><span class="o">.</span><span class="n">opt_val</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">solution</span>
         <span class="k">for</span> <span class="n">vid</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">solution</span><span class="o">.</span><span class="n">primal_vars</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">solution</span><span class="o">.</span><span class="n">primal_vars</span><span class="p">[</span><span class="n">vid</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>

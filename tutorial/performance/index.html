@@ -11,17 +11,17 @@
       
       
       
-        <link rel="prev" href="../constraints/index.html">
+        <link rel="prev" href="../advanced/index.html">
       
       
-        <link rel="next" href="../performance/index.html">
+        <link rel="next" href="../solvers/index.html">
       
       
       <link rel="icon" href="../../_static/favicon.ico">
     
     
       
-        <title>Advanced Features - </title>
+        <title>Performance Tips - </title>
       
     
     
@@ -73,7 +73,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#n-dimensional-expressions" class="md-skip">
+        <a href="#vectorize-your-problem" class="md-skip">
           Skip to content
         </a>
       
@@ -134,7 +134,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Advanced Features
+              Performance Tips
             
           </span>
         </div>
@@ -713,6 +713,30 @@
                 
   
   
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../advanced/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>Advanced Features</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
     
   
     
@@ -729,7 +753,7 @@
   
   
   <span class="md-ellipsis">
-    <span>Advanced Features</span>
+    <span>Performance Tips</span>
     
   </span>
   
@@ -742,7 +766,7 @@
   
   
   <span class="md-ellipsis">
-    <span>Advanced Features</span>
+    <span>Performance Tips</span>
     
   </span>
   
@@ -766,60 +790,70 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#n-dimensional-expressions" class="md-nav__link">
+  <a href="#vectorize-your-problem" class="md-nav__link">
     
     <span class="md-ellipsis">
-      <span title="n-dimensional expressions (reference label)"><span>N-<wbr>dimensional expressions</span></span>
+      <span title="vectorize your problem (reference label)"><span>Vectorize your problem</span></span>
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#dual-variables" class="md-nav__link">
+  <a href="#use-cp-sum-not-python-s-built-in-sum" class="md-nav__link">
     
     <span class="md-ellipsis">
-      <span title="dual variables (reference label)"><span>Dual variables</span></span>
+      <span title="use cp.sum, not python&#39;s built-in sum (reference label)"><span>Use cp.<wbr>sum, not Python’s built-<wbr>in sum</span></span>
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#transforms" class="md-nav__link">
+  <a href="#use-parameters-for-repeated-solves" class="md-nav__link">
     
     <span class="md-ellipsis">
-      <span>Transforms</span>
+      <span title="use parameters for repeated solves (reference label)"><span>Use parameters for repeated solves</span></span>
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#problem-arithmetic" class="md-nav__link">
+  <a href="#use-cp-sum-squares-for-quadratic-objectives" class="md-nav__link">
     
     <span class="md-ellipsis">
-      <span title="problem-arithmetic (reference label)"><span>Problem arithmetic</span></span>
+      <span title="use cp.sum_squares for quadratic objectives (reference label)"><span>Use cp.<wbr>sum_<wbr>squares for quadratic objectives</span></span>
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#getting-the-standard-form" class="md-nav__link">
+  <a href="#choose-the-right-canonicalization-backend" class="md-nav__link">
     
     <span class="md-ellipsis">
-      <span title="getting the standard form (reference label)"><span>Getting the standard form</span></span>
+      <span title="choose the right canonicalization backend (reference label)"><span>Choose the right canonicalization backend</span></span>
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#canonicalization-backends" class="md-nav__link">
+  <a href="#use-verbose-mode-to-diagnose-slow-problems" class="md-nav__link">
     
     <span class="md-ellipsis">
-      <span title="canonicalization-backends (reference label)"><span>Canonicalization backends</span></span>
+      <span title="use verbose mode to diagnose slow problems (reference label)"><span>Use verbose mode to diagnose slow problems</span></span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#summary-of-tips" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="summary of tips (reference label)"><span>Summary of tips</span></span>
     </span>
   </a>
   
@@ -829,30 +863,6 @@
   
 </nav>
       
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../performance/index.html" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    <span>Performance Tips</span>
-    
-  </span>
-  
-
-      </a>
     </li>
   
 
@@ -1100,60 +1110,70 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#n-dimensional-expressions" class="md-nav__link">
+  <a href="#vectorize-your-problem" class="md-nav__link">
     
     <span class="md-ellipsis">
-      <span title="n-dimensional expressions (reference label)"><span>N-<wbr>dimensional expressions</span></span>
+      <span title="vectorize your problem (reference label)"><span>Vectorize your problem</span></span>
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#dual-variables" class="md-nav__link">
+  <a href="#use-cp-sum-not-python-s-built-in-sum" class="md-nav__link">
     
     <span class="md-ellipsis">
-      <span title="dual variables (reference label)"><span>Dual variables</span></span>
+      <span title="use cp.sum, not python&#39;s built-in sum (reference label)"><span>Use cp.<wbr>sum, not Python’s built-<wbr>in sum</span></span>
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#transforms" class="md-nav__link">
+  <a href="#use-parameters-for-repeated-solves" class="md-nav__link">
     
     <span class="md-ellipsis">
-      <span>Transforms</span>
+      <span title="use parameters for repeated solves (reference label)"><span>Use parameters for repeated solves</span></span>
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#problem-arithmetic" class="md-nav__link">
+  <a href="#use-cp-sum-squares-for-quadratic-objectives" class="md-nav__link">
     
     <span class="md-ellipsis">
-      <span title="problem-arithmetic (reference label)"><span>Problem arithmetic</span></span>
+      <span title="use cp.sum_squares for quadratic objectives (reference label)"><span>Use cp.<wbr>sum_<wbr>squares for quadratic objectives</span></span>
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#getting-the-standard-form" class="md-nav__link">
+  <a href="#choose-the-right-canonicalization-backend" class="md-nav__link">
     
     <span class="md-ellipsis">
-      <span title="getting the standard form (reference label)"><span>Getting the standard form</span></span>
+      <span title="choose the right canonicalization backend (reference label)"><span>Choose the right canonicalization backend</span></span>
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#canonicalization-backends" class="md-nav__link">
+  <a href="#use-verbose-mode-to-diagnose-slow-problems" class="md-nav__link">
     
     <span class="md-ellipsis">
-      <span title="canonicalization-backends (reference label)"><span>Canonicalization backends</span></span>
+      <span title="use verbose mode to diagnose slow problems (reference label)"><span>Use verbose mode to diagnose slow problems</span></span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#summary-of-tips" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span title="summary of tips (reference label)"><span>Summary of tips</span></span>
     </span>
   </a>
   
@@ -1175,202 +1195,196 @@
                   
 
 
-<h1 id="advanced-features"><span id="advanced"></span>Advanced Features<a class="headerlink" href="#advanced-features" title="Link to this heading">¶</a></h1>
-<p>This section of the tutorial covers features of CVXPY intended for users with advanced knowledge of convex optimization. We recommend <a class="reference external" href="https://www.stanford.edu/~boyd/cvxbook/">Convex Optimization</a> by Boyd and Vandenberghe as a reference for any terms you are unfamiliar with.</p>
-<h2 id="n-dimensional-expressions"><span id="n-dimensional"></span>N-dimensional expressions<a class="headerlink" href="#n-dimensional-expressions" title="Link to this heading">¶</a></h2>
-<div class="admonition versionadded">
-<p class="admonition-title"><span class="versionmodified added">Added in version 1.6.</span></p>
-</div>
-<p>CVXPY now supports N-dimensional expressions. This allows one to define variables, parameters, and constants with arbitrary number of dimensions.
-This new feature enables users to model problems with multi-dimensional data in a more natural way.</p>
-<p>In the example below, we consider a problem where the goal is to optimize the usage of a resource across multiple locations, days, and hours.
-We are now able to easily form constraints on any combination of dimensions.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="c1"># create a 3-dimensional variable (locations, days, hours)</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">((</span><span class="mi">12</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">24</span><span class="p">))</span>
-
-<span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span>
-  <span class="n">cp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span> <span class="o">&lt;=</span> <span class="mi">2000</span><span class="p">,</span> <span class="c1"># constrain the daily usage across all locations</span>
-  <span class="n">x</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:</span><span class="mi">12</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mi">100</span><span class="p">,</span> <span class="c1"># constrain the first 12 hours of each day at every location</span>
-  <span class="n">x</span><span class="p">[:,</span> <span class="mi">3</span><span class="p">,</span> <span class="p">:]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,]</span> <span class="c1"># constrain the usage on the fourth day to be zero</span>
-
-<span class="n">obj</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">sum_squares</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
-<span class="n">prob</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
-<span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
-</code></pre></div>
-</div>
-<p>Please refer to NumPy’s excellent <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.ndarray.html">reference</a>
-on N-dimensional arrays and the <a class="reference external" href="https://data-apis.org/array-api/latest/API_specification/index.html">array API standard</a> for more details
-on how to manipulate N-dimensional arrays. Our goal is to match the NumPy API as closely as possible.</p>
-<div class="warning admonition">
-<p class="admonition-title">Warning</p>
-<p>N-dimensional support is still experimental and may not work with all CVXPY features.
-If you encounter any issues or missing functionality, please report them on <a class="reference external" href="https://github.com/cvxpy/cvxpy/issues">GitHub issues</a>.</p>
-</div>
-<h2 id="dual-variables"><span id="id1"></span>Dual variables<a class="headerlink" href="#dual-variables" title="Link to this heading">¶</a></h2>
-<p>You can use CVXPY to find the optimal dual variables for a problem. When you call <code class="docutils literal notranslate"><span class="pre">prob.solve()</span></code> each dual variable in the solution is stored in the <code class="docutils literal notranslate"><span class="pre">dual_value</span></code> field of the constraint it corresponds to.</p>
+<h1 id="performance-tips"><span id="performance"></span>Performance Tips<a class="headerlink" href="#performance-tips" title="Link to this heading">¶</a></h1>
+<p>This page provides guidance on how to write CVXPY code that compiles and solves efficiently.
+CVXPY problems have two main cost components: <strong>compile time</strong> (how long CVXPY takes to transform
+your problem for a solver) and <strong>solve time</strong> (how long the solver takes to find a solution).
+The tips below primarily address compile time, which can be the bottleneck for large problems.</p>
+<h2 id="vectorize-your-problem"><span id="vectorization"></span>Vectorize your problem<a class="headerlink" href="#vectorize-your-problem" title="Link to this heading">¶</a></h2>
+<p>The single most impactful thing you can do to reduce compile time is to <strong>vectorize</strong> your CVXPY
+expressions. This means expressing constraints and objectives over entire vectors or matrices at
+once, rather than writing scalar operations in Python loops.</p>
+<p>As a rule of thumb, you should minimize the number (and not just the dimension) of CVXPY <code class="docutils literal notranslate"><span class="pre">Variable</span></code>, <code class="docutils literal notranslate"><span class="pre">Constraint</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">Expression</span></code> objects needed to specify your model. Each CVXPY object adds overhead during
+compilation, so fewer objects means faster compile times.</p>
+<p><strong>Bad (scalarized) — slow:</strong></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">cvxpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cp</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-<span class="c1"># Create two scalar optimization variables.</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">()</span>
-<span class="n">y</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">()</span>
+<span class="n">m</span><span class="p">,</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">500</span><span class="p">,</span> <span class="mi">200</span>
+<span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
 
-<span class="c1"># Create two constraints.</span>
-<span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span>
-               <span class="n">x</span> <span class="o">-</span> <span class="n">y</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">]</span>
+<span class="c1"># Slow: creates m separate Constraint objects</span>
+<span class="n">constraints</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">m</span><span class="p">):</span>
+    <span class="n">constraints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:]</span> <span class="o">@</span> <span class="n">x</span> <span class="o">==</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+<span class="n">prob</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">sum_squares</span><span class="p">(</span><span class="n">x</span><span class="p">)),</span> <span class="n">constraints</span><span class="p">)</span>
+<span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+</code></pre></div>
+</div>
+<p><strong>Good (vectorized) — fast:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">cvxpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cp</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-<span class="c1"># Form objective.</span>
-<span class="n">obj</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">((</span><span class="n">x</span> <span class="o">-</span> <span class="n">y</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">m</span><span class="p">,</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">500</span><span class="p">,</span> <span class="mi">200</span>
+<span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
 
-<span class="c1"># Form and solve problem.</span>
-<span class="n">prob</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
+<span class="c1"># Fast: creates a single Constraint object</span>
+<span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span><span class="n">A</span> <span class="o">@</span> <span class="n">x</span> <span class="o">==</span> <span class="n">b</span><span class="p">]</span>
+<span class="n">prob</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">sum_squares</span><span class="p">(</span><span class="n">x</span><span class="p">)),</span> <span class="n">constraints</span><span class="p">)</span>
+<span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+</code></pre></div>
+</div>
+<p>The vectorized version creates a single constraint object instead of <code class="docutils literal notranslate"><span class="pre">m</span></code> separate ones.
+For large <code class="docutils literal notranslate"><span class="pre">m</span></code>, this difference can be the gap between milliseconds and seconds of compile time.</p>
+<p>Similarly, for simple bound constraints, consider using the <code class="docutils literal notranslate"><span class="pre">bounds</span></code> attribute on the variable directly, which is the most efficient approach:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="c1"># Slow</span>
+<span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">)]</span> <span class="o">+</span> <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">)]</span>
+
+<span class="c1"># Better (vectorized)</span>
+<span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">x</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">]</span>
+
+<span class="c1"># Best (use bounds attribute)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+</code></pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">bounds</span></code> attribute is the most efficient way to specify simple variable bounds.
+It supports scalars, NumPy arrays, parameters, and affine functions of parameters:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">cvxpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cp</span>
+
+<span class="n">n</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="c1"># Scalar bounds</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+
+<span class="c1"># NumPy array bounds</span>
+<span class="n">lb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+<span class="n">ub</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="p">[</span><span class="n">lb</span><span class="p">,</span> <span class="n">ub</span><span class="p">])</span>
+
+<span class="c1"># Parameter bounds (useful for repeated solves with changing bounds)</span>
+<span class="n">lb_param</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+<span class="n">ub_param</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="p">[</span><span class="n">lb_param</span><span class="p">,</span> <span class="n">ub_param</span><span class="p">])</span>
+</code></pre></div>
+</div>
+<h2 id="use-cp-sum-not-python-s-built-in-sum"><span id="use-cvxpy-sum"></span>Use cp.sum, not Python’s built-in sum<a class="headerlink" href="#use-cp-sum-not-python-s-built-in-sum" title="Link to this heading">¶</a></h2>
+<p>When summing CVXPY expressions, always use <code class="docutils literal notranslate"><span class="pre">cp.sum</span></code> rather than Python’s built-in <code class="docutils literal notranslate"><span class="pre">sum</span></code>.
+Python’s <code class="docutils literal notranslate"><span class="pre">sum</span></code> builds up a chain of binary <code class="docutils literal notranslate"><span class="pre">+</span></code> operations, creating a deep expression tree
+that is slow to compile. <code class="docutils literal notranslate"><span class="pre">cp.sum</span></code> handles the entire sum in a single, efficient operation.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="c1"># Slow: Python&#39;s sum() creates a deep binary tree of additions</span>
+<span class="n">objective</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span>
+
+<span class="c1"># Fast: single efficient operation</span>
+<span class="n">objective</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span>
+</code></pre></div>
+</div>
+<h2 id="use-parameters-for-repeated-solves"><span id="use-parameters"></span>Use parameters for repeated solves<a class="headerlink" href="#use-parameters-for-repeated-solves" title="Link to this heading">¶</a></h2>
+<p>If you need to solve the same problem multiple times with different data values, use
+<a class="reference internal" href="../../api_reference/cvxpy.expressions.html#cvxpy.expressions.constants.parameter.Parameter" title="cvxpy.expressions.constants.parameter.Parameter (Python class) — Bases: Leaf"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a> objects instead of creating a new problem
+each time. Parameters, used correctly, allow CVXPY to compile the problem structure once and reuse it across
+solves, which is known as <strong>DPP (Disciplined Parameterized Programming)</strong>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">cvxpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cp</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="n">n</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+<span class="n">gamma</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">nonneg</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+
+<span class="n">prob</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">sum_squares</span><span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">data</span><span class="p">)</span> <span class="o">+</span> <span class="n">gamma</span> <span class="o">*</span> <span class="n">cp</span><span class="o">.</span><span class="n">norm1</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span>
+
+<span class="c1"># First solve — compiles and caches the problem structure</span>
+<span class="n">gamma</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="mf">0.1</span>
+<span class="n">data</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
 <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
 
-<span class="c1"># The optimal dual variable (Lagrange multiplier) for</span>
-<span class="c1"># a constraint is stored in constraint.dual_value.</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;optimal (x + y == 1) dual variable&quot;</span><span class="p">,</span> <span class="n">constraints</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dual_value</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;optimal (x - y &gt;= 1) dual variable&quot;</span><span class="p">,</span> <span class="n">constraints</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">dual_value</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;x - y value:&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">y</span><span class="p">)</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+<span class="c1"># Subsequent solves — reuses compiled structure, much faster</span>
+<span class="n">gamma</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="mf">1.0</span>
+<span class="n">data</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+<span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
 </code></pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="n">optimal</span> <span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span> <span class="n">dual</span> <span class="n">variable</span> <span class="mf">6.47610300459e-18</span>
-<span class="n">optimal</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">y</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">)</span> <span class="n">dual</span> <span class="n">variable</span> <span class="mf">2.00025244976</span>
-<span class="n">x</span> <span class="o">-</span> <span class="n">y</span> <span class="n">value</span><span class="p">:</span> <span class="mf">0.999999986374</span>
+<p>You can verify your problem is DPP-compliant by calling <code class="docutils literal notranslate"><span class="pre">prob.is_dpp()</span></code>.</p>
+<h2 id="use-cp-sum-squares-for-quadratic-objectives"><span id="quadratic-objectives"></span>Use cp.sum_squares for quadratic objectives<a class="headerlink" href="#use-cp-sum-squares-for-quadratic-objectives" title="Link to this heading">¶</a></h2>
+<p>When your objective is a sum of squares, always use <code class="docutils literal notranslate"><span class="pre">cp.sum_squares</span></code> rather than
+<code class="docutils literal notranslate"><span class="pre">cp.quad_form</span></code> with an identity matrix. Using <code class="docutils literal notranslate"><span class="pre">cp.quad_form(x,</span> <span class="pre">np.eye(n))</span></code> constructs
+a dense n×n matrix explicitly, which causes excessive memory usage and slow compile times
+for large problems.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">cvxpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cp</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="n">n</span> <span class="o">=</span> <span class="mi">1000</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+
+<span class="c1"># Slow and memory-intensive: constructs a dense 1000x1000 identity matrix</span>
+<span class="n">objective</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">quad_form</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">n</span><span class="p">)))</span>
+
+<span class="c1"># Fast: purpose-built atom, no matrix construction</span>
+<span class="n">objective</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">sum_squares</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
 </code></pre></div>
 </div>
-<p>The dual variable for <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">-</span> <span class="pre">y</span> <span class="pre">&gt;=</span> <span class="pre">1</span></code> is 2. By complementarity this implies that <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">-</span> <span class="pre">y</span></code> is 1, which we can see is true. The fact that the dual variable is non-zero also tells us that if we tighten <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">-</span> <span class="pre">y</span> <span class="pre">&gt;=</span> <span class="pre">1</span></code>, (i.e., increase the right-hand side), the optimal value of the problem will increase.</p>
-<h2 id="transforms"><span id="id2"></span>Transforms<a class="headerlink" href="#transforms" title="Link to this heading">¶</a></h2>
-<p>Transforms provide additional ways of manipulating CVXPY objects
-beyond the atomic functions.  For example, the <a class="reference internal" href="../../api_reference/cvxpy.transforms.html#cvxpy.transforms.indicator" title="cvxpy.transforms.indicator (Python class) — if constraints hold, +infty otherwise."><code class="xref py py-class docutils literal notranslate"><span class="pre">indicator</span></code></a> transform converts a list of constraints into an
-expression representing the convex function that takes value 0 when the
-constraints hold and <span class="math notranslate nohighlight">\(\infty\)</span> when they are violated.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">()</span>
-<span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">x</span><span class="p">,</span> <span class="n">x</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">]</span>
-<span class="n">expr</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">transforms</span><span class="o">.</span><span class="n">indicator</span><span class="p">(</span><span class="n">constraints</span><span class="p">)</span>
-<span class="n">x</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="mf">.5</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;expr.value = &quot;</span><span class="p">,</span> <span class="n">expr</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
-<span class="n">x</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="mi">2</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;expr.value = &quot;</span><span class="p">,</span> <span class="n">expr</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+<p>More generally, <code class="docutils literal notranslate"><span class="pre">cp.quad_form(x,</span> <span class="pre">P)</span></code> should only be used when <code class="docutils literal notranslate"><span class="pre">P</span></code> is a
+non-trivial positive semidefinite matrix. Sparse matrices work perfectly fine
+with <code class="docutils literal notranslate"><span class="pre">cp.quad_form</span></code> and do not cause the memory issues described above.
+For diagonal <code class="docutils literal notranslate"><span class="pre">P</span></code>, use <code class="docutils literal notranslate"><span class="pre">cp.quad_form(x,</span> <span class="pre">scipy.sparse.diags_array(P_diag))</span></code> or <code class="docutils literal notranslate"><span class="pre">cp.sum(cp.multiply(P_diag,</span> <span class="pre">cp.square(x)))</span></code>
+or restructure your problem to avoid it entirely.</p>
+<h2 id="choose-the-right-canonicalization-backend"><span id="canon-backends"></span>Choose the right canonicalization backend<a class="headerlink" href="#choose-the-right-canonicalization-backend" title="Link to this heading">¶</a></h2>
+<p>CVXPY supports multiple canonicalization backends that can significantly affect compile time
+depending on your problem structure. You can select a backend via the <code class="docutils literal notranslate"><span class="pre">canon_backend</span></code>
+keyword argument to <code class="docutils literal notranslate"><span class="pre">.solve()</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">canon_backend</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">SCIPY_CANON_BACKEND</span><span class="p">)</span>
 </code></pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="n">expr</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="mf">0.0</span>
-<span class="n">expr</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">inf</span>
-</code></pre></div>
-</div>
-<p>The full set of transforms available is discussed in <a class="reference internal" href="../../api_reference/cvxpy.transforms.html#transforms-api"><span class="std std-ref">Transforms</span></a>.</p>
-<h2 id="problem-arithmetic"><span id="id3"></span>Problem arithmetic<a class="headerlink" href="#problem-arithmetic" title="Link to this heading">¶</a></h2>
-<p>For convenience, arithmetic operations have been overloaded for
-problems and objectives.
-Problem arithmetic is useful because it allows you to write a problem as a
-sum of smaller problems.
-The rules for adding, subtracting, and multiplying objectives are given below.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="c1"># Addition and subtraction.</span>
-
-<span class="n">Minimize</span><span class="p">(</span><span class="n">expr1</span><span class="p">)</span> <span class="o">+</span> <span class="n">Minimize</span><span class="p">(</span><span class="n">expr2</span><span class="p">)</span> <span class="o">==</span> <span class="n">Minimize</span><span class="p">(</span><span class="n">expr1</span> <span class="o">+</span> <span class="n">expr2</span><span class="p">)</span>
-
-<span class="n">Maximize</span><span class="p">(</span><span class="n">expr1</span><span class="p">)</span> <span class="o">+</span> <span class="n">Maximize</span><span class="p">(</span><span class="n">expr2</span><span class="p">)</span> <span class="o">==</span> <span class="n">Maximize</span><span class="p">(</span><span class="n">expr1</span> <span class="o">+</span> <span class="n">expr2</span><span class="p">)</span>
-
-<span class="n">Minimize</span><span class="p">(</span><span class="n">expr1</span><span class="p">)</span> <span class="o">+</span> <span class="n">Maximize</span><span class="p">(</span><span class="n">expr2</span><span class="p">)</span> <span class="c1"># Not allowed.</span>
-
-<span class="n">Minimize</span><span class="p">(</span><span class="n">expr1</span><span class="p">)</span> <span class="o">-</span> <span class="n">Maximize</span><span class="p">(</span><span class="n">expr2</span><span class="p">)</span> <span class="o">==</span> <span class="n">Minimize</span><span class="p">(</span><span class="n">expr1</span> <span class="o">-</span> <span class="n">expr2</span><span class="p">)</span>
-
-<span class="c1"># Multiplication (alpha is a positive scalar).</span>
-
-<span class="n">alpha</span><span class="o">*</span><span class="n">Minimize</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span> <span class="o">==</span> <span class="n">Minimize</span><span class="p">(</span><span class="n">alpha</span><span class="o">*</span><span class="n">expr</span><span class="p">)</span>
-
-<span class="n">alpha</span><span class="o">*</span><span class="n">Maximize</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span> <span class="o">==</span> <span class="n">Maximize</span><span class="p">(</span><span class="n">alpha</span><span class="o">*</span><span class="n">expr</span><span class="p">)</span>
-
-<span class="o">-</span><span class="n">alpha</span><span class="o">*</span><span class="n">Minimize</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span> <span class="o">==</span> <span class="n">Maximize</span><span class="p">(</span><span class="o">-</span><span class="n">alpha</span><span class="o">*</span><span class="n">expr</span><span class="p">)</span>
-
-<span class="o">-</span><span class="n">alpha</span><span class="o">*</span><span class="n">Maximize</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span> <span class="o">==</span> <span class="n">Minimize</span><span class="p">(</span><span class="o">-</span><span class="n">alpha</span><span class="o">*</span><span class="n">expr</span><span class="p">)</span>
-</code></pre></div>
-</div>
-<p>The rules for adding and multiplying problems are equally straightforward:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="c1"># Addition and subtraction.</span>
-
-<span class="n">prob1</span> <span class="o">+</span> <span class="n">prob2</span> <span class="o">==</span> <span class="n">Problem</span><span class="p">(</span><span class="n">prob1</span><span class="o">.</span><span class="n">objective</span> <span class="o">+</span> <span class="n">prob2</span><span class="o">.</span><span class="n">objective</span><span class="p">,</span>
-                         <span class="n">prob1</span><span class="o">.</span><span class="n">constraints</span> <span class="o">+</span> <span class="n">prob2</span><span class="o">.</span><span class="n">constraints</span><span class="p">)</span>
-
-<span class="n">prob1</span> <span class="o">-</span> <span class="n">prob2</span> <span class="o">==</span> <span class="n">Problem</span><span class="p">(</span><span class="n">prob1</span><span class="o">.</span><span class="n">objective</span> <span class="o">-</span> <span class="n">prob2</span><span class="o">.</span><span class="n">objective</span><span class="p">,</span>
-                         <span class="n">prob1</span><span class="o">.</span><span class="n">constraints</span> <span class="o">+</span> <span class="n">prob2</span><span class="o">.</span><span class="n">constraints</span><span class="p">)</span>
-
-<span class="c1"># Multiplication (alpha is any scalar).</span>
-
-<span class="n">alpha</span><span class="o">*</span><span class="n">prob</span> <span class="o">==</span> <span class="n">Problem</span><span class="p">(</span><span class="n">alpha</span><span class="o">*</span><span class="n">prob</span><span class="o">.</span><span class="n">objective</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">constraints</span><span class="p">)</span>
-</code></pre></div>
-</div>
-<p>Note that the <code class="docutils literal notranslate"><span class="pre">+</span></code> operator concatenates lists of constraints,
-since this is the default behavior for Python lists.
-The in-place operators <code class="docutils literal notranslate"><span class="pre">+=</span></code>, <code class="docutils literal notranslate"><span class="pre">-=</span></code>, and <code class="docutils literal notranslate"><span class="pre">*=</span></code> are also supported for
-objectives and problems and follow the same rules as above.</p>
-<h2 id="getting-the-standard-form"><span id="standard-form"></span>Getting the standard form<a class="headerlink" href="#getting-the-standard-form" title="Link to this heading">¶</a></h2>
-<p>If you are interested in getting the standard form that CVXPY produces for a
-problem, you can use the <code class="docutils literal notranslate"><span class="pre">get_problem_data</span></code> method. When a problem is solved,
-a <a class="reference internal" href="../../api_reference/cvxpy.reductions.html#cvxpy.reductions.solvers.solving_chain.SolvingChain" title="cvxpy.reductions.solvers.solving_chain.SolvingChain (Python class) — Bases: Chain"><code class="xref py py-class docutils literal notranslate"><span class="pre">SolvingChain</span></code></a> passes a
-low-level representation that is compatible with the targeted solver to a
-solver, which solves the problem. This method returns that low-level
-representation, along with a <code class="docutils literal notranslate"><span class="pre">SolvingChain</span></code> and metadata for unpacking
-a solution into the problem. This low-level representation closely resembles,
-but is not identical to, the arguments supplied to the solver.</p>
-<p>A solution to the equivalent low-level problem can be obtained via the
-data by invoking the <code class="docutils literal notranslate"><span class="pre">solve_via_data</span></code> method of the returned solving
-chain, a thin wrapper around the code external to CVXPY that further
-processes and solves the problem. Invoke the <code class="docutils literal notranslate"><span class="pre">unpack_results</span></code> method
-to recover a solution to the original problem.</p>
-<p>For example:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="n">problem</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">objective</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
-<span class="n">data</span><span class="p">,</span> <span class="n">chain</span><span class="p">,</span> <span class="n">inverse_data</span> <span class="o">=</span> <span class="n">problem</span><span class="o">.</span><span class="n">get_problem_data</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">SCS</span><span class="p">)</span>
-<span class="c1"># calls SCS using `data`</span>
-<span class="n">soln</span> <span class="o">=</span> <span class="n">chain</span><span class="o">.</span><span class="n">solve_via_data</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
-<span class="c1"># unpacks the solution returned by SCS into `problem`</span>
-<span class="n">problem</span><span class="o">.</span><span class="n">unpack_results</span><span class="p">(</span><span class="n">soln</span><span class="p">,</span> <span class="n">chain</span><span class="p">,</span> <span class="n">inverse_data</span><span class="p">)</span>
-</code></pre></div>
-</div>
-<p>Alternatively, the <code class="docutils literal notranslate"><span class="pre">data</span></code> dictionary returned by this method
-contains enough information to bypass CVXPY and call the solver
-directly.</p>
-<p>For example:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="n">problem</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">objective</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
-<span class="n">probdata</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">problem</span><span class="o">.</span><span class="n">get_problem_data</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">SCS</span><span class="p">)</span>
-
-<span class="kn">import</span><span class="w"> </span><span class="nn">scs</span>
-<span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
-  <span class="s1">&#39;A&#39;</span><span class="p">:</span> <span class="n">probdata</span><span class="p">[</span><span class="s1">&#39;A&#39;</span><span class="p">],</span>
-  <span class="s1">&#39;b&#39;</span><span class="p">:</span> <span class="n">probdata</span><span class="p">[</span><span class="s1">&#39;b&#39;</span><span class="p">],</span>
-  <span class="s1">&#39;c&#39;</span><span class="p">:</span> <span class="n">probdata</span><span class="p">[</span><span class="s1">&#39;c&#39;</span><span class="p">],</span>
-<span class="p">}</span>
-<span class="n">cone_dims</span> <span class="o">=</span> <span class="n">probdata</span><span class="p">[</span><span class="s1">&#39;dims&#39;</span><span class="p">]</span>
-<span class="n">cones</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;f&quot;</span><span class="p">:</span> <span class="n">cone_dims</span><span class="o">.</span><span class="n">zero</span><span class="p">,</span>
-    <span class="s2">&quot;l&quot;</span><span class="p">:</span> <span class="n">cone_dims</span><span class="o">.</span><span class="n">nonpos</span><span class="p">,</span>
-    <span class="s2">&quot;q&quot;</span><span class="p">:</span> <span class="n">cone_dims</span><span class="o">.</span><span class="n">soc</span><span class="p">,</span>
-    <span class="s2">&quot;ep&quot;</span><span class="p">:</span> <span class="n">cone_dims</span><span class="o">.</span><span class="n">exp</span><span class="p">,</span>
-    <span class="s2">&quot;s&quot;</span><span class="p">:</span> <span class="n">cone_dims</span><span class="o">.</span><span class="n">psd</span><span class="p">,</span>
-<span class="p">}</span>
-<span class="n">soln</span> <span class="o">=</span> <span class="n">scs</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">cones</span><span class="p">)</span>
-</code></pre></div>
-</div>
-<p>The structure of the data dict that CVXPY returns depends on the solver. For
-details, print the dictionary, or consult the solver interfaces in
-<code class="docutils literal notranslate"><span class="pre">cvxpy/reductions/solvers</span></code>.</p>
-<h2 id="canonicalization-backends"><span id="id4"></span>Canonicalization backends<a class="headerlink" href="#canonicalization-backends" title="Link to this heading">¶</a></h2>
-<p>Users can select from multiple canonicalization backends by adding the <code class="docutils literal notranslate"><span class="pre">canon_backend</span></code>
-keyword argument to the <code class="docutils literal notranslate"><span class="pre">.solve()</span></code> call, e.g. <code class="docutils literal notranslate"><span class="pre">problem.solve(canon_backend=cp.SCIPY_CANON_BACKEND)</span></code>
-(Introduced in CVXPY 1.3).
-This can speed up the canonicalization time significantly for some problems.
-Currently, the following canonicalization backends are supported:</p>
-<ul>
-<li><p>CPP (default): The original C++ implementation, also referred to as CVXCORE.</p></li>
-<li><div class="line-block">
-<div class="line">SCIPY: A pure Python implementation based on the SciPy sparse module.</div>
-<div class="line">Generally fast for problems that are already vectorized.</div>
-</div>
-</li>
-<li><div class="line-block">
-<div class="line">COO: A pure Python implementation using 3D COO sparse tensors with O(nnz) operations.</div>
-<div class="line">Necessary for DPP-compliant problems with large parameters.</div>
-</div>
-</li>
+<p>The available backends are:</p>
+<ul class="simple">
+<li><p><strong>CPP</strong> (default): The original C++ implementation. Works well for most problems.</p></li>
+<li><p><strong>SCIPY</strong>: A pure Python implementation using SciPy sparse matrices. Often faster for
+already-vectorized problems.</p></li>
+<li><p><strong>COO</strong>: A pure Python implementation using 3D COO sparse tensors. Best for
+DPP-compliant problems with large parameters.</p></li>
 </ul>
+<h2 id="use-verbose-mode-to-diagnose-slow-problems"><span id="verbose-diagnostics"></span>Use verbose mode to diagnose slow problems<a class="headerlink" href="#use-verbose-mode-to-diagnose-slow-problems" title="Link to this heading">¶</a></h2>
+<p>Solving with <code class="docutils literal notranslate"><span class="pre">verbose=True</span></code> prints useful diagnostic information:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</code></pre></div>
+</div>
+<p>The output includes DCP verification time, expression tree node count, and a
+time breakdown for each compilation step. A large node count strongly suggests
+the problem needs vectorization.</p>
+<h2 id="summary-of-tips"><span id="performance-summary"></span>Summary of tips<a class="headerlink" href="#summary-of-tips" title="Link to this heading">¶</a></h2>
+<table class="docutils data align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Tip</p></th>
+<th class="head"><p>Impact</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Vectorize constraints and objectives</p></td>
+<td><p>Very high — can reduce compile time by orders
+of magnitude</p></td>
+</tr>
+<tr class="row-odd"><td><p>Use <code class="docutils literal notranslate"><span class="pre">cp.sum</span></code> instead of Python <code class="docutils literal notranslate"><span class="pre">sum</span></code></p></td>
+<td><p>High for large sums</p></td>
+</tr>
+<tr class="row-even"><td><p>Use parameters for repeated solves (DPP)</p></td>
+<td><p>High — amortizes compile cost across solves</p></td>
+</tr>
+<tr class="row-odd"><td><p>Choose the right canonicalization backend</p></td>
+<td><p>Moderate — problem-dependent</p></td>
+</tr>
+<tr class="row-even"><td><p>Use <code class="docutils literal notranslate"><span class="pre">verbose=True</span></code> to find bottlenecks</p></td>
+<td><p>Diagnostic — helps identify what to fix</p></td>
+</tr>
+</tbody>
+</table>
+<p>For a detailed benchmark, see the
+<a class="reference external" href="https://github.com/cvxpy/cvxpy/blob/1.0/examples/notebooks/building_models_with_fast_compile_times.ipynb">original notebook</a>
+that inspired this page.</p>
 
 
 
@@ -1467,7 +1481,6 @@ Currently, the following canonicalization backends are supported:</p>
         <script src="../../_static/sphinx_immaterial_theme.32136f45f91ae6956.min.js?v=a7a9472a"></script>
         <script src="../../_static/tabs.js?v=3ee01567"></script>
         <script src="../../_static/design-tabs.js?v=f930bc37"></script>
-        <script id="MathJax-script" src="../../_static/mathjax/tex-mml-chtml.js"></script>
         <script src="https://cdn.datatables.net/2.1.8/js/dataTables.js"></script>
     
   </body>

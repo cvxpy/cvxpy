@@ -742,7 +742,9 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">cvxpy.lin_ops.lin_op</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">lo</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">cvxpy.lin_ops.lin_utils</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">lu</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.atoms.affine.affine_atom</span><span class="w"> </span><span class="kn">import</span> <span class="n">AffAtom</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.atoms.affine.binary_operators</span><span class="w"> </span><span class="kn">import</span> <span class="n">MulExpression</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.atoms.affine.binary_operators</span><span class="w"> </span><span class="kn">import</span> <span class="n">MulExpression</span><span class="p">,</span> <span class="n">multiply</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.atoms.affine.real</span><span class="w"> </span><span class="kn">import</span> <span class="n">real</span> <span class="k">as</span> <span class="n">real_atom</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.atoms.affine.sum</span><span class="w"> </span><span class="kn">import</span> <span class="nb">sum</span> <span class="k">as</span> <span class="n">cvxpy_sum</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.constraints.constraint</span><span class="w"> </span><span class="kn">import</span> <span class="n">Constraint</span>
 
 
@@ -751,14 +753,27 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">trace</span><span class="p">(</span><span class="n">expr</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    TLDR: Use alternate formulation for trace(A@B) for more efficient computation.</span>
-<span class="sd">    trace(A@B) normally is O(n^3) because of the A@B operation. </span>
+<span class="sd">    trace(A@B) normally is O(n^3) because of the A@B operation.</span>
 <span class="sd">    However, trace(A@B) only requires diagonal entries of A@B, which can be</span>
-<span class="sd">    computed by taking the sum of element-wise product of A.T * B in O(n^2) time.</span>
-<span class="sd">    In fact, vdot does this operation more robustly, using conj(A) instead of transpose. </span>
+<span class="sd">    computed in O(n^2) time using the identity:</span>
+
+<span class="sd">        trace(A @ B) = sum_ij A_ij * B_ji = sum(A * B.T)</span>
+
+<span class="sd">    This avoids forming the full matrix product while remaining correct for</span>
+<span class="sd">    both real and complex matrices (no conjugation on A is needed).</span>
+
+<span class="sd">    When the MulExpression is Hermitian (e.g. X @ X^H for Hermitian X), the</span>
+<span class="sd">    result is provably real; it is wrapped with real() so that is_real()</span>
+<span class="sd">    correctly returns True without routing to the O(n^3) Trace(expr) path.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">MulExpression</span><span class="p">):</span> 
-        <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.atoms.affine.binary_operators</span><span class="w"> </span><span class="kn">import</span> <span class="n">vdot</span>
-        <span class="k">return</span> <span class="n">vdot</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">MulExpression</span><span class="p">):</span>
+        <span class="c1"># trace(A @ B) = sum(A * B.T), correct for real and complex matrices.</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">cvxpy_sum</span><span class="p">(</span><span class="n">multiply</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">expr</span><span class="o">.</span><span class="n">is_hermitian</span><span class="p">():</span>
+            <span class="c1"># trace of a Hermitian matrix is provably real.</span>
+            <span class="c1"># Wrap with real() so is_real() == True propagates upward.</span>
+            <span class="k">return</span> <span class="n">real_atom</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">Trace</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span></div>
 

@@ -881,6 +881,14 @@
                 <span class="s2">&quot;A CVXPY Variable cannot have more than one of the following attributes: &quot;</span>
                 <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">dim_reducing_attr</span><span class="si">}</span><span class="s2">&quot;</span>
             <span class="p">)</span>
+        <span class="n">sign_attrs</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;pos&#39;</span><span class="p">,</span> <span class="s1">&#39;neg&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="n">k</span><span class="p">]]</span>
+        <span class="n">sparse_attrs</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;sparsity&#39;</span><span class="p">,</span> <span class="s1">&#39;diag&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="n">k</span><span class="p">]]</span>
+        <span class="k">if</span> <span class="n">sign_attrs</span> <span class="ow">and</span> <span class="n">sparse_attrs</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Cannot combine </span><span class="si">{</span><span class="n">sign_attrs</span><span class="si">}</span><span class="s2"> with </span><span class="si">{</span><span class="n">sparse_attrs</span><span class="si">}</span><span class="s2">. &quot;</span>
+                <span class="s2">&quot;Sparsity and diag attributes force zeros, which contradicts &quot;</span>
+                <span class="s2">&quot;strict positivity/negativity.&quot;</span>
+            <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_valid_bounds</span><span class="p">(</span><span class="n">bounds</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
