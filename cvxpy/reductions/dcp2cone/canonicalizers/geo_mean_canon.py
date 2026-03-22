@@ -22,8 +22,10 @@ from cvxpy import settings
 from cvxpy.atoms.affine.vstack import vstack
 from cvxpy.constraints.power import PowConeND
 from cvxpy.expressions.variable import Variable
+from cvxpy.utilities.bounds import get_expr_bounds_if_supported
 from cvxpy.utilities.power_tools import gm_constrs
 from cvxpy.utilities.solver_context import SolverInfo
+from cvxpy.utilities.values import get_expr_value_if_supported
 
 
 def geo_mean_exact_canon(expr, args, solver_context: SolverInfo | None = None):
@@ -36,7 +38,11 @@ def geo_mean_exact_canon(expr, args, solver_context: SolverInfo | None = None):
         return x, []
 
     shape = expr.shape
-    t = Variable(shape)
+    bounds = get_expr_bounds_if_supported(expr, solver_context)
+    t = Variable(shape, bounds=bounds)
+    value = get_expr_value_if_supported(expr, solver_context)
+    if value is not None:
+        t.value = value
 
     if x.shape == ():
         x_list = [x]
@@ -58,7 +64,11 @@ def geo_mean_approx_canon(expr, args, solver_context: SolverInfo | None = None):
         return x, []
 
     shape = expr.shape
-    t = Variable(shape)
+    bounds = get_expr_bounds_if_supported(expr, solver_context)
+    t = Variable(shape, bounds=bounds)
+    value = get_expr_value_if_supported(expr, solver_context)
+    if value is not None:
+        t.value = value
 
     if x.shape == ():
         x_list = [x]

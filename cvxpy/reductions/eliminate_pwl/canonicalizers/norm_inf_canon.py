@@ -18,6 +18,7 @@ from cvxpy.atoms import promote, reshape
 from cvxpy.expressions.variable import Variable
 from cvxpy.utilities.bounds import get_expr_bounds_if_supported
 from cvxpy.utilities.solver_context import SolverInfo
+from cvxpy.utilities.values import get_expr_value_if_supported
 
 
 def norm_inf_canon(expr, args, solver_context: SolverInfo | None = None):
@@ -26,6 +27,9 @@ def norm_inf_canon(expr, args, solver_context: SolverInfo | None = None):
     shape = expr.shape
     bounds = get_expr_bounds_if_supported(expr, solver_context)
     t = Variable(shape, bounds=bounds)
+    value = get_expr_value_if_supported(expr, solver_context)
+    if value is not None:
+        t.value = value
 
     if axis is None:
         promoted_t = promote(t, x.shape)
@@ -33,10 +37,5 @@ def norm_inf_canon(expr, args, solver_context: SolverInfo | None = None):
         axes = {axis} if isinstance(axis, int) else set(axis)
         keepdims_shape = tuple(1 if i in axes else s for i, s in enumerate(x.shape))
         promoted_t = reshape(t, keepdims_shape, order='F')
-
-    # for DNLP we must initialize the new variable (DNLP guarantees that
-    # x.value will be set when this function is called)
-    if expr.value is not None:
-        t.value = expr.value
 
     return t, [x <= promoted_t, x + promoted_t >= 0]

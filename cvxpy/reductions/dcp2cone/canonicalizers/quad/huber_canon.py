@@ -35,9 +35,11 @@ def huber_canon(expr, args, solver_context: SolverInfo | None = None):
     # TODO(akshayka): Make use of recursion inherent to canonicalization
     # process and just return a power / abs expressions for readability sake
     power_expr = power(n, 2)
-    n2, constr_sq = power_canon(power_expr, power_expr.args)
+    n2, constr_sq = power_canon(power_expr, power_expr.args,
+                                solver_context=solver_context)
     abs_expr = abs(s)
-    abs_s, constr_abs = abs_canon(abs_expr, abs_expr.args)
+    abs_s, constr_abs = abs_canon(abs_expr, abs_expr.args,
+                                  solver_context=solver_context)
     obj = n2 + 2 * M * abs_s
 
     constraints = constr_sq + constr_abs

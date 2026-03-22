@@ -16,7 +16,7 @@ limitations under the License.
 from cvxpy.expressions.variable import Variable
 
 
-def atanh_canon(expr, args):
+def atanh_canon(expr, args, solver_context=None):
     t = Variable(args[0].shape, bounds=[-1, 1])
     if args[0].value is not None:
         t.value = args[0].value

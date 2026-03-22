@@ -40,7 +40,7 @@ def stack_vals(variables: list, default: float, order: str = "F") -> np.ndarray:
             value.append(np.ravel(variable.value, order))
         else:  # unknown values.
             value.append(np.full(variable.size, default))
-    return np.concatenate(value)
+    return np.concatenate(value, dtype=np.float64)
 
 
 def expcone_permutor(n_cones, exp_cone_order) -> np.ndarray:

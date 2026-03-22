@@ -87,4 +87,6 @@ class lambda_sum_largest(lambda_max):
             return None
         if not np.allclose(val, np.swapaxes(val, -2, -1).conj()):
             raise ValueError("Input matrix was not Hermitian/symmetric.")
+        if any([p.value is None for p in self.parameters()]):
+            return None
         return self._value_impl()

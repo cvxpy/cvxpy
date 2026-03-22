@@ -19,7 +19,7 @@ import numpy as np
 from cvxpy.expressions.constants.parameter import Parameter
 
 
-def parameter_canon(expr, args):
+def parameter_canon(expr, args, solver_context=None):
     del args
     # NB: we do _not_ reuse the original parameter's id. This is important,
     # because we want to distinguish between parameters in the DGP problem

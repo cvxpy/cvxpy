@@ -8,9 +8,11 @@ from cvxpy.reductions.dgp2dcp.canonicalizers.mulexpression_canon import (
 from cvxpy.reductions.dgp2dcp.canonicalizers.one_minus_pos_canon import (
     one_minus_pos_canon,
 )
+from cvxpy.utilities.bounds import get_expr_bounds_if_supported
+from cvxpy.utilities.values import get_expr_value_if_supported
 
 
-def eye_minus_inv_canon(expr, args):
+def eye_minus_inv_canon(expr, args, solver_context=None):
     X = args[0]
 
     # (I - X)^{-1} \leq T iff there exists 0 <= Y <= T s.t.  YX + I <= Y
@@ -25,7 +27,11 @@ def eye_minus_inv_canon(expr, args):
     #     lhs_canon >= 0.
     #
     # Here, U = \log Y.
-    U = Variable(X.shape)
+    bounds = get_expr_bounds_if_supported(expr, solver_context)
+    U = Variable(X.shape, bounds=bounds)
+    value = get_expr_value_if_supported(expr, solver_context)
+    if value is not None:
+        U.value = value
 
     # Canonicalization of diag(diff_pos(Y - YX))
     #
