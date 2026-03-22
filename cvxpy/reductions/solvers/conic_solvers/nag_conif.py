@@ -94,7 +94,7 @@ class NAG(ConicSolver):
             c, d, A, b = problem.apply_parameters()
         else:
             P, c, d, A, b = problem.apply_parameters(quad_obj=True)
-            data[s.P] = P 
+            data[s.P] = P
 
         A = -A
         data[s.C] = c.ravel()
@@ -256,7 +256,7 @@ class NAG(ConicSolver):
 
         
         # use_quad_obj is only for canonicalization
-        if "use_quad_obj" in solver_opts: 
+        if "use_quad_obj" in solver_opts:
             del solver_opts["use_quad_obj"]
         # Set the optional parameters
         kwargs = sorted(solver_opts.keys())

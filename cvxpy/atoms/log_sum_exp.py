@@ -28,7 +28,8 @@ class log_sum_exp(AxisAtom):
 
     """
 
-    def __init__(self, x, axis=None, keepdims: bool = False) -> None:
+    def __init__(self, x, axis: None | int | tuple[int, ...] = None,
+                 keepdims: bool = False) -> None:
         super(log_sum_exp, self).__init__(x, axis=axis, keepdims=keepdims)
 
     @Atom.numpy_numeric

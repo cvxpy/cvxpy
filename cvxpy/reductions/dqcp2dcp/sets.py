@@ -37,7 +37,7 @@ def dist_ratio_sub(expr, t):
         if t.value > 1:
             return False
         tsq = t.value**2
-        return ((1-tsq**2)*atoms.sum_squares(x) -
+        return ((1-tsq)*atoms.sum_squares(x) -
                 atoms.matmul(2*(a-tsq*b), x) + atoms.sum_squares(a) -
                 tsq*atoms.sum_squares(b)) <= 0
     return [sublevel_set]

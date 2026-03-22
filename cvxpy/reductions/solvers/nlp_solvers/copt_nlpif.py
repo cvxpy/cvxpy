@@ -251,7 +251,7 @@ class COPT(NLPsolver):
         for key, value in solver_opts.items():
             model.setParam(key, value)
 
-        # Solve problem 
+        # Solve problem
         model.solve()
 
         # Get solution
