@@ -38,7 +38,7 @@ class max(AxisAtom):
     """
 
     def __init__(self, x, axis: None | int | tuple[int, ...] = None,
-                 keepdims: bool = False) -> None:
+                 keepdims: bool = False, out=None, **kwargs) -> None:
         if isinstance(axis, cvxtypes.expression()):
             raise ValueError(max.__EXPR_AXIS_ERROR__)
         super(max, self).__init__(x, axis=axis, keepdims=keepdims)

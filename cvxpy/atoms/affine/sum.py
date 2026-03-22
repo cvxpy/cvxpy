@@ -152,7 +152,8 @@ class Sum(AxisAtom, AffAtom):
 
 
 @wraps(Sum)
-def sum(expr, axis: None | int | tuple[int, ...] = None, keepdims: bool = False):
+def sum(expr, axis: None | int | tuple[int, ...] = None, keepdims: bool = False,
+        dtype=None, out=None, **kwargs):
     """
     Wrapper for Sum class.
     """

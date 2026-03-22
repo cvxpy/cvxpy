@@ -41,7 +41,7 @@ class Prod(AxisAtom):
     """
 
     def __init__(self, expr, axis: None | int | tuple[int, ...] = None,
-                 keepdims: bool = False) -> None:
+                 keepdims: bool = False, dtype=None, out=None, **kwargs) -> None:
         super(Prod, self).__init__(expr, axis=axis, keepdims=keepdims)
 
     def sign_from_args(self) -> Tuple[bool, bool]:
@@ -139,7 +139,7 @@ class Prod(AxisAtom):
         return self._axis_grad(values)
 
 
-def prod(expr, axis=None, keepdims: bool = False) -> Prod:
+def prod(expr, axis=None, keepdims: bool = False, dtype=None, out=None, **kwargs) -> Prod:
     """Multiply the entries of an expression.
 
     The semantics of this atom are the same as np.prod.

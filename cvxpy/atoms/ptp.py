@@ -20,7 +20,7 @@ from cvxpy.atoms.max import max as cvxpy_max
 from cvxpy.atoms.min import min as cvxpy_min
 
 
-def ptp(x, axis=None, keepdims=False):
+def ptp(x, axis=None, keepdims=False, out=None, **kwargs):
     """
     Range of values (maximum - minimum) along an axis.
 
