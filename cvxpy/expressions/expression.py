@@ -662,13 +662,53 @@ class Expression(u.Canonical):
         Expression
             The expression raised to ``power``.
         """
+        # Imported here to avoid circular imports at module load time
+        from cvxpy.atoms.affine.binary_operators import multiply
+        from cvxpy.atoms.elementwise.exp import exp
+        from cvxpy.atoms.elementwise.log import log
+        power_expr = Expression.cast_to_const(power)
+        if self.is_constant() and not power_expr.is_constant():
+            if not self.is_pos():
+                raise ValueError(
+                    "The base of b**x must be positive when the exponent "
+                    "is a variable, since we use b**x = exp(x * log(b))."
+                )
+            return exp(multiply(power_expr, log(self)))
         return cvxtypes.power()(self, power)
 
     def __rpow__(self, base: float) -> "Expression":
-        raise NotImplementedError("CVXPY currently does not support variables "
-                                  "on the right side of **. Consider using the"
-                                  " identity that a**x = cp.exp(cp.multiply(np"
-                                  ".log(a), x)).")
+        """Raise base to the power of this expression (base ** self).
+
+        Uses the identity: a**x = exp(x * log(a))
+
+        Parameters
+        ----------
+        base : float
+            A positive constant base.
+
+        Returns
+        -------
+        Expression
+            exp(self * log(base))
+        """                                            
+   
+        # Imported here to avoid circular imports at module load time
+        from cvxpy.atoms.elementwise.exp import exp
+        base = cvxtypes.expression().cast_to_const(base)
+        if not base.is_constant():
+            raise ValueError(
+                "The base of ** must be a constant when the exponent "
+                "is a variable."
+            )
+        if not base.is_pos():
+            raise ValueError(
+                "The base of ** must be positive since we use the "
+                "identity a**x = exp(x * log(a))."
+            )
+        # Imported here to avoid circular imports at module load time
+        from cvxpy.atoms.affine.binary_operators import multiply
+        from cvxpy.atoms.elementwise.log import log
+        return exp(multiply(self, log(base)))
 
     @staticmethod
     def cast(expr_like) -> "Expression":

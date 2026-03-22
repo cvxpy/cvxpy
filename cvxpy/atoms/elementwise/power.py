@@ -35,9 +35,10 @@ def power(x, p, max_denom: int = 1024, approx: bool = True):
     Parameters
     ----------
     x : Expression
-        The base expression.
-    p : int, float, Fraction, or Parameter
-        The exponent.
+        The base expression, OR a positive constant if p is a variable.
+    p : int, float, Fraction, Parameter, or Expression
+        The exponent. If p is a non-constant Expression and x is a
+        positive constant, uses the identity b**x = exp(x * log(b)).
     max_denom : int
         Maximum denominator for rational approximation.
     approx : bool
@@ -46,8 +47,30 @@ def power(x, p, max_denom: int = 1024, approx: bool = True):
 
     Returns
     -------
-    Power or PowerApprox
+    Power, PowerApprox, or exp expression
     """
+
+    from cvxpy.atoms.elementwise.exp import exp
+    from cvxpy.expressions.expression import Expression
+
+    # Cast both to CVXPY expressions for inspection
+    x_expr = Expression.cast_to_const(x)
+    p_expr = Expression.cast_to_const(p)
+
+    # Case: b**x where b is constant and x is variable
+    # e.g. cp.power(2, x) — dispatch to exp(x * log(b))
+    if x_expr.is_constant() and not p_expr.is_constant():
+        if not x_expr.is_pos():
+            raise ValueError(
+                "The base of cp.power(b, x) must be positive when the "
+                "exponent is a variable, since we use b**x = exp(x * log(b))."
+            )
+        # Imported here to avoid circular imports at module load time
+        from cvxpy.atoms.affine.binary_operators import multiply
+        from cvxpy.atoms.elementwise.log import log
+        return exp(multiply(p_expr, log(x_expr)))
+
+    # Default case: x**p where x is variable and p is constant
     if approx:
         return PowerApprox(x, p, max_denom)
     else:
