@@ -674,7 +674,7 @@ class TestBackends:
     def test_broadcast_to_cols(self, backend):
         """
         define x = Variable((2,1)) with
-        [[x1], 
+        [[x1],
          [x2]]
 
         x is represented as eye(2) in the A matrix, i.e.,
@@ -2392,7 +2392,7 @@ class TestND_Backends:
     def test_nd_broadcast_to(self, backend):
         """
         define x = Variable((2,1,2)) with
-        [[x11, x12], 
+        [[x11, x12],
          [x21, x22]]
 
         x is represented as eye(4) in the A matrix, i.e.,

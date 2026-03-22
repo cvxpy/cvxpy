@@ -195,13 +195,13 @@ def solve_nlp(problem, solver, warm_start, verbose, **kwargs):
     user_initials = {}
 
     # inside solve_via_data we cache the construction of oracles
-    solver_cache = {} 
+    solver_cache = {}
 
     for run in range(best_of):
         _set_random_nlp_initial_point(problem, run, user_initials)
         canon_problem, inverse_data = nlp_chain.apply(problem=problem)
         solution = nlp_chain.solver.solve_via_data(canon_problem, warm_start,
-                                                   verbose, solver_opts=kwargs, 
+                                                   verbose, solver_opts=kwargs,
                                                    solver_cache=solver_cache)
 
         # Unpack to get the objective value in the original problem space

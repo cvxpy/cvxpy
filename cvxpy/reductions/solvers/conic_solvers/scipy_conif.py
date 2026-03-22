@@ -287,8 +287,8 @@ class SCIPY(ConicSolver):
             if "nit" in solution: # Number of interior-point or simplex iterations
                 attr[s.NUM_ITERS] = solution['nit']
             if "mip_gap" in solution: # Branch and bound statistics
-                attr[s.EXTRA_STATS] = {"mip_gap": solution['mip_gap'], 
-                                       "mip_node_count": solution['mip_node_count'], 
+                attr[s.EXTRA_STATS] = {"mip_gap": solution['mip_gap'],
+                                       "mip_node_count": solution['mip_node_count'],
                                        "mip_dual_bound": solution['mip_dual_bound']}
 
             return Solution(status, opt_val, primal_vars, dual_vars, attr)

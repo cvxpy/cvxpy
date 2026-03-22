@@ -28,7 +28,7 @@ from cvxpy.atoms import (
     von_neumann_entr,
     vstack,
 )
-from cvxpy.atoms.affine.wraps import psd_wrap
+from cvxpy.atoms.affine.wraps import nsd_wrap, psd_wrap
 from cvxpy.constraints.exponential import OpRelEntrConeQuad
 from cvxpy.expressions.constants.constant import Constant
 from cvxpy.expressions.expression import Expression
@@ -137,7 +137,7 @@ def quantum_rel_entr_canon(expr: quantum_rel_entr,
     """
     no_imag = all(ia is None for ia in imag_args)
     if no_imag:
-        return expr.copy(real_args)
+        return expr.copy(real_args), None
     assert all(ra is not None for ra in real_args)
     expanded_X = expand_complex(real_args[0], imag_args[0])
     expanded_Y = expand_complex(real_args[1], imag_args[1])
@@ -171,7 +171,6 @@ def at_least_2D(expr: Expression):
     else:
         return expr
 
-
 def quad_canon(expr,
                real_args: List[Union[Expression, None]],
                imag_args: List[Union[Expression, None]], real2imag):
@@ -190,9 +189,15 @@ def quad_canon(expr,
             real_args[1] = np.zeros(imag_args[1].shape)
         elif imag_args[1] is None:
             imag_args[1] = np.zeros(real_args[1].shape)
+            
         matrix = bmat([[real_args[1], -imag_args[1]],
                        [imag_args[1], real_args[1]]])
-        matrix = psd_wrap(matrix)
+        
+        if expr.args[1].is_psd():
+            matrix = psd_wrap(matrix)
+        elif expr.args[1].is_nsd():
+            matrix = nsd_wrap(matrix)
+            
     return expr.copy([vec, matrix]), None
 
 

@@ -43,7 +43,12 @@ from cvxpy.reductions.solvers.defines import (
     SOLVER_MAP_QP,
 )
 from cvxpy.tests.base_test import BaseTest
-from cvxpy.tests.solver_test_helpers import SolverTestHelper, StandardTestLPs, StandardTestQPs
+from cvxpy.tests.solver_test_helpers import (
+    SolverTestHelper,
+    StandardTestInfeasibleProblems,
+    StandardTestLPs,
+    StandardTestQPs,
+)
 
 
 class QPTestBase(BaseTest):
@@ -859,6 +864,18 @@ class TestQp(QPTestBase):
                 prob = Problem(Minimize(norm(self.x, 1)), [self.x == 0])
                 prob.solve(solver=GUROBI, TimeLimit=0)
             self.assertEqual(str(cm.exception), "The solver %s is not installed." % GUROBI)
+
+    def test_osqp_infeasible_lp_ineq_constraints(self):
+        StandardTestInfeasibleProblems.test_lp_ineq_constraints(solver=cp.OSQP)
+
+    def test_osqp_infeasible_lp_eq_constraints(self):
+        StandardTestInfeasibleProblems.test_lp_eq_constraints(solver=cp.OSQP)
+
+    def test_highs_infeasible_lp_ineq_constraints(self):
+        StandardTestInfeasibleProblems.test_lp_ineq_constraints(solver=cp.HIGHS)
+
+    def test_highs_infeasible_lp_eq_constraints(self):
+        StandardTestInfeasibleProblems.test_lp_eq_constraints(solver=cp.HIGHS)
 
 
 class TestConicQuadObj(QPTestBase):
