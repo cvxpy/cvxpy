@@ -3400,6 +3400,7 @@ def test_offset_in_opt_val(solver):
     OFFSET causes it to return the wrong value.  A large constant in the
     objective makes the error obvious.
     """
+
     x = cp.Variable()
     t = cp.Variable()
     inner = cp.Problem(cp.Minimize(t + 1000), [t >= x])

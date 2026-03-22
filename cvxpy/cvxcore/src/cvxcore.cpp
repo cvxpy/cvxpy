@@ -34,7 +34,7 @@
  * the offset of this block within our larger matrix.
  */
 void add_matrix_to_vectors(const Matrix &block, std::vector<double> &V,
-                           std::vector<int> &I, std::vector<int> &J,
+                           std::vector<long long> &I, std::vector<long long> &J,
                            int vert_offset, int horiz_offset) {
   auto number_of_nonzeros = block.nonZeros();
   V.reserve(V.size() + number_of_nonzeros);
@@ -46,11 +46,12 @@ void add_matrix_to_vectors(const Matrix &block, std::vector<double> &V,
       V.push_back(it.value());
 
       /* Push back current row and column indices */
-      I.push_back(it.row() + vert_offset);
-      J.push_back(it.col() + horiz_offset);
+      I.push_back(static_cast<long long>(it.row()) + vert_offset);
+      J.push_back(static_cast<long long>(it.col()) + horiz_offset);
     }
   }
 }
+
 
 void process_constraint(const LinOp &lin, ProblemData &problemData,
                         int vert_offset, int var_length,
