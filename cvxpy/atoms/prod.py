@@ -40,7 +40,8 @@ class Prod(AxisAtom):
         Whether to drop dimensions after summing.
     """
 
-    def __init__(self, expr, axis=None, keepdims: bool = False) -> None:
+    def __init__(self, expr, axis: None | int | tuple[int, ...] = None,
+                 keepdims: bool = False) -> None:
         super(Prod, self).__init__(expr, axis=axis, keepdims=keepdims)
 
     def sign_from_args(self) -> Tuple[bool, bool]:

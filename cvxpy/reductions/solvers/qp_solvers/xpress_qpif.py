@@ -67,12 +67,15 @@ class XPRESS(QpSolver):
             ], order="F")
             for var in variables
         ]).tolist()
-        data["constraint_names"] = np.concatenate([
-            np.ravel([
-                f"{eq.constr_id}_eq_{i:09d}" for i in range(eq.size)
-            ], order="F")
-            for eq in problem.constraints
-        ]).tolist()
+        if problem.constraints:
+            data["constraint_names"] = np.concatenate([
+                np.ravel([
+                    f"{eq.constr_id}_eq_{i:09d}" for i in range(eq.size)
+                ], order="F")
+                for eq in problem.constraints
+            ]).tolist()
+        else:
+            data["constraint_names"] = []
         return data, inv_data
 
     def invert(self, results, inverse_data):

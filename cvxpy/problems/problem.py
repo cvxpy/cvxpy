@@ -1061,7 +1061,7 @@ class Problem(u.Canonical):
                     if bibtex:
                         print(_CITATION_STR)
                         print(CITATION_DICT["CVXPY"])
-                        print(CITATION_DICT["DQCP"])                             
+                        print(CITATION_DICT["DQCP"])
                 reductions = [dqcp2dcp.Dqcp2Dcp()]
                 start = time.time()
                 if type(self.objective) == Maximize:
@@ -1107,9 +1107,9 @@ class Problem(u.Canonical):
 
             # Cite problem grammar.
             if self.is_dcp():
-                print(CITATION_DICT["DCP"]) 
+                print(CITATION_DICT["DCP"])
             if gp:
-                print(CITATION_DICT["DGP"]) 
+                print(CITATION_DICT["DGP"])
 
             # Cite solver.
             print(solving_chain.reductions[-1].cite(data))
@@ -1387,9 +1387,12 @@ class Problem(u.Canonical):
         elif solution.status in s.INF_OR_UNB:
             for v in self.variables():
                 v.save_value(None)
-            for constr in self.constraints:
-                for dv in constr.dual_variables:
-                    dv.save_value(None)
+            for c in self.constraints:
+                if c.id in solution.dual_vars:
+                    c.save_dual_value(solution.dual_vars[c.id])
+                else:
+                    for dv in c.dual_variables:
+                        dv.save_value(None)
             self._value = solution.opt_val
         else:
             raise ValueError("Cannot unpack invalid solution: %s" % solution)

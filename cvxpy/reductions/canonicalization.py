@@ -76,9 +76,12 @@ class Canonicalization(Reduction):
     def invert(self, solution, inverse_data):
         pvars = {vid: solution.primal_vars[vid] for vid in inverse_data.id_map
                  if vid in solution.primal_vars}
-        dvars = {orig_id: solution.dual_vars[vid]
-                 for orig_id, vid in inverse_data.cons_id_map.items()
-                 if vid in solution.dual_vars}
+        if solution.dual_vars is not None:
+            dvars = {orig_id: solution.dual_vars[vid]
+                     for orig_id, vid in inverse_data.cons_id_map.items()
+                     if vid in solution.dual_vars}
+        else:
+            dvars = None
 
         return Solution(solution.status, solution.opt_val, pvars, dvars,
                         solution.attr)
@@ -88,7 +91,7 @@ class Canonicalization(Reduction):
         
         Args:
             expr: Expression to canonicalize.
-            canonicalize_params: Should constant subtrees 
+            canonicalize_params: Should constant subtrees
                 containing parameters be canonicalized?
         
         Returns:
@@ -100,7 +103,7 @@ class Canonicalization(Reduction):
               expr.args[0].objective.expr, canonicalize_params=canonicalize_params)
             for constr in expr.args[0].constraints:
                 canon_constr, aux_constr = self.canonicalize_tree(
-                    constr, 
+                    constr,
                     canonicalize_params=canonicalize_params
                 )
                 constrs += [canon_constr] + aux_constr
@@ -109,23 +112,23 @@ class Canonicalization(Reduction):
             constrs = []
             for arg in expr.args:
                 canon_arg, c = self.canonicalize_tree(
-                    arg, 
+                    arg,
                     canonicalize_params=canonicalize_params
                 )
                 canon_args += [canon_arg]
                 constrs += c
             canon_expr, c = self.canonicalize_expr(
-                expr, 
-                canon_args, 
+                expr,
+                canon_args,
                 canonicalize_params=canonicalize_params
             )
             constrs += c
         return canon_expr, constrs
 
     def canonicalize_expr(
-            self, 
-            expr: Expression, 
-            args: list, 
+            self,
+            expr: Expression,
+            args: list,
             canonicalize_params: bool = True
         ):
         """Canonicalize an expression, w.r.t. canonicalized arguments.
@@ -133,7 +136,7 @@ class Canonicalization(Reduction):
         Args:
             expr: Expression to canonicalize.
             args: Arguments to the expression.
-            canonicalize_params: Should constant subtrees 
+            canonicalize_params: Should constant subtrees
                 containing parameters be canonicalized?
         
         Returns:
@@ -143,7 +146,7 @@ class Canonicalization(Reduction):
             # Constant trees are collapsed, but parameter trees are preserved
             # when canonicalize_params = True. Otherwise parameters
             # are collapsed as well.
-            canon_with_params = canonicalize_params and expr.parameters() 
+            canon_with_params = canonicalize_params and expr.parameters()
             skip_canon = expr.is_constant() and not canon_with_params
         else:
             skip_canon = False

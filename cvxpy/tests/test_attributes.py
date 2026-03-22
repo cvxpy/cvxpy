@@ -136,7 +136,7 @@ class TestAttributes:
         assert np.allclose(X_value_sparse.toarray(), z)
 
     def test_infeasible_sparse(self):
-        # Create a sparse variable 
+        # Create a sparse variable
         x = cp.Variable(100, sparsity=(np.array([1, 15, 45, 67, 89]),))
         objective = cp.Minimize(cp.sum_squares(x))
 
@@ -250,6 +250,15 @@ class TestAttributes:
         x.value = val
         np.testing.assert_array_equal(x.value, val.astype(float), strict=True)
 
+    def test_cvx_attr2constr_invert_none_duals(self):
+        """CvxAttr2Constr.invert should not crash when dual_vars is None."""
+        x = cp.Variable(2, nonneg=True, integer=True)
+        prob = cp.Problem(cp.Minimize(cp.sum(x)), [x >= 1])
+        prob.solve(solver=cp.HIGHS)
+        assert prob.status == cp.OPTIMAL
+        np.testing.assert_allclose(x.value, [1, 1], atol=1e-5)
+
+
 class TestMultipleAttributes:
 
     def test_multiple_attributes(self) -> None:
@@ -305,7 +314,7 @@ class TestMultipleAttributes:
     
     def test_sparse_symmetric_variable(self) -> None:
         with pytest.raises(
-            ValueError, 
+            ValueError,
             match="A CVXPY Variable cannot have more than one of the following attributes"
         ):
             cp.Variable(shape=(2, 2), symmetric=True, sparsity=[(0, 1), (0, 1)])
@@ -364,7 +373,7 @@ class TestMultipleAttributes:
         # with pytest.raises(ValueError, match="Parameter value must be nonnegative."):
         #     p.value = -np.ones((2, 2))
         
-        # with pytest.raises(ValueError, 
+        # with pytest.raises(ValueError,
         #  match="Parameter value must be less than or equal to upper bound."):
         #     p.value = np.ones((2, 2)) * 15
     
@@ -391,7 +400,7 @@ class TestMultipleAttributes:
             
         # # Value out of sparsity pattern
         # p_value = np.ones((2, 2))
-        # with pytest.raises(ValueError, 
+        # with pytest.raises(ValueError,
         #  match="Parameter value must be zero outside of sparsity pattern."):
         #     p.value = p_value
     
@@ -411,8 +420,8 @@ class TestMultipleAttributes:
         
         # Set up and solve problem
         prob = cp.Problem(
-            cp.Minimize(cp.norm(x, 'fro')), 
-            [x[0, 0] == target[0, 0], 
+            cp.Minimize(cp.norm(x, 'fro')),
+            [x[0, 0] == target[0, 0],
             x[1, 1] == target[1, 1]]
         )
         prob.solve(solver=cp.CLARABEL)

@@ -17,20 +17,18 @@ limitations under the License.
 from typing import Tuple
 
 import numpy as np
-import scipy.sparse as sp
 
-import cvxpy.interface as intf
-from cvxpy.atoms.atom import Atom
+from cvxpy.atoms.axis_atom import AxisAtom
 
 
-class sum_largest(Atom):
+class sum_largest(AxisAtom):
     """
-    Sum of the largest k values in the expression X
+    Sum of the largest k values in the expression X, optionally along an axis.
     """
 
-    def __init__(self, x, k) -> None:
+    def __init__(self, x, k, axis=None, keepdims: bool = False) -> None:
         self.k = k
-        super(sum_largest, self).__init__(x)
+        super(sum_largest, self).__init__(x, axis=axis, keepdims=keepdims)
 
     def validate_arguments(self) -> None:
         """Verify that k is a positive number.
@@ -41,28 +39,57 @@ class sum_largest(Atom):
 
     def numeric(self, values):
         """
-        Returns the sum of the k largest entries of the matrix.
+        Returns the sum of the k largest entries, optionally along an axis.
         For non-integer k, uses linear interpolation.
         """
-        value = values[0].flatten()
-        n = len(value)
+        x = values[0]
         k_floor = int(np.floor(self.k))
         k_frac = self.k - k_floor
 
-        if k_floor > 0:
-            # Get k_floor largest values
-            indices = np.argpartition(-value, kth=min(k_floor, n) - 1)[:k_floor]
-            result = value[indices].sum()
-        else:
+        if self.axis is None:
+            value = x.flatten()
+            n = len(value)
             result = 0.0
 
-        # Add fractional part if needed
+            if k_floor > 0:
+                indices = np.argpartition(-value, kth=min(k_floor, n) - 1)[:k_floor]
+                result = value[indices].sum()
+
+            if k_frac > 0 and k_floor < n:
+                indices_next = np.argpartition(-value, kth=k_floor)[:k_floor + 1]
+                next_value = value[indices_next].min()
+                result += k_frac * next_value
+
+            return result
+
+        # For axis reduction, normalize axis and move reduction axes to end
+        if isinstance(self.axis, int):
+            axes = (self.axis,)
+        else:
+            axes = tuple(self.axis)
+
+        keep = [i for i in range(x.ndim) if i not in axes]
+        perm = keep + list(axes)
+        x_t = np.transpose(x, perm)
+        out_shape = x_t.shape[:len(keep)]
+        x_flat = x_t.reshape(out_shape + (-1,))
+
+        n = x_flat.shape[-1]
+        result = np.zeros(out_shape)
+
+        if k_floor > 0:
+            kth = min(k_floor, n) - 1
+            neg_part = np.partition(-x_flat, kth=kth, axis=-1)
+            result = -neg_part[..., :k_floor].sum(axis=-1)
+
         if k_frac > 0 and k_floor < n:
-            # Get the (k_floor + 1)-th largest value
-            indices_next = np.argpartition(-value, kth=k_floor)[:k_floor + 1]
-            # min of largest k_floor+1 is the (k_floor+1)-th largest
-            next_value = value[indices_next].min()
-            result += k_frac * next_value
+            neg_part2 = np.partition(-x_flat, kth=k_floor, axis=-1)
+            next_val = -neg_part2[..., k_floor]
+            result = result + k_frac * next_val
+
+        if self.keepdims:
+            for a in sorted(axes):
+                result = np.expand_dims(result, a)
 
         return result
 
@@ -77,31 +104,36 @@ class sum_largest(Atom):
         Returns:
             A list of SciPy CSC sparse matrices or None.
         """
-        # Grad: 1 for each of k_floor largest indices, k_frac for the next one
-        value = intf.from_2D_to_1D(values[0].flatten().T)
+        return self._axis_grad(values)
+
+    def _column_grad(self, value):
+        """Gives the (sub/super)gradient of the atom w.r.t. a column argument.
+
+        Matrix expressions are vectorized, so the gradient is a matrix.
+
+        Args:
+            value: A numeric value for a column.
+
+        Returns:
+            A NumPy ndarray or None.
+        """
+        value = np.array(value).ravel(order='F')
         n = len(value)
         k_floor = int(np.floor(self.k))
         k_frac = self.k - k_floor
 
-        D = np.zeros((self.args[0].shape[0]*self.args[0].shape[1], 1))
+        D = np.zeros((n, 1))
 
         if k_floor > 0:
             indices = np.argpartition(-value, kth=min(k_floor, n) - 1)[:k_floor]
             D[indices] = 1
 
         if k_frac > 0 and k_floor < n:
-            # Find the (k_floor + 1)-th largest element
             indices_next = np.argpartition(-value, kth=k_floor)[:k_floor + 1]
-            # The minimum of these is the (k_floor + 1)-th largest
             next_idx = indices_next[np.argmin(value[indices_next])]
             D[next_idx] = k_frac
 
-        return [sp.csc_array(D)]
-
-    def shape_from_args(self) -> Tuple[int, ...]:
-        """Returns the (row, col) shape of the expression.
-        """
-        return tuple()
+        return D
 
     def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
@@ -135,6 +167,6 @@ class sum_largest(Atom):
         return all(arg.is_pwl() for arg in self.args)
 
     def get_data(self):
-        """Returns the parameter k.
+        """Returns the parameter k, axis, and keepdims.
         """
-        return [self.k]
+        return [self.k, self.axis, self.keepdims]

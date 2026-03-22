@@ -56,9 +56,9 @@ def dims_to_solver_cones(cone_dims):
 
     for pow in cone_dims.pnd:
         # TODO: On the right hand side, we may want to
-        # extend to support higher dim values for z 
+        # extend to support higher dim values for z
         # instead of hardcoding 1.
-        cones.append(clarabel.GenPowerConeT(pow, 1)) 
+        cones.append(clarabel.GenPowerConeT(pow, 1))
     return cones
 
 
@@ -188,15 +188,9 @@ class CLARABEL(ConicSolver):
         return True
 
     @staticmethod
-    def psd_format_mat(constr):
-        """Return a linear operator to multiply by PSD constraint coefficients.
-
-        Special cases PSD constraints, as Clarabel expects constraints to be
-        imposed on the upper triangular part of the variable matrix with
-        symmetric scaling (i.e. off-diagonal sqrt(2) scalinig) applied.
-
-        """
-        rows = cols = constr.expr.shape[0]
+    def _psd_format_mat_single(n):
+        """Return a format matrix for a single n x n PSD constraint."""
+        rows = cols = n
         entries = rows * (cols + 1)//2
 
         row_arr = np.arange(0, entries)
@@ -225,6 +219,33 @@ class CLARABEL(ConicSolver):
         return scaled_upper_tri @ symm_matrix
 
     @staticmethod
+    def psd_format_mat(constr):
+        """Return a linear operator to multiply by PSD constraint coefficients.
+
+        Special cases PSD constraints, as Clarabel expects constraints to be
+        imposed on the upper triangular part of the variable matrix with
+        symmetric scaling (i.e. off-diagonal sqrt(2) scaling) applied.
+        """
+        n = constr.args[0].shape[-1]
+        single_block = CLARABEL._psd_format_mat_single(n)
+        num = constr.num_cones()
+        if num == 1:
+            return single_block
+        # For batched PSD, the constraint data is F-order flattened from
+        # (*batch, n, n), which interleaves batch elements. We need a
+        # permutation to de-interleave before applying per-block formatting.
+        block_format = sp.block_diag([single_block] * num, format='csc')
+        nn = n * n
+        perm = np.empty(num * nn, dtype=int)
+        for b in range(num):
+            for k in range(nn):
+                perm[b + num * k] = b * nn + k
+        perm_mat = sp.csc_array(
+            (np.ones(num * nn), (perm, np.arange(num * nn))),
+            shape=(num * nn, num * nn))
+        return block_format @ perm_mat
+
+    @staticmethod
     def extract_dual_value(result_vec, offset, constraint):
         """Extracts the dual value for constraint starting at offset.
         """
@@ -232,12 +253,16 @@ class CLARABEL(ConicSolver):
         # special case: PSD constraints treated internally in
         # svec (scaled triangular) form
         if isinstance(constraint, PSD):
-            dim = constraint.shape[0]
+            dim = constraint._cone_size()
             upper_tri_dim = dim * (dim + 1) >> 1
-            new_offset = offset + upper_tri_dim
-            upper_tri = result_vec[offset:new_offset]
-            full = triu_to_full(upper_tri, dim)
-            return full, new_offset
+            num = constraint.num_cones()
+            blocks = []
+            for _ in range(num):
+                new_offset = offset + upper_tri_dim
+                upper_tri = result_vec[offset:new_offset]
+                blocks.append(triu_to_full(upper_tri, dim))
+                offset = new_offset
+            return np.concatenate(blocks), offset
 
         else:
             return utilities.extract_dual_value(result_vec, offset, constraint)
@@ -260,28 +285,31 @@ class CLARABEL(ConicSolver):
         # more detailed statistics here when available
         # attr[s.EXTRA_STATS] = solution.extra.FOO
 
+        if solution.z is not None:
+            zero_idx = inverse_data[ConicSolver.DIMS].zero
+            eq_dual_vars = utilities.get_dual_values(
+                solution.z[:zero_idx],
+                self.extract_dual_value,
+                inverse_data[self.EQ_CONSTR]
+            )
+            ineq_dual_vars = utilities.get_dual_values(
+                solution.z[zero_idx:],
+                self.extract_dual_value,
+                inverse_data[self.NEQ_CONSTR]
+            )
+            dual_vars = eq_dual_vars | ineq_dual_vars
+        else:
+            dual_vars = {}
+
         if status in s.SOLUTION_PRESENT:
             primal_val = solution.obj_val
             opt_val = primal_val + inverse_data[s.OFFSET]
             primal_vars = {
                 inverse_data[self.VAR_ID]: solution.x
             }
-            eq_dual_vars = utilities.get_dual_values(
-                solution.z[:inverse_data[ConicSolver.DIMS].zero],
-                self.extract_dual_value,
-                inverse_data[self.EQ_CONSTR]
-            )
-            ineq_dual_vars = utilities.get_dual_values(
-                solution.z[inverse_data[ConicSolver.DIMS].zero:],
-                self.extract_dual_value,
-                inverse_data[self.NEQ_CONSTR]
-            )
-            dual_vars = {}
-            dual_vars.update(eq_dual_vars)
-            dual_vars.update(ineq_dual_vars)
             return Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
-            return failure_solution(status, attr)
+            return failure_solution(status, attr, dual_vars)
 
     @staticmethod
     def parse_solver_opts(verbose, opts, settings=None):
@@ -370,9 +398,13 @@ class CLARABEL(ConicSolver):
                 # this overwrites all data in the solver but will not
                 # reallocate internal memory.  Could be faster if it
                 # were known which terms (or partial terms) have changed.
-                # Will error ail if dimensions are sparsity has changed
-                _solver.update(P=P, q=q, A=A, b=b, settings=newsettings)
-                return _solver
+                try:
+                    _solver.update(P=P, q=q, A=A, b=b, settings=newsettings)
+                    return _solver
+                except Exception:
+                    # If sparsity pattern or dimensions changed, update() fails.
+                    # Return None to trigger a full new_solver() re-initialization.
+                    return None
 
         # Try to get cached data
         solver = updated_solver()
