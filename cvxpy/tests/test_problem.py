@@ -2329,14 +2329,22 @@ class TestProblem(BaseTest):
 
     def test_dual_variable_recovery(self) -> None:
         """Regression test for GitHub issue #3200.
-        Auxiliary constraints in Dnlp2Smooth must be mapped in
-        cons_id_map so dual variables are recoverable after solving.
-        This fails on master because aux constraints were not mapped."""
-        x = cp.Variable(pos=True)
-        prob = cp.Problem(cp.Minimize(cp.abs(x)), [x >= 0.5])
+        Dual variables for attribute-generated constraints
+        (PSD, nonneg) must be recoverable after solving.
+        Tests that attr_constr_map correctly tracks these
+        constraints through CvxAttr2Constr."""
+        X = cp.Variable((2, 2), PSD=True)
+        prob = cp.Problem(
+            cp.Minimize(cp.trace(X)),
+            [cp.trace(X) >= 1]
+        )
         prob.solve(solver=cp.SCS)
         self.assertEqual(prob.status, "optimal")
-        self.assertIsNotNone(prob.constraints[0].dual_value,
-            "dual_value is None — aux constraints not mapped in cons_id_map")
-        self.assertGreater(abs(prob.constraints[0].dual_value), 1e-4,
-            "dual_value is zero — aux constraints not correctly recovered")
+        self.assertIsNotNone(
+            prob.constraints[0].dual_value,
+            "dual_value is None — constraint dual not recovered"
+        )
+        self.assertGreater(
+            abs(prob.constraints[0].dual_value), 1e-4,
+            "dual_value is zero — dual not correctly recovered"
+        )
