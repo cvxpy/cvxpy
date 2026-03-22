@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import Dict, List, Union
 
 import numpy as np
 import scipy
@@ -32,7 +31,7 @@ from cvxpy.utilities.citations import CITATION_DICT
 
 # Utility method for formatting a ConeDims instance into a dictionary
 # that can be supplied to cvxopt.
-def dims_to_solver_dict(cone_dims) -> Dict[str, Union[List[int], int]]:
+def dims_to_solver_dict(cone_dims) -> dict[str, list[int] | int]:
     cones = {
         "l": int(cone_dims.nonneg),
         "q": [int(v) for v in cone_dims.soc],
