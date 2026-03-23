@@ -24,7 +24,20 @@ from .elementwise import Elementwise
 
 
 class abs(Elementwise):
-    """ Elementwise absolute value """
+    """Elementwise absolute value.
+
+    Computes the elementwise absolute value of the input.
+
+    Mathematical definition:
+        .. math::
+
+            f(x) = |x|
+
+    Parameters
+    ----------
+    x : Expression
+        Input expression. Can be real or complex.
+    """
     _allow_complex = True
 
     def __init__(self, x) -> None:
