@@ -214,17 +214,17 @@ html_theme_options = {
     "icon": {
         "repo": "fontawesome/brands/github",
     },
-    "analytics": {
-        "provider": "google",
-        "property": "UA-50248335-1",
-    },
-
     # version_dropdown
     "version_dropdown": True,
     "version_info": [
         {
             "version": "https://www.cvxpy.org",
             "title": "latest",
+            "aliases": [],
+        },
+        {
+            "version": "https://www.cvxpy.org/version/1.8",
+            "title": "1.8",
             "aliases": [],
         },
         {

@@ -16,7 +16,7 @@ limitations under the License.
 
 from cvxpy.atoms.quad_form import QuadForm
 from cvxpy.atoms.quad_over_lin import quad_over_lin
-from cvxpy.atoms.elementwise.power import power
+from cvxpy.atoms.elementwise.power import Power, PowerApprox
 from cvxpy.atoms.elementwise.huber import huber
 
 from cvxpy.reductions.dcp2cone.canonicalizers.quad.quad_form_canon import quad_form_canon
@@ -27,7 +27,8 @@ from cvxpy.reductions.dcp2cone.canonicalizers.quad.huber_canon import huber_cano
 # Canonicalizations that return a quadratic objective (SymbolicQuadForm).
 QUAD_CANON_METHODS = {
     quad_over_lin: quad_over_lin_canon,
-    power: power_canon,
+    Power: power_canon,
+    PowerApprox: power_canon,
     huber: huber_canon,
     QuadForm: quad_form_canon,
 }

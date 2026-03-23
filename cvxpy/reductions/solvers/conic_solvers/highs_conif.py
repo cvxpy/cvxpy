@@ -81,8 +81,8 @@ def set_column_names_from_variables(lp, variables):
     """
     column_names = []
     for variable in variables:
-        # variable_of_provenance() handles auto-generated vars (nonneg=True, etc.)
-        variable = variable.variable_of_provenance() or variable
+        # leaf_of_provenance() handles auto-generated vars (nonneg=True, etc.)
+        variable = variable.leaf_of_provenance() or variable
         collect_column_names(variable, column_names)
     lp.col_names_ = column_names
 
@@ -102,6 +102,7 @@ class HIGHS(ConicSolver):
 
     # Solver capabilities.
     MIP_CAPABLE = True
+    BOUNDED_VARIABLES = True
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS
     MI_SUPPORTED_CONSTRAINTS = SUPPORTED_CONSTRAINTS
 
@@ -193,7 +194,17 @@ class HIGHS(ConicSolver):
             )
             sol = Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
-            sol = failure_solution(status, attr)
+            if status == s.INFEASIBLE:
+                dual_ray = -np.array(results["dual_ray"][2])
+                dual_vars = utilities.get_dual_values(
+                    dual_ray,
+                    utilities.extract_dual_value,
+                    inverse_data[HIGHS.EQ_CONSTR] + inverse_data[HIGHS.NEQ_CONSTR])
+            else:
+                # E.g., could be UNBOUNDED. TODO: Later we might propagate the primal ray for
+                # unbounded problems.
+                dual_vars = {}
+            sol = failure_solution(status, attr, dual_vars)
         return sol
 
     def solve_via_data(
@@ -266,8 +277,10 @@ class HIGHS(ConicSolver):
         lp.a_matrix_.value_ = A.data
 
         # Define Variable bounds
-        col_lower = -inf * np.ones(shape=lp.num_col_, dtype=c.dtype)
-        col_upper = inf * np.ones(shape=lp.num_col_, dtype=c.dtype)
+        lb = data[s.LOWER_BOUNDS]
+        ub = data[s.UPPER_BOUNDS]
+        col_lower = np.full(lp.num_col_, -inf, dtype=c.dtype) if lb is None else lb.copy()
+        col_upper = np.full(lp.num_col_, inf, dtype=c.dtype) if ub is None else ub.copy()
         # update col_lower and col_upper to account for boolean variables,
         # also set integrality_ for boolean or integers variables
         if data[s.BOOL_IDX] or data[s.INT_IDX]:
@@ -277,8 +290,8 @@ class HIGHS(ConicSolver):
                 for ind in data[s.BOOL_IDX]:
                     integrality[ind] = hp.HighsVarType.kInteger
                 bool_mask = np.array(data[s.BOOL_IDX], dtype=int)
-                col_lower[bool_mask] = 0
-                col_upper[bool_mask] = 1
+                col_lower[bool_mask] = np.maximum(col_lower[bool_mask], 0)
+                col_upper[bool_mask] = np.minimum(col_upper[bool_mask], 1)
             for ind in data[s.INT_IDX]:
                 integrality[ind] = hp.HighsVarType.kInteger
             lp.integrality_ = integrality
@@ -326,6 +339,8 @@ class HIGHS(ConicSolver):
                 "model_status": solver.getModelStatus().name,
                 "run_time": solver.getRunTime(),
             }
+            if results["model_status"] == "kInfeasible":
+                results["dual_ray"] = solver.getDualRay()
         except ValueError as e:
             raise SolverError(e)
 

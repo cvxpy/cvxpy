@@ -19,7 +19,7 @@ from cvxpy.atoms.elementwise.power import power
 from cvxpy.atoms.geo_mean import geo_mean
 
 
-def inv_prod(value):
+def inv_prod(value, approx=True):
     """The reciprocal of a product of the entries of a vector ``x``.
 
     Parameters
@@ -27,6 +27,9 @@ def inv_prod(value):
     x : Expression or numeric
         The expression whose reciprocal product is to be computed. Must have
         positive entries.
+    approx : bool
+        When True (default), uses SOC approximation. When False,
+        uses power cone (exact).
 
     Returns
     -------
@@ -36,4 +39,5 @@ def inv_prod(value):
 
         where :math:`n` is the length of :math:`x`.
     """
-    return power(geo_mean(value), -int(np.prod(value.shape)))
+    return power(geo_mean(value, approx=approx), -int(np.prod(value.shape)),
+                 approx=approx)

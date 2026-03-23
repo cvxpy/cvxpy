@@ -17,7 +17,7 @@ limitations under the License.
 from cvxpy.atoms.elementwise.abs import abs
 from cvxpy.atoms.elementwise.power import power
 from cvxpy.expressions.variable import Variable
-from cvxpy.reductions.dcp2cone.canonicalizers.power_canon import power_canon
+from cvxpy.reductions.dcp2cone.canonicalizers.power_canon import power_approx_canon
 from cvxpy.reductions.eliminate_pwl.canonicalizers.abs_canon import abs_canon
 from cvxpy.utilities.solver_context import SolverInfo
 
@@ -33,7 +33,7 @@ def huber_canon(expr, args, solver_context: SolverInfo | None = None):
     # TODO(akshayka): Make use of recursion inherent to canonicalization
     # process and just return a power / abs expressions for readability sake
     power_expr = power(n, 2)
-    n2, constr_sq = power_canon(power_expr, power_expr.args)
+    n2, constr_sq = power_approx_canon(power_expr, power_expr.args)
     abs_expr = abs(s)
     abs_s, constr_abs = abs_canon(abs_expr, abs_expr.args)
     obj = n2 + 2 * M * abs_s

@@ -26,6 +26,7 @@ from cvxpy.constraints import (
     NonNeg as NonNeg,
     Zero as Zero,
     PowCone3D as PowCone3D,
+    PowCone3DApprox as PowCone3DApprox,
     PowConeND as PowConeND,
     ExpCone as ExpCone,
     OpRelEntrConeQuad as OpRelEntrConeQuad,
@@ -40,6 +41,9 @@ from cvxpy.error import (
     disable_warnings as disable_warnings,
     enable_warnings as enable_warnings,
     warnings_enabled as warnings_enabled,
+)
+from cvxpy.utilities.warn import (
+    CvxpyDeprecationWarning as CvxpyDeprecationWarning,
 )
 from cvxpy.expressions.constants import (
     CallbackParam as CallbackParam,
@@ -59,11 +63,13 @@ from cvxpy.transforms import (
     partial_optimize as partial_optimize,
     suppfunc as suppfunc,
 )
+from cvxpy import logic as logic
 from cvxpy.reductions.solvers.defines import installed_solvers as installed_solvers
 from cvxpy.settings import (
     CBC as CBC,
     CLARABEL as CLARABEL,
     CUCLARABEL as CUCLARABEL,
+    PDCS as PDCS,
     COPT as COPT,
     COSMO as COSMO,
     CPLEX as CPLEX,
@@ -103,9 +109,11 @@ from cvxpy.settings import (
     SOLVER_ERROR as SOLVER_ERROR,
     UNBOUNDED as UNBOUNDED,
     UNBOUNDED_INACCURATE as UNBOUNDED_INACCURATE,
+    UNO as UNO,
     USER_LIMIT as USER_LIMIT,
     XPRESS as XPRESS,
     HIGHS as HIGHS,
+    IPOPT as IPOPT,
     KNITRO as KNITRO,
     get_num_threads as get_num_threads,
     set_num_threads as set_num_threads,

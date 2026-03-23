@@ -20,6 +20,7 @@ from functools import wraps
 from typing import List, Literal, Optional, Self, Tuple
 
 import numpy as np
+import scipy.sparse as sp
 
 import cvxpy as cp
 import cvxpy.settings as s
@@ -31,6 +32,7 @@ from cvxpy.constraints import PSD, Equality, Inequality
 from cvxpy.expressions import cvxtypes
 from cvxpy.utilities import scopes
 from cvxpy.utilities.shape import size_from_shape
+from cvxpy.utilities.warn import CvxpyDeprecationWarning, warn
 
 
 def _cast_other(binary_op):
@@ -325,6 +327,14 @@ class Expression(u.Canonical):
         """Is the expression affine?
         """
         return self.is_constant() or (self.is_convex() and self.is_concave())
+    
+    @perf.compute_once
+    def is_smooth(self) -> bool:
+        """Is the expression smooth?
+        """
+        return self.is_constant() or (
+            self.is_linearizable_convex() and self.is_linearizable_concave()
+        )
 
     @abc.abstractmethod
     def is_convex(self) -> bool:
@@ -335,6 +345,18 @@ class Expression(u.Canonical):
     @abc.abstractmethod
     def is_concave(self) -> bool:
         """Is the expression concave?
+        """
+        raise NotImplementedError()
+    
+    @abc.abstractmethod
+    def is_linearizable_convex(self) -> bool:
+        """Is the expression convex after linearizing all smooth subexpressions?
+        """
+        raise NotImplementedError()
+
+    @abc.abstractmethod
+    def is_linearizable_concave(self) -> bool:
+        """Is the expression concave after linearizing all smooth subexpressions?
         """
         raise NotImplementedError()
 
@@ -358,6 +380,12 @@ class Expression(u.Canonical):
                 return self.is_convex() or self.is_concave()
         return self.is_convex() or self.is_concave()
 
+    def is_dnlp(self) -> bool:
+        """
+        The expression is smooth representable.
+        """
+        return self.is_linearizable_convex() or self.is_linearizable_concave()
+    
     def is_log_log_constant(self) -> bool:
         """Is the expression log-log constant, ie, elementwise positive?
         """
@@ -516,6 +544,18 @@ class Expression(u.Canonical):
         """
         raise NotImplementedError()
 
+    @abc.abstractmethod
+    def get_bounds(self) -> tuple[np.ndarray | sp.sparray, np.ndarray | sp.sparray]:
+        """Returns bounds (lower, upper) of the expression.
+
+        Returns
+        -------
+        tuple of (np.ndarray | sp.sparray)
+            (lower_bound, upper_bound) arrays with shape matching self.shape.
+            For sparse variables with sparse bounds, may return sparse arrays.
+        """
+        raise NotImplementedError()
+
     @property
     @abc.abstractmethod
     def shape(self) -> Tuple[int, ...]:
@@ -561,7 +601,7 @@ class Expression(u.Canonical):
         """
         if order is None:
             flatten_order_warning = DEFAULT_ORDER_DEPRECATION_MSG.replace("FUNC_NAME", "flatten")
-            warnings.warn(flatten_order_warning, FutureWarning)
+            warn(flatten_order_warning, FutureWarning)
             order = 'F'
         assert order in ['F', 'C']
         return cvxtypes.vec()(self, order)
@@ -692,7 +732,12 @@ class Expression(u.Canonical):
     def __add__(self, other: ExpressionLike) -> "Expression":
         """Expression : Sum two expressions.
         """
-        if isinstance(other, cvxtypes.constant()) and other.is_zero():
+        # Zero-sized constants (size == 0) are placeholders for
+        # eliminated variables and must not be folded away; they need
+        # to propagate through the expression tree so that the resulting
+        # shape is correct.
+        if isinstance(other, cvxtypes.constant()) and other.is_zero() \
+                and other.size > 0:
             return self
         self, other = self.broadcast(self, other)
         return cvxtypes.add_expr()([self, other])
@@ -701,7 +746,9 @@ class Expression(u.Canonical):
     def __radd__(self, other: ExpressionLike) -> "Expression":
         """Expression : Sum two expressions.
         """
-        if isinstance(other, cvxtypes.constant()) and other.is_zero():
+        # See __add__ for why we require size > 0.
+        if isinstance(other, cvxtypes.constant()) and other.is_zero() \
+                and other.size > 0:
             return self
         return other + self
 
@@ -739,7 +786,7 @@ class Expression(u.Canonical):
             # don't check for that here.
             if not (self.is_constant() or other.is_constant()):
                 if error.warnings_enabled():
-                    warnings.warn("Forming a nonconvex expression.")
+                    warn("Forming a nonconvex expression.")
             # Because we want to discourage using ``*`` to call matmul, we
             # raise a warning to the user.
             with warnings.catch_warnings():
@@ -747,7 +794,7 @@ class Expression(u.Canonical):
                 warnings.simplefilter("always", UserWarning, append=True)
                 msg = __STAR_MATMUL_WARNING__ % __STAR_MATMUL_COUNT__
                 warnings.warn(msg, UserWarning)
-                warnings.warn(msg, DeprecationWarning)
+                warnings.warn(msg, CvxpyDeprecationWarning)
                 __STAR_MATMUL_COUNT__ += 1
             return cvxtypes.matmul_expr()(self, other)
 
@@ -839,6 +886,58 @@ class Expression(u.Canonical):
         """PSD : Creates a negative semidefinite inequality.
         """
         return PSD(self - other)
+
+    # Boolean logic operators.
+    def __invert__(self) -> "Expression":
+        """Expression : Logical NOT (~x).
+
+        Equivalent to ``cp.logic.Not(x)``.
+        Requires ``x`` to be a boolean variable or logic expression.
+        """
+        from cvxpy.atoms.elementwise.logic import Not
+        return Not(self)
+
+    def __and__(self, other) -> "Expression":
+        """Expression : Logical AND (x & y).
+
+        Equivalent to ``cp.logic.And(x, y)``.
+        Both operands must be boolean variables or logic expressions.
+        """
+        from cvxpy.atoms.elementwise.logic import And
+        return And(self, other)
+
+    def __rand__(self, other) -> "Expression":
+        """Expression : Logical AND with reversed operands (y & x)."""
+        from cvxpy.atoms.elementwise.logic import And
+        return And(other, self)
+
+    def __or__(self, other) -> "Expression":
+        """Expression : Logical OR (x | y).
+
+        Equivalent to ``cp.logic.Or(x, y)``.
+        Both operands must be boolean variables or logic expressions.
+        """
+        from cvxpy.atoms.elementwise.logic import Or
+        return Or(self, other)
+
+    def __ror__(self, other) -> "Expression":
+        """Expression : Logical OR with reversed operands (y | x)."""
+        from cvxpy.atoms.elementwise.logic import Or
+        return Or(other, self)
+
+    def __xor__(self, other) -> "Expression":
+        """Expression : Logical XOR (x ^ y).
+
+        Equivalent to ``cp.logic.Xor(x, y)``.
+        Both operands must be boolean variables or logic expressions.
+        """
+        from cvxpy.atoms.elementwise.logic import Xor
+        return Xor(self, other)
+
+    def __rxor__(self, other) -> "Expression":
+        """Expression : Logical XOR with reversed operands (y ^ x)."""
+        from cvxpy.atoms.elementwise.logic import Xor
+        return Xor(other, self)
 
     # Needed for Python3:
     def __hash__(self) -> int:
@@ -952,7 +1051,7 @@ class Expression(u.Canonical):
         """
         if order is None:
             reshape_order_warning = DEFAULT_ORDER_DEPRECATION_MSG.replace("FUNC_NAME", "reshape")
-            warnings.warn(reshape_order_warning, FutureWarning)
+            warn(reshape_order_warning, FutureWarning)
             order = 'F'
         from cvxpy import reshape
         return reshape(self, shape, order)

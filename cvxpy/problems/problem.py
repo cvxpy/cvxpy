@@ -16,10 +16,12 @@ limitations under the License.
 from __future__ import annotations
 
 import time
-import warnings
 from collections import namedtuple
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Dict, List, Optional, Union
+
+if TYPE_CHECKING:
+    from cvxpy.reductions.solvers.solver import Solver
 
 import numpy as np
 
@@ -43,20 +45,16 @@ from cvxpy.reductions.flip_objective import FlipObjective
 from cvxpy.reductions.solution import INF_OR_UNB_MESSAGE
 from cvxpy.reductions.solvers import bisection
 from cvxpy.reductions.solvers import defines as slv_def
-from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
-from cvxpy.reductions.solvers.defines import SOLVER_MAP_CONIC, SOLVER_MAP_QP
-from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
-from cvxpy.reductions.solvers.solver import Solver
 from cvxpy.reductions.solvers.solver_inverse_data import SolverInverseData
 from cvxpy.reductions.solvers.solving_chain import (
     SolvingChain,
-    construct_solving_chain,
+    resolve_and_build_chain,
 )
-from cvxpy.settings import SOLVERS
 from cvxpy.utilities import debug_tools
 from cvxpy.utilities.citations import CITATION_DICT
 from cvxpy.utilities.deterministic import unique_list
 from cvxpy.utilities.solver_context import SolverInfo
+from cvxpy.utilities.warn import warn
 
 SolveResult = namedtuple(
     'SolveResult',
@@ -165,14 +163,14 @@ class Problem(u.Canonical):
         self._objective = objective
         # Raise warning if objective has too many subexpressions.
         if debug_tools.node_count(self._objective) >= debug_tools.MAX_NODES:
-            warnings.warn("Objective contains too many subexpressions. "
-                          "Consider vectorizing your CVXPY code to speed up compilation.")
+            warn("Objective contains too many subexpressions. "
+                  "Consider vectorizing your CVXPY code to speed up compilation.")
         self._constraints = [_validate_constraint(c) for c in constraints]
         # Raise warning if constraint has too many subexpressions.
         for i, constraint in enumerate(self._constraints):
             if debug_tools.node_count(constraint) >= debug_tools.MAX_NODES:
-                warnings.warn(f"Constraint #{i} contains too many subexpressions. "
-                              "Consider vectorizing your CVXPY code to speed up compilation.")
+                warn(f"Constraint #{i} contains too many subexpressions. "
+                      "Consider vectorizing your CVXPY code to speed up compilation.")
 
         self._value = None
         self._status: Optional[str] = None
@@ -292,6 +290,13 @@ class Problem(u.Canonical):
         """
         return all(
           expr.is_dcp(dpp) for expr in self.constraints + [self.objective])
+    
+    @perf.compute_once
+    def is_dnlp(self) -> bool:
+        """
+        Does the problem satisfy disciplined nonlinear programming (DNLP) rules?
+        """
+        return all(expr.is_dnlp() for expr in self.constraints + [self.objective])
 
     @perf.compute_once
     def _max_ndim(self) -> int:
@@ -328,7 +333,8 @@ class Problem(u.Canonical):
             True if the Expression is DGP, False otherwise.
         """
         return all(
-          expr.is_dgp(dpp) for expr in self.constraints + [self.objective])
+            expr.is_dgp(dpp) for expr in self.constraints + [self.objective]
+        )
 
     @perf.compute_once
     def is_dqcp(self) -> bool:
@@ -362,11 +368,15 @@ class Problem(u.Canonical):
             Whether the problem satisfies the DPP rules.
         """
         if context.lower() == 'dcp':
-            return self.is_dcp(dpp=True)
+            expr_dpp = self.is_dcp(dpp=True)
         elif context.lower() == 'dgp':
-            return self.is_dgp(dpp=True)
+            expr_dpp = self.is_dgp(dpp=True)
         else:
             raise ValueError("Unsupported context ", context)
+        if not expr_dpp:
+            return False
+        # Check that all variable bounds are also DPP.
+        return all(v.is_dpp(context) for v in self.variables())
 
     @perf.compute_once
     def is_qp(self) -> bool:
@@ -669,7 +679,7 @@ class Problem(u.Canonical):
         ignore_dpp: bool = False,
         verbose: bool = False,
         canon_backend: str | None = None,
-        solver_opts: Optional[dict] = None
+        solver_opts: Optional[dict] = None,
     ):
         """Returns the problem data used in the call to the solver.
 
@@ -861,135 +871,9 @@ class Problem(u.Canonical):
         inverse_data[-1] = SolverInverseData(inverse_data[-1], solving_chain.solver, solver_opts)
         return data, solving_chain, inverse_data
 
-    def _find_candidate_solvers(self,
-                                solver=None,
-                                gp: bool = False):
-        """
-        Find candidate solvers for the current problem. If solver
-        is not None, it checks if the specified solver is compatible
-        with the problem passed.
-
-        Arguments
-        ---------
-        solver : Union[string, Solver, None]
-            The name of the solver with which to solve the problem or an
-            instance of a custom solver. If no solver is supplied
-            (i.e., if solver is None), then the targeted solver may be any
-            of those that are installed. If the problem is variable-free,
-            then this parameter is ignored.
-        gp : bool
-            If True, the problem is parsed as a Disciplined Geometric Program
-            instead of as a Disciplined Convex Program.
-
-        Returns
-        -------
-        dict
-            A dictionary of compatible solvers divided in `qp_solvers`
-            and `conic_solvers`.
-
-        Raises
-        ------
-        cvxpy.error.SolverError
-            Raised if the problem is not DCP and `gp` is False.
-        cvxpy.error.DGPError
-            Raised if the problem is not DGP and `gp` is True.
-        """
-        candidates = {'qp_solvers': [],
-                      'conic_solvers': []}
-        if isinstance(solver, Solver):
-            return self._add_custom_solver_candidates(solver)
-        # Convert solver to upper case.
-        if isinstance(solver, str):
-            solver = solver.upper()
-        if solver is not None:
-            if solver not in slv_def.INSTALLED_SOLVERS:
-                raise error.SolverError("The solver %s is not installed." % solver)
-            if solver in slv_def.CONIC_SOLVERS:
-                candidates['conic_solvers'] += [solver]
-            if solver in slv_def.QP_SOLVERS:
-                candidates['qp_solvers'] += [solver]
-        else:
-            candidates['qp_solvers'] = [s for s in slv_def.INSTALLED_SOLVERS
-                                        if s in slv_def.QP_SOLVERS]
-            candidates['conic_solvers'] = []
-            # ECOS_BB can only be called explicitly.
-            for slv in slv_def.INSTALLED_SOLVERS:
-                if slv in slv_def.CONIC_SOLVERS and slv != s.ECOS_BB:
-                    candidates['conic_solvers'].append(slv)
-
-        # If gp we must have only conic solvers
-        if gp:
-            if solver is not None and solver not in slv_def.CONIC_SOLVERS:
-                raise error.SolverError(
-                  "When `gp=True`, `solver` must be a conic solver "
-                  "(received '%s'); try calling " % solver +
-                  " `solve()` with `solver=cvxpy.ECOS`."
-                  )
-            elif solver is None:
-                candidates['qp_solvers'] = []  # No QP solvers allowed
-
-        if self.is_mixed_integer():
-            if solver is None and not self.is_lp():
-                # Problem is mixed integer but not LP (e.g., MIQP, MISOCP)
-                # HiGHS only supports MILP, so warn users about MINLP solvers
-                warnings.warn(
-                    "Your problem is mixed-integer but not an LP. "
-                    "If your problem is nonlinear, consider installing SCIP "
-                    "(pip install pyscipopt) to solve it.",
-                    UserWarning
-                )
-            candidates['qp_solvers'] = [
-                s for s in candidates['qp_solvers']
-                if slv_def.SOLVER_MAP_QP[s].MIP_CAPABLE]
-            candidates['conic_solvers'] = [
-                s for s in candidates['conic_solvers']
-                if slv_def.SOLVER_MAP_CONIC[s].MIP_CAPABLE]
-            if not candidates['conic_solvers'] and \
-                    not candidates['qp_solvers']:
-                raise error.SolverError(
-                    "Problem is mixed-integer, but candidate "
-                    "QP/Conic solvers (%s) are not MIP-capable." %
-                    (candidates['qp_solvers'] +
-                     candidates['conic_solvers']))
-        return candidates
-
-    def _add_custom_solver_candidates(self, custom_solver: Solver):
-        """
-        Returns a list of candidate solvers where custom_solver is the only potential option.
-
-        Arguments
-        ---------
-        custom_solver : Solver
-
-        Returns
-        -------
-        dict
-            A dictionary of compatible solvers divided in `qp_solvers`
-            and `conic_solvers`.
-
-        Raises
-        ------
-        cvxpy.error.SolverError
-            Raised if the name of the custom solver conflicts with the name of some officially
-            supported solver
-        """
-        if custom_solver.name() in SOLVERS:
-            message = "Custom solvers must have a different name than the officially supported ones"
-            raise error.SolverError(message)
-
-        candidates = {'qp_solvers': [], 'conic_solvers': []}
-        if not self.is_mixed_integer() or custom_solver.MIP_CAPABLE:
-            if isinstance(custom_solver, QpSolver):
-                SOLVER_MAP_QP[custom_solver.name()] = custom_solver
-                candidates['qp_solvers'] = [custom_solver.name()]
-            elif isinstance(custom_solver, ConicSolver):
-                SOLVER_MAP_CONIC[custom_solver.name()] = custom_solver
-                candidates['conic_solvers'] = [custom_solver.name()]
-        return candidates
-
     def _construct_chain(
             self,
-            solver: Optional[str] = None,
+            solver: str | Solver | None = None,
             gp: bool = False,
             enforce_dpp: bool = False,
             ignore_dpp: bool = False,
@@ -999,16 +883,14 @@ class Problem(u.Canonical):
         """
         Construct the chains required to reformulate and solve the problem.
 
-        In particular, this function
-
-        # finds the candidate solvers
-        # constructs the solving chain that performs the
-           numeric reductions and solves the problem.
+        Resolves the solver and builds a solving chain that performs the
+        numeric reductions and solves the problem.
 
         Arguments
         ---------
-        solver : str, optional
-            The solver to use. Defaults to ECOS.
+        solver : str, Solver, or None
+            The solver to use. ``None`` selects a default based on problem
+            structure.
         gp : bool, optional
             If True, the problem is parsed as a Disciplined Geometric Program
             instead of as a Disciplined Convex Program.
@@ -1029,36 +911,13 @@ class Problem(u.Canonical):
         -------
         A solving chain
         """
-        candidate_solvers = self._find_candidate_solvers(solver=solver, gp=gp)
-        self._sort_candidate_solvers(candidate_solvers)
-        return construct_solving_chain(self, candidate_solvers, gp=gp,
-                                       enforce_dpp=enforce_dpp,
-                                       ignore_dpp=ignore_dpp,
-                                       canon_backend=canon_backend,
-                                       solver_opts=solver_opts,
-                                       specified_solver=solver)
-
-    @staticmethod
-    def _sort_candidate_solvers(solvers) -> None:
-        """Sorts candidate solvers lists according to slv_def.CONIC_SOLVERS/QP_SOLVERS
-
-        Arguments
-        ---------
-        candidates : dict
-            Dictionary of candidate solvers divided in qp_solvers
-            and conic_solvers
-        Returns
-        -------
-        None
-        """
-        if len(solvers['conic_solvers']) > 1:
-            solvers['conic_solvers'] = sorted(
-                solvers['conic_solvers'], key=lambda s: slv_def.CONIC_SOLVERS.index(s)
-            )
-        if len(solvers['qp_solvers']) > 1:
-            solvers['qp_solvers'] = sorted(
-                solvers['qp_solvers'], key=lambda s: slv_def.QP_SOLVERS.index(s)
-            )
+        return resolve_and_build_chain(
+            self, solver=solver, gp=gp,
+            enforce_dpp=enforce_dpp,
+            ignore_dpp=ignore_dpp,
+            canon_backend=canon_backend,
+            solver_opts=solver_opts,
+        )
 
     def _invalidate_cache(self) -> None:
         self._cache_key = None
@@ -1077,6 +936,7 @@ class Problem(u.Canonical):
                enforce_dpp: bool = False,
                ignore_dpp: bool = False,
                canon_backend: str | None = None,
+               nlp: bool = False,
                **kwargs):
         """Solves a DCP compliant optimization problem.
 
@@ -1145,8 +1005,10 @@ class Problem(u.Canonical):
                     '%d constraints, and ' '%d parameters.',
                     n_variables, n_constraints, n_parameters)
             curvatures = []
+            _t0 = time.time()
             if self.is_dcp():
                 curvatures.append('DCP')
+            _t1 = time.time()
             if self.is_dgp():
                 curvatures.append('DGP')
             if self.is_dqcp():
@@ -1154,6 +1016,9 @@ class Problem(u.Canonical):
             s.LOGGER.info(
                     'It is compliant with the following grammars: %s',
                     ', '.join(curvatures))
+            s.LOGGER.info('DCP verification time: %.4f seconds.', _t1 - _t0)
+            n_nodes = len(self.atoms())
+            s.LOGGER.info('Expression tree has %d nodes.', n_nodes)
             if n_parameters == 0:
                 s.LOGGER.info(
                     '(If you need to solve this problem multiple times, '
@@ -1196,7 +1061,7 @@ class Problem(u.Canonical):
                     if bibtex:
                         print(_CITATION_STR)
                         print(CITATION_DICT["CVXPY"])
-                        print(CITATION_DICT["DQCP"])                             
+                        print(CITATION_DICT["DQCP"])
                 reductions = [dqcp2dcp.Dqcp2Dcp()]
                 start = time.time()
                 if type(self.objective) == Maximize:
@@ -1212,6 +1077,14 @@ class Problem(u.Canonical):
                     chain.reduce(), solver=solver, verbose=verbose, **kwargs)
                 self.unpack(chain.retrieve(soln))
                 return self.value
+
+        if nlp and self.is_dnlp():
+            # Deferred import to avoid circular import:
+            # nlp_solving_chain → dnlp2smooth → cvxpy → problem
+            from cvxpy.reductions.solvers.nlp_solving_chain import solve_nlp
+            return solve_nlp(self, solver, warm_start, verbose, **kwargs)
+        elif nlp and not self.is_dnlp():
+            raise error.DNLPError("The problem you specified is not DNLP.")
 
         data, solving_chain, inverse_data = self.get_problem_data(
             solver, gp, enforce_dpp, ignore_dpp, verbose, canon_backend, kwargs
@@ -1234,9 +1107,9 @@ class Problem(u.Canonical):
 
             # Cite problem grammar.
             if self.is_dcp():
-                print(CITATION_DICT["DCP"]) 
+                print(CITATION_DICT["DCP"])
             if gp:
-                print(CITATION_DICT["DGP"]) 
+                print(CITATION_DICT["DGP"])
 
             # Cite solver.
             print(solving_chain.reductions[-1].cite(data))
@@ -1372,13 +1245,17 @@ class Problem(u.Canonical):
         # reductions that transform parameters (e.g., DGP log transform,
         # Complex2Real split into real/imag).
         for param in self.parameters():
-            # Start with the direct gradient if the param passed through unchanged
-            grad = 0.0 if param.id not in dparams else dparams[param.id]
+            grad = np.zeros(param.shape)
+            handled = False
             # Apply chain rule through any reductions that transformed this param
             for reduction in self._cache.solving_chain.reductions:
                 reduction_grad = reduction.param_backward(param, dparams)
                 if reduction_grad is not None:
                     grad = grad + reduction_grad
+                    handled = True
+            # Fall back to the direct gradient if no reduction transformed this param
+            if not handled and param.id in dparams:
+                grad = dparams[param.id]
             param.gradient = grad
 
     def derivative(self) -> None:
@@ -1448,14 +1325,16 @@ class Problem(u.Canonical):
         # Complex2Real split into real/imag).
         for param in self.parameters():
             delta = param.delta if param.delta is not None else np.zeros(param.shape)
-            # If param passed through unchanged, add its delta directly
-            if param.id in param_prog.param_id_to_col:
-                param_deltas[param.id] = np.asarray(delta, dtype=np.float64)
+            handled = False
             # Apply chain rule through any reductions that transformed this param
             for reduction in self._cache.solving_chain.reductions:
                 transformed_deltas = reduction.param_forward(param, delta)
                 if transformed_deltas is not None:
                     param_deltas.update(transformed_deltas)
+                    handled = True
+            # If no reduction transformed this param, add its delta directly
+            if not handled and param.id in param_prog.param_id_to_col:
+                param_deltas[param.id] = np.asarray(delta, dtype=np.float64)
         dc, _, dA, db = param_prog.apply_parameters(param_deltas,
                                                     zero_offset=True)
         start = time.time()
@@ -1508,9 +1387,12 @@ class Problem(u.Canonical):
         elif solution.status in s.INF_OR_UNB:
             for v in self.variables():
                 v.save_value(None)
-            for constr in self.constraints:
-                for dv in constr.dual_variables:
-                    dv.save_value(None)
+            for c in self.constraints:
+                if c.id in solution.dual_vars:
+                    c.save_dual_value(solution.dual_vars[c.id])
+                else:
+                    for dv in c.dual_variables:
+                        dv.save_value(None)
             self._value = solution.opt_val
         else:
             raise ValueError("Cannot unpack invalid solution: %s" % solution)
@@ -1541,13 +1423,13 @@ class Problem(u.Canonical):
 
         solution = chain.invert(solution, inverse_data)
         if solution.status in s.INACCURATE:
-            warnings.warn(
+            warn(
                 "Solution may be inaccurate. Try another solver, "
                 "adjusting the solver settings, or solve with "
                 "verbose=True for more information."
             )
         if solution.status == s.INFEASIBLE_OR_UNBOUNDED:
-            warnings.warn(INF_OR_UNB_MESSAGE)
+            warn(INF_OR_UNB_MESSAGE)
         if solution.status in s.ERROR:
             raise error.SolverError(
                     "Solver '%s' failed. " % chain.solver.name() +
@@ -1557,6 +1439,7 @@ class Problem(u.Canonical):
         self.unpack(solution)
         self._solver_stats = SolverStats.from_dict(self._solution.attr,
                                          chain.solver.name())
+
 
     def __str__(self) -> str:
         if len(self.constraints) == 0:

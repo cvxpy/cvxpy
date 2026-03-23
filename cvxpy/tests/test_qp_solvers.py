@@ -40,9 +40,15 @@ from cvxpy.reductions.solvers.defines import (
     INSTALLED_SOLVERS,
     QP_SOLVERS,
     SOLVER_MAP_CONIC,
+    SOLVER_MAP_QP,
 )
 from cvxpy.tests.base_test import BaseTest
-from cvxpy.tests.solver_test_helpers import SolverTestHelper, StandardTestLPs, StandardTestQPs
+from cvxpy.tests.solver_test_helpers import (
+    SolverTestHelper,
+    StandardTestInfeasibleProblems,
+    StandardTestLPs,
+    StandardTestQPs,
+)
 
 
 class QPTestBase(BaseTest):
@@ -535,6 +541,12 @@ class TestQp(QPTestBase):
             if solver != cp.KNITRO:
                 self.equivalent_forms_3(solver)
 
+    def test_qp_bound_attr(self) -> None:
+        for solver in self.solvers:
+            solver_cls = SOLVER_MAP_QP.get(solver)
+            if solver_cls is not None and getattr(solver_cls, 'BOUNDED_VARIABLES', False):
+                StandardTestQPs.test_qp_bound_attr(solver=solver)
+
     def test_warm_start(self) -> None:
         """Test warm start.
         """
@@ -852,6 +864,18 @@ class TestQp(QPTestBase):
                 prob = Problem(Minimize(norm(self.x, 1)), [self.x == 0])
                 prob.solve(solver=GUROBI, TimeLimit=0)
             self.assertEqual(str(cm.exception), "The solver %s is not installed." % GUROBI)
+
+    def test_osqp_infeasible_lp_ineq_constraints(self):
+        StandardTestInfeasibleProblems.test_lp_ineq_constraints(solver=cp.OSQP)
+
+    def test_osqp_infeasible_lp_eq_constraints(self):
+        StandardTestInfeasibleProblems.test_lp_eq_constraints(solver=cp.OSQP)
+
+    def test_highs_infeasible_lp_ineq_constraints(self):
+        StandardTestInfeasibleProblems.test_lp_ineq_constraints(solver=cp.HIGHS)
+
+    def test_highs_infeasible_lp_eq_constraints(self):
+        StandardTestInfeasibleProblems.test_lp_eq_constraints(solver=cp.HIGHS)
 
 
 class TestConicQuadObj(QPTestBase):

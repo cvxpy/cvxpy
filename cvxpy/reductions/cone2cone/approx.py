@@ -19,6 +19,7 @@ from typing import List, Tuple
 import numpy as np
 
 import cvxpy as cp
+from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.atoms.affine.upper_tri import upper_tri
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.constraints.exponential import (
@@ -26,17 +27,21 @@ from cvxpy.constraints.exponential import (
     OpRelEntrConeQuad,
     RelEntrConeQuad,
 )
+from cvxpy.constraints.power import PowCone3DApprox
+from cvxpy.constraints.second_order import SOC
 from cvxpy.constraints.zero import Zero
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.canonicalization import Canonicalization
 from cvxpy.reductions.dcp2cone.canonicalizers.von_neumann_entr_canon import (
     von_neumann_entr_canon,
 )
+from cvxpy.utilities.power_tools import fracify, gm_constrs
 from cvxpy.utilities.solver_context import SolverInfo
 
-APPROX_CONES = {
-    RelEntrConeQuad: {cp.SOC},
-    OpRelEntrConeQuad: {cp.PSD}
+APPROX_CONE_CONVERSIONS = {
+    RelEntrConeQuad: {SOC},
+    OpRelEntrConeQuad: {cp.PSD},
+    PowCone3DApprox: {SOC},
 }
 
 
@@ -177,6 +182,74 @@ def OpRelEntrConeQuad_canon(con: OpRelEntrConeQuad, args) -> Tuple[Constraint, L
     return lead_con, constrs
 
 
+def pow_3d_canon(con, args):
+    """
+    Convert PowCone3D to SOC constraints via rational approximation.
+
+    con : PowCone3D
+        The power cone constraint x^alpha * y^(1-alpha) >= |z|
+    args : tuple of length three
+        x, y, z = args[0], args[1], args[2]
+
+    Returns a tuple (canon_constr, aux_constrs) where canon_constr is the first
+    SOC constraint (used for id mapping) and aux_constrs are the remaining SOC constraints.
+    """
+    alpha = con.alpha
+    x, y, z = args
+
+    # alpha is always a CVXPY Expression (PowCone3D.__init__ wraps it
+    # via cast_to_const), so .value always exists.
+    alpha_val = alpha.value
+
+    # Normalize to a 1-D numpy array so the branches below can
+    # distinguish scalar from vector alpha.
+    alpha_arr = np.atleast_1d(np.asarray(alpha_val, dtype=float).flatten())
+
+    # Scalar alpha (the common case, e.g. x^0.5 * y^0.5 for every
+    # element): one call to fracify suffices for all elements.
+    # Vector alpha (each element has a distinct exponent): we must
+    # call fracify per element because each rational approximation
+    # is different.
+    if alpha_arr.size == 1:
+        alpha_val = float(alpha_arr[0])
+        # Convert alpha to rational approximation
+        w, _ = fracify([alpha_val, 1 - alpha_val])
+
+        # Flatten x, y, z if needed for element-wise constraints
+        x_flat = reshape(x, (x.size,), order='F') if x.size > 1 else x
+        y_flat = reshape(y, (y.size,), order='F') if y.size > 1 else y
+        z_flat = reshape(z, (z.size,), order='F') if z.size > 1 else z
+
+        # Create SOC constraints for each element
+        all_constrs = []
+        for i in range(max(x.size, 1)):
+            xi = x_flat[i] if x.size > 1 else x_flat
+            yi = y_flat[i] if y.size > 1 else y_flat
+            zi = z_flat[i] if z.size > 1 else z_flat
+            # gm_constrs creates: t <= x^w[0] * y^w[1]
+            # We need: z <= x^alpha * y^(1-alpha)
+            all_constrs.extend(gm_constrs(zi, [xi, yi], w))
+    else:
+        # Vector alpha - handle each element separately
+        x_flat = reshape(x, (x.size,), order='F')
+        y_flat = reshape(y, (y.size,), order='F')
+        z_flat = reshape(z, (z.size,), order='F')
+
+        all_constrs = []
+        for i in range(alpha_arr.size):
+            alpha_val = float(alpha_arr[i])
+            w, _ = fracify([alpha_val, 1 - alpha_val])
+            all_constrs.extend(gm_constrs(z_flat[i], [x_flat[i], y_flat[i]], w))
+
+    # Return first constraint as canonical, rest as auxiliary
+    # The Canonicalization class requires a non-None canon_constr for id mapping
+    if all_constrs:
+        return all_constrs[0], all_constrs[1:]
+    else:
+        # Edge case: no constraints generated (shouldn't happen in practice)
+        raise ValueError("PowCone3D canonicalization produced no constraints")
+
+
 def von_neumann_entr_QuadApprox(expr, args):
     m, k = expr.quad_approx[0], expr.quad_approx[1]
     epi, initial_cons = von_neumann_entr_canon(expr, args)
@@ -200,12 +273,18 @@ def von_neumann_entr_canon_dispatch(expr, args, solver_context: SolverInfo | Non
         return von_neumann_entr_canon(expr, args)
 
 
-class QuadApprox(Canonicalization):
+class ApproxCone2Cone(Canonicalization):
     CANON_METHODS = {
         RelEntrConeQuad: RelEntrConeQuad_canon,
-        OpRelEntrConeQuad: OpRelEntrConeQuad_canon
+        OpRelEntrConeQuad: OpRelEntrConeQuad_canon,
+        PowCone3DApprox: pow_3d_canon,
     }
 
-    def __init__(self, problem=None) -> None:
-        super(QuadApprox, self).__init__(
-            problem=problem, canon_methods=QuadApprox.CANON_METHODS)
+    def __init__(self, problem=None, target_cones=None) -> None:
+        if target_cones is not None:
+            canon_methods = {k: v for k, v in ApproxCone2Cone.CANON_METHODS.items()
+                           if k in target_cones}
+        else:
+            canon_methods = dict(ApproxCone2Cone.CANON_METHODS)
+        super(ApproxCone2Cone, self).__init__(
+            problem=problem, canon_methods=canon_methods)

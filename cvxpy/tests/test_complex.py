@@ -26,6 +26,21 @@ from cvxpy.reductions.solvers.defines import INSTALLED_MI_SOLVERS
 from cvxpy.tests.base_test import BaseTest
 
 
+class TestComplex2RealAccepts(BaseTest):
+    def test_accepts_returns_bool(self) -> None:
+        """Complex2Real.accepts() should return bool, not None."""
+        from cvxpy.reductions.complex2real.complex2real import Complex2Real
+        reduction = Complex2Real()
+        # Complex problem should be accepted
+        x = Variable((2, 2), complex=True)
+        prob = Problem(Minimize(cp.norm(x, 'fro')), [x == np.eye(2)])
+        self.assertIs(reduction.accepts(prob), True)
+        # Real problem should not be accepted
+        y = Variable((2, 2))
+        prob_real = Problem(Minimize(cp.norm(y, 'fro')), [y == np.eye(2)])
+        self.assertIs(reduction.accepts(prob_real), False)
+
+
 class TestComplex(BaseTest):
     """ Unit tests for the expression/expression module. """
 
@@ -411,6 +426,13 @@ class TestComplex(BaseTest):
         result = prob.solve(solver="CLARABEL")
         normalization = max(abs(result), abs(value))
         self.assertAlmostEqual(result / normalization, value / normalization)
+        
+        P_nsd = -P
+        x_nsd = cp.Variable(3, complex=True)
+        expr_nsd = cp.quad_form(x_nsd, P_nsd)
+        prob = cp.Problem(cp.Maximize(expr_nsd), [cp.norm(x_nsd) <= 1])
+        prob.solve(solver="CLARABEL")
+        self.assertEqual(prob.status, cp.OPTIMAL)
 
     def test_matrix_frac(self) -> None:
         """Test matrix_frac atom.
@@ -599,25 +621,21 @@ class TestComplex(BaseTest):
         for atom in [cp.geo_mean, cp.log_sum_exp, cp.max,
                      cp.entr, cp.exp, cp.huber,
                      cp.log, cp.log1p, cp.logistic]:
-            name = atom.__name__
             with self.assertRaises(Exception) as cm:
-                print(name)
                 atom(x)
-            self.assertEqual(str(cm.exception), "Arguments to %s cannot be complex." % name)
+            self.assertIn("cannot be complex", str(cm.exception))
 
         x = Variable(2, complex=True)
         for atom in [cp.maximum, cp.kl_div]:
-            name = atom.__name__
             with self.assertRaises(Exception) as cm:
-                print(name)
                 atom(x, x)
-            self.assertEqual(str(cm.exception), "Arguments to %s cannot be complex." % name)
+            self.assertIn("cannot be complex", str(cm.exception))
 
         x = Variable(2, complex=True)
         for atom in [cp.inv_pos, cp.sqrt, lambda x: cp.power(x, .2)]:
             with self.assertRaises(Exception) as cm:
                 atom(x)
-            self.assertEqual(str(cm.exception), "Arguments to power cannot be complex.")
+            self.assertIn("cannot be complex", str(cm.exception))
 
         x = Variable(2, complex=True)
         for atom in [cp.harmonic_mean, lambda x: cp.pnorm(x, .2)]:
@@ -642,6 +660,16 @@ class TestComplex(BaseTest):
         prob = cp.Problem(obj, cons)
         result = prob.solve(solver="SCS")
         self.assertAlmostEqual(result, 2)
+
+    def test_diag_vec_hermitian(self) -> None:
+        """diag(complex_vector) is not Hermitian unless entries are real."""
+        v_complex = cp.Variable(3, complex=True)
+        D_complex = cp.diag(v_complex)
+        assert not D_complex.is_hermitian()
+
+        v_real = cp.Variable(3)
+        D_real = cp.diag(v_real)
+        assert D_real.is_hermitian()
 
     def test_complex_qp(self) -> None:
         """Test a QP with a complex variable.
@@ -675,7 +703,7 @@ class TestComplex(BaseTest):
         assert cp.quad_form(x, P2).is_dcp()
 
     @pytest.mark.skipif(
-        "HIGHS" not in INSTALLED_MI_SOLVERS, 
+        "HIGHS" not in INSTALLED_MI_SOLVERS,
         reason='HiGHS solver is not installed.'
     )
     def test_bool(self) -> None:

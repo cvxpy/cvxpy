@@ -20,10 +20,27 @@ from typing import Any, List, Tuple
 import numpy as np
 
 from cvxpy.atoms.elementwise.elementwise import Elementwise
+from cvxpy.utilities import bounds as bounds_utils
 
 
 class maximum(Elementwise):
     """Elementwise maximum of a sequence of expressions.
+
+    Computes the elementwise maximum over two or more input expressions.
+
+    Mathematical definition:
+        .. math::
+
+            f(x_1, x_2, \\dots, x_n) = \\max\\{x_1, x_2, \\dots, x_n\\}
+
+    Parameters
+    ----------
+    arg1 : Expression
+        First input expression.
+    arg2 : Expression
+        Second input expression.
+    *args : Expression
+        Additional input expressions.
     """
 
     def __init__(self, arg1, arg2, *args) -> None:
@@ -50,6 +67,11 @@ class maximum(Elementwise):
         is_pos = any(arg.is_nonneg() for arg in self.args)
         is_neg = all(arg.is_nonpos() for arg in self.args)
         return (is_pos, is_neg)
+
+    def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
+        """Returns bounds for elementwise maximum based on argument bounds."""
+        bounds_list = [arg.get_bounds() for arg in self.args]
+        return bounds_utils.maximum_bounds(bounds_list)
 
     def is_atom_convex(self) -> bool:
         """Is the atom convex?
@@ -109,3 +131,4 @@ class maximum(Elementwise):
             grad_list += [maximum.elemwise_grad_to_diag(grad_vals,
                                                         rows, cols)]
         return grad_list
+

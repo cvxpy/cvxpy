@@ -167,3 +167,49 @@ xexp
 
 .. autoclass:: cvxpy.xexp
     :show-inheritance:
+
+.. _logic-not:
+
+Not (``~x``)
+-------------------------------------
+
+.. autoclass:: cvxpy.logic.Not
+    :show-inheritance:
+
+.. _logic-and:
+
+And (``x & y``)
+-------------------------------------
+
+.. autoclass:: cvxpy.logic.And
+    :show-inheritance:
+
+.. _logic-or:
+
+Or (``x | y``)
+-------------------------------------
+
+.. autoclass:: cvxpy.logic.Or
+    :show-inheritance:
+
+.. _logic-xor:
+
+Xor (``x ^ y``)
+-------------------------------------
+
+.. autoclass:: cvxpy.logic.Xor
+    :show-inheritance:
+
+.. _logic-implies:
+
+implies (x => y)
+-------------------------------------
+
+.. autofunction:: cvxpy.logic.implies
+
+.. _logic-iff:
+
+iff (x <=> y)
+-------------------------------------
+
+.. autofunction:: cvxpy.logic.iff

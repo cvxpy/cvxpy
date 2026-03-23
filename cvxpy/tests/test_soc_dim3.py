@@ -19,12 +19,9 @@ import pytest
 
 import cvxpy as cp
 from cvxpy.constraints.second_order import SOC
+from cvxpy.reductions.cone2cone.cone_tree import LeafNode, SpecialNode, SplitNode
 from cvxpy.reductions.cone2cone.soc_dim3 import (
-    ChainTree,
-    LeafTree,
-    NonNegTree,
     SOCDim3,
-    SplitTree,
     _decompose_soc_single,
 )
 from cvxpy.reductions.solution import Solution
@@ -171,11 +168,11 @@ class TestSOCDim3Decomposition:
 
         assert len(cones) == 0
         assert len(nonneg_constrs) == 2
-        assert isinstance(tree, NonNegTree)
-        assert tree.original_dim == 2
+        assert isinstance(tree, SpecialNode)
+        assert tree.node_type == 'nonneg_dim2'
 
     def test_dim3_is_leaf(self):
-        """Dimension 3 passes through as LeafTree."""
+        """Dimension 3 passes through as LeafNode."""
         t = cp.Variable(nonneg=True)
         x = cp.Variable(2)
 
@@ -184,10 +181,10 @@ class TestSOCDim3Decomposition:
 
         assert len(cones) == 1
         assert cones[0].cone_sizes() == [3]
-        assert isinstance(tree, LeafTree)
+        assert isinstance(tree, LeafNode)
 
     def test_dim4_is_chain(self):
-        """Dimension 4 uses ChainTree structure."""
+        """Dimension 4 uses chain SpecialNode structure."""
         t = cp.Variable(nonneg=True)
         x = cp.Variable(3)
 
@@ -196,10 +193,11 @@ class TestSOCDim3Decomposition:
 
         assert len(cones) == 2
         assert all(c.cone_sizes() == [3] for c in cones)
-        assert isinstance(tree, ChainTree)
+        assert isinstance(tree, SpecialNode)
+        assert tree.node_type == 'chain_dim4'
 
     def test_dim5_is_split(self):
-        """Dimension 5+ uses SplitTree structure."""
+        """Dimension 5+ uses SplitNode structure."""
         t = cp.Variable(nonneg=True)
         x = cp.Variable(4)
 
@@ -208,7 +206,7 @@ class TestSOCDim3Decomposition:
 
         assert len(cones) == 3
         assert all(c.cone_sizes() == [3] for c in cones)
-        assert isinstance(tree, SplitTree)
+        assert isinstance(tree, SplitNode)
 
 
 # =============================================================================
@@ -318,3 +316,33 @@ class TestSOCDim3EdgeCases:
         prob.solve(solver=cp.CLARABEL)
         inv_sol, new_prob = _solve_with_reduction(prob)
         _check_solution_matches(prob, inv_sol, new_prob)
+
+    def test_scalar_x_soc(self):
+        """SOC constraint with scalar X (shape ()).
+
+        Regression test for bug where len(X.shape) == 0 was not handled,
+        causing IndexError when accessing X_reshaped.shape[1].
+        """
+        # Basic scalar SOC: min t s.t. |x| <= t
+        t = cp.Variable(nonneg=True)
+        x = cp.Variable()  # Scalar variable, shape ()
+
+        soc = SOC(t, x)
+        assert x.shape == (), "x should be scalar with shape ()"
+
+        # Test 1: Unconstrained - optimal is t=0, x=0
+        prob = cp.Problem(cp.Minimize(t), [soc])
+        prob.solve(solver=cp.CLARABEL)
+        inv_sol, new_prob = _solve_with_reduction(prob)
+        assert np.abs(new_prob.value) < 1e-5, "Optimal value should be ~0"
+
+        # Test 2: With x constrained - optimal is t=|x_val|
+        t = cp.Variable(nonneg=True)
+        x = cp.Variable()
+        x_val = 3.0
+        prob = cp.Problem(cp.Minimize(t), [SOC(t, x), x == x_val])
+
+        prob.solve(solver=cp.CLARABEL)
+        inv_sol, new_prob = _solve_with_reduction(prob)
+        _check_solution_matches(prob, inv_sol, new_prob)
+        assert np.abs(new_prob.value - abs(x_val)) < 1e-4, f"Expected t={abs(x_val)}"

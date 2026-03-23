@@ -15,8 +15,6 @@ limitations under the License.
 """
 
 
-import warnings
-
 import numpy as np
 import scipy  # For version checks
 
@@ -27,6 +25,7 @@ from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.utilities.citations import CITATION_DICT
 from cvxpy.utilities.versioning import Version
+from cvxpy.utilities.warn import warn
 
 
 class SCIPY(ConicSolver):
@@ -34,6 +33,7 @@ class SCIPY(ConicSolver):
     Note: This requires a version of SciPy which is >= 1.6.1
     """
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS
+    BOUNDED_VARIABLES = True
 
     # Solver capabilities.
     if (Version(scipy.__version__) < Version('1.9.0')):
@@ -102,6 +102,8 @@ class SCIPY(ConicSolver):
         data[s.H] = b[len_eq:].flatten(order='F')
         if 0 in data[s.H].shape:
             data[s.H] = None
+        data[s.LOWER_BOUNDS] = problem.lower_bounds
+        data[s.UPPER_BOUNDS] = problem.upper_bounds
         return data, inv_data
 
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
@@ -116,22 +118,39 @@ class SCIPY(ConicSolver):
         # Check if the problem is a MIP.
         problem_is_a_mip = data[s.BOOL_IDX] or data[s.INT_IDX]
 
+        # Build variable bounds from BOUNDED_VARIABLES data
+        n = data[s.C].shape[0]
+        lb = data.get(s.LOWER_BOUNDS)
+        ub = data.get(s.UPPER_BOUNDS)
+
         # Track variable integrality options. An entry of zero implies that
         # the variable is continuous. An entry of one implies that the
         # variable is either binary or an integer with bounds.
         if problem_is_a_mip:
-            integrality = [0] * data[s.C].shape[0]
+            integrality = [0] * n
 
             for index in data[s.BOOL_IDX] + data[s.INT_IDX]:
                 integrality[index] = 1
 
-            bounds = [(None, None)] * data[s.C].shape[0]
+            bounds = [(
+                lb[i] if lb is not None else None,
+                ub[i] if ub is not None else None,
+            ) for i in range(n)]
 
             for index in data[s.BOOL_IDX]:
-                bounds[index] = (0, 1)
+                cur_lb, cur_ub = bounds[index]
+                new_lb = max(0, cur_lb) if cur_lb is not None else 0
+                new_ub = min(1, cur_ub) if cur_ub is not None else 1
+                bounds[index] = (new_lb, new_ub)
         else:
             integrality = None
-            bounds = (None, None)
+            if lb is not None or ub is not None:
+                bounds = [(
+                    lb[i] if lb is not None else None,
+                    ub[i] if ub is not None else None,
+                ) for i in range(n)]
+            else:
+                bounds = (None, None)
 
         # Extract solver options which are not part of the options dictionary
         if solver_opts:
@@ -224,13 +243,13 @@ class SCIPY(ConicSolver):
         return solution
 
     def _log_scipy_method_warning(self, meth):
-        warnings.warn("It is best to specify the 'method' parameter "
-                      "within scipy_options. The main advantage "
-                      "of this solver is its ability to use the "
-                      "HiGHS LP solvers via scipy.optimize.linprog(), "
-                      "which requires a SciPy version >= 1.6.1."
-                      "\n\nThe default method '{}' will be"
-                      " used in this case.\n".format(meth))
+        warn("It is best to specify the 'method' parameter "
+              "within scipy_options. The main advantage "
+              "of this solver is its ability to use the "
+              "HiGHS LP solvers via scipy.optimize.linprog(), "
+              "which requires a SciPy version >= 1.6.1."
+              "\n\nThe default method '{}' will be"
+              " used in this case.\n".format(meth))
 
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data.
@@ -268,8 +287,8 @@ class SCIPY(ConicSolver):
             if "nit" in solution: # Number of interior-point or simplex iterations
                 attr[s.NUM_ITERS] = solution['nit']
             if "mip_gap" in solution: # Branch and bound statistics
-                attr[s.EXTRA_STATS] = {"mip_gap": solution['mip_gap'], 
-                                       "mip_node_count": solution['mip_node_count'], 
+                attr[s.EXTRA_STATS] = {"mip_gap": solution['mip_gap'],
+                                       "mip_node_count": solution['mip_node_count'],
                                        "mip_dual_bound": solution['mip_dual_bound']}
 
             return Solution(status, opt_val, primal_vars, dual_vars, attr)

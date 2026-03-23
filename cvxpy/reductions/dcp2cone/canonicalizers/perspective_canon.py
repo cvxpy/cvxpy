@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 import numpy as np
 
 from cvxpy.atoms.affine.diag import diag
@@ -24,7 +25,6 @@ from cvxpy.utilities.solver_context import SolverInfo
 
 
 def perspective_canon(expr, args, solver_context: SolverInfo | None = None):
-
     from cvxpy.problems.problem import Problem
 
     # Only working for minimization right now.
@@ -40,7 +40,7 @@ def perspective_canon(expr, args, solver_context: SolverInfo | None = None):
 
     q = prob_canon.q.toarray().flatten()[:-1]
     d = prob_canon.q.toarray().flatten()[-1]
-    Ab = prob_canon.A.toarray().reshape((-1, len(q)+1), order="F")
+    Ab = prob_canon.A.toarray().reshape((-1, len(q) + 1), order="F")
     A, b = Ab[:, :-1], Ab[:, -1]
 
     # given f in epigraph form, aka epi f = \{(x,t) | f(x) \leq t\}
@@ -63,17 +63,17 @@ def perspective_canon(expr, args, solver_context: SolverInfo | None = None):
     if A.shape[0] > 0:
         # Rules out the case where f is affine and requires no additional
         # constraints.
-        x_pers = A@x_canon + s*b
+        x_pers = A @ x_canon + s * b
 
         i = 0
         for con in prob_canon.constraints:
             sz = con.size
-            var_slice = x_pers[i:i+sz]
+            var_slice = x_pers[i : i + sz]
             pers_constraint = form_cone_constraint(var_slice, con)
             constraints.append(pers_constraint)
             i += sz
 
-    constraints.append(-q@x_canon + t - s*d >= 0)
+    constraints.append(-q @ x_canon + t - s * d >= 0)
 
     # recover initial variables
 
@@ -81,7 +81,7 @@ def perspective_canon(expr, args, solver_context: SolverInfo | None = None):
 
     for var in expr.f.variables():
         start_ind = prob_canon.var_id_to_col[var.id]
-        end_ind = end_inds[end_inds.index(start_ind)+1]
+        end_ind = end_inds[end_inds.index(start_ind) + 1]
         if var.attributes["diag"]:  # checking for diagonal first because diagonal is also symmetric
             constraints += [diag(var) == x_canon[start_ind:end_ind]]
         elif var.is_symmetric() and var.size > 1:
@@ -89,6 +89,6 @@ def perspective_canon(expr, args, solver_context: SolverInfo | None = None):
             inds = np.triu_indices(n, k=0)  # includes diagonal
             constraints += [var[inds] == x_canon[start_ind:end_ind]]
         else:
-            constraints.append(vec(var, order='F') == x_canon[start_ind:end_ind])
+            constraints.append(vec(var, order="F") == x_canon[start_ind:end_ind])
 
-    return (1 if expr.f.is_convex() else -1)*t, constraints
+    return (1 if expr.f.is_convex() else -1) * t, constraints

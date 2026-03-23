@@ -19,10 +19,23 @@ from typing import Tuple
 import numpy as np
 
 from cvxpy.atoms.elementwise.elementwise import Elementwise
+from cvxpy.utilities import bounds as bounds_utils
 
 
 class exp(Elementwise):
-    """Elementwise :math:`e^{x}`.
+    """Elementwise exponential function.
+
+    Computes the elementwise exponential of the input.
+
+    Mathematical definition:
+        .. math::
+
+            f(x) = e^{x}
+
+    Parameters
+    ----------
+    x : Expression
+        Input expression.
     """
 
     def __init__(self, x) -> None:
@@ -39,6 +52,11 @@ class exp(Elementwise):
         # Always positive.
         return (True, False)
 
+    def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
+        """Returns bounds for exp based on argument bounds."""
+        lb, ub = self.args[0].get_bounds()
+        return bounds_utils.exp_bounds(lb, ub)
+
     def is_atom_convex(self) -> bool:
         """Is the atom convex?
         """
@@ -48,6 +66,10 @@ class exp(Elementwise):
         """Is the atom concave?
         """
         return False
+    
+    def is_atom_smooth(self) -> bool:
+        """Is the atom smooth?"""
+        return True
 
     def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?

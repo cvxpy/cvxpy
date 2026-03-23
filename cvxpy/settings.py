@@ -96,16 +96,19 @@ SCIP = "SCIP"
 SCIPY = "SCIPY"
 CLARABEL = "CLARABEL"
 CUCLARABEL = "CUCLARABEL"
+PDCS = "PDCS"
 DAQP = "DAQP"
 HIGHS = "HIGHS"
 MPAX = "MPAX"
+IPOPT = "IPOPT"
 KNITRO = "KNITRO"
+UNO = "UNO"
 COSMO = "COSMO"
 SOLVERS = [CLARABEL, ECOS, CVXOPT, GLOP, GLPK, GLPK_MI,
            SCS, SDPA, GUROBI, OSQP, CPLEX,
            MOSEK, MOREAU, CBC, COPT, XPRESS, PIQP, PROXQP, QOCO, QPALM,
            NAG, PDLP, SCIP, SCIPY, DAQP, HIGHS, MPAX,
-           CUCLARABEL, CUOPT, KNITRO, COSMO]
+           CUCLARABEL, CUOPT, KNITRO, COSMO, PDCS, IPOPT, UNO]
 
 # Xpress-specific items
 XPRESS_IIS = "XPRESS_IIS"
@@ -206,6 +209,11 @@ GENERAL_PROJECTION_TOL = 1e-10
 SPARSE_PROJECTION_TOL = 1e-10
 ATOM_EVAL_TOL = 1e-4
 CHOL_SYM_TOL = 1e-14
+
+# Thresholds for warning about SOC approximation of power cones
+# Warning is triggered when approx_error > threshold OR num_soc > threshold
+POWERCONE_APPROX_ERROR_THRESHOLD = 1e-6
+POWERCONE_APPROX_SOC_THRESHOLD = 4
 
 
 # threads to use during compilation

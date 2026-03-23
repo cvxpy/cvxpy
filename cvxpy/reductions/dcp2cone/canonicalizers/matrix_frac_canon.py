@@ -25,11 +25,10 @@ def matrix_frac_canon(expr, args, solver_context: SolverInfo | None = None):
     P = args[1]  # n by n matrix.
 
     if len(X.shape) == 1:
-        X = reshape(X, (X.shape[0], 1), order='F')
+        X = reshape(X, (X.shape[0], 1), order="F")
     n, m = X.shape
     T = Variable((m, m), symmetric=True)
-    M = bmat([[P, X],
-              [X.T, T]])
+    M = bmat([[P, X], [X.T, T]])
     # ^ a matrix with Schur complement T - X.T*P^-1*X.
     constraints = [PSD(M)]
     if not P.is_symmetric():

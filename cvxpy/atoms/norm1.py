@@ -20,6 +20,7 @@ import scipy.sparse as sp
 
 from cvxpy.atoms.axis_atom import AxisAtom
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.utilities import bounds as bounds_utils
 
 
 class norm1(AxisAtom):
@@ -39,6 +40,11 @@ class norm1(AxisAtom):
         """
         # Always positive.
         return (True, False)
+
+    def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
+        """Returns bounds for 1-norm based on argument bounds."""
+        lb, ub = self.args[0].get_bounds()
+        return bounds_utils.norm1_bounds(lb, ub, axis=self.axis, keepdims=self.keepdims)
 
     def is_atom_convex(self) -> bool:
         """Is the atom convex?
@@ -65,6 +71,11 @@ class norm1(AxisAtom):
         """
         return self.args[0].is_pwl() and \
             (self.args[0].is_real() or self.args[0].is_imag())
+
+    def validate_arguments(self) -> None:
+        super(norm1, self).validate_arguments()
+        if isinstance(self.axis, tuple):
+            raise ValueError("The axis parameter of norm1 must be an int or None.")
 
     def get_data(self):
         return [self.axis]

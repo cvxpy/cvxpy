@@ -163,3 +163,24 @@ class TestParamQuadProg(BaseTest):
         assert np.isclose(x1.value, -1)
         assert np.isclose(x2.value, -.5)
         assert np.isclose(x3.value, -2)
+
+    @unittest.skipUnless(cp.HIGHS in INSTALLED_SOLVERS, 'HIGHS is not installed.')
+    def test_highs_var_bounds(self) -> None:
+        """Testing variable bounds problem with HiGHS."""
+        x1 = cp.Variable(bounds=[-1, 1])
+        x2 = cp.Variable(bounds=[-0.5, 1])
+        x3 = cp.Variable()
+        objective = (x1**2 + x2**2)/2 + x1 + x2 + x3
+        constraints = [-3 <= x1 + x2, x1 + x2 <= 3,
+                        -4 <= x1 - x2, x1 - x2 <= 4, x3 >= -2]
+        prob = cp.Problem(cp.Minimize(objective), constraints)
+        data, _, _ = prob.get_problem_data(solver=cp.HIGHS)
+        param_quad_prog = data[cp.settings.PARAM_PROB]
+
+        assert np.all(param_quad_prog.lower_bounds == np.array([-1, -0.5, -np.inf]))
+        assert np.all(param_quad_prog.upper_bounds == np.array([1, 1, np.inf]))
+
+        prob.solve(solver=cp.HIGHS)
+        assert np.isclose(x1.value, -1)
+        assert np.isclose(x2.value, -0.5)
+        assert np.isclose(x3.value, -2)

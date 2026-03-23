@@ -15,6 +15,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+
 import numpy as np
 import scipy.sparse as sp
 
@@ -50,23 +51,12 @@ def dims_to_solver_cones(cone_dims):
     if cone_dims.pnd:
         raise ValueError("Moreau does not support generalized power cones (PowConeND)")
 
-    # Map CVXPY cone dimensions to Moreau cones
-    # SOC cones: All SOCs are dimension-3 (due to SOC_DIM3_ONLY=True)
-    # Validate that all SOC cones are dimension 3
-    for dim in cone_dims.soc:
-        if dim != 3:
-            raise ValueError(
-                f"Moreau requires all SOC cones to be dimension 3, got dimension {dim}. "
-                "This should not happen if SOC_DIM3_ONLY=True is set correctly."
-            )
-    num_soc = len(cone_dims.soc)
-
     cones = moreau.Cones(
         num_zero_cones=cone_dims.zero,
         num_nonneg_cones=cone_dims.nonneg,
-        num_so_cones=num_soc,
+        so_cone_dims=list(cone_dims.soc),
         num_exp_cones=cone_dims.exp,
-        power_alphas=list(cone_dims.p3d) if cone_dims.p3d else [],
+        power_alphas=list(cone_dims.p3d),
     )
 
     return cones
@@ -81,12 +71,8 @@ class MOREAU(ConicSolver):
 
     # Solver capabilities
     MIP_CAPABLE = False
-    BOUNDED_VARIABLES = True
+    BOUNDED_VARIABLES = False
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC, ExpCone, PowCone3D]
-
-    # Moreau only supports dimension-3 SOC cones
-    # The SOCDim3 reduction will convert n-dim SOC to 3D SOC
-    SOC_DIM3_ONLY = True
 
     # Status messages from Moreau (based on solver/status.hpp)
     SOLVED = "Solved"
@@ -111,7 +97,7 @@ class MOREAU(ConicSolver):
         MAX_ITERATIONS: s.USER_LIMIT,
         MAX_TIME: s.USER_LIMIT,
         NUMERICAL_ERROR: s.SOLVER_ERROR,
-        INSUFFICIENT_PROGRESS: s.SOLVER_ERROR
+        INSUFFICIENT_PROGRESS: s.SOLVER_ERROR,
     }
 
     # Order of exponential cone arguments for solver
@@ -119,7 +105,7 @@ class MOREAU(ConicSolver):
 
     def name(self):
         """The name of the solver."""
-        return 'MOREAU'
+        return "MOREAU"
 
     def import_solver(self) -> None:
         """Imports the solver."""
@@ -140,9 +126,12 @@ class MOREAU(ConicSolver):
         status_map = self.STATUS_MAP.copy()
 
         # Handle accept_unknown option
-        if isinstance(inverse_data, SolverInverseData) and \
-           MOREAU.ACCEPT_UNKNOWN in inverse_data.solver_options and \
-           solution.x is not None and solution.z is not None:
+        if (
+            isinstance(inverse_data, SolverInverseData)
+            and MOREAU.ACCEPT_UNKNOWN in inverse_data.solver_options
+            and solution.x is not None
+            and solution.z is not None
+        ):
             status_map["InsufficientProgress"] = s.OPTIMAL_INACCURATE
 
         status = status_map.get(str(solution.status), s.SOLVER_ERROR)
@@ -153,18 +142,16 @@ class MOREAU(ConicSolver):
         if status in s.SOLUTION_PRESENT:
             primal_val = solution.obj_val
             opt_val = primal_val + inverse_data[s.OFFSET]
-            primal_vars = {
-                inverse_data[self.VAR_ID]: solution.x
-            }
+            primal_vars = {inverse_data[self.VAR_ID]: solution.x}
             eq_dual_vars = utilities.get_dual_values(
-                solution.z[:inverse_data[ConicSolver.DIMS].zero],
+                solution.z[: inverse_data[ConicSolver.DIMS].zero],
                 self.extract_dual_value,
-                inverse_data[self.EQ_CONSTR]
+                inverse_data[self.EQ_CONSTR],
             )
             ineq_dual_vars = utilities.get_dual_values(
-                solution.z[inverse_data[ConicSolver.DIMS].zero:],
+                solution.z[inverse_data[ConicSolver.DIMS].zero :],
                 self.extract_dual_value,
-                inverse_data[self.NEQ_CONSTR]
+                inverse_data[self.NEQ_CONSTR],
             )
             dual_vars = {}
             dual_vars.update(eq_dual_vars)
@@ -209,6 +196,13 @@ class MOREAU(ConicSolver):
             device=device,
             verbose=verbose,
         )
+
+        # Handle ipm_settings: accept dict or moreau.IPMSettings
+        ipm_settings = solver_opts.pop("ipm_settings", None)
+        if ipm_settings is not None:
+            if isinstance(ipm_settings, dict):
+                ipm_settings = moreau.IPMSettings(**ipm_settings)
+            settings.ipm_settings = ipm_settings
 
         # Apply all remaining options directly to moreau.Settings
         for opt, value in solver_opts.items():
@@ -264,27 +258,12 @@ class MOREAU(ConicSolver):
         # Handle options (device is now part of Settings)
         settings, processed_opts = self.handle_options(verbose, solver_opts or {})
 
-        # Get variable bounds (default to unbounded if None)
-        nvars = P.shape[0]
-        lb = data.get(s.LOWER_BOUNDS)
-        ub = data.get(s.UPPER_BOUNDS)
-        if lb is None:
-            lb = np.full(nvars, -np.inf, dtype=np.float64)
-        else:
-            lb = lb.astype(np.float64)
-        if ub is None:
-            ub = np.full(nvars, np.inf, dtype=np.float64)
-        else:
-            ub = ub.astype(np.float64)
-
         # Create solver with all problem data in constructor
         solver = moreau.Solver(
             P=P,
             q=q.astype(np.float64),
             A=A,
             b=b.astype(np.float64),
-            l=lb,
-            u=ub,
             cones=cones,
             settings=settings,
         )
@@ -294,7 +273,7 @@ class MOREAU(ConicSolver):
         info = solver.info  # Metadata is on solver.info after solve()
 
         return MoreauSolution(solution, info)
-    
+
     def cite(self, data):
         """Returns bibtex citation for the solver.
 
@@ -328,5 +307,3 @@ class MoreauSolution:
         self.solve_time = info.solve_time
         self.setup_time = info.setup_time
         self.obj_val = info.obj_val
-
-

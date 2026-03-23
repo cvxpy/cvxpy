@@ -18,15 +18,20 @@ from cvxpy.lin_ops.backends import (
     get_backend,
 )
 from cvxpy.lin_ops.backends.coo_backend import (
-    _build_interleaved,
+    _build_interleaved_mul,
+    _build_interleaved_rmul,
     _kron_eye_l,
     _kron_eye_r,
-    _kron_nd_structure,
+    _kron_nd_structure_mul,
+    _kron_nd_structure_rmul,
 )
 from cvxpy.lin_ops.backends.scipy_backend import (
-    _apply_nd_kron_structure,
-    _build_interleaved_matrix,
-    _expand_parametric_slices,
+    _apply_nd_kron_structure_mul,
+    _apply_nd_kron_structure_rmul,
+    _build_interleaved_matrix_mul,
+    _build_interleaved_matrix_rmul,
+    _expand_parametric_slices_mul,
+    _expand_parametric_slices_rmul,
 )
 
 
@@ -669,7 +674,7 @@ class TestBackends:
     def test_broadcast_to_cols(self, backend):
         """
         define x = Variable((2,1)) with
-        [[x1], 
+        [[x1],
          [x2]]
 
         x is represented as eye(2) in the A matrix, i.e.,
@@ -2222,6 +2227,30 @@ class TestND_Backends:
         # Note: view is edited in-place:
         assert out_view.get_tensor_representation(0, 4) == view.get_tensor_representation(0, 4)
 
+    @pytest.mark.parametrize("axis, expected", [
+        # Negative axis: -1 is equivalent to axis=2 for a 3D array
+        (-1, [[1, 0, 0, 0, 1, 0, 0, 0],
+              [0, 1, 0, 0, 0, 1, 0, 0],
+              [0, 0, 1, 0, 0, 0, 1, 0],
+              [0, 0, 0, 1, 0, 0, 0, 1]]),
+        # -2 is equivalent to axis=1
+        (-2, [[1, 0, 1, 0, 0, 0, 0, 0],
+              [0, 1, 0, 1, 0, 0, 0, 0],
+              [0, 0, 0, 0, 1, 0, 1, 0],
+              [0, 0, 0, 0, 0, 1, 0, 1]]),
+    ])
+    def test_nd_sum_entries_negative_axis(self, backend, axis, expected):
+        """Negative axis values should be normalized to their positive equivalents."""
+        variable_lin_op = linOpHelper((2, 2, 2), type="variable", data=1)
+        view = backend.process_constraint(variable_lin_op, backend.get_empty_view())
+
+        sum_lin_op = linOpHelper(shape=(2, 2, 2), data=[axis, True], args=[variable_lin_op])
+        out_view = backend.sum_entries(sum_lin_op, view)
+        A = out_view.get_tensor_representation(0, 4)
+
+        A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(4, 8)).toarray()
+        assert np.all(A == np.array(expected))
+
     @pytest.mark.parametrize("axes, expected", [((0,1),
                                                 [[1, 1, 1, 1, 0, 0, 0, 0],
                                                 [0, 0, 0, 0, 1, 1, 1, 1]]),
@@ -2229,6 +2258,10 @@ class TestND_Backends:
                                                 [[1, 1, 0, 0, 1, 1, 0, 0],
                                                 [0, 0, 1, 1, 0, 0, 1, 1]]),
                                                 ((2,1),
+                                                [[1, 0, 1, 0, 1, 0, 1, 0],
+                                                [0, 1, 0, 1, 0, 1, 0, 1]]),
+                                                # Negative axes: (-1,-2) equivalent to (2,1)
+                                                ((-1,-2),
                                                 [[1, 0, 1, 0, 1, 0, 1, 0],
                                                 [0, 1, 0, 1, 0, 1, 0, 1]])])
     def test_nd_sum_entries_multiple_axes(self, backend, axes, expected):
@@ -2359,7 +2392,7 @@ class TestND_Backends:
     def test_nd_broadcast_to(self, backend):
         """
         define x = Variable((2,1,2)) with
-        [[x11, x12], 
+        [[x11, x12],
          [x21, x22]]
 
         x is represented as eye(4) in the A matrix, i.e.,
@@ -2893,10 +2926,36 @@ class TestSciPyBackend:
         matrices = [sp.random_array(shape, random_state=rng, density=0.5).tocsc()
                     for _ in range(p)]
         stacked = sp.vstack(matrices, format="csc")
-        result = sp.vstack(list(_expand_parametric_slices(stacked, p, batch_size, n)))
+        result = sp.vstack(list(_expand_parametric_slices_mul(stacked, p, batch_size, n)))
 
         # Expected: apply I_n ⊗ C ⊗ I_batch to each slice, then vstack
-        expected = sp.vstack([_apply_nd_kron_structure(m, batch_size, n) for m in matrices])
+        expected = sp.vstack([_apply_nd_kron_structure_mul(m, batch_size, n) for m in matrices])
+        assert (expected != result).nnz == 0
+
+    @staticmethod
+    @pytest.mark.parametrize("shape,batch_size,m", [
+        ((2, 2), 1, 3),   # 2D case: C.T ⊗ I_m
+        ((2, 2), 2, 3),   # ND case: C.T ⊗ I_{batch*m}
+        ((3, 2), 1, 4),   # 2D case with non-square matrix
+        ((3, 2), 3, 2),   # ND case with non-square matrix
+    ])
+    def test_expand_parametric_slices_rmul(shape, batch_size, m):
+        """
+        Test expand_parametric_slices_rmul which applies C.T ⊗ I_{batch*m} to each param slice.
+
+        For batch_size=1, this reduces to C.T ⊗ I_m (the 2D case).
+        """
+        rng = np.random.default_rng(42)
+        p = 2  # number of parameter slices
+        matrices = [sp.random_array(shape, random_state=rng, density=0.5).tocsc()
+                    for _ in range(p)]
+        stacked = sp.vstack(matrices, format="csc")
+        result = sp.vstack(list(_expand_parametric_slices_rmul(stacked, p, batch_size, m)))
+
+        # Expected: apply C.T ⊗ I_{batch*m} to each slice, then vstack
+        expected = sp.vstack([
+            _apply_nd_kron_structure_rmul(mat, batch_size, m) for mat in matrices
+        ])
         assert (expected != result).nnz == 0
 
     @staticmethod
@@ -3091,24 +3150,26 @@ class TestCooBackend:
         ((3, 2), 1, 4),   # 2D non-square
         ((3, 2), 3, 2),   # ND non-square
     ])
-    def test_kron_nd_structure(shape, batch_size, n):
-        """Test _kron_nd_structure against scipy-based approach."""
+    def test_kron_nd_structure_mul(shape, batch_size, n):
+        """Test _kron_nd_structure_mul against scipy-based approach."""
         rng = np.random.default_rng(42)
         param_size = 2
 
         matrices = [sp.random_array(shape, random_state=rng, density=0.5)
                     for _ in range(param_size)]
 
-        # Use CSR format because _expand_parametric_slices slices the matrix,
+        # Use CSR format because _expand_parametric_slices_mul slices the matrix,
         # and COO arrays don't support __getitem__ slicing.
         stacked = sp.vstack(matrices, format="csr")
         tensor = CooTensor.from_stacked_sparse(stacked, param_size)
 
         # Native COO implementation
-        result = _kron_nd_structure(tensor, batch_size, n)
+        result = _kron_nd_structure_mul(tensor, batch_size, n)
 
         # Reference: scipy-based implementation
-        expected = sp.vstack(list(_expand_parametric_slices(stacked, param_size, batch_size, n)))
+        expected = sp.vstack(list(
+            _expand_parametric_slices_mul(stacked, param_size, batch_size, n)
+        ))
 
         assert result.to_stacked_sparse().shape == expected.shape
         assert (expected != result.to_stacked_sparse()).nnz == 0
@@ -3119,16 +3180,68 @@ class TestCooBackend:
         ((3, 2, 2), (3, 2, 3)),     # B=3, m=2, k=2, n=3
         ((2, 2, 3, 4), (2, 2, 4, 2)),  # B=4, m=3, k=4, n=2
     ])
-    def test_build_interleaved(const_shape, var_shape):
-        """Test _build_interleaved against scipy-based _build_interleaved_matrix."""
+    def test_build_interleaved_mul(const_shape, var_shape):
+        """Test _build_interleaved_mul against scipy-based _build_interleaved_matrix_mul."""
         rng = np.random.default_rng(42)
         const_data = rng.random(np.prod(const_shape))
 
         # Native COO implementation
-        result = _build_interleaved(const_data, const_shape, var_shape)
+        result = _build_interleaved_mul(const_data, const_shape, var_shape)
 
         # Reference: scipy-based implementation
-        expected = _build_interleaved_matrix(const_data, const_shape, var_shape)
+        expected = _build_interleaved_matrix_mul(const_data, const_shape, var_shape)
+
+        assert result.to_stacked_sparse().shape == expected.shape
+        assert np.allclose(result.toarray(), expected.toarray())
+
+    @staticmethod
+    @pytest.mark.parametrize("shape, batch_size, m", [
+        ((2, 2), 1, 1),   # 2D square, no batch
+        ((2, 2), 1, 3),   # 2D square, m > 1
+        ((2, 2), 2, 1),   # 2D square, batch > 1
+        ((2, 2), 2, 3),   # 2D square, both > 1
+        ((3, 2), 1, 4),   # 2D non-square
+        ((3, 2), 3, 2),   # ND non-square
+    ])
+    def test_kron_nd_structure_rmul(shape, batch_size, m):
+        """Test _kron_nd_structure_rmul against scipy-based approach."""
+        rng = np.random.default_rng(42)
+        param_size = 2
+
+        matrices = [sp.random_array(shape, random_state=rng, density=0.5)
+                    for _ in range(param_size)]
+
+        # Use CSR format for slicing
+        stacked = sp.vstack(matrices, format="csr")
+        tensor = CooTensor.from_stacked_sparse(stacked, param_size)
+
+        # Native COO implementation
+        result = _kron_nd_structure_rmul(tensor, batch_size, m)
+
+        # Reference: scipy-based implementation
+        expected = sp.vstack(list(
+            _expand_parametric_slices_rmul(stacked, param_size, batch_size, m)
+        ))
+
+        assert result.to_stacked_sparse().shape == expected.shape
+        assert (expected != result.to_stacked_sparse()).nnz == 0
+
+    @staticmethod
+    @pytest.mark.parametrize("var_shape, const_shape", [
+        ((2, 3, 4), (2, 4, 5)),     # B=2, m=3, k=4, n=5
+        ((3, 2, 2), (3, 2, 3)),     # B=3, m=2, k=2, n=3
+        ((2, 2, 3, 4), (2, 2, 4, 2)),  # B=4, m=3, k=4, n=2
+    ])
+    def test_build_interleaved_rmul(var_shape, const_shape):
+        """Test _build_interleaved_rmul against scipy-based _build_interleaved_matrix_rmul."""
+        rng = np.random.default_rng(42)
+        const_data = rng.random(np.prod(const_shape))
+
+        # Native COO implementation
+        result = _build_interleaved_rmul(const_data, const_shape, var_shape)
+
+        # Reference: scipy-based implementation
+        expected = _build_interleaved_matrix_rmul(const_data, const_shape, var_shape)
 
         assert result.to_stacked_sparse().shape == expected.shape
         assert np.allclose(result.toarray(), expected.toarray())
@@ -3234,3 +3347,151 @@ class TestCooBackend:
             unique_params = np.unique(tensor.param_idx)
             assert len(unique_params) == param_to_size[param_id], \
                 f"Expected {param_to_size[param_id]} unique param_idx, got {len(unique_params)}"
+
+
+class TestTransformedParameterReshape:
+    """Regression tests for issue #3092: IndexError with transformed parameters
+    in reshape_parametric_constant (COO) and _reshape_parametric (SciPy)."""
+
+    @staticmethod
+    def _solve_both_backends(prob):
+        """Solve with both SciPy and COO backends, return both optimal values."""
+        prob.solve(solver=cp.SCS, canon_backend=s.SCIPY_CANON_BACKEND)
+        val_scipy = prob.value
+        prob.solve(solver=cp.SCS, canon_backend=s.COO_CANON_BACKEND)
+        val_coo = prob.value
+        return val_scipy, val_coo
+
+    def test_indexed_nd_parameter(self):
+        """Indexed N-D parameter (A_d[i] @ x) should not crash with COO backend."""
+        n = 3
+        x = cp.Variable(n)
+        A_d = cp.Parameter((2, n, n))
+        A_d.value = np.random.RandomState(0).randn(2, n, n)
+        b = np.ones(n)
+
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(x)), [A_d[0] @ x == b])
+        val_scipy, val_coo = self._solve_both_backends(prob)
+        assert val_coo is not None, "COO backend should produce a solution"
+        np.testing.assert_allclose(val_scipy, val_coo, rtol=1e-3)
+
+    def test_transposed_parameter(self):
+        """Transposed parameter (P.T @ x) should not crash with COO backend."""
+        n = 3
+        x = cp.Variable(n)
+        P = cp.Parameter((n, n))
+        P.value = np.eye(n) + 0.1 * np.random.RandomState(1).randn(n, n)
+        b = np.ones(n)
+
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(x)), [P.T @ x == b])
+        val_scipy, val_coo = self._solve_both_backends(prob)
+        assert val_coo is not None, "COO backend should produce a solution"
+        np.testing.assert_allclose(val_scipy, val_coo, rtol=1e-3)
+
+    def test_reshaped_parameter(self):
+        """Reshaped parameter in multiplication should not crash with COO backend."""
+        n = 4
+        x = cp.Variable(n)
+        P = cp.Parameter(n * n)
+        P.value = np.eye(n).flatten()
+
+        P_mat = cp.reshape(P, (n, n))
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(x)), [P_mat @ x == np.ones(n)])
+        val_scipy, val_coo = self._solve_both_backends(prob)
+        assert val_coo is not None, "COO backend should produce a solution"
+        np.testing.assert_allclose(val_scipy, val_coo, rtol=1e-3)
+
+    def test_rectangular_transposed_parameter(self):
+        """Transposed rectangular parameter exercises m != k in modular arithmetic."""
+        m, k = 4, 3
+        x = cp.Variable(m)
+        P = cp.Parameter((m, k))
+        P.value = np.random.RandomState(2).randn(m, k)
+        b = np.ones(k)
+
+        # P.T is (k, m), so P.T @ x has shape (k,)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(x)), [P.T @ x == b])
+        val_scipy, val_coo = self._solve_both_backends(prob)
+        assert val_coo is not None, "COO backend should produce a solution"
+        np.testing.assert_allclose(val_scipy, val_coo, rtol=1e-3)
+
+    def test_partial_slice_parameter(self):
+        """Partial row/column slicing of a parameter."""
+        m, k = 4, 5
+        x = cp.Variable(k - 1)
+        P = cp.Parameter((m, k))
+        P.value = np.random.RandomState(3).randn(m, k)
+        b = np.ones(m)
+
+        # Slice out columns 1: → shape (m, k-1)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(x)), [P[:, 1:] @ x == b])
+        val_scipy, val_coo = self._solve_both_backends(prob)
+        assert val_coo is not None, "COO backend should produce a solution"
+        np.testing.assert_allclose(val_scipy, val_coo, rtol=1e-3)
+
+    def test_rmul_transposed_parameter(self):
+        """Right-multiply with a transformed parameter exercises the rmul path."""
+        n = 3
+        x = cp.Variable(n)
+        P = cp.Parameter((n, n))
+        P.value = np.eye(n) + 0.1 * np.random.RandomState(4).randn(n, n)
+        b = np.ones(n)
+
+        # x @ P.T  →  rmul path with a transposed parameter
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(x)), [x @ P.T == b])
+        val_scipy, val_coo = self._solve_both_backends(prob)
+        assert val_coo is not None, "COO backend should produce a solution"
+        np.testing.assert_allclose(val_scipy, val_coo, rtol=1e-3)
+
+    def test_issue_3092_nd_parameter_dynamics(self):
+        """Scaled-down reproducer from GitHub issue #3092: N-D parameter
+        indexing in a dynamics constraint loop
+        (A_d[i] @ dx[i] + B_d[i] @ du[i] + ...)."""
+        N = 5
+        n_states = 4
+        n_controls = 2
+
+        A_d = cp.Parameter((N - 1, n_states, n_states), name="A_d")
+        B_d = cp.Parameter((N - 1, n_states, n_controls), name="B_d")
+        C_d = cp.Parameter((N - 1, n_states, n_controls), name="C_d")
+        x_prop = cp.Parameter((N - 1, n_states), name="x_prop")
+
+        x = cp.Variable((N, n_states), name="x")
+        dx = cp.Variable((N, n_states), name="dx")
+        du = cp.Variable((N, n_controls), name="du")
+        nu = cp.Variable((N - 1, n_states), name="nu")
+
+        rng = np.random.RandomState(42)
+        A_d.value = rng.randn(N - 1, n_states, n_states)
+        B_d.value = rng.randn(N - 1, n_states, n_controls)
+        C_d.value = rng.randn(N - 1, n_states, n_controls)
+        x_prop.value = rng.randn(N - 1, n_states)
+
+        inv_S_x = np.eye(n_states)
+        c_x = np.zeros(n_states)
+
+        constraints = []
+        for i in range(1, N):
+            constraints.append(
+                inv_S_x @ (x[i] - c_x)
+                == inv_S_x @ (
+                    A_d[i - 1] @ dx[i - 1]
+                    + B_d[i - 1] @ du[i - 1]
+                    + C_d[i - 1] @ du[i]
+                    + x_prop[i - 1]
+                    - c_x
+                )
+                + nu[i - 1]
+            )
+
+        objective = cp.Minimize(
+            sum(cp.sum_squares(cp.hstack((dx[i], du[i]))) for i in range(N))
+        )
+        prob = cp.Problem(objective, constraints)
+
+        # The original issue crashed here with IndexError.
+        # Verify both backends solve without error and agree.
+        val_scipy, val_coo = self._solve_both_backends(prob)
+        assert val_scipy is not None
+        assert val_coo is not None
+        np.testing.assert_allclose(val_scipy, val_coo, rtol=1e-3, atol=1e-6)

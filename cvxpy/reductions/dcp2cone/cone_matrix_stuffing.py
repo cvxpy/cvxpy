@@ -26,7 +26,6 @@ from cvxpy.constraints import (
     ExpCone,
     Inequality,
     NonNeg,
-    NonPos,
     PowCone3D,
     PowConeND,
     Zero,
@@ -38,6 +37,8 @@ from cvxpy.problems.param_prob import ParamProb
 from cvxpy.reductions import InverseData, Solution, cvx_attr2constr
 from cvxpy.reductions.matrix_stuffing import (
     MatrixStuffing,
+    _has_parametric_bounds,
+    extract_bounds_tensor,
     extract_lower_bounds,
     extract_mip_idx,
     extract_upper_bounds,
@@ -49,7 +50,6 @@ from cvxpy.reductions.utilities import (
     group_constraints,
     lower_equality,
     lower_ineq_to_nonneg,
-    nonpos2nonneg,
 )
 from cvxpy.utilities.coeff_extractor import CoeffExtractor
 
@@ -88,7 +88,7 @@ class ConeDims:
         self.nonneg = int(sum(c.size for c in constr_map[NonNeg]))
         self.exp = int(sum(c.num_cones() for c in constr_map[ExpCone]))
         self.soc = [int(dim) for c in constr_map[SOC] for dim in c.cone_sizes()]
-        self.psd = [int(c.shape[0]) for c in constr_map[PSD]]
+        self.psd = [int(dim) for c in constr_map[PSD] for dim in c.cone_sizes()]
         p3d = []
         if constr_map[PowCone3D]:
             p3d = np.concatenate([c.alpha.value for c in constr_map[PowCone3D]]).tolist()
@@ -96,10 +96,16 @@ class ConeDims:
 
         pnd = []
         if constr_map[PowConeND]:
-            pnd = np.concatenate([c.alpha.value.T for c in constr_map[PowConeND]]).tolist()
+            alphas = []
+            for c in constr_map[PowConeND]:
+                a = c.alpha.value
+                if a.ndim == 1:
+                    a = a[:, np.newaxis]
+                alphas.append(a.T)
+            pnd = np.concatenate(alphas).tolist()
         self.pnd = pnd
 
-    def __repr__(self) -> str: 
+    def __repr__(self) -> str:
         return "(zero: {0}, nonneg: {1}, exp: {2}, soc: {3}, psd: {4}, p3d: {5}, pnd: {6})".format(
             self.zero, self.nonneg, self.exp, self.soc, self.psd, self.p3d, self.pnd)
 
@@ -157,6 +163,8 @@ class ParamConeProg(ParamProb):
                  formatted: bool = False,
                  lower_bounds: np.ndarray | None = None,
                  upper_bounds: np.ndarray | None = None,
+                 lb_tensor=None,
+                 ub_tensor=None,
                  ) -> None:
         # The problem data tensors; q is for the objective, and A for
         # the problem data matrix
@@ -168,6 +176,9 @@ class ParamConeProg(ParamProb):
         # Lower and upper bounds for the variable, if present.
         self.lower_bounds = lower_bounds
         self.upper_bounds = upper_bounds
+        # Sparse tensors for parametric bounds (param_vec -> bounds_vec).
+        self.lb_tensor = lb_tensor
+        self.ub_tensor = ub_tensor
 
         # Form a reduced representation of A and P, for faster application
         # of parameters.
@@ -226,6 +237,21 @@ class ParamConeProg(ParamProb):
         q = q.toarray().flatten()
         A, b = self.reduced_A.get_matrix_from_tensor(param_vec, with_offset=True)
 
+        # Apply parametric bounds tensors if present.
+        if self.lb_tensor is not None:
+            if param_vec is None:
+                # No parameters: tensor is just the constant column.
+                self.lower_bounds = self.lb_tensor.toarray().flatten()
+            else:
+                self.lower_bounds = np.asarray(
+                    self.lb_tensor @ param_vec).flatten()
+        if self.ub_tensor is not None:
+            if param_vec is None:
+                self.upper_bounds = self.ub_tensor.toarray().flatten()
+            else:
+                self.upper_bounds = np.asarray(
+                    self.ub_tensor @ param_vec).flatten()
+
         if quad_obj:
             self.reduced_P.cache(keep_zeros)
             P, _ = self.reduced_P.get_matrix_from_tensor(param_vec, with_offset=False)
@@ -268,7 +294,8 @@ class ParamConeProg(ParamProb):
         for param_id, col in self.param_id_to_col.items():
             if param_id in active_params:
                 param = self.id_to_param[param_id]
-                delta = del_param_vec[col:col + param.size]
+                size = self.param_id_to_size[param_id]
+                delta = del_param_vec[col:col + size]
                 param_id_to_delta_param[param_id] = np.reshape(
                     delta, param.shape, order='F')
         return param_id_to_delta_param
@@ -285,8 +312,8 @@ class ParamConeProg(ParamProb):
                 var = self.id_to_var[var_id]
                 value = sltn[col:var.size+col]
                 if var.attributes_were_lowered():
-                    orig_var = var.variable_of_provenance()
-                    value = cvx_attr2constr.recover_value_for_variable(
+                    orig_var = var.leaf_of_provenance()
+                    value = cvx_attr2constr.recover_value_for_leaf(
                         orig_var, value, project=False)
                     sltn_dict[orig_var.id] = np.reshape(
                         value, orig_var.shape, order='F')
@@ -303,7 +330,7 @@ class ParamConeProg(ParamProb):
             var = self.id_to_var[var_id]
             col = self.var_id_to_col[var_id]
             if var.attributes_were_lowered():
-                orig_var = var.variable_of_provenance()
+                orig_var = var.leaf_of_provenance()
                 if cvx_attr2constr.attributes_present(
                         [orig_var], cvx_attr2constr.SYMMETRIC_ATTRIBUTES):
                     delta = delta + delta.T - np.diag(np.diag(delta))
@@ -360,8 +387,6 @@ class ConeMatrixStuffing(MatrixStuffing):
                 con = lower_equality(con)
             elif isinstance(con, Inequality):
                 con = lower_ineq_to_nonneg(con)
-            elif isinstance(con, NonPos):
-                con = nonpos2nonneg(con)
             elif isinstance(con, SOC) and con.axis == 1:
                 con = SOC(con.args[0], con.args[1].T, axis=0,
                           constr_id=con.constr_id)
@@ -406,8 +431,21 @@ class ConeMatrixStuffing(MatrixStuffing):
 
         inverse_data.minimize = type(problem.objective) == Minimize
         variables = problem.variables()
-        lower_bounds = extract_lower_bounds(variables, flattened_variable.size)
-        upper_bounds = extract_upper_bounds(variables, flattened_variable.size)
+        if _has_parametric_bounds(variables):
+            lb_tensor = extract_bounds_tensor(
+                variables, flattened_variable.size,
+                inverse_data.param_to_size, inverse_data.param_id_map,
+                canon_backend, which='lower')
+            ub_tensor = extract_bounds_tensor(
+                variables, flattened_variable.size,
+                inverse_data.param_to_size, inverse_data.param_id_map,
+                canon_backend, which='upper')
+            lower_bounds = None  # will be computed from tensor
+            upper_bounds = None
+        else:
+            lb_tensor = ub_tensor = None
+            lower_bounds = extract_lower_bounds(variables, flattened_variable.size)
+            upper_bounds = extract_upper_bounds(variables, flattened_variable.size)
         new_prob = ParamConeProg(
             params_to_c,
             flattened_variable,
@@ -420,6 +458,8 @@ class ConeMatrixStuffing(MatrixStuffing):
             P=params_to_P,
             lower_bounds=lower_bounds,
             upper_bounds=upper_bounds,
+            lb_tensor=lb_tensor,
+            ub_tensor=ub_tensor,
         )
         return new_prob, inverse_data
 
@@ -432,18 +472,30 @@ class ConeMatrixStuffing(MatrixStuffing):
         if solution.status not in s.ERROR and not inverse_data.minimize:
             opt_val = -solution.opt_val
 
-        primal_vars, dual_vars = {}, {}
+        # Remap dual variables if dual exists (problem is convex).
+        dual_vars = {}
+        if solution.dual_vars is not None:
+            for old_con, new_con in con_map.items():
+                con_obj = inverse_data.id2cons[old_con]
+                shape = con_obj.shape
+                dual_value = solution.dual_vars.get(new_con)
+                # TODO rationalize Exponential.
+                if dual_value is not None:
+                    if shape == () or isinstance(con_obj, (ExpCone, SOC)):
+                        dual_vars[old_con] = dual_value
+                    else:
+                        dual_vars[old_con] = np.reshape(dual_value, shape, order="F")
+
+        primal_vars = {}
         if solution.status not in s.SOLUTION_PRESENT:
-            return Solution(solution.status, opt_val, primal_vars, dual_vars,
-                            solution.attr)
+            return Solution(solution.status, opt_val, primal_vars, dual_vars, solution.attr)
 
         # Split vectorized variable into components.
         x_opt = list(solution.primal_vars.values())[0]
         for var_id, offset in var_map.items():
             shape = inverse_data.var_shapes[var_id]
             size = np.prod(shape, dtype=int)
-            primal_vars[var_id] = np.reshape(x_opt[offset:offset+size], shape,
-                                             order='F')
+            primal_vars[var_id] = np.reshape(x_opt[offset: offset + size], shape, order="F")
 
         # Remap dual variables if dual exists (problem is convex).
         if solution.dual_vars is not None:
@@ -451,7 +503,8 @@ class ConeMatrixStuffing(MatrixStuffing):
                 con_obj = inverse_data.id2cons[old_con]
                 shape = con_obj.shape
                 # TODO rationalize Exponential.
-                if shape == () or isinstance(con_obj, (ExpCone, SOC)):
+                if shape == () or isinstance(con_obj, (ExpCone, SOC)) or \
+                        (isinstance(con_obj, PSD) and con_obj.num_cones() > 1):
                     dual_vars[old_con] = solution.dual_vars[new_con]
                 else:
                     dual_vars[old_con] = np.reshape(

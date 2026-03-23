@@ -108,8 +108,12 @@ class GUROBI(ConicSolver):
         """Returns the solution to the original problem given the inverse_data.
         """
         status = solution['status']
+
+        bar_iter_count = getattr(solution["model"], "BarIterCount", 0)
+
         attr = {s.EXTRA_STATS: solution['model'],
-                s.SOLVE_TIME: solution[s.SOLVE_TIME]}
+                s.SOLVE_TIME: solution[s.SOLVE_TIME],
+                s.NUM_ITERS: bar_iter_count}
 
         primal_vars = None
         dual_vars = None

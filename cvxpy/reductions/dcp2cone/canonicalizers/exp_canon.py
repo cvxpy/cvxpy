@@ -20,12 +20,14 @@ from cvxpy.atoms import promote
 from cvxpy.constraints.exponential import ExpCone
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variable import Variable
+from cvxpy.utilities.bounds import get_expr_bounds_if_supported
 from cvxpy.utilities.solver_context import SolverInfo
 
 
 def exp_canon(expr, args, solver_context: SolverInfo | None = None):
     x = promote(args[0], expr.shape)
-    t = Variable(expr.shape)
+    bounds = get_expr_bounds_if_supported(expr, solver_context)
+    t = Variable(expr.shape, bounds=bounds)
     ones = Constant(np.ones(expr.shape))
     constraints = [ExpCone(x, ones, t)]
     return t, constraints

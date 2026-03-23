@@ -4,7 +4,67 @@ Changes to CVXPY
 ================
 
 This page details changes made to CVXPY over time, in reverse chronological order.
-CVXPY's project maintainers currently provide support for CVXPY 1.7.
+CVXPY's project maintainers currently provide support for CVXPY 1.8.
+
+CVXPY 1.8
+---------
+
+This release is consistent with our semantic versioning guarantee. It
+comes packed with many new features, bug fixes, and performance improvements.
+This version of CVXPY supports Python 3.11 through 3.14. We will support CVXPY
+1.8 with bugfixes while developing the 1.9 release. CVXPY 1.7 and older are no
+longer supported.
+
+Adoption of SPEC 0
+~~~~~~~~~~~~~~~~~~
+
+In this release we decided to adopt the `minimum supported dependencies <https://scientific-python.org/specs/spec-0000/>`_
+SPEC (Scientific Python Ecosystem Coordination). Notably, this means that we have dropped support for
+Python 3.10 and NumPy < 2.0.
+
+New canonicalization backend
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This release introduces a new backend which can handle a very large number of parameters.
+To use the backend, please specify the argument ``canon_backend="COO"`` when solving a DPP
+problem.
+
+New default MILP solver
+~~~~~~~~~~~~~~~~~~~~~~~
+
+CVXPY adds the open source solver HiGHS as its default mixed-integer linear programming (MILP)
+solver. HiGHS is a high performance serial and parallel solver for large scale sparse
+linear optimization problems developed by a team from the University of Edinburgh.
+
+Power cone canonicalization
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Four atoms, `power`, `geo_mean`, `pnorm`, and `inv_prod` now take a parameter `approx` that determines
+whether CVXPY canonicalizes the atom using many SOCs or one power cone. Feel free to set
+`approx=False` and report on whether it improves performance or accuracy!
+
+Logical boolean operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+CVXPY now supports logical boolean operations on boolean expressions via the
+``cp.logic`` module. The new atoms are ``cp.logic.AND``, ``cp.logic.OR``,
+``cp.logic.NOT``, and ``cp.logic.XOR``. See the :ref:`boolean-logic` tutorial
+for more details.
+
+New features
+~~~~~~~~~~~~
+  - DPP with complex expressions
+  - Support for ND matmul
+  - Support for ND cumsum
+  - unification of QP interface into quadratic conic pathway
+  - solving chain context
+  - New atom: :ref:`einsum <einsum>`
+  - New atom: :ref:`stack <stack>`
+  - New solver interface: :ref:`MOREAU <MOREAU>`
+  - New solver interface: :ref:`KNITRO <knitro>`
+  - New solver interface: :ref:`COSMO <COSMO>`
+  - New solver interface: :ref:`QPALM <QPALM>`
+  - Add ``num_iters`` to Gurobi conic solver solution info
 
 CVXPY 1.7
 ---------

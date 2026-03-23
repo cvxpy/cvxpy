@@ -14,13 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import warnings
-
 import numpy as np
 
 # Only need Variable from expressions, but that would create a circular import.
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.utilities import scopes
+from cvxpy.utilities.warn import CvxpyDeprecationWarning, warn
 
 
 class NonPos(Constraint):
@@ -54,7 +53,7 @@ class NonPos(Constraint):
     """
 
     def __init__(self, expr, constr_id=None) -> None:
-        warnings.warn(NonPos.DEPRECATION_MESSAGE, DeprecationWarning)
+        warn(NonPos.DEPRECATION_MESSAGE, CvxpyDeprecationWarning)
         super(NonPos, self).__init__([expr], constr_id)
         if not self.args[0].is_real():
             raise ValueError("Input to NonPos must be real.")
@@ -68,6 +67,13 @@ class NonPos(Constraint):
             with scopes.dpp_scope():
                 return self.args[0].is_convex()
         return self.args[0].is_convex()
+
+    def is_dnlp(self) -> bool:
+        """
+        A NonPos constraint is DNLP if its
+        argument is linearizable convex.
+        """
+        return self.args[0].is_linearizable_convex()
 
     def is_dgp(self, dpp: bool = False) -> bool:
         return False
@@ -127,6 +133,13 @@ class NonNeg(Constraint):
             with scopes.dpp_scope():
                 return self.args[0].is_concave()
         return self.args[0].is_concave()
+
+    def is_dnlp(self) -> bool:
+        """
+        A non-negative constraint is DNLP if
+        its argument is linearizable concave.
+        """
+        return self.args[0].is_linearizable_concave()
 
     def is_dgp(self, dpp: bool = False) -> bool:
         return False
@@ -210,6 +223,13 @@ class Inequality(Constraint):
             with scopes.dpp_scope():
                 return self.expr.is_convex()
         return self.expr.is_convex()
+
+    def is_dnlp(self) -> bool:
+        """
+        An Inequality constraint is DNLP if its
+        argument is linearizable convex.
+        """
+        return self.expr.is_linearizable_convex()
 
     def is_dgp(self, dpp: bool = False) -> bool:
         if dpp:
