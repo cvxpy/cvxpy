@@ -190,12 +190,17 @@ class Power(Elementwise):
 
     @Elementwise.numpy_numeric
     def numeric(self, values):
+        if self.p.value is None:
+            raise ValueError(
+                "Power exponent must have a value set. "
+                "Received a Parameter exponent without a value."
+            )
         return np.power(values[0], float(self.p.value))
 
     def sign_from_args(self) -> tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
-        if self.p.value == 1:
+        if self.p.value is not None and self.p.value == 1:
             # Same as input.
             return (self.args[0].is_nonneg(), self.args[0].is_nonpos())
         else:
@@ -473,4 +478,8 @@ class PowerApprox(Power):
 
         self.p_used = p_val
         self.w = w
-        self.approx_error = float(abs(self.p_used - self.p.value))
+        self.approx_error = (
+            float(abs(self.p_used - self.p.value))
+            if self.p.value is not None
+            else 0.0
+        )

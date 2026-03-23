@@ -128,7 +128,7 @@ class FiniteSet(Constraint):
         -------
         float
         """
-        if self.expre.value is None:
+        if self.expre.value is None or self.vec.value is None:
             return None
         expr_val = np.array(self.expre.value).flatten(order='F')
         vec_val = self.vec.value

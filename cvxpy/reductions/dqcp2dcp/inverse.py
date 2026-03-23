@@ -47,7 +47,7 @@ def inverse(expr):
         return lambda t: atoms.log(atoms.exp(t) - 1) if t.is_nonneg() else -np.inf
     elif isinstance(expr, atoms.Power):  # catches both Power and PowerApprox
         def power_inv(t):
-            if expr.p.value == 1:
+            if expr.p.value is not None and expr.p.value == 1:
                 return t
             if t.is_nonneg():
                 return atoms.power(t, 1/expr.p.value)
