@@ -1,7 +1,7 @@
 import numpy as np
 import qdldl
 import scipy.linalg as la
-import scipy.sparse as spar
+import scipy.sparse as sp
 import scipy.sparse.linalg as sparla
 from scipy.sparse import csc_array
 
@@ -37,8 +37,8 @@ def onb_for_orthogonal_complement(V):
 
 
 def is_diagonal(A):
-    if spar.issparse(A):
-        off_diagonal_elements = A - spar.diags_array(A.diagonal())
+    if sp.issparse(A):
+        off_diagonal_elements = A - sp.diags_array(A.diagonal())
         off_diagonal_elements = off_diagonal_elements.toarray()
     elif isinstance(A, np.ndarray):
         off_diagonal_elements = A - np.diag(np.diag(A))
@@ -67,7 +67,7 @@ def is_psd_within_tol(A, tol):
 
     Parameters
     ----------
-    A : Union[np.ndarray, spar.sparray]
+    A : Union[np.ndarray, sp.sparray]
         Symmetric (or Hermitian) NumPy ndarray or SciPy sparse array.
 
     tol : float
@@ -150,7 +150,7 @@ def gershgorin_psd_check(A, tol):
 
     Parameters
     ----------
-    A : Union[np.ndarray, spar.sparray]
+    A : Union[np.ndarray, sp.sparray]
         Symmetric (or Hermitian) NumPy ndarray or SciPy sparse array.
 
     tol : float
@@ -161,11 +161,11 @@ def gershgorin_psd_check(A, tol):
     True if A is PSD according to the Gershgorin Circle Theorem.
     Otherwise, return False.
     """
-    if spar.issparse(A):
+    if sp.issparse(A):
         diag = A.diagonal()
         if np.any(diag < -tol):
             return False
-        A_shift = A - spar.diags_array(diag)
+        A_shift = A - sp.diags_array(diag)
         A_shift = np.abs(A_shift)
         radii = np.array(A_shift.sum(axis=0)).ravel()
         return np.all(diag - radii >= -tol)
@@ -214,7 +214,7 @@ def sparse_cholesky(A, sym_tol=settings.CHOL_SYM_TOL, assume_posdef=False):
             raise ValueError(SparseCholeskyMessages.NOT_CONST)
         A = A.value
 
-    if not spar.issparse(A):
+    if not sp.issparse(A):
         raise ValueError(SparseCholeskyMessages.NOT_SPARSE)
     if np.iscomplexobj(A):
         raise ValueError(SparseCholeskyMessages.NOT_REAL)
@@ -239,7 +239,7 @@ def sparse_cholesky(A, sym_tol=settings.CHOL_SYM_TOL, assume_posdef=False):
     n = A.shape[0]
 
     # QDLDL expects upper triangular CSC format
-    A_upper = spar.triu(A, format='csc')
+    A_upper = sp.triu(A, format='csc')
 
     try:
         solver = qdldl.Solver(A_upper, upper=True)
@@ -257,11 +257,11 @@ def sparse_cholesky(A, sym_tol=settings.CHOL_SYM_TOL, assume_posdef=False):
         # Build the Cholesky factor: L_chol = (I + L_unit) @ sqrt(D)
         # L_unit is strictly lower triangular (zeros on diagonal)
         sqrt_D_vals = np.sqrt(D)
-        I_plus_L = spar.eye(n, format='csr') + spar.csr_array(L_unit)
-        L_chol = I_plus_L @ spar.diags(sqrt_D_vals, format='csr')
+        I_plus_L = sp.eye(n, format='csr') + sp.csr_array(L_unit)
+        L_chol = I_plus_L @ sp.diags(sqrt_D_vals, format='csr')
 
         # Ensure CSR format for consistency
-        L_chol = spar.csr_array(L_chol)
+        L_chol = sp.csr_array(L_chol)
 
         # QDLDL's permutation p defines P where P[i, p[i]] = 1, giving:
         #   A = P @ L_chol @ L_chol.T @ P.T
