@@ -15,7 +15,7 @@ limitations under the License.
 """
 
 import numpy as np # noqa F403
-import scipy.sparse as spar
+import scipy.sparse as sp
 
 from cvxpy.tests.base_test import BaseTest
 from cvxpy.utilities import linalg as lau
@@ -31,12 +31,12 @@ class TestSparseCholesky(BaseTest):
     def check_factor(self, L, places=5):
         diag = L.diagonal()
         self.assertTrue(np.all(diag > 0))
-        delta = (L - spar.tril(L)).toarray().flatten()
+        delta = (L - sp.tril(L)).toarray().flatten()
         self.assertItemsAlmostEqual(delta, np.zeros(delta.size), places)
 
     def test_diagonal(self):
         np.random.seed(0)
-        A = spar.csc_array(np.diag(np.random.rand(4)))
+        A = sp.csc_array(np.diag(np.random.rand(4)))
         _, L, p = lau.sparse_cholesky(A, 0.0)
         self.check_factor(L)
         self.check_gram(L[p, :], A)
@@ -46,7 +46,7 @@ class TestSparseCholesky(BaseTest):
         n = 5
         diag = np.random.rand(n) + 0.1
         offdiag = np.min(np.abs(diag)) * np.ones(n - 1) / 2
-        A = spar.diags_array([offdiag, diag, offdiag], offsets=[-1, 0, 1])
+        A = sp.diags_array([offdiag, diag, offdiag], offsets=[-1, 0, 1])
         _, L, p = lau.sparse_cholesky(A, 0.0)
         self.check_factor(L)
         self.check_gram(L[p, :], A)
@@ -54,7 +54,7 @@ class TestSparseCholesky(BaseTest):
     def test_generic(self, use_expression=False):
         np.random.seed(0)
         B = np.random.randn(3, 3)
-        A = spar.csc_array(B @ B.T)
+        A = sp.csc_array(B @ B.T)
         if use_expression:
             from cvxpy.expressions.expression import Expression
             A = Expression.cast_to_const(A)
@@ -75,7 +75,7 @@ class TestSparseCholesky(BaseTest):
         # ValueError and falls back to dense eigendecomposition via eigh.
         np.random.seed(0)
         B = np.random.randn(4, 2)
-        A = spar.csc_array(B @ B.T)  # Must be sparse
+        A = sp.csc_array(B @ B.T)  # Must be sparse
         with self.assertRaises(ValueError):
             lau.sparse_cholesky(A)
 
@@ -84,8 +84,8 @@ class TestSparseCholesky(BaseTest):
         # to verify the permutation handling is correct
         np.random.seed(123)
         n = 6
-        B = spar.random(n, n, density=0.4, format='csr', random_state=123)
-        A = (B @ B.T + n * spar.eye(n)).tocsc()
+        B = sp.random(n, n, density=0.4, format='csr', random_state=123)
+        A = (B @ B.T + n * sp.eye(n)).tocsc()
         _, L, p = lau.sparse_cholesky(A)
         self.check_factor(L)
         self.check_gram(L[p, :], A)
@@ -100,6 +100,6 @@ class TestSparseCholesky(BaseTest):
         diag = np.random.rand(n) + 0.1
         diag[n-1] = -1
         offdiag = np.min(np.abs(diag)) * np.ones(n - 1) / 2
-        A = spar.diags_array([offdiag, diag, offdiag], offsets=[-1, 0, 1])
+        A = sp.diags_array([offdiag, diag, offdiag], offsets=[-1, 0, 1])
         with self.assertRaises(ValueError, msg=lau.SparseCholeskyMessages.INDEFINITE):
             lau.sparse_cholesky(A, 0.0)
