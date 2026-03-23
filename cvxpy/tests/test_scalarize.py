@@ -1,6 +1,7 @@
 import pytest
 
 import cvxpy as cp
+from cvxpy.error import DCPError
 from cvxpy.tests.base_test import BaseTest
 from cvxpy.transforms import scalarize
 
@@ -11,7 +12,7 @@ class ScalarizeTest(BaseTest):
     """
 
     def setUp(self) -> None:
-        
+
         self.x = cp.Variable()
         obj1 = cp.Minimize(cp.square(self.x))
         obj2 = cp.Minimize(cp.square(self.x-1))
@@ -217,3 +218,207 @@ class ScalarizeTest(BaseTest):
         prob = cp.Problem(scalarized)
         prob.solve()
         self.assertItemsAlmostEqual(self.x.value, 0.3646, places=3)
+
+    def test_weighted_sum_maximize_and_negative_weights(self) -> None:
+        """Maximize objectives and negative weight flipping."""
+        x = cp.Variable()
+        # Maximize objectives: weighted sum should return Maximize
+        objs = [cp.Maximize(-cp.square(x)), cp.Maximize(-cp.square(x - 1))]
+        scalarized = scalarize.weighted_sum(objs, [1, 1])
+        assert isinstance(scalarized, cp.Maximize)
+        prob = cp.Problem(scalarized)
+        prob.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(float(x.value), 0.5, places=3)
+
+        # Negative weight on Minimize flips to Maximize
+        obj = cp.Minimize(cp.square(x))
+        scalarized = scalarize.weighted_sum([obj], [-1])
+        assert isinstance(scalarized, cp.Maximize)
+
+        # Mixed types via negative weight → DCPError
+        with pytest.raises(DCPError):
+            scalarize.weighted_sum(self.objectives, [-1, 1])
+
+    def test_targets_and_priorities_penalty_values_minimize(self) -> None:
+        """Verify exact penalty values for Minimize against the formula.
+
+        penalty = ot * obj                          when obj < tar
+        penalty = (p - ot) * pos(obj - tar) + ot * obj  when obj >= tar
+        """
+        x = cp.Variable()
+        p, ot, tar = 2.0, 0.1, 1.0
+        obj = cp.Minimize(cp.square(x))
+        scalarized = scalarize.targets_and_priorities(
+            [obj], [p], [tar], off_target=ot
+        )
+
+        # x=0, obj=0 < tar → penalty = 0.1 * 0 = 0
+        prob = cp.Problem(scalarized, [x == 0])
+        prob.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(prob.value, 0.0, places=4)
+
+        # x=0.5, obj=0.25 < tar → penalty = 0.1 * 0.25 = 0.025
+        prob = cp.Problem(scalarized, [x == 0.5])
+        prob.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(prob.value, 0.025, places=4)
+
+        # x=2, obj=4 > tar → penalty = 1.9*pos(4-1) + 0.1*4 = 5.7 + 0.4 = 6.1
+        prob = cp.Problem(scalarized, [x == 2])
+        prob.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(prob.value, 6.1, places=3)
+
+    def test_targets_and_priorities_penalty_values_maximize(self) -> None:
+        """Verify exact penalty values for Maximize against the formula.
+
+        sign=-1: penalty = ot*obj when obj > tar
+                 penalty = -(p-ot)*pos(tar-obj) + ot*obj when obj <= tar
+        """
+        x = cp.Variable()
+        p, ot, tar = 2.0, 0.1, -1.0
+        obj = cp.Maximize(-cp.square(x))
+        scalarized = scalarize.targets_and_priorities(
+            [obj], [p], [tar], off_target=ot
+        )
+        assert isinstance(scalarized, cp.Maximize)
+
+        # x=0, obj=0 > tar=-1 → penalty = 0.1 * 0 = 0
+        prob = cp.Problem(scalarized, [x == 0])
+        prob.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(prob.value, 0.0, places=4)
+
+        # x=2, obj=-4 < tar=-1
+        # delta = -1*(-4-(-1)) = 3, expr = -1*1.9*3 + 0.1*(-4) = -6.1
+        prob = cp.Problem(scalarized, [x == 2])
+        prob.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(prob.value, -6.1, places=3)
+
+    def test_maximize_negative_priority_with_limits(self) -> None:
+        """Most complex code path: Maximize + negative priority + limits.
+
+        Maximize(-x^2) with priority=-1 → flips to Minimize(x^2),
+        tar=-1 → 1, lim=-4 → 4. Verifies the triple-flip logic.
+        """
+        x = cp.Variable()
+        obj = cp.Maximize(-cp.square(x))
+        scalarized = scalarize.targets_and_priorities(
+            [obj], [-1], [-1], limits=[-4], off_target=0.01
+        )
+        assert isinstance(scalarized, cp.Minimize)
+        prob = cp.Problem(scalarized, [x >= -5, x <= 5])
+        prob.solve(solver=cp.CLARABEL)
+        # Flipped to Minimize(x^2), target=1, optimal x=0 (below target)
+        self.assertAlmostEqual(float(x.value), 0.0, places=2)
+        # Limit x^2<=4 respected
+        assert abs(float(x.value)) <= 2.0 + 1e-3
+
+    def test_limits_enforced_minimize_and_maximize(self) -> None:
+        """Limits act as hard bounds: upper for Minimize, lower for Maximize."""
+        x = cp.Variable()
+
+        # Minimize(x) with limit=3: x <= 3 enforced
+        obj = cp.Minimize(x)
+        scalarized = scalarize.targets_and_priorities(
+            [obj], [1], [0], limits=[3], off_target=0.01
+        )
+        prob = cp.Problem(scalarized, [x >= -1, x <= 10])
+        prob.solve(solver=cp.CLARABEL)
+        assert float(x.value) <= 3.0 + 1e-3
+        self.assertAlmostEqual(float(x.value), -1.0, places=2)
+
+        # Maximize(x) with limit=2: x >= 2 enforced
+        obj = cp.Maximize(x)
+        scalarized = scalarize.targets_and_priorities(
+            [obj], [1], [8], limits=[2], off_target=0.01
+        )
+        prob = cp.Problem(scalarized, [x >= 0, x <= 10])
+        prob.solve(solver=cp.CLARABEL)
+        assert float(x.value) >= 2.0 - 1e-3
+        self.assertAlmostEqual(float(x.value), 10.0, places=2)
+
+        # Infeasible: Minimize(x) limit=-1 with x >= 0
+        obj = cp.Minimize(x)
+        scalarized = scalarize.targets_and_priorities(
+            [obj], [1], [0], limits=[-1], off_target=0.01
+        )
+        prob = cp.Problem(scalarized, [x >= 0, x <= 10])
+        prob.solve(solver=cp.CLARABEL)
+        assert prob.status in {cp.INFEASIBLE, cp.INFEASIBLE_INACCURATE}
+
+    def test_off_target_edge_cases(self) -> None:
+        """Edge cases: off_target=0, off_target==priority, off_target>priority."""
+        x = cp.Variable()
+
+        # off_target=0: no gradient below target
+        obj = cp.Minimize(cp.square(x))
+        scalarized = scalarize.targets_and_priorities(
+            [obj], [1], [10], off_target=0
+        )
+        prob = cp.Problem(scalarized, [x >= -5, x <= 5])
+        prob.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(float(x.value), 0.0, places=2)
+
+        # priority == off_target: pos() term vanishes, target irrelevant
+        scalarized = scalarize.targets_and_priorities(
+            [obj], [0.5], [10], off_target=0.5
+        )
+        prob = cp.Problem(scalarized)
+        prob.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(float(x.value), 0.0, places=3)
+
+        # off_target > priority with quadratic → ValueError (not DCP)
+        with pytest.raises(ValueError, match="neither convex nor concave"):
+            scalarize.targets_and_priorities([obj], [0.1], [1], off_target=1.0)
+
+        # off_target > priority with affine → concave, returns Maximize
+        obj_aff = cp.Minimize(x)
+        scalarized = scalarize.targets_and_priorities(
+            [obj_aff], [0.1], [1], off_target=1.0
+        )
+        assert isinstance(scalarized, cp.Maximize)
+
+    def test_all_negative_priorities(self) -> None:
+        """Negative priorities flip all objectives."""
+        x = cp.Variable()
+        objs = [cp.Minimize(cp.square(x)), cp.Minimize(cp.square(x - 1))]
+        scalarized = scalarize.targets_and_priorities(
+            objs, [-1, -1], [-1, -1], off_target=1e-5
+        )
+        assert isinstance(scalarized, cp.Maximize)
+        prob = cp.Problem(scalarized)
+        prob.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(float(x.value), 0.5, places=3)
+
+    def test_log_sum_exp_gamma_convergence(self) -> None:
+        """log_sum_exp converges to weighted_sum (gamma→0) and max (gamma→∞)."""
+        ws = scalarize.weighted_sum(self.objectives, [1, 1])
+        prob = cp.Problem(ws)
+        prob.solve(solver=cp.CLARABEL)
+        x_ws = float(self.x.value)
+
+        mx = scalarize.max(self.objectives, [1, 1])
+        prob = cp.Problem(mx)
+        prob.solve(solver=cp.CLARABEL)
+        x_max = float(self.x.value)
+
+        # Small gamma ≈ weighted_sum
+        scalarized = scalarize.log_sum_exp(self.objectives, [1, 1], gamma=0.01)
+        prob = cp.Problem(scalarized)
+        prob.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(float(self.x.value), x_ws, places=2)
+
+        # Large gamma ≈ max
+        scalarized = scalarize.log_sum_exp(self.objectives, [1, 1], gamma=100)
+        prob = cp.Problem(scalarized)
+        prob.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(float(self.x.value), x_max, places=2)
+
+    def test_max_and_log_sum_exp_maximize_not_dcp(self) -> None:
+        """max() and log_sum_exp() with Maximize objectives are not DCP."""
+        x = cp.Variable()
+        objs = [cp.Maximize(-cp.square(x)), cp.Maximize(-cp.square(x - 1))]
+
+        scalarized = scalarize.max(objs, [1, 1])
+        assert not cp.Problem(scalarized).is_dcp()
+
+        scalarized = scalarize.log_sum_exp(objs, [1, 1])
+        assert not cp.Problem(scalarized).is_dcp()
