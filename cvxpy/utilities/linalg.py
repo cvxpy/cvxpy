@@ -1,4 +1,5 @@
 import numpy as np
+import qdldl
 import scipy.linalg as la
 import scipy.sparse as spar
 import scipy.sparse.linalg as sparla
@@ -197,16 +198,15 @@ def sparse_cholesky(A, sym_tol=settings.CHOL_SYM_TOL, assume_posdef=False):
     ordering, which is then converted to Cholesky form.
     If A is negative definite, then the analogous operation will be applied to -A.
 
-    If factorization succeeds, then we return a lower-triangular matrix L in
-    CSR-format and a permutation vector p so (L[p, :]) @ (L[p, :]).T == A
-    within numerical precision.
+    If factorization succeeds, then we return (sign, L, p) where sign is +1.0
+    for positive definite or -1.0 for negative definite, L is a lower-triangular
+    matrix in CSR-format, and p is a permutation vector so that
+    (L[p, :]) @ (L[p, :]).T == sign * A within numerical precision.
 
     We raise a ValueError if QDLDL's factorization fails or if we certify indefiniteness
     before calling QDLDL. While checking for indefiniteness, we also check that
      ||A - A'||_Fro / sqrt(n) <= sym_tol, where n is the order of the matrix.
     """
-    import qdldl
-
     import cvxpy.expressions.cvxtypes as cvxtypes
 
     if isinstance(A, cvxtypes.expression()):
@@ -246,8 +246,11 @@ def sparse_cholesky(A, sym_tol=settings.CHOL_SYM_TOL, assume_posdef=False):
         L_unit, D, p = solver.factors()
 
         # QDLDL returns: A == P @ (I + L) @ diag(D) @ (I + L).T @ P.T
-        # For positive definite: all D > 0
         # Convert to standard Cholesky: L_chol = (I + L) @ diag(sqrt(D))
+        # Strict D > 0 is required: D == 0 means the matrix is singular
+        # (positive semidefinite but not positive definite), which has no
+        # Cholesky decomposition. The caller (decomp_quad) falls back to
+        # dense eigendecomposition for such matrices.
         if not np.all(D > 0):
             raise ValueError(SparseCholeskyMessages.FACTORIZATION_FAILED)
 
@@ -267,6 +270,8 @@ def sparse_cholesky(A, sym_tol=settings.CHOL_SYM_TOL, assume_posdef=False):
         # so that L[p_inv, :] @ L[p_inv, :].T = A (verified empirically)
         p_inv = np.argsort(p)
 
+        # sign=1.0 indicates positive definite (sign=-1.0 for negative
+        # definite, returned by the recursive call above).
         return 1.0, L_chol, p_inv
 
     except ValueError:

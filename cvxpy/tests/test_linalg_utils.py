@@ -69,7 +69,10 @@ class TestSparseCholesky(BaseTest):
         self.test_generic(use_expression=True)
     
     def test_singular(self):
-        # error on singular PSD matrix (rank deficient)
+        # sparse_cholesky requires positive *definiteness*, not just
+        # semidefiniteness. A singular PSD matrix (rank deficient) has no
+        # Cholesky decomposition. The caller decomp_quad() catches this
+        # ValueError and falls back to dense eigendecomposition via eigh.
         np.random.seed(0)
         B = np.random.randn(4, 2)
         A = spar.csc_array(B @ B.T)  # Must be sparse
