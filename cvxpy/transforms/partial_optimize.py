@@ -71,26 +71,25 @@ def partial_optimize(
         Convex for minimization objectives and concave for maximization objectives.
     """
     # One of the two arguments must be specified.
-    if opt_vars is None and dont_opt_vars is None:
-        raise ValueError(
-            "partial_optimize called with neither opt_vars nor dont_opt_vars."
-        )
-    # If opt_vars is not specified, it's the complement of dont_opt_vars.
-    elif opt_vars is None:
-        ids = [id(var) for var in dont_opt_vars]
-        opt_vars = [var for var in prob.variables() if id(var) not in ids]
-    # If dont_opt_vars is not specified, it's the complement of opt_vars.
-    elif dont_opt_vars is None:
-        ids = [id(var) for var in opt_vars]
-        dont_opt_vars = [var for var in prob.variables() if id(var) not in ids]
-    elif opt_vars is not None and dont_opt_vars is not None:
-        ids = [id(var) for var in opt_vars + dont_opt_vars]
-        for var in prob.variables():
-            if id(var) not in ids:
-                raise ValueError(
-                    ("If opt_vars and new_opt_vars are both specified, "
-                     "they must contain all variables in the problem.")
-                )
+    match (opt_vars, dont_opt_vars):
+        case (None, None):
+            raise ValueError(
+                "partial_optimize called with neither opt_vars nor dont_opt_vars."
+            )
+        case (None, dont_opt_vars):
+            ids = [id(var) for var in dont_opt_vars]
+            opt_vars = [var for var in prob.variables() if id(var) not in ids]
+        case (opt_vars, None):
+            ids = [id(var) for var in opt_vars]
+            dont_opt_vars = [var for var in prob.variables() if id(var) not in ids]
+        case (opt_vars, dont_opt_vars):
+            ids = [id(var) for var in opt_vars + dont_opt_vars]
+            for var in prob.variables():
+                if id(var) not in ids:
+                    raise ValueError(
+                        "If opt_vars and new_opt_vars are both specified, "
+                        "they must contain all variables in the problem."
+                    )
 
     # Replace the opt_vars in prob with new variables.
     id_to_new_var = {id(var): Variable(var.shape,

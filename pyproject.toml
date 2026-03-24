@@ -39,24 +39,20 @@ exclude = ["cvxpy/tests", "cvxpy/cvxcore"]
 reportMissingImports = false
 reportMissingModuleSource = false
 
-# Existing violations to be fixed incrementally (error counts as of 2026-02-27):
-reportArgumentType = false          # 250 errors
-reportAttributeAccessIssue = false  # 186 errors
-reportReturnType = false            # 79 errors
-reportOptionalSubscript = false     # 54 errors
-reportCallIssue = false             # 49 errors
-reportOptionalMemberAccess = false  # 36 errors
+# Existing violations to be fixed incrementally (error counts as of 2026-03-23):
+reportArgumentType = false          # 175 errors
+reportAttributeAccessIssue = false  # 188 errors
+reportReturnType = false            # 77 errors
+reportOptionalSubscript = false     # 61 errors
+reportCallIssue = false             # 52 errors
+reportOptionalMemberAccess = false  # 32 errors
 reportGeneralTypeIssues = false     # 33 errors
-reportAssignmentType = false        # 31 errors
-reportInvalidTypeForm = false       # 28 errors
-reportIndexIssue = false            # 25 errors
-reportOptionalOperand = false       # 21 errors
-reportOperatorIssue = false         # 21 errors
+reportAssignmentType = false        # 19 errors
+reportInvalidTypeForm = false       # 27 errors
+reportIndexIssue = false            # 18 errors
+reportOptionalOperand = false       # 22 errors
+reportOperatorIssue = false         # 22 errors
 reportUnusedExpression = false      # 10 (intentional import-check pattern in solvers)
-reportUndefinedVariable = false     # 3 errors (mosek optional type forward refs)
-reportOptionalIterable = false      # 2 errors
-reportOptionalCall = false          # 1 error
-reportInvalidTypeArguments = false  # 1 error
 
 [tool.pytest.ini_options]
 testpaths = [

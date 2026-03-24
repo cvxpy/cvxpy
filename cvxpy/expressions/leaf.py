@@ -454,7 +454,7 @@ class Leaf(expression.Expression):
             return np.minimum(val, 0.)
         elif self.attributes['nonneg'] or self.attributes['pos']:
             return np.maximum(val, 0.)
-        elif self.attributes['bounds']:
+        elif self.bounds is not None:
             if any(isinstance(b, expression.Expression) for b in self.bounds):
                 # Cannot project with expression bounds; return as-is.
                 return val

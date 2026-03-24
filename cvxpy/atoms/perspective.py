@@ -58,7 +58,7 @@ class perspective(Atom):
         assert self.args[0].is_nonneg(), "s must be a nonnegative variable"
         return super().validate_arguments()
 
-    def numeric(self, values: list[np.ndarray, np.ndarray]) -> np.ndarray:
+    def numeric(self, values: list[np.ndarray]) -> np.ndarray:
         """
         Compute the perspective sf(x/s) numerically.
         """
