@@ -40,8 +40,7 @@ class OSQP(QpSolver):
         return s.OSQP
 
     def import_solver(self) -> None:
-        import osqp
-        osqp
+        import osqp  # noqa: F401
 
     def extract_duals_from_solution_attribute(
             self, solution_attribute, inverse_data

@@ -52,7 +52,6 @@ reportInvalidTypeForm = false       # 27 errors
 reportIndexIssue = false            # 18 errors
 reportOptionalOperand = false       # 22 errors
 reportOperatorIssue = false         # 22 errors
-reportUnusedExpression = false      # 10 (intentional import-check pattern in solvers)
 
 [tool.pytest.ini_options]
 testpaths = [

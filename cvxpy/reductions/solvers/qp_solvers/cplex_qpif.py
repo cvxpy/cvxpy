@@ -38,8 +38,7 @@ class CPLEX(QpSolver):
         return s.CPLEX
 
     def import_solver(self) -> None:
-        import cplex
-        cplex
+        import cplex  # noqa: F401
 
     def invert(self, results, inverse_data):
         model = results["model"]
