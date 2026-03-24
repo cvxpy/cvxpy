@@ -15,7 +15,6 @@ limitations under the License.
 """
 
 
-import numpy as np
 import scipy.sparse as sp
 from numpy import linalg as LA
 
@@ -54,10 +53,8 @@ class sigma_max(Atom):
             A list of SciPy CSC sparse matrices or None.
         """
         # Grad: U diag(e_1) V.T
-        U, s, V = LA.svd(values[0])
-        ds = np.zeros(len(s))
-        ds[0] = 1
-        D = U.dot(np.diag(ds)).dot(V)
+        U, s, V = LA.svd(values[0], full_matrices=False)
+        D = U[:, 0:1] @ V[0:1, :]
         return [sp.csc_array([D.ravel(order='F')]).T]
 
     def shape_from_args(self) -> tuple[int, ...]:

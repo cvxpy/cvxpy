@@ -89,7 +89,7 @@ def targets_and_priorities(
         if priorities[i] < 0:
             obj, tar, lim = -obj, -tar, -lim if lim is not None else None
         
-        sign = 1 if obj.args[0].is_convex() else -1
+        sign = 1 if isinstance(obj, Minimize) else -1
 
         delta = sign*(obj.args[0] - tar)
         expr = sign*(abs(priorities[i]) - off_target)*atoms.pos(delta)

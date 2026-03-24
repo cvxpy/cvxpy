@@ -27,7 +27,7 @@ from cvxpy.atoms import (
     von_neumann_entr,
     vstack,
 )
-from cvxpy.atoms.affine.wraps import psd_wrap
+from cvxpy.atoms.affine.wraps import nsd_wrap, psd_wrap
 from cvxpy.constraints.exponential import OpRelEntrConeQuad
 from cvxpy.expressions.constants.constant import Constant
 from cvxpy.expressions.expression import Expression
@@ -170,7 +170,6 @@ def at_least_2D(expr: Expression):
     else:
         return expr
 
-
 def quad_canon(expr,
                real_args: list[Expression | None],
                imag_args: list[Expression | None], real2imag):
@@ -189,9 +188,15 @@ def quad_canon(expr,
             real_args[1] = np.zeros(imag_args[1].shape)
         elif imag_args[1] is None:
             imag_args[1] = np.zeros(real_args[1].shape)
+            
         matrix = bmat([[real_args[1], -imag_args[1]],
                        [imag_args[1], real_args[1]]])
-        matrix = psd_wrap(matrix)
+        
+        if expr.args[1].is_psd():
+            matrix = psd_wrap(matrix)
+        elif expr.args[1].is_nsd():
+            matrix = nsd_wrap(matrix)
+            
     return expr.copy([vec, matrix]), None
 
 

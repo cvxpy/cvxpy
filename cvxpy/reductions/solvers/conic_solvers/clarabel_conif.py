@@ -285,28 +285,31 @@ class CLARABEL(ConicSolver):
         # more detailed statistics here when available
         # attr[s.EXTRA_STATS] = solution.extra.FOO
 
+        if solution.z is not None:
+            zero_idx = inverse_data[ConicSolver.DIMS].zero
+            eq_dual_vars = utilities.get_dual_values(
+                solution.z[:zero_idx],
+                self.extract_dual_value,
+                inverse_data[self.EQ_CONSTR]
+            )
+            ineq_dual_vars = utilities.get_dual_values(
+                solution.z[zero_idx:],
+                self.extract_dual_value,
+                inverse_data[self.NEQ_CONSTR]
+            )
+            dual_vars = eq_dual_vars | ineq_dual_vars
+        else:
+            dual_vars = {}
+
         if status in s.SOLUTION_PRESENT:
             primal_val = solution.obj_val
             opt_val = primal_val + inverse_data[s.OFFSET]
             primal_vars = {
                 inverse_data[self.VAR_ID]: solution.x
             }
-            eq_dual_vars = utilities.get_dual_values(
-                solution.z[:inverse_data[ConicSolver.DIMS].zero],
-                self.extract_dual_value,
-                inverse_data[self.EQ_CONSTR]
-            )
-            ineq_dual_vars = utilities.get_dual_values(
-                solution.z[inverse_data[ConicSolver.DIMS].zero:],
-                self.extract_dual_value,
-                inverse_data[self.NEQ_CONSTR]
-            )
-            dual_vars = {}
-            dual_vars.update(eq_dual_vars)
-            dual_vars.update(ineq_dual_vars)
             return Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
-            return failure_solution(status, attr)
+            return failure_solution(status, attr, dual_vars)
 
     @staticmethod
     def parse_solver_opts(verbose, opts, settings=None):
