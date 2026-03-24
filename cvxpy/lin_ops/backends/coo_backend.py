@@ -1270,8 +1270,8 @@ def coo_mul_elem(lhs: CooTensor, rhs: CooTensor) -> CooTensor:
             row=result.row.copy(),
             col=result.col.copy(),
             param_idx=np.zeros(len(result.data), dtype=np.int64),
-            m=lhs.m,
-            n=lhs.n,
+            m=result.shape[0],
+            n=result.shape[1],
             param_size=1
         )
 
