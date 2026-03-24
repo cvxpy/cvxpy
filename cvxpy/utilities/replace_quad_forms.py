@@ -16,29 +16,49 @@ limitations under the License.
 
 from cvxpy.atoms.quad_form import QuadForm, SymbolicQuadForm
 from cvxpy.expressions.variable import Variable
+from cvxpy.lin_ops.lin_op import LinOp
 
 
 def replace_quad_forms(expr, quad_forms):
-    for idx, arg in enumerate(expr.args):
-        if isinstance(arg, SymbolicQuadForm) or isinstance(arg, QuadForm):
-            quad_forms = replace_quad_form(expr, idx, quad_forms)
+    """Replace QuadForm/SymbolicQuadForm nodes with dummy Variables.
+
+    Returns a new expression tree (the original is not modified) and a dict
+    mapping each dummy variable's id to the original QuadForm atom.
+
+    Parameters
+    ----------
+    expr : LinOp or Expression
+        The root of the expression tree to process.
+    quad_forms : dict
+        Accumulator mapping dummy_id -> quad_form_atom.
+
+    Returns
+    -------
+    new_expr : LinOp or Expression
+        A copy of `expr` with QuadForm nodes replaced by dummy Variables.
+        Subtrees that contain no QuadForm nodes are shared (not copied).
+    quad_forms : dict
+        Updated mapping of dummy_id -> quad_form_atom.
+    """
+    new_args = list(expr.args)
+    changed = False
+    for idx, arg in enumerate(new_args):
+        if isinstance(arg, (SymbolicQuadForm, QuadForm)):
+            placeholder = Variable(arg.shape, var_id=arg.id)
+            quad_forms[placeholder.id] = arg
+            new_args[idx] = placeholder
+            changed = True
         else:
-            quad_forms = replace_quad_forms(arg, quad_forms)
-    return quad_forms
+            new_arg, quad_forms = replace_quad_forms(arg, quad_forms)
+            if new_arg is not arg:
+                new_args[idx] = new_arg
+                changed = True
 
+    if not changed:
+        return expr, quad_forms
 
-def replace_quad_form(expr, idx, quad_forms):
-    quad_form = expr.args[idx]
-    placeholder = Variable(quad_form.shape,
-                           var_id=quad_form.id)
-    expr.args[idx] = placeholder
-    quad_forms[placeholder.id] = (expr, idx, quad_form)
-    return quad_forms
-
-
-def restore_quad_forms(expr, quad_forms) -> None:
-    for idx, arg in enumerate(expr.args):
-        if isinstance(arg, Variable) and arg.id in quad_forms:
-            expr.args[idx] = quad_forms[arg.id][2]
-        else:
-            restore_quad_forms(arg, quad_forms)
+    if isinstance(expr, LinOp):
+        new_expr = LinOp(expr.type, expr.shape, new_args, expr.data)
+    else:
+        new_expr = expr.copy(new_args)
+    return new_expr, quad_forms
