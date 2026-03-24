@@ -26,6 +26,7 @@ from cvxpy.atoms import (
     POWCONE_ATOMS,
     POWCONE_ND_ATOMS,
     PSD_ATOMS,
+    RSOC_ATOMS,
     SOC_ATOMS,
 )
 from cvxpy.atoms.elementwise.power import Power
@@ -229,7 +230,7 @@ class ProblemForm:
 
         if SOC in constr_types or any(atom in SOC_ATOMS for atom in atoms):
             cones.add(SOC)
-        if RSOC in constr_types:
+        if RSOC in constr_types or any(atom in RSOC_ATOMS for atom in atoms):
             cones.add(RSOC)
         if ExpCone in constr_types or any(atom in EXP_ATOMS for atom in atoms):
             cones.add(ExpCone)

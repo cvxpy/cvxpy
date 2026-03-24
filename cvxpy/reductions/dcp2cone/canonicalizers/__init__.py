@@ -40,6 +40,7 @@ from cvxpy.reductions.dcp2cone.canonicalizers.pnorm_canon import *
 from cvxpy.reductions.dcp2cone.canonicalizers.power_canon import *
 from cvxpy.reductions.dcp2cone.canonicalizers.quad_form_canon import *
 from cvxpy.reductions.dcp2cone.canonicalizers.quad_over_lin_canon import *
+from cvxpy.reductions.dcp2cone.canonicalizers.quad_over_root_canon import *
 from cvxpy.reductions.dcp2cone.canonicalizers.rel_entr_canon import *
 from cvxpy.reductions.dcp2cone.canonicalizers.sigma_max_canon import *
 from cvxpy.reductions.dcp2cone.canonicalizers.suppfunc_canon import (
@@ -83,6 +84,7 @@ CANON_METHODS = {
     PnormApprox : pnorm_approx_canon,
     QuadForm : quad_form_canon,
     quad_over_lin : quad_over_lin_canon,
+    quad_over_root : quad_over_root_canon,
     sigma_max : sigma_max_canon,
     sum_largest : sum_largest_canon,
     abs : abs_canon,

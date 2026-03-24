@@ -340,6 +340,22 @@ class TestAtoms(BaseTest):
         # Verify the result is a scalar (not an array).
         self.assertEqual(np.ndim(atom.value), 0)
 
+    def test_quad_over_root(self) -> None:
+        x = cp.Variable()
+        y = cp.Variable()
+        # DCP checks.
+        atom = cp.quad_over_root(x, y, a=2.0, b=1.0, c=1.0)
+        self.assertEqual(atom.curvature, s.CONVEX)
+        self.assertEqual(atom.sign, s.NONNEG)
+        # Non-affine x is not DCP.
+        atom = cp.quad_over_root(cp.square(x), y, a=1.0, b=0.0, c=1.0)
+        assert not atom.is_dcp()
+        # Validation errors.
+        with self.assertRaises(ValueError):
+            cp.quad_over_root(x, y, a=-1.0, b=0.0, c=1.0)
+        with self.assertRaises(ValueError):
+            cp.quad_over_root(x, y, a=1.0, b=3.0, c=1.0)  # disc > 0 but no d
+
     def test_elemwise_arg_count(self) -> None:
         """Test arg count for max and min variants.
         """
