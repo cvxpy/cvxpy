@@ -51,23 +51,12 @@ def dims_to_solver_cones(cone_dims):
     if cone_dims.pnd:
         raise ValueError("Moreau does not support generalized power cones (PowConeND)")
 
-    # Map CVXPY cone dimensions to Moreau cones
-    # SOC cones: All SOCs are dimension-3 (due to SOC_DIM3_ONLY=True)
-    # Validate that all SOC cones are dimension 3
-    for dim in cone_dims.soc:
-        if dim != 3:
-            raise ValueError(
-                f"Moreau requires all SOC cones to be dimension 3, got dimension {dim}. "
-                "This should not happen if SOC_DIM3_ONLY=True is set correctly."
-            )
-    num_soc = len(cone_dims.soc)
-
     cones = moreau.Cones(
         num_zero_cones=cone_dims.zero,
         num_nonneg_cones=cone_dims.nonneg,
-        num_so_cones=num_soc,
+        so_cone_dims=list(cone_dims.soc),
         num_exp_cones=cone_dims.exp,
-        power_alphas=list(cone_dims.p3d) if cone_dims.p3d else [],
+        power_alphas=list(cone_dims.p3d),
     )
 
     return cones
@@ -84,10 +73,6 @@ class MOREAU(ConicSolver):
     MIP_CAPABLE = False
     BOUNDED_VARIABLES = False
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC, ExpCone, PowCone3D]
-
-    # Moreau only supports dimension-3 SOC cones
-    # The SOCDim3 reduction will convert n-dim SOC to 3D SOC
-    SOC_DIM3_ONLY = True
 
     # Status messages from Moreau (based on solver/status.hpp)
     SOLVED = "Solved"
@@ -211,6 +196,13 @@ class MOREAU(ConicSolver):
             device=device,
             verbose=verbose,
         )
+
+        # Handle ipm_settings: accept dict or moreau.IPMSettings
+        ipm_settings = solver_opts.pop("ipm_settings", None)
+        if ipm_settings is not None:
+            if isinstance(ipm_settings, dict):
+                ipm_settings = moreau.IPMSettings(**ipm_settings)
+            settings.ipm_settings = ipm_settings
 
         # Apply all remaining options directly to moreau.Settings
         for opt, value in solver_opts.items():

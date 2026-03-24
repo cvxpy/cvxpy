@@ -42,7 +42,7 @@ def lambda_sum_largest_canon(expr, args, solver_context: SolverInfo | None = Non
     """
     X = expr.args[0]
     k = expr.k
-    Z = Variable((X.shape[0], X.shape[0]), PSD=True)
+    Z = Variable(X.shape, PSD=True)
     obj, constr = lambda_max_canon(expr, [X - Z])
     obj = k * obj + trace(Z)
     return obj, constr

@@ -39,6 +39,7 @@ import cvxpy as cp
 from cvxpy import problems
 from cvxpy.atoms.affine.hstack import hstack
 from cvxpy.atoms.affine.reshape import reshape
+from cvxpy.constraints.nonpos import NonNeg, NonPos
 from cvxpy.constraints.power import PowCone3D, PowConeND
 from cvxpy.constraints.psd import PSD
 from cvxpy.constraints.second_order import SOC
@@ -56,6 +57,7 @@ from cvxpy.reductions.solution import Solution
 # Maps each "exact" cone to the set of simpler cones it converts to.
 # Must form a DAG (no cycles).
 EXACT_CONE_CONVERSIONS = {
+    NonPos: {NonNeg},
     PowConeND: {PowCone3D},
     SOC: {PSD},
 }
@@ -391,9 +393,30 @@ class SOCConversion:
             return 2 * dual_var[0]
 
 
+class NonPosConversion:
+    """NonPos -> NonNeg by negating the expression.
+
+    The dual is returned without negation to preserve the existing
+    NonPos sign convention: the dual of NonPos(expr) represents the
+    multiplier on the constraint expr <= 0, not on -expr >= 0.
+    A deprecation warning on NonPos already notes that this convention
+    may change in the future.
+    """
+    source = NonPos
+    targets = {NonNeg}
+
+    @staticmethod
+    def canonicalize(con, args):
+        return NonNeg(-args[0], constr_id=con.constr_id), []
+
+    @staticmethod
+    def recover_dual(cons, dual_var, inverse_data, solution):
+        return dual_var
+
+
 class ExactCone2Cone(Canonicalization):
 
-    CONVERSIONS = [PowNDConversion, SOCConversion]
+    CONVERSIONS = [NonPosConversion, PowNDConversion, SOCConversion]
 
     CANON_METHODS = {c.source: c.canonicalize for c in CONVERSIONS}
 
@@ -444,9 +467,12 @@ class ExactCone2Cone(Canonicalization):
     def invert(self, solution, inverse_data):
         pvars = {vid: solution.primal_vars[vid] for vid in inverse_data.id_map
                  if vid in solution.primal_vars}
-        dvars = {orig_id: solution.dual_vars[vid]
-                 for orig_id, vid in inverse_data.cons_id_map.items()
-                 if vid in solution.dual_vars}
+        if solution.dual_vars is not None:
+            dvars = {orig_id: solution.dual_vars[vid]
+                     for orig_id, vid in inverse_data.cons_id_map.items()
+                     if vid in solution.dual_vars}
+        else:
+            dvars = None
 
         if not dvars:
             return Solution(solution.status, solution.opt_val, pvars, dvars,

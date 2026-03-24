@@ -747,3 +747,62 @@ class TestDqcp(base_test.BaseTest):
                   "Unable to find suitable interval for bisection)"
         ):
             problem.solve(qcp=True, solver=cp.SCS, max_iters=1)
+
+    def test_dist_ratio_dqcp(self) -> None:
+        """dist_ratio DQCP problem should give correct result."""
+        x = cp.Variable(2)
+        a = np.array([0.0, 0.0])
+        b = np.array([3.0, 0.0])
+        atom = cp.dist_ratio(x, a, b)
+        prob = cp.Problem(cp.Minimize(atom), [cp.norm(x) <= 2])
+        prob.solve(solver=SOLVER, qcp=True)
+        self.assertEqual(prob.status, s.OPTIMAL)
+        self.assertAlmostEqual(prob.value, 0.0, places=3)
+
+    def test_dqcp_power_infeasible(self) -> None:
+        """DQCP with power(ceil(x), 2) <= -5 should be infeasible."""
+        x = cp.Variable(nonneg=True)
+        problem = cp.Problem(cp.Minimize(0), [cp.power(cp.ceil(x), 2) <= -5])
+        problem.solve(SOLVER, qcp=True)
+        self.assertEqual(problem.status, s.INFEASIBLE)
+
+    def test_bisection_low_zero(self) -> None:
+        """Bisection with low=0 should not infinite-loop."""
+        x = cp.Variable()
+        problem = cp.Problem(cp.Minimize(cp.ceil(x)), [x >= 15, x <= 17])
+        problem.solve(SOLVER, qcp=True, low=0, high=100)
+        self.assertEqual(problem.status, s.OPTIMAL)
+        self.assertAlmostEqual(problem.value, 15.0, places=3)
+
+    def test_length_verbose(self) -> None:
+        """Regression test: verbose=True should not crash with length atom.
+
+        Before the fix, _lower_problem() evaluated lazy constraints before
+        t.value was assigned, causing TypeError: '<' not supported between
+        instances of 'NoneType' and 'int'.
+        """
+        x = cp.Variable(5)
+        problem = cp.Problem(cp.Minimize(cp.length(x)),
+                             [x[0] == 2.0, x[1] == 1.0])
+        problem.solve(SOLVER, qcp=True, verbose=True)
+        self.assertEqual(problem.status, s.OPTIMAL)
+        self.assertEqual(problem.objective.value, 2)
+
+    def test_sign_verbose(self) -> None:
+        """Regression test: verbose=True should not crash with sign atom."""
+        x = cp.Variable()
+        problem = cp.Problem(cp.Minimize(cp.sign(x)), [-2 <= x, x <= -0.5])
+        problem.solve(SOLVER, qcp=True, verbose=True)
+        self.assertEqual(problem.status, s.OPTIMAL)
+        self.assertEqual(problem.objective.value, -1)
+
+    def test_dist_ratio_verbose(self) -> None:
+        """Regression test: verbose=True should not crash with dist_ratio."""
+        x = cp.Variable(2)
+        a = np.array([0.0, 0.0])
+        b = np.array([3.0, 0.0])
+        problem = cp.Problem(cp.Minimize(cp.dist_ratio(x, a, b)),
+                             [cp.norm(x) <= 2])
+        problem.solve(solver=SOLVER, qcp=True, verbose=True)
+        self.assertEqual(problem.status, s.OPTIMAL)
+        self.assertAlmostEqual(problem.value, 0.0, places=3)

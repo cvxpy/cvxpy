@@ -185,7 +185,7 @@ class SOC(Cone):
     def _dual_cone(self, *args):
         """Implements the dual cone of the second-order cone
         See Pg 85 of the MOSEK modelling cookbook for more information"""
-        if args is None:
+        if not args:
             return SOC(self.dual_variables[0], self.dual_variables[1], self.axis)
         else:
             # some assertions for verifying `args`

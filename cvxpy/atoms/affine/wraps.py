@@ -105,6 +105,29 @@ class psd_wrap(Wrap):
     def is_hermitian(self) -> bool:
         return True
 
+class nsd_wrap(Wrap):
+    """Asserts that a square matrix is NSD.
+    """
+
+    def validate_arguments(self) -> None:
+        arg = self.args[0]
+        ndim_test = len(arg.shape) == 2
+        if not ndim_test:
+            raise ValueError("The input must be a square matrix.")
+        elif arg.shape[0] != arg.shape[1]:
+            raise ValueError("The input must be a square matrix.")
+
+    def is_psd(self) -> bool:
+        return False
+
+    def is_nsd(self) -> bool:
+        return True
+
+    def is_symmetric(self) -> bool:
+        return not self.args[0].is_complex()
+
+    def is_hermitian(self) -> bool:
+        return True
 
 class symmetric_wrap(Wrap):
     """Asserts that a real square matrix is symmetric
@@ -134,7 +157,6 @@ class hermitian_wrap(Wrap):
 
     def is_hermitian(self) -> bool:
         return True
-
 
 class skew_symmetric_wrap(Wrap):
     """Asserts that X is a real square matrix, satisfying X + X.T == 0.
