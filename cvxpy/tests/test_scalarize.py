@@ -156,6 +156,40 @@ class ScalarizeTest(BaseTest):
                                              off_target)
 
 
+    def test_maximize_affine_targets_and_priorities(self) -> None:
+        """Maximize(affine) must not be silently flipped to Minimize."""
+        x = cp.Variable()
+
+        # Single Maximize(x) with target=5, x in [0, 10]
+        obj = cp.Maximize(x)
+        scalarized = scalarize.targets_and_priorities(
+            [obj], [1], [5], off_target=0.01
+        )
+        assert isinstance(scalarized, cp.Maximize)
+        prob = cp.Problem(scalarized, [x <= 10, x >= 0])
+        prob.solve(solver=cp.CLARABEL)
+        assert prob.status == cp.OPTIMAL
+        assert float(x.value) > 5.0, (
+            f"Maximize(x) pushed x={x.value} below target 5"
+        )
+
+    def test_minimize_affine_negative_priority(self) -> None:
+        """Minimize(affine) with negative priority should flip correctly."""
+        x = cp.Variable()
+
+        # Minimize(x) with priority=-1 flips to Maximize(-x)
+        obj = cp.Minimize(x)
+        scalarized = scalarize.targets_and_priorities(
+            [obj], [-1], [5], off_target=0.01
+        )
+        assert isinstance(scalarized, cp.Maximize)
+        prob = cp.Problem(scalarized, [x <= 10, x >= 0])
+        prob.solve(solver=cp.CLARABEL)
+        assert prob.status == cp.OPTIMAL
+        assert float(x.value) < 5.0, (
+            f"Negated Minimize(x) pushed x={x.value} above target"
+        )
+
     def test_max(self) -> None:
 
         weights = [1, 2]

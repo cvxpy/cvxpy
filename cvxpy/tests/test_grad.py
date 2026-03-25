@@ -540,6 +540,10 @@ SINGLE_VAR_ATOM_CONFIGS = [
                    "unrestricted"),
     AtomTestConfig("sigma_max", lambda x: cp.sigma_max(x), [(3, 3)],
                    "unrestricted"),
+    AtomTestConfig("sigma_max_nonsquare", lambda x: cp.sigma_max(x), [(2, 3)],
+                   "unrestricted"),
+    AtomTestConfig("sigma_max_tall", lambda x: cp.sigma_max(x), [(4, 2)],
+                   "unrestricted"),
     AtomTestConfig("mixed_norm_21", lambda x: cp.mixed_norm(x, 2, 1), [(3, 2)],
                    "unrestricted"),
     AtomTestConfig("sum_squares", lambda x: cp.sum_squares(x), [(3,), (2, 2)],
@@ -690,6 +694,8 @@ MULTI_VAR_ATOM_CONFIGS = [
                        [("unrestricted", (3,)), ("positive", (1,))]),
     MultiVarAtomConfig("matrix_frac", lambda x, P: cp.matrix_frac(x, P),
                        [("unrestricted", (3,)), ("psd", (3, 3))]),
+    MultiVarAtomConfig("matrix_frac_matrix_x", lambda x, P: cp.matrix_frac(x, P),
+                       [("unrestricted", (3, 2)), ("psd", (3, 3))]),
 ]
 
 
