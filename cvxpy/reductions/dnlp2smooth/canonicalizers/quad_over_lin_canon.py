@@ -44,7 +44,9 @@ def quad_over_lin_canon(expr, args):
         # always introduce a new variable for the denominator
         # so that we can initialize it to 1 (point in domain)
         lb2, ub2 = args[1].get_bounds()
-        t2 = Variable(t2.shape, bounds=[np.fmax(lb2, MIN_INIT), ub2])
+        lb2 = np.fmax(lb2, MIN_INIT)
+        ub2 = np.fmax(np.where(np.isnan(ub2), np.inf, ub2), lb2)
+        t2 = Variable(t2.shape, bounds=[lb2, ub2])
         constraints += [t2 == args[1]]
 
         if args[1].value is not None:

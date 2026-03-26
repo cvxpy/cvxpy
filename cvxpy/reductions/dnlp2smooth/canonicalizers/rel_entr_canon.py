@@ -47,8 +47,12 @@ def rel_entr_canon(expr, args):
     # here we know that neither argument is constant
     lb0, ub0 = args[0].get_bounds()
     lb1, ub1 = args[1].get_bounds()
-    t1 = Variable(args[0].shape, bounds=[np.fmax(lb0, MIN_INIT), ub0])
-    t2 = Variable(args[1].shape, bounds=[np.fmax(lb1, MIN_INIT), ub1])
+    lb0 = np.fmax(lb0, MIN_INIT)
+    ub0 = np.fmax(np.where(np.isnan(ub0), np.inf, ub0), lb0)
+    lb1 = np.fmax(lb1, MIN_INIT)
+    ub1 = np.fmax(np.where(np.isnan(ub1), np.inf, ub1), lb1)
+    t1 = Variable(args[0].shape, bounds=[lb0, ub0])
+    t2 = Variable(args[1].shape, bounds=[lb1, ub1])
     constraints = [t1 == args[0], t2 == args[1]]
 
     if args[0].value is not None:
