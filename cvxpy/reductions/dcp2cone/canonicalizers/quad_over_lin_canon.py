@@ -17,6 +17,7 @@ limitations under the License.
 import numpy as np
 from numpy.lib.array_utils import normalize_axis_index, normalize_axis_tuple
 
+from cvxpy.atoms.affine.broadcast_to import broadcast_to
 from cvxpy.atoms.affine.hstack import hstack
 from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.atoms.affine.sum import Sum
@@ -24,6 +25,7 @@ from cvxpy.atoms.affine.transpose import transpose
 from cvxpy.atoms.affine.vstack import vstack
 from cvxpy.constraints.second_order import SOC
 from cvxpy.expressions.variable import Variable
+from cvxpy.utilities import shape as shape_utils
 from cvxpy.utilities.solver_context import SolverInfo
 
 
@@ -38,9 +40,12 @@ def quad_over_lin_canon(expr, args, solver_context: SolverInfo | None = None):
     """
     x = args[0]
     y = args[1]
+    broadcast_shape = shape_utils.sum_shapes([x.shape, y.shape])
+    x = broadcast_to(x, broadcast_shape)
+    if not y.is_scalar():
+        y = broadcast_to(y, broadcast_shape)
     axis = expr.axis
-    shape = x.shape
-    ndim = len(shape)
+    ndim = len(broadcast_shape)
 
     # Normalize axis/axes to tuple
     axes = None
@@ -73,6 +78,7 @@ def quad_over_lin_canon(expr, args, solver_context: SolverInfo | None = None):
         constraints = [SOC(t=y + t, X=hstack([y - t, 2 * x.flatten(order="F")]), axis=0)]
         return t, constraints
 
+    shape = x.shape
     # Axis specified - use vectorized batched SOC
     axes_set = set(axes)
     output_dims = [i for i in range(ndim) if i not in axes_set]

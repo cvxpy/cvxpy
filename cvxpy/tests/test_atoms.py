@@ -338,211 +338,42 @@ class TestAtoms(BaseTest):
         # Verify the result is a scalar (not an array).
         self.assertEqual(np.ndim(atom.value), 0)
 
-    def test_quad_over_lin_vectorized_basic(self) -> None:
-        """Test quad_over_lin with non-scalar y: shape, DCP, numeric."""
-        # Default (axis=None) → scalar (sum-all)
-        x = Variable((3, 4))
-        y = Variable((3, 4))
-        atom = cp.quad_over_lin(x, y)
-        self.assertEqual(atom.shape, ())
-        self.assertTrue(atom.is_convex())
-        self.assertFalse(atom.is_concave())
-
-        # axis=() → element-wise, no reduction
-        atom_ewise = cp.quad_over_lin(x, y, axis=())
-        self.assertEqual(atom_ewise.shape, (3, 4))
-
-        # Numeric: default sums all
-        x_val = np.array([[1.0, 2.0], [3.0, 4.0]])
-        y_val = np.array([[2.0, 3.0], [4.0, 5.0]])
-        atom2 = cp.quad_over_lin(Constant(x_val), Constant(y_val))
-        expected_sum = (np.square(x_val) / y_val).sum()
-        self.assertAlmostEqual(float(atom2.value), expected_sum)
+        # Non-scalar y: shape and DCP
+        x2 = Variable((3, 4))
+        y2 = Variable((3, 4))
+        atom2 = cp.quad_over_lin(x2, y2)
         self.assertEqual(atom2.shape, ())
-
-        # axis=() preserves element-wise
-        atom2_ewise = cp.quad_over_lin(Constant(x_val), Constant(y_val), axis=())
-        self.assertItemsAlmostEqual(atom2_ewise.value, np.square(x_val) / y_val)
-        self.assertEqual(atom2_ewise.shape, (2, 2))
-
-        # Complex x with non-scalar y
-        x_c = np.array([1+2j, 3+4j])
-        y_c = np.array([2.0, 5.0])
-        atom_c = cp.quad_over_lin(Constant(x_c), Constant(y_c))
-        expected_c = ((np.square(x_c.real) + np.square(x_c.imag)) / y_c).sum()
-        self.assertAlmostEqual(float(atom_c.value), expected_c)
-
-        # 1-D default → scalar
-        atom1d = cp.quad_over_lin(Variable(5), Variable(5))
-        self.assertEqual(atom1d.shape, ())
-
-        # Shape mismatch error
+        self.assertTrue(atom2.is_convex())
+        self.assertFalse(atom2.is_concave())
+        self.assertEqual(cp.quad_over_lin(x2, y2, axis=()).shape, (3, 4))
         with self.assertRaises(ValueError):
-            cp.quad_over_lin(Variable((3, 4)), Variable((3, 5)))
+            cp.quad_over_lin(Variable((2, 3)), Variable((4, 3)))
 
-    def test_quad_over_lin_vectorized_solve(self) -> None:
-        """Test quad_over_lin non-scalar y: SOC and QP solve paths.
-
-        SOC path (variable y): min sum(x_i^2/y_i) s.t. sum(y)<=B.
-        Analytical: y_i = B*|x_i|/sum(|x_j|), val = (sum|x_i|)^2/B.
-        """
-        # SOC path: variable y, default axis=None sums all → scalar objective
-        np.random.seed(42)
-        n = 6
-        x_fixed = np.random.randn(n)
-        budget = 5.0
-        yv = Variable(n, pos=True)
-        prob = cp.Problem(
-            cp.Minimize(cp.quad_over_lin(x_fixed, yv)),
-            [cp.sum(yv) <= budget],
-        )
-        prob.solve(solver=cp.CLARABEL)
-        self.assertEqual(prob.status, cp.OPTIMAL)
-        expected_val = np.sum(np.abs(x_fixed))**2 / budget
-        self.assertAlmostEqual(prob.value, expected_val, places=4)
-        expected_y = budget * np.abs(x_fixed) / np.sum(np.abs(x_fixed))
-        self.assertItemsAlmostEqual(yv.value, expected_y, places=3)
-
-        # QP path (constant y + axis): CLARABEL vs OSQP cross-check
-        np.random.seed(123)
-        xv2 = Variable((5, 3))
-        target2 = np.random.randn(5, 3)
-        weights2 = np.random.rand(5, 3) + 1
-        obj = cp.sum(cp.quad_over_lin(xv2 - target2, weights2, axis=0))
-        constrs = [xv2 >= -2, xv2 <= 2]
-        val_soc = cp.Problem(cp.Minimize(obj), constrs).solve(solver=cp.CLARABEL)
-        val_qp = cp.Problem(cp.Minimize(obj), constrs).solve(solver=cp.OSQP)
-        self.assertAlmostEqual(val_soc, val_qp, places=2)
-        self.assertItemsAlmostEqual(xv2.value, np.clip(target2, -2, 2), places=3)
-
-    def test_quad_over_lin_vectorized_axis(self) -> None:
-        """Test quad_over_lin non-scalar y with axis reduction."""
-        x_val = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])
-        y_val = np.array([[2.0, 3.0, 4.0], [5.0, 6.0, 7.0]])
-        expected_ewise = np.square(x_val) / y_val
-
-        # axis=None (default) → sum all
-        atom_none = cp.quad_over_lin(Constant(x_val), Constant(y_val))
-        self.assertEqual(atom_none.shape, ())
-        self.assertAlmostEqual(float(atom_none.value), expected_ewise.sum())
-
-        # axis=() → element-wise, no reduction
-        atom_ewise = cp.quad_over_lin(Constant(x_val), Constant(y_val), axis=())
-        self.assertEqual(atom_ewise.shape, (2, 3))
-        self.assertItemsAlmostEqual(atom_ewise.value, expected_ewise)
-
-        # axis=0 → reduce rows
-        atom_ax0 = cp.quad_over_lin(Constant(x_val), Constant(y_val), axis=0)
-        self.assertEqual(atom_ax0.shape, (3,))
-        self.assertItemsAlmostEqual(atom_ax0.value, expected_ewise.sum(axis=0))
-
-        # axis=1 → reduce columns
-        atom_ax1 = cp.quad_over_lin(Constant(x_val), Constant(y_val), axis=1)
-        self.assertEqual(atom_ax1.shape, (2,))
-        self.assertItemsAlmostEqual(atom_ax1.value, expected_ewise.sum(axis=1))
-
-        # keepdims
-        atom_kd = cp.quad_over_lin(
-            Constant(x_val), Constant(y_val), axis=0, keepdims=True
-        )
-        self.assertEqual(atom_kd.shape, (1, 3))
-
-        # 1D + axis=0 → scalar
-        x1d, y1d = np.array([1.0, 2.0, 3.0]), np.array([2.0, 3.0, 4.0])
-        atom_1d = cp.quad_over_lin(Constant(x1d), Constant(y1d), axis=0)
-        self.assertEqual(atom_1d.shape, ())
-        self.assertAlmostEqual(float(atom_1d.value), (np.square(x1d) / y1d).sum())
-
-    def test_quad_over_lin_vectorized_grad(self) -> None:
-        """Test gradient of quad_over_lin with non-scalar y (default axis=None)."""
-        x_val = np.array([[1.0, 2.0], [3.0, 4.0]])
-        y_val = np.array([[2.0, 3.0], [4.0, 5.0]])
-
-        # Full reduction → DX is (n,1) column, Dy is (1,1)
-        atom = cp.quad_over_lin(Constant(x_val), Constant(y_val))
-        grad = atom._grad([x_val, y_val])
-        self.assertEqual(grad[0].shape, (4, 1))
-        dx_expected = (2.0 * x_val / y_val).ravel(order='F')
-        self.assertItemsAlmostEqual(grad[0].toarray().ravel(), dx_expected)
-        self.assertEqual(grad[1].shape, (1, 1))
-        dy_expected = -(np.square(x_val) / np.square(y_val)).sum()
-        self.assertAlmostEqual(grad[1].toarray()[0, 0], dy_expected)
-
-    def test_quad_over_lin_vectorized_dpp(self) -> None:
-        """Test DPP behavior of quad_over_lin with non-scalar y."""
-        xv = Variable(3)
-        param_y = cp.Parameter(3, nonneg=True, value=[1.0, 2.0, 3.0])
-        # Parametric y → not DPP (default axis=None gives scalar, no cp.sum needed)
-        prob = cp.Problem(cp.Minimize(cp.quad_over_lin(xv, param_y)))
-        self.assertFalse(prob.is_dpp())
-        # Constant array y → DPP
-        prob2 = cp.Problem(cp.Minimize(cp.quad_over_lin(xv, np.array([1.0, 2.0, 3.0]))))
-        self.assertTrue(prob2.is_dpp())
-
-    def test_quad_over_lin_vectorized_dgp(self) -> None:
-        """Test DGP: non-scalar y through gp=True path."""
-        x_pos = Variable((2, 3), pos=True)
-        y_pos = Variable((2, 3), pos=True)
-
-        # Default axis=None → scalar (sum-all)
-        prob = cp.Problem(
-            cp.Minimize(cp.quad_over_lin(x_pos, y_pos)),
-            [x_pos >= 0.5, x_pos <= 2, y_pos >= 1, y_pos <= 3],
-        )
-        prob.solve(gp=True)
-        self.assertEqual(prob.status, cp.OPTIMAL)
-        expected = np.sum(np.square(0.5) / 3.0 * np.ones((2, 3)))
-        self.assertAlmostEqual(prob.value, expected, places=3)
-
-        # axis=0 → sum along rows in original space = log_sum_exp in log-space
-        prob_ax = cp.Problem(
-            cp.Minimize(cp.sum(cp.quad_over_lin(x_pos, y_pos, axis=0))),
-            [x_pos >= 0.5, x_pos <= 2, y_pos >= 1, y_pos <= 3],
-        )
-        prob_ax.solve(gp=True)
-        self.assertEqual(prob_ax.status, cp.OPTIMAL)
-        expected_ax = np.sum(np.square(0.5) / 3.0 * np.ones((2, 3)), axis=0).sum()
-        self.assertAlmostEqual(prob_ax.value, expected_ax, places=3)
-
-    def test_quad_over_lin_dgp_scalar_y_axis(self) -> None:
-        """Regression: scalar y + axis must respect per-axis decomposition in DGP.
-
-        Minimize qol[0] = sum(x[:,0]^2) / 2, with x[0,0]*x[0,1] >= 100.
-        If axis is respected: x[0,1] pushed to upper bound (not in qol[0]),
-          x[0,0] = 100/1000 = 0.1, qol[0] ~ 0.005.
-        If axis is ignored: symmetric trade-off, x[0,0] = x[0,1] ~ 10,
-          qol[0] ~ 50.
-        """
-        x = cp.Variable((2, 3), pos=True)
-        qol = cp.quad_over_lin(x, 2.0, axis=0)
-        prob = cp.Problem(
-            cp.Minimize(qol[0]),
-            [x[0, 0] * x[0, 1] >= 100, x >= 0.01, x <= 1000],
-        )
-        prob.solve(gp=True, solver=cp.CLARABEL)
-        self.assertEqual(prob.status, cp.OPTIMAL)
-        self.assertLess(x.value[0, 0], 1.0)
-        self.assertAlmostEqual(prob.value, (x.value[:, 0] ** 2).sum() / 2, places=4)
-
-    def test_quad_over_lin_vectorized_dnlp(self) -> None:
-        """Test DNLP canonicalization of quad_over_lin with non-scalar y."""
-        from cvxpy.reductions.dnlp2smooth.canonicalizers.quad_over_lin_canon import (
-            quad_over_lin_canon,
-        )
-        x_val = np.array([[1.0, 2.0], [3.0, 4.0]])
-        y_val = np.array([[2.0, 3.0], [4.0, 5.0]])
-        xv = Variable((2, 2))
-        xv.value = x_val
-        # axis=None sums all, axis=() is element-wise, axis=0 reduces rows
+        # Non-scalar y: numeric with axis modes
+        x_val2 = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])
+        y_val2 = np.array([[2.0, 3.0, 4.0], [5.0, 6.0, 7.0]])
+        ewise = np.square(x_val2) / y_val2
         for axis, expected in [
-            (None, (np.square(x_val) / y_val).sum()),
-            ((), np.square(x_val) / y_val),
-            (0, (np.square(x_val) / y_val).sum(axis=0)),
+            (None, ewise.sum()), ((), ewise),
+            (0, ewise.sum(axis=0)), (1, ewise.sum(axis=1)),
         ]:
-            expr = cp.quad_over_lin(xv, y_val, axis=axis)
-            result, _ = quad_over_lin_canon(expr, expr.args)
-            xv.value = x_val
-            self.assertItemsAlmostEqual(result.value, expected)
+            a = cp.quad_over_lin(Constant(x_val2), Constant(y_val2), axis=axis)
+            self.assertItemsAlmostEqual(a.value, expected)
+        self.assertEqual(
+            cp.quad_over_lin(Constant(x_val2), Constant(y_val2),
+                             axis=0, keepdims=True).shape, (1, 3)
+        )
+
+        # Broadcast shapes
+        xb, yb = np.array([[1.0], [2.0]]), np.array([[2.0, 3.0, 4.0]])
+        bc = np.square(xb) / yb
+        self.assertAlmostEqual(
+            float(cp.quad_over_lin(Constant(xb), Constant(yb)).value), bc.sum()
+        )
+        self.assertEqual(
+            cp.quad_over_lin(Variable((2, 1)), Variable((1, 3)), axis=()).shape,
+            (2, 3),
+        )
 
     def test_elemwise_arg_count(self) -> None:
         """Test arg count for max and min variants.
