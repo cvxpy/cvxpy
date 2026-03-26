@@ -18,17 +18,20 @@ import numpy as np
 from numpy.lib.array_utils import normalize_axis_index, normalize_axis_tuple
 from scipy.sparse import diags, eye_array
 
+from cvxpy.atoms.affine.broadcast_to import broadcast_to
 from cvxpy.atoms.affine.diag import diag_vec
 from cvxpy.atoms.quad_form import SymbolicQuadForm
 from cvxpy.expressions.variable import Variable
+from cvxpy.utilities import shape as shape_utils
 from cvxpy.utilities.solver_context import SolverInfo
 
 
 def quad_over_lin_canon(expr, args, solver_context: SolverInfo | None = None):
-    affine_expr = args[0]
+    broadcast_shape = shape_utils.sum_shapes([args[0].shape, args[1].shape])
+    affine_expr = broadcast_to(args[0], broadcast_shape)
     y = args[1]
-    assert y.is_scalar() or y.shape == affine_expr.shape, \
-        "quad_over_lin requires y to be a scalar or the same shape as x"
+    if not y.is_scalar():
+        y = broadcast_to(y, broadcast_shape)
     axis = expr.axis
 
     if len(y.parameters()) > 0:
