@@ -30,8 +30,10 @@ from cvxpy.expressions.constants.parameter import is_param_free
 class quad_over_lin(AxisAtom):
     """:math:`(sum_{ij}X^2_{ij})/y`
 
-    When axis is specified, computes the sum of squares along that axis,
-    returning a vector instead of a scalar.
+    Computes :math:`X^2_{ij}/y_{ij}` (or :math:`X^2_{ij}/y` for scalar y),
+    summed over all elements by default (axis=None).
+
+    Use ``axis=()`` for element-wise output with no reduction.
     """
     _allow_complex = True
 
@@ -56,13 +58,17 @@ class quad_over_lin(AxisAtom):
         """Returns the sum of the entries of x squared over y.
         """
         x_val = values[0]
-        y_val = values[1].item()
+        y_val = values[1]
         if self.args[0].is_complex():
             squared = np.square(x_val.imag) + np.square(x_val.real)
         else:
             squared = np.square(x_val)
 
-        return squared.sum(axis=self.axis, keepdims=self.keepdims) / y_val
+        if self.args[1].is_scalar():
+            return squared.sum(axis=self.axis, keepdims=self.keepdims) / y_val.item()
+        else:
+            result = squared / y_val
+            return result.sum(axis=self.axis, keepdims=self.keepdims)
 
     def _domain(self) -> List[Constraint]:
         """Returns constraints describing the domain of the node.
@@ -81,29 +87,32 @@ class quad_over_lin(AxisAtom):
         Returns:
             A list of SciPy CSC sparse matrices or None.
         """
-        # Gradient not implemented for axis case
+        # Gradient only implemented for full reduction (axis=None).
         if self.axis is not None:
             return [None, None]
 
         X = values[0]
         y = values[1]
-        if y <= 0:
+        if np.any(y <= 0):
             return [None, None]
-        else:
-            # DX = 2X/y, Dy = -||X||^2_2/y^2
-            if self.args[0].is_complex():
-                Dy = -(np.square(X.real) + np.square(X.imag)).sum()/np.square(y)
-            else:
-                Dy = -np.square(X).sum()/np.square(y)
 
-            # Ensure Dy is a scalar for proper sparse array construction
-            Dy = float(np.asarray(Dy).item() if np.asarray(Dy).ndim > 0 else Dy)
-            Dy = sp.csc_array([[Dy]])
-            DX = 2.0*X/y
-            # Use F-order to match CVXPY's vectorization convention
-            DX = np.reshape(DX, (self.args[0].size, 1), order='F')
-            DX = scipy.sparse.csc_array(DX)
-            return [DX, Dy]
+        y_squared = np.square(y)
+        if self.args[0].is_complex():
+            X_squared = np.square(X.real) + np.square(X.imag)
+        else:
+            X_squared = np.square(X)
+
+        # DX: (n, 1), Dy: (1, 1).
+        DX = 2.0 * X / y
+        DX = np.reshape(DX, (self.args[0].size, 1), order='F')
+        DX = scipy.sparse.csc_array(DX)
+        if self.args[1].is_scalar():
+            Dy = (-X_squared.sum() / y_squared).item()
+        else:
+            Dy = (-(X_squared / y_squared).sum()).item()
+        Dy = sp.csc_array([[Dy]])
+
+        return [DX, Dy]
 
     def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
@@ -152,10 +161,16 @@ class quad_over_lin(AxisAtom):
     def validate_arguments(self) -> None:
         """Check dimensions of arguments.
         """
-        if not self.args[1].is_scalar():
-            raise ValueError("The second argument to quad_over_lin must be a scalar.")
+        if not (self.args[1].is_scalar()
+                or self.args[1].shape == self.args[0].shape):
+            raise ValueError(
+                "The second argument to quad_over_lin must be a scalar "
+                "or have the same shape as the first argument."
+            )
         if self.args[1].is_complex():
-            raise ValueError("The second argument to quad_over_lin cannot be complex.")
+            raise ValueError(
+                "The second argument to quad_over_lin cannot be complex."
+            )
         # AxisAtom.validate_arguments handles axis validation
         super(quad_over_lin, self).validate_arguments()
 
