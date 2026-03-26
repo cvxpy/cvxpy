@@ -232,6 +232,10 @@ def _convert_NegExpression(_expr, children):
     return _diffengine.make_neg(children[0])
 
 def _convert_quad_over_lin(_expr, children):
+    if not _expr.args[1].is_scalar():
+        raise NotImplementedError(
+            "NLP diff engine does not support non-scalar y in quad_over_lin."
+        )
     return _diffengine.make_quad_over_lin(children[0], children[1])
 
 def _convert_index(expr, children):

@@ -19,6 +19,7 @@ from numpy.lib.array_utils import normalize_axis_index, normalize_axis_tuple
 
 from cvxpy.atoms.affine.hstack import hstack
 from cvxpy.atoms.affine.reshape import reshape
+from cvxpy.atoms.affine.sum import Sum
 from cvxpy.atoms.affine.transpose import transpose
 from cvxpy.atoms.affine.vstack import vstack
 from cvxpy.constraints.second_order import SOC
@@ -37,28 +38,42 @@ def quad_over_lin_canon(expr, args, solver_context: SolverInfo | None = None):
     """
     x = args[0]
     y = args[1]
-    assert y.is_scalar(), "quad_over_lin requires scalar y"
-    y = y.flatten(order="F")
     axis = expr.axis
-
-    if axis is None:
-        # Scalar output - single SOC constraint
-        t = Variable(
-            1,
-        )
-        constraints = [SOC(t=y + t, X=hstack([y - t, 2 * x.flatten(order="F")]), axis=0)]
-        return t, constraints
-
-    # Axis specified - use vectorized batched SOC
     shape = x.shape
     ndim = len(shape)
 
     # Normalize axis/axes to tuple
-    if isinstance(axis, int):
-        axes = (normalize_axis_index(axis, ndim),)
-    else:
-        axes = normalize_axis_tuple(axis, ndim)
+    axes = None
+    if axis is not None:
+        if isinstance(axis, int):
+            axes = (normalize_axis_index(axis, ndim),)
+        else:
+            axes = normalize_axis_tuple(axis, ndim)
 
+    if not y.is_scalar():
+        # Element-wise: x_i^2 / y_i via batched SOC
+        n = x.size
+        t = Variable(x.shape)  # full element-wise shape
+        x_flat = x.flatten(order="F")
+        y_flat = y.flatten(order="F")
+        t_flat = t.flatten(order="F")
+        # Each column j of X_soc is [y_j - t_j, 2*x_j]
+        X_soc = vstack([
+            reshape(y_flat - t_flat, (1, n), order="F"),
+            reshape(2 * x_flat, (1, n), order="F"),
+        ])
+        constraints = [SOC(t=y_flat + t_flat, X=X_soc, axis=0)]
+        return Sum(t, axis=axes, keepdims=expr.keepdims), constraints
+
+    y = y.flatten(order="F")
+
+    if axes is None:
+        # Scalar output - single SOC constraint
+        t = Variable(1,)
+        constraints = [SOC(t=y + t, X=hstack([y - t, 2 * x.flatten(order="F")]), axis=0)]
+        return t, constraints
+
+    # Axis specified - use vectorized batched SOC
     axes_set = set(axes)
     output_dims = [i for i in range(ndim) if i not in axes_set]
     reduce_dims = sorted(axes)

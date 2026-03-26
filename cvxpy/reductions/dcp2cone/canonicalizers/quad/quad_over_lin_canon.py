@@ -16,25 +16,34 @@ limitations under the License.
 
 import numpy as np
 from numpy.lib.array_utils import normalize_axis_index, normalize_axis_tuple
-from scipy.sparse import eye_array
+from scipy.sparse import diags, eye_array
 
+from cvxpy.atoms.affine.diag import diag_vec
 from cvxpy.atoms.quad_form import SymbolicQuadForm
 from cvxpy.expressions.variable import Variable
+from cvxpy.utilities.solver_context import SolverInfo
 
 
-def quad_over_lin_canon(expr, args, solver_context=None):
+def quad_over_lin_canon(expr, args, solver_context: SolverInfo | None = None):
     affine_expr = args[0]
     y = args[1]
-    assert y.is_scalar(), "quad_over_lin requires scalar y"
+    assert y.is_scalar() or y.shape == affine_expr.shape, \
+        "quad_over_lin requires y to be a scalar or the same shape as x"
     axis = expr.axis
 
-    # Simplify if y has no parameters.
-    if len(y.parameters()) == 0:
-        quad_mat = eye_array(affine_expr.size) / y.value
-    else:
-        # TODO this codepath produces an intermediate dense matrix.
+    if len(y.parameters()) > 0:
+        # TODO both codepaths produce an intermediate dense matrix.
         # but it should be sparse the whole time.
-        quad_mat = eye_array(affine_expr.size) / y
+        if y.is_scalar():
+            quad_mat = eye_array(affine_expr.size) / y
+        else:
+            quad_mat = diag_vec(1.0 / y.flatten(order="F"))
+    else:
+        if y.is_scalar():
+            quad_mat = eye_array(affine_expr.size) / y.value
+        else:
+            y_flat = np.asarray(y.value).ravel(order="F")
+            quad_mat = diags(1.0 / y_flat).tocsc()
 
     # Compute block_indices if axis is specified
     block_indices = None
@@ -47,7 +56,7 @@ def quad_over_lin_canon(expr, args, solver_context=None):
             axes = (normalize_axis_index(axis, ndim),)
         else:
             axes = normalize_axis_tuple(axis, ndim)
-
+            
         block_indices = _compute_block_indices(shape, axes)
 
     if isinstance(affine_expr, Variable):
