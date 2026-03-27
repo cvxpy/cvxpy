@@ -23,6 +23,10 @@ from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.constraints.constraint import Constraint
 
 
+def lazy_broadcast_to(expr, shape):
+    """Broadcast expr to shape only if necessary."""
+    return expr if expr.shape == shape else broadcast_to(expr, shape)
+
 class broadcast_to(AffAtom):
     """Broadcast the expression given a shape input"""
 
