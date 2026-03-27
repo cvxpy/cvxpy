@@ -15,17 +15,11 @@ limitations under the License.
 """
 
 import numpy as np # noqa F403
-import pytest
-import scipy.sparse as spar
+import scipy.sparse as sp
 
 from cvxpy.tests.base_test import BaseTest
 from cvxpy.utilities import linalg as lau
 
-try:
-    import cvxpy.utilities.cpp.sparsecholesky  # noqa: F401
-    missing_extension = False
-except ModuleNotFoundError:
-    missing_extension = True
 
 class TestSparseCholesky(BaseTest):
 
@@ -37,33 +31,30 @@ class TestSparseCholesky(BaseTest):
     def check_factor(self, L, places=5):
         diag = L.diagonal()
         self.assertTrue(np.all(diag > 0))
-        delta = (L - spar.tril(L)).toarray().flatten()
+        delta = (L - sp.tril(L)).toarray().flatten()
         self.assertItemsAlmostEqual(delta, np.zeros(delta.size), places)
 
-    @pytest.mark.skipif(missing_extension, reason="requires sparse_cholesky")
     def test_diagonal(self):
         np.random.seed(0)
-        A = spar.csc_array(np.diag(np.random.rand(4)))
+        A = sp.csc_array(np.diag(np.random.rand(4)))
         _, L, p = lau.sparse_cholesky(A, 0.0)
         self.check_factor(L)
         self.check_gram(L[p, :], A)
 
-    @pytest.mark.skipif(missing_extension, reason="requires sparse_cholesky")
     def test_tridiagonal(self):
         np.random.seed(0)
         n = 5
         diag = np.random.rand(n) + 0.1
         offdiag = np.min(np.abs(diag)) * np.ones(n - 1) / 2
-        A = spar.diags_array([offdiag, diag, offdiag], offsets=[-1, 0, 1])
+        A = sp.diags_array([offdiag, diag, offdiag], offsets=[-1, 0, 1])
         _, L, p = lau.sparse_cholesky(A, 0.0)
         self.check_factor(L)
         self.check_gram(L[p, :], A)
 
-    @pytest.mark.skipif(missing_extension, reason="requires sparse_cholesky")
     def test_generic(self, use_expression=False):
         np.random.seed(0)
         B = np.random.randn(3, 3)
-        A = spar.csc_array(B @ B.T)
+        A = sp.csc_array(B @ B.T)
         if use_expression:
             from cvxpy.expressions.expression import Expression
             A = Expression.cast_to_const(A)
@@ -74,26 +65,41 @@ class TestSparseCholesky(BaseTest):
             A = A.value
         self.check_gram(L[p, :], A)
 
-    @pytest.mark.skipif(missing_extension, reason="requires sparse_cholesky")
     def test_expression(self):
         self.test_generic(use_expression=True)
     
-    @pytest.mark.skipif(missing_extension, reason="requires sparse_cholesky")
     def test_singular(self):
-        # error on singular PSD matrix
+        # sparse_cholesky requires positive *definiteness*, not just
+        # semidefiniteness. A singular PSD matrix (rank deficient) has no
+        # Cholesky decomposition. The caller decomp_quad() catches this
+        # ValueError and falls back to dense eigendecomposition via eigh.
         np.random.seed(0)
         B = np.random.randn(4, 2)
-        A = B @ B.T
-        with self.assertRaises(ValueError, msg=lau.SparseCholeskyMessages.EIGEN_FAIL):
+        A = sp.csc_array(B @ B.T)  # Must be sparse
+        with self.assertRaises(ValueError):
             lau.sparse_cholesky(A)
 
-    @pytest.mark.skipif(missing_extension, reason="requires sparse_cholesky")
+    def test_nontrivial_permutation(self):
+        # Test with a matrix that produces a non-symmetric permutation
+        # to verify the permutation handling is correct
+        np.random.seed(123)
+        n = 6
+        B = sp.random(n, n, density=0.4, format='csr', random_state=123)
+        A = (B @ B.T + n * sp.eye(n)).tocsc()
+        _, L, p = lau.sparse_cholesky(A)
+        self.check_factor(L)
+        self.check_gram(L[p, :], A)
+        # Verify permutation is non-trivial (not identity or simple reversal)
+        p_inv = np.argsort(p)
+        self.assertFalse(np.array_equal(p, p_inv),
+                         "Test requires non-symmetric permutation")
+
     def test_nonsingular_indefinite(self):
         np.random.seed(0)
         n = 5
         diag = np.random.rand(n) + 0.1
         diag[n-1] = -1
         offdiag = np.min(np.abs(diag)) * np.ones(n - 1) / 2
-        A = spar.diags_array([offdiag, diag, offdiag], offsets=[-1, 0, 1])
+        A = sp.diags_array([offdiag, diag, offdiag], offsets=[-1, 0, 1])
         with self.assertRaises(ValueError, msg=lau.SparseCholeskyMessages.INDEFINITE):
             lau.sparse_cholesky(A, 0.0)

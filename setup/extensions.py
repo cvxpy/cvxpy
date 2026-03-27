@@ -15,7 +15,6 @@ limitations under the License.
 """
 import platform
 
-from pybind11.setup_helpers import Pybind11Extension
 from setuptools import Extension
 
 
@@ -46,16 +45,6 @@ cvxcore = Extension(
     include_dirs=['cvxpy/cvxcore/src/',
                   'cvxpy/cvxcore/python/',
                   'cvxpy/cvxcore/include/'],
-    extra_compile_args=compiler_args,
-    extra_link_args=['-O3'],
-)
-
-sparsecholesky = Pybind11Extension(
-    "_cvxpy_sparsecholesky",
-    sources=[
-        "cvxpy/utilities/cpp/sparsecholesky/main.cpp"
-    ],
-    define_macros=[('VERSION_INFO', "0.0.1")],
     extra_compile_args=compiler_args,
     extra_link_args=['-O3'],
 )
