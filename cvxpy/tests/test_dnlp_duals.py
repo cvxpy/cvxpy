@@ -1,5 +1,7 @@
 import unittest
+
 import pytest
+
 import cvxpy as cp
 
 
@@ -32,3 +34,4 @@ class TestDNLPDualRecovery(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
     
+
