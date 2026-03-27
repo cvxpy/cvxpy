@@ -88,7 +88,7 @@ class TestExpressions(BaseTest):
         self.assertFalse(s.is_quadratic())
         self.assertTrue(s.is_dcp())
 
-        t = cp.quad_over_lin(x+2*y, 5)
+        t = cp.quad_over_lin(x + 2*y, np.ones((3, 5)) + 1)
         self.assertFalse(t.is_constant())
         self.assertFalse(t.is_affine())
         self.assertTrue(t.is_quadratic())

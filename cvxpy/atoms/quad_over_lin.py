@@ -19,6 +19,7 @@ from typing import List, Tuple
 import numpy as np
 import scipy as scipy
 import scipy.sparse as sp
+from numpy.lib.array_utils import normalize_axis_index, normalize_axis_tuple
 
 import cvxpy.utilities as u
 from cvxpy.atoms.atom import Atom
@@ -30,8 +31,10 @@ from cvxpy.expressions.constants.parameter import is_param_free
 class quad_over_lin(AxisAtom):
     """:math:`(sum_{ij}X^2_{ij})/y`
 
-    When axis is specified, computes the sum of squares along that axis,
-    returning a vector instead of a scalar.
+    Computes :math:`X^2_{ij}/y_{ij}` (or :math:`X^2_{ij}/y` for scalar y),
+    summed over all elements by default (axis=None).
+
+    Use ``axis=()`` for element-wise output with no reduction.
     """
     _allow_complex = True
 
@@ -46,9 +49,11 @@ class quad_over_lin(AxisAtom):
         self.keepdims = keepdims
         # Call Atom.__init__ directly since we have two args
         Atom.__init__(self, x, y)
+
         # Normalize axis after init so self.args is available.
+        self._broadcast_shape = u.shape.sum_shapes([self.args[0].shape, self.args[1].shape])
         if self.axis is not None:
-            ndim = len(self.args[0].shape)
+            ndim = len(self._broadcast_shape)
             self.axis = normalize_axis(self.axis, ndim)
 
     @Atom.numpy_numeric
@@ -56,13 +61,19 @@ class quad_over_lin(AxisAtom):
         """Returns the sum of the entries of x squared over y.
         """
         x_val = values[0]
-        y_val = values[1].item()
+        y_val = values[1]
         if self.args[0].is_complex():
             squared = np.square(x_val.imag) + np.square(x_val.real)
         else:
             squared = np.square(x_val)
 
-        return squared.sum(axis=self.axis, keepdims=self.keepdims) / y_val
+        squared = np.broadcast_to(squared, self._broadcast_shape)
+
+        if self.args[1].is_scalar():
+            return squared.sum(axis=self.axis, keepdims=self.keepdims) / y_val.item()
+        else:
+            result = squared / y_val
+            return result.sum(axis=self.axis, keepdims=self.keepdims)
 
     def _domain(self) -> List[Constraint]:
         """Returns constraints describing the domain of the node.
@@ -81,29 +92,43 @@ class quad_over_lin(AxisAtom):
         Returns:
             A list of SciPy CSC sparse matrices or None.
         """
-        # Gradient not implemented for axis case
         if self.axis is not None:
             return [None, None]
 
         X = values[0]
         y = values[1]
-        if y <= 0:
+        if np.any(y <= 0):
             return [None, None]
-        else:
-            # DX = 2X/y, Dy = -||X||^2_2/y^2
-            if self.args[0].is_complex():
-                Dy = -(np.square(X.real) + np.square(X.imag)).sum()/np.square(y)
-            else:
-                Dy = -np.square(X).sum()/np.square(y)
 
-            # Ensure Dy is a scalar for proper sparse array construction
-            Dy = float(np.asarray(Dy).item() if np.asarray(Dy).ndim > 0 else Dy)
-            Dy = sp.csc_array([[Dy]])
-            DX = 2.0*X/y
-            # Use F-order to match CVXPY's vectorization convention
+        if self.args[0].is_complex():
+            X_squared = np.square(X.real) + np.square(X.imag)
+        else:
+            X_squared = np.square(X)
+
+        if self.args[1].is_scalar():
+            # Scalar y: sum before dividing to avoid broadcasting overhead.
+            DX = 2.0 * X / y
             DX = np.reshape(DX, (self.args[0].size, 1), order='F')
             DX = scipy.sparse.csc_array(DX)
+            Dy = sp.csc_array([[(-X_squared.sum() / np.square(y)).item()]])
             return [DX, Dy]
+
+        bc_shape = self._broadcast_shape
+        X_bc = np.broadcast_to(X, bc_shape)
+        X_sq_bc = np.broadcast_to(X_squared, bc_shape)
+        y_bc = np.broadcast_to(y, bc_shape)
+
+        DX = _unbroadcast(2.0 * X_bc / y_bc, X.shape)
+        DX = scipy.sparse.csc_array(
+            np.reshape(DX, (self.args[0].size, 1), order='F')
+        )
+
+        Dy = _unbroadcast(-X_sq_bc / np.square(y_bc), y.shape)
+        Dy = sp.csc_array(
+            np.reshape(Dy, (self.args[1].size, 1), order='F')
+        )
+
+        return [DX, Dy]
 
     def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
@@ -152,12 +177,47 @@ class quad_over_lin(AxisAtom):
     def validate_arguments(self) -> None:
         """Check dimensions of arguments.
         """
-        if not self.args[1].is_scalar():
-            raise ValueError("The second argument to quad_over_lin must be a scalar.")
         if self.args[1].is_complex():
-            raise ValueError("The second argument to quad_over_lin cannot be complex.")
-        # AxisAtom.validate_arguments handles axis validation
-        super(quad_over_lin, self).validate_arguments()
+            raise ValueError(
+                "The second argument to quad_over_lin cannot be complex."
+            )
+
+        # Check if the shapes are broadcast-compatible
+        try:
+            bshape = u.shape.sum_shapes([self.args[0].shape, self.args[1].shape])
+        except ValueError:
+            raise ValueError(
+                "The shapes of the arguments to quad_over_lin are incompatible."
+            )
+        # Validate axis against broadcast ndim
+        if self.axis is not None:
+            axes = [self.axis] if isinstance(self.axis, int) else self.axis
+            normalize_axis_tuple(axes, len(bshape))
+        Atom.validate_arguments(self)
+
+    def shape_from_args(self) -> Tuple[int, ...]:
+        """Returns the shape of the expression.
+        """
+        shape = list(u.shape.sum_shapes([self.args[0].shape, self.args[1].shape]))
+        ndim = len(shape)
+        if self.axis is None:
+            return (1,) * len(shape) if self.keepdims else ()
+        elif isinstance(self.axis, int):
+            # Normalize negative axis
+            axis = normalize_axis_index(self.axis, ndim)
+            if self.keepdims:
+                shape[axis] = 1
+            else:
+                shape = shape[:axis] + shape[axis+1:]
+        else:
+            # Normalize each axis in the list
+            axes =  normalize_axis_tuple(self.axis, ndim)
+            if self.keepdims:
+                for axis in axes:
+                    shape[axis] = 1
+            else:
+                shape[:] = [shape[i] for i in range(len(shape)) if i not in axes]
+        return tuple(shape)
 
     def is_quadratic(self) -> bool:
         """Quadratic if x is affine and y is constant.
@@ -173,3 +233,30 @@ class quad_over_lin(AxisAtom):
         """Quadratic of piecewise affine if x is PWL and y is constant.
         """
         return self.args[0].is_pwl() and self.args[1].is_constant()
+
+def _unbroadcast(
+    arr: np.ndarray,
+    target_shape: Tuple[int, ...],
+) -> np.ndarray:
+    """Sum an array from its broadcast shape back to target_shape.
+
+    target_shape must broadcast to arr.shape.
+    """
+    try:
+        result_shape = np.broadcast_shapes(target_shape, arr.shape)
+    except ValueError:
+        result_shape = None
+    if result_shape != arr.shape:
+        raise ValueError(
+            f"target_shape {target_shape} does not broadcast to arr.shape {arr.shape}."
+        )
+    # Undo left padding.
+    pad = len(arr.shape) - len(target_shape)
+    reduce_axes = list(range(pad))
+    for i, (a, b) in enumerate(zip(target_shape, arr.shape[pad:])):
+        if a == 1 and b > 1:
+            reduce_axes.append(i + pad)
+    if reduce_axes:
+        # Sum over the reduce axes to get the target shape, and re-add the size-1 axes.
+        return arr.sum(axis=tuple(reduce_axes)).reshape(target_shape)
+    return arr
