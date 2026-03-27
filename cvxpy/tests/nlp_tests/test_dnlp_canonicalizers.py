@@ -15,7 +15,6 @@ limitations under the License.
 """
 
 import numpy as np
-import pytest
 
 import cvxpy as cp
 from cvxpy.expressions.variable import Variable
