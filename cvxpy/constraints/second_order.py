@@ -273,10 +273,8 @@ class RSOC(Cone):
             X = X.reshape(-1, 1)
         if self.axis == 1:
             X = X.T
-        # After any transpose, X is (n_x, n_cones); sum over axis=0 gives (n_cones,)
-        # But if axis==1 transposed to (n_cones, n_x), sum over axis=1 gives (n_cones,)
-        sum_axis = 1 if (self.axis == 1) else 0
-        norms_sq = np.sum(X ** 2, axis=sum_axis)  # shape (n_cones,)
+        # After any transpose, X is (n_x, n_cones); always sum over axis=0
+        norms_sq = np.sum(X ** 2, axis=0)  # shape (n_cones,)
         lhs = 2 * y * z
         viol_cone = norms_sq - lhs          # > 0 means violated
         viol_y = -y                          # > 0 means y < 0
@@ -285,7 +283,8 @@ class RSOC(Cone):
         return residuals[0] if residuals.size == 1 else residuals
 
     def save_dual_value(self, value) -> None:
-        n_x = self.args[0].shape[0]
+        X_shape = self.args[0].shape
+        n_x = X_shape[1] if (self.axis == 1 and len(X_shape) == 2) else X_shape[0]
         n_cones = self.args[1].size
         if isinstance(value, (list, tuple)):
             # recover_dual returns [dx_dual (n_cones, n_x), dy_dual (n_cones,), dz_dual (n_cones,)]

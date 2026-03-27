@@ -969,7 +969,7 @@ class TestRSOC(unittest.TestCase):
         z = cp.Variable(nonneg=True)
         prob = cp.Problem(cp.Minimize(y + z),
                           [cp.RSOC(x, y, z), x == np.ones(n)])
-        prob.solve()
+        prob.solve(solver=cp.CLARABEL)
         assert prob.status == cp.OPTIMAL
         y_opt, z_opt, x_opt = y.value, z.value, x.value
         # Check RSOC constraint: 2yz >= ||x||^2
@@ -989,7 +989,7 @@ class TestRSOC(unittest.TestCase):
         prob1 = cp.Problem(cp.Minimize(z1),
                            [cp.RSOC(x1, y1, z1),
                             x1 == x_val, y1 == y_val])
-        prob1.solve()
+        prob1.solve(solver=cp.CLARABEL)
 
         # quad_over_lin formulation: z >= ||x||^2 / (2y)
         x2 = cp.Variable(n)
@@ -997,7 +997,7 @@ class TestRSOC(unittest.TestCase):
         prob2 = cp.Problem(cp.Minimize(z2),
                            [z2 >= cp.quad_over_lin(x2, 2 * y_val),
                             x2 == x_val])
-        prob2.solve()
+        prob2.solve(solver=cp.CLARABEL)
 
         # Both should give z = ||x_val||^2 / (2*y_val)
         expected = np.dot(x_val, x_val) / (2 * y_val)
@@ -1167,3 +1167,46 @@ class TestRSOC(unittest.TestCase):
         # KKT stationarity: dx = mu (equality constraint dual)
         mu = np.asarray(con_eq.dual_value, dtype=float)
         np.testing.assert_allclose(dx, mu, atol=1e-4)
+    def test_axis1_solve_residual_dual(self):
+        """Test RSOC with axis=1: X has shape (k, n), cones along columns."""
+        np.random.seed(7)
+        n, k = 3, 4  # n-dim vectors, k cones
+        X = cp.Variable((k, n))
+        y = cp.Variable(k, nonneg=True)
+        z = cp.Variable(k, nonneg=True)
+        X_val = np.random.randn(k, n)
+        con = cp.RSOC(X, y, z, axis=1)
+        prob = cp.Problem(cp.Minimize(cp.sum(y + z)),
+                          [con, X == X_val])
+        prob.solve(solver=cp.CLARABEL)
+        assert prob.status == cp.OPTIMAL
+
+        # Check primal feasibility: 2*y[i]*z[i] >= ||X[i,:]||^2
+        X_opt = X.value
+        y_opt = y.value
+        z_opt = z.value
+        for i in range(k):
+            lhs = 2 * y_opt[i] * z_opt[i]
+            rhs = np.dot(X_opt[i, :], X_opt[i, :])
+            assert lhs >= rhs - 1e-4, f"Cone {i} violated: 2yz={lhs} < ||x||^2={rhs}"
+
+        # Check residual is non-negative and finite
+        res = con.residual
+        assert res is not None
+        assert np.all(np.isfinite(res))
+        assert np.all(res >= -1e-6)
+
+        # Check dual variables are populated and have correct shapes
+        dv = con.dual_value
+        assert isinstance(dv, list) and len(dv) == 3
+        dx, dy_d, dz_d = dv
+        assert dx is not None
+        assert dy_d is not None
+        assert dz_d is not None
+        dx = np.asarray(dx, dtype=float)
+        dy_d = np.asarray(dy_d, dtype=float).ravel()
+        dz_d = np.asarray(dz_d, dtype=float).ravel()
+        assert dx.shape == (n, k), f"dx shape {dx.shape} != ({n}, {k})"
+        assert dy_d.shape == (k,), f"dy shape {dy_d.shape} != ({k},)"
+        assert dz_d.shape == (k,), f"dz shape {dz_d.shape} != ({k},)"
+

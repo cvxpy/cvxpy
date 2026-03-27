@@ -27,6 +27,7 @@ Each conversion is a class with:
 Current conversions:
   PowConeND -> PowCone3D  (balanced binary tree decomposition)
   SOC       -> PSD        (Schur complement)
+  RSOC      -> SOC        (substitution t=y+z, v=y-z)
 
 EXACT_CONE_CONVERSIONS maps {source_cone: {target_cones}} and must
 form a DAG (no cycles).
@@ -466,7 +467,8 @@ class RSocConversion:
             dy = dt + dX[n_x]
             dz = dt - dX[n_x]
         """
-        n_x = cons.args[0].shape[0]
+        X_shape = cons.args[0].shape
+        n_x = X_shape[1] if (cons.axis == 1 and len(X_shape) == 2) else (X_shape[0] if cons.args[0].ndim > 1 else cons.args[0].size)
         n_cones = cons.args[1].size
         dual = np.asarray(dual_var, dtype=float).ravel()
         stride = n_x + 2
