@@ -209,7 +209,7 @@ def solve_nlp(problem, solver, warm_start, verbose, **kwargs):
         obj_value = problem.objective.value
 
         all_objs[run] = obj_value
-        if obj_value < best_obj:
+        if obj_value is not None and obj_value < best_obj:
             best_obj = obj_value
             best_solution = solution
 
