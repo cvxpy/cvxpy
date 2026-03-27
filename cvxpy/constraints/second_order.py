@@ -284,7 +284,7 @@ class RSOC(Cone):
 
     def save_dual_value(self, value) -> None:
         X_shape = self.args[0].shape
-        n_x = X_shape[1] if (self.axis == 1 and len(X_shape) == 2) else X_shape[0]
+        n_x = X_shape[1] if (self.axis == 1 and len(X_shape) == 2) else (X_shape[0] if len(X_shape) > 0 else self.args[0].size)
         n_cones = self.args[1].size
         if isinstance(value, (list, tuple)):
             # recover_dual returns [dx_dual (n_cones, n_x), dy_dual (n_cones,), dz_dual (n_cones,)]
