@@ -59,7 +59,7 @@ def quad_over_lin_canon(expr, args, solver_context: SolverInfo | None = None):
             axes = (normalize_axis_index(axis, ndim),)
         else:
             axes = normalize_axis_tuple(axis, ndim)
-            
+
         block_indices = _compute_block_indices(shape, axes)
 
     if isinstance(affine_expr, Variable):
