@@ -39,9 +39,10 @@ import cvxpy as cp
 from cvxpy import problems
 from cvxpy.atoms.affine.hstack import hstack
 from cvxpy.atoms.affine.reshape import reshape
+from cvxpy.atoms.affine.vec import vec
 from cvxpy.constraints.nonpos import NonNeg, NonPos
 from cvxpy.constraints.power import PowCone3D, PowConeND
-from cvxpy.constraints.psd import PSD
+from cvxpy.constraints.psd import PSD, SvecPSD
 from cvxpy.constraints.second_order import SOC
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.canonicalization import Canonicalization
@@ -53,6 +54,7 @@ from cvxpy.reductions.cone2cone.cone_tree import (
 )
 from cvxpy.reductions.inverse_data import InverseData
 from cvxpy.reductions.solution import Solution
+from cvxpy.utilities.psd_utils import psd_format_mat, tri_to_full
 
 # Maps each "exact" cone to the set of simpler cones it converts to.
 # Must form a DAG (no cycles).
@@ -60,6 +62,7 @@ EXACT_CONE_CONVERSIONS = {
     NonPos: {NonNeg},
     PowConeND: {PowCone3D},
     SOC: {PSD},
+    PSD: {SvecPSD},
 }
 
 
@@ -206,7 +209,7 @@ class PowNDConversion:
     targets = {PowCone3D}
 
     @staticmethod
-    def canonicalize(con, args):
+    def canonicalize(con, args, solver_context=None):
         """
         Canonicalize PowConeND to PowCone3D using balanced binary tree
         decomposition.
@@ -308,7 +311,7 @@ class SOCConversion:
     targets = {PSD}
 
     @staticmethod
-    def canonicalize(con, args):
+    def canonicalize(con, args, solver_context=None):
         """
         Convert a single SOC constraint ||X||_2 <= t to an equivalent PSD constraint.
 
@@ -406,7 +409,7 @@ class NonPosConversion:
     targets = {NonNeg}
 
     @staticmethod
-    def canonicalize(con, args):
+    def canonicalize(con, args, solver_context=None):
         return NonNeg(-args[0], constr_id=con.constr_id), []
 
     @staticmethod
@@ -414,13 +417,50 @@ class NonPosConversion:
         return dual_var
 
 
+class PSDToSvecPSD:
+    """PSD -> SvecPSD via scaled vectorization.
+
+    Converts a full-matrix PSD constraint into the solver's triangular
+    (svec) representation.  The particular triangle ordering and scaling
+    are read from ``solver_context``.
+    """
+    source = PSD
+    targets = {SvecPSD}
+
+    @staticmethod
+    def canonicalize(con, args, solver_context=None):
+        X = args[0]
+        n = X.shape[-1]
+        M = psd_format_mat(con, solver_context.psd_triangle_kind,
+                           solver_context.psd_sqrt2_scaling)
+        svec_expr = M @ vec(X, order='F')
+        return SvecPSD(svec_expr, n=n), []
+
+    @staticmethod
+    def recover_dual(cons, dual_var, inverse_data, solution):
+        ctx = inverse_data._solver_context
+        n = cons.args[0].shape[-1]
+        num = cons.num_cones()
+        tri_dim = n * (n + 1) // 2
+        blocks = []
+        for i in range(num):
+            tri_vec = dual_var[i * tri_dim:(i + 1) * tri_dim]
+            blocks.append(tri_to_full(tri_vec, n,
+                                      ctx.psd_triangle_kind,
+                                      ctx.psd_sqrt2_scaling))
+        # Reshape to match the original PSD constraint's arg shape.
+        flat = np.concatenate(blocks)
+        return flat.reshape(cons.args[0].shape, order='F')
+
+
 class ExactCone2Cone(Canonicalization):
 
-    CONVERSIONS = [NonPosConversion, PowNDConversion, SOCConversion]
+    CONVERSIONS = [NonPosConversion, PowNDConversion, SOCConversion, PSDToSvecPSD]
 
     CANON_METHODS = {c.source: c.canonicalize for c in CONVERSIONS}
 
-    def __init__(self, problem=None, target_cones=None) -> None:
+    def __init__(self, problem=None, target_cones=None, solver_context=None) -> None:
+        self.solver_context = solver_context
         conversions = self.CONVERSIONS
         if target_cones is not None:
             conversions = [c for c in conversions if c.source in target_cones]
@@ -444,13 +484,18 @@ class ExactCone2Cone(Canonicalization):
 
     def apply(self, problem):
         inverse_data = InverseData(problem)
+        inverse_data._solver_context = self.solver_context
 
         canon_objective, canon_constraints = self.canonicalize_tree(
             problem.objective)
 
-        for constraint in problem.constraints:
+        # Process constraints through the conversion DAG.  Auxiliary
+        # constraints produced by one conversion may themselves need
+        # conversion (e.g. SOC→PSD→SvecPSD), so we use a worklist.
+        worklist = list(problem.constraints)
+        while worklist:
+            constraint = worklist.pop(0)
             canon_constr, aux_constr = self.canonicalize_tree(constraint)
-            canon_constraints += aux_constr + [canon_constr]
             inverse_data.cons_id_map.update({constraint.id: canon_constr.id})
 
             # Call per-conversion hooks to record metadata (e.g. tree
@@ -459,6 +504,15 @@ class ExactCone2Cone(Canonicalization):
             hook = self._apply_hooks.get(type(constraint))
             if hook is not None:
                 hook(constraint, canon_constr, aux_constr, inverse_data)
+
+            # If the canonical or auxiliary constraints need further
+            # conversion, put them back on the worklist; otherwise
+            # add them to the output.
+            for c in aux_constr + [canon_constr]:
+                if type(c) in self.canon_methods:
+                    worklist.append(c)
+                else:
+                    canon_constraints.append(c)
 
         new_problem = problems.problem.Problem(canon_objective,
                                                canon_constraints)

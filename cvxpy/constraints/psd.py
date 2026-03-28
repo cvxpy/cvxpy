@@ -120,3 +120,78 @@ class PSD(Cone):
             assert len(args) == len(self.args)
             assert args_shapes == instance_args_shapes
             return args[0] >> 0
+
+
+class SvecPSD(Cone):
+    """A PSD constraint in scaled vectorized (svec) form.
+
+    The argument is a 1-D expression of length ``n * (n + 1) // 2``
+    representing the scaled lower- or upper-triangular entries of a
+    symmetric positive semidefinite matrix.  This constraint is produced
+    automatically by the :class:`ExactCone2Cone` reduction when a solver
+    requires the triangular PSD representation.
+
+    Parameters
+    ----------
+    expr : Expression
+        A 1-D affine expression of length ``n * (n + 1) // 2``.
+    n : int
+        The side length of the original PSD matrix.
+    constr_id : int, optional
+        A unique id for the constraint.
+    """
+
+    def __init__(self, expr, n: int, constr_id=None) -> None:
+        self._n = n
+        super().__init__([expr], constr_id)
+
+    def get_data(self):
+        """Data needed to copy."""
+        return [self._n, self.id]
+
+    def name(self) -> str:
+        return "svec_psd(%s, n=%d)" % (self.args[0], self._n)
+
+    def is_dcp(self, dpp: bool = False) -> bool:
+        if dpp:
+            with scopes.dpp_scope():
+                return self.args[0].is_affine()
+        return self.args[0].is_affine()
+
+    def is_dgp(self, dpp: bool = False) -> bool:
+        return False
+
+    def is_dqcp(self) -> bool:
+        return self.is_dcp()
+
+    def num_cones(self) -> int:
+        tri_dim = self._n * (self._n + 1) // 2
+        return self.args[0].size // tri_dim
+
+    def _cone_size(self) -> int:
+        """The matrix side length (not the triangular dimension)."""
+        return self._n
+
+    def cone_sizes(self) -> list[int]:
+        return [self._n] * self.num_cones()
+
+    @property
+    def size(self) -> int:
+        return self._n * (self._n + 1) // 2 * self.num_cones()
+
+    @property
+    def residual(self):
+        if self.expr.value is None:
+            return None
+        raise NotImplementedError(
+            "Residual is not implemented for SvecPSD. "
+            "Check the residual on the original PSD constraint instead."
+        )
+
+    def _dual_cone(self, *args):
+        """The dual of the PSD cone is itself."""
+        if not args:
+            return SvecPSD(self.dual_variables[0], n=self._n)
+        else:
+            assert len(args) == len(self.args)
+            return SvecPSD(args[0], n=self._n)
