@@ -1,2 +1,8 @@
-# Modernize type hints to use builtin types and PEP 604 union syntax
-98e59f1285376df9cbafed133a1bcbb1c28d053d
+# Removes white space from blank lines (#3264)
+bebc9e0b17decfcdeebb37e6d72a6333bf42f7bb
+
+# Modernize type hints and add pyright baseline (#3173)
+99b21e3ea481d5a47c125bfde23c032462ce82d7
+
+# Add trailing whitespace and missing newline ruff rules (#3177)
+8f839a4be777a569dd49d94d92cb975fdc0b9198
