@@ -50,6 +50,26 @@ def _ensure_dense(arr, shape: tuple[int, ...] | None = None):
     return arr
 
 
+def _ia_matmul(a, b):
+    """Interval-arithmetic matmul: ``a @ b`` with the convention ``0 * inf = 0``.
+
+    NumPy computes ``0 * inf = NaN``, which poisons the reduction sum.
+    We compute element-wise products, replace NaN with 0, then sum
+    over the contraction axis.
+    """
+    a = np.asarray(a)
+    b = np.asarray(b)
+    # a has shape (..., k), b has shape (k, ...).
+    # Broadcast to align the contraction axis (a's last, b's first):
+    #   a_expanded: (..., k, 1, 1, ...) with len(b.shape)-1 trailing 1s
+    #   b_expanded: (k, ...)            broadcast against a_expanded
+    extra = b.ndim - 1
+    a_exp = a.reshape(a.shape + (1,) * extra)
+    products = a_exp * b
+    np.nan_to_num(products, copy=False, nan=0.0)
+    return products.sum(axis=a.ndim - 1)
+
+
 def _safe_maximum(a, b):
     """Element-wise maximum, handling sparse matrices.
 
@@ -786,10 +806,8 @@ def matmul_bounds(lb1, ub1, lb2, ub2) -> Bounds:
         #   A_pos @ lb2 + A_neg @ ub2
         a_pos = _safe_maximum(lb1, 0)
         a_neg = _safe_minimum(lb1, 0)
-        # 0 * inf = NaN in matmul, but semantically a zero coefficient
-        # contributes nothing, so replace NaN with -inf (lb) / inf (ub).
-        new_lb = np.nan_to_num(a_pos @ lb2 + a_neg @ ub2, nan=-np.inf)
-        new_ub = np.nan_to_num(a_pos @ ub2 + a_neg @ lb2, nan=np.inf)
+        new_lb = _ia_matmul(a_pos, lb2) + _ia_matmul(a_neg, ub2)
+        new_ub = _ia_matmul(a_pos, ub2) + _ia_matmul(a_neg, lb2)
         return (new_lb, new_ub)
 
     if rhs_point:
@@ -798,8 +816,8 @@ def matmul_bounds(lb1, ub1, lb2, ub2) -> Bounds:
         #   lb1 @ B_pos + ub1 @ B_neg  (for lower bound)
         b_pos = _safe_maximum(lb2, 0)
         b_neg = _safe_minimum(lb2, 0)
-        new_lb = np.nan_to_num(lb1 @ b_pos + ub1 @ b_neg, nan=-np.inf)
-        new_ub = np.nan_to_num(ub1 @ b_pos + lb1 @ b_neg, nan=np.inf)
+        new_lb = _ia_matmul(lb1, b_pos) + _ia_matmul(ub1, b_neg)
+        new_ub = _ia_matmul(ub1, b_pos) + _ia_matmul(lb1, b_neg)
         return (new_lb, new_ub)
 
     # Both operands are intervals — no efficient exact formula.
