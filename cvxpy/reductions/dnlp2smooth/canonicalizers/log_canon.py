@@ -23,4 +23,6 @@ def log_canon(expr, args):
     t = Variable(args[0].shape, bounds=[lb, ub])
     if args[0].value is not None:
         t.value = np.maximum(args[0].value, MIN_INIT)
+
+
     return expr.copy([t]), [t == args[0]]

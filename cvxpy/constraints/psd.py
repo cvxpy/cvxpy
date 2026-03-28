@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import List
 
 import numpy as np
 
@@ -83,7 +82,7 @@ class PSD(Cone):
         """The dimension of each PSD cone (the matrix side length n)."""
         return int(self.args[0].shape[-1])
 
-    def cone_sizes(self) -> List[int]:
+    def cone_sizes(self) -> list[int]:
         """The dimensions of the PSD cones."""
         return [self._cone_size()] * self.num_cones()
 

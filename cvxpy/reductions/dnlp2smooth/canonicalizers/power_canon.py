@@ -38,7 +38,7 @@ def power_canon(expr, args):
         t = Variable(shape)
         if x.value is not None:
             t.value = x.value
-        
+
         return expr.copy([t]), [t == x]
     elif p > 0:
         lb, ub = x.get_bounds()

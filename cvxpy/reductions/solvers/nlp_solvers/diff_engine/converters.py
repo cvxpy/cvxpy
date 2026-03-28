@@ -47,11 +47,11 @@ def _convert_matmul(expr, children):
 
     if left_arg.is_constant():
         A = left_arg.value
-    
+
         if not isinstance(A, sparse.csr_matrix):
           A = sparse.csr_matrix(A)
-          
-        return _diffengine.make_sparse_left_matmul(
+
+        return _diffengine.make_left_matmul(
             children[1],
             A.data.astype(np.float64),
             A.indices.astype(np.int32),
@@ -61,7 +61,7 @@ def _convert_matmul(expr, children):
         )
     elif right_arg.is_constant():
         A = right_arg.value
-       
+
         if not isinstance(A, sparse.csr_matrix):
             A = sparse.csr_matrix(A)
 
@@ -149,7 +149,7 @@ def _extract_flat_indices_from_special_index(expr):
 
 def _convert_rel_entr(expr, children):
     """Convert rel_entr(x, y) = x * log(x/y) elementwise.
-    
+
     Uses specialized functions based on argument shapes:
     - Both scalar or both same size: make_rel_entr (elementwise)
     - First arg vector, second scalar: make_rel_entr_vector_scalar
@@ -158,7 +158,7 @@ def _convert_rel_entr(expr, children):
     x_arg, y_arg = expr.args
     x_size = x_arg.size
     y_size = y_arg.size
-    
+
     # Determine which variant to use based on sizes
     if x_size == y_size:
         return _diffengine.make_rel_entr(children[0], children[1])
@@ -252,16 +252,16 @@ def _convert_prod(expr, children):
         return _diffengine.make_prod_axis_zero(children[0])
     elif axis == 1:
         return _diffengine.make_prod_axis_one(children[0])
-    
+
 def _convert_transpose(expr, children):
     # If the child is a vector (shape (n,) or (n,1) or (1,n)), use reshape to transpose
     child_shape = normalize_shape(expr.args[0].shape)
-    
+
     if 1 in child_shape:
         return _diffengine.make_reshape(children[0], child_shape[1], child_shape[0])
     else:
         return _diffengine.make_transpose(children[0])
-   
+
 def _convert_trace(_expr, children):
     return _diffengine.make_trace(children[0])
 
@@ -367,7 +367,7 @@ def convert_expr(expr, var_dict: dict, n_vars: int):
         # we only support dense constants for now
         if sparse.issparse(c):
             c = c.todense()
-        
+
         c = np.asarray(c, dtype=np.float64)
         d1, d2 = normalize_shape(expr.shape)
         return _diffengine.make_constant(d1, d2, n_vars, c.flatten(order='F'))
@@ -389,9 +389,9 @@ def convert_expr(expr, var_dict: dict, n_vars: int):
                 f"Dimension mismatch for atom '{atom_name}': "
                 f"C dimensions ({d1_C}, {d2_C}) vs Python dimensions ({d1_Python}, {d2_Python})"
             )
-            
+
         return C_expr
-    
+
     raise NotImplementedError(f"Atom '{atom_name}' not supported")
 
 

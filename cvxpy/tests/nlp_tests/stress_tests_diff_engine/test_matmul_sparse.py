@@ -25,7 +25,7 @@ from cvxpy.tests.nlp_tests.derivative_checker import DerivativeChecker
 
 @pytest.mark.skipif('IPOPT' not in INSTALLED_SOLVERS, reason='IPOPT is not installed.')
 class TestMatmulDifferentFormats:
-    
+
     def test_dense_sparse_sparse(self):
         n = 10
         A = np.random.rand(n, n)

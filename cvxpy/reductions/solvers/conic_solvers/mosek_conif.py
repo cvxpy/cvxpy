@@ -596,7 +596,7 @@ class MOSEK(ConicSolver):
 
         # Delete the mosek Task and Environment
         task.__exit__(None, None, None)
- 
+
         return sol
 
     @staticmethod
@@ -753,7 +753,7 @@ class MOSEK(ConicSolver):
         return processed_opts
 
     @staticmethod
-    def is_param(param: str | "iparam" | "dparam" | "sparam") -> bool:  # noqa: F821
+    def is_param(param: object) -> bool:
         import mosek
         return isinstance(param, (mosek.iparam, mosek.dparam,  mosek.sparam))
 
@@ -779,7 +779,7 @@ class MOSEK(ConicSolver):
             solver_opts['mosek_params'][tol_param] = \
                 solver_opts['mosek_params'].get(tol_param, eps)
         return solver_opts
-    
+
     @staticmethod
     def tolerance_params() -> tuple[str]:
         # tolerance parameters from

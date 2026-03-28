@@ -426,7 +426,7 @@ class TestComplex(BaseTest):
         result = prob.solve(solver="CLARABEL")
         normalization = max(abs(result), abs(value))
         self.assertAlmostEqual(result / normalization, value / normalization)
-        
+
         P_nsd = -P
         x_nsd = cp.Variable(3, complex=True)
         expr_nsd = cp.quad_form(x_nsd, P_nsd)

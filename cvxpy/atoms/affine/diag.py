@@ -15,8 +15,6 @@ limitations under the License.
 """
 from __future__ import annotations
 
-from typing import List, Tuple, Union
-
 import numpy as np
 
 import cvxpy.lin_ops.lin_op as lo
@@ -26,7 +24,7 @@ from cvxpy.atoms.affine.vec import vec
 from cvxpy.constraints.constraint import Constraint
 
 
-def diag(expr, k: int = 0) -> Union["diag_mat", "diag_vec"]:
+def diag(expr, k: int = 0) -> "diag_mat" | "diag_vec":
     """Extracts the diagonal from a matrix or makes a vector a diagonal matrix.
 
     Parameters
@@ -63,7 +61,7 @@ class diag_vec(AffAtom):
 
     def get_data(self) -> list[int]:
         return [self.k]
-    
+
     def validate_arguments(self) -> None:
         """Checks that the argument is a vector.
         """
@@ -71,7 +69,7 @@ class diag_vec(AffAtom):
             raise ValueError(
                 "Argument to diag_vec must be a 1-d array"
             )
-        
+
     def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
         """
@@ -87,7 +85,7 @@ class diag_vec(AffAtom):
         """
         return np.diag(values[0], k=self.k)
 
-    def shape_from_args(self) -> Tuple[int, int]:
+    def shape_from_args(self) -> tuple[int, int]:
         """A square matrix.
         """
         rows = self.args[0].shape[0] + abs(self.k)
@@ -114,8 +112,8 @@ class diag_vec(AffAtom):
         return self.is_nonpos() and self.k == 0
 
     def graph_implementation(
-        self, arg_objs, shape: Tuple[int, ...], data=None
-    ) -> Tuple[lo.LinOp, List[Constraint]]:
+        self, arg_objs, shape: tuple[int, ...], data=None
+    ) -> tuple[lo.LinOp, list[Constraint]]:
         """Convolve two vectors.
 
         Parameters
@@ -142,7 +140,7 @@ class diag_mat(AffAtom):
     def __init__(self, expr, k: int = 0) -> None:
         self.k = k
         super(diag_mat, self).__init__(expr)
-    
+
     def get_data(self) -> list[int]:
         return [self.k]
 
@@ -169,7 +167,7 @@ class diag_mat(AffAtom):
         """Extract the diagonal from a square matrix constant."""
         return np.diag(values[0], k=self.k)
 
-    def shape_from_args(self) -> Tuple[int]:
+    def shape_from_args(self) -> tuple[int]:
         """A column vector."""
         rows, _ = self.args[0].shape
         rows -= abs(self.k)
@@ -180,8 +178,8 @@ class diag_mat(AffAtom):
         return (self.args[0].is_nonneg() or self.args[0].is_psd()) and self.k == 0
 
     def graph_implementation(
-        self, arg_objs, shape: Tuple[int, ...], data=None
-    ) -> Tuple[lo.LinOp, List[Constraint]]:
+        self, arg_objs, shape: tuple[int, ...], data=None
+    ) -> tuple[lo.LinOp, list[Constraint]]:
         """Extracts the diagonal of a matrix.
 
         Parameters

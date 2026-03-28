@@ -50,5 +50,5 @@ def quad_over_lin_canon(expr, args):
 
         if args[1].value is not None:
             t2.value = np.maximum(args[1].value, MIN_INIT)
-       
+
         return expr.copy([t1, t2]), constraints
