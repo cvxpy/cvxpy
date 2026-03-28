@@ -440,17 +440,10 @@ class PSDToSvecPSD:
     def recover_dual(cons, dual_var, inverse_data, solution):
         ctx = inverse_data._solver_context
         n = cons.args[0].shape[-1]
-        num = cons.num_cones()
-        tri_dim = n * (n + 1) // 2
-        blocks = []
-        for i in range(num):
-            tri_vec = dual_var[i * tri_dim:(i + 1) * tri_dim]
-            blocks.append(tri_to_full(tri_vec, n,
-                                      ctx.psd_triangle_kind,
-                                      ctx.psd_sqrt2_scaling))
-        # Reshape to match the original PSD constraint's arg shape.
-        flat = np.concatenate(blocks)
-        return flat.reshape(cons.args[0].shape, order='F')
+        full = tri_to_full(dual_var, n,
+                           ctx.psd_triangle_kind,
+                           ctx.psd_sqrt2_scaling)
+        return full.reshape(cons.args[0].shape)
 
 
 class ExactCone2Cone(Canonicalization):

@@ -27,12 +27,14 @@ class TriangleKind(Enum):
 
 def tri_to_full(tri_vec: np.ndarray, n: int, triangle: TriangleKind,
                 sqrt2_scaling: bool) -> np.ndarray:
-    """Expand a vectorized triangle to a full (flattened) symmetric matrix.
+    """Expand vectorized triangle(s) to full symmetric matrix/matrices.
 
     Parameters
     ----------
     tri_vec : numpy.ndarray
-        The n*(n+1)//2 triangular entries, stacked in column-major order.
+        1-D array of triangular entries.  May contain a single triangle
+        of length ``n*(n+1)//2``, or ``num`` contiguous triangles of total
+        length ``num * n*(n+1)//2``.
     n : int
         The matrix side length.
     triangle : TriangleKind
@@ -43,7 +45,8 @@ def tri_to_full(tri_vec: np.ndarray, n: int, triangle: TriangleKind,
     Returns
     -------
     numpy.ndarray
-        A 1-D array of length n*n (column-major flattened symmetric matrix).
+        If a single triangle was given, a shape ``(n, n)`` symmetric matrix.
+        If multiple triangles were given, shape ``(num, n, n)``.
 
     Notes
     -----
@@ -51,17 +54,23 @@ def tri_to_full(tri_vec: np.ndarray, n: int, triangle: TriangleKind,
     NumPy's convention, so `LOWER` uses ``np.triu_indices`` and `UPPER` uses
     ``np.tril_indices``. This looks wrong but is correct.
     """
-    full = np.zeros((n, n))
-    if triangle == TriangleKind.LOWER:
-        full[np.triu_indices(n)] = tri_vec
-    else:
-        full[np.tril_indices(n)] = tri_vec
-    full += full.T
-    full[np.diag_indices(n)] /= 2
+    tri_dim = n * (n + 1) // 2
+    num = tri_vec.size // tri_dim
+    full = np.zeros((num, n, n))
+    tri_vecs = tri_vec.reshape(num, tri_dim)
+    tri_idx = np.triu_indices(n) if triangle == TriangleKind.LOWER else np.tril_indices(n)
+    full[:, *tri_idx] = tri_vecs
+    full += np.swapaxes(full, -2, -1)
+    diag_idx = np.diag_indices(n)
+    full[:, *diag_idx] /= 2
     if sqrt2_scaling:
-        full[np.tril_indices(n, k=-1)] /= np.sqrt(2)
-        full[np.triu_indices(n, k=1)] /= np.sqrt(2)
-    return np.reshape(full, n * n, order="F")
+        lo = np.tril_indices(n, k=-1)
+        hi = np.triu_indices(n, k=1)
+        full[:, *lo] /= np.sqrt(2)
+        full[:, *hi] /= np.sqrt(2)
+    if num == 1:
+        return full[0]
+    return full
 
 
 def psd_format_mat(constr, triangle: TriangleKind,
