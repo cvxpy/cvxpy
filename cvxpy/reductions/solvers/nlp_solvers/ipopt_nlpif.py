@@ -99,7 +99,10 @@ class IPOPT(NLPsolver):
                 shape = inverse_data.var_shapes[id]
                 size = np.prod(shape, dtype=int)
                 primal_vars[id] = np.reshape(x_opt[offset:offset+size], shape, order='F')
-            return Solution(status, opt_val, primal_vars, {}, attr)
+            dual_vars = self._extract_dual_vars(
+                solution.get('mult_g'), inverse_data
+            )
+            return Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
             return failure_solution(status, attr)
 
