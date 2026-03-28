@@ -208,7 +208,6 @@ class CvxAttr2Constr(Reduction):
                     batch_size = int(np.prod(batch_shape))
                     shape = (batch_size * tri, 1)
                     upper_tri_var = Variable(shape, var_id=var.id, **new_attr)
-                    upper_tri_var.set_variable_of_provenance(var)
                     id2new_var[var.id] = upper_tri_var
                     fill_coeff = Constant(
                         batched_upper_tri_to_full(batch_size, n))
