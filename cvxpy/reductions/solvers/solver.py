@@ -82,6 +82,13 @@ class Solver(Reduction):
     BOUNDED_VARIABLES = False
     SOC_DIM3_ONLY = False
 
+    # PSD constraint format. Overridden by solvers that support PSD constraints.
+    # PSD_TRIANGLE_KIND: which triangle the solver expects (TriangleKind.LOWER
+    # or TriangleKind.UPPER). None means no PSD support via this mechanism.
+    # PSD_SQRT2_SCALING: whether off-diagonal entries are scaled by sqrt(2).
+    PSD_TRIANGLE_KIND = None
+    PSD_SQRT2_SCALING = None
+
     # Constraint support (overridden by ConicSolver and QpSolver).
     SUPPORTED_CONSTRAINTS = []
     REQUIRES_CONSTR = False

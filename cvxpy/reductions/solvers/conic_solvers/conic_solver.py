@@ -116,13 +116,6 @@ class ConicSolver(Solver):
     # Whenever a solver uses this convention, EXP_CONE_ORDER should be [0, 1, 2].
     EXP_CONE_ORDER = None
 
-    # PSD constraint format. Set by solvers that support PSD constraints.
-    # PSD_TRIANGLE_KIND: which triangle the solver expects (TriangleKind.LOWER
-    # or TriangleKind.UPPER). None means no PSD support via this mechanism.
-    # PSD_SQRT2_SCALING: whether off-diagonal entries are scaled by sqrt(2).
-    PSD_TRIANGLE_KIND = None
-    PSD_SQRT2_SCALING = None
-
     def accepts(self, problem):
         return (isinstance(problem, ParamConeProg)
                 and (self.MIP_CAPABLE or not problem.is_mixed_integer())

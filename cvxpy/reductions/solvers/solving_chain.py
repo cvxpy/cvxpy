@@ -170,8 +170,8 @@ def _build_solving_chain(
         solver=solver_instance.name(),
         supported_constraints=supported,
         supports_bounds=solver_instance.BOUNDED_VARIABLES,
-        psd_triangle_kind=getattr(solver_instance, 'PSD_TRIANGLE_KIND', None),
-        psd_sqrt2_scaling=getattr(solver_instance, 'PSD_SQRT2_SCALING', None),
+        psd_triangle_kind=solver_instance.PSD_TRIANGLE_KIND,
+        psd_sqrt2_scaling=solver_instance.PSD_SQRT2_SCALING,
     )
 
     # --- Pre-canonicalization reductions (problem + gp only) ---
