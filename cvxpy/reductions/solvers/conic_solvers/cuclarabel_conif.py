@@ -163,10 +163,10 @@ class CUCLARABEL(ConicSolver):
         b = data[s.B]
         q = data[s.C]
 
+        nvars = q.size
         if s.P in data:
             P = data[s.P]
         else:
-            nvars = q.size
             P = sp.csr_array((nvars, nvars))
 
         P = sp.triu(P).tocsr()
