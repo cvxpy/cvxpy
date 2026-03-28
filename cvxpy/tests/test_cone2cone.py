@@ -886,6 +886,48 @@ class TestExactApproxCone2Cone(BaseTest):
         self.assertIn(prob.status, [cp.OPTIMAL, cp.OPTIMAL_INACCURATE])
         self.assertAlmostEqual(z.value, 1.0, places=2)
 
+    def test_soc_to_psd_dual_recovery(self) -> None:
+        """Transitive SOC→PSD→SvecPSD dual recovery via _PSDOnlyClarabel."""
+        x = cp.Variable(3)
+        t = cp.Variable()
+        soc_con = cp.SOC(cp.reshape(t, (1,)), x)
+        prob = cp.Problem(
+            cp.Minimize(cp.sum(x)),
+            [soc_con, t <= 1]
+        )
+        prob.solve(solver=_PSDOnlyClarabel())
+        self.assertIn(prob.status, [cp.OPTIMAL, cp.OPTIMAL_INACCURATE])
+        # The SOC constraint dual should be recovered, not silently dropped.
+        self.assertIsNotNone(soc_con.dual_value,
+                             "SOC dual should not be None after transitive recovery")
+
+    def test_soc_to_psd_packed_dual_recovery(self) -> None:
+        """Packed SOC transitive dual recovery via _PSDOnlyClarabel."""
+        x = cp.Variable(3)
+        t = cp.Variable(2)
+        soc_con = cp.SOC(t, cp.vstack([x[:2], x[1:]]).T, axis=0)
+        prob = cp.Problem(
+            cp.Minimize(t[0] + t[1]),
+            [soc_con, cp.sum(x) == 1, x >= 0]
+        )
+        prob.solve(solver=_PSDOnlyClarabel())
+        self.assertIn(prob.status, [cp.OPTIMAL, cp.OPTIMAL_INACCURATE])
+        self.assertIsNotNone(soc_con.dual_value,
+                             "Packed SOC dual should not be None")
+
+    def test_psd_direct_dual_recovery(self) -> None:
+        """Direct PSD→SvecPSD dual recovery still works (no transitive chain)."""
+        X = cp.Variable((2, 2), symmetric=True)
+        psd_con = X >> 0
+        prob = cp.Problem(
+            cp.Minimize(cp.trace(X)),
+            [psd_con, X[0, 0] >= 1]
+        )
+        prob.solve(solver=cp.CLARABEL)
+        self.assertIn(prob.status, [cp.OPTIMAL, cp.OPTIMAL_INACCURATE])
+        self.assertIsNotNone(psd_con.dual_value,
+                             "Direct PSD dual should not be None")
+
     def test_approx_cone2cone_dual_recovery(self) -> None:
         """ApproxCone2Cone recovers dual variables for approximated constraints."""
         x = cp.Variable(pos=True)

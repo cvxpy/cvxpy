@@ -492,6 +492,12 @@ class ExactCone2Cone(Canonicalization):
         # Process constraints through the conversion DAG.  Auxiliary
         # constraints produced by one conversion may themselves need
         # conversion (e.g. SOC→PSD→SvecPSD), so we use a worklist.
+        #
+        # _intermediates tracks constraint objects produced as intermediate
+        # steps (e.g. the PSD constraint created by SOC→PSD before it is
+        # further converted to SvecPSD).  These are needed for chained
+        # dual recovery in invert().
+        inverse_data._intermediates = {}
         worklist = list(problem.constraints)
         while worklist:
             constraint = worklist.pop(0)
@@ -510,6 +516,7 @@ class ExactCone2Cone(Canonicalization):
             # add them to the output.
             for c in aux_constr + [canon_constr]:
                 if type(c) in self.canon_methods:
+                    inverse_data._intermediates[c.id] = c
                     worklist.append(c)
                 else:
                     canon_constraints.append(c)
@@ -521,22 +528,61 @@ class ExactCone2Cone(Canonicalization):
     def invert(self, solution, inverse_data):
         pvars = {vid: solution.primal_vars[vid] for vid in inverse_data.id_map
                  if vid in solution.primal_vars}
-        if solution.dual_vars is not None:
-            dvars = {orig_id: solution.dual_vars[vid]
-                     for orig_id, vid in inverse_data.cons_id_map.items()
-                     if vid in solution.dual_vars}
-        else:
-            dvars = None
-
-        if not dvars:
-            return Solution(solution.status, solution.opt_val, pvars, dvars,
+        if solution.dual_vars is None:
+            return Solution(solution.status, solution.opt_val, pvars, None,
                             solution.attr)
 
-        for cons_id, cons in inverse_data.id2cons.items():
-            recover = self._dual_recovery.get(type(cons))
-            if recover is not None and cons_id in dvars:
-                dvars[cons_id] = recover(cons, dvars[cons_id], inverse_data,
-                                         solution)
+        # Multi-pass dual recovery to handle transitive conversion chains
+        # (e.g. SOC → PSD → SvecPSD).  In each pass we resolve entries
+        # whose mapped id is already available (either from the solver
+        # or from a prior pass), then apply the appropriate recover_dual.
+        # This naturally processes innermost conversions first.
+        intermediates = getattr(inverse_data, '_intermediates', {})
+        dvars = {}
+        remaining = dict(inverse_data.cons_id_map)
+        available = dict(solution.dual_vars)
+
+        max_passes = len(EXACT_CONE_CONVERSIONS) + 1
+        for _ in range(max_passes):
+            if not remaining:
+                break
+            newly_recovered = {}
+            still_remaining = {}
+            for orig_id, vid in remaining.items():
+                if vid in available:
+                    dvars[orig_id] = available[vid]
+                    newly_recovered[orig_id] = True
+                else:
+                    still_remaining[orig_id] = vid
+
+            if not newly_recovered:
+                break
+
+            # Apply recover_dual to each newly resolved entry.
+            # Look up the constraint object in id2cons (original) or
+            # _intermediates (produced by a prior conversion step).
+            # Pass a solution view with all currently available duals
+            # so that recover_dual helpers (e.g. packed-SOC aux lookup)
+            # can find already-recovered intermediate duals.
+            sol_view = Solution(solution.status, solution.opt_val,
+                                solution.primal_vars, available,
+                                solution.attr)
+            for cons_id in newly_recovered:
+                cons = inverse_data.id2cons.get(cons_id)
+                if cons is None:
+                    cons = intermediates.get(cons_id)
+                if cons is not None:
+                    recover = self._dual_recovery.get(type(cons))
+                    if recover is not None:
+                        dvars[cons_id] = recover(
+                            cons, dvars[cons_id], inverse_data, sol_view)
+
+            available.update(dvars)
+            remaining = still_remaining
+
+        # Keep only original-problem constraint duals.
+        original_ids = set(inverse_data.id2cons)
+        dvars = {k: v for k, v in dvars.items() if k in original_ids}
 
         return Solution(solution.status, solution.opt_val, pvars, dvars,
                         solution.attr)
