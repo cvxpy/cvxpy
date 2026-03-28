@@ -76,7 +76,7 @@ class von_neumann_entr(Atom):
                 atom before calling von_neumann_entr.
                 """
             )
-        
+
     def sign_from_args(self) -> tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """

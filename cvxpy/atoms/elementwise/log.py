@@ -69,7 +69,7 @@ class log(Elementwise):
         """Is the atom concave?
         """
         return True
-    
+
     def is_atom_smooth(self) -> bool:
         """Is the atom smooth?"""
         return True
@@ -119,4 +119,4 @@ class log(Elementwise):
         """Returns constraints describing the domain of the node.
         """
         return [self.args[0] >= 0]
-    
+

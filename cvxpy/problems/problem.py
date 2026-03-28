@@ -290,7 +290,7 @@ class Problem(u.Canonical):
         """
         return all(
           expr.is_dcp(dpp) for expr in self.constraints + [self.objective])
-    
+
     @perf.compute_once
     def is_dnlp(self) -> bool:
         """
@@ -1451,10 +1451,10 @@ class Problem(u.Canonical):
             for constr in self.constraints[1:]:
                 lines += [len(subject_to) * " " + str(constr)]
             return '\n'.join(lines)
-    
+
     def format_labeled(self):
         """Format problem with labels where available.
-        
+
         Shows labels for both the objective expression and constraints.
         """
         if len(self.constraints) == 0:

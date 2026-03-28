@@ -206,12 +206,12 @@ def sparse_cholesky(A, sym_tol=settings.CHOL_SYM_TOL, assume_posdef=False):
     """
     import cvxpy.utilities.cpp.sparsecholesky as spchol  # noqa: I001
     import cvxpy.expressions.cvxtypes as cvxtypes #noqa: I001
-    
+
     if isinstance(A, cvxtypes.expression()):
         if not isinstance(A, cvxtypes.constant()):
             raise ValueError(SparseCholeskyMessages.NOT_CONST)
         A = A.value
-            
+
     if not spar.issparse(A):
         raise ValueError(SparseCholeskyMessages.NOT_SPARSE)
     if np.iscomplexobj(A):

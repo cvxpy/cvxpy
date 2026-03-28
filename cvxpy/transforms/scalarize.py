@@ -79,7 +79,7 @@ def targets_and_priorities(
     assert len(objectives) == len(targets), "Number of objectives and targets must match."
     if limits is not None:
         assert len(objectives) == len(limits), "Number of objectives and limits must match."
-  
+
     assert off_target >= 0, "The off_target argument must be nonnegative."
 
     num_objs = len(objectives)

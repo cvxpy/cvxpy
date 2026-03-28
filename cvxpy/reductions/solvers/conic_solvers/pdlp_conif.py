@@ -217,7 +217,7 @@ class PDLP(ConicSolver):
                       TerminationReason.Name(status),
                       solve_log.termination_string)
             return s.SOLVER_ERROR
-    
+
     def cite(self, data):
         """Returns bibtex citation for the solver.
 
