@@ -65,7 +65,7 @@ def _convert_matmul(expr, children):
         if not isinstance(A, sparse.csr_matrix):
             A = sparse.csr_matrix(A)
 
-        return _diffengine.make_sparse_right_matmul(
+        return _diffengine.make_right_matmul(
             children[0],
             A.data.astype(np.float64),
             A.indices.astype(np.int32),
