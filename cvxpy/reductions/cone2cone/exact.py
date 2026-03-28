@@ -468,7 +468,10 @@ class RSocConversion:
             dz = dt - dX[n_x]
         """
         X_shape = cons.args[0].shape
-        n_x = X_shape[1] if (cons.axis == 1 and len(X_shape) == 2) else (X_shape[0] if cons.args[0].ndim > 1 else cons.args[0].size)
+        if cons.axis == 1 and len(X_shape) == 2:
+            n_x = X_shape[1]
+        else:
+            n_x = X_shape[0] if cons.args[0].ndim > 1 else cons.args[0].size
         n_cones = cons.args[1].size
         dual = np.asarray(dual_var, dtype=float).ravel()
         stride = n_x + 2
