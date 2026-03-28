@@ -20,7 +20,7 @@ import numpy as np
 import scipy.sparse as sp
 
 import cvxpy.settings as s
-from cvxpy.constraints import SOC, ExpCone, PowCone3D
+from cvxpy.constraints import PSD, SOC, ExpCone, PowCone3D
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
@@ -43,10 +43,6 @@ def dims_to_solver_cones(cone_dims):
     """
     import moreau
 
-    # Moreau does not support PSD cones yet
-    if cone_dims.psd:
-        raise ValueError("Moreau does not support PSD cones")
-
     # Moreau does not support generalized power cones yet
     if cone_dims.pnd:
         raise ValueError("Moreau does not support generalized power cones (PowConeND)")
@@ -57,6 +53,7 @@ def dims_to_solver_cones(cone_dims):
         so_cone_dims=list(cone_dims.soc),
         num_exp_cones=cone_dims.exp,
         power_alphas=list(cone_dims.p3d),
+        psd_dims=list(cone_dims.psd) if cone_dims.psd else [],
     )
 
     return cones
@@ -72,7 +69,7 @@ class MOREAU(ConicSolver):
     # Solver capabilities
     MIP_CAPABLE = False
     BOUNDED_VARIABLES = False
-    SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC, ExpCone, PowCone3D]
+    SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC, ExpCone, PowCone3D, PSD]
 
     # Status messages from Moreau (based on solver/status.hpp)
     SOLVED = "Solved"
@@ -116,9 +113,69 @@ class MOREAU(ConicSolver):
         return True
 
     @staticmethod
+    def psd_format_mat(constr):
+        """Convert PSD constraint to upper-triangular svec format.
+
+        Moreau (Clarabel-based) uses upper-triangular column-major svec:
+        for col in 0..n, for row in 0..=col: (row, col)
+        giving ordering (0,0), (0,1), (1,1), (0,2), (1,2), (2,2), ...
+
+        Off-diagonal coefficients are scaled by sqrt(2), and the operator
+        is applied to the symmetric part of the constrained expression.
+        """
+        rows = cols = constr.expr.shape[0]
+        entries = rows * (cols + 1) // 2
+
+        row_arr = np.arange(0, entries)
+        upper_diag_indices = np.triu_indices(rows)
+        col_arr = np.sort(np.ravel_multi_index(upper_diag_indices,
+                                               (rows, cols), order='F'))
+
+        val_arr = np.zeros((rows, cols))
+        val_arr[upper_diag_indices] = np.sqrt(2)
+        np.fill_diagonal(val_arr, 1.0)
+        val_arr = np.ravel(val_arr, order='F')
+        val_arr = val_arr[np.nonzero(val_arr)]
+
+        shape = (entries, rows * cols)
+        scaled_upper_tri = sp.csc_array((val_arr, (row_arr, col_arr)), shape)
+
+        idx = np.arange(rows * cols)
+        val_symm = 0.5 * np.ones(2 * rows * cols)
+        K = idx.reshape((rows, cols))
+        row_symm = np.append(idx, np.ravel(K, order='F'))
+        col_symm = np.append(idx, np.ravel(K.T, order='F'))
+        symm_matrix = sp.csc_array((val_symm, (row_symm, col_symm)))
+
+        return scaled_upper_tri @ symm_matrix
+
+    @staticmethod
     def extract_dual_value(result_vec, offset, constraint):
-        """Extracts the dual value for constraint starting at offset."""
-        return utilities.extract_dual_value(result_vec, offset, constraint)
+        """Extracts the dual value for constraint starting at offset.
+
+        Special cases PSD constraints: dual is stored in upper-triangular
+        svec format (Moreau/Clarabel convention) and must be expanded to
+        the full symmetric matrix.
+        """
+        if isinstance(constraint, PSD):
+            dim = constraint.shape[0]
+            tri_dim = dim * (dim + 1) // 2
+            new_offset = offset + tri_dim
+            svec = result_vec[offset:new_offset]
+            # Unpack upper-triangular svec: col-major, row <= col
+            full = np.zeros((dim, dim))
+            idx = 0
+            for col in range(dim):
+                for row in range(col + 1):
+                    if row == col:
+                        full[row, col] = svec[idx]
+                    else:
+                        full[row, col] = svec[idx] / np.sqrt(2)
+                        full[col, row] = full[row, col]
+                    idx += 1
+            return full, new_offset
+        else:
+            return utilities.extract_dual_value(result_vec, offset, constraint)
 
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data."""
