@@ -16,7 +16,7 @@ limitations under the License.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -27,8 +27,8 @@ if TYPE_CHECKING:
 
 def get_expr_value_if_supported(
     expr: Atom,
-    solver_context: Optional[SolverInfo],
-) -> Optional[np.ndarray]:
+    solver_context: SolverInfo | None,
+) -> np.ndarray | None:
     """Compute the value of an expression if warm starting is supported.
 
     Returns None if:
