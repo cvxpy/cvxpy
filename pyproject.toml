@@ -19,6 +19,9 @@ select = [
     "NPY201",
     "W291",  # Trailing whitespace
     "W292",  # No newline at end of file
+    "UP006",  # Use builtin types (list, dict, tuple, set, frozenset, type) instead of typing
+    "UP007",  # Use X | Y for union types instead of Union/Optional
+    "UP035",  # Use collections.abc / builtins instead of deprecated typing imports
     "W605",  # Check for invalid escape sequences in docstrings (errors in py >= 3.11)
 ]
 
@@ -26,6 +29,29 @@ ignore = [
     "E721" # Do not compare types, use 'isinstance()'
 ]
 
+[tool.pyright]
+pythonVersion = "3.11"
+typeCheckingMode = "basic"
+include = ["cvxpy"]
+exclude = ["cvxpy/tests", "cvxpy/cvxcore"]
+
+# Optional solver dependencies are not installed in CI.
+reportMissingImports = false
+reportMissingModuleSource = false
+
+# Existing violations to be fixed incrementally (error counts as of 2026-03-23):
+reportArgumentType = false          # 175 errors
+reportAttributeAccessIssue = false  # 188 errors
+reportReturnType = false            # 77 errors
+reportOptionalSubscript = false     # 61 errors
+reportCallIssue = false             # 52 errors
+reportOptionalMemberAccess = false  # 32 errors
+reportGeneralTypeIssues = false     # 33 errors
+reportAssignmentType = false        # 19 errors
+reportInvalidTypeForm = false       # 27 errors
+reportIndexIssue = false            # 18 errors
+reportOptionalOperand = false       # 22 errors
+reportOperatorIssue = false         # 22 errors
 
 [tool.pytest.ini_options]
 testpaths = [

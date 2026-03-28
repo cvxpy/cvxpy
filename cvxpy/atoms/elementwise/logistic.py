@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import Tuple
 
 import numpy as np
 
@@ -37,7 +36,7 @@ class logistic(Elementwise):
         """
         return np.logaddexp(0, values[0])
 
-    def sign_from_args(self) -> Tuple[bool, bool]:
+    def sign_from_args(self) -> tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         # Always positive.

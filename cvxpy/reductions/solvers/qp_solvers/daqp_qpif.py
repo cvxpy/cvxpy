@@ -61,8 +61,7 @@ class DAQP(QpSolver):
         return s.DAQP
 
     def import_solver(self) -> None:
-        import daqp
-        daqp
+        import daqp  # noqa: F401
 
     def invert(self, solution, inverse_data):
 
