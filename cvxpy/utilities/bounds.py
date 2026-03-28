@@ -266,11 +266,20 @@ def mul_bounds(lb1, ub1, lb2, ub2) -> Bounds:
     Bounds
         Bounds for the product.
     """
-    # All four products of interval endpoints
-    p1 = lb1 * lb2
-    p2 = lb1 * ub2
-    p3 = ub1 * lb2
-    p4 = ub1 * ub2
+    # All four products of interval endpoints.
+    # Replace NaN with 0: the only source of NaN here is 0 * inf,
+    # and in interval arithmetic 0 * anything = 0.
+    def _mul(a, b):
+        p = a * b
+        if sp_sparse.issparse(p):
+            p.data = np.where(np.isnan(p.data), 0.0, p.data)
+            return p
+        return np.where(np.isnan(p), 0.0, p)
+
+    p1 = _mul(lb1, lb2)
+    p2 = _mul(lb1, ub2)
+    p3 = _mul(ub1, lb2)
+    p4 = _mul(ub1, ub2)
 
     # Use iterative min/max when sparse matrices are involved
     if any(sp_sparse.issparse(p) for p in [p1, p2, p3, p4]):
