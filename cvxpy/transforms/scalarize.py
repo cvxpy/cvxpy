@@ -84,12 +84,14 @@ def targets_and_priorities(
 
     num_objs = len(objectives)
     new_objs: list[Minimize | Maximize] = []
+    obj_types = set()
     for i in range(num_objs):
         obj, tar, lim = objectives[i], targets[i], limits[i] if limits is not None else None
         if priorities[i] < 0:
             obj, tar, lim = -obj, -tar, -lim if lim is not None else None
-        
+
         sign = 1 if isinstance(obj, Minimize) else -1
+        obj_types.add(type(obj))
 
         delta = sign*(obj.args[0] - tar)
         expr = sign*(abs(priorities[i]) - off_target)*atoms.pos(delta)
@@ -98,11 +100,23 @@ def targets_and_priorities(
             expr += sign*indicator([sign*obj.args[0] <= sign*lim])
         new_objs.append(expr)
     obj_expr = sum(new_objs)
-    if obj_expr.is_convex():
-        return Minimize(obj_expr)
-    elif obj_expr.is_concave():
-        return Maximize(obj_expr)
+
+    # When all objectives agree on direction, respect that direction
+    # rather than relying solely on curvature (which can be ambiguous
+    # for affine expressions, e.g. when priority <= off_target).
+    if obj_types == {Minimize}:
+        if obj_expr.is_convex():
+            return Minimize(obj_expr)
+        raise ValueError("Scalarized objective is not convex.")
+    elif obj_types == {Maximize}:
+        if obj_expr.is_concave():
+            return Maximize(obj_expr)
+        raise ValueError("Scalarized objective is not concave.")
     else:
+        if obj_expr.is_convex():
+            return Minimize(obj_expr)
+        elif obj_expr.is_concave():
+            return Maximize(obj_expr)
         raise ValueError("Scalarized objective is neither convex nor concave.")
 
 def max(objectives: list[Minimize | Maximize], weights) -> Minimize:

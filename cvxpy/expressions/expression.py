@@ -121,7 +121,7 @@ class Expression(u.Canonical):
     Overloads many operators to allow for convenient creation of compound
     expressions (e.g., the sum of two expressions) and constraints.
     """
-    
+
     def __init__(self):
         """Initialize the expression."""
         self._label = None
@@ -181,12 +181,12 @@ class Expression(u.Canonical):
         """str : The string representation of the expression.
         """
         raise NotImplementedError()
-    
+
     @property
     def label(self):
         """Get the label of the expression."""
         return self._label
-    
+
     @label.setter
     def label(self, value: object | None):
         """Set the label of the expression."""
@@ -199,26 +199,26 @@ class Expression(u.Canonical):
                 )
         else:
             self._label = None
-    
+
     @label.deleter
     def label(self):
         """Delete the label of the expression."""
         self._label = None
-    
+
     def set_label(self, label: object | None) -> Self:
         """Set a custom label for this expression.
-        
+
         Parameters
         ----------
         label : object | None
             Custom label for the expression. Will be converted to string.
             If None, clears the label.
-            
+
         Returns
         -------
         Self
             Returns self to allow method chaining.
-            
+
         Examples
         --------
         >>> x = cp.Variable(3)
@@ -227,14 +227,14 @@ class Expression(u.Canonical):
         """
         self.label = label
         return self
-    
+
     def format_labeled(self):
         """Format expression with labels where available.
-        
+
         Returns the expression's label if set, otherwise recursively substitutes
         labels in sub-expressions. For compound expressions without their own label,
         this shows labels where available and mathematical notation where not.
-        
+
         Returns
         -------
         str
@@ -327,7 +327,7 @@ class Expression(u.Canonical):
         """Is the expression affine?
         """
         return self.is_constant() or (self.is_convex() and self.is_concave())
-    
+
     @perf.compute_once
     def is_smooth(self) -> bool:
         """Is the expression smooth?
@@ -347,7 +347,7 @@ class Expression(u.Canonical):
         """Is the expression concave?
         """
         raise NotImplementedError()
-    
+
     @abc.abstractmethod
     def is_linearizable_convex(self) -> bool:
         """Is the expression convex after linearizing all smooth subexpressions?
@@ -385,7 +385,7 @@ class Expression(u.Canonical):
         The expression is smooth representable.
         """
         return self.is_linearizable_convex() or self.is_linearizable_concave()
-    
+
     def is_log_log_constant(self) -> bool:
         """Is the expression log-log constant, ie, elementwise positive?
         """
@@ -662,13 +662,53 @@ class Expression(u.Canonical):
         Expression
             The expression raised to ``power``.
         """
+        # Imported here to avoid circular imports at module load time
+        from cvxpy.atoms.affine.binary_operators import multiply
+        from cvxpy.atoms.elementwise.exp import exp
+        from cvxpy.atoms.elementwise.log import log
+        power_expr = Expression.cast_to_const(power)
+        if self.is_constant() and not power_expr.is_constant():
+            if not self.is_pos():
+                raise ValueError(
+                    "The base of b**x must be positive when the exponent "
+                    "is a variable, since we use b**x = exp(x * log(b))."
+                )
+            return exp(multiply(power_expr, log(self)))
         return cvxtypes.power()(self, power)
 
     def __rpow__(self, base: float) -> "Expression":
-        raise NotImplementedError("CVXPY currently does not support variables "
-                                  "on the right side of **. Consider using the"
-                                  " identity that a**x = cp.exp(cp.multiply(np"
-                                  ".log(a), x)).")
+        """Raise base to the power of this expression (base ** self).
+
+        Uses the identity: a**x = exp(x * log(a))
+
+        Parameters
+        ----------
+        base : float
+            A positive constant base.
+
+        Returns
+        -------
+        Expression
+            exp(self * log(base))
+        """
+
+        # Imported here to avoid circular imports at module load time
+        from cvxpy.atoms.elementwise.exp import exp
+        base = cvxtypes.expression().cast_to_const(base)
+        if not base.is_constant():
+            raise ValueError(
+                "The base of ** must be a constant when the exponent "
+                "is a variable."
+            )
+        if not base.is_pos():
+            raise ValueError(
+                "The base of ** must be positive since we use the "
+                "identity a**x = exp(x * log(a))."
+            )
+        # Imported here to avoid circular imports at module load time
+        from cvxpy.atoms.affine.binary_operators import multiply
+        from cvxpy.atoms.elementwise.log import log
+        return exp(multiply(self, log(base)))
 
     @staticmethod
     def cast(expr_like) -> "Expression":
@@ -1062,7 +1102,7 @@ class Expression(u.Canonical):
         """
         from cvxpy import std
         return std(self, axis=axis, ddof=ddof, keepdims=keepdims)
- 
+
     def sum(self, axis=None, *, keepdims=False) -> "Expression":
         """
         Equivalent to `cp.sum(self, axis, keepdims)`.
