@@ -20,7 +20,7 @@ from cvxpy.expressions.variable import Variable
 
 
 def tan_canon(expr, args):
-    _HALF_PI = 3.14159265358979 / 2
+    _HALF_PI = np.pi / 2
     lb, ub = args[0].get_bounds()
     lb = np.fmax(lb, -_HALF_PI)
     ub = np.fmin(ub, _HALF_PI)

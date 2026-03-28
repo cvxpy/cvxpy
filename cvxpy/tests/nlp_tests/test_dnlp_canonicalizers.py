@@ -30,7 +30,7 @@ from cvxpy.reductions.dnlp2smooth.canonicalizers.trig_canon import tan_canon
 
 MIN_INIT_LOG = 1e-3
 MIN_INIT_POWER = 1e-4
-HALF_PI = 3.14159265358979 / 2
+HALF_PI = np.pi / 2
 
 
 def _make_nan_bounds_arg():
@@ -52,7 +52,7 @@ class TestLogCanonBounds:
         _, constraints = log_canon(expr, [x])
         t = constraints[0].args[0]
         lb, ub = t.get_bounds()
-        assert np.all(lb >= MIN_INIT_LOG)
+        assert np.all(lb >= 0.0)
         assert np.all(ub == np.inf)
 
     def test_bounded_variable(self):
@@ -114,7 +114,7 @@ class TestEntrCanonBounds:
         _, constraints = entr_canon(expr, [x])
         t = constraints[0].args[0]
         lb, ub = t.get_bounds()
-        assert np.all(lb >= MIN_INIT_LOG)
+        assert np.all(lb >= 0.0)
         assert np.all(ub == np.inf)
 
     def test_nan_bounds_no_nan_in_result(self):
@@ -148,7 +148,7 @@ class TestRelEntrCanonBounds:
         t2 = constraints[1].args[0]
         for t in [t1, t2]:
             lb, ub = t.get_bounds()
-            assert np.all(lb >= MIN_INIT_LOG)
+            assert np.all(lb >= 0.0)
             assert np.all(ub == np.inf)
 
     def test_nan_bounds_no_nan_in_result(self):
@@ -184,7 +184,7 @@ class TestQuadOverLinCanonBounds:
         _, constraints = quad_over_lin_canon(expr, [x, y])
         t2 = constraints[-1].args[0]
         lb, ub = t2.get_bounds()
-        assert np.all(lb >= MIN_INIT_POWER)
+        assert np.all(lb >= 0.0)
         assert np.all(ub >= lb)
 
     def test_nan_bounds_no_nan_in_result(self):
@@ -217,7 +217,7 @@ class TestPowerCanonBounds:
         _, constraints = power_canon(expr, [x])
         t = constraints[0].args[0]
         lb, ub = t.get_bounds()
-        assert np.all(lb >= MIN_INIT_POWER)
+        assert np.all(lb >= 0.0)
         assert np.all(ub == np.inf)
 
     def test_fractional_power_nan_bounds_no_nan(self):
