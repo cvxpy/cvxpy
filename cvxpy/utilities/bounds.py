@@ -270,7 +270,8 @@ def mul_bounds(lb1, ub1, lb2, ub2) -> Bounds:
     # Replace NaN with 0: the only source of NaN here is 0 * inf,
     # and in interval arithmetic 0 * anything = 0.
     def _mul(a, b):
-        p = a * b
+        with np.errstate(invalid="ignore"):
+            p = a * b
         if sp_sparse.issparse(p):
             p.data = np.where(np.isnan(p.data), 0.0, p.data)
             return p
