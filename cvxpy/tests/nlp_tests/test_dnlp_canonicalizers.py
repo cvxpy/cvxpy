@@ -15,6 +15,7 @@ limitations under the License.
 """
 
 import numpy as np
+import pytest
 
 import cvxpy as cp
 from cvxpy.expressions.variable import Variable
@@ -33,64 +34,110 @@ MIN_INIT_POWER = 1e-4
 HALF_PI = np.pi / 2
 
 
-def _make_nan_bounds_arg():
-    """Create an expression whose get_bounds() returns (NaN, NaN).
+def _make_wide_bounds_arg():
+    """Create an expression whose get_bounds() returns (-inf, inf).
 
-    Multiplying a nonneg variable [0, inf] by a nonpos variable [-inf, 0]
-    produces 0*inf = NaN in the bound computation.
+    Subtracting two nonneg variables gives bounds (-inf, inf), which
+    exercises the canonicalizer's domain-clamping logic (e.g. clamping
+    lb to 0 for log/entr) without artificially collapsing the feasible set.
     """
     a = Variable(nonneg=True)
-    b = Variable(nonpos=True)
-    return a * b
+    b = Variable(nonneg=True)
+    return a - b
 
 
-class TestLogCanonBounds:
+def _get_slack_vars(constraints):
+    """Extract the slack variables (LHS of equality constraints) from canon output."""
+    return [c.args[0] for c in constraints]
 
-    def test_unbounded_variable(self):
+
+# ---------------------------------------------------------------------------
+# Single-arg canonicalizers: log, entr, power(0.5), tan
+# ---------------------------------------------------------------------------
+
+def _canon_log(x):
+    return log_canon(cp.log(x), [x])
+
+
+def _canon_entr(x):
+    return entr_canon(cp.entr(x), [x])
+
+
+def _canon_power_half(x):
+    return power_canon(cp.power(x, 0.5), [x])
+
+
+def _canon_tan(x):
+    return tan_canon(cp.tan(x), [x])
+
+
+SINGLE_ARG_CANONS = [
+    pytest.param(_canon_log, id="log"),
+    pytest.param(_canon_entr, id="entr"),
+    pytest.param(_canon_power_half, id="power_half"),
+    pytest.param(_canon_tan, id="tan"),
+]
+
+# Canonicalizers whose domain requires lb >= 0.
+NONNEG_DOMAIN_CANONS = [
+    pytest.param(_canon_log, id="log"),
+    pytest.param(_canon_entr, id="entr"),
+    pytest.param(_canon_power_half, id="power_half"),
+]
+
+
+@pytest.mark.parametrize("canon_fn", SINGLE_ARG_CANONS)
+class TestSingleArgWideBounds:
+    """Wide (-inf, inf) bounds must be clamped to valid slack bounds."""
+
+    def test_no_nan_in_bounds(self, canon_fn):
+        arg = _make_wide_bounds_arg()
+        _, constraints = canon_fn(arg)
+        for t in _get_slack_vars(constraints):
+            lb, ub = t.get_bounds()
+            assert not np.any(np.isnan(lb))
+            assert not np.any(np.isnan(ub))
+
+    def test_upper_not_collapsed(self, canon_fn):
+        arg = _make_wide_bounds_arg()
+        _, constraints = canon_fn(arg)
+        for t in _get_slack_vars(constraints):
+            _, ub = t.get_bounds()
+            assert np.all(ub > MIN_INIT_POWER)
+
+
+@pytest.mark.parametrize("canon_fn", NONNEG_DOMAIN_CANONS)
+class TestNonnegDomainUnbounded:
+    """Unbounded variables get lb >= 0 for nonneg-domain canonicalizers."""
+
+    def test_lb_nonneg(self, canon_fn):
         x = Variable(2)
-        expr = cp.log(x)
-        _, constraints = log_canon(expr, [x])
-        t = constraints[0].args[0]
-        lb, ub = t.get_bounds()
-        assert np.all(lb >= 0.0)
-        assert np.all(ub == np.inf)
+        _, constraints = canon_fn(x)
+        for t in _get_slack_vars(constraints):
+            lb, ub = t.get_bounds()
+            assert np.all(lb >= 0.0)
+            assert np.all(ub == np.inf)
+
+
+# ---------------------------------------------------------------------------
+# log-specific tests
+# ---------------------------------------------------------------------------
+
+class TestLogCanon:
 
     def test_bounded_variable(self):
         x = Variable(2, bounds=[2.0, 10.0])
-        expr = cp.log(x)
-        _, constraints = log_canon(expr, [x])
-        t = constraints[0].args[0]
+        _, constraints = _canon_log(x)
+        t = _get_slack_vars(constraints)[0]
         lb, ub = t.get_bounds()
         np.testing.assert_allclose(lb, 2.0)
         np.testing.assert_allclose(ub, 10.0)
 
-    def test_nan_bounds_no_nan_in_result(self):
-        """NaN from get_bounds must not leak into slack variable bounds."""
-        arg = _make_nan_bounds_arg()
-        expr = cp.log(arg)
-        _, constraints = log_canon(expr, expr.args)
-        t = constraints[0].args[0]
-        lb, ub = t.get_bounds()
-        assert not np.any(np.isnan(lb)), f"NaN in lower bound: {lb}"
-        assert not np.any(np.isnan(ub)), f"NaN in upper bound: {ub}"
-
-    def test_nan_bounds_upper_not_collapsed(self):
-        """Upper bound must not collapse to MIN_INIT when arg bounds are NaN."""
-        arg = _make_nan_bounds_arg()
-        expr = cp.log(arg)
-        _, constraints = log_canon(expr, expr.args)
-        t = constraints[0].args[0]
-        lb, ub = t.get_bounds()
-        assert np.all(ub > MIN_INIT_LOG), (
-            f"Upper bound {ub} collapsed to MIN_INIT — should be +inf"
-        )
-
     def test_value_initialization(self):
         x = Variable(2)
         x.value = np.array([0.0001, 5.0])
-        expr = cp.log(x)
-        _, constraints = log_canon(expr, [x])
-        t = constraints[0].args[0]
+        _, constraints = _canon_log(x)
+        t = _get_slack_vars(constraints)[0]
         assert t.value is not None
         assert t.value[0] >= MIN_INIT_LOG
         np.testing.assert_allclose(t.value[1], 5.0)
@@ -98,202 +145,121 @@ class TestLogCanonBounds:
     def test_vector_per_element_bounds(self):
         x = Variable(3, bounds=[np.array([0.5, 1.0, 2.0]),
                                 np.array([5.0, 10.0, 20.0])])
-        expr = cp.log(x)
-        _, constraints = log_canon(expr, [x])
-        t = constraints[0].args[0]
+        _, constraints = _canon_log(x)
+        t = _get_slack_vars(constraints)[0]
         lb, ub = t.get_bounds()
         np.testing.assert_allclose(lb, [0.5, 1.0, 2.0])
         np.testing.assert_allclose(ub, [5.0, 10.0, 20.0])
 
 
-class TestEntrCanonBounds:
+# ---------------------------------------------------------------------------
+# Two-arg canonicalizers: rel_entr, quad_over_lin, kl_div
+# ---------------------------------------------------------------------------
 
-    def test_unbounded_variable(self):
-        x = Variable(2)
-        expr = cp.entr(x)
-        _, constraints = entr_canon(expr, [x])
-        t = constraints[0].args[0]
-        lb, ub = t.get_bounds()
-        assert np.all(lb >= 0.0)
-        assert np.all(ub == np.inf)
-
-    def test_nan_bounds_no_nan_in_result(self):
-        arg = _make_nan_bounds_arg()
-        expr = cp.entr(arg)
-        _, constraints = entr_canon(expr, expr.args)
-        t = constraints[0].args[0]
-        lb, ub = t.get_bounds()
-        assert not np.any(np.isnan(lb)), f"NaN in lower bound: {lb}"
-        assert not np.any(np.isnan(ub)), f"NaN in upper bound: {ub}"
-
-    def test_nan_bounds_upper_not_collapsed(self):
-        arg = _make_nan_bounds_arg()
-        expr = cp.entr(arg)
-        _, constraints = entr_canon(expr, expr.args)
-        t = constraints[0].args[0]
-        lb, ub = t.get_bounds()
-        assert np.all(ub > MIN_INIT_LOG), (
-            f"Upper bound {ub} collapsed to MIN_INIT — should be +inf"
-        )
+def _canon_rel_entr(x, y):
+    return rel_entr_canon(cp.rel_entr(x, y), [x, y])
 
 
-class TestRelEntrCanonBounds:
+def _canon_quad_over_lin(x, y):
+    return quad_over_lin_canon(cp.quad_over_lin(x, y), [x, y])
+
+
+def _canon_kl_div(x, y):
+    expr = cp.kl_div(x, y)
+    return kl_div_canon(expr, expr.args)
+
+
+TWO_ARG_CANONS = [
+    pytest.param(_canon_rel_entr, id="rel_entr"),
+    pytest.param(_canon_quad_over_lin, id="quad_over_lin"),
+    pytest.param(_canon_kl_div, id="kl_div"),
+]
+
+
+@pytest.mark.parametrize("canon_fn", TWO_ARG_CANONS)
+class TestTwoArgWideBounds:
+    """Wide (-inf, inf) bounds must be clamped to valid slack bounds."""
+
+    def test_no_nan_in_bounds(self, canon_fn):
+        arg = _make_wide_bounds_arg()
+        y = Variable()
+        _, constraints = canon_fn(arg, y)
+        for t in _get_slack_vars(constraints):
+            lb, ub = t.get_bounds()
+            assert not np.any(np.isnan(lb))
+            assert not np.any(np.isnan(ub))
+
+    def test_upper_not_collapsed(self, canon_fn):
+        arg = _make_wide_bounds_arg()
+        y = Variable()
+        _, constraints = canon_fn(arg, y)
+        for t in _get_slack_vars(constraints):
+            _, ub = t.get_bounds()
+            assert np.all(ub > MIN_INIT_POWER)
+
+
+class TestRelEntrCanon:
 
     def test_both_unbounded(self):
         x = Variable(2)
         y = Variable(2)
-        expr = cp.rel_entr(x, y)
-        _, constraints = rel_entr_canon(expr, [x, y])
-        t1 = constraints[0].args[0]
-        t2 = constraints[1].args[0]
-        for t in [t1, t2]:
+        _, constraints = _canon_rel_entr(x, y)
+        for t in _get_slack_vars(constraints):
             lb, ub = t.get_bounds()
             assert np.all(lb >= 0.0)
             assert np.all(ub == np.inf)
 
-    def test_nan_bounds_no_nan_in_result(self):
-        arg = _make_nan_bounds_arg()
-        y = Variable()
-        expr = cp.rel_entr(arg, y)
-        _, constraints = rel_entr_canon(expr, expr.args)
-        for c in constraints:
-            t = c.args[0]
-            lb, ub = t.get_bounds()
-            assert not np.any(np.isnan(lb)), f"NaN in lower bound: {lb}"
-            assert not np.any(np.isnan(ub)), f"NaN in upper bound: {ub}"
 
-    def test_nan_bounds_upper_not_collapsed(self):
-        arg = _make_nan_bounds_arg()
-        y = Variable()
-        expr = cp.rel_entr(arg, y)
-        _, constraints = rel_entr_canon(expr, expr.args)
-        for c in constraints:
-            t = c.args[0]
-            lb, ub = t.get_bounds()
-            assert np.all(ub > MIN_INIT_LOG), (
-                f"Upper bound {ub} collapsed to MIN_INIT — should be +inf"
-            )
-
-
-class TestQuadOverLinCanonBounds:
+class TestQuadOverLinCanon:
 
     def test_unbounded_denominator(self):
         x = Variable(2)
         y = Variable()
-        expr = cp.quad_over_lin(x, y)
-        _, constraints = quad_over_lin_canon(expr, [x, y])
-        t2 = constraints[-1].args[0]
+        _, constraints = _canon_quad_over_lin(x, y)
+        t2 = _get_slack_vars(constraints)[-1]
         lb, ub = t2.get_bounds()
         assert np.all(lb >= 0.0)
         assert np.all(ub >= lb)
 
-    def test_nan_bounds_no_nan_in_result(self):
-        x = Variable(2)
-        denom = _make_nan_bounds_arg()
-        expr = cp.quad_over_lin(x, denom)
-        _, constraints = quad_over_lin_canon(expr, [x, denom])
-        t2 = constraints[-1].args[0]
-        lb, ub = t2.get_bounds()
-        assert not np.any(np.isnan(lb)), f"NaN in lower bound: {lb}"
-        assert not np.any(np.isnan(ub)), f"NaN in upper bound: {ub}"
 
-    def test_nan_bounds_upper_not_collapsed(self):
-        x = Variable(2)
-        denom = _make_nan_bounds_arg()
-        expr = cp.quad_over_lin(x, denom)
-        _, constraints = quad_over_lin_canon(expr, [x, denom])
-        t2 = constraints[-1].args[0]
-        lb, ub = t2.get_bounds()
-        assert np.all(ub > MIN_INIT_POWER), (
-            f"Upper bound {ub} collapsed to MIN_INIT — should be +inf"
-        )
+# ---------------------------------------------------------------------------
+# tan-specific tests
+# ---------------------------------------------------------------------------
 
-
-class TestPowerCanonBounds:
-
-    def test_fractional_power_unbounded(self):
-        x = Variable(2)
-        expr = cp.power(x, 0.5)
-        _, constraints = power_canon(expr, [x])
-        t = constraints[0].args[0]
-        lb, ub = t.get_bounds()
-        assert np.all(lb >= 0.0)
-        assert np.all(ub == np.inf)
-
-    def test_fractional_power_nan_bounds_no_nan(self):
-        arg = _make_nan_bounds_arg()
-        expr = cp.power(arg, 0.5)
-        _, constraints = power_canon(expr, expr.args)
-        t = constraints[0].args[0]
-        lb, ub = t.get_bounds()
-        assert not np.any(np.isnan(lb)), f"NaN in lower bound: {lb}"
-        assert not np.any(np.isnan(ub)), f"NaN in upper bound: {ub}"
-
-    def test_fractional_power_nan_bounds_upper_not_collapsed(self):
-        arg = _make_nan_bounds_arg()
-        expr = cp.power(arg, 0.5)
-        _, constraints = power_canon(expr, expr.args)
-        t = constraints[0].args[0]
-        lb, ub = t.get_bounds()
-        assert np.all(ub > MIN_INIT_POWER), (
-            f"Upper bound {ub} collapsed to MIN_INIT — should be +inf"
-        )
-
-    def test_integer_power_no_bounds_needed(self):
-        x = Variable(2)
-        expr = cp.power(x, 2)
-        _, constraints = power_canon(expr, [x])
-        assert len(constraints) == 0
-
-
-class TestTanCanonBounds:
+class TestTanCanon:
 
     def test_unbounded_clips_to_half_pi(self):
         x = Variable(2)
-        expr = cp.tan(x)
-        _, constraints = tan_canon(expr, [x])
-        t = constraints[0].args[0]
+        _, constraints = _canon_tan(x)
+        t = _get_slack_vars(constraints)[0]
         lb, ub = t.get_bounds()
         np.testing.assert_allclose(lb, -HALF_PI)
         np.testing.assert_allclose(ub, HALF_PI)
 
     def test_tighter_bounds_preserved(self):
         x = Variable(2, bounds=[-0.5, 0.5])
-        expr = cp.tan(x)
-        _, constraints = tan_canon(expr, [x])
-        t = constraints[0].args[0]
+        _, constraints = _canon_tan(x)
+        t = _get_slack_vars(constraints)[0]
         lb, ub = t.get_bounds()
         np.testing.assert_allclose(lb, -0.5)
         np.testing.assert_allclose(ub, 0.5)
 
-    def test_nan_bounds_no_nan_in_result(self):
-        arg = _make_nan_bounds_arg()
-        expr = cp.tan(arg)
-        _, constraints = tan_canon(expr, expr.args)
-        t = constraints[0].args[0]
-        lb, ub = t.get_bounds()
-        assert not np.any(np.isnan(lb)), f"NaN in lower bound: {lb}"
-        assert not np.any(np.isnan(ub)), f"NaN in upper bound: {ub}"
-
-    def test_nan_bounds_defaults_to_half_pi(self):
-        arg = _make_nan_bounds_arg()
-        expr = cp.tan(arg)
-        _, constraints = tan_canon(expr, expr.args)
-        t = constraints[0].args[0]
+    def test_wide_bounds_defaults_to_half_pi(self):
+        arg = _make_wide_bounds_arg()
+        _, constraints = _canon_tan(arg)
+        t = _get_slack_vars(constraints)[0]
         lb, ub = t.get_bounds()
         np.testing.assert_allclose(float(lb), -HALF_PI)
         np.testing.assert_allclose(float(ub), HALF_PI)
 
 
-class TestKLDivCanonBounds:
+# ---------------------------------------------------------------------------
+# power-specific tests
+# ---------------------------------------------------------------------------
 
-    def test_nan_bounds_no_nan_in_result(self):
-        arg = _make_nan_bounds_arg()
-        y = Variable()
-        expr = cp.kl_div(arg, y)
-        _, constraints = kl_div_canon(expr, expr.args)
-        for c in constraints:
-            for var in c.variables():
-                lb, ub = var.get_bounds()
-                assert not np.any(np.isnan(lb)), f"NaN in lower bound of {var}"
-                assert not np.any(np.isnan(ub)), f"NaN in upper bound of {var}"
+class TestPowerCanon:
+
+    def test_integer_power_no_bounds_needed(self):
+        x = Variable(2)
+        _, constraints = power_canon(cp.power(x, 2), [x])
+        assert len(constraints) == 0
