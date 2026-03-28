@@ -188,7 +188,7 @@ class SDPA(ConicSolver):
             solution[s.INEQ_DUAL] = y[dims['f']:]
 
         return solution
-    
+
     def cite(self, data):
         """Returns bibtex citation for the solver.
 

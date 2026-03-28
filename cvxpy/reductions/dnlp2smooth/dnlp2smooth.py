@@ -37,13 +37,13 @@ class Dnlp2Smooth(Canonicalization):
     def accepts(self, problem):
         """A problem is always accepted"""
         return True
-    
+
     def apply(self, problem):
         """Converts an expr to a smooth program"""
         inverse_data = InverseData(problem)
 
         inverse_data.minimize = type(problem.objective) == Minimize
-        
+
         # smoothen objective function
         canon_objective, canon_constraints = self.canonicalize_tree(
             problem.objective, True)

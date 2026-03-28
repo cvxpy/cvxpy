@@ -58,7 +58,7 @@ class xexp(Elementwise):
         """Is the atom log-log concave?
         """
         return False
-    
+
     def is_atom_smooth(self) -> bool:
         """Is the atom smooth?"""
         return True

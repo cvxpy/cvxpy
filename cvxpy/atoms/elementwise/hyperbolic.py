@@ -32,7 +32,7 @@ class sinh(Elementwise):
         """Returns the elementwise sinh of x.
         """
         return np.sinh(values[0])
-    
+
     def sign_from_args(self) -> tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """

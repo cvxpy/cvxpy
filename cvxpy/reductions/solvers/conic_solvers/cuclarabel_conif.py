@@ -206,7 +206,7 @@ class CUCLARABEL(ConicSolver):
         Clarabel.solve!(solver)
         """)
         return results
-    
+
     def cite(self, data):
         """Returns bibtex citation for the solver.
 

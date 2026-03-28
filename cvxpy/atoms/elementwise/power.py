@@ -421,7 +421,7 @@ class Power(Elementwise):
             return [self.args[0] >= 0]
         else:
             return []
-    
+
     def get_data(self):
         return [self._p_orig, self.max_denom]
 

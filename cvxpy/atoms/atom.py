@@ -182,7 +182,7 @@ class Atom(Expression):
         """Is the atom concave?
         """
         raise NotImplementedError()
-    
+
     def is_atom_affine(self) -> bool:
         """Is the atom affine?
         """
@@ -262,7 +262,7 @@ class Atom(Expression):
             return True
         else:
             return False
-        
+
     @perf.compute_once
     def is_linearizable_convex(self) -> bool:
         """Is the expression convex after linearizing all smooth subexpressions?
@@ -549,7 +549,7 @@ class Atom(Expression):
         """
         # Default is no constraints.
         return []
-    
+
     @staticmethod
     def numpy_numeric(numeric_func):
         """Wraps an atom's numeric function that requires numpy ndarrays as input.

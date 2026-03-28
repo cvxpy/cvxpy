@@ -51,7 +51,7 @@ class rel_entr(Elementwise):
         """Is the atom concave?
         """
         return False
-    
+
     def is_atom_smooth(self) -> bool:
         """Is the atom smooth?"""
         return True
@@ -98,4 +98,4 @@ class rel_entr(Elementwise):
         """Returns constraints describing the domain of the node.
         """
         return [self.args[0] >= 0, self.args[1] >= 0]
-    
+

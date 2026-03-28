@@ -81,7 +81,7 @@ class log_sum_exp(AxisAtom):
         """Is the atom concave?
         """
         return False
-    
+
     def is_atom_smooth(self) -> bool:
         """Is the atom smooth?"""
         return True

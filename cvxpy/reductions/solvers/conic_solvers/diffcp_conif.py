@@ -182,7 +182,7 @@ class DIFFCP(scs_conif.SCS):
         if solver_cache is not None:
             solver_cache[self.name()] = results
         return results
-    
+
     def cite(self, data):
         """Returns bibtex citation for the solver.
 

@@ -188,15 +188,15 @@ def quad_canon(expr,
             real_args[1] = np.zeros(imag_args[1].shape)
         elif imag_args[1] is None:
             imag_args[1] = np.zeros(real_args[1].shape)
-            
+
         matrix = bmat([[real_args[1], -imag_args[1]],
                        [imag_args[1], real_args[1]]])
-        
+
         if expr.args[1].is_psd():
             matrix = psd_wrap(matrix)
         elif expr.args[1].is_nsd():
             matrix = nsd_wrap(matrix)
-            
+
     return expr.copy([vec, matrix]), None
 
 
