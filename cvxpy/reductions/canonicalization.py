@@ -154,6 +154,9 @@ class Canonicalization(Reduction):
         if skip_canon:
             return expr, []
         if type(expr) in self.canon_methods:
-            return self.canon_methods[type(expr)](expr, args)
+            kwargs = {}
+            if hasattr(self, 'solver_context'):
+                kwargs['solver_context'] = self.solver_context
+            return self.canon_methods[type(expr)](expr, args, **kwargs)
         else:
             return expr.copy(args), []

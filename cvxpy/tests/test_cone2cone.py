@@ -24,7 +24,7 @@ from cvxpy import settings as s
 from cvxpy.atoms.affine.trace import trace
 from cvxpy.constraints.exponential import ExpCone
 from cvxpy.constraints.power import PowCone3D, PowCone3DApprox, PowConeND
-from cvxpy.constraints.psd import PSD
+from cvxpy.constraints.psd import PSD, SvecPSD
 from cvxpy.constraints.second_order import SOC
 from cvxpy.reductions.chain import Chain
 from cvxpy.reductions.cone2cone import affine2direct as a2d
@@ -789,8 +789,8 @@ class TestOpRelConeQuad(BaseTest):
 
 
 class _PSDOnlyClarabel(ClarabelSolver):
-    """Test-only Clarabel wrapper exposing only PSD (no SOC)."""
-    SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [PSD]
+    """Test-only Clarabel wrapper exposing only SvecPSD (no SOC)."""
+    SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SvecPSD]
 
     def name(self):
         return "_PSD_ONLY_CLARABEL"

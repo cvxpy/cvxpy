@@ -170,6 +170,8 @@ def _build_solving_chain(
         solver=solver_instance.name(),
         supported_constraints=supported,
         supports_bounds=solver_instance.BOUNDED_VARIABLES,
+        psd_triangle_kind=getattr(solver_instance, 'PSD_TRIANGLE_KIND', None),
+        psd_sqrt2_scaling=getattr(solver_instance, 'PSD_SQRT2_SCALING', None),
     )
 
     # --- Pre-canonicalization reductions (problem + gp only) ---
@@ -211,13 +213,14 @@ def _build_solving_chain(
 
     reductions.append(Dcp2Cone(quad_obj=quad_obj, solver_context=solver_context))
 
-    if exact_targets:
-        reductions.append(ExactCone2Cone(target_cones=exact_targets))
-    if approx_targets:
-        reductions.append(ApproxCone2Cone(target_cones=approx_targets))
-
     reductions.append(
         CvxAttr2Constr(reduce_bounds=not solver_instance.BOUNDED_VARIABLES))
+
+    if exact_targets:
+        reductions.append(ExactCone2Cone(target_cones=exact_targets,
+                                         solver_context=solver_context))
+    if approx_targets:
+        reductions.append(ApproxCone2Cone(target_cones=approx_targets))
     reductions.append(EliminateZeroSized())
 
     if solver_instance.SOC_DIM3_ONLY and SOC in cones:
