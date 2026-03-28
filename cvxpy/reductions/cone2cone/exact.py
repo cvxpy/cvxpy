@@ -282,7 +282,7 @@ class PowNDConversion:
             inverse_data.pow_tree_mappings[constraint.id] = tree
 
     @staticmethod
-    def recover_dual(cons, dual_var, inverse_data, solution):
+    def recover_dual(cons, dual_var, inverse_data, dvars):
         """Recover PowConeND dual variables from PowCone3D duals."""
         alpha, axis, _ = cons.get_data()
         n = alpha.shape[0] if axis == 0 else alpha.shape[1]
@@ -384,13 +384,13 @@ class SOCConversion:
             inverse_data.soc_packed_aux[constraint.id] = aux_psd_ids
 
     @staticmethod
-    def recover_dual(cons, dual_var, inverse_data, solution):
+    def recover_dual(cons, dual_var, inverse_data, dvars):
         soc_packed_aux = getattr(inverse_data, 'soc_packed_aux', {})
         if cons.id in soc_packed_aux:
             parts = [dual_var[0]]
             for aux_id in soc_packed_aux[cons.id]:
-                if aux_id in solution.dual_vars:
-                    parts.append(solution.dual_vars[aux_id][0])
+                if aux_id in dvars:
+                    parts.append(dvars[aux_id][0])
             return 2 * np.hstack(parts)
         else:
             return 2 * dual_var[0]
@@ -413,7 +413,7 @@ class NonPosConversion:
         return NonNeg(-args[0], constr_id=con.constr_id), []
 
     @staticmethod
-    def recover_dual(cons, dual_var, inverse_data, solution):
+    def recover_dual(cons, dual_var, inverse_data, dvars):
         return dual_var
 
 
@@ -437,7 +437,7 @@ class PSDToSvecPSD:
         return SvecPSD(svec_expr, n=n), []
 
     @staticmethod
-    def recover_dual(cons, dual_var, inverse_data, solution):
+    def recover_dual(cons, dual_var, inverse_data, dvars):
         ctx = inverse_data._solver_context
         n = cons.args[0].shape[-1]
         full = tri_to_full(dual_var, n,
@@ -475,37 +475,44 @@ class ExactCone2Cone(Canonicalization):
         super(ExactCone2Cone, self).__init__(
             problem=problem, canon_methods=canon_methods)
 
+    def _convert_constraint(self, constraint, inverse_data, canon_constraints):
+        """Convert a single constraint, following the conversion chain transitively.
+
+        Returns a list of constraints in conversion order (for dual recovery).
+        """
+        chain = []
+        current = constraint
+
+        while type(current) in self.canon_methods:
+            chain.append(current)
+            canon_constr, aux_constr = self.canonicalize_tree(current)
+
+            hook = self._apply_hooks.get(type(current))
+            if hook is not None:
+                hook(current, canon_constr, aux_constr, inverse_data)
+
+            # Recursively convert auxiliary constraints.
+            for aux in aux_constr:
+                self._convert_constraint(aux, inverse_data, canon_constraints)
+
+            current = canon_constr
+
+        canon_constraints.append(current)
+        inverse_data.cons_id_map[constraint.id] = current.id
+        if chain:
+            inverse_data._recovery_chains[constraint.id] = chain
+
     def apply(self, problem):
         inverse_data = InverseData(problem)
         inverse_data._solver_context = self.solver_context
+        inverse_data._recovery_chains = {}
 
         canon_objective, canon_constraints = self.canonicalize_tree(
             problem.objective)
 
-        # Process constraints through the conversion DAG.  Auxiliary
-        # constraints produced by one conversion may themselves need
-        # conversion (e.g. SOC→PSD→SvecPSD), so we use a worklist.
-        worklist = list(problem.constraints)
-        while worklist:
-            constraint = worklist.pop(0)
-            canon_constr, aux_constr = self.canonicalize_tree(constraint)
-            inverse_data.cons_id_map.update({constraint.id: canon_constr.id})
-
-            # Call per-conversion hooks to record metadata (e.g. tree
-            # structures or auxiliary constraint IDs) needed for dual
-            # variable recovery in invert().
-            hook = self._apply_hooks.get(type(constraint))
-            if hook is not None:
-                hook(constraint, canon_constr, aux_constr, inverse_data)
-
-            # If the canonical or auxiliary constraints need further
-            # conversion, put them back on the worklist; otherwise
-            # add them to the output.
-            for c in aux_constr + [canon_constr]:
-                if type(c) in self.canon_methods:
-                    worklist.append(c)
-                else:
-                    canon_constraints.append(c)
+        for constraint in problem.constraints:
+            self._convert_constraint(
+                constraint, inverse_data, canon_constraints)
 
         new_problem = problems.problem.Problem(canon_objective,
                                                canon_constraints)
@@ -525,11 +532,19 @@ class ExactCone2Cone(Canonicalization):
             return Solution(solution.status, solution.opt_val, pvars, dvars,
                             solution.attr)
 
-        for cons_id, cons in inverse_data.id2cons.items():
-            recover = self._dual_recovery.get(type(cons))
-            if recover is not None and cons_id in dvars:
-                dvars[cons_id] = recover(cons, dvars[cons_id], inverse_data,
-                                         solution)
+        # Apply dual recovery in reverse chain order so that transitive
+        # conversions (e.g. SOC→PSD→SvecPSD) are unwound correctly.
+        # Auxiliary constraints are inserted into _recovery_chains before
+        # their parents, so they are recovered first.
+        for orig_id, chain in inverse_data._recovery_chains.items():
+            if orig_id not in dvars:
+                continue
+            dual = dvars[orig_id]
+            for cons in reversed(chain):
+                recover = self._dual_recovery.get(type(cons))
+                if recover is not None:
+                    dual = recover(cons, dual, inverse_data, dvars)
+            dvars[orig_id] = dual
 
         return Solution(solution.status, solution.opt_val, pvars, dvars,
                         solution.attr)

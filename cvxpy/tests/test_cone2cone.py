@@ -849,6 +849,22 @@ class TestExactApproxCone2Cone(BaseTest):
         self.assertIn(prob.status, [cp.OPTIMAL, cp.OPTIMAL_INACCURATE])
         self.assertAlmostEqual(prob.value, -np.sqrt(3), places=3)
 
+    def test_soc_to_psd_dual_recovery(self) -> None:
+        """Dual variables recovered correctly through SOC→PSD→SvecPSD chain."""
+        x = cp.Variable(3)
+        t = cp.Variable()
+        soc_con = cp.SOC(t, x)
+        prob = cp.Problem(cp.Minimize(t), [soc_con, cp.sum(x) == 1])
+        prob.solve(solver=_PSDOnlyClarabel())
+        self.assertIn(prob.status, [cp.OPTIMAL, cp.OPTIMAL_INACCURATE])
+        dv = soc_con.dual_value
+        self.assertIsNotNone(dv)
+        for d in dv:
+            self.assertTrue(np.all(np.isfinite(d)))
+        # Complementary slackness: <primal_slack, dual> ≈ 0.
+        comp = cp.vdot(soc_con.args, soc_con.dual_value).value
+        self.assertAlmostEqual(comp, 0, places=3)
+
     def test_soc_to_psd_packed(self) -> None:
         """Packed SOC constraints via PSD-only solver work correctly."""
         x = cp.Variable(3)
