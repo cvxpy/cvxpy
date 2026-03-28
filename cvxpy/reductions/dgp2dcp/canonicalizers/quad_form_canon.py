@@ -2,7 +2,7 @@ from cvxpy.atoms.affine import hstack
 from cvxpy.atoms.log_sum_exp import log_sum_exp
 
 
-def quad_form_canon(expr, args):
+def quad_form_canon(expr, args, solver_context=None):
     x = args[0]
     P = args[1]
     elems = []

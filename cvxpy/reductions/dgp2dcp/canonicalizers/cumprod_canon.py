@@ -16,5 +16,5 @@ limitations under the License.
 from cvxpy.atoms.affine.cumsum import cumsum
 
 
-def cumprod_canon(expr, args):
+def cumprod_canon(expr, args, solver_context=None):
     return cumsum(args[0], axis=expr.axis), []

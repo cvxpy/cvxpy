@@ -18,14 +18,14 @@ import numpy as np
 
 from cvxpy.constraints.exponential import ExpCone
 from cvxpy.expressions.constants import Constant
-from cvxpy.expressions.variable import Variable
 from cvxpy.utilities.solver_context import SolverInfo
+from cvxpy.utilities.values import make_canon_variable
 
 
 def entr_canon(expr, args, solver_context: SolverInfo | None = None):
     x = args[0]
     shape = expr.shape
-    t = Variable(shape)
+    t = make_canon_variable(expr, solver_context)
     # -x\log(x) >= t <=> x\exp(t/x) <= 1
     # TODO(akshayka): ExpCone requires each of its inputs to be a Variable;
     # is this something that we want to change?

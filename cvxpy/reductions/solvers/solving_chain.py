@@ -170,6 +170,7 @@ def _build_solving_chain(
         solver=solver_instance.name(),
         supported_constraints=supported,
         supports_bounds=solver_instance.BOUNDED_VARIABLES,
+        supports_warm_start=solver_instance.WARM_STARTABLE,
     )
 
     # --- Pre-canonicalization reductions (problem + gp only) ---
