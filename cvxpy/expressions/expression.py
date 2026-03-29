@@ -54,6 +54,30 @@ def _cast_other(binary_op):
     return cast_op
 
 
+def _pow_const_base(base, exponent):
+    """Helper for b**x where b is a positive constant and x is a CVXPY expression.
+
+    Uses the identity b**x = exp(x * log(b)). All three call sites
+    (__pow__, __rpow__, and cp.power) share this logic.
+
+    Parameters
+    ----------
+    base : Expression
+        A constant, positive CVXPY expression representing the base.
+    exponent : Expression
+        A CVXPY expression representing the exponent.
+
+    Returns
+    -------
+    Expression
+        exp(exponent * log(base))
+    """
+    # Imported here to avoid circular imports at module load time
+    from cvxpy.atoms.affine.binary_operators import multiply
+    from cvxpy.atoms.elementwise.exp import exp
+    from cvxpy.atoms.elementwise.log import log
+    return exp(multiply(exponent, log(base)))
+
 __STAR_MATMUL_COUNT__ = 1
 
 __STAR_MATMUL_WARNING__ = """
@@ -662,10 +686,6 @@ class Expression(u.Canonical):
         Expression
             The expression raised to ``power``.
         """
-        # Imported here to avoid circular imports at module load time
-        from cvxpy.atoms.affine.binary_operators import multiply
-        from cvxpy.atoms.elementwise.exp import exp
-        from cvxpy.atoms.elementwise.log import log
         power_expr = Expression.cast_to_const(power)
         if self.is_constant() and not power_expr.is_constant():
             if not self.is_pos():
@@ -673,7 +693,7 @@ class Expression(u.Canonical):
                     "The base of b**x must be positive when the exponent "
                     "is a variable, since we use b**x = exp(x * log(b))."
                 )
-            return exp(multiply(power_expr, log(self)))
+            return _pow_const_base(self, power_expr)
         return cvxtypes.power()(self, power)
 
     def __rpow__(self, base: float) -> "Expression":
@@ -692,8 +712,6 @@ class Expression(u.Canonical):
             exp(self * log(base))
         """
 
-        # Imported here to avoid circular imports at module load time
-        from cvxpy.atoms.elementwise.exp import exp
         base = cvxtypes.expression().cast_to_const(base)
         if not base.is_constant():
             raise ValueError(
@@ -705,10 +723,7 @@ class Expression(u.Canonical):
                 "The base of ** must be positive since we use the "
                 "identity a**x = exp(x * log(a))."
             )
-        # Imported here to avoid circular imports at module load time
-        from cvxpy.atoms.affine.binary_operators import multiply
-        from cvxpy.atoms.elementwise.log import log
-        return exp(multiply(self, log(base)))
+        return _pow_const_base(base, self)
 
     @staticmethod
     def cast(expr_like) -> "Expression":
