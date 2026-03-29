@@ -410,6 +410,9 @@ class TestSCS(BaseTest):
     def test_scs_sdp_2(self) -> None:
         StandardTestSDPs.test_sdp_2(solver='SCS', eps=1e-5)
 
+    def test_scs_sdp_batched(self) -> None:
+        StandardTestSDPs.test_sdp_batched(solver='SCS', eps=1e-5)
+
     def test_scs_expcone_1(self) -> None:
         StandardTestECPs.test_expcone_1(solver='SCS', eps=1e-5)
 
@@ -574,6 +577,9 @@ class TestClarabel(BaseTest):
         # sth.verify_primal_values(places) # skip
         sth.check_complementarity(places)
         sth.check_dual_domains(places)
+
+    def test_clarabel_sdp_batched(self) -> None:
+        StandardTestSDPs.test_sdp_batched(solver='CLARABEL')
 
     def test_infeasible_lp_ineq_constraints(self):
         StandardTestInfeasibleProblems.test_lp_ineq_constraints(solver="CLARABEL")
@@ -966,6 +972,9 @@ class TestMosek(unittest.TestCase):
 
     def test_mosek_sdp_2(self) -> None:
         StandardTestSDPs.test_sdp_2(solver='MOSEK')
+
+    def test_mosek_sdp_batched(self) -> None:
+        StandardTestSDPs.test_sdp_batched(solver='MOSEK')
 
     def test_mosek_expcone_1(self) -> None:
         StandardTestECPs.test_expcone_1(solver='MOSEK')
