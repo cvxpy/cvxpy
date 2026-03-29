@@ -191,20 +191,21 @@ class SparseCholeskyMessages:
     NOT_REAL = 'Input matrix must be real.'
 
 
-def sparse_cholesky(A, sym_tol=settings.CHOL_SYM_TOL, assume_posdef=False):
+def sparse_cholesky(A, sym_tol=settings.CHOL_SYM_TOL, assume_psd=False):
     """
-    The input matrix A must be real and symmetric. If A is positive definite then
-    QDLDL will be used to compute its sparse LDL factorization with fill-reducing
-    ordering, which is then converted to Cholesky form.
-    If A is negative definite, then the analogous operation will be applied to -A.
+    The input matrix A must be real and symmetric. If A is positive (semi)definite
+    then QDLDL will be used to compute its sparse LDL factorization with fill-reducing
+    ordering, which is then converted to Cholesky form with zero-pivot columns dropped.
+    If A is negative (semi)definite, then the analogous operation will be applied to -A.
 
     If factorization succeeds, then we return (sign, L, p) where sign is +1.0
-    for positive definite or -1.0 for negative definite, L is a lower-triangular
-    matrix in CSR-format, and p is a permutation vector so that
-    (L[p, :]) @ (L[p, :]).T == sign * A within numerical precision.
+    for positive (semi)definite or -1.0 for negative (semi)definite, L is an
+    n-by-k matrix in CSR-format (where k = rank(A)), and p is a permutation
+    vector so that (L[p, :]) @ (L[p, :]).T == sign * A within numerical precision.
 
-    We raise a ValueError if QDLDL's factorization fails or if we certify indefiniteness
-    before calling QDLDL. While checking for indefiniteness, we also check that
+    We raise a ValueError if QDLDL's factorization reveals indefiniteness or if
+    we certify indefiniteness before calling QDLDL. While checking for
+    indefiniteness, we also check that
      ||A - A'||_Fro / sqrt(n) <= sym_tol, where n is the order of the matrix.
     """
     import cvxpy.expressions.cvxtypes as cvxtypes
@@ -219,66 +220,82 @@ def sparse_cholesky(A, sym_tol=settings.CHOL_SYM_TOL, assume_posdef=False):
     if np.iscomplexobj(A):
         raise ValueError(SparseCholeskyMessages.NOT_REAL)
 
-    if not assume_posdef:
+    if not assume_psd:
         # check that we're symmetric
         symdiff = A - A.T
         sz = symdiff.data.size
         if sz > 0 and la.norm(symdiff.data) > sym_tol * (sz**0.5):
             raise ValueError(SparseCholeskyMessages.ASYMMETRIC)
-        # check a necessary condition for positive/negative definiteness; call this
-        # function on -A if there's evidence for negative definiteness.
+        # check a necessary condition for positive/negative semidefiniteness;
+        # call this function on -A if there's evidence for negative semidefiniteness.
         d = A.diagonal()
-        maybe_posdef = np.all(d > 0)
-        maybe_negdef = np.all(d < 0)
-        if not (maybe_posdef or maybe_negdef):
+        maybe_psd = np.all(d >= 0)
+        maybe_nsd = np.all(d <= 0)
+        if not (maybe_psd or maybe_nsd):
             raise ValueError(SparseCholeskyMessages.INDEFINITE)
-        if maybe_negdef:
-            _, L, p = sparse_cholesky(-A, sym_tol, assume_posdef=True)
+        if maybe_nsd and not maybe_psd:
+            _, L, p = sparse_cholesky(-A, sym_tol, assume_psd=True)
             return -1.0, L, p
 
     n = A.shape[0]
 
+    # QDLDL cannot handle rows/columns that are entirely zero (it fails with
+    # "Matrix not properly upper-triangular"). Detect zero-diagonal entries
+    # (which, for a PSD matrix, correspond to all-zero rows/columns) and
+    # reduce to the nonzero submatrix.
+    diag = A.diagonal()
+    nonzero_idx = np.flatnonzero(diag)
+    if nonzero_idx.size == 0:
+        # All-zero matrix: return n-by-0 factor.
+        return 1.0, sp.csr_array((n, 0)), np.arange(n)
+    if nonzero_idx.size < n:
+        # Reduce to the nonzero submatrix, factorize, then expand back.
+        A_sub = A[np.ix_(nonzero_idx, nonzero_idx)]
+        _, L_sub, p_sub = sparse_cholesky(A_sub, sym_tol, assume_psd=True)
+        # Expand L_sub back to L (n-by-k) by inserting zero rows.
+        k = L_sub.shape[1]
+        # Build the full-size L: rows at nonzero_idx get L_sub[p_sub, :],
+        # all other rows are zero.
+        L_expanded = sp.lil_array((n, k))
+        L_expanded[nonzero_idx, :] = L_sub[p_sub, :]
+        L_expanded = sp.csr_array(L_expanded)
+        return 1.0, L_expanded, np.arange(n)
+
     # QDLDL expects upper triangular CSC format
     A_upper = sp.triu(A, format='csc')
+
+    # Tolerance for near-zero pivots, matching decomp_quad's dense path.
+    tol = 1e6 * np.finfo(float).eps  # ≈ 2.2e-10
 
     try:
         solver = qdldl.Solver(A_upper, upper=True)
         L_unit, D, p = solver.factors()
 
-        # QDLDL returns: A == P @ (I + L) @ diag(D) @ (I + L).T @ P.T
-        # Convert to standard Cholesky: L_chol = (I + L) @ diag(sqrt(D))
-        # Strict D > 0 is required: D == 0 means the matrix is singular
-        # (positive semidefinite but not positive definite), which has no
-        # Cholesky decomposition. The caller (decomp_quad) falls back to
-        # dense eigendecomposition for such matrices.
-        if not np.all(D > 0):
-            raise ValueError(SparseCholeskyMessages.FACTORIZATION_FAILED)
+        # QDLDL returns: A[p,:][:,p] = (I + L) @ diag(D) @ (I + L).T
+        # For PSD matrices D >= 0; any significantly negative D means
+        # the matrix is indefinite.
+        scale = np.max(np.abs(D))
+        if scale > 0 and np.any(D < -tol * scale):
+            raise ValueError(SparseCholeskyMessages.INDEFINITE)
 
-        # Build the Cholesky factor: L_chol = (I + L_unit) @ sqrt(D)
-        # L_unit is strictly lower triangular (zeros on diagonal)
-        sqrt_D_vals = np.sqrt(D)
+        # Build L_chol = (I + L_unit) @ diag(sqrt(D)), keeping only columns
+        # where D is significantly positive to get an n-by-rank(A) factor.
+        mask = D > tol * scale
+        sqrt_D_vals = np.sqrt(np.maximum(D[mask], 0))
         I_plus_L = sp.eye(n, format='csr') + sp.csr_array(L_unit)
-        L_chol = I_plus_L @ sp.diags(sqrt_D_vals, format='csr')
-
-        # Ensure CSR format for consistency
+        L_chol = I_plus_L[:, mask] @ sp.diags(sqrt_D_vals, format='csr')
         L_chol = sp.csr_array(L_chol)
 
-        # QDLDL's permutation p defines P where P[i, p[i]] = 1, giving:
-        #   A = P @ L_chol @ L_chol.T @ P.T
-        # The caller expects L_out[p_out, :] @ L_out[p_out, :].T == A
-        # Since L[p, :] = P @ L, we need L[p_inv, :] where p_inv = argsort(p)
-        # so that L[p_inv, :] @ L[p_inv, :].T = A (verified empirically)
+        # QDLDL's permutation p satisfies A[p,:][:,p] = L_full @ L_full.T.
+        # The caller expects L_out[p_out, :] @ L_out[p_out, :].T == A,
+        # so we need p_out = argsort(p) (the inverse permutation).
         p_inv = np.argsort(p)
 
-        # sign=1.0 indicates positive definite (sign=-1.0 for negative
-        # definite, returned by the recursive call above).
         return 1.0, L_chol, p_inv
 
     except ValueError:
-        # Re-raise our own ValueErrors (from D > 0 check or input validation)
         raise
     except Exception as e:
-        # Wrap QDLDL-specific errors with context
         raise ValueError(
             f"{SparseCholeskyMessages.FACTORIZATION_FAILED}: {e}"
         ) from e

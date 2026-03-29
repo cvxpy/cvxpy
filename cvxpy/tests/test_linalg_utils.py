@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import numpy as np # noqa F403
+import numpy as np  # noqa F403
 import scipy.sparse as sp
 
 from cvxpy.tests.base_test import BaseTest
@@ -67,17 +67,52 @@ class TestSparseCholesky(BaseTest):
 
     def test_expression(self):
         self.test_generic(use_expression=True)
-    
-    def test_singular(self):
-        # sparse_cholesky requires positive *definiteness*, not just
-        # semidefiniteness. A singular PSD matrix (rank deficient) has no
-        # Cholesky decomposition. The caller decomp_quad() catches this
-        # ValueError and falls back to dense eigendecomposition via eigh.
+
+    def test_rank_deficient(self):
+        # PSD but rank-deficient: L should be n-by-k with k < n
         np.random.seed(0)
         B = np.random.randn(4, 2)
-        A = sp.csc_array(B @ B.T)  # Must be sparse
-        with self.assertRaises(ValueError):
-            lau.sparse_cholesky(A)
+        A = sp.csc_array(B @ B.T)
+        _, L, p = lau.sparse_cholesky(A)
+        self.assertEqual(L.shape[0], 4)
+        self.assertEqual(L.shape[1], 2)
+        self.check_gram(L[p, :], A)
+
+    def test_rank_deficient_large(self):
+        # Larger rank-deficient PSD matrix
+        np.random.seed(42)
+        n, k = 10, 7
+        B = np.random.randn(n, k)
+        A = sp.csc_array(B @ B.T)
+        _, L, p = lau.sparse_cholesky(A)
+        self.assertEqual(L.shape[0], n)
+        self.assertEqual(L.shape[1], k)
+        self.check_gram(L[p, :], A)
+
+    def test_nsd_rank_deficient(self):
+        # NSD rank-deficient matrix
+        np.random.seed(0)
+        B = np.random.randn(4, 2)
+        A = sp.csc_array(-(B @ B.T))
+        sign, L, p = lau.sparse_cholesky(A)
+        self.assertEqual(sign, -1.0)
+        self.assertEqual(L.shape[1], 2)
+        # sign * A = -A = B @ B.T, so L[p,:] @ L[p,:].T == -A
+        self.check_gram(L[p, :], -A)
+
+    def test_diagonal_with_zeros(self):
+        # PSD diagonal matrix with some zero entries
+        A = sp.diags_array([3.0, 0.0, 5.0, 0.0], format='csc')
+        _, L, p = lau.sparse_cholesky(A, 0.0)
+        self.assertEqual(L.shape[1], 2)
+        self.check_gram(L[p, :], A)
+
+    def test_zero_matrix(self):
+        # All-zero matrix: rank 0
+        A = sp.csc_array((4, 4))
+        _, L, p = lau.sparse_cholesky(A, 0.0)
+        self.assertEqual(L.shape, (4, 0))
+        self.check_gram(L[p, :], A)
 
     def test_nontrivial_permutation(self):
         # Test with a matrix that produces a non-symmetric permutation
