@@ -49,7 +49,6 @@ def power(x, p, max_denom: int = 1024, approx: bool = True):
     Power, PowerApprox, or exp expression
     """
 
-    from cvxpy.atoms.elementwise.exp import exp
     from cvxpy.expressions.expression import Expression
 
     # Cast both to CVXPY expressions for inspection
