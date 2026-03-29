@@ -115,8 +115,8 @@ public:
    * NOTE: The function prototype must match the type-map in CVXCanon.i
    * exactly to compile and run properly.
    */
-  void set_sparse_data(double *data, int data_len, double *row_idxs,
-                       int rows_len, double *col_idxs, int cols_len, int rows,
+  void set_sparse_data(double *data, int data_len, int *row_idxs,
+                       int rows_len, int *col_idxs, int cols_len, int rows,
                        int cols) {
     assert(!data_has_been_set_);
     assert(rows_len == data_len && cols_len == data_len);
@@ -126,7 +126,7 @@ public:
     tripletList.reserve(data_len);
     for (int idx = 0; idx < data_len; idx++) {
       tripletList.push_back(
-          Triplet(int(row_idxs[idx]), int(col_idxs[idx]), data[idx]));
+          Triplet(row_idxs[idx], col_idxs[idx], data[idx]));
     }
     sparse_coeffs.setFromTriplets(tripletList.begin(), tripletList.end());
     sparse_coeffs.makeCompressed();
