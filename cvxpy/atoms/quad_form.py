@@ -238,7 +238,7 @@ def decomp_quad(P, cond=None, rcond=None, lower=True, check_finite: bool = True)
             else:
                 return 1.0, np.empty((0, 0)), L[p, :]
         except ValueError:
-            P = np.array(P.todense())  # make dense (needs to happen for ldl).
+            P = P.toarray()  # make dense (needs to happen for ldl).
     lu, d, _perm = LA.ldl(P, lower=lower, check_finite=check_finite)
 
     # Extract effective diagonal values from D, handling any 2x2 blocks.

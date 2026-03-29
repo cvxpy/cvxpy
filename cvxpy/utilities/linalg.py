@@ -226,40 +226,39 @@ def sparse_cholesky(A, sym_tol=settings.CHOL_SYM_TOL, assume_psd=False):
         sz = symdiff.data.size
         if sz > 0 and la.norm(symdiff.data) > sym_tol * (sz**0.5):
             raise ValueError(SparseCholeskyMessages.ASYMMETRIC)
-        # check a necessary condition for positive/negative semidefiniteness;
-        # call this function on -A if there's evidence for negative semidefiniteness.
+        # check a necessary condition for positive/negative semidefiniteness.
         d = A.diagonal()
         maybe_psd = np.all(d >= 0)
         maybe_nsd = np.all(d <= 0)
         if not (maybe_psd or maybe_nsd):
             raise ValueError(SparseCholeskyMessages.INDEFINITE)
-        if maybe_nsd and not maybe_psd:
-            _, L, p = sparse_cholesky(-A, sym_tol, assume_psd=True)
-            return -1.0, L, p
 
     n = A.shape[0]
 
     # QDLDL cannot handle rows/columns that are entirely zero (it fails with
     # "Matrix not properly upper-triangular"). Detect zero-diagonal entries
-    # (which, for a PSD matrix, correspond to all-zero rows/columns) and
-    # reduce to the nonzero submatrix.
+    # and reduce to the nonzero submatrix. For a PSD/NSD matrix, zero diagonal
+    # implies all-zero row/column; we validate this before reducing.
     diag = A.diagonal()
     nonzero_idx = np.flatnonzero(diag)
     if nonzero_idx.size == 0:
         # All-zero matrix: return n-by-0 factor.
         return 1.0, sp.csr_array((n, 0)), np.arange(n)
     if nonzero_idx.size < n:
+        # Validate that zero-diagonal rows are truly all-zero. If not, the
+        # matrix is indefinite (e.g. [[1, 2], [2, 0]]).
+        zero_idx = np.setdiff1d(np.arange(n), nonzero_idx)
+        if A[zero_idx, :].nnz > 0:
+            raise ValueError(SparseCholeskyMessages.INDEFINITE)
         # Reduce to the nonzero submatrix, factorize, then expand back.
         A_sub = A[np.ix_(nonzero_idx, nonzero_idx)]
-        _, L_sub, p_sub = sparse_cholesky(A_sub, sym_tol, assume_psd=True)
+        sign, L_sub, p_sub = sparse_cholesky(A_sub, sym_tol, assume_psd=True)
         # Expand L_sub back to L (n-by-k) by inserting zero rows.
         k = L_sub.shape[1]
-        # Build the full-size L: rows at nonzero_idx get L_sub[p_sub, :],
-        # all other rows are zero.
         L_expanded = sp.lil_array((n, k))
         L_expanded[nonzero_idx, :] = L_sub[p_sub, :]
         L_expanded = sp.csr_array(L_expanded)
-        return 1.0, L_expanded, np.arange(n)
+        return sign, L_expanded, np.arange(n)
 
     # QDLDL expects upper triangular CSC format
     A_upper = sp.triu(A, format='csc')
@@ -272,26 +271,34 @@ def sparse_cholesky(A, sym_tol=settings.CHOL_SYM_TOL, assume_psd=False):
         L_unit, D, p = solver.factors()
 
         # QDLDL returns: A[p,:][:,p] = (I + L) @ diag(D) @ (I + L).T
-        # For PSD matrices D >= 0; any significantly negative D means
-        # the matrix is indefinite.
+        # Determine sign from D: all D >= 0 means PSD, all D <= 0 means NSD.
         scale = np.max(np.abs(D))
-        if scale > 0 and np.any(D < -tol * scale):
+        if scale == 0:
+            # All pivots are zero — zero matrix.
+            return 1.0, sp.csr_array((n, 0)), np.arange(n)
+
+        is_psd = np.all(D >= -tol * scale)
+        is_nsd = np.all(D <= tol * scale)
+        if not (is_psd or is_nsd):
             raise ValueError(SparseCholeskyMessages.INDEFINITE)
 
-        # Build L_chol = (I + L_unit) @ diag(sqrt(D)), keeping only columns
-        # where D is significantly positive to get an n-by-rank(A) factor.
-        mask = D > tol * scale
-        sqrt_D_vals = np.sqrt(np.maximum(D[mask], 0))
+        sign = 1.0 if is_psd else -1.0
+
+        # Build L_chol = (I + L_unit) @ diag(sqrt(|D|)), keeping only columns
+        # where |D| is significantly nonzero to get an n-by-rank(A) factor.
+        abs_D = np.abs(D)
+        mask = abs_D > tol * scale
+        sqrt_D_vals = np.sqrt(np.maximum(abs_D[mask], 0))
         I_plus_L = sp.eye(n, format='csr') + sp.csr_array(L_unit)
         L_chol = I_plus_L[:, mask] @ sp.diags(sqrt_D_vals, format='csr')
         L_chol = sp.csr_array(L_chol)
 
         # QDLDL's permutation p satisfies A[p,:][:,p] = L_full @ L_full.T.
-        # The caller expects L_out[p_out, :] @ L_out[p_out, :].T == A,
+        # The caller expects L_out[p_out, :] @ L_out[p_out, :].T == sign * A,
         # so we need p_out = argsort(p) (the inverse permutation).
         p_inv = np.argsort(p)
 
-        return 1.0, L_chol, p_inv
+        return sign, L_chol, p_inv
 
     except ValueError:
         raise
