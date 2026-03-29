@@ -51,7 +51,7 @@ def expand_cones(cones, supported):
 
     exact_targets = set()
     while True:
-        new_targets = (cones & reachable) - supported - exact_targets
+        new_targets = (cones & reachable) - supported
         if not new_targets:
             break
         exact_targets |= new_targets
