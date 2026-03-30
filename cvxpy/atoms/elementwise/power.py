@@ -58,11 +58,6 @@ def power(x, p, max_denom: int = 1024, approx: bool = True):
     # Case: b**x where b is constant and x is variable
     # e.g. cp.power(2, x) — dispatch to exp(x * log(b))
     if x_expr.is_constant() and not p_expr.is_constant():
-        if not x_expr.is_pos():
-            raise ValueError(
-                "The base of cp.power(b, x) must be positive when the "
-                "exponent is a variable, since we use b**x = exp(x * log(b))."
-            )
         from cvxpy.expressions.expression import _pow_const_base
         return _pow_const_base(x_expr, p_expr)
 
