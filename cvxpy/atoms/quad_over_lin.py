@@ -194,7 +194,7 @@ class quad_over_lin(AxisAtom):
             normalize_axis_tuple(axes, len(bshape))
         Atom.validate_arguments(self)
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> tuple[int, ...]:
         """Returns the shape of the expression.
         """
         shape = list(u.shape.sum_shapes([self.args[0].shape, self.args[1].shape]))
@@ -235,7 +235,7 @@ class quad_over_lin(AxisAtom):
 
 def _unbroadcast(
     arr: np.ndarray,
-    target_shape: Tuple[int, ...],
+    target_shape: tuple[int, ...],
 ) -> np.ndarray:
     """Sum an array from its broadcast shape back to target_shape.
 
