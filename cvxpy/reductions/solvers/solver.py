@@ -38,10 +38,26 @@ def expand_cones(cones, supported):
     (cones, exact_targets, approx_targets) where *cones* is the
     (mutated) input set and the targets are the cones that were expanded.
     """
-    exact_targets = (cones & EXACT_CONE_CONVERSIONS.keys()) - supported
-    for co in exact_targets:
-        cones.discard(co)
-        cones.update(EXACT_CONE_CONVERSIONS[co])
+    # Compute which unsupported cones can transitively reach a
+    # supported cone via the EXACT_CONE_CONVERSIONS DAG.
+    reachable = set()
+    changed = True
+    while changed:
+        changed = False
+        for src, tgts in EXACT_CONE_CONVERSIONS.items():
+            if src not in reachable and tgts & (supported | reachable):
+                reachable.add(src)
+                changed = True
+
+    exact_targets = set()
+    while True:
+        new_targets = (cones & reachable) - supported
+        if not new_targets:
+            break
+        exact_targets |= new_targets
+        for co in new_targets:
+            cones.discard(co)
+            cones.update(EXACT_CONE_CONVERSIONS[co])
 
     approx_targets = (cones & APPROX_CONE_CONVERSIONS.keys()) - supported
     for co in approx_targets:
@@ -65,6 +81,13 @@ class Solver(Reduction):
     MIP_CAPABLE = False
     BOUNDED_VARIABLES = False
     SOC_DIM3_ONLY = False
+
+    # PSD constraint format. Overridden by solvers that support PSD constraints.
+    # PSD_TRIANGLE_KIND: which triangle the solver expects (TriangleKind.LOWER
+    # or TriangleKind.UPPER). None means no PSD support via this mechanism.
+    # PSD_SQRT2_SCALING: whether off-diagonal entries are scaled by sqrt(2).
+    PSD_TRIANGLE_KIND = None
+    PSD_SQRT2_SCALING = None
 
     # Constraint support (overridden by ConicSolver and QpSolver).
     SUPPORTED_CONSTRAINTS = []

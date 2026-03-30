@@ -18,7 +18,7 @@ import numpy as np
 import scipy.sparse as sp
 
 import cvxpy.settings as s
-from cvxpy.constraints import PSD, SOC, ExpCone, NonNeg, PowCone3D, PowConeND, Zero
+from cvxpy.constraints import PSD, SOC, ExpCone, NonNeg, PowCone3D, PowConeND, SvecPSD, Zero
 from cvxpy.reductions.cvx_attr2constr import convex_attributes
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ParamConeProg
 from cvxpy.reductions.solution import Solution, failure_solution
@@ -154,13 +154,6 @@ class ConicSolver(Solver):
         col_arr = np.arange(num_values)
         return sp.csc_array((val_arr, (row_arr, col_arr)), shape)
 
-    @staticmethod
-    def psd_format_mat(constr):
-        """Return a matrix to multiply by PSD constraint coefficients.
-        """
-        # Default is identity.
-        return sp.eye_array(constr.size, format='csc')
-
     @classmethod
     def format_constraints(cls, problem, exp_cone_order):
         """
@@ -272,7 +265,9 @@ class ConicSolver(Solver):
                 restruct_mat.append(sp.hstack(arg_mats))
 
             elif type(constr) == PSD:
-                restruct_mat.append(cls.psd_format_mat(constr))
+                restruct_mat.append(IdentityOperator(constr.size))
+            elif type(constr) == SvecPSD:
+                restruct_mat.append(IdentityOperator(constr.size))
             else:
                 raise ValueError("Unsupported constraint type.")
 
@@ -362,7 +357,8 @@ class ConicSolver(Solver):
         constr_map = problem.constr_map
         inv_data[self.EQ_CONSTR] = constr_map[Zero]
         inv_data[self.NEQ_CONSTR] = constr_map[NonNeg] + constr_map[SOC] + \
-            constr_map[PSD] + constr_map[ExpCone] + \
+            constr_map.get(PSD, []) + constr_map.get(SvecPSD, []) + \
+            constr_map[ExpCone] + \
             constr_map[PowCone3D] + \
             constr_map[PowConeND]
         return problem, data, inv_data
