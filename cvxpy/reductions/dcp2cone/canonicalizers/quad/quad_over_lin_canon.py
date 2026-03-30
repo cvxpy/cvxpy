@@ -18,7 +18,7 @@ import numpy as np
 from numpy.lib.array_utils import normalize_axis_index, normalize_axis_tuple
 from scipy.sparse import diags, eye_array
 
-from cvxpy.atoms.affine.broadcast_to import lazy_broadcast_to
+from cvxpy.atoms.affine.broadcast_to import broadcast_to
 from cvxpy.atoms.affine.diag import diag_vec
 from cvxpy.atoms.quad_form import SymbolicQuadForm
 from cvxpy.expressions.variable import Variable
@@ -28,10 +28,10 @@ from cvxpy.utilities.solver_context import SolverInfo
 
 def quad_over_lin_canon(expr, args, solver_context: SolverInfo | None = None):
     broadcast_shape = shape_utils.sum_shapes([args[0].shape, args[1].shape])
-    affine_expr = lazy_broadcast_to(args[0], broadcast_shape)
+    affine_expr = broadcast_to(args[0], broadcast_shape)
     y = args[1]
     if not y.is_scalar():
-        y = lazy_broadcast_to(y, broadcast_shape)
+        y = broadcast_to(y, broadcast_shape)
     axis = expr.axis
 
     if len(y.parameters()) > 0:

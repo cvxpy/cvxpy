@@ -17,7 +17,7 @@ limitations under the License.
 import numpy as np
 from numpy.lib.array_utils import normalize_axis_index, normalize_axis_tuple
 
-from cvxpy.atoms.affine.broadcast_to import lazy_broadcast_to
+from cvxpy.atoms.affine.broadcast_to import broadcast_to
 from cvxpy.atoms.affine.hstack import hstack
 from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.atoms.affine.sum import Sum
@@ -41,9 +41,9 @@ def quad_over_lin_canon(expr, args, solver_context: SolverInfo | None = None):
     x = args[0]
     y = args[1]
     broadcast_shape = shape_utils.sum_shapes([x.shape, y.shape])
-    x = lazy_broadcast_to(x, broadcast_shape)
+    x = broadcast_to(x, broadcast_shape)
     if not y.is_scalar():
-        y = lazy_broadcast_to(y, broadcast_shape)
+        y = broadcast_to(y, broadcast_shape)
     axis = expr.axis
     ndim = len(broadcast_shape)
 

@@ -253,9 +253,9 @@ class TestProblem(BaseTest):
         data, _, _ = p.get_problem_data(s.SCS, solver_opts={"use_quad_obj": True})
         dims = data[ConicSolver.DIMS]
         self.assertEqual(dims.soc, [])
-        self.assertEqual(data["P"].shape, (2, 2))
-        self.assertEqual(data["c"].shape, (2,))
-        self.assertEqual(data["A"].shape, (0, 2))
+        self.assertEqual(data["P"].shape, (4, 4))
+        self.assertEqual(data["c"].shape, (4,))
+        self.assertEqual(data["A"].shape, (2, 4))
 
         if s.CVXOPT in INSTALLED_SOLVERS:
             data, _, _ = Problem(cp.Minimize(cp.norm(self.x) + 3)).get_problem_data(
