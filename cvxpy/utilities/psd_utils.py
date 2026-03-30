@@ -50,14 +50,20 @@ def tri_to_full(tri_vec: np.ndarray, n: int, triangle: TriangleKind,
 
     Notes
     -----
-    SCS and Clarabel track triangular indices in a transposed way relative to
-    NumPy's convention, so `LOWER` uses ``np.triu_indices`` and `UPPER` uses
-    ``np.tril_indices``. This looks wrong but is correct.
+    Solvers vectorize triangles in **column-major** (Fortran) order, but
+    ``np.tril_indices`` / ``np.triu_indices`` enumerate in **row-major** (C)
+    order. Column-major lower-triangle order is the same as row-major
+    upper-triangle order (and vice versa), because enumerating the lower
+    triangle column-by-column produces (row, col) pairs that, when swapped,
+    give the upper triangle row-by-row. So we use ``np.triu_indices`` for
+    LOWER and ``np.tril_indices`` for UPPER. Since the matrix is symmetrized
+    afterward, placing entries in the transposed triangle is correct.
     """
     tri_dim = n * (n + 1) // 2
     num = tri_vec.size // tri_dim
     full = np.zeros((num, n, n))
     tri_vecs = tri_vec.reshape(num, tri_dim)
+    # Use the opposite triangle: see Notes above for why.
     tri_idx = np.triu_indices(n) if triangle == TriangleKind.LOWER else np.tril_indices(n)
     full[:, *tri_idx] = tri_vecs
     full += np.swapaxes(full, -2, -1)
