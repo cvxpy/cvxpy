@@ -682,11 +682,6 @@ class Expression(u.Canonical):
         """
         power_expr = Expression.cast_to_const(power)
         if self.is_constant() and not power_expr.is_constant():
-            if not self.is_pos():
-                raise ValueError(
-                    "The base of b**x must be positive when the exponent "
-                    "is a variable, since we use b**x = exp(x * log(b))."
-                )
             return _pow_const_base(self, power_expr)
         return cvxtypes.power()(self, power)
 
