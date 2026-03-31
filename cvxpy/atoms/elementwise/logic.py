@@ -15,7 +15,6 @@ limitations under the License.
 """
 
 from functools import reduce
-from typing import List, Tuple
 
 import numpy as np
 
@@ -48,7 +47,7 @@ class LogicExpression(Elementwise):
                     f"Got {type(arg).__name__}."
                 )
 
-    def sign_from_args(self) -> Tuple[bool, bool]:
+    def sign_from_args(self) -> tuple[bool, bool]:
         """Result is boolean (0 or 1), so nonneg."""
         return (True, False)
 
@@ -64,7 +63,7 @@ class LogicExpression(Elementwise):
     def is_decr(self, idx) -> bool:
         return False
 
-    def _grad(self, values) -> List:
+    def _grad(self, values) -> list:
         return [None for _ in values]
 
 
@@ -130,7 +129,7 @@ class _NaryLogicExpression(LogicExpression):
     """
 
     OP_NAME: str
-    _PAREN_TYPES: Tuple[str, ...]
+    _PAREN_TYPES: tuple[str, ...]
 
     def __init__(self, arg1, arg2, *args) -> None:
         super().__init__(arg1, arg2, *args)

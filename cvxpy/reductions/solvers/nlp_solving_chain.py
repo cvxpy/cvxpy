@@ -136,7 +136,7 @@ def _set_random_nlp_initial_point(problem, run, user_initials):
         sb = var.sample_bounds
         if sb is None:
             sb = var.get_bounds()
-          
+
         # Sample initial value if effective sample bounds are available. Otherwise
         # raise an error.
         if sb is not None:
@@ -175,7 +175,7 @@ def solve_nlp(problem, solver, warm_start, verbose, **kwargs):
         The optimal problem value.
     """
     nlp_chain, kwargs = _build_nlp_chain(problem, solver, kwargs)
-    
+
     # Standard single solve
     if "best_of" not in kwargs:
         _set_nlp_initial_point(problem)
@@ -184,7 +184,7 @@ def solve_nlp(problem, solver, warm_start, verbose, **kwargs):
                                                    verbose, solver_opts=kwargs)
         problem.unpack_results(solution, nlp_chain, inverse_data)
         return problem.value
-    
+
     best_of = kwargs.pop("best_of")
     if not isinstance(best_of, int) or best_of < 1:
         raise ValueError("best_of must be a positive integer.")

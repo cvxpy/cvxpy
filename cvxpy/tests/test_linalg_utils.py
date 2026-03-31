@@ -67,7 +67,8 @@ class TestSparseCholesky(BaseTest):
 
     def test_expression(self):
         self.test_generic(use_expression=True)
-    
+
+
     def test_singular(self):
         # sparse_cholesky requires positive *definiteness*, not just
         # semidefiniteness. A singular PSD matrix (rank deficient) has no

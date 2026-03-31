@@ -3407,6 +3407,8 @@ def test_offset_in_opt_val(solver):
         f = partial_optimize(inner, opt_vars=[t], solver=solver)
         x.value = 0.0
         f.value
-    except cp.error.SolverError:
-        pytest.skip(f"Solver {solver} cannot solve this problem")
+    except (cp.error.SolverError, Exception) as e:
+        if "SolverError" in type(e).__name__ or "license" in str(e).lower():
+            pytest.skip(f"Solver {solver} cannot solve this problem")
+        raise
     assert abs(f.value - 1000.0) < 1e-2

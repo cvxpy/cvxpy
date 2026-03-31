@@ -11,7 +11,7 @@ class ScalarizeTest(BaseTest):
     """
 
     def setUp(self) -> None:
-        
+
         self.x = cp.Variable()
         obj1 = cp.Minimize(cp.square(self.x))
         obj2 = cp.Minimize(cp.square(self.x-1))
@@ -190,6 +190,70 @@ class ScalarizeTest(BaseTest):
             f"Negated Minimize(x) pushed x={x.value} above target"
         )
 
+    def test_maximize_priority_leq_off_target(self) -> None:
+        """Maximize objectives with priority <= off_target must not flip to Minimize.
+
+        Regression test: when priority <= off_target, the pos(delta) coefficient
+        vanishes or flips sign, making the expression affine or convex. The old
+        code's is_convex() check would then wrap it in Minimize, silently
+        reversing the optimization direction.
+        """
+        x = cp.Variable()
+
+        # priority == off_target: expression is affine (pos term vanishes)
+        scalarized = scalarize.targets_and_priorities(
+            [cp.Maximize(x)], [1e-5], [3], off_target=1e-5
+        )
+        assert isinstance(scalarized, cp.Maximize), (
+            "Maximize with priority==off_target should return Maximize"
+        )
+        prob = cp.Problem(scalarized, [x >= 0, x <= 10])
+        prob.solve(solver=cp.CLARABEL)
+        assert float(x.value) > 5.0, (
+            f"Maximize(x) with priority==off_target gave x={x.value}"
+        )
+
+        # priority < off_target: expression becomes convex → should raise
+        with pytest.raises(ValueError, match="not concave"):
+            scalarize.targets_and_priorities(
+                [cp.Maximize(x)], [0], [3], off_target=1e-5
+            )
+
+        # Multiple Maximize objectives, all priority == off_target
+        y = cp.Variable()
+        scalarized = scalarize.targets_and_priorities(
+            [cp.Maximize(x), cp.Maximize(y)],
+            [1e-5, 1e-5], [3, 7], off_target=1e-5
+        )
+        assert isinstance(scalarized, cp.Maximize)
+        prob = cp.Problem(scalarized, [x >= 0, x <= 10, y >= 0, y <= 10])
+        prob.solve(solver=cp.CLARABEL)
+        assert float(x.value) > 5.0
+        assert float(y.value) > 5.0
+
+    def test_minimize_priority_leq_off_target(self) -> None:
+        """Minimize(affine) with priority < off_target must not flip to Maximize."""
+        x = cp.Variable()
+
+        # priority < off_target with Minimize(affine) → should raise
+        with pytest.raises(ValueError, match="not convex"):
+            scalarize.targets_and_priorities(
+                [cp.Minimize(x)], [0], [3], off_target=1e-5
+            )
+
+        # priority == off_target with Minimize(affine) → should stay Minimize
+        scalarized = scalarize.targets_and_priorities(
+            [cp.Minimize(x)], [1e-5], [3], off_target=1e-5
+        )
+        assert isinstance(scalarized, cp.Minimize), (
+            "Minimize with priority==off_target should return Minimize"
+        )
+        prob = cp.Problem(scalarized, [x >= 0, x <= 10])
+        prob.solve(solver=cp.CLARABEL)
+        assert float(x.value) < 5.0, (
+            f"Minimize(x) with priority==off_target gave x={x.value}"
+        )
+
     def test_max(self) -> None:
 
         weights = [1, 2]
@@ -204,7 +268,7 @@ class ScalarizeTest(BaseTest):
         prob.solve()
         self.assertItemsAlmostEqual(self.x.value, 0.4142, places=3)
 
-    
+
     def test_log_sum_exp(self) -> None:
         weights = [1, 2]
         scalarized = scalarize.log_sum_exp(self.objectives, weights)

@@ -24,3 +24,4 @@ repos:
     rev: v0.23
     hooks:
       - id: validate-pyproject
+

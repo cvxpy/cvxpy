@@ -13,7 +13,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import Tuple
 
 import numpy as np
 import scipy.sparse as sp
@@ -34,7 +33,7 @@ from cvxpy.reductions.solvers.solver import Solver
 
 class LinearOperator:
     """A wrapper for linear operators."""
-    def __init__(self, linear_op, shape: Tuple[int, ...]) -> None:
+    def __init__(self, linear_op, shape: tuple[int, ...]) -> None:
         if sp.issparse(linear_op):
             self._matmul = lambda X: linear_op @ X
         else:
@@ -58,11 +57,12 @@ class NegativeIdentityOperator(LinearOperator):
     def __call__(self, X):
         return -X
 
-def as_linear_operator(linear_op):
+def as_linear_operator(linear_op) -> LinearOperator:
     if isinstance(linear_op, LinearOperator):
         return linear_op
     elif sp.issparse(linear_op):
         return LinearOperator(linear_op, linear_op.shape)
+    raise ValueError(f"Cannot convert {type(linear_op)} to LinearOperator")
 
 
 def as_block_diag_linear_operator(matrices) -> LinearOperator:
@@ -125,7 +125,7 @@ class ConicSolver(Solver):
                         problem.constraints))
 
     @staticmethod
-    def get_spacing_matrix(shape: Tuple[int, ...], spacing, streak, num_blocks, offset):
+    def get_spacing_matrix(shape: tuple[int, ...], spacing, streak, num_blocks, offset):
         """Returns a sparse matrix that spaces out an expression.
 
         Parameters

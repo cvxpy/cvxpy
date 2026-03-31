@@ -76,7 +76,7 @@ class ClarabelTest(BaseTest):
         self.solution.status = CLARABEL.INSUFFICIENT_PROGRESS
         solution = solver.invert(self.solution, SolverInverseData(inverse_data[-1], {}))
         self.assertEqual(s.SOLVER_ERROR, solution.status)
-        
+
     def test_invert_when_insufficient_progress_but_accept_unknown(self):
         """
         Tests invert when a solution is present and solver status from clarabel
@@ -106,4 +106,4 @@ class ClarabelTest(BaseTest):
                                                 solver_options={"accept_unknown": True})
         solution = solver.invert(self.solution, solver_inverse_data)
         self.assertEqual(s.SOLVER_ERROR, solution.status)
-        
+

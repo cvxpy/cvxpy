@@ -465,7 +465,7 @@ class COPT(ConicSolver):
         solution['model'] = model
 
         return solution
-    
+
     def cite(self, data):
         """Returns bibtex citation for the solver.
 

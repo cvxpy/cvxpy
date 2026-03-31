@@ -13,16 +13,15 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import List, Optional, Tuple, Union
 
 import numpy as np
 import scipy.sparse as sp_sparse
 
 # Type alias for bounds: (lower_bound, upper_bound)
-Bounds = Tuple[np.ndarray, np.ndarray]
+Bounds = tuple[np.ndarray, np.ndarray]
 
 
-def _ensure_dense(arr, shape: Optional[Tuple[int, ...]] = None):
+def _ensure_dense(arr, shape: tuple[int, ...] | None = None):
     """Convert sparse matrix to dense numpy array and expand to shape if given.
 
     Parameters
@@ -108,7 +107,7 @@ def _all_zero_or_inf(arr) -> bool:
     return bool(np.all((arr == 0) | np.isinf(arr)))
 
 
-def unbounded(shape: Tuple[int, ...]) -> Bounds:
+def unbounded(shape: tuple[int, ...]) -> Bounds:
     """Return unbounded interval (-inf, inf) for given shape.
 
     Parameters
@@ -126,7 +125,7 @@ def unbounded(shape: Tuple[int, ...]) -> Bounds:
     return (lower, upper)
 
 
-def uniform_bounds(shape: Tuple[int, ...], lb: float, ub: float) -> Bounds:
+def uniform_bounds(shape: tuple[int, ...], lb: float, ub: float) -> Bounds:
     """Return uniform bounds as memory-efficient broadcast views.
 
     This creates read-only views that broadcast a scalar to the given shape
@@ -202,7 +201,7 @@ def _sparse_sum(arr, axis, keepdims):
 
 
 def sum_bounds(lb: np.ndarray, ub: np.ndarray,
-               axis: Optional[Union[int, Tuple[int, ...]]] = None,
+               axis: int | tuple[int, ...] | None = None,
                keepdims: bool = False) -> Bounds:
     """Bounds for sum reduction.
 
@@ -372,7 +371,7 @@ def abs_bounds(lb: np.ndarray, ub: np.ndarray) -> Bounds:
     return (new_lb, new_ub)
 
 
-def maximum_bounds(bounds_list: List[Bounds]) -> Bounds:
+def maximum_bounds(bounds_list: list[Bounds]) -> Bounds:
     """Bounds for elementwise maximum: max(x1, x2, ...).
 
     Parameters
@@ -394,7 +393,7 @@ def maximum_bounds(bounds_list: List[Bounds]) -> Bounds:
     return (lb_result, ub_result)
 
 
-def minimum_bounds(bounds_list: List[Bounds]) -> Bounds:
+def minimum_bounds(bounds_list: list[Bounds]) -> Bounds:
     """Bounds for elementwise minimum: min(x1, x2, ...).
 
     Parameters
@@ -417,7 +416,7 @@ def minimum_bounds(bounds_list: List[Bounds]) -> Bounds:
 
 
 def max_reduction_bounds(lb: np.ndarray, ub: np.ndarray,
-                         axis: Optional[Union[int, Tuple[int, ...]]] = None,
+                         axis: int | tuple[int, ...] | None = None,
                          keepdims: bool = False) -> Bounds:
     """Bounds for max reduction: max(x, axis=axis).
 
@@ -441,7 +440,7 @@ def max_reduction_bounds(lb: np.ndarray, ub: np.ndarray,
 
 
 def min_reduction_bounds(lb: np.ndarray, ub: np.ndarray,
-                         axis: Optional[Union[int, Tuple[int, ...]]] = None,
+                         axis: int | tuple[int, ...] | None = None,
                          keepdims: bool = False) -> Bounds:
     """Bounds for min reduction: min(x, axis=axis).
 
@@ -602,7 +601,7 @@ def sqrt_bounds(lb: np.ndarray, ub: np.ndarray) -> Bounds:
 
 
 def norm1_bounds(lb: np.ndarray, ub: np.ndarray,
-                 axis: Optional[Union[int, Tuple[int, ...]]] = None,
+                 axis: int | tuple[int, ...] | None = None,
                  keepdims: bool = False) -> Bounds:
     """Bounds for 1-norm: sum(|x|).
 
@@ -625,7 +624,7 @@ def norm1_bounds(lb: np.ndarray, ub: np.ndarray,
 
 
 def norm_inf_bounds(lb: np.ndarray, ub: np.ndarray,
-                    axis: Optional[Union[int, Tuple[int, ...]]] = None,
+                    axis: int | tuple[int, ...] | None = None,
                     keepdims: bool = False) -> Bounds:
     """Bounds for infinity-norm: max(|x|).
 
@@ -647,7 +646,7 @@ def norm_inf_bounds(lb: np.ndarray, ub: np.ndarray,
     return max_reduction_bounds(abs_lb, abs_ub, axis=axis, keepdims=keepdims)
 
 
-def broadcast_bounds(lb, ub, target_shape: Tuple[int, ...]) -> Bounds:
+def broadcast_bounds(lb, ub, target_shape: tuple[int, ...]) -> Bounds:
     """Broadcast bounds to a target shape.
 
     Handles sparse matrices: if a sparse bound already has the target shape,
@@ -677,7 +676,7 @@ def broadcast_bounds(lb, ub, target_shape: Tuple[int, ...]) -> Bounds:
 
 
 def reshape_bounds(lb: np.ndarray, ub: np.ndarray,
-                   new_shape: Tuple[int, ...],
+                   new_shape: tuple[int, ...],
                    order: str = 'F') -> Bounds:
     """Reshape bounds to a new shape.
 
@@ -699,7 +698,7 @@ def reshape_bounds(lb: np.ndarray, ub: np.ndarray,
 
 
 def transpose_bounds(lb: np.ndarray, ub: np.ndarray,
-                     axes: Optional[Tuple[int, ...]] = None) -> Bounds:
+                     axes: tuple[int, ...] | None = None) -> Bounds:
     """Transpose bounds.
 
     Parameters
@@ -797,7 +796,7 @@ def matmul_bounds(lb1, ub1, lb2, ub2) -> Bounds:
     return unbounded(shape)
 
 
-def get_expr_bounds_if_supported(expr, solver_context) -> Optional[list]:
+def get_expr_bounds_if_supported(expr, solver_context) -> list | None:
     """Get bounds from expression for use on auxiliary variables.
 
     Returns a [lb, ub] list suitable for passing to Variable(bounds=...),
