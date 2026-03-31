@@ -21,7 +21,7 @@ import numpy as np
 import scipy as sp
 
 import cvxpy.settings as s
-from cvxpy.constraints import SOC, ExpCone, PowCone3D, SvecPSD
+from cvxpy.constraints import RSOC, SOC, ExpCone, PowCone3D, SvecPSD
 from cvxpy.reductions.cone2cone import affine2direct as a2d
 from cvxpy.reductions.cone2cone.affine2direct import (
     DUAL_EXP,
@@ -120,13 +120,13 @@ class MOSEK(ConicSolver):
     """
 
     MIP_CAPABLE = True
-    SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC, SvecPSD]
+    SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC, RSOC, SvecPSD]
     PSD_TRIANGLE_KIND = TriangleKind.LOWER
     PSD_SQRT2_SCALING = False
     EXP_CONE_ORDER = [2, 1, 0]
     DUAL_EXP_CONE_ORDER = [0, 1, 2]
     # Does not support MISDP.
-    MI_SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC]
+    MI_SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC, RSOC]
 
     """
     Note that MOSEK.SUPPORTED_CONSTRAINTS does not include the exponential cone
@@ -326,6 +326,11 @@ class MOSEK(ConicSolver):
             cones = [mosek.conetype.quad] * num_soc
             task.appendconesseq(cones, [0] * num_soc, K[a2d.SOC], idx)
             idx += sum(K[a2d.SOC])
+        num_rsoc = len(K[a2d.RSOC])
+        if num_rsoc > 0:
+            cones = [mosek.conetype.rquad] * num_rsoc
+            task.appendconesseq(cones, [0] * num_rsoc, K[a2d.RSOC], idx)
+            idx += sum(K[a2d.RSOC])
         num_dexp = K[a2d.DUAL_EXP]
         if num_dexp > 0:
             cones = [mosek.conetype.dexp] * num_dexp
@@ -415,6 +420,11 @@ class MOSEK(ConicSolver):
             conetypes = [mosek.conetype.quad] * num_soc
             task.appendconesseq(conetypes, [0] * num_soc, K_dir[a2d.SOC], idx)
             idx += sum(K_dir[a2d.SOC])
+        num_rsoc = len(K_dir[a2d.RSOC])
+        if num_rsoc > 0:
+            conetypes = [mosek.conetype.rquad] * num_rsoc
+            task.appendconesseq(conetypes, [0] * num_rsoc, K_dir[a2d.RSOC], idx)
+            idx += sum(K_dir[a2d.RSOC])
         num_exp = K_dir[a2d.EXP]
         if num_exp > 0:
             conetypes = [mosek.conetype.pexp] * num_exp
@@ -586,6 +596,15 @@ class MOSEK(ConicSolver):
                 soc_vars.append(np.array(temp))
                 idx += dim
             prim_vars[a2d.SOC] = soc_vars
+        num_rsoc = len(K_dir[a2d.RSOC])
+        if num_rsoc > 0:
+            rsoc_vars = []
+            for dim in K_dir[a2d.RSOC]:
+                temp = [0.] * dim
+                task.getxxslice(sol, idx, idx + dim, temp)
+                rsoc_vars.append(np.array(temp))
+                idx += dim
+            prim_vars[a2d.RSOC] = rsoc_vars
         num_dexp = K_dir[a2d.DUAL_EXP]
         if num_dexp > 0:
             temp = [0.] * (3 * num_dexp)
