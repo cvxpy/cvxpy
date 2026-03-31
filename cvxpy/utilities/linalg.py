@@ -289,8 +289,8 @@ def sparse_cholesky(A, sym_tol=settings.CHOL_SYM_TOL, assume_psd=False):
         abs_D = np.abs(D)
         mask = abs_D > tol * scale
         sqrt_D_vals = np.sqrt(np.maximum(abs_D[mask], 0))
-        I_plus_L = sp.eye(n, format='csr') + sp.csr_array(L_unit)
-        L_chol = I_plus_L[:, mask] @ sp.diags(sqrt_D_vals, format='csr')
+        I_plus_L = sp.eye_array(n, format='csr') + sp.csr_array(L_unit)
+        L_chol = I_plus_L[:, mask] @ sp.diags_array(sqrt_D_vals, format='csr')
         L_chol = sp.csr_array(L_chol)
 
         # QDLDL's permutation p satisfies A[p,:][:,p] = L_full @ L_full.T.
