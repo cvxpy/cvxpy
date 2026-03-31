@@ -40,8 +40,8 @@ import cvxpy as cp
 from cvxpy import problems
 from cvxpy.atoms.affine.hstack import hstack
 from cvxpy.atoms.affine.reshape import reshape
-from cvxpy.atoms.affine.vstack import vstack
 from cvxpy.atoms.affine.vec import vec
+from cvxpy.atoms.affine.vstack import vstack
 from cvxpy.constraints.nonpos import NonNeg, NonPos
 from cvxpy.constraints.power import PowCone3D, PowConeND
 from cvxpy.constraints.psd import PSD, SvecPSD
@@ -435,7 +435,7 @@ class RSocConversion:
     targets = {SOC}
 
     @staticmethod
-    def canonicalize(con, args):
+    def canonicalize(con, args, solver_context=None):
         X, y, z = args
         y_flat = reshape(y, (y.size,), order='F')
         z_flat = reshape(z, (z.size,), order='F')

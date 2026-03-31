@@ -282,11 +282,6 @@ class RSOC(Cone):
         return residuals[0] if residuals.size == 1 else residuals
 
     def save_dual_value(self, value) -> None:
-        X_shape = self.args[0].shape
-        if self.axis == 1 and len(X_shape) == 2:
-            n_x = X_shape[1]
-        else:
-            n_x = X_shape[0] if len(X_shape) > 0 else self.args[0].size
         n_cones = self.args[1].size
         if isinstance(value, (list, tuple)):
             # recover_dual returns [dx_dual (n_cones, n_x), dy_dual (n_cones,), dz_dual (n_cones,)]
@@ -294,11 +289,10 @@ class RSOC(Cone):
             dy = np.asarray(value[1])   # (n_cones,)
             dz = np.asarray(value[2])   # (n_cones,)
         else:
-            # Fallback: flat vector [x (n_x), y, z] — should not occur with recover_dual
-            value = np.reshape(value, (-1, n_x + 2))
-            dx = value[:, :n_x]
-            dy = value[:, n_x]
-            dz = value[:, n_x + 1]
+            raise ValueError(
+                "RSOC.save_dual_value expects a list [dx, dy, dz] from recover_dual, "
+                f"got {type(value).__name__}."
+            )
         if n_cones == 1:
             # Scalar case: squeeze to match primal shapes
             self.dual_variables[0].save_value(dx[0])   # (n_x,)
@@ -336,5 +330,8 @@ class RSOC(Cone):
                 self.axis,
             )
         else:
-            assert len(args) == 3
+            args_shapes = [arg.shape for arg in args]
+            instance_args_shapes = [arg.shape for arg in self.args]
+            assert len(args) == len(self.args)
+            assert args_shapes == instance_args_shapes
             return RSOC(args[0], args[1], args[2], self.axis)

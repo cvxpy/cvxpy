@@ -1053,7 +1053,7 @@ class TestRSOC(unittest.TestCase):
         x = cp.Variable(3)
         y = cp.Variable(2)
         z = cp.Variable(nonneg=True)
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError):
             cp.RSOC(x, y, z)
 
     def test_invalid_z_not_scalar(self):
@@ -1061,7 +1061,7 @@ class TestRSOC(unittest.TestCase):
         x = cp.Variable(3)
         y = cp.Variable(nonneg=True)
         z = cp.Variable(2)
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError):
             cp.RSOC(x, y, z)
 
     def test_is_dcp(self):
@@ -1278,6 +1278,7 @@ class TestRSOC(unittest.TestCase):
         # KKT stationarity: dx = mu (equality constraint dual)
         mu = np.asarray(con_eq.dual_value, dtype=float)
         np.testing.assert_allclose(dx, mu, atol=1e-4)
+
     def test_axis1_solve_residual_dual(self):
         """Test RSOC with axis=1: X has shape (k, n), cones along columns."""
         np.random.seed(7)
@@ -1321,3 +1322,27 @@ class TestRSOC(unittest.TestCase):
         assert dy_d.shape == (k,), f"dy shape {dy_d.shape} != ({k},)"
         assert dz_d.shape == (k,), f"dz shape {dz_d.shape} != ({k},)"
 
+    def test_dpp_compliance(self):
+        """Test that RSOC is DPP when a Parameter appears in the constraint."""
+        n = 3
+        x = cp.Variable(n)
+        z = cp.Variable(nonneg=True)
+        y_par = cp.Parameter(nonneg=True)
+        # Parameter directly inside RSOC — this is what DPP needs to handle.
+        con = cp.RSOC(x, y_par, z)
+        prob = cp.Problem(cp.Minimize(z), [con, x == np.ones(n)])
+        assert prob.is_dpp()
+
+        y_par.value = 3.0
+        prob.solve(solver=cp.CLARABEL)
+        assert prob.status == cp.OPTIMAL
+        val1 = prob.value
+
+        # Re-solve with different parameter (should reuse cached canon).
+        y_par.value = 1.0
+        prob.solve(solver=cp.CLARABEL)
+        assert prob.status == cp.OPTIMAL
+        val2 = prob.value
+
+        # z >= ||x||^2 / (2*y), so smaller y => larger z
+        assert val2 > val1
