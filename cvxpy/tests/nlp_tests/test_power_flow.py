@@ -42,7 +42,7 @@ class TestPowerFlowIPOPT:
         p_min[[4,6,8]] = p_max[[4,6,8]] = [-54, -60, -75]
         q_min[[4,6,8]] = q_max[[4,6,8]] = [-18, -21, -30]
         v_min, v_max = 0.9, 1.1
-        
+
         # -----------------------------------------------------------------------------------
         #                     Define admittance matrices
         # -----------------------------------------------------------------------------------
@@ -86,7 +86,7 @@ class TestPowerFlowIPOPT:
         B_sh = np.imag(Y_sh.toarray())  #
         G = G0 + G_sh
         B = B0 + B_sh
-        
+
 
         # -----------------------------------------------------------------------------------
         #                         Define optimization prob
@@ -108,7 +108,7 @@ class TestPowerFlowIPOPT:
         #                            Solve prob
         # -----------------------------------------------------------------------------------
         prob.solve(nlp=True, solver=cp.IPOPT, verbose=False)
-                
+
         assert prob.status == cp.OPTIMAL
         assert np.abs(prob.value - 3087.84) / prob.value <= 1e-4
 

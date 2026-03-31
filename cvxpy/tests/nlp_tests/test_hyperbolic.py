@@ -34,7 +34,7 @@ class TestHyperbolic():
 
         checker = DerivativeChecker(prob)
         checker.run_and_assert()
-          
+
     def test_tanh(self):
         n = 10
         x = cp.Variable(n)

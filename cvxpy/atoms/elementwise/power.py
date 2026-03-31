@@ -12,7 +12,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import List, Tuple
 
 import numpy as np
 import scipy.sparse as sp
@@ -35,9 +34,10 @@ def power(x, p, max_denom: int = 1024, approx: bool = True):
     Parameters
     ----------
     x : Expression
-        The base expression.
-    p : int, float, Fraction, or Parameter
-        The exponent.
+        The base expression, OR a positive constant if p is a variable.
+    p : int, float, Fraction, Parameter, or Expression
+        The exponent. If p is a non-constant Expression and x is a
+        positive constant, uses the identity b**x = exp(x * log(b)).
     max_denom : int
         Maximum denominator for rational approximation.
     approx : bool
@@ -46,8 +46,30 @@ def power(x, p, max_denom: int = 1024, approx: bool = True):
 
     Returns
     -------
-    Power or PowerApprox
+    Power, PowerApprox, or exp expression
     """
+
+    from cvxpy.atoms.elementwise.exp import exp
+    from cvxpy.expressions.expression import Expression
+
+    # Cast both to CVXPY expressions for inspection
+    x_expr = Expression.cast_to_const(x)
+    p_expr = Expression.cast_to_const(p)
+
+    # Case: b**x where b is constant and x is variable
+    # e.g. cp.power(2, x) — dispatch to exp(x * log(b))
+    if x_expr.is_constant() and not p_expr.is_constant():
+        if not x_expr.is_pos():
+            raise ValueError(
+                "The base of cp.power(b, x) must be positive when the "
+                "exponent is a variable, since we use b**x = exp(x * log(b))."
+            )
+        # Imported here to avoid circular imports at module load time
+        from cvxpy.atoms.affine.binary_operators import multiply
+        from cvxpy.atoms.elementwise.log import log
+        return exp(multiply(p_expr, log(x_expr)))
+
+    # Default case: x**p where x is variable and p is constant
     if approx:
         return PowerApprox(x, p, max_denom)
     else:
@@ -179,7 +201,7 @@ class Power(Elementwise):
     def numeric(self, values):
         return np.power(values[0], float(self.p.value))
 
-    def sign_from_args(self) -> Tuple[bool, bool]:
+    def sign_from_args(self) -> tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         if self.p.value == 1:
@@ -189,7 +211,7 @@ class Power(Elementwise):
             # Always positive.
             return (True, False)
 
-    def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
+    def bounds_from_args(self) -> tuple[np.ndarray, np.ndarray]:
         """Returns bounds for power based on argument bounds."""
         lb, ub = self.args[0].get_bounds()
         p = float(self.p.value) if self.p.value is not None else 1.0
@@ -384,7 +406,7 @@ class Power(Elementwise):
         grad_vals = float(p)*np.power(values[0], float(p)-1)
         return [Power.elemwise_grad_to_diag(grad_vals, rows, cols)]
 
-    def _domain(self) -> List[Constraint]:
+    def _domain(self) -> list[Constraint]:
         """Returns constraints describing the domain of the node.
         """
         if not isinstance(self._p_orig, cvxtypes.expression()):
@@ -399,7 +421,7 @@ class Power(Elementwise):
             return [self.args[0] >= 0]
         else:
             return []
-    
+
     def get_data(self):
         return [self._p_orig, self.max_denom]
 

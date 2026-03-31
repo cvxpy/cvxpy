@@ -19,7 +19,7 @@ from cvxpy.atoms.quad_over_lin import quad_over_lin
 
 def sum_squares(
     expr,
-    axis: None | int | tuple[int, ...] = None,
+    axis: int | tuple[int, ...] | None = None,
     keepdims: bool = False
 ):
     """The sum of the squares of the entries.

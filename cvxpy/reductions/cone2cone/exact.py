@@ -41,9 +41,10 @@ from cvxpy import problems
 from cvxpy.atoms.affine.hstack import hstack
 from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.atoms.affine.vstack import vstack
+from cvxpy.atoms.affine.vec import vec
 from cvxpy.constraints.nonpos import NonNeg, NonPos
 from cvxpy.constraints.power import PowCone3D, PowConeND
-from cvxpy.constraints.psd import PSD
+from cvxpy.constraints.psd import PSD, SvecPSD
 from cvxpy.constraints.second_order import RSOC, SOC
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.canonicalization import Canonicalization
@@ -55,6 +56,7 @@ from cvxpy.reductions.cone2cone.cone_tree import (
 )
 from cvxpy.reductions.inverse_data import InverseData
 from cvxpy.reductions.solution import Solution
+from cvxpy.utilities.psd_utils import psd_format_mat, tri_to_full
 
 # Maps each "exact" cone to the set of simpler cones it converts to.
 # Must form a DAG (no cycles).
@@ -63,6 +65,7 @@ EXACT_CONE_CONVERSIONS = {
     PowConeND: {PowCone3D},
     SOC: {PSD},
     RSOC: {SOC},
+    PSD: {SvecPSD},
 }
 
 
@@ -209,7 +212,7 @@ class PowNDConversion:
     targets = {PowCone3D}
 
     @staticmethod
-    def canonicalize(con, args):
+    def canonicalize(con, args, solver_context=None):
         """
         Canonicalize PowConeND to PowCone3D using balanced binary tree
         decomposition.
@@ -282,7 +285,7 @@ class PowNDConversion:
             inverse_data.pow_tree_mappings[constraint.id] = tree
 
     @staticmethod
-    def recover_dual(cons, dual_var, inverse_data, solution):
+    def recover_dual(cons, dual_var, inverse_data, dvars):
         """Recover PowConeND dual variables from PowCone3D duals."""
         alpha, axis, _ = cons.get_data()
         n = alpha.shape[0] if axis == 0 else alpha.shape[1]
@@ -311,7 +314,7 @@ class SOCConversion:
     targets = {PSD}
 
     @staticmethod
-    def canonicalize(con, args):
+    def canonicalize(con, args, solver_context=None):
         """
         Convert a single SOC constraint ||X||_2 <= t to an equivalent PSD constraint.
 
@@ -384,13 +387,13 @@ class SOCConversion:
             inverse_data.soc_packed_aux[constraint.id] = aux_psd_ids
 
     @staticmethod
-    def recover_dual(cons, dual_var, inverse_data, solution):
+    def recover_dual(cons, dual_var, inverse_data, dvars):
         soc_packed_aux = getattr(inverse_data, 'soc_packed_aux', {})
         if cons.id in soc_packed_aux:
             parts = [dual_var[0]]
             for aux_id in soc_packed_aux[cons.id]:
-                if aux_id in solution.dual_vars:
-                    parts.append(solution.dual_vars[aux_id][0])
+                if aux_id in dvars:
+                    parts.append(dvars[aux_id][0])
             return 2 * np.hstack(parts)
         else:
             return 2 * dual_var[0]
@@ -409,14 +412,12 @@ class NonPosConversion:
     targets = {NonNeg}
 
     @staticmethod
-    def canonicalize(con, args):
+    def canonicalize(con, args, solver_context=None):
         return NonNeg(-args[0], constr_id=con.constr_id), []
 
     @staticmethod
-    def recover_dual(cons, dual_var, inverse_data, solution):
+    def recover_dual(cons, dual_var, inverse_data, dvars):
         return dual_var
-
-
 
 class RSocConversion:
     """RSOC -> SOC conversion.
@@ -451,9 +452,6 @@ class RSocConversion:
         can_con = SOC(t, vec, axis=0)
         return can_con, []
 
-
-
-
     @staticmethod
     def recover_dual(cons, dual_var, inverse_data, solution):
         """Recover RSOC dual variables from SOC duals.
@@ -483,13 +481,43 @@ class RSocConversion:
         dz_dual = dt - d_yz
         return [dx_dual, dy_dual, dz_dual]
 
+class PSDToSvecPSD:
+    """PSD -> SvecPSD via scaled vectorization.
+
+    Converts a full-matrix PSD constraint into the solver's triangular
+    (svec) representation.  The particular triangle ordering and scaling
+    are read from ``solver_context``.
+    """
+    source = PSD
+    targets = {SvecPSD}
+
+    @staticmethod
+    def canonicalize(con, args, solver_context=None):
+        X = args[0]
+        n = X.shape[-1]
+        M = psd_format_mat(con, solver_context.psd_triangle_kind,
+                           solver_context.psd_sqrt2_scaling)
+        svec_expr = M @ vec(X, order='F')
+        return SvecPSD(svec_expr, n=n), []
+
+    @staticmethod
+    def recover_dual(cons, dual_var, inverse_data, dvars):
+        ctx = inverse_data._solver_context
+        n = cons.args[0].shape[-1]
+        full = tri_to_full(dual_var, n,
+                           ctx.psd_triangle_kind,
+                           ctx.psd_sqrt2_scaling)
+        return full.reshape(cons.args[0].shape)
+
+
 class ExactCone2Cone(Canonicalization):
 
-    CONVERSIONS = [NonPosConversion, PowNDConversion, SOCConversion, RSocConversion]
+    CONVERSIONS = [NonPosConversion, PowNDConversion, SOCConversion, RSocConversion, PSDToSvecPSD]
 
     CANON_METHODS = {c.source: c.canonicalize for c in CONVERSIONS}
 
-    def __init__(self, problem=None, target_cones=None) -> None:
+    def __init__(self, problem=None, target_cones=None, solver_context=None) -> None:
+        self.solver_context = solver_context
         conversions = self.CONVERSIONS
         if target_cones is not None:
             conversions = [c for c in conversions if c.source in target_cones]
@@ -511,23 +539,44 @@ class ExactCone2Cone(Canonicalization):
         super(ExactCone2Cone, self).__init__(
             problem=problem, canon_methods=canon_methods)
 
+    def _convert_constraint(self, constraint, inverse_data, canon_constraints):
+        """Convert a single constraint, following the conversion chain transitively.
+
+        Returns a list of constraints in conversion order (for dual recovery).
+        """
+        chain = []
+        current = constraint
+
+        while type(current) in self.canon_methods:
+            chain.append(current)
+            canon_constr, aux_constr = self.canonicalize_tree(current)
+
+            hook = self._apply_hooks.get(type(current))
+            if hook is not None:
+                hook(current, canon_constr, aux_constr, inverse_data)
+
+            # Recursively convert auxiliary constraints.
+            for aux in aux_constr:
+                self._convert_constraint(aux, inverse_data, canon_constraints)
+
+            current = canon_constr
+
+        canon_constraints.append(current)
+        inverse_data.cons_id_map[constraint.id] = current.id
+        if chain:
+            inverse_data._recovery_chains[constraint.id] = chain
+
     def apply(self, problem):
         inverse_data = InverseData(problem)
+        inverse_data._solver_context = self.solver_context
+        inverse_data._recovery_chains = {}
 
         canon_objective, canon_constraints = self.canonicalize_tree(
             problem.objective)
 
         for constraint in problem.constraints:
-            canon_constr, aux_constr = self.canonicalize_tree(constraint)
-            canon_constraints += aux_constr + [canon_constr]
-            inverse_data.cons_id_map.update({constraint.id: canon_constr.id})
-
-            # Call per-conversion hooks to record metadata (e.g. tree
-            # structures or auxiliary constraint IDs) needed for dual
-            # variable recovery in invert().
-            hook = self._apply_hooks.get(type(constraint))
-            if hook is not None:
-                hook(constraint, canon_constr, aux_constr, inverse_data)
+            self._convert_constraint(
+                constraint, inverse_data, canon_constraints)
 
         new_problem = problems.problem.Problem(canon_objective,
                                                canon_constraints)
@@ -547,11 +596,19 @@ class ExactCone2Cone(Canonicalization):
             return Solution(solution.status, solution.opt_val, pvars, dvars,
                             solution.attr)
 
-        for cons_id, cons in inverse_data.id2cons.items():
-            recover = self._dual_recovery.get(type(cons))
-            if recover is not None and cons_id in dvars:
-                dvars[cons_id] = recover(cons, dvars[cons_id], inverse_data,
-                                         solution)
+        # Apply dual recovery in reverse chain order so that transitive
+        # conversions (e.g. SOC→PSD→SvecPSD) are unwound correctly.
+        # Auxiliary constraints are inserted into _recovery_chains before
+        # their parents, so they are recovered first.
+        for orig_id, chain in inverse_data._recovery_chains.items():
+            if orig_id not in dvars:
+                continue
+            dual = dvars[orig_id]
+            for cons in reversed(chain):
+                recover = self._dual_recovery.get(type(cons))
+                if recover is not None:
+                    dual = recover(cons, dual, inverse_data, dvars)
+            dvars[orig_id] = dual
 
         return Solution(solution.status, solution.opt_val, pvars, dvars,
                         solution.attr)

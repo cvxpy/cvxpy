@@ -33,7 +33,14 @@ def _solve(problem, solver) -> None:
     with warnings.catch_warnings():
         # TODO(akshayka): Try to emit DPP problems in Dqcp2Dcp
         warnings.filterwarnings('ignore', message=r'.*DPP.*')
-        problem.solve(solver=solver)
+        try:
+            problem.solve(solver=solver)
+        except error.SolverError:
+            warnings.warn(
+                "Solver failed, attempting to continue bisection.",
+                RuntimeWarning
+            )
+            problem._status = s.SOLVER_ERROR
 
 
 def _infeasible(problem) -> bool:
@@ -127,10 +134,13 @@ def _bisect(problem, solver, t, low, high, tighten_lower, tighten_higher,
             soln = lowered.solution
             high = tighten_higher(query_pt)
         else:
+            warnings.warn(
+                "Solver failed at iteration %d, trying next bisection point." % i,
+                RuntimeWarning
+            )
             if verbose:
-                print("Aborting; the solver failed ...\n")
-            raise error.SolverError(
-                "Solver failed with status %s" % lowered.status)
+                print("(iteration %d) solver failed, skipping.\n" % i)
+            continue
     raise error.SolverError("Max iters hit during bisection.")
 
 
@@ -196,3 +206,4 @@ def bisect(problem, solver=None, low=None, high=None, eps: float = 1e-6, verbose
               "**************************************\n"
               % (low, high))
     return soln
+

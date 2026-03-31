@@ -16,8 +16,6 @@ limitations under the License.
 
 from __future__ import annotations
 
-from typing import Tuple
-
 import numpy as np
 
 from cvxpy.atoms.atom import Atom
@@ -60,7 +58,7 @@ class perspective(Atom):
         assert self.args[0].is_nonneg(), "s must be a nonnegative variable"
         return super().validate_arguments()
 
-    def numeric(self, values: list[np.ndarray, np.ndarray]) -> np.ndarray:
+    def numeric(self, values: list[np.ndarray]) -> np.ndarray:
         """
         Compute the perspective sf(x/s) numerically.
         """
@@ -132,7 +130,7 @@ class perspective(Atom):
         """
         return False
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> tuple[int, ...]:
         """Returns the (row, col) shape of the expression.
         """
         return self.f.shape
