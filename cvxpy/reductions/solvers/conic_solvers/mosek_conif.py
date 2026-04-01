@@ -806,6 +806,27 @@ class MOSEK(ConicSolver):
                 dual_vars.update(ineq_dual_vars)
 
             sol = Solution(status, opt_val, primal_vars, dual_vars, attr)
+        elif status == s.INFEASIBLE and task.getnumintvar() == 0:
+            # Extract Farkas certificate as IIS.
+            num_con = task.getnumcon()
+            y = np.array(task.gety(sol_type)) if num_con > 0 else np.array([])
+            eq_dual = y[:cone_dims.zero]
+            nonneg_dual = y[cone_dims.zero:]
+            acc_duals = []
+            for i in range(task.getnumacc()):
+                acc_duals.append(np.array(task.getaccdoty(sol_type, i)))
+            if acc_duals:
+                ineq_dual = np.concatenate([nonneg_dual] + acc_duals)
+            else:
+                ineq_dual = nonneg_dual
+            iis = utilities.get_dual_values(
+                eq_dual, utilities.extract_dual_value,
+                inverse_data[self.EQ_CONSTR])
+            iis.update(utilities.get_dual_values(
+                ineq_dual, self.extract_dual_value,
+                inverse_data[self.NEQ_CONSTR]))
+            attr[s.EXTRA_STATS] = {"IIS": iis}
+            sol = failure_solution(status, attr)
         else:
             sol = failure_solution(status, attr)
 
