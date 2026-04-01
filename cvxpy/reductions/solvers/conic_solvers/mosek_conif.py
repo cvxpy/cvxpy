@@ -779,7 +779,7 @@ class MOSEK(ConicSolver):
             primal_vars = {inverse_data[self.VAR_ID]: primal}
 
             if task.getnumintvar() > 0:
-                dual_vars = {}
+                dual_vars = None
             else:
                 num_con = task.getnumcon()
                 y = np.array(task.gety(sol_type)) if num_con > 0 else np.array([])
