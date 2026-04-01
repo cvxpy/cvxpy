@@ -176,6 +176,7 @@ class ParamConeProg(ParamProb):
                  param_id_to_col,
                  P=None,
                  formatted: bool = False,
+                 dualized: bool = False,
                  lower_bounds: np.ndarray | None = None,
                  upper_bounds: np.ndarray | None = None,
                  lb_tensor=None,
@@ -217,6 +218,19 @@ class ParamConeProg(ParamProb):
 
         # whether this param cone prog has been formatted for a solver
         self.formatted = formatted
+
+        # When True, the problem data should be interpreted as the
+        # Lagrangian dual:
+        #
+        #   max  -b'y  [- (1/2)w'Pw]  + d
+        #   s.t. A'y   [+ Pw]          = c
+        #        y in K*
+        #
+        # where K* is the dual of the cone K described by cone_dims.
+        # The slack variable w (size = x.size) is only present when P
+        # is not None.  Primal recovery: x* comes from the equality
+        # dual; constraint duals come from y*.
+        self.dualized = dualized
 
     def is_mixed_integer(self) -> bool:
         """Is the problem mixed-integer?"""
