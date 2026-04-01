@@ -222,6 +222,7 @@ class MOSEK(ConicSolver):
         data['K_dir'] = Kd
         data['dualized'] = True
         inv_data[s.OFFSET] = d
+        inv_data['K_dir'] = Kd
         # Extract PSD columns into bar_data for MOSEK's bar variable API.
         num_psd = len(Kd[a2d.PSD])
         if num_psd > 0:
