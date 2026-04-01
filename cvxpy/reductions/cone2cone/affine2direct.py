@@ -121,9 +121,12 @@ class DualizeConeProg(Reduction):
                 i += block_len
             psd_cons = constr_map.get(PSD_obj, []) + constr_map.get(
                 SvecPSD_obj, [])
-            for i, con in enumerate(psd_cons):
-                dv = direct_prims[PSD][i]
-                dual_vars[con.id] = dv
+            bar_idx = 0
+            for con in psd_cons:
+                n_cones = con.num_cones()
+                bars = direct_prims[PSD][bar_idx:bar_idx + n_cones]
+                dual_vars[con.id] = np.concatenate(bars) if n_cones > 1 else bars[0]
+                bar_idx += n_cones
             i = 0
             for con in constr_map[ExpCone_obj]:
                 dv = direct_prims[DUAL_EXP][i:i + con.size]
