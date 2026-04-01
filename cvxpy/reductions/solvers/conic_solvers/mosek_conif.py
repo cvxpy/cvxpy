@@ -21,7 +21,7 @@ import numpy as np
 import scipy as sp
 
 import cvxpy.settings as s
-from cvxpy.constraints import PSD, SOC, ExpCone, PowCone3D, PowConeND
+from cvxpy.constraints import PSD, SOC, ExpCone, PowCone3D, PowConeND, SvecPSD
 from cvxpy.reductions.cone2cone import affine2direct as a2d
 from cvxpy.reductions.cone2cone.affine2direct import (
     DUAL_EXP,
@@ -126,7 +126,7 @@ class MOSEK(ConicSolver):
 
     MIP_CAPABLE = True
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [
-        SOC, PSD,
+        SOC, SvecPSD,
     ]
     PSD_TRIANGLE_KIND = TriangleKind.LOWER
     PSD_SQRT2_SCALING = False
