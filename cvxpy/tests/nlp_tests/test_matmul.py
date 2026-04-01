@@ -43,8 +43,6 @@ class TestMatmul():
         checker = DerivativeChecker(problem)
         checker.run_and_assert()
 
-        
-        
     def test_simple_matmul_not_graph_form(self):
         np.random.seed(0)
         m, n, p = 5, 7, 11
