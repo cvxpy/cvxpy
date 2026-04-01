@@ -45,23 +45,6 @@ For example, replace mosek.iparam.num_threads with 'MSK_IPAR_NUM_THREADS'
 """
 
 
-def vectorized_lower_tri_to_mat(v, dim):
-    """
-    :param v: a list of length (dim * (dim + 1) / 2)
-    :param dim: the number of rows (equivalently, columns) in the
-      output array.
-    :return: Return the symmetric 2D array defined by taking "v" to
-      specify its lower triangular entries.
-    """
-    rows, cols, vals = vectorized_lower_tri_to_triples(v, dim)
-    A = sp.sparse.coo_matrix(
-        (vals, (rows, cols)), shape=(dim, dim)
-    ).toarray()
-    d = np.diag(np.diag(A))
-    A = A + A.T - d
-    return A
-
-
 def vectorized_lower_tri_to_triples(
     A: sp.sparse.coo_matrix | sp.sparse.sparray | list[float] | np.ndarray,
     dim: int,
@@ -1062,9 +1045,7 @@ class MOSEK(ConicSolver):
             for j, dim in enumerate(K_dir[a2d.PSD]):
                 xj = [0.] * (dim * (dim + 1) // 2)
                 task.getbarxj(sol, j, xj)
-                psd_vars.append(
-                    vectorized_lower_tri_to_mat(xj, dim),
-                )
+                psd_vars.append(np.array(xj))
             prim_vars[a2d.PSD] = psd_vars
         return prim_vars
 

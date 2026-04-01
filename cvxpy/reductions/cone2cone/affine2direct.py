@@ -22,6 +22,7 @@ from cvxpy.constraints.exponential import ExpCone as ExpCone_obj
 from cvxpy.constraints.nonpos import NonNeg as NonNeg_obj
 from cvxpy.constraints.power import PowCone3D as PowCone_obj
 from cvxpy.constraints.psd import PSD as PSD_obj
+from cvxpy.constraints.psd import SvecPSD as SvecPSD_obj
 from cvxpy.constraints.second_order import SOC as SOC_obj
 from cvxpy.constraints.zero import Zero as Zero_obj
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ParamConeProg
@@ -192,7 +193,9 @@ class Dualize:
                 dv = np.concatenate(direct_prims[SOC][i:i + block_len])
                 dual_vars[con.id] = dv
                 i += block_len
-            for i, con in enumerate(constr_map[PSD_obj]):
+            psd_cons = constr_map.get(PSD_obj, []) + constr_map.get(
+                SvecPSD_obj, [])
+            for i, con in enumerate(psd_cons):
                 dv = direct_prims[PSD][i]
                 dual_vars[con.id] = dv
             i = 0
