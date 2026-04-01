@@ -626,10 +626,6 @@ class MOSEK(ConicSolver):
         maximization built by _build_dualized_task) or the ACC invert
         path (when the task was a minimization built by _build_task).
         """
-        if 'sol' in solver_output:
-            # Degenerate problem handled in solve_via_data.
-            return solver_output['sol']
-
         import mosek
 
         task = solver_output['task']
