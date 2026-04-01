@@ -167,10 +167,11 @@ def _build_solving_chain(
     else:
         supported = frozenset(solver_instance.SUPPORTED_CONSTRAINTS)
 
+    dualize = solver_instance.should_dualize(problem_form)
     solver_context = SolverInfo(
         solver=solver_instance.name(),
         supported_constraints=supported,
-        supports_bounds=solver_instance.BOUNDED_VARIABLES,
+        supports_bounds=solver_instance.BOUNDED_VARIABLES and not dualize,
         psd_triangle_kind=solver_instance.PSD_TRIANGLE_KIND,
         psd_sqrt2_scaling=solver_instance.PSD_SQRT2_SCALING,
     )
@@ -214,8 +215,8 @@ def _build_solving_chain(
 
     reductions.append(Dcp2Cone(quad_obj=quad_obj, solver_context=solver_context))
 
-    reductions.append(
-        CvxAttr2Constr(reduce_bounds=not solver_instance.BOUNDED_VARIABLES))
+    reduce_bounds = not solver_instance.BOUNDED_VARIABLES or dualize
+    reductions.append(CvxAttr2Constr(reduce_bounds=reduce_bounds))
 
     if exact_targets:
         reductions.append(ExactCone2Cone(target_cones=exact_targets,
@@ -229,7 +230,7 @@ def _build_solving_chain(
 
     reductions.append(
         ConeMatrixStuffing(quad_obj=quad_obj, canon_backend=canon_backend))
-    if solver_instance.should_dualize(problem_form):
+    if dualize:
         reductions.append(DualizeConeProg())
     reductions.append(solver_instance)
     return SolvingChain(reductions=reductions, solver_context=solver_context)

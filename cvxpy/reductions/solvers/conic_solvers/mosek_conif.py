@@ -105,6 +105,7 @@ class MOSEK(ConicSolver):
     """An interface for the Mosek solver."""
 
     MIP_CAPABLE = True
+    BOUNDED_VARIABLES = True
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [
         SOC, SvecPSD, ExpCone, PowCone3D, PowConeND,
     ]
