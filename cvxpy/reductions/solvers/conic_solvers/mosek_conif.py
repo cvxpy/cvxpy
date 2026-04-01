@@ -21,7 +21,7 @@ import numpy as np
 import scipy as sp
 
 import cvxpy.settings as s
-from cvxpy.constraints import RSOC, SOC, ExpCone, PowCone3D, SvecPSD
+from cvxpy.constraints import PSD, RSOC, SOC, ExpCone, PowCone3D, SvecPSD
 from cvxpy.reductions.cone2cone import affine2direct as a2d
 from cvxpy.reductions.cone2cone.affine2direct import (
     DUAL_EXP,
@@ -157,6 +157,13 @@ class MOSEK(ConicSolver):
         """The name of the solver.
         """
         return s.MOSEK
+
+    def should_dualize(self, problem_form) -> bool:
+        """Dualize when PSD constraints are present and problem is continuous."""
+        if problem_form.is_mixed_integer():
+            return False
+        cones = problem_form.cones(quad_obj=False)
+        return PSD in cones or SvecPSD in cones
 
     def accepts(self, problem) -> bool:
         """Can the installed version of Mosek solve the problem?

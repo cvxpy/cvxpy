@@ -20,7 +20,8 @@ import cvxpy as cp
 from cvxpy.constraints.zero import Zero
 from cvxpy.reductions.chain import Chain
 from cvxpy.reductions.cone2cone.affine2direct import Dualize as A2DDualize
-from cvxpy.reductions.cone2cone.dualize import Dualize, DualizeConeProg
+from cvxpy.reductions.cone2cone.dualize import Dualize
+from cvxpy.reductions.cone2cone.dualize_cone_prog import DualizeConeProg
 from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
 from cvxpy.reductions.dcp2cone.dcp2cone import Dcp2Cone
