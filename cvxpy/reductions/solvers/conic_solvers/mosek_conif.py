@@ -45,23 +45,6 @@ For example, replace mosek.iparam.num_threads with 'MSK_IPAR_NUM_THREADS'
 """
 
 
-def svec_to_full_mat(svec, n):
-    """Convert an svec (scaled upper-triangle) vector to a full matrix.
-
-    The svec format stores the upper triangle column-by-column with
-    off-diagonal entries scaled by sqrt(2).  This function inverts that
-    scaling and returns the full symmetric matrix flattened in
-    column-major (Fortran) order.
-    """
-    full = np.zeros((n, n))
-    full[np.triu_indices(n)] = svec
-    full += full.T
-    full[np.diag_indices(n)] /= 2
-    full[np.tril_indices(n, k=-1)] /= np.sqrt(2)
-    full[np.triu_indices(n, k=1)] /= np.sqrt(2)
-    return np.reshape(full, n * n, order="F")
-
-
 def vectorized_lower_tri_to_mat(v, dim):
     """
     :param v: a list of length (dim * (dim + 1) / 2)
@@ -986,17 +969,10 @@ class MOSEK(ConicSolver):
     def extract_dual_value(result_vec, offset, constraint):
         """Extract dual values for the ACC path.
 
-        Handles PSD (svec format), ExpCone (permuted order), and
-        delegates to the default for everything else.
+        Handles ExpCone (permuted order) and delegates to the
+        default for everything else.
         """
-        if isinstance(constraint, PSD):
-            dim = constraint.shape[0]
-            lower_tri_dim = dim * (dim + 1) // 2
-            new_offset = offset + lower_tri_dim
-            lower_tri = result_vec[offset:new_offset]
-            full = svec_to_full_mat(lower_tri, dim)
-            return full, new_offset
-        elif isinstance(constraint, ExpCone):
+        if isinstance(constraint, ExpCone):
             n_cones = constraint.num_cones()
             size = 3 * n_cones
             new_offset = offset + size
