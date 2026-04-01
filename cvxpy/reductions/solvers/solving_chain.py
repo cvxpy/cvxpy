@@ -19,6 +19,7 @@ if TYPE_CHECKING:
 from cvxpy.reductions.chain import Chain
 from cvxpy.reductions.complex2real import complex2real
 from cvxpy.reductions.cone2cone.approx import ApproxCone2Cone
+from cvxpy.reductions.cone2cone.chordal import ChordalDecomp
 from cvxpy.reductions.cone2cone.exact import ExactCone2Cone
 from cvxpy.reductions.cone2cone.soc_dim3 import SOCDim3
 from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr
@@ -111,6 +112,7 @@ def _build_solving_chain(
     ignore_dpp: bool = False,
     canon_backend: str | None = None,
     solver_opts: dict | None = None,
+    chordal: bool = False,
 ) -> "SolvingChain":
     """Build a reduction chain for a specific solver.
 
@@ -144,6 +146,8 @@ def _build_solving_chain(
         Canonicalization backend ('CPP', 'SCIPY', or 'COO').
     solver_opts : dict, optional
         Solver-specific options.
+    chordal : bool
+        If True, apply chordal decomposition to PSD constraints.
 
     Returns
     -------
@@ -226,10 +230,11 @@ def _build_solving_chain(
     if solver_instance.SOC_DIM3_ONLY and SOC in cones:
         reductions.append(SOCDim3())
 
-    reductions += [
-        ConeMatrixStuffing(quad_obj=quad_obj, canon_backend=canon_backend),
-        solver_instance,
-    ]
+    reductions.append(
+        ConeMatrixStuffing(quad_obj=quad_obj, canon_backend=canon_backend))
+    if chordal:
+        reductions.append(ChordalDecomp())
+    reductions.append(solver_instance)
     return SolvingChain(reductions=reductions, solver_context=solver_context)
 
 
@@ -349,6 +354,7 @@ def resolve_and_build_chain(
     ignore_dpp: bool = False,
     canon_backend: str | None = None,
     solver_opts: dict | None = None,
+    chordal: bool = False,
 ) -> "SolvingChain":
     """Resolve a solver argument and build a solving chain.
 
@@ -375,6 +381,8 @@ def resolve_and_build_chain(
         Canonicalization backend (``'CPP'``, ``'SCIPY'``, or ``'COO'``).
     solver_opts : dict or None
         Solver-specific options.
+    chordal : bool
+        If True, apply chordal decomposition to PSD constraints.
 
     Returns
     -------
@@ -398,6 +406,7 @@ def resolve_and_build_chain(
         ignore_dpp=ignore_dpp,
         canon_backend=canon_backend,
         solver_opts=solver_opts,
+        chordal=chordal,
     )
 
 

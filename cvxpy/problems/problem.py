@@ -115,8 +115,8 @@ class Cache:
         self.param_prog = None
         self.inverse_data = None
 
-    def make_key(self, solver, gp, ignore_dpp, use_quad_obj):
-        return (solver, gp, ignore_dpp, use_quad_obj)
+    def make_key(self, solver, gp, ignore_dpp, use_quad_obj, chordal=False):
+        return (solver, gp, ignore_dpp, use_quad_obj, chordal)
 
     def gp(self):
         return self.key is not None and self.key[1]
@@ -680,6 +680,7 @@ class Problem(u.Canonical):
         verbose: bool = False,
         canon_backend: str | None = None,
         solver_opts: dict | None = None,
+        chordal: bool = False,
     ):
         """Returns the problem data used in the call to the solver.
 
@@ -799,7 +800,7 @@ class Problem(u.Canonical):
             use_quad_obj = None
         else:
             use_quad_obj = solver_opts.get('use_quad_obj', None)
-        key = self._cache.make_key(solver, gp, ignore_dpp, use_quad_obj)
+        key = self._cache.make_key(solver, gp, ignore_dpp, use_quad_obj, chordal)
         if key != self._cache.key:
             self._cache.invalidate()
             solving_chain = self._construct_chain(
@@ -807,7 +808,8 @@ class Problem(u.Canonical):
                 enforce_dpp=enforce_dpp,
                 ignore_dpp=ignore_dpp,
                 canon_backend=canon_backend,
-                solver_opts=solver_opts)
+                solver_opts=solver_opts,
+                chordal=chordal)
             self._cache.key = key
             self._cache.solving_chain = solving_chain
             self._solver_cache = {}
@@ -878,7 +880,8 @@ class Problem(u.Canonical):
             enforce_dpp: bool = False,
             ignore_dpp: bool = False,
             canon_backend: str | None = None,
-            solver_opts: dict | None = None
+            solver_opts: dict | None = None,
+            chordal: bool = False,
     ) -> SolvingChain:
         """
         Construct the chains required to reformulate and solve the problem.
@@ -906,6 +909,8 @@ class Problem(u.Canonical):
             backend.
         solver_opts: dict, optional
             Additional arguments to pass to the solver.
+        chordal : bool, optional
+            If True, apply chordal decomposition to PSD constraints.
 
         Returns
         -------
@@ -917,6 +922,7 @@ class Problem(u.Canonical):
             ignore_dpp=ignore_dpp,
             canon_backend=canon_backend,
             solver_opts=solver_opts,
+            chordal=chordal,
         )
 
     def _invalidate_cache(self) -> None:
@@ -937,6 +943,7 @@ class Problem(u.Canonical):
                ignore_dpp: bool = False,
                canon_backend: str | None = None,
                nlp: bool = False,
+               chordal: bool = False,
                **kwargs):
         """Solves a DCP compliant optimization problem.
 
@@ -974,6 +981,10 @@ class Problem(u.Canonical):
             Specifies which backend to use for canonicalization, which can affect
             compilation time. Defaults to None, i.e., selecting the default
             backend.
+        chordal : bool, optional
+            If True, apply chordal decomposition to PSD constraints,
+            replacing large semidefinite cones with smaller ones based on
+            sparsity. Defaults to False.
         kwargs : dict, optional
             A dict of options that will be passed to the specific solver.
             In general, these options will override any default settings
@@ -1087,7 +1098,8 @@ class Problem(u.Canonical):
             raise error.DNLPError("The problem you specified is not DNLP.")
 
         data, solving_chain, inverse_data = self.get_problem_data(
-            solver, gp, enforce_dpp, ignore_dpp, verbose, canon_backend, kwargs
+            solver, gp, enforce_dpp, ignore_dpp, verbose, canon_backend, kwargs,
+            chordal=chordal,
         )
 
         if verbose:
