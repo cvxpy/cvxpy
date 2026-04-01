@@ -286,40 +286,12 @@ class MOSEK(ConicSolver):
     ):
         import mosek
 
+        task = mosek.Task()
+        solver_opts = MOSEK.handle_options(task, verbose, solver_opts)
         if 'dualized' in data:
-            # Dualized (PSD) path
-            if (
-                len(data[s.C]) == 0
-                and len(data['c_bar_data']) == 0
-            ):
-                if np.linalg.norm(data[s.B]) > 0:
-                    sol = Solution(
-                        s.INFEASIBLE, -np.inf, None, None, dict(),
-                    )
-                    return {'sol': sol}
-                else:
-                    sol = Solution(
-                        s.OPTIMAL, 0.0, dict(),
-                        {s.EQ_DUAL: data[s.B]}, dict(),
-                    )
-                    return {'sol': sol}
-            task = mosek.Task()
-            solver_opts = MOSEK.handle_options(
-                task, verbose, solver_opts,
-            )
-            task = MOSEK._build_dualized_task(task, data)
+            MOSEK._build_dualized_task(task, data)
         else:
-            # ACC (primal) path
-            if len(data[s.C]) == 0:
-                sol = Solution(
-                    s.OPTIMAL, 0.0, dict(), dict(), dict(),
-                )
-                return {'sol': sol}
-            task = mosek.Task()
-            solver_opts = MOSEK.handle_options(
-                task, verbose, solver_opts,
-            )
-            task = MOSEK._build_task(task, data)
+            MOSEK._build_task(task, data)
 
         # Save the task to a file if requested.
         save_file = solver_opts['save_file']
