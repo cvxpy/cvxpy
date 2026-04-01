@@ -636,55 +636,46 @@ class MOSEK(ConicSolver):
             )
         return self._invert_acc(solver_output, inverse_data)
 
-    def _invert_dualized(self, solver_output, inverse_data):
-        """Invert path for the dualized (PSD) formulation."""
+    @staticmethod
+    def _get_sol_type(task, solver_opts):
+        """Determine which MOSEK solution type to read."""
         import mosek
-
-        STATUS_MAP = {
-            mosek.solsta.optimal: s.OPTIMAL,
-            mosek.solsta.integer_optimal: s.OPTIMAL,
-            mosek.solsta.prim_feas: s.OPTIMAL_INACCURATE,
-            mosek.solsta.prim_infeas_cer: s.INFEASIBLE,
-            mosek.solsta.dual_infeas_cer: s.UNBOUNDED,
-        }
-
-        task = solver_output['task']
-        solver_opts = solver_output['solver_options']
-
-        if solver_opts['accept_unknown']:
-            STATUS_MAP[mosek.solsta.unknown] = s.OPTIMAL_INACCURATE
-
-        STATUS_MAP = defaultdict(
-            lambda: s.SOLVER_ERROR, STATUS_MAP,
-        )
-
         simplex_algs = [
             mosek.optimizertype.primal_simplex,
             mosek.optimizertype.dual_simplex,
         ]
-        current_optimizer = task.getintparam(
-            mosek.iparam.optimizer,
-        )
+        current_optimizer = task.getintparam(mosek.iparam.optimizer)
         bfs_active = (
-            "bfs" in solver_opts
-            and solver_opts["bfs"]
+            solver_opts.get("bfs", False)
+            and task.getnumacc() == 0
             and task.getnumcone() == 0
         )
-
         if task.getnumintvar() > 0:
-            sol_type = mosek.soltype.itg
+            return mosek.soltype.itg
         elif current_optimizer in simplex_algs or bfs_active:
-            sol_type = mosek.soltype.bas
+            return mosek.soltype.bas
         else:
-            sol_type = mosek.soltype.itr
+            return mosek.soltype.itr
 
-        prim_vars = None
-        dual_vars = None
+    @staticmethod
+    def _get_status(task, sol_type, status_map):
+        """Determine CVXPY status from MOSEK problem/solution status."""
+        import mosek
         problem_status = task.getprosta(sol_type)
-        attr = {
-            s.SOLVE_TIME: task.getdouinf(
-                mosek.dinfitem.optimizer_time,
-            ),
+        if (sol_type == mosek.soltype.itg
+                and problem_status == mosek.prosta.prim_infeas):
+            return s.INFEASIBLE
+        elif problem_status == mosek.prosta.dual_infeas:
+            return s.UNBOUNDED
+        else:
+            return status_map[task.getsolsta(sol_type)]
+
+    @staticmethod
+    def _get_attr(task, sol_type):
+        """Extract solver attributes (timing, iteration counts)."""
+        import mosek
+        return {
+            s.SOLVE_TIME: task.getdouinf(mosek.dinfitem.optimizer_time),
             s.NUM_ITERS: (
                 task.getintinf(mosek.iinfitem.intpnt_iter)
                 + task.getintinf(mosek.iinfitem.sim_primal_iter)
@@ -693,191 +684,126 @@ class MOSEK(ConicSolver):
             ),
             s.EXTRA_STATS: {
                 "mio_intpnt_iter": task.getlintinf(
-                    mosek.liinfitem.mio_intpnt_iter,
-                ),
+                    mosek.liinfitem.mio_intpnt_iter),
                 "mio_simplex_iter": task.getlintinf(
-                    mosek.liinfitem.mio_simplex_iter,
-                ),
+                    mosek.liinfitem.mio_simplex_iter),
             },
         }
 
-        if (
-            sol_type == mosek.soltype.itg
-            and problem_status == mosek.prosta.prim_infeas
-        ):
-            status = s.INFEASIBLE
-            prob_val = np.inf
-        elif problem_status == mosek.prosta.dual_infeas:
-            status = s.UNBOUNDED
-            prob_val = -np.inf
-            K = inverse_data["K_dir"]
-            prim_vars = MOSEK.recover_primal_variables(
-                task, sol_type, K,
-            )
-            dual_vars = MOSEK.recover_dual_variables(
-                task, sol_type,
-            )
-            raw_iis_sol = Solution(
-                s.OPTIMAL, prob_val, prim_vars, dual_vars, attr,
-            )
-            attr[s.EXTRA_STATS] = {
-                "IIS": raw_iis_sol.dual_vars,
-            }
-        else:
-            solsta = task.getsolsta(sol_type)
-            status = STATUS_MAP[solsta]
-            prob_val = np.nan
-            if status in s.SOLUTION_PRESENT:
-                prob_val = task.getprimalobj(sol_type)
-                K = inverse_data["K_dir"]
-                prim_vars = MOSEK.recover_primal_variables(
-                    task, sol_type, K,
-                )
-                dual_vars = MOSEK.recover_dual_variables(
-                    task, sol_type,
-                )
+    @staticmethod
+    def _build_status_map(solver_opts):
+        """Build the MOSEK solsta -> CVXPY status mapping."""
+        import mosek
+        status_map = {
+            mosek.solsta.optimal: s.OPTIMAL,
+            mosek.solsta.integer_optimal: s.OPTIMAL,
+            mosek.solsta.prim_feas: s.OPTIMAL_INACCURATE,
+            mosek.solsta.prim_infeas_cer: s.INFEASIBLE,
+            mosek.solsta.dual_infeas_cer: s.UNBOUNDED,
+        }
+        if solver_opts.get('accept_unknown', False):
+            status_map[mosek.solsta.unknown] = s.OPTIMAL_INACCURATE
+        return defaultdict(lambda: s.SOLVER_ERROR, status_map)
 
-        sol = Solution(
-            status, prob_val, prim_vars, dual_vars, attr,
-        )
+    def _invert_dualized(self, solver_output, inverse_data):
+        """Invert path for the dualized (PSD) formulation.
+
+        Returns a Solution with:
+        - primal_vars: {'xx': flat_vector, 'barx': [psd_vectors]}
+        - dual_vars: {s.EQ_DUAL: flat_vector}
+
+        Dualize.invert (called by DualizeConeProg) splits these into
+        per-cone blocks using K_dir.
+        """
+
+        task = solver_output['task']
+        solver_opts = solver_output['solver_options']
+        status_map = MOSEK._build_status_map(solver_opts)
+        sol_type = MOSEK._get_sol_type(task, solver_opts)
+        attr = MOSEK._get_attr(task, sol_type)
+        status = MOSEK._get_status(task, sol_type, status_map)
+
+        prim_vars = None
+        dual_vars = None
+        if status in s.SOLUTION_PRESENT or status == s.UNBOUNDED:
+            prob_val = task.getprimalobj(sol_type)
+            # Raw primal vector (all scalar cones)
+            xx = np.array(task.getxx(sol_type))
+            # Permute DUAL_EXP entries from MOSEK ordering to CVXPY ordering
+            K_dir = inverse_data['K_dir']
+            n_dexp = K_dir[a2d.DUAL_EXP]
+            if n_dexp > 0:
+                exp_off = (K_dir[a2d.FREE] + K_dir[a2d.NONNEG]
+                           + sum(K_dir[a2d.SOC]))
+                perm = expcone_permutor(n_dexp, MOSEK.EXP_CONE_ORDER)
+                xx[exp_off:exp_off + 3 * n_dexp] = (
+                    xx[exp_off:exp_off + 3 * n_dexp][perm])
+            # PSD bar variables (separate from xx)
+            barx = []
+            for j, dim in enumerate(K_dir[a2d.PSD]):
+                xj = [0.] * (dim * (dim + 1) // 2)
+                task.getbarxj(sol_type, j, xj)
+                barx.append(np.array(xj))
+            prim_vars = {'xx': xx, 'barx': barx}
+            # Equality constraint duals -> primal x
+            if task.getnumintvar() == 0:
+                dual_vars = {
+                    s.EQ_DUAL: np.array(task.gety(sol_type)),
+                }
+            else:
+                dual_vars = {}
+        else:
+            prob_val = (np.inf if status == s.INFEASIBLE
+                        else -np.inf if status == s.UNBOUNDED
+                        else np.nan)
+
+        sol = Solution(status, prob_val, prim_vars, dual_vars, attr)
         task.__exit__(None, None, None)
         return sol
 
     def _invert_acc(self, solver_output, inverse_data):
         """Invert path for the ACC (primal-form) formulation."""
-        import mosek
-
-        STATUS_MAP = {
-            mosek.solsta.optimal: s.OPTIMAL,
-            mosek.solsta.integer_optimal: s.OPTIMAL,
-            mosek.solsta.prim_feas: s.OPTIMAL_INACCURATE,
-            mosek.solsta.prim_infeas_cer: s.INFEASIBLE,
-            mosek.solsta.dual_infeas_cer: s.UNBOUNDED,
-        }
-
         task = solver_output['task']
         solver_opts = solver_output['solver_options']
-
-        if solver_opts['accept_unknown']:
-            STATUS_MAP[mosek.solsta.unknown] = s.OPTIMAL_INACCURATE
-
-        STATUS_MAP = defaultdict(
-            lambda: s.SOLVER_ERROR, STATUS_MAP,
-        )
-
+        status_map = MOSEK._build_status_map(solver_opts)
+        sol_type = MOSEK._get_sol_type(task, solver_opts)
+        attr = MOSEK._get_attr(task, sol_type)
+        status = MOSEK._get_status(task, sol_type, status_map)
         cone_dims = inverse_data[self.DIMS]
 
-        # Determine solution type
-        simplex_algs = [
-            mosek.optimizertype.primal_simplex,
-            mosek.optimizertype.dual_simplex,
-        ]
-        current_optimizer = task.getintparam(
-            mosek.iparam.optimizer,
-        )
-        bfs_active = (
-            solver_opts.get("bfs", False)
-            and task.getnumacc() == 0
-        )
-
-        if task.getnumintvar() > 0:
-            sol_type = mosek.soltype.itg
-        elif current_optimizer in simplex_algs or bfs_active:
-            sol_type = mosek.soltype.bas
-        else:
-            sol_type = mosek.soltype.itr
-
-        # Solver attributes
-        problem_status = task.getprosta(sol_type)
-        attr = {
-            s.SOLVE_TIME: task.getdouinf(
-                mosek.dinfitem.optimizer_time,
-            ),
-            s.NUM_ITERS: (
-                task.getintinf(mosek.iinfitem.intpnt_iter)
-                + task.getintinf(mosek.iinfitem.sim_primal_iter)
-                + task.getintinf(mosek.iinfitem.sim_dual_iter)
-                + task.getintinf(mosek.iinfitem.mio_num_relax)
-            ),
-            s.EXTRA_STATS: {
-                "mio_intpnt_iter": task.getlintinf(
-                    mosek.liinfitem.mio_intpnt_iter,
-                ),
-                "mio_simplex_iter": task.getlintinf(
-                    mosek.liinfitem.mio_simplex_iter,
-                ),
-            },
-        }
-
-        # Determine status
-        if (
-            sol_type == mosek.soltype.itg
-            and problem_status == mosek.prosta.prim_infeas
-        ):
-            status = s.INFEASIBLE
-        elif problem_status == mosek.prosta.dual_infeas:
-            status = s.UNBOUNDED
-        else:
-            solsta = task.getsolsta(sol_type)
-            status = STATUS_MAP[solsta]
-
         if status in s.SOLUTION_PRESENT:
-            # Primal variables
             primal = np.array(task.getxx(sol_type))
-            opt_val = (
-                task.getprimalobj(sol_type)
-                + inverse_data[s.OFFSET]
-            )
-            primal_vars = {
-                inverse_data[self.VAR_ID]: primal,
-            }
+            opt_val = task.getprimalobj(sol_type) + inverse_data[s.OFFSET]
+            primal_vars = {inverse_data[self.VAR_ID]: primal}
 
-            # Dual variables
             if task.getnumintvar() > 0:
                 dual_vars = {}
             else:
                 num_con = task.getnumcon()
-                if num_con > 0:
-                    y = np.array(task.gety(sol_type))
-                else:
-                    y = np.array([])
-
+                y = np.array(task.gety(sol_type)) if num_con > 0 else np.array([])
                 eq_dual = y[:cone_dims.zero]
                 nonneg_dual = y[cone_dims.zero:]
 
                 # ACC duals (SOC, PSD, exp, pow)
                 acc_duals = []
-                num_acc = task.getnumacc()
-                for i in range(num_acc):
-                    doty = np.array(
-                        task.getaccdoty(sol_type, i),
-                    )
-                    acc_duals.append(doty)
-
+                for i in range(task.getnumacc()):
+                    acc_duals.append(np.array(task.getaccdoty(sol_type, i)))
                 if acc_duals:
-                    ineq_dual = np.concatenate(
-                        [nonneg_dual] + acc_duals,
-                    )
+                    ineq_dual = np.concatenate([nonneg_dual] + acc_duals)
                 else:
                     ineq_dual = nonneg_dual
 
                 eq_dual_vars = utilities.get_dual_values(
-                    eq_dual,
-                    utilities.extract_dual_value,
-                    inverse_data[self.EQ_CONSTR],
-                )
+                    eq_dual, utilities.extract_dual_value,
+                    inverse_data[self.EQ_CONSTR])
                 ineq_dual_vars = utilities.get_dual_values(
-                    ineq_dual,
-                    self.extract_dual_value,
-                    inverse_data[self.NEQ_CONSTR],
-                )
+                    ineq_dual, self.extract_dual_value,
+                    inverse_data[self.NEQ_CONSTR])
                 dual_vars = {}
                 dual_vars.update(eq_dual_vars)
                 dual_vars.update(ineq_dual_vars)
 
-            sol = Solution(
-                status, opt_val, primal_vars, dual_vars, attr,
-            )
+            sol = Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
             sol = failure_solution(status, attr)
 
@@ -908,77 +834,6 @@ class MOSEK(ConicSolver):
             return utilities.extract_dual_value(
                 result_vec, offset, constraint,
             )
-
-    # ------------------------------------------------------------------
-    # Helpers for the dualized path
-    # ------------------------------------------------------------------
-
-    @staticmethod
-    def recover_dual_variables(task, sol):
-        """Recover dual variables for the dualized path."""
-        if task.getnumintvar() == 0:
-            dual_vars = dict()
-            dual_var = [0.] * task.getnumcon()
-            task.gety(sol, dual_var)
-            dual_vars[s.EQ_DUAL] = np.array(dual_var)
-        else:
-            dual_vars = None
-        return dual_vars
-
-    @staticmethod
-    def recover_primal_variables(task, sol, K_dir):
-        """Recover primal variables for the dualized path."""
-        prim_vars = dict()
-        idx = 0
-        m_free = K_dir[a2d.FREE]
-        if m_free > 0:
-            temp = [0.] * m_free
-            task.getxxslice(sol, idx, len(temp), temp)
-            prim_vars[a2d.FREE] = np.array(temp)
-            idx += m_free
-        if task.getnumintvar() > 0:
-            return prim_vars
-        m_pos = K_dir[a2d.NONNEG]
-        if m_pos > 0:
-            temp = [0.] * m_pos
-            task.getxxslice(sol, idx, idx + m_pos, temp)
-            prim_vars[a2d.NONNEG] = np.array(temp)
-            idx += m_pos
-        num_soc = len(K_dir[a2d.SOC])
-        if num_soc > 0:
-            soc_vars = []
-            for dim in K_dir[a2d.SOC]:
-                temp = [0.] * dim
-                task.getxxslice(sol, idx, idx + dim, temp)
-                soc_vars.append(np.array(temp))
-                idx += dim
-            prim_vars[a2d.SOC] = soc_vars
-        num_dexp = K_dir[a2d.DUAL_EXP]
-        if num_dexp > 0:
-            temp = [0.] * (3 * num_dexp)
-            task.getxxslice(sol, idx, idx + len(temp), temp)
-            temp = np.array(temp)
-            perm = expcone_permutor(
-                num_dexp, MOSEK.EXP_CONE_ORDER,
-            )
-            prim_vars[a2d.DUAL_EXP] = temp[perm]
-            idx += 3 * num_dexp
-        num_dpow = len(K_dir[a2d.DUAL_POW3D])
-        if num_dpow > 0:
-            temp = [0.] * (3 * num_dpow)
-            task.getxxslice(sol, idx, idx + len(temp), temp)
-            temp = np.array(temp)
-            prim_vars[a2d.DUAL_POW3D] = temp
-            idx += 3 * num_dpow
-        num_psd = len(K_dir[a2d.PSD])
-        if num_psd > 0:
-            psd_vars = []
-            for j, dim in enumerate(K_dir[a2d.PSD]):
-                xj = [0.] * (dim * (dim + 1) // 2)
-                task.getbarxj(sol, j, xj)
-                psd_vars.append(np.array(xj))
-            prim_vars[a2d.PSD] = psd_vars
-        return prim_vars
 
     # ------------------------------------------------------------------
     # Options handling

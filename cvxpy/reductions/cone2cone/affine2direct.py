@@ -96,6 +96,45 @@ class Dualize:
     """
 
     @staticmethod
+    def _split_primal_vars(primal_vars, K_dir):
+        """Split a flat primal vector into per-cone blocks.
+
+        If ``primal_vars`` already contains the per-cone keys (``FREE``,
+        ``NONNEG``, etc.), it is returned as-is.  Otherwise it must
+        contain ``'xx'`` (a flat vector from getxx) and optionally
+        ``'barx'`` (a list of PSD vectors from getbarxj), which are
+        split according to ``K_dir``.
+        """
+        xx = primal_vars['xx']
+        result = {}
+        idx = 0
+        m_free = K_dir[FREE]
+        if m_free > 0:
+            result[FREE] = xx[idx:idx + m_free]
+            idx += m_free
+        m_pos = K_dir[NONNEG]
+        if m_pos > 0:
+            result[NONNEG] = xx[idx:idx + m_pos]
+            idx += m_pos
+        if K_dir[SOC]:
+            soc_vars = []
+            for dim in K_dir[SOC]:
+                soc_vars.append(xx[idx:idx + dim])
+                idx += dim
+            result[SOC] = soc_vars
+        if K_dir[DUAL_EXP]:
+            n_exp = K_dir[DUAL_EXP]
+            result[DUAL_EXP] = xx[idx:idx + 3 * n_exp]
+            idx += 3 * n_exp
+        if K_dir[DUAL_POW3D]:
+            n_pow = len(K_dir[DUAL_POW3D])
+            result[DUAL_POW3D] = xx[idx:idx + 3 * n_pow]
+            idx += 3 * n_pow
+        if 'barx' in primal_vars:
+            result[PSD] = primal_vars['barx']
+        return result
+
+    @staticmethod
     def apply(problem):
         c, d, A, b = problem.apply_parameters()
         Kp = problem.cone_dims  # zero, nonneg, exp, soc, psd
@@ -175,7 +214,8 @@ class Dualize:
             primal_vars = {inv_data['x_id']:
                            solution.dual_vars[s.EQ_DUAL]}
             dual_vars = dict()
-            direct_prims = solution.primal_vars
+            direct_prims = Dualize._split_primal_vars(
+                solution.primal_vars, inv_data['K_dir'])
             constr_map = inv_data['constr_map']
             i = 0
             for con in constr_map[Zero_obj]:
