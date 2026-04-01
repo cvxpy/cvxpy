@@ -26,9 +26,6 @@ from cvxpy.reductions.cone2cone import affine2direct as a2d
 from cvxpy.reductions.cone2cone.affine2direct import (
     DUAL_EXP,
     DUAL_POW3D,
-    EXP,
-    POW3D,
-    Dualize,
 )
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
@@ -109,55 +106,22 @@ class MOSEK(ConicSolver):
 
     MIP_CAPABLE = True
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [
-        SOC, SvecPSD,
+        SOC, SvecPSD, ExpCone, PowCone3D, PowConeND,
     ]
     PSD_TRIANGLE_KIND = TriangleKind.LOWER
     PSD_SQRT2_SCALING = False
-    EXP_CONE_ORDER = [2, 1, 0]
-    DUAL_EXP_CONE_ORDER = [0, 1, 2]
-    # Does not support MISDP.
     MI_SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [
-        SOC,
+        SOC, ExpCone, PowCone3D, PowConeND,
     ]
 
-    """
-    Note that MOSEK.SUPPORTED_CONSTRAINTS does not include the
-    exponential cone by default. CVXPY will check for exponential cone
-    support when "import_solver( ... )" or "accepts( ... )" is called.
-
-    The cvxpy standard for the exponential cone is:
-        K_e = closure{(x,y,z) |  z >= y * exp(x/y), y>0}.
-    Whenever a solver uses this convention, EXP_CONE_ORDER should be
-    [0, 1, 2].
-
-    MOSEK uses the convention:
-        K_e = closure{(x,y,z) | x >= y * exp(z/y), x,y >= 0}.
-    with this convention, EXP_CONE_ORDER should be [2, 1, 0].
-    """
+    # MOSEK uses the convention K_e = closure{(x,y,z) | x >= y*exp(z/y)},
+    # so EXP_CONE_ORDER is [2, 1, 0] (reversed from the CVXPY standard).
+    EXP_CONE_ORDER = [2, 1, 0]
+    DUAL_EXP_CONE_ORDER = [0, 1, 2]
 
     def import_solver(self) -> None:
-        """Imports the solver.
-
-        Updates the set of supported constraints if applicable.
-        Requires MOSEK 10.0 or newer (ACC / AFE API).
-        """
+        """Imports the solver."""
         import mosek  # noqa F401
-
-        if not hasattr(mosek.Task, 'appendafes'):
-            raise RuntimeError(
-                "CVXPY requires MOSEK 10.0 or newer."
-            )
-
-        if (
-            hasattr(mosek.conetype, 'pexp')
-            and ExpCone not in MOSEK.SUPPORTED_CONSTRAINTS
-        ):
-            MOSEK.SUPPORTED_CONSTRAINTS.append(ExpCone)
-            MOSEK.SUPPORTED_CONSTRAINTS.append(PowCone3D)
-            MOSEK.SUPPORTED_CONSTRAINTS.append(PowConeND)
-            MOSEK.MI_SUPPORTED_CONSTRAINTS.append(ExpCone)
-            MOSEK.MI_SUPPORTED_CONSTRAINTS.append(PowCone3D)
-            MOSEK.MI_SUPPORTED_CONSTRAINTS.append(PowConeND)
 
     def name(self):
         """The name of the solver."""
@@ -191,13 +155,22 @@ class MOSEK(ConicSolver):
 
     @staticmethod
     def bar_data(A_psd, c_psd, K):
+        # TODO: investigate how to transform or represent "A_psd" so
+        #  that the following indexing and slicing operations are
+        #  computationally cheap. Or just rewrite the function so that
+        #  explicit slicing is not needed on a SciPy sparse matrix.
         n = A_psd.shape[0]
         c_bar_data, A_bar_data = [], []
         idx = 0
-        for j, dim in enumerate(K[a2d.PSD]):
+        for j, dim in enumerate(K[a2d.PSD]):  # psd variable index j.
             vec_len = dim * (dim + 1) // 2
             A_block = A_psd[:, idx:idx + vec_len]
+            # ^ each row specifies a linear operator on PSD variable.
             for i in range(n):
+                # A_row defines a symmetric matrix where the first
+                # "order" entries give the matrix's first column, the
+                # second "order-1" entries give the second column
+                # (diagonal and below), and so on.
                 A_row = A_block[[i], :]
                 if A_row.nnz == 0:
                     continue
@@ -224,45 +197,63 @@ class MOSEK(ConicSolver):
         return self._apply_acc(problem)
 
     def _apply_dualized(self, problem):
-        """Dualized path — used when PSD constraints are present."""
-        if not problem.formatted:
-            problem = self.format_constraints(
-                problem, self.EXP_CONE_ORDER,
-            )
-        data, inv_data = Dualize.apply(problem)
-        A, c, K = data[s.A], data[s.C], data['K_dir']
-        num_psd = len(K[a2d.PSD])
+        """Dualized path — used when PSD constraints are present.
+
+        Extracts A, b, c, d from the ParamConeProg and transposes into
+        the dual form that ``_build_dualized_task`` expects.  PSD
+        columns are separated into bar_data for MOSEK's bar variable API.
+        """
+        problem, data, inv_data = self._prepare_data_and_inv_data(
+            problem,
+        )
+        c, d, A, b = problem.apply_parameters()
+        Kp = problem.cone_dims
+        Kd = {
+            a2d.FREE: Kp.zero,
+            a2d.NONNEG: Kp.nonneg,
+            a2d.SOC: Kp.soc,
+            a2d.PSD: Kp.psd,
+            a2d.DUAL_EXP: Kp.exp,
+            a2d.DUAL_POW3D: Kp.p3d,
+        }
+        data[s.A] = A.T
+        data[s.B] = c
+        data[s.C] = -b
+        data['K_dir'] = Kd
+        data['dualized'] = True
+        inv_data[s.OFFSET] = d
+        # Extract PSD columns into bar_data for MOSEK's bar variable API.
+        num_psd = len(Kd[a2d.PSD])
         if num_psd > 0:
+            At, ct = data[s.A], data[s.C]
             idx = (
-                K[a2d.FREE]
-                + K[a2d.NONNEG]
-                + sum(K[a2d.SOC])
-                + sum(K[a2d.RSOC])
+                Kd[a2d.FREE]
+                + Kd[a2d.NONNEG]
+                + sum(Kd[a2d.SOC])
             )
             total_psd = sum(
-                d * (d + 1) // 2 for d in K[a2d.PSD]
+                dim * (dim + 1) // 2 for dim in Kd[a2d.PSD]
             )
-            A_psd = A[:, idx:idx + total_psd]
-            c_psd = c[idx:idx + total_psd]
-            if K[a2d.DUAL_EXP] == 0 and K[a2d.DUAL_POW3D] == 0:
-                data[s.A] = A[:, :idx]
-                data[s.C] = c[:idx]
+            A_psd = At[:, idx:idx + total_psd]
+            c_psd = ct[idx:idx + total_psd]
+            if Kd[a2d.DUAL_EXP] == 0 and not Kd[a2d.DUAL_POW3D]:
+                data[s.A] = At[:, :idx]
+                data[s.C] = ct[:idx]
             else:
                 data[s.A] = sp.sparse.hstack(
-                    [A[:, :idx], A[:, idx + total_psd:]],
+                    [At[:, :idx], At[:, idx + total_psd:]],
                 )
                 data[s.C] = np.concatenate(
-                    [c[:idx], c[idx + total_psd:]],
+                    [ct[:idx], ct[idx + total_psd:]],
                 )
             A_bar_data, c_bar_data = MOSEK.bar_data(
-                A_psd, c_psd, K,
+                A_psd, c_psd, Kd,
             )
             data['A_bar_data'] = A_bar_data
             data['c_bar_data'] = c_bar_data
         else:
             data['A_bar_data'] = []
             data['c_bar_data'] = []
-        data[s.PARAM_PROB] = problem
         return data, inv_data
 
     def _apply_acc(self, problem):
@@ -680,10 +671,7 @@ class MOSEK(ConicSolver):
         """
         if 'sol' in solver_output:
             # Degenerate problem handled in solve_via_data.
-            sol = solver_output['sol']
-            if 'dualized' in inverse_data:
-                sol = Dualize.invert(sol, inverse_data)
-            return sol
+            return solver_output['sol']
 
         import mosek
 
@@ -779,8 +767,9 @@ class MOSEK(ConicSolver):
             raw_iis_sol = Solution(
                 s.OPTIMAL, prob_val, prim_vars, dual_vars, attr,
             )
-            iis_sol = Dualize.invert(raw_iis_sol, inverse_data)
-            attr[s.EXTRA_STATS] = {"IIS": iis_sol.dual_vars}
+            attr[s.EXTRA_STATS] = {
+                "IIS": raw_iis_sol.dual_vars,
+            }
         else:
             solsta = task.getsolsta(sol_type)
             status = STATUS_MAP[solsta]
@@ -795,11 +784,9 @@ class MOSEK(ConicSolver):
                     task, sol_type,
                 )
 
-        raw_sol = Solution(
+        sol = Solution(
             status, prob_val, prim_vars, dual_vars, attr,
         )
-        sol = Dualize.invert(raw_sol, inverse_data)
-
         task.__exit__(None, None, None)
         return sol
 
@@ -1208,18 +1195,13 @@ class MOSEK(ConicSolver):
 
         # We need another citation if nonsymmetric cones are present.
         nonsym_cones = False
+        # Dualized path stores dual cone info in K_dir.
         K_dir = data.get('K_dir', dict())
         if K_dir.get(DUAL_EXP, 0):
             nonsym_cones = True
         if K_dir.get(DUAL_POW3D, 0):
             nonsym_cones = True
-        K_aff = data.get('K_aff', dict())
-        if K_aff.get(EXP, 0):
-            nonsym_cones = True
-        if K_aff.get(POW3D, 0):
-            nonsym_cones = True
-
-        # ACC path: check cone_dims
+        # ACC path stores cone info in cone_dims.
         cone_dims = data.get(ConicSolver.DIMS, None)
         if cone_dims is not None:
             if getattr(cone_dims, 'exp', 0) > 0:
