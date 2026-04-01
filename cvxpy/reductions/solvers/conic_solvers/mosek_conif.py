@@ -369,13 +369,6 @@ class MOSEK(ConicSolver):
                 cones, [0] * num_soc, K[a2d.SOC], idx,
             )
             idx += sum(K[a2d.SOC])
-        num_rsoc = len(K[a2d.RSOC])
-        if num_rsoc > 0:
-            cones = [mosek.conetype.rquad] * num_rsoc
-            task.appendconesseq(
-                cones, [0] * num_rsoc, K[a2d.RSOC], idx,
-            )
-            idx += sum(K[a2d.RSOC])
         num_dexp = K[a2d.DUAL_EXP]
         if num_dexp > 0:
             cones = [mosek.conetype.dexp] * num_dexp
@@ -567,14 +560,6 @@ class MOSEK(ConicSolver):
             MOSEK._add_afe_acc(
                 task, A, b, row, dim,
                 task.appendquadraticconedomain(dim),
-            )
-            row += dim
-
-        # RSOC cones via ACC
-        for dim in cone_dims.rsoc:
-            MOSEK._add_afe_acc(
-                task, A, b, row, dim,
-                task.appendrquadraticconedomain(dim),
             )
             row += dim
 
@@ -864,7 +849,7 @@ class MOSEK(ConicSolver):
                 eq_dual = y[:cone_dims.zero]
                 nonneg_dual = y[cone_dims.zero:]
 
-                # ACC duals (SOC, RSOC, PSD, exp, pow)
+                # ACC duals (SOC, PSD, exp, pow)
                 acc_duals = []
                 num_acc = task.getnumacc()
                 for i in range(num_acc):
@@ -972,15 +957,6 @@ class MOSEK(ConicSolver):
                 soc_vars.append(np.array(temp))
                 idx += dim
             prim_vars[a2d.SOC] = soc_vars
-        num_rsoc = len(K_dir[a2d.RSOC])
-        if num_rsoc > 0:
-            rsoc_vars = []
-            for dim in K_dir[a2d.RSOC]:
-                temp = [0.] * dim
-                task.getxxslice(sol, idx, idx + dim, temp)
-                rsoc_vars.append(np.array(temp))
-                idx += dim
-            prim_vars[a2d.RSOC] = rsoc_vars
         num_dexp = K_dir[a2d.DUAL_EXP]
         if num_dexp > 0:
             temp = [0.] * (3 * num_dexp)
