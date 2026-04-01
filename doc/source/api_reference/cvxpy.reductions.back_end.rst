@@ -35,15 +35,9 @@ Qp2SymbolicQp
     :members:
     :show-inheritance:
 
-Dualize
+DualizeConeProg
 ------------------------------------------
 
-.. autoclass:: cvxpy.reductions.cone2cone.affine2direct.Dualize
-   :members:
-
-Slacks
-------------------------------------------
-
-.. autoclass:: cvxpy.reductions.cone2cone.affine2direct.Slacks
+.. autoclass:: cvxpy.reductions.cone2cone.affine2direct.DualizeConeProg
    :members:
 
