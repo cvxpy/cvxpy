@@ -186,3 +186,15 @@ class TestCompositions():
         checker.run_and_assert()
         prob.solve(nlp=True, verbose=True)
         assert np.allclose(x.value, 2 * np.ones((n, 1)))
+
+    def test_negative_power(self):
+        n = 5
+        x = cp.Variable((n, 1), bounds=[1, 2])
+        A = np.random.rand(n, n)
+        obj = cp.Minimize(cp.sum(cp.power(A @ x, -0.5)))
+        prob = cp.Problem(obj)
+        x.value = np.random.rand(n, 1) + 1
+        checker = DerivativeChecker(prob)
+        checker.run_and_assert()
+        prob.solve(nlp=True, verbose=True)
+        assert prob.status == cp.OPTIMAL

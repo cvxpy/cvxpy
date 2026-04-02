@@ -25,7 +25,6 @@ MIN_INIT = 1e-3
 
 # We canonicalize div(f(x), g(x)) as f(x) * power(z, -1), z = g(x), z >= 0.
 def div_canon(expr, args):
-    
     if not args[1].is_nonneg():
         warn(
             "CVXPY (DNLP) could not verify that the denominator of a division "
@@ -39,5 +38,4 @@ def div_canon(expr, args):
     if args[1].value is not None:
         z.value = np.maximum(args[1].value, MIN_INIT)
 
-    # TODO (dance858): should. multiply and power be other canons?
     return multiply(args[0], power(z, -1)), [z == args[1]]
