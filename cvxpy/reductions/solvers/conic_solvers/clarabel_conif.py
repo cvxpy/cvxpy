@@ -96,7 +96,8 @@ class CLARABEL(ConicSolver):
                     MAX_ITERATIONS: s.USER_LIMIT,
                     MAX_TIME: s.USER_LIMIT,
                     NUMERICAL_ERROR: s.SOLVER_ERROR,
-                    INSUFFICIENT_PROGRESS: s.SOLVER_ERROR
+                    INSUFFICIENT_PROGRESS: s.SOLVER_ERROR,
+                    "Unsolved": s.SOLVER_ERROR,
                 }
 
     # Order of exponential cone arguments for solver.
@@ -130,7 +131,7 @@ class CLARABEL(ConicSolver):
             CLARABEL.ACCEPT_UNKNOWN in inverse_data.solver_options and\
             solution.x is not None and solution.z is not None:
             status_map["InsufficientProgress"] = s.OPTIMAL_INACCURATE
-        status = status_map[str(solution.status)]
+        status = status_map.get(str(solution.status), s.SOLVER_ERROR)
         attr[s.SOLVE_TIME] = solution.solve_time
         attr[s.NUM_ITERS] = solution.iterations
         # more detailed statistics here when available
