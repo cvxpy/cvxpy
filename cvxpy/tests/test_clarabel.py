@@ -13,6 +13,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from types import SimpleNamespace
+
 import clarabel
 import numpy as np
 
@@ -107,3 +109,23 @@ class ClarabelTest(BaseTest):
         solution = solver.invert(self.solution, solver_inverse_data)
         self.assertEqual(s.SOLVER_ERROR, solution.status)
 
+    def test_unsolved_status_handling(self):
+        """
+        Test that the Clarabel interface correctly handles the 'Unsolved'
+        status without raising a KeyError.
+        """
+        import cvxpy.settings as s
+        from cvxpy.reductions.solvers.conic_solvers.clarabel_conif import CLARABEL
+
+        solver = CLARABEL()
+        mock_solution = SimpleNamespace(
+            status="Unsolved",
+            solve_time=0.01,
+            iterations=0,
+            x=None,
+            z=None,
+            attr={}
+        )
+        mock_inverse_data = SimpleNamespace(solver_options={})
+        sol = solver.invert(mock_solution, mock_inverse_data)
+        self.assertEqual(sol.status, s.SOLVER_ERROR)
