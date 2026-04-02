@@ -64,16 +64,25 @@ class quad_over_root(Atom):
         Lower bound on ``x``. When ``None``, the numerator must be globally
         nonneg.
 
-    This atom is useful for a continuous relaxation of a continuous quadratic * a binary variable. This formulation, rather than simply relaxing the binary variable to be in [0, 1], can be convex when the convexity condition is satisfied.
-    Small y corresponds to the binary variable being 1, and large y corresponds to the binary variable being 0. The convexity condition ensures that the function is convex in this regime.
-    In general 
+    This atom is useful for a continuous relaxation of a continuous quadratic * a binary variable.
+    This formulation, rather than simply relaxing the binary variable to be in [0, 1], 
+    can be convex when the convexity condition is satisfied.
+    Small y corresponds to the binary variable being 1, 
+    and large y corresponds to the binary variable being 0. 
+    The convexity condition ensures that the function is convex in this regime. In general 
     .. math::
         f(x, y) = \frac{ax^2 + bx + c}{y^\alpha}
-    is convex for :math:`\alpha \in (0, 1]` when certain conditions are met. :math:`\alpha = 1/2` is the least restrictive choice for convexity, and is the choice implemented in this atom.
+    is convex for :math:`\alpha \in (0, 1]` when certain conditions are met. :math:`\alpha = 1/2` 
+    is the least restrictive choice for convexity, and is the choice implemented in this atom.
     .. math::
-        det(\del^2 f(x,y)) = \frac{2a^2x^2 (\alpha-\alpha^2) + 2abx (\alpha-\alpha^2) + [2ac(\alpha+\alpha^2) - b^2 \alpha^2]}{y^{2\alpha+2}}
-    The first two terms are maximized over :math:`\alpha` at :math:`\alpha=0.5`. The maximum of the last term depends on a, b, and c. We therefore choose :math:`\alpha=0.5` to make the convexity condition as weak as possible.
-    For example, for a practical unit commitment problem, the convexity condition is almost never satisified with :math:`\alpha=1`, but almost always satisfied with :math:`\alpha=0.5`.
+        det(\del^2 f(x,y)) = \frac{2a^2x^2 (\alpha-\alpha^2) + 2abx (\alpha-\alpha^2) 
+        + [2ac(\alpha+\alpha^2) - b^2 \alpha^2]}{y^{2\alpha+2}}
+    The first two terms are maximized over :math:`\alpha` at :math:`\alpha=0.5`. 
+    The maximum of the last term depends on a, b, and c. We therefore choose :math:`\alpha=0.5` 
+    to make the convexity condition as weak as possible. 
+    For example, for a practical unit commitment problem, 
+    the convexity condition is almost never satisified with :math:`\alpha=1`, 
+    but almost always satisfied with :math:`\alpha=0.5`.
     """
 
     def __init__(self, x, y, a: float, b: float, c: float,
