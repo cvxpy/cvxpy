@@ -208,7 +208,7 @@ class QOCO(ConicSolver):
             return solver
 
         def updated_solver():
-            if (solver_cache is None) or (self.name() not in solver_cache) or (warm_start == False):
+            if (solver_cache is None) or (self.name() not in solver_cache) or (not warm_start):
                 return None
 
             solver = solver_cache[self.name()]
