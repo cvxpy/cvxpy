@@ -18,6 +18,7 @@ limitations under the License.
 import importlib
 
 from numpy import int32
+from scipy import sparse
 
 import cvxpy.settings as s
 from cvxpy.constraints import SOC
@@ -223,7 +224,10 @@ class QOCO(ConicSolver):
                 # setup time. However, this is merely the setup time for the initial solve.
                 # Will raise ValueError if dimensions or sparsity has changed
                 solver.update_vector_data(c=data[s.C], b=data[s.B], h=data[s.H])
-                solver.update_matrix_data(P=P.data, A=A.data, G=G.data)
+                P_data = sparse.triu(P, format="csc").data if P is not None else None
+                A_data = A.data if A is not None else None
+                G_data = G.data if G is not None else None
+                solver.update_matrix_data(P=P_data, A=A_data, G=G_data)
                 return solver
 
         # Try to get allocated solver object if available.
