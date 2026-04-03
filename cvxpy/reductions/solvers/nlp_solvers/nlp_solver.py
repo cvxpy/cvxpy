@@ -49,6 +49,34 @@ class NLPsolver(Solver):
         """
         return problem.is_dnlp()
 
+    @staticmethod
+    def _extract_dual_vars(mult_g, inverse_data):
+        """Extract per-constraint dual variables from a flat multiplier vector.
+
+        Parameters
+        ----------
+        mult_g : np.ndarray or None
+            Flat vector of constraint multipliers from the NLP solver.
+        inverse_data : InverseData
+            Must have ``cons_offsets`` and ``cons_shapes`` attributes
+            (set by ``_prepare_data_and_inv_data``).
+
+        Returns
+        -------
+        dict
+            Mapping from constraint id to dual value (np.ndarray).
+        """
+        dual_vars = {}
+        if mult_g is None or not hasattr(inverse_data, 'cons_offsets'):
+            return dual_vars
+        for con_id, offset in inverse_data.cons_offsets.items():
+            shape = inverse_data.cons_shapes[con_id]
+            size = int(np.prod(shape))
+            dual_vars[con_id] = np.reshape(
+                mult_g[offset:offset + size], shape, order='F'
+            )
+        return dual_vars
+
     def apply(self, problem: Problem) -> tuple[dict, InverseData]:
         """
         Construct NLP problem data stored in a dictionary.
@@ -70,6 +98,9 @@ class NLPsolver(Solver):
         bounds = Bounds(problem)
         inverse_data = InverseData(bounds.new_problem)
         inverse_data.offset = 0.0
+        # Store constraint offset/shape maps for dual variable recovery.
+        inverse_data.cons_offsets = bounds.cons_offsets
+        inverse_data.cons_shapes = bounds.cons_shapes
         data["problem"] = bounds.new_problem
         data["cl"], data["cu"] = bounds.cl, bounds.cu
         data["lb"], data["ub"] = bounds.lb, bounds.ub
@@ -102,10 +133,18 @@ class Bounds:
         Also converts inequalities to nonneg form,
         as well as equalities to zero constraints and forms
         a new problem from the canonicalized problem.
+
+        Tracks per-constraint offsets and shapes in the flat g(x)
+        vector so that dual variables can be recovered after solve.
         """
         lower, upper = [], []
         new_constr = []
+        cons_offsets = {}
+        cons_shapes = {}
+        offset = 0
         for constraint in self.problem.constraints:
+            cons_offsets[constraint.id] = offset
+            cons_shapes[constraint.id] = constraint.shape
             if isinstance(constraint, Equality):
                 lower.extend([0.0] * constraint.size)
                 upper.extend([0.0] * constraint.size)
@@ -114,6 +153,9 @@ class Bounds:
                 lower.extend([0.0] * constraint.size)
                 upper.extend([np.inf] * constraint.size)
                 new_constr.append(lower_ineq_to_nonneg(constraint))
+            offset += constraint.size
+        self.cons_offsets = cons_offsets
+        self.cons_shapes = cons_shapes
         canonicalized_prob = self.problem.copy([self.problem.objective, new_constr])
         self.new_problem = canonicalized_prob
         self.cl = np.array(lower)
