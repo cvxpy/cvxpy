@@ -95,7 +95,7 @@ class TestPowerFlowIPOPT:
         v = cp.Variable((N, 1), bounds=[v_min, v_max])
         p = cp.Variable(N, bounds=[p_min, p_max])
         q = cp.Variable(N, bounds=[q_min, q_max])
-        C, S = cp.cos(theta - theta.T), cp.sin(theta - theta.T)
+        C, S = cp.nlp.cos(theta - theta.T), cp.nlp.sin(theta - theta.T)
 
         constr = [theta[0] == 0,  p == cp.sum(P, axis=1), q == cp.sum(Q, axis=1),
                 P == cp.multiply(v @ v.T, cp.multiply(G, C) + cp.multiply(B, S)),
