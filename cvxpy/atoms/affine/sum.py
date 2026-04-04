@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 import builtins
 from functools import wraps
 from types import GeneratorType
@@ -88,7 +89,7 @@ class Sum(AxisAtom, AffAtom):
         """Returns shape using NumPy's sum shape calculation."""
         try:
             return np.sum(
-                np.empty(self.args[0].shape),
+                np.empty(self.args[0].shape, dtype=np.int8),
                 axis=self.axis,
                 keepdims=self.keepdims
             ).shape
@@ -105,10 +106,9 @@ class Sum(AxisAtom, AffAtom):
             result = np.sum(values[0], axis=self.axis, keepdims=self.keepdims)
         return result
 
-    def graph_implementation(self,
-                            arg_objs: list[lo.LinOp],
-                            shape: tuple[int, ...],
-                            data=None) -> tuple[lo.LinOp, list[Constraint]]:
+    def graph_implementation(
+        self, arg_objs: list[lo.LinOp], shape: tuple[int, ...], data=None
+    ) -> tuple[lo.LinOp, list[Constraint]]:
         """
         Sum the linear expression's entries.
 
@@ -126,6 +126,7 @@ class Sum(AxisAtom, AffAtom):
         if isinstance(axis, tuple):
             ndim = len(arg_objs[0].shape)
             axis = normalize_axis(axis, ndim)
+
         # Note: added new case for summing with n-dimensional shapes and
         # multiple axes. Previous behavior is kept in the else statement.
         if len(arg_objs[0].shape) > 2 or axis not in {None, 0, 1}:
