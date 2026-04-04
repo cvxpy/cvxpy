@@ -24,6 +24,7 @@ class Cone(Constraint):
     CVXPY supports modelling using the following cones as of today:
     - ExpCone
     - SOC (Second Order Cone)
+    - RSOC (Rotated Second Order Cone)
     - PowCone3D
     - PowConeND
     - RelEntrConeQuad
