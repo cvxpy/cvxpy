@@ -18,6 +18,7 @@ if TYPE_CHECKING:
     from cvxpy.problems.problem import Problem
 from cvxpy.reductions.chain import Chain
 from cvxpy.reductions.complex2real import complex2real
+from cvxpy.reductions.cone2cone.affine2direct import DualizeConeProg
 from cvxpy.reductions.cone2cone.approx import ApproxCone2Cone
 from cvxpy.reductions.cone2cone.exact import ExactCone2Cone
 from cvxpy.reductions.cone2cone.soc_dim3 import SOCDim3
@@ -166,10 +167,11 @@ def _build_solving_chain(
     else:
         supported = frozenset(solver_instance.SUPPORTED_CONSTRAINTS)
 
+    dualize = solver_instance.should_dualize(problem_form)
     solver_context = SolverInfo(
         solver=solver_instance.name(),
         supported_constraints=supported,
-        supports_bounds=solver_instance.BOUNDED_VARIABLES,
+        supports_bounds=solver_instance.BOUNDED_VARIABLES and not dualize,
         psd_triangle_kind=solver_instance.PSD_TRIANGLE_KIND,
         psd_sqrt2_scaling=solver_instance.PSD_SQRT2_SCALING,
     )
@@ -213,8 +215,8 @@ def _build_solving_chain(
 
     reductions.append(Dcp2Cone(quad_obj=quad_obj, solver_context=solver_context))
 
-    reductions.append(
-        CvxAttr2Constr(reduce_bounds=not solver_instance.BOUNDED_VARIABLES))
+    reduce_bounds = not solver_instance.BOUNDED_VARIABLES or dualize
+    reductions.append(CvxAttr2Constr(reduce_bounds=reduce_bounds))
 
     if exact_targets:
         reductions.append(ExactCone2Cone(target_cones=exact_targets,
@@ -226,10 +228,11 @@ def _build_solving_chain(
     if solver_instance.SOC_DIM3_ONLY and SOC in cones:
         reductions.append(SOCDim3())
 
-    reductions += [
-        ConeMatrixStuffing(quad_obj=quad_obj, canon_backend=canon_backend),
-        solver_instance,
-    ]
+    reductions.append(
+        ConeMatrixStuffing(quad_obj=quad_obj, canon_backend=canon_backend))
+    if dualize:
+        reductions.append(DualizeConeProg())
+    reductions.append(solver_instance)
     return SolvingChain(reductions=reductions, solver_context=solver_context)
 
 
