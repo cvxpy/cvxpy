@@ -85,7 +85,7 @@ class CLARABEL(ConicSolver):
     NUMERICAL_ERROR = "NumericalError"
     INSUFFICIENT_PROGRESS = "InsufficientProgress"
     ACCEPT_UNKNOWN = "accept_unknown"
-
+    UNSOLVED = "Unsolved"
     STATUS_MAP = {
                     SOLVED: s.OPTIMAL,
                     PRIMAL_INFEASIBLE: s.INFEASIBLE,
@@ -97,7 +97,7 @@ class CLARABEL(ConicSolver):
                     MAX_TIME: s.USER_LIMIT,
                     NUMERICAL_ERROR: s.SOLVER_ERROR,
                     INSUFFICIENT_PROGRESS: s.SOLVER_ERROR,
-                    "Unsolved": s.SOLVER_ERROR,
+                    UNSOLVED: s.SOLVER_ERROR,
                 }
 
     # Order of exponential cone arguments for solver.

@@ -114,12 +114,9 @@ class ClarabelTest(BaseTest):
         Test that the Clarabel interface correctly handles the 'Unsolved'
         status without raising a KeyError.
         """
-        import cvxpy.settings as s
-        from cvxpy.reductions.solvers.conic_solvers.clarabel_conif import CLARABEL
-
         solver = CLARABEL()
         mock_solution = SimpleNamespace(
-            status="Unsolved",
+            status=CLARABEL.UNSOLVED,
             solve_time=0.01,
             iterations=0,
             x=None,
