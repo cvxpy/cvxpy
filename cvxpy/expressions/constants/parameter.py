@@ -16,6 +16,7 @@ limitations under the License.
 from __future__ import annotations
 
 import cvxpy.lin_ops.lin_utils as lu
+import scipy.sparse as sp
 from cvxpy import settings as s
 from cvxpy.expressions.expression import Expression
 from cvxpy.expressions.leaf import Leaf
@@ -71,6 +72,19 @@ class Parameter(Leaf):
         self.gradient = None
         super(Parameter, self).__init__(shape, value, **kwargs)
         self._is_constant = True
+
+    @Leaf.value.setter
+    def value(self, val) -> None:
+        if sp.issparse(val):
+            raise ValueError(
+                "Setting a cp.Parameter value to a sparse matrix or array "
+                f"(type: {type(val).__name__}) is not supported. "
+                "cp.Parameter stores dense values only. "
+                "If you need a sparse parameter, pass the sparse matrix to "
+                "cp.Constant() instead, or use the `sparsity` attribute of "
+                "cp.Parameter for structured sparsity."
+            )
+        Leaf.value.fset(self, val)
 
     def get_data(self):
         """Returns info needed to reconstruct the expression besides the args.
