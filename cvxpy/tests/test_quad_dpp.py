@@ -20,6 +20,41 @@ import pytest
 import cvxpy as cp
 from cvxpy.utilities import scopes
 
+SOLVER = cp.CLARABEL
+RTOL = 1e-3
+
+
+def _solve(problem: cp.Problem, **kwargs) -> None:
+    problem.solve(solver=SOLVER, **kwargs)
+    assert problem.status == cp.OPTIMAL
+
+
+def _solve_and_copy(problem: cp.Problem, variable: cp.Variable, **kwargs) -> np.ndarray:
+    _solve(problem, **kwargs)
+    return variable.value.copy()
+
+
+def _assert_allclose(actual, expected) -> None:
+    assert np.allclose(actual, expected, rtol=RTOL)
+
+
+def _assert_qp_matches_conic(problem: cp.Problem, variable: cp.Variable) -> np.ndarray:
+    qp_solution = _solve_and_copy(problem, variable)
+    _solve(problem, use_quad_obj=False)
+    _assert_allclose(qp_solution, variable.value)
+    return qp_solution
+
+
+def _assert_resolve_matches_fresh(
+    first_solution: np.ndarray,
+    resolved_solution: np.ndarray,
+    fresh_problem: cp.Problem,
+    variable: cp.Variable,
+) -> None:
+    fresh_solution = _solve_and_copy(fresh_problem, variable)
+    assert not np.allclose(first_solution, resolved_solution, atol=RTOL)
+    _assert_allclose(resolved_solution, fresh_solution)
+
 
 class TestQuadFormDPPDetection:
     """Test that is_dpp() correctly identifies DPP-compliant problems."""
@@ -91,30 +126,30 @@ class TestQuadFormDPPCompilation:
 class TestQuadFormDPPCorrectness:
     """Test that DPP path produces correct results."""
 
-    @pytest.mark.parametrize("P_matrix,expected_x", [
-        (np.array([[2, 0], [0, 1]]), np.array([1/3, 2/3])),
-        (np.eye(2), np.array([0.5, 0.5])),
-        (5 * np.eye(2), np.array([0.5, 0.5])),
-        (np.array([[2, 0.5], [0.5, 1]]), None),  # Non-diagonal, just check QP==conic
-    ])
+    @pytest.mark.parametrize(
+        ("P_matrix", "expected_x"),
+        [
+            pytest.param(np.array([[2, 0], [0, 1]]), np.array([1 / 3, 2 / 3]), id="diagonal"),
+            pytest.param(np.eye(2), np.array([0.5, 0.5]), id="identity"),
+            pytest.param(5 * np.eye(2), np.array([0.5, 0.5]), id="scaled_identity"),
+            pytest.param(
+                np.array([[2, 0.5], [0.5, 1]]),
+                None,
+                id="dense_psd",
+            ),
+        ],
+    )
     def test_minimize_quad_form(self, P_matrix, expected_x) -> None:
-        """Minimize quad_form produces correct solution."""
+        """Minimizing a parametric quad_form matches the conic path."""
         x = cp.Variable(2)
         P = cp.Parameter((2, 2), PSD=True)
         P.value = P_matrix
 
         prob = cp.Problem(cp.Minimize(cp.quad_form(x, P)), [cp.sum(x) == 1])
-
-        prob.solve(solver=cp.CLARABEL)
-        assert prob.status == cp.OPTIMAL
-        x_qp = x.value.copy()
-
-        prob.solve(solver=cp.CLARABEL, use_quad_obj=False)
-        assert prob.status == cp.OPTIMAL
+        qp_solution = _assert_qp_matches_conic(prob, x)
 
         if expected_x is not None:
-            assert np.allclose(x_qp, expected_x, rtol=1e-3)
-        assert np.allclose(x_qp, x.value, rtol=1e-3)
+            _assert_allclose(qp_solution, expected_x)
 
     def test_maximize_with_nsd_P(self) -> None:
         """Maximize quad_form with NSD P produces correct solution."""
@@ -123,11 +158,10 @@ class TestQuadFormDPPCorrectness:
         P.value = -np.eye(2)
 
         prob = cp.Problem(cp.Maximize(cp.quad_form(x, P)), [cp.sum(x) == 1])
-        prob.solve(solver=cp.CLARABEL)
+        _solve(prob)
 
-        assert prob.status == cp.OPTIMAL
-        assert np.allclose(x.value, [0.5, 0.5], rtol=1e-3)
-        assert np.isclose(prob.value, -0.5, rtol=1e-3)
+        _assert_allclose(x.value, [0.5, 0.5])
+        assert np.isclose(prob.value, -0.5, rtol=RTOL)
 
     def test_resolve_with_different_P_values(self) -> None:
         """Re-solving with different P values works correctly."""
@@ -136,12 +170,12 @@ class TestQuadFormDPPCorrectness:
         prob = cp.Problem(cp.Minimize(cp.quad_form(x, P)), [cp.sum(x) == 1])
 
         P.value = np.array([[2, 0], [0, 1]])
-        prob.solve(solver=cp.CLARABEL)
-        assert np.allclose(x.value, [1/3, 2/3], rtol=1e-3)
+        _solve(prob)
+        _assert_allclose(x.value, [1 / 3, 2 / 3])
 
         P.value = np.array([[1, 0], [0, 2]])
-        prob.solve(solver=cp.CLARABEL)
-        assert np.allclose(x.value, [2/3, 1/3], rtol=1e-3)
+        _solve(prob)
+        _assert_allclose(x.value, [2 / 3, 1 / 3])
 
 
 class TestQuadFormDPPVariants:
@@ -156,10 +190,8 @@ class TestQuadFormDPPVariants:
         c.value = np.array([2, -2])
 
         prob = cp.Problem(cp.Minimize(cp.quad_form(x, P) + c @ x), [cp.sum(x) == 1])
-        prob.solve(solver=cp.CLARABEL)
-
-        assert prob.status == cp.OPTIMAL
-        assert np.allclose(x.value, [-0.5, 1.5], rtol=1e-3)
+        _solve(prob)
+        _assert_allclose(x.value, [-0.5, 1.5])
 
     def test_quad_form_plus_constant_linear(self) -> None:
         """quad_form(x, P) + c @ x with constant c solves correctly.
@@ -176,25 +208,12 @@ class TestQuadFormDPPVariants:
         # min x'Px + c'x s.t. sum(x) == 1
         # Analytic: x* = (1 - P^{-1} c) / (1' P^{-1} 1) adjusted for constraint
         prob = cp.Problem(cp.Minimize(cp.quad_form(x, P) + c @ x), [cp.sum(x) == 1])
-        prob.solve(solver=cp.CLARABEL)
-        assert prob.status == cp.OPTIMAL
-        x_qp = x.value.copy()
-
-        # Cross-check against conic path.
-        prob.solve(solver=cp.CLARABEL, use_quad_obj=False)
-        assert prob.status == cp.OPTIMAL
-        assert np.allclose(x_qp, x.value, rtol=1e-3)
-        assert np.allclose(x_qp, [-0.5, 1.5], rtol=1e-3)
+        qp_solution = _assert_qp_matches_conic(prob, x)
+        _assert_allclose(qp_solution, [-0.5, 1.5])
 
         # Re-solve with a different P to ensure DPP caching works.
         P.value = np.array([[2, 0], [0, 1]])
-        prob.solve(solver=cp.CLARABEL)
-        assert prob.status == cp.OPTIMAL
-        x_resolv = x.value.copy()
-
-        prob.solve(solver=cp.CLARABEL, use_quad_obj=False)
-        assert prob.status == cp.OPTIMAL
-        assert np.allclose(x_resolv, x.value, rtol=1e-3)
+        _assert_qp_matches_conic(prob, x)
 
     def test_quad_form_in_constraint(self) -> None:
         """Parametric quad_form in constraint solves correctly."""
@@ -203,11 +222,9 @@ class TestQuadFormDPPVariants:
         P.value = np.eye(2)
 
         prob = cp.Problem(cp.Minimize(cp.sum(x)), [cp.quad_form(x, P) <= 1])
-        prob.solve(solver=cp.CLARABEL)
-
-        assert prob.status == cp.OPTIMAL
-        expected = np.array([-1/np.sqrt(2), -1/np.sqrt(2)])
-        assert np.allclose(x.value, expected, rtol=1e-3)
+        _solve(prob)
+        expected = np.array([-1 / np.sqrt(2), -1 / np.sqrt(2)])
+        _assert_allclose(x.value, expected)
 
     def test_multiple_quad_forms(self) -> None:
         """Multiple quad_forms with same variable solve correctly."""
@@ -222,10 +239,8 @@ class TestQuadFormDPPVariants:
             cp.Minimize(cp.quad_form(x, P1) + cp.quad_form(x, P2)),
             [cp.sum(x) == 1]
         )
-        prob.solve(solver=cp.CLARABEL)
-
-        assert prob.status == cp.OPTIMAL
-        assert np.allclose(x.value, [0.5, 0.5], rtol=1e-3)
+        _solve(prob)
+        _assert_allclose(x.value, [0.5, 0.5])
 
     def test_affine_combination_of_params(self) -> None:
         """quad_form(x, P1 + P2) solves correctly."""
@@ -236,10 +251,8 @@ class TestQuadFormDPPVariants:
         P2.value = np.array([[0, 0], [0, 1]])
 
         prob = cp.Problem(cp.Minimize(cp.quad_form(x, P1 + P2)), [cp.sum(x) == 1])
-        prob.solve(solver=cp.CLARABEL)
-
-        assert prob.status == cp.OPTIMAL
-        assert np.allclose(x.value, [1/3, 2/3], rtol=1e-3)
+        _solve(prob)
+        _assert_allclose(x.value, [1 / 3, 2 / 3])
 
     def test_resolve_scaled_param(self) -> None:
         """Re-solving quad_form(x, 2*P) updates P correctly."""
@@ -251,23 +264,16 @@ class TestQuadFormDPPVariants:
         )
 
         P.value = np.array([[2, 0], [0, 1]])
-        prob.solve(solver=cp.CLARABEL)
-        x1 = x.value.copy()
+        first_solution = _solve_and_copy(prob, x)
 
         P.value = np.array([[1, 0], [0, 5]])
-        prob.solve(solver=cp.CLARABEL)
-        x2 = x.value.copy()
+        resolved_solution = _solve_and_copy(prob, x)
 
         # Verify against a fresh solve with the second P value.
-        prob2 = cp.Problem(
+        fresh_problem = cp.Problem(
             cp.Minimize(cp.quad_form(x, 2 * P) + 5 * x[0] + 3 * x[1])
         )
-        prob2.solve(solver=cp.CLARABEL)
-
-        assert not np.allclose(x1, x2, atol=1e-3), \
-            "x should change when P changes"
-        assert np.allclose(x2, x.value, rtol=1e-3), \
-            "re-solve should match fresh solve"
+        _assert_resolve_matches_fresh(first_solution, resolved_solution, fresh_problem, x)
 
     def test_resolve_affine_combination_of_params(self) -> None:
         """Re-solving quad_form(x, P1 + P2) updates correctly."""
@@ -282,14 +288,14 @@ class TestQuadFormDPPVariants:
         # P1+P2 = [[2,0],[0,1]] — weights x[0] more, so x[1] preferred.
         P1.value = np.array([[2, 0], [0, 0]])
         P2.value = np.array([[0, 0], [0, 1]])
-        prob.solve(solver=cp.CLARABEL)
-        assert np.allclose(x.value, [1/3, 2/3], rtol=1e-3)
+        _solve(prob)
+        _assert_allclose(x.value, [1 / 3, 2 / 3])
 
         # P1+P2 = [[1,0],[0,2]] — weights x[1] more, so x[0] preferred.
         P1.value = np.array([[1, 0], [0, 0]])
         P2.value = np.array([[0, 0], [0, 2]])
-        prob.solve(solver=cp.CLARABEL)
-        assert np.allclose(x.value, [2/3, 1/3], rtol=1e-3)
+        _solve(prob)
+        _assert_allclose(x.value, [2 / 3, 1 / 3])
 
 
 class TestQuadFormDPPConstraintResolve:
@@ -309,23 +315,16 @@ class TestQuadFormDPPConstraintResolve:
         prob = cp.Problem(cp.Minimize(cp.sum(x)), [cp.quad_form(x, P) <= 1])
 
         P.value = np.eye(2)
-        prob.solve(solver=cp.CLARABEL)
-        x1 = x.value.copy()
-        assert np.allclose(x1, [-1/np.sqrt(2), -1/np.sqrt(2)], rtol=1e-3)
+        first_solution = _solve_and_copy(prob, x)
+        _assert_allclose(first_solution, [-1 / np.sqrt(2), -1 / np.sqrt(2)])
 
         # Tighter on x[0]: solution should shift toward x[1].
         P.value = np.array([[4, 0], [0, 1]])
-        prob.solve(solver=cp.CLARABEL)
-        x2 = x.value.copy()
+        resolved_solution = _solve_and_copy(prob, x)
 
         # Cross-check against a fresh problem with the same P.
-        prob_fresh = cp.Problem(cp.Minimize(cp.sum(x)), [cp.quad_form(x, P) <= 1])
-        prob_fresh.solve(solver=cp.CLARABEL)
-
-        assert not np.allclose(x1, x2, atol=1e-3), \
-            "x should change when P changes"
-        assert np.allclose(x2, x.value, rtol=1e-3), \
-            "re-solve should match fresh solve"
+        fresh_problem = cp.Problem(cp.Minimize(cp.sum(x)), [cp.quad_form(x, P) <= 1])
+        _assert_resolve_matches_fresh(first_solution, resolved_solution, fresh_problem, x)
 
     def test_mixed_objective_and_constraint_resolve(self) -> None:
         """Parametric P in both objective and constraint must both update."""
@@ -340,25 +339,18 @@ class TestQuadFormDPPConstraintResolve:
 
         P_obj.value = np.eye(2)
         P_constr.value = np.eye(2)
-        prob.solve(solver=cp.CLARABEL)
-        x1 = x.value.copy()
+        first_solution = _solve_and_copy(prob, x)
 
         # Change constraint P only — tighter on x[0].
         P_constr.value = np.array([[100, 0], [0, 1]])
-        prob.solve(solver=cp.CLARABEL)
-        x2 = x.value.copy()
+        resolved_solution = _solve_and_copy(prob, x)
 
         # Cross-check against a fresh problem.
-        prob_fresh = cp.Problem(
+        fresh_problem = cp.Problem(
             cp.Minimize(cp.quad_form(x, P_obj)),
             [cp.quad_form(x, P_constr) <= 4, cp.sum(x) == 1]
         )
-        prob_fresh.solve(solver=cp.CLARABEL)
-
-        assert not np.allclose(x1, x2, atol=1e-3), \
-            "x should change when constraint P changes"
-        assert np.allclose(x2, x.value, rtol=1e-3), \
-            "re-solve should match fresh solve"
+        _assert_resolve_matches_fresh(first_solution, resolved_solution, fresh_problem, x)
 
 
 def test_hermitian_param_resolve() -> None:
@@ -369,13 +361,11 @@ def test_hermitian_param_resolve() -> None:
     prob = cp.Problem(cp.Minimize(cp.quad_form(x, P)), constrs)
 
     P.value = np.array([[2, 1 + 1j], [1 - 1j, 3]])
-    prob.solve(solver=cp.CLARABEL)
-    x1 = x.value.copy()
+    first_solution = _solve_and_copy(prob, x)
 
     P.value = np.array([[4, 1 + 2j], [1 - 2j, 5]])
-    prob.solve(solver=cp.CLARABEL)
-    x2 = x.value.copy()
+    resolved_solution = _solve_and_copy(prob, x)
 
-    assert not np.allclose(x1, x2, atol=1e-3)
-    prob.solve(solver=cp.CLARABEL, use_quad_obj=False)
-    assert np.allclose(x2, x.value, rtol=1e-3)
+    assert not np.allclose(first_solution, resolved_solution, atol=RTOL)
+    _solve(prob, use_quad_obj=False)
+    _assert_allclose(resolved_solution, x.value)
