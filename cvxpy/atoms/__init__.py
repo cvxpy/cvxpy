@@ -154,6 +154,7 @@ PSD_ATOMS = [
     sigma_max,
     tr_inv,
     quantum_rel_entr,
+    von_neumann_entr,
 ]
 
 NONPOS_ATOMS = [

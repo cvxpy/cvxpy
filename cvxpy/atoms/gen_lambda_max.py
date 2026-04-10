@@ -13,7 +13,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import List, Tuple
 
 from scipy import linalg as LA
 
@@ -39,7 +38,7 @@ class gen_lambda_max(Atom):
                        eigvals_only=True,
                        subset_by_index=(lo, hi))[0]
 
-    def _domain(self) -> List[Constraint]:
+    def _domain(self) -> list[Constraint]:
         """Returns constraints describing the domain of the node.
         """
         return [self.args[0].H == self.args[0], self.args[1].H == self.args[1],
@@ -70,12 +69,12 @@ class gen_lambda_max(Atom):
                 "be square and have the same dimensions." % (
                  self.args[0].name(), self.args[1].name()))
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> tuple[int, ...]:
         """Returns the (row, col) shape of the expression.
         """
         return tuple()
 
-    def sign_from_args(self) -> Tuple[bool, bool]:
+    def sign_from_args(self) -> tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         return (False, False)

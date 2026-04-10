@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 from collections import namedtuple
-from typing import Any, List, Tuple
+from typing import Any
 
 import numpy as np
 
@@ -125,7 +125,7 @@ class Dqcp2Dcp(Canonicalization):
         constrs += c
         return canon_expr, constrs
 
-    def _canon_args(self, expr) -> Tuple[List[Any], List[Any]]:
+    def _canon_args(self, expr) -> tuple[list[Any], list[Any]]:
         """Canonicalize arguments of an expression.
 
         Like Canonicalization.canonicalize_tree, but preserves signs.

@@ -24,12 +24,12 @@ MIN_INIT = 1e-3
 # We canonicalize div(f(x), g(x)) as z * y = f(x), y = g(x), y >= 0.
 # In other words, it assumes that the denominator is nonnegative.
 def div_canon(expr, args):
-    
+
     # raise an error if the denominator is not nonnegative
     if not args[1].is_nonneg():
         raise ValueError("The denominator of a division must be nonnegative. "
                           "Did you forget to specify bounds?")
-    
+
     dim = args[0].shape
     sgn_z = args[0].sign
 
@@ -39,13 +39,13 @@ def div_canon(expr, args):
         z = Variable(dim, nonpos=True)
     else:
         z = Variable(dim)
-    
+
     y = Variable(args[1].shape, nonneg=True)
 
     if args[0].value is not None and args[1].value is not None:
         y.value = np.maximum(args[1].value, MIN_INIT)
         val = args[0].value / y.value
-    
+
         # dimension hack
         if dim == () and val.shape == (1,):
             z.value = val[0]

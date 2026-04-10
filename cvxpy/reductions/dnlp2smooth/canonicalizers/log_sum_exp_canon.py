@@ -28,10 +28,10 @@ def log_sum_exp_canon(expr, args):
     x = args[0]
     t = Variable(expr.shape)
     v = Variable(x.shape, nonpos=True)
-    
+
     if x.value is not None:
         t.value = expr.numeric(x.value)
         v.value = np.minimum(x.value - t.value, -1)
-    
+
     constraints = [sum(exp(v)) == 1, v == x - t]
     return t, constraints

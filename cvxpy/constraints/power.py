@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import List, Tuple
 
 import numpy as np
 
@@ -107,7 +106,7 @@ class PowCone3D(Cone):
     def num_cones(self):
         return self.x.size
 
-    def cone_sizes(self) -> List[int]:
+    def cone_sizes(self) -> list[int]:
         return [3]*self.num_cones()
 
     def is_dcp(self, dpp: bool = False) -> bool:
@@ -125,7 +124,7 @@ class PowCone3D(Cone):
         return self.is_dcp()
 
     @property
-    def shape(self) -> Tuple[int, ...]:
+    def shape(self) -> tuple[int, ...]:
         s = (3,) + self.x.shape
         # Note: this can be a 3-tuple of x.ndim == 2.
         return s
@@ -144,9 +143,10 @@ class PowCone3D(Cone):
     def _dual_cone(self, *args):
         """Implements the dual cone of PowCone3D See Pg 85
         of the MOSEK modelling cookbook for more information"""
-        if args is None:
-            PowCone3D(self.dual_variables[0]/self.alpha, self.dual_variables[1]/(1-self.alpha),
-                      self.dual_variables[2], self.alpha)
+        if not args:
+            return PowCone3D(self.dual_variables[0]/self.alpha,
+                             self.dual_variables[1]/(1-self.alpha),
+                             self.dual_variables[2], self.alpha)
         else:
             # some assertions for verifying `args`
             args_shapes = [arg.shape for arg in args]
@@ -240,9 +240,9 @@ class PowConeND(Cone):
 
     def get_data(self):
         return [self.alpha, self.axis, self.id]
-    
+
     @property
-    def shape(self) -> Tuple[int, int]:
+    def shape(self) -> tuple[int, int]:
         # The shape property is a tuple (m, n) where each
         # column/row is a separate power cone depending on axis.
         # This constitutes the shape of the hypograph variable z
@@ -256,7 +256,7 @@ class PowConeND(Cone):
             m, n = self.W.shape[1], self.W.shape[0]
         s = (m + 1, n)
         return s
-    
+
     @property
     def residual(self):
         # TODO: The projection should be implemented directly.
@@ -280,7 +280,7 @@ class PowConeND(Cone):
         cone_size = 1 + self.args[0].shape[self.axis]
         return cone_size * self.num_cones()
 
-    def cone_sizes(self) -> List[int]:
+    def cone_sizes(self) -> list[int]:
         cone_size = 1 + self.args[0].shape[self.axis]
         return [cone_size] * self.num_cones()
 
@@ -292,7 +292,7 @@ class PowConeND(Cone):
                 args_ok = self.args[0].is_affine() and self.args[1].is_affine()
                 exps_ok = not isinstance(self.alpha, cvxtypes.parameter())
                 return args_ok and exps_ok
-        return True
+        return self.args[0].is_affine() and self.args[1].is_affine()
 
     def is_dgp(self, dpp: bool = False) -> bool:
         return False
@@ -318,7 +318,7 @@ class PowConeND(Cone):
     def _dual_cone(self, *args):
         """Implements the dual cone of PowConeND See Pg 85
         of the MOSEK modelling cookbook for more information"""
-        if args is None or args == ():
+        if not args:
             scaled_duals = self.dual_variables[0]/self.alpha
             return PowConeND(scaled_duals, self.dual_variables[1], self.alpha, axis=self.axis)
         else:

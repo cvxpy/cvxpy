@@ -15,7 +15,7 @@ limitations under the License.
 """
 import contextlib
 import threading
-from typing import Generator
+from collections.abc import Generator
 
 _thread_local = threading.local()
 

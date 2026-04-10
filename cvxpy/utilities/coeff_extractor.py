@@ -17,7 +17,6 @@ limitations under the License.
 from __future__ import annotations
 
 import operator
-from typing import List
 
 import numpy as np
 import scipy.sparse as sp
@@ -296,7 +295,7 @@ class CoeffExtractor:
         self,
         P: sp.coo_matrix,
         c_part: np.ndarray,
-        block_indices: List[np.ndarray],
+        block_indices: list[np.ndarray],
         num_params: int,
     ) -> TensorRepresentation:
         """Extract quadratic coefficients for block-structured quad forms.
@@ -416,7 +415,7 @@ class CoeffExtractor:
 
     def merge_P_list(
             self,
-            P_list: List[TensorRepresentation],
+            P_list: list[TensorRepresentation],
             P_height: int,
             num_params: int,
         ) -> sp.csc_array:
@@ -431,7 +430,7 @@ class CoeffExtractor:
             P_entries: number of entries in the merged P matrix.
             P_height: number of rows in the merged P matrix.
             num_params: number of parameters in the problem.
-        
+
         Returns:
             A CSC sparse representation of the merged P matrix.
         """
@@ -446,7 +445,7 @@ class CoeffExtractor:
             P.row += offset
             P.col += offset
             P.shape = (P_height, P_height)
-    
+
             offset += m
 
         combined = TensorRepresentation.combine(P_list)
@@ -455,7 +454,7 @@ class CoeffExtractor:
 
     def merge_q_list(
         self,
-        q_list: List[sp.spmatrix | np.ndarray],
+        q_list: list[sp.spmatrix | np.ndarray],
         constant: sp.csc_array,
         num_params: int,
     ) -> sp.csr_array:

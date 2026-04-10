@@ -76,21 +76,24 @@ class Canonicalization(Reduction):
     def invert(self, solution, inverse_data):
         pvars = {vid: solution.primal_vars[vid] for vid in inverse_data.id_map
                  if vid in solution.primal_vars}
-        dvars = {orig_id: solution.dual_vars[vid]
-                 for orig_id, vid in inverse_data.cons_id_map.items()
-                 if vid in solution.dual_vars}
+        if solution.dual_vars is not None:
+            dvars = {orig_id: solution.dual_vars[vid]
+                     for orig_id, vid in inverse_data.cons_id_map.items()
+                     if vid in solution.dual_vars}
+        else:
+            dvars = None
 
         return Solution(solution.status, solution.opt_val, pvars, dvars,
                         solution.attr)
 
     def canonicalize_tree(self, expr, canonicalize_params: bool = True):
         """Recursively canonicalize an Expression.
-        
+
         Args:
             expr: Expression to canonicalize.
             canonicalize_params: Should constant subtrees
                 containing parameters be canonicalized?
-        
+
         Returns:
             canonicalized expression, constraints
         """
@@ -129,13 +132,13 @@ class Canonicalization(Reduction):
             canonicalize_params: bool = True
         ):
         """Canonicalize an expression, w.r.t. canonicalized arguments.
-        
+
         Args:
             expr: Expression to canonicalize.
             args: Arguments to the expression.
             canonicalize_params: Should constant subtrees
                 containing parameters be canonicalized?
-        
+
         Returns:
             canonicalized expression, constraints
         """
@@ -151,6 +154,9 @@ class Canonicalization(Reduction):
         if skip_canon:
             return expr, []
         if type(expr) in self.canon_methods:
-            return self.canon_methods[type(expr)](expr, args)
+            kwargs = {}
+            if hasattr(self, 'solver_context'):
+                kwargs['solver_context'] = self.solver_context
+            return self.canon_methods[type(expr)](expr, args, **kwargs)
         else:
             return expr.copy(args), []

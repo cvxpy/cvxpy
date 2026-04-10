@@ -18,6 +18,7 @@ limitations under the License.
 import importlib
 
 from numpy import int32
+from scipy import sparse
 
 import cvxpy.settings as s
 from cvxpy.constraints import SOC
@@ -196,20 +197,52 @@ class QOCO(ConicSolver):
         major_version = int(version_tuple[0])
         minor_version = int(version_tuple[1])
 
-        # CUDA backend only available v0.2.0 and onwards.
-        if major_version >= 0 and minor_version >= 2 and "algebra" in solver_opts:
-            solver = qoco.QOCO(algebra=solver_opts["algebra"])
-        else:
-            solver = qoco.QOCO()
-        solver.setup(n, m, p, P, data[s.C], A, data[s.B], G, data[s.H], num_nno, nsoc, q,
-        verbose=verbose, **solver_opts)
+        def new_solver():
+            # CUDA backend only available v0.2.0 and onwards.
+            if major_version >= 0 and minor_version >= 2 and "algebra" in solver_opts:
+                solver = qoco.QOCO(algebra=solver_opts["algebra"])
+            else:
+                solver = qoco.QOCO()
+            solver.setup(n, m, p, P, data[s.C], A, data[s.B], G, data[s.H], num_nno, nsoc, q,
+                verbose=verbose, **solver_opts)
+            return solver
+
+        def updated_solver():
+            if (solver_cache is None) or (self.name() not in solver_cache) or (not warm_start):
+                return None
+
+            solver = solver_cache[self.name()]
+
+            if not hasattr(solver, "update_vector_data") and \
+               not hasattr(solver, "update_matrix_data"):
+                return None
+            else:
+                # Overwrites all data in the solver but will not reallocate internal memory or redo
+                # the symbolic factorization. Note that if an existing solver object is used and if
+                # a solve is performed verbosely, the solver output will still claim there is some
+                # setup time. However, this is merely the setup time for the initial solve.
+                # Will raise ValueError if dimensions or sparsity has changed
+                solver.update_vector_data(c=data[s.C], b=data[s.B], h=data[s.H])
+                P_data = sparse.triu(P, format="csc").data if P is not None else None
+                A_data = A.data if A is not None else None
+                G_data = G.data if G is not None else None
+                solver.update_matrix_data(P=P_data, A=A_data, G=G_data)
+                return solver
+
+        # Try to get allocated solver object if available.
+        solver = updated_solver()
+
+        # If not available, allocate new solver object.
+        if solver is None:
+            solver = new_solver()
+
         results = solver.solve()
 
         if solver_cache is not None:
-            solver_cache[self.name()] = results
+            solver_cache[self.name()] = solver
 
         return results
-    
+
     def cite(self, data):
         """Returns bibtex citation for the solver.
 

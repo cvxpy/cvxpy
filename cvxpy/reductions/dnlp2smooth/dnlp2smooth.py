@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import Tuple
 
 from cvxpy import problems
 from cvxpy.expressions.expression import Expression
@@ -38,13 +37,13 @@ class Dnlp2Smooth(Canonicalization):
     def accepts(self, problem):
         """A problem is always accepted"""
         return True
-    
+
     def apply(self, problem):
         """Converts an expr to a smooth program"""
         inverse_data = InverseData(problem)
 
         inverse_data.minimize = type(problem.objective) == Minimize
-        
+
         # smoothen objective function
         canon_objective, canon_constraints = self.canonicalize_tree(
             problem.objective, True)
@@ -64,7 +63,7 @@ class Dnlp2Smooth(Canonicalization):
                                                canon_constraints)
         return new_problem, inverse_data
 
-    def canonicalize_tree(self, expr, affine_above: bool) -> Tuple[Expression, list]:
+    def canonicalize_tree(self, expr, affine_above: bool) -> tuple[Expression, list]:
         """Recursively canonicalize an Expression.
 
         Parameters
@@ -87,7 +86,7 @@ class Dnlp2Smooth(Canonicalization):
         constrs += c
         return canon_expr, constrs
 
-    def canonicalize_expr(self, expr, args, affine_above: bool) -> Tuple[Expression, list]:
+    def canonicalize_expr(self, expr, args, affine_above: bool) -> tuple[Expression, list]:
         """Canonicalize an expression, w.r.t. canonicalized arguments.
 
         Parameters

@@ -13,14 +13,13 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import List, Union
 
 import cvxpy.atoms as atoms
 from cvxpy.problems.objective import Maximize, Minimize
 from cvxpy.transforms import indicator
 
 
-def weighted_sum(objectives: List[Union[Minimize, Maximize]], weights) -> Union[Minimize, Maximize]:
+def weighted_sum(objectives: list[Minimize | Maximize], weights) -> Minimize | Maximize:
     """Combines objectives as a weighted sum.
 
     Args:
@@ -35,12 +34,12 @@ def weighted_sum(objectives: List[Union[Minimize, Maximize]], weights) -> Union[
 
 
 def targets_and_priorities(
-  objectives: List[Union[Minimize, Maximize]],
+  objectives: list[Minimize | Maximize],
   priorities,
   targets,
   limits=None,
   off_target: float = 1e-5
-) -> Union[Minimize, Maximize]:
+) -> Minimize | Maximize:
     """
     Combines objectives with penalties within a range between target and limit.
 
@@ -80,33 +79,47 @@ def targets_and_priorities(
     assert len(objectives) == len(targets), "Number of objectives and targets must match."
     if limits is not None:
         assert len(objectives) == len(limits), "Number of objectives and limits must match."
-  
+
     assert off_target >= 0, "The off_target argument must be nonnegative."
 
     num_objs = len(objectives)
-    new_objs: List[Union[Minimize, Maximize]] = []
+    new_objs: list[Minimize | Maximize] = []
+    obj_types = set()
     for i in range(num_objs):
         obj, tar, lim = objectives[i], targets[i], limits[i] if limits is not None else None
         if priorities[i] < 0:
             obj, tar, lim = -obj, -tar, -lim if lim is not None else None
-        
-        sign = 1 if obj.args[0].is_convex() else -1
 
-        delta = sign*(obj.args[0] - targets[i])
+        sign = 1 if isinstance(obj, Minimize) else -1
+        obj_types.add(type(obj))
+
+        delta = sign*(obj.args[0] - tar)
         expr = sign*(abs(priorities[i]) - off_target)*atoms.pos(delta)
         expr += off_target*obj.args[0]
         if limits is not None:
-            expr += sign*indicator([sign*obj.args[0] <= sign*limits[i]])
+            expr += sign*indicator([sign*obj.args[0] <= sign*lim])
         new_objs.append(expr)
     obj_expr = sum(new_objs)
-    if obj_expr.is_convex():
-        return Minimize(obj_expr)
-    elif obj_expr.is_concave():
-        return Maximize(obj_expr)
+
+    # When all objectives agree on direction, respect that direction
+    # rather than relying solely on curvature (which can be ambiguous
+    # for affine expressions, e.g. when priority <= off_target).
+    if obj_types == {Minimize}:
+        if obj_expr.is_convex():
+            return Minimize(obj_expr)
+        raise ValueError("Scalarized objective is not convex.")
+    elif obj_types == {Maximize}:
+        if obj_expr.is_concave():
+            return Maximize(obj_expr)
+        raise ValueError("Scalarized objective is not concave.")
     else:
+        if obj_expr.is_convex():
+            return Minimize(obj_expr)
+        elif obj_expr.is_concave():
+            return Maximize(obj_expr)
         raise ValueError("Scalarized objective is neither convex nor concave.")
 
-def max(objectives: List[Union[Minimize, Maximize]], weights) -> Minimize:
+def max(objectives: list[Minimize | Maximize], weights) -> Minimize:
     """Combines objectives as max of weighted terms.
 
     Args:
@@ -122,7 +135,7 @@ def max(objectives: List[Union[Minimize, Maximize]], weights) -> Minimize:
 
 
 def log_sum_exp(
-  objectives: List[Union[Minimize, Maximize]], weights, gamma: float = 1.0
+  objectives: list[Minimize | Maximize], weights, gamma: float = 1.0
 ) -> Minimize:
     """Combines objectives as log_sum_exp of weighted terms.
 

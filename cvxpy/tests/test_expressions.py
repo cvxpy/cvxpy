@@ -500,12 +500,12 @@ class TestExpressions(BaseTest):
         with self.assertRaises(Exception) as cm:
              p = Parameter((2, 2), boolean=[(0, 0), (0, 1)], value=[[0, 2], [1, 0]])
         self.assertEqual(str(cm.exception), "Parameter value must be boolean.")
- 
+
         # Integer indices
         with self.assertRaises(Exception) as cm:
              p = Parameter((2, 2), integer=[(0, 0), (0, 1)], value=[[1, 1.5], [1.4, 2.8]])
         self.assertEqual(str(cm.exception), "Parameter value must be integer.")
-        
+
         # Diag.
         with self.assertRaises(Exception) as cm:
             p = Parameter((2, 2), diag=True, value=[[1, 1], [1, -1]])
@@ -576,7 +576,7 @@ class TestExpressions(BaseTest):
         expr = cp.real(v)
         assert expr.is_hermitian()
         expr = cp.imag(v)
-        assert expr.is_hermitian()
+        assert not expr.is_hermitian()  # imag(H) is skew-symmetric for Hermitian H
         expr = cp.conj(v)
         assert expr.is_hermitian()
         expr = cp.promote(Variable(), (2, 2))
@@ -1275,6 +1275,91 @@ class TestExpressions(BaseTest):
         self.assertEqual(exp.curvature, s.CONCAVE)
         exp = self.x**-1
         self.assertEqual(exp.curvature, s.CONVEX)
+
+    def test_rpow(self) -> None:
+        """Test Expression.__rpow__ for expressions of the form a**x."""
+        x = Variable()
+
+        # Test 1: basic expression is created correctly
+        expr = 2 ** x
+        self.assertIsNotNone(expr)
+
+        # Test 2: minimize 2**x with x >= 1, optimal at x=1, value=2
+        prob = cp.Problem(cp.Minimize(2 ** x), [x >= 1, x <= 3])
+        prob.solve()
+        self.assertAlmostEqual(float(x.value), 1.0, places=3)
+        self.assertAlmostEqual(float(prob.value), 2.0, places=3)
+
+
+        # Test 3: base=10, minimize with x >= 2, optimal at x=2, value=100
+        prob2 = cp.Problem(cp.Minimize(10 ** x), [x >= 2])
+        prob2.solve()
+        self.assertAlmostEqual(float(x.value), 2.0, places=3)
+        self.assertAlmostEqual(float(prob2.value), 100.0, places=3)
+        # Test 4: base=1 gives value 1 regardless of x
+        prob3 = cp.Problem(cp.Minimize(1 ** x), [x >= 0])
+        prob3.solve()
+        self.assertAlmostEqual(float(prob3.value), 1.0, places=3)
+
+        # Test 5: negative base raises ValueError
+        with self.assertRaises(ValueError):
+            (-2) ** x
+
+        # Test 6: non-integer base 0.5**x, minimize with x in [-2, 0]
+        prob4 = cp.Problem(cp.Minimize(0.5 ** x), [x >= -2, x <= 0])
+        prob4.solve()
+        self.assertAlmostEqual(float(x.value), 0.0, places=3)
+        self.assertAlmostEqual(float(prob4.value), 1.0, places=3)
+
+        # Test 7: 2**x used in constraint, minimize 2**x subject to 2**x <= 8
+        prob5 = cp.Problem(cp.Minimize(x), [2 ** x <= 8, x >= 0])
+        prob5.solve()
+        self.assertAlmostEqual(float(x.value), 0.0, places=3)
+
+        # Test 8: non-constant base raises ValueError
+        y = Variable()
+        with self.assertRaises(ValueError):
+            y ** x
+
+    def test_power_const_base(self) -> None:
+        """Test cp.power(b, x) where b is constant and x is variable."""
+        x = Variable()
+
+        # Test 1: basic expression created correctly
+        expr = cp.power(2, x)
+        self.assertIsNotNone(expr)
+
+        # Test 2: minimize cp.power(2, x) with x >= 1, optimal at x=1, value=2
+        prob = cp.Problem(cp.Minimize(cp.power(2, x)), [x >= 1, x <= 3])
+        prob.solve()
+        self.assertAlmostEqual(float(x.value), 1.0, places=3)
+        self.assertAlmostEqual(float(prob.value), 2.0, places=3)
+
+        # Test 3: base=10, x >= 2, optimal value=100
+        prob2 = cp.Problem(cp.Minimize(cp.power(10, x)), [x >= 2])
+        prob2.solve()
+        self.assertAlmostEqual(float(x.value), 2.0, places=3)
+        self.assertAlmostEqual(float(prob2.value), 100.0, places=3)
+
+        # Test 4: negative base raises ValueError
+        with self.assertRaises(ValueError):
+            cp.power(-2, x)
+
+        # Test 5: Parameter(pos=True) as base for cp.power
+        b = cp.Parameter(pos=True)
+        b.value = 2.0
+        expr3 = cp.power(b, x)
+        self.assertIsNotNone(expr3)
+        prob3 = cp.Problem(cp.Minimize(cp.power(b, x)), [x >= 1, x <= 3])
+        prob3.solve()
+        self.assertAlmostEqual(float(x.value), 1.0, places=3)
+
+        # Test 6: Parameter(pos=True) as base for ** operator
+        expr4 = b ** x
+        self.assertIsNotNone(expr4)
+        prob4 = cp.Problem(cp.Minimize(b ** x), [x >= 1, x <= 3])
+        prob4.solve()
+        self.assertAlmostEqual(float(x.value), 1.0, places=3)
 
     def test_sum(self) -> None:
         """Test cvxpy sum function.

@@ -16,7 +16,6 @@ limitations under the License.
 
 import operator as op
 from functools import reduce
-from typing import List, Tuple
 
 import numpy as np
 import scipy.sparse as sp
@@ -64,13 +63,13 @@ class BinaryOperator(AffAtom):
             else:
                 pretty_args.append(a.name())
         return pretty_args[0] + ' ' + self.OP_NAME + ' ' + pretty_args[1]
-    
+
     def format_labeled(self):
         """Format binary operation with labels where available."""
         # Check for own label first
         if self._label is not None:
             return self._label
-        
+
         # Build from sub-expressions using their labels
         pretty_args = []
         for i, a in enumerate(self.args):
@@ -90,7 +89,7 @@ class BinaryOperator(AffAtom):
         """
         return reduce(self.OP_FUNC, values)
 
-    def sign_from_args(self) -> Tuple[bool, bool]:
+    def sign_from_args(self) -> tuple[bool, bool]:
         """Default to rules for times.
         """
         return u.sign.mul_sign(self.args[0], self.args[1])
@@ -107,7 +106,7 @@ class BinaryOperator(AffAtom):
         return (self.args[0].is_complex() or self.args[1].is_complex()) and \
             not (self.args[0].is_imag() and self.args[1].is_imag())
 
-    def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
+    def bounds_from_args(self) -> tuple[np.ndarray, np.ndarray]:
         """Returns bounds for elementwise multiplication based on argument bounds."""
         lb1, ub1 = self.args[0].get_bounds()
         lb2, ub2 = self.args[1].get_bounds()
@@ -192,7 +191,7 @@ class MulExpression(BinaryOperator):
         else:
             return values[0] @ values[1]
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> tuple[int, ...]:
         """Returns the (row, col) shape of the expression.
         """
         return u.shape.mul_shapes(self.args[0].shape, self.args[1].shape)
@@ -235,7 +234,7 @@ class MulExpression(BinaryOperator):
         """
         return False
 
-    def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
+    def bounds_from_args(self) -> tuple[np.ndarray, np.ndarray]:
         """Returns bounds for matrix multiplication based on argument bounds."""
         lb1, ub1 = self.args[0].get_bounds()
         lb2, ub2 = self.args[1].get_bounds()
@@ -312,8 +311,8 @@ class MulExpression(BinaryOperator):
         return [DX, DY]
 
     def graph_implementation(
-        self, arg_objs, shape: Tuple[int, ...], data=None
-    ) -> Tuple[lo.LinOp, List[Constraint]]:
+        self, arg_objs, shape: tuple[int, ...], data=None
+    ) -> tuple[lo.LinOp, list[Constraint]]:
         """Multiply the linear expressions.
 
         Parameters
@@ -359,7 +358,7 @@ class multiply(MulExpression):
         """Is the atom log-log concave?"""
         return True
 
-    def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
+    def bounds_from_args(self) -> tuple[np.ndarray, np.ndarray]:
         """Returns bounds for elementwise multiplication based on argument bounds.
 
         Overrides MulExpression to use elementwise multiplication bounds
@@ -397,7 +396,7 @@ class multiply(MulExpression):
             np.empty(self.args[1].shape, dtype=np.dtype([]))
         )
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> tuple[int, ...]:
         """Call np.broadcast on multiply arguments."""
         return np.broadcast_shapes(self.args[0].shape, self.args[1].shape)
 
@@ -453,8 +452,8 @@ class multiply(MulExpression):
         return [DX, DY]
 
     def graph_implementation(
-        self, arg_objs, shape: Tuple[int, ...], data=None
-    ) -> Tuple[lo.LinOp, List[Constraint]]:
+        self, arg_objs, shape: tuple[int, ...], data=None
+    ) -> tuple[lo.LinOp, list[Constraint]]:
         """Multiply the expressions elementwise.
 
         Parameters
@@ -514,7 +513,7 @@ class DivExpression(BinaryOperator):
     def is_qpwa(self) -> bool:
         return self.args[0].is_qpwa() and self.args[1].is_constant()
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> tuple[int, ...]:
         """Returns the (row, col) shape of the expression.
         """
         return self.args[0].shape
@@ -544,7 +543,7 @@ class DivExpression(BinaryOperator):
     def is_atom_quasiconcave(self) -> bool:
         return self.is_atom_quasiconvex()
 
-    def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
+    def bounds_from_args(self) -> tuple[np.ndarray, np.ndarray]:
         """Returns bounds for division based on argument bounds."""
         lb1, ub1 = self.args[0].get_bounds()
         lb2, ub2 = self.args[1].get_bounds()
@@ -567,8 +566,8 @@ class DivExpression(BinaryOperator):
             return self.args[0].is_nonneg()
 
     def graph_implementation(
-        self, arg_objs, shape: Tuple[int, ...], data=None
-    ) -> Tuple[lo.LinOp, List[Constraint]]:
+        self, arg_objs, shape: tuple[int, ...], data=None
+    ) -> tuple[lo.LinOp, list[Constraint]]:
         """Multiply the linear expressions.
 
         Parameters
@@ -651,7 +650,7 @@ def outer(x, y):
     y = Expression.cast_to_const(y)
     if y.ndim > 1:
         raise ValueError("y must be a 1-d array.")
-    
+
     x = reshape(x, (x.size, 1), order='F')
     y = reshape(y, (1, y.size), order='F')
     return x @ y
