@@ -302,13 +302,19 @@ def decomp_quad(P, cond=None, rcond=None, lower=True, check_finite: bool = True)
 
 
 def quad_form(x, P, assume_PSD: bool = False):
-    """ Alias for :math:`x^T P x`.
+    """Alias for :math:`x^T P x`.
 
     Parameters
     ----------
     x : vector argument.
     P : matrix argument.
     assume_PSD : P is assumed to be PSD without checking.
+
+    Notes
+    -----
+    When ``P`` is a ``Parameter`` declared PSD or NSD and the solver supports
+    quadratic objectives, ``quad_form(x, P)`` can participate in a DPP solve,
+    so repeated solves can reuse cached compilation data.
     """
     x, P = map(Expression.cast_to_const, (x, P))
     # Check dimensions.

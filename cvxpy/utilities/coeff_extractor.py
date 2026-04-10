@@ -156,7 +156,9 @@ class CoeffExtractor:
                 if P_is_parametric:
                     # PARAMETRIC P PATH - P depends on parameters.
                     # Handles bare Parameter, scalar*Parameter, sums of Parameters, etc.
-                    # Each quad_form(x, P) produces a scalar dummy variable (var_size == 1).
+                    # Each supported parametric quadratic term here produces a scalar
+                    # dummy variable (var_size == 1), including SymbolicQuadForm terms
+                    # created from scalar quad_form canonicalization.
                     assert var_size == 1, (
                         "DPP quad_form with parametric P requires a scalar quad_form output."
                     )
@@ -188,6 +190,8 @@ class CoeffExtractor:
                         # With x_length=0, get_problem_matrix returns a matrix of shape
                         # (n*n, num_params) encoding the affine relationship:
                         #   vec(P_expr) = sum_p  P_coeffs[:, p] * param[p]
+                        # The vectorization order here matches param_id_map and the
+                        # canonicalization backend: column-major / Fortran order.
                         op_list = [P_expr.canonical_form[0]]
                         P_coeffs = canonInterface.get_problem_matrix(
                             op_list,
@@ -200,10 +204,10 @@ class CoeffExtractor:
                         )
 
                         # P_coeffs is sparse, shape (n*n, num_params).
-                        # Row k corresponds to vec(P)[k] = P[k % n, k // n] (col-major).
+                        # Row k corresponds to vec(P)[k] = P[k % n, k // n].
                         P_coeffs_coo = sp.coo_matrix(P_coeffs)
 
-                        # Convert flat index k to (row, col) in column-major order.
+                        # Convert flat index k back to (row, col) in that same order.
                         rows = P_coeffs_coo.row % n
                         cols = P_coeffs_coo.row // n
                         p_indices = P_coeffs_coo.col

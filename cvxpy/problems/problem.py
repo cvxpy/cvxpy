@@ -367,9 +367,8 @@ class Problem(u.Canonical):
             quadratic objectives directly (QP solvers).
 
             - ``None`` (default): standard DPP, no scope relaxation.
-            - ``'qp'``: enter scope for the **objective only**.  Constraint
+            - ``'qp'``: enter scope for the objective only. Constraint
               quad_forms with parametric P are correctly rejected.
-            - ``'qcqp'``: enter scope for **objective and constraints**.
 
         Returns
         -------
@@ -379,18 +378,14 @@ class Problem(u.Canonical):
         if context.lower() == 'dcp':
             if quad_form_dpp is None:
                 expr_dpp = self.is_dcp(dpp=True)
-            elif quad_form_dpp in ('qp', 'qcqp'):
+            elif quad_form_dpp == 'qp':
                 # Check objective with quad_form_dpp_scope (parametric P OK).
                 with scopes.quad_form_dpp_scope():
                     obj_dpp = self.objective.is_dcp(dpp=True)
-                # Check constraints: with scope for QCQP, without for QP.
-                if quad_form_dpp == 'qcqp':
-                    with scopes.quad_form_dpp_scope():
-                        constrs_dpp = all(
-                            c.is_dcp(dpp=True) for c in self.constraints)
-                else:
-                    constrs_dpp = all(
-                        c.is_dcp(dpp=True) for c in self.constraints)
+                # Constraints stay on the standard DPP path because they still
+                # canonicalize through the conic machinery.
+                constrs_dpp = all(
+                    c.is_dcp(dpp=True) for c in self.constraints)
                 expr_dpp = obj_dpp and constrs_dpp
             else:
                 raise ValueError(
