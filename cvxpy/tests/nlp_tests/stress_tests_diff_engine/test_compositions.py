@@ -26,7 +26,7 @@ from cvxpy.tests.nlp_tests.derivative_checker import DerivativeChecker
 @pytest.mark.skipif('IPOPT' not in INSTALLED_SOLVERS, reason='IPOPT is not installed.')
 class TestCompositions():
     # Stress tests for affine matrix atoms in the diff engine.
-    
+
     def test_left_matmul_composition(self):
         np.random.seed(0)
         X = cp.Variable((10, 10), bounds = [-0.2, 0.2])
@@ -65,7 +65,7 @@ class TestCompositions():
         prob.solve(nlp=True, verbose=True)
         checker = DerivativeChecker(prob)
         checker.run_and_assert()
-    
+
     def test_multiply_nonlinear_composition(self):
         m = 20
         n = 5
@@ -82,7 +82,7 @@ class TestCompositions():
         prob.solve(nlp=True, verbose=True)
         checker = DerivativeChecker(prob)
         checker.run_and_assert()
-    
+
     def test_multiply_nonlinear_composition_transpose(self):
         m = 10
         n = 10
@@ -99,7 +99,7 @@ class TestCompositions():
         prob.solve(nlp=True, verbose=True)
         checker = DerivativeChecker(prob)
         checker.run_and_assert()
-                    
+
     def test_quad_form_composition(self):
         n = 25
         Q = np.random.rand(n, n)
@@ -113,7 +113,7 @@ class TestCompositions():
         prob.solve(nlp=True, verbose=True)
         checker = DerivativeChecker(prob)
         checker.run_and_assert()
-    
+
     def test_quad_form_composition_two(self):
         n = 10
         Q = np.random.rand(n, n)
@@ -158,7 +158,7 @@ class TestCompositions():
         assert(problem.status == cp.OPTIMAL)
         checker = DerivativeChecker(problem)
         checker.run_and_assert()
-    
+
     def test_matmul_composition_three(self):
         np.random.seed(0)
         m, n, p = 5, 5, 5
@@ -174,7 +174,7 @@ class TestCompositions():
         assert(problem.status == cp.OPTIMAL)
         checker = DerivativeChecker(problem)
         checker.run_and_assert()
-    
+
     def test_div(self):
         n = 5
         x = cp.Variable((n, 1), bounds=[1, 2])

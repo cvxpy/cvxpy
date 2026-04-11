@@ -126,9 +126,7 @@ class HIGHS(ConicSolver):
         return s.HIGHS
 
     def import_solver(self) -> None:
-        import highspy
-
-        highspy
+        import highspy  # noqa: F401
 
     def accepts(self, problem) -> bool:
         """Can HiGHS solve the problem?"""

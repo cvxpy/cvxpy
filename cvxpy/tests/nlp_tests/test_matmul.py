@@ -39,9 +39,10 @@ class TestMatmul():
         problem.solve(solver=cp.IPOPT, nlp=True, hessian_approximation='exact',
                     derivative_test='none', verbose=False)
         assert(problem.status == cp.OPTIMAL)
-        
+
         checker = DerivativeChecker(problem)
         checker.run_and_assert()
+
 
     def test_simple_matmul_not_graph_form(self):
         np.random.seed(0)
@@ -56,7 +57,7 @@ class TestMatmul():
         problem.solve(solver=cp.IPOPT, nlp=True, hessian_approximation='exact',
                     derivative_test='none', verbose=False)
         assert(problem.status == cp.OPTIMAL)
-        
+
         checker = DerivativeChecker(problem)
         checker.run_and_assert()
 
@@ -72,7 +73,7 @@ class TestMatmul():
         problem.solve(solver=cp.IPOPT, nlp=True, hessian_approximation='exact',
                     derivative_test='none', verbose=True)
         assert(problem.status == cp.OPTIMAL)
-        
+
         checker = DerivativeChecker(problem)
         checker.run_and_assert()
 
@@ -88,7 +89,7 @@ class TestMatmul():
         problem.solve(solver=cp.IPOPT, nlp=True, hessian_approximation='exact',
                     derivative_test='none', verbose=True)
         assert(problem.status == cp.OPTIMAL)
-        
+
         checker = DerivativeChecker(problem)
         checker.run_and_assert()
 
@@ -105,6 +106,6 @@ class TestMatmul():
         problem.solve(solver=cp.IPOPT, nlp=True, hessian_approximation='exact',
                     derivative_test='none', verbose=True)
         assert(problem.status == cp.OPTIMAL)
-        
+
         checker = DerivativeChecker(problem)
         checker.run_and_assert()

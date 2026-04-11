@@ -32,7 +32,7 @@ def div_canon(expr, args):
             "under the assumption that the denominator is nonnegative. If this "
             "assumption is incorrect, the solution may be invalid. "
         )
-    
+
     z = Variable(args[1].shape, nonneg=True)
 
     if args[1].value is not None:

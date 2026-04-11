@@ -62,7 +62,7 @@ class TestBestOf():
                             (radius[i] + radius[i+1:]) ** 2]
         obj = cp.Minimize(cp.max(cp.norm_inf(centers, axis=1) + radius))
         prob = cp.Problem(obj, constraints)
-        
+
         centers.value = np.random.rand(n, 2)
         centers.sample_bounds = [-5.0, 5.0]
         n_runs = 10

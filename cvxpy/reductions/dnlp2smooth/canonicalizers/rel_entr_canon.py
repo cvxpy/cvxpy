@@ -41,7 +41,7 @@ def rel_entr_canon(expr, args):
         _entr = entr(args[0])
         entr_expr, constr_entr = entr_canon(_entr, _entr.args)
         return -entr_expr - multiply(args[0], np.log(args[1].value)), constr_entr
-    
+
     # here we know that neither argument is constant
     t1 = Variable(args[0].shape, nonneg=True)
     t2 = Variable(args[1].shape, nonneg=True)
@@ -49,8 +49,8 @@ def rel_entr_canon(expr, args):
 
     if args[0].value is not None:
         t1.value = np.maximum(args[0].value, MIN_INIT)
-  
+
     if args[1].value is not None:
         t2.value = np.maximum(args[1].value, MIN_INIT)
-    
+
     return expr.copy([t1, t2]), constraints

@@ -184,7 +184,7 @@ class TestNlpParameters:
         checker = DerivativeChecker(prob)
         checker.run_and_assert()
         param_sol2 = X.value
-    
+
         assert np.linalg.norm(param_sol1 - hardcoded_sol1) == 0.0
         assert np.linalg.norm(param_sol2 - hardcoded_sol2) == 0.0
 

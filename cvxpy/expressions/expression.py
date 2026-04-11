@@ -17,7 +17,7 @@ limitations under the License.
 import abc
 import warnings
 from functools import wraps
-from typing import List, Literal, Optional, Self, Tuple
+from typing import Literal, Self
 
 import numpy as np
 import scipy.sparse as sp
@@ -53,6 +53,24 @@ def _cast_other(binary_op):
         return binary_op(self, other)
     return cast_op
 
+
+def _pow_const_base(base, exponent):
+    """Helper for b**x where b is a positive constant and x is a CVXPY expression.
+
+    Validates that base is constant and positive, then returns exp(x * log(b)).
+    """
+    from cvxpy.atoms.affine.binary_operators import multiply
+    from cvxpy.atoms.elementwise.exp import exp
+    from cvxpy.atoms.elementwise.log import log
+    if not base.is_constant():
+        raise ValueError(
+            "The base of b**x must be a constant when the exponent is a variable."
+        )
+    if not base.is_pos():
+        raise ValueError(
+            "The base of b**x must be positive since we use b**x = exp(x * log(b))."
+        )
+    return exp(multiply(exponent, log(base)))
 
 __STAR_MATMUL_COUNT__ = 1
 
@@ -131,12 +149,12 @@ class Expression(u.Canonical):
 
     @property
     @abc.abstractmethod
-    def value(self) -> Optional[np.ndarray]:
+    def value(self) -> np.ndarray | None:
         """Returns: The numeric value of the expression.
         """
         raise NotImplementedError()
 
-    def _value_impl(self) -> Optional[np.ndarray]:
+    def _value_impl(self) -> np.ndarray | None:
         """Implementation of .value.
         """
         return self.value
@@ -251,7 +269,7 @@ class Expression(u.Canonical):
 
     # Curvature properties.
     @property
-    def curvatures(self) -> List[str]:
+    def curvatures(self) -> list[str]:
         """List : Returns a list of the curvatures of the expression."""
         curvatures = [
             (self.is_constant, s.CONSTANT),
@@ -558,7 +576,7 @@ class Expression(u.Canonical):
 
     @property
     @abc.abstractmethod
-    def shape(self) -> Tuple[int, ...]:
+    def shape(self) -> tuple[int, ...]:
         """tuple : The expression dimensions.
         """
         raise NotImplementedError()
@@ -662,18 +680,9 @@ class Expression(u.Canonical):
         Expression
             The expression raised to ``power``.
         """
-        # Imported here to avoid circular imports at module load time
-        from cvxpy.atoms.affine.binary_operators import multiply
-        from cvxpy.atoms.elementwise.exp import exp
-        from cvxpy.atoms.elementwise.log import log
         power_expr = Expression.cast_to_const(power)
         if self.is_constant() and not power_expr.is_constant():
-            if not self.is_pos():
-                raise ValueError(
-                    "The base of b**x must be positive when the exponent "
-                    "is a variable, since we use b**x = exp(x * log(b))."
-                )
-            return exp(multiply(power_expr, log(self)))
+            return _pow_const_base(self, power_expr)
         return cvxtypes.power()(self, power)
 
     def __rpow__(self, base: float) -> "Expression":
@@ -692,23 +701,8 @@ class Expression(u.Canonical):
             exp(self * log(base))
         """
 
-        # Imported here to avoid circular imports at module load time
-        from cvxpy.atoms.elementwise.exp import exp
         base = cvxtypes.expression().cast_to_const(base)
-        if not base.is_constant():
-            raise ValueError(
-                "The base of ** must be a constant when the exponent "
-                "is a variable."
-            )
-        if not base.is_pos():
-            raise ValueError(
-                "The base of ** must be positive since we use the "
-                "identity a**x = exp(x * log(a))."
-            )
-        # Imported here to avoid circular imports at module load time
-        from cvxpy.atoms.affine.binary_operators import multiply
-        from cvxpy.atoms.elementwise.log import log
-        return exp(multiply(self, log(base)))
+        return _pow_const_base(base, self)
 
     @staticmethod
     def cast(expr_like) -> "Expression":

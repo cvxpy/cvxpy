@@ -13,7 +13,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import List, Tuple
 
 import numpy as np
 
@@ -34,7 +33,7 @@ class sin(Elementwise):
         """
         return np.sin(values[0])
 
-    def sign_from_args(self) -> Tuple[bool, bool]:
+    def sign_from_args(self) -> tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         # Always unknown.
@@ -64,12 +63,12 @@ class sin(Elementwise):
         """
         return False
 
-    def _domain(self) -> List[Constraint]:
+    def _domain(self) -> list[Constraint]:
         """Returns constraints describing the domain of the node.
         """
         return []
 
-    def _grad(self, values) -> List[Constraint]:
+    def _grad(self, values) -> list[Constraint]:
         """Returns the gradient of the node.
         """
         rows = self.args[0].size
@@ -91,7 +90,7 @@ class cos(Elementwise):
         """
         return np.cos(values[0])
 
-    def sign_from_args(self) -> Tuple[bool, bool]:
+    def sign_from_args(self) -> tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         # Always unknown.
@@ -106,7 +105,7 @@ class cos(Elementwise):
         """Is the atom concave?
         """
         return False
-    
+
     def is_atom_smooth(self) -> bool:
         """Is the atom smooth?"""
         return True
@@ -121,12 +120,12 @@ class cos(Elementwise):
         """
         return False
 
-    def _domain(self) -> List[Constraint]:
+    def _domain(self) -> list[Constraint]:
         """Returns constraints describing the domain of the node.
         """
         return []
 
-    def _grad(self, values) -> List[Constraint]:
+    def _grad(self, values) -> list[Constraint]:
         """Returns the gradient of the node.
         """
         rows = self.args[0].size
@@ -148,7 +147,7 @@ class tan(Elementwise):
         """
         return np.tan(values[0])
 
-    def sign_from_args(self) -> Tuple[bool, bool]:
+    def sign_from_args(self) -> tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         # Always unknown.
@@ -163,7 +162,7 @@ class tan(Elementwise):
         """Is the atom concave?
         """
         return False
-    
+
     def is_atom_smooth(self) -> bool:
         """Is the atom smooth?"""
         return True
@@ -178,12 +177,12 @@ class tan(Elementwise):
         """
         return False
 
-    def _domain(self) -> List[Constraint]:
+    def _domain(self) -> list[Constraint]:
         """Returns constraints describing the domain of the node.
         """
         return [-np.pi/2 <= self.args[0], self.args[0] <= np.pi/2]
 
-    def _grad(self, values) -> List[Constraint]:
+    def _grad(self, values) -> list[Constraint]:
         """Returns the gradient of the node.
         """
         rows = self.args[0].size

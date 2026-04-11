@@ -336,7 +336,7 @@ class TestExpressionMethods(BaseTest):
 
         assert psd_trace.is_nonneg()
         assert nsd_trace.is_nonpos()
-    
+
     def test_ptp(self) -> None:
         """Test the ptp atom.
         """

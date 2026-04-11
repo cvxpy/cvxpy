@@ -13,7 +13,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import List, Tuple
 
 import numpy as np
 
@@ -33,8 +32,8 @@ class sinh(Elementwise):
         """Returns the elementwise sinh of x.
         """
         return np.sinh(values[0])
-    
-    def sign_from_args(self) -> Tuple[bool, bool]:
+
+    def sign_from_args(self) -> tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         # Always unknown.
@@ -64,12 +63,12 @@ class sinh(Elementwise):
         """
         return False
 
-    def _domain(self) -> List[Constraint]:
+    def _domain(self) -> list[Constraint]:
         """Returns constraints describing the domain of the node.
         """
         return []
 
-    def _grad(self, values) -> List[Constraint]:
+    def _grad(self, values) -> list[Constraint]:
         raise NotImplementedError("Gradient not implemented for sinh.")
 
 
@@ -86,7 +85,7 @@ class tanh(Elementwise):
         """
         return np.tanh(values[0])
 
-    def sign_from_args(self) -> Tuple[bool, bool]:
+    def sign_from_args(self) -> tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         # Always unknown.
@@ -116,12 +115,12 @@ class tanh(Elementwise):
         """
         return False
 
-    def _domain(self) -> List[Constraint]:
+    def _domain(self) -> list[Constraint]:
         """Returns constraints describing the domain of the node.
         """
         return []
 
-    def _grad(self, values) -> List[Constraint]:
+    def _grad(self, values) -> list[Constraint]:
         raise NotImplementedError("Gradient not implemented for tanh.")
 
 
@@ -138,7 +137,7 @@ class asinh(Elementwise):
         """
         return np.arcsinh(values[0])
 
-    def sign_from_args(self) -> Tuple[bool, bool]:
+    def sign_from_args(self) -> tuple[bool, bool]:
         # Always unknown.
         return (False, False)
 
@@ -157,10 +156,10 @@ class asinh(Elementwise):
     def is_decr(self, idx) -> bool:
         return False
 
-    def _domain(self) -> List[Constraint]:
+    def _domain(self) -> list[Constraint]:
         return []
 
-    def _grad(self, values) -> List[Constraint]:
+    def _grad(self, values) -> list[Constraint]:
         raise NotImplementedError("Gradient not implemented for asinh.")
 
 
@@ -177,7 +176,7 @@ class atanh(Elementwise):
         """
         return np.arctanh(values[0])
 
-    def sign_from_args(self) -> Tuple[bool, bool]:
+    def sign_from_args(self) -> tuple[bool, bool]:
         # Always unknown.
         return (False, False)
 
@@ -196,8 +195,8 @@ class atanh(Elementwise):
     def is_decr(self, idx) -> bool:
         return False
 
-    def _domain(self) -> List[Constraint]:
+    def _domain(self) -> list[Constraint]:
         return [self.args[0] < 1, self.args[0] > -1]
 
-    def _grad(self, values) -> List[Constraint]:
+    def _grad(self, values) -> list[Constraint]:
         raise NotImplementedError("Gradient not implemented for atanh.")

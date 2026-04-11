@@ -202,7 +202,7 @@ class Oracles:
     def jacobian(self, x: np.ndarray) -> np.ndarray:
         """Returns the Jacobian values in COO format at the sparsity structure. """
         return self.c_problem.eval_jacobian_vals()
-        
+
     def jacobianstructure(self) -> tuple[np.ndarray, np.ndarray]:
         """Returns the sparsity structure of the Jacobian."""
         if self._jac_structure is not None:
@@ -217,7 +217,7 @@ class Oracles:
         if not self.use_hessian:
             raise ValueError("Hessian oracle called but use_hessian is False. "
                              "This is a bug and should be reported.")
-       
+
         return self.c_problem.eval_hessian_vals_coo_lower_tri(obj_factor, duals)
 
     def hessianstructure(self) -> tuple[np.ndarray, np.ndarray]:
@@ -244,7 +244,7 @@ class Oracles:
         if not problem.parameters():
             raise ValueError("update_params called but problem has no parameters. "
                              "This is a bug and should be reported.")
-    
+
         theta = np.concatenate([
             np.asarray(p.value, dtype=np.float64).flatten(order='F')
             for p in problem.parameters()

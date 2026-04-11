@@ -13,7 +13,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import List, Tuple
 
 import numpy as np
 import scipy as sp
@@ -35,7 +34,7 @@ class normcdf(Elementwise):
         """
         return sp.stats.norm.cdf(values[0])
 
-    def sign_from_args(self) -> Tuple[bool, bool]:
+    def sign_from_args(self) -> tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         # Always positive.
@@ -65,12 +64,12 @@ class normcdf(Elementwise):
         """
         return False
 
-    def _domain(self) -> List[Constraint]:
+    def _domain(self) -> list[Constraint]:
         """Returns constraints describing the domain of the node.
         """
         return []
 
-    def _grad(self, values) -> List[Constraint]:
+    def _grad(self, values) -> list[Constraint]:
         """Returns the gradient of the node.
         """
         rows = self.args[0].size
