@@ -139,6 +139,8 @@ class UNO(NLPsolver):
             oracles = Oracles(bounds.new_problem, verbose=verbose, use_hessian=use_hessian)
         elif 'oracles' in solver_cache:
             oracles = solver_cache['oracles']
+            if bounds.new_problem.parameters():
+                oracles.update_params(bounds.new_problem)
         else:
             oracles = Oracles(bounds.new_problem, verbose=verbose, use_hessian=use_hessian)
             solver_cache['oracles'] = oracles

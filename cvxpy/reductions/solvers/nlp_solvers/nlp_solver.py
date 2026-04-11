@@ -228,10 +228,25 @@ class Oracles:
             # IPOPT calls this function even when hessian_approximation='limited-memory',
             # so return empty structure
             return (np.array([]), np.array([]))
-         
+
         if self._hess_structure is not None:
             return self._hess_structure
-        
+
         rows, cols = self.c_problem.get_problem_hessian_sparsity_coo()
         self._hess_structure = (rows, cols)
         return self._hess_structure
+
+    def update_params(self, problem) -> None:
+        """Update parameter values in the C DAG from the problem's parameters.
+
+        Sparsity structures remain valid after this call.
+        """
+        if not problem.parameters():
+            raise ValueError("update_params called but problem has no parameters. "
+                             "This is a bug and should be reported.")
+    
+        theta = np.concatenate([
+            np.asarray(p.value, dtype=np.float64).flatten(order='F')
+            for p in problem.parameters()
+        ])
+        self.c_problem.update_params(theta)
