@@ -77,18 +77,23 @@ class CoeffExtractor:
                                                  self.canon_backend)
 
     def extract_quadratic_coeffs(self, affine_expr, quad_forms):
-        """ Assumes quadratic forms all have variable arguments.
-            Affine expressions can be anything.
+        """Extract per-variable P (quadratic) and q (linear) coefficient tensors.
+
+        Expects quad-form atoms to already be replaced with placeholder
+        Variables (via ``replace_quad_forms``), making the expression affine.
+        Runs the canon backend to get a coefficient matrix (the "affine head"),
+        then combines those coefficients with each quad form's P matrix.
+
+        Four code paths handle P depending on structure: parametric (P depends
+        on Parameters), scalar (constant P, scalar output), block-structured
+        (constant P with ``block_indices``), and diagonal (constant diagonal P).
         """
         assert affine_expr.is_dpp()
-        # Here we take the problem objective, replace all the SymbolicQuadForm
-        # atoms with variables of the same dimensions.
-        # We then apply the canonInterface to reduce the "affine head"
-        # of the expression tree to a coefficient vector c and constant offset d.
-        # Because the expression is parameterized, we extend that to a matrix
-        # [c1 c2 ...]
-        # [d1 d2 ...]
-        # where ci,di are the vector and constant for the ith parameter.
+        # Run affine canonicalization on the replaced expression to obtain
+        # param_coeffs, a matrix of shape (x_length + 1, num_params + 1).
+        # Rows correspond to variable entries (dummy + true) plus a final
+        # constant-offset row.  Columns correspond to parameter slices plus
+        # a final "constant" (parameter-free) slice.
         affine_id_map, affine_offsets, x_length, affine_var_shapes = \
             InverseData.get_var_offsets(affine_expr.variables())
         op_list = [affine_expr.canonical_form[0]]
@@ -122,7 +127,11 @@ class CoeffExtractor:
             #                      argument index of quad form,
             #                      quad form atom)
             if var.id in quad_forms:
-                # This was a dummy variable
+                # This was a dummy variable (placeholder for a quad form).
+                # var_id is the placeholder's ID (= the SymbolicQuadForm's ID).
+                # orig_id is the actual CVXPY variable x's ID inside
+                # quad_form(x, P).  The same orig_id may also appear in the
+                # true-variable branch below (e.g. from a linear term c @ x).
                 var_id = var.id
                 orig_id = quad_forms[var_id][2].args[0].id
                 var_offset = affine_id_map[var_id][0]
@@ -154,6 +163,9 @@ class CoeffExtractor:
                 # We multiply P by the parameter coefficients.
                 if P_is_parametric:
                     # PARAMETRIC P PATH - P depends on parameters.
+                    # Since P has no numeric value, we extract P's own affine
+                    # decomposition via canonInterface and scale it by the
+                    # constant multiplier from the affine head.
                     # Handles bare Parameter, scalar*Parameter, sums of Parameters, etc.
                     # Each supported parametric quadratic term here produces a scalar
                     # dummy variable (var_size == 1), including SymbolicQuadForm terms
@@ -163,26 +175,19 @@ class CoeffExtractor:
                     )
                     n = P_expr.shape[0]
 
-                    # c_part contains the scalar coefficient from the affine head.
-                    # We need to combine the c_part coefficients with P's parameter entries.
-                    nonzero_idxs = c_part[0] != 0
-                    if not np.any(nonzero_idxs):
+                    # c_part[0, -1] is the constant-slice (parameter-free)
+                    # coefficient from the affine head.  _check_dpp_args()
+                    # already enforces that x is parameter-free during DPP
+                    # detection, so the non-constant columns should all be
+                    # zero.  The assert below is a safety net.
+                    coef_val = c_part[0, -1]
+                    if coef_val == 0:
                         P_tup = TensorRepresentation.empty_with_shape((n, n))
                     else:
-                        c_nonzero_vals = c_part[0, nonzero_idxs]
-                        c_nonzero_idxs = np.arange(num_params)[nonzero_idxs]
-
-                        # Check that all nonzero coefficients are in the constant slice.
-                        # Any parametric coefficient would make this quadratic in parameters.
-                        non_const_mask = c_nonzero_idxs != (num_params - 1)
-                        if np.any(non_const_mask):
-                            raise ValueError(
-                                "DPP quad_form requires x to be parameter-free. "
-                                "Found parameter dependence in x, which would make "
-                                "the expression quadratic in parameters."
-                            )
-
-                        coef_val = c_nonzero_vals[0]
+                        assert not np.any(c_part[0, :-1]), (
+                            "Bug: parametric quad_form has parameter-dependent "
+                            "affine head"
+                        )
 
                         # Extract the affine dependence of vec(P_expr) on parameters.
                         # P_expr has no CVXPY variables, only parameters and constants.
@@ -262,7 +267,8 @@ class CoeffExtractor:
                     coeffs[orig_id]['P'] = coeffs[orig_id]['P'] + P_tup
                 else:
                     coeffs[orig_id]['P'] = P_tup
-                # Initialize q only if not already set (e.g., from a linear term).
+                # Only initialize q if not already set — a linear term (c @ x)
+                # may have already written q for this orig_id.
                 if 'q' not in coeffs[orig_id]:
                     q_shape = (P_tup.shape[0], c.shape[1])
                     if num_params == 1:
@@ -357,10 +363,14 @@ class CoeffExtractor:
         )
 
     def quad_form(self, expr):
-        """Extract quadratic, linear constant parts of a quadratic objective.
+        """Extract P (quadratic) and q (linear + constant) from a quadratic objective.
+
+        Inserts a NO_OP root (so ``replace_quad_forms`` has a parent to
+        replace into), swaps quad-form atoms for placeholder Variables,
+        runs ``extract_quadratic_coeffs``, restores the originals, then
+        merges per-variable P blocks into a block-diagonal matrix and
+        stacks q vectors with the constant offset.
         """
-        # Insert no-op such that root is never a quadratic form, for easier
-        # processing
         root = LinOp(NO_OP, expr.shape, [expr], [])
 
         # Replace quadratic forms with dummy variables.

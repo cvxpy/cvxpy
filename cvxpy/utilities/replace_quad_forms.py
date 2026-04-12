@@ -19,6 +19,7 @@ from cvxpy.expressions.variable import Variable
 
 
 def replace_quad_forms(expr, quad_forms):
+    """Recursively replace quad-form atoms with placeholder Variables."""
     for idx, arg in enumerate(expr.args):
         if isinstance(arg, SymbolicQuadForm) or isinstance(arg, QuadForm):
             quad_forms = replace_quad_form(expr, idx, quad_forms)
@@ -28,6 +29,7 @@ def replace_quad_forms(expr, quad_forms):
 
 
 def replace_quad_form(expr, idx, quad_forms):
+    """Replace the quad-form atom at ``expr.args[idx]`` with a placeholder Variable."""
     quad_form = expr.args[idx]
     placeholder = Variable(quad_form.shape,
                            var_id=quad_form.id)
@@ -37,6 +39,7 @@ def replace_quad_form(expr, idx, quad_forms):
 
 
 def restore_quad_forms(expr, quad_forms) -> None:
+    """Recursively restore original quad-form atoms from ``quad_forms``."""
     for idx, arg in enumerate(expr.args):
         if isinstance(arg, Variable) and arg.id in quad_forms:
             expr.args[idx] = quad_forms[arg.id][2]
