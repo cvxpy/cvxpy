@@ -133,7 +133,7 @@ class TestSparseCholesky(BaseTest):
         # [[1, 2], [2, 0]] has non-negative diagonal but is indefinite.
         # The zero-diagonal row is not all-zero, so we must reject it.
         A = sp.csc_array(np.array([[1.0, 2.0], [2.0, 0.0]]))
-        with self.assertRaises(ValueError):
+        with self.assertRaises(ValueError, msg=lau.SparseCholeskyMessages.INDEFINITE):
             lau.sparse_cholesky(A, 0.0)
 
     def test_nonsingular_indefinite(self):

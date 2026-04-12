@@ -263,8 +263,7 @@ def sparse_cholesky(A, sym_tol=settings.CHOL_SYM_TOL, assume_psd=False):
     # QDLDL expects upper triangular CSC format
     A_upper = sp.triu(A, format='csc')
 
-    # Tolerance for near-zero pivots, matching decomp_quad's dense path.
-    tol = 1e6 * np.finfo(float).eps  # ≈ 2.2e-10
+    tol = settings.CHOL_ZERO_PIVOT_TOL
 
     try:
         solver = qdldl.Solver(A_upper, upper=True)
