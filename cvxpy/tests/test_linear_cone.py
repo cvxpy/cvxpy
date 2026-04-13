@@ -16,6 +16,8 @@ limitations under the License.
 
 import numpy as np
 
+import cvxpy as cp
+import cvxpy.settings as s
 from cvxpy import Maximize, Minimize, Problem
 from cvxpy.atoms import diag, exp, hstack, pnorm
 from cvxpy.constraints import SOC, ExpCone, NonNeg
@@ -25,6 +27,7 @@ from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
 from cvxpy.reductions.flip_objective import FlipObjective
+from cvxpy.reductions.solution import Solution
 from cvxpy.reductions.solvers.conic_solvers.clarabel_conif import CLARABEL
 from cvxpy.tests.base_test import BaseTest
 from cvxpy.tests.solver_test_helpers import SolverTestHelper
@@ -53,6 +56,45 @@ class TestLinearCone(BaseTest):
         self.C = Variable((3, 2), name='C')
 
         self.solvers = [CLARABEL()]
+
+    def test_invert_maps_xpress_iis_rows_to_original_constraints(self) -> None:
+        x = Variable(2, name='x')
+        eq_constraint = (x == 0)
+        ineq_constraint = (x >= 1)
+        problem = Problem(Minimize(cp.sum(x)), [eq_constraint, ineq_constraint])
+
+        _, inverse_data = ConeMatrixStuffing(canon_backend=s.SCIPY_CANON_BACKEND).apply(problem)
+
+        self.assertEqual(inverse_data.iis2xpress_map["eq_000000000"], eq_constraint.id)
+        self.assertEqual(inverse_data.iis2xpress_map["eq_000000001"], eq_constraint.id)
+        self.assertEqual(inverse_data.iis2xpress_map["ineq_000000000"], ineq_constraint.id)
+        self.assertEqual(inverse_data.iis2xpress_map["ineq_000000001"], ineq_constraint.id)
+
+        solution = Solution(
+            s.INFEASIBLE,
+            np.inf,
+            {},
+            {},
+            {
+                s.XPRESS_IIS: [{
+                    "orig_row": [
+                        "eq_000000000",
+                        "eq_000000001",
+                        "ineq_000000000",
+                        "ineq_000000001",
+                        "missing_row",
+                    ]
+                }]
+            },
+        )
+
+        inverse_solution = ConeMatrixStuffing(canon_backend=s.SCIPY_CANON_BACKEND).invert(solution, inverse_data)
+
+        self.assertEqual(inverse_solution.status, s.INFEASIBLE)
+        self.assertCountEqual(
+            inverse_solution.attr["iis_const_id"],
+            [eq_constraint.id, ineq_constraint.id],
+        )
 
     def test_scalar_lp(self) -> None:
         """Test scalar LP problems.
