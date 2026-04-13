@@ -36,6 +36,12 @@ from cvxpy.reductions.complex2real.canonicalizers import (
 from cvxpy.reductions.complex2real.canonicalizers import (
     Complex2RealCanonMethods,
 )
+from cvxpy.reductions.cvx_attr2constr import (
+    SYMMETRIC_ATTRIBUTES,
+    attributes_present,
+    lower_value,
+    recover_value_for_leaf,
+)
 from cvxpy.reductions.reduction import Reduction
 
 
@@ -114,7 +120,15 @@ class Complex2Real(Reduction):
         real_param, imag_param = self.canon_methods._parameters[param]
         grad = 0.0
         if real_param is not None and real_param.id in dparams:
-            grad = grad + dparams[real_param.id]
+            real_grad = dparams[real_param.id]
+            # For Hermitian params, the real part is symmetric and may have
+            # been lowered to compact (upper-triangle) form by CvxAttr2Constr.
+            # Recover to full matrix form before combining with imaginary grad.
+            if param.is_hermitian() and attributes_present(
+                    [real_param], SYMMETRIC_ATTRIBUTES):
+                real_grad = recover_value_for_leaf(
+                    real_param, real_grad, project=False)
+            grad = grad + real_grad
         if imag_param is not None and imag_param.id in dparams:
             imag_grad = dparams[imag_param.id]
             if param.is_hermitian():
@@ -148,7 +162,14 @@ class Complex2Real(Reduction):
         real_param, imag_param = self.canon_methods._parameters[param]
         result = {}
         if real_param is not None:
-            result[real_param.id] = np.real(np.asarray(delta, dtype=np.complex128))
+            real_delta = np.real(np.asarray(delta, dtype=np.complex128))
+            # For Hermitian params, the real part is symmetric and may have
+            # been lowered to compact (upper-triangle) form by CvxAttr2Constr.
+            # Lower the full real delta to match the expected compact form.
+            if param.is_hermitian() and attributes_present(
+                    [real_param], SYMMETRIC_ATTRIBUTES):
+                real_delta = lower_value(real_param, real_delta)
+            result[real_param.id] = real_delta
         if imag_param is not None:
             imag_delta = np.imag(np.asarray(delta, dtype=np.complex128))
             if param.is_hermitian():
