@@ -16,6 +16,8 @@ limitations under the License.
 
 import numpy as np
 
+import cvxpy as cp
+import cvxpy.settings as s
 from cvxpy import Maximize, Minimize, Problem
 from cvxpy.atoms import diag, exp, hstack, pnorm
 from cvxpy.constraints import SOC, ExpCone, NonNeg
@@ -25,6 +27,7 @@ from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
 from cvxpy.reductions.flip_objective import FlipObjective
+from cvxpy.reductions.solution import Solution
 from cvxpy.reductions.solvers.conic_solvers.clarabel_conif import CLARABEL
 from cvxpy.tests.base_test import BaseTest
 from cvxpy.tests.solver_test_helpers import SolverTestHelper
@@ -53,6 +56,140 @@ class TestLinearCone(BaseTest):
         self.C = Variable((3, 2), name='C')
 
         self.solvers = [CLARABEL()]
+
+    def test_invert_maps_xpress_iis_rows_to_original_constraints(self) -> None:
+        x = Variable(2, name='x')
+        eq_constraint = (x == 0)
+        ineq_constraint = (x >= 1)
+        problem = Problem(Minimize(cp.sum(x)), [eq_constraint, ineq_constraint])
+
+        _, inverse_data = ConeMatrixStuffing(canon_backend=s.SCIPY_CANON_BACKEND).apply(problem)
+
+        self.assertEqual(inverse_data.iis2xpress_map["eq_000000000"], eq_constraint.id)
+        self.assertEqual(inverse_data.iis2xpress_map["eq_000000001"], eq_constraint.id)
+        self.assertEqual(inverse_data.iis2xpress_map["ineq_000000000"], ineq_constraint.id)
+        self.assertEqual(inverse_data.iis2xpress_map["ineq_000000001"], ineq_constraint.id)
+
+        solution = Solution(
+            s.INFEASIBLE,
+            np.inf,
+            {},
+            {},
+            {
+                s.XPRESS_IIS: [{
+                    "orig_row": [
+                        "eq_000000000",
+                        "eq_000000001",
+                        "ineq_000000000",
+                        "ineq_000000001",
+                        "missing_row",
+                    ]
+                }]
+            },
+        )
+
+        inverse_solution = ConeMatrixStuffing(canon_backend=s.SCIPY_CANON_BACKEND).invert(solution,
+                                                                                           inverse_data)
+
+        self.assertEqual(inverse_solution.status, s.INFEASIBLE)
+        self.assertCountEqual(
+            inverse_solution.attr["iis_const_id"],
+            [eq_constraint.id, ineq_constraint.id],
+        )
+
+    def test_get_xpress_iis_results_new_api(self) -> None:
+        from types import SimpleNamespace
+
+        from cvxpy.reductions.solvers.conic_solvers.xpress_conif import get_iis_results
+
+        extra_iis = ([3], [4], ["L"], ["B"], [5.0], [6.0], [True], [False])
+
+        class NewApiProb:
+            def __init__(self) -> None:
+                self.next_iis_calls = 0
+
+            def firstIIS(self, arg) -> None:
+                self.first_iis_arg = arg
+
+            def getIISData(self, index):
+                if index == 0:
+                    return [0, 1, 2], [7], ["L"], ["B"], [1.0], [2.0], [True], [False]
+                if index == 1:
+                    return extra_iis
+                raise AssertionError("Unexpected IIS index")
+
+            def getConstraint(self, row):
+                self.row_request = row
+                return [
+                    SimpleNamespace(name="row_a"),
+                    SimpleNamespace(name="row_b"),
+                    SimpleNamespace(name="row_a"),
+                ]
+
+            def nextIIS(self):
+                self.next_iis_calls += 1
+                return 0 if self.next_iis_calls == 1 else 1
+
+        prob = NewApiProb()
+        results = get_iis_results(prob, -1, {"row_a": "orig_a"})
+
+        self.assertEqual(prob.first_iis_arg, 0)
+        self.assertEqual(prob.row_request, [0, 1, 2])
+        self.assertEqual(results[0]["orig_row"], ["orig_a", "row_b"])
+        self.assertEqual(results[0]["row"], [0, 1, 2])
+        self.assertEqual(results[1], extra_iis)
+
+    def test_get_xpress_iis_results_old_api(self) -> None:
+        from cvxpy.reductions.solvers.conic_solvers.xpress_conif import get_iis_results
+
+        class OldRow:
+            def __init__(self, name) -> None:
+                self.name = name
+
+        class OldApiProb:
+            def __init__(self) -> None:
+                self.next_iis_calls = 0
+
+            def iisfirst(self, arg) -> None:
+                self.first_iis_arg = arg
+
+            def getiisdata(self, index, row, col, rtype, btype, duals, rdcs, isrows, icols) -> None:
+                if index == 0:
+                    row.extend([OldRow("row_a"), OldRow("row_b"), OldRow("row_a")])
+                    col.extend([7])
+                    rtype.extend(["L"])
+                    btype.extend(["B"])
+                    duals.extend([1.0])
+                    rdcs.extend([2.0])
+                    isrows.extend([True])
+                    icols.extend([False])
+                    return
+
+                if index == 1:
+                    row.extend([OldRow("row_c")])
+                    col.extend([8])
+                    rtype.extend(["G"])
+                    btype.extend(["N"])
+                    duals.extend([3.0])
+                    rdcs.extend([4.0])
+                    isrows.extend([False])
+                    icols.extend([True])
+                    return
+
+                raise AssertionError("Unexpected IIS index")
+
+            def iisnext(self):
+                self.next_iis_calls += 1
+                return 0 if self.next_iis_calls == 1 else 1
+
+        prob = OldApiProb()
+        results = get_iis_results(prob, -1, {"row_a": "orig_a"})
+
+        self.assertEqual(prob.first_iis_arg, 0)
+        self.assertEqual(results[0]["orig_row"], ["orig_a", "row_b"])
+        self.assertEqual([row.name for row in results[0]["row"]], ["row_a", "row_b", "row_a"])
+        self.assertEqual([row.name for row in results[1][0]], ["row_c"])
+        self.assertEqual(results[1][1:], ([8], ["G"], ["N"], [3.0], [4.0], [False], [True]))
 
     def test_scalar_lp(self) -> None:
         """Test scalar LP problems.

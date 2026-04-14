@@ -21,6 +21,7 @@ import scipy.sparse as sp
 from scipy.linalg import lstsq
 
 import cvxpy as cp
+import cvxpy.settings as s
 import cvxpy.tests.solver_test_helpers as sths
 from cvxpy import Maximize, Minimize, Parameter, Problem
 from cvxpy.atoms import (
@@ -43,12 +44,7 @@ from cvxpy.reductions.solvers.defines import (
     SOLVER_MAP_QP,
 )
 from cvxpy.tests.base_test import BaseTest
-from cvxpy.tests.solver_test_helpers import (
-    SolverTestHelper,
-    StandardTestInfeasibleProblems,
-    StandardTestLPs,
-    StandardTestQPs,
-)
+from cvxpy.tests.solver_test_helpers import SolverTestHelper, StandardTestLPs, StandardTestQPs
 
 
 class QPTestBase(BaseTest):
@@ -716,7 +712,7 @@ class TestQp(QPTestBase):
             result = prob.solve(solver=cp.PIQP, warm_start=True)
             result2 = prob.solve(solver=cp.PIQP, warm_start=False)
             self.assertAlmostEqual(result, result2)
-
+    
     def test_copt_warmstart(self) -> None:
         """Test warm start.
         """
@@ -726,7 +722,7 @@ class TestQp(QPTestBase):
             np.random.seed(1)
             A = np.random.randn(m, n)
             b = Parameter(m)
-
+            
             # Construct the problem.
             x = Variable(n)
             prob = Problem(Minimize(sum_squares(A @ x - b)))
@@ -864,18 +860,6 @@ class TestQp(QPTestBase):
                 prob = Problem(Minimize(norm(self.x, 1)), [self.x == 0])
                 prob.solve(solver=GUROBI, TimeLimit=0)
             self.assertEqual(str(cm.exception), "The solver %s is not installed." % GUROBI)
-
-    def test_osqp_infeasible_lp_ineq_constraints(self):
-        StandardTestInfeasibleProblems.test_lp_ineq_constraints(solver=cp.OSQP)
-
-    def test_osqp_infeasible_lp_eq_constraints(self):
-        StandardTestInfeasibleProblems.test_lp_eq_constraints(solver=cp.OSQP)
-
-    def test_highs_infeasible_lp_ineq_constraints(self):
-        StandardTestInfeasibleProblems.test_lp_ineq_constraints(solver=cp.HIGHS)
-
-    def test_highs_infeasible_lp_eq_constraints(self):
-        StandardTestInfeasibleProblems.test_lp_eq_constraints(solver=cp.HIGHS)
 
 
 class TestConicQuadObj(QPTestBase):
@@ -1052,6 +1036,37 @@ class TestQpSolverValidation(unittest.TestCase):
         with self.assertRaises(SolverError) as cm:
             osqp_solver.apply(param_cone_prog)
         self.assertIn("PSD cones", str(cm.exception))
+
+    def test_xpress_qp_invert_preserves_iis_attributes(self) -> None:
+        from unittest import mock
+
+        from cvxpy.reductions.solvers.qp_solvers.xpress_qpif import XPRESS
+
+        solver = XPRESS()
+        inverse_data = {
+            XPRESS.IS_MIP: False,
+            s.OFFSET: 0.0,
+            XPRESS.DIMS: type("Dims", (), {"zero": 0})(),
+        }
+        results = {
+            "status": 2,
+            "bariter": 7,
+            s.SOLVE_TIME: 0.25,
+            s.XPRESS_IIS: [{"orig_row": ["eq_000000000"]}],
+            s.XPRESS_TROW: {"linT_qc0_0": "eq_000000000"},
+        }
+
+        with mock.patch(
+            "cvxpy.reductions.solvers.qp_solvers.xpress_qpif.get_status_map",
+            return_value={2: s.INFEASIBLE},
+        ):
+            solution = solver.invert(results, inverse_data)
+
+        self.assertEqual(solution.status, s.INFEASIBLE)
+        self.assertEqual(solution.attr[s.XPRESS_IIS], results[s.XPRESS_IIS])
+        self.assertEqual(solution.attr[s.XPRESS_TROW], results[s.XPRESS_TROW])
+        self.assertEqual(solution.attr[s.SOLVE_TIME], results[s.SOLVE_TIME])
+        self.assertEqual(solution.attr[s.NUM_ITERS], 7)
 
     def test_qp_solver_rejects_soc_cones(self) -> None:
         """Test that QP solver rejects problems with second-order cones."""

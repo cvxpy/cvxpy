@@ -6,6 +6,7 @@ from cvxpy.reductions.matrix_stuffing import extract_mip_idx
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.xpress_conif import (
+    get_iis_results,
     get_status_map,
     makeMstart,
 )
@@ -83,6 +84,8 @@ class XPRESS(QpSolver):
         attr = {}
         if s.SOLVE_TIME in results:
             attr[s.SOLVE_TIME] = results[s.SOLVE_TIME]
+        attr[s.XPRESS_IIS] = results.get(s.XPRESS_IIS)
+        attr[s.XPRESS_TROW] = results.get(s.XPRESS_TROW)
         attr[s.NUM_ITERS] = \
             int(results['bariter']) \
             if not inverse_data[XPRESS.IS_MIP] \
@@ -348,6 +351,9 @@ class XPRESS(QpSolver):
 
             results_dict['bariter'] = self.prob_.attributes.bariter
             results_dict['getProbStatusString'] = self.prob_.attributes.solvestatus
+            transf2Orig = {}
+            results_dict[s.XPRESS_IIS] = None
+            results_dict[s.XPRESS_TROW] = transf2Orig
 
             if status in s.SOLUTION_PRESENT:
                 results_dict['getObjVal'] = self.prob_.attributes.objval
@@ -356,6 +362,11 @@ class XPRESS(QpSolver):
                 if not (data[s.BOOL_IDX] or data[s.INT_IDX]):
                     if self.prob_.attributes.rows > 0:
                         results_dict['getDual'] = self.prob_.getDuals()
+      
+            elif status == s.INFEASIBLE and 'save_iis' in solver_opts and solver_opts['save_iis'] != 0:
+                results_dict[s.XPRESS_IIS] = get_iis_results(
+                    self.prob_, solver_opts['save_iis'], transf2Orig
+                )
 
         del self.prob_
 

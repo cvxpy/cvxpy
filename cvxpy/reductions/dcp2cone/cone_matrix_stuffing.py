@@ -1,4 +1,4 @@
-"""
+﻿"""
 Copyright 2013 Steven Diamond
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -428,6 +428,19 @@ class ConeMatrixStuffing(MatrixStuffing):
             constr_map.get(SvecPSD, []) + constr_map[ExpCone] + \
             constr_map[PowCone3D] + constr_map[PowConeND]
         inverse_data.cons_id_map = {con.id: con.id for con in ordered_cons}
+
+        iis2xpress_map = {}
+        eq_idx = 0
+        for constraint in constr_map[Zero]:
+            for _ in range(constraint.size):
+                iis2xpress_map[f"eq_{eq_idx:09d}"] = constraint.id
+                eq_idx += 1
+        ineq_idx = 0
+        for constraint in constr_map[NonNeg]:
+            for _ in range(constraint.size):
+                iis2xpress_map[f"ineq_{ineq_idx:09d}"] = constraint.id
+                ineq_idx += 1
+        inverse_data.iis2xpress_map = iis2xpress_map
 
         inverse_data.constraints = ordered_cons
         # Batch expressions together, then split apart.
