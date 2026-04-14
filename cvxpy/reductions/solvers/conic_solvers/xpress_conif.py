@@ -38,6 +38,82 @@ def makeMstart(A, n, ifCol: int = 1):
     return mstart
 
 
+def _unique_orig_rows(row_names, transf2Orig):
+    orig_rows = []
+    for row_name in row_names:
+        name = transf2Orig.get(row_name, row_name)
+        if name not in orig_rows:
+            orig_rows.append(name)
+    return orig_rows
+
+
+def _build_iis_result(orig_rows, row, col, rtype, btype, duals, rdcs, isrows, icols):
+    return {
+        'orig_row': orig_rows,
+        'row': row,
+        'col': col,
+        'rtype': rtype,
+        'btype': btype,
+        'duals': duals,
+        'redcost': rdcs,
+        'isolrow': isrows,
+        'isolcol': icols,
+    }
+
+
+def get_iis_results(prob, save_iis, transf2Orig):
+    try:
+        prob.firstIIS(0)
+        row, col, rtype, btype, duals, rdcs, isrows, icols = prob.getIISData(0)
+        row_names = [ctr.name for ctr in prob.getConstraint(row)] if row else []
+        iis_results = [
+            _build_iis_result(
+                _unique_orig_rows(row_names, transf2Orig),
+                row,
+                col,
+                rtype,
+                btype,
+                duals,
+                rdcs,
+                isrows,
+                icols,
+            )
+        ]
+
+        iis_index = 0
+        while prob.nextIIS() == 0 and (save_iis < 0 or iis_index < save_iis):
+            iis_index += 1
+            iis_results.append(prob.getIISData(iis_index))
+    except AttributeError:
+        prob.iisfirst(0)
+        row, col, rtype, btype, duals, rdcs, isrows, icols = [], [], [], [], [], [], [], []
+        prob.getiisdata(0, row, col, rtype, btype, duals, rdcs, isrows, icols)
+        row_names = [iis_row.name for iis_row in row]
+        iis_results = [
+            _build_iis_result(
+                _unique_orig_rows(row_names, transf2Orig),
+                row,
+                col,
+                rtype,
+                btype,
+                duals,
+                rdcs,
+                isrows,
+                icols,
+            )
+        ]
+
+        iis_index = 0
+        while prob.iisnext() == 0 and (save_iis < 0 or iis_index < save_iis):
+            iis_index += 1
+            row, col = [], []
+            rtype, btype, duals, rdcs, isrows, icols = [], [], [], [], [], []
+            prob.getiisdata(iis_index, row, col, rtype, btype, duals, rdcs, isrows, icols)
+            iis_results.append((row, col, rtype, btype, duals, rdcs, isrows, icols))
+
+    return iis_results
+
+
 class XPRESS(ConicSolver):
     """An interface for the Xpress solver.
     """
@@ -404,77 +480,9 @@ class XPRESS(ConicSolver):
                     results_dict['y'] = np.array([])
 
         elif status == s.INFEASIBLE and 'save_iis' in solver_opts and solver_opts['save_iis'] != 0:
-
-            # Retrieve all IIS. For LPs there can be more than one,
-            # but for QCQPs there is only support for one IIS.
-
-            iisIndex = 0
-
-            try:  # New API (Xpress 9.8+)
-                self.prob_.firstIIS(0)  # compute all IIS
-                row, col, rtype, btype, duals, rdcs, isrows, icols = self.prob_.getIISData(0)
-
-                # Convert row indices to constraint objects to access their names
-                origrow = []
-                if row:
-                    ctrs = self.prob_.getConstraint(row)
-                    for ctr in ctrs:
-                        row_name = ctr.name
-                        name = transf2Orig.get(row_name, row_name)
-                        if name not in origrow:
-                            origrow.append(name)
-
-                results_dict[s.XPRESS_IIS] = [{'orig_row': origrow,
-                                               'row':      row,
-                                               'col':      col,
-                                               'rtype':    rtype,
-                                               'btype':    btype,
-                                               'duals':    duals,
-                                               'redcost':  rdcs,
-                                               'isolrow':  isrows,
-                                               'isolcol':  icols}]
-
-                while self.prob_.nextIIS() == 0 and (solver_opts['save_iis'] < 0 or
-                                                     iisIndex < solver_opts['save_iis']):
-                    iisIndex += 1
-                    iis_data = self.prob_.getIISData(iisIndex)
-                    row, col, rtype, btype, duals, rdcs, isrows, icols = iis_data
-                    results_dict[s.XPRESS_IIS].append((
-                        row, col, rtype, btype, duals, rdcs, isrows, icols))
-            except AttributeError:  # Fallback to deprecated API
-                self.prob_.iisfirst(0)  # compute all IIS
-                row, col, rtype, btype, duals, rdcs, isrows, icols = [], [], [], [], [], [], [], []
-                self.prob_.getiisdata(0, row, col, rtype, btype, duals, rdcs, isrows, icols)
-
-                origrow = []
-                for iRow in row:
-                    # iRow is an object with .name attribute in old API
-                    if iRow.name in transf2Orig:
-                        name = transf2Orig[iRow.name]
-                    else:
-                        name = iRow.name
-                    if name not in origrow:
-                        origrow.append(name)
-
-                results_dict[s.XPRESS_IIS] = [{'orig_row': origrow,
-                                               'row':      row,
-                                               'col':      col,
-                                               'rtype':    rtype,
-                                               'btype':    btype,
-                                               'duals':    duals,
-                                               'redcost':  rdcs,
-                                               'isolrow':  isrows,
-                                               'isolcol':  icols}]
-
-                while self.prob_.iisnext() == 0 and (solver_opts['save_iis'] < 0 or
-                                                     iisIndex < solver_opts['save_iis']):
-                    iisIndex += 1
-                    row, col = [], []
-                    rtype, btype, duals, rdcs, isrows, icols = [], [], [], [], [], []
-                    self.prob_.getiisdata(
-                        iisIndex, row, col, rtype, btype, duals, rdcs, isrows, icols)
-                    results_dict[s.XPRESS_IIS].append((
-                        row, col, rtype, btype, duals, rdcs, isrows, icols))
+            results_dict[s.XPRESS_IIS] = get_iis_results(
+                self.prob_, solver_opts['save_iis'], transf2Orig
+            )
 
         # Generate solution.
         solution = {}
