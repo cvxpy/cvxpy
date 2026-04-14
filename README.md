@@ -15,6 +15,9 @@ sudo apt-get install coinor-libipopt-dev
 
 # macOS
 brew install ipopt
+
+# Windows
+conda install -c conda-forge ipopt
 ```
 Then install the Python interface:
 ```bash
