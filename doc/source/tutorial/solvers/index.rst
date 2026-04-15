@@ -289,10 +289,11 @@ The speed up in this case comes from caching the KKT matrix factorization.
 If ``A`` were a parameter, factorization caching would not be possible and the benefit of
 warm start would only be a good initial point.
 
-Warm start can also be used to provide an initial guess the first time a problem is solved.
-The initial guess is constructed from the ``value`` field of the problem variables.
-If the same problem is solved a second time, the initial guess is constructed from the
-cached previous solution as described above (rather than from the ``value`` field).
+.. note::
+   Warm start does **not** use the ``value`` field of problem variables as an initial guess
+   on the first solve. It only provides benefits when solving the **same** problem instance
+   multiple times (e.g., in a loop with changing parameters), by reusing cached solver
+   state such as factorizations or the previous solution point.
 
 .. _solveropts:
 
