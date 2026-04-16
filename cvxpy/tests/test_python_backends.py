@@ -1,7 +1,7 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable
 
 import numpy as np
 import pytest
@@ -24,6 +24,7 @@ from cvxpy.lin_ops.backends.coo_backend import (
     _kron_eye_r,
     _kron_nd_structure_mul,
     _kron_nd_structure_rmul,
+    coo_mul_elem,
 )
 from cvxpy.lin_ops.backends.scipy_backend import (
     _apply_nd_kron_structure_mul,
@@ -633,11 +634,11 @@ class TestBackends:
         [[1  0  0],
          [0  1  0],
          [0  0  1]]
-        
+
         broadcast_to(x, (2, 3)) means we repeat every variable twice along the row axis.
 
         Thus we expect the following A matrix:
-        
+
          x1 x2 x3
         [[1  0  0],
          [1  0  0],
@@ -674,18 +675,18 @@ class TestBackends:
     def test_broadcast_to_cols(self, backend):
         """
         define x = Variable((2,1)) with
-        [[x1], 
+        [[x1],
          [x2]]
 
         x is represented as eye(2) in the A matrix, i.e.,
          x1 x2
         [[1  0],
          [0  1]]
-        
+
         broadcast_to(x, (2, 3)) means we tile the variables three times along the rows
 
         Thus we expect the following A matrix:
-        
+
          x1 x2
         [[1  0],
          [0  1],
@@ -2227,6 +2228,30 @@ class TestND_Backends:
         # Note: view is edited in-place:
         assert out_view.get_tensor_representation(0, 4) == view.get_tensor_representation(0, 4)
 
+    @pytest.mark.parametrize("axis, expected", [
+        # Negative axis: -1 is equivalent to axis=2 for a 3D array
+        (-1, [[1, 0, 0, 0, 1, 0, 0, 0],
+              [0, 1, 0, 0, 0, 1, 0, 0],
+              [0, 0, 1, 0, 0, 0, 1, 0],
+              [0, 0, 0, 1, 0, 0, 0, 1]]),
+        # -2 is equivalent to axis=1
+        (-2, [[1, 0, 1, 0, 0, 0, 0, 0],
+              [0, 1, 0, 1, 0, 0, 0, 0],
+              [0, 0, 0, 0, 1, 0, 1, 0],
+              [0, 0, 0, 0, 0, 1, 0, 1]]),
+    ])
+    def test_nd_sum_entries_negative_axis(self, backend, axis, expected):
+        """Negative axis values should be normalized to their positive equivalents."""
+        variable_lin_op = linOpHelper((2, 2, 2), type="variable", data=1)
+        view = backend.process_constraint(variable_lin_op, backend.get_empty_view())
+
+        sum_lin_op = linOpHelper(shape=(2, 2, 2), data=[axis, True], args=[variable_lin_op])
+        out_view = backend.sum_entries(sum_lin_op, view)
+        A = out_view.get_tensor_representation(0, 4)
+
+        A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(4, 8)).toarray()
+        assert np.all(A == np.array(expected))
+
     @pytest.mark.parametrize("axes, expected", [((0,1),
                                                 [[1, 1, 1, 1, 0, 0, 0, 0],
                                                 [0, 0, 0, 0, 1, 1, 1, 1]]),
@@ -2234,6 +2259,10 @@ class TestND_Backends:
                                                 [[1, 1, 0, 0, 1, 1, 0, 0],
                                                 [0, 0, 1, 1, 0, 0, 1, 1]]),
                                                 ((2,1),
+                                                [[1, 0, 1, 0, 1, 0, 1, 0],
+                                                [0, 1, 0, 1, 0, 1, 0, 1]]),
+                                                # Negative axes: (-1,-2) equivalent to (2,1)
+                                                ((-1,-2),
                                                 [[1, 0, 1, 0, 1, 0, 1, 0],
                                                 [0, 1, 0, 1, 0, 1, 0, 1]])])
     def test_nd_sum_entries_multiple_axes(self, backend, axes, expected):
@@ -2364,7 +2393,7 @@ class TestND_Backends:
     def test_nd_broadcast_to(self, backend):
         """
         define x = Variable((2,1,2)) with
-        [[x11, x12], 
+        [[x11, x12],
          [x21, x22]]
 
         x is represented as eye(4) in the A matrix, i.e.,
@@ -2373,11 +2402,11 @@ class TestND_Backends:
          [0   1   0   0],
          [0   0   1   0],
          [0   0   0   1]]
-        
+
         broadcast_to(x, (2, 3, 2)) means we repeat columns of x three times each subsequently.
 
         Thus we expect the following A matrix:
-        
+
         x11 x21 x12 x22
         [[1   0   0   0],
          [0   1   0   0],
@@ -3319,6 +3348,69 @@ class TestCooBackend:
             unique_params = np.unique(tensor.param_idx)
             assert len(unique_params) == param_to_size[param_id], \
                 f"Expected {param_to_size[param_id]} unique param_idx, got {len(unique_params)}"
+
+    def test_coo_mul_elem_broadcast_both_constant(self):
+        """Regression test for issue #3257: coo_mul_elem broadcast dimensions.
+
+        When both operands are constant (param_size == 1) and shapes differ
+        (e.g. (T, 1) * (T, T)), scipy's .multiply() broadcasts the result.
+        The output CooTensor must use the broadcasted shape, not lhs shape.
+        """
+        T = 3
+        # lhs: (T, 1) constant tensor with ones in column 0
+        lhs = CooTensor(
+            data=np.ones(T, dtype=np.float64),
+            row=np.arange(T),
+            col=np.zeros(T, dtype=np.intp),
+            param_idx=np.zeros(T, dtype=np.int64),
+            m=T, n=1, param_size=1
+        )
+        # rhs: (T, T) identity constant tensor
+        rows, cols = np.nonzero(np.eye(T))
+        rhs = CooTensor(
+            data=np.ones(T, dtype=np.float64),
+            row=rows.astype(np.intp),
+            col=cols.astype(np.intp),
+            param_idx=np.zeros(T, dtype=np.int64),
+            m=T, n=T, param_size=1
+        )
+        result = coo_mul_elem(lhs, rhs)
+        # Broadcasted result should be (T, T), not (T, 1)
+        assert result.m == T, f"Expected m={T}, got {result.m}"
+        assert result.n == T, f"Expected n={T}, got {result.n}"
+        # The result should be the identity (ones column * identity = identity)
+        dense = result.toarray()
+        np.testing.assert_allclose(dense, np.eye(T))
+
+
+def test_issue_3257_coo_multiply_scalar_param_broadcast():
+    """Regression test for issue #3257: COO backend ValueError on broadcast.
+
+    cp.sum(cp.multiply(scalar_param, matrix_var), axis=1) should work
+    when the COO backend is selected (large total param size).
+    """
+    T = 720  # Large enough to trigger COO backend (param_size >= 1000)
+    p1 = cp.Parameter((1, T), nonneg=True, name="p1")
+    p2 = cp.Parameter((1, T), nonneg=True, name="p2")
+    mc = cp.Parameter(nonneg=True, name="mc", value=40.0)
+
+    np.random.seed(42)
+    p1.value = np.random.rand(1, T)
+    p2.value = np.random.rand(1, T)
+
+    x = cp.Variable((1, T), nonneg=True, name="x")
+    constraints = [x <= p1 + p2]
+    obj = cp.Minimize(cp.sum(cp.multiply(mc, x), axis=1))
+    prob = cp.Problem(obj, constraints)
+
+    # Verify COO backend would be selected
+    param_size = sum(p.size for p in prob.parameters())
+    assert param_size >= 1000, f"param_size={param_size}, need >= 1000 for COO"
+
+    # This should not raise ValueError
+    prob.solve(solver=cp.CLARABEL)
+    assert prob.status == cp.OPTIMAL
+    np.testing.assert_allclose(prob.value, 0.0, atol=1e-6)
 
 
 class TestTransformedParameterReshape:

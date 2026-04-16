@@ -20,10 +20,109 @@ import numpy as np
 import pytest
 import scipy.sparse as sp
 from numpy.testing import assert_allclose, assert_equal
+from scipy.linalg import ldl
 
 import cvxpy as cp
+from cvxpy.atoms.quad_form import decomp_quad
 from cvxpy.settings import EIGVAL_TOL
 from cvxpy.tests.base_test import BaseTest
+
+
+class TestDecompQuad(BaseTest):
+    """Tests for the decomp_quad helper function."""
+
+    @staticmethod
+    def _check(P) -> None:
+        """Assert P = scale * (M1 @ M1.T - M2 @ M2.T) within tolerance."""
+        scale, M1, M2 = decomp_quad(P)
+        P_dense = P.toarray() if sp.issparse(P) else np.asarray(P)
+        pos = scale * (M1 @ M1.conj().T) if M1.size else np.zeros_like(P_dense)
+        neg = scale * (M2 @ M2.conj().T) if M2.size else np.zeros_like(P_dense)
+        assert_allclose(P_dense, pos - neg, atol=1e-10)
+
+    def test_psd_nsd(self) -> None:
+        rng = np.random.default_rng(0)
+        for n in (2, 5, 20):
+            A = rng.standard_normal((n, n))
+            self._check(A @ A.T)           # PSD, full rank
+            self._check(-(A @ A.T))        # NSD
+        A = rng.standard_normal((10, 7))
+        self._check(A @ A.T)               # PSD, rank-deficient
+
+    def test_indefinite(self) -> None:
+        rng = np.random.default_rng(0)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            for n in (3, 10, 30):
+                A = rng.standard_normal((n, n))
+                P = A + A.T
+                # Verify LDL uses nontrivial permutation
+                _, _, perm = ldl(P)
+                assert not np.array_equal(perm, np.arange(n))
+                self._check(P)
+
+    def test_2x2_blocks(self) -> None:
+        """Zero diagonal forces Bunch-Kaufman 2x2 pivots."""
+        rng = np.random.default_rng(0)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            for n in (6, 10, 30):
+                A = rng.standard_normal((n, n))
+                P = A + A.T
+                np.fill_diagonal(P, 0.0)
+                _, d, _ = ldl(P)
+                assert np.any(np.diag(d, -1) != 0)
+                self._check(P)
+
+    def test_special(self) -> None:
+        scale, M1, M2 = decomp_quad(np.zeros((4, 4)))
+        assert_equal(scale, 0.0)
+        assert_equal(M1.size, 0)
+        assert_equal(M2.size, 0)
+        self._check(np.diag([3.0, 0.0, 5.0, 0.0]))
+
+    def test_complex_hermitian(self) -> None:
+        rng = np.random.default_rng(0)
+        A = rng.standard_normal((5, 5)) + 1j * rng.standard_normal((5, 5))
+        self._check(A @ A.conj().T)        # PSD
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            self._check(A + A.conj().T)    # indefinite
+
+    def test_sparse(self) -> None:
+        self._check(sp.eye_array(5, format="csc") * 3.0)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            self._check(sp.diags_array([1., -1, 2, -2, 3], format="csc"))
+
+    def test_sparse_nsd(self) -> None:
+        """Regression test: sparse NSD must use row permutation L[p,:], not column L[:,p].
+
+        For NSD matrices, decomp_quad calls sparse_cholesky(-P) which returns (L, p) with
+        L[p,:] @ L[p,:].T == -P.  The fix is M2 = L[p,:] (row perm), not L[:,p] (col perm).
+        A tridiagonal matrix produces a non-trivial AMD ordering that exposes the bug.
+        """
+        n = 6
+        off = np.ones(n - 1)
+        # Negative discrete Laplacian: NSD, tridiagonal, AMD gives non-identity permutation.
+        P_nsd = sp.diags([-4 * np.ones(n), off, off], [0, -1, 1], format="csc")
+        self._check(P_nsd)
+
+    def test_sparse_psd_rank_deficient(self) -> None:
+        """Sparse PSD rank-deficient matrices should stay on the sparse path."""
+        rng = np.random.default_rng(0)
+        for n, k in [(4, 2), (10, 7), (20, 5)]:
+            B = rng.standard_normal((n, k))
+            self._check(sp.csc_array(B @ B.T))
+            self._check(sp.csc_array(-(B @ B.T)))  # NSD rank-deficient
+
+    def test_sparse_diagonal_with_zeros(self) -> None:
+        """Sparse diagonal PSD with zero entries."""
+        self._check(sp.diags_array([3.0, 0.0, 5.0, 0.0], format="csc"))
+
+    def test_sparse_zero(self) -> None:
+        """Sparse all-zero matrix."""
+        self._check(sp.csc_array((4, 4)))
 
 
 class TestNonOptimal(BaseTest):
@@ -216,3 +315,43 @@ class TestNonOptimal(BaseTest):
         # Transform to a SolverError.
         with pytest.raises(cp.SolverError):
             prob.solve(solver=cp.OSQP)
+
+    def test_indefinite_assume_psd_raises(self) -> None:
+        """quad_form_canon must raise ValueError for indefinite P with assume_PSD=True.
+
+        In CVXPY 1.8.1 and earlier, the M1 (positive-eigenvalue) term was silently dropped.
+        For P=diag(2,-1) and x=[1,2], the true x^T P x = -2, but the old
+        code returned -4 with OPTIMAL status.
+        """
+        P = np.array([[2.0, 0.0], [0.0, -1.0]])  # indefinite: eigenvalues 2 and -1
+        x = cp.Variable(2)
+        expr = cp.quad_form(x, P, assume_PSD=True)
+        prob = cp.Problem(cp.Minimize(expr), [x == [1.0, 2.0]])
+        # use_quad_obj=False forces the conic canonicalization path where
+        # quad_form_canon is called (vs. the QP path used by SCS >= 3.0).
+        with pytest.raises(ValueError) as exc_info:
+            prob.solve(solver=cp.SCS, use_quad_obj=False)
+        assert "indefinite" in str(exc_info.value)
+        assert "PSD" in str(exc_info.value)
+
+    def test_quad_form_monotonicity_in_x(self) -> None:
+        """Test DCP compositions requiring correct quad_form monotonicity in x."""
+        P = np.array([[2.0, 0.5], [0.5, 1.0]])
+
+        # x = square(z) is convex nonneg; quad_form nondecreasing in nonneg x → convex.
+        z = cp.Variable(2, nonneg=True)
+        assert cp.quad_form(cp.square(z), P).is_convex()
+
+        # x = square(z) - 1 is convex but can be negative; monotonicity unknown → not DCP.
+        assert not cp.quad_form(cp.square(z) - 1, P).is_convex()
+
+    def test_quad_form_monotonicity_in_P(self) -> None:
+        """Test DCP with P as a convex expression of a variable."""
+        y = cp.Variable(2, nonneg=True)
+        P = cp.diag(cp.square(y))
+
+        # Nonneg x: quad_form is nondecreasing in P, so convex ∘ nondecreasing = convex.
+        assert cp.quad_form(np.array([1.0, 2.0]), P).is_convex()
+
+        # Mixed-sign x: monotonicity unknown, so not DCP-convex.
+        assert not cp.quad_form(np.array([1.0, -2.0]), P).is_convex()

@@ -95,12 +95,6 @@ class CUCLARABEL(ConicSolver):
         """
         return True
 
-    @staticmethod
-    def extract_dual_value(result_vec, offset, constraint):
-        """Extracts the dual value for constraint starting at offset.
-        """
-        return utilities.extract_dual_value(result_vec, offset, constraint)
-
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data.
         """
@@ -120,12 +114,12 @@ class CUCLARABEL(ConicSolver):
             }
             eq_dual_vars = utilities.get_dual_values(
                 np.array(solution.z[:inverse_data[ConicSolver.DIMS].zero]),
-                self.extract_dual_value,
+                utilities.extract_dual_value,
                 inverse_data[CUCLARABEL.EQ_CONSTR]
             )
             ineq_dual_vars = utilities.get_dual_values(
                 np.array(solution.z[inverse_data[ConicSolver.DIMS].zero:]),
-                self.extract_dual_value,
+                utilities.extract_dual_value,
                 inverse_data[CUCLARABEL.NEQ_CONSTR]
             )
             dual_vars = {}
@@ -163,10 +157,10 @@ class CUCLARABEL(ConicSolver):
         b = data[s.B]
         q = data[s.C]
 
+        nvars = q.size
         if s.P in data:
             P = data[s.P]
         else:
-            nvars = q.size
             P = sp.csr_array((nvars, nvars))
 
         P = sp.triu(P).tocsr()
@@ -179,20 +173,22 @@ class CUCLARABEL(ConicSolver):
         Agpu = cucsr_matrix(A)
         bgpu = cupy.array(b)
 
+        # Access PythonExt extension for GPU data transfer functions
+        pyext = jl.Base.get_extension(jl.Clarabel, jl.Symbol("PythonExt"))
         if Pgpu.nnz != 0:
-            jl.P = jl.Clarabel.cupy_to_cucsrmat(
+            jl.P = pyext.cupy_to_cucsrmat(
                 jl.Float64, int(Pgpu.data.data.ptr), int(Pgpu.indices.data.ptr),
                 int(Pgpu.indptr.data.ptr), *Pgpu.shape, Pgpu.nnz)
         else:
             jl.seval(f"""
             P = CuSparseMatrixCSR(sparse(Float64[], Float64[], Float64[], {nvars}, {nvars}))
             """)
-        jl.q = jl.Clarabel.cupy_to_cuvector(jl.Float64, int(qgpu.data.ptr), qgpu.size)
+        jl.q = pyext.cupy_to_cuvector(jl.Float64, int(qgpu.data.ptr), qgpu.size)
 
-        jl.A = jl.Clarabel.cupy_to_cucsrmat(
+        jl.A = pyext.cupy_to_cucsrmat(
                 jl.Float64, int(Agpu.data.data.ptr), int(Agpu.indices.data.ptr),
                 int(Agpu.indptr.data.ptr), *Agpu.shape, Agpu.nnz)
-        jl.b = jl.Clarabel.cupy_to_cuvector(jl.Float64, int(bgpu.data.ptr), bgpu.size)
+        jl.b = pyext.cupy_to_cuvector(jl.Float64, int(bgpu.data.ptr), bgpu.size)
 
 
         dims_to_solver_cones(jl, cones)
@@ -204,7 +200,7 @@ class CUCLARABEL(ConicSolver):
         Clarabel.solve!(solver)
         """)
         return results
-    
+
     def cite(self, data):
         """Returns bibtex citation for the solver.
 

@@ -15,7 +15,8 @@ limitations under the License.
 """
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Iterable, Optional
+from collections.abc import Iterable
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from cvxpy import Constant, Parameter, Variable
@@ -116,8 +117,8 @@ class Leaf(expression.Expression):
         self._shape = shape
         super(Leaf, self).__init__()
 
-        if (PSD or NSD or symmetric or diag or hermitian) and (len(shape) != 2
-                                                               or shape[0] != shape[1]):
+        if (PSD or NSD or symmetric or diag or hermitian) and (len(shape) < 2
+                                                               or shape[-2] != shape[-1]):
             raise ValueError("Invalid dimensions %s. Must be a square matrix."
                              % (shape,))
 
@@ -158,6 +159,15 @@ class Leaf(expression.Expression):
                 "A CVXPY Variable cannot have more than one of the following attributes: "
                 f"{dim_reducing_attr}"
             )
+        sign_attrs = [k for k in ['pos', 'neg'] if self.attributes[k]]
+        sparse_attrs = [k for k in ['sparsity', 'diag'] if self.attributes[k]]
+        if sign_attrs and sparse_attrs:
+            raise ValueError(
+                f"Cannot combine {sign_attrs} with {sparse_attrs}. "
+                "Sparsity and diag attributes force zeros, which contradicts "
+                "strict positivity/negativity."
+            )
+        self._leaf_of_provenance = None
         self.args = []
         self.bounds = self._ensure_valid_bounds(bounds)
         self.attributes['bounds'] = self.bounds
@@ -253,6 +263,14 @@ class Leaf(expression.Expression):
 
     def is_concave(self) -> bool:
         """Is the expression concave?"""
+        return True
+
+    def is_linearizable_convex(self) -> bool:
+        """Is the expression convex after linearizing all smooth subexpressions?"""
+        return True
+
+    def is_linearizable_concave(self) -> bool:
+        """Is the expression concave after linearizing all smooth subexpressions?"""
         return True
 
     def is_log_log_convex(self) -> bool:
@@ -436,7 +454,7 @@ class Leaf(expression.Expression):
             return np.minimum(val, 0.)
         elif self.attributes['nonneg'] or self.attributes['pos']:
             return np.maximum(val, 0.)
-        elif self.attributes['bounds']:
+        elif self.bounds is not None:
             if any(isinstance(b, expression.Expression) for b in self.bounds):
                 # Cannot project with expression bounds; return as-is.
                 return val
@@ -462,12 +480,12 @@ class Leaf(expression.Expression):
                 val = np.diag(val)
             return sp.diags_array([val], offsets=[0])
         elif self.attributes['hermitian']:
-            return (val + np.conj(val).T)/2.
+            return (val + np.conj(np.swapaxes(val, -2, -1)))/2.
         elif any([self.attributes[key] for
                   key in ['symmetric', 'PSD', 'NSD']]):
             if val.dtype.kind in 'ib':
                 val = val.astype(float)
-            val = val + val.T
+            val = val + np.swapaxes(val, -2, -1)
             val /= 2.
             if self.attributes['symmetric']:
                 return val
@@ -482,7 +500,7 @@ class Leaf(expression.Expression):
                 if not bad.any():
                     return val
                 w[bad] = 0
-            return (V * w).dot(V.T)
+            return (V * w[..., np.newaxis, :]) @ np.swapaxes(V, -2, -1)
         elif self.attributes['sparsity'] and not sparse_path:
             warn('Accessing a sparse CVXPY expression via a dense representation.'
                   ' Please report this as a bug to the CVXPY Discord or GitHub.',
@@ -498,14 +516,14 @@ class Leaf(expression.Expression):
         if val is None:
             self._value = None
         elif self.sparse_idx is not None and not sparse_path:
-            self._value = sp.coo_array((val[self.sparse_idx], self.sparse_idx), shape=self.shape)
+            self._value = val[self.sparse_idx]
         elif self.sparse_idx is not None and sparse_path:
             self._value = val.data
         else:
             self._value = val
 
     @property
-    def value(self) -> Optional[np.ndarray]:
+    def value(self) -> np.ndarray | None:
         """The numeric value of the expression."""
         if self.sparse_idx is None:
             return self._value
@@ -515,7 +533,7 @@ class Leaf(expression.Expression):
             if self._value is None:
                 return None
             val = np.zeros(self.shape, dtype=self._value.dtype)
-            val[self.sparse_idx] = self._value.data
+            val[self.sparse_idx] = self._value
             return val
 
     @value.setter
@@ -526,14 +544,11 @@ class Leaf(expression.Expression):
         self.save_value(self._validate_value(val))
 
     @property
-    def value_sparse(self) -> Optional[...]:
+    def value_sparse(self) -> sp.coo_array | None:
         """The numeric value of the expression if it is a sparse variable."""
         if self._value is None:
             return None
-        if isinstance(self._value, np.ndarray):
-            return sp.coo_array((self._value, self.sparse_idx), shape=self.shape)
-        else:
-            return self._value
+        return sp.coo_array((self._value, self.sparse_idx), shape=self.shape)
 
     @value_sparse.setter
     def value_sparse(self, val) -> None:
@@ -693,6 +708,34 @@ class Leaf(expression.Expression):
 
     def atoms(self) -> list[Atom]:
         return []
+
+    def attributes_were_lowered(self) -> bool:
+        """True iff this leaf was generated when lowering a leaf with attributes."""
+        return self._leaf_of_provenance is not None
+
+    def set_leaf_of_provenance(self, leaf: Leaf) -> None:
+        assert leaf.attributes
+        self._leaf_of_provenance = leaf
+
+    def leaf_of_provenance(self) -> Leaf | None:
+        """Returns a leaf with attributes from which this leaf was generated."""
+        return self._leaf_of_provenance
+
+    @property
+    def _has_dim_reducing_attr(self) -> bool:
+        return (self.sparse_idx is not None or self.attributes['diag'] or
+                self.attributes['symmetric'] or self.attributes['PSD'] or
+                self.attributes['NSD'])
+
+    @property
+    def _reduced_size(self) -> int:
+        if self.sparse_idx is not None:
+            return len(self.sparse_idx[0])
+        elif self.attributes['diag']:
+            return self.shape[0]
+        elif self.attributes['symmetric'] or self.attributes['PSD'] or self.attributes['NSD']:
+            return self.shape[0] * (self.shape[0] + 1) // 2
+        return self.size
 
     def _validate_sparse_bound(self, val):
         """Validate a single sparse bound entry.

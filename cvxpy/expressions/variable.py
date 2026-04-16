@@ -15,7 +15,8 @@ limitations under the License.
 """
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Iterable, Optional, Tuple
+from collections.abc import Iterable
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from cvxpy.expressions.constants.parameter import Parameter
@@ -31,7 +32,16 @@ from cvxpy.utilities import scopes
 
 
 class Variable(Leaf):
-    """The optimization variables in a problem."""
+    """The optimization variables in a problem.
+
+    Attributes
+    ----------
+    sample_bounds : tuple[np.ndarray, np.ndarray] | None
+        Explicit bounds ``(low, high)`` for random initial point sampling in
+        ``best_of`` NLP solves.  When set, overrides the variable's ``value``
+        during random initialization.  When ``None`` and finite ``bounds`` are
+        present, those are used instead.
+    """
 
     def __init__(
         self, shape: int | Iterable[int] = (), name: str | None = None,
@@ -48,10 +58,10 @@ class Variable(Leaf):
         else:
             raise TypeError("Variable name %s must be a string." % name)
 
-        self._variable_with_attributes: Variable | None = None
         self._value = None
         self.delta = None
         self.gradient = None
+        self.sample_bounds = None
         super(Variable, self).__init__(shape, **kwargs)
 
     def name(self) -> str:
@@ -62,7 +72,7 @@ class Variable(Leaf):
         return False
 
     @property
-    def grad(self) -> Optional[dict[Variable, sp.csc_array]]:
+    def grad(self) -> dict[Variable, sp.csc_array] | None:
         """Gives the (sub/super)gradient of the expression w.r.t. each variable.
 
         Matrix expressions are vectorized, so the gradient is a matrix.
@@ -99,7 +109,8 @@ class Variable(Leaf):
                 for b in self.attributes['bounds']:
                     if isinstance(b, Expression) and not b.is_log_log_affine():
                         return False
-        return True
+        # Use base class logic: check log-log convexity/concavity
+        return self.is_log_log_convex() or self.is_log_log_concave()
 
     def is_dpp(self, context: str = 'dcp') -> bool:
         """Check that the variable is DPP in the given context."""
@@ -110,22 +121,18 @@ class Variable(Leaf):
         else:
             raise ValueError(f'Unsupported context {context}')
 
-    def canonicalize(self) -> Tuple[Expression, list[Constraint]]:
+    def canonicalize(self) -> tuple[Expression, list[Constraint]]:
         """Returns the graph implementation of the object."""
         obj = lu.create_var(self.shape, self.id)
         return (obj, [])
 
-    def attributes_were_lowered(self) -> bool:
-        """True iff variable generated when lowering a variable with attributes."""
-        return self._variable_with_attributes is not None
-
     def set_variable_of_provenance(self, variable: Variable) -> None:
-        assert variable.attributes
-        self._variable_with_attributes = variable
+        """Deprecated: use set_leaf_of_provenance instead."""
+        self.set_leaf_of_provenance(variable)
 
-    def variable_of_provenance(self) -> Optional[Variable]:
-        """Returns a variable with attributes from which this variable was generated."""
-        return self._variable_with_attributes
+    def variable_of_provenance(self) -> Variable | None:
+        """Deprecated: use leaf_of_provenance instead."""
+        return self.leaf_of_provenance()
 
     def __repr__(self) -> str:
         """String to recreate the variable."""

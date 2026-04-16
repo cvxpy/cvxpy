@@ -13,7 +13,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import Tuple
 
 import numpy as np
 
@@ -35,14 +34,17 @@ class length(Atom):
         """Returns the length of x.
         """
         outside_tol = np.abs(values[0]) > s.ATOM_EVAL_TOL
-        return np.max(np.nonzero(outside_tol)) + 1
+        nz = np.nonzero(outside_tol)
+        if nz[0].size == 0:
+            return 0
+        return np.max(nz) + 1
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> tuple[int, ...]:
         """Returns the (row, col) shape of the expression.
         """
         return tuple()
 
-    def sign_from_args(self) -> Tuple[bool, bool]:
+    def sign_from_args(self) -> tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         # Always nonnegative.
@@ -78,5 +80,5 @@ class length(Atom):
         """
         return self.args[idx].is_nonpos()
 
-    def _grad(self, values) -> None:
-        return None
+    def _grad(self, values):
+        return [None]

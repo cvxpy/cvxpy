@@ -9,14 +9,22 @@ on:
 jobs:
   claude-review:
     # Run if PR opened OR if someone comments /claude-review on a PR
+    # Important to check author association to prevent prompt injection attacks
     if: |
-      github.event_name == 'pull_request' ||
-      (github.event.issue.pull_request && contains(github.event.comment.body, '/claude-review'))
+      (github.event_name == 'pull_request' &&
+       (github.event.pull_request.author_association == 'MEMBER' ||
+        github.event.pull_request.author_association == 'OWNER' ||
+        github.event.pull_request.author_association == 'COLLABORATOR')) ||
+      (github.event.issue.pull_request &&
+       contains(github.event.comment.body, '/claude-review') &&
+       (github.event.comment.author_association == 'MEMBER' ||
+        github.event.comment.author_association == 'OWNER' ||
+        github.event.comment.author_association == 'COLLABORATOR'))
 
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      pull-requests: read
+      pull-requests: write
       issues: read
       id-token: write
 
@@ -33,20 +41,46 @@ jobs:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           prompt: |
             REPO: ${{ github.repository }}
-            PR NUMBER: ${{ github.event.pull_request.number }}
+            PR NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
 
-            Please review this pull request and provide feedback on:
+            Read CLAUDE.md for project conventions and what to flag. Then run `gh pr diff` to get the full diff, and review it for:
             - Code quality and best practices
             - Potential bugs or issues
             - Performance considerations
             - Security concerns
             - Test coverage
 
-            Use the repository's CLAUDE.md for guidance on style and conventions. Be constructive and helpful in your feedback.
+            Be constructive and helpful in your feedback. Only comment on things that are actually problematic — don't leave praise-only or nitpick comments.
 
-            Use `gh pr comment` with your Bash tool to leave your review as a comment on the PR.
+            Post your review as inline comments on specific lines using `gh api`. First write the request body to a JSON file, then pass it with --input. For example:
+
+            1. Write a file called `review.json` with this structure:
+            ```json
+            {
+              "event": "COMMENT",
+              "body": "",
+              "comments": [
+                {"path": "file.py", "line": 10, "body": "comment text"}
+              ]
+            }
+            ```
+            Only include content in `body` if there is an overarching issue with the PR. Do not summarize other comments. Do not provide praise.
+            If there are no comments, `body` should be "LGTM" to confirm that the review has run.
+
+            2. Then submit it:
+            ```
+            gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number || github.event.issue.number }}/reviews --input review.json
+            ```
+
+            Each comment should specify the file path, line number (from the new version of the file), and your feedback.
+            If there are no issues worth commenting on, post a single PR comment: "LGTM".
 
           # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
           # or https://code.claude.com/docs/en/cli-reference for available options
-          claude_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
+          claude_args: '--model claude-opus-4-6 --allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*),Bash(gh api:*),Write(*)"'
 
+      - name: Save Claude Output
+        uses: actions/upload-artifact@v4
+        with:
+          name: claude-execution-output
+          path: /home/runner/work/_temp/claude-execution-output.json

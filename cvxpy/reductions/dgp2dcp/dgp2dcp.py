@@ -15,7 +15,6 @@ limitations under the License.
 """
 import numpy as np
 
-from cvxpy import settings
 from cvxpy.expressions.expression import Expression
 from cvxpy.reductions.canonicalization import Canonicalization
 from cvxpy.reductions.dgp2dcp.canonicalizers import DgpCanonMethods
@@ -87,6 +86,8 @@ class Dgp2Dcp(Canonicalization):
         if param not in self.canon_methods._parameters:
             return None
         new_param = self.canon_methods._parameters[param]
+        if new_param.id not in dparams:
+            return None
         # Apply chain rule: d(log(x))/dx = 1/x
         return (1.0 / param.value) * dparams[new_param.id]
 
@@ -128,19 +129,19 @@ class Dgp2Dcp(Canonicalization):
         return equiv_problem, inverse_data
 
     def canonicalize_expr(
-            self, 
-            expr: Expression, 
-            args: list, 
+            self,
+            expr: Expression,
+            args: list,
             canonicalize_params: bool = True
         ):
         """Canonicalize an expression, w.r.t. canonicalized arguments.
-        
+
         Args:
             expr: Expression to canonicalize.
             args: Arguments to the expression.
-            canonicalize_params: Should constant subtrees 
+            canonicalize_params: Should constant subtrees
                 containing parameters be canonicalized?
-        
+
         Returns:
             canonicalized expression, constraints
         """
@@ -151,7 +152,7 @@ class Dgp2Dcp(Canonicalization):
 
     def invert(self, solution, inverse_data):
         solution = super(Dgp2Dcp, self).invert(solution, inverse_data)
-        if solution.status == settings.SOLVER_ERROR:
+        if solution.opt_val is None:
             return solution
         for vid, value in solution.primal_vars.items():
             solution.primal_vars[vid] = np.exp(value)

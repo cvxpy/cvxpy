@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import Tuple
 
 from cvxpy import problems
 from cvxpy.atoms.elementwise.power import Power
@@ -59,7 +58,7 @@ class Dcp2Cone(Canonicalization):
 
         canon_objective, canon_constraints = self.canonicalize_tree(
             problem.objective, True)
-        
+
 
         for constraint in problem.constraints:
             # canon_constr is the constraint rexpressed in terms of
@@ -75,7 +74,7 @@ class Dcp2Cone(Canonicalization):
                                                canon_constraints)
         return new_problem, inverse_data
 
-    def canonicalize_tree(self, expr, affine_above: bool) -> Tuple[Expression, list]:
+    def canonicalize_tree(self, expr, affine_above: bool) -> tuple[Expression, list]:
         """Recursively canonicalize an Expression.
 
         Parameters
@@ -106,7 +105,7 @@ class Dcp2Cone(Canonicalization):
             constrs += c
         return canon_expr, constrs
 
-    def canonicalize_expr(self, expr, args, affine_above: bool) -> Tuple[Expression, list]:
+    def canonicalize_expr(self, expr, args, affine_above: bool) -> tuple[Expression, list]:
         """Canonicalize an expression, w.r.t. canonicalized arguments.
 
         Parameters
@@ -131,7 +130,10 @@ class Dcp2Cone(Canonicalization):
             if isinstance(expr, Power) and not expr._quadratic_power():
                 return self.cone_canon_methods[type(expr)](expr, args,
                                                            solver_context=self.solver_context)
-            elif type(expr) == quad_over_lin and not expr.is_qpwa():
+            # quad_over_lin requires a constant denominator for the quad canon.
+            # Check the canonicalized args (not expr.args) since children may
+            # have been replaced with auxiliary variables.
+            elif type(expr) == quad_over_lin and not args[1].is_constant():
                 return self.cone_canon_methods[type(expr)](expr, args,
                                                            solver_context=self.solver_context)
             else:
@@ -139,7 +141,7 @@ class Dcp2Cone(Canonicalization):
                                                            solver_context=self.solver_context)
 
         if type(expr) in self.cone_canon_methods:
-            return self.cone_canon_methods[type(expr)](expr, args, 
+            return self.cone_canon_methods[type(expr)](expr, args,
                                                        solver_context=self.solver_context)
 
         return expr.copy(args), []

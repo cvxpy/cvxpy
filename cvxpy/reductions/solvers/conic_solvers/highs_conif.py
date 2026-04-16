@@ -31,14 +31,14 @@ from cvxpy.utilities.citations import CITATION_DICT
 
 PYTHON_LIST_SLICE_PATTERN = compile(r", \d+:\d+")
 VALID_COLUMN_NAME_PATTERN = compile(
-    r"^(?!st$|bounds$|min$|max$|bin$|binary$|gen$|semi$|end$)[a-df-zA-DF-Z\"!#$%&/}{,;?@_‘’'`|~]{1}[a-zA-Z0-9\"!#$%&/}{,;?@_‘’'`|~.=()<>[\]]{,254}$"
+    r"^(?!st$|bounds$|min$|max$|bin$|binary$|gen$|semi$|end$)[a-df-zA-DF-Z\"!#$%&/}{,;?@_‘’'`|~]{1}[a-zA-Z0-9\"!#$%&/}{,;?@_‘’'`|~.=()<>]{,254}$"
 )
 INVALID_COLUMN_NAME_MESSAGE_TEMPLATE = (
     "Invalid column name: {name}"
     "\nA column name must:"
     "\n- not be equal to one of the keywords: st, bounds, min, max, bin, binary, gen, semi or end"
     "\n- not begin with a number, the letter e or E or any of the following characters: .=()<>[]"
-    "\n- be alphanumeric (a-z, A-Z, 0-9) or one of these symbols: \"!#$%&/}}{{,;?@_‘’'`|~.=()<>[]"
+    "\n- be alphanumeric (a-z, A-Z, 0-9) or one of these symbols: \"!#$%&/}}{{,;?@_‘’'`|~.=()<>"
     "\n- be no longer than 255 characters."
 )
 
@@ -57,13 +57,23 @@ def strip_column_name_of_python_list_slice_notation(name: str) -> str:
     return PYTHON_LIST_SLICE_PATTERN.sub("", name)
 
 
+def sanitize_column_name(name: str) -> str:
+    """Replace square brackets with parentheses for HiGHS LP file compatibility.
+
+    HiGHS does not allow square brackets in column names in LP files because
+    they are used to define quadratic objectives.
+    """
+    return name.replace("[", "(").replace("]", ")")
+
+
 def collect_column_names(variable, column_names):
     """Recursively collect variable names."""
     if variable.ndim == 0:  # scalar
-        column_names.append(variable.name())
+        column_names.append(sanitize_column_name(variable.name()))
     elif variable.ndim == 1:  # simple array
         var_name_prefix = strip_column_name_of_python_list_slice_notation(variable.name())
-        column_names.extend([f"{var_name_prefix}[{v}]" for v in range(variable.size)])
+        var_name_prefix = sanitize_column_name(var_name_prefix)
+        column_names.extend([f"{var_name_prefix}({v})" for v in range(variable.size)])
     else:  # multi-dimensional array
         for var in variable:
             collect_column_names(var, column_names)  # recursive call
@@ -81,8 +91,8 @@ def set_column_names_from_variables(lp, variables):
     """
     column_names = []
     for variable in variables:
-        # variable_of_provenance() handles auto-generated vars (nonneg=True, etc.)
-        variable = variable.variable_of_provenance() or variable
+        # leaf_of_provenance() handles auto-generated vars (nonneg=True, etc.)
+        variable = variable.leaf_of_provenance() or variable
         collect_column_names(variable, column_names)
     lp.col_names_ = column_names
 
@@ -126,9 +136,7 @@ class HIGHS(ConicSolver):
         return s.HIGHS
 
     def import_solver(self) -> None:
-        import highspy
-
-        highspy
+        import highspy  # noqa: F401
 
     def accepts(self, problem) -> bool:
         """Can HiGHS solve the problem?"""
@@ -194,7 +202,17 @@ class HIGHS(ConicSolver):
             )
             sol = Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
-            sol = failure_solution(status, attr)
+            if status == s.INFEASIBLE:
+                dual_ray = -np.array(results["dual_ray"][2])
+                dual_vars = utilities.get_dual_values(
+                    dual_ray,
+                    utilities.extract_dual_value,
+                    inverse_data[HIGHS.EQ_CONSTR] + inverse_data[HIGHS.NEQ_CONSTR])
+            else:
+                # E.g., could be UNBOUNDED. TODO: Later we might propagate the primal ray for
+                # unbounded problems.
+                dual_vars = {}
+            sol = failure_solution(status, attr, dual_vars)
         return sol
 
     def solve_via_data(
@@ -329,6 +347,8 @@ class HIGHS(ConicSolver):
                 "model_status": solver.getModelStatus().name,
                 "run_time": solver.getRunTime(),
             }
+            if results["model_status"] == "kInfeasible":
+                results["dual_ray"] = solver.getDualRay()
         except ValueError as e:
             raise SolverError(e)
 

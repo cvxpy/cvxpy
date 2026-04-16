@@ -47,7 +47,7 @@ class NonPos(Constraint):
     DEPRECATION_MESSAGE = """
     Explicitly invoking "NonPos(expr)" to a create a constraint is deprecated.
     Please use operator overloading or "NonNeg(-expr)" instead.
-    
+
     Sign conventions on dual variables associated with NonPos constraints may
     change in the future.
     """
@@ -67,6 +67,13 @@ class NonPos(Constraint):
             with scopes.dpp_scope():
                 return self.args[0].is_convex()
         return self.args[0].is_convex()
+
+    def is_dnlp(self) -> bool:
+        """
+        A NonPos constraint is DNLP if its
+        argument is linearizable convex.
+        """
+        return self.args[0].is_linearizable_convex()
 
     def is_dgp(self, dpp: bool = False) -> bool:
         return False
@@ -126,6 +133,13 @@ class NonNeg(Constraint):
             with scopes.dpp_scope():
                 return self.args[0].is_concave()
         return self.args[0].is_concave()
+
+    def is_dnlp(self) -> bool:
+        """
+        A non-negative constraint is DNLP if
+        its argument is linearizable concave.
+        """
+        return self.args[0].is_linearizable_concave()
 
     def is_dgp(self, dpp: bool = False) -> bool:
         return False
@@ -209,6 +223,13 @@ class Inequality(Constraint):
             with scopes.dpp_scope():
                 return self.expr.is_convex()
         return self.expr.is_convex()
+
+    def is_dnlp(self) -> bool:
+        """
+        An Inequality constraint is DNLP if its
+        argument is linearizable convex.
+        """
+        return self.expr.is_linearizable_convex()
 
     def is_dgp(self, dpp: bool = False) -> bool:
         if dpp:

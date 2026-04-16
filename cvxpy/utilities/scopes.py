@@ -14,9 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import contextlib
-from typing import Generator
+import threading
+from collections.abc import Generator
 
-_dpp_scope_active = False
+_thread_local = threading.local()
 
 
 @contextlib.contextmanager
@@ -37,13 +38,12 @@ def dpp_scope() -> Generator[None, None, None]:
         param is constant: False
         param is affine: True
     """
-    global _dpp_scope_active
-    prev_state = _dpp_scope_active
-    _dpp_scope_active = True
+    prev_state = getattr(_thread_local, 'dpp_scope_active', False)
+    _thread_local.dpp_scope_active = True
     yield
-    _dpp_scope_active = prev_state
+    _thread_local.dpp_scope_active = prev_state
 
 
 def dpp_scope_active() -> bool:
     """Returns True if a `dpp_scope` is active. """
-    return _dpp_scope_active
+    return getattr(_thread_local, 'dpp_scope_active', False)

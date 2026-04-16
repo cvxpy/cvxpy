@@ -32,13 +32,13 @@ class CPLEX(QpSolver):
     """QP interface for the CPLEX solver"""
 
     MIP_CAPABLE = True
+    BOUNDED_VARIABLES = True
 
     def name(self):
         return s.CPLEX
 
     def import_solver(self) -> None:
-        import cplex
-        cplex
+        import cplex  # noqa: F401
 
     def invert(self, results, inverse_data):
         model = results["model"]
@@ -111,9 +111,19 @@ class CPLEX(QpSolver):
         model.objective.set_sense(model.objective.sense.minimize)
 
         # Add variables and linear objective
+        lb = data[s.LOWER_BOUNDS]
+        ub = data[s.UPPER_BOUNDS]
+        if lb is None:
+            lb = -cpx.infinity*np.ones(n_var)
+        else:
+            lb = np.clip(lb, -cpx.infinity, cpx.infinity)
+        if ub is None:
+            ub = cpx.infinity*np.ones(n_var)
+        else:
+            ub = np.clip(ub, -cpx.infinity, cpx.infinity)
         var_idx = list(model.variables.add(obj=q,
-                                           lb=-cpx.infinity*np.ones(n_var),
-                                           ub=cpx.infinity*np.ones(n_var)))
+                                           lb=lb,
+                                           ub=ub))
 
         # Constrain binary/integer variables if present
         for i in data[s.BOOL_IDX]:

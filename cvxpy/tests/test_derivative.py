@@ -340,6 +340,44 @@ class TestBackward(BaseTest):
         self.assertIn(0.0, A.data)
 
 
+    def test_sparse_variable_derivative(self) -> None:
+        sparsity = [(0, 1), (1, 0)]
+        x = cp.Variable((2, 2), sparsity=sparsity)
+        b = cp.Parameter(2)
+        b.value = np.array([1.0, 2.0])
+        # Constrain only the nonzero entries (x[1,0] and x[0,1]) via
+        # column sums, which picks up one nonzero per column.
+        prob = cp.Problem(cp.Minimize(cp.sum(x)), [cp.sum(x, axis=0) >= b])
+        gradcheck(prob)
+        perturbcheck(prob)
+
+    def test_batched_symmetric_backward(self) -> None:
+        """backward() and derivative() must work with batched symmetric variables.
+
+        Regression test for a crash in split_adjoint where np.diag() and .T
+        do not generalize to 3-D arrays (batched symmetric/PSD variables).
+        """
+        X = cp.Variable((2, 2, 2), symmetric=True)
+        p = cp.Parameter(nonneg=True)
+        p.value = 1.0
+
+        prob = cp.Problem(cp.Minimize(p * cp.sum(X)), [X >> np.eye(2)])
+        prob.solve(solver=cp.SCS, requires_grad=True, eps=1e-9)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+
+        # backward() must not crash
+        X.gradient = np.ones((2, 2, 2))
+        prob.backward()
+        self.assertTrue(np.isfinite(p.gradient))
+
+        # derivative() must produce symmetric deltas
+        p.delta = 1e-4
+        prob.derivative()
+        self.assertEqual(X.delta.shape, (2, 2, 2))
+        np.testing.assert_allclose(
+            X.delta, np.swapaxes(X.delta, -2, -1), atol=1e-6)
+
+
 class TestBackwardComplex(BaseTest):
     """Test backward/forward differentiation with complex parameters."""
     def setUp(self) -> None:
@@ -735,3 +773,25 @@ class TestBackwardDgp(BaseTest):
                               cp.sum(w) <= kappa])
         gradcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-1)
         perturbcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-1)
+
+
+class TestDgp2DcpReduction(BaseTest):
+    """Tests for Dgp2Dcp reduction internals (no diffcp required)."""
+
+    def test_param_backward_absent_log_param(self) -> None:
+        """param_backward must return None when log-param id is absent from dparams.
+
+        Before the fix, Dgp2Dcp.param_backward accessed dparams[new_param.id]
+        without checking for the key, raising KeyError when the log-parameter
+        was not present in dparams (e.g. during partial backward passes).
+        """
+        from cvxpy.reductions.dgp2dcp.dgp2dcp import Dgp2Dcp
+        p = cp.Parameter(pos=True, value=2.0)
+        x = cp.Variable(pos=True)
+        prob = cp.Problem(cp.Minimize(p * x), [x >= 1])
+        dgp = Dgp2Dcp()
+        dgp.apply(prob)
+        # Pass an empty dparams dict: the log-param id is absent.
+        # With the guard this returns None; without it raises KeyError.
+        result = dgp.param_backward(p, {})
+        self.assertIsNone(result)

@@ -38,13 +38,14 @@ from cvxpy.error import DCPError, ParameterError, SolverError
 from cvxpy.expressions.constants import Constant, Parameter
 from cvxpy.expressions.variable import Variable
 from cvxpy.problems.problem import Problem
+from cvxpy.reductions import Dcp2Cone
+from cvxpy.reductions.solution import Solution
 from cvxpy.reductions.solvers.conic_solvers import scs_conif
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.defines import (
     INSTALLED_SOLVERS,
     SOLVER_MAP_CONIC,
 )
-from cvxpy.reductions.solvers.solving_chain import ECOS_DEPRECATION_MSG
 from cvxpy.tests.base_test import BaseTest
 from cvxpy.utilities.citations import CITATION_DICT
 
@@ -758,7 +759,7 @@ class TestProblem(BaseTest):
         assert numpy.isinf(p.value)
         assert p.value > 0
         assert self.a.value is None
-        assert p.constraints[0].dual_value is None
+        assert p.constraints[0].dual_value is not None
 
         if s.CVXOPT in INSTALLED_SOLVERS:
             p = Problem(cp.Minimize(-self.a), [self.a >= 2])
@@ -779,7 +780,7 @@ class TestProblem(BaseTest):
         assert numpy.isinf(p.value)
         assert p.value < 0
         assert self.a.value is None
-        assert p.constraints[0].dual_value is None
+        assert p.constraints[0].dual_value is not None
 
         p = Problem(cp.Minimize(-self.a), [self.a >= 2, self.a <= 1])
         result = p.solve(solver=s.CLARABEL)
@@ -2327,24 +2328,16 @@ class TestProblem(BaseTest):
             cp.Problem(cp.Maximize(0), [c >= 0])
             assert len(w) == 0
 
-    def test_ecos_warning(self) -> None:
-        """Test that a warning is raised when ECOS
-           is called by default.
-        """
-        # Setup a QCQP.
-        x = cp.Variable()
-        prob = cp.Problem(cp.Maximize(x), [x**2 <= 1])
+    def test_canonicalization_invert_none_duals(self) -> None:
+        """Canonicalization.invert should handle None dual_vars."""
+        x = cp.Variable(2)
+        prob = cp.Problem(cp.Minimize(cp.sum(x)), [x >= 1])
+        reduction = Dcp2Cone()
+        new_prob, inv_data = reduction.apply(prob)
 
-        # Check if ECOS is the top default solver.
-        candidate_solvers = prob._find_candidate_solvers(solver=None, gp=False)
-        prob._sort_candidate_solvers(candidate_solvers)
-        if candidate_solvers['conic_solvers'][0] == cp.ECOS:
-            with warnings.catch_warnings(record=True) as w:
-                prob.solve()
-                assert isinstance(w[0].message, FutureWarning)
-                assert str(w[0].message) == ECOS_DEPRECATION_MSG
+        # Simulate a solver returning None dual_vars (e.g., MIP solvers).
+        pv = {vid: np.ones(2) for vid in inv_data.id_map}
+        sol = Solution("optimal", 2.0, pv, None, {})
+        result = reduction.invert(sol, inv_data)
+        assert result.dual_vars is None
 
-            # No warning if CLARABEL solver specified.
-            with warnings.catch_warnings(record=True) as w:
-                prob.solve(solver=cp.CLARABEL)
-                assert len(w) == 0

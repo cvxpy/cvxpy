@@ -15,11 +15,13 @@ limitations under the License.
 """
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Callable
+from typing import Any
 
 import numpy as np
 import scipy.sparse as sp
+from numpy.lib.array_utils import normalize_axis_tuple
 
 from cvxpy.lin_ops.backends.base import (
     Constant,
@@ -1269,8 +1271,8 @@ def coo_mul_elem(lhs: CooTensor, rhs: CooTensor) -> CooTensor:
             row=result.row.copy(),
             col=result.col.copy(),
             param_idx=np.zeros(len(result.data), dtype=np.int64),
-            m=lhs.m,
-            n=lhs.n,
+            m=result.shape[0],
+            n=result.shape[1],
             param_size=1
         )
 
@@ -1646,7 +1648,7 @@ class CooCanonBackend(PythonCanonBackend):
             # Sum along specific axis
             # row_map[i] tells us which output row input row i maps to
             row_map = self._get_sum_row_map(shape, axis)
-            axis_tuple = axis if isinstance(axis, tuple) else (axis,)
+            axis_tuple = normalize_axis_tuple(axis, len(shape))
             out_axes = [i for i in range(len(shape)) if i not in axis_tuple]
             new_m = int(np.prod([shape[i] for i in out_axes])) if out_axes else 1
 
@@ -1670,7 +1672,7 @@ class CooCanonBackend(PythonCanonBackend):
 
         Returns array where row_map[i] is the output row for input row i.
         """
-        axis = axis if isinstance(axis, tuple) else (axis,)
+        axis = normalize_axis_tuple(axis, len(shape))
         out_axes = np.isin(range(len(shape)), axis, invert=True)
         out_idx = np.indices(shape)[out_axes]
         out_dims = np.array(shape)[out_axes]
@@ -2412,13 +2414,33 @@ class CooCanonBackend(PythonCanonBackend):
         """
         Compute trace - sum of diagonal elements.
 
-        Uses select_rows to get diagonal + sum_entries.
+        Supports ND inputs with shape (*batch, n, n), producing output shape (*batch,).
         """
-        # Get shape from argument
         arg_shape = lin_op.args[0].shape
-        rows = arg_shape[0]
-        # Extract diagonal: indices 0, n+1, 2*(n+1), etc for main diagonal
-        diag_indices = np.arange(rows) * (rows + 1)
+        n = arg_shape[-1]
+        batch_size = int(np.prod(arg_shape[:-2])) if len(arg_shape) > 2 else 1
+
+        # In F-order layout of (*batch_flat, n, n), diagonal entry (b, i, i)
+        # is at position b + batch_size * i * (n + 1).
+        # Order: all batch elements for i=0, then all for i=1, etc.
+        diag_indices = (np.tile(np.arange(batch_size), n)
+                        + np.repeat(np.arange(n) * (n + 1), batch_size) * batch_size)
         view.select_rows(diag_indices.astype(int))
-        # Sum entries
-        return self.sum_entries(lin_op, view)
+
+        # Now we have batch_size * n rows. Remap to batch_size output rows
+        # by summing groups: rows [j] -> output row [j % batch_size].
+        # (Entries are ordered: all B entries for i=0, all B for i=1, ...)
+        output_rows = np.tile(np.arange(batch_size), n)
+
+        def func(compact, p):
+            return CooTensor(
+                data=compact.data.copy(),
+                row=output_rows[compact.row],
+                col=compact.col.copy(),
+                param_idx=compact.param_idx.copy(),
+                m=batch_size,
+                n=compact.n,
+                param_size=compact.param_size
+            )
+        view.apply_all(func)
+        return view

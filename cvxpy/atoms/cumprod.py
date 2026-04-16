@@ -13,7 +13,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import Tuple
 
 import numpy as np
 
@@ -33,6 +32,9 @@ class cumprod(AffAtom, AxisAtom):
     axis : int
         The axis to multiply across.
     """
+
+    _reduce_all_axes_to_none = False
+
     def __init__(self, expr: Expression, axis: int = 0) -> None:
         super(cumprod, self).__init__(expr, axis)
 
@@ -43,7 +45,7 @@ class cumprod(AffAtom, AxisAtom):
         """
         return np.cumprod(values[0], axis=self.axis)
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> tuple[int, ...]:
         """The same as the input."""
         return self.args[0].shape
 
@@ -54,7 +56,7 @@ class cumprod(AffAtom, AxisAtom):
     def is_atom_concave(self) -> bool:
         """Is the atom concave?"""
         return False
-    
+
     def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?"""
         return True

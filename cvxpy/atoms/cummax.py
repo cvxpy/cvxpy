@@ -13,7 +13,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import Tuple
 
 import numpy as np
 
@@ -25,6 +24,8 @@ class cummax(AxisAtom):
     """Cumulative maximum.
     """
 
+    _reduce_all_axes_to_none = False
+
     def __init__(self, x, axis: int = 0) -> None:
         super(cummax, self).__init__(x, axis=axis)
 
@@ -34,7 +35,7 @@ class cummax(AxisAtom):
         """
         return np.maximum.accumulate(values[0], axis=self.axis)
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> tuple[int, ...]:
         """The same as the input.
         """
         return self.args[0].shape
@@ -72,7 +73,7 @@ class cummax(AxisAtom):
             D[1:] = maxes[1:] > maxes[:-1]
         return D
 
-    def sign_from_args(self) -> Tuple[bool, bool]:
+    def sign_from_args(self) -> tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         # Same as argument.

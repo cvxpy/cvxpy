@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import Tuple
 
 import numpy as np
 import scipy.sparse as sp
@@ -27,7 +26,7 @@ from cvxpy.atoms.atom import Atom
 class Elementwise(Atom):
     """ Abstract base class for elementwise atoms. """
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> tuple[int, ...]:
         """Shape is the same as the sum of the arguments.
         """
         return u.shape.sum_shapes([arg.shape for arg in self.args])
@@ -61,7 +60,7 @@ class Elementwise(Atom):
         return sp.dia_array((np.atleast_1d(value), [0]), shape=(rows, cols)).tocsc()
 
     @staticmethod
-    def _promote(arg, shape: Tuple[int, ...]):
+    def _promote(arg, shape: tuple[int, ...]):
         """Promotes the lin op if necessary.
 
         Parameters
