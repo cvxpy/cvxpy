@@ -36,7 +36,7 @@ class TestSumIPOPT:
 
         checker = DerivativeChecker(prob)
         checker.run_and_assert()
-        
+
 
     def test_sum_with_axis(self):
         """Test sum with axis parameter."""
@@ -50,7 +50,7 @@ class TestSumIPOPT:
 
         checker = DerivativeChecker(prob)
         checker.run_and_assert()
-    
+
     def test_two_sum_with_axis(self):
         """Test sum with axis parameter."""
         np.random.seed(0)
@@ -91,7 +91,7 @@ class TestSumIPOPT:
     def test_sum_matrix_arg(self):
         np.random.seed(0)
         n, m, k = 40, 20, 4
-        A = np.random.rand(n, k) @ np.random.rand(k, m) 
+        A = np.random.rand(n, k) @ np.random.rand(k, m)
         T = cp.Variable((n, m), name='T')
         obj = cp.sum(cp.multiply(A, T))
         constraints = [T >= 1, T <= 2]

@@ -14,13 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import Union
 
 from cvxpy.atoms.norm import norm
 from cvxpy.expressions.expression import Expression
 
 
-def mixed_norm(X, p: Union[int, str] = 2, q: Union[int, str] = 1):
+def mixed_norm(X, p: int | str = 2, q: int | str = 1):
     """Lp,q norm; :math:`(\\sum_k (\\sum_l \\lvert x_{k,l} \\rvert^p)^{q/p})^{1/q}`.
 
     Parameters

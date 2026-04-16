@@ -17,7 +17,6 @@ limitations under the License.
 from __future__ import annotations
 
 import operator
-from typing import List
 
 import numpy as np
 import scipy.sparse as sp
@@ -193,7 +192,7 @@ class CoeffExtractor:
                         # Fast path for no parameters, keep q dense.
                         coeffs[orig_id]['q'] = np.zeros(shape)
                     else:
-                        coeffs[orig_id]['q'] = sp.coo_matrix(([], ([], [])), shape=shape) 
+                        coeffs[orig_id]['q'] = sp.coo_matrix(([], ([], [])), shape=shape)
             else:
                 # This was a true variable, so it can only have a q term.
                 var_offset = affine_id_map[var.id][0]
@@ -204,7 +203,7 @@ class CoeffExtractor:
                         coeffs[var.id]['q'] += c[var_offset:var_offset+var_size, :]
                     else:
                         coeffs[var.id]['q'] += param_coeffs[var_offset:var_offset+var_size, :]
-                else:   
+                else:
                     coeffs[var.id] = dict()
                     # Fast path for no parameters, q is dense and so is c.
                     if num_params == 1:
@@ -217,7 +216,7 @@ class CoeffExtractor:
         self,
         P: sp.coo_matrix,
         c_part: np.ndarray,
-        block_indices: List[np.ndarray],
+        block_indices: list[np.ndarray],
         num_params: int,
     ) -> TensorRepresentation:
         """Extract quadratic coefficients for block-structured quad forms.
@@ -335,9 +334,9 @@ class CoeffExtractor:
         return P, q
 
     def merge_P_list(
-            self, 
-            P_list: List[TensorRepresentation],
-            P_height: int, 
+            self,
+            P_list: list[TensorRepresentation],
+            P_height: int,
             num_params: int,
         ) -> sp.csc_array:
         """Conceptually we build a block diagonal matrix
@@ -351,7 +350,7 @@ class CoeffExtractor:
             P_entries: number of entries in the merged P matrix.
             P_height: number of rows in the merged P matrix.
             num_params: number of parameters in the problem.
-        
+
         Returns:
             A CSC sparse representation of the merged P matrix.
         """
@@ -366,7 +365,7 @@ class CoeffExtractor:
             P.row += offset
             P.col += offset
             P.shape = (P_height, P_height)
-    
+
             offset += m
 
         combined = TensorRepresentation.combine(P_list)
@@ -375,7 +374,7 @@ class CoeffExtractor:
 
     def merge_q_list(
         self,
-        q_list: List[sp.spmatrix | np.ndarray],
+        q_list: list[sp.spmatrix | np.ndarray],
         constant: sp.csc_array,
         num_params: int,
     ) -> sp.csr_array:

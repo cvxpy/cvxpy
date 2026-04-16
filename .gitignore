@@ -63,3 +63,9 @@ cvxpy/version.py
 # Hypothesis testing
 .hypothesis/
 .aider*
+
+# Claude Code
+.claude/
+
+# uv
+uv.lock

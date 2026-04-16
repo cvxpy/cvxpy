@@ -14,13 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import List
 
 import numpy as np
 import scipy.sparse as sp
 
 from cvxpy.atoms import diag, reshape
-from cvxpy.atoms.affine.upper_tri import upper_tri_to_full
+from cvxpy.atoms.affine.upper_tri import batched_upper_tri_to_full, upper_tri_to_full
 from cvxpy.expressions import cvxtypes
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.constants.parameter import Parameter
@@ -78,11 +77,18 @@ def recover_value_for_leaf(variable, lowered_value, project: bool = True):
     if variable.attributes['diag']:
         return sp.diags_array(lowered_value.flatten(order='F'))
     elif attributes_present([variable], SYMMETRIC_ATTRIBUTES):
-        n = variable.shape[0]
-        value = np.zeros(variable.shape)
+        n = variable.shape[-1]
+        tri = n * (n + 1) // 2
+        batch_shape = variable.shape[:-2]
         idxs = np.triu_indices(n)
-        value[idxs] = lowered_value.flatten(order='F')
-        return value + value.T - np.diag(value.diagonal())
+        value = np.zeros(variable.shape)
+        tri_values = lowered_value.flatten(order='F').reshape(
+            (*batch_shape, tri), order='F')
+        value[..., idxs[0], idxs[1]] = tri_values
+        result = value + np.swapaxes(value, -2, -1)
+        di = np.arange(n)
+        result[..., di, di] -= value[..., di, di]
+        return result
     #TODO keep sparse / return coo_tensor
     elif variable.attributes['sparsity']:
         value = np.zeros(variable.shape)
@@ -118,7 +124,9 @@ def lower_value(variable, value=None) -> np.ndarray:
     if value is None:
         value = variable._value
     if attributes_present([variable], SYMMETRIC_ATTRIBUTES):
-        return value[np.triu_indices(variable.shape[0])]
+        n = variable.shape[-1]
+        idxs = np.triu_indices(n)
+        return value[..., idxs[0], idxs[1]].ravel(order='F')
     elif variable.attributes['diag']:
         return value.diagonal() if sp.issparse(value) else np.diag(value)
     elif variable.attributes['sparsity']:
@@ -156,7 +164,7 @@ class CvxAttr2Constr(Reduction):
         self._parameters = {}  # {orig_param: reduced_param}
         super(CvxAttr2Constr, self).__init__(problem=problem)
 
-    def reduction_attributes(self) -> List[str]:
+    def reduction_attributes(self) -> list[str]:
         """Returns the attributes that will be reduced."""
         if self.reduce_bounds:
             return CONVEX_ATTRIBUTES
@@ -192,7 +200,20 @@ class CvxAttr2Constr(Reduction):
                         new_var = True
                         new_attr[key] = None if key == 'bounds' else False
 
-                if var._has_dim_reducing_attr:
+                if attributes_present([var], SYMMETRIC_ATTRIBUTES):
+                    n = var.shape[-1]
+                    tri = n * (n + 1) // 2
+                    batch_shape = var.shape[:-2]
+                    batch_size = int(np.prod(batch_shape))
+                    shape = (batch_size * tri, 1)
+                    upper_tri_var = Variable(shape, var_id=var.id, **new_attr)
+                    upper_tri_var.set_variable_of_provenance(var)
+                    id2new_var[var.id] = upper_tri_var
+                    fill_coeff = Constant(
+                        batched_upper_tri_to_full(batch_size, n))
+                    full_mat = fill_coeff @ upper_tri_var
+                    obj = reshape(full_mat, var.shape, order='F')
+                elif var._has_dim_reducing_attr:
                     n = var._reduced_size
 
                     # Transform bounds for sparse reduced variable
@@ -299,8 +320,11 @@ class CvxAttr2Constr(Reduction):
                 pvars[id] = recover_value_for_leaf(
                     var, solution.primal_vars[new_var.id])
 
-        dvars = {orig_id: solution.dual_vars[vid]
-                 for orig_id, vid in cons_id_map.items()
-                 if vid in solution.dual_vars}
+        if solution.dual_vars is not None:
+            dvars = {orig_id: solution.dual_vars[vid]
+                     for orig_id, vid in cons_id_map.items()
+                     if vid in solution.dual_vars}
+        else:
+            dvars = None
         return Solution(solution.status, solution.opt_val, pvars, dvars,
                         solution.attr)

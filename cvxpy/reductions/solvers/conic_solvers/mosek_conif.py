@@ -21,7 +21,7 @@ import numpy as np
 import scipy as sp
 
 import cvxpy.settings as s
-from cvxpy.constraints import PSD, SOC, ExpCone, PowCone3D
+from cvxpy.constraints import SOC, ExpCone, PowCone3D, SvecPSD
 from cvxpy.reductions.cone2cone import affine2direct as a2d
 from cvxpy.reductions.cone2cone.affine2direct import (
     DUAL_EXP,
@@ -35,6 +35,7 @@ from cvxpy.reductions.solution import Solution
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.utilities import expcone_permutor
 from cvxpy.utilities.citations import CITATION_DICT
+from cvxpy.utilities.psd_utils import TriangleKind
 from cvxpy.utilities.warn import CvxpyDeprecationWarning, warn
 
 __MSK_ENUM_PARAM_DEPRECATION__ = """
@@ -119,7 +120,9 @@ class MOSEK(ConicSolver):
     """
 
     MIP_CAPABLE = True
-    SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC, PSD]
+    SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC, SvecPSD]
+    PSD_TRIANGLE_KIND = TriangleKind.LOWER
+    PSD_SQRT2_SCALING = False
     EXP_CONE_ORDER = [2, 1, 0]
     DUAL_EXP_CONE_ORDER = [0, 1, 2]
     # Does not support MISDP.
@@ -169,45 +172,6 @@ class MOSEK(ConicSolver):
                 if not arg.is_affine():
                     return False
         return True
-
-    @staticmethod
-    def psd_format_mat(constr):
-        """Return a linear operator to multiply by PSD constraint coefficients.
-
-        Special cases PSD constraints, as MOSEK expects constraints to be
-        imposed on solely the lower triangular part of the variable matrix.
-
-        This function differs from ``SCS.psd_format_mat`` only in that it does not
-        apply sqrt(2) scaling on off-diagonal entries. This difference from SCS is
-        necessary based on how we implement ``MOSEK.bar_data``.
-        """
-        rows = cols = constr.expr.shape[0]
-        entries = rows * (cols + 1)//2
-
-        row_arr = np.arange(0, entries)
-
-        lower_diag_indices = np.tril_indices(rows)
-        col_arr = np.sort(np.ravel_multi_index(lower_diag_indices,
-                                               (rows, cols),
-                                               order='F'))
-
-        val_arr = np.zeros((rows, cols))
-        val_arr[lower_diag_indices] = 1
-        np.fill_diagonal(val_arr, 1.0)
-        val_arr = np.ravel(val_arr, order='F')
-        val_arr = val_arr[np.nonzero(val_arr)]
-
-        shape = (entries, rows*cols)
-        scaled_lower_tri = sp.sparse.csc_array((val_arr, (row_arr, col_arr)), shape)
-
-        idx = np.arange(rows * cols)
-        val_symm = 0.5 * np.ones(2 * rows * cols)
-        K = idx.reshape((rows, cols))
-        row_symm = np.append(idx, np.ravel(K, order='F'))
-        col_symm = np.append(idx, np.ravel(K.T, order='F'))
-        symm_matrix = sp.sparse.csc_array((val_symm, (row_symm, col_symm)))
-
-        return scaled_lower_tri @ symm_matrix
 
     @staticmethod
     def bar_data(A_psd, c_psd, K):
@@ -417,7 +381,7 @@ class MOSEK(ConicSolver):
         # Create mosek bound keys if variables have bounds
         if data[s.LOWER_BOUNDS] is not None and data[s.UPPER_BOUNDS] is not None:
             bl, bu = data[s.LOWER_BOUNDS], data[s.UPPER_BOUNDS]
-            # Initialize bound key array as defined in 
+            # Initialize bound key array as defined in
             # https://docs.mosek.com/10.2/pythonapi/constants.html#mosek.boundkey
             bk = np.empty(n, dtype=np.object_)
             mask = np.isfinite([bl, bu])
@@ -573,7 +537,7 @@ class MOSEK(ConicSolver):
 
         # Delete the mosek Task and Environment
         task.__exit__(None, None, None)
- 
+
         return sol
 
     @staticmethod
@@ -730,7 +694,7 @@ class MOSEK(ConicSolver):
         return processed_opts
 
     @staticmethod
-    def is_param(param: str | "iparam" | "dparam" | "sparam") -> bool:  # noqa: F821
+    def is_param(param: object) -> bool:
         import mosek
         return isinstance(param, (mosek.iparam, mosek.dparam,  mosek.sparam))
 
@@ -756,7 +720,7 @@ class MOSEK(ConicSolver):
             solver_opts['mosek_params'][tol_param] = \
                 solver_opts['mosek_params'].get(tol_param, eps)
         return solver_opts
-    
+
     @staticmethod
     def tolerance_params() -> tuple[str]:
         # tolerance parameters from

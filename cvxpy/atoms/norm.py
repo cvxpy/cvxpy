@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import Union
 
 import numpy as np
 
@@ -28,7 +27,7 @@ from cvxpy.atoms.sigma_max import sigma_max
 from cvxpy.expressions.expression import Expression
 
 
-def norm(x, p: Union[int, str] = 2, axis=None, keepdims: bool = False):
+def norm(x, p: int | str = 2, axis=None, keepdims: bool = False):
     """Wrapper on the different norm atoms.
 
     Parameters
@@ -41,7 +40,7 @@ def norm(x, p: Union[int, str] = 2, axis=None, keepdims: bool = False):
         'fro' (for frobenius), 'nuc' (sum of singular values), np.inf or
         'inf' (infinity norm).
     axis : The axis along which to apply the norm, if any.
-    keepdims: If this is set to True, the axes which are reduced are left 
+    keepdims: If this is set to True, the axes which are reduced are left
         in the result as dimensions with size one.
 
     Returns

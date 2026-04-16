@@ -33,11 +33,11 @@ class IPOPT(NLPsolver):
         0: s.OPTIMAL,                    # Solve_Succeeded
         1: s.OPTIMAL_INACCURATE,         # Solved_To_Acceptable_Level
         6: s.OPTIMAL,                    # Feasible_Point_Found
-        
+
         # Infeasibility/Unboundedness
         2: s.INFEASIBLE,                 # Infeasible_Problem_Detected
         4: s.UNBOUNDED,                  # Diverging_Iterates
-        
+
         # Numerical/Algorithm issues
         3: s.SOLVER_ERROR,               # Search_Direction_Becomes_Too_Small
         -2: s.SOLVER_ERROR,              # Restoration_Failed
@@ -46,14 +46,14 @@ class IPOPT(NLPsolver):
         -100: s.SOLVER_ERROR,            # Unrecoverable_Exception
         -101: s.SOLVER_ERROR,            # NonIpopt_Exception_Thrown
         -199: s.SOLVER_ERROR,            # Internal_Error
-        
+
         # User/Resource limits
         5: s.USER_LIMIT,                 # User_Requested_Stop
         -1: s.USER_LIMIT,                # Maximum_Iterations_Exceeded
         -4: s.USER_LIMIT,                # Maximum_CpuTime_Exceeded
         -5: s.USER_LIMIT,                # Maximum_WallTime_Exceeded
         -102: s.USER_LIMIT,              # Insufficient_Memory
-        
+
         # Problem definition issues
         -10: s.SOLVER_ERROR,             # Not_Enough_Degrees_Of_Freedom
         -11: s.SOLVER_ERROR,             # Invalid_Problem_Definition
@@ -89,7 +89,7 @@ class IPOPT(NLPsolver):
         if 'all_objs_from_best_of' in solution:
             attr[s.EXTRA_STATS] = {'all_objs_from_best_of':
                                     solution['all_objs_from_best_of']}
-    
+
         if status in s.SOLUTION_PRESENT:
             primal_val = solution['obj_val']
             opt_val = primal_val + inverse_data.offset
@@ -158,7 +158,7 @@ class IPOPT(NLPsolver):
         else:
             oracles = Oracles(bounds.new_problem, verbose=verbose, use_hessian=use_hessian)
             solver_cache['oracles'] = oracles
-          
+
         nlp = cyipopt.Problem(
             n=len(data["x0"]),
             m=len(data["cl"]),
@@ -166,7 +166,7 @@ class IPOPT(NLPsolver):
             lb=data["lb"],
             ub=data["ub"],
             cl=data["cl"],
-            cu=data["cu"],  
+            cu=data["cu"],
         )
 
         # Set default IPOPT options, but use solver_opts if provided
@@ -187,19 +187,19 @@ class IPOPT(NLPsolver):
         for option_name, option_value in default_options.items():
             nlp.add_option(option_name, option_value)
 
-        # ipopt will evaluate the gradient of the Lagrangian at the initial point to decide 
+        # ipopt will evaluate the gradient of the Lagrangian at the initial point to decide
         # without doing the forward pass for the objective and constraints, so we need to do
         # a forward pass here to fill in any necessary values for the derivative evaluation.
         oracles.objective(data["x0"])
         oracles.constraints(data["x0"])
-    
+
         _, info = nlp.solve(data["x0"])
 
         # cyipopt does currently not expose the number of iterations, see
         # https://github.com/mechmotum/cyipopt/issues/17. We set it to "Not available" for now,
         # but we should update this when the information becomes available.
         info['num_iters'] = "Not available"
-        
+
         return info
 
     def cite(self, data):

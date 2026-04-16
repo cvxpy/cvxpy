@@ -30,6 +30,7 @@ from cvxpy.atoms import (
 )
 from cvxpy.atoms.elementwise.power import Power
 from cvxpy.atoms.quad_over_lin import quad_over_lin
+from cvxpy.atoms.suppfunc import SuppFuncAtom
 from cvxpy.constraints import (
     PSD,
     SOC,
@@ -226,6 +227,21 @@ class ProblemForm:
 
         atoms = base_obj_atoms + constr_atoms
 
+        # SuppFuncAtom creates constraints during canonicalization that
+        # aren't visible at the problem level.  Collect their constraint
+        # types and atoms so the solving chain knows which cones are needed.
+        if SuppFuncAtom in atoms:
+            def _collect_suppfunc_info(expr):
+                if isinstance(expr, SuppFuncAtom):
+                    for c in expr._parent.constraints:
+                        constr_types.add(type(c))
+                        atoms.extend(c.atoms())
+                for arg in expr.args:
+                    _collect_suppfunc_info(arg)
+            _collect_suppfunc_info(problem.objective.expr)
+            for constr in relevant_constrs:
+                _collect_suppfunc_info(constr)
+
         if SOC in constr_types or any(atom in SOC_ATOMS for atom in atoms):
             cones.add(SOC)
         if ExpCone in constr_types or any(atom in EXP_ATOMS for atom in atoms):
@@ -233,6 +249,8 @@ class ProblemForm:
         if any(t in constr_types for t in [Inequality, NonPos, NonNeg]) \
                 or any(atom in NONPOS_ATOMS for atom in atoms):
             cones.add(NonNeg)
+        if NonPos in constr_types:
+            cones.add(NonPos)
         if Equality in constr_types or Zero in constr_types:
             cones.add(Zero)
         if PSD in constr_types \

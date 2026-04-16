@@ -42,7 +42,7 @@ class TestPowerFlowIPOPT:
         p_min[[4,6,8]] = p_max[[4,6,8]] = [-54, -60, -75]
         q_min[[4,6,8]] = q_max[[4,6,8]] = [-18, -21, -30]
         v_min, v_max = 0.9, 1.1
-        
+
         # -----------------------------------------------------------------------------------
         #                     Define admittance matrices
         # -----------------------------------------------------------------------------------
@@ -86,7 +86,7 @@ class TestPowerFlowIPOPT:
         B_sh = np.imag(Y_sh.toarray())  #
         G = G0 + G_sh
         B = B0 + B_sh
-        
+
 
         # -----------------------------------------------------------------------------------
         #                         Define optimization prob
@@ -95,7 +95,7 @@ class TestPowerFlowIPOPT:
         v = cp.Variable((N, 1), bounds=[v_min, v_max])
         p = cp.Variable(N, bounds=[p_min, p_max])
         q = cp.Variable(N, bounds=[q_min, q_max])
-        C, S = cp.cos(theta - theta.T), cp.sin(theta - theta.T) 
+        C, S = cp.cos(theta - theta.T), cp.sin(theta - theta.T)
 
         constr = [theta[0] == 0,  p == cp.sum(P, axis=1), q == cp.sum(Q, axis=1),
                 P == cp.multiply(v @ v.T, cp.multiply(G, C) + cp.multiply(B, S)),
@@ -105,10 +105,10 @@ class TestPowerFlowIPOPT:
         prob = cp.Problem(cp.Minimize(cost), constr)
 
         # -----------------------------------------------------------------------------------
-        #                            Solve prob 
+        #                            Solve prob
         # -----------------------------------------------------------------------------------
         prob.solve(nlp=True, solver=cp.IPOPT, verbose=False)
-                
+
         assert prob.status == cp.OPTIMAL
         assert np.abs(prob.value - 3087.84) / prob.value <= 1e-4
 

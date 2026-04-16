@@ -13,8 +13,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable, List, Optional, Tuple
 
 import numpy as np
 import pytest
@@ -50,7 +50,7 @@ DEFAULT_ATOL = 1e-4
 def _compute_numerical_jacobian(
     eval_func: Callable[[np.ndarray], np.ndarray],
     var_value: np.ndarray,
-    var_shape: Tuple[int, ...],
+    var_shape: tuple[int, ...],
     output_size: int,
     eps: float = DEFAULT_FD_EPS,
 ) -> np.ndarray:
@@ -99,12 +99,12 @@ def _compute_numerical_jacobian(
 
 def expression_gradcheck(
     expr_factory: Callable[[cp.Variable], cp.Expression],
-    var_shape: Tuple[int, ...],
+    var_shape: tuple[int, ...],
     var_value: np.ndarray,
     eps: float = DEFAULT_FD_EPS,
     rtol: float = DEFAULT_RTOL,
     atol: float = DEFAULT_ATOL,
-) -> Tuple[bool, Optional[str]]:
+) -> tuple[bool, str | None]:
     """
     Validate expression gradient against numerical finite differences.
 
@@ -186,7 +186,7 @@ def expression_gradcheck_symmetric(
     eps: float = DEFAULT_FD_EPS,
     rtol: float = DEFAULT_RTOL,
     atol: float = DEFAULT_ATOL,
-) -> Tuple[bool, Optional[str]]:
+) -> tuple[bool, str | None]:
     """
     Validate expression gradient for symmetric matrix inputs.
 
@@ -293,12 +293,12 @@ def expression_gradcheck_symmetric(
 
 def expression_gradcheck_multi(
     expr_factory: Callable[..., cp.Expression],
-    var_shapes: List[Tuple[int, ...]],
-    var_values: List[np.ndarray],
+    var_shapes: list[tuple[int, ...]],
+    var_values: list[np.ndarray],
     eps: float = DEFAULT_FD_EPS,
     rtol: float = DEFAULT_RTOL,
     atol: float = DEFAULT_ATOL,
-) -> Tuple[bool, Optional[str]]:
+) -> tuple[bool, str | None]:
     """
     Validate gradient for expressions with multiple variable arguments.
 
@@ -366,20 +366,20 @@ class AtomInputGenerator:
     """Generate valid test inputs for different atom domain types."""
 
     @staticmethod
-    def unrestricted(shape: Tuple[int, ...], seed: int = 42) -> np.ndarray:
+    def unrestricted(shape: tuple[int, ...], seed: int = 42) -> np.ndarray:
         """Generate unrestricted real inputs."""
         rng = np.random.default_rng(seed)
         return rng.standard_normal(shape)
 
     @staticmethod
-    def positive(shape: Tuple[int, ...], seed: int = 42,
+    def positive(shape: tuple[int, ...], seed: int = 42,
                  margin: float = 0.5) -> np.ndarray:
         """Generate strictly positive inputs (for log, sqrt, etc.)."""
         rng = np.random.default_rng(seed)
         return np.abs(rng.standard_normal(shape)) + margin
 
     @staticmethod
-    def nonnegative(shape: Tuple[int, ...], seed: int = 42,
+    def nonnegative(shape: tuple[int, ...], seed: int = 42,
                     margin: float = 0.1) -> np.ndarray:
         """Generate non-negative inputs with small margin from zero."""
         rng = np.random.default_rng(seed)
@@ -393,7 +393,7 @@ class AtomInputGenerator:
         return A @ A.T + np.eye(n)
 
     @staticmethod
-    def symmetric(shape: Tuple[int, int], seed: int = 42) -> np.ndarray:
+    def symmetric(shape: tuple[int, int], seed: int = 42) -> np.ndarray:
         """Generate symmetric matrix."""
         rng = np.random.default_rng(seed)
         A = rng.standard_normal(shape)
@@ -401,13 +401,13 @@ class AtomInputGenerator:
 
     # === Domain violation generators (for testing grad returns None) ===
     @staticmethod
-    def negative(shape: Tuple[int, ...], seed: int = 42) -> np.ndarray:
+    def negative(shape: tuple[int, ...], seed: int = 42) -> np.ndarray:
         """Generate negative values (violates positive domain)."""
         rng = np.random.default_rng(seed)
         return -np.abs(rng.standard_normal(shape)) - 0.5
 
     @staticmethod
-    def with_zero(shape: Tuple[int, ...], seed: int = 42) -> np.ndarray:
+    def with_zero(shape: tuple[int, ...], seed: int = 42) -> np.ndarray:
         """Generate values with at least one zero (violates strictly positive)."""
         arr = AtomInputGenerator.positive(shape, seed)
         arr.flat[0] = 0.0
@@ -424,7 +424,7 @@ class AtomInputGenerator:
         return A
 
     @staticmethod
-    def generate(input_type: str, shape: Tuple[int, ...],
+    def generate(input_type: str, shape: tuple[int, ...],
                  seed: int = 42) -> np.ndarray:
         """Generate input based on type string."""
         generators = {
@@ -453,11 +453,11 @@ class AtomTestConfig:
     """Configuration for testing a single atom."""
     name: str
     atom_factory: Callable
-    var_shapes: List[Tuple[int, ...]]
+    var_shapes: list[tuple[int, ...]]
     input_generator: str
     rtol: float = 1e-4
     atol: float = 1e-4
-    skip_reason: Optional[str] = None
+    skip_reason: str | None = None
     symmetric: bool = False  # For PSD/symmetric matrix atoms
     test_domain: bool = True  # Auto-test domain violation based on input_generator
 
@@ -475,10 +475,10 @@ class MultiVarAtomConfig:
     """Configuration for testing atoms with multiple variable arguments."""
     name: str
     atom_factory: Callable
-    var_specs: List[Tuple[str, Tuple[int, ...]]]  # [(input_type, shape), ...]
+    var_specs: list[tuple[str, tuple[int, ...]]]  # [(input_type, shape), ...]
     rtol: float = 1e-4
     atol: float = 1e-4
-    skip_reason: Optional[str] = None
+    skip_reason: str | None = None
 
 
 # =============================================================================
@@ -540,6 +540,10 @@ SINGLE_VAR_ATOM_CONFIGS = [
                    "unrestricted"),
     AtomTestConfig("sigma_max", lambda x: cp.sigma_max(x), [(3, 3)],
                    "unrestricted"),
+    AtomTestConfig("sigma_max_nonsquare", lambda x: cp.sigma_max(x), [(2, 3)],
+                   "unrestricted"),
+    AtomTestConfig("sigma_max_tall", lambda x: cp.sigma_max(x), [(4, 2)],
+                   "unrestricted"),
     AtomTestConfig("mixed_norm_21", lambda x: cp.mixed_norm(x, 2, 1), [(3, 2)],
                    "unrestricted"),
     AtomTestConfig("sum_squares", lambda x: cp.sum_squares(x), [(3,), (2, 2)],
@@ -556,12 +560,12 @@ SINGLE_VAR_ATOM_CONFIGS = [
     AtomTestConfig("max_axis0", lambda x: cp.max(x, axis=0), [(2, 3)],
                    "unrestricted"),
     AtomTestConfig("max_3d_axis1", lambda x: cp.max(x, axis=1), [(2, 3, 4)],
-                   "unrestricted", skip_reason="_axis_grad doesn't support 3D"),
+                   "unrestricted"),
     AtomTestConfig("min", lambda x: cp.min(x), [(5,), (2, 3, 4)], "unrestricted"),
     AtomTestConfig("min_axis0", lambda x: cp.min(x, axis=0), [(2, 3)],
                    "unrestricted"),
     AtomTestConfig("min_3d_axis2", lambda x: cp.min(x, axis=2), [(2, 3, 4)],
-                   "unrestricted", skip_reason="_axis_grad doesn't support 3D"),
+                   "unrestricted"),
     AtomTestConfig("geo_mean", lambda x: cp.geo_mean(x), [(3,)], "positive"),
     AtomTestConfig("harmonic_mean", lambda x: cp.harmonic_mean(x), [(3,)],
                    "positive"),
@@ -572,7 +576,7 @@ SINGLE_VAR_ATOM_CONFIGS = [
                    "unrestricted"),
     AtomTestConfig("log_sum_exp_3d_axis1",
                    lambda x: cp.log_sum_exp(x, axis=1), [(2, 3, 4)],
-                   "unrestricted", skip_reason="_axis_grad doesn't support 3D"),
+                   "unrestricted"),
     AtomTestConfig("prod", lambda x: cp.prod(x), [(3,)], "unrestricted"),
 
     # === Affine atoms ===
@@ -613,8 +617,11 @@ SINGLE_VAR_ATOM_CONFIGS = [
     AtomTestConfig("lambda_min", lambda x: cp.lambda_min(x), [(3, 3)], "symmetric",
                    symmetric=True),
     AtomTestConfig("lambda_sum_largest", lambda x: cp.lambda_sum_largest(x, 2),
-                   [(3, 3)], "psd",
-                   skip_reason="_grad raises NotImplementedError"),
+                   [(3, 3)], "symmetric",
+                   symmetric=True),
+    AtomTestConfig("lambda_sum_largest_frac", lambda x: cp.lambda_sum_largest(x, 1.5),
+                   [(3, 3)], "symmetric",
+                   symmetric=True),
     AtomTestConfig("log_det", lambda x: cp.log_det(x), [(3, 3)], "psd",
                    symmetric=True),
     AtomTestConfig("tr_inv", lambda x: cp.tr_inv(x), [(3, 3)], "psd",
@@ -687,6 +694,8 @@ MULTI_VAR_ATOM_CONFIGS = [
                        [("unrestricted", (3,)), ("positive", (1,))]),
     MultiVarAtomConfig("matrix_frac", lambda x, P: cp.matrix_frac(x, P),
                        [("unrestricted", (3,)), ("psd", (3, 3))]),
+    MultiVarAtomConfig("matrix_frac_matrix_x", lambda x, P: cp.matrix_frac(x, P),
+                       [("unrestricted", (3, 2)), ("psd", (3, 3))]),
 ]
 
 
@@ -981,6 +990,176 @@ class TestSpecialCases:
 
         # access quad_form.expr.grad without error
         prob.constraints[1].expr.grad
+
+    def test_ceil_floor_grad(self):
+        """ceil and floor _grad should return a list of zero sparse matrices."""
+        x = cp.Variable(3)
+        x.value = np.array([1.5, 2.3, -0.7])
+
+        for atom in [cp.ceil(x), cp.floor(x)]:
+            grad = atom.grad
+            assert isinstance(grad, dict)
+            assert x in grad
+            np.testing.assert_array_equal(grad[x].toarray(), np.zeros((3, 3)))
+
+    def test_grad_undefined_atoms(self):
+        """Atoms with undefined gradients should return None per variable, not crash."""
+        from cvxpy.atoms.sign import sign
+        x = cp.Variable(3)
+        x.value = np.array([1.0, -2.0, 3.0])
+        grad = sign(x).grad
+        assert isinstance(grad, dict)
+        assert grad[x] is None
+
+        from cvxpy.atoms.length import length
+        v = cp.Variable(4)
+        v.value = np.array([1.0, 2.0, 0.0, 0.0])
+        grad = length(v).grad
+        assert isinstance(grad, dict)
+        assert grad[v] is None
+
+        from cvxpy.atoms.pf_eigenvalue import pf_eigenvalue
+        M = cp.Variable((2, 2))
+        M.value = np.array([[0.5, 0.1], [0.2, 0.3]])
+        grad = pf_eigenvalue(M).grad
+        assert isinstance(grad, dict)
+        assert grad[M] is None
+
+
+def expression_gradcheck_batched_symmetric(
+    expr_factory: Callable[[cp.Variable], cp.Expression],
+    full_shape: tuple[int, ...],
+    var_value: np.ndarray,
+    eps: float = DEFAULT_FD_EPS,
+    rtol: float = DEFAULT_RTOL,
+    atol: float = DEFAULT_ATOL,
+) -> tuple[bool, str | None]:
+    """
+    Validate expression gradient for batched symmetric matrix inputs.
+
+    For shape (*batch, n, n), perturbs each (n, n) slice symmetrically.
+    """
+    n = full_shape[-1]
+    batch_shape = full_shape[:-2]
+
+    var = cp.Variable(full_shape)
+    var.value = var_value.copy()
+    expr = expr_factory(var)
+
+    analytic_grad = expr.grad.get(var)
+    if analytic_grad is None:
+        return True, "Gradient is None (outside domain)"
+
+    if hasattr(analytic_grad, 'toarray'):
+        analytic_grad = analytic_grad.toarray()
+    analytic_grad = np.asarray(analytic_grad)
+
+    output_size = expr.size
+    input_size = int(np.prod(full_shape))
+    jacobian = np.zeros((output_size, input_size))
+
+    for batch_idx in np.ndindex(batch_shape):
+        for i in range(n):
+            for j in range(n):
+                perturbation = np.zeros(full_shape)
+                if i == j:
+                    perturbation[batch_idx + (i, j)] = eps
+                else:
+                    perturbation[batch_idx + (i, j)] = eps
+                    perturbation[batch_idx + (j, i)] = eps
+
+                var.value = var_value + perturbation
+                result_plus = np.asarray(expr.value).flatten(order='F')
+
+                var.value = var_value - perturbation
+                result_minus = np.asarray(expr.value).flatten(order='F')
+
+                flat_idx = np.ravel_multi_index(
+                    batch_idx + (i, j), full_shape, order='F'
+                )
+                diff = (result_plus - result_minus) / (2 * eps)
+
+                if i == j:
+                    jacobian[:, flat_idx] = diff
+                else:
+                    flat_idx_ji = np.ravel_multi_index(
+                        batch_idx + (j, i), full_shape, order='F'
+                    )
+                    jacobian[:, flat_idx] = diff / 2
+                    jacobian[:, flat_idx_ji] = diff / 2
+
+    var.value = var_value
+    numerical_grad = jacobian.T
+
+    if not np.allclose(analytic_grad, numerical_grad, rtol=rtol, atol=atol):
+        max_diff = np.max(np.abs(analytic_grad - numerical_grad))
+        max_idx = np.unravel_index(
+            np.argmax(np.abs(analytic_grad - numerical_grad)),
+            analytic_grad.shape
+        )
+        return False, (
+            f"Max difference: {max_diff:.2e} at index {max_idx}. "
+            f"Analytic: {analytic_grad[max_idx]:.6f}, "
+            f"Numerical: {numerical_grad[max_idx]:.6f}"
+        )
+
+    return True, None
+
+
+def _random_symmetric_batch(batch_shape, n, seed=42):
+    """Generate a batch of symmetric matrices with shape (*batch_shape, n, n)."""
+    rng = np.random.default_rng(seed)
+    full_shape = batch_shape + (n, n)
+    A = rng.standard_normal(full_shape)
+    return (A + np.swapaxes(A, -2, -1)) / 2
+
+
+class TestBatchedSymmetricGradients:
+    """Tests for _grad of ND batched symmetric matrix atoms."""
+
+    @pytest.mark.parametrize("seed", [42, 123])
+    @pytest.mark.parametrize("batch_shape", [(2,), (2, 3)])
+    def test_lambda_max_nd_grad(self, seed, batch_shape):
+        n = 3
+        A_val = _random_symmetric_batch(batch_shape, n, seed)
+        full_shape = batch_shape + (n, n)
+        passed, msg = expression_gradcheck_batched_symmetric(
+            lambda x: cp.lambda_max(x), full_shape, A_val
+        )
+        assert passed, f"lambda_max nd grad {batch_shape}: {msg}"
+
+    @pytest.mark.parametrize("seed", [42, 123])
+    @pytest.mark.parametrize("batch_shape", [(2,), (2, 3)])
+    def test_lambda_min_nd_grad(self, seed, batch_shape):
+        n = 3
+        A_val = _random_symmetric_batch(batch_shape, n, seed)
+        full_shape = batch_shape + (n, n)
+        passed, msg = expression_gradcheck_batched_symmetric(
+            lambda x: cp.lambda_min(x), full_shape, A_val
+        )
+        assert passed, f"lambda_min nd grad {batch_shape}: {msg}"
+
+    @pytest.mark.parametrize("seed", [42, 123])
+    @pytest.mark.parametrize("batch_shape", [(2,), (2, 3)])
+    def test_lambda_sum_largest_nd_grad(self, seed, batch_shape):
+        n = 3
+        A_val = _random_symmetric_batch(batch_shape, n, seed)
+        full_shape = batch_shape + (n, n)
+        passed, msg = expression_gradcheck_batched_symmetric(
+            lambda x: cp.lambda_sum_largest(x, 2), full_shape, A_val
+        )
+        assert passed, f"lambda_sum_largest nd grad {batch_shape}: {msg}"
+
+    @pytest.mark.parametrize("seed", [42, 123])
+    @pytest.mark.parametrize("batch_shape", [(2,), (2, 3)])
+    def test_lambda_sum_largest_frac_nd_grad(self, seed, batch_shape):
+        n = 3
+        A_val = _random_symmetric_batch(batch_shape, n, seed)
+        full_shape = batch_shape + (n, n)
+        passed, msg = expression_gradcheck_batched_symmetric(
+            lambda x: cp.lambda_sum_largest(x, 1.5), full_shape, A_val
+        )
+        assert passed, f"lambda_sum_largest frac nd grad {batch_shape}: {msg}"
 
 
 if __name__ == "__main__":

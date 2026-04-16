@@ -24,7 +24,7 @@ from cvxpy import settings as s
 from cvxpy.atoms.affine.trace import trace
 from cvxpy.constraints.exponential import ExpCone
 from cvxpy.constraints.power import PowCone3D, PowCone3DApprox, PowConeND
-from cvxpy.constraints.psd import PSD
+from cvxpy.constraints.psd import PSD, SvecPSD
 from cvxpy.constraints.second_order import SOC
 from cvxpy.reductions.chain import Chain
 from cvxpy.reductions.cone2cone import affine2direct as a2d
@@ -364,7 +364,7 @@ class TestSlacks(BaseTest):
             sth.verify_primal_values(places=3)
 
     @pytest.mark.skipif(
-        "HIGHS" not in INSTALLED_MI, 
+        "HIGHS" not in INSTALLED_MI,
         reason='HiGHS solver is not installed.'
     )
     def test_mi_lp_1(self):
@@ -789,8 +789,8 @@ class TestOpRelConeQuad(BaseTest):
 
 
 class _PSDOnlyClarabel(ClarabelSolver):
-    """Test-only Clarabel wrapper exposing only PSD (no SOC)."""
-    SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [PSD]
+    """Test-only Clarabel wrapper exposing only SvecPSD (no SOC)."""
+    SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SvecPSD]
 
     def name(self):
         return "_PSD_ONLY_CLARABEL"
@@ -821,6 +821,26 @@ class TestExactApproxCone2Cone(BaseTest):
         self.assertEqual(APPROX_CONE_CONVERSIONS[PowCone3DApprox], {SOC})
         self.assertNotIn(PowCone3D, APPROX_CONE_CONVERSIONS)
 
+    def test_exact_cone_conversions_is_dag(self) -> None:
+        """EXACT_CONE_CONVERSIONS must be a DAG (no cycles)."""
+        # Compute transitive reachability for each source cone.
+        # If any cone can reach itself, the graph has a cycle.
+        reachable = {src: set(tgts) for src, tgts in EXACT_CONE_CONVERSIONS.items()}
+        changed = True
+        while changed:
+            changed = False
+            for src in reachable:
+                new = set()
+                for t in reachable[src]:
+                    if t in reachable:
+                        new |= reachable[t]
+                if not new.issubset(reachable[src]):
+                    reachable[src] |= new
+                    changed = True
+        for src, targets in reachable.items():
+            self.assertNotIn(src, targets,
+                             f"Cycle detected: {src.__name__} can reach itself")
+
     def test_exact_cone2cone_target_cones_filtering(self) -> None:
         """ExactCone2Cone(target_cones={PowConeND}) only converts PowConeND."""
         reduction = ExactCone2Cone(target_cones={PowConeND})
@@ -848,6 +868,22 @@ class TestExactApproxCone2Cone(BaseTest):
         prob.solve(solver=_PSDOnlyClarabel())
         self.assertIn(prob.status, [cp.OPTIMAL, cp.OPTIMAL_INACCURATE])
         self.assertAlmostEqual(prob.value, -np.sqrt(3), places=3)
+
+    def test_soc_to_psd_dual_recovery(self) -> None:
+        """Dual variables recovered correctly through SOC→PSD→SvecPSD chain."""
+        x = cp.Variable(3)
+        t = cp.Variable()
+        soc_con = cp.SOC(t, x)
+        prob = cp.Problem(cp.Minimize(t), [soc_con, cp.sum(x) == 1])
+        prob.solve(solver=_PSDOnlyClarabel())
+        self.assertIn(prob.status, [cp.OPTIMAL, cp.OPTIMAL_INACCURATE])
+        dv = soc_con.dual_value
+        self.assertIsNotNone(dv)
+        for d in dv:
+            self.assertTrue(np.all(np.isfinite(d)))
+        # Complementary slackness: <primal_slack, dual> ≈ 0.
+        comp = cp.vdot(soc_con.args, soc_con.dual_value).value
+        self.assertAlmostEqual(comp, 0, places=3)
 
     def test_soc_to_psd_packed(self) -> None:
         """Packed SOC constraints via PSD-only solver work correctly."""
@@ -912,3 +948,98 @@ class TestExactApproxCone2Cone(BaseTest):
         inverted = reduction.invert(mock_solution, inverse_data)
         self.assertIn(pow_con.id, inverted.dual_vars)
         self.assertEqual(inverted.dual_vars[pow_con.id], mock_dual_value)
+
+
+class TestPSDUtils(BaseTest):
+    """Tests for tri_to_full and psd_format_mat round-trip correctness."""
+
+    def _random_psd(self, n, rng):
+        A = rng.standard_normal((n, n))
+        return A @ A.T
+
+    def test_tri_to_full_round_trip(self) -> None:
+        """psd_format_mat -> tri_to_full recovers the symmetrised matrix."""
+        from cvxpy.utilities.psd_utils import TriangleKind, psd_format_mat, tri_to_full
+        rng = np.random.default_rng(42)
+        n = 4
+        X = cp.Variable((n, n), symmetric=True)
+        con = PSD(X)
+        M_val = self._random_psd(n, rng)
+        X.value = M_val
+
+        for tri_kind in TriangleKind:
+            for sqrt2 in [True, False]:
+                M = psd_format_mat(con, tri_kind, sqrt2)
+                svec = (M @ M_val.ravel(order='F'))
+                recovered = tri_to_full(svec, n, tri_kind, sqrt2)
+                np.testing.assert_allclose(recovered, M_val, atol=1e-12)
+
+    def test_tri_to_full_round_trip_batched(self) -> None:
+        """Round-trip works for batched (2, n, n) PSD constraints."""
+        from cvxpy.utilities.psd_utils import TriangleKind, psd_format_mat, tri_to_full
+        rng = np.random.default_rng(7)
+        n = 3
+        batch = 2
+        X = cp.Variable((batch, n, n), symmetric=True)
+        con = PSD(X)
+        Ms = np.stack([self._random_psd(n, rng) for _ in range(batch)])
+        X.value = Ms
+
+        for tri_kind in TriangleKind:
+            for sqrt2 in [True, False]:
+                M = psd_format_mat(con, tri_kind, sqrt2)
+                svec = M @ Ms.ravel(order='F')
+                recovered = tri_to_full(svec, n, tri_kind, sqrt2)
+                np.testing.assert_allclose(recovered, Ms, atol=1e-12)
+
+    def test_tri_to_full_n1(self) -> None:
+        """1x1 matrix round-trips correctly (edge case: no off-diagonals)."""
+        from cvxpy.utilities.psd_utils import TriangleKind, psd_format_mat, tri_to_full
+        X = cp.Variable((1, 1), symmetric=True)
+        con = PSD(X)
+        X.value = np.array([[5.0]])
+
+        for tri_kind in TriangleKind:
+            for sqrt2 in [True, False]:
+                M = psd_format_mat(con, tri_kind, sqrt2)
+                svec = M @ np.array([5.0])
+                recovered = tri_to_full(svec, 1, tri_kind, sqrt2)
+                np.testing.assert_allclose(recovered, np.array([[5.0]]), atol=1e-12)
+
+
+class TestMixedPSDSOC(BaseTest):
+    """Tests for problems with both PSD and SOC constraints via PSD-only solver."""
+
+    def test_mixed_psd_soc(self) -> None:
+        """Problem with both PSD and SOC constraints through _PSDOnlyClarabel."""
+        X = cp.Variable((2, 2), symmetric=True)
+        y = cp.Variable(2)
+        prob = cp.Problem(
+            cp.Minimize(cp.trace(X) + cp.sum(y)),
+            [X >> 0, X[0, 1] >= 1, cp.norm(y, 2) <= 1]
+        )
+        prob.solve(solver=_PSDOnlyClarabel())
+        self.assertIn(prob.status, [cp.OPTIMAL, cp.OPTIMAL_INACCURATE])
+        # X optimal: min trace with X[0,1]>=1 and PSD gives trace=2
+        # y optimal: min sum(y) with ||y||<=1 gives -sqrt(2)
+        self.assertAlmostEqual(prob.value, 2 - np.sqrt(2), places=3)
+
+
+class TestSlacksInvert(BaseTest):
+
+    def test_slacks_invert_none_opt_val(self) -> None:
+        """Slacks.invert should not crash when opt_val is None."""
+        solution = Solution(s.SOLVER_ERROR, None, {}, {}, {})
+        inv_data = {'x_id': 0, s.OBJ_OFFSET: 5.0}
+        result = a2d.Slacks.invert(solution, inv_data)
+        self.assertIsNone(result.opt_val)
+
+    def test_pow_cone_nd_is_dcp(self) -> None:
+        """PowConeND.is_dcp() should check affinity of arguments."""
+        x = cp.Variable(2, nonneg=True)
+        z = cp.Variable()
+        alpha = np.array([0.5, 0.5])
+        constr = PowConeND(x, z, alpha)
+        self.assertTrue(constr.is_dcp())
+        self.assertTrue(constr.args[0].is_affine())
+        self.assertTrue(constr.args[1].is_affine())

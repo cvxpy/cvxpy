@@ -50,8 +50,8 @@ def rel_entr_canon(expr, args):
 
     if args[0].value is not None:
         t1.value = np.maximum(args[0].value, MIN_INIT)
-  
+
     if args[1].value is not None:
         t2.value = np.maximum(args[1].value, MIN_INIT)
-    
+
     return expr.copy([t1, t2]), constraints

@@ -36,7 +36,7 @@ class TestBestOf():
                             (radius[i] + radius[i+1:]) ** 2]
         obj = cp.Minimize(cp.max(cp.norm_inf(centers, axis=1) + radius))
         prob = cp.Problem(obj, constraints)
-        centers.sample_bounds = [-5.0, 5.0]  
+        centers.sample_bounds = [-5.0, 5.0]
         n_runs = 10
         prob.solve(nlp=True, verbose=True, derivative_test='none', best_of=n_runs)
         obj_best_of = obj.value
@@ -62,9 +62,9 @@ class TestBestOf():
                             (radius[i] + radius[i+1:]) ** 2]
         obj = cp.Minimize(cp.max(cp.norm_inf(centers, axis=1) + radius))
         prob = cp.Problem(obj, constraints)
-        
+
         centers.value = np.random.rand(n, 2)
-        centers.sample_bounds = [-5.0, 5.0]  
+        centers.sample_bounds = [-5.0, 5.0]
         n_runs = 10
         prob.solve(nlp=True, verbose=True, derivative_test='none', best_of=n_runs)
         obj_best_of = obj.value
@@ -90,7 +90,7 @@ class TestBestOf():
         assert len(all_objs) == 3
 
     def test_path_planning_best_of_four(self):
-        # test that an error is raised it there is a variable with one 
+        # test that an error is raised it there is a variable with one
         # infinite bound and no sample_bounds when best_of > 1
         x = cp.Variable(bounds=[-5, 5])
         y = cp.Variable(bounds=[-3, None])
@@ -102,8 +102,8 @@ class TestBestOf():
             prob.solve(nlp=True, best_of=3)
 
     def test_path_planning_best_of_five(self):
-        # test that no error is raised it there is a variable with 
-        # no bounds and no sample bounds, but it has been assigned 
+        # test that no error is raised it there is a variable with
+        # no bounds and no sample bounds, but it has been assigned
         # a value
         x = cp.Variable(bounds=[-5, 5])
         y = cp.Variable()
