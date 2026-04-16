@@ -164,16 +164,8 @@ def test_coeff_extractor(coeff_extractor):
     affine_expr = p2 * x14 + p3 * x16
 
     quad_forms = {
-        x14.id: (
-            p2 * x14,
-            1,
-            SymbolicQuadForm(x1, cp.Constant(np.eye(2)), cp.quad_form(x1, np.eye(2))),
-        ),
-        x16.id: (
-            p3 * x16,
-            1,
-            SymbolicQuadForm(x1, cp.Constant(np.eye(2)), cp.quad_over_lin(x1, 1.0)),
-        ),
+        x14.id: SymbolicQuadForm(x1, cp.Constant(np.eye(2)), cp.quad_form(x1, np.eye(2))),
+        x16.id: SymbolicQuadForm(x1, cp.Constant(np.eye(2)), cp.quad_over_lin(x1, 1.0)),
     }
     coeffs, constant = coeff_extractor.extract_quadratic_coeffs(affine_expr, quad_forms)
 
