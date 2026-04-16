@@ -17,8 +17,6 @@ limitations under the License.
 import logging
 from typing import Any
 
-from cvxpy.utilities.warn import warn
-
 from numpy import array, ndarray
 from scipy.sparse import csr_array
 
@@ -31,6 +29,7 @@ from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.utilities.citations import CITATION_DICT
 from cvxpy.utilities.versioning import Version
+from cvxpy.utilities.warn import warn
 
 log = logging.getLogger(__name__)
 
