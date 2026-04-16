@@ -50,7 +50,7 @@ from cvxpy.reductions.solvers.solving_chain import (
     SolvingChain,
     resolve_and_build_chain,
 )
-from cvxpy.utilities import debug_tools
+from cvxpy.utilities import debug_tools, scopes
 from cvxpy.utilities.citations import CITATION_DICT
 from cvxpy.utilities.deterministic import unique_list
 from cvxpy.utilities.solver_context import SolverInfo
@@ -344,7 +344,8 @@ class Problem(u.Canonical):
           expr.is_dqcp() for expr in self.constraints + [self.objective])
 
     @perf.compute_once
-    def is_dpp(self, context: str = 'dcp') -> bool:
+    def is_dpp(self, context: str = 'dcp',
+               quad_form_dpp: str | None = None) -> bool:
         """Does the problem satisfy DPP rules?
 
         DPP is a mild restriction of DGP. When a problem involving
@@ -361,6 +362,13 @@ class Problem(u.Canonical):
             is equivalent to ``problem.is_dcp(dpp=True)``, and
             `problem.is_dpp('dgp')`` is equivalent to
             `problem.is_dgp(dpp=True)`.
+        quad_form_dpp : str or None
+            Controls ``quad_form_dpp_scope`` for solvers that handle
+            quadratic objectives directly (QP solvers).
+
+            - ``None`` (default): standard DPP, no scope relaxation.
+            - ``'qp'``: enter scope for the objective only. Constraint
+              quad_forms with parametric P are correctly rejected.
 
         Returns
         -------
@@ -368,7 +376,20 @@ class Problem(u.Canonical):
             Whether the problem satisfies the DPP rules.
         """
         if context.lower() == 'dcp':
-            expr_dpp = self.is_dcp(dpp=True)
+            if quad_form_dpp is None:
+                expr_dpp = self.is_dcp(dpp=True)
+            elif quad_form_dpp == 'qp':
+                # Check objective with quad_form_dpp_scope (parametric P OK).
+                with scopes.quad_form_dpp_scope():
+                    obj_dpp = self.objective.is_dcp(dpp=True)
+                # Constraints stay on the standard DPP path because they still
+                # canonicalize through the conic machinery.
+                constrs_dpp = all(
+                    c.is_dcp(dpp=True) for c in self.constraints)
+                expr_dpp = obj_dpp and constrs_dpp
+            else:
+                raise ValueError(
+                    f"Unsupported quad_form_dpp: {quad_form_dpp!r}")
         elif context.lower() == 'dgp':
             expr_dpp = self.is_dgp(dpp=True)
         else:
