@@ -79,7 +79,7 @@ def collect_column_names_list(variables):
         # leaf_of_provenance() handles auto-generated vars (nonneg=True, etc.)
         variable = variable.leaf_of_provenance() or variable
         collect_column_names(variable, column_names)
-    return column_names 
+    return column_names
 def set_column_names_from_variables(lp, variables):
     """Set column names on HiGHS LP model from CVXPY variables.
 
@@ -87,7 +87,7 @@ def set_column_names_from_variables(lp, variables):
         lp: HiGHS LP model (model.lp_)
         variables: List of CVXPY variables from data[s.PARAM_PROB].variables
     """
-    column_names = [] 
+    column_names = []
     for variable in variables:
         # leaf_of_provenance() handles auto-generated vars (nonneg=True, etc.)
         variable = variable.leaf_of_provenance() or variable
@@ -327,7 +327,7 @@ class HIGHS(ConicSolver):
         solver.passModel(model)
 
         if write_model_file:
-            solver.writeModel(write_model_file) 
+            solver.writeModel(write_model_file)
         if warm_start and solver_cache is not None and self.name() in solver_cache:
             old_solver, old_data, old_result = solver_cache[self.name()]
             old_status = self.STATUS_MAP.get(old_result["model_status"], s.SOLVER_ERROR)
