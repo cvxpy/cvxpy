@@ -480,12 +480,12 @@ class Leaf(expression.Expression):
                 val = np.diag(val)
             return sp.diags_array([val], offsets=[0])
         elif self.attributes['hermitian']:
-            return (val + np.conj(val).T)/2.
+            return (val + np.conj(np.swapaxes(val, -2, -1)))/2.
         elif any([self.attributes[key] for
                   key in ['symmetric', 'PSD', 'NSD']]):
             if val.dtype.kind in 'ib':
                 val = val.astype(float)
-            val = val + val.T
+            val = val + np.swapaxes(val, -2, -1)
             val /= 2.
             if self.attributes['symmetric']:
                 return val
@@ -500,7 +500,7 @@ class Leaf(expression.Expression):
                 if not bad.any():
                     return val
                 w[bad] = 0
-            return (V * w).dot(V.T)
+            return (V * w[..., np.newaxis, :]) @ np.swapaxes(V, -2, -1)
         elif self.attributes['sparsity'] and not sparse_path:
             warn('Accessing a sparse CVXPY expression via a dense representation.'
                   ' Please report this as a bug to the CVXPY Discord or GitHub.',

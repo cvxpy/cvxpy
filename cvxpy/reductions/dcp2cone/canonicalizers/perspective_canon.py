@@ -35,7 +35,8 @@ def perspective_canon(expr, args, solver_context: SolverInfo | None = None):
     # Does numerical solution value of epigraph t coincide with expr.f numerical
     # value at opt?
     solver_opts = {"use_quad_obj": False}
-    chain = aux_prob._construct_chain(solver_opts=solver_opts, ignore_dpp=True)
+    solver = solver_context.solver_name if solver_context is not None else None
+    chain = aux_prob._construct_chain(solver=solver, solver_opts=solver_opts, ignore_dpp=True)
     chain.reductions = chain.reductions[:-1]  # skip solver reduction
     prob_canon = chain.apply(aux_prob)[0]  # grab problem instance
     # get cone representation of c, A, and b for some problem.
