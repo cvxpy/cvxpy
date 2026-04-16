@@ -15,6 +15,7 @@ limitations under the License.
 """
 
 import numpy as np
+import scipy.sparse as sp
 
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.atoms.affine.hstack import hstack
@@ -42,11 +43,18 @@ def bmat(block_lists):
         [AffAtom.cast_to_const(block) for block in block_list]
         for block_list in block_lists
     ]
-    if all(block.is_constant() for block_list in block_lists for block in block_list):
-        return Constant(np.block([
+    if all(
+        block.is_constant() and not block.parameters()
+        for block_list in block_lists
+        for block in block_list
+    ):
+        block_values = [
             [block.value for block in block_list]
             for block_list in block_lists
-        ]))
+        ]
+        if any(sp.issparse(value) for block_list in block_values for value in block_list):
+            return Constant(sp.bmat(block_values, format="csc"))
+        return Constant(np.block(block_values))
 
     row_blocks = [hstack(blocks) for blocks in block_lists]
     return vstack(row_blocks)
