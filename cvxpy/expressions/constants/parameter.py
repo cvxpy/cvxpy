@@ -83,7 +83,7 @@ class Parameter(Leaf):
                 "attribute and assign via `.value_sparse`. "
                 "To use a sparse constant, use cp.Constant() instead."
             )
-        Leaf.value.fset(self, val)
+        Leaf.value.fset(self, val)  # type: ignore[misc]
 
     def get_data(self):
         """Returns info needed to reconstruct the expression besides the args.
