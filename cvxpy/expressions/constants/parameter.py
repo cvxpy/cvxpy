@@ -15,8 +15,6 @@ limitations under the License.
 """
 from __future__ import annotations
 
-import scipy.sparse as sp
-
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy import settings as s
 from cvxpy.expressions.expression import Expression
@@ -76,6 +74,7 @@ class Parameter(Leaf):
 
     @Leaf.value.setter
     def value(self, val) -> None:
+        import scipy.sparse as sp
         if sp.issparse(val):
             raise ValueError(
                 f"Cannot set cp.Parameter.value to a sparse matrix "
