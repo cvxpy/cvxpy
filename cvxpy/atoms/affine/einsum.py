@@ -65,7 +65,7 @@ def einsum(subscripts, *exprs, optimize="greedy") -> Expression:
     ----------
     subscripts : str
         The subscripts for the einsum operation.
-    exprs : Expression
+    *exprs : Expression
         The expressions to contract.
     optimize : {bool, 'greedy', 'optimal'}, optional
         Whether to contract the expressions using the optimal or greedy ordering.

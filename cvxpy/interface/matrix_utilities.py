@@ -62,7 +62,7 @@ def sparse2cvxopt(value):
 
     Parameters
     ----------
-    sparse_mat : SciPy sparse matrix
+    value : SciPy sparse matrix
         The matrix to convert.
 
     Returns
