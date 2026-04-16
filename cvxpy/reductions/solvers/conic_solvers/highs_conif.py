@@ -31,14 +31,14 @@ from cvxpy.utilities.citations import CITATION_DICT
 
 PYTHON_LIST_SLICE_PATTERN = compile(r", \d+:\d+")
 VALID_COLUMN_NAME_PATTERN = compile(
-    r"^(?!st$|bounds$|min$|max$|bin$|binary$|gen$|semi$|end$)[a-df-zA-DF-Z\"!#$%&/}{,;?@_‘’'`|~]{1}[a-zA-Z0-9\"!#$%&/}{,;?@_‘’'`|~.=()<>[\]]{,254}$"
+    r"^(?!st$|bounds$|min$|max$|bin$|binary$|gen$|semi$|end$)[a-df-zA-DF-Z\"!#$%&/}{,;?@_‘’'`|~]{1}[a-zA-Z0-9\"!#$%&/}{,;?@_‘’'`|~.=()<>]{,254}$"
 )
 INVALID_COLUMN_NAME_MESSAGE_TEMPLATE = (
     "Invalid column name: {name}"
     "\nA column name must:"
     "\n- not be equal to one of the keywords: st, bounds, min, max, bin, binary, gen, semi or end"
     "\n- not begin with a number, the letter e or E or any of the following characters: .=()<>[]"
-    "\n- be alphanumeric (a-z, A-Z, 0-9) or one of these symbols: \"!#$%&/}}{{,;?@_‘’'`|~.=()<>[]"
+    "\n- be alphanumeric (a-z, A-Z, 0-9) or one of these symbols: \"!#$%&/}}{{,;?@_‘’'`|~.=()<>"
     "\n- be no longer than 255 characters."
 )
 
@@ -57,13 +57,23 @@ def strip_column_name_of_python_list_slice_notation(name: str) -> str:
     return PYTHON_LIST_SLICE_PATTERN.sub("", name)
 
 
+def sanitize_column_name(name: str) -> str:
+    """Replace square brackets with parentheses for HiGHS LP file compatibility.
+
+    HiGHS does not allow square brackets in column names in LP files because
+    they are used to define quadratic objectives.
+    """
+    return name.replace("[", "(").replace("]", ")")
+
+
 def collect_column_names(variable, column_names):
     """Recursively collect variable names."""
     if variable.ndim == 0:  # scalar
-        column_names.append(variable.name())
+        column_names.append(sanitize_column_name(variable.name()))
     elif variable.ndim == 1:  # simple array
         var_name_prefix = strip_column_name_of_python_list_slice_notation(variable.name())
-        column_names.extend([f"{var_name_prefix}[{v}]" for v in range(variable.size)])
+        var_name_prefix = sanitize_column_name(var_name_prefix)
+        column_names.extend([f"{var_name_prefix}({v})" for v in range(variable.size)])
     else:  # multi-dimensional array
         for var in variable:
             collect_column_names(var, column_names)  # recursive call

@@ -65,12 +65,6 @@ class PDCS(ConicSolver):
         """
         return False
 
-    @staticmethod
-    def extract_dual_value(result_vec, offset, constraint):
-        """Extracts the dual value for constraint starting at offset.
-        """
-        return utilities.extract_dual_value(result_vec, offset, constraint)
-
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem give the inverse_data.
         """
@@ -88,12 +82,12 @@ class PDCS(ConicSolver):
             }
             eq_dual_vars = utilities.get_dual_values(
                 np.array(solution.y.recovered_dual.dual_sol.y[:inverse_data[ConicSolver.DIMS].zero]),
-                self.extract_dual_value,
+                utilities.extract_dual_value,
                 inverse_data[PDCS.EQ_CONSTR]
             )
             ineq_dual_vars = utilities.get_dual_values(
                 np.array(solution.y.recovered_dual.dual_sol.y[inverse_data[ConicSolver.DIMS].zero:]),
-                self.extract_dual_value,
+                utilities.extract_dual_value,
                 inverse_data[PDCS.NEQ_CONSTR]
             )
             dual_vars = {}

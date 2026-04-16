@@ -410,6 +410,9 @@ class TestSCS(BaseTest):
     def test_scs_sdp_2(self) -> None:
         StandardTestSDPs.test_sdp_2(solver='SCS', eps=1e-5)
 
+    def test_scs_sdp_batched(self) -> None:
+        StandardTestSDPs.test_sdp_batched(solver='SCS', eps=1e-5)
+
     def test_scs_expcone_1(self) -> None:
         StandardTestECPs.test_expcone_1(solver='SCS', eps=1e-5)
 
@@ -574,6 +577,9 @@ class TestClarabel(BaseTest):
         # sth.verify_primal_values(places) # skip
         sth.check_complementarity(places)
         sth.check_dual_domains(places)
+
+    def test_clarabel_sdp_batched(self) -> None:
+        StandardTestSDPs.test_sdp_batched(solver='CLARABEL')
 
     def test_infeasible_lp_ineq_constraints(self):
         StandardTestInfeasibleProblems.test_lp_ineq_constraints(solver="CLARABEL")
@@ -966,6 +972,9 @@ class TestMosek(unittest.TestCase):
 
     def test_mosek_sdp_2(self) -> None:
         StandardTestSDPs.test_sdp_2(solver='MOSEK')
+
+    def test_mosek_sdp_batched(self) -> None:
+        StandardTestSDPs.test_sdp_batched(solver='MOSEK')
 
     def test_mosek_expcone_1(self) -> None:
         StandardTestECPs.test_expcone_1(solver='MOSEK')
@@ -2595,7 +2604,7 @@ class TestHIGHS:
             ["st", "bounds", "min", "max", "bin", "binary", "gen", "semi", "end"]
         )
         must_not_begin_with = set(string.digits + "eE.=()<>[]")
-        may_contain = set(string.ascii_letters + string.digits + "\"!#$%&/}{,;?@_‘’'`|~.=()<>[]")
+        may_contain = set(string.ascii_letters + string.digits + "\"!#$%&/}{,;?@_‘’'`|~.=()<>")
         must_not_contain = set(string.printable) - set(may_contain)
         may_begin_with = (set(may_contain) - set(must_not_begin_with)).union(
             set(must_not_be_a_keyword) - set(["end"])
@@ -2680,14 +2689,16 @@ class TestHIGHS:
                         f"in the model file."
                     )
                 else:
-                    # Array variables appear as name[idx] entries.
+                    # Array variables appear as name(idx) entries (parentheses,
+                    # not brackets, because HiGHS uses [] for quadratic objectives).
+                    sanitized_name = expected_var.name().replace("[", "(").replace("]", ")")
                     actual_var_count = len(re.findall(
-                        re.escape(expected_var.name()) + r"\[", model
+                        re.escape(sanitized_name) + r"\(", model
                     ))
                     # Each element appears at least twice (objective + constraint),
                     # and possibly once more in the bounds section.
                     assert actual_var_count >= expected_var.size, (
-                        f"Expected variable {expected_var.name()} to appear "
+                        f"Expected variable {sanitized_name} to appear "
                         f"at least {expected_var.size} times in the model file "
                         f"but found {actual_var_count}."
                     )
