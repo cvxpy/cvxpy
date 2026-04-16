@@ -17,6 +17,8 @@ limitations under the License.
 import logging
 from typing import Any
 
+from cvxpy.utilities.warn import warn
+
 from numpy import array, ndarray
 from scipy.sparse import csr_array
 
@@ -54,10 +56,12 @@ class GLOP(ConicSolver):
             raise RuntimeError(f'Version of ortools ({ortools.__version__}) '
                                f'is too old. Expected >= 9.5.0.')
         if Version(ortools.__version__) >= Version('9.16.0'):
-            raise RuntimeError('Unrecognized new version of ortools '
-                               f'({ortools.__version__}). Expected < 9.16.0. '
-                               'Please open a feature request on cvxpy to '
-                               'enable support for this version.')
+            warn(
+                f'Unrecognized version of ortools ({ortools.__version__}). '
+                'Version support has been tested up to 9.15.x. '
+                'Newer versions may work but are not officially supported. '
+                'Please open a feature request on cvxpy if you encounter issues.'
+            )
 
     def apply(self, problem: ParamConeProg) -> tuple[dict, dict]:
         """Returns a new problem and data for inverting the new solution."""
