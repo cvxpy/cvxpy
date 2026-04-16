@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import List, Optional, Tuple
 
 import numpy as np
 
@@ -30,8 +29,8 @@ from cvxpy.problems.problem import Problem
 
 def partial_optimize(
     prob: Problem,
-    opt_vars: Optional[List[Variable]] = None,
-    dont_opt_vars: Optional[List[Variable]] = None,
+    opt_vars: list[Variable] | None = None,
+    dont_opt_vars: list[Variable] | None = None,
     solver=None,
     **kwargs
 ) -> "PartialProblem":
@@ -72,26 +71,25 @@ def partial_optimize(
         Convex for minimization objectives and concave for maximization objectives.
     """
     # One of the two arguments must be specified.
-    if opt_vars is None and dont_opt_vars is None:
-        raise ValueError(
-            "partial_optimize called with neither opt_vars nor dont_opt_vars."
-        )
-    # If opt_vars is not specified, it's the complement of dont_opt_vars.
-    elif opt_vars is None:
-        ids = [id(var) for var in dont_opt_vars]
-        opt_vars = [var for var in prob.variables() if id(var) not in ids]
-    # If dont_opt_vars is not specified, it's the complement of opt_vars.
-    elif dont_opt_vars is None:
-        ids = [id(var) for var in opt_vars]
-        dont_opt_vars = [var for var in prob.variables() if id(var) not in ids]
-    elif opt_vars is not None and dont_opt_vars is not None:
-        ids = [id(var) for var in opt_vars + dont_opt_vars]
-        for var in prob.variables():
-            if id(var) not in ids:
-                raise ValueError(
-                    ("If opt_vars and new_opt_vars are both specified, "
-                     "they must contain all variables in the problem.")
-                )
+    match (opt_vars, dont_opt_vars):
+        case (None, None):
+            raise ValueError(
+                "partial_optimize called with neither opt_vars nor dont_opt_vars."
+            )
+        case (None, dont_opt_vars):
+            ids = [id(var) for var in dont_opt_vars]
+            opt_vars = [var for var in prob.variables() if id(var) not in ids]
+        case (opt_vars, None):
+            ids = [id(var) for var in opt_vars]
+            dont_opt_vars = [var for var in prob.variables() if id(var) not in ids]
+        case (opt_vars, dont_opt_vars):
+            ids = [id(var) for var in opt_vars + dont_opt_vars]
+            for var in prob.variables():
+                if id(var) not in ids:
+                    raise ValueError(
+                        "If opt_vars and new_opt_vars are both specified, "
+                        "they must contain all variables in the problem."
+                    )
 
     # Replace the opt_vars in prob with new variables.
     id_to_new_var = {id(var): Variable(var.shape,
@@ -115,8 +113,8 @@ class PartialProblem(Expression):
     """
 
     def __init__(
-            self, prob: Problem, opt_vars: List[Variable],
-            dont_opt_vars: List[Variable], solver, **kwargs) -> None:
+            self, prob: Problem, opt_vars: list[Variable],
+            dont_opt_vars: list[Variable], solver, **kwargs) -> None:
         self.opt_vars = opt_vars
         self.dont_opt_vars = dont_opt_vars
         self.solver = solver
@@ -191,12 +189,12 @@ class PartialProblem(Expression):
         return False
 
     @property
-    def shape(self) -> Tuple[int, ...]:
+    def shape(self) -> tuple[int, ...]:
         """Returns the (row, col) dimensions of the expression.
         """
         return tuple()
 
-    def get_bounds(self) -> Tuple[np.ndarray, np.ndarray]:
+    def get_bounds(self) -> tuple[np.ndarray, np.ndarray]:
         """Returns the bounds on the expression.
 
         For PartialProblem, we return unbounded since computing tight bounds
@@ -209,7 +207,7 @@ class PartialProblem(Expression):
         """
         return f"PartialProblem({self.args[0]})"
 
-    def variables(self) -> List[Variable]:
+    def variables(self) -> list[Variable]:
         """Returns the variables in the problem.
         """
         return self.args[0].variables()
@@ -219,7 +217,7 @@ class PartialProblem(Expression):
         """
         return self.args[0].parameters()
 
-    def constants(self) -> List[Constant]:
+    def constants(self) -> list[Constant]:
         """Returns the constants in the problem.
         """
         return self.args[0].constants()

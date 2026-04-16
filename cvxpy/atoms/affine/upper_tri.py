@@ -13,7 +13,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import List, Tuple
 
 import numpy as np
 import scipy.sparse as sp
@@ -70,7 +69,7 @@ class upper_tri(AffAtom):
                 "Argument to upper_tri must have ndim >= 2 with equal last two dimensions."
             )
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> tuple[int, ...]:
         """Batch shape + vector of upper triangular entries.
         """
         shape = self.args[0].shape
@@ -90,8 +89,8 @@ class upper_tri(AffAtom):
         return True
 
     def graph_implementation(
-        self, arg_objs, shape: Tuple[int, ...], data=None
-    ) -> Tuple[lo.LinOp, List[Constraint]]:
+        self, arg_objs, shape: tuple[int, ...], data=None
+    ) -> tuple[lo.LinOp, list[Constraint]]:
         """Vectorized strictly upper triangular entries.
 
         Parameters

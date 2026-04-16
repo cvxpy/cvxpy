@@ -15,7 +15,6 @@ limitations under the License.
 """
 
 from functools import wraps
-from typing import List, Tuple
 
 import numpy as np
 import scipy.sparse as sp
@@ -45,7 +44,7 @@ class MatrixFrac(Atom):
             product = X.T.dot(LA.inv(P)).dot(X)
         return product.trace() if len(product.shape) == 2 else product
 
-    def _domain(self) -> List[Constraint]:
+    def _domain(self) -> list[Constraint]:
         """Returns constraints describing the domain of the node.
         """
         return [self.args[1] >> 0]
@@ -74,7 +73,7 @@ class MatrixFrac(Atom):
         # partial_P = - (P^-1 * X * X^T * P^-1)^T
         else:
             DX = np.dot(P_inv+np.transpose(P_inv), X)
-            DX = DX.T.ravel(order='F')
+            DX = DX.ravel(order='F')
             DX = sp.csc_array([DX]).T
 
             DP = np.dot(P_inv, X)
@@ -98,12 +97,12 @@ class MatrixFrac(Atom):
                 "The arguments to matrix_frac have incompatible dimensions."
             )
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> tuple[int, ...]:
         """Returns the (row, col) shape of the expression.
         """
         return tuple()
 
-    def sign_from_args(self) -> Tuple[bool, bool]:
+    def sign_from_args(self) -> tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         return (True, False)

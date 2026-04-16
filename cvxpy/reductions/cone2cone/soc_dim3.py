@@ -40,7 +40,7 @@ Example:
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Tuple
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from cvxpy.problems.problem import Problem
@@ -83,7 +83,7 @@ class SOCTreeData:
     axis : int
         Axis parameter from original SOC constraint.
     """
-    trees: List[TreeNode]
+    trees: list[TreeNode]
     num_cones: int
     original_dim: int
     axis: int = 0
@@ -100,8 +100,8 @@ class SOCDim3InverseData:
     old_constraints : List
         Reference to original problem constraints.
     """
-    soc_trees: Dict[int, SOCTreeData] = field(default_factory=dict)
-    old_constraints: List = field(default_factory=list)
+    soc_trees: dict[int, SOCTreeData] = field(default_factory=dict)
+    old_constraints: list = field(default_factory=list)
 
 
 # =============================================================================
@@ -113,7 +113,7 @@ def _to_scalar_shape(expr: Expression) -> Expression:
     return reshape(expr, (1,), order='F')
 
 
-def _get_flat_dual(dual_value: Optional[Any]) -> Optional[np.ndarray]:
+def _get_flat_dual(dual_value: Any | None) -> np.ndarray | None:
     """Convert a dual value to flat array format.
 
     Dual values can come in two formats:
@@ -145,8 +145,8 @@ def _get_flat_dual(dual_value: Optional[Any]) -> Optional[np.ndarray]:
 def _decompose_soc_single(
     t_expr: Expression,
     x_expr: Expression,
-    soc3_out: List[SOC],
-    nonneg_out: List[NonNeg]
+    soc3_out: list[SOC],
+    nonneg_out: list[NonNeg]
 ) -> TreeNode:
     """Decompose a single ||x|| <= t constraint into tree of exactly 3D cones.
 
@@ -255,10 +255,10 @@ def _decompose_soc_single(
 
 def _collect_x_duals_into_array(
     tree: TreeNode,
-    dual_vars: Dict[int, Any],
+    dual_vars: dict[int, Any],
     out: np.ndarray,
     offset: int
-) -> Optional[int]:
+) -> int | None:
     """Collect x-component duals from leaf cones into pre-allocated array."""
     if isinstance(tree, SpecialNode):
         if tree.node_type == 'nonneg_dim1':
@@ -318,7 +318,7 @@ def _collect_x_duals_into_array(
     return None
 
 
-def _get_root_t_dual(tree: TreeNode, dual_vars: Dict[int, Any]) -> Optional[float]:
+def _get_root_t_dual(tree: TreeNode, dual_vars: dict[int, Any]) -> float | None:
     """Get the t-component dual (lambda) from the root cone."""
     if isinstance(tree, SpecialNode):
         if tree.node_type == 'nonneg_dim1':
@@ -373,8 +373,8 @@ def _get_original_dim(tree: TreeNode) -> int:
 
 def _reconstruct_soc_dual(
     tree: TreeNode,
-    dual_vars: Dict[int, Any]
-) -> Optional[np.ndarray]:
+    dual_vars: dict[int, Any]
+) -> np.ndarray | None:
     """Reconstruct the original SOC dual from decomposed cone duals."""
     t_dual = _get_root_t_dual(tree, dual_vars)
     if t_dual is None:
@@ -394,7 +394,7 @@ def _reconstruct_soc_dual(
     return np.concatenate([[t_dual], x_duals])
 
 
-def _get_all_tree_cone_ids(tree: TreeNode) -> Set[int]:
+def _get_all_tree_cone_ids(tree: TreeNode) -> set[int]:
     """Get all constraint IDs from a tree, including SpecialNode cases."""
     if isinstance(tree, SpecialNode):
         return set(tree.cone_ids)
@@ -412,7 +412,7 @@ class SOCDim3(Reduction):
         """Check if this reduction accepts the given problem."""
         return True
 
-    def apply(self, problem: Problem) -> Tuple[Problem, SOCDim3InverseData]:
+    def apply(self, problem: Problem) -> tuple[Problem, SOCDim3InverseData]:
         """Apply SOCDim3 decomposition to all SOC constraints."""
         inverse_data = SOCDim3InverseData(
             soc_trees={},
@@ -423,7 +423,7 @@ class SOCDim3(Reduction):
         if not has_soc:
             return problem, inverse_data
 
-        new_constraints: List = []
+        new_constraints: list = []
 
         for con in problem.constraints:
             if isinstance(con, SOC):
@@ -449,9 +449,9 @@ class SOCDim3(Reduction):
                         f"X has {X_reshaped.shape[1]} columns"
                     )
 
-                all_trees: List[TreeNode] = []
-                soc3_out: List[SOC] = []
-                nonneg_out: List[NonNeg] = []
+                all_trees: list[TreeNode] = []
+                soc3_out: list[SOC] = []
+                nonneg_out: list[NonNeg] = []
 
                 for i in range(num_cones):
                     t_i = t_reshaped[i] if num_cones > 1 else t_reshaped[0]
@@ -487,10 +487,10 @@ class SOCDim3(Reduction):
         if not solution.dual_vars:
             return Solution(solution.status, solution.opt_val, pvars, {}, solution.attr)
 
-        dvars: Dict[int, Any] = {}
+        dvars: dict[int, Any] = {}
 
         # Identify which constraint IDs belong to decomposed cones
-        decomposed_cone_ids: Set[int] = set()
+        decomposed_cone_ids: set[int] = set()
         for tree_data in inverse_data.soc_trees.values():
             for tree in tree_data.trees:
                 decomposed_cone_ids.update(_get_all_tree_cone_ids(tree))
@@ -508,7 +508,7 @@ class SOCDim3(Reduction):
                 if reconstructed is not None:
                     dvars[orig_id] = reconstructed
             else:
-                all_duals: List[np.ndarray] = []
+                all_duals: list[np.ndarray] = []
                 success = True
                 for tree in trees:
                     reconstructed = _reconstruct_soc_dual(tree, solution.dual_vars)

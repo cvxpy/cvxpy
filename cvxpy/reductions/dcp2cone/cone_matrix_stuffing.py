@@ -28,6 +28,7 @@ from cvxpy.constraints import (
     NonNeg,
     PowCone3D,
     PowConeND,
+    SvecPSD,
     Zero,
 )
 from cvxpy.cvxcore.python import canonInterface
@@ -88,7 +89,8 @@ class ConeDims:
         self.nonneg = int(sum(c.size for c in constr_map[NonNeg]))
         self.exp = int(sum(c.num_cones() for c in constr_map[ExpCone]))
         self.soc = [int(dim) for c in constr_map[SOC] for dim in c.cone_sizes()]
-        self.psd = [int(dim) for c in constr_map[PSD] for dim in c.cone_sizes()]
+        psd_constrs = constr_map.get(PSD, []) + constr_map.get(SvecPSD, [])
+        self.psd = [int(dim) for c in psd_constrs for dim in c.cone_sizes()]
         p3d = []
         if constr_map[PowCone3D]:
             p3d = np.concatenate([c.alpha.value for c in constr_map[PowCone3D]]).tolist()
@@ -333,7 +335,9 @@ class ParamConeProg(ParamProb):
                 orig_var = var.leaf_of_provenance()
                 if cvx_attr2constr.attributes_present(
                         [orig_var], cvx_attr2constr.SYMMETRIC_ATTRIBUTES):
-                    delta = delta + delta.T - np.diag(np.diag(delta))
+                    delta = delta + np.swapaxes(delta, -2, -1)
+                    di = np.arange(delta.shape[-1])
+                    delta[..., di, di] /= 2
                 delta = cvx_attr2constr.lower_value(orig_var, delta)
             var_vec[col:col + var.size] = delta.flatten(order='F')
         return var_vec
@@ -420,7 +424,8 @@ class ConeMatrixStuffing(MatrixStuffing):
         # Reorder constraints to Zero, NonNeg, SOC, PSD, EXP, PowCone3D, PowConeND
         constr_map = group_constraints(cons)
         ordered_cons = constr_map[Zero] + constr_map[NonNeg] + \
-            constr_map[SOC] + constr_map[PSD] + constr_map[ExpCone] + \
+            constr_map[SOC] + constr_map.get(PSD, []) + \
+            constr_map.get(SvecPSD, []) + constr_map[ExpCone] + \
             constr_map[PowCone3D] + constr_map[PowConeND]
         inverse_data.cons_id_map = {con.id: con.id for con in ordered_cons}
 
