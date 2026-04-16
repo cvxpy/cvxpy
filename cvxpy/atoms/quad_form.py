@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import Tuple
 
 import numpy as np
 import scipy.sparse as sp
@@ -56,7 +55,7 @@ class QuadForm(Atom):
         if not self.args[1].is_hermitian():
             raise ValueError("Quadratic form matrices must be symmetric/Hermitian.")
 
-    def sign_from_args(self) -> Tuple[bool, bool]:
+    def sign_from_args(self) -> tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         return (self.is_atom_convex(), self.is_atom_concave())
@@ -90,14 +89,23 @@ class QuadForm(Atom):
     def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """
-        return (self.args[0].is_nonneg() and self.args[1].is_nonneg()) or \
-               (self.args[0].is_nonpos() and self.args[1].is_nonneg())
+        if idx == 0:
+            # ∇_x f = 2Px: nonneg when (x≥0, P≥0) or (x≤0, P≤0)
+            return (self.args[0].is_nonneg() and self.args[1].is_nonneg()) or \
+                   (self.args[0].is_nonpos() and self.args[1].is_nonpos())
+        elif idx == 1:
+            # ∂f/∂P_{ij} = x_i x_j: nonneg when x is all nonneg or all nonpos
+            return self.args[0].is_nonneg() or self.args[0].is_nonpos()
+        return False
 
     def is_decr(self, idx) -> bool:
         """Is the composition non-increasing in argument idx?
         """
-        return (self.args[0].is_nonneg() and self.args[1].is_nonpos()) or \
-               (self.args[0].is_nonpos() and self.args[1].is_nonpos())
+        if idx == 0:
+            # ∇_x f = 2Px: nonpos when (x≥0, P≤0) or (x≤0, P≥0)
+            return (self.args[0].is_nonneg() and self.args[1].is_nonpos()) or \
+                   (self.args[0].is_nonpos() and self.args[1].is_nonneg())
+        return False
 
     def is_quadratic(self) -> bool:
         """Is the atom quadratic?
@@ -131,7 +139,7 @@ class QuadForm(Atom):
         D = (P + np.conj(P.T)) @ x
         return [sp.csc_array([D.ravel(order="F")]).T]
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> tuple[int, ...]:
         return tuple()
 
 
@@ -177,10 +185,10 @@ class SymbolicQuadForm(Atom):
     def is_incr(self, idx) -> bool:
         return self.original_expression.is_incr(idx)
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> tuple[int, ...]:
         return self.original_expression.shape_from_args()
 
-    def sign_from_args(self) -> Tuple[bool, bool]:
+    def sign_from_args(self) -> tuple[bool, bool]:
         return self.original_expression.sign_from_args()
 
     def is_quadratic(self) -> bool:
@@ -222,15 +230,14 @@ def decomp_quad(P, cond=None, rcond=None, lower=True, check_finite: bool = True)
 
     """
     if is_sparse(P):
-        # TODO: consider using QDLDL instead, if available.
         try:
             sign, L, p = sparse_cholesky(P)
             if sign > 0:
                 return 1.0, L[p, :], np.empty((0, 0))
             else:
                 return 1.0, np.empty((0, 0)), L[p, :]
-        except (ValueError, ModuleNotFoundError):
-            P = np.array(P.todense())  # make dense (needs to happen for ldl).
+        except ValueError:
+            P = P.toarray()  # make dense (needs to happen for ldl).
     lu, d, _perm = LA.ldl(P, lower=lower, check_finite=check_finite)
 
     # Extract effective diagonal values from D, handling any 2x2 blocks.

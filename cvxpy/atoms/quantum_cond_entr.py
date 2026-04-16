@@ -1,4 +1,4 @@
-from typing import Literal, Tuple
+from typing import Literal
 
 import numpy as np
 
@@ -10,7 +10,7 @@ from cvxpy.expressions.expression import Expression
 
 
 def quantum_cond_entr(
-        rho: Expression , dims: Tuple[int, int], sys: Literal[0, 1] = 0, quad_approx=(3, 3)
+        rho: Expression , dims: tuple[int, int], sys: Literal[0, 1] = 0, quad_approx=(3, 3)
     ):
     """
     Returns (an approximation of) the quantum conditional entropy for a bipartite state,
@@ -41,8 +41,8 @@ def quantum_cond_entr(
     Notes
     -----
     This function does not assume :math:`\\operatorname{tr}(\rho)=1,` which would be required
-    for most uses of this function in the context of quantum information theory. See 
-    https://en.wikipedia.org/wiki/Conditional_quantum_entropy for more information. 
+    for most uses of this function in the context of quantum information theory. See
+    https://en.wikipedia.org/wiki/Conditional_quantum_entropy for more information.
     """
     if len(dims) != 2:
         err = 'This function is only defined for a tensor product of two subsystems,' + \

@@ -211,6 +211,7 @@ GENERAL_PROJECTION_TOL = 1e-10
 SPARSE_PROJECTION_TOL = 1e-10
 ATOM_EVAL_TOL = 1e-4
 CHOL_SYM_TOL = 1e-14
+CHOL_ZERO_PIVOT_TOL = 2.2e-10
 
 # Thresholds for warning about SOC approximation of power cones
 # Warning is triggered when approx_error > threshold OR num_soc > threshold

@@ -60,10 +60,10 @@ class TestRiskParity:
 
         checker = DerivativeChecker(problem)
         checker.run_and_assert()
-    
+
     # we do not expand the objective, and use square roots
     def test_vanilla_risk_parity_formulation_two(self):
-        pass 
+        pass
 
     # we expand the objective manually to get rid of the square root
     def test_group_risk_parity_formulation_one(self, Sigma):
@@ -100,7 +100,7 @@ class TestRiskParity:
     def test_group_risk_parity_formulation_two(self, Sigma):
         n = 8
         b = np.array([0.4, 0.6])
-        
+
         w = cp.Variable((n, ), nonneg=True, name='w')
         t = cp.Variable((n, ), name='t')
         constraints = [cp.sum(w) == 1, t == Sigma @ w]

@@ -470,7 +470,7 @@ def test_s_eq_0():
     f_recession = x
     obj = cp.perspective(f, s, f_recession=f_recession)
     constr = [-cp.square(x) + 1 >= 0]
-    
+
     prob = cp.Problem(cp.Minimize(obj), constr)
     prob.solve()
 

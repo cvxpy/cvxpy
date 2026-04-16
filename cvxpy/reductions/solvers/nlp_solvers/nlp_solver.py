@@ -23,14 +23,12 @@ import numpy as np
 from cvxpy.constraints import (
     Equality,
     Inequality,
-    NonPos,
 )
 from cvxpy.reductions.inverse_data import InverseData
 from cvxpy.reductions.solvers.solver import Solver
 from cvxpy.reductions.utilities import (
     lower_equality,
     lower_ineq_to_nonneg,
-    nonpos2nonneg,
 )
 
 if TYPE_CHECKING:
@@ -116,10 +114,6 @@ class Bounds:
                 lower.extend([0.0] * constraint.size)
                 upper.extend([np.inf] * constraint.size)
                 new_constr.append(lower_ineq_to_nonneg(constraint))
-            elif isinstance(constraint, NonPos):
-                lower.extend([0.0] * constraint.size)
-                upper.extend([np.inf] * constraint.size)
-                new_constr.append(nonpos2nonneg(constraint))
         canonicalized_prob = self.problem.copy([self.problem.objective, new_constr])
         self.new_problem = canonicalized_prob
         self.cl = np.array(lower)
@@ -208,13 +202,13 @@ class Oracles:
     def jacobian(self, x: np.ndarray) -> np.ndarray:
         """Returns the Jacobian values in COO format at the sparsity structure. """
         return self.c_problem.eval_jacobian_vals()
-        
+
     def jacobianstructure(self) -> tuple[np.ndarray, np.ndarray]:
         """Returns the sparsity structure of the Jacobian."""
         if self._jac_structure is not None:
             return self._jac_structure
 
-        rows, cols = self.c_problem.get_jacobian_sparsity_coo() 
+        rows, cols = self.c_problem.get_jacobian_sparsity_coo()
         self._jac_structure = (rows, cols)
         return self._jac_structure
 
@@ -223,21 +217,21 @@ class Oracles:
         if not self.use_hessian:
             raise ValueError("Hessian oracle called but use_hessian is False. "
                              "This is a bug and should be reported.")
-       
+
         return self.c_problem.eval_hessian_vals_coo_lower_tri(obj_factor, duals)
 
     def hessianstructure(self) -> tuple[np.ndarray, np.ndarray]:
         """Returns the COO sparsity structure of the lower part of the Hessian.
-           The returned rows are ascending, and within each row the columns are 
+           The returned rows are ascending, and within each row the columns are
            ascending."""
         if not self.use_hessian:
-            # IPOPT calls this function even when hessian_approximation='limited-memory', 
+            # IPOPT calls this function even when hessian_approximation='limited-memory',
             # so return empty structure
-            return (np.array([]), np.array([]))  
-         
+            return (np.array([]), np.array([]))
+
         if self._hess_structure is not None:
             return self._hess_structure
-        
+
         rows, cols = self.c_problem.get_problem_hessian_sparsity_coo()
         self._hess_structure = (rows, cols)
         return self._hess_structure

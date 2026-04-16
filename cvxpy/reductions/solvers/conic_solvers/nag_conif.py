@@ -52,7 +52,7 @@ class NAG(ConicSolver):
         """The name of the solver.
         """
         return s.NAG
-    
+
     def supports_quad_obj(self) -> bool:
         """NAG supports quadratic objective.
         """
@@ -94,7 +94,7 @@ class NAG(ConicSolver):
             c, d, A, b = problem.apply_parameters()
         else:
             P, c, d, A, b = problem.apply_parameters(quad_obj=True)
-            data[s.P] = P 
+            data[s.P] = P
 
         A = -A
         data[s.C] = c.ravel()
@@ -254,9 +254,9 @@ class NAG(ConicSolver):
             opt.handle_opt_set(handle, "Monitoring File = 6")
             opt.handle_opt_set(handle, "Monitoring Level = 2")
 
-        
+
         # use_quad_obj is only for canonicalization
-        if "use_quad_obj" in solver_opts: 
+        if "use_quad_obj" in solver_opts:
             del solver_opts["use_quad_obj"]
         # Set the optional parameters
         kwargs = sorted(solver_opts.keys())
@@ -293,7 +293,7 @@ class NAG(ConicSolver):
         opt.handle_free(handle)
 
         return {'status': status, 'sln': sln}
-    
+
     def cite(self, data):
         """Returns bibtex citation for the solver.
 

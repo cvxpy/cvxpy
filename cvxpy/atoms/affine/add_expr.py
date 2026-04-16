@@ -14,8 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import operator as op
+from collections.abc import Iterable
 from functools import reduce
-from typing import Any, Iterable, List, Tuple
+from typing import Any
 
 import numpy as np
 
@@ -38,12 +39,12 @@ class AddExpression(AffAtom):
         for group in arg_groups:
             self.args += self.expand_args(group)
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> tuple[int, ...]:
         """Returns the (row, col) shape of the expression.
         """
         return u.shape.sum_shapes([arg.shape for arg in self.args])
 
-    def expand_args(self, expr: Expression) -> List[Expression]:
+    def expand_args(self, expr: Expression) -> list[Expression]:
         """Helper function to extract the arguments from an AddExpression.
         """
         if isinstance(expr, AddExpression):
@@ -56,13 +57,13 @@ class AddExpression(AffAtom):
         for i in range(1, len(self.args)):
             result += " + " + str(self.args[i])
         return result
-    
+
     def format_labeled(self):
         """Format addition with labels where available."""
         # Check for own label first
         if self._label is not None:
             return self._label
-        
+
         # Build from sub-expressions using their labels
         result = self.args[0].format_labeled()
         for i in range(1, len(self.args)):
@@ -82,7 +83,7 @@ class AddExpression(AffAtom):
         """
         return False
 
-    def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
+    def bounds_from_args(self) -> tuple[np.ndarray, np.ndarray]:
         """Returns bounds for addition based on argument bounds."""
         # Start with first argument's bounds
         lb, ub = self.args[0].get_bounds()
@@ -125,16 +126,16 @@ class AddExpression(AffAtom):
         if args is None:
             # The __init__ method of AddExpression recreates the args,
             # but passes *arg_groups to the super class for checks.
-            # Since these checks are already done for self, we pass [self], i.e., 
+            # Since these checks are already done for self, we pass [self], i.e.,
             # a single [AddExpression], before the args are recreated.
-            args = [self]  
+            args = [self]
         copy = type(self).__new__(type(self))
         copy.__init__(args)
         return copy
 
     def graph_implementation(
-        self, arg_objs, shape: Tuple[int, ...], data=None
-    ) -> Tuple[lo.LinOp, List[Constraint]]:
+        self, arg_objs, shape: tuple[int, ...], data=None
+    ) -> tuple[lo.LinOp, list[Constraint]]:
         """Sum the linear expressions.
 
         Parameters

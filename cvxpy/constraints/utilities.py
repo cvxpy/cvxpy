@@ -13,7 +13,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import Tuple
 
 import scipy.sparse as sp
 
@@ -95,7 +94,7 @@ def format_elemwise(vars_):
     return [lu.create_geq(lu.sum_expr(terms))]
 
 
-def get_spacing_matrix(shape: Tuple[int, ...], spacing, offset):
+def get_spacing_matrix(shape: tuple[int, ...], spacing, offset):
     """Returns a sparse matrix LinOp that spaces out an expression.
 
     Parameters

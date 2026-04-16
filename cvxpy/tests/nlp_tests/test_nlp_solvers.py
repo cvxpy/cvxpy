@@ -200,7 +200,7 @@ class TestNLPExamples:
 
         checker = DerivativeChecker(problem)
         checker.run_and_assert()
-    
+
     def test_analytic_polytope_center_x_column_vector(self, solver):
         # Generate random data
         np.random.seed(0)
@@ -387,7 +387,7 @@ class TestNLPExamples:
                 dist_sq = np.linalg.norm(centers.value[:, i] - centers.value[:, j]) ** 2
                 min_dist_sq = (radius[i] + radius[j]) ** 2
                 residuals.append(dist_sq - min_dist_sq)
-        
+
         assert(np.all(np.array(residuals) <= 1e-6))
 
         # Ipopt finds these centers, but Knitro rotates them (but finds the same

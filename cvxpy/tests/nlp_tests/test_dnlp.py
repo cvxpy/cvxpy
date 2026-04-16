@@ -66,7 +66,7 @@ class TestDNLP():
 
     def test_non_dnlp(self):
         """
-        The constraint abs(x) >= 5 is smooth concave but makes 
+        The constraint abs(x) >= 5 is smooth concave but makes
         the problem non-DNLP.
         """
         x = cp.Variable()
@@ -86,7 +86,7 @@ class TestDNLP():
         expr = cp.sqrt(cp.abs(x))
         # we treat sqrt as linearizable
         assert expr.is_dnlp()
-    
+
     def test_complicated_composition(self):
         x = cp.Variable()
         y = cp.Variable()
@@ -100,7 +100,7 @@ class TestDNLP():
 
 
 class TestNonDNLP:
-    
+
     def test_max(self):
         x = cp.Variable(1)
         y = cp.Variable(1)

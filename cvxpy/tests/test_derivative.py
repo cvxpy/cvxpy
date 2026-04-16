@@ -482,6 +482,32 @@ class TestBackward(BaseTest):
         gradcheck(prob)
         perturbcheck(prob)
 
+    def test_batched_symmetric_backward(self) -> None:
+        """backward() and derivative() must work with batched symmetric variables.
+
+        Regression test for a crash in split_adjoint where np.diag() and .T
+        do not generalize to 3-D arrays (batched symmetric/PSD variables).
+        """
+        X = cp.Variable((2, 2, 2), symmetric=True)
+        p = cp.Parameter(nonneg=True)
+        p.value = 1.0
+
+        prob = cp.Problem(cp.Minimize(p * cp.sum(X)), [X >> np.eye(2)])
+        prob.solve(solver=cp.SCS, requires_grad=True, eps=1e-9)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+
+        # backward() must not crash
+        X.gradient = np.ones((2, 2, 2))
+        prob.backward()
+        self.assertTrue(np.isfinite(p.gradient))
+
+        # derivative() must produce symmetric deltas
+        p.delta = 1e-4
+        prob.derivative()
+        self.assertEqual(X.delta.shape, (2, 2, 2))
+        np.testing.assert_allclose(
+            X.delta, np.swapaxes(X.delta, -2, -1), atol=1e-6)
+
 
 class TestBackwardComplex(BaseTest):
     """Test backward/forward differentiation with complex parameters."""

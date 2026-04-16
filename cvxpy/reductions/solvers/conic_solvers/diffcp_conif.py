@@ -111,12 +111,12 @@ class DIFFCP(scs_conif.SCS):
             }
             eq_dual_vars = utilities.get_dual_values(
                 solution["y"][:inverse_data[ConicSolver.DIMS].zero],
-                self.extract_dual_value,
+                utilities.extract_dual_value,
                 inverse_data[DIFFCP.EQ_CONSTR]
             )
             ineq_dual_vars = utilities.get_dual_values(
                 solution["y"][inverse_data[ConicSolver.DIMS].zero:],
-                self.extract_dual_value,
+                utilities.extract_dual_value,
                 inverse_data[DIFFCP.NEQ_CONSTR]
             )
             dual_vars = {}
@@ -183,7 +183,7 @@ class DIFFCP(scs_conif.SCS):
             solver_cache[self.name()] = results
             solver_cache[s.DERIV_CACHE] = results
         return results
-    
+
     def cite(self, data):
         """Returns bibtex citation for the solver.
 
