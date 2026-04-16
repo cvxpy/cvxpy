@@ -1420,14 +1420,33 @@ class TestAtoms(BaseTest):
         """Test the bmat atom.
         """
         v_np = np.ones((3, 1))
-        expr = np.vstack([np.hstack([v_np, v_np]),
-                          np.hstack([np.zeros((2, 1)),
-                                     np.array([[1, 2]]).T])])
+        expected = np.vstack([np.hstack([v_np, v_np]),
+                              np.hstack([np.zeros((2, 1)),
+                                         np.array([[1, 2]]).T])])
+        expr = cp.bmat([[v_np, v_np],
+                        [np.zeros((2, 1)), np.array([[1, 2]]).T]])
         self.assertEqual(expr.shape, (5, 2))
-        const = np.vstack([np.hstack([v_np, v_np]),
-                           np.hstack([np.zeros((2, 1)),
-                                      np.array([[1, 2]]).T])])
-        self.assertItemsAlmostEqual(expr, const)
+        self.assertTrue(expr.is_constant())
+        self.assertItemsAlmostEqual(expr.value, expected)
+
+    def test_bmat_constant_preserves_hermitian_structure(self) -> None:
+        """Constant bmat should preserve symmetric/Hermitian metadata."""
+        real_psd = cp.bmat([[2, -2], [-2, 2]])
+        self.assertTrue(real_psd.is_constant())
+        self.assertTrue(real_psd.is_symmetric())
+        self.assertTrue(real_psd.is_hermitian())
+
+        x = cp.Variable((2, 1))
+        expr = cp.quad_form(x, real_psd)
+        self.assertTrue(expr.is_dcp())
+
+        hermitian = cp.bmat([[1, 1j], [-1j, 2]])
+        self.assertTrue(hermitian.is_constant())
+        self.assertTrue(hermitian.is_hermitian())
+
+        z = cp.Variable(2, complex=True)
+        complex_expr = cp.quad_form(z, hermitian)
+        self.assertTrue(complex_expr.is_dcp())
 
     def test_conv(self) -> None:
         """Test the conv atom.
