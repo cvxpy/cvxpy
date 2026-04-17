@@ -319,6 +319,8 @@ class HIGHS(ConicSolver):
                     f"HIGHS returned status kError for option (name, value): ({name}, {value})"
                 )
         if write_model_file:
+            # TODO: Names can be collected upstream more systematically
+            # (or in the parent class) to be used by all solvers.
             lp.col_names_ = collect_column_names_list(data[s.PARAM_PROB].variables)
 
         solver.passModel(model)
