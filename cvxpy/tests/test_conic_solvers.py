@@ -1687,7 +1687,7 @@ class TestQOCO(BaseTest):
     def test_qoco_socp_0(self) -> None:
         StandardTestSOCPs.test_socp_0(solver='QOCO')
     def test_qoco_socp_1(self) -> None:
-        StandardTestSOCPs.test_socp_1(solver='QOCO')
+        StandardTestSOCPs.test_socp_1(solver='QOCO', reltol=1e-8)
     def test_qoco_socp_2(self) -> None:
         StandardTestSOCPs.test_socp_2(solver='QOCO')
     def test_qoco_socp_3(self) -> None:
