@@ -318,9 +318,6 @@ class HIGHS(ConicSolver):
                 raise ValueError(
                     f"HIGHS returned status kError for option (name, value): ({name}, {value})"
                 )
-
-        solver.passModel(model)
-
         if write_model_file:
             lp.col_names_ = collect_column_names_list(data[s.PARAM_PROB].variables)
 
@@ -328,13 +325,14 @@ class HIGHS(ConicSolver):
 
         if write_model_file:
             solver.writeModel(write_model_file)
+
         if warm_start and solver_cache is not None and self.name() in solver_cache:
             old_solver, old_data, old_result = solver_cache[self.name()]
             old_status = self.STATUS_MAP.get(old_result["model_status"], s.SOLVER_ERROR)
             if old_status in s.SOLUTION_PRESENT:
                 solver.setSolution(old_result["solution"])
 
-            # initialize and solve problem
+        # initialize and solve problem
         try:
             solver.run()
             results = {
