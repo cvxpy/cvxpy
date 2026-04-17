@@ -3350,7 +3350,17 @@ class TestCUOPT(unittest.TestCase):
         StandardTestLPs.test_lp_2(solver="CUOPT", duals=True, places=4, **TestCUOPT.kwargs)
 
     def test_cuopt_lp_3(self) -> None:
-        StandardTestLPs.test_lp_3(solver="CUOPT", duals=True, places=4, **TestCUOPT.kwargs)
+        # cuOpt's PSLP presolve returns UnboundedOrInfeasible for this
+        # unbounded LP, which maps to INFEASIBLE_OR_UNBOUNDED (prob.value
+        # is None rather than -inf). Assert status directly instead of
+        # calling verify_objective (which would assertAlmostEqual(None, -inf)).
+        # Precedent: test_pdlp_lp_4 handles the same situation for PDLP.
+        sth = sths.lp_3()
+        sth.solve(solver="CUOPT", duals=True, **TestCUOPT.kwargs)
+        self.assertIn(
+            sth.prob.status,
+            [cp.settings.UNBOUNDED, cp.settings.INFEASIBLE_OR_UNBOUNDED],
+        )
 
     def test_cuopt_lp_4(self) -> None:
         # In this case cuopt throws an exception because there are crossing
