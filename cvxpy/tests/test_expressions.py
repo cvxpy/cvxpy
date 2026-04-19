@@ -367,8 +367,8 @@ class TestExpressions(BaseTest):
 
         # Test valid diagonal parameter.
         p = Parameter((2, 2), diag=True)
-        p.value = sp.csc_array(np.eye(2))
-        self.assertItemsAlmostEqual(p.value.todense(), np.eye(2), places=10)
+        p.value = np.eye(2)
+        self.assertItemsAlmostEqual(p.value, np.eye(2), places=10)
 
     def test_parameter_infinite_values(self) -> None:
         """Test that +-inf values are accepted/rejected correctly."""
