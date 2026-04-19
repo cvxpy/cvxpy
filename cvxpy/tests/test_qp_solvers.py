@@ -877,6 +877,49 @@ class TestQp(QPTestBase):
     def test_highs_infeasible_lp_eq_constraints(self):
         StandardTestInfeasibleProblems.test_lp_eq_constraints(solver=cp.HIGHS)
 
+    def test_highs_dense_quad_form(self) -> None:
+        """Regression test for https://github.com/cvxpy/cvxpy/issues/3301.
+
+        A dense quad_form applied to a linear expression (not a raw Variable)
+        produces a Hessian whose upper and lower triangles may differ by
+        floating-point epsilon after canonicalization. Passing such a Hessian
+        in square format to HiGHS >= 1.14.0 triggers an asymmetry error
+        and native heap corruption. Using triangular format avoids this.
+        """
+        if cp.HIGHS not in INSTALLED_SOLVERS:
+            return
+
+        rng = np.random.default_rng(42)
+        n_vars, n_nodes = 60, 20
+
+        # Sparse mapping from decision variables to a smaller space.
+        rows, cols, vals = [], [], []
+        for i in range(n_vars):
+            j, k = rng.choice(n_nodes, size=2, replace=False)
+            rows += [i, i]
+            cols += [j, k]
+            vals += [1.0, -1.0]
+        M = sp.csr_matrix((vals, (rows, cols)), shape=(n_vars, n_nodes))
+
+        # Dense PSD matrix via eigenvalue clamping (typical in practice).
+        A = rng.standard_normal((n_nodes, n_nodes))
+        raw = A @ A.T + rng.standard_normal((n_nodes, n_nodes)) * 0.01
+        sym = 0.5 * (raw + raw.T)
+        eigvals, eigvecs = np.linalg.eigh(sym)
+        eigvals = np.maximum(eigvals, 0.0)
+        Sigma = eigvecs @ np.diag(eigvals) @ eigvecs.T
+
+        x = cp.Variable(n_vars, nonneg=True)
+        y = x @ M
+        prob = cp.Problem(
+            cp.Maximize(
+                cp.sum(x) - 0.1 * cp.quad_form(y, Sigma)
+            ),
+            [x <= 10],
+        )
+        prob.solve(solver=cp.HIGHS)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+
 
 class TestConicQuadObj(QPTestBase):
     """Test conic solvers with use_quad_obj=True."""
