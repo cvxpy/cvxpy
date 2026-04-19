@@ -562,7 +562,7 @@ class Leaf(expression.Expression):
                     'expr.value_sparse = scipy.sparse.coo_array((values, expr)) instead.')
             raise ValueError(
                 'Invalid type for assigning value_sparse.'
-                f'Recieved: {type(val)} Expected scipy.sparse.coo_array.'
+                f'Received: {type(val)} Expected scipy.sparse.coo_array.'
                 f' Instantiate with scipy.sparse.coo_array((value_array, coordinates))'
                 )
         self.save_value(self._validate_value(val, True), True)

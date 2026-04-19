@@ -461,7 +461,7 @@ class Atom(Expression):
         else:
             arg_values = []
             for arg in self.args:
-                # A argument without a value makes all higher level
+                # An argument without a value makes all higher level
                 # values None.
                 # But if the atom is constant with non-constant
                 # arguments it doesn't depend on its arguments,

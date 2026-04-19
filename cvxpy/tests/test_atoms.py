@@ -2913,7 +2913,7 @@ class TestDotsort(BaseTest):
         with self.assertRaises(Exception) as cm:
             cp.dotsort(self.x, [1, 2, 3, 4, 5, 8])
         self.assertEqual(str(cm.exception),
-                         "The size of of W must be less or equal to the size of X.")
+                         "The size of W must be less or equal to the size of X.")
 
         # two variable expressions
         with self.assertRaises(Exception) as cm:
