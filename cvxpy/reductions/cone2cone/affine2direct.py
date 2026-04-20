@@ -22,6 +22,7 @@ from cvxpy.constraints.exponential import ExpCone as ExpCone_obj
 from cvxpy.constraints.nonpos import NonNeg as NonNeg_obj
 from cvxpy.constraints.power import PowCone3D as PowCone_obj
 from cvxpy.constraints.psd import PSD as PSD_obj
+from cvxpy.constraints.second_order import RSOC as RSOC_obj
 from cvxpy.constraints.second_order import SOC as SOC_obj
 from cvxpy.constraints.zero import Zero as Zero_obj
 from cvxpy.reductions.solution import Solution
@@ -32,6 +33,7 @@ NONNEG = '+'
 EXP = 'e'
 DUAL_EXP = 'de'
 SOC = 'q'
+RSOC = 'rq'
 PSD = 's'
 POW3D = 'pp3'
 DUAL_POW3D = 'dp3'
@@ -100,6 +102,7 @@ class Dualize:
             FREE: Kp.zero,  # length of block of unconstrained variables.
             NONNEG: Kp.nonneg,  # length of block of nonneg variables.
             SOC: Kp.soc,  # lengths of blocks of soc-constrained variables.
+            RSOC: Kp.rsoc,  # lengths of blocks of rsoc-constrained variables.
             PSD: Kp.psd,  # "orders" of PSD variables
             DUAL_EXP: Kp.exp,  # number of length-3 blocks of dual exp cone variables.
             DUAL_POW3D: Kp.p3d  # scale parameters for dual 3d power cones
@@ -188,6 +191,12 @@ class Dualize:
             for con in constr_map[SOC_obj]:
                 block_len = con.shape[0]
                 dv = np.concatenate(direct_prims[SOC][i:i + block_len])
+                dual_vars[con.id] = dv
+                i += block_len
+            i = 0
+            for con in constr_map.get(RSOC_obj, []):
+                block_len = con.num_cones()
+                dv = np.concatenate(direct_prims[RSOC][i:i + block_len])
                 dual_vars[con.id] = dv
                 i += block_len
             for i, con in enumerate(constr_map[PSD_obj]):
@@ -296,7 +305,7 @@ class Slacks:
             raise NotImplementedError()
 
         for val in affine:
-            if val not in {ZERO, NONNEG, EXP, SOC, POW3D}:
+            if val not in {ZERO, NONNEG, EXP, SOC, RSOC, POW3D}:
                 raise NotImplementedError()
         if ZERO not in affine:
             affine.append(ZERO)
@@ -305,6 +314,7 @@ class Slacks:
             ZERO: cone_dims.zero,
             NONNEG: cone_dims.nonneg,
             SOC: sum(cone_dims.soc),
+            RSOC: sum(cone_dims.rsoc),
             EXP: 3 * cone_dims.exp,
             POW3D: 3 * len(cone_dims.p3d)
         }
@@ -312,8 +322,10 @@ class Slacks:
             ZERO: 0,
             NONNEG: cone_lens[ZERO],
             SOC: cone_lens[ZERO] + cone_lens[NONNEG],
-            EXP: cone_lens[ZERO] + cone_lens[NONNEG] + cone_lens[SOC],
-            POW3D: cone_lens[ZERO] + cone_lens[NONNEG] + cone_lens[SOC] + cone_lens[EXP]
+            RSOC: cone_lens[ZERO] + cone_lens[NONNEG] + cone_lens[SOC],
+            EXP: cone_lens[ZERO] + cone_lens[NONNEG] + cone_lens[SOC] + cone_lens[RSOC],
+            POW3D: (cone_lens[ZERO] + cone_lens[NONNEG] + cone_lens[SOC] +
+                    cone_lens[RSOC] + cone_lens[EXP])
         }
         # ^ If the rows of A are formatted in an order different from
         # zero -> nonneg -> soc -> exp -> pow, then the above block of code should
@@ -322,7 +334,7 @@ class Slacks:
         A_aff, b_aff = [], []
         A_slk, b_slk = [], []
         total_slack = 0
-        for co_type in [ZERO, NONNEG, SOC, EXP, POW3D]:
+        for co_type in [ZERO, NONNEG, SOC, RSOC, EXP, POW3D]:
             # ^ The order of that list means that the matrix "G" in "G @ z <=_{K_aff} h"
             # will always have rows ordered by the zero cone, then the nonnegative orthant,
             # then second order cones, and finally exponential cones. Changing the order
@@ -348,6 +360,7 @@ class Slacks:
             FREE: prob.x.size,
             NONNEG: 0 if NONNEG in affine else cone_dims.nonneg,
             SOC: [] if SOC in affine else cone_dims.soc,
+            RSOC: [] if RSOC in affine else cone_dims.rsoc,
             EXP: 0 if EXP in affine else cone_dims.exp,
             PSD: [],  # not currently supported in this reduction
             DUAL_EXP: 0,  # not currently supported in cvxpy
@@ -357,6 +370,7 @@ class Slacks:
         K_aff = {
             NONNEG: cone_dims.nonneg if NONNEG in affine else 0,
             SOC: cone_dims.soc if SOC in affine else [],
+            RSOC: cone_dims.rsoc if RSOC in affine else [],
             EXP: cone_dims.exp if EXP in affine else 0,
             PSD: [],  # currently not supported in this reduction
             ZERO: cone_dims.zero + total_slack,

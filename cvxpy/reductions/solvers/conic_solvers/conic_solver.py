@@ -18,7 +18,7 @@ import numpy as np
 import scipy.sparse as sp
 
 import cvxpy.settings as s
-from cvxpy.constraints import PSD, SOC, ExpCone, NonNeg, PowCone3D, PowConeND, SvecPSD, Zero
+from cvxpy.constraints import PSD, RSOC, SOC, ExpCone, NonNeg, PowCone3D, PowConeND, SvecPSD, Zero
 from cvxpy.reductions.cvx_attr2constr import convex_attributes
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ParamConeProg
 from cvxpy.reductions.solution import Solution, failure_solution
@@ -219,6 +219,35 @@ class ConicSolver(Solver):
                     offset=1,
                 )
                 restruct_mat.append(sp.hstack([t_spacer, X_spacer]))
+            elif type(constr) == RSOC:
+                # Interleave [y, z, X_col] per cone.
+                # RSOC args: [X, y, z]. Layout per cone: (y_i, z_i, x_{i,1},...).
+                assert constr.axis == 0, 'RSOC must be lowered to axis == 0'
+                X_arg = constr.args[0]
+                x_dim = X_arg.shape[0] if len(X_arg.shape) > 1 else X_arg.size
+                num_cones = constr.args[1].size
+                y_spacer = ConicSolver.get_spacing_matrix(
+                    shape=(total_height, constr.args[1].size),
+                    spacing=x_dim + 1,
+                    streak=1,
+                    num_blocks=num_cones,
+                    offset=0,
+                )
+                z_spacer = ConicSolver.get_spacing_matrix(
+                    shape=(total_height, constr.args[2].size),
+                    spacing=x_dim + 1,
+                    streak=1,
+                    num_blocks=num_cones,
+                    offset=1,
+                )
+                X_spacer = ConicSolver.get_spacing_matrix(
+                    shape=(total_height, X_arg.size),
+                    spacing=2,
+                    streak=x_dim,
+                    num_blocks=num_cones,
+                    offset=2,
+                )
+                restruct_mat.append(sp.hstack([X_spacer, y_spacer, z_spacer]))
             elif type(constr) == ExpCone:
                 arg_mats = []
                 for i, arg in enumerate(constr.args):
@@ -357,6 +386,7 @@ class ConicSolver(Solver):
         constr_map = problem.constr_map
         inv_data[self.EQ_CONSTR] = constr_map[Zero]
         inv_data[self.NEQ_CONSTR] = constr_map[NonNeg] + constr_map[SOC] + \
+            constr_map.get(RSOC, []) + \
             constr_map.get(PSD, []) + constr_map.get(SvecPSD, []) + \
             constr_map[ExpCone] + \
             constr_map[PowCone3D] + \

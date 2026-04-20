@@ -17,23 +17,20 @@ limitations under the License.
 import numpy as np
 from numpy.lib.array_utils import normalize_axis_index, normalize_axis_tuple
 
-from cvxpy.atoms.affine.hstack import hstack
 from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.atoms.affine.transpose import transpose
-from cvxpy.atoms.affine.vstack import vstack
-from cvxpy.constraints.second_order import SOC
+from cvxpy.constraints.second_order import RSOC
 from cvxpy.expressions.variable import Variable
 from cvxpy.utilities.solver_context import SolverInfo
 
 
 def quad_over_lin_canon(expr, args, solver_context: SolverInfo | None = None):
-    """Canonicalize quad_over_lin to SOC constraints.
+    """Canonicalize quad_over_lin to RSOC constraints.
 
     quad_over_lin(x, y) = ||x||_2^2 / y
 
-    Equivalent SOC: ||[y-t, 2x]||_2 <= y+t
-    Which gives: (y-t)^2 + 4||x||^2 <= (y+t)^2
-                 => ||x||^2 <= t*y
+    Equivalent RSOC: 2 * t * (y/2) >= ||x||_2^2, t >= 0, y/2 >= 0
+    i.e. t * y >= ||x||_2^2
     """
     x = args[0]
     y = args[1]
@@ -42,14 +39,13 @@ def quad_over_lin_canon(expr, args, solver_context: SolverInfo | None = None):
     axis = expr.axis
 
     if axis is None:
-        # Scalar output - single SOC constraint
-        t = Variable(
-            1,
-        )
-        constraints = [SOC(t=y + t, X=hstack([y - t, 2 * x.flatten(order="F")]), axis=0)]
+        # Scalar output - single RSOC constraint
+        t = Variable(1)
+        # RSOC: 2*t*(y/2) >= ||x||^2 => t*y >= ||x||^2
+        constraints = [RSOC(x.flatten(order="F"), t, y / 2)]
         return t, constraints
 
-    # Axis specified - use vectorized batched SOC
+    # Axis specified - use vectorized batched RSOC
     shape = x.shape
     ndim = len(shape)
 
@@ -83,11 +79,7 @@ def quad_over_lin_canon(expr, args, solver_context: SolverInfo | None = None):
     # Reshape to 2D: (reduce_size, n_outputs)
     x_2d = reshape(x_perm, (reduce_size, n_outputs), order="F")
 
-    # Build vectorized SOC constraint
-    # For each output j: ||[y-t[j], 2*x_col_j]||_2 <= y+t[j]
-    # X_soc has shape (1 + reduce_size, n_outputs), columns are cones
-    y_minus_t_row = reshape(y - t_flat, (1, n_outputs), order="F")
-    X_soc = vstack([y_minus_t_row, 2 * x_2d])
-    t_soc = y + t_flat
-
-    return t, [SOC(t=t_soc, X=X_soc, axis=0)]
+    # Build vectorized RSOC constraint
+    # For each output j: 2*t[j]*(y/2) >= ||x_col_j||^2
+    y_half = reshape(y / 2 * np.ones(n_outputs), (n_outputs,), order="F")
+    return t, [RSOC(x_2d, t_flat, y_half, axis=0)]

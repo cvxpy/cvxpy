@@ -26,6 +26,7 @@ from cvxpy.atoms import (
     POWCONE_ATOMS,
     POWCONE_ND_ATOMS,
     PSD_ATOMS,
+    RSOC_ATOMS,
     SOC_ATOMS,
 )
 from cvxpy.atoms.elementwise.power import Power
@@ -33,6 +34,7 @@ from cvxpy.atoms.quad_over_lin import quad_over_lin
 from cvxpy.atoms.suppfunc import SuppFuncAtom
 from cvxpy.constraints import (
     PSD,
+    RSOC,
     SOC,
     Equality,
     ExpCone,
@@ -244,6 +246,8 @@ class ProblemForm:
 
         if SOC in constr_types or any(atom in SOC_ATOMS for atom in atoms):
             cones.add(SOC)
+        if RSOC in constr_types or any(atom in RSOC_ATOMS for atom in atoms):
+            cones.add(RSOC)
         if ExpCone in constr_types or any(atom in EXP_ATOMS for atom in atoms):
             cones.add(ExpCone)
         if any(t in constr_types for t in [Inequality, NonPos, NonNeg]) \
@@ -270,12 +274,17 @@ class ProblemForm:
         # This is the QP-filtered set (base).
         self._cones_quad = cones
 
-        # Full set: if SOC is absent and the unfiltered objective would
-        # add it, create a new set with SOC included.
-        if SOC not in cones and self.has_quadratic_objective():
+        # Full set: if SOC/RSOC are absent and the unfiltered objective would
+        # add them, create a new set with the missing cones included.
+        if self.has_quadratic_objective():
             full_obj_atoms = problem.objective.expr.atoms()
-            if any(atom in SOC_ATOMS for atom in full_obj_atoms):
-                self._cones_full = cones | {SOC}
+            extra = set()
+            if SOC not in cones and any(atom in SOC_ATOMS for atom in full_obj_atoms):
+                extra.add(SOC)
+            if RSOC not in cones and any(atom in RSOC_ATOMS for atom in full_obj_atoms):
+                extra.add(RSOC)
+            if extra:
+                self._cones_full = cones | extra
                 return
 
         # No difference — share the same object.
