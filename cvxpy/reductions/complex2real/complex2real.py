@@ -251,21 +251,10 @@ class Complex2Real(Reduction):
                         else:
                             dvars[cid] = solution.dual_vars[cid]
                     elif isinstance(cons, PSD):
-                        # Suppose we have a constraint con_x = X >> 0 where X is Hermitian.
-                        #
-                        # Define the matrix
-                        #     Y := [re(X) , im(X)]
-                        #          [-im(X), re(X)]
-                        # and the constraint con_y = Y >> 0.
-                        #
-                        # The real part the dual variable for con_x is the upper-left
-                        # block of the dual variable for con_y.
-                        #
-                        # The imaginary part of the dual variable for con_x is the
-                        # upper-right block of the dual variable for con_y.
-                        n = cons.args[0].shape[0]
-                        dual = solution.dual_vars[cid]
-                        dvars[cid] = dual[:n, :n] + 1j*dual[n:, :n]
+                        # The dual arrives already as a complex n x n matrix,
+                        # reconstructed by ExactCone2Cone.recover_dual or
+                        # SCS.extract_dual_value for ComplexPSD constraints.
+                        dvars[cid] = solution.dual_vars[cid]
                     elif isinstance(cons, self.UNIMPLEMENTED_COMPLEX_DUALS):
                         # TODO: implement dual variable recovery
                         pass

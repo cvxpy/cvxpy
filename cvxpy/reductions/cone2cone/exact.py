@@ -40,6 +40,7 @@ from cvxpy import problems
 from cvxpy.atoms.affine.hstack import hstack
 from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.atoms.affine.vec import vec
+from cvxpy.constraints.complex_psd import ComplexPSD
 from cvxpy.constraints.nonpos import NonNeg, NonPos
 from cvxpy.constraints.power import PowCone3D, PowConeND
 from cvxpy.constraints.psd import PSD, SvecPSD
@@ -62,6 +63,7 @@ EXACT_CONE_CONVERSIONS = {
     NonPos: {NonNeg},
     PowConeND: {PowCone3D},
     SOC: {PSD},
+    ComplexPSD: {PSD},
     PSD: {SvecPSD},
 }
 
@@ -396,6 +398,36 @@ class SOCConversion:
             return 2 * dual_var[0]
 
 
+class ComplexPSDConversion:
+    """ComplexPSD -> PSD via 2n x 2n block matrix [[R, -I], [I, R]]."""
+    source = ComplexPSD
+    targets = {PSD}
+
+    @staticmethod
+    def canonicalize(con, args, solver_context=None):
+        real_part, imag_part = args
+        block_matrix = cp.bmat([[real_part, -imag_part],
+                                [imag_part, real_part]])
+        return PSD(block_matrix), []
+
+    @staticmethod
+    def recover_dual(cons, dual_var, inverse_data, dvars):
+        # Suppose we have a constraint con_x = X >> 0 where X is Hermitian.
+        #
+        # Define the matrix
+        #     Y := [re(X) , im(X)]
+        #          [-im(X), re(X)]
+        # and the constraint con_y = Y >> 0.
+        #
+        # The real part of the dual variable for con_x is the upper-left
+        # block of the dual variable for con_y.
+        #
+        # The imaginary part of the dual variable for con_x is the
+        # lower-left block of the dual variable for con_y.
+        n = cons.args[0].shape[0]
+        return dual_var[:n, :n] + 1j * dual_var[n:, :n]
+
+
 class NonPosConversion:
     """NonPos -> NonNeg by negating the expression.
 
@@ -448,7 +480,13 @@ class PSDToSvecPSD:
 
 class ExactCone2Cone(Canonicalization):
 
-    CONVERSIONS = [NonPosConversion, PowNDConversion, SOCConversion, PSDToSvecPSD]
+    CONVERSIONS = [
+        NonPosConversion,
+        PowNDConversion,
+        SOCConversion,
+        ComplexPSDConversion,
+        PSDToSvecPSD,
+    ]
 
     CANON_METHODS = {c.source: c.canonicalize for c in CONVERSIONS}
 

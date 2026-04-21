@@ -16,17 +16,17 @@ limitations under the License.
 
 import numpy as np
 
-from cvxpy.atoms import bmat
+from cvxpy.constraints.complex_psd import ComplexPSD
 
 
 def psd_canon(expr, real_args, imag_args, real2imag):
     """Canonicalize functions that take a Hermitian matrix.
     """
     if imag_args[0] is None:
-        matrix = real_args[0]
+        # Purely real: keep as regular PSD
+        return [expr.copy([real_args[0]])], None
     else:
         if real_args[0] is None:
             real_args[0] = np.zeros(imag_args[0].shape)
-        matrix = bmat([[real_args[0], -imag_args[0]],
-                       [imag_args[0], real_args[0]]])
-    return [expr.copy([matrix])], None
+        # Complex: create ComplexPSD, preserving constraint id
+        return [ComplexPSD(real_args[0], imag_args[0], constr_id=expr.id)], None
