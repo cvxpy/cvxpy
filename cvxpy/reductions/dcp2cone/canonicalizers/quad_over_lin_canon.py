@@ -23,7 +23,9 @@ from cvxpy.atoms.affine.transpose import transpose
 from cvxpy.atoms.affine.vstack import vstack
 from cvxpy.constraints.second_order import SOC
 from cvxpy.expressions.variable import Variable
+from cvxpy.utilities.bounds import get_expr_bounds_if_supported
 from cvxpy.utilities.solver_context import SolverInfo
+from cvxpy.utilities.values import get_expr_value_if_supported
 
 
 def quad_over_lin_canon(expr, args, solver_context: SolverInfo | None = None):
@@ -41,11 +43,16 @@ def quad_over_lin_canon(expr, args, solver_context: SolverInfo | None = None):
     y = y.flatten(order="F")
     axis = expr.axis
 
+    bounds = get_expr_bounds_if_supported(expr, solver_context)
+    value = get_expr_value_if_supported(expr, solver_context)
+
     if axis is None:
         # Scalar output - single SOC constraint
         t = Variable(
-            1,
+            1, bounds=bounds,
         )
+        if value is not None:
+            t.value = np.reshape(value, t.shape)
         constraints = [SOC(t=y + t, X=hstack([y - t, 2 * x.flatten(order="F")]), axis=0)]
         return t, constraints
 
@@ -69,7 +76,9 @@ def quad_over_lin_canon(expr, args, solver_context: SolverInfo | None = None):
     reduce_size = int(np.prod(reduce_shape))
 
     # Create output variable with the correct shape
-    t = Variable(expr.shape)
+    t = Variable(expr.shape, bounds=bounds)
+    if value is not None:
+        t.value = value
     t_flat = t.flatten(order="F")
 
     # Permute dimensions: reduce_dims first, then output_dims

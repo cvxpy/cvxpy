@@ -21,7 +21,7 @@ from cvxpy.atoms.log_sum_exp import log_sum_exp
 from cvxpy.utilities.shape import mul_shapes_promote
 
 
-def mulexpression_canon(expr, args):
+def mulexpression_canon(expr, args, solver_context=None):
     lhs = args[0]
     rhs = args[1]
     lhs_shape, rhs_shape, _ = mul_shapes_promote(lhs.shape, rhs.shape)

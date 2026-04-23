@@ -19,8 +19,8 @@ import scipy.sparse as sp
 
 from cvxpy.atoms.affine.bmat import bmat
 from cvxpy.constraints.psd import PSD
-from cvxpy.expressions.variable import Variable
 from cvxpy.utilities.solver_context import SolverInfo
+from cvxpy.utilities.values import make_canon_variable
 
 
 def sigma_max_canon(expr, args, solver_context: SolverInfo | None = None):
@@ -29,7 +29,7 @@ def sigma_max_canon(expr, args, solver_context: SolverInfo | None = None):
     shape = expr.shape
     if not np.prod(shape) == 1:
         raise RuntimeError("Invalid shape of expr in sigma_max canonicalization.")
-    t = Variable(shape)
+    t = make_canon_variable(expr, solver_context)
     tI_n = t * sp.eye_array(n)
     tI_m = t * sp.eye_array(m)
     X = bmat([[tI_n, A], [A.T, tI_m]])
