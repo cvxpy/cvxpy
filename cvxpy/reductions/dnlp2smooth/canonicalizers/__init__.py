@@ -27,7 +27,7 @@ from cvxpy.atoms.elementwise.maximum import maximum
 from cvxpy.atoms.elementwise.power import Power, PowerApprox
 from cvxpy.atoms.elementwise.trig import cos, sin, tan
 from cvxpy.atoms.elementwise.hyperbolic import sinh, asinh, tanh, atanh
-from cvxpy.atoms.elementwise.huber import huber
+from cvxpy.atoms.elementwise.huber import HuberAtom
 from cvxpy.atoms.norm1 import norm1
 from cvxpy.atoms.norm_inf import norm_inf
 from cvxpy.atoms.pnorm import Pnorm, PnormApprox
@@ -98,7 +98,7 @@ SMOOTH_CANON_METHODS = {
     max: max_canon,
     norm1: norm1_canon,
     norm_inf: norm_inf_canon,
-    huber: huber_canon,
+    HuberAtom: huber_canon,
     sum_largest: sum_largest_canon,
 
     # HSR atoms
