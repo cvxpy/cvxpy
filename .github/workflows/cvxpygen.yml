@@ -11,17 +11,24 @@ jobs:
   test_cvxpygen:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-python@v6
-        with:
-          python-version: "3.12"
       - uses: actions/checkout@v5
-      - name: Install pytest and cvxpygen
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.11"
+          enable-cache: true
+      - name: Install system dependencies
         run: |
-          pip install . pytest hypothesis
-          git clone https://github.com/cvxgrp/cvxpygen.git
+          sudo apt update
+          sudo apt install libeigen3-dev
+      - name: Install cvxpy and CVXPYgen
+        run: |
+          uv venv
+          uv pip install .
+          git clone --recurse-submodules https://github.com/cvxgrp/cvxpygen.git
           cd cvxpygen
-          git submodule update --init --recursive
-          pip install .
-      - name: Run test_cvxpygen
-        run : |
-          pytest cvxpy/tests/test_cvxpygen.py
+          uv pip install .[dev]
+          uv pip install cvxpylayers==0.1.9 "torch>=2.3" jax==0.5.3
+      - name: Run CVXPYgen tests
+        run: |
+          uv run --no-sync pytest cvxpygen/tests
