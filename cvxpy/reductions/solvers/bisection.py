@@ -206,4 +206,3 @@ def bisect(problem, solver=None, low=None, high=None, eps: float = 1e-6, verbose
               "**************************************\n"
               % (low, high))
     return soln
-
