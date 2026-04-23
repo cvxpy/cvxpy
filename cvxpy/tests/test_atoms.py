@@ -1420,14 +1420,63 @@ class TestAtoms(BaseTest):
         """Test the bmat atom.
         """
         v_np = np.ones((3, 1))
-        expr = np.vstack([np.hstack([v_np, v_np]),
-                          np.hstack([np.zeros((2, 1)),
-                                     np.array([[1, 2]]).T])])
+        expected = np.vstack([np.hstack([v_np, v_np]),
+                              np.hstack([np.zeros((2, 1)),
+                                         np.array([[1, 2]]).T])])
+        expr = cp.bmat([[v_np, v_np],
+                        [np.zeros((2, 1)), np.array([[1, 2]]).T]])
         self.assertEqual(expr.shape, (5, 2))
-        const = np.vstack([np.hstack([v_np, v_np]),
-                           np.hstack([np.zeros((2, 1)),
-                                      np.array([[1, 2]]).T])])
-        self.assertItemsAlmostEqual(expr, const)
+        self.assertTrue(expr.is_constant())
+        self.assertItemsAlmostEqual(expr.value, expected)
+
+    def test_bmat_constant_preserves_hermitian_structure(self) -> None:
+        """Constant bmat should preserve symmetric/Hermitian metadata."""
+        real_psd = cp.bmat([[2, -2], [-2, 2]])
+        self.assertTrue(real_psd.is_constant())
+        self.assertTrue(real_psd.is_symmetric())
+        self.assertTrue(real_psd.is_hermitian())
+
+        x = cp.Variable((2, 1))
+        expr = cp.quad_form(x, real_psd)
+        self.assertTrue(expr.is_dcp())
+
+        hermitian = cp.bmat([[1, 1j], [-1j, 2]])
+        self.assertTrue(hermitian.is_constant())
+        self.assertTrue(hermitian.is_hermitian())
+
+        z = cp.Variable(2, complex=True)
+        complex_expr = cp.quad_form(z, hermitian)
+        self.assertTrue(complex_expr.is_dcp())
+
+    def test_bmat_sparse_constants_preserve_hermitian_structure(self) -> None:
+        """Sparse constant bmat should preserve symmetric/Hermitian metadata."""
+        real_psd = cp.bmat([[sp.csc_array([[2]]), sp.csc_array([[-2]])],
+                            [sp.csc_array([[-2]]), sp.csc_array([[2]])]])
+        self.assertTrue(real_psd.is_constant())
+        self.assertTrue(real_psd.is_symmetric())
+        self.assertTrue(real_psd.is_hermitian())
+
+        x = cp.Variable((2, 1))
+        expr = cp.quad_form(x, real_psd)
+        self.assertTrue(expr.is_dcp())
+
+    def test_bmat_parameters_remain_parameterized(self) -> None:
+        """Parameter-only bmat should keep its parameter dependencies."""
+        p11 = cp.Parameter((1, 1))
+        p12 = cp.Parameter((1, 1))
+        expr = cp.bmat([[p11, p12],
+                        [p12, p11]])
+
+        self.assertEqual(expr.shape, (2, 2))
+        self.assertEqual(set(expr.parameters()), {p11, p12})
+
+        p11.value = np.array([[1]])
+        p12.value = np.array([[2]])
+        self.assertItemsAlmostEqual(expr.value, np.array([[1, 2], [2, 1]]))
+
+        p11.value = np.array([[3]])
+        p12.value = np.array([[4]])
+        self.assertItemsAlmostEqual(expr.value, np.array([[3, 4], [4, 3]]))
 
     def test_conv(self) -> None:
         """Test the conv atom.
