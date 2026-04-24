@@ -82,6 +82,14 @@ def collect_column_names(variable, column_names):
     validate_column_name(column_names[-1])
 
 
+def collect_column_names_list(variables):
+    """Collect all column names from CVXPY variables into a list."""
+    column_names = []
+    for variable in variables:
+        # leaf_of_provenance() handles auto-generated vars (nonneg=True, etc.)
+        variable = variable.leaf_of_provenance() or variable
+        collect_column_names(variable, column_names)
+    return column_names
 def set_column_names_from_variables(lp, variables):
     """Set column names on HiGHS LP model from CVXPY variables.
 
@@ -320,11 +328,10 @@ class HIGHS(ConicSolver):
                 raise ValueError(
                     f"HIGHS returned status kError for option (name, value): ({name}, {value})"
                 )
-
         if write_model_file:
             # TODO: Names can be collected upstream more systematically
             # (or in the parent class) to be used by all solvers.
-            set_column_names_from_variables(lp, data[s.PARAM_PROB].variables)
+            lp.col_names_ = collect_column_names_list(data[s.PARAM_PROB].variables)
 
         solver.passModel(model)
 
