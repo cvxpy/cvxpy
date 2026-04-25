@@ -141,6 +141,22 @@ class Solver(Reduction):
         """Whether the solver supports quadratic objectives."""
         return False
 
+    def x_cone_kinds(self) -> frozenset:
+        """Cone kinds this solver can accept as direct-x (XConeSpec) cones.
+
+        Returning a non-empty set tells the solving chain to insert
+        ``ExtractIdentityCones`` so identity-pattern slack cones are
+        rerouted onto subvectors of the primal variable.  Default is
+        empty (no x_cone support).
+
+        Returns
+        -------
+        frozenset[str]
+            Subset of ``{'nonneg', 'soc', 'psd_triangle'}`` that the
+            solver can consume natively.
+        """
+        return frozenset()
+
     def can_solve(self, problem_form) -> bool:
         """Check if this solver can handle a problem with the given structure.
 

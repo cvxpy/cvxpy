@@ -20,6 +20,7 @@ from cvxpy.reductions.chain import Chain
 from cvxpy.reductions.complex2real import complex2real
 from cvxpy.reductions.cone2cone.approx import ApproxCone2Cone
 from cvxpy.reductions.cone2cone.exact import ExactCone2Cone
+from cvxpy.reductions.cone2cone.extract_identity_cones import ExtractIdentityCones
 from cvxpy.reductions.cone2cone.soc_dim3 import SOCDim3
 from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
@@ -166,12 +167,14 @@ def _build_solving_chain(
     else:
         supported = frozenset(solver_instance.SUPPORTED_CONSTRAINTS)
 
+    x_cone_kinds = solver_instance.x_cone_kinds()
     solver_context = SolverInfo(
         solver=solver_instance.name(),
         supported_constraints=supported,
         supports_bounds=solver_instance.BOUNDED_VARIABLES,
         psd_triangle_kind=solver_instance.PSD_TRIANGLE_KIND,
         psd_sqrt2_scaling=solver_instance.PSD_SQRT2_SCALING,
+        x_cone_kinds=x_cone_kinds,
     )
 
     # --- Pre-canonicalization reductions (problem + gp only) ---
@@ -234,10 +237,11 @@ def _build_solving_chain(
     if solver_instance.SOC_DIM3_ONLY and SOC in cones:
         reductions.append(SOCDim3())
 
-    reductions += [
-        ConeMatrixStuffing(quad_obj=quad_obj, canon_backend=canon_backend),
-        solver_instance,
-    ]
+    reductions.append(
+        ConeMatrixStuffing(quad_obj=quad_obj, canon_backend=canon_backend))
+    if x_cone_kinds:
+        reductions.append(ExtractIdentityCones(solver_context=solver_context))
+    reductions.append(solver_instance)
     return SolvingChain(reductions=reductions, solver_context=solver_context)
 
 

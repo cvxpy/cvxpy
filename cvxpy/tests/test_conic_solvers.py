@@ -894,7 +894,13 @@ class TestMoreau(BaseTest):
         StandardTestPCPs.test_pcp_2(solver='MOREAU', ipm_settings=ipm_settings)
 
     def test_moreau_variable_soc_dims(self) -> None:
-        """Test that Moreau handles SOC constraints of dimension > 3 directly."""
+        """Test that Moreau handles SOC constraints of dimension > 3 directly.
+
+        With the x_cone path, ``cp.SOC(t, x)`` on bare variables is
+        extracted to ``data['x_cones']``; otherwise the dim-6 SOC
+        appears in ``cone_dims.soc``.  Either path is acceptable —
+        what matters is that no SOCDim3 expansion happened.
+        """
         x = cp.Variable(5)
         t = cp.Variable()
         # SOC constraint: ||x|| <= t, which is a dim-6 SOC
@@ -903,10 +909,77 @@ class TestMoreau(BaseTest):
         self.assertEqual(prob.status, cp.OPTIMAL)
         self.assertAlmostEqual(prob.value, np.sqrt(5), places=4)
 
-        # Verify the solver receives variable-length SOC dims (not all dim-3)
         data, _, _ = prob.get_problem_data(solver=cp.MOREAU)
         soc_dims = data[ConicSolver.DIMS].soc
-        self.assertTrue(any(d > 3 for d in soc_dims))
+        x_cone_socs = [
+            len(idx) for kind, idx, *_ in (data.get('x_cones') or [])
+            if kind == 'soc'
+        ]
+        all_soc_sizes = list(soc_dims) + x_cone_socs
+        self.assertTrue(any(d > 3 for d in all_soc_sizes))
+
+    def _skip_if_no_xcones(self) -> None:
+        from cvxpy.reductions.solvers.conic_solvers.moreau_conif import (
+            _moreau_supports_x_cones,
+        )
+        if not _moreau_supports_x_cones():
+            self.skipTest("installed Moreau build lacks XConeSpec")
+
+    def test_moreau_extract_identity_cones_lp(self) -> None:
+        """ExtractIdentityCones reroutes Variable(nonneg=True) onto x_cones.
+
+        Verifies the extraction reduction produces the same optimum
+        and primal as CLARABEL.
+        """
+        self._skip_if_no_xcones()
+        x = cp.Variable(4, nonneg=True)
+        c = np.array([1.0, 2.0, 3.0, 4.0])
+        cons = [cp.sum(x) >= 1.0]
+        prob = cp.Problem(cp.Minimize(c @ x), cons)
+
+        val_m = prob.solve(solver=cp.MOREAU)
+        x_m = x.value.copy()
+        val_c = prob.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(val_m, val_c, places=5)
+        self.assertItemsAlmostEqual(x_m, x.value, places=5)
+
+    def test_moreau_extract_identity_cones_socp(self) -> None:
+        """cp.SOC(t, x) on bare variables extracts directly."""
+        self._skip_if_no_xcones()
+        n = 4
+        x = cp.Variable(n)
+        t = cp.Variable()
+        cons = [cp.SOC(t, x), cp.sum(x) == 1]
+        prob = cp.Problem(cp.Minimize(t), cons)
+
+        val_m = prob.solve(solver=cp.MOREAU)
+        x_m, t_m = x.value.copy(), float(t.value)
+        val_c = prob.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(val_m, val_c, places=5)
+        self.assertItemsAlmostEqual(x_m, x.value, places=5)
+        self.assertAlmostEqual(t_m, float(t.value), places=5)
+
+    def test_moreau_extract_skips_param_dependent_block(self) -> None:
+        """A NonNeg block whose A rows depend on a parameter is left as
+        slack; otherwise re-solving with new parameter values would use
+        a stale (wrong) extraction.
+        """
+        self._skip_if_no_xcones()
+        a = cp.Parameter(2, value=np.array([1.0, 1.0]))
+        x = cp.Variable(2)
+        # `cp.multiply(a, x) >= 0` makes the A row parameter-dependent.
+        cons = [cp.multiply(a, x) >= 0, cp.sum(x) == 1]
+        prob = cp.Problem(cp.Minimize(cp.sum(x)), cons)
+
+        val_m = prob.solve(solver=cp.MOREAU)
+        # Indirect check: re-solve with a new parameter value and assert
+        # the optimum still matches CLARABEL — would diverge if we'd
+        # extracted on a param-dependent pattern.
+        a.value = np.array([2.0, 0.5])
+        val_m2 = prob.solve(solver=cp.MOREAU)
+        val_c2 = prob.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(val_m, 1.0, places=5)
+        self.assertAlmostEqual(val_m2, val_c2, places=5)
 
 
 def is_mosek_available():

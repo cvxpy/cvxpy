@@ -28,6 +28,19 @@ from cvxpy.reductions.solvers.solver_inverse_data import SolverInverseData
 from cvxpy.utilities.citations import CITATION_DICT
 
 
+def _moreau_supports_x_cones() -> bool:
+    """True if the installed Moreau build exposes the x_cones API.
+
+    Older Moreau lacks ``XConeSpec``; on those installs ``x_cone_kinds()``
+    returns an empty set and the chain skips ExtractIdentityCones.
+    """
+    try:
+        import moreau
+    except ImportError:
+        return False
+    return hasattr(moreau, 'XConeSpec')
+
+
 def dims_to_solver_cones(cone_dims):
     """Convert CVXPY cone dimensions to Moreau cone specification.
 
@@ -115,6 +128,27 @@ class MOREAU(ConicSolver):
         """Moreau supports quadratic objective with conic constraints."""
         return True
 
+    def x_cone_kinds(self) -> frozenset:
+        """Direct-x cone kinds Moreau accepts via XConeSpec.
+
+        Empty when the installed Moreau is too old to know about
+        x_cones, so ExtractIdentityCones becomes a no-op.
+        """
+        if not _moreau_supports_x_cones():
+            return frozenset()
+        return frozenset({'nonneg', 'soc'})
+
+    def apply(self, problem):
+        """Forward ``problem.x_cones`` (set by ExtractIdentityCones) into
+        the solver's data and inverse-data dicts; otherwise behaves
+        exactly as ConicSolver.apply.
+        """
+        data, inv_data = super().apply(problem)
+        if problem.x_cones:
+            data['x_cones'] = problem.x_cones
+            inv_data['x_cones'] = problem.x_cones
+        return data, inv_data
+
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data."""
         attr = {}
@@ -151,6 +185,11 @@ class MOREAU(ConicSolver):
             dual_vars = {}
             dual_vars.update(eq_dual_vars)
             dual_vars.update(ineq_dual_vars)
+            # x_cone duals (computed in solve_via_data from the KKT
+            # residual q + A.T z) are keyed by their original
+            # constraint id and slot in directly.
+            xcone_duals = getattr(solution, 'x_cone_duals', None) or {}
+            dual_vars.update(xcone_duals)
             return Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
             return failure_solution(status, attr)
@@ -250,6 +289,16 @@ class MOREAU(ConicSolver):
         # Convert cone dimensions
         cones = dims_to_solver_cones(data[ConicSolver.DIMS])
 
+        # Direct-x cones from ExtractIdentityCones: subvectors of the
+        # primal variable that ride the XConeSpec path instead of
+        # being slack-side cones.
+        x_cones_meta = data.get('x_cones', []) or []
+        if x_cones_meta:
+            cones.x_cones = [
+                moreau.XConeSpec(kind=kind, indices=list(indices))
+                for kind, indices, _constr_id in x_cones_meta
+            ]
+
         # Handle options (device is now part of Settings)
         settings, processed_opts = self.handle_options(verbose, solver_opts or {})
 
@@ -267,7 +316,20 @@ class MOREAU(ConicSolver):
         solution = solver.solve()
         info = solver.info  # Metadata is on solver.info after solve()
 
-        return MoreauSolution(solution, info)
+        wrapped = MoreauSolution(solution, info)
+        # Recover x_cone duals from the KKT residual:
+        #   μ_block = (q + A.T z)[x_indices]
+        # which lives in K* (matches CVXPY's convention for NonNeg/SOC
+        # duals).  See cvxpy/reductions/cone2cone/extract_identity_cones.py.
+        if x_cones_meta and solution.z is not None:
+            kkt_resid = q + A.T @ solution.z
+            wrapped.x_cone_duals = {
+                constr_id: kkt_resid[list(indices)]
+                for _kind, indices, constr_id in x_cones_meta
+            }
+        else:
+            wrapped.x_cone_duals = {}
+        return wrapped
 
     def cite(self, data):
         """Returns bibtex citation for the solver.

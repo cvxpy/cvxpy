@@ -167,6 +167,7 @@ class ParamConeProg(ParamProb):
                  upper_bounds: np.ndarray | None = None,
                  lb_tensor=None,
                  ub_tensor=None,
+                 x_cones: list | None = None,
                  ) -> None:
         # The problem data tensors; q is for the objective, and A for
         # the problem data matrix
@@ -204,6 +205,16 @@ class ParamConeProg(ParamProb):
 
         # whether this param cone prog has been formatted for a solver
         self.formatted = formatted
+
+        # Direct-x cones: a list of (kind, indices, original_constr_id)
+        # tuples naming subvectors of ``x`` that are constrained to lie
+        # in a cone of the named kind ('nonneg', 'soc', ...).  Set by
+        # reductions that extract identity-pattern cone blocks (see
+        # cvxpy/reductions/cone2cone/extract_identity_cones.py); the
+        # solver consumes these alongside the slack-side cone_dims.
+        # ``None`` (default) means no x_cones — the slack-side cone
+        # interpretation is the entire story.
+        self.x_cones = x_cones
 
     def is_mixed_integer(self) -> bool:
         """Is the problem mixed-integer?"""
