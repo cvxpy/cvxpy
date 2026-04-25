@@ -36,20 +36,16 @@ def convert_matmul(expr, children, var_dict, n_vars, param_dict):
 
     if left_arg.is_constant():
         A = left_arg.value
-        if isinstance(left_arg, cp.Parameter):
-            param_node = param_dict[left_arg.id]
-        else:
-            param_node = None
+        param_node = children[0] if left_arg.parameters() else None
         if sparse.issparse(A):
             return make_sparse_left_matmul(param_node, children[1], A)
         return make_dense_left_matmul(param_node, children[1], A)
 
     elif right_arg.is_constant():
         A = right_arg.value
-        if isinstance(right_arg, cp.Parameter):
-            param_node = param_dict[right_arg.id]
-        else:
-            param_node = None
+        if A.ndim == 1:
+            A = A.reshape(-1, 1)
+        param_node = children[1] if right_arg.parameters() else None
         if sparse.issparse(A):
             return make_sparse_right_matmul(param_node, children[0], A)
         return make_dense_right_matmul(param_node, children[0], A)
@@ -123,9 +119,14 @@ def convert_expr(expr, var_dict, n_vars, param_dict=None):
     d1_Python, d2_Python = normalize_shape(expr.shape)
 
     if d1_C != d1_Python or d2_C != d2_Python:
-        raise ValueError(
-            f"Dimension mismatch for atom '{atom_name}': "
-            f"C dimensions ({d1_C}, {d2_C}) vs Python dimensions ({d1_Python}, {d2_Python})"
-        )
+        # 1D shape (n,) normalizes to (1, n) but C may produce (n, 1); reshape.
+        if len(expr.shape) <= 1 and d1_C * d2_C == d1_Python * d2_Python:
+            C_expr = _diffengine.make_reshape(C_expr, d1_Python, d2_Python)
+        else:
+            raise ValueError(
+                f"Dimension mismatch for atom '{atom_name}': "
+                f"C dimensions ({d1_C}, {d2_C}) vs "
+                f"Python dimensions ({d1_Python}, {d2_Python})"
+            )
 
     return C_expr

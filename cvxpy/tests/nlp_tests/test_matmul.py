@@ -109,3 +109,96 @@ class TestMatmul():
 
         checker = DerivativeChecker(problem)
         checker.run_and_assert()
+
+    def test_matmul_1d_left_constant(self):
+        """1D constant on the left: (n,) @ (n, p) nonlinear variable."""
+        np.random.seed(0)
+        n, p = 4, 5
+        a = np.random.rand(n)
+        X = cp.Variable((n, p), bounds=[-1, 1], name='X')
+        X.value = np.random.rand(n, p)
+        obj = cp.sum(a @ cp.sin(X))
+        problem = cp.Problem(cp.Minimize(obj))
+
+        problem.solve(solver=cp.IPOPT, nlp=True, verbose=False)
+        assert(problem.status == cp.OPTIMAL)
+
+        checker = DerivativeChecker(problem)
+        checker.run_and_assert()
+
+    def test_matmul_1d_right_constant(self):
+        """1D constant on the right: (m, n) nonlinear variable @ (n,)."""
+        np.random.seed(0)
+        m, n = 5, 4
+        b = np.random.rand(n)
+        X = cp.Variable((m, n), bounds=[-1, 1], name='X')
+        X.value = np.random.rand(m, n)
+        obj = cp.sum(cp.sin(X) @ b)
+        problem = cp.Problem(cp.Minimize(obj))
+
+        problem.solve(solver=cp.IPOPT, nlp=True, verbose=False)
+        assert(problem.status == cp.OPTIMAL)
+
+        checker = DerivativeChecker(problem)
+        checker.run_and_assert()
+
+    def test_matmul_1d_dot(self):
+        """Dot product of a 1D constant with a 1D nonlinear variable."""
+        np.random.seed(0)
+        n = 6
+        a = np.random.rand(n)
+        x = cp.Variable(n, bounds=[-1, 1], name='x')
+        x.value = np.random.rand(n)
+        obj = a @ cp.sin(x)
+        problem = cp.Problem(cp.Minimize(obj))
+
+        problem.solve(solver=cp.IPOPT, nlp=True, verbose=False)
+        assert(problem.status == cp.OPTIMAL)
+
+        checker = DerivativeChecker(problem)
+        checker.run_and_assert()
+
+    def test_matmul_param_inside_transpose(self):
+        """Parameter wrapped in transpose on the left-matmul side.
+
+        Solve with hardcoded A1, A2, then with a Parameter and mutate
+        A.value; the two solutions must match exactly.
+        """
+        np.random.seed(0)
+        m, p = 4, 5
+        A1 = np.random.rand(m, p)
+        A2 = np.random.rand(m, p)
+
+        # Solve with hardcoded values.
+        x = cp.Variable(m, bounds=[-1, 1], name='x')
+        prob1 = cp.Problem(cp.Minimize(cp.sum(A1.T @ cp.sin(x))))
+        prob2 = cp.Problem(cp.Minimize(cp.sum(A2.T @ cp.sin(x))))
+        x.value = None
+        prob1.solve(solver=cp.IPOPT, nlp=True, verbose=False)
+        assert prob1.status == cp.OPTIMAL
+        hardcoded_sol1 = x.value
+        x.value = None
+        prob2.solve(solver=cp.IPOPT, nlp=True, verbose=False)
+        assert prob2.status == cp.OPTIMAL
+        hardcoded_sol2 = x.value
+
+        # Solve with a parameter, then update its value and re-solve.
+        A = cp.Parameter((m, p), value=A1)
+        prob = cp.Problem(cp.Minimize(cp.sum(A.T @ cp.sin(x))))
+        x.value = None
+        prob.solve(solver=cp.IPOPT, nlp=True, verbose=False)
+        assert prob.status == cp.OPTIMAL
+        checker = DerivativeChecker(prob)
+        checker.run_and_assert()
+        param_sol1 = x.value
+
+        A.value = A2
+        x.value = None
+        prob.solve(solver=cp.IPOPT, nlp=True, verbose=False)
+        assert prob.status == cp.OPTIMAL
+        checker = DerivativeChecker(prob)
+        checker.run_and_assert()
+        param_sol2 = x.value
+
+        assert np.linalg.norm(param_sol1 - hardcoded_sol1) == 0.0
+        assert np.linalg.norm(param_sol2 - hardcoded_sol2) == 0.0

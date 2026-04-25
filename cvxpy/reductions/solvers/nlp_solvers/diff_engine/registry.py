@@ -23,16 +23,46 @@ import numpy as np
 from scipy import sparse
 from sparsediffpy import _sparsediffengine as _diffengine
 
-import cvxpy as cp
 from cvxpy.reductions.solvers.nlp_solvers.diff_engine.helpers import (
     chain_add,
     normalize_shape,
+    to_dense_float,
 )
 
 
 def convert_hstack(expr, children):
     """Convert horizontal stack (hstack) of expressions."""
     return _diffengine.make_hstack(children)
+
+
+def convert_vstack(expr, children):
+    """Convert vertical stack (vstack) of expressions."""
+    return _diffengine.make_vstack(children)
+
+
+def convert_conv(expr, children):
+    """Convert cp.conv / cp.convolve (full 1D convolution)."""
+    return _diffengine.make_convolve(children[0], children[1])
+
+
+def convert_div(expr, children):
+    """Convert x / c by multiplying x by the elementwise reciprocal of c.
+
+    Matches coo_backend.div: parametrized divisors are rejected and any
+    zero entry in the divisor raises explicitly.
+    """
+    divisor_expr = expr.args[1]
+    if divisor_expr.parameters():
+        raise NotImplementedError("div doesn't support parametrized divisor")
+    divisor = to_dense_float(divisor_expr.value)
+    if np.any(divisor == 0):
+        raise ValueError("Division by zero encountered in divisor")
+    recip = 1.0 / divisor
+    d1, d2 = normalize_shape(recip.shape)
+    recip_node = _diffengine.make_parameter(d1, d2, -1, 0, recip.flatten(order='F'))
+    if recip.size == 1:
+        return _diffengine.make_param_scalar_mult(recip_node, children[0])
+    return _diffengine.make_param_vector_mult(recip_node, children[0])
 
 
 def extract_flat_indices_from_index(expr):
@@ -75,41 +105,43 @@ def convert_rel_entr(expr, children):
 
 
 def convert_quad_form(expr, children):
-    """Convert quadratic form x.T @ P @ x."""
-
+    """Convert scalar quadratic form x.T @ P @ x."""
     P = expr.args[1]
 
-    if not isinstance(P, cp.Constant):
+    if not P.is_constant():
         raise NotImplementedError("quad_form requires P to be a constant matrix")
 
-    P = P.value
+    P_val = P.value
+    if P_val is None:
+        raise NotImplementedError(
+            "quad_form with a symbolic P (e.g. eye/parameter without a value) "
+            "is not supported by the diff engine."
+        )
 
-    if not isinstance(P, sparse.csr_matrix):
-          P = sparse.csr_matrix(P)
+    if not isinstance(P_val, sparse.csr_matrix):
+        P_val = sparse.csr_matrix(P_val)
 
     return _diffengine.make_quad_form(
         children[0],
-        P.data.astype(np.float64),
-        P.indices.astype(np.int32),
-        P.indptr.astype(np.int32),
-        P.shape[0],
-        P.shape[1],
+        P_val.data.astype(np.float64),
+        P_val.indices.astype(np.int32),
+        P_val.indptr.astype(np.int32),
+        P_val.shape[0],
+        P_val.shape[1],
     )
 
 
 def convert_reshape(expr, children):
-    """Convert reshape - only Fortran order is supported.
+    """Convert reshape. C-order via transpose(F-reshape(transpose(x))).
 
-    Note: Only order='F' (Fortran/column-major) is supported.
+    Identity: reshape(x, (m, n), C) == transpose(reshape(transpose(x), (n, m), F)).
     """
-    if expr.order != "F":
-        raise NotImplementedError(
-            f"reshape with order='{expr.order}' not supported. "
-            "Only order='F' (Fortran) is currently supported."
-        )
-
     d1, d2 = normalize_shape(expr.shape)
-    return _diffengine.make_reshape(children[0], d1, d2)
+    if expr.order == "F":
+        return _diffengine.make_reshape(children[0], d1, d2)
+    transposed = _diffengine.make_transpose(children[0])
+    reshaped = _diffengine.make_reshape(transposed, d2, d1)
+    return _diffengine.make_transpose(reshaped)
 
 def convert_broadcast(expr, children):
     d1, d2 = expr.broadcast_shape
@@ -155,9 +187,11 @@ def convert_prod(expr, children):
         return _diffengine.make_prod_axis_one(children[0])
 
 def convert_transpose(expr, children):
-    # If the child is a vector (shape (n,) or (n,1) or (1,n)), use reshape to transpose
-    child_shape = normalize_shape(expr.args[0].shape)
+    # 1D transpose is a numpy no-op; C stores 1D as (1, n), don't flip to (n, 1).
+    if len(expr.args[0].shape) <= 1:
+        return children[0]
 
+    child_shape = normalize_shape(expr.args[0].shape)
     if 1 in child_shape:
         return _diffengine.make_reshape(children[0], child_shape[1], child_shape[0])
     else:
@@ -168,9 +202,27 @@ def convert_trace(_expr, children):
 
 def convert_diag_vec(expr, children):
     # C implementation only supports k=0 (main diagonal)
+    # TODO add support for diag vec with k
     if expr.k != 0:
         raise NotImplementedError("diag_vec with k != 0 not supported in diff engine")
     return _diffengine.make_diag_vec(children[0])
+
+
+def convert_diag_mat(expr, children):
+    """Convert diag_mat: extract diagonal from square matrix."""
+    if expr.k != 0:
+        raise NotImplementedError("diag_mat with k != 0 not supported in diff engine")
+    node = _diffengine.make_diag_mat(children[0])
+    # C produces (n, 1) but CVXPY shape is (n,) which normalizes to (1, n)
+    # TODO add support for producing (1, n) directly in C and remove this reshape
+    # TODO also raise error that the k should be zero, since that's the only supported case
+    n = expr.args[0].shape[0]
+    return _diffengine.make_reshape(node, 1, n)
+
+
+def convert_upper_tri(_expr, children):
+    """Convert upper_tri: extract strict upper triangular elements."""
+    return _diffengine.make_upper_tri(children[0])
 
 
 ATOM_CONVERTERS = {
@@ -180,6 +232,17 @@ ATOM_CONVERTERS = {
     # Affine unary
     "NegExpression": convert_NegExpression,
     "Promote": convert_promote,
+    # Pass-through wrappers (no-ops for real-valued expressions)
+    "conj": lambda _expr, children: children[0],
+    "nonneg_wrap": lambda _expr, children: children[0],
+    "nonpos_wrap": lambda _expr, children: children[0],
+    "psd_wrap": lambda _expr, children: children[0],
+    "nsd_wrap": lambda _expr, children: children[0],
+    "hermitian_wrap": lambda _expr, children: children[0],
+    "skew_symmetric_wrap": lambda _expr, children: children[0],
+    "symmetric_wrap": lambda _expr, children: children[0],
+    # Division by constant
+    "DivExpression": convert_div,
     # N-ary (handles 2+ args)
     "AddExpression": lambda _expr, children: chain_add(children),
     # Reductions
@@ -213,9 +276,15 @@ ATOM_CONVERTERS = {
     # Reductions returning scalar
     "Prod": convert_prod,
     "transpose": convert_transpose,
-    # Horizontal stack
+    # Horizontal/vertical stack
     "Hstack": convert_hstack,
+    "Vstack": convert_vstack,
+    # 1D full convolution
+    "conv": convert_conv,
+    "convolve": convert_conv,
     "Trace": convert_trace,
-    # Diagonal
+    # Diagonal and triangular
     "diag_vec": convert_diag_vec,
+    "diag_mat": convert_diag_mat,
+    "upper_tri": convert_upper_tri,
 }

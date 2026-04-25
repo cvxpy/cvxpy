@@ -53,7 +53,9 @@ def make_sparse_left_matmul(param_node, child, A):
 
 
 def make_dense_left_matmul(param_node, child, A):
-    m, n = normalize_shape(A.shape)
+    if A.ndim == 1:
+        A = A.reshape(1, -1)
+    m, n = A.shape
     return _diffengine.make_left_matmul(
         param_node, child, 'dense', A.flatten(order='C'), m, n)
 
@@ -70,7 +72,7 @@ def make_sparse_right_matmul(param_node, child, A):
 
 
 def make_dense_right_matmul(param_node, child, A):
-    m, n = normalize_shape(A.shape)
+    m, n = A.shape
     return _diffengine.make_right_matmul(
         param_node, child, 'dense', A.flatten(order='C'), m, n)
 
