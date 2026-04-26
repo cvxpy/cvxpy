@@ -57,10 +57,6 @@ def dims_to_solver_cones(cone_dims):
     """
     import moreau
 
-    # Moreau does not support PSD cones yet
-    if cone_dims.psd:
-        raise ValueError("Moreau does not support PSD cones")
-
     # Moreau does not support generalized power cones yet
     if cone_dims.pnd:
         raise ValueError("Moreau does not support generalized power cones (PowConeND)")
@@ -71,6 +67,7 @@ def dims_to_solver_cones(cone_dims):
         so_cone_dims=list(cone_dims.soc),
         num_exp_cones=cone_dims.exp,
         power_alphas=list(cone_dims.p3d),
+        psd_dims=list(cone_dims.psd),
     )
 
     return cones
