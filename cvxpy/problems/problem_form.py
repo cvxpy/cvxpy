@@ -26,6 +26,7 @@ from cvxpy.atoms import (
     POWCONE_ATOMS,
     POWCONE_ND_ATOMS,
     PSD_ATOMS,
+    RSOC_ATOMS,
     SOC_ATOMS,
 )
 from cvxpy.atoms.elementwise.power import Power
@@ -33,6 +34,7 @@ from cvxpy.atoms.quad_over_lin import quad_over_lin
 from cvxpy.atoms.suppfunc import SuppFuncAtom
 from cvxpy.constraints import (
     PSD,
+    RSOC,
     SOC,
     Equality,
     ExpCone,
@@ -244,6 +246,8 @@ class ProblemForm:
 
         if SOC in constr_types or any(atom in SOC_ATOMS for atom in atoms):
             cones.add(SOC)
+        if RSOC in constr_types or any(atom in RSOC_ATOMS for atom in atoms):
+            cones.add(RSOC)
         if ExpCone in constr_types or any(atom in EXP_ATOMS for atom in atoms):
             cones.add(ExpCone)
         if any(t in constr_types for t in [Inequality, NonPos, NonNeg]) \

@@ -103,6 +103,7 @@ from cvxpy.atoms.pnorm import Pnorm, PnormApprox, pnorm
 from cvxpy.atoms.prod import Prod, prod
 from cvxpy.atoms.quad_form import QuadForm, quad_form
 from cvxpy.atoms.quad_over_lin import quad_over_lin
+from cvxpy.atoms.quad_over_root import quad_over_root
 from cvxpy.atoms.sigma_max import sigma_max
 from cvxpy.atoms.sign import sign
 from cvxpy.atoms.sum_largest import sum_largest
@@ -125,6 +126,10 @@ SOC_ATOMS = [
     PowerApprox,
     huber,
     std,
+]
+
+RSOC_ATOMS = [
+    quad_over_root,
 ]
 
 POWCONE_ATOMS = [Pnorm, Power]
