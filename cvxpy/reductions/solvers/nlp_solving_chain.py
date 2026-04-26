@@ -176,12 +176,20 @@ def solve_nlp(problem, solver, warm_start, verbose, **kwargs):
     """
     nlp_chain, kwargs = _build_nlp_chain(problem, solver, kwargs)
 
-    # Standard single solve
+    # Reuse cached Oracles across solve() calls when problem has parameters.
+    # Parameter updates happen inside solve_via_data when reusing.
+    # Also initialize an empty cache for best_of.
+    solver_cache = problem._solver_cache.get('NLP')
+    if solver_cache is None and (problem.parameters() or "best_of" in kwargs):
+        solver_cache = {}
+        problem._solver_cache['NLP'] = solver_cache
+
     if "best_of" not in kwargs:
         _set_nlp_initial_point(problem)
         canon_problem, inverse_data = nlp_chain.apply(problem=problem)
-        solution = nlp_chain.solver.solve_via_data(canon_problem, warm_start,
-                                                   verbose, solver_opts=kwargs)
+        solution = nlp_chain.solver.solve_via_data(
+            canon_problem, warm_start, verbose, solver_opts=kwargs,
+            solver_cache=solver_cache)
         problem.unpack_results(solution, nlp_chain, inverse_data)
         return problem.value
 
@@ -193,9 +201,6 @@ def solve_nlp(problem, solver, warm_start, verbose, **kwargs):
     best_obj, best_solution = float("inf"), None
     all_objs = np.zeros(shape=(best_of,))
     user_initials = {}
-
-    # inside solve_via_data we cache the construction of oracles
-    solver_cache = {}
 
     for run in range(best_of):
         _set_random_nlp_initial_point(problem, run, user_initials)
@@ -209,7 +214,7 @@ def solve_nlp(problem, solver, warm_start, verbose, **kwargs):
         obj_value = problem.objective.value
 
         all_objs[run] = obj_value
-        if obj_value < best_obj:
+        if obj_value is not None and obj_value < best_obj:
             best_obj = obj_value
             best_solution = solution
 

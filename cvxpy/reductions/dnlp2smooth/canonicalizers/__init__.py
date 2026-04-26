@@ -15,6 +15,7 @@ limitations under the License.
 """
 from cvxpy.atoms.geo_mean import GeoMean, GeoMeanApprox
 from cvxpy.atoms.prod import Prod
+from cvxpy.atoms.quad_form import QuadForm
 from cvxpy.atoms.quad_over_lin import quad_over_lin
 from cvxpy.atoms.elementwise.exp import exp
 from cvxpy.atoms.elementwise.logistic import logistic
@@ -28,6 +29,7 @@ from cvxpy.atoms.elementwise.power import Power, PowerApprox
 from cvxpy.atoms.elementwise.trig import cos, sin, tan
 from cvxpy.atoms.elementwise.hyperbolic import sinh, asinh, tanh, atanh
 from cvxpy.atoms.elementwise.huber import huber
+from cvxpy.atoms.elementwise.normcdf import normcdf
 from cvxpy.atoms.norm1 import norm1
 from cvxpy.atoms.norm_inf import norm_inf
 from cvxpy.atoms.pnorm import Pnorm, PnormApprox
@@ -38,21 +40,16 @@ from cvxpy.atoms.min import min
 from cvxpy.atoms.log_sum_exp import log_sum_exp
 from cvxpy.atoms.affine.binary_operators import DivExpression, MulExpression, multiply
 from cvxpy.reductions.dnlp2smooth.canonicalizers.geo_mean_canon import geo_mean_canon
-from cvxpy.reductions.dnlp2smooth.canonicalizers.smooth_full_domain_canon import prod_canon
 from cvxpy.reductions.dnlp2smooth.canonicalizers.quad_over_lin_canon import quad_over_lin_canon
 from cvxpy.reductions.dnlp2smooth.canonicalizers.div_canon import div_canon
-from cvxpy.reductions.dnlp2smooth.canonicalizers.log_canon import log_canon
-from cvxpy.reductions.dnlp2smooth.canonicalizers.smooth_full_domain_canon import (
+from cvxpy.reductions.dnlp2smooth.canonicalizers.common_smooth_canons import (
     exp_canon, logistic_canon, sinh_canon, asinh_canon, tanh_canon,
-    sin_canon, cos_canon)
-from cvxpy.reductions.dnlp2smooth.canonicalizers.multiply_canon import matmul_canon, multiply_canon
+    sin_canon, cos_canon, normcdf_canon, prod_canon, quad_form_canon,
+    matmul_canon, multiply_canon, entr_canon, log_canon, tan_canon, atanh_canon)
 from cvxpy.reductions.dnlp2smooth.canonicalizers.pnorm_canon import pnorm_canon
 from cvxpy.reductions.dnlp2smooth.canonicalizers.power_canon import power_canon
-from cvxpy.reductions.dnlp2smooth.canonicalizers.entr_canon import entr_canon
 from cvxpy.reductions.dnlp2smooth.canonicalizers.rel_entr_canon import rel_entr_canon
 from cvxpy.reductions.dnlp2smooth.canonicalizers.kl_div_canon import kl_div_canon
-from cvxpy.reductions.dnlp2smooth.canonicalizers.trig_canon import tan_canon
-from cvxpy.reductions.dnlp2smooth.canonicalizers.hyperbolic_canon import atanh_canon
 from cvxpy.reductions.dnlp2smooth.canonicalizers.log_sum_exp_canon import log_sum_exp_canon
 from cvxpy.reductions.dnlp2smooth.canonicalizers.huber_canon import huber_canon
 from cvxpy.reductions.eliminate_pwl.canonicalizers.norm1_canon import norm1_canon
@@ -76,6 +73,7 @@ SMOOTH_CANON_METHODS = {
     asinh: asinh_canon,
     tanh: tanh_canon,
     atanh: atanh_canon,
+    normcdf: normcdf_canon,
     quad_over_lin: quad_over_lin_canon,
     Power: power_canon,
     PowerApprox: power_canon,
@@ -91,8 +89,9 @@ SMOOTH_CANON_METHODS = {
     GeoMeanApprox: geo_mean_canon,
     log_sum_exp: log_sum_exp_canon,
     Prod: prod_canon,
+    QuadForm: quad_form_canon,
 
-    # ESR atoms
+    # nonsmooth convex atoms
     abs: abs_canon,
     maximum: maximum_canon,
     max: max_canon,
@@ -101,7 +100,7 @@ SMOOTH_CANON_METHODS = {
     huber: huber_canon,
     sum_largest: sum_largest_canon,
 
-    # HSR atoms
+    # nonsmooth concave atoms
     minimum: minimum_canon,
     min: min_canon,
 }
