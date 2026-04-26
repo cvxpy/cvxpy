@@ -959,6 +959,25 @@ class TestMoreau(BaseTest):
         self.assertItemsAlmostEqual(x_m, x.value, places=5)
         self.assertAlmostEqual(t_m, float(t.value), places=5)
 
+    def test_moreau_extract_identity_cones_psd(self) -> None:
+        """cp.Variable((k,k), PSD=True) extracts onto a psd_triangle x_cone."""
+        self._skip_if_no_xcones()
+        X = cp.Variable((3, 3), PSD=True)
+        cons = [X[0, 0] >= 1, X[1, 1] >= 1, X[2, 2] >= 1]
+        prob = cp.Problem(cp.Minimize(cp.trace(X)), cons)
+
+        val_m = prob.solve(solver=cp.MOREAU)
+        X_m = X.value.copy()
+        val_c = prob.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(val_m, val_c, places=5)
+        self.assertItemsAlmostEqual(X_m.ravel(), X.value.ravel(), places=4)
+        # Confirm extraction routed the SvecPSD onto x_cones rather
+        # than leaving it in the slack-side cone_dims.
+        data, _, _ = prob.get_problem_data(solver=cp.MOREAU)
+        kinds = [k for k, *_ in (data.get('x_cones') or [])]
+        self.assertIn('psd_triangle', kinds)
+        self.assertEqual(data[ConicSolver.DIMS].psd, [])
+
     def test_moreau_extract_skips_param_dependent_block(self) -> None:
         """A NonNeg block whose A rows depend on a parameter is left as
         slack; otherwise re-solving with new parameter values would use

@@ -20,12 +20,13 @@ import numpy as np
 import scipy.sparse as sp
 
 import cvxpy.settings as s
-from cvxpy.constraints import SOC, ExpCone, PowCone3D
+from cvxpy.constraints import SOC, ExpCone, PowCone3D, SvecPSD
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.solver_inverse_data import SolverInverseData
 from cvxpy.utilities.citations import CITATION_DICT
+from cvxpy.utilities.psd_utils import TriangleKind
 
 
 def _moreau_supports_x_cones() -> bool:
@@ -85,7 +86,13 @@ class MOREAU(ConicSolver):
     # Solver capabilities
     MIP_CAPABLE = False
     BOUNDED_VARIABLES = False
-    SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC, ExpCone, PowCone3D]
+    SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [
+        SOC, ExpCone, PowCone3D, SvecPSD,
+    ]
+    # Moreau's psd_triangle direct-x cone uses upper-triangle column-major
+    # ordering with sqrt(2) scaling on off-diagonals (matches CLARABEL).
+    PSD_TRIANGLE_KIND = TriangleKind.UPPER
+    PSD_SQRT2_SCALING = True
 
     # Status messages from Moreau (based on solver/status.hpp)
     SOLVED = "Solved"
@@ -136,7 +143,7 @@ class MOREAU(ConicSolver):
         """
         if not _moreau_supports_x_cones():
             return frozenset()
-        return frozenset({'nonneg', 'soc'})
+        return frozenset({'nonneg', 'soc', 'psd_triangle'})
 
     def apply(self, problem):
         """Forward ``problem.x_cones`` (set by ExtractIdentityCones) into
@@ -294,10 +301,16 @@ class MOREAU(ConicSolver):
         # being slack-side cones.
         x_cones_meta = data.get('x_cones', []) or []
         if x_cones_meta:
-            cones.x_cones = [
-                moreau.XConeSpec(kind=kind, indices=list(indices))
-                for kind, indices, _constr_id in x_cones_meta
-            ]
+            specs = []
+            for entry in x_cones_meta:
+                kind, indices = entry[0], entry[1]
+                kwargs = {'kind': kind, 'indices': list(indices)}
+                if kind == 'psd_triangle':
+                    # x_cones tuple for psd_triangle is
+                    # (kind, indices, constr_id, psd_k).
+                    kwargs['psd_k'] = entry[3]
+                specs.append(moreau.XConeSpec(**kwargs))
+            cones.x_cones = specs
 
         # Handle options (device is now part of Settings)
         settings, processed_opts = self.handle_options(verbose, solver_opts or {})
@@ -323,10 +336,10 @@ class MOREAU(ConicSolver):
         # duals).  See cvxpy/reductions/cone2cone/extract_identity_cones.py.
         if x_cones_meta and solution.z is not None:
             kkt_resid = q + A.T @ solution.z
-            wrapped.x_cone_duals = {
-                constr_id: kkt_resid[list(indices)]
-                for _kind, indices, constr_id in x_cones_meta
-            }
+            wrapped.x_cone_duals = {}
+            for entry in x_cones_meta:
+                kind, indices, constr_id = entry[0], entry[1], entry[2]
+                wrapped.x_cone_duals[constr_id] = kkt_resid[list(indices)]
         else:
             wrapped.x_cone_duals = {}
         return wrapped
