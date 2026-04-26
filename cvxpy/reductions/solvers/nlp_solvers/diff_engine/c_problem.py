@@ -16,9 +16,11 @@ import numpy as np
 from sparsediffpy import _sparsediffengine as _diffengine
 
 import cvxpy as cp
-from cvxpy.reductions.solvers.nlp_solvers.diff_engine.converters import (
-    build_variable_dict,
-    convert_expr,
+from cvxpy.reductions.inverse_data import InverseData
+from cvxpy.reductions.solvers.nlp_solvers.diff_engine.converters import convert_expr
+from cvxpy.reductions.solvers.nlp_solvers.diff_engine.helpers import (
+    build_param_dict,
+    build_var_dict,
 )
 
 
@@ -26,10 +28,39 @@ class C_problem:
     """Wrapper around C problem struct for CVXPY problems."""
 
     def __init__(self, cvxpy_problem: cp.Problem, verbose: bool = True):
-        var_dict, n_vars = build_variable_dict(cvxpy_problem.variables())
-        c_obj = convert_expr(cvxpy_problem.objective.expr, var_dict, n_vars)
-        c_constraints = [convert_expr(c.expr, var_dict, n_vars) for c in cvxpy_problem.constraints]
-        self._capsule = _diffengine.make_problem(c_obj, c_constraints, verbose)
+        """Create a C problem from a CVXPY problem.
+
+        Args:
+            cvxpy_problem: CVXPY Problem object
+            verbose: print solver output
+        """
+        inverse_data = InverseData(cvxpy_problem)
+        var_dict, n_vars = build_var_dict(inverse_data)
+        param_dict = build_param_dict(cvxpy_problem, inverse_data)
+
+        c_obj = convert_expr(cvxpy_problem.objective.expr,
+                             var_dict, n_vars, param_dict)
+        c_constraints = [convert_expr(c.expr, var_dict, n_vars, param_dict)
+                         for c in cvxpy_problem.constraints]
+        self._capsule = _diffengine.make_problem(
+            c_obj, c_constraints, verbose)
+
+        if param_dict:
+            _diffengine.problem_register_params(
+                self._capsule, list(param_dict.values()))
+            # Set initial parameter values
+            theta = np.concatenate([
+                np.asarray(p.value, dtype=np.float64).flatten(order='F')
+                for p in cvxpy_problem.parameters()
+            ])
+            _diffengine.problem_update_params(self._capsule, theta)
+
+    def update_params(self, theta: np.ndarray) -> None:
+        """Update parameter values in the C DAG.
+
+        Sparsity structures (Jacobian/Hessian) remain valid after this call.
+        """
+        _diffengine.problem_update_params(self._capsule, theta)
 
     def init_jacobian_coo(self):
         """Fill sparsity for the constraint Jacobian in COO format.
@@ -96,4 +127,3 @@ class C_problem:
         Call objective_forward() and constraint_forward() first to set the evaluation point.
         """
         return _diffengine.problem_eval_hessian_vals_coo(self._capsule, obj_factor, lagrange)
-
