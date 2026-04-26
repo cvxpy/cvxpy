@@ -333,10 +333,20 @@ class MOREAU(ConicSolver):
         # duals).  See cvxpy/reductions/cone2cone/extract_identity_cones.py.
         if x_cones_meta and solution.z is not None:
             kkt_resid = q + A.T @ solution.z
-            wrapped.x_cone_duals = {}
+            # A single constraint may emit multiple XConeSpec entries
+            # (multi-cone SOC / SvecPSD); accumulate per-cone slices in
+            # iteration order and concatenate to recover the full
+            # per-constraint dual.
+            partials: dict[int, list] = {}
             for entry in x_cones_meta:
-                kind, indices, constr_id = entry[0], entry[1], entry[2]
-                wrapped.x_cone_duals[constr_id] = kkt_resid[list(indices)]
+                _kind, indices, constr_id = entry[0], entry[1], entry[2]
+                partials.setdefault(constr_id, []).append(
+                    kkt_resid[list(indices)]
+                )
+            wrapped.x_cone_duals = {
+                cid: parts[0] if len(parts) == 1 else np.concatenate(parts)
+                for cid, parts in partials.items()
+            }
         else:
             wrapped.x_cone_duals = {}
         return wrapped

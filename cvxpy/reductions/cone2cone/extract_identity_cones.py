@@ -121,10 +121,14 @@ class ExtractIdentityCones(Reduction):
         block_id_of_row = np.full(m_total, -1, dtype=np.int64)
         # For psd_triangle blocks the materialised A row is +1 on
         # diagonals and +sqrt(2) on off-diagonals (CVXPY's SvecPSD
-        # convention).  Record the expected per-row identity value so
-        # the validity check can compare against it directly.
+        # convention, repeated per sub-cone for num_cones > 1).
+        # The validity check compares first_val against this directly.
         expected_val_of_row = np.ones(m_total, dtype=np.float64)
-        candidates = []  # ordered list of (kind, c, r0, r1, psd_k_or_None)
+        # Per-candidate metadata: (kind, c, r0, r1, sub_cone_row_sizes,
+        # psd_k_per_sub_cone).  A NonNeg constraint has one sub-cone
+        # of its full size; a multi-cone SOC / SvecPSD has one entry
+        # per sub-cone (Moreau wants one XConeSpec each).
+        candidates = []
         ordered_constraints = []  # (tag, c, r0, r1) for every constraint
         row = 0
         for c in constr_map.get(Zero, []):
@@ -134,8 +138,8 @@ class ExtractIdentityCones(Reduction):
             r0, r1 = row, row + c.size
             if 'nonneg' in self._kinds:
                 block_id_of_row[r0:r1] = len(candidates)
-                candidates.append(('nonneg', c, r0, r1, None))
-                ordered_constraints.append(('nonneg_cand', c, r0, r1))
+                candidates.append(('nonneg', c, r0, r1, [c.size], [None]))
+                ordered_constraints.append(('cand', c, r0, r1))
             else:
                 ordered_constraints.append(('pass', c, r0, r1))
             row = r1
@@ -143,36 +147,51 @@ class ExtractIdentityCones(Reduction):
             r0, r1 = row, row + c.size
             if 'soc' in self._kinds:
                 block_id_of_row[r0:r1] = len(candidates)
-                candidates.append(('soc', c, r0, r1, None))
-                ordered_constraints.append(('soc_cand', c, r0, r1))
+                sub_sizes = list(c.cone_sizes())
+                candidates.append(
+                    ('soc', c, r0, r1, sub_sizes, [None] * len(sub_sizes))
+                )
+                ordered_constraints.append(('cand', c, r0, r1))
             else:
                 ordered_constraints.append(('pass', c, r0, r1))
             row = r1
         for c in constr_map.get(SvecPSD, []):
             r0, r1 = row, row + c.size
-            psd_k = c._n
-            tri_dim = psd_k * (psd_k + 1) // 2
-            # Single-cone SvecPSD only — multi-cone needs splitting
-            # across XConeSpec entries which we don't handle yet.
-            if 'psd_triangle' in self._kinds and c.num_cones() == 1:
-                block_id_of_row[r0:r1] = len(candidates)
+            if 'psd_triangle' in self._kinds:
+                psd_k = c._n
+                tri_dim = psd_k * (psd_k + 1) // 2
+                num_cones = c.num_cones()
                 # Diagonal idxs in upper-triangle column-major svec:
-                # for col c in [0, k), diagonal at idx c*(c+3)/2.
+                # for col j in [0, psd_k), diagonal at idx j*(j+3)/2.
                 diag_idxs = np.array(
-                    [cc * (cc + 3) // 2 for cc in range(psd_k)],
+                    [jj * (jj + 3) // 2 for jj in range(psd_k)],
                     dtype=np.int64,
                 )
-                is_diag = np.zeros(tri_dim, dtype=bool)
-                is_diag[diag_idxs] = True
-                expected_val_of_row[r0:r1] = np.where(
-                    is_diag, 1.0, np.sqrt(2.0)
+                is_diag_in_sub = np.zeros(tri_dim, dtype=bool)
+                is_diag_in_sub[diag_idxs] = True
+                sub_pattern = np.where(is_diag_in_sub, 1.0, np.sqrt(2.0))
+                # Replicate the per-sub-cone diagonal pattern num_cones
+                # times across the constraint's row range.
+                expected_val_of_row[r0:r1] = np.tile(sub_pattern, num_cones)
+                block_id_of_row[r0:r1] = len(candidates)
+                candidates.append(
+                    ('psd_triangle', c, r0, r1,
+                     [tri_dim] * num_cones, [psd_k] * num_cones)
                 )
-                candidates.append(('psd_triangle', c, r0, r1, psd_k))
-                ordered_constraints.append(('psd_cand', c, r0, r1))
+                ordered_constraints.append(('cand', c, r0, r1))
             else:
                 ordered_constraints.append(('pass', c, r0, r1))
             row = r1
-        for cone_type in (PSD, ExpCone, PowCone3D, PowConeND):
+        # Raw PSD constraints should never reach a Moreau-class chain
+        # — expand_cones converts them to SvecPSD upstream.  If one
+        # somehow does, fail loud rather than silently slack-routing.
+        if constr_map.get(PSD):
+            raise ValueError(
+                "ExtractIdentityCones received a raw PSD constraint; "
+                "the chain is expected to convert PSD to SvecPSD via "
+                "ExactCone2Cone before this reduction runs."
+            )
+        for cone_type in (ExpCone, PowCone3D, PowConeND):
             for c in constr_map.get(cone_type, []):
                 ordered_constraints.append(('pass', c, row, row + c.size))
                 row += c.size
@@ -258,25 +277,39 @@ class ExtractIdentityCones(Reduction):
             x_used_mask[block_cols] = True
 
         # Materialise extracted entries and the new constraint list.
+        # A multi-cone constraint (SOC with num_cones > 1, SvecPSD with
+        # num_cones > 1) emits one extracted tuple per sub-cone — one
+        # XConeSpec per cone — all keyed under the same constraint id
+        # so dual recovery can reassemble the full per-constraint dual.
         extracted = []
         new_constraints = []
         for tag, c, r0, r1 in ordered_constraints:
             if tag == 'zero_pass' or tag == 'pass':
                 new_constraints.append(c)
                 continue
-            # tag in ('nonneg_cand', 'soc_cand', 'psd_cand') —
-            # find its candidate id.
             b = int(block_id_of_row[r0])
             x_idx = extract_results[b]
             if x_idx is None:
                 new_constraints.append(c)
-            elif tag == 'nonneg_cand':
-                extracted.append(('nonneg', x_idx, c.id, (r0, r1)))
-            elif tag == 'soc_cand':
-                extracted.append(('soc', x_idx, c.id, (r0, r1)))
-            else:  # psd_cand
-                psd_k = candidates[b][4]
-                extracted.append(('psd_triangle', x_idx, c.id, (r0, r1), psd_k))
+                continue
+            kind = candidates[b][0]
+            sub_sizes = candidates[b][4]
+            psd_ks = candidates[b][5]
+            offset = 0
+            for sub_size, psd_k in zip(sub_sizes, psd_ks):
+                sub_idx = x_idx[offset:offset + sub_size]
+                # row range of this sub-cone within M (used for kept-row
+                # mask later via the (r0, r1) per-tuple)
+                sub_r0 = r0 + offset
+                sub_r1 = sub_r0 + sub_size
+                if kind == 'psd_triangle':
+                    extracted.append(
+                        ('psd_triangle', sub_idx, c.id,
+                         (sub_r0, sub_r1), psd_k)
+                    )
+                else:
+                    extracted.append((kind, sub_idx, c.id, (sub_r0, sub_r1)))
+                offset += sub_size
 
         if not extracted:
             return problem, _NoopInverse()

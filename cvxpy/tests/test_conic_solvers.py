@@ -978,10 +978,9 @@ class TestMoreau(BaseTest):
         self.assertIn('psd_triangle', kinds)
         self.assertEqual(data[ConicSolver.DIMS].psd, [])
 
-    def test_moreau_multicone_psd_via_slacks(self) -> None:
-        """Multi-cone SvecPSD (e.g. Variable((b,k,k), PSD=True)) is left as
-        a slack-side PSD cone — extraction skips num_cones>1 — and Moreau
-        solves it via psd_dims.  Matches CLARABEL.
+    def test_moreau_multicone_psd_extraction(self) -> None:
+        """Multi-cone SvecPSD (e.g. Variable((b,k,k), PSD=True)) emits
+        one psd_triangle XConeSpec per sub-cone.  Matches CLARABEL.
         """
         self._skip_if_no_xcones()
         X = cp.Variable((2, 3, 3), PSD=True)
@@ -995,11 +994,11 @@ class TestMoreau(BaseTest):
         val_c = prob.solve(solver=cp.CLARABEL)
         self.assertAlmostEqual(val_m, val_c, places=4)
         self.assertItemsAlmostEqual(X_m.ravel(), X.value.ravel(), places=3)
-        # Multi-cone SvecPSD must NOT route through x_cones.
+        # Both sub-cones extract — slack-side cone_dims.psd is empty.
         data, _, _ = prob.get_problem_data(solver=cp.MOREAU)
-        x_cone_kinds = {k for k, *_ in (data.get('x_cones') or [])}
-        self.assertNotIn('psd_triangle', x_cone_kinds)
-        self.assertEqual(data[ConicSolver.DIMS].psd, [3, 3])
+        psd_xcones = [k for k, *_ in (data.get('x_cones') or []) if k == 'psd_triangle']
+        self.assertEqual(len(psd_xcones), 2)
+        self.assertEqual(data[ConicSolver.DIMS].psd, [])
 
     def test_moreau_extract_skips_param_dependent_block(self) -> None:
         """A NonNeg block whose A rows depend on a parameter is left as
