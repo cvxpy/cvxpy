@@ -31,11 +31,16 @@ from cvxpy.reductions.solvers.nlp_solvers.diff_engine.registry import ATOM_CONVE
 
 
 def convert_matmul(expr, children, var_dict, n_vars, param_dict):
-    """Convert matrix multiplication A @ f(x), f(x) @ A, or X @ Y."""
+    """Convert matrix multiplication A @ f(x), f(x) @ A, or X @ Y.
+
+    Follows numpy's matmul broadcasting rules for 1D operands.
+    """
     left_arg, right_arg = expr.args
 
     if left_arg.is_constant():
         A = left_arg.value
+        if A.ndim == 1:
+            A = A.reshape(1, -1)
         param_node = children[0] if left_arg.parameters() else None
         if sparse.issparse(A):
             return make_sparse_left_matmul(param_node, children[1], A)
@@ -51,16 +56,17 @@ def convert_matmul(expr, children, var_dict, n_vars, param_dict):
         return make_dense_right_matmul(param_node, children[0], A)
 
     else:
-        return _diffengine.make_matmul(children[0], children[1])
+        # The diffengine doesn't natively support a 1D right operand in matmul,
+        # so reshape (n,) -> (n, 1) here to match numpy's column-vector convention.
+        right_node = children[1]
+        if len(right_arg.shape) == 1:
+            right_node = _diffengine.make_reshape(right_node, right_arg.shape[0], 1)
+        return _diffengine.make_matmul(children[0], right_node)
 
 # TODO we should support sparse elementwise multiply at some point.
 def convert_multiply(expr, children, var_dict, n_vars, param_dict):
     """Convert elementwise multiplication."""
     left_arg, right_arg = expr.args
-
-    # TODO: would be nice to catch promote here so we correctly create a
-    # a scalar multiply. What is even the convention with promoting a parameter?
-    # This is a very deep question.
 
     if left_arg.is_constant():
         if left_arg.size == 1:

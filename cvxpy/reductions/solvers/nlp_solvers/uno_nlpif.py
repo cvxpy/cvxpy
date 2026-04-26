@@ -197,9 +197,7 @@ class UNO(NLPsolver):
             # Define Jacobian callback
             # Signature: jacobian(x, jacobian_values) -> void
             def jacobian_callback(x, jacobian_values):
-                jac_vals = oracles.jacobian(x)
-                # Flatten in case it's returned as a 2D memoryview
-                jacobian_values[:] = np.asarray(jac_vals).flatten()
+                jacobian_values[:] = oracles.jacobian(x)
 
             # set_constraints(number_constraints, constraint_functions,
             #     constraints_lower_bounds, constraints_upper_bounds,
@@ -224,9 +222,7 @@ class UNO(NLPsolver):
         # Define Lagrangian Hessian callback
         # Signature: hessian(x, objective_multiplier, multipliers, hessian_values)
         def hessian_callback(x, objective_multiplier, multipliers, hessian_values):
-            hess_vals = oracles.hessian(x, multipliers, objective_multiplier)
-            # Flatten in case it's returned as a 2D array
-            hessian_values[:] = np.asarray(hess_vals).flatten()
+            hessian_values[:] = oracles.hessian(x, multipliers, objective_multiplier)
 
         # set_lagrangian_hessian(number_hessian_nonzeros, hessian_triangular_part,
         #     hessian_row_indices, hessian_column_indices, lagrangian_hessian)

@@ -147,3 +147,22 @@ class TestAffineAtoms:
 
         checker = DerivativeChecker(problem)
         checker.run_and_assert()
+
+    def test_matmul_1d_dot_product(self):
+        """x.T @ x for a 1D variable. Pins both the transpose 1D no-op and
+        the var-var matmul handling of a 1D right operand (numpy column-vector
+        convention)."""
+        np.random.seed(0)
+        n = 5
+        x = cp.Variable(n, bounds=[-1, 1], name='x')
+        x.value = np.random.rand(n)
+        assert (cp.sin(x).T @ cp.sin(x)).shape == ()
+
+        obj = cp.sin(x).T @ cp.sin(x)
+        problem = cp.Problem(cp.Minimize(obj))
+
+        problem.solve(solver=cp.IPOPT, nlp=True, verbose=False)
+        assert(problem.status == cp.OPTIMAL)
+
+        checker = DerivativeChecker(problem)
+        checker.run_and_assert()

@@ -85,7 +85,7 @@ dependencies = [
     "scipy >= 1.13.0",
     "highspy >= 1.11.0",
     "qdldl >= 0.1.7.post0",
-    "sparsediffpy >= 0.2.2",
+    "sparsediffpy >= 0.2.2, < 0.3.0",
 ]
 requires-python = ">=3.11"
 urls = {Homepage = "https://github.com/cvxpy/cvxpy"}

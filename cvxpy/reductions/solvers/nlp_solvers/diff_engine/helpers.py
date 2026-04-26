@@ -29,16 +29,20 @@ def normalize_shape(shape):
 def to_dense_float(value):
     """Convert a value to a dense float64 numpy array."""
     if sparse.issparse(value):
-        value = value.todense()
+        value = value.toarray()
     return np.asarray(value, dtype=np.float64)
 
 
 def chain_add(children):
-    """Chain multiple children with binary adds: a + b + c -> add(add(a, b), c)."""
-    result = children[0]
-    for child in children[1:]:
-        result = _diffengine.make_add(result, child)
-    return result
+    """Combine children with a balanced binary tree of adds.
+
+    Tree depth is ceil(log2(N)) instead of N-1, which keeps the AD graph shallow
+    when summing many terms.
+    """
+    if len(children) == 1:
+        return children[0]
+    mid = len(children) // 2
+    return _diffengine.make_add(chain_add(children[:mid]), chain_add(children[mid:]))
 
 
 def make_sparse_left_matmul(param_node, child, A):
@@ -53,8 +57,6 @@ def make_sparse_left_matmul(param_node, child, A):
 
 
 def make_dense_left_matmul(param_node, child, A):
-    if A.ndim == 1:
-        A = A.reshape(1, -1)
     m, n = A.shape
     return _diffengine.make_left_matmul(
         param_node, child, 'dense', A.flatten(order='C'), m, n)
