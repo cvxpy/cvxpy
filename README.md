@@ -56,8 +56,7 @@ With CVXPY, you can model
 * mixed-integer convex optimization problems,
 * geometric programs,
 * quasiconvex programs, and
-* smooth nonconvex problems via Disciplined Nonlinear Programming (DNLP),
-  dispatched to local NLP solvers (no global-optimality guarantee).
+* nonlinear programs
 
 CVXPY is not a solver. It relies upon the open source solvers 
 [Clarabel](https://github.com/oxfordcontrol/Clarabel.rs), [SCS](https://github.com/bodono/scs-python),
@@ -89,6 +88,7 @@ CVXPY has the following dependencies:
 - NumPy >= 2.0.0
 - SciPy >= 1.13.0
 - highspy >= 1.11.0
+- sparsediffpy >= 0.2.2
 
 For detailed instructions, see the [installation
 guide](https://www.cvxpy.org/install/index.html).

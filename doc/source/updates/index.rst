@@ -12,47 +12,26 @@ CVXPY 1.9
 This release is consistent with our semantic versioning guarantee. It
 comes packed with many new features, bug fixes, and performance improvements.
 This version of CVXPY supports Python 3.11 through 3.14. We will support CVXPY
-1.8 with bugfixes while developing the 2.0 release. CVXPY 1.7 and older are no
-longer supported.
+1.8 with bugfixes while developing the next release.
 
 Disciplined Nonlinear Programming (DNLP)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This release introduces *Disciplined Nonlinear Programming* (DNLP), a ruleset
-that extends CVXPY beyond convex optimization to a broad class of smooth
-nonconvex problems. Like DCP, DNLP enables automated problem construction and
-canonicalization; unlike DCP, DNLP problems are dispatched to local NLP
-solvers and do not carry a global-optimality guarantee.
+that extends CVXPY beyond convex optimization to a broad class of nonlinear problems.
+DNLP canonicalizes nonsmooth functions in the same way as DCP, but allows for 
+general smooth functions to be used otherwise.
 
-To opt in, pass ``nlp=True`` to ``problem.solve(...)``. New introspection
-methods are available on expressions and problems: ``Problem.is_dnlp()``,
-``Expression.is_smooth()``, ``Expression.is_linearizable_convex()``, and
-``Expression.is_linearizable_concave()``.
-
-DNLP adds smooth atoms ``sin``, ``cos``, ``tan``, ``sinh``, ``tanh``,
-``asinh``, and ``atanh``, and broadens the semantics of
-``multiply`` and ``quad_form`` to allow products of variables. Supported NLP
-backends include IPOPT, KNITRO, UNO, and COPT. See the :ref:`DNLP tutorial
-<dnlp>` for details and examples.
-
-New solver interfaces
-~~~~~~~~~~~~~~~~~~~~~
-
-CVXPY 1.9 adds an interface to the `PDCS <https://github.com/MIT-Lu-Lab/PDCS>`_
-conic solver. The cuOpt interface has been extended to support quadratic
-programs (in addition to linear programs), enabling GPU-accelerated QP
-solving via NVIDIA's cuOpt. The :ref:`MOREAU <MOREAU>` interface introduced
-in 1.8 has also been iterated on for stability.
+To use DNLP, pass ``nlp=True`` to ``problem.solve(...)``. Supported NLP
+solvers include IPOPT, KNITRO, UNO, and COPT. See the :ref:`DNLP tutorial
+<dnlp>` for more details and examples.
 
 Variable bounds
 ~~~~~~~~~~~~~~~
 
-Variable bounds are more capable in 1.9: they now propagate through
-expression trees, accept parametric ``Expression``/``Parameter`` values,
-and support sparse bound arrays for sparse variables. Eleven solver
-interfaces (CBC, XPRESS, GLOP, GUROBI, HIGHS, PDLP, SCIPY, PROXQP, MPAX,
-DAQP, PIQP) now consume native variable bounds instead of
-translating them into linear constraints.
+Variable bounds can now be specified with expressions involving parameters,
+and also supports sparse bound arrays (when the variable itself is sparse).
+Many solvers now natively use variable bounds when they are provided.
 
 DPP for parametric quadratic objectives
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -63,18 +42,18 @@ allowing efficient re-solves when only ``P``'s value changes.
 
 New features
 ~~~~~~~~~~~~
+  - New solver interface: `PDCS <https://github.com/MIT-Lu-Lab/PDCS>`_
   - New tutorial: :ref:`Performance tips <performance>`
   - New page: :doc:`Solver benchmarks </resources/solver_benchmarks/index>`
   - ``a ** x`` now works for positive constant ``a`` (canonicalized via
     ``exp(x * log(a))``)
   - ``axis`` argument support for ``sum_largest`` and ``sum_smallest``
-  - N-D and tuple-``axis`` support generalised across ``AxisAtom``
+  - N-D and tuple-``axis`` support generalized across ``AxisAtom``
     canonicalizers (``max``, ``norm_inf``, ``log_sum_exp``, ``cummax``, ...)
-  - Support for zero-sized expressions end-to-end
+  - Support for zero-sized expressions
   - ``Parameter`` values may now be ``±inf``
   - Sparse Cholesky now uses
-    `QDLDL <https://github.com/osqp/qdldl>`_, replacing the in-tree Eigen C++
-    extension
+    `QDLDL <https://github.com/osqp/qdldl>`_
 
 CVXPY 1.8
 ---------

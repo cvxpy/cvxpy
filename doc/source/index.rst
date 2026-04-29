@@ -107,13 +107,13 @@ guide </contributing/index>` and join us `on Discord <https://discord.gg/4urRQeG
 
 **News.**
 
-CVXPY 1.9 introduces *Disciplined Nonlinear Programming* (DNLP), extending
-CVXPY beyond convex optimization to a broad class of smooth nonconvex problems
-dispatched to local NLP solvers (IPOPT, KNITRO, UNO, COPT). It also adds a
-`PDCS <https://github.com/MIT-Lu-Lab/PDCS>`_ conic solver interface,
-GPU-accelerated QP support via NVIDIA cuOpt, expanded native variable-bounds
-handling across eleven solver interfaces, and DPP support for ``quad_form``
-with parametric PSD matrices.
+CVXPY 1.9 introduces *Disciplined Nonlinear Programming* (DNLP), a grammar
+for specifying nonlinear programs (NLP) which extends CVXPY beyond convex optimization.
+CVXPY currently supports four NLP solvers:
+`IPOPT <https://github.com/coin-or/Ipopt>`_,
+`KNITRO <https://www.artelys.com/solvers/knitro/>`_,
+`UNO <https://github.com/cvanaret/Uno>`_, and
+`COPT <https://www.copt.com/>`_.
 For a complete list of changes, see the :doc:`changelog </updates/index>`.
 
 .. _Clarabel: https://github.com/oxfordcontrol/Clarabel.rs
