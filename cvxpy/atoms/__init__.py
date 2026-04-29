@@ -120,11 +120,14 @@ from cvxpy.atoms.ptp import ptp
 SOC_ATOMS = [
     GeoMeanApprox,
     PnormApprox,
-    QuadForm,
-    quad_over_lin,
     PowerApprox,
     huber,
     std,
+]
+
+RSOC_ATOMS = [
+    QuadForm,
+    quad_over_lin,
 ]
 
 POWCONE_ATOMS = [Pnorm, Power]

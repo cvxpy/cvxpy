@@ -21,6 +21,7 @@ import scipy.sparse as sp
 import cvxpy.settings as s
 from cvxpy.constraints import (
     PSD,
+    RSOC,
     SOC,
     Equality,
     ExpCone,
@@ -80,6 +81,7 @@ class ConeDims:
     LEQ_DIM = s.LEQ_DIM
     EXP_DIM = s.EXP_DIM
     SOC_DIM = s.SOC_DIM
+    RSOC_DIM = 'rsoc'
     PSD_DIM = s.PSD_DIM
     P3D_DIM = 'p3'
     PND_DIM = 'pnd'
@@ -89,6 +91,8 @@ class ConeDims:
         self.nonneg = int(sum(c.size for c in constr_map[NonNeg]))
         self.exp = int(sum(c.num_cones() for c in constr_map[ExpCone]))
         self.soc = [int(dim) for c in constr_map[SOC] for dim in c.cone_sizes()]
+        self.rsoc = [int(dim) for c in constr_map.get(RSOC, [])
+                     for dim in c.cone_sizes()]
         psd_constrs = constr_map.get(PSD, []) + constr_map.get(SvecPSD, [])
         self.psd = [int(dim) for c in psd_constrs for dim in c.cone_sizes()]
         p3d = []
@@ -108,18 +112,25 @@ class ConeDims:
         self.pnd = pnd
 
     def __repr__(self) -> str:
-        return "(zero: {0}, nonneg: {1}, exp: {2}, soc: {3}, psd: {4}, p3d: {5}, pnd: {6})".format(
-            self.zero, self.nonneg, self.exp, self.soc, self.psd, self.p3d, self.pnd)
+        return (
+            "(zero: {0}, nonneg: {1}, exp: {2}, soc: {3}, rsoc: {7},"
+            " psd: {4}, p3d: {5}, pnd: {6})"
+        ).format(
+            self.zero, self.nonneg, self.exp, self.soc, self.psd,
+            self.p3d, self.pnd, self.rsoc
+        )
 
     def __str__(self) -> str:
         """String representation.
         """
         return ("%i equalities, %i inequalities, %i exponential cones, \n"
-                "SOC constraints: %s, PSD constraints: %s,\n"
+                "SOC constraints: %s, RSOC constraints: %s,"
+                " PSD constraints: %s,\n"
                 " 3d power cones %s, %s.") % (self.zero,
                                           self.nonneg,
                                           self.exp,
                                           self.soc,
+                                          self.rsoc,
                                           self.psd,
                                           self.p3d,
                                           self.pnd)
@@ -133,6 +144,8 @@ class ConeDims:
             return self.exp
         elif key == self.SOC_DIM:
             return self.soc
+        elif key == self.RSOC_DIM:
+            return self.rsoc
         elif key == self.PSD_DIM:
             return self.psd
         elif key == self.P3D_DIM:
@@ -163,6 +176,7 @@ class ParamConeProg(ParamProb):
                  param_id_to_col,
                  P=None,
                  formatted: bool = False,
+                 dualized: bool = False,
                  lower_bounds: np.ndarray | None = None,
                  upper_bounds: np.ndarray | None = None,
                  lb_tensor=None,
@@ -204,6 +218,19 @@ class ParamConeProg(ParamProb):
 
         # whether this param cone prog has been formatted for a solver
         self.formatted = formatted
+
+        # When True, the problem data should be interpreted as the
+        # Lagrangian dual:
+        #
+        #   max  -b'y  [- (1/2)w'Pw]  + d
+        #   s.t. A'y   [+ Pw]          = c
+        #        y in K*
+        #
+        # where K* is the dual of the cone K described by cone_dims.
+        # The slack variable w (size = x.size) is only present when P
+        # is not None.  Primal recovery: x* comes from the equality
+        # dual; constraint duals come from y*.
+        self.dualized = dualized
 
     def is_mixed_integer(self) -> bool:
         """Is the problem mixed-integer?"""
@@ -394,6 +421,9 @@ class ConeMatrixStuffing(MatrixStuffing):
             elif isinstance(con, SOC) and con.axis == 1:
                 con = SOC(con.args[0], con.args[1].T, axis=0,
                           constr_id=con.constr_id)
+            elif isinstance(con, RSOC) and con.axis == 1:
+                con = RSOC(con.args[0].T, con.args[1], con.args[2],
+                           axis=0, constr_id=con.constr_id)
             elif isinstance(con, PowCone3D) and con.args[0].ndim > 1:
                 x, y, z = con.args
                 alpha = con.alpha
@@ -424,7 +454,8 @@ class ConeMatrixStuffing(MatrixStuffing):
         # Reorder constraints to Zero, NonNeg, SOC, PSD, EXP, PowCone3D, PowConeND
         constr_map = group_constraints(cons)
         ordered_cons = constr_map[Zero] + constr_map[NonNeg] + \
-            constr_map[SOC] + constr_map.get(PSD, []) + \
+            constr_map[SOC] + constr_map.get(RSOC, []) + \
+            constr_map.get(PSD, []) + \
             constr_map.get(SvecPSD, []) + constr_map[ExpCone] + \
             constr_map[PowCone3D] + constr_map[PowConeND]
         inverse_data.cons_id_map = {con.id: con.id for con in ordered_cons}

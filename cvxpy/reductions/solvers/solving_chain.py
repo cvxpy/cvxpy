@@ -19,6 +19,7 @@ if TYPE_CHECKING:
 from cvxpy.reductions.chain import Chain
 from cvxpy.reductions.complex2real import complex2real
 from cvxpy.reductions.cone2cone.approx import ApproxCone2Cone
+from cvxpy.reductions.cone2cone.dualize_cone_prog import DualizeConeProg
 from cvxpy.reductions.cone2cone.exact import ExactCone2Cone
 from cvxpy.reductions.cone2cone.soc_dim3 import SOCDim3
 from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr
@@ -234,10 +235,13 @@ def _build_solving_chain(
     if solver_instance.SOC_DIM3_ONLY and SOC in cones:
         reductions.append(SOCDim3())
 
-    reductions += [
+    stuffing_and_solver = [
         ConeMatrixStuffing(quad_obj=quad_obj, canon_backend=canon_backend),
-        solver_instance,
     ]
+    if solver_instance.should_dualize(problem_form):
+        stuffing_and_solver.append(DualizeConeProg())
+    stuffing_and_solver.append(solver_instance)
+    reductions += stuffing_and_solver
     return SolvingChain(reductions=reductions, solver_context=solver_context)
 
 
