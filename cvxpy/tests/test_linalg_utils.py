@@ -136,6 +136,22 @@ class TestSparseCholesky(BaseTest):
         with self.assertRaises(ValueError, msg=lau.SparseCholeskyMessages.INDEFINITE):
             lau.sparse_cholesky(A, 0.0)
 
+    def test_rank_deficient_full_diagonal(self):
+        # [[1,1],[1,1]] is rank-1 PSD with no zero diagonal entries; QDLDL
+        # alone cannot factor it, so this exercises the eigh fallback.
+        A = sp.csc_array(np.array([[1.0, 1.0], [1.0, 1.0]]))
+        sign, L, p = lau.sparse_cholesky(A)
+        self.assertEqual(sign, 1.0)
+        self.assertEqual(L.shape, (2, 1))
+        self.check_gram(L[p, :], A)
+
+    def test_nsd_rank_deficient_full_diagonal(self):
+        A = sp.csc_array(-np.array([[1.0, 1.0], [1.0, 1.0]]))
+        sign, L, p = lau.sparse_cholesky(A)
+        self.assertEqual(sign, -1.0)
+        self.assertEqual(L.shape, (2, 1))
+        self.check_gram(L[p, :], -A)
+
     def test_nonsingular_indefinite(self):
         np.random.seed(0)
         n = 5
