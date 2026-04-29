@@ -4,7 +4,81 @@ Changes to CVXPY
 ================
 
 This page details changes made to CVXPY over time, in reverse chronological order.
-CVXPY's project maintainers currently provide support for CVXPY 1.8.
+CVXPY's project maintainers currently provide support for CVXPY 1.9.
+
+CVXPY 1.9
+---------
+
+This release is consistent with our semantic versioning guarantee. It
+comes packed with many new features, bug fixes, and performance improvements.
+This version of CVXPY supports Python 3.11 through 3.14. We will support CVXPY
+1.8 with bugfixes while developing the 2.0 release. CVXPY 1.7 and older are no
+longer supported.
+
+Disciplined Nonlinear Programming (DNLP)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This release introduces *Disciplined Nonlinear Programming* (DNLP), a ruleset
+that extends CVXPY beyond convex optimization to a broad class of smooth
+nonconvex problems. Like DCP, DNLP enables automated problem construction and
+canonicalization; unlike DCP, DNLP problems are dispatched to local NLP
+solvers and do not carry a global-optimality guarantee.
+
+To opt in, pass ``nlp=True`` to ``problem.solve(...)``. New introspection
+methods are available on expressions and problems: ``Problem.is_dnlp()``,
+``Expression.is_smooth()``, ``Expression.is_linearizable_convex()``, and
+``Expression.is_linearizable_concave()``.
+
+DNLP adds smooth atoms ``sin``, ``cos``, ``tan``, ``sinh``, ``tanh``,
+``asinh``, ``atanh``, and ``sigmoid``, and broadens the semantics of
+``multiply`` and ``quad_form`` to allow products of variables. Supported NLP
+backends include IPOPT, KNITRO, UNO, and COPT. See the :ref:`DNLP tutorial
+<dnlp>` for details and examples.
+
+New solver interfaces
+~~~~~~~~~~~~~~~~~~~~~
+
+CVXPY 1.9 adds an interface to the `PDCS <https://github.com/MIT-Lu-Lab/PDCS>`_
+conic solver. The cuOpt interface has been extended to support quadratic
+programs (in addition to linear programs), enabling GPU-accelerated QP
+solving via NVIDIA's cuOpt. The :ref:`MOREAU <MOREAU>` interface introduced
+in 1.8 has also been iterated on for stability.
+
+Variable bounds
+~~~~~~~~~~~~~~~
+
+Variable bounds are more capable in 1.9: they now propagate through
+expression trees, accept parametric ``Expression``/``Parameter`` values,
+and support sparse bound arrays for sparse variables. Twelve solver
+interfaces (CBC, XPRESS, GLOP, GUROBI, HIGHS, PDLP, SCIPY, PROXQP, MPAX,
+DAQP, PIQP, CLARABEL) now consume native variable bounds instead of
+translating them into linear constraints.
+
+DPP for parametric quadratic objectives
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``quad_form(x, P)`` with a parametric PSD matrix ``P`` is now :ref:`DPP
+<dpp>`-compliant on solvers that natively support quadratic objectives,
+allowing efficient re-solves when only ``P``'s value changes.
+
+New features
+~~~~~~~~~~~~
+  - New tutorial: :ref:`Performance tips <performance>`
+  - New page: :doc:`Solver benchmarks </resources/solver_benchmarks/index>`
+  - ``a ** x`` now works for positive constant ``a`` (canonicalized via
+    ``exp(x * log(a))``)
+  - ``axis`` argument support for ``sum_largest`` and ``sum_smallest``
+  - N-D and tuple-``axis`` support generalised across ``AxisAtom``
+    canonicalizers (``max``, ``norm_inf``, ``log_sum_exp``, ``cummax``, ...)
+  - Mathematical definitions added to docstrings of common atoms
+    (``abs``, ``exp``, ``log``, ``maximum``, ``minimum``, ...)
+  - Support for zero-sized expressions end-to-end
+  - ``Parameter`` values may now be ``±inf``
+  - Sparse Cholesky now uses
+    `QDLDL <https://github.com/osqp/qdldl>`_, replacing the in-tree Eigen C++
+    extension
+  - Type hints modernised to PEP 604 (``X | None``) and a pyright baseline
+    added to CI
 
 CVXPY 1.8
 ---------
