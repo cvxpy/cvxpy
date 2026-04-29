@@ -54,8 +54,10 @@ print(constraints[0].dual_value)
 With CVXPY, you can model
 * convex optimization problems,
 * mixed-integer convex optimization problems,
-* geometric programs, and
-* quasiconvex programs.
+* geometric programs,
+* quasiconvex programs, and
+* smooth nonconvex problems via Disciplined Nonlinear Programming (DNLP),
+  dispatched to local NLP solvers (no global-optimality guarantee).
 
 CVXPY is not a solver. It relies upon the open source solvers 
 [Clarabel](https://github.com/oxfordcontrol/Clarabel.rs), [SCS](https://github.com/bodono/scs-python),

@@ -30,7 +30,7 @@ methods are available on expressions and problems: ``Problem.is_dnlp()``,
 ``Expression.is_linearizable_concave()``.
 
 DNLP adds smooth atoms ``sin``, ``cos``, ``tan``, ``sinh``, ``tanh``,
-``asinh``, ``atanh``, and ``sigmoid``, and broadens the semantics of
+``asinh``, and ``atanh``, and broadens the semantics of
 ``multiply`` and ``quad_form`` to allow products of variables. Supported NLP
 backends include IPOPT, KNITRO, UNO, and COPT. See the :ref:`DNLP tutorial
 <dnlp>` for details and examples.
@@ -49,9 +49,9 @@ Variable bounds
 
 Variable bounds are more capable in 1.9: they now propagate through
 expression trees, accept parametric ``Expression``/``Parameter`` values,
-and support sparse bound arrays for sparse variables. Twelve solver
+and support sparse bound arrays for sparse variables. Eleven solver
 interfaces (CBC, XPRESS, GLOP, GUROBI, HIGHS, PDLP, SCIPY, PROXQP, MPAX,
-DAQP, PIQP, CLARABEL) now consume native variable bounds instead of
+DAQP, PIQP) now consume native variable bounds instead of
 translating them into linear constraints.
 
 DPP for parametric quadratic objectives
@@ -70,15 +70,11 @@ New features
   - ``axis`` argument support for ``sum_largest`` and ``sum_smallest``
   - N-D and tuple-``axis`` support generalised across ``AxisAtom``
     canonicalizers (``max``, ``norm_inf``, ``log_sum_exp``, ``cummax``, ...)
-  - Mathematical definitions added to docstrings of common atoms
-    (``abs``, ``exp``, ``log``, ``maximum``, ``minimum``, ...)
   - Support for zero-sized expressions end-to-end
   - ``Parameter`` values may now be ``±inf``
   - Sparse Cholesky now uses
     `QDLDL <https://github.com/osqp/qdldl>`_, replacing the in-tree Eigen C++
     extension
-  - Type hints modernised to PEP 604 (``X | None``) and a pyright baseline
-    added to CI
 
 CVXPY 1.8
 ---------
