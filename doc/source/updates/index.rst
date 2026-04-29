@@ -4,7 +4,56 @@ Changes to CVXPY
 ================
 
 This page details changes made to CVXPY over time, in reverse chronological order.
-CVXPY's project maintainers currently provide support for CVXPY 1.8.
+CVXPY's project maintainers currently provide support for CVXPY 1.9.
+
+CVXPY 1.9
+---------
+
+This release is consistent with our semantic versioning guarantee. It
+comes packed with many new features, bug fixes, and performance improvements.
+This version of CVXPY supports Python 3.11 through 3.14. We will support CVXPY
+1.8 with bugfixes while developing the next release.
+
+Disciplined Nonlinear Programming (DNLP)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This release introduces *Disciplined Nonlinear Programming* (DNLP), a ruleset
+that extends CVXPY beyond convex optimization to a broad class of nonlinear problems.
+DNLP canonicalizes nonsmooth functions in the same way as DCP, but allows for 
+general smooth functions to be used otherwise.
+
+To use DNLP, pass ``nlp=True`` to ``problem.solve(...)``. Supported NLP
+solvers include IPOPT, KNITRO, UNO, and COPT. See the :ref:`DNLP tutorial
+<dnlp>` for more details and examples.
+
+Variable bounds
+~~~~~~~~~~~~~~~
+
+Variable bounds can now be specified with expressions involving parameters,
+and also supports sparse bound arrays (when the variable itself is sparse).
+Many solvers now natively use variable bounds when they are provided.
+
+DPP for parametric quadratic objectives
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``quad_form(x, P)`` with a parametric PSD matrix ``P`` is now :ref:`DPP
+<dpp>`-compliant on solvers that natively support quadratic objectives,
+allowing efficient re-solves when only ``P``'s value changes.
+
+New features
+~~~~~~~~~~~~
+  - New solver interface: `PDCS <https://github.com/MIT-Lu-Lab/PDCS>`_
+  - New tutorial: :ref:`Performance tips <performance>`
+  - New page: :doc:`Solver benchmarks </resources/solver_benchmarks/index>`
+  - ``a ** x`` now works for positive constant ``a`` (canonicalized via
+    ``exp(x * log(a))``)
+  - ``axis`` argument support for ``sum_largest`` and ``sum_smallest``
+  - N-D and tuple-``axis`` support generalized across ``AxisAtom``
+    canonicalizers (``max``, ``norm_inf``, ``log_sum_exp``, ``cummax``, ...)
+  - Support for zero-sized expressions
+  - ``Parameter`` values may now be ``±inf``
+  - Sparse Cholesky now uses
+    `QDLDL <https://github.com/osqp/qdldl>`_
 
 CVXPY 1.8
 ---------

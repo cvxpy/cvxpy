@@ -107,10 +107,13 @@ guide </contributing/index>` and join us `on Discord <https://discord.gg/4urRQeG
 
 **News.**
 
-CVXPY 1.8 includes many new solver interfaces such as MOREAU, KNITRO and COSMO,
-and it makes HiGHS its new default solver for MILPs.
-This release also includes many new features such as more complete support of ND expressions,
-unification of the quadratic conic canonicalization paths, and DPP support for complex expressions.
+CVXPY 1.9 introduces *Disciplined Nonlinear Programming* (DNLP), a grammar
+for specifying nonlinear programs (NLP) which extends CVXPY beyond convex optimization.
+CVXPY currently supports four NLP solvers:
+`IPOPT <https://github.com/coin-or/Ipopt>`_,
+`KNITRO <https://www.artelys.com/solvers/knitro/>`_,
+`UNO <https://github.com/cvanaret/Uno>`_, and
+`COPT <https://www.copt.com/>`_.
 For a complete list of changes, see the :doc:`changelog </updates/index>`.
 
 .. _Clarabel: https://github.com/oxfordcontrol/Clarabel.rs
