@@ -301,7 +301,19 @@ def sparse_cholesky(A, sym_tol=settings.CHOL_SYM_TOL, assume_psd=False):
 
     except ValueError:
         raise
-    except Exception as e:
-        raise ValueError(
-            f"{SparseCholeskyMessages.FACTORIZATION_FAILED}: {e}"
-        ) from e
+    except Exception:
+        # QDLDL has no pivoting and fails when a zero pivot appears
+        # mid-elimination on rank-deficient PSD/NSD inputs (e.g. [[1,1],[1,1]]).
+        # Fall back to a dense symmetric eigendecomposition.
+        w, V = np.linalg.eigh(A.toarray())
+        scale = np.max(np.abs(w))
+        if scale == 0:
+            return 1.0, sp.csr_array((n, 0)), np.arange(n)
+        is_psd = np.all(w >= -tol * scale)
+        is_nsd = np.all(w <= tol * scale)
+        if not (is_psd or is_nsd):
+            raise ValueError(SparseCholeskyMessages.INDEFINITE)
+        sign = 1.0 if is_psd else -1.0
+        mask = np.abs(w) > tol * scale
+        L = V[:, mask] * np.sqrt(np.abs(w[mask]))
+        return sign, sp.csr_array(L), np.arange(n)
