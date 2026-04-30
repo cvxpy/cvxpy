@@ -470,6 +470,34 @@ class TestBackwardComplex(BaseTest):
         self.assertTrue(np.isscalar(x.delta) or x.delta.size == 1)
 
 
+    def test_hermitian_param_backward_derivative(self) -> None:
+        """backward() and derivative() with Hermitian parameters.
+
+        Regression: Complex2Real received real gradient in compact form
+        from CvxAttr2Constr but tried to combine with full imaginary gradient.
+        """
+        P = cp.Parameter((2, 2), hermitian=True)
+        x = cp.Variable(2, complex=True)
+        prob = cp.Problem(
+            cp.Minimize(
+                cp.sum_squares(cp.real(x - P @ np.array([1., 0.])))
+                + cp.sum_squares(cp.imag(x - P @ np.array([1., 0.])))
+            ),
+        )
+        P.value = np.array([[2, 0.5 + 1j], [0.5 - 1j, 1]])
+        prob.solve(requires_grad=True, solver=cp.SCS, eps=1e-9)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+
+        prob.backward()
+        self.assertEqual(P.gradient.shape, (2, 2))
+        np.testing.assert_allclose(
+            P.gradient, np.conj(P.gradient.T), atol=1e-6)
+
+        P.delta = np.array([[0.01, 0.02 + 0.01j], [0.02 - 0.01j, 0.03]])
+        prob.derivative()
+        self.assertEqual(x.delta.shape, (2,))
+
+
 class TestBackwardDgp(BaseTest):
     """Test problem.backward() and problem.derivative()."""
     def setUp(self) -> None:
