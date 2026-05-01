@@ -18,7 +18,17 @@ import numpy as np
 import scipy.sparse as sp
 
 import cvxpy.settings as s
-from cvxpy.constraints import PSD, SOC, ExpCone, NonNeg, PowCone3D, PowConeND, SvecPSD, Zero
+from cvxpy.constraints import (
+    PSD,
+    SOC,
+    ComplexPSD,
+    ExpCone,
+    NonNeg,
+    PowCone3D,
+    PowConeND,
+    SvecPSD,
+    Zero,
+)
 from cvxpy.reductions.cvx_attr2constr import convex_attributes
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ParamConeProg
 from cvxpy.reductions.solution import Solution, failure_solution
@@ -91,6 +101,7 @@ def dims_to_solver_dict(cone_dims):
         'q': cone_dims.soc,
         'ep': cone_dims.exp,
         's': cone_dims.psd,
+        'cs': cone_dims.complex_psd,
         'p': cone_dims.p3d,
         'pnd': cone_dims.pnd
     }
@@ -153,6 +164,14 @@ class ConicSolver(Solver):
             num_blocks, streak_plus_spacing)[:, :streak].flatten() + offset
         col_arr = np.arange(num_values)
         return sp.csc_array((val_arr, (row_arr, col_arr)), shape)
+
+    @staticmethod
+    def complex_psd_format_mat(constr):
+        """Return a matrix to multiply by ComplexPSD constraint coefficients.
+        """
+        # Default is identity over all args.
+        total_size = sum(arg.size for arg in constr.args)
+        return sp.eye_array(total_size, format='csc')
 
     @classmethod
     def format_constraints(cls, problem, exp_cone_order):
@@ -266,6 +285,8 @@ class ConicSolver(Solver):
 
             elif type(constr) == PSD:
                 restruct_mat.append(IdentityOperator(constr.size))
+            elif type(constr) == ComplexPSD:
+                restruct_mat.append(cls.complex_psd_format_mat(constr))
             elif type(constr) == SvecPSD:
                 restruct_mat.append(IdentityOperator(constr.size))
             else:
@@ -358,7 +379,7 @@ class ConicSolver(Solver):
         inv_data[self.EQ_CONSTR] = constr_map[Zero]
         inv_data[self.NEQ_CONSTR] = constr_map[NonNeg] + constr_map[SOC] + \
             constr_map.get(PSD, []) + constr_map.get(SvecPSD, []) + \
-            constr_map[ExpCone] + \
+            constr_map[ComplexPSD] + constr_map[ExpCone] + \
             constr_map[PowCone3D] + \
             constr_map[PowConeND]
         return problem, data, inv_data

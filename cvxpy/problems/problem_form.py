@@ -34,6 +34,7 @@ from cvxpy.atoms.suppfunc import SuppFuncAtom
 from cvxpy.constraints import (
     PSD,
     SOC,
+    ComplexPSD,
     Equality,
     ExpCone,
     Inequality,
@@ -257,6 +258,8 @@ class ProblemForm:
                 or any(atom in PSD_ATOMS for atom in atoms) \
                 or any(v.is_psd() or v.is_nsd() for v in problem.variables()):
             cones.add(PSD)
+            if any(c.is_complex() for c in relevant_constrs if isinstance(c, PSD)):
+                cones.add(ComplexPSD)
         if PowCone3D in constr_types or any(atom in POWCONE_ATOMS for atom in atoms):
             cones.add(PowCone3D)
         if PowConeND in constr_types or any(atom in POWCONE_ND_ATOMS for atom in atoms):
@@ -305,6 +308,8 @@ class ProblemForm:
         if PSD in constr_types \
                 or any(v.is_psd() or v.is_nsd() for v in problem.variables()):
             cones.add(PSD)
+            if any(c.is_complex() for c in problem.constraints if isinstance(c, PSD)):
+                cones.add(ComplexPSD)
 
         for ct in constr_types:
             if ct in APPROX_CONE_CONVERSIONS:

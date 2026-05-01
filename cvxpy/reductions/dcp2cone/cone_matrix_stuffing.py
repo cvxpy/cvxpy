@@ -22,6 +22,7 @@ import cvxpy.settings as s
 from cvxpy.constraints import (
     PSD,
     SOC,
+    ComplexPSD,
     Equality,
     ExpCone,
     Inequality,
@@ -81,6 +82,7 @@ class ConeDims:
     EXP_DIM = s.EXP_DIM
     SOC_DIM = s.SOC_DIM
     PSD_DIM = s.PSD_DIM
+    COMPLEX_PSD_DIM = 'cs'
     P3D_DIM = 'p3'
     PND_DIM = 'pnd'
 
@@ -91,6 +93,7 @@ class ConeDims:
         self.soc = [int(dim) for c in constr_map[SOC] for dim in c.cone_sizes()]
         psd_constrs = constr_map.get(PSD, []) + constr_map.get(SvecPSD, [])
         self.psd = [int(dim) for c in psd_constrs for dim in c.cone_sizes()]
+        self.complex_psd = [int(c.args[0].shape[0]) for c in constr_map[ComplexPSD]]
         p3d = []
         if constr_map[PowCone3D]:
             p3d = np.concatenate([c.alpha.value for c in constr_map[PowCone3D]]).tolist()
@@ -108,19 +111,23 @@ class ConeDims:
         self.pnd = pnd
 
     def __repr__(self) -> str:
-        return "(zero: {0}, nonneg: {1}, exp: {2}, soc: {3}, psd: {4}, p3d: {5}, pnd: {6})".format(
-            self.zero, self.nonneg, self.exp, self.soc, self.psd, self.p3d, self.pnd)
+        return ("(zero: {0}, nonneg: {1}, exp: {2}, soc: {3}, psd: {4},"
+                " complex_psd: {5}, p3d: {6}, pnd: {7})").format(
+            self.zero, self.nonneg, self.exp, self.soc, self.psd,
+            self.complex_psd, self.p3d, self.pnd)
 
     def __str__(self) -> str:
         """String representation.
         """
         return ("%i equalities, %i inequalities, %i exponential cones, \n"
                 "SOC constraints: %s, PSD constraints: %s,\n"
+                "ComplexPSD constraints: %s,\n"
                 " 3d power cones %s, %s.") % (self.zero,
                                           self.nonneg,
                                           self.exp,
                                           self.soc,
                                           self.psd,
+                                          self.complex_psd,
                                           self.p3d,
                                           self.pnd)
 
@@ -135,6 +142,8 @@ class ConeDims:
             return self.soc
         elif key == self.PSD_DIM:
             return self.psd
+        elif key == self.COMPLEX_PSD_DIM:
+            return self.complex_psd
         elif key == self.P3D_DIM:
             return self.p3d
         elif key == self.PND_DIM:
@@ -421,11 +430,12 @@ class ConeMatrixStuffing(MatrixStuffing):
         extractor = CoeffExtractor(inverse_data, canon_backend)
         params_to_P, params_to_c, flattened_variable = self.stuffed_objective(
             problem, extractor)
-        # Reorder constraints to Zero, NonNeg, SOC, PSD, EXP, PowCone3D, PowConeND
+        # Reorder constraints to Zero, NonNeg, SOC, PSD, ComplexPSD, EXP, PowCone3D, PowConeND
         constr_map = group_constraints(cons)
         ordered_cons = constr_map[Zero] + constr_map[NonNeg] + \
             constr_map[SOC] + constr_map.get(PSD, []) + \
-            constr_map.get(SvecPSD, []) + constr_map[ExpCone] + \
+            constr_map.get(SvecPSD, []) + constr_map[ComplexPSD] + \
+            constr_map[ExpCone] + \
             constr_map[PowCone3D] + constr_map[PowConeND]
         inverse_data.cons_id_map = {con.id: con.id for con in ordered_cons}
 
