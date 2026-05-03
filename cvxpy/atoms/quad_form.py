@@ -221,6 +221,101 @@ class SymbolicQuadForm(Atom):
         return True
 
 
+def _decomp_quad_via_faer_ldl(P, cond, rcond):
+    """Try the optional faer_ldl backend (sparse Bunch-Kaufman LDL).
+
+    Returns (scale, M1, M2) on success, or None if faer_ldl isn't installed
+    or produced a non-finite factor (caller should fall through to the
+    next backend).
+    """
+    try:
+        import faer_ldl
+    except ImportError:
+        return None
+
+    n = P.shape[0]
+    P_upper = sp.triu(sp.csc_array(P), format='csc')
+    P_upper.sum_duplicates()
+    P_upper.sort_indices()
+    try:
+        ldl = faer_ldl.SparseLDL(
+            n,
+            np.ascontiguousarray(P_upper.indptr, dtype=np.int64),
+            np.ascontiguousarray(P_upper.indices, dtype=np.int64),
+            np.ascontiguousarray(P_upper.data, dtype=np.float64),
+        )
+        l_indptr, l_indices, l_data, d_diag, d_subdiag, perm = ldl.factor()
+    except ValueError:
+        return None
+
+    if not (np.all(np.isfinite(l_data)) and np.all(np.isfinite(d_diag))
+            and np.all(np.isfinite(d_subdiag))):
+        return None
+
+    if rcond is not None:
+        cond = rcond
+    if cond in (None, -1):
+        cond = 1e6 * np.finfo(np.float64).eps
+
+    diag_vals = d_diag.copy()
+    block_starts = np.flatnonzero(d_subdiag[:-1] != 0.0)
+    has_blocks = block_starts.size > 0
+
+    L_csc = sp.csc_array((l_data, l_indices, l_indptr), shape=(n, n))
+    inv_perm = np.argsort(perm)
+
+    if not has_blocks:
+        # All 1x1 pivots: keep things sparse end-to-end. This is the common
+        # case for PSD/NSD inputs and for indefinite inputs without 2x2
+        # Bunch-Kaufman blocks.
+        I_plus_L = sp.eye_array(n, format='csc') + L_csc
+        scale = float(np.absolute(diag_vals).max(initial=0.0))
+        d_scaled = diag_vals if scale == 0 else diag_vals / scale
+        maskp = d_scaled > cond
+        maskn = d_scaled < -cond
+        if np.any(maskp) and np.any(maskn):
+            warn("Forming a nonconvex expression quad_form(x, indefinite).")
+
+        def _scale_select_unperm(mask, signed_d):
+            if not np.any(mask):
+                return np.empty((n, 0))
+            cols = I_plus_L[:, mask].multiply(np.sqrt(signed_d[mask]))
+            return sp.csc_array(cols)[inv_perm, :]
+
+        return scale, _scale_select_unperm(maskp, d_scaled), \
+            _scale_select_unperm(maskn, -d_scaled)
+
+    # 2x2 blocks present: resolve them via batched eigh, mirroring the
+    # dense scipy.linalg.ldl post-processing. Densify here -- the rotated
+    # columns generally fill in.
+    I_plus_L_dense = (sp.eye_array(n, format='csc') + L_csc).toarray()
+    bs = block_starts
+    blocks = np.zeros((bs.size, 2, 2))
+    blocks[:, 0, 0] = d_diag[bs]
+    blocks[:, 1, 1] = d_diag[bs + 1]
+    blocks[:, 0, 1] = d_subdiag[bs]
+    blocks[:, 1, 0] = d_subdiag[bs]
+    eigvals, eigvecs = np.linalg.eigh(blocks)
+    diag_vals[bs] = eigvals[:, 0]
+    diag_vals[bs + 1] = eigvals[:, 1]
+    lu_i = I_plus_L_dense[:, bs].copy()
+    lu_ip1 = I_plus_L_dense[:, bs + 1].copy()
+    I_plus_L_dense[:, bs] = lu_i * eigvecs[:, 0, 0] + lu_ip1 * eigvecs[:, 1, 0]
+    I_plus_L_dense[:, bs + 1] = lu_i * eigvecs[:, 0, 1] + lu_ip1 * eigvecs[:, 1, 1]
+
+    scale = float(np.absolute(diag_vals).max(initial=0.0))
+    d_scaled = diag_vals if scale == 0 else diag_vals / scale
+    maskp = d_scaled > cond
+    maskn = d_scaled < -cond
+    if np.any(maskp) and np.any(maskn):
+        warn("Forming a nonconvex expression quad_form(x, indefinite).")
+    cols_p = I_plus_L_dense[:, maskp] * np.sqrt(d_scaled[maskp])
+    cols_n = I_plus_L_dense[:, maskn] * np.sqrt(-d_scaled[maskn])
+    M1 = cols_p[inv_perm, :] if cols_p.shape[1] else np.empty((n, 0))
+    M2 = cols_n[inv_perm, :] if cols_n.shape[1] else np.empty((n, 0))
+    return scale, M1, M2
+
+
 def decomp_quad(P, cond=None, rcond=None, lower=True, check_finite: bool = True):
     """
     Compute a matrix decomposition.
@@ -256,6 +351,9 @@ def decomp_quad(P, cond=None, rcond=None, lower=True, check_finite: bool = True)
 
     """
     if is_sparse(P):
+        result = _decomp_quad_via_faer_ldl(P, cond, rcond)
+        if result is not None:
+            return result
         try:
             sign, L, p = sparse_cholesky(P)
             if sign > 0:
