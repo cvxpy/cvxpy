@@ -136,6 +136,17 @@ class TestSparseCholesky(BaseTest):
         with self.assertRaises(ValueError, msg=lau.SparseCholeskyMessages.INDEFINITE):
             lau.sparse_cholesky(A, 0.0)
 
+    def test_indefinite_all_zero_diagonal(self):
+        # Saddle-point matrix [[0, B], [B^T, 0]] has all-zero diagonal but
+        # is full-rank indefinite. The early-return branch for all-zero
+        # diagonal must validate that the matrix is actually all-zero;
+        # otherwise it would silently return a zero factor for a non-zero
+        # input.
+        B = np.array([[1.0, 2.0], [3.0, 4.0]])
+        A = sp.csc_array(np.block([[np.zeros((2, 2)), B], [B.T, np.zeros((2, 2))]]))
+        with self.assertRaises(ValueError, msg=lau.SparseCholeskyMessages.INDEFINITE):
+            lau.sparse_cholesky(A, 0.0)
+
     def test_nonsingular_indefinite(self):
         np.random.seed(0)
         n = 5

@@ -241,15 +241,18 @@ def sparse_cholesky(A, sym_tol=settings.CHOL_SYM_TOL, assume_psd=False):
     # implies all-zero row/column; we validate this before reducing.
     diag = A.diagonal()
     nonzero_idx = np.flatnonzero(diag)
-    if nonzero_idx.size == 0:
-        # All-zero matrix: return n-by-0 factor.
-        return 1.0, sp.csr_array((n, 0)), np.arange(n)
     if nonzero_idx.size < n:
-        # Validate that zero-diagonal rows are truly all-zero. If not, the
-        # matrix is indefinite (e.g. [[1, 2], [2, 0]]).
+        # Zero-diagonal rows must be all-zero for a PSD/NSD matrix. Otherwise
+        # the matrix has a zero on the diagonal paired with off-diagonal
+        # entries, which is indefinite (e.g. [[1, 2], [2, 0]] or the saddle
+        # [[0, B], [B^T, 0]]).
         zero_idx = np.setdiff1d(np.arange(n), nonzero_idx)
         if A[zero_idx, :].nnz > 0:
             raise ValueError(SparseCholeskyMessages.INDEFINITE)
+    if nonzero_idx.size == 0:
+        # All-zero matrix (validated above): return n-by-0 factor.
+        return 1.0, sp.csr_array((n, 0)), np.arange(n)
+    if nonzero_idx.size < n:
         # Reduce to the nonzero submatrix, factorize, then expand back.
         A_sub = A[np.ix_(nonzero_idx, nonzero_idx)]
         sign, L_sub, p_sub = sparse_cholesky(A_sub, sym_tol, assume_psd=True)
