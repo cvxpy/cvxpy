@@ -1,0 +1,14 @@
+[build-system]
+requires = ["maturin>=1.5,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "faer_ldl"
+version = "0.0.0"
+description = "Minimal Python wrapper around faer's sparse symmetric Bunch-Kaufman LDL"
+requires-python = ">=3.9"
+classifiers = ["Private :: Do Not Upload"]
+
+[tool.maturin]
+features = ["pyo3/extension-module"]
+module-name = "faer_ldl"

@@ -1,0 +1,20 @@
+[package]
+name = "faer_ldl"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[lib]
+name = "faer_ldl"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "0.24", features = ["extension-module", "abi3-py39"] }
+faer = { version = "0.24", default-features = false, features = ["std", "sparse-linalg"] }
+faer-traits = "0.24"
+dyn-stack = "0.13"
+numpy = "0.24"
+
+[profile.release]
+opt-level = 3
+lto = "thin"
