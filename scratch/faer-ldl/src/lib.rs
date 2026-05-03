@@ -3,26 +3,29 @@
 //!
 //! Surface:
 //!   ldl = faer_ldl.SparseLDL(n, indptr, indices, data)
-//!     -- input is the UPPER triangle of an n-by-n symmetric matrix in
-//!        scipy CSC layout (col_ptr, row_idx, values).
-//!   x = ldl.solve(b)
-//!   ldl.n, ldl.nnz_l
+//!     -- input is the UPPER triangle of an n-by-n symmetric matrix
+//!        in scipy CSC layout (col_ptr, row_idx, values).
+//!   L_indptr, L_indices, L_data, D_diag, D_subdiag, perm = ldl.factor()
+//!     -- L is unit lower-triangular, returned in CSC (with implicit
+//!        unit diagonal). D is block-diagonal: D_diag[i] = D[i,i],
+//!        D_subdiag[i] = D[i+1,i] (zero if 1x1 block at i).
+//!     -- perm is a length-n forward permutation such that
+//!        A[perm, :][:, perm] = (I + L) D (I + L)^T.
 //!
-//! Under the hood we force the supernodal path so that the factorization
-//! actually does Bunch-Kaufman pivoting (the simplicial path silently
-//! degrades to plain LDLT, no pivoting -- which is exactly the qdldl
-//! failure mode we're trying to avoid).
+//! We force the supernodal path (FORCE_SUPERNODAL) so the factorization
+//! actually does Bunch-Kaufman pivoting. faer's simplicial path silently
+//! degrades to plain LDLT (no pivoting), the same failure mode as qdldl.
 
 use dyn_stack::{MemBuffer, MemStack};
-use faer::{Conj, MatMut, Par, Side, Spec};
-use faer::perm::PermRef;
 use faer::linalg::cholesky::lblt::factor::LbltParams;
+use faer::perm::PermRef;
 use faer::sparse::linalg::SupernodalThreshold;
 use faer::sparse::linalg::cholesky::{
-    factorize_symbolic_cholesky, CholeskySymbolicParams, IntranodeLbltRef,
-    SymbolicCholesky, SymmetricOrdering,
+    factorize_symbolic_cholesky, CholeskySymbolicParams, SymbolicCholesky,
+    SymbolicCholeskyRaw, SymmetricOrdering,
 };
 use faer::sparse::{SparseColMatRef, SymbolicSparseColMatRef};
+use faer::{Par, Side, Spec};
 use numpy::{IntoPyArray, PyArray1, PyReadonlyArray1};
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
@@ -88,6 +91,12 @@ impl SparseLDL {
         )
         .map_err(|e| err(format!("symbolic factorization failed: {e:?}")))?;
 
+        if !matches!(symbolic.raw(), SymbolicCholeskyRaw::Supernodal(_)) {
+            return Err(err(
+                "internal: expected supernodal symbolic factor (FORCE_SUPERNODAL)",
+            ));
+        }
+
         let mut l_values = vec![0.0_f64; symbolic.len_val()];
         let mut subdiag = vec![0.0_f64; n];
         let mut perm_fwd = vec![0_usize; n];
@@ -120,40 +129,111 @@ impl SparseLDL {
         })
     }
 
-    fn solve<'py>(
+    /// Walk the supernodal storage and return CSC components of L (unit
+    /// lower triangular, diagonal implicit), the diagonal and subdiagonal
+    /// of D, and the composed permutation.
+    fn factor<'py>(
         &self,
         py: Python<'py>,
-        b: PyReadonlyArray1<'py, f64>,
-    ) -> PyResult<Bound<'py, PyArray1<f64>>> {
-        let b_slice = b.as_slice().map_err(|e| err(format!("rhs: {e}")))?;
-        if b_slice.len() != self.n {
-            return Err(err(format!(
-                "rhs length {} != n = {}",
-                b_slice.len(),
-                self.n
-            )));
+    ) -> PyResult<(
+        Bound<'py, PyArray1<i64>>,
+        Bound<'py, PyArray1<i64>>,
+        Bound<'py, PyArray1<f64>>,
+        Bound<'py, PyArray1<f64>>,
+        Bound<'py, PyArray1<f64>>,
+        Bound<'py, PyArray1<i64>>,
+    )> {
+        let n = self.n;
+        let s_sym = match self.symbolic.raw() {
+            SymbolicCholeskyRaw::Supernodal(s) => s,
+            SymbolicCholeskyRaw::Simplicial(_) => {
+                return Err(err("internal: simplicial path produced (expected supernodal)"));
+            }
+        };
+
+        let n_super = s_sym.n_supernodes();
+        let supernode_begin = s_sym.supernode_begin();
+        let supernode_end = s_sym.supernode_end();
+        let col_ptr_val = s_sym.col_ptr_for_val();
+        let col_ptr_row = s_sym.col_ptr_for_row_idx();
+        let row_idx_super = s_sym.row_idx();
+        let nnz_per_super = s_sym.nnz_per_super();
+
+        let mut d_diag = vec![0.0_f64; n];
+        let d_subdiag: Vec<f64> = self.subdiag.clone();
+
+        // Per-column count (for CSC indptr) plus triplet emit.
+        let mut col_counts = vec![0_i64; n];
+        let mut triplets: Vec<(i64, i64, f64)> = Vec::new();
+
+        for s in 0..n_super {
+            let s_start = supernode_begin[s];
+            let s_end = supernode_end[s];
+            let s_ncols = s_end - s_start;
+            let pat_off = col_ptr_row[s];
+            let pat_len = nnz_per_super[s];
+            let pattern = &row_idx_super[pat_off..pat_off + pat_len];
+            let s_nrows = s_ncols + pat_len;
+            let blk = &self.l_values[col_ptr_val[s]..col_ptr_val[s + 1]];
+
+            for c in 0..s_ncols {
+                let global_c = s_start + c;
+                // Diagonal of D
+                d_diag[global_c] = blk[c + c * s_nrows];
+                // Strict lower triangle within the diagonal block
+                for r in (c + 1)..s_ncols {
+                    let v = blk[r + c * s_nrows];
+                    if v != 0.0 {
+                        triplets.push(((s_start + r) as i64, global_c as i64, v));
+                        col_counts[global_c] += 1;
+                    }
+                }
+                // Off-diagonal block (pattern rows)
+                for (i, &p_row) in pattern.iter().enumerate() {
+                    let v = blk[(s_ncols + i) + c * s_nrows];
+                    if v != 0.0 {
+                        triplets.push((p_row as i64, global_c as i64, v));
+                        col_counts[global_c] += 1;
+                    }
+                }
+            }
         }
 
-        let mut x: Vec<f64> = b_slice.to_vec();
-        let mat: MatMut<'_, f64> = MatMut::from_column_major_slice_mut(&mut x, self.n, 1);
-
-        let perm_ref = unsafe {
-            PermRef::<'_, usize>::new_unchecked(&self.perm_fwd, &self.perm_inv, self.n)
+        // Compose permutations: perm_combined[i] = perm_amd[perm_intranode[i]]
+        let perm_intra_fwd: &[usize] = &self.perm_fwd;
+        let perm_combined: Vec<i64> = match self.symbolic.perm() {
+            Some(p) => {
+                let amd_fwd = p.arrays().0;
+                (0..n)
+                    .map(|i| amd_fwd[perm_intra_fwd[i]] as i64)
+                    .collect()
+            }
+            None => perm_intra_fwd.iter().map(|&x| x as i64).collect(),
         };
-        let ldl = IntranodeLbltRef::<usize, f64>::new(
-            &self.symbolic,
-            &self.l_values,
-            &self.subdiag,
-            perm_ref,
-        );
+        let _ = PermRef::<'_, usize>::new_checked; // keep import; nothing to do here.
 
-        let req = self.symbolic.solve_in_place_scratch::<f64>(1, Par::Seq);
-        let mut mem = MemBuffer::try_new(req).map_err(|_| err("OOM allocating solve scratch"))?;
-        let stack = MemStack::new(&mut mem);
+        // Sort triplets by (col, row) and build CSC arrays.
+        triplets.sort_unstable_by_key(|&(r, c, _)| (c, r));
+        let nnz = triplets.len();
+        let mut l_indptr = vec![0_i64; n + 1];
+        for c in 0..n {
+            l_indptr[c + 1] = l_indptr[c] + col_counts[c];
+        }
+        let mut l_indices = Vec::with_capacity(nnz);
+        let mut l_data = Vec::with_capacity(nnz);
+        for &(r, _c, v) in &triplets {
+            l_indices.push(r);
+            l_data.push(v);
+        }
 
-        ldl.solve_in_place_with_conj(Conj::No, mat, Par::Seq, stack);
-
-        Ok(x.into_pyarray(py))
+        Ok((
+            l_indptr.into_pyarray(py),
+            l_indices.into_pyarray(py),
+            l_data.into_pyarray(py),
+            d_diag.into_pyarray(py),
+            d_subdiag.into_pyarray(py),
+            perm_combined.into_pyarray(py),
+        ))
     }
 
     #[getter]
