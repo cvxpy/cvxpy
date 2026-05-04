@@ -32,6 +32,7 @@ from cvxpy.constraints import (
 from cvxpy.lin_ops.lin_op import CONSTANT_ID
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ParamConeProg
 from cvxpy.reductions.reduction import Reduction
+from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 
 
 class ExtractIdentityCones(Reduction):
@@ -68,7 +69,9 @@ class ExtractIdentityCones(Reduction):
         kinds = (set(solver_context.x_cone_kinds)
                  if solver_context is not None else set())
         # Only kinds we know how to detect identity-pattern for.
-        self._kinds = kinds & {'nonneg', 'soc', 'psd_triangle'}
+        self._kinds = kinds & {
+            'nonneg', 'soc', 'psd_triangle', 'exp', 'power', 'gen_power',
+        }
 
     def accepts(self, problem) -> bool:
         if not isinstance(problem, ParamConeProg):
@@ -84,6 +87,16 @@ class ExtractIdentityCones(Reduction):
     def apply(self, problem):
         if not self.accepts(problem):
             return problem, _NoopInverse()
+
+        # ConeMatrixStuffing emits ParamConeProg with rows ordered by
+        # (constraint, arg) — for SOC / ExpCone / PowCone*, format
+        # interleaves rows into cone order (e.g. SOC puts t-row then
+        # X-rows per cone).  Identity-pattern detection assumes the
+        # cone-interleaved layout, so format here before scanning.
+        # XConeSpec uses the cvxpy-standard exp-cone order [0, 1, 2];
+        # solvers consuming x_cones must agree.
+        if not problem.formatted:
+            problem = ConicSolver.format_constraints(problem, [0, 1, 2])
 
         m_total = problem.constr_size
         n = problem.x.size
@@ -125,9 +138,11 @@ class ExtractIdentityCones(Reduction):
         # The validity check compares first_val against this directly.
         expected_val_of_row = np.ones(m_total, dtype=np.float64)
         # Per-candidate metadata: (kind, c, r0, r1, sub_cone_row_sizes,
-        # psd_k_per_sub_cone).  A NonNeg constraint has one sub-cone
-        # of its full size; a multi-cone SOC / SvecPSD has one entry
-        # per sub-cone (Moreau wants one XConeSpec each).
+        # extras_per_sub_cone).  A NonNeg constraint has one sub-cone
+        # of its full size; a multi-cone SOC / SvecPSD / ExpCone /
+        # PowCone3D / PowConeND has one entry per sub-cone (Moreau
+        # wants one XConeSpec each).  ``extras`` is the per-sub-cone
+        # XConeSpec kwargs dict (psd_k, alpha, alphas+dim2, ...).
         candidates = []
         ordered_constraints = []  # (tag, c, r0, r1) for every constraint
         row = 0
@@ -138,7 +153,7 @@ class ExtractIdentityCones(Reduction):
             r0, r1 = row, row + c.size
             if 'nonneg' in self._kinds:
                 block_id_of_row[r0:r1] = len(candidates)
-                candidates.append(('nonneg', c, r0, r1, [c.size], [None]))
+                candidates.append(('nonneg', c, r0, r1, [c.size], [{}]))
                 ordered_constraints.append(('cand', c, r0, r1))
             else:
                 ordered_constraints.append(('pass', c, r0, r1))
@@ -149,7 +164,7 @@ class ExtractIdentityCones(Reduction):
                 block_id_of_row[r0:r1] = len(candidates)
                 sub_sizes = list(c.cone_sizes())
                 candidates.append(
-                    ('soc', c, r0, r1, sub_sizes, [None] * len(sub_sizes))
+                    ('soc', c, r0, r1, sub_sizes, [{}] * len(sub_sizes))
                 )
                 ordered_constraints.append(('cand', c, r0, r1))
             else:
@@ -176,7 +191,8 @@ class ExtractIdentityCones(Reduction):
                 block_id_of_row[r0:r1] = len(candidates)
                 candidates.append(
                     ('psd_triangle', c, r0, r1,
-                     [tri_dim] * num_cones, [psd_k] * num_cones)
+                     [tri_dim] * num_cones,
+                     [{'psd_k': psd_k}] * num_cones)
                 )
                 ordered_constraints.append(('cand', c, r0, r1))
             else:
@@ -191,10 +207,60 @@ class ExtractIdentityCones(Reduction):
                 "the chain is expected to convert PSD to SvecPSD via "
                 "ExactCone2Cone before this reduction runs."
             )
-        for cone_type in (ExpCone, PowCone3D, PowConeND):
-            for c in constr_map.get(cone_type, []):
-                ordered_constraints.append(('pass', c, row, row + c.size))
-                row += c.size
+        for c in constr_map.get(ExpCone, []):
+            r0, r1 = row, row + c.size
+            if 'exp' in self._kinds:
+                block_id_of_row[r0:r1] = len(candidates)
+                num_cones = c.num_cones()
+                candidates.append(
+                    ('exp', c, r0, r1, [3] * num_cones, [{}] * num_cones)
+                )
+                ordered_constraints.append(('cand', c, r0, r1))
+            else:
+                ordered_constraints.append(('pass', c, r0, r1))
+            row = r1
+        for c in constr_map.get(PowCone3D, []):
+            r0, r1 = row, row + c.size
+            if 'power' in self._kinds:
+                # alpha snapshot — matches ConeDims.p3d which already
+                # snapshots c.alpha.value at this point.  PowCone3D is
+                # not DPP when alpha is a Parameter, so the cached
+                # canonicalisation is rebuilt anyway on alpha changes.
+                alphas = np.asarray(c.alpha.value).ravel().tolist()
+                num_cones = c.num_cones()
+                extras = [{'alpha': float(a)} for a in alphas]
+                block_id_of_row[r0:r1] = len(candidates)
+                candidates.append(
+                    ('power', c, r0, r1, [3] * num_cones, extras)
+                )
+                ordered_constraints.append(('cand', c, r0, r1))
+            else:
+                ordered_constraints.append(('pass', c, r0, r1))
+            row = r1
+        for c in constr_map.get(PowConeND, []):
+            r0, r1 = row, row + c.size
+            # axis=1 PowConeND is normalised to axis=0 in
+            # ConeMatrixStuffing, so we only see axis=0 here.
+            if 'gen_power' in self._kinds and c.axis == 0:
+                alpha_val = np.asarray(c.alpha.value)
+                if alpha_val.ndim == 1:
+                    alpha_val = alpha_val[:, np.newaxis]
+                num_cones = c.num_cones()
+                # Each sub-cone j: alphas = alpha_val[:, j], dim2 = 1.
+                extras = [
+                    {'alphas': [float(a) for a in alpha_val[:, j]],
+                     'dim2': 1}
+                    for j in range(num_cones)
+                ]
+                sub_sizes = list(c.cone_sizes())
+                block_id_of_row[r0:r1] = len(candidates)
+                candidates.append(
+                    ('gen_power', c, r0, r1, sub_sizes, extras)
+                )
+                ordered_constraints.append(('cand', c, r0, r1))
+            else:
+                ordered_constraints.append(('pass', c, r0, r1))
+            row = r1
 
         if not candidates:
             return problem, _NoopInverse()
@@ -294,21 +360,17 @@ class ExtractIdentityCones(Reduction):
                 continue
             kind = candidates[b][0]
             sub_sizes = candidates[b][4]
-            psd_ks = candidates[b][5]
+            extras_per_sub = candidates[b][5]
             offset = 0
-            for sub_size, psd_k in zip(sub_sizes, psd_ks):
+            for sub_size, extras in zip(sub_sizes, extras_per_sub):
                 sub_idx = x_idx[offset:offset + sub_size]
                 # row range of this sub-cone within M (used for kept-row
                 # mask later via the (r0, r1) per-tuple)
                 sub_r0 = r0 + offset
                 sub_r1 = sub_r0 + sub_size
-                if kind == 'psd_triangle':
-                    extracted.append(
-                        ('psd_triangle', sub_idx, c.id,
-                         (sub_r0, sub_r1), psd_k)
-                    )
-                else:
-                    extracted.append((kind, sub_idx, c.id, (sub_r0, sub_r1)))
+                extracted.append(
+                    (kind, sub_idx, c.id, (sub_r0, sub_r1), extras)
+                )
                 offset += sub_size
 
         if not extracted:
@@ -344,15 +406,13 @@ class ExtractIdentityCones(Reduction):
             )
         )
 
-        # x_cones tuple: (kind, indices, constr_id) for nonneg/soc;
-        # (kind, indices, constr_id, psd_k) for psd_triangle.
+        # x_cones tuple: (kind, indices, constr_id, extras) where
+        # ``extras`` is the kind-specific XConeSpec kwargs dict
+        # (psd_k / alpha / alphas+dim2 / ...; empty for nonneg, soc, exp).
         x_cones = []
         for entry in extracted:
-            kind, idx, constr_id = entry[0], entry[1], entry[2]
-            if kind == 'psd_triangle':
-                x_cones.append((kind, list(idx), constr_id, entry[4]))
-            else:
-                x_cones.append((kind, list(idx), constr_id))
+            kind, idx, constr_id, _rng, extras = entry
+            x_cones.append((kind, list(idx), constr_id, extras))
 
         new_pcp = ParamConeProg(
             problem.q,

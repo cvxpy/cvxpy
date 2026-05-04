@@ -20,7 +20,7 @@ import numpy as np
 import scipy.sparse as sp
 
 import cvxpy.settings as s
-from cvxpy.constraints import SOC, ExpCone, PowCone3D, SvecPSD
+from cvxpy.constraints import SOC, ExpCone, PowCone3D, PowConeND, SvecPSD
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
@@ -57,9 +57,10 @@ def dims_to_solver_cones(cone_dims):
     """
     import moreau
 
-    # Moreau does not support generalized power cones yet
-    if cone_dims.pnd:
-        raise ValueError("Moreau does not support generalized power cones (PowConeND)")
+    # ConeDims.pnd is a list of per-cone alpha lists (each summing to
+    # 1).  CVXPY's PowConeND has dim2 = 1 by convention (single z[j]
+    # per cone), so each Moreau gen_power slot is (alphas, 1).
+    gen_power_params = [(list(alphas), 1) for alphas in cone_dims.pnd]
 
     cones = moreau.Cones(
         num_zero_cones=cone_dims.zero,
@@ -67,6 +68,7 @@ def dims_to_solver_cones(cone_dims):
         so_cone_dims=list(cone_dims.soc),
         num_exp_cones=cone_dims.exp,
         power_alphas=list(cone_dims.p3d),
+        gen_power_cone_params=gen_power_params,
         psd_dims=list(cone_dims.psd),
     )
 
@@ -84,7 +86,7 @@ class MOREAU(ConicSolver):
     MIP_CAPABLE = False
     BOUNDED_VARIABLES = False
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [
-        SOC, ExpCone, PowCone3D, SvecPSD,
+        SOC, ExpCone, PowCone3D, PowConeND, SvecPSD,
     ]
     # Moreau's psd_triangle direct-x cone uses upper-triangle column-major
     # ordering with sqrt(2) scaling on off-diagonals (matches CLARABEL).
@@ -140,7 +142,9 @@ class MOREAU(ConicSolver):
         """
         if not _moreau_supports_x_cones():
             return frozenset()
-        return frozenset({'nonneg', 'soc', 'psd_triangle'})
+        return frozenset(
+            {'nonneg', 'soc', 'psd_triangle', 'exp', 'power', 'gen_power'}
+        )
 
     def apply(self, problem):
         """Forward ``problem.x_cones`` (set by ExtractIdentityCones) into
@@ -300,12 +304,11 @@ class MOREAU(ConicSolver):
         if x_cones_meta:
             specs = []
             for entry in x_cones_meta:
-                kind, indices = entry[0], entry[1]
-                kwargs = {'kind': kind, 'indices': list(indices)}
-                if kind == 'psd_triangle':
-                    # x_cones tuple for psd_triangle is
-                    # (kind, indices, constr_id, psd_k).
-                    kwargs['psd_k'] = entry[3]
+                # x_cones tuple is (kind, indices, constr_id, extras)
+                # where ``extras`` carries the kind-specific kwargs
+                # (psd_k, alpha, alphas+dim2, ...) for XConeSpec.
+                kind, indices, _constr_id, extras = entry
+                kwargs = {'kind': kind, 'indices': list(indices), **extras}
                 specs.append(moreau.XConeSpec(**kwargs))
             cones.x_cones = specs
 
@@ -339,7 +342,7 @@ class MOREAU(ConicSolver):
             # per-constraint dual.
             partials: dict[int, list] = {}
             for entry in x_cones_meta:
-                _kind, indices, constr_id = entry[0], entry[1], entry[2]
+                _kind, indices, constr_id, _extras = entry
                 partials.setdefault(constr_id, []).append(
                     kkt_resid[list(indices)]
                 )

@@ -1000,6 +1000,70 @@ class TestMoreau(BaseTest):
         self.assertEqual(len(psd_xcones), 2)
         self.assertEqual(data[ConicSolver.DIMS].psd, [])
 
+    def test_moreau_extract_identity_cones_exp(self) -> None:
+        """Bare-variable ExpCone extracts to a single ``exp`` x_cone."""
+        self._skip_if_no_xcones()
+        x = cp.Variable(3)
+        prob = cp.Problem(cp.Minimize(x[2]),
+                          [cp.constraints.ExpCone(x[0:1], x[1:2], x[2:3]),
+                           x[0] >= 1.0, x[1] >= 2.0])
+        val_m = prob.solve(solver=cp.MOREAU)
+        val_c = prob.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(val_m, val_c, places=4)
+        data, _, _ = prob.get_problem_data(solver=cp.MOREAU)
+        kinds = [k for k, *_ in (data.get('x_cones') or [])]
+        self.assertIn('exp', kinds)
+        self.assertEqual(data[ConicSolver.DIMS].exp, 0)
+
+    def test_moreau_extract_identity_cones_pow3d(self) -> None:
+        """Bare-variable PowCone3D extracts to ``power`` with the per-cone alpha."""
+        self._skip_if_no_xcones()
+        x = cp.Variable(3)
+        prob = cp.Problem(
+            cp.Minimize(x[2]),
+            [cp.constraints.PowCone3D(x[0:1], x[1:2], x[2:3], 0.5),
+             x[0] >= 1.0, x[0] <= 4.0, x[1] >= 4.0, x[1] <= 9.0],
+        )
+        val_m = prob.solve(solver=cp.MOREAU)
+        val_c = prob.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(val_m, val_c, places=5)
+        data, _, _ = prob.get_problem_data(solver=cp.MOREAU)
+        pow_cones = [
+            (k, extras) for k, _idx, _cid, extras in (data.get('x_cones') or [])
+            if k == 'power'
+        ]
+        self.assertEqual(len(pow_cones), 1)
+        self.assertAlmostEqual(pow_cones[0][1]['alpha'], 0.5, places=10)
+        self.assertEqual(data[ConicSolver.DIMS].p3d, [])
+
+    def test_moreau_multicone_pow_nd_extraction(self) -> None:
+        """Multi-cone PowConeND emits one ``gen_power`` XConeSpec per
+        column of ``alpha``; rows are formatted into cone-interleaved
+        order before extraction.
+        """
+        self._skip_if_no_xcones()
+        W = cp.Variable((3, 2))
+        z = cp.Variable(2)
+        alpha = np.array([[0.3, 0.5], [0.4, 0.3], [0.3, 0.2]])
+        prob = cp.Problem(
+            cp.Minimize(cp.sum(z)),
+            [cp.constraints.PowConeND(W, z, alpha, axis=0),
+             W >= 1.0, W <= 4.0],
+        )
+        val_m = prob.solve(solver=cp.MOREAU)
+        val_c = prob.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(val_m, val_c, places=4)
+        data, _, _ = prob.get_problem_data(solver=cp.MOREAU)
+        gen_pow = [
+            extras for k, _idx, _cid, extras in (data.get('x_cones') or [])
+            if k == 'gen_power'
+        ]
+        self.assertEqual(len(gen_pow), 2)
+        # Each sub-cone's alphas slice matches the j-th column of alpha.
+        self.assertItemsAlmostEqual(gen_pow[0]['alphas'], alpha[:, 0], places=10)
+        self.assertItemsAlmostEqual(gen_pow[1]['alphas'], alpha[:, 1], places=10)
+        self.assertEqual(data[ConicSolver.DIMS].pnd, [])
+
     def test_moreau_extract_skips_param_dependent_block(self) -> None:
         """A NonNeg block whose A rows depend on a parameter is left as
         slack; otherwise re-solving with new parameter values would use
