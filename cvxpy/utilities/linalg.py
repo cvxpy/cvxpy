@@ -191,6 +191,74 @@ class SparseCholeskyMessages:
     NOT_REAL = 'Input matrix must be real.'
 
 
+def dense_ldl_decomp(P, lower: bool = True, check_finite: bool = True):
+    """Bunch-Kaufman LDL of a dense symmetric matrix, with 2x2 blocks resolved.
+
+    Returns ``(diag_vals, lu)`` such that ``P = lu @ diag(diag_vals) @ lu.T``,
+    where ``lu`` is the row-permuted (unit) triangular factor returned by
+    ``scipy.linalg.ldl`` and any 2x2 blocks in ``D`` have been diagonalized
+    via ``eigh`` (with the corresponding pair of columns of ``lu`` rotated
+    to absorb the block's eigenvectors).  Used as a shared building block
+    by :func:`sparse_cholesky` (when its QDLDL path fails) and
+    :func:`cvxpy.atoms.quad_form.decomp_quad`.
+    """
+    lu, d, _perm = la.ldl(P, lower=lower, check_finite=check_finite)
+    sub_diag = np.diag(d, -1)
+    block_starts = np.nonzero(sub_diag)[0]
+    diag_vals = np.real(np.diag(d)).copy()
+    if block_starts.size:
+        bs = block_starts
+        idx = bs[:, None] + np.arange(2)[None, :]
+        blocks = d[idx[:, :, None], idx[:, None, :]]
+        eigvals, eigvecs = np.linalg.eigh(blocks)
+        diag_vals[bs] = eigvals[:, 0]
+        diag_vals[bs + 1] = eigvals[:, 1]
+        lu_i = lu[:, bs].copy()
+        lu_ip1 = lu[:, bs + 1].copy()
+        lu[:, bs] = lu_i * eigvecs[:, 0, 0] + lu_ip1 * eigvecs[:, 1, 0]
+        lu[:, bs + 1] = lu_i * eigvecs[:, 0, 1] + lu_ip1 * eigvecs[:, 1, 1]
+    return diag_vals, lu
+
+
+def _dense_ldl_factor(A, tol):
+    """Fallback factor via dense pivoted LDL (Bunch-Kaufman, ``scipy.linalg.ldl``).
+
+    Used when QDLDL cannot factor the matrix — either because it throws
+    "not quasi-definite" (singular leading minors), or because it returns
+    near-zero pivots paired with huge L entries whose dropped contribution
+    is non-negligible.  Returns ``(sign, L, p)`` matching the
+    ``sparse_cholesky`` contract.
+    """
+    A_dense = A.toarray() if sp.issparse(A) else np.asarray(A)
+    n = A_dense.shape[0]
+    diag_vals, lu = dense_ldl_decomp(A_dense, lower=True, check_finite=False)
+    scale = np.max(np.abs(diag_vals)) if diag_vals.size else 0.0
+    if scale == 0:
+        return 1.0, sp.csr_array((n, 0)), np.arange(n)
+    d_rel = diag_vals / scale
+    pos = d_rel > tol
+    neg = d_rel < -tol
+    if pos.any() and neg.any():
+        raise ValueError(SparseCholeskyMessages.INDEFINITE)
+    if pos.any():
+        sign = 1.0
+        L = lu[:, pos] * np.sqrt(diag_vals[pos])
+    else:
+        sign = -1.0
+        L = lu[:, neg] * np.sqrt(-diag_vals[neg])
+    return sign, sp.csr_array(L), np.arange(n)
+
+
+def _qdldl_residual_norm(A, sign, L, p):
+    """Frobenius norm of (sign * A - L[p, :] @ L[p, :].T), used to validate
+    QDLDL's factorization when zero-pivot columns were dropped."""
+    Lp = L[p, :]
+    resid = sign * A - (Lp @ Lp.T)
+    if sp.issparse(resid):
+        resid = resid.toarray()
+    return np.linalg.norm(resid)
+
+
 def sparse_cholesky(A, sym_tol=settings.CHOL_SYM_TOL, assume_psd=False):
     """
     The input matrix A must be real and symmetric. If A is positive (semi)definite
@@ -207,6 +275,12 @@ def sparse_cholesky(A, sym_tol=settings.CHOL_SYM_TOL, assume_psd=False):
     we certify indefiniteness before calling QDLDL. While checking for
     indefiniteness, we also check that
      ||A - A'||_Fro / sqrt(n) <= sym_tol, where n is the order of the matrix.
+
+    QDLDL is designed for quasi-definite matrices; on rank-deficient PSD/NSD
+    inputs it can either throw "not quasi-definite" or silently return tiny
+    pivots paired with huge L entries whose contribution to ``L D L.T`` is
+    non-negligible.  Both modes trigger a fallback to a dense pivoted LDL
+    (``scipy.linalg.ldl``) factorization.
     """
     import cvxpy.expressions.cvxtypes as cvxtypes
 
@@ -268,40 +342,47 @@ def sparse_cholesky(A, sym_tol=settings.CHOL_SYM_TOL, assume_psd=False):
     try:
         solver = qdldl.Solver(A_upper, upper=True)
         L_unit, D, p = solver.factors()
+    except Exception:
+        # QDLDL refused to factorize (typically "not quasi-definite" on
+        # rank-deficient PSD/NSD inputs).  Fall back to dense eigh.
+        return _dense_ldl_factor(A, tol)
 
-        # QDLDL returns: A[p,:][:,p] = (I + L) @ diag(D) @ (I + L).T
-        # Determine sign from D: all D >= 0 means PSD, all D <= 0 means NSD.
-        scale = np.max(np.abs(D))
-        if scale == 0:
-            # All pivots are zero — zero matrix.
-            return 1.0, sp.csr_array((n, 0)), np.arange(n)
+    # QDLDL returns: A[p,:][:,p] = (I + L) @ diag(D) @ (I + L).T
+    # Determine sign from D: all D >= 0 means PSD, all D <= 0 means NSD.
+    scale = np.max(np.abs(D))
+    if scale == 0:
+        # All pivots are zero — zero matrix.
+        return 1.0, sp.csr_array((n, 0)), np.arange(n)
 
-        is_psd = np.all(D >= -tol * scale)
-        is_nsd = np.all(D <= tol * scale)
-        if not (is_psd or is_nsd):
-            raise ValueError(SparseCholeskyMessages.INDEFINITE)
+    is_psd = np.all(D >= -tol * scale)
+    is_nsd = np.all(D <= tol * scale)
+    if not (is_psd or is_nsd):
+        raise ValueError(SparseCholeskyMessages.INDEFINITE)
 
-        sign = 1.0 if is_psd else -1.0
+    sign = 1.0 if is_psd else -1.0
 
-        # Build L_chol = (I + L_unit) @ diag(sqrt(|D|)), keeping only columns
-        # where |D| is significantly nonzero to get an n-by-rank(A) factor.
-        abs_D = np.abs(D)
-        mask = abs_D > tol * scale
-        sqrt_D_vals = np.sqrt(np.maximum(abs_D[mask], 0))
-        I_plus_L = sp.eye_array(n, format='csr') + sp.csr_array(L_unit)
-        L_chol = I_plus_L[:, mask] @ sp.diags_array(sqrt_D_vals, format='csr')
-        L_chol = sp.csr_array(L_chol)
+    # Build L_chol = (I + L_unit) @ diag(sqrt(|D|)), keeping only columns
+    # where |D| is significantly nonzero to get an n-by-rank(A) factor.
+    abs_D = np.abs(D)
+    mask = abs_D > tol * scale
+    sqrt_D_vals = np.sqrt(np.maximum(abs_D[mask], 0))
+    I_plus_L = sp.eye_array(n, format='csr') + sp.csr_array(L_unit)
+    L_chol = I_plus_L[:, mask] @ sp.diags_array(sqrt_D_vals, format='csr')
+    L_chol = sp.csr_array(L_chol)
 
-        # QDLDL's permutation p satisfies A[p,:][:,p] = L_full @ L_full.T.
-        # The caller expects L_out[p_out, :] @ L_out[p_out, :].T == sign * A,
-        # so we need p_out = argsort(p) (the inverse permutation).
-        p_inv = np.argsort(p)
+    # QDLDL's permutation p satisfies A[p,:][:,p] = L_full @ L_full.T.
+    # The caller expects L_out[p_out, :] @ L_out[p_out, :].T == sign * A,
+    # so we need p_out = argsort(p) (the inverse permutation).
+    p_inv = np.argsort(p)
 
-        return sign, L_chol, p_inv
+    # If we dropped any columns (rank-deficient case), QDLDL may have
+    # paired tiny pivots with huge L entries whose D[j]*L[:,j]L[:,j].T
+    # contribution is non-negligible; the masked product then differs
+    # from sign*A by O(1).  Validate, and fall back to dense eigh if so.
+    if not mask.all():
+        A_norm = la.norm(A.data) if A.nnz else 0.0
+        residual_tol = np.sqrt(tol) * (A_norm + 1.0)
+        if _qdldl_residual_norm(A, sign, L_chol, p_inv) > residual_tol:
+            return _dense_ldl_factor(A, tol)
 
-    except ValueError:
-        raise
-    except Exception as e:
-        raise ValueError(
-            f"{SparseCholeskyMessages.FACTORIZATION_FAILED}: {e}"
-        ) from e
+    return sign, L_chol, p_inv
