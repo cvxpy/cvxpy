@@ -342,9 +342,10 @@ def sparse_cholesky(A, sym_tol=settings.CHOL_SYM_TOL, assume_psd=False):
     try:
         solver = qdldl.Solver(A_upper, upper=True)
         L_unit, D, p = solver.factors()
-    except Exception:
+    except RuntimeError:
         # QDLDL refused to factorize (typically "not quasi-definite" on
-        # rank-deficient PSD/NSD inputs).  Fall back to dense eigh.
+        # rank-deficient PSD/NSD inputs, or AMD / elimination-tree
+        # failures).  Fall back to dense pivoted LDL.
         return _dense_ldl_factor(A, tol)
 
     # QDLDL returns: A[p,:][:,p] = (I + L) @ diag(D) @ (I + L).T
@@ -378,7 +379,7 @@ def sparse_cholesky(A, sym_tol=settings.CHOL_SYM_TOL, assume_psd=False):
     # If we dropped any columns (rank-deficient case), QDLDL may have
     # paired tiny pivots with huge L entries whose D[j]*L[:,j]L[:,j].T
     # contribution is non-negligible; the masked product then differs
-    # from sign*A by O(1).  Validate, and fall back to dense eigh if so.
+    # from sign*A by O(1).  Validate, and fall back to dense LDL if so.
     if not mask.all():
         A_norm = la.norm(A.data) if A.nnz else 0.0
         residual_tol = np.sqrt(tol) * (A_norm + 1.0)
