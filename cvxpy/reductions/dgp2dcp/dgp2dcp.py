@@ -64,6 +64,9 @@ class Dgp2Dcp(Canonicalization):
         """
         return problem.is_dgp()
 
+    # canon_methods is created lazily in apply(); the None guards below
+    # let var_id_map / param_id_map be queried on a freshly-constructed
+    # reduction (before apply() runs) without crashing.
     @property
     def var_id_map(self):
         if self.canon_methods is None:
@@ -94,7 +97,9 @@ class Dgp2Dcp(Canonicalization):
     def var_backward(self, del_vars):
         """Apply chain rule for exp transformation in backward diff.
 
-        For DGP, x_gp = exp(x_cone), so dx_gp/dx_cone = exp(x_cone) = x_gp.
+        DGP variables are reparameterized as ``x_gp = exp(x_log)``, where
+        ``x_log`` is the log-space variable that the downstream cone program
+        actually optimizes over.  Therefore ``dx_gp/dx_log = exp(x_log) = x_gp``.
         Transforms from outer (original) var IDs to inner (log-space) var IDs.
         """
         orig_to_new = {orig.id: new.id
@@ -111,7 +116,9 @@ class Dgp2Dcp(Canonicalization):
     def var_forward(self, dvars):
         """Apply chain rule for exp transformation in forward diff.
 
-        For DGP, x_gp = exp(x_cone), so dx_gp/dx_cone = exp(x_cone) = x_gp.
+        DGP variables are reparameterized as ``x_gp = exp(x_log)``, where
+        ``x_log`` is the log-space variable that the downstream cone program
+        actually optimizes over.  Therefore ``dx_gp/dx_log = exp(x_log) = x_gp``.
         Transforms from inner (log-space) var IDs to outer (original) var IDs.
         """
         new_to_orig = {new.id: orig

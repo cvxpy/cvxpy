@@ -11,15 +11,12 @@ def _compose_id_map(step_maps):
     """
     result = {}
     for step_map in step_maps:
-        # Update existing mappings whose current targets were renamed.
-        for orig_id, cur_ids in result.items():
-            new_ids = []
-            for cur_id in cur_ids:
-                if cur_id in step_map:
-                    new_ids.extend(step_map[cur_id])
-                else:
-                    new_ids.append(cur_id)
-            result[orig_id] = new_ids
+        # Forward existing mappings through this step (1-to-many capable).
+        result = {
+            orig_id: [new_id for cur_id in cur_ids
+                             for new_id in step_map.get(cur_id, [cur_id])]
+            for orig_id, cur_ids in result.items()
+        }
         # Add new mappings introduced by this reduction step.
         for orig_id in step_map.keys() - result.keys():
             result[orig_id] = list(step_map[orig_id])

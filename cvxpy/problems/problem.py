@@ -1219,16 +1219,14 @@ class Problem(u.Canonical):
         backward_cache = self._solver_cache[s.DIFFCP]
         DT = backward_cache["DT"]
         zeros = np.zeros(backward_cache["s"].shape)
-        # broadcast_to creates O(1) read-only views; safe because chain rule
-        # ops in var_backward/param_backward create new arrays, never mutate.
-        _ONE = np.float64(1.0)
-        _ZERO = np.float64(0.0)
 
-        # Build del_vars dict: variable gradients (outer representation)
+        # Build del_vars dict: variable gradients (outer representation).
+        # np.broadcast_to returns a read-only view; the chain-rule ops in
+        # var_backward allocate new arrays, so this is safe.
         del_vars = {}
         for variable in self.variables():
             if variable.gradient is None:
-                del_vars[variable.id] = np.broadcast_to(_ONE, variable.shape)
+                del_vars[variable.id] = np.broadcast_to(1.0, variable.shape)
             else:
                 del_vars[variable.id] = np.asarray(variable.gradient,
                                                    dtype=np.float64)
@@ -1249,7 +1247,7 @@ class Problem(u.Canonical):
             dparams = reduction.param_backward(dparams)
 
         for param in self.parameters():
-            param.gradient = dparams.get(param.id, _ZERO)
+            param.gradient = dparams.get(param.id, 0.0)
 
     def derivative(self) -> None:
         """Apply the derivative of the solution map to perturbations in the Parameters
@@ -1306,22 +1304,21 @@ class Problem(u.Canonical):
         backward_cache = self._solver_cache[s.DIFFCP]
         param_prog = self._cache.param_prog
         D = backward_cache["D"]
-        # broadcast_to creates O(1) read-only views; safe because chain rule
-        # ops in param_forward/var_forward create new arrays, never mutate.
-        _ZERO = np.float64(0.0)
 
         if not self.parameters():
             for variable in self.variables():
                 variable.delta = np.zeros(variable.shape)
             return
 
-        # Build param_deltas dict (outer representation)
+        # Build param_deltas dict (outer representation).
+        # np.broadcast_to returns a read-only view; the chain-rule ops in
+        # param_forward allocate new arrays, so this is safe.
         param_deltas = {}
         for param in self.parameters():
             if param.delta is not None:
                 param_deltas[param.id] = np.asarray(param.delta)
             else:
-                param_deltas[param.id] = np.broadcast_to(_ZERO, param.shape)
+                param_deltas[param.id] = np.broadcast_to(0.0, param.shape)
 
         # Apply chain rule for parameters (forward: outer -> inner)
         for reduction in self._cache.solving_chain.reductions:
@@ -1341,7 +1338,7 @@ class Problem(u.Canonical):
 
         for variable in self.variables():
             variable.delta = dvars.get(variable.id,
-                                       np.broadcast_to(_ZERO, variable.shape))
+                                       np.broadcast_to(0.0, variable.shape))
 
     def _clear_solution(self) -> None:
         for v in self.variables():

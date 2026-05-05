@@ -80,6 +80,10 @@ def perspective_canon(expr, args, solver_context: SolverInfo | None = None):
 
     # Build mapping from original var IDs to reduced var IDs.
     # Reductions like CvxAttr2Constr may replace variables with new IDs.
+    # var_id_map has shape {orig_id: [new_id, ...]} to support 1-to-many
+    # rewrites (e.g. Complex2Real splits one var into two), but perspective
+    # only handles real variables, so a single replacement is expected;
+    # fall back to var.id when no reduction renamed the variable.
     var_id_map = chain.compose_var_id_map()
 
     end_inds = sorted(prob_canon.var_id_to_col.values()) + [x_canon.shape[0]]

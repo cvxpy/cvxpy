@@ -121,6 +121,59 @@ class Complex2Real(Reduction):
                     else:
                         imag_param.value = np.imag(param.value)
 
+    def var_backward(self, del_vars):
+        """Split complex gradients into real/imag gradients for backward diff.
+
+        Transforms from outer (original complex) var IDs to inner
+        (real/imag) var IDs.
+        """
+        if self.canon_methods is None:
+            return del_vars
+        result = dict(del_vars)
+        for orig, (real_var, imag_var) in self.canon_methods._variables.items():
+            if orig.id in result:
+                complex_grad = result.pop(orig.id)
+                if real_var is not None:
+                    result[real_var.id] = np.real(complex_grad)
+                if imag_var is not None:
+                    imag_grad = np.imag(complex_grad)
+                    if orig.is_hermitian():
+                        n = orig.shape[0]
+                        # Extract strict upper triangle from skew-symmetric
+                        result[imag_var.id] = imag_grad[np.triu_indices(n, k=1)]
+                    else:
+                        result[imag_var.id] = imag_grad
+        return result
+
+    def var_forward(self, dvars):
+        """Combine real/imag deltas into complex deltas for forward diff.
+
+        Transforms from inner (real/imag) var IDs to outer (original complex)
+        var IDs.
+        """
+        if self.canon_methods is None:
+            return dvars
+        result = dict(dvars)
+        for orig, (real_var, imag_var) in self.canon_methods._variables.items():
+            real_delta = 0.0
+            imag_delta = 0.0
+            if real_var is not None and real_var.id in result:
+                real_delta = result.pop(real_var.id)
+            if imag_var is not None and imag_var.id in result:
+                imag_delta = result.pop(imag_var.id)
+                if orig.is_hermitian():
+                    # Expand compact strict upper triangle to skew-symmetric
+                    n = orig.shape[0]
+                    full_imag = np.zeros((n, n))
+                    full_imag[np.triu_indices(n, k=1)] = np.asarray(
+                        imag_delta).flatten()
+                    full_imag = full_imag - full_imag.T
+                    imag_delta = full_imag
+            combined = real_delta + 1j * imag_delta
+            if isinstance(combined, np.ndarray) or combined != 0.0:
+                result[orig.id] = combined
+        return result
+
     def param_backward(self, dparams):
         """Combine real/imag gradients into complex gradient for backward diff.
 
@@ -186,59 +239,6 @@ class Complex2Real(Reduction):
                         result[imag_param.id] = imag_delta[np.triu_indices(n, k=1)]
                     else:
                         result[imag_param.id] = imag_delta
-        return result
-
-    def var_backward(self, del_vars):
-        """Split complex gradients into real/imag gradients for backward diff.
-
-        Transforms from outer (original complex) var IDs to inner
-        (real/imag) var IDs.
-        """
-        if self.canon_methods is None:
-            return del_vars
-        result = dict(del_vars)
-        for orig, (real_var, imag_var) in self.canon_methods._variables.items():
-            if orig.id in result:
-                complex_grad = result.pop(orig.id)
-                if real_var is not None:
-                    result[real_var.id] = np.real(complex_grad)
-                if imag_var is not None:
-                    imag_grad = np.imag(complex_grad)
-                    if orig.is_hermitian():
-                        n = orig.shape[0]
-                        # Extract strict upper triangle from skew-symmetric
-                        result[imag_var.id] = imag_grad[np.triu_indices(n, k=1)]
-                    else:
-                        result[imag_var.id] = imag_grad
-        return result
-
-    def var_forward(self, dvars):
-        """Combine real/imag deltas into complex deltas for forward diff.
-
-        Transforms from inner (real/imag) var IDs to outer (original complex)
-        var IDs.
-        """
-        if self.canon_methods is None:
-            return dvars
-        result = dict(dvars)
-        for orig, (real_var, imag_var) in self.canon_methods._variables.items():
-            real_delta = 0.0
-            imag_delta = 0.0
-            if real_var is not None and real_var.id in result:
-                real_delta = result.pop(real_var.id)
-            if imag_var is not None and imag_var.id in result:
-                imag_delta = result.pop(imag_var.id)
-                if orig.is_hermitian():
-                    # Expand compact strict upper triangle to skew-symmetric
-                    n = orig.shape[0]
-                    full_imag = np.zeros((n, n))
-                    full_imag[np.triu_indices(n, k=1)] = np.asarray(
-                        imag_delta).flatten()
-                    full_imag = full_imag - full_imag.T
-                    imag_delta = full_imag
-            combined = real_delta + 1j * imag_delta
-            if isinstance(combined, np.ndarray) or combined != 0.0:
-                result[orig.id] = combined
         return result
 
     def apply(self, problem):

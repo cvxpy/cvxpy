@@ -120,6 +120,26 @@ class Reduction(metaclass=ABCMeta):
         """
         return {}
 
+    def var_backward(self, del_vars):
+        """Transform variable gradients from outer to inner representation.
+
+        Called during backward differentiation (requires_grad=True). Reductions
+        that transform variables override this to apply the chain rule.
+
+        Parameters
+        ----------
+        del_vars : dict
+            Maps variable IDs to gradient values in the outer (original)
+            representation.
+
+        Returns
+        -------
+        dict
+            Maps variable IDs to gradient values in the inner (reduced)
+            representation.
+        """
+        return del_vars
+
     def var_forward(self, dvars):
         """Transform variable deltas from inner to outer representation.
 
@@ -140,25 +160,25 @@ class Reduction(metaclass=ABCMeta):
         """
         return dvars
 
-    def var_backward(self, del_vars):
-        """Transform variable gradients from outer to inner representation.
+    def param_backward(self, dparams):
+        """Transform parameter gradients from inner to outer representation.
 
         Called during backward differentiation (requires_grad=True). Reductions
-        that transform variables override this to apply the chain rule.
+        that transform parameters override this to apply the chain rule.
 
         Parameters
         ----------
-        del_vars : dict
-            Maps variable IDs to gradient values in the outer (original)
+        dparams : dict
+            Maps parameter IDs to gradient values in the inner (transformed)
             representation.
 
         Returns
         -------
         dict
-            Maps variable IDs to gradient values in the inner (reduced)
+            Maps parameter IDs to gradient values in the outer (original)
             representation.
         """
-        return del_vars
+        return dparams
 
     def param_forward(self, param_deltas):
         """Transform parameter deltas from outer to inner representation.
@@ -180,26 +200,6 @@ class Reduction(metaclass=ABCMeta):
             representation.
         """
         return param_deltas
-
-    def param_backward(self, dparams):
-        """Transform parameter gradients from inner to outer representation.
-
-        Called during backward differentiation (requires_grad=True). Reductions
-        that transform parameters override this to apply the chain rule.
-
-        Parameters
-        ----------
-        dparams : dict
-            Maps parameter IDs to gradient values in the inner (transformed)
-            representation.
-
-        Returns
-        -------
-        dict
-            Maps parameter IDs to gradient values in the outer (original)
-            representation.
-        """
-        return dparams
 
     def reduce(self):
         """Reduces the owned problem to an equivalent problem.
