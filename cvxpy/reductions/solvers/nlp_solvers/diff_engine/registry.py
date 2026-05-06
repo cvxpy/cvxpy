@@ -187,10 +187,14 @@ def convert_prod(expr, children):
         return _diffengine.make_prod_axis_one(children[0])
 
 def convert_transpose(expr, children):
-    # 1D transpose is a numpy no-op; C stores 1D as (1, n), don't flip to (n, 1).
+    # If a user calls transpose on a (n, ) expression, CVXPY treats it as a
+    # no-op and keeps the shape as (n, ). The diff engine represents all 1D
+    # expressions as (1, n), so we need to check for this case and avoid
+    # transposing if it's just a 1D expression.
     if len(expr.args[0].shape) <= 1:
         return children[0]
 
+    # If the child is a vector (shape (n,1) or (1,n), use reshape to transpose
     child_shape = normalize_shape(expr.args[0].shape)
     if 1 in child_shape:
         return _diffengine.make_reshape(children[0], child_shape[1], child_shape[0])
