@@ -43,5 +43,6 @@ jobs:
             --ignore=cvxpylayers/tests/test_cuclarabel.py \
             --ignore=cvxpylayers/tests/test_cvxpygen.py
       - name: Run CVXPYgen tests
+        if: success() || failure()
         run: |
           uv run --no-sync pytest cvxpygen/tests
