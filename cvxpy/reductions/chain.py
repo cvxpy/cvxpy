@@ -23,17 +23,6 @@ def _compose_id_map(step_maps):
     return result
 
 
-def _extract_constr_step_map(r, inv):
-    """Return the cons_id_map dict for one (reduction, inverse_data) pair."""
-    # CvxAttr2Constr stores (id2new_var, id2old_var, cons_id_map); no-op case returns ().
-    from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr
-    if isinstance(r, CvxAttr2Constr) and len(inv) == 3:
-        return inv[2]
-    if hasattr(inv, "cons_id_map") and isinstance(inv.cons_id_map, dict):
-        return inv.cons_id_map
-    return {}
-
-
 class Chain(Reduction):
     """A logical grouping of multiple reductions into a single reduction.
 
@@ -141,16 +130,13 @@ class Chain(Reduction):
         """
         return _compose_id_map(r.param_id_map for r in self.reductions)
 
-    def compose_constr_id_map(self, inverse_data):
+    def compose_constr_id_map(self):
         """Compose constraint ID mappings across all reductions.
 
         Returns a single ``{orig_constr_id: final_constr_id}`` dict tracing
-        each original constraint ID through every reduction step.
-
-        Parameters
-        ----------
-        inverse_data : list
-            The per-reduction inverse data list returned by ``Chain.apply()``.
+        each original constraint ID through every reduction step.  Each
+        reduction exposes its mapping via the ``cons_id_map`` property, which
+        is populated during ``apply()``.
 
         Returns
         -------
@@ -158,8 +144,8 @@ class Chain(Reduction):
             Maps original constraint IDs to their final (innermost) IDs.
         """
         result = {}
-        for r, inv in zip(self.reductions, inverse_data):
-            step_map = _extract_constr_step_map(r, inv)
+        for r in self.reductions:
+            step_map = r.cons_id_map
             if step_map:
                 result = {orig: step_map.get(cur, cur) for orig, cur in result.items()}
                 for orig_id, new_id in step_map.items():

@@ -411,6 +411,7 @@ class ConeMatrixStuffing(MatrixStuffing):
             constr_map.get(SvecPSD, []) + constr_map[ExpCone] + \
             constr_map[PowCone3D] + constr_map[PowConeND]
         inverse_data.cons_id_map = {con.id: con.id for con in ordered_cons}
+        self._cons_id_map = inverse_data.cons_id_map
 
         inverse_data.constraints = ordered_cons
         # Batch expressions together, then split apart.

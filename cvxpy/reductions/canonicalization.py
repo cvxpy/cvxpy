@@ -71,6 +71,7 @@ class Canonicalization(Reduction):
 
         new_problem = problems.problem.Problem(canon_objective,
                                                canon_constraints)
+        self._cons_id_map = inverse_data.cons_id_map
         return new_problem, inverse_data
 
     def invert(self, solution, inverse_data):
