@@ -31,6 +31,7 @@ jobs:
           cd cvxpylayers
           git checkout custom-solvers  # TEMPORARY until that PR is merged
           uv pip install ".[torch, jax]"
+          uv pip install "mlx[cpu]" mpax
       - name: Install CVXPYgen
         run: |
           git clone --recurse-submodules https://github.com/cvxgrp/cvxpygen.git
@@ -39,7 +40,6 @@ jobs:
       - name: Run CVXPYlayers tests
         run: |
           uv run --no-sync pytest cvxpylayers/tests \
-            --ignore=cvxpylayers/tests/test_cuclarabel.py \
             --ignore=cvxpylayers/tests/test_cvxpygen.py
       - name: Run CVXPYgen tests
         run: |
