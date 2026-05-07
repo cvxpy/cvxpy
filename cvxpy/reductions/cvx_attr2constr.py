@@ -163,6 +163,7 @@ class CvxAttr2Constr(Reduction):
         self.reduce_bounds = reduce_bounds
         self._parameters = {}  # {orig_param: reduced_param}
         self._variables = {}   # {orig_var: new_var} — only for changed vars
+        self._cons_id_map = {}
         super(CvxAttr2Constr, self).__init__(problem=problem)
 
     def reduction_attributes(self) -> list[str]:
@@ -282,6 +283,7 @@ class CvxAttr2Constr(Reduction):
         for cons in problem.constraints:
             constr.append(cons.tree_copy(id_objects=id2new_obj))
             cons_id_map[cons.id] = constr[-1].id
+        self._cons_id_map = cons_id_map
         inverse_data = (id2new_var, id2old_var, cons_id_map)
         return cvxtypes.problem()(obj, constr), inverse_data
 

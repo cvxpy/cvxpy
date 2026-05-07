@@ -120,6 +120,22 @@ class Reduction(metaclass=ABCMeta):
         """
         return {}
 
+    @property
+    def cons_id_map(self):
+        """Map from original to reduced constraint IDs.
+
+        Reductions that remap constraint IDs store ``self._cons_id_map``
+        during ``apply()``.  Used by ``Chain.compose_constr_id_map()`` to
+        build a global mapping across the full reduction chain.
+
+        Returns
+        -------
+        dict
+            ``{orig_constr_id: new_constr_id}`` for every remapped
+            constraint.  Default: empty dict (no constraints remapped).
+        """
+        return getattr(self, '_cons_id_map', {})
+
     def var_backward(self, del_vars):
         """Transform variable gradients from outer to inner representation.
 
