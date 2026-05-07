@@ -73,28 +73,3 @@ def quad_form_dpp_scope() -> Generator[None, None, None]:
 def quad_form_dpp_scope_active() -> bool:
     """Returns True if a `quad_form_dpp_scope` is active."""
     return getattr(_thread_local, 'quad_form_dpp_scope_active', False)
-
-
-@contextlib.contextmanager
-def suspend_quad_form_dpp_scope() -> Generator[None, None, None]:
-    """Temporarily suspend an active quad_form_dpp_scope for the duration of the block.
-
-    Use this when you need to validate or canonicalize an expression *without*
-    the relaxed quad_form DPP rules, even if a QP-capable solver scope is
-    active in the outer context.  The previous flag value is restored
-    unconditionally on exit (including on exceptions).
-
-    Example — reject parametric P in constraints while allowing it in the
-    objective::
-
-        with quad_form_dpp_scope():
-            validate_objective(...)          # parametric P allowed
-            with suspend_quad_form_dpp_scope():
-                validate_constraints(...)    # parametric P rejected
-    """
-    prev = getattr(_thread_local, 'quad_form_dpp_scope_active', False)
-    _thread_local.quad_form_dpp_scope_active = False
-    try:
-        yield
-    finally:
-        _thread_local.quad_form_dpp_scope_active = prev
