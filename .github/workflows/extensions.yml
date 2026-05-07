@@ -1,4 +1,4 @@
-name: test_cvxpygen
+name: test_extensions
 
 on:
     pull_request:
@@ -36,6 +36,9 @@ jobs:
           git clone --recurse-submodules https://github.com/cvxgrp/cvxpygen.git
           cd cvxpygen
           uv pip install .[dev]
+      - name: Run CVXPYlayers tests
+        run: |
+          uv run --no-sync pytest cvxpylayers/tests --ignore=cvxpylayers/tests/test_cvxpygen.py
       - name: Run CVXPYgen tests
         run: |
           uv run --no-sync pytest cvxpygen/tests
