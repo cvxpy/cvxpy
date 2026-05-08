@@ -130,6 +130,29 @@ class Chain(Reduction):
         """
         return _compose_id_map(r.param_id_map for r in self.reductions)
 
+    def compose_constr_id_map(self):
+        """Compose constraint ID mappings across all reductions.
+
+        Returns a single ``{orig_constr_id: final_constr_id}`` dict tracing
+        each original constraint ID through every reduction step.  Each
+        reduction exposes its mapping via the ``cons_id_map`` property, which
+        is populated during ``apply()``.
+
+        Returns
+        -------
+        dict
+            Maps original constraint IDs to their final (innermost) IDs.
+        """
+        result = {}
+        for r in self.reductions:
+            step_map = r.cons_id_map
+            if step_map:
+                result = {orig: step_map.get(cur, cur) for orig, cur in result.items()}
+                for orig_id, new_id in step_map.items():
+                    if orig_id not in result:
+                        result[orig_id] = new_id
+        return result
+
     def invert(self, solution, inverse_data):
         """Returns a solution to the original problem given the inverse_data.
         """
