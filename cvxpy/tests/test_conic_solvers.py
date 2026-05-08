@@ -1681,7 +1681,7 @@ class TestQOCO(BaseTest):
 
     # lp 3 and 4 are skipped since QOCO cannot detect infeasibility or unboundedness.
     def test_qoco_lp_5(self) -> None:
-        StandardTestLPs.test_lp_5(solver='QOCO')
+        StandardTestLPs.test_lp_5(solver='QOCO', kkt_static_reg_A=1e-7)
     def test_qoco_qp_0(self) -> None:
         StandardTestQPs.test_qp_0(solver='QOCO')
     def test_qoco_socp_0(self) -> None:
