@@ -6,7 +6,7 @@ on:
     branches:
       - master
     tags:
-      - "*"
+      - '*'
 
 jobs:
   test_optional_solvers:
@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, macos-14] # Windows excluded - cylp/CBC cannot be built
+        os: [ ubuntu-22.04, macos-14 ]  # Windows excluded - cylp/CBC cannot be built
     steps:
       - uses: actions/checkout@v5
       - name: Set Additional Envs
@@ -34,7 +34,9 @@ jobs:
       - name: Setup Julia
         uses: julia-actions/setup-julia@v3
         with:
-          version: "lts"
+          version: 'lts'
+      - name: Install COSMO
+        run: julia -e 'using Pkg; Pkg.add("COSMO")'
       - name: Install SuiteSparse (macOS)
         if: runner.os == 'macOS'
         run: brew install suite-sparse
