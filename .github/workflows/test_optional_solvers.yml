@@ -42,8 +42,6 @@ jobs:
         run: brew install suite-sparse
       - name: Install cvxpy dependencies and all optional solvers
         run: uv sync --all-extras --dev
-      - name: Install QOCO from gc/experiment
-        run: uv pip install --force-reinstall git+https://github.com/qoco-org/qoco-python.git@gc/experiment
       - name: Install Moreau
         if: runner.os == 'Linux' && env.FURY_TOKEN != ''
         run: uv pip install moreau --extra-index-url https://${FURY_TOKEN}:@pypi.fury.io/optimalintellect/
