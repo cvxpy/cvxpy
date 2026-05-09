@@ -17,44 +17,45 @@ limitations under the License.
 from cvxpy.tests.base_test import BaseTest
 from cvxpy.utilities import scopes
 
+
 class TestScopes(BaseTest):
     """
     Tests for the scope managers.
     """
-    
+
     def get_state(self, name):
         return getattr(scopes._thread_local, name, False)
-    
+
     def test_dpp_scope(self):
         with scopes.dpp_scope():
-            assert self.get_state('dpp_scope_active') == True
-        
-        assert self.get_state('dpp_scope_active') == False
-        
+            assert self.get_state("dpp_scope_active")
+
+        assert not self.get_state("dpp_scope_active")
+
     def test_dpp_scope_exception(self):
         with self.assertRaises(AssertionError):
             with scopes.dpp_scope():
                 raise AssertionError
 
-        assert self.get_state('dpp_scope_active') == False
+        assert not self.get_state("dpp_scope_active")
 
     def test_dpp_scope_active(self):
         with scopes.dpp_scope():
             assert scopes.dpp_scope_active()
         assert not scopes.dpp_scope_active()
-        
+
     def test_quad_form_dpp_scope(self):
         with scopes.quad_form_dpp_scope():
-            assert self.get_state('quad_form_dpp_scope_active') == True
-        
-        assert self.get_state('quad_form_dpp_scope_active') == False
-        
+            assert self.get_state("quad_form_dpp_scope_active")
+
+        assert not self.get_state("quad_form_dpp_scope_active")
+
     def test_quad_form_dpp_scope_exception(self):
         with self.assertRaises(AssertionError):
             with scopes.quad_form_dpp_scope():
                 raise AssertionError
 
-        assert self.get_state('quad_form_dpp_scope_active') == False
+        assert not self.get_state("quad_form_dpp_scope_active")
 
     def test_quad_form_dpp_scope_active(self):
         with scopes.quad_form_dpp_scope():
