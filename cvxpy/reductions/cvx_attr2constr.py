@@ -163,6 +163,7 @@ class CvxAttr2Constr(Reduction):
         self.reduce_bounds = reduce_bounds
         self._parameters = {}  # {orig_param: reduced_param}
         self._variables = {}   # {orig_var: new_var} — only for changed vars
+        self._symmetric_vars = {}  # {orig_var: (batch_size, n)} for PSD/NSD/symmetric
         self._cons_id_map = {}
         super(CvxAttr2Constr, self).__init__(problem=problem)
 
@@ -210,6 +211,7 @@ class CvxAttr2Constr(Reduction):
                     shape = (batch_size * tri, 1)
                     upper_tri_var = Variable(shape, var_id=var.id, **new_attr)
                     id2new_var[var.id] = upper_tri_var
+                    self._symmetric_vars[var] = (batch_size, n)
                     fill_coeff = Constant(
                         batched_upper_tri_to_full(batch_size, n))
                     full_mat = fill_coeff @ upper_tri_var
@@ -312,6 +314,12 @@ class CvxAttr2Constr(Reduction):
                         value = value + value.T - np.diag(np.diag(value))
                     value = lower_value(orig_var, value)
                 result[new_var.id] = value
+        for orig_var, (batch_size, n) in self._symmetric_vars.items():
+            if orig_var.id in result:
+                fill_mat = batched_upper_tri_to_full(batch_size, n)
+                result[orig_var.id] = np.asarray(
+                    fill_mat.T @ result[orig_var.id].flatten(order='F')
+                ).ravel()
         return result
 
     def var_forward(self, dvars):
@@ -323,6 +331,11 @@ class CvxAttr2Constr(Reduction):
                 if orig_var._has_dim_reducing_attr:
                     value = recover_value_for_leaf(orig_var, value, project=False)
                 result[orig_var.id] = value
+        for orig_var, (batch_size, n) in self._symmetric_vars.items():
+            if orig_var.id in result:
+                fill_mat = batched_upper_tri_to_full(batch_size, n)
+                full_flat = np.asarray(fill_mat @ result[orig_var.id].ravel()).ravel()
+                result[orig_var.id] = full_flat.reshape(orig_var.shape, order='F')
         return result
 
     def param_backward(self, dparams):
