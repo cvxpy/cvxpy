@@ -30,7 +30,7 @@ jobs:
           git clone https://github.com/cvxpy/cvxpylayers.git
           cd cvxpylayers
           uv pip install ".[torch, jax]"
-          uv pip install "mlx[cpu]" mpax
+          uv pip install "mlx[cpu]" "mpax"
       - name: Install CVXPYgen
         run: |
           git clone --recurse-submodules https://github.com/cvxgrp/cvxpygen.git
