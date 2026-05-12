@@ -67,7 +67,7 @@ geometric programming, mixed-integer convex programs, quasiconvex programs,
 and nonlinear programs.
 
 For a guided tour of CVXPY, check out the :doc:`tutorial
-</tutorial/index>` (including a tutorial on :doc:`DNLP </tutorial/dnlp/index>`).
+</tutorial/index>` (including a tutorial on :doc:`nonlinear programming </tutorial/dnlp/index>`).
 For applications to machine learning, control, finance, and
 more, browse the :doc:`library of examples </examples/index>`.
 For applications that involve nonlinear programming, visit the
