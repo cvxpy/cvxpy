@@ -51,6 +51,8 @@ Note that for CVXPY to treat the problem as an NLP, you must pass the option ``n
 For an in-depth reference on DNLP, see our
 `accompanying paper <https://web.stanford.edu/~boyd/papers/dnlp.html>`_.
 
+.. _dnlp-atoms-and-expressions:
+
 Atoms and expressions
 ---------------------
 
