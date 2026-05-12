@@ -786,8 +786,10 @@ def matmul_bounds(lb1, ub1, lb2, ub2) -> Bounds:
         #   A_pos @ lb2 + A_neg @ ub2
         a_pos = _safe_maximum(lb1, 0)
         a_neg = _safe_minimum(lb1, 0)
-        new_lb = a_pos @ lb2 + a_neg @ ub2
-        new_ub = a_pos @ ub2 + a_neg @ lb2
+        # 0 * inf = NaN in matmul, but semantically a zero coefficient
+        # contributes nothing, so replace NaN with -inf (lb) / inf (ub).
+        new_lb = np.nan_to_num(a_pos @ lb2 + a_neg @ ub2, nan=-np.inf)
+        new_ub = np.nan_to_num(a_pos @ ub2 + a_neg @ lb2, nan=np.inf)
         return (new_lb, new_ub)
 
     if rhs_point:
@@ -796,8 +798,8 @@ def matmul_bounds(lb1, ub1, lb2, ub2) -> Bounds:
         #   lb1 @ B_pos + ub1 @ B_neg  (for lower bound)
         b_pos = _safe_maximum(lb2, 0)
         b_neg = _safe_minimum(lb2, 0)
-        new_lb = lb1 @ b_pos + ub1 @ b_neg
-        new_ub = ub1 @ b_pos + lb1 @ b_neg
+        new_lb = np.nan_to_num(lb1 @ b_pos + ub1 @ b_neg, nan=-np.inf)
+        new_ub = np.nan_to_num(ub1 @ b_pos + lb1 @ b_neg, nan=np.inf)
         return (new_lb, new_ub)
 
     # Both operands are intervals — no efficient exact formula.
