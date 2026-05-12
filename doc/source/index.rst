@@ -62,22 +62,9 @@ For example, the following code solves a least-squares problem with box constrai
     print(constraints[0].dual_value)
 
 This short script is a basic example of what CVXPY can do. In addition
-to convex programming, CVXPY also supports a generalization of geometric
-programming, mixed-integer convex programs, and quasiconvex programs.
-
-CVXPY's :doc:`Disciplined Nonlinear Programming </tutorial/dnlp/index>` (DNLP)
-system extends CVXPY to general (nonconvex) nonlinear programs. DNLP lets
-you mix smooth functions (such as :math:`\cos`, products of variables,
-and quadratic forms) with nonsmooth convex and concave atoms, under clear
-:ref:`composition rules <dnlp-atoms-and-expressions>`.
-CVXPY then interfaces with a nonlinear solver such as
-IPOPT or KNITRO. For example, DNLP allows you to have
-``objective = cp.Maximize(cp.sum_squares(A @ x - b))`` or
-``constraints = [cp.multiply(x, (1 - x)) <= 0]`` in the above problem,
-which are not convex, but adhere to DNLP.
-Pass ``nlp=True`` to ``solve()`` to invoke DNLP. Note that, unlike convex
-solvers, NLP solvers do not guarantee to return a globally optimal point,
-and are sensitive to the initial point; set variables' ``value`` attributes before solving.
+to convex programming, CVXPY also supports parametrized programming,
+geometric programming, mixed-integer convex programs, quasiconvex programs,
+and nonlinear programs.
 
 For a guided tour of CVXPY, check out the :doc:`tutorial
 </tutorial/index>` (including a tutorial on :doc:`DNLP </tutorial/dnlp/index>`).
