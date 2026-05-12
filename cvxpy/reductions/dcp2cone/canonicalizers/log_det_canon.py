@@ -72,6 +72,6 @@ def log_det_canon(expr, args, solver_context: SolverInfo | None = None):
     X = bmat([[D, Z], [Z.T, A]])
     constraints = [PSD(X)]
     log_expr = log(d)
-    obj, constr = log_canon(log_expr, log_expr.args)
+    obj, constr = log_canon(log_expr, log_expr.args, solver_context=solver_context)
     constraints += constr
     return sum(obj), constraints

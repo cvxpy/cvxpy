@@ -14,9 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 from cvxpy.expressions.variable import Variable
+from cvxpy.utilities.solver_context import SolverInfo
 
 
-def smooth_full_domain_canon(expr, args):
+def smooth_full_domain_canon(expr, args, solver_context: SolverInfo | None = None):
     if isinstance(args[0], Variable):
         return expr, []
     t = Variable(args[0].shape)

@@ -21,9 +21,9 @@ import numpy as np
 from cvxpy import settings
 from cvxpy.atoms.affine.vstack import vstack
 from cvxpy.constraints.power import PowConeND
-from cvxpy.expressions.variable import Variable
 from cvxpy.utilities.power_tools import gm_constrs
 from cvxpy.utilities.solver_context import SolverInfo
+from cvxpy.utilities.values import make_canon_variable
 
 
 def geo_mean_exact_canon(expr, args, solver_context: SolverInfo | None = None):
@@ -35,8 +35,7 @@ def geo_mean_exact_canon(expr, args, solver_context: SolverInfo | None = None):
     if len(w) == 1:
         return x, []
 
-    shape = expr.shape
-    t = Variable(shape)
+    t = make_canon_variable(expr, solver_context)
 
     if x.shape == ():
         x_list = [x]
@@ -57,8 +56,7 @@ def geo_mean_approx_canon(expr, args, solver_context: SolverInfo | None = None):
     if len(w) == 1:
         return x, []
 
-    shape = expr.shape
-    t = Variable(shape)
+    t = make_canon_variable(expr, solver_context)
 
     if x.shape == ():
         x_list = [x]

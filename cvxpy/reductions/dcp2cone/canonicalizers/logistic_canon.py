@@ -17,18 +17,18 @@ limitations under the License.
 import numpy as np
 
 from cvxpy.expressions.constants import Constant
-from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.dcp2cone.canonicalizers.exp_canon import exp_canon
 from cvxpy.utilities.solver_context import SolverInfo
+from cvxpy.utilities.values import make_canon_variable
 
 
 def logistic_canon(expr, args, solver_context: SolverInfo | None = None):
     x = args[0]
     shape = expr.shape
     # log(1 + exp(x)) <= t <=> exp(-t) + exp(x - t) <= 1
-    t0 = Variable(shape)
-    t1, constr1 = exp_canon(expr, [-t0])
-    t2, constr2 = exp_canon(expr, [x - t0])
+    t0 = make_canon_variable(expr, solver_context)
+    t1, constr1 = exp_canon(expr, [-t0], solver_context=solver_context)
+    t2, constr2 = exp_canon(expr, [x - t0], solver_context=solver_context)
     ones = Constant(np.ones(shape))
     constraints = constr1 + constr2 + [t1 + t2 <= ones]
     return t0, constraints

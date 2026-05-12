@@ -1,6 +1,6 @@
 from cvxpy.constraints.zero import Zero
 
 
-def zero_constr_canon(expr, args):
+def zero_constr_canon(expr, args, solver_context=None):
     assert len(args) == 2
     return Zero(args[0] - args[1], constr_id=expr.id), []

@@ -19,6 +19,7 @@ class XPRESS(QpSolver):
 
     MIP_CAPABLE = True
     BOUNDED_VARIABLES = True
+    WARM_STARTABLE = True
 
     def __init__(self) -> None:
         self.prob_ = None

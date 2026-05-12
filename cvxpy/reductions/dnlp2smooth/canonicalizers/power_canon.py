@@ -22,7 +22,7 @@ from cvxpy.expressions.variable import Variable
 
 MIN_INIT = 1e-4
 
-def power_canon(expr, args):
+def power_canon(expr, args, solver_context=None):
     x = args[0]
     p = expr.p_used
     shape = expr.shape

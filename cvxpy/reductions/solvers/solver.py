@@ -80,6 +80,7 @@ class Solver(Reduction):
     # Solver capabilities.
     MIP_CAPABLE = False
     BOUNDED_VARIABLES = False
+    WARM_STARTABLE = False
     SOC_DIM3_ONLY = False
 
     # PSD constraint format. Overridden by solvers that support PSD constraints.

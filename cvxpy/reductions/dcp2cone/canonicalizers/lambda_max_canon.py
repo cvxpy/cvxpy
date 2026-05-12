@@ -23,14 +23,20 @@ from cvxpy.atoms.affine.transpose import swapaxes
 from cvxpy.atoms.affine.upper_tri import upper_tri
 from cvxpy.constraints.psd import PSD
 from cvxpy.expressions.variable import Variable
+from cvxpy.utilities.bounds import get_expr_bounds_if_supported
 from cvxpy.utilities.solver_context import SolverInfo
+from cvxpy.utilities.values import get_expr_value_if_supported
 
 
 def lambda_max_canon(expr, args, solver_context: SolverInfo | None = None):
     A = args[0]
     n = A.shape[-1]
     batch_shape = A.shape[:-2]
-    t = Variable(batch_shape)
+    bounds = get_expr_bounds_if_supported(expr, solver_context)
+    t = Variable(batch_shape, bounds=bounds)
+    value = get_expr_value_if_supported(expr, solver_context)
+    if value is not None:
+        t.value = value
 
     # Build t * I_n as (*batch, n, n):
     # reshape t to (*batch, 1, 1), elementwise multiply with eye(n)

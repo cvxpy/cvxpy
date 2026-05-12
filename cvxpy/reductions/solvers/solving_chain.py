@@ -170,6 +170,7 @@ def _build_solving_chain(
         solver=solver_instance.name(),
         supported_constraints=supported,
         supports_bounds=solver_instance.BOUNDED_VARIABLES,
+        supports_warm_start=solver_instance.WARM_STARTABLE,
         psd_triangle_kind=solver_instance.PSD_TRIANGLE_KIND,
         psd_sqrt2_scaling=solver_instance.PSD_SQRT2_SCALING,
     )

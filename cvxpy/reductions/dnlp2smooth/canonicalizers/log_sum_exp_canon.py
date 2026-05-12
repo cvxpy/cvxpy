@@ -24,7 +24,7 @@ from cvxpy.expressions.variable import Variable
 # t = log_sum_exp(x) is equivalent exp(t) = sum(exp(x)), which is
 # equivalent to sum(exp(x - t)) = 1. Now we introduce v = x - t,
 # which must be nonpositive.
-def log_sum_exp_canon(expr, args):
+def log_sum_exp_canon(expr, args, solver_context=None):
     x = args[0]
     t = Variable(expr.shape)
     v = Variable(x.shape, nonpos=True)

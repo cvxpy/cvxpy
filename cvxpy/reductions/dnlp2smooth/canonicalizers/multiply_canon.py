@@ -20,7 +20,7 @@ from cvxpy.expressions.variable import Variable
 
 # If a user insert x * x where x is a variable it gets canonicalized to
 # square(x) before this function is called.
-def multiply_canon(expr, args):
+def multiply_canon(expr, args, solver_context=None):
     t1 = args[0]
     t2 = args[1]
     constraints = []
@@ -41,7 +41,7 @@ def multiply_canon(expr, args):
 
     return expr.copy([t1, t2]), constraints
 
-def matmul_canon(expr, args):
+def matmul_canon(expr, args, solver_context=None):
     t1 = args[0]
     t2 = args[1]
     constraints = []
