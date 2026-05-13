@@ -93,6 +93,19 @@ You can check that a problem satisfies the DNLP rules by calling
 ``problem.is_dnlp()``. CVXPY will raise an exception if you call
 ``problem.solve(nlp=True)`` on a non-DNLP problem.
 
+Solvers
+-------
+
+DNLP problems require a nonlinear programming (NLP) solver.
+The following solvers are supported; see the :ref:`install` page for installation instructions.
+
+- `IPOPT <https://github.com/coin-or/Ipopt>`_ (recommended, open-source, EPL-2.0)
+- `UNO <https://github.com/cvanaret/Uno>`_ (open-source, MIT)
+- `COPT <https://github.com/COPT-Public/COPT-Release>`_ (commercial)
+- `KNITRO <https://www.artelys.com/knitro/>`_ (commercial)
+
+Set the solver explicitly if needed: ``prob.solve(nlp=True, solver=cp.IPOPT)``.
+
 .. _dnlp-atoms:
 
 DNLP atoms
