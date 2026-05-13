@@ -62,13 +62,13 @@ For example, the following code solves a least-squares problem with box constrai
     print(constraints[0].dual_value)
 
 This short script is a basic example of what CVXPY can do. In addition
-to convex programming, CVXPY also supports parametrized programming,
-geometric programming, mixed-integer convex programs, quasiconvex programs,
-and nonlinear programs.
+to convex programming, CVXPY also supports :doc:`parametrized programming </tutorial/dpp/index>`,
+:doc:`geometric programming </tutorial/dgp/index>`, :ref:`mixed-integer convex programs <mip>`,
+:doc:`quasiconvex programming </tutorial/dqcp/index>`,
+and :doc:`nonlinear programming </tutorial/dnlp/index>`.
 
 For a guided tour of CVXPY, check out the :doc:`tutorial
-</tutorial/index>` (including a tutorial on :doc:`nonlinear programming </tutorial/dnlp/index>`).
-For applications to machine learning, control, finance, and
+</tutorial/index>`. For applications to machine learning, control, finance, and
 more, browse the :doc:`library of examples </examples/index>`.
 For applications that involve nonlinear programming, visit the
 `library of DNLP examples <https://github.com/cvxgrp/dnlp-examples/>`_.
