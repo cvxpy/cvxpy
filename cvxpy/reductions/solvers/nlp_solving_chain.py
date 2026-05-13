@@ -209,12 +209,17 @@ def solve_nlp(problem, solver, warm_start, verbose, **kwargs):
                                                    verbose, solver_opts=kwargs,
                                                    solver_cache=solver_cache)
 
-        # Unpack to get the objective value in the original problem space
+        # unpack to get the objective value in the original problem space.
+        # (+inf for infeasible runs, -inf for unbounded runs)
         problem.unpack_results(solution, nlp_chain, inverse_data)
-        obj_value = problem.objective.value
+        obj_value = problem.value
 
         all_objs[run] = obj_value
-        if obj_value is not None and obj_value < best_obj:
+
+        # always set best_solution with the first run so that even an
+        # all-infeasible best_of has a solution to unpack at the end (its
+        # INFEASIBLE status then propagates through unpack_results).
+        if best_solution is None or obj_value < best_obj:
             best_obj = obj_value
             best_solution = solution
 

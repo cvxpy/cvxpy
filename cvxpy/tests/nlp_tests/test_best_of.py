@@ -114,4 +114,21 @@ class TestBestOf():
         all_objs = prob.solver_stats.extra_stats['all_objs_from_best_of']
         assert len(all_objs) == 3
 
-# TODO add a test that best_of actually caches the sparsity pattern between solves
+    def test_best_of_infeasible_problem(self):
+        # test that if the problem is infeasible, then best_of returns inf as the objective value
+        x = cp.Variable(bounds=[-5, 5])
+        y = cp.Variable(bounds=[-3, 3])
+        constraints = [x + y == 10]
+        obj = cp.Minimize((x - 1) ** 2 + (y - 2) ** 2)
+        prob = cp.Problem(obj, constraints)
+        prob.solve(nlp=True, best_of=20, verbose=True)
+        assert prob.value == float("inf")
+
+    def test_best_of_with_unbounded(self):
+        # test that if the problem is unbounded, then best_of returns -inf as the objective value
+        x = cp.Variable()
+        x.sample_bounds = [-5, 5]
+        obj = cp.Minimize(x)
+        prob = cp.Problem(obj)
+        prob.solve(nlp=True, best_of=20, verbose=True)
+        assert prob.value == float("-inf")
