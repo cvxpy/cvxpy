@@ -430,15 +430,17 @@ class ScalarizeTest(BaseTest):
         self.assertAlmostEqual(float(x.value), 0.0, places=3)
 
         # off_target > priority with quadratic → ValueError (not DCP)
-        with pytest.raises(ValueError, match="neither convex nor concave"):
+        with pytest.raises(ValueError, match="not convex"):
             scalarize.targets_and_priorities([obj], [0.1], [1], off_target=1.0)
 
-        # off_target > priority with affine → concave, returns Maximize
+        # off_target > priority with affine Minimize → ValueError
+        # (the pos() coefficient flips sign, producing a concave expression
+        # that cannot be a Minimize objective).
         obj_aff = cp.Minimize(x)
-        scalarized = scalarize.targets_and_priorities(
-            [obj_aff], [0.1], [1], off_target=1.0
-        )
-        assert isinstance(scalarized, cp.Maximize)
+        with pytest.raises(ValueError, match="not convex"):
+            scalarize.targets_and_priorities(
+                [obj_aff], [0.1], [1], off_target=1.0
+            )
 
     def test_all_negative_priorities(self) -> None:
         """Negative priorities flip all objectives."""
