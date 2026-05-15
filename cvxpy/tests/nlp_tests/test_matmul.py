@@ -68,7 +68,7 @@ class TestMatmul():
         X = np.random.rand(m, n)
         Y = cp.Variable((n, p), bounds=[-2, 2], name='Y')
         Y.value = np.random.rand(n, p)
-        obj = cp.sum(cp.matmul(X, cp.cos(Y)))
+        obj = cp.sum(cp.matmul(X, cp.nlp.cos(Y)))
         problem = cp.Problem(cp.Minimize(obj))
 
         problem.solve(solver=cp.IPOPT, nlp=True, hessian_approximation='exact',
@@ -84,7 +84,7 @@ class TestMatmul():
         X = cp.Variable((m, n), bounds=[-2, 2], name='X')
         Y = np.random.rand(n, p)
         X.value = np.random.rand(m, n)
-        obj = cp.sum(cp.matmul(cp.cos(X), Y))
+        obj = cp.sum(cp.matmul(cp.nlp.cos(X), Y))
         problem = cp.Problem(cp.Minimize(obj))
 
         problem.solve(solver=cp.IPOPT, nlp=True, hessian_approximation='exact',
@@ -101,7 +101,7 @@ class TestMatmul():
         Y = cp.Variable((n, p), bounds=[-2, 2], name='Y')
         X.value = np.random.rand(m, n)
         Y.value = np.random.rand(n, p)
-        obj = cp.sum(cp.matmul(cp.cos(X), cp.sin(Y)))
+        obj = cp.sum(cp.matmul(cp.nlp.cos(X), cp.nlp.sin(Y)))
         problem = cp.Problem(cp.Minimize(obj))
 
         problem.solve(solver=cp.IPOPT, nlp=True, hessian_approximation='exact',
