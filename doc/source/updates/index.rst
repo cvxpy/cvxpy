@@ -42,7 +42,7 @@ allowing efficient re-solves when only ``P``'s value changes.
 
 New features
 ~~~~~~~~~~~~
-  - New solver interface: `PDCS <https://github.com/MIT-Lu-Lab/PDCS>`_
+  - New solver interface: `PDCS <https://github.com/ZikaiXiong/PDCS>`_
   - New tutorial: :ref:`Performance tips <performance>`
   - New page: :doc:`Solver benchmarks </resources/solver_benchmarks/index>`
   - ``a ** x`` now works for positive constant ``a`` (canonicalized via
