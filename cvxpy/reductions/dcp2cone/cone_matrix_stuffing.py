@@ -28,6 +28,7 @@ from cvxpy.constraints import (
     NonNeg,
     PowCone3D,
     PowConeND,
+    SvecPSD,
     Zero,
 )
 from cvxpy.cvxcore.python import canonInterface
@@ -88,7 +89,8 @@ class ConeDims:
         self.nonneg = int(sum(c.size for c in constr_map[NonNeg]))
         self.exp = int(sum(c.num_cones() for c in constr_map[ExpCone]))
         self.soc = [int(dim) for c in constr_map[SOC] for dim in c.cone_sizes()]
-        self.psd = [int(dim) for c in constr_map[PSD] for dim in c.cone_sizes()]
+        psd_constrs = constr_map.get(PSD, []) + constr_map.get(SvecPSD, [])
+        self.psd = [int(dim) for c in psd_constrs for dim in c.cone_sizes()]
         p3d = []
         if constr_map[PowCone3D]:
             p3d = np.concatenate([c.alpha.value for c in constr_map[PowCone3D]]).tolist()
@@ -305,21 +307,12 @@ class ParamConeProg(ParamProb):
         """
         if active_vars is None:
             active_vars = [v.id for v in self.variables]
-        # var id to solution.
         sltn_dict = {}
         for var_id, col in self.var_id_to_col.items():
             if var_id in active_vars:
                 var = self.id_to_var[var_id]
                 value = sltn[col:var.size+col]
-                if var.attributes_were_lowered():
-                    orig_var = var.leaf_of_provenance()
-                    value = cvx_attr2constr.recover_value_for_leaf(
-                        orig_var, value, project=False)
-                    sltn_dict[orig_var.id] = np.reshape(
-                        value, orig_var.shape, order='F')
-                else:
-                    sltn_dict[var_id] = np.reshape(
-                        value, var.shape, order='F')
+                sltn_dict[var_id] = np.reshape(value, var.shape, order='F')
         return sltn_dict
 
     def split_adjoint(self, del_vars=None):
@@ -329,12 +322,6 @@ class ParamConeProg(ParamProb):
         for var_id, delta in del_vars.items():
             var = self.id_to_var[var_id]
             col = self.var_id_to_col[var_id]
-            if var.attributes_were_lowered():
-                orig_var = var.leaf_of_provenance()
-                if cvx_attr2constr.attributes_present(
-                        [orig_var], cvx_attr2constr.SYMMETRIC_ATTRIBUTES):
-                    delta = delta + delta.T - np.diag(np.diag(delta))
-                delta = cvx_attr2constr.lower_value(orig_var, delta)
             var_vec[col:col + var.size] = delta.flatten(order='F')
         return var_vec
 
@@ -420,9 +407,11 @@ class ConeMatrixStuffing(MatrixStuffing):
         # Reorder constraints to Zero, NonNeg, SOC, PSD, EXP, PowCone3D, PowConeND
         constr_map = group_constraints(cons)
         ordered_cons = constr_map[Zero] + constr_map[NonNeg] + \
-            constr_map[SOC] + constr_map[PSD] + constr_map[ExpCone] + \
+            constr_map[SOC] + constr_map.get(PSD, []) + \
+            constr_map.get(SvecPSD, []) + constr_map[ExpCone] + \
             constr_map[PowCone3D] + constr_map[PowConeND]
         inverse_data.cons_id_map = {con.id: con.id for con in ordered_cons}
+        self._cons_id_map = inverse_data.cons_id_map
 
         inverse_data.constraints = ordered_cons
         # Batch expressions together, then split apart.

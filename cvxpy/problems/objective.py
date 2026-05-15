@@ -53,7 +53,7 @@ class Objective(u.Canonical):
 
     def __str__(self) -> str:
         return f'{self.NAME} {self.args[0].name()}'
-    
+
     def format_labeled(self):
         """Format objective with labels where available."""
         return f'{self.NAME} {self.args[0].format_labeled()}'

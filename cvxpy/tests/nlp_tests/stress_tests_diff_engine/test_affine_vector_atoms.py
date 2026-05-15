@@ -127,7 +127,7 @@ class TestAffineDiffEngine:
         assert prob.status == cp.OPTIMAL
         assert np.allclose(x.value, -3, atol=1e-4)
         assert np.allclose(Y.value, -2, atol=1e-4)
-    
+
     def test_promote_add(self):
         # Scalar x, matrix Y, with bounds set via the bounds attribute
         np.random.seed(0)
@@ -144,7 +144,7 @@ class TestAffineDiffEngine:
         assert prob.status == cp.OPTIMAL
         assert np.allclose(x.value, -1, atol=1e-4)
         assert np.allclose(Y.value, 0, atol=1e-4)
-    
+
     def test_reshape(self):
         x = cp.Variable(8, bounds=[-5, 5])
         A = np.random.rand(4, 2)

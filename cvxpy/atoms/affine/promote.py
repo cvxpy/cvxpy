@@ -13,7 +13,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import List, Tuple
 
 import numpy as np
 
@@ -25,7 +24,7 @@ from cvxpy.expressions.expression import Expression
 from cvxpy.utilities import bounds as bounds_utils
 
 
-def promote(expr: Expression, shape: Tuple[int, ...]):
+def promote(expr: Expression, shape: tuple[int, ...]):
     """ Promote a scalar expression to a vector/matrix.
 
     Parameters
@@ -61,7 +60,7 @@ class Promote(AffAtom):
         The shape to promote to.
     """
 
-    def __init__(self, expr, shape: Tuple[int, ...]) -> None:
+    def __init__(self, expr, shape: tuple[int, ...]) -> None:
         self.promoted_shape = shape
         super(Promote, self).__init__(expr)
 
@@ -84,12 +83,12 @@ class Promote(AffAtom):
         """Is the atom log-log concave?"""
         return True
 
-    def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
+    def bounds_from_args(self) -> tuple[np.ndarray, np.ndarray]:
         """Returns bounds for promoted expression."""
         lb, ub = self.args[0].get_bounds()
         return bounds_utils.broadcast_bounds(lb, ub, self.promoted_shape)
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> tuple[int, ...]:
         """Returns the (row, col) shape of the expression.
         """
         return self.promoted_shape
@@ -100,8 +99,8 @@ class Promote(AffAtom):
         return [self.promoted_shape]
 
     def graph_implementation(
-        self, arg_objs, shape: Tuple[int, ...], data=None
-    ) -> Tuple[lo.LinOp, List[Constraint]]:
+        self, arg_objs, shape: tuple[int, ...], data=None
+    ) -> tuple[lo.LinOp, list[Constraint]]:
         """Promote scalar to vector/matrix
 
         Parameters

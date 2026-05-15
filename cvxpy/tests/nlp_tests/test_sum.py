@@ -36,7 +36,7 @@ class TestSumIPOPT:
 
         checker = DerivativeChecker(prob)
         checker.run_and_assert()
-        
+
 
     def test_sum_with_axis(self):
         """Test sum with axis parameter."""
@@ -50,7 +50,7 @@ class TestSumIPOPT:
 
         checker = DerivativeChecker(prob)
         checker.run_and_assert()
-    
+
     def test_two_sum_with_axis(self):
         """Test sum with axis parameter."""
         np.random.seed(0)

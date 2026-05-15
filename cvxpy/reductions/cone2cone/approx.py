@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import List, Tuple
 
 import numpy as np
 
@@ -88,7 +87,7 @@ def rotated_quad_cone(X: cp.Expression, y: cp.Expression, z: cp.Expression):
     return con
 
 
-def RelEntrConeQuad_canon(con: RelEntrConeQuad, args) -> Tuple[Constraint, List[Constraint]]:
+def RelEntrConeQuad_canon(con: RelEntrConeQuad, args) -> tuple[Constraint, list[Constraint]]:
     """
     Use linear and SOC constraints to approximately enforce
         con.x * log(con.x / con.y) <= con.z.
@@ -143,7 +142,7 @@ def RelEntrConeQuad_canon(con: RelEntrConeQuad, args) -> Tuple[Constraint, List[
     return lead_con, constrs
 
 
-def OpRelEntrConeQuad_canon(con: OpRelEntrConeQuad, args) -> Tuple[Constraint, List[Constraint]]:
+def OpRelEntrConeQuad_canon(con: OpRelEntrConeQuad, args) -> tuple[Constraint, list[Constraint]]:
     k, m = con.k, con.m
     X, Y = con.X, con.Y
     assert X.is_real()

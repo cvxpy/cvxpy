@@ -154,7 +154,7 @@ class TestEntropy():
         # point that is not the global minimizer
         X.value = np.random.rand(n, k)
         Y.value = np.random.rand(k, m)
-        
+
         # graph form
         T = cp.Variable((n, m))
         obj = cp.sum(cp.kl_div(A, T))

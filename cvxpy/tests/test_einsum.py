@@ -133,7 +133,7 @@ class TestEinsum(BaseTest):
         C = cp.Parameter(self.C_np.shape)
         D = cp.Variable(self.D_np.shape)
         E = cp.Variable(self.E_np.shape)
-        
+
         with self.assertRaises(ValueError) as cm:
             cp.einsum('ij,jk->ik', A)  # Missing B
         self.assertIn("Number of einsum subscripts must be equal", str(cm.exception))

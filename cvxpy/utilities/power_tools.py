@@ -39,7 +39,7 @@ def gm(t, x, y):
 
 def powcone_constrs(t, x_list, p):
     # We just need a single power cone constraint here.
-    
+
     constraints = [PowCone3D(x_list[0], x_list[1], t, p)]
     return constraints
 
@@ -145,7 +145,7 @@ def pow_neg(p, max_denom: int = 1024, approx: bool = True):
         p = Fraction(p)
         p = Fraction(p/(p-1)).limit_denominator(max_denom)
         return p/(p-1), (p, 1-p)
-    
+
     return p, (p/(p-1), -1/(p-1))
 
 

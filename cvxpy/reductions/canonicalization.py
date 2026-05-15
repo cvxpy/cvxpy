@@ -71,6 +71,7 @@ class Canonicalization(Reduction):
 
         new_problem = problems.problem.Problem(canon_objective,
                                                canon_constraints)
+        self._cons_id_map = inverse_data.cons_id_map
         return new_problem, inverse_data
 
     def invert(self, solution, inverse_data):
@@ -88,12 +89,12 @@ class Canonicalization(Reduction):
 
     def canonicalize_tree(self, expr, canonicalize_params: bool = True):
         """Recursively canonicalize an Expression.
-        
+
         Args:
             expr: Expression to canonicalize.
             canonicalize_params: Should constant subtrees
                 containing parameters be canonicalized?
-        
+
         Returns:
             canonicalized expression, constraints
         """
@@ -132,13 +133,13 @@ class Canonicalization(Reduction):
             canonicalize_params: bool = True
         ):
         """Canonicalize an expression, w.r.t. canonicalized arguments.
-        
+
         Args:
             expr: Expression to canonicalize.
             args: Arguments to the expression.
             canonicalize_params: Should constant subtrees
                 containing parameters be canonicalized?
-        
+
         Returns:
             canonicalized expression, constraints
         """
@@ -154,6 +155,9 @@ class Canonicalization(Reduction):
         if skip_canon:
             return expr, []
         if type(expr) in self.canon_methods:
-            return self.canon_methods[type(expr)](expr, args)
+            kwargs = {}
+            if hasattr(self, 'solver_context'):
+                kwargs['solver_context'] = self.solver_context
+            return self.canon_methods[type(expr)](expr, args, **kwargs)
         else:
             return expr.copy(args), []

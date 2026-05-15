@@ -25,11 +25,11 @@ from cvxpy.tests.nlp_tests.derivative_checker import DerivativeChecker
 
 @pytest.mark.skipif('IPOPT' not in INSTALLED_SOLVERS, reason='IPOPT is not installed.')
 class TestMultiplyDifferentFormats:
-    
+
     def test_dense_sparse_sparse(self):
         np.random.seed(0)
         n = 5
-       
+
         # dense
         x = cp.Variable((n, n), bounds=[-2, 2])
         A = np.random.rand(n, n) - 0.5
@@ -65,4 +65,4 @@ class TestMultiplyDifferentFormats:
         prob.solve(nlp=True, verbose=False)
         assert np.allclose(x.value[(A > 0).todense()], -2)
         assert np.allclose(x.value[(A < 0).todense()], 2)
-            
+

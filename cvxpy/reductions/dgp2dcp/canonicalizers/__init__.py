@@ -196,11 +196,10 @@ class DgpCanonMethods(dict):
             constrs.extend(aux_lb)
             log_ub, aux_ub = self._log_transform_bound(bounds[1])
             constrs.extend(aux_ub)
-            log_variable = Variable(variable.shape, var_id=variable.id,
+            log_variable = Variable(variable.shape,
                                     bounds=[log_lb, log_ub], **dim_attrs)
         else:
-            log_variable = Variable(variable.shape, var_id=variable.id,
-                                    **dim_attrs)
+            log_variable = Variable(variable.shape, **dim_attrs)
         self._variables[variable] = log_variable
         return log_variable, constrs
 

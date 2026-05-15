@@ -62,13 +62,17 @@ For example, the following code solves a least-squares problem with box constrai
     print(constraints[0].dual_value)
 
 This short script is a basic example of what CVXPY can do. In addition
-to convex programming, CVXPY also supports a generalization of geometric
-programming, mixed-integer convex programs, and quasiconvex programs.
+to convex programming, CVXPY also supports :doc:`parametrized programming </tutorial/dpp/index>`,
+:doc:`geometric programming </tutorial/dgp/index>`, :ref:`mixed-integer convex programs <mip>`,
+:doc:`quasiconvex programming </tutorial/dqcp/index>`,
+and :doc:`nonlinear programming </tutorial/dnlp/index>`.
 
 For a guided tour of CVXPY, check out the :doc:`tutorial
 </tutorial/index>`. For applications to machine learning, control, finance, and
-more, browse the :doc:`library of examples </examples/index>`. For
-background on convex optimization, see the book `Convex Optimization
+more, browse the :doc:`library of examples </examples/index>`.
+For applications that involve nonlinear programming, visit the
+`library of DNLP examples <https://github.com/cvxgrp/dnlp-examples/>`_.
+For background on convex optimization, see the book `Convex Optimization
 <https://www.stanford.edu/~boyd/cvxbook/>`_ by Boyd and Vandenberghe.
 
 CVXPY relies on the open source solvers `Clarabel`_, `OSQP`_, `SCS`_, `HIGHS`_.

@@ -407,6 +407,33 @@ class TestBoundsUtilityFunctions:
         assert np.allclose(lb, [5, 12])
         assert np.allclose(ub, [21, 32])
 
+    def test_mul_bounds_zero_times_inf(self) -> None:
+        """Test mul_bounds handles 0 * inf correctly (should be 0, not NaN)."""
+        from cvxpy.utilities.bounds import mul_bounds
+        # [0, inf] * [0, inf] should give [0, inf], not [NaN, inf]
+        lb, ub = mul_bounds(
+            np.array([0.0]), np.array([np.inf]),
+            np.array([0.0]), np.array([np.inf]),
+        )
+        assert lb == 0.0
+        assert ub == np.inf
+
+        # [0, 1] * [-inf, inf] should give [-inf, inf], not [NaN, NaN]
+        lb, ub = mul_bounds(
+            np.array([0.0]), np.array([1.0]),
+            np.array([-np.inf]), np.array([np.inf]),
+        )
+        assert lb == -np.inf
+        assert ub == np.inf
+
+        # [-inf, 0] * [0, inf] should give [-inf, 0]
+        lb, ub = mul_bounds(
+            np.array([-np.inf]), np.array([0.0]),
+            np.array([0.0]), np.array([np.inf]),
+        )
+        assert lb == -np.inf
+        assert ub == 0.0
+
     @pytest.mark.parametrize("lb1,ub1,lb2,ub2,expected_lb,expected_ub,unbounded", [
         ([2, 4], [6, 8], [1, 2], [2, 4], [1, 1], [6, 4], False),
         ([1], [2], [-1], [1], None, None, True),  # divisor spans zero

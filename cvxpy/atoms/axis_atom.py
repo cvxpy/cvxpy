@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import Tuple
 
 import numpy as np
 import scipy.sparse as sp
@@ -52,7 +51,7 @@ class AxisAtom(Atom):
     _reduce_all_axes_to_none = True
 
     def __init__(
-        self, expr, axis: None | int | tuple[int, ...] = None, keepdims: bool = False
+        self, expr, axis: int | tuple[int, ...] | None = None, keepdims: bool = False
     ) -> None:
         self.axis = axis
         self.keepdims = keepdims
@@ -65,7 +64,7 @@ class AxisAtom(Atom):
                     self.axis, ndim, self._reduce_all_axes_to_none
                 )
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> tuple[int, ...]:
         """
         Returns the shape of the atom after applying a function along an axis.
         Handles negative axis inputs by normalizing them to positive indices.

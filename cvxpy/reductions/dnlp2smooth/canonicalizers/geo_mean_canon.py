@@ -32,7 +32,7 @@ def geo_mean_canon(expr, args):
 
     if args[0].value is not None:
         t.value = np.max((expr.numeric(args[0].value), MIN_INIT))
-    
+
     weights = np.array([float(w) for w in expr.w])
     log_expr = log(args[0])
     var, constr = log_canon(log_expr, expr.args)

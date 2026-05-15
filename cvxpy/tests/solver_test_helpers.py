@@ -49,7 +49,7 @@ class SolverTestHelper:
             elif attrs['imag']:
                 all_cons.append(x + cp.conj(x) == 0)
             elif attrs['symmetric']:
-                all_cons.append(x == x.T)
+                all_cons.append(x == cp.swapaxes(x, -2, -1))
             elif attrs['diag']:
                 all_cons.append(x - cp.diag(cp.diag(x)) == 0)
             elif attrs['PSD']:
@@ -57,14 +57,14 @@ class SolverTestHelper:
             elif attrs['NSD']:
                 all_cons.append(x << 0)
             elif attrs['hermitian']:
-                all_cons.append(x == cp.conj(x.T))
+                all_cons.append(x == cp.conj(cp.swapaxes(x, -2, -1)))
             elif attrs['boolean'] or attrs['integer']:
                 round_val = np.round(x.value)
                 all_cons.append(x == round_val)
         for con in all_cons:
             viol = con.violation()
             if isinstance(viol, np.ndarray):
-                viol = np.linalg.norm(viol, ord=2)
+                viol = np.linalg.norm(viol)
             self.tester.assertAlmostEqual(viol, 0, places)
 
     def check_dual_domains(self, places) -> None:
@@ -79,6 +79,8 @@ class SolverTestHelper:
                 dual_violation = con.dual_residual
                 if isinstance(con, cp.constraints.SOC):
                     dual_violation = np.linalg.norm(dual_violation)
+                if isinstance(dual_violation, np.ndarray):
+                    dual_violation = np.max(dual_violation)
                 self.tester.assertLessEqual(dual_violation, 10**(-places))
             elif isinstance(con, cp.constraints.Inequality):
                 # TODO: move this to Inequality.dual_violation
@@ -577,6 +579,38 @@ def sdp_2() -> SolverTestHelper:
     obj_pair = (obj_expr, 52.40127214)
     sth = SolverTestHelper(obj_pair, var_pairs, con_pairs)
     return sth
+
+
+def sdp_batched() -> SolverTestHelper:
+    """
+    Batched PSD constraint: a single Variable of shape (2, 3, 3) constrained
+    to be PSD along the last two axes.
+
+    Equivalent to two independent 3x3 SDP problems packed into one constraint.
+
+    Batch 0: minimize trace(X[0])  s.t. X[0] >> 0, X[0][0,1] >= 1
+      Optimal X[0] has X[0][0,1] = X[0][1,0] = 1, diagonal = [1, 1, 0],
+      giving trace = 2.
+
+    Batch 1: minimize trace(X[1])  s.t. X[1] >> 0, X[1][1,2] >= 2
+      Optimal X[1] has X[1][1,2] = X[1][2,1] = 2, diagonal = [0, 4, 4] (minimum trace PSD),
+      but more precisely the minimum-trace PSD matrix with off-diagonal entry 2 is
+      [[0,0,0],[0,a,2],[0,2,b]] with a*b >= 4, trace = a+b >= 2*sqrt(4) = 4, achieved at a=b=2.
+      So trace = 4.
+
+    Total objective = 2 + 4 = 6.
+    """
+    X = cp.Variable(shape=(2, 3, 3), symmetric=True)
+    constraints = [
+        X >> 0,
+        X[0, 0, 1] >= 1,
+        X[1, 1, 2] >= 2,
+    ]
+    obj = cp.Minimize(cp.trace(X[0]) + cp.trace(X[1]))
+    obj_pair = (obj, 6.0)
+    var_pairs = [(X, None)]
+    con_pairs = [(c, None) for c in constraints]
+    return SolverTestHelper(obj_pair, var_pairs, con_pairs)
 
 
 def expcone_1() -> SolverTestHelper:
@@ -1400,6 +1434,18 @@ class StandardTestSDPs:
         sth.verify_objective(places)
         sth.check_primal_feasibility(places)
         sth.verify_primal_values(places)
+        if duals:
+            sth.check_complementarity(places)
+            sth.check_dual_domains(places)
+        return sth
+
+    @staticmethod
+    def test_sdp_batched(solver, places: int = 3, duals: bool = True,
+                         **kwargs) -> SolverTestHelper:
+        sth = sdp_batched()
+        sth.solve(solver, **kwargs)
+        sth.verify_objective(places)
+        sth.check_primal_feasibility(places)
         if duals:
             sth.check_complementarity(places)
             sth.check_dual_domains(places)

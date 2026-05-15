@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import List, Tuple
 
 from cvxpy.atoms.affine.bmat import bmat
 from cvxpy.atoms.affine.trace import trace
@@ -25,7 +24,7 @@ from cvxpy.utilities.solver_context import SolverInfo
 
 def normNuc_canon(
     expr, args, solver_context: SolverInfo | None = None
-) -> Tuple[float, List[Constraint]]:
+) -> tuple[float, list[Constraint]]:
     A = args[0]
     m, n = A.shape
     # Create the equivalent problem:

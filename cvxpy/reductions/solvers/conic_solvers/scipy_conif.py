@@ -282,7 +282,7 @@ class SCIPY(ConicSolver):
                     inverse_data[self.NEQ_CONSTR])
                 eq_dual.update(leq_dual)
                 dual_vars = eq_dual
-            
+
             attr = {}
             if "nit" in solution: # Number of interior-point or simplex iterations
                 attr[s.NUM_ITERS] = solution['nit']
@@ -294,7 +294,7 @@ class SCIPY(ConicSolver):
             return Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
             return failure_solution(status)
-    
+
     def cite(self, data):
         """Returns bibtex citation for the solver.
 

@@ -32,7 +32,7 @@ jobs:
           python-version: 3.12
           enable-cache: true
       - name: Setup Julia
-        uses: julia-actions/setup-julia@v2
+        uses: julia-actions/setup-julia@v3
         with:
           version: 'lts'
       - name: Install COSMO

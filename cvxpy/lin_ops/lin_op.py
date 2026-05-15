@@ -16,13 +16,12 @@ limitations under the License.
 THIS FILE IS DEPRECATED AND MAY BE REMOVED WITHOUT WARNING!
 DO NOT CALL THESE FUNCTIONS IN YOUR CODE!
 """
-from typing import Tuple
 
 
 # A linear operator applied to a variable
 # or a constant or function of parameters.
 class LinOp:
-    def __init__(self, type, shape: Tuple[int, ...], args, data) -> None:
+    def __init__(self, type, shape: tuple[int, ...], args, data) -> None:
         self.type = type
         self.shape = shape
         self.args = args

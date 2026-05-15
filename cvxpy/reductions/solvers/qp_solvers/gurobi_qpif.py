@@ -54,8 +54,7 @@ class GUROBI(QpSolver):
         return s.GUROBI
 
     def import_solver(self) -> None:
-        import gurobipy
-        gurobipy
+        import gurobipy  # noqa: F401
 
     def apply(self, problem):
         """

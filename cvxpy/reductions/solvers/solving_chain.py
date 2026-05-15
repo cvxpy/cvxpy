@@ -170,6 +170,8 @@ def _build_solving_chain(
         solver=solver_instance.name(),
         supported_constraints=supported,
         supports_bounds=solver_instance.BOUNDED_VARIABLES,
+        psd_triangle_kind=solver_instance.PSD_TRIANGLE_KIND,
+        psd_sqrt2_scaling=solver_instance.PSD_SQRT2_SCALING,
     )
 
     # --- Pre-canonicalization reductions (problem + gp only) ---
@@ -186,7 +188,15 @@ def _build_solving_chain(
 
     # --- DPP handling ---
     dpp_context = 'dcp' if not gp else 'dgp'
-    if ignore_dpp or not problem.is_dpp(dpp_context):
+    # For QP/conic-QP solvers, we can loosen the DPP rules for quad_form
+    # in the objective. These solvers accept quadratic objectives directly
+    # (P matrix), so the mapping from parameters to problem data (P, q) stays
+    # linear — the standard DPP requirement. Constraint quad_forms still go
+    # through the conic canonicalizer which bakes in numeric Cholesky factors,
+    # so parametric P in constraints is NOT DPP-safe for the QP path.
+    quad_form_dpp = 'qp' if solver_instance.supports_quad_obj() else None
+    is_dpp = problem.is_dpp(dpp_context, quad_form_dpp=quad_form_dpp)
+    if ignore_dpp or not is_dpp:
         if not ignore_dpp and enforce_dpp:
             raise DPPError(DPP_ERROR_MSG)
         if not ignore_dpp:
@@ -211,13 +221,14 @@ def _build_solving_chain(
 
     reductions.append(Dcp2Cone(quad_obj=quad_obj, solver_context=solver_context))
 
-    if exact_targets:
-        reductions.append(ExactCone2Cone(target_cones=exact_targets))
-    if approx_targets:
-        reductions.append(ApproxCone2Cone(target_cones=approx_targets))
-
     reductions.append(
         CvxAttr2Constr(reduce_bounds=not solver_instance.BOUNDED_VARIABLES))
+
+    if exact_targets:
+        reductions.append(ExactCone2Cone(target_cones=exact_targets,
+                                         solver_context=solver_context))
+    if approx_targets:
+        reductions.append(ApproxCone2Cone(target_cones=approx_targets))
     reductions.append(EliminateZeroSized())
 
     if solver_instance.SOC_DIM3_ONLY and SOC in cones:

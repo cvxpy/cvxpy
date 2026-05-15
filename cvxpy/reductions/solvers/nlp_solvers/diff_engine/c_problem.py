@@ -57,7 +57,7 @@ class C_problem:
     def gradient(self) -> np.ndarray:
         """Compute gradient of objective. Call objective_forward first. Returns gradient array."""
         return _diffengine.problem_gradient(self._capsule)
-    
+
     def get_jacobian_sparsity_coo(self) -> tuple[np.ndarray, np.ndarray]:
         """Return the sparsity pattern (row, col) of the constraint Jacobian.
 
@@ -74,7 +74,7 @@ class C_problem:
         Call constraint_forward() first to set the evaluation point.
         """
         return _diffengine.problem_eval_jacobian_vals(self._capsule)
-    
+
     def get_problem_hessian_sparsity_coo(self) -> tuple[np.ndarray, np.ndarray]:
         """Return the sparsity pattern (row, col) of the lower-triangular Lagrangian Hessian.
 
@@ -96,4 +96,4 @@ class C_problem:
         Call objective_forward() and constraint_forward() first to set the evaluation point.
         """
         return _diffengine.problem_eval_hessian_vals_coo(self._capsule, obj_factor, lagrange)
-    
+

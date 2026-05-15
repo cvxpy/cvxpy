@@ -71,6 +71,7 @@ class CUOPT(ConicSolver):
             MILPTerminationStatus.Infeasible: s.INFEASIBLE,
             MILPTerminationStatus.Unbounded: s.UNBOUNDED,
             MILPTerminationStatus.TimeLimit: s.USER_LIMIT,
+            MILPTerminationStatus.UnboundedOrInfeasible: s.INFEASIBLE_OR_UNBOUNDED,
         }
         return STATUS_MAP_MIP[cuopt_status]
 
@@ -84,6 +85,7 @@ class CUOPT(ConicSolver):
             LPTerminationStatus.IterationLimit: s.USER_LIMIT,
             LPTerminationStatus.TimeLimit: s.USER_LIMIT,
             LPTerminationStatus.PrimalFeasible: s.USER_LIMIT,
+            LPTerminationStatus.UnboundedOrInfeasible: s.INFEASIBLE_OR_UNBOUNDED,
         }
         return STATUS_MAP_LP[cuopt_status]
 

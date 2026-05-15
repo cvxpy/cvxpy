@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import List, Optional
 
 import numpy as np
 
@@ -56,7 +55,7 @@ class SOC(Cone):
         return "SOC(%s, %s)" % (self.args[0], self.args[1])
 
     @property
-    def residual(self) -> Optional[np.ndarray]:
+    def residual(self) -> np.ndarray | None:
         """
         For each cone, returns:
 
@@ -145,7 +144,7 @@ class SOC(Cone):
         """
         return self._cone_size() * self.num_cones()
 
-    def cone_sizes(self) -> List[int]:
+    def cone_sizes(self) -> list[int]:
         """The dimensions of the second-order cones.
 
         Returns

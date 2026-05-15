@@ -545,7 +545,7 @@ class TestAtoms(BaseTest):
 
     def test_multiply_hermitian(self) -> None:
         """Test that Hermitian property is preserved in multiplication."""
-        
+
         # Test real scalar multiplication
         X = cp.Variable((3, 3), hermitian=True)
         self.assertTrue((1 * X).is_hermitian())
@@ -593,14 +593,14 @@ class TestAtoms(BaseTest):
         atom = cp.hstack([self.A, self.B])
         self.assertEqual(atom.name(), "Hstack(A, B)")
         self.assertEqual(atom.shape, (2, 4))
-        
+
         # Extracting columns produces 1D arrays, so hstack concatenates to (4,)
         entries = []
         for i in range(self.A.shape[1]):
             entries.append(self.A[:, i])
         atom = cp.hstack(entries)
         self.assertEqual(atom.shape, (4,))
-        
+
         with self.assertRaises(ValueError):
             cp.hstack([self.C, self.A])
 

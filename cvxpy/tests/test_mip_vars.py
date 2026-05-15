@@ -136,7 +136,7 @@ class TestMIPVariable(BaseTest):
         self.assertAlmostEqual(prob.value, 5.0)
         # Verify the solution is integer
         self.assertTrue(np.allclose(x.value, np.round(x.value)))
-        
+
     def test_milp_no_warning(self) -> None:
         """Test that MILP problems don't raise a warning.
 
@@ -161,7 +161,7 @@ class TestMIPVariable(BaseTest):
                              "MILP should not raise MINLP warning")
 
         self.assertEqual(prob.status, cp.OPTIMAL)
-        
+
     def test_miqp_warning(self) -> None:
         """Test that MIQP problems raise a warning about not being LP.
 
@@ -190,7 +190,7 @@ class TestMIPVariable(BaseTest):
                                "MIQP should raise MINLP warning")
             self.assertIn("pyscipopt",
                           str(minlp_warnings[0].message))
-            
+
     def test_highs_milp_simple(self) -> None:
         """Test a simple MILP problem solves correctly with default solver.
 

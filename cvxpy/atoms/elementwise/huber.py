@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import Tuple
 
 import numpy as np
 import scipy.special
@@ -58,7 +57,7 @@ class huber(Elementwise):
         """Returns the huber function applied elementwise to x."""
         return 2 * scipy.special.huber(self.M.value, values[0])
 
-    def sign_from_args(self) -> Tuple[bool, bool]:
+    def sign_from_args(self) -> tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression."""
         # Always positive.
         return (True, False)
