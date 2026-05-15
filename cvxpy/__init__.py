@@ -64,6 +64,7 @@ from cvxpy.transforms import (
     suppfunc as suppfunc,
 )
 from cvxpy import logic as logic
+from cvxpy import nlp as nlp
 from cvxpy.reductions.solvers.defines import installed_solvers as installed_solvers
 from cvxpy.settings import (
     CBC as CBC,

@@ -1542,15 +1542,18 @@ class TestProblem(BaseTest):
             self.assertIsNotNone(Problem(cp.Minimize(
                 cp.sum_squares(cp.matmul(A, cp.Variable(40)) - b))).solve(
                 solver_path=solvers))
-
+        # valid input, non-optimal first solver falls back to next solver
+        problem = Problem(cp.Minimize(
+            cp.sum_squares(cp.matmul(A, cp.Variable(40)) - b)))
+        problem.solve(solver_path=[(s.OSQP, {'max_iter': 1}), s.CLARABEL])
+        self.assertEqual(problem.solver_stats.solver_name, s.CLARABEL)
+        self.assertEqual(problem.status, s.OPTIMAL)
         # valid input, raise SolverError
         solvers = [(s.OSQP, {'max_iter':1})]
-
         with self.assertRaises(SolverError):
             Problem(cp.Minimize(cp.quad_form(cp.Variable(1) + 1, np.array([[-1]]), True))).solve(
                 solver_path=solvers
             )
-
         # invalid input, raise ValueError
         solvers_invalid_inner_input = [{'str':{}}, 'str', [], [1], [()], [(1)], [(1,{})],
                                         [(s.OSQP,[])], [(s.OSQP,)]]
