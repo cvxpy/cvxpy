@@ -113,7 +113,7 @@ CVXPY currently supports four NLP solvers:
 `IPOPT <https://github.com/coin-or/Ipopt>`_,
 `KNITRO <https://www.artelys.com/solvers/knitro/>`_,
 `UNO <https://github.com/cvanaret/Uno>`_, and
-`COPT <https://www.copt.com/>`_.
+`COPT <https://www.shanshu.ai/copt>`_.
 For a complete list of changes, see the :doc:`changelog </updates/index>`.
 
 .. _Clarabel: https://github.com/oxfordcontrol/Clarabel.rs
