@@ -575,7 +575,14 @@ class Problem(u.Canonical):
                             self, *args, solver=solver_name, **solver_kwargs, **kwargs)
                 else:
                     raise ValueError(ENTRY_ERROR_MSG)
-                s.LOGGER.info("Solver %s succeeds", solver_name)
+                if self.status == s.OPTIMAL:
+                    s.LOGGER.info("Solver %s succeeds", solver_name)
+                else:
+                    s.LOGGER.info("Solver %s returned non-optimal status %s",
+                                  solver_name,
+                                  self.status
+                                  )
+                    continue
                 return solution
             except error.SolverError as e:
                 s.LOGGER.info("Solver %s failed: %s", solver_name, e)
