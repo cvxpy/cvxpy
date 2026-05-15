@@ -67,7 +67,7 @@ class TestMatmul():
         X = np.random.rand(m, n)
         Y = cp.Variable((n, p), bounds=[-2, 2], name='Y')
         Y.value = np.random.rand(n, p)
-        obj = cp.sum(cp.matmul(X, cp.cos(Y)))
+        obj = cp.sum(cp.matmul(X, cp.nlp.cos(Y)))
         problem = cp.Problem(cp.Minimize(obj))
 
         problem.solve(solver=cp.IPOPT, nlp=True, hessian_approximation='exact',
@@ -83,7 +83,7 @@ class TestMatmul():
         X = cp.Variable((m, n), bounds=[-2, 2], name='X')
         Y = np.random.rand(n, p)
         X.value = np.random.rand(m, n)
-        obj = cp.sum(cp.matmul(cp.cos(X), Y))
+        obj = cp.sum(cp.matmul(cp.nlp.cos(X), Y))
         problem = cp.Problem(cp.Minimize(obj))
 
         problem.solve(solver=cp.IPOPT, nlp=True, hessian_approximation='exact',
@@ -100,7 +100,7 @@ class TestMatmul():
         Y = cp.Variable((n, p), bounds=[-2, 2], name='Y')
         X.value = np.random.rand(m, n)
         Y.value = np.random.rand(n, p)
-        obj = cp.sum(cp.matmul(cp.cos(X), cp.sin(Y)))
+        obj = cp.sum(cp.matmul(cp.nlp.cos(X), cp.nlp.sin(Y)))
         problem = cp.Problem(cp.Minimize(obj))
 
         problem.solve(solver=cp.IPOPT, nlp=True, hessian_approximation='exact',
@@ -117,7 +117,7 @@ class TestMatmul():
         a = np.random.rand(n)
         X = cp.Variable((n, p), bounds=[-1, 1], name='X')
         X.value = np.random.rand(n, p)
-        obj = cp.sum(a @ cp.sin(X))
+        obj = cp.sum(a @ cp.nlp.sin(X))
         problem = cp.Problem(cp.Minimize(obj))
 
         problem.solve(solver=cp.IPOPT, nlp=True, verbose=False)
@@ -133,7 +133,7 @@ class TestMatmul():
         b = np.random.rand(n)
         X = cp.Variable((m, n), bounds=[-1, 1], name='X')
         X.value = np.random.rand(m, n)
-        obj = cp.sum(cp.sin(X) @ b)
+        obj = cp.sum(cp.nlp.sin(X) @ b)
         problem = cp.Problem(cp.Minimize(obj))
 
         problem.solve(solver=cp.IPOPT, nlp=True, verbose=False)
@@ -149,7 +149,7 @@ class TestMatmul():
         a = np.random.rand(n)
         x = cp.Variable(n, bounds=[-1, 1], name='x')
         x.value = np.random.rand(n)
-        obj = a @ cp.sin(x)
+        obj = a @ cp.nlp.sin(x)
         problem = cp.Problem(cp.Minimize(obj))
 
         problem.solve(solver=cp.IPOPT, nlp=True, verbose=False)
@@ -171,8 +171,8 @@ class TestMatmul():
 
         # Solve with hardcoded values.
         x = cp.Variable(m, bounds=[-1, 1], name='x')
-        prob1 = cp.Problem(cp.Minimize(cp.sum(A1.T @ cp.sin(x))))
-        prob2 = cp.Problem(cp.Minimize(cp.sum(A2.T @ cp.sin(x))))
+        prob1 = cp.Problem(cp.Minimize(cp.sum(A1.T @ cp.nlp.sin(x))))
+        prob2 = cp.Problem(cp.Minimize(cp.sum(A2.T @ cp.nlp.sin(x))))
         x.value = None
         prob1.solve(solver=cp.IPOPT, nlp=True, verbose=False)
         assert prob1.status == cp.OPTIMAL
@@ -184,7 +184,7 @@ class TestMatmul():
 
         # Solve with a parameter, then update its value and re-solve.
         A = cp.Parameter((m, p), value=A1)
-        prob = cp.Problem(cp.Minimize(cp.sum(A.T @ cp.sin(x))))
+        prob = cp.Problem(cp.Minimize(cp.sum(A.T @ cp.nlp.sin(x))))
         x.value = None
         prob.solve(solver=cp.IPOPT, nlp=True, verbose=False)
         assert prob.status == cp.OPTIMAL

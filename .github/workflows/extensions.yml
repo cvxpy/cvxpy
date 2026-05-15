@@ -1,4 +1,4 @@
-name: test_cvxpygen
+name: test_extensions
 
 on:
     pull_request:
@@ -21,14 +21,26 @@ jobs:
         run: |
           sudo apt update
           sudo apt install libeigen3-dev
-      - name: Install cvxpy and CVXPYgen
+      - name: Install CVXPY
         run: |
-          uv venv
+          uv venv --seed
           uv pip install .
+      - name: Install CVXPYlayers
+        run: |
+          git clone https://github.com/cvxpy/cvxpylayers.git
+          cd cvxpylayers
+          uv pip install ".[torch, jax]"
+          uv pip install "mlx[cpu]" "mpax"
+      - name: Install CVXPYgen
+        run: |
           git clone --recurse-submodules https://github.com/cvxgrp/cvxpygen.git
           cd cvxpygen
           uv pip install .[dev]
-          uv pip install cvxpylayers==0.1.9 "torch>=2.3" jax==0.5.3
+      - name: Run CVXPYlayers tests
+        run: |
+          uv run --no-sync pytest cvxpylayers/tests \
+            --ignore=cvxpylayers/tests/test_cuclarabel.py
       - name: Run CVXPYgen tests
+        if: success() || failure()
         run: |
           uv run --no-sync pytest cvxpygen/tests

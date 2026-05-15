@@ -17,7 +17,6 @@ limitations under the License.
 
 import numpy as np
 import scipy.sparse as sp
-from scipy import linalg as LA
 
 from cvxpy.atoms.affine.wraps import psd_wrap
 from cvxpy.atoms.atom import Atom
@@ -25,7 +24,7 @@ from cvxpy.expressions.constants.parameter import is_param_affine, is_param_free
 from cvxpy.expressions.expression import Expression
 from cvxpy.interface.matrix_utilities import is_sparse
 from cvxpy.utilities import scopes
-from cvxpy.utilities.linalg import sparse_cholesky
+from cvxpy.utilities.linalg import dense_ldl_decomp, sparse_cholesky
 from cvxpy.utilities.warn import warn
 
 
@@ -264,27 +263,7 @@ def decomp_quad(P, cond=None, rcond=None, lower=True, check_finite: bool = True)
                 return 1.0, np.empty((0, 0)), L[p, :]
         except ValueError:
             P = P.toarray()  # make dense (needs to happen for ldl).
-    lu, d, _perm = LA.ldl(P, lower=lower, check_finite=check_finite)
-
-    # Extract effective diagonal values from D, handling any 2x2 blocks.
-    # For PSD/NSD matrices D is diagonal (no 2x2 blocks). For indefinite
-    # matrices, Bunch-Kaufman pivoting may introduce 2x2 blocks which we
-    # resolve by batching all 2x2 blocks into a single eigh call.
-    sub_diag = np.diag(d, -1)
-    block_starts = np.nonzero(sub_diag)[0]
-    diag_vals = np.real(np.diag(d)).copy()
-    if len(block_starts) > 0:
-        bs = block_starts
-        idx = bs[:, None] + np.arange(2)[None, :]  # (k, 2)
-        blocks = d[idx[:, :, None], idx[:, None, :]]  # (k, 2, 2)
-        eigvals, eigvecs = np.linalg.eigh(blocks)  # (k, 2), (k, 2, 2)
-        diag_vals[bs] = eigvals[:, 0]
-        diag_vals[bs + 1] = eigvals[:, 1]
-        # Apply eigenvector rotations to lu columns
-        lu_i = lu[:, bs].copy()
-        lu_ip1 = lu[:, bs + 1].copy()
-        lu[:, bs] = lu_i * eigvecs[:, 0, 0] + lu_ip1 * eigvecs[:, 1, 0]
-        lu[:, bs + 1] = lu_i * eigvecs[:, 0, 1] + lu_ip1 * eigvecs[:, 1, 1]
+    diag_vals, lu = dense_ldl_decomp(P, lower=lower, check_finite=check_finite)
 
     if rcond is not None:
         cond = rcond

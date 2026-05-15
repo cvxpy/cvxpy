@@ -28,7 +28,7 @@ class TestNormalCdf:
     def test_normcdf(self):
         np.random.seed(0)
         x = cp.Variable()
-        obj = cp.normcdf((x - 1) ** 2)
+        obj = cp.nlp.normcdf((x - 1) ** 2)
         prob = cp.Problem(cp.Minimize(obj))
         prob.solve(nlp=True, verbose=True)
         checker = DerivativeChecker(prob)
@@ -39,7 +39,7 @@ class TestNormalCdf:
     def test_normcdf_with_quadratic(self):
         x = cp.Variable()
         lmbda = 1.0
-        obj = cp.normcdf(x) - lmbda * x ** 2
+        obj = cp.nlp.normcdf(x) - lmbda * x ** 2
         prob = cp.Problem(cp.Maximize(obj))
         prob.solve(nlp=True, verbose=True)
         checker = DerivativeChecker(prob)

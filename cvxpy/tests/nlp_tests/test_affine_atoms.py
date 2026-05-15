@@ -30,7 +30,7 @@ class TestAffineAtoms:
         m, n = 3, 4
         X = cp.Variable((m, n), bounds=[-1, 1], name='X')
         X.value = np.random.rand(m, n)
-        obj = cp.sum(cp.reshape(cp.sin(X), (m * n,), order='C'))
+        obj = cp.sum(cp.reshape(cp.nlp.sin(X), (m * n,), order='C'))
         problem = cp.Problem(cp.Minimize(obj))
 
         problem.solve(solver=cp.IPOPT, nlp=True, verbose=False)
@@ -45,7 +45,7 @@ class TestAffineAtoms:
         n = 5
         x = cp.Variable(n, bounds=[-1, 1], name='x')
         x.value = np.random.rand(n)
-        stacked = cp.vstack([cp.sin(x), cp.cos(x)])
+        stacked = cp.vstack([cp.nlp.sin(x), cp.nlp.cos(x)])
         obj = cp.sum(stacked)
         problem = cp.Problem(cp.Minimize(obj))
 
@@ -61,7 +61,7 @@ class TestAffineAtoms:
         n = 4
         X = cp.Variable((n, n), bounds=[-1, 1], name='X')
         X.value = np.random.rand(n, n)
-        obj = cp.sum(cp.upper_tri(cp.sin(X)))
+        obj = cp.sum(cp.upper_tri(cp.nlp.sin(X)))
         problem = cp.Problem(cp.Minimize(obj))
 
         problem.solve(solver=cp.IPOPT, nlp=True, verbose=False)
@@ -76,7 +76,7 @@ class TestAffineAtoms:
         n = 4
         X = cp.Variable((n, n), bounds=[-1, 1], name='X')
         X.value = np.random.rand(n, n)
-        obj = cp.sum(cp.diag(cp.sin(X)))
+        obj = cp.sum(cp.diag(cp.nlp.sin(X)))
         problem = cp.Problem(cp.Minimize(obj))
 
         problem.solve(solver=cp.IPOPT, nlp=True, verbose=False)
@@ -91,7 +91,7 @@ class TestAffineAtoms:
         n = 5
         x = cp.Variable(n, bounds=[-1, 1], name='x')
         x.value = np.random.rand(n)
-        obj = cp.sum(cp.sin(x) / 3.0)
+        obj = cp.sum(cp.nlp.sin(x) / 3.0)
         problem = cp.Problem(cp.Minimize(obj))
 
         problem.solve(solver=cp.IPOPT, nlp=True, verbose=False)
@@ -107,7 +107,7 @@ class TestAffineAtoms:
         c = np.arange(1, n + 1, dtype=float)
         x = cp.Variable(n, bounds=[-1, 1], name='x')
         x.value = np.random.rand(n)
-        obj = cp.sum(cp.sin(x) / c)
+        obj = cp.sum(cp.nlp.sin(x) / c)
         problem = cp.Problem(cp.Minimize(obj))
 
         problem.solve(solver=cp.IPOPT, nlp=True, verbose=False)
@@ -123,7 +123,7 @@ class TestAffineAtoms:
         kernel = np.array([0.5, -1.0, 0.25])
         x = cp.Variable(n, bounds=[-1, 1], name='x')
         x.value = np.random.rand(n)
-        obj = cp.sum(cp.conv(kernel, cp.sin(x)))
+        obj = cp.sum(cp.conv(kernel, cp.nlp.sin(x)))
         problem = cp.Problem(cp.Minimize(obj))
 
         problem.solve(solver=cp.IPOPT, nlp=True, verbose=False)
@@ -139,7 +139,7 @@ class TestAffineAtoms:
         kernel = np.array([0.3, 0.6, -0.2])
         x = cp.Variable(n, bounds=[-1, 1], name='x')
         x.value = np.random.rand(n)
-        obj = cp.sum(cp.convolve(kernel, cp.sin(x)))
+        obj = cp.sum(cp.convolve(kernel, cp.nlp.sin(x)))
         problem = cp.Problem(cp.Minimize(obj))
 
         problem.solve(solver=cp.IPOPT, nlp=True, verbose=False)
@@ -156,9 +156,9 @@ class TestAffineAtoms:
         n = 5
         x = cp.Variable(n, bounds=[-1, 1], name='x')
         x.value = np.random.rand(n)
-        assert (cp.sin(x).T @ cp.sin(x)).shape == ()
+        assert (cp.nlp.sin(x).T @ cp.nlp.sin(x)).shape == ()
 
-        obj = cp.sin(x).T @ cp.sin(x)
+        obj = cp.nlp.sin(x).T @ cp.nlp.sin(x)
         problem = cp.Problem(cp.Minimize(obj))
 
         problem.solve(solver=cp.IPOPT, nlp=True, verbose=False)
