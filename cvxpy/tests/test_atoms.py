@@ -325,10 +325,8 @@ class TestAtoms(BaseTest):
         assert not atom.is_dcp()
 
         # Test quad_over_lin shape validation.
-        with self.assertRaises(Exception) as cm:
-            cp.quad_over_lin(self.x, self.x)
-        self.assertEqual(str(cm.exception),
-                         "The second argument to quad_over_lin must be a scalar.")
+        with self.assertRaises(ValueError):
+            cp.quad_over_lin(Variable(3), Variable(2))  # shape mismatch
 
         # Test quad_over_lin numeric value computation.
         # The denominator should be converted to a scalar via .item().
@@ -339,6 +337,43 @@ class TestAtoms(BaseTest):
         self.assertAlmostEqual(atom.value, expected)
         # Verify the result is a scalar (not an array).
         self.assertEqual(np.ndim(atom.value), 0)
+
+        # Non-scalar y: shape and DCP
+        x2 = Variable((3, 4))
+        y2 = Variable((3, 4))
+        atom2 = cp.quad_over_lin(x2, y2)
+        self.assertEqual(atom2.shape, ())
+        self.assertTrue(atom2.is_convex())
+        self.assertFalse(atom2.is_concave())
+        self.assertEqual(cp.quad_over_lin(x2, y2, axis=()).shape, (3, 4))
+        with self.assertRaises(ValueError):
+            cp.quad_over_lin(Variable((2, 3)), Variable((4, 3)))
+
+        # Non-scalar y: numeric with axis modes
+        x_val2 = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])
+        y_val2 = np.array([[2.0, 3.0, 4.0], [5.0, 6.0, 7.0]])
+        ewise = np.square(x_val2) / y_val2
+        for axis, expected in [
+            (None, ewise.sum()), ((), ewise),
+            (0, ewise.sum(axis=0)), (1, ewise.sum(axis=1)),
+        ]:
+            a = cp.quad_over_lin(Constant(x_val2), Constant(y_val2), axis=axis)
+            self.assertItemsAlmostEqual(a.value, expected)
+        self.assertEqual(
+            cp.quad_over_lin(Constant(x_val2), Constant(y_val2),
+                             axis=0, keepdims=True).shape, (1, 3)
+        )
+
+        # Broadcast shapes
+        xb, yb = np.array([[1.0], [2.0]]), np.array([[2.0, 3.0, 4.0]])
+        bc = np.square(xb) / yb
+        self.assertAlmostEqual(
+            float(cp.quad_over_lin(Constant(xb), Constant(yb)).value), bc.sum()
+        )
+        self.assertEqual(
+            cp.quad_over_lin(Variable((2, 1)), Variable((1, 3)), axis=()).shape,
+            (2, 3),
+        )
 
     def test_elemwise_arg_count(self) -> None:
         """Test arg count for max and min variants.

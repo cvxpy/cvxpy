@@ -28,11 +28,17 @@ def quad_over_lin_canon(expr, args):
     If the denominator is constant, we can use the power canonicalizer.
     Otherwise, we introduce new variables for the numerator and denominator.
     """
+    axis = expr.axis
+    keepdims = expr.keepdims
+
     if args[1].is_constant():
-        expr = power(args[0], 2)
-        var, constr = power_canon(expr, expr.args)
-        summation = Sum(var)
-        return 1/args[1].value * summation, constr
+        p2 = power(args[0], 2)
+        var, constr = power_canon(p2, p2.args)
+        if expr.args[1].is_scalar():
+            result = 1/args[1].value * Sum(var, axis=axis, keepdims=keepdims)
+        else:
+            result = Sum(var / args[1].value, axis=axis, keepdims=keepdims)
+        return result, constr
     else:
         t1 = args[0]
         t2 = args[1]
