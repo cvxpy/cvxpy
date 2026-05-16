@@ -1534,7 +1534,7 @@ class TestProblem(BaseTest):
         A = numpy.random.randn(40, 40)
         b = cp.matmul(A, numpy.random.randn(40))
 
-        # valid input, return solution
+        # If the first solver yields a non-optimal status, we should fall back to the next solver.
         solvers_with_str=[(s.OSQP, {'max_iter':1}), s.CLARABEL]
         solvers_empty_dict=[(s.OSQP, {'max_iter':1}), (s.CLARABEL, {})]
         solvers_wrong_case=[("osqp", {'max_iter':1}), "Clarabel"]
