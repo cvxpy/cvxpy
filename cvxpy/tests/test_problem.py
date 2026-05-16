@@ -1539,9 +1539,9 @@ class TestProblem(BaseTest):
         solvers_wrong_case=[("osqp", {'max_iter':1}), "Clarabel"]
 
         for solvers in [solvers_with_str, solvers_empty_dict, solvers_wrong_case]:
-            self.assertIsNotNone(Problem(cp.Minimize(
-                cp.sum_squares(cp.matmul(A, cp.Variable(40)) - b))).solve(
-                solver_path=solvers))
+            problem = Problem(cp.Minimize(cp.sum_squares(cp.matmul(A, cp.Variable(40)) - b)))
+            self.assertIsNotNone(problem.solve(solver_path=solvers))
+
         # valid input, non-optimal first solver falls back to next solver
         problem = Problem(cp.Minimize(
             cp.sum_squares(cp.matmul(A, cp.Variable(40)) - b)))
