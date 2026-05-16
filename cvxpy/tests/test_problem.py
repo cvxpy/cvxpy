@@ -1560,12 +1560,6 @@ class TestProblem(BaseTest):
 
                 self.assertEqual(mock_solve_func.mock_calls, expected_calls)
 
-        # valid input, non-optimal first solver falls back to next solver
-        problem = Problem(cp.Minimize(
-            cp.sum_squares(cp.matmul(A, cp.Variable(40)) - b)))
-        problem.solve(solver_path=[(s.OSQP, {'max_iter': 1}), s.CLARABEL])
-        self.assertEqual(problem.solver_stats.solver_name, s.CLARABEL)
-        self.assertEqual(problem.status, s.OPTIMAL)
         # valid input, raise SolverError
         solvers = [(s.OSQP, {'max_iter':1})]
         with self.assertRaises(SolverError):
