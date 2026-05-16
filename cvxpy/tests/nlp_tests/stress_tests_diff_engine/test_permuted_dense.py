@@ -37,7 +37,7 @@ class TestPermutedDense:
         B = np.random.rand(m, n)
         x = cp.Variable(n, bounds=[-1, 1])
         y = cp.Variable(n, bounds=[-1, 1])
-        obj = cp.Minimize(cp.sum(cp.multiply(cp.sin(A @ x), cp.cos(B @ y))))
+        obj = cp.Minimize(cp.sum(cp.multiply(cp.nlp.sin(A @ x), cp.nlp.cos(B @ y))))
         prob = cp.Problem(obj)
         prob.solve(nlp=True)
         checker = DerivativeChecker(prob)
@@ -51,7 +51,7 @@ class TestPermutedDense:
         B = sp.random(m, n, density=0.5, format='csr')
         x = cp.Variable(n, bounds=[-1, 1])
         y = cp.Variable(n, bounds=[-1, 1])
-        obj = cp.Minimize(cp.sum(cp.multiply(cp.sin(A @ x), cp.cos(B @ y))))
+        obj = cp.Minimize(cp.sum(cp.multiply(cp.nlp.sin(A @ x), cp.nlp.cos(B @ y))))
         prob = cp.Problem(obj)
         prob.solve(nlp=True)
         checker = DerivativeChecker(prob)
@@ -65,7 +65,7 @@ class TestPermutedDense:
         B = np.random.rand(m, n)
         x = cp.Variable(n, bounds=[-1, 1])
         y = cp.Variable(n, bounds=[-1, 1])
-        obj = cp.Minimize(cp.sum(cp.multiply(cp.sin(A @ x), cp.cos(B @ y))))
+        obj = cp.Minimize(cp.sum(cp.multiply(cp.nlp.sin(A @ x), cp.nlp.cos(B @ y))))
         prob = cp.Problem(obj)
         prob.solve(nlp=True)
         checker = DerivativeChecker(prob)
@@ -77,7 +77,7 @@ class TestPermutedDense:
         A = np.random.rand(m, n)
         x = cp.Variable(n, bounds=[-1, 1])
         y = cp.Variable(m, bounds=[-1, 1])
-        obj = cp.Minimize(cp.sum(cp.multiply(cp.sin(A @ x), cp.cos(y))))
+        obj = cp.Minimize(cp.sum(cp.multiply(cp.nlp.sin(A @ x), cp.nlp.cos(y))))
         prob = cp.Problem(obj)
         prob.solve(nlp=True)
         checker = DerivativeChecker(prob)
@@ -89,7 +89,7 @@ class TestPermutedDense:
         A = np.random.rand(m, n)
         x = cp.Variable(n, bounds=[-1, 1])
         y = cp.Variable(m, bounds=[-1, 1])
-        obj = cp.Minimize(cp.sum(cp.multiply(cp.sin(y), cp.cos(A @ x))))
+        obj = cp.Minimize(cp.sum(cp.multiply(cp.nlp.sin(y), cp.nlp.cos(A @ x))))
         prob = cp.Problem(obj)
         prob.solve(nlp=True)
         checker = DerivativeChecker(prob)
@@ -108,7 +108,7 @@ class TestPermutedDense:
         idx_A = [0, 2, 4, 1, 3, 0, 7]
         idx_B = [0, 4, 2, 3, 1, 0, 7]
         obj = cp.Minimize(
-            cp.sum(cp.multiply(cp.sin((A @ x)[idx_A]), cp.cos((B @ y)[idx_B])))
+            cp.sum(cp.multiply(cp.nlp.sin((A @ x)[idx_A]), cp.nlp.cos((B @ y)[idx_B])))
         )
         prob = cp.Problem(obj)
         prob.solve(nlp=True)
@@ -124,7 +124,7 @@ class TestPermutedDense:
         B = np.random.rand(m, n)
         x = cp.Variable((n, 1), bounds=[-1, 1])
         y = cp.Variable((n, 1), bounds=[-1, 1])
-        obj = cp.Minimize(cp.sum(cp.multiply(cp.sin((A @ x).T), cp.cos((B @ y).T))))
+        obj = cp.Minimize(cp.sum(cp.multiply(cp.nlp.sin((A @ x).T), cp.nlp.cos((B @ y).T))))
         prob = cp.Problem(obj)
         prob.solve(nlp=True)
         checker = DerivativeChecker(prob)
@@ -139,8 +139,8 @@ class TestPermutedDense:
         x = cp.Variable(n, bounds=[-1, 1])
         y = cp.Variable(n, bounds=[-1, 1])
         obj = cp.Minimize(cp.sum(cp.multiply(
-            cp.reshape(cp.sin(A @ x), (m, 1), order='F'),
-            cp.reshape(cp.cos(B @ y), (1, m), order='F'),
+            cp.reshape(cp.nlp.sin(A @ x), (m, 1), order='F'),
+            cp.reshape(cp.nlp.cos(B @ y), (1, m), order='F'),
         )))
         prob = cp.Problem(obj)
         prob.solve(nlp=True)
@@ -157,8 +157,8 @@ class TestPermutedDense:
         x = cp.Variable(n, bounds=[-1, 1])
         y = cp.Variable(n, bounds=[-1, 1])
         obj = cp.Minimize(cp.sum(cp.multiply(
-            cp.sin(A @ cp.cos(B @ cp.logistic(C @ x))),
-            cp.cos(A @ cp.cos(B @ cp.logistic(C @ y))),
+            cp.nlp.sin(A @ cp.nlp.cos(B @ cp.logistic(C @ x))),
+            cp.nlp.cos(A @ cp.nlp.cos(B @ cp.logistic(C @ y))),
         )))
         prob = cp.Problem(obj)
         prob.solve(nlp=True)
@@ -173,7 +173,7 @@ class TestPermutedDense:
         B = np.random.rand(n, m)
         x = cp.Variable(n, bounds=[-1, 1])
         y = cp.Variable(n, bounds=[-1, 1])
-        obj = cp.Minimize(cp.sum(cp.multiply(cp.sin(x @ A), cp.cos(y @ B))))
+        obj = cp.Minimize(cp.sum(cp.multiply(cp.nlp.sin(x @ A), cp.nlp.cos(y @ B))))
         prob = cp.Problem(obj)
         prob.solve(nlp=True)
         checker = DerivativeChecker(prob)
@@ -187,7 +187,7 @@ class TestPermutedDense:
         B = sp.random(n, m, density=0.5, format='csr')
         x = cp.Variable(n, bounds=[-1, 1])
         y = cp.Variable(n, bounds=[-1, 1])
-        obj = cp.Minimize(cp.sum(cp.multiply(cp.sin(x @ A), cp.cos(y @ B))))
+        obj = cp.Minimize(cp.sum(cp.multiply(cp.nlp.sin(x @ A), cp.nlp.cos(y @ B))))
         prob = cp.Problem(obj)
         prob.solve(nlp=True)
         checker = DerivativeChecker(prob)
@@ -204,7 +204,7 @@ class TestPermutedDense:
         idx_A = [0, 2, 4, 1, 3, 0, 7]
         idx_B = [0, 4, 2, 3, 1, 0, 7]
         obj = cp.Minimize(
-            cp.sum(cp.multiply(cp.sin((x @ A)[idx_A]), cp.cos((y @ B)[idx_B])))
+            cp.sum(cp.multiply(cp.nlp.sin((x @ A)[idx_A]), cp.nlp.cos((y @ B)[idx_B])))
         )
         prob = cp.Problem(obj)
         prob.solve(nlp=True)
@@ -219,7 +219,7 @@ class TestPermutedDense:
         B = np.random.rand(n, m)
         x = cp.Variable((1, n), bounds=[-1, 1])
         y = cp.Variable((1, n), bounds=[-1, 1])
-        obj = cp.Minimize(cp.sum(cp.multiply(cp.sin((x @ A).T), cp.cos((y @ B).T))))
+        obj = cp.Minimize(cp.sum(cp.multiply(cp.nlp.sin((x @ A).T), cp.nlp.cos((y @ B).T))))
         prob = cp.Problem(obj)
         prob.solve(nlp=True)
         checker = DerivativeChecker(prob)
@@ -234,8 +234,8 @@ class TestPermutedDense:
         x = cp.Variable(n, bounds=[-1, 1])
         y = cp.Variable(n, bounds=[-1, 1])
         obj = cp.Minimize(cp.sum(cp.multiply(
-            cp.reshape(cp.sin(x @ A), (m, 1), order='F'),
-            cp.reshape(cp.cos(y @ B), (1, m), order='F'),
+            cp.reshape(cp.nlp.sin(x @ A), (m, 1), order='F'),
+            cp.reshape(cp.nlp.cos(y @ B), (1, m), order='F'),
         )))
         prob = cp.Problem(obj)
         prob.solve(nlp=True)

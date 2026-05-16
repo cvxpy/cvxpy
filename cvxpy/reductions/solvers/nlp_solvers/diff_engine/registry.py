@@ -108,6 +108,11 @@ def convert_quad_form(expr, children):
     """Convert scalar quadratic form x.T @ P @ x."""
     P = expr.args[1]
 
+    if P.parameters():
+        raise NotImplementedError(
+            "quad_form with a parameterized P is not supported by the diff engine."
+        )
+
     if not P.is_constant():
         raise NotImplementedError("quad_form requires P to be a constant matrix")
 
