@@ -21,7 +21,7 @@ import warnings
 from contextlib import redirect_stdout
 from fractions import Fraction
 from io import StringIO
-from unittest.mock import call, patch
+from unittest.mock import DEFAULT, call, patch
 
 import numpy
 import numpy as np
@@ -1559,6 +1559,20 @@ class TestProblem(BaseTest):
                     expected_calls.append(call(problem, solver=solver, **solver_kwargs))
 
                 self.assertEqual(mock_solve_func.mock_calls, expected_calls)
+
+        # If the first solver results in a SolverError, we should fall back to the next solver.
+        with patch.object(
+                Problem,
+                "_solve",
+                wraps=Problem._solve,
+                side_effect=[SolverError("Mock solver error"), DEFAULT],
+        ) as mock_solve_func:
+            problem = Problem(cp.Minimize(0), [cp.Variable(1) == 1])
+            problem.solve(solver_path=[cp.OSQP, cp.CLARABEL])
+            expected_calls = [call(problem, solver=cp.OSQP), call(problem, solver=cp.CLARABEL)]
+            self.assertEqual(mock_solve_func.mock_calls, expected_calls)
+            self.assertEqual(problem.solver_stats.solver_name, s.CLARABEL)
+            self.assertEqual(problem.status, s.OPTIMAL)
 
         # valid input, raise SolverError
         solvers = [(s.OSQP, {'max_iter':1})]
