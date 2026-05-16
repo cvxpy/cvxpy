@@ -1543,6 +1543,7 @@ class TestProblem(BaseTest):
             with patch.object(Problem, "_solve", wraps=Problem._solve) as mock_solve_func:
                 problem = Problem(cp.Minimize(cp.sum_squares(cp.matmul(A, cp.Variable(40)) - b)))
                 self.assertIsNotNone(problem.solve(solver_path=solvers))
+                self.assertEqual(problem.status, s.OPTIMAL)
 
                 expected_calls = []
                 for solver_spec in solvers:
