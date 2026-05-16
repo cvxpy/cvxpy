@@ -63,7 +63,7 @@ or a conda environment.
         * `OSQP`_ >= 0.6.2
         * `CLARABEL`_ >= 0.6.0
         * `SCS`_ >= 3.2.4.post1
-        * `NumPy`_ >= 1.22.4
+        * `NumPy`_ >= 2.0.0
         * `SciPy`_ >= 1.13.0
 
         All required packages are installed automatically alongside CVXPY.
