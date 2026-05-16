@@ -21,6 +21,7 @@ import warnings
 from contextlib import redirect_stdout
 from fractions import Fraction
 from io import StringIO
+from unittest.mock import call, patch
 
 import numpy
 import numpy as np
@@ -1539,8 +1540,24 @@ class TestProblem(BaseTest):
         solvers_wrong_case=[("osqp", {'max_iter':1}), "Clarabel"]
 
         for solvers in [solvers_with_str, solvers_empty_dict, solvers_wrong_case]:
-            problem = Problem(cp.Minimize(cp.sum_squares(cp.matmul(A, cp.Variable(40)) - b)))
-            self.assertIsNotNone(problem.solve(solver_path=solvers))
+            with patch.object(Problem, "_solve", wraps=Problem._solve) as mock_solve_func:
+                problem = Problem(cp.Minimize(cp.sum_squares(cp.matmul(A, cp.Variable(40)) - b)))
+                self.assertIsNotNone(problem.solve(solver_path=solvers))
+
+                expected_calls = []
+                for solver_spec in solvers:
+                    if isinstance(solver_spec, str):
+                        solver = solver_spec
+                        solver_kwargs = {}
+                    elif isinstance(solver_spec, tuple):
+                        solver, solver_kwargs = solver_spec
+                    else:
+                        msg = f"Unexpected solver specification {solver_spec}."
+                        raise ValueError(msg)
+
+                    expected_calls.append(call(problem, solver=solver, **solver_kwargs))
+
+                self.assertEqual(mock_solve_func.mock_calls, expected_calls)
 
         # valid input, non-optimal first solver falls back to next solver
         problem = Problem(cp.Minimize(
