@@ -21,6 +21,7 @@ import warnings
 from contextlib import redirect_stdout
 from fractions import Fraction
 from io import StringIO
+from unittest.mock import DEFAULT, call, patch
 
 import numpy
 import numpy as np
@@ -1533,21 +1534,46 @@ class TestProblem(BaseTest):
         A = numpy.random.randn(40, 40)
         b = cp.matmul(A, numpy.random.randn(40))
 
-        # valid input, return solution
+        # If the first solver yields a non-optimal status, we should fall back to the next solver.
         solvers_with_str=[(s.OSQP, {'max_iter':1}), s.CLARABEL]
         solvers_empty_dict=[(s.OSQP, {'max_iter':1}), (s.CLARABEL, {})]
         solvers_wrong_case=[("osqp", {'max_iter':1}), "Clarabel"]
 
         for solvers in [solvers_with_str, solvers_empty_dict, solvers_wrong_case]:
-            self.assertIsNotNone(Problem(cp.Minimize(
-                cp.sum_squares(cp.matmul(A, cp.Variable(40)) - b))).solve(
-                solver_path=solvers))
-        # valid input, non-optimal first solver falls back to next solver
-        problem = Problem(cp.Minimize(
-            cp.sum_squares(cp.matmul(A, cp.Variable(40)) - b)))
-        problem.solve(solver_path=[(s.OSQP, {'max_iter': 1}), s.CLARABEL])
-        self.assertEqual(problem.solver_stats.solver_name, s.CLARABEL)
-        self.assertEqual(problem.status, s.OPTIMAL)
+            with patch.object(Problem, "_solve", wraps=Problem._solve) as mock_solve_func:
+                problem = Problem(cp.Minimize(cp.sum_squares(cp.matmul(A, cp.Variable(40)) - b)))
+                self.assertIsNotNone(problem.solve(solver_path=solvers))
+                self.assertEqual(problem.status, s.OPTIMAL)
+
+                expected_calls = []
+                for solver_spec in solvers:
+                    if isinstance(solver_spec, str):
+                        solver = solver_spec
+                        solver_kwargs = {}
+                    elif isinstance(solver_spec, tuple):
+                        solver, solver_kwargs = solver_spec
+                    else:
+                        msg = f"Unexpected solver specification {solver_spec}."
+                        raise ValueError(msg)
+
+                    expected_calls.append(call(problem, solver=solver, **solver_kwargs))
+
+                self.assertEqual(mock_solve_func.mock_calls, expected_calls)
+
+        # If the first solver results in a SolverError, we should fall back to the next solver.
+        with patch.object(
+                Problem,
+                "_solve",
+                wraps=Problem._solve,
+                side_effect=[SolverError("Mock solver error"), DEFAULT],
+        ) as mock_solve_func:
+            problem = Problem(cp.Minimize(0), [cp.Variable(1) == 1])
+            problem.solve(solver_path=[cp.OSQP, cp.CLARABEL])
+            expected_calls = [call(problem, solver=cp.OSQP), call(problem, solver=cp.CLARABEL)]
+            self.assertEqual(mock_solve_func.mock_calls, expected_calls)
+            self.assertEqual(problem.solver_stats.solver_name, s.CLARABEL)
+            self.assertEqual(problem.status, s.OPTIMAL)
+
         # valid input, raise SolverError
         solvers = [(s.OSQP, {'max_iter':1})]
         with self.assertRaises(SolverError):
