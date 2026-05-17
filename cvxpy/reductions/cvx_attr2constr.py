@@ -20,6 +20,7 @@ import scipy.sparse as sp
 
 from cvxpy.atoms import diag, reshape
 from cvxpy.atoms.affine.upper_tri import batched_upper_tri_to_full, upper_tri_to_full
+from cvxpy.atoms.affine.wraps import nsd_wrap, psd_wrap, symmetric_wrap
 from cvxpy.expressions import cvxtypes
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.constants.parameter import Parameter
@@ -143,7 +144,13 @@ def build_dim_reduced_expression(leaf, reduced_leaf):
     """Build Expression that reconstructs full shape from a reduced-size leaf."""
     if attributes_present([leaf], SYMMETRIC_ATTRIBUTES):
         n = leaf.shape[0]
-        return reshape(Constant(upper_tri_to_full(n)) @ reduced_leaf, (n, n), order='F')
+        expr = reshape(Constant(upper_tri_to_full(n)) @ reduced_leaf, (n, n), order='F')
+        if leaf.attributes['PSD']:
+            return psd_wrap(expr)
+        elif leaf.attributes['NSD']:
+            return nsd_wrap(expr)
+        else:
+            return symmetric_wrap(expr)
     elif leaf.sparse_idx is not None:
         n = len(leaf.sparse_idx[0])
         row_idx = np.ravel_multi_index(leaf.sparse_idx, leaf.shape, order='F')

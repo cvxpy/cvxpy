@@ -10,10 +10,11 @@ Example usage:
     prob.solve(nlp=True)
 """
 
-from cvxpy.atoms.elementwise.trig import sin, cos, tan
 from cvxpy.atoms.elementwise.hyperbolic import sinh, tanh, asinh, atanh
+from cvxpy.atoms.elementwise.normcdf import normcdf
+from cvxpy.atoms.elementwise.trig import sin, cos, tan
 
 __all__ = [
-    "sin", "cos", "tan",
+    "sin", "cos", "tan", "normcdf",
     "sinh", "tanh", "asinh", "atanh",
 ]

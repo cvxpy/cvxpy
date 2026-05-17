@@ -1,6 +1,7 @@
 """Tests for cp.nlp namespace."""
 import cvxpy as cp
 from cvxpy.atoms.elementwise.hyperbolic import tanh
+from cvxpy.atoms.elementwise.normcdf import normcdf
 from cvxpy.atoms.elementwise.trig import cos, sin
 
 
@@ -14,6 +15,7 @@ class TestNLPNamespace:
         assert cp.nlp.sin(x) is not None
         assert cp.nlp.cos(x) is not None
         assert cp.nlp.tan(x) is not None
+        assert cp.nlp.normcdf(x) is not None
 
     def test_hyperbolic_atoms(self):
         x = cp.Variable()
@@ -31,9 +33,11 @@ class TestNLPNamespace:
         assert not hasattr(cp, 'tanh')
         assert not hasattr(cp, 'asinh')
         assert not hasattr(cp, 'atanh')
+        assert not hasattr(cp, 'normcdf')
 
     def test_atoms_same_class_as_direct_import(self):
         """cp.nlp.sin should be the same class as a direct import."""
         assert cp.nlp.sin is sin
         assert cp.nlp.cos is cos
         assert cp.nlp.tanh is tanh
+        assert cp.nlp.normcdf is normcdf

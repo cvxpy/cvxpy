@@ -89,7 +89,6 @@ class DerivativeChecker:
             python_values.append(constr_val)
 
         python_values = np.hstack(python_values) if python_values else np.array([])
-
         match = np.allclose(c_values, python_values, rtol=1e-10, atol=1e-10)
         return match
 

@@ -73,7 +73,7 @@ from cvxpy.atoms.elementwise.sqrt import sqrt
 from cvxpy.atoms.elementwise.square import square
 from cvxpy.atoms.elementwise.xexp import xexp
 # NLP atoms (require nlp=True solver) are accessible via cp.nlp namespace only.
-# e.g. cp.nlp.sin, cp.nlp.cos  — not at the top-level cp namespace.
+# e.g. cp.nlp.sin, cp.nlp.cos, cp.nlp.normcdf; not at top-level cp.
 from cvxpy.atoms.eye_minus_inv import eye_minus_inv, resolvent
 from cvxpy.atoms.gen_lambda_max import gen_lambda_max
 from cvxpy.atoms.geo_mean import GeoMean, GeoMeanApprox, geo_mean

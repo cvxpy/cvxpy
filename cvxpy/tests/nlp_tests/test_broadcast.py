@@ -32,14 +32,15 @@ class TestBroadcast():
         obj = cp.sum(cp.square(x - A))
         problem = cp.Problem(cp.Minimize(obj))
 
+        x.value = 0.1
+        checker = DerivativeChecker(problem)
+        checker.run_and_assert()
+        x.value = None
+
         problem.solve(solver=cp.IPOPT, nlp=True, hessian_approximation='exact',
                     derivative_test='none', verbose=True)
         assert(problem.status == cp.OPTIMAL)
         assert(np.allclose(x.value, np.mean(A)))
-
-        checker = DerivativeChecker(problem)
-        checker.run_and_assert()
-
 
     def test_row_broadcast(self):
         np.random.seed(0)
