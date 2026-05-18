@@ -737,7 +737,11 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterable</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Any</span>
+
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.expressions.constants.parameter</span><span class="w"> </span><span class="kn">import</span> <span class="n">Parameter</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">scipy.sparse</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">sp</span>
 
@@ -746,12 +750,22 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.constraints.constraint</span><span class="w"> </span><span class="kn">import</span> <span class="n">Constraint</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.expressions.expression</span><span class="w"> </span><span class="kn">import</span> <span class="n">Expression</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.expressions.leaf</span><span class="w"> </span><span class="kn">import</span> <span class="n">Leaf</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">scopes</span>
 
 
 <div class="viewcode-block" id="Variable">
 <a class="viewcode-back" href="../../../api_reference/cvxpy.expressions.html#cvxpy.expressions.variable.Variable">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Variable</span><span class="p">(</span><span class="n">Leaf</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;The optimization variables in a problem.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The optimization variables in a problem.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    sample_bounds : tuple[np.ndarray, np.ndarray] | None</span>
+<span class="sd">        Explicit bounds ``(low, high)`` for random initial point sampling in</span>
+<span class="sd">        ``best_of`` NLP solves.  When set, overrides the variable&#39;s ``value``</span>
+<span class="sd">        during random initialization.  When ``None`` and finite ``bounds`` are</span>
+<span class="sd">        present, those are used instead.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">shape</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">(),</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -768,10 +782,10 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Variable name </span><span class="si">%s</span><span class="s2"> must be a string.&quot;</span> <span class="o">%</span> <span class="n">name</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_variable_with_attributes</span><span class="p">:</span> <span class="n">Variable</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_value</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">delta</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">gradient</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sample_bounds</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">Variable</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Variable.name">
@@ -785,7 +799,7 @@
         <span class="k">return</span> <span class="kc">False</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">grad</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="n">Variable</span><span class="p">,</span> <span class="n">sp</span><span class="o">.</span><span class="n">csc_array</span><span class="p">]]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">grad</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="n">Variable</span><span class="p">,</span> <span class="n">sp</span><span class="o">.</span><span class="n">csc_array</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Gives the (sub/super)gradient of the expression w.r.t. each variable.</span>
 
 <span class="sd">        Matrix expressions are vectorized, so the gradient is a matrix.</span>
@@ -797,22 +811,47 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns itself as a variable.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="p">]</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">canonicalize</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Expression</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">Constraint</span><span class="p">]]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Parameter</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns parameters present in expression bounds, if any.&quot;&quot;&quot;</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;bounds&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;bounds&#39;</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">Expression</span><span class="p">):</span>
+                    <span class="n">params</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">parameters</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">params</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_dcp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dpp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check DCP compliance, including parameter-affine bounds.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">dpp</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;bounds&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">scopes</span><span class="o">.</span><span class="n">dpp_scope</span><span class="p">():</span>
+                <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;bounds&#39;</span><span class="p">]:</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">Expression</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">b</span><span class="o">.</span><span class="n">is_affine</span><span class="p">():</span>
+                        <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_dgp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dpp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check DGP compliance, including log-log-affine bounds.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">dpp</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;bounds&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">scopes</span><span class="o">.</span><span class="n">dpp_scope</span><span class="p">():</span>
+                <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;bounds&#39;</span><span class="p">]:</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">Expression</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">b</span><span class="o">.</span><span class="n">is_log_log_affine</span><span class="p">():</span>
+                        <span class="k">return</span> <span class="kc">False</span>
+        <span class="c1"># Use base class logic: check log-log convexity/concavity</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_log_log_convex</span><span class="p">()</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_log_log_concave</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_dpp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;dcp&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check that the variable is DPP in the given context.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">context</span> <span class="o">==</span> <span class="s1">&#39;dcp&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_dcp</span><span class="p">(</span><span class="n">dpp</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">context</span> <span class="o">==</span> <span class="s1">&#39;dgp&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_dgp</span><span class="p">(</span><span class="n">dpp</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Unsupported context </span><span class="si">{</span><span class="n">context</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">canonicalize</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Expression</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">Constraint</span><span class="p">]]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the graph implementation of the object.&quot;&quot;&quot;</span>
         <span class="n">obj</span> <span class="o">=</span> <span class="n">lu</span><span class="o">.</span><span class="n">create_var</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="p">[])</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">attributes_were_lowered</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;True iff variable generated when lowering a variable with attributes.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_variable_with_attributes</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">set_variable_of_provenance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variable</span><span class="p">:</span> <span class="n">Variable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">assert</span> <span class="n">variable</span><span class="o">.</span><span class="n">attributes</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_variable_with_attributes</span> <span class="o">=</span> <span class="n">variable</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">variable_of_provenance</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Variable</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a variable with attributes from which this variable was generated.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_variable_with_attributes</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;String to recreate the variable.&quot;&quot;&quot;</span>
@@ -908,7 +947,7 @@
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "../../..", "features": ["header.autohide", "toc.follow", "navigation.path", "navigation.instant", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.tracking", "navigation.expand", "search.highlight", "search.share", "content.tabs.link", "announce.dismiss", "content.code.copy"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike", "staticVersions": [{"aliases": [], "title": "latest", "version": "https://www.cvxpy.org"}, {"aliases": [], "title": "1.7", "version": "https://www.cvxpy.org/version/1.7"}, {"aliases": [], "title": "1.6", "version": "https://www.cvxpy.org/version/1.6"}, {"aliases": [], "title": "1.5", "version": "https://www.cvxpy.org/version/1.5"}, {"aliases": [], "title": "1.4", "version": "https://www.cvxpy.org/version/1.4"}], "versionPath": null}}</script>
+    <script id="__config" type="application/json">{"base": "../../..", "features": ["header.autohide", "toc.follow", "navigation.path", "navigation.instant", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.tracking", "navigation.expand", "search.highlight", "search.share", "content.tabs.link", "announce.dismiss", "content.code.copy"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike", "staticVersions": [{"aliases": [], "title": "latest", "version": "https://www.cvxpy.org"}, {"aliases": [], "title": "1.9", "version": "https://www.cvxpy.org/version/1.9"}, {"aliases": [], "title": "1.8", "version": "https://www.cvxpy.org/version/1.8"}, {"aliases": [], "title": "1.7", "version": "https://www.cvxpy.org/version/1.7"}, {"aliases": [], "title": "1.6", "version": "https://www.cvxpy.org/version/1.6"}, {"aliases": [], "title": "1.5", "version": "https://www.cvxpy.org/version/1.5"}, {"aliases": [], "title": "1.4", "version": "https://www.cvxpy.org/version/1.4"}], "versionPath": null}}</script>
     
       
         <script src="../../../_static/jquery.js?v=5d32c60e"></script>

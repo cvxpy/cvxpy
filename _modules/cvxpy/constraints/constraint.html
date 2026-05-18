@@ -792,7 +792,7 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">label</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the label of the constraint.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_label</span>
-    
+
     <span class="nd">@label</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">object</span> <span class="o">|</span> <span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the label of the constraint.&quot;&quot;&quot;</span>
@@ -806,30 +806,30 @@
                 <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_label</span> <span class="o">=</span> <span class="kc">None</span>
-    
+
     <span class="nd">@label</span><span class="o">.</span><span class="n">deleter</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">label</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Delete the label of the constraint.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_label</span> <span class="o">=</span> <span class="kc">None</span>
-    
+
     <span class="k">def</span><span class="w"> </span><span class="nf">set_label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">:</span> <span class="nb">object</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Set a custom label for this constraint.</span>
-<span class="sd">        </span>
+
 <span class="sd">        This method exists alongside the property setter (con.label = &quot;name&quot;)</span>
 <span class="sd">        to enable method chaining, allowing labels to be set fluently when</span>
 <span class="sd">        constructing constraints.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        label : object | None</span>
 <span class="sd">            Custom label for the constraint. Will be converted to string.</span>
 <span class="sd">            If None, clears the label.</span>
-<span class="sd">            </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        Self</span>
 <span class="sd">            Returns self to allow method chaining.</span>
-<span class="sd">            </span>
+
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
 <span class="sd">        &gt;&gt;&gt; x = cp.Variable(3)</span>
@@ -842,10 +842,10 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="n">label</span>
         <span class="k">return</span> <span class="bp">self</span>
-    
+
     <span class="k">def</span><span class="w"> </span><span class="nf">format_labeled</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Format constraint with label if available.</span>
-<span class="sd">        </span>
+
 <span class="sd">        For constraints, this is the same as str() since constraints always show labels.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
@@ -1137,7 +1137,7 @@
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "../../..", "features": ["header.autohide", "toc.follow", "navigation.path", "navigation.instant", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.tracking", "navigation.expand", "search.highlight", "search.share", "content.tabs.link", "announce.dismiss", "content.code.copy"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike", "staticVersions": [{"aliases": [], "title": "latest", "version": "https://www.cvxpy.org"}, {"aliases": [], "title": "1.7", "version": "https://www.cvxpy.org/version/1.7"}, {"aliases": [], "title": "1.6", "version": "https://www.cvxpy.org/version/1.6"}, {"aliases": [], "title": "1.5", "version": "https://www.cvxpy.org/version/1.5"}, {"aliases": [], "title": "1.4", "version": "https://www.cvxpy.org/version/1.4"}], "versionPath": null}}</script>
+    <script id="__config" type="application/json">{"base": "../../..", "features": ["header.autohide", "toc.follow", "navigation.path", "navigation.instant", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.tracking", "navigation.expand", "search.highlight", "search.share", "content.tabs.link", "announce.dismiss", "content.code.copy"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike", "staticVersions": [{"aliases": [], "title": "latest", "version": "https://www.cvxpy.org"}, {"aliases": [], "title": "1.9", "version": "https://www.cvxpy.org/version/1.9"}, {"aliases": [], "title": "1.8", "version": "https://www.cvxpy.org/version/1.8"}, {"aliases": [], "title": "1.7", "version": "https://www.cvxpy.org/version/1.7"}, {"aliases": [], "title": "1.6", "version": "https://www.cvxpy.org/version/1.6"}, {"aliases": [], "title": "1.5", "version": "https://www.cvxpy.org/version/1.5"}, {"aliases": [], "title": "1.4", "version": "https://www.cvxpy.org/version/1.4"}], "versionPath": null}}</script>
     
       
         <script src="../../../_static/jquery.js?v=5d32c60e"></script>

@@ -1467,6 +1467,18 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#cvxpy.Problem.is_dpp.quad_form_dpp" class="md-nav__link">
+    
+      <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.Problem.is_dpp.quad_form_dpp (Python parameter) — Controls quad_form_dpp_scope for solvers that handle quadratic objectives directly (QP solvers)."><span>quad_<wbr>form_<wbr>dpp</span></span>
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -3439,6 +3451,18 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#cvxpy.Problem.is_dpp.quad_form_dpp" class="md-nav__link">
+    
+      <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
+    
+    <span class="md-ellipsis">
+      <span title="cvxpy.Problem.is_dpp.quad_form_dpp (Python parameter) — Controls quad_form_dpp_scope for solvers that handle quadratic objectives directly (QP solvers)."><span>quad_<wbr>form_<wbr>dpp</span></span>
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -4886,8 +4910,8 @@ the first one. For more information, consult the documentation at</p>
 </dd></dl>
 
 <dl class="py method objdesc">
-<dt class="sig sig-object highlight py" id="cvxpy.Problem.is_dpp">
-<span class="sig-name descname"><span class="pre">is_dpp</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.Problem.is_dpp.context" title="cvxpy.Problem.is_dpp.context (Python parameter) — Whether to check DPP-compliance for DCP or DGP; context should be either 'dcp' or 'dgp'."><span class="n"><span class="pre">context</span></span></a><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="desctype"><span class="pre">str</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><code class="code python default_value docutils literal highlight highlight-python"><span class="s1">&#39;dcp&#39;</span></code></em></span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="desctype"><span class="pre">bool</span></span></span></span><a class="reference internal" href="../_modules/cvxpy/problems/problem.html#Problem.is_dpp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.Problem.is_dpp" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object highlight sig-wrap py" id="cvxpy.Problem.is_dpp">
+<span class="sig-name descname"><span class="pre">is_dpp</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.Problem.is_dpp.context" title="cvxpy.Problem.is_dpp.context (Python parameter) — Whether to check DPP-compliance for DCP or DGP; context should be either 'dcp' or 'dgp'."><span class="n"><span class="pre">context</span></span></a><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="desctype"><span class="pre">str</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><code class="code python default_value docutils literal highlight highlight-python"><span class="s1">&#39;dcp&#39;</span></code></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.Problem.is_dpp.quad_form_dpp" title="cvxpy.Problem.is_dpp.quad_form_dpp (Python parameter) — Controls quad_form_dpp_scope for solvers that handle quadratic objectives directly (QP solvers)."><span class="n"><span class="pre">quad_form_dpp</span></span></a><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="desctype"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><code class="code python default_value docutils literal highlight highlight-python"><span class="kc">None</span></code></em></span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="desctype"><span class="pre">bool</span></span></span></span><a class="reference internal" href="../_modules/cvxpy/problems/problem.html#Problem.is_dpp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.Problem.is_dpp" title="Link to this definition">¶</a></dt>
 <dd><p>Does the problem satisfy DPP rules?</p>
 <p>DPP is a mild restriction of DGP. When a problem involving
 Parameters is DPP, subsequent solves can be much faster than
@@ -4901,6 +4925,15 @@ be either <code class="docutils literal notranslate"><span class="pre">'dcp'</sp
 is equivalent to <code class="docutils literal notranslate"><span class="pre">problem.is_dcp(dpp=True)</span></code>, and
 <cite>problem.is_dpp(‘dgp’)`</cite> is equivalent to
 <cite>problem.is_dgp(dpp=True)</cite>.</p>
+</dd>
+<dt id="cvxpy.Problem.is_dpp.quad_form_dpp"><span class="sig-name descname">quad_form_dpp</span><span class="p"> : </span><span class="desctype"><span class="desctype">str or None</span></span><a class="headerlink" href="#cvxpy.Problem.is_dpp.quad_form_dpp" title="Permalink to this definition">¶</a></dt><dd><p><p>Controls <code class="docutils literal notranslate"><span class="pre">quad_form_dpp_scope</span></code> for solvers that handle
+quadratic objectives directly (QP solvers).</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">None</span></code> (default): standard DPP, no scope relaxation.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'qp'</span></code>: enter scope for the objective only. Constraint
+quad_forms with parametric P are correctly rejected.</p></li>
+</ul>
+</p>
 </dd>
 </dl>
 </dd>
@@ -5435,7 +5468,7 @@ This object may be a dict, or a custom Python object.</p>
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "..", "features": ["header.autohide", "toc.follow", "navigation.path", "navigation.instant", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.tracking", "navigation.expand", "search.highlight", "search.share", "content.tabs.link", "announce.dismiss", "content.code.copy"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike", "staticVersions": [{"aliases": [], "title": "latest", "version": "https://www.cvxpy.org"}, {"aliases": [], "title": "1.7", "version": "https://www.cvxpy.org/version/1.7"}, {"aliases": [], "title": "1.6", "version": "https://www.cvxpy.org/version/1.6"}, {"aliases": [], "title": "1.5", "version": "https://www.cvxpy.org/version/1.5"}, {"aliases": [], "title": "1.4", "version": "https://www.cvxpy.org/version/1.4"}], "versionPath": null}}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": ["header.autohide", "toc.follow", "navigation.path", "navigation.instant", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.tracking", "navigation.expand", "search.highlight", "search.share", "content.tabs.link", "announce.dismiss", "content.code.copy"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike", "staticVersions": [{"aliases": [], "title": "latest", "version": "https://www.cvxpy.org"}, {"aliases": [], "title": "1.9", "version": "https://www.cvxpy.org/version/1.9"}, {"aliases": [], "title": "1.8", "version": "https://www.cvxpy.org/version/1.8"}, {"aliases": [], "title": "1.7", "version": "https://www.cvxpy.org/version/1.7"}, {"aliases": [], "title": "1.6", "version": "https://www.cvxpy.org/version/1.6"}, {"aliases": [], "title": "1.5", "version": "https://www.cvxpy.org/version/1.5"}, {"aliases": [], "title": "1.4", "version": "https://www.cvxpy.org/version/1.4"}], "versionPath": null}}</script>
     
       
         <script src="../_static/jquery.js?v=5d32c60e"></script>

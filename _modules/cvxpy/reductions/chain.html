@@ -724,6 +724,27 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.reduction</span><span class="w"> </span><span class="kn">import</span> <span class="n">Reduction</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_compose_id_map</span><span class="p">(</span><span class="n">step_maps</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compose a sequence of ``{old_id: [new_id, ...]}`` mappings.</span>
+
+<span class="sd">    Each step map comes from a reduction&#39;s ``var_id_map`` or</span>
+<span class="sd">    ``param_id_map``.  The result is a single mapping from the</span>
+<span class="sd">    outermost original IDs to lists of the innermost final IDs.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">step_map</span> <span class="ow">in</span> <span class="n">step_maps</span><span class="p">:</span>
+        <span class="c1"># Forward existing mappings through this step (1-to-many capable).</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">orig_id</span><span class="p">:</span> <span class="p">[</span><span class="n">new_id</span> <span class="k">for</span> <span class="n">cur_id</span> <span class="ow">in</span> <span class="n">cur_ids</span>
+                             <span class="k">for</span> <span class="n">new_id</span> <span class="ow">in</span> <span class="n">step_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cur_id</span><span class="p">,</span> <span class="p">[</span><span class="n">cur_id</span><span class="p">])]</span>
+            <span class="k">for</span> <span class="n">orig_id</span><span class="p">,</span> <span class="n">cur_ids</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="p">}</span>
+        <span class="c1"># Add new mappings introduced by this reduction step.</span>
+        <span class="k">for</span> <span class="n">orig_id</span> <span class="ow">in</span> <span class="n">step_map</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="o">-</span> <span class="n">result</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">result</span><span class="p">[</span><span class="n">orig_id</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">step_map</span><span class="p">[</span><span class="n">orig_id</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">result</span>
+
+
 <div class="viewcode-block" id="Chain">
 <a class="viewcode-back" href="../../../api_reference/cvxpy.reductions.html#cvxpy.reductions.chain.Chain">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Chain</span><span class="p">(</span><span class="n">Reduction</span><span class="p">):</span>
@@ -805,6 +826,70 @@
             <span class="n">problem</span><span class="p">,</span> <span class="n">inv</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">problem</span><span class="p">)</span>
             <span class="n">inverse_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">inv</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">problem</span><span class="p">,</span> <span class="n">inverse_data</span></div>
+
+
+<div class="viewcode-block" id="Chain.compose_var_id_map">
+<a class="viewcode-back" href="../../../api_reference/cvxpy.reductions.html#cvxpy.reductions.chain.Chain.compose_var_id_map">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">compose_var_id_map</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compose variable ID mappings across all reductions.</span>
+
+<span class="sd">        Returns a single ``{orig_var_id: [final_var_id, ...]}`` dict that</span>
+<span class="sd">        accounts for every variable replacement in the chain.  If</span>
+<span class="sd">        reduction *i* maps ``A → [A&#39;]`` and reduction *j* (j &gt; i) maps</span>
+<span class="sd">        ``A&#39; → [A&#39;&#39;]``, the result contains ``A → [A&#39;&#39;]``.  If a step</span>
+<span class="sd">        maps ``A&#39; → [A&#39;&#39;, A&#39;&#39;&#39;]``, the result expands to</span>
+<span class="sd">        ``A → [A&#39;&#39;, A&#39;&#39;&#39;]``.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            Maps original variable IDs to lists of their final (innermost)</span>
+<span class="sd">            IDs.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">_compose_id_map</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">var_id_map</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">reductions</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Chain.compose_param_id_map">
+<a class="viewcode-back" href="../../../api_reference/cvxpy.reductions.html#cvxpy.reductions.chain.Chain.compose_param_id_map">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">compose_param_id_map</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compose parameter ID mappings across all reductions.</span>
+
+<span class="sd">        Returns a single ``{orig_param_id: [final_param_id, ...]}`` dict</span>
+<span class="sd">        that accounts for every parameter replacement in the chain.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            Maps original parameter IDs to lists of their final (innermost)</span>
+<span class="sd">            IDs.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">_compose_id_map</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">param_id_map</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">reductions</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Chain.compose_constr_id_map">
+<a class="viewcode-back" href="../../../api_reference/cvxpy.reductions.html#cvxpy.reductions.chain.Chain.compose_constr_id_map">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">compose_constr_id_map</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compose constraint ID mappings across all reductions.</span>
+
+<span class="sd">        Returns a single ``{orig_constr_id: final_constr_id}`` dict tracing</span>
+<span class="sd">        each original constraint ID through every reduction step.  Each</span>
+<span class="sd">        reduction exposes its mapping via the ``cons_id_map`` property, which</span>
+<span class="sd">        is populated during ``apply()``.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            Maps original constraint IDs to their final (innermost) IDs.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">reductions</span><span class="p">:</span>
+            <span class="n">step_map</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">cons_id_map</span>
+            <span class="k">if</span> <span class="n">step_map</span><span class="p">:</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="p">{</span><span class="n">orig</span><span class="p">:</span> <span class="n">step_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cur</span><span class="p">,</span> <span class="n">cur</span><span class="p">)</span> <span class="k">for</span> <span class="n">orig</span><span class="p">,</span> <span class="n">cur</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+                <span class="k">for</span> <span class="n">orig_id</span><span class="p">,</span> <span class="n">new_id</span> <span class="ow">in</span> <span class="n">step_map</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="n">orig_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
+                        <span class="n">result</span><span class="p">[</span><span class="n">orig_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_id</span>
+        <span class="k">return</span> <span class="n">result</span></div>
 
 
 <div class="viewcode-block" id="Chain.invert">
@@ -906,7 +991,7 @@
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "../../..", "features": ["header.autohide", "toc.follow", "navigation.path", "navigation.instant", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.tracking", "navigation.expand", "search.highlight", "search.share", "content.tabs.link", "announce.dismiss", "content.code.copy"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike", "staticVersions": [{"aliases": [], "title": "latest", "version": "https://www.cvxpy.org"}, {"aliases": [], "title": "1.7", "version": "https://www.cvxpy.org/version/1.7"}, {"aliases": [], "title": "1.6", "version": "https://www.cvxpy.org/version/1.6"}, {"aliases": [], "title": "1.5", "version": "https://www.cvxpy.org/version/1.5"}, {"aliases": [], "title": "1.4", "version": "https://www.cvxpy.org/version/1.4"}], "versionPath": null}}</script>
+    <script id="__config" type="application/json">{"base": "../../..", "features": ["header.autohide", "toc.follow", "navigation.path", "navigation.instant", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.tracking", "navigation.expand", "search.highlight", "search.share", "content.tabs.link", "announce.dismiss", "content.code.copy"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike", "staticVersions": [{"aliases": [], "title": "latest", "version": "https://www.cvxpy.org"}, {"aliases": [], "title": "1.9", "version": "https://www.cvxpy.org/version/1.9"}, {"aliases": [], "title": "1.8", "version": "https://www.cvxpy.org/version/1.8"}, {"aliases": [], "title": "1.7", "version": "https://www.cvxpy.org/version/1.7"}, {"aliases": [], "title": "1.6", "version": "https://www.cvxpy.org/version/1.6"}, {"aliases": [], "title": "1.5", "version": "https://www.cvxpy.org/version/1.5"}, {"aliases": [], "title": "1.4", "version": "https://www.cvxpy.org/version/1.4"}], "versionPath": null}}</script>
     
       
         <script src="../../../_static/jquery.js?v=5d32c60e"></script>

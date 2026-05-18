@@ -693,6 +693,30 @@
   
   
     <li class="md-nav__item">
+      <a href="../dnlp/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>Disciplined Nonlinear Programming</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../constraints/index.html" class="md-nav__link">
         
   
@@ -1256,6 +1280,27 @@ constraints hold and <span class="math notranslate nohighlight">\(\infty\)</span
 <span class="n">expr</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">inf</span>
 </code></pre></div>
 </div>
+<p>Other transforms worth knowing about:</p>
+<ul class="simple">
+<li><p>The <a class="reference internal" href="../../api_reference/cvxpy.transforms.html#scalarize-transforms"><span class="std std-ref">scalarize</span></a> transforms combine a
+list of competing objectives into a single objective — as a
+<a class="reference internal" href="../../api_reference/cvxpy.transforms.html#cvxpy.transforms.scalarize.weighted_sum" title="cvxpy.transforms.scalarize.weighted_sum (Python method) — Combines objectives as a weighted sum."><code class="xref py py-func docutils literal notranslate"><span class="pre">weighted</span> <span class="pre">sum</span></code></a>, as a
+worst-case <a class="reference internal" href="../../api_reference/cvxpy.transforms.html#cvxpy.transforms.scalarize.max" title="cvxpy.transforms.scalarize.max (Python method) — Combines objectives as max of weighted terms."><code class="xref py py-func docutils literal notranslate"><span class="pre">max</span></code></a>, as a smooth
+<a class="reference internal" href="../../api_reference/cvxpy.transforms.html#cvxpy.transforms.scalarize.log_sum_exp" title="cvxpy.transforms.scalarize.log_sum_exp (Python method) — Combines objectives as log_sum_exp of weighted terms."><code class="xref py py-func docutils literal notranslate"><span class="pre">log_sum_exp</span></code></a>
+interpolation between the two, or via
+<a class="reference internal" href="../../api_reference/cvxpy.transforms.html#cvxpy.transforms.scalarize.targets_and_priorities" title="cvxpy.transforms.scalarize.targets_and_priorities (Python method) — Combines objectives with penalties within a range between target and limit."><code class="xref py py-func docutils literal notranslate"><span class="pre">targets_and_priorities</span></code></a>,
+which assigns each objective its own target value and hard limit with a
+penalty in between.</p></li>
+<li><p><a class="reference internal" href="../../api_reference/cvxpy.transforms.html#cvxpy.transforms.linearize" title="cvxpy.transforms.linearize (Python method) — Returns an affine approximation to the expression computed at the variable/parameter values."><code class="xref py py-func docutils literal notranslate"><span class="pre">linearize</span></code></a> returns an affine
+approximation of a CVXPY expression at the current value of its variables.</p></li>
+<li><p><a class="reference internal" href="../../api_reference/cvxpy.transforms.html#cvxpy.transforms.partial_optimize.partial_optimize" title="cvxpy.transforms.partial_optimize.partial_optimize (Python method) — Partially optimizes the given problem over the specified variables."><code class="xref py py-func docutils literal notranslate"><span class="pre">partial_optimize</span></code></a>
+optimizes out a subset of a problem’s variables, leaving an expression in
+the remaining variables that can be used inside a larger problem.</p></li>
+<li><p><a class="reference internal" href="../../api_reference/cvxpy.transforms.html#cvxpy.transforms.suppfunc.SuppFunc" title="cvxpy.transforms.suppfunc.SuppFunc (Python class) — Given a list of CVXPY Constraint objects \texttt{constraints} involving a real CVXPY Variable \texttt{x}, consider the convex set"><code class="xref py py-class docutils literal notranslate"><span class="pre">SuppFunc</span></code></a> takes a convex
+set defined implicitly by a list of constraints and exposes its support
+function as a CVXPY atom, which is useful for expressing dual problems
+using Fenchel duality.</p></li>
+</ul>
 <p>The full set of transforms available is discussed in <a class="reference internal" href="../../api_reference/cvxpy.transforms.html#transforms-api"><span class="std std-ref">Transforms</span></a>.</p>
 <h2 id="problem-arithmetic"><span id="id3"></span>Problem arithmetic<a class="headerlink" href="#problem-arithmetic" title="Link to this heading">¶</a></h2>
 <p>For convenience, arithmetic operations have been overloaded for
@@ -1459,7 +1504,7 @@ Currently, the following canonicalization backends are supported:</p>
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "../..", "features": ["header.autohide", "toc.follow", "navigation.path", "navigation.instant", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.tracking", "navigation.expand", "search.highlight", "search.share", "content.tabs.link", "announce.dismiss", "content.code.copy"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike", "staticVersions": [{"aliases": [], "title": "latest", "version": "https://www.cvxpy.org"}, {"aliases": [], "title": "1.7", "version": "https://www.cvxpy.org/version/1.7"}, {"aliases": [], "title": "1.6", "version": "https://www.cvxpy.org/version/1.6"}, {"aliases": [], "title": "1.5", "version": "https://www.cvxpy.org/version/1.5"}, {"aliases": [], "title": "1.4", "version": "https://www.cvxpy.org/version/1.4"}], "versionPath": null}}</script>
+    <script id="__config" type="application/json">{"base": "../..", "features": ["header.autohide", "toc.follow", "navigation.path", "navigation.instant", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.tracking", "navigation.expand", "search.highlight", "search.share", "content.tabs.link", "announce.dismiss", "content.code.copy"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike", "staticVersions": [{"aliases": [], "title": "latest", "version": "https://www.cvxpy.org"}, {"aliases": [], "title": "1.9", "version": "https://www.cvxpy.org/version/1.9"}, {"aliases": [], "title": "1.8", "version": "https://www.cvxpy.org/version/1.8"}, {"aliases": [], "title": "1.7", "version": "https://www.cvxpy.org/version/1.7"}, {"aliases": [], "title": "1.6", "version": "https://www.cvxpy.org/version/1.6"}, {"aliases": [], "title": "1.5", "version": "https://www.cvxpy.org/version/1.5"}, {"aliases": [], "title": "1.4", "version": "https://www.cvxpy.org/version/1.4"}], "versionPath": null}}</script>
     
       
         <script src="../../_static/jquery.js?v=5d32c60e"></script>

@@ -1161,6 +1161,12 @@ We’ll be happy to provide guidance and advice.</p>
 </ul>
 </dd>
 <dt>Medium scope projects</dt><dd><ul class="simple">
+<li><p>Refactor <code class="docutils literal notranslate"><span class="pre">suppfunc_canon</span></code> to use <code class="docutils literal notranslate"><span class="pre">SvecPSD</span></code> constraints directly, eliminating the
+SCS-specific <code class="docutils literal notranslate"><span class="pre">scs_psdvec_to_psdmat</span></code> helper and decoupling the support function
+implementation from any particular solver convention. This requires moving the
+conic lifting in <code class="docutils literal notranslate"><span class="pre">SuppFunc</span></code> from construction time to canonicalization time,
+so that <code class="docutils literal notranslate"><span class="pre">solver_context</span></code> is available and the lifting can target the actual
+solver’s cone format.</p></li>
 <li><p><a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/434">Post-solver feasibility checks</a>.</p></li>
 <li><p><a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/1197">Vectorize the quad_over_lin atom</a>.</p></li>
 <li><p><a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/1429">Support for expressions with size zero</a>.</p></li>
@@ -1181,6 +1187,9 @@ We’ll be happy to provide guidance and advice.</p>
 <li><p>Full parity with NumPy for ND array behavior.</p></li>
 <li><p>Support for GSCOPT [<a class="reference external" href="https://github.com/cvxpy/cvxpy/discussions/2889">2889</a>].</p></li>
 <li><p>Disable constraints using parameters [<a class="reference external" href="https://github.com/cvxpy/cvxpy/discussions/3041">3041</a>]</p></li>
+<li><p>Explicit variable/dual recovery maps in reductions. Currently, reductions use ad-hoc logic
+to map between reduced and original variables/duals during solution recovery. Reductions
+should instead return explicit forward and inverse maps for primal and dual variables.</p></li>
 </ul>
 </dd>
 </dl>
@@ -1643,7 +1652,7 @@ call modified versions of a test with different solver parameters, for example</
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "..", "features": ["header.autohide", "toc.follow", "navigation.path", "navigation.instant", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.tracking", "navigation.expand", "search.highlight", "search.share", "content.tabs.link", "announce.dismiss", "content.code.copy"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike", "staticVersions": [{"aliases": [], "title": "latest", "version": "https://www.cvxpy.org"}, {"aliases": [], "title": "1.7", "version": "https://www.cvxpy.org/version/1.7"}, {"aliases": [], "title": "1.6", "version": "https://www.cvxpy.org/version/1.6"}, {"aliases": [], "title": "1.5", "version": "https://www.cvxpy.org/version/1.5"}, {"aliases": [], "title": "1.4", "version": "https://www.cvxpy.org/version/1.4"}], "versionPath": null}}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": ["header.autohide", "toc.follow", "navigation.path", "navigation.instant", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.tracking", "navigation.expand", "search.highlight", "search.share", "content.tabs.link", "announce.dismiss", "content.code.copy"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike", "staticVersions": [{"aliases": [], "title": "latest", "version": "https://www.cvxpy.org"}, {"aliases": [], "title": "1.9", "version": "https://www.cvxpy.org/version/1.9"}, {"aliases": [], "title": "1.8", "version": "https://www.cvxpy.org/version/1.8"}, {"aliases": [], "title": "1.7", "version": "https://www.cvxpy.org/version/1.7"}, {"aliases": [], "title": "1.6", "version": "https://www.cvxpy.org/version/1.6"}, {"aliases": [], "title": "1.5", "version": "https://www.cvxpy.org/version/1.5"}, {"aliases": [], "title": "1.4", "version": "https://www.cvxpy.org/version/1.4"}], "versionPath": null}}</script>
     
       
         <script src="../_static/jquery.js?v=5d32c60e"></script>

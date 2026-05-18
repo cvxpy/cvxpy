@@ -749,13 +749,17 @@
 <span class="s2">    &quot;&quot;&quot;</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">failure_solution</span><span class="p">(</span><span class="n">status</span><span class="p">,</span> <span class="n">attr</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Solution&quot;</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">failure_solution</span><span class="p">(</span><span class="n">status</span><span class="p">,</span> <span class="n">attr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dual_vars</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Solution&quot;</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Factory function for infeasible or unbounded solutions.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    status : str</span>
 <span class="sd">        The problem status.</span>
+<span class="sd">    attr : dict</span>
+<span class="sd">        Miscellaneous information propagated up from a solver.</span>
+<span class="sd">    dual_vars : dict of id to NumPy ndarray</span>
+<span class="sd">        A map from constraint ids to dual values.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -770,9 +774,11 @@
         <span class="n">opt_val</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">if</span> <span class="n">attr</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">attr</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">if</span> <span class="n">dual_vars</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">dual_vars</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">if</span> <span class="n">status</span> <span class="o">==</span> <span class="n">s</span><span class="o">.</span><span class="n">INFEASIBLE_OR_UNBOUNDED</span><span class="p">:</span>
         <span class="n">attr</span><span class="p">[</span><span class="s1">&#39;message&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">INF_OR_UNB_MESSAGE</span>
-    <span class="k">return</span> <span class="n">Solution</span><span class="p">(</span><span class="n">status</span><span class="p">,</span> <span class="n">opt_val</span><span class="p">,</span> <span class="p">{},</span> <span class="p">{},</span> <span class="n">attr</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">Solution</span><span class="p">(</span><span class="n">status</span><span class="p">,</span> <span class="n">opt_val</span><span class="p">,</span> <span class="p">{},</span> <span class="n">dual_vars</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="Solution">
@@ -791,7 +797,7 @@
 <span class="sd">    dual_vars : dict of id to NumPy ndarray</span>
 <span class="sd">        A map from constraint ids to dual values.</span>
 <span class="sd">    attr : dict</span>
-<span class="sd">        Miscelleneous information propagated up from a solver.</span>
+<span class="sd">        Miscellaneous information propagated up from a solver.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span> <span class="n">opt_val</span><span class="p">,</span> <span class="n">primal_vars</span><span class="p">,</span> <span class="n">dual_vars</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">status</span>
@@ -906,7 +912,7 @@
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "../../..", "features": ["header.autohide", "toc.follow", "navigation.path", "navigation.instant", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.tracking", "navigation.expand", "search.highlight", "search.share", "content.tabs.link", "announce.dismiss", "content.code.copy"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike", "staticVersions": [{"aliases": [], "title": "latest", "version": "https://www.cvxpy.org"}, {"aliases": [], "title": "1.7", "version": "https://www.cvxpy.org/version/1.7"}, {"aliases": [], "title": "1.6", "version": "https://www.cvxpy.org/version/1.6"}, {"aliases": [], "title": "1.5", "version": "https://www.cvxpy.org/version/1.5"}, {"aliases": [], "title": "1.4", "version": "https://www.cvxpy.org/version/1.4"}], "versionPath": null}}</script>
+    <script id="__config" type="application/json">{"base": "../../..", "features": ["header.autohide", "toc.follow", "navigation.path", "navigation.instant", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.tracking", "navigation.expand", "search.highlight", "search.share", "content.tabs.link", "announce.dismiss", "content.code.copy"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike", "staticVersions": [{"aliases": [], "title": "latest", "version": "https://www.cvxpy.org"}, {"aliases": [], "title": "1.9", "version": "https://www.cvxpy.org/version/1.9"}, {"aliases": [], "title": "1.8", "version": "https://www.cvxpy.org/version/1.8"}, {"aliases": [], "title": "1.7", "version": "https://www.cvxpy.org/version/1.7"}, {"aliases": [], "title": "1.6", "version": "https://www.cvxpy.org/version/1.6"}, {"aliases": [], "title": "1.5", "version": "https://www.cvxpy.org/version/1.5"}, {"aliases": [], "title": "1.4", "version": "https://www.cvxpy.org/version/1.4"}], "versionPath": null}}</script>
     
       
         <script src="../../../_static/jquery.js?v=5d32c60e"></script>

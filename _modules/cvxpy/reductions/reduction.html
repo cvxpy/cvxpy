@@ -814,87 +814,138 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">pass</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">param_backward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">dparams</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute gradient for an original parameter from transformed gradients.</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">var_id_map</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Map from original to reduced variable IDs.</span>
+
+<span class="sd">        Reductions that replace variables (e.g., CvxAttr2Constr) override</span>
+<span class="sd">        this to expose their mapping.  Used by Chain.compose_var_id_map()</span>
+<span class="sd">        to build a global mapping across the full reduction chain.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            ``{orig_var_id: [new_var_id, ...]}`` for every variable that</span>
+<span class="sd">            was replaced.  The list has one element for 1:1 mappings and</span>
+<span class="sd">            multiple elements for 1:many (e.g., Complex2Real splits a</span>
+<span class="sd">            complex variable into real and imaginary parts).</span>
+<span class="sd">            Default: empty dict (no variables replaced).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{}</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">param_id_map</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Map from original to reduced parameter IDs.</span>
+
+<span class="sd">        Reductions that replace parameters (e.g., CvxAttr2Constr, Dgp2Dcp)</span>
+<span class="sd">        override this to expose their mapping.  Used by</span>
+<span class="sd">        Chain.compose_param_id_map() to build a global mapping across the</span>
+<span class="sd">        full reduction chain.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            ``{orig_param_id: [new_param_id, ...]}`` for every parameter</span>
+<span class="sd">            that was replaced.  Default: empty dict (no parameters replaced).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{}</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">cons_id_map</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Map from original to reduced constraint IDs.</span>
+
+<span class="sd">        Reductions that remap constraint IDs store ``self._cons_id_map``</span>
+<span class="sd">        during ``apply()``.  Used by ``Chain.compose_constr_id_map()`` to</span>
+<span class="sd">        build a global mapping across the full reduction chain.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            ``{orig_constr_id: new_constr_id}`` for every remapped</span>
+<span class="sd">            constraint.  Default: empty dict (no constraints remapped).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_cons_id_map&#39;</span><span class="p">,</span> <span class="p">{})</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">var_backward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">del_vars</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Transform variable gradients from outer to inner representation.</span>
+
+<span class="sd">        Called during backward differentiation (requires_grad=True). Reductions</span>
+<span class="sd">        that transform variables override this to apply the chain rule.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        del_vars : dict</span>
+<span class="sd">            Maps variable IDs to gradient values in the outer (original)</span>
+<span class="sd">            representation.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            Maps variable IDs to gradient values in the inner (reduced)</span>
+<span class="sd">            representation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">del_vars</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">var_forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dvars</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Transform variable deltas from inner to outer representation.</span>
+
+<span class="sd">        Called during forward differentiation (derivative()). Reductions that</span>
+<span class="sd">        transform variables override this to apply the chain rule.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        dvars : dict</span>
+<span class="sd">            Maps variable IDs to delta values in the inner (reduced)</span>
+<span class="sd">            representation.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            Maps variable IDs to delta values in the outer (original)</span>
+<span class="sd">            representation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">dvars</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">param_backward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dparams</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Transform parameter gradients from inner to outer representation.</span>
 
 <span class="sd">        Called during backward differentiation (requires_grad=True). Reductions</span>
 <span class="sd">        that transform parameters override this to apply the chain rule.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        param : Parameter</span>
-<span class="sd">            The original parameter in the problem.</span>
 <span class="sd">        dparams : dict</span>
-<span class="sd">            Gradients w.r.t. transformed parameter IDs in the cone program.</span>
+<span class="sd">            Maps parameter IDs to gradient values in the inner (transformed)</span>
+<span class="sd">            representation.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        gradient or None</span>
-<span class="sd">            The gradient for the original parameter, applying any chain rule.</span>
-<span class="sd">            Returns None if this reduction doesn&#39;t transform the parameter.</span>
+<span class="sd">        dict</span>
+<span class="sd">            Maps parameter IDs to gradient values in the outer (original)</span>
+<span class="sd">            representation.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">dparams</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">param_forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute transformed parameter deltas for forward differentiation.</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">param_forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">param_deltas</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Transform parameter deltas from outer to inner representation.</span>
 
 <span class="sd">        Called during forward differentiation (derivative()). Reductions that</span>
-<span class="sd">        transform parameters override this to map deltas through the chain rule.</span>
+<span class="sd">        transform parameters override this to map deltas through the chain</span>
+<span class="sd">        rule.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        param : Parameter</span>
-<span class="sd">            The original parameter in the problem.</span>
-<span class="sd">        delta : ndarray</span>
-<span class="sd">            The perturbation to the original parameter.</span>
+<span class="sd">        param_deltas : dict</span>
+<span class="sd">            Maps parameter IDs to delta values in the outer (original)</span>
+<span class="sd">            representation.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        dict or None</span>
-<span class="sd">            A dict mapping transformed param IDs to their deltas, or None</span>
-<span class="sd">            if this reduction doesn&#39;t transform the parameter.</span>
+<span class="sd">        dict</span>
+<span class="sd">            Maps parameter IDs to delta values in the inner (transformed)</span>
+<span class="sd">            representation.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="kc">None</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">var_backward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">var</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Transform variable gradient for backward differentiation.</span>
-
-<span class="sd">        Called during backward differentiation. Reductions that transform</span>
-<span class="sd">        variables override this to apply the chain rule.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        var : Variable</span>
-<span class="sd">            The original variable in the problem.</span>
-<span class="sd">        value : ndarray</span>
-<span class="sd">            The gradient value to transform.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        ndarray</span>
-<span class="sd">            The transformed gradient value.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">value</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">var_forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">var</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Transform variable delta for forward differentiation.</span>
-
-<span class="sd">        Called during forward differentiation. Reductions that transform</span>
-<span class="sd">        variables override this to apply the chain rule.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        var : Variable</span>
-<span class="sd">            The original variable in the problem.</span>
-<span class="sd">        value : ndarray</span>
-<span class="sd">            The delta value to transform.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        ndarray</span>
-<span class="sd">            The transformed delta value.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">value</span>
+        <span class="k">return</span> <span class="n">param_deltas</span>
 
 <div class="viewcode-block" id="Reduction.reduce">
 <a class="viewcode-back" href="../../../api_reference/cvxpy.reductions.html#cvxpy.reductions.reduction.Reduction.reduce">[docs]</a>
@@ -1083,7 +1134,7 @@
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "../../..", "features": ["header.autohide", "toc.follow", "navigation.path", "navigation.instant", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.tracking", "navigation.expand", "search.highlight", "search.share", "content.tabs.link", "announce.dismiss", "content.code.copy"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike", "staticVersions": [{"aliases": [], "title": "latest", "version": "https://www.cvxpy.org"}, {"aliases": [], "title": "1.7", "version": "https://www.cvxpy.org/version/1.7"}, {"aliases": [], "title": "1.6", "version": "https://www.cvxpy.org/version/1.6"}, {"aliases": [], "title": "1.5", "version": "https://www.cvxpy.org/version/1.5"}, {"aliases": [], "title": "1.4", "version": "https://www.cvxpy.org/version/1.4"}], "versionPath": null}}</script>
+    <script id="__config" type="application/json">{"base": "../../..", "features": ["header.autohide", "toc.follow", "navigation.path", "navigation.instant", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.tracking", "navigation.expand", "search.highlight", "search.share", "content.tabs.link", "announce.dismiss", "content.code.copy"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike", "staticVersions": [{"aliases": [], "title": "latest", "version": "https://www.cvxpy.org"}, {"aliases": [], "title": "1.9", "version": "https://www.cvxpy.org/version/1.9"}, {"aliases": [], "title": "1.8", "version": "https://www.cvxpy.org/version/1.8"}, {"aliases": [], "title": "1.7", "version": "https://www.cvxpy.org/version/1.7"}, {"aliases": [], "title": "1.6", "version": "https://www.cvxpy.org/version/1.6"}, {"aliases": [], "title": "1.5", "version": "https://www.cvxpy.org/version/1.5"}, {"aliases": [], "title": "1.4", "version": "https://www.cvxpy.org/version/1.4"}], "versionPath": null}}</script>
     
       
         <script src="../../../_static/jquery.js?v=5d32c60e"></script>

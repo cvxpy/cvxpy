@@ -133,7 +133,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Welcome to CVXPY 1.8
+              Welcome to CVXPY 1.9
             
           </span>
         </div>
@@ -727,7 +727,7 @@
                   
 
 
-<h1 id="welcome-to-cvxpy-1-8">Welcome to CVXPY 1.8<a class="headerlink" href="#welcome-to-cvxpy-1-8" title="Link to this heading">¶</a></h1>
+<h1 id="welcome-to-cvxpy-1-9">Welcome to CVXPY 1.9<a class="headerlink" href="#welcome-to-cvxpy-1-9" title="Link to this heading">¶</a></h1>
 <script type="application/ld+json">
 {
    "@context" : "https://schema.org",
@@ -770,11 +770,15 @@ solvers.</p>
 </code></pre></div>
 </div>
 <p>This short script is a basic example of what CVXPY can do. In addition
-to convex programming, CVXPY also supports a generalization of geometric
-programming, mixed-integer convex programs, and quasiconvex programs.</p>
+to convex programming, CVXPY also supports <a class="reference internal" href="tutorial/dpp/index.html"><span class="doc">parametrized programming</span></a>,
+<a class="reference internal" href="tutorial/dgp/index.html"><span class="doc">geometric programming</span></a>, <a class="reference internal" href="tutorial/constraints/index.html#mip"><span class="std std-ref">mixed-integer convex programs</span></a>,
+<a class="reference internal" href="tutorial/dqcp/index.html"><span class="doc">quasiconvex programming</span></a>,
+and <a class="reference internal" href="tutorial/dnlp/index.html"><span class="doc">nonlinear programming</span></a>.</p>
 <p>For a guided tour of CVXPY, check out the <a class="reference internal" href="tutorial/index.html"><span class="doc">tutorial</span></a>. For applications to machine learning, control, finance, and
-more, browse the <a class="reference internal" href="examples/index.html"><span class="doc">library of examples</span></a>. For
-background on convex optimization, see the book <a class="reference external" href="https://www.stanford.edu/~boyd/cvxbook/">Convex Optimization</a> by Boyd and Vandenberghe.</p>
+more, browse the <a class="reference internal" href="examples/index.html"><span class="doc">library of examples</span></a>.
+For applications that involve nonlinear programming, visit the
+<a class="reference external" href="https://github.com/cvxgrp/dnlp-examples/">library of DNLP examples</a>.
+For background on convex optimization, see the book <a class="reference external" href="https://www.stanford.edu/~boyd/cvxbook/">Convex Optimization</a> by Boyd and Vandenberghe.</p>
 <p>CVXPY relies on the open source solvers <a class="reference external" href="https://github.com/oxfordcontrol/Clarabel.rs">Clarabel</a>, <a class="reference external" href="https://osqp.org/">OSQP</a>, <a class="reference external" href="http://github.com/cvxgrp/scs">SCS</a>, <a class="reference external" href="https://github.com/ERGO-Code/HiGHS">HIGHS</a>.
 Additional solvers are supported, but must be installed separately.</p>
 <p><strong>Community.</strong></p>
@@ -802,10 +806,13 @@ William Zhang.</p>
 <p>We appreciate all contributions. To get involved, see our <a class="reference internal" href="contributing/index.html"><span class="doc">contributing
 guide</span></a> and join us <a class="reference external" href="https://discord.gg/4urRQeGBCr">on Discord</a>.</p>
 <p><strong>News.</strong></p>
-<p>CVXPY 1.8 includes many new solver interfaces such as MOREAU, KNITRO and COSMO,
-and it makes HiGHS its new default solver for MILPs.
-This release also includes many new features such as more complete support of ND expressions,
-unification of the quadratic conic canonicalization paths, and DPP support for complex expressions.
+<p>CVXPY 1.9 introduces <em>Disciplined Nonlinear Programming</em> (DNLP), a grammar
+for specifying nonlinear programs (NLP) which extends CVXPY beyond convex optimization.
+CVXPY currently supports four NLP solvers:
+<a class="reference external" href="https://github.com/coin-or/Ipopt">IPOPT</a>,
+<a class="reference external" href="https://www.artelys.com/solvers/knitro/">KNITRO</a>,
+<a class="reference external" href="https://github.com/cvanaret/Uno">UNO</a>, and
+<a class="reference external" href="https://www.shanshu.ai/copt">COPT</a>.
 For a complete list of changes, see the <a class="reference internal" href="updates/index.html"><span class="doc">changelog</span></a>.</p>
 <div class="toctree-wrapper compound">
 </div>
@@ -915,7 +922,7 @@ For a complete list of changes, see the <a class="reference internal" href="upda
     </div>
     
     
-    <script id="__config" type="application/json">{"base": ".", "features": ["header.autohide", "toc.follow", "navigation.path", "navigation.instant", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.tracking", "navigation.expand", "search.highlight", "search.share", "content.tabs.link", "announce.dismiss", "content.code.copy"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike", "staticVersions": [{"aliases": [], "title": "latest", "version": "https://www.cvxpy.org"}, {"aliases": [], "title": "1.7", "version": "https://www.cvxpy.org/version/1.7"}, {"aliases": [], "title": "1.6", "version": "https://www.cvxpy.org/version/1.6"}, {"aliases": [], "title": "1.5", "version": "https://www.cvxpy.org/version/1.5"}, {"aliases": [], "title": "1.4", "version": "https://www.cvxpy.org/version/1.4"}], "versionPath": null}}</script>
+    <script id="__config" type="application/json">{"base": ".", "features": ["header.autohide", "toc.follow", "navigation.path", "navigation.instant", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.tracking", "navigation.expand", "search.highlight", "search.share", "content.tabs.link", "announce.dismiss", "content.code.copy"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike", "staticVersions": [{"aliases": [], "title": "latest", "version": "https://www.cvxpy.org"}, {"aliases": [], "title": "1.9", "version": "https://www.cvxpy.org/version/1.9"}, {"aliases": [], "title": "1.8", "version": "https://www.cvxpy.org/version/1.8"}, {"aliases": [], "title": "1.7", "version": "https://www.cvxpy.org/version/1.7"}, {"aliases": [], "title": "1.6", "version": "https://www.cvxpy.org/version/1.6"}, {"aliases": [], "title": "1.5", "version": "https://www.cvxpy.org/version/1.5"}, {"aliases": [], "title": "1.4", "version": "https://www.cvxpy.org/version/1.4"}], "versionPath": null}}</script>
     
       
         <script src="_static/jquery.js?v=5d32c60e"></script>

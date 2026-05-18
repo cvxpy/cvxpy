@@ -780,6 +780,7 @@
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="c1"># Canonicalization of DGP is stateful; canon_methods created</span>
         <span class="c1"># in `apply`.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_id_to_var</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">Dgp2Dcp</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">canon_methods</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">problem</span><span class="o">=</span><span class="n">problem</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Dgp2Dcp.accepts">
@@ -789,6 +790,23 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">problem</span><span class="o">.</span><span class="n">is_dgp</span><span class="p">()</span></div>
 
+
+    <span class="c1"># canon_methods is created lazily in apply(); the None guards below</span>
+    <span class="c1"># let var_id_map / param_id_map be queried on a freshly-constructed</span>
+    <span class="c1"># reduction (before apply() runs) without crashing.</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">var_id_map</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">canon_methods</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{}</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">orig</span><span class="o">.</span><span class="n">id</span><span class="p">:</span> <span class="p">[</span><span class="n">new</span><span class="o">.</span><span class="n">id</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">orig</span><span class="p">,</span> <span class="n">new</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">canon_methods</span><span class="o">.</span><span class="n">_variables</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">param_id_map</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">canon_methods</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{}</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">orig</span><span class="o">.</span><span class="n">id</span><span class="p">:</span> <span class="p">[</span><span class="n">new</span><span class="o">.</span><span class="n">id</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">orig</span><span class="p">,</span> <span class="n">new</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">canon_methods</span><span class="o">.</span><span class="n">_parameters</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
 
 <div class="viewcode-block" id="Dgp2Dcp.update_parameters">
 <a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.middle_end.html#cvxpy.reductions.dgp2dcp.dgp2dcp.Dgp2Dcp.update_parameters">[docs]</a>
@@ -806,57 +824,91 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">canon_methods</span><span class="o">.</span><span class="n">_parameters</span><span class="p">[</span><span class="n">param</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">value</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="Dgp2Dcp.param_backward">
-<a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.middle_end.html#cvxpy.reductions.dgp2dcp.dgp2dcp.Dgp2Dcp.param_backward">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">param_backward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">dparams</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Apply chain rule for log transformation in backward diff.</span>
-
-<span class="sd">        For DGP, param -&gt; log(param), so d(loss)/d(param) = d(loss)/d(log_param) / param.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">canon_methods</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">None</span>
-        <span class="k">if</span> <span class="n">param</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">canon_methods</span><span class="o">.</span><span class="n">_parameters</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">None</span>
-        <span class="n">new_param</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">canon_methods</span><span class="o">.</span><span class="n">_parameters</span><span class="p">[</span><span class="n">param</span><span class="p">]</span>
-        <span class="k">if</span> <span class="n">new_param</span><span class="o">.</span><span class="n">id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dparams</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">None</span>
-        <span class="c1"># Apply chain rule: d(log(x))/dx = 1/x</span>
-        <span class="k">return</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="n">param</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="o">*</span> <span class="n">dparams</span><span class="p">[</span><span class="n">new_param</span><span class="o">.</span><span class="n">id</span><span class="p">]</span></div>
-
-
-<div class="viewcode-block" id="Dgp2Dcp.param_forward">
-<a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.middle_end.html#cvxpy.reductions.dgp2dcp.dgp2dcp.Dgp2Dcp.param_forward">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">param_forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Apply chain rule for log transformation in forward diff.</span>
-
-<span class="sd">        For DGP, param -&gt; log(param), so d(log_param) = d(param) / param.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">canon_methods</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">None</span>
-        <span class="k">if</span> <span class="n">param</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">canon_methods</span><span class="o">.</span><span class="n">_parameters</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">None</span>
-        <span class="n">new_param</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">canon_methods</span><span class="o">.</span><span class="n">_parameters</span><span class="p">[</span><span class="n">param</span><span class="p">]</span>
-        <span class="k">return</span> <span class="p">{</span><span class="n">new_param</span><span class="o">.</span><span class="n">id</span><span class="p">:</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="n">param</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">delta</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)}</span></div>
-
-
 <div class="viewcode-block" id="Dgp2Dcp.var_backward">
 <a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.middle_end.html#cvxpy.reductions.dgp2dcp.dgp2dcp.Dgp2Dcp.var_backward">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">var_backward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">var</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">var_backward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">del_vars</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Apply chain rule for exp transformation in backward diff.</span>
 
-<span class="sd">        For DGP, x_gp = exp(x_cone), so dx_gp/dx_cone = exp(x_cone) = x_gp.</span>
+<span class="sd">        DGP variables are reparameterized as ``x_gp = exp(x_log)``, where</span>
+<span class="sd">        ``x_log`` is the log-space variable that the downstream cone program</span>
+<span class="sd">        actually optimizes over.  Therefore ``dx_gp/dx_log = exp(x_log) = x_gp``.</span>
+<span class="sd">        Transforms from outer (original) var IDs to inner (log-space) var IDs.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">value</span> <span class="o">*</span> <span class="n">var</span><span class="o">.</span><span class="n">value</span></div>
+        <span class="n">orig_to_new</span> <span class="o">=</span> <span class="p">{</span><span class="n">orig</span><span class="o">.</span><span class="n">id</span><span class="p">:</span> <span class="n">new</span><span class="o">.</span><span class="n">id</span>
+                       <span class="k">for</span> <span class="n">orig</span><span class="p">,</span> <span class="n">new</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">canon_methods</span><span class="o">.</span><span class="n">_variables</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">var_id</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">del_vars</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">var_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_id_to_var</span><span class="p">:</span>
+                <span class="n">new_id</span> <span class="o">=</span> <span class="n">orig_to_new</span><span class="p">[</span><span class="n">var_id</span><span class="p">]</span>
+                <span class="n">result</span><span class="p">[</span><span class="n">new_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_id_to_var</span><span class="p">[</span><span class="n">var_id</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">result</span><span class="p">[</span><span class="n">var_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="k">return</span> <span class="n">result</span></div>
 
 
 <div class="viewcode-block" id="Dgp2Dcp.var_forward">
 <a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.middle_end.html#cvxpy.reductions.dgp2dcp.dgp2dcp.Dgp2Dcp.var_forward">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">var_forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">var</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">var_forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dvars</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Apply chain rule for exp transformation in forward diff.</span>
 
-<span class="sd">        For DGP, x_gp = exp(x_cone), so dx_gp/dx_cone = exp(x_cone) = x_gp.</span>
+<span class="sd">        DGP variables are reparameterized as ``x_gp = exp(x_log)``, where</span>
+<span class="sd">        ``x_log`` is the log-space variable that the downstream cone program</span>
+<span class="sd">        actually optimizes over.  Therefore ``dx_gp/dx_log = exp(x_log) = x_gp``.</span>
+<span class="sd">        Transforms from inner (log-space) var IDs to outer (original) var IDs.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">value</span> <span class="o">*</span> <span class="n">var</span><span class="o">.</span><span class="n">value</span></div>
+        <span class="n">new_to_orig</span> <span class="o">=</span> <span class="p">{</span><span class="n">new</span><span class="o">.</span><span class="n">id</span><span class="p">:</span> <span class="n">orig</span>
+                       <span class="k">for</span> <span class="n">orig</span><span class="p">,</span> <span class="n">new</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">canon_methods</span><span class="o">.</span><span class="n">_variables</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">var_id</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">dvars</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">var_id</span> <span class="ow">in</span> <span class="n">new_to_orig</span><span class="p">:</span>
+                <span class="n">orig</span> <span class="o">=</span> <span class="n">new_to_orig</span><span class="p">[</span><span class="n">var_id</span><span class="p">]</span>
+                <span class="n">result</span><span class="p">[</span><span class="n">orig</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span> <span class="o">*</span> <span class="n">orig</span><span class="o">.</span><span class="n">value</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">result</span><span class="p">[</span><span class="n">var_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="Dgp2Dcp.param_backward">
+<a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.middle_end.html#cvxpy.reductions.dgp2dcp.dgp2dcp.Dgp2Dcp.param_backward">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">param_backward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dparams</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Apply chain rule for log transformation in backward diff.</span>
+
+<span class="sd">        For DGP, param -&gt; log(param), so d(loss)/d(log_param) contributes</span>
+<span class="sd">        (1/param) * grad to the original parameter.  The original parameter</span>
+<span class="sd">        may also appear directly (e.g. as an exponent in power atoms), so</span>
+<span class="sd">        we add the log-transformed gradient to any existing direct gradient.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">canon_methods</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">dparams</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">dparams</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">param</span><span class="p">,</span> <span class="n">new_param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">canon_methods</span><span class="o">.</span><span class="n">_parameters</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">new_param</span><span class="o">.</span><span class="n">id</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
+                <span class="n">log_grad</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="n">param</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="o">*</span> <span class="n">result</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">new_param</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">param</span><span class="o">.</span><span class="n">id</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
+                    <span class="n">result</span><span class="p">[</span><span class="n">param</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="n">param</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">+</span> <span class="n">log_grad</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">result</span><span class="p">[</span><span class="n">param</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">log_grad</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="Dgp2Dcp.param_forward">
+<a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.middle_end.html#cvxpy.reductions.dgp2dcp.dgp2dcp.Dgp2Dcp.param_forward">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">param_forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">param_deltas</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Apply chain rule for log transformation in forward diff.</span>
+
+<span class="sd">        For DGP, param -&gt; log(param), so d(log_param) = d(param) / param.</span>
+<span class="sd">        The original parameter may also appear directly (e.g. as an exponent</span>
+<span class="sd">        in power atoms), so we keep the original delta and add the</span>
+<span class="sd">        log-transformed delta.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">canon_methods</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">param_deltas</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">param_deltas</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">param</span><span class="p">,</span> <span class="n">new_param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">canon_methods</span><span class="o">.</span><span class="n">_parameters</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">param</span><span class="o">.</span><span class="n">id</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
+                <span class="n">result</span><span class="p">[</span><span class="n">new_param</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="n">param</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span>
+                    <span class="n">result</span><span class="p">[</span><span class="n">param</span><span class="o">.</span><span class="n">id</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span></div>
 
 
 <div class="viewcode-block" id="Dgp2Dcp.apply">
@@ -867,7 +919,8 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">accepts</span><span class="p">(</span><span class="n">problem</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The supplied problem is not DGP.&quot;</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">canon_methods</span> <span class="o">=</span> <span class="n">DgpCanonMethods</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_id_to_var</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">id</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">problem</span><span class="o">.</span><span class="n">variables</span><span class="p">()}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">canon_methods</span> <span class="o">=</span> <span class="n">DgpCanonMethods</span><span class="p">(</span><span class="n">reduction</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
         <span class="n">equiv_problem</span><span class="p">,</span> <span class="n">inverse_data</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">Dgp2Dcp</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">problem</span><span class="p">)</span>
         <span class="n">inverse_data</span><span class="o">.</span><span class="n">_problem</span> <span class="o">=</span> <span class="n">problem</span>
         <span class="k">return</span> <span class="n">equiv_problem</span><span class="p">,</span> <span class="n">inverse_data</span></div>
@@ -876,19 +929,19 @@
 <div class="viewcode-block" id="Dgp2Dcp.canonicalize_expr">
 <a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.middle_end.html#cvxpy.reductions.dgp2dcp.dgp2dcp.Dgp2Dcp.canonicalize_expr">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">canonicalize_expr</span><span class="p">(</span>
-            <span class="bp">self</span><span class="p">,</span> 
-            <span class="n">expr</span><span class="p">:</span> <span class="n">Expression</span><span class="p">,</span> 
-            <span class="n">args</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> 
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">expr</span><span class="p">:</span> <span class="n">Expression</span><span class="p">,</span>
+            <span class="n">args</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
             <span class="n">canonicalize_params</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Canonicalize an expression, w.r.t. canonicalized arguments.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Args:</span>
 <span class="sd">            expr: Expression to canonicalize.</span>
 <span class="sd">            args: Arguments to the expression.</span>
-<span class="sd">            canonicalize_params: Should constant subtrees </span>
+<span class="sd">            canonicalize_params: Should constant subtrees</span>
 <span class="sd">                containing parameters be canonicalized?</span>
-<span class="sd">        </span>
+
 <span class="sd">        Returns:</span>
 <span class="sd">            canonicalized expression, constraints</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -901,11 +954,20 @@
 <div class="viewcode-block" id="Dgp2Dcp.invert">
 <a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.middle_end.html#cvxpy.reductions.dgp2dcp.dgp2dcp.Dgp2Dcp.invert">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">invert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">solution</span><span class="p">,</span> <span class="n">inverse_data</span><span class="p">):</span>
+        <span class="c1"># Remap log-space variable IDs to original IDs so that</span>
+        <span class="c1"># super().invert() (Canonicalization) can find them in id_map.</span>
+        <span class="n">new_to_orig</span> <span class="o">=</span> <span class="p">{</span><span class="n">new</span><span class="o">.</span><span class="n">id</span><span class="p">:</span> <span class="n">orig</span><span class="o">.</span><span class="n">id</span>
+                       <span class="k">for</span> <span class="n">orig</span><span class="p">,</span> <span class="n">new</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">canon_methods</span><span class="o">.</span><span class="n">_variables</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="k">if</span> <span class="n">solution</span><span class="o">.</span><span class="n">primal_vars</span><span class="p">:</span>
+            <span class="n">solution</span><span class="o">.</span><span class="n">primal_vars</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="n">new_to_orig</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">vid</span><span class="p">,</span> <span class="n">vid</span><span class="p">):</span> <span class="n">val</span>
+                <span class="k">for</span> <span class="n">vid</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">solution</span><span class="o">.</span><span class="n">primal_vars</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="p">}</span>
         <span class="n">solution</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">Dgp2Dcp</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">invert</span><span class="p">(</span><span class="n">solution</span><span class="p">,</span> <span class="n">inverse_data</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">solution</span><span class="o">.</span><span class="n">opt_val</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">solution</span>
-        <span class="k">for</span> <span class="n">vid</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">solution</span><span class="o">.</span><span class="n">primal_vars</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="n">solution</span><span class="o">.</span><span class="n">primal_vars</span><span class="p">[</span><span class="n">vid</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">vid</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">solution</span><span class="o">.</span><span class="n">primal_vars</span><span class="p">):</span>
+            <span class="n">solution</span><span class="o">.</span><span class="n">primal_vars</span><span class="p">[</span><span class="n">vid</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">solution</span><span class="o">.</span><span class="n">primal_vars</span><span class="p">[</span><span class="n">vid</span><span class="p">])</span>
         <span class="c1"># f(x) = e^{F(u)}.</span>
         <span class="n">solution</span><span class="o">.</span><span class="n">opt_val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">solution</span><span class="o">.</span><span class="n">opt_val</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">solution</span></div>
@@ -1000,7 +1062,7 @@
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "../../../..", "features": ["header.autohide", "toc.follow", "navigation.path", "navigation.instant", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.tracking", "navigation.expand", "search.highlight", "search.share", "content.tabs.link", "announce.dismiss", "content.code.copy"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike", "staticVersions": [{"aliases": [], "title": "latest", "version": "https://www.cvxpy.org"}, {"aliases": [], "title": "1.7", "version": "https://www.cvxpy.org/version/1.7"}, {"aliases": [], "title": "1.6", "version": "https://www.cvxpy.org/version/1.6"}, {"aliases": [], "title": "1.5", "version": "https://www.cvxpy.org/version/1.5"}, {"aliases": [], "title": "1.4", "version": "https://www.cvxpy.org/version/1.4"}], "versionPath": null}}</script>
+    <script id="__config" type="application/json">{"base": "../../../..", "features": ["header.autohide", "toc.follow", "navigation.path", "navigation.instant", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.tracking", "navigation.expand", "search.highlight", "search.share", "content.tabs.link", "announce.dismiss", "content.code.copy"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike", "staticVersions": [{"aliases": [], "title": "latest", "version": "https://www.cvxpy.org"}, {"aliases": [], "title": "1.9", "version": "https://www.cvxpy.org/version/1.9"}, {"aliases": [], "title": "1.8", "version": "https://www.cvxpy.org/version/1.8"}, {"aliases": [], "title": "1.7", "version": "https://www.cvxpy.org/version/1.7"}, {"aliases": [], "title": "1.6", "version": "https://www.cvxpy.org/version/1.6"}, {"aliases": [], "title": "1.5", "version": "https://www.cvxpy.org/version/1.5"}, {"aliases": [], "title": "1.4", "version": "https://www.cvxpy.org/version/1.4"}], "versionPath": null}}</script>
     
       
         <script src="../../../../_static/jquery.js?v=5d32c60e"></script>

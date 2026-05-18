@@ -869,7 +869,7 @@ additional Python packages.</p>
 <li><p class="sd-card-text"><a class="reference external" href="https://osqp.org/">OSQP</a> &gt;= 0.6.2</p></li>
 <li><p class="sd-card-text"><a class="reference external" href="https://oxfordcontrol.github.io/ClarabelDocs/">CLARABEL</a> &gt;= 0.6.0</p></li>
 <li><p class="sd-card-text"><a class="reference external" href="https://github.com/cvxgrp/scs">SCS</a> &gt;= 3.2.4.post1</p></li>
-<li><p class="sd-card-text"><a class="reference external" href="https://www.numpy.org/">NumPy</a> &gt;= 1.22.4</p></li>
+<li><p class="sd-card-text"><a class="reference external" href="https://www.numpy.org/">NumPy</a> &gt;= 2.0.0</p></li>
 <li><p class="sd-card-text"><a class="reference external" href="https://www.scipy.org/">SciPy</a> &gt;= 1.13.0</p></li>
 </ul>
 <p class="sd-card-text">All required packages are installed automatically alongside CVXPY.</p>
@@ -1039,6 +1039,29 @@ See the <a class="reference external" href="http://github.com/NVIDIA/cuopt">CUOP
 Follow this link for additional documentation on <a class="reference external" href="https://docs.nvidia.com/cuopt/">CUOPT</a></p>
 </details>
 <details class="info admonition">
+<summary class="admonition-title">IPOPT</summary><p>CVXPY supports the IPOPT solver (for nonlinear programming).
+First install the IPOPT system library, followed by the Python interface <a class="reference external" href="https://github.com/mechmotum/cyipopt">cyipopt</a>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><code><span class="c1"># Ubuntu/Debian</span>
+sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>coinor-libipopt-dev
+
+<span class="c1"># macOS</span>
+brew<span class="w"> </span>install<span class="w"> </span>ipopt
+
+<span class="c1"># Windows</span>
+conda<span class="w"> </span>install<span class="w"> </span>-c<span class="w"> </span>conda-forge<span class="w"> </span>ipopt
+</code></pre></div>
+</div>
+<p>Then install the Python interface:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="n">pip</span> <span class="n">install</span> <span class="n">cyipopt</span>
+</code></pre></div>
+</div>
+<p>See the <a class="reference external" href="https://coin-or.github.io/Ipopt/INSTALL.html">IPOPT</a> website for additional instructions.</p>
+</details>
+<details class="info admonition">
+<summary class="admonition-title">UNO</summary><p>CVXPY supports the UNO solver (for nonlinear programming).
+Follow the installation instructions for <a class="reference external" href="https://github.com/cvanaret/Uno/blob/main/INSTALL.md">UNO</a>.</p>
+</details>
+<details class="info admonition">
 <summary class="admonition-title">KNITRO</summary><p>CVXPY supports the KNITRO solver.
 Simply install KNITRO such that you can <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">knitro</span></code> in Python. You can do this by running</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="n">pip</span> <span class="n">install</span> <span class="n">knitro</span>
@@ -1157,7 +1180,7 @@ If installed from source, navigate to the root of the repository and run</p>
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "..", "features": ["header.autohide", "toc.follow", "navigation.path", "navigation.instant", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.tracking", "navigation.expand", "search.highlight", "search.share", "content.tabs.link", "announce.dismiss", "content.code.copy"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike", "staticVersions": [{"aliases": [], "title": "latest", "version": "https://www.cvxpy.org"}, {"aliases": [], "title": "1.7", "version": "https://www.cvxpy.org/version/1.7"}, {"aliases": [], "title": "1.6", "version": "https://www.cvxpy.org/version/1.6"}, {"aliases": [], "title": "1.5", "version": "https://www.cvxpy.org/version/1.5"}, {"aliases": [], "title": "1.4", "version": "https://www.cvxpy.org/version/1.4"}], "versionPath": null}}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": ["header.autohide", "toc.follow", "navigation.path", "navigation.instant", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.tracking", "navigation.expand", "search.highlight", "search.share", "content.tabs.link", "announce.dismiss", "content.code.copy"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike", "staticVersions": [{"aliases": [], "title": "latest", "version": "https://www.cvxpy.org"}, {"aliases": [], "title": "1.9", "version": "https://www.cvxpy.org/version/1.9"}, {"aliases": [], "title": "1.8", "version": "https://www.cvxpy.org/version/1.8"}, {"aliases": [], "title": "1.7", "version": "https://www.cvxpy.org/version/1.7"}, {"aliases": [], "title": "1.6", "version": "https://www.cvxpy.org/version/1.6"}, {"aliases": [], "title": "1.5", "version": "https://www.cvxpy.org/version/1.5"}, {"aliases": [], "title": "1.4", "version": "https://www.cvxpy.org/version/1.4"}], "versionPath": null}}</script>
     
       
         <script src="../_static/jquery.js?v=5d32c60e"></script>
