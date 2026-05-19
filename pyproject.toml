@@ -160,8 +160,10 @@ dev = ["pyright", "scipy-stubs"]
 # version is available at runtime via `cvxpy.__version__` even outside a
 # git checkout (e.g., from an installed wheel or sdist).
 version_file = "cvxpy/_version.py"
-# `release-branch-semver` bumps the minor on `master` between releases
+# `semver-pep440-release-branch` bumps the minor on `master` between releases
 # (so post-tag dev versions look like `1.10.0.devN+g<sha>` while developing
-# 1.10 after `v1.9.0`), and bumps the patch on `release/*` branches.
-version_scheme = "release-branch-semver"
-git_describe_command = ["git", "describe", "--dirty", "--tags", "--long", "--match", "v*"]
+# 1.10 after `v1.9.0`), and bumps the patch on `release/<x.y>.x` branches.
+version_scheme = "semver-pep440-release-branch"
+
+[tool.setuptools_scm.scm.git]
+describe_command = ["git", "describe", "--dirty", "--tags", "--long", "--match", "v*"]
