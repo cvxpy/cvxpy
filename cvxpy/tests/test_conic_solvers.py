@@ -914,11 +914,9 @@ def is_mosek_available():
     if 'MOSEK' not in INSTALLED_SOLVERS:
         return False
     try:
-        import mosek  # type: ignore
-        env = mosek.Env()
-        # Try to get license status (returns 0 if OK)
-        status = env.getlicense()
-        return status == mosek.rescode.ok
+        x = cp.Variable()
+        cp.Problem(cp.Minimize(x), [x >= 0]).solve(solver=cp.MOSEK)
+        return True
     except Exception:
         return False
 
