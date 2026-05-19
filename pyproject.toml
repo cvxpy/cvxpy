@@ -111,7 +111,7 @@ COPT = ["coptpy>=8.0.3"]
 # CUOPT dependency group is disabled since it was breaking uv sync.
 # CUOPT = ["cuopt-cu12>=25.5", "nvidia-cuda-runtime-cu12>=12.8,<13.0"]
 CVXOPT = ["cvxopt"]
-DIFFCP = ["diffcp"]
+DIFFCP = ["diffcp >= 1.1.5"]
 ECOS = ["ecos"]
 ECOS_BB = ["ecos"]
 GLOP = ["ortools>=9.7,<9.15"]
