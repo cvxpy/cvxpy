@@ -65,6 +65,7 @@ requires = [
     "scipy >= 1.13.0",
     # 68.1.0 Promoted pyproject.toml's [tool.setuptools] out of beta.
     "setuptools >= 68.1.0",
+    "setuptools-scm >= 8",
     "wheel",
     "pybind11"
 ]
@@ -153,3 +154,14 @@ include-package-data = false
 # returned by Expression.grad). Running pyright via `uv run` puts it inside
 # this environment so numpy/scipy imports resolve.
 dev = ["pyright", "scipy-stubs"]
+
+[tool.setuptools_scm]
+# Writes the resolved version to cvxpy/_version.py at build time so the
+# version is available at runtime via `cvxpy.__version__` even outside a
+# git checkout (e.g., from an installed wheel or sdist).
+version_file = "cvxpy/_version.py"
+# `release-branch-semver` bumps the minor on `master` between releases
+# (so post-tag dev versions look like `1.10.0.devN+g<sha>` while developing
+# 1.10 after `v1.9.0`), and bumps the patch on `release/*` branches.
+version_scheme = "release-branch-semver"
+git_describe_command = ["git", "describe", "--dirty", "--tags", "--long", "--match", "v*"]
