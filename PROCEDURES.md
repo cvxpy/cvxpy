@@ -15,7 +15,7 @@ as `cvxpy.__version__`.
 - Commits *exactly* on a `vX.Y.Z` tag produce the clean version `X.Y.Z`.
 - Any other commit produces a dev version like `X.Y.Z.devN+g<sha>`, where the
   base `X.Y.Z` is derived from the most recent ancestor tag using the
-  `release-branch-semver` scheme (minor bump on `master`, patch bump on
+  `semver-pep440-release-branch` scheme (minor bump on `master`, patch bump on
   `release/*` branches).
 
 For this scheme to work, **every minor release tag must be reachable from

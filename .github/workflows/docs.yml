@@ -27,6 +27,8 @@ jobs:
 
       - name: Checkout current branch
         uses: actions/checkout@v5
+        with:
+          fetch-depth: 0  # setuptools-scm needs tags to compute the version
 
       - name: Build docs
         run: |

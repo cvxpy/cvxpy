@@ -14,6 +14,8 @@ jobs:
         shell: bash -l {0}
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0  # setuptools-scm needs tags to compute the version
       - uses: astral-sh/setup-uv@v7
         with:
           python-version: "3.12"
