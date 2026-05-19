@@ -3,8 +3,8 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to CVXPY 1.9
-====================
+Welcome to CVXPY 1.10
+=====================
 
 .. meta::
    :description: An open source Python-embedded modeling language for convex optimization problems.

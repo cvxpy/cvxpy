@@ -124,7 +124,7 @@ For minor releases, the script automatically excludes PRs that were cherry-picke
 
 The web documentation is built and deployed using a GitHub action that can be found [here](https://github.com/cvxpy/cvxpy/blob/master/.github/workflows/docs.yml).
 
-To deploy the docs for a specific version, navigate to the [actions tab](https://github.com/cvxpy/cvxpy/actions) and select the `docs` workflow.
+To deploy the docs for a specific version, navigate to the [actions tab](https://github.com/cvxpy/cvxpy/actions) and select the `doc_deploy` workflow.
 Under `Use workflow from`, select the **Tags** tab and choose the version you want to deploy the docs for.
 This builds the docs and commits them to the `gh-pages` branch. This in turn triggers the deployment through the `github-pages bot`, which can also be monitored in the [actions tab](https://github.com/cvxpy/cvxpy/actions).
 
