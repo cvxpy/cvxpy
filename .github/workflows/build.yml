@@ -7,7 +7,7 @@ on:
             - master
             - 'release/**'
         tags:
-          - '*'
+          - 'v*'
 
 # https://docs.github.com/en/actions/using-jobs/using-concurrency#example-using-a-fallback-value
 # Only cancels-in-progress on PRs (head_ref only defined in PR, fallback run_id always unique)
@@ -127,7 +127,7 @@ jobs:
         shell: bash
         run: |
           echo "PYTHON_SUBVERSION=$(echo $PYTHON_VERSION | cut -c 3-)" >> $GITHUB_ENV
-          echo "DEPLOY=$( [[ $GITHUB_EVENT_NAME == 'push' && $GITHUB_REF == 'refs/tags'* ]] && echo 'True' || echo 'False' )" >> $GITHUB_ENV
+          echo "DEPLOY=$( [[ $GITHUB_EVENT_NAME == 'push' && $GITHUB_REF == 'refs/tags/v'* ]] && echo 'True' || echo 'False' )" >> $GITHUB_ENV
 
       - name: Adapt pyproject.toml
         if: ${{matrix.build-cvxpy-base}}

@@ -170,4 +170,8 @@ version_scheme = "semver-pep440-release-branch"
 fallback_version = "0.0.0"
 
 [tool.setuptools_scm.scm.git]
-describe_command = ["git", "describe", "--dirty", "--tags", "--long", "--match", "v*"]
+# `v*` matches real release tags. `dummy-v*` matches the anchor tag placed on
+# `master` at each minor branch point: real release tags live on `release/*`
+# branches and are not ancestors of `master`, so without an anchor `git
+# describe` would fall back to an ancient tag and compute the wrong version.
+describe_command = ["git", "describe", "--dirty", "--tags", "--long", "--match", "v*", "--match", "dummy-v*"]
