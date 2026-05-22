@@ -43,7 +43,7 @@ def _add_psd_bound_rows(A, b, dims, lb, ub):
 
     if extra_rows:
         insert_at = dims[s.EQ_DIM] + dims[s.LEQ_DIM]
-        bound_block = sp.vstack(extra_rows, format='csc')
+        bound_block = sp.vstack(extra_rows, format='csr')
         A = sp.vstack([A[:insert_at], bound_block, A[insert_at:]], format='csc')
         b = np.concatenate([b[:insert_at], *extra_b, b[insert_at:]])
         dims[s.LEQ_DIM] += bound_block.shape[0]
@@ -52,7 +52,7 @@ def _add_psd_bound_rows(A, b, dims, lb, ub):
 
 
 def _bound_selector(num_rows, num_cols, cols, value):
-    return sp.csc_array((np.full(num_rows, value), (np.arange(num_rows), cols)),
+    return sp.csr_array((np.full(num_rows, value), (np.arange(num_rows), cols)),
                         shape=(num_rows, num_cols))
 
 
