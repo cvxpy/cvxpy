@@ -3191,19 +3191,20 @@ class TestCOSMO(BaseTest):
         print(time > time2)
 
 def is_knitro_available():
-    """Check if KNITRO is installed and a license is available."""
+    """Check if KNITRO is installed and a license is available.
+
+    Detection is intentionally based on environment variables rather than
+    importing ``knitro``: importing it loads the native KNITRO runtime (and
+    a bundled OpenMP library on macOS) into the test process, which can
+    crash other solvers -- e.g. an IPOPT solve segfaults on macOS once
+    knitro has been imported.
+    """
     if 'KNITRO' not in INSTALLED_SOLVERS:
         return False
-    try:
-        import knitro  # type: ignore
-        # Try to create and delete a Knitro solver instance
-        kc = knitro.KN_new()
-        if kc is None:
-            return False
-        knitro.KN_free(kc)
-        return True
-    except Exception:
-        return False
+    return bool(
+        os.environ.get('ARTELYS_LICENSE')
+        or os.environ.get('ARTELYS_LICENSE_NETWORK_ADDR')
+    )
 
 @unittest.skipUnless(is_knitro_available(), 'KNITRO is not installed or license is not available.')
 class TestKNITRO(BaseTest):

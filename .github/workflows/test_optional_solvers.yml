@@ -26,6 +26,9 @@ jobs:
           echo $MOSEK_CI_BASE64 | base64 -d > mosek.lic
           echo "MOSEKLM_LICENSE_FILE=$( [[ $RUNNER_OS == 'macOS' ]] && echo $(pwd)/mosek.lic || echo $(realpath mosek.lic) )" >> $GITHUB_ENV
           echo $KNITRO_LICENSE > ~/artelys_lic.txt
+          # is_knitro_available() gates on ARTELYS_LICENSE; only set it
+          # when a license secret is present so forks skip KNITRO tests.
+          if [ -n "$KNITRO_LICENSE" ]; then echo "ARTELYS_LICENSE=$HOME" >> $GITHUB_ENV; fi
 
       - uses: astral-sh/setup-uv@v7
         with:

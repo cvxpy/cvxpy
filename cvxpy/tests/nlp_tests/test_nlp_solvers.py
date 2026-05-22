@@ -27,8 +27,8 @@ from cvxpy.tests.test_conic_solvers import is_knitro_available
 NLP_SOLVERS = [
     pytest.param('IPOPT', marks=pytest.mark.skipif(
         'IPOPT' not in INSTALLED_SOLVERS, reason='IPOPT is not installed.')),
-    pytest.param('KNITRO', marks=pytest.mark.skipif(
-        not is_knitro_available(), reason='KNITRO is not installed or license not available.')),
+    pytest.param('KNITRO', marks=[pytest.mark.knitro, pytest.mark.skipif(
+        not is_knitro_available(), reason='KNITRO is not installed or license not available.')]),
     pytest.param('UNO', marks=pytest.mark.skipif(
         'UNO' not in INSTALLED_SOLVERS, reason='UNO is not installed.')),
     pytest.param('COPT', marks=pytest.mark.skipif(
