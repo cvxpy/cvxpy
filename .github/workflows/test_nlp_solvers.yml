@@ -34,7 +34,7 @@ jobs:
       - name: Install COPT solver
         run: uv pip install -e ".[COPT]"
       - name: Install Uno solver
-        run: uv pip install unopy
+        run: uv pip install -e ".[UNO]"
       - name: Verify Uno import
         run: uv run python -c "import unopy; print('unopy imported successfully')"
       - name: Install KNITRO solver
