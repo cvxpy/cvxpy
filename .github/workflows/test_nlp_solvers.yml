@@ -45,7 +45,7 @@ jobs:
       - name: Print installed solvers
         run: uv run python -c "import cvxpy; print(cvxpy.installed_solvers())"
       - name: Run nlp tests
-        run: uv run pytest -s -v cvxpy/tests/nlp_tests/
+        run: uv run pytest -v cvxpy/tests/nlp_tests/
 
     env:
       KNITRO_LICENSE: ${{ secrets.KNITRO_LICENSE }}
