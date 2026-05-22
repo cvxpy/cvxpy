@@ -15,6 +15,7 @@ limitations under the License.
 """
 
 import numbers
+from typing import TypeAlias
 
 import numpy as np
 import scipy.sparse as sp
@@ -32,6 +33,7 @@ DEFAULT_NP_INTF = INTERFACES[np.ndarray]
 # Default dense and sparse matrix interfaces.
 DEFAULT_INTF = INTERFACES[np.ndarray]
 DEFAULT_SPARSE_INTF = INTERFACES[sp.csc_array]
+ScalarValue: TypeAlias = numbers.Number | np.generic
 
 
 # Returns the interface for interacting with the target matrix class.
@@ -183,7 +185,7 @@ def convert(constant, sparse: bool = False, convert_scalars: bool = False):
 # Get the value of the passed constant, interpreted as a scalar.
 
 
-def scalar_value(constant):
+def scalar_value(constant) -> ScalarValue:
     if isinstance(constant, numbers.Number) or np.isscalar(constant):
         return constant
     elif isinstance(constant, list):

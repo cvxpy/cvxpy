@@ -22,6 +22,7 @@ import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.settings as s
 import cvxpy.utilities.linalg as eig_util
+from cvxpy.expressions.expression import ExpressionValue
 from cvxpy.expressions.leaf import Leaf
 from cvxpy.utilities import performance_utils as perf
 from cvxpy.utilities.warn import warn
@@ -104,8 +105,8 @@ class Constant(Leaf):
         return True
 
     @property
-    def value(self):
-        """NumPy.ndarray or None: The numeric value of the constant.
+    def value(self) -> ExpressionValue:
+        """The numeric value of the constant.
         """
         return self._value
 

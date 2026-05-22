@@ -28,7 +28,7 @@ from cvxpy import interface as intf
 from cvxpy import utilities as u
 from cvxpy.expressions import cvxtypes
 from cvxpy.expressions.constants import Constant
-from cvxpy.expressions.expression import Expression
+from cvxpy.expressions.expression import Expression, ExpressionValue
 from cvxpy.utilities import bounds as bounds_utils
 from cvxpy.utilities import performance_utils as perf
 from cvxpy.utilities.deterministic import unique_list
@@ -448,12 +448,12 @@ class Atom(Expression):
         raise NotImplementedError()
 
     @property
-    def value(self):
+    def value(self) -> ExpressionValue | None:
         if any([p.value is None for p in self.parameters()]):
             return None
         return self._value_impl()
 
-    def _value_impl(self):
+    def _value_impl(self) -> ExpressionValue | None:
         # shapes with 0's dropped in presolve.
         if 0 in self.shape:
             result = np.array([])

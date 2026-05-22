@@ -17,7 +17,7 @@ limitations under the License.
 import abc
 import warnings
 from functools import wraps
-from typing import Literal, Self
+from typing import Literal, Self, TypeAlias
 
 import numpy as np
 import scipy.sparse as sp
@@ -130,7 +130,8 @@ __BINARY_EXPRESSION_UFUNCS__ = {
 }
 
 
-ExpressionLike = "Expression | np.typing.ArrayLike"
+ExpressionLike: TypeAlias = "Expression | np.typing.ArrayLike"
+ExpressionValue: TypeAlias = np.ndarray | np.generic | sp.sparray | int | float | complex
 
 
 class Expression(u.Canonical):
@@ -149,12 +150,12 @@ class Expression(u.Canonical):
 
     @property
     @abc.abstractmethod
-    def value(self) -> np.ndarray | None:
+    def value(self) -> ExpressionValue | None:
         """Returns: The numeric value of the expression.
         """
         raise NotImplementedError()
 
-    def _value_impl(self) -> np.ndarray | None:
+    def _value_impl(self) -> ExpressionValue | None:
         """Implementation of .value.
         """
         return self.value

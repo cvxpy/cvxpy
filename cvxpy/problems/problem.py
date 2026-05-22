@@ -35,7 +35,7 @@ from cvxpy.constraints.constraint import Constraint
 from cvxpy.error import DPPError
 from cvxpy.expressions import cvxtypes
 from cvxpy.expressions.variable import Variable
-from cvxpy.interface.matrix_utilities import scalar_value
+from cvxpy.interface.matrix_utilities import ScalarValue, scalar_value
 from cvxpy.problems.objective import Maximize, Minimize
 from cvxpy.reductions import InverseData
 from cvxpy.reductions.chain import Chain
@@ -212,7 +212,7 @@ class Problem(u.Canonical):
         return metrics
 
     @property
-    def value(self):
+    def value(self) -> ScalarValue | None:
         """float : The value from the last time the problem was solved
                    (or None if not solved).
         """
