@@ -14,6 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import importlib.util
+
 import numpy as np
 import scipy.sparse as sp
 
@@ -295,6 +297,16 @@ class KNITRO(ConicSolver):
     def name(self):
         """The name of the solver."""
         return s.KNITRO
+
+    def is_installed(self) -> bool:
+        """Checks for the ``knitro`` package without importing it.
+
+        Importing ``knitro`` loads the native KNITRO runtime (and, on macOS,
+        a bundled OpenMP library). Doing that eagerly from ``import cvxpy``
+        can crash other solvers that load their own OpenMP runtime, so
+        installation is detected via the import machinery instead.
+        """
+        return importlib.util.find_spec("knitro") is not None
 
     def import_solver(self) -> None:
         """Imports the solver."""
