@@ -43,6 +43,11 @@ jobs:
       - name: Install SuiteSparse (macOS)
         if: runner.os == 'macOS'
         run: brew install suite-sparse
+      # unopy (Uno solver) ships no macOS wheel, so uv builds it from an sdist
+      # whose CMake build calls enable_language(Fortran).
+      - name: Install Fortran compiler (macOS)
+        if: runner.os == 'macOS'
+        run: brew install gcc
       - name: Install cvxpy dependencies and all optional solvers
         run: uv sync --all-extras --dev
       - name: Install Moreau
