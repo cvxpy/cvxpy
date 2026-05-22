@@ -41,11 +41,11 @@ reportMissingImports = false
 reportMissingModuleSource = false
 
 # Existing violations to be fixed incrementally (error counts as of 2026-05-22):
-reportArgumentType = false          # 215 errors
+reportArgumentType = false          # 217 errors
 reportAttributeAccessIssue = false  # 307 errors
 reportReturnType = false            # 81 errors
 reportOptionalSubscript = false     # 20 errors
-reportCallIssue = false             # 77 errors
+reportCallIssue = false             # 79 errors
 reportOptionalMemberAccess = false  # 38 errors
 reportGeneralTypeIssues = false     # 27 errors
 reportIndexIssue = false            # 17 errors
