@@ -35,7 +35,17 @@ jobs:
         run: uv pip install unopy
       - name: Verify Uno import
         run: uv run python -c "import unopy; print('unopy imported successfully')"
+      - name: Install KNITRO solver
+        run: uv pip install knitro
+      - name: Set up KNITRO license
+        if: env.KNITRO_LICENSE != ''
+        run: |
+          echo "$KNITRO_LICENSE" > ~/artelys_lic.txt
+          echo "ARTELYS_LICENSE=$HOME" >> $GITHUB_ENV
       - name: Print installed solvers
         run: uv run python -c "import cvxpy; print(cvxpy.installed_solvers())"
       - name: Run nlp tests
         run: uv run pytest -s -v cvxpy/tests/nlp_tests/
+
+    env:
+      KNITRO_LICENSE: ${{ secrets.KNITRO_LICENSE }}
