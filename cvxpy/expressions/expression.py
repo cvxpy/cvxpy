@@ -709,8 +709,8 @@ class Expression(u.Canonical):
             exp(self * log(base))
         """
 
-        base = cvxtypes.expression().cast_to_const(base)
-        return _pow_const_base(base, self)
+        base_expr = cvxtypes.expression().cast_to_const(base)
+        return _pow_const_base(base_expr, self)
 
     @staticmethod
     def cast(expr_like) -> "Expression":

@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from collections.abc import Sequence
 
 import numpy as np
 import scipy.sparse as sp
@@ -203,7 +204,7 @@ class GeoMean(Atom):
         :math:`\\|p/\\mathbf{1}^T p - w \\|_\\infty`
     """
 
-    def __init__(self, x, p: list[int] | None = None,
+    def __init__(self, x, p: Sequence[float] | np.ndarray | None = None,
                  max_denom: int = 1024) -> None:
         Expression = cvxtypes.expression()
         if p is not None and isinstance(p, Expression):
@@ -398,7 +399,7 @@ class GeoMeanApprox(GeoMean):
 
     """
 
-    def __init__(self, x, p: list[int] | None = None,
+    def __init__(self, x, p: Sequence[float] | np.ndarray | None = None,
                  max_denom: int = 1024) -> None:
         super().__init__(x, p=p, max_denom=max_denom)
 

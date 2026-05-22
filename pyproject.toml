@@ -41,17 +41,16 @@ reportMissingImports = false
 reportMissingModuleSource = false
 
 # Existing violations to be fixed incrementally (error counts as of 2026-05-22):
-reportArgumentType = false          # 223 errors
-reportAttributeAccessIssue = false  # 310 errors
+reportArgumentType = false          # 215 errors
+reportAttributeAccessIssue = false  # 307 errors
 reportReturnType = false            # 81 errors
-reportOptionalSubscript = false     # 29 errors
-reportCallIssue = false             # 79 errors
-reportOptionalMemberAccess = false  # 40 errors
+reportOptionalSubscript = false     # 20 errors
+reportCallIssue = false             # 77 errors
+reportOptionalMemberAccess = false  # 38 errors
 reportGeneralTypeIssues = false     # 27 errors
-reportAssignmentType = false        # 19 errors
-reportIndexIssue = false            # 19 errors
-reportOptionalOperand = false       # 12 errors
-reportOperatorIssue = false         # 51 errors
+reportIndexIssue = false            # 17 errors
+reportOptionalOperand = false       # 8 errors
+reportOperatorIssue = false         # 50 errors
 
 [tool.pytest.ini_options]
 testpaths = [
