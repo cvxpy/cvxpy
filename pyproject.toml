@@ -40,19 +40,19 @@ exclude = ["cvxpy/tests", "cvxpy/cvxcore"]
 reportMissingImports = false
 reportMissingModuleSource = false
 
-# Existing violations to be fixed incrementally (error counts as of 2026-03-23):
-reportArgumentType = false          # 175 errors
-reportAttributeAccessIssue = false  # 188 errors
-reportReturnType = false            # 77 errors
-reportOptionalSubscript = false     # 61 errors
-reportCallIssue = false             # 52 errors
-reportOptionalMemberAccess = false  # 32 errors
-reportGeneralTypeIssues = false     # 33 errors
+# Existing violations to be fixed incrementally (error counts as of 2026-05-22):
+reportArgumentType = false          # 223 errors
+reportAttributeAccessIssue = false  # 310 errors
+reportReturnType = false            # 81 errors
+reportOptionalSubscript = false     # 29 errors
+reportCallIssue = false             # 79 errors
+reportOptionalMemberAccess = false  # 40 errors
+reportGeneralTypeIssues = false     # 27 errors
 reportAssignmentType = false        # 19 errors
-reportInvalidTypeForm = false       # 27 errors
-reportIndexIssue = false            # 18 errors
-reportOptionalOperand = false       # 22 errors
-reportOperatorIssue = false         # 22 errors
+reportInvalidTypeForm = false       # 6 errors
+reportIndexIssue = false            # 19 errors
+reportOptionalOperand = false       # 12 errors
+reportOperatorIssue = false         # 51 errors
 
 [tool.pytest.ini_options]
 testpaths = [
@@ -149,3 +149,10 @@ content-type = "text/markdown"
 
 [tool.setuptools]
 include-package-data = false
+
+[dependency-groups]
+# Dev-only tooling deps, installed by `uv sync`. pyright type-checks the
+# package; scipy-stubs lets it analyze SciPy types (e.g. the sparse arrays
+# returned by Expression.grad). Running pyright via `uv run` puts it inside
+# this environment so numpy/scipy imports resolve.
+dev = ["pyright", "scipy-stubs"]
