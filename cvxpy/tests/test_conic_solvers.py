@@ -3410,6 +3410,53 @@ class TestCUOPT(unittest.TestCase):
     def test_cuopt_qp_0(self) -> None:
         StandardTestQPs.test_qp_0(solver="CUOPT", **TestCUOPT.kwargs, time_limit=5)
 
+    socp_kwargs = {
+        **kwargs,
+        "solver_method": "Barrier",
+        "presolve": 0,
+    }
+
+    def test_cuopt_socp_0(self) -> None:
+        StandardTestSOCPs.test_socp_0(
+            solver="CUOPT", duals=False, places=3, **TestCUOPT.socp_kwargs
+        )
+
+    def test_cuopt_socp_1(self) -> None:
+        StandardTestSOCPs.test_socp_1(
+            solver="CUOPT", duals=False, places=3, **TestCUOPT.socp_kwargs
+        )
+
+    def test_cuopt_socp_2(self) -> None:
+        StandardTestSOCPs.test_socp_2(
+            solver="CUOPT", duals=False, places=3, **TestCUOPT.socp_kwargs
+        )
+
+    def test_cuopt_socp_3(self) -> None:
+        StandardTestSOCPs.test_socp_3ax0(
+            solver="CUOPT", duals=False, places=3, **TestCUOPT.socp_kwargs
+        )
+        StandardTestSOCPs.test_socp_3ax1(
+            solver="CUOPT", duals=False, places=3, **TestCUOPT.socp_kwargs
+        )
+
+    def test_cuopt_socp_lorentz_min_x0(self) -> None:
+        """Matches cuOpt barrier Lorentz QCMATRIX smoke test (min x0, x1=1, SOC)."""
+        x0 = cp.Variable(nonneg=True)
+        x1 = cp.Variable(nonneg=True)
+        x2 = cp.Variable()
+        prob = cp.Problem(cp.Minimize(x0), [x1 == 1, cp.norm(cp.hstack([x1, x2])) <= x0])
+        prob.solve(solver="CUOPT", **TestCUOPT.socp_kwargs)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        self.assertAlmostEqual(prob.value, 1.0, places=3)
+        self.assertAlmostEqual(x0.value, 1.0, places=3)
+        self.assertAlmostEqual(x1.value, 1.0, places=3)
+        self.assertAlmostEqual(x2.value, 0.0, places=3)
+
+    def test_cuopt_mi_socp_error(self) -> None:
+        sth = sths.mi_socp_1()
+        with self.assertRaises(cp.error.SolverError):
+            sth.solve(solver="CUOPT", **TestCUOPT.kwargs)
+
 
 @pytest.mark.parametrize("solver", INSTALLED_SOLVERS)
 def test_offset_in_opt_val(solver):

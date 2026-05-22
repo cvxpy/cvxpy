@@ -15,8 +15,10 @@ limitations under the License.
 """
 
 import numpy as np
+import scipy.sparse as sp
 
 import cvxpy.settings as s
+from cvxpy.constraints import SOC
 from cvxpy.error import SolverError
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
@@ -56,7 +58,7 @@ class CUOPT(ConicSolver):
 
     # Solver capabilities.
     MIP_CAPABLE = True
-    SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS
+    SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC]
     MI_SUPPORTED_CONSTRAINTS = SUPPORTED_CONSTRAINTS
     BOUNDED_VARIABLES = True
     REQUIRES_CONSTR = True
@@ -212,63 +214,173 @@ class CUOPT(ConicSolver):
 
         return ss
 
+    @staticmethod
+    def _lorentz_qcoo(variable_indices):
+        """COO for -x_0^2 + sum_{i>0} x_i^2 <= 0 (cuOpt Lorentz / CVXPY SOC)."""
+        indices = np.asarray(variable_indices, dtype=np.int32)
+        q_values = np.empty(len(indices), dtype=np.float64)
+        q_values[0] = -1.0
+        q_values[1:] = 1.0
+        return q_values, indices.copy(), indices.copy()
+
+    @staticmethod
+    def _soc_lift_csr(Acsr, b, rows, num_vars):
+        """Build k equalities aux_i + A[row, :] @ x = b[row] (Gurobi-style lift)."""
+        k = len(rows)
+        data, indices, indptr = [], [], [0]
+        rhs = np.empty(k, dtype=np.float64)
+        for local_i, row in enumerate(rows):
+            cols = [num_vars + local_i]
+            coeffs = [1.0]
+            start, end = Acsr.indptr[row], Acsr.indptr[row + 1]
+            for j, a_ij in zip(Acsr.indices[start:end], Acsr.data[start:end]):
+                cols.append(j)
+                coeffs.append(a_ij)
+            indices.extend(cols)
+            data.extend(coeffs)
+            indptr.append(len(data))
+            rhs[local_i] = b[row]
+        A_lift = sp.csr_matrix(
+            (data, indices, indptr),
+            shape=(k, num_vars + k),
+        )
+        return A_lift, rhs
+
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
         verbose = verbose or solver_opts.get("solver_verbose", False) in [True, "True", "true"]
         Acsr = data[s.A].tocsr(copy=False)
         B = data[s.B]
-        C = data[s.C]
+        C = data[s.C].copy()
 
         Qcsr = None
         if s.P in data:
             Qcsr = data[s.P].tocsr() / 2
 
-        num_vars = data[s.C].shape[0]
+        n_orig = data[s.C].shape[0]
+        num_vars = n_orig
         dims = dims_to_solver_dict(data[s.DIMS])
         leq_start = dims[s.EQ_DIM]
         leq_end = dims[s.EQ_DIM] + dims[s.LEQ_DIM]
+        soc_dims = dims.get(s.SOC_DIM, [])
+        has_soc = len(soc_dims) > 0
 
-        # Get constraint bounds
         lower_bounds = np.empty(leq_end)
         lower_bounds[:leq_start] = B[:leq_start]
         lower_bounds[leq_start:leq_end] = float("-inf")
         upper_bounds = B[:leq_end].copy()
 
-        # Initialize variable types and bounds
         variable_types = np.full(num_vars, "C", dtype="U1")
         variable_lower_bounds = data[s.LOWER_BOUNDS]
         variable_upper_bounds = data[s.UPPER_BOUNDS]
         if variable_lower_bounds is None:
             variable_lower_bounds = np.full(num_vars, -np.inf)
+        else:
+            variable_lower_bounds = variable_lower_bounds.copy()
         if variable_upper_bounds is None:
             variable_upper_bounds = np.full(num_vars, np.inf)
+        else:
+            variable_upper_bounds = variable_upper_bounds.copy()
 
-        # Change bools to ints and set bounds
         is_mip = data[s.BOOL_IDX] or data[s.INT_IDX]
         if is_mip:
-            # Set variable types
             variable_types[data[s.BOOL_IDX] + data[s.INT_IDX]] = "I"
-
-            # Make sure bounds for bool variables are [0,1]
             variable_lower_bounds[data[s.BOOL_IDX]] = 0
             variable_upper_bounds[data[s.BOOL_IDX]] = 1
+
+        if has_soc and is_mip:
+            raise SolverError(
+                "CUOPT does not support mixed-integer problems with SOC constraints."
+            )
+
+        A_work = Acsr[:leq_end, :].tocsr(copy=True)
+        soc_start = leq_end
+        soc_lifts = []
+
+        for constr_len in soc_dims:
+            soc_end = soc_start + constr_len
+            rows = range(soc_start, soc_end)
+            A_lift, rhs_lift = self._soc_lift_csr(Acsr, B, rows, num_vars)
+            aux_base = num_vars
+            soc_lifts.append((A_lift, rhs_lift, aux_base, constr_len))
+            num_vars += constr_len
+            C = np.concatenate([C, np.zeros(constr_len, dtype=np.float64)])
+            variable_lower_bounds = np.concatenate(
+                [variable_lower_bounds, np.zeros(constr_len, dtype=np.float64)]
+            )
+            variable_upper_bounds = np.concatenate(
+                [variable_upper_bounds, np.full(constr_len, np.inf, dtype=np.float64)]
+            )
+            variable_types = np.concatenate(
+                [variable_types, np.full(constr_len, "C", dtype="U1")]
+            )
+            soc_start = soc_end
+
+        if A_work.shape[1] < num_vars:
+            A_work = sp.hstack(
+                [
+                    A_work,
+                    sp.csr_matrix((A_work.shape[0], num_vars - A_work.shape[1])),
+                ],
+                format="csr",
+            )
+        for A_lift, rhs_lift, _, _ in soc_lifts:
+            if A_lift.shape[1] < num_vars:
+                A_lift = sp.hstack(
+                    [
+                        A_lift,
+                        sp.csr_matrix((A_lift.shape[0], num_vars - A_lift.shape[1])),
+                    ],
+                    format="csr",
+                )
+            A_work = sp.vstack([A_work, A_lift], format="csr")
+            lower_bounds = np.concatenate([lower_bounds, rhs_lift])
+            upper_bounds = np.concatenate([upper_bounds, rhs_lift])
+
+        qc_specs = []
+        qc_row_index = A_work.shape[0]
+        for _, _, aux_base, constr_len in soc_lifts:
+            if constr_len > 1:
+                qc_specs.append(
+                    (
+                        qc_row_index,
+                        self._lorentz_qcoo(range(aux_base, aux_base + constr_len)),
+                    )
+                )
+                qc_row_index += 1
 
         from cuopt.linear_programming.data_model import DataModel
         from cuopt.linear_programming.solver import Solve
 
         data_model = DataModel()
-        data_model.set_csr_constraint_matrix(Acsr.data, Acsr.indices, Acsr.indptr)
+        data_model.set_csr_constraint_matrix(
+            A_work.data, A_work.indices, A_work.indptr
+        )
         data_model.set_objective_coefficients(C)
         data_model.set_objective_offset(data[s.OFFSET])
         data_model.set_constraint_lower_bounds(lower_bounds)
         data_model.set_constraint_upper_bounds(upper_bounds)
         if Qcsr is not None:
-            data_model.set_quadratic_objective_matrix(Qcsr.data, Qcsr.indices, Qcsr.indptr)
-
+            data_model.set_quadratic_objective_matrix(
+                Qcsr.data, Qcsr.indices, Qcsr.indptr
+            )
         data_model.set_variable_lower_bounds(variable_lower_bounds)
         data_model.set_variable_upper_bounds(variable_upper_bounds)
         data_model.set_variable_types(variable_types)
 
+        for qc_row_index, (qv, qr, qc) in qc_specs:
+            data_model.add_quadratic_constraint(
+                constraint_row_index=qc_row_index,
+                constraint_row_name=f"soc_{qc_row_index}",
+                quadratic_values=qv,
+                quadratic_row_indices=qr,
+                quadratic_col_indices=qc,
+                sense="L",
+            )
+
         ss = self._get_solver_settings(solver_opts, is_mip, verbose)
+        if has_soc:
+            ss.set_parameter(CUOPT_METHOD, SolverMethod.Barrier)
+
         cuopt_result = Solve(data_model, ss)
 
         if verbose:
@@ -282,20 +394,21 @@ class CUOPT(ConicSolver):
             extra_stats = cuopt_result.get_milp_stats()
             iters = extra_stats["num_simplex_iterations"]
         else:
-            d = cuopt_result.get_dual_solution()
-            if d is not None:
-                dual_vars[s.EQ_DUAL] = -d[0:leq_start]
-                dual_vars[s.INEQ_DUAL] = -d[leq_start:leq_end]
+            if not has_soc:
+                d = cuopt_result.get_dual_solution()
+                if d is not None:
+                    dual_vars[s.EQ_DUAL] = -d[0:leq_start]
+                    dual_vars[s.INEQ_DUAL] = -d[leq_start:leq_end]
             sol_status = self._get_status_lp(cuopt_result.get_termination_status())
             extra_stats = cuopt_result.get_lp_stats()
             iters = extra_stats["nb_iterations"]
 
-        # Note, this is not the final solution. It is processed in invert()
-        # and an updated Solution is returned
-        solution = Solution(
+        primal = cuopt_result.get_primal_solution()[:n_orig]
+
+        return Solution(
             sol_status,
             cuopt_result.get_primal_objective(),
-            cuopt_result.get_primal_solution(),
+            primal,
             dual_vars,
             attr={
                 s.SOLVE_TIME: cuopt_result.get_solve_time(),
@@ -303,8 +416,6 @@ class CUOPT(ConicSolver):
                 s.EXTRA_STATS: extra_stats,
             },
         )
-
-        return solution
 
     def cite(self, data):
         """Returns bibtex citation for the solver.
