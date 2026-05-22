@@ -332,8 +332,8 @@ def is_sparse_symmetric(m, complex: bool = False) -> bool:
     if m.shape[0] != m.shape[1]:
         raise ValueError('m must be a square matrix')
 
-    if not isinstance(m, sp.coo_matrix):
-        m = sp.coo_matrix(m)
+    if not isinstance(m, sp.coo_array):
+        m = sp.coo_array(m)
 
     r, c, v = m.row, m.col, m.data
     tril_no_diag = r > c
@@ -378,8 +378,8 @@ def is_sparse_skew_symmetric(A) -> bool:
     if A.shape[0] != A.shape[1]:
         raise ValueError('m must be a square matrix')
 
-    if not isinstance(A, sp.coo_matrix):
-        A = sp.coo_matrix(A)
+    if not isinstance(A, sp.coo_array):
+        A = sp.coo_array(A)
 
     r, c, v = A.row, A.col, A.data
     tril = r >= c

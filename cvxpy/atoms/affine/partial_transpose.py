@@ -45,10 +45,10 @@ def _term(expr, i: int, j: int, dims: tuple[int], axis: int | None = 0):
     # in the system we want to transpose.
     # This function returns the (i,j)-th term in the sum, namely
     # (I ⊗ |i><j| ⊗ I) x (I ⊗ |i><j| ⊗ I).
-    a = sp.coo_matrix(([1.0], ([0], [0])))
+    a = sp.coo_array(([1.0], ([0], [0])))
     for (i_axis, dim) in enumerate(dims):
         if i_axis == axis:
-            v = sp.coo_matrix(([1], ([i], [j])), shape=(dim, dim))
+            v = sp.coo_array(([1], ([i], [j])), shape=(dim, dim))
             a = sp.kron(a, v)
         else:
             eye_mat = sp.eye_array(dim)

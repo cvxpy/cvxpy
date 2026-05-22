@@ -20,6 +20,7 @@ if TYPE_CHECKING:
     from cvxpy.constraints.constraint import Constraint
 
 import numpy as np
+import scipy.sparse as sp
 
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
@@ -471,6 +472,8 @@ class Atom(Expression):
                 else:
                     arg_values.append(arg_val)
             result = self.numeric(arg_values)
+        if isinstance(result, sp.spmatrix):
+            result = sp.coo_array(result)
         return result
 
     @property

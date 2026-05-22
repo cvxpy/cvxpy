@@ -133,7 +133,7 @@ def psd_format_mat(constr, triangle: TriangleKind,
     if num == 1:
         return single_block
 
-    block_format = sp.block_diag([single_block] * num, format='csc')
+    block_format = sp.csc_array(sp.block_diag([single_block] * num, format='csc'))
 
     # F-order vec of (*batch, n, n) interleaves batch elements.
     # Permute from interleaved to contiguous per-batch blocks.

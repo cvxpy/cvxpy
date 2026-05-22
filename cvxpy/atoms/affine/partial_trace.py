@@ -40,11 +40,11 @@ def _term(expr, j: int, dims: tuple[int], axis: int | None = 0):
     # in the system we want to trace out.
     # This function returns the jth term in the sum, namely
     # (I ⊗ <j| ⊗ I) x (I ⊗ |j> ⊗ I).
-    a = sp.coo_matrix(([1.0], ([0], [0])))
-    b = sp.coo_matrix(([1.0], ([0], [0])))
+    a = sp.coo_array(([1.0], ([0], [0])))
+    b = sp.coo_array(([1.0], ([0], [0])))
     for (i_axis, dim) in enumerate(dims):
         if i_axis == axis:
-            v = sp.coo_matrix(([1], ([j], [0])), shape=(dim, 1))
+            v = sp.coo_array(([1], ([j], [0])), shape=(dim, 1))
             a = sp.kron(a, v.T)
             b = sp.kron(b, v)
         else:
