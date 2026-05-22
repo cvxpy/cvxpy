@@ -14,6 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import importlib.util
+
 import numpy as np
 
 import cvxpy.settings as s
@@ -65,6 +67,17 @@ class IPOPT(NLPsolver):
         The name of solver.
         """
         return 'IPOPT'
+
+    def is_installed(self) -> bool:
+        """Checks for the ``cyipopt`` package without importing it.
+
+        Importing ``cyipopt`` loads the native IPOPT runtime (and a bundled
+        OpenMP library on macOS). Detecting installation via the import
+        machinery keeps ``import cvxpy`` from loading it, so it does not
+        share a process -- and an OpenMP runtime -- with other solvers
+        unless an IPOPT solve actually runs.
+        """
+        return importlib.util.find_spec("cyipopt") is not None
 
     def import_solver(self):
         """

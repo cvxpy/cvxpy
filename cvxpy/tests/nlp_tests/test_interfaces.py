@@ -19,21 +19,10 @@ import pytest
 
 import cvxpy as cp
 from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS
+from cvxpy.tests.test_conic_solvers import is_knitro_available
 
 
-def is_knitro_available():
-    """Check if KNITRO is installed and a license is available."""
-    import os
-    if 'KNITRO' not in INSTALLED_SOLVERS:
-        return False
-    # Only run KNITRO tests if license env var is explicitly set
-    # This prevents hanging in CI when KNITRO is installed but not licensed
-    return bool(
-        os.environ.get('ARTELYS_LICENSE') or
-        os.environ.get('ARTELYS_LICENSE_NETWORK_ADDR')
-    )
-
-
+@pytest.mark.knitro
 @pytest.mark.skipif(
     not is_knitro_available(),
     reason='KNITRO is not installed or license is not available.'

@@ -58,6 +58,9 @@ reportOperatorIssue = false         # 22 errors
 testpaths = [
     "cvxpy/tests/"
 ]
+markers = [
+    "knitro: tests that load the native KNITRO runtime; run in a separate process from other native solvers (see test_nlp_solvers.yml)",
+]
 
 [build-system]
 requires = [
