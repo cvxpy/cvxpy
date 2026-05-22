@@ -16,6 +16,40 @@ from cvxpy.utilities.citations import CITATION_DICT
 from cvxpy.utilities.psd_utils import TriangleKind
 
 
+def _add_psd_bound_rows(A, b, dims, lb, ub):
+    """Add finite variable bounds as explicit inequality rows."""
+    n = A.shape[1]
+    extra_rows = []
+    extra_b = []
+
+    if ub is not None:
+        finite_ub = np.isfinite(ub)
+        n_ub = np.count_nonzero(finite_ub)
+        if n_ub:
+            extra_rows.append(_bound_selector(n_ub, n, np.flatnonzero(finite_ub), 1.0))
+            extra_b.append(ub[finite_ub])
+            dims[s.LEQ_DIM] += n_ub
+
+    if lb is not None:
+        finite_lb = np.isfinite(lb)
+        n_lb = np.count_nonzero(finite_lb)
+        if n_lb:
+            extra_rows.append(_bound_selector(n_lb, n, np.flatnonzero(finite_lb), -1.0))
+            extra_b.append(-lb[finite_lb])
+            dims[s.LEQ_DIM] += n_lb
+
+    if extra_rows:
+        A = sp.vstack([A] + extra_rows, format='csc')
+        b = np.concatenate([b] + extra_b)
+
+    return A, b
+
+
+def _bound_selector(num_rows, num_cols, cols, value):
+    return sp.csc_array((np.full(num_rows, value), (np.arange(num_rows), cols)),
+                        shape=(num_rows, num_cols))
+
+
 class COPT(ConicSolver):
     """
     An interface for the COPT solver.
@@ -182,21 +216,7 @@ class COPT(ConicSolver):
             psd_lb = data[s.LOWER_BOUNDS]
             psd_ub = data[s.UPPER_BOUNDS]
             if psd_lb is not None or psd_ub is not None:
-                n = c.shape[0]
-                extra_rows = []
-                extra_b = []
-                if psd_ub is not None:
-                    # x_i <= ub_i  =>  x_i <= ub_i  (LEQ constraint: I @ x <= ub)
-                    extra_rows.append(sp.eye_array(n, format='csc'))
-                    extra_b.append(psd_ub)
-                    dims[s.LEQ_DIM] += n
-                if psd_lb is not None:
-                    # x_i >= lb_i  =>  -x_i <= -lb_i  (LEQ constraint: -I @ x <= -lb)
-                    extra_rows.append(-sp.eye_array(n, format='csc'))
-                    extra_b.append(-psd_lb)
-                    dims[s.LEQ_DIM] += n
-                A = sp.vstack([A] + extra_rows, format='csc')
-                b = np.concatenate([b] + extra_b)
+                A, b = _add_psd_bound_rows(A, b, dims, psd_lb, psd_ub)
 
             # Solve the dualized problem
             # TODO switch to `A.transpose().tocsc()` when COPT supports sparray
