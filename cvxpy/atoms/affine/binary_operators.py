@@ -593,7 +593,7 @@ class DivExpression(BinaryOperator):
         return (lu.div_expr(arg_objs[0], arg_objs[1]), [])
 
 
-def vdot(x, y):
+def vdot(x, y) -> Expression:
     """
     Return the standard inner product (or "scalar product") of (x,y).
 
@@ -625,14 +625,14 @@ def vdot(x, y):
     return cvxpy_sum(prod)
 
 
-def scalar_product(x, y):
+def scalar_product(x, y) -> Expression:
     """
     Alias for vdot.
     """
     return vdot(x, y)
 
 
-def outer(x, y):
+def outer(x, y) -> Expression:
     """
     Return the outer product of (x,y).
 

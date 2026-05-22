@@ -19,6 +19,7 @@ from functools import reduce
 import numpy as np
 
 from cvxpy.atoms.elementwise.elementwise import Elementwise
+from cvxpy.expressions.expression import Expression
 
 
 def _is_boolean_arg(arg):
@@ -266,7 +267,7 @@ class Xor(_NaryLogicExpression):
         return reduce(lambda a, b: np.mod(a + b, 2), values)
 
 
-def implies(x, y):
+def implies(x, y) -> Expression:
     """Logical implication: x => y.
 
     Returns 1 unless x = 1 and y = 0.  Equivalent to ``Or(Not(x), y)``.
@@ -292,7 +293,7 @@ def implies(x, y):
     return Or(Not(x), y)
 
 
-def iff(x, y):
+def iff(x, y) -> Expression:
     """Logical biconditional: x <=> y.
 
     Returns 1 if and only if x and y have the same value.

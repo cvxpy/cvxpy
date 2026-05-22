@@ -19,6 +19,7 @@ import scipy.sparse as sp
 from numpy.lib.array_utils import normalize_axis_index
 
 from cvxpy.atoms.atom import Atom
+from cvxpy.expressions.expression import Expression
 
 
 def _term(expr, j: int, dims: tuple[int], axis: int | None = 0):
@@ -55,7 +56,7 @@ def _term(expr, j: int, dims: tuple[int], axis: int | None = 0):
 
 
 # ruff: noqa: E501
-def partial_trace(expr, dims: tuple[int], axis: int | None = 0):
+def partial_trace(expr, dims: tuple[int], axis: int | None = 0) -> Expression:
     """
     Assumes :math:`\\texttt{expr} = X_1 \\otimes \\cdots \\otimes X_n` is a 2D Kronecker
     product composed of :math:`n = \\texttt{len(dims)}` implicit subsystems.

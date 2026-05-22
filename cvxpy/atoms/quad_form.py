@@ -287,7 +287,7 @@ def decomp_quad(P, cond=None, rcond=None, lower=True, check_finite: bool = True)
     return scale, M1, M2
 
 
-def quad_form(x, P, assume_PSD: bool = False):
+def quad_form(x, P, assume_PSD: bool = False) -> Expression:
     """Alias for :math:`x^T P x`.
 
     Parameters

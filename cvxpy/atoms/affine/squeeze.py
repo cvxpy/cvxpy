@@ -18,9 +18,10 @@ from __future__ import annotations
 import numbers
 
 from cvxpy.atoms.affine.reshape import reshape
+from cvxpy.expressions.expression import Expression
 
 
-def squeeze(expr, axis: int | tuple[int, ...] | None = None):
+def squeeze(expr, axis: int | tuple[int, ...] | None = None) -> Expression:
     """
     Squeeze the expression.
 
