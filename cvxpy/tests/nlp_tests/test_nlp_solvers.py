@@ -144,8 +144,9 @@ class TestNLPExamples:
         checker = DerivativeChecker(problem)
         checker.run_and_assert()
 
-    @pytest.mark.skipif('UNO' in INSTALLED_SOLVERS, reason='UNO has an algorithmic error')
     def test_rosenbrock(self, solver):
+        if solver == 'UNO':
+            pytest.skip('UNO has an algorithmic error')
         x = cp.Variable(2, name='x')
         objective = cp.Minimize((1 - x[0])**2 + 100 * (x[1] - x[0]**2)**2)
         problem = cp.Problem(objective, [])
@@ -356,11 +357,12 @@ class TestNLPExamples:
         checker = DerivativeChecker(problem)
         checker.run_and_assert()
 
-    @pytest.mark.skipif('UNO' in INSTALLED_SOLVERS, reason='UNO finds a KKT point with worse obj')
     def test_circle_packing_formulation_two(self, solver):
         """Using norm_inf. This test revealed a very subtle bug in the unpacking of
         the ipopt solution. Some variables were mistakenly reordered. It was fixed
         in https://github.com/cvxgrp/cvxpy-ipopt/pull/82"""
+        if solver == 'UNO':
+            pytest.skip('UNO finds a KKT point with worse obj')
         rng = np.random.default_rng(5)
         n = 3
         radius = rng.uniform(1.0, 3.0, n)
@@ -424,8 +426,9 @@ class TestNLPExamples:
         checker = DerivativeChecker(prob)
         checker.run_and_assert()
 
-    @pytest.mark.skipif('UNO' in INSTALLED_SOLVERS, reason='UNO reaches iteration limit')
     def test_geo_mean(self, solver):
+        if solver == 'UNO':
+            pytest.skip('UNO reaches iteration limit')
         x = cp.Variable(3, nonneg=True)
         geo_mean = cp.geo_mean(x)
         objective = cp.Maximize(geo_mean)
@@ -438,8 +441,9 @@ class TestNLPExamples:
         checker = DerivativeChecker(problem)
         checker.run_and_assert()
 
-    @pytest.mark.skipif('UNO' in INSTALLED_SOLVERS, reason='UNO reaches iteration limit')
     def test_geo_mean2(self, solver):
+        if solver == 'UNO':
+            pytest.skip('UNO reaches iteration limit')
         p = np.array([.07, .12, .23, .19, .39])
         x = cp.Variable(5, nonneg=True)
         prob = cp.Problem(cp.Maximize(cp.geo_mean(x, p)), [cp.sum(x) <= 1])
