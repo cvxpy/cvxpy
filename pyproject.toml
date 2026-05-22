@@ -103,9 +103,10 @@ dynamic = ["version"]
 # Solver names as in cvxpy.settings = pip-installable distribution providing it
 CBC = ["cylp>=0.91.5"]
 CLARABEL = []
-# coptpy >= 7.2.5 accepts scipy sparse arrays (csc_array) in loadMatrix /
-# loadConeMatrix; earlier versions require the legacy csc_matrix.
-COPT = ["coptpy>=7.2.5"]
+# coptpy >= 8.0.3 provides the NLP callback API (NlpCallbackBase, loadNlData)
+# the COPT NLP interface relies on. It also accepts scipy sparse arrays
+# (csc_array) in loadMatrix / loadConeMatrix, supported since 7.2.5.
+COPT = ["coptpy>=8.0.3"]
 # CUOPT dependency group is disabled since it was breaking uv sync.
 # CUOPT = ["cuopt-cu12>=25.5", "nvidia-cuda-runtime-cu12>=12.8,<13.0"]
 CVXOPT = ["cvxopt"]

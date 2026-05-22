@@ -205,10 +205,12 @@ class COPT(NLPsolver):
         # Pass through verbosity
         model.setParam(copt.COPT.Param.Logging, verbose)
 
-        # Get the NLP problem data
+        # Get the NLP problem data. Cast bounds to float so the infinite
+        # entries can be replaced with COPT's finite infinity sentinel even
+        # when cvxpy hands us integer-typed bounds (e.g. nonneg variables).
         x0 = data['x0']
-        lb, ub = data['lb'].copy(), data['ub'].copy()
-        cl, cu = data['cl'].copy(), data['cu'].copy()
+        lb, ub = data['lb'].astype(float), data['ub'].astype(float)
+        cl, cu = data['cl'].astype(float), data['cu'].astype(float)
 
         lb[lb == -np.inf] = -copt.COPT.INFINITY
         ub[ub == +np.inf] = +copt.COPT.INFINITY
@@ -255,6 +257,15 @@ class COPT(NLPsolver):
         # Set parameters
         for key, value in solver_opts.items():
             model.setParam(key, value)
+
+        # COPT may evaluate the gradient/Jacobian/Hessian callbacks at the
+        # initial point before calling the objective/constraint callbacks.
+        # The oracles cache intermediate values from a forward pass, so prime
+        # them here to ensure the first derivative evaluation uses correct
+        # values rather than stale defaults.
+        oracles.objective(x0)
+        if m > 0:
+            oracles.constraints(x0)
 
         # Solve problem
         model.solve()
