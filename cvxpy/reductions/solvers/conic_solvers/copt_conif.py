@@ -87,8 +87,10 @@ class COPT(ConicSolver):
                   7: s.OPTIMAL_INACCURATE,  # imprecise
                   8: s.USER_LIMIT,          # time out
                   9: s.SOLVER_ERROR,        # unfinished
-                 10: s.USER_LIMIT,          # interrupted
-                 11: s.USER_LIMIT           # iteration limit
+                  10: s.USER_LIMIT,         # interrupted
+                  11: s.USER_LIMIT,         # iteration limit
+                  20: s.OPTIMAL,            # local optimal
+                  21: s.INFEASIBLE          # local infeasible
                  }
 
     def name(self):
