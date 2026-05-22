@@ -49,7 +49,6 @@ reportCallIssue = false             # 79 errors
 reportOptionalMemberAccess = false  # 40 errors
 reportGeneralTypeIssues = false     # 27 errors
 reportAssignmentType = false        # 19 errors
-reportInvalidTypeForm = false       # 6 errors
 reportIndexIssue = false            # 19 errors
 reportOptionalOperand = false       # 12 errors
 reportOperatorIssue = false         # 51 errors
