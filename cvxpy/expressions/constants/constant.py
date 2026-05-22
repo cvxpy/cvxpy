@@ -22,7 +22,7 @@ import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.settings as s
 import cvxpy.utilities.linalg as eig_util
-from cvxpy.expressions.expression import ExpressionValue
+from cvxpy.expressions.expression import ExpressionValue, GradMap
 from cvxpy.expressions.leaf import Leaf
 from cvxpy.utilities import performance_utils as perf
 from cvxpy.utilities.warn import warn
@@ -123,7 +123,7 @@ class Constant(Leaf):
         return self._cached_is_pos
 
     @property
-    def grad(self):
+    def grad(self) -> GradMap:
         """Gives the (sub/super)gradient of the expression w.r.t. each variable.
 
         Matrix expressions are vectorized, so the gradient is a matrix.
