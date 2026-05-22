@@ -17,30 +17,36 @@ from cvxpy.utilities.psd_utils import TriangleKind
 
 
 def _add_psd_bound_rows(A, b, dims, lb, ub):
-    """Add finite variable bounds as explicit inequality rows."""
+    """Add finite variable bounds as explicit inequality rows.
+
+    The rows are inserted right after the existing NonNeg (LEQ) block so the
+    cone partition passed to ``loadConeMatrix`` stays contiguous: COPT expects
+    rows ordered as free, linear, SOC, exponential, PSD.
+    """
     n = A.shape[1]
     extra_rows = []
     extra_b = []
 
     if ub is not None:
         finite_ub = np.isfinite(ub)
-        n_ub = np.count_nonzero(finite_ub)
+        n_ub = int(np.count_nonzero(finite_ub))
         if n_ub:
             extra_rows.append(_bound_selector(n_ub, n, np.flatnonzero(finite_ub), 1.0))
             extra_b.append(ub[finite_ub])
-            dims[s.LEQ_DIM] += n_ub
 
     if lb is not None:
         finite_lb = np.isfinite(lb)
-        n_lb = np.count_nonzero(finite_lb)
+        n_lb = int(np.count_nonzero(finite_lb))
         if n_lb:
             extra_rows.append(_bound_selector(n_lb, n, np.flatnonzero(finite_lb), -1.0))
             extra_b.append(-lb[finite_lb])
-            dims[s.LEQ_DIM] += n_lb
 
     if extra_rows:
-        A = sp.vstack([A] + extra_rows, format='csc')
-        b = np.concatenate([b] + extra_b)
+        insert_at = dims[s.EQ_DIM] + dims[s.LEQ_DIM]
+        bound_block = sp.vstack(extra_rows, format='csc')
+        A = sp.vstack([A[:insert_at], bound_block, A[insert_at:]], format='csc')
+        b = np.concatenate([b[:insert_at], *extra_b, b[insert_at:]])
+        dims[s.LEQ_DIM] += bound_block.shape[0]
 
     return A, b
 
