@@ -205,12 +205,10 @@ class COPT(NLPsolver):
         # Pass through verbosity
         model.setParam(copt.COPT.Param.Logging, verbose)
 
-        # Get the NLP problem data. Cast bounds to float so the infinite
-        # entries can be replaced with COPT's finite infinity sentinel even
-        # when cvxpy hands us integer-typed bounds (e.g. nonneg variables).
+        # Get the NLP problem data
         x0 = data['x0']
-        lb, ub = data['lb'].astype(float), data['ub'].astype(float)
-        cl, cu = data['cl'].astype(float), data['cu'].astype(float)
+        lb, ub = data['lb'].copy(), data['ub'].copy()
+        cl, cu = data['cl'].copy(), data['cu'].copy()
 
         lb[lb == -np.inf] = -copt.COPT.INFINITY
         ub[ub == +np.inf] = +copt.COPT.INFINITY
