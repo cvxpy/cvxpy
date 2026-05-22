@@ -282,7 +282,9 @@ class Power(Elementwise):
     def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """
-        if not _is_const(self.p):
+        # p_used is None exactly when the exponent is non-constant (set in
+        # __init__); guarding on it also narrows p_used to a float below.
+        if self.p_used is None:
             return self.p.is_nonneg() and self.args[idx].is_nonneg()
 
         p = self.p_used
@@ -299,7 +301,9 @@ class Power(Elementwise):
     def is_decr(self, idx) -> bool:
         """Is the composition non-increasing in argument idx?
         """
-        if not _is_const(self.p):
+        # p_used is None exactly when the exponent is non-constant (set in
+        # __init__); guarding on it also narrows p_used to a float below.
+        if self.p_used is None:
             return self.p.is_nonpos() and self.args[idx].is_nonneg()
 
         p = self.p_used
