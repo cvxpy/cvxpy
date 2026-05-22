@@ -225,8 +225,7 @@ class COPT(ConicSolver):
                 A, b = _add_psd_bound_rows(A, b, dims, psd_lb, psd_ub)
 
             # Solve the dualized problem
-            # TODO switch to `A.transpose().tocsc()` when COPT supports sparray
-            rowmap = model.loadConeMatrix(-b, sp.csc_matrix(A.transpose()), -c, dims)
+            rowmap = model.loadConeMatrix(-b, A.transpose().tocsc(), -c, dims)
             model.objsense = copt.COPT.MAXIMIZE
         else:
             # Build problem data
@@ -311,8 +310,7 @@ class COPT(ConicSolver):
                     vtype = np.append(vtype, [copt.COPT.CONTINUOUS] * nexpconedim)
 
             # Load matrix data
-            # TODO remove `sp.csc_matrix` when COPT starts supporting sparray
-            model.loadMatrix(c, sp.csc_matrix(A), lhs, rhs, lb, ub, vtype)
+            model.loadMatrix(c, A.tocsc(), lhs, rhs, lb, ub, vtype)
 
             # Load cone data
             if dims[s.SOC_DIM]:
