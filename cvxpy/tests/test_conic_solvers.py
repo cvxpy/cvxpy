@@ -944,6 +944,11 @@ class TestMosek(unittest.TestCase):
     def test_mosek_lp_5(self) -> None:
         StandardTestLPs.test_lp_5(solver='MOSEK')
 
+    @pytest.mark.xfail(
+        reason="MOSEK does not support native variable bounds yet "
+               "(BOUNDED_VARIABLES is False); bounds are desugared to constraints.",
+        strict=True,
+    )
     def test_mosek_lp_bound_attr(self) -> None:
         StandardTestLPs.test_lp_bound_attr(solver='MOSEK')
 
