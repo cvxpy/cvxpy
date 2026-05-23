@@ -43,18 +43,11 @@ jobs:
       - name: Install SuiteSparse (macOS)
         if: runner.os == 'macOS'
         run: brew install suite-sparse
-      # unopy (Uno solver) ships no macOS wheel, so uv builds it from an sdist
-      # whose CMake build calls enable_language(Fortran). Homebrew gcc installs
-      # gfortran only as a versioned binary (gfortran-NN), with no unversioned
-      # symlink, so point CMake at it explicitly via FC.
-      - name: Install Fortran compiler (macOS)
-        if: runner.os == 'macOS'
-        run: |
-          brew install gcc
-          fc=$(ls "$(brew --prefix)"/bin/gfortran-* | sort -V | tail -1)
-          echo "FC=$fc" >> "$GITHUB_ENV"
+      # Uno (unopy) is exercised by test_nlp_solvers, which installs it on its
+      # own with the IPOPT/OpenMP toolchain it needs. The conic and QP tests
+      # run here don't use it, so skip the extra to avoid a from-source build.
       - name: Install cvxpy dependencies and all optional solvers
-        run: uv sync --all-extras --dev
+        run: uv sync --all-extras --no-extra uno --dev
       - name: Install Moreau
         if: runner.os == 'Linux' && env.FURY_TOKEN != ''
         run: uv pip install moreau --extra-index-url https://${FURY_TOKEN}:@pypi.fury.io/optimalintellect/
