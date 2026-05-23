@@ -23,31 +23,36 @@ from cvxpy.reductions.solvers.openmp_conflict import warn_if_omp_conflict
 
 
 @pytest.fixture
-def isolated_modules(monkeypatch):
-    """Strip the OMP-bundling packages from sys.modules for the test."""
+def darwin_isolated(monkeypatch):
+    """Pretend to be macOS with no OMP-bundling packages loaded.
+
+    The conflict warning is gated on ``sys.platform == "darwin"``, so to
+    exercise it on Linux/Windows CI runners we monkeypatch the platform.
+    """
+    monkeypatch.setattr(sys, "platform", "darwin")
     for pkg in ("knitro", "cyipopt", "cvxopt"):
         monkeypatch.delitem(sys.modules, pkg, raising=False)
 
 
-def test_no_warning_when_alone(isolated_modules) -> None:
+def test_no_warning_when_alone(darwin_isolated) -> None:
     with warnings.catch_warnings():
         warnings.simplefilter("error")  # turn any warning into an exception
         warn_if_omp_conflict("knitro")
 
 
-def test_warns_when_cvxopt_already_loaded(isolated_modules, monkeypatch) -> None:
+def test_warns_when_cvxopt_already_loaded(darwin_isolated, monkeypatch) -> None:
     monkeypatch.setitem(sys.modules, "cvxopt", object())
     with pytest.warns(RuntimeWarning, match=r"knitro.*cvxopt"):
         warn_if_omp_conflict("knitro")
 
 
-def test_warns_when_knitro_already_loaded(isolated_modules, monkeypatch) -> None:
+def test_warns_when_knitro_already_loaded(darwin_isolated, monkeypatch) -> None:
     monkeypatch.setitem(sys.modules, "knitro", object())
     with pytest.warns(RuntimeWarning, match=r"cyipopt.*knitro"):
         warn_if_omp_conflict("cyipopt")
 
 
-def test_lists_all_loaded_siblings(isolated_modules, monkeypatch) -> None:
+def test_lists_all_loaded_siblings(darwin_isolated, monkeypatch) -> None:
     monkeypatch.setitem(sys.modules, "knitro", object())
     monkeypatch.setitem(sys.modules, "cyipopt", object())
     with pytest.warns(RuntimeWarning) as record:
@@ -56,8 +61,17 @@ def test_lists_all_loaded_siblings(isolated_modules, monkeypatch) -> None:
     assert "knitro" in msg and "cyipopt" in msg
 
 
-def test_silent_for_unrelated_package(isolated_modules, monkeypatch) -> None:
+def test_silent_for_unrelated_package(darwin_isolated, monkeypatch) -> None:
     monkeypatch.setitem(sys.modules, "knitro", object())
     with warnings.catch_warnings():
         warnings.simplefilter("error")
         warn_if_omp_conflict("numpy")  # not an OMP-bundling package
+
+
+def test_silent_on_non_darwin(monkeypatch) -> None:
+    """On Linux/Windows the gate short-circuits even when a conflict exists."""
+    monkeypatch.setattr(sys, "platform", "linux")
+    monkeypatch.setitem(sys.modules, "cvxopt", object())
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        warn_if_omp_conflict("knitro")
