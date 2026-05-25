@@ -210,11 +210,11 @@ class HuberPerspectiveAtom(Atom):
             return np.full(np.broadcast(x_val, t_val).shape, np.inf)
         return t_val * 2 * scipy.special.huber(self.M.value, x_val / t_val)
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> tuple[int, ...]:
         """The output shape is broadcast(x, t)."""
         return np.broadcast_shapes(self._x.shape, self._t.shape)
 
-    def sign_from_args(self) -> Tuple[bool, bool]:
+    def sign_from_args(self) -> tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression."""
         # t * huber(x/t, M) >= 0 whenever t > 0.
         return (True, False)
