@@ -25,6 +25,7 @@ from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ParamConeProg
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver, dims_to_solver_dict
+from cvxpy.reductions.solvers.openmp_conflict import warn_if_omp_conflict
 from cvxpy.utilities.citations import CITATION_DICT
 
 
@@ -310,6 +311,7 @@ class KNITRO(ConicSolver):
 
     def import_solver(self) -> None:
         """Imports the solver."""
+        warn_if_omp_conflict("knitro")
         import knitro  # noqa: F401
 
     def supports_quad_obj(self):

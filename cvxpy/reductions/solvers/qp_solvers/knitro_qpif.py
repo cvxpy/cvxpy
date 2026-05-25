@@ -22,6 +22,7 @@ from scipy import sparse
 import cvxpy.settings as s
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
+from cvxpy.reductions.solvers.openmp_conflict import warn_if_omp_conflict
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
 from cvxpy.utilities.citations import CITATION_DICT
 
@@ -145,6 +146,7 @@ class KNITRO(QpSolver):
 
     def import_solver(self) -> None:
         """Imports the Knitro solver."""
+        warn_if_omp_conflict("knitro")
         import knitro  # noqa: F401
 
     def apply(self, problem):
