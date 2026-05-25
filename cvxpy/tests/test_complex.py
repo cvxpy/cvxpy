@@ -39,8 +39,138 @@ class TestComplex2RealAccepts(BaseTest):
         y = Variable((2, 2))
         prob_real = Problem(Minimize(cp.norm(y, 'fro')), [y == np.eye(2)])
         self.assertIs(reduction.accepts(prob_real), False)
+class TestComplex2RealAttributes(BaseTest):
 
+    def test_hermitian_variable_canon_returns_real_and_imag(self) -> None:
+        """Test Hermitian complex variable canonicalizes to real and imaginary matrix parts."""
+        import cvxpy.lin_ops.lin_utils as lu
+        from cvxpy.expressions.variable import Variable
+        from cvxpy.reductions.complex2real.canonicalizers.variable_canon import variable_canon
 
+        X = Variable((3, 3), hermitian=True)
+        real2imag = {X.id: lu.get_id()}
+
+        real, imag = variable_canon(X, None, None, real2imag)
+
+        self.assertEqual(real.shape, (3, 3))
+        self.assertEqual(imag.shape, (3, 3))
+        self.assertTrue(real.attributes.get("symmetric"))
+        self.assertFalse(real.attributes.get("complex"))
+        self.assertFalse(real.attributes.get("hermitian"))
+
+    def test_complex_diag_attribute_preservation(self) -> None:
+        """Test diag attribute is preserved when splitting a general complex variable."""
+        import cvxpy.lin_ops.lin_utils as lu
+        from cvxpy.expressions.variable import Variable
+        from cvxpy.reductions.complex2real.canonicalizers.variable_canon import variable_canon
+
+        X = Variable((4, 4), complex=True, diag=True)
+        real2imag = {X.id: lu.get_id()}
+
+        real, imag = variable_canon(X, None, None, real2imag)
+
+        self.assertTrue(real.attributes.get("diag"))
+        self.assertTrue(imag.attributes.get("diag"))
+        self.assertFalse(real.attributes.get("complex"))
+        self.assertFalse(imag.attributes.get("complex"))
+
+    def test_complex_psd_attribute_trace_problem(self) -> None:
+        """Regression test for complex=True, PSD=True preserving PSD domain."""
+        import cvxpy as cp
+
+        X = cp.Variable((2, 2), complex=True, PSD=True)
+        prob = cp.Problem(
+            cp.Maximize(cp.real(X[0, 1] + X[1, 0])),
+            [cp.real(cp.trace(X)) == 1],
+        )
+
+        val = prob.solve(solver=cp.CLARABEL)
+
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        self.assertAlmostEqual(val, 1.0, places=5)
+
+    def test_complex_psd_attribute_matches_explicit_constraint(self) -> None:
+        """complex=True, PSD=True should match X >> 0 on a bounded problem."""
+        import cvxpy as cp
+
+        X_attr = cp.Variable((2, 2), complex=True, PSD=True)
+        prob_attr = cp.Problem(
+            cp.Maximize(cp.real(X_attr[0, 1] + X_attr[1, 0])),
+            [cp.real(cp.trace(X_attr)) == 1],
+        )
+
+        X_constr = cp.Variable((2, 2), complex=True)
+        prob_constr = cp.Problem(
+            cp.Maximize(cp.real(X_constr[0, 1] + X_constr[1, 0])),
+            [cp.real(cp.trace(X_constr)) == 1, X_constr >> 0],
+        )
+
+        val_attr = prob_attr.solve(solver=cp.CLARABEL)
+        val_constr = prob_constr.solve(solver=cp.CLARABEL)
+
+        self.assertEqual(prob_attr.status, cp.OPTIMAL)
+        self.assertEqual(prob_constr.status, cp.OPTIMAL)
+        self.assertAlmostEqual(val_attr, val_constr, places=5)
+        self.assertAlmostEqual(val_attr, 1.0, places=5)
+
+    def test_complex_nsd_attribute_trace_problem(self) -> None:
+        """Regression test for complex=True, NSD=True preserving NSD domain."""
+        import cvxpy as cp
+
+        X = cp.Variable((2, 2), complex=True, NSD=True)
+        prob = cp.Problem(
+            cp.Minimize(cp.real(X[0, 1] + X[1, 0])),
+            [cp.real(cp.trace(X)) == -1],
+        )
+
+        val = prob.solve(solver=cp.CLARABEL)
+
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        self.assertAlmostEqual(val, -1.0, places=5)
+
+    def test_complex_psd_real_part_preserves_psd(self) -> None:
+        """Test PSD attribute is preserved on the real split variable."""
+        import cvxpy.lin_ops.lin_utils as lu
+        from cvxpy.expressions.variable import Variable
+        from cvxpy.reductions.complex2real.canonicalizers.variable_canon import variable_canon
+
+        X = Variable((3, 3), complex=True, PSD=True)
+        real2imag = {X.id: lu.get_id()}
+
+        real, imag = variable_canon(X, None, None, real2imag)
+
+        self.assertTrue(real.attributes.get("PSD"))
+        self.assertFalse(imag.attributes.get("PSD") if hasattr(imag, "attributes") else False)
+
+    def test_complex_sign_attributes_raise(self) -> None:
+        """Complex variables cannot use real-valued sign attributes."""
+        import cvxpy as cp
+
+        invalid_attrs = [
+            {"nonneg": True},
+            {"nonpos": True},
+            {"pos": True},
+            {"neg": True},
+        ]
+
+        for attrs in invalid_attrs:
+            with self.assertRaises(ValueError):
+                cp.Variable((2, 2), complex=True, **attrs)
+
+    def test_imag_sign_attributes_raise(self) -> None:
+        """Imaginary variables cannot use real-valued sign attributes."""
+        import cvxpy as cp
+
+        invalid_attrs = [
+            {"nonneg": True},
+            {"nonpos": True},
+            {"pos": True},
+            {"neg": True},
+        ]
+
+        for attrs in invalid_attrs:
+            with self.assertRaises(ValueError):
+                cp.Variable((2, 2), imag=True, **attrs)
 class TestComplex(BaseTest):
     """ Unit tests for the expression/expression module. """
 
