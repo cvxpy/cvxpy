@@ -14,9 +14,11 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import os
 import unittest
 
 import numpy as np
+import pytest
 import scipy.sparse as sp
 from scipy.linalg import lstsq
 
@@ -49,6 +51,48 @@ from cvxpy.tests.solver_test_helpers import (
     StandardTestLPs,
     StandardTestQPs,
 )
+
+
+def is_mosek_available():
+    """Check if MOSEK is installed and a license is available."""
+    if 'MOSEK' not in INSTALLED_SOLVERS:
+        return False
+    try:
+        x = cp.Variable()
+        cp.Problem(cp.Minimize(x), [x >= 0]).solve(solver=cp.MOSEK)
+        return True
+    except Exception:
+        return False
+
+
+def is_knitro_available():
+    """Check if KNITRO is installed and a license is available.
+
+    Detection is intentionally based on environment variables rather than
+    importing ``knitro``: importing it loads the native KNITRO runtime (and
+    a bundled OpenMP library on macOS) into the test process, which can
+    crash other solvers -- e.g. an IPOPT solve segfaults on macOS once
+    knitro has been imported.
+    """
+    if 'KNITRO' not in INSTALLED_SOLVERS:
+        return False
+    return bool(
+        os.environ.get('ARTELYS_LICENSE')
+        or os.environ.get('ARTELYS_LICENSE_NETWORK_ADDR')
+    )
+
+
+def is_xpress_available():
+    """Check if XPRESS is installed and a license is available."""
+    if 'XPRESS' not in INSTALLED_SOLVERS:
+        return False
+    try:
+        import xpress  # type: ignore
+        env = xpress.env()
+        status = env.getlicense()
+        return status == 0
+    except Exception:
+        return False
 
 
 class QPTestBase(BaseTest):
@@ -85,56 +129,14 @@ class QPTestBase(BaseTest):
         """Override in subclasses."""
         raise NotImplementedError
 
-    # License checking helpers - shared by subclasses
-    @staticmethod
-    def is_mosek_available():
-        """Check if MOSEK is installed and a license is available."""
-        if 'MOSEK' not in INSTALLED_SOLVERS:
-            return False
-        try:
-            import mosek  # type: ignore
-            env = mosek.Env()
-            status = env.getlicense()
-            return status == mosek.rescode.ok
-        except Exception:
-            return False
-
-    @staticmethod
-    def is_knitro_available():
-        """Check if KNITRO is installed and a license is available."""
-        if 'KNITRO' not in INSTALLED_SOLVERS:
-            return False
-        try:
-            import knitro  # type: ignore
-            kc = knitro.KN_new()
-            if kc is None:
-                return False
-            knitro.KN_free(kc)
-            return True
-        except Exception:
-            return False
-
-    @staticmethod
-    def is_xpress_available():
-        """Check if XPRESS is installed and a license is available."""
-        if 'XPRESS' not in INSTALLED_SOLVERS:
-            return False
-        try:
-            import xpress  # type: ignore
-            env = xpress.env()
-            status = env.getlicense()
-            return status == 0
-        except Exception:
-            return False
-
     def filter_licensed_solvers(self, solvers):
         """Remove solvers that don't have valid licenses."""
         result = list(solvers)
-        if 'XPRESS' in result and not self.is_xpress_available():
+        if 'XPRESS' in result and not is_xpress_available():
             result.remove('XPRESS')
-        if 'MOSEK' in result and not self.is_mosek_available():
+        if 'MOSEK' in result and not is_mosek_available():
             result.remove('MOSEK')
-        if 'KNITRO' in result and not self.is_knitro_available():
+        if 'KNITRO' in result and not is_knitro_available():
             result.remove('KNITRO')
         return result
 
@@ -497,13 +499,20 @@ class QPTestBase(BaseTest):
 
 
 class TestQp(QPTestBase):
-    """Test native QP solvers."""
+    """Test native QP solvers.
+
+    KNITRO is excluded here and exercised separately by ``TestKNITROQp``
+    so its native runtime (and bundled OpenMP library on macOS) only
+    loads in a KNITRO-only pytest invocation.
+    """
 
     def setUp(self) -> None:
         super().setUp()
 
-        # Check for all installed QP solvers
-        self.solvers = [x for x in QP_SOLVERS if x in INSTALLED_SOLVERS]
+        # Check for all installed QP solvers (KNITRO is run separately).
+        self.solvers = [
+            x for x in QP_SOLVERS if x in INSTALLED_SOLVERS and x != cp.KNITRO
+        ]
         self.solvers = self.filter_licensed_solvers(self.solvers)
 
     def solve_QP(self, problem, solver_name):
@@ -993,6 +1002,90 @@ class TestConicQuadObj(QPTestBase):
             self.equivalent_forms_1(solver)
             self.equivalent_forms_2(solver)
             self.equivalent_forms_3(solver)
+
+
+@pytest.mark.knitro
+@unittest.skipUnless(is_knitro_available(),
+                     'KNITRO is not installed or license is not available.')
+class TestKNITROQp(QPTestBase):
+    """Run the QP test suite against KNITRO in an isolated pytest invocation.
+
+    KNITRO bundles LLVM ``libomp.dylib`` in its macOS wheel; CVXOPT bundles
+    GNU ``libgomp.1.dylib`` via its OpenBLAS dependency. Loading both into
+    one process can crash inside KNITRO's KN_solve. Running this class
+    under ``-m knitro`` in a separate pytest process mirrors the conic
+    KNITRO split in ``test_conic_solvers.py``.
+    """
+
+    def setUp(self) -> None:
+        super().setUp()
+        self.solvers = [cp.KNITRO]
+
+    def solve_QP(self, problem, solver_name):
+        return problem.solve(solver=solver_name, verbose=False)
+
+    def test_all_solvers(self) -> None:
+        for solver in self.solvers:
+            self.quad_over_lin(solver)
+            self.power(solver)
+            self.power_matrix(solver)
+            self.square_affine(solver)
+            self.quad_form(solver)
+            self.affine_problem(solver)
+            self.maximize_problem(solver)
+            self.abs(solver)
+            self.quad_form_coeff(solver)
+            self.quad_form_bound(solver)
+            self.regression_1(solver)
+            self.regression_2(solver)
+            self.rep_quad_form(solver)
+            self.control(solver)
+            self.sparse_system(solver)
+            self.smooth_ridge(solver)
+            self.huber_small(solver)
+            self.huber(solver)
+            self.equivalent_forms_1(solver)
+            self.equivalent_forms_2(solver)
+            # equivalent_forms_3 is intentionally skipped for KNITRO; see
+            # the matching skip in TestQp.test_all_solvers.
+
+    def test_qp_bound_attr(self) -> None:
+        for solver in self.solvers:
+            solver_cls = SOLVER_MAP_QP.get(solver)
+            if solver_cls is not None and getattr(solver_cls, 'BOUNDED_VARIABLES', False):
+                StandardTestQPs.test_qp_bound_attr(solver=solver)
+
+    def test_parametric(self) -> None:
+        x = Variable()
+        a = 10
+        b_vec = [-10, -2.]
+
+        for solver in self.solvers:
+            x_full = []
+            obj_full = []
+            for b in b_vec:
+                obj = Minimize(a * (x ** 2) + b * x)
+                constraints = [0 <= x, x <= 1]
+                prob = Problem(obj, constraints)
+                prob.solve(solver=solver)
+                x_full += [x.value]
+                obj_full += [prob.value]
+
+            x_param = []
+            obj_param = []
+            b = Parameter()
+            obj = Minimize(a * (x ** 2) + b * x)
+            constraints = [0 <= x, x <= 1]
+            prob = Problem(obj, constraints)
+            for b_value in b_vec:
+                b.value = b_value
+                prob.solve(solver=solver)
+                x_param += [x.value]
+                obj_param += [prob.value]
+
+            for i in range(len(b_vec)):
+                self.assertItemsAlmostEqual(x_full[i], x_param[i], places=3)
+                self.assertAlmostEqual(obj_full[i], obj_param[i])
 
 
 @unittest.skipUnless('MPAX' in INSTALLED_SOLVERS, 'MPAX is not installed.')
