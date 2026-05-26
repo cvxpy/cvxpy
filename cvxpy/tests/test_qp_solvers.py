@@ -491,7 +491,17 @@ def test_parametric(solver):
 
 # --- Solver-specific tests --- #
 
-def test_warm_start():
+@pytest.mark.parametrize(
+    "solver",
+    [s for s in [cp.OSQP, cp.QPALM, cp.HIGHS, cp.PIQP, cp.COPT]
+     if s in INSTALLED_SOLVERS],
+)
+def test_warm_start(solver):
+    """Re-solving with ``warm_start`` toggled on/off should return the same
+    optimum. Covers OSQP, QPALM, HIGHS, PIQP, COPT -- XPRESS and GUROBI have
+    their own warm-start tests below because they exercise different code
+    paths (integer var / inspecting the gurobipy ``Model``).
+    """
     m, n = 200, 100
     np.random.seed(1)
     A = np.random.randn(m, n)
@@ -500,31 +510,12 @@ def test_warm_start():
     prob = Problem(Minimize(sum_squares(A @ x - b)))
 
     b.value = np.random.randn(m)
-    result = prob.solve(solver="OSQP", warm_start=False)
-    result2 = prob.solve(solver="OSQP", warm_start=True)
+    result = prob.solve(solver=solver, warm_start=False)
+    result2 = prob.solve(solver=solver, warm_start=True)
     np.testing.assert_allclose(result, result2, atol=1e-5)
     b.value = np.random.randn(m)
-    result = prob.solve(solver="OSQP", warm_start=True)
-    result2 = prob.solve(solver="OSQP", warm_start=False)
-    np.testing.assert_allclose(result, result2, atol=1e-5)
-
-
-@pytest.mark.skipif(cp.QPALM not in INSTALLED_SOLVERS, reason="QPALM is not installed")
-def test_qpalm_warmstart():
-    m, n = 200, 100
-    np.random.seed(1)
-    A = np.random.randn(m, n)
-    b = Parameter(m)
-    x = Variable(n)
-    prob = Problem(Minimize(sum_squares(A @ x - b)))
-
-    b.value = np.random.randn(m)
-    result = prob.solve(solver=cp.QPALM, warm_start=False)
-    result2 = prob.solve(solver=cp.QPALM, warm_start=True)
-    np.testing.assert_allclose(result, result2, atol=1e-5)
-    b.value = np.random.randn(m)
-    result = prob.solve(solver=cp.QPALM, warm_start=True)
-    result2 = prob.solve(solver=cp.QPALM, warm_start=False)
+    result = prob.solve(solver=solver, warm_start=True)
+    result2 = prob.solve(solver=solver, warm_start=False)
     np.testing.assert_allclose(result, result2, atol=1e-5)
 
 
@@ -575,25 +566,6 @@ def test_xpress_warmstart():
 
 
 @pytest.mark.skipif(cp.HIGHS not in INSTALLED_SOLVERS, reason="HIGHS is not installed")
-def test_highs_warmstart():
-    m, n = 200, 100
-    np.random.seed(1)
-    A = np.random.randn(m, n)
-    b = Parameter(m)
-    x = Variable(n)
-    prob = Problem(Minimize(sum_squares(A @ x - b)))
-
-    b.value = np.random.randn(m)
-    result = prob.solve(solver=cp.HIGHS, warm_start=False)
-    result2 = prob.solve(solver=cp.HIGHS, warm_start=True)
-    np.testing.assert_allclose(result, result2, atol=1e-5)
-    b.value = np.random.randn(m)
-    result = prob.solve(solver=cp.HIGHS, warm_start=True)
-    result2 = prob.solve(solver=cp.HIGHS, warm_start=False)
-    np.testing.assert_allclose(result, result2, atol=1e-5)
-
-
-@pytest.mark.skipif(cp.HIGHS not in INSTALLED_SOLVERS, reason="HIGHS is not installed")
 def test_highs_cvar():
     """CVaR constraint regression for https://github.com/cvxpy/cvxpy/issues/2836."""
     num_stocks, num_samples = 5, 25
@@ -607,44 +579,6 @@ def test_highs_cvar():
     problem = cp.Problem(cp.Maximize(w @ pnl_expected), [cvar <= 0.5])
     problem.solve(solver=cp.HIGHS)
     assert problem.status == cp.OPTIMAL
-
-
-@pytest.mark.skipif(cp.PIQP not in INSTALLED_SOLVERS, reason="PIQP is not installed")
-def test_piqp_warmstart():
-    m, n = 200, 100
-    np.random.seed(1)
-    A = np.random.randn(m, n)
-    b = Parameter(m)
-    x = Variable(n)
-    prob = Problem(Minimize(sum_squares(A @ x - b)))
-
-    b.value = np.random.randn(m)
-    result = prob.solve(solver=cp.PIQP, warm_start=False)
-    result2 = prob.solve(solver=cp.PIQP, warm_start=True)
-    np.testing.assert_allclose(result, result2, atol=1e-5)
-    b.value = np.random.randn(m)
-    result = prob.solve(solver=cp.PIQP, warm_start=True)
-    result2 = prob.solve(solver=cp.PIQP, warm_start=False)
-    np.testing.assert_allclose(result, result2, atol=1e-5)
-
-
-@pytest.mark.skipif(cp.COPT not in INSTALLED_SOLVERS, reason="COPT is not installed")
-def test_copt_warmstart():
-    m, n = 200, 100
-    np.random.seed(1)
-    A = np.random.randn(m, n)
-    b = Parameter(m)
-    x = Variable(n)
-    prob = Problem(Minimize(sum_squares(A @ x - b)))
-
-    b.value = np.random.randn(m)
-    result = prob.solve(solver=cp.COPT, warm_start=False)
-    result2 = prob.solve(solver=cp.COPT, warm_start=True)
-    np.testing.assert_allclose(result, result2, atol=1e-5)
-    b.value = np.random.randn(m)
-    result = prob.solve(solver=cp.COPT, warm_start=True)
-    result2 = prob.solve(solver=cp.COPT, warm_start=False)
-    np.testing.assert_allclose(result, result2, atol=1e-5)
 
 
 def test_square_param():
@@ -717,20 +651,19 @@ def test_gurobi_environment():
         assert str(exc_info.value) == f"The solver {cp.GUROBI} is not installed."
 
 
-def test_osqp_infeasible_lp_ineq_constraints():
-    StandardTestInfeasibleProblems.test_lp_ineq_constraints(solver=cp.OSQP)
+_INFEAS_QP_SOLVERS = [
+    s for s in [cp.OSQP, cp.HIGHS] if s in INSTALLED_SOLVERS
+]
 
 
-def test_osqp_infeasible_lp_eq_constraints():
-    StandardTestInfeasibleProblems.test_lp_eq_constraints(solver=cp.OSQP)
+@pytest.mark.parametrize("solver", _INFEAS_QP_SOLVERS)
+def test_infeasible_lp_ineq_constraints(solver):
+    StandardTestInfeasibleProblems.test_lp_ineq_constraints(solver=solver)
 
 
-def test_highs_infeasible_lp_ineq_constraints():
-    StandardTestInfeasibleProblems.test_lp_ineq_constraints(solver=cp.HIGHS)
-
-
-def test_highs_infeasible_lp_eq_constraints():
-    StandardTestInfeasibleProblems.test_lp_eq_constraints(solver=cp.HIGHS)
+@pytest.mark.parametrize("solver", _INFEAS_QP_SOLVERS)
+def test_infeasible_lp_eq_constraints(solver):
+    StandardTestInfeasibleProblems.test_lp_eq_constraints(solver=solver)
 
 
 @pytest.mark.skipif(cp.HIGHS not in INSTALLED_SOLVERS, reason="HIGHS is not installed")
