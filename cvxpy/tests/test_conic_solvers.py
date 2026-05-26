@@ -3017,7 +3017,9 @@ class TestCOPT(unittest.TestCase):
         StandardTestECPs.test_expcone_1(solver='COPT')
 
     def test_copt_exp_soc_1(self) -> None:
-        StandardTestMixedCPs.test_exp_soc_1(solver='COPT')
+        # Tighten tolerances so the exponential-cone dual values converge
+        # to the 3 decimal places the test checks.
+        StandardTestMixedCPs.test_exp_soc_1(solver='COPT', FeasTol=1e-9, DualTol=1e-9)
 
     def test_copt_mi_lp_0(self) -> None:
         StandardTestLPs.test_mi_lp_0(solver='COPT')

@@ -16,6 +16,46 @@ from cvxpy.utilities.citations import CITATION_DICT
 from cvxpy.utilities.psd_utils import TriangleKind
 
 
+def _add_psd_bound_rows(A, b, dims, lb, ub):
+    """Add finite variable bounds as explicit inequality rows.
+
+    The rows are inserted right after the existing NonNeg (LEQ) block so the
+    cone partition passed to ``loadConeMatrix`` stays contiguous: COPT expects
+    rows ordered as free, linear, SOC, exponential, PSD.
+    """
+    n = A.shape[1]
+    extra_rows = []
+    extra_b = []
+
+    if ub is not None:
+        finite_ub = np.isfinite(ub)
+        n_ub = int(np.count_nonzero(finite_ub))
+        if n_ub:
+            extra_rows.append(_bound_selector(n_ub, n, np.flatnonzero(finite_ub), 1.0))
+            extra_b.append(ub[finite_ub])
+
+    if lb is not None:
+        finite_lb = np.isfinite(lb)
+        n_lb = int(np.count_nonzero(finite_lb))
+        if n_lb:
+            extra_rows.append(_bound_selector(n_lb, n, np.flatnonzero(finite_lb), -1.0))
+            extra_b.append(-lb[finite_lb])
+
+    if extra_rows:
+        insert_at = dims[s.EQ_DIM] + dims[s.LEQ_DIM]
+        bound_block = sp.vstack(extra_rows, format='csr')
+        A = sp.vstack([A[:insert_at], bound_block, A[insert_at:]], format='csc')
+        b = np.concatenate([b[:insert_at], *extra_b, b[insert_at:]])
+        dims[s.LEQ_DIM] += bound_block.shape[0]
+
+    return A, b
+
+
+def _bound_selector(num_rows, num_cols, cols, value):
+    return sp.csr_array((np.full(num_rows, value), (np.arange(num_rows), cols)),
+                        shape=(num_rows, num_cols))
+
+
 class COPT(ConicSolver):
     """
     An interface for the COPT solver.
@@ -47,8 +87,10 @@ class COPT(ConicSolver):
                   7: s.OPTIMAL_INACCURATE,  # imprecise
                   8: s.USER_LIMIT,          # time out
                   9: s.SOLVER_ERROR,        # unfinished
-                 10: s.USER_LIMIT,          # interrupted
-                 11: s.USER_LIMIT           # iteration limit
+                  10: s.USER_LIMIT,         # interrupted
+                  11: s.USER_LIMIT,         # iteration limit
+                  20: s.OPTIMAL,            # local optimal
+                  21: s.INFEASIBLE          # local infeasible
                  }
 
     def name(self):
@@ -182,25 +224,10 @@ class COPT(ConicSolver):
             psd_lb = data[s.LOWER_BOUNDS]
             psd_ub = data[s.UPPER_BOUNDS]
             if psd_lb is not None or psd_ub is not None:
-                n = c.shape[0]
-                extra_rows = []
-                extra_b = []
-                if psd_ub is not None:
-                    # x_i <= ub_i  =>  x_i <= ub_i  (LEQ constraint: I @ x <= ub)
-                    extra_rows.append(sp.eye_array(n, format='csc'))
-                    extra_b.append(psd_ub)
-                    dims[s.LEQ_DIM] += n
-                if psd_lb is not None:
-                    # x_i >= lb_i  =>  -x_i <= -lb_i  (LEQ constraint: -I @ x <= -lb)
-                    extra_rows.append(-sp.eye_array(n, format='csc'))
-                    extra_b.append(-psd_lb)
-                    dims[s.LEQ_DIM] += n
-                A = sp.vstack([A] + extra_rows, format='csc')
-                b = np.concatenate([b] + extra_b)
+                A, b = _add_psd_bound_rows(A, b, dims, psd_lb, psd_ub)
 
             # Solve the dualized problem
-            # TODO switch to `A.transpose().tocsc()` when COPT supports sparray
-            rowmap = model.loadConeMatrix(-b, sp.csc_matrix(A.transpose()), -c, dims)
+            rowmap = model.loadConeMatrix(-b, A.transpose().tocsc(), -c, dims)
             model.objsense = copt.COPT.MAXIMIZE
         else:
             # Build problem data
@@ -285,8 +312,7 @@ class COPT(ConicSolver):
                     vtype = np.append(vtype, [copt.COPT.CONTINUOUS] * nexpconedim)
 
             # Load matrix data
-            # TODO remove `sp.csc_matrix` when COPT starts supporting sparray
-            model.loadMatrix(c, sp.csc_matrix(A), lhs, rhs, lb, ub, vtype)
+            model.loadMatrix(c, A.tocsc(), lhs, rhs, lb, ub, vtype)
 
             # Load cone data
             if dims[s.SOC_DIM]:
