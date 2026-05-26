@@ -1246,27 +1246,25 @@ class TestAtoms(BaseTest):
         """Solve tests for huber with t as a Variable (concomitant scale estimation).
 
         Verification: solve the perspective problem to get (x*, t*), then at the
-        returned t* re-solve the same problem using the 2-arg HuberAtom — an
-        independent canonicalization. Both paths must agree on x* and objective.
+        returned t* re-solve with the 2-arg HuberAtom — an independent
+        canonicalization. Both paths must agree on x* and objective value.
         """
-        def _ref_solve(target, t_star, alpha, shape=None):
-            """Reference: min_x  t_star * sum(huber((x - target)/t_star, M=1)) + alpha*t_star."""
-            x_ref = cp.Variable() if shape is None else cp.Variable(shape)
-            ref = cp.Problem(cp.Minimize(
-                t_star * cp.sum(cp.huber((x_ref - target) / t_star, M=1)) + alpha * t_star
-            ))
-            ref.solve(solver=cp.CLARABEL)
-            return x_ref.value, ref.value
-
         # -- Scalar x --
         x = cp.Variable()
         t = cp.Variable(nonneg=True)
         prob = cp.Problem(cp.Minimize(cp.huber(x - 2.0, M=1, t=t) + t), [t >= 0.1])
         prob.solve(solver=cp.CLARABEL)
         self.assertEqual(prob.status, cp.OPTIMAL)
-        x_ref_val, ref_val = _ref_solve(2.0, float(t.value), alpha=1.0)
-        self.assertAlmostEqual(float(x.value), float(x_ref_val), places=3)
-        self.assertAlmostEqual(prob.value, ref_val, places=3)
+
+        # reference problem
+        t_star = float(t.value)
+        x_ref = cp.Variable()
+        ref_prob = cp.Problem(cp.Minimize(
+            t_star * cp.huber((x_ref - 2.0) / t_star, M=1) + t_star
+        ))
+        ref_prob.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(float(x.value), float(x_ref.value), places=3)
+        self.assertAlmostEqual(prob.value, ref_prob.value, places=3)
 
         # -- Vector x --
         target = np.array([0.0, 1.0, 2.0])
@@ -1278,9 +1276,16 @@ class TestAtoms(BaseTest):
         )
         prob.solve(solver=cp.CLARABEL)
         self.assertEqual(prob.status, cp.OPTIMAL)
-        x_ref_val, ref_val = _ref_solve(target, float(t.value), alpha=3.0, shape=3)
-        self.assertItemsAlmostEqual(xv.value, x_ref_val, places=3)
-        self.assertAlmostEqual(prob.value, ref_val, places=3)
+
+        # reference problem
+        t_star = float(t.value)
+        xv_ref = cp.Variable(3)
+        ref_prob = cp.Problem(cp.Minimize(
+            t_star * cp.sum(cp.huber((xv_ref - target) / t_star, M=1)) + 3 * t_star
+        ))
+        ref_prob.solve(solver=cp.CLARABEL)
+        self.assertItemsAlmostEqual(xv.value, xv_ref.value, places=3)
+        self.assertAlmostEqual(prob.value, ref_prob.value, places=3)
 
         # -- 2-D matrix x: exercises the reshape path in the canonicalization --
         X_tgt = np.array([[0.5, -1.0, 2.0], [1.0, 0.0, -0.5]])
@@ -1292,9 +1297,16 @@ class TestAtoms(BaseTest):
         )
         prob.solve(solver=cp.CLARABEL)
         self.assertEqual(prob.status, cp.OPTIMAL)
-        x_ref_val, ref_val = _ref_solve(X_tgt, float(t.value), alpha=6.0, shape=(2, 3))
-        self.assertItemsAlmostEqual(Xv.value.ravel(), x_ref_val.ravel(), places=3)
-        self.assertAlmostEqual(prob.value, ref_val, places=3)
+
+        # reference problem
+        t_star = float(t.value)
+        Xv_ref = cp.Variable((2, 3))
+        ref_prob = cp.Problem(cp.Minimize(
+            t_star * cp.sum(cp.huber((Xv_ref - X_tgt) / t_star, M=1)) + 6 * t_star
+        ))
+        ref_prob.solve(solver=cp.CLARABEL)
+        self.assertItemsAlmostEqual(Xv.value.ravel(), Xv_ref.value.ravel(), places=3)
+        self.assertAlmostEqual(prob.value, ref_prob.value, places=3)
 
         # -- Concomitant M-estimation: robust location + scale on contaminated data --
         # 22 obs from N(5, 1) plus 3 gross outliers. M=1.345 → 95% Gaussian efficiency.
@@ -1309,15 +1321,16 @@ class TestAtoms(BaseTest):
         )
         prob.solve(solver=cp.CLARABEL)
         self.assertEqual(prob.status, cp.OPTIMAL)
-        # Reference at fixed sigma*: 2-arg formulation must yield the same mu*
+
+        # reference problem
         sigma_star = float(sigma.value)
         mu_ref = cp.Variable()
-        ref = cp.Problem(cp.Minimize(
+        ref_prob = cp.Problem(cp.Minimize(
             sigma_star * cp.sum(cp.huber((y - mu_ref) / sigma_star, M=1.345)) + n * sigma_star
         ))
-        ref.solve(solver=cp.CLARABEL)
+        ref_prob.solve(solver=cp.CLARABEL)
         self.assertAlmostEqual(float(mu.value), float(mu_ref.value), places=3)
-        self.assertAlmostEqual(prob.value, ref.value, places=3)
+        self.assertAlmostEqual(prob.value, ref_prob.value, places=3)
         # Sanity: robust mu is close to the true mean (5.0) despite three big outliers
         self.assertLess(abs(float(mu.value) - 5.0), 0.5)
 
