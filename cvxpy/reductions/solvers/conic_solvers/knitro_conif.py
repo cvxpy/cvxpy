@@ -14,6 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import importlib.util
+
 import numpy as np
 import scipy.sparse as sp
 
@@ -23,6 +25,7 @@ from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ParamConeProg
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver, dims_to_solver_dict
+from cvxpy.reductions.solvers.openmp_conflict import warn_if_omp_conflict
 from cvxpy.utilities.citations import CITATION_DICT
 
 
@@ -296,8 +299,19 @@ class KNITRO(ConicSolver):
         """The name of the solver."""
         return s.KNITRO
 
+    def is_installed(self) -> bool:
+        """Checks for the ``knitro`` package without importing it.
+
+        Importing ``knitro`` loads the native KNITRO runtime (and, on macOS,
+        a bundled OpenMP library). Doing that eagerly from ``import cvxpy``
+        can crash other solvers that load their own OpenMP runtime, so
+        installation is detected via the import machinery instead.
+        """
+        return importlib.util.find_spec("knitro") is not None
+
     def import_solver(self) -> None:
         """Imports the solver."""
+        warn_if_omp_conflict("knitro")
         import knitro  # noqa: F401
 
     def supports_quad_obj(self):

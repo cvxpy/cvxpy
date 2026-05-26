@@ -914,11 +914,9 @@ def is_mosek_available():
     if 'MOSEK' not in INSTALLED_SOLVERS:
         return False
     try:
-        import mosek  # type: ignore
-        env = mosek.Env()
-        # Try to get license status (returns 0 if OK)
-        status = env.getlicense()
-        return status == mosek.rescode.ok
+        x = cp.Variable()
+        cp.Problem(cp.Minimize(x), [x >= 0]).solve(solver=cp.MOSEK)
+        return True
     except Exception:
         return False
 
@@ -946,6 +944,11 @@ class TestMosek(unittest.TestCase):
     def test_mosek_lp_5(self) -> None:
         StandardTestLPs.test_lp_5(solver='MOSEK')
 
+    @pytest.mark.xfail(
+        reason="MOSEK does not support native variable bounds yet "
+               "(BOUNDED_VARIABLES is False); bounds are desugared to constraints.",
+        strict=True,
+    )
     def test_mosek_lp_bound_attr(self) -> None:
         StandardTestLPs.test_lp_bound_attr(solver='MOSEK')
 
@@ -3014,7 +3017,9 @@ class TestCOPT(unittest.TestCase):
         StandardTestECPs.test_expcone_1(solver='COPT')
 
     def test_copt_exp_soc_1(self) -> None:
-        StandardTestMixedCPs.test_exp_soc_1(solver='COPT')
+        # Tighten tolerances so the exponential-cone dual values converge
+        # to the 3 decimal places the test checks.
+        StandardTestMixedCPs.test_exp_soc_1(solver='COPT', FeasTol=1e-9, DualTol=1e-9)
 
     def test_copt_mi_lp_0(self) -> None:
         StandardTestLPs.test_mi_lp_0(solver='COPT')
@@ -3193,20 +3198,22 @@ class TestCOSMO(BaseTest):
         print(time > time2)
 
 def is_knitro_available():
-    """Check if KNITRO is installed and a license is available."""
+    """Check if KNITRO is installed and a license is available.
+
+    Detection is intentionally based on environment variables rather than
+    importing ``knitro``: importing it loads the native KNITRO runtime (and
+    a bundled OpenMP library on macOS) into the test process, which can
+    crash other solvers -- e.g. an IPOPT solve segfaults on macOS once
+    knitro has been imported.
+    """
     if 'KNITRO' not in INSTALLED_SOLVERS:
         return False
-    try:
-        import knitro  # type: ignore
-        # Try to create and delete a Knitro solver instance
-        kc = knitro.KN_new()
-        if kc is None:
-            return False
-        knitro.KN_free(kc)
-        return True
-    except Exception:
-        return False
+    return bool(
+        os.environ.get('ARTELYS_LICENSE')
+        or os.environ.get('ARTELYS_LICENSE_NETWORK_ADDR')
+    )
 
+@pytest.mark.knitro
 @unittest.skipUnless(is_knitro_available(), 'KNITRO is not installed or license is not available.')
 class TestKNITRO(BaseTest):
 
