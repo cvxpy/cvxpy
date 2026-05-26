@@ -132,28 +132,12 @@ CONIC_QUAD_OBJ_PARAMS = [
 
 # --- Assertion + solve helpers --- #
 
-def _mat_to_list(mat):
-    if isinstance(mat, (np.matrix, np.ndarray)):
-        return np.asarray(mat).flatten('F').tolist()
-    return mat
-
-
-def assert_items_almost_equal(a, b, places=5):
-    """List-aware almost-equal (matches the old ``BaseTest`` helper)."""
-    a = [a] if np.isscalar(a) else _mat_to_list(a)
-    b = [b] if np.isscalar(b) else _mat_to_list(b)
-    assert len(a) == len(b), f"length mismatch: {len(a)} vs {len(b)}"
-    for ai, bi in zip(a, b):
-        assert round(ai - bi, places) == 0, f"{ai} != {bi} to {places} places"
-
-
-def assert_almost_equal(a, b, places=5):
-    """Scalar almost-equal (matches ``unittest.TestCase.assertAlmostEqual``)."""
-    assert round(a - b, places) == 0, f"{a} != {b} to {places} places"
-
-
 def check_kkt(problem, places=4):
-    """Verify KKT conditions for a solved problem."""
+    """Verify KKT conditions for a solved problem.
+
+    Stays in ``places`` units because ``SolverTestHelper`` exposes its
+    tolerances as decimal places, not absolute tolerances.
+    """
     obj_pair = (problem.objective, None)
     var_pairs = [(v, None) for v in problem.variables()]
     con_pairs = [(c, None) for c in problem.constraints]
@@ -216,9 +200,9 @@ def _quad_over_lin(v, solver, use_quad_obj=False):
     p = Problem(Minimize(0.5 * quad_over_lin(abs(v.x - 1), 1)), [v.x <= -1])
     _solve(p, solver, use_quad_obj)
     for var in p.variables():
-        assert_items_almost_equal(np.array([-1., -1.]), var.value, places=4)
+        np.testing.assert_allclose(np.array([-1., -1.]), var.value, atol=1e-4)
     for con in p.constraints:
-        assert_items_almost_equal(np.array([2., 2.]), con.dual_value, places=4)
+        np.testing.assert_allclose(np.array([2., 2.]), con.dual_value, atol=1e-4)
     check_kkt(p, places=3)
 
 
@@ -227,21 +211,21 @@ def _abs(v, solver, use_quad_obj=False):
     prob = Problem(Minimize(sum_squares(u)), [abs(u[1] - u[0]) <= 100])
     assert prob.is_qp()
     result = _solve(prob, solver, use_quad_obj)
-    assert_almost_equal(result, 0)
+    np.testing.assert_allclose(result, 0, atol=1e-5)
 
 
 def _power(v, solver, use_quad_obj=False):
     p = Problem(Minimize(sum(power(v.x, 2))), [])
     _solve(p, solver, use_quad_obj)
     for var in p.variables():
-        assert_items_almost_equal([0., 0.], var.value, places=4)
+        np.testing.assert_allclose([0., 0.], var.value, atol=1e-4)
 
 
 def _power_matrix(v, solver, use_quad_obj=False):
     p = Problem(Minimize(sum(power(v.A - 3., 2))), [])
     _solve(p, solver, use_quad_obj)
     for var in p.variables():
-        assert_items_almost_equal([3., 3., 3., 3.], var.value, places=4)
+        np.testing.assert_allclose(var.value, np.full((2, 2), 3.), atol=1e-4)
 
 
 def _square_affine(v, solver, use_quad_obj=False):
@@ -250,8 +234,8 @@ def _square_affine(v, solver, use_quad_obj=False):
     p = Problem(Minimize(sum_squares(A @ v.x - b)))
     _solve(p, solver, use_quad_obj)
     for var in p.variables():
-        assert_items_almost_equal(
-            lstsq(A, b)[0].flatten(order='F'), var.value, places=1
+        np.testing.assert_allclose(
+            lstsq(A, b)[0].flatten(order='F'), var.value, atol=1e-1
         )
 
 
@@ -264,7 +248,7 @@ def _quad_form(v, solver, use_quad_obj=False):
     p = Problem(Minimize(QuadForm(v.w, P) + q.T @ v.w))
     _solve(p, solver, use_quad_obj)
     for var in p.variables():
-        assert_items_almost_equal(z, var.value, places=4)
+        np.testing.assert_allclose(z, var.value, atol=1e-4)
 
 
 def _rep_quad_form(v, solver, use_quad_obj=False):
@@ -278,7 +262,7 @@ def _rep_quad_form(v, solver, use_quad_obj=False):
     p = Problem(Minimize(0.5 * qf + 0.5 * qf + q.T @ v.w))
     _solve(p, solver, use_quad_obj)
     for var in p.variables():
-        assert_items_almost_equal(z, var.value, places=4)
+        np.testing.assert_allclose(z, var.value, atol=1e-4)
 
 
 def _affine_problem(v, solver, use_quad_obj=False):
@@ -288,7 +272,7 @@ def _affine_problem(v, solver, use_quad_obj=False):
     p = Problem(Minimize(sum(v.x)), [v.x >= 0, A @ v.x <= b])
     _solve(p, solver, use_quad_obj)
     for var in p.variables():
-        assert_items_almost_equal([0., 0.], var.value, places=3)
+        np.testing.assert_allclose([0., 0.], var.value, atol=1e-3)
     check_kkt(p, places=3)
 
 
@@ -299,7 +283,7 @@ def _maximize_problem(v, solver, use_quad_obj=False):
     p = Problem(Maximize(-sum(v.x)), [v.x >= 0, A @ v.x <= b])
     _solve(p, solver, use_quad_obj)
     for var in p.variables():
-        assert_items_almost_equal([0., 0.], var.value, places=3)
+        np.testing.assert_allclose([0., 0.], var.value, atol=1e-3)
     check_kkt(p, places=3)
 
 
@@ -312,18 +296,18 @@ def _quad_form_coeff(v, solver, use_quad_obj=False):
     p = Problem(Minimize(QuadForm(v.w, P) + q.T @ v.w))
     _solve(p, solver, use_quad_obj)
     for var in p.variables():
-        assert_items_almost_equal(z, var.value, places=4)
+        np.testing.assert_allclose(z, var.value, atol=1e-4)
 
 
 def _quad_form_bound(v, solver, use_quad_obj=False):
     P = np.array([[13, 12, -2], [12, 17, 6], [-2, 6, 12]])
     q = np.array([[-22], [-14.5], [13]])
-    y_star = np.array([[1], [0.5], [-1]])
+    y_star = np.array([1., 0.5, -1.])
     p = Problem(Minimize(0.5 * QuadForm(v.y, P) + q.T @ v.y + 1),
                 [v.y >= -1, v.y <= 1])
     _solve(p, solver, use_quad_obj)
     for var in p.variables():
-        assert_items_almost_equal(y_star, var.value, places=4)
+        np.testing.assert_allclose(var.value, y_star, atol=1e-4)
     check_kkt(p)
 
 
@@ -342,7 +326,7 @@ def _regression_1(v, solver, use_quad_obj=False):
     fit_error = sum_squares(line.T - y_data)
     p = Problem(Minimize(fit_error), [])
     _solve(p, solver, use_quad_obj)
-    assert_almost_equal(1171.60037715, p.value, places=4)
+    np.testing.assert_allclose(1171.60037715, p.value, atol=1e-4)
 
 
 def _regression_2(v, solver, use_quad_obj=False):
@@ -358,7 +342,7 @@ def _regression_2(v, solver, use_quad_obj=False):
     fit_error = sum_squares(quadratic.T - y_data)
     p = Problem(Minimize(fit_error), [])
     _solve(p, solver, use_quad_obj)
-    assert_almost_equal(139.225660756, p.value, places=4)
+    np.testing.assert_allclose(139.225660756, p.value, atol=1e-4)
 
 
 def _control(v, solver, use_quad_obj=False):
@@ -380,7 +364,7 @@ def _control(v, solver, use_quad_obj=False):
     constraints += [v.velocity[:, -1] == 0]
     p = Problem(Minimize(.01 * sum_squares(v.force)), constraints)
     _solve(p, solver, use_quad_obj)
-    assert_almost_equal(1059.616, p.value, places=1)
+    np.testing.assert_allclose(1059.616, p.value, atol=1e-1)
     # KKT check skipped: check_stationary_lagrangian fails for 2D matrix
     # variables due to inconsistent gradient ordering (sum_squares uses
     # C order, constraint terms use F order). TODO fix this
@@ -393,7 +377,7 @@ def _sparse_system(v, solver, use_quad_obj=False):
     b = np.random.randn(m)
     p = Problem(Minimize(sum_squares(A @ v.xs - b)), [v.xs == 0])
     _solve(p, solver, use_quad_obj)
-    assert_almost_equal(b.T.dot(b), p.value, places=4)
+    np.testing.assert_allclose(b.T.dot(b), p.value, atol=1e-4)
 
 
 def _smooth_ridge(v, solver, use_quad_obj=False):
@@ -405,7 +389,7 @@ def _smooth_ridge(v, solver, use_quad_obj=False):
     obj = sum_squares(A @ v.xsr - b) + sum_squares(v.xsr[:-1] - v.xsr[1:])
     p = Problem(Minimize(obj), [])
     _solve(p, solver, use_quad_obj)
-    assert_almost_equal(0, p.value, places=4)
+    np.testing.assert_allclose(0, p.value, atol=1e-4)
 
 
 def _huber_small(v, solver, use_quad_obj=False, places=4):
@@ -413,8 +397,9 @@ def _huber_small(v, solver, use_quad_obj=False, places=4):
     objective = sum(huber(x))
     p = Problem(Minimize(objective), [x[2] >= 3])
     _solve(p, solver, use_quad_obj)
-    assert_almost_equal(3, x.value[2], places=places)
-    assert_almost_equal(5, objective.value, places=places)
+    atol = 10 ** (-places)
+    np.testing.assert_allclose(3, x.value[2], atol=atol)
+    np.testing.assert_allclose(5, objective.value, atol=atol)
     check_kkt(p, places=places)
 
 
@@ -433,9 +418,9 @@ def _huber(v, solver, use_quad_obj=False):
     objective = sum(huber(A @ x - b))
     p = Problem(Minimize(objective))
     _solve(p, solver, use_quad_obj)
-    assert_almost_equal(1.452797819667, objective.value, places=3)
-    assert_items_almost_equal(
-        x.value, [1.20524645, -0.85271489, -0.50838494], places=3
+    np.testing.assert_allclose(1.452797819667, objective.value, atol=1e-3)
+    np.testing.assert_allclose(
+        x.value, [1.20524645, -0.85271489, -0.50838494], atol=1e-3
     )
 
 
@@ -453,7 +438,7 @@ def _equivalent_forms_1(v, solver, use_quad_obj=False):
     A, b, G, h = _equivalent_forms_setup()
     p = Problem(Minimize(.1 * sum((A @ v.xef - b) ** 2)), [G @ v.xef == h])
     _solve(p, solver, use_quad_obj)
-    assert_almost_equal(p.value, 68.1119420108, places=4)
+    np.testing.assert_allclose(p.value, 68.1119420108, atol=1e-4)
     check_kkt(p, places=4)
 
 
@@ -466,7 +451,7 @@ def _equivalent_forms_2(v, solver, use_quad_obj=False):
     obj = .1 * (QuadForm(v.xef, P) + q.T @ v.xef + r)
     p = Problem(Minimize(obj), [G @ v.xef == h])
     _solve(p, solver, use_quad_obj)
-    assert_almost_equal(p.value, 68.1119420108, places=4)
+    np.testing.assert_allclose(p.value, 68.1119420108, atol=1e-4)
     check_kkt(p, places=4)
 
 
@@ -479,7 +464,7 @@ def _equivalent_forms_3(v, solver, use_quad_obj=False):
     obj = .1 * (matrix_frac(v.xef, Pinv) + q.T @ v.xef + r)
     p = Problem(Minimize(obj), [G @ v.xef == h])
     _solve(p, solver, use_quad_obj)
-    assert_almost_equal(p.value, 68.1119420108, places=4)
+    np.testing.assert_allclose(p.value, 68.1119420108, atol=1e-4)
     check_kkt(p, places=4)
 
 
@@ -580,8 +565,8 @@ def test_parametric(solver):
         obj_param.append(prob.value)
 
     for i in range(len(b_vec)):
-        assert_items_almost_equal(x_full[i], x_param[i], places=3)
-        assert_almost_equal(obj_full[i], obj_param[i])
+        np.testing.assert_allclose(x_full[i], x_param[i], atol=1e-3)
+        np.testing.assert_allclose(obj_full[i], obj_param[i], atol=1e-5)
 
 
 # --- Solver-specific tests --- #
@@ -597,11 +582,11 @@ def test_warm_start():
     b.value = np.random.randn(m)
     result = prob.solve(solver="OSQP", warm_start=False)
     result2 = prob.solve(solver="OSQP", warm_start=True)
-    assert_almost_equal(result, result2)
+    np.testing.assert_allclose(result, result2, atol=1e-5)
     b.value = np.random.randn(m)
     result = prob.solve(solver="OSQP", warm_start=True)
     result2 = prob.solve(solver="OSQP", warm_start=False)
-    assert_almost_equal(result, result2)
+    np.testing.assert_allclose(result, result2, atol=1e-5)
 
 
 @pytest.mark.skipif(cp.QPALM not in INSTALLED_SOLVERS, reason="QPALM is not installed")
@@ -616,11 +601,11 @@ def test_qpalm_warmstart():
     b.value = np.random.randn(m)
     result = prob.solve(solver=cp.QPALM, warm_start=False)
     result2 = prob.solve(solver=cp.QPALM, warm_start=True)
-    assert_almost_equal(result, result2)
+    np.testing.assert_allclose(result, result2, atol=1e-5)
     b.value = np.random.randn(m)
     result = prob.solve(solver=cp.QPALM, warm_start=True)
     result2 = prob.solve(solver=cp.QPALM, warm_start=False)
-    assert_almost_equal(result, result2)
+    np.testing.assert_allclose(result, result2, atol=1e-5)
 
 
 @pytest.mark.skipif(cp.GUROBI not in INSTALLED_SOLVERS, reason="GUROBI is not installed")
@@ -658,7 +643,7 @@ def test_xpress_warmstart():
     b.value = np.random.randn(m)
     result = prob.solve(solver=cp.XPRESS, warm_start=False)
     result2 = prob.solve(solver=cp.XPRESS, warm_start=True)
-    assert_almost_equal(result, result2)
+    np.testing.assert_allclose(result, result2, atol=1e-5)
     x.value = x.value.astype(np.int64)
 
     xprime = Variable(n, integer=True)
@@ -666,7 +651,7 @@ def test_xpress_warmstart():
     xprime.value = x.value
     result = prob.solve(solver=cp.XPRESS, warm_start=True)
     result2 = prob.solve(solver=cp.XPRESS, warm_start=False)
-    assert_almost_equal(result, result2)
+    np.testing.assert_allclose(result, result2, atol=1e-5)
 
 
 @pytest.mark.skipif(cp.HIGHS not in INSTALLED_SOLVERS, reason="HIGHS is not installed")
@@ -681,11 +666,11 @@ def test_highs_warmstart():
     b.value = np.random.randn(m)
     result = prob.solve(solver=cp.HIGHS, warm_start=False)
     result2 = prob.solve(solver=cp.HIGHS, warm_start=True)
-    assert_almost_equal(result, result2)
+    np.testing.assert_allclose(result, result2, atol=1e-5)
     b.value = np.random.randn(m)
     result = prob.solve(solver=cp.HIGHS, warm_start=True)
     result2 = prob.solve(solver=cp.HIGHS, warm_start=False)
-    assert_almost_equal(result, result2)
+    np.testing.assert_allclose(result, result2, atol=1e-5)
 
 
 @pytest.mark.skipif(cp.HIGHS not in INSTALLED_SOLVERS, reason="HIGHS is not installed")
@@ -716,11 +701,11 @@ def test_piqp_warmstart():
     b.value = np.random.randn(m)
     result = prob.solve(solver=cp.PIQP, warm_start=False)
     result2 = prob.solve(solver=cp.PIQP, warm_start=True)
-    assert_almost_equal(result, result2)
+    np.testing.assert_allclose(result, result2, atol=1e-5)
     b.value = np.random.randn(m)
     result = prob.solve(solver=cp.PIQP, warm_start=True)
     result2 = prob.solve(solver=cp.PIQP, warm_start=False)
-    assert_almost_equal(result, result2)
+    np.testing.assert_allclose(result, result2, atol=1e-5)
 
 
 @pytest.mark.skipif(cp.COPT not in INSTALLED_SOLVERS, reason="COPT is not installed")
@@ -735,11 +720,11 @@ def test_copt_warmstart():
     b.value = np.random.randn(m)
     result = prob.solve(solver=cp.COPT, warm_start=False)
     result2 = prob.solve(solver=cp.COPT, warm_start=True)
-    assert_almost_equal(result, result2)
+    np.testing.assert_allclose(result, result2, atol=1e-5)
     b.value = np.random.randn(m)
     result = prob.solve(solver=cp.COPT, warm_start=True)
     result2 = prob.solve(solver=cp.COPT, warm_start=False)
-    assert_almost_equal(result, result2)
+    np.testing.assert_allclose(result, result2, atol=1e-5)
 
 
 def test_square_param():
@@ -748,7 +733,7 @@ def test_square_param():
     b = Variable()
     prob = Problem(Minimize(b ** 2 + abs(a)))
     prob.solve(solver="SCS")
-    assert_almost_equal(prob.value, 1.0)
+    np.testing.assert_allclose(prob.value, 1.0, atol=1e-5)
 
 
 def test_gurobi_time_limit_no_solution(qp_vars):
@@ -916,8 +901,8 @@ def test_mpax_warmstart():
         cp.Minimize(-4 * x[0] - 5 * x[1]),
         [2 * x[0] + x[1] <= 3, x[0] + 2 * x[1] <= 3, x[0] >= 0, x[1] >= 0],
     )
-    assert_almost_equal(prob.solve(solver='MPAX', warm_start=False), -9, places=4)
-    assert_almost_equal(prob.solve(solver='MPAX', warm_start=True), -9, places=4)
+    np.testing.assert_allclose(prob.solve(solver='MPAX', warm_start=False), -9, atol=1e-4)
+    np.testing.assert_allclose(prob.solve(solver='MPAX', warm_start=True), -9, atol=1e-4)
 
 
 @mpax_skip
