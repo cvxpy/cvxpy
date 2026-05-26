@@ -989,7 +989,7 @@ class Leaf(expression.Expression):
                 else:
                     lb_arr = np.maximum(lb_arr, 0)
             else:
-                lb_val = max(lb_val, 0)
+                lb_val = max(lb_val, 0.0)
         if self.attributes['nonpos'] or self.attributes['neg']:
             if ub_arr is not None:
                 if sp.issparse(ub_arr):
@@ -997,7 +997,7 @@ class Leaf(expression.Expression):
                 else:
                     ub_arr = np.minimum(ub_arr, 0)
             else:
-                ub_val = min(ub_val, 0)
+                ub_val = min(ub_val, 0.0)
 
         # For boolean variables, bounds are [0, 1]
         if self.attributes['boolean'] is True:
@@ -1007,14 +1007,14 @@ class Leaf(expression.Expression):
                 else:
                     lb_arr = np.maximum(lb_arr, 0)
             else:
-                lb_val = max(lb_val, 0)
+                lb_val = max(lb_val, 0.0)
             if ub_arr is not None:
                 if sp.issparse(ub_arr):
                     ub_arr = ub_arr.minimum(1)
                 else:
                     ub_arr = np.minimum(ub_arr, 1)
             else:
-                ub_val = min(ub_val, 1)
+                ub_val = min(ub_val, 1.0)
 
         # Build final bounds: use broadcast views for uniform scalars
         if lb_arr is not None:
