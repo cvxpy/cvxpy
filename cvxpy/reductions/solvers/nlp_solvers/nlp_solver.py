@@ -136,8 +136,11 @@ class Bounds:
             ub_flat = np.asarray(ub).flatten(order='F')
             var_lower.extend(lb_flat)
             var_upper.extend(ub_flat)
-        self.lb = np.array(var_lower)
-        self.ub = np.array(var_upper)
+        # Force float dtype: all-integer bounds (e.g. nonneg=True gives lb 0)
+        # would otherwise infer an integer array, and replacing entries with a
+        # solver's infinity sentinel (~1e20) overflows int64.
+        self.lb = np.array(var_lower, dtype=float)
+        self.ub = np.array(var_upper, dtype=float)
 
     def construct_initial_point(self) -> None:
         """ Loop through all variables and collect the intial point."""

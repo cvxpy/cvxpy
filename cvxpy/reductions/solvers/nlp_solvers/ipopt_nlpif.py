@@ -14,11 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import importlib.util
+
 import numpy as np
 
 import cvxpy.settings as s
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers.nlp_solvers.nlp_solver import NLPsolver
+from cvxpy.reductions.solvers.openmp_conflict import warn_if_omp_conflict
 from cvxpy.utilities.citations import CITATION_DICT
 
 
@@ -66,10 +69,22 @@ class IPOPT(NLPsolver):
         """
         return 'IPOPT'
 
+    def is_installed(self) -> bool:
+        """Checks for the ``cyipopt`` package without importing it.
+
+        Importing ``cyipopt`` loads the native IPOPT runtime (and a bundled
+        OpenMP library on macOS). Detecting installation via the import
+        machinery keeps ``import cvxpy`` from loading it, so it does not
+        share a process -- and an OpenMP runtime -- with other solvers
+        unless an IPOPT solve actually runs.
+        """
+        return importlib.util.find_spec("cyipopt") is not None
+
     def import_solver(self):
         """
         Imports the solver.
         """
+        warn_if_omp_conflict("cyipopt")
         import cyipopt  # noqa F401
 
     def invert(self, solution, inverse_data):

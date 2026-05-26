@@ -136,8 +136,13 @@ class DerivativeChecker:
         if duals is None:
             duals = np.random.rand(len(self.cl))
 
-        # must run gradient because for logistic it fills some values
+        # Establish the evaluation point at x: eval_hessian_vals_coo_lower_tri
+        # reads back whatever point the last forward passes were run at, so it
+        # must be pinned here rather than inherited from a previous check.
         self._init_coo()
+        self.c_problem.objective_forward(x)
+        self.c_problem.constraint_forward(x)
+        # must run gradient because for logistic it fills some values
         self.c_problem.gradient()
         c_hess_vals = self.c_problem.eval_hessian_vals_coo_lower_tri(obj_factor, duals)
         n_vars = len(x)
@@ -204,8 +209,16 @@ class DerivativeChecker:
 
         return match
 
-    def check_gradient(self, x=None, epsilon=1e-8):
-        """ Compare C-based gradient with numerical approximation using finite differences. """
+    def check_gradient(self, x=None, epsilon=1e-6):
+        """ Compare C-based gradient with numerical approximation using finite differences.
+
+        The central-difference step is ~eps_machine**(1/3), which balances
+        truncation error (O(epsilon**2)) against floating-point cancellation
+        (O(eps_machine * |objective| / epsilon)). A smaller step such as 1e-8
+        makes the cancellation term dominate: for problems with a large
+        objective value it swamps small gradient components and the check
+        fails spuriously.
+        """
         if x is None:
             x = self.x0
         # Get gradient from C implementation

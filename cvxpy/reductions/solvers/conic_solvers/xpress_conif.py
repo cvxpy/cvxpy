@@ -64,7 +64,10 @@ class XPRESS(ConicSolver):
         """Imports the solver.
         """
         import xpress
-        self.version = xpress.getversion()
+        try:
+            self.version = xpress.getVersion()
+        except AttributeError:
+            self.version = xpress.getversion()
 
     def accepts(self, problem) -> bool:
         """Can Xpress solve the problem?
