@@ -21,24 +21,13 @@ from scipy.linalg import lstsq
 
 import cvxpy as cp
 import cvxpy.tests.solver_test_helpers as sths
-from cvxpy import Maximize, Minimize, Parameter, Problem
-from cvxpy.atoms import (
-    QuadForm,
-    abs,
-    huber,
-    matrix_frac,
-    norm,
-    power,
-    quad_over_lin,
-    sum,
-    sum_squares,
-)
 from cvxpy.error import SolverError
-from cvxpy.expressions.variable import Variable
-from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr
-from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
-from cvxpy.reductions.dcp2cone.dcp2cone import Dcp2Cone
-from cvxpy.reductions.flip_objective import FlipObjective
+from cvxpy.reductions import (
+    ConeMatrixStuffing,
+    CvxAttr2Constr,
+    Dcp2Cone,
+    FlipObjective,
+)
 from cvxpy.reductions.solvers.defines import (
     INSTALLED_CONIC_SOLVERS,
     INSTALLED_SOLVERS,
@@ -160,8 +149,8 @@ def _skip_if_requires_constr(solver, use_quad_obj):
 
 @pytest.mark.parametrize("solver,use_quad_obj", QP_PARAMS)
 def test_quad_over_lin(solver, use_quad_obj):
-    x = Variable(2)
-    p = Problem(Minimize(0.5 * quad_over_lin(abs(x - 1), 1)), [x <= -1])
+    x = cp.Variable(2)
+    p = cp.Problem(cp.Minimize(0.5 * cp.quad_over_lin(cp.abs(x - 1), 1)), [x <= -1])
     _solve(p, solver, use_quad_obj)
     np.testing.assert_allclose(x.value, [-1., -1.], atol=1e-4)
     np.testing.assert_allclose(p.constraints[0].dual_value, [2., 2.], atol=1e-4)
@@ -170,8 +159,8 @@ def test_quad_over_lin(solver, use_quad_obj):
 
 @pytest.mark.parametrize("solver,use_quad_obj", QP_PARAMS)
 def test_abs(solver, use_quad_obj):
-    u = Variable(2)
-    prob = Problem(Minimize(sum_squares(u)), [abs(u[1] - u[0]) <= 100])
+    u = cp.Variable(2)
+    prob = cp.Problem(cp.Minimize(cp.sum_squares(u)), [cp.abs(u[1] - u[0]) <= 100])
     assert prob.is_qp()
     result = _solve(prob, solver, use_quad_obj)
     np.testing.assert_allclose(result, 0, atol=1e-5)
@@ -180,26 +169,26 @@ def test_abs(solver, use_quad_obj):
 @pytest.mark.parametrize("solver,use_quad_obj", QP_PARAMS)
 def test_power(solver, use_quad_obj):
     _skip_if_requires_constr(solver, use_quad_obj)
-    x = Variable(2)
-    p = Problem(Minimize(sum(power(x, 2))), [])
+    x = cp.Variable(2)
+    p = cp.Problem(cp.Minimize(cp.sum(cp.power(x, 2))), [])
     _solve(p, solver, use_quad_obj)
     np.testing.assert_allclose(x.value, [0., 0.], atol=1e-4)
 
 
 @pytest.mark.parametrize("solver,use_quad_obj", QP_PARAMS)
 def test_power_matrix(solver, use_quad_obj):
-    X = Variable((2, 2))
-    p = Problem(Minimize(sum(power(X - 3., 2))), [])
+    X = cp.Variable((2, 2))
+    p = cp.Problem(cp.Minimize(cp.sum(cp.power(X - 3., 2))), [])
     _solve(p, solver, use_quad_obj)
     np.testing.assert_allclose(X.value, np.full((2, 2), 3.), atol=1e-4)
 
 
 @pytest.mark.parametrize("solver,use_quad_obj", QP_PARAMS)
 def test_square_affine(solver, use_quad_obj):
-    x = Variable(2)
+    x = cp.Variable(2)
     A = np.random.randn(10, 2)
     b = np.random.randn(10)
-    p = Problem(Minimize(sum_squares(A @ x - b)))
+    p = cp.Problem(cp.Minimize(cp.sum_squares(A @ x - b)))
     _solve(p, solver, use_quad_obj)
     np.testing.assert_allclose(x.value, lstsq(A, b)[0], atol=1e-1)
 
@@ -212,8 +201,8 @@ def test_quad_form(solver, use_quad_obj):
     z = np.random.randn(5)
     P = A.T @ A
     q = -2 * P @ z
-    w = Variable(5)
-    p = Problem(Minimize(QuadForm(w, P) + q.T @ w))
+    w = cp.Variable(5)
+    p = cp.Problem(cp.Minimize(cp.QuadForm(w, P) + q.T @ w))
     _solve(p, solver, use_quad_obj)
     np.testing.assert_allclose(w.value, z, atol=1e-4)
 
@@ -227,9 +216,9 @@ def test_rep_quad_form(solver, use_quad_obj):
     z = np.random.randn(5)
     P = A.T @ A
     q = -2 * P @ z
-    w = Variable(5)
-    qf = QuadForm(w, P)
-    p = Problem(Minimize(0.5 * qf + 0.5 * qf + q.T @ w))
+    w = cp.Variable(5)
+    qf = cp.QuadForm(w, P)
+    p = cp.Problem(cp.Minimize(0.5 * qf + 0.5 * qf + q.T @ w))
     _solve(p, solver, use_quad_obj)
     np.testing.assert_allclose(w.value, z, atol=1e-4)
 
@@ -239,8 +228,8 @@ def test_affine_problem(solver, use_quad_obj):
     np.random.seed(0)
     A = np.maximum(np.random.randn(5, 2), 0)
     b = np.maximum(np.random.randn(5), 0)
-    x = Variable(2)
-    p = Problem(Minimize(sum(x)), [x >= 0, A @ x <= b])
+    x = cp.Variable(2)
+    p = cp.Problem(cp.Minimize(cp.sum(x)), [x >= 0, A @ x <= b])
     _solve(p, solver, use_quad_obj)
     np.testing.assert_allclose(x.value, [0., 0.], atol=1e-3)
     check_kkt(p, places=3)
@@ -251,8 +240,8 @@ def test_maximize_problem(solver, use_quad_obj):
     np.random.seed(0)
     A = np.maximum(np.random.randn(5, 2), 0)
     b = np.maximum(np.random.randn(5), 0)
-    x = Variable(2)
-    p = Problem(Maximize(-sum(x)), [x >= 0, A @ x <= b])
+    x = cp.Variable(2)
+    p = cp.Problem(cp.Maximize(-cp.sum(x)), [x >= 0, A @ x <= b])
     _solve(p, solver, use_quad_obj)
     np.testing.assert_allclose(x.value, [0., 0.], atol=1e-3)
     check_kkt(p, places=3)
@@ -263,8 +252,8 @@ def test_quad_form_bound(solver, use_quad_obj):
     P = np.array([[13, 12, -2], [12, 17, 6], [-2, 6, 12]])
     q = np.array([[-22], [-14.5], [13]])
     y_star = np.array([1., 0.5, -1.])
-    y = Variable(3)
-    p = Problem(Minimize(0.5 * QuadForm(y, P) + q.T @ y + 1),
+    y = cp.Variable(3)
+    p = cp.Problem(cp.Minimize(0.5 * cp.QuadForm(y, P) + q.T @ y + 1),
                 [y >= -1, y <= 1])
     _solve(p, solver, use_quad_obj)
     np.testing.assert_allclose(y.value, y_star, atol=1e-4)
@@ -283,10 +272,10 @@ def test_regression_1(solver, use_quad_obj):
     y_data = np.atleast_2d(
         x_data_expanded.T.dot(true_coeffs) + 0.5 * np.random.rand(n, 1)
     )
-    slope = Variable(1)
-    offset = Variable(1)
+    slope = cp.Variable(1)
+    offset = cp.Variable(1)
     line = offset + x_data * slope
-    p = Problem(Minimize(sum_squares(line.T - y_data)))
+    p = cp.Problem(cp.Minimize(cp.sum_squares(line.T - y_data)))
     _solve(p, solver, use_quad_obj)
     np.testing.assert_allclose(1171.60037715, p.value, atol=1e-4)
 
@@ -299,11 +288,11 @@ def test_regression_2(solver, use_quad_obj):
     x_data = np.random.rand(n) * 5
     x_data_expanded = np.vstack([np.power(x_data, i) for i in range(1, 4)])
     y_data = x_data_expanded.T.dot(true_coeffs) + 0.5 * np.random.rand(n)
-    slope = Variable(1)
-    offset = Variable(1)
-    quadratic_coeff = Variable(1)
+    slope = cp.Variable(1)
+    offset = cp.Variable(1)
+    quadratic_coeff = cp.Variable(1)
     quadratic = offset + x_data * slope + quadratic_coeff * np.power(x_data, 2)
-    p = Problem(Minimize(sum_squares(quadratic.T - y_data)))
+    p = cp.Problem(cp.Minimize(cp.sum_squares(quadratic.T - y_data)))
     _solve(p, solver, use_quad_obj)
     np.testing.assert_allclose(139.225660756, p.value, atol=1e-4)
 
@@ -315,9 +304,9 @@ def test_control(solver, use_quad_obj):
     mass = 1
     drag = 0.1
     g = np.array([0, -9.8])
-    position = Variable((2, T))
-    velocity = Variable((2, T))
-    force = Variable((2, T - 1))
+    position = cp.Variable((2, T))
+    velocity = cp.Variable((2, T))
+    force = cp.Variable((2, T - 1))
     constraints = []
     for i in range(T - 1):
         constraints += [position[:, i + 1] == position[:, i] + h * velocity[:, i]]
@@ -327,7 +316,7 @@ def test_control(solver, use_quad_obj):
     constraints += [position[:, -1] == np.array([100, 100])]
     constraints += [velocity[:, 0] == np.array([-20, 100])]
     constraints += [velocity[:, -1] == 0]
-    p = Problem(Minimize(.01 * sum_squares(force)), constraints)
+    p = cp.Problem(cp.Minimize(.01 * cp.sum_squares(force)), constraints)
     _solve(p, solver, use_quad_obj)
     np.testing.assert_allclose(1059.616, p.value, atol=1e-1)
     # KKT check skipped: check_stationary_lagrangian fails for 2D matrix
@@ -341,8 +330,8 @@ def test_sparse_system(solver, use_quad_obj):
     np.random.seed(1)
     A = sp.random_array((m, n), density=0.4)
     b = np.random.randn(m)
-    xs = Variable(n)
-    p = Problem(Minimize(sum_squares(A @ xs - b)), [xs == 0])
+    xs = cp.Variable(n)
+    p = cp.Problem(cp.Minimize(cp.sum_squares(A @ xs - b)), [xs == 0])
     _solve(p, solver, use_quad_obj)
     np.testing.assert_allclose(b.T.dot(b), p.value, atol=1e-4)
 
@@ -354,9 +343,9 @@ def test_smooth_ridge(solver, use_quad_obj):
     k = 20
     A = np.ones((k, n))
     b = np.ones(k)
-    xsr = Variable(n)
-    obj = sum_squares(A @ xsr - b) + sum_squares(xsr[:-1] - xsr[1:])
-    p = Problem(Minimize(obj), [])
+    xsr = cp.Variable(n)
+    obj = cp.sum_squares(A @ xsr - b) + cp.sum_squares(xsr[:-1] - xsr[1:])
+    p = cp.Problem(cp.Minimize(obj), [])
     _solve(p, solver, use_quad_obj)
     np.testing.assert_allclose(0, p.value, atol=1e-4)
 
@@ -365,9 +354,9 @@ def test_smooth_ridge(solver, use_quad_obj):
 def test_huber_small(solver, use_quad_obj):
     # The conic + use_quad_obj path has slightly looser precision.
     places = 3 if use_quad_obj else 4
-    x = Variable(3)
-    objective = sum(huber(x))
-    p = Problem(Minimize(objective), [x[2] >= 3])
+    x = cp.Variable(3)
+    objective = cp.sum(cp.huber(x))
+    p = cp.Problem(cp.Minimize(objective), [x[2] >= 3])
     _solve(p, solver, use_quad_obj)
     atol = 10 ** (-places)
     np.testing.assert_allclose(3, x.value[2], atol=atol)
@@ -389,9 +378,9 @@ def test_huber(solver, use_quad_obj):
     ind95 = (np.random.rand(m) < 0.95).astype(float)
     b = A.dot(x_true) + np.multiply(0.5 * np.random.randn(m), ind95) \
         + np.multiply(10. * np.random.rand(m), 1. - ind95)
-    x = Variable(n)
-    objective = sum(huber(A @ x - b))
-    p = Problem(Minimize(objective))
+    x = cp.Variable(n)
+    objective = cp.sum(cp.huber(A @ x - b))
+    p = cp.Problem(cp.Minimize(objective))
     _solve(p, solver, use_quad_obj)
     np.testing.assert_allclose(1.452797819667, objective.value, atol=1e-3)
     np.testing.assert_allclose(
@@ -412,8 +401,8 @@ def _equivalent_forms_setup(seed=1):
 @pytest.mark.parametrize("solver,use_quad_obj", QP_PARAMS)
 def test_equivalent_forms_1(solver, use_quad_obj):
     A, b, G, h = _equivalent_forms_setup()
-    xef = Variable(A.shape[1])
-    p = Problem(Minimize(.1 * sum((A @ xef - b) ** 2)), [G @ xef == h])
+    xef = cp.Variable(A.shape[1])
+    p = cp.Problem(cp.Minimize(.1 * cp.sum((A @ xef - b) ** 2)), [G @ xef == h])
     _solve(p, solver, use_quad_obj)
     np.testing.assert_allclose(p.value, 68.1119420108, atol=1e-4)
     check_kkt(p, places=4)
@@ -426,9 +415,9 @@ def test_equivalent_forms_2(solver, use_quad_obj):
     P = A.T @ A
     q = -2 * A.T @ b
     r = b.T @ b
-    xef = Variable(A.shape[1])
-    obj = .1 * (QuadForm(xef, P) + q.T @ xef + r)
-    p = Problem(Minimize(obj), [G @ xef == h])
+    xef = cp.Variable(A.shape[1])
+    obj = .1 * (cp.QuadForm(xef, P) + q.T @ xef + r)
+    p = cp.Problem(cp.Minimize(obj), [G @ xef == h])
     _solve(p, solver, use_quad_obj)
     np.testing.assert_allclose(p.value, 68.1119420108, atol=1e-4)
     check_kkt(p, places=4)
@@ -443,9 +432,9 @@ def test_equivalent_forms_3(solver, use_quad_obj):
     q = -2 * A.T @ b
     r = b.T @ b
     Pinv = np.linalg.inv(P)
-    xef = Variable(A.shape[1])
-    obj = .1 * (matrix_frac(xef, Pinv) + q.T @ xef + r)
-    p = Problem(Minimize(obj), [G @ xef == h])
+    xef = cp.Variable(A.shape[1])
+    obj = .1 * (cp.matrix_frac(xef, Pinv) + q.T @ xef + r)
+    p = cp.Problem(cp.Minimize(obj), [G @ xef == h])
     _solve(p, solver, use_quad_obj)
     np.testing.assert_allclose(p.value, 68.1119420108, atol=1e-4)
     check_kkt(p, places=4)
@@ -464,20 +453,20 @@ def test_qp_bound_attr(solver):
 @pytest.mark.parametrize("solver", QP_SOLVER_PARAMS)
 def test_parametric(solver):
     """Solve parametric problem vs full problem."""
-    x = Variable()
+    x = cp.Variable()
     a = 10
     b_vec = [-10, -2.]
 
     x_full, obj_full = [], []
     for b in b_vec:
-        prob = Problem(Minimize(a * (x ** 2) + b * x), [0 <= x, x <= 1])
+        prob = cp.Problem(cp.Minimize(a * (x ** 2) + b * x), [0 <= x, x <= 1])
         prob.solve(solver=solver)
         x_full.append(x.value)
         obj_full.append(prob.value)
 
     x_param, obj_param = [], []
-    b = Parameter()
-    prob = Problem(Minimize(a * (x ** 2) + b * x), [0 <= x, x <= 1])
+    b = cp.Parameter()
+    prob = cp.Problem(cp.Minimize(a * (x ** 2) + b * x), [0 <= x, x <= 1])
     for b_value in b_vec:
         b.value = b_value
         prob.solve(solver=solver)
@@ -505,9 +494,9 @@ def test_warm_start(solver):
     m, n = 200, 100
     np.random.seed(1)
     A = np.random.randn(m, n)
-    b = Parameter(m)
-    x = Variable(n)
-    prob = Problem(Minimize(sum_squares(A @ x - b)))
+    b = cp.Parameter(m)
+    x = cp.Variable(n)
+    prob = cp.Problem(cp.Minimize(cp.sum_squares(A @ x - b)))
 
     b.value = np.random.randn(m)
     result = prob.solve(solver=solver, warm_start=False)
@@ -524,10 +513,10 @@ def test_gurobi_warmstart():
     """Test Gurobi warm start with a user provided point."""
     import gurobipy
     m, n = 4, 3
-    y = Variable(nonneg=True)
-    X = Variable((m, n))
+    y = cp.Variable(nonneg=True)
+    X = cp.Variable((m, n))
     X_vals = np.reshape(np.arange(m * n), (m, n))
-    prob = Problem(Minimize(y ** 2 + cp.sum(X)), [X == X_vals])
+    prob = cp.Problem(cp.Minimize(y ** 2 + cp.sum(X)), [X == X_vals])
     X.value = X_vals + 1
     prob.solve(solver=cp.GUROBI, warm_start=True)
     model = prob.solver_stats.extra_stats
@@ -547,9 +536,9 @@ def test_xpress_warmstart():
     m, n = 20, 10
     np.random.seed(1)
     A = np.random.randn(m, n)
-    b = Parameter(m)
-    x = Variable(n, integer=True)
-    prob = Problem(Minimize(sum_squares(A @ x - b)))
+    b = cp.Parameter(m)
+    x = cp.Variable(n, integer=True)
+    prob = cp.Problem(cp.Minimize(cp.sum_squares(A @ x - b)))
 
     b.value = np.random.randn(m)
     result = prob.solve(solver=cp.XPRESS, warm_start=False)
@@ -557,8 +546,8 @@ def test_xpress_warmstart():
     np.testing.assert_allclose(result, result2, atol=1e-5)
     x.value = x.value.astype(np.int64)
 
-    xprime = Variable(n, integer=True)
-    prob = Problem(Minimize(sum_squares(A @ xprime - b)))
+    xprime = cp.Variable(n, integer=True)
+    prob = cp.Problem(cp.Minimize(cp.sum_squares(A @ xprime - b)))
     xprime.value = x.value
     result = prob.solve(solver=cp.XPRESS, warm_start=True)
     result2 = prob.solve(solver=cp.XPRESS, warm_start=False)
@@ -583,9 +572,9 @@ def test_highs_cvar():
 
 def test_square_param():
     """Issue arising with square plus parameter."""
-    a = Parameter(value=1)
-    b = Variable()
-    prob = Problem(Minimize(b ** 2 + abs(a)))
+    a = cp.Parameter(value=1)
+    b = cp.Variable()
+    prob = cp.Problem(cp.Minimize(b ** 2 + cp.abs(a)))
     prob.solve(solver="SCS")
     np.testing.assert_allclose(prob.value, 1.0, atol=1e-5)
 
@@ -596,8 +585,8 @@ def test_gurobi_time_limit_no_solution():
     """
     if cp.GUROBI in INSTALLED_SOLVERS:
         import gurobipy
-        x = Variable(2)
-        prob = Problem(Minimize(x[0]), [x[0] >= 1])
+        x = cp.Variable(2)
+        prob = cp.Problem(cp.Minimize(x[0]), [x[0] >= 1])
         try:
             prob.solve(solver=cp.GUROBI, TimeLimit=0.0)
         except Exception as e:
@@ -615,8 +604,8 @@ def test_gurobi_time_limit_no_solution():
                 "the test is not relevant anymore."
             )
     else:
-        x = Variable(2)
-        prob = Problem(Minimize(norm(x, 1)), [x == 0])
+        x = cp.Variable(2)
+        prob = cp.Problem(cp.Minimize(cp.norm(x, 1)), [x == 0])
         with pytest.raises(Exception) as exc_info:
             prob.solve(solver=cp.GUROBI, TimeLimit=0)
         assert str(exc_info.value) == f"The solver {cp.GUROBI} is not installed."
@@ -644,8 +633,8 @@ def test_gurobi_environment():
             _, _, p_val, _, _, _ = model.getParamInfo(k)
             assert v == p_val
     else:
-        x = Variable(2)
-        prob = Problem(Minimize(norm(x, 1)), [x == 0])
+        x = cp.Variable(2)
+        prob = cp.Problem(cp.Minimize(cp.norm(x, 1)), [x == 0])
         with pytest.raises(Exception) as exc_info:
             prob.solve(solver=cp.GUROBI, TimeLimit=0)
         assert str(exc_info.value) == f"The solver {cp.GUROBI} is not installed."
