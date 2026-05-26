@@ -57,8 +57,8 @@ from cvxpy.tests.test_conic_solvers import is_knitro_available, is_mosek_availab
 
 # --- License checks --- #
 
-# is_mosek_available / is_knitro_available are imported from test_conic_solvers
-# so the canonical, KNITRO-OpenMP-safe implementations live in one place.
+# is_mosek_available / is_knitro_available come from test_conic_solvers so the
+# canonical, KNITRO-OpenMP-safe implementations live in one place.
 
 def is_xpress_available():
     """Check if XPRESS is installed and a license is available."""
@@ -75,8 +75,8 @@ def is_xpress_available():
 
 # --- Solver parametrization --- #
 
-def _solver_param(solver):
-    """``pytest.param`` for ``solver`` with license-skip and knitro marks."""
+def _solver_marks(solver):
+    """License-skip and ``knitro`` marks for a single solver."""
     marks = []
     if solver == cp.MOSEK and not is_mosek_available():
         marks.append(pytest.mark.skip(reason='MOSEK license not available'))
@@ -86,23 +86,49 @@ def _solver_param(solver):
         marks.append(pytest.mark.knitro)
         if not is_knitro_available():
             marks.append(pytest.mark.skip(reason='KNITRO not available'))
-    return pytest.param(solver, marks=marks, id=solver)
+    return marks
 
 
-QP_SOLVER_PARAMS = [_solver_param(s) for s in QP_SOLVERS if s in INSTALLED_SOLVERS]
-
-# Conic solvers that support quadratic objectives. KNITRO is excluded -- its
-# conic interface with ``use_quad_obj=True`` is unstable in CI.
-CONIC_QUAD_OBJ_PARAMS = [
-    _solver_param(s)
-    for s in INSTALLED_CONIC_SOLVERS
-    if s in SOLVER_MAP_CONIC
-    and SOLVER_MAP_CONIC[s].supports_quad_obj()
-    and s != cp.KNITRO
+# Native QP solvers, used by tests that only run against the QP path
+# (warm-start tests, ``test_qp_bound_attr``, ``test_parametric``).
+QP_SOLVER_PARAMS = [
+    pytest.param(s, marks=_solver_marks(s), id=s)
+    for s in QP_SOLVERS if s in INSTALLED_SOLVERS
 ]
 
+# Every (solver, use_quad_obj) variant we want to run each QP correctness test
+# against: every native QP solver with use_quad_obj=False, plus every conic
+# solver that supports quadratic objectives with use_quad_obj=True. KNITRO is
+# excluded from the conic side -- its conic interface with use_quad_obj=True
+# is unstable in CI.
+QP_PARAMS = (
+    [pytest.param(s, False, marks=_solver_marks(s), id=s)
+     for s in QP_SOLVERS if s in INSTALLED_SOLVERS]
+    + [pytest.param(s, True, marks=_solver_marks(s), id=f"{s}-quadobj")
+       for s in INSTALLED_CONIC_SOLVERS
+       if s in SOLVER_MAP_CONIC
+       and SOLVER_MAP_CONIC[s].supports_quad_obj()
+       and s != cp.KNITRO]
+)
 
-# --- Assertion + solve helpers --- #
+
+# --- Solve + KKT helpers --- #
+
+def _solve(problem, solver, use_quad_obj):
+    """Solve ``problem``. With ``use_quad_obj=True`` additionally verify that
+    canonicalization introduces no SOC cones -- that's what the QP path
+    through a conic solver is supposed to guarantee.
+    """
+    if use_quad_obj:
+        data, _, _ = problem.get_problem_data(
+            solver, solver_opts={"use_quad_obj": True}
+        )
+        assert data["dims"].soc == [], (
+            f"Problem should have no SOC cones for QP canonicalization with {solver}"
+        )
+    kwargs = {"use_quad_obj": True} if use_quad_obj else {}
+    return problem.solve(solver=solver, verbose=False, **kwargs)
+
 
 def check_kkt(problem, places=4):
     """Verify KKT conditions for a solved problem.
@@ -121,25 +147,19 @@ def check_kkt(problem, places=4):
     sth.check_stationary_lagrangian(places)
 
 
-def _solve(problem, solver, use_quad_obj=False):
-    """Solve ``problem``. With ``use_quad_obj=True`` additionally verify that
-    canonicalization introduces no SOC cones -- that's what the QP path
-    through a conic solver is supposed to guarantee.
+def _skip_if_requires_constr(solver, use_quad_obj):
+    """Conic solvers with ``REQUIRES_CONSTR=True`` reject unconstrained
+    problems (those canonicalize to m=0). Skip such ``(solver, helper)``
+    combinations when running the conic + use_quad_obj path.
     """
-    if use_quad_obj:
-        data, _, _ = problem.get_problem_data(
-            solver, solver_opts={"use_quad_obj": True}
-        )
-        assert data["dims"].soc == [], (
-            f"Problem should have no SOC cones for QP canonicalization with {solver}"
-        )
-    kwargs = {"use_quad_obj": True} if use_quad_obj else {}
-    return problem.solve(solver=solver, verbose=False, **kwargs)
+    if use_quad_obj and SOLVER_MAP_CONIC[solver].REQUIRES_CONSTR:
+        pytest.skip(f"{solver} requires constraints; this problem is unconstrained")
 
 
-# --- QP correctness helpers (one per problem shape) --- #
+# --- QP correctness tests --- #
 
-def _quad_over_lin(solver, use_quad_obj=False):
+@pytest.mark.parametrize("solver,use_quad_obj", QP_PARAMS)
+def test_quad_over_lin(solver, use_quad_obj):
     x = Variable(2)
     p = Problem(Minimize(0.5 * quad_over_lin(abs(x - 1), 1)), [x <= -1])
     _solve(p, solver, use_quad_obj)
@@ -148,7 +168,8 @@ def _quad_over_lin(solver, use_quad_obj=False):
     check_kkt(p, places=3)
 
 
-def _abs(solver, use_quad_obj=False):
+@pytest.mark.parametrize("solver,use_quad_obj", QP_PARAMS)
+def test_abs(solver, use_quad_obj):
     u = Variable(2)
     prob = Problem(Minimize(sum_squares(u)), [abs(u[1] - u[0]) <= 100])
     assert prob.is_qp()
@@ -156,21 +177,25 @@ def _abs(solver, use_quad_obj=False):
     np.testing.assert_allclose(result, 0, atol=1e-5)
 
 
-def _power(solver, use_quad_obj=False):
+@pytest.mark.parametrize("solver,use_quad_obj", QP_PARAMS)
+def test_power(solver, use_quad_obj):
+    _skip_if_requires_constr(solver, use_quad_obj)
     x = Variable(2)
     p = Problem(Minimize(sum(power(x, 2))), [])
     _solve(p, solver, use_quad_obj)
     np.testing.assert_allclose(x.value, [0., 0.], atol=1e-4)
 
 
-def _power_matrix(solver, use_quad_obj=False):
+@pytest.mark.parametrize("solver,use_quad_obj", QP_PARAMS)
+def test_power_matrix(solver, use_quad_obj):
     X = Variable((2, 2))
     p = Problem(Minimize(sum(power(X - 3., 2))), [])
     _solve(p, solver, use_quad_obj)
     np.testing.assert_allclose(X.value, np.full((2, 2), 3.), atol=1e-4)
 
 
-def _square_affine(solver, use_quad_obj=False):
+@pytest.mark.parametrize("solver,use_quad_obj", QP_PARAMS)
+def test_square_affine(solver, use_quad_obj):
     x = Variable(2)
     A = np.random.randn(10, 2)
     b = np.random.randn(10)
@@ -179,7 +204,9 @@ def _square_affine(solver, use_quad_obj=False):
     np.testing.assert_allclose(x.value, lstsq(A, b)[0], atol=1e-1)
 
 
-def _quad_form(solver, use_quad_obj=False):
+@pytest.mark.parametrize("solver,use_quad_obj", QP_PARAMS)
+def test_quad_form(solver, use_quad_obj):
+    _skip_if_requires_constr(solver, use_quad_obj)
     np.random.seed(0)
     A = np.random.randn(5, 5)
     z = np.random.randn(5)
@@ -191,8 +218,10 @@ def _quad_form(solver, use_quad_obj=False):
     np.testing.assert_allclose(w.value, z, atol=1e-4)
 
 
-def _rep_quad_form(solver, use_quad_obj=False):
+@pytest.mark.parametrize("solver,use_quad_obj", QP_PARAMS)
+def test_rep_quad_form(solver, use_quad_obj):
     """A problem where the quad_form term is used multiple times."""
+    _skip_if_requires_constr(solver, use_quad_obj)
     np.random.seed(0)
     A = np.random.randn(5, 5)
     z = np.random.randn(5)
@@ -205,7 +234,8 @@ def _rep_quad_form(solver, use_quad_obj=False):
     np.testing.assert_allclose(w.value, z, atol=1e-4)
 
 
-def _affine_problem(solver, use_quad_obj=False):
+@pytest.mark.parametrize("solver,use_quad_obj", QP_PARAMS)
+def test_affine_problem(solver, use_quad_obj):
     np.random.seed(0)
     A = np.maximum(np.random.randn(5, 2), 0)
     b = np.maximum(np.random.randn(5), 0)
@@ -216,7 +246,8 @@ def _affine_problem(solver, use_quad_obj=False):
     check_kkt(p, places=3)
 
 
-def _maximize_problem(solver, use_quad_obj=False):
+@pytest.mark.parametrize("solver,use_quad_obj", QP_PARAMS)
+def test_maximize_problem(solver, use_quad_obj):
     np.random.seed(0)
     A = np.maximum(np.random.randn(5, 2), 0)
     b = np.maximum(np.random.randn(5), 0)
@@ -227,7 +258,8 @@ def _maximize_problem(solver, use_quad_obj=False):
     check_kkt(p, places=3)
 
 
-def _quad_form_bound(solver, use_quad_obj=False):
+@pytest.mark.parametrize("solver,use_quad_obj", QP_PARAMS)
+def test_quad_form_bound(solver, use_quad_obj):
     P = np.array([[13, 12, -2], [12, 17, 6], [-2, 6, 12]])
     q = np.array([[-22], [-14.5], [13]])
     y_star = np.array([1., 0.5, -1.])
@@ -239,7 +271,8 @@ def _quad_form_bound(solver, use_quad_obj=False):
     check_kkt(p)
 
 
-def _regression_1(solver, use_quad_obj=False):
+@pytest.mark.parametrize("solver,use_quad_obj", QP_PARAMS)
+def test_regression_1(solver, use_quad_obj):
     np.random.seed(1)
     n = 100
     true_coeffs = np.array([[2, -2, 0.5]]).T
@@ -258,7 +291,8 @@ def _regression_1(solver, use_quad_obj=False):
     np.testing.assert_allclose(1171.60037715, p.value, atol=1e-4)
 
 
-def _regression_2(solver, use_quad_obj=False):
+@pytest.mark.parametrize("solver,use_quad_obj", QP_PARAMS)
+def test_regression_2(solver, use_quad_obj):
     np.random.seed(1)
     n = 100
     true_coeffs = np.array([2, -2, 0.5])
@@ -274,7 +308,8 @@ def _regression_2(solver, use_quad_obj=False):
     np.testing.assert_allclose(139.225660756, p.value, atol=1e-4)
 
 
-def _control(solver, use_quad_obj=False):
+@pytest.mark.parametrize("solver,use_quad_obj", QP_PARAMS)
+def test_control(solver, use_quad_obj):
     T = 30
     h = 0.1
     mass = 1
@@ -300,7 +335,8 @@ def _control(solver, use_quad_obj=False):
     # C order, constraint terms use F order). TODO fix this
 
 
-def _sparse_system(solver, use_quad_obj=False):
+@pytest.mark.parametrize("solver,use_quad_obj", QP_PARAMS)
+def test_sparse_system(solver, use_quad_obj):
     m, n = 100, 80
     np.random.seed(1)
     A = sp.random_array((m, n), density=0.4)
@@ -311,7 +347,8 @@ def _sparse_system(solver, use_quad_obj=False):
     np.testing.assert_allclose(b.T.dot(b), p.value, atol=1e-4)
 
 
-def _smooth_ridge(solver, use_quad_obj=False):
+@pytest.mark.parametrize("solver,use_quad_obj", QP_PARAMS)
+def test_smooth_ridge(solver, use_quad_obj):
     np.random.seed(1)
     n = 50
     k = 20
@@ -324,7 +361,10 @@ def _smooth_ridge(solver, use_quad_obj=False):
     np.testing.assert_allclose(0, p.value, atol=1e-4)
 
 
-def _huber_small(solver, use_quad_obj=False, places=4):
+@pytest.mark.parametrize("solver,use_quad_obj", QP_PARAMS)
+def test_huber_small(solver, use_quad_obj):
+    # The conic + use_quad_obj path has slightly looser precision.
+    places = 3 if use_quad_obj else 4
     x = Variable(3)
     objective = sum(huber(x))
     p = Problem(Minimize(objective), [x[2] >= 3])
@@ -335,7 +375,10 @@ def _huber_small(solver, use_quad_obj=False, places=4):
     check_kkt(p, places=places)
 
 
-def _huber(solver, use_quad_obj=False):
+@pytest.mark.parametrize("solver,use_quad_obj", QP_PARAMS)
+def test_huber(solver, use_quad_obj):
+    # Expected values below were computed with this seed; do not change it.
+    np.random.seed(1)
     n, m = 3, 5
     data = [0.89, 0.39, 0.96, 0.34, 0.68, 0.18,
             0.63, 0.42, 0.51, 0.66, 0.43, 0.77]
@@ -366,17 +409,18 @@ def _equivalent_forms_setup(seed=1):
     return A, b, G, h
 
 
-def _equivalent_forms_1(solver, use_quad_obj=False):
+@pytest.mark.parametrize("solver,use_quad_obj", QP_PARAMS)
+def test_equivalent_forms_1(solver, use_quad_obj):
     A, b, G, h = _equivalent_forms_setup()
-    n = A.shape[1]
-    xef = Variable(n)
+    xef = Variable(A.shape[1])
     p = Problem(Minimize(.1 * sum((A @ xef - b) ** 2)), [G @ xef == h])
     _solve(p, solver, use_quad_obj)
     np.testing.assert_allclose(p.value, 68.1119420108, atol=1e-4)
     check_kkt(p, places=4)
 
 
-def _equivalent_forms_2(solver, use_quad_obj=False):
+@pytest.mark.parametrize("solver,use_quad_obj", QP_PARAMS)
+def test_equivalent_forms_2(solver, use_quad_obj):
     A, b, G, h = _equivalent_forms_setup()
     # ||Ax-b||^2 = x^T (A^T A) x - 2(A^T b)^T x + ||b||^2
     P = A.T @ A
@@ -390,7 +434,10 @@ def _equivalent_forms_2(solver, use_quad_obj=False):
     check_kkt(p, places=4)
 
 
-def _equivalent_forms_3(solver, use_quad_obj=False):
+@pytest.mark.parametrize("solver,use_quad_obj", QP_PARAMS)
+def test_equivalent_forms_3(solver, use_quad_obj):
+    if solver == cp.KNITRO:
+        pytest.skip("KNITRO does not support matrix_frac")
     A, b, G, h = _equivalent_forms_setup()
     P = A.T @ A
     q = -2 * A.T @ b
@@ -404,67 +451,7 @@ def _equivalent_forms_3(solver, use_quad_obj=False):
     check_kkt(p, places=4)
 
 
-# --- Per-solver tests --- #
-
-@pytest.mark.parametrize("solver", QP_SOLVER_PARAMS)
-def test_qp_correctness(solver):
-    """Run all QP correctness helpers against one native QP solver."""
-    _quad_over_lin(solver)
-    _power(solver)
-    _power_matrix(solver)
-    _square_affine(solver)
-    _quad_form(solver)
-    _affine_problem(solver)
-    _maximize_problem(solver)
-    _abs(solver)
-    _quad_form_bound(solver)
-    _regression_1(solver)
-    _regression_2(solver)
-    _rep_quad_form(solver)
-    _control(solver)
-    _sparse_system(solver)
-    _smooth_ridge(solver)
-    _huber_small(solver)
-    _huber(solver)
-    _equivalent_forms_1(solver)
-    _equivalent_forms_2(solver)
-    if solver != cp.KNITRO:
-        # KNITRO does not support matrix_frac.
-        _equivalent_forms_3(solver)
-
-
-@pytest.mark.parametrize("solver", CONIC_QUAD_OBJ_PARAMS)
-def test_qp_conic_quad_obj(solver):
-    """Run QP correctness helpers via conic solvers with use_quad_obj=True.
-
-    Solvers with ``REQUIRES_CONSTR=True`` skip helpers whose problems are
-    unconstrained -- those canonicalize to m=0 and are rejected.
-    """
-    requires_constr = SOLVER_MAP_CONIC[solver].REQUIRES_CONSTR
-    _quad_over_lin(solver, use_quad_obj=True)
-    if not requires_constr:
-        _power(solver, use_quad_obj=True)
-    _power_matrix(solver, use_quad_obj=True)
-    _square_affine(solver, use_quad_obj=True)
-    if not requires_constr:
-        _quad_form(solver, use_quad_obj=True)
-    _affine_problem(solver, use_quad_obj=True)
-    _maximize_problem(solver, use_quad_obj=True)
-    _abs(solver, use_quad_obj=True)
-    _quad_form_bound(solver, use_quad_obj=True)
-    _regression_1(solver, use_quad_obj=True)
-    _regression_2(solver, use_quad_obj=True)
-    if not requires_constr:
-        _rep_quad_form(solver, use_quad_obj=True)
-    _control(solver, use_quad_obj=True)
-    _sparse_system(solver, use_quad_obj=True)
-    _smooth_ridge(solver, use_quad_obj=True)
-    _huber_small(solver, use_quad_obj=True, places=3)
-    _huber(solver, use_quad_obj=True)
-    _equivalent_forms_1(solver, use_quad_obj=True)
-    _equivalent_forms_2(solver, use_quad_obj=True)
-    _equivalent_forms_3(solver, use_quad_obj=True)
-
+# --- Other native-QP-only correctness tests --- #
 
 @pytest.mark.parametrize("solver", QP_SOLVER_PARAMS)
 def test_qp_bound_attr(solver):
@@ -498,8 +485,8 @@ def test_parametric(solver):
         obj_param.append(prob.value)
 
     for i in range(len(b_vec)):
-        np.testing.assert_allclose(x_full[i], x_param[i], atol=1e-3)
-        np.testing.assert_allclose(obj_full[i], obj_param[i], atol=1e-5)
+        np.testing.assert_allclose(x_param[i], x_full[i], atol=1e-3)
+        np.testing.assert_allclose(obj_param[i], obj_full[i], atol=1e-5)
 
 
 # --- Solver-specific tests --- #
@@ -837,8 +824,12 @@ def test_mpax_warmstart():
         cp.Minimize(-4 * x[0] - 5 * x[1]),
         [2 * x[0] + x[1] <= 3, x[0] + 2 * x[1] <= 3, x[0] >= 0, x[1] >= 0],
     )
-    np.testing.assert_allclose(prob.solve(solver='MPAX', warm_start=False), -9, atol=1e-4)
-    np.testing.assert_allclose(prob.solve(solver='MPAX', warm_start=True), -9, atol=1e-4)
+    np.testing.assert_allclose(
+        prob.solve(solver='MPAX', warm_start=False), -9, atol=1e-4
+    )
+    np.testing.assert_allclose(
+        prob.solve(solver='MPAX', warm_start=True), -9, atol=1e-4
+    )
 
 
 @mpax_skip
