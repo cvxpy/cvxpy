@@ -3211,6 +3211,7 @@ def is_knitro_available():
         or os.environ.get('ARTELYS_LICENSE_NETWORK_ADDR')
     )
 
+@pytest.mark.knitro
 @unittest.skipUnless(is_knitro_available(), 'KNITRO is not installed or license is not available.')
 class TestKNITRO(BaseTest):
 
