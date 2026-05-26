@@ -158,10 +158,10 @@ PSD_ATOMS = [
     von_neumann_entr,
 ]
 
-NONPOS_ATOMS = [
+NONNEG_ATOMS = [
     norm1,
     abs,
-    huber,
+    HuberAtom,
     ptp
 ]
 
@@ -183,7 +183,7 @@ GP_EXP_ATOMS = [
 ]
 
 # DGP atoms whose Dgp2Dcp canonicalization produces NonNeg constraints.
-GP_NONPOS_ATOMS = [
+GP_NONNEG_ATOMS = [
     norm_inf,
     max,
     min,
