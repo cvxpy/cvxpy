@@ -159,6 +159,26 @@ class TestDcp2ConeCSE(BaseTest):
         prob.solve(solver=cp.CLARABEL)
         self.assertEqual(prob.status, cp.OPTIMAL)
 
+    def test_shared_ndarray_constant_dedup(self) -> None:
+        # A large float64 ndarray passed to two separate cp.Constant(...)
+        # calls produces two distinct Constant wrappers that share the same
+        # underlying ndarray (the ndarray interface stores by reference for
+        # float64). _constant_key's id-of-underlying branch merges them.
+        arr = np.random.default_rng(0).standard_normal(100)
+        x = cp.Variable(100)
+        c1 = cp.Constant(arr)
+        c2 = cp.Constant(arr)
+        # Two structurally identical norm1(multiply(c_i, x)) subtrees.
+        prob = cp.Problem(
+            cp.Minimize(cp.norm1(cp.multiply(c1, x))),
+            [cp.norm1(cp.multiply(c2, x)) <= 5, x >= -1],
+        )
+        new_prob, _ = Dcp2Cone().apply(prob)
+
+        aux_vars = [v for v in new_prob.variables() if v is not x]
+        self.assertEqual(len(aux_vars), 1)
+        self.assertEqual(aux_vars[0].shape, (100,))
+
     def test_parameter_subtree_dedup(self) -> None:
         # Parameter leaves are keyed by id; the same parameter reused in two
         # identical subtrees should also deduplicate.

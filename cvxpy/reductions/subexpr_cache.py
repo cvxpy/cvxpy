@@ -86,17 +86,24 @@ _CONSTANT_VALUE_HASH_MAX_SIZE = 64
 
 
 def _constant_key(expr: Constant):
-    """Key a small Constant by value, larger Constants by object identity.
+    """Key a Constant in one of three ways, in order of preference:
 
-    Many atoms construct fresh ``Constant`` objects for default scalar
-    parameters (e.g. ``huber`` defaults ``M=0.5`` by minting ``Constant(0.5)``
-    inside its constructor). Two structurally identical user expressions like
-    ``cp.huber(x) + cp.huber(x)`` therefore embed two distinct ``Constant``
-    objects with equal data; keying purely by ``id()`` would mark those as
-    distinct and skip the CSE merge. For small constants the value hash is
-    cheap, so we use it; for large arrays we keep ``id()`` to avoid copying
-    O(problem-data) bytes into cache keys (sharing the matrix reference --
-    the common large-data pattern -- still deduplicates).
+    1. Small array (<= 64 elements): value hash. Catches the case where two
+       structurally identical user expressions embed distinct ``Constant``
+       objects with equal data -- e.g. each ``cp.huber(x)`` call mints a fresh
+       ``Constant(0.5)`` for the default ``M`` argument, which would otherwise
+       defeat the CSE merge.
+
+    2. Large float64 ndarray: id of the underlying ndarray. ``Constant``'s
+       ndarray-interface stores a reference to a float64 ndarray without
+       copying (see ``ndarray_interface.const_to_matrix``), so two
+       ``Constant(arr)`` calls on the same source array share ``_value``.
+       Keying on ``id(expr.value)`` catches that without copying problem-data
+       bytes into the cache key. Other dtypes (int, bool, ...) get copied via
+       ``astype(float64)`` so this branch only fires when it's safe.
+
+    3. Fallback: id of the Constant wrapper. The common large-data pattern of
+       binding ``c = cp.Constant(arr)`` and reusing ``c`` deduplicates here.
     """
     value = expr.value
     try:
@@ -105,6 +112,8 @@ def _constant_key(expr: Constant):
         return ("const", id(expr))
     if arr.size <= _CONSTANT_VALUE_HASH_MAX_SIZE:
         return ("const-val", arr.shape, str(arr.dtype), arr.tobytes())
+    if isinstance(value, np.ndarray) and value.dtype == np.float64:
+        return ("const-ref", value.shape, id(value))
     return ("const", id(expr))
 
 
