@@ -48,42 +48,6 @@ DPP_ERROR_MSG = (
 )
 
 
-def _select_param_strategy(problem, *, is_dpp, ignore_dpp, enforce_dpp,
-                           canon_backend):
-    """Decide how the chain handles parameters: substitute now, diffengine, or live.
-
-    Returns ``(preamble, use_diffengine, canon_backend)``. ``preamble`` is the
-    list of reductions to prepend (e.g. ``[EvalParams()]`` or ``[]``);
-    ``use_diffengine`` toggles the ConeMatrixStuffing back-end; ``canon_backend``
-    may be auto-bumped to COO for large parametric problems.
-
-    Three explicit cases:
-      A. silently non-DPP (``is_dpp=False, ignore_dpp=False``): warn or error,
-         then prepend ``EvalParams``.
-      B. ``ignore_dpp=True``: probe ``ConeMatrixStuffing(use_diffengine=True)``;
-         if it accepts the problem, route through the diffengine back-end.
-         Otherwise silently fall back to ``EvalParams + ConeMatrixStuffing``.
-      C. DPP fast path: auto-select COO backend when the total parameter size
-         is large enough to make the tensor pipeline pay off.
-    """
-    if not is_dpp and not ignore_dpp:
-        if enforce_dpp:
-            raise DPPError(DPP_ERROR_MSG)
-        warn(DPP_ERROR_MSG)
-        return [EvalParams()], False, canon_backend
-
-    if ignore_dpp:
-        if ConeMatrixStuffing(use_diffengine=True).accepts(problem):
-            return [], True, canon_backend
-        return [EvalParams()], False, canon_backend
-
-    if canon_backend is None:
-        total_param_size = sum(p.size for p in problem.parameters())
-        if total_param_size >= DPP_PARAM_THRESHOLD:
-            canon_backend = COO_CANON_BACKEND
-    return [], False, canon_backend
-
-
 def _lookup_by_name(solver_name: str, gp: bool):
     """Look up installed QP and conic instances for a solver name.
 
@@ -233,14 +197,21 @@ def _build_solving_chain(
     quad_form_dpp = 'qp' if solver_instance.supports_quad_obj() else None
     is_dpp = problem.is_dpp(dpp_context, quad_form_dpp=quad_form_dpp)
 
-    preamble, use_diffengine, canon_backend = _select_param_strategy(
-        problem,
-        is_dpp=is_dpp,
-        ignore_dpp=ignore_dpp,
-        enforce_dpp=enforce_dpp,
-        canon_backend=canon_backend,
-    )
-    reductions = preamble + reductions
+    use_diffengine = False
+    if ignore_dpp or not is_dpp:
+        if not ignore_dpp and enforce_dpp:
+            raise DPPError(DPP_ERROR_MSG)
+        if not ignore_dpp:
+            warn(DPP_ERROR_MSG)
+        if ignore_dpp and ConeMatrixStuffing(use_diffengine=True).accepts(problem):
+            use_diffengine = True
+        else:
+            reductions = [EvalParams()] + reductions
+    else:
+        if canon_backend is None:
+            total_param_size = sum(p.size for p in problem.parameters())
+            if total_param_size >= DPP_PARAM_THRESHOLD:
+                canon_backend = COO_CANON_BACKEND
 
     # --- Canonicalization reductions (problem_form + solver_context) ---
     use_quad = True if solver_opts is None else solver_opts.get('use_quad_obj', True)

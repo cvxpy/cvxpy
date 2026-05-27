@@ -14,13 +14,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import numpy as np
-import pytest
 
 import cvxpy as cp
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
 from cvxpy.reductions.dcp2cone.dcp2cone import Dcp2Cone
 from cvxpy.reductions.eval_params import EvalParams
-from cvxpy.reductions.solvers.solving_chain import _select_param_strategy
 from cvxpy.tests.base_test import BaseTest
 
 SOLVER = cp.CLARABEL
@@ -135,64 +133,3 @@ class TestIgnoreDppFallback(BaseTest):
 
         prob.solve(solver=SOLVER, ignore_dpp=True)
         self.assertAlmostEqual(prob.value, 3.0, places=4)
-
-
-class TestSelectParamStrategy(BaseTest):
-    """Unit tests for the chain-selection helper itself."""
-
-    def _toy_problem(self):
-        x = cp.Variable()
-        a = cp.Parameter()
-        a.value = 1.0
-        return cp.Problem(cp.Minimize(a * x), [x >= 0])
-
-    def test_silently_non_dpp_emits_eval_params(self) -> None:
-        prob = self._toy_problem()
-        preamble, use_diffengine, _ = _select_param_strategy(
-            prob, is_dpp=False, ignore_dpp=False, enforce_dpp=False,
-            canon_backend=None,
-        )
-        self.assertEqual(len(preamble), 1)
-        self.assertIsInstance(preamble[0], EvalParams)
-        self.assertFalse(use_diffengine)
-
-    def test_silently_non_dpp_with_enforce_dpp_raises(self) -> None:
-        from cvxpy.error import DPPError
-        prob = self._toy_problem()
-        with pytest.raises(DPPError):
-            _select_param_strategy(
-                prob, is_dpp=False, ignore_dpp=False, enforce_dpp=True,
-                canon_backend=None,
-            )
-
-    def test_ignore_dpp_selects_diffengine_when_accepted(self) -> None:
-        prob = self._toy_problem()
-        preamble, use_diffengine, _ = _select_param_strategy(
-            prob, is_dpp=True, ignore_dpp=True, enforce_dpp=False,
-            canon_backend=None,
-        )
-        self.assertTrue(use_diffengine)
-        self.assertEqual(preamble, [])
-
-    def test_ignore_dpp_falls_back_for_psd_problem(self) -> None:
-        n = 3
-        X = cp.Variable((n, n), symmetric=True)
-        prob = cp.Problem(cp.Minimize(cp.trace(X)),
-                          [X >> np.eye(n)])
-        preamble, use_diffengine, _ = _select_param_strategy(
-            prob, is_dpp=True, ignore_dpp=True, enforce_dpp=False,
-            canon_backend=None,
-        )
-        # PSD constraint is not affine -> diffengine rejects.
-        self.assertFalse(use_diffengine)
-        self.assertEqual(len(preamble), 1)
-        self.assertIsInstance(preamble[0], EvalParams)
-
-    def test_dpp_fast_path_no_eval_params(self) -> None:
-        prob = self._toy_problem()
-        preamble, use_diffengine, _ = _select_param_strategy(
-            prob, is_dpp=True, ignore_dpp=False, enforce_dpp=False,
-            canon_backend=None,
-        )
-        self.assertEqual(preamble, [])
-        self.assertFalse(use_diffengine)
