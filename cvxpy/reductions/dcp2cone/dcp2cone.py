@@ -120,8 +120,7 @@ class Dcp2Cone(Canonicalization):
         if cache_eligible:
             cache_key = self._make_cache_key(expr, affine_above)
             if cache_key is not None and cache_key in self._cse_cache:
-                cached_expr, _ = self._cse_cache[cache_key]
-                return cached_expr, []
+                return self._cse_cache[cache_key], []
 
         # TODO don't copy affine expressions?
         if type(expr) == partial_problem_cls:
@@ -142,7 +141,10 @@ class Dcp2Cone(Canonicalization):
             constrs += c
 
         if cache_key is not None:
-            self._cse_cache[cache_key] = (canon_expr, constrs)
+            # Only canon_expr is needed on hit; subsequent uses return an
+            # empty constraint list because the first emission already
+            # added the generated constraints to the caller's list.
+            self._cse_cache[cache_key] = canon_expr
         return canon_expr, constrs
 
     def canonicalize_expr(self, expr, args, affine_above: bool) -> tuple[Expression, list]:
