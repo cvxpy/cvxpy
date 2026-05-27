@@ -13,16 +13,23 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-Shared structural-key helpers for per-apply CSE caches in canonicalization
-reductions (Dcp2Cone, Dnlp2Smooth, ...).
+Structural-key helpers for the per-apply subexpression cache used by
+canonicalization reductions (Dcp2Cone, Dnlp2Smooth, ...).
 
-Two structurally identical Expression subtrees should canonicalize to the
-same canonical expression and the same set of auxiliary constraints. These
-helpers build a hashable key that is equal exactly when two subtrees are
-structurally identical for canonicalization purposes (same atom types, same
-shapes, same get_data() payloads, same Variable/Parameter ids at the
-leaves). The caller is responsible for adding any reduction-specific bits
-(e.g. ``affine_above`` for Dcp2Cone's quad branch) on top of ``expr_key``.
+When the same Expression subtree appears in two places in a problem (e.g.
+``cp.norm1(x)`` in both the objective and a constraint), a recursive
+canonicalizer that runs blindly will emit a fresh set of auxiliary
+variables and epigraph constraints for each occurrence. The reduction
+caches the canonicalization result for each subtree it sees, keyed by
+structure, so the second occurrence reuses the first one's canonical
+expression and auxiliary constraints.
+
+These helpers build a hashable key that is equal exactly when two subtrees
+are structurally identical for canonicalization purposes: same atom types,
+same shapes, same ``get_data()`` payloads, same Variable/Parameter ids at
+the leaves. The caller is responsible for adding any reduction-specific
+bits (e.g. ``affine_above`` for Dcp2Cone's quad branch) on top of
+``expr_key``.
 """
 
 import numpy as np
