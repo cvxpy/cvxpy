@@ -14,8 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import numpy as np
+import scipy.sparse as sp
+
+from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.atoms.affine.hstack import hstack
 from cvxpy.atoms.affine.vstack import vstack
+from cvxpy.expressions.constants import Constant
 
 
 def bmat(block_lists):
@@ -34,5 +39,22 @@ def bmat(block_lists):
     CVXPY expression
         The CVXPY expression representing the block matrix.
     """
+    block_lists = [
+        [AffAtom.cast_to_const(block) for block in block_list]
+        for block_list in block_lists
+    ]
+    if all(
+        block.is_constant() and not block.parameters()
+        for block_list in block_lists
+        for block in block_list
+    ):
+        block_values = [
+            [block.value for block in block_list]
+            for block_list in block_lists
+        ]
+        if any(sp.issparse(value) for block_list in block_values for value in block_list):
+            return Constant(sp.bmat(block_values, format="csc"))
+        return Constant(np.block(block_values))
+
     row_blocks = [hstack(blocks) for blocks in block_lists]
     return vstack(row_blocks)
