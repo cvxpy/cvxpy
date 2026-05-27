@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import logging
+import os
 import sys
 
 LOGGER = logging.getLogger("__cvxpy__")
@@ -109,6 +110,17 @@ SOLVERS = [CLARABEL, ECOS, CVXOPT, GLOP, GLPK, GLPK_MI,
            MOSEK, MOREAU, CBC, COPT, XPRESS, PIQP, PROXQP, QOCO, QPALM,
            NAG, PDLP, SCIP, SCIPY, DAQP, HIGHS, MPAX,
            CUCLARABEL, CUOPT, KNITRO, COSMO, PDCS, IPOPT, UNO]
+
+
+def _env_var_to_bool(name: str, default: bool) -> bool:
+    value = os.environ.get(name)
+    if value is None:
+        return default
+    return value.strip().lower() not in {"0", "false", "no", "off"}
+
+# Internal-only feature flag. This may be removed in a future version without warning.
+DEFAULT_TO_COMMERCIAL_SOLVERS = _env_var_to_bool(
+    "CVXPY_DEFAULT_TO_COMMERCIAL_SOLVERS", True)
 
 # Xpress-specific items
 XPRESS_IIS = "XPRESS_IIS"
