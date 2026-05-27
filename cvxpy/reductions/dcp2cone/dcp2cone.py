@@ -75,11 +75,6 @@ class Dcp2Cone(Canonicalization):
         inverse_data = InverseData(problem)
 
         self._cse_cache = {}
-        # Counter incremented whenever canonicalize_expr takes the quad branch
-        # (producing a SymbolicQuadForm). Subtrees that touch the quad branch
-        # are not cached, because downstream code identifies SymbolicQuadForm
-        # instances by Python id and assumes each occurrence is distinct.
-        self._quad_canon_count = 0
 
         canon_objective, canon_constraints = self.canonicalize_tree(
             problem.objective, True)
@@ -128,7 +123,6 @@ class Dcp2Cone(Canonicalization):
                 cached_expr, _ = self._cse_cache[cache_key]
                 return cached_expr, []
 
-        quad_count_before = self._quad_canon_count
         # TODO don't copy affine expressions?
         if type(expr) == partial_problem_cls:
             canon_expr, constrs = self.canonicalize_tree(
@@ -147,11 +141,7 @@ class Dcp2Cone(Canonicalization):
             canon_expr, c = self.canonicalize_expr(expr, canon_args, affine_above)
             constrs += c
 
-        # Only cache subtrees that did not produce a SymbolicQuadForm anywhere
-        # below. Sharing a SymbolicQuadForm across multiple positions breaks
-        # the QP coefficient extractor, which keys on quad_form.id and assumes
-        # each occurrence is a distinct placeholder.
-        if cache_key is not None and self._quad_canon_count == quad_count_before:
+        if cache_key is not None:
             self._cse_cache[cache_key] = (canon_expr, constrs)
         return canon_expr, constrs
 
@@ -187,9 +177,6 @@ class Dcp2Cone(Canonicalization):
                 return self.cone_canon_methods[type(expr)](expr, args,
                                                            solver_context=self.solver_context)
             else:
-                # Mark that we produced a SymbolicQuadForm; the CSE cache uses
-                # this counter to skip caching any subtree that contains one.
-                self._quad_canon_count += 1
                 return self.quad_canon_methods[type(expr)](expr, args,
                                                            solver_context=self.solver_context)
 

@@ -29,10 +29,17 @@ def replace_quad_forms(expr, quad_forms):
 
 
 def replace_quad_form(expr, idx, quad_forms):
-    """Replace the quad-form atom at ``expr.args[idx]`` with a placeholder Variable."""
+    """Replace the quad-form atom at ``expr.args[idx]`` with a placeholder Variable.
+
+    Each call mints a fresh placeholder id so that the same quad-form atom
+    appearing at multiple positions (e.g. a shared SymbolicQuadForm reused
+    across an objective expression) gets a distinct row in the coefficient
+    matrix downstream. Previously the placeholder inherited
+    ``quad_form.id``, which caused two occurrences to collapse onto a single
+    row and silently halve the quadratic coefficient.
+    """
     quad_form = expr.args[idx]
-    placeholder = Variable(quad_form.shape,
-                           var_id=quad_form.id)
+    placeholder = Variable(quad_form.shape)
     expr.args[idx] = placeholder
     quad_forms[placeholder.id] = (expr, idx, quad_form)
     return quad_forms

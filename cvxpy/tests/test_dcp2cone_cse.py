@@ -86,10 +86,11 @@ class TestDcp2ConeCSE(BaseTest):
         self.assertAlmostEqual(prob_dup.value, prob_shared.value, places=5)
         self.assertItemsAlmostEqual(x.value, y.value, places=5)
 
-    def test_shared_quad_form_not_merged(self) -> None:
-        # SymbolicQuadForm objects are tracked by id downstream, so sharing
-        # them across multiple uses would corrupt the QP coefficients. Verify
-        # the well-known 0.5*qf + 0.5*qf trick still solves correctly.
+    def test_shared_quad_form_solves_correctly(self) -> None:
+        # A shared QuadForm reused in 0.5*qf + 0.5*qf must solve to the same
+        # answer as the unshared problem: the downstream coefficient extractor
+        # needs to keep the two occurrences as distinct rows even when CSE
+        # makes them share a canonical SymbolicQuadForm.
         np.random.seed(0)
         A = np.random.randn(5, 5)
         z = np.random.randn(5)
