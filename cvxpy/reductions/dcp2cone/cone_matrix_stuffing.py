@@ -418,12 +418,27 @@ class ConeMatrixStuffing(MatrixStuffing):
     """
     CONSTRAINTS = 'ordered_constraints'
 
-    def __init__(self, quad_obj: bool = False, canon_backend: str | None = None):
+    def __init__(self, quad_obj: bool = False, canon_backend: str | None = None,
+                 use_diffengine: bool = False):
         # Assume a quadratic objective?
         self.quad_obj = quad_obj
         self.canon_backend = canon_backend
+        # Use the C diff engine (sparsediffpy) to build A, b, q, d, P directly
+        # from CVXPY expression trees, bypassing the parametric tensor pipeline.
+        # Selected from `_select_param_strategy` when `ignore_dpp=True`.
+        self.use_diffengine = use_diffengine
 
     def accepts(self, problem):
+        if self.use_diffengine:
+            # The diffengine path is selected via `ignore_dpp=True`, so we don't
+            # require `problem.is_dpp()`. Quadratic objectives are not accepted:
+            # after Dcp2Cone they become `SymbolicQuadForm`, which the diffengine
+            # converter does not handle.
+            return (type(problem.objective) == Minimize
+                    and problem.objective.expr.is_affine()
+                    and not cvx_attr2constr.convex_attributes(problem.variables())
+                    and are_args_affine(problem.constraints))
+
         valid_obj_curv = (self.quad_obj and problem.objective.expr.is_quadratic()) or \
             problem.objective.expr.is_affine()
         return (type(problem.objective) == Minimize
@@ -454,6 +469,16 @@ class ConeMatrixStuffing(MatrixStuffing):
         inverse_data.cons_id_map = cons_id_map
         self._cons_id_map = inverse_data.cons_id_map
         inverse_data.constraints = ordered_cons
+        inverse_data.minimize = type(problem.objective) == Minimize
+
+        if self.use_diffengine:
+            from cvxpy.reductions.dcp2cone.diffengine_cone_program import (
+                DiffengineConeProgram,
+            )
+            new_prob = DiffengineConeProgram.from_problem(
+                problem, ordered_cons, inverse_data, self.quad_obj)
+            return new_prob, inverse_data
+
         # Need to check that intended canonicalization backend still works.
         lowered_con_problem = problem.copy([problem.objective, ordered_cons])
         canon_backend = get_canon_backend(lowered_con_problem, self.canon_backend)
@@ -465,7 +490,6 @@ class ConeMatrixStuffing(MatrixStuffing):
         expr_list = [arg for c in ordered_cons for arg in c.args]
         params_to_problem_data = extractor.affine(expr_list)
 
-        inverse_data.minimize = type(problem.objective) == Minimize
         variables = problem.variables()
         if _has_parametric_bounds(variables):
             lb_tensor = extract_bounds_tensor(

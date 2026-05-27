@@ -42,7 +42,10 @@ def perspective_canon(expr, args, solver_context: SolverInfo | None = None):
     # ParamConeProg stores q as a sparse (n+1, n_params+1) tensor with d embedded
     # in the last row, and A as a flattened tensor with b embedded.
     # DiffengineConeProgram stores q, d, A, b as separate concrete arrays.
-    if hasattr(prob_canon, 'd') and not hasattr(prob_canon.q, 'toarray'):
+    from cvxpy.reductions.dcp2cone.diffengine_cone_program import (
+        DiffengineConeProgram,
+    )
+    if isinstance(prob_canon, DiffengineConeProgram):
         q = prob_canon.q
         d = prob_canon.d
         A = prob_canon.A.toarray() if hasattr(prob_canon.A, 'toarray') else prob_canon.A

@@ -27,11 +27,9 @@ SOLVER = cp.CLARABEL
 
 
 def _has_diffengine(chain):
-    """True iff `DiffengineMatrixStuffing` is in the chain."""
-    from cvxpy.reductions.dcp2cone.diffengine_matrix_stuffing import (
-        DiffengineMatrixStuffing,
-    )
-    return any(isinstance(r, DiffengineMatrixStuffing) for r in chain.reductions)
+    """True iff a `use_diffengine=True` ConeMatrixStuffing is in the chain."""
+    return any(isinstance(r, ConeMatrixStuffing) and r.use_diffengine
+               for r in chain.reductions)
 
 
 def _has_eval_params(chain):
@@ -85,14 +83,15 @@ class TestIgnoreDppCorrectness(BaseTest):
 
 class TestIgnoreDppCaching(BaseTest):
     def test_dcp2cone_runs_once_across_two_solves(self) -> None:
-        """When DIFFENGINE is selected, Dcp2Cone.apply should run once."""
+        """When the diffengine path is selected, Dcp2Cone.apply should run once."""
         n = 3
         A = cp.Parameter((n, n))
         b = cp.Parameter(n)
         A.value = np.eye(n)
         b.value = np.ones(n)
         x = cp.Variable(n)
-        prob = cp.Problem(cp.Minimize(cp.sum_squares(A @ x - b)))
+        # Affine objective so the diffengine path accepts and we hit the cache.
+        prob = cp.Problem(cp.Minimize(cp.sum(A @ x - b)), [x >= 0, x <= 1])
 
         orig_apply = Dcp2Cone.apply
         calls = []
@@ -149,13 +148,13 @@ class TestSelectParamStrategy(BaseTest):
 
     def test_silently_non_dpp_emits_eval_params(self) -> None:
         prob = self._toy_problem()
-        preamble, stuffer = _select_param_strategy(
+        preamble, use_diffengine, _ = _select_param_strategy(
             prob, is_dpp=False, ignore_dpp=False, enforce_dpp=False,
-            canon_backend=None, quad_obj=False,
+            canon_backend=None,
         )
         self.assertEqual(len(preamble), 1)
         self.assertIsInstance(preamble[0], EvalParams)
-        self.assertIsInstance(stuffer, ConeMatrixStuffing)
+        self.assertFalse(use_diffengine)
 
     def test_silently_non_dpp_with_enforce_dpp_raises(self) -> None:
         from cvxpy.error import DPPError
@@ -163,19 +162,16 @@ class TestSelectParamStrategy(BaseTest):
         with pytest.raises(DPPError):
             _select_param_strategy(
                 prob, is_dpp=False, ignore_dpp=False, enforce_dpp=True,
-                canon_backend=None, quad_obj=False,
+                canon_backend=None,
             )
 
     def test_ignore_dpp_selects_diffengine_when_accepted(self) -> None:
-        from cvxpy.reductions.dcp2cone.diffengine_matrix_stuffing import (
-            DiffengineMatrixStuffing,
-        )
         prob = self._toy_problem()
-        preamble, stuffer = _select_param_strategy(
+        preamble, use_diffengine, _ = _select_param_strategy(
             prob, is_dpp=True, ignore_dpp=True, enforce_dpp=False,
-            canon_backend=None, quad_obj=False,
+            canon_backend=None,
         )
-        self.assertIsInstance(stuffer, DiffengineMatrixStuffing)
+        self.assertTrue(use_diffengine)
         self.assertEqual(preamble, [])
 
     def test_ignore_dpp_falls_back_for_psd_problem(self) -> None:
@@ -183,20 +179,20 @@ class TestSelectParamStrategy(BaseTest):
         X = cp.Variable((n, n), symmetric=True)
         prob = cp.Problem(cp.Minimize(cp.trace(X)),
                           [X >> np.eye(n)])
-        preamble, stuffer = _select_param_strategy(
+        preamble, use_diffengine, _ = _select_param_strategy(
             prob, is_dpp=True, ignore_dpp=True, enforce_dpp=False,
-            canon_backend=None, quad_obj=False,
+            canon_backend=None,
         )
-        # PSD constraint is not affine -> DiffengineMatrixStuffing rejects.
-        self.assertIsInstance(stuffer, ConeMatrixStuffing)
+        # PSD constraint is not affine -> diffengine rejects.
+        self.assertFalse(use_diffengine)
         self.assertEqual(len(preamble), 1)
         self.assertIsInstance(preamble[0], EvalParams)
 
     def test_dpp_fast_path_no_eval_params(self) -> None:
         prob = self._toy_problem()
-        preamble, stuffer = _select_param_strategy(
+        preamble, use_diffengine, _ = _select_param_strategy(
             prob, is_dpp=True, ignore_dpp=False, enforce_dpp=False,
-            canon_backend=None, quad_obj=False,
+            canon_backend=None,
         )
         self.assertEqual(preamble, [])
-        self.assertIsInstance(stuffer, ConeMatrixStuffing)
+        self.assertFalse(use_diffengine)

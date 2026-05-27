@@ -17,7 +17,6 @@ from __future__ import annotations
 
 import numpy as np
 import scipy.sparse as sp
-from sparsediffpy import _sparsediffengine as _diffengine
 
 from cvxpy.expressions.variable import Variable
 from cvxpy.problems.param_prob import ParamProb
@@ -27,62 +26,36 @@ from cvxpy.reductions.matrix_stuffing import (
     extract_mip_idx,
     extract_upper_bounds,
 )
-from cvxpy.reductions.solvers.nlp_solvers.diff_engine.converters import convert_expr
-from cvxpy.reductions.solvers.nlp_solvers.diff_engine.helpers import (
-    build_var_dict,
-    normalize_shape,
-    to_dense_float,
-)
+from cvxpy.reductions.solvers.nlp_solvers.diff_engine import C_problem
 from cvxpy.reductions.utilities import group_constraints
 
 
-def build_capsule(objective_expr, constraint_exprs, inverse_data, params=None, verbose=False):
-    """Build a C diff engine problem capsule from CVXPY expressions.
+def _build_jacobian_csc(c_problem, jac_structure, m, n_vars):
+    """Evaluate the constraint Jacobian and assemble it as a CSC matrix."""
+    if m == 0:
+        return sp.csc_matrix((0, n_vars))
+    rows, cols = jac_structure
+    vals = c_problem.eval_jacobian_vals()
+    return sp.coo_matrix((vals, (rows, cols)), shape=(m, n_vars)).tocsc()
 
-    Returns
-    -------
-    capsule : PyCapsule
-        The C diff engine problem capsule.
-    n_vars : int
-        Total number of scalar decision variables.
-    param_dict : dict
-        Mapping {param_id: C parameter capsule}.
-    """
-    var_dict, n_vars = build_var_dict(inverse_data)
 
-    param_dict = {}
-    if params:
-        for param_id, offset in inverse_data.param_id_map.items():
-            if param_id not in inverse_data.param_shapes:
-                continue
-            d1, d2 = normalize_shape(inverse_data.param_shapes[param_id])
-            param = next(p for p in params if p.id == param_id)
-            p = to_dense_float(param.value)
-            param_dict[param_id] = _diffengine.make_parameter(
-                d1, d2, offset, n_vars, p.flatten(order='F'))
-
-    c_obj = convert_expr(objective_expr, var_dict, n_vars, param_dict)
-    c_constraints = [convert_expr(e, var_dict, n_vars, param_dict) for e in constraint_exprs]
-
-    capsule = _diffengine.make_problem(c_obj, c_constraints, verbose)
-
-    if param_dict and params:
-        _diffengine.problem_register_params(capsule, list(param_dict.values()))
-        theta = np.concatenate([
-            np.asarray(p.value, dtype=np.float64).flatten(order='F')
-            for p in params
-        ])
-        _diffengine.problem_update_params(capsule, theta)
-
-    return capsule, n_vars, param_dict
+def _build_hessian_csc(c_problem, hess_structure, duals, n_vars):
+    """Evaluate the Lagrangian Hessian (lower-tri COO) and mirror to a symmetric CSC."""
+    rows_l, cols_l = hess_structure
+    vals_l = c_problem.eval_hessian_vals_coo_lower_tri(1.0, duals)
+    off_diag = rows_l != cols_l
+    rows = np.concatenate([rows_l, cols_l[off_diag]])
+    cols = np.concatenate([cols_l, rows_l[off_diag]])
+    vals = np.concatenate([vals_l, vals_l[off_diag]])
+    return sp.coo_matrix((vals, (rows, cols)), shape=(n_vars, n_vars)).tocsc()
 
 
 class DiffengineConeProgram(ParamProb):
-    """A cone program with matrices extracted via the diffengine.
+    """A cone program whose matrices are extracted via the C diff engine.
 
-    Sibling of ParamConeProg under the ParamProb interface. On first solve, stores
-    the sparsity pattern of A and P. When parameters are present, re-evaluates the
-    converted C expression trees on subsequent solves via apply_parameters().
+    Sibling of ParamConeProg under the ParamProb interface. Wraps a `C_problem`
+    instance (the same class used by the NLP solver path) and re-evaluates the
+    converted expression trees on each solve via apply_parameters().
 
     minimize   q'x + d + [(1/2)x'Px]
     subject to cone_constr(A*x + b) in cones
@@ -98,10 +71,12 @@ class DiffengineConeProgram(ParamProb):
         P,
         constraints: list,
         inverse_data,
+        c_problem: C_problem,
+        jac_structure,
+        hess_structure,
         formatted: bool = False,
         lower_bounds=None,
         upper_bounds=None,
-        capsule=None,
         parameters=None,
         quad_obj: bool = False,
     ) -> None:
@@ -121,7 +96,9 @@ class DiffengineConeProgram(ParamProb):
         self.lower_bounds = lower_bounds
         self.upper_bounds = upper_bounds
 
-        self._capsule = capsule
+        self.c_problem = c_problem
+        self._jac_structure = jac_structure
+        self._hess_structure = hess_structure
         self.quad_obj = quad_obj
         self._restruct_mat = None
         self.parameters = list(parameters) if parameters else []
@@ -154,7 +131,7 @@ class DiffengineConeProgram(ParamProb):
     def apply_parameters(self, id_to_param_value=None, zero_offset: bool = False,
                          keep_zeros: bool = False, quad_obj: bool = False):
         """Return problem matrices, re-evaluating if parameters are present."""
-        if not self.parameters or self._capsule is None:
+        if not self.parameters:
             A = self.A
             if quad_obj and self.P is not None:
                 return self.P, self.q, self.d, A, self.b
@@ -169,22 +146,18 @@ class DiffengineConeProgram(ParamProb):
                                 dtype=np.float64).flatten(order='F')
                      for p in self.parameters]
         theta = np.concatenate(parts)
-
-        _diffengine.problem_update_params(self._capsule, theta)
+        self.c_problem.update_params(theta)
 
         n_vars = self.inverse_data.x_length
         x0 = np.zeros(n_vars, dtype=np.float64)
 
-        d = float(_diffengine.problem_objective_forward(self._capsule, x0))
-        q = _diffengine.problem_gradient(self._capsule).copy()
+        d = float(self.c_problem.objective_forward(x0))
+        q = self.c_problem.gradient().copy()
 
         if self.constraints:
-            b_vec = _diffengine.problem_constraint_forward(self._capsule, x0)
-            jac_data, jac_indices, jac_indptr, jac_shape = \
-                _diffengine.problem_jacobian(self._capsule)
-            A = sp.csr_matrix(
-                (jac_data, jac_indices, jac_indptr),
-                shape=(jac_shape[0], n_vars)).tocsc()
+            b_vec = self.c_problem.constraint_forward(x0)
+            m = b_vec.shape[0]
+            A = _build_jacobian_csc(self.c_problem, self._jac_structure, m, n_vars)
         else:
             b_vec = np.array([], dtype=np.float64)
             A = sp.csc_matrix((0, n_vars))
@@ -199,10 +172,8 @@ class DiffengineConeProgram(ParamProb):
 
         if quad_obj:
             duals = np.zeros(b.shape[0], dtype=np.float64)
-            h_data, h_indices, h_indptr, h_shape = \
-                _diffengine.problem_hessian(self._capsule, 1.0, duals)
-            P_csr = sp.csr_matrix((h_data, h_indices, h_indptr), shape=h_shape)
-            self.P = P_csr.tocsc()
+            self.P = _build_hessian_csc(
+                self.c_problem, self._hess_structure, duals, n_vars)
             return self.P, q, d, A, b
         return q, d, A, b
 
@@ -236,10 +207,12 @@ class DiffengineConeProgram(ParamProb):
         new_prog = DiffengineConeProgram(
             self.x, new_A, new_b, self.q, self.d, self.P,
             self.constraints, self.inverse_data,
+            c_problem=self.c_problem,
+            jac_structure=self._jac_structure,
+            hess_structure=self._hess_structure,
             formatted=True,
             lower_bounds=self.lower_bounds,
             upper_bounds=self.upper_bounds,
-            capsule=self._capsule,
             parameters=self.parameters,
             quad_obj=self.quad_obj,
         )
@@ -272,29 +245,28 @@ class DiffengineConeProgram(ParamProb):
         """Build a DiffengineConeProgram by evaluating expressions at x=0."""
         expr_list = [arg for c in ordered_cons for arg in c.args]
         params = problem.parameters()
-        capsule, n_vars, _ = build_capsule(
-            problem.objective.expr, expr_list, inverse_data, params=params, verbose=True)
+        c_problem = C_problem.from_exprs(
+            problem.objective.expr, expr_list, params, inverse_data, verbose=True)
+
+        c_problem.init_jacobian_coo()
+        if quad_obj:
+            c_problem.init_hessian_coo_lower_tri()
+
+        jac_structure = c_problem.get_jacobian_sparsity_coo() if expr_list else None
+        hess_structure = c_problem.get_problem_hessian_sparsity_coo() if quad_obj else None
 
         boolean, integer = extract_mip_idx(problem.variables())
+        n_vars = inverse_data.x_length
         x = Variable(n_vars, boolean=boolean, integer=integer)
-
         x0 = np.zeros(n_vars, dtype=np.float64)
 
-        if quad_obj:
-            _diffengine.problem_init_derivatives(capsule)
-        else:
-            _diffengine.problem_init_jacobian(capsule)
-
-        d = float(_diffengine.problem_objective_forward(capsule, x0))
-        q = _diffengine.problem_gradient(capsule).copy()
+        d = float(c_problem.objective_forward(x0))
+        q = c_problem.gradient().copy()
 
         if expr_list:
-            b_vec = _diffengine.problem_constraint_forward(capsule, x0)
-            jac_data, jac_indices, jac_indptr, jac_shape = \
-                _diffengine.problem_jacobian(capsule)
-            A = sp.csr_matrix(
-                (jac_data, jac_indices, jac_indptr),
-                shape=(jac_shape[0], n_vars)).tocsc()
+            b_vec = c_problem.constraint_forward(x0)
+            m = b_vec.shape[0]
+            A = _build_jacobian_csc(c_problem, jac_structure, m, n_vars)
         else:
             b_vec = np.array([], dtype=np.float64)
             A = sp.csc_matrix((0, n_vars))
@@ -302,15 +274,15 @@ class DiffengineConeProgram(ParamProb):
         P = None
         if quad_obj:
             duals = np.zeros(b_vec.shape[0], dtype=np.float64)
-            h_data, h_indices, h_indptr, h_shape = \
-                _diffengine.problem_hessian(capsule, 1.0, duals)
-            P_csr = sp.csr_matrix((h_data, h_indices, h_indptr), shape=h_shape)
-            P = P_csr.tocsc()
+            P = _build_hessian_csc(c_problem, hess_structure, duals, n_vars)
 
         lower_bounds = extract_lower_bounds(problem.variables(), n_vars)
         upper_bounds = extract_upper_bounds(problem.variables(), n_vars)
 
         return cls(x, A, np.atleast_1d(b_vec), q, d, P,
                    ordered_cons, inverse_data,
+                   c_problem=c_problem,
+                   jac_structure=jac_structure,
+                   hess_structure=hess_structure,
                    lower_bounds=lower_bounds, upper_bounds=upper_bounds,
-                   capsule=capsule, parameters=params, quad_obj=quad_obj)
+                   parameters=params, quad_obj=quad_obj)

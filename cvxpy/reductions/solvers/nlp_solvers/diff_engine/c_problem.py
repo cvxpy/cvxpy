@@ -35,23 +35,45 @@ class C_problem:
             verbose: print solver output
         """
         inverse_data = InverseData(cvxpy_problem)
-        var_dict, n_vars = build_var_dict(inverse_data)
-        param_dict = build_param_dict(cvxpy_problem, inverse_data)
+        self._build_capsule(
+            cvxpy_problem.objective.expr,
+            [c.expr for c in cvxpy_problem.constraints],
+            cvxpy_problem.parameters(),
+            inverse_data,
+            verbose,
+        )
 
-        c_obj = convert_expr(cvxpy_problem.objective.expr,
-                             var_dict, n_vars, param_dict)
-        c_constraints = [convert_expr(c.expr, var_dict, n_vars, param_dict)
-                         for c in cvxpy_problem.constraints]
-        self._capsule = _diffengine.make_problem(
-            c_obj, c_constraints, verbose)
+    @classmethod
+    def from_exprs(cls, objective_expr, constraint_exprs, parameters,
+                   inverse_data, verbose: bool = True):
+        """Build a C_problem from already-lowered objective and constraint expressions.
+
+        Use this when the caller has already lowered/ordered the cvxpy constraints
+        (e.g. flattened multi-arg cones into one expression per arg) and wants to
+        feed the raw expression list directly to the C engine.
+        """
+        self = cls.__new__(cls)
+        self._build_capsule(objective_expr, constraint_exprs, parameters,
+                            inverse_data, verbose)
+        return self
+
+    def _build_capsule(self, objective_expr, constraint_exprs, parameters,
+                       inverse_data, verbose: bool):
+        parameters = list(parameters)
+        var_dict, n_vars = build_var_dict(inverse_data)
+        param_dict = build_param_dict(parameters, inverse_data)
+
+        c_obj = convert_expr(objective_expr, var_dict, n_vars, param_dict)
+        c_constraints = [convert_expr(e, var_dict, n_vars, param_dict)
+                         for e in constraint_exprs]
+        self._capsule = _diffengine.make_problem(c_obj, c_constraints, verbose)
 
         if param_dict:
             _diffengine.problem_register_params(
                 self._capsule, list(param_dict.values()))
-            # Set initial parameter values
             theta = np.concatenate([
                 np.asarray(p.value, dtype=np.float64).flatten(order='F')
-                for p in cvxpy_problem.parameters()
+                for p in parameters
             ])
             _diffengine.problem_update_params(self._capsule, theta)
 
