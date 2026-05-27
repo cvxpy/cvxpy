@@ -38,11 +38,20 @@ def perspective_canon(expr, args, solver_context: SolverInfo | None = None):
     chain.reductions = chain.reductions[:-1]  # skip solver reduction
     prob_canon = chain.apply(aux_prob)[0]  # grab problem instance
     # get cone representation of c, A, and b for some problem.
-
-    q = prob_canon.q.toarray().flatten()[:-1]
-    d = prob_canon.q.toarray().flatten()[-1]
-    Ab = prob_canon.A.toarray().reshape((-1, len(q) + 1), order="F")
-    A, b = Ab[:, :-1], Ab[:, -1]
+    #
+    # ParamConeProg stores q as a sparse (n+1, n_params+1) tensor with d embedded
+    # in the last row, and A as a flattened tensor with b embedded.
+    # DiffengineConeProgram stores q, d, A, b as separate concrete arrays.
+    if hasattr(prob_canon, 'd') and not hasattr(prob_canon.q, 'toarray'):
+        q = prob_canon.q
+        d = prob_canon.d
+        A = prob_canon.A.toarray() if hasattr(prob_canon.A, 'toarray') else prob_canon.A
+        b = prob_canon.b
+    else:
+        q = prob_canon.q.toarray().flatten()[:-1]
+        d = prob_canon.q.toarray().flatten()[-1]
+        Ab = prob_canon.A.toarray().reshape((-1, len(q) + 1), order="F")
+        A, b = Ab[:, :-1], Ab[:, -1]
 
     # given f in epigraph form, aka epi f = \{(x,t) | f(x) \leq t\}
     # = \{(x,t) | Fx +tg + e \in K} for K a cone, the epigraph of the

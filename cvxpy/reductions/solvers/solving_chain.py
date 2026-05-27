@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -46,6 +47,62 @@ DPP_ERROR_MSG = (
     "documentation on Disciplined Parametrized Programming, at "
     "https://www.cvxpy.org/tutorial/dpp/index.html"
 )
+
+
+@dataclass(frozen=True)
+class _ParamStrategy:
+    """How parameters are handled in the reduction chain.
+
+    `preamble` is a list of reductions to prepend (e.g. EvalParams). `canon_backend`
+    is the backend handed to `ConeMatrixStuffing`. `use_diffengine=True` routes the
+    matrix-stuffing step through `DiffengineMatrixStuffing` instead.
+    """
+    preamble: list = field(default_factory=list)
+    canon_backend: str | None = None
+    use_diffengine: bool = False
+
+    def matrix_stuffing(self, *, quad_obj: bool):
+        if self.use_diffengine:
+            from cvxpy.reductions.dcp2cone.diffengine_matrix_stuffing import (
+                DiffengineMatrixStuffing,
+            )
+            return DiffengineMatrixStuffing(quad_obj=quad_obj)
+        return ConeMatrixStuffing(quad_obj=quad_obj, canon_backend=self.canon_backend)
+
+
+def _select_param_strategy(problem, *, is_dpp, ignore_dpp, enforce_dpp, canon_backend):
+    """Decide how the chain handles parameters: substitute now, DIFFENGINE, or live.
+
+    Three explicit cases:
+      A. silently non-DPP (`is_dpp=False, ignore_dpp=False`): warn or error, then
+         prepend `EvalParams` (today's behavior).
+      B. `ignore_dpp=True`: try `DiffengineMatrixStuffing`; if it doesn't accept the
+         problem, silently fall back to `EvalParams`. Strictly non-breaking — users
+         only see speedups when DIFFENGINE accepts, never regressions.
+      C. DPP fast path: auto-select COO backend when the total parameter size is
+         large enough to make the tensor pipeline pay off.
+    """
+    if not is_dpp and not ignore_dpp:
+        if enforce_dpp:
+            raise DPPError(DPP_ERROR_MSG)
+        warn(DPP_ERROR_MSG)
+        return _ParamStrategy(preamble=[EvalParams()], canon_backend=canon_backend)
+
+    if ignore_dpp:
+        from cvxpy.reductions.dcp2cone.diffengine_matrix_stuffing import (
+            DiffengineMatrixStuffing,
+        )
+        # We pass quad_obj=False here only to consult accepts(); the real
+        # quad_obj flag is set when matrix_stuffing() is called.
+        if DiffengineMatrixStuffing(quad_obj=False).accepts(problem):
+            return _ParamStrategy(canon_backend=canon_backend, use_diffengine=True)
+        return _ParamStrategy(preamble=[EvalParams()], canon_backend=canon_backend)
+
+    if canon_backend is None:
+        total_param_size = sum(p.size for p in problem.parameters())
+        if total_param_size >= DPP_PARAM_THRESHOLD:
+            canon_backend = COO_CANON_BACKEND
+    return _ParamStrategy(canon_backend=canon_backend)
 
 
 def _lookup_by_name(solver_name: str, gp: bool):
@@ -196,17 +253,15 @@ def _build_solving_chain(
     # so parametric P in constraints is NOT DPP-safe for the QP path.
     quad_form_dpp = 'qp' if solver_instance.supports_quad_obj() else None
     is_dpp = problem.is_dpp(dpp_context, quad_form_dpp=quad_form_dpp)
-    if ignore_dpp or not is_dpp:
-        if not ignore_dpp and enforce_dpp:
-            raise DPPError(DPP_ERROR_MSG)
-        if not ignore_dpp:
-            warn(DPP_ERROR_MSG)
-        reductions = [EvalParams()] + reductions
-    else:
-        if canon_backend is None:
-            total_param_size = sum(p.size for p in problem.parameters())
-            if total_param_size >= DPP_PARAM_THRESHOLD:
-                canon_backend = COO_CANON_BACKEND
+    strategy = _select_param_strategy(
+        problem,
+        is_dpp=is_dpp,
+        ignore_dpp=ignore_dpp,
+        enforce_dpp=enforce_dpp,
+        canon_backend=canon_backend,
+    )
+    reductions = strategy.preamble + reductions
+    canon_backend = strategy.canon_backend
 
     # --- Canonicalization reductions (problem_form + solver_context) ---
     use_quad = True if solver_opts is None else solver_opts.get('use_quad_obj', True)
@@ -234,10 +289,7 @@ def _build_solving_chain(
     if solver_instance.SOC_DIM3_ONLY and SOC in cones:
         reductions.append(SOCDim3())
 
-    reductions += [
-        ConeMatrixStuffing(quad_obj=quad_obj, canon_backend=canon_backend),
-        solver_instance,
-    ]
+    reductions += [strategy.matrix_stuffing(quad_obj=quad_obj), solver_instance]
     return SolvingChain(reductions=reductions, solver_context=solver_context)
 
 

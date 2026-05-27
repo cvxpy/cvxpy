@@ -55,6 +55,50 @@ from cvxpy.reductions.utilities import (
 from cvxpy.utilities.coeff_extractor import CoeffExtractor
 
 
+def lower_and_order_constraints(constraints):
+    """Lower Equality/Inequality to Zero/NonNeg, normalize axis-1 cones, reorder.
+
+    Returns the constraints reordered as Zero, NonNeg, SOC, PSD, SvecPSD, ExpCone,
+    PowCone3D, PowConeND, along with a (new_id -> old_id) map. Because all lowering
+    preserves the original `constr_id`, the map is an identity.
+    """
+    cons = []
+    for con in constraints:
+        if isinstance(con, Equality):
+            con = lower_equality(con)
+        elif isinstance(con, Inequality):
+            con = lower_ineq_to_nonneg(con)
+        elif isinstance(con, SOC) and con.axis == 1:
+            con = SOC(con.args[0], con.args[1].T, axis=0,
+                      constr_id=con.constr_id)
+        elif isinstance(con, PowCone3D) and con.args[0].ndim > 1:
+            x, y, z = con.args
+            alpha = con.alpha
+            con = PowCone3D(x.flatten(order='F'),
+                            y.flatten(order='F'),
+                            z.flatten(order='F'),
+                            alpha.flatten(order='F'),
+                            constr_id=con.constr_id)
+        elif isinstance(con, PowConeND) and con.axis == 1:
+            alpha = con.alpha.T
+            W = con.W.T
+            con = PowConeND(W, con.z.flatten(order='F'),
+                            alpha, axis=0,
+                            constr_id=con.constr_id)
+        elif isinstance(con, ExpCone) and con.args[0].ndim > 1:
+            x, y, z = con.args
+            con = ExpCone(x.flatten(order='F'), y.flatten(order='F'), z.flatten(order='F'),
+                          constr_id=con.constr_id)
+        cons.append(con)
+    constr_map = group_constraints(cons)
+    ordered_cons = constr_map[Zero] + constr_map[NonNeg] + \
+        constr_map[SOC] + constr_map.get(PSD, []) + \
+        constr_map.get(SvecPSD, []) + constr_map[ExpCone] + \
+        constr_map[PowCone3D] + constr_map[PowConeND]
+    cons_id_map = {con.id: con.id for con in ordered_cons}
+    return ordered_cons, cons_id_map
+
+
 class ConeDims:
     """Summary of cone dimensions present in constraints.
 
@@ -315,6 +359,45 @@ class ParamConeProg(ParamProb):
                 sltn_dict[var_id] = np.reshape(value, var.shape, order='F')
         return sltn_dict
 
+    def apply_restruct_mat(self, restruct_mat, restruct_mat_op):
+        """Apply the cone-restructuring block-diagonal to A; return a new ParamConeProg.
+
+        `restruct_mat` is the per-constraint list (kept for polymorphic call sites that
+        consume it directly); `restruct_mat_op` is the precomputed block-diagonal linear
+        operator and is what we actually use here. Pass `None` for `restruct_mat_op` when
+        there are no constraints to restructure.
+        """
+        if restruct_mat_op is not None:
+            unspecified, _ = np.divmod(self.A.shape[0] * self.A.shape[1],
+                                        restruct_mat_op.shape[1], dtype=np.int64)
+            reshaped_A = self.A.reshape(restruct_mat_op.shape[1],
+                                        unspecified, order='F').tocsr()
+            restructured_A = restruct_mat_op(reshaped_A).tocoo()
+            # scipy < 1.20 can overflow int32 indices during reshape.
+            restructured_A.row = restructured_A.row.astype(np.int64)
+            restructured_A.col = restructured_A.col.astype(np.int64)
+            restructured_A = restructured_A.reshape(
+                np.int64(restruct_mat_op.shape[0]) * (np.int64(self.x.size) + 1),
+                self.A.shape[1], order='F')
+        else:
+            restructured_A = self.A
+        return ParamConeProg(
+            self.q,
+            self.x,
+            restructured_A,
+            self.variables,
+            self.var_id_to_col,
+            self.constraints,
+            self.parameters,
+            self.param_id_to_col,
+            P=self.P,
+            formatted=True,
+            lower_bounds=self.lower_bounds,
+            upper_bounds=self.upper_bounds,
+            lb_tensor=self.lb_tensor,
+            ub_tensor=self.ub_tensor,
+        )
+
     def split_adjoint(self, del_vars=None):
         """Adjoint of split_solution.
         """
@@ -367,53 +450,17 @@ class ConeMatrixStuffing(MatrixStuffing):
 
     def apply(self, problem):
         inverse_data = InverseData(problem)
-        # Lower equality and inequality to Zero and NonNeg.
-        cons = []
-        for con in problem.constraints:
-            if isinstance(con, Equality):
-                con = lower_equality(con)
-            elif isinstance(con, Inequality):
-                con = lower_ineq_to_nonneg(con)
-            elif isinstance(con, SOC) and con.axis == 1:
-                con = SOC(con.args[0], con.args[1].T, axis=0,
-                          constr_id=con.constr_id)
-            elif isinstance(con, PowCone3D) and con.args[0].ndim > 1:
-                x, y, z = con.args
-                alpha = con.alpha
-                con = PowCone3D(x.flatten(order='F'),
-                                y.flatten(order='F'),
-                                z.flatten(order='F'),
-                                alpha.flatten(order='F'),
-                                constr_id=con.constr_id)
-            elif isinstance(con, PowConeND) and con.axis == 1:
-                alpha = con.alpha.T
-                W = con.W.T
-                con = PowConeND(W, con.z.flatten(order='F'),
-                                alpha,
-                                axis=0,
-                                constr_id=con.constr_id)
-            elif isinstance(con, ExpCone) and con.args[0].ndim > 1:
-                x, y, z = con.args
-                con = ExpCone(x.flatten(order='F'), y.flatten(order='F'), z.flatten(order='F'),
-                              constr_id=con.constr_id)
-            cons.append(con)
+        ordered_cons, cons_id_map = lower_and_order_constraints(problem.constraints)
+        inverse_data.cons_id_map = cons_id_map
+        self._cons_id_map = inverse_data.cons_id_map
+        inverse_data.constraints = ordered_cons
         # Need to check that intended canonicalization backend still works.
-        lowered_con_problem = problem.copy([problem.objective, cons])
+        lowered_con_problem = problem.copy([problem.objective, ordered_cons])
         canon_backend = get_canon_backend(lowered_con_problem, self.canon_backend)
         # Form the constraints
         extractor = CoeffExtractor(inverse_data, canon_backend)
         params_to_P, params_to_c, flattened_variable = self.stuffed_objective(
             problem, extractor)
-        # Reorder constraints to Zero, NonNeg, SOC, PSD, EXP, PowCone3D, PowConeND
-        constr_map = group_constraints(cons)
-        ordered_cons = constr_map[Zero] + constr_map[NonNeg] + \
-            constr_map[SOC] + constr_map.get(PSD, []) + \
-            constr_map.get(SvecPSD, []) + constr_map[ExpCone] + \
-            constr_map[PowCone3D] + constr_map[PowConeND]
-        inverse_data.cons_id_map = {con.id: con.id for con in ordered_cons}
-        self._cons_id_map = inverse_data.cons_id_map
-
-        inverse_data.constraints = ordered_cons
         # Batch expressions together, then split apart.
         expr_list = [arg for c in ordered_cons for arg in c.args]
         params_to_problem_data = extractor.affine(expr_list)

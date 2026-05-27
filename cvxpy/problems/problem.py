@@ -875,6 +875,9 @@ class Problem(u.Canonical):
                          'Compiling problem (target solver=%s).', solver_name)
                 s.LOGGER.info('Reduction chain: %s', reduction_chain_str)
             data, inverse_data = solving_chain.apply(self, verbose)
+            # `ignore_dpp=True` routed through DIFFENGINE skips EvalParams, so this
+            # rule auto-caches that path. Selection lives in
+            # solving_chain._select_param_strategy.
             safe_to_cache = (
                 isinstance(data, dict)
                 and s.PARAM_PROB in data
