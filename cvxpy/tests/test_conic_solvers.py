@@ -3131,9 +3131,6 @@ class TestCOPT(unittest.TestCase):
         StandardTestLPs.test_mi_lp_5(solver='COPT')
 
     def test_copt_mi_socp_1(self) -> None:
-        # COPT's MI-SOCP convergence is sensitive to the canonical-form
-        # variable count; the CSE-deduplicated formulation lands ~7e-5 from
-        # the previously recorded primal. Match MOSEK/CPLEX/SCIP at places=3.
         StandardTestSOCPs.test_mi_socp_1(solver='COPT', places=3)
 
     def test_copt_mi_socp_2(self) -> None:
