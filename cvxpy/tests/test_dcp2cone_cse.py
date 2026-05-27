@@ -17,10 +17,23 @@ limitations under the License.
 import numpy as np
 
 import cvxpy as cp
-from cvxpy.atoms.quad_form import QuadForm
+from cvxpy.atoms.quad_form import QuadForm, SymbolicQuadForm
 from cvxpy.constraints.nonpos import Inequality
+from cvxpy.constraints.second_order import SOC
 from cvxpy.reductions.dcp2cone.dcp2cone import Dcp2Cone
 from cvxpy.tests.base_test import BaseTest
+
+
+def _find_atoms(expr, atom_cls):
+    """Return all atoms of ``atom_cls`` reachable from ``expr.args``."""
+    found = []
+    stack = [expr]
+    while stack:
+        e = stack.pop()
+        if isinstance(e, atom_cls):
+            found.append(e)
+        stack.extend(getattr(e, "args", []))
+    return found
 
 
 class TestDcp2ConeCSE(BaseTest):
@@ -101,6 +114,50 @@ class TestDcp2ConeCSE(BaseTest):
         prob = cp.Problem(cp.Minimize(0.5 * qf + 0.5 * qf + q.T @ w))
         prob.solve(solver=cp.CLARABEL)
         self.assertItemsAlmostEqual(w.value, z, places=4)
+
+    def test_quad_obj_shared_subtree_dedup(self) -> None:
+        # With quad_obj=True, a quad-eligible subtree (here quad_over_lin)
+        # appearing twice in the objective should produce a single shared
+        # SymbolicQuadForm in the canonicalized expression.
+        x = cp.Variable(3)
+        qol = cp.quad_over_lin(x, 1)
+        prob = cp.Problem(cp.Minimize(qol + qol + cp.sum(x)))
+
+        new_prob, _ = Dcp2Cone(quad_obj=True).apply(prob)
+
+        sqfs = _find_atoms(new_prob.objective.expr, SymbolicQuadForm)
+        self.assertEqual(len(sqfs), 2)
+        self.assertTrue(all(s is sqfs[0] for s in sqfs))
+
+        # And the problem still solves to the same answer as the explicit
+        # 2*qol formulation.
+        y = cp.Variable(3)
+        ref = cp.Problem(cp.Minimize(2 * cp.quad_over_lin(y, 1) + cp.sum(y)))
+        prob.solve(solver=cp.CLARABEL)
+        ref.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(prob.value, ref.value, places=5)
+        self.assertItemsAlmostEqual(x.value, y.value, places=5)
+
+    def test_quad_obj_cross_context_not_merged(self) -> None:
+        # The same quad_over_lin subtree used in the objective and in a
+        # constraint must canonicalize differently: the objective takes the
+        # quad branch (SymbolicQuadForm) and the constraint takes the cone
+        # branch (SOC). The affine_above component of the cache key keeps
+        # those results separate even though the structural key matches.
+        x = cp.Variable(3)
+        qol = cp.quad_over_lin(x, 1)
+        prob = cp.Problem(cp.Minimize(qol + cp.sum(x)), [qol <= 5])
+
+        new_prob, _ = Dcp2Cone(quad_obj=True).apply(prob)
+
+        self.assertEqual(len(_find_atoms(new_prob.objective.expr,
+                                         SymbolicQuadForm)), 1)
+        self.assertEqual(
+            sum(1 for c in new_prob.constraints if isinstance(c, SOC)), 1
+        )
+
+        prob.solve(solver=cp.CLARABEL)
+        self.assertEqual(prob.status, cp.OPTIMAL)
 
     def test_parameter_subtree_dedup(self) -> None:
         # Parameter leaves are keyed by id; the same parameter reused in two
