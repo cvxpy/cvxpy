@@ -18,6 +18,7 @@ limitations under the License.
 from cvxpy import problems
 from cvxpy.expressions.expression import Expression
 from cvxpy.problems.objective import Minimize
+from cvxpy.reductions._cse import UncacheableError, expr_key
 from cvxpy.reductions.canonicalization import Canonicalization
 from cvxpy.reductions.dnlp2smooth.canonicalizers import SMOOTH_CANON_METHODS as smooth_canon_methods
 from cvxpy.reductions.inverse_data import InverseData
@@ -34,6 +35,18 @@ class Dnlp2Smooth(Canonicalization):
         super(Canonicalization, self).__init__(problem=problem)
         self.smooth_canon_methods = smooth_canon_methods
 
+        # Per-apply common-subexpression cache. Reset on every apply() call.
+        # Maps a structural key for an Expression subtree to the canonical
+        # expression returned the first time that subtree was canonicalized.
+        # Later hits return the same canonical expression and an empty
+        # constraint list, so auxiliary variables and smooth-form constraints
+        # are emitted exactly once per structurally identical subexpression
+        # within a single reduction pass. The cache key is purely structural:
+        # ``canonicalize_expr`` does not branch on ``affine_above``, so two
+        # occurrences of the same subtree always canonicalize identically
+        # regardless of context.
+        self._cse_cache: dict = {}
+
     def accepts(self, problem):
         """A problem is always accepted"""
         return True
@@ -43,6 +56,8 @@ class Dnlp2Smooth(Canonicalization):
         inverse_data = InverseData(problem)
 
         inverse_data.minimize = type(problem.objective) == Minimize
+
+        self._cse_cache = {}
 
         # smoothen objective function
         canon_objective, canon_constraints = self.canonicalize_tree(
@@ -62,6 +77,8 @@ class Dnlp2Smooth(Canonicalization):
         new_problem = problems.problem.Problem(canon_objective,
                                                canon_constraints)
         self._cons_id_map = inverse_data.cons_id_map
+        # Release the per-apply cache so it does not outlive this reduction.
+        self._cse_cache = {}
         return new_problem, inverse_data
 
     def canonicalize_tree(self, expr, affine_above: bool) -> tuple[Expression, list]:
@@ -76,6 +93,18 @@ class Dnlp2Smooth(Canonicalization):
         -------
         A tuple of the canonicalized expression and generated constraints.
         """
+        # Only Expression subtrees are eligible for the CSE cache. Objectives
+        # and user constraints are intentionally excluded so their IDs flow
+        # through to inverse_data unchanged.
+        cache_key = None
+        if isinstance(expr, Expression):
+            try:
+                cache_key = expr_key(expr)
+            except UncacheableError:
+                cache_key = None
+            if cache_key is not None and cache_key in self._cse_cache:
+                return self._cse_cache[cache_key], []
+
         affine_atom = type(expr) not in self.smooth_canon_methods
         canon_args = []
         constrs = []
@@ -85,6 +114,9 @@ class Dnlp2Smooth(Canonicalization):
             constrs += c
         canon_expr, c = self.canonicalize_expr(expr, canon_args, affine_above)
         constrs += c
+
+        if cache_key is not None:
+            self._cse_cache[cache_key] = canon_expr
         return canon_expr, constrs
 
     def canonicalize_expr(self, expr, args, affine_above: bool) -> tuple[Expression, list]:

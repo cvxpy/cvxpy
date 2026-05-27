@@ -15,25 +15,17 @@ limitations under the License.
 """
 
 
-import numpy as np
-
 from cvxpy import problems
 from cvxpy.atoms.elementwise.power import Power
 from cvxpy.atoms.quad_over_lin import quad_over_lin
 from cvxpy.expressions import cvxtypes
-from cvxpy.expressions.constants.constant import Constant
-from cvxpy.expressions.constants.parameter import Parameter
 from cvxpy.expressions.expression import Expression
-from cvxpy.expressions.variable import Variable
 from cvxpy.problems.objective import Minimize
+from cvxpy.reductions._cse import UncacheableError, expr_key
 from cvxpy.reductions.canonicalization import Canonicalization
 from cvxpy.reductions.dcp2cone.canonicalizers import CANON_METHODS as cone_canon_methods
 from cvxpy.reductions.dcp2cone.canonicalizers.quad import QUAD_CANON_METHODS as quad_canon_methods
 from cvxpy.reductions.inverse_data import InverseData
-
-
-class _UncacheableError(Exception):
-    """Raised internally when a structural cache key cannot be safely built."""
 
 
 class Dcp2Cone(Canonicalization):
@@ -202,8 +194,8 @@ class Dcp2Cone(Canonicalization):
         non-affine roots still merge.
         """
         try:
-            structural = self._expr_key(expr)
-        except _UncacheableError:
+            structural = expr_key(expr)
+        except UncacheableError:
             return None
         if self._affine_above_relevant(expr):
             return (structural, bool(affine_above))
@@ -227,54 +219,3 @@ class Dcp2Cone(Canonicalization):
             return False
         # Affine atom: forwards affine_above to children, so check descendants.
         return any(self._affine_above_relevant(arg) for arg in expr.args)
-
-    def _expr_key(self, expr):
-        if isinstance(expr, Variable):
-            return ("var", expr.id)
-        if isinstance(expr, Parameter):
-            return ("param", expr.id)
-        if isinstance(expr, Constant):
-            return self._constant_key(expr)
-        if not isinstance(expr, Expression):
-            raise _UncacheableError()
-
-        child_keys = tuple(self._expr_key(arg) for arg in expr.args)
-
-        data = expr.get_data()
-        if data is None:
-            data_key: tuple = ()
-        else:
-            data_key = tuple(self._hashable_value(d) for d in data)
-
-        return ("atom", type(expr), tuple(expr.shape), data_key, child_keys)
-
-    def _constant_key(self, expr: Constant):
-        """Key a Constant by object identity.
-
-        Value-bytes keying would let two literal `cp.Constant(arr)` objects
-        with equal data deduplicate, but for typical problems that copy of
-        every matrix into the cache costs O(problem-data) memory while
-        adding negligible dedup benefit (Constants generate no aux
-        variables themselves). Sharing a single Constant reference -- the
-        common pattern -- still deduplicates under id() keying.
-        """
-        return ("const", id(expr))
-
-    def _hashable_value(self, v):
-        """Best-effort conversion of a get_data() entry to a hashable form."""
-        if v is None or isinstance(v, (int, float, bool, str, bytes)):
-            return v
-        if isinstance(v, tuple):
-            return tuple(self._hashable_value(e) for e in v)
-        if isinstance(v, list):
-            return ("list", tuple(self._hashable_value(e) for e in v))
-        if isinstance(v, slice):
-            return ("slice", v.start, v.stop, v.step)
-        if isinstance(v, range):
-            return ("range", v.start, v.stop, v.step)
-        if isinstance(v, np.ndarray):
-            return ("ndarray", v.shape, str(v.dtype), v.tobytes())
-        if isinstance(v, Expression):
-            return ("expr", self._expr_key(v))
-        # Unknown / unsafe data — refuse to cache this subtree.
-        raise _UncacheableError()
