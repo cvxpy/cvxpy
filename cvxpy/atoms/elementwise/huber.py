@@ -51,6 +51,13 @@ def huber(x, M=1, t=None):
         Optional positive scale parameter. When provided as a Variable,
         enables concomitant scale estimation. Must be concave (or affine).
         When None or omitted, the standard two-argument huber is returned.
+
+    References
+    ----------
+    For additional background on the perspective Huber and its use for
+    concomitant scale estimation, see Owen,
+    `"A robust hybrid of lasso and ridge regression"
+    <https://artowen.su.domains/reports/hhu.pdf>`_.
     """
     if t is None:
         return HuberAtom(x, M)
@@ -127,7 +134,7 @@ class HuberAtom(Elementwise):
         return [self.M]
 
     def validate_arguments(self) -> None:
-        """Checks that M >= 0 and is a constant scalar."""
+        """Checks that M >= 0 and is a scalar constant or Parameter."""
         if not (self.M.is_nonneg() and self.M.is_scalar() and self.M.is_constant()):
             raise ValueError("M must be a non-negative scalar constant or Parameter.")
         super(HuberAtom, self).validate_arguments()
@@ -175,7 +182,7 @@ class HuberPerspectiveAtom(Atom):
     x : Expression
         Affine expression (the function is nonmonotonic in x).
     M : int, float, Constant, or Parameter
-        Non-negative scalar halfwidth constant.
+        Non-negative scalar halfwidth.
     t : Expression
         Concave (or affine) positive scalar expression. May be a Variable
         to enable concomitant scale estimation.
@@ -255,7 +262,7 @@ class HuberPerspectiveAtom(Atom):
         return self._t.is_constant() and self._x.is_affine()
 
     def validate_arguments(self) -> None:
-        """Check M is a non-negative scalar constant; t must be concave/affine."""
+        """Check M is a non-negative scalar constant or Parameter; t must be concave/affine."""
         if not (self.M.is_nonneg() and self.M.is_scalar() and self.M.is_constant()):
             raise ValueError("M must be a non-negative scalar constant or Parameter.")
         if not self._t.is_scalar():
