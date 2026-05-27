@@ -52,7 +52,8 @@ def expr_key(expr):
     """Build a hashable structural key for an Expression subtree.
 
     Variables/Parameters key by their ``.id`` (same source leaf -> same key).
-    Constants key by object identity; see ``_constant_key`` for why.
+    Constants key by value for small arrays and by object identity for large
+    ones; see ``_constant_key`` for why.
     Composite Expressions key by ``(type, shape, get_data(), child keys)``.
     Raises ``UncacheableError`` for anything we can't hash safely.
     """
