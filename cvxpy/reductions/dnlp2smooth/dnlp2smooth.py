@@ -18,8 +18,8 @@ limitations under the License.
 from cvxpy import problems
 from cvxpy.expressions.expression import Expression
 from cvxpy.problems.objective import Minimize
-from cvxpy.reductions._cse import UncacheableError, expr_key
 from cvxpy.reductions.canonicalization import Canonicalization
+from cvxpy.reductions.cse import UncacheableError, expr_key
 from cvxpy.reductions.dnlp2smooth.canonicalizers import SMOOTH_CANON_METHODS as smooth_canon_methods
 from cvxpy.reductions.inverse_data import InverseData
 
