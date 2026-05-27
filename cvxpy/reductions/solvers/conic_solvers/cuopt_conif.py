@@ -224,27 +224,120 @@ class CUOPT(ConicSolver):
         return q_values, indices.copy(), indices.copy()
 
     @staticmethod
-    def _soc_lift_csr(Acsr, b, rows, num_vars):
-        """Build k equalities aux_i + A[row, :] @ x = b[row] (Gurobi-style lift)."""
-        k = len(rows)
-        data, indices, indptr = [], [], [0]
-        rhs = np.empty(k, dtype=np.float64)
-        for local_i, row in enumerate(rows):
-            cols = [num_vars + local_i]
-            coeffs = [1.0]
-            start, end = Acsr.indptr[row], Acsr.indptr[row + 1]
-            for j, a_ij in zip(Acsr.indices[start:end], Acsr.data[start:end]):
-                cols.append(j)
-                coeffs.append(a_ij)
-            indices.extend(cols)
-            data.extend(coeffs)
-            indptr.append(len(data))
-            rhs[local_i] = b[row]
+    def _pad_quadratic_objective(Qcsr, num_vars):
+        """Pad Q to num_vars x num_vars for cuOpt SOC variable permutation."""
+        n = Qcsr.shape[0]
+        if n == num_vars:
+            return Qcsr
+        pad_cols = num_vars - n
+        pad_rows = num_vars - n
+        return sp.vstack(
+            [
+                sp.hstack([Qcsr, sp.csr_matrix((n, pad_cols), dtype=Qcsr.dtype)]),
+                sp.csr_matrix((pad_rows, num_vars), dtype=Qcsr.dtype),
+            ],
+            format="csr",
+        )
+
+    @staticmethod
+    def _build_soc_lift_all(Acsr, b, leq_end, soc_dims, n_orig):
+        """Build all SOC lifts aux_i + A[row,:]@x = b[row] in one CSR matrix.
+
+        Returns
+        -------
+        A_lift : csr_matrix or None
+            Shape (sum(soc_dims), n_orig + sum(soc_dims)).
+        rhs_lift : ndarray or None
+            Equality RHS for each lift row.
+        qc_cones : list of (aux_base, constr_len)
+            Cones that need a Lorentz QCMATRIX row (constr_len > 1).
+        """
+        n_soc = sum(soc_dims)
+        if n_soc == 0:
+            return None, None, []
+
+        num_vars = n_orig + n_soc
+        idx_dtype = Acsr.indices.dtype
+        soc_row = leq_end
+        nnz = 0
+        for constr_len in soc_dims:
+            for local_i in range(constr_len):
+                nnz += 1 + (Acsr.indptr[soc_row + local_i + 1] - Acsr.indptr[soc_row + local_i])
+            soc_row += constr_len
+
+        data = np.empty(nnz, dtype=Acsr.dtype)
+        indices = np.empty(nnz, dtype=idx_dtype)
+        indptr = np.empty(n_soc + 1, dtype=Acsr.indptr.dtype)
+        rhs = np.empty(n_soc, dtype=np.float64)
+
+        pos = 0
+        out_row = 0
+        soc_row = leq_end
+        aux_offset = 0
+        qc_cones = []
+
+        for constr_len in soc_dims:
+            aux_base = n_orig + aux_offset
+            if constr_len > 1:
+                qc_cones.append((aux_base, constr_len))
+            for local_i in range(constr_len):
+                row = soc_row + local_i
+                indptr[out_row] = pos
+                indices[pos] = aux_base + local_i
+                data[pos] = 1.0
+                pos += 1
+                start, end = Acsr.indptr[row], Acsr.indptr[row + 1]
+                row_nnz = end - start
+                if row_nnz:
+                    indices[pos:pos + row_nnz] = Acsr.indices[start:end]
+                    data[pos:pos + row_nnz] = Acsr.data[start:end]
+                    pos += row_nnz
+                rhs[out_row] = b[row]
+                out_row += 1
+            soc_row += constr_len
+            aux_offset += constr_len
+
+        indptr[n_soc] = pos
         A_lift = sp.csr_matrix(
             (data, indices, indptr),
-            shape=(k, num_vars + k),
+            shape=(n_soc, num_vars),
         )
-        return A_lift, rhs
+        return A_lift, rhs, qc_cones
+
+    @staticmethod
+    def _build_working_problem(Acsr, B, leq_start, leq_end, soc_dims, n_orig):
+        """Assemble A_work and equality row bounds for eq/ineq + SOC lifts."""
+        n_soc = sum(soc_dims)
+        lower_bounds = np.empty(leq_end + n_soc, dtype=np.float64)
+        lower_bounds[:leq_start] = B[:leq_start]
+        lower_bounds[leq_start:leq_end] = float("-inf")
+        upper_bounds = np.empty(leq_end + n_soc, dtype=np.float64)
+        upper_bounds[:leq_end] = B[:leq_end]
+
+        if n_soc == 0:
+            return Acsr[:leq_end, :].tocsr(copy=False), lower_bounds, upper_bounds, []
+
+        A_lift, rhs_soc, qc_cones = CUOPT._build_soc_lift_all(
+            Acsr, B, leq_end, soc_dims, n_orig
+        )
+        lower_bounds[leq_end:] = rhs_soc
+        upper_bounds[leq_end:] = rhs_soc
+
+        num_vars = n_orig + n_soc
+        A_lin = Acsr[:leq_end, :]
+        if leq_end > 0:
+            A_pad = sp.hstack(
+                [
+                    A_lin,
+                    sp.csr_matrix((leq_end, n_soc), dtype=Acsr.dtype),
+                ],
+                format="csr",
+            )
+            A_work = sp.vstack([A_pad, A_lift], format="csr")
+        else:
+            A_work = A_lift
+
+        return A_work, lower_bounds, upper_bounds, qc_cones
 
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
         verbose = verbose or solver_opts.get("solver_verbose", False) in [True, "True", "true"]
@@ -257,27 +350,23 @@ class CUOPT(ConicSolver):
             Qcsr = data[s.P].tocsr() / 2
 
         n_orig = data[s.C].shape[0]
-        num_vars = n_orig
         dims = dims_to_solver_dict(data[s.DIMS])
         leq_start = dims[s.EQ_DIM]
         leq_end = dims[s.EQ_DIM] + dims[s.LEQ_DIM]
         soc_dims = dims.get(s.SOC_DIM, [])
-        has_soc = len(soc_dims) > 0
-
-        lower_bounds = np.empty(leq_end)
-        lower_bounds[:leq_start] = B[:leq_start]
-        lower_bounds[leq_start:leq_end] = float("-inf")
-        upper_bounds = B[:leq_end].copy()
+        n_soc = sum(soc_dims)
+        num_vars = n_orig + n_soc
+        has_soc = n_soc > 0
 
         variable_types = np.full(num_vars, "C", dtype="U1")
         variable_lower_bounds = data[s.LOWER_BOUNDS]
         variable_upper_bounds = data[s.UPPER_BOUNDS]
         if variable_lower_bounds is None:
-            variable_lower_bounds = np.full(num_vars, -np.inf)
+            variable_lower_bounds = np.full(n_orig, -np.inf)
         else:
             variable_lower_bounds = variable_lower_bounds.copy()
         if variable_upper_bounds is None:
-            variable_upper_bounds = np.full(num_vars, np.inf)
+            variable_upper_bounds = np.full(n_orig, np.inf)
         else:
             variable_upper_bounds = variable_upper_bounds.copy()
 
@@ -292,61 +381,31 @@ class CUOPT(ConicSolver):
                 "CUOPT does not support mixed-integer problems with SOC constraints."
             )
 
-        A_work = Acsr[:leq_end, :].tocsr(copy=True)
-        soc_start = leq_end
-        soc_lifts = []
-
-        for constr_len in soc_dims:
-            soc_end = soc_start + constr_len
-            rows = range(soc_start, soc_end)
-            A_lift, rhs_lift = self._soc_lift_csr(Acsr, B, rows, num_vars)
-            aux_base = num_vars
-            soc_lifts.append((A_lift, rhs_lift, aux_base, constr_len))
-            num_vars += constr_len
-            C = np.concatenate([C, np.zeros(constr_len, dtype=np.float64)])
+        if n_soc > 0:
+            C = np.concatenate([C, np.zeros(n_soc, dtype=np.float64)])
             variable_lower_bounds = np.concatenate(
-                [variable_lower_bounds, np.zeros(constr_len, dtype=np.float64)]
+                [variable_lower_bounds, np.full(n_soc, -np.inf, dtype=np.float64)]
             )
             variable_upper_bounds = np.concatenate(
-                [variable_upper_bounds, np.full(constr_len, np.inf, dtype=np.float64)]
+                [variable_upper_bounds, np.full(n_soc, np.inf, dtype=np.float64)]
             )
-            variable_types = np.concatenate(
-                [variable_types, np.full(constr_len, "C", dtype="U1")]
-            )
-            soc_start = soc_end
 
-        if A_work.shape[1] < num_vars:
-            A_work = sp.hstack(
-                [
-                    A_work,
-                    sp.csr_matrix((A_work.shape[0], num_vars - A_work.shape[1])),
-                ],
-                format="csr",
-            )
-        for A_lift, rhs_lift, _, _ in soc_lifts:
-            if A_lift.shape[1] < num_vars:
-                A_lift = sp.hstack(
-                    [
-                        A_lift,
-                        sp.csr_matrix((A_lift.shape[0], num_vars - A_lift.shape[1])),
-                    ],
-                    format="csr",
-                )
-            A_work = sp.vstack([A_work, A_lift], format="csr")
-            lower_bounds = np.concatenate([lower_bounds, rhs_lift])
-            upper_bounds = np.concatenate([upper_bounds, rhs_lift])
+        A_work, lower_bounds, upper_bounds, qc_cones = self._build_working_problem(
+            Acsr, B, leq_start, leq_end, soc_dims, n_orig
+        )
 
         qc_specs = []
-        qc_row_index = A_work.shape[0]
-        for _, _, aux_base, constr_len in soc_lifts:
-            if constr_len > 1:
-                qc_specs.append(
-                    (
-                        qc_row_index,
-                        self._lorentz_qcoo(range(aux_base, aux_base + constr_len)),
-                    )
+        qc_row_index = leq_end
+        for aux_base, constr_len in qc_cones:
+            qc_specs.append(
+                (
+                    qc_row_index,
+                    self._lorentz_qcoo(
+                        np.arange(aux_base, aux_base + constr_len, dtype=np.int32)
+                    ),
                 )
-                qc_row_index += 1
+            )
+            qc_row_index += 1
 
         from cuopt.linear_programming.data_model import DataModel
         from cuopt.linear_programming.solver import Solve
@@ -360,6 +419,9 @@ class CUOPT(ConicSolver):
         data_model.set_constraint_lower_bounds(lower_bounds)
         data_model.set_constraint_upper_bounds(upper_bounds)
         if Qcsr is not None:
+            # cuOpt SOC conversion permutes variables and requires Q in full
+            # CSR form with indptr length num_vars + 1 (see translate_soc.hpp).
+            Qcsr = self._pad_quadratic_objective(Qcsr, num_vars)
             data_model.set_quadratic_objective_matrix(
                 Qcsr.data, Qcsr.indices, Qcsr.indptr
             )
@@ -371,9 +433,9 @@ class CUOPT(ConicSolver):
             data_model.add_quadratic_constraint(
                 constraint_row_index=qc_row_index,
                 constraint_row_name=f"soc_{qc_row_index}",
-                quadratic_values=qv,
-                quadratic_row_indices=qr,
-                quadratic_col_indices=qc,
+                vals=qv,
+                rows=qr,
+                cols=qc,
                 sense="L",
             )
 
