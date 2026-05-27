@@ -17,6 +17,7 @@ limitations under the License.
 import numpy as np
 
 import cvxpy as cp
+from cvxpy.atoms.quad_form import QuadForm
 from cvxpy.constraints.nonpos import Inequality
 from cvxpy.reductions.dcp2cone.dcp2cone import Dcp2Cone
 from cvxpy.tests.base_test import BaseTest
@@ -84,6 +85,21 @@ class TestDcp2ConeCSE(BaseTest):
         self.assertEqual(prob_dup.status, cp.OPTIMAL)
         self.assertAlmostEqual(prob_dup.value, prob_shared.value, places=5)
         self.assertItemsAlmostEqual(x.value, y.value, places=5)
+
+    def test_shared_quad_form_not_merged(self) -> None:
+        # SymbolicQuadForm objects are tracked by id downstream, so sharing
+        # them across multiple uses would corrupt the QP coefficients. Verify
+        # the well-known 0.5*qf + 0.5*qf trick still solves correctly.
+        np.random.seed(0)
+        A = np.random.randn(5, 5)
+        z = np.random.randn(5)
+        P = A.T @ A
+        q = -2 * P @ z
+        w = cp.Variable(5)
+        qf = QuadForm(w, P)
+        prob = cp.Problem(cp.Minimize(0.5 * qf + 0.5 * qf + q.T @ w))
+        prob.solve(solver=cp.CLARABEL)
+        self.assertItemsAlmostEqual(w.value, z, places=4)
 
     def test_parameter_subtree_dedup(self) -> None:
         # Parameter leaves are keyed by id; the same parameter reused in two
