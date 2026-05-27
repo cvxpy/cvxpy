@@ -86,7 +86,10 @@ dependencies = [
     "scs >= 3.2.4.post1",
     "numpy >= 2.0.0",
     "scipy >= 1.13.0",
-    "highspy >= 1.11.0",
+    # HiGHS < 1.14.0 only honors the lower triangle in `kTriangular` Hessian
+    # format and silently returns wrong solutions when given the upper
+    # triangle (which highs_qpif.py passes). See test_highs_dense_quad_form.
+    "highspy >= 1.14.0",
     "qdldl >= 0.1.7.post0",
     "sparsediffpy >= 0.3.0, < 0.4.0",
 ]
