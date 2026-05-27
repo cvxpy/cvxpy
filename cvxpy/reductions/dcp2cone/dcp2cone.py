@@ -15,16 +15,25 @@ limitations under the License.
 """
 
 
+import numpy as np
+
 from cvxpy import problems
 from cvxpy.atoms.elementwise.power import Power
 from cvxpy.atoms.quad_over_lin import quad_over_lin
 from cvxpy.expressions import cvxtypes
+from cvxpy.expressions.constants.constant import Constant
+from cvxpy.expressions.constants.parameter import Parameter
 from cvxpy.expressions.expression import Expression
+from cvxpy.expressions.variable import Variable
 from cvxpy.problems.objective import Minimize
 from cvxpy.reductions.canonicalization import Canonicalization
 from cvxpy.reductions.dcp2cone.canonicalizers import CANON_METHODS as cone_canon_methods
 from cvxpy.reductions.dcp2cone.canonicalizers.quad import QUAD_CANON_METHODS as quad_canon_methods
 from cvxpy.reductions.inverse_data import InverseData
+
+
+class _UncacheableError(Exception):
+    """Raised internally when a structural cache key cannot be safely built."""
 
 
 class Dcp2Cone(Canonicalization):
@@ -43,6 +52,15 @@ class Dcp2Cone(Canonicalization):
         # solver_context : The solver context: supported constraints and bounds.
         self.solver_context = solver_context
 
+        # Per-apply common-subexpression cache. Reset on every apply() call.
+        # Maps a structural key for an Expression subtree to the (canonical
+        # expression, generated constraints) returned the first time that
+        # subtree was canonicalized. Later hits return the same canonical
+        # expression and no constraints, so auxiliary variables and epigraph
+        # constraints are emitted exactly once per structurally identical
+        # subexpression within a single reduction pass.
+        self._cse_cache: dict = {}
+
     def accepts(self, problem):
         """A problem is accepted if it is a minimization and is DCP.
         """
@@ -55,6 +73,8 @@ class Dcp2Cone(Canonicalization):
             raise ValueError("Cannot reduce problem to cone program")
 
         inverse_data = InverseData(problem)
+
+        self._cse_cache = {}
 
         canon_objective, canon_constraints = self.canonicalize_tree(
             problem.objective, True)
@@ -86,8 +106,23 @@ class Dcp2Cone(Canonicalization):
         -------
         A tuple of the canonicalized expression and generated constraints.
         """
+        # Only Expression subtrees are eligible for the CSE cache. Objectives
+        # and user constraints are intentionally excluded so their IDs flow
+        # through to inverse_data unchanged. partial_problem subtrees carry
+        # their own constraints with IDs and are excluded for the same reason.
+        partial_problem_cls = cvxtypes.partial_problem()
+        cache_eligible = (
+            isinstance(expr, Expression) and type(expr) != partial_problem_cls
+        )
+        cache_key = None
+        if cache_eligible:
+            cache_key = self._make_cache_key(expr, affine_above)
+            if cache_key is not None and cache_key in self._cse_cache:
+                cached_expr, _ = self._cse_cache[cache_key]
+                return cached_expr, []
+
         # TODO don't copy affine expressions?
-        if type(expr) == cvxtypes.partial_problem():
+        if type(expr) == partial_problem_cls:
             canon_expr, constrs = self.canonicalize_tree(
               expr.args[0].objective.expr, False)
             for constr in expr.args[0].constraints:
@@ -103,6 +138,9 @@ class Dcp2Cone(Canonicalization):
                 constrs += c
             canon_expr, c = self.canonicalize_expr(expr, canon_args, affine_above)
             constrs += c
+
+        if cache_key is not None:
+            self._cse_cache[cache_key] = (canon_expr, constrs)
         return canon_expr, constrs
 
     def canonicalize_expr(self, expr, args, affine_above: bool) -> tuple[Expression, list]:
@@ -145,3 +183,107 @@ class Dcp2Cone(Canonicalization):
                                                        solver_context=self.solver_context)
 
         return expr.copy(args), []
+
+    # ----- CSE cache key construction -----
+
+    def _make_cache_key(self, expr: Expression, affine_above: bool):
+        """Build a hashable structural key for an Expression subtree.
+
+        Returns None if a safe key cannot be built, in which case the caller
+        skips caching for that subtree rather than risking incorrect reuse.
+        ``affine_above`` is included only when the result actually depends on
+        it (i.e. quad-objective canonicalization could fire for this subtree),
+        so cone-mode canonicalization cannot share a result with the quad
+        branch but identical subtrees that happen to sit under affine-only and
+        non-affine roots still merge.
+        """
+        try:
+            structural = self._expr_key(expr)
+        except _UncacheableError:
+            return None
+        if self._affine_above_relevant(expr):
+            return (structural, bool(affine_above))
+        return (structural, None)
+
+    def _affine_above_relevant(self, expr) -> bool:
+        """Whether canonicalize_tree result for ``expr`` depends on affine_above.
+
+        Returns True when ``expr`` itself or any descendant could take the
+        quad-canon path (which requires self.quad_obj and an unbroken chain of
+        affine atoms from the root). For purely cone-mode subtrees, the result
+        is independent of affine_above and caching can merge across contexts.
+        """
+        if not self.quad_obj or not isinstance(expr, Expression):
+            return False
+        if type(expr) in self.quad_canon_methods:
+            return True
+        if type(expr) in self.cone_canon_methods:
+            # A non-affine atom forces affine_above=False for its children, so
+            # descendants cannot reach the quad branch through this node.
+            return False
+        # Affine atom: forwards affine_above to children, so check descendants.
+        return any(self._affine_above_relevant(arg) for arg in expr.args)
+
+    def _expr_key(self, expr):
+        if isinstance(expr, Variable):
+            return ("var", expr.id)
+        if isinstance(expr, Parameter):
+            return ("param", expr.id)
+        if isinstance(expr, Constant):
+            return self._constant_key(expr)
+        if not isinstance(expr, Expression):
+            raise _UncacheableError()
+
+        child_keys = tuple(self._expr_key(arg) for arg in expr.args)
+
+        data = expr.get_data()
+        if data is None:
+            data_key: tuple = ()
+        else:
+            data_key = tuple(self._hashable_value(d) for d in data)
+
+        return ("atom", type(expr), tuple(expr.shape), data_key, child_keys)
+
+    def _constant_key(self, expr: Constant):
+        """Key a Constant by shape, dtype, and value bytes when feasible."""
+        val = expr.value
+        try:
+            import scipy.sparse as sp
+            if sp.issparse(val):
+                coo = val.tocoo()
+                return (
+                    "const_sparse",
+                    tuple(expr.shape),
+                    str(coo.dtype),
+                    coo.row.tobytes(),
+                    coo.col.tobytes(),
+                    coo.data.tobytes(),
+                )
+            arr = np.asarray(val)
+            return (
+                "const",
+                tuple(expr.shape),
+                str(arr.dtype),
+                arr.tobytes(),
+            )
+        except Exception:
+            raise _UncacheableError()
+
+    def _hashable_value(self, v):
+        """Best-effort conversion of a get_data() entry to a hashable form."""
+        if v is None or isinstance(v, (int, float, bool, str, bytes)):
+            return v
+        if isinstance(v, tuple):
+            return tuple(self._hashable_value(e) for e in v)
+        if isinstance(v, list):
+            return ("list", tuple(self._hashable_value(e) for e in v))
+        if isinstance(v, slice):
+            return ("slice", v.start, v.stop, v.step)
+        if isinstance(v, range):
+            return ("range", v.start, v.stop, v.step)
+        if isinstance(v, np.ndarray):
+            return ("ndarray", v.shape, str(v.dtype), v.tobytes())
+        if isinstance(v, Expression):
+            return ("expr", self._expr_key(v))
+        # Unknown / unsafe data — refuse to cache this subtree.
+        raise _UncacheableError()
