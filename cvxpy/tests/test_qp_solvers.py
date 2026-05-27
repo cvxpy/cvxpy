@@ -878,13 +878,17 @@ class TestQp(QPTestBase):
         StandardTestInfeasibleProblems.test_lp_eq_constraints(solver=cp.HIGHS)
 
     def test_highs_dense_quad_form(self) -> None:
-        """Regression test for https://github.com/cvxpy/cvxpy/issues/3301.
+        """Regression test for https://github.com/cvxpy/cvxpy/issues/3301
+        and a related silent wrong-answer bug on highspy < 1.14.0.
 
         A dense quad_form applied to a linear expression (not a raw Variable)
         produces a Hessian whose upper and lower triangles may differ by
-        floating-point epsilon after canonicalization. Passing such a Hessian
-        in square format to HiGHS >= 1.14.0 triggers an asymmetry error
-        and native heap corruption. Using triangular format avoids this.
+        floating-point epsilon after canonicalization. We pass it to HiGHS
+        in triangular format. HiGHS < 1.14.0 only honors the lower triangle
+        in that format and silently returns wrong solutions when given the
+        upper triangle, hence the `highspy >= 1.14.0` minimum in
+        pyproject.toml. Cross-check the objective against CLARABEL because
+        status alone (`kOptimal`) does not detect a wrong-QP solve.
         """
         if cp.HIGHS not in INSTALLED_SOLVERS:
             return
@@ -919,6 +923,11 @@ class TestQp(QPTestBase):
         )
         prob.solve(solver=cp.HIGHS)
         self.assertEqual(prob.status, cp.OPTIMAL)
+        highs_value = prob.value
+
+        prob.solve(solver=cp.CLARABEL)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        self.assertAlmostEqual(highs_value, prob.value, places=4)
 
 
 class TestConicQuadObj(QPTestBase):
