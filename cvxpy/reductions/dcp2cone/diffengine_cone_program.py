@@ -20,7 +20,8 @@ import scipy.sparse as sp
 from sparsediffpy import _sparsediffengine as _diffengine
 
 from cvxpy.expressions.variable import Variable
-from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeDims, ParamConeProg
+from cvxpy.problems.param_prob import ParamProb
+from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeDims
 from cvxpy.reductions.matrix_stuffing import (
     extract_lower_bounds,
     extract_mip_idx,
@@ -76,12 +77,12 @@ def build_capsule(objective_expr, constraint_exprs, inverse_data, params=None, v
     return capsule, n_vars, param_dict
 
 
-class DiffengineConeProgram(ParamConeProg):
+class DiffengineConeProgram(ParamProb):
     """A cone program with matrices extracted via the diffengine.
 
-    Duck-type compatible with ParamConeProg. On first solve, stores the sparsity
-    pattern of A and P. When parameters are present, re-evaluates the converted
-    C expression trees on subsequent solves via apply_parameters().
+    Sibling of ParamConeProg under the ParamProb interface. On first solve, stores
+    the sparsity pattern of A and P. When parameters are present, re-evaluates the
+    converted C expression trees on subsequent solves via apply_parameters().
 
     minimize   q'x + d + [(1/2)x'Px]
     subject to cone_constr(A*x + b) in cones

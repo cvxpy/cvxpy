@@ -19,8 +19,8 @@ import scipy.sparse as sp
 
 import cvxpy.settings as s
 from cvxpy.constraints import PSD, SOC, ExpCone, NonNeg, PowCone3D, PowConeND, SvecPSD, Zero
+from cvxpy.problems.param_prob import ParamProb
 from cvxpy.reductions.cvx_attr2constr import convex_attributes
-from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ParamConeProg
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.solver import Solver
@@ -117,7 +117,7 @@ class ConicSolver(Solver):
     EXP_CONE_ORDER = None
 
     def accepts(self, problem):
-        return (isinstance(problem, ParamConeProg)
+        return (isinstance(problem, ParamProb)
                 and (self.MIP_CAPABLE or not problem.is_mixed_integer())
                 and not convex_attributes([problem.x])
                 and (len(problem.constraints) > 0 or not self.REQUIRES_CONSTR)

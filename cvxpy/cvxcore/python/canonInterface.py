@@ -292,10 +292,6 @@ def get_problem_matrix(linOps,
     default_canon_backend = get_default_canon_backend()
     canon_backend = default_canon_backend if not canon_backend else canon_backend
 
-    # DIFFENGINE is selected in solving_chain; if it leaks here, fall through to CPP.
-    if canon_backend == s.DIFFENGINE_BACKEND:
-        canon_backend = s.CPP_CANON_BACKEND
-
     if canon_backend == s.CPP_CANON_BACKEND:
         from cvxpy.cvxcore.python.cppbackend import build_matrix
         return build_matrix(id_to_col, param_to_size, param_to_col, var_length, constr_length, linOps)

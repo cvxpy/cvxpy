@@ -20,10 +20,7 @@ import cvxpy as cp
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
 from cvxpy.reductions.dcp2cone.dcp2cone import Dcp2Cone
 from cvxpy.reductions.eval_params import EvalParams
-from cvxpy.reductions.solvers.solving_chain import (
-    _ParamStrategy,
-    _select_param_strategy,
-)
+from cvxpy.reductions.solvers.solving_chain import _select_param_strategy
 from cvxpy.tests.base_test import BaseTest
 
 SOLVER = cp.CLARABEL
@@ -152,13 +149,13 @@ class TestSelectParamStrategy(BaseTest):
 
     def test_silently_non_dpp_emits_eval_params(self) -> None:
         prob = self._toy_problem()
-        strat = _select_param_strategy(
+        preamble, stuffer = _select_param_strategy(
             prob, is_dpp=False, ignore_dpp=False, enforce_dpp=False,
-            canon_backend=None,
+            canon_backend=None, quad_obj=False,
         )
-        self.assertEqual(len(strat.preamble), 1)
-        self.assertIsInstance(strat.preamble[0], EvalParams)
-        self.assertFalse(strat.use_diffengine)
+        self.assertEqual(len(preamble), 1)
+        self.assertIsInstance(preamble[0], EvalParams)
+        self.assertIsInstance(stuffer, ConeMatrixStuffing)
 
     def test_silently_non_dpp_with_enforce_dpp_raises(self) -> None:
         from cvxpy.error import DPPError
@@ -166,48 +163,40 @@ class TestSelectParamStrategy(BaseTest):
         with pytest.raises(DPPError):
             _select_param_strategy(
                 prob, is_dpp=False, ignore_dpp=False, enforce_dpp=True,
-                canon_backend=None,
+                canon_backend=None, quad_obj=False,
             )
 
     def test_ignore_dpp_selects_diffengine_when_accepted(self) -> None:
-        prob = self._toy_problem()
-        strat = _select_param_strategy(
-            prob, is_dpp=True, ignore_dpp=True, enforce_dpp=False,
-            canon_backend=None,
+        from cvxpy.reductions.dcp2cone.diffengine_matrix_stuffing import (
+            DiffengineMatrixStuffing,
         )
-        self.assertTrue(strat.use_diffengine)
-        self.assertEqual(strat.preamble, [])
+        prob = self._toy_problem()
+        preamble, stuffer = _select_param_strategy(
+            prob, is_dpp=True, ignore_dpp=True, enforce_dpp=False,
+            canon_backend=None, quad_obj=False,
+        )
+        self.assertIsInstance(stuffer, DiffengineMatrixStuffing)
+        self.assertEqual(preamble, [])
 
     def test_ignore_dpp_falls_back_for_psd_problem(self) -> None:
         n = 3
         X = cp.Variable((n, n), symmetric=True)
         prob = cp.Problem(cp.Minimize(cp.trace(X)),
                           [X >> np.eye(n)])
-        strat = _select_param_strategy(
+        preamble, stuffer = _select_param_strategy(
             prob, is_dpp=True, ignore_dpp=True, enforce_dpp=False,
-            canon_backend=None,
+            canon_backend=None, quad_obj=False,
         )
         # PSD constraint is not affine -> DiffengineMatrixStuffing rejects.
-        self.assertFalse(strat.use_diffengine)
-        self.assertEqual(len(strat.preamble), 1)
-        self.assertIsInstance(strat.preamble[0], EvalParams)
+        self.assertIsInstance(stuffer, ConeMatrixStuffing)
+        self.assertEqual(len(preamble), 1)
+        self.assertIsInstance(preamble[0], EvalParams)
 
     def test_dpp_fast_path_no_eval_params(self) -> None:
         prob = self._toy_problem()
-        strat = _select_param_strategy(
+        preamble, stuffer = _select_param_strategy(
             prob, is_dpp=True, ignore_dpp=False, enforce_dpp=False,
-            canon_backend=None,
+            canon_backend=None, quad_obj=False,
         )
-        self.assertEqual(strat.preamble, [])
-        self.assertFalse(strat.use_diffengine)
-
-    def test_strategy_matrix_stuffing_dispatch(self) -> None:
-        from cvxpy.reductions.dcp2cone.diffengine_matrix_stuffing import (
-            DiffengineMatrixStuffing,
-        )
-        strat_de = _ParamStrategy(use_diffengine=True)
-        self.assertIsInstance(strat_de.matrix_stuffing(quad_obj=False),
-                              DiffengineMatrixStuffing)
-        strat_cone = _ParamStrategy()
-        self.assertIsInstance(strat_cone.matrix_stuffing(quad_obj=False),
-                              ConeMatrixStuffing)
+        self.assertEqual(preamble, [])
+        self.assertIsInstance(stuffer, ConeMatrixStuffing)
