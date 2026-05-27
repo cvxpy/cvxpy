@@ -75,6 +75,11 @@ class Dcp2Cone(Canonicalization):
         inverse_data = InverseData(problem)
 
         self._cse_cache = {}
+        # Counter incremented whenever canonicalize_expr takes the quad branch
+        # (producing a SymbolicQuadForm). Subtrees that touch the quad branch
+        # are not cached, because downstream code identifies SymbolicQuadForm
+        # instances by Python id and assumes each occurrence is distinct.
+        self._quad_canon_count = 0
 
         canon_objective, canon_constraints = self.canonicalize_tree(
             problem.objective, True)
@@ -92,6 +97,8 @@ class Dcp2Cone(Canonicalization):
         new_problem = problems.problem.Problem(canon_objective,
                                                canon_constraints)
         self._cons_id_map = inverse_data.cons_id_map
+        # Release the per-apply cache so it does not outlive this reduction.
+        self._cse_cache = {}
         return new_problem, inverse_data
 
     def canonicalize_tree(self, expr, affine_above: bool) -> tuple[Expression, list]:
@@ -121,6 +128,7 @@ class Dcp2Cone(Canonicalization):
                 cached_expr, _ = self._cse_cache[cache_key]
                 return cached_expr, []
 
+        quad_count_before = self._quad_canon_count
         # TODO don't copy affine expressions?
         if type(expr) == partial_problem_cls:
             canon_expr, constrs = self.canonicalize_tree(
@@ -139,7 +147,11 @@ class Dcp2Cone(Canonicalization):
             canon_expr, c = self.canonicalize_expr(expr, canon_args, affine_above)
             constrs += c
 
-        if cache_key is not None:
+        # Only cache subtrees that did not produce a SymbolicQuadForm anywhere
+        # below. Sharing a SymbolicQuadForm across multiple positions breaks
+        # the QP coefficient extractor, which keys on quad_form.id and assumes
+        # each occurrence is a distinct placeholder.
+        if cache_key is not None and self._quad_canon_count == quad_count_before:
             self._cse_cache[cache_key] = (canon_expr, constrs)
         return canon_expr, constrs
 
@@ -175,6 +187,9 @@ class Dcp2Cone(Canonicalization):
                 return self.cone_canon_methods[type(expr)](expr, args,
                                                            solver_context=self.solver_context)
             else:
+                # Mark that we produced a SymbolicQuadForm; the CSE cache uses
+                # this counter to skip caching any subtree that contains one.
+                self._quad_canon_count += 1
                 return self.quad_canon_methods[type(expr)](expr, args,
                                                            solver_context=self.solver_context)
 
@@ -245,29 +260,16 @@ class Dcp2Cone(Canonicalization):
         return ("atom", type(expr), tuple(expr.shape), data_key, child_keys)
 
     def _constant_key(self, expr: Constant):
-        """Key a Constant by shape, dtype, and value bytes when feasible."""
-        val = expr.value
-        try:
-            import scipy.sparse as sp
-            if sp.issparse(val):
-                coo = val.tocoo()
-                return (
-                    "const_sparse",
-                    tuple(expr.shape),
-                    str(coo.dtype),
-                    coo.row.tobytes(),
-                    coo.col.tobytes(),
-                    coo.data.tobytes(),
-                )
-            arr = np.asarray(val)
-            return (
-                "const",
-                tuple(expr.shape),
-                str(arr.dtype),
-                arr.tobytes(),
-            )
-        except Exception:
-            raise _UncacheableError()
+        """Key a Constant by object identity.
+
+        Value-bytes keying would let two literal `cp.Constant(arr)` objects
+        with equal data deduplicate, but for typical problems that copy of
+        every matrix into the cache costs O(problem-data) memory while
+        adding negligible dedup benefit (Constants generate no aux
+        variables themselves). Sharing a single Constant reference -- the
+        common pattern -- still deduplicates under id() keying.
+        """
+        return ("const", id(expr))
 
     def _hashable_value(self, v):
         """Best-effort conversion of a get_data() entry to a hashable form."""
