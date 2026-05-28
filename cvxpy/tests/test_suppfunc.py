@@ -247,5 +247,10 @@ class TestSupportFunctions(BaseTest):
 
         y.value = np.array([2.0])
         self.assertAlmostEqual(atom.value, 2.0, places=4)
+        grad = atom._grad([np.array([-2.0])])[0]
+        np.testing.assert_allclose(y.value, [2.0])
+        np.testing.assert_allclose(grad.toarray(), [[-1.0]], atol=1e-4)
+
         grad = atom._grad([np.array([2.0])])[0]
+        np.testing.assert_allclose(y.value, [2.0])
         np.testing.assert_allclose(grad.toarray(), [[1.0]], atol=1e-4)

@@ -677,12 +677,24 @@ class TestConstraints(BaseTest):
         self.assertTrue(con.is_dcp(dpp=True))
         self.assertFalse(con.is_dgp())
         self.assertTrue(con.is_dqcp())
-        self.assertIsInstance(con.as_quad_approx(2, 3), cp.constraints.RelEntrConeQuad)
+        quad_approx = con.as_quad_approx(2, 3)
+        self.assertIsInstance(quad_approx, cp.constraints.RelEntrConeQuad)
+        self.assertIs(quad_approx.x, y)
+        self.assertIs(quad_approx.y, z)
+        self.assertEqual(quad_approx.m, 2)
+        self.assertEqual(quad_approx.k, 3)
+        x.value = np.array([1.0, 2.0])
+        y.value = np.array([3.0, 4.0])
+        z.value = np.array([5.0, 6.0])
+        np.testing.assert_allclose(quad_approx.z.value, -x.value)
 
         dual = con._dual_cone()
         self.assertIsInstance(dual, cp.constraints.ExpCone)
         explicit_dual = con._dual_cone(x, y, z)
         self.assertIsInstance(explicit_dual, cp.constraints.ExpCone)
+        np.testing.assert_allclose(explicit_dual.x.value, -y.value)
+        np.testing.assert_allclose(explicit_dual.y.value, -x.value)
+        np.testing.assert_allclose(explicit_dual.z.value, np.exp(1) * z.value)
         with self.assertRaises(AssertionError):
             con._dual_cone(cp.Variable(1), y, z)
 
@@ -690,6 +702,9 @@ class TestConstraints(BaseTest):
         np.testing.assert_allclose(con.dual_variables[0].value, [0, 3])
         np.testing.assert_allclose(con.dual_variables[1].value, [1, 4])
         np.testing.assert_allclose(con.dual_variables[2].value, [2, 5])
+        np.testing.assert_allclose(dual.x.value, -con.dual_variables[1].value)
+        np.testing.assert_allclose(dual.y.value, -con.dual_variables[0].value)
+        np.testing.assert_allclose(dual.z.value, np.exp(1) * con.dual_variables[2].value)
 
         with pytest.raises(ValueError, match="affine and real"):
             cp.constraints.ExpCone(cp.square(x), y, z)
