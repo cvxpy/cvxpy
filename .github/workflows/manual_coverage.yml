@@ -17,7 +17,6 @@ jobs:
         shell: bash -l {0}
 
     env:
-      RUNNER_OS: ubuntu-22.04
       PYTHON_VERSION: "3.12"
       MOSEK_CI_BASE64: ${{ secrets.MOSEK_CI_BASE64 }}
       KNITRO_LICENSE: ${{ secrets.KNITRO_LICENSE }}
