@@ -233,11 +233,20 @@ class CUOPT(ConicSolver):
         pad_rows = num_vars - n
         return sp.vstack(
             [
-                sp.hstack([Qcsr, sp.csr_matrix((n, pad_cols), dtype=Qcsr.dtype)]),
-                sp.csr_matrix((pad_rows, num_vars), dtype=Qcsr.dtype),
+                sp.hstack([Qcsr, sp.csr_array((n, pad_cols), dtype=Qcsr.dtype)]),
+                sp.csr_array((pad_rows, num_vars), dtype=Qcsr.dtype),
             ],
             format="csr",
         )
+
+    @staticmethod
+    def _eval_stuffed_objective(x, c, offset, Qcsr=None):
+        """Evaluate c'x + offset + 0.5 x'(Q+Q')x (cuOpt quadratic objective convention)."""
+        objective = float(c @ x) + offset
+        if Qcsr is not None:
+            Qsym = Qcsr + Qcsr.T
+            objective += 0.5 * float(x @ Qsym @ x)
+        return objective
 
     @staticmethod
     def _build_soc_lift_all(Acsr, b, leq_end, soc_dims, n_orig):
@@ -245,7 +254,7 @@ class CUOPT(ConicSolver):
 
         Returns
         -------
-        A_lift : csr_matrix or None
+        A_lift : csr_array or None
             Shape (sum(soc_dims), n_orig + sum(soc_dims)).
         rhs_lift : ndarray or None
             Equality RHS for each lift row.
@@ -298,7 +307,7 @@ class CUOPT(ConicSolver):
             aux_offset += constr_len
 
         indptr[n_soc] = pos
-        A_lift = sp.csr_matrix(
+        A_lift = sp.csr_array(
             (data, indices, indptr),
             shape=(n_soc, num_vars),
         )
@@ -315,7 +324,7 @@ class CUOPT(ConicSolver):
         upper_bounds[:leq_end] = B[:leq_end]
 
         if n_soc == 0:
-            return Acsr[:leq_end, :].tocsr(copy=False), lower_bounds, upper_bounds, []
+            return Acsr[:leq_end, :], lower_bounds, upper_bounds, []
 
         A_lift, rhs_soc, qc_cones = CUOPT._build_soc_lift_all(
             Acsr, B, leq_end, soc_dims, n_orig
@@ -323,13 +332,12 @@ class CUOPT(ConicSolver):
         lower_bounds[leq_end:] = rhs_soc
         upper_bounds[leq_end:] = rhs_soc
 
-        num_vars = n_orig + n_soc
         A_lin = Acsr[:leq_end, :]
         if leq_end > 0:
             A_pad = sp.hstack(
                 [
                     A_lin,
-                    sp.csr_matrix((leq_end, n_soc), dtype=Acsr.dtype),
+                    sp.csr_array((leq_end, n_soc), dtype=Acsr.dtype),
                 ],
                 format="csr",
             )
@@ -341,13 +349,13 @@ class CUOPT(ConicSolver):
 
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
         verbose = verbose or solver_opts.get("solver_verbose", False) in [True, "True", "true"]
-        Acsr = data[s.A].tocsr(copy=False)
+        Acsr = sp.csr_array(data[s.A])
         B = data[s.B]
         C = data[s.C].copy()
 
         Qcsr = None
         if s.P in data:
-            Qcsr = data[s.P].tocsr() / 2
+            Qcsr = sp.csr_array(data[s.P]) / 2
 
         n_orig = data[s.C].shape[0]
         dims = dims_to_solver_dict(data[s.DIMS])
@@ -465,7 +473,8 @@ class CUOPT(ConicSolver):
             extra_stats = cuopt_result.get_lp_stats()
             iters = extra_stats["nb_iterations"]
 
-        primal = cuopt_result.get_primal_solution()[:n_orig]
+        primal_full = cuopt_result.get_primal_solution()
+        primal = primal_full[:n_orig] if primal_full is not None else np.array([])
 
         return Solution(
             sol_status,
