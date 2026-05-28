@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       require_licensed_solvers:
-        description: "Fail if licensed optional solvers such as COPT and MOSEK are unavailable"
+        description: "Fail if licensed commercial solvers are unavailable"
         required: true
         default: true
         type: boolean
@@ -23,6 +23,8 @@ jobs:
       KNITRO_LICENSE: ${{ secrets.KNITRO_LICENSE }}
       FURY_TOKEN: ${{ secrets.FURY_TOKEN }}
       MOREAU_LICENSE_KEY: ${{ secrets.MOREAU_KEY }}
+      COVERAGE_SOURCE_INCLUDE: "cvxpy/*"
+      COVERAGE_SOURCE_OMIT: "cvxpy/tests/*,cvxpy/cvxcore/*,cvxpy/utilities/einsum_utilities.py"
 
     steps:
       - uses: actions/checkout@v5
@@ -45,7 +47,29 @@ jobs:
       - name: Install COSMO
         run: julia -e 'using Pkg; Pkg.add("COSMO")'
 
-      - name: Set up solver licenses
+      - name: Install cvxpy dependencies and open-source optional solvers
+        run: |
+          uv sync --all-extras --no-extra uno --no-extra knitro --no-extra mosek --no-extra copt --no-extra gurobi --no-extra xpress --dev
+          uv pip install coverage pytest-cov
+
+      - name: Print installed solvers
+        run: uv run python -c "import cvxpy; print(cvxpy.installed_solvers())"
+
+      - name: Run core tests with coverage
+        id: core_tests
+        continue-on-error: true
+        run: |
+          uv run pytest -rs \
+            --cov=cvxpy --cov-append --cov-context=test --cov-report= \
+            -m "not knitro" \
+            --ignore=cvxpy/tests/test_copt_write.py \
+            --ignore=cvxpy/tests/test_conic_solvers.py \
+            --ignore=cvxpy/tests/test_qp_solvers.py \
+            --ignore=cvxpy/tests/nlp_tests \
+            cvxpy/tests
+
+      - name: Set up commercial solver licenses
+        if: always()
         run: |
           if [ -n "$MOSEK_CI_BASE64" ]; then
             echo "$MOSEK_CI_BASE64" | base64 -d > mosek.lic
@@ -57,54 +81,54 @@ jobs:
             echo "ARTELYS_LICENSE=$HOME" >> "$GITHUB_ENV"
           fi
 
-      - name: Install cvxpy dependencies and optional solvers
+      - name: Install commercial solvers
+        if: always()
         run: |
-          uv sync --all-extras --no-extra uno --dev
-          uv pip install -e ".[UNO]"
-          uv pip install cyipopt coverage pytest-cov
+          uv pip install -e ".[COPT,GUROBI,MOSEK,XPRESS,KNITRO]"
+          uv pip install cplex naginterfaces
+          if [ -n "$FURY_TOKEN" ]; then
+            uv pip install moreau --extra-index-url https://${FURY_TOKEN}:@pypi.fury.io/optimalintellect/
+          fi
 
-      - name: Install Moreau
-        if: env.FURY_TOKEN != ''
-        run: uv pip install moreau --extra-index-url https://${FURY_TOKEN}:@pypi.fury.io/optimalintellect/
-
-      - name: Print installed solvers
-        run: uv run python -c "import cvxpy; print(cvxpy.installed_solvers())"
-
-      - name: Verify licensed optional solvers
-        if: inputs.require_licensed_solvers
+      - name: Verify commercial solvers
+        id: commercial_solver_check
+        continue-on-error: true
+        if: always() && inputs.require_licensed_solvers
         run: |
           uv run python - <<'PY'
           import cvxpy as cp
 
-          required = {"COPT", "MOSEK"}
+          required = {
+              "MOSEK",
+              "MOREAU",
+              "GUROBI",
+              "CPLEX",
+              "COPT",
+              "XPRESS",
+              "NAG",
+              "KNITRO",
+          }
           installed = set(cp.installed_solvers())
           missing = sorted(required - installed)
           if missing:
               raise SystemExit(
-                  f"Required optional solvers missing: {missing}; "
+                  f"Required commercial solvers missing: {missing}; "
                   f"installed={sorted(installed)}"
               )
 
           x = cp.Variable()
-          cp.Problem(cp.Minimize(x), [x >= 0]).solve(solver=cp.COPT)
-          cp.Problem(cp.Minimize(x), [x >= 0]).solve(solver=cp.MOSEK)
+          for solver in sorted(required):
+              cp.Problem(cp.Minimize(x), [x >= 0]).solve(solver=solver)
           PY
 
-      - name: Run core tests with coverage
-        id: core_tests
-        continue-on-error: true
-        run: |
-          uv run pytest -rs \
-            --cov=cvxpy --cov-append --cov-context=test --cov-report= \
-            -m "not knitro" \
-            --ignore=cvxpy/tests/test_conic_solvers.py \
-            --ignore=cvxpy/tests/test_qp_solvers.py \
-            --ignore=cvxpy/tests/nlp_tests \
-            cvxpy/tests
+      - name: Print installed solvers after commercial setup
+        if: always()
+        run: uv run python -c "import cvxpy; print(cvxpy.installed_solvers())" | tee installed_solvers.txt
 
       - name: Run conic solver tests with coverage
         id: conic_tests
         continue-on-error: true
+        if: always()
         run: |
           uv run pytest -rs \
             --cov=cvxpy --cov-append --cov-context=test --cov-report= \
@@ -114,10 +138,17 @@ jobs:
       - name: Run QP solver tests with coverage
         id: qp_tests
         continue-on-error: true
+        if: always()
         run: |
           uv run pytest -rs \
             --cov=cvxpy --cov-append --cov-context=test --cov-report= \
             cvxpy/tests/test_qp_solvers.py
+
+      - name: Install NLP solvers
+        if: always()
+        run: |
+          uv pip install -e ".[UNO]"
+          uv pip install cyipopt
 
       - name: Run NLP tests with coverage
         id: nlp_tests
@@ -131,6 +162,7 @@ jobs:
       - name: Run KNITRO conic solver tests with coverage
         id: knitro_conic_tests
         continue-on-error: true
+        if: always()
         run: |
           uv run pytest -rs \
             --cov=cvxpy --cov-append --cov-context=test --cov-report= \
@@ -140,6 +172,7 @@ jobs:
       - name: Run KNITRO NLP tests with coverage
         id: knitro_nlp_tests
         continue-on-error: true
+        if: always()
         run: |
           uv run pytest -v \
             --cov=cvxpy --cov-append --cov-context=test --cov-report= \
@@ -150,19 +183,47 @@ jobs:
         if: always()
         run: |
           uv run coverage report > coverage.txt
-          uv run coverage html --show-contexts -d htmlcov
-          uv run coverage xml -o coverage.xml
-          uv run coverage json --show-contexts -o coverage.json
-          uv run coverage lcov -o coverage.lcov
+          uv run coverage report --include="$COVERAGE_SOURCE_INCLUDE" --omit="$COVERAGE_SOURCE_OMIT" > source_coverage.txt
+          awk 'NR > 2 && $1 ~ /^cvxpy\// && $1 != "TOTAL" { pct=$4; gsub("%", "", pct); if (pct + 0 < 80) print }' source_coverage.txt > low_coverage_sources.txt
+          awk 'NR > 2 && $1 ~ /^cvxpy\// && $1 != "TOTAL" { pct=$4; gsub("%", "", pct); if (pct + 0 == 0) print }' source_coverage.txt > zero_coverage_sources.txt
+          uv run coverage html --show-contexts --include="$COVERAGE_SOURCE_INCLUDE" --omit="$COVERAGE_SOURCE_OMIT" -d htmlcov
+          uv run coverage xml --include="$COVERAGE_SOURCE_INCLUDE" --omit="$COVERAGE_SOURCE_OMIT" -o coverage.xml
+          uv run coverage json --include="$COVERAGE_SOURCE_INCLUDE" --omit="$COVERAGE_SOURCE_OMIT" -o coverage.json
+          uv run coverage lcov --include="$COVERAGE_SOURCE_INCLUDE" --omit="$COVERAGE_SOURCE_OMIT" -o coverage.lcov
 
       - name: Write coverage summary
         if: always()
         run: |
           {
-            echo "## Coverage summary"
+            echo "## Source coverage summary"
+            echo
+            echo '```text'
+            cat source_coverage.txt
+            echo '```'
+            echo
+            echo "## Low source coverage (<80%)"
+            echo
+            echo '```text'
+            cat low_coverage_sources.txt
+            echo '```'
+            echo
+            echo "## Zero-covered source files"
+            echo
+            echo '```text'
+            cat zero_coverage_sources.txt
+            echo '```'
+            echo
+            echo "## Full coverage summary"
             echo
             echo '```text'
             cat coverage.txt
+            echo '```'
+            echo
+            echo "## Commercial solver target"
+            echo
+            echo '```text'
+            echo "Required when require_licensed_solvers=true: MOSEK, MOREAU, GUROBI, CPLEX, COPT, XPRESS, NAG, KNITRO"
+            cat installed_solvers.txt
             echo '```'
             echo
             echo "## Test step outcomes"
@@ -170,6 +231,7 @@ jobs:
             echo "| Step | Outcome |"
             echo "| --- | --- |"
             echo "| Core tests | ${{ steps.core_tests.outcome }} |"
+            echo "| Commercial solver check | ${{ steps.commercial_solver_check.outcome }} |"
             echo "| Conic solver tests | ${{ steps.conic_tests.outcome }} |"
             echo "| QP solver tests | ${{ steps.qp_tests.outcome }} |"
             echo "| NLP tests | ${{ steps.nlp_tests.outcome }} |"
@@ -184,15 +246,20 @@ jobs:
           name: coverage-reports
           path: |
             coverage.txt
+            source_coverage.txt
+            low_coverage_sources.txt
+            zero_coverage_sources.txt
             coverage.xml
             coverage.json
             coverage.lcov
+            installed_solvers.txt
             htmlcov
 
       - name: Fail if any test step failed
         if: >-
           ${{
             steps.core_tests.outcome != 'success' ||
+            (inputs.require_licensed_solvers && steps.commercial_solver_check.outcome != 'success') ||
             steps.conic_tests.outcome != 'success' ||
             steps.qp_tests.outcome != 'success' ||
             steps.nlp_tests.outcome != 'success' ||
