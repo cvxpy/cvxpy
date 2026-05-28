@@ -227,10 +227,6 @@ def test_hyperbolic_atoms_metadata_numeric_and_unimplemented_grad(atom, numeric,
     assert expr.is_atom_smooth()
     assert expr.is_incr(0)
     assert not expr.is_decr(0)
-    if atom is cp.nlp.atanh:
-        with pytest.raises(NotImplementedError):
-            expr._domain()
-    else:
-        assert len(expr._domain()) == domain_size
+    assert len(expr._domain()) == domain_size
     with pytest.raises(NotImplementedError):
         expr._grad([value])

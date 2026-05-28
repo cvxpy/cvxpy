@@ -60,15 +60,16 @@ def test_compress_matrix_eliminates_empty_and_duplicate_rows() -> None:
             [0.0, 0.0, 0.0],
             [1.0, 0.0, 1.0],
             [1.0, 0.0, 2.0],
+            [2.0, 0.0, 2.0],
         ]
     )
-    b = np.array([3.0, 6.0, 0.0, 2.0, 3.0])
+    b = np.array([3.0, 6.0, 0.0, 2.0, 3.0, 4.0])
 
     assert get_row_nnz(A, 0) == 2
     A_compr, b_compr, P = compress_matrix(A, b)
 
-    np.testing.assert_allclose(A_compr.toarray(), A[[0, 1, 2, 3, 4], :].toarray())
-    np.testing.assert_allclose(b_compr, b)
+    np.testing.assert_allclose(A_compr.toarray(), A[[0, 3, 4], :].toarray())
+    np.testing.assert_allclose(b_compr, b[[0, 3, 4]])
     np.testing.assert_allclose((P @ A_compr).toarray(), A.toarray())
     np.testing.assert_allclose(P @ b_compr, b)
 
