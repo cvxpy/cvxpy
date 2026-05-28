@@ -15,6 +15,7 @@ limitations under the License.
 """
 
 import numpy as np
+import pytest
 
 import cvxpy as cp
 from cvxpy.error import SolverError
@@ -200,3 +201,51 @@ class TestSupportFunctions(BaseTest):
         cons = [a @ x == 1]
         with self.assertRaises(ValueError):
             cp.suppfunc(x, cons)
+
+    def test_support_function_atom_metadata_and_validation(self) -> None:
+        x = cp.Variable(2)
+        sigma = cp.suppfunc(x, [cp.norm(x, 2) <= 1])
+        y = cp.Variable(2)
+        atom = sigma(y)
+
+        self.assertEqual(atom.variables(), [y])
+        self.assertEqual(atom.parameters(), [])
+        self.assertEqual(atom.constants(), [])
+        self.assertEqual(atom.shape_from_args(), tuple())
+        self.assertEqual(atom.sign_from_args(), (False, False))
+        self.assertFalse(atom.is_nonneg())
+        self.assertFalse(atom.is_nonpos())
+        self.assertFalse(atom.is_imag())
+        self.assertFalse(atom.is_complex())
+        self.assertTrue(atom.is_atom_convex())
+        self.assertFalse(atom.is_atom_concave())
+        self.assertFalse(atom.is_atom_log_log_convex())
+        self.assertFalse(atom.is_atom_log_log_concave())
+        self.assertTrue(atom.is_atom_quasiconvex())
+        self.assertFalse(atom.is_atom_quasiconcave())
+        self.assertFalse(atom.is_incr(0))
+        self.assertFalse(atom.is_decr(0))
+        self.assertTrue(atom.is_convex())
+        self.assertFalse(atom.is_concave())
+        self.assertTrue(atom.is_quasiconvex())
+        self.assertFalse(atom.is_quasiconcave())
+
+        with pytest.raises(ValueError, match="cannot be complex"):
+            sigma(cp.Variable(2, complex=True))
+        with pytest.raises(ValueError, match="must be affine"):
+            sigma(cp.square(y))
+        with pytest.raises(NotImplementedError):
+            atom < 1
+        with pytest.raises(NotImplementedError):
+            atom > 1
+
+    def test_support_function_value_and_gradient_paths(self) -> None:
+        x = cp.Variable(1)
+        sigma = cp.suppfunc(x, [x <= 1, x >= -1])
+        y = cp.Variable(1)
+        atom = sigma(y)
+
+        y.value = np.array([2.0])
+        self.assertAlmostEqual(atom.value, 2.0, places=4)
+        grad = atom._grad([np.array([2.0])])[0]
+        np.testing.assert_allclose(grad.toarray(), [[1.0]], atol=1e-4)
