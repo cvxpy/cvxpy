@@ -189,16 +189,17 @@ class COPT(QpSolver):
             P = sp.coo_matrix(P)
             model.loadQ(0.5*P)
 
+        # Request a dual Farkas ray so an infeasibility certificate is available
+        # for infeasible problems (continuous only; MIPs have none). Set it
+        # before the user-settings loop so an explicit value in solver_opts wins.
+        if vtype is None:
+            model.setParam(copt.COPT.Param.ReqFarkasRay, 1)
+
         # Set parameters
         for key, value in solver_opts.items():
             # Ignore arguments unique to the CVXPY interface.
             if key not in self.INTERFACE_ARGS:
                 model.setParam(key, value)
-
-        # Request a dual Farkas ray so an infeasibility certificate is
-        # available for infeasible problems (continuous only; MIPs have none).
-        if vtype is None:
-            model.setParam(copt.COPT.Param.ReqFarkasRay, 1)
 
         if warm_start and solver_cache is not None and self.name() in solver_cache:
             old_model, _, old_solution = solver_cache[self.name()]

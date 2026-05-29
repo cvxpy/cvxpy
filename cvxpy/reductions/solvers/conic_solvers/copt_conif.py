@@ -334,16 +334,17 @@ class COPT(ConicSolver):
                 model.loadExpCone(nexpcone, None,
                                   range(A.shape[1] - nexpconedim, A.shape[1]))
 
+        # Request a dual Farkas ray so an infeasibility certificate is available
+        # for infeasible problems (not the dualized PSD path, and not MIPs). Set
+        # it before the user-settings loop so an explicit value in solver_opts wins.
+        if not dims[s.PSD_DIM] and not (data[s.BOOL_IDX] or data[s.INT_IDX]):
+            model.setParam(copt.COPT.Param.ReqFarkasRay, 1)
+
         # Set parameters
         for key, value in solver_opts.items():
             # Ignore arguments unique to the CVXPY interface.
             if key not in self.INTERFACE_ARGS:
                 model.setParam(key, value)
-
-        # Request a dual Farkas ray so an infeasibility certificate is available
-        # for infeasible problems (not the dualized PSD path, and not MIPs).
-        if not dims[s.PSD_DIM] and not (data[s.BOOL_IDX] or data[s.INT_IDX]):
-            model.setParam(copt.COPT.Param.ReqFarkasRay, 1)
 
         if 'save_file' in solver_opts:
             model.write(solver_opts['save_file'])
