@@ -193,6 +193,8 @@ class SCS(ConicSolver):
 
     @staticmethod
     def parse_solver_options(solver_opts):
+        scs_params = solver_opts.pop("scs_params", {})
+        solver_opts.update(scs_params)
         import scs
         if Version(scs.__version__) < Version('3.0.0'):
             if "eps_abs" in solver_opts or "eps_rel" in solver_opts:

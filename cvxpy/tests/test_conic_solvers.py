@@ -175,6 +175,15 @@ class TestSCS(BaseTest):
         self.assertAlmostEqual(prob.value, 1.0, places=2)
         self.assertItemsAlmostEqual(x.value, [0, 0], places=2)
 
+    def test_scs_custom_params(self):
+        """
+        Test that custom scs_params are successfully passed to the SCS solver.
+        """
+        x = cp.Variable()
+        prob = cp.Problem(cp.Minimize(x), [x >= 1])
+        prob.solve(solver=cp.SCS, scs_params={"max_iters": 1})
+        self.assertLessEqual(prob.solver_stats.num_iters, 1)
+
     def test_log_problem(self) -> None:
         # Log in objective.
         obj = cp.Maximize(cp.sum(cp.log(self.x)))
@@ -604,8 +613,6 @@ class TestClarabel(BaseTest):
 
     def test_infeasible_soc_exp_mixed(self):
         StandardTestInfeasibleProblems.test_soc_exp_mixed(solver="CLARABEL")
-
-
 
 @unittest.skipUnless('CUCLARABEL' in INSTALLED_SOLVERS, 'CLARABEL is not installed.')
 class TestCuClarabel(BaseTest):
