@@ -116,16 +116,36 @@ class QPTestBase(BaseTest):
 
     @staticmethod
     def is_xpress_available():
-        """Check if XPRESS is installed and a license is available."""
+        """Check if XPRESS is installed and a usable license can be acquired.
+
+        The Community license bundled with the ``xpress`` package is sufficient
+        for the small problems in this suite. Creating a problem object is where
+        modern XPRESS acquires the license; the old ``xpress.env().getlicense()``
+        API was removed in xpress 9.x.
+        """
         if 'XPRESS' not in INSTALLED_SOLVERS:
             return False
         try:
             import xpress  # type: ignore
-            env = xpress.env()
-            status = env.getlicense()
-            return status == 0
+            xpress.problem()
+            return True
         except Exception:
             return False
+
+    @staticmethod
+    def _skip_if_xpress_community_limit(solver_name, exc):
+        """Skip tests that exceed the XPRESS Community license size limit."""
+        if solver_name == cp.XPRESS and "too many rows and columns" in str(exc):
+            raise unittest.SkipTest(
+                "XPRESS Community license problem-size limit (200 rows+cols)"
+            ) from exc
+
+    def _solve_problem(self, problem, solver_name, **kwargs):
+        try:
+            return problem.solve(solver=solver_name, verbose=False, **kwargs)
+        except Exception as exc:
+            self._skip_if_xpress_community_limit(solver_name, exc)
+            raise
 
     def filter_licensed_solvers(self, solvers):
         """Remove solvers that don't have valid licenses."""
@@ -507,7 +527,7 @@ class TestQp(QPTestBase):
         self.solvers = self.filter_licensed_solvers(self.solvers)
 
     def solve_QP(self, problem, solver_name):
-        return problem.solve(solver=solver_name, verbose=False)
+        return self._solve_problem(problem, solver_name)
 
     def test_all_solvers(self) -> None:
         for solver in self.solvers:
@@ -954,7 +974,7 @@ class TestConicQuadObj(QPTestBase):
         )
         self.assertEqual(data["dims"].soc, [],
             f"Problem should have no SOC cones for QP canonicalization with {solver_name}")
-        return problem.solve(solver=solver_name, use_quad_obj=True, verbose=False)
+        return self._solve_problem(problem, solver_name, use_quad_obj=True)
 
     def test_all_solvers(self) -> None:
         """Test conic solvers with use_quad_obj=True.
