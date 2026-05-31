@@ -44,6 +44,7 @@ We'll be happy to provide guidance and advice.
 Small scope projects
  - `State required cone types for atoms <https://github.com/cvxpy/cvxpy/issues/574>`_.
  - Add QDLDL as another option for sparse Cholesky.
+ - Add DNLP examples from the `examples repository <https://github.com/cvxpy/examples>`_ to the `examples library <https://www.cvxpy.org/examples/index.html>`_.
  - Have MOSEK interface choose between solving the primal and the dual [`2107 <https://github.com/cvxpy/cvxpy/issues/2107>`_, `1403 <https://github.com/cvxpy/cvxpy/issues/1403>`_].
  - `Add cp.RSOC (Rotated Second-Order Cone) <https://github.com/cvxpy/cvxpy/issues/2874>`_.
  - `Huber function with concomitant scale estimation <https://github.com/cvxpy/cvxpy/issues/1377>`_.
