@@ -24,6 +24,7 @@ Most of these examples are implemented as `Jupyter notebooks
 <https://github.com/jupyter/notebook>`_, while some are implemented as
 interactive `marimo notebooks <https://github.com/marimo-team/marimo>`_.
 
+Additional examples are in the `examples repository <https://github.com/cvxpy/examples>`_.
 
 .. _basic:
 
