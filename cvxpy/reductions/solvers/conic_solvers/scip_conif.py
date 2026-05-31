@@ -16,7 +16,7 @@ limitations under the License.
 
 import logging
 from collections.abc import Iterator
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 from scipy.sparse import dok_array
@@ -35,11 +35,11 @@ from cvxpy.utilities.citations import CITATION_DICT
 
 log = logging.getLogger(__name__)
 
-try:
-    # Try to import SCIP model for typing
+if TYPE_CHECKING:
+    # pyscipopt is an optional dependency; imported only for type checking.
     from pyscipopt.scip import Model as ScipModel
-except ModuleNotFoundError:
-    # If it fails continue and use a generic type instead.
+else:
+    # At runtime use a generic type so annotations resolve without pyscipopt.
     ScipModel = Any
 
 

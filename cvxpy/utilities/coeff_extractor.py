@@ -152,10 +152,10 @@ class CoeffExtractor:
                         P_expr.value is not None
                     ), "P matrix must be instantiated before calling extract_quadratic_coeffs."
                     P_val = P_expr.value
-                    if sp.issparse(P_val) and not isinstance(P_val, sp.coo_matrix):
+                    if sp.issparse(P_val) and not isinstance(P_val, sp.coo_array):
                         P = P_val.tocoo()
                     else:
-                        P = sp.coo_matrix(P_val)
+                        P = sp.coo_array(P_val)
 
                 # Get block structure if available
                 block_indices = quad_form_atom.block_indices
@@ -209,7 +209,7 @@ class CoeffExtractor:
 
                         # P_coeffs is sparse, shape (n*n, num_params).
                         # Row k corresponds to vec(P)[k] = P[k % n, k // n].
-                        P_coeffs_coo = sp.coo_matrix(P_coeffs)
+                        P_coeffs_coo = sp.coo_array(P_coeffs)
 
                         # Convert flat index k back to (row, col) in that same order.
                         rows = P_coeffs_coo.row % n
@@ -275,7 +275,7 @@ class CoeffExtractor:
                         # Fast path for no parameters, keep q dense.
                         coeffs[orig_id]['q'] = np.zeros(q_shape)
                     else:
-                        coeffs[orig_id]['q'] = sp.coo_matrix(
+                        coeffs[orig_id]['q'] = sp.coo_array(
                             ([], ([], [])), shape=q_shape
                         )
             else:
@@ -299,7 +299,7 @@ class CoeffExtractor:
 
     def _extract_block_quad(
         self,
-        P: sp.coo_matrix,
+        P: sp.coo_array,
         c_part: np.ndarray,
         block_indices: list[np.ndarray],
         num_params: int,
@@ -408,7 +408,7 @@ class CoeffExtractor:
                 if num_params == 1:
                     q = np.zeros((size, num_params))
                 else:
-                    q = sp.coo_matrix(([], ([], [])), (size, num_params))
+                    q = sp.coo_array(([], ([], [])), shape=(size, num_params))
 
             P_list.append(P)
             q_list.append(q)
@@ -464,7 +464,7 @@ class CoeffExtractor:
 
     def merge_q_list(
         self,
-        q_list: list[sp.spmatrix | np.ndarray],
+        q_list: list[sp.sparray | np.ndarray],
         constant: sp.csc_array,
         num_params: int,
     ) -> sp.csr_array:
