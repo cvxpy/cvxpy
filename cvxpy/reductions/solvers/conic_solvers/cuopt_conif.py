@@ -439,7 +439,6 @@ class CUOPT(ConicSolver):
 
         for qc_row_index, (qv, qr, qc) in qc_specs:
             data_model.add_quadratic_constraint(
-                constraint_row_index=qc_row_index,
                 constraint_row_name=f"soc_{qc_row_index}",
                 vals=qv,
                 rows=qr,
