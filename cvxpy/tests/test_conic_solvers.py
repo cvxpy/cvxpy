@@ -30,7 +30,10 @@ import scipy.stats as st
 
 import cvxpy as cp
 import cvxpy.tests.solver_test_helpers as sths
+from cvxpy.constraints import SOC
+from cvxpy.problems.problem_form import ProblemForm
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
+from cvxpy.reductions.solvers.conic_solvers.cuopt_conif import CUOPT
 from cvxpy.reductions.solvers.defines import (
     INSTALLED_MI_SOLVERS,
     INSTALLED_SOLVERS,
@@ -3456,6 +3459,25 @@ class TestCUOPT(unittest.TestCase):
         sth = sths.mi_socp_1()
         with self.assertRaises(cp.error.SolverError):
             sth.solve(solver="CUOPT", **TestCUOPT.kwargs)
+
+    def test_cuopt_mi_socp_not_advertised(self) -> None:
+        """cuOpt must not advertise mixed-integer SOC support.
+
+        Otherwise solver selection routes an MI-SOCP to cuOpt and the user
+        hits a hard SolverError at solve time (see test_cuopt_mi_socp_error)
+        instead of the problem being deferred to a capable backend.
+        """
+        # SOC is fine for continuous problems but not for mixed-integer ones.
+        self.assertIn(SOC, CUOPT.SUPPORTED_CONSTRAINTS)
+        self.assertNotIn(SOC, CUOPT.MI_SUPPORTED_CONSTRAINTS)
+
+        x = cp.Variable(2, integer=True)
+        mi_socp = cp.Problem(
+            cp.Minimize(cp.norm(x, 2)), [x[0] + x[1] >= 3, x >= 0, x <= 5]
+        )
+        pf = ProblemForm(mi_socp)
+        self.assertTrue(pf.is_mixed_integer())
+        self.assertFalse(CUOPT().can_solve(pf))
 
 
 @pytest.mark.parametrize("solver", INSTALLED_SOLVERS)

@@ -59,7 +59,11 @@ class CUOPT(ConicSolver):
     # Solver capabilities.
     MIP_CAPABLE = True
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC]
-    MI_SUPPORTED_CONSTRAINTS = SUPPORTED_CONSTRAINTS
+    # cuOpt cannot solve mixed-integer SOC problems (solve_via_data raises for
+    # that combination), so MI support must not advertise SOC. Otherwise the
+    # solver-selection logic would route MI-SOCPs here and hit a hard
+    # SolverError at solve time instead of deferring to a capable backend.
+    MI_SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS
     BOUNDED_VARIABLES = True
     REQUIRES_CONSTR = True
     STATUS_MAP_MIP = {}
@@ -144,9 +148,6 @@ class CUOPT(ConicSolver):
             (dict of arguments needed for the solver, inverse data)
         """
         data, inv_data = super(CUOPT, self).apply(problem)
-
-        # Save the objective offset so that it can be set in the solver
-        data[s.OFFSET] = inv_data[s.OFFSET]
 
         variables = problem.x
         data[s.BOOL_IDX] = [int(t[0]) for t in variables.boolean_idx]
@@ -238,15 +239,6 @@ class CUOPT(ConicSolver):
             ],
             format="csr",
         )
-
-    @staticmethod
-    def _eval_stuffed_objective(x, c, offset, Qcsr=None):
-        """Evaluate c'x + offset + 0.5 x'(Q+Q')x (cuOpt quadratic objective convention)."""
-        objective = float(c @ x) + offset
-        if Qcsr is not None:
-            Qsym = Qcsr + Qcsr.T
-            objective += 0.5 * float(x @ Qsym @ x)
-        return objective
 
     @staticmethod
     def _build_soc_lift_all(Acsr, b, leq_end, soc_dims, n_orig):
@@ -423,7 +415,12 @@ class CUOPT(ConicSolver):
             A_work.data, A_work.indices, A_work.indptr
         )
         data_model.set_objective_coefficients(C)
-        data_model.set_objective_offset(data[s.OFFSET])
+        # The objective offset is re-applied in invert() (the standard CVXPY
+        # contract). cuOpt's get_primal_objective() folds set_objective_offset
+        # into the reported value, so passing it here too would double-count it
+        # in Solution.opt_val (visible e.g. via partial_optimize). Keep the
+        # backend objective offset-free; invert() adds the constant exactly once.
+        data_model.set_objective_offset(0.0)
         data_model.set_constraint_lower_bounds(lower_bounds)
         data_model.set_constraint_upper_bounds(upper_bounds)
         if Qcsr is not None:
