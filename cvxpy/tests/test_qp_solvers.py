@@ -529,6 +529,19 @@ class TestQp(QPTestBase):
     def solve_QP(self, problem, solver_name):
         return self._solve_problem(problem, solver_name)
 
+    def test_xpress_duplicate_variable_names_qp(self) -> None:
+        """Two variables sharing a name() must not crash the QP interface."""
+        if not self.is_xpress_available():
+            self.skipTest("XPRESS license not available")
+
+        x = cp.Variable(3, name="dup")
+        y = cp.Variable(3, name="dup")
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(x - 1) + cp.sum_squares(y - 2)))
+        prob.solve(solver=cp.XPRESS)
+        self.assertIn(prob.status, (cp.OPTIMAL, cp.OPTIMAL_INACCURATE))
+        self.assertItemsAlmostEqual(x.value, np.ones(3), places=4)
+        self.assertItemsAlmostEqual(y.value, 2 * np.ones(3), places=4)
+
     def test_all_solvers(self) -> None:
         for solver in self.solvers:
             self.quad_over_lin(solver)
