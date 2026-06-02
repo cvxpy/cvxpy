@@ -120,7 +120,7 @@ Constraint types to check:
 - Exponential/power constraints.
 - How vector-valued residuals and scalar norm violations should be aggregated into one report value.
 
-## Benchmark plan
+## Benchmark plan and initial result
 
 Benchmark feasibility-check overhead in two cases.
 
@@ -149,6 +149,24 @@ Measure:
 - Feasibility check time.
 - Scaling with `n`.
 - Whether eager checking would be too expensive for poorly vectorized problems.
+
+### Initial local result
+
+A small local benchmark showed the many-scalar-constraint case is much slower than the vectorized case.
+
+For `n = 100`:
+
+- Vectorized constraint check time: `0.000033s`
+- Many scalar constraints check time: `0.000574s`
+- Scalar/vectorized ratio: `17.5x`
+
+For `n = 1000`:
+
+- Vectorized constraint check time: `0.000027s`
+- Many scalar constraints check time: `0.005542s`
+- Scalar/vectorized ratio: `203.7x`
+
+The absolute times are small in this toy benchmark, but the scaling difference supports making the first public API lazy or explicitly opt-in rather than eager by default.
 
 ## Proposed first PR
 
