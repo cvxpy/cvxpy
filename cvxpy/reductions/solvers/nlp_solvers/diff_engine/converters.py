@@ -99,61 +99,42 @@ def convert_multiply(expr, children, var_dict, n_vars, param_dict):
         return _diffengine.make_multiply(children[0], children[1])
 
 
-def _lower_symbolic_quad_form(expr):
-    """Rewrite a SymbolicQuadForm placeholder into atoms the diff engine can build.
+def _lower_symbolic_power(expr):
+    """Rewrite a ``power``/``PowerApprox`` SymbolicQuadForm as the elementwise square.
 
-    ``Dcp2Cone(quad_obj=True)`` replaces a quadratic objective with a
-    ``SymbolicQuadForm``, for which the diff engine has no native converter. The
-    diffengine cone program recovers ``P`` as the autodiff Hessian of the
-    (value-preserving) objective, so we only need an equivalent expression.
+    ``power(., 2)`` (incl. ``huber``'s internal square) is the elementwise
+    *diagonal* quad ``x .* x`` -- a vector matching the original shape, which the
+    native ``quad_form`` node (a *scalar* ``x' P x``) cannot represent. The scalar
+    ``QuadForm``/``quad_over_lin``/``sum_squares`` cases instead use the native
+    ``quad_form`` binding in ``convert_symbolic_quad_form``.
 
-    We rebuild it over ``expr.args[0]`` -- the quad form's first arg, which the
+    We rebuild over ``expr.args[0]`` -- the quad form's first arg, which the
     canonicalizer guarantees is a *leaf* (the original variable, or an auxiliary
     ``t`` with an added affine ``t == affine_expr`` constraint). This matters: the
     diff engine's ``init_jacobian`` segfaults on a quad form over a *compound*
     argument, so we must not reuse ``original_expression`` (which holds the
     compound arg). The aux variable keeps the compound part in the affine
     constraint, where the engine handles it fine.
-
-    The rewrite uses the generic ``multiply``/``matmul``/``sum`` graph (rather
-    than the native ``quad_over_lin`` atom, whose compound-argument Hessian is
-    unimplemented). It also handles a *parametric* ``P`` (a parametric matmul is
-    supported). The genuinely dense ``QuadForm`` case is instead built directly
-    by ``convert_symbolic_quad_form`` (dense ``quad_form`` node); this lowering
-    handles the cheap diagonal cases (``power``, ``sum_squares``/``quad_over_lin``
-    with identity ``P``).
-
-    * ``power(., 2)`` (incl. ``huber``'s internal square) is the elementwise
-      diagonal quad ``x .* x`` (a vector matching the original shape).
-    * ``quad_over_lin``/``sum_squares`` and ``quad_form`` both store the quad
-      matrix in ``args[1]``; their value is ``x' P x`` -> ``sum(x .* (P @ x))``.
     """
-    if expr.block_indices is not None:
-        raise NotImplementedError(
-            "SymbolicQuadForm with block_indices (axis-reduced quad form) is not "
-            "supported by the diff engine."
-        )
-    x = expr.args[0]
-    orig = expr.original_expression
-    if isinstance(orig, Power):  # PowerApprox subclasses Power; canon only p == 2
-        return cp.multiply(x, x)
-    if isinstance(orig, (quad_over_lin, QuadForm)):
-        return cp.sum(cp.multiply(x, expr.args[1] @ x))
-    raise NotImplementedError(
-        f"SymbolicQuadForm over '{type(orig).__name__}' is not supported by the "
-        "diff engine."
-    )
+    return cp.multiply(expr.args[0], expr.args[0])
 
 
 def convert_symbolic_quad_form(expr, var_dict, n_vars, param_dict):
     """Convert a ``SymbolicQuadForm`` (Dcp2Cone quadratic-objective placeholder).
 
-    For a ``QuadForm`` with a matrix ``P`` we build the engine ``quad_form`` node
-    directly: a dense (``permuted_dense``) node for a dense or *parametric* ``P``
-    -- so a dense ``P`` yields a dense Hessian instead of being assembled from a
-    sparse autodiff cross-term -- and the sparse node for a sparse constant ``P``.
-    ``power`` (diagonal) and ``quad_over_lin``/``sum_squares`` (identity ``P``)
-    keep the cheap ``multiply``/``sum`` lowering via ``_lower_symbolic_quad_form``.
+    The scalar ``x' P x`` cases -- ``QuadForm`` and ``quad_over_lin``/
+    ``sum_squares`` -- are built with the native ``quad_form`` binding, choosing
+    the path by ``P`` (``expr.args[1]``): a **sparse** node for a sparse constant
+    ``P`` (e.g. the identity of ``sum_squares``), a **dense** (``permuted_dense``)
+    node for a dense or *parametric* ``P``. Building the node directly (rather
+    than a ``multiply``/``sum`` graph) lets the engine assemble the Hessian
+    natively, handles a matrix-variable leaf (the binding flattens it via
+    ``n = x.size``), and feeds a dense/parametric ``P`` straight into a dense
+    Hessian instead of a sparse autodiff cross-term.
+
+    ``power``/``PowerApprox`` is the elementwise diagonal square (vector-valued),
+    which ``quad_form`` (scalar) cannot represent, so it keeps the cheap
+    ``multiply`` lowering via ``_lower_symbolic_power``.
     """
     if expr.block_indices is not None:
         raise NotImplementedError(
@@ -161,7 +142,8 @@ def convert_symbolic_quad_form(expr, var_dict, n_vars, param_dict):
             "supported by the diff engine."
         )
 
-    if isinstance(expr.original_expression, QuadForm):
+    orig = expr.original_expression
+    if isinstance(orig, (QuadForm, quad_over_lin)):
         x = expr.args[0]
         P = expr.args[1]
         x_c = convert_expr(x, var_dict, n_vars, param_dict)
@@ -191,9 +173,16 @@ def convert_symbolic_quad_form(expr, var_dict, n_vars, param_dict):
         return _diffengine.make_quad_form(
             None, x_c, "dense", P_dense.flatten(order='F'), n)
 
-    # power (diagonal) and quad_over_lin/sum_squares (identity P): cheap lowering.
-    return convert_expr(
-        _lower_symbolic_quad_form(expr), var_dict, n_vars, param_dict)
+    if isinstance(orig, Power):  # PowerApprox subclasses Power; canon only p == 2
+        # Elementwise diagonal square (vector-valued); quad_form (scalar) can't
+        # represent it, so keep the cheap multiply lowering.
+        return convert_expr(
+            _lower_symbolic_power(expr), var_dict, n_vars, param_dict)
+
+    raise NotImplementedError(
+        f"SymbolicQuadForm over '{type(orig).__name__}' is not supported by the "
+        "diff engine."
+    )
 
 
 def convert_expr(expr, var_dict, n_vars, param_dict=None):

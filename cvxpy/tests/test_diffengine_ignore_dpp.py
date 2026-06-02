@@ -256,3 +256,23 @@ class TestIgnoreDppQuadObjective(BaseTest):
         prob.solve(solver=SOLVER, ignore_dpp=True)
         self.assertItemsAlmostEqual(x.value, [1.0, 1.0, 1.0], places=4)
         self.assertAlmostEqual(prob.value, 0.0, places=4)
+
+    def test_matrix_variable_quadratic_objective(self) -> None:
+        """A quadratic objective over a *matrix* variable. The SymbolicQuadForm's
+        P is sized for the flattened variable, so the lowering must vec the 2-D
+        leaf before forming P @ x (else P @ x is e.g. (16,16) @ (4,4))."""
+        n = 4
+        X = cp.Variable((n, n))
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(X - 2 * np.eye(n))),
+                          [cp.trace(X) == n])
+        base = cp.Problem(cp.Minimize(cp.sum_squares(X - 2 * np.eye(n))),
+                          [cp.trace(X) == n])
+
+        chain = prob._construct_chain(solver=SOLVER, ignore_dpp=True)
+        self.assertTrue(_has_diffengine(chain))
+
+        prob.solve(solver=SOLVER, ignore_dpp=True)
+        X_de = X.value.copy()
+        base.solve(solver=SOLVER)
+        self.assertItemsAlmostEqual(X_de, X.value, places=4)
+        self.assertAlmostEqual(prob.value, base.value, places=4)
