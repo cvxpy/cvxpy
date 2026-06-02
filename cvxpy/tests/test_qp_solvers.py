@@ -577,6 +577,24 @@ def test_xpress_warmstart():
     np.testing.assert_allclose(result, result2, atol=1e-5)
 
 
+@pytest.mark.skipif(not is_xpress_available(), reason="XPRESS license not available")
+def test_xpress_duplicate_variable_names_qp():
+    """Two variables sharing a name() must not crash the QP interface.
+
+    cvxpy derives Xpress column names from ``Variable.name()``, so two variables
+    created with the same name previously produced duplicate columns, which
+    Xpress >= 9.5 rejects with ``?1030 Duplicate column names are not allowed``.
+    The quadratic objective routes the problem through ``xpress_qpif``.
+    """
+    x = cp.Variable(3, name="dup")
+    y = cp.Variable(3, name="dup")
+    prob = cp.Problem(cp.Minimize(cp.sum_squares(x - 1) + cp.sum_squares(y - 2)))
+    prob.solve(solver=cp.XPRESS)
+    assert prob.status in (cp.OPTIMAL, cp.OPTIMAL_INACCURATE)
+    np.testing.assert_allclose(x.value, 1, atol=1e-4)
+    np.testing.assert_allclose(y.value, 2, atol=1e-4)
+
+
 @pytest.mark.skipif(cp.HIGHS not in INSTALLED_SOLVERS, reason="HIGHS is not installed")
 def test_highs_cvar():
     """CVaR constraint regression for https://github.com/cvxpy/cvxpy/issues/2836."""
