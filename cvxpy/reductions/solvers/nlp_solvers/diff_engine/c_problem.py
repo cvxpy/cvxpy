@@ -91,6 +91,15 @@ class C_problem:
         """
         _diffengine.problem_init_jacobian_coo(self._capsule)
 
+    def init_hessian(self):
+        """Fill sparsity for the full (symmetric) Lagrangian Hessian CSR.
+
+        Must be called once before eval_hessian_csr(). Cheaper than
+        init_hessian_coo_lower_tri() when only the full CSR is needed (it skips
+        building the lower-triangular COO view).
+        """
+        _diffengine.problem_init_hessian(self._capsule)
+
     def init_hessian_coo_lower_tri(self):
         """Fill sparsity for the Lagrangian Hessian (lower triangle, COO).
 
@@ -149,3 +158,13 @@ class C_problem:
         Call objective_forward() and constraint_forward() first to set the evaluation point.
         """
         return _diffengine.problem_eval_hessian_vals_coo(self._capsule, obj_factor, lagrange)
+
+    def eval_hessian_csr(self, obj_factor: float, lagrange: np.ndarray):
+        """Evaluate the full (symmetric) Lagrangian Hessian as CSR components.
+
+        Returns ``(data, indices, indptr, (m, n))`` ready for
+        ``scipy.sparse.csr_matrix``. Computes obj_factor * hess_f +
+        sum(lagrange[i] * hess_gi). Call init_hessian() once first, and
+        objective_forward()/constraint_forward() to set the evaluation point.
+        """
+        return _diffengine.problem_hessian(self._capsule, obj_factor, lagrange)

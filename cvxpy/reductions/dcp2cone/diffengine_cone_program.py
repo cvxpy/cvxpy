@@ -39,15 +39,14 @@ def _build_jacobian_csc(c_problem, jac_structure, m, n_vars):
     return sp.coo_matrix((vals, (rows, cols)), shape=(m, n_vars)).tocsc()
 
 
-def _build_hessian_csc(c_problem, hess_structure, duals, n_vars):
-    """Evaluate the Lagrangian Hessian (lower-tri COO) and mirror to a symmetric CSC."""
-    rows_l, cols_l = hess_structure
-    vals_l = c_problem.eval_hessian_vals_coo_lower_tri(1.0, duals)
-    off_diag = rows_l != cols_l
-    rows = np.concatenate([rows_l, cols_l[off_diag]])
-    cols = np.concatenate([cols_l, rows_l[off_diag]])
-    vals = np.concatenate([vals_l, vals_l[off_diag]])
-    return sp.coo_matrix((vals, (rows, cols)), shape=(n_vars, n_vars)).tocsc()
+def _build_hessian_csc(c_problem, duals):
+    """Evaluate the full (symmetric) Lagrangian Hessian and assemble it as CSC.
+
+    The engine already holds the full symmetric Hessian as CSR, so we fetch it
+    directly -- no lower-triangular mirror / diagonal-doubling fixup needed.
+    """
+    data, indices, indptr, shape = c_problem.eval_hessian_csr(1.0, duals)
+    return sp.csr_matrix((data, indices, indptr), shape=shape).tocsc()
 
 
 class DiffengineConeProgram(ParamProb):
@@ -73,7 +72,6 @@ class DiffengineConeProgram(ParamProb):
         inverse_data,
         c_problem: C_problem,
         jac_structure,
-        hess_structure,
         formatted: bool = False,
         lower_bounds=None,
         upper_bounds=None,
@@ -98,7 +96,6 @@ class DiffengineConeProgram(ParamProb):
 
         self.c_problem = c_problem
         self._jac_structure = jac_structure
-        self._hess_structure = hess_structure
         self.quad_obj = quad_obj
         self._restruct_mat = None
         self.parameters = list(parameters) if parameters else []
@@ -172,8 +169,7 @@ class DiffengineConeProgram(ParamProb):
 
         if quad_obj:
             duals = np.zeros(b.shape[0], dtype=np.float64)
-            self.P = _build_hessian_csc(
-                self.c_problem, self._hess_structure, duals, n_vars)
+            self.P = _build_hessian_csc(self.c_problem, duals)
             return self.P, q, d, A, b
         return q, d, A, b
 
@@ -209,7 +205,6 @@ class DiffengineConeProgram(ParamProb):
             self.constraints, self.inverse_data,
             c_problem=self.c_problem,
             jac_structure=self._jac_structure,
-            hess_structure=self._hess_structure,
             formatted=True,
             lower_bounds=self.lower_bounds,
             upper_bounds=self.upper_bounds,
@@ -246,14 +241,13 @@ class DiffengineConeProgram(ParamProb):
         expr_list = [arg for c in ordered_cons for arg in c.args]
         params = problem.parameters()
         c_problem = C_problem.from_exprs(
-            problem.objective.expr, expr_list, params, inverse_data, verbose=True)
+            problem.objective.expr, expr_list, params, inverse_data, verbose=False)
 
         c_problem.init_jacobian_coo()
         if quad_obj:
-            c_problem.init_hessian_coo_lower_tri()
+            c_problem.init_hessian()
 
         jac_structure = c_problem.get_jacobian_sparsity_coo() if expr_list else None
-        hess_structure = c_problem.get_problem_hessian_sparsity_coo() if quad_obj else None
 
         boolean, integer = extract_mip_idx(problem.variables())
         n_vars = inverse_data.x_length
@@ -274,7 +268,7 @@ class DiffengineConeProgram(ParamProb):
         P = None
         if quad_obj:
             duals = np.zeros(b_vec.shape[0], dtype=np.float64)
-            P = _build_hessian_csc(c_problem, hess_structure, duals, n_vars)
+            P = _build_hessian_csc(c_problem, duals)
 
         lower_bounds = extract_lower_bounds(problem.variables(), n_vars)
         upper_bounds = extract_upper_bounds(problem.variables(), n_vars)
@@ -283,6 +277,5 @@ class DiffengineConeProgram(ParamProb):
                    ordered_cons, inverse_data,
                    c_problem=c_problem,
                    jac_structure=jac_structure,
-                   hess_structure=hess_structure,
                    lower_bounds=lower_bounds, upper_bounds=upper_bounds,
                    parameters=params, quad_obj=quad_obj)

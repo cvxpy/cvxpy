@@ -123,16 +123,23 @@ def convert_quad_form(expr, children):
             "is not supported by the diff engine."
         )
 
-    if not isinstance(P_val, sparse.csr_matrix):
-        P_val = sparse.csr_matrix(P_val)
+    if sparse.issparse(P_val):
+        P_csr = P_val.tocsr()
+        return _diffengine.make_quad_form(
+            None,
+            children[0],
+            "sparse",
+            P_csr.data.astype(np.float64),
+            P_csr.indices.astype(np.int32),
+            P_csr.indptr.astype(np.int32),
+            P_csr.shape[0],
+            P_csr.shape[1],
+        )
 
+    # Dense constant P: use the dense (permuted_dense) path.
+    P_dense = np.asarray(P_val, dtype=np.float64)
     return _diffengine.make_quad_form(
-        children[0],
-        P_val.data.astype(np.float64),
-        P_val.indices.astype(np.int32),
-        P_val.indptr.astype(np.int32),
-        P_val.shape[0],
-        P_val.shape[1],
+        None, children[0], "dense", P_dense.flatten(order='F'), P_dense.shape[0]
     )
 
 

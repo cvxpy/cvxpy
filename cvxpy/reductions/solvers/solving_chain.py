@@ -35,7 +35,11 @@ from cvxpy.reductions.solvers import defines as slv_def
 from cvxpy.reductions.solvers.constant_solver import ConstantSolver
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
 from cvxpy.reductions.solvers.solver import Solver, expand_cones
-from cvxpy.settings import COO_CANON_BACKEND, DPP_PARAM_THRESHOLD
+from cvxpy.settings import (
+    COO_CANON_BACKEND,
+    DIFFENGINE_CANON_BACKEND,
+    DPP_PARAM_THRESHOLD,
+)
 from cvxpy.utilities.solver_context import SolverInfo
 from cvxpy.utilities.warn import warn
 
@@ -186,6 +190,13 @@ def _build_solving_chain(
     if FiniteSet in constr_types:
         reductions.append(Valinvec2mixedint())
 
+    use_quad = True if solver_opts is None else solver_opts.get('use_quad_obj', True)
+    # QP solvers always need quad_obj=True in the matrix stuffing step
+    # because their apply() expects the P matrix from ConeMatrixStuffing.
+    is_qp_solver = isinstance(solver_instance, QpSolver)
+    quad_obj = (use_quad and solver_instance.supports_quad_obj()
+                and (is_qp_solver or problem_form.has_quadratic_objective()))
+
     # --- DPP handling ---
     dpp_context = 'dcp' if not gp else 'dgp'
     # For QP/conic-QP solvers, we can loosen the DPP rules for quad_form
@@ -197,14 +208,18 @@ def _build_solving_chain(
     quad_form_dpp = 'qp' if solver_instance.supports_quad_obj() else None
     is_dpp = problem.is_dpp(dpp_context, quad_form_dpp=quad_form_dpp)
 
-    use_diffengine = False
     if ignore_dpp or not is_dpp:
         if not ignore_dpp and enforce_dpp:
             raise DPPError(DPP_ERROR_MSG)
         if not ignore_dpp:
             warn(DPP_ERROR_MSG)
-        if ignore_dpp and ConeMatrixStuffing(use_diffengine=True).accepts(problem):
-            use_diffengine = True
+        # For ignore_dpp, the DIFFENGINE backend rebuilds the problem data from
+        # the expression trees on each solve, replacing EvalParams. Dcp2Cone makes
+        # all constraint args affine; a quadratic objective stays a SymbolicQuadForm,
+        # which the diff engine lowers to equivalent atoms and recovers P from as the
+        # autodiff Hessian, so both affine and quadratic objectives are supported.
+        if ignore_dpp:
+            canon_backend = DIFFENGINE_CANON_BACKEND
         else:
             reductions = [EvalParams()] + reductions
     else:
@@ -214,12 +229,6 @@ def _build_solving_chain(
                 canon_backend = COO_CANON_BACKEND
 
     # --- Canonicalization reductions (problem_form + solver_context) ---
-    use_quad = True if solver_opts is None else solver_opts.get('use_quad_obj', True)
-    # QP solvers always need quad_obj=True in the matrix stuffing step
-    # because their apply() expects the P matrix from ConeMatrixStuffing.
-    is_qp_solver = isinstance(solver_instance, QpSolver)
-    quad_obj = (use_quad and solver_instance.supports_quad_obj()
-                and (is_qp_solver or problem_form.has_quadratic_objective()))
     cones = problem_form.cones(quad_obj=quad_obj).copy()
     cones, exact_targets, approx_targets = expand_cones(cones, supported)
 
@@ -239,8 +248,7 @@ def _build_solving_chain(
         reductions.append(SOCDim3())
 
     reductions += [
-        ConeMatrixStuffing(quad_obj=quad_obj, canon_backend=canon_backend,
-                           use_diffengine=use_diffengine),
+        ConeMatrixStuffing(quad_obj=quad_obj, canon_backend=canon_backend),
         solver_instance,
     ]
     return SolvingChain(reductions=reductions, solver_context=solver_context)

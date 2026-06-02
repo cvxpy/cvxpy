@@ -418,27 +418,21 @@ class ConeMatrixStuffing(MatrixStuffing):
     """
     CONSTRAINTS = 'ordered_constraints'
 
-    def __init__(self, quad_obj: bool = False, canon_backend: str | None = None,
-                 use_diffengine: bool = False):
+    def __init__(self, quad_obj: bool = False, canon_backend: str | None = None):
         # Assume a quadratic objective?
         self.quad_obj = quad_obj
+        # The DIFFENGINE backend builds A, b, q, d, P directly from the CVXPY
+        # expression trees via the C diff engine, bypassing the parametric tensor
+        # pipeline. It is auto-selected in `_build_solving_chain` only when
+        # `ignore_dpp=True`; see `s.DIFFENGINE_CANON_BACKEND`.
         self.canon_backend = canon_backend
-        # Use the C diff engine (sparsediffpy) to build A, b, q, d, P directly
-        # from CVXPY expression trees, bypassing the parametric tensor pipeline.
-        # Selected from `_select_param_strategy` when `ignore_dpp=True`.
-        self.use_diffengine = use_diffengine
+
+    @property
+    def use_diffengine(self) -> bool:
+        """True when this stuffing targets the C diff engine backend."""
+        return self.canon_backend == s.DIFFENGINE_CANON_BACKEND
 
     def accepts(self, problem):
-        if self.use_diffengine:
-            # The diffengine path is selected via `ignore_dpp=True`, so we don't
-            # require `problem.is_dpp()`. Quadratic objectives are not accepted:
-            # after Dcp2Cone they become `SymbolicQuadForm`, which the diffengine
-            # converter does not handle.
-            return (type(problem.objective) == Minimize
-                    and problem.objective.expr.is_affine()
-                    and not cvx_attr2constr.convex_attributes(problem.variables())
-                    and are_args_affine(problem.constraints))
-
         valid_obj_curv = (self.quad_obj and problem.objective.expr.is_quadratic()) or \
             problem.objective.expr.is_affine()
         return (type(problem.objective) == Minimize
