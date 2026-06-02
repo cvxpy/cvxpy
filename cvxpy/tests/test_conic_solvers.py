@@ -2166,6 +2166,47 @@ class TestGUROBI(BaseTest):
         StandardTestSOCPs.test_mi_socp_2(solver='GUROBI')
 
 
+def test_xpress_make_unique_names() -> None:
+    """Unit test for the Xpress column-name de-duplication helper.
+
+    Runs without an Xpress installation since it exercises pure-Python logic.
+    """
+    from cvxpy.reductions.solvers.conic_solvers.xpress_conif import (
+        make_unique_names,
+    )
+
+    # Duplicates (e.g. two variables sharing a name()) are disambiguated, while
+    # the first occurrence of each name is kept unchanged.
+    assert make_unique_names(["g_x_0", "g_x_1", "g_x_0", "g_x_1"]) == [
+        "g_x_0", "g_x_1", "g_x_0__dup1", "g_x_1__dup1",
+    ]
+
+    # A pre-existing ``__dupN`` name cannot collide with a generated suffix: the
+    # duplicated "foo" takes "foo__dup1", so the literal "foo__dup1" already in
+    # the input is itself bumped to "foo__dup1__dup1".
+    assert make_unique_names(["foo", "foo", "foo__dup1"]) == [
+        "foo", "foo__dup1", "foo__dup1__dup1",
+    ]
+
+    # Triple duplicates all become unique with an incrementing suffix.
+    assert make_unique_names(["v", "v", "v"]) == ["v", "v__dup1", "v__dup2"]
+
+    # Pre-existing ``__dup1``/``__dup2`` ahead of the duplicate force the inner
+    # suffix-search loop through multiple iterations: resolving the final "a"
+    # probes "a__dup1" (taken) and "a__dup2" (taken) before settling on
+    # "a__dup3". A second duplicate must resume from the cached counter rather
+    # than rescan from 1, landing on "a__dup4".
+    assert make_unique_names(["a", "a__dup1", "a__dup2", "a"]) == [
+        "a", "a__dup1", "a__dup2", "a__dup3",
+    ]
+    assert make_unique_names(["a", "a__dup1", "a__dup2", "a", "a"]) == [
+        "a", "a__dup1", "a__dup2", "a__dup3", "a__dup4",
+    ]
+
+    # Collision-free input is returned unchanged.
+    assert make_unique_names(["a", "b", "c"]) == ["a", "b", "c"]
+
+
 @unittest.skipUnless('XPRESS' in INSTALLED_SOLVERS, 'XPRESS is not installed.')
 class TestXPRESS(BaseTest):
 
@@ -2181,6 +2222,25 @@ class TestXPRESS(BaseTest):
         self.A = cp.Variable((2, 2), name='A')
         self.B = cp.Variable((2, 2), name='B')
         self.C = cp.Variable((3, 2), name='C')
+
+    def test_xpress_duplicate_variable_names(self) -> None:
+        """Two variables that share a name() must not crash the conic interface.
+
+        cvxpy derives Xpress column names from ``Variable.name()``, so two
+        variables created with the same name previously produced duplicate
+        columns, which Xpress >= 9.5 rejects with ``?1030``. The SOC constraints
+        force the problem through the conic interface.
+        """
+        x = cp.Variable(2, name='dup')
+        y = cp.Variable(2, name='dup')
+        prob = cp.Problem(
+            cp.Minimize(cp.sum(x) + cp.sum(y)),
+            [x >= 1, y >= 2, cp.norm(x, 2) <= 10, cp.norm(y, 2) <= 10],
+        )
+        prob.solve(solver=cp.XPRESS)
+        assert prob.status in (cp.OPTIMAL, cp.OPTIMAL_INACCURATE)
+        self.assertItemsAlmostEqual(x.value, [1, 1], places=3)
+        self.assertItemsAlmostEqual(y.value, [2, 2], places=3)
 
     def test_xpress_warm_start(self) -> None:
         """Make sure that warm starting Xpress behaves as expected
