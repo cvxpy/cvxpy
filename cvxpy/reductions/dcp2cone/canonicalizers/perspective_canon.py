@@ -37,24 +37,11 @@ def perspective_canon(expr, args, solver_context: SolverInfo | None = None):
     chain = aux_prob._construct_chain(solver=solver, solver_opts=solver_opts, ignore_dpp=True)
     chain.reductions = chain.reductions[:-1]  # skip solver reduction
     prob_canon = chain.apply(aux_prob)[0]  # grab problem instance
-    # get cone representation of c, A, and b for some problem.
-    #
-    # ParamConeProg stores q as a sparse (n+1, n_params+1) tensor with d embedded
-    # in the last row, and A as a flattened tensor with b embedded.
-    # DiffengineConeProgram stores q, d, A, b as separate concrete arrays.
-    from cvxpy.reductions.dcp2cone.diffengine_cone_program import (
-        DiffengineConeProgram,
-    )
-    if isinstance(prob_canon, DiffengineConeProgram):
-        q = prob_canon.q
-        d = prob_canon.d
-        A = prob_canon.A.toarray() if hasattr(prob_canon.A, 'toarray') else prob_canon.A
-        b = prob_canon.b
-    else:
-        q = prob_canon.q.toarray().flatten()[:-1]
-        d = prob_canon.q.toarray().flatten()[-1]
-        Ab = prob_canon.A.toarray().reshape((-1, len(q) + 1), order="F")
-        A, b = Ab[:, :-1], Ab[:, -1]
+    # Cone data for "minimize q'x s.t. Ax + b in K". Both ParamProb backends
+    # (ParamConeProg and DiffengineConeProgram) return concrete (q, d, A, b) here
+    # since the aux problem is parameter-free. A stays sparse: `A @ x_canon` below
+    # keeps it sparse in the enclosing problem.
+    q, d, A, b = prob_canon.apply_parameters()
 
     # given f in epigraph form, aka epi f = \{(x,t) | f(x) \leq t\}
     # = \{(x,t) | Fx +tg + e \in K} for K a cone, the epigraph of the
