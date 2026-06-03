@@ -51,27 +51,6 @@ class COPT(QpSolver):
         """
         import coptpy  # noqa F401
 
-    def _dual_vars(self, y, inverse_data):
-        """Map a stacked ``[eq_constrs; ineq_constrs]`` dual vector to a CVXPY
-        dual dict keyed by constraint id.
-
-        Shared by the optimal duals and the infeasibility (Farkas) certificate,
-        which use the same row layout.
-        """
-        n_eq = inverse_data[self.DIMS].zero
-        eq_dual = utilities.get_dual_values(
-            y[:n_eq],
-            utilities.extract_dual_value,
-            inverse_data[self.EQ_CONSTR])
-        ineq_dual = utilities.get_dual_values(
-            y[n_eq:],
-            utilities.extract_dual_value,
-            inverse_data[self.NEQ_CONSTR])
-        dual_vars = {}
-        dual_vars.update(eq_dual)
-        dual_vars.update(ineq_dual)
-        return dual_vars
-
     def invert(self, solution, inverse_data):
         """
         Returns the solution to the original problem given the inverse_data.
@@ -81,18 +60,30 @@ class COPT(QpSolver):
                 s.NUM_ITERS: solution[s.NUM_ITERS],
                 s.EXTRA_STATS: solution['model']}
 
-        # 'y' holds the constraint duals when a solution is present and the
-        # dual Farkas infeasibility certificate otherwise (continuous only).
+        primal_vars = None
         dual_vars = None
-        if 'y' in solution and not inverse_data[COPT.IS_MIP]:
-            dual_vars = self._dual_vars(solution['y'], inverse_data)
-
         if status in s.SOLUTION_PRESENT:
             opt_val = solution[s.VALUE] + inverse_data[s.OFFSET]
             primal_vars = {inverse_data[COPT.VAR_ID]: solution[s.PRIMAL]}
+            if not inverse_data[COPT.IS_MIP]:
+                # Build dual vars dict keyed by constraint IDs
+                # COPT returns duals for [eq_constrs; ineq_constrs]
+                y = solution['y']
+                n_eq = inverse_data[self.DIMS].zero
+                eq_dual = utilities.get_dual_values(
+                    y[:n_eq],
+                    utilities.extract_dual_value,
+                    inverse_data[self.EQ_CONSTR])
+                ineq_dual = utilities.get_dual_values(
+                    y[n_eq:],
+                    utilities.extract_dual_value,
+                    inverse_data[self.NEQ_CONSTR])
+                dual_vars = {}
+                dual_vars.update(eq_dual)
+                dual_vars.update(ineq_dual)
             return Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
-            return failure_solution(status, attr, dual_vars)
+            return failure_solution(status, attr)
 
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
         """
@@ -189,12 +180,6 @@ class COPT(QpSolver):
             P = sp.coo_matrix(P)
             model.loadQ(0.5*P)
 
-        # Request a dual Farkas ray so an infeasibility certificate is available
-        # for infeasible problems (continuous only; MIPs have none). Set it
-        # before the user-settings loop so an explicit value in solver_opts wins.
-        if vtype is None:
-            model.setParam(copt.COPT.Param.ReqFarkasRay, 1)
-
         # Set parameters
         for key, value in solver_opts.items():
             # Ignore arguments unique to the CVXPY interface.
@@ -236,13 +221,6 @@ class COPT(QpSolver):
             solution[s.STATUS] = s.OPTIMAL_INACCURATE
         if solution[s.STATUS] == s.USER_LIMIT and not model.hasmipsol:
             solution[s.STATUS] = s.INFEASIBLE_INACCURATE
-
-        # On infeasibility, return the dual Farkas ray as the certificate,
-        # negated to match CVXPY's sign convention (as done for optimal duals).
-        if (solution[s.STATUS] in (s.INFEASIBLE, s.INFEASIBLE_INACCURATE)
-                and vtype is None and model.hasdualfarkas):
-            solution['y'] = -np.array(
-                model.getInfo(copt.COPT.Info.DualFarkas, model.getConstrs()))
 
         solution['model'] = model
         if solver_cache is not None:
