@@ -91,10 +91,6 @@ class DiffengineConeProgram(ParamProb):
     def id_to_var(self):
         return self.inverse_data.id2var
 
-    @property
-    def param_id_to_col(self):
-        return self.inverse_data.param_id_map
-
     def is_mixed_integer(self) -> bool:
         return self.x.attributes['boolean'] or self.x.attributes['integer']
 
