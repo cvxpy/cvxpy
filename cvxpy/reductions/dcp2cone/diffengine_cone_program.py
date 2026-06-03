@@ -47,7 +47,6 @@ class DiffengineConeProgram(ParamProb):
         extractor: DiffEngineExtractor,
         constraints: list,
         inverse_data,
-        quad_obj: bool,
         q: np.ndarray,
         d: float,
         A: sp.spmatrix,
@@ -60,7 +59,6 @@ class DiffengineConeProgram(ParamProb):
     ) -> None:
         self.x = x
         self.extractor = extractor
-        self.quad_obj = quad_obj
 
         self.q = q
         self.d = d
@@ -79,11 +77,6 @@ class DiffengineConeProgram(ParamProb):
 
         self._restruct_mat = None
         self.parameters = list(parameters) if parameters else []
-        self.param_id_to_size = {p.id: p.size for p in self.parameters}
-
-        # Parametric bounds not yet supported on the diffengine path.
-        self.lb_tensor = None
-        self.ub_tensor = None
 
     @property
     def variables(self):
@@ -165,7 +158,7 @@ class DiffengineConeProgram(ParamProb):
         # The extractor (and its C problem) is shared with the restructured instance.
         new_prog = DiffengineConeProgram(
             self.x, self.extractor, self.constraints, self.inverse_data,
-            self.quad_obj, self.q, self.d, new_A, new_b, self.P,
+            self.q, self.d, new_A, new_b, self.P,
             formatted=True,
             lower_bounds=self.lower_bounds,
             upper_bounds=self.upper_bounds,
@@ -210,7 +203,7 @@ class DiffengineConeProgram(ParamProb):
         lower_bounds = extract_lower_bounds(problem.variables(), n_vars)
         upper_bounds = extract_upper_bounds(problem.variables(), n_vars)
 
-        return cls(x, extractor, ordered_cons, inverse_data, quad_obj,
+        return cls(x, extractor, ordered_cons, inverse_data,
                    q, d, A, b, P,
                    lower_bounds=lower_bounds, upper_bounds=upper_bounds,
                    parameters=params)
