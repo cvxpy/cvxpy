@@ -26,59 +26,15 @@ from cvxpy.reductions.matrix_stuffing import (
     extract_mip_idx,
     extract_upper_bounds,
 )
-from cvxpy.reductions.solvers.nlp_solvers.diff_engine import C_problem
+from cvxpy.reductions.solvers.nlp_solvers.diff_engine.extractor import DiffEngineExtractor
 from cvxpy.reductions.utilities import group_constraints
-
-
-def _build_jacobian_csc(c_problem, jac_structure, m, n_vars):
-    """Evaluate the constraint Jacobian and assemble it as a CSC matrix."""
-    if m == 0:
-        return sp.csc_matrix((0, n_vars))
-    rows, cols = jac_structure
-    vals = c_problem.eval_jacobian_vals()
-    return sp.coo_matrix((vals, (rows, cols)), shape=(m, n_vars)).tocsc()
-
-
-def _build_hessian_csc(c_problem, duals):
-    """Evaluate the full (symmetric) Lagrangian Hessian and assemble it as CSC.
-
-    The engine already holds the full symmetric Hessian as CSR, so we fetch it
-    directly -- no lower-triangular mirror / diagonal-doubling fixup needed.
-    """
-    data, indices, indptr, shape = c_problem.eval_hessian_csr(1.0, duals)
-    return sp.csr_matrix((data, indices, indptr), shape=shape).tocsc()
-
-
-def _extract_matrices(c_problem, jac_structure, n_vars, has_constraints, quad_obj):
-    """Evaluate the (affine) objective and constraints at x=0 to recover the cone
-    program matrices: gradient ``q``, constant ``d``, constraint Jacobian ``A``,
-    offset ``b``, and (for a quadratic objective) the Hessian ``P``.
-
-    Shared by ``from_problem`` (initial build) and ``apply_parameters`` (re-evaluation
-    after parameter values change). The returned matrices are pre-restructuring.
-    """
-    x0 = np.zeros(n_vars, dtype=np.float64)
-    d = float(c_problem.objective_forward(x0))
-    q = c_problem.gradient().copy()
-    if has_constraints:
-        b_vec = c_problem.constraint_forward(x0)
-        A = _build_jacobian_csc(c_problem, jac_structure, b_vec.shape[0], n_vars)
-    else:
-        b_vec = np.array([], dtype=np.float64)
-        A = sp.csc_matrix((0, n_vars))
-    b = np.atleast_1d(b_vec)
-    P = None
-    if quad_obj:
-        duals = np.zeros(b.shape[0], dtype=np.float64)
-        P = _build_hessian_csc(c_problem, duals)
-    return q, d, A, b, P
 
 
 class DiffengineConeProgram(ParamProb):
     """A cone program whose matrices are extracted via the C diff engine.
 
-    Sibling of ParamConeProg under the ParamProb interface. Wraps a `C_problem`
-    instance (the same class used by the NLP solver path) and re-evaluates the
+    Sibling of ParamConeProg under the ParamProb interface. Holds a
+    `DiffEngineExtractor` (the non-DPP analog of CoeffExtractor) and re-evaluates the
     converted expression trees on each solve via apply_parameters().
 
     minimize   q'x + d + [(1/2)x'Px]
@@ -88,26 +44,28 @@ class DiffengineConeProgram(ParamProb):
     def __init__(
         self,
         x: Variable,
-        A: sp.spmatrix,
-        b: np.ndarray,
-        q: np.ndarray,
-        d: float,
-        P,
+        extractor: DiffEngineExtractor,
         constraints: list,
         inverse_data,
-        c_problem: C_problem,
-        jac_structure,
+        quad_obj: bool,
+        q: np.ndarray,
+        d: float,
+        A: sp.spmatrix,
+        b: np.ndarray,
+        P,
         formatted: bool = False,
         lower_bounds=None,
         upper_bounds=None,
         parameters=None,
-        quad_obj: bool = False,
     ) -> None:
-        self.A = A
-        self.b = b
+        self.x = x
+        self.extractor = extractor
+        self.quad_obj = quad_obj
+
         self.q = q
         self.d = d
-        self.x = x
+        self.A = A
+        self.b = b
         self.P = P
 
         self.constraints = constraints
@@ -119,9 +77,6 @@ class DiffengineConeProgram(ParamProb):
         self.lower_bounds = lower_bounds
         self.upper_bounds = upper_bounds
 
-        self.c_problem = c_problem
-        self._jac_structure = jac_structure
-        self.quad_obj = quad_obj
         self._restruct_mat = None
         self.parameters = list(parameters) if parameters else []
         self.param_id_to_size = {p.id: p.size for p in self.parameters}
@@ -166,11 +121,9 @@ class DiffengineConeProgram(ParamProb):
             parts = [np.asarray(p.value,
                                 dtype=np.float64).flatten(order='F')
                      for p in self.parameters]
-        self.c_problem.update_params(np.concatenate(parts))
+        self.extractor.update_parameters(np.concatenate(parts))
 
-        q, d, A, b, P = _extract_matrices(
-            self.c_problem, self._jac_structure, self.inverse_data.x_length,
-            bool(self.constraints), quad_obj)
+        q, d, A, b, P = self.extractor.extract(quad_obj)
 
         if self._restruct_mat is not None:
             A = self._restruct_mat @ A
@@ -209,16 +162,14 @@ class DiffengineConeProgram(ParamProb):
         else:
             new_A, new_b = self.A, self.b
 
+        # The extractor (and its C problem) is shared with the restructured instance.
         new_prog = DiffengineConeProgram(
-            self.x, new_A, new_b, self.q, self.d, self.P,
-            self.constraints, self.inverse_data,
-            c_problem=self.c_problem,
-            jac_structure=self._jac_structure,
+            self.x, self.extractor, self.constraints, self.inverse_data,
+            self.quad_obj, self.q, self.d, new_A, new_b, self.P,
             formatted=True,
             lower_bounds=self.lower_bounds,
             upper_bounds=self.upper_bounds,
             parameters=self.parameters,
-            quad_obj=self.quad_obj,
         )
         if R is not None:
             new_prog._restruct_mat = R
@@ -249,26 +200,17 @@ class DiffengineConeProgram(ParamProb):
         """Build a DiffengineConeProgram by evaluating expressions at x=0."""
         expr_list = [arg for c in ordered_cons for arg in c.args]
         params = problem.parameters()
-        c_problem = C_problem.from_exprs(
-            problem.objective.expr, expr_list, params, inverse_data, verbose=False)
-
-        c_problem.init_jacobian_coo()
-        if quad_obj:
-            c_problem.init_hessian()
-        jac_structure = c_problem.get_jacobian_sparsity_coo() if expr_list else None
+        extractor = DiffEngineExtractor(inverse_data).build(
+            problem.objective.expr, expr_list, params, quad_obj)
+        q, d, A, b, P = extractor.extract(quad_obj)
 
         n_vars = inverse_data.x_length
-        q, d, A, b, P = _extract_matrices(
-            c_problem, jac_structure, n_vars, bool(expr_list), quad_obj)
-
         boolean, integer = extract_mip_idx(problem.variables())
         x = Variable(n_vars, boolean=boolean, integer=integer)
         lower_bounds = extract_lower_bounds(problem.variables(), n_vars)
         upper_bounds = extract_upper_bounds(problem.variables(), n_vars)
 
-        return cls(x, A, b, q, d, P,
-                   ordered_cons, inverse_data,
-                   c_problem=c_problem,
-                   jac_structure=jac_structure,
+        return cls(x, extractor, ordered_cons, inverse_data, quad_obj,
+                   q, d, A, b, P,
                    lower_bounds=lower_bounds, upper_bounds=upper_bounds,
-                   parameters=params, quad_obj=quad_obj)
+                   parameters=params)
