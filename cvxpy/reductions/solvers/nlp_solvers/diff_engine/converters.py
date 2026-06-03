@@ -100,41 +100,20 @@ def convert_multiply(expr, children, var_dict, n_vars, param_dict):
 
 
 def _lower_symbolic_power(expr):
-    """Rewrite a ``power``/``PowerApprox`` SymbolicQuadForm as the elementwise square.
+    """Lower a power/PowerApprox SymbolicQuadForm to the elementwise square x .* x.
 
-    ``power(., 2)`` (incl. ``huber``'s internal square) is the elementwise
-    *diagonal* quad ``x .* x`` -- a vector matching the original shape, which the
-    native ``quad_form`` node (a *scalar* ``x' P x``) cannot represent. The scalar
-    ``QuadForm``/``quad_over_lin``/``sum_squares`` cases instead use the native
-    ``quad_form`` binding in ``convert_symbolic_quad_form``.
-
-    We rebuild over ``expr.args[0]`` -- the quad form's first arg, which the
-    canonicalizer guarantees is a *leaf* (the original variable, or an auxiliary
-    ``t`` with an added affine ``t == affine_expr`` constraint). This matters: the
-    diff engine's ``init_jacobian`` segfaults on a quad form over a *compound*
-    argument, so we must not reuse ``original_expression`` (which holds the
-    compound arg). The aux variable keeps the compound part in the affine
-    constraint, where the engine handles it fine.
+    Rebuild over expr.args[0] (a leaf, per the canonicalizer): the engine's
+    init_jacobian segfaults on a quad form over a compound argument.
     """
     return cp.multiply(expr.args[0], expr.args[0])
 
 
 def convert_symbolic_quad_form(expr, var_dict, n_vars, param_dict):
-    """Convert a ``SymbolicQuadForm`` (Dcp2Cone quadratic-objective placeholder).
+    """Convert a SymbolicQuadForm (Dcp2Cone quadratic-objective placeholder).
 
-    The scalar ``x' P x`` cases -- ``QuadForm`` and ``quad_over_lin``/
-    ``sum_squares`` -- are built with the native ``quad_form`` binding, choosing
-    the path by ``P`` (``expr.args[1]``): a **sparse** node for a sparse constant
-    ``P`` (e.g. the identity of ``sum_squares``), a **dense** (``permuted_dense``)
-    node for a dense or *parametric* ``P``. Building the node directly (rather
-    than a ``multiply``/``sum`` graph) lets the engine assemble the Hessian
-    natively, handles a matrix-variable leaf (the binding flattens it via
-    ``n = x.size``), and feeds a dense/parametric ``P`` straight into a dense
-    Hessian instead of a sparse autodiff cross-term.
-
-    ``power``/``PowerApprox`` is the elementwise diagonal square (vector-valued),
-    which ``quad_form`` (scalar) cannot represent, so it keeps the cheap
-    ``multiply`` lowering via ``_lower_symbolic_power``.
+    Scalar x'Px (QuadForm / quad_over_lin / sum_squares) uses the native quad_form
+    binding -- the sparse path for a sparse constant P, the dense path for a dense or
+    parametric P. power/PowerApprox is the elementwise square, lowered to multiply.
     """
     if expr.block_indices is not None:
         raise NotImplementedError(
@@ -149,12 +128,9 @@ def convert_symbolic_quad_form(expr, var_dict, n_vars, param_dict):
         x_c = convert_expr(x, var_dict, n_vars, param_dict)
         n = x.size
         if P.parameters():
-            # Parametric P canonicalizes to an affine expression of the
-            # parameters (e.g. psd_wrap(reshape(M @ theta))). Since P never
-            # depends on x, the Hessian is still 2P -- so we feed P as a
-            # matrix-valued child expression and let the engine evaluate it each
-            # solve, avoiding the dense autodiff cross-term. Peel value-identity
-            # Wrap atoms (psd_wrap) the converter can't build directly.
+            # P is affine in the parameters and independent of x (Hessian still 2P):
+            # feed it as a matrix-valued child evaluated each solve. Peel value-identity
+            # Wrap atoms (e.g. psd_wrap) the converter can't build directly.
             P_inner = P
             while isinstance(P_inner, Wrap):
                 P_inner = P_inner.args[0]
@@ -174,8 +150,6 @@ def convert_symbolic_quad_form(expr, var_dict, n_vars, param_dict):
             None, x_c, "dense", P_dense.flatten(order='F'), n)
 
     if isinstance(orig, Power):  # PowerApprox subclasses Power; canon only p == 2
-        # Elementwise diagonal square (vector-valued); quad_form (scalar) can't
-        # represent it, so keep the cheap multiply lowering.
         return convert_expr(
             _lower_symbolic_power(expr), var_dict, n_vars, param_dict)
 

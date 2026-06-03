@@ -206,11 +206,6 @@ def _build_solving_chain(
             raise DPPError(DPP_ERROR_MSG)
         if not ignore_dpp:
             warn(DPP_ERROR_MSG)
-        # For ignore_dpp, the DIFFENGINE backend rebuilds the problem data from
-        # the expression trees on each solve, replacing EvalParams. Dcp2Cone makes
-        # all constraint args affine; a quadratic objective stays a SymbolicQuadForm,
-        # which the diff engine lowers to equivalent atoms and recovers P from as the
-        # autodiff Hessian, so both affine and quadratic objectives are supported.
         if ignore_dpp:
             canon_backend = DIFFENGINE_CANON_BACKEND
         else:

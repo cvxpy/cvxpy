@@ -377,10 +377,6 @@ class ConeMatrixStuffing(MatrixStuffing):
     def __init__(self, quad_obj: bool = False, canon_backend: str | None = None):
         # Assume a quadratic objective?
         self.quad_obj = quad_obj
-        # The DIFFENGINE backend builds A, b, q, d, P directly from the CVXPY
-        # expression trees via the C diff engine, bypassing the parametric tensor
-        # pipeline. It is auto-selected in `_build_solving_chain` only when
-        # `ignore_dpp=True`; see `s.DIFFENGINE_CANON_BACKEND`.
         self.canon_backend = canon_backend
 
     def accepts(self, problem):
@@ -452,9 +448,6 @@ class ConeMatrixStuffing(MatrixStuffing):
         inverse_data.minimize = type(problem.objective) == Minimize
 
         if self.canon_backend == s.DIFFENGINE_CANON_BACKEND:
-            # The DIFFENGINE backend builds A, b, q, d, P directly from the CVXPY
-            # expression trees via the C diff engine, bypassing the parametric tensor
-            # pipeline.
             from cvxpy.reductions.dcp2cone.diffengine_cone_program import (
                 DiffengineConeProgram,
             )

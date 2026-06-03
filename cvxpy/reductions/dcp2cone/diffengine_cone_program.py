@@ -49,6 +49,31 @@ def _build_hessian_csc(c_problem, duals):
     return sp.csr_matrix((data, indices, indptr), shape=shape).tocsc()
 
 
+def _extract_matrices(c_problem, jac_structure, n_vars, has_constraints, quad_obj):
+    """Evaluate the (affine) objective and constraints at x=0 to recover the cone
+    program matrices: gradient ``q``, constant ``d``, constraint Jacobian ``A``,
+    offset ``b``, and (for a quadratic objective) the Hessian ``P``.
+
+    Shared by ``from_problem`` (initial build) and ``apply_parameters`` (re-evaluation
+    after parameter values change). The returned matrices are pre-restructuring.
+    """
+    x0 = np.zeros(n_vars, dtype=np.float64)
+    d = float(c_problem.objective_forward(x0))
+    q = c_problem.gradient().copy()
+    if has_constraints:
+        b_vec = c_problem.constraint_forward(x0)
+        A = _build_jacobian_csc(c_problem, jac_structure, b_vec.shape[0], n_vars)
+    else:
+        b_vec = np.array([], dtype=np.float64)
+        A = sp.csc_matrix((0, n_vars))
+    b = np.atleast_1d(b_vec)
+    P = None
+    if quad_obj:
+        duals = np.zeros(b.shape[0], dtype=np.float64)
+        P = _build_hessian_csc(c_problem, duals)
+    return q, d, A, b, P
+
+
 class DiffengineConeProgram(ParamProb):
     """A cone program whose matrices are extracted via the C diff engine.
 
@@ -129,10 +154,9 @@ class DiffengineConeProgram(ParamProb):
                          keep_zeros: bool = False, quad_obj: bool = False):
         """Return problem matrices, re-evaluating if parameters are present."""
         if not self.parameters:
-            A = self.A
             if quad_obj and self.P is not None:
-                return self.P, self.q, self.d, A, self.b
-            return self.q, self.d, A, self.b
+                return self.P, self.q, self.d, self.A, self.b
+            return self.q, self.d, self.A, self.b
 
         if id_to_param_value is not None:
             parts = [np.asarray(id_to_param_value[p.id],
@@ -142,35 +166,20 @@ class DiffengineConeProgram(ParamProb):
             parts = [np.asarray(p.value,
                                 dtype=np.float64).flatten(order='F')
                      for p in self.parameters]
-        theta = np.concatenate(parts)
-        self.c_problem.update_params(theta)
+        self.c_problem.update_params(np.concatenate(parts))
 
-        n_vars = self.inverse_data.x_length
-        x0 = np.zeros(n_vars, dtype=np.float64)
+        q, d, A, b, P = _extract_matrices(
+            self.c_problem, self._jac_structure, self.inverse_data.x_length,
+            bool(self.constraints), quad_obj)
 
-        d = float(self.c_problem.objective_forward(x0))
-        q = self.c_problem.gradient().copy()
-
-        if self.constraints:
-            b_vec = self.c_problem.constraint_forward(x0)
-            m = b_vec.shape[0]
-            A = _build_jacobian_csc(self.c_problem, self._jac_structure, m, n_vars)
-        else:
-            b_vec = np.array([], dtype=np.float64)
-            A = sp.csc_matrix((0, n_vars))
-
-        b = np.atleast_1d(b_vec)
-
-        if self._restruct_mat is not None and self._restruct_mat is not False:
+        if self._restruct_mat is not None:
             A = self._restruct_mat @ A
             b = np.asarray(self._restruct_mat @ b).flatten()
 
-        self.A, self.b, self.q, self.d = A, b, q, d
+        self.A, self.b, self.q, self.d, self.P = A, b, q, d, P
 
         if quad_obj:
-            duals = np.zeros(b.shape[0], dtype=np.float64)
-            self.P = _build_hessian_csc(self.c_problem, duals)
-            return self.P, q, d, A, b
+            return P, q, d, A, b
         return q, d, A, b
 
     def apply_restruct_mat(self, restruct_mat, restruct_mat_op=None):
@@ -246,34 +255,18 @@ class DiffengineConeProgram(ParamProb):
         c_problem.init_jacobian_coo()
         if quad_obj:
             c_problem.init_hessian()
-
         jac_structure = c_problem.get_jacobian_sparsity_coo() if expr_list else None
 
-        boolean, integer = extract_mip_idx(problem.variables())
         n_vars = inverse_data.x_length
+        q, d, A, b, P = _extract_matrices(
+            c_problem, jac_structure, n_vars, bool(expr_list), quad_obj)
+
+        boolean, integer = extract_mip_idx(problem.variables())
         x = Variable(n_vars, boolean=boolean, integer=integer)
-        x0 = np.zeros(n_vars, dtype=np.float64)
-
-        d = float(c_problem.objective_forward(x0))
-        q = c_problem.gradient().copy()
-
-        if expr_list:
-            b_vec = c_problem.constraint_forward(x0)
-            m = b_vec.shape[0]
-            A = _build_jacobian_csc(c_problem, jac_structure, m, n_vars)
-        else:
-            b_vec = np.array([], dtype=np.float64)
-            A = sp.csc_matrix((0, n_vars))
-
-        P = None
-        if quad_obj:
-            duals = np.zeros(b_vec.shape[0], dtype=np.float64)
-            P = _build_hessian_csc(c_problem, duals)
-
         lower_bounds = extract_lower_bounds(problem.variables(), n_vars)
         upper_bounds = extract_upper_bounds(problem.variables(), n_vars)
 
-        return cls(x, A, np.atleast_1d(b_vec), q, d, P,
+        return cls(x, A, b, q, d, P,
                    ordered_cons, inverse_data,
                    c_problem=c_problem,
                    jac_structure=jac_structure,
