@@ -35,17 +35,10 @@ from cvxpy.reductions.solvers.nlp_solvers.diff_engine.helpers import (
 from cvxpy.reductions.solvers.nlp_solvers.diff_engine.registry import ATOM_CONVERTERS
 
 
-def convert_matmul(expr, var_dict, n_vars, param_dict):
+def convert_matmul(expr, children, var_dict, n_vars, param_dict):
     """Convert matrix multiplication A @ f(x), f(x) @ A, or X @ Y.
 
     Follows numpy's matmul broadcasting rules for 1D operands.
-
-    Operands are converted lazily: a *pure* constant matrix operand (constant
-    with no parameters) is consumed directly from its `.value` (sparse-aware) and
-    is never converted into a node. Converting it would densify a large sparse
-    constant -- e.g. the symmetrization matrix M in a parametric P = reshape(M @
-    theta) -- which dominates compile time. A parametric matrix operand is still
-    converted (its node feeds the engine's parameter refresh).
     """
     left_arg, right_arg = expr.args
 
@@ -53,32 +46,27 @@ def convert_matmul(expr, var_dict, n_vars, param_dict):
         A = left_arg.value
         if A.ndim == 1:
             A = A.reshape(1, -1)
-        child = convert_expr(right_arg, var_dict, n_vars, param_dict)
-        param_node = (convert_expr(left_arg, var_dict, n_vars, param_dict)
-                      if left_arg.parameters() else None)
+        param_node = children[0] if left_arg.parameters() else None
         if sparse.issparse(A):
-            return make_sparse_left_matmul(param_node, child, A)
-        return make_dense_left_matmul(param_node, child, A)
+            return make_sparse_left_matmul(param_node, children[1], A)
+        return make_dense_left_matmul(param_node, children[1], A)
 
     elif right_arg.is_constant():
         A = right_arg.value
         if A.ndim == 1:
             A = A.reshape(-1, 1)
-        child = convert_expr(left_arg, var_dict, n_vars, param_dict)
-        param_node = (convert_expr(right_arg, var_dict, n_vars, param_dict)
-                      if right_arg.parameters() else None)
+        param_node = children[1] if right_arg.parameters() else None
         if sparse.issparse(A):
-            return make_sparse_right_matmul(param_node, child, A)
-        return make_dense_right_matmul(param_node, child, A)
+            return make_sparse_right_matmul(param_node, children[0], A)
+        return make_dense_right_matmul(param_node, children[0], A)
 
     else:
-        left_node = convert_expr(left_arg, var_dict, n_vars, param_dict)
-        right_node = convert_expr(right_arg, var_dict, n_vars, param_dict)
         # The diffengine doesn't natively support a 1D right operand in matmul,
         # so reshape (n,) -> (n, 1) here to match numpy's column-vector convention.
+        right_node = children[1]
         if len(right_arg.shape) == 1:
             right_node = _diffengine.make_reshape(right_node, right_arg.shape[0], 1)
-        return _diffengine.make_matmul(left_node, right_node)
+        return _diffengine.make_matmul(children[0], right_node)
 
 # TODO we should support sparse elementwise multiply at some point.
 def convert_multiply(expr, children, var_dict, n_vars, param_dict):
@@ -191,18 +179,14 @@ def convert_expr(expr, var_dict, n_vars, param_dict=None):
     if atom_name == "SymbolicQuadForm":
         return convert_symbolic_quad_form(expr, var_dict, n_vars, param_dict)
 
-    # matmul converts its operands lazily (see convert_matmul) so a pure-constant
-    # matrix operand is never densified into a node; the others consume every
-    # child, so convert eagerly for them.
+    children = [convert_expr(arg, var_dict, n_vars, param_dict) for arg in expr.args]
+
+    # matmul and multiply need param_dict for parameter support
     if atom_name == "MulExpression":
-        C_expr = convert_matmul(expr, var_dict, n_vars, param_dict)
+        C_expr = convert_matmul(expr, children, var_dict, n_vars, param_dict)
     elif atom_name == "multiply":
-        children = [convert_expr(arg, var_dict, n_vars, param_dict)
-                    for arg in expr.args]
         C_expr = convert_multiply(expr, children, var_dict, n_vars, param_dict)
     elif atom_name in ATOM_CONVERTERS:
-        children = [convert_expr(arg, var_dict, n_vars, param_dict)
-                    for arg in expr.args]
         C_expr = ATOM_CONVERTERS[atom_name](expr, children)
     else:
         raise NotImplementedError(f"Atom '{atom_name}' not supported")
