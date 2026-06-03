@@ -59,22 +59,18 @@ class DiffengineConeProgram(ParamProb):
     ) -> None:
         self.x = x
         self.extractor = extractor
-
         self.q = q
         self.d = d
         self.A = A
         self.b = b
         self.P = P
-
         self.constraints = constraints
         self.constr_map = group_constraints(constraints)
         self.cone_dims = ConeDims(self.constr_map)
-
         self.inverse_data = inverse_data
         self.formatted = formatted
         self.lower_bounds = lower_bounds
         self.upper_bounds = upper_bounds
-
         self._restruct_mat = None
         self.parameters = list(parameters) if parameters else []
 
@@ -111,15 +107,11 @@ class DiffengineConeProgram(ParamProb):
                                 dtype=np.float64).flatten(order='F')
                      for p in self.parameters]
         self.extractor.update_parameters(np.concatenate(parts))
-
         q, d, A, b, P = self.extractor.extract(quad_obj)
-
         if self._restruct_mat is not None:
             A = self._restruct_mat @ A
             b = np.asarray(self._restruct_mat @ b).flatten()
-
         self.A, self.b, self.q, self.d, self.P = A, b, q, d, P
-
         if quad_obj:
             return P, q, d, A, b
         return q, d, A, b
@@ -144,13 +136,11 @@ class DiffengineConeProgram(ParamProb):
                 else:
                     eye = sp.eye_array(mat.shape[1], format='csc')
                     sparse_mats.append(sp.csc_matrix(mat @ eye))
-
             R = sp.block_diag(sparse_mats, format='csc')
             new_A = R @ self.A
             new_b = np.asarray(R @ self.b).flatten()
         else:
             new_A, new_b = self.A, self.b
-
         # The extractor (and its C problem) is shared with the restructured instance.
         new_prog = DiffengineConeProgram(
             self.x, self.extractor, self.constraints, self.inverse_data,
@@ -192,13 +182,11 @@ class DiffengineConeProgram(ParamProb):
         extractor = DiffEngineExtractor(inverse_data).build(
             problem.objective.expr, expr_list, params, quad_obj)
         q, d, A, b, P = extractor.extract(quad_obj)
-
         n_vars = inverse_data.x_length
         boolean, integer = extract_mip_idx(problem.variables())
         x = Variable(n_vars, boolean=boolean, integer=integer)
         lower_bounds = extract_lower_bounds(problem.variables(), n_vars)
         upper_bounds = extract_upper_bounds(problem.variables(), n_vars)
-
         return cls(x, extractor, ordered_cons, inverse_data,
                    q, d, A, b, P,
                    lower_bounds=lower_bounds, upper_bounds=upper_bounds,
