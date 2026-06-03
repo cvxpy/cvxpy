@@ -49,7 +49,8 @@ def variable_canon(expr, real_args, imag_args, real2imag):
 
     elif expr.is_imag():
         # Purely imaginary.
-        imag = Variable(expr.shape, var_id=real2imag[expr.id])
+        _, imag_attr = _split_complex_attributes(expr.attributes)
+        imag = Variable(expr.shape, var_id=real2imag[expr.id], **imag_attr)
         return None, imag
 
     elif expr.is_complex() and expr.is_hermitian():

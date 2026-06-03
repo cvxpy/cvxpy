@@ -171,6 +171,55 @@ class TestComplex2RealAttributes(BaseTest):
         for attrs in invalid_attrs:
             with self.assertRaises(ValueError):
                 cp.Variable((2, 2), imag=True, **attrs)
+
+    def test_imag_diag_attribute_preservation(self) -> None:
+        """Test diag attribute is preserved when splitting an imaginary variable."""
+        import cvxpy.lin_ops.lin_utils as lu
+        from cvxpy.expressions.variable import Variable
+        from cvxpy.reductions.complex2real.canonicalizers.variable_canon import variable_canon
+
+        X = Variable((4, 4), imag=True, diag=True)
+        real2imag = {X.id: lu.get_id()}
+
+        real, imag = variable_canon(X, None, None, real2imag)
+
+        self.assertIsNone(real)
+        self.assertTrue(imag.attributes.get("diag"))
+        self.assertFalse(imag.attributes.get("imag"))
+
+    def test_complex_sparsity_attribute_preservation(self) -> None:
+        """Test sparsity attribute is preserved when splitting a general complex variable."""
+        import cvxpy.lin_ops.lin_utils as lu
+        from cvxpy.expressions.variable import Variable
+        from cvxpy.reductions.complex2real.canonicalizers.variable_canon import variable_canon
+
+        sparsity = ([0, 1], [1, 2])
+        X = Variable((3, 3), complex=True, sparsity=sparsity)
+        real2imag = {X.id: lu.get_id()}
+
+        real, imag = variable_canon(X, None, None, real2imag)
+
+        self.assertEqual(real.attributes.get("sparsity"), sparsity)
+        self.assertEqual(imag.attributes.get("sparsity"), sparsity)
+        self.assertFalse(real.attributes.get("complex"))
+        self.assertFalse(imag.attributes.get("complex"))
+
+    def test_imag_sparsity_attribute_preservation(self) -> None:
+        """Test sparsity attribute is preserved when splitting an imaginary variable."""
+        import cvxpy.lin_ops.lin_utils as lu
+        from cvxpy.expressions.variable import Variable
+        from cvxpy.reductions.complex2real.canonicalizers.variable_canon import variable_canon
+
+        sparsity = ([0, 1], [1, 2])
+        X = Variable((3, 3), imag=True, sparsity=sparsity)
+        real2imag = {X.id: lu.get_id()}
+
+        real, imag = variable_canon(X, None, None, real2imag)
+
+        self.assertIsNone(real)
+        self.assertEqual(imag.attributes.get("sparsity"), sparsity)
+        self.assertFalse(imag.attributes.get("imag"))
+
 class TestComplex(BaseTest):
     """ Unit tests for the expression/expression module. """
 
