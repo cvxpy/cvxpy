@@ -383,8 +383,15 @@ class CUOPT(ConicSolver):
 
         if n_soc > 0:
             C = np.concatenate([C, np.zeros(n_soc, dtype=np.float64)])
+            # cuOpt Lorentz QCs require a non-negative lower bound on the cone
+            # head (aux index 0 of each SOC block). Tail aux vars stay free.
+            soc_lower_bounds = np.full(n_soc, -np.inf, dtype=np.float64)
+            aux_offset = 0
+            for constr_len in soc_dims:
+                soc_lower_bounds[aux_offset] = 0.0
+                aux_offset += constr_len
             variable_lower_bounds = np.concatenate(
-                [variable_lower_bounds, np.full(n_soc, -np.inf, dtype=np.float64)]
+                [variable_lower_bounds, soc_lower_bounds]
             )
             variable_upper_bounds = np.concatenate(
                 [variable_upper_bounds, np.full(n_soc, np.inf, dtype=np.float64)]
