@@ -3150,6 +3150,13 @@ class TestCOPT(unittest.TestCase):
         prob.solve(solver='COPT')
         self.assertAlmostEqual(t.value, 2.0, places=3)
 
+    def test_copt_infeasible_lp_ineq(self) -> None:
+        # Verifies COPT returns a valid dual Farkas infeasibility certificate.
+        StandardTestInfeasibleProblems.test_lp_ineq_constraints(solver='COPT')
+
+    def test_copt_infeasible_lp_eq(self) -> None:
+        StandardTestInfeasibleProblems.test_lp_eq_constraints(solver='COPT')
+
 
 @unittest.skipUnless('COSMO' in INSTALLED_SOLVERS, 'COSMO is not installed.')
 class TestCOSMO(BaseTest):
