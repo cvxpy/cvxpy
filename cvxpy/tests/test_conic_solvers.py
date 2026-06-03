@@ -3512,8 +3512,12 @@ class TestCUOPT(unittest.TestCase):
         )
 
     def test_cuopt_socp_lorentz_min_x0(self) -> None:
-        """Matches cuOpt barrier Lorentz QCMATRIX smoke test (min x0, x1=1, SOC)."""
-        x0 = cp.Variable(nonneg=True)
+        """Matches cuOpt barrier Lorentz QCMATRIX smoke test (min x0, x1=1, SOC).
+
+        x0 is unconstrained below; cuOpt still requires a non-negative lower
+        bound on the lifted SOC head auxiliary variable.
+        """
+        x0 = cp.Variable()
         x1 = cp.Variable(nonneg=True)
         x2 = cp.Variable()
         prob = cp.Problem(cp.Minimize(x0), [x1 == 1, cp.norm(cp.hstack([x1, x2])) <= x0])
