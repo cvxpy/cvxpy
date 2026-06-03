@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import numpy as np
+import scipy.sparse as sp
 
 from cvxpy.atoms import bmat
 
@@ -24,7 +24,7 @@ def complex_psd_matrix(real_part, imag_part):
     if imag_part is None:
         return real_part
     if real_part is None:
-        real_part = np.zeros(imag_part.shape)
+        real_part = sp.csc_array(imag_part.shape)
     return bmat([[real_part, -imag_part],
                  [imag_part, real_part]])
 

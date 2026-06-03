@@ -26,21 +26,19 @@ def _split_complex_attributes(attributes: dict) -> tuple[dict, dict]:
     real_attr = attributes.copy()
     imag_attr = attributes.copy()
 
-    for attr in ['complex', 'hermitian']:
+    for attr in ["complex", "imag", "hermitian"]:
         real_attr.pop(attr, None)
         imag_attr.pop(attr, None)
 
-    if attributes.get('hermitian') or attributes.get('PSD') or attributes.get('NSD'):
-        imag_attr.pop('symmetric', None)
-        imag_attr['skew_symmetric'] = True
+    # PSD/NSD are meaningful for the real split variable, but not for the
+    # imaginary split variable.
+    imag_attr.pop("PSD", None)
+    imag_attr.pop("NSD", None)
 
-        if attributes.get('hermitian') and not (
-            attributes.get('PSD') or attributes.get('NSD')
-        ):
-            real_attr['symmetric'] = True
-
-    imag_attr.pop('PSD', None)
-    imag_attr.pop('NSD', None)
+    if attributes.get("hermitian") and not (
+        attributes.get("PSD") or attributes.get("NSD")
+    ):
+        real_attr["symmetric"] = True
 
     return real_attr, imag_attr
 
@@ -56,13 +54,10 @@ def variable_canon(expr, real_args, imag_args, real2imag):
 
     elif expr.is_complex() and expr.is_hermitian():
         n = expr.shape[0]
-        real_attr, imag_attr = _split_complex_attributes(expr.attributes)
+        real_attr, _ = _split_complex_attributes(expr.attributes)
         real = Variable((n, n), var_id=expr.id, **real_attr)
 
         if n > 1:
-            # The raw imaginary variable is a compact vector of upper-triangular
-            # entries. The skew-symmetric matrix structure is applied after
-            # expanding it, not as an attribute on this vector variable.
             imag_var = Variable(
                 shape=n * (n - 1) // 2,
                 var_id=real2imag[expr.id],
@@ -75,7 +70,6 @@ def variable_canon(expr, real_args, imag_args, real2imag):
         return real, imag
 
     else:
-        # General complex.
         real_attr, imag_attr = _split_complex_attributes(expr.attributes)
 
         real_var = Variable(shape=expr.shape, var_id=expr.id, **real_attr)
