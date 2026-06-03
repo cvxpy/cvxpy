@@ -24,6 +24,7 @@ from cvxpy import Minimize, Problem
 from cvxpy.expressions.constants import Constant, Parameter
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.complex2real.canonicalizers.variable_canon import variable_canon
+from cvxpy.reductions.complex2real.complex2real import Complex2Real
 from cvxpy.reductions.solvers.defines import INSTALLED_MI_SOLVERS
 from cvxpy.tests.base_test import BaseTest
 
@@ -31,7 +32,6 @@ from cvxpy.tests.base_test import BaseTest
 class TestComplex2RealAccepts(BaseTest):
     def test_accepts_returns_bool(self) -> None:
         """Complex2Real.accepts() should return bool, not None."""
-        from cvxpy.reductions.complex2real.complex2real import Complex2Real
         reduction = Complex2Real()
         # Complex problem should be accepted
         x = Variable((2, 2), complex=True)
@@ -45,9 +45,6 @@ class TestComplex2RealAttributes(BaseTest):
 
     def test_hermitian_variable_canon_returns_real_and_imag(self) -> None:
         """Test Hermitian complex variable canonicalizes to real and imaginary matrix parts."""
-        import cvxpy.lin_ops.lin_utils as lu
-        from cvxpy.expressions.variable import Variable
-        from cvxpy.reductions.complex2real.canonicalizers.variable_canon import variable_canon
 
         X = Variable((3, 3), hermitian=True)
         real2imag = {X.id: lu.get_id()}
@@ -62,9 +59,6 @@ class TestComplex2RealAttributes(BaseTest):
 
     def test_complex_diag_attribute_preservation(self) -> None:
         """Test diag attribute is preserved when splitting a general complex variable."""
-        import cvxpy.lin_ops.lin_utils as lu
-        from cvxpy.expressions.variable import Variable
-        from cvxpy.reductions.complex2real.canonicalizers.variable_canon import variable_canon
 
         X = Variable((4, 4), complex=True, diag=True)
         real2imag = {X.id: lu.get_id()}
@@ -78,7 +72,6 @@ class TestComplex2RealAttributes(BaseTest):
 
     def test_complex_psd_attribute_trace_problem(self) -> None:
         """Regression test for complex=True, PSD=True preserving PSD domain."""
-        import cvxpy as cp
 
         X = cp.Variable((2, 2), complex=True, PSD=True)
         prob = cp.Problem(
@@ -93,7 +86,6 @@ class TestComplex2RealAttributes(BaseTest):
 
     def test_complex_psd_attribute_matches_explicit_constraint(self) -> None:
         """complex=True, PSD=True should match X >> 0 on a bounded problem."""
-        import cvxpy as cp
 
         X_attr = cp.Variable((2, 2), complex=True, PSD=True)
         prob_attr = cp.Problem(
