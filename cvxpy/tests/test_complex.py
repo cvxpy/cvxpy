@@ -19,9 +19,11 @@ import pytest
 import scipy.sparse as sp
 
 import cvxpy as cp
+import cvxpy.lin_ops.lin_utils as lu
 from cvxpy import Minimize, Problem
 from cvxpy.expressions.constants import Constant, Parameter
 from cvxpy.expressions.variable import Variable
+from cvxpy.reductions.complex2real.canonicalizers.variable_canon import variable_canon
 from cvxpy.reductions.solvers.defines import INSTALLED_MI_SOLVERS
 from cvxpy.tests.base_test import BaseTest
 
@@ -115,8 +117,6 @@ class TestComplex2RealAttributes(BaseTest):
 
     def test_complex_nsd_attribute_trace_problem(self) -> None:
         """Regression test for complex=True, NSD=True preserving NSD domain."""
-        import cvxpy as cp
-
         X = cp.Variable((2, 2), complex=True, NSD=True)
         prob = cp.Problem(
             cp.Minimize(cp.real(X[0, 1] + X[1, 0])),
@@ -130,10 +130,6 @@ class TestComplex2RealAttributes(BaseTest):
 
     def test_complex_psd_real_part_preserves_psd(self) -> None:
         """Test PSD attribute is preserved on the real split variable."""
-        import cvxpy.lin_ops.lin_utils as lu
-        from cvxpy.expressions.variable import Variable
-        from cvxpy.reductions.complex2real.canonicalizers.variable_canon import variable_canon
-
         X = Variable((3, 3), complex=True, PSD=True)
         real2imag = {X.id: lu.get_id()}
 
@@ -144,8 +140,6 @@ class TestComplex2RealAttributes(BaseTest):
 
     def test_complex_sign_attributes_raise(self) -> None:
         """Complex variables cannot use real-valued sign attributes."""
-        import cvxpy as cp
-
         invalid_attrs = [
             {"nonneg": True},
             {"nonpos": True},
@@ -159,8 +153,6 @@ class TestComplex2RealAttributes(BaseTest):
 
     def test_imag_sign_attributes_raise(self) -> None:
         """Imaginary variables cannot use real-valued sign attributes."""
-        import cvxpy as cp
-
         invalid_attrs = [
             {"nonneg": True},
             {"nonpos": True},
@@ -174,10 +166,6 @@ class TestComplex2RealAttributes(BaseTest):
 
     def test_imag_diag_attribute_preservation(self) -> None:
         """Test diag attribute is preserved when splitting an imaginary variable."""
-        import cvxpy.lin_ops.lin_utils as lu
-        from cvxpy.expressions.variable import Variable
-        from cvxpy.reductions.complex2real.canonicalizers.variable_canon import variable_canon
-
         X = Variable((4, 4), imag=True, diag=True)
         real2imag = {X.id: lu.get_id()}
 
@@ -189,10 +177,6 @@ class TestComplex2RealAttributes(BaseTest):
 
     def test_complex_sparsity_attribute_preservation(self) -> None:
         """Test sparsity attribute is preserved when splitting a general complex variable."""
-        import cvxpy.lin_ops.lin_utils as lu
-        from cvxpy.expressions.variable import Variable
-        from cvxpy.reductions.complex2real.canonicalizers.variable_canon import variable_canon
-
         sparsity = ([0, 1], [1, 2])
         X = Variable((3, 3), complex=True, sparsity=sparsity)
         real2imag = {X.id: lu.get_id()}
@@ -206,10 +190,6 @@ class TestComplex2RealAttributes(BaseTest):
 
     def test_imag_sparsity_attribute_preservation(self) -> None:
         """Test sparsity attribute is preserved when splitting an imaginary variable."""
-        import cvxpy.lin_ops.lin_utils as lu
-        from cvxpy.expressions.variable import Variable
-        from cvxpy.reductions.complex2real.canonicalizers.variable_canon import variable_canon
-
         sparsity = ([0, 1], [1, 2])
         X = Variable((3, 3), imag=True, sparsity=sparsity)
         real2imag = {X.id: lu.get_id()}
