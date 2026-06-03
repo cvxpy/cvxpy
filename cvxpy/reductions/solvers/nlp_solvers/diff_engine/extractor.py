@@ -30,14 +30,31 @@ def _build_jacobian_csc(c_problem, jac_structure, m, n_vars):
     return sp.coo_matrix((vals, (rows, cols)), shape=(m, n_vars)).tocsc()
 
 
-def _build_hessian_csc(c_problem, duals):
-    """Evaluate the full (symmetric) Lagrangian Hessian and assemble it as CSC.
+def _full_symmetric_hess_structure(rows, cols, n_vars):
+    """Precompute the *full* symmetric Hessian sparsity from the engine's lower-triangular
+    COO sparsity (rows >= cols). Off-diagonal entries are mirrored across the diagonal.
 
-    The engine already holds the full symmetric Hessian as CSR, so we fetch it
-    directly -- no lower-triangular mirror / diagonal-doubling fixup needed.
+    Returns ``(full_rows, full_cols, offdiag_mask, shape)`` so that, given fresh
+    lower-triangular values ``v``, the full symmetric values are
+    ``concatenate([v, v[offdiag_mask]])`` -- see ``_build_hessian_csc``.
     """
-    data, indices, indptr, shape = c_problem.eval_hessian_csr(1.0, duals)
-    return sp.csr_matrix((data, indices, indptr), shape=shape).tocsc()
+    offdiag = rows != cols
+    full_rows = np.concatenate([rows, cols[offdiag]])
+    full_cols = np.concatenate([cols, rows[offdiag]])
+    return full_rows, full_cols, offdiag, (n_vars, n_vars)
+
+
+def _build_hessian_csc(c_problem, hess_structure, duals):
+    """Assemble the full symmetric Lagrangian Hessian P as CSC.
+
+    Re-evaluates only the lower-triangular Hessian *values* (the structure is fixed
+    across parameter updates and was captured once in ``hess_structure``), then mirrors
+    the off-diagonal entries to form the full symmetric matrix the cone solvers expect.
+    """
+    full_rows, full_cols, offdiag, shape = hess_structure
+    vals = c_problem.eval_hessian_vals_coo_lower_tri(1.0, duals)
+    full_vals = np.concatenate([vals, vals[offdiag]])
+    return sp.csc_matrix((full_vals, (full_rows, full_cols)), shape=shape)
 
 
 class DiffEngineExtractor:
@@ -59,6 +76,7 @@ class DiffEngineExtractor:
         self.n_vars = inverse_data.x_length
         self.c_problem = None
         self.jac_structure = None
+        self.hess_structure = None
         self.has_constraints = False
 
     def build(self, objective_expr, constraint_exprs, parameters, quad_obj: bool):
@@ -72,10 +90,14 @@ class DiffEngineExtractor:
             objective_expr, constraint_exprs, parameters, self.inverse_data,
             verbose=False)
         self.c_problem.init_jacobian_coo()
-        if quad_obj:
-            self.c_problem.init_hessian()
         self.jac_structure = (self.c_problem.get_jacobian_sparsity_coo()
                               if self.has_constraints else None)
+        if quad_obj:
+            # Capture the (fixed) lower-triangular Hessian sparsity once; re-solves then
+            # fetch values only and mirror to full symmetric (see _build_hessian_csc).
+            self.c_problem.init_hessian_coo_lower_tri()
+            rows, cols = self.c_problem.get_problem_hessian_sparsity_coo()
+            self.hess_structure = _full_symmetric_hess_structure(rows, cols, self.n_vars)
         return self
 
     def update_parameters(self, theta: np.ndarray) -> None:
@@ -101,5 +123,5 @@ class DiffEngineExtractor:
         P = None
         if quad_obj:
             duals = np.zeros(b.shape[0], dtype=np.float64)
-            P = _build_hessian_csc(self.c_problem, duals)
+            P = _build_hessian_csc(self.c_problem, self.hess_structure, duals)
         return q, d, A, b, P
