@@ -55,50 +55,6 @@ from cvxpy.reductions.utilities import (
 from cvxpy.utilities.coeff_extractor import CoeffExtractor
 
 
-def lower_and_order_constraints(constraints):
-    """Lower Equality/Inequality to Zero/NonNeg, normalize axis-1 cones, reorder.
-
-    Returns the constraints reordered as Zero, NonNeg, SOC, PSD, SvecPSD, ExpCone,
-    PowCone3D, PowConeND, along with a (new_id -> old_id) map. Because all lowering
-    preserves the original `constr_id`, the map is an identity.
-    """
-    cons = []
-    for con in constraints:
-        if isinstance(con, Equality):
-            con = lower_equality(con)
-        elif isinstance(con, Inequality):
-            con = lower_ineq_to_nonneg(con)
-        elif isinstance(con, SOC) and con.axis == 1:
-            con = SOC(con.args[0], con.args[1].T, axis=0,
-                      constr_id=con.constr_id)
-        elif isinstance(con, PowCone3D) and con.args[0].ndim > 1:
-            x, y, z = con.args
-            alpha = con.alpha
-            con = PowCone3D(x.flatten(order='F'),
-                            y.flatten(order='F'),
-                            z.flatten(order='F'),
-                            alpha.flatten(order='F'),
-                            constr_id=con.constr_id)
-        elif isinstance(con, PowConeND) and con.axis == 1:
-            alpha = con.alpha.T
-            W = con.W.T
-            con = PowConeND(W, con.z.flatten(order='F'),
-                            alpha, axis=0,
-                            constr_id=con.constr_id)
-        elif isinstance(con, ExpCone) and con.args[0].ndim > 1:
-            x, y, z = con.args
-            con = ExpCone(x.flatten(order='F'), y.flatten(order='F'), z.flatten(order='F'),
-                          constr_id=con.constr_id)
-        cons.append(con)
-    constr_map = group_constraints(cons)
-    ordered_cons = constr_map[Zero] + constr_map[NonNeg] + \
-        constr_map[SOC] + constr_map.get(PSD, []) + \
-        constr_map.get(SvecPSD, []) + constr_map[ExpCone] + \
-        constr_map[PowCone3D] + constr_map[PowConeND]
-    cons_id_map = {con.id: con.id for con in ordered_cons}
-    return ordered_cons, cons_id_map
-
-
 class ConeDims:
     """Summary of cone dimensions present in constraints.
 
@@ -427,11 +383,6 @@ class ConeMatrixStuffing(MatrixStuffing):
         # `ignore_dpp=True`; see `s.DIFFENGINE_CANON_BACKEND`.
         self.canon_backend = canon_backend
 
-    @property
-    def use_diffengine(self) -> bool:
-        """True when this stuffing targets the C diff engine backend."""
-        return self.canon_backend == s.DIFFENGINE_CANON_BACKEND
-
     def accepts(self, problem):
         valid_obj_curv = (self.quad_obj and problem.objective.expr.is_quadratic()) or \
             problem.objective.expr.is_affine()
@@ -459,13 +410,51 @@ class ConeMatrixStuffing(MatrixStuffing):
 
     def apply(self, problem):
         inverse_data = InverseData(problem)
-        ordered_cons, cons_id_map = lower_and_order_constraints(problem.constraints)
-        inverse_data.cons_id_map = cons_id_map
+        # Lower equality and inequality to Zero and NonNeg.
+        cons = []
+        for con in problem.constraints:
+            if isinstance(con, Equality):
+                con = lower_equality(con)
+            elif isinstance(con, Inequality):
+                con = lower_ineq_to_nonneg(con)
+            elif isinstance(con, SOC) and con.axis == 1:
+                con = SOC(con.args[0], con.args[1].T, axis=0,
+                          constr_id=con.constr_id)
+            elif isinstance(con, PowCone3D) and con.args[0].ndim > 1:
+                x, y, z = con.args
+                alpha = con.alpha
+                con = PowCone3D(x.flatten(order='F'),
+                                y.flatten(order='F'),
+                                z.flatten(order='F'),
+                                alpha.flatten(order='F'),
+                                constr_id=con.constr_id)
+            elif isinstance(con, PowConeND) and con.axis == 1:
+                alpha = con.alpha.T
+                W = con.W.T
+                con = PowConeND(W, con.z.flatten(order='F'),
+                                alpha,
+                                axis=0,
+                                constr_id=con.constr_id)
+            elif isinstance(con, ExpCone) and con.args[0].ndim > 1:
+                x, y, z = con.args
+                con = ExpCone(x.flatten(order='F'), y.flatten(order='F'), z.flatten(order='F'),
+                              constr_id=con.constr_id)
+            cons.append(con)
+        # Reorder constraints to Zero, NonNeg, SOC, PSD, EXP, PowCone3D, PowConeND
+        constr_map = group_constraints(cons)
+        ordered_cons = constr_map[Zero] + constr_map[NonNeg] + \
+            constr_map[SOC] + constr_map.get(PSD, []) + \
+            constr_map.get(SvecPSD, []) + constr_map[ExpCone] + \
+            constr_map[PowCone3D] + constr_map[PowConeND]
+        inverse_data.cons_id_map = {con.id: con.id for con in ordered_cons}
         self._cons_id_map = inverse_data.cons_id_map
         inverse_data.constraints = ordered_cons
         inverse_data.minimize = type(problem.objective) == Minimize
 
-        if self.use_diffengine:
+        if self.canon_backend == s.DIFFENGINE_CANON_BACKEND:
+            # The DIFFENGINE backend builds A, b, q, d, P directly from the CVXPY
+            # expression trees via the C diff engine, bypassing the parametric tensor
+            # pipeline.
             from cvxpy.reductions.dcp2cone.diffengine_cone_program import (
                 DiffengineConeProgram,
             )

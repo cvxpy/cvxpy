@@ -190,13 +190,6 @@ def _build_solving_chain(
     if FiniteSet in constr_types:
         reductions.append(Valinvec2mixedint())
 
-    use_quad = True if solver_opts is None else solver_opts.get('use_quad_obj', True)
-    # QP solvers always need quad_obj=True in the matrix stuffing step
-    # because their apply() expects the P matrix from ConeMatrixStuffing.
-    is_qp_solver = isinstance(solver_instance, QpSolver)
-    quad_obj = (use_quad and solver_instance.supports_quad_obj()
-                and (is_qp_solver or problem_form.has_quadratic_objective()))
-
     # --- DPP handling ---
     dpp_context = 'dcp' if not gp else 'dgp'
     # For QP/conic-QP solvers, we can loosen the DPP rules for quad_form
@@ -229,6 +222,13 @@ def _build_solving_chain(
                 canon_backend = COO_CANON_BACKEND
 
     # --- Canonicalization reductions (problem_form + solver_context) ---
+    use_quad = True if solver_opts is None else solver_opts.get('use_quad_obj', True)
+
+    # QP solvers always need quad_obj=True in the matrix stuffing step
+    # because their apply() expects the P matrix from ConeMatrixStuffing.
+    is_qp_solver = isinstance(solver_instance, QpSolver)
+    quad_obj = (use_quad and solver_instance.supports_quad_obj()
+                and (is_qp_solver or problem_form.has_quadratic_objective()))
     cones = problem_form.cones(quad_obj=quad_obj).copy()
     cones, exact_targets, approx_targets = expand_cones(cones, supported)
 

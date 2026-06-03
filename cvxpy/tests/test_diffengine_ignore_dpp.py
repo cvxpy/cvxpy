@@ -16,6 +16,7 @@ limitations under the License.
 import numpy as np
 
 import cvxpy as cp
+import cvxpy.settings as s
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
 from cvxpy.reductions.dcp2cone.dcp2cone import Dcp2Cone
 from cvxpy.reductions.eval_params import EvalParams
@@ -26,7 +27,8 @@ SOLVER = cp.CLARABEL
 
 def _has_diffengine(chain):
     """True iff a DIFFENGINE-backend ConeMatrixStuffing is in the chain."""
-    return any(isinstance(r, ConeMatrixStuffing) and r.use_diffengine
+    return any(isinstance(r, ConeMatrixStuffing)
+               and r.canon_backend == s.DIFFENGINE_CANON_BACKEND
                for r in chain.reductions)
 
 
