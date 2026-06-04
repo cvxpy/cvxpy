@@ -17,6 +17,7 @@ limitations under the License.
 # Utility functions to handle indexing/slicing into an expression.
 
 import numbers
+from typing import overload
 
 import numpy as np
 
@@ -93,6 +94,8 @@ def format_slice(key_val, dim, axis) -> slice | None:
     else:
         # Convert to int.
         orig_key_val = to_int(key_val)
+        # key_val is non-None in this branch, so to_int yields an int.
+        assert orig_key_val is not None
         key_val = wrap_neg_index(orig_key_val, dim)
         if 0 <= key_val < dim:
             return slice(key_val, key_val + 1, 1)
@@ -109,6 +112,12 @@ def to_int(val, none_val=None):
         return none_val
     else:
         return int(val)
+
+
+@overload
+def wrap_neg_index(index: int, dim, neg_step: bool = ...) -> int: ...
+@overload
+def wrap_neg_index(index: None, dim, neg_step: bool = ...) -> None: ...
 
 
 def wrap_neg_index(index, dim, neg_step: bool = False):

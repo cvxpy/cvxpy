@@ -138,6 +138,29 @@ class COPT(ConicSolver):
 
         return data, inv_data
 
+    def _dual_vars(self, solution, inverse_data):
+        """Map the stacked ``[eq; ineq]`` dual vector to a CVXPY dual dict.
+
+        Shared by the optimal duals and the infeasibility (Farkas) certificate,
+        which use the same row layout.
+        """
+        eq_dual = utilities.get_dual_values(
+            solution[s.EQ_DUAL],
+            utilities.extract_dual_value,
+            inverse_data[COPT.EQ_CONSTR])
+        leq_dual = utilities.get_dual_values(
+            solution[s.INEQ_DUAL],
+            utilities.extract_dual_value,
+            inverse_data[COPT.NEQ_CONSTR])
+        for con in inverse_data[self.NEQ_CONSTR]:
+            if isinstance(con, ExpCone):
+                cid = con.id
+                n_cones = con.num_cones()
+                perm = utilities.expcone_permutor(n_cones, COPT.EXP_CONE_ORDER)
+                leq_dual[cid] = leq_dual[cid][perm]
+        eq_dual.update(leq_dual)
+        return eq_dual
+
     def invert(self, solution, inverse_data):
         """
         Returns the solution to the original problem given the inverse_data.
@@ -147,31 +170,18 @@ class COPT(ConicSolver):
                 s.NUM_ITERS: solution[s.NUM_ITERS],
                 s.EXTRA_STATS: solution['model']}
 
-        primal_vars = None
+        # EQ_DUAL/INEQ_DUAL hold the constraint duals when a solution is present
+        # and the dual Farkas infeasibility certificate otherwise.
         dual_vars = None
+        if s.EQ_DUAL in solution and not inverse_data['is_mip']:
+            dual_vars = self._dual_vars(solution, inverse_data)
+
         if status in s.SOLUTION_PRESENT:
             opt_val = solution[s.VALUE] + inverse_data[s.OFFSET]
             primal_vars = {inverse_data[COPT.VAR_ID]: solution[s.PRIMAL]}
-            if not inverse_data['is_mip']:
-                eq_dual = utilities.get_dual_values(
-                    solution[s.EQ_DUAL],
-                    utilities.extract_dual_value,
-                    inverse_data[COPT.EQ_CONSTR])
-                leq_dual = utilities.get_dual_values(
-                    solution[s.INEQ_DUAL],
-                    utilities.extract_dual_value,
-                    inverse_data[COPT.NEQ_CONSTR])
-                for con in inverse_data[self.NEQ_CONSTR]:
-                    if isinstance(con, ExpCone):
-                        cid = con.id
-                        n_cones = con.num_cones()
-                        perm = utilities.expcone_permutor(n_cones, COPT.EXP_CONE_ORDER)
-                        leq_dual[cid] = leq_dual[cid][perm]
-                eq_dual.update(leq_dual)
-                dual_vars = eq_dual
             return Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
-            return failure_solution(status, attr)
+            return failure_solution(status, attr, dual_vars)
 
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
         """
@@ -324,6 +334,12 @@ class COPT(ConicSolver):
                 model.loadExpCone(nexpcone, None,
                                   range(A.shape[1] - nexpconedim, A.shape[1]))
 
+        # Request a dual Farkas ray so an infeasibility certificate is available
+        # for infeasible problems (not the dualized PSD path, and not MIPs). Set
+        # it before the user-settings loop so an explicit value in solver_opts wins.
+        if not dims[s.PSD_DIM] and not (data[s.BOOL_IDX] or data[s.INT_IDX]):
+            model.setParam(copt.COPT.Param.ReqFarkasRay, 1)
+
         # Set parameters
         for key, value in solver_opts.items():
             # Ignore arguments unique to the CVXPY interface.
@@ -390,6 +406,17 @@ class COPT(ConicSolver):
             solution[s.STATUS] = s.OPTIMAL_INACCURATE
         if solution[s.STATUS] == s.USER_LIMIT and not model.hasmipsol:
             solution[s.STATUS] = s.INFEASIBLE_INACCURATE
+
+        # On infeasibility, return the dual Farkas ray as the certificate,
+        # negated to match CVXPY's sign convention (as done for optimal duals).
+        # Split [eq; ineq] at EQ_DIM, mirroring the optimal-dual extraction.
+        if (not dims[s.PSD_DIM]
+                and solution[s.STATUS] in (s.INFEASIBLE, s.INFEASIBLE_INACCURATE)
+                and not (data[s.BOOL_IDX] or data[s.INT_IDX])
+                and model.hasdualfarkas):
+            y = -np.array(model.getInfo(copt.COPT.Info.DualFarkas, model.getConstrs()))
+            solution[s.EQ_DUAL] = y[0:dims[s.EQ_DIM]]
+            solution[s.INEQ_DUAL] = y[dims[s.EQ_DIM]:]
 
         solution['model'] = model
 

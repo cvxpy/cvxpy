@@ -685,12 +685,13 @@ class SciPyCanonBackend(PythonCanonBackend):
         """
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, target_shape=None)
         if is_param_free_lhs:
-            def func(x, p):
+            def param_free_mul(x, p):
                 if p == 1:
                     return lhs.multiply(x)
                 else:
                     new_lhs = sp.vstack([lhs] * p)
                     return new_lhs.multiply(x)
+            func = param_free_mul
         else:
             def parametrized_mul(x):
                 return {k: v.multiply(sp.vstack([x] * self.param_to_size[k]))
@@ -869,8 +870,8 @@ class SciPyCanonBackend(PythonCanonBackend):
         new_shape = (old_shape[1], old_shape[0])
         new_stacked_shape = (p * new_shape[0], new_shape[1])
 
-        v = v.tocoo()
-        data, rows, cols = v.data, v.row, v.col
+        coo = v.tocoo()
+        data, rows, cols = coo.data, coo.row, coo.col
         slices, rows = np.divmod(rows, old_shape[0])
 
         new_rows = cols + slices * new_shape[0]

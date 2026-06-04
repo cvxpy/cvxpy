@@ -38,6 +38,7 @@ jobs:
       - name: Verify Uno import
         run: uv run python -c "import unopy; print('unopy imported successfully')"
       - name: Install KNITRO solver
+        if: env.KNITRO_LICENSE != ''
         run: uv pip install knitro
       - name: Set up KNITRO license
         if: env.KNITRO_LICENSE != ''

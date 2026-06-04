@@ -64,7 +64,10 @@ jobs:
         run: uv run pytest -rs -m knitro cvxpy/tests/test_conic_solvers.py
       - name: Run test_qp_solvers
         if: always()
-        run: uv run pytest -rs cvxpy/tests/test_qp_solvers.py
+        run: uv run pytest -rs -m "not knitro" cvxpy/tests/test_qp_solvers.py
+      - name: Run test_qp_solvers (KNITRO)
+        if: always()
+        run: uv run pytest -rs -m knitro cvxpy/tests/test_qp_solvers.py
 
     env:
       RUNNER_OS: ${{ matrix.os }}

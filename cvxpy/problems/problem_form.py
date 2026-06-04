@@ -21,8 +21,8 @@ import cvxpy.settings as s
 from cvxpy.atoms import (
     EXP_ATOMS,
     GP_EXP_ATOMS,
-    GP_NONPOS_ATOMS,
-    NONPOS_ATOMS,
+    GP_NONNEG_ATOMS,
+    NONNEG_ATOMS,
     POWCONE_ATOMS,
     POWCONE_ND_ATOMS,
     PSD_ATOMS,
@@ -247,7 +247,7 @@ class ProblemForm:
         if ExpCone in constr_types or any(atom in EXP_ATOMS for atom in atoms):
             cones.add(ExpCone)
         if any(t in constr_types for t in [Inequality, NonPos, NonNeg]) \
-                or any(atom in NONPOS_ATOMS for atom in atoms):
+                or any(atom in NONNEG_ATOMS for atom in atoms):
             cones.add(NonNeg)
         if NonPos in constr_types:
             cones.add(NonPos)
@@ -298,7 +298,7 @@ class ProblemForm:
         if any(atom in GP_EXP_ATOMS for atom in atoms):
             cones.add(ExpCone)
         if any(t in constr_types for t in [Inequality, NonPos, NonNeg]) \
-                or any(atom in GP_NONPOS_ATOMS for atom in atoms):
+                or any(atom in GP_NONNEG_ATOMS for atom in atoms):
             cones.add(NonNeg)
         if Equality in constr_types or Zero in constr_types:
             cones.add(Zero)

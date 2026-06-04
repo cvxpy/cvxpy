@@ -24,7 +24,7 @@ from cvxpy.expressions.expression import Expression
 from cvxpy.utilities import bounds as bounds_utils
 
 
-def promote(expr: Expression, shape: tuple[int, ...]):
+def promote(expr: Expression, shape: tuple[int, ...]) -> Expression:
     """ Promote a scalar expression to a vector/matrix.
 
     Parameters

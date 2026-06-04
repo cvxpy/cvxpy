@@ -27,7 +27,7 @@ from cvxpy.atoms.sigma_max import sigma_max
 from cvxpy.expressions.expression import Expression
 
 
-def norm(x, p: int | str = 2, axis=None, keepdims: bool = False):
+def norm(x, p: int | str = 2, axis=None, keepdims: bool = False) -> Expression:
     """Wrapper on the different norm atoms.
 
     Parameters

@@ -20,6 +20,7 @@ import cvxpy.utilities as u
 from cvxpy.atoms.elementwise.elementwise import Elementwise
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions import cvxtypes
+from cvxpy.expressions.expression import Expression
 from cvxpy.utilities import bounds as bounds_utils
 from cvxpy.utilities.power_tools import is_power2, pow_high, pow_mid, pow_neg
 
@@ -28,7 +29,7 @@ def _is_const(p) -> bool:
     return isinstance(p, cvxtypes.constant())
 
 
-def power(x, p, max_denom: int = 1024, approx: bool = True):
+def power(x, p, max_denom: int = 1024, approx: bool = True) -> Expression:
     """Factory function for elementwise power.
 
     Parameters
@@ -48,8 +49,6 @@ def power(x, p, max_denom: int = 1024, approx: bool = True):
     -------
     Power, PowerApprox, or exp expression
     """
-
-    from cvxpy.expressions.expression import Expression
 
     # Cast both to CVXPY expressions for inspection
     x_expr = Expression.cast_to_const(x)
@@ -283,7 +282,9 @@ class Power(Elementwise):
     def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """
-        if not _is_const(self.p):
+        # p_used is None exactly when the exponent is non-constant (set in
+        # __init__); guarding on it also narrows p_used to a float below.
+        if self.p_used is None:
             return self.p.is_nonneg() and self.args[idx].is_nonneg()
 
         p = self.p_used
@@ -300,7 +301,9 @@ class Power(Elementwise):
     def is_decr(self, idx) -> bool:
         """Is the composition non-increasing in argument idx?
         """
-        if not _is_const(self.p):
+        # p_used is None exactly when the exponent is non-constant (set in
+        # __init__); guarding on it also narrows p_used to a float below.
+        if self.p_used is None:
             return self.p.is_nonpos() and self.args[idx].is_nonneg()
 
         p = self.p_used

@@ -16,9 +16,10 @@ limitations under the License.
 
 from cvxpy.atoms.elementwise.neg import neg
 from cvxpy.atoms.elementwise.pos import pos
+from cvxpy.expressions.expression import Expression
 
 
-def scalene(x, alpha, beta):
+def scalene(x, alpha, beta) -> Expression:
     """ Alias for ``alpha*pos(x) + beta*neg(x)``.
     """
     return alpha*pos(x) + beta*neg(x)

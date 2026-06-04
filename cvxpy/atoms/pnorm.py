@@ -21,11 +21,12 @@ from cvxpy.atoms.axis_atom import AxisAtom
 from cvxpy.atoms.norm1 import norm1
 from cvxpy.atoms.norm_inf import norm_inf
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.expressions.expression import Expression
 from cvxpy.utilities.power_tools import pow_high, pow_mid, pow_neg
 
 
 def pnorm(x, p: int | str = 2, axis: int | tuple[int, ...] | None = None,
-          keepdims: bool = False, max_denom: int = 1024, approx: bool = True):
+          keepdims: bool = False, max_denom: int = 1024, approx: bool = True) -> Expression:
     """Factory function for a mathematical p-norm.
 
     Parameters

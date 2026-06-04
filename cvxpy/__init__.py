@@ -36,6 +36,7 @@ from cvxpy.constraints import (
 from cvxpy.error import (
     DCPError as DCPError,
     DGPError as DGPError,
+    DNLPError as DNLPError,
     DPPError as DPPError,
     SolverError as SolverError,
     disable_warnings as disable_warnings,

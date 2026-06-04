@@ -1540,7 +1540,8 @@ class CooCanonBackend(PythonCanonBackend):
             self.param_to_size, self.param_to_col, self.var_length
         )
 
-    def get_variable_tensor(self, shape: tuple, var_id: int) -> dict:
+    def get_variable_tensor(self, shape: tuple[int, ...], var_id: int) -> \
+            dict[int, dict[int, CooTensor]]:
         """
         Create tensor for a variable.
 
@@ -1558,7 +1559,7 @@ class CooCanonBackend(PythonCanonBackend):
         )
         return {var_id: {Constant.ID.value: compact}}
 
-    def get_data_tensor(self, data: np.ndarray | sp.spmatrix) -> dict:
+    def get_data_tensor(self, data: np.ndarray | sp.spmatrix) -> dict[int, dict[int, CooTensor]]:
         """
         Create tensor for constant data.
 
@@ -1590,7 +1591,8 @@ class CooCanonBackend(PythonCanonBackend):
         )
         return {Constant.ID.value: {Constant.ID.value: compact}}
 
-    def get_param_tensor(self, shape: tuple, parameter_id: int) -> dict:
+    def get_param_tensor(self, shape: tuple[int, ...], parameter_id: int) -> \
+            dict[int, dict[int, CooTensor]]:
         """
         Create tensor for a parameter.
 
@@ -2266,7 +2268,8 @@ class CooCanonBackend(PythonCanonBackend):
             return self._rmul_kronecker(rhs_data, const_shape, var_shape, view)
 
     @staticmethod
-    def reshape_constant_data(constant_data: dict, lin_op_shape: tuple) -> dict:
+    def reshape_constant_data(constant_data: dict[int, CooTensor],
+                              lin_op_shape: tuple[int, ...]) -> dict[int, CooTensor]:
         """Reshape constant data from column format to required shape.
 
         The input CooTensor is in column format (m*n, 1). We reshape it

@@ -18,7 +18,7 @@ from cvxpy.atoms.pnorm import pnorm
 from cvxpy.expressions.expression import Expression
 
 
-def harmonic_mean(x):
+def harmonic_mean(x) -> Expression:
     """The harmonic mean of ``x``.
 
     Parameters

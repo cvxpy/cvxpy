@@ -21,7 +21,7 @@ from cvxpy.atoms.norm import norm
 from cvxpy.expressions.expression import Expression
 
 
-def tv(value, *args):
+def tv(value, *args) -> Expression:
     """Total variation of a vector, matrix, or list of matrices.
 
     Uses L1 norm of discrete gradients for vectors and

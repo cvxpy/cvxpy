@@ -4,6 +4,7 @@ import scipy.sparse as sp
 
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.atom import Atom
+from cvxpy.expressions.expression import ExpressionValue
 from cvxpy.expressions.variable import Variable
 
 
@@ -104,7 +105,7 @@ class SuppFuncAtom(Atom):
     def is_quasiconcave(self) -> bool:
         return False
 
-    def _value_impl(self):
+    def _value_impl(self) -> ExpressionValue | None:
         from cvxpy.problems.objective import Maximize
         from cvxpy.problems.problem import Problem
         y_val = self.args[0].value.round(decimals=9).ravel(order='F')

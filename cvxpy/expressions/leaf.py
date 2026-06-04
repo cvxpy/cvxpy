@@ -522,7 +522,7 @@ class Leaf(expression.Expression):
             self._value = val
 
     @property
-    def value(self) -> np.ndarray | None:
+    def value(self) -> expression.ExpressionValue | None:
         """The numeric value of the expression."""
         if self.sparse_idx is None:
             return self._value
@@ -550,7 +550,7 @@ class Leaf(expression.Expression):
         return sp.coo_array((self._value, self.sparse_idx), shape=self.shape)
 
     @value_sparse.setter
-    def value_sparse(self, val) -> None:
+    def value_sparse(self, val: sp.coo_array | sp.spmatrix) -> None:
         if isinstance(val, sp.spmatrix):
             val = sp.coo_array(val)
         elif not isinstance(val, sp.coo_array):
