@@ -14,6 +14,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import tempfile
 import unittest
 
 import numpy as np
@@ -1158,3 +1159,65 @@ class TestQpSolverValidation(unittest.TestCase):
         with self.assertRaises(SolverError) as cm:
             osqp_solver.apply(param_cone_prog)
         self.assertIn("second-order cones", str(cm.exception))
+
+
+@unittest.skipUnless('PIQP' in INSTALLED_SOLVERS, 'PIQP is not installed.')
+class TestPiqpInterface(unittest.TestCase):
+    """Focused tests for PIQP solver-interface options."""
+
+    def test_piqp_dense_backend(self) -> None:
+        """The dense backend should agree with the default sparse backend."""
+        x = cp.Variable(2)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(x - 3)), [x[0] + x[1] <= 4])
+        prob.solve(solver=cp.PIQP, backend='dense')
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        np.testing.assert_allclose(x.value, [2., 2.], atol=1e-4)
+
+    def test_piqp_invalid_backend(self) -> None:
+        """An unrecognized backend is rejected before solving."""
+        x = cp.Variable(2)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(x)), [x >= 1])
+        with self.assertRaisesRegex(ValueError, "backend must be either dense or sparse"):
+            prob.solve(solver=cp.PIQP, backend='tridiagonal')
+
+    def test_piqp_unknown_setting(self) -> None:
+        """An unknown solver setting raises a clear TypeError."""
+        x = cp.Variable(2)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(x)), [x >= 1])
+        with self.assertRaisesRegex(TypeError, "Unrecognized solver setting"):
+            prob.solve(solver=cp.PIQP, not_a_real_setting=1.0)
+
+
+@unittest.skipUnless('COPT' in INSTALLED_SOLVERS, 'COPT is not installed.')
+class TestCoptQpInterface(unittest.TestCase):
+    """Focused tests for COPT QP solver-interface options."""
+
+    def test_copt_mixed_integer(self) -> None:
+        """A mixed boolean/integer QP exercises the MIP variable-type path."""
+        xb = cp.Variable(boolean=True)
+        xi = cp.Variable(integer=True)
+        prob = cp.Problem(cp.Minimize((xb - 0.7) ** 2 + (xi - 2.4) ** 2),
+                          [xi >= 0, xi <= 5])
+        prob.solve(solver=cp.COPT)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        self.assertTrue(np.isclose(xb.value, 1.0))
+        self.assertTrue(np.isclose(xi.value, 2.0))
+
+    def test_copt_solver_opts_passthrough(self) -> None:
+        """Non-interface solver options are forwarded to COPT via setParam."""
+        x = cp.Variable(2)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(x - 1)), [x >= 0])
+        prob.solve(solver=cp.COPT, RelGap=1e-7)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        np.testing.assert_allclose(x.value, [1., 1.], atol=1e-4)
+
+    def test_copt_save_file(self) -> None:
+        """The save_file option writes the model to disk before solving."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            out = f"{tmpdir}/model.mps"
+            x = cp.Variable(2)
+            prob = cp.Problem(cp.Minimize(cp.sum_squares(x - 1)), [x >= 0])
+            prob.solve(solver=cp.COPT, save_file=out)
+            self.assertEqual(prob.status, cp.OPTIMAL)
+            with open(out, "rb") as file:
+                self.assertGreater(len(file.read()), 0)
