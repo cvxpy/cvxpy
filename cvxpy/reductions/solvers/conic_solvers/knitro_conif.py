@@ -478,7 +478,7 @@ class KNITRO(ConicSolver):
         if dims.n_psds > 0:
             kn.KN_add_vars(kc, dims.n_psd_vars)
 
-        D = sp.coo_matrix(A)
+        D = sp.coo_array(A)
         if D.nnz != 0:
             cis, vis, coefs = D.row, D.col, D.data
             kn.KN_add_con_linear_struct(kc, indexCons=cis, indexVars=vis, coefs=coefs)
@@ -612,7 +612,7 @@ class KNITRO(ConicSolver):
 
         # Set the quadratic part of the objective function.
         if P is not None and P.nnz != 0:
-            Q = sp.coo_matrix(0.5 * P)
+            Q = sp.coo_array(0.5 * P)
             vis1, vis2, coefs = Q.row, Q.col, Q.data
             kn.KN_add_obj_quadratic_struct(kc, indexVars1=vis1, indexVars2=vis2, coefs=coefs)
 

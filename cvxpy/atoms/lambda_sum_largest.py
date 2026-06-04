@@ -17,6 +17,7 @@ limitations under the License.
 import numpy as np
 
 from cvxpy.atoms.lambda_max import lambda_max
+from cvxpy.expressions.expression import ExpressionValue
 
 
 class lambda_sum_largest(lambda_max):
@@ -81,7 +82,7 @@ class lambda_sum_largest(lambda_max):
         return D
 
     @property
-    def value(self):
+    def value(self) -> ExpressionValue | None:
         val = self.args[0].value
         if val is None:
             return None

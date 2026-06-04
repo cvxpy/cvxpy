@@ -103,7 +103,7 @@ def compress_matrix(A, b, equil_eps: float = 1e-10):
 
     # Compress A and b.
     cols = max(len(row_to_keep), 1)
-    P = sp.coo_matrix((P_V, (P_I, P_J)), (A.shape[0], cols))
+    P = sp.coo_array((P_V, (P_I, P_J)), shape=(A.shape[0], cols))
     A_compr = A[row_to_keep, :]
     b_compr = b[row_to_keep]
     return (A_compr, b_compr, P)

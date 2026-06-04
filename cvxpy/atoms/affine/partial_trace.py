@@ -19,6 +19,7 @@ import scipy.sparse as sp
 from numpy.lib.array_utils import normalize_axis_index
 
 from cvxpy.atoms.atom import Atom
+from cvxpy.expressions.expression import Expression
 
 
 def _term(expr, j: int, dims: tuple[int], axis: int | None = 0):
@@ -40,11 +41,11 @@ def _term(expr, j: int, dims: tuple[int], axis: int | None = 0):
     # in the system we want to trace out.
     # This function returns the jth term in the sum, namely
     # (I ⊗ <j| ⊗ I) x (I ⊗ |j> ⊗ I).
-    a = sp.coo_matrix(([1.0], ([0], [0])))
-    b = sp.coo_matrix(([1.0], ([0], [0])))
+    a = sp.coo_array(([1.0], ([0], [0])))
+    b = sp.coo_array(([1.0], ([0], [0])))
     for (i_axis, dim) in enumerate(dims):
         if i_axis == axis:
-            v = sp.coo_matrix(([1], ([j], [0])), shape=(dim, 1))
+            v = sp.coo_array(([1], ([j], [0])), shape=(dim, 1))
             a = sp.kron(a, v.T)
             b = sp.kron(b, v)
         else:
@@ -55,7 +56,7 @@ def _term(expr, j: int, dims: tuple[int], axis: int | None = 0):
 
 
 # ruff: noqa: E501
-def partial_trace(expr, dims: tuple[int], axis: int | None = 0):
+def partial_trace(expr, dims: tuple[int], axis: int | None = 0) -> Expression:
     """
     Assumes :math:`\\texttt{expr} = X_1 \\otimes \\cdots \\otimes X_n` is a 2D Kronecker
     product composed of :math:`n = \\texttt{len(dims)}` implicit subsystems.

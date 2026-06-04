@@ -50,14 +50,21 @@ from cvxpy.tests.test_conic_solvers import is_knitro_available, is_mosek_availab
 # canonical, KNITRO-OpenMP-safe implementations live in one place.
 
 def is_xpress_available():
-    """Check if XPRESS is installed and a license is available."""
+    """Check if XPRESS is installed and a usable license can be acquired.
+
+    The Community license bundled with the ``xpress`` package is sufficient for
+    the small problems in this suite, so we only confirm that a problem object
+    can be created -- that is where XPRESS acquires its license. The previous
+    ``xpress.env().getlicense()`` API was removed in modern xpress, so the check
+    raised ``AttributeError`` and always returned False, silently skipping every
+    license-gated XPRESS QP test.
+    """
     if 'XPRESS' not in INSTALLED_SOLVERS:
         return False
     try:
         import xpress  # type: ignore
-        env = xpress.env()
-        status = env.getlicense()
-        return status == 0
+        xpress.problem()
+        return True
     except Exception:
         return False
 
@@ -116,7 +123,23 @@ def _solve(problem, solver, use_quad_obj):
             f"Problem should have no SOC cones for QP canonicalization with {solver}"
         )
     kwargs = {"use_quad_obj": True} if use_quad_obj else {}
-    return problem.solve(solver=solver, verbose=False, **kwargs)
+    try:
+        return problem.solve(solver=solver, verbose=False, **kwargs)
+    except Exception as exc:
+        _skip_if_xpress_community_limit(solver, exc)
+        raise
+
+
+def _skip_if_xpress_community_limit(solver, exc):
+    """Skip when a problem exceeds the XPRESS Community license size limit.
+
+    The Community license bundled with the ``xpress`` package caps problems at
+    200 rows+columns; larger problems raise a size-limit ``SolverError``. Skip
+    those rather than fail -- they run fully under a full XPRESS license, and
+    the smaller problems still exercise the QP interface.
+    """
+    if solver == cp.XPRESS and "too many rows and columns" in str(exc):
+        pytest.skip("XPRESS Community license problem-size limit (200 rows+cols)")
 
 
 def check_kkt(problem, places=4):
@@ -552,6 +575,24 @@ def test_xpress_warmstart():
     result = prob.solve(solver=cp.XPRESS, warm_start=True)
     result2 = prob.solve(solver=cp.XPRESS, warm_start=False)
     np.testing.assert_allclose(result, result2, atol=1e-5)
+
+
+@pytest.mark.skipif(not is_xpress_available(), reason="XPRESS license not available")
+def test_xpress_duplicate_variable_names_qp():
+    """Two variables sharing a name() must not crash the QP interface.
+
+    cvxpy derives Xpress column names from ``Variable.name()``, so two variables
+    created with the same name previously produced duplicate columns, which
+    Xpress >= 9.5 rejects with ``?1030 Duplicate column names are not allowed``.
+    The quadratic objective routes the problem through ``xpress_qpif``.
+    """
+    x = cp.Variable(3, name="dup")
+    y = cp.Variable(3, name="dup")
+    prob = cp.Problem(cp.Minimize(cp.sum_squares(x - 1) + cp.sum_squares(y - 2)))
+    prob.solve(solver=cp.XPRESS)
+    assert prob.status in (cp.OPTIMAL, cp.OPTIMAL_INACCURATE)
+    np.testing.assert_allclose(x.value, 1, atol=1e-4)
+    np.testing.assert_allclose(y.value, 2, atol=1e-4)
 
 
 @pytest.mark.skipif(cp.HIGHS not in INSTALLED_SOLVERS, reason="HIGHS is not installed")

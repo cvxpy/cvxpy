@@ -15,9 +15,10 @@ limitations under the License.
 """
 
 from cvxpy.atoms.elementwise.maximum import maximum
+from cvxpy.expressions.expression import Expression
 
 
-def pos(x):
+def pos(x) -> Expression:
     """ Alias for maximum{x,0}.
 
     """

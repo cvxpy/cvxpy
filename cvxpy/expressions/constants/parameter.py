@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy import settings as s
-from cvxpy.expressions.expression import Expression
+from cvxpy.expressions.expression import Expression, GradMap
 from cvxpy.expressions.leaf import Leaf
 from cvxpy.utilities import scopes
 
@@ -86,7 +86,7 @@ class Parameter(Leaf):
         return True
 
     @property
-    def grad(self):
+    def grad(self) -> GradMap:
         """Gives the (sub/super)gradient of the expression w.r.t. each variable.
 
         Matrix expressions are vectorized, so the gradient is a matrix.
