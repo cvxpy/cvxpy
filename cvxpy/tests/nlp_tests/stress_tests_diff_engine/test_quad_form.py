@@ -20,6 +20,14 @@ import scipy.sparse as sp
 
 import cvxpy as cp
 from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS
+from cvxpy.tests.nlp_tests.derivative_checker import DerivativeChecker
+
+
+def _spd(n, seed):
+    """A symmetric positive-definite n x n matrix."""
+    rng = np.random.default_rng(seed)
+    M = rng.standard_normal((n, n))
+    return M @ M.T + n * np.eye(n)
 
 
 @pytest.mark.skipif('IPOPT' not in INSTALLED_SOLVERS, reason='IPOPT is not installed.')
@@ -113,14 +121,55 @@ class TestQuadFormDifferentFormats:
         assert np.allclose(dense_val, csr_val)
         assert np.allclose(dense_val, csc_val)
 
-    def test_parameterized_quad_form_errors_clearly(self):
-        n = 4
-        x = cp.Variable(n, bounds=[-1, 1])
-        rng = np.random.default_rng(0)
-        P_val = rng.random((n, n))
-        P_val = P_val + P_val.T
-        P = cp.Parameter((n, n), symmetric=True, value=P_val)
-        prob = cp.Problem(cp.Minimize(cp.quad_form(x, P)))
 
-        with pytest.raises(NotImplementedError, match="parameterized P"):
-            prob.solve(nlp=True)
+class TestQuadFormDiffEngine:
+    """Derivative-engine checks for quad_form x'Px across P formats and a leaf or
+    composed x. Uses DerivativeChecker (objective/gradient/jacobian/hessian), which
+    builds the C diff-engine problem directly and needs no NLP solver.
+    """
+
+    @staticmethod
+    def _var(n, seed):
+        x = cp.Variable(n, bounds=[-1, 1])
+        x.value = np.random.default_rng(seed).uniform(-0.9, 0.9, n)
+        return x
+
+    def test_quad_form_dense_P(self):
+        # Dense constant P over a leaf variable (the permuted_dense fast path).
+        n = 6
+        P = _spd(n, seed=0)
+        x = self._var(n, seed=10)
+        prob = cp.Problem(cp.Minimize(cp.quad_form(x, P)))
+        DerivativeChecker(prob).run_and_assert()
+
+    def test_quad_form_sparse_P(self):
+        # Sparse constant P over a leaf variable (the CSR path).
+        n = 6
+        P = sp.csr_matrix(_spd(n, seed=1))
+        x = self._var(n, seed=11)
+        prob = cp.Problem(cp.Minimize(cp.quad_form(x, P)))
+        DerivativeChecker(prob).run_and_assert()
+
+    def test_quad_form_parametric_P(self):
+        # Parametric P (re-evaluated each solve) over a leaf variable.
+        n = 6
+        P = cp.Parameter((n, n), PSD=True, value=_spd(n, seed=2))
+        x = self._var(n, seed=12)
+        prob = cp.Problem(cp.Minimize(cp.quad_form(x, P)))
+        DerivativeChecker(prob).run_and_assert()
+
+    def test_quad_form_dense_P_composition(self):
+        # Dense P over a composed (sliced) argument x[:k], not a single variable.
+        n, k = 6, 3
+        P = _spd(k, seed=3)
+        x = self._var(n, seed=13)
+        prob = cp.Problem(cp.Minimize(cp.quad_form(x[:k], P)))
+        DerivativeChecker(prob).run_and_assert()
+
+    def test_quad_form_sparse_P_composition(self):
+        # Sparse P over a composed (sliced) argument x[:k].
+        n, k = 6, 3
+        P = sp.csr_matrix(_spd(k, seed=4))
+        x = self._var(n, seed=14)
+        prob = cp.Problem(cp.Minimize(cp.quad_form(x[:k], P)))
+        DerivativeChecker(prob).run_and_assert()

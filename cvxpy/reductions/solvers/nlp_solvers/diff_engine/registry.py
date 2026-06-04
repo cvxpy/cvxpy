@@ -105,13 +105,18 @@ def convert_rel_entr(expr, children):
 
 
 def convert_quad_form(expr, children):
-    """Convert scalar quadratic form x.T @ P @ x."""
+    """Convert scalar quadratic form x.T @ P @ x.
+
+    Constant P uses the native sparse (CSR) or dense (permuted_dense) binding.
+    A parametric P (affine in the parameters, independent of x, so the Hessian is
+    still 2P) is fed to the dense path as a matrix-valued child re-evaluated each
+    solve -- children[1] is the already-converted P expression node.
+    """
     P = expr.args[1]
+    n = expr.args[0].size
 
     if P.parameters():
-        raise NotImplementedError(
-            "quad_form with a parameterized P is not supported by the diff engine."
-        )
+        return _diffengine.make_quad_form(children[1], children[0], "dense", None, n)
 
     if not P.is_constant():
         raise NotImplementedError("quad_form requires P to be a constant matrix")
@@ -123,16 +128,23 @@ def convert_quad_form(expr, children):
             "is not supported by the diff engine."
         )
 
-    if not isinstance(P_val, sparse.csr_matrix):
-        P_val = sparse.csr_matrix(P_val)
+    if sparse.issparse(P_val):
+        P_csr = P_val.tocsr()
+        return _diffengine.make_quad_form(
+            None,
+            children[0],
+            "sparse",
+            P_csr.data.astype(np.float64),
+            P_csr.indices.astype(np.int32),
+            P_csr.indptr.astype(np.int32),
+            P_csr.shape[0],
+            P_csr.shape[1],
+        )
 
+    # Dense constant P: use the dense (permuted_dense) path.
+    P_dense = np.asarray(P_val, dtype=np.float64)
     return _diffengine.make_quad_form(
-        children[0],
-        P_val.data.astype(np.float64),
-        P_val.indices.astype(np.int32),
-        P_val.indptr.astype(np.int32),
-        P_val.shape[0],
-        P_val.shape[1],
+        None, children[0], "dense", P_dense.flatten(order='F'), P_dense.shape[0]
     )
 
 
