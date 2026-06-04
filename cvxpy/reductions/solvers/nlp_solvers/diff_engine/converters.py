@@ -15,6 +15,7 @@ limitations under the License.
 
 Main entry point for converting CVXPY expressions to C diff engine expressions.
 """
+import numpy as np
 from scipy import sparse
 from sparsediffpy import _sparsediffengine as _diffengine
 
@@ -28,6 +29,11 @@ from cvxpy.reductions.solvers.nlp_solvers.diff_engine.helpers import (
     to_dense_float,
 )
 from cvxpy.reductions.solvers.nlp_solvers.diff_engine.registry import ATOM_CONVERTERS
+
+# A constant dense matmul operand whose nonzero fraction falls below this threshold is
+# routed to the sparse (CSR) binding instead of the dense permuted_dense path, which would
+# otherwise build a dense Jacobian/Hessian and be orders of magnitude slower.
+SPARSE_MATMUL_DENSITY_THRESHOLD = 0.05
 
 
 def convert_matmul(expr, children, var_dict, n_vars, param_dict):
@@ -44,6 +50,13 @@ def convert_matmul(expr, children, var_dict, n_vars, param_dict):
         param_node = children[0] if left_arg.parameters() else None
         if sparse.issparse(A):
             return make_sparse_left_matmul(param_node, children[1], A)
+        # A constant dense matrix that is mostly zeros: the permuted_dense path would
+        # materialize a dense Jacobian/Hessian, so route to the sparse CSR binding instead.
+        # Restricted to constants (param_node is None) because sparsifying a parametric
+        # matrix would freeze its sparsity pattern to the current value.
+        density = np.count_nonzero(A) / A.size if A.size else 1.0
+        if param_node is None and density < SPARSE_MATMUL_DENSITY_THRESHOLD:
+            return make_sparse_left_matmul(None, children[1], sparse.csr_matrix(A))
         return make_dense_left_matmul(param_node, children[1], A)
 
     elif right_arg.is_constant():
