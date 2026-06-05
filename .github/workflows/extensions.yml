@@ -8,8 +8,47 @@ on:
         tags:
           - '*'
 jobs:
+  test_cvxpylayers:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.11"
+          enable-cache: true
+      - name: Install system dependencies
+        run: |
+          sudo apt update
+          sudo apt install libeigen3-dev
+      - name: Install CVXPY
+        run: |
+          uv venv --seed
+          uv pip install .
+      - name: Install CVXPYlayers
+        run: |
+          git clone https://github.com/cvxpy/cvxpylayers.git
+          cd cvxpylayers
+          uv pip install ".[torch, jax]"
+          uv pip install "mlx[cpu]" "mpax"
+      - name: Run CVXPYlayers tests
+        run: |
+          uv run --no-sync pytest cvxpylayers/tests \
+            --ignore=cvxpylayers/tests/test_cuclarabel.py
+
   test_cvxpygen:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: lp
+            tests: test_readme.py test_invalid_input.py test_E2E_LP.py test_unsupported_solvers.py
+          - name: qp
+            tests: test_E2E_QP.py test_explicit.py test_diff.py
+          - name: socp
+            tests: test_E2E_SOCP.py
+    name: test_cvxpygen (${{ matrix.name }})
     steps:
       - uses: actions/checkout@v5
       - name: Install uv
@@ -36,11 +75,7 @@ jobs:
           git clone --recurse-submodules https://github.com/cvxgrp/cvxpygen.git
           cd cvxpygen
           uv pip install .[dev]
-      - name: Run CVXPYlayers tests
-        run: |
-          uv run --no-sync pytest cvxpylayers/tests \
-            --ignore=cvxpylayers/tests/test_cuclarabel.py
       - name: Run CVXPYgen tests
-        if: success() || failure()
         run: |
-          uv run --no-sync pytest cvxpygen/tests
+          cd cvxpygen/tests
+          uv run --no-sync pytest ${{ matrix.tests }}
