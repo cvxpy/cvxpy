@@ -51,6 +51,29 @@ jobs:
       - name: Install Moreau
         if: runner.os == 'Linux' && env.FURY_TOKEN != ''
         run: uv pip install moreau --extra-index-url https://${FURY_TOKEN}:@pypi.fury.io/optimalintellect/
+      - name: Print CPU features
+        run: |
+          uname -a
+          python - <<'PY'
+          import platform
+
+          print(f"machine={platform.machine()}")
+          print(f"processor={platform.processor()}")
+          print(f"platform={platform.platform()}")
+          PY
+
+          if command -v lscpu >/dev/null 2>&1; then
+            lscpu
+          fi
+
+          if [ -r /proc/cpuinfo ]; then
+            grep -m1 -E '^(model name|Processor|cpu model)' /proc/cpuinfo || true
+            grep -m1 -E '^(flags|Features)' /proc/cpuinfo || true
+          fi
+
+          if [ "$RUNNER_OS" = "macOS" ]; then
+            sysctl -a | grep -E '^(machdep.cpu|hw.machine|hw.model|hw.optional)' || true
+          fi
       - name: Print installed solvers
         run: uv run python -c "import cvxpy; print(cvxpy.installed_solvers())"
       # KNITRO bundles LLVM libomp; CVXOPT bundles GNU libgomp via its
