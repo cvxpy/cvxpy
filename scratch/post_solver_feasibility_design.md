@@ -175,7 +175,7 @@ The absolute times are small in this toy benchmark, but the scaling difference s
 
 A first PR could stay small:
 
-* Internal helper to normalize each constraint violation to a scalar and compute the max original-constraint violation.
+* Internal helper to normalize each primal constraint violation to a scalar and compute the max original-constraint violation.
 * Tests for a solved feasible problem.
 * Tests for manually corrupted variable values.
 * Tests covering scalar normalization behavior across core constraint classes.
@@ -192,3 +192,15 @@ Possible follow-up work could add warning behavior through a solve flag:
 ```python
 prob.solve(check_feasibility=True, feasibility_tol=...)
 ```
+
+## Future scope
+
+The first version of this design focuses on primal constraint violation only.
+
+However, the API should be documented carefully because the meaning of `prob.violation()` may expand in the future if related checks can be defined consistently. Possible follow-up directions include:
+
+* **Dual feasibility:** checking whether unpacked constraint dual values satisfy the expected dual-domain conditions.
+* **Complementarity:** checking primal-dual complementarity where it can be evaluated cleanly for a constraint type.
+* **Duality gap / stationarity:** investigating whether these can be computed reliably in the original problem space.
+
+These are left out of the first version because they require more care than a primal-side violation check, especially for reductions, functional convex problems, subgradients, and solver-specific dual information.
