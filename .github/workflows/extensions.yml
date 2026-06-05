@@ -25,6 +25,7 @@ jobs:
         run: |
           uv venv --seed
           uv pip install .
+          uv pip install pytest
       - name: Install CVXPYlayers
         run: |
           git clone https://github.com/cvxpy/cvxpylayers.git
@@ -44,10 +45,25 @@ jobs:
         include:
           - name: lp
             tests: test_readme.py test_invalid_input.py test_E2E_LP.py test_unsupported_solvers.py
+            cvxpylayers: false
           - name: qp
+            # test_diff.py imports cvxpylayers.torch, so this shard installs it.
             tests: test_E2E_QP.py test_explicit.py test_diff.py
+            cvxpylayers: true
           - name: socp
             tests: test_E2E_SOCP.py
+            cvxpylayers: false
+          # Catch-all: run anything not covered by the shards above, so a newly
+          # added test file upstream is never silently skipped. Skips cvxpylayers
+          # for speed; a new cvxpylayers-dependent test will fail here loudly,
+          # signalling it belongs in the qp shard.
+          - name: rest
+            tests: >-
+              . --ignore=test_readme.py --ignore=test_invalid_input.py
+              --ignore=test_E2E_LP.py --ignore=test_unsupported_solvers.py
+              --ignore=test_E2E_QP.py --ignore=test_explicit.py
+              --ignore=test_diff.py --ignore=test_E2E_SOCP.py
+            cvxpylayers: false
     name: test_cvxpygen (${{ matrix.name }})
     steps:
       - uses: actions/checkout@v5
@@ -64,7 +80,9 @@ jobs:
         run: |
           uv venv --seed
           uv pip install .
+          uv pip install pytest
       - name: Install CVXPYlayers
+        if: matrix.cvxpylayers
         run: |
           git clone https://github.com/cvxpy/cvxpylayers.git
           cd cvxpylayers
@@ -78,4 +96,9 @@ jobs:
       - name: Run CVXPYgen tests
         run: |
           cd cvxpygen/tests
-          uv run --no-sync pytest ${{ matrix.tests }}
+          # --project points uv at the root .venv (CVXPY + cvxpygen[dev] + pytest);
+          # without it, uv would discover the cvxpygen clone and spin up an empty
+          # cvxpygen/.venv. Exit code 5 ("no tests collected") is expected for the
+          # `rest` shard when no test files exist beyond those the other shards cover.
+          uv run --no-sync --project "$GITHUB_WORKSPACE" pytest ${{ matrix.tests }} \
+            || [ $? -eq 5 ]
