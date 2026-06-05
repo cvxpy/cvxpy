@@ -25,7 +25,11 @@ from cvxpy.reductions.canonicalization import Canonicalization
 from cvxpy.reductions.dcp2cone.canonicalizers import CANON_METHODS as cone_canon_methods
 from cvxpy.reductions.dcp2cone.canonicalizers.quad import QUAD_CANON_METHODS as quad_canon_methods
 from cvxpy.reductions.inverse_data import InverseData
-from cvxpy.reductions.subexpr_cache import UncacheableError, expr_key
+from cvxpy.reductions.subexpr_cache import (
+    StructuralKeyCache,
+    UncacheableError,
+    expr_key,
+)
 
 
 class Dcp2Cone(Canonicalization):
@@ -44,15 +48,6 @@ class Dcp2Cone(Canonicalization):
         # solver_context : The solver context: supported constraints and bounds.
         self.solver_context = solver_context
 
-        # Per-apply common-subexpression cache. Reset on every apply() call.
-        # Maps a structural key for an Expression subtree to the (canonical
-        # expression, generated constraints) returned the first time that
-        # subtree was canonicalized. Later hits return the same canonical
-        # expression and no constraints, so auxiliary variables and epigraph
-        # constraints are emitted exactly once per structurally identical
-        # subexpression within a single reduction pass.
-        self._cse_cache: dict = {}
-
     def accepts(self, problem):
         """A problem is accepted if it is a minimization and is DCP.
         """
@@ -66,10 +61,13 @@ class Dcp2Cone(Canonicalization):
 
         inverse_data = InverseData(problem)
 
-        self._cse_cache = {}
+        cse_cache = {}
+        structural_key_cache = StructuralKeyCache()
+        affine_above_relevant_cache = {}
 
         canon_objective, canon_constraints = self.canonicalize_tree(
-            problem.objective, True)
+            problem.objective, True, cse_cache,
+            structural_key_cache, affine_above_relevant_cache)
 
         for constraint in problem.constraints:
             # canon_constr is the constraint rexpressed in terms of
@@ -77,18 +75,24 @@ class Dcp2Cone(Canonicalization):
             # generated while canonicalizing the arguments of the original
             # constraint
             canon_constr, aux_constr = self.canonicalize_tree(
-                constraint, False)
+                constraint, False, cse_cache,
+                structural_key_cache, affine_above_relevant_cache)
             canon_constraints += aux_constr + [canon_constr]
-            inverse_data.cons_id_map.update({constraint.id: canon_constr.id})
+            inverse_data.cons_id_map[constraint.id] = canon_constr.id
 
         new_problem = problems.problem.Problem(canon_objective,
                                                canon_constraints)
         self._cons_id_map = inverse_data.cons_id_map
-        # Release the per-apply cache so it does not outlive this reduction.
-        self._cse_cache = {}
         return new_problem, inverse_data
 
-    def canonicalize_tree(self, expr, affine_above: bool) -> tuple[Expression, list]:
+    def canonicalize_tree(
+        self,
+        expr,
+        affine_above: bool,
+        cse_cache: dict | None = None,
+        structural_key_cache: StructuralKeyCache | None = None,
+        affine_above_relevant_cache: dict | None = None,
+    ) -> tuple[Expression, list]:
         """Recursively canonicalize an Expression.
 
         Parameters
@@ -100,6 +104,13 @@ class Dcp2Cone(Canonicalization):
         -------
         A tuple of the canonicalized expression and generated constraints.
         """
+        if cse_cache is None:
+            cse_cache = {}
+        if structural_key_cache is None:
+            structural_key_cache = StructuralKeyCache()
+        if affine_above_relevant_cache is None:
+            affine_above_relevant_cache = {}
+
         # Only Expression subtrees are eligible for the CSE cache. Objectives
         # and user constraints are intentionally excluded so their IDs flow
         # through to inverse_data unchanged. partial_problem subtrees carry
@@ -110,23 +121,30 @@ class Dcp2Cone(Canonicalization):
         )
         cache_key = None
         if cache_eligible:
-            cache_key = self._make_cache_key(expr, affine_above)
-            if cache_key is not None and cache_key in self._cse_cache:
-                return self._cse_cache[cache_key], []
+            cache_key = self._make_cache_key(
+                expr, affine_above, structural_key_cache,
+                affine_above_relevant_cache)
+            if cache_key is not None and cache_key in cse_cache:
+                return cse_cache[cache_key], []
 
         # TODO don't copy affine expressions?
         if type(expr) == partial_problem_cls:
             canon_expr, constrs = self.canonicalize_tree(
-              expr.args[0].objective.expr, False)
+                expr.args[0].objective.expr, False, cse_cache,
+                structural_key_cache, affine_above_relevant_cache)
             for constr in expr.args[0].constraints:
-                canon_constr, aux_constr = self.canonicalize_tree(constr, False)
+                canon_constr, aux_constr = self.canonicalize_tree(
+                    constr, False, cse_cache,
+                    structural_key_cache, affine_above_relevant_cache)
                 constrs += [canon_constr] + aux_constr
         else:
             affine_atom = type(expr) not in self.cone_canon_methods
             canon_args = []
             constrs = []
             for arg in expr.args:
-                canon_arg, c = self.canonicalize_tree(arg, affine_atom and affine_above)
+                canon_arg, c = self.canonicalize_tree(
+                    arg, affine_atom and affine_above, cse_cache,
+                    structural_key_cache, affine_above_relevant_cache)
                 canon_args += [canon_arg]
                 constrs += c
             canon_expr, c = self.canonicalize_expr(expr, canon_args, affine_above)
@@ -136,7 +154,7 @@ class Dcp2Cone(Canonicalization):
             # Only canon_expr is needed on hit; subsequent uses return an
             # empty constraint list because the first emission already
             # added the generated constraints to the caller's list.
-            self._cse_cache[cache_key] = canon_expr
+            cse_cache[cache_key] = canon_expr
         return canon_expr, constrs
 
     def canonicalize_expr(self, expr, args, affine_above: bool) -> tuple[Expression, list]:
@@ -182,7 +200,13 @@ class Dcp2Cone(Canonicalization):
 
     # ----- CSE cache key construction -----
 
-    def _make_cache_key(self, expr: Expression, affine_above: bool):
+    def _make_cache_key(
+        self,
+        expr: Expression,
+        affine_above: bool,
+        structural_key_cache: StructuralKeyCache,
+        affine_above_relevant_cache: dict,
+    ):
         """Build a hashable structural key for an Expression subtree.
 
         Returns None if a safe key cannot be built, in which case the caller
@@ -194,14 +218,14 @@ class Dcp2Cone(Canonicalization):
         non-affine roots still merge.
         """
         try:
-            structural = expr_key(expr)
+            structural = expr_key(expr, structural_key_cache)
         except UncacheableError:
             return None
-        if self._affine_above_relevant(expr):
+        if self._affine_above_relevant(expr, affine_above_relevant_cache):
             return (structural, bool(affine_above))
         return (structural, None)
 
-    def _affine_above_relevant(self, expr) -> bool:
+    def _affine_above_relevant(self, expr, affine_above_relevant_cache: dict) -> bool:
         """Whether canonicalize_tree result for ``expr`` depends on affine_above.
 
         Returns True when ``expr`` itself or any descendant could take the
@@ -211,11 +235,19 @@ class Dcp2Cone(Canonicalization):
         """
         if not self.quad_obj or not isinstance(expr, Expression):
             return False
+        cache_key = id(expr)
+        if cache_key in affine_above_relevant_cache:
+            return affine_above_relevant_cache[cache_key]
         if type(expr) in self.quad_canon_methods:
-            return True
-        if type(expr) in self.cone_canon_methods:
+            relevant = True
+        elif type(expr) in self.cone_canon_methods:
             # A non-affine atom forces affine_above=False for its children, so
             # descendants cannot reach the quad branch through this node.
-            return False
-        # Affine atom: forwards affine_above to children, so check descendants.
-        return any(self._affine_above_relevant(arg) for arg in expr.args)
+            relevant = False
+        else:
+            # Affine atom: forwards affine_above to children, so check descendants.
+            relevant = any(
+                self._affine_above_relevant(arg, affine_above_relevant_cache)
+                for arg in expr.args)
+        affine_above_relevant_cache[cache_key] = relevant
+        return relevant

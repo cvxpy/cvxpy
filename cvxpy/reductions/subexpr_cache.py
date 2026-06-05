@@ -24,15 +24,16 @@ caches the canonicalization result for each subtree it sees, keyed by
 structure, so the second occurrence reuses the first one's canonical
 expression and auxiliary constraints.
 
-These helpers build a hashable key that is equal exactly when two subtrees
-are structurally identical for canonicalization purposes: same atom types,
-same shapes, same ``get_data()`` payloads, same Variable/Parameter ids at
-the leaves. The caller is responsible for adding any reduction-specific
+These helpers build an opaque hashable key that is equal exactly when two
+subtrees are structurally identical for canonicalization purposes: same atom
+types, same shapes, same ``get_data()`` payloads, same Variable/Parameter ids
+at the leaves. The caller is responsible for adding any reduction-specific
 bits (e.g. ``affine_above`` for Dcp2Cone's quad branch) on top of
 ``expr_key``.
 """
 
 import numpy as np
+import scipy.sparse as sp
 
 from cvxpy.expressions.constants.constant import Constant
 from cvxpy.expressions.constants.parameter import Parameter
@@ -48,7 +49,21 @@ class UncacheableError(Exception):
     """
 
 
-def expr_key(expr):
+class StructuralKeyCache:
+    """Per-apply state for building compact structural expression keys."""
+
+    def __init__(self) -> None:
+        self.expression_keys: dict[int, int] = {}
+        self.signature_keys: dict[tuple, int] = {}
+
+    def intern_signature(self, signature: tuple) -> int:
+        """Return a compact key for a local structural signature."""
+        if signature not in self.signature_keys:
+            self.signature_keys[signature] = len(self.signature_keys)
+        return self.signature_keys[signature]
+
+
+def expr_key(expr, key_cache: StructuralKeyCache):
     """Build a hashable structural key for an Expression subtree.
 
     Variables/Parameters key by their ``.id`` (same source leaf -> same key).
@@ -56,25 +71,39 @@ def expr_key(expr):
     ones; see ``_constant_key`` for why.
     Composite Expressions key by ``(type, shape, get_data(), child keys)``.
     Raises ``UncacheableError`` for anything we can't hash safely.
+
+    ``key_cache`` is required and scoped to one reduction apply. It maps
+    ``id(expr)`` to a previously built key, so a caller that computes keys for
+    every node in a tree only walks each node once. It also interns local
+    structural signatures, so the returned key is a compact integer instead of
+    a recursively nested tuple.
     """
+    expr_id = id(expr)
+    if expr_id in key_cache.expression_keys:
+        return key_cache.expression_keys[expr_id]
+
     if isinstance(expr, Variable):
-        return ("var", expr.id)
-    if isinstance(expr, Parameter):
-        return ("param", expr.id)
-    if isinstance(expr, Constant):
-        return _constant_key(expr)
-    if not isinstance(expr, Expression):
+        signature = ("var", expr.id)
+    elif isinstance(expr, Parameter):
+        signature = ("param", expr.id)
+    elif isinstance(expr, Constant):
+        signature = _constant_key(expr)
+    elif isinstance(expr, Expression):
+        child_keys = tuple(expr_key(arg, key_cache) for arg in expr.args)
+
+        data = expr.get_data()
+        if data is None:
+            data_key: tuple = ()
+        else:
+            data_key = tuple(_hashable_value(d, key_cache) for d in data)
+
+        signature = ("atom", type(expr), tuple(expr.shape), data_key, child_keys)
+    else:
         raise UncacheableError()
 
-    child_keys = tuple(expr_key(arg) for arg in expr.args)
-
-    data = expr.get_data()
-    if data is None:
-        data_key: tuple = ()
-    else:
-        data_key = tuple(_hashable_value(d) for d in data)
-
-    return ("atom", type(expr), tuple(expr.shape), data_key, child_keys)
+    key = key_cache.intern_signature(signature)
+    key_cache.expression_keys[expr_id] = key
+    return key
 
 
 # Constants below this many elements are hashed by value so that
@@ -102,29 +131,65 @@ def _constant_key(expr: Constant):
        bytes into the cache key. Other dtypes (int, bool, ...) get copied via
        ``astype(float64)`` so this branch only fires when it's safe.
 
-    3. Fallback: id of the Constant wrapper. The common large-data pattern of
+    3. Sparse values: value hash for small sparse arrays, using sparse storage
+       directly rather than ``np.asarray``. Large sparse values fall back to the
+       Constant wrapper id.
+
+    4. Fallback: id of the Constant wrapper. The common large-data pattern of
        binding ``c = cp.Constant(arr)`` and reusing ``c`` deduplicates here.
     """
     value = expr.value
+    if sp.issparse(value):
+        return _sparse_constant_key(expr, value)
     try:
         arr = np.asarray(value)
     except (TypeError, ValueError):
         return ("const", id(expr))
-    if arr.size <= _CONSTANT_VALUE_HASH_MAX_SIZE:
+    if arr.dtype != object and arr.size <= _CONSTANT_VALUE_HASH_MAX_SIZE:
         return ("const-val", arr.shape, str(arr.dtype), arr.tobytes())
     if isinstance(value, np.ndarray) and value.dtype == np.float64:
         return ("const-ref", value.shape, id(value))
     return ("const", id(expr))
 
 
-def _hashable_value(v):
+def _sparse_constant_key(expr: Constant, value):
+    """Key sparse Constant values without converting them to object arrays."""
+    if value.ndim == 2 and value.nnz <= _CONSTANT_VALUE_HASH_MAX_SIZE:
+        sparse = value.tocsc(copy=False)
+        if not sparse.has_canonical_format:
+            sparse = sparse.copy()
+            sparse.sum_duplicates()
+            sparse.sort_indices()
+        return (
+            "sparse-const-val",
+            sparse.shape,
+            str(sparse.dtype),
+            sparse.data.tobytes(),
+            sparse.indices.tobytes(),
+            sparse.indptr.tobytes(),
+        )
+    if value.ndim > 2 and value.nnz <= _CONSTANT_VALUE_HASH_MAX_SIZE:
+        sparse = value.tocoo(copy=False)
+        sparse.sum_duplicates()
+        coords = sparse.coords
+        return (
+            "sparse-const-val",
+            sparse.shape,
+            str(sparse.dtype),
+            tuple(coord.tobytes() for coord in coords),
+            sparse.data.tobytes(),
+        )
+    return ("sparse-const", id(expr))
+
+
+def _hashable_value(v, key_cache: StructuralKeyCache):
     """Best-effort conversion of a ``get_data()`` entry to a hashable form."""
     if v is None or isinstance(v, (int, float, bool, str, bytes)):
         return v
     if isinstance(v, tuple):
-        return tuple(_hashable_value(e) for e in v)
+        return tuple(_hashable_value(e, key_cache) for e in v)
     if isinstance(v, list):
-        return ("list", tuple(_hashable_value(e) for e in v))
+        return ("list", tuple(_hashable_value(e, key_cache) for e in v))
     if isinstance(v, slice):
         return ("slice", v.start, v.stop, v.step)
     if isinstance(v, range):
@@ -132,6 +197,6 @@ def _hashable_value(v):
     if isinstance(v, np.ndarray):
         return ("ndarray", v.shape, str(v.dtype), v.tobytes())
     if isinstance(v, Expression):
-        return ("expr", expr_key(v))
+        return ("expr", expr_key(v, key_cache))
     # Unknown / unsafe data — refuse to cache this subtree.
     raise UncacheableError()

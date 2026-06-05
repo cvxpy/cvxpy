@@ -14,13 +14,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from unittest.mock import patch
+
 import numpy as np
+import scipy.sparse as sp
 
 import cvxpy as cp
 from cvxpy.atoms.quad_form import QuadForm, SymbolicQuadForm
 from cvxpy.constraints.nonpos import Inequality
 from cvxpy.constraints.second_order import SOC
+from cvxpy.reductions.dcp2cone import dcp2cone as dcp2cone_mod
 from cvxpy.reductions.dcp2cone.dcp2cone import Dcp2Cone
+from cvxpy.reductions.subexpr_cache import StructuralKeyCache, expr_key
 from cvxpy.tests.base_test import BaseTest
 
 
@@ -179,6 +184,36 @@ class TestDcp2ConeCSE(BaseTest):
         self.assertEqual(len(aux_vars), 1)
         self.assertEqual(aux_vars[0].shape, (100,))
 
+    def test_sparse_constant_key_uses_sparse_contents(self) -> None:
+        rows = np.array([0, 1])
+        cols = np.array([1, 0])
+        data = np.array([1.0, 2.0])
+        same_data = np.array([2.0, 1.0])
+        different_data = np.array([1.0, 3.0])
+        duplicate_data = np.array([0.25, 0.75, 2.0])
+        duplicate_rows = np.array([0, 0, 1])
+        duplicate_cols = np.array([1, 1, 0])
+
+        coo = sp.coo_array((data, (rows, cols)), shape=(2, 2))
+        csr_same = sp.csr_array((same_data, (cols, rows)), shape=(2, 2))
+        coo_same_with_duplicates = sp.coo_array(
+            (duplicate_data, (duplicate_rows, duplicate_cols)), shape=(2, 2))
+        coo_different = sp.coo_array((different_data, (rows, cols)), shape=(2, 2))
+        const = cp.Constant(coo)
+        const_same = cp.Constant(csr_same)
+        const_same_with_duplicates = cp.Constant(coo_same_with_duplicates)
+        const_different = cp.Constant(coo_different)
+
+        key_cache = StructuralKeyCache()
+        key = expr_key(const, key_cache)
+        same_key = expr_key(const_same, key_cache)
+        same_duplicate_key = expr_key(const_same_with_duplicates, key_cache)
+        different_key = expr_key(const_different, key_cache)
+
+        self.assertEqual(key, same_key)
+        self.assertEqual(key, same_duplicate_key)
+        self.assertNotEqual(key, different_key)
+
     def test_parameter_subtree_dedup(self) -> None:
         # Parameter leaves are keyed by id; the same parameter reused in two
         # identical subtrees should also deduplicate.
@@ -195,3 +230,30 @@ class TestDcp2ConeCSE(BaseTest):
         # Only the single epigraph variable for the shared norm1 subtree.
         self.assertEqual(len(aux_vars), 1)
         self.assertEqual(aux_vars[0].shape, (2,))
+
+    def test_structural_key_cache_threaded_through_apply(self) -> None:
+        # The structural key builder sees every node during canonicalization.
+        # A single per-apply key cache prevents deep expression chains from
+        # rebuilding each suffix key at every node.
+        x = cp.Variable()
+        expr = x
+        for _ in range(20):
+            expr = expr + 1
+        prob = cp.Problem(cp.Minimize(expr), [expr <= 25])
+
+        seen_key_caches = []
+        real_expr_key = dcp2cone_mod.expr_key
+
+        def spy_expr_key(expr, key_cache):
+            seen_key_caches.append(key_cache)
+            key = real_expr_key(expr, key_cache)
+            self.assertIsInstance(key, int)
+            return key
+
+        reduction = Dcp2Cone()
+        with patch.object(dcp2cone_mod, "expr_key", side_effect=spy_expr_key):
+            reduction.apply(prob)
+
+        self.assertTrue(seen_key_caches)
+        self.assertNotIn(None, seen_key_caches)
+        self.assertEqual(len({id(key_cache) for key_cache in seen_key_caches}), 1)

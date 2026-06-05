@@ -14,12 +14,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from unittest.mock import patch
+
 import numpy as np
 
 import cvxpy as cp
+from cvxpy.expressions import cvxtypes
 from cvxpy.expressions.variable import Variable
+from cvxpy.reductions.dnlp2smooth import dnlp2smooth as dnlp2smooth_mod
 from cvxpy.reductions.dnlp2smooth.dnlp2smooth import Dnlp2Smooth
 from cvxpy.tests.base_test import BaseTest
+from cvxpy.transforms.partial_optimize import partial_optimize
 
 
 def _aux_variables(new_prob, originals):
@@ -167,8 +172,6 @@ class TestDnlp2SmoothCSE(BaseTest):
 
         # Fresh problem -> fresh Variables. No id overlap.
         self.assertEqual(aux1 & aux2, set())
-        # And the cache itself is empty after apply() returns.
-        self.assertEqual(reduction._cse_cache, {})
 
     def test_shared_constraint_walk_is_correct(self) -> None:
         # Sanity: after canonicalization, every Variable referenced by the
@@ -189,3 +192,50 @@ class TestDnlp2SmoothCSE(BaseTest):
             constraint_vars.update(v.id for v in c.variables())
         # Every aux var in the objective must also appear in some constraint.
         self.assertTrue(objective_vars - {x.id} <= constraint_vars)
+
+    def test_partial_optimize_excluded_from_cse_cache(self) -> None:
+        x = cp.Variable()
+        y = cp.Variable()
+        y.value = 0
+        inner = cp.Problem(cp.Minimize(cp.square(y - x)), [y >= 0])
+        partial = partial_optimize(inner, opt_vars=[y])
+        prob = cp.Problem(cp.Minimize(partial + cp.square(x)))
+
+        seen_types = []
+        real_expr_key = dnlp2smooth_mod.expr_key
+
+        def spy_expr_key(expr, key_cache):
+            seen_types.append(type(expr))
+            return real_expr_key(expr, key_cache)
+
+        with patch.object(dnlp2smooth_mod, "expr_key", side_effect=spy_expr_key):
+            Dnlp2Smooth().apply(prob)
+
+        self.assertNotIn(cvxtypes.partial_problem(), seen_types)
+
+    def test_structural_key_cache_threaded_through_apply(self) -> None:
+        # A single per-apply key cache keeps deep expression trees from
+        # rebuilding structural keys for every suffix subtree.
+        x = cp.Variable()
+        x.value = 0
+        expr = x
+        for _ in range(20):
+            expr = expr + 1
+        prob = cp.Problem(cp.Minimize(expr), [expr <= 25])
+
+        seen_key_caches = []
+        real_expr_key = dnlp2smooth_mod.expr_key
+
+        def spy_expr_key(expr, key_cache):
+            seen_key_caches.append(key_cache)
+            key = real_expr_key(expr, key_cache)
+            self.assertIsInstance(key, int)
+            return key
+
+        reduction = Dnlp2Smooth()
+        with patch.object(dnlp2smooth_mod, "expr_key", side_effect=spy_expr_key):
+            reduction.apply(prob)
+
+        self.assertTrue(seen_key_caches)
+        self.assertNotIn(None, seen_key_caches)
+        self.assertEqual(len({id(key_cache) for key_cache in seen_key_caches}), 1)
