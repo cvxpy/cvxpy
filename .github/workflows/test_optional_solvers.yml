@@ -20,6 +20,26 @@ jobs:
         os: [ ubuntu-22.04, macos-14 ]  # Windows excluded - cylp/CBC cannot be built
     steps:
       - uses: actions/checkout@v5
+      # Diagnostics for CPU-feature problems (e.g. illegal-instruction crashes
+      # in native solver binaries). Runs before the install steps so the info
+      # is available even when an install itself crashes.
+      - name: Print CPU features
+        run: |
+          set -e
+          uname -a
+          python3 - <<'PY'
+          import platform
+
+          print(f"machine={platform.machine()}")
+          print(f"processor={platform.processor()}")
+          print(f"platform={platform.platform()}")
+          PY
+      - name: Print CPU features (Linux)
+        if: runner.os == 'Linux'
+        run: lscpu
+      - name: Print CPU features (macOS)
+        if: runner.os == 'macOS'
+        run: sysctl machdep.cpu hw.machine hw.model hw.optional
       - name: Set Additional Envs
         run: |
           echo "PYTHON_SUBVERSION=$(echo $PYTHON_VERSION | cut -c 3-)" >> $GITHUB_ENV
@@ -51,29 +71,6 @@ jobs:
       - name: Install Moreau
         if: runner.os == 'Linux' && env.FURY_TOKEN != ''
         run: uv pip install moreau --extra-index-url https://${FURY_TOKEN}:@pypi.fury.io/optimalintellect/
-      - name: Print CPU features
-        run: |
-          uname -a
-          python - <<'PY'
-          import platform
-
-          print(f"machine={platform.machine()}")
-          print(f"processor={platform.processor()}")
-          print(f"platform={platform.platform()}")
-          PY
-
-          if command -v lscpu >/dev/null 2>&1; then
-            lscpu
-          fi
-
-          if [ -r /proc/cpuinfo ]; then
-            grep -m1 -E '^(model name|Processor|cpu model)' /proc/cpuinfo || true
-            grep -m1 -E '^(flags|Features)' /proc/cpuinfo || true
-          fi
-
-          if [ "$RUNNER_OS" = "macOS" ]; then
-            sysctl -a | grep -E '^(machdep.cpu|hw.machine|hw.model|hw.optional)' || true
-          fi
       - name: Print installed solvers
         run: uv run python -c "import cvxpy; print(cvxpy.installed_solvers())"
       # KNITRO bundles LLVM libomp; CVXOPT bundles GNU libgomp via its
@@ -93,7 +90,6 @@ jobs:
         run: uv run pytest -rs -m knitro cvxpy/tests/test_qp_solvers.py
 
     env:
-      RUNNER_OS: ${{ matrix.os }}
       PYTHON_VERSION: 3.12
       MOSEK_CI_BASE64: ${{ secrets.MOSEK_CI_BASE64 }}
       KNITRO_LICENSE: ${{ secrets.KNITRO_LICENSE }}
