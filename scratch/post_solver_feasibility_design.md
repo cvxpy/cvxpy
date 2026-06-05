@@ -2,7 +2,7 @@
 
 ## Goal
 
-Explore a small post-solver feasibility-check layer for CVXPY. The first API direction considered here is a raw scalar primal-side constraint violation value, which could later support tolerance-based warnings or feasibility reporting.
+Explore a small post-solver validation layer for CVXPY. The first API direction considered here is a raw scalar violation value computed from checks on the original problem after solution values are unpacked. The first pass should cover primal constraint violation, and audit whether dual feasibility and complementarity can be included cleanly.
 
 ## Main design question
 
@@ -82,18 +82,18 @@ Reason:
 * Lowest risk.
 * No default overhead.
 * No new default warnings.
-* Avoids mixing raw violation reporting with tolerance-based feasibility decisions.
+* Separates raw post-solver validation values from tolerance-based feasibility decisions.
 * Easier to extend later into warning behavior or a solve flag.
 
 ## Minimal first API
 
-For the first public API, prefer exposing only a scalar violation value rather than a full feasibility report:
+For the first public API, prefer exposing a scalar violation value rather than a full feasibility report:
 
 ```python
 violation = prob.violation()
 ```
 
-This should be interpreted as a CVXPY-side primal constraint violation check on the original constraints after solution values are unpacked. It should not be framed as an infeasibility certificate.
+This should be interpreted as a CVXPY-side post-solver validation value computed from the original problem after solution values are unpacked. The initial implementation should define exactly which checks are included. It should not be framed as an infeasibility certificate.
 
 Tolerance-based behavior, warnings, or an `is_feasible` boolean can be considered later once the raw violation definition is clear.
 
@@ -109,7 +109,7 @@ all original problem constraints after solution values are unpacked.
 
 Initial audit: `Constraint.violation()` is documented as the distance from the current expression value to the constraint domain. Before building a problem-level API, the main open question is whether each individual constraint violation should first be normalized to a scalar with a clearly documented norm/distance convention. Once each constraint reports a scalar consistently, `prob.violation()` can aggregate those scalar values directly.
 
-This API should only report primal-side violation of returned values against the original constraints. It should not be presented as an infeasibility certificate or as a substitute for solver certificates such as a Farkas ray.
+This API should report post-solver validation against the original problem data. It should not be presented as an infeasibility certificate or as a substitute for solver certificates such as a Farkas ray.
 
 Constraint types to check:
 
@@ -176,12 +176,14 @@ The absolute times are small in this toy benchmark, but the scaling difference s
 A first PR could stay small:
 
 * Internal helper to normalize each primal constraint violation to a scalar and compute the max original-constraint violation.
+* Audit whether dual feasibility can be checked from unpacked `constraint.dual_value` values.
+* Audit whether complementarity can be evaluated cleanly for the main constraint classes.
 * Tests for a solved feasible problem.
 * Tests for manually corrupted variable values.
 * Tests covering scalar normalization behavior across core constraint classes.
 * No public API until the violation definition and API direction are agreed on.
 
-Once the violation definition and API direction are agreed on, expose:
+Once the violation definition and API direction are agreed on, expose something like:
 
 ```python
 prob.violation()
@@ -193,14 +195,16 @@ Possible follow-up work could add warning behavior through a solve flag:
 prob.solve(check_feasibility=True, feasibility_tol=...)
 ```
 
-## Future scope
+## First-pass scope
 
-The first version of this design focuses on primal constraint violation only.
+Based on the design discussion, the first pass should audit and, where clean, include the checks that can be evaluated directly from unpacked primal and dual values in the original problem space:
 
-However, the API should be documented carefully because the meaning of `prob.violation()` may expand in the future if related checks can be defined consistently. Possible follow-up directions include:
+* **Primal constraint violation:** Evaluate the original high-level `Constraint` objects using the unpacked primal values.
+* **Dual feasibility:** Check whether the unpacked `constraint.dual_value` satisfies the expected dual-domain conditions for each constraint type.
+* **Complementarity:** Check primal-dual complementarity where it can be evaluated cleanly for a given constraint type.
 
-* **Dual feasibility:** checking whether unpacked constraint dual values satisfy the expected dual-domain conditions.
-* **Complementarity:** checking primal-dual complementarity where it can be evaluated cleanly for a constraint type.
-* **Duality gap / stationarity:** investigating whether these can be computed reliably in the original problem space.
+The next step is to audit the main constraint classes, including equality, inequality, PSD, SOC, exponential cone, power cone, and quantum/quadrature constraints, to see which of these checks can consistently return scalar values.
 
-These are left out of the first version because they require more care than a primal-side violation check, especially for reductions, functional convex problems, subgradients, and solver-specific dual information.
+## Deferred scope: duality gap and stationarity
+
+Duality gap and stationarity should stay out of the first pass. They require more care in the original problem space, especially for reductions, functional convex problems, subgradients, and solver-specific dual information.
