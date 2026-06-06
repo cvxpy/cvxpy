@@ -20,26 +20,58 @@ jobs:
         os: [ ubuntu-22.04, macos-14 ]  # Windows excluded - cylp/CBC cannot be built
     steps:
       - uses: actions/checkout@v5
-      # Diagnostics for CPU-feature problems (e.g. illegal-instruction crashes
-      # in native solver binaries). Runs before the install steps so the info
-      # is available even when an install itself crashes.
-      - name: Print CPU features
-        run: |
-          set -e
-          uname -a
-          python3 - <<'PY'
-          import platform
-
-          print(f"machine={platform.machine()}")
-          print(f"processor={platform.processor()}")
-          print(f"platform={platform.platform()}")
-          PY
-      - name: Print CPU features (Linux)
+      # Diagnostics for the COPT illegal-instruction crash. GitHub's Azure pool
+      # mixes EPYC 7763 "Milan" (no AVX-512, COPT succeeds) and EPYC 9V74 "Genoa"
+      # (AVX-512, COPT crashes). Runs before the install steps so the verdict is
+      # captured even if COPT crashes during install/import. Reports whether CPUID
+      # advertises AVX-512, whether the OS enabled the AVX-512 XSAVE state (XCR0),
+      # and whether a real AVX-512 instruction actually executes or #UDs.
+      - name: CPU / AVX-512 diagnostics
         if: runner.os == 'Linux'
-        run: lscpu
-      - name: Print CPU features (macOS)
-        if: runner.os == 'macOS'
-        run: sysctl machdep.cpu hw.machine hw.model hw.optional
+        run: |
+          uname -a
+          cat > /tmp/avx_probe.c <<'PROBE'
+          #include <stdio.h>
+          #include <signal.h>
+          #include <setjmp.h>
+          #include <cpuid.h>
+          static sigjmp_buf jb;
+          static void on_sigill(int s){(void)s; siglongjmp(jb,1);}
+          static int run_insn(void(*fn)(void)){
+          signal(SIGILL,on_sigill);
+          if(sigsetjmp(jb,1)==0){fn(); return 1;}
+          return 0;
+          }
+          static void avx2_insn(void){__asm__ __volatile__("vpxor %%ymm0,%%ymm0,%%ymm0":::"ymm0");}
+          /* vpxorq %zmm0,%zmm0,%zmm0 -- a genuine AVX-512 instruction */
+          static void avx512_insn(void){__asm__ __volatile__(".byte 0x62,0xf1,0xfd,0x48,0xef,0xc0");}
+          int main(void){
+          unsigned a,b,c,d;
+          __get_cpuid(1,&a,&b,&c,&d);
+          int osxsave=(c>>27)&1, avx=(c>>28)&1;
+          __cpuid_count(7,0,a,b,c,d);
+          int avx2=(b>>5)&1, avx512f=(b>>16)&1;
+          unsigned long long xcr0=0;
+          if(osxsave){unsigned lo,hi; __asm__ __volatile__("xgetbv":"=a"(lo),"=d"(hi):"c"(0)); xcr0=((unsigned long long)hi<<32)|lo;}
+          int op=(xcr0>>5)&1, zh=(xcr0>>6)&1, hi16=(xcr0>>7)&1;
+          int state_ok=op&&zh&&hi16;
+          int r2=run_insn(avx2_insn), r5=run_insn(avx512_insn);
+          printf("CPUID  AVX=%d AVX2=%d AVX512F=%d OSXSAVE=%d\n",avx,avx2,avx512f,osxsave);
+          printf("XCR0   0x%llx  opmask(5)=%d ZMM_Hi256(6)=%d Hi16_ZMM(7)=%d  AVX512_state_ok=%d\n",xcr0,op,zh,hi16,state_ok);
+          printf("EXEC   AVX2=%s  AVX-512=%s\n", r2?"ok":"SIGILL", r5?"ok":"SIGILL");
+          if(avx512f&&!r5) printf("VERDICT: BUG-SHAPED -- CPUID claims AVX-512 but it faults (OS/XCR0 state not enabled)\n");
+          else if(avx512f&&r5) printf("VERDICT: AVX-512 present and usable\n");
+          else printf("VERDICT: no AVX-512 on this runner\n");
+          return 0;
+          }
+          PROBE
+          gcc -O2 -o /tmp/avx_probe /tmp/avx_probe.c
+          {
+            echo "### $(grep -m1 'model name' /proc/cpuinfo | cut -d: -f2- | sed 's/^ //')"
+            echo '```'
+            /tmp/avx_probe
+            echo '```'
+          } | tee -a "$GITHUB_STEP_SUMMARY"
       - name: Set Additional Envs
         run: |
           echo "PYTHON_SUBVERSION=$(echo $PYTHON_VERSION | cut -c 3-)" >> $GITHUB_ENV
@@ -91,6 +123,9 @@ jobs:
 
     env:
       PYTHON_VERSION: 3.12
+      # Dump a Python traceback if COPT crashes the interpreter (SIGILL on an
+      # AVX-512 runner) so the failing coptpy call is visible in the test logs.
+      PYTHONFAULTHANDLER: "1"
       MOSEK_CI_BASE64: ${{ secrets.MOSEK_CI_BASE64 }}
       KNITRO_LICENSE: ${{ secrets.KNITRO_LICENSE }}
       FURY_TOKEN: ${{ secrets.FURY_TOKEN }}
