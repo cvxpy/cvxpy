@@ -202,6 +202,11 @@ DEFAULT_CANON_BACKEND = CPP_CANON_BACKEND if sys.platform != "emscripten" else S
 # When problem is DPP and total parameter size >= this threshold, use COO backend
 DPP_PARAM_THRESHOLD = 1000
 
+# A constant dense matmul operand whose nonzero fraction falls below this threshold is
+# routed by the diff engine to the sparse (CSR) binding instead of the dense
+# permuted_dense path, which would otherwise build a dense Jacobian/Hessian.
+SPARSE_MATMUL_DENSITY_THRESHOLD = 0.05
+
 # Numerical tolerances
 EIGVAL_TOL = 1e-10
 PSD_NSD_PROJECTION_TOL = 1e-8
