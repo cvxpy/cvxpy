@@ -121,6 +121,39 @@ jobs:
         if: always()
         run: uv run pytest -rs -m knitro cvxpy/tests/test_qp_solvers.py
 
+      # The probe above shows baseline AVX-512 executes fine on the Genoa runner
+      # where COPT crashes, so the faulting opcode is a narrower extension Genoa
+      # (Zen 4) lacks. Identify it: on a #UD the kernel logs
+      # "trap invalid opcode ip:<addr> ... in <module>[<base>+<size>]". Turn
+      # ip-base into a file offset and objdump that spot to read the actual
+      # instruction. Runs always so it fires on the crashing run; prints
+      # "(no trap)" harmlessly when nothing crashed.
+      - name: Decode illegal instruction
+        if: always() && runner.os == 'Linux'
+        run: |
+          echo "== kernel traps =="
+          sudo dmesg | grep -iE 'trap|invalid opcode|segfault|protection' | tail -20 || true
+          line=$(sudo dmesg | grep -iE 'invalid opcode' | tail -1 || true)
+          if [ -z "$line" ]; then echo "(no invalid-opcode trap recorded in dmesg)"; exit 0; fi
+          echo; echo "== faulting trap =="; echo "$line"
+          ip=$(grep -oP 'ip:\K[0-9a-f]+' <<<"$line")
+          mod=$(grep -oP ' in \K[^[]+' <<<"$line")
+          base=$(grep -oP ' in [^[]+\[\K[0-9a-f]+' <<<"$line")
+          off=$(printf '%x' $((0x$ip - 0x$base)))
+          echo "ip=0x$ip base=0x$base module=$mod -> file offset 0x$off"
+          case "$mod" in
+            /*) path="$mod" ;;
+            *)  path=$(find / -name "$mod" 2>/dev/null | head -1)
+                [ -z "$path" ] && path=$(find / -name "${mod%%.*}*" 2>/dev/null | head -1) ;;
+          esac
+          echo "module path: ${path:-<not found>}"
+          if [ -n "$path" ]; then
+            s=$((0x$off - 0x40)); e=$((0x$off + 0x20))
+            echo "== objdump around fault =="
+            objdump -d --start-address=$s --stop-address=$e "$path" 2>/dev/null \
+              | gawk -v o=$((0x$off)) '/^[[:space:]]*[0-9a-f]+:/{a=$1; sub(":","",a); if (strtonum("0x"a)==o){print $0"   <=== ILLEGAL INSTRUCTION"; next}} {print}'
+          fi
+
     env:
       PYTHON_VERSION: 3.12
       # Dump a Python traceback if COPT crashes the interpreter (SIGILL on an
