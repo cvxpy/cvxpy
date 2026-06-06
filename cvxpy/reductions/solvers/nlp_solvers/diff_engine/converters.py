@@ -46,10 +46,10 @@ def convert_matmul(expr, children, var_dict, n_vars, param_dict):
         param_node = children[0] if left_arg.parameters() else None
         if sparse.issparse(A):
             return make_sparse_left_matmul(param_node, children[1], A)
-        # A constant dense matrix that is mostly zeros: the permuted_dense path would
-        # materialize a dense Jacobian/Hessian, so route to the sparse CSR binding instead.
-        # Restricted to constants (param_node is None) because sparsifying a parametric
-        # matrix would freeze its sparsity pattern to the current value.
+        # A constant dense matrix that is mostly zeros: route it to the sparse CSR binding
+        # to avoid building a dense Jacobian/Hessian. Restricted to constants
+        # (param_node is None) because sparsifying a parametric matrix would freeze its
+        # sparsity pattern to the current value.
         density = np.count_nonzero(A) / A.size if A.size else 1.0
         if param_node is None and density < s.SPARSE_MATMUL_DENSITY_THRESHOLD:
             return make_sparse_left_matmul(None, children[1], sparse.csr_matrix(A))

@@ -133,11 +133,11 @@ class TestMatmulDifferentFormats:
 class TestSparseMatmulDispatch:
     # A constant dense left-matmul operand that is mostly zeros is auto-routed to the
     # sparse CSR binding (convert_matmul, SPARSE_MATMUL_DENSITY_THRESHOLD) instead of the
-    # dense permuted_dense path, which would build a dense Jacobian/Hessian.
+    # dense path, which would build a dense Jacobian/Hessian.
     #
     # These tests observe *which path ran* via the Lagrange Hessian sparsity rather than
     # just numerical correctness (which holds on either path). For sum_squares(A @ x - b)
-    # the Hessian is 2 A^T A: the permuted_dense path always reports a full lower triangle
+    # the Hessian is 2 A^T A: the dense path always reports a full lower triangle
     # (n*(n+1)/2 nnz), while the sparse path exposes the true A^T A sparsity. No IPOPT is
     # needed -- only C-problem construction and finite-difference derivative checks.
 
@@ -175,7 +175,7 @@ class TestSparseMatmulDispatch:
         prob_csr = cp.Problem(cp.Minimize(cp.sum_squares(A_sp @ self._var(n) - b)))
         csr_nnz = self._hessian_lower_nnz(prob_csr)
 
-        assert dense_nnz < full_lower      # not the dense permuted_dense Hessian
+        assert dense_nnz < full_lower      # not the full dense Hessian
         assert dense_nnz == csr_nnz        # identical to the explicit sparse path
 
     def test_dense_above_threshold_stays_dense(self):
@@ -197,7 +197,7 @@ class TestSparseMatmulDispatch:
         prob_csr = cp.Problem(cp.Minimize(cp.sum_squares(A_sp @ self._var(n) - b)))
         csr_nnz = self._hessian_lower_nnz(prob_csr)
 
-        assert dense_nnz == full_lower     # permuted_dense path: full dense Hessian
+        assert dense_nnz == full_lower     # dense path: full dense Hessian
         assert csr_nnz < full_lower        # confirms the matrix is structurally sparse
 
     def test_parametric_super_sparse_not_sparsified(self):
