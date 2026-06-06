@@ -16,6 +16,7 @@ limitations under the License.
 
 
 from cvxpy import problems
+from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions import cvxtypes
 from cvxpy.expressions.expression import Expression
 from cvxpy.problems.objective import Minimize
@@ -23,6 +24,7 @@ from cvxpy.reductions.canonicalization import Canonicalization
 from cvxpy.reductions.dnlp2smooth.canonicalizers import SMOOTH_CANON_METHODS as smooth_canon_methods
 from cvxpy.reductions.inverse_data import InverseData
 from cvxpy.reductions.subexpr_cache import (
+    ExprKey,
     StructuralKeyCache,
     UncacheableError,
     expr_key,
@@ -77,9 +79,9 @@ class Dnlp2Smooth(Canonicalization):
         self,
         expr,
         affine_above: bool,
-        cse_cache: dict | None = None,
+        cse_cache: dict[ExprKey, Expression] | None = None,
         structural_key_cache: StructuralKeyCache | None = None,
-    ) -> tuple[Expression, list]:
+    ) -> tuple[Expression, list[Constraint]]:
         """Recursively canonicalize an Expression.
 
         Parameters

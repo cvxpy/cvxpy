@@ -32,6 +32,9 @@ bits (e.g. ``affine_above`` for Dcp2Cone's quad branch) on top of
 ``expr_key``.
 """
 
+from collections.abc import Hashable
+from typing import TypeAlias
+
 import numpy as np
 import scipy.sparse as sp
 
@@ -39,6 +42,18 @@ from cvxpy.expressions.constants.constant import Constant
 from cvxpy.expressions.constants.parameter import Parameter
 from cvxpy.expressions.expression import Expression
 from cvxpy.expressions.variable import Variable
+
+# A structural signature: a heterogeneous, hashable tuple describing one
+# Expression node locally, with its children already reduced to interned int
+# keys. Two nodes are structurally identical for caching purposes exactly when
+# their signatures compare equal. Signatures are used as dict keys, so every
+# component must be hashable.
+Signature: TypeAlias = tuple[Hashable, ...]
+
+# The opaque key returned for a subtree: a compact interned integer (see
+# StructuralKeyCache.intern_signature). Equal keys mean structurally identical
+# subtrees.
+ExprKey: TypeAlias = int
 
 
 class UncacheableError(Exception):
@@ -53,17 +68,17 @@ class StructuralKeyCache:
     """Per-apply state for building compact structural expression keys."""
 
     def __init__(self) -> None:
-        self.expression_keys: dict[int, int] = {}
-        self.signature_keys: dict[tuple, int] = {}
+        self.expression_keys: dict[int, ExprKey] = {}
+        self.signature_keys: dict[Signature, ExprKey] = {}
 
-    def intern_signature(self, signature: tuple) -> int:
+    def intern_signature(self, signature: Signature) -> ExprKey:
         """Return a compact key for a local structural signature."""
         if signature not in self.signature_keys:
             self.signature_keys[signature] = len(self.signature_keys)
         return self.signature_keys[signature]
 
 
-def expr_key(expr, key_cache: StructuralKeyCache):
+def expr_key(expr: object, key_cache: StructuralKeyCache) -> ExprKey:
     """Build a hashable structural key for an Expression subtree.
 
     Variables/Parameters key by their ``.id`` (same source leaf -> same key).
@@ -89,16 +104,21 @@ def expr_key(expr, key_cache: StructuralKeyCache):
     elif isinstance(expr, Constant):
         signature = _constant_key(expr)
     elif isinstance(expr, Expression):
+        # A composite atom: key on its type, shape, get_data() payload, and the
+        # already-interned child keys. An unhashable get_data() entry
+        # propagates UncacheableError out of _hashable_value.
         child_keys = tuple(expr_key(arg, key_cache) for arg in expr.args)
 
         data = expr.get_data()
         if data is None:
-            data_key: tuple = ()
+            data_key: Signature = ()
         else:
             data_key = tuple(_hashable_value(d, key_cache) for d in data)
 
         signature = ("atom", type(expr), tuple(expr.shape), data_key, child_keys)
     else:
+        # Not an Expression at all (e.g. an objective reached via a
+        # partial_problem's args): refuse to cache rather than risk reuse.
         raise UncacheableError()
 
     key = key_cache.intern_signature(signature)
@@ -114,7 +134,7 @@ def expr_key(expr, key_cache: StructuralKeyCache):
 _CONSTANT_VALUE_HASH_MAX_SIZE = 64
 
 
-def _constant_key(expr: Constant):
+def _constant_key(expr: Constant) -> Signature:
     """Key a Constant in one of three ways, in order of preference:
 
     1. Small array (<= 64 elements): value hash. Catches the case where two
@@ -152,7 +172,7 @@ def _constant_key(expr: Constant):
     return ("const", id(expr))
 
 
-def _sparse_constant_key(expr: Constant, value):
+def _sparse_constant_key(expr: Constant, value: sp.sparray) -> Signature:
     """Key sparse Constant values without converting them to object arrays."""
     if value.ndim == 2 and value.nnz <= _CONSTANT_VALUE_HASH_MAX_SIZE:
         sparse = value.tocsc(copy=False)
@@ -182,7 +202,7 @@ def _sparse_constant_key(expr: Constant, value):
     return ("sparse-const", id(expr))
 
 
-def _hashable_value(v, key_cache: StructuralKeyCache):
+def _hashable_value(v: object, key_cache: StructuralKeyCache) -> Hashable:
     """Best-effort conversion of a ``get_data()`` entry to a hashable form."""
     if v is None or isinstance(v, (int, float, bool, str, bytes)):
         return v

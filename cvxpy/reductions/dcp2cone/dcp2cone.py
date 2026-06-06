@@ -18,6 +18,7 @@ limitations under the License.
 from cvxpy import problems
 from cvxpy.atoms.elementwise.power import Power
 from cvxpy.atoms.quad_over_lin import quad_over_lin
+from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions import cvxtypes
 from cvxpy.expressions.expression import Expression
 from cvxpy.problems.objective import Minimize
@@ -26,10 +27,16 @@ from cvxpy.reductions.dcp2cone.canonicalizers import CANON_METHODS as cone_canon
 from cvxpy.reductions.dcp2cone.canonicalizers.quad import QUAD_CANON_METHODS as quad_canon_methods
 from cvxpy.reductions.inverse_data import InverseData
 from cvxpy.reductions.subexpr_cache import (
+    ExprKey,
     StructuralKeyCache,
     UncacheableError,
     expr_key,
 )
+
+# A Dcp2Cone CSE cache key: a subtree's structural key, paired with
+# affine_above only when canonicalization could depend on it (the quad-objective
+# branch); None otherwise so cone-mode subtrees merge across contexts.
+ConeCacheKey = tuple[ExprKey, bool | None]
 
 
 class Dcp2Cone(Canonicalization):
@@ -89,10 +96,10 @@ class Dcp2Cone(Canonicalization):
         self,
         expr,
         affine_above: bool,
-        cse_cache: dict | None = None,
+        cse_cache: dict[ConeCacheKey, Expression] | None = None,
         structural_key_cache: StructuralKeyCache | None = None,
-        affine_above_relevant_cache: dict | None = None,
-    ) -> tuple[Expression, list]:
+        affine_above_relevant_cache: dict[int, bool] | None = None,
+    ) -> tuple[Expression, list[Constraint]]:
         """Recursively canonicalize an Expression.
 
         Parameters
@@ -205,8 +212,8 @@ class Dcp2Cone(Canonicalization):
         expr: Expression,
         affine_above: bool,
         structural_key_cache: StructuralKeyCache,
-        affine_above_relevant_cache: dict,
-    ):
+        affine_above_relevant_cache: dict[int, bool],
+    ) -> ConeCacheKey | None:
         """Build a hashable structural key for an Expression subtree.
 
         Returns None if a safe key cannot be built, in which case the caller
@@ -225,7 +232,7 @@ class Dcp2Cone(Canonicalization):
             return (structural, bool(affine_above))
         return (structural, None)
 
-    def _affine_above_relevant(self, expr, affine_above_relevant_cache: dict) -> bool:
+    def _affine_above_relevant(self, expr, affine_above_relevant_cache: dict[int, bool]) -> bool:
         """Whether canonicalize_tree result for ``expr`` depends on affine_above.
 
         Returns True when ``expr`` itself or any descendant could take the
