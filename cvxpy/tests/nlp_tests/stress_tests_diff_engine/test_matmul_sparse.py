@@ -131,15 +131,10 @@ class TestMatmulDifferentFormats:
 
 
 class TestSparseMatmulDispatch:
-    # A constant dense left-matmul operand that is mostly zeros is auto-routed to the
-    # sparse CSR binding (convert_matmul, SPARSE_MATMUL_DENSITY_THRESHOLD) instead of the
-    # dense path, which would build a dense Jacobian/Hessian.
-    #
-    # These tests observe *which path ran* via the Lagrange Hessian sparsity rather than
-    # just numerical correctness (which holds on either path). For sum_squares(A @ x - b)
-    # the Hessian is 2 A^T A: the dense path always reports a full lower triangle
-    # (n*(n+1)/2 nnz), while the sparse path exposes the true A^T A sparsity. No IPOPT is
-    # needed -- only C-problem construction and finite-difference derivative checks.
+    # A mostly-zero constant dense left-matmul operand is auto-routed to the sparse CSR
+    # binding instead of the dense path. These tests detect which path ran via the
+    # Lagrange Hessian nnz: for sum_squares(A @ x - b) the dense path reports a full
+    # lower triangle (n*(n+1)/2), while the sparse path exposes the true A^T A sparsity.
 
     @staticmethod
     def _var(n):
@@ -157,10 +152,9 @@ class TestSparseMatmulDispatch:
             checker._init_coo()
         return len(checker.hess_rows)
 
-    def test_super_sparse_dense_routes_to_sparse(self):
-        # Dense numpy operand well below the density threshold must take the sparse path:
-        # its Hessian sparsity matches the explicitly-CSR construction and is far below
-        # the full dense triangle. run() also confirms the sparsified path is correct.
+    def test_below_threshold_routes_sparse(self):
+        # Density below the threshold routes to sparse; Hessian matches the explicit CSR
+        # build, and run() confirms the sparsified path is numerically correct.
         np.random.seed(0)
         n = 40
         full_lower = n * (n + 1) // 2
@@ -178,16 +172,15 @@ class TestSparseMatmulDispatch:
         assert dense_nnz < full_lower      # not the full dense Hessian
         assert dense_nnz == csr_nnz        # identical to the explicit sparse path
 
-    def test_dense_above_threshold_stays_dense(self):
-        # Block-diagonal operand above the density threshold must stay on the dense path.
-        # A^T A is genuinely block-sparse, so the explicit-CSR construction yields a
-        # smaller Hessian -- which proves the full-triangle assertion below is meaningful.
+    def test_above_threshold_stays_dense(self):
+        # Density above the threshold stays dense. Block-diagonal so the explicit CSR
+        # build is genuinely smaller, making the full-triangle check meaningful.
         np.random.seed(0)
         n, blk = 40, 4
-        assert blk / n > SPARSE_MATMUL_DENSITY_THRESHOLD  # density sits above the threshold
+        assert blk / n > SPARSE_MATMUL_DENSITY_THRESHOLD
         full_lower = n * (n + 1) // 2
         blocks = [np.random.rand(blk, blk) for _ in range(n // blk)]
-        A_dense = sp.block_diag(blocks).toarray()  # density = blk / n
+        A_dense = sp.block_diag(blocks).toarray()
 
         b = np.ones(n)
         prob_dense = cp.Problem(cp.Minimize(cp.sum_squares(A_dense @ self._var(n) - b)))
@@ -200,10 +193,9 @@ class TestSparseMatmulDispatch:
         assert dense_nnz == full_lower     # dense path: full dense Hessian
         assert csr_nnz < full_lower        # confirms the matrix is structurally sparse
 
-    def test_parametric_super_sparse_not_sparsified(self):
-        # A Parameter operand whose current value is super-sparse must NOT be sparsified:
-        # freezing its sparsity pattern would corrupt results when the value changes. The
-        # param guard (param_node is None) keeps it on the dense path -> full Hessian.
+    def test_parametric_stays_dense(self):
+        # A parametric operand is never sparsified (its pattern could change), so it
+        # stays on the dense path -> full Hessian.
         np.random.seed(0)
         n = 40
         full_lower = n * (n + 1) // 2
