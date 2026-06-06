@@ -22,7 +22,12 @@ from cvxpy.expressions.variable import Variable
 
 
 def _split_complex_attributes(attributes: dict) -> tuple[dict, dict]:
-    """Map complex variable attributes to real and imaginary components."""
+    """Map attributes for full-size real/imaginary split Variables.
+
+    This helper is used for general complex and purely imaginary variables.
+    Hermitian variables handle their imaginary component separately with a
+    compact skew-symmetric parameterization.
+    """
     real_attr = attributes.copy()
     imag_attr = attributes.copy()
 
@@ -42,6 +47,7 @@ def _split_complex_attributes(attributes: dict) -> tuple[dict, dict]:
 
     return real_attr, imag_attr
 
+
 def variable_canon(expr, real_args, imag_args, real2imag):
     if expr.is_real():
         # Purely real.
@@ -59,6 +65,10 @@ def variable_canon(expr, real_args, imag_args, real2imag):
         real = Variable((n, n), var_id=expr.id, **real_attr)
 
         if n > 1:
+            # The imaginary part of a Hermitian matrix is skew-symmetric.
+            # It is represented by a compact vector of strict upper-triangular
+            # entries, not by a full matrix Variable, so matrix-shaped imag_attr
+            # is intentionally not forwarded here.
             imag_var = Variable(
                 shape=n * (n - 1) // 2,
                 var_id=real2imag[expr.id],
