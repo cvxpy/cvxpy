@@ -26,6 +26,7 @@ from cvxpy.constraints import PSD, SOC, NonNeg, Zero
 from cvxpy.reductions.solvers.compr_matrix import compress_matrix
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.kktsolver import setup_ldl_factor
+from cvxpy.reductions.solvers.openmp_conflict import warn_if_omp_conflict
 from cvxpy.utilities.citations import CITATION_DICT
 
 
@@ -73,6 +74,7 @@ class CVXOPT(ConicSolver):
     def import_solver(self) -> None:
         """Imports the solver.
         """
+        warn_if_omp_conflict("cvxopt")
         import cvxopt  # noqa F401
 
     def accepts(self, problem) -> bool:

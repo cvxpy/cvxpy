@@ -35,7 +35,7 @@ from cvxpy.constraints.constraint import Constraint
 from cvxpy.error import DPPError
 from cvxpy.expressions import cvxtypes
 from cvxpy.expressions.variable import Variable
-from cvxpy.interface.matrix_utilities import scalar_value
+from cvxpy.interface.matrix_utilities import ScalarValue, scalar_value
 from cvxpy.problems.objective import Maximize, Minimize
 from cvxpy.reductions import InverseData
 from cvxpy.reductions.chain import Chain
@@ -50,7 +50,7 @@ from cvxpy.reductions.solvers.solving_chain import (
     SolvingChain,
     resolve_and_build_chain,
 )
-from cvxpy.utilities import debug_tools
+from cvxpy.utilities import debug_tools, scopes
 from cvxpy.utilities.citations import CITATION_DICT
 from cvxpy.utilities.deterministic import unique_list
 from cvxpy.utilities.solver_context import SolverInfo
@@ -212,7 +212,7 @@ class Problem(u.Canonical):
         return metrics
 
     @property
-    def value(self):
+    def value(self) -> ScalarValue | None:
         """float : The value from the last time the problem was solved
                    (or None if not solved).
         """
@@ -344,7 +344,8 @@ class Problem(u.Canonical):
           expr.is_dqcp() for expr in self.constraints + [self.objective])
 
     @perf.compute_once
-    def is_dpp(self, context: str = 'dcp') -> bool:
+    def is_dpp(self, context: str = 'dcp',
+               quad_form_dpp: str | None = None) -> bool:
         """Does the problem satisfy DPP rules?
 
         DPP is a mild restriction of DGP. When a problem involving
@@ -361,6 +362,13 @@ class Problem(u.Canonical):
             is equivalent to ``problem.is_dcp(dpp=True)``, and
             `problem.is_dpp('dgp')`` is equivalent to
             `problem.is_dgp(dpp=True)`.
+        quad_form_dpp : str or None
+            Controls ``quad_form_dpp_scope`` for solvers that handle
+            quadratic objectives directly (QP solvers).
+
+            - ``None`` (default): standard DPP, no scope relaxation.
+            - ``'qp'``: enter scope for the objective only. Constraint
+              quad_forms with parametric P are correctly rejected.
 
         Returns
         -------
@@ -368,7 +376,20 @@ class Problem(u.Canonical):
             Whether the problem satisfies the DPP rules.
         """
         if context.lower() == 'dcp':
-            expr_dpp = self.is_dcp(dpp=True)
+            if quad_form_dpp is None:
+                expr_dpp = self.is_dcp(dpp=True)
+            elif quad_form_dpp == 'qp':
+                # Check objective with quad_form_dpp_scope (parametric P OK).
+                with scopes.quad_form_dpp_scope():
+                    obj_dpp = self.objective.is_dcp(dpp=True)
+                # Constraints stay on the standard DPP path because they still
+                # canonicalize through the conic machinery.
+                constrs_dpp = all(
+                    c.is_dcp(dpp=True) for c in self.constraints)
+                expr_dpp = obj_dpp and constrs_dpp
+            else:
+                raise ValueError(
+                    f"Unsupported quad_form_dpp: {quad_form_dpp!r}")
         elif context.lower() == 'dgp':
             expr_dpp = self.is_dgp(dpp=True)
         else:
@@ -554,7 +575,14 @@ class Problem(u.Canonical):
                             self, *args, solver=solver_name, **solver_kwargs, **kwargs)
                 else:
                     raise ValueError(ENTRY_ERROR_MSG)
-                s.LOGGER.info("Solver %s succeeds", solver_name)
+                if self.status == s.OPTIMAL:
+                    s.LOGGER.info("Solver %s succeeds", solver_name)
+                else:
+                    s.LOGGER.info("Solver %s returned non-optimal status %s",
+                                  solver_name,
+                                  self.status
+                                  )
+                    continue
                 return solution
             except error.SolverError as e:
                 s.LOGGER.info("Solver %s failed: %s", solver_name, e)
@@ -1219,20 +1247,21 @@ class Problem(u.Canonical):
         backward_cache = self._solver_cache[s.DIFFCP]
         DT = backward_cache["DT"]
         zeros = np.zeros(backward_cache["s"].shape)
-        # del_vars: dictionary of variable gradients (delta/∂ with respect to variables)
-        # Maps variable IDs to their gradient arrays for the backward pass
-        del_vars = {}
 
+        # Build del_vars dict: variable gradients (outer representation).
+        # np.broadcast_to returns a read-only view; the chain-rule ops in
+        # var_backward allocate new arrays, so this is safe.
+        del_vars = {}
         for variable in self.variables():
             if variable.gradient is None:
-                del_vars[variable.id] = np.ones(variable.shape)
+                del_vars[variable.id] = np.broadcast_to(1.0, variable.shape)
             else:
                 del_vars[variable.id] = np.asarray(variable.gradient,
                                                    dtype=np.float64)
-            # Apply chain rule through reductions that transform variables
-            for reduction in self._cache.solving_chain.reductions:
-                del_vars[variable.id] = reduction.var_backward(
-                    variable, del_vars[variable.id])
+
+        # Apply chain rule through reductions (forward: outer -> inner)
+        for reduction in self._cache.solving_chain.reductions:
+            del_vars = reduction.var_backward(del_vars)
 
         dx = self._cache.param_prog.split_adjoint(del_vars)
         start = time.time()
@@ -1241,22 +1270,12 @@ class Problem(u.Canonical):
         backward_cache['DT_TIME'] = end - start
         dparams = self._cache.param_prog.apply_param_jac(dc, -dA, db)
 
-        # Compute gradients for each parameter, applying chain rule through
-        # reductions that transform parameters (e.g., DGP log transform,
-        # Complex2Real split into real/imag).
+        # Apply chain rule for parameters (reverse: inner -> outer)
+        for reduction in reversed(self._cache.solving_chain.reductions):
+            dparams = reduction.param_backward(dparams)
+
         for param in self.parameters():
-            grad = np.zeros(param.shape)
-            handled = False
-            # Apply chain rule through any reductions that transformed this param
-            for reduction in self._cache.solving_chain.reductions:
-                reduction_grad = reduction.param_backward(param, dparams)
-                if reduction_grad is not None:
-                    grad = grad + reduction_grad
-                    handled = True
-            # Fall back to the direct gradient if no reduction transformed this param
-            if not handled and param.id in dparams:
-                grad = dparams[param.id]
-            param.gradient = grad
+            param.gradient = dparams.get(param.id, 0.0)
 
     def derivative(self) -> None:
         """Apply the derivative of the solution map to perturbations in the Parameters
@@ -1313,41 +1332,41 @@ class Problem(u.Canonical):
         backward_cache = self._solver_cache[s.DIFFCP]
         param_prog = self._cache.param_prog
         D = backward_cache["D"]
-        param_deltas = {}
 
         if not self.parameters():
             for variable in self.variables():
                 variable.delta = np.zeros(variable.shape)
             return
 
-        # Compute deltas for transformed parameters, applying chain rule through
-        # reductions that transform parameters (e.g., DGP log transform,
-        # Complex2Real split into real/imag).
+        # Build param_deltas dict (outer representation).
+        # np.broadcast_to returns a read-only view; the chain-rule ops in
+        # param_forward allocate new arrays, so this is safe.
+        param_deltas = {}
         for param in self.parameters():
-            delta = param.delta if param.delta is not None else np.zeros(param.shape)
-            handled = False
-            # Apply chain rule through any reductions that transformed this param
-            for reduction in self._cache.solving_chain.reductions:
-                transformed_deltas = reduction.param_forward(param, delta)
-                if transformed_deltas is not None:
-                    param_deltas.update(transformed_deltas)
-                    handled = True
-            # If no reduction transformed this param, add its delta directly
-            if not handled and param.id in param_prog.param_id_to_col:
-                param_deltas[param.id] = np.asarray(delta, dtype=np.float64)
+            if param.delta is not None:
+                param_deltas[param.id] = np.asarray(param.delta)
+            else:
+                param_deltas[param.id] = np.broadcast_to(0.0, param.shape)
+
+        # Apply chain rule for parameters (forward: outer -> inner)
+        for reduction in self._cache.solving_chain.reductions:
+            param_deltas = reduction.param_forward(param_deltas)
+
         dc, _, dA, db = param_prog.apply_parameters(param_deltas,
                                                     zero_offset=True)
         start = time.time()
         dx, _, _ = D(-dA, db, dc)
         end = time.time()
         backward_cache['D_TIME'] = end - start
-        dvars = param_prog.split_solution(
-            dx, [v.id for v in self.variables()])
+        dvars = param_prog.split_solution(dx)
+
+        # Apply chain rule for variables (reverse: inner -> outer)
+        for reduction in reversed(self._cache.solving_chain.reductions):
+            dvars = reduction.var_forward(dvars)
+
         for variable in self.variables():
-            variable.delta = dvars[variable.id]
-            # Apply chain rule through reductions that transform variables
-            for reduction in self._cache.solving_chain.reductions:
-                variable.delta = reduction.var_forward(variable, variable.delta)
+            variable.delta = dvars.get(variable.id,
+                                       np.broadcast_to(0.0, variable.shape))
 
     def _clear_solution(self) -> None:
         for v in self.variables():

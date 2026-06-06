@@ -21,8 +21,8 @@ import cvxpy.settings as s
 from cvxpy.atoms import (
     EXP_ATOMS,
     GP_EXP_ATOMS,
-    GP_NONPOS_ATOMS,
-    NONPOS_ATOMS,
+    GP_NONNEG_ATOMS,
+    NONNEG_ATOMS,
     POWCONE_ATOMS,
     POWCONE_ND_ATOMS,
     PSD_ATOMS,
@@ -248,7 +248,7 @@ class ProblemForm:
         if ExpCone in constr_types or any(atom in EXP_ATOMS for atom in atoms):
             cones.add(ExpCone)
         if any(t in constr_types for t in [Inequality, NonPos, NonNeg]) \
-                or any(atom in NONPOS_ATOMS for atom in atoms):
+                or any(atom in NONNEG_ATOMS for atom in atoms):
             cones.add(NonNeg)
         if NonPos in constr_types:
             cones.add(NonPos)
@@ -301,7 +301,7 @@ class ProblemForm:
         if any(atom in GP_EXP_ATOMS for atom in atoms):
             cones.add(ExpCone)
         if any(t in constr_types for t in [Inequality, NonPos, NonNeg]) \
-                or any(atom in GP_NONPOS_ATOMS for atom in atoms):
+                or any(atom in GP_NONNEG_ATOMS for atom in atoms):
             cones.add(NonNeg)
         if Equality in constr_types or Zero in constr_types:
             cones.add(Zero)
@@ -341,8 +341,8 @@ _QP_CONES = frozenset([NonNeg, Zero])
 def pick_default_solver(problem_form: ProblemForm) -> Solver | None:
     """Pick the default solver for a problem based on its structure.
 
-    Checks premium solvers first (MOSEK, MOREAU, GUROBI), then falls back
-    to open-source defaults based on problem type.
+    Checks commercial solvers first when configured to do so, then falls
+    back to open-source defaults based on problem type.
 
     Parameters
     ----------
@@ -358,10 +358,11 @@ def pick_default_solver(problem_form: ProblemForm) -> Solver | None:
         inst = solver_map.get(name)
         return inst if inst is not None and inst.is_installed() else None
 
-    for solver_name in slv_def.COMMERCIAL_SOLVERS:
-        solver = _get(slv_def.SOLVER_MAP_CONIC, solver_name)
-        if solver is not None and solver.can_solve(problem_form):
-            return solver
+    if s.DEFAULT_TO_COMMERCIAL_SOLVERS:
+        for solver_name in slv_def.COMMERCIAL_SOLVERS:
+            solver = _get(slv_def.SOLVER_MAP_CONIC, solver_name)
+            if solver is not None and solver.can_solve(problem_form):
+                return solver
 
     # Mixed-integer: LP → HIGHS, non-LP → SCIP.
     if problem_form.is_mixed_integer():

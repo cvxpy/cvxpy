@@ -17,13 +17,14 @@ limitations under the License.
 
 import numpy as np
 import scipy.sparse as sp
-from scipy import linalg as LA
 
 from cvxpy.atoms.affine.wraps import psd_wrap
 from cvxpy.atoms.atom import Atom
+from cvxpy.expressions.constants.parameter import is_param_affine, is_param_free
 from cvxpy.expressions.expression import Expression
 from cvxpy.interface.matrix_utilities import is_sparse
-from cvxpy.utilities.linalg import sparse_cholesky
+from cvxpy.utilities import scopes
+from cvxpy.utilities.linalg import dense_ldl_decomp, sparse_cholesky
 from cvxpy.utilities.warn import warn
 
 
@@ -60,16 +61,40 @@ class QuadForm(Atom):
         """
         return (self.is_atom_convex(), self.is_atom_concave())
 
+    def _check_dpp_args(self) -> bool:
+        """Check if args satisfy DPP requirements for quad_form.
+
+        For DPP with parametric P (in quad_form_dpp_scope):
+        - x must be param-free (avoid quadratic-in-params)
+        - P must be param-affine (DPP requirement)
+        """
+        x, P = self.args[0], self.args[1]
+        return is_param_free(x) and is_param_affine(P)
+
     def is_atom_convex(self) -> bool:
         """Is the atom convex?
+
+        In quad_form_dpp_scope (QP solver path), allows parametric P:
+        - x must be param-free (avoid quadratic-in-params)
+        - P must be param-affine (DPP requirement)
+        - P must be PSD (for convexity)
         """
         P = self.args[1]
+        if scopes.quad_form_dpp_scope_active():
+            return self._check_dpp_args() and P.is_psd()
         return P.is_constant() and P.is_psd()
 
     def is_atom_concave(self) -> bool:
         """Is the atom concave?
+
+        In quad_form_dpp_scope (QP solver path), allows parametric P:
+        - x must be param-free (avoid quadratic-in-params)
+        - P must be param-affine (DPP requirement)
+        - P must be NSD (for concavity)
         """
         P = self.args[1]
+        if scopes.quad_form_dpp_scope_active():
+            return self._check_dpp_args() and P.is_nsd()
         return P.is_constant() and P.is_nsd()
 
     def is_atom_smooth(self) -> bool:
@@ -238,27 +263,7 @@ def decomp_quad(P, cond=None, rcond=None, lower=True, check_finite: bool = True)
                 return 1.0, np.empty((0, 0)), L[p, :]
         except ValueError:
             P = P.toarray()  # make dense (needs to happen for ldl).
-    lu, d, _perm = LA.ldl(P, lower=lower, check_finite=check_finite)
-
-    # Extract effective diagonal values from D, handling any 2x2 blocks.
-    # For PSD/NSD matrices D is diagonal (no 2x2 blocks). For indefinite
-    # matrices, Bunch-Kaufman pivoting may introduce 2x2 blocks which we
-    # resolve by batching all 2x2 blocks into a single eigh call.
-    sub_diag = np.diag(d, -1)
-    block_starts = np.nonzero(sub_diag)[0]
-    diag_vals = np.real(np.diag(d)).copy()
-    if len(block_starts) > 0:
-        bs = block_starts
-        idx = bs[:, None] + np.arange(2)[None, :]  # (k, 2)
-        blocks = d[idx[:, :, None], idx[:, None, :]]  # (k, 2, 2)
-        eigvals, eigvecs = np.linalg.eigh(blocks)  # (k, 2), (k, 2, 2)
-        diag_vals[bs] = eigvals[:, 0]
-        diag_vals[bs + 1] = eigvals[:, 1]
-        # Apply eigenvector rotations to lu columns
-        lu_i = lu[:, bs].copy()
-        lu_ip1 = lu[:, bs + 1].copy()
-        lu[:, bs] = lu_i * eigvecs[:, 0, 0] + lu_ip1 * eigvecs[:, 1, 0]
-        lu[:, bs + 1] = lu_i * eigvecs[:, 0, 1] + lu_ip1 * eigvecs[:, 1, 1]
+    diag_vals, lu = dense_ldl_decomp(P, lower=lower, check_finite=check_finite)
 
     if rcond is not None:
         cond = rcond
@@ -282,14 +287,20 @@ def decomp_quad(P, cond=None, rcond=None, lower=True, check_finite: bool = True)
     return scale, M1, M2
 
 
-def quad_form(x, P, assume_PSD: bool = False):
-    """ Alias for :math:`x^T P x`.
+def quad_form(x, P, assume_PSD: bool = False) -> Expression:
+    """Alias for :math:`x^T P x`.
 
     Parameters
     ----------
     x : vector argument.
     P : matrix argument.
     assume_PSD : P is assumed to be PSD without checking.
+
+    Notes
+    -----
+    When ``P`` is a ``Parameter`` declared PSD or NSD and the solver supports
+    quadratic objectives, ``quad_form(x, P)`` can participate in a DPP solve,
+    so repeated solves can reuse cached compilation data.
     """
     x, P = map(Expression.cast_to_const, (x, P))
     # Check dimensions.

@@ -25,8 +25,10 @@ def pnorm_canon(expr, args):
     shape = expr.shape
     t = Variable(shape, nonneg=True)
 
-    # expression will always have a value here in DNLP
-    t.value = expr.value
+    # in DNLP, we expect the expression to always have a value here,
+    # but we add this check to get an informative error message later.
+    if expr.value is not None:
+        t.value = expr.value
 
     # we canonicalize 2-norm as follows:
     # ||x||_2 <= t  <=>  quad_over_lin(x, t) <= t

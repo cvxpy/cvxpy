@@ -73,3 +73,57 @@ class TestMatmulDifferentFormats:
         assert np.allclose(dense_val, csc_val)
         assert np.allclose(dense_sol, sparse_sol)
         assert np.allclose(dense_sol, csc_sol)
+
+    def test_dense_left_matmul(self):
+        np.random.seed(0)
+        m, n = 4, 4
+        A = np.random.rand(m, n)
+        X = cp.Variable((n, n), nonneg=True)
+        B = np.random.rand(m, n)
+        obj = cp.Minimize(cp.sum_squares(A @ X - B))
+        constraints = []
+        problem = cp.Problem(obj, constraints)
+        problem.solve(nlp=True, verbose=True)
+        checker = DerivativeChecker(problem)
+        checker.run_and_assert()
+
+    def test_dense_right_matmul(self):
+        np.random.seed(0)
+        m, n = 4, 4
+        A = np.random.rand(m, n)
+        X = cp.Variable((n, n), nonneg=True)
+        B = np.random.rand(m, n)
+        obj = cp.Minimize(cp.sum_squares(X @ A - B))
+        constraints = []
+        problem = cp.Problem(obj, constraints)
+        problem.solve(nlp=True, verbose=True)
+        checker = DerivativeChecker(problem)
+        checker.run_and_assert()
+
+    def test_sparse_and_dense_matmul(self):
+        np.random.seed(0)
+        m, n = 4, 4
+        A = np.random.rand(m, n)
+        C = sp.random(m, n, density=0.5)
+        X = cp.Variable((n, n), nonneg=True)
+        B = np.random.rand(m, n)
+        obj = cp.Minimize(cp.sum_squares(A @ X @ C - B))
+        constraints = []
+        problem = cp.Problem(obj, constraints)
+        problem.solve(nlp=True, verbose=True)
+        checker = DerivativeChecker(problem)
+        checker.run_and_assert()
+
+    def test_sparse_and_dense_matmul2(self):
+        np.random.seed(0)
+        m, n = 4, 3
+        A = np.random.rand(n, m)
+        C = sp.random(m, n, density=0.5)
+        X = cp.Variable((n, n), nonneg=True)
+        B = np.random.rand(m, m)
+        obj = cp.Minimize(cp.sum_squares(C @ X @ A - B))
+        constraints = []
+        problem = cp.Problem(obj, constraints)
+        problem.solve(nlp=True, verbose=True)
+        checker = DerivativeChecker(problem)
+        checker.run_and_assert()

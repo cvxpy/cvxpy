@@ -23,6 +23,7 @@ from numpy import linalg as LA
 from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.quad_form import QuadForm
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.expressions.expression import Expression
 
 
 class MatrixFrac(Atom):
@@ -144,7 +145,7 @@ class MatrixFrac(Atom):
 
 
 @wraps(MatrixFrac)
-def matrix_frac(X, P):
+def matrix_frac(X, P) -> Expression:
     if isinstance(P, np.ndarray):
         invP = LA.inv(P)
         return QuadForm(X, (invP + np.conj(invP).T) / 2.0)
