@@ -140,7 +140,12 @@ class Dnlp2Smooth(Canonicalization):
             cse_cache[cache_key] = canon_expr
         return canon_expr, constrs
 
-    def canonicalize_expr(self, expr, args, affine_above: bool) -> tuple[Expression, list]:
+    def canonicalize_expr(
+        self,
+        expr: Expression,
+        args: list[Expression],
+        affine_above: bool,
+    ) -> tuple[Expression, list[Constraint]]:
         """Canonicalize an expression, w.r.t. canonicalized arguments.
 
         Parameters
