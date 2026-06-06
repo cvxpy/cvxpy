@@ -107,10 +107,10 @@ def convert_rel_entr(expr, children):
 def convert_quad_form(expr, children):
     """Convert scalar quadratic form x.T @ P @ x.
 
-    Constant P uses the native sparse (CSR) or dense (permuted_dense) binding.
-    A parametric P (affine in the parameters, independent of x, so the Hessian is
-    still 2P) is fed to the dense path as a matrix-valued child re-evaluated each
-    solve -- children[1] is the already-converted P expression node.
+    Constant P uses the native sparse (CSR) or dense binding. A parametric P (affine
+    in the parameters, independent of x, so the Hessian is still 2P) is fed to the
+    dense path as a matrix-valued child re-evaluated each solve -- children[1] is the
+    already-converted P expression node.
     """
     P = expr.args[1]
     n = expr.args[0].size
@@ -141,7 +141,7 @@ def convert_quad_form(expr, children):
             P_csr.shape[1],
         )
 
-    # Dense constant P: use the dense (permuted_dense) path.
+    # Dense constant P: use the dense path.
     P_dense = np.asarray(P_val, dtype=np.float64)
     return _diffengine.make_quad_form(
         None, children[0], "dense", P_dense.flatten(order='F'), P_dense.shape[0]

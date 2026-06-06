@@ -135,7 +135,7 @@ class TestQuadFormDiffEngine:
         return x
 
     def test_quad_form_dense_P(self):
-        # Dense constant P over a leaf variable (the permuted_dense fast path).
+        # Dense constant P over a leaf variable (the dense fast path).
         n = 6
         P = _spd(n, seed=0)
         x = self._var(n, seed=10)
@@ -172,4 +172,21 @@ class TestQuadFormDiffEngine:
         P = sp.csr_matrix(_spd(k, seed=4))
         x = self._var(n, seed=14)
         prob = cp.Problem(cp.Minimize(cp.quad_form(x[:k], P)))
+        DerivativeChecker(prob).run_and_assert()
+
+    def test_quad_form_dense_P_nonlinear_composition(self):
+        # Dense P over a nonlinear argument sin(x .* x), not just a linear slice.
+        n = 6
+        P = _spd(n, seed=5)
+        x = self._var(n, seed=15)
+        prob = cp.Problem(cp.Minimize(cp.quad_form(cp.nlp.sin(cp.multiply(x, x)), P)))
+        DerivativeChecker(prob).run_and_assert()
+
+    def test_quad_form_diag_param(self):
+        # P = diag(p) for a vector parameter p: parameter-affine, so it routes through
+        # the parametric dense path (diag is symmetric, hence a valid quad_form matrix).
+        n = 6
+        p = cp.Parameter(n, nonneg=True, value=np.arange(1, n + 1, dtype=float))
+        x = self._var(n, seed=16)
+        prob = cp.Problem(cp.Minimize(cp.quad_form(x, cp.diag(p))))
         DerivativeChecker(prob).run_and_assert()
