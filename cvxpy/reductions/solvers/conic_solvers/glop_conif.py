@@ -29,6 +29,7 @@ from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.utilities.citations import CITATION_DICT
 from cvxpy.utilities.versioning import Version
+from cvxpy.utilities.warn import warn
 
 log = logging.getLogger(__name__)
 
@@ -53,11 +54,13 @@ class GLOP(ConicSolver):
         if Version(ortools.__version__) < Version('9.5.0'):
             raise RuntimeError(f'Version of ortools ({ortools.__version__}) '
                                f'is too old. Expected >= 9.5.0.')
-        if Version(ortools.__version__) >= Version('9.15.0'):
-            raise RuntimeError('Unrecognized new version of ortools '
-                               f'({ortools.__version__}). Expected < 9.15.0. '
-                               'Please open a feature request on cvxpy to '
-                               'enable support for this version.')
+        if Version(ortools.__version__) >= Version('9.16.0'):
+            warn(
+                f'Unrecognized version of ortools ({ortools.__version__}). '
+                'Version support has been tested up to 9.15.x. '
+                'Newer versions may work but are not officially supported. '
+                'Please open a feature request on cvxpy if you encounter issues.'
+            )
 
     def apply(self, problem: ParamConeProg) -> tuple[dict, dict]:
         """Returns a new problem and data for inverting the new solution."""

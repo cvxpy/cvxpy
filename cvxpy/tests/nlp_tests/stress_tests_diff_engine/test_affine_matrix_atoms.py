@@ -31,7 +31,7 @@ class TestAffineMatrixAtomsDiffEngine:
         np.random.seed(0)
         X = cp.Variable((10, 10))
         A = np.random.rand(10, 10)
-        obj = cp.Minimize(cp.Trace(cp.log(A@ X)))
+        obj = cp.Minimize(cp.Trace(cp.log(A @ X)))
         constr = [X >= 0.5, X <= 1]
         prob = cp.Problem(obj, constr)
         prob.solve(solver=cp.IPOPT, nlp=True, verbose=False)

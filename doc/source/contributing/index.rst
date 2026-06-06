@@ -16,7 +16,7 @@ optimization to help out. Here are simple ways to start contributing immediately
 
 * Browse the `issue tracker <https://github.com/cvxpy/cvxpy/issues>`_, and work on unassigned bugs or feature requests
 
-* Polish the `example library <https://github.com/cvxpy/cvxpy/tree/master/examples>`_
+* Polish the `example library <https://www.cvxpy.org/examples/index.html>`_
 
 If you'd like to add a new example to our library, or implement a new feature,
 please get in touch with us first by opening a GitHub issue to make sure that your
@@ -44,6 +44,7 @@ We'll be happy to provide guidance and advice.
 Small scope projects
  - `State required cone types for atoms <https://github.com/cvxpy/cvxpy/issues/574>`_.
  - Add QDLDL as another option for sparse Cholesky.
+ - Add DNLP examples from the `examples repository <https://github.com/cvxpy/examples>`_ to the `examples library <https://www.cvxpy.org/examples/index.html>`_.
  - Have MOSEK interface choose between solving the primal and the dual [`2107 <https://github.com/cvxpy/cvxpy/issues/2107>`_, `1403 <https://github.com/cvxpy/cvxpy/issues/1403>`_].
  - `Add cp.RSOC (Rotated Second-Order Cone) <https://github.com/cvxpy/cvxpy/issues/2874>`_.
  - `Huber function with concomitant scale estimation <https://github.com/cvxpy/cvxpy/issues/1377>`_.
@@ -78,9 +79,8 @@ Large scope projects
  - Support for GSCOPT [`2889 <https://github.com/cvxpy/cvxpy/discussions/2889>`_].
  - Disable constraints using parameters [`3041 <https://github.com/cvxpy/cvxpy/discussions/3041>`_]
  - Explicit variable/dual recovery maps in reductions. Currently, reductions use ad-hoc logic
-   (e.g., provenance tracking on leaves) to map between reduced and original variables/duals
-   during solution recovery. Reductions should instead return explicit forward and inverse maps
-   for primal and dual variables, which could replace the provenance mechanism.
+   to map between reduced and original variables/duals during solution recovery. Reductions
+   should instead return explicit forward and inverse maps for primal and dual variables.
 
 General principles
 ------------------

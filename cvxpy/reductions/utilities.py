@@ -139,7 +139,8 @@ class ReducedMat:
             self.mapping_nonzero = canonInterface.A_mapping_nonzero_rows(
                 self.matrix_data, self.var_len)
 
-    def get_matrix_from_tensor(self, param_vec: np.ndarray, with_offset: bool = True) -> tuple:
+    def get_matrix_from_tensor(self, param_vec: np.ndarray, with_offset: bool = True
+                               ) -> tuple[sp.csc_array, np.ndarray | None]:
         """Wraps get_matrix_from_tensor in canonInterface.
 
         Parameters

@@ -112,3 +112,15 @@ class TestQuadFormDifferentFormats:
 
         assert np.allclose(dense_val, csr_val)
         assert np.allclose(dense_val, csc_val)
+
+    def test_parameterized_quad_form_errors_clearly(self):
+        n = 4
+        x = cp.Variable(n, bounds=[-1, 1])
+        rng = np.random.default_rng(0)
+        P_val = rng.random((n, n))
+        P_val = P_val + P_val.T
+        P = cp.Parameter((n, n), symmetric=True, value=P_val)
+        prob = cp.Problem(cp.Minimize(cp.quad_form(x, P)))
+
+        with pytest.raises(NotImplementedError, match="parameterized P"):
+            prob.solve(nlp=True)

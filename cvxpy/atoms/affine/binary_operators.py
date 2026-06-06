@@ -39,6 +39,12 @@ from cvxpy.expressions.expression import Expression
 from cvxpy.utilities import bounds as bounds_utils
 
 
+def _as_sparse_array(value):
+    if isinstance(value, sp.spmatrix):
+        return sp.coo_array(value)
+    return value
+
+
 class BinaryOperator(AffAtom):
     """
     Base class for expressions involving binary operators. (other than addition)
@@ -187,9 +193,9 @@ class MulExpression(BinaryOperator):
         """Matrix multiplication.
         """
         if values[0].shape == () or values[1].shape == ():
-            return values[0] * values[1]
+            return _as_sparse_array(values[0] * values[1])
         else:
-            return values[0] @ values[1]
+            return _as_sparse_array(values[0] @ values[1])
 
     def shape_from_args(self) -> tuple[int, ...]:
         """Returns the (row, col) shape of the expression.
@@ -383,9 +389,9 @@ class multiply(MulExpression):
     def numeric(self, values):
         """Multiplies the values elementwise."""
         if sp.issparse(values[0]):
-            return values[0].multiply(values[1])
+            return _as_sparse_array(values[0].multiply(values[1]))
         elif sp.issparse(values[1]):
-            return values[1].multiply(values[0])
+            return _as_sparse_array(values[1].multiply(values[0]))
         else:
             return np.multiply(values[0], values[1])
 
@@ -399,6 +405,11 @@ class multiply(MulExpression):
     def shape_from_args(self) -> tuple[int, ...]:
         """Call np.broadcast on multiply arguments."""
         return np.broadcast_shapes(self.args[0].shape, self.args[1].shape)
+
+    def is_symmetric(self) -> bool:
+        """Is the expression symmetric?"""
+        return self.shape[0] == self.shape[1] and \
+               all(arg.is_symmetric() for arg in self.args)
 
     def is_psd(self) -> bool:
         """Is the expression a positive semidefinite matrix?
@@ -441,8 +452,8 @@ class multiply(MulExpression):
         y_flat = np.asarray(Y).flatten(order='F')
 
         # Gradient is diagonal: grad_x[i, i] = y[i], grad_y[i, i] = x[i]
-        DX = sp.diags(y_flat, format='csc')
-        DY = sp.diags(x_flat, format='csc')
+        DX = sp.diags_array(y_flat, format='csc')
+        DY = sp.diags_array(x_flat, format='csc')
 
         return [DX, DY]
 
@@ -582,7 +593,7 @@ class DivExpression(BinaryOperator):
         return (lu.div_expr(arg_objs[0], arg_objs[1]), [])
 
 
-def vdot(x, y):
+def vdot(x, y) -> Expression:
     """
     Return the standard inner product (or "scalar product") of (x,y).
 
@@ -614,14 +625,14 @@ def vdot(x, y):
     return cvxpy_sum(prod)
 
 
-def scalar_product(x, y):
+def scalar_product(x, y) -> Expression:
     """
     Alias for vdot.
     """
     return vdot(x, y)
 
 
-def outer(x, y):
+def outer(x, y) -> Expression:
     """
     Return the outer product of (x,y).
 

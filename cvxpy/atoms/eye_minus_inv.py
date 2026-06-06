@@ -18,9 +18,10 @@ limitations under the License.
 import numpy as np
 
 from cvxpy.atoms.atom import Atom
+from cvxpy.expressions.expression import Expression
 
 
-def resolvent(X, s: float):
+def resolvent(X, s: float) -> Expression:
     r"""The resolvent of a positive matrix, :math:`(sI - X)^{-1}`.
 
     For an elementwise positive matrix :math:`X` and a positive scalar

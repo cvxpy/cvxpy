@@ -23,9 +23,10 @@ from cvxpy.atoms.affine.binary_operators import MulExpression, multiply
 from cvxpy.atoms.affine.real import real as real_atom
 from cvxpy.atoms.affine.sum import sum as cvxpy_sum
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.expressions.expression import Expression
 
 
-def trace(expr):
+def trace(expr) -> Expression:
     """
     TLDR: Use alternate formulation for trace(A@B) for more efficient computation.
     trace(A@B) normally is O(n^3) because of the A@B operation.

@@ -22,9 +22,10 @@ import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.expressions.expression import Expression
 
 
-def concatenate(arg_list, axis: int | None = 0):
+def concatenate(arg_list, axis: int | None = 0) -> Expression:
     assert axis is None or (isinstance(axis, int) and axis >= 0)
     return Concatenate(*(arg_list + [axis]))
 

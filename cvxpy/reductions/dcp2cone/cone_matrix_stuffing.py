@@ -15,6 +15,8 @@ limitations under the License.
 """
 from __future__ import annotations
 
+from typing import Literal, overload
+
 import numpy as np
 import scipy.sparse as sp
 
@@ -210,6 +212,21 @@ class ParamConeProg(ParamProb):
         return self.x.attributes['boolean'] or \
             self.x.attributes['integer']
 
+    # Returns (q, d, A, b): objective vector, offset, constraint matrix, rhs.
+    @overload
+    def apply_parameters(self, id_to_param_value=None, zero_offset: bool = False,
+                         keep_zeros: bool = False,
+                         quad_obj: Literal[False] = False
+                         ) -> tuple[np.ndarray, np.ndarray, sp.csc_array, np.ndarray]: ...
+
+    # With quad_obj=True, also returns the quadratic-objective matrix P first.
+    @overload
+    def apply_parameters(self, id_to_param_value=None, zero_offset: bool = False,
+                         keep_zeros: bool = False,
+                         quad_obj: Literal[True] = ...
+                         ) -> tuple[sp.csc_array, np.ndarray, np.ndarray,
+                                    sp.csc_array, np.ndarray]: ...
+
     def apply_parameters(self, id_to_param_value=None, zero_offset: bool = False,
                          keep_zeros: bool = False, quad_obj: bool = False):
         """Returns A, b after applying parameters (and reshaping).
@@ -307,21 +324,12 @@ class ParamConeProg(ParamProb):
         """
         if active_vars is None:
             active_vars = [v.id for v in self.variables]
-        # var id to solution.
         sltn_dict = {}
         for var_id, col in self.var_id_to_col.items():
             if var_id in active_vars:
                 var = self.id_to_var[var_id]
                 value = sltn[col:var.size+col]
-                if var.attributes_were_lowered():
-                    orig_var = var.leaf_of_provenance()
-                    value = cvx_attr2constr.recover_value_for_leaf(
-                        orig_var, value, project=False)
-                    sltn_dict[orig_var.id] = np.reshape(
-                        value, orig_var.shape, order='F')
-                else:
-                    sltn_dict[var_id] = np.reshape(
-                        value, var.shape, order='F')
+                sltn_dict[var_id] = np.reshape(value, var.shape, order='F')
         return sltn_dict
 
     def split_adjoint(self, del_vars=None):
@@ -331,14 +339,6 @@ class ParamConeProg(ParamProb):
         for var_id, delta in del_vars.items():
             var = self.id_to_var[var_id]
             col = self.var_id_to_col[var_id]
-            if var.attributes_were_lowered():
-                orig_var = var.leaf_of_provenance()
-                if cvx_attr2constr.attributes_present(
-                        [orig_var], cvx_attr2constr.SYMMETRIC_ATTRIBUTES):
-                    delta = delta + np.swapaxes(delta, -2, -1)
-                    di = np.arange(delta.shape[-1])
-                    delta[..., di, di] /= 2
-                delta = cvx_attr2constr.lower_value(orig_var, delta)
             var_vec[col:col + var.size] = delta.flatten(order='F')
         return var_vec
 
@@ -428,6 +428,7 @@ class ConeMatrixStuffing(MatrixStuffing):
             constr_map.get(SvecPSD, []) + constr_map[ExpCone] + \
             constr_map[PowCone3D] + constr_map[PowConeND]
         inverse_data.cons_id_map = {con.id: con.id for con in ordered_cons}
+        self._cons_id_map = inverse_data.cons_id_map
 
         inverse_data.constraints = ordered_cons
         # Batch expressions together, then split apart.
@@ -485,11 +486,13 @@ class ConeMatrixStuffing(MatrixStuffing):
                 shape = con_obj.shape
                 dual_value = solution.dual_vars.get(new_con)
                 # TODO rationalize Exponential.
-                if dual_value is not None:
-                    if shape == () or isinstance(con_obj, (ExpCone, SOC)):
-                        dual_vars[old_con] = dual_value
-                    else:
-                        dual_vars[old_con] = np.reshape(dual_value, shape, order="F")
+                if dual_value is None:
+                    continue
+                if shape == () or isinstance(con_obj, (ExpCone, SOC)) or \
+                        (isinstance(con_obj, PSD) and con_obj.num_cones() > 1):
+                    dual_vars[old_con] = dual_value
+                else:
+                    dual_vars[old_con] = np.reshape(dual_value, shape, order="F")
 
         primal_vars = {}
         if solution.status not in s.SOLUTION_PRESENT:
@@ -501,22 +504,6 @@ class ConeMatrixStuffing(MatrixStuffing):
             shape = inverse_data.var_shapes[var_id]
             size = np.prod(shape, dtype=int)
             primal_vars[var_id] = np.reshape(x_opt[offset: offset + size], shape, order="F")
-
-        # Remap dual variables if dual exists (problem is convex).
-        if solution.dual_vars is not None:
-            for old_con, new_con in con_map.items():
-                con_obj = inverse_data.id2cons[old_con]
-                shape = con_obj.shape
-                # TODO rationalize Exponential.
-                if shape == () or isinstance(con_obj, (ExpCone, SOC)) or \
-                        (isinstance(con_obj, PSD) and con_obj.num_cones() > 1):
-                    dual_vars[old_con] = solution.dual_vars[new_con]
-                else:
-                    dual_vars[old_con] = np.reshape(
-                        solution.dual_vars[new_con],
-                        shape,
-                        order='F'
-                    )
 
         return Solution(solution.status, opt_val, primal_vars, dual_vars,
                         solution.attr)
