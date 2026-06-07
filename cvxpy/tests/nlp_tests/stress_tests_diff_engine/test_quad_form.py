@@ -190,3 +190,38 @@ class TestQuadFormDiffEngine:
         x = self._var(n, seed=16)
         prob = cp.Problem(cp.Minimize(cp.quad_form(x, cp.diag(p))))
         DerivativeChecker(prob).run_and_assert()
+
+
+class TestQuadFormDenseSparseDispatch:
+    """A constant P given as a dense-but-mostly-zero array (e.g. a diagonal written as a
+    dense ndarray) is routed to the sparse quad_form binding, so the Hessian block is
+    sparse instead of a dense n x n. Mirrors the matmul sparse-dispatch.
+    """
+
+    @staticmethod
+    def _var(n, seed):
+        x = cp.Variable(n, bounds=[-1, 1])
+        x.value = np.random.default_rng(seed).uniform(-0.9, 0.9, n)
+        return x
+
+    def test_dense_diagonal_P_routed_to_sparse(self):
+        from cvxpy.reductions.solvers.nlp_solvers.diff_engine import registry
+        n = 40  # diagonal density 1/n = 2.5% < SPARSE_DENSITY_THRESHOLD (5%)
+        P = np.diag(np.arange(1, n + 1, dtype=float))  # dense ndarray, but diagonal
+        prob = cp.Problem(cp.Minimize(cp.quad_form(self._var(n, seed=21), P)))
+
+        fmts = []
+        orig = registry._diffengine.make_quad_form
+        registry._diffengine.make_quad_form = (
+            lambda *a, **k: fmts.append(a[2] if len(a) > 2 else None) or orig(*a, **k))
+        try:
+            DerivativeChecker(prob).run_and_assert()
+        finally:
+            registry._diffengine.make_quad_form = orig
+        assert "sparse" in fmts and "dense" not in fmts
+
+    def test_dense_diagonal_P_derivative_check(self):
+        n = 6
+        P = np.diag(np.arange(1, n + 1, dtype=float))
+        prob = cp.Problem(cp.Minimize(cp.quad_form(self._var(n, seed=22), P)))
+        DerivativeChecker(prob).run_and_assert()
