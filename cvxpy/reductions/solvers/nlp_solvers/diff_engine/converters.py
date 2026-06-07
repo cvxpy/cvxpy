@@ -116,19 +116,7 @@ def convert_expr(expr, var_dict, n_vars, param_dict=None):
 
     # Recursive case: atoms
     atom_name = type(expr).__name__
-    if atom_name == "MulExpression":
-        # A pure-constant matmul operand is consumed by convert_matmul as raw matrix
-        # data (the sparse/dense binding takes ``arg.value`` directly); the converted
-        # node is used only for a *parametric* operand. Converting a constant operand
-        # here would densify a sparse constant (to_dense_float) and build a parameter
-        # node that convert_matmul then discards -- so skip it (pass None).
-        children = [
-            None if (arg.is_constant() and not arg.parameters())
-            else convert_expr(arg, var_dict, n_vars, param_dict)
-            for arg in expr.args
-        ]
-    else:
-        children = [convert_expr(arg, var_dict, n_vars, param_dict) for arg in expr.args]
+    children = [convert_expr(arg, var_dict, n_vars, param_dict) for arg in expr.args]
 
     # matmul and multiply need param_dict for parameter support
     # TODO: maybe multiply doesn't need parameter dict special case
