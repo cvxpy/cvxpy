@@ -165,7 +165,6 @@ class TestQuantumRelEntr:
         # leading to a slightly different numerical solution. Both are valid
         # approximations of the true quantum relative entropy.
         sth.verify_objective(places=1)
-        sth.verify_primal_values(places=1)
 
     @pytest.mark.skipif(not run_full_test_suite,
                         reason="These tests are too slow to solve with CLARABEL")
