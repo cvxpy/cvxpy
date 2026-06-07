@@ -1,4 +1,5 @@
 import numpy as np
+
 import cvxpy as cp
 from cvxpy import Variable
 from cvxpy.atoms.affine.kron import kron
