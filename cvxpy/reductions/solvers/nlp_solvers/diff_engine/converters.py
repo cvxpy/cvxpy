@@ -51,8 +51,8 @@ def convert_matmul(expr, children, var_dict, n_vars, param_dict):
         # (param_node is None) because sparsifying a parametric matrix would freeze its
         # sparsity pattern to the current value.
         density = np.count_nonzero(A) / A.size if A.size else 1.0
-        if param_node is None and density < s.SPARSE_MATMUL_DENSITY_THRESHOLD:
-            return make_sparse_left_matmul(None, children[1], sparse.csr_matrix(A))
+        if param_node is None and density < s.SPARSE_DENSITY_THRESHOLD:
+            return make_sparse_left_matmul(None, children[1], sparse.csr_array(A))
         return make_dense_left_matmul(param_node, children[1], A)
 
     elif right_arg.is_constant():
@@ -116,7 +116,19 @@ def convert_expr(expr, var_dict, n_vars, param_dict=None):
 
     # Recursive case: atoms
     atom_name = type(expr).__name__
-    children = [convert_expr(arg, var_dict, n_vars, param_dict) for arg in expr.args]
+    if atom_name == "MulExpression":
+        # A pure-constant matmul operand is consumed by convert_matmul as raw matrix
+        # data (the sparse/dense binding takes ``arg.value`` directly); the converted
+        # node is used only for a *parametric* operand. Converting a constant operand
+        # here would densify a sparse constant (to_dense_float) and build a parameter
+        # node that convert_matmul then discards -- so skip it (pass None).
+        children = [
+            None if (arg.is_constant() and not arg.parameters())
+            else convert_expr(arg, var_dict, n_vars, param_dict)
+            for arg in expr.args
+        ]
+    else:
+        children = [convert_expr(arg, var_dict, n_vars, param_dict) for arg in expr.args]
 
     # matmul and multiply need param_dict for parameter support
     # TODO: maybe multiply doesn't need parameter dict special case

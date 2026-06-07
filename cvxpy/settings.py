@@ -202,9 +202,10 @@ DEFAULT_CANON_BACKEND = CPP_CANON_BACKEND if sys.platform != "emscripten" else S
 # When problem is DPP and total parameter size >= this threshold, use COO backend
 DPP_PARAM_THRESHOLD = 1000
 
-# Nonzero fraction below which a constant dense matmul operand is routed to the
-# diff engine's sparse binding rather than a dense one.
-SPARSE_MATMUL_DENSITY_THRESHOLD = 0.05
+# Nonzero fraction at/below which a dense array is treated as sparse: the diff engine
+# routes such a constant operand to its sparse binding, and Leaf flags a sparsity-attribute
+# value as sparse enough to warrant value_sparse.
+SPARSE_DENSITY_THRESHOLD = 0.05
 
 # Numerical tolerances
 EIGVAL_TOL = 1e-10

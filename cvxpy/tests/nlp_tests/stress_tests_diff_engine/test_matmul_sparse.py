@@ -20,7 +20,7 @@ import scipy.sparse as sp
 
 import cvxpy as cp
 from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS
-from cvxpy.settings import SPARSE_MATMUL_DENSITY_THRESHOLD
+from cvxpy.settings import SPARSE_DENSITY_THRESHOLD
 from cvxpy.tests.nlp_tests.derivative_checker import DerivativeChecker
 
 
@@ -158,7 +158,7 @@ class TestSparseMatmulDispatch:
         np.random.seed(0)
         n = 40
         full_lower = n * (n + 1) // 2
-        density = SPARSE_MATMUL_DENSITY_THRESHOLD / 5  # safely below the threshold
+        density = SPARSE_DENSITY_THRESHOLD / 5  # safely below the threshold
         A_sp = sp.random(n, n, density=density, format='csr', random_state=0)
         A_dense = A_sp.toarray()
         b = np.ones(n)
@@ -177,7 +177,7 @@ class TestSparseMatmulDispatch:
         # build is genuinely smaller, making the full-triangle check meaningful.
         np.random.seed(0)
         n, blk = 40, 4
-        assert blk / n > SPARSE_MATMUL_DENSITY_THRESHOLD
+        assert blk / n > SPARSE_DENSITY_THRESHOLD
         full_lower = n * (n + 1) // 2
         blocks = [np.random.rand(blk, blk) for _ in range(n // blk)]
         A_dense = sp.block_diag(blocks).toarray()
@@ -199,7 +199,7 @@ class TestSparseMatmulDispatch:
         np.random.seed(0)
         n = 40
         full_lower = n * (n + 1) // 2
-        density = SPARSE_MATMUL_DENSITY_THRESHOLD / 5  # safely below the threshold
+        density = SPARSE_DENSITY_THRESHOLD / 5  # safely below the threshold
         A_dense = sp.random(n, n, density=density, format='csr', random_state=0).toarray()
 
         P = cp.Parameter((n, n))
