@@ -152,32 +152,31 @@ jobs:
         if: always()
         run: uv run pytest -rs -m knitro cvxpy/tests/test_qp_solvers.py
 
-      # Capture the faulting instruction directly: re-run the COPT tests under gdb.
-      # gdb stops the process at the #UD *before* any signal handler runs, so
-      # faulthandler can't mangle it (unlike the dmesg and core-dump routes, which
-      # saw the re-raise site instead). On a runner that crashes, $pc is exactly
-      # the illegal instruction; x/4i and x/16xb give the mnemonic and raw bytes.
-      # No-op on runners that don't crash. continue-on-error so it never gates the
-      # job; always() so it runs even after the plain test steps fail.
-      - name: Decode illegal instruction (gdb live)
+      # Decode the faulting instruction from the core dump the crashing test step
+      # left in /tmp/cores. We do NOT re-run the COPT tests under gdb: the crash
+      # is nondeterministic (COPT's multi-threaded barrier solver dispatches the
+      # AVX-512 path only some of the time), so a gdb re-run usually passes and
+      # captures nothing. Decoding the real crash core instead always works.
+      # decode_sigill_core.py walks past faulthandler's re-raise frame to the
+      # SIGTRAMP frame and disassembles the instruction that actually #UD'd.
+      # continue-on-error + always() so it never gates the job and runs even
+      # after the plain test steps fail; a no-op when this runner didn't crash.
+      - name: Decode illegal instruction (core dump)
         if: always() && runner.os == 'Linux'
         continue-on-error: true
         run: |
+          shopt -s nullglob
+          cores=(/tmp/cores/core.*)
+          if [ ${#cores[@]} -eq 0 ]; then
+            echo "no core dump in /tmp/cores -- this runner did not crash"
+            exit 0
+          fi
           sudo apt-get update -qq && sudo apt-get install -y -qq gdb
-          echo "== running COPT tests under gdb (stops at the #UD iff this runner crashes) =="
-          gdb -batch -nx \
-            -ex 'set pagination off' -ex 'set confirm off' \
-            -ex 'handle SIGILL stop print nopass' \
-            -ex 'run' \
-            -ex 'echo \n===== FAULTING INSTRUCTION =====\n' \
-            -ex 'x/4i $pc' \
-            -ex 'x/16xb $pc' \
-            -ex 'info registers rip' \
-            -ex 'info symbol $pc' \
-            -ex 'echo \n===== BACKTRACE =====\n' \
-            -ex 'bt' \
-            --args .venv/bin/python -m pytest -x -p no:cacheprovider -k copt \
-              cvxpy/tests/test_conic_solvers.py cvxpy/tests/test_qp_solvers.py 2>&1 | tail -80
+          for core in "${cores[@]}"; do
+            echo "================ decoding core: $core ================"
+            gdb -batch -nx .venv/bin/python "$core" \
+              -ex 'source tools/decode_sigill_core.py' 2>&1 | tail -120
+          done
 
     env:
       PYTHON_VERSION: 3.12
