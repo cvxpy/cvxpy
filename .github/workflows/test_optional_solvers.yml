@@ -115,6 +115,23 @@ jobs:
         run: uv pip install moreau --extra-index-url https://${FURY_TOKEN}:@pypi.fury.io/optimalintellect/
       - name: Print installed solvers
         run: uv run python -c "import cvxpy; print(cvxpy.installed_solvers())"
+      # COPT support says verbose=True reports which instruction set COPT dispatches
+      # to. Run one verbose COPT solve so that banner -- and the AVX-512 selection on
+      # a Genoa runner -- lands in the log. Line-buffered (stdbuf) so the banner
+      # survives a crash; continue-on-error so a SIGILL here doesn't disrupt the job.
+      - name: COPT verbose instruction-set banner
+        if: runner.os == 'Linux'
+        continue-on-error: true
+        run: |
+          ulimit -c unlimited
+          stdbuf -oL -eL uv run python -u -c "
+          import numpy as np, cvxpy as cp
+          rng = np.random.default_rng(0)
+          A = rng.standard_normal((8, 5)); b = rng.standard_normal(8)
+          x = cp.Variable(5)
+          cp.Problem(cp.Minimize(cp.sum_squares(A @ x - b))).solve(solver=cp.COPT, verbose=True)
+          print('COPT verbose solve completed')
+          "
       # KNITRO bundles LLVM libomp; CVXOPT bundles GNU libgomp via its
       # OpenBLAS dependency. Loading both in one process can crash inside
       # KNITRO's KN_solve on macOS, so run KNITRO tests in a separate
