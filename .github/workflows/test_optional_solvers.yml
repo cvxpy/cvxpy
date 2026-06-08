@@ -72,6 +72,16 @@ jobs:
             /tmp/avx_probe
             echo '```'
           } | tee -a "$GITHUB_STEP_SUMMARY"
+      # Capture a core dump if COPT crashes. PYTHONFAULTHANDLER catches SIGILL
+      # (so the kernel logs no "invalid opcode" trap), but faulthandler re-raises
+      # to the default action afterward, which dumps core -- which we later
+      # disassemble to read the faulting instruction.
+      - name: Enable core dumps
+        if: runner.os == 'Linux'
+        run: |
+          sudo mkdir -p /tmp/cores && sudo chmod 1777 /tmp/cores
+          sudo sysctl -w kernel.core_pattern='/tmp/cores/core.%e.%p'
+          cat /proc/sys/kernel/core_pattern
       - name: Set Additional Envs
         run: |
           echo "PYTHON_SUBVERSION=$(echo $PYTHON_VERSION | cut -c 3-)" >> $GITHUB_ENV
@@ -110,49 +120,48 @@ jobs:
       # KNITRO's KN_solve on macOS, so run KNITRO tests in a separate
       # process (mirrors test_nlp_solvers.yml).
       - name: Run test_conic_solvers
-        run: uv run pytest -rs -m "not knitro" cvxpy/tests/test_conic_solvers.py
+        run: |
+          ulimit -c unlimited
+          uv run pytest -rs -m "not knitro" cvxpy/tests/test_conic_solvers.py
       - name: Run test_conic_solvers (KNITRO)
         if: always()
         run: uv run pytest -rs -m knitro cvxpy/tests/test_conic_solvers.py
       - name: Run test_qp_solvers
         if: always()
-        run: uv run pytest -rs -m "not knitro" cvxpy/tests/test_qp_solvers.py
+        run: |
+          ulimit -c unlimited
+          uv run pytest -rs -m "not knitro" cvxpy/tests/test_qp_solvers.py
       - name: Run test_qp_solvers (KNITRO)
         if: always()
         run: uv run pytest -rs -m knitro cvxpy/tests/test_qp_solvers.py
 
-      # The probe above shows baseline AVX-512 executes fine on the Genoa runner
-      # where COPT crashes, so the faulting opcode is a narrower extension Genoa
-      # (Zen 4) lacks. Identify it: on a #UD the kernel logs
-      # "trap invalid opcode ip:<addr> ... in <module>[<base>+<size>]". Turn
-      # ip-base into a file offset and objdump that spot to read the actual
-      # instruction. Runs always so it fires on the crashing run; prints
-      # "(no trap)" harmlessly when nothing crashed.
+      # COPT #UDs on AVX-512 Genoa runners. PYTHONFAULTHANDLER catches SIGILL, so
+      # the kernel logs no "invalid opcode" trap (it only logs unhandled signals)
+      # -- dmesg is empty. Instead use the core dump faulthandler leaves behind
+      # (it re-raises to the default action after printing the traceback) and
+      # disassemble at the crash PC with gdb to read the exact faulting
+      # instruction. Runs always; no-ops when nothing crashed.
       - name: Decode illegal instruction
         if: always() && runner.os == 'Linux'
         run: |
-          echo "== kernel traps =="
-          sudo dmesg | grep -iE 'trap|invalid opcode|segfault|protection' | tail -20 || true
-          line=$(sudo dmesg | grep -iE 'invalid opcode' | tail -1 || true)
-          if [ -z "$line" ]; then echo "(no invalid-opcode trap recorded in dmesg)"; exit 0; fi
-          echo; echo "== faulting trap =="; echo "$line"
-          ip=$(grep -oP 'ip:\K[0-9a-f]+' <<<"$line")
-          mod=$(grep -oP ' in \K[^[]+' <<<"$line")
-          base=$(grep -oP ' in [^[]+\[\K[0-9a-f]+' <<<"$line")
-          off=$(printf '%x' $((0x$ip - 0x$base)))
-          echo "ip=0x$ip base=0x$base module=$mod -> file offset 0x$off"
-          case "$mod" in
-            /*) path="$mod" ;;
-            *)  path=$(find / -name "$mod" 2>/dev/null | head -1)
-                [ -z "$path" ] && path=$(find / -name "${mod%%.*}*" 2>/dev/null | head -1) ;;
-          esac
-          echo "module path: ${path:-<not found>}"
-          if [ -n "$path" ]; then
-            s=$((0x$off - 0x40)); e=$((0x$off + 0x20))
-            echo "== objdump around fault =="
-            objdump -d --start-address=$s --stop-address=$e "$path" 2>/dev/null \
-              | gawk -v o=$((0x$off)) '/^[[:space:]]*[0-9a-f]+:/{a=$1; sub(":","",a); if (strtonum("0x"a)==o){print $0"   <=== ILLEGAL INSTRUCTION"; next}} {print}'
+          shopt -s nullglob
+          cores=(/tmp/cores/core.*)
+          echo "cores: ${cores[*]:-none}"
+          if [ ${#cores[@]} -eq 0 ]; then
+            echo "(no core dumped -- nothing crashed, or core dumps unavailable)"
+            sudo dmesg | grep -iE 'invalid opcode|trap.*ip:' | tail -5 || true
+            exit 0
           fi
+          sudo apt-get update -qq && sudo apt-get install -y -qq gdb
+          for core in "${cores[@]}"; do
+            echo "==================== $core ===================="
+            gdb -batch -nx -q \
+              -ex 'set pagination off' \
+              -ex 'x/4i $pc' \
+              -ex 'info registers rip' \
+              -ex 'bt' \
+              .venv/bin/python "$core" 2>&1 | head -40
+          done
 
     env:
       PYTHON_VERSION: 3.12
