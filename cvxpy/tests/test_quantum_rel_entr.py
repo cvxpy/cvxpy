@@ -42,8 +42,9 @@ class TestQuantumRelEntr:
         """
         Nearest correlation matrix in the quantum relative entropy sense.
         M is a constant matrix and X is the variable, so this problem hits
-        the fast canonicalization path (X constant → 2n×2n SDP blocks instead
-        of 2n²×2n²). The expected objective reflects the fast-path approximation.
+        the fast canonicalization path (X constant -> 2n x 2n SDP blocks
+        instead of 2n^2 x 2n^2). The expected objective reflects the
+        fast-path approximation.
         """
         n = 4
         M = np.array([[0.5377, 0.3188, 3.5784, 0.7254],
@@ -62,7 +63,7 @@ class TestQuantumRelEntr:
         obj = cp.Minimize(cp.quantum_rel_entr(M, X))
         # NOTE: expected objective updated from -36.19277 to -35.59036 to
         # reflect the fast canonicalization path introduced in PR #3153.
-        # When M is constant, block size drops from 2n²×2n² to 2n×2n
+        # When M is constant, block size drops from 2n^2 x 2n^2 to 2n x 2n
         # (Fawzi & Fawzi 2018, Table 1 footnote b), producing a slightly
         # different numerical approximation. Tolerance loosened to places=1
         # accordingly.
@@ -194,3 +195,113 @@ class TestQuantumRelEntr:
         prob.solve(**self.CLARABEL_ARGS)
         assert prob.status == cp.OPTIMAL
         np.testing.assert_allclose(prob.value, -np.log(n), atol=1e-3)
+
+    def test_constant_first_arg_matches_general(self):
+        """
+        Verify that f(C, Y) [fast path: X constant] gives the same optimal
+        value as f(X, Y) s.t. X == C [general path, both variable].
+        Per PR #3153 / Fawzi & Fawzi 2018 Table 1 footnote b.
+        """
+        n = 3
+        rng = np.random.default_rng(42)
+        A = rng.standard_normal((n, n))
+        C = A @ A.T + np.eye(n) * 0.1
+        C = C / np.trace(C)
+
+        # Fast path: C is a numpy array (constant), Y is variable
+        Y_fast = cp.Variable((n, n), symmetric=True)
+        prob_fast = cp.Problem(
+            cp.Minimize(cp.quantum_rel_entr(C, Y_fast)),
+            [Y_fast >> 0, cp.trace(Y_fast) == 1]
+        )
+        prob_fast.solve(**self.CLARABEL_ARGS)
+
+        # General path: both X and Y are variables, X is pinned to C
+        X_gen = cp.Variable((n, n), symmetric=True)
+        Y_gen = cp.Variable((n, n), symmetric=True)
+        prob_gen = cp.Problem(
+            cp.Minimize(cp.quantum_rel_entr(X_gen, Y_gen)),
+            [X_gen >> 0, cp.trace(X_gen) == 1,
+             Y_gen >> 0, cp.trace(Y_gen) == 1,
+             X_gen == C]
+        )
+        prob_gen.solve(**self.CLARABEL_ARGS)
+
+        np.testing.assert_allclose(
+            prob_fast.value, prob_gen.value, atol=1e-3,
+            err_msg="Fast path (X constant) should match general path (X == C constraint)"
+        )
+
+    def test_constant_second_arg_matches_general(self):
+        """
+        Verify that f(X, C) [fast path: Y constant] gives the same optimal
+        value as f(X, Y) s.t. Y == C [general path, both variable].
+        Per PR #3153 / Fawzi & Fawzi 2018 Table 1 footnote b.
+        """
+        n = 3
+        rng = np.random.default_rng(7)
+        A = rng.standard_normal((n, n))
+        C = A @ A.T + np.eye(n) * 0.1
+        C = C / np.trace(C)
+
+        # Fast path: X is variable, C is a numpy array (constant)
+        X_fast = cp.Variable((n, n), symmetric=True)
+        prob_fast = cp.Problem(
+            cp.Minimize(cp.quantum_rel_entr(X_fast, C)),
+            [X_fast >> 0, cp.trace(X_fast) == 1]
+        )
+        prob_fast.solve(**self.CLARABEL_ARGS)
+
+        # General path: both X and Y are variables, Y is pinned to C
+        X_gen = cp.Variable((n, n), symmetric=True)
+        Y_gen = cp.Variable((n, n), symmetric=True)
+        prob_gen = cp.Problem(
+            cp.Minimize(cp.quantum_rel_entr(X_gen, Y_gen)),
+            [X_gen >> 0, cp.trace(X_gen) == 1,
+             Y_gen >> 0, cp.trace(Y_gen) == 1,
+             Y_gen == C]
+        )
+        prob_gen.solve(**self.CLARABEL_ARGS)
+
+        np.testing.assert_allclose(
+            prob_fast.value, prob_gen.value, atol=1e-3,
+            err_msg="Fast path (Y constant) should match general path (Y == C constraint)"
+        )
+
+    def test_constant_arg_sdp_size_reduction(self):
+        """
+        Verify that the fast path (one constant argument) produces a smaller
+        SDP than the general path (both variable).
+        Per PR #3153 / Fawzi & Fawzi 2018 Table 1 footnote b:
+        block size drops from 2n^2 x 2n^2 to 2n x 2n.
+        """
+        for n in [2, 3, 4]:
+            rng = np.random.default_rng(n)
+            A = rng.standard_normal((n, n))
+            C = A @ A.T + np.eye(n) * 0.1
+            C = C / np.trace(C)
+
+            # Fast path: X constant
+            Y_v = cp.Variable((n, n), symmetric=True)
+            prob_fast = cp.Problem(
+                cp.Minimize(cp.quantum_rel_entr(C, Y_v)),
+                [Y_v >> 0, cp.trace(Y_v) == 1]
+            )
+            data_fast, _, _ = prob_fast.get_problem_data(solver=cp.SCS)
+
+            # General path: both variable
+            X_v = cp.Variable((n, n), symmetric=True)
+            Y_v2 = cp.Variable((n, n), symmetric=True)
+            prob_gen = cp.Problem(
+                cp.Minimize(cp.quantum_rel_entr(X_v, Y_v2)),
+                [X_v >> 0, cp.trace(X_v) == 1,
+                 Y_v2 >> 0, cp.trace(Y_v2) == 1]
+            )
+            data_gen, _, _ = prob_gen.get_problem_data(solver=cp.SCS)
+
+            fast_vars = data_fast['A'].shape[1]
+            gen_vars = data_gen['A'].shape[1]
+            assert fast_vars < gen_vars, (
+                f"n={n}: fast path ({fast_vars} vars) should be smaller "
+                f"than general path ({gen_vars} vars)"
+            )
