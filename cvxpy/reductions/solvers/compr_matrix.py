@@ -53,6 +53,7 @@ def compress_matrix(A, b, equil_eps: float = 1e-10):
     P_J = []
     # List of rows to keep.
     row_to_keep = []
+    row_to_col = {}
     # A map of sparsity pattern to row list.
     sparsity_to_row = {}
     prev_ptr = A.indptr[0]
@@ -85,7 +86,7 @@ def compress_matrix(A, b, equil_eps: float = 1e-10):
                     keep_row = False
                     P_V.append(ratio[0])
                     P_I.append(row_num)
-                    P_J.append(row_match)
+                    P_J.append(row_to_col[row_match])
             if keep_row:
                 sparsity_to_row[pattern].append(row_num)
         # Pattern doesn't match anything present.
@@ -94,9 +95,11 @@ def compress_matrix(A, b, equil_eps: float = 1e-10):
 
         if keep_row:
             row_to_keep.append(row_num)
+            row_to_col[row_num] = len(row_to_keep)-1
             P_V.append(1.)
             P_I.append(row_num)
             P_J.append(len(row_to_keep)-1)
+        prev_ptr = ptr
 
     # Compress A and b.
     cols = max(len(row_to_keep), 1)

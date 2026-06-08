@@ -16,6 +16,7 @@ limitations under the License.
 from unittest.mock import patch
 
 import cvxpy as cp
+import cvxpy.settings as s
 from cvxpy.constraints import PSD, SOC, ExpCone, NonNeg, PowCone3D, Zero
 from cvxpy.error import SolverError
 from cvxpy.problems.problem_form import ProblemForm, pick_default_solver
@@ -167,8 +168,49 @@ class TestProblemForm(BaseTest):
 class TestPickDefaultSolver(BaseTest):
     """Tests for pick_default_solver()."""
 
+    class _FakeSolver:
+        def __init__(self, name: str) -> None:
+            self._name = name
+
+        def name(self) -> str:
+            return self._name
+
+        def is_installed(self) -> bool:
+            return True
+
+        def can_solve(self, problem_form) -> bool:
+            return True
+
     def _is_commercial(self, solver) -> bool:
         return solver is not None and solver.name() in slv_def.COMMERCIAL_SOLVERS
+
+    def test_default_to_commercial_solvers_setting(self) -> None:
+        x = cp.Variable(2)
+        prob = cp.Problem(cp.Minimize(cp.sum(x)), [x >= 1])
+        commercial = self._FakeSolver("FAKE_COMMERCIAL")
+        clarabel = self._FakeSolver(s.CLARABEL)
+        solver_map = {
+            commercial.name(): commercial,
+            clarabel.name(): clarabel,
+        }
+
+        with patch.object(s, "DEFAULT_TO_COMMERCIAL_SOLVERS", True), \
+                patch.object(slv_def, "COMMERCIAL_SOLVERS", [commercial.name()]), \
+                patch.object(slv_def, "SOLVER_MAP_CONIC", solver_map):
+            self.assertIs(pick_default_solver(ProblemForm(prob)), commercial)
+
+        with patch.object(s, "DEFAULT_TO_COMMERCIAL_SOLVERS", False), \
+                patch.object(slv_def, "COMMERCIAL_SOLVERS", [commercial.name()]), \
+                patch.object(slv_def, "SOLVER_MAP_CONIC", solver_map):
+            self.assertIs(pick_default_solver(ProblemForm(prob)), clarabel)
+
+    def test_default_to_commercial_solvers_env_var(self) -> None:
+        with patch.dict("os.environ", {"CVXPY_DEFAULT_TO_COMMERCIAL_SOLVERS": "0"}):
+            self.assertFalse(s._env_var_to_bool(
+                "CVXPY_DEFAULT_TO_COMMERCIAL_SOLVERS", True))
+        with patch.dict("os.environ", {"CVXPY_DEFAULT_TO_COMMERCIAL_SOLVERS": "1"}):
+            self.assertTrue(s._env_var_to_bool(
+                "CVXPY_DEFAULT_TO_COMMERCIAL_SOLVERS", False))
 
     def test_lp_gets_clarabel(self) -> None:
         x = cp.Variable(2)
