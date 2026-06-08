@@ -152,33 +152,32 @@ jobs:
         if: always()
         run: uv run pytest -rs -m knitro cvxpy/tests/test_qp_solvers.py
 
-      # COPT #UDs on AVX-512 Genoa runners. PYTHONFAULTHANDLER catches SIGILL, so
-      # the kernel logs no "invalid opcode" trap (it only logs unhandled signals)
-      # -- dmesg is empty. Instead use the core dump faulthandler leaves behind
-      # (it re-raises to the default action after printing the traceback) and
-      # disassemble at the crash PC with gdb to read the exact faulting
-      # instruction. Runs always; no-ops when nothing crashed.
-      - name: Decode illegal instruction
+      # Capture the faulting instruction directly: re-run the COPT tests under gdb.
+      # gdb stops the process at the #UD *before* any signal handler runs, so
+      # faulthandler can't mangle it (unlike the dmesg and core-dump routes, which
+      # saw the re-raise site instead). On a runner that crashes, $pc is exactly
+      # the illegal instruction; x/4i and x/16xb give the mnemonic and raw bytes.
+      # No-op on runners that don't crash. continue-on-error so it never gates the
+      # job; always() so it runs even after the plain test steps fail.
+      - name: Decode illegal instruction (gdb live)
         if: always() && runner.os == 'Linux'
+        continue-on-error: true
         run: |
-          shopt -s nullglob
-          cores=(/tmp/cores/core.*)
-          echo "cores: ${cores[*]:-none}"
-          if [ ${#cores[@]} -eq 0 ]; then
-            echo "(no core dumped -- nothing crashed, or core dumps unavailable)"
-            sudo dmesg | grep -iE 'invalid opcode|trap.*ip:' | tail -5 || true
-            exit 0
-          fi
           sudo apt-get update -qq && sudo apt-get install -y -qq gdb
-          for core in "${cores[@]}"; do
-            echo "==================== $core ===================="
-            gdb -batch -nx -q \
-              -ex 'set pagination off' \
-              -ex 'x/4i $pc' \
-              -ex 'info registers rip' \
-              -ex 'bt' \
-              .venv/bin/python "$core" 2>&1 | head -40
-          done
+          echo "== running COPT tests under gdb (stops at the #UD iff this runner crashes) =="
+          gdb -batch -nx \
+            -ex 'set pagination off' -ex 'set confirm off' \
+            -ex 'handle SIGILL stop print nopass' \
+            -ex 'run' \
+            -ex 'echo \n===== FAULTING INSTRUCTION =====\n' \
+            -ex 'x/4i $pc' \
+            -ex 'x/16xb $pc' \
+            -ex 'info registers rip' \
+            -ex 'info symbol $pc' \
+            -ex 'echo \n===== BACKTRACE =====\n' \
+            -ex 'bt' \
+            --args .venv/bin/python -m pytest -x -p no:cacheprovider -k copt \
+              cvxpy/tests/test_conic_solvers.py cvxpy/tests/test_qp_solvers.py 2>&1 | tail -80
 
     env:
       PYTHON_VERSION: 3.12
