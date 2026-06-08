@@ -15,13 +15,15 @@ limitations under the License.
 """
 
 
+from typing import overload
+
 from cvxpy import problems
 from cvxpy.atoms.elementwise.power import Power
 from cvxpy.atoms.quad_over_lin import quad_over_lin
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions import cvxtypes
 from cvxpy.expressions.expression import Expression
-from cvxpy.problems.objective import Minimize
+from cvxpy.problems.objective import Minimize, Objective
 from cvxpy.reductions.canonicalization import Canonicalization
 from cvxpy.reductions.dcp2cone.canonicalizers import CANON_METHODS as cone_canon_methods
 from cvxpy.reductions.dcp2cone.canonicalizers.quad import QUAD_CANON_METHODS as quad_canon_methods
@@ -32,6 +34,7 @@ from cvxpy.reductions.subexpr_cache import (
     UncacheableError,
     expr_key,
 )
+from cvxpy.utilities.canonical import Canonical
 
 # A Dcp2Cone CSE cache key: a subtree's structural key, paired with
 # affine_above only when canonicalization could depend on it (the quad-objective
@@ -68,9 +71,9 @@ class Dcp2Cone(Canonicalization):
 
         inverse_data = InverseData(problem)
 
-        cse_cache = {}
+        cse_cache: dict[ConeCacheKey, Expression] = {}
         structural_key_cache = StructuralKeyCache()
-        affine_above_relevant_cache = {}
+        affine_above_relevant_cache: dict[int, bool] = {}
 
         canon_objective, canon_constraints = self.canonicalize_tree(
             problem.objective, True, cse_cache,
@@ -92,15 +95,47 @@ class Dcp2Cone(Canonicalization):
         self._cons_id_map = inverse_data.cons_id_map
         return new_problem, inverse_data
 
+    @overload
     def canonicalize_tree(
         self,
-        expr,
+        expr: Expression,
         affine_above: bool,
         cse_cache: dict[ConeCacheKey, Expression] | None = None,
         structural_key_cache: StructuralKeyCache | None = None,
         affine_above_relevant_cache: dict[int, bool] | None = None,
-    ) -> tuple[Expression, list[Constraint]]:
+    ) -> tuple[Expression, list[Constraint]]: ...
+    @overload
+    def canonicalize_tree(
+        self,
+        expr: Constraint,
+        affine_above: bool,
+        cse_cache: dict[ConeCacheKey, Expression] | None = None,
+        structural_key_cache: StructuralKeyCache | None = None,
+        affine_above_relevant_cache: dict[int, bool] | None = None,
+    ) -> tuple[Constraint, list[Constraint]]: ...
+    @overload
+    def canonicalize_tree(
+        self,
+        expr: Objective,
+        affine_above: bool,
+        cse_cache: dict[ConeCacheKey, Expression] | None = None,
+        structural_key_cache: StructuralKeyCache | None = None,
+        affine_above_relevant_cache: dict[int, bool] | None = None,
+    ) -> tuple[Objective, list[Constraint]]: ...
+
+    def canonicalize_tree(
+        self,
+        expr: Canonical,
+        affine_above: bool,
+        cse_cache: dict[ConeCacheKey, Expression] | None = None,
+        structural_key_cache: StructuralKeyCache | None = None,
+        affine_above_relevant_cache: dict[int, bool] | None = None,
+    ) -> tuple[Canonical, list[Constraint]]:
         """Recursively canonicalize an Expression.
+
+        Canonicalizing an Expression yields an Expression, a Constraint yields
+        a Constraint, and an Objective yields an Objective; the overloads above
+        preserve that distinction for callers.
 
         Parameters
         ----------
@@ -237,7 +272,9 @@ class Dcp2Cone(Canonicalization):
             return (structural, bool(affine_above))
         return (structural, None)
 
-    def _affine_above_relevant(self, expr, affine_above_relevant_cache: dict[int, bool]) -> bool:
+    def _affine_above_relevant(
+        self, expr: Canonical, affine_above_relevant_cache: dict[int, bool]
+    ) -> bool:
         """Whether canonicalize_tree result for ``expr`` depends on affine_above.
 
         Returns True when ``expr`` itself or any descendant could take the

@@ -15,11 +15,13 @@ limitations under the License.
 """
 
 
+from typing import overload
+
 from cvxpy import problems
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions import cvxtypes
 from cvxpy.expressions.expression import Expression
-from cvxpy.problems.objective import Minimize
+from cvxpy.problems.objective import Minimize, Objective
 from cvxpy.reductions.canonicalization import Canonicalization
 from cvxpy.reductions.dnlp2smooth.canonicalizers import SMOOTH_CANON_METHODS as smooth_canon_methods
 from cvxpy.reductions.inverse_data import InverseData
@@ -29,6 +31,7 @@ from cvxpy.reductions.subexpr_cache import (
     UncacheableError,
     expr_key,
 )
+from cvxpy.utilities.canonical import Canonical
 
 
 class Dnlp2Smooth(Canonicalization):
@@ -52,7 +55,7 @@ class Dnlp2Smooth(Canonicalization):
 
         inverse_data.minimize = type(problem.objective) == Minimize
 
-        cse_cache = {}
+        cse_cache: dict[ExprKey, Expression] = {}
         structural_key_cache = StructuralKeyCache()
 
         # smoothen objective function
@@ -75,14 +78,43 @@ class Dnlp2Smooth(Canonicalization):
         self._cons_id_map = inverse_data.cons_id_map
         return new_problem, inverse_data
 
+    @overload
     def canonicalize_tree(
         self,
-        expr,
+        expr: Expression,
         affine_above: bool,
         cse_cache: dict[ExprKey, Expression] | None = None,
         structural_key_cache: StructuralKeyCache | None = None,
-    ) -> tuple[Expression, list[Constraint]]:
+    ) -> tuple[Expression, list[Constraint]]: ...
+    @overload
+    def canonicalize_tree(
+        self,
+        expr: Constraint,
+        affine_above: bool,
+        cse_cache: dict[ExprKey, Expression] | None = None,
+        structural_key_cache: StructuralKeyCache | None = None,
+    ) -> tuple[Constraint, list[Constraint]]: ...
+    @overload
+    def canonicalize_tree(
+        self,
+        expr: Objective,
+        affine_above: bool,
+        cse_cache: dict[ExprKey, Expression] | None = None,
+        structural_key_cache: StructuralKeyCache | None = None,
+    ) -> tuple[Objective, list[Constraint]]: ...
+
+    def canonicalize_tree(
+        self,
+        expr: Canonical,
+        affine_above: bool,
+        cse_cache: dict[ExprKey, Expression] | None = None,
+        structural_key_cache: StructuralKeyCache | None = None,
+    ) -> tuple[Canonical, list[Constraint]]:
         """Recursively canonicalize an Expression.
+
+        Canonicalizing an Expression yields an Expression, a Constraint yields
+        a Constraint, and an Objective yields an Objective; the overloads above
+        preserve that distinction for callers.
 
         Parameters
         ----------
