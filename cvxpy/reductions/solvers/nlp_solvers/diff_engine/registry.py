@@ -106,12 +106,14 @@ def convert_rel_entr(expr, children):
 
 
 def convert_quad_form(expr, children):
-    """Convert scalar quadratic form x.T @ P @ x.
+    """Convert the scalar quadratic form ``x.T @ P @ x``.
 
-    Constant P uses the native sparse (CSR) or dense binding. A parametric P (affine
-    in the parameters, independent of x, so the Hessian is still 2P) is fed to the
-    dense path as a matrix-valued child re-evaluated each solve -- children[1] is the
-    already-converted P expression node.
+    ``children[0]`` is the converted ``x`` node and ``children[1]`` the converted ``P``.
+    A constant ``P`` goes to the engine's sparse (CSR) or dense ``make_quad_form``
+    binding; a dense-but-mostly-zero ``P`` is routed to the sparse binding (density
+    check) to avoid a dense Hessian block. A parametric ``P`` (depends on parameters,
+    not on ``x``) is fed to the dense path as the matrix-valued child ``children[1]``,
+    which the engine re-evaluates each solve.
     """
     P = expr.args[1]
     n = expr.args[0].size
