@@ -538,6 +538,25 @@ class TestComplex(BaseTest):
         prob.solve(solver="SCS")
         assert prob.status is cp.INFEASIBLE
 
+    def test_hermitian_psd_dual(self) -> None:
+        """Test the dual of a PSD constraint on a Hermitian matrix.
+
+        Regression test: the dual recovered from the real dilation was
+        half its correct value.
+        """
+        C = np.array([[2, 1-1j], [1+1j, 3]])
+        A = np.array([[1, 0.5j], [-0.5j, 1]])
+        X = Variable((2, 2), hermitian=True)
+        con = X >> A
+        prob = Problem(cp.Minimize(cp.real(cp.trace(C @ X))), [con])
+        prob.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(prob.value, 4)
+        # KKT conditions give dual variable Y == C exactly.
+        Y = con.dual_value
+        self.assertItemsAlmostEqual(Y, C)
+        # Strong duality: optimal value equals Re(<Y, A>).
+        self.assertAlmostEqual(prob.value, np.real(np.trace(Y.conj().T @ A)))
+
     def test_promote(self) -> None:
         """Test promotion of complex variables.
         """
