@@ -26,12 +26,14 @@ import unittest
 import numpy as np
 import pytest
 import scipy.linalg as la
+import scipy.sparse as sp
 import scipy.stats as st
 
 import cvxpy as cp
 import cvxpy.tests.solver_test_helpers as sths
 from cvxpy.constraints import SOC
 from cvxpy.problems.problem_form import ProblemForm
+from cvxpy.reductions.solvers.compr_matrix import compress_matrix, get_row_nnz
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.conic_solvers.cuopt_conif import CUOPT
 from cvxpy.reductions.solvers.defines import (
@@ -51,6 +53,35 @@ from cvxpy.tests.solver_test_helpers import (
 )
 from cvxpy.transforms.partial_optimize import partial_optimize
 from cvxpy.utilities.versioning import Version
+
+
+def test_compress_matrix_eliminates_empty_and_duplicate_rows() -> None:
+    A = sp.csr_matrix(
+        [
+            [1.0, 2.0, 0.0],
+            [2.0, 4.0, 0.0],
+            [0.0, 0.0, 0.0],
+            [1.0, 0.0, 1.0],
+            [1.0, 0.0, 2.0],
+            [2.0, 0.0, 2.0],
+        ]
+    )
+    b = np.array([3.0, 6.0, 0.0, 2.0, 3.0, 4.0])
+
+    assert get_row_nnz(A, 0) == 2
+    A_compr, b_compr, P = compress_matrix(A, b)
+
+    np.testing.assert_allclose(A_compr.toarray(), A[[0, 3, 4], :].toarray())
+    np.testing.assert_allclose(b_compr, b[[0, 3, 4]])
+    np.testing.assert_allclose((P @ A_compr).toarray(), A.toarray())
+    np.testing.assert_allclose(P @ b_compr, b)
+
+    A_empty = sp.csr_matrix([[0.0, 0.0], [1.0, 0.0]])
+    b_empty = np.array([0.0, 1.0])
+    A_compr, b_compr, P = compress_matrix(A_empty, b_empty)
+    np.testing.assert_allclose(A_compr.toarray(), [[1.0, 0.0]])
+    np.testing.assert_allclose(b_compr, [1.0])
+    np.testing.assert_allclose((P @ A_compr).toarray(), [[0.0, 0.0], [1.0, 0.0]])
 
 
 @unittest.skipUnless('ECOS' in INSTALLED_SOLVERS, 'ECOS is not installed.')

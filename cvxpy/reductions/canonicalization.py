@@ -14,12 +14,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from typing import overload
+
 from cvxpy import problems
+from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions import cvxtypes
 from cvxpy.expressions.expression import Expression
+from cvxpy.problems.objective import Objective
 from cvxpy.reductions.inverse_data import InverseData
 from cvxpy.reductions.reduction import Reduction
 from cvxpy.reductions.solution import Solution
+from cvxpy.utilities.canonical import Canonical
 
 
 class Canonicalization(Reduction):
@@ -87,8 +92,27 @@ class Canonicalization(Reduction):
         return Solution(solution.status, solution.opt_val, pvars, dvars,
                         solution.attr)
 
-    def canonicalize_tree(self, expr, canonicalize_params: bool = True):
+    @overload
+    def canonicalize_tree(
+        self, expr: Expression, canonicalize_params: bool = True
+    ) -> tuple[Expression, list[Constraint]]: ...
+    @overload
+    def canonicalize_tree(
+        self, expr: Constraint, canonicalize_params: bool = True
+    ) -> tuple[Constraint, list[Constraint]]: ...
+    @overload
+    def canonicalize_tree(
+        self, expr: Objective, canonicalize_params: bool = True
+    ) -> tuple[Objective, list[Constraint]]: ...
+
+    def canonicalize_tree(
+        self, expr: Canonical, canonicalize_params: bool = True
+    ) -> tuple[Canonical, list[Constraint]]:
         """Recursively canonicalize an Expression.
+
+        Canonicalizing an Expression yields an Expression, a Constraint yields
+        a Constraint, and an Objective yields an Objective; the overloads above
+        preserve that distinction for callers.
 
         Args:
             expr: Expression to canonicalize.
@@ -128,10 +152,10 @@ class Canonicalization(Reduction):
 
     def canonicalize_expr(
             self,
-            expr: Expression,
-            args: list,
+            expr: Canonical,
+            args: list[Expression],
             canonicalize_params: bool = True
-        ):
+        ) -> tuple[Canonical, list[Constraint]]:
         """Canonicalize an expression, w.r.t. canonicalized arguments.
 
         Args:

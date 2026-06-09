@@ -855,3 +855,82 @@ def test_qp_solver_rejects_soc_cones():
     with pytest.raises(SolverError) as exc_info:
         osqp_solver.apply(_apply_reductions(prob))
     assert "second-order cones" in str(exc_info.value)
+
+
+# --- PIQP interface tests --- #
+
+piqp_skip = pytest.mark.skipif(
+    'PIQP' not in INSTALLED_SOLVERS, reason='PIQP is not installed.'
+)
+
+
+@piqp_skip
+def test_piqp_dense_backend():
+    """The dense backend builds dense matrices and a ``piqp.DenseSolver``; it
+    should agree with the default sparse backend."""
+    x = cp.Variable(2)
+    prob = cp.Problem(cp.Minimize(cp.sum_squares(x - 3)), [x[0] + x[1] <= 4])
+    prob.solve(solver=cp.PIQP, backend='dense')
+    assert prob.status == cp.OPTIMAL
+    np.testing.assert_allclose(x.value, [2., 2.], atol=1e-4)
+
+
+@piqp_skip
+def test_piqp_invalid_backend():
+    """An unrecognized backend is rejected before solving."""
+    x = cp.Variable(2)
+    prob = cp.Problem(cp.Minimize(cp.sum_squares(x)), [x >= 1])
+    with pytest.raises(ValueError, match="backend must be either dense or sparse"):
+        prob.solve(solver=cp.PIQP, backend='tridiagonal')
+
+
+@piqp_skip
+def test_piqp_unknown_setting():
+    """An unknown solver setting raises a clear ``TypeError``."""
+    x = cp.Variable(2)
+    prob = cp.Problem(cp.Minimize(cp.sum_squares(x)), [x >= 1])
+    with pytest.raises(TypeError, match="Unrecognized solver setting"):
+        prob.solve(solver=cp.PIQP, not_a_real_setting=1.0)
+
+
+# --- COPT interface tests --- #
+
+copt_skip = pytest.mark.skipif(
+    'COPT' not in INSTALLED_SOLVERS, reason='COPT is not installed.'
+)
+
+
+@copt_skip
+def test_copt_mixed_integer():
+    """A mixed boolean/integer QP exercises the MIP variable-type path and
+    MIP-solution retrieval."""
+    xb = cp.Variable(boolean=True)
+    xi = cp.Variable(integer=True)
+    prob = cp.Problem(cp.Minimize((xb - 0.7) ** 2 + (xi - 2.4) ** 2),
+                      [xi >= 0, xi <= 5])
+    prob.solve(solver=cp.COPT)
+    assert prob.status == cp.OPTIMAL
+    assert np.isclose(xb.value, 1.0)
+    assert np.isclose(xi.value, 2.0)
+
+
+@copt_skip
+def test_copt_solver_opts_passthrough():
+    """Solver options that are not CVXPY-interface arguments are forwarded to
+    COPT via ``setParam``."""
+    x = cp.Variable(2)
+    prob = cp.Problem(cp.Minimize(cp.sum_squares(x - 1)), [x >= 0])
+    prob.solve(solver=cp.COPT, RelGap=1e-7)
+    assert prob.status == cp.OPTIMAL
+    np.testing.assert_allclose(x.value, [1., 1.], atol=1e-4)
+
+
+@copt_skip
+def test_copt_save_file(tmp_path):
+    """The ``save_file`` option writes the model to disk before solving."""
+    out = tmp_path / "model.mps"
+    x = cp.Variable(2)
+    prob = cp.Problem(cp.Minimize(cp.sum_squares(x - 1)), [x >= 0])
+    prob.solve(solver=cp.COPT, save_file=str(out))
+    assert prob.status == cp.OPTIMAL
+    assert out.exists() and out.stat().st_size > 0
