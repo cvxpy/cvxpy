@@ -16,9 +16,10 @@ limitations under the License.
 
 from cvxpy.atoms.affine.hstack import hstack
 from cvxpy.atoms.affine.vstack import vstack
+from cvxpy.expressions.expression import Expression
 
 
-def bmat(block_lists):
+def bmat(block_lists) -> Expression:
     """Constructs a block matrix.
 
     Takes a list of lists. Each internal list is stacked horizontally.

@@ -26,6 +26,7 @@ import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.atoms.axis_atom import AxisAtom, normalize_axis
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.expressions.expression import Expression
 from cvxpy.utilities import bounds as bounds_utils
 
 
@@ -151,7 +152,9 @@ class Sum(AxisAtom, AffAtom):
 
 
 @wraps(Sum)
-def sum(expr, axis: int | tuple[int, ...] | None = None, keepdims: bool = False):
+def sum(
+    expr, axis: int | tuple[int, ...] | None = None, keepdims: bool = False
+) -> Expression:
     """
     Wrapper for Sum class.
     """

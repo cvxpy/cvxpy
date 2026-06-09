@@ -20,6 +20,7 @@ import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.expressions.expression import Expression
 from cvxpy.utilities import bounds as bounds_utils
 
 
@@ -115,7 +116,7 @@ class transpose(AffAtom):
         """
         return (lu.transpose(arg_objs[0], self.axes), [])
 
-def permute_dims(expr, axes: list[int]):
+def permute_dims(expr, axes: list[int]) -> Expression:
     """Permute the dimensions of the expression.
 
     Alias for transpose with specified axes.
@@ -134,7 +135,7 @@ def permute_dims(expr, axes: list[int]):
     """
     return transpose(expr, axes=axes)
 
-def swapaxes(expr, axis1: int, axis2: int):
+def swapaxes(expr, axis1: int, axis2: int) -> Expression:
     """Swap two axes of the expression.
 
     Parameters
@@ -155,7 +156,7 @@ def swapaxes(expr, axis1: int, axis2: int):
     axes[axis1], axes[axis2] = axes[axis2], axes[axis1]
     return transpose(expr, axes=axes)
 
-def moveaxis(expr, source: list[int], destination: list[int]):
+def moveaxis(expr, source: list[int], destination: list[int]) -> Expression:
     """Move axes of the expression to new positions.
 
     Parameters

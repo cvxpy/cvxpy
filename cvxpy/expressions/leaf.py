@@ -148,7 +148,10 @@ class Leaf(expression.Expression):
             self.integer_idx = integer
         if sparsity:
             self.sparse_idx = self._validate_indices(sparsity)
-            self._sparse_high_fill_in = (len(self.sparse_idx[0]) / np.prod(self.shape) <= 0.25)
+            # Sparse enough (small nonzero fraction) to nudge toward value_sparse;
+            # shares the diff engine's sparse-routing threshold (see settings).
+            self._sparse_high_fill_in = (
+                len(self.sparse_idx[0]) / np.prod(self.shape) <= s.SPARSE_DENSITY_THRESHOLD)
         else:
             self.sparse_idx = None
         # count number of attributes
@@ -531,7 +534,7 @@ class Leaf(expression.Expression):
             self._value = val
 
     @property
-    def value(self) -> np.ndarray | None:
+    def value(self) -> expression.ExpressionValue | None:
         """The numeric value of the expression."""
         if self.sparse_idx is None:
             return self._value
@@ -559,7 +562,7 @@ class Leaf(expression.Expression):
         return sp.coo_array((self._value, self.sparse_idx), shape=self.shape)
 
     @value_sparse.setter
-    def value_sparse(self, val) -> None:
+    def value_sparse(self, val: sp.coo_array | sp.spmatrix) -> None:
         if isinstance(val, sp.spmatrix):
             val = sp.coo_array(val)
         elif not isinstance(val, sp.coo_array):
@@ -998,7 +1001,7 @@ class Leaf(expression.Expression):
                 else:
                     lb_arr = np.maximum(lb_arr, 0)
             else:
-                lb_val = max(lb_val, 0)
+                lb_val = max(lb_val, 0.0)
         if self.attributes['nonpos'] or self.attributes['neg']:
             if ub_arr is not None:
                 if sp.issparse(ub_arr):
@@ -1006,7 +1009,7 @@ class Leaf(expression.Expression):
                 else:
                     ub_arr = np.minimum(ub_arr, 0)
             else:
-                ub_val = min(ub_val, 0)
+                ub_val = min(ub_val, 0.0)
 
         # For boolean variables, bounds are [0, 1]
         if self.attributes['boolean'] is True:
@@ -1016,14 +1019,14 @@ class Leaf(expression.Expression):
                 else:
                     lb_arr = np.maximum(lb_arr, 0)
             else:
-                lb_val = max(lb_val, 0)
+                lb_val = max(lb_val, 0.0)
             if ub_arr is not None:
                 if sp.issparse(ub_arr):
                     ub_arr = ub_arr.minimum(1)
                 else:
                     ub_arr = np.minimum(ub_arr, 1)
             else:
-                ub_val = min(ub_val, 1)
+                ub_val = min(ub_val, 1.0)
 
         # Build final bounds: use broadcast views for uniform scalars
         if lb_arr is not None:

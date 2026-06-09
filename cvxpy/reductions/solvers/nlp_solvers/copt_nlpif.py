@@ -256,6 +256,15 @@ class COPT(NLPsolver):
         for key, value in solver_opts.items():
             model.setParam(key, value)
 
+        # COPT may evaluate the gradient/Jacobian/Hessian callbacks at the
+        # initial point before calling the objective/constraint callbacks.
+        # The oracles cache intermediate values from a forward pass, so prime
+        # them here to ensure the first derivative evaluation uses correct
+        # values rather than stale defaults.
+        oracles.objective(x0)
+        if m > 0:
+            oracles.constraints(x0)
+
         # Solve problem
         model.solve()
 

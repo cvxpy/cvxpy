@@ -25,6 +25,8 @@ from cvxpy.expressions.constants import Constant, Parameter
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.complex2real.canonicalizers.variable_canon import variable_canon
 from cvxpy.reductions.complex2real.complex2real import Complex2Real
+from cvxpy.reductions.complex2real.complex2real import Complex2Real
+from cvxpy.reductions.solution import Solution
 from cvxpy.reductions.solvers.defines import INSTALLED_MI_SOLVERS
 from cvxpy.tests.base_test import BaseTest
 
@@ -1014,3 +1016,113 @@ class TestComplex(BaseTest):
             cp.NonNeg(x)
         with self.assertRaises(ValueError):
             cp.NonPos(x)
+
+    def test_complex2real_mapping_helpers_for_general_and_hermitian_leaves(self) -> None:
+        general = cp.Variable(2, complex=True)
+        hermitian = cp.Variable((2, 2), hermitian=True)
+        param = cp.Parameter(2, complex=True)
+        hparam = cp.Parameter((2, 2), hermitian=True)
+        param.value = np.array([1 + 2j, 3 + 4j])
+        hparam.value = np.array([[1, 2 + 5j], [2 - 5j, 3]])
+        problem = cp.Problem(
+            cp.Minimize(cp.sum_squares(cp.real(general - param))),
+            [hermitian == hparam],
+        )
+        reduction = Complex2Real()
+
+        self.assertEqual(reduction.var_id_map, {})
+        self.assertEqual(reduction.param_id_map, {})
+        np.testing.assert_allclose(
+            reduction.var_backward({general.id: np.array([1 + 2j, 3 + 4j])})[general.id],
+            [1 + 2j, 3 + 4j],
+        )
+        np.testing.assert_allclose(
+            reduction.var_forward({general.id: np.array([1.0, 2.0])})[general.id],
+            [1.0, 2.0],
+        )
+        np.testing.assert_allclose(
+            reduction.param_backward({param.id: np.array([1.0, 2.0])})[param.id],
+            [1.0, 2.0],
+        )
+        np.testing.assert_allclose(
+            reduction.param_forward({param.id: np.array([1.0, 2.0])})[param.id],
+            [1.0, 2.0],
+        )
+
+        reduction.apply(problem)
+        reduction.update_parameters(problem)
+        self.assertIn(general.id, reduction.var_id_map)
+        self.assertIn(hermitian.id, reduction.var_id_map)
+        self.assertIn(param.id, reduction.param_id_map)
+        self.assertIn(hparam.id, reduction.param_id_map)
+
+        real_general, imag_general = reduction.canon_methods._variables[general]
+        real_hermitian, imag_hermitian = reduction.canon_methods._variables[hermitian]
+        real_param, imag_param = reduction.canon_methods._parameters[param]
+        real_hparam, imag_hparam = reduction.canon_methods._parameters[hparam]
+
+        np.testing.assert_allclose(real_param.value, [1, 3])
+        np.testing.assert_allclose(imag_param.value, [2, 4])
+        np.testing.assert_allclose(real_hparam.value, [[1, 2], [2, 3]])
+        np.testing.assert_allclose(imag_hparam.value, [5])
+
+        backward = reduction.var_backward({
+            general.id: np.array([1 + 2j, 3 + 4j]),
+            hermitian.id: np.array([[1, 2 + 5j], [2 - 5j, 3]]),
+        })
+        np.testing.assert_allclose(backward[real_general.id], [1, 3])
+        np.testing.assert_allclose(backward[imag_general.id], [2, 4])
+        np.testing.assert_allclose(backward[real_hermitian.id], [[1, 2], [2, 3]])
+        np.testing.assert_allclose(backward[imag_hermitian.id], [5])
+
+        forward = reduction.var_forward({
+            real_general.id: np.array([1, 3]),
+            imag_general.id: np.array([2, 4]),
+            real_hermitian.id: np.array([[1, 2], [2, 3]]),
+            imag_hermitian.id: np.array([5]),
+        })
+        np.testing.assert_allclose(forward[general.id], [1 + 2j, 3 + 4j])
+        np.testing.assert_allclose(forward[hermitian.id], [[1, 2 + 5j], [2 - 5j, 3]])
+
+        param_backward = reduction.param_backward({
+            real_param.id: np.array([1, 3]),
+            imag_param.id: np.array([2, 4]),
+            real_hparam.id: np.array([[1, 2], [2, 3]]),
+            imag_hparam.id: np.array([5]),
+        })
+        np.testing.assert_allclose(param_backward[param.id], [1 + 2j, 3 + 4j])
+        np.testing.assert_allclose(param_backward[hparam.id], [[1, 2 + 5j], [2 - 5j, 3]])
+
+        param_forward = reduction.param_forward({
+            param.id: np.array([1 + 2j, 3 + 4j]),
+            hparam.id: np.array([[1, 2 + 5j], [2 - 5j, 3]]),
+        })
+        np.testing.assert_allclose(param_forward[real_param.id], [1, 3])
+        np.testing.assert_allclose(param_forward[imag_param.id], [2, 4])
+        np.testing.assert_allclose(param_forward[real_hparam.id], [[1, 2], [2, 3]])
+        np.testing.assert_allclose(param_forward[imag_hparam.id], [5])
+
+    def test_complex2real_invert_primal_cases(self) -> None:
+        x = cp.Variable(2, complex=True)
+        H = cp.Variable((2, 2), hermitian=True)
+        problem = cp.Problem(cp.Minimize(cp.sum_squares(cp.real(x))), [H >> 0])
+        reduction = Complex2Real()
+        _, inverse_data = reduction.apply(problem)
+        real_x, imag_x = reduction.canon_methods._variables[x]
+        real_H, imag_H = reduction.canon_methods._variables[H]
+
+        solution = Solution(
+            cp.OPTIMAL,
+            0.0,
+            {
+                real_x.id: np.array([1, 3]),
+                imag_x.id: np.array([2, 4]),
+                real_H.id: np.array([[1, 2], [2, 3]]),
+                imag_H.id: np.array([5]),
+            },
+            {},
+            {},
+        )
+        inverted = reduction.invert(solution, inverse_data)
+        np.testing.assert_allclose(inverted.primal_vars[x.id], [1 + 2j, 3 + 4j])
+        np.testing.assert_allclose(inverted.primal_vars[H.id], [[1, 2 + 5j], [2 - 5j, 3]])

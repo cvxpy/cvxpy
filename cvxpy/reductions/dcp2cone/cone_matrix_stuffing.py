@@ -15,6 +15,8 @@ limitations under the License.
 """
 from __future__ import annotations
 
+from typing import Literal, overload
+
 import numpy as np
 import scipy.sparse as sp
 
@@ -209,6 +211,21 @@ class ParamConeProg(ParamProb):
         """Is the problem mixed-integer?"""
         return self.x.attributes['boolean'] or \
             self.x.attributes['integer']
+
+    # Returns (q, d, A, b): objective vector, offset, constraint matrix, rhs.
+    @overload
+    def apply_parameters(self, id_to_param_value=None, zero_offset: bool = False,
+                         keep_zeros: bool = False,
+                         quad_obj: Literal[False] = False
+                         ) -> tuple[np.ndarray, np.ndarray, sp.csc_array, np.ndarray]: ...
+
+    # With quad_obj=True, also returns the quadratic-objective matrix P first.
+    @overload
+    def apply_parameters(self, id_to_param_value=None, zero_offset: bool = False,
+                         keep_zeros: bool = False,
+                         quad_obj: Literal[True] = ...
+                         ) -> tuple[sp.csc_array, np.ndarray, np.ndarray,
+                                    sp.csc_array, np.ndarray]: ...
 
     def apply_parameters(self, id_to_param_value=None, zero_offset: bool = False,
                          keep_zeros: bool = False, quad_obj: bool = False):
@@ -469,11 +486,13 @@ class ConeMatrixStuffing(MatrixStuffing):
                 shape = con_obj.shape
                 dual_value = solution.dual_vars.get(new_con)
                 # TODO rationalize Exponential.
-                if dual_value is not None:
-                    if shape == () or isinstance(con_obj, (ExpCone, SOC)):
-                        dual_vars[old_con] = dual_value
-                    else:
-                        dual_vars[old_con] = np.reshape(dual_value, shape, order="F")
+                if dual_value is None:
+                    continue
+                if shape == () or isinstance(con_obj, (ExpCone, SOC)) or \
+                        (isinstance(con_obj, PSD) and con_obj.num_cones() > 1):
+                    dual_vars[old_con] = dual_value
+                else:
+                    dual_vars[old_con] = np.reshape(dual_value, shape, order="F")
 
         primal_vars = {}
         if solution.status not in s.SOLUTION_PRESENT:
@@ -485,22 +504,6 @@ class ConeMatrixStuffing(MatrixStuffing):
             shape = inverse_data.var_shapes[var_id]
             size = np.prod(shape, dtype=int)
             primal_vars[var_id] = np.reshape(x_opt[offset: offset + size], shape, order="F")
-
-        # Remap dual variables if dual exists (problem is convex).
-        if solution.dual_vars is not None:
-            for old_con, new_con in con_map.items():
-                con_obj = inverse_data.id2cons[old_con]
-                shape = con_obj.shape
-                # TODO rationalize Exponential.
-                if shape == () or isinstance(con_obj, (ExpCone, SOC)) or \
-                        (isinstance(con_obj, PSD) and con_obj.num_cones() > 1):
-                    dual_vars[old_con] = solution.dual_vars[new_con]
-                else:
-                    dual_vars[old_con] = np.reshape(
-                        solution.dual_vars[new_con],
-                        shape,
-                        order='F'
-                    )
 
         return Solution(solution.status, opt_val, primal_vars, dual_vars,
                         solution.attr)

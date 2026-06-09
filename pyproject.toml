@@ -40,19 +40,16 @@ exclude = ["cvxpy/tests", "cvxpy/cvxcore"]
 reportMissingImports = false
 reportMissingModuleSource = false
 
-# Existing violations to be fixed incrementally (error counts as of 2026-03-23):
-reportArgumentType = false          # 175 errors
-reportAttributeAccessIssue = false  # 188 errors
-reportReturnType = false            # 77 errors
-reportOptionalSubscript = false     # 61 errors
-reportCallIssue = false             # 52 errors
-reportOptionalMemberAccess = false  # 32 errors
-reportGeneralTypeIssues = false     # 33 errors
-reportAssignmentType = false        # 19 errors
-reportInvalidTypeForm = false       # 27 errors
-reportIndexIssue = false            # 18 errors
-reportOptionalOperand = false       # 22 errors
-reportOperatorIssue = false         # 22 errors
+# Existing violations to be fixed incrementally (error counts as of 2026-05-22):
+reportArgumentType = false          # 213 errors
+reportAttributeAccessIssue = false  # 307 errors
+reportReturnType = false            # 81 errors
+reportOptionalSubscript = false     # 20 errors
+reportCallIssue = false             # 75 errors
+reportOptionalMemberAccess = false  # 34 errors
+reportGeneralTypeIssues = false     # 27 errors
+reportIndexIssue = false            # 17 errors
+reportOperatorIssue = false         # 48 errors
 
 [tool.pytest.ini_options]
 testpaths = [
@@ -86,7 +83,10 @@ dependencies = [
     "scs >= 3.2.4.post1",
     "numpy >= 2.0.0",
     "scipy >= 1.13.0",
-    "highspy >= 1.11.0",
+    # HiGHS < 1.14.0 only honors the lower triangle in `kTriangular` Hessian
+    # format and silently returns wrong solutions when given the upper
+    # triangle (which highs_qpif.py passes). See test_highs_dense_quad_form.
+    "highspy >= 1.14.0",
     "qdldl >= 0.1.7.post0",
     "sparsediffpy >= 0.3.0, < 0.4.0",
 ]
@@ -103,6 +103,10 @@ dynamic = ["version"]
 # Solver names as in cvxpy.settings = pip-installable distribution providing it
 CBC = ["cylp>=0.91.5"]
 CLARABEL = []
+# coptpy >= 8.0.3 provides the NLP callback API (NlpCallbackBase, loadNlData)
+# the COPT NLP interface relies on. It also accepts scipy sparse arrays
+# (csc_array) in loadMatrix / loadConeMatrix, supported since 7.2.5.
+COPT = ["coptpy>=8.0.3"]
 # CUOPT dependency group is disabled since it was breaking uv sync.
 # CUOPT = ["cuopt-cu12>=25.5", "nvidia-cuda-runtime-cu12>=12.8,<13.0"]
 CVXOPT = ["cvxopt"]
@@ -127,6 +131,7 @@ SCS = []
 XPRESS = ["xpress>=9.5"]
 DAQP = ["daqp"]
 KNITRO = ["knitro"]
+UNO = ["unopy"]
 # IPOPT = ["cyipopt"]  # requires system IPOPT; excluded from --all-extras
 testing = ["pytest", "hypothesis"]
 doc = ["sphinx",
@@ -141,3 +146,10 @@ content-type = "text/markdown"
 
 [tool.setuptools]
 include-package-data = false
+
+[dependency-groups]
+# Dev-only tooling deps, installed by `uv sync`. pyright type-checks the
+# package; scipy-stubs lets it analyze SciPy types (e.g. the sparse arrays
+# returned by Expression.grad). Running pyright via `uv run` puts it inside
+# this environment so numpy/scipy imports resolve.
+dev = ["pyright", "scipy-stubs"]
