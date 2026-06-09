@@ -520,6 +520,51 @@ class TestComplex(BaseTest):
         self.assertAlmostEqual(result, 0, places=3)
         self.assertItemsAlmostEqual(X.value, P, places=3)
 
+    def test_div_complex_divisor(self) -> None:
+        """Test division by a complex constant or parameter: z/c = z*conj(c)/|c|^2.
+        """
+        # Complex scalar divisor: optimum 0 at z = 1+1j.
+        z = Variable(complex=True)
+        prob = Problem(cp.Minimize(cp.abs(z/(1+1j) - 1)))
+        prob.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(prob.value, 0)
+        self.assertAlmostEqual(z.value, 1+1j)
+
+        # Pure imaginary divisor: optimum 0 at z = 1j.
+        prob = Problem(cp.Minimize(cp.abs(z/1j - 1)))
+        prob.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(prob.value, 0)
+        self.assertAlmostEqual(z.value, 1j)
+
+        # Real divisor regression: optimum 0 at z = 2+2j.
+        prob = Problem(cp.Minimize(cp.abs(z/2 - (1+1j))))
+        prob.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(prob.value, 0)
+        self.assertAlmostEqual(z.value, 2+2j)
+
+        # Real numerator, complex divisor: x/(1+1j) = x*(1-1j)/2, optimum 0 at x = 2.
+        x = Variable()
+        prob = Problem(cp.Minimize(cp.abs(x/(1+1j) - (1-1j))))
+        prob.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(prob.value, 0)
+        self.assertAlmostEqual(x.value, 2)
+
+        # Elementwise complex array divisor: optimum 0 at z = [1+1j, 2j].
+        d = np.array([1+1j, 2j])
+        zv = Variable(2, complex=True)
+        prob = Problem(cp.Minimize(cp.norm(zv/d - np.ones(2))))
+        prob.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(prob.value, 0)
+        self.assertItemsAlmostEqual(zv.value, d)
+
+        # Complex Parameter divisor.
+        c = Parameter(2, complex=True)
+        c.value = d
+        prob = Problem(cp.Minimize(cp.norm(zv/c - np.ones(2))))
+        prob.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(prob.value, 0)
+        self.assertItemsAlmostEqual(zv.value, d)
+
     def test_hermitian(self) -> None:
         """Test Hermitian variables.
         """

@@ -43,8 +43,8 @@ from cvxpy.expressions.constants import Constant, Parameter
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.complex2real.canonicalizers.abs_canon import abs_canon
 from cvxpy.reductions.complex2real.canonicalizers.aff_canon import (
-    binary_canon, conj_canon, hermitian_wrap_canon, imag_canon, real_canon,
-    separable_canon,)
+    binary_canon, conj_canon, div_canon, hermitian_wrap_canon, imag_canon,
+    real_canon, separable_canon,)
 from cvxpy.reductions.complex2real.canonicalizers.constant_canon import (
     constant_canon,)
 from cvxpy.reductions.complex2real.canonicalizers.equality_canon import (
@@ -86,7 +86,7 @@ CANON_METHODS = {
 
     conv: binary_canon,
     convolve: binary_canon,
-    DivExpression: binary_canon,
+    DivExpression: div_canon,
     kron: binary_canon,
     MulExpression: binary_canon,
     multiply: binary_canon,
