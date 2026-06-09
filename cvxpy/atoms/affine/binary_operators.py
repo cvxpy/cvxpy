@@ -119,8 +119,20 @@ class BinaryOperator(AffAtom):
         return bounds_utils.mul_bounds(lb1, ub1, lb2, ub2)
 
 
-def matmul(lh_exp, rh_exp) -> "MulExpression":
+def matmul(lh_exp, rh_exp) -> Expression:
     """Matrix multiplication."""
+    lh_exp = Expression.cast_to_const(lh_exp)
+    rh_exp = Expression.cast_to_const(rh_exp)
+    if max(lh_exp.ndim, rh_exp.ndim) > 2:
+        # Batched matmul with a 1-D operand: MulExpression promotes the
+        # operand to 2-D per np.matmul semantics; remove the inserted axis.
+        lh_1d, rh_1d = lh_exp.ndim == 1, rh_exp.ndim == 1
+        prod = MulExpression(lh_exp, rh_exp)
+        if rh_1d:
+            prod = reshape(prod, prod.shape[:-1], order='F')
+        if lh_1d:
+            prod = reshape(prod, prod.shape[:-2] + prod.shape[-1:], order='F')
+        return prod
     return MulExpression(lh_exp, rh_exp)
 
 
@@ -155,16 +167,26 @@ class MulExpression(BinaryOperator):
 
         For A @ B where A has shape (...a, m, k) and B has shape (...b, k, n),
         broadcasts both to have batch shape broadcast(...a, ...b).
+
+        Following np.matmul semantics, a 1-D operand is promoted to 2-D by
+        prepending a 1 to its shape (lhs) or appending a 1 (rhs) before
+        broadcasting; it is never broadcast along batch dimensions itself.
         """
         lh_exp = Expression.cast_to_const(lh_exp)
         rh_exp = Expression.cast_to_const(rh_exp)
 
+        # Only apply batch broadcasting for ND arrays (ndim > 2)
+        if lh_exp.ndim <= 2 and rh_exp.ndim <= 2:
+            return lh_exp, rh_exp
+
+        # Promote 1-D operands to 2-D per np.matmul semantics.
+        if lh_exp.ndim == 1:
+            lh_exp = reshape(lh_exp, (1,) + lh_exp.shape, order='F')
+        if rh_exp.ndim == 1:
+            rh_exp = reshape(rh_exp, rh_exp.shape + (1,), order='F')
+
         lh_shape = lh_exp.shape
         rh_shape = rh_exp.shape
-
-        # Only apply batch broadcasting for ND arrays (ndim > 2)
-        if len(lh_shape) <= 2 and len(rh_shape) <= 2:
-            return lh_exp, rh_exp
 
         # Extract batch dimensions (all but last 2)
         lh_batch = lh_shape[:-2] if len(lh_shape) > 2 else ()

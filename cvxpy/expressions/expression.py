@@ -855,7 +855,7 @@ class Expression(u.Canonical):
                 from cvxpy.expressions.cvxtypes import quad_form
                 return quad_form()(other, self.args[1])
 
-        return cvxtypes.matmul_expr()(self, other)
+        return cvxtypes.matmul()(self, other)
 
     @_cast_other
     def __truediv__(self, other: ExpressionLike) -> "Expression":
@@ -898,7 +898,7 @@ class Expression(u.Canonical):
         """
         if self.shape == () or other.shape == ():
             raise ValueError("Scalar operands are not allowed, use '*' instead")
-        return cvxtypes.matmul_expr()(other, self)
+        return cvxtypes.matmul()(other, self)
 
     def __neg__(self) -> "Expression":
         """Expression : The negation of the expression.
