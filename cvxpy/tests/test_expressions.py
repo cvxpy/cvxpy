@@ -696,6 +696,28 @@ class TestExpressions(BaseTest):
         # Test repr.
         self.assertEqual(repr(exp), "Expression(AFFINE, UNKNOWN, (2,))")
 
+    def test_add_zero(self) -> None:
+        # Adding a zero of the same (or smaller) shape folds to self.
+        self.assertIs(self.x + 0, self.x)
+        self.assertIs(0 + self.x, self.x)
+        self.assertIs(self.x + np.zeros(2), self.x)
+        self.assertIs(np.zeros(2) + self.x, self.x)
+
+        # Adding a larger-shaped zero must broadcast, matching numpy.
+        a = Variable()
+        self.assertEqual((a + np.zeros(3)).shape, (3,))
+        self.assertEqual((np.zeros(3) + a).shape, (3,))
+        self.assertEqual((self.x - np.zeros((3, 2))).shape, (3, 2))
+        self.assertEqual((np.zeros((3, 2)) - self.x).shape, (3, 2))
+
+        # Incompatible shapes raise, matching numpy.
+        with self.assertRaises(ValueError):
+            self.x + np.zeros(3)
+
+        prob = Problem(Minimize(cp.sum(a + np.zeros(3))), [a >= 1])
+        prob.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(prob.value, 3.0)
+
     # Test the SubExpresion class.
     def test_sub_expression(self) -> None:
         # Vectors
