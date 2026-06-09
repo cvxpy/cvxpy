@@ -236,6 +236,18 @@ class COPT(ConicSolver):
             if psd_lb is not None or psd_ub is not None:
                 A, b = _add_psd_bound_rows(A, b, dims, psd_lb, psd_ub)
 
+            # CVXPY stacks rows as (zero, nonneg, SOC, PSD, exp), but COPT's
+            # loadConeMatrix expects (zero, nonneg, SOC, exp, PSD): move the
+            # exponential block ahead of the PSD block.
+            n_lin = dims[s.EQ_DIM] + dims[s.LEQ_DIM] + sum(dims[s.SOC_DIM])
+            n_exp = 3 * dims[s.EXP_DIM]
+            if n_exp:
+                perm = np.concatenate([np.arange(n_lin),
+                                       np.arange(A.shape[0] - n_exp, A.shape[0]),
+                                       np.arange(n_lin, A.shape[0] - n_exp)])
+                A = A[perm]
+                b = b[perm]
+
             # Solve the dualized problem
             rowmap = model.loadConeMatrix(-b, A.transpose().tocsc(), -c, dims)
             model.objsense = copt.COPT.MAXIMIZE
@@ -373,8 +385,14 @@ class COPT(ConicSolver):
                             y[i] = -duals[rowmap[i] - 1]
                     solution[s.PRIMAL] = y
 
-                    # Recover the dual solution
-                    solution['y'] = np.hstack((model.getValues(), model.getPsdValues()))
+                    # Recover the dual solution. The model variables follow
+                    # COPT's row order (zero, nonneg, SOC, exp, PSD); undo the
+                    # permutation to restore CVXPY's (..., PSD, exp) order.
+                    y = np.hstack((model.getValues(), model.getPsdValues()))
+                    if n_exp:
+                        y = np.concatenate([y[:n_lin], y[n_lin + n_exp:],
+                                            y[n_lin:n_lin + n_exp]])
+                    solution['y'] = y
                     solution[s.EQ_DUAL] = solution['y'][0:dims[s.EQ_DIM]]
                     solution[s.INEQ_DUAL] = solution['y'][dims[s.EQ_DIM]:]
             else:

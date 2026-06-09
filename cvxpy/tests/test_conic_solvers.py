@@ -3145,6 +3145,34 @@ class TestCOPT(unittest.TestCase):
     def test_copt_sdp_2(self) -> None:
         StandardTestSDPs.test_sdp_2(solver='COPT')
 
+    def test_copt_sdp_exp(self) -> None:
+        """COPT orders rows as (zero, nonneg, SOC, exp, PSD), CVXPY as
+        (zero, nonneg, SOC, PSD, exp); the interface must permute the exp
+        block ahead of the PSD block, else this problem reads as unbounded.
+        """
+        X = cp.Variable((2, 2), symmetric=True)
+        u = cp.Variable()
+        prob = cp.Problem(cp.Minimize(X[0, 1] + u),
+                          [X >> 0, cp.trace(X) == 1, cp.exp(u) <= 2, u >= -1])
+        prob.solve(solver='COPT')
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        self.assertAlmostEqual(prob.value, -1.5, places=4)
+        # Duals must be mapped back through the inverse permutation.
+        self.assertAlmostEqual(float(prob.constraints[1].dual_value), 0.5, places=4)
+        self.assertAlmostEqual(float(prob.constraints[3].dual_value), 1.0, places=4)
+
+    def test_copt_sdp_soc_exp(self) -> None:
+        """All supported cone types together exercise the row permutation."""
+        x = cp.Variable(2)
+        Y = cp.Variable((2, 2), symmetric=True)
+        w = cp.Variable()
+        prob = cp.Problem(cp.Minimize(cp.norm(x, 2) + Y[0, 0] + w),
+                          [Y >> 0, cp.trace(Y) == 1, cp.exp(w) <= 3, x[0] + w >= 1])
+        prob.solve(solver='COPT')
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        self.assertAlmostEqual(prob.value, 1.0, places=4)
+        self.assertAlmostEqual(float(prob.constraints[3].dual_value), 1.0, places=4)
+
     def test_copt_params(self) -> None:
         n = 10
         m = 4
