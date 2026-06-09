@@ -183,6 +183,46 @@ class TestBackendSelectionFallback:
             get_canon_backend(prob, s.CPP_CANON_BACKEND)
 
 
+class TestCanonBackendCacheKey:
+    """Re-solving with a different canon_backend must re-canonicalize."""
+
+    @staticmethod
+    def _problem():
+        p = cp.Parameter(2, value=np.array([1.0, 2.0]))
+        x = cp.Variable(2)
+        return cp.Problem(cp.Minimize(cp.sum_squares(x - p)), [x >= 0])
+
+    @staticmethod
+    def _cached_backend(prob):
+        chain = prob._cache.solving_chain
+        return [r for r in chain.reductions if isinstance(r, ConeMatrixStuffing)][0].canon_backend
+
+    def test_backend_switch_invalidates_cache(self):
+        prob = self._problem()
+        prob.solve(solver=cp.CLARABEL, canon_backend=s.SCIPY_CANON_BACKEND)
+        assert self._cached_backend(prob) == s.SCIPY_CANON_BACKEND
+
+        prob.solve(solver=cp.CLARABEL, canon_backend=s.CPP_CANON_BACKEND)
+        assert self._cached_backend(prob) == s.CPP_CANON_BACKEND
+
+        prob.solve(solver=cp.CLARABEL, canon_backend=s.SCIPY_CANON_BACKEND)
+        assert self._cached_backend(prob) == s.SCIPY_CANON_BACKEND
+
+    def test_same_backend_reuses_cache(self):
+        prob = self._problem()
+        prob.solve(solver=cp.CLARABEL, canon_backend=s.SCIPY_CANON_BACKEND)
+        chain = prob._cache.solving_chain
+        prob.solve(solver=cp.CLARABEL, canon_backend=s.SCIPY_CANON_BACKEND)
+        assert prob._cache.solving_chain is chain
+
+    def test_default_backend_reuses_cache(self):
+        prob = self._problem()
+        prob.solve(solver=cp.CLARABEL)
+        chain = prob._cache.solving_chain
+        prob.solve(solver=cp.CLARABEL)
+        assert prob._cache.solving_chain is chain
+
+
 class TestBackendSelectionSolve:
     """Integration tests that actually solve problems."""
 
