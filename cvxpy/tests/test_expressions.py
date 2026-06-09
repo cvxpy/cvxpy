@@ -642,6 +642,40 @@ class TestExpressions(BaseTest):
         self.assertEqual(A.is_psd(), True)
         self.assertEqual(A.is_nsd(), True)
 
+    def test_project_multiple_attributes(self) -> None:
+        """Projection composes entrywise attributes instead of being a no-op."""
+        # nonneg and nonpos: only zero is feasible.
+        v = Variable(2, nonneg=True, nonpos=True)
+        self.assertItemsAlmostEqual(v.project(np.array([1., -1.])), [0, 0])
+        with self.assertRaises(ValueError):
+            v.value = np.array([1., -1.])
+        v.value = np.zeros(2)
+
+        # integer and nonneg: round, then clip the sign.
+        v = Variable(2, integer=True, nonneg=True)
+        self.assertItemsAlmostEqual(v.project(np.array([1.4, -3.])), [1, 0])
+        with self.assertRaises(ValueError):
+            v.value = np.array([0.5, -3.])
+        v.value = np.array([2., 0.])
+
+        # integer with fractional bounds: nearest integer inside the bounds.
+        v = Variable(2, integer=True, bounds=[0.5, 4.7])
+        self.assertItemsAlmostEqual(v.project(np.array([0.2, 10.])), [1, 4])
+
+        # boolean and nonpos: only zero is feasible.
+        v = Variable(2, boolean=True, nonpos=True)
+        self.assertItemsAlmostEqual(v.project(np.array([0.9, -0.2])), [0, 0])
+
+        # sign with bounds.
+        v = Variable(2, nonneg=True, bounds=[-3, 5])
+        self.assertItemsAlmostEqual(v.project(np.array([-7., 9.])), [0, 5])
+
+        # Structural attributes combined with entrywise attributes are
+        # not enforced: the value passes through unmodified.
+        v = Variable((2, 2), PSD=True, nonneg=True)
+        A = np.array([[1., -1.], [1., -1.]])
+        self.assertItemsAlmostEqual(v.project(A), A)
+
     def test_project_boolean_indices(self) -> None:
         idx = (np.array([0, 2]),)
         leaf = cp.Variable((3,), boolean=idx)

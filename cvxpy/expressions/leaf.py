@@ -447,34 +447,64 @@ class Leaf(expression.Expression):
         """
         if not self.is_complex():
             val = np.real(val)
-        # Skip the projection operation for more than one attribute
-        if self.num_attributes > 1:
-            return val
+        structural = ('imag', 'complex', 'diag', 'hermitian', 'symmetric',
+                      'PSD', 'NSD', 'sparsity')
+        if any(self.attributes[key] for key in structural):
+            if self.num_attributes > 1:
+                # Projecting onto the intersection of a structural attribute
+                # with other attributes (e.g., PSD plus nonneg) is hard;
+                # such combinations are not enforced and the value is
+                # returned unmodified.
+                return val
+            return self._project_structural(val, sparse_path)
+        # The remaining attributes are entrywise. Their projections compose
+        # exactly: discrete entries are rounded first and every later step
+        # clips them to integral limits, so each step preserves the earlier
+        # attributes.
+        discrete_idx = []
+        if self.attributes['boolean'] or self.attributes['integer']:
+            new_val = np.atleast_1d(np.array(val, dtype=np.float64))
+            if self.attributes['boolean']:
+                idx = self.boolean_idx
+                discrete_idx.append(idx)
+                new_val[idx] = np.round(np.clip(new_val[idx], 0., 1.))
+            if self.attributes['integer']:
+                idx = self.integer_idx
+                discrete_idx.append(idx)
+                new_val[idx] = np.round(new_val[idx])
+            val = new_val.reshape(np.shape(val)) if np.ndim(val) == 0 else new_val
         if self.attributes['nonpos'] and self.attributes['nonneg']:
-            return 0*val
+            val = 0*val
         elif self.attributes['nonpos'] or self.attributes['neg']:
-            return np.minimum(val, 0.)
+            val = np.minimum(val, 0.)
         elif self.attributes['nonneg'] or self.attributes['pos']:
-            return np.maximum(val, 0.)
-        elif self.bounds is not None:
+            val = np.maximum(val, 0.)
+        if self.bounds is not None:
             if any(isinstance(b, expression.Expression) for b in self.bounds):
                 # Cannot project with expression bounds; return as-is.
                 return val
-            return np.clip(val, self.bounds[0], self.bounds[1])
-        elif self.attributes['imag']:
+            lower, upper = self.bounds
+            clipped = np.clip(val, lower, upper)
+            if discrete_idx and not (sp.issparse(lower) or sp.issparse(upper)):
+                # np.clip may move discrete entries to fractional bound
+                # endpoints; clip the (still integral) pre-bound values to
+                # the integral endpoints inside the bounds instead.
+                flat = np.atleast_1d(clipped)
+                old = np.atleast_1d(np.asarray(val))
+                lo = np.broadcast_to(np.ceil(lower), flat.shape)
+                hi = np.broadcast_to(np.floor(upper), flat.shape)
+                for idx in discrete_idx:
+                    flat[idx] = np.clip(old[idx], lo[idx], hi[idx])
+                clipped = flat.reshape(np.shape(clipped))
+            val = clipped
+        return val
+
+    def _project_structural(self, val, sparse_path: bool):
+        """Project ``val`` onto a single structural (matrix) attribute."""
+        if self.attributes['imag']:
             return np.imag(val)*1j
         elif self.attributes['complex']:
             return val.astype(complex)
-        elif self.attributes['boolean']:
-            if hasattr(self, "boolean_idx"):
-                new_val = np.atleast_1d(val.astype(np.float64, copy=True))
-                new_val[self.boolean_idx] = np.round(np.clip(new_val[self.boolean_idx], 0., 1.))
-                return new_val.reshape(val.shape) if val.ndim == 0 else new_val
-        elif self.attributes['integer']:
-            if hasattr(self, "integer_idx"):
-                new_val = np.atleast_1d(val.astype(np.float64, copy=True))
-                new_val[self.integer_idx] = np.round(new_val[self.integer_idx])
-                return new_val.reshape(val.shape) if val.ndim == 0 else new_val
         elif self.attributes['diag']:
             if intf.is_sparse(val):
                 val = val.diagonal()
