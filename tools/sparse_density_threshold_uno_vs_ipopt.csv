@@ -1,0 +1,17 @@
+solver,n,m,density,dense_solve_ms,sparse_solve_ms,solve_ratio,dense_status,sparse_status
+IPOPT,400,400,0.0500,121.22,70.52,1.7189,optimal,optimal
+IPOPT,400,400,0.1000,125.32,84.89,1.4763,optimal,optimal
+IPOPT,400,400,0.2000,137.11,82.99,1.6521,optimal,optimal
+IPOPT,400,400,0.3000,106.82,74.30,1.4378,optimal,optimal
+IPOPT,400,400,0.5000,110.16,83.25,1.3232,optimal,optimal
+IPOPT,400,400,0.6500,99.02,103.18,0.9597,optimal,optimal
+IPOPT,400,400,0.8000,107.56,100.07,1.0748,optimal,optimal
+IPOPT,400,400,1.0000,107.19,102.49,1.0459,optimal,optimal
+UNO,400,400,0.0500,157.75,28.14,5.6060,optimal,optimal
+UNO,400,400,0.1000,164.70,33.55,4.9090,optimal,optimal
+UNO,400,400,0.2000,162.09,45.94,3.5280,optimal,optimal
+UNO,400,400,0.3000,160.51,59.36,2.7040,optimal,optimal
+UNO,400,400,0.5000,158.78,83.96,1.8911,optimal,optimal
+UNO,400,400,0.6500,195.75,159.26,1.2291,optimal,optimal
+UNO,400,400,0.8000,259.09,224.63,1.1534,optimal,optimal
+UNO,400,400,1.0000,262.79,257.40,1.0209,optimal,optimal
