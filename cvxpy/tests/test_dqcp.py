@@ -209,6 +209,21 @@ class TestDqcp(base_test.BaseTest):
         self.assertEqual(problem.objective.value, 11.0)
         self.assertGreater(x.value, 11.7)
 
+    def test_ceil_floor_near_integer_tolerance(self) -> None:
+        """Values within solver noise of an integer evaluate to that integer."""
+        x = cp.Variable()
+        for noisy in [3 - 1e-10, 3 + 1e-10]:
+            x.value = noisy
+            self.assertEqual(cp.floor(x).value, 3.0)
+            self.assertEqual(cp.ceil(x).value, 3.0)
+        # Exact integers and clearly-non-integer values are unaffected.
+        x.value = 4.0
+        self.assertEqual(cp.floor(x).value, 4.0)
+        self.assertEqual(cp.ceil(x).value, 4.0)
+        x.value = 2.5
+        self.assertEqual(cp.floor(x).value, 2.0)
+        self.assertEqual(cp.ceil(x).value, 3.0)
+
     def test_basic_multiply_nonneg(self) -> None:
         x, y = cp.Variable(2, nonneg=True)
         expr = x * y
