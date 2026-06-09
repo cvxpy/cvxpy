@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import re
 import warnings
 
 import numpy as np
@@ -1886,6 +1887,34 @@ class TestND_Expressions():
         prob = cp.Problem(self.obj, [expr == y])
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
         assert np.allclose(expr.value, y)
+
+    @pytest.mark.parametrize("source, destination", [([0], [-1]), ([-1], [0]),
+                                                     ([0, 1], [-1, -2]), (0, -1), ([0], [0])])
+    @pytest.mark.parametrize("shape", [(2, 3, 4), (2, 3, 4, 5)])
+    def test_moveaxis_negative_axes(self, source, destination, shape) -> None:
+        target = np.arange(np.prod(shape)).reshape(shape)
+        expr = cp.moveaxis(cp.Constant(target), source, destination)
+        y = np.moveaxis(target, source, destination)
+        assert expr.shape == y.shape
+        assert np.allclose(expr.value, y)
+
+    def test_moveaxis_negative_axes_solve(self) -> None:
+        target = np.arange(24).reshape((2, 3, 4))
+        var = cp.Variable((2, 3, 4))
+        y = cp.Variable((4, 2, 3))
+        prob = cp.Problem(self.obj, [var == target, y == cp.moveaxis(var, [-1], [0])])
+        prob.solve(solver=cp.CLARABEL, canon_backend=cp.SCIPY_CANON_BACKEND)
+        assert np.allclose(y.value, np.moveaxis(target, [-1], [0]))
+
+    @pytest.mark.parametrize("source, destination", [([3], [0]), ([0], [-4]),
+                                                     ([0, 0], [1, 2]), ([0], [1, 2]),
+                                                     ([0, 1], [0, 0])])
+    def test_moveaxis_invalid_axes(self, source, destination) -> None:
+        target = np.zeros((2, 3, 4))
+        with pytest.raises(ValueError) as np_err:
+            np.moveaxis(target, source, destination)
+        with pytest.raises(ValueError, match=re.escape(str(np_err.value))):
+            cp.moveaxis(cp.Constant(target), source, destination)
 
     @pytest.mark.parametrize("shapes", [((3),(253, 253, 3)),
                                         ((7, 1, 5),(8, 7, 6, 5)),
