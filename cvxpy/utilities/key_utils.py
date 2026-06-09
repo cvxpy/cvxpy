@@ -209,10 +209,14 @@ def to_str(key):
 
 
 def is_special_slice(key) -> bool:
-    """Does the key contain a list, ndarray, or logical ndarray?
+    """Does the key contain a list, ndarray, scalar boolean, or logical ndarray?
     """
     # Slices and int-like numbers are fine.
     for elem in to_tuple(key):
+        # Scalar booleans use NumPy mask semantics (new leading axis),
+        # so they must not be treated as integer indices.
+        if isinstance(elem, (bool, np.bool_)):
+            return True
         if not (isinstance(elem, (numbers.Number, slice)) or np.isscalar(elem)):
             return True
 
@@ -222,7 +226,7 @@ def is_special_slice(key) -> bool:
 def special_key_to_str(key):
     """Converts a special key to a string representation."""
     key_strs = []
-    for k in key:
+    for k in to_tuple(key):
         if isinstance(k, (np.ndarray, list)):
             key_strs.append(pprint_sequence(k))
         elif isinstance(k, slice):
