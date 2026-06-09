@@ -332,8 +332,9 @@ def is_sparse_symmetric(m, complex: bool = False) -> bool:
     if m.shape[0] != m.shape[1]:
         raise ValueError('m must be a square matrix')
 
-    if not isinstance(m, sp.coo_array):
-        m = sp.coo_array(m)
+    m = sp.coo_array(m)
+    m.sum_duplicates()
+    m.eliminate_zeros()
 
     r, c, v = m.row, m.col, m.data
     tril_no_diag = r > c
@@ -351,8 +352,13 @@ def is_sparse_symmetric(m, complex: bool = False) -> bool:
 
     sortl = np.lexsort((cl, rl))
     sortu = np.lexsort((ru, cu))
-    vl = vl[sortl]
-    vu = vu[sortu]
+    rl, cl, vl = rl[sortl], cl[sortl], vl[sortl]
+    ru, cu, vu = ru[sortu], cu[sortu], vu[sortu]
+
+    # Entry (i, j) in the lower triangle must mirror entry (j, i)
+    # in the upper triangle.
+    if not (np.array_equal(rl, cu) and np.array_equal(cl, ru)):
+        return False
 
     if complex:
         check = np.allclose(vl, np.conj(vu))
@@ -378,8 +384,9 @@ def is_sparse_skew_symmetric(A) -> bool:
     if A.shape[0] != A.shape[1]:
         raise ValueError('m must be a square matrix')
 
-    if not isinstance(A, sp.coo_array):
-        A = sp.coo_array(A)
+    A = sp.coo_array(A)
+    A.sum_duplicates()
+    A.eliminate_zeros()
 
     r, c, v = A.row, A.col, A.data
     tril = r >= c
@@ -397,8 +404,12 @@ def is_sparse_skew_symmetric(A) -> bool:
 
     sortl = np.lexsort((cl, rl))
     sortu = np.lexsort((ru, cu))
-    vl = vl[sortl]
-    vu = vu[sortu]
+    rl, cl, vl = rl[sortl], cl[sortl], vl[sortl]
+    ru, cu, vu = ru[sortu], cu[sortu], vu[sortu]
+
+    # Entry (i, j) with i >= j must mirror entry (j, i) with j <= i.
+    if not (np.array_equal(rl, cu) and np.array_equal(cl, ru)):
+        return False
 
     check = np.allclose(vl + vu, 0)
     return check
