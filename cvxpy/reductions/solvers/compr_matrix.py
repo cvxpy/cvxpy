@@ -29,7 +29,8 @@ def get_row_nnz(mat, row):
 def compress_matrix(A, b, equil_eps: float = 1e-10):
     """Compresses A and b by eliminating redundant rows.
 
-    Identifies rows that are multiples of another row.
+    Identifies rows that are positive multiples of another row,
+    i.e. rows that are redundant when (A, b) encodes Ax <= b.
     Reduces A and b to C = PA, d = Pb, where P has one
     nonzero per row.
 
@@ -79,9 +80,11 @@ def compress_matrix(A, b, equil_eps: float = 1e-10):
                 prev_match_ptr = A.indptr[row_match]
                 match_ptr = A.indptr[row_match+1]
                 match_vals = A.data[prev_match_ptr:match_ptr]
-                # Ratio should be constant.
+                # Ratio should be constant and positive. A negative
+                # multiple of an inequality row describes the opposite
+                # half-space, so it is not redundant.
                 ratio = cur_vals/match_vals
-                if np.ptp(ratio) < equil_eps and \
+                if ratio[0] > 0 and np.ptp(ratio) < equil_eps and \
                    abs(ratio[0] - b[row_num]/b[row_match]) < equil_eps:
                     keep_row = False
                     P_V.append(ratio[0])

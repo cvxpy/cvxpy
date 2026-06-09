@@ -84,6 +84,15 @@ def test_compress_matrix_eliminates_empty_and_duplicate_rows() -> None:
     np.testing.assert_allclose((P @ A_compr).toarray(), [[0.0, 0.0], [1.0, 0.0]])
 
 
+def test_compress_matrix_keeps_negative_multiple_rows() -> None:
+    # x <= 1 and -x <= -1 are opposite half-spaces, so neither row is redundant.
+    A = sp.csr_matrix([[1.0, 0.0], [-1.0, 0.0]])
+    b = np.array([1.0, -1.0])
+    A_compr, b_compr, _ = compress_matrix(A, b)
+    np.testing.assert_allclose(A_compr.toarray(), A.toarray())
+    np.testing.assert_allclose(b_compr, b)
+
+
 @unittest.skipUnless('ECOS' in INSTALLED_SOLVERS, 'ECOS is not installed.')
 class TestECOS(BaseTest):
 
@@ -1329,6 +1338,20 @@ class TestCVXOPT(BaseTest):
 
     def test_cvxopt_sdp_2(self) -> None:
         StandardTestSDPs.test_sdp_2(solver='CVXOPT')
+
+    def test_cvxopt_presolve_opposite_inequalities(self) -> None:
+        """Presolve must not drop a row that is a negative multiple of another.
+
+        The redundant equalities trigger inequality compression, which used
+        to merge z >= 1 (stored as -z <= -1) into z <= 1, making the problem
+        appear unbounded.
+        """
+        x, y, z = cp.Variable(), cp.Variable(), cp.Variable()
+        prob = cp.Problem(cp.Minimize(z),
+                          [x + y == 1, 2 * x + 2 * y == 2, z <= 1, z >= 1, x >= 0, y >= 0])
+        prob.solve(solver='CVXOPT')
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        self.assertAlmostEqual(prob.value, 1.0)
 
 
 @unittest.skipUnless('SDPA' in INSTALLED_SOLVERS, 'SDPA is not installed.')
