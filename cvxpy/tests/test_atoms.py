@@ -1165,24 +1165,31 @@ class TestAtoms(BaseTest):
         self.assertIn("concave or affine", str(cm.exception))
 
         # -- _grad: gradient w.r.t. x and t --
+        # d/dt [t*huber(x/t, M)] = -min(|x/t|, M)^2, verified by finite differences.
         atom = cp.huber(y, M=1, t=cp.Variable(pos=True))
         g = atom._grad([np.array(0.5), 2.0])
-        self.assertAlmostEqual(float(g[0]), 0.5)
-        self.assertAlmostEqual(g[1].item(), -0.125)
+        self.assertAlmostEqual(g[0].toarray().item(), 0.5)
+        self.assertAlmostEqual(g[1].toarray().item(), -0.0625)
         g = atom._grad([np.array(3.0), 2.0])
-        self.assertAlmostEqual(float(g[0]), 2.0)
-        self.assertAlmostEqual(g[1].item(), -2.0)
+        self.assertAlmostEqual(g[0].toarray().item(), 2.0)
+        self.assertAlmostEqual(g[1].toarray().item(), -1.0)
         g = atom._grad([np.array(-3.0), 2.0])
-        self.assertAlmostEqual(float(g[0]), -2.0)
-        self.assertAlmostEqual(g[1].item(), -2.0)
+        self.assertAlmostEqual(g[0].toarray().item(), -2.0)
+        self.assertAlmostEqual(g[1].toarray().item(), -1.0)
         yv = cp.Variable(3)
         atom_v = cp.huber(yv, M=1, t=cp.Variable(pos=True))
         g = atom_v._grad([np.array([0.5, 3.0, -3.0]), 2.0])
-        self.assertItemsAlmostEqual(g[0], [0.5, 2.0, -2.0])
-        self.assertAlmostEqual(g[1].item(), -4.125)
+        self.assertItemsAlmostEqual(g[0].toarray(), np.diag([0.5, 2.0, -2.0]))
+        self.assertItemsAlmostEqual(g[1].toarray(), [-0.0625, -1.0, -1.0])
         g = atom._grad([np.array(0.5), 0.0])
         self.assertIsNone(g[0])
         self.assertIsNone(g[1])
+        # Chain rule through Atom.grad: d/dt sum_i t*huber(2*x_i/t) at the kink |2x/t| = M.
+        xv, tv = cp.Variable(2), cp.Variable(pos=True)
+        xv.value, tv.value = np.array([1.0, -1.0]), 2.0
+        expr = cp.sum(cp.huber(2 * xv, M=1, t=tv))
+        self.assertItemsAlmostEqual(expr.grad[xv].toarray(), [4.0, -4.0])
+        self.assertAlmostEqual(expr.grad[tv], -2.0)
 
         # -- Copy --
         atom = cp.huber(self.x, M=2, t=3)
