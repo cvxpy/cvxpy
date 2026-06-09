@@ -327,9 +327,16 @@ class CVXOPT(ConicSolver):
             h_leq = h[:dims[s.LEQ_DIM]].ravel()
             G_other = G[dims[s.LEQ_DIM]:, :]
             h_other = h[dims[s.LEQ_DIM]:].ravel()
-            G_leq, h_leq, P_leq = compress_matrix(G_leq, h_leq)
+            G_leq, h_leq, P_leq, rows_kept = compress_matrix(G_leq, h_leq)
             dims[s.LEQ_DIM] = int(h_leq.shape[0])
-            data["P_leq"] = intf.sparse2cvxopt(P_leq)
+            # "P_leq" recovers the duals of the original inequalities from
+            # the compressed duals z: each compressed dual is assigned
+            # entirely to the row that was kept and dropped duplicates get
+            # zero, so that G_orig.T @ ("P_leq" @ z) == G_compr.T @ z.
+            dual_expansion = sp.coo_array(
+                (np.ones(len(rows_kept)), (rows_kept, np.arange(len(rows_kept)))),
+                shape=P_leq.shape)
+            data["P_leq"] = intf.sparse2cvxopt(dual_expansion)
             G = sp.vstack([G_leq, G_other])
             h = np.hstack([h_leq, h_other])
         # Record changes, and return.

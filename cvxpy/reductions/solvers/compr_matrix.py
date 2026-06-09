@@ -46,7 +46,8 @@ def compress_matrix(A, b, equil_eps: float = 1e-10):
     Returns
     -------
     tuple
-        The tuple (A, b, P) where A and b are compressed according to P.
+        The tuple (A, b, P, row_to_keep) where A and b are compressed
+        according to P and row_to_keep lists the retained row indices.
     """
     # Data for compression matrix.
     P_V = []
@@ -109,4 +110,4 @@ def compress_matrix(A, b, equil_eps: float = 1e-10):
     P = sp.coo_array((P_V, (P_I, P_J)), shape=(A.shape[0], cols))
     A_compr = A[row_to_keep, :]
     b_compr = b[row_to_keep]
-    return (A_compr, b_compr, P)
+    return (A_compr, b_compr, P, row_to_keep)

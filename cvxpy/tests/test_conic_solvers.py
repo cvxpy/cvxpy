@@ -69,7 +69,8 @@ def test_compress_matrix_eliminates_empty_and_duplicate_rows() -> None:
     b = np.array([3.0, 6.0, 0.0, 2.0, 3.0, 4.0])
 
     assert get_row_nnz(A, 0) == 2
-    A_compr, b_compr, P = compress_matrix(A, b)
+    A_compr, b_compr, P, rows_kept = compress_matrix(A, b)
+    assert rows_kept == [0, 3, 4]
 
     np.testing.assert_allclose(A_compr.toarray(), A[[0, 3, 4], :].toarray())
     np.testing.assert_allclose(b_compr, b[[0, 3, 4]])
@@ -78,7 +79,7 @@ def test_compress_matrix_eliminates_empty_and_duplicate_rows() -> None:
 
     A_empty = sp.csr_matrix([[0.0, 0.0], [1.0, 0.0]])
     b_empty = np.array([0.0, 1.0])
-    A_compr, b_compr, P = compress_matrix(A_empty, b_empty)
+    A_compr, b_compr, P, _ = compress_matrix(A_empty, b_empty)
     np.testing.assert_allclose(A_compr.toarray(), [[1.0, 0.0]])
     np.testing.assert_allclose(b_compr, [1.0])
     np.testing.assert_allclose((P @ A_compr).toarray(), [[0.0, 0.0], [1.0, 0.0]])
@@ -88,7 +89,7 @@ def test_compress_matrix_keeps_negative_multiple_rows() -> None:
     # x <= 1 and -x <= -1 are opposite half-spaces, so neither row is redundant.
     A = sp.csr_matrix([[1.0, 0.0], [-1.0, 0.0]])
     b = np.array([1.0, -1.0])
-    A_compr, b_compr, _ = compress_matrix(A, b)
+    A_compr, b_compr, _, _ = compress_matrix(A, b)
     np.testing.assert_allclose(A_compr.toarray(), A.toarray())
     np.testing.assert_allclose(b_compr, b)
 
@@ -1352,6 +1353,31 @@ class TestCVXOPT(BaseTest):
         prob.solve(solver='CVXOPT')
         self.assertEqual(prob.status, cp.OPTIMAL)
         self.assertAlmostEqual(prob.value, 1.0)
+
+    def test_cvxopt_presolve_merged_inequality_duals(self) -> None:
+        """Duals of inequalities merged by presolve must satisfy stationarity.
+
+        The redundant equalities trigger inequality compression. The dual of
+        a merged row used to be copied to every duplicate, double counting it.
+        """
+        x, y, z = cp.Variable(), cp.Variable(), cp.Variable()
+        c1, c2 = z >= 1, z >= 1
+        prob = cp.Problem(cp.Minimize(z),
+                          [x + y == 1, 2 * x + 2 * y == 2, c1, c2, x >= 0, y >= 0])
+        prob.solve(solver='CVXOPT')
+        self.assertAlmostEqual(prob.value, 1.0)
+        # Stationarity in z: 1 - c1.dual - c2.dual == 0.
+        self.assertAlmostEqual(c1.dual_value + c2.dual_value, 1.0)
+
+        # Scaled duplicate: 2z <= 2 merges into z <= 1 with ratio 2.
+        x, y, z = cp.Variable(), cp.Variable(), cp.Variable()
+        c1, c2 = z <= 1, 2 * z <= 2
+        prob = cp.Problem(cp.Maximize(z),
+                          [x + y == 1, 2 * x + 2 * y == 2, c1, c2, x >= 0, y >= 0])
+        prob.solve(solver='CVXOPT')
+        self.assertAlmostEqual(prob.value, 1.0)
+        # Stationarity in z: 1 - c1.dual - 2 * c2.dual == 0.
+        self.assertAlmostEqual(c1.dual_value + 2 * c2.dual_value, 1.0)
 
 
 @unittest.skipUnless('SDPA' in INSTALLED_SOLVERS, 'SDPA is not installed.')
