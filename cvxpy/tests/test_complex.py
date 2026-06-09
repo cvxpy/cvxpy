@@ -25,7 +25,6 @@ from cvxpy.expressions.constants import Constant, Parameter
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.complex2real.canonicalizers.variable_canon import variable_canon
 from cvxpy.reductions.complex2real.complex2real import Complex2Real
-from cvxpy.reductions.complex2real.complex2real import Complex2Real
 from cvxpy.reductions.solution import Solution
 from cvxpy.reductions.solvers.defines import INSTALLED_MI_SOLVERS
 from cvxpy.tests.base_test import BaseTest
@@ -1016,6 +1015,20 @@ class TestComplex(BaseTest):
             cp.NonNeg(x)
         with self.assertRaises(ValueError):
             cp.NonPos(x)
+
+    def test_complex_bounds_rejected(self) -> None:
+        with self.assertRaisesRegex(
+            ValueError,
+            "Cannot combine bounds with complex or imaginary attributes",
+        ):
+            Variable((2, 2), complex=True, bounds=[0, 1])
+
+    def test_imag_bounds_rejected(self) -> None:
+        with self.assertRaisesRegex(
+            ValueError,
+            "Cannot combine bounds with complex or imaginary attributes",
+        ):
+            Variable((2, 2), imag=True, bounds=[0, 1])
 
     def test_complex2real_mapping_helpers_for_general_and_hermitian_leaves(self) -> None:
         general = cp.Variable(2, complex=True)

@@ -20,25 +20,30 @@ from cvxpy.atoms.affine.wraps import skew_symmetric_wrap
 from cvxpy.expressions.constants.constant import Constant
 from cvxpy.expressions.variable import Variable
 
+# Attributes that are safe to forward to both full-size real and imaginary
+# split Variables. New attributes should be added here only after checking
+# their Complex2Real semantics.
+FULL_SIZE_SPLIT_ATTRS = {"diag", "sparsity"}
 
 def _split_complex_attributes(attributes: dict) -> tuple[dict, dict]:
     """Map attributes for full-size real/imaginary split Variables.
 
-    This helper is used for general complex and purely imaginary variables.
+    Only known-safe structural attributes are forwarded to avoid silently
+    passing new scalar/order attributes to complex split variables.
     Hermitian variables handle their imaginary component separately with a
     compact skew-symmetric parameterization.
     """
-    real_attr = attributes.copy()
-    imag_attr = attributes.copy()
+    real_attr = {
+        attr: attributes[attr]
+        for attr in FULL_SIZE_SPLIT_ATTRS
+        if attributes.get(attr)
+    }
+    imag_attr = real_attr.copy()
 
-    for attr in ["complex", "imag", "hermitian"]:
-        real_attr.pop(attr, None)
-        imag_attr.pop(attr, None)
-
-    # PSD/NSD are meaningful for the real split variable, but not for the
-    # imaginary split variable.
-    imag_attr.pop("PSD", None)
-    imag_attr.pop("NSD", None)
+    if attributes.get("PSD"):
+        real_attr["PSD"] = True
+    if attributes.get("NSD"):
+        real_attr["NSD"] = True
 
     if attributes.get("hermitian") and not (
         attributes.get("PSD") or attributes.get("NSD")

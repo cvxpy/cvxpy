@@ -171,6 +171,10 @@ class Leaf(expression.Expression):
                 raise ValueError(
                     f"Cannot combine {sign_attrs} with complex or imaginary attributes."
                 )
+            if bounds is not None:
+                raise ValueError(
+                    "Cannot combine bounds with complex or imaginary attributes."
+                )
         sign_attrs = [k for k in ['pos', 'neg'] if self.attributes[k]]
         sparse_attrs = [k for k in ['sparsity', 'diag'] if self.attributes[k]]
         if sign_attrs and sparse_attrs:
