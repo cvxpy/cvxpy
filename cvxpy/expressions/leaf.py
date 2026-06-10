@@ -464,7 +464,8 @@ class Leaf(expression.Expression):
         elif self.attributes['imag']:
             return np.imag(val)*1j
         elif self.attributes['complex']:
-            return val.astype(complex)
+            # val may be a Python scalar, which has no astype method.
+            return np.asarray(val).astype(complex)
         elif self.attributes['boolean']:
             if hasattr(self, "boolean_idx"):
                 new_val = np.atleast_1d(val.astype(np.float64, copy=True))
