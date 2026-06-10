@@ -225,8 +225,11 @@ def is_special_slice(key) -> bool:
 
 def special_key_to_str(key):
     """Converts a special key to a string representation."""
+    if np.isscalar(key):
+        # Scalar boolean keys are special slices but not iterable.
+        key = (key,)
     key_strs = []
-    for k in to_tuple(key):
+    for k in key:
         if isinstance(k, (np.ndarray, list)):
             key_strs.append(pprint_sequence(k))
         elif isinstance(k, slice):
