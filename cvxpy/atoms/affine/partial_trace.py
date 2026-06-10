@@ -18,6 +18,7 @@ import numpy as np
 import scipy.sparse as sp
 from numpy.lib.array_utils import normalize_axis_index
 
+from cvxpy.atoms.affine.wraps import hermitian_wrap, psd_wrap, symmetric_wrap
 from cvxpy.atoms.atom import Atom
 from cvxpy.expressions.expression import Expression
 
@@ -83,4 +84,11 @@ def partial_trace(expr, dims: tuple[int], axis: int | None = 0) -> Expression:
     if expr.shape[0] != np.prod(dims):
         raise ValueError("Dimension of system doesn't correspond to dimension of subsystems.")
     axis = normalize_axis_index(axis, len(dims))
-    return sum([_term(expr, j, dims, axis) for j in range(dims[axis])])
+    result = sum([_term(expr, j, dims, axis) for j in range(dims[axis])])
+    if expr.is_psd():
+        return psd_wrap(result)
+    if expr.is_symmetric():
+        return symmetric_wrap(result)
+    if expr.is_hermitian():
+        return hermitian_wrap(result)
+    return result

@@ -2382,6 +2382,70 @@ class TestAtoms(BaseTest):
         self.assertEqual(str(cm.exception),
                          "Dimension of system doesn't correspond to dimension of subsystems.")
 
+    def test_partial_trace_dcp_attributes(self) -> None:
+        """Test that partial_trace propagates DCP attributes correctly.
+        """
+        # PSD input -> PSD output (partial trace preserves PSD)
+        X_psd = cp.Variable((4, 4), PSD=True)
+        pt_psd = cp.partial_trace(X_psd, (2, 2))
+        self.assertTrue(pt_psd.is_psd())
+        self.assertTrue(pt_psd.is_hermitian())
+        self.assertTrue(pt_psd.is_symmetric())
+
+        # Symmetric input -> Symmetric output
+        X_sym = cp.Variable((4, 4), symmetric=True)
+        pt_sym = cp.partial_trace(X_sym, (2, 2))
+        self.assertTrue(pt_sym.is_symmetric())
+        self.assertTrue(pt_sym.is_hermitian())
+
+        # Hermitian input -> Hermitian output
+        X_herm = cp.Variable((4, 4), hermitian=True)
+        pt_herm = cp.partial_trace(X_herm, (2, 2))
+        self.assertTrue(pt_herm.is_hermitian())
+
+        # Plain input -> no special attributes
+        X_plain = cp.Variable((4, 4))
+        pt_plain = cp.partial_trace(X_plain, (2, 2))
+        self.assertFalse(pt_plain.is_psd())
+        self.assertFalse(pt_plain.is_hermitian())
+
+        # PSD complex input -> PSD output (Hermitian, not necessarily symmetric)
+        X_psd_c = cp.Variable((4, 4), PSD=True, complex=True)
+        pt_psd_c = cp.partial_trace(X_psd_c, (2, 2))
+        self.assertTrue(pt_psd_c.is_psd())
+        self.assertTrue(pt_psd_c.is_hermitian())
+
+    def test_partial_transpose_dcp_attributes(self) -> None:
+        """Test that partial_transpose propagates DCP attributes correctly.
+        """
+        # Symmetric input -> Symmetric output
+        X_sym = cp.Variable((4, 4), symmetric=True)
+        pp_sym = cp.partial_transpose(X_sym, (2, 2))
+        self.assertTrue(pp_sym.is_symmetric())
+        self.assertTrue(pp_sym.is_hermitian())
+
+        # Hermitian input -> Hermitian output
+        X_herm = cp.Variable((4, 4), hermitian=True)
+        pp_herm = cp.partial_transpose(X_herm, (2, 2))
+        self.assertTrue(pp_herm.is_hermitian())
+
+        # PSD input -> NOT PSD output (partial transpose does NOT preserve PSD!)
+        X_psd = cp.Variable((4, 4), PSD=True)
+        pp_psd = cp.partial_transpose(X_psd, (2, 2))
+        self.assertFalse(pp_psd.is_psd())
+        self.assertTrue(pp_psd.is_hermitian())
+
+        # Plain input -> no special attributes
+        X_plain = cp.Variable((4, 4))
+        pp_plain = cp.partial_transpose(X_plain, (2, 2))
+        self.assertFalse(pp_plain.is_hermitian())
+        self.assertFalse(pp_plain.is_symmetric())
+
+        # Complex hermitian input -> Hermitian output
+        X_herm_c = cp.Variable((4, 4), hermitian=True, complex=True)
+        pp_herm_c = cp.partial_transpose(X_herm_c, (2, 2))
+        self.assertTrue(pp_herm_c.is_hermitian())
+
     def test_log_sum_exp(self) -> None:
         """Test log_sum_exp sign.
         """
