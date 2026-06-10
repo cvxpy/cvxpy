@@ -496,9 +496,9 @@ class TestExpressions(BaseTest):
             p = Parameter((2, 2), integer=True, value=[[1, 1.5], [1, -1]])
         self.assertEqual(str(cm.exception), "Parameter value must be integer.")
 
-         # Boolean indices
+         # Boolean indices: designated entry (0, 1) is not boolean.
         with self.assertRaises(Exception) as cm:
-             p = Parameter((2, 2), boolean=[(0, 0), (0, 1)], value=[[0, 2], [1, 0]])
+             p = Parameter((2, 2), boolean=[(0, 0), (0, 1)], value=np.array([[0, 2], [1, 0]]))
         self.assertEqual(str(cm.exception), "Parameter value must be boolean.")
 
         # Integer indices
@@ -691,6 +691,17 @@ class TestExpressions(BaseTest):
         projected = leaf.project(val)
         # Only index 1 is projected to integer, others unchanged
         assert (projected == np.array([1.2, 3, -0.8])).all()
+
+    def test_project_boolean_coordinate_tuples(self) -> None:
+        # Each tuple designates one boolean entry: here (0, 0) and (1, 1).
+        leaf = cp.Variable((2, 2), boolean=[(0, 0), (1, 1)])
+        val = np.array([[0.4, 2.5], [3.5, 0.6]])
+        assert (leaf.project(val) == np.array([[0., 2.5], [3.5, 1.]])).all()
+
+        p = Parameter((2, 2), boolean=[(0, 0), (0, 1)])
+        p.value = np.array([[0., 1.], [5., 7.]])  # designated entries are 0/1
+        with self.assertRaises(ValueError):
+            p.value = np.array([[0.5, 1.], [5., 7.]])
 
     def test_add_expression(self) -> None:
         # Vectors

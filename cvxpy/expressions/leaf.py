@@ -82,7 +82,8 @@ class Leaf(expression.Expression):
         the entire Variable to be boolean, False, or a list of
         indices which should be constrained as boolean, where each
         index is a tuple of length exactly equal to the
-        length of shape.
+        length of shape. For example, for a 1-D variable use
+        ``boolean=[(0,), (2,)]``, not a flat list ``[0, 2]``.
     integer : bool or Iterable
         Is the variable integer? The semantics are the same as the
         boolean argument.
@@ -175,6 +176,29 @@ class Leaf(expression.Expression):
         self.attributes['bounds'] = self.bounds
         if value is not None:
             self.value = value
+
+    def _discrete_numpy_index(self, idx: list | tuple) -> tuple:
+        """Convert a boolean/integer index specification to a numpy index.
+
+        ``idx`` is either a tuple of per-axis index arrays (as built by
+        ``np.unravel_index`` for ``boolean=True``/``integer=True``) or the
+        documented user format: a list of coordinate tuples, one per
+        designated entry, each of length ``len(shape)``.
+
+        This is the single normalization point for both formats: ``project``
+        and ``matrix_stuffing.extract_mip_idx`` both rely on it so that
+        projection and the solver path interpret indices identically.
+        """
+        if isinstance(idx, tuple):
+            return idx
+        np_idx = tuple(np.asarray(idx, dtype=np.intp).T)
+        if self.ndim >= 1 and len(np_idx) != self.ndim:
+            raise ValueError(
+                "Boolean/integer indices must be a list of coordinate tuples "
+                "of length %d for a leaf of shape %s; for a 1-D leaf use "
+                "[(i,), ...], not a flat list [i, ...]." % (self.ndim, self.shape)
+            )
+        return np_idx
 
     def _validate_indices(self, indices: list[tuple[int]] | tuple[np.ndarray]) -> tuple[np.ndarray]:
         """
@@ -465,11 +489,11 @@ class Leaf(expression.Expression):
         if self.attributes['boolean'] or self.attributes['integer']:
             new_val = np.atleast_1d(np.array(val, dtype=np.float64))
             if self.attributes['boolean']:
-                idx = self.boolean_idx
+                idx = self._discrete_numpy_index(self.boolean_idx)
                 discrete_idx.append(idx)
                 new_val[idx] = np.round(np.clip(new_val[idx], 0., 1.))
             if self.attributes['integer']:
-                idx = self.integer_idx
+                idx = self._discrete_numpy_index(self.integer_idx)
                 discrete_idx.append(idx)
                 new_val[idx] = np.round(new_val[idx])
             val = new_val.reshape(np.shape(val)) if np.ndim(val) == 0 else new_val
