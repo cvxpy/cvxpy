@@ -196,9 +196,11 @@ class TestNDMatmulParametric:
         np.testing.assert_allclose(P.value @ X.value, target, atol=1e-4)
 
     @pytest.mark.parametrize("backend", BACKENDS)
-    def test_parametric_batch_varying_param(self, backend):
+    # Non-square dims (m != k != n) exercise the interleaved index math;
+    # k >= m keeps the target achievable after the parameter update.
+    @pytest.mark.parametrize("B,m,k,n", [(3, 2, 2, 2), (2, 2, 3, 4)])
+    def test_parametric_batch_varying_param(self, backend, B, m, k, n):
         """Test P (B,m,k) @ X (B,k,n): each batch element has its own slice of P."""
-        B, m, k, n = 3, 2, 2, 2
         P = cp.Parameter((B, m, k))
         P.value = np.random.randn(B, m, k)
         X = cp.Variable((B, k, n))
@@ -590,9 +592,11 @@ class TestNDRmulParametric:
         np.testing.assert_allclose(X.value @ P.value, target, atol=1e-4)
 
     @pytest.mark.parametrize("backend", BACKENDS)
-    def test_parametric_batch_varying_param(self, backend):
+    # Non-square dims (m != k != n) exercise the interleaved index math;
+    # k >= n keeps the target achievable after the parameter update.
+    @pytest.mark.parametrize("B,m,k,n", [(3, 2, 2, 2), (2, 4, 3, 2)])
+    def test_parametric_batch_varying_param(self, backend, B, m, k, n):
         """Test X (B,m,k) @ P (B,k,n): each batch element has its own slice of P."""
-        B, m, k, n = 3, 2, 2, 2
         X = cp.Variable((B, m, k))
         P = cp.Parameter((B, k, n))
         P.value = np.random.randn(B, k, n)
