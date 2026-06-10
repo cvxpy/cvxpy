@@ -96,6 +96,19 @@ class TestComplex(BaseTest):
             z.value = np.array([1., 0.])
         self.assertEqual(str(cm.exception), "Parameter value must be imaginary.")
 
+    def test_scalar_complex_value(self) -> None:
+        """Python complex scalars must be accepted as leaf values.
+
+        Leaf.project used to call .astype on the raw value, which built-in
+        complex does not have.
+        """
+        p = Parameter(complex=True)
+        p.value = 2 + 3j
+        self.assertEqual(p.value, 2 + 3j)
+        z = Variable(complex=True)
+        z.value = 2 + 3j
+        self.assertEqual(z.value, 2 + 3j)
+
     def test_constant(self) -> None:
         """Test the parameter class.
         """
