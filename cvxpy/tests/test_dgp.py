@@ -388,3 +388,32 @@ class TestDgp(BaseTest):
             [x <= 2, x >= 0.5],
         )
         self.assertFalse(prob2.is_dgp())
+
+    def test_quad_form(self) -> None:
+        """quad_form's DGP canonicalizer was registered under the quad_form
+        factory function instead of the QuadForm class, so it was unreachable
+        and the atom was copied with log-space args (silent wrong answers)."""
+        P = np.array([[np.exp(4), 1.0], [1.0, np.exp(1)]])
+        x = cvxpy.Variable(2, pos=True)
+        prob = cvxpy.Problem(
+            cvxpy.Minimize(cvxpy.quad_form(x, P)), [x[0] * x[1] >= 1.0]
+        )
+        self.assertTrue(prob.is_dgp())
+        prob.solve(gp=True, solver=cvxpy.CLARABEL)
+
+        # Oracle: the explicit log-space formulation.
+        u = cvxpy.Variable(2)
+        terms = [np.log(P[i, j]) + u[i] + u[j] for i in range(2) for j in range(2)]
+        oracle = cvxpy.Problem(
+            cvxpy.Minimize(cvxpy.log_sum_exp(cvxpy.hstack(terms))), [u[0] + u[1] >= 0]
+        )
+        oracle.solve(solver=cvxpy.CLARABEL)
+        self.assertAlmostEqual(prob.value, np.exp(oracle.value), places=3)
+
+        # This instance used to crash ("Cannot reduce problem to cone program")
+        # because elementwise log(P) is not PSD.
+        P2 = np.array([[1.0, 0.5], [0.5, 1.0]])
+        y = cvxpy.Variable(2, pos=True)
+        prob2 = cvxpy.Problem(cvxpy.Minimize(cvxpy.quad_form(y, P2)), [y >= 1])
+        prob2.solve(gp=True, solver=cvxpy.CLARABEL)
+        self.assertAlmostEqual(prob2.value, 3.0, places=3)
