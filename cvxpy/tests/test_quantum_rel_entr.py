@@ -54,20 +54,18 @@ class TestQuantumRelEntr:
         M = M @ M.T
 
         X = cp.Variable(shape=(n, n), symmetric=True)
-        expect_X = np.array([[1.0000, 0.7956, -0.5286, 0.9442],
-                    [0.7956, 1.0000, -0.7238, 0.8387],
-                    [-0.5286, -0.7238, 1.0000, -0.7176],
-                    [0.9442, 0.8387, -0.7176, 1.0000]])
+        expect_X = np.array([[1.0000,  0.8114, -0.5062,  0.8699],
+                              [0.8114,  1.0000, -0.6753,  0.7779],
+                              [-0.5062, -0.6753,  1.0000, -0.6806],
+                              [0.8699,  0.7779, -0.6806,  1.0000]])
         var_pairs = [(X, expect_X)]
 
         obj = cp.Minimize(cp.quantum_rel_entr(M, X))
-        # NOTE: expected objective updated from -36.19277 to -35.59036 to
+        # NOTE: expected objective updated from -36.19277 to -35.59035 to
         # reflect the fast canonicalization path introduced in PR #3153.
         # When M is constant, block size drops from 2n^2 x 2n^2 to 2n x 2n
-        # (Fawzi & Fawzi 2018, Table 1 footnote b), producing a slightly
-        # different numerical approximation. Tolerance loosened to places=1
-        # accordingly.
-        expect_obj = -35.59036
+        # (Fawzi & Fawzi 2018, Table 1 footnote b).
+        expect_obj = -35.59035
         obj_pair = (obj, expect_obj)
 
         cons1 = cp.diag(X) == np.ones((n,))
@@ -155,17 +153,11 @@ class TestQuantumRelEntr:
         reason="This test is skipped on Windows",
     )
     def test_1(self):
-        print("*****************************")
-        print(f"Platform: {platform.system()}")
-        print(f"Python version: {sys.version_info}")
-        print("*****************************")
+        print(f"\nPlatform: {platform.system()} | Python: {sys.version_info}")
         sth = TestQuantumRelEntr.make_test_1()
         sth.solve(**self.CLARABEL_ARGS)
-        # places=1 because the fast canonicalization path (PR #3153) produces
-        # a structurally different SDP approximation than the general path,
-        # leading to a slightly different numerical solution. Both are valid
-        # approximations of the true quantum relative entropy.
-        sth.verify_objective(places=1)
+        sth.verify_objective(places=3)
+        sth.verify_primal_values(places=3)
 
     @pytest.mark.skipif(not run_full_test_suite,
                         reason="These tests are too slow to solve with CLARABEL")

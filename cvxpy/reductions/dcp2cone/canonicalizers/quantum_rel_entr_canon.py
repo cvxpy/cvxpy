@@ -34,16 +34,27 @@ def quantum_rel_entr_canon(expr, args, solver_context: SolverInfo | None = None)
 
     if Y.is_constant():
         # D(X‖Y) with Y constant.
-        # Same idea, swap roles.
+        # Factorize: D(X‖Y) = D(X‖I) - Tr[X log Y]
+        # The OpRelEntrConeQuad only approximates D(X‖I) (quantum entropy),
+        # while Tr[X log Y] is computed exactly via eigenvalue decomposition.
+        # This reduces approximation error by orders of magnitude compared
+        # to passing (X, Y) directly through the cone (see Fawzi & Fawzi 2018,
+        # Table 1 footnote b).
+        Y_val = Y.value
+        eigvals, eigvecs = np.linalg.eigh(Y_val)
+        eigvals = np.clip(eigvals, 1e-15, None)
+        logY = eigvecs @ np.diag(np.log(eigvals)) @ eigvecs.T
+
         epi = Variable(shape=(n, n), symmetric=True)
+        Iloc = cp.atoms.affine.wraps.symmetric_wrap(cp.Constant(Imat))
         orec_con = OpRelEntrConeQuad(
-            X, Y, epi,
+            X, Iloc, epi,
             expr.quad_approx[0], expr.quad_approx[1]
         )
         main_con, aux_cons = cp.reductions.cone2cone.approx.OpRelEntrConeQuad_canon(
             orec_con, None
         )
-        obj = cp.trace(epi)
+        obj = cp.trace(epi) - cp.trace(X @ logY)
         return obj, [main_con] + aux_cons
 
     # ── GENERAL PATH: both X and Y are variables ─────────────────────────────
