@@ -611,6 +611,22 @@ def test_highs_cvar():
     assert problem.status == cp.OPTIMAL
 
 
+@pytest.mark.skipif(cp.HIGHS not in INSTALLED_SOLVERS, reason="HIGHS is not installed")
+def test_highs_hessian_cross_terms():
+    """HiGHS must receive the lower Hessian triangle.
+
+    highspy < 1.14.0 silently drops upper-triangle off-diagonal entries in the
+    triangular Hessian format, returning "optimal" for the wrong (diagonal-P)
+    problem on any QP with cross terms.
+    """
+    x = cp.Variable(2)
+    P = np.array([[2.0, 1.0], [1.0, 2.0]])
+    problem = cp.Problem(cp.Minimize(cp.quad_form(x, P) - 2 * cp.sum(x)))
+    problem.solve(solver=cp.HIGHS)
+    np.testing.assert_allclose(problem.value, -2 / 3, atol=1e-6)
+    np.testing.assert_allclose(x.value, [1 / 3, 1 / 3], atol=1e-6)
+
+
 def test_square_param():
     """Issue arising with square plus parameter."""
     a = cp.Parameter(value=1)
