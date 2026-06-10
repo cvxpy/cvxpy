@@ -209,6 +209,15 @@ class TestDqcp(base_test.BaseTest):
         self.assertEqual(problem.objective.value, 11.0)
         self.assertGreater(x.value, 11.7)
 
+    def test_floor_near_integer_tolerance(self) -> None:
+        """floor must round near-integer values within ATOM_EVAL_TOL like ceil
+        does, so solver noise does not shift objective values by 1."""
+        self.assertEqual(cp.floor(cp.Constant(3 - 1e-10)).value, 3.0)
+        self.assertEqual(cp.ceil(cp.Constant(3 + 1e-10)).value, 3.0)
+        self.assertEqual(cp.floor(cp.Constant(-3 - 1e-10)).value, -3.0)
+        self.assertEqual(cp.floor(cp.Constant(2.4)).value, 2.0)
+        self.assertEqual(cp.ceil(cp.Constant(2.4)).value, 3.0)
+
     def test_basic_multiply_nonneg(self) -> None:
         x, y = cp.Variable(2, nonneg=True)
         expr = x * y
