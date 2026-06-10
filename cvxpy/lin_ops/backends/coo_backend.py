@@ -756,6 +756,52 @@ def _build_interleaved_mul(
     )
 
 
+def _build_interleaved_param_mul(
+    const_shape: tuple,
+    var_shape: tuple,
+    param_size: int,
+) -> CooTensor:
+    """
+    Build the interleaved matrix for a batch-varying direct parameter (P @ X).
+
+    Parametric analogue of _build_interleaved_mul: P(B,m,k) @ X(B,k,n) where
+    each batch element uses a DIFFERENT (m, k) slice of the parameter P.
+    Values are unknown at canonicalization time, so each entry carries the
+    param_idx of the parameter element P[b, i, r] it corresponds to
+    (column-major: param_idx = b + B*i + B*m*r).
+
+    Entries are placed at the interleaved positions (see _build_interleaved_mul):
+        M[b + B*i + B*m*c, b + B*r + B*k*c] = P[b, i, r]  for c in 0..n-1
+
+    The result already encodes the batch and output-column structure, so it
+    must NOT be expanded again with _kron_nd_structure_mul.
+    """
+    B = int(np.prod(const_shape[:-2]))
+    m, k = const_shape[-2], const_shape[-1]
+    n = var_shape[-1] if len(var_shape) >= 2 else 1
+    assert param_size == B * m * k, "Direct parameter size must match its shape"
+
+    # bb, ii, rr are grids of indices corresponding to b, i, r in the formula above
+    bb, ii, rr = np.meshgrid(np.arange(B), np.arange(m), np.arange(k), indexing="ij")
+    bb, ii, rr = bb.ravel(), ii.ravel(), rr.ravel()
+
+    base_row = bb + B * ii
+    base_col = bb + B * rr
+    param_idx = bb + B * ii + B * m * rr  # column-major index of P[b, i, r]
+
+    # Apply I_n: replicate for each output column c in 0..n-1
+    c_offsets = np.repeat(np.arange(n), param_size)
+    return CooTensor(
+        data=np.ones(param_size * n, dtype=np.float64),
+        row=(np.tile(base_row, n) + c_offsets * B * m).astype(np.int64),
+        col=(np.tile(base_col, n) + c_offsets * B * k).astype(np.int64),
+        param_idx=np.tile(param_idx, n).astype(np.int64),
+        m=B * m * n,
+        n=B * k * n,
+        param_size=param_size,
+    )
+
+
 def _kron_nd_structure_rmul(tensor: CooTensor, batch_size: int, m: int) -> CooTensor:
     """
     Build the Kronecker structure for ND rmul: C.T tensor I_{B*m}.
@@ -985,6 +1031,52 @@ def _build_interleaved_rmul(
         m=B * m * n,
         n=B * m * k,
         param_size=1
+    )
+
+
+def _build_interleaved_param_rmul(
+    const_shape: tuple,
+    var_shape: tuple,
+    param_size: int,
+) -> CooTensor:
+    """
+    Build the interleaved matrix for a batch-varying direct parameter (X @ P).
+
+    Parametric analogue of _build_interleaved_rmul: X(B,m,k) @ P(B,k,n) where
+    each batch element uses a DIFFERENT (k, n) slice of the parameter P.
+    Values are unknown at canonicalization time, so each entry carries the
+    param_idx of the parameter element P[b, r, j] it corresponds to
+    (column-major: param_idx = b + B*r + B*k*j).
+
+    Entries are placed at the interleaved positions (see _build_interleaved_rmul):
+        M[b + B*i + B*m*j, b + B*i + B*m*r] = P[b, r, j]  for i in 0..m-1
+
+    The result already encodes the batch and row structure, so it must NOT be
+    expanded again with _kron_nd_structure_rmul.
+    """
+    B = int(np.prod(const_shape[:-2]))
+    k, n = const_shape[-2], const_shape[-1]
+    m = var_shape[-2] if len(var_shape) >= 2 else 1
+    assert param_size == B * k * n, "Direct parameter size must match its shape"
+
+    # bb, rr, jj are grids of indices corresponding to b, r, j in the formula above
+    bb, rr, jj = np.meshgrid(np.arange(B), np.arange(k), np.arange(n), indexing="ij")
+    bb, rr, jj = bb.ravel(), rr.ravel(), jj.ravel()
+
+    base_row = bb + B * m * jj
+    base_col = bb + B * m * rr
+    param_idx = bb + B * rr + B * k * jj  # column-major index of P[b, r, j]
+
+    # Apply I_m: replicate for each row i in 0..m-1
+    i_offsets = np.repeat(np.arange(m), param_size)
+    return CooTensor(
+        data=np.ones(param_size * m, dtype=np.float64),
+        row=(np.tile(base_row, m) + i_offsets * B).astype(np.int64),
+        col=(np.tile(base_col, m) + i_offsets * B).astype(np.int64),
+        param_idx=np.tile(param_idx, m).astype(np.int64),
+        m=B * m * n,
+        n=B * m * k,
+        param_size=param_size,
     )
 
 
@@ -1787,18 +1879,17 @@ class CooCanonBackend(PythonCanonBackend):
             param_id: _kron_nd_structure_mul(tensor, batch_size, n)
             for param_id, tensor in lhs_data.items()
         }
+        return self._apply_parametric_matmul(expanded_lhs, view)
 
-        def parametrized_mul(rhs_compact):
-            return {
-                param_id: coo_matmul(lhs_compact, rhs_compact)
-                for param_id, lhs_compact in expanded_lhs.items()
-            }
-
-        # Apply to each variable tensor in-place
+    @staticmethod
+    def _apply_parametric_matmul(expanded: dict, view: CooTensorView) -> CooTensorView:
+        """Left-multiply each variable tensor in the view by per-parameter matrices."""
         for var_id, var_tensor in view.tensor.items():
             const_compact = var_tensor[Constant.ID.value]
-            view.tensor[var_id] = parametrized_mul(const_compact)
-
+            view.tensor[var_id] = {
+                param_id: coo_matmul(matrix, const_compact)
+                for param_id, matrix in expanded.items()
+            }
         view.is_parameter_free = False
         return view
 
@@ -1855,7 +1946,17 @@ class CooCanonBackend(PythonCanonBackend):
             param_id = const.data
             param_size = self.param_to_size[param_id]
             size = int(np.prod(const.shape))
-            m, k = const.shape if len(const.shape) == 2 else (1, size)
+            if is_batch_varying(const_shape):
+                # ND parameter with batch dims: each batch element has its own
+                # (m, k) slice of P, so the Kronecker expansion (same matrix
+                # for all batches) does not apply. Build the interleaved
+                # structure directly; it already encodes batch and output
+                # column dims, so apply it without further expansion.
+                expanded = {param_id: _build_interleaved_param_mul(
+                    const_shape, var_shape, param_size)}
+                return self._apply_parametric_matmul(expanded, view)
+            # 2D (or trivial batch dims): treat as an (m, k) matrix.
+            m, k = const_shape[-2:] if len(const_shape) >= 2 else (1, size)
             lhs_data = {param_id: CooTensor(
                 data=np.ones(param_size, dtype=np.float64),
                 row=np.tile(np.arange(m), k),
@@ -2172,20 +2273,7 @@ class CooCanonBackend(PythonCanonBackend):
             param_id: _kron_nd_structure_rmul(tensor, batch_size, m)
             for param_id, tensor in rhs_data.items()
         }
-
-        def parametrized_rmul(lhs_compact):
-            return {
-                param_id: coo_matmul(rhs_compact, lhs_compact)
-                for param_id, rhs_compact in expanded_rhs.items()
-            }
-
-        # Apply to each variable tensor in-place
-        for var_id, var_tensor in view.tensor.items():
-            const_compact = var_tensor[Constant.ID.value]
-            view.tensor[var_id] = parametrized_rmul(const_compact)
-
-        view.is_parameter_free = False
-        return view
+        return self._apply_parametric_matmul(expanded_rhs, view)
 
     def rmul(self, lin_op, view: CooTensorView) -> CooTensorView:
         """
@@ -2243,7 +2331,17 @@ class CooCanonBackend(PythonCanonBackend):
             param_id = const.data
             param_size = self.param_to_size[param_id]
             size = int(np.prod(const.shape))
-            k, n = const.shape if len(const.shape) == 2 else (size, 1)
+            if is_batch_varying(const_shape):
+                # ND parameter with batch dims: each batch element has its own
+                # (k, n) slice of P, so the Kronecker expansion (same matrix
+                # for all batches) does not apply. Build the interleaved
+                # structure directly; it already encodes batch and row dims,
+                # so apply it without further expansion.
+                expanded = {param_id: _build_interleaved_param_rmul(
+                    const_shape, var_shape, param_size)}
+                return self._apply_parametric_matmul(expanded, view)
+            # 2D (or trivial batch dims): treat as a (k, n) matrix.
+            k, n = const_shape[-2:] if len(const_shape) >= 2 else (size, 1)
             rhs_data = {param_id: CooTensor(
                 data=np.ones(param_size, dtype=np.float64),
                 row=np.tile(np.arange(k), n),
