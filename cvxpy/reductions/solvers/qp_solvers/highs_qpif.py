@@ -197,11 +197,14 @@ class HIGHS(QpSolver):
             # entries whose upper and lower triangles may differ by floating-
             # point epsilon after canonicalization, which HiGHS >= 1.14.0
             # rejects as asymmetric.  See https://github.com/cvxpy/cvxpy/issues/3301
-            P_upper = sp.triu(P, format="csc")
+            # HiGHS' triangular Hessian format requires the LOWER triangle:
+            # highspy < 1.14.0 silently drops upper-triangle off-diagonal
+            # entries, while highspy >= 1.14.0 accepts either triangle.
+            P_lower = sp.tril(P, format="csc")
             hessian.format_ = hp.HessianFormat.kTriangular
-            hessian.start_ = P_upper.indptr
-            hessian.index_ = P_upper.indices
-            hessian.value_ = P_upper.data
+            hessian.start_ = P_lower.indptr
+            hessian.index_ = P_lower.indices
+            hessian.value_ = P_lower.data
 
         solver = hp.Highs()
 
