@@ -31,20 +31,6 @@ import cvxpy as cp
 
 BACKENDS = [cp.SCIPY_CANON_BACKEND, cp.COO_CANON_BACKEND]
 
-# Backends for batch-varying direct Parameter tests. The SCIPY backend
-# silently drops the batch structure of an ND Parameter (it applies each
-# batch's slice to all batches), so it is expected to fail until fixed.
-BATCH_VARYING_PARAM_BACKENDS = [
-    pytest.param(
-        cp.SCIPY_CANON_BACKEND,
-        marks=pytest.mark.xfail(
-            reason="SCIPY backend mishandles batch-varying Parameters",
-            strict=True,
-        ),
-    ),
-    cp.COO_CANON_BACKEND,
-]
-
 
 @pytest.fixture(autouse=True)
 def seed_rng():
@@ -209,7 +195,7 @@ class TestNDMatmulParametric:
         assert prob.status == cp.OPTIMAL
         np.testing.assert_allclose(P.value @ X.value, target, atol=1e-4)
 
-    @pytest.mark.parametrize("backend", BATCH_VARYING_PARAM_BACKENDS)
+    @pytest.mark.parametrize("backend", BACKENDS)
     def test_parametric_batch_varying_param(self, backend):
         """Test P (B,m,k) @ X (B,k,n): each batch element has its own slice of P."""
         B, m, k, n = 3, 2, 2, 2
@@ -224,6 +210,12 @@ class TestNDMatmulParametric:
 
         assert prob.status == cp.OPTIMAL
         np.testing.assert_allclose(P.value @ X.value, target, atol=1e-4)
+
+        # Cross-backend consistency: a fresh COO solve gives the same solution.
+        x_backend = X.value.copy()
+        prob_coo = cp.Problem(cp.Minimize(cp.sum_squares(P @ X - target)))
+        prob_coo.solve(canon_backend=cp.COO_CANON_BACKEND)
+        np.testing.assert_allclose(X.value, x_backend, atol=1e-4)
 
         # Re-solve with a new parameter value (reuses cached canonicalization).
         P.value = np.random.randn(B, m, k)
@@ -551,7 +543,7 @@ class TestNDRmulParametric:
         assert prob.status == cp.OPTIMAL
         np.testing.assert_allclose(X.value @ P.value, target, atol=1e-4)
 
-    @pytest.mark.parametrize("backend", BATCH_VARYING_PARAM_BACKENDS)
+    @pytest.mark.parametrize("backend", BACKENDS)
     def test_parametric_batch_varying_param(self, backend):
         """Test X (B,m,k) @ P (B,k,n): each batch element has its own slice of P."""
         B, m, k, n = 3, 2, 2, 2
@@ -566,6 +558,12 @@ class TestNDRmulParametric:
 
         assert prob.status == cp.OPTIMAL
         np.testing.assert_allclose(X.value @ P.value, target, atol=1e-4)
+
+        # Cross-backend consistency: a fresh COO solve gives the same solution.
+        x_backend = X.value.copy()
+        prob_coo = cp.Problem(cp.Minimize(cp.sum_squares(X @ P - target)))
+        prob_coo.solve(canon_backend=cp.COO_CANON_BACKEND)
+        np.testing.assert_allclose(X.value, x_backend, atol=1e-4)
 
         # Re-solve with a new parameter value (reuses cached canonicalization).
         P.value = np.random.randn(B, k, n)
