@@ -107,10 +107,12 @@ def lambda_sum_largest_canon(expr: lambda_sum_largest,
                              imag_args: list[Expression | None], real2imag):
     """Canonicalize sum of k largest eigenvalues with Hermitian matrix input.
     """
-    # Divide by two because each eigenvalue is repeated twice.
     real, imag = hermitian_canon(expr, real_args, imag_args, real2imag)
-    real.k *= 2
     if imag_args[0] is not None:
+        # The Hermitian dilation repeats each eigenvalue twice, so sum the
+        # 2k largest eigenvalues and divide by two. A real argument is left
+        # untouched by hermitian_canon, so k must not be doubled for it.
+        real.k *= 2
         real /= 2
     return real, imag
 
