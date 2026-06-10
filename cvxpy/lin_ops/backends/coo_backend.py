@@ -1341,7 +1341,10 @@ def reshape_parametric_constant(tensor: CooTensor, new_m: int, new_n: int) -> Co
         - This wastes memory and can cause incorrect results when the sparse
           matrix sums duplicate entries
 
-    The fix: keep only the FIRST occurrence of each param_idx value.
+    The fix: keep only the first copy of each (param_idx, position) pair.
+    Deduplicating on param_idx alone would be wrong: a parametric expression
+    such as A @ p has several genuine entries per parameter slice (a column
+    of A multiplies each parameter entry), all of which must be kept.
 
     Concrete Example
     ----------------
@@ -1409,22 +1412,27 @@ def reshape_parametric_constant(tensor: CooTensor, new_m: int, new_n: int) -> Co
         original_size = new_m * new_n
         broadcast_factor = (tensor.m * tensor.n) // original_size
         pos = tensor.row
+        data = tensor.data
+        param_idx = tensor.param_idx
         if broadcast_factor > 1:
             pos = pos // broadcast_factor
+            # Deduplicate: broadcast copies coincide on (param_idx, pos) after
+            # the division above. A slice may hold several genuine entries at
+            # distinct positions, so dedup on the pair, never on param_idx
+            # alone.
+            combined = param_idx * original_size + pos
+            _, first_occurrence = np.unique(combined, return_index=True)
+            data = data[first_occurrence]
+            pos = pos[first_occurrence]
+            param_idx = param_idx[first_occurrence]
         new_row = pos % new_m
         new_col = pos // new_m
 
-        # Deduplicate: keep first occurrence of each param_idx
-        # This handles broadcast operations that duplicate param entries
-        unique_param_idx, first_occurrence = np.unique(
-            tensor.param_idx, return_index=True
-        )
-
         return CooTensor(
-            data=tensor.data[first_occurrence].copy(),
-            row=new_row[first_occurrence].astype(np.int64),
-            col=new_col[first_occurrence].astype(np.int64),
-            param_idx=unique_param_idx.astype(np.int64),
+            data=data.copy(),
+            row=new_row.astype(np.int64),
+            col=new_col.astype(np.int64),
+            param_idx=param_idx.astype(np.int64),
             m=new_m,
             n=new_n,
             param_size=tensor.param_size

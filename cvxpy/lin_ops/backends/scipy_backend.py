@@ -398,11 +398,10 @@ class SciPyCanonBackend(PythonCanonBackend):
         Reshape parametric constant data from column to matrix format.
 
         For parametric data, entries may be duplicated by broadcast operations.
-        We deduplicate and compute positions based on param_idx.
-
-        The param_idx encodes which parameter value each entry corresponds to.
-        After broadcast_to, entries are duplicated but param_idx stays the same.
-        We keep only the first occurrence of each param_idx.
+        Broadcast copies share the same (param_idx, local position) after
+        dividing out the broadcast factor; we keep one copy of each. Entries
+        at distinct positions within a parameter slice (e.g. from A @ p, where
+        a column of A multiplies each parameter entry) are all kept.
 
         Parameters
         ----------
@@ -441,23 +440,26 @@ class SciPyCanonBackend(PythonCanonBackend):
         broadcast_factor = slice_size // (m * k)
         if broadcast_factor > 1:
             local_pos = local_pos // broadcast_factor
-
-        # Deduplicate: broadcast creates copies with same param_idx.
-        # For a param with param_size=12, param_idx should be 0-11 exactly once.
-        # If param_idx=5 appears 3 times, broadcast created duplicates - keep first only.
-        unique_param_idx, first_occurrence = np.unique(param_idx, return_index=True)
+            # Deduplicate: broadcast copies coincide on (param_idx, local_pos)
+            # after the division above. A slice may hold several genuine
+            # entries at distinct positions, so dedup on the pair, never on
+            # param_idx alone.
+            combined = param_idx * (m * k) + local_pos
+            _, first_occurrence = np.unique(combined, return_index=True)
+            data = data[first_occurrence]
+            param_idx = param_idx[first_occurrence]
+            local_pos = local_pos[first_occurrence]
 
         # Position in (m, k) matrix: column-major order
-        local_pos_dedup = local_pos[first_occurrence]
-        new_rows = local_pos_dedup % m
-        new_cols = local_pos_dedup // m
+        new_rows = local_pos % m
+        new_cols = local_pos // m
 
-        # In stacked format, offset by slice: unique_param_idx is the slice index
-        stacked_new_rows = unique_param_idx * m + new_rows
+        # In stacked format, offset by slice: param_idx is the slice index
+        stacked_new_rows = param_idx * m + new_rows
 
         new_stacked_shape = (param_size * m, k)
         return sp.csc_array(
-            (data[first_occurrence], (stacked_new_rows, new_cols)),
+            (data, (stacked_new_rows, new_cols)),
             shape=new_stacked_shape
         )
 
