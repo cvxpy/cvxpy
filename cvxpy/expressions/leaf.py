@@ -528,7 +528,8 @@ class Leaf(expression.Expression):
         if self.attributes['imag']:
             return np.imag(val)*1j
         elif self.attributes['complex']:
-            return val.astype(complex)
+            # val may be a Python scalar, which has no astype method.
+            return np.asarray(val).astype(complex)
         elif self.attributes['diag']:
             if intf.is_sparse(val):
                 val = val.diagonal()
