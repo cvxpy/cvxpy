@@ -2415,6 +2415,7 @@ class TestAtoms(BaseTest):
         pt_psd_c = cp.partial_trace(X_psd_c, (2, 2))
         self.assertTrue(pt_psd_c.is_psd())
         self.assertTrue(pt_psd_c.is_hermitian())
+        self.assertFalse(pt_psd_c.is_symmetric())
 
     def test_partial_transpose_dcp_attributes(self) -> None:
         """Test that partial_transpose propagates DCP attributes correctly.
