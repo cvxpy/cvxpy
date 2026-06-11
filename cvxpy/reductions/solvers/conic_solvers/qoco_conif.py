@@ -87,8 +87,22 @@ class QOCO(ConicSolver):
 
         attr = {}
         status = self.STATUS_MAP[str(solution.status)]
-        attr[s.SOLVE_TIME] = solution.solve_time_sec + solution.setup_time_sec
+        attr[s.SOLVE_TIME] = solution.solve_time_sec
+        attr[s.SETUP_TIME] = solution.setup_time_sec
         attr[s.NUM_ITERS] = solution.iters
+
+        attr[s.EXTRA_STATS] = {
+                "pres": solution.pres,
+                "dres": solution.dres,
+                "gap": solution.gap,
+                "status": solution.status
+        }
+
+        if hasattr(solution, "ir_iters"):
+            attr[s.EXTRA_STATS]["ir_iters"] = solution.ir_iters
+
+        if hasattr(solution, "analysis_time_sec"):
+            attr[s.EXTRA_STATS]["analysis_time_sec"] = solution.analysis_time_sec
 
         if status in s.SOLUTION_PRESENT:
             primal_val = solution.obj
