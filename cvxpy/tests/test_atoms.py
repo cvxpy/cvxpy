@@ -2402,6 +2402,7 @@ class TestAtoms(BaseTest):
         X_herm = cp.Variable((4, 4), hermitian=True)
         pt_herm = cp.partial_trace(X_herm, (2, 2))
         self.assertTrue(pt_herm.is_hermitian())
+        self.assertFalse(pt_herm.is_symmetric())
 
         # Plain input -> no special attributes
         X_plain = cp.Variable((4, 4))

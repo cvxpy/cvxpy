@@ -78,7 +78,7 @@ def partial_trace(expr, dims: tuple[int], axis: int | None = 0) -> Expression:
         The index of the subsystem to be traced out
         from the tensor product that defines expr.
     """
-    expr = Atom.cast_to_const(expr)
+    expr = Atom.cast(expr)
     if expr.ndim < 2 or expr.shape[0] != expr.shape[1]:
         raise ValueError("partial_trace only supports 2-d square arrays.")
     if expr.shape[0] != np.prod(dims):
