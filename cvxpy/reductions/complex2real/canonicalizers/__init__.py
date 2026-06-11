@@ -16,7 +16,7 @@ limitations under the License.
 
 import numpy as np
 
-from cvxpy.atoms import (MatrixFrac, Pnorm, PnormApprox, QuadForm, abs, bmat, conj, conv,
+from cvxpy.atoms import (MatrixFrac, Pnorm, PnormApprox, QuadForm, abs, conj, conv,
                          convolve, cumsum, imag, kron, lambda_max,
                          lambda_sum_largest, log_det, norm1, norm_inf,
                          quad_over_lin, real, reshape, sigma_max, Trace,
@@ -66,7 +66,6 @@ from cvxpy.reductions.complex2real.canonicalizers.variable_canon import (
 
 CANON_METHODS = {
     AddExpression: separable_canon,
-    bmat: separable_canon,
     cumsum: separable_canon,
     diag_mat: separable_canon,
     diag_vec: separable_canon,
