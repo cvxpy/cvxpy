@@ -333,6 +333,38 @@ class TestExpressions(BaseTest):
         self.assertFalse(C.is_skew_symmetric())
         pass
 
+    def test_sparse_symmetry_checks_positions(self) -> None:
+        """Asymmetric sparse matrices whose triangle values match must not pass."""
+        # A[1, 0] = 5, A[0, 2] = 5: value multisets of the triangles match.
+        A = sp.coo_array(([5.0, 5.0], ((1, 0), (0, 2))), shape=(3, 3))
+        self.assertFalse(intf.is_sparse_symmetric(A))
+        self.assertFalse(Constant(A).is_symmetric())
+        with self.assertRaises(ValueError):
+            cp.quad_form(Variable(3), A)
+
+        H = sp.coo_array(([5 + 1j, 5 - 1j], ((1, 0), (0, 2))), shape=(3, 3))
+        self.assertFalse(Constant(H).is_hermitian())
+
+        B = sp.coo_array(([5.0, -5.0], ((1, 0), (0, 2))), shape=(3, 3))
+        self.assertFalse(intf.is_sparse_skew_symmetric(B))
+        self.assertFalse(Constant(B).is_skew_symmetric())
+
+        # Duplicate COO entries and explicit zeros must not break detection.
+        S = sp.coo_array(([2.0, 3.0, 5.0, 0.0], ((1, 1, 0, 2), (0, 0, 1, 0))), shape=(3, 3))
+        self.assertTrue(intf.is_sparse_symmetric(S))
+        K = sp.coo_array(([5.0, -5.0, 0.0], ((1, 0, 2), (0, 1, 2))), shape=(3, 3))
+        self.assertTrue(intf.is_sparse_skew_symmetric(K))
+
+        # Sparse and dense classification agree on random matrices.
+        rng = np.random.default_rng(0)
+        for trial in range(20):
+            M = sp.random_array((5, 5), density=0.4, rng=rng)
+            if trial % 2 == 0:
+                M = (M + M.T).tocoo()
+            D = M.toarray()
+            self.assertEqual(intf.is_sparse_symmetric(M), np.allclose(D, D.T))
+            self.assertEqual(intf.is_sparse_skew_symmetric(M), np.allclose(D + D.T, 0))
+
     def test_1D_array(self) -> None:
         """Test NumPy 1D arrays as constants.
         """
