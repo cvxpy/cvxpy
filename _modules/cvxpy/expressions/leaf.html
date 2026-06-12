@@ -84,9 +84,7 @@
   ⏱️ Help us benchmark CVXPY solvers! Contribute problems and results to the
   <a href="/resources/solver_benchmarks/"><strong>Solver Benchmarks</strong></a> project.
   <br>
-  📅 The CVXPY developers are hosting
-  <a href="https://calendar.app.google/mRGBur1ZVMW1dcbR8"><strong>listening sessions</strong></a>
-  to learn more about what you are using CVXPY for and how we can better serve you.
+  Read <a href="/_static/cvxpy-1.9.pdf">our new paper on the CVXPY internals!</a>
 </p>
 
           </div>
@@ -1719,7 +1717,7 @@
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">lb_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">lb_arr</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">lb_val</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">lb_val</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+                <span class="n">lb_val</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">lb_val</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;nonpos&#39;</span><span class="p">]</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;neg&#39;</span><span class="p">]:</span>
             <span class="k">if</span> <span class="n">ub_arr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">sp</span><span class="o">.</span><span class="n">issparse</span><span class="p">(</span><span class="n">ub_arr</span><span class="p">):</span>
@@ -1727,7 +1725,7 @@
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">ub_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">ub_arr</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">ub_val</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">ub_val</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+                <span class="n">ub_val</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">ub_val</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
 
         <span class="c1"># For boolean variables, bounds are [0, 1]</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;boolean&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
@@ -1737,14 +1735,14 @@
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">lb_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">lb_arr</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">lb_val</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">lb_val</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+                <span class="n">lb_val</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">lb_val</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">ub_arr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">sp</span><span class="o">.</span><span class="n">issparse</span><span class="p">(</span><span class="n">ub_arr</span><span class="p">):</span>
                     <span class="n">ub_arr</span> <span class="o">=</span> <span class="n">ub_arr</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">ub_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">ub_arr</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">ub_val</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">ub_val</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="n">ub_val</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">ub_val</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
 
         <span class="c1"># Build final bounds: use broadcast views for uniform scalars</span>
         <span class="k">if</span> <span class="n">lb_arr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>

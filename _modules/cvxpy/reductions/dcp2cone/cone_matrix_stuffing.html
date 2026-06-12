@@ -84,9 +84,7 @@
   ⏱️ Help us benchmark CVXPY solvers! Contribute problems and results to the
   <a href="/resources/solver_benchmarks/"><strong>Solver Benchmarks</strong></a> project.
   <br>
-  📅 The CVXPY developers are hosting
-  <a href="https://calendar.app.google/mRGBur1ZVMW1dcbR8"><strong>listening sessions</strong></a>
-  to learn more about what you are using CVXPY for and how we can better serve you.
+  Read <a href="/_static/cvxpy-1.9.pdf">our new paper on the CVXPY internals!</a>
 </p>
 
           </div>
@@ -1225,11 +1223,13 @@
                 <span class="n">shape</span> <span class="o">=</span> <span class="n">con_obj</span><span class="o">.</span><span class="n">shape</span>
                 <span class="n">dual_value</span> <span class="o">=</span> <span class="n">solution</span><span class="o">.</span><span class="n">dual_vars</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">new_con</span><span class="p">)</span>
                 <span class="c1"># TODO rationalize Exponential.</span>
-                <span class="k">if</span> <span class="n">dual_value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="n">shape</span> <span class="o">==</span> <span class="p">()</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">con_obj</span><span class="p">,</span> <span class="p">(</span><span class="n">ExpCone</span><span class="p">,</span> <span class="n">SOC</span><span class="p">)):</span>
-                        <span class="n">dual_vars</span><span class="p">[</span><span class="n">old_con</span><span class="p">]</span> <span class="o">=</span> <span class="n">dual_value</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="n">dual_vars</span><span class="p">[</span><span class="n">old_con</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">dual_value</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s2">&quot;F&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">dual_value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="k">if</span> <span class="n">shape</span> <span class="o">==</span> <span class="p">()</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">con_obj</span><span class="p">,</span> <span class="p">(</span><span class="n">ExpCone</span><span class="p">,</span> <span class="n">SOC</span><span class="p">))</span> <span class="ow">or</span> \
+                        <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">con_obj</span><span class="p">,</span> <span class="n">PSD</span><span class="p">)</span> <span class="ow">and</span> <span class="n">con_obj</span><span class="o">.</span><span class="n">num_cones</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">):</span>
+                    <span class="n">dual_vars</span><span class="p">[</span><span class="n">old_con</span><span class="p">]</span> <span class="o">=</span> <span class="n">dual_value</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">dual_vars</span><span class="p">[</span><span class="n">old_con</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">dual_value</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s2">&quot;F&quot;</span><span class="p">)</span>
 
         <span class="n">primal_vars</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">if</span> <span class="n">solution</span><span class="o">.</span><span class="n">status</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">SOLUTION_PRESENT</span><span class="p">:</span>
@@ -1241,22 +1241,6 @@
             <span class="n">shape</span> <span class="o">=</span> <span class="n">inverse_data</span><span class="o">.</span><span class="n">var_shapes</span><span class="p">[</span><span class="n">var_id</span><span class="p">]</span>
             <span class="n">size</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
             <span class="n">primal_vars</span><span class="p">[</span><span class="n">var_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">x_opt</span><span class="p">[</span><span class="n">offset</span><span class="p">:</span> <span class="n">offset</span> <span class="o">+</span> <span class="n">size</span><span class="p">],</span> <span class="n">shape</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s2">&quot;F&quot;</span><span class="p">)</span>
-
-        <span class="c1"># Remap dual variables if dual exists (problem is convex).</span>
-        <span class="k">if</span> <span class="n">solution</span><span class="o">.</span><span class="n">dual_vars</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">old_con</span><span class="p">,</span> <span class="n">new_con</span> <span class="ow">in</span> <span class="n">con_map</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                <span class="n">con_obj</span> <span class="o">=</span> <span class="n">inverse_data</span><span class="o">.</span><span class="n">id2cons</span><span class="p">[</span><span class="n">old_con</span><span class="p">]</span>
-                <span class="n">shape</span> <span class="o">=</span> <span class="n">con_obj</span><span class="o">.</span><span class="n">shape</span>
-                <span class="c1"># TODO rationalize Exponential.</span>
-                <span class="k">if</span> <span class="n">shape</span> <span class="o">==</span> <span class="p">()</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">con_obj</span><span class="p">,</span> <span class="p">(</span><span class="n">ExpCone</span><span class="p">,</span> <span class="n">SOC</span><span class="p">))</span> <span class="ow">or</span> \
-                        <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">con_obj</span><span class="p">,</span> <span class="n">PSD</span><span class="p">)</span> <span class="ow">and</span> <span class="n">con_obj</span><span class="o">.</span><span class="n">num_cones</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">):</span>
-                    <span class="n">dual_vars</span><span class="p">[</span><span class="n">old_con</span><span class="p">]</span> <span class="o">=</span> <span class="n">solution</span><span class="o">.</span><span class="n">dual_vars</span><span class="p">[</span><span class="n">new_con</span><span class="p">]</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">dual_vars</span><span class="p">[</span><span class="n">old_con</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
-                        <span class="n">solution</span><span class="o">.</span><span class="n">dual_vars</span><span class="p">[</span><span class="n">new_con</span><span class="p">],</span>
-                        <span class="n">shape</span><span class="p">,</span>
-                        <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span>
-                    <span class="p">)</span>
 
         <span class="k">return</span> <span class="n">Solution</span><span class="p">(</span><span class="n">solution</span><span class="o">.</span><span class="n">status</span><span class="p">,</span> <span class="n">opt_val</span><span class="p">,</span> <span class="n">primal_vars</span><span class="p">,</span> <span class="n">dual_vars</span><span class="p">,</span>
                         <span class="n">solution</span><span class="o">.</span><span class="n">attr</span><span class="p">)</span></div>
