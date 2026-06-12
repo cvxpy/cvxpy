@@ -50,6 +50,7 @@ Small scope projects
  - `More verbose logging info (expression tree nodes, DCP time) <https://github.com/cvxpy/cvxpy/issues/2674>`_.
  - Improve type checking for compatibility with Pyright.
  - `Change docstrings for psd_wrap and other _wrap functions to clarify undefined behavior <https://github.com/cvxpy/cvxpy/issues/2362#issuecomment-2029669331>`_.
+ - Add explicit conic constraints to `Advanced constraints <https://www.cvxpy.org/tutorial/constraints/index.html>`_.
 
 Medium scope projects
  - Refactor ``suppfunc_canon`` to use ``SvecPSD`` constraints directly, eliminating the
@@ -60,7 +61,6 @@ Medium scope projects
    solver's cone format.
  - `Post-solver feasibility checks <https://github.com/cvxpy/cvxpy/issues/434>`_.
  - `Vectorize the quad_over_lin atom <https://github.com/cvxpy/cvxpy/issues/1197>`_.
- - `Support for expressions with size zero <https://github.com/cvxpy/cvxpy/issues/1429>`_.
  - Caching computation of lin_ops during matrix stuffing.
  - Introduce sparse variables in constraint formulation.
  - N-dimensional matmul with broadcasting supported.
