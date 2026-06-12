@@ -675,6 +675,19 @@ class TestExpressions(BaseTest):
         self.assertEqual(A.is_psd(), True)
         self.assertEqual(A.is_nsd(), True)
 
+    def test_partial_boolean_sign(self) -> None:
+        """A variable boolean only at some indices has unknown sign.
+
+        is_nonneg used to return the (truthy) index list itself, so the whole
+        variable was classified NONNEGATIVE, corrupting DCP analysis.
+        """
+        x = cp.Variable(2, boolean=[(0,)])
+        self.assertIs(x.is_nonneg(), False)
+        self.assertEqual(x.sign, s.UNKNOWN)
+        # Fully boolean variables remain nonnegative.
+        y = cp.Variable(2, boolean=True)
+        self.assertIs(y.is_nonneg(), True)
+
     def test_project_boolean_indices(self) -> None:
         idx = (np.array([0, 2]),)
         leaf = cp.Variable((3,), boolean=idx)
