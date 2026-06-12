@@ -25,7 +25,6 @@ Welcome to CVXPY 1.9
 **Convex optimization, for everyone.**
 
 *Help us benchmark CVXPY solvers! Contribute problems and results to the* `Solver Benchmarks <resources/solver_benchmarks/>`_ *project.*
-*We are inviting CVXPY users to share their experience with the library and their application area so we can better serve you!* `Sign up for a listening session! <https://calendar.app.google/mRGBur1ZVMW1dcbR8>`_.
 *We are building a CVXPY community* `on Discord <https://discord.gg/4urRQeGBCr>`_. *Join the conversation!*
 
 CVXPY is an open source Python-embedded modeling language for convex
