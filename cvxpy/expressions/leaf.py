@@ -282,8 +282,10 @@ class Leaf(expression.Expression):
 
     def is_nonneg(self) -> bool:
         """Is the expression nonnegative?"""
-        return (self.attributes['nonneg'] or self.attributes['pos'] or
-                self.attributes['boolean'])
+        # The boolean attribute may be an index list constraining only some
+        # entries, in which case the leaf's sign is unknown.
+        return bool(self.attributes['nonneg'] or self.attributes['pos'] or
+                    self.attributes['boolean'] is True)
 
     def is_nonpos(self) -> bool:
         """Is the expression nonpositive?"""
