@@ -952,6 +952,14 @@ class TestAtoms(BaseTest):
         expr = cp.log1p(-0.5)
         self.assertEqual(expr.sign, s.NONPOS)
 
+    def test_elementwise_is_symmetric(self) -> None:
+        """is_symmetric must not crash for scalar or 1-D elementwise atoms."""
+        self.assertTrue(cp.abs(cp.Variable()).is_symmetric())
+        self.assertFalse(cp.abs(cp.Variable(3)).is_symmetric())
+        self.assertTrue(cp.abs(cp.Variable((2, 2), symmetric=True)).is_symmetric())
+        self.assertFalse(cp.abs(cp.Variable((2, 2))).is_symmetric())
+        self.assertFalse(cp.abs(cp.Variable((2, 3))).is_symmetric())
+
     def test_upper_tri(self) -> None:
         with self.assertRaises(Exception) as cm:
             cp.upper_tri(self.C)
