@@ -84,9 +84,7 @@
   ⏱️ Help us benchmark CVXPY solvers! Contribute problems and results to the
   <a href="/resources/solver_benchmarks/"><strong>Solver Benchmarks</strong></a> project.
   <br>
-  📅 The CVXPY developers are hosting
-  <a href="https://calendar.app.google/mRGBur1ZVMW1dcbR8"><strong>listening sessions</strong></a>
-  to learn more about what you are using CVXPY for and how we can better serve you.
+  Read <a href="/_static/cvxpy-1.9.pdf">our new paper on the CVXPY internals!</a>
 </p>
 
           </div>
@@ -743,7 +741,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.constraints.exponential</span><span class="w"> </span><span class="kn">import</span> <span class="n">ExpCone</span> <span class="k">as</span> <span class="n">ExpCone_obj</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.constraints.nonpos</span><span class="w"> </span><span class="kn">import</span> <span class="n">NonNeg</span> <span class="k">as</span> <span class="n">NonNeg_obj</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.constraints.power</span><span class="w"> </span><span class="kn">import</span> <span class="n">PowCone3D</span> <span class="k">as</span> <span class="n">PowCone_obj</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.constraints.psd</span><span class="w"> </span><span class="kn">import</span> <span class="n">PSD</span> <span class="k">as</span> <span class="n">PSD_obj</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.constraints.psd</span><span class="w"> </span><span class="kn">import</span> <span class="n">SvecPSD</span> <span class="k">as</span> <span class="n">SvecPSD_obj</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.constraints.second_order</span><span class="w"> </span><span class="kn">import</span> <span class="n">SOC</span> <span class="k">as</span> <span class="n">SOC_obj</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.constraints.zero</span><span class="w"> </span><span class="kn">import</span> <span class="n">Zero</span> <span class="k">as</span> <span class="n">Zero_obj</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.solution</span><span class="w"> </span><span class="kn">import</span> <span class="n">Solution</span>
@@ -880,9 +878,12 @@
 <span class="sd">        to the second-order-cone under the CVXPY standard ({ z : z[0] &gt;= || z[1:] || }).</span>
 <span class="sd">        We map these variables back to dual variables for SOC constraints in (P-Opt).</span>
 
-<span class="sd">        solution.primal_vars[PSD] is a list of symmetric positive semidefinite matrices</span>
-<span class="sd">        which result by lifting the vectorized PSD blocks of &quot;y&quot; back into matrix form.</span>
-<span class="sd">        We assign these as dual variables to PSD constraints appearing in (P-Opt).</span>
+<span class="sd">        solution.primal_vars[PSD] is a list of triangular (svec) vectors: the</span>
+<span class="sd">        column-major lower-triangular entries of the PSD blocks of &quot;y&quot;, one vector</span>
+<span class="sd">        per cone. PSD constraints reach a dualizing solver in this triangular form</span>
+<span class="sd">        via the PSDToSvecPSD reduction (see #3268), so we concatenate the cones</span>
+<span class="sd">        belonging to each SvecPSD constraint and assign the result as that</span>
+<span class="sd">        constraint&#39;s dual variable in (P-Opt).</span>
 
 <span class="sd">        solution.primal_vars[DUAL_EXP] is a vector of concatenated length-3 slices of y, where</span>
 <span class="sd">        each constituent length-3 slice belongs to dual exponential cone as implied by the CVXPY</span>
@@ -916,9 +917,17 @@
                 <span class="n">dv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">direct_prims</span><span class="p">[</span><span class="n">SOC</span><span class="p">][</span><span class="n">i</span><span class="p">:</span><span class="n">i</span> <span class="o">+</span> <span class="n">block_len</span><span class="p">])</span>
                 <span class="n">dual_vars</span><span class="p">[</span><span class="n">con</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">dv</span>
                 <span class="n">i</span> <span class="o">+=</span> <span class="n">block_len</span>
-            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">con</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">constr_map</span><span class="p">[</span><span class="n">PSD_obj</span><span class="p">]):</span>
-                <span class="n">dv</span> <span class="o">=</span> <span class="n">direct_prims</span><span class="p">[</span><span class="n">PSD</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
-                <span class="n">dual_vars</span><span class="p">[</span><span class="n">con</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">dv</span>
+            <span class="c1"># direct_prims[PSD] holds one triangular (svec) vector per cone,</span>
+            <span class="c1"># ordered to match ConeDims.psd; a batched SvecPSD constraint spans</span>
+            <span class="c1"># con.num_cones() consecutive cones. Concatenating those cones gives</span>
+            <span class="c1"># the constraint&#39;s dual in the svec form PSDToSvecPSD.recover_dual</span>
+            <span class="c1"># expects.</span>
+            <span class="n">psd_idx</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">con</span> <span class="ow">in</span> <span class="n">constr_map</span><span class="p">[</span><span class="n">SvecPSD_obj</span><span class="p">]:</span>
+                <span class="n">k</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">num_cones</span><span class="p">()</span>
+                <span class="n">blocks</span> <span class="o">=</span> <span class="n">direct_prims</span><span class="p">[</span><span class="n">PSD</span><span class="p">][</span><span class="n">psd_idx</span><span class="p">:</span><span class="n">psd_idx</span> <span class="o">+</span> <span class="n">k</span><span class="p">]</span>
+                <span class="n">dual_vars</span><span class="p">[</span><span class="n">con</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">blocks</span><span class="p">)</span>
+                <span class="n">psd_idx</span> <span class="o">+=</span> <span class="n">k</span>
             <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="k">for</span> <span class="n">con</span> <span class="ow">in</span> <span class="n">constr_map</span><span class="p">[</span><span class="n">ExpCone_obj</span><span class="p">]:</span>
                 <span class="n">dv</span> <span class="o">=</span> <span class="n">direct_prims</span><span class="p">[</span><span class="n">DUAL_EXP</span><span class="p">][</span><span class="n">i</span><span class="p">:</span><span class="n">i</span> <span class="o">+</span> <span class="n">con</span><span class="o">.</span><span class="n">size</span><span class="p">]</span>
