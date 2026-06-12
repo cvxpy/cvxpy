@@ -35,7 +35,7 @@ class SOC(Cone):
     """
 
     def __init__(self, t, X, axis: int = 0, constr_id=None) -> None:
-        t = cvxtypes.expression().cast_to_const(t)
+        t = cvxtypes.expression().cast(t)
         if len(t.shape) >= 2 or not t.is_real():
             raise ValueError("Invalid first argument.")
         # Check t has one entry per cone.
@@ -204,7 +204,7 @@ class RSOC(Cone):
 
     where x is a vector and y, z are scalars. Supports batching:
     if X is a matrix, y and z are vectors, the constraint is applied
-    column-wise to each column of X.
+    column-wise (axis=0) or row-wise (axis=1) to each column of X.
 
     Parameters
     ----------
@@ -220,9 +220,9 @@ class RSOC(Cone):
 
     def __init__(self, X, y, z, axis: int = 0, constr_id=None) -> None:
         Expression = cvxtypes.expression()
-        X = Expression.cast_to_const(X)
-        y = Expression.cast_to_const(y)
-        z = Expression.cast_to_const(z)
+        X = Expression.cast(X)
+        y = Expression.cast(y)
+        z = Expression.cast(z)
 
         if not y.is_real() or not z.is_real():
             raise ValueError("y and z must be real.")
@@ -285,7 +285,7 @@ class RSOC(Cone):
         n_cones = self.args[1].size
         if isinstance(value, (list, tuple)):
             # recover_dual returns [dx_dual (n_cones, n_x), dy_dual (n_cones,), dz_dual (n_cones,)]
-            dx = np.asarray(value[0])   # (n_cones, n_x)
+            dx = np.asarray(value[0])   # (n_cones, n_x) or (n_x, n_cones) depending on axis
             dy = np.asarray(value[1])   # (n_cones,)
             dz = np.asarray(value[2])   # (n_cones,)
         else:
