@@ -4,7 +4,7 @@ Path planning with obstacles
 
 *This example is adapted from Cederberg, Zhang, Nobel, and Boyd,* "`Disciplined Nonlinear Programming <https://stanford.edu/~boyd/papers/pdf/dnlp.pdf>`__\ ".
 
-**Problem.** We seek the shortest path connecting points :math:`a` and
+In this example, we seek the shortest path connecting points :math:`a` and
 :math:`b` in :math:`\mathbf{R}^d` that avoids :math:`m` circles,
 centered at :math:`p_j` with radius :math:`r_j`,
 :math:`j = 1, \ldots, m`. After discretizing the
@@ -28,7 +28,11 @@ data are :math:`a \in \mathbf{R}^d`, :math:`b \in \mathbf{R}^d`, and
 :math:`p_j \in \mathbf{R}^d` and :math:`r_j > 0` for
 :math:`j = 1, \ldots, m`.
 
+We consider a problem instance with dimension :math:`d` = 2, :math:`n` = 50 path
+segments, and :math:`m` = 5 obstacles.
+
 .. code:: python
+
     import cvxpy as cp
 
     # problem data
@@ -53,7 +57,12 @@ data are :math:`a \in \mathbf{R}^d`, :math:`b \in \mathbf{R}^d`, and
     prob = cp.Problem(cp.Minimize(L), constr)
     prob.solve(nlp=True, solver=cp.IPOPT, verbose=False)
 
+The figure below shows the solution to this problem instance,
+when initialized as the straight line path from :math:`a` to :math:`b`. For other initializations, the
+final path is different.
+
 .. code:: python
+    
     fig, ax = plt.subplots(figsize=(4, 4))
     for i in range(m):
         center = tuple(p[i, :])

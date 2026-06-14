@@ -43,6 +43,7 @@ of measurements and signal cardinality, we repeat the simulation 100
 times and compute the fraction of successful recoveries.
 
 .. code:: python
+
    import matplotlib.pyplot as plt
    import numpy as np
    import numpy.linalg as LA
@@ -88,8 +89,35 @@ times and compute the fraction of successful recoveries.
                probabilities_noncvx[m.index(mm), k.index(kk)] += int(noncvx_success)
                probabilities_cvx[m.index(mm), k.index(kk)] += int(cvx_success)
 
+   probabilities_cvx /= T
+   probabilities_noncvx /= T
+
 We see below that the nonconvex approach is more has a higher probability of 
 recovery than the convex approach. Left: Approach based on nonconvex
 optimization. Right: Approach based on convex optimization.
+
+.. code:: python
+   
+   fig, axes = plt.subplots(1, 2, figsize=(12, 5), dpi=150, sharey=True,
+                         gridspec_kw={'wspace': 0.05})
+
+   im1 = axes[0].imshow(probabilities_noncvx, interpolation="none")
+   axes[0].set_xticks(range(len(k))); axes[0].set_xticklabels(k)
+   axes[0].set_yticks(range(len(m))); axes[0].set_yticklabels(m)
+   axes[0].set_xlabel("cardinality", fontsize=12)
+   axes[0].set_ylabel("number of measurements", fontsize=12)
+
+   im2 = axes[1].imshow(probabilities_cvx, interpolation="none")
+   axes[1].set_xticks(range(len(k))); axes[1].set_xticklabels(k)
+   axes[1].set_yticks(range(len(m))); axes[1].set_yticklabels(m)
+   axes[1].set_xlabel("cardinality", fontsize=12)
+   axes[1].set_ylabel("number of measurements", fontsize=12)
+
+   # Shared colorbar on top
+   # Shared colorbar placed in a fixed figure slot (doesn't change subplot sizes)
+   cax = fig.add_axes([0.3, 0.94, 0.4, 0.03])  # [left, bottom, width, height] in figure coords
+   cbar = fig.colorbar(im1, cax=cax, orientation='horizontal')
+   cbar.ax.xaxis.set_major_formatter(PercentFormatter(xmax=1.0))
+   fig.subplots_adjust(top=0.85)
 
 .. image:: sparse_signal_recovery_files/convex_vs_nonconvex.png
