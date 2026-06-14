@@ -97,8 +97,8 @@ CVXPY is developed and maintained by
 `Steven Diamond <https://stevendiamond.me/>`_,
 `Riley Murray <https://rileyjmurray.wordpress.com/>`_,
 `Philipp Schiele <https://www.philippschiele.com/>`_,
-`Parth Nobel <https://ptnobel.github.io/>`_.
-`Willaim Zhang <https://zijie.ca/>`_.
+`Parth Nobel <https://ptnobel.github.io/>`_, and
+`William Zhang <https://zijie.ca/>`_.
 CVXPY's emeritus maintainers are
 `Bartolomeo Stellato <https://stellato.io/>`_ and `Akshay Agrawal <https://akshayagrawal.com>`_.
 Many others have contributed significantly.
