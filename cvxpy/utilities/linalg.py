@@ -335,7 +335,7 @@ def sparse_cholesky(A, sym_tol=settings.CHOL_SYM_TOL, assume_psd=False):
         return sign, L_expanded, np.arange(n)
 
     # QDLDL expects upper triangular CSC format
-    A_upper = sp.triu(A, format='csc')
+    A_upper = sp.csc_array(sp.triu(A, format='csc'))
 
     tol = settings.CHOL_ZERO_PIVOT_TOL
 

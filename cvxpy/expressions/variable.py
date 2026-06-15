@@ -72,7 +72,7 @@ class Variable(Leaf):
         return False
 
     @property
-    def grad(self) -> dict[Variable, sp.csc_array] | None:
+    def grad(self) -> dict[Variable, sp.csc_array]:
         """Gives the (sub/super)gradient of the expression w.r.t. each variable.
 
         Matrix expressions are vectorized, so the gradient is a matrix.

@@ -17,8 +17,9 @@ limitations under the License.
 from fractions import Fraction
 
 from cvxpy.atoms.elementwise.power import power
+from cvxpy.expressions.expression import Expression
 
 
-def sqrt(x):
+def sqrt(x) -> Expression:
     """The square root of an expression."""
     return power(x, Fraction(1, 2))

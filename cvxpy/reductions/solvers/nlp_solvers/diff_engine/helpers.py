@@ -46,8 +46,8 @@ def chain_add(children):
 
 
 def make_sparse_left_matmul(param_node, child, A):
-    if not isinstance(A, sparse.csr_matrix):
-        A = sparse.csr_matrix(A)
+    if not isinstance(A, sparse.csr_array):
+        A = sparse.csr_array(A)
     return _diffengine.make_left_matmul(
         param_node, child, 'sparse',
         A.data.astype(np.float64, copy=False),
@@ -63,8 +63,8 @@ def make_dense_left_matmul(param_node, child, A):
 
 
 def make_sparse_right_matmul(param_node, child, A):
-    if not isinstance(A, sparse.csr_matrix):
-        A = sparse.csr_matrix(A)
+    if not isinstance(A, sparse.csr_array):
+        A = sparse.csr_array(A)
     return _diffengine.make_right_matmul(
         param_node, child, 'sparse',
         A.data.astype(np.float64, copy=False),

@@ -17,6 +17,7 @@ limitations under the License.
 import math
 
 import numpy as np
+import pytest
 
 import cvxpy as cp
 from cvxpy.tests.base_test import BaseTest
@@ -177,3 +178,55 @@ class TestNonlinearAtoms(BaseTest):
             self.assertItemsAlmostEqual(x.value, n*[1./n])
             p.solve(solver=cp.SCS)
             self.assertItemsAlmostEqual(x.value, n*[1./n], places=2)
+
+
+@pytest.mark.parametrize(
+    ("atom", "numeric", "grad", "domain_size"),
+    [
+        (cp.nlp.sin, np.sin, np.cos, 0),
+        (cp.nlp.cos, np.cos, lambda x: -np.sin(x), 0),
+        (cp.nlp.tan, np.tan, lambda x: 1 / np.cos(x) ** 2, 2),
+    ],
+)
+def test_trig_atoms_metadata_numeric_and_grad(atom, numeric, grad, domain_size):
+    x = cp.Variable(2)
+    expr = atom(x)
+    value = np.array([0.2, -0.3])
+
+    np.testing.assert_allclose(expr.numeric([value]), numeric(value))
+    assert expr.sign_from_args() == (False, False)
+    assert not expr.is_atom_convex()
+    assert not expr.is_atom_concave()
+    assert expr.is_atom_smooth()
+    assert not expr.is_incr(0)
+    assert not expr.is_decr(0)
+    assert len(expr._domain()) == domain_size
+
+    grad_matrix = expr._grad([value])[0]
+    np.testing.assert_allclose(grad_matrix.diagonal(), grad(value))
+
+
+@pytest.mark.parametrize(
+    ("atom", "numeric", "domain_size"),
+    [
+        (cp.nlp.sinh, np.sinh, 0),
+        (cp.nlp.tanh, np.tanh, 0),
+        (cp.nlp.asinh, np.arcsinh, 0),
+        (cp.nlp.atanh, np.arctanh, 2),
+    ],
+)
+def test_hyperbolic_atoms_metadata_numeric_and_unimplemented_grad(atom, numeric, domain_size):
+    x = cp.Variable(2)
+    expr = atom(x)
+    value = np.array([0.2, -0.3])
+
+    np.testing.assert_allclose(expr.numeric([value]), numeric(value))
+    assert expr.sign_from_args() == (False, False)
+    assert not expr.is_atom_convex()
+    assert not expr.is_atom_concave()
+    assert expr.is_atom_smooth()
+    assert expr.is_incr(0)
+    assert not expr.is_decr(0)
+    assert len(expr._domain()) == domain_size
+    with pytest.raises(NotImplementedError):
+        expr._grad([value])

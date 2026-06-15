@@ -23,6 +23,7 @@ import numpy as np
 from scipy import sparse
 from sparsediffpy import _sparsediffengine as _diffengine
 
+import cvxpy.settings as s
 from cvxpy.reductions.solvers.nlp_solvers.diff_engine.helpers import (
     chain_add,
     normalize_shape,
@@ -105,13 +106,20 @@ def convert_rel_entr(expr, children):
 
 
 def convert_quad_form(expr, children):
-    """Convert scalar quadratic form x.T @ P @ x."""
+    """Convert the scalar quadratic form ``x.T @ P @ x``.
+
+    ``children[0]`` is the converted ``x`` node and ``children[1]`` the converted ``P``.
+    A constant ``P`` goes to the engine's sparse (CSR) or dense ``make_quad_form``
+    binding; a dense-but-mostly-zero ``P`` is routed to the sparse binding (density
+    check) to avoid a dense Hessian block. A parametric ``P`` (depends on parameters,
+    not on ``x``) is fed to the dense path as the matrix-valued child ``children[1]``,
+    which the engine re-evaluates each solve.
+    """
     P = expr.args[1]
+    n = expr.args[0].size
 
     if P.parameters():
-        raise NotImplementedError(
-            "quad_form with a parameterized P is not supported by the diff engine."
-        )
+        return _diffengine.make_quad_form(children[1], children[0], "dense", None, n)
 
     if not P.is_constant():
         raise NotImplementedError("quad_form requires P to be a constant matrix")
@@ -123,23 +131,28 @@ def convert_quad_form(expr, children):
             "is not supported by the diff engine."
         )
 
-    if sparse.issparse(P_val):
-        P_csr = P_val.tocsr()
-        return _diffengine.make_quad_form(
-            None,
-            children[0],
-            "sparse",
-            P_csr.data.astype(np.float64),
-            P_csr.indices.astype(np.int32),
-            P_csr.indptr.astype(np.int32),
-            P_csr.shape[0],
-            P_csr.shape[1],
-        )
+    if not sparse.issparse(P_val):
+        P_dense = np.asarray(P_val, dtype=np.float64)
+        # A dense but mostly-zero P (e.g. a diagonal written as np.eye) would build a
+        # dense Hessian block; route it to the sparse binding instead, mirroring the
+        # matmul sparse-dispatch.
+        density = np.count_nonzero(P_dense) / P_dense.size if P_dense.size else 1.0
+        if density >= s.SPARSE_DENSITY_THRESHOLD:
+            return _diffengine.make_quad_form(
+                None, children[0], "dense", P_dense.flatten(order='F'), P_dense.shape[0]
+            )
+        P_val = sparse.csr_array(P_dense)
 
-    # Dense constant P: use the dense (permuted_dense) path.
-    P_dense = np.asarray(P_val, dtype=np.float64)
+    P_csr = P_val.tocsr()
     return _diffengine.make_quad_form(
-        None, children[0], "dense", P_dense.flatten(order='F'), P_dense.shape[0]
+        None,
+        children[0],
+        "sparse",
+        P_csr.data.astype(np.float64),
+        P_csr.indices.astype(np.int32),
+        P_csr.indptr.astype(np.int32),
+        P_csr.shape[0],
+        P_csr.shape[1],
     )
 
 

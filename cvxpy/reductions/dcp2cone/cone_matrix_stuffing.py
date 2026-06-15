@@ -15,6 +15,8 @@ limitations under the License.
 """
 from __future__ import annotations
 
+from typing import Literal, overload
+
 import numpy as np
 import scipy.sparse as sp
 
@@ -209,6 +211,21 @@ class ParamConeProg(ParamProb):
         """Is the problem mixed-integer?"""
         return self.x.attributes['boolean'] or \
             self.x.attributes['integer']
+
+    # Returns (q, d, A, b): objective vector, offset, constraint matrix, rhs.
+    @overload
+    def apply_parameters(self, id_to_param_value=None, zero_offset: bool = False,
+                         keep_zeros: bool = False,
+                         quad_obj: Literal[False] = False
+                         ) -> tuple[np.ndarray, np.ndarray, sp.csc_array, np.ndarray]: ...
+
+    # With quad_obj=True, also returns the quadratic-objective matrix P first.
+    @overload
+    def apply_parameters(self, id_to_param_value=None, zero_offset: bool = False,
+                         keep_zeros: bool = False,
+                         quad_obj: Literal[True] = ...
+                         ) -> tuple[sp.csc_array, np.ndarray, np.ndarray,
+                                    sp.csc_array, np.ndarray]: ...
 
     def apply_parameters(self, id_to_param_value=None, zero_offset: bool = False,
                          keep_zeros: bool = False, quad_obj: bool = False):
