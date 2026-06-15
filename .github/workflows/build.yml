@@ -181,3 +181,60 @@ jobs:
         with:
           name: wheels-${{ env.CVXPY_BASE_SUFFIX }}${{ matrix.os }}-${{ matrix.python-version }}
           path: ./wheelhouse
+
+  build_pyodide_wheels:
+    needs: build
+
+    runs-on: ubuntu-22.04
+    env:
+      PYPI_SERVER: ${{ secrets.PYPI_SERVER }}
+      PYPI_USER: ${{ secrets.PYPI_USER }}
+      PYPI_PASSWORD: ${{ secrets.PYPI_BASE_PASSWORD }}
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set Additional Envs
+        shell: bash
+        run: |
+          echo "DEPLOY=$( [[ $GITHUB_EVENT_NAME == 'push' && $GITHUB_REF == 'refs/tags'* ]] && echo 'True' || echo 'False' )" >> $GITHUB_ENV
+
+      - name: Adapt pyproject.toml
+        shell: bash
+        run: |
+          # Pyodide builds cvxpy-base; solver wheels are provided separately.
+          sed -i.bak -e 's/name = "cvxpy"/name = "cvxpy-base"/g' pyproject.toml
+          sed -i.bak '/clarabel >= /d' pyproject.toml
+          sed -i.bak '/osqp >= /d' pyproject.toml
+          sed -i.bak '/scs >= /d' pyproject.toml
+          sed -i.bak '/highspy >= /d' pyproject.toml
+          sed -i.bak -e 's/name="cvxpy",/name="cvxpy-base",/g' setup.py
+          rm -rf pyproject.toml.bak setup.py.bak
+
+      - name: Build Pyodide wheels
+        if: ${{github.event_name == 'push'}}
+        uses: pypa/cibuildwheel@v4.1.0
+        env:
+          CIBW_PLATFORM: pyodide
+          CIBW_BUILD: "cp3*-pyodide_wasm32"
+          CIBW_ENVIRONMENT: "PYODIDE=1"
+
+      - name: Check Pyodide wheels
+        if: ${{github.event_name == 'push'}}
+        shell: bash
+        run: |
+          pip install --upgrade twine
+          twine check wheelhouse/*
+
+      - name: Release Pyodide wheels to pypi
+        if: ${{env.DEPLOY == 'True'}}
+        shell: bash
+        run: |
+          twine upload --skip-existing --repository-url $PYPI_SERVER wheelhouse/* -u $PYPI_USER -p $PYPI_PASSWORD
+
+      - name: Upload Pyodide artifacts to github
+        if: ${{github.event_name == 'push'}}
+        uses: actions/upload-artifact@v7
+        with:
+          name: wheels-base-pyodide
+          path: ./wheelhouse
