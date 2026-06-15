@@ -14,6 +14,7 @@ if os.path.exists('MANIFEST'):
     os.remove('MANIFEST')
 
 from setuptools import find_packages, setup
+from setuptools.command.bdist_wheel import bdist_wheel
 from setuptools.command.build_ext import build_ext
 
 # The comment below is from the SciPy code which we adapted for cvxpy.
@@ -36,6 +37,13 @@ class build_ext_cvxpy(build_ext):
         self.include_dirs.append(numpy.get_include())
 
 
+class bdist_wheel_cvxpy(bdist_wheel):
+    def finalize_options(self) -> None:
+        super().finalize_options()
+        if FREE_THREADED_PYTHON or "PYODIDE" in os.environ:
+            self.root_is_pure = False
+
+
 # For mac, ensure extensions are built for macos 10.9 when compiling on a
 # 10.9 system or above, overriding distutils behaviour which is to target
 # the version that python was built for. This may be overridden by setting
@@ -49,12 +57,17 @@ if sys.platform == 'darwin':
         if python_target < '10.9' and current_system >= '10.9':
             os.environ['MACOSX_DEPLOYMENT_TARGET'] = '10.9'
 
-extensions = [setup_extensions.cvxcore]
+FREE_THREADED_PYTHON = bool(sysconfig.get_config_var("Py_GIL_DISABLED"))
+extensions = (
+    []
+    if "PYODIDE" in os.environ or FREE_THREADED_PYTHON
+    else [setup_extensions.cvxcore]
+)
 
 setup(
     name="cvxpy",
-    cmdclass={'build_ext': build_ext_cvxpy},
-    ext_modules=extensions if "PYODIDE" not in os.environ else [],
+    cmdclass={'build_ext': build_ext_cvxpy, 'bdist_wheel': bdist_wheel_cvxpy},
+    ext_modules=extensions,
     packages=find_packages(exclude=["doc*"]),
     zip_safe=False,
     package_data={
