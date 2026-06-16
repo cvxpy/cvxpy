@@ -93,7 +93,7 @@ Disciplined nonlinear programming
 -----------------------------------
 - :doc:`Path planning with obstacles <dnlp/path_planning_with_obstacles>` `[.ipynb] <https://colab.research.google.com/github/cvxpy/examples/blob/master/nlp_examples/path_planning.ipynb>`_
 - :doc:`Sparse signal recovery <dnlp/sparse_signal_recovery>` `[.ipynb] <https://colab.research.google.com/github/cvxpy/examples/blob/master/nlp_examples/sparse_recovery.ipynb>`_
-- :doc:`Modelling chemical equilibrium <dnlp/chemical equilibrium>` `[.ipynb] <https://colab.research.google.com/github/cvxpy/examples/blob/master/nlp_examples/chemical_equilibrium.ipynb>`_
+- :doc:`Modelling chemical equilibrium <dnlp/chemical_equilibrium>` `[.ipynb] <https://colab.research.google.com/github/cvxpy/examples/blob/master/nlp_examples/chemical_equilibrium.ipynb>`_
 
 .. _derivative-examples:
 
