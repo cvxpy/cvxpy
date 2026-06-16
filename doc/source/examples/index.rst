@@ -91,9 +91,9 @@ Disciplined quasiconvex programming
 
 Disciplined nonlinear programming
 -----------------------------------
-- :doc:`Path planning with obstacles <dnlp/path_planning_with_obstacles>` `[.ipynb] <https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/dnlp/path_planning_with_obstacles.ipynb>`_
-- :doc:`Sparse signal recovery <dnlp/sparse_signal_recovery>` `[.ipynb] <https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/dnlp/sparse_signal_recovery.ipynb>`_
-- :doc:`Fitting an exponential decay model <dnlp/fitting_exponential_decay_model>` `[.ipynb] <https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/dnlp/fitting_exponential_decay_model.ipynb>`_
+- :doc:`Path planning with obstacles <dnlp/path_planning_with_obstacles>` `[.ipynb] <https://colab.research.google.com/github/cvxpy/examples/blob/master/nlp_examples/path_planning.ipynb>`_
+- :doc:`Sparse signal recovery <dnlp/sparse_signal_recovery>` `[.ipynb] <https://colab.research.google.com/github/cvxpy/examples/blob/master/nlp_examples/sparse_recovery.ipynb>`_
+- :doc:`Modelling chemical equilibrium <dnlp/chemical equilibrium>` `[.ipynb] <https://colab.research.google.com/github/cvxpy/examples/blob/master/nlp_examples/chemical_equilibrium.ipynb>`_
 
 .. _derivative-examples:
 
