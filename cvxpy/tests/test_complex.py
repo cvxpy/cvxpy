@@ -97,6 +97,19 @@ class TestComplex(BaseTest):
             z.value = np.array([1., 0.])
         self.assertEqual(str(cm.exception), "Parameter value must be imaginary.")
 
+    def test_scalar_complex_value(self) -> None:
+        """Python complex scalars must be accepted as leaf values.
+
+        Leaf.project used to call .astype on the raw value, which built-in
+        complex does not have.
+        """
+        p = Parameter(complex=True)
+        p.value = 2 + 3j
+        self.assertEqual(p.value, 2 + 3j)
+        z = Variable(complex=True)
+        z.value = 2 + 3j
+        self.assertEqual(z.value, 2 + 3j)
+
     def test_constant(self) -> None:
         """Test the parameter class.
         """
@@ -394,6 +407,23 @@ class TestComplex(BaseTest):
             prob = Problem(cp.Maximize(cp.lambda_sum_smallest(X, 2)), [X == P])
             result = prob.solve(solver=cp.SCS, eps=1e-6)
             self.assertAlmostEqual(result, value, places=3)
+
+    def test_lambda_sum_largest_real_arg(self) -> None:
+        """lambda_sum_largest of a real matrix must survive Complex2Real unchanged.
+
+        Complex2Real used to double k for real (symmetric) arguments whenever
+        the problem contained any unrelated complex expression.
+        """
+        X = Variable((3, 3), symmetric=True)
+        constraints = [cp.lambda_sum_largest(X, 2) <= 5, X >> 0, X << 10 * np.eye(3)]
+        objective = cp.Maximize(cp.trace(X))
+        ref = Problem(objective, constraints).solve(solver="CLARABEL")
+        self.assertAlmostEqual(ref, 7.5, places=4)
+
+        z = Variable(complex=True)
+        result = Problem(objective, constraints + [cp.abs(z) <= 1]).solve(solver="CLARABEL")
+        self.assertAlmostEqual(result, ref, places=4)
+        self.assertLessEqual(cp.lambda_sum_largest(X, 2).value, 5 + 1e-4)
 
     def test_quad_form(self) -> None:
         """Test quad_form atom.
