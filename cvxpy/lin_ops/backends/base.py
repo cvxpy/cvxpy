@@ -501,18 +501,22 @@ class PythonCanonBackend(CanonBackend):
     ) -> sp.csc_array | sp.csr_array:
         self.id_to_col[-1] = self.var_length
 
-        constraint_res = []
-        total_rows = sum(np.prod(lin_op.shape) for lin_op in lin_ops)
-        row_offset = 0
-        for lin_op in lin_ops:
-            lin_op_rows = np.prod(lin_op.shape)
-            empty_view = self.get_empty_view()
-            lin_op_tensor = self.process_constraint(lin_op, empty_view)
-            constraint_res.append(lin_op_tensor.get_tensor_representation(row_offset, total_rows))
-            row_offset += lin_op_rows
-        tensor_res = self.concatenate_tensors(constraint_res)
-
-        self.id_to_col.pop(-1)
+        self._lin_op_tensor_cache: dict[int, TensorView] = {}
+        try:
+            constraint_res = []
+            total_rows = sum(np.prod(lin_op.shape) for lin_op in lin_ops)
+            row_offset = 0
+            for lin_op in lin_ops:
+                lin_op_rows = np.prod(lin_op.shape)
+                empty_view = self.get_empty_view()
+                lin_op_tensor = self.process_constraint(lin_op, empty_view)
+                constraint_res.append(lin_op_tensor.get_tensor_representation(row_offset,
+                                                                               total_rows))
+                row_offset += lin_op_rows
+            tensor_res = self.concatenate_tensors(constraint_res)
+        finally:
+            del self._lin_op_tensor_cache
+            self.id_to_col.pop(-1)
         return tensor_res.flatten_tensor(self.param_size_plus_one, order=order)
 
     def process_constraint(self, lin_op: LinOp, empty_view: TensorView) -> TensorView:
@@ -529,38 +533,74 @@ class PythonCanonBackend(CanonBackend):
         The processed node as a TensorView.
         """
 
+        cache = getattr(self, "_lin_op_tensor_cache", None)
+        cache_key = id(lin_op)
+        if cache is not None and cache_key in cache:
+            return self._copy_tensor_view(cache[cache_key], empty_view)
+
         # Leaf nodes
         if lin_op.type == "variable":
             assert isinstance(lin_op.data, int)
             assert s.ALLOW_ND_EXPR or len(lin_op.shape) in {0, 1, 2}
             variable_tensor = self.get_variable_tensor(lin_op.shape, lin_op.data)
-            return empty_view.create_new_tensor_view({lin_op.data}, variable_tensor,
-                                                     is_parameter_free=True)
+            result = empty_view.create_new_tensor_view({lin_op.data}, variable_tensor,
+                                                       is_parameter_free=True)
         elif lin_op.type in {"scalar_const", "dense_const", "sparse_const"}:
             data_tensor = self.get_data_tensor(lin_op.data)
-            return empty_view.create_new_tensor_view({Constant.ID.value}, data_tensor,
-                                                     is_parameter_free=True)
+            result = empty_view.create_new_tensor_view({Constant.ID.value}, data_tensor,
+                                                       is_parameter_free=True)
         elif lin_op.type == "param":
             param_tensor = self.get_param_tensor(lin_op.shape, lin_op.data)
-            return empty_view.create_new_tensor_view({Constant.ID.value}, param_tensor,
-                                                     is_parameter_free=False)
+            result = empty_view.create_new_tensor_view({Constant.ID.value}, param_tensor,
+                                                       is_parameter_free=False)
 
         # Internal nodes
         else:
             func = self.get_func(lin_op.type)
             if lin_op.type in {"concatenate", "vstack", "hstack"}:
-                return func(lin_op, empty_view)
+                result = func(lin_op, empty_view)
+            else:
+                res = None
+                for arg in lin_op.args:
+                    arg_coeff = self.process_constraint(arg, empty_view)
+                    arg_res = func(lin_op, arg_coeff)
+                    if res is None:
+                        res = arg_res
+                    else:
+                        res += arg_res
+                assert res is not None
+                result = res
 
-            res = None
-            for arg in lin_op.args:
-                arg_coeff = self.process_constraint(arg, empty_view)
-                arg_res = func(lin_op, arg_coeff)
-                if res is None:
-                    res = arg_res
-                else:
-                    res += arg_res
-            assert res is not None
-            return res
+        if cache is not None:
+            cache[cache_key] = self._copy_tensor_view(result, empty_view)
+        return result
+
+    def _copy_tensor_view(self, view: TensorView, empty_view: TensorView) -> TensorView:
+        variable_ids = None if view.variable_ids is None else set(view.variable_ids)
+        return empty_view.create_new_tensor_view(
+            variable_ids,
+            self._copy_tensor_data(view.tensor),
+            view.is_parameter_free,
+        )
+
+    def _copy_tensor_data(self, data: Any) -> Any:
+        if isinstance(data, dict):
+            return {key: self._copy_tensor_data(value) for key, value in data.items()}
+        if data is None:
+            return None
+        if all(hasattr(data, attr) for attr in ("data", "row", "col", "param_idx")):
+            return type(data)(
+                data=data.data.copy(),
+                row=data.row.copy(),
+                col=data.col.copy(),
+                param_idx=data.param_idx.copy(),
+                m=data.m,
+                n=data.n,
+                param_size=data.param_size,
+            )
+        if hasattr(data, "copy"):
+            return data.copy()
+        return data
 
     def get_constant_data(
         self, lin_op: LinOp, view: TensorView, target_shape: tuple[int, ...] | None
