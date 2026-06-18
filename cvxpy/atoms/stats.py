@@ -19,9 +19,10 @@ import numpy as np
 from cvxpy.atoms.affine.sum import sum as cvxpy_sum
 from cvxpy.atoms.norm import norm
 from cvxpy.atoms.sum_squares import sum_squares
+from cvxpy.expressions.expression import Expression
 
 
-def mean(x, axis=None, keepdims=False):
+def mean(x, axis=None, keepdims=False) -> Expression:
     """
     Returns the mean of x.
     """
@@ -33,7 +34,7 @@ def mean(x, axis=None, keepdims=False):
         raise UserWarning("cp.mean doesn't yet support axis values other than 0 or 1.")
 
 
-def std(x, axis=None, keepdims=False, ddof=0):
+def std(x, axis=None, keepdims=False, ddof=0) -> Expression:
     """
     Returns the standard deviation of x.
 
@@ -47,7 +48,7 @@ def std(x, axis=None, keepdims=False, ddof=0):
     else:
         raise ValueError("cp.std doesn't yet support axis values other than 0 or 1.")
 
-def var(x, axis=None, keepdims=False, ddof=0):
+def var(x, axis=None, keepdims=False, ddof=0) -> Expression:
     """
     Returns the variance of x.
 

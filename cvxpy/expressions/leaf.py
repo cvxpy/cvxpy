@@ -148,7 +148,10 @@ class Leaf(expression.Expression):
             self.integer_idx = integer
         if sparsity:
             self.sparse_idx = self._validate_indices(sparsity)
-            self._sparse_high_fill_in = (len(self.sparse_idx[0]) / np.prod(self.shape) <= 0.25)
+            # Sparse enough (small nonzero fraction) to nudge toward value_sparse;
+            # shares the diff engine's sparse-routing threshold (see settings).
+            self._sparse_high_fill_in = (
+                len(self.sparse_idx[0]) / np.prod(self.shape) <= s.SPARSE_DENSITY_THRESHOLD)
         else:
             self.sparse_idx = None
         # count number of attributes
@@ -167,7 +170,6 @@ class Leaf(expression.Expression):
                 "Sparsity and diag attributes force zeros, which contradicts "
                 "strict positivity/negativity."
             )
-        self._leaf_of_provenance = None
         self.args = []
         self.bounds = self._ensure_valid_bounds(bounds)
         self.attributes['bounds'] = self.bounds
@@ -283,8 +285,10 @@ class Leaf(expression.Expression):
 
     def is_nonneg(self) -> bool:
         """Is the expression nonnegative?"""
-        return (self.attributes['nonneg'] or self.attributes['pos'] or
-                self.attributes['boolean'])
+        # The boolean attribute may be an index list constraining only some
+        # entries, in which case the leaf's sign is unknown.
+        return bool(self.attributes['nonneg'] or self.attributes['pos'] or
+                    self.attributes['boolean'] is True)
 
     def is_nonpos(self) -> bool:
         """Is the expression nonpositive?"""
@@ -462,7 +466,8 @@ class Leaf(expression.Expression):
         elif self.attributes['imag']:
             return np.imag(val)*1j
         elif self.attributes['complex']:
-            return val.astype(complex)
+            # val may be a Python scalar, which has no astype method.
+            return np.asarray(val).astype(complex)
         elif self.attributes['boolean']:
             if hasattr(self, "boolean_idx"):
                 new_val = np.atleast_1d(val.astype(np.float64, copy=True))
@@ -523,7 +528,7 @@ class Leaf(expression.Expression):
             self._value = val
 
     @property
-    def value(self) -> np.ndarray | None:
+    def value(self) -> expression.ExpressionValue | None:
         """The numeric value of the expression."""
         if self.sparse_idx is None:
             return self._value
@@ -551,7 +556,7 @@ class Leaf(expression.Expression):
         return sp.coo_array((self._value, self.sparse_idx), shape=self.shape)
 
     @value_sparse.setter
-    def value_sparse(self, val) -> None:
+    def value_sparse(self, val: sp.coo_array | sp.spmatrix) -> None:
         if isinstance(val, sp.spmatrix):
             val = sp.coo_array(val)
         elif not isinstance(val, sp.coo_array):
@@ -708,18 +713,6 @@ class Leaf(expression.Expression):
 
     def atoms(self) -> list[Atom]:
         return []
-
-    def attributes_were_lowered(self) -> bool:
-        """True iff this leaf was generated when lowering a leaf with attributes."""
-        return self._leaf_of_provenance is not None
-
-    def set_leaf_of_provenance(self, leaf: Leaf) -> None:
-        assert leaf.attributes
-        self._leaf_of_provenance = leaf
-
-    def leaf_of_provenance(self) -> Leaf | None:
-        """Returns a leaf with attributes from which this leaf was generated."""
-        return self._leaf_of_provenance
 
     @property
     def _has_dim_reducing_attr(self) -> bool:
@@ -1002,7 +995,7 @@ class Leaf(expression.Expression):
                 else:
                     lb_arr = np.maximum(lb_arr, 0)
             else:
-                lb_val = max(lb_val, 0)
+                lb_val = max(lb_val, 0.0)
         if self.attributes['nonpos'] or self.attributes['neg']:
             if ub_arr is not None:
                 if sp.issparse(ub_arr):
@@ -1010,7 +1003,7 @@ class Leaf(expression.Expression):
                 else:
                     ub_arr = np.minimum(ub_arr, 0)
             else:
-                ub_val = min(ub_val, 0)
+                ub_val = min(ub_val, 0.0)
 
         # For boolean variables, bounds are [0, 1]
         if self.attributes['boolean'] is True:
@@ -1020,14 +1013,14 @@ class Leaf(expression.Expression):
                 else:
                     lb_arr = np.maximum(lb_arr, 0)
             else:
-                lb_val = max(lb_val, 0)
+                lb_val = max(lb_val, 0.0)
             if ub_arr is not None:
                 if sp.issparse(ub_arr):
                     ub_arr = ub_arr.minimum(1)
                 else:
                     ub_arr = np.minimum(ub_arr, 1)
             else:
-                ub_val = min(ub_val, 1)
+                ub_val = min(ub_val, 1.0)
 
         # Build final bounds: use broadcast views for uniform scalars
         if lb_arr is not None:

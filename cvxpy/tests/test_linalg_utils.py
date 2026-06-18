@@ -145,3 +145,39 @@ class TestSparseCholesky(BaseTest):
         A = sp.diags_array([offdiag, diag, offdiag], offsets=[-1, 0, 1])
         with self.assertRaises(ValueError, msg=lau.SparseCholeskyMessages.INDEFINITE):
             lau.sparse_cholesky(A, 0.0)
+
+    def test_qdldl_throws_falls_back_to_dense_ldl(self):
+        # Random low-rank PSD inputs that QDLDL refuses to factor as
+        # "not quasi-definite" — the dense eigh fallback must succeed.
+        # Seeds 3 and 16 trigger the QDLDL failure for n=6, k=2.
+        for seed in (3, 16):
+            np.random.seed(seed)
+            B = np.random.randn(6, 2)
+            A = sp.csc_array(B @ B.T)
+            sign, L, p = lau.sparse_cholesky(A)
+            self.assertEqual(sign, 1.0)
+            self.assertEqual(L.shape[1], 2)
+            self.check_gram(L[p, :], A)
+
+    def test_qdldl_silent_drop_falls_back_to_dense_ldl(self):
+        # Seed 128 makes QDLDL return tiny pivots paired with huge L
+        # entries (|L| ~ 1e13).  The dropped column's contribution is
+        # non-negligible (~0.02), so the masked product disagrees with
+        # A; the residual check must catch this and fall back.
+        np.random.seed(128)
+        B = np.random.randn(6, 2)
+        A = sp.csc_array(B @ B.T)
+        sign, L, p = lau.sparse_cholesky(A)
+        self.assertEqual(sign, 1.0)
+        self.check_gram(L[p, :], A)
+
+    def test_singular_leading_minor_falls_back_to_dense_ldl(self):
+        # PSD with eigenvalues [0, 1, 2]; QDLDL fails on the singular
+        # leading 2x2 minor.  Dense eigh handles it.
+        A = sp.csc_array(np.array([[1.0, 1.0, 0.0],
+                                   [1.0, 1.0, 0.0],
+                                   [0.0, 0.0, 1.0]]))
+        sign, L, p = lau.sparse_cholesky(A)
+        self.assertEqual(sign, 1.0)
+        self.assertEqual(L.shape[1], 2)
+        self.check_gram(L[p, :], A)

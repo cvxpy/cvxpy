@@ -110,7 +110,7 @@ class upper_tri(AffAtom):
         return (lu.upper_tri(arg_objs[0]), [])
 
 
-def vec_to_upper_tri(expr, strict: bool = False):
+def vec_to_upper_tri(expr, strict: bool = False) -> Expression:
     """Reshapes a vector into an upper triangular matrix in
     row-major order. The strict argument specifies whether an upper or a strict upper triangular
     matrix should be returned.

@@ -19,7 +19,7 @@ from cvxpy.atoms.norm import norm
 from cvxpy.expressions.expression import Expression
 
 
-def mixed_norm(X, p: int | str = 2, q: int | str = 1):
+def mixed_norm(X, p: int | str = 2, q: int | str = 1) -> Expression:
     """Lp,q norm; :math:`(\\sum_k (\\sum_l \\lvert x_{k,l} \\rvert^p)^{q/p})^{1/q}`.
 
     Parameters

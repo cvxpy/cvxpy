@@ -54,7 +54,7 @@ from cvxpy.atoms.elementwise.abs import abs
 from cvxpy.atoms.elementwise.ceil import ceil, floor
 from cvxpy.atoms.elementwise.entr import entr
 from cvxpy.atoms.elementwise.exp import exp
-from cvxpy.atoms.elementwise.huber import huber
+from cvxpy.atoms.elementwise.huber import huber, HuberAtom, HuberPerspectiveAtom
 from cvxpy.atoms.elementwise.inv_pos import inv_pos
 from cvxpy.atoms.elementwise.kl_div import kl_div
 from cvxpy.atoms.elementwise.log import log
@@ -72,8 +72,8 @@ from cvxpy.atoms.elementwise.scalene import scalene
 from cvxpy.atoms.elementwise.sqrt import sqrt
 from cvxpy.atoms.elementwise.square import square
 from cvxpy.atoms.elementwise.xexp import xexp
-from cvxpy.atoms.elementwise.trig import sin, cos, tan
-from cvxpy.atoms.elementwise.hyperbolic import sinh, asinh, tanh, atanh
+# NLP atoms (require nlp=True solver) are accessible via cp.nlp namespace only.
+# e.g. cp.nlp.sin, cp.nlp.cos, cp.nlp.normcdf; not at top-level cp.
 from cvxpy.atoms.eye_minus_inv import eye_minus_inv, resolvent
 from cvxpy.atoms.gen_lambda_max import gen_lambda_max
 from cvxpy.atoms.geo_mean import GeoMean, GeoMeanApprox, geo_mean
@@ -123,7 +123,8 @@ SOC_ATOMS = [
     QuadForm,
     quad_over_lin,
     PowerApprox,
-    huber,
+    HuberAtom,
+    HuberPerspectiveAtom,
     std,
 ]
 
@@ -157,10 +158,10 @@ PSD_ATOMS = [
     von_neumann_entr,
 ]
 
-NONPOS_ATOMS = [
+NONNEG_ATOMS = [
     norm1,
     abs,
-    huber,
+    HuberAtom,
     ptp
 ]
 
@@ -182,7 +183,7 @@ GP_EXP_ATOMS = [
 ]
 
 # DGP atoms whose Dgp2Dcp canonicalization produces NonNeg constraints.
-GP_NONPOS_ATOMS = [
+GP_NONNEG_ATOMS = [
     norm_inf,
     max,
     min,

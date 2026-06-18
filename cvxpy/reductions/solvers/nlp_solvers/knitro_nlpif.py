@@ -14,11 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import importlib.util
+
 import numpy as np
 
 import cvxpy.settings as s
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers.nlp_solvers.nlp_solver import NLPsolver
+from cvxpy.reductions.solvers.openmp_conflict import warn_if_omp_conflict
 from cvxpy.utilities.citations import CITATION_DICT
 
 
@@ -107,10 +110,21 @@ class KNITRO(NLPsolver):
         """
         return 'KNITRO'
 
+    def is_installed(self) -> bool:
+        """Checks for the ``knitro`` package without importing it.
+
+        Importing ``knitro`` loads the native KNITRO runtime (and, on macOS,
+        a bundled OpenMP library). Doing that eagerly from ``import cvxpy``
+        can crash other solvers that load their own OpenMP runtime, so
+        installation is detected via the import machinery instead.
+        """
+        return importlib.util.find_spec("knitro") is not None
+
     def import_solver(self):
         """
         Imports the solver.
         """
+        warn_if_omp_conflict("knitro")
         import knitro  # noqa F401
 
     def invert(self, solution, inverse_data):
@@ -180,6 +194,8 @@ class KNITRO(NLPsolver):
             oracles = Oracles(bounds.new_problem, verbose=verbose, use_hessian=use_hessian)
         elif 'oracles' in solver_cache:
             oracles = solver_cache['oracles']
+            if bounds.new_problem.parameters():
+                oracles.update_params(bounds.new_problem)
         else:
             oracles = Oracles(bounds.new_problem, verbose=verbose, use_hessian=use_hessian)
             solver_cache['oracles'] = oracles

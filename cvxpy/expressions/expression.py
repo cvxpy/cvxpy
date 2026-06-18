@@ -17,7 +17,7 @@ limitations under the License.
 import abc
 import warnings
 from functools import wraps
-from typing import Literal, Self
+from typing import TYPE_CHECKING, Literal, Self, TypeAlias
 
 import numpy as np
 import scipy.sparse as sp
@@ -33,6 +33,9 @@ from cvxpy.expressions import cvxtypes
 from cvxpy.utilities import scopes
 from cvxpy.utilities.shape import size_from_shape
 from cvxpy.utilities.warn import CvxpyDeprecationWarning, warn
+
+if TYPE_CHECKING:
+    from cvxpy.expressions.variable import Variable
 
 
 def _cast_other(binary_op):
@@ -130,7 +133,12 @@ __BINARY_EXPRESSION_UFUNCS__ = {
 }
 
 
-ExpressionLike = "Expression | np.typing.ArrayLike"
+ExpressionLike: TypeAlias = "Expression | np.typing.ArrayLike"
+ExpressionValue: TypeAlias = np.ndarray | np.generic | sp.sparray | int | float | complex
+# Maps each variable to the (sub/super)gradient of the expression w.r.t. it.
+# Values are sparse/dense gradients, or None when a value is missing or the
+# gradient is undefined.
+GradMap: TypeAlias = dict["Variable", "sp.csc_array | np.ndarray | np.generic | float | None"]
 
 
 class Expression(u.Canonical):
@@ -149,19 +157,19 @@ class Expression(u.Canonical):
 
     @property
     @abc.abstractmethod
-    def value(self) -> np.ndarray | None:
+    def value(self) -> ExpressionValue | None:
         """Returns: The numeric value of the expression.
         """
         raise NotImplementedError()
 
-    def _value_impl(self) -> np.ndarray | None:
+    def _value_impl(self) -> ExpressionValue | None:
         """Implementation of .value.
         """
         return self.value
 
     @property
     @abc.abstractmethod
-    def grad(self):
+    def grad(self) -> GradMap:
         """Gives the (sub/super)gradient of the expression w.r.t. each variable.
 
         Matrix expressions are vectorized, so the gradient is a matrix.
@@ -701,8 +709,8 @@ class Expression(u.Canonical):
             exp(self * log(base))
         """
 
-        base = cvxtypes.expression().cast_to_const(base)
-        return _pow_const_base(base, self)
+        base_expr = cvxtypes.expression().cast_to_const(base)
+        return _pow_const_base(base_expr, self)
 
     @staticmethod
     def cast(expr_like) -> "Expression":

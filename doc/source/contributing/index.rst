@@ -16,7 +16,7 @@ optimization to help out. Here are simple ways to start contributing immediately
 
 * Browse the `issue tracker <https://github.com/cvxpy/cvxpy/issues>`_, and work on unassigned bugs or feature requests
 
-* Polish the `example library <https://github.com/cvxpy/cvxpy/tree/master/examples>`_
+* Polish the `example library <https://www.cvxpy.org/examples/index.html>`_
 
 If you'd like to add a new example to our library, or implement a new feature,
 please get in touch with us first by opening a GitHub issue to make sure that your
@@ -46,10 +46,10 @@ Small scope projects
  - Add QDLDL as another option for sparse Cholesky.
  - Have MOSEK interface choose between solving the primal and the dual [`2107 <https://github.com/cvxpy/cvxpy/issues/2107>`_, `1403 <https://github.com/cvxpy/cvxpy/issues/1403>`_].
  - `Add cp.RSOC (Rotated Second-Order Cone) <https://github.com/cvxpy/cvxpy/issues/2874>`_.
- - `Huber function with concomitant scale estimation <https://github.com/cvxpy/cvxpy/issues/1377>`_.
  - `More verbose logging info (expression tree nodes, DCP time) <https://github.com/cvxpy/cvxpy/issues/2674>`_.
  - Improve type checking for compatibility with Pyright.
  - `Change docstrings for psd_wrap and other _wrap functions to clarify undefined behavior <https://github.com/cvxpy/cvxpy/issues/2362#issuecomment-2029669331>`_.
+ - Add explicit conic constraints to `Advanced constraints <https://www.cvxpy.org/tutorial/constraints/index.html>`_.
 
 Medium scope projects
  - Refactor ``suppfunc_canon`` to use ``SvecPSD`` constraints directly, eliminating the
@@ -60,7 +60,6 @@ Medium scope projects
    solver's cone format.
  - `Post-solver feasibility checks <https://github.com/cvxpy/cvxpy/issues/434>`_.
  - `Vectorize the quad_over_lin atom <https://github.com/cvxpy/cvxpy/issues/1197>`_.
- - `Support for expressions with size zero <https://github.com/cvxpy/cvxpy/issues/1429>`_.
  - Caching computation of lin_ops during matrix stuffing.
  - Introduce sparse variables in constraint formulation.
  - N-dimensional matmul with broadcasting supported.
@@ -78,9 +77,8 @@ Large scope projects
  - Support for GSCOPT [`2889 <https://github.com/cvxpy/cvxpy/discussions/2889>`_].
  - Disable constraints using parameters [`3041 <https://github.com/cvxpy/cvxpy/discussions/3041>`_]
  - Explicit variable/dual recovery maps in reductions. Currently, reductions use ad-hoc logic
-   (e.g., provenance tracking on leaves) to map between reduced and original variables/duals
-   during solution recovery. Reductions should instead return explicit forward and inverse maps
-   for primal and dual variables, which could replace the provenance mechanism.
+   to map between reduced and original variables/duals during solution recovery. Reductions
+   should instead return explicit forward and inverse maps for primal and dual variables.
 
 General principles
 ------------------

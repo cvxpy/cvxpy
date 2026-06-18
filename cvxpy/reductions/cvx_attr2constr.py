@@ -20,6 +20,7 @@ import scipy.sparse as sp
 
 from cvxpy.atoms import diag, reshape
 from cvxpy.atoms.affine.upper_tri import batched_upper_tri_to_full, upper_tri_to_full
+from cvxpy.atoms.affine.wraps import nsd_wrap, psd_wrap, symmetric_wrap
 from cvxpy.expressions import cvxtypes
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.constants.parameter import Parameter
@@ -143,7 +144,13 @@ def build_dim_reduced_expression(leaf, reduced_leaf):
     """Build Expression that reconstructs full shape from a reduced-size leaf."""
     if attributes_present([leaf], SYMMETRIC_ATTRIBUTES):
         n = leaf.shape[0]
-        return reshape(Constant(upper_tri_to_full(n)) @ reduced_leaf, (n, n), order='F')
+        expr = reshape(Constant(upper_tri_to_full(n)) @ reduced_leaf, (n, n), order='F')
+        if leaf.attributes['PSD']:
+            return psd_wrap(expr)
+        elif leaf.attributes['NSD']:
+            return nsd_wrap(expr)
+        else:
+            return symmetric_wrap(expr)
     elif leaf.sparse_idx is not None:
         n = len(leaf.sparse_idx[0])
         row_idx = np.ravel_multi_index(leaf.sparse_idx, leaf.shape, order='F')
@@ -162,6 +169,9 @@ class CvxAttr2Constr(Reduction):
         """If reduce_bounds, reduce lower and upper bounds on variables."""
         self.reduce_bounds = reduce_bounds
         self._parameters = {}  # {orig_param: reduced_param}
+        self._variables = {}   # {orig_var: new_var} — only for changed vars
+        self._symmetric_vars = {}  # {orig_var: (batch_size, n)} for PSD/NSD/symmetric
+        self._cons_id_map = {}
         super(CvxAttr2Constr, self).__init__(problem=problem)
 
     def reduction_attributes(self) -> list[str]:
@@ -207,8 +217,8 @@ class CvxAttr2Constr(Reduction):
                     batch_size = int(np.prod(batch_shape))
                     shape = (batch_size * tri, 1)
                     upper_tri_var = Variable(shape, var_id=var.id, **new_attr)
-                    upper_tri_var.set_variable_of_provenance(var)
                     id2new_var[var.id] = upper_tri_var
+                    self._symmetric_vars[var] = (batch_size, n)
                     fill_coeff = Constant(
                         batched_upper_tri_to_full(batch_size, n))
                     full_mat = fill_coeff @ upper_tri_var
@@ -236,15 +246,15 @@ class CvxAttr2Constr(Reduction):
                                 )
                         new_attr['bounds'] = transformed_bounds
 
-                    reduced_var = Variable(n, var_id=var.id, **new_attr)
-                    reduced_var.set_leaf_of_provenance(var)
+                    reduced_var = Variable(n, name=var.name(), **new_attr)
+                    self._variables[var] = reduced_var
                     if var.value is not None:
                         reduced_var.value = lower_value(var)
                     id2new_var[var.id] = reduced_var
                     obj = build_dim_reduced_expression(var, reduced_var)
                 elif new_var:
-                    obj = Variable(var.shape, var_id=var.id, **new_attr)
-                    obj.set_leaf_of_provenance(var)
+                    obj = Variable(var.shape, name=var.name(), **new_attr)
+                    self._variables[var] = obj
                     id2new_var[var.id] = obj
                 else:
                     obj = var
@@ -269,8 +279,7 @@ class CvxAttr2Constr(Reduction):
                 for key in reduction_attributes:
                     if new_attr[key]:
                         new_attr[key] = None if key == 'bounds' else False
-                reduced_param = Parameter(n, id=param.id, name=param.name(), **new_attr)
-                reduced_param.set_leaf_of_provenance(param)
+                reduced_param = Parameter(n, name=param.name(), **new_attr)
                 self._parameters[param] = reduced_param
                 if param.value is not None:
                     reduced_param.value = lower_value(param)
@@ -283,8 +292,17 @@ class CvxAttr2Constr(Reduction):
         for cons in problem.constraints:
             constr.append(cons.tree_copy(id_objects=id2new_obj))
             cons_id_map[cons.id] = constr[-1].id
+        self._cons_id_map = cons_id_map
         inverse_data = (id2new_var, id2old_var, cons_id_map)
         return cvxtypes.problem()(obj, constr), inverse_data
+
+    @property
+    def var_id_map(self):
+        return {orig.id: [new.id] for orig, new in self._variables.items()}
+
+    @property
+    def param_id_map(self):
+        return {orig.id: [new.id] for orig, new in self._parameters.items()}
 
     def update_parameters(self, problem) -> None:
         """Update reduced parameter values from original parameters."""
@@ -292,21 +310,57 @@ class CvxAttr2Constr(Reduction):
             if param.value is not None:
                 reduced_param.value = lower_value(param)
 
-    def param_backward(self, param, dparams):
-        """Recover full-size gradient from reduced-size gradient."""
-        if param not in self._parameters:
-            return None
-        reduced_param = self._parameters[param]
-        if reduced_param.id not in dparams:
-            return None
-        return recover_value_for_leaf(param, dparams[reduced_param.id])
+    def var_backward(self, del_vars):
+        """Transform variable gradients from outer (original) to inner (reduced)."""
+        result = dict(del_vars)
+        for orig_var, new_var in self._variables.items():
+            if orig_var.id in result:
+                value = result.pop(orig_var.id)
+                if orig_var._has_dim_reducing_attr:
+                    if attributes_present([orig_var], SYMMETRIC_ATTRIBUTES):
+                        value = value + value.T - np.diag(np.diag(value))
+                    value = lower_value(orig_var, value)
+                result[new_var.id] = value
+        for orig_var, (batch_size, n) in self._symmetric_vars.items():
+            if orig_var.id in result:
+                fill_mat = batched_upper_tri_to_full(batch_size, n)
+                result[orig_var.id] = np.asarray(
+                    fill_mat.T @ result[orig_var.id].flatten(order='F')
+                ).ravel()
+        return result
 
-    def param_forward(self, param, delta):
-        """Transform full-size delta to reduced-size delta."""
-        if param not in self._parameters:
-            return None
-        reduced_param = self._parameters[param]
-        return {reduced_param.id: lower_value(param, delta)}
+    def var_forward(self, dvars):
+        """Transform variable deltas from inner (reduced) to outer (original)."""
+        result = dict(dvars)
+        for orig_var, new_var in self._variables.items():
+            if new_var.id in result:
+                value = result.pop(new_var.id)
+                if orig_var._has_dim_reducing_attr:
+                    value = recover_value_for_leaf(orig_var, value, project=False)
+                result[orig_var.id] = value
+        for orig_var, (batch_size, n) in self._symmetric_vars.items():
+            if orig_var.id in result:
+                fill_mat = batched_upper_tri_to_full(batch_size, n)
+                full_flat = np.asarray(fill_mat @ result[orig_var.id].ravel()).ravel()
+                result[orig_var.id] = full_flat.reshape(orig_var.shape, order='F')
+        return result
+
+    def param_backward(self, dparams):
+        """Recover full-size gradients from reduced-size gradients."""
+        result = dict(dparams)
+        for param, reduced_param in self._parameters.items():
+            if reduced_param.id in result:
+                result[param.id] = recover_value_for_leaf(
+                    param, result.pop(reduced_param.id))
+        return result
+
+    def param_forward(self, param_deltas):
+        """Transform full-size deltas to reduced-size deltas."""
+        result = dict(param_deltas)
+        for param, reduced_param in self._parameters.items():
+            if param.id in result:
+                result[reduced_param.id] = lower_value(param, result.pop(param.id))
+        return result
 
     def invert(self, solution, inverse_data) -> Solution:
         if not inverse_data:
