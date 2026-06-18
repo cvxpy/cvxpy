@@ -737,9 +737,9 @@ class TestConstraints(BaseTest):
     def test_pow_cone_3d_matrix_arg_duals(self) -> None:
         """Duals of a PowCone3D with matrix args must match the flattened problem.
 
-        ConeMatrixStuffing flattens matrix args in Fortran order;
-        save_dual_value used to reshape the recovered duals in C order,
-        permuting the dual entries whenever both dimensions exceed one.
+        ConeMatrixStuffing restores PowCone3D matrix duals to a (3, m, k)
+        array before save_dual_value runs; each coordinate block must then
+        be reshaped in Fortran order.
         """
         m, k = 2, 3
         alpha = 0.4
