@@ -625,19 +625,9 @@ class PythonCanonBackend(CanonBackend):
             return {key: self._copy_tensor_data(value) for key, value in data.items()}
         if data is None:
             return None
-        if all(hasattr(data, attr) for attr in ("data", "row", "col", "param_idx")):
-            return type(data)(
-                data=data.data.copy(),
-                row=data.row.copy(),
-                col=data.col.copy(),
-                param_idx=data.param_idx.copy(),
-                m=data.m,
-                n=data.n,
-                param_size=data.param_size,
-            )
         if hasattr(data, "copy"):
             return data.copy()
-        return data
+        raise RuntimeError(f"Tensor type {type(data)} has no copy method")
 
     def get_constant_data(
         self, lin_op: LinOp, view: TensorView, target_shape: tuple[int, ...] | None
