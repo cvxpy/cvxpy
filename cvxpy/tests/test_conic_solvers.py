@@ -33,9 +33,9 @@ import cvxpy as cp
 import cvxpy.tests.solver_test_helpers as sths
 from cvxpy.constraints import SOC
 from cvxpy.problems.problem_form import ProblemForm
-from cvxpy.reductions.solvers.conic_solvers.cvxopt_conif import compress_matrix
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.conic_solvers.cuopt_conif import CUOPT
+from cvxpy.reductions.solvers.conic_solvers.cvxopt_conif import compress_matrix
 from cvxpy.reductions.solvers.defines import (
     INSTALLED_MI_SOLVERS,
     INSTALLED_SOLVERS,

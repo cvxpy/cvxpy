@@ -29,7 +29,6 @@ from cvxpy.reductions.solvers.openmp_conflict import warn_if_omp_conflict
 from cvxpy.utilities.citations import CITATION_DICT
 
 
-
 def compress_matrix(A, b, equil_eps: float = 1e-10):
     """Compresses A and b by eliminating redundant rows.
 
