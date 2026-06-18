@@ -56,6 +56,7 @@ This module contains the abstract base classes used by all backends:
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from collections import Counter
 from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
@@ -501,6 +502,7 @@ class PythonCanonBackend(CanonBackend):
     ) -> sp.csc_array | sp.csr_array:
         self.id_to_col[-1] = self.var_length
 
+        self._lin_op_counts = self._count_reusable_lin_ops(lin_ops)
         self._lin_op_tensor_cache: dict[int, TensorView] = {}
         try:
             constraint_res = []
@@ -515,9 +517,42 @@ class PythonCanonBackend(CanonBackend):
                 row_offset += lin_op_rows
             tensor_res = self.concatenate_tensors(constraint_res)
         finally:
+            del self._lin_op_counts
             del self._lin_op_tensor_cache
             self.id_to_col.pop(-1)
         return tensor_res.flatten_tensor(self.param_size_plus_one, order=order)
+
+    def _count_reusable_lin_ops(self, lin_ops: list[LinOp]) -> Counter[int]:
+        raw_counts: Counter[int] = Counter()
+        for lin_op in lin_ops:
+            self._count_lin_op_tree(lin_op, raw_counts)
+
+        process_counts: Counter[int] = Counter()
+        seen_cacheable: set[int] = set()
+        for lin_op in lin_ops:
+            self._count_processed_lin_ops(lin_op, raw_counts, process_counts, seen_cacheable)
+        return process_counts
+
+    def _count_lin_op_tree(self, lin_op: LinOp, counts: Counter[int]) -> None:
+        counts[id(lin_op)] += 1
+        for arg in lin_op.args:
+            self._count_lin_op_tree(arg, counts)
+
+    def _count_processed_lin_ops(
+        self,
+        lin_op: LinOp,
+        raw_counts: Counter[int],
+        process_counts: Counter[int],
+        seen_cacheable: set[int],
+    ) -> None:
+        lin_op_id = id(lin_op)
+        process_counts[lin_op_id] += 1
+        if raw_counts[lin_op_id] > 1:
+            if lin_op_id in seen_cacheable:
+                return
+            seen_cacheable.add(lin_op_id)
+        for arg in lin_op.args:
+            self._count_processed_lin_ops(arg, raw_counts, process_counts, seen_cacheable)
 
     def process_constraint(self, lin_op: LinOp, empty_view: TensorView) -> TensorView:
         """
@@ -533,9 +568,11 @@ class PythonCanonBackend(CanonBackend):
         The processed node as a TensorView.
         """
 
+        counts = getattr(self, "_lin_op_counts", None)
+        should_cache = counts is not None and counts[id(lin_op)] > 1
         cache = getattr(self, "_lin_op_tensor_cache", None)
         cache_key = id(lin_op)
-        if cache is not None and cache_key in cache:
+        if should_cache and cache is not None and cache_key in cache:
             return self._copy_tensor_view(cache[cache_key], empty_view)
 
         # Leaf nodes
@@ -571,7 +608,7 @@ class PythonCanonBackend(CanonBackend):
                 assert res is not None
                 result = res
 
-        if cache is not None:
+        if should_cache and cache is not None:
             cache[cache_key] = self._copy_tensor_view(result, empty_view)
         return result
 

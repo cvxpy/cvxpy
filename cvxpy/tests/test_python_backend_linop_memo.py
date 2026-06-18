@@ -61,6 +61,47 @@ def test_shared_linop_lowered_once(monkeypatch, backend, backend_cls) -> None:
     assert matrix.nnz == 2 * 3
 
 
+@pytest.mark.parametrize(("backend", "backend_cls"), PYTHON_BACKENDS)
+def test_single_use_linop_is_not_cached(monkeypatch, backend, backend_cls) -> None:
+    x = lu.create_var((3,), var_id=1)
+    calls = 0
+    original = backend_cls._copy_tensor_view
+
+    def spy_copy_tensor_view(self, view, empty_view):
+        nonlocal calls
+        calls += 1
+        return original(self, view, empty_view)
+
+    monkeypatch.setattr(backend_cls, "_copy_tensor_view", spy_copy_tensor_view)
+
+    matrix = _problem_matrix([x], backend)
+
+    assert calls == 0
+    assert matrix.shape == (3 * (3 + 1), 1)
+    assert matrix.nnz == 3
+
+
+@pytest.mark.parametrize(("backend", "backend_cls"), PYTHON_BACKENDS)
+def test_descendant_of_reused_linop_is_not_cached(monkeypatch, backend, backend_cls) -> None:
+    x = lu.create_var((3,), var_id=1)
+    neg_x = lu.neg_expr(x)
+    calls = 0
+    original = backend_cls._copy_tensor_view
+
+    def spy_copy_tensor_view(self, view, empty_view):
+        nonlocal calls
+        calls += 1
+        return original(self, view, empty_view)
+
+    monkeypatch.setattr(backend_cls, "_copy_tensor_view", spy_copy_tensor_view)
+
+    matrix = _problem_matrix([neg_x, neg_x], backend)
+
+    assert calls == 2
+    assert matrix.shape == (2 * 3 * (3 + 1), 1)
+    assert matrix.nnz == 2 * 3
+
+
 @pytest.mark.parametrize("backend", [backend for backend, _ in PYTHON_BACKENDS])
 def test_shared_linop_cache_hits_do_not_share_mutable_views(backend) -> None:
     x = lu.create_var((3,), var_id=1)
