@@ -65,6 +65,7 @@ requires = [
     "scipy >= 1.13.0",
     # 68.1.0 Promoted pyproject.toml's [tool.setuptools] out of beta.
     "setuptools >= 68.1.0",
+    "setuptools-scm >= 8",
     "wheel",
     "pybind11"
 ]
@@ -110,7 +111,9 @@ COPT = ["coptpy>=8.0.3"]
 # CUOPT dependency group is disabled since it was breaking uv sync.
 # CUOPT = ["cuopt-cu12>=25.5", "nvidia-cuda-runtime-cu12>=12.8,<13.0"]
 CVXOPT = ["cvxopt"]
-DIFFCP = ["diffcp"]
+# diffcp >= 1.1.9 dropped its `cvxpy` runtime dependency; older versions
+# create a circular dependency that breaks resolution against this project.
+DIFFCP = ["diffcp >= 1.1.9"]
 ECOS = ["ecos"]
 ECOS_BB = ["ecos"]
 GLOP = ["ortools>=9.7,<9.15"]
@@ -153,3 +156,24 @@ include-package-data = false
 # returned by Expression.grad). Running pyright via `uv run` puts it inside
 # this environment so numpy/scipy imports resolve.
 dev = ["pyright", "scipy-stubs"]
+
+[tool.setuptools_scm]
+# Writes the resolved version to cvxpy/_version.py at build time so the
+# version is available at runtime via `cvxpy.__version__` even outside a
+# git checkout (e.g., from an installed wheel or sdist).
+version_file = "cvxpy/_version.py"
+# `semver-pep440-release-branch` bumps the minor on `master` between releases
+# (so post-tag dev versions look like `1.10.0.devN+g<sha>` while developing
+# 1.10 after `v1.9.0`), and bumps the patch on `release/<x.y>.x` branches.
+version_scheme = "semver-pep440-release-branch"
+# Used when building outside a git checkout with no PKG-INFO (e.g. GitHub
+# "Download ZIP" tarballs, which are not proper sdists). Real sdists embed
+# the version in PKG-INFO and don't hit this fallback.
+fallback_version = "0.0.0"
+
+[tool.setuptools_scm.scm.git]
+# `v*` matches real release tags. `dummy-v*` matches the anchor tag placed on
+# `master` at each minor branch point: real release tags live on `release/*`
+# branches and are not ancestors of `master`, so without an anchor `git
+# describe` would fall back to an ancient tag and compute the wrong version.
+describe_command = ["git", "describe", "--dirty", "--tags", "--long", "--match", "v*", "--match", "dummy-v*"]
