@@ -33,7 +33,7 @@ import cvxpy as cp
 import cvxpy.tests.solver_test_helpers as sths
 from cvxpy.constraints import SOC
 from cvxpy.problems.problem_form import ProblemForm
-from cvxpy.reductions.solvers.compr_matrix import compress_matrix, get_row_nnz
+from cvxpy.reductions.solvers.conic_solvers.cvxopt_conif import compress_matrix
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.conic_solvers.cuopt_conif import CUOPT
 from cvxpy.reductions.solvers.defines import (
@@ -53,45 +53,6 @@ from cvxpy.tests.solver_test_helpers import (
 )
 from cvxpy.transforms.partial_optimize import partial_optimize
 from cvxpy.utilities.versioning import Version
-
-
-def test_compress_matrix_eliminates_empty_and_duplicate_rows() -> None:
-    A = sp.csr_matrix(
-        [
-            [1.0, 2.0, 0.0],
-            [2.0, 4.0, 0.0],
-            [0.0, 0.0, 0.0],
-            [1.0, 0.0, 1.0],
-            [1.0, 0.0, 2.0],
-            [2.0, 0.0, 2.0],
-        ]
-    )
-    b = np.array([3.0, 6.0, 0.0, 2.0, 3.0, 4.0])
-
-    assert get_row_nnz(A, 0) == 2
-    A_compr, b_compr, P, rows_kept = compress_matrix(A, b)
-    assert rows_kept == [0, 3, 4]
-
-    np.testing.assert_allclose(A_compr.toarray(), A[[0, 3, 4], :].toarray())
-    np.testing.assert_allclose(b_compr, b[[0, 3, 4]])
-    np.testing.assert_allclose((P @ A_compr).toarray(), A.toarray())
-    np.testing.assert_allclose(P @ b_compr, b)
-
-    A_empty = sp.csr_matrix([[0.0, 0.0], [1.0, 0.0]])
-    b_empty = np.array([0.0, 1.0])
-    A_compr, b_compr, P, _ = compress_matrix(A_empty, b_empty)
-    np.testing.assert_allclose(A_compr.toarray(), [[1.0, 0.0]])
-    np.testing.assert_allclose(b_compr, [1.0])
-    np.testing.assert_allclose((P @ A_compr).toarray(), [[0.0, 0.0], [1.0, 0.0]])
-
-
-def test_compress_matrix_keeps_negative_multiple_rows() -> None:
-    # x <= 1 and -x <= -1 are opposite half-spaces, so neither row is redundant.
-    A = sp.csr_matrix([[1.0, 0.0], [-1.0, 0.0]])
-    b = np.array([1.0, -1.0])
-    A_compr, b_compr, _, _ = compress_matrix(A, b)
-    np.testing.assert_allclose(A_compr.toarray(), A.toarray())
-    np.testing.assert_allclose(b_compr, b)
 
 
 @unittest.skipUnless('ECOS' in INSTALLED_SOLVERS, 'ECOS is not installed.')
@@ -650,7 +611,6 @@ class TestClarabel(BaseTest):
         StandardTestInfeasibleProblems.test_soc_exp_mixed(solver="CLARABEL")
 
 
-
 @unittest.skipUnless('CUCLARABEL' in INSTALLED_SOLVERS, 'CLARABEL is not installed.')
 class TestCuClarabel(BaseTest):
 
@@ -963,6 +923,7 @@ def is_mosek_available():
         return True
     except Exception:
         return False
+
 
 @unittest.skipUnless(is_mosek_available(), 'MOSEK is not installed or license is not available.')
 class TestMosek(unittest.TestCase):
@@ -1339,6 +1300,42 @@ class TestCVXOPT(BaseTest):
 
     def test_cvxopt_sdp_2(self) -> None:
         StandardTestSDPs.test_sdp_2(solver='CVXOPT')
+
+    def test_cvxopt_presolve_utility(self) -> None:
+        A = sp.csr_matrix(
+            [
+                [1.0, 2.0, 0.0],
+                [2.0, 4.0, 0.0],
+                [0.0, 0.0, 0.0],
+                [1.0, 0.0, 1.0],
+                [1.0, 0.0, 2.0],
+                [2.0, 0.0, 2.0],
+            ]
+        )
+        b = np.array([3.0, 6.0, 0.0, 2.0, 3.0, 4.0])
+
+        A_compr, b_compr, P, rows_kept = compress_matrix(A, b)
+        assert rows_kept == [0, 3, 4]
+
+        np.testing.assert_allclose(A_compr.toarray(), A[[0, 3, 4], :].toarray())
+        np.testing.assert_allclose(b_compr, b[[0, 3, 4]])
+        np.testing.assert_allclose((P @ A_compr).toarray(), A.toarray())
+        np.testing.assert_allclose(P @ b_compr, b)
+
+        A_empty = sp.csr_matrix([[0.0, 0.0], [1.0, 0.0]])
+        b_empty = np.array([0.0, 1.0])
+        A_compr, b_compr, P, _ = compress_matrix(A_empty, b_empty)
+        np.testing.assert_allclose(A_compr.toarray(), [[1.0, 0.0]])
+        np.testing.assert_allclose(b_compr, [1.0])
+        np.testing.assert_allclose((P @ A_compr).toarray(), [[0.0, 0.0], [1.0, 0.0]])
+
+        # x <= 1 and -x <= -1 are opposite half-spaces, so neither row is redundant.
+        A = sp.csr_matrix([[1.0, 0.0], [-1.0, 0.0]])
+        b = np.array([1.0, -1.0])
+        A_compr, b_compr, _, _ = compress_matrix(A, b)
+        np.testing.assert_allclose(A_compr.toarray(), A.toarray())
+        np.testing.assert_allclose(b_compr, b)
+        return
 
     def test_cvxopt_presolve_opposite_inequalities(self) -> None:
         """Presolve must not drop a row that is a negative multiple of another.
@@ -1749,6 +1746,7 @@ class TestPDLP(unittest.TestCase):
         # a large instance and check that the time limit is hit.
         sth.solve(solver='PDLP', time_limit_sec=1.0)
 
+
 @unittest.skipUnless('QOCO' in INSTALLED_SOLVERS, 'QOCO is not installed.')
 class TestQOCO(BaseTest):
     """ Unit tests for QOCO. """
@@ -1781,6 +1779,7 @@ class TestQOCO(BaseTest):
         StandardTestSOCPs.test_socp_3ax0(solver='QOCO')
         # axis 1
         StandardTestSOCPs.test_socp_3ax1(solver='QOCO')
+
 
 @unittest.skipUnless('CPLEX' in INSTALLED_SOLVERS, 'CPLEX is not installed.')
 class TestCPLEX(BaseTest):
@@ -2896,7 +2895,6 @@ class TestHIGHS:
         problem(solver=cp.HIGHS, highs_options=highs_options)
 
 
-
 class TestAllSolvers(BaseTest):
 
     def setUp(self) -> None:
@@ -3119,6 +3117,7 @@ class TestSCIPY(unittest.TestCase):
 
     def test_scipy_lp_bound_attr(self) -> None:
         StandardTestLPs.test_lp_bound_attr(solver='SCIPY', duals=self.d)
+
 
 @unittest.skipUnless('COPT' in INSTALLED_SOLVERS, 'COPT is not installed.')
 class TestCOPT(unittest.TestCase):
@@ -3347,6 +3346,7 @@ class TestCOSMO(BaseTest):
         self.assertAlmostEqual(result2, result, places=2)
         print(time > time2)
 
+
 def is_knitro_available():
     """Check if KNITRO is installed and a license is available.
 
@@ -3362,6 +3362,7 @@ def is_knitro_available():
         os.environ.get('ARTELYS_LICENSE')
         or os.environ.get('ARTELYS_LICENSE_NETWORK_ADDR')
     )
+
 
 @pytest.mark.knitro
 @unittest.skipUnless(is_knitro_available(), 'KNITRO is not installed or license is not available.')
@@ -3487,6 +3488,7 @@ class TestKNITRO(BaseTest):
 
         opts = {"algorithm": 0}
         problem.solve(solver=cp.KNITRO, **opts)
+
 
 @unittest.skipUnless("CUOPT" in INSTALLED_SOLVERS, "CUOPT is not installed.")
 class TestCUOPT(unittest.TestCase):
