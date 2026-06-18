@@ -209,6 +209,7 @@ class HuberPerspectiveAtom(Atom):
         """If M is a Parameter, include it in the list of Parameters."""
         return super().parameters() + self.M.parameters()
 
+    @Elementwise.numpy_numeric
     def numeric(self, values):
         """Numerically evaluate t * huber(x/t, M) elementwise."""
         x_val = values[0]
