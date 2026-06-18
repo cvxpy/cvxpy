@@ -99,7 +99,7 @@ def add(lh_arg, rh_arg, neg: bool = False):
         return lh_arg + rh_arg
 
 
-def binary_canon(expr, real_args, imag_args, real2imag):
+def multiply_like_canon(expr, real_args, imag_args, real2imag):
     """Canonicalize functions like multiplication.
     """
     real_by_real = join(expr, real_args[0], real_args[1])
@@ -117,12 +117,12 @@ def div_canon(expr, real_args, imag_args, real2imag):
     For a complex divisor c, z/c = z*conj(c)/|c|^2, i.e.
         Re(z/c) = (Re(z)*Re(c) + Im(z)*Im(c))/|c|^2,
         Im(z/c) = (Im(z)*Re(c) - Re(z)*Im(c))/|c|^2.
-    The multiplication identity used by binary_canon is incorrect here.
+
     """
     re_c, im_c = real_args[1], imag_args[1]
     if im_c is None:
         # Real divisor: real and imaginary parts divide separately.
-        return binary_canon(expr, real_args, imag_args, real2imag)
+        return multiply_like_canon(expr, real_args, imag_args, real2imag)
     if re_c is None:
         re_c = Constant(np.zeros(im_c.shape))
     abs_sq = multiply(re_c, re_c) + multiply(im_c, im_c)
