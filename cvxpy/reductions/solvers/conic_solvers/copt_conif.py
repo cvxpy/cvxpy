@@ -16,6 +16,46 @@ from cvxpy.utilities.citations import CITATION_DICT
 from cvxpy.utilities.psd_utils import TriangleKind
 
 
+def _add_psd_bound_rows(A, b, dims, lb, ub):
+    """Add finite variable bounds as explicit inequality rows.
+
+    The rows are inserted right after the existing NonNeg (LEQ) block so the
+    cone partition passed to ``loadConeMatrix`` stays contiguous: COPT expects
+    rows ordered as free, linear, SOC, exponential, PSD.
+    """
+    n = A.shape[1]
+    extra_rows = []
+    extra_b = []
+
+    if ub is not None:
+        finite_ub = np.isfinite(ub)
+        n_ub = int(np.count_nonzero(finite_ub))
+        if n_ub:
+            extra_rows.append(_bound_selector(n_ub, n, np.flatnonzero(finite_ub), 1.0))
+            extra_b.append(ub[finite_ub])
+
+    if lb is not None:
+        finite_lb = np.isfinite(lb)
+        n_lb = int(np.count_nonzero(finite_lb))
+        if n_lb:
+            extra_rows.append(_bound_selector(n_lb, n, np.flatnonzero(finite_lb), -1.0))
+            extra_b.append(-lb[finite_lb])
+
+    if extra_rows:
+        insert_at = dims[s.EQ_DIM] + dims[s.LEQ_DIM]
+        bound_block = sp.vstack(extra_rows, format='csr')
+        A = sp.vstack([A[:insert_at], bound_block, A[insert_at:]], format='csc')
+        b = np.concatenate([b[:insert_at], *extra_b, b[insert_at:]])
+        dims[s.LEQ_DIM] += bound_block.shape[0]
+
+    return A, b
+
+
+def _bound_selector(num_rows, num_cols, cols, value):
+    return sp.csr_array((np.full(num_rows, value), (np.arange(num_rows), cols)),
+                        shape=(num_rows, num_cols))
+
+
 class COPT(ConicSolver):
     """
     An interface for the COPT solver.
@@ -41,13 +81,16 @@ class COPT(ConicSolver):
                   1: s.OPTIMAL,             # optimal
                   2: s.INFEASIBLE,          # infeasible
                   3: s.UNBOUNDED,           # unbounded
-                  4: s.INF_OR_UNB,          # infeasible or unbounded
+                  4: s.INFEASIBLE_OR_UNBOUNDED,  # infeasible or unbounded
                   5: s.SOLVER_ERROR,        # numerical
                   6: s.USER_LIMIT,          # node limit
                   7: s.OPTIMAL_INACCURATE,  # imprecise
                   8: s.USER_LIMIT,          # time out
                   9: s.SOLVER_ERROR,        # unfinished
-                  10: s.USER_LIMIT          # interrupted
+                  10: s.USER_LIMIT,         # interrupted
+                  11: s.USER_LIMIT,         # iteration limit
+                  20: s.OPTIMAL,            # local optimal
+                  21: s.INFEASIBLE          # local infeasible
                  }
 
     def name(self):
@@ -95,6 +138,29 @@ class COPT(ConicSolver):
 
         return data, inv_data
 
+    def _dual_vars(self, solution, inverse_data):
+        """Map the stacked ``[eq; ineq]`` dual vector to a CVXPY dual dict.
+
+        Shared by the optimal duals and the infeasibility (Farkas) certificate,
+        which use the same row layout.
+        """
+        eq_dual = utilities.get_dual_values(
+            solution[s.EQ_DUAL],
+            utilities.extract_dual_value,
+            inverse_data[COPT.EQ_CONSTR])
+        leq_dual = utilities.get_dual_values(
+            solution[s.INEQ_DUAL],
+            utilities.extract_dual_value,
+            inverse_data[COPT.NEQ_CONSTR])
+        for con in inverse_data[self.NEQ_CONSTR]:
+            if isinstance(con, ExpCone):
+                cid = con.id
+                n_cones = con.num_cones()
+                perm = utilities.expcone_permutor(n_cones, COPT.EXP_CONE_ORDER)
+                leq_dual[cid] = leq_dual[cid][perm]
+        eq_dual.update(leq_dual)
+        return eq_dual
+
     def invert(self, solution, inverse_data):
         """
         Returns the solution to the original problem given the inverse_data.
@@ -104,31 +170,18 @@ class COPT(ConicSolver):
                 s.NUM_ITERS: solution[s.NUM_ITERS],
                 s.EXTRA_STATS: solution['model']}
 
-        primal_vars = None
+        # EQ_DUAL/INEQ_DUAL hold the constraint duals when a solution is present
+        # and the dual Farkas infeasibility certificate otherwise.
         dual_vars = None
+        if s.EQ_DUAL in solution and not inverse_data['is_mip']:
+            dual_vars = self._dual_vars(solution, inverse_data)
+
         if status in s.SOLUTION_PRESENT:
             opt_val = solution[s.VALUE] + inverse_data[s.OFFSET]
             primal_vars = {inverse_data[COPT.VAR_ID]: solution[s.PRIMAL]}
-            if not inverse_data['is_mip']:
-                eq_dual = utilities.get_dual_values(
-                    solution[s.EQ_DUAL],
-                    utilities.extract_dual_value,
-                    inverse_data[COPT.EQ_CONSTR])
-                leq_dual = utilities.get_dual_values(
-                    solution[s.INEQ_DUAL],
-                    utilities.extract_dual_value,
-                    inverse_data[COPT.NEQ_CONSTR])
-                for con in inverse_data[self.NEQ_CONSTR]:
-                    if isinstance(con, ExpCone):
-                        cid = con.id
-                        n_cones = con.num_cones()
-                        perm = utilities.expcone_permutor(n_cones, COPT.EXP_CONE_ORDER)
-                        leq_dual[cid] = leq_dual[cid][perm]
-                eq_dual.update(leq_dual)
-                dual_vars = eq_dual
             return Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
-            return failure_solution(status, attr)
+            return failure_solution(status, attr, dual_vars)
 
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
         """
@@ -181,25 +234,10 @@ class COPT(ConicSolver):
             psd_lb = data[s.LOWER_BOUNDS]
             psd_ub = data[s.UPPER_BOUNDS]
             if psd_lb is not None or psd_ub is not None:
-                n = c.shape[0]
-                extra_rows = []
-                extra_b = []
-                if psd_ub is not None:
-                    # x_i <= ub_i  =>  x_i <= ub_i  (LEQ constraint: I @ x <= ub)
-                    extra_rows.append(sp.eye_array(n, format='csc'))
-                    extra_b.append(psd_ub)
-                    dims[s.LEQ_DIM] += n
-                if psd_lb is not None:
-                    # x_i >= lb_i  =>  -x_i <= -lb_i  (LEQ constraint: -I @ x <= -lb)
-                    extra_rows.append(-sp.eye_array(n, format='csc'))
-                    extra_b.append(-psd_lb)
-                    dims[s.LEQ_DIM] += n
-                A = sp.vstack([A] + extra_rows, format='csc')
-                b = np.concatenate([b] + extra_b)
+                A, b = _add_psd_bound_rows(A, b, dims, psd_lb, psd_ub)
 
             # Solve the dualized problem
-            # TODO switch to `A.transpose().tocsc()` when COPT supports sparray
-            rowmap = model.loadConeMatrix(-b, sp.csc_matrix(A.transpose()), -c, dims)
+            rowmap = model.loadConeMatrix(-b, A.transpose().tocsc(), -c, dims)
             model.objsense = copt.COPT.MAXIMIZE
         else:
             # Build problem data
@@ -284,8 +322,7 @@ class COPT(ConicSolver):
                     vtype = np.append(vtype, [copt.COPT.CONTINUOUS] * nexpconedim)
 
             # Load matrix data
-            # TODO remove `sp.csc_matrix` when COPT starts supporting sparray
-            model.loadMatrix(c, sp.csc_matrix(A), lhs, rhs, lb, ub, vtype)
+            model.loadMatrix(c, A.tocsc(), lhs, rhs, lb, ub, vtype)
 
             # Load cone data
             if dims[s.SOC_DIM]:
@@ -296,6 +333,12 @@ class COPT(ConicSolver):
             if dims[s.EXP_DIM]:
                 model.loadExpCone(nexpcone, None,
                                   range(A.shape[1] - nexpconedim, A.shape[1]))
+
+        # Request a dual Farkas ray so an infeasibility certificate is available
+        # for infeasible problems (not the dualized PSD path, and not MIPs). Set
+        # it before the user-settings loop so an explicit value in solver_opts wins.
+        if not dims[s.PSD_DIM] and not (data[s.BOOL_IDX] or data[s.INT_IDX]):
+            model.setParam(copt.COPT.Param.ReqFarkasRay, 1)
 
         # Set parameters
         for key, value in solver_opts.items():
@@ -363,6 +406,17 @@ class COPT(ConicSolver):
             solution[s.STATUS] = s.OPTIMAL_INACCURATE
         if solution[s.STATUS] == s.USER_LIMIT and not model.hasmipsol:
             solution[s.STATUS] = s.INFEASIBLE_INACCURATE
+
+        # On infeasibility, return the dual Farkas ray as the certificate,
+        # negated to match CVXPY's sign convention (as done for optimal duals).
+        # Split [eq; ineq] at EQ_DIM, mirroring the optimal-dual extraction.
+        if (not dims[s.PSD_DIM]
+                and solution[s.STATUS] in (s.INFEASIBLE, s.INFEASIBLE_INACCURATE)
+                and not (data[s.BOOL_IDX] or data[s.INT_IDX])
+                and model.hasdualfarkas):
+            y = -np.array(model.getInfo(copt.COPT.Info.DualFarkas, model.getConstrs()))
+            solution[s.EQ_DUAL] = y[0:dims[s.EQ_DIM]]
+            solution[s.INEQ_DUAL] = y[dims[s.EQ_DIM]:]
 
         solution['model'] = model
 

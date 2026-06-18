@@ -193,10 +193,15 @@ class HIGHS(QpSolver):
             hessian = model.hessian_
             hessian.dim_ = model.lp_.num_col_
             assert P.format == "csc"
-            hessian.format_ = hp.HessianFormat.kSquare
-            hessian.start_ = P.indptr
-            hessian.index_ = P.indices
-            hessian.value_ = P.data
+            # Use triangular format to avoid passing redundant off-diagonal
+            # entries whose upper and lower triangles may differ by floating-
+            # point epsilon after canonicalization, which HiGHS >= 1.14.0
+            # rejects as asymmetric.  See https://github.com/cvxpy/cvxpy/issues/3301
+            P_upper = sp.triu(P, format="csc")
+            hessian.format_ = hp.HessianFormat.kTriangular
+            hessian.start_ = P_upper.indptr
+            hessian.index_ = P_upper.indices
+            hessian.value_ = P_upper.data
 
         solver = hp.Highs()
 

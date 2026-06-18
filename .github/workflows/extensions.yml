@@ -1,0 +1,106 @@
+name: test_extensions
+
+on:
+    pull_request:
+    push:
+        branches:
+            - master
+        tags:
+          - '*'
+jobs:
+  test_cvxpylayers:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0  # setuptools-scm needs tags to compute the version
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.11"
+          enable-cache: true
+      - name: Install system dependencies
+        run: |
+          sudo apt update
+          sudo apt install libeigen3-dev
+      - name: Install CVXPY
+        run: |
+          uv venv --seed
+          uv pip install .
+          uv pip install pytest
+      - name: Install CVXPYlayers
+        run: |
+          git clone https://github.com/cvxpy/cvxpylayers.git
+          cd cvxpylayers
+          uv pip install ".[torch, jax]"
+          uv pip install "mlx[cpu]" "mpax"
+      - name: Run CVXPYlayers tests
+        run: |
+          uv run --no-sync pytest cvxpylayers/tests \
+            --ignore=cvxpylayers/tests/test_cuclarabel.py
+
+  test_cvxpygen:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: lp
+            tests: test_readme.py test_invalid_input.py test_E2E_LP.py test_unsupported_solvers.py
+            cvxpylayers: false
+          - name: qp
+            # test_diff.py imports cvxpylayers.torch, so this shard installs it.
+            tests: test_E2E_QP.py test_explicit.py test_diff.py
+            cvxpylayers: true
+          - name: socp
+            tests: test_E2E_SOCP.py
+            cvxpylayers: false
+          # Catch-all: run anything not covered by the shards above, so a newly
+          # added test file upstream is never silently skipped. Skips cvxpylayers
+          # for speed; a new cvxpylayers-dependent test will fail here loudly,
+          # signalling it belongs in the qp shard.
+          - name: rest
+            tests: >-
+              . --ignore=test_readme.py --ignore=test_invalid_input.py
+              --ignore=test_E2E_LP.py --ignore=test_unsupported_solvers.py
+              --ignore=test_E2E_QP.py --ignore=test_explicit.py
+              --ignore=test_diff.py --ignore=test_E2E_SOCP.py
+            cvxpylayers: false
+    name: test_cvxpygen (${{ matrix.name }})
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.11"
+          enable-cache: true
+      - name: Install system dependencies
+        run: |
+          sudo apt update
+          sudo apt install libeigen3-dev
+      - name: Install CVXPY
+        run: |
+          uv venv --seed
+          uv pip install .
+          uv pip install pytest
+      - name: Install CVXPYlayers
+        if: matrix.cvxpylayers
+        run: |
+          git clone https://github.com/cvxpy/cvxpylayers.git
+          cd cvxpylayers
+          uv pip install ".[torch, jax]"
+          uv pip install "mlx[cpu]" "mpax"
+      - name: Install CVXPYgen
+        run: |
+          git clone --recurse-submodules https://github.com/cvxgrp/cvxpygen.git
+          cd cvxpygen
+          uv pip install .[dev]
+      - name: Run CVXPYgen tests
+        run: |
+          cd cvxpygen/tests
+          # --project points uv at the root .venv (CVXPY + cvxpygen[dev] + pytest);
+          # without it, uv would discover the cvxpygen clone and spin up an empty
+          # cvxpygen/.venv. Exit code 5 ("no tests collected") is expected for the
+          # `rest` shard when no test files exist beyond those the other shards cover.
+          uv run --no-sync --project "$GITHUB_WORKSPACE" pytest ${{ matrix.tests }} \
+            || [ $? -eq 5 ]

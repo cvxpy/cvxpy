@@ -59,7 +59,6 @@ class Dcp2Cone(Canonicalization):
         canon_objective, canon_constraints = self.canonicalize_tree(
             problem.objective, True)
 
-
         for constraint in problem.constraints:
             # canon_constr is the constraint rexpressed in terms of
             # its canonicalized arguments, and aux_constr are the constraints
@@ -72,6 +71,7 @@ class Dcp2Cone(Canonicalization):
 
         new_problem = problems.problem.Problem(canon_objective,
                                                canon_constraints)
+        self._cons_id_map = inverse_data.cons_id_map
         return new_problem, inverse_data
 
     def canonicalize_tree(self, expr, affine_above: bool) -> tuple[Expression, list]:

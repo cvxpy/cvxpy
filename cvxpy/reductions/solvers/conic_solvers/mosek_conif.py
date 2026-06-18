@@ -35,7 +35,7 @@ from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.utilities import expcone_permutor
 from cvxpy.utilities.citations import CITATION_DICT
-from cvxpy.utilities.psd_utils import TriangleKind
+from cvxpy.utilities.psd_utils import TriangleKind, tri_to_full
 from cvxpy.utilities.warn import CvxpyDeprecationWarning, warn
 
 __MSK_ENUM_PARAM_DEPRECATION__ = """
@@ -46,43 +46,13 @@ For example, replace mosek.iparam.num_threads with 'MSK_IPAR_NUM_THREADS'
 
 
 def svec_to_full_mat(svec, n):
-    """Convert an svec (scaled upper-triangle) vector to a full matrix.
-
-    The svec format stores the upper triangle column-by-column with
-    off-diagonal entries scaled by sqrt(2).  This function inverts that
-    scaling and returns the full symmetric matrix flattened in
-    column-major (Fortran) order.
-    """
-    full = np.zeros((n, n))
-    full[np.triu_indices(n)] = svec
-    full += full.T
-    full[np.diag_indices(n)] /= 2
-    full[np.tril_indices(n, k=-1)] /= np.sqrt(2)
-    full[np.triu_indices(n, k=1)] /= np.sqrt(2)
+    full = tri_to_full(np.asarray(svec), n, TriangleKind.LOWER, True)
     return np.reshape(full, n * n, order="F")
 
 
-def vectorized_lower_tri_to_mat(v, dim):
-    """
-    :param v: a list of length (dim * (dim + 1) / 2)
-    :param dim: the number of rows (equivalently, columns) in the
-      output array.
-    :return: Return the symmetric 2D array defined by taking "v" to
-      specify its lower triangular entries.
-    """
-    rows, cols, vals = vectorized_lower_tri_to_triples(v, dim)
-    A = sp.sparse.coo_matrix(
-        (vals, (rows, cols)), shape=(dim, dim)
-    ).toarray()
-    d = np.diag(np.diag(A))
-    A = A + A.T - d
-    return A
-
-
-def vectorized_lower_tri_to_triples(
-    A: sp.sparse.coo_matrix | sp.sparse.sparray | list[float] | np.ndarray,
-    dim: int,
-) -> tuple[list[int], list[int], list[float]]:
+def vectorized_lower_tri_to_triples(A: sp.sparse.coo_matrix | sp.sparse.sparray |
+                                        list[float] | np.ndarray, dim: int) \
+                                    -> tuple[list[int], list[int], list[float]]:
     """
     Attributes
     ----------
@@ -1082,13 +1052,13 @@ class MOSEK(ConicSolver):
             idx += 3 * num_dpow
         num_psd = len(K_dir[a2d.PSD])
         if num_psd > 0:
+            # getbarxj returns each PSD block as column-major lower-triangular
+            # entries; Dualize consumes this svec form directly (see #3268).
             psd_vars = []
             for j, dim in enumerate(K_dir[a2d.PSD]):
                 xj = [0.] * (dim * (dim + 1) // 2)
                 task.getbarxj(sol, j, xj)
-                psd_vars.append(
-                    vectorized_lower_tri_to_mat(xj, dim),
-                )
+                psd_vars.append(np.array(xj))
             prim_vars[a2d.PSD] = psd_vars
         return prim_vars
 

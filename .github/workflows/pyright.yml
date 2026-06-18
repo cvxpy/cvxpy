@@ -11,6 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0  # setuptools-scm needs tags to compute the version
 
       - name: Install uv
         uses: astral-sh/setup-uv@v7
@@ -22,4 +24,4 @@ jobs:
         run: uv sync --no-install-project
 
       - name: Run pyright
-        run: uvx pyright
+        run: uv run --no-sync pyright

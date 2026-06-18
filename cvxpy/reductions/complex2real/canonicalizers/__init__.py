@@ -16,7 +16,7 @@ limitations under the License.
 
 import numpy as np
 
-from cvxpy.atoms import (MatrixFrac, Pnorm, PnormApprox, QuadForm, abs, bmat, conj, conv,
+from cvxpy.atoms import (MatrixFrac, Pnorm, PnormApprox, QuadForm, abs, conj, conv,
                          convolve, cumsum, imag, kron, lambda_max,
                          lambda_sum_largest, log_det, norm1, norm_inf,
                          quad_over_lin, real, reshape, sigma_max, Trace,
@@ -66,7 +66,6 @@ from cvxpy.reductions.complex2real.canonicalizers.variable_canon import (
 
 CANON_METHODS = {
     AddExpression: separable_canon,
-    bmat: separable_canon,
     cumsum: separable_canon,
     diag_mat: separable_canon,
     diag_vec: separable_canon,
@@ -140,6 +139,7 @@ class Complex2RealCanonMethods(dict):
     def __init__(self) -> None:
         super().__init__()
         self._parameters = {}  # {orig_param: (real_param, imag_param)}
+        self._variables = {}   # {orig_var: (real_var, imag_var)}
 
     def __contains__(self, key):
         return key in CANON_METHODS
@@ -147,7 +147,57 @@ class Complex2RealCanonMethods(dict):
     def __getitem__(self, key):
         if key == Parameter:
             return self._param_canon
+        if key == Variable:
+            return self._variable_canon
         return CANON_METHODS[key]
+
+    def _variable_canon(self, expr, real_args, imag_args, real2imag):
+        """Canonicalize complex variables to real/imag variable pairs.
+
+        Creates fresh variables (no shared IDs) and tracks the mapping
+        from original to real/imag variables in self._variables.
+        """
+        if expr.is_real():
+            return expr, None
+
+        # Return cached result if already canonicalized
+        if expr in self._variables:
+            real_var, imag_var = self._variables[expr]
+            if expr.is_hermitian() and imag_var is not None:
+                n = expr.shape[0]
+                if n > 1:
+                    imag_upper_tri = vec_to_upper_tri(imag_var, strict=True)
+                    imag_matrix = skew_symmetric_wrap(
+                        imag_upper_tri - imag_upper_tri.T)
+                else:
+                    imag_matrix = Constant([[0.0]])
+                return real_var, imag_matrix
+            return real_var, imag_var
+
+        if expr.is_imag():
+            imag_var = Variable(expr.shape)
+            self._variables[expr] = (None, imag_var)
+            return None, imag_var
+
+        if expr.is_complex() and expr.is_hermitian():
+            n = expr.shape[0]
+            real_var = Variable((n, n), symmetric=True)
+            if n > 1:
+                imag_var = Variable(shape=n*(n-1)//2)
+                imag_upper_tri = vec_to_upper_tri(imag_var, strict=True)
+                imag_matrix = skew_symmetric_wrap(
+                    imag_upper_tri - imag_upper_tri.T)
+            else:
+                imag_var = None
+                imag_matrix = Constant([[0.0]])
+            self._variables[expr] = (real_var, imag_var)
+            return real_var, imag_matrix
+
+        # General complex
+        real_var = Variable(expr.shape)
+        imag_var = Variable(expr.shape)
+        self._variables[expr] = (real_var, imag_var)
+        return real_var, imag_var
 
     def _param_canon(self, expr, real_args, imag_args, real2imag):
         """Canonicalize complex parameters to real/imag parameter pairs.

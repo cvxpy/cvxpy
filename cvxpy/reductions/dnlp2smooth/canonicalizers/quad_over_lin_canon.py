@@ -20,7 +20,7 @@ from cvxpy.atoms.elementwise.power import power
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.dnlp2smooth.canonicalizers.power_canon import power_canon
 
-MIN_INIT = 1e-4
+MIN_INIT = 1
 
 def quad_over_lin_canon(expr, args):
     """

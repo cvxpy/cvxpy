@@ -220,21 +220,21 @@ class ConicSolver(Solver):
                 )
                 restruct_mat.append(sp.hstack([t_spacer, X_spacer]))
             elif type(constr) == RSOC:
-                # Interleave [y, z, X_col] per cone.
-                # RSOC args: [X, y, z]. Layout per cone: (y_i, z_i, x_{i,1},...).
+                # Interleave [t, u, X_col] per cone.
+                # RSOC args: [t, u, X]. Layout per cone: (t_i, u_i, x_{i,1},...).
                 assert constr.axis == 0, 'RSOC must be lowered to axis == 0'
-                X_arg = constr.args[0]
+                X_arg = constr.args[2]
                 x_dim = X_arg.shape[0] if len(X_arg.shape) > 1 else X_arg.size
                 num_cones = constr.args[1].size
-                y_spacer = ConicSolver.get_spacing_matrix(
-                    shape=(total_height, constr.args[1].size),
+                t_spacer = ConicSolver.get_spacing_matrix(
+                    shape=(total_height, constr.args[0].size),
                     spacing=x_dim + 1,
                     streak=1,
                     num_blocks=num_cones,
                     offset=0,
                 )
-                z_spacer = ConicSolver.get_spacing_matrix(
-                    shape=(total_height, constr.args[2].size),
+                u_spacer = ConicSolver.get_spacing_matrix(
+                    shape=(total_height, constr.args[1].size),
                     spacing=x_dim + 1,
                     streak=1,
                     num_blocks=num_cones,
@@ -247,7 +247,7 @@ class ConicSolver(Solver):
                     num_blocks=num_cones,
                     offset=2,
                 )
-                restruct_mat.append(sp.hstack([X_spacer, y_spacer, z_spacer]))
+                restruct_mat.append(sp.hstack([t_spacer, u_spacer, X_spacer]))
             elif type(constr) == ExpCone:
                 arg_mats = []
                 for i, arg in enumerate(constr.args):

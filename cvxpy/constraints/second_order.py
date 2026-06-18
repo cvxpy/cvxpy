@@ -35,7 +35,7 @@ class SOC(Cone):
     """
 
     def __init__(self, t, X, axis: int = 0, constr_id=None) -> None:
-        t = cvxtypes.expression().cast_to_const(t)
+        t = cvxtypes.expression().cast(t)
         if len(t.shape) >= 2 or not t.is_real():
             raise ValueError("Invalid first argument.")
         # Check t has one entry per cone.
@@ -200,55 +200,55 @@ class RSOC(Cone):
 
     Represents the constraint:
 
-        2*y*z >= ||x||_2^2,  y >= 0,  z >= 0
+        2*t*u >= ||x||_2^2,  t >= 0,  u >= 0
 
-    where x is a vector and y, z are scalars. Supports batching:
-    if X is a matrix, y and z are vectors, the constraint is applied
-    column-wise to each column of X.
+    where x is a vector and t, u are scalars. Supports batching:
+    if X is a matrix, t and u are vectors, the constraint is applied
+    column-wise (axis=0) or row-wise (axis=1) to each column of X.
 
     Parameters
     ----------
+    t : Expression
+        The first scalar part (or vector for batched constraints).
+    u : Expression
+        The second scalar part (or vector for batched constraints).
     X : Expression
         The vector (or matrix) part of the constraint.
-    y : Expression
-        The first scalar part (or vector for batched constraints).
-    z : Expression
-        The second scalar part (or vector for batched constraints).
     axis : int
         Axis along which to apply the constraint (0 = column-wise, 1 = row-wise).
     """
 
-    def __init__(self, X, y, z, axis: int = 0, constr_id=None) -> None:
+    def __init__(self, t, u, X, axis: int = 0, constr_id=None) -> None:
         Expression = cvxtypes.expression()
-        X = Expression.cast_to_const(X)
-        y = Expression.cast_to_const(y)
-        z = Expression.cast_to_const(z)
+        t = Expression.cast(t)
+        u = Expression.cast(u)
+        X = Expression.cast(X)
 
-        if not y.is_real() or not z.is_real():
-            raise ValueError("y and z must be real.")
+        if not t.is_real() or not u.is_real():
+            raise ValueError("t and u must be real.")
 
         # Scalar case
-        if y.ndim == 0 or y.size == 1:
-            if z.size != 1:
-                raise ValueError("y and z must have the same shape.")
+        if u.ndim == 0 or u.size == 1:
+            if t.size != 1:
+                raise ValueError("t and u must have the same shape.")
         else:
-            # Batched case: y and z must have the same shape
-            if y.shape != z.shape:
-                raise ValueError("y and z must have the same shape.")
+            # Batched case: t and u must have the same shape
+            if t.shape != u.shape:
+                raise ValueError("t and u must have the same shape.")
             # X must be 2D with matching number of columns/rows
             if X.ndim < 2:
                 raise ValueError(
                     "X must be a matrix for batched RSOC constraints.")
-            n_cones = y.size
+            n_cones = u.size
             if axis == 0 and X.shape[1] != n_cones:
                 raise ValueError(
-                    "Number of columns of X must match size of y and z.")
+                    "Number of columns of X must match size of t and u.")
             if axis == 1 and X.shape[0] != n_cones:
                 raise ValueError(
-                    "Number of rows of X must match size of y and z.")
+                    "Number of rows of X must match size of t and u.")
 
         self.axis = axis
-        super(RSOC, self).__init__([X, y, z], constr_id)
+        super(RSOC, self).__init__([t, u, X], constr_id)
 
     def __str__(self) -> str:
         return "RSOC(%s, %s, %s)" % (self.args[0], self.args[1], self.args[2])
@@ -259,7 +259,7 @@ class RSOC(Cone):
 
     def _cone_size(self) -> int:
         """The size of each RSOC cone (2 + dimension of X)."""
-        X = self.args[0]
+        X = self.args[2]
         if len(X.shape) <= 1:
             x_dim = X.size
         else:
@@ -278,51 +278,55 @@ class RSOC(Cone):
     @property
     def residual(self):
         """Returns the residual of the constraint."""
-        X = self.args[0].value
-        y = self.args[1].value
-        z = self.args[2].value
-        if X is None or y is None or z is None:
+        t = self.args[0].value
+        u = self.args[1].value
+        X = self.args[2].value
+        if X is None or t is None or u is None:
             return None
         X = np.atleast_1d(np.array(X, dtype=float))
-        y = np.atleast_1d(np.array(y, dtype=float)).ravel()
-        z = np.atleast_1d(np.array(z, dtype=float)).ravel()
+        t = np.atleast_1d(np.array(t, dtype=float)).ravel()
+        u = np.atleast_1d(np.array(u, dtype=float)).ravel()
         if X.ndim == 1:
             X = X.reshape(-1, 1)
         if self.axis == 1:
             X = X.T
         # After any transpose, X is (n_x, n_cones); always sum over axis=0
         norms_sq = np.sum(X ** 2, axis=0)  # shape (n_cones,)
-        lhs = 2 * y * z
+        lhs = 2 * t * u
         viol_cone = norms_sq - lhs          # > 0 means violated
-        viol_y = -y                          # > 0 means y < 0
-        viol_z = -z                          # > 0 means z < 0
-        residuals = np.maximum(0.0, np.maximum(viol_cone, np.maximum(viol_y, viol_z)))
+        viol_t = -t                          # > 0 means t < 0
+        viol_u = -u                          # > 0 means u < 0
+        residuals = np.maximum(0.0, np.maximum(viol_cone, np.maximum(viol_t, viol_u)))
         return residuals[0] if residuals.size == 1 else residuals
 
     def save_dual_value(self, value) -> None:
         n_cones = self.args[1].size
-        cone_size = self._cone_size()
         if isinstance(value, (list, tuple)):
-            # recover_dual returns [dx_dual (n_cones, n_x), dy_dual (n_cones,), dz_dual (n_cones,)]
-            dx = np.asarray(value[0])   # (n_cones, n_x)
-            dy = np.asarray(value[1])   # (n_cones,)
-            dz = np.asarray(value[2])   # (n_cones,)
+            # recover_dual returns [dt_dual (n_cones,), du_dual (n_cones,),
+            # dX_dual (n_cones, n_x)]
+            dt = np.asarray(value[0])   # (n_cones,)
+            du = np.asarray(value[1])   # (n_cones,)
+            dx = np.asarray(value[2])   # (n_cones, n_x) or (n_x, n_cones) depending on axis
         else:
-            # Native path: flat vector in [y, z, x_1, ..., x_n] order per cone
-            value = np.reshape(value, (n_cones, cone_size))
-            dy = value[:, 0]
-            dz = value[:, 1]
+            # Native cone solvers return one flat block per cone in
+            # [t, u, x_1, ..., x_n] order.
+            value = np.reshape(value, (n_cones, self._cone_size()))
+            dt = value[:, 0]
+            du = value[:, 1]
             dx = value[:, 2:]
         if n_cones == 1:
             # Scalar case: squeeze to match primal shapes
-            self.dual_variables[0].save_value(dx[0])   # (n_x,)
-            self.dual_variables[1].save_value(dy[0])   # scalar
-            self.dual_variables[2].save_value(dz[0])   # scalar
+            self.dual_variables[0].save_value(dt[0])   # scalar
+            self.dual_variables[1].save_value(du[0])   # scalar
+            self.dual_variables[2].save_value(dx[0])   # (n_x,)
         else:
-            # Batched case: dx is (n_cones, n_x), transpose to (n_x, n_cones)
-            self.dual_variables[0].save_value(dx.T)
-            self.dual_variables[1].save_value(dy)
-            self.dual_variables[2].save_value(dz)
+            # Batched case: dx is (n_cones, n_x). Match the orientation of X.
+            self.dual_variables[0].save_value(dt)
+            self.dual_variables[1].save_value(du)
+            if self.axis == 1:
+                self.dual_variables[2].save_value(dx)
+            else:
+                self.dual_variables[2].save_value(dx.T)
 
     def get_data(self):
         return [self.axis, self.id]

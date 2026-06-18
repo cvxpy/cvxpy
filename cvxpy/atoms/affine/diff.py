@@ -19,7 +19,7 @@ from numpy.lib.array_utils import normalize_axis_index
 from cvxpy.expressions.expression import Expression
 
 
-def diff(x, k: int = 1, axis: int = 0):
+def diff(x, k: int = 1, axis: int = 0) -> Expression:
     """Computes kth order differences along the specified axis.
 
     Takes in an array and returns an array with the kth order differences

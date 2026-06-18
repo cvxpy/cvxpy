@@ -15,11 +15,13 @@ limitations under the License.
 """
 
 import numpy as np
+from numpy.lib.array_utils import normalize_axis_tuple
 
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.expressions.expression import Expression
 from cvxpy.utilities import bounds as bounds_utils
 
 
@@ -115,7 +117,7 @@ class transpose(AffAtom):
         """
         return (lu.transpose(arg_objs[0], self.axes), [])
 
-def permute_dims(expr, axes: list[int]):
+def permute_dims(expr, axes: list[int]) -> Expression:
     """Permute the dimensions of the expression.
 
     Alias for transpose with specified axes.
@@ -134,7 +136,7 @@ def permute_dims(expr, axes: list[int]):
     """
     return transpose(expr, axes=axes)
 
-def swapaxes(expr, axis1: int, axis2: int):
+def swapaxes(expr, axis1: int, axis2: int) -> Expression:
     """Swap two axes of the expression.
 
     Parameters
@@ -155,28 +157,30 @@ def swapaxes(expr, axis1: int, axis2: int):
     axes[axis1], axes[axis2] = axes[axis2], axes[axis1]
     return transpose(expr, axes=axes)
 
-def moveaxis(expr, source: list[int], destination: list[int]):
+def moveaxis(expr, source, destination) -> Expression:
     """Move axes of the expression to new positions.
 
     Parameters
     ----------
     expr : AffAtom
         The expression to move axes of.
-    source : list of int
-        The original positions of the axes to move.
-    destination : list of int
-        The new positions for the moved axes.
+    source : int or sequence of int
+        The original positions of the axes to move. Negative values count
+        from the last axis, as in :func:`numpy.moveaxis`.
+    destination : int or sequence of int
+        The new positions for the moved axes. Negative values count from
+        the last axis, as in :func:`numpy.moveaxis`.
 
     Returns
     -------
     AffAtom
         A new transpose atom with the axes moved.
     """
-    if not isinstance(source, list) or not isinstance(destination, list):
-        raise TypeError("Source and destination must be lists of integers.")
-
+    source = normalize_axis_tuple(source, expr.ndim, 'source')
+    destination = normalize_axis_tuple(destination, expr.ndim, 'destination')
     if len(source) != len(destination):
-        raise ValueError("Source and destination must have the same length.")
+        raise ValueError('`source` and `destination` arguments must have '
+                         'the same number of elements')
 
     order = [n for n in range(expr.ndim) if n not in source]
 

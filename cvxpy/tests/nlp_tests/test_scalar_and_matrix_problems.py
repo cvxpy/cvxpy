@@ -132,19 +132,19 @@ class TestScalarProblems():
 
     def test_scalar_trig(self):
         x = cp.Variable()
-        prob = cp.Problem(cp.Minimize(cp.tan(x)), [x >= 0.1])
+        prob = cp.Problem(cp.Minimize(cp.nlp.tan(x)), [x >= 0.1])
         prob.solve(nlp=True, solver=cp.IPOPT)
         assert prob.status == cp.OPTIMAL
         checker = DerivativeChecker(prob)
         checker.run_and_assert()
 
-        prob = cp.Problem(cp.Minimize(cp.sin(x)), [x >= 0.1])
+        prob = cp.Problem(cp.Minimize(cp.nlp.sin(x)), [x >= 0.1])
         prob.solve(nlp=True, solver=cp.IPOPT)
         assert prob.status == cp.OPTIMAL
         checker = DerivativeChecker(prob)
         checker.run_and_assert()
 
-        prob = cp.Problem(cp.Minimize(cp.cos(x)), [x >= 0.1])
+        prob = cp.Problem(cp.Minimize(cp.nlp.cos(x)), [x >= 0.1])
         prob.solve(nlp=True, solver=cp.IPOPT)
         assert prob.status == cp.OPTIMAL
         checker = DerivativeChecker(prob)
@@ -152,19 +152,19 @@ class TestScalarProblems():
 
     def test_matrix_trig(self):
         x = cp.Variable((3, 2))
-        prob = cp.Problem(cp.Minimize(cp.sum(cp.tan(x))), [x >= 0.1])
+        prob = cp.Problem(cp.Minimize(cp.sum(cp.nlp.tan(x))), [x >= 0.1])
         prob.solve(nlp=True, solver=cp.IPOPT)
         assert prob.status == cp.OPTIMAL
         checker = DerivativeChecker(prob)
         checker.run_and_assert()
 
-        prob = cp.Problem(cp.Minimize(cp.sum(cp.sin(x))), [x >= 0.1])
+        prob = cp.Problem(cp.Minimize(cp.sum(cp.nlp.sin(x))), [x >= 0.1])
         prob.solve(nlp=True, solver=cp.IPOPT)
         assert prob.status == cp.OPTIMAL
         checker = DerivativeChecker(prob)
         checker.run_and_assert()
 
-        prob = cp.Problem(cp.Minimize(cp.sum(cp.cos(x))), [x >= 0.1])
+        prob = cp.Problem(cp.Minimize(cp.sum(cp.nlp.cos(x))), [x >= 0.1])
         prob.solve(nlp=True, solver=cp.IPOPT)
         assert prob.status == cp.OPTIMAL
         checker = DerivativeChecker(prob)
@@ -172,13 +172,13 @@ class TestScalarProblems():
 
     def test_matrix_hyperbolic(self):
         x = cp.Variable((3, 2))
-        prob = cp.Problem(cp.Minimize(cp.sum(cp.sinh(x))), [x >= 0.1])
+        prob = cp.Problem(cp.Minimize(cp.sum(cp.nlp.sinh(x))), [x >= 0.1])
         prob.solve(nlp=True, solver=cp.IPOPT)
         assert prob.status == cp.OPTIMAL
         checker = DerivativeChecker(prob)
         checker.run_and_assert()
 
-        prob = cp.Problem(cp.Minimize(cp.sum(cp.tanh(x))), [x >= 0.1])
+        prob = cp.Problem(cp.Minimize(cp.sum(cp.nlp.tanh(x))), [x >= 0.1])
         prob.solve(nlp=True, solver=cp.IPOPT)
         assert prob.status == cp.OPTIMAL
         checker = DerivativeChecker(prob)
@@ -186,13 +186,13 @@ class TestScalarProblems():
 
     def test_scalar_hyperbolic(self):
         x = cp.Variable()
-        prob = cp.Problem(cp.Minimize(cp.sinh(x)), [x >= 0.1])
+        prob = cp.Problem(cp.Minimize(cp.nlp.sinh(x)), [x >= 0.1])
         prob.solve(nlp=True, solver=cp.IPOPT)
         assert prob.status == cp.OPTIMAL
         checker = DerivativeChecker(prob)
         checker.run_and_assert()
 
-        prob = cp.Problem(cp.Minimize(cp.tanh(x)), [x >= 0.1])
+        prob = cp.Problem(cp.Minimize(cp.nlp.tanh(x)), [x >= 0.1])
         prob.solve(nlp=True, solver=cp.IPOPT)
         assert prob.status == cp.OPTIMAL
         checker = DerivativeChecker(prob)

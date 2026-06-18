@@ -20,9 +20,10 @@ import scipy.sparse as sp
 
 from cvxpy.atoms.affine.binary_operators import multiply
 from cvxpy.atoms.atom import Atom
+from cvxpy.expressions.expression import Expression
 
 
-def diff_pos(x, y):
+def diff_pos(x, y) -> Expression:
     r"""The difference :math:`x - y` with domain `\{x, y : x > y > 0\}`.
 
     This atom is log-log concave.

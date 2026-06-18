@@ -42,7 +42,7 @@ def quad_over_lin_canon(expr, args, solver_context: SolverInfo | None = None):
         # Scalar output - single RSOC constraint
         t = Variable(1)
         # RSOC: 2*t*(y/2) >= ||x||^2 => t*y >= ||x||^2
-        constraints = [RSOC(x.flatten(order="F"), t, y / 2)]
+        constraints = [RSOC(t, y / 2, x.flatten(order="F"))]
         return t, constraints
 
     # Axis specified - use vectorized batched RSOC
@@ -82,4 +82,4 @@ def quad_over_lin_canon(expr, args, solver_context: SolverInfo | None = None):
     # Build vectorized RSOC constraint
     # For each output j: 2*t[j]*(y/2) >= ||x_col_j||^2
     y_half = reshape(y / 2 * np.ones(n_outputs), (n_outputs,), order="F")
-    return t, [RSOC(x_2d, t_flat, y_half, axis=0)]
+    return t, [RSOC(t_flat, y_half, x_2d, axis=0)]

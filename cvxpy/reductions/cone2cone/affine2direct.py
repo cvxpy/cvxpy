@@ -21,7 +21,7 @@ from cvxpy import settings as s
 from cvxpy.constraints.exponential import ExpCone as ExpCone_obj
 from cvxpy.constraints.nonpos import NonNeg as NonNeg_obj
 from cvxpy.constraints.power import PowCone3D as PowCone_obj
-from cvxpy.constraints.psd import PSD as PSD_obj
+from cvxpy.constraints.psd import SvecPSD as SvecPSD_obj
 from cvxpy.constraints.second_order import RSOC as RSOC_obj
 from cvxpy.constraints.second_order import SOC as SOC_obj
 from cvxpy.constraints.zero import Zero as Zero_obj
@@ -157,9 +157,12 @@ class Dualize:
         to the second-order-cone under the CVXPY standard ({ z : z[0] >= || z[1:] || }).
         We map these variables back to dual variables for SOC constraints in (P-Opt).
 
-        solution.primal_vars[PSD] is a list of symmetric positive semidefinite matrices
-        which result by lifting the vectorized PSD blocks of "y" back into matrix form.
-        We assign these as dual variables to PSD constraints appearing in (P-Opt).
+        solution.primal_vars[PSD] is a list of triangular (svec) vectors: the
+        column-major lower-triangular entries of the PSD blocks of "y", one vector
+        per cone. PSD constraints reach a dualizing solver in this triangular form
+        via the PSDToSvecPSD reduction (see #3268), so we concatenate the cones
+        belonging to each SvecPSD constraint and assign the result as that
+        constraint's dual variable in (P-Opt).
 
         solution.primal_vars[DUAL_EXP] is a vector of concatenated length-3 slices of y, where
         each constituent length-3 slice belongs to dual exponential cone as implied by the CVXPY
@@ -199,9 +202,17 @@ class Dualize:
                 dv = np.concatenate(direct_prims[RSOC][i:i + block_len])
                 dual_vars[con.id] = dv
                 i += block_len
-            for i, con in enumerate(constr_map[PSD_obj]):
-                dv = direct_prims[PSD][i]
-                dual_vars[con.id] = dv
+            # direct_prims[PSD] holds one triangular (svec) vector per cone,
+            # ordered to match ConeDims.psd; a batched SvecPSD constraint spans
+            # con.num_cones() consecutive cones. Concatenating those cones gives
+            # the constraint's dual in the svec form PSDToSvecPSD.recover_dual
+            # expects.
+            psd_idx = 0
+            for con in constr_map[SvecPSD_obj]:
+                k = con.num_cones()
+                blocks = direct_prims[PSD][psd_idx:psd_idx + k]
+                dual_vars[con.id] = np.concatenate(blocks)
+                psd_idx += k
             i = 0
             for con in constr_map[ExpCone_obj]:
                 dv = direct_prims[DUAL_EXP][i:i + con.size]

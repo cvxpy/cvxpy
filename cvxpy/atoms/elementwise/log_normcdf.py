@@ -21,7 +21,7 @@ from cvxpy.expressions.expression import Expression
 
 
 # ruff: noqa: E501
-def log_normcdf(x):
+def log_normcdf(x) -> Expression:
     """Elementwise log of the cumulative distribution function of a standard normal random variable.
 
     The implementation is a quadratic approximation with modest accuracy over [-4, 4].
