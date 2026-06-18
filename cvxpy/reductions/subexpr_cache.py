@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 Structural-key helpers for the per-apply subexpression cache used by
-canonicalization reductions (Dcp2Cone, Dnlp2Smooth, ...).
+canonicalization reductions.
 
 When the same Expression subtree appears in two places in a problem (e.g.
 ``cp.norm1(x)`` in both the objective and a constraint), a recursive
