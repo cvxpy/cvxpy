@@ -20,6 +20,8 @@ jobs:
         os: [ ubuntu-22.04, macos-14 ]  # Windows excluded - cylp/CBC cannot be built
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0  # setuptools-scm needs tags to compute the version
       - name: Set Additional Envs
         run: |
           echo "PYTHON_SUBVERSION=$(echo $PYTHON_VERSION | cut -c 3-)" >> $GITHUB_ENV
