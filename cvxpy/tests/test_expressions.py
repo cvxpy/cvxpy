@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import re
 import warnings
 
 import numpy as np
@@ -331,6 +332,38 @@ class TestExpressions(BaseTest):
         C = Constant(1j * M4_true)
         self.assertFalse(C.is_skew_symmetric())
         pass
+
+    def test_sparse_symmetry_checks_positions(self) -> None:
+        """Asymmetric sparse matrices whose triangle values match must not pass."""
+        # A[1, 0] = 5, A[0, 2] = 5: value multisets of the triangles match.
+        A = sp.coo_array(([5.0, 5.0], ((1, 0), (0, 2))), shape=(3, 3))
+        self.assertFalse(intf.is_sparse_symmetric(A))
+        self.assertFalse(Constant(A).is_symmetric())
+        with self.assertRaises(ValueError):
+            cp.quad_form(Variable(3), A)
+
+        H = sp.coo_array(([5 + 1j, 5 - 1j], ((1, 0), (0, 2))), shape=(3, 3))
+        self.assertFalse(Constant(H).is_hermitian())
+
+        B = sp.coo_array(([5.0, -5.0], ((1, 0), (0, 2))), shape=(3, 3))
+        self.assertFalse(intf.is_sparse_skew_symmetric(B))
+        self.assertFalse(Constant(B).is_skew_symmetric())
+
+        # Duplicate COO entries and explicit zeros must not break detection.
+        S = sp.coo_array(([2.0, 3.0, 5.0, 0.0], ((1, 1, 0, 2), (0, 0, 1, 0))), shape=(3, 3))
+        self.assertTrue(intf.is_sparse_symmetric(S))
+        K = sp.coo_array(([5.0, -5.0, 0.0], ((1, 0, 2), (0, 1, 2))), shape=(3, 3))
+        self.assertTrue(intf.is_sparse_skew_symmetric(K))
+
+        # Sparse and dense classification agree on random matrices.
+        rng = np.random.default_rng(0)
+        for trial in range(20):
+            M = sp.random_array((5, 5), density=0.4, rng=rng)
+            if trial % 2 == 0:
+                M = (M + M.T).tocoo()
+            D = M.toarray()
+            self.assertEqual(intf.is_sparse_symmetric(M), np.allclose(D, D.T))
+            self.assertEqual(intf.is_sparse_skew_symmetric(M), np.allclose(D + D.T, 0))
 
     def test_1D_array(self) -> None:
         """Test NumPy 1D arrays as constants.
@@ -675,6 +708,19 @@ class TestExpressions(BaseTest):
         v = Variable((2, 2), PSD=True, nonneg=True)
         A = np.array([[1., -1.], [1., -1.]])
         self.assertItemsAlmostEqual(v.project(A), A)
+
+    def test_partial_boolean_sign(self) -> None:
+        """A variable boolean only at some indices has unknown sign.
+
+        is_nonneg used to return the (truthy) index list itself, so the whole
+        variable was classified NONNEGATIVE, corrupting DCP analysis.
+        """
+        x = cp.Variable(2, boolean=[(0,)])
+        self.assertIs(x.is_nonneg(), False)
+        self.assertEqual(x.sign, s.UNKNOWN)
+        # Fully boolean variables remain nonnegative.
+        y = cp.Variable(2, boolean=True)
+        self.assertIs(y.is_nonneg(), True)
 
     def test_project_boolean_indices(self) -> None:
         idx = (np.array([0, 2]),)
@@ -1931,6 +1977,34 @@ class TestND_Expressions():
         prob = cp.Problem(self.obj, [expr == y])
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
         assert np.allclose(expr.value, y)
+
+    @pytest.mark.parametrize("source, destination", [([0], [-1]), ([-1], [0]),
+                                                     ([0, 1], [-1, -2]), (0, -1), ([0], [0])])
+    @pytest.mark.parametrize("shape", [(2, 3, 4), (2, 3, 4, 5)])
+    def test_moveaxis_negative_axes(self, source, destination, shape) -> None:
+        target = np.arange(np.prod(shape)).reshape(shape)
+        expr = cp.moveaxis(cp.Constant(target), source, destination)
+        y = np.moveaxis(target, source, destination)
+        assert expr.shape == y.shape
+        assert np.allclose(expr.value, y)
+
+    def test_moveaxis_negative_axes_solve(self) -> None:
+        target = np.arange(24).reshape((2, 3, 4))
+        var = cp.Variable((2, 3, 4))
+        y = cp.Variable((4, 2, 3))
+        prob = cp.Problem(self.obj, [var == target, y == cp.moveaxis(var, [-1], [0])])
+        prob.solve(solver=cp.CLARABEL, canon_backend=cp.SCIPY_CANON_BACKEND)
+        assert np.allclose(y.value, np.moveaxis(target, [-1], [0]))
+
+    @pytest.mark.parametrize("source, destination", [([3], [0]), ([0], [-4]),
+                                                     ([0, 0], [1, 2]), ([0], [1, 2]),
+                                                     ([0, 1], [0, 0])])
+    def test_moveaxis_invalid_axes(self, source, destination) -> None:
+        target = np.zeros((2, 3, 4))
+        with pytest.raises(ValueError) as np_err:
+            np.moveaxis(target, source, destination)
+        with pytest.raises(ValueError, match=re.escape(str(np_err.value))):
+            cp.moveaxis(cp.Constant(target), source, destination)
 
     @pytest.mark.parametrize("shapes", [((3),(253, 253, 3)),
                                         ((7, 1, 5),(8, 7, 6, 5)),

@@ -1043,3 +1043,306 @@ class TestSlacksInvert(BaseTest):
         self.assertTrue(constr.is_dcp())
         self.assertTrue(constr.args[0].is_affine())
         self.assertTrue(constr.args[1].is_affine())
+
+
+class TestRSOC(unittest.TestCase):
+    """Tests for the RSOC (Rotated Second-Order Cone) constraint."""
+
+    def test_invalid_t_shape(self):
+        """Test that a vector t with scalar u raises ValueError."""
+        x = cp.Variable(3)
+        t = cp.Variable(2)
+        u = cp.Variable(nonneg=True)
+        with pytest.raises(ValueError):
+            cp.RSOC(t, u, x)
+
+    def test_invalid_u_shape(self):
+        """Test that vector t and u must have matching shapes."""
+        x = cp.Variable(3)
+        t = cp.Variable(3, nonneg=True)
+        u = cp.Variable(2)
+        with pytest.raises(ValueError):
+            cp.RSOC(t, u, x)
+
+    def test_is_dcp(self):
+        """Test that RSOC is DCP when arguments are affine."""
+        x = cp.Variable(3)
+        t = cp.Variable(nonneg=True)
+        u = cp.Variable(nonneg=True)
+        con = cp.RSOC(t, u, x)
+        assert con.is_dcp()
+
+    def test_solve_basic(self):
+        """Test solving a basic RSOC problem."""
+        n = 5
+        x = cp.Variable(n)
+        t = cp.Variable(nonneg=True)
+        u = cp.Variable(nonneg=True)
+        prob = cp.Problem(cp.Minimize(t + u),
+                          [cp.RSOC(t, u, x), x == np.ones(n)])
+        prob.solve(solver=cp.CLARABEL)
+        assert prob.status == cp.OPTIMAL
+        t_opt, u_opt, x_opt = t.value, u.value, x.value
+        # Check RSOC constraint: 2tu >= ||x||^2.
+        assert 2 * t_opt * u_opt >= np.dot(x_opt, x_opt) - 1e-4
+        assert t_opt >= -1e-6 and u_opt >= -1e-6
+
+    def test_equivalence_with_quad_over_lin(self):
+        """Test equivalence of RSOC with quad_over_lin formulation."""
+        n = 4
+        x_val = np.array([1.0, 2.0, 3.0, 4.0])
+        t_val = 3.0
+
+        # RSOC formulation
+        x1 = cp.Variable(n)
+        t1 = cp.Variable(nonneg=True)
+        u1 = cp.Variable()
+        prob1 = cp.Problem(cp.Minimize(u1),
+                           [cp.RSOC(t1, u1, x1),
+                            x1 == x_val, t1 == t_val])
+        prob1.solve(solver=cp.CLARABEL)
+
+        # quad_over_lin formulation: u >= ||x||^2 / (2t).
+        x2 = cp.Variable(n)
+        u2 = cp.Variable()
+        prob2 = cp.Problem(cp.Minimize(u2),
+                           [u2 >= cp.quad_over_lin(x2, 2 * t_val),
+                            x2 == x_val])
+        prob2.solve(solver=cp.CLARABEL)
+
+        # Both should give u = ||x_val||^2 / (2*t_val).
+        expected = np.dot(x_val, x_val) / (2 * t_val)
+        assert np.isclose(prob1.value, expected, atol=1e-4)
+        assert np.isclose(prob2.value, expected, atol=1e-4)
+
+    def test_dual_variables_scalar(self):
+        """Test dual variable recovery for scalar RSOC.
+
+        Verifies that:
+        - dual_value is a list of three arrays [dt, du, dx] (not [flat, None, None])
+        - All three dual variables are populated (not None)
+        - dx has the same shape as the X argument
+        - dt and du are scalars matching t and u shapes
+        - Dual cone membership: 2*dt*du >= ||dx||^2, dt >= 0, du >= 0
+        - KKT stationarity holds
+        """
+        n = 3
+        x = cp.Variable(n)
+        t = cp.Variable(nonneg=True)
+        u = cp.Variable(nonneg=True)
+        x_val = np.array([1.0, 1.0, 1.0])
+        con_rsoc = cp.RSOC(t, u, x)
+        con_eq = x == x_val
+        prob = cp.Problem(cp.Minimize(t + u),
+                          [con_rsoc, con_eq])
+        prob.solve(solver=cp.CLARABEL)
+        assert prob.status == cp.OPTIMAL
+
+        # dual_value should be [dt, du, dx] with all three populated.
+        dv = con_rsoc.dual_value
+        assert isinstance(dv, list) and len(dv) == 3
+        dt, du, dx = dv
+        # None checks: all three dual variables must be populated
+        assert dx is not None, "dx dual is None"
+        assert dt is not None, "dt dual is None"
+        assert du is not None, "du dual is None"
+        # Shape checks: dx should match X shape, dt/du should be scalar-like.
+        dx = np.atleast_1d(np.asarray(dx, dtype=float))
+        dt = float(dt)
+        du = float(du)
+        assert dx.shape == (n,), f"dx shape {dx.shape} != ({n},)"
+        # Dual cone membership (RSOC is self-dual)
+        assert 2 * dt * du >= np.dot(dx, dx) - 1e-4, \
+            "Dual cone violated: 2*dt*du < ||dx||^2"
+        assert dt >= -1e-6, f"dt dual negative: {dt}"
+        assert du >= -1e-6, f"du dual negative: {du}"
+        # KKT stationarity: dL/dt = 1 - dt = 0, dL/du = 1 - du = 0.
+        assert abs(1 - dt) < 1e-4, f"|1 - dt| = {abs(1 - dt)}"
+        assert abs(1 - du) < 1e-4, f"|1 - du| = {abs(1 - du)}"
+        # KKT stationarity: dL/dx = -dx + mu = 0 => dx = mu
+        mu = np.asarray(con_eq.dual_value, dtype=float)
+        np.testing.assert_allclose(dx, mu, atol=1e-4)
+
+    def test_residual_feasible(self):
+        """Test residual is near zero for a feasible point."""
+        x = cp.Variable(3)
+        t = cp.Variable(nonneg=True)
+        u = cp.Variable(nonneg=True)
+        con = cp.RSOC(t, u, x)
+        prob = cp.Problem(cp.Minimize(t + u),
+                          [con, x == np.array([1.0, 1.0, 1.0])])
+        prob.solve(solver=cp.CLARABEL)
+        assert prob.status == cp.OPTIMAL
+        assert con.residual < 1e-4
+
+    def test_dual_residual_scalar(self):
+        """Test that dual_residual is computable and near zero for scalar RSOC.
+
+        dual_residual checks that the recovered duals lie in the dual cone
+        (which is RSOC itself since it's self-dual). This requires all three
+        dual variables to be populated, not just dual_variables[0].
+        """
+        n = 3
+        x = cp.Variable(n)
+        t = cp.Variable(nonneg=True)
+        u = cp.Variable(nonneg=True)
+        con = cp.RSOC(t, u, x)
+        prob = cp.Problem(cp.Minimize(t + u),
+                          [con, x == np.array([1.0, 1.0, 1.0])])
+        prob.solve(solver=cp.CLARABEL)
+        assert prob.status == cp.OPTIMAL
+        # dual_residual should be a finite number, not None
+        dr = con.dual_residual
+        assert dr is not None, "dual_residual is None"
+        assert np.isfinite(dr), f"dual_residual is not finite: {dr}"
+        assert dr < 1e-4, f"dual_residual too large: {dr}"
+
+    def test_dual_residual_batched(self):
+        """Test that dual_residual works for batched RSOC."""
+        np.random.seed(42)
+        n, k = 4, 3
+        X = cp.Variable((n, k))
+        t = cp.Variable(k, nonneg=True)
+        u = cp.Variable(k, nonneg=True)
+        X_val = np.random.randn(n, k)
+        con = cp.RSOC(t, u, X)
+        prob = cp.Problem(cp.Minimize(cp.sum(t + u)),
+                          [con, X == X_val])
+        prob.solve(solver=cp.CLARABEL)
+        assert prob.status == cp.OPTIMAL
+        dr = con.dual_residual
+        assert dr is not None, "dual_residual is None for batched RSOC"
+        dr_arr = np.atleast_1d(dr)
+        assert np.all(np.isfinite(dr_arr)), f"dual_residual not finite: {dr_arr}"
+        assert np.all(dr_arr < 1e-4), f"dual_residual too large: {dr_arr}"
+
+    def test_batch_rsoc(self):
+        """Test batched RSOC: X matrix, t and u vectors.
+
+        Verifies primal feasibility and that dual variables:
+        - Are stored in all three dual_variables (not just [0])
+        - Have shapes matching the primal arguments: dx ~ (n, k), dt ~ (k,), du ~ (k,)
+        - Satisfy dual cone membership per cone
+        - Satisfy KKT stationarity
+        """
+        np.random.seed(42)
+        n, k = 4, 3  # n-dim vectors, k cones
+        X = cp.Variable((n, k))
+        t = cp.Variable(k, nonneg=True)
+        u = cp.Variable(k, nonneg=True)
+        X_val = np.random.randn(n, k)
+        con = cp.RSOC(t, u, X)
+        con_eq = X == X_val
+        prob = cp.Problem(cp.Minimize(cp.sum(t + u)),
+                          [con, con_eq])
+        prob.solve(solver=cp.CLARABEL)
+        assert prob.status == cp.OPTIMAL
+        # Check primal feasibility: 2*t[i]*u[i] >= ||X[:, i]||^2.
+        X_opt = X.value
+        t_opt = t.value
+        u_opt = u.value
+        for i in range(k):
+            lhs = 2 * t_opt[i] * u_opt[i]
+            rhs = np.dot(X_opt[:, i], X_opt[:, i])
+            assert lhs >= rhs - 1e-4
+
+        # Check that dual_value is [dt, du, dx] with all populated.
+        dv = con.dual_value
+        assert isinstance(dv, list) and len(dv) == 3
+        dt, du, dx = dv
+        assert dx is not None, "dx dual is None"
+        assert dt is not None, "dt dual is None"
+        assert du is not None, "du dual is None"
+
+        # Shape checks: dx should match X shape (n, k), dt/du should be (k,).
+        dx = np.asarray(dx, dtype=float)
+        dt = np.asarray(dt, dtype=float).ravel()
+        du = np.asarray(du, dtype=float).ravel()
+        assert dx.shape == (n, k), f"dx shape {dx.shape} != ({n}, {k})"
+        assert dt.shape == (k,), f"dt shape {dt.shape} != ({k},)"
+        assert du.shape == (k,), f"du shape {du.shape} != ({k},)"
+
+        # Dual cone membership per cone (RSOC is self-dual)
+        for i in range(k):
+            dx_i = dx[:, i]
+            norm_sq = np.dot(dx_i, dx_i)
+            lhs = 2 * dt[i] * du[i]
+            assert lhs >= norm_sq - 1e-4, \
+                f"Cone {i}: dual cone violated 2*dt*du={lhs} < ||dx||^2={norm_sq}"
+            assert dt[i] >= -1e-6, f"Cone {i}: dt negative: {dt[i]}"
+            assert du[i] >= -1e-6, f"Cone {i}: du negative: {du[i]}"
+
+        # KKT stationarity: dL/dt_i = 1 - dt_i = 0, dL/du_i = 1 - du_i = 0.
+        np.testing.assert_allclose(dt, np.ones(k), atol=1e-4)
+        np.testing.assert_allclose(du, np.ones(k), atol=1e-4)
+        # KKT stationarity: dx = mu (equality constraint dual)
+        mu = np.asarray(con_eq.dual_value, dtype=float)
+        np.testing.assert_allclose(dx, mu, atol=1e-4)
+
+    def test_axis1_solve_residual_dual(self):
+        """Test RSOC with axis=1: X has shape (k, n), cones along columns."""
+        np.random.seed(7)
+        n, k = 3, 4  # n-dim vectors, k cones
+        X = cp.Variable((k, n))
+        t = cp.Variable(k, nonneg=True)
+        u = cp.Variable(k, nonneg=True)
+        X_val = np.random.randn(k, n)
+        con = cp.RSOC(t, u, X, axis=1)
+        prob = cp.Problem(cp.Minimize(cp.sum(t + u)),
+                          [con, X == X_val])
+        prob.solve(solver=cp.CLARABEL)
+        assert prob.status == cp.OPTIMAL
+
+        # Check primal feasibility: 2*t[i]*u[i] >= ||X[i, :]||^2.
+        X_opt = X.value
+        t_opt = t.value
+        u_opt = u.value
+        for i in range(k):
+            lhs = 2 * t_opt[i] * u_opt[i]
+            rhs = np.dot(X_opt[i, :], X_opt[i, :])
+            assert lhs >= rhs - 1e-4, f"Cone {i} violated: 2tu={lhs} < ||x||^2={rhs}"
+
+        # Check residual is non-negative and finite
+        res = con.residual
+        assert res is not None
+        assert np.all(np.isfinite(res))
+        assert np.all(res >= -1e-6)
+
+        # Check dual variables are populated and have correct shapes
+        dv = con.dual_value
+        assert isinstance(dv, list) and len(dv) == 3
+        dt, du, dx = dv
+        assert dx is not None
+        assert dt is not None
+        assert du is not None
+        dx = np.asarray(dx, dtype=float)
+        dt = np.asarray(dt, dtype=float).ravel()
+        du = np.asarray(du, dtype=float).ravel()
+        assert dx.shape == (k, n), f"dx shape {dx.shape} != ({k}, {n})"
+        assert dt.shape == (k,), f"dt shape {dt.shape} != ({k},)"
+        assert du.shape == (k,), f"du shape {du.shape} != ({k},)"
+
+    def test_dpp_compliance(self):
+        """Test that RSOC is DPP when a Parameter appears in the constraint."""
+        n = 3
+        x = cp.Variable(n)
+        u = cp.Variable(nonneg=True)
+        t_par = cp.Parameter(nonneg=True)
+        # Parameter directly inside RSOC — this is what DPP needs to handle.
+        con = cp.RSOC(t_par, u, x)
+        prob = cp.Problem(cp.Minimize(u), [con, x == np.ones(n)])
+        assert prob.is_dpp()
+
+        t_par.value = 3.0
+        prob.solve(solver=cp.CLARABEL)
+        assert prob.status == cp.OPTIMAL
+        val1 = prob.value
+
+        # Re-solve with different parameter (should reuse cached canon).
+        t_par.value = 1.0
+        prob.solve(solver=cp.CLARABEL)
+        assert prob.status == cp.OPTIMAL
+        val2 = prob.value
+
+        # u >= ||x||^2 / (2*t), so smaller t gives larger u.
+        assert val2 > val1

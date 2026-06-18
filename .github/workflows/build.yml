@@ -7,7 +7,7 @@ on:
             - master
             - 'release/**'
         tags:
-          - '*'
+          - 'v*'
 
 # https://docs.github.com/en/actions/using-jobs/using-concurrency#example-using-a-fallback-value
 # Only cancels-in-progress on PRs (head_ref only defined in PR, fallback run_id always unique)
@@ -54,6 +54,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0  # setuptools-scm needs tags to compute the version
       - name: Set Additional Envs
         run: |
           echo "PYTHON_SUBVERSION=$(echo $PYTHON_VERSION | cut -c 3-)" >> $GITHUB_ENV
@@ -114,6 +116,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0  # setuptools-scm needs tags to compute the version
       - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
@@ -123,7 +127,7 @@ jobs:
         shell: bash
         run: |
           echo "PYTHON_SUBVERSION=$(echo $PYTHON_VERSION | cut -c 3-)" >> $GITHUB_ENV
-          echo "DEPLOY=$( [[ $GITHUB_EVENT_NAME == 'push' && $GITHUB_REF == 'refs/tags'* ]] && echo 'True' || echo 'False' )" >> $GITHUB_ENV
+          echo "DEPLOY=$( [[ $GITHUB_EVENT_NAME == 'push' && $GITHUB_REF == 'refs/tags/v'* ]] && echo 'True' || echo 'False' )" >> $GITHUB_ENV
 
       - name: Adapt pyproject.toml
         if: ${{matrix.build-cvxpy-base}}
@@ -159,7 +163,7 @@ jobs:
           CIBW_SKIP: "*-win32 *-manylinux_i686 *-musllinux*"
           CIBW_ARCHS_MACOS: x86_64 universal2
           CIBW_ARCHS_LINUX: auto aarch64
-        uses: pypa/cibuildwheel@v4.0.0
+        uses: pypa/cibuildwheel@v4.1.0
 
       - name: Build source
         if: ${{github.event_name == 'push' && env.SINGLE_ACTION_CONFIG == 'True'}}

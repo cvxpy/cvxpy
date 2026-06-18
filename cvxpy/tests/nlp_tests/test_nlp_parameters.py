@@ -421,3 +421,42 @@ class TestNlpParameters:
 
         assert sp.linalg.norm(param_sol1 - hardcoded_sol1) == 0.0
         assert sp.linalg.norm(param_sol2 - hardcoded_sol2) == 0.0
+
+    def test_parameter_quad_form(self):
+        """min 0.5 x'Px - b'x (minimizer P^{-1}b) with a parametric, updated P."""
+        n = 5
+        rng = np.random.default_rng(0)
+
+        def spd(seed):
+            M = np.random.default_rng(seed).standard_normal((n, n))
+            return M @ M.T + n * np.eye(n)
+
+        P1, P2 = spd(1), spd(2)
+        b = rng.standard_normal(n)
+
+        # Solve with hardcoded P.
+        x = cp.Variable(n)
+        x.value = None
+        cp.Problem(cp.Minimize(0.5 * cp.quad_form(x, P1) - b @ x)).solve(
+            nlp=True, solver='IPOPT')
+        hardcoded_sol1 = x.value
+        x.value = None
+        cp.Problem(cp.Minimize(0.5 * cp.quad_form(x, P2) - b @ x)).solve(
+            nlp=True, solver='IPOPT')
+        hardcoded_sol2 = x.value
+
+        # Solve with a parametric P, then update its value and re-solve.
+        P = cp.Parameter((n, n), PSD=True, value=P1)
+        prob = cp.Problem(cp.Minimize(0.5 * cp.quad_form(x, P) - b @ x))
+        x.value = None
+        prob.solve(nlp=True, solver='IPOPT')
+        DerivativeChecker(prob).run_and_assert()
+        param_sol1 = x.value
+        P.value = P2
+        x.value = None
+        prob.solve(nlp=True, solver='IPOPT')
+        DerivativeChecker(prob).run_and_assert()
+        param_sol2 = x.value
+
+        assert np.allclose(param_sol1, hardcoded_sol1)
+        assert np.allclose(param_sol2, hardcoded_sol2)

@@ -7,66 +7,62 @@ web documentation.
 
 ## Defining a new release
 
-CVXPY's `setup/versioning.py` file defines the following *versioning data*
-   ```
-   MAJOR : an int
-   MINOR : an int
-   MICRO : an int
-   IS_RELEASED : a bool
-   IS_RELEASE_BRANCH : a bool
-   ```
-Here we give the procedure for maintaining these values
-as one makes new minor and micro releases.
+The version is derived from git tags by [setuptools-scm](https://setuptools-scm.readthedocs.io/)
+(configured in `pyproject.toml`). There is no hand-edited version constant.
+At build time, setuptools-scm writes `cvxpy/_version.py`, which is re-exported
+as `cvxpy.__version__`.
+
+- Commits *exactly* on a `vX.Y.Z` tag produce the clean version `X.Y.Z`.
+- Any other commit produces a dev version like `X.Y.Z.devN+g<sha>`, where the
+  base `X.Y.Z` is derived from the most recent ancestor tag using the
+  `semver-pep440-release-branch` scheme (minor bump on `master`, patch bump on
+  `release/*` branches).
+
+For this scheme to work, **every minor release tag must be reachable from
+`master`**. Patch tags live on `release/*` branches (where they only need to
+be reachable from that branch). Minor-release tags must be placed on the
+`master` commit that the release branch was cut from.
 
 ### Incrementing the MINOR version number
 
-Let's say we're releasing 1.2.0.
+Let's say we're releasing 1.10.0.
 
-1. Starting from ``master``, checkout a new branch called ``release/1.2.x``.
-2. The versioning data in `setup/versioning.py` should already be
+1. On ``master``, at the commit you want to release from, create an annotated
+   tag:
    ```
-   MAJOR = 1
-   MINOR = 2
-   MICRO = 0
-   IS_RELEASED = False
-   IS_RELEASE_BRANCH = False
+   git tag -a v1.10.0 -m "Release 1.10.0"
    ```
-   Set ``IS_RELEASE_BRANCH = True`` and ``IS_RELEASED = True``.
-   Commit these changes and tag the commit as ``v1.2.0``.
-3. Lay the groundwork for the next release on this branch.
-   Do this by setting ``MICRO = 1``, ``IS_RELEASED = False``, and
-   committing those changes.
-   *Do not* tag the commit as a release.
-   The state of this branch is effectively a pre-release of 
-   CVXPY 1.2.1.
-4. Checkout ``master``. Change the versioning data 
-   from ``MINOR = 2`` to ``MINOR = 3`` and commit.
-   The state of this branch is effectively a pre-release of
-   CVXPY 1.3.0.
-5. Update `docs/source/index.rst` to say "Welcome to CVXPY 1.3"
-6. Extend the ``version_info`` field in ``doc/source/conf.py``.
+2. Cut the release branch from that same commit and push both the branch and
+   the tag:
+   ```
+   git checkout -b release/1.10.x v1.10.0
+   git push origin release/1.10.x
+   git push origin v1.10.0
+   ```
+   Pushing the tag triggers the PyPI deploy via `.github/workflows/build.yml`.
+3. Update `doc/source/index.rst` to say "Welcome to CVXPY 1.11" and extend the
+   ``version_info`` field in ``doc/source/conf.py``. Commit these to ``master``.
+
+Master now reports `1.11.0.devN+g<sha>` as its version (the next minor),
+because the most recent ancestor tag is `v1.10.0` and the scheme bumps the
+minor on non-release branches.
 
 ### Incrementing the MICRO version number (a.k.a., releasing a patch)
 
-Let's say we're releasing CVXPY 1.2.1
+Let's say we're releasing CVXPY 1.10.1.
 
-1. Create a new branch `patch/1.2.1` from `release/1.2.x`. Go through all commits merged into the master branch since the previous release and use `git cherry-pick abc123`, where `abc123` is the commit into the master branch. Create a pull request against the `release/1.2.x` branch listing the commits contained in the patch.
-2. Starting from ``release/1.2.x``, the versioning data in `setup/versioning.py` (`setup.py` in earlier releases) should already be
+1. Create a new branch `patch/1.10.1` from `release/1.10.x`. Cherry-pick the
+   relevant commits from ``master`` with `git cherry-pick abc123`, and open a
+   pull request against `release/1.10.x` listing the commits in the patch.
+2. After the PR merges, tag the resulting commit on `release/1.10.x`:
    ```
-   MAJOR = 1
-   MINOR = 2
-   MICRO = 1
-   IS_RELEASED = False
-   IS_RELEASE_BRANCH = True
+   git tag -a v1.10.1 -m "Release 1.10.1"
+   git push origin v1.10.1
    ```
-   Change ``IS_RELEASED = True`` and commit that change with
-   the tag ``v1.2.1``.
-3. Lay the groundwork for the next release on this branch.
-   Do this by setting ``MICRO = 2``, ``IS_RELEASED = False``, and 
-   committing those changes.
-   *Do not* tag the commit as a release.
-   The state of this branch is effectively a pre-release of 
-   CVXPY 1.2.2.
+   Pushing the tag triggers the PyPI deploy.
+
+Patch tags do not need to be merged or replicated onto `master` — master only
+cares about the most recent *minor* tag (`v1.10.0`) for its own dev versions.
 
 ## Deploying a release to PyPI
 
