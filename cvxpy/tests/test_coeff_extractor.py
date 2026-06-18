@@ -5,6 +5,7 @@ import pytest
 
 import cvxpy as cp
 from cvxpy.atoms.quad_form import SymbolicQuadForm
+from cvxpy.cvxcore.python import canonInterface
 from cvxpy.lin_ops.canon_backend import TensorRepresentation
 from cvxpy.utilities.coeff_extractor import CoeffExtractor
 
@@ -29,8 +30,7 @@ def coeff_extractor():
         param_to_size={-1: 1, 2: 1, 3: 1},
         param_id_map={2: 0, 3: 1, -1: 2},
     )
-    backend = cp.CPP_CANON_BACKEND
-    return CoeffExtractor(inverset_data, backend)
+    return CoeffExtractor(inverset_data, canon_backend=None)
 
 
 def test_issue_2402_scalar_parameter():
@@ -187,6 +187,16 @@ def test_coeff_extractor(coeff_extractor):
     assert P.shape == (2, 2)
     assert np.allclose(P.parameter_offset, np.array([0, 0, 1, 1]))
     assert np.allclose(constant.toarray(), np.zeros((3)))
+
+
+def test_cpp_backend_free_threaded_error(monkeypatch):
+    def get_config_var(name):
+        return 1 if name == "Py_GIL_DISABLED" else None
+
+    monkeypatch.setattr(canonInterface.sysconfig, "get_config_var", get_config_var)
+
+    with pytest.raises(ValueError, match="CPP canonicalization backend is not available"):
+        canonInterface.get_problem_matrix([], 0, {}, {-1: 1}, {-1: 0}, 0, cp.CPP_CANON_BACKEND)
 
 
 def test_issue_2437():

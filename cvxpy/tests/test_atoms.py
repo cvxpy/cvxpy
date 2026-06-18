@@ -1801,7 +1801,7 @@ class TestAtoms(BaseTest):
         problem = cp.Problem(cp.Minimize(cp.convolve(p, x)), [0 <= x, x <= 1])
 
         p.value = -1.0
-        result = problem.solve(canon_backend=cp.CPP_CANON_BACKEND)
+        result = problem.solve()
         self.assertAlmostEqual(result, -1)
         self.assertAlmostEqual(x.value, 1)
 
