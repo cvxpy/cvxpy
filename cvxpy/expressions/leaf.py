@@ -456,15 +456,23 @@ class Leaf(expression.Expression):
             domain.append(self << 0)
         return domain
 
-    def project(self, val, sparse_path=False):
+    def project(self, val, strict=True, sparse_path=False):
         """Project value onto the attribute set of the leaf.
 
         A sensible idiom is ``leaf.value = leaf.project(val)``.
+
+        Warning: some combinations of attributes cannot be
+        analytically projected onto. If strict=True, this
+        function errors in those sitautions. If strict=False,
+        we silently **do nothing**.
 
         Parameters
         ----------
         val : numeric type
             The value assigned.
+        strict: bool
+            Whether to error if the projection cannot be
+            performed analytically.
 
         Returns
         -------
