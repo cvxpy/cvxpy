@@ -24,6 +24,7 @@ if [[ "$RUNNER_OS" != "macOS" ]]; then
 fi
 
 uv pip install scipy numpy
+uv pip install qdldl
 
 #if [[ "$USE_OPENMP" == "True" ]]; then
   #uv pip install openmp
