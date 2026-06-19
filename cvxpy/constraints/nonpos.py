@@ -96,7 +96,7 @@ class NonPos(Constraint):
     def violation(self):
         res = self.residual
         if res is None:
-            raise ValueError("Cannot compute the violation of an constraint "
+            raise ValueError("Cannot compute the violation of a constraint "
                              "whose expression is None-valued.")
         viol = np.linalg.norm(res, ord=2)
         return viol
@@ -162,7 +162,7 @@ class NonNeg(Constraint):
     def violation(self):
         res = self.residual
         if res is None:
-            raise ValueError("Cannot compute the violation of an constraint "
+            raise ValueError("Cannot compute the violation of a constraint "
                              "whose expression is None-valued.")
         viol = np.linalg.norm(res, ord=2)
         return viol

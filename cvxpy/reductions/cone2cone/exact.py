@@ -27,6 +27,7 @@ Each conversion is a class with:
 Current conversions:
   PowConeND -> PowCone3D  (balanced binary tree decomposition)
   SOC       -> PSD        (Schur complement)
+  RSOC      -> SOC        (substitution t=y+z, v=y-z)
 
 EXACT_CONE_CONVERSIONS maps {source_cone: {target_cones}} and must
 form a DAG (no cycles).
@@ -418,68 +419,67 @@ class NonPosConversion:
     def recover_dual(cons, dual_var, inverse_data, dvars):
         return dual_var
 
-
 class RSocConversion:
     """RSOC -> SOC conversion.
 
     The rotated second-order cone constraint:
-        2*y*z >= ||x||_2^2,  y >= 0,  z >= 0
+        2*t*u >= ||x||_2^2,  t >= 0,  u >= 0
 
     is equivalent to the standard SOC constraint:
-        ||(sqrt(2)*x, y-z)||_2 <= y+z
+        ||(sqrt(2)*x, t-u)||_2 <= t+u
 
-    via the substitution u = y+z, v = y-z:
-        ||(sqrt(2)*x, v)||_2 <= u
+    via the substitution s = t+u, v = t-u:
+        ||(sqrt(2)*x, v)||_2 <= s
     """
     source = RSOC
     targets = {SOC}
 
     @staticmethod
     def canonicalize(con, args, solver_context=None):
-        X, y, z = args
-        y_flat = reshape(y, (y.size,), order='F')
-        z_flat = reshape(z, (z.size,), order='F')
+        t, u, X = args
+        t_flat = reshape(t, (t.size,), order='F')
+        u_flat = reshape(u, (u.size,), order='F')
 
         if con.axis == 1:
             X = X.T
         # Unified scalar + batched: SOC supports batching natively
         # t shape: (n_cones,), vec shape: (n+1, n_cones)
-        t = y_flat + z_flat
-        diff = reshape(y_flat - z_flat, (1, y.size), order='F')
+        soc_t = t_flat + u_flat
+        diff = reshape(t_flat - u_flat, (1, t.size), order='F')
         n_x = X.shape[0] if X.ndim > 1 else X.size
-        two_X = reshape(np.sqrt(2) * X, (n_x, y.size), order='F')
+        two_X = reshape(np.sqrt(2) * X, (n_x, t.size), order='F')
         vec = vstack([two_X, diff])
-        can_con = SOC(t, vec, axis=0)
+        can_con = SOC(soc_t, vec, axis=0)
         return can_con, []
 
-
-
-
     @staticmethod
-    def recover_dual(cons, dual_var, inverse_data, dvars):
+    def recover_dual(cons, dual_var, inverse_data, solution):
         """Recover RSOC dual variables from SOC duals.
 
-        The RSOC→SOC conversion maps (x, y, z) to SOC(t, X) where:
-            t = y + z
-            X = [sqrt(2)*x, y - z]  (length n_x + 1)
+        The RSOC->SOC conversion maps (t, u, x) to SOC(s, X) where:
+            s = t + u
+            X = [sqrt(2)*x, t - u]  (length n_x + 1)
 
         The adjoint maps SOC duals (dt, dX) back to RSOC duals:
-            dx = sqrt(2) * dX[:n_x]
-            dy = dt + dX[n_x]
-            dz = dt - dX[n_x]
+            d_arg_t = dt + dX[n_x]
+            d_arg_u = dt - dX[n_x]
+            d_arg_x = sqrt(2) * dX[:n_x]
         """
-        n_x = cons.args[0].shape[0] if cons.args[0].ndim > 1 else cons.args[0].size
-        n_cones = cons.args[1].size
+        X_shape = cons.args[2].shape
+        if cons.axis == 1 and len(X_shape) == 2:
+            n_x = X_shape[1]
+        else:
+            n_x = X_shape[0] if cons.args[2].ndim > 1 else cons.args[2].size
+        n_cones = cons.args[0].size
         dual = np.asarray(dual_var, dtype=float).ravel()
         stride = n_x + 2
         dt = dual[0::stride]                                    # shape (n_cones,)
-        d_yz = dual[stride - 1::stride]                        # shape (n_cones,)
+        d_tu = dual[stride - 1::stride]                        # shape (n_cones,)
         dx_flat = dual.reshape(n_cones, stride)[:, 1:n_x+1]   # shape (n_cones, n_x)
         dx_dual = np.sqrt(2) * dx_flat
-        dy_dual = dt + d_yz
-        dz_dual = dt - d_yz
-        return [dx_dual, dy_dual, dz_dual]
-
+        dt_dual = dt + d_tu
+        du_dual = dt - d_tu
+        return [dt_dual, du_dual, dx_dual]
 
 class PSDToSvecPSD:
     """PSD -> SvecPSD via scaled vectorization.
@@ -512,13 +512,7 @@ class PSDToSvecPSD:
 
 class ExactCone2Cone(Canonicalization):
 
-    CONVERSIONS = [
-        NonPosConversion,
-        PowNDConversion,
-        SOCConversion,
-        RSocConversion,
-        PSDToSvecPSD,
-    ]
+    CONVERSIONS = [NonPosConversion, PowNDConversion, SOCConversion, RSocConversion, PSDToSvecPSD]
 
     CANON_METHODS = {c.source: c.canonicalize for c in CONVERSIONS}
 

@@ -148,7 +148,10 @@ class Leaf(expression.Expression):
             self.integer_idx = integer
         if sparsity:
             self.sparse_idx = self._validate_indices(sparsity)
-            self._sparse_high_fill_in = (len(self.sparse_idx[0]) / np.prod(self.shape) <= 0.25)
+            # Sparse enough (small nonzero fraction) to nudge toward value_sparse;
+            # shares the diff engine's sparse-routing threshold (see settings).
+            self._sparse_high_fill_in = (
+                len(self.sparse_idx[0]) / np.prod(self.shape) <= s.SPARSE_DENSITY_THRESHOLD)
         else:
             self.sparse_idx = None
         # count number of attributes
@@ -282,8 +285,10 @@ class Leaf(expression.Expression):
 
     def is_nonneg(self) -> bool:
         """Is the expression nonnegative?"""
-        return (self.attributes['nonneg'] or self.attributes['pos'] or
-                self.attributes['boolean'])
+        # The boolean attribute may be an index list constraining only some
+        # entries, in which case the leaf's sign is unknown.
+        return bool(self.attributes['nonneg'] or self.attributes['pos'] or
+                    self.attributes['boolean'] is True)
 
     def is_nonpos(self) -> bool:
         """Is the expression nonpositive?"""
@@ -461,7 +466,8 @@ class Leaf(expression.Expression):
         elif self.attributes['imag']:
             return np.imag(val)*1j
         elif self.attributes['complex']:
-            return val.astype(complex)
+            # val may be a Python scalar, which has no astype method.
+            return np.asarray(val).astype(complex)
         elif self.attributes['boolean']:
             if hasattr(self, "boolean_idx"):
                 new_val = np.atleast_1d(val.astype(np.float64, copy=True))
@@ -562,7 +568,7 @@ class Leaf(expression.Expression):
                     'expr.value_sparse = scipy.sparse.coo_array((values, expr)) instead.')
             raise ValueError(
                 'Invalid type for assigning value_sparse.'
-                f'Recieved: {type(val)} Expected scipy.sparse.coo_array.'
+                f'Received: {type(val)} Expected scipy.sparse.coo_array.'
                 f' Instantiate with scipy.sparse.coo_array((value_array, coordinates))'
                 )
         self.save_value(self._validate_value(val, True), True)

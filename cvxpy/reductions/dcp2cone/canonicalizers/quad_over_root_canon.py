@@ -38,7 +38,7 @@ def quad_over_root_canon(expr, args, solver_context: SolverInfo | None = None):
     # z^2 <= y  (i.e. z <= sqrt(y))
     # RSOC: 2*y*1 >= ||sqrt(2)*z||^2 = 2*z^2  =>  y >= z^2
     constraints = [
-        RSOC(np.sqrt(2) * z, y, 1),
+        RSOC(y, 1, np.sqrt(2) * z),
     ]
     if d is not None:
         constraints.append(x >= d)
@@ -57,11 +57,11 @@ def quad_over_root_canon(expr, args, solver_context: SolverInfo | None = None):
 
         # s1 * s2 >= w^2
         # RSOC: 2*s1*s2 >= ||sqrt(2)*w||^2
-        constraints.append(RSOC(np.sqrt(2) * w, s1, s2))
+        constraints.append(RSOC(s1, s2, np.sqrt(2) * w))
 
         # t * z >= a * w^2
         # RSOC: 2*t*z >= ||sqrt(2*a)*w||^2
-        constraints.append(RSOC(np.sqrt(2 * a) * w, t, z))
+        constraints.append(RSOC(t, z, np.sqrt(2 * a) * w))
     else:
         # Case 2: complete the square.
         # p(x) = a(x + b/(2a))^2 + delta, where delta = c - b^2/(4a) >= 0.
@@ -72,11 +72,11 @@ def quad_over_root_canon(expr, args, solver_context: SolverInfo | None = None):
             # t * z >= u^2 + delta
             # RSOC: 2*t*z >= ||sqrt(2)*u, sqrt(2*delta)||^2 = 2*u^2 + 2*delta
             constraints.append(
-                RSOC(hstack([np.sqrt(2) * u_expr, np.sqrt(2 * delta)]), t, z)
+                RSOC(t, z, hstack([np.sqrt(2) * u_expr, np.sqrt(2 * delta)]))
             )
         else:
             # t * z >= u^2
             # RSOC: 2*t*z >= ||sqrt(2)*u||^2
-            constraints.append(RSOC(np.sqrt(2) * u_expr, t, z))
+            constraints.append(RSOC(t, z, np.sqrt(2) * u_expr))
 
     return t, constraints

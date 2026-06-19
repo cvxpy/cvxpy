@@ -17,6 +17,8 @@ jobs:
         backend: [SCIPY, COO]
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0  # setuptools-scm needs tags to compute the version
 
       - name: Install uv
         uses: astral-sh/setup-uv@v7
