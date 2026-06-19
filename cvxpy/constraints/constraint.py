@@ -233,7 +233,7 @@ class Constraint(u.Canonical):
         """
         residual = self.residual
         if residual is None:
-            raise ValueError("Cannot compute the violation of an constraint "
+            raise ValueError("Cannot compute the violation of a constraint "
                              "whose expression is None-valued.")
         return residual
 
@@ -259,7 +259,7 @@ class Constraint(u.Canonical):
         """
         residual = self.residual
         if residual is None:
-            raise ValueError("Cannot compute the value of an constraint "
+            raise ValueError("Cannot compute the value of a constraint "
                              "whose expression is None-valued.")
         return np.all(residual <= tolerance)
 
