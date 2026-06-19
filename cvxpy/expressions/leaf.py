@@ -163,13 +163,13 @@ class Leaf(expression.Expression):
                 f"{dim_reducing_attr}"
             )
         if self.attributes['complex'] or self.attributes['imag']:
-            sign_attrs = [
-                k for k in ['nonneg', 'nonpos', 'pos', 'neg']
-                if self.attributes[k]
-            ]
-            if sign_attrs:
+            invalid_attrs = {'nonneg', 'nonpos', 'pos', 'neg'} & {
+                k for k, v in self.attributes.items() if v
+            }
+            if invalid_attrs:
                 raise ValueError(
-                    f"Cannot combine {sign_attrs} with complex or imaginary attributes."
+                    "Cannot combine "
+                    f"{sorted(invalid_attrs)} with complex or imaginary attributes."
                 )
             if bounds is not None:
                 raise ValueError(
