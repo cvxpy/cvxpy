@@ -16,6 +16,7 @@ limitations under the License.
 import logging
 import os
 import sys
+import sysconfig
 
 LOGGER = logging.getLogger("__cvxpy__")
 LOGGER.propagate = False
@@ -207,8 +208,12 @@ RUST_CANON_BACKEND = "RUST"
 CPP_CANON_BACKEND = "CPP"
 COO_CANON_BACKEND = "COO"  # 3D COO sparse tensor backend: O(nnz) operations for large parameters
 
-# Default canonicalization backend, pyodide uses SciPy
-DEFAULT_CANON_BACKEND = CPP_CANON_BACKEND if sys.platform != "emscripten" else SCIPY_CANON_BACKEND
+# Default canonicalization backend; Pyodide and free-threaded Python use SciPy.
+DEFAULT_CANON_BACKEND = (
+    SCIPY_CANON_BACKEND
+    if sys.platform == "emscripten" or sysconfig.get_config_var("Py_GIL_DISABLED")
+    else CPP_CANON_BACKEND
+)
 
 # DPP parameter threshold for auto-selecting COO backend
 # When problem is DPP and total parameter size >= this threshold, use COO backend

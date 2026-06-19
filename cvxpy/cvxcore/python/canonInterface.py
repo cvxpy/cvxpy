@@ -16,6 +16,7 @@ Copyright 2017 Steven Diamond
 from __future__ import annotations
 
 import os
+import sysconfig
 
 import numpy as np
 import scipy.sparse as sp
@@ -293,6 +294,13 @@ def get_problem_matrix(linOps,
     canon_backend = default_canon_backend if not canon_backend else canon_backend
 
     if canon_backend == s.CPP_CANON_BACKEND:
+        if sysconfig.get_config_var("Py_GIL_DISABLED"):
+            raise ValueError(
+                "The CPP canonicalization backend is not available with "
+                "free-threaded Python, because CVXPY does not build cvxcore "
+                "for free-threaded Python. Use the SCIPY or COO "
+                "canonicalization backend instead."
+            )
         from cvxpy.cvxcore.python.cppbackend import build_matrix
         return build_matrix(id_to_col, param_to_size, param_to_col, var_length, constr_length, linOps)
 
@@ -311,4 +319,3 @@ def get_problem_matrix(linOps,
         return A_py
     else:
         raise ValueError(f'Unknown backend: {canon_backend}')
-

@@ -73,6 +73,7 @@ The progress of the deploy can be inspected by opening the workflow run marked w
 After a successful deployment, the result should be verified on PyPI.
 In particular, for both [cvxpy](https://pypi.org/project/cvxpy/) and [cvxpy-base](https://pypi.org/project/cvxpy-base/) 
 source files as well as all expected wheel files should be present.
+The `cvxpy-base` files should include the Pyodide wheel artifact built by the `build_pyodide_wheels` job.
 
 If the action fails intermittently, e.g., because of time-outs during the installation of the dependencies, it can be retriggered from the [actions tab](https://github.com/cvxpy/cvxpy/actions).
 If changes are required, the `DEPLOY` variable needs to be set manually in the workflow to allow deploys from a non-tagged commit.
@@ -125,4 +126,3 @@ Under `Use workflow from`, select the **Tags** tab and choose the version you wa
 This builds the docs and commits them to the `gh-pages` branch. This in turn triggers the deployment through the `github-pages bot`, which can also be monitored in the [actions tab](https://github.com/cvxpy/cvxpy/actions).
 
 After the deployment, make sure that the docs are accessible through the browser, and the version selector displays all expected versions.
-
