@@ -717,7 +717,7 @@ class Expression(u.Canonical):
         """
         If expr_like is an Expression, return it. Otherwise, cast expr_like to a Constant.
 
-        This is a wrapper around the misleadingly-named `Expression.cast` function.
+        Deprecated: This is a wrapper around the `Expression.cast` function.
         """
         return Expression.cast(expr_like)
 
