@@ -489,7 +489,17 @@ class Leaf(expression.Expression):
                 # with other attributes (e.g., PSD plus nonneg) is hard;
                 # such combinations are not enforced and the value is
                 # returned unmodified.
-                return val
+                if strict:
+                    raise RuntimeError("project is being called on a "
+                        "Parameter/Variable with multiple structural "
+                        "attributes. We cannot evaluate this projection "
+                        "analytically. Consider using "
+                        "cp.Problem("
+                        "cp.Minimize(cp.sum_squares(val - leaf))).solve()"
+                        " instead."
+                    )
+                else:
+                    return val
             return self._project_structural(val, sparse_path)
         # The remaining attributes are entrywise. Their projections compose
         # exactly: discrete entries are rounded first and every later step
