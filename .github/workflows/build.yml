@@ -63,6 +63,14 @@ jobs:
           python-version: ${{ matrix.python-version }}
           enable-cache: true
 
+      - name: Install OpenBLAS for Windows free-threaded builds
+        if: ${{ matrix.os == 'windows-2022' && contains(matrix.python-version, 't') }}
+        shell: pwsh
+        run: |
+          vcpkg install openblas:x64-windows
+          "OpenBLAS_DIR=$env:VCPKG_INSTALLATION_ROOT\installed\x64-windows\share\openblas" >> $env:GITHUB_ENV
+          "$env:VCPKG_INSTALLATION_ROOT\installed\x64-windows\bin" >> $env:GITHUB_PATH
+
       - name: Install
         run: |
           source continuous_integration/install_dependencies.sh
