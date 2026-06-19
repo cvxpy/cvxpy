@@ -1,0 +1,61 @@
+name: test_nlp_solvers
+
+on:
+    pull_request:
+    push:
+        branches:
+            - master
+        tags:
+          - '*'
+jobs:
+  run_nlp_tests:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0  # setuptools-scm needs tags to compute the version
+      - uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.12"
+          enable-cache: true
+      - name: Install IPOPT (Ubuntu)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y coinor-libipopt-dev liblapack-dev libblas-dev
+      - name: Install IPOPT (macOS)
+        if: runner.os == 'macOS'
+        run: brew install ipopt
+      - name: Install dependencies
+        run: |
+          uv venv
+          uv pip install -e ".[testing]"
+          uv pip install cyipopt
+      - name: Install COPT solver
+        run: uv pip install -e ".[COPT]"
+      - name: Install Uno solver
+        run: uv pip install -e ".[UNO]"
+      - name: Verify Uno import
+        run: uv run python -c "import unopy; print('unopy imported successfully')"
+      - name: Install KNITRO solver
+        if: env.KNITRO_LICENSE != ''
+        run: uv pip install knitro
+      - name: Set up KNITRO license
+        if: env.KNITRO_LICENSE != ''
+        run: |
+          echo "$KNITRO_LICENSE" > ~/artelys_lic.txt
+          echo "ARTELYS_LICENSE=$HOME" >> $GITHUB_ENV
+      - name: Print installed solvers
+        run: uv run python -c "import cvxpy; print(cvxpy.installed_solvers())"
+      - name: Run nlp tests
+        run: uv run pytest -v -m "not knitro" cvxpy/tests/nlp_tests/
+      # KNITRO bundles its own OpenMP runtime; loading it in the same
+      # process as IPOPT segfaults on macOS. Run KNITRO tests separately.
+      - name: Run KNITRO nlp tests
+        if: always()
+        run: uv run pytest -v -m knitro cvxpy/tests/nlp_tests/
+
+    env:
+      KNITRO_LICENSE: ${{ secrets.KNITRO_LICENSE }}

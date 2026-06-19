@@ -13,7 +13,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import List, Tuple
 
 import numpy as np
 
@@ -47,7 +46,7 @@ class kron(AffAtom):
         elif self.args[0].ndim != 2 or self.args[1].ndim != 2:
             raise ValueError("kron requires both arguments to be 2-d.")
 
-    def shape_from_args(self) -> Tuple[int, int]:
+    def shape_from_args(self) -> tuple[int, int]:
         rows = self.args[0].shape[0]*self.args[1].shape[0]
         cols = self.args[0].shape[1]*self.args[1].shape[1]
         return rows, cols
@@ -69,7 +68,7 @@ class kron(AffAtom):
         """
         return self.is_atom_convex()
 
-    def sign_from_args(self) -> Tuple[bool, bool]:
+    def sign_from_args(self) -> tuple[bool, bool]:
         """Same as times.
         """
         return u.sign.mul_sign(self.args[0], self.args[1])
@@ -103,8 +102,8 @@ class kron(AffAtom):
         return case1 or case2
 
     def graph_implementation(
-        self, arg_objs, shape: Tuple[int, ...], data=None
-    ) -> Tuple[lo.LinOp, List[Constraint]]:
+        self, arg_objs, shape: tuple[int, ...], data=None
+    ) -> tuple[lo.LinOp, list[Constraint]]:
         """Kronecker product of two matrices.
 
         Parameters

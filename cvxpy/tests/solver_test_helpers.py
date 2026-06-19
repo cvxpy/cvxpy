@@ -18,6 +18,7 @@ import warnings
 import numpy as np
 
 import cvxpy as cp
+import cvxpy.settings as s
 from cvxpy.tests.base_test import BaseTest
 
 
@@ -48,7 +49,7 @@ class SolverTestHelper:
             elif attrs['imag']:
                 all_cons.append(x + cp.conj(x) == 0)
             elif attrs['symmetric']:
-                all_cons.append(x == x.T)
+                all_cons.append(x == cp.swapaxes(x, -2, -1))
             elif attrs['diag']:
                 all_cons.append(x - cp.diag(cp.diag(x)) == 0)
             elif attrs['PSD']:
@@ -56,14 +57,14 @@ class SolverTestHelper:
             elif attrs['NSD']:
                 all_cons.append(x << 0)
             elif attrs['hermitian']:
-                all_cons.append(x == cp.conj(x.T))
+                all_cons.append(x == cp.conj(cp.swapaxes(x, -2, -1)))
             elif attrs['boolean'] or attrs['integer']:
                 round_val = np.round(x.value)
                 all_cons.append(x == round_val)
         for con in all_cons:
             viol = con.violation()
             if isinstance(viol, np.ndarray):
-                viol = np.linalg.norm(viol, ord=2)
+                viol = np.linalg.norm(viol)
             self.tester.assertAlmostEqual(viol, 0, places)
 
     def check_dual_domains(self, places) -> None:
@@ -78,6 +79,8 @@ class SolverTestHelper:
                 dual_violation = con.dual_residual
                 if isinstance(con, cp.constraints.SOC):
                     dual_violation = np.linalg.norm(dual_violation)
+                if isinstance(dual_violation, np.ndarray):
+                    dual_violation = np.max(dual_violation)
                 self.tester.assertLessEqual(dual_violation, 10**(-places))
             elif isinstance(con, cp.constraints.Inequality):
                 # TODO: move this to Inequality.dual_violation
@@ -388,6 +391,16 @@ def lp_bound_attr() -> SolverTestHelper:
     return sth
 
 
+def qp_bound_attr() -> SolverTestHelper:
+    """A QP using the variable bounds attribute."""
+    x = cp.Variable(shape=(2,), name='x', bounds=[np.array([1, -5]), np.array([10, 5])])
+    objective = cp.Minimize(cp.sum_squares(x))
+    var_pairs = [(x, np.array([1, 0]))]
+    obj_pair = (objective, 1)
+    sth = SolverTestHelper(obj_pair, var_pairs, [])
+    return sth
+
+
 def qp_0() -> SolverTestHelper:
     # univariate feasible problem
     x = cp.Variable(1)
@@ -566,6 +579,38 @@ def sdp_2() -> SolverTestHelper:
     obj_pair = (obj_expr, 52.40127214)
     sth = SolverTestHelper(obj_pair, var_pairs, con_pairs)
     return sth
+
+
+def sdp_batched() -> SolverTestHelper:
+    """
+    Batched PSD constraint: a single Variable of shape (2, 3, 3) constrained
+    to be PSD along the last two axes.
+
+    Equivalent to two independent 3x3 SDP problems packed into one constraint.
+
+    Batch 0: minimize trace(X[0])  s.t. X[0] >> 0, X[0][0,1] >= 1
+      Optimal X[0] has X[0][0,1] = X[0][1,0] = 1, diagonal = [1, 1, 0],
+      giving trace = 2.
+
+    Batch 1: minimize trace(X[1])  s.t. X[1] >> 0, X[1][1,2] >= 2
+      Optimal X[1] has X[1][1,2] = X[1][2,1] = 2, diagonal = [0, 4, 4] (minimum trace PSD),
+      but more precisely the minimum-trace PSD matrix with off-diagonal entry 2 is
+      [[0,0,0],[0,a,2],[0,2,b]] with a*b >= 4, trace = a+b >= 2*sqrt(4) = 4, achieved at a=b=2.
+      So trace = 4.
+
+    Total objective = 2 + 4 = 6.
+    """
+    X = cp.Variable(shape=(2, 3, 3), symmetric=True)
+    constraints = [
+        X >> 0,
+        X[0, 0, 1] >= 1,
+        X[1, 1, 2] >= 2,
+    ]
+    obj = cp.Minimize(cp.trace(X[0]) + cp.trace(X[1]))
+    obj_pair = (obj, 6.0)
+    var_pairs = [(X, None)]
+    con_pairs = [(c, None) for c in constraints]
+    return SolverTestHelper(obj_pair, var_pairs, con_pairs)
 
 
 def expcone_1() -> SolverTestHelper:
@@ -1170,6 +1215,15 @@ class StandardTestLPs:
             **kwargs
         ) -> SolverTestHelper:
         sth = lp_bound_attr()
+        # Verify the bounded variables data path is used
+        data, _, _ = sth.prob.get_problem_data(solver)
+        assert data[s.LOWER_BOUNDS] is not None, \
+            f"{solver}: LOWER_BOUNDS should be populated"
+        assert data[s.UPPER_BOUNDS] is not None, \
+            f"{solver}: UPPER_BOUNDS should be populated"
+        dims = data[s.DIMS]
+        assert dims.nonneg == 0, \
+            f"{solver}: bounds should not be converted to {dims.nonneg} inequality constraints"
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
         sth.verify_primal_values(places)
@@ -1244,6 +1298,26 @@ class StandardTestQPs:
         if duals:
             sth.check_complementarity(places)
             sth.verify_dual_values(places)
+        return sth
+
+    @staticmethod
+    def test_qp_bound_attr(
+            solver,
+            places: int = 4,
+            **kwargs
+        ) -> SolverTestHelper:
+        sth = qp_bound_attr()
+        # Verify the bounded variables data path is used
+        data, _, _ = sth.prob.get_problem_data(solver)
+        assert data[s.LOWER_BOUNDS] is not None, \
+            f"{solver}: LOWER_BOUNDS should be populated"
+        assert data[s.UPPER_BOUNDS] is not None, \
+            f"{solver}: UPPER_BOUNDS should be populated"
+        assert data['n_ineq'] == 0, \
+            f"{solver}: bounds should not be converted to {data['n_ineq']} inequality constraints"
+        sth.solve(solver, **kwargs)
+        sth.verify_objective(places)
+        sth.verify_primal_values(places)
         return sth
 
 
@@ -1365,6 +1439,18 @@ class StandardTestSDPs:
             sth.check_dual_domains(places)
         return sth
 
+    @staticmethod
+    def test_sdp_batched(solver, places: int = 3, duals: bool = True,
+                         **kwargs) -> SolverTestHelper:
+        sth = sdp_batched()
+        sth.solve(solver, **kwargs)
+        sth.verify_objective(places)
+        sth.check_primal_feasibility(places)
+        if duals:
+            sth.check_complementarity(places)
+            sth.check_dual_domains(places)
+        return sth
+
 
 class StandardTestECPs:
 
@@ -1451,3 +1537,188 @@ class StandardTestPCPs:
         sth.check_primal_feasibility(places)
         sth.verify_primal_values(places)
         return sth
+
+
+class StandardTestInfeasibleProblems:
+    """
+    Tests the behaviour of infeasible problems for several problem examples covering the main cone
+    constraints (SOC, ExpCone, etc.). In particular, checks that dual variables have been set.
+
+    `test_lp` is the only method that verifies that the dual variables hold a valid infeasibility
+    certificate, while the others simply check that the dual variables are non-None (probably
+    could be strengthened).
+    """
+
+    @staticmethod
+    def verify_post_solve_guarantees(prob: cp.Problem):
+
+        # Problem status is infeasible.
+        assert prob.status == "infeasible"
+        assert prob.solution.status == "infeasible"
+
+        # Problem value is +/- inf.
+        prob_value = float("inf") if isinstance(prob.objective, cp.Minimize) else -float("inf")
+        assert prob.value == prob_value
+        assert prob.solution.opt_val == prob_value
+
+        # Variable values are None.
+        for v in prob.var_dict.values():
+            assert v.value is None
+
+        # Constraint dual variables exist and are consistent through Problem object structure.
+        for c in prob.constraints:
+            assert c.dual_value is not None
+
+            # Scalar / array-valued duals (e.g., NonPos, PSD).
+            if not isinstance(c.dual_value, (list, tuple)):
+                np.testing.assert_array_equal(c.dual_value, c.dual_variables[0].value)
+
+                solution_dual = prob.solution.dual_vars[c.id]
+                np.testing.assert_array_equal(c.dual_value, solution_dual)
+
+            # Composite duals (e.g., SOC, ExpCone, PowCone3D).
+            else:
+                assert len(c.dual_value) == len(c.dual_variables)
+                for dv, dv_var in zip(c.dual_value, c.dual_variables):
+                    assert dv is not None
+                    np.testing.assert_array_equal(dv, dv_var.value)
+
+                # Note: prob.solution.dual_vars[c.id] looks like it's still in flattened form.
+                # Unsure whether this is a deliberate choice; leave it out of the assertions.
+
+        # TODO: Assertions for dual variables for constraints specified via Variables attributes,
+        #  e.g., nonneg, bounds. First need to propagate these through the solver chain and store
+        #  them somewhere.
+
+    @classmethod
+    def test_lp_ineq_constraints(cls, solver: str):
+        A = np.array([[1, 0], [0, 1], [-1, -1]])
+        b = np.array([0, 0, -1])
+        x = cp.Variable(2)
+
+        prob = cp.Problem(
+            objective=cp.Minimize(0),
+            constraints=[A @ x <= b]
+        )
+
+        prob.solve(solver=solver)
+        cls.verify_post_solve_guarantees(prob)
+
+        # The infeasibility certificate is a Farkas certificate, y, satisfying
+        # y >= 0, A.T @ y == 0, b.T @ y < 0
+        y = prob.constraints[0].dual_value
+        assert all(np.less_equal(0, y))
+        np.testing.assert_almost_equal(0, A.T @ y, decimal=4)
+        assert b.T @ y < 0
+
+    @classmethod
+    def test_lp_eq_constraints(cls, solver: str):
+        A = np.array([[1, 0], [0, 1], [1, 1]])
+        b = np.array([0, 0, 1])
+        x = cp.Variable(2)
+
+        prob = cp.Problem(
+            objective=cp.Minimize(0),
+            constraints=[A @ x == b, x >= 0]
+        )
+
+        prob.solve(solver=solver)
+        cls.verify_post_solve_guarantees(prob)
+
+        # The infeasibility certificate is a Farkas certificate, y, satisfying
+        # A.T @ y >= 0, b.T @ y < 0
+        y = prob.constraints[0].dual_value
+        assert min(A.T @ y) >= -1e-4
+        assert b.T @ y < 0
+
+    @classmethod
+    def test_soc(cls, solver: str):
+        x = cp.Variable(2)
+
+        prob = cp.Problem(
+            objective=cp.Minimize(0),
+            constraints=[cp.SOC(-1, x)]
+        )
+
+        prob.solve(solver=solver)
+        cls.verify_post_solve_guarantees(prob)
+
+    @classmethod
+    def test_power_cone_3d(cls, solver: str):
+        z = cp.Variable()
+
+        prob = cp.Problem(
+            objective=cp.Minimize(0),
+            constraints=[cp.PowCone3D(-1, 1, z, alpha=0.5)]
+        )
+
+        prob.solve(solver=solver)
+        cls.verify_post_solve_guarantees(prob)
+
+    @classmethod
+    def test_power_cone_nd(cls, solver: str):
+        x = cp.Variable(3)
+        z = cp.Variable()
+
+        prob = cp.Problem(
+            objective=cp.Minimize(0),
+            constraints=[
+                cp.PowConeND(x, z, alpha=np.array([0.2, 0.3, 0.5])),
+                x == np.ones(3),
+                z == 2.0,
+            ]
+        )
+
+        prob.solve(solver=solver)
+        cls.verify_post_solve_guarantees(prob)
+
+    @classmethod
+    def test_exp_cone(cls, solver: str):
+        x = cp.Variable()
+        y = cp.Variable()
+        z = cp.Variable()
+
+        prob = cp.Problem(
+            objective=cp.Minimize(0),
+            constraints=[
+                cp.ExpCone(x, y, z),
+                x == 1,
+                y == 1,
+                z == 1,
+            ]
+        )
+
+        prob.solve(solver=solver)
+        cls.verify_post_solve_guarantees(prob)
+
+    @classmethod
+    def test_psd_cone(cls, solver: str):
+        X = cp.Variable((2, 2))
+
+        prob = cp.Problem(
+            objective=cp.Minimize(0),
+            constraints=[
+                X >> 0,
+                X[0, 0] == -1,
+            ]
+        )
+
+        prob.solve(solver=solver)
+        cls.verify_post_solve_guarantees(prob)
+
+    @classmethod
+    def test_soc_exp_mixed(cls, solver: str):
+        x = cp.Variable()
+        y = cp.Variable()
+
+        prob = cp.Problem(
+            objective=cp.Maximize(0),
+            constraints=[
+                x == y,
+                cp.SOC(x, cp.hstack([1])),  # => x >= 1
+                cp.ExpCone(x, y, 1),  # => x <= 0
+            ],
+        )
+
+        prob.solve(solver=solver)
+        cls.verify_post_solve_guarantees(prob)

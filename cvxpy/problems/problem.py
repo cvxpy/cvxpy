@@ -18,7 +18,7 @@ from __future__ import annotations
 import time
 from collections import namedtuple
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Dict, List, Optional, Union
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from cvxpy.reductions.solvers.solver import Solver
@@ -35,7 +35,7 @@ from cvxpy.constraints.constraint import Constraint
 from cvxpy.error import DPPError
 from cvxpy.expressions import cvxtypes
 from cvxpy.expressions.variable import Variable
-from cvxpy.interface.matrix_utilities import scalar_value
+from cvxpy.interface.matrix_utilities import ScalarValue, scalar_value
 from cvxpy.problems.objective import Maximize, Minimize
 from cvxpy.reductions import InverseData
 from cvxpy.reductions.chain import Chain
@@ -50,7 +50,7 @@ from cvxpy.reductions.solvers.solving_chain import (
     SolvingChain,
     resolve_and_build_chain,
 )
-from cvxpy.utilities import debug_tools
+from cvxpy.utilities import debug_tools, scopes
 from cvxpy.utilities.citations import CITATION_DICT
 from cvxpy.utilities.deterministic import unique_list
 from cvxpy.utilities.solver_context import SolverInfo
@@ -105,9 +105,9 @@ _FOOTER = (
 class Cache:
     def __init__(self) -> None:
         self.key = None
-        self.solving_chain: Optional[SolvingChain] = None
+        self.solving_chain: SolvingChain | None = None
         self.param_prog = None
-        self.inverse_data: Optional[InverseData] = None
+        self.inverse_data: InverseData | None = None
 
     def invalidate(self) -> None:
         self.key = None
@@ -152,7 +152,7 @@ class Problem(u.Canonical):
     REGISTERED_SOLVE_METHODS = {}
 
     def __init__(
-        self, objective: Union[Minimize, Maximize], constraints: Optional[List[Constraint]] = None
+        self, objective: Minimize | Maximize, constraints: list[Constraint] | None = None
     ) -> None:
         if constraints is None:
             constraints = []
@@ -173,22 +173,22 @@ class Problem(u.Canonical):
                       "Consider vectorizing your CVXPY code to speed up compilation.")
 
         self._value = None
-        self._status: Optional[str] = None
+        self._status: str | None = None
         self._solution = None
         self._cache = Cache()
         self._solver_cache = {}
         # Information about the shape of the problem and its constituent parts
-        self._size_metrics: Optional["SizeMetrics"] = None
+        self._size_metrics: 'SizeMetrics' | None = None
         # Benchmarks reported by the solver:
-        self._solver_stats: Optional["SolverStats"] = None
-        self._compilation_time: Optional[float] = None
-        self._solve_time: Optional[float] = None
+        self._solver_stats: 'SolverStats' | None = None
+        self._compilation_time: float | None = None
+        self._solve_time: float | None = None
         self.args = [self._objective, self._constraints]
         # Needed for _aggregate_metrics.
         self.ndim = 0
 
         # solver_context : The solver context: supported constrains and bounds.
-        self.solver_context : Optional[SolverInfo] = None
+        self.solver_context : SolverInfo | None = None
 
     @perf.compute_once
     def _aggregate_metrics(self) -> dict:
@@ -212,7 +212,7 @@ class Problem(u.Canonical):
         return metrics
 
     @property
-    def value(self):
+    def value(self) -> ScalarValue | None:
         """float : The value from the last time the problem was solved
                    (or None if not solved).
         """
@@ -236,7 +236,7 @@ class Problem(u.Canonical):
         return self._solution
 
     @property
-    def objective(self) -> Union[Minimize, Maximize]:
+    def objective(self) -> Minimize | Maximize:
         """Minimize or Maximize : The problem's objective.
 
         Note that the objective cannot be reassigned after creation,
@@ -246,7 +246,7 @@ class Problem(u.Canonical):
         return self._objective
 
     @property
-    def constraints(self) -> List[Constraint]:
+    def constraints(self) -> list[Constraint]:
         """A shallow copy of the problem's constraints.
 
         Note that constraints cannot be reassigned, appended to, or otherwise
@@ -262,7 +262,7 @@ class Problem(u.Canonical):
         return {parameters.name(): parameters for parameters in self.parameters()}
 
     @property
-    def var_dict(self) -> Dict[str, Variable]:
+    def var_dict(self) -> dict[str, Variable]:
         """
         Expose all variables as a dictionary
         """
@@ -290,6 +290,13 @@ class Problem(u.Canonical):
         """
         return all(
           expr.is_dcp(dpp) for expr in self.constraints + [self.objective])
+
+    @perf.compute_once
+    def is_dnlp(self) -> bool:
+        """
+        Does the problem satisfy disciplined nonlinear programming (DNLP) rules?
+        """
+        return all(expr.is_dnlp() for expr in self.constraints + [self.objective])
 
     @perf.compute_once
     def _max_ndim(self) -> int:
@@ -337,7 +344,8 @@ class Problem(u.Canonical):
           expr.is_dqcp() for expr in self.constraints + [self.objective])
 
     @perf.compute_once
-    def is_dpp(self, context: str = 'dcp') -> bool:
+    def is_dpp(self, context: str = 'dcp',
+               quad_form_dpp: str | None = None) -> bool:
         """Does the problem satisfy DPP rules?
 
         DPP is a mild restriction of DGP. When a problem involving
@@ -354,6 +362,13 @@ class Problem(u.Canonical):
             is equivalent to ``problem.is_dcp(dpp=True)``, and
             `problem.is_dpp('dgp')`` is equivalent to
             `problem.is_dgp(dpp=True)`.
+        quad_form_dpp : str or None
+            Controls ``quad_form_dpp_scope`` for solvers that handle
+            quadratic objectives directly (QP solvers).
+
+            - ``None`` (default): standard DPP, no scope relaxation.
+            - ``'qp'``: enter scope for the objective only. Constraint
+              quad_forms with parametric P are correctly rejected.
 
         Returns
         -------
@@ -361,7 +376,20 @@ class Problem(u.Canonical):
             Whether the problem satisfies the DPP rules.
         """
         if context.lower() == 'dcp':
-            expr_dpp = self.is_dcp(dpp=True)
+            if quad_form_dpp is None:
+                expr_dpp = self.is_dcp(dpp=True)
+            elif quad_form_dpp == 'qp':
+                # Check objective with quad_form_dpp_scope (parametric P OK).
+                with scopes.quad_form_dpp_scope():
+                    obj_dpp = self.objective.is_dcp(dpp=True)
+                # Constraints stay on the standard DPP path because they still
+                # canonicalize through the conic machinery.
+                constrs_dpp = all(
+                    c.is_dcp(dpp=True) for c in self.constraints)
+                expr_dpp = obj_dpp and constrs_dpp
+            else:
+                raise ValueError(
+                    f"Unsupported quad_form_dpp: {quad_form_dpp!r}")
         elif context.lower() == 'dgp':
             expr_dpp = self.is_dgp(dpp=True)
         else:
@@ -425,7 +453,7 @@ class Problem(u.Canonical):
                    for v in self.variables())
 
     @perf.compute_once
-    def variables(self) -> List[Variable]:
+    def variables(self) -> list[Variable]:
         """Accessor method for variables.
 
         Returns
@@ -453,7 +481,7 @@ class Problem(u.Canonical):
         return unique_list(params)
 
     @perf.compute_once
-    def constants(self) -> List[Constant]:
+    def constants(self) -> list[Constant]:
         """Accessor method for constants.
 
         Returns
@@ -470,7 +498,7 @@ class Problem(u.Canonical):
         const_dict = {id(constant): constant for constant in constants_}
         return list(const_dict.values())
 
-    def atoms(self) -> List[Atom]:
+    def atoms(self) -> list[Atom]:
         """Accessor method for atoms.
 
         Returns
@@ -505,7 +533,7 @@ class Problem(u.Canonical):
         """
         return self._compilation_time
 
-    def _solve_solver_path(self, solve_func, solvers:List[tuple[str, Dict] | str],
+    def _solve_solver_path(self, solve_func, solvers:list[tuple[str, dict] | str],
                                 args, kwargs):
         """Solve a problem using multiple solvers.
 
@@ -547,7 +575,14 @@ class Problem(u.Canonical):
                             self, *args, solver=solver_name, **solver_kwargs, **kwargs)
                 else:
                     raise ValueError(ENTRY_ERROR_MSG)
-                s.LOGGER.info("Solver %s succeeds", solver_name)
+                if self.status == s.OPTIMAL:
+                    s.LOGGER.info("Solver %s succeeds", solver_name)
+                else:
+                    s.LOGGER.info("Solver %s returned non-optimal status %s",
+                                  solver_name,
+                                  self.status
+                                  )
+                    continue
                 return solution
             except error.SolverError as e:
                 s.LOGGER.info("Solver %s failed: %s", solver_name, e)
@@ -672,7 +707,7 @@ class Problem(u.Canonical):
         ignore_dpp: bool = False,
         verbose: bool = False,
         canon_backend: str | None = None,
-        solver_opts: Optional[dict] = None
+        solver_opts: dict | None = None,
     ):
         """Returns the problem data used in the call to the solver.
 
@@ -871,7 +906,7 @@ class Problem(u.Canonical):
             enforce_dpp: bool = False,
             ignore_dpp: bool = False,
             canon_backend: str | None = None,
-            solver_opts: Optional[dict] = None
+            solver_opts: dict | None = None
     ) -> SolvingChain:
         """
         Construct the chains required to reformulate and solve the problem.
@@ -929,6 +964,7 @@ class Problem(u.Canonical):
                enforce_dpp: bool = False,
                ignore_dpp: bool = False,
                canon_backend: str | None = None,
+               nlp: bool = False,
                **kwargs):
         """Solves a DCP compliant optimization problem.
 
@@ -997,8 +1033,10 @@ class Problem(u.Canonical):
                     '%d constraints, and ' '%d parameters.',
                     n_variables, n_constraints, n_parameters)
             curvatures = []
+            _t0 = time.time()
             if self.is_dcp():
                 curvatures.append('DCP')
+            _t1 = time.time()
             if self.is_dgp():
                 curvatures.append('DGP')
             if self.is_dqcp():
@@ -1006,6 +1044,9 @@ class Problem(u.Canonical):
             s.LOGGER.info(
                     'It is compliant with the following grammars: %s',
                     ', '.join(curvatures))
+            s.LOGGER.info('DCP verification time: %.4f seconds.', _t1 - _t0)
+            n_nodes = len(self.atoms())
+            s.LOGGER.info('Expression tree has %d nodes.', n_nodes)
             if n_parameters == 0:
                 s.LOGGER.info(
                     '(If you need to solve this problem multiple times, '
@@ -1048,7 +1089,7 @@ class Problem(u.Canonical):
                     if bibtex:
                         print(_CITATION_STR)
                         print(CITATION_DICT["CVXPY"])
-                        print(CITATION_DICT["DQCP"])                             
+                        print(CITATION_DICT["DQCP"])
                 reductions = [dqcp2dcp.Dqcp2Dcp()]
                 start = time.time()
                 if type(self.objective) == Maximize:
@@ -1064,6 +1105,14 @@ class Problem(u.Canonical):
                     chain.reduce(), solver=solver, verbose=verbose, **kwargs)
                 self.unpack(chain.retrieve(soln))
                 return self.value
+
+        if nlp and self.is_dnlp():
+            # Deferred import to avoid circular import:
+            # nlp_solving_chain → dnlp2smooth → cvxpy → problem
+            from cvxpy.reductions.solvers.nlp_solving_chain import solve_nlp
+            return solve_nlp(self, solver, warm_start, verbose, **kwargs)
+        elif nlp and not self.is_dnlp():
+            raise error.DNLPError("The problem you specified is not DNLP.")
 
         data, solving_chain, inverse_data = self.get_problem_data(
             solver, gp, enforce_dpp, ignore_dpp, verbose, canon_backend, kwargs
@@ -1086,9 +1135,9 @@ class Problem(u.Canonical):
 
             # Cite problem grammar.
             if self.is_dcp():
-                print(CITATION_DICT["DCP"]) 
+                print(CITATION_DICT["DCP"])
             if gp:
-                print(CITATION_DICT["DGP"]) 
+                print(CITATION_DICT["DGP"])
 
             # Cite solver.
             print(solving_chain.reductions[-1].cite(data))
@@ -1198,20 +1247,21 @@ class Problem(u.Canonical):
         backward_cache = self._solver_cache[s.DIFFCP]
         DT = backward_cache["DT"]
         zeros = np.zeros(backward_cache["s"].shape)
-        # del_vars: dictionary of variable gradients (delta/∂ with respect to variables)
-        # Maps variable IDs to their gradient arrays for the backward pass
-        del_vars = {}
 
+        # Build del_vars dict: variable gradients (outer representation).
+        # np.broadcast_to returns a read-only view; the chain-rule ops in
+        # var_backward allocate new arrays, so this is safe.
+        del_vars = {}
         for variable in self.variables():
             if variable.gradient is None:
-                del_vars[variable.id] = np.ones(variable.shape)
+                del_vars[variable.id] = np.broadcast_to(1.0, variable.shape)
             else:
                 del_vars[variable.id] = np.asarray(variable.gradient,
                                                    dtype=np.float64)
-            # Apply chain rule through reductions that transform variables
-            for reduction in self._cache.solving_chain.reductions:
-                del_vars[variable.id] = reduction.var_backward(
-                    variable, del_vars[variable.id])
+
+        # Apply chain rule through reductions (forward: outer -> inner)
+        for reduction in self._cache.solving_chain.reductions:
+            del_vars = reduction.var_backward(del_vars)
 
         dx = self._cache.param_prog.split_adjoint(del_vars)
         start = time.time()
@@ -1220,22 +1270,12 @@ class Problem(u.Canonical):
         backward_cache['DT_TIME'] = end - start
         dparams = self._cache.param_prog.apply_param_jac(dc, -dA, db)
 
-        # Compute gradients for each parameter, applying chain rule through
-        # reductions that transform parameters (e.g., DGP log transform,
-        # Complex2Real split into real/imag).
+        # Apply chain rule for parameters (reverse: inner -> outer)
+        for reduction in reversed(self._cache.solving_chain.reductions):
+            dparams = reduction.param_backward(dparams)
+
         for param in self.parameters():
-            grad = np.zeros(param.shape)
-            handled = False
-            # Apply chain rule through any reductions that transformed this param
-            for reduction in self._cache.solving_chain.reductions:
-                reduction_grad = reduction.param_backward(param, dparams)
-                if reduction_grad is not None:
-                    grad = grad + reduction_grad
-                    handled = True
-            # Fall back to the direct gradient if no reduction transformed this param
-            if not handled and param.id in dparams:
-                grad = dparams[param.id]
-            param.gradient = grad
+            param.gradient = dparams.get(param.id, 0.0)
 
     def derivative(self) -> None:
         """Apply the derivative of the solution map to perturbations in the Parameters
@@ -1292,41 +1332,41 @@ class Problem(u.Canonical):
         backward_cache = self._solver_cache[s.DIFFCP]
         param_prog = self._cache.param_prog
         D = backward_cache["D"]
-        param_deltas = {}
 
         if not self.parameters():
             for variable in self.variables():
                 variable.delta = np.zeros(variable.shape)
             return
 
-        # Compute deltas for transformed parameters, applying chain rule through
-        # reductions that transform parameters (e.g., DGP log transform,
-        # Complex2Real split into real/imag).
+        # Build param_deltas dict (outer representation).
+        # np.broadcast_to returns a read-only view; the chain-rule ops in
+        # param_forward allocate new arrays, so this is safe.
+        param_deltas = {}
         for param in self.parameters():
-            delta = param.delta if param.delta is not None else np.zeros(param.shape)
-            handled = False
-            # Apply chain rule through any reductions that transformed this param
-            for reduction in self._cache.solving_chain.reductions:
-                transformed_deltas = reduction.param_forward(param, delta)
-                if transformed_deltas is not None:
-                    param_deltas.update(transformed_deltas)
-                    handled = True
-            # If no reduction transformed this param, add its delta directly
-            if not handled and param.id in param_prog.param_id_to_col:
-                param_deltas[param.id] = np.asarray(delta, dtype=np.float64)
+            if param.delta is not None:
+                param_deltas[param.id] = np.asarray(param.delta)
+            else:
+                param_deltas[param.id] = np.broadcast_to(0.0, param.shape)
+
+        # Apply chain rule for parameters (forward: outer -> inner)
+        for reduction in self._cache.solving_chain.reductions:
+            param_deltas = reduction.param_forward(param_deltas)
+
         dc, _, dA, db = param_prog.apply_parameters(param_deltas,
                                                     zero_offset=True)
         start = time.time()
         dx, _, _ = D(-dA, db, dc)
         end = time.time()
         backward_cache['D_TIME'] = end - start
-        dvars = param_prog.split_solution(
-            dx, [v.id for v in self.variables()])
+        dvars = param_prog.split_solution(dx)
+
+        # Apply chain rule for variables (reverse: inner -> outer)
+        for reduction in reversed(self._cache.solving_chain.reductions):
+            dvars = reduction.var_forward(dvars)
+
         for variable in self.variables():
-            variable.delta = dvars[variable.id]
-            # Apply chain rule through reductions that transform variables
-            for reduction in self._cache.solving_chain.reductions:
-                variable.delta = reduction.var_forward(variable, variable.delta)
+            variable.delta = dvars.get(variable.id,
+                                       np.broadcast_to(0.0, variable.shape))
 
     def _clear_solution(self) -> None:
         for v in self.variables():
@@ -1366,9 +1406,12 @@ class Problem(u.Canonical):
         elif solution.status in s.INF_OR_UNB:
             for v in self.variables():
                 v.save_value(None)
-            for constr in self.constraints:
-                for dv in constr.dual_variables:
-                    dv.save_value(None)
+            for c in self.constraints:
+                if c.id in solution.dual_vars:
+                    c.save_dual_value(solution.dual_vars[c.id])
+                else:
+                    for dv in c.dual_variables:
+                        dv.save_value(None)
             self._value = solution.opt_val
         else:
             raise ValueError("Cannot unpack invalid solution: %s" % solution)
@@ -1416,6 +1459,7 @@ class Problem(u.Canonical):
         self._solver_stats = SolverStats.from_dict(self._solution.attr,
                                          chain.solver.name())
 
+
     def __str__(self) -> str:
         if len(self.constraints) == 0:
             return str(self.objective)
@@ -1426,10 +1470,10 @@ class Problem(u.Canonical):
             for constr in self.constraints[1:]:
                 lines += [len(subject_to) * " " + str(constr)]
             return '\n'.join(lines)
-    
+
     def format_labeled(self):
         """Format problem with labels where available.
-        
+
         Shows labels for both the objective expression and constraints.
         """
         if len(self.constraints) == 0:
@@ -1516,10 +1560,10 @@ class SolverStats:
     """
 
     solver_name: str
-    solve_time: Optional[float] = None
-    setup_time: Optional[float] = None
-    num_iters: Optional[int] = None
-    extra_stats: Optional[dict] = None
+    solve_time: float | None = None
+    setup_time: float | None = None
+    num_iters: int | None = None
+    extra_stats: dict | None = None
 
     @classmethod
     def from_dict(cls, attr: dict, solver_name: str) -> "SolverStats":

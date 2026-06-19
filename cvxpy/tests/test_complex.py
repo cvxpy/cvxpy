@@ -22,8 +22,25 @@ import cvxpy as cp
 from cvxpy import Minimize, Problem
 from cvxpy.expressions.constants import Constant, Parameter
 from cvxpy.expressions.variable import Variable
+from cvxpy.reductions.complex2real.complex2real import Complex2Real
+from cvxpy.reductions.solution import Solution
 from cvxpy.reductions.solvers.defines import INSTALLED_MI_SOLVERS
 from cvxpy.tests.base_test import BaseTest
+
+
+class TestComplex2RealAccepts(BaseTest):
+    def test_accepts_returns_bool(self) -> None:
+        """Complex2Real.accepts() should return bool, not None."""
+        from cvxpy.reductions.complex2real.complex2real import Complex2Real
+        reduction = Complex2Real()
+        # Complex problem should be accepted
+        x = Variable((2, 2), complex=True)
+        prob = Problem(Minimize(cp.norm(x, 'fro')), [x == np.eye(2)])
+        self.assertIs(reduction.accepts(prob), True)
+        # Real problem should not be accepted
+        y = Variable((2, 2))
+        prob_real = Problem(Minimize(cp.norm(y, 'fro')), [y == np.eye(2)])
+        self.assertIs(reduction.accepts(prob_real), False)
 
 
 class TestComplex(BaseTest):
@@ -78,6 +95,19 @@ class TestComplex(BaseTest):
         with self.assertRaises(Exception) as cm:
             z.value = np.array([1., 0.])
         self.assertEqual(str(cm.exception), "Parameter value must be imaginary.")
+
+    def test_scalar_complex_value(self) -> None:
+        """Python complex scalars must be accepted as leaf values.
+
+        Leaf.project used to call .astype on the raw value, which built-in
+        complex does not have.
+        """
+        p = Parameter(complex=True)
+        p.value = 2 + 3j
+        self.assertEqual(p.value, 2 + 3j)
+        z = Variable(complex=True)
+        z.value = 2 + 3j
+        self.assertEqual(z.value, 2 + 3j)
 
     def test_constant(self) -> None:
         """Test the parameter class.
@@ -377,6 +407,23 @@ class TestComplex(BaseTest):
             result = prob.solve(solver=cp.SCS, eps=1e-6)
             self.assertAlmostEqual(result, value, places=3)
 
+    def test_lambda_sum_largest_real_arg(self) -> None:
+        """lambda_sum_largest of a real matrix must survive Complex2Real unchanged.
+
+        Complex2Real used to double k for real (symmetric) arguments whenever
+        the problem contained any unrelated complex expression.
+        """
+        X = Variable((3, 3), symmetric=True)
+        constraints = [cp.lambda_sum_largest(X, 2) <= 5, X >> 0, X << 10 * np.eye(3)]
+        objective = cp.Maximize(cp.trace(X))
+        ref = Problem(objective, constraints).solve(solver="CLARABEL")
+        self.assertAlmostEqual(ref, 7.5, places=4)
+
+        z = Variable(complex=True)
+        result = Problem(objective, constraints + [cp.abs(z) <= 1]).solve(solver="CLARABEL")
+        self.assertAlmostEqual(result, ref, places=4)
+        self.assertLessEqual(cp.lambda_sum_largest(X, 2).value, 5 + 1e-4)
+
     def test_quad_form(self) -> None:
         """Test quad_form atom.
         """
@@ -411,6 +458,13 @@ class TestComplex(BaseTest):
         result = prob.solve(solver="CLARABEL")
         normalization = max(abs(result), abs(value))
         self.assertAlmostEqual(result / normalization, value / normalization)
+
+        P_nsd = -P
+        x_nsd = cp.Variable(3, complex=True)
+        expr_nsd = cp.quad_form(x_nsd, P_nsd)
+        prob = cp.Problem(cp.Maximize(expr_nsd), [cp.norm(x_nsd) <= 1])
+        prob.solve(solver="CLARABEL")
+        self.assertEqual(prob.status, cp.OPTIMAL)
 
     def test_matrix_frac(self) -> None:
         """Test matrix_frac atom.
@@ -496,6 +550,51 @@ class TestComplex(BaseTest):
         self.assertAlmostEqual(result, 0, places=3)
         self.assertItemsAlmostEqual(X.value, P, places=3)
 
+    def test_div_complex_divisor(self) -> None:
+        """Test division by a complex constant or parameter: z/c = z*conj(c)/|c|^2.
+        """
+        # Complex scalar divisor: optimum 0 at z = 1+1j.
+        z = Variable(complex=True)
+        prob = Problem(cp.Minimize(cp.abs(z/(1+1j) - 1)))
+        prob.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(prob.value, 0)
+        self.assertAlmostEqual(z.value, 1+1j)
+
+        # Pure imaginary divisor: optimum 0 at z = 1j.
+        prob = Problem(cp.Minimize(cp.abs(z/1j - 1)))
+        prob.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(prob.value, 0)
+        self.assertAlmostEqual(z.value, 1j)
+
+        # Real divisor regression: optimum 0 at z = 2+2j.
+        prob = Problem(cp.Minimize(cp.abs(z/2 - (1+1j))))
+        prob.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(prob.value, 0)
+        self.assertAlmostEqual(z.value, 2+2j)
+
+        # Real numerator, complex divisor: x/(1+1j) = x*(1-1j)/2, optimum 0 at x = 2.
+        x = Variable()
+        prob = Problem(cp.Minimize(cp.abs(x/(1+1j) - (1-1j))))
+        prob.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(prob.value, 0)
+        self.assertAlmostEqual(x.value, 2)
+
+        # Elementwise complex array divisor: optimum 0 at z = [1+1j, 2j].
+        d = np.array([1+1j, 2j])
+        zv = Variable(2, complex=True)
+        prob = Problem(cp.Minimize(cp.norm(zv/d - np.ones(2))))
+        prob.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(prob.value, 0)
+        self.assertItemsAlmostEqual(zv.value, d)
+
+        # Complex Parameter divisor.
+        c = Parameter(2, complex=True)
+        c.value = d
+        prob = Problem(cp.Minimize(cp.norm(zv/c - np.ones(2))))
+        prob.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(prob.value, 0)
+        self.assertItemsAlmostEqual(zv.value, d)
+
     def test_hermitian(self) -> None:
         """Test Hermitian variables.
         """
@@ -513,6 +612,25 @@ class TestComplex(BaseTest):
                        [X >> 0, X[0, 0] == -1])
         prob.solve(solver="SCS")
         assert prob.status is cp.INFEASIBLE
+
+    def test_hermitian_psd_dual(self) -> None:
+        """Test the dual of a PSD constraint on a Hermitian matrix.
+
+        Regression test: the dual recovered from the real dilation was
+        half its correct value.
+        """
+        C = np.array([[2, 1-1j], [1+1j, 3]])
+        A = np.array([[1, 0.5j], [-0.5j, 1]])
+        X = Variable((2, 2), hermitian=True)
+        con = X >> A
+        prob = Problem(cp.Minimize(cp.real(cp.trace(C @ X))), [con])
+        prob.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(prob.value, 4)
+        # KKT conditions give dual variable Y == C exactly.
+        Y = con.dual_value
+        self.assertItemsAlmostEqual(Y, C)
+        # Strong duality: optimal value equals Re(<Y, A>).
+        self.assertAlmostEqual(prob.value, np.real(np.trace(Y.conj().T @ A)))
 
     def test_promote(self) -> None:
         """Test promotion of complex variables.
@@ -639,6 +757,16 @@ class TestComplex(BaseTest):
         result = prob.solve(solver="SCS")
         self.assertAlmostEqual(result, 2)
 
+    def test_diag_vec_hermitian(self) -> None:
+        """diag(complex_vector) is not Hermitian unless entries are real."""
+        v_complex = cp.Variable(3, complex=True)
+        D_complex = cp.diag(v_complex)
+        assert not D_complex.is_hermitian()
+
+        v_real = cp.Variable(3)
+        D_real = cp.diag(v_real)
+        assert D_real.is_hermitian()
+
     def test_complex_qp(self) -> None:
         """Test a QP with a complex variable.
         """
@@ -671,7 +799,7 @@ class TestComplex(BaseTest):
         assert cp.quad_form(x, P2).is_dcp()
 
     @pytest.mark.skipif(
-        "HIGHS" not in INSTALLED_MI_SOLVERS, 
+        "HIGHS" not in INSTALLED_MI_SOLVERS,
         reason='HiGHS solver is not installed.'
     )
     def test_bool(self) -> None:
@@ -831,3 +959,113 @@ class TestComplex(BaseTest):
             cp.NonNeg(x)
         with self.assertRaises(ValueError):
             cp.NonPos(x)
+
+    def test_complex2real_mapping_helpers_for_general_and_hermitian_leaves(self) -> None:
+        general = cp.Variable(2, complex=True)
+        hermitian = cp.Variable((2, 2), hermitian=True)
+        param = cp.Parameter(2, complex=True)
+        hparam = cp.Parameter((2, 2), hermitian=True)
+        param.value = np.array([1 + 2j, 3 + 4j])
+        hparam.value = np.array([[1, 2 + 5j], [2 - 5j, 3]])
+        problem = cp.Problem(
+            cp.Minimize(cp.sum_squares(cp.real(general - param))),
+            [hermitian == hparam],
+        )
+        reduction = Complex2Real()
+
+        self.assertEqual(reduction.var_id_map, {})
+        self.assertEqual(reduction.param_id_map, {})
+        np.testing.assert_allclose(
+            reduction.var_backward({general.id: np.array([1 + 2j, 3 + 4j])})[general.id],
+            [1 + 2j, 3 + 4j],
+        )
+        np.testing.assert_allclose(
+            reduction.var_forward({general.id: np.array([1.0, 2.0])})[general.id],
+            [1.0, 2.0],
+        )
+        np.testing.assert_allclose(
+            reduction.param_backward({param.id: np.array([1.0, 2.0])})[param.id],
+            [1.0, 2.0],
+        )
+        np.testing.assert_allclose(
+            reduction.param_forward({param.id: np.array([1.0, 2.0])})[param.id],
+            [1.0, 2.0],
+        )
+
+        reduction.apply(problem)
+        reduction.update_parameters(problem)
+        self.assertIn(general.id, reduction.var_id_map)
+        self.assertIn(hermitian.id, reduction.var_id_map)
+        self.assertIn(param.id, reduction.param_id_map)
+        self.assertIn(hparam.id, reduction.param_id_map)
+
+        real_general, imag_general = reduction.canon_methods._variables[general]
+        real_hermitian, imag_hermitian = reduction.canon_methods._variables[hermitian]
+        real_param, imag_param = reduction.canon_methods._parameters[param]
+        real_hparam, imag_hparam = reduction.canon_methods._parameters[hparam]
+
+        np.testing.assert_allclose(real_param.value, [1, 3])
+        np.testing.assert_allclose(imag_param.value, [2, 4])
+        np.testing.assert_allclose(real_hparam.value, [[1, 2], [2, 3]])
+        np.testing.assert_allclose(imag_hparam.value, [5])
+
+        backward = reduction.var_backward({
+            general.id: np.array([1 + 2j, 3 + 4j]),
+            hermitian.id: np.array([[1, 2 + 5j], [2 - 5j, 3]]),
+        })
+        np.testing.assert_allclose(backward[real_general.id], [1, 3])
+        np.testing.assert_allclose(backward[imag_general.id], [2, 4])
+        np.testing.assert_allclose(backward[real_hermitian.id], [[1, 2], [2, 3]])
+        np.testing.assert_allclose(backward[imag_hermitian.id], [5])
+
+        forward = reduction.var_forward({
+            real_general.id: np.array([1, 3]),
+            imag_general.id: np.array([2, 4]),
+            real_hermitian.id: np.array([[1, 2], [2, 3]]),
+            imag_hermitian.id: np.array([5]),
+        })
+        np.testing.assert_allclose(forward[general.id], [1 + 2j, 3 + 4j])
+        np.testing.assert_allclose(forward[hermitian.id], [[1, 2 + 5j], [2 - 5j, 3]])
+
+        param_backward = reduction.param_backward({
+            real_param.id: np.array([1, 3]),
+            imag_param.id: np.array([2, 4]),
+            real_hparam.id: np.array([[1, 2], [2, 3]]),
+            imag_hparam.id: np.array([5]),
+        })
+        np.testing.assert_allclose(param_backward[param.id], [1 + 2j, 3 + 4j])
+        np.testing.assert_allclose(param_backward[hparam.id], [[1, 2 + 5j], [2 - 5j, 3]])
+
+        param_forward = reduction.param_forward({
+            param.id: np.array([1 + 2j, 3 + 4j]),
+            hparam.id: np.array([[1, 2 + 5j], [2 - 5j, 3]]),
+        })
+        np.testing.assert_allclose(param_forward[real_param.id], [1, 3])
+        np.testing.assert_allclose(param_forward[imag_param.id], [2, 4])
+        np.testing.assert_allclose(param_forward[real_hparam.id], [[1, 2], [2, 3]])
+        np.testing.assert_allclose(param_forward[imag_hparam.id], [5])
+
+    def test_complex2real_invert_primal_cases(self) -> None:
+        x = cp.Variable(2, complex=True)
+        H = cp.Variable((2, 2), hermitian=True)
+        problem = cp.Problem(cp.Minimize(cp.sum_squares(cp.real(x))), [H >> 0])
+        reduction = Complex2Real()
+        _, inverse_data = reduction.apply(problem)
+        real_x, imag_x = reduction.canon_methods._variables[x]
+        real_H, imag_H = reduction.canon_methods._variables[H]
+
+        solution = Solution(
+            cp.OPTIMAL,
+            0.0,
+            {
+                real_x.id: np.array([1, 3]),
+                imag_x.id: np.array([2, 4]),
+                real_H.id: np.array([[1, 2], [2, 3]]),
+                imag_H.id: np.array([5]),
+            },
+            {},
+            {},
+        )
+        inverted = reduction.invert(solution, inverse_data)
+        np.testing.assert_allclose(inverted.primal_vars[x.id], [1 + 2j, 3 + 4j])
+        np.testing.assert_allclose(inverted.primal_vars[H.id], [[1, 2 + 5j], [2 - 5j, 3]])

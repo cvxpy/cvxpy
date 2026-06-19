@@ -15,9 +15,10 @@ limitations under the License.
 """
 
 from cvxpy.atoms.sum_largest import sum_largest
+from cvxpy.expressions.expression import Expression
 
 
-def cvar(x, beta):
+def cvar(x, beta) -> Expression:
     r"""The conditional value at risk (CVaR) of a random variable represented by
     the vector of samples ``x``.
 
@@ -51,4 +52,4 @@ def cvar(x, beta):
 
     k = (1 - beta) * x.shape[0]
     return sum_largest(x, k) / k
-    
+

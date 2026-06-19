@@ -28,12 +28,10 @@ Date & Location
 * **Location:** `CoDa E160 <https://maps.app.goo.gl/ANfH9ZehwgvSNnS76>`_, Stanford University
 * **Parking:** `Roble Field Garage <https://campus-map.stanford.edu/?srch=Roble%20Field%20Garage>`_ or `Via Ortega Garage <https://campus-map.stanford.edu/?srch=Via%20Ortega%20Garage>`_ (`paid on Friday <https://transportation.stanford.edu/parking-stanford/purchase-parking/visitor-parking>`_, free on Saturday)
 
-Registration
-------------
+Recordings
+----------
 
-`Register here <https://docs.google.com/forms/d/e/1FAIpQLSexWIvIfNlpkY4KK3rw47qNg8MiYUT6vL-dPt1emACH6ChPzw/viewform?usp=header>`_
-
-The Zoom link (for virtual participants) will be emailed to registered participants the day before the workshop.
+Talk recordings are available on the `CVXPY YouTube playlist <https://www.youtube.com/playlist?list=PL8qScBgiT5TEYdKBix1reNLe7w_M7lHr_>`_.
 
 Schedule
 --------
@@ -151,41 +149,43 @@ Morning Session
    :header-rows: 0
 
    * - **9:00 AM**
-     - **Introductory Remarks**
+     - | **Introductory Remarks**
+       | `CVXPY Origins — Steven Diamond <https://www.youtube.com/watch?v=AN6a-yxBGRc>`_ ·
+         `CVXPY Development History — William Zhang <https://www.youtube.com/watch?v=1zNlF1M-CzI>`_
 
    * - **9:30 AM**
-     - | **HiGHS for CVXPY** — `Julian Hall <#speaker-julian-hall>`_ *(Virtual)*
+     - | **HiGHS for CVXPY** — `Julian Hall <#speaker-julian-hall>`_ *(Virtual)* · `Recording <https://www.youtube.com/watch?v=hSXdFq2RVtQ>`_
        |
        | HiGHS is the world's best open-source linear optimization software. Although it's been callable from CVXPY for a few years, its presence has grown, and it is the default MIP solver from CVXPY 1.8. This talk introduces HiGHS: its history, its solvers, its users, its people and its future.
 
    * - **10:00 AM**
-     - | **Adapting CVXPY for Optimization on Curved Spaces** — `Nikhesh Kumar Murali <#speaker-nikhesh-kumar-murali>`_ *(Virtual)*
+     - | **Adapting CVXPY for Optimization on Curved Spaces** — `Nikhesh Kumar Murali <#speaker-nikhesh-kumar-murali>`_ *(Virtual)* · `Recording <https://www.youtube.com/watch?v=blOTfUS5dNY>`_
        |
        | Convex optimization has emerged as a fundamental approach in machine learning, AI systems, and core engineering fields due to its global optimality guarantees and progress in computational techniques. Modern frameworks like CVXPY enable high-level problem specification via Python and offer high precision solvers. However, adapting CVXPY convex optimization solver for curved spaces present some problems like including hierarchical representation learning, hyperbolic embeddings, and structured latent space modeling in neural systems, where classical notions of optimization and convexity on Euclidean spaces are challenged. We explore some strategies for adapting, redefining those notions for curved spaces, especially hyperbolic spaces with g-convexity and its refinement h-convexity. While g-convexity generalizes convexity to curved spaces where local minima coincide with global minima under appropriate conditions, the concept of h-convexity introduces curvature independent guarantees on certain curved spaces with non-positive sectional curvature called as Hadamard manifolds. We propose some techniques to model proximal problems via tangent spaces, integrate g-convexity & h-convexity into solvers, and construct differentiable optimization layers in CVXPY to support the convex sub problems for curved spaces.
 
    * - **10:10 AM**
-     - | **Disciplined Biconvex Programming** — `Hao Zhu <#speaker-hao-zhu>`_ *(Virtual)*
+     - | **Disciplined Biconvex Programming** — `Hao Zhu <#speaker-hao-zhu>`_ *(Virtual)* · `Recording <https://www.youtube.com/watch?v=NEimm04bAN8>`_
        |
        | We introduce disciplined biconvex programming (DBCP), a modeling framework for specifying and solving biconvex optimization problems. Biconvex optimization problems arise in various applications, including machine learning, signal processing, computational science, and control. Solving a biconvex optimization problem in practice usually resolves to heuristic methods based on alternate convex search (ACS), which iteratively optimizes over one block of variables while keeping the other fixed, so that the resulting subproblems are convex and can be efficiently solved. However, designing and implementing an ACS solver for a specific biconvex optimization problem usually requires significant effort from the user, which can be tedious and error-prone. DBCP extends the principles of disciplined convex programming to biconvex problems, allowing users to specify biconvex optimization problems in a natural way based on a small number of syntax rules. The resulting problem can then be automatically split and transformed into convex subproblems, for which a customized ACS solver is then generated and applied. DBCP allows users to quickly experiment with different biconvex problem formulations, without expertise in convex optimization. We implement DBCP into the open source Python package dbcp, as an extension to the famous domain specific language CVXPY for convex optimization.
 
    * - **10:40 AM**
-     - | **Optimal Matching with CVXPY** — `Michael Howes <#speaker-michael-howes>`_ *(In-Person)*
+     - | **Optimal Matching with CVXPY** — `Michael Howes <#speaker-michael-howes>`_ *(In-Person)* · `Recording <https://www.youtube.com/watch?v=5WtWj4eK6y8>`_
        |
        | The Stanford Statistics Department uses CVXPY to assign PhD students to courses to TA based on their preferences. The assignments are made by gathering the students' preferences and then solving a linear program to find an optimal matching. Although the linear program is a relaxation of the original objective, CVXPY returns a valid assignment if the solver is correctly specified. CVXPY also makes it easy to add a variety of constraints based on students' experience and availability.
 
    * - **10:50 AM**
-     - | **Panel: Contributing to CVXPY** — William Zhang & Nikhil Devenathan *(In-Person)*
+     - | **Panel: Contributing to CVXPY** — William Zhang & Nikhil Devenathan *(In-Person)* · `Recording <https://www.youtube.com/watch?v=HcbrzvEchyY>`_
 
    * - **11:05 AM**
      - | **Talkback: CVXPY New Features** *(Hybrid)*
 
    * - **11:30 AM**
-     - | **Optimizing Water and Wastewater Treatment Systems with CVXPY** — `Daly Wettermark <#speaker-daly-wettermark>`_ *(In-Person)*
+     - | **Optimizing Water and Wastewater Treatment Systems with CVXPY** — `Daly Wettermark <#speaker-daly-wettermark>`_ *(In-Person)* · `Recording <https://www.youtube.com/watch?v=_HOzRM3CuLI>`_
        |
        | Pumping and treatment of water comprises approximately 4% of global electricity consumption, with up to 20% in regions where water scarcity necessitates advanced treatment or long-distance pumping like California. Recent research has highlighted the potential for water systems to reduce their electricity-related costs and emissions through flexible operation. In this presentation, we present an overview of how water sector facilities such as desalination, water distribution, and wastewater treatment are well positioned to contribute to grid flexibility. We will specifically discuss an optimization problem in CVXPY for a wastewater treatment facility with a biogas microgrid, using physics-informed constraints and real-world electricity tariffs and Scope 2 emissions factors. We will discuss the results, which demonstrate the potential for energy flexibility to reduce operating costs by 12% compared to baseline operation, and how the optimization tool can be used to compare different flexibility technologies.
 
    * - **11:40 AM**
-     - | **A Tutorial on Graphs of Convex Sets** — `Tobia Marcucci <#speaker-tobia-marcucci>`_ *(In-Person)*
+     - | **A Tutorial on Graphs of Convex Sets** — `Tobia Marcucci <#speaker-tobia-marcucci>`_ *(In-Person)* · `Recording <https://www.youtube.com/watch?v=vnfMD4t3lkU>`_
        |
        | In this talk, I will give a tutorial on graphs of convex sets, with emphasis on their applications in robotics, planning, and, more broadly, decision making. Mathematically, a Graph of Convex Sets (GCS) is a graph in which vertices are associated with convex optimization problems and edges couple pairs of these problems through additional convex costs and constraints. Classical problems defined over ordinary weighted graphs (such as the shortest path, the traveling salesman, and the minimum spanning tree) naturally generalize to a GCS, giving rise to a rich class of problems at the interface of combinatorial and convex optimization. First, I will discuss how GCS problems can be solved efficiently and show a variety of real-world applications. Secondly, I will present GCSOPT, an open-source and easy-to-use Python library, based on CVXPY, that enables solving complex GCS problems in just a few lines of code.
 
@@ -200,17 +200,17 @@ Afternoon Session
    :header-rows: 0
 
    * - **1:15 PM**
-     - | **Disciplined Nonlinear Programming** — `Daniel Cederberg <#speaker-daniel-cederberg>`_ *(In-Person)*
+     - | **Disciplined Nonlinear Programming** — `Daniel Cederberg <#speaker-daniel-cederberg>`_ *(In-Person)* · `Recording <https://www.youtube.com/watch?v=AYzS161Myw0>`_
        |
        | In this talk I introduce disciplined nonlinear programming (DNLP), a new syntax for specifying nonlinear programming problems. DNLP allows smooth functions to be freely mixed with nonsmooth convex and concave functions, with rules governing how the nonsmooth functions can be used. Problems expressed in DNLP form can be automatically canonicalized to a standard nonlinear programming (NLP) form and passed to a suitable NLP solver. I conclude by describing the DNLP language in more detail, comparing it with existing NLP modeling languages, and presenting our open-source implementation of DNLP as an extension of CVXPY.
 
    * - **1:45 PM**
-     - | **pycvxset: Convex Sets in Python for Control and Analysis** — `Abraham Vinod <#speaker-abraham-vinod>`_ *(Virtual)*
+     - | **pycvxset: Convex Sets in Python for Control and Analysis** — `Abraham Vinod <#speaker-abraham-vinod>`_ *(Virtual)* · `Recording <https://www.youtube.com/watch?v=8CX7c25HbUw>`_
        |
        | pycvxset is a new Python package to manipulate and visualize convex sets. We support polytopes and ellipsoids, and provide user-friendly methods to perform a variety of set operations. For polytopes, pycvxset supports the standard halfspace/vertex representation as well as the constrained zonotope representation. The main advantage of constrained zonotope representations over standard halfspace/vertex representations is that constrained zonotopes admit closed-form expressions for several set operations. pycvxset uses CVXPY to solve various convex programs arising in set operations, and uses pycddlib to perform vertex-halfspace enumeration. We demonstrate the use of pycvxset in analyzing and controlling dynamical systems in Python. pycvxset is available at https://github.com/merlresearch/pycvxset under the AGPL-3.0-or-later license, along with documentation and examples.
 
    * - **2:00 PM**
-     - | **Riskfolio-Lib: Advanced Portfolio Optimization** — `Dany Cajas <#speaker-dany-cajas>`_ *(Virtual)*
+     - | **Riskfolio-Lib: Advanced Portfolio Optimization** — `Dany Cajas <#speaker-dany-cajas>`_ *(Virtual)* · `Recording <https://www.youtube.com/watch?v=qwaBfhaoSZ8>`_
        |
        | Advanced portfolio optimization with convex and integer programming in Python.
 
@@ -218,37 +218,37 @@ Afternoon Session
      - | **Talkback: Serialization Specifications** *(Hybrid)*
 
    * - **2:45 PM**
-     - | **Minimizing Electricity-Related Costs and Emissions with EECO** — `Fletcher Chapin <#speaker-fletcher-chapin>`_ *(In-Person)*
+     - | **Minimizing Electricity-Related Costs and Emissions with EECO** — `Fletcher Chapin <#speaker-fletcher-chapin>`_ *(In-Person)* · `Recording <https://www.youtube.com/watch?v=EZ1BvKEbVA0>`_
        |
        | Electricity tariff structures are extremely complex due to features such as time-of-use pricing, tiered charges, and bundling (whether generation and distribution are billed together). Industrial energy flexibility, or the ability of industrial electricity consumers to modify the timing of electricity consumption, has been the subject of much research due to its potential to reduce both costs and emissions. However, the magnitudes of bill savings or carbon emission reductions are a strong function of the prevailing electricity tariffs. In this work, we expand on our previous research, which compiled industrial electricity tariffs from across the United States, by presenting Electric Emissions & Cost Optimizer (EECO), a software package for optimizing electricity-related emissions and costs using the format from our published tariff dataset. After briefly discussing the technical details of EECO, we present a simple case study demonstrating how to use EECO to optimize an industrial consumer's electricity bill with a simple CVXPY battery model. The case study emphasizes the ease with which users can select from thousands of available tariffs representing the entire United States.
 
    * - **3:00 PM**
-     - | **Development Plans for CVXR** — `Balasubramanian Narasimhan <#speaker-balasubramanian-narasimhan>`_ & Anqi Fu *(In-Person)*
+     - | **Development Plans for CVXR** — `Balasubramanian Narasimhan <#speaker-balasubramanian-narasimhan>`_ & Anqi Fu *(In-Person)* · `Recording <https://www.youtube.com/watch?v=Zvouhkjgt_k>`_
        |
        | CVXR is the R port of CVXPY and has a developer community of two. As a result, it has fallen behind CVXPY in features but new AI development tools plus facilities in R offer hope of catching up. In this talk we describe our plans and present data from some early experiments that sound promising. The talk will be quite interactive and we welcome feedback from seasoned CVXPY community.
 
    * - **3:15 PM**
-     - | **Moreau: The Convex Optimization Solver for the Modern Workload** — `Steven Diamond <#speaker-steven-diamond>`_ *(In-Person, Sponsored)*
+     - | **Moreau: The Convex Optimization Solver for the Modern Workload** — `Steven Diamond <#speaker-steven-diamond>`_ *(In-Person, Sponsored)* · `Recording <https://www.youtube.com/watch?v=T_4E8B88RUE>`_
        |
        | Moreau is a new GPU-native convex optimization solver designed for modern AI workloads. Moreau is up to 100× faster than comparable CPU solvers, and supports batching and exact differentiation. Moreau interfaces with PyTorch and JAX, enabling efficient backpropagation through convex optimization layers. This talk shows how Moreau unlocks new applications of convex optimization in robotics, energy, and finance. Visit `moreau.so <https://www.moreau.so/>`_ to learn more about the solver.
 
    * - **3:30 PM**
-     - | **Electrified Transportation Optimization with CVXPY** — `Kyle Goodrick <#speaker-kyle-goodrick>`_ *(In-Person)*
+     - | **Electrified Transportation Optimization with CVXPY** — `Kyle Goodrick <#speaker-kyle-goodrick>`_ *(In-Person)* · `Recording <https://www.youtube.com/watch?v=LTpsiR_62N0>`_
        |
        | To achieve the lowest cost operation, electrified transportation must maximize the utilization of charging and grid infrastructure. This presentation introduces a site optimization tool designed to identify the lowest-cost electrification strategy for shared transportation infrastructure serving multiple sectors, including heavy-duty trucks, buses, regional rail, and light rail. Implemented with CVXPY, the tool models the system as a convex optimization problem that jointly considers energy demand profiles, infrastructure constraints, and cost drivers across the site and the upstream power system. The model evaluates tradeoffs between on-site investments and grid upgrades, considering interconnection capacity limits, distribution impacts, and utility rate structures. It optimizes on-site energy storage and co-optimizes across transportation modes to reduce total system cost. This presentation will describe a real-world application of CVXPY where coordinated planning across transportation sectors can minimize total cost, reduce emissions, and more fully utilize existing grid infrastructure. The tool is intended to support fleets, utilities, planners, and policymakers in evaluating scalable, economically efficient approaches to transportation electrification at complex, multi-user sites.
 
    * - **3:45 PM**
-     - | **MOCVXPY: A CVXPY Extension for Multiobjective Optimization** — `Ludovic Salomon <#speaker-ludovic-salomon>`_ *(Virtual)*
+     - | **MOCVXPY: A CVXPY Extension for Multiobjective Optimization** — `Ludovic Salomon <#speaker-ludovic-salomon>`_ *(Virtual)* · `Recording <https://www.youtube.com/watch?v=t4GeGjhT39M>`_
        |
        | MOCVXPY is a library built on top of CVXPY for convex vector optimization. It enables practitioners to describe their convex vector optimization problems using an intuitive algebraic language that closely follows the mathematical formulation. This talk presents the main features of MOCVXPY and the algorithms employed by the library. We also illustrate its functionality with examples and an application in energy.
 
    * - **4:00 PM**
-     - | **Learning Parametric Convex Functions** — Maximilian Schaller *(In-Person)*
+     - | **Learning Parametric Convex Functions** — Maximilian Schaller *(In-Person)* · `Recording <https://www.youtube.com/watch?v=mXiCJ1Vzimk>`_
        |
        | LPCF is a framework for fitting a parametrized convex function to some given data, compatible with disciplined convex programming. This allows to fit a function that can be used in a convex optimization formulation, directly to observed or simulated data.
 
    * - **4:15 PM**
-     - | **Keynote: Convex Optimization** — `Stephen Boyd <#speaker-stephen-boyd>`_ *(In-Person)*
+     - | **Keynote: Convex Optimization** — `Stephen Boyd <#speaker-stephen-boyd>`_ *(In-Person)* · `Recording <https://www.youtube.com/watch?v=lx9PmYmyzn8>`_
        |
        | In this high level talk we step back and ask why and how we use optimization in general, and what role convex optimization plays.
 

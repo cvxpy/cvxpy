@@ -21,6 +21,7 @@ import warnings
 from contextlib import redirect_stdout
 from fractions import Fraction
 from io import StringIO
+from unittest.mock import DEFAULT, call, patch
 
 import numpy
 import numpy as np
@@ -38,6 +39,8 @@ from cvxpy.error import DCPError, ParameterError, SolverError
 from cvxpy.expressions.constants import Constant, Parameter
 from cvxpy.expressions.variable import Variable
 from cvxpy.problems.problem import Problem
+from cvxpy.reductions import Dcp2Cone
+from cvxpy.reductions.solution import Solution
 from cvxpy.reductions.solvers.conic_solvers import scs_conif
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.defines import (
@@ -757,7 +760,7 @@ class TestProblem(BaseTest):
         assert numpy.isinf(p.value)
         assert p.value > 0
         assert self.a.value is None
-        assert p.constraints[0].dual_value is None
+        assert p.constraints[0].dual_value is not None
 
         if s.CVXOPT in INSTALLED_SOLVERS:
             p = Problem(cp.Minimize(-self.a), [self.a >= 2])
@@ -778,7 +781,7 @@ class TestProblem(BaseTest):
         assert numpy.isinf(p.value)
         assert p.value < 0
         assert self.a.value is None
-        assert p.constraints[0].dual_value is None
+        assert p.constraints[0].dual_value is not None
 
         p = Problem(cp.Minimize(-self.a), [self.a >= 2, self.a <= 1])
         result = p.solve(solver=s.CLARABEL)
@@ -1531,24 +1534,52 @@ class TestProblem(BaseTest):
         A = numpy.random.randn(40, 40)
         b = cp.matmul(A, numpy.random.randn(40))
 
-        # valid input, return solution
+        # If the first solver yields a non-optimal status, we should fall back to the next solver.
         solvers_with_str=[(s.OSQP, {'max_iter':1}), s.CLARABEL]
         solvers_empty_dict=[(s.OSQP, {'max_iter':1}), (s.CLARABEL, {})]
         solvers_wrong_case=[("osqp", {'max_iter':1}), "Clarabel"]
 
         for solvers in [solvers_with_str, solvers_empty_dict, solvers_wrong_case]:
-            self.assertIsNotNone(Problem(cp.Minimize(
-                cp.sum_squares(cp.matmul(A, cp.Variable(40)) - b))).solve(
-                solver_path=solvers))
+            with patch.object(Problem, "_solve", wraps=Problem._solve) as mock_solve_func:
+                problem = Problem(cp.Minimize(cp.sum_squares(cp.matmul(A, cp.Variable(40)) - b)))
+                self.assertIsNotNone(problem.solve(solver_path=solvers))
+                self.assertEqual(problem.status, s.OPTIMAL)
+
+                expected_calls = []
+                for solver_spec in solvers:
+                    if isinstance(solver_spec, str):
+                        solver = solver_spec
+                        solver_kwargs = {}
+                    elif isinstance(solver_spec, tuple):
+                        solver, solver_kwargs = solver_spec
+                    else:
+                        msg = f"Unexpected solver specification {solver_spec}."
+                        raise ValueError(msg)
+
+                    expected_calls.append(call(problem, solver=solver, **solver_kwargs))
+
+                self.assertEqual(mock_solve_func.mock_calls, expected_calls)
+
+        # If the first solver results in a SolverError, we should fall back to the next solver.
+        with patch.object(
+                Problem,
+                "_solve",
+                wraps=Problem._solve,
+                side_effect=[SolverError("Mock solver error"), DEFAULT],
+        ) as mock_solve_func:
+            problem = Problem(cp.Minimize(0), [cp.Variable(1) == 1])
+            problem.solve(solver_path=[cp.OSQP, cp.CLARABEL])
+            expected_calls = [call(problem, solver=cp.OSQP), call(problem, solver=cp.CLARABEL)]
+            self.assertEqual(mock_solve_func.mock_calls, expected_calls)
+            self.assertEqual(problem.solver_stats.solver_name, s.CLARABEL)
+            self.assertEqual(problem.status, s.OPTIMAL)
 
         # valid input, raise SolverError
         solvers = [(s.OSQP, {'max_iter':1})]
-
         with self.assertRaises(SolverError):
             Problem(cp.Minimize(cp.quad_form(cp.Variable(1) + 1, np.array([[-1]]), True))).solve(
                 solver_path=solvers
             )
-
         # invalid input, raise ValueError
         solvers_invalid_inner_input = [{'str':{}}, 'str', [], [1], [()], [(1)], [(1,{})],
                                         [(s.OSQP,[])], [(s.OSQP,)]]
@@ -2325,4 +2356,17 @@ class TestProblem(BaseTest):
             c = cp.sum(a)
             cp.Problem(cp.Maximize(0), [c >= 0])
             assert len(w) == 0
+
+    def test_canonicalization_invert_none_duals(self) -> None:
+        """Canonicalization.invert should handle None dual_vars."""
+        x = cp.Variable(2)
+        prob = cp.Problem(cp.Minimize(cp.sum(x)), [x >= 1])
+        reduction = Dcp2Cone()
+        new_prob, inv_data = reduction.apply(prob)
+
+        # Simulate a solver returning None dual_vars (e.g., MIP solvers).
+        pv = {vid: np.ones(2) for vid in inv_data.id_map}
+        sol = Solution("optimal", 2.0, pv, None, {})
+        result = reduction.invert(sol, inv_data)
+        assert result.dual_vars is None
 

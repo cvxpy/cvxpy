@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import List, Optional, Tuple
 
 import numpy as np
 import scipy.sparse as sp
@@ -23,6 +22,7 @@ import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.settings as s
 import cvxpy.utilities.linalg as eig_util
+from cvxpy.expressions.expression import ExpressionValue, GradMap
 from cvxpy.expressions.leaf import Leaf
 from cvxpy.utilities import performance_utils as perf
 from cvxpy.utilities.warn import warn
@@ -41,7 +41,7 @@ class Constant(Leaf):
     then ``x + c`` creates an expression by casting ``c`` to a Constant.
     """
 
-    def __init__(self, value, name: Optional[str] = None) -> None:
+    def __init__(self, value, name: str | None = None) -> None:
         # Record whether the original value was boolean-typed before
         # const_to_matrix converts it to float64.
         self._boolean: bool = self._detect_boolean(value)
@@ -56,13 +56,13 @@ class Constant(Leaf):
 
             self._value = intf.DEFAULT_INTF.const_to_matrix(value)
             self._sparse = False
-        self._imag: Optional[bool] = None
-        self._nonneg: Optional[bool] = None
-        self._nonpos: Optional[bool] = None
-        self._symm: Optional[bool] = None
-        self._herm: Optional[bool] = None
-        self._psd_test: Optional[bool] = None
-        self._nsd_test: Optional[bool] = None
+        self._imag: bool | None = None
+        self._nonneg: bool | None = None
+        self._nonpos: bool | None = None
+        self._symm: bool | None = None
+        self._herm: bool | None = None
+        self._psd_test: bool | None = None
+        self._nsd_test: bool | None = None
         self._cached_is_pos = None
         self._skew_symm = None
         self._name = name
@@ -96,7 +96,7 @@ class Constant(Leaf):
         else:
             return self._name
 
-    def constants(self) -> List["Constant"]:
+    def constants(self) -> list["Constant"]:
         """Returns self as a constant.
         """
         return [self]
@@ -105,8 +105,8 @@ class Constant(Leaf):
         return True
 
     @property
-    def value(self):
-        """NumPy.ndarray or None: The numeric value of the constant.
+    def value(self) -> ExpressionValue:
+        """The numeric value of the constant.
         """
         return self._value
 
@@ -123,7 +123,7 @@ class Constant(Leaf):
         return self._cached_is_pos
 
     @property
-    def grad(self):
+    def grad(self) -> GradMap:
         """Gives the (sub/super)gradient of the expression w.r.t. each variable.
 
         Matrix expressions are vectorized, so the gradient is a matrix.
@@ -134,7 +134,7 @@ class Constant(Leaf):
         return {}
 
     @property
-    def shape(self) -> Tuple[int, ...]:
+    def shape(self) -> tuple[int, ...]:
         """Returns the (row, col) dimensions of the expression.
         """
         return self._shape
@@ -278,7 +278,7 @@ class Constant(Leaf):
 
         return self._nsd_test
 
-    def get_bounds(self) -> Tuple[np.ndarray, np.ndarray]:
+    def get_bounds(self) -> tuple[np.ndarray, np.ndarray]:
         """Return bounds for this constant.
 
         For constants, the bounds are exactly (value, value).

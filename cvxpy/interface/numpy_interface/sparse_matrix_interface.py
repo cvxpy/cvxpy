@@ -45,6 +45,9 @@ class SparseArrayInterface(NDArrayInterface):
         else:
             # Cast bool, int, etc to double
             dtype = np.double
+        if hasattr(value, 'ndim') and value.ndim > 2:
+            # CSC/CSR are 2D only; keep ND sparse as COO.
+            return sp.coo_array(value, dtype=dtype)
         return sp.csc_array(value, dtype=dtype)
 
     def identity(self, size):

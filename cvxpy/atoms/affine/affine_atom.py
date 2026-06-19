@@ -13,12 +13,13 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import Any, List, Tuple
+from typing import Any
 
 import scipy.sparse as sp
 
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
+import cvxpy.settings as s
 import cvxpy.utilities as u
 from cvxpy.atoms.atom import Atom
 from cvxpy.cvxcore.python import canonInterface
@@ -30,7 +31,7 @@ class AffAtom(Atom):
     """ Abstract base class for affine atoms. """
     _allow_complex = True
 
-    def sign_from_args(self) -> Tuple[bool, bool]:
+    def sign_from_args(self) -> tuple[bool, bool]:
         """By default, the sign is the most general of all the argument signs.
         """
         return u.sign.sum_signs([arg for arg in self.args])
@@ -55,6 +56,10 @@ class AffAtom(Atom):
     def is_atom_concave(self) -> bool:
         """Is the atom concave?
         """
+        return True
+
+    def is_atom_smooth(self) -> bool:
+        """Is the atom smooth?"""
         return True
 
     def is_incr(self, idx) -> bool:
@@ -108,7 +113,7 @@ class AffAtom(Atom):
                 return False
         return True
 
-    def _grad(self, values) -> List[Any]:
+    def _grad(self, values) -> list[Any]:
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.
 
         Matrix expressions are vectorized, so the gradient is a matrix.
@@ -136,6 +141,14 @@ class AffAtom(Atom):
                                                  self.get_data())
         param_to_size = {lo.CONSTANT_ID: 1}
         param_to_col = {lo.CONSTANT_ID: 0}
+        # The CPP backend does not support expressions with more than
+        # 2 dimensions or atoms without a C++ implementation (e.g.
+        # broadcast_to, concatenate), so use the SCIPY backend for those.
+        if self.ndim > 2 or any(arg.ndim > 2 for arg in self.args) \
+                or not self._supports_cpp():
+            canon_backend = s.SCIPY_CANON_BACKEND
+        else:
+            canon_backend = None
         # Get the matrix representation of the function.
         canon_mat = canonInterface.get_problem_matrix(
             [fake_expr],
@@ -144,6 +157,7 @@ class AffAtom(Atom):
             param_to_size,
             param_to_col,
             self.size,
+            canon_backend,
         )
         # HACK TODO TODO convert tensors back to vectors.
         # COO = (V[lo.CONSTANT_ID][0], (J[lo.CONSTANT_ID][0], I[lo.CONSTANT_ID][0]))
@@ -158,7 +172,7 @@ class AffAtom(Atom):
                 if grad_shape == (1, 1):
                     grad_list += [0]
                 else:
-                    grad_list += [sp.coo_matrix(grad_shape, dtype='float64')]
+                    grad_list += [sp.coo_array(grad_shape, dtype='float64')]
             else:
                 stop = start + arg.size
                 grad_list += [stacked_grad[start:stop, :]]

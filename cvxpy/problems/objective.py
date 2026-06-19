@@ -18,7 +18,7 @@ import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.utilities as u
 from cvxpy.error import DCPError
 from cvxpy.expressions.expression import Expression
-from cvxpy.interface.matrix_utilities import scalar_value
+from cvxpy.interface.matrix_utilities import ScalarValue, scalar_value
 from cvxpy.utilities import scopes
 
 
@@ -53,7 +53,7 @@ class Objective(u.Canonical):
 
     def __str__(self) -> str:
         return f'{self.NAME} {self.args[0].name()}'
-    
+
     def format_labeled(self):
         """Format objective with labels where available."""
         return f'{self.NAME} {self.args[0].format_labeled()}'
@@ -95,7 +95,7 @@ class Objective(u.Canonical):
     __truediv__ = __div__
 
     @property
-    def value(self):
+    def value(self) -> ScalarValue | None:
         """The value of the objective expression.
         """
         v = self.args[0].value
@@ -156,6 +156,12 @@ class Minimize(Objective):
                 return self.args[0].is_convex()
         return self.args[0].is_convex()
 
+    def is_dnlp(self) -> bool:
+        """
+        The objective must be linearizable convex.
+        """
+        return self.args[0].is_linearizable_convex()
+
     def is_dgp(self, dpp: bool = False) -> bool:
         """The objective must be log-log convex.
         """
@@ -211,7 +217,7 @@ class Maximize(Objective):
         if type(other) is Maximize:
             return Maximize(self.args[0] + other.args[0])
         else:
-            raise Exception("Problem does not follow DCP rules.")
+            raise DCPError("Problem does not follow DCP rules.")
 
     def canonicalize(self):
         """Negates the target expression's objective.
@@ -226,6 +232,12 @@ class Maximize(Objective):
             with scopes.dpp_scope():
                 return self.args[0].is_concave()
         return self.args[0].is_concave()
+
+    def is_dnlp(self) -> bool:
+        """
+        The objective must be linearizable concave.
+        """
+        return self.args[0].is_linearizable_concave()
 
     def is_dgp(self, dpp: bool = False) -> bool:
         """The objective must be log-log concave.

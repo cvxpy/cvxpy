@@ -14,16 +14,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import Optional, Tuple, Union
-
 from cvxpy.atoms.quad_over_lin import quad_over_lin
+from cvxpy.expressions.expression import Expression
 
 
 def sum_squares(
     expr,
-    axis: Optional[Union[int, Tuple[int, ...]]] = None,
+    axis: int | tuple[int, ...] | None = None,
     keepdims: bool = False
-):
+) -> Expression:
     """The sum of the squares of the entries.
 
     Parameters

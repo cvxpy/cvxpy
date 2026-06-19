@@ -282,3 +282,15 @@ class Test_von_neumann_entr:
         sth.solve(**self.SOLVE_ARGS)
         sth.verify_objective(places=3)
         sth.verify_primal_values(places=3)
+
+    def test_max_entropy(self):
+        """Maximum entropy for n=3 density matrix is log(3)."""
+        n = 3
+        N = cp.Variable((n, n), symmetric=True)
+        prob = cp.Problem(
+            cp.Maximize(von_neumann_entr(N)),
+            [trace(N) == 1, N >> 0]
+        )
+        prob.solve(solver=cp.CLARABEL)
+        assert prob.status == cp.OPTIMAL
+        np.testing.assert_allclose(prob.value, np.log(n), atol=1e-3)

@@ -49,7 +49,9 @@ def inverse(expr):
         def power_inv(t):
             if expr.p.value == 1:
                 return t
-            return atoms.power(t, 1/expr.p.value) if t.is_nonneg() else np.inf
+            if t.is_nonneg():
+                return atoms.power(t, 1/expr.p.value)
+            return -np.inf if expr.p.value > 0 else np.inf
         return power_inv
     elif type(expr) == atoms.multiply:
         if expr.args[0].is_constant():

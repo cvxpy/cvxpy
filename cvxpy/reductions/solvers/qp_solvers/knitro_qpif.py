@@ -14,12 +14,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import importlib.util
+
 import numpy as np
 from scipy import sparse
 
 import cvxpy.settings as s
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
+from cvxpy.reductions.solvers.openmp_conflict import warn_if_omp_conflict
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
 from cvxpy.utilities.citations import CITATION_DICT
 
@@ -131,8 +134,19 @@ class KNITRO(QpSolver):
     def name(self):
         return s.KNITRO
 
+    def is_installed(self) -> bool:
+        """Checks for the ``knitro`` package without importing it.
+
+        Importing ``knitro`` loads the native KNITRO runtime (and, on macOS,
+        a bundled OpenMP library). Doing that eagerly from ``import cvxpy``
+        can crash other solvers that load their own OpenMP runtime, so
+        installation is detected via the import machinery instead.
+        """
+        return importlib.util.find_spec("knitro") is not None
+
     def import_solver(self) -> None:
         """Imports the Knitro solver."""
+        warn_if_omp_conflict("knitro")
         import knitro  # noqa: F401
 
     def apply(self, problem):
@@ -175,7 +189,7 @@ class KNITRO(QpSolver):
                 x = np.array(x_kn)
                 primal_vars = {KNITRO.VAR_ID: x}
                 dual_vars = None
-                is_mip = bool(inverse_data.get("is_mip", False))
+                is_mip = bool(inverse_data.get(self.IS_MIP, False))
                 if y_kn is not None and not is_mip:
                     # Build dual vars dict keyed by constraint IDs
                     # Knitro returns duals for [eq_constrs; ineq_constrs]

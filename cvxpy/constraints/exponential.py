@@ -15,7 +15,7 @@ limitations under the License.
 """
 from __future__ import annotations
 
-from typing import List, Tuple, TypeVar
+from typing import TypeVar
 
 import numpy as np
 
@@ -107,7 +107,7 @@ class ExpCone(Cone):
     def as_quad_approx(self, m: int, k: int) -> RelEntrConeQuad:
         return RelEntrConeQuad(self.y, self.z, -self.x, m, k)
 
-    def cone_sizes(self) -> List[int]:
+    def cone_sizes(self) -> list[int]:
         """The dimensions of the exponential cones.
 
         Returns
@@ -132,16 +132,19 @@ class ExpCone(Cone):
         return self.is_dcp()
 
     @property
-    def shape(self) -> Tuple[int, ...]:
+    def shape(self) -> tuple[int, ...]:
         s = (3,) + self.x.shape
         return s
 
     def save_dual_value(self, value) -> None:
-        # TODO(akshaya,SteveDiamond): verify that reshaping below works correctly
+        # Each row of the reshaped value holds the dual of one elementwise
+        # (x_i, y_i, z_i) cone. ConeMatrixStuffing flattens multidimensional
+        # args in Fortran order, so the rows enumerate elements in Fortran
+        # order and each column must be reshaped accordingly.
         value = np.reshape(value, (-1, 3))
-        dv0 = np.reshape(value[:, 0], self.x.shape)
-        dv1 = np.reshape(value[:, 1], self.y.shape)
-        dv2 = np.reshape(value[:, 2], self.z.shape)
+        dv0 = np.reshape(value[:, 0], self.x.shape, order='F')
+        dv1 = np.reshape(value[:, 1], self.y.shape, order='F')
+        dv2 = np.reshape(value[:, 2], self.z.shape, order='F')
         self.dual_variables[0].save_value(dv0)
         self.dual_variables[1].save_value(dv1)
         self.dual_variables[2].save_value(dv2)
@@ -243,7 +246,7 @@ class RelEntrConeQuad(Cone):
         """
         return self.x.size
 
-    def cone_sizes(self) -> List[int]:
+    def cone_sizes(self) -> list[int]:
         """The dimensions of the exponential cones.
 
         Returns
@@ -268,7 +271,7 @@ class RelEntrConeQuad(Cone):
         return self.is_dcp()
 
     @property
-    def shape(self) -> Tuple[int, ...]:
+    def shape(self) -> tuple[int, ...]:
         s = (3,) + self.x.shape
         return s
 
@@ -360,7 +363,7 @@ class OpRelEntrConeQuad(Cone):
         """
         return self.X.size
 
-    def cone_sizes(self) -> List[int]:
+    def cone_sizes(self) -> list[int]:
         """The dimensions of the exponential cones.
 
         Returns
@@ -385,7 +388,7 @@ class OpRelEntrConeQuad(Cone):
         return self.is_dcp()
 
     @property
-    def shape(self) -> Tuple[int, ...]:
+    def shape(self) -> tuple[int, ...]:
         s = (3,) + self.X.shape
         return s
 

@@ -31,12 +31,12 @@ def log_sum_exp_canon(expr, args, solver_context: SolverInfo | None = None):
     t = Variable(shape)
 
     # log(sum(exp(x))) <= t <=> sum(exp(x-t)) <= 1
-    if axis is None:  # shape = (1, 1)
+    if axis is None:
         promoted_t = promote(t, x.shape)
-    elif axis == 0:  # shape = (1, n)
-        promoted_t = Constant(np.ones((x.shape[0], 1))) @ reshape(t, (1,) + x.shape[1:], order="F")
-    else:  # shape = (m, 1)
-        promoted_t = reshape(t, x.shape[:-1] + (1,), order="F") @ Constant(np.ones((1, x.shape[1])))
+    else:
+        axes = {axis} if isinstance(axis, int) else set(axis)
+        keepdims_shape = tuple(1 if i in axes else s for i, s in enumerate(x.shape))
+        promoted_t = reshape(t, keepdims_shape, order='F')
 
     exp_expr = exp(x - promoted_t)
     obj, constraints = exp_canon(exp_expr, exp_expr.args)

@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import unittest
-from typing import Tuple
 
 import numpy
 import scipy.sparse as sp
@@ -28,7 +27,7 @@ from cvxpy.expressions.variable import Variable
 class TestMatrices(unittest.TestCase):
     """ Unit tests for testing different forms of matrices as constants. """
 
-    def assertExpression(self, expr, shape: Tuple[int, ...]) -> None:
+    def assertExpression(self, expr, shape: tuple[int, ...]) -> None:
         """Asserts that expr is an Expression with dimension shape.
         """
         assert isinstance(expr, Expression) or isinstance(expr, Constraint)

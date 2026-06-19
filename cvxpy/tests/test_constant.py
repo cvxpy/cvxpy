@@ -90,6 +90,21 @@ def test_prod():
     assert np.allclose(cp.prod(sp.coo_matrix(B)).value, 24)
 
 
+def test_sparse_expression_values_are_sparse_arrays():
+    lhs = cp.Constant(sp.csc_matrix(np.eye(2)))
+    rhs = cp.Constant(np.ones((2, 2)))
+
+    multiply_value = cp.multiply(lhs, rhs).value
+    assert sp.issparse(multiply_value)
+    assert isinstance(multiply_value, sp.sparray)
+    assert not isinstance(multiply_value, sp.spmatrix)
+
+    matmul_value = (lhs @ lhs).value
+    assert sp.issparse(matmul_value)
+    assert isinstance(matmul_value, sp.sparray)
+    assert not isinstance(matmul_value, sp.spmatrix)
+
+
 def test_nested_lists():
 
     A = [[1, 2], [3, 4], [5, 6]]

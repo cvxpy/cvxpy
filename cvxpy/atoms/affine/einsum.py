@@ -20,6 +20,7 @@ from cvxpy.atoms.affine.binary_operators import multiply
 from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.atoms.affine.sum import sum as cvxpy_sum
 from cvxpy.atoms.affine.transpose import permute_dims
+from cvxpy.expressions.expression import Expression
 from cvxpy.utilities.einsum_utilities import (
     find_contraction,
     greedy_path,
@@ -28,7 +29,7 @@ from cvxpy.utilities.einsum_utilities import (
 )
 
 
-def einsum(subscripts, *exprs, optimize="greedy"):
+def einsum(subscripts, *exprs, optimize="greedy") -> Expression:
     """Evaluates the Einstein summation convention on the given expressions.
 
     This atom is the CVXPY analog of NumPy's einsum function `numpy.einsum` [1],
@@ -96,10 +97,10 @@ def einsum(subscripts, *exprs, optimize="greedy"):
 
     3. Contraction.
         A. If only one input, simply perform an axis sum.
-        B. Otherwise, we iterate over pairs of tensors and contract them. Contracting 
-        two tensors involves (i) reshaping and permuting them to compatible shapes where 
-        corresponding indices align, (ii) performing elementwise multiplication, and 
-        (iii) summing over the contracted dimensions. The order of the contractions is 
+        B. Otherwise, we iterate over pairs of tensors and contract them. Contracting
+        two tensors involves (i) reshaping and permuting them to compatible shapes where
+        corresponding indices align, (ii) performing elementwise multiplication, and
+        (iii) summing over the contracted dimensions. The order of the contractions is
         given by the contraction path.
 
     4. Permute the final result to match output subscript order.

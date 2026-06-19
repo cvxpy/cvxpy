@@ -13,7 +13,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import List, Tuple
 
 import cvxpy.lin_ops.lin_op as lo
 from cvxpy.atoms.affine.affine_atom import AffAtom
@@ -40,14 +39,14 @@ class Wrap(AffAtom):
     def is_complex(self) -> bool:
         return self.args[0].is_complex()
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> tuple[int, ...]:
         """Shape of input.
         """
         return self.args[0].shape
 
     def graph_implementation(
-        self, arg_objs, shape: Tuple[int, ...], data=None
-    ) -> Tuple[lo.LinOp, List[Constraint]]:
+        self, arg_objs, shape: tuple[int, ...], data=None
+    ) -> tuple[lo.LinOp, list[Constraint]]:
         """Stack the expressions horizontally.
 
         Parameters
@@ -105,6 +104,29 @@ class psd_wrap(Wrap):
     def is_hermitian(self) -> bool:
         return True
 
+class nsd_wrap(Wrap):
+    """Asserts that a square matrix is NSD.
+    """
+
+    def validate_arguments(self) -> None:
+        arg = self.args[0]
+        ndim_test = len(arg.shape) == 2
+        if not ndim_test:
+            raise ValueError("The input must be a square matrix.")
+        elif arg.shape[0] != arg.shape[1]:
+            raise ValueError("The input must be a square matrix.")
+
+    def is_psd(self) -> bool:
+        return False
+
+    def is_nsd(self) -> bool:
+        return True
+
+    def is_symmetric(self) -> bool:
+        return not self.args[0].is_complex()
+
+    def is_hermitian(self) -> bool:
+        return True
 
 class symmetric_wrap(Wrap):
     """Asserts that a real square matrix is symmetric
@@ -134,7 +156,6 @@ class hermitian_wrap(Wrap):
 
     def is_hermitian(self) -> bool:
         return True
-
 
 class skew_symmetric_wrap(Wrap):
     """Asserts that X is a real square matrix, satisfying X + X.T == 0.

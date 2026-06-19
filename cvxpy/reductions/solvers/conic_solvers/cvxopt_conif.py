@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import Dict, List, Union
 
 import numpy as np
 import scipy
@@ -27,12 +26,13 @@ from cvxpy.constraints import PSD, SOC, NonNeg, Zero
 from cvxpy.reductions.solvers.compr_matrix import compress_matrix
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.kktsolver import setup_ldl_factor
+from cvxpy.reductions.solvers.openmp_conflict import warn_if_omp_conflict
 from cvxpy.utilities.citations import CITATION_DICT
 
 
 # Utility method for formatting a ConeDims instance into a dictionary
 # that can be supplied to cvxopt.
-def dims_to_solver_dict(cone_dims) -> Dict[str, Union[List[int], int]]:
+def dims_to_solver_dict(cone_dims) -> dict[str, list[int] | int]:
     cones = {
         "l": int(cone_dims.nonneg),
         "q": [int(v) for v in cone_dims.soc],
@@ -74,6 +74,7 @@ class CVXOPT(ConicSolver):
     def import_solver(self) -> None:
         """Imports the solver.
         """
+        warn_if_omp_conflict("cvxopt")
         import cvxopt  # noqa F401
 
     def accepts(self, problem) -> bool:
@@ -369,7 +370,7 @@ class CVXOPT(ConicSolver):
         else:
             kktsolver = 'chol'
         return kktsolver
-    
+
     def cite(self, data):
         """Returns bibtex citation for the solver.
 

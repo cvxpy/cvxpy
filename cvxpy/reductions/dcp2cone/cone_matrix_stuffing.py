@@ -15,6 +15,8 @@ limitations under the License.
 """
 from __future__ import annotations
 
+from typing import Literal, overload
+
 import numpy as np
 import scipy.sparse as sp
 
@@ -26,9 +28,9 @@ from cvxpy.constraints import (
     ExpCone,
     Inequality,
     NonNeg,
-    NonPos,
     PowCone3D,
     PowConeND,
+    SvecPSD,
     Zero,
 )
 from cvxpy.cvxcore.python import canonInterface
@@ -51,7 +53,6 @@ from cvxpy.reductions.utilities import (
     group_constraints,
     lower_equality,
     lower_ineq_to_nonneg,
-    nonpos2nonneg,
 )
 from cvxpy.utilities.coeff_extractor import CoeffExtractor
 
@@ -90,7 +91,8 @@ class ConeDims:
         self.nonneg = int(sum(c.size for c in constr_map[NonNeg]))
         self.exp = int(sum(c.num_cones() for c in constr_map[ExpCone]))
         self.soc = [int(dim) for c in constr_map[SOC] for dim in c.cone_sizes()]
-        self.psd = [int(c.shape[0]) for c in constr_map[PSD]]
+        psd_constrs = constr_map.get(PSD, []) + constr_map.get(SvecPSD, [])
+        self.psd = [int(dim) for c in psd_constrs for dim in c.cone_sizes()]
         p3d = []
         if constr_map[PowCone3D]:
             p3d = np.concatenate([c.alpha.value for c in constr_map[PowCone3D]]).tolist()
@@ -107,7 +109,7 @@ class ConeDims:
             pnd = np.concatenate(alphas).tolist()
         self.pnd = pnd
 
-    def __repr__(self) -> str: 
+    def __repr__(self) -> str:
         return "(zero: {0}, nonneg: {1}, exp: {2}, soc: {3}, psd: {4}, p3d: {5}, pnd: {6})".format(
             self.zero, self.nonneg, self.exp, self.soc, self.psd, self.p3d, self.pnd)
 
@@ -210,6 +212,21 @@ class ParamConeProg(ParamProb):
         return self.x.attributes['boolean'] or \
             self.x.attributes['integer']
 
+    # Returns (q, d, A, b): objective vector, offset, constraint matrix, rhs.
+    @overload
+    def apply_parameters(self, id_to_param_value=None, zero_offset: bool = False,
+                         keep_zeros: bool = False,
+                         quad_obj: Literal[False] = False
+                         ) -> tuple[np.ndarray, np.ndarray, sp.csc_array, np.ndarray]: ...
+
+    # With quad_obj=True, also returns the quadratic-objective matrix P first.
+    @overload
+    def apply_parameters(self, id_to_param_value=None, zero_offset: bool = False,
+                         keep_zeros: bool = False,
+                         quad_obj: Literal[True] = ...
+                         ) -> tuple[sp.csc_array, np.ndarray, np.ndarray,
+                                    sp.csc_array, np.ndarray]: ...
+
     def apply_parameters(self, id_to_param_value=None, zero_offset: bool = False,
                          keep_zeros: bool = False, quad_obj: bool = False):
         """Returns A, b after applying parameters (and reshaping).
@@ -307,21 +324,12 @@ class ParamConeProg(ParamProb):
         """
         if active_vars is None:
             active_vars = [v.id for v in self.variables]
-        # var id to solution.
         sltn_dict = {}
         for var_id, col in self.var_id_to_col.items():
             if var_id in active_vars:
                 var = self.id_to_var[var_id]
                 value = sltn[col:var.size+col]
-                if var.attributes_were_lowered():
-                    orig_var = var.leaf_of_provenance()
-                    value = cvx_attr2constr.recover_value_for_leaf(
-                        orig_var, value, project=False)
-                    sltn_dict[orig_var.id] = np.reshape(
-                        value, orig_var.shape, order='F')
-                else:
-                    sltn_dict[var_id] = np.reshape(
-                        value, var.shape, order='F')
+                sltn_dict[var_id] = np.reshape(value, var.shape, order='F')
         return sltn_dict
 
     def split_adjoint(self, del_vars=None):
@@ -331,12 +339,6 @@ class ParamConeProg(ParamProb):
         for var_id, delta in del_vars.items():
             var = self.id_to_var[var_id]
             col = self.var_id_to_col[var_id]
-            if var.attributes_were_lowered():
-                orig_var = var.leaf_of_provenance()
-                if cvx_attr2constr.attributes_present(
-                        [orig_var], cvx_attr2constr.SYMMETRIC_ATTRIBUTES):
-                    delta = delta + delta.T - np.diag(np.diag(delta))
-                delta = cvx_attr2constr.lower_value(orig_var, delta)
             var_vec[col:col + var.size] = delta.flatten(order='F')
         return var_vec
 
@@ -389,8 +391,6 @@ class ConeMatrixStuffing(MatrixStuffing):
                 con = lower_equality(con)
             elif isinstance(con, Inequality):
                 con = lower_ineq_to_nonneg(con)
-            elif isinstance(con, NonPos):
-                con = nonpos2nonneg(con)
             elif isinstance(con, SOC) and con.axis == 1:
                 con = SOC(con.args[0], con.args[1].T, axis=0,
                           constr_id=con.constr_id)
@@ -424,9 +424,11 @@ class ConeMatrixStuffing(MatrixStuffing):
         # Reorder constraints to Zero, NonNeg, SOC, PSD, EXP, PowCone3D, PowConeND
         constr_map = group_constraints(cons)
         ordered_cons = constr_map[Zero] + constr_map[NonNeg] + \
-            constr_map[SOC] + constr_map[PSD] + constr_map[ExpCone] + \
+            constr_map[SOC] + constr_map.get(PSD, []) + \
+            constr_map.get(SvecPSD, []) + constr_map[ExpCone] + \
             constr_map[PowCone3D] + constr_map[PowConeND]
         inverse_data.cons_id_map = {con.id: con.id for con in ordered_cons}
+        self._cons_id_map = inverse_data.cons_id_map
 
         inverse_data.constraints = ordered_cons
         # Batch expressions together, then split apart.
@@ -476,33 +478,32 @@ class ConeMatrixStuffing(MatrixStuffing):
         if solution.status not in s.ERROR and not inverse_data.minimize:
             opt_val = -solution.opt_val
 
-        primal_vars, dual_vars = {}, {}
+        # Remap dual variables if dual exists (problem is convex).
+        dual_vars = {}
+        if solution.dual_vars is not None:
+            for old_con, new_con in con_map.items():
+                con_obj = inverse_data.id2cons[old_con]
+                shape = con_obj.shape
+                dual_value = solution.dual_vars.get(new_con)
+                # TODO rationalize Exponential.
+                if dual_value is None:
+                    continue
+                if shape == () or isinstance(con_obj, (ExpCone, SOC)) or \
+                        (isinstance(con_obj, PSD) and con_obj.num_cones() > 1):
+                    dual_vars[old_con] = dual_value
+                else:
+                    dual_vars[old_con] = np.reshape(dual_value, shape, order="F")
+
+        primal_vars = {}
         if solution.status not in s.SOLUTION_PRESENT:
-            return Solution(solution.status, opt_val, primal_vars, dual_vars,
-                            solution.attr)
+            return Solution(solution.status, opt_val, primal_vars, dual_vars, solution.attr)
 
         # Split vectorized variable into components.
         x_opt = list(solution.primal_vars.values())[0]
         for var_id, offset in var_map.items():
             shape = inverse_data.var_shapes[var_id]
             size = np.prod(shape, dtype=int)
-            primal_vars[var_id] = np.reshape(x_opt[offset:offset+size], shape,
-                                             order='F')
-
-        # Remap dual variables if dual exists (problem is convex).
-        if solution.dual_vars is not None:
-            for old_con, new_con in con_map.items():
-                con_obj = inverse_data.id2cons[old_con]
-                shape = con_obj.shape
-                # TODO rationalize Exponential.
-                if shape == () or isinstance(con_obj, (ExpCone, SOC)):
-                    dual_vars[old_con] = solution.dual_vars[new_con]
-                else:
-                    dual_vars[old_con] = np.reshape(
-                        solution.dual_vars[new_con],
-                        shape,
-                        order='F'
-                    )
+            primal_vars[var_id] = np.reshape(x_opt[offset: offset + size], shape, order="F")
 
         return Solution(solution.status, opt_val, primal_vars, dual_vars,
                         solution.attr)

@@ -33,7 +33,14 @@ def _solve(problem, solver) -> None:
     with warnings.catch_warnings():
         # TODO(akshayka): Try to emit DPP problems in Dqcp2Dcp
         warnings.filterwarnings('ignore', message=r'.*DPP.*')
-        problem.solve(solver=solver)
+        try:
+            problem.solve(solver=solver)
+        except error.SolverError:
+            warnings.warn(
+                "Solver failed, attempting to continue bisection.",
+                RuntimeWarning
+            )
+            problem._status = s.SOLVER_ERROR
 
 
 def _infeasible(problem) -> bool:
@@ -63,7 +70,7 @@ def _find_bisection_interval(problem, t, solver=None, low=None, high=None,
             _solve(lowered, solver)
             if _infeasible(lowered):
                 low = high
-                high *= 2
+                high = high * 2 if high != 0 else 1
                 continue
             elif lowered.status in s.SOLUTION_PRESENT:
                 feasible_high = True
@@ -79,7 +86,7 @@ def _find_bisection_interval(problem, t, solver=None, low=None, high=None,
                 infeasible_low = True
             elif lowered.status in s.SOLUTION_PRESENT:
                 high = low
-                low *= 2
+                low = low * 2 if low != 0 else -1
                 continue
             else:
                 raise error.SolverError(
@@ -99,6 +106,10 @@ def _bisect(problem, solver, t, low, high, tighten_lower, tighten_higher,
 
     verbose_freq = 5
     soln = None
+    # Lower end of the subinterval from which the query point is drawn.
+    # Solver failures move it toward `high`, the feasible end of the
+    # bracket, so a failing query point is never retried verbatim.
+    query_low = low
     for i in range(max_iters):
         assert low <= high
         if soln is not None and (high - low) <= eps:
@@ -107,7 +118,7 @@ def _bisect(problem, solver, t, low, high, tighten_lower, tighten_higher,
             # to the optimal value in the previous iteration (hence the
             # soln is not None check)
             return soln, low, high
-        query_pt = (low + high) / 2.0
+        query_pt = (query_low + high) / 2.0
         if verbose and i % verbose_freq == 0:
             print("(iteration %d) lower bound: %0.6f" % (i, low))
             print("(iteration %d) upper bound: %0.6f" % (i, high))
@@ -120,17 +131,29 @@ def _bisect(problem, solver, t, low, high, tighten_lower, tighten_higher,
             if verbose and i % verbose_freq == 0:
                 print("(iteration %d) query was infeasible.\n" % i)
             low = tighten_lower(query_pt)
+            query_low = low
         elif lowered.status in s.SOLUTION_PRESENT:
             if verbose and i % verbose_freq == 0:
                 print("(iteration %d) query was feasible. %s)\n" %
                       (i, lowered.solution))
             soln = lowered.solution
             high = tighten_higher(query_pt)
+            query_low = low
         else:
+            if query_pt == high:
+                raise error.SolverError(
+                    "Solver failed at every query point between the "
+                    "current bisection bounds; unable to make progress.")
+            warnings.warn(
+                "Solver failed at iteration %d, querying a point closer to "
+                "the feasible end of the interval." % i,
+                RuntimeWarning
+            )
             if verbose:
-                print("Aborting; the solver failed ...\n")
-            raise error.SolverError(
-                "Solver failed with status %s" % lowered.status)
+                print("(iteration %d) solver failed, perturbing query "
+                      "point.\n" % i)
+            query_low = query_pt
+            continue
     raise error.SolverError("Max iters hit during bisection.")
 
 
@@ -196,3 +219,4 @@ def bisect(problem, solver=None, low=None, high=None, eps: float = 1e-6, verbose
               "**************************************\n"
               % (low, high))
     return soln
+

@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import List, Optional, Tuple, Union
 
 import numpy as np
 import scipy as scipy
@@ -22,7 +21,7 @@ import scipy.sparse as sp
 
 import cvxpy.utilities as u
 from cvxpy.atoms.atom import Atom
-from cvxpy.atoms.axis_atom import AxisAtom
+from cvxpy.atoms.axis_atom import AxisAtom, normalize_axis
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions.constants.parameter import is_param_free
 
@@ -39,13 +38,17 @@ class quad_over_lin(AxisAtom):
         self,
         x,
         y,
-        axis: Optional[Union[int, Tuple[int, ...]]] = None,
+        axis: int | tuple[int, ...] | None = None,
         keepdims: bool = False
     ) -> None:
         self.axis = axis
         self.keepdims = keepdims
         # Call Atom.__init__ directly since we have two args
         Atom.__init__(self, x, y)
+        # Normalize axis after init so self.args is available.
+        if self.axis is not None:
+            ndim = len(self.args[0].shape)
+            self.axis = normalize_axis(self.axis, ndim)
 
     @Atom.numpy_numeric
     def numeric(self, values):
@@ -60,7 +63,7 @@ class quad_over_lin(AxisAtom):
 
         return squared.sum(axis=self.axis, keepdims=self.keepdims) / y_val
 
-    def _domain(self) -> List[Constraint]:
+    def _domain(self) -> list[Constraint]:
         """Returns constraints describing the domain of the node.
         """
         # y > 0.
@@ -101,7 +104,7 @@ class quad_over_lin(AxisAtom):
             DX = scipy.sparse.csc_array(DX)
             return [DX, Dy]
 
-    def sign_from_args(self) -> Tuple[bool, bool]:
+    def sign_from_args(self) -> tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         # Always positive.
@@ -120,6 +123,10 @@ class quad_over_lin(AxisAtom):
         """Is the atom concave?
         """
         return False
+
+    def is_atom_smooth(self) -> bool:
+        """Is the atom smooth?"""
+        return True
 
     def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
