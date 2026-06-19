@@ -52,7 +52,7 @@ def _cast_other(binary_op):
     def cast_op(self, other):
         """A wrapped binary operator that can handle non-Expression arguments.
         """
-        other = self.cast_to_const(other)
+        other = self.cast(other)
         return binary_op(self, other)
     return cast_op
 
@@ -688,7 +688,7 @@ class Expression(u.Canonical):
         Expression
             The expression raised to ``power``.
         """
-        power_expr = Expression.cast_to_const(power)
+        power_expr = Expression.cast(power)
         if self.is_constant() and not power_expr.is_constant():
             return _pow_const_base(self, power_expr)
         return cvxtypes.power()(self, power)
@@ -709,21 +709,21 @@ class Expression(u.Canonical):
             exp(self * log(base))
         """
 
-        base_expr = cvxtypes.expression().cast_to_const(base)
+        base_expr = cvxtypes.expression().cast(base)
         return _pow_const_base(base_expr, self)
 
     @staticmethod
-    def cast(expr_like) -> "Expression":
+    def cast_to_const(expr_like) -> "Expression":
         """
         If expr_like is an Expression, return it. Otherwise, cast expr_like to a Constant.
 
-        This is a wrapper around the misleadingly-named `Expression.cast_to_const` function.
+        This is a wrapper around the misleadingly-named `Expression.cast` function.
         """
-        return Expression.cast_to_const(expr_like)
+        return Expression.cast(expr_like)
 
     # Arithmetic operators.
     @staticmethod
-    def cast_to_const(expr: "Expression"):
+    def cast(expr: "Expression"):
         """Converts a non-Expression to a Constant.
         """
         if isinstance(expr, list):
@@ -738,8 +738,8 @@ class Expression(u.Canonical):
     @staticmethod
     def broadcast(lh_expr: "Expression", rh_expr: "Expression"):
         """Broadcast the binary operator."""
-        lh_expr = Expression.cast_to_const(lh_expr)
-        rh_expr = Expression.cast_to_const(rh_expr)
+        lh_expr = Expression.cast(lh_expr)
+        rh_expr = Expression.cast(rh_expr)
         # Promote.
         if lh_expr.is_scalar() and not rh_expr.is_scalar():
             lh_expr = cp.promote(lh_expr, rh_expr.shape)

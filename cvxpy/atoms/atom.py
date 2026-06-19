@@ -48,7 +48,7 @@ class Atom(Expression):
                 "No arguments given to %s." % self.__class__.__name__
             )
         # Convert raw values to Constants.
-        self.args = [Atom.cast_to_const(arg) for arg in args]
+        self.args = [Atom.cast(arg) for arg in args]
         self.validate_arguments()
         self._shape = self.shape_from_args()
         if not s.ALLOW_ND_EXPR and len(self._shape) > 2:
