@@ -645,10 +645,10 @@ class Leaf(expression.Expression):
                 )
         self.save_value(self._validate_value(val, True), True)
 
-    def project_and_assign(self, val) -> None:
+    def project_and_assign(self, val, strict=True) -> None:
         """Project and assign a value to the variable.
         """
-        self.save_value(self.project(val))
+        self.save_value(self.project(val, strict=strict))
 
     def _validate_value(self, val, sparse_path=False):
         """Check that the value satisfies the leaf's symbolic attributes.
@@ -680,7 +680,7 @@ class Leaf(expression.Expression):
                         'Invalid sparsity pattern %s for %s value.' %
                         (get_coords(val), self.__class__.__name__)
                     )
-            projection = self.project(val, sparse_path)
+            projection = self.project(val, strict=False, sparse_path=sparse_path)
             # ^ might be a numpy array, or sparse scipy matrix.
             with np.errstate(invalid='ignore'):
                 delta = np.abs(val - projection)
