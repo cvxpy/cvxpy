@@ -258,10 +258,9 @@ class CooTensor:
         row_map = np.full(self.m, -1, dtype=np.int64)
         row_map[rows] = np.arange(new_m, dtype=np.int64)
 
-        # Map tensor rows to new positions
-        new_rows = row_map[self.row]
-
-        # Keep only entries whose row is selected
+        valid = self.row < self.m
+        new_rows = np.full(self.nnz, -1, dtype=np.int64)
+        new_rows[valid] = row_map[self.row[valid]]
         mask = new_rows >= 0
 
         return CooTensor(
@@ -619,6 +618,51 @@ def _kron_nd_structure_mul(tensor: CooTensor, batch_size: int, n: int) -> CooTen
         m=m * batch_size * n,
         n=k * batch_size * n,
         param_size=tensor.param_size
+    )
+
+
+def _kron_nd_structure_mul_rows(
+    tensor: CooTensor,
+    batch_size: int,
+    n: int,
+    rows: np.ndarray,
+) -> CooTensor:
+    """Build selected output rows of the C @ X Kronecker structure."""
+    rows = np.asarray(rows, dtype=np.int64)
+    if len(rows) == 0 or tensor.nnz == 0:
+        return CooTensor.empty(0, tensor.n * batch_size * n, tensor.param_size)
+
+    m, k = tensor.m, tensor.n
+    out_data = []
+    out_row = []
+    out_col = []
+    out_param = []
+
+    for dest_row, full_row in enumerate(rows):
+        b = full_row % batch_size
+        quotient = full_row // batch_size
+        lhs_row = quotient % m
+        out_col_block = quotient // m
+        mask = tensor.row == lhs_row
+        if not np.any(mask):
+            continue
+        count = int(np.count_nonzero(mask))
+        out_data.append(tensor.data[mask])
+        out_row.append(np.full(count, dest_row, dtype=np.int64))
+        out_col.append(batch_size * (tensor.col[mask] + out_col_block * k) + b)
+        out_param.append(tensor.param_idx[mask])
+
+    if not out_data:
+        return CooTensor.empty(len(rows), k * batch_size * n, tensor.param_size)
+
+    return CooTensor(
+        data=np.concatenate(out_data),
+        row=np.concatenate(out_row),
+        col=np.concatenate(out_col),
+        param_idx=np.concatenate(out_param),
+        m=len(rows),
+        n=k * batch_size * n,
+        param_size=tensor.param_size,
     )
 
 
@@ -1727,7 +1771,14 @@ class CooCanonBackend(PythonCanonBackend):
         else:
             lhs_tensor = self._to_coo_tensor(lhs_data)
 
-        stacked_compact = _kron_nd_structure_mul(lhs_tensor, batch_size, n)
+        row_demand = getattr(self, "_active_row_demand", None)
+        if row_demand is None:
+            stacked_compact = _kron_nd_structure_mul(lhs_tensor, batch_size, n)
+        else:
+            stacked_compact = _kron_nd_structure_mul_rows(
+                lhs_tensor, batch_size, n, row_demand
+            )
+            self._active_row_demand_consumed = True
 
         def constant_mul(compact, p):
             return coo_matmul(stacked_compact, compact)
@@ -1786,11 +1837,18 @@ class CooCanonBackend(PythonCanonBackend):
         """
         batch_size, n, _ = get_nd_matmul_dims(const_shape, var_shape)
 
-        # Expand each parameter slice with Kronecker structure
-        expanded_lhs = {
-            param_id: _kron_nd_structure_mul(tensor, batch_size, n)
-            for param_id, tensor in lhs_data.items()
-        }
+        row_demand = getattr(self, "_active_row_demand", None)
+        if row_demand is None:
+            expanded_lhs = {
+                param_id: _kron_nd_structure_mul(tensor, batch_size, n)
+                for param_id, tensor in lhs_data.items()
+            }
+        else:
+            expanded_lhs = {
+                param_id: _kron_nd_structure_mul_rows(tensor, batch_size, n, row_demand)
+                for param_id, tensor in lhs_data.items()
+            }
+            self._active_row_demand_consumed = True
 
         def parametrized_mul(rhs_compact):
             return {
@@ -2449,5 +2507,26 @@ class CooCanonBackend(PythonCanonBackend):
                 n=compact.n,
                 param_size=compact.param_size
             )
+        view.apply_all(func)
+        return view
+
+    @staticmethod
+    def trace_from_diag_rows(lin_op, view: CooTensorView) -> CooTensorView:
+        arg_shape = lin_op.args[0].shape
+        n = arg_shape[-1]
+        batch_size = int(np.prod(arg_shape[:-2])) if len(arg_shape) > 2 else 1
+        output_rows = np.tile(np.arange(batch_size), n)
+
+        def func(compact, p):
+            return CooTensor(
+                data=compact.data.copy(),
+                row=output_rows[compact.row],
+                col=compact.col.copy(),
+                param_idx=compact.param_idx.copy(),
+                m=batch_size,
+                n=compact.n,
+                param_size=compact.param_size
+            )
+
         view.apply_all(func)
         return view

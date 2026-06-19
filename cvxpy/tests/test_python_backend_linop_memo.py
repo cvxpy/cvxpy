@@ -17,6 +17,7 @@ limitations under the License.
 import numpy as np
 import pytest
 
+import cvxpy.lin_ops.backends.coo_backend as coo_backend
 import cvxpy.settings as s
 from cvxpy.cvxcore.python import canonInterface
 from cvxpy.lin_ops import lin_utils as lu
@@ -36,6 +37,24 @@ def _problem_matrix(lin_ops, backend):
         id_to_col={1: 0},
         param_to_size={-1: 1},
         param_to_col={-1: 0},
+        constr_length=sum(np.prod(lin_op.shape) for lin_op in lin_ops),
+        canon_backend=backend,
+    )
+
+
+def _problem_matrix_with_var_length(lin_ops, backend, var_length, param_to_size=None):
+    param_to_size = {-1: 1} if param_to_size is None else param_to_size
+    param_to_col = {}
+    offset = 0
+    for param_id, size in param_to_size.items():
+        param_to_col[param_id] = offset
+        offset += size
+    return canonInterface.get_problem_matrix(
+        lin_ops,
+        var_length=var_length,
+        id_to_col={1: 0},
+        param_to_size=param_to_size,
+        param_to_col=param_to_col,
         constr_length=sum(np.prod(lin_op.shape) for lin_op in lin_ops),
         canon_backend=backend,
     )
@@ -113,3 +132,72 @@ def test_shared_linop_cache_hits_do_not_share_mutable_views(backend) -> None:
 
     np.testing.assert_array_equal(first_block, -np.eye(3))
     np.testing.assert_array_equal(second_block, np.eye(3))
+
+
+@pytest.mark.parametrize("backend", [backend for backend, _ in PYTHON_BACKENDS])
+def test_trace_of_matmul_linop_coefficients(backend) -> None:
+    n = 3
+    x = lu.create_var((n, n), var_id=1)
+    a = np.arange(1, n * n + 1, dtype=float).reshape((n, n), order="F")
+    trace_op = lu.trace(lu.mul_expr(lu.create_const(a, (n, n)), x, (n, n)))
+
+    matrix = _problem_matrix_with_var_length([trace_op], backend, n * n).toarray()
+
+    coeffs = matrix[:n * n, 0]
+    np.testing.assert_array_equal(coeffs, a.T.flatten(order="F"))
+
+
+def test_coo_trace_of_matmul_uses_restricted_rows(monkeypatch) -> None:
+    n = 4
+    x = lu.create_var((n, n), var_id=1)
+    a = lu.create_const(np.ones((n, n)), (n, n))
+    trace_op = lu.trace(lu.mul_expr(a, x, (n, n)))
+    calls = {"full": 0, "restricted": []}
+    original_full = coo_backend._kron_nd_structure_mul
+    original_restricted = coo_backend._kron_nd_structure_mul_rows
+
+    def spy_full(*args, **kwargs):
+        calls["full"] += 1
+        return original_full(*args, **kwargs)
+
+    def spy_restricted(tensor, batch_size, cols, rows):
+        calls["restricted"].append(np.asarray(rows).copy())
+        return original_restricted(tensor, batch_size, cols, rows)
+
+    monkeypatch.setattr(coo_backend, "_kron_nd_structure_mul", spy_full)
+    monkeypatch.setattr(coo_backend, "_kron_nd_structure_mul_rows", spy_restricted)
+
+    matrix = _problem_matrix_with_var_length([trace_op], s.COO_CANON_BACKEND, n * n)
+
+    assert matrix.nnz == n * n
+    assert calls["full"] == 0
+    assert len(calls["restricted"]) == 1
+    np.testing.assert_array_equal(calls["restricted"][0], np.arange(n) * (n + 1))
+
+
+def test_coo_index_through_hstack_uses_restricted_parametric_mul(monkeypatch) -> None:
+    n = 5
+    x = lu.create_var((n,), var_id=1)
+    p = lu.create_param((n, n), param_id=2)
+    px = lu.mul_expr(p, x, (n,))
+    stacked = lu.hstack([px, x], (2 * n,))
+    indexed = lu.index(stacked, (1,), (slice(2, 3, 1),))
+    calls = []
+    original_restricted = coo_backend._kron_nd_structure_mul_rows
+
+    def spy_restricted(tensor, batch_size, cols, rows):
+        calls.append(np.asarray(rows).copy())
+        return original_restricted(tensor, batch_size, cols, rows)
+
+    monkeypatch.setattr(coo_backend, "_kron_nd_structure_mul_rows", spy_restricted)
+
+    matrix = _problem_matrix_with_var_length(
+        [indexed],
+        s.COO_CANON_BACKEND,
+        n,
+        param_to_size={-1: 1, 2: n * n},
+    )
+
+    assert matrix.nnz == n
+    assert len(calls) == 1
+    np.testing.assert_array_equal(calls[0], np.array([2]))

@@ -554,7 +554,68 @@ class PythonCanonBackend(CanonBackend):
         for arg in lin_op.args:
             self._count_processed_lin_ops(arg, raw_counts, process_counts, seen_cacheable)
 
-    def process_constraint(self, lin_op: LinOp, empty_view: TensorView) -> TensorView:
+    @staticmethod
+    def _index_rows(lin: LinOp) -> np.ndarray:
+        indices = [np.arange(s.start, s.stop, s.step) for s in lin.data]
+        assert len(indices) > 0
+        rows = indices[0]
+        cum_prod = np.cumprod([lin.args[0].shape])
+        for i in range(1, len(indices)):
+            product_size = cum_prod[i - 1]
+            offset = np.add.outer(rows, indices[i] * product_size).flatten(order="F")
+            rows = offset
+        return rows.astype(int)
+
+    @staticmethod
+    def _transpose_rows(lin: LinOp) -> np.ndarray:
+        axes = lin.data[0]
+        original_shape = lin.args[0].shape
+        indices = np.arange(np.prod(original_shape)).reshape(original_shape, order='F')
+        return np.transpose(indices, axes).flatten(order='F').astype(int)
+
+    @staticmethod
+    def _upper_tri_rows(lin: LinOp) -> np.ndarray:
+        arg_shape = lin.args[0].shape
+        n = arg_shape[-1]
+        indices = np.arange(int(np.prod(arg_shape))).reshape(arg_shape, order="F")
+        rows, cols = np.triu_indices(n, k=1)
+        return indices[..., rows, cols].ravel(order="F").astype(int)
+
+    @staticmethod
+    def _diag_mat_rows(lin: LinOp) -> np.ndarray:
+        rows = lin.shape[0]
+        k = lin.data
+        original_rows = rows + abs(k)
+        if k == 0:
+            diag_indices = np.arange(rows) * (rows + 1)
+        elif k > 0:
+            diag_indices = np.arange(rows) * (original_rows + 1) + original_rows * k
+        else:
+            diag_indices = np.arange(rows) * (original_rows + 1) - k
+        return diag_indices.astype(int)
+
+    @staticmethod
+    def _trace_rows(lin: LinOp) -> np.ndarray:
+        arg_shape = lin.args[0].shape
+        n = arg_shape[-1]
+        batch_size = int(np.prod(arg_shape[:-2])) if len(arg_shape) > 2 else 1
+        return (
+            np.tile(np.arange(batch_size), n)
+            + np.repeat(np.arange(n) * (n + 1), batch_size) * batch_size
+        ).astype(int)
+
+    @staticmethod
+    def _compose_rows(rows: np.ndarray, row_demand: np.ndarray | None) -> np.ndarray:
+        if row_demand is None:
+            return rows
+        return rows[row_demand]
+
+    def process_constraint(
+        self,
+        lin_op: LinOp,
+        empty_view: TensorView,
+        row_demand: np.ndarray | None = None,
+    ) -> TensorView:
         """
         Depth-first parsing of a linOp node.
 
@@ -568,12 +629,48 @@ class PythonCanonBackend(CanonBackend):
         The processed node as a TensorView.
         """
 
+        if row_demand is not None:
+            row_demand = np.asarray(row_demand, dtype=int)
+
         counts = getattr(self, "_lin_op_counts", None)
-        should_cache = counts is not None and counts[id(lin_op)] > 1
+        should_cache = row_demand is None and counts is not None and counts[id(lin_op)] > 1
         cache = getattr(self, "_lin_op_tensor_cache", None)
         cache_key = id(lin_op)
         if should_cache and cache is not None and cache_key in cache:
             return self._copy_tensor_view(cache[cache_key], empty_view)
+
+        row_selectors = {
+            "index": self._index_rows,
+            "transpose": self._transpose_rows,
+            "upper_tri": self._upper_tri_rows,
+            "diag_mat": self._diag_mat_rows,
+        }
+        if lin_op.type in row_selectors:
+            rows = self._compose_rows(row_selectors[lin_op.type](lin_op), row_demand)
+            return self.process_constraint(lin_op.args[0], empty_view, rows)
+
+        if lin_op.type == "trace":
+            rows = self._compose_rows(self._trace_rows(lin_op), None)
+            child = self.process_constraint(lin_op.args[0], empty_view, rows)
+            result = self.trace_from_diag_rows(lin_op, child)
+            if row_demand is not None:
+                result.select_rows(row_demand)
+            return result
+
+        if lin_op.type == "reshape" and row_demand is not None and len(lin_op.args) == 1:
+            child = self.process_constraint(lin_op.args[0], empty_view, row_demand)
+            return self.reshape(lin_op, child)
+
+        if lin_op.type in {"sum", "neg"} and len(lin_op.args) == 1:
+            func = self.get_func(lin_op.type)
+            child = self.process_constraint(lin_op.args[0], empty_view, row_demand)
+            result = func(lin_op, child)
+            if should_cache and cache is not None:
+                cache[cache_key] = self._copy_tensor_view(result, empty_view)
+            return result
+
+        if lin_op.type in {"hstack", "vstack", "concatenate"} and row_demand is not None:
+            return self._process_stack_with_row_demand(lin_op, empty_view, row_demand)
 
         # Leaf nodes
         if lin_op.type == "variable":
@@ -600,7 +697,15 @@ class PythonCanonBackend(CanonBackend):
                 res = None
                 for arg in lin_op.args:
                     arg_coeff = self.process_constraint(arg, empty_view)
-                    arg_res = func(lin_op, arg_coeff)
+                    previous_demand = getattr(self, "_active_row_demand", None)
+                    self._active_row_demand = row_demand
+                    self._active_row_demand_consumed = False
+                    try:
+                        arg_res = func(lin_op, arg_coeff)
+                        consumed = self._active_row_demand_consumed
+                    finally:
+                        self._active_row_demand = previous_demand
+                        self._active_row_demand_consumed = False
                     if res is None:
                         res = arg_res
                     else:
@@ -608,8 +713,57 @@ class PythonCanonBackend(CanonBackend):
                 assert res is not None
                 result = res
 
+        if row_demand is not None and not locals().get("consumed", False):
+            result.select_rows(row_demand)
         if should_cache and cache is not None:
             cache[cache_key] = self._copy_tensor_view(result, empty_view)
+        return result
+
+    def _process_stack_with_row_demand(
+        self,
+        lin_op: LinOp,
+        empty_view: TensorView,
+        row_demand: np.ndarray,
+    ) -> TensorView:
+        if lin_op.type == "hstack":
+            order = np.arange(sum(np.prod(arg.shape, dtype=int) for arg in lin_op.args))
+        elif lin_op.type == "vstack":
+            offset = 0
+            indices = []
+            for arg in lin_op.args:
+                arg_rows = np.prod(arg.shape, dtype=int)
+                indices.append(np.arange(arg_rows).reshape(arg.shape, order="F") + offset)
+                offset += arg_rows
+            order = np.vstack(indices).flatten(order="F").astype(int)
+        else:
+            offset = 0
+            indices = []
+            for arg in lin_op.args:
+                arg_rows = np.prod(arg.shape, dtype=int)
+                indices.append(np.arange(arg_rows).reshape(arg.shape, order="F") + offset)
+                offset += arg_rows
+            axis = lin_op.data[0]
+            if axis is None:
+                order = np.arange(sum(np.prod(arg.shape, dtype=int) for arg in lin_op.args))
+            else:
+                order = np.concatenate(indices, axis=axis).flatten(order="F").astype(int)
+
+        raw_rows = order[row_demand]
+        arg_offsets = np.cumsum([0] + [np.prod(arg.shape, dtype=int) for arg in lin_op.args])
+        result = None
+        total_rows = len(row_demand)
+        for output_pos, raw_row in enumerate(raw_rows):
+            arg_index = int(np.searchsorted(arg_offsets, raw_row, side="right") - 1)
+            local_row = int(raw_row - arg_offsets[arg_index])
+            arg_view = self.process_constraint(
+                lin_op.args[arg_index], empty_view, np.array([local_row], dtype=int)
+            )
+            arg_view.apply_all(self.get_stack_func(total_rows, output_pos))
+            if result is None:
+                result = arg_view
+            else:
+                result += arg_view
+        assert result is not None
         return result
 
     def _copy_tensor_view(self, view: TensorView, empty_view: TensorView) -> TensorView:
@@ -996,6 +1150,14 @@ class PythonCanonBackend(CanonBackend):
         """
         Select the rows corresponding to the diagonal entries in the expression and sum along
         axis 0.
+        """
+        pass  # noqa
+
+    @staticmethod
+    @abstractmethod
+    def trace_from_diag_rows(lin: LinOp, view: TensorView) -> TensorView:
+        """
+        Sum a tensor that has already been restricted to trace diagonal rows.
         """
         pass  # noqa
 

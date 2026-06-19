@@ -100,6 +100,42 @@ def _apply_nd_kron_structure_mul(
     return inner
 
 
+def _apply_nd_kron_structure_mul_rows(
+    lhs: sp.sparray,
+    batch_size: int,
+    n: int,
+    rows: np.ndarray,
+) -> sp.csr_array:
+    """Build selected output rows of I_n kron C kron I_batch."""
+    rows = np.asarray(rows, dtype=np.int64)
+    lhs = lhs.tocoo()
+    m, k = lhs.shape
+    out_data = []
+    out_row = []
+    out_col = []
+
+    for dest_row, full_row in enumerate(rows):
+        b = full_row % batch_size
+        quotient = full_row // batch_size
+        lhs_row = quotient % m
+        out_col_block = quotient // m
+        mask = lhs.row == lhs_row
+        if not np.any(mask):
+            continue
+        count = int(np.count_nonzero(mask))
+        out_data.append(lhs.data[mask])
+        out_row.append(np.full(count, dest_row, dtype=np.int64))
+        out_col.append(batch_size * (lhs.col[mask] + out_col_block * k) + b)
+
+    if not out_data:
+        return sp.csr_array((len(rows), k * batch_size * n))
+
+    return sp.csr_array(
+        (np.concatenate(out_data), (np.concatenate(out_row), np.concatenate(out_col))),
+        shape=(len(rows), k * batch_size * n),
+    )
+
+
 def _expand_parametric_slices_mul(
     stacked_matrix: sp.sparray,
     param_size: int,
@@ -117,6 +153,60 @@ def _expand_parametric_slices_mul(
     for slice_idx in range(param_size):
         slice_matrix = stacked_matrix[slice_idx * m:(slice_idx + 1) * m, :]
         yield _apply_nd_kron_structure_mul(slice_matrix, batch_size, n)
+
+
+def _expand_parametric_slices_mul_rows(
+    stacked_matrix: sp.sparray,
+    param_size: int,
+    batch_size: int,
+    n: int,
+    rows: np.ndarray,
+) -> Iterator[sp.sparray]:
+    m = stacked_matrix.shape[0] // param_size
+
+    for slice_idx in range(param_size):
+        slice_matrix = stacked_matrix[slice_idx * m:(slice_idx + 1) * m, :]
+        yield _apply_nd_kron_structure_mul_rows(slice_matrix, batch_size, n, rows)
+
+
+def _apply_stacked_nd_kron_structure_mul_rows(
+    stacked_matrix: sp.sparray,
+    param_size: int,
+    batch_size: int,
+    n: int,
+    rows: np.ndarray,
+) -> sp.csc_array:
+    """Build selected output rows for all parametric C @ X slices in one COO pass."""
+    rows = np.asarray(rows, dtype=np.int64)
+    stacked = stacked_matrix.tocoo()
+    m = stacked_matrix.shape[0] // param_size
+    k = stacked_matrix.shape[1]
+    local_rows = stacked.row % m
+    slice_idx = stacked.row // m
+
+    out_data = []
+    out_row = []
+    out_col = []
+
+    for dest_row, full_row in enumerate(rows):
+        b = full_row % batch_size
+        quotient = full_row // batch_size
+        lhs_row = quotient % m
+        out_col_block = quotient // m
+        mask = local_rows == lhs_row
+        if not np.any(mask):
+            continue
+        out_data.append(stacked.data[mask])
+        out_row.append(slice_idx[mask] * len(rows) + dest_row)
+        out_col.append(batch_size * (stacked.col[mask] + out_col_block * k) + b)
+
+    if not out_data:
+        return sp.csc_array((param_size * len(rows), k * batch_size * n))
+
+    return sp.csc_array(
+        (np.concatenate(out_data), (np.concatenate(out_row), np.concatenate(out_col))),
+        shape=(param_size * len(rows), k * batch_size * n),
+    )
 
 
 def _build_interleaved_matrix_rmul(
@@ -260,11 +350,31 @@ class SciPyTensorView(DictTensorView):
         introducing an offset of size 'm' for every parameter.
         """
         def func(x, p):
+            rows_array = np.asarray(rows, dtype=int)
             if p == 1:
                 return x[rows, :]
-            else:
+
+            diffs = np.diff(rows_array)
+            has_duplicates = (np.any(diffs == 0) if np.all(diffs >= 0)
+                              else np.any(np.diff(np.sort(rows_array)) == 0))
+            if has_duplicates:
                 m = x.shape[0] // p
-                return x[np.tile(rows, p) + np.repeat(np.arange(p) * m, len(rows)), :]
+                return x[
+                    np.tile(rows_array, p) + np.repeat(np.arange(p) * m, len(rows_array)), :
+                ]
+
+            m = x.shape[0] // p
+            row_map = np.full(m, -1, dtype=int)
+            row_map[rows_array] = np.arange(len(rows_array), dtype=int)
+            coo = x.tocoo(copy=False)
+            slices, old_rows = np.divmod(coo.row, m)
+            new_rows = row_map[old_rows]
+            mask = new_rows >= 0
+            stacked_rows = slices[mask] * len(rows_array) + new_rows[mask]
+            return sp.csc_array(
+                (coo.data[mask], (stacked_rows, coo.col[mask])),
+                shape=(p * len(rows_array), x.shape[1]),
+            )
 
         self.apply_all(func)
 
@@ -484,7 +594,12 @@ class SciPyCanonBackend(PythonCanonBackend):
         batch element of an ND variable.
         """
         batch_size, n, _ = get_nd_matmul_dims(const_shape, var_shape)
-        stacked_lhs = _apply_nd_kron_structure_mul(lhs, batch_size, n)
+        row_demand = getattr(self, "_active_row_demand", None)
+        if row_demand is None:
+            stacked_lhs = _apply_nd_kron_structure_mul(lhs, batch_size, n)
+        else:
+            stacked_lhs = _apply_nd_kron_structure_mul_rows(lhs, batch_size, n, row_demand)
+            self._active_row_demand_consumed = True
 
         def func(x, p):
             if p == 1:
@@ -534,14 +649,24 @@ class SciPyCanonBackend(PythonCanonBackend):
         """
         batch_size, n, _ = get_nd_matmul_dims(const_shape, var_shape)
 
-        # Expand each parameter slice and stack
-        stacked_lhs = {
-            param_id: sp.vstack(
-                list(_expand_parametric_slices_mul(v, self.param_to_size[param_id], batch_size, n)),
-                format="csc"
-            )
-            for param_id, v in lhs.items()
-        }
+        row_demand = getattr(self, "_active_row_demand", None)
+        if row_demand is None:
+            stacked_lhs = {
+                param_id: sp.vstack(
+                    list(_expand_parametric_slices_mul(
+                        v, self.param_to_size[param_id], batch_size, n)),
+                    format="csc"
+                )
+                for param_id, v in lhs.items()
+            }
+        else:
+            stacked_lhs = {
+                param_id: _apply_stacked_nd_kron_structure_mul_rows(
+                    v, self.param_to_size[param_id], batch_size, n, row_demand
+                )
+                for param_id, v in lhs.items()
+            }
+            self._active_row_demand_consumed = True
 
         def parametrized_mul(x):
             return {k: v @ x for k, v in stacked_lhs.items()}
@@ -823,7 +948,7 @@ class SciPyCanonBackend(PythonCanonBackend):
             m = coo_repr.shape[0] // p
             slices = coo_repr.row // m
             new_rows = (coo_repr.row + (slices + 1) * offset)
-            new_rows = new_rows + slices * (total_rows - m - offset).astype(int)
+            new_rows = new_rows + slices * int(total_rows - m - offset)
             return sp.csc_array((coo_repr.data, (new_rows, coo_repr.col)),
                                 shape=(int(total_rows * p), tensor.shape[1]))
 
@@ -928,6 +1053,28 @@ class SciPyCanonBackend(PythonCanonBackend):
         lhs = sp.csr_array(
             (np.ones(batch_size * n), (row_idx, col_idx)),
             shape=(output_size, total_input)
+        )
+
+        def func(x, p) -> sp.csc_array:
+            if p == 1:
+                return (lhs @ x).tocsr()
+            else:
+                return (sp.kron(sp.eye_array(p, format="csc"), lhs) @ x).tocsc()
+
+        return view.accumulate_over_variables(func, is_param_free_function=True)
+
+    @staticmethod
+    def trace_from_diag_rows(lin: LinOp, view: SciPyTensorView) -> SciPyTensorView:
+        arg_shape = lin.args[0].shape
+        n = arg_shape[-1]
+        batch_size = int(np.prod(arg_shape[:-2])) if len(arg_shape) > 2 else 1
+        input_rows = batch_size * n
+        output_rows = batch_size
+        row_idx = np.tile(np.arange(batch_size), n)
+        col_idx = np.arange(input_rows)
+        lhs = sp.csr_array(
+            (np.ones(input_rows), (row_idx, col_idx)),
+            shape=(output_rows, input_rows),
         )
 
         def func(x, p) -> sp.csc_array:
