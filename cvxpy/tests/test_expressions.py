@@ -704,10 +704,17 @@ class TestExpressions(BaseTest):
         self.assertItemsAlmostEqual(v.project(np.array([-7., 9.])), [0, 5])
 
         # Structural attributes combined with entrywise attributes are
-        # not enforced: the value passes through unmodified.
+        # not enforced if strict=False: the value passes through unmodified.
         v = Variable((2, 2), PSD=True, nonneg=True)
         A = np.array([[1., -1.], [1., -1.]])
-        self.assertItemsAlmostEqual(v.project(A), A)
+        self.assertItemsAlmostEqual(v.project(A, strict=False), A)
+
+        # Structural attributes combined with entrywise attributes error
+        # if strict=True.
+        v = Variable((2, 2), PSD=True, nonneg=True)
+        A = np.array([[1., -1.], [1., -1.]])
+        with self.assertRaises(RuntimeError):
+            v.project(A, strict=True)
 
     def test_partial_boolean_sign(self) -> None:
         """A variable boolean only at some indices has unknown sign.
