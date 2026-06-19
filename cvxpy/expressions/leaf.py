@@ -463,7 +463,7 @@ class Leaf(expression.Expression):
 
         Warning: some combinations of attributes cannot be
         analytically projected onto. If strict=True, this
-        function errors in those sitautions. If strict=False,
+        function errors in those situations. If strict=False,
         we silently **do nothing**.
 
         Parameters
