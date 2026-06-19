@@ -39,10 +39,10 @@ class TestNlpParameters:
         prob1 = cp.Problem(cp.Minimize(cp.sum_squares(A1 @ x - b1)))
         prob2 = cp.Problem(cp.Minimize(cp.sum_squares(A2 @ x - b2)))
         x.value = None
-        prob1.solve(nlp=True, solver='IPOPT')
+        prob1.solve(nlp=True, solver='IPOPT', verbose=False)
         hardcoded_sol1 = x.value
         x.value = None
-        prob2.solve(nlp=True, solver='IPOPT')
+        prob2.solve(nlp=True, solver='IPOPT', verbose=False)
         hardcoded_sol2 = x.value
 
         # Solve with parameters
@@ -50,14 +50,14 @@ class TestNlpParameters:
         b = cp.Parameter(m, value=b1)
         prob = cp.Problem(cp.Minimize(cp.sum_squares(A @ x - b)))
         x.value = None
-        prob.solve(nlp=True, solver='IPOPT')
+        prob.solve(nlp=True, solver='IPOPT', verbose=False)
         checker = DerivativeChecker(prob)
         checker.run_and_assert()
         param_sol1 = x.value
         A.value = A2
         b.value = b2
         x.value = None
-        prob.solve(nlp=True, solver='IPOPT')
+        prob.solve(nlp=True, solver='IPOPT', verbose=False)
         checker = DerivativeChecker(prob)
         checker.run_and_assert()
         param_sol2 = x.value
@@ -81,10 +81,10 @@ class TestNlpParameters:
         prob1 = cp.Problem(cp.Maximize(cp.sum(cp.entr(x))), constraints1)
         prob2 = cp.Problem(cp.Maximize(cp.sum(cp.entr(x))), constraints2)
         x.value = None
-        prob1.solve(nlp=True, solver='IPOPT')
+        prob1.solve(nlp=True, solver='IPOPT', verbose=False)
         hardcoded_sol1 = x.value
         x.value = None
-        prob2.solve(nlp=True, solver='IPOPT')
+        prob2.solve(nlp=True, solver='IPOPT', verbose=False)
         hardcoded_sol2 = x.value
 
         # Solve with parameters
@@ -93,14 +93,14 @@ class TestNlpParameters:
         constraints = [A @ x <= b, cp.sum(x) == 1]
         prob = cp.Problem(cp.Maximize(cp.sum(cp.entr(x))), constraints)
         x.value = None
-        prob.solve(nlp=True, solver='IPOPT')
+        prob.solve(nlp=True, solver='IPOPT', verbose=False)
         checker = DerivativeChecker(prob)
         checker.run_and_assert()
         param_sol1 = x.value
         A.value = A2
         b.value = b2
         x.value = None
-        prob.solve(nlp=True, solver='IPOPT')
+        prob.solve(nlp=True, solver='IPOPT', verbose=False)
         checker = DerivativeChecker(prob)
         checker.run_and_assert()
         param_sol2 = x.value
@@ -122,10 +122,10 @@ class TestNlpParameters:
         prob1 = cp.Problem(cp.Minimize(cp.log_sum_exp(A1 @ x + b1)))
         prob2 = cp.Problem(cp.Minimize(cp.log_sum_exp(A2 @ x + b2)))
         x.value = None
-        prob1.solve(nlp=True, solver='IPOPT')
+        prob1.solve(nlp=True, solver='IPOPT', verbose=False)
         hardcoded_sol1 = x.value
         x.value = None
-        prob2.solve(nlp=True, solver='IPOPT')
+        prob2.solve(nlp=True, solver='IPOPT', verbose=False)
         hardcoded_sol2 = x.value
 
         # Solve with parameters
@@ -133,14 +133,14 @@ class TestNlpParameters:
         b = cp.Parameter(m, value=b1)
         prob = cp.Problem(cp.Minimize(cp.log_sum_exp(A @ x + b)))
         x.value = None
-        prob.solve(nlp=True, solver='IPOPT')
+        prob.solve(nlp=True, solver='IPOPT', verbose=False)
         checker = DerivativeChecker(prob)
         checker.run_and_assert()
         param_sol1 = x.value
         A.value = A2
         b.value = b2
         x.value = None
-        prob.solve(nlp=True, solver='IPOPT')
+        prob.solve(nlp=True, solver='IPOPT', verbose=False)
         checker = DerivativeChecker(prob)
         checker.run_and_assert()
         param_sol2 = x.value
@@ -162,10 +162,10 @@ class TestNlpParameters:
         prob1 = cp.Problem(cp.Minimize(cp.sum_squares(X @ A1 - B1)))
         prob2 = cp.Problem(cp.Minimize(cp.sum_squares(X @ A2 - B2)))
         X.value = None
-        prob1.solve(nlp=True, solver='IPOPT')
+        prob1.solve(nlp=True, solver='IPOPT', verbose=False)
         hardcoded_sol1 = X.value
         X.value = None
-        prob2.solve(nlp=True, solver='IPOPT')
+        prob2.solve(nlp=True, solver='IPOPT', verbose=False)
         hardcoded_sol2 = X.value
 
         # Solve with parameters
@@ -173,14 +173,14 @@ class TestNlpParameters:
         B = cp.Parameter((m, p), value=B1)
         prob = cp.Problem(cp.Minimize(cp.sum_squares(X @ A - B)))
         X.value = None
-        prob.solve(nlp=True, solver='IPOPT')
+        prob.solve(nlp=True, solver='IPOPT', verbose=False)
         checker = DerivativeChecker(prob)
         checker.run_and_assert()
         param_sol1 = X.value
         A.value = A2
         B.value = B2
         X.value = None
-        prob.solve(nlp=True, solver='IPOPT')
+        prob.solve(nlp=True, solver='IPOPT', verbose=False)
         checker = DerivativeChecker(prob)
         checker.run_and_assert()
         param_sol2 = X.value
@@ -204,10 +204,10 @@ class TestNlpParameters:
         prob2 = cp.Problem(cp.Minimize(cp.sum_squares(A2 @ x - b2)),
                            [cp.sum(A2 @ x) == 1])
         x.value = None
-        prob1.solve(nlp=True, solver='IPOPT')
+        prob1.solve(nlp=True, solver='IPOPT', verbose=False)
         hardcoded_sol1 = x.value
         x.value = None
-        prob2.solve(nlp=True, solver='IPOPT')
+        prob2.solve(nlp=True, solver='IPOPT', verbose=False)
         hardcoded_sol2 = x.value
 
         # Solve with parameters
@@ -216,14 +216,14 @@ class TestNlpParameters:
         prob = cp.Problem(cp.Minimize(cp.sum_squares(A @ x - b)),
                           [cp.sum(A @ x) == 1])
         x.value = None
-        prob.solve(nlp=True, solver='IPOPT')
+        prob.solve(nlp=True, solver='IPOPT', verbose=False)
         checker = DerivativeChecker(prob)
         checker.run_and_assert()
         param_sol1 = x.value
         A.value = A2
         b.value = b2
         x.value = None
-        prob.solve(nlp=True, solver='IPOPT')
+        prob.solve(nlp=True, solver='IPOPT', verbose=False)
         checker = DerivativeChecker(prob)
         checker.run_and_assert()
         param_sol2 = x.value
@@ -246,10 +246,10 @@ class TestNlpParameters:
         prob2 = cp.Problem(cp.Minimize(cp.sum_squares(
             cp.multiply(cp.promote(cp.Constant(a2), (m,)), x) - b2)))
         x.value = None
-        prob1.solve(nlp=True, solver='IPOPT')
+        prob1.solve(nlp=True, solver='IPOPT', verbose=False)
         hardcoded_sol1 = x.value
         x.value = None
-        prob2.solve(nlp=True, solver='IPOPT')
+        prob2.solve(nlp=True, solver='IPOPT', verbose=False)
         hardcoded_sol2 = x.value
 
         # Solve with parameters
@@ -258,14 +258,14 @@ class TestNlpParameters:
         prob = cp.Problem(cp.Minimize(cp.sum_squares(
             cp.multiply(cp.promote(a, (m,)), x) - b)))
         x.value = None
-        prob.solve(nlp=True, solver='IPOPT')
+        prob.solve(nlp=True, solver='IPOPT', verbose=False)
         checker = DerivativeChecker(prob)
         checker.run_and_assert()
         param_sol1 = x.value
         a.value = a2
         b.value = b2
         x.value = None
-        prob.solve(nlp=True, solver='IPOPT')
+        prob.solve(nlp=True, solver='IPOPT', verbose=False)
         checker = DerivativeChecker(prob)
         checker.run_and_assert()
         param_sol2 = x.value
@@ -289,10 +289,10 @@ class TestNlpParameters:
         prob2 = cp.Problem(cp.Minimize(cp.sum_squares(
             cp.multiply(cp.broadcast_to(cp.Constant(a2), (m, n)), X) - B2)))
         X.value = None
-        prob1.solve(nlp=True, solver='IPOPT')
+        prob1.solve(nlp=True, solver='IPOPT', verbose=False)
         hardcoded_sol1 = X.value
         X.value = None
-        prob2.solve(nlp=True, solver='IPOPT')
+        prob2.solve(nlp=True, solver='IPOPT', verbose=False)
         hardcoded_sol2 = X.value
 
         # Solve with parameters
@@ -301,14 +301,14 @@ class TestNlpParameters:
         prob = cp.Problem(cp.Minimize(cp.sum_squares(
             cp.multiply(cp.broadcast_to(a, (m, n)), X) - B)))
         X.value = None
-        prob.solve(nlp=True, solver='IPOPT')
+        prob.solve(nlp=True, solver='IPOPT', verbose=False)
         checker = DerivativeChecker(prob)
         checker.run_and_assert()
         param_sol1 = X.value
         a.value = a2
         B.value = B2
         X.value = None
-        prob.solve(nlp=True, solver='IPOPT')
+        prob.solve(nlp=True, solver='IPOPT', verbose=False)
         checker = DerivativeChecker(prob)
         checker.run_and_assert()
         param_sol2 = X.value
@@ -328,23 +328,23 @@ class TestNlpParameters:
         prob1 = cp.Problem(cp.Minimize(-cp.sum(a1 * cp.log(x))), constraints)
         prob2 = cp.Problem(cp.Minimize(-cp.sum(a2 * cp.log(x))), constraints)
         x.value = None
-        prob1.solve(nlp=True, solver='IPOPT')
+        prob1.solve(nlp=True, solver='IPOPT', verbose=False)
         hardcoded_sol1 = x.value
         x.value = None
-        prob2.solve(nlp=True, solver='IPOPT')
+        prob2.solve(nlp=True, solver='IPOPT', verbose=False)
         hardcoded_sol2 = x.value
 
         # Solve with parameters
         a = cp.Parameter(value=a1)
         prob = cp.Problem(cp.Minimize(-cp.sum(a * cp.log(x))), constraints)
         x.value = None
-        prob.solve(nlp=True, solver='IPOPT')
+        prob.solve(nlp=True, solver='IPOPT', verbose=False)
         checker = DerivativeChecker(prob)
         checker.run_and_assert()
         param_sol1 = x.value
         a.value = a2
         x.value = None
-        prob.solve(nlp=True, solver='IPOPT')
+        prob.solve(nlp=True, solver='IPOPT', verbose=False)
         checker = DerivativeChecker(prob)
         checker.run_and_assert()
         param_sol2 = x.value
@@ -365,23 +365,23 @@ class TestNlpParameters:
         prob1 = cp.Problem(cp.Minimize(-cp.sum(cp.log(x) * a1)), constraints)
         prob2 = cp.Problem(cp.Minimize(-cp.sum(cp.log(x) * a2)), constraints)
         x.value = None
-        prob1.solve(nlp=True, solver='IPOPT')
+        prob1.solve(nlp=True, solver='IPOPT', verbose=False)
         hardcoded_sol1 = x.value
         x.value = None
-        prob2.solve(nlp=True, solver='IPOPT')
+        prob2.solve(nlp=True, solver='IPOPT', verbose=False)
         hardcoded_sol2 = x.value
 
         # Solve with parameters
         a = cp.Parameter(value=a1)
         prob = cp.Problem(cp.Minimize(-cp.sum(cp.log(x) * a)), constraints)
         x.value = None
-        prob.solve(nlp=True, solver='IPOPT')
+        prob.solve(nlp=True, solver='IPOPT', verbose=False)
         checker = DerivativeChecker(prob)
         checker.run_and_assert()
         param_sol1 = x.value
         a.value = a2
         x.value = None
-        prob.solve(nlp=True, solver='IPOPT')
+        prob.solve(nlp=True, solver='IPOPT', verbose=False)
         checker = DerivativeChecker(prob)
         checker.run_and_assert()
         param_sol2 = x.value
@@ -399,22 +399,22 @@ class TestNlpParameters:
         prob1 = cp.Problem(cp.Minimize(cp.sum(A1 @ X)))
         prob2 = cp.Problem(cp.Minimize(cp.sum(A2 @ X)))
         X.value = None
-        prob1.solve(nlp=True, solver='IPOPT')
+        prob1.solve(nlp=True, solver='IPOPT', verbose=False)
         hardcoded_sol1 = X.value_sparse
         X.value = None
-        prob2.solve(nlp=True, solver='IPOPT')
+        prob2.solve(nlp=True, solver='IPOPT', verbose=False)
         hardcoded_sol2 = X.value_sparse
 
         A = cp.Parameter((n, n), value=A1)
         prob = cp.Problem(cp.Minimize(cp.sum(A @ X)))
         X.value = None
-        prob.solve(nlp=True, solver='IPOPT')
+        prob.solve(nlp=True, solver='IPOPT', verbose=False)
         checker = DerivativeChecker(prob)
         checker.run_and_assert()
         param_sol1 = X.value_sparse
         A.value = A2
         X.value = None
-        prob.solve(nlp=True, solver='IPOPT')
+        prob.solve(nlp=True, solver='IPOPT', verbose=False)
         checker = DerivativeChecker(prob)
         checker.run_and_assert()
         param_sol2 = X.value_sparse
