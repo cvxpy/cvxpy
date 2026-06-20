@@ -13,21 +13,21 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 import builtins
 from functools import wraps
 from types import GeneratorType
 
-import numpy as np
-from numpy.exceptions import AxisError
-
 import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
+import numpy as np
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.atoms.axis_atom import AxisAtom, normalize_axis
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions.expression import Expression
 from cvxpy.utilities import bounds as bounds_utils
+from numpy.exceptions import AxisError
 
 
 class Sum(AxisAtom, AffAtom):
@@ -67,6 +67,19 @@ class Sum(AxisAtom, AffAtom):
     def __init__(self, expr, axis=None, keepdims=False) -> None:
         super(Sum, self).__init__(expr, axis=axis, keepdims=keepdims)
 
+    def name(self) -> str:
+        """Returns a clean string representation of the Sum atom."""
+        expr_name = self.args[0].name()
+        params = []
+        if self.axis is not None:
+            params.append(f"axis={self.axis}")
+        if self.keepdims:
+            params.append("keepdims=True")
+
+        if params:
+            return f"Sum({expr_name}, {', '.join(params)})"
+        return f"Sum({expr_name})"
+
     def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?"""
         return True
@@ -89,9 +102,7 @@ class Sum(AxisAtom, AffAtom):
         """Returns shape using NumPy's sum shape calculation."""
         try:
             return np.sum(
-                np.empty(self.args[0].shape),
-                axis=self.axis,
-                keepdims=self.keepdims
+                np.empty(self.args[0].shape), axis=self.axis, keepdims=self.keepdims
             ).shape
         except (ValueError, AxisError, TypeError) as e:
             raise ValueError(f"Invalid arguments for cp.sum: {e}") from e
@@ -106,10 +117,9 @@ class Sum(AxisAtom, AffAtom):
             result = np.sum(values[0], axis=self.axis, keepdims=self.keepdims)
         return result
 
-    def graph_implementation(self,
-                            arg_objs: list[lo.LinOp],
-                            shape: tuple[int, ...],
-                            data=None) -> tuple[lo.LinOp, list[Constraint]]:
+    def graph_implementation(
+        self, arg_objs: list[lo.LinOp], shape: tuple[int, ...], data=None
+    ) -> tuple[lo.LinOp, list[Constraint]]:
         """
         Sum the linear expression's entries.
 

@@ -13,18 +13,18 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 import abc
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from cvxpy.constraints.constraint import Constraint
 
-import numpy as np
-import scipy.sparse as sp
-
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.settings as s
+import numpy as np
+import scipy.sparse as sp
 from cvxpy import interface as intf
 from cvxpy import utilities as u
 from cvxpy.expressions import cvxtypes
@@ -36,7 +36,8 @@ from cvxpy.utilities.deterministic import unique_list
 
 
 class Atom(Expression):
-    """ Abstract base class for atoms. """
+    """Abstract base class for atoms."""
+
     _allow_complex = False
     # args are the expressions passed into the Atom constructor.
 
@@ -44,9 +45,7 @@ class Atom(Expression):
         self.id = lu.get_id()
         # Throws error if args is empty.
         if len(args) == 0:
-            raise TypeError(
-                "No arguments given to %s." % self.__class__.__name__
-            )
+            raise TypeError("No arguments given to %s." % self.__class__.__name__)
         # Convert raw values to Constants.
         self.args = [Atom.cast_to_const(arg) for arg in args]
         self.validate_arguments()
@@ -56,13 +55,30 @@ class Atom(Expression):
         super(Atom, self).__init__()
 
     def name(self) -> str:
-        """Returns the string representation of the function call.
+        """Returns a polished string representation of the function call,
+        filtering out internal developer metadata clutter like None and False.
         """
-        if self.get_data() is None:
-            data = []
-        else:
-            data = [str(elem) for elem in self.get_data()]
-        return f"{self.__class__.__name__}({', '.join([arg.name() for arg in self.args] + data)})"
+        arg_names = [arg.name() for arg in self.args]
+        data_elements = self.get_data()
+        data_strings = []
+
+        if data_elements is not None:
+            for elem in data_elements:
+                # Completely skip internal default arguments or flags
+                if elem in (None, False):
+                    continue
+                # If the atom is an internal shape wrapper, hide its structural details
+                if self.__class__.__name__ == "Promote":
+                    continue
+                data_strings.append(str(elem))
+
+        all_components = arg_names + data_strings
+
+        # Transparently pass through the wrapped expression for internal structural layers
+        if self.__class__.__name__ == "Promote":
+            return f"{', '.join(all_components)}"
+
+        return f"{self.__class__.__name__}({', '.join(all_components)})"
 
     def _uses_default_name(self) -> bool:
         """Return True if this class uses Atom.name without override."""
@@ -91,8 +107,7 @@ class Atom(Expression):
         return super().format_labeled()
 
     def validate_arguments(self) -> None:
-        """Raises an error if the arguments are invalid.
-        """
+        """Raises an error if the arguments are invalid."""
         if not self._allow_complex and any(arg.is_complex() for arg in self.args):
             raise ValueError(
                 "Arguments to %s cannot be complex." % self.__class__.__name__
@@ -100,8 +115,7 @@ class Atom(Expression):
 
     @abc.abstractmethod
     def shape_from_args(self) -> tuple[int, ...]:
-        """Returns the shape of the expression.
-        """
+        """Returns the shape of the expression."""
         raise NotImplementedError()
 
     @property
@@ -110,8 +124,7 @@ class Atom(Expression):
 
     @abc.abstractmethod
     def sign_from_args(self) -> tuple[bool, bool]:
-        """Returns sign (is positive, is negative) of the expression.
-        """
+        """Returns sign (is positive, is negative) of the expression."""
         raise NotImplementedError()
 
     def bounds_from_args(self) -> tuple[np.ndarray, np.ndarray]:
@@ -142,51 +155,46 @@ class Atom(Expression):
         lb, ub = self.bounds_from_args()
 
         # Refine using sign information
-        lb, ub = bounds_utils.refine_bounds_from_sign(lb, ub, self.is_nonneg(), self.is_nonpos())
+        lb, ub = bounds_utils.refine_bounds_from_sign(
+            lb, ub, self.is_nonneg(), self.is_nonpos()
+        )
 
         return (lb, ub)
 
     @perf.compute_once
     def is_nonneg(self) -> bool:
-        """Is the expression nonnegative?
-        """
+        """Is the expression nonnegative?"""
         return self.sign_from_args()[0]
 
     @perf.compute_once
     def is_nonpos(self) -> bool:
-        """Is the expression nonpositive?
-        """
+        """Is the expression nonpositive?"""
         return self.sign_from_args()[1]
 
     @perf.compute_once
     def is_imag(self) -> bool:
-        """Is the expression imaginary?
-        """
+        """Is the expression imaginary?"""
         # Default is false.
         return False
 
     @perf.compute_once
     def is_complex(self) -> bool:
-        """Is the expression complex valued?
-        """
+        """Is the expression complex valued?"""
         # Default is false.
         return False
 
     @abc.abstractmethod
     def is_atom_convex(self) -> bool:
-        """Is the atom convex?
-        """
+        """Is the atom convex?"""
         raise NotImplementedError()
 
     @abc.abstractmethod
     def is_atom_concave(self) -> bool:
-        """Is the atom concave?
-        """
+        """Is the atom concave?"""
         raise NotImplementedError()
 
     def is_atom_affine(self) -> bool:
-        """Is the atom affine?
-        """
+        """Is the atom affine?"""
         return self.is_atom_concave() and self.is_atom_convex()
 
     def is_atom_smooth(self) -> bool:
@@ -194,54 +202,48 @@ class Atom(Expression):
         return False
 
     def is_atom_log_log_convex(self) -> bool:
-        """Is the atom log-log convex?
-        """
+        """Is the atom log-log convex?"""
         return False
 
     def is_atom_log_log_concave(self) -> bool:
-        """Is the atom log-log concave?
-        """
+        """Is the atom log-log concave?"""
         return False
 
     def is_atom_quasiconvex(self) -> bool:
-        """Is the atom quasiconvex?
-        """
+        """Is the atom quasiconvex?"""
         return self.is_atom_convex()
 
     def is_atom_quasiconcave(self) -> bool:
-        """Is the atom quasiconcave?
-        """
+        """Is the atom quasiconcave?"""
         return self.is_atom_concave()
 
     def is_atom_log_log_affine(self) -> bool:
-        """Is the atom log-log affine?
-        """
+        """Is the atom log-log affine?"""
         return self.is_atom_log_log_concave() and self.is_atom_log_log_convex()
 
     @abc.abstractmethod
     def is_incr(self, idx) -> bool:
-        """Is the composition non-decreasing in argument idx?
-        """
+        """Is the composition non-decreasing in argument idx?"""
         raise NotImplementedError()
 
     @abc.abstractmethod
     def is_decr(self, idx) -> bool:
-        """Is the composition non-increasing in argument idx?
-        """
+        """Is the composition non-increasing in argument idx?"""
         raise NotImplementedError()
 
     @perf.compute_once
     def is_convex(self) -> bool:
-        """Is the expression convex?
-        """
+        """Is the expression convex?"""
         # Applies DCP composition rule.
         if self.is_constant():
             return True
         elif self.is_atom_convex():
             for idx, arg in enumerate(self.args):
-                if not (arg.is_affine() or
-                        (arg.is_convex() and self.is_incr(idx)) or
-                        (arg.is_concave() and self.is_decr(idx))):
+                if not (
+                    arg.is_affine()
+                    or (arg.is_convex() and self.is_incr(idx))
+                    or (arg.is_concave() and self.is_decr(idx))
+                ):
                     return False
             return True
         else:
@@ -249,16 +251,17 @@ class Atom(Expression):
 
     @perf.compute_once
     def is_concave(self) -> bool:
-        """Is the expression concave?
-        """
+        """Is the expression concave?"""
         # Applies DCP composition rule.
         if self.is_constant():
             return True
         elif self.is_atom_concave():
             for idx, arg in enumerate(self.args):
-                if not (arg.is_affine() or
-                        (arg.is_concave() and self.is_incr(idx)) or
-                        (arg.is_convex() and self.is_decr(idx))):
+                if not (
+                    arg.is_affine()
+                    or (arg.is_concave() and self.is_incr(idx))
+                    or (arg.is_convex() and self.is_decr(idx))
+                ):
                     return False
             return True
         else:
@@ -266,16 +269,17 @@ class Atom(Expression):
 
     @perf.compute_once
     def is_linearizable_convex(self) -> bool:
-        """Is the expression convex after linearizing all smooth subexpressions?
-        """
+        """Is the expression convex after linearizing all smooth subexpressions?"""
         # Applies DNLP composition rule.
         if self.is_constant():
             return True
         elif self.is_atom_smooth() or self.is_atom_convex():
             for idx, arg in enumerate(self.args):
-                if not (arg.is_smooth() or
-                        (arg.is_linearizable_convex() and self.is_incr(idx)) or
-                        (arg.is_linearizable_concave() and self.is_decr(idx))):
+                if not (
+                    arg.is_smooth()
+                    or (arg.is_linearizable_convex() and self.is_incr(idx))
+                    or (arg.is_linearizable_concave() and self.is_decr(idx))
+                ):
                     return False
             return True
         else:
@@ -283,43 +287,44 @@ class Atom(Expression):
 
     @perf.compute_once
     def is_linearizable_concave(self) -> bool:
-        """Is the expression concave after linearizing all smooth subexpressions?
-        """
+        """Is the expression concave after linearizing all smooth subexpressions?"""
         # Applies DNLP composition rule.
         if self.is_constant():
             return True
         elif self.is_atom_smooth() or self.is_atom_concave():
             for idx, arg in enumerate(self.args):
-                if not (arg.is_smooth() or
-                        (arg.is_linearizable_concave() and self.is_incr(idx)) or
-                        (arg.is_linearizable_convex() and self.is_decr(idx))):
+                if not (
+                    arg.is_smooth()
+                    or (arg.is_linearizable_concave() and self.is_incr(idx))
+                    or (arg.is_linearizable_convex() and self.is_decr(idx))
+                ):
                     return False
             return True
         else:
             return False
 
-    def is_dpp(self, context='dcp') -> bool:
-        """The expression is a disciplined parameterized expression.
-        """
-        if context.lower() == 'dcp':
+    def is_dpp(self, context="dcp") -> bool:
+        """The expression is a disciplined parameterized expression."""
+        if context.lower() == "dcp":
             return self.is_dcp(dpp=True)
-        elif context.lower() == 'dgp':
+        elif context.lower() == "dgp":
             return self.is_dgp(dpp=True)
         else:
-            raise ValueError('Unsupported context ', context)
+            raise ValueError("Unsupported context ", context)
 
     @perf.compute_once
     def is_log_log_convex(self) -> bool:
-        """Is the expression log-log convex?
-        """
+        """Is the expression log-log convex?"""
         # Verifies DGP composition rule.
         if self.is_log_log_constant():
             return True
         elif self.is_atom_log_log_convex():
             for idx, arg in enumerate(self.args):
-                if not (arg.is_log_log_affine() or
-                        (arg.is_log_log_convex() and self.is_incr(idx)) or
-                        (arg.is_log_log_concave() and self.is_decr(idx))):
+                if not (
+                    arg.is_log_log_affine()
+                    or (arg.is_log_log_convex() and self.is_incr(idx))
+                    or (arg.is_log_log_concave() and self.is_decr(idx))
+                ):
                     return False
             return True
         else:
@@ -327,16 +332,17 @@ class Atom(Expression):
 
     @perf.compute_once
     def is_log_log_concave(self) -> bool:
-        """Is the expression log-log concave?
-        """
+        """Is the expression log-log concave?"""
         # Verifies DGP composition rule.
         if self.is_log_log_constant():
             return True
         elif self.is_atom_log_log_concave():
             for idx, arg in enumerate(self.args):
-                if not (arg.is_log_log_affine() or
-                        (arg.is_log_log_concave() and self.is_incr(idx)) or
-                        (arg.is_log_log_convex() and self.is_decr(idx))):
+                if not (
+                    arg.is_log_log_affine()
+                    or (arg.is_log_log_concave() and self.is_incr(idx))
+                    or (arg.is_log_log_convex() and self.is_decr(idx))
+                ):
                     return False
             return True
         else:
@@ -353,13 +359,15 @@ class Atom(Expression):
         #   that argument must be a scalar
         #   the output must be a scalar
         non_const = self._non_const_idx()
-        return (self.is_scalar() and len(non_const) == 1 and
-                self.args[non_const[0]].is_scalar())
+        return (
+            self.is_scalar()
+            and len(non_const) == 1
+            and self.args[non_const[0]].is_scalar()
+        )
 
     @perf.compute_once
     def is_quasiconvex(self) -> bool:
-        """Is the expression quaisconvex?
-        """
+        """Is the expression quaisconvex?"""
         from cvxpy.atoms.max import max as max_atom
 
         # Verifies the DQCP composition rule.
@@ -374,17 +382,18 @@ class Atom(Expression):
             return self.args[non_const[0]].is_quasiconcave()
         if self.is_atom_quasiconvex():
             for idx, arg in enumerate(self.args):
-                if not (arg.is_affine() or
-                        (arg.is_convex() and self.is_incr(idx)) or
-                        (arg.is_concave() and self.is_decr(idx))):
+                if not (
+                    arg.is_affine()
+                    or (arg.is_convex() and self.is_incr(idx))
+                    or (arg.is_concave() and self.is_decr(idx))
+                ):
                     return False
             return True
         return False
 
     @perf.compute_once
     def is_quasiconcave(self) -> bool:
-        """Is the expression quasiconcave?
-        """
+        """Is the expression quasiconcave?"""
         from cvxpy.atoms.min import min as min_atom
 
         # Verifies the DQCP composition rule.
@@ -399,16 +408,17 @@ class Atom(Expression):
             return self.args[non_const[0]].is_quasiconvex()
         if self.is_atom_quasiconcave():
             for idx, arg in enumerate(self.args):
-                if not (arg.is_affine() or
-                        (arg.is_concave() and self.is_incr(idx)) or
-                        (arg.is_convex() and self.is_decr(idx))):
+                if not (
+                    arg.is_affine()
+                    or (arg.is_concave() and self.is_incr(idx))
+                    or (arg.is_convex() and self.is_decr(idx))
+                ):
                     return False
             return True
         return False
 
     def canonicalize(self):
-        """Represent the atom as an affine objective and conic constraints.
-        """
+        """Represent the atom as an affine objective and conic constraints."""
         # Constant atoms are treated as a leaf.
         if self.is_constant() and not self.parameters():
             # Non-parameterized expressions are evaluated immediately.
@@ -422,14 +432,14 @@ class Atom(Expression):
                 constraints += constr
             # Special info required by the graph implementation.
             data = self.get_data()
-            graph_obj, graph_constr = self.graph_implementation(arg_objs,
-                                                                self.shape,
-                                                                data)
+            graph_obj, graph_constr = self.graph_implementation(
+                arg_objs, self.shape, data
+            )
             return graph_obj, constraints + graph_constr
 
     def graph_implementation(
         self, arg_objs, shape: tuple[int, ...], data=None
-    ) -> tuple[lo.LinOp, list['Constraint']]:
+    ) -> tuple[lo.LinOp, list["Constraint"]]:
         """Reduces the atom to an affine expression and list of constraints.
 
         Parameters
@@ -541,35 +551,35 @@ class Atom(Expression):
         raise NotImplementedError()
 
     @property
-    def domain(self) -> list['Constraint']:
+    def domain(self) -> list["Constraint"]:
         """A list of constraints describing the closure of the region
-           where the expression is finite.
+        where the expression is finite.
         """
         return self._domain() + [con for arg in self.args for con in arg.domain]
 
-    def _domain(self) -> list['Constraint']:
-        """Returns constraints describing the domain of the atom.
-        """
+    def _domain(self) -> list["Constraint"]:
+        """Returns constraints describing the domain of the atom."""
         # Default is no constraints.
         return []
 
     @staticmethod
     def numpy_numeric(numeric_func):
         """Wraps an atom's numeric function that requires numpy ndarrays as input.
-           Ensures both inputs and outputs are the correct matrix types.
+        Ensures both inputs and outputs are the correct matrix types.
         """
 
         def new_numeric(self, values):
             interface = intf.DEFAULT_INTF
-            values = [interface.const_to_matrix(v, convert_scalars=True)
-                      for v in values]
+            values = [
+                interface.const_to_matrix(v, convert_scalars=True) for v in values
+            ]
             result = numeric_func(self, values)
             return intf.DEFAULT_INTF.const_to_matrix(result)
+
         return new_numeric
 
-    def atoms(self) -> list['Atom']:
-        """A list of the atom types present amongst this atom's arguments.
-        """
+    def atoms(self) -> list["Atom"]:
+        """A list of the atom types present amongst this atom's arguments."""
         atom_list = []
         for arg in self.args:
             atom_list += arg.atoms()
