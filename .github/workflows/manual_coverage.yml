@@ -20,7 +20,6 @@ jobs:
       PYTHON_VERSION: "3.12"
       MOSEK_CI_BASE64: ${{ secrets.MOSEK_CI_BASE64 }}
       KNITRO_LICENSE: ${{ secrets.KNITRO_LICENSE }}
-      FURY_TOKEN: ${{ secrets.FURY_TOKEN }}
       MOREAU_LICENSE_KEY: ${{ secrets.MOREAU_KEY }}
       COVERAGE_SOURCE_INCLUDE: "cvxpy/*"
       COVERAGE_SOURCE_OMIT: "cvxpy/tests/*,cvxpy/cvxcore/*,cvxpy/utilities/einsum_utilities.py"
@@ -84,10 +83,7 @@ jobs:
         if: always()
         run: |
           uv pip install -e ".[COPT,GUROBI,MOSEK,XPRESS,KNITRO]"
-          uv pip install cplex naginterfaces
-          if [ -n "$FURY_TOKEN" ]; then
-            uv pip install moreau --extra-index-url https://${FURY_TOKEN}:@pypi.fury.io/optimalintellect/
-          fi
+          uv pip install cplex naginterfaces moreau
 
       - name: Verify commercial solvers
         id: commercial_solver_check
