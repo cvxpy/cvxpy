@@ -3154,6 +3154,34 @@ class TestCOPT(unittest.TestCase):
     def test_copt_sdp_2(self) -> None:
         StandardTestSDPs.test_sdp_2(solver='COPT')
 
+    def test_copt_sdp_exp(self) -> None:
+        """COPT orders rows as (zero, nonneg, SOC, exp, PSD), CVXPY as
+        (zero, nonneg, SOC, PSD, exp); the interface must permute the exp
+        block ahead of the PSD block, else this problem reads as unbounded.
+        """
+        X = cp.Variable((2, 2), symmetric=True)
+        u = cp.Variable()
+        prob = cp.Problem(cp.Minimize(X[0, 1] + u),
+                          [X >> 0, cp.trace(X) == 1, cp.exp(u) <= 2, u >= -1])
+        prob.solve(solver='COPT')
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        self.assertAlmostEqual(prob.value, -1.5, places=4)
+        # Duals must be mapped back through the inverse permutation.
+        self.assertAlmostEqual(float(prob.constraints[1].dual_value), 0.5, places=4)
+        self.assertAlmostEqual(float(prob.constraints[3].dual_value), 1.0, places=4)
+
+    def test_copt_sdp_soc_exp(self) -> None:
+        """All supported cone types together exercise the row permutation."""
+        x = cp.Variable(2)
+        Y = cp.Variable((2, 2), symmetric=True)
+        w = cp.Variable()
+        prob = cp.Problem(cp.Minimize(cp.norm(x, 2) + Y[0, 0] + w),
+                          [Y >> 0, cp.trace(Y) == 1, cp.exp(w) <= 3, x[0] + w >= 1])
+        prob.solve(solver='COPT')
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        self.assertAlmostEqual(prob.value, 1.0, places=4)
+        self.assertAlmostEqual(float(prob.constraints[3].dual_value), 1.0, places=4)
+
     def test_copt_params(self) -> None:
         n = 10
         m = 4
@@ -3189,6 +3217,33 @@ class TestCOPT(unittest.TestCase):
         prob = cp.Problem(cp.Minimize(t), [X >> 0, cp.trace(X) == 1])
         prob.solve(solver='COPT')
         self.assertAlmostEqual(t.value, 2.0, places=3)
+
+    def test_copt_sdp_bound_attr_duals(self) -> None:
+        """Bound rows added in the PSD path must not shift the cone duals.
+
+        The bound-row duals come back inside COPT's inequality dual block;
+        the interface must drop them before mapping duals to constraints.
+        """
+        x = cp.Variable(2, bounds=[0, 10])
+        con = cp.diag(x) >> np.array([[2.0, 1.0], [1.0, 2.0]])
+        prob = cp.Problem(cp.Minimize(x[0] + 2 * x[1]), [con])
+        prob.solve(solver='COPT')
+        self.assertAlmostEqual(prob.value, 6 + 2 * np.sqrt(2), places=4)
+        expect = np.array([[1, np.sqrt(2)], [np.sqrt(2), 2]])
+        np.testing.assert_allclose(con.dual_value, expect, atol=1e-4)
+
+    def test_copt_sdp_soc_bound_attr_duals(self) -> None:
+        """SOC duals after the bound rows must stay aligned as well."""
+        x = cp.Variable(2, bounds=[-5, 5])
+        t = cp.Variable()
+        soc_con = cp.norm(x, 2) <= t
+        psd_con = cp.diag(x) >> np.array([[1.0, 0.5], [0.5, 1.0]])
+        prob = cp.Problem(cp.Minimize(t + x[0] + x[1]), [soc_con, psd_con])
+        prob.solve(solver='COPT')
+        self.assertAlmostEqual(prob.value, 3 + 1.5 * np.sqrt(2), places=4)
+        self.assertAlmostEqual(float(soc_con.dual_value), 1.0, places=4)
+        expect = (2 + np.sqrt(2)) / 2 * np.ones((2, 2))
+        np.testing.assert_allclose(psd_con.dual_value, expect, atol=1e-4)
 
     def test_copt_infeasible_lp_ineq(self) -> None:
         # Verifies COPT returns a valid dual Farkas infeasibility certificate.
