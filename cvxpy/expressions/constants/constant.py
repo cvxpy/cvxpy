@@ -49,12 +49,19 @@ class Constant(Leaf):
         if intf.is_sparse(value):
             self._value = intf.DEFAULT_SPARSE_INTF.const_to_matrix(
                 value, convert_scalars=True)
+            # Defensively copy if the conversion aliased the caller's data,
+            # since sign/PSD attributes are cached against the value.
+            if hasattr(value, 'data') and hasattr(self._value, 'data') and \
+                    np.may_share_memory(self._value.data, value.data):
+                self._value = self._value.copy()
             self._sparse = True
         else:
             if isinstance(value, list) and any(isinstance(i, list) for i in value):
                 warn(NESTED_LIST_WARNING)
 
             self._value = intf.DEFAULT_INTF.const_to_matrix(value)
+            if isinstance(value, np.ndarray) and np.may_share_memory(self._value, value):
+                self._value = self._value.copy()
             self._sparse = False
         self._imag: bool | None = None
         self._nonneg: bool | None = None

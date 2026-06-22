@@ -105,6 +105,24 @@ def test_sparse_expression_values_are_sparse_arrays():
     assert not isinstance(matmul_value, sp.spmatrix)
 
 
+def test_mutating_source_array_does_not_change_constant():
+    # Mutating the array a Constant was built from must not desynchronize
+    # the constant's value from its cached sign attributes (issue: stale cache).
+    a = np.array([1.0, 2.0])
+    c = cp.Constant(a)
+    assert c.is_nonneg()
+    a[0] = -5.0
+    assert np.allclose(c.value, [1.0, 2.0])
+    assert c.is_nonneg()
+
+    m = sp.csc_array(np.array([[1.0, 0.0], [0.0, 2.0]]))
+    cs = cp.Constant(m)
+    assert cs.is_nonneg()
+    m.data[0] = -3.0
+    assert np.allclose(cs.value.toarray(), [[1.0, 0.0], [0.0, 2.0]])
+    assert cs.is_nonneg()
+
+
 def test_nested_lists():
 
     A = [[1, 2], [3, 4], [5, 6]]
