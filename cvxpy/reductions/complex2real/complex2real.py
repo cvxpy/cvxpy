@@ -340,14 +340,13 @@ class Complex2Real(Reduction):
                         #          [-im(X), re(X)]
                         # and the constraint con_y = Y >> 0.
                         #
-                        # The real part the dual variable for con_x is the upper-left
-                        # block of the dual variable for con_y.
-                        #
-                        # The imaginary part of the dual variable for con_x is the
-                        # upper-right block of the dual variable for con_y.
+                        # If D is the dual variable for con_y, then the dual variable
+                        # for con_x is 2*(D[:n, :n] + 1j*D[n:, :n]). The factor of 2
+                        # accounts for the dilation doubling the inner product:
+                        # <D, Y> = 2*Re(<D[:n, :n] + 1j*D[n:, :n], X>).
                         n = cons.args[0].shape[0]
                         dual = solution.dual_vars[cid]
-                        dvars[cid] = dual[:n, :n] + 1j*dual[n:, :n]
+                        dvars[cid] = 2*(dual[:n, :n] + 1j*dual[n:, :n])
                     elif isinstance(cons, self.UNIMPLEMENTED_COMPLEX_DUALS):
                         # TODO: implement dual variable recovery
                         pass

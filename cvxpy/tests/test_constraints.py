@@ -659,3 +659,152 @@ class TestConstraints(BaseTest):
         self.assertEqual(prob.status, cp.OPTIMAL)
         dual_constr = soc_constr._dual_cone()
         self.assertIsInstance(dual_constr, SOC)
+
+    def test_exponential_cone_metadata_duals_and_validation(self) -> None:
+        x = cp.Variable(2)
+        y = cp.Variable(2)
+        z = cp.Variable(2)
+        con = cp.constraints.ExpCone(x, y, z)
+
+        self.assertTrue(str(con).startswith("ExpCone("))
+        self.assertTrue(repr(con).startswith("ExpCone("))
+        self.assertIsNone(con.residual)
+        self.assertEqual(con.size, 6)
+        self.assertEqual(con.num_cones(), 2)
+        self.assertEqual(con.cone_sizes(), [3, 3])
+        self.assertEqual(con.shape, (3, 2))
+        self.assertTrue(con.is_dcp())
+        self.assertTrue(con.is_dcp(dpp=True))
+        self.assertFalse(con.is_dgp())
+        self.assertTrue(con.is_dqcp())
+        quad_approx = con.as_quad_approx(2, 3)
+        self.assertIsInstance(quad_approx, cp.constraints.RelEntrConeQuad)
+        self.assertIs(quad_approx.x, y)
+        self.assertIs(quad_approx.y, z)
+        self.assertEqual(quad_approx.m, 2)
+        self.assertEqual(quad_approx.k, 3)
+        x.value = np.array([1.0, 2.0])
+        y.value = np.array([3.0, 4.0])
+        z.value = np.array([5.0, 6.0])
+        np.testing.assert_allclose(quad_approx.z.value, -x.value)
+
+        dual = con._dual_cone()
+        self.assertIsInstance(dual, cp.constraints.ExpCone)
+        explicit_dual = con._dual_cone(x, y, z)
+        self.assertIsInstance(explicit_dual, cp.constraints.ExpCone)
+        np.testing.assert_allclose(explicit_dual.x.value, -y.value)
+        np.testing.assert_allclose(explicit_dual.y.value, -x.value)
+        np.testing.assert_allclose(explicit_dual.z.value, np.exp(1) * z.value)
+        with self.assertRaises(AssertionError):
+            con._dual_cone(cp.Variable(1), y, z)
+
+        con.save_dual_value(np.arange(6))
+        np.testing.assert_allclose(con.dual_variables[0].value, [0, 3])
+        np.testing.assert_allclose(con.dual_variables[1].value, [1, 4])
+        np.testing.assert_allclose(con.dual_variables[2].value, [2, 5])
+        np.testing.assert_allclose(dual.x.value, -con.dual_variables[1].value)
+        np.testing.assert_allclose(dual.y.value, -con.dual_variables[0].value)
+        np.testing.assert_allclose(dual.z.value, np.exp(1) * con.dual_variables[2].value)
+
+        with pytest.raises(ValueError, match="affine and real"):
+            cp.constraints.ExpCone(cp.square(x), y, z)
+        with pytest.raises(ValueError, match="same shapes"):
+            cp.constraints.ExpCone(cp.Variable(1), y, z)
+
+    def test_exp_cone_matrix_arg_duals(self) -> None:
+        """Duals of an ExpCone with matrix args must match the flattened problem.
+
+        ConeMatrixStuffing flattens matrix args in Fortran order;
+        save_dual_value used to reshape the recovered duals in C order,
+        permuting the dual entries whenever both dimensions exceed one.
+        """
+        m, k = 2, 3
+        rng = np.random.default_rng(4)
+        c = rng.uniform(0.5, 1, (m, k))
+        x, y, z = cp.Variable((m, k)), cp.Variable((m, k)), cp.Variable((m, k))
+        con = cp.constraints.ExpCone(x, y, z)
+        objective = -cp.sum(cp.multiply(c, x)) + cp.sum(y) + cp.sum(z)
+        cp.Problem(cp.Minimize(objective), [con]).solve(solver=cp.CLARABEL)
+
+        xf, yf, zf = cp.Variable(m * k), cp.Variable(m * k), cp.Variable(m * k)
+        con_f = cp.constraints.ExpCone(xf, yf, zf)
+        objective_f = -c.flatten('F') @ xf + cp.sum(yf) + cp.sum(zf)
+        cp.Problem(cp.Minimize(objective_f), [con_f]).solve(solver=cp.CLARABEL)
+
+        for dv, dvf in zip(con.dual_value, con_f.dual_value):
+            np.testing.assert_allclose(dv, dvf.reshape((m, k), order='F'), atol=1e-6)
+
+    def test_pow_cone_3d_matrix_arg_duals(self) -> None:
+        """Duals of a PowCone3D with matrix args must match the flattened problem.
+
+        ConeMatrixStuffing restores PowCone3D matrix duals to a (3, m, k)
+        array before save_dual_value runs; each coordinate block must then
+        be reshaped in Fortran order.
+        """
+        m, k = 2, 3
+        alpha = 0.4
+        rng = np.random.default_rng(7)
+        c = rng.uniform(0.5, 1, (m, k))
+        x = cp.Variable((m, k))
+        y = cp.Variable((m, k))
+        z = cp.Variable((m, k))
+        con = PowCone3D(x, y, z, alpha)
+        objective = cp.sum(x) + cp.sum(y) - cp.sum(cp.multiply(c, z))
+        cp.Problem(cp.Minimize(objective), [con]).solve(solver=cp.CLARABEL)
+
+        xf = cp.Variable(m * k)
+        yf = cp.Variable(m * k)
+        zf = cp.Variable(m * k)
+        con_f = PowCone3D(xf, yf, zf, alpha)
+        objective_f = cp.sum(xf) + cp.sum(yf) - c.flatten('F') @ zf
+        cp.Problem(cp.Minimize(objective_f), [con_f]).solve(solver=cp.CLARABEL)
+
+        for dv, dvf in zip(con.dual_value, con_f.dual_value):
+            np.testing.assert_allclose(dv, dvf.reshape((m, k), order='F'), atol=1e-6)
+
+    def test_relative_entropy_quad_cones_metadata_and_validation(self) -> None:
+        x = cp.Variable(2)
+        y = cp.Variable(2)
+        z = cp.Variable(2)
+        con = cp.constraints.RelEntrConeQuad(x, y, z, 2, 3)
+
+        self.assertEqual(con.get_data(), [2, 3, con.id])
+        self.assertTrue(str(con).startswith("RelEntrConeQuad("))
+        self.assertTrue(repr(con).startswith("RelEntrConeQuad("))
+        self.assertIsNone(con.residual)
+        self.assertEqual(con.size, 6)
+        self.assertEqual(con.num_cones(), 2)
+        self.assertEqual(con.cone_sizes(), [3, 3])
+        self.assertTrue(con.is_dcp())
+        self.assertTrue(con.is_dcp(dpp=True))
+        self.assertFalse(con.is_dgp())
+        self.assertTrue(con.is_dqcp())
+        self.assertEqual(con.shape, (3, 2))
+        self.assertIsNone(con.save_dual_value(None))
+
+        with pytest.raises(ValueError, match="affine and real"):
+            cp.constraints.RelEntrConeQuad(cp.square(x), y, z, 2, 3)
+        with pytest.raises(ValueError, match="same shapes"):
+            cp.constraints.RelEntrConeQuad(cp.Variable(1), y, z, 2, 3)
+
+        X = cp.Variable((2, 2), symmetric=True)
+        Y = cp.Variable((2, 2), symmetric=True)
+        Z = cp.Variable((2, 2), symmetric=True)
+        op_con = cp.constraints.OpRelEntrConeQuad(X, Y, Z, 2, 3)
+        self.assertEqual(op_con.get_data(), [2, 3, op_con.id])
+        self.assertTrue(str(op_con).startswith("OpRelEntrConeQuad("))
+        self.assertTrue(repr(op_con).startswith("OpRelEntrConeQuad("))
+        with self.assertRaises(NotImplementedError):
+            op_con.residual
+        self.assertEqual(op_con.size, 12)
+        self.assertEqual(op_con.num_cones(), 4)
+        self.assertEqual(op_con.cone_sizes(), [3, 3, 3, 3])
+        self.assertTrue(op_con.is_dcp())
+        self.assertTrue(op_con.is_dcp(dpp=True))
+        self.assertFalse(op_con.is_dgp())
+        self.assertTrue(op_con.is_dqcp())
+        self.assertEqual(op_con.shape, (3, 2, 2))
+        self.assertIsNone(op_con.save_dual_value(None))
+
+        with pytest.raises(ValueError, match="same shapes"):
+            cp.constraints.OpRelEntrConeQuad(cp.Variable((1, 1), symmetric=True), Y, Z, 2, 3)

@@ -756,6 +756,53 @@ def _build_interleaved_mul(
     )
 
 
+def _build_interleaved_param_mul(
+    column: CooTensor,
+    const_shape: tuple,
+    var_shape: tuple,
+) -> CooTensor:
+    """
+    Build the interleaved matrix for a batch-varying parametric constant (C @ X).
+
+    Parametric analogue of _build_interleaved_mul: C(B,m,k) @ X(B,k,n) where
+    each batch element uses a DIFFERENT (m, k) slice of C and C depends on
+    Parameters. `column` holds C in column format: an entry with row
+    q = b + B*i + B*m*r (the column-major position of C[b, i, r]), value d and
+    parameter slice s means dC[b, i, r]/dtheta_s = d. For a direct parameter,
+    the column is the identity (d = 1, s = q).
+
+    Entries are placed at the interleaved positions (see _build_interleaved_mul):
+        M[b + B*i + B*m*c, b + B*r + B*k*c] = C[b, i, r]  for c in 0..n-1
+
+    The result already encodes the batch and output-column structure, so it
+    must NOT be expanded again with _kron_nd_structure_mul.
+    """
+    B = int(np.prod(const_shape[:-2]))
+    m, k = const_shape[-2], const_shape[-1]
+    n = var_shape[-1] if len(var_shape) >= 2 else 1
+    assert (column.m, column.n) == (B * m * k, 1), "Column data must match the constant shape"
+
+    # Decode the column-major position q = b + B*i + B*m*r of each entry
+    bb = column.row % B
+    ii = (column.row // B) % m
+    rr = column.row // (B * m)
+
+    base_row = bb + B * ii
+    base_col = bb + B * rr
+
+    # Apply I_n: replicate for each output column c in 0..n-1
+    c_offsets = np.repeat(np.arange(n), column.nnz)
+    return CooTensor(
+        data=np.tile(column.data, n),
+        row=(np.tile(base_row, n) + c_offsets * B * m).astype(np.int64),
+        col=(np.tile(base_col, n) + c_offsets * B * k).astype(np.int64),
+        param_idx=np.tile(column.param_idx, n).astype(np.int64),
+        m=B * m * n,
+        n=B * k * n,
+        param_size=column.param_size,
+    )
+
+
 def _kron_nd_structure_rmul(tensor: CooTensor, batch_size: int, m: int) -> CooTensor:
     """
     Build the Kronecker structure for ND rmul: C.T tensor I_{B*m}.
@@ -985,6 +1032,53 @@ def _build_interleaved_rmul(
         m=B * m * n,
         n=B * m * k,
         param_size=1
+    )
+
+
+def _build_interleaved_param_rmul(
+    column: CooTensor,
+    const_shape: tuple,
+    var_shape: tuple,
+) -> CooTensor:
+    """
+    Build the interleaved matrix for a batch-varying parametric constant (X @ C).
+
+    Parametric analogue of _build_interleaved_rmul: X(B,m,k) @ C(B,k,n) where
+    each batch element uses a DIFFERENT (k, n) slice of C and C depends on
+    Parameters. `column` holds C in column format: an entry with row
+    q = b + B*r + B*k*j (the column-major position of C[b, r, j]), value d and
+    parameter slice s means dC[b, r, j]/dtheta_s = d. For a direct parameter,
+    the column is the identity (d = 1, s = q).
+
+    Entries are placed at the interleaved positions (see _build_interleaved_rmul):
+        M[b + B*i + B*m*j, b + B*i + B*m*r] = C[b, r, j]  for i in 0..m-1
+
+    The result already encodes the batch and row structure, so it must NOT be
+    expanded again with _kron_nd_structure_rmul.
+    """
+    B = int(np.prod(const_shape[:-2]))
+    k, n = const_shape[-2], const_shape[-1]
+    m = var_shape[-2] if len(var_shape) >= 2 else 1
+    assert (column.m, column.n) == (B * k * n, 1), "Column data must match the constant shape"
+
+    # Decode the column-major position q = b + B*r + B*k*j of each entry
+    bb = column.row % B
+    rr = (column.row // B) % k
+    jj = column.row // (B * k)
+
+    base_row = bb + B * m * jj
+    base_col = bb + B * m * rr
+
+    # Apply I_m: replicate for each row i in 0..m-1
+    i_offsets = np.repeat(np.arange(m), column.nnz)
+    return CooTensor(
+        data=np.tile(column.data, m),
+        row=(np.tile(base_row, m) + i_offsets * B).astype(np.int64),
+        col=(np.tile(base_col, m) + i_offsets * B).astype(np.int64),
+        param_idx=np.tile(column.param_idx, m).astype(np.int64),
+        m=B * m * n,
+        n=B * m * k,
+        param_size=column.param_size,
     )
 
 
@@ -1785,18 +1879,17 @@ class CooCanonBackend(PythonCanonBackend):
             param_id: _kron_nd_structure_mul(tensor, batch_size, n)
             for param_id, tensor in lhs_data.items()
         }
+        return self._apply_parametric_matmul(expanded_lhs, view)
 
-        def parametrized_mul(rhs_compact):
-            return {
-                param_id: coo_matmul(lhs_compact, rhs_compact)
-                for param_id, lhs_compact in expanded_lhs.items()
-            }
-
-        # Apply to each variable tensor in-place
+    @staticmethod
+    def _apply_parametric_matmul(expanded: dict, view: CooTensorView) -> CooTensorView:
+        """Left-multiply each variable tensor in the view by per-parameter matrices."""
         for var_id, var_tensor in view.tensor.items():
             const_compact = var_tensor[Constant.ID.value]
-            view.tensor[var_id] = parametrized_mul(const_compact)
-
+            view.tensor[var_id] = {
+                param_id: coo_matmul(matrix, const_compact)
+                for param_id, matrix in expanded.items()
+            }
         view.is_parameter_free = False
         return view
 
@@ -1853,7 +1946,25 @@ class CooCanonBackend(PythonCanonBackend):
             param_id = const.data
             param_size = self.param_to_size[param_id]
             size = int(np.prod(const.shape))
-            m, k = const.shape if len(const.shape) == 2 else (1, size)
+            if is_batch_varying(const_shape):
+                # ND parameter with batch dims: each batch element has its own
+                # (m, k) slice of P, so the Kronecker expansion (same matrix
+                # for all batches) does not apply. Build the interleaved
+                # structure directly from the identity column (dP/dP = I);
+                # it already encodes batch and output column dims, so apply
+                # it without further expansion.
+                column = CooTensor(
+                    data=np.ones(param_size, dtype=np.float64),
+                    row=np.arange(param_size, dtype=np.int64),
+                    col=np.zeros(param_size, dtype=np.int64),
+                    param_idx=np.arange(param_size, dtype=np.int64),
+                    m=size, n=1, param_size=param_size
+                )
+                expanded = {param_id: _build_interleaved_param_mul(
+                    column, const_shape, var_shape)}
+                return self._apply_parametric_matmul(expanded, view)
+            # 2D (or trivial batch dims): treat as an (m, k) matrix.
+            m, k = const_shape[-2:] if len(const_shape) >= 2 else (1, size)
             lhs_data = {param_id: CooTensor(
                 data=np.ones(param_size, dtype=np.float64),
                 row=np.tile(np.arange(m), k),
@@ -1863,6 +1974,23 @@ class CooCanonBackend(PythonCanonBackend):
             )}
             is_param_free = False
         else:
+            if is_batch_varying(const_shape):
+                # Batch-varying constant: keep the column format, which
+                # preserves the batch structure (reshaping to the last two
+                # dims would collapse the per-batch slices of a parametric
+                # constant expression, e.g. 2*P with P(B, m, k)).
+                lhs_data, is_param_free = self.get_constant_data(
+                    const, view, target_shape=None)
+                if not is_param_free:
+                    # Case 1b: Batch-varying parametric LHS
+                    expanded = {
+                        param_id: _build_interleaved_param_mul(
+                            tensor, const_shape, var_shape)
+                        for param_id, tensor in lhs_data.items()
+                    }
+                    return self._apply_parametric_matmul(expanded, view)
+                # Case 2: Batch-varying constant
+                return self._mul_interleaved(lin_op, var_shape, view)
             # Compute 2D target shape (last 2 dims for ND, row vector for 1D)
             target = const_shape[-2:] if len(const_shape) >= 2 else (1, const_shape[0])
             lhs_data, is_param_free = self.get_constant_data(const, view, target_shape=target)
@@ -1870,9 +1998,6 @@ class CooCanonBackend(PythonCanonBackend):
         if not is_param_free:
             # Case 1: Parametric LHS
             return self._mul_parametric_lhs(lhs_data, const_shape, var_shape, view)
-        elif is_batch_varying(const_shape):
-            # Case 2: Batch-varying constant
-            return self._mul_interleaved(lin_op, var_shape, view)
         else:
             # Case 3: 2D constant (or trivial batch dims like (1, m, k))
             return self._mul_kronecker(lhs_data, const_shape, var_shape, view)
@@ -2170,20 +2295,7 @@ class CooCanonBackend(PythonCanonBackend):
             param_id: _kron_nd_structure_rmul(tensor, batch_size, m)
             for param_id, tensor in rhs_data.items()
         }
-
-        def parametrized_rmul(lhs_compact):
-            return {
-                param_id: coo_matmul(rhs_compact, lhs_compact)
-                for param_id, rhs_compact in expanded_rhs.items()
-            }
-
-        # Apply to each variable tensor in-place
-        for var_id, var_tensor in view.tensor.items():
-            const_compact = var_tensor[Constant.ID.value]
-            view.tensor[var_id] = parametrized_rmul(const_compact)
-
-        view.is_parameter_free = False
-        return view
+        return self._apply_parametric_matmul(expanded_rhs, view)
 
     def rmul(self, lin_op, view: CooTensorView) -> CooTensorView:
         """
@@ -2241,7 +2353,25 @@ class CooCanonBackend(PythonCanonBackend):
             param_id = const.data
             param_size = self.param_to_size[param_id]
             size = int(np.prod(const.shape))
-            k, n = const.shape if len(const.shape) == 2 else (size, 1)
+            if is_batch_varying(const_shape):
+                # ND parameter with batch dims: each batch element has its own
+                # (k, n) slice of P, so the Kronecker expansion (same matrix
+                # for all batches) does not apply. Build the interleaved
+                # structure directly from the identity column (dP/dP = I);
+                # it already encodes batch and row dims, so apply it without
+                # further expansion.
+                column = CooTensor(
+                    data=np.ones(param_size, dtype=np.float64),
+                    row=np.arange(param_size, dtype=np.int64),
+                    col=np.zeros(param_size, dtype=np.int64),
+                    param_idx=np.arange(param_size, dtype=np.int64),
+                    m=size, n=1, param_size=param_size
+                )
+                expanded = {param_id: _build_interleaved_param_rmul(
+                    column, const_shape, var_shape)}
+                return self._apply_parametric_matmul(expanded, view)
+            # 2D (or trivial batch dims): treat as a (k, n) matrix.
+            k, n = const_shape[-2:] if len(const_shape) >= 2 else (size, 1)
             rhs_data = {param_id: CooTensor(
                 data=np.ones(param_size, dtype=np.float64),
                 row=np.tile(np.arange(k), n),
@@ -2251,6 +2381,23 @@ class CooCanonBackend(PythonCanonBackend):
             )}
             is_param_free = False
         else:
+            if is_batch_varying(const_shape):
+                # Batch-varying constant: keep the column format, which
+                # preserves the batch structure (reshaping to the last two
+                # dims would collapse the per-batch slices of a parametric
+                # constant expression, e.g. 2*P with P(B, k, n)).
+                rhs_data, is_param_free = self.get_constant_data(
+                    const, view, target_shape=None)
+                if not is_param_free:
+                    # Case 1b: Batch-varying parametric RHS
+                    expanded = {
+                        param_id: _build_interleaved_param_rmul(
+                            tensor, const_shape, var_shape)
+                        for param_id, tensor in rhs_data.items()
+                    }
+                    return self._apply_parametric_matmul(expanded, view)
+                # Case 2: Batch-varying constant
+                return self._rmul_interleaved(lin_op, var_shape, view)
             # Compute 2D target shape (last 2 dims for ND, column vector for 1D)
             target = const_shape[-2:] if len(const_shape) >= 2 else (const_shape[0], 1)
             rhs_data, is_param_free = self.get_constant_data(const, view, target_shape=target)
@@ -2258,9 +2405,6 @@ class CooCanonBackend(PythonCanonBackend):
         if not is_param_free:
             # Case 1: Parametric RHS
             return self._rmul_parametric_rhs(rhs_data, const_shape, var_shape, view)
-        elif is_batch_varying(const_shape):
-            # Case 2: Batch-varying constant
-            return self._rmul_interleaved(lin_op, var_shape, view)
         else:
             # Case 3: 2D constant (or trivial batch dims like (1, k, n))
             return self._rmul_kronecker(rhs_data, const_shape, var_shape, view)

@@ -14,6 +14,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import tempfile
 import unittest
 
 import numpy as np
@@ -116,16 +117,36 @@ class QPTestBase(BaseTest):
 
     @staticmethod
     def is_xpress_available():
-        """Check if XPRESS is installed and a license is available."""
+        """Check if XPRESS is installed and a usable license can be acquired.
+
+        The Community license bundled with the ``xpress`` package is sufficient
+        for the small problems in this suite. Creating a problem object is where
+        modern XPRESS acquires the license; the old ``xpress.env().getlicense()``
+        API was removed in xpress 9.x.
+        """
         if 'XPRESS' not in INSTALLED_SOLVERS:
             return False
         try:
             import xpress  # type: ignore
-            env = xpress.env()
-            status = env.getlicense()
-            return status == 0
+            xpress.problem()
+            return True
         except Exception:
             return False
+
+    @staticmethod
+    def _skip_if_xpress_community_limit(solver_name, exc):
+        """Skip tests that exceed the XPRESS Community license size limit."""
+        if solver_name == cp.XPRESS and "too many rows and columns" in str(exc):
+            raise unittest.SkipTest(
+                "XPRESS Community license problem-size limit (200 rows+cols)"
+            ) from exc
+
+    def _solve_problem(self, problem, solver_name, **kwargs):
+        try:
+            return problem.solve(solver=solver_name, verbose=False, **kwargs)
+        except Exception as exc:
+            self._skip_if_xpress_community_limit(solver_name, exc)
+            raise
 
     def filter_licensed_solvers(self, solvers):
         """Remove solvers that don't have valid licenses."""
@@ -507,7 +528,20 @@ class TestQp(QPTestBase):
         self.solvers = self.filter_licensed_solvers(self.solvers)
 
     def solve_QP(self, problem, solver_name):
-        return problem.solve(solver=solver_name, verbose=False)
+        return self._solve_problem(problem, solver_name)
+
+    def test_xpress_duplicate_variable_names_qp(self) -> None:
+        """Two variables sharing a name() must not crash the QP interface."""
+        if not self.is_xpress_available():
+            self.skipTest("XPRESS license not available")
+
+        x = cp.Variable(3, name="dup")
+        y = cp.Variable(3, name="dup")
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(x - 1) + cp.sum_squares(y - 2)))
+        prob.solve(solver=cp.XPRESS)
+        self.assertIn(prob.status, (cp.OPTIMAL, cp.OPTIMAL_INACCURATE))
+        self.assertItemsAlmostEqual(x.value, np.ones(3), places=4)
+        self.assertItemsAlmostEqual(y.value, 2 * np.ones(3), places=4)
 
     def test_all_solvers(self) -> None:
         for solver in self.solvers:
@@ -878,13 +912,17 @@ class TestQp(QPTestBase):
         StandardTestInfeasibleProblems.test_lp_eq_constraints(solver=cp.HIGHS)
 
     def test_highs_dense_quad_form(self) -> None:
-        """Regression test for https://github.com/cvxpy/cvxpy/issues/3301.
+        """Regression test for https://github.com/cvxpy/cvxpy/issues/3301
+        and a related silent wrong-answer bug on highspy < 1.14.0.
 
         A dense quad_form applied to a linear expression (not a raw Variable)
         produces a Hessian whose upper and lower triangles may differ by
-        floating-point epsilon after canonicalization. Passing such a Hessian
-        in square format to HiGHS >= 1.14.0 triggers an asymmetry error
-        and native heap corruption. Using triangular format avoids this.
+        floating-point epsilon after canonicalization. We pass it to HiGHS
+        in triangular format. HiGHS < 1.14.0 only honors the lower triangle
+        in that format and silently returns wrong solutions when given the
+        upper triangle, hence the `highspy >= 1.14.0` minimum in
+        pyproject.toml. Cross-check the objective against CLARABEL because
+        status alone (`kOptimal`) does not detect a wrong-QP solve.
         """
         if cp.HIGHS not in INSTALLED_SOLVERS:
             return
@@ -919,6 +957,11 @@ class TestQp(QPTestBase):
         )
         prob.solve(solver=cp.HIGHS)
         self.assertEqual(prob.status, cp.OPTIMAL)
+        highs_value = prob.value
+
+        prob.solve(solver=cp.CLARABEL)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        self.assertAlmostEqual(highs_value, prob.value, places=4)
 
 
 class TestConicQuadObj(QPTestBase):
@@ -945,7 +988,7 @@ class TestConicQuadObj(QPTestBase):
         )
         self.assertEqual(data["dims"].soc, [],
             f"Problem should have no SOC cones for QP canonicalization with {solver_name}")
-        return problem.solve(solver=solver_name, use_quad_obj=True, verbose=False)
+        return self._solve_problem(problem, solver_name, use_quad_obj=True)
 
     def test_all_solvers(self) -> None:
         """Test conic solvers with use_quad_obj=True.
@@ -1116,3 +1159,65 @@ class TestQpSolverValidation(unittest.TestCase):
         with self.assertRaises(SolverError) as cm:
             osqp_solver.apply(param_cone_prog)
         self.assertIn("second-order cones", str(cm.exception))
+
+
+@unittest.skipUnless('PIQP' in INSTALLED_SOLVERS, 'PIQP is not installed.')
+class TestPiqpInterface(unittest.TestCase):
+    """Focused tests for PIQP solver-interface options."""
+
+    def test_piqp_dense_backend(self) -> None:
+        """The dense backend should agree with the default sparse backend."""
+        x = cp.Variable(2)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(x - 3)), [x[0] + x[1] <= 4])
+        prob.solve(solver=cp.PIQP, backend='dense')
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        np.testing.assert_allclose(x.value, [2., 2.], atol=1e-4)
+
+    def test_piqp_invalid_backend(self) -> None:
+        """An unrecognized backend is rejected before solving."""
+        x = cp.Variable(2)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(x)), [x >= 1])
+        with self.assertRaisesRegex(ValueError, "backend must be either dense or sparse"):
+            prob.solve(solver=cp.PIQP, backend='tridiagonal')
+
+    def test_piqp_unknown_setting(self) -> None:
+        """An unknown solver setting raises a clear TypeError."""
+        x = cp.Variable(2)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(x)), [x >= 1])
+        with self.assertRaisesRegex(TypeError, "Unrecognized solver setting"):
+            prob.solve(solver=cp.PIQP, not_a_real_setting=1.0)
+
+
+@unittest.skipUnless('COPT' in INSTALLED_SOLVERS, 'COPT is not installed.')
+class TestCoptQpInterface(unittest.TestCase):
+    """Focused tests for COPT QP solver-interface options."""
+
+    def test_copt_mixed_integer(self) -> None:
+        """A mixed boolean/integer QP exercises the MIP variable-type path."""
+        xb = cp.Variable(boolean=True)
+        xi = cp.Variable(integer=True)
+        prob = cp.Problem(cp.Minimize((xb - 0.7) ** 2 + (xi - 2.4) ** 2),
+                          [xi >= 0, xi <= 5])
+        prob.solve(solver=cp.COPT)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        self.assertTrue(np.isclose(xb.value, 1.0))
+        self.assertTrue(np.isclose(xi.value, 2.0))
+
+    def test_copt_solver_opts_passthrough(self) -> None:
+        """Non-interface solver options are forwarded to COPT via setParam."""
+        x = cp.Variable(2)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(x - 1)), [x >= 0])
+        prob.solve(solver=cp.COPT, RelGap=1e-7)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        np.testing.assert_allclose(x.value, [1., 1.], atol=1e-4)
+
+    def test_copt_save_file(self) -> None:
+        """The save_file option writes the model to disk before solving."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            out = f"{tmpdir}/model.mps"
+            x = cp.Variable(2)
+            prob = cp.Problem(cp.Minimize(cp.sum_squares(x - 1)), [x >= 0])
+            prob.solve(solver=cp.COPT, save_file=out)
+            self.assertEqual(prob.status, cp.OPTIMAL)
+            with open(out, "rb") as file:
+                self.assertGreater(len(file.read()), 0)

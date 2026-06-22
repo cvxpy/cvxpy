@@ -282,8 +282,10 @@ class Leaf(expression.Expression):
 
     def is_nonneg(self) -> bool:
         """Is the expression nonnegative?"""
-        return (self.attributes['nonneg'] or self.attributes['pos'] or
-                self.attributes['boolean'])
+        # The boolean attribute may be an index list constraining only some
+        # entries, in which case the leaf's sign is unknown.
+        return bool(self.attributes['nonneg'] or self.attributes['pos'] or
+                    self.attributes['boolean'] is True)
 
     def is_nonpos(self) -> bool:
         """Is the expression nonpositive?"""
@@ -461,7 +463,8 @@ class Leaf(expression.Expression):
         elif self.attributes['imag']:
             return np.imag(val)*1j
         elif self.attributes['complex']:
-            return val.astype(complex)
+            # val may be a Python scalar, which has no astype method.
+            return np.asarray(val).astype(complex)
         elif self.attributes['boolean']:
             if hasattr(self, "boolean_idx"):
                 new_val = np.atleast_1d(val.astype(np.float64, copy=True))
