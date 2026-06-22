@@ -735,16 +735,31 @@
 <span class="sd">&quot;&quot;&quot;</span>
 
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">overload</span>
+
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">problems</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.atoms.elementwise.power</span><span class="w"> </span><span class="kn">import</span> <span class="n">Power</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.atoms.quad_over_lin</span><span class="w"> </span><span class="kn">import</span> <span class="n">quad_over_lin</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.constraints.constraint</span><span class="w"> </span><span class="kn">import</span> <span class="n">Constraint</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.expressions</span><span class="w"> </span><span class="kn">import</span> <span class="n">cvxtypes</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.expressions.expression</span><span class="w"> </span><span class="kn">import</span> <span class="n">Expression</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.problems.objective</span><span class="w"> </span><span class="kn">import</span> <span class="n">Minimize</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.problems.objective</span><span class="w"> </span><span class="kn">import</span> <span class="n">Minimize</span><span class="p">,</span> <span class="n">Objective</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.canonicalization</span><span class="w"> </span><span class="kn">import</span> <span class="n">Canonicalization</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.dcp2cone.canonicalizers</span><span class="w"> </span><span class="kn">import</span> <span class="n">CANON_METHODS</span> <span class="k">as</span> <span class="n">cone_canon_methods</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.dcp2cone.canonicalizers.quad</span><span class="w"> </span><span class="kn">import</span> <span class="n">QUAD_CANON_METHODS</span> <span class="k">as</span> <span class="n">quad_canon_methods</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.inverse_data</span><span class="w"> </span><span class="kn">import</span> <span class="n">InverseData</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.subexpr_cache</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">ExprKey</span><span class="p">,</span>
+    <span class="n">StructuralKeyCache</span><span class="p">,</span>
+    <span class="n">UncacheableError</span><span class="p">,</span>
+    <span class="n">expr_key</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.utilities.canonical</span><span class="w"> </span><span class="kn">import</span> <span class="n">Canonical</span>
+
+<span class="c1"># A Dcp2Cone CSE cache key: a subtree&#39;s structural key, paired with</span>
+<span class="c1"># affine_above only when canonicalization could depend on it (the quad-objective</span>
+<span class="c1"># branch); None otherwise so cone-mode subtrees merge across contexts.</span>
+<span class="n">ConeCacheKey</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">ExprKey</span><span class="p">,</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span>
 
 
 <div class="viewcode-block" id="Dcp2Cone">
@@ -783,8 +798,13 @@
 
         <span class="n">inverse_data</span> <span class="o">=</span> <span class="n">InverseData</span><span class="p">(</span><span class="n">problem</span><span class="p">)</span>
 
+        <span class="n">cse_cache</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">ConeCacheKey</span><span class="p">,</span> <span class="n">Expression</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">structural_key_cache</span> <span class="o">=</span> <span class="n">StructuralKeyCache</span><span class="p">()</span>
+        <span class="n">affine_above_relevant_cache</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
         <span class="n">canon_objective</span><span class="p">,</span> <span class="n">canon_constraints</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">canonicalize_tree</span><span class="p">(</span>
-            <span class="n">problem</span><span class="o">.</span><span class="n">objective</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+            <span class="n">problem</span><span class="o">.</span><span class="n">objective</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">cse_cache</span><span class="p">,</span>
+            <span class="n">structural_key_cache</span><span class="p">,</span> <span class="n">affine_above_relevant_cache</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">constraint</span> <span class="ow">in</span> <span class="n">problem</span><span class="o">.</span><span class="n">constraints</span><span class="p">:</span>
             <span class="c1"># canon_constr is the constraint rexpressed in terms of</span>
@@ -792,9 +812,10 @@
             <span class="c1"># generated while canonicalizing the arguments of the original</span>
             <span class="c1"># constraint</span>
             <span class="n">canon_constr</span><span class="p">,</span> <span class="n">aux_constr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">canonicalize_tree</span><span class="p">(</span>
-                <span class="n">constraint</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+                <span class="n">constraint</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="n">cse_cache</span><span class="p">,</span>
+                <span class="n">structural_key_cache</span><span class="p">,</span> <span class="n">affine_above_relevant_cache</span><span class="p">)</span>
             <span class="n">canon_constraints</span> <span class="o">+=</span> <span class="n">aux_constr</span> <span class="o">+</span> <span class="p">[</span><span class="n">canon_constr</span><span class="p">]</span>
-            <span class="n">inverse_data</span><span class="o">.</span><span class="n">cons_id_map</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">constraint</span><span class="o">.</span><span class="n">id</span><span class="p">:</span> <span class="n">canon_constr</span><span class="o">.</span><span class="n">id</span><span class="p">})</span>
+            <span class="n">inverse_data</span><span class="o">.</span><span class="n">cons_id_map</span><span class="p">[</span><span class="n">constraint</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">canon_constr</span><span class="o">.</span><span class="n">id</span>
 
         <span class="n">new_problem</span> <span class="o">=</span> <span class="n">problems</span><span class="o">.</span><span class="n">problem</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">canon_objective</span><span class="p">,</span>
                                                <span class="n">canon_constraints</span><span class="p">)</span>
@@ -802,10 +823,49 @@
         <span class="k">return</span> <span class="n">new_problem</span><span class="p">,</span> <span class="n">inverse_data</span></div>
 
 
+    <span class="nd">@overload</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">canonicalize_tree</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">expr</span><span class="p">:</span> <span class="n">Expression</span><span class="p">,</span>
+        <span class="n">affine_above</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+        <span class="n">cse_cache</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">ConeCacheKey</span><span class="p">,</span> <span class="n">Expression</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">structural_key_cache</span><span class="p">:</span> <span class="n">StructuralKeyCache</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">affine_above_relevant_cache</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Expression</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">Constraint</span><span class="p">]]:</span> <span class="o">...</span>
+    <span class="nd">@overload</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">canonicalize_tree</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">expr</span><span class="p">:</span> <span class="n">Constraint</span><span class="p">,</span>
+        <span class="n">affine_above</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+        <span class="n">cse_cache</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">ConeCacheKey</span><span class="p">,</span> <span class="n">Expression</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">structural_key_cache</span><span class="p">:</span> <span class="n">StructuralKeyCache</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">affine_above_relevant_cache</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Constraint</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">Constraint</span><span class="p">]]:</span> <span class="o">...</span>
+    <span class="nd">@overload</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">canonicalize_tree</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">expr</span><span class="p">:</span> <span class="n">Objective</span><span class="p">,</span>
+        <span class="n">affine_above</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+        <span class="n">cse_cache</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">ConeCacheKey</span><span class="p">,</span> <span class="n">Expression</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">structural_key_cache</span><span class="p">:</span> <span class="n">StructuralKeyCache</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">affine_above_relevant_cache</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Objective</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">Constraint</span><span class="p">]]:</span> <span class="o">...</span>
+
 <div class="viewcode-block" id="Dcp2Cone.canonicalize_tree">
 <a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.dcp2cone.html#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_tree">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">canonicalize_tree</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">,</span> <span class="n">affine_above</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Expression</span><span class="p">,</span> <span class="nb">list</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">canonicalize_tree</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">expr</span><span class="p">:</span> <span class="n">Canonical</span><span class="p">,</span>
+        <span class="n">affine_above</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+        <span class="n">cse_cache</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">ConeCacheKey</span><span class="p">,</span> <span class="n">Expression</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">structural_key_cache</span><span class="p">:</span> <span class="n">StructuralKeyCache</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">affine_above_relevant_cache</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Canonical</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">Constraint</span><span class="p">]]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Recursively canonicalize an Expression.</span>
+
+<span class="sd">        Canonicalizing an Expression yields an Expression, a Constraint yields</span>
+<span class="sd">        a Constraint, and an Objective yields an Objective; the overloads above</span>
+<span class="sd">        preserve that distinction for callers.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -816,29 +876,68 @@
 <span class="sd">        -------</span>
 <span class="sd">        A tuple of the canonicalized expression and generated constraints.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">cse_cache</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">cse_cache</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="n">structural_key_cache</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">structural_key_cache</span> <span class="o">=</span> <span class="n">StructuralKeyCache</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">affine_above_relevant_cache</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">affine_above_relevant_cache</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># Only Expression subtrees are eligible for the CSE cache. Objectives</span>
+        <span class="c1"># and user constraints are intentionally excluded so their IDs flow</span>
+        <span class="c1"># through to inverse_data unchanged. partial_problem subtrees carry</span>
+        <span class="c1"># their own constraints with IDs and are excluded for the same reason.</span>
+        <span class="n">partial_problem_cls</span> <span class="o">=</span> <span class="n">cvxtypes</span><span class="o">.</span><span class="n">partial_problem</span><span class="p">()</span>
+        <span class="n">cache_eligible</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="nb">isinstance</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">Expression</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">type</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span> <span class="o">!=</span> <span class="n">partial_problem_cls</span>
+        <span class="p">)</span>
+        <span class="n">cache_key</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">cache_eligible</span><span class="p">:</span>
+            <span class="n">cache_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_cache_key</span><span class="p">(</span>
+                <span class="n">expr</span><span class="p">,</span> <span class="n">affine_above</span><span class="p">,</span> <span class="n">structural_key_cache</span><span class="p">,</span>
+                <span class="n">affine_above_relevant_cache</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">cache_key</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">cache_key</span> <span class="ow">in</span> <span class="n">cse_cache</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">cse_cache</span><span class="p">[</span><span class="n">cache_key</span><span class="p">],</span> <span class="p">[]</span>
+
         <span class="c1"># TODO don&#39;t copy affine expressions?</span>
-        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span> <span class="o">==</span> <span class="n">cvxtypes</span><span class="o">.</span><span class="n">partial_problem</span><span class="p">():</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span> <span class="o">==</span> <span class="n">partial_problem_cls</span><span class="p">:</span>
             <span class="n">canon_expr</span><span class="p">,</span> <span class="n">constrs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">canonicalize_tree</span><span class="p">(</span>
-              <span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">expr</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+                <span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">expr</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="n">cse_cache</span><span class="p">,</span>
+                <span class="n">structural_key_cache</span><span class="p">,</span> <span class="n">affine_above_relevant_cache</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">constr</span> <span class="ow">in</span> <span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">constraints</span><span class="p">:</span>
-                <span class="n">canon_constr</span><span class="p">,</span> <span class="n">aux_constr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">canonicalize_tree</span><span class="p">(</span><span class="n">constr</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+                <span class="n">canon_constr</span><span class="p">,</span> <span class="n">aux_constr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">canonicalize_tree</span><span class="p">(</span>
+                    <span class="n">constr</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="n">cse_cache</span><span class="p">,</span>
+                    <span class="n">structural_key_cache</span><span class="p">,</span> <span class="n">affine_above_relevant_cache</span><span class="p">)</span>
                 <span class="n">constrs</span> <span class="o">+=</span> <span class="p">[</span><span class="n">canon_constr</span><span class="p">]</span> <span class="o">+</span> <span class="n">aux_constr</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">affine_atom</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cone_canon_methods</span>
             <span class="n">canon_args</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="n">constrs</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">:</span>
-                <span class="n">canon_arg</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">canonicalize_tree</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="n">affine_atom</span> <span class="ow">and</span> <span class="n">affine_above</span><span class="p">)</span>
+                <span class="n">canon_arg</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">canonicalize_tree</span><span class="p">(</span>
+                    <span class="n">arg</span><span class="p">,</span> <span class="n">affine_atom</span> <span class="ow">and</span> <span class="n">affine_above</span><span class="p">,</span> <span class="n">cse_cache</span><span class="p">,</span>
+                    <span class="n">structural_key_cache</span><span class="p">,</span> <span class="n">affine_above_relevant_cache</span><span class="p">)</span>
                 <span class="n">canon_args</span> <span class="o">+=</span> <span class="p">[</span><span class="n">canon_arg</span><span class="p">]</span>
                 <span class="n">constrs</span> <span class="o">+=</span> <span class="n">c</span>
             <span class="n">canon_expr</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">canonicalize_expr</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">canon_args</span><span class="p">,</span> <span class="n">affine_above</span><span class="p">)</span>
             <span class="n">constrs</span> <span class="o">+=</span> <span class="n">c</span>
+
+        <span class="k">if</span> <span class="n">cache_key</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Only canon_expr is needed on hit; subsequent uses return an</span>
+            <span class="c1"># empty constraint list because the first emission already</span>
+            <span class="c1"># added the generated constraints to the caller&#39;s list.</span>
+            <span class="n">cse_cache</span><span class="p">[</span><span class="n">cache_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">canon_expr</span>
         <span class="k">return</span> <span class="n">canon_expr</span><span class="p">,</span> <span class="n">constrs</span></div>
 
 
 <div class="viewcode-block" id="Dcp2Cone.canonicalize_expr">
 <a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.dcp2cone.html#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.canonicalize_expr">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">canonicalize_expr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">affine_above</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Expression</span><span class="p">,</span> <span class="nb">list</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">canonicalize_expr</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">expr</span><span class="p">:</span> <span class="n">Expression</span><span class="p">,</span>
+        <span class="n">args</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Expression</span><span class="p">],</span>
+        <span class="n">affine_above</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Expression</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">Constraint</span><span class="p">]]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Canonicalize an expression, w.r.t. canonicalized arguments.</span>
 
 <span class="sd">        Parameters</span>
@@ -878,7 +977,63 @@
                                                        <span class="n">solver_context</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">solver_context</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">expr</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">args</span><span class="p">),</span> <span class="p">[]</span></div>
-</div>
+
+
+    <span class="c1"># ----- CSE cache key construction -----</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_make_cache_key</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">expr</span><span class="p">:</span> <span class="n">Expression</span><span class="p">,</span>
+        <span class="n">affine_above</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+        <span class="n">structural_key_cache</span><span class="p">:</span> <span class="n">StructuralKeyCache</span><span class="p">,</span>
+        <span class="n">affine_above_relevant_cache</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">bool</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ConeCacheKey</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Build a hashable structural key for an Expression subtree.</span>
+
+<span class="sd">        Returns None if a safe key cannot be built, in which case the caller</span>
+<span class="sd">        skips caching for that subtree rather than risking incorrect reuse.</span>
+<span class="sd">        ``affine_above`` is included only when the result actually depends on</span>
+<span class="sd">        it (i.e. quad-objective canonicalization could fire for this subtree),</span>
+<span class="sd">        so cone-mode canonicalization cannot share a result with the quad</span>
+<span class="sd">        branch but identical subtrees that happen to sit under affine-only and</span>
+<span class="sd">        non-affine roots still merge.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">structural</span> <span class="o">=</span> <span class="n">expr_key</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">structural_key_cache</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">UncacheableError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_affine_above_relevant</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">affine_above_relevant_cache</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">structural</span><span class="p">,</span> <span class="nb">bool</span><span class="p">(</span><span class="n">affine_above</span><span class="p">))</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">structural</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_affine_above_relevant</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">:</span> <span class="n">Canonical</span><span class="p">,</span> <span class="n">affine_above_relevant_cache</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Whether canonicalize_tree result for ``expr`` depends on affine_above.</span>
+
+<span class="sd">        Returns True when ``expr`` itself or any descendant could take the</span>
+<span class="sd">        quad-canon path (which requires self.quad_obj and an unbroken chain of</span>
+<span class="sd">        affine atoms from the root). For purely cone-mode subtrees, the result</span>
+<span class="sd">        is independent of affine_above and caching can merge across contexts.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">quad_obj</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">Expression</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="n">cache_key</span> <span class="o">=</span> <span class="nb">id</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">cache_key</span> <span class="ow">in</span> <span class="n">affine_above_relevant_cache</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">affine_above_relevant_cache</span><span class="p">[</span><span class="n">cache_key</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">quad_canon_methods</span><span class="p">:</span>
+            <span class="n">relevant</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cone_canon_methods</span><span class="p">:</span>
+            <span class="c1"># A non-affine atom forces affine_above=False for its children, so</span>
+            <span class="c1"># descendants cannot reach the quad branch through this node.</span>
+            <span class="n">relevant</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Affine atom: forwards affine_above to children, so check descendants.</span>
+            <span class="n">relevant</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_affine_above_relevant</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="n">affine_above_relevant_cache</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">)</span>
+        <span class="n">affine_above_relevant_cache</span><span class="p">[</span><span class="n">cache_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">relevant</span>
+        <span class="k">return</span> <span class="n">relevant</span></div>
 
 </code></pre></div>
 
