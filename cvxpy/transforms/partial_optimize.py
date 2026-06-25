@@ -61,7 +61,7 @@ def partial_optimize(
         The variables to not optimize over.
     solver : str, optional
         The default solver to use for value and grad.
-    kwargs : keywords, optional
+    **kwargs : keywords, optional
         Additional solver specific keyword arguments.
 
     Returns

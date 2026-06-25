@@ -31,7 +31,7 @@ def tv(value, *args) -> Expression:
     ----------
     value : Expression or numeric constant
         The value to take the total variation of.
-    args : Matrix constants/expressions
+    *args : Matrix constants/expressions
         Additional matrices extending the third dimension of value.
 
     Returns
