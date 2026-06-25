@@ -88,7 +88,7 @@ class HuberAtom(Elementwise):
     """
 
     def __init__(self, x, M: int = 1) -> None:
-        self.M = self.cast_to_const(M)
+        self.M = self.cast(M)
         super(HuberAtom, self).__init__(x)
 
     def parameters(self):
@@ -189,8 +189,8 @@ class HuberPerspectiveAtom(Atom):
     """
 
     def __init__(self, x, t, M=1) -> None:
-        self.M = self.cast_to_const(M)
-        t = self.cast_to_const(t)
+        self.M = self.cast(M)
+        t = self.cast(t)
         super(HuberPerspectiveAtom, self).__init__(x, t)
 
     @property

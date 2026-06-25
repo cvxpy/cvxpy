@@ -41,13 +41,13 @@ class PowCone3D(Cone):
 
     def __init__(self, x, y, z, alpha, constr_id=None) -> None:
         Expression = cvxtypes.expression()
-        self.x = Expression.cast_to_const(x)
-        self.y = Expression.cast_to_const(y)
-        self.z = Expression.cast_to_const(z)
+        self.x = Expression.cast(x)
+        self.y = Expression.cast(y)
+        self.z = Expression.cast(z)
         for val in [self.x, self.y, self.z]:
             if not (val.is_affine() and val.is_real()):
                 raise ValueError('All arguments must be affine and real.')
-        alpha = Expression.cast_to_const(alpha)
+        alpha = Expression.cast(alpha)
         alpha_promoted_to_vec = False
         if alpha.is_scalar():
             if self.x.shape:
@@ -192,11 +192,11 @@ class PowConeND(Cone):
 
     def __init__(self, W, z, alpha, axis: int = 0, constr_id=None) -> None:
         Expression = cvxtypes.expression()
-        W = Expression.cast_to_const(W)
+        W = Expression.cast(W)
         if not (W.is_real() and W.is_affine()):
             msg = "Invalid first argument; W must be affine and real."
             raise ValueError(msg)
-        z = Expression.cast_to_const(z)
+        z = Expression.cast(z)
         if z.ndim > 1 or not (z.is_real() and z.is_affine()):
             msg = ("Invalid second argument. z must be affine, real, "
                    "and have at most one z.ndim <= 1.")
@@ -211,7 +211,7 @@ class PowConeND(Cone):
         if W.ndim == 2 and W.shape[axis] <= 1:
             msg = "PowConeND requires left-hand-side to have at least two terms."
             raise ValueError(msg)
-        alpha = Expression.cast_to_const(alpha)
+        alpha = Expression.cast(alpha)
         if alpha.shape != W.shape:
             raise ValueError("Argument dimensions %s and %s are not equal."
                              % (W.shape, alpha.shape))

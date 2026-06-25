@@ -41,7 +41,7 @@ def linearize(expr):
     Returns:
         An affine expression or None.
     """
-    expr = Constant.cast_to_const(expr)
+    expr = Constant.cast(expr)
     if expr.is_affine():
         return expr
     else:
