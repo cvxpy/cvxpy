@@ -120,6 +120,30 @@ def test_build_matrix_order(backend_name):
         backend.build_matrix([lin_op], order='INVALID')
 
 
+@pytest.mark.parametrize("backend_name", [s.SCIPY_CANON_BACKEND, s.COO_CANON_BACKEND])
+def test_matmul_with_parametric_expression_lhs(backend_name):
+    """Stuffing (A @ p) @ x must keep every entry of A.
+
+    Regression test: reshaping a parametric matmul lhs deduplicated entries
+    by param_idx, silently dropping all but one entry of A per parameter.
+    """
+    p = cp.Parameter(3)
+    p.value = np.array([1.0, 2.0, 3.0])
+    x = cp.Variable(3)
+    A = np.tril(np.ones((3, 3)))
+    prob = cp.Problem(cp.Minimize((A @ p) @ x + cp.sum_squares(x)))
+    c = prob.get_problem_data(cp.CLARABEL, canon_backend=backend_name)[0]["c"]
+    np.testing.assert_allclose(c[:3], A @ p.value)
+
+    # Entries duplicated by broadcasting the parameter must also be kept.
+    q = cp.Parameter(2)
+    q.value = np.array([1.0, 2.0])
+    y = cp.Variable(2)
+    prob = cp.Problem(cp.Minimize(cp.sum(cp.broadcast_to(q, (2, 2)) @ y) + cp.sum_squares(y)))
+    c = prob.get_problem_data(cp.CLARABEL, canon_backend=backend_name)[0]["c"]
+    np.testing.assert_allclose(c[:2], 2 * q.value)
+
+
 class TestBackendInstance:
     def test_get_backend(self):
         args = ({1: 0, 2: 2}, {-1: 1, 3: 1}, {3: 0, -1: 1}, 2, 4)
@@ -3288,11 +3312,15 @@ class TestCooBackend:
         assert np.array_equal(result_linear.row, np.array([0, 1, 0, 1]))
         assert np.array_equal(result_linear.col, np.array([0, 0, 1, 1]))
 
-        # reshape_parametric_constant: deduplicates based on param_idx
+        # reshape_parametric_constant: keeps all entries here. The tensor size
+        # equals the target size, so the duplicated param_idx values are genuine
+        # entries at distinct positions (as in broadcast_to(p, (2, 2)) @ x),
+        # not broadcast copies, and dropping them would lose coefficients.
         result_param = reshape_parametric_constant(tensor, new_m, new_n)
-        assert result_param.nnz == 2, "reshape_parametric_constant should deduplicate"
-        # param_idx 0 -> position (0,0), param_idx 1 -> position (1,0)
-        assert np.array_equal(result_param.param_idx, np.array([0, 1]))
+        assert result_param.nnz == 4, "entries at distinct positions must be kept"
+        assert np.array_equal(result_param.row, np.array([0, 1, 0, 1]))
+        assert np.array_equal(result_param.col, np.array([0, 0, 1, 1]))
+        assert np.array_equal(result_param.param_idx, np.array([0, 0, 1, 1]))
 
     @staticmethod
     def test_get_constant_data_shape_for_broadcast_param():
