@@ -206,10 +206,16 @@ def _build_solving_chain(
             raise DPPError(DPP_ERROR_MSG)
         if not ignore_dpp:
             warn(DPP_ERROR_MSG)
-        if ignore_dpp:
-            canon_backend = DIFFENGINE_CANON_BACKEND
-        else:
+        # Fold the variable-free composite parametric subtrees -- the ones that
+        # would needlessly force cones (e.g. log_det(P)) -- and keep bare
+        # parameters symbolic for the DIFFENGINE backend to re-evaluate on each
+        # solve. Skip it when the problem has no parameters: the fold is then a
+        # no-op, and inserting it only costs a full expr.parameters() tree walk
+        # (measurable on large problems) and needlessly disables param_prog
+        # caching.
+        if problem.parameters():
             reductions = [EvalParams()] + reductions
+        canon_backend = DIFFENGINE_CANON_BACKEND
     else:
         if canon_backend is None:
             total_param_size = sum(p.size for p in problem.parameters())

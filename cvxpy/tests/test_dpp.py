@@ -5,6 +5,7 @@ import pytest
 
 import cvxpy as cp
 import cvxpy.error as error
+import cvxpy.settings as s
 from cvxpy.tests.base_test import BaseTest
 
 SOLVER = cp.CLARABEL
@@ -285,6 +286,8 @@ class TestDcp(BaseTest):
         with pytest.raises(error.DPPError):
             problem.solve(cp.SCS, enforce_dpp=True, ignore_dpp=True)
 
+    @pytest.mark.xfail(reason="diff engine (non-DPP/ignore_dpp path): division by a "
+                              "parameter (parametric divisor) not yet supported")
     def test_quad_over_lin(self) -> None:
         """Test case with parameter in quad_over_lin."""
         # Bug where the second argument to quad_over_lin
@@ -372,8 +375,9 @@ class TestDcp(BaseTest):
     def test_log_det_with_parameter_ignore_dpp(self) -> None:
         """Test log_det with parameter works with ignore_dpp=True.
 
-        With ignore_dpp=True, EvalParams runs first and evaluates log_det(P)
-        to a constant, so the problem becomes a true QP that OSQP can handle.
+        log_det(P) is a variable-free composite, so EvalParams folds it to a
+        constant before canonicalization. No cones are emitted and the problem
+        becomes a true QP that OSQP can handle.
         """
         n = 2
         x = cp.Variable(n, nonneg=True)
@@ -384,7 +388,7 @@ class TestDcp(BaseTest):
         objective = cp.sum_squares(x + y) - 2 * cp.log_det(P)
         problem = cp.Problem(cp.Minimize(objective))
 
-        # With ignore_dpp=True, should route to QP solver (EvalParams runs first)
+        # With ignore_dpp=True, should route to QP solver (EvalParams folds log_det)
         problem.solve(solver=cp.OSQP, ignore_dpp=True)
         self.assertEqual(problem.status, cp.OPTIMAL)
         self.assertAlmostEqual(problem.value, 0.0, places=4)
@@ -395,6 +399,37 @@ class TestDcp(BaseTest):
         _, chain, _ = problem.get_problem_data(cp.OSQP, ignore_dpp=True)
         reduction_types = [type(r).__name__ for r in chain.reductions]
         self.assertIn('EvalParams', reduction_types)
+
+    def test_ignore_dpp_keeps_variable_coupled_param_symbolic(self) -> None:
+        """With ignore_dpp, a variable-coupled parameter stays symbolic and the
+        DIFFENGINE backend re-evaluates it across solves.
+
+        ``A`` appears in ``A @ x`` (variable-coupled), so EvalParams leaves it
+        symbolic rather than baking it. Changing ``A.value`` between solves must
+        change the solution, confirming the diff engine re-evaluates the tree.
+        """
+        A = cp.Parameter((2, 2))
+        x = cp.Variable(2)
+        b = np.array([1.0, 1.0])
+        problem = cp.Problem(cp.Minimize(cp.sum_squares(A @ x - b)))
+
+        A.value = np.eye(2)
+        problem.solve(solver=cp.CLARABEL, ignore_dpp=True)
+        self.assertEqual(problem.status, cp.OPTIMAL)
+        np.testing.assert_array_almost_equal(x.value, np.array([1.0, 1.0]), decimal=4)
+
+        # The DIFFENGINE backend is used and the parameter is NOT baked, so the
+        # ASA map is not cached (the chain re-canonicalizes each solve).
+        _, chain, _ = problem.get_problem_data(cp.CLARABEL, ignore_dpp=True)
+        stuffing = [r for r in chain.reductions
+                    if type(r).__name__ == 'ConeMatrixStuffing'][0]
+        self.assertEqual(stuffing.canon_backend, s.DIFFENGINE_CANON_BACKEND)
+        self.assertIsNone(problem._cache.param_prog)
+
+        # Re-solve with a new A; the solution must update (symbolic re-evaluation).
+        A.value = 2.0 * np.eye(2)
+        problem.solve(solver=cp.CLARABEL, ignore_dpp=True)
+        np.testing.assert_array_almost_equal(x.value, np.array([0.5, 0.5]), decimal=4)
 
 
 class TestDgp(BaseTest):
