@@ -41,7 +41,7 @@ class Constraint(u.Canonical):
 
     def __init__(self, args, constr_id=None) -> None:
         # TODO cast constants.
-        # self.args = [cvxtypes.expression().cast_to_const(arg) for arg in args]
+        # self.args = [cvxtypes.expression().cast(arg) for arg in args]
         self.args = args
         self._label = None
         if constr_id is None:
@@ -233,7 +233,7 @@ class Constraint(u.Canonical):
         """
         residual = self.residual
         if residual is None:
-            raise ValueError("Cannot compute the violation of an constraint "
+            raise ValueError("Cannot compute the violation of a constraint "
                              "whose expression is None-valued.")
         return residual
 
@@ -259,7 +259,7 @@ class Constraint(u.Canonical):
         """
         residual = self.residual
         if residual is None:
-            raise ValueError("Cannot compute the value of an constraint "
+            raise ValueError("Cannot compute the value of a constraint "
                              "whose expression is None-valued.")
         return np.all(residual <= tolerance)
 

@@ -137,11 +137,14 @@ class ExpCone(Cone):
         return s
 
     def save_dual_value(self, value) -> None:
-        # TODO(akshaya,SteveDiamond): verify that reshaping below works correctly
+        # Each row of the reshaped value holds the dual of one elementwise
+        # (x_i, y_i, z_i) cone. ConeMatrixStuffing flattens multidimensional
+        # args in Fortran order, so the rows enumerate elements in Fortran
+        # order and each column must be reshaped accordingly.
         value = np.reshape(value, (-1, 3))
-        dv0 = np.reshape(value[:, 0], self.x.shape)
-        dv1 = np.reshape(value[:, 1], self.y.shape)
-        dv2 = np.reshape(value[:, 2], self.z.shape)
+        dv0 = np.reshape(value[:, 0], self.x.shape, order='F')
+        dv1 = np.reshape(value[:, 1], self.y.shape, order='F')
+        dv2 = np.reshape(value[:, 2], self.z.shape, order='F')
         self.dual_variables[0].save_value(dv0)
         self.dual_variables[1].save_value(dv1)
         self.dual_variables[2].save_value(dv2)
