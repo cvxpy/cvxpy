@@ -46,6 +46,21 @@ def convert_conv(expr, children):
     return _diffengine.make_convolve(children[0], children[1])
 
 
+def convert_kron(expr, children):
+    """Convert cp.kron(A, B). One operand is variable-free (kron requires it);
+    it is the "parameter" side that scales the variable-carrying operand. The
+    native node re-evaluates that operand each solve, so a parametric A or B is
+    supported (not just a constant). ``const_is_left`` tells the engine which
+    operand is the parameter; (p, q) and (r, s) are A's and B's dims."""
+    a, b = expr.args
+    const_is_left = a.is_constant()
+    param_node = children[0] if const_is_left else children[1]
+    var_node = children[1] if const_is_left else children[0]
+    p, q = a.shape
+    r, s = b.shape
+    return _diffengine.make_kron(param_node, var_node, int(const_is_left), p, q, r, s)
+
+
 def convert_div(expr, children):
     """Convert x / d by multiplying x by the elementwise reciprocal of d.
 
@@ -320,6 +335,8 @@ ATOM_CONVERTERS = {
     # 1D full convolution
     "conv": convert_conv,
     "convolve": convert_conv,
+    # Kronecker product
+    "kron": convert_kron,
     "Trace": convert_trace,
     # Diagonal and triangular
     "diag_vec": convert_diag_vec,
