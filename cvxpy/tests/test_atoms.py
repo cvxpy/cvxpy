@@ -174,6 +174,13 @@ class TestAtoms(BaseTest):
 
         assert cp.power(-1, 2).value == 1
 
+    def test_power_parameter_without_value_raises(self) -> None:
+        exponent = Parameter(nonneg=True)
+        atom = cp.power(Constant(2), exponent)
+
+        with pytest.raises(ValueError, match="Power exponent must have a value set"):
+            _ = atom.value
+
     # Test the xexp class
     def test_xexp(self) -> None:
         # Test for positive x

@@ -19,6 +19,7 @@ import pytest
 import cvxpy as cp
 import cvxpy.settings as s
 from cvxpy.reductions.dqcp2dcp.dqcp2dcp import Dqcp2Dcp
+from cvxpy.reductions.dqcp2dcp.inverse import inverse as dqcp_inverse
 from cvxpy.reductions.solvers import bisection
 from cvxpy.tests import base_test
 
@@ -765,6 +766,15 @@ class TestDqcp(base_test.BaseTest):
         problem = cp.Problem(cp.Minimize(0), [cp.power(cp.ceil(x), 2) <= -5])
         problem.solve(SOLVER, qcp=True)
         self.assertEqual(problem.status, s.INFEASIBLE)
+
+    def test_dqcp_power_inverse_parameter_without_value_raises(self) -> None:
+        x = cp.Variable(nonneg=True)
+        exponent = cp.Parameter(nonneg=True)
+        expr = cp.power(x, exponent)
+        inv = dqcp_inverse(expr)
+
+        with pytest.raises(ValueError, match="Power exponent must have a value set"):
+            inv(cp.Variable(nonneg=True))
 
     def test_bisection_low_zero(self) -> None:
         """Bisection with low=0 should not infinite-loop."""

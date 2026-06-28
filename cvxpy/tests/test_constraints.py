@@ -361,6 +361,9 @@ class TestConstraints(BaseTest):
             con = PowCone3D(x, y, z, 1.001)
         with self.assertRaises(ValueError):
             con = PowCone3D(x, y, z, -0.00001)
+        alpha_param = cp.Parameter(nonneg=True)
+        with self.assertRaises(ValueError):
+            PowCone3D(x, y, z, alpha_param)
 
     def test_pow3d_scalar_alpha_constraint(self) -> None:
         """
@@ -393,6 +396,9 @@ class TestConstraints(BaseTest):
             con = PowConeND(reshape_atom(W, (n, 1), order='F'), z,
                             alpha.reshape((n, 1)),
                             axis=1)
+        alpha_param = cp.Parameter(n, nonneg=True)
+        with self.assertRaises(ValueError):
+            PowConeND(W, z, alpha_param)
         # Compute a violation
         con = PowConeND(W, z, alpha)
         W0 = 0.1 + np.random.rand(n)
@@ -636,6 +642,12 @@ class TestConstraints(BaseTest):
         from cvxpy.constraints.finite_set import FiniteSet
         x = cp.Variable()
         constr = FiniteSet(x, [1, 2, 3])
+        self.assertIsNone(constr.residual)
+
+    def test_finite_set_residual_none_when_set_value_missing(self) -> None:
+        vec = cp.Parameter(3)
+        x = cp.Variable(value=2)
+        constr = cp.constraints.FiniteSet(x, vec)
         self.assertIsNone(constr.residual)
 
     def test_dual_cone_no_args(self) -> None:
