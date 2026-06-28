@@ -35,7 +35,11 @@ from cvxpy.reductions.solvers import defines as slv_def
 from cvxpy.reductions.solvers.constant_solver import ConstantSolver
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
 from cvxpy.reductions.solvers.solver import Solver, expand_cones
-from cvxpy.settings import COO_CANON_BACKEND, DPP_PARAM_THRESHOLD
+from cvxpy.settings import (
+    COO_CANON_BACKEND,
+    DIFFENGINE_CANON_BACKEND,
+    DPP_PARAM_THRESHOLD,
+)
 from cvxpy.utilities.solver_context import SolverInfo
 from cvxpy.utilities.warn import warn
 
@@ -196,12 +200,22 @@ def _build_solving_chain(
     # so parametric P in constraints is NOT DPP-safe for the QP path.
     quad_form_dpp = 'qp' if solver_instance.supports_quad_obj() else None
     is_dpp = problem.is_dpp(dpp_context, quad_form_dpp=quad_form_dpp)
+
     if ignore_dpp or not is_dpp:
         if not ignore_dpp and enforce_dpp:
             raise DPPError(DPP_ERROR_MSG)
         if not ignore_dpp:
             warn(DPP_ERROR_MSG)
-        reductions = [EvalParams()] + reductions
+        # Fold the variable-free composite parametric subtrees -- the ones that
+        # would needlessly force cones (e.g. log_det(P)) -- and keep bare
+        # parameters symbolic for the DIFFENGINE backend to re-evaluate on each
+        # solve. Skip it when the problem has no parameters: the fold is then a
+        # no-op, and inserting it only costs a full expr.parameters() tree walk
+        # (measurable on large problems) and needlessly disables param_prog
+        # caching.
+        if problem.parameters():
+            reductions = [EvalParams()] + reductions
+        canon_backend = DIFFENGINE_CANON_BACKEND
     else:
         if canon_backend is None:
             total_param_size = sum(p.size for p in problem.parameters())

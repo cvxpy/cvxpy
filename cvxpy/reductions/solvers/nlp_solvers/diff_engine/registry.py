@@ -46,22 +46,46 @@ def convert_conv(expr, children):
     return _diffengine.make_convolve(children[0], children[1])
 
 
-def convert_div(expr, children):
-    """Convert x / c by multiplying x by the elementwise reciprocal of c.
+def convert_kron(expr, children):
+    """Convert cp.kron(A, B). One operand is variable-free (kron requires it);
+    it is the "parameter" side that scales the variable-carrying operand. The
+    native node re-evaluates that operand each solve, so a parametric A or B is
+    supported (not just a constant). ``const_is_left`` tells the engine which
+    operand is the parameter; (p, q) and (r, s) are A's and B's dims."""
+    a, b = expr.args
+    const_is_left = a.is_constant()
+    param_node = children[0] if const_is_left else children[1]
+    var_node = children[1] if const_is_left else children[0]
+    p, q = a.shape
+    r, s = b.shape
+    return _diffengine.make_kron(param_node, var_node, int(const_is_left), p, q, r, s)
 
-    Matches coo_backend.div: parametrized divisors are rejected and any
-    zero entry in the divisor raises explicitly.
+
+def convert_div(expr, children):
+    """Convert x / d by multiplying x by the elementwise reciprocal of d.
+
+    The divisor is variable-free (DivExpression requires a constant denominator),
+    so it is the "parameter" side of the product -- exactly like the constant
+    operand in convert_multiply. A constant divisor bakes ``1/d`` into a
+    reciprocal parameter node (and rejects zero entries explicitly, matching
+    coo_backend.div). A parametric divisor -- e.g. ``|c|^2`` produced by
+    Complex2Real when dividing by a complex Parameter -- instead uses a
+    ``make_power(d, -1)`` node that the diff engine re-evaluates from the current
+    parameter value each solve.
     """
     divisor_expr = expr.args[1]
     if divisor_expr.parameters():
-        raise NotImplementedError("div doesn't support parametrized divisor")
-    divisor = to_dense_float(divisor_expr.value)
-    if np.any(divisor == 0):
-        raise ValueError("Division by zero encountered in divisor")
-    recip = 1.0 / divisor
-    d1, d2 = normalize_shape(recip.shape)
-    recip_node = _diffengine.make_parameter(d1, d2, -1, 0, recip.flatten(order='F'))
-    if recip.size == 1:
+        recip_node = _diffengine.make_power(children[1], -1.0)
+        size = divisor_expr.size
+    else:
+        divisor = to_dense_float(divisor_expr.value)
+        if np.any(divisor == 0):
+            raise ValueError("Division by zero encountered in divisor")
+        recip = 1.0 / divisor
+        d1, d2 = normalize_shape(recip.shape)
+        recip_node = _diffengine.make_parameter(d1, d2, -1, 0, recip.flatten(order='F'))
+        size = recip.size
+    if size == 1:
         return _diffengine.make_param_scalar_mult(recip_node, children[0])
     return _diffengine.make_param_vector_mult(recip_node, children[0])
 
@@ -311,6 +335,8 @@ ATOM_CONVERTERS = {
     # 1D full convolution
     "conv": convert_conv,
     "convolve": convert_conv,
+    # Kronecker product
+    "kron": convert_kron,
     "Trace": convert_trace,
     # Diagonal and triangular
     "diag_vec": convert_diag_vec,

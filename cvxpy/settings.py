@@ -206,6 +206,10 @@ SCIPY_CANON_BACKEND = "SCIPY"
 RUST_CANON_BACKEND = "RUST"
 CPP_CANON_BACKEND = "CPP"
 COO_CANON_BACKEND = "COO"  # 3D COO sparse tensor backend: O(nnz) operations for large parameters
+# Internal backend that builds A, b, q, d, P directly from the CVXPY expression
+# trees via the C diff engine, bypassing the parametric tensor pipeline. Not
+# user-selectable: auto-activated only for non-DPP re-solves when ignore_dpp=True.
+DIFFENGINE_CANON_BACKEND = "DIFFENGINE"
 
 # Default canonicalization backend, pyodide uses SciPy
 DEFAULT_CANON_BACKEND = CPP_CANON_BACKEND if sys.platform != "emscripten" else SCIPY_CANON_BACKEND
