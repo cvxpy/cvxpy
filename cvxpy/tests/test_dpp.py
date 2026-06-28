@@ -286,8 +286,6 @@ class TestDcp(BaseTest):
         with pytest.raises(error.DPPError):
             problem.solve(cp.SCS, enforce_dpp=True, ignore_dpp=True)
 
-    @pytest.mark.xfail(reason="diff engine (non-DPP/ignore_dpp path): division by a "
-                              "parameter (parametric divisor) not yet supported")
     def test_quad_over_lin(self) -> None:
         """Test case with parameter in quad_over_lin."""
         # Bug where the second argument to quad_over_lin

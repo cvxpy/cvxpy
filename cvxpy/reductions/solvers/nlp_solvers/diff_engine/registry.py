@@ -47,21 +47,30 @@ def convert_conv(expr, children):
 
 
 def convert_div(expr, children):
-    """Convert x / c by multiplying x by the elementwise reciprocal of c.
+    """Convert x / d by multiplying x by the elementwise reciprocal of d.
 
-    Matches coo_backend.div: parametrized divisors are rejected and any
-    zero entry in the divisor raises explicitly.
+    The divisor is variable-free (DivExpression requires a constant denominator),
+    so it is the "parameter" side of the product -- exactly like the constant
+    operand in convert_multiply. A constant divisor bakes ``1/d`` into a
+    reciprocal parameter node (and rejects zero entries explicitly, matching
+    coo_backend.div). A parametric divisor -- e.g. ``|c|^2`` produced by
+    Complex2Real when dividing by a complex Parameter -- instead uses a
+    ``make_power(d, -1)`` node that the diff engine re-evaluates from the current
+    parameter value each solve.
     """
     divisor_expr = expr.args[1]
     if divisor_expr.parameters():
-        raise NotImplementedError("div doesn't support parametrized divisor")
-    divisor = to_dense_float(divisor_expr.value)
-    if np.any(divisor == 0):
-        raise ValueError("Division by zero encountered in divisor")
-    recip = 1.0 / divisor
-    d1, d2 = normalize_shape(recip.shape)
-    recip_node = _diffengine.make_parameter(d1, d2, -1, 0, recip.flatten(order='F'))
-    if recip.size == 1:
+        recip_node = _diffengine.make_power(children[1], -1.0)
+        size = divisor_expr.size
+    else:
+        divisor = to_dense_float(divisor_expr.value)
+        if np.any(divisor == 0):
+            raise ValueError("Division by zero encountered in divisor")
+        recip = 1.0 / divisor
+        d1, d2 = normalize_shape(recip.shape)
+        recip_node = _diffengine.make_parameter(d1, d2, -1, 0, recip.flatten(order='F'))
+        size = recip.size
+    if size == 1:
         return _diffengine.make_param_scalar_mult(recip_node, children[0])
     return _diffengine.make_param_vector_mult(recip_node, children[0])
 
