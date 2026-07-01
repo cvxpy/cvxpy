@@ -122,7 +122,7 @@ class BinaryOperator(AffAtom):
 def matmul(lh_exp, rh_exp) -> Expression:
     """Matrix multiplication."""
     lh_exp = Expression.cast(lh_exp)
-    rh_exp = Expression.cast_to_const(rh_exp)
+    rh_exp = Expression.cast(rh_exp)
     if max(lh_exp.ndim, rh_exp.ndim) > 2:
         # Batched matmul with a 1-D operand: MulExpression promotes the
         # operand to 2-D per np.matmul semantics; remove the inserted axis.
