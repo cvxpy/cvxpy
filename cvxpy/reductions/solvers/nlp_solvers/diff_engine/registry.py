@@ -50,15 +50,38 @@ def convert_kron(expr, children):
     """Convert cp.kron(A, B). One operand is variable-free (kron requires it);
     it is the "parameter" side that scales the variable-carrying operand. The
     native node re-evaluates that operand each solve, so a parametric A or B is
-    supported (not just a constant). ``const_is_left`` tells the engine which
-    operand is the parameter; (p, q) and (r, s) are A's and B's dims."""
+    supported (not just a constant).
+
+    The engine builds the node sparse-only: it materializes output rows only
+    for the ``active_blocks`` of the variable-free operand (its structurally
+    nonzero entries, as column-major flat indices). A parametric operand gets
+    all blocks, since its values change between solves; e.g. ``kron(I, X)``
+    with a constant identity keeps only the diagonal blocks."""
     a, b = expr.args
     const_is_left = a.is_constant()
-    param_node = children[0] if const_is_left else children[1]
+    const_expr = a if const_is_left else b
+    const_node = children[0] if const_is_left else children[1]
     var_node = children[1] if const_is_left else children[0]
-    p, q = a.shape
-    r, s = b.shape
-    return _diffengine.make_kron(param_node, var_node, int(const_is_left), p, q, r, s)
+    p, q = normalize_shape(a.shape)
+    r, s = normalize_shape(b.shape)
+    n_rows = p if const_is_left else r
+
+    if const_expr.parameters():
+        active = np.arange(const_expr.size, dtype=np.int32)
+    else:
+        val = const_expr.value
+        if sparse.issparse(val):
+            coo = val.tocoo()
+            mask = coo.data != 0  # drop stored-but-zero entries
+            active = np.unique(coo.row[mask] + coo.col[mask] * n_rows)
+            active = active.astype(np.int32)
+        else:
+            flat = np.asarray(val, dtype=np.float64).flatten(order="F")
+            active = np.flatnonzero(flat).astype(np.int32)
+
+    if const_is_left:
+        return _diffengine.make_left_kron(const_node, var_node, p, q, r, s, active)
+    return _diffengine.make_right_kron(const_node, var_node, p, q, r, s, active)
 
 
 def convert_div(expr, children):
