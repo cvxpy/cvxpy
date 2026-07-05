@@ -15,6 +15,9 @@ limitations under the License.
 
 Main entry point for converting CVXPY expressions to C diff engine expressions.
 """
+import operator
+from functools import reduce
+
 import numpy as np
 from scipy import sparse
 from sparsediffpy import _sparsediffengine as _diffengine
@@ -25,6 +28,7 @@ from cvxpy.atoms.affine.wraps import Wrap
 from cvxpy.atoms.elementwise.power import Power
 from cvxpy.atoms.quad_form import QuadForm
 from cvxpy.atoms.quad_over_lin import quad_over_lin
+from cvxpy.expressions.constants import Constant
 from cvxpy.reductions.solvers.nlp_solvers.diff_engine.helpers import (
     make_dense_left_matmul,
     make_dense_right_matmul,
@@ -34,6 +38,71 @@ from cvxpy.reductions.solvers.nlp_solvers.diff_engine.helpers import (
     to_dense_float,
 )
 from cvxpy.reductions.solvers.nlp_solvers.diff_engine.registry import ATOM_CONVERTERS
+
+
+def _is_plain_constant(expr):
+    """Variable-free and parameter-free: a value that never changes between solves."""
+    return expr.is_constant() and not expr.parameters()
+
+
+def _is_vector(expr):
+    """1-D, or 2-D with a singleton dimension."""
+    return len(expr.shape) <= 1 or min(expr.shape) == 1
+
+
+def _apply_constant_right(left, c):
+    """Build an expression equivalent to ``left @ c`` for a plain-constant
+    ``c``, pushing ``c`` toward the leaves so constants multiply constants.
+
+    Each engine node's Jacobian has one row per node *output*, so a matmul
+    chain must not drag wide intermediates when it ends in a constant:
+    ``(A @ E @ B) @ x`` builds a rows x cols matrix Jacobian at every node
+    (issue #2205: dense DFT sandwiches made one values fill take 33s), while
+    pushed right-to-left every intermediate has only cols(c) columns.
+    Structural recursion on ``left``:
+
+      constant @ c   -> Constant(value)      the fold that shrinks the chain
+      (A @ B) @ c    -> A @ (B @ c)          recursing into both factors
+      (-E) @ c       -> -(E @ c)
+      (E1 + E2) @ c  -> E1 @ c + E2 @ c      only for vector c: for a matrix
+                                             tail this duplicates rather than
+                                             shrinks the intermediates
+
+    Only parameter-free constants fold, so parametric factors are never
+    frozen. Shapes are preserved (matmul associativity), so the dimension
+    check in convert_expr still applies.
+    """
+    if _is_plain_constant(left):
+        return Constant(left.value @ c.value)
+    name = type(left).__name__
+    if name == "MulExpression":
+        a, b = left.args
+        if _is_plain_constant(b):
+            return _apply_constant_right(a, Constant(b.value @ c.value))
+        if _is_vector(c):
+            return a @ _apply_constant_right(b, c)
+        if _is_plain_constant(a):
+            # (C1 @ E) @ C2 -> C1 @ (E @ C2): frees the tail to keep folding
+            # when (E @ C2) is normalized on its own visit.
+            return a @ (b @ c)
+        return left @ c
+    if name == "NegExpression":
+        return -_apply_constant_right(left.args[0], c)
+    if (name == "AddExpression" and _is_vector(c)
+            and all(arg.shape == left.shape for arg in left.args)):
+        return reduce(operator.add, [_apply_constant_right(arg, c) for arg in left.args])
+    return left @ c
+
+
+def _normalize_matmul(expr):
+    """Reassociate ``expr`` when a matmul chain ends in a plain-constant
+    factor, so the constant folds into adjacent constants and the
+    intermediates shrink. General matrix-matrix chain reordering (and the
+    row-vector-head mirror) is deliberately not attempted."""
+    left, right = expr.args
+    if _is_plain_constant(right) and not left.is_constant():
+        return _apply_constant_right(left, right)
+    return expr
 
 
 def convert_matmul(expr, children, var_dict, n_vars, param_dict):
@@ -187,7 +256,25 @@ def convert_expr(expr, var_dict, n_vars, param_dict=None):
     if atom_name == "SymbolicQuadForm":
         return convert_symbolic_quad_form(expr, var_dict, n_vars, param_dict)
 
-    children = [convert_expr(arg, var_dict, n_vars, param_dict) for arg in expr.args]
+    # Reassociate matmul chains before converting children, and skip converting
+    # a plain-constant matmul operand: convert_matmul consumes its scipy/numpy
+    # value directly (sparse where possible), so the dense make_parameter node
+    # the base case would build is pure waste (issue #2205 / quantum benchmark).
+    skip_child = [False] * len(expr.args)
+    if atom_name == "MulExpression":
+        expr = _normalize_matmul(expr)
+        if type(expr).__name__ != "MulExpression":
+            return convert_expr(expr, var_dict, n_vars, param_dict)
+        left_arg, right_arg = expr.args
+        if _is_plain_constant(left_arg) and not right_arg.is_constant():
+            skip_child[0] = True
+        elif _is_plain_constant(right_arg) and not left_arg.is_constant():
+            skip_child[1] = True
+
+    children = [
+        None if skip_child[i] else convert_expr(arg, var_dict, n_vars, param_dict)
+        for i, arg in enumerate(expr.args)
+    ]
 
     # matmul and multiply need param_dict for parameter support
     if atom_name == "MulExpression":
