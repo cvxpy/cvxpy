@@ -429,6 +429,53 @@ class TestDcp(BaseTest):
         problem.solve(solver=cp.CLARABEL, ignore_dpp=True)
         np.testing.assert_array_almost_equal(x.value, np.array([0.5, 0.5]), decimal=4)
 
+    def test_composite_fold_in_constraint_refreshes(self) -> None:
+        """A variable-free composite inside a constraint (norm(p)) folds to a
+        constant, so no SOC cone is emitted -- OSQP, which has no cones, must
+        accept the problem -- and the folded value must refresh on re-solves.
+        """
+        p = cp.Parameter(3)
+        x = cp.Variable()
+        problem = cp.Problem(cp.Minimize(cp.square(x)), [x >= cp.norm(p)])
+
+        p.value = np.array([3.0, 0.0, 4.0])
+        problem.solve(solver=cp.OSQP, ignore_dpp=True)
+        self.assertEqual(problem.status, cp.OPTIMAL)
+        self.assertAlmostEqual(x.value, 5.0, places=4)
+
+        _, chain, _ = problem.get_problem_data(cp.OSQP, ignore_dpp=True)
+        reduction_types = [type(r).__name__ for r in chain.reductions]
+        self.assertIn('EvalParams', reduction_types)
+
+        p.value = np.array([0.0, 0.0, 0.5])
+        problem.solve(solver=cp.OSQP, ignore_dpp=True)
+        self.assertAlmostEqual(x.value, 0.5, places=4)
+
+    def test_mixed_subtree_folds_composite_keeps_coupled(self) -> None:
+        """One expression tree with both cases: ``p * x`` (variable-coupled,
+        stays symbolic for the diff engine) and ``p + 1`` (variable-free
+        composite, folded by EvalParams). Both must track the current
+        parameter value across re-solves: x* = (p + 1) / p.
+        """
+        p = cp.Parameter()
+        x = cp.Variable()
+        problem = cp.Problem(cp.Minimize(cp.square(p * x - (p + 1.0))))
+
+        for val in (1.0, 2.0):
+            p.value = val
+            problem.solve(solver=cp.CLARABEL, ignore_dpp=True)
+            self.assertEqual(problem.status, cp.OPTIMAL)
+            self.assertAlmostEqual(x.value, (val + 1.0) / val, places=4)
+
+    def test_unspecified_param_in_composite_raises(self) -> None:
+        """EvalParams cannot fold a variable-free composite whose parameter
+        has no value; the solve must raise ParameterError, not miscompile."""
+        p = cp.Parameter(2)  # no value assigned
+        x = cp.Variable()
+        problem = cp.Problem(cp.Minimize(cp.square(x) + cp.norm(p)))
+        with self.assertRaises(error.ParameterError):
+            problem.solve(solver=cp.CLARABEL, ignore_dpp=True)
+
 
 class TestDgp(BaseTest):
     def test_basic_equality_constraint(self) -> None:
