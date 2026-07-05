@@ -145,7 +145,9 @@ def _build_solving_chain(
     ignore_dpp : bool
         When True, treat DPP problems as non-DPP.
     canon_backend : str, optional
-        Canonicalization backend ('CPP', 'SCIPY', or 'COO').
+        Canonicalization backend ('CPP', 'SCIPY', 'COO', or the experimental
+        'DIFFENGINE'). Overridden to 'DIFFENGINE' on the ignore_dpp / non-DPP
+        path, where parameters must stay symbolic for per-solve re-evaluation.
     solver_opts : dict, optional
         Solver-specific options.
 
@@ -215,6 +217,9 @@ def _build_solving_chain(
         # caching.
         if problem.parameters():
             reductions = [EvalParams()] + reductions
+        # This path requires DIFFENGINE (symbolic parameters, no DPP
+        # structure), so it takes precedence over any user-supplied
+        # canon_backend; the solve() docstring documents this.
         canon_backend = DIFFENGINE_CANON_BACKEND
     else:
         if canon_backend is None:

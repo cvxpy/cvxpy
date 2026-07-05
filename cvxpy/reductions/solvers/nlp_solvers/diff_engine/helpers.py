@@ -23,6 +23,11 @@ from sparsediffpy import _sparsediffengine as _diffengine
 def normalize_shape(shape):
     """Normalize shape to 2D (d1, d2) for the C engine."""
     shape = tuple(shape)
+    if len(shape) > 2:
+        raise NotImplementedError(
+            f">2-D expressions (shape {shape}) are not supported by the diff "
+            "engine; the engine represents all expressions as 2-D matrices."
+        )
     return (1,) * (2 - len(shape)) + shape
 
 

@@ -193,7 +193,8 @@ class TestEinsum(BaseTest):
         self.assertEqual(expr3.is_concave(), False)
 
     @pytest.mark.xfail(reason="diff engine (non-DPP/ignore_dpp path): >2D expressions "
-                              "(einsum builds a 3D constant) not yet supported")
+                              "(einsum builds a 3D constant) not yet supported",
+                       raises=NotImplementedError, strict=True)
     def test_einsum_solve(self) -> None:
         """Test solving einsum problems."""
         # Einsum with only 2d arrays
