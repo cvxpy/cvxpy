@@ -52,17 +52,14 @@ class Constraint(u.Canonical):
         super(Constraint, self).__init__()
 
     def __str__(self):
-        """Returns a string showing the mathematical constraint.
-        """
+        """Returns a string showing the mathematical constraint."""
         if self._label is not None:
             return f"{self._label}: {self.name()}"
         return self.name()
 
     def __repr__(self) -> str:
-        """Returns a string with information about the constraint.
-        """
-        return "%s(%s)" % (self.__class__.__name__,
-                           repr(self.args[0]))
+        """Returns a string with information about the constraint."""
+        return "%s(%s)" % (self.__class__.__name__, repr(self.args[0]))
 
     @property
     def label(self):
@@ -77,8 +74,7 @@ class Constraint(u.Canonical):
                 self._label = str(value)
             except Exception as e:
                 raise TypeError(
-                    "Label must be convertible to string, got "
-                    f"{type(value).__name__}: {e}"
+                    f"Label must be convertible to string, got {type(value).__name__}: {e}"
                 )
         else:
             self._label = None
@@ -149,18 +145,15 @@ class Constraint(u.Canonical):
         return self.args[0].size
 
     def is_real(self) -> bool:
-        """Is the Leaf real valued?
-        """
+        """Is the Leaf real valued?"""
         return not self.is_complex()
 
     def is_imag(self) -> bool:
-        """Is the Leaf imaginary?
-        """
+        """Is the Leaf imaginary?"""
         return all(arg.is_imag() for arg in self.args)
 
     def is_complex(self) -> bool:
-        """Is the Leaf complex valued?
-        """
+        """Is the Leaf complex valued?"""
         return any(arg.is_complex() for arg in self.args)
 
     @abc.abstractmethod
@@ -185,10 +178,10 @@ class Constraint(u.Canonical):
         """
         raise NotImplementedError()
 
-    def is_dpp(self, context='dcp') -> bool:
-        if context.lower() == 'dcp':
+    def is_dpp(self, context="dcp") -> bool:
+        if context.lower() == "dcp":
             return self.is_dcp(dpp=True)
-        elif context.lower() == 'dgp':
+        elif context.lower() == "dgp":
             return self.is_dgp(dpp=True)
         else:
             raise ValueError("Unsupported context ", context)
@@ -207,23 +200,15 @@ class Constraint(u.Canonical):
         raise NotImplementedError()
 
     def violation(self):
-        """The numeric residual of the constraint.
+        """The numeric violation of the constraint.
 
-        The violation is defined as the distance between the constrained
-        expression's value and its projection onto the domain of the
-        constraint:
-
-        .. math::
-
-            ||\\Pi(v) - v||_2
-
-        where :math:`v` is the value of the constrained expression and
-        :math:`\\Pi` is the projection operator onto the constraint's domain .
+        For nonspectral constraints, the violation is the infinity norm of
+        the constraint residual.
 
         Returns
         -------
-        NumPy.ndarray
-            The residual value.
+        float
+            The scalar violation value.
 
         Raises
         ------
@@ -233,9 +218,13 @@ class Constraint(u.Canonical):
         """
         residual = self.residual
         if residual is None:
-            raise ValueError("Cannot compute the violation of an constraint "
-                             "whose expression is None-valued.")
-        return residual
+            raise ValueError(
+                "Cannot compute the violation of an constraint whose expression is None-valued."
+            )
+        residual_arr = np.asarray(residual)
+        if residual_arr.size == 0:
+            return 0.0
+        return float(np.linalg.norm(residual_arr.ravel(), ord=np.inf))
 
     def value(self, tolerance: float = 1e-8):
         """Checks whether the constraint violation is less than a tolerance.
@@ -257,16 +246,11 @@ class Constraint(u.Canonical):
                 If the constrained expression does not have a value associated
                 with it.
         """
-        residual = self.residual
-        if residual is None:
-            raise ValueError("Cannot compute the value of an constraint "
-                             "whose expression is None-valued.")
-        return np.all(residual <= tolerance)
+        return bool(self.violation() <= tolerance)
 
     @property
     def id(self):
-        """Wrapper for compatibility with variables.
-        """
+        """Wrapper for compatibility with variables."""
         return self.constr_id
 
     @id.setter
@@ -274,16 +258,16 @@ class Constraint(u.Canonical):
         self.constr_id = value
 
     def get_data(self):
-        """Data needed to copy.
-        """
+        """Data needed to copy."""
         return [self.id]
 
     def _chain_constraints(self):
-        """Raises an error due to chained constraints.
-        """
+        """Raises an error due to chained constraints."""
         raise Exception(
-            ("Cannot evaluate the truth value of a constraint or "
-             "chain constraints, e.g., 1 >= x >= 0.")
+            (
+                "Cannot evaluate the truth value of a constraint or "
+                "chain constraints, e.g., 1 >= x >= 0."
+            )
         )
 
     def __bool__(self):
@@ -300,8 +284,7 @@ class Constraint(u.Canonical):
 
     @property
     def dual_value(self):
-        """NumPy.ndarray : The value of the dual variable.
-        """
+        """NumPy.ndarray : The value of the dual variable."""
         dual_vals = [dv.value for dv in self.dual_variables]
         if len(dual_vals) == 1:
             return dual_vals[0]
