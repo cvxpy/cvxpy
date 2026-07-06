@@ -302,7 +302,7 @@ def quad_form(x, P, assume_PSD: bool = False) -> Expression:
     quadratic objectives, ``quad_form(x, P)`` can participate in a DPP solve,
     so repeated solves can reuse cached compilation data.
     """
-    x, P = map(Expression.cast_to_const, (x, P))
+    x, P = map(Expression.cast, (x, P))
     # Check dimensions.
     if not P.ndim == 2 or P.shape[0] != P.shape[1] or max(x.shape, (1,))[0] != P.shape[0]:
         raise Exception("Invalid dimensions for arguments to quad_form.")

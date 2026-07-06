@@ -529,9 +529,9 @@ class TestExpressions(BaseTest):
             p = Parameter((2, 2), integer=True, value=[[1, 1.5], [1, -1]])
         self.assertEqual(str(cm.exception), "Parameter value must be integer.")
 
-         # Boolean indices
+         # Boolean indices: designated entry (0, 1) is not boolean.
         with self.assertRaises(Exception) as cm:
-             p = Parameter((2, 2), boolean=[(0, 0), (0, 1)], value=[[0, 2], [1, 0]])
+             p = Parameter((2, 2), boolean=[(0, 0), (0, 1)], value=np.array([[0, 2], [1, 0]]))
         self.assertEqual(str(cm.exception), "Parameter value must be boolean.")
 
         # Integer indices
@@ -675,6 +675,47 @@ class TestExpressions(BaseTest):
         self.assertEqual(A.is_psd(), True)
         self.assertEqual(A.is_nsd(), True)
 
+    def test_project_multiple_attributes(self) -> None:
+        """Projection composes entrywise attributes instead of being a no-op."""
+        # nonneg and nonpos: only zero is feasible.
+        v = Variable(2, nonneg=True, nonpos=True)
+        self.assertItemsAlmostEqual(v.project(np.array([1., -1.])), [0, 0])
+        with self.assertRaises(ValueError):
+            v.value = np.array([1., -1.])
+        v.value = np.zeros(2)
+
+        # integer and nonneg: round, then clip the sign.
+        v = Variable(2, integer=True, nonneg=True)
+        self.assertItemsAlmostEqual(v.project(np.array([1.4, -3.])), [1, 0])
+        with self.assertRaises(ValueError):
+            v.value = np.array([0.5, -3.])
+        v.value = np.array([2., 0.])
+
+        # integer with fractional bounds: nearest integer inside the bounds.
+        v = Variable(2, integer=True, bounds=[0.5, 4.7])
+        self.assertItemsAlmostEqual(v.project(np.array([0.2, 10.])), [1, 4])
+
+        # boolean and nonpos: only zero is feasible.
+        v = Variable(2, boolean=True, nonpos=True)
+        self.assertItemsAlmostEqual(v.project(np.array([0.9, -0.2])), [0, 0])
+
+        # sign with bounds.
+        v = Variable(2, nonneg=True, bounds=[-3, 5])
+        self.assertItemsAlmostEqual(v.project(np.array([-7., 9.])), [0, 5])
+
+        # Structural attributes combined with entrywise attributes are
+        # not enforced if strict=False: the value passes through unmodified.
+        v = Variable((2, 2), PSD=True, nonneg=True)
+        A = np.array([[1., -1.], [1., -1.]])
+        self.assertItemsAlmostEqual(v.project(A, strict=False), A)
+
+        # Structural attributes combined with entrywise attributes error
+        # if strict=True.
+        v = Variable((2, 2), PSD=True, nonneg=True)
+        A = np.array([[1., -1.], [1., -1.]])
+        with self.assertRaises(RuntimeError):
+            v.project(A, strict=True)
+
     def test_partial_boolean_sign(self) -> None:
         """A variable boolean only at some indices has unknown sign.
 
@@ -703,6 +744,17 @@ class TestExpressions(BaseTest):
         projected = leaf.project(val)
         # Only index 1 is projected to integer, others unchanged
         assert (projected == np.array([1.2, 3, -0.8])).all()
+
+    def test_project_boolean_coordinate_tuples(self) -> None:
+        # Each tuple designates one boolean entry: here (0, 0) and (1, 1).
+        leaf = cp.Variable((2, 2), boolean=[(0, 0), (1, 1)])
+        val = np.array([[0.4, 2.5], [3.5, 0.6]])
+        assert (leaf.project(val) == np.array([[0., 2.5], [3.5, 1.]])).all()
+
+        p = Parameter((2, 2), boolean=[(0, 0), (0, 1)])
+        p.value = np.array([[0., 1.], [5., 7.]])  # designated entries are 0/1
+        with self.assertRaises(ValueError):
+            p.value = np.array([[0.5, 1.], [5., 7.]])
 
     def test_add_expression(self) -> None:
         # Vectors
@@ -1259,6 +1311,26 @@ class TestExpressions(BaseTest):
         self.assertEqual(expr.sign, s.NONNEG)
         self.assertItemsAlmostEqual(A[np.array([True, True, True]),
                                       np.array([True, False, True, True])], expr.value)
+
+    def test_scalar_bool_indices(self) -> None:
+        """Test indexing with scalar booleans (NumPy mask semantics).
+
+        x[True] prepends a length-1 axis; x[False] a length-0 axis.
+        """
+        A = np.arange(12.).reshape(3, 4)
+        C = Constant(A)
+
+        for key in (True, False, np.True_, (True, 0), (False, 1), (True, slice(1, 3))):
+            expr = C[key]
+            self.assertEqual(expr.shape, A[key].shape)
+            self.assertItemsAlmostEqual(expr.value, A[key])
+
+        # Shape inference, value, and solve must agree.
+        P = Variable((3, 4))
+        prob = Problem(Minimize(cp.sum_squares(P - A)), [P[True, 0] == A[True, 0]])
+        prob.solve(solver=cp.CLARABEL)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        self.assertItemsAlmostEqual(P[True, 0].value, A[True, 0])
 
     def test_selector_list_indices(self) -> None:
         """Test indexing with lists/ndarrays of indices.

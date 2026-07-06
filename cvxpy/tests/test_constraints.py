@@ -707,6 +707,57 @@ class TestConstraints(BaseTest):
         with pytest.raises(ValueError, match="same shapes"):
             cp.constraints.ExpCone(cp.Variable(1), y, z)
 
+    def test_exp_cone_matrix_arg_duals(self) -> None:
+        """Duals of an ExpCone with matrix args must match the flattened problem.
+
+        ConeMatrixStuffing flattens matrix args in Fortran order;
+        save_dual_value used to reshape the recovered duals in C order,
+        permuting the dual entries whenever both dimensions exceed one.
+        """
+        m, k = 2, 3
+        rng = np.random.default_rng(4)
+        c = rng.uniform(0.5, 1, (m, k))
+        x, y, z = cp.Variable((m, k)), cp.Variable((m, k)), cp.Variable((m, k))
+        con = cp.constraints.ExpCone(x, y, z)
+        objective = -cp.sum(cp.multiply(c, x)) + cp.sum(y) + cp.sum(z)
+        cp.Problem(cp.Minimize(objective), [con]).solve(solver=cp.CLARABEL)
+
+        xf, yf, zf = cp.Variable(m * k), cp.Variable(m * k), cp.Variable(m * k)
+        con_f = cp.constraints.ExpCone(xf, yf, zf)
+        objective_f = -c.flatten('F') @ xf + cp.sum(yf) + cp.sum(zf)
+        cp.Problem(cp.Minimize(objective_f), [con_f]).solve(solver=cp.CLARABEL)
+
+        for dv, dvf in zip(con.dual_value, con_f.dual_value):
+            np.testing.assert_allclose(dv, dvf.reshape((m, k), order='F'), atol=1e-6)
+
+    def test_pow_cone_3d_matrix_arg_duals(self) -> None:
+        """Duals of a PowCone3D with matrix args must match the flattened problem.
+
+        ConeMatrixStuffing restores PowCone3D matrix duals to a (3, m, k)
+        array before save_dual_value runs; each coordinate block must then
+        be reshaped in Fortran order.
+        """
+        m, k = 2, 3
+        alpha = 0.4
+        rng = np.random.default_rng(7)
+        c = rng.uniform(0.5, 1, (m, k))
+        x = cp.Variable((m, k))
+        y = cp.Variable((m, k))
+        z = cp.Variable((m, k))
+        con = PowCone3D(x, y, z, alpha)
+        objective = cp.sum(x) + cp.sum(y) - cp.sum(cp.multiply(c, z))
+        cp.Problem(cp.Minimize(objective), [con]).solve(solver=cp.CLARABEL)
+
+        xf = cp.Variable(m * k)
+        yf = cp.Variable(m * k)
+        zf = cp.Variable(m * k)
+        con_f = PowCone3D(xf, yf, zf, alpha)
+        objective_f = cp.sum(xf) + cp.sum(yf) - c.flatten('F') @ zf
+        cp.Problem(cp.Minimize(objective_f), [con_f]).solve(solver=cp.CLARABEL)
+
+        for dv, dvf in zip(con.dual_value, con_f.dual_value):
+            np.testing.assert_allclose(dv, dvf.reshape((m, k), order='F'), atol=1e-6)
+
     def test_relative_entropy_quad_cones_metadata_and_validation(self) -> None:
         x = cp.Variable(2)
         y = cp.Variable(2)

@@ -82,7 +82,8 @@ class Leaf(expression.Expression):
         the entire Variable to be boolean, False, or a list of
         indices which should be constrained as boolean, where each
         index is a tuple of length exactly equal to the
-        length of shape.
+        length of shape. For example, for a 1-D variable use
+        ``boolean=[(0,), (2,)]``, not a flat list ``[0, 2]``.
     integer : bool or Iterable
         Is the variable integer? The semantics are the same as the
         boolean argument.
@@ -175,6 +176,29 @@ class Leaf(expression.Expression):
         self.attributes['bounds'] = self.bounds
         if value is not None:
             self.value = value
+
+    def _discrete_numpy_index(self, idx: list | tuple) -> tuple:
+        """Convert a boolean/integer index specification to a numpy index.
+
+        ``idx`` is either a tuple of per-axis index arrays (as built by
+        ``np.unravel_index`` for ``boolean=True``/``integer=True``) or the
+        documented user format: a list of coordinate tuples, one per
+        designated entry, each of length ``len(shape)``.
+
+        This is the single normalization point for both formats: ``project``
+        and ``matrix_stuffing.extract_mip_idx`` both rely on it so that
+        projection and the solver path interpret indices identically.
+        """
+        if isinstance(idx, tuple):
+            return idx
+        np_idx = tuple(np.asarray(idx, dtype=np.intp).T)
+        if self.ndim >= 1 and len(np_idx) != self.ndim:
+            raise ValueError(
+                "Boolean/integer indices must be a list of coordinate tuples "
+                "of length %d for a leaf of shape %s; for a 1-D leaf use "
+                "[(i,), ...], not a flat list [i, ...]." % (self.ndim, self.shape)
+            )
+        return np_idx
 
     def _validate_indices(self, indices: list[tuple[int]] | tuple[np.ndarray]) -> tuple[np.ndarray]:
         """
@@ -432,15 +456,23 @@ class Leaf(expression.Expression):
             domain.append(self << 0)
         return domain
 
-    def project(self, val, sparse_path=False):
+    def project(self, val, strict=True, sparse_path=False):
         """Project value onto the attribute set of the leaf.
 
         A sensible idiom is ``leaf.value = leaf.project(val)``.
+
+        Warning: some combinations of attributes cannot be
+        analytically projected onto. If strict=True, this
+        function errors in those situations. If strict=False,
+        we silently **do nothing**.
 
         Parameters
         ----------
         val : numeric type
             The value assigned.
+        strict: bool
+            Whether to error if the projection cannot be
+            performed analytically.
 
         Returns
         -------
@@ -449,35 +481,75 @@ class Leaf(expression.Expression):
         """
         if not self.is_complex():
             val = np.real(val)
-        # Skip the projection operation for more than one attribute
-        if self.num_attributes > 1:
-            return val
+        structural = ('imag', 'complex', 'diag', 'hermitian', 'symmetric',
+                      'PSD', 'NSD', 'sparsity')
+        if any(self.attributes[key] for key in structural):
+            if self.num_attributes > 1:
+                # Projecting onto the intersection of a structural attribute
+                # with other attributes (e.g., PSD plus nonneg) is hard;
+                # such combinations are not enforced and the value is
+                # returned unmodified.
+                if strict:
+                    raise RuntimeError("project is being called on a "
+                        "Parameter/Variable with multiple structural "
+                        "attributes. We cannot evaluate this projection "
+                        "analytically. Consider using "
+                        "cp.Problem("
+                        "cp.Minimize(cp.sum_squares(val - leaf))).solve()"
+                        " instead."
+                    )
+                else:
+                    return val
+            return self._project_structural(val, sparse_path)
+        # The remaining attributes are entrywise. Their projections compose
+        # exactly: discrete entries are rounded first and every later step
+        # clips them to integral limits, so each step preserves the earlier
+        # attributes.
+        discrete_idx = []
+        if self.attributes['boolean'] or self.attributes['integer']:
+            new_val = np.atleast_1d(np.array(val, dtype=np.float64))
+            if self.attributes['boolean']:
+                idx = self._discrete_numpy_index(self.boolean_idx)
+                discrete_idx.append(idx)
+                new_val[idx] = np.round(np.clip(new_val[idx], 0., 1.))
+            if self.attributes['integer']:
+                idx = self._discrete_numpy_index(self.integer_idx)
+                discrete_idx.append(idx)
+                new_val[idx] = np.round(new_val[idx])
+            val = new_val.reshape(np.shape(val)) if np.ndim(val) == 0 else new_val
         if self.attributes['nonpos'] and self.attributes['nonneg']:
-            return 0*val
+            val = 0*val
         elif self.attributes['nonpos'] or self.attributes['neg']:
-            return np.minimum(val, 0.)
+            val = np.minimum(val, 0.)
         elif self.attributes['nonneg'] or self.attributes['pos']:
-            return np.maximum(val, 0.)
-        elif self.bounds is not None:
+            val = np.maximum(val, 0.)
+        if self.bounds is not None:
             if any(isinstance(b, expression.Expression) for b in self.bounds):
                 # Cannot project with expression bounds; return as-is.
                 return val
-            return np.clip(val, self.bounds[0], self.bounds[1])
-        elif self.attributes['imag']:
+            lower, upper = self.bounds
+            clipped = np.clip(val, lower, upper)
+            if discrete_idx and not (sp.issparse(lower) or sp.issparse(upper)):
+                # np.clip may move discrete entries to fractional bound
+                # endpoints; clip the (still integral) pre-bound values to
+                # the integral endpoints inside the bounds instead.
+                flat = np.atleast_1d(clipped)
+                old = np.atleast_1d(np.asarray(val))
+                lo = np.broadcast_to(np.ceil(lower), flat.shape)
+                hi = np.broadcast_to(np.floor(upper), flat.shape)
+                for idx in discrete_idx:
+                    flat[idx] = np.clip(old[idx], lo[idx], hi[idx])
+                clipped = flat.reshape(np.shape(clipped))
+            val = clipped
+        return val
+
+    def _project_structural(self, val, sparse_path: bool):
+        """Project ``val`` onto a single structural (matrix) attribute."""
+        if self.attributes['imag']:
             return np.imag(val)*1j
         elif self.attributes['complex']:
             # val may be a Python scalar, which has no astype method.
             return np.asarray(val).astype(complex)
-        elif self.attributes['boolean']:
-            if hasattr(self, "boolean_idx"):
-                new_val = np.atleast_1d(val.astype(np.float64, copy=True))
-                new_val[self.boolean_idx] = np.round(np.clip(new_val[self.boolean_idx], 0., 1.))
-                return new_val.reshape(val.shape) if val.ndim == 0 else new_val
-        elif self.attributes['integer']:
-            if hasattr(self, "integer_idx"):
-                new_val = np.atleast_1d(val.astype(np.float64, copy=True))
-                new_val[self.integer_idx] = np.round(new_val[self.integer_idx])
-                return new_val.reshape(val.shape) if val.ndim == 0 else new_val
         elif self.attributes['diag']:
             if intf.is_sparse(val):
                 val = val.diagonal()
@@ -568,15 +640,15 @@ class Leaf(expression.Expression):
                     'expr.value_sparse = scipy.sparse.coo_array((values, expr)) instead.')
             raise ValueError(
                 'Invalid type for assigning value_sparse.'
-                f'Recieved: {type(val)} Expected scipy.sparse.coo_array.'
+                f'Received: {type(val)} Expected scipy.sparse.coo_array.'
                 f' Instantiate with scipy.sparse.coo_array((value_array, coordinates))'
                 )
         self.save_value(self._validate_value(val, True), True)
 
-    def project_and_assign(self, val) -> None:
+    def project_and_assign(self, val, strict=True) -> None:
         """Project and assign a value to the variable.
         """
-        self.save_value(self.project(val))
+        self.save_value(self.project(val, strict=strict))
 
     def _validate_value(self, val, sparse_path=False):
         """Check that the value satisfies the leaf's symbolic attributes.
@@ -608,7 +680,7 @@ class Leaf(expression.Expression):
                         'Invalid sparsity pattern %s for %s value.' %
                         (get_coords(val), self.__class__.__name__)
                     )
-            projection = self.project(val, sparse_path)
+            projection = self.project(val, strict=False, sparse_path=sparse_path)
             # ^ might be a numpy array, or sparse scipy matrix.
             with np.errstate(invalid='ignore'):
                 delta = np.abs(val - projection)

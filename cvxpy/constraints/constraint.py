@@ -41,7 +41,7 @@ class Constraint(u.Canonical):
 
     def __init__(self, args, constr_id=None) -> None:
         # TODO cast constants.
-        # self.args = [cvxtypes.expression().cast_to_const(arg) for arg in args]
+        # self.args = [cvxtypes.expression().cast(arg) for arg in args]
         self.args = args
         self._label = None
         if constr_id is None:
