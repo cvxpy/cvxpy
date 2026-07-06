@@ -1312,6 +1312,26 @@ class TestExpressions(BaseTest):
         self.assertItemsAlmostEqual(A[np.array([True, True, True]),
                                       np.array([True, False, True, True])], expr.value)
 
+    def test_scalar_bool_indices(self) -> None:
+        """Test indexing with scalar booleans (NumPy mask semantics).
+
+        x[True] prepends a length-1 axis; x[False] a length-0 axis.
+        """
+        A = np.arange(12.).reshape(3, 4)
+        C = Constant(A)
+
+        for key in (True, False, np.True_, (True, 0), (False, 1), (True, slice(1, 3))):
+            expr = C[key]
+            self.assertEqual(expr.shape, A[key].shape)
+            self.assertItemsAlmostEqual(expr.value, A[key])
+
+        # Shape inference, value, and solve must agree.
+        P = Variable((3, 4))
+        prob = Problem(Minimize(cp.sum_squares(P - A)), [P[True, 0] == A[True, 0]])
+        prob.solve(solver=cp.CLARABEL)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        self.assertItemsAlmostEqual(P[True, 0].value, A[True, 0])
+
     def test_selector_list_indices(self) -> None:
         """Test indexing with lists/ndarrays of indices.
         """
