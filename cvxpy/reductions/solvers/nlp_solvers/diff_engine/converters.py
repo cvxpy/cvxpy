@@ -247,6 +247,17 @@ def convert_expr(expr, var_dict, n_vars, param_dict=None):
         d1, d2 = normalize_shape(expr.shape)
         return _diffengine.make_parameter(d1, d2, -1, n_vars, c.flatten(order='F'))
 
+    # Fully-constant subtree (no variables, no parameters): evaluate it
+    # numerically instead of recursing. Dcp2Cone short-circuits constant
+    # subtrees without canonicalizing them, so nonlinear atoms over plain
+    # constants (e.g. the quad_over_lin([1, 1], 1.0) terms dist_ratio's
+    # bisection produces) survive to this converter; the engine neither
+    # needs nor reliably supports differentiating through them.
+    if not expr.variables() and not expr.parameters():
+        c = to_dense_float(expr.value)
+        d1, d2 = normalize_shape(expr.shape)
+        return _diffengine.make_parameter(d1, d2, -1, n_vars, c.flatten(order='F'))
+
     # Recursive case: atoms
     atom_name = type(expr).__name__
 

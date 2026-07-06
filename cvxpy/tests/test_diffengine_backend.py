@@ -94,13 +94,27 @@ class TestFailLoud:
     def test_unsupported_atom_raises(self):
         """convert_expr names the offending atom. (End to end, Dcp2Cone
         canonicalizes exotic atoms into supported primitives before the
-        converter sees them, so this is pinned at the converter level.)"""
+        converter sees them, and fully-constant subtrees are evaluated
+        numerically, so this is pinned at the converter level with a
+        variable-carrying argument.)"""
         from cvxpy.reductions.solvers.nlp_solvers.diff_engine.converters import (
             convert_expr,
         )
-        expr = cp.cumsum(cp.Constant(np.arange(4.0)))
+        x = cp.Variable(4)
         with pytest.raises(NotImplementedError, match="cumsum"):
-            convert_expr(expr, {}, 0, {})
+            convert_expr(cp.cumsum(x), {x.id: None}, 4, {})
+
+    def test_constant_nonlinear_subtree_is_evaluated(self):
+        """A nonlinear atom over plain constants survives Dcp2Cone
+        uncanonicalized; the converter must evaluate it numerically (the
+        engine segfaulted differentiating through it -- dist_ratio's
+        bisection subproblems hit this via constant quad_over_lin terms)."""
+        x = cp.Variable(2)
+        const_term = cp.quad_over_lin(np.array([1.0, 1.0]), 1.0)  # == 2.0
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(x)), [cp.sum(x) >= const_term])
+        prob.solve(solver=SOLVER, ignore_dpp=True)
+        assert prob.status == cp.OPTIMAL
+        np.testing.assert_allclose(x.value, np.array([1.0, 1.0]), atol=1e-5)
 
     def test_symbolic_quad_form_block_indices_raises(self):
         from cvxpy.reductions.solvers.nlp_solvers.diff_engine.converters import (
