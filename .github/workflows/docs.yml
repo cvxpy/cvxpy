@@ -12,7 +12,7 @@ jobs:
           python-version: "3.12"
 
       - name: Get deployed versions from gh-pages
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           ref: gh-pages
       - name: Set already deployed versions
@@ -26,7 +26,9 @@ jobs:
           ") >> $GITHUB_ENV
 
       - name: Checkout current branch
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0  # setuptools-scm needs tags to compute the version
 
       - name: Build docs
         run: |

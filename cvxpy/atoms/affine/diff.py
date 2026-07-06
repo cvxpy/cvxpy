@@ -48,7 +48,7 @@ def diff(x, k: int = 1, axis: int = 0) -> Expression:
     Expression
         The kth order differences along the specified axis.
     """
-    x = Expression.cast_to_const(x)
+    x = Expression.cast(x)
 
     # Validate and normalize axis (handles negative indices)
     if x.ndim == 0:

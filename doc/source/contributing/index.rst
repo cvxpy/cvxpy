@@ -43,14 +43,11 @@ We'll be happy to provide guidance and advice.
 
 Small scope projects
  - `State required cone types for atoms <https://github.com/cvxpy/cvxpy/issues/574>`_.
- - Add QDLDL as another option for sparse Cholesky.
- - Add DNLP examples from the `examples repository <https://github.com/cvxpy/examples>`_ to the `examples library <https://www.cvxpy.org/examples/index.html>`_.
  - Have MOSEK interface choose between solving the primal and the dual [`2107 <https://github.com/cvxpy/cvxpy/issues/2107>`_, `1403 <https://github.com/cvxpy/cvxpy/issues/1403>`_].
- - `Add cp.RSOC (Rotated Second-Order Cone) <https://github.com/cvxpy/cvxpy/issues/2874>`_.
- - `Huber function with concomitant scale estimation <https://github.com/cvxpy/cvxpy/issues/1377>`_.
  - `More verbose logging info (expression tree nodes, DCP time) <https://github.com/cvxpy/cvxpy/issues/2674>`_.
  - Improve type checking for compatibility with Pyright.
  - `Change docstrings for psd_wrap and other _wrap functions to clarify undefined behavior <https://github.com/cvxpy/cvxpy/issues/2362#issuecomment-2029669331>`_.
+ - Add explanation and examples of explicit conic constraints to `Advanced constraints <https://www.cvxpy.org/tutorial/constraints/index.html>`_.
 
 Medium scope projects
  - Refactor ``suppfunc_canon`` to use ``SvecPSD`` constraints directly, eliminating the
@@ -61,7 +58,6 @@ Medium scope projects
    solver's cone format.
  - `Post-solver feasibility checks <https://github.com/cvxpy/cvxpy/issues/434>`_.
  - `Vectorize the quad_over_lin atom <https://github.com/cvxpy/cvxpy/issues/1197>`_.
- - `Support for expressions with size zero <https://github.com/cvxpy/cvxpy/issues/1429>`_.
  - Caching computation of lin_ops during matrix stuffing.
  - Introduce sparse variables in constraint formulation.
  - N-dimensional matmul with broadcasting supported.

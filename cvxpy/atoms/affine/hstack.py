@@ -30,7 +30,7 @@ def hstack(arg_list) -> "Hstack":
     arg_list : list of Expression
         The Expressions to concatenate.
     """
-    arg_list = [AffAtom.cast_to_const(arg) for arg in arg_list]
+    arg_list = [AffAtom.cast(arg) for arg in arg_list]
     for idx, arg in enumerate(arg_list):
         if arg.ndim == 0:
             arg_list[idx] = arg.flatten(order='F')

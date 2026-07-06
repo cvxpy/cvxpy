@@ -16,6 +16,7 @@ limitations under the License.
 
 import numpy as np
 
+from cvxpy.atoms.affine.binary_operators import multiply
 from cvxpy.atoms.affine.wraps import skew_symmetric_wrap, symmetric_wrap
 from cvxpy.expressions.constants import Constant
 
@@ -98,7 +99,7 @@ def add(lh_arg, rh_arg, neg: bool = False):
         return lh_arg + rh_arg
 
 
-def binary_canon(expr, real_args, imag_args, real2imag):
+def multiply_like_canon(expr, real_args, imag_args, real2imag):
     """Canonicalize functions like multiplication.
     """
     real_by_real = join(expr, real_args[0], real_args[1])
@@ -107,4 +108,33 @@ def binary_canon(expr, real_args, imag_args, real2imag):
     imag_by_real = join(expr, imag_args[0], real_args[1])
     real_output = add(real_by_real, imag_by_imag, neg=True)
     imag_output = add(real_by_imag, imag_by_real, neg=False)
+    return real_output, imag_output
+
+
+def div_canon(expr, real_args, imag_args, real2imag):
+    """Canonicalize division by a (possibly complex) constant or parameter.
+
+    For a complex divisor c, z/c = z*conj(c)/|c|^2, i.e.
+        Re(z/c) = (Re(z)*Re(c) + Im(z)*Im(c))/|c|^2,
+        Im(z/c) = (Im(z)*Re(c) - Re(z)*Im(c))/|c|^2.
+
+    """
+    re_c, im_c = real_args[1], imag_args[1]
+    if im_c is None:
+        # Real divisor: real and imaginary parts divide separately.
+        return multiply_like_canon(expr, real_args, imag_args, real2imag)
+    if re_c is None:
+        re_c = Constant(np.zeros(im_c.shape))
+    abs_sq = multiply(re_c, re_c) + multiply(im_c, im_c)
+    # Real and imaginary parts of 1/c = conj(c)/|c|^2.
+    recip_real = re_c / abs_sq
+    recip_imag = -im_c / abs_sq
+
+    def mul(lh_arg, rh_arg):
+        return None if lh_arg is None else multiply(lh_arg, rh_arg)
+
+    real_output = add(mul(real_args[0], recip_real),
+                      mul(imag_args[0], recip_imag), neg=True)
+    imag_output = add(mul(real_args[0], recip_imag),
+                      mul(imag_args[0], recip_real), neg=False)
     return real_output, imag_output

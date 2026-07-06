@@ -21,6 +21,10 @@ from cvxpy.expressions.variable import Variable
 def replace_quad_forms(expr, quad_forms):
     """Recursively replace quad-form atoms with placeholder Variables."""
     for idx, arg in enumerate(expr.args):
+        # The QuadForm branch is defensive: by the time coeff_extractor calls
+        # this, Dcp2Cone has already rewritten every QuadForm into a
+        # SymbolicQuadForm (quad path) or into sum_squares (cone path), so in
+        # practice only SymbolicQuadForm reaches this point.
         if isinstance(arg, SymbolicQuadForm) or isinstance(arg, QuadForm):
             quad_forms = replace_quad_form(expr, idx, quad_forms)
         else:
@@ -29,10 +33,16 @@ def replace_quad_forms(expr, quad_forms):
 
 
 def replace_quad_form(expr, idx, quad_forms):
-    """Replace the quad-form atom at ``expr.args[idx]`` with a placeholder Variable."""
+    """Replace the quad-form atom at ``expr.args[idx]`` with a placeholder Variable.
+
+    Each occurrence gets its own placeholder, even when CSE made two
+    positions refer to the same SymbolicQuadForm object. The coefficient
+    extractor keys ``quad_forms`` by the placeholder id, so repeated
+    occurrences become distinct rows in the affine coefficient matrix before
+    their quadratic coefficients are summed downstream.
+    """
     quad_form = expr.args[idx]
-    placeholder = Variable(quad_form.shape,
-                           var_id=quad_form.id)
+    placeholder = Variable(quad_form.shape)
     expr.args[idx] = placeholder
     quad_forms[placeholder.id] = (expr, idx, quad_form)
     return quad_forms
