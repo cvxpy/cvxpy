@@ -87,6 +87,18 @@ class TestBoundsPropagation:
         assert np.allclose(lb, expected_lb)
         assert np.allclose(ub, expected_ub)
 
+    @pytest.mark.parametrize("bounds,expected_lb,expected_ub", [
+        ([1, 2], np.log(2), np.log(3)),
+        ([-0.5, 0.5], np.log(0.5), np.log(1.5)),
+        ([-1, 0], -np.inf, 0),  # lb on domain boundary x > -1 gives -inf
+    ])
+    def test_log1p_bounds(self, bounds, expected_lb, expected_ub) -> None:
+        """Test log1p bounds are those of log(1 + x), defined on x > -1."""
+        x = cp.Variable(3, bounds=bounds)
+        lb, ub = cp.log1p(x).get_bounds()
+        assert np.allclose(lb, expected_lb)
+        assert np.allclose(ub, expected_ub)
+
     def test_power(self) -> None:
         """Test bounds propagation through power."""
         x = cp.Variable(3, bounds=[1, 2])

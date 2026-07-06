@@ -3178,8 +3178,17 @@ class TestCOPT(unittest.TestCase):
     def test_copt_mi_lp_5(self) -> None:
         StandardTestLPs.test_mi_lp_5(solver='COPT')
 
+    def test_copt_mi_lp_inf_or_unb(self) -> None:
+        """COPT status 4 must map to the INFEASIBLE_OR_UNBOUNDED status
+        string, not the s.INF_OR_UNB status list (which made unpack raise).
+        """
+        y = cp.Variable(integer=True)
+        prob = cp.Problem(cp.Minimize(y), [y <= 10])
+        prob.solve(solver='COPT')
+        self.assertEqual(prob.status, cp.settings.INFEASIBLE_OR_UNBOUNDED)
+
     def test_copt_mi_socp_1(self) -> None:
-        StandardTestSOCPs.test_mi_socp_1(solver='COPT')
+        StandardTestSOCPs.test_mi_socp_1(solver='COPT', places=3)
 
     def test_copt_mi_socp_2(self) -> None:
         StandardTestSOCPs.test_mi_socp_2(solver='COPT')

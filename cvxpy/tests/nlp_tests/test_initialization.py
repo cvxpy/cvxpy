@@ -33,7 +33,7 @@ class TestVariableAttributeInit:
         prob = cp.Problem(cp.Maximize(cp.sum(cp.log(cp.exp(D)))))
 
         # Should not crash - tests diag_vec Jacobian and value propagation
-        prob.solve(solver=cp.IPOPT, nlp=True, max_iter=10)
+        prob.solve(solver=cp.IPOPT, nlp=True, max_iter=10, verbose=False)
 
     def test_diag_variable_value_sparse_init(self):
         """Test that diagonal variables with sparse value initialization work.
@@ -58,7 +58,7 @@ class TestVariableAttributeInit:
         )
 
         # Solve with NLP - the sparse initialization should propagate correctly
-        prob.solve(solver=cp.IPOPT, nlp=True)
+        prob.solve(solver=cp.IPOPT, nlp=True, verbose=False)
 
         assert prob.status == cp.OPTIMAL
         # The optimal solution should have sum = 1 (constraint active at minimum)
@@ -99,6 +99,6 @@ class TestVariableAttributeInit:
         B.value = np.random.randn(n, rank)
         C.value = np.random.randn(rank, n)
 
-        problem.solve(solver=cp.IPOPT, nlp=True, max_iter=200)
+        problem.solve(solver=cp.IPOPT, nlp=True, max_iter=200, verbose=False)
 
         assert problem.status == cp.OPTIMAL, "Problem did not solve to optimality"
