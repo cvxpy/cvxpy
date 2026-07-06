@@ -16,7 +16,7 @@ limitations under the License.
 
 import numpy as np
 
-from cvxpy.atoms import (MatrixFrac, Pnorm, PnormApprox, QuadForm, abs, bmat, conj, conv,
+from cvxpy.atoms import (MatrixFrac, Pnorm, PnormApprox, QuadForm, abs, conj, conv,
                          convolve, cumsum, imag, kron, lambda_max,
                          lambda_sum_largest, log_det, norm1, norm_inf,
                          quad_over_lin, real, reshape, sigma_max, Trace,
@@ -43,8 +43,8 @@ from cvxpy.expressions.constants import Constant, Parameter
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.complex2real.canonicalizers.abs_canon import abs_canon
 from cvxpy.reductions.complex2real.canonicalizers.aff_canon import (
-    binary_canon, conj_canon, hermitian_wrap_canon, imag_canon, real_canon,
-    separable_canon,)
+    multiply_like_canon, conj_canon, div_canon, hermitian_wrap_canon, imag_canon,
+    real_canon, separable_canon,)
 from cvxpy.reductions.complex2real.canonicalizers.constant_canon import (
     constant_canon,)
 from cvxpy.reductions.complex2real.canonicalizers.equality_canon import (
@@ -66,7 +66,6 @@ from cvxpy.reductions.complex2real.canonicalizers.variable_canon import (
 
 CANON_METHODS = {
     AddExpression: separable_canon,
-    bmat: separable_canon,
     cumsum: separable_canon,
     diag_mat: separable_canon,
     diag_vec: separable_canon,
@@ -84,12 +83,12 @@ CANON_METHODS = {
     Vstack: separable_canon,
     Concatenate: separable_canon,
 
-    conv: binary_canon,
-    convolve: binary_canon,
-    DivExpression: binary_canon,
-    kron: binary_canon,
-    MulExpression: binary_canon,
-    multiply: binary_canon,
+    conv: multiply_like_canon,
+    convolve: multiply_like_canon,
+    DivExpression: div_canon,
+    kron: multiply_like_canon,
+    MulExpression: multiply_like_canon,
+    multiply: multiply_like_canon,
 
     conj: conj_canon,
     imag: imag_canon,

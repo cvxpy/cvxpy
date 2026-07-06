@@ -96,6 +96,19 @@ class TestComplex(BaseTest):
             z.value = np.array([1., 0.])
         self.assertEqual(str(cm.exception), "Parameter value must be imaginary.")
 
+    def test_scalar_complex_value(self) -> None:
+        """Python complex scalars must be accepted as leaf values.
+
+        Leaf.project used to call .astype on the raw value, which built-in
+        complex does not have.
+        """
+        p = Parameter(complex=True)
+        p.value = 2 + 3j
+        self.assertEqual(p.value, 2 + 3j)
+        z = Variable(complex=True)
+        z.value = 2 + 3j
+        self.assertEqual(z.value, 2 + 3j)
+
     def test_constant(self) -> None:
         """Test the parameter class.
         """
@@ -394,6 +407,23 @@ class TestComplex(BaseTest):
             result = prob.solve(solver=cp.SCS, eps=1e-6)
             self.assertAlmostEqual(result, value, places=3)
 
+    def test_lambda_sum_largest_real_arg(self) -> None:
+        """lambda_sum_largest of a real matrix must survive Complex2Real unchanged.
+
+        Complex2Real used to double k for real (symmetric) arguments whenever
+        the problem contained any unrelated complex expression.
+        """
+        X = Variable((3, 3), symmetric=True)
+        constraints = [cp.lambda_sum_largest(X, 2) <= 5, X >> 0, X << 10 * np.eye(3)]
+        objective = cp.Maximize(cp.trace(X))
+        ref = Problem(objective, constraints).solve(solver="CLARABEL")
+        self.assertAlmostEqual(ref, 7.5, places=4)
+
+        z = Variable(complex=True)
+        result = Problem(objective, constraints + [cp.abs(z) <= 1]).solve(solver="CLARABEL")
+        self.assertAlmostEqual(result, ref, places=4)
+        self.assertLessEqual(cp.lambda_sum_largest(X, 2).value, 5 + 1e-4)
+
     def test_quad_form(self) -> None:
         """Test quad_form atom.
         """
@@ -520,6 +550,51 @@ class TestComplex(BaseTest):
         self.assertAlmostEqual(result, 0, places=3)
         self.assertItemsAlmostEqual(X.value, P, places=3)
 
+    def test_div_complex_divisor(self) -> None:
+        """Test division by a complex constant or parameter: z/c = z*conj(c)/|c|^2.
+        """
+        # Complex scalar divisor: optimum 0 at z = 1+1j.
+        z = Variable(complex=True)
+        prob = Problem(cp.Minimize(cp.abs(z/(1+1j) - 1)))
+        prob.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(prob.value, 0)
+        self.assertAlmostEqual(z.value, 1+1j)
+
+        # Pure imaginary divisor: optimum 0 at z = 1j.
+        prob = Problem(cp.Minimize(cp.abs(z/1j - 1)))
+        prob.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(prob.value, 0)
+        self.assertAlmostEqual(z.value, 1j)
+
+        # Real divisor regression: optimum 0 at z = 2+2j.
+        prob = Problem(cp.Minimize(cp.abs(z/2 - (1+1j))))
+        prob.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(prob.value, 0)
+        self.assertAlmostEqual(z.value, 2+2j)
+
+        # Real numerator, complex divisor: x/(1+1j) = x*(1-1j)/2, optimum 0 at x = 2.
+        x = Variable()
+        prob = Problem(cp.Minimize(cp.abs(x/(1+1j) - (1-1j))))
+        prob.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(prob.value, 0)
+        self.assertAlmostEqual(x.value, 2)
+
+        # Elementwise complex array divisor: optimum 0 at z = [1+1j, 2j].
+        d = np.array([1+1j, 2j])
+        zv = Variable(2, complex=True)
+        prob = Problem(cp.Minimize(cp.norm(zv/d - np.ones(2))))
+        prob.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(prob.value, 0)
+        self.assertItemsAlmostEqual(zv.value, d)
+
+        # Complex Parameter divisor.
+        c = Parameter(2, complex=True)
+        c.value = d
+        prob = Problem(cp.Minimize(cp.norm(zv/c - np.ones(2))))
+        prob.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(prob.value, 0)
+        self.assertItemsAlmostEqual(zv.value, d)
+
     def test_hermitian(self) -> None:
         """Test Hermitian variables.
         """
@@ -537,6 +612,25 @@ class TestComplex(BaseTest):
                        [X >> 0, X[0, 0] == -1])
         prob.solve(solver="SCS")
         assert prob.status is cp.INFEASIBLE
+
+    def test_hermitian_psd_dual(self) -> None:
+        """Test the dual of a PSD constraint on a Hermitian matrix.
+
+        Regression test: the dual recovered from the real dilation was
+        half its correct value.
+        """
+        C = np.array([[2, 1-1j], [1+1j, 3]])
+        A = np.array([[1, 0.5j], [-0.5j, 1]])
+        X = Variable((2, 2), hermitian=True)
+        con = X >> A
+        prob = Problem(cp.Minimize(cp.real(cp.trace(C @ X))), [con])
+        prob.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(prob.value, 4)
+        # KKT conditions give dual variable Y == C exactly.
+        Y = con.dual_value
+        self.assertItemsAlmostEqual(Y, C)
+        # Strong duality: optimal value equals Re(<Y, A>).
+        self.assertAlmostEqual(prob.value, np.real(np.trace(Y.conj().T @ A)))
 
     def test_promote(self) -> None:
         """Test promotion of complex variables.

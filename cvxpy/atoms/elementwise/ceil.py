@@ -108,7 +108,8 @@ class floor(Elementwise):
 
     @Elementwise.numpy_numeric
     def numeric(self, values):
-        return np.floor(values[0])
+        decimals = int(np.abs(np.log10(s.ATOM_EVAL_TOL)))
+        return np.floor(np.around(values[0], decimals=decimals))
 
     def sign_from_args(self) -> tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.

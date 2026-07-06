@@ -61,7 +61,7 @@ def partial_optimize(
         The variables to not optimize over.
     solver : str, optional
         The default solver to use for value and grad.
-    kwargs : keywords, optional
+    **kwargs : keywords, optional
         Additional solver specific keyword arguments.
 
     Returns
@@ -261,7 +261,7 @@ class PartialProblem(Expression):
             lagr = self.args[0].objective.args[0]
             for constr in self.args[0].constraints:
                 # TODO: better way to get constraint expressions.
-                lagr_multiplier = self.cast_to_const(sign * constr.dual_value)
+                lagr_multiplier = self.cast(sign * constr.dual_value)
                 prod = lagr_multiplier.T @ constr.expr
                 if prod.is_scalar():
                     lagr += sum(prod)
