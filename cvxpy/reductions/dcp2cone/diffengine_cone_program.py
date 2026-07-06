@@ -87,6 +87,24 @@ class DiffengineConeProgram(ParamProb):
         return [self.inverse_data.id2var[vid]
                 for vid in self.inverse_data.var_offsets]
 
+    # Parameter-layout attributes mirroring ParamConeProg, so introspection
+    # (tests, tooling) works on either ParamProb implementation.
+    @property
+    def param_id_to_size(self):
+        return {p.id: p.size for p in self.parameters}
+
+    @property
+    def param_id_to_col(self):
+        return self.inverse_data.param_id_map
+
+    @property
+    def total_param_size(self):
+        return sum(p.size for p in self.parameters)
+
+    @property
+    def id_to_param(self):
+        return {p.id: p for p in self.parameters}
+
     @property
     def var_id_to_col(self):
         return self.inverse_data.var_offsets
