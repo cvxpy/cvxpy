@@ -101,6 +101,13 @@ class NonPos(Constraint):
         viol = np.linalg.norm(res, ord=2)
         return viol
 
+    @property
+    def dual_residual(self):
+        dv = self.dual_variables[0].value
+        if dv is None:
+            return None
+        return np.maximum(0.0, -dv)
+
 
 class NonNeg(Constraint):
     """A constraint of the form :math:`x \\geq 0`.
@@ -166,6 +173,13 @@ class NonNeg(Constraint):
                              "whose expression is None-valued.")
         viol = np.linalg.norm(res, ord=2)
         return viol
+
+    @property
+    def dual_residual(self):
+        dv = self.dual_variables[0].value
+        if dv is None:
+            return None
+        return np.maximum(0.0, -dv)
 
 
 class Inequality(Constraint):
@@ -264,3 +278,10 @@ class Inequality(Constraint):
         if self.expr.value is None:
             return None
         return np.maximum(self.expr.value, 0)
+
+    @property
+    def dual_residual(self):
+        dv = self.dual_variables[0].value
+        if dv is None:
+            return None
+        return np.maximum(0.0, -dv)

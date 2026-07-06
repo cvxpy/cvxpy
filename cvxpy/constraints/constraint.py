@@ -296,7 +296,63 @@ class Constraint(u.Canonical):
         """
         return self._chain_constraints()
 
-    # TODO(rileyjmurray): add a function to compute dual-variable violation.
+    @property
+    def dual_residual(self):
+        """The residual of the dual variable with respect to the dual cone.
+
+        Analogous to ``residual`` for primal constraint satisfaction.  Returns
+        an array measuring how far the dual value lies outside the dual cone,
+        elementwise (zero where feasible), or ``None`` if the dual variable has
+        no value yet.
+
+        Returns
+        -------
+        NumPy.ndarray or None
+        """
+        raise NotImplementedError(
+            f"{type(self).__name__} does not implement dual_residual."
+        )
+
+    def dual_violation(self):
+        """Scalar infeasibility of the dual variable.
+
+        Returns the largest entry of ``dual_residual`` as a single float,
+        analogous to ``violation()`` for primal feasibility.
+
+        Returns
+        -------
+        float
+
+        Raises
+        ------
+        ValueError
+            If the dual variable has no value.
+        """
+        residual = self.dual_residual
+        if residual is None:
+            raise ValueError(
+                "Cannot compute dual violation: dual variable has no value."
+            )
+        return float(np.max(np.atleast_1d(residual)))
+
+    def is_dual_feasible(self, tolerance: float = 1e-8) -> bool:
+        """Whether the dual variable satisfies the dual cone constraint.
+
+        Parameters
+        ----------
+        tolerance : float
+            Maximum allowable dual infeasibility (default 1e-8).
+
+        Returns
+        -------
+        bool
+
+        Raises
+        ------
+        ValueError
+            If the dual variable has no value.
+        """
+        return self.dual_violation() <= tolerance
 
     @property
     def dual_value(self):

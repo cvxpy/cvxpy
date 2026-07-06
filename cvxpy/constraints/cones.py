@@ -14,6 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import numpy as np
+
 from cvxpy.constraints.constraint import Constraint
 
 
@@ -57,7 +59,7 @@ class Cone(Constraint):
         raise NotImplementedError
 
     @property
-    def dual_residual(self) -> float:
+    def dual_residual(self) -> np.ndarray | float | None:
         """Computes the residual (see Constraint.violation for a
         more formal definition) for the dual cone of the current instance
         of `Cone` w.r.t. the recovered dual variables
