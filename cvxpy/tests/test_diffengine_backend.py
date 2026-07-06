@@ -12,18 +12,13 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-
-Behavioral tests for the DIFFENGINE canon backend (the ``ignore_dpp`` /
-non-DPP path and explicit ``canon_backend="DIFFENGINE"`` selection):
-fail-loud behavior on unsupported constructs, converter correctness for the
-branches only exercised end-to-end elsewhere (parametric divisors, kron
-orientations, matmul-chain reassociation, quadratic-objective extraction),
-and ``DiffengineConeProgram`` re-solve semantics (explicit parameter dicts,
-cone restructuring, mixed-integer problems).
 """
 from __future__ import annotations
 
+import os
+import unittest
 import warnings
+from unittest import mock
 
 import numpy as np
 import pytest
@@ -35,214 +30,165 @@ from cvxpy.atoms.quad_form import SymbolicQuadForm
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
 from cvxpy.reductions.dcp2cone.diffengine_cone_program import DiffengineConeProgram
 from cvxpy.reductions.solvers.defines import INSTALLED_MI_SOLVERS
+from cvxpy.tests.base_test import BaseTest
 
 try:
     from sparsediffpy import _sparsediffengine as _engine
 except ImportError:  # pragma: no cover
     _engine = None
 
-# The DIFFENGINE code in this branch needs bindings introduced in
-# sparsediffpy 0.6.0; on an older wheel every test here would AttributeError
+# On an older sparsediffpy wheel every test here would AttributeError
 # mid-solve, so skip the module loudly instead.
-_REQUIRED_BINDINGS = ("make_left_kron", "make_right_kron", "make_power", "make_quad_form")
-_MISSING = (["sparsediffpy not installed"] if _engine is None else
-            [name for name in _REQUIRED_BINDINGS if not hasattr(_engine, name)])
+REQUIRED_BINDINGS = ("make_left_kron", "make_right_kron", "make_power", "make_quad_form")
+MISSING = (["sparsediffpy not installed"] if _engine is None else
+           [name for name in REQUIRED_BINDINGS if not hasattr(_engine, name)])
 pytestmark = pytest.mark.skipif(
-    bool(_MISSING),
+    bool(MISSING),
     reason="DIFFENGINE backend requires sparsediffpy >= 0.6.0 "
-           f"(missing: {', '.join(_MISSING)})",
+           f"(missing: {', '.join(MISSING)})",
 )
 
 SOLVER = cp.CLARABEL
 
 
-def _stuffing_backend(chain):
-    return next(r.canon_backend for r in chain.reductions
-                if isinstance(r, ConeMatrixStuffing))
-
-
-def _stuffed_program(prob, **chain_kwargs):
-    """Apply the chain up to (and including) ConeMatrixStuffing."""
-    chain = prob._construct_chain(solver=SOLVER, **chain_kwargs)
-    program = prob
-    for reduction in chain.reductions[:-1]:
-        program, _ = reduction.apply(program)
-    return program
-
-
-def _solve_both_paths(objective, constraints=()):
-    """Solve the same problem on the DIFFENGINE and default paths.
-
-    Fresh Problem objects share the same variable objects, so after each solve
-    the variables hold that path's values; returns the two optimal values and
-    the variable values from each path.
-    """
-    prob_de = cp.Problem(objective, list(constraints))
-    prob_de.solve(solver=SOLVER, ignore_dpp=True)
-    assert prob_de.status == cp.OPTIMAL
-    de_vars = [np.array(v.value) for v in prob_de.variables()]
-
-    prob_base = cp.Problem(objective, list(constraints))
-    prob_base.solve(solver=SOLVER)
-    assert prob_base.status == cp.OPTIMAL
-    base_vars = [np.array(v.value) for v in prob_base.variables()]
-    return prob_de.value, prob_base.value, de_vars, base_vars
-
-
-class TestFailLoud:
-    """The diffengine path has no baking fallback: unsupported constructs
+class TestDiffengineConverter(BaseTest):
+    """Converter correctness and fail-loud behavior: unsupported constructs
     must raise immediately instead of silently miscompiling."""
 
-    def test_unsupported_atom_raises(self):
-        """convert_expr names the offending atom. (End to end, Dcp2Cone
-        canonicalizes exotic atoms into supported primitives before the
-        converter sees them, and fully-constant subtrees are evaluated
-        numerically, so this is pinned at the converter level with a
-        variable-carrying argument.)"""
+    def test_unsupported_atom_raises(self) -> None:
+        """convert_expr names the offending atom."""
         from cvxpy.reductions.solvers.nlp_solvers.diff_engine.converters import (
             convert_expr,
         )
         x = cp.Variable(4)
-        with pytest.raises(NotImplementedError, match="cumsum"):
+        with self.assertRaisesRegex(NotImplementedError, "cumsum"):
             convert_expr(cp.cumsum(x), {x.id: None}, 4, {})
 
-    def test_constant_nonlinear_subtree_is_evaluated(self):
-        """A nonlinear atom over plain constants survives Dcp2Cone
-        uncanonicalized; the converter must evaluate it numerically (the
-        engine segfaulted differentiating through it -- dist_ratio's
-        bisection subproblems hit this via constant quad_over_lin terms)."""
+    def test_constant_nonlinear_subtree_is_evaluated(self) -> None:
+        """A nonlinear atom over plain constants is evaluated numerically;
+        the engine cannot differentiate through it."""
         x = cp.Variable(2)
         const_term = cp.quad_over_lin(np.array([1.0, 1.0]), 1.0)  # == 2.0
         prob = cp.Problem(cp.Minimize(cp.sum_squares(x)), [cp.sum(x) >= const_term])
         prob.solve(solver=SOLVER, ignore_dpp=True)
-        assert prob.status == cp.OPTIMAL
-        np.testing.assert_allclose(x.value, np.array([1.0, 1.0]), atol=1e-5)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        self.assertItemsAlmostEqual(x.value, np.array([1.0, 1.0]), places=4)
 
-    def test_symbolic_quad_form_block_indices_raises(self):
+    def test_symbolic_quad_form_block_indices_raises(self) -> None:
         from cvxpy.reductions.solvers.nlp_solvers.diff_engine.converters import (
             convert_symbolic_quad_form,
         )
         x = cp.Variable(4)
         sqf = SymbolicQuadForm(x, sp.eye_array(4), cp.sum_squares(x),
                                block_indices=[np.array([0, 1]), np.array([2, 3])])
-        with pytest.raises(NotImplementedError, match="block_indices"):
+        with self.assertRaisesRegex(NotImplementedError, "block_indices"):
             convert_symbolic_quad_form(sqf, {}, 4, {})
 
-    def test_symbolic_quad_form_unsupported_orig_raises(self):
+    def test_symbolic_quad_form_unsupported_orig_raises(self) -> None:
         from cvxpy.reductions.solvers.nlp_solvers.diff_engine.converters import (
             convert_symbolic_quad_form,
         )
         x = cp.Variable(4)
         sqf = SymbolicQuadForm(x, sp.eye_array(4), cp.norm1(x))
-        with pytest.raises(NotImplementedError, match="norm1"):
+        with self.assertRaisesRegex(NotImplementedError, "norm1"):
             convert_symbolic_quad_form(sqf, {}, 4, {})
 
-    def test_zero_divisor_raises(self):
+    def test_zero_divisor_raises(self) -> None:
         x = cp.Variable(3)
         divisor = np.array([1.0, 0.0, 2.0])
         prob = cp.Problem(cp.Minimize(cp.sum_squares(x / divisor - 1.0)))
-        with pytest.raises(ValueError, match="[Dd]ivision by zero"):
+        with self.assertRaisesRegex(ValueError, "[Dd]ivision by zero"):
             prob.solve(solver=SOLVER, ignore_dpp=True)
 
-    def test_gt_2d_expression_raises_clearly(self):
+    def test_gt_2d_expression_raises_clearly(self) -> None:
         from cvxpy.reductions.solvers.nlp_solvers.diff_engine.helpers import (
             normalize_shape,
         )
-        with pytest.raises(NotImplementedError, match=">2-D"):
+        with self.assertRaisesRegex(NotImplementedError, ">2-D"):
             normalize_shape((2, 3, 4))
 
-    def test_required_bindings_present(self):
-        """Doubles as the loud signal that the installed sparsediffpy build
-        provides the 0.6.0 bindings this branch depends on."""
-        for name in _REQUIRED_BINDINGS:
-            assert hasattr(_engine, name)
+    def test_required_bindings_present(self) -> None:
+        for name in REQUIRED_BINDINGS:
+            self.assertTrue(hasattr(_engine, name))
 
-
-class TestConverterCoverage:
-    """Converter branches that only pass incidentally in end-to-end suites."""
-
-    def test_parametric_scalar_divisor_resolves(self):
+    def test_parametric_divisor_resolves(self) -> None:
+        """A parametric divisor is re-evaluated by the engine on each solve."""
         p = cp.Parameter(pos=True)
         x = cp.Variable()
         prob = cp.Problem(cp.Minimize(cp.square(x / p - 1.0)))
         for val in (2.0, 5.0):
             p.value = val
             prob.solve(solver=SOLVER, ignore_dpp=True)
-            assert prob.status == cp.OPTIMAL
-            np.testing.assert_allclose(x.value, val, rtol=1e-5)
+            self.assertEqual(prob.status, cp.OPTIMAL)
+            self.assertAlmostEqual(x.value, val, places=4)
 
-    def test_parametric_vector_divisor_resolves(self):
-        p = cp.Parameter(3, pos=True)
-        x = cp.Variable(3)
-        prob = cp.Problem(cp.Minimize(cp.sum_squares(x / p - 1.0)))
+        pv = cp.Parameter(3, pos=True)
+        xv = cp.Variable(3)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(xv / pv - 1.0)))
         for val in (np.array([1.0, 2.0, 4.0]), np.array([3.0, 0.5, 1.5])):
-            p.value = val
+            pv.value = val
             prob.solve(solver=SOLVER, ignore_dpp=True)
-            assert prob.status == cp.OPTIMAL
-            np.testing.assert_allclose(x.value, val, rtol=1e-5)
+            self.assertEqual(prob.status, cp.OPTIMAL)
+            self.assertItemsAlmostEqual(xv.value, val, places=4)
 
-    def test_kron_var_left_const_right(self):
-        """kron(X, C) exercises make_right_kron; existing tests only cover
-        the constant-left orientation."""
+    def test_kron_var_left_const_right(self) -> None:
+        """kron(X, C) exercises make_right_kron (with a structural zero in C)."""
         rng = np.random.default_rng(0)
-        C = np.array([[1.0, 2.0], [0.0, 3.0]])  # a structural zero, too
+        C = np.array([[1.0, 2.0], [0.0, 3.0]])
         X0 = rng.standard_normal((2, 2))
         X = cp.Variable((2, 2))
         target = np.kron(X0, C)
         prob = cp.Problem(cp.Minimize(cp.sum_squares(cp.kron(X, C) - target)))
         prob.solve(solver=SOLVER, ignore_dpp=True)
-        assert prob.status == cp.OPTIMAL
-        np.testing.assert_allclose(prob.value, 0.0, atol=1e-6)
-        np.testing.assert_allclose(X.value, X0, atol=1e-4)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        self.assertAlmostEqual(prob.value, 0.0)
+        self.assertItemsAlmostEqual(X.value, X0, places=3)
 
-    @pytest.mark.parametrize("param_side", ["left", "right"])
-    def test_kron_parametric_operand_resolves(self, param_side):
-        """A bare-Parameter kron operand stays symbolic (EvalParams does not
-        fold it) and takes the all-blocks-active branch; the engine must
-        re-evaluate it between solves."""
+    def test_kron_parametric_operand_resolves(self) -> None:
+        """A bare-Parameter kron operand stays symbolic and must be
+        re-evaluated between solves, for both orientations."""
         rng = np.random.default_rng(0)
-        P = cp.Parameter((2, 2))
-        X = cp.Variable((2, 2))
-        expr = cp.kron(P, X) if param_side == "left" else cp.kron(X, P)
         target = rng.standard_normal((4, 4))
-        prob = cp.Problem(cp.Minimize(cp.sum_squares(expr - target)))
+        for param_side in ("left", "right"):
+            P = cp.Parameter((2, 2))
+            X = cp.Variable((2, 2))
+            expr = cp.kron(P, X) if param_side == "left" else cp.kron(X, P)
+            prob = cp.Problem(cp.Minimize(cp.sum_squares(expr - target)))
 
-        for seed in (1, 2):
-            P_val = np.random.default_rng(seed).standard_normal((2, 2))
-            P.value = P_val
-            prob.solve(solver=SOLVER, ignore_dpp=True)
-            assert prob.status == cp.OPTIMAL
+            for seed in (1, 2):
+                P_val = np.random.default_rng(seed).standard_normal((2, 2))
+                P.value = P_val
+                prob.solve(solver=SOLVER, ignore_dpp=True)
+                self.assertEqual(prob.status, cp.OPTIMAL)
 
-            X_base = cp.Variable((2, 2))
-            expr_base = (cp.kron(P_val, X_base) if param_side == "left"
-                         else cp.kron(X_base, P_val))
-            base = cp.Problem(cp.Minimize(cp.sum_squares(expr_base - target)))
-            base.solve(solver=SOLVER)
-            np.testing.assert_allclose(prob.value, base.value, rtol=1e-4)
-            np.testing.assert_allclose(X.value, X_base.value, atol=1e-4)
+                X_base = cp.Variable((2, 2))
+                expr_base = (cp.kron(P_val, X_base) if param_side == "left"
+                             else cp.kron(X_base, P_val))
+                base = cp.Problem(cp.Minimize(cp.sum_squares(expr_base - target)))
+                base.solve(solver=SOLVER)
+                self.assertAlmostEqual(prob.value, base.value, places=3)
+                self.assertItemsAlmostEqual(X.value, X_base.value, places=3)
 
-    @pytest.mark.parametrize("k", [-2, -1, 1, 3])
-    def test_diag_offset_both_directions(self, k):
-        """diag(x, k) (selector-matmul lowering) and diag(X, k) (index
-        gather) for off-main diagonals."""
+    def test_diag_offset_both_directions(self) -> None:
+        """diag(x, k) and diag(X, k) for off-main diagonals."""
         n = 4
         A = np.arange(n * n, dtype=float).reshape((n, n))
+        for k in (-2, -1, 1, 3):
+            x = cp.Variable(n - abs(k))
+            target = np.diag(np.diag(A, k), k)
+            prob = cp.Problem(cp.Minimize(cp.sum_squares(cp.diag(x, k) - target)))
+            prob.solve(solver=SOLVER, ignore_dpp=True)
+            self.assertItemsAlmostEqual(x.value, np.diag(A, k), places=4)
 
-        x = cp.Variable(n - abs(k))
-        target = np.diag(np.diag(A, k), k)
-        prob = cp.Problem(cp.Minimize(cp.sum_squares(cp.diag(x, k) - target)))
-        prob.solve(solver=SOLVER, ignore_dpp=True)
-        np.testing.assert_allclose(x.value, np.diag(A, k), atol=1e-5)
+            X = cp.Variable((n, n))
+            prob = cp.Problem(cp.Minimize(cp.sum_squares(X)),
+                              [cp.diag(X, k) == np.diag(A, k)])
+            prob.solve(solver=SOLVER, ignore_dpp=True)
+            self.assertItemsAlmostEqual(np.diag(X.value, k), np.diag(A, k), places=4)
 
-        X = cp.Variable((n, n))
-        prob = cp.Problem(cp.Minimize(cp.sum_squares(X)),
-                          [cp.diag(X, k) == np.diag(A, k)])
-        prob.solve(solver=SOLVER, ignore_dpp=True)
-        np.testing.assert_allclose(np.diag(X.value, k), np.diag(A, k), atol=1e-5)
-
-    def test_matmul_chain_const_tail_matches_default(self):
-        """_normalize_matmul rewrites these trees (constant tail pushed toward
-        the leaves); the rewrite must be value-preserving, not just solvable."""
+    def test_matmul_chain_const_tail_matches_default(self) -> None:
+        """Matmul-chain reassociation must be value-preserving, not just
+        solvable: each case solves on both paths and must match."""
         rng = np.random.default_rng(0)
         A = rng.standard_normal((3, 4))
         C_sq = rng.standard_normal((4, 4))
@@ -262,15 +208,20 @@ class TestConverterCoverage:
         targets = [T_mat, T_vec, T_vec, rng.standard_normal(3)]
         for expr, target in zip(cases, targets):
             objective = cp.Minimize(cp.sum_squares(expr - target) + cp.sum_squares(X))
-            v_de, v_base, de_vars, base_vars = _solve_both_paths(objective)
-            np.testing.assert_allclose(v_de, v_base, rtol=1e-5, atol=1e-7)
-            for got, want in zip(de_vars, base_vars):
-                np.testing.assert_allclose(got, want, atol=1e-4)
+            prob_de = cp.Problem(objective)
+            prob_de.solve(solver=SOLVER, ignore_dpp=True)
+            self.assertEqual(prob_de.status, cp.OPTIMAL)
+            X_de = np.array(X.value)
 
-    def test_quad_objective_data_matches_cpp(self):
-        """The extractor's Hessian path (lower-tri -> full symmetric mirror)
-        must produce the same stuffed (P, q, A) as the default CPP backend,
-        including off-diagonal coupling."""
+            prob_base = cp.Problem(objective)
+            prob_base.solve(solver=SOLVER)
+            self.assertEqual(prob_base.status, cp.OPTIMAL)
+            self.assertAlmostEqual(prob_de.value, prob_base.value, places=4)
+            self.assertItemsAlmostEqual(X_de, X.value, places=3)
+
+    def test_quad_objective_data_matches_cpp(self) -> None:
+        """The extractor's Hessian path must produce the same stuffed
+        (P, q, A) as the default CPP backend."""
         P0 = np.array([[4.0, 1.0, 0.0], [1.0, 3.0, 1.0], [0.0, 1.0, 2.0]])
         q0 = np.array([1.0, -2.0, 0.5])
         x = cp.Variable(3)
@@ -281,26 +232,28 @@ class TestConverterCoverage:
         for key in data_cpp:
             expected = data_cpp[key]
             if sp.issparse(expected):
-                np.testing.assert_allclose(
-                    data_de[key].toarray(), expected.toarray(), atol=1e-12,
-                    err_msg=f"mismatch in stuffed '{key}'")
+                self.assertItemsAlmostEqual(
+                    data_de[key].toarray(), expected.toarray(), places=10)
             elif isinstance(expected, np.ndarray):
-                np.testing.assert_allclose(
-                    data_de[key], expected, atol=1e-12,
-                    err_msg=f"mismatch in stuffed '{key}'")
+                self.assertItemsAlmostEqual(data_de[key], expected, places=10)
 
 
-class TestDiffengineConeProgramBehavior:
+class TestDiffengineConeProgram(BaseTest):
+    """DiffengineConeProgram re-solve semantics."""
 
-    def test_apply_parameters_explicit_dict(self):
-        """The id_to_param_value branch (used by problem-data machinery) must
-        behave exactly like setting Parameter.value."""
+    def test_apply_parameters_explicit_dict(self) -> None:
+        """The id_to_param_value branch must behave exactly like setting
+        Parameter.value."""
         p = cp.Parameter(2)
         p.value = np.array([1.0, 2.0])
         x = cp.Variable(2)
         prob = cp.Problem(cp.Minimize(cp.sum_squares(x - p)), [x >= 0])
-        program = _stuffed_program(prob, ignore_dpp=True)
-        assert isinstance(program, DiffengineConeProgram)
+
+        chain = prob._construct_chain(solver=SOLVER, ignore_dpp=True)
+        program = prob
+        for reduction in chain.reductions[:-1]:
+            program, _ = reduction.apply(program)
+        self.assertIsInstance(program, DiffengineConeProgram)
 
         new_val = np.array([5.0, 7.0])
         from_dict = program.apply_parameters(
@@ -309,17 +262,13 @@ class TestDiffengineConeProgramBehavior:
         from_value = program.apply_parameters(quad_obj=True)
         for got, want in zip(from_dict, from_value):
             if sp.issparse(want):
-                np.testing.assert_allclose(got.toarray(), want.toarray(), atol=1e-12)
+                self.assertItemsAlmostEqual(got.toarray(), want.toarray(), places=10)
             else:
-                np.testing.assert_allclose(got, want, atol=1e-12)
+                self.assertItemsAlmostEqual(got, want, places=10)
 
-    def test_extraction_runs_once_per_solve(self):
-        """from_problem evaluates the matrices at the current parameter
-        values; the solver's apply_parameters in the same solve must reuse
-        them, not re-extract (this was ~30% of large-problem re-solve time).
-        A solve with *changed* values must still re-extract."""
-        from unittest import mock
-
+    def test_extraction_runs_once_per_solve(self) -> None:
+        """The solver's apply_parameters must reuse the matrices from_problem
+        just extracted; a solve with changed values must re-extract."""
         from cvxpy.reductions.solvers.nlp_solvers.diff_engine.extractor import (
             DiffEngineExtractor,
         )
@@ -333,20 +282,19 @@ class TestDiffengineConeProgramBehavior:
                                autospec=True, side_effect=real_extract) as spy:
             p.value = np.array([1.0, 2.0])
             prob.solve(solver=SOLVER, ignore_dpp=True)
-            assert spy.call_count == 1  # from_problem only; solver reused it
-            np.testing.assert_allclose(x.value, p.value, atol=1e-5)
+            self.assertEqual(spy.call_count, 1)  # from_problem only
+            self.assertItemsAlmostEqual(x.value, p.value, places=4)
 
             # ignore_dpp keeps the chain uncached, so a re-solve rebuilds the
             # program (one extraction), and apply_parameters again reuses it.
             p.value = np.array([-3.0, 4.0])
             prob.solve(solver=SOLVER, ignore_dpp=True)
-            assert spy.call_count == 2
-            np.testing.assert_allclose(x.value, p.value, atol=1e-5)
+            self.assertEqual(spy.call_count, 2)
+            self.assertItemsAlmostEqual(x.value, p.value, places=4)
 
-    def test_parametric_soc_restruct_resolve_and_duals(self):
-        """SOC constraints trigger a non-trivial restruct matrix; it must be
-        re-applied to the freshly extracted (A, b) on parametric re-solves,
-        and duals must match the default path."""
+    def test_parametric_soc_restruct_resolve_and_duals(self) -> None:
+        """The SOC restructuring matrix must be re-applied to freshly
+        extracted (A, b) on re-solves; duals must match the default path."""
         c = np.array([1.0, 2.0])
         p = cp.Parameter(2)
         x = cp.Variable(2)
@@ -356,21 +304,21 @@ class TestDiffengineConeProgramBehavior:
         for val in (np.array([1.0, 1.0]), np.array([-2.0, 3.0])):
             p.value = val
             prob.solve(solver=SOLVER, ignore_dpp=True)
-            assert prob.status == cp.OPTIMAL
+            self.assertEqual(prob.status, cp.OPTIMAL)
 
             x_base = cp.Variable(2)
             base_cons = [cp.norm(x_base - val) <= 2.0, x_base >= -5]
             base = cp.Problem(cp.Minimize(c @ x_base), base_cons)
             base.solve(solver=SOLVER)
-            np.testing.assert_allclose(prob.value, base.value, rtol=1e-5)
-            np.testing.assert_allclose(x.value, x_base.value, atol=1e-5)
+            self.assertAlmostEqual(prob.value, base.value, places=4)
+            self.assertItemsAlmostEqual(x.value, x_base.value, places=4)
             for con_de, con_base in zip(constraints, base_cons):
-                np.testing.assert_allclose(
-                    con_de.dual_value, con_base.dual_value, atol=1e-5)
+                self.assertItemsAlmostEqual(
+                    con_de.dual_value, con_base.dual_value, places=4)
 
-    def test_parametric_psd_restruct_resolve(self):
-        """PSD constraints exercise the symmetric restructuring; re-solves with
-        a new parametric objective must match a baked baseline."""
+    def test_parametric_psd_restruct_resolve(self) -> None:
+        """PSD constraints exercise the symmetric restructuring across
+        parametric re-solves."""
         P = cp.Parameter((2, 2), symmetric=True)
         X = cp.Variable((2, 2), symmetric=True)
         prob = cp.Problem(cp.Minimize(cp.trace(P @ X)),
@@ -382,109 +330,149 @@ class TestDiffengineConeProgramBehavior:
             P_val = M @ M.T + np.eye(2)
             P.value = P_val
             prob.solve(solver=SOLVER, ignore_dpp=True)
-            assert prob.status == cp.OPTIMAL
+            self.assertEqual(prob.status, cp.OPTIMAL)
 
             X_base = cp.Variable((2, 2), symmetric=True)
             base = cp.Problem(cp.Minimize(cp.trace(P_val @ X_base)),
                               [X_base >> np.eye(2), cp.trace(X_base) <= 5])
             base.solve(solver=SOLVER)
-            np.testing.assert_allclose(prob.value, base.value, rtol=1e-4)
+            self.assertAlmostEqual(prob.value, base.value, places=3)
 
-    @pytest.mark.skipif(len(INSTALLED_MI_SOLVERS) == 0,
-                        reason="no mixed-integer solver installed")
-    def test_mixed_integer_ignore_dpp(self):
-        """is_mixed_integer / extract_mip_idx on the DiffengineConeProgram."""
+    @unittest.skipUnless(INSTALLED_MI_SOLVERS, "no mixed-integer solver installed")
+    def test_mixed_integer_ignore_dpp(self) -> None:
         x = cp.Variable(3, integer=True)
         prob = cp.Problem(cp.Minimize(cp.sum(x)), [x >= 0.5, x <= 3.7])
         prob.solve(ignore_dpp=True)
-        assert prob.status == cp.OPTIMAL
-        np.testing.assert_allclose(x.value, np.ones(3), atol=1e-6)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        self.assertItemsAlmostEqual(x.value, np.ones(3), places=4)
 
 
-class TestExplicitSelectionAndPrecedence:
-    """canon_backend='DIFFENGINE' is user-selectable; the ignore_dpp / non-DPP
-    path force-selects it over any user-supplied backend."""
+class TestDiffengineSelection(BaseTest):
+    """canon_backend='DIFFENGINE' is user-selectable; the ignore_dpp /
+    non-DPP path force-selects it over any user-supplied backend."""
 
-    def test_explicit_diffengine_param_free(self):
+    def _stuffing_backend(self, chain) -> str:
+        stuffing = [r for r in chain.reductions
+                    if isinstance(r, ConeMatrixStuffing)][0]
+        return stuffing.canon_backend
+
+    def test_explicit_diffengine_param_free(self) -> None:
         x = cp.Variable(3)
         prob = cp.Problem(cp.Minimize(cp.sum_squares(x - 1)), [x >= 0])
         prob.solve(solver=SOLVER, canon_backend=s.DIFFENGINE_CANON_BACKEND)
-        assert _stuffing_backend(prob._cache.solving_chain) == s.DIFFENGINE_CANON_BACKEND
-        assert isinstance(prob._cache.param_prog, DiffengineConeProgram)
-        np.testing.assert_allclose(prob.value, 0.0, atol=1e-6)
-        np.testing.assert_allclose(x.value, np.ones(3), atol=1e-5)
+        self.assertEqual(self._stuffing_backend(prob._cache.solving_chain),
+                         s.DIFFENGINE_CANON_BACKEND)
+        self.assertIsInstance(prob._cache.param_prog, DiffengineConeProgram)
+        self.assertAlmostEqual(prob.value, 0.0)
+        self.assertItemsAlmostEqual(x.value, np.ones(3), places=4)
 
-    def test_explicit_diffengine_dpp_parametric_resolve(self):
-        """On the DPP path there is no EvalParams, so the chain (and the
-        DiffengineConeProgram) is cached across solves; parameter updates must
-        flow through the cached extractor."""
+    def test_explicit_diffengine_dpp_parametric_resolve(self) -> None:
+        """On the DPP path the DiffengineConeProgram is cached across solves;
+        parameter updates must flow through the cached extractor."""
         A = cp.Parameter((2, 2))
         b = cp.Parameter(2)
         x = cp.Variable(2)
         prob = cp.Problem(cp.Minimize(cp.sum_squares(A @ x - b)), [x >= -10])
-        assert prob.is_dpp()
+        self.assertTrue(prob.is_dpp())
 
         A.value = np.eye(2)
         b.value = np.array([1.0, 2.0])
         prob.solve(solver=SOLVER, canon_backend=s.DIFFENGINE_CANON_BACKEND)
-        assert isinstance(prob._cache.param_prog, DiffengineConeProgram)
+        self.assertIsInstance(prob._cache.param_prog, DiffengineConeProgram)
         cached_prog = prob._cache.param_prog
-        np.testing.assert_allclose(x.value, np.array([1.0, 2.0]), atol=1e-5)
+        self.assertItemsAlmostEqual(x.value, np.array([1.0, 2.0]), places=4)
 
         A.value = 2.0 * np.eye(2)
         b.value = np.array([2.0, -4.0])
         prob.solve(solver=SOLVER, canon_backend=s.DIFFENGINE_CANON_BACKEND)
-        assert prob._cache.param_prog is cached_prog  # cached program reused
-        np.testing.assert_allclose(x.value, np.array([1.0, -2.0]), atol=1e-5)
+        self.assertIs(prob._cache.param_prog, cached_prog)  # cached prog reused
+        self.assertItemsAlmostEqual(x.value, np.array([1.0, -2.0]), places=4)
 
-        # Solve again with the SAME values: the cached raw program's matrices
-        # still hold the first solve's data, so the reuse check must be
-        # per-instance (a shared last-values flag would serve stale A/b here).
+        # Solve again with the SAME values: the reuse check must be
+        # per-instance, or the raw program would serve stale A/b here.
         prob.solve(solver=SOLVER, canon_backend=s.DIFFENGINE_CANON_BACKEND)
-        np.testing.assert_allclose(x.value, np.array([1.0, -2.0]), atol=1e-5)
+        self.assertItemsAlmostEqual(x.value, np.array([1.0, -2.0]), places=4)
 
-    def test_ignore_dpp_overrides_user_backend(self):
+    def test_ignore_dpp_defaults_to_diffengine(self) -> None:
         p = cp.Parameter()
         p.value = 2.0
         x = cp.Variable()
         prob = cp.Problem(cp.Minimize(cp.square(x - p)))
-        _, chain, _ = prob.get_problem_data(SOLVER, ignore_dpp=True,
-                                            canon_backend=s.CPP_CANON_BACKEND)
-        assert _stuffing_backend(chain) == s.DIFFENGINE_CANON_BACKEND
-        prob.solve(solver=SOLVER, ignore_dpp=True,
-                   canon_backend=s.CPP_CANON_BACKEND)
-        np.testing.assert_allclose(x.value, 2.0, atol=1e-6)
+        _, chain, _ = prob.get_problem_data(SOLVER, ignore_dpp=True)
+        self.assertEqual(self._stuffing_backend(chain), s.DIFFENGINE_CANON_BACKEND)
+        prob.solve(solver=SOLVER, ignore_dpp=True)
+        self.assertAlmostEqual(x.value, 2.0)
 
-    def test_env_var_selects_diffengine_on_dpp_path(self, monkeypatch):
+    def test_explicit_backend_opts_out_of_diffengine(self) -> None:
+        """ignore_dpp with an explicit tensor backend restores the old
+        parameter-baking semantics: EvalParams + the requested backend, with
+        baked values still refreshing across solves."""
+        p = cp.Parameter()
+        x = cp.Variable()
+
+        for backend in (s.CPP_CANON_BACKEND, s.SCIPY_CANON_BACKEND):
+            p.value = 2.0
+            prob_fresh = cp.Problem(cp.Minimize(cp.square(x - p)))
+            _, chain, _ = prob_fresh.get_problem_data(SOLVER, ignore_dpp=True,
+                                                      canon_backend=backend)
+            self.assertEqual(self._stuffing_backend(chain), backend)
+            reduction_names = [type(r).__name__ for r in chain.reductions]
+            self.assertIn('EvalParams', reduction_names)
+            self.assertNotIn('FoldVariableFreeParams', reduction_names)
+
+            prob_fresh.solve(solver=SOLVER, ignore_dpp=True, canon_backend=backend)
+            self.assertAlmostEqual(x.value, 2.0)
+            p.value = -3.0
+            prob_fresh.solve(solver=SOLVER, ignore_dpp=True, canon_backend=backend)
+            self.assertAlmostEqual(x.value, -3.0)
+
+    def test_env_var_selects_diffengine_on_dpp_path(self) -> None:
         """CVXPY_DEFAULT_CANON_BACKEND=DIFFENGINE routes DPP solves through
-        the diff engine (with program caching), enabling whole-suite
-        validation runs of the backend."""
-        monkeypatch.setenv("CVXPY_DEFAULT_CANON_BACKEND", s.DIFFENGINE_CANON_BACKEND)
-        p = cp.Parameter(2)
-        x = cp.Variable(2)
-        prob = cp.Problem(cp.Minimize(cp.sum_squares(x - p)))
-        assert prob.is_dpp()
+        the diff engine, with program caching."""
+        with mock.patch.dict(
+                os.environ,
+                {"CVXPY_DEFAULT_CANON_BACKEND": s.DIFFENGINE_CANON_BACKEND}):
+            p = cp.Parameter(2)
+            x = cp.Variable(2)
+            prob = cp.Problem(cp.Minimize(cp.sum_squares(x - p)))
+            self.assertTrue(prob.is_dpp())
 
-        p.value = np.array([1.0, 2.0])
-        prob.solve(solver=SOLVER)
-        assert _stuffing_backend(prob._cache.solving_chain) == s.DIFFENGINE_CANON_BACKEND
-        assert isinstance(prob._cache.param_prog, DiffengineConeProgram)
-        np.testing.assert_allclose(x.value, p.value, atol=1e-5)
+            p.value = np.array([1.0, 2.0])
+            prob.solve(solver=SOLVER)
+            self.assertEqual(self._stuffing_backend(prob._cache.solving_chain),
+                             s.DIFFENGINE_CANON_BACKEND)
+            self.assertIsInstance(prob._cache.param_prog, DiffengineConeProgram)
+            self.assertItemsAlmostEqual(x.value, p.value, places=4)
 
-        p.value = np.array([-1.0, 3.0])
-        prob.solve(solver=SOLVER)
-        np.testing.assert_allclose(x.value, p.value, atol=1e-5)
+            p.value = np.array([-1.0, 3.0])
+            prob.solve(solver=SOLVER)
+            self.assertItemsAlmostEqual(x.value, p.value, places=4)
 
-        # An explicit user backend still wins over the env default.
-        prob2 = cp.Problem(cp.Minimize(cp.sum_squares(x - 1)))
-        _, chain, _ = prob2.get_problem_data(SOLVER, canon_backend=s.SCIPY_CANON_BACKEND)
-        assert _stuffing_backend(chain) != s.DIFFENGINE_CANON_BACKEND
+            # An explicit user backend still wins over the env default.
+            prob2 = cp.Problem(cp.Minimize(cp.sum_squares(x - 1)))
+            _, chain, _ = prob2.get_problem_data(
+                SOLVER, canon_backend=s.SCIPY_CANON_BACKEND)
+            self.assertNotEqual(self._stuffing_backend(chain),
+                                s.DIFFENGINE_CANON_BACKEND)
 
-    def test_nd_problem_falls_back_like_cpp(self):
-        """>2-D problems cannot go to the (2-D) diff engine: the ignore_dpp
-        path bakes parameters (EvalParams) and leaves backend selection to
-        the tensor machinery, mirroring the CPP -> SCIPY N-D fallback; the
-        baked values must still refresh across solves."""
+    def test_env_var_does_not_override_ignore_dpp(self) -> None:
+        with mock.patch.dict(
+                os.environ,
+                {"CVXPY_DEFAULT_CANON_BACKEND": s.SCIPY_CANON_BACKEND}):
+            p = cp.Parameter()
+            p.value = 3.0
+            x = cp.Variable()
+            prob = cp.Problem(cp.Minimize(cp.square(x - p)))
+            _, chain, _ = prob.get_problem_data(SOLVER, ignore_dpp=True)
+            self.assertEqual(self._stuffing_backend(chain),
+                             s.DIFFENGINE_CANON_BACKEND)
+            prob.solve(solver=SOLVER, ignore_dpp=True)
+            self.assertAlmostEqual(x.value, 3.0)
+
+    def test_nd_problem_falls_back_like_cpp(self) -> None:
+        """>2-D problems cannot use the (2-D) diff engine: the ignore_dpp path
+        bakes parameters (EvalParams) like the CPP -> SCIPY N-D fallback, and
+        the baked values must still refresh across solves."""
         p = cp.Parameter()
         x = cp.Variable((2, 2, 2))
         prob = cp.Problem(cp.Minimize(cp.sum_squares(x - p)))
@@ -493,30 +481,124 @@ class TestExplicitSelectionAndPrecedence:
             warnings.simplefilter("ignore")  # N-D -> SCIPY fallback warning
             p.value = 1.0
             prob.solve(solver=SOLVER, ignore_dpp=True)
-            assert _stuffing_backend(prob._cache.solving_chain) != \
-                s.DIFFENGINE_CANON_BACKEND
+            self.assertNotEqual(
+                self._stuffing_backend(prob._cache.solving_chain),
+                s.DIFFENGINE_CANON_BACKEND)
             reduction_names = [type(r).__name__
                                for r in prob._cache.solving_chain.reductions]
-            assert 'EvalParams' in reduction_names
-            np.testing.assert_allclose(x.value, np.full((2, 2, 2), 1.0), atol=1e-5)
+            self.assertIn('EvalParams', reduction_names)
+            self.assertItemsAlmostEqual(x.value, np.full((2, 2, 2), 1.0), places=4)
 
             p.value = -2.0
             prob.solve(solver=SOLVER, ignore_dpp=True)
-            np.testing.assert_allclose(x.value, np.full((2, 2, 2), -2.0), atol=1e-5)
+            self.assertItemsAlmostEqual(x.value, np.full((2, 2, 2), -2.0), places=4)
 
-    def test_nd_problem_explicit_diffengine_raises(self):
+    def test_nd_problem_explicit_diffengine_raises(self) -> None:
         x = cp.Variable((2, 2, 2))
         prob = cp.Problem(cp.Minimize(cp.sum_squares(x)))
-        with pytest.raises(ValueError, match="dimension greater than 2"):
+        with self.assertRaisesRegex(ValueError, "dimension greater than 2"):
             prob.solve(solver=SOLVER, canon_backend=s.DIFFENGINE_CANON_BACKEND)
 
-    def test_env_var_does_not_override_ignore_dpp(self, monkeypatch):
-        monkeypatch.setenv("CVXPY_DEFAULT_CANON_BACKEND", s.SCIPY_CANON_BACKEND)
-        p = cp.Parameter()
-        p.value = 3.0
-        x = cp.Variable()
-        prob = cp.Problem(cp.Minimize(cp.square(x - p)))
-        _, chain, _ = prob.get_problem_data(SOLVER, ignore_dpp=True)
-        assert _stuffing_backend(chain) == s.DIFFENGINE_CANON_BACKEND
+
+class TestIgnoreDppCacheHygiene(BaseTest):
+    """Toggling ignore_dpp between solves must fully invalidate the cache:
+    the chain, the cached parametric program, and the solver warm-start cache
+    all belong to one (solver, gp, ignore_dpp, use_quad_obj) key."""
+
+    def test_toggle_ignore_dpp_switches_chain_and_stays_correct(self) -> None:
+        """ignore_dpp -> default -> default (new params) -> ignore_dpp (new
+        params): each step must use the right backend and match a fresh
+        baseline, so any stale cache shows up numerically."""
+        def stuffing_backend(prob):
+            return [r for r in prob._cache.solving_chain.reductions
+                    if isinstance(r, ConeMatrixStuffing)][0].canon_backend
+
+        def baseline(A_val, b_val):
+            x = cp.Variable(A_val.shape[1])
+            base = cp.Problem(
+                cp.Minimize(cp.sum_squares(A_val @ x - b_val)), [x >= -10])
+            base.solve(solver=SOLVER)
+            return base.value
+
+        rng = np.random.default_rng(0)
+        m, n = 8, 5  # overdetermined so the optimum is strictly positive
+        A = cp.Parameter((m, n))
+        b = cp.Parameter(m)
+        x = cp.Variable(n)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(A @ x - b)), [x >= -10])
+
+        # 1. ignore_dpp first: DIFFENGINE chain; parametric problems are not
+        # cached on this path (the fold keeps the chain uncached).
+        A.value = rng.standard_normal((m, n))
+        b.value = rng.standard_normal(m)
         prob.solve(solver=SOLVER, ignore_dpp=True)
-        np.testing.assert_allclose(x.value, 3.0, atol=1e-6)
+        solver_cache_de = prob._solver_cache
+        self.assertEqual(stuffing_backend(prob), s.DIFFENGINE_CANON_BACKEND)
+        self.assertIsNone(prob._cache.param_prog)
+        self.assertAlmostEqual(prob.value, baseline(A.value, b.value), places=4)
+
+        # 2. default solve, same parameter values: key change must rebuild the
+        # chain (DPP path, not DIFFENGINE) and reset the solver cache.
+        prob.solve(solver=SOLVER)
+        self.assertNotEqual(stuffing_backend(prob), s.DIFFENGINE_CANON_BACKEND)
+        self.assertIsNotNone(prob._cache.param_prog)  # DPP program cached
+        self.assertIsNot(prob._solver_cache, solver_cache_de)
+        self.assertAlmostEqual(prob.value, baseline(A.value, b.value), places=4)
+
+        # 3. new parameter values, default solve again: the DPP fast path
+        # (cached param_prog) must serve fresh values, not stale ones.
+        dpp_prog = prob._cache.param_prog
+        A.value = rng.standard_normal((m, n))
+        b.value = rng.standard_normal(m)
+        prob.solve(solver=SOLVER)
+        self.assertIs(prob._cache.param_prog, dpp_prog)  # fast path reused
+        self.assertAlmostEqual(prob.value, baseline(A.value, b.value), places=4)
+
+        # 4. back to ignore_dpp with new values: invalidated again.
+        A.value = rng.standard_normal((m, n))
+        b.value = rng.standard_normal(m)
+        prob.solve(solver=SOLVER, ignore_dpp=True)
+        self.assertEqual(stuffing_backend(prob), s.DIFFENGINE_CANON_BACKEND)
+        self.assertIsNone(prob._cache.param_prog)
+        self.assertAlmostEqual(prob.value, baseline(A.value, b.value), places=4)
+
+    def test_param_free_program_cached_and_dropped_on_toggle(self) -> None:
+        """A parameter-free ignore_dpp solve caches its DiffengineConeProgram
+        (no fold in the chain) and reuses it; switching to a default solve
+        must drop it."""
+        y = cp.Variable(3)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(y - 1)), [y >= 0])
+
+        prob.solve(solver=SOLVER, ignore_dpp=True)
+        cached = prob._cache.param_prog
+        self.assertIsInstance(cached, DiffengineConeProgram)
+
+        prob.solve(solver=SOLVER, ignore_dpp=True)
+        self.assertIs(prob._cache.param_prog, cached)  # fast path reused
+        self.assertAlmostEqual(prob.value, 0.0)
+        self.assertItemsAlmostEqual(y.value, np.ones(3), places=4)
+
+        prob.solve(solver=SOLVER)
+        self.assertNotIsInstance(prob._cache.param_prog, DiffengineConeProgram)
+        self.assertAlmostEqual(prob.value, 0.0)
+
+    def test_shared_parameter_across_problems(self) -> None:
+        """Two problems sharing a Parameter, one on each path, must not
+        contaminate each other's caches or values."""
+        p = cp.Parameter()
+        x = cp.Variable()
+        y = cp.Variable()
+        prob_de = cp.Problem(cp.Minimize(cp.square(x - p)))
+        prob_dpp = cp.Problem(cp.Minimize(cp.square(y - 2 * p)))
+
+        p.value = 1.0
+        prob_de.solve(solver=SOLVER, ignore_dpp=True)
+        prob_dpp.solve(solver=SOLVER)
+        self.assertAlmostEqual(x.value, 1.0)
+        self.assertAlmostEqual(y.value, 2.0)
+
+        p.value = -3.0
+        prob_dpp.solve(solver=SOLVER)
+        prob_de.solve(solver=SOLVER, ignore_dpp=True)
+        self.assertAlmostEqual(x.value, -3.0)
+        self.assertAlmostEqual(y.value, -6.0)
