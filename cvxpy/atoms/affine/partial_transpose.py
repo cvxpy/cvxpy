@@ -21,6 +21,7 @@ import numpy as np
 import scipy.sparse as sp
 from numpy.lib.array_utils import normalize_axis_index
 
+from cvxpy.atoms.affine.wraps import hermitian_wrap, symmetric_wrap
 from cvxpy.atoms.atom import Atom
 from cvxpy.expressions.expression import Expression
 
@@ -78,12 +79,17 @@ def partial_transpose(expr, dims: tuple[int, ...], axis: int | None = 0) -> Expr
         The index of the subsystem to be transposed
         from the tensor product that defines expr.
     """
-    expr = Atom.cast_to_const(expr)
+    expr = Atom.cast(expr)
     if expr.ndim < 2 or expr.shape[0] != expr.shape[1]:
         raise ValueError("partial_transpose only supports 2-d square arrays.")
     if expr.shape[0] != np.prod(dims):
         raise ValueError("Dimension of system doesn't correspond to dimension of subsystems.")
     axis = normalize_axis_index(axis, len(dims))
-    return sum([
+    result = sum([
         _term(expr, i, j, dims, axis) for i in range(dims[axis]) for j in range(dims[axis])
     ])
+    if expr.is_symmetric():
+        return symmetric_wrap(result)
+    if expr.is_hermitian():
+        return hermitian_wrap(result)
+    return result

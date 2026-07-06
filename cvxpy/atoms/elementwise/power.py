@@ -51,8 +51,8 @@ def power(x, p, max_denom: int = 1024, approx: bool = True) -> Expression:
     """
 
     # Cast both to CVXPY expressions for inspection
-    x_expr = Expression.cast_to_const(x)
-    p_expr = Expression.cast_to_const(p)
+    x_expr = Expression.cast(x)
+    p_expr = Expression.cast(p)
 
     # Case: b**x where b is constant and x is variable
     # e.g. cp.power(2, x) — dispatch to exp(x * log(b))
@@ -173,7 +173,7 @@ class Power(Elementwise):
         # NB: It is important that the exponent is an attribute, not
         # an argument. This prevents parametrized exponents from being replaced
         # with their logs in Dgp2Dcp.
-        self.p = cvxtypes.expression().cast_to_const(p)
+        self.p = cvxtypes.expression().cast(p)
         if not (isinstance(self.p, cvxtypes.constant()) or
                 isinstance(self.p, cvxtypes.parameter())):
             raise ValueError("The exponent `p` must be either a Constant or "
