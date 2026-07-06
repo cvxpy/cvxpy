@@ -17,7 +17,6 @@ limitations under the License.
 import unittest
 
 import numpy as np
-import pytest
 
 import cvxpy as cp
 from cvxpy.tests.base_test import BaseTest
@@ -192,9 +191,6 @@ class TestEinsum(BaseTest):
         self.assertEqual(expr3.is_convex(), False)
         self.assertEqual(expr3.is_concave(), False)
 
-    @pytest.mark.xfail(reason="diff engine (non-DPP/ignore_dpp path): >2D expressions "
-                              "(einsum builds a 3D constant) not yet supported",
-                       raises=NotImplementedError, strict=True)
     def test_einsum_solve(self) -> None:
         """Test solving einsum problems."""
         # Einsum with only 2d arrays

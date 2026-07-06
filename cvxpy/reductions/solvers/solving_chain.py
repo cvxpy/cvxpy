@@ -32,6 +32,7 @@ from cvxpy.reductions.discrete2mixedint.valinvec2mixedint import (
 from cvxpy.reductions.eliminate_zero_sized import EliminateZeroSized
 from cvxpy.reductions.eval_params import EvalParams
 from cvxpy.reductions.flip_objective import FlipObjective
+from cvxpy.reductions.fold_variable_free_params import FoldVariableFreeParams
 from cvxpy.reductions.solvers import defines as slv_def
 from cvxpy.reductions.solvers.constant_solver import ConstantSolver
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
@@ -204,30 +205,48 @@ def _build_solving_chain(
     quad_form_dpp = 'qp' if solver_instance.supports_quad_obj() else None
     is_dpp = problem.is_dpp(dpp_context, quad_form_dpp=quad_form_dpp)
 
+    if canon_backend == DIFFENGINE_CANON_BACKEND and problem._max_ndim() > 2:
+        # Mirror the explicit-CPP treatment of N-D problems: the diff engine
+        # represents all expressions as 2-D matrices.
+        raise ValueError(
+            f"The {DIFFENGINE_CANON_BACKEND} backend cannot be used with "
+            "problems that have expressions of dimension greater than 2.")
+
     if ignore_dpp or not is_dpp:
         if not ignore_dpp and enforce_dpp:
             raise DPPError(DPP_ERROR_MSG)
         if not ignore_dpp:
             warn(DPP_ERROR_MSG)
-        # Fold the variable-free composite parametric subtrees -- the ones that
-        # would needlessly force cones (e.g. log_det(P)) -- and keep bare
-        # parameters symbolic for the DIFFENGINE backend to re-evaluate on each
-        # solve. Skip it when the problem has no parameters: the fold is then a
-        # no-op, and inserting it only costs a full expr.parameters() tree walk
-        # (measurable on large problems) and needlessly disables param_prog
-        # caching.
-        if problem.parameters():
-            reductions = [EvalParams()] + reductions
-        # This path requires DIFFENGINE (symbolic parameters, no DPP
-        # structure), so it takes precedence over any user-supplied
-        # canon_backend; the solve() docstring documents this.
-        canon_backend = DIFFENGINE_CANON_BACKEND
+        if problem._max_ndim() > 2:
+            # The diff engine is 2-D only. Treat N-D problems like the CPP
+            # backend does: bake all parameters to constants (the
+            # pre-DIFFENGINE ignore_dpp behavior) and leave backend selection
+            # to the tensor machinery, which falls back to SCIPY for N-D.
+            if problem.parameters():
+                reductions = [EvalParams()] + reductions
+        else:
+            # Fold the variable-free composite parametric subtrees -- the ones
+            # that would needlessly force cones (e.g. log_det(P)) -- and keep
+            # bare parameters symbolic for the DIFFENGINE backend to
+            # re-evaluate on each solve. Skip it when the problem has no
+            # parameters: the fold is then a no-op, and inserting it only
+            # costs a full expr.parameters() tree walk (measurable on large
+            # problems) and needlessly disables param_prog caching.
+            if problem.parameters():
+                reductions = [FoldVariableFreeParams()] + reductions
+            # This path requires DIFFENGINE (symbolic parameters, no DPP
+            # structure), so it takes precedence over any user-supplied
+            # canon_backend; the solve() docstring documents this.
+            canon_backend = DIFFENGINE_CANON_BACKEND
     else:
         if canon_backend is None:
             # DIFFENGINE must be resolved here: its dispatch lives in
             # ConeMatrixStuffing, before the tensor pipeline where the
             # CVXPY_DEFAULT_CANON_BACKEND env var is otherwise consumed.
-            if canonInterface.get_default_canon_backend() == DIFFENGINE_CANON_BACKEND:
+            # N-D problems fall through to the normal selection (which
+            # handles the N-D SCIPY fallback), mirroring the CPP default.
+            if (canonInterface.get_default_canon_backend() == DIFFENGINE_CANON_BACKEND
+                    and problem._max_ndim() <= 2):
                 canon_backend = DIFFENGINE_CANON_BACKEND
             else:
                 total_param_size = sum(p.size for p in problem.parameters())
