@@ -278,6 +278,36 @@ class TestDiffengineConeProgramBehavior:
             else:
                 np.testing.assert_allclose(got, want, atol=1e-12)
 
+    def test_extraction_runs_once_per_solve(self):
+        """from_problem evaluates the matrices at the current parameter
+        values; the solver's apply_parameters in the same solve must reuse
+        them, not re-extract (this was ~30% of large-problem re-solve time).
+        A solve with *changed* values must still re-extract."""
+        from unittest import mock
+
+        from cvxpy.reductions.solvers.nlp_solvers.diff_engine.extractor import (
+            DiffEngineExtractor,
+        )
+
+        p = cp.Parameter(2)
+        x = cp.Variable(2)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(x - p)), [x >= -10])
+
+        real_extract = DiffEngineExtractor.extract
+        with mock.patch.object(DiffEngineExtractor, "extract",
+                               autospec=True, side_effect=real_extract) as spy:
+            p.value = np.array([1.0, 2.0])
+            prob.solve(solver=SOLVER, ignore_dpp=True)
+            assert spy.call_count == 1  # from_problem only; solver reused it
+            np.testing.assert_allclose(x.value, p.value, atol=1e-5)
+
+            # ignore_dpp keeps the chain uncached, so a re-solve rebuilds the
+            # program (one extraction), and apply_parameters again reuses it.
+            p.value = np.array([-3.0, 4.0])
+            prob.solve(solver=SOLVER, ignore_dpp=True)
+            assert spy.call_count == 2
+            np.testing.assert_allclose(x.value, p.value, atol=1e-5)
+
     def test_parametric_soc_restruct_resolve_and_duals(self):
         """SOC constraints trigger a non-trivial restruct matrix; it must be
         re-applied to the freshly extracted (A, b) on parametric re-solves,
@@ -370,6 +400,12 @@ class TestExplicitSelectionAndPrecedence:
         b.value = np.array([2.0, -4.0])
         prob.solve(solver=SOLVER, canon_backend=s.DIFFENGINE_CANON_BACKEND)
         assert prob._cache.param_prog is cached_prog  # cached program reused
+        np.testing.assert_allclose(x.value, np.array([1.0, -2.0]), atol=1e-5)
+
+        # Solve again with the SAME values: the cached raw program's matrices
+        # still hold the first solve's data, so the reuse check must be
+        # per-instance (a shared last-values flag would serve stale A/b here).
+        prob.solve(solver=SOLVER, canon_backend=s.DIFFENGINE_CANON_BACKEND)
         np.testing.assert_allclose(x.value, np.array([1.0, -2.0]), atol=1e-5)
 
     def test_ignore_dpp_overrides_user_backend(self):

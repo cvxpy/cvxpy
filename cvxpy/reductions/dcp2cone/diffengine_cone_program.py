@@ -73,6 +73,14 @@ class DiffengineConeProgram(ParamProb):
         self.upper_bounds = upper_bounds
         self._restruct_mat = None
         self.parameters = list(parameters) if parameters else []
+        # The concatenated parameter vector this instance's (q, d, A, b, P)
+        # were extracted at, or None if unknown. Lets apply_parameters skip
+        # the (expensive) re-extraction when values are unchanged -- notably
+        # the second extraction within a single solve, right after
+        # from_problem already evaluated at the same values. Per-instance,
+        # not on the shared extractor: a restructured copy and its raw
+        # sibling can hold matrices from different parameter vectors.
+        self._extracted_param_vec = None
 
     @property
     def variables(self):
@@ -90,6 +98,14 @@ class DiffengineConeProgram(ParamProb):
     def is_mixed_integer(self) -> bool:
         return self.x.attributes['boolean'] or self.x.attributes['integer']
 
+    def _param_vec(self, id_to_param_value=None):
+        """Flatten and concatenate parameter values (the extractor's encoding)."""
+        values = ((lambda p: id_to_param_value[p.id])
+                  if id_to_param_value is not None else (lambda p: p.value))
+        return np.concatenate([
+            np.asarray(values(p), dtype=np.float64).flatten(order='F')
+            for p in self.parameters])
+
     def apply_parameters(self, id_to_param_value=None, zero_offset: bool = False,
                          keep_zeros: bool = False, quad_obj: bool = False):
         """Return problem matrices, re-evaluating if parameters are present."""
@@ -98,20 +114,22 @@ class DiffengineConeProgram(ParamProb):
                 return self.P, self.q, self.d, self.A, self.b
             return self.q, self.d, self.A, self.b
 
-        if id_to_param_value is not None:
-            parts = [np.asarray(id_to_param_value[p.id],
-                                dtype=np.float64).flatten(order='F')
-                     for p in self.parameters]
-        else:
-            parts = [np.asarray(p.value,
-                                dtype=np.float64).flatten(order='F')
-                     for p in self.parameters]
-        self.extractor.update_parameters(np.concatenate(parts))
+        theta = self._param_vec(id_to_param_value)
+        if (self._extracted_param_vec is not None
+                and np.array_equal(theta, self._extracted_param_vec)
+                and (not quad_obj or self.P is not None)):
+            # Cached matrices already correspond to these parameter values.
+            if quad_obj:
+                return self.P, self.q, self.d, self.A, self.b
+            return self.q, self.d, self.A, self.b
+
+        self.extractor.update_parameters(theta)
         q, d, A, b, P = self.extractor.extract(quad_obj)
         if self._restruct_mat is not None:
             A = self._restruct_mat @ A
             b = np.asarray(self._restruct_mat @ b).flatten()
         self.A, self.b, self.q, self.d, self.P = A, b, q, d, P
+        self._extracted_param_vec = theta
         if quad_obj:
             return P, q, d, A, b
         return q, d, A, b
@@ -152,6 +170,9 @@ class DiffengineConeProgram(ParamProb):
         )
         if R is not None:
             new_prog._restruct_mat = R
+        # The restructured matrices derive from this instance's, so they
+        # correspond to the same parameter vector.
+        new_prog._extracted_param_vec = self._extracted_param_vec
         return new_prog
 
     def split_solution(self, sltn, active_vars=None):
@@ -187,7 +208,13 @@ class DiffengineConeProgram(ParamProb):
         x = Variable(n_vars, boolean=boolean, integer=integer)
         lower_bounds = extract_lower_bounds(problem.variables(), n_vars)
         upper_bounds = extract_upper_bounds(problem.variables(), n_vars)
-        return cls(x, extractor, ordered_cons, inverse_data,
+        prog = cls(x, extractor, ordered_cons, inverse_data,
                    q, d, A, b, P,
                    lower_bounds=lower_bounds, upper_bounds=upper_bounds,
                    parameters=params)
+        if params:
+            # The build above evaluated at the current parameter values;
+            # record them so the solver's apply_parameters in the same solve
+            # does not repeat the extraction.
+            prog._extracted_param_vec = prog._param_vec()
+        return prog
