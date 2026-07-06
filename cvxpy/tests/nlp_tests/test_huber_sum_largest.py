@@ -100,7 +100,7 @@ class TestNonsmoothNontrivial():
         prob = cp.Problem(cp.Minimize(cost), [cp.sum(x) == 1, x >= 0])
 
         # solve using NLP solver
-        prob.solve(nlp=True, solver=cp.IPOPT)
+        prob.solve(nlp=True, solver=cp.IPOPT, verbose=False)
         nlp_value = prob.value
 
         # solve using conic solver
@@ -123,7 +123,7 @@ class TestNonsmoothNontrivial():
         prob = cp.Problem(cp.Maximize(cost), [cp.sum(x) == 1, x >= 0])
 
         # solve using NLP solver
-        prob.solve(nlp=True, solver=cp.IPOPT)
+        prob.solve(nlp=True, solver=cp.IPOPT, verbose=False)
         nlp_value = prob.value
 
         # solve using conic solver

@@ -53,7 +53,7 @@ jobs:
       MOSEK_CI_BASE64: ${{ secrets.MOSEK_CI_BASE64 }}
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0  # setuptools-scm needs tags to compute the version
       - name: Set Additional Envs
@@ -115,7 +115,7 @@ jobs:
       CVXPY_BASE_SUFFIX: ${{ matrix.build-cvxpy-base && 'base-' || '' }}
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0  # setuptools-scm needs tags to compute the version
       - uses: actions/setup-python@v6
