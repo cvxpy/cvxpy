@@ -73,13 +73,10 @@ class DiffengineConeProgram(ParamProb):
         self.upper_bounds = upper_bounds
         self._restruct_mat = None
         self.parameters = list(parameters) if parameters else []
-        # The concatenated parameter vector this instance's (q, d, A, b, P)
-        # were extracted at, or None if unknown. Lets apply_parameters skip
-        # the (expensive) re-extraction when values are unchanged -- notably
-        # the second extraction within a single solve, right after
-        # from_problem already evaluated at the same values. Per-instance,
-        # not on the shared extractor: a restructured copy and its raw
-        # sibling can hold matrices from different parameter vectors.
+        # Parameter vector the matrices were extracted at; lets
+        # apply_parameters skip re-extraction on unchanged values.
+        # Per-instance, not on the shared extractor: a restructured copy and
+        # its raw sibling can hold matrices from different parameter vectors.
         self._extracted_param_vec = None
 
     @property
@@ -231,8 +228,7 @@ class DiffengineConeProgram(ParamProb):
                    lower_bounds=lower_bounds, upper_bounds=upper_bounds,
                    parameters=params)
         if params:
-            # The build above evaluated at the current parameter values;
-            # record them so the solver's apply_parameters in the same solve
-            # does not repeat the extraction.
+            # Record the values just extracted at, so the solver's
+            # apply_parameters in the same solve does not re-extract.
             prog._extracted_param_vec = prog._param_vec()
         return prog

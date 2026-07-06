@@ -47,16 +47,12 @@ def convert_conv(expr, children):
 
 
 def convert_kron(expr, children):
-    """Convert cp.kron(A, B). One operand is variable-free (kron requires it);
-    it is the "parameter" side that scales the variable-carrying operand. The
-    native node re-evaluates that operand each solve, so a parametric A or B is
-    supported (not just a constant).
+    """Convert cp.kron(A, B); the variable-free operand (kron requires one) is
+    re-evaluated each solve, so it may be parametric.
 
-    The engine builds the node sparse-only: it materializes output rows only
-    for the ``active_blocks`` of the variable-free operand (its structurally
-    nonzero entries, as column-major flat indices). A parametric operand gets
-    all blocks, since its values change between solves; e.g. ``kron(I, X)``
-    with a constant identity keeps only the diagonal blocks."""
+    The engine materializes output rows only for the ``active`` blocks: the
+    variable-free operand's structurally nonzero entries (column-major flat
+    indices). A parametric operand gets all blocks since its values change."""
     a, b = expr.args
     const_is_left = a.is_constant()
     const_expr = a if const_is_left else b
@@ -87,14 +83,9 @@ def convert_kron(expr, children):
 def convert_div(expr, children):
     """Convert x / d by multiplying x by the elementwise reciprocal of d.
 
-    The divisor is variable-free (DivExpression requires a constant denominator),
-    so it is the "parameter" side of the product -- exactly like the constant
-    operand in convert_multiply. A constant divisor bakes ``1/d`` into a
-    reciprocal parameter node (and rejects zero entries explicitly, matching
-    coo_backend.div). A parametric divisor -- e.g. ``|c|^2`` produced by
-    Complex2Real when dividing by a complex Parameter -- instead uses a
-    ``make_power(d, -1)`` node that the diff engine re-evaluates from the current
-    parameter value each solve.
+    A constant divisor bakes ``1/d`` into a parameter node (rejecting zero
+    entries, matching coo_backend.div); a parametric divisor uses a
+    ``make_power(d, -1)`` node the engine re-evaluates each solve.
     """
     divisor_expr = expr.args[1]
     if divisor_expr.parameters():
@@ -279,10 +270,8 @@ def convert_trace(_expr, children):
 def convert_diag_vec(expr, children):
     """Convert diag_vec: place a vector on the k-th diagonal of a matrix.
 
-    The engine's native make_diag_vec is main-diagonal only; an offset
-    diagonal is the main-diagonal matrix shifted by constant selector
-    matrices: ``diag(x, k) = U @ diag(x) @ V`` with ``U[i + max(-k, 0), i] =
-    1`` and ``V[j, j + max(k, 0)] = 1`` -- two sparse matmuls, O(n) nonzeros.
+    The native make_diag_vec is main-diagonal only; an offset diagonal is
+    ``U @ diag(x) @ V`` with sparse selector matrices U, V (O(n) nonzeros).
     """
     node = _diffengine.make_diag_vec(children[0])
     k = expr.k
@@ -307,8 +296,7 @@ def convert_diag_mat(expr, children):
     """Convert diag_mat: extract the k-th diagonal from a square matrix.
 
     The main diagonal uses the native make_diag_mat; an offset diagonal is a
-    gather of the matrix entries ``X[i + max(-k, 0), i + max(k, 0)]``, i.e. a
-    make_index over the column-major flattened matrix.
+    make_index gather over the column-major flattened matrix.
     """
     n_rows = expr.args[0].shape[0]
     if expr.k == 0:

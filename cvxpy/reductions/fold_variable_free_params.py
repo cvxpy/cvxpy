@@ -23,13 +23,9 @@ from cvxpy.reductions.reduction import Reduction
 def fold_variable_free_subtrees(expr):
     """Fold variable-free *composite* parametric subtrees to their values.
 
-    Bare ``Parameter`` leaves are kept symbolic so that variable-coupled
-    parameter usage (e.g. ``A @ x``, ``square(p * x)``) reaches the DIFFENGINE
-    backend, which re-evaluates it on each solve. Only *composite* subtrees
-    that are parametric and contain no optimization variables (e.g.
-    ``log_det(P)``, ``A @ B``) are folded to constants -- these are the terms
-    that would otherwise needlessly force cones or break the
-    affine-in-parameter structure.
+    Bare ``Parameter`` leaves are kept symbolic (see the class docstring
+    below); only composite subtrees with parameters but no variables
+    (e.g. ``log_det(P)``, ``norm(p)``) are folded to constants.
     """
     if isinstance(expr, list):
         return [fold_variable_free_subtrees(elem) for elem in expr]

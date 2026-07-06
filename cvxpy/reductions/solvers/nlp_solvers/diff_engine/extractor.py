@@ -58,17 +58,10 @@ def _build_hessian_csc(c_problem, hess_structure, duals):
 
 
 class DiffEngineExtractor:
-    """Non-DPP analog of ``CoeffExtractor``.
-
-    ``CoeffExtractor`` (cvxpy/utilities/coeff_extractor.py) is the DPP extractor: it
-    compiles expressions into a static parameter->problem-data *tensor* (valid because
-    the mapping is linear in the parameters). This extractor handles the non-DPP case:
-    it builds a C autodiff problem from the expressions and recovers the concrete cone
-    matrices ``(q, d, A, b, P)`` by *evaluating* it at ``x = 0``, re-evaluating whenever
-    the parameter values change.
-
-    It owns the ``C_problem`` (the same class the NLP solver path uses); the cone-program
-    wrapper (``DiffengineConeProgram``) delegates extraction to it.
+    """Non-DPP analog of ``CoeffExtractor``: builds a C autodiff problem from
+    the expressions and recovers the concrete cone matrices ``(q, d, A, b, P)``
+    by evaluating it at ``x = 0``, re-evaluating when parameter values change.
+    Owns the ``C_problem``; ``DiffengineConeProgram`` delegates extraction to it.
     """
 
     def __init__(self, inverse_data) -> None:

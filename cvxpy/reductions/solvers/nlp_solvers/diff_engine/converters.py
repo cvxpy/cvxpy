@@ -52,25 +52,16 @@ def _is_vector(expr):
 
 def _apply_constant_right(left, c):
     """Build an expression equivalent to ``left @ c`` for a plain-constant
-    ``c``, pushing ``c`` toward the leaves so constants multiply constants.
+    ``c``, pushing ``c`` toward the leaves so constants multiply constants
+    (each engine node's Jacobian has one row per output, so a chain ending in
+    a constant must not drag wide intermediates -- issue #2205):
 
-    Each engine node's Jacobian has one row per node *output*, so a matmul
-    chain must not drag wide intermediates when it ends in a constant:
-    ``(A @ E @ B) @ x`` builds a rows x cols matrix Jacobian at every node
-    (issue #2205: dense DFT sandwiches made one values fill take 33s), while
-    pushed right-to-left every intermediate has only cols(c) columns.
-    Structural recursion on ``left``:
-
-      constant @ c   -> Constant(value)      the fold that shrinks the chain
-      (A @ B) @ c    -> A @ (B @ c)          recursing into both factors
+      constant @ c   -> Constant(value)
+      (A @ B) @ c    -> A @ (B @ c)
       (-E) @ c       -> -(E @ c)
-      (E1 + E2) @ c  -> E1 @ c + E2 @ c      only for vector c: for a matrix
-                                             tail this duplicates rather than
-                                             shrinks the intermediates
+      (E1 + E2) @ c  -> E1 @ c + E2 @ c   (vector c only)
 
-    Only parameter-free constants fold, so parametric factors are never
-    frozen. Shapes are preserved (matmul associativity), so the dimension
-    check in convert_expr still applies.
+    Only parameter-free constants fold, so parametric factors are never frozen.
     """
     if _is_plain_constant(left):
         return Constant(left.value @ c.value)
@@ -96,9 +87,7 @@ def _apply_constant_right(left, c):
 
 def _normalize_matmul(expr):
     """Reassociate ``expr`` when a matmul chain ends in a plain-constant
-    factor, so the constant folds into adjacent constants and the
-    intermediates shrink. General matrix-matrix chain reordering (and the
-    row-vector-head mirror) is deliberately not attempted."""
+    factor. General matrix-chain reordering is deliberately not attempted."""
     left, right = expr.args
     if _is_plain_constant(right) and not left.is_constant():
         return _apply_constant_right(left, right)
@@ -247,12 +236,9 @@ def convert_expr(expr, var_dict, n_vars, param_dict=None):
         d1, d2 = normalize_shape(expr.shape)
         return _diffengine.make_parameter(d1, d2, -1, n_vars, c.flatten(order='F'))
 
-    # Fully-constant subtree (no variables, no parameters): evaluate it
-    # numerically instead of recursing. Dcp2Cone short-circuits constant
-    # subtrees without canonicalizing them, so nonlinear atoms over plain
-    # constants (e.g. the quad_over_lin([1, 1], 1.0) terms dist_ratio's
-    # bisection produces) survive to this converter; the engine neither
-    # needs nor reliably supports differentiating through them.
+    # Fully-constant subtree: evaluate numerically instead of recursing.
+    # Dcp2Cone does not canonicalize constant subtrees, so nonlinear atoms
+    # over plain constants can reach the converter.
     if not expr.variables() and not expr.parameters():
         c = to_dense_float(expr.value)
         d1, d2 = normalize_shape(expr.shape)
@@ -261,16 +247,14 @@ def convert_expr(expr, var_dict, n_vars, param_dict=None):
     # Recursive case: atoms
     atom_name = type(expr).__name__
 
-    # SymbolicQuadForm is a placeholder Dcp2Cone(quad_obj=True) leaves in the
-    # objective. Lower it to equivalent atoms before converting its args, since
-    # its P arg (e.g. eye/y) may itself be unconvertible (parametric divisor).
+    # Handle SymbolicQuadForm before converting its args: its P arg may
+    # itself be unconvertible (e.g. a parametric divisor).
     if atom_name == "SymbolicQuadForm":
         return convert_symbolic_quad_form(expr, var_dict, n_vars, param_dict)
 
-    # Reassociate matmul chains before converting children, and skip converting
-    # a plain-constant matmul operand: convert_matmul consumes its scipy/numpy
-    # value directly (sparse where possible), so the dense make_parameter node
-    # the base case would build is pure waste (issue #2205 / quantum benchmark).
+    # Reassociate matmul chains, and skip converting a plain-constant matmul
+    # operand: convert_matmul reads its scipy/numpy value directly, so a dense
+    # make_parameter node for it would be pure waste.
     skip_child = [False] * len(expr.args)
     if atom_name == "MulExpression":
         expr = _normalize_matmul(expr)

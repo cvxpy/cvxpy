@@ -37,10 +37,7 @@ def perspective_canon(expr, args, solver_context: SolverInfo | None = None):
     chain = aux_prob._construct_chain(solver=solver, solver_opts=solver_opts, ignore_dpp=True)
     chain.reductions = chain.reductions[:-1]  # skip solver reduction
     prob_canon = chain.apply(aux_prob)[0]  # grab problem instance
-    # Cone data for "minimize q'x s.t. Ax + b in K". Both ParamProb backends
-    # (ParamConeProg and DiffengineConeProgram) return concrete (q, d, A, b) here
-    # since the aux problem is parameter-free. A stays sparse: `A @ x_canon` below
-    # keeps it sparse in the enclosing problem.
+    # get cone representation of q, A, and b for the parameter-free aux problem.
     q, d, A, b = prob_canon.apply_parameters()
 
     # given f in epigraph form, aka epi f = \{(x,t) | f(x) \leq t\}
