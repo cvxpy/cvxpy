@@ -87,6 +87,13 @@ Disciplined quasiconvex programming
 - :doc:`Minimum-length least squares <dqcp/minimum_length_least_squares>` `[.ipynb] <https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/dqcp/minimum_length_least_squares.ipynb>`_
 - :doc:`Hypersonic shape design <dqcp/hypersonic_shape_design>` `[.ipynb] <https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/dqcp/hypersonic_shape_design.ipynb>`_
 
+.. _dnlp_examples:
+
+Disciplined nonlinear programming
+-----------------------------------
+- :doc:`Path planning with obstacles <dnlp/path_planning_with_obstacles>` `[.ipynb] <https://colab.research.google.com/github/cvxpy/examples/blob/master/nlp_examples/path_planning.ipynb>`_
+- :doc:`Sparse signal recovery <dnlp/sparse_signal_recovery>` `[.ipynb] <https://colab.research.google.com/github/cvxpy/examples/blob/master/nlp_examples/sparse_recovery.ipynb>`_
+- :doc:`Modelling chemical equilibrium <dnlp/chemical_equilibrium>` `[.ipynb] <https://colab.research.google.com/github/cvxpy/examples/blob/master/nlp_examples/chemical_equilibrium.ipynb>`_
 
 .. _derivative-examples:
 

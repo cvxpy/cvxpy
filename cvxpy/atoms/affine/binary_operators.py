@@ -172,8 +172,8 @@ class MulExpression(BinaryOperator):
         prepending a 1 to its shape (lhs) or appending a 1 (rhs) before
         broadcasting; it is never broadcast along batch dimensions itself.
         """
-        lh_exp = Expression.cast_to_const(lh_exp)
-        rh_exp = Expression.cast_to_const(rh_exp)
+        lh_exp = Expression.cast(lh_exp)
+        rh_exp = Expression.cast(rh_exp)
 
         # Only apply batch broadcasting for ND arrays (ndim > 2)
         if lh_exp.ndim <= 2 and rh_exp.ndim <= 2:
@@ -672,10 +672,10 @@ def outer(x, y) -> Expression:
     expr : Expression
         The outer product of (x,y), linear in x and transposed-linear in y.
     """
-    x = Expression.cast_to_const(x)
+    x = Expression.cast(x)
     if x.ndim > 1:
         raise ValueError("x must be a 1-d array.")
-    y = Expression.cast_to_const(y)
+    y = Expression.cast(y)
     if y.ndim > 1:
         raise ValueError("y must be a 1-d array.")
 
