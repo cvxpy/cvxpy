@@ -84,7 +84,7 @@ class TestBestOf():
         y = cp.Variable(bounds=[-3, 3])
         obj = cp.Minimize((x - 1) ** 2 + (y - 2) ** 2)
         prob = cp.Problem(obj)
-        prob.solve(nlp=True, best_of=3)
+        prob.solve(nlp=True, best_of=3, verbose=False)
 
         all_objs = prob.solver_stats.extra_stats['all_objs_from_best_of']
         assert len(all_objs) == 3
@@ -110,7 +110,7 @@ class TestBestOf():
         y.value = 5
         obj = cp.Minimize((x - 1) ** 2 + (y - 2) ** 2)
         prob = cp.Problem(obj)
-        prob.solve(nlp=True, best_of=3)
+        prob.solve(nlp=True, best_of=3, verbose=False)
         all_objs = prob.solver_stats.extra_stats['all_objs_from_best_of']
         assert len(all_objs) == 3
 
