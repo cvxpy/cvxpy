@@ -51,7 +51,6 @@ class NonPos(Constraint):
     Sign conventions on dual variables associated with NonPos constraints may
     change in the future.
     """
-
     def __init__(self, expr, constr_id=None) -> None:
         warn(NonPos.DEPRECATION_MESSAGE, CvxpyDeprecationWarning)
         super(NonPos, self).__init__([expr], constr_id)
@@ -110,7 +109,6 @@ class NonNeg(Constraint):
     constr_id : int
         A unique id for the constraint.
     """
-
     def __init__(self, expr, constr_id=None) -> None:
         super(NonNeg, self).__init__([expr], constr_id)
         if not self.args[0].is_real():
@@ -174,7 +172,6 @@ class Inequality(Constraint):
     constr_id : int
         A unique id for the constraint.
     """
-
     def __init__(self, lhs, rhs, constr_id=None) -> None:
         self._expr = lhs - rhs
         if self._expr.is_complex():
@@ -218,23 +215,24 @@ class Inequality(Constraint):
     def is_dgp(self, dpp: bool = False) -> bool:
         if dpp:
             with scopes.dpp_scope():
-                return self.args[0].is_log_log_convex() and self.args[1].is_log_log_concave()
-        return self.args[0].is_log_log_convex() and self.args[1].is_log_log_concave()
+                return (self.args[0].is_log_log_convex() and
+                        self.args[1].is_log_log_concave())
+        return (self.args[0].is_log_log_convex() and
+                self.args[1].is_log_log_concave())
 
-    def is_dpp(self, context="dcp") -> bool:
-        if context.lower() == "dcp":
+    def is_dpp(self, context='dcp') -> bool:
+        if context.lower() == 'dcp':
             return self.is_dcp(dpp=True)
-        elif context.lower() == "dgp":
+        elif context.lower() == 'dgp':
             return self.is_dgp(dpp=True)
         else:
-            raise ValueError("Unsupported context ", context)
+            raise ValueError('Unsupported context ', context)
 
     def is_dqcp(self) -> bool:
         return (
-            self.is_dcp()
-            or (self.args[0].is_quasiconvex() and self.args[1].is_constant())
-            or (self.args[0].is_constant() and self.args[1].is_quasiconcave())
-        )
+            self.is_dcp() or
+            (self.args[0].is_quasiconvex() and self.args[1].is_constant()) or
+            (self.args[0].is_constant() and self.args[1].is_quasiconcave()))
 
     @property
     def residual(self):

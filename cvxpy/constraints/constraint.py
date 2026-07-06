@@ -52,14 +52,17 @@ class Constraint(u.Canonical):
         super(Constraint, self).__init__()
 
     def __str__(self):
-        """Returns a string showing the mathematical constraint."""
+        """Returns a string showing the mathematical constraint.
+        """
         if self._label is not None:
             return f"{self._label}: {self.name()}"
         return self.name()
 
     def __repr__(self) -> str:
-        """Returns a string with information about the constraint."""
-        return "%s(%s)" % (self.__class__.__name__, repr(self.args[0]))
+        """Returns a string with information about the constraint.
+        """
+        return "%s(%s)" % (self.__class__.__name__,
+                           repr(self.args[0]))
 
     @property
     def label(self):
@@ -74,7 +77,8 @@ class Constraint(u.Canonical):
                 self._label = str(value)
             except Exception as e:
                 raise TypeError(
-                    f"Label must be convertible to string, got {type(value).__name__}: {e}"
+                    "Label must be convertible to string, got "
+                    f"{type(value).__name__}: {e}"
                 )
         else:
             self._label = None
@@ -145,15 +149,18 @@ class Constraint(u.Canonical):
         return self.args[0].size
 
     def is_real(self) -> bool:
-        """Is the Leaf real valued?"""
+        """Is the Leaf real valued?
+        """
         return not self.is_complex()
 
     def is_imag(self) -> bool:
-        """Is the Leaf imaginary?"""
+        """Is the Leaf imaginary?
+        """
         return all(arg.is_imag() for arg in self.args)
 
     def is_complex(self) -> bool:
-        """Is the Leaf complex valued?"""
+        """Is the Leaf complex valued?
+        """
         return any(arg.is_complex() for arg in self.args)
 
     @abc.abstractmethod
@@ -178,10 +185,10 @@ class Constraint(u.Canonical):
         """
         raise NotImplementedError()
 
-    def is_dpp(self, context="dcp") -> bool:
-        if context.lower() == "dcp":
+    def is_dpp(self, context='dcp') -> bool:
+        if context.lower() == 'dcp':
             return self.is_dcp(dpp=True)
-        elif context.lower() == "dgp":
+        elif context.lower() == 'dgp':
             return self.is_dgp(dpp=True)
         else:
             raise ValueError("Unsupported context ", context)
@@ -218,9 +225,8 @@ class Constraint(u.Canonical):
         """
         residual = self.residual
         if residual is None:
-            raise ValueError(
-                "Cannot compute the violation of an constraint whose expression is None-valued."
-            )
+            raise ValueError("Cannot compute the violation of an constraint "
+                             "whose expression is None-valued.")
         residual_arr = np.asarray(residual)
         if residual_arr.size == 0:
             return 0.0
@@ -250,7 +256,8 @@ class Constraint(u.Canonical):
 
     @property
     def id(self):
-        """Wrapper for compatibility with variables."""
+        """Wrapper for compatibility with variables.
+        """
         return self.constr_id
 
     @id.setter
@@ -258,16 +265,16 @@ class Constraint(u.Canonical):
         self.constr_id = value
 
     def get_data(self):
-        """Data needed to copy."""
+        """Data needed to copy.
+        """
         return [self.id]
 
     def _chain_constraints(self):
-        """Raises an error due to chained constraints."""
+        """Raises an error due to chained constraints.
+        """
         raise Exception(
-            (
-                "Cannot evaluate the truth value of a constraint or "
-                "chain constraints, e.g., 1 >= x >= 0."
-            )
+            ("Cannot evaluate the truth value of a constraint or "
+             "chain constraints, e.g., 1 >= x >= 0.")
         )
 
     def __bool__(self):
@@ -284,7 +291,8 @@ class Constraint(u.Canonical):
 
     @property
     def dual_value(self):
-        """NumPy.ndarray : The value of the dual variable."""
+        """NumPy.ndarray : The value of the dual variable.
+        """
         dual_vals = [dv.value for dv in self.dual_variables]
         if len(dual_vals) == 1:
             return dual_vals[0]
