@@ -23,6 +23,8 @@ cone restructuring, mixed-integer problems).
 """
 from __future__ import annotations
 
+import warnings
+
 import numpy as np
 import pytest
 import scipy.sparse as sp
@@ -218,6 +220,25 @@ class TestConverterCoverage:
             base.solve(solver=SOLVER)
             np.testing.assert_allclose(prob.value, base.value, rtol=1e-4)
             np.testing.assert_allclose(X.value, X_base.value, atol=1e-4)
+
+    @pytest.mark.parametrize("k", [-2, -1, 1, 3])
+    def test_diag_offset_both_directions(self, k):
+        """diag(x, k) (selector-matmul lowering) and diag(X, k) (index
+        gather) for off-main diagonals."""
+        n = 4
+        A = np.arange(n * n, dtype=float).reshape((n, n))
+
+        x = cp.Variable(n - abs(k))
+        target = np.diag(np.diag(A, k), k)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(cp.diag(x, k) - target)))
+        prob.solve(solver=SOLVER, ignore_dpp=True)
+        np.testing.assert_allclose(x.value, np.diag(A, k), atol=1e-5)
+
+        X = cp.Variable((n, n))
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(X)),
+                          [cp.diag(X, k) == np.diag(A, k)])
+        prob.solve(solver=SOLVER, ignore_dpp=True)
+        np.testing.assert_allclose(np.diag(X.value, k), np.diag(A, k), atol=1e-5)
 
     def test_matmul_chain_const_tail_matches_default(self):
         """_normalize_matmul rewrites these trees (constant tail pushed toward
@@ -458,6 +479,36 @@ class TestExplicitSelectionAndPrecedence:
         prob2 = cp.Problem(cp.Minimize(cp.sum_squares(x - 1)))
         _, chain, _ = prob2.get_problem_data(SOLVER, canon_backend=s.SCIPY_CANON_BACKEND)
         assert _stuffing_backend(chain) != s.DIFFENGINE_CANON_BACKEND
+
+    def test_nd_problem_falls_back_like_cpp(self):
+        """>2-D problems cannot go to the (2-D) diff engine: the ignore_dpp
+        path bakes parameters (EvalParams) and leaves backend selection to
+        the tensor machinery, mirroring the CPP -> SCIPY N-D fallback; the
+        baked values must still refresh across solves."""
+        p = cp.Parameter()
+        x = cp.Variable((2, 2, 2))
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(x - p)))
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")  # N-D -> SCIPY fallback warning
+            p.value = 1.0
+            prob.solve(solver=SOLVER, ignore_dpp=True)
+            assert _stuffing_backend(prob._cache.solving_chain) != \
+                s.DIFFENGINE_CANON_BACKEND
+            reduction_names = [type(r).__name__
+                               for r in prob._cache.solving_chain.reductions]
+            assert 'EvalParams' in reduction_names
+            np.testing.assert_allclose(x.value, np.full((2, 2, 2), 1.0), atol=1e-5)
+
+            p.value = -2.0
+            prob.solve(solver=SOLVER, ignore_dpp=True)
+            np.testing.assert_allclose(x.value, np.full((2, 2, 2), -2.0), atol=1e-5)
+
+    def test_nd_problem_explicit_diffengine_raises(self):
+        x = cp.Variable((2, 2, 2))
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(x)))
+        with pytest.raises(ValueError, match="dimension greater than 2"):
+            prob.solve(solver=SOLVER, canon_backend=s.DIFFENGINE_CANON_BACKEND)
 
     def test_env_var_does_not_override_ignore_dpp(self, monkeypatch):
         monkeypatch.setenv("CVXPY_DEFAULT_CANON_BACKEND", s.SCIPY_CANON_BACKEND)

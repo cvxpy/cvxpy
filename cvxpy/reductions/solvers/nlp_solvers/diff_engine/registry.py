@@ -277,23 +277,50 @@ def convert_trace(_expr, children):
     return _diffengine.make_trace(children[0])
 
 def convert_diag_vec(expr, children):
-    # C implementation only supports k=0 (main diagonal)
-    # TODO add support for diag vec with k
-    if expr.k != 0:
-        raise NotImplementedError("diag_vec with k != 0 not supported in diff engine")
-    return _diffengine.make_diag_vec(children[0])
+    """Convert diag_vec: place a vector on the k-th diagonal of a matrix.
+
+    The engine's native make_diag_vec is main-diagonal only; an offset
+    diagonal is the main-diagonal matrix shifted by constant selector
+    matrices: ``diag(x, k) = U @ diag(x) @ V`` with ``U[i + max(-k, 0), i] =
+    1`` and ``V[j, j + max(k, 0)] = 1`` -- two sparse matmuls, O(n) nonzeros.
+    """
+    node = _diffengine.make_diag_vec(children[0])
+    k = expr.k
+    if k == 0:
+        return node
+    from cvxpy.reductions.solvers.nlp_solvers.diff_engine.helpers import (
+        make_sparse_left_matmul,
+        make_sparse_right_matmul,
+    )
+    n = expr.args[0].size
+    m = n + abs(k)
+    rows = np.arange(n)
+    U = sparse.csr_array(
+        (np.ones(n), (rows + max(-k, 0), rows)), shape=(m, n))
+    V = sparse.csr_array(
+        (np.ones(n), (rows, rows + max(k, 0))), shape=(n, m))
+    return make_sparse_right_matmul(
+        None, make_sparse_left_matmul(None, node, U), V)
 
 
 def convert_diag_mat(expr, children):
-    """Convert diag_mat: extract diagonal from square matrix."""
-    if expr.k != 0:
-        raise NotImplementedError("diag_mat with k != 0 not supported in diff engine")
-    node = _diffengine.make_diag_mat(children[0])
-    # C produces (n, 1) but CVXPY shape is (n,) which normalizes to (1, n)
-    # TODO add support for producing (1, n) directly in C and remove this reshape
-    # TODO also raise error that the k should be zero, since that's the only supported case
-    n = expr.args[0].shape[0]
-    return _diffengine.make_reshape(node, 1, n)
+    """Convert diag_mat: extract the k-th diagonal from a square matrix.
+
+    The main diagonal uses the native make_diag_mat; an offset diagonal is a
+    gather of the matrix entries ``X[i + max(-k, 0), i + max(k, 0)]``, i.e. a
+    make_index over the column-major flattened matrix.
+    """
+    n_rows = expr.args[0].shape[0]
+    if expr.k == 0:
+        node = _diffengine.make_diag_mat(children[0])
+        # C produces (n, 1) but CVXPY shape is (n,) which normalizes to (1, n)
+        # TODO add support for producing (1, n) directly in C and remove this reshape
+        return _diffengine.make_reshape(node, 1, n_rows)
+    k = expr.k
+    length = expr.shape[0]
+    i = np.arange(length)
+    idxs = ((i + max(-k, 0)) + (i + max(k, 0)) * n_rows).astype(np.int32)
+    return _diffengine.make_index(children[0], 1, length, idxs)
 
 
 def convert_upper_tri(_expr, children):
