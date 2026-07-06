@@ -16,6 +16,7 @@ limitations under the License.
 
 
 import numpy as np
+import scipy.sparse as sp
 import scipy.special
 
 from cvxpy.atoms.atom import Atom
@@ -88,7 +89,7 @@ class HuberAtom(Elementwise):
     """
 
     def __init__(self, x, M: int = 1) -> None:
-        self.M = self.cast_to_const(M)
+        self.M = self.cast(M)
         super(HuberAtom, self).__init__(x)
 
     def parameters(self):
@@ -189,8 +190,8 @@ class HuberPerspectiveAtom(Atom):
     """
 
     def __init__(self, x, t, M=1) -> None:
-        self.M = self.cast_to_const(M)
-        t = self.cast_to_const(t)
+        self.M = self.cast(M)
+        t = self.cast(t)
         super(HuberPerspectiveAtom, self).__init__(x, t)
 
     @property
@@ -283,7 +284,10 @@ class HuberPerspectiveAtom(Atom):
 
         d/dx [t * huber(x/t, M)] = huber'(x/t, M)  (clipped linear in x/t)
         d/dt [t * huber(x/t, M)] = huber(x/t, M) - (x/t) * huber'(x/t, M)
-                                  = -min(x/t, M)^2   (always <= 0)
+                                  = -min(|x/t|, M)^2   (always <= 0)
+
+        Returns:
+            A list of SciPy CSC sparse matrices or None.
         """
         x_val = np.asarray(values[0], dtype=float)
         t_val = float(values[1])
@@ -293,13 +297,14 @@ class HuberPerspectiveAtom(Atom):
         r = x_val / t_val
         M_val = float(self.M.value)
         clipped = np.sign(r) * np.minimum(np.abs(r), M_val)
+        cols = self.size
 
         # gradient w.r.t. x: 2 * clipped (factor of 2 from CVXPY's huber convention)
-        grad_x = 2 * clipped  # shape matches x
+        grad_x = Elementwise.elemwise_grad_to_diag(2 * clipped, self._x.size, cols)
 
-        # gradient w.r.t. t: sum over elements of -2 * min(|r|, M)^2
-        # = sum_i [huber(x_i/t, M) - (x_i/t)*huber'(x_i/t, M)]
-        # = -sum_i min(x_i/t, M)^2   [can be shown by case analysis]
-        grad_t = np.sum(-2 * np.minimum(np.abs(r), M_val) ** 2)  # scalar
+        # gradient w.r.t. t (scalar): each output element j contributes
+        # huber(x_j/t, M) - (x_j/t)*huber'(x_j/t, M) = -min(|x_j/t|, M)^2
+        grad_t_vals = -np.minimum(np.abs(r), M_val) ** 2
+        grad_t = sp.csc_array(np.reshape(np.atleast_1d(grad_t_vals), (1, cols), order="F"))
 
-        return [grad_x, np.atleast_1d(np.array(grad_t))]
+        return [grad_x, grad_t]

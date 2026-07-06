@@ -36,7 +36,7 @@ def mixed_norm(X, p: int | str = 2, q: int | str = 1) -> Expression:
     Expression
         An Expression representing the mixed norm.
     """
-    X = Expression.cast_to_const(X)
+    X = Expression.cast(X)
 
     # inner norms
     vecnorms = norm(X, p, axis=1)

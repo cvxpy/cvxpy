@@ -482,8 +482,23 @@ class TestMultipleAttributes:
         prob = cp.Problem(cp.Minimize(cp.sum(x)), [x >= np.array([[0.5, -0.5], [2.3, 3.2]])])
         prob.solve()
 
-        # Check that the solution is feasible
-        assert (x.value == np.array([[1, 0], [3, 4]])).all()
+        # Entries (0, 0) and (0, 1) are boolean, (1, 1) and (0, 1) are
+        # integer, and (1, 0) is continuous.
+        assert np.allclose(x.value, np.array([[1, 0], [2.3, 4]]))
+
+    def test_bool_coordinate_tuples(self):
+        """Index lists designate entries by coordinate tuple, in both solve and project."""
+        A = np.array([[0.6, 0.4], [0.3, 0.8]])
+        x = cp.Variable(shape=(2, 2), boolean=[(0, 0), (1, 1)])
+        prob = cp.Problem(cp.Minimize(cp.sum(cp.abs(x - A))), [x >= 0, x <= 1])
+        prob.solve()
+
+        # Exactly entries (0, 0) and (1, 1) are boolean; the rest match A.
+        assert np.allclose(x.value, np.array([[1, 0.4], [0.3, 1]]), atol=1e-6)
+
+        # The solution assigns to a Parameter with the same attribute.
+        p = cp.Parameter(shape=(2, 2), boolean=[(0, 0), (1, 1)])
+        p.value = x.value
 
     def test_variable_repr(self):
         # test boolean attributes
