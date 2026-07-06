@@ -535,8 +535,15 @@ class PythonCanonBackend(CanonBackend):
 
     def _count_lin_op_tree(self, lin_op: LinOp, counts: Counter[int]) -> None:
         counts[id(lin_op)] += 1
-        for arg in lin_op.args:
-            self._count_lin_op_tree(arg, counts)
+        for child in self._lin_op_children(lin_op):
+            self._count_lin_op_tree(child, counts)
+
+    @staticmethod
+    def _lin_op_children(lin_op: LinOp) -> list[LinOp]:
+        children = list(lin_op.args)
+        if isinstance(lin_op.data, LinOp):
+            children.append(lin_op.data)
+        return children
 
     def _count_processed_lin_ops(
         self,
@@ -551,8 +558,8 @@ class PythonCanonBackend(CanonBackend):
             if lin_op_id in seen_cacheable:
                 return
             seen_cacheable.add(lin_op_id)
-        for arg in lin_op.args:
-            self._count_processed_lin_ops(arg, raw_counts, process_counts, seen_cacheable)
+        for child in self._lin_op_children(lin_op):
+            self._count_processed_lin_ops(child, raw_counts, process_counts, seen_cacheable)
 
     def process_constraint(self, lin_op: LinOp, empty_view: TensorView) -> TensorView:
         """

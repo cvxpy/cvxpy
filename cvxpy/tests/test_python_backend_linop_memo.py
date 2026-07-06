@@ -17,6 +17,7 @@ limitations under the License.
 import numpy as np
 import pytest
 
+import cvxpy as cp
 import cvxpy.settings as s
 from cvxpy.cvxcore.python import canonInterface
 from cvxpy.lin_ops import lin_utils as lu
@@ -29,13 +30,37 @@ PYTHON_BACKENDS = [
 ]
 
 
-def _problem_matrix(lin_ops, backend):
+def _problem_matrix(lin_ops, backend, variables=None, parameters=None):
+    if variables is None:
+        var_length = 3
+        id_to_col = {1: 0}
+    else:
+        var_length = 0
+        id_to_col = {}
+        for variable in variables:
+            id_to_col[variable.id] = var_length
+            var_length += int(np.prod(variable.shape))
+
+    param_to_size = {-1: 1}
+    param_to_col = {-1: 0}
+    if parameters is not None:
+        offset = 0
+        param_to_size = {}
+        param_to_col = {}
+        for parameter in parameters:
+            param_size = int(np.prod(parameter.shape))
+            param_to_size[parameter.id] = param_size
+            param_to_col[parameter.id] = offset
+            offset += param_size
+        param_to_size[-1] = 1
+        param_to_col[-1] = offset
+
     return canonInterface.get_problem_matrix(
         lin_ops,
-        var_length=3,
-        id_to_col={1: 0},
-        param_to_size={-1: 1},
-        param_to_col={-1: 0},
+        var_length=var_length,
+        id_to_col=id_to_col,
+        param_to_size=param_to_size,
+        param_to_col=param_to_col,
         constr_length=sum(np.prod(lin_op.shape) for lin_op in lin_ops),
         canon_backend=backend,
     )
@@ -59,6 +84,36 @@ def test_shared_linop_lowered_once(monkeypatch, backend, backend_cls) -> None:
     assert calls == 1
     assert matrix.shape == (2 * 3 * (3 + 1), 1)
     assert matrix.nnz == 2 * 3
+
+
+@pytest.mark.parametrize(("backend", "backend_cls"), PYTHON_BACKENDS)
+def test_shared_parameter_linop_in_data_is_lowered_once(monkeypatch, backend, backend_cls) -> None:
+    P = cp.Parameter((3, 3), name="P")
+    x = cp.Variable(3, name="x")
+    y = cp.Variable(3, name="y")
+    scaled = 2 * P
+    lin_op_x, _ = (scaled @ x).canonical_form
+    lin_op_y, _ = (scaled @ y).canonical_form
+
+    assert lin_op_x.data is lin_op_y.data
+    assert lin_op_x.data.type == "mul_elem"
+
+    calls = 0
+    original = backend_cls.get_param_tensor
+
+    def spy_get_param_tensor(self, shape, parameter_id):
+        nonlocal calls
+        calls += 1
+        return original(self, shape, parameter_id)
+
+    monkeypatch.setattr(backend_cls, "get_param_tensor", spy_get_param_tensor)
+
+    matrix = _problem_matrix([lin_op_x, lin_op_y], backend, variables=[x, y], parameters=[P])
+
+    assert calls == 1
+    assert matrix.shape == (2 * 3 * (2 * 3 + 1), 3 * 3 + 1)
+    assert matrix.nnz == 2 * 3 * 3
+    np.testing.assert_array_equal(matrix.data, 2 * np.ones(matrix.nnz))
 
 
 @pytest.mark.parametrize(("backend", "backend_cls"), PYTHON_BACKENDS)
