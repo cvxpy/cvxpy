@@ -60,10 +60,13 @@ class Cone(Constraint):
 
     @property
     def dual_residual(self) -> np.ndarray | float | None:
-        """Computes the residual (see Constraint.violation for a
-        more formal definition) for the dual cone of the current instance
-        of `Cone` w.r.t. the recovered dual variables
+        """The operator-norm-based residual of the dual variable.
 
-        Primarily intended to be used for KKT checks
+        For spectral cones (e.g. PSD) this is the amount by which the
+        smallest eigenvalue of the dual matrix is negative, i.e. the
+        operator norm of its negative part.  For other conic constraints
+        it is the per-cone distance to the dual cone.
+
+        Returns ``None`` if the dual variable has no value yet.
         """
         return self._dual_cone(*self.dual_variables).residual

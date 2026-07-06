@@ -316,8 +316,11 @@ class Constraint(u.Canonical):
     def dual_violation(self):
         """Scalar infeasibility of the dual variable.
 
-        Returns the largest entry of ``dual_residual`` as a single float,
-        analogous to ``violation()`` for primal feasibility.
+        For non-spectral constraints the violation is the infinity norm of
+        ``dual_residual`` (i.e. the largest elementwise infeasibility).
+        For spectral constraints (e.g. PSD) ``dual_residual`` is already
+        an operator-norm-based scalar, so the violation is that value
+        directly.  Both cases reduce to ``max(dual_residual)``.
 
         Returns
         -------
