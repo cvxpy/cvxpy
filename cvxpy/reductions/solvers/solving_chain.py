@@ -148,8 +148,10 @@ def _build_solving_chain(
         When True, treat DPP problems as non-DPP.
     canon_backend : str, optional
         Canonicalization backend ('CPP', 'SCIPY', 'COO', or the experimental
-        'DIFFENGINE'). Overridden to 'DIFFENGINE' on the ignore_dpp / non-DPP
-        path, where parameters must stay symbolic for per-solve re-evaluation.
+        'DIFFENGINE'). The ignore_dpp / non-DPP path defaults to 'DIFFENGINE'
+        (parameters stay symbolic for per-solve re-evaluation); explicitly
+        passing a tensor backend there opts out, restoring the parameter-baking
+        (EvalParams) semantics with that backend.
     solver_opts : dict, optional
         Solver-specific options.
 
@@ -217,34 +219,29 @@ def _build_solving_chain(
             raise DPPError(DPP_ERROR_MSG)
         if not ignore_dpp:
             warn(DPP_ERROR_MSG)
-        if problem._max_ndim() > 2:
-            # The diff engine is 2-D only. Treat N-D problems like the CPP
-            # backend does: bake all parameters to constants (the
-            # pre-DIFFENGINE ignore_dpp behavior) and leave backend selection
-            # to the tensor machinery, which falls back to SCIPY for N-D.
+        explicit_other_backend = (canon_backend is not None
+                                  and canon_backend != DIFFENGINE_CANON_BACKEND)
+        if problem._max_ndim() > 2 or explicit_other_backend:
+            # Pre-DIFFENGINE semantics: bake all parameters to constants and
+            # let the requested backend stuff them. Taken when the user
+            # explicitly asks for a tensor backend (an opt-out of the symbolic
+            # path) or when the problem is N-D (the diff engine is 2-D only;
+            # the tensor machinery handles the N-D SCIPY fallback).
             if problem.parameters():
                 reductions = [EvalParams()] + reductions
         else:
-            # Fold the variable-free composite parametric subtrees -- the ones
-            # that would needlessly force cones (e.g. log_det(P)) -- and keep
-            # bare parameters symbolic for the DIFFENGINE backend to
-            # re-evaluate on each solve. Skip it when the problem has no
-            # parameters: the fold is then a no-op, and inserting it only
-            # costs a full expr.parameters() tree walk (measurable on large
-            # problems) and needlessly disables param_prog caching.
+            # Fold variable-free composite parametric subtrees (which would
+            # needlessly force cones, e.g. log_det(P)); bare parameters stay
+            # symbolic for DIFFENGINE to re-evaluate each solve. Skipped for
+            # parameter-free problems so their param_prog stays cacheable.
             if problem.parameters():
                 reductions = [FoldVariableFreeParams()] + reductions
-            # This path requires DIFFENGINE (symbolic parameters, no DPP
-            # structure), so it takes precedence over any user-supplied
-            # canon_backend; the solve() docstring documents this.
             canon_backend = DIFFENGINE_CANON_BACKEND
     else:
         if canon_backend is None:
-            # DIFFENGINE must be resolved here: its dispatch lives in
-            # ConeMatrixStuffing, before the tensor pipeline where the
-            # CVXPY_DEFAULT_CANON_BACKEND env var is otherwise consumed.
-            # N-D problems fall through to the normal selection (which
-            # handles the N-D SCIPY fallback), mirroring the CPP default.
+            # DIFFENGINE dispatch lives in ConeMatrixStuffing, before the
+            # tensor pipeline consumes the env var, so resolve it here.
+            # N-D problems fall through to the normal (SCIPY-fallback) selection.
             if (canonInterface.get_default_canon_backend() == DIFFENGINE_CANON_BACKEND
                     and problem._max_ndim() <= 2):
                 canon_backend = DIFFENGINE_CANON_BACKEND

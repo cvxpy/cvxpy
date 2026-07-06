@@ -790,9 +790,11 @@ class Problem(u.Canonical):
             'CPP' (default) | 'SCIPY' | 'COO' | 'DIFFENGINE' (experimental)
             Specifies which backend to use for canonicalization, which can affect
             compilation time. Defaults to None, i.e., selecting the default
-            backend. Ignored when the problem is non-DPP or ignore_dpp=True:
-            those solves always use the DIFFENGINE backend, which keeps
-            parameters symbolic and re-evaluates them on each solve.
+            backend. Non-DPP and ignore_dpp=True solves default to the
+            DIFFENGINE backend, which keeps parameters symbolic and
+            re-evaluates them on each solve; explicitly passing another
+            backend instead bakes parameters to constants (EvalParams) and
+            canonicalizes with that backend.
         verbose : bool, optional
             If True, print verbose output related to problem compilation.
         solver_opts : dict, optional
@@ -878,11 +880,8 @@ class Problem(u.Canonical):
                          'Compiling problem (target solver=%s).', solver_name)
                 s.LOGGER.info('Reduction chain: %s', reduction_chain_str)
             data, inverse_data = solving_chain.apply(self, verbose)
-            # Both reductions bake current parameter values into constants
-            # (EvalParams all of them, FoldVariableFreeParams the
-            # variable-free composites), so a chain containing either must be
-            # re-applied on every solve to refresh those constants -- caching
-            # the parametric program would serve stale values.
+            # Both reductions bake current parameter values into constants, so
+            # caching the parametric program would serve stale values.
             safe_to_cache = (
                 isinstance(data, dict)
                 and s.PARAM_PROB in data
@@ -940,9 +939,11 @@ class Problem(u.Canonical):
             'CPP' (default) | 'SCIPY' | 'COO' | 'DIFFENGINE' (experimental)
             Specifies which backend to use for canonicalization, which can affect
             compilation time. Defaults to None, i.e., selecting the default
-            backend. Ignored when the problem is non-DPP or ignore_dpp=True:
-            those solves always use the DIFFENGINE backend, which keeps
-            parameters symbolic and re-evaluates them on each solve.
+            backend. Non-DPP and ignore_dpp=True solves default to the
+            DIFFENGINE backend, which keeps parameters symbolic and
+            re-evaluates them on each solve; explicitly passing another
+            backend instead bakes parameters to constants (EvalParams) and
+            canonicalizes with that backend.
         solver_opts: dict, optional
             Additional arguments to pass to the solver.
 
@@ -1012,9 +1013,11 @@ class Problem(u.Canonical):
             'CPP' (default) | 'SCIPY' | 'COO' | 'DIFFENGINE' (experimental)
             Specifies which backend to use for canonicalization, which can affect
             compilation time. Defaults to None, i.e., selecting the default
-            backend. Ignored when the problem is non-DPP or ignore_dpp=True:
-            those solves always use the DIFFENGINE backend, which keeps
-            parameters symbolic and re-evaluates them on each solve.
+            backend. Non-DPP and ignore_dpp=True solves default to the
+            DIFFENGINE backend, which keeps parameters symbolic and
+            re-evaluates them on each solve; explicitly passing another
+            backend instead bakes parameters to constants (EvalParams) and
+            canonicalizes with that backend.
         kwargs : dict, optional
             A dict of options that will be passed to the specific solver.
             In general, these options will override any default settings
