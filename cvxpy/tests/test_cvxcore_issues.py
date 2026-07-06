@@ -15,9 +15,7 @@ limitations under the License.
 
 Regressions from the cvxcore issue tracker (discussion #3221), replayed on the
 DIFFENGINE canon backend (``ignore_dpp=True``). Each test is a scaled-down
-version of a reported bug's reproduction; full-size timings live in
-``benchmarks/run_upstream_benchmarks.py``. See
-``cvxpy/reductions/solvers/nlp_solvers/diff_engine/ISSUES_3221_STATUS.md``.
+version of a reported bug's reproduction.
 """
 import numpy as np
 from scipy.linalg import dft
@@ -28,15 +26,11 @@ from cvxpy.tests.base_test import BaseTest
 SOLVER = cp.CLARABEL
 
 
-class TestDiffengineIssues(BaseTest):
+class TestCvxcoreIssues(BaseTest):
 
     def test_issue_1132_sdp_kron_segfault(self) -> None:
-        """Issue #1132: cvxcore segfaulted canonicalizing this SDP at n=300.
-
-        Scaled to n=25; the structure (PSD variable inside kron/reshape/diag
-        composites under a Frobenius norm) is what crashed. The diffengine
-        path must canonicalize and solve it, matching the CPP backend.
-        """
+        """Issue #1132: cvxcore segfaulted on this SDP structure (PSD variable
+        inside kron/reshape/diag under a fro-norm); scaled from n=300 to n=25."""
         n = 25
         rng = np.random.default_rng(0)
         points = rng.random((5, n))
@@ -72,13 +66,9 @@ class TestDiffengineIssues(BaseTest):
         self.assertAlmostEqual(prob_de.value, prob_base.value, places=3)
 
     def test_issue_2205_kron_unconstrained_qp(self) -> None:
-        """Issue #2205: kron(diag(ones), diag(var)) with a complex variable
-        sandwiched between dense DFT matrices took minutes to compile.
-
-        Scaled to dim 12. Both the sum_squares and norm2 forms must solve on
-        the diffengine path and recover the planted diagonal error exactly
-        (the system is consistent by construction).
-        """
+        """Issue #2205: kron(diag(ones), diag(var)) between dense DFT matrices
+        took minutes to compile; scaled to dim 12, both objective forms must
+        recover the planted diagonal error."""
         rng = np.random.default_rng(0)
         N_r, N_t, N_s = 4, 1, 3
         dim = N_s * N_r * N_t
@@ -103,13 +93,8 @@ class TestDiffengineIssues(BaseTest):
 
     def test_issue_1043_param_scaled_frobenius(self) -> None:
         """Issue #1043: cvxcore segfaulted on a dictionary-learning problem
-        (parameter-scaled squared Frobenius norms) with real data.
-
-        The original .npy data is unavailable; random data with the same
-        structure at reduced scale (the original was 312x4096). Two parameter
-        combinations exercise the re-solve path; values must match a
-        constant-baked baseline.
-        """
+        (parameter-scaled squared Frobenius norms); same structure synthesized
+        at reduced scale, values checked against a constant-baked baseline."""
         rng = np.random.default_rng(0)
         n_samples, d_feat, d_attr = 30, 48, 12
         Xs = rng.standard_normal((n_samples, d_feat))
@@ -142,11 +127,8 @@ class TestDiffengineIssues(BaseTest):
             self.assertAlmostEqual(prob.value, prob_base.value, places=3)
 
     def test_quantum_kron_partial_transpose_structure(self) -> None:
-        """quantum_hilbert_matrix benchmark structure at toy scale: a sparse
-        identity kron with a partial transpose, then a constant matmul. Locks
-        the sparse-kron active-block path and the block matmul sparsity path
-        together.
-        """
+        """quantum_hilbert_matrix benchmark structure at toy scale: locks the
+        sparse-kron active-block path and the block matmul sparsity path."""
         from scipy import sparse
 
         dim = 2
