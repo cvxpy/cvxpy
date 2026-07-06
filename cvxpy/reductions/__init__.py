@@ -26,4 +26,5 @@ from cvxpy.reductions.dgp2dcp.dgp2dcp import Dgp2Dcp
 from cvxpy.reductions.dqcp2dcp.dqcp2dcp import Dqcp2Dcp
 from cvxpy.reductions.eval_params import EvalParams
 from cvxpy.reductions.flip_objective import FlipObjective
+from cvxpy.reductions.fold_variable_free_params import FoldVariableFreeParams
 from cvxpy.reductions.solvers.solving_chain import SolvingChain

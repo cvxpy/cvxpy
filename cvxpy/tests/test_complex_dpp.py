@@ -20,6 +20,7 @@ import pytest
 import cvxpy as cp
 from cvxpy.reductions.complex2real.complex2real import Complex2Real
 from cvxpy.reductions.eval_params import EvalParams
+from cvxpy.reductions.fold_variable_free_params import FoldVariableFreeParams
 
 
 class TestComplexDPP:
@@ -128,7 +129,8 @@ class TestComplexDPP:
         ("ignore_dpp", True),
     ])
     def test_dpp_flags(self, flag, should_have_eval_params):
-        """enforce_dpp=True succeeds; ignore_dpp=True uses EvalParams."""
+        """enforce_dpp=True succeeds; ignore_dpp=True folds variable-free
+        composites (FoldVariableFreeParams)."""
         p = cp.Parameter(complex=True)
         x = cp.Variable()
         prob = cp.Problem(cp.Minimize(x), [x >= cp.real(p)])
@@ -141,7 +143,8 @@ class TestComplexDPP:
 
         assert np.isclose(x.value, 1.0, atol=1e-4)
         reduction_types = [type(r) for r in prob._cache.solving_chain.reductions]
-        assert (EvalParams in reduction_types) == should_have_eval_params
+        assert (FoldVariableFreeParams in reduction_types) == should_have_eval_params
+        assert EvalParams not in reduction_types
 
     @pytest.mark.parametrize("n", [1, 2, 3])
     def test_hermitian_param_dpp(self, n):

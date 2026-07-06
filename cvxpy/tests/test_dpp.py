@@ -152,7 +152,7 @@ class TestDcp(BaseTest):
             warnings.simplefilter('ignore')
             _, chain, _ = problem.get_problem_data(cp.SCS)
         self.assertFalse(problem.is_dpp())
-        self.assertTrue(cp.reductions.eval_params.EvalParams in
+        self.assertTrue(cp.reductions.FoldVariableFreeParams in
                         [type(r) for r in chain.reductions])
 
     def test_chain_data_for_dpp_problem_does_not_eval_params(self) -> None:
@@ -393,10 +393,10 @@ class TestDcp(BaseTest):
         np.testing.assert_array_almost_equal(x.value, np.zeros(n), decimal=4)
         np.testing.assert_array_almost_equal(y.value, np.zeros(n), decimal=4)
 
-        # Verify EvalParams is in the chain
+        # Verify the variable-free fold is in the chain
         _, chain, _ = problem.get_problem_data(cp.OSQP, ignore_dpp=True)
         reduction_types = [type(r).__name__ for r in chain.reductions]
-        self.assertIn('EvalParams', reduction_types)
+        self.assertIn('FoldVariableFreeParams', reduction_types)
 
     def test_ignore_dpp_keeps_variable_coupled_param_symbolic(self) -> None:
         """With ignore_dpp, a variable-coupled parameter stays symbolic and the
@@ -445,7 +445,7 @@ class TestDcp(BaseTest):
 
         _, chain, _ = problem.get_problem_data(cp.OSQP, ignore_dpp=True)
         reduction_types = [type(r).__name__ for r in chain.reductions]
-        self.assertIn('EvalParams', reduction_types)
+        self.assertIn('FoldVariableFreeParams', reduction_types)
 
         p.value = np.array([0.0, 0.0, 0.5])
         problem.solve(solver=cp.OSQP, ignore_dpp=True)

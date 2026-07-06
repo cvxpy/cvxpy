@@ -42,6 +42,7 @@ from cvxpy.reductions.chain import Chain
 from cvxpy.reductions.dqcp2dcp import dqcp2dcp
 from cvxpy.reductions.eval_params import EvalParams
 from cvxpy.reductions.flip_objective import FlipObjective
+from cvxpy.reductions.fold_variable_free_params import FoldVariableFreeParams
 from cvxpy.reductions.solution import INF_OR_UNB_MESSAGE
 from cvxpy.reductions.solvers import bisection
 from cvxpy.reductions.solvers import defines as slv_def
@@ -877,10 +878,16 @@ class Problem(u.Canonical):
                          'Compiling problem (target solver=%s).', solver_name)
                 s.LOGGER.info('Reduction chain: %s', reduction_chain_str)
             data, inverse_data = solving_chain.apply(self, verbose)
+            # Both reductions bake current parameter values into constants
+            # (EvalParams all of them, FoldVariableFreeParams the
+            # variable-free composites), so a chain containing either must be
+            # re-applied on every solve to refresh those constants -- caching
+            # the parametric program would serve stale values.
             safe_to_cache = (
                 isinstance(data, dict)
                 and s.PARAM_PROB in data
-                and not any(isinstance(reduction, EvalParams)
+                and not any(isinstance(reduction,
+                                       (EvalParams, FoldVariableFreeParams))
                             for reduction in solving_chain.reductions)
             )
             self._compilation_time = time.time() - start

@@ -6,25 +6,11 @@ from cvxpy.reductions.reduction import Reduction
 
 
 def replace_params_with_consts(expr):
-    """Fold variable-free *composite* parametric subtrees to their values.
-
-    Bare ``Parameter`` leaves are kept symbolic so that variable-coupled
-    parameter usage (e.g. ``A @ x``, ``square(p * x)``) reaches the DIFFENGINE
-    backend, which re-evaluates it on each solve. Only *composite* subtrees that
-    are parametric and contain no optimization variables (e.g. ``log_det(P)``,
-    ``A @ B``) are folded to constants -- these are the terms that would
-    otherwise needlessly force cones or break the affine-in-parameter structure.
-    """
     if isinstance(expr, list):
         return [replace_params_with_consts(elem) for elem in expr]
     elif len(expr.parameters()) == 0:
         return expr
     elif isinstance(expr, Parameter):
-        # Keep bare parameters symbolic.
-        return expr
-    elif len(expr.variables()) == 0:
-        # Variable-free parametric composite: fold the whole subtree to its
-        # numeric value (it only contributes a constant offset to the program).
         if expr.value is None:
             raise ParameterError("Problem contains unspecified parameters.")
         return Constant(expr.value)
@@ -36,20 +22,13 @@ def replace_params_with_consts(expr):
 
 
 class EvalParams(Reduction):
-    """Folds variable-free composite parametric subtrees to constants.
-
-    Variable-free parametric composites (e.g. ``log_det(P)``, ``A @ B``) are
-    replaced by their numeric values, which avoids needlessly forcing cones.
-    Bare parameters are kept symbolic so that variable-coupled parameter usage
-    flows to the DIFFENGINE backend, which re-evaluates it on each solve. See
-    :func:`replace_params_with_consts`.
-    """
+    """Replaces symbolic parameters with their constant values."""
 
     def accepts(self, problem) -> bool:
         return True
 
     def apply(self, problem):
-        """Fold variable-free composite parametric subtrees.
+        """Replace parameters with constant values.
 
         Parameters
         ----------
@@ -59,8 +38,7 @@ class EvalParams(Reduction):
         Returns
         -------
         Problem
-            A new problem where the variable-free composite parametric subtrees
-            have been converted to constants.
+            A new problem where the parameters have been converted to constants.
 
         Raises
         ------
