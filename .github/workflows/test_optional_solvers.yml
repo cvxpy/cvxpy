@@ -19,7 +19,7 @@ jobs:
       matrix:
         os: [ ubuntu-22.04, macos-14 ]  # Windows excluded - cylp/CBC cannot be built
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0  # setuptools-scm needs tags to compute the version
       - name: Set Additional Envs
@@ -51,8 +51,8 @@ jobs:
       - name: Install cvxpy dependencies and all optional solvers
         run: uv sync --all-extras --no-extra uno --dev
       - name: Install Moreau
-        if: runner.os == 'Linux' && env.FURY_TOKEN != ''
-        run: uv pip install moreau --extra-index-url https://${FURY_TOKEN}:@pypi.fury.io/optimalintellect/
+        if: runner.os == 'Linux'
+        run: uv pip install moreau
       - name: Print installed solvers
         run: uv run python -c "import cvxpy; print(cvxpy.installed_solvers())"
       # KNITRO bundles LLVM libomp; CVXOPT bundles GNU libgomp via its
@@ -79,5 +79,4 @@ jobs:
       PYTHON_VERSION: 3.12
       MOSEK_CI_BASE64: ${{ secrets.MOSEK_CI_BASE64 }}
       KNITRO_LICENSE: ${{ secrets.KNITRO_LICENSE }}
-      FURY_TOKEN: ${{ secrets.FURY_TOKEN }}
       MOREAU_LICENSE_KEY: ${{ secrets.MOREAU_KEY }}
