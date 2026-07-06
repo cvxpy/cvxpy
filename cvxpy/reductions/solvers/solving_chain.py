@@ -10,6 +10,7 @@ from cvxpy.constraints import (
     SOC,
     FiniteSet,
 )
+from cvxpy.cvxcore.python import canonInterface
 from cvxpy.error import DPPError, SolverError
 from cvxpy.problems.objective import Maximize
 from cvxpy.problems.problem_form import ProblemForm, make_problem_form, pick_default_solver
@@ -223,9 +224,15 @@ def _build_solving_chain(
         canon_backend = DIFFENGINE_CANON_BACKEND
     else:
         if canon_backend is None:
-            total_param_size = sum(p.size for p in problem.parameters())
-            if total_param_size >= DPP_PARAM_THRESHOLD:
-                canon_backend = COO_CANON_BACKEND
+            # DIFFENGINE must be resolved here: its dispatch lives in
+            # ConeMatrixStuffing, before the tensor pipeline where the
+            # CVXPY_DEFAULT_CANON_BACKEND env var is otherwise consumed.
+            if canonInterface.get_default_canon_backend() == DIFFENGINE_CANON_BACKEND:
+                canon_backend = DIFFENGINE_CANON_BACKEND
+            else:
+                total_param_size = sum(p.size for p in problem.parameters())
+                if total_param_size >= DPP_PARAM_THRESHOLD:
+                    canon_backend = COO_CANON_BACKEND
 
     # --- Canonicalization reductions (problem_form + solver_context) ---
     use_quad = True if solver_opts is None else solver_opts.get('use_quad_obj', True)

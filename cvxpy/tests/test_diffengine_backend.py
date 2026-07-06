@@ -420,6 +420,31 @@ class TestExplicitSelectionAndPrecedence:
                    canon_backend=s.CPP_CANON_BACKEND)
         np.testing.assert_allclose(x.value, 2.0, atol=1e-6)
 
+    def test_env_var_selects_diffengine_on_dpp_path(self, monkeypatch):
+        """CVXPY_DEFAULT_CANON_BACKEND=DIFFENGINE routes DPP solves through
+        the diff engine (with program caching), enabling whole-suite
+        validation runs of the backend."""
+        monkeypatch.setenv("CVXPY_DEFAULT_CANON_BACKEND", s.DIFFENGINE_CANON_BACKEND)
+        p = cp.Parameter(2)
+        x = cp.Variable(2)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(x - p)))
+        assert prob.is_dpp()
+
+        p.value = np.array([1.0, 2.0])
+        prob.solve(solver=SOLVER)
+        assert _stuffing_backend(prob._cache.solving_chain) == s.DIFFENGINE_CANON_BACKEND
+        assert isinstance(prob._cache.param_prog, DiffengineConeProgram)
+        np.testing.assert_allclose(x.value, p.value, atol=1e-5)
+
+        p.value = np.array([-1.0, 3.0])
+        prob.solve(solver=SOLVER)
+        np.testing.assert_allclose(x.value, p.value, atol=1e-5)
+
+        # An explicit user backend still wins over the env default.
+        prob2 = cp.Problem(cp.Minimize(cp.sum_squares(x - 1)))
+        _, chain, _ = prob2.get_problem_data(SOLVER, canon_backend=s.SCIPY_CANON_BACKEND)
+        assert _stuffing_backend(chain) != s.DIFFENGINE_CANON_BACKEND
+
     def test_env_var_does_not_override_ignore_dpp(self, monkeypatch):
         monkeypatch.setenv("CVXPY_DEFAULT_CANON_BACKEND", s.SCIPY_CANON_BACKEND)
         p = cp.Parameter()
