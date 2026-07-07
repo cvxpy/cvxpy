@@ -135,19 +135,17 @@ a position that is DCP-valid *only because parameters count as constants* — e.
 **vacuous** — the problem becomes unbounded. DQCP bisection generates exactly these
 subproblems (`ceil`/`floor` lowering), so this is not a corner case.
 
-The fix lives at two altitudes:
-
-1. `Dcp2Cone(canon_param_constants=False)` on the non-DPP / `ignore_dpp` branch
-   (`dcp2cone.py::canonicalize_expr`): parametric-constant subtrees keep their original atom
-   instead of receiving a graph implementation. On the DPP path (`canon_param_constants=True`,
-   the default) behavior is unchanged — DPP compliance guarantees the graph implementation is
-   sound there, and the tensor backends require it (e.g. DPP `log_det(P)` in an objective is
-   *made* affine-in-parameter by its cone reformulation).
-2. The diff-engine converter (`converters.py::convert_expr`) turns a variable-free
-   subtree whose atom has no symbolic converter (e.g. `floor(t)`) into a lazy synthetic
-   parameter (`helpers.SyntheticParams`) re-evaluated in Python on every parameter
-   update; supported atoms (e.g. `power`) stay symbolic and are re-evaluated by the
-   engine.
+The fix is a pre-canonicalization rewrite, `CallbackParamFold`
+(`cvxpy/reductions/fold_callback_params.py`), prepended on the non-DPP / `ignore_dpp`
+chain: each maximal variable-free parametric subtree that is NOT parameter-affine
+(`power(t, 2)`, `floor(t)`, raw `log_det(P)`) becomes a `CallbackParam` leaf evaluating
+the subtree on each access. A parameter leaf cannot be mis-canonicalized, and its value
+refreshes between solves, so cached programs stay correct. Parameter-affine subtrees
+(a bare `Parameter`, `2 * p + A`) stay symbolic for the backend. The DPP path is
+untouched — DCP analysis with params-affine vets every position there, so its graph
+implementations are sound and the tensor backends get the canonicalized forms they need
+(e.g. DPP `log_det(P)` in an objective is *made* affine-in-parameter by its cone
+reformulation).
 
 ### Caching on this path (2026-07)
 
@@ -166,11 +164,11 @@ What made everything else cacheable (see `TODO.md` §3 for the full account):
 the quad-path `quad_over_lin` denominator was already symbolic (`eye/y`); a SparseDiffEngine
 fix propagates `needs_parameter_refresh` into composite `param_source` subtrees (they
 previously served stale values on re-use); the engine now owns registered parameter nodes
-(a node referenced only by the registration list used to dangle); and the converter's
-variable-free fallback became **lazy synthetic parameters** (`helpers.SyntheticParams`) —
-engine parameter nodes re-evaluated from current `Parameter` values on every
-`C_problem.update_params`, instead of baked constants. DQCP bisection subproblems
-(`floor(t)`) now cache across iterations.
+(a node referenced only by the registration list used to dangle); and non-affine
+variable-free parametric subtrees fold to **`CallbackParam` leaves** before
+canonicalization, flowing through the standard parameter plumbing and re-evaluated from
+current `Parameter` values on every solve, instead of baked constants. DQCP bisection
+subproblems (`floor(t)`) now cache across iterations.
 
 ### QP solvers and the numpy remedy
 
@@ -188,10 +186,11 @@ See `test_dpp.py::test_log_det_with_parameter_ignore_dpp_qp_solver_raises`.
 
 There is **no fallback** to full parameter baking. If the diff engine cannot convert an atom
 with variables that survives symbolically (e.g. a parametric `kron` was one), the solve
-raises (`NotImplementedError` from `diff_engine/converters.py` / `registry.py`). Variable-free
-subtrees never raise — they become lazy synthetic parameters re-evaluated per solve. The new
-`ValueError` (explicit-backend parametric) is the loud edge of the removed opt-out; N-D
-parametric problems keep the `EvalParams` fallback for backwards compatibility.
+raises (`NotImplementedError` from `diff_engine/converters.py` / `registry.py`). Non-affine
+variable-free subtrees never raise — they are folded to `CallbackParam` leaves before
+canonicalization and re-evaluated per solve. The new `ValueError` (explicit-backend
+parametric) is the loud edge of the removed opt-out; N-D parametric problems keep the
+`EvalParams` fallback for backwards compatibility.
 
 ### Test updates
 

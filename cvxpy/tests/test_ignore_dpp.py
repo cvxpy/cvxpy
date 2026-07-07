@@ -222,8 +222,8 @@ class TestDiffengineConverter(BaseTest):
     def test_param_constant_in_concave_position_sound(self) -> None:
         """A parametric-constant composite on the 'wrong' side of an
         inequality must not be epigraph-relaxed: x <= power(t, 2) would
-        relax to x <= s, s >= t**2 (vacuous). It is kept intact by Dcp2Cone
-        and evaluated numerically on each solve."""
+        relax to x <= s, s >= t**2 (vacuous). It folds to a CallbackParam
+        leaf before canonicalization and refreshes on each solve."""
         t = cp.Parameter()
         x = cp.Variable()
         prob = cp.Problem(cp.Minimize(-x), [x <= cp.power(t, 2)])

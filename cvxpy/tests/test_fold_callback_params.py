@@ -82,15 +82,3 @@ class TestCallbackParamFold(BaseTest):
         self.assertIsInstance(params[0], CallbackParam)
         t.value = 3.0
         self.assertAlmostEqual(float(con.args[1].value), 9.0)
-
-    def test_epigraph_soundness_end_to_end(self) -> None:
-        """x <= power(t, 2) must not be epigraph-relaxed (vacuous) on the
-        ignore_dpp path; the folded value refreshes between solves."""
-        t = cp.Parameter()
-        x = cp.Variable()
-        prob = cp.Problem(cp.Minimize(-x), [x <= cp.power(t, 2)])
-        for val in (2.0, 3.0):
-            t.value = val
-            prob.solve(solver=cp.CLARABEL, ignore_dpp=True)
-            self.assertEqual(prob.status, cp.OPTIMAL)
-            self.assertAlmostEqual(x.value, val ** 2, places=4)
