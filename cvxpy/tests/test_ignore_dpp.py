@@ -235,8 +235,8 @@ class TestDiffengineConverter(BaseTest):
 
     def test_unsupported_variable_free_atom_evaluates(self) -> None:
         """An atom with no symbolic converter over parameters only (floor,
-        as emitted by DQCP bisection) becomes a lazy synthetic parameter:
-        the compiled program is cached and the value refreshes per solve."""
+        as emitted by DQCP bisection) folds to a CallbackParam leaf: the
+        compiled program is cached and the value refreshes per solve."""
         p = cp.Parameter()
         x = cp.Variable()
         prob = cp.Problem(cp.Minimize(cp.square(x - cp.floor(p))))

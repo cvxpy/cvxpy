@@ -130,9 +130,6 @@ class DiffengineConeProgram(ParamProb):
             return self.q, self.d, self.A, self.b
 
         theta = self._param_vec(id_to_param_value)
-        # theta covers the real parameter block only; synthetic entries are
-        # pure functions of the real parameter values, so equality of the
-        # real block implies equality of the appended synthetic values.
         if (self._extracted_param_vec is not None
                 and np.array_equal(theta, self._extracted_param_vec)
                 and (not quad_obj or self.P is not None)):
@@ -141,24 +138,8 @@ class DiffengineConeProgram(ParamProb):
                 return self.P, self.q, self.d, self.A, self.b
             return self.q, self.d, self.A, self.b
 
-        # Synthetic entries read Parameter.value when update_params appends
-        # their slice of theta; an explicit id_to_param_value dict must be
-        # visible to them, so set/restore the parameter values around the
-        # re-extraction.
-        synthetics = getattr(self.extractor.c_problem, '_synthetics', None)
-        override = (id_to_param_value is not None
-                    and synthetics is not None and synthetics.exprs)
-        if override:
-            saved = {p: p.value for p in self.parameters}
-            for p in self.parameters:
-                p.value = id_to_param_value[p.id]
-        try:
-            self.extractor.update_parameters(theta)
-            q, d, A, b, P = self.extractor.extract(quad_obj)
-        finally:
-            if override:
-                for p, val in saved.items():
-                    p.value = val
+        self.extractor.update_parameters(theta)
+        q, d, A, b, P = self.extractor.extract(quad_obj)
         if self._restruct_mat is not None:
             A = self._restruct_mat @ A
             b = np.asarray(self._restruct_mat @ b).flatten()

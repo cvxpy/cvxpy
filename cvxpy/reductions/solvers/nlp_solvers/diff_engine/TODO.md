@@ -122,8 +122,8 @@ To reproduce: `BENCH_ONLY="QuantumHilbertMatrix,UnconstrainedQP,SDPSegfault1132B
 BENCH_ITERS=1 .venv/bin/python benchmarks/run_upstream_benchmarks.py` (BENCH_OUT is resolved
 relative to `benchmarks/`).
 
-## 3. Re-solve caching — ✅ IMPLEMENTED 2026-07 (record-at-site gating + lazy
-##    synthetic parameters + engine refresh fixes)
+## 3. Re-solve caching — ✅ IMPLEMENTED 2026-07 (record-at-site gating +
+##    CallbackParam fold + engine refresh fixes)
 
 Parametric non-DPP / `ignore_dpp` (≤2-D) solves now CACHE their
 `DiffengineConeProgram` and refresh values through `apply_parameters` — the
@@ -140,17 +140,22 @@ apply at ~2.9ms). Components:
   `test_ignore_dpp.py::test_symbolic_quad_matrix_refreshes_through_cache`.
 - **Engine: registration owns parameter nodes** (`problem_register_params` retains;
   `free_problem` releases). A registered parameter can appear in NO expression tree
-  (its value consumed by a synthetic entry), and previously dangled once the Python
-  capsule died — segfault on the first cross-solve `update_params`.
+  (its value consumed outside the engine, e.g. by a folded CallbackParam), and
+  previously dangled once the Python capsule died — segfault on the first
+  cross-solve `update_params`.
 - **Record-at-site gating**: `Dcp2Cone` sets `InverseData.param_values_consumed` when
   the cone quad_form canon fires with parametric P (the ONLY value-consuming
   canonicalizer — exhaustive audit); `safe_to_cache` honors it plus the chain-level
   `uncached_param_prog` (now N-D EvalParams only). No tree-walk heuristics.
-- **Lazy synthetic parameters** (`helpers.SyntheticParams`): variable-free subtrees
-  with no engine converter (`floor(t)` from DQCP bisection, raw `log_det(P)`,
-  `norm(p)`) become engine parameter nodes at theta offsets past the real block,
-  re-evaluated from current `Parameter` values in `C_problem.update_params`. DQCP
-  bisection subproblems now cache across iterations.
+- **CallbackParam fold** (`cvxpy/reductions/fold_callback_params.py`, 2026-07-07;
+  replaced the original `helpers.SyntheticParams` side-channel): maximal non-affine
+  variable-free parametric subtrees (`floor(t)` from DQCP bisection, raw
+  `log_det(P)`, `norm(p)`) fold to `CallbackParam` leaves before canonicalization,
+  flowing through the standard param plumbing and re-evaluated per solve. Also
+  deleted the `Dcp2Cone(canon_param_constants=...)` flag — no non-affine parametric
+  constant can reach Dcp2Cone on the folding chains, so upstream constant handling
+  is sound again. DQCP bisection subproblems cache across iterations. Tests:
+  `test_fold_callback_params.py`.
 
 Historical note: an earlier "no-fold detection" plan (cache when no variable-free
 composite exists) was unsound — canonicalization itself can consume values.

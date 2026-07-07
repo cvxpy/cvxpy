@@ -32,6 +32,7 @@ from cvxpy.reductions.discrete2mixedint.valinvec2mixedint import (
 from cvxpy.reductions.eliminate_zero_sized import EliminateZeroSized
 from cvxpy.reductions.eval_params import EvalParams
 from cvxpy.reductions.flip_objective import FlipObjective
+from cvxpy.reductions.fold_callback_params import CallbackParamFold
 from cvxpy.reductions.solvers import defines as slv_def
 from cvxpy.reductions.solvers.constant_solver import ConstantSolver
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
@@ -215,7 +216,6 @@ def _build_solving_chain(
             "problems that have expressions of dimension greater than 2.")
 
     uncached_param_prog = False
-    canon_param_consts = True
     if ignore_dpp or not is_dpp:
         if not ignore_dpp and enforce_dpp:
             raise DPPError(DPP_ERROR_MSG)
@@ -235,7 +235,11 @@ def _build_solving_chain(
                 # re-evaluates them each solve, so the parametric program is
                 # cacheable — unless Dcp2Cone records that a canonicalizer
                 # consumed current values (see safe_to_cache in problem.py).
-                canon_param_consts = False
+                # Non-affine parametric-constant subtrees (power(t,2) from
+                # DQCP bisection, floor(t), raw log_det(P)) fold to
+                # refreshable CallbackParam leaves before canonicalization,
+                # so Dcp2Cone never epigraph-relaxes them unsoundly.
+                reductions = [CallbackParamFold()] + reductions
                 if (canon_backend is not None
                         and canon_backend != DIFFENGINE_CANON_BACKEND):
                     raise ValueError(
@@ -276,8 +280,7 @@ def _build_solving_chain(
     cones = problem_form.cones(quad_obj=quad_obj).copy()
     cones, exact_targets, approx_targets = expand_cones(cones, supported)
 
-    reductions.append(Dcp2Cone(quad_obj=quad_obj, solver_context=solver_context,
-                               canon_param_constants=canon_param_consts))
+    reductions.append(Dcp2Cone(quad_obj=quad_obj, solver_context=solver_context))
 
     reductions.append(
         CvxAttr2Constr(reduce_bounds=not solver_instance.BOUNDED_VARIABLES))

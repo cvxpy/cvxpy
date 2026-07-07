@@ -38,49 +38,6 @@ def to_dense_float(value):
     return np.asarray(value, dtype=np.float64)
 
 
-class SyntheticParams:
-    """Lazy engine parameters for variable-free subtrees evaluated in Python.
-
-    When the converter meets a variable-free subtree whose atom has no
-    symbolic engine converter (e.g. ``floor(t)`` from DQCP bisection, or a
-    composite left intact by ``Dcp2Cone(canon_param_constants=False)``), it
-    registers the subtree here instead of baking its current value: the
-    subtree becomes an engine parameter node at a theta offset past the real
-    parameter block, and its value is re-evaluated from the current
-    ``Parameter`` values on every ``C_problem.update_params`` call. This
-    keeps the compiled program cacheable across solves.
-    """
-
-    def __init__(self, next_offset: int) -> None:
-        self._next_offset = next_offset
-        self.exprs = []     # cvxpy expressions, re-evaluated per update
-        self.capsules = []  # engine parameter nodes, registered with the problem
-
-    def register(self, expr, n_vars: int):
-        """Create an engine parameter node for ``expr``; returns the capsule."""
-        d1, d2 = normalize_shape(expr.shape)
-        value = to_dense_float(expr.value)
-        node = _diffengine.make_parameter(
-            d1, d2, self._next_offset, n_vars, value.flatten(order='F'))
-        self._next_offset += expr.size
-        self.exprs.append(expr)
-        self.capsules.append(node)
-        return node
-
-    def values(self) -> list:
-        """Current values of all synthetic entries, F-flattened."""
-        return [to_dense_float(e.value).flatten(order='F') for e in self.exprs]
-
-
-class ParamDict(dict):
-    """{param_id: engine capsule} mapping plus the synthetic allocator."""
-
-    def __init__(self, *args, synthetics: SyntheticParams | None = None,
-                 **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        self.synthetics = synthetics
-
-
 def chain_add(children):
     """Combine children with a balanced binary tree of adds.
 
@@ -141,13 +98,12 @@ def build_param_dict(parameters, inverse_data):
     """Build {param_id: C parameter capsule} mapping from InverseData.
 
     `parameters` is an iterable of `cvxpy.Parameter` (e.g. `problem.parameters()`).
-    The returned mapping carries a `SyntheticParams` allocator whose offsets
-    start right after the real parameter block.
+    CallbackParam entries read their subtree's current value here like any
+    other parameter (see CallbackParamFold).
     """
     n_vars = inverse_data.x_length
     params_by_id = {p.id: p for p in parameters}
-    param_dict = ParamDict()
-    real_size = 0
+    param_dict = {}
     for param_id, offset in inverse_data.param_id_map.items():
         # this is needed to not get key errors with Constants.
         if param_id not in inverse_data.param_shapes:
@@ -156,6 +112,4 @@ def build_param_dict(parameters, inverse_data):
         p = to_dense_float(params_by_id[param_id].value)
         param_dict[param_id] = _diffengine.make_parameter(
             d1, d2, offset, n_vars, p.flatten(order='F'))
-        real_size += d1 * d2
-    param_dict.synthetics = SyntheticParams(real_size)
     return param_dict

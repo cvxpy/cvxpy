@@ -50,8 +50,8 @@ class Dcp2Cone(Canonicalization):
     them into problems with affine or quadratic objectives and conic
     constraints whose arguments are affine.
     """
-    def __init__(self, problem=None, quad_obj: bool = False, solver_context=None,
-                 canon_param_constants: bool = True) -> None:
+    def __init__(self, problem=None, quad_obj: bool = False,
+                 solver_context=None) -> None:
         super(Canonicalization, self).__init__(problem=problem)
         self.cone_canon_methods = cone_canon_methods
         self.quad_canon_methods = quad_canon_methods
@@ -59,13 +59,6 @@ class Dcp2Cone(Canonicalization):
 
         # solver_context : The solver context: supported constraints and bounds.
         self.solver_context = solver_context
-
-        # On the DPP path (True), parametric-constant subtrees are
-        # canonicalized like any other atom: DPP compliance guarantees the
-        # graph implementation is sound there, and the tensor backends need
-        # it. On the non-DPP / ignore_dpp path (False), they are left intact
-        # for the backend to evaluate numerically (see canonicalize_expr).
-        self.canon_param_constants = canon_param_constants
 
         # Set during apply() when a canonicalizer consumes current parameter
         # values (the cone quad_form canon factorizes P.value numerically):
@@ -237,19 +230,16 @@ class Dcp2Cone(Canonicalization):
         -------
         A tuple of the canonicalized expression and generated constraints.
         """
-        # Constant trees are collapsed, but parameter trees are preserved.
+        # Constant trees are collapsed; parameter trees are preserved and
+        # canonicalized like any other atom. That is sound on the DPP path
+        # (DCP analysis with params-affine vetted every position); on the
+        # ignore_dpp / non-DPP path, where curvature-blind epigraphs would
+        # be vacuous (x <= power(t, 2)), non-affine parametric constants are
+        # folded to CallbackParam leaves (or baked by EvalParams) before
+        # they can reach this point.
         if isinstance(expr, Expression) and expr.is_constant():
             if not expr.parameters():
                 return expr, []
-            if not self.canon_param_constants:
-                # Non-DPP / ignore_dpp path: keep the original atom. A graph
-                # implementation would be unsound here, because the epigraph
-                # direction assumes params-affine curvature (e.g.
-                # x <= power(t, 2) with parameter t would relax to
-                # x <= s, s >= t**2, which is vacuous). The backend evaluates
-                # these subtrees numerically on each solve instead (such
-                # chains re-canonicalize every solve).
-                return (expr.copy(args) if args else expr), []
 
         if self.quad_obj and affine_above and type(expr) in self.quad_canon_methods:
             # Special case for power.

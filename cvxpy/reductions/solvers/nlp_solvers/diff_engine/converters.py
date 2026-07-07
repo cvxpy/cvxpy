@@ -278,20 +278,10 @@ def convert_expr(expr, var_dict, n_vars, param_dict=None):
         C_expr = convert_multiply(expr, children, var_dict, n_vars, param_dict)
     elif atom_name in ATOM_CONVERTERS:
         C_expr = ATOM_CONVERTERS[atom_name](expr, children)
-    elif not expr.variables():
-        # Variable-free parametric subtree whose atom has no symbolic
-        # converter (e.g. floor(t) in DQCP bisection subproblems): evaluate
-        # it in Python. With a synthetic allocator present it becomes a lazy
-        # engine parameter re-evaluated on every update_params call, so the
-        # compiled program stays cacheable; without one (bare conversion
-        # paths) the current value is baked.
-        synthetics = getattr(param_dict, 'synthetics', None)
-        if synthetics is not None:
-            return synthetics.register(expr, n_vars)
-        c = to_dense_float(expr.value)
-        d1, d2 = normalize_shape(expr.shape)
-        return _diffengine.make_parameter(d1, d2, -1, n_vars, c.flatten(order='F'))
     else:
+        # Variable-free parametric subtrees with no converter fail loud
+        # rather than baking a stale value; the conic ignore_dpp chain folds
+        # them to CallbackParam leaves before they can get here.
         raise NotImplementedError(f"Atom '{atom_name}' not supported")
 
     # check that python dimension is consistent with C dimension

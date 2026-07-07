@@ -68,19 +68,11 @@ class C_problem:
                          for e in constraint_exprs]
         self._capsule = _diffengine.make_problem(c_obj, c_constraints, verbose)
 
-        # Variable-free subtrees the converter evaluates in Python become
-        # lazy engine parameters (see helpers.SyntheticParams); their values
-        # are appended after the real parameter block in theta.
-        self._synthetics = getattr(param_dict, 'synthetics', None)
-
-        if param_dict or (self._synthetics and self._synthetics.capsules):
+        if param_dict:
             # Keep the node capsules alive alongside the problem capsule: a
-            # registered parameter can appear in no converted expression
-            # (its value consumed by a synthetic entry), and the engine
-            # must be able to update it on every later solve.
+            # registered parameter can appear in no converted expression,
+            # and the engine must be able to update it on every later solve.
             self._param_capsules = list(param_dict.values())
-            if self._synthetics is not None:
-                self._param_capsules += self._synthetics.capsules
             _diffengine.problem_register_params(
                 self._capsule, self._param_capsules)
             theta = np.concatenate([
@@ -92,13 +84,8 @@ class C_problem:
     def update_params(self, theta: np.ndarray) -> None:
         """Update parameter values in the C DAG.
 
-        ``theta`` covers the real parameter block; values for synthetic
-        entries (variable-free subtrees) are re-evaluated from the current
-        Parameter values and appended here. Sparsity structures
-        (Jacobian/Hessian) remain valid after this call.
+        Sparsity structures (Jacobian/Hessian) remain valid after this call.
         """
-        if self._synthetics is not None and self._synthetics.exprs:
-            theta = np.concatenate([theta] + self._synthetics.values())
         _diffengine.problem_update_params(self._capsule, theta)
 
     def init_jacobian_coo(self):
