@@ -375,9 +375,13 @@ class TestDcp(BaseTest):
         """log_det(P) stays symbolic with ignore_dpp=True.
 
         Nothing folds the variable-free composite: canonicalization emits its
-        cones (P entering affinely), a conic solver handles them, and each
-        solve re-evaluates the current parameter values.
+        cones (P entering affinely), a conic solver handles them, and the
+        cached parametric program re-evaluates the current parameter values
+        on each solve.
         """
+        from cvxpy.reductions.dcp2cone.diffengine_cone_program import (
+            DiffengineConeProgram,
+        )
         n = 2
         x = cp.Variable(n, nonneg=True)
         y = cp.Variable(n, nonneg=True)
@@ -390,10 +394,13 @@ class TestDcp(BaseTest):
         problem.solve(solver=cp.CLARABEL, ignore_dpp=True)
         self.assertEqual(problem.status, cp.OPTIMAL)
         self.assertAlmostEqual(problem.value, 0.0, places=4)
+        cached = problem._cache.param_prog
+        self.assertIsInstance(cached, DiffengineConeProgram)
 
-        # Re-solve with a new P: the solution must reflect the fresh value.
+        # Re-solve with a new P: the cached program must serve fresh values.
         P.value = 2 * np.eye(n)
         problem.solve(solver=cp.CLARABEL, ignore_dpp=True)
+        self.assertIs(problem._cache.param_prog, cached)
         self.assertAlmostEqual(problem.value, -2 * np.log(4.0), places=4)
 
     def test_log_det_with_parameter_ignore_dpp_qp_solver_raises(self) -> None:
@@ -426,6 +433,9 @@ class TestDcp(BaseTest):
         Changing ``A.value`` between solves must change the solution,
         confirming the diff engine re-evaluates the tree.
         """
+        from cvxpy.reductions.dcp2cone.diffengine_cone_program import (
+            DiffengineConeProgram,
+        )
         A = cp.Parameter((2, 2))
         x = cp.Variable(2)
         b = np.array([1.0, 1.0])
@@ -436,17 +446,19 @@ class TestDcp(BaseTest):
         self.assertEqual(problem.status, cp.OPTIMAL)
         np.testing.assert_array_almost_equal(x.value, np.array([1.0, 1.0]), decimal=4)
 
-        # The DIFFENGINE backend is used; the parametric program is not
-        # cached on this path (canonicalization may consume param values).
+        # The DIFFENGINE backend is used; parameters stay symbolic, so the
+        # compiled parametric program is cached and reused across solves.
         _, chain, _ = problem.get_problem_data(cp.CLARABEL, ignore_dpp=True)
         stuffing = [r for r in chain.reductions
                     if type(r).__name__ == 'ConeMatrixStuffing'][0]
         self.assertEqual(stuffing.canon_backend, s.DIFFENGINE_CANON_BACKEND)
-        self.assertIsNone(problem._cache.param_prog)
+        cached = problem._cache.param_prog
+        self.assertIsInstance(cached, DiffengineConeProgram)
 
-        # Re-solve with a new A; the solution must update.
+        # Re-solve with a new A; the cached program must serve fresh values.
         A.value = 2.0 * np.eye(2)
         problem.solve(solver=cp.CLARABEL, ignore_dpp=True)
+        self.assertIs(problem._cache.param_prog, cached)
         np.testing.assert_array_almost_equal(x.value, np.array([0.5, 0.5]), decimal=4)
 
     def test_composite_param_in_constraint_refreshes(self) -> None:

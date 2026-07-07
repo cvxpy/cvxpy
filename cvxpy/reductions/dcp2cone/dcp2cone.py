@@ -19,6 +19,7 @@ from typing import overload
 
 from cvxpy import problems
 from cvxpy.atoms.elementwise.power import Power
+from cvxpy.atoms.quad_form import QuadForm
 from cvxpy.atoms.quad_over_lin import quad_over_lin
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions import cvxtypes
@@ -66,6 +67,12 @@ class Dcp2Cone(Canonicalization):
         # for the backend to evaluate numerically (see canonicalize_expr).
         self.canon_param_constants = canon_param_constants
 
+        # Set during apply() when a canonicalizer consumes current parameter
+        # values (the cone quad_form canon factorizes P.value numerically):
+        # the canonicalized program is then only valid for those values, so
+        # the parametric program must not be cached across solves.
+        self._param_values_consumed = False
+
     def accepts(self, problem):
         """A problem is accepted if it is a minimization and is DCP.
         """
@@ -77,6 +84,9 @@ class Dcp2Cone(Canonicalization):
         if not self.accepts(problem):
             raise ValueError("Cannot reduce problem to cone program")
 
+        # The reduction instance is reused across solves via the cached
+        # chain; the consumption flag is per-apply.
+        self._param_values_consumed = False
         inverse_data = InverseData(problem)
 
         cse_cache: dict[ConeCacheKey, Expression] = {}
@@ -101,6 +111,7 @@ class Dcp2Cone(Canonicalization):
         new_problem = problems.problem.Problem(canon_objective,
                                                canon_constraints)
         self._cons_id_map = inverse_data.cons_id_map
+        inverse_data.param_values_consumed = self._param_values_consumed
         return new_problem, inverse_data
 
     @overload
@@ -257,6 +268,12 @@ class Dcp2Cone(Canonicalization):
                                                            solver_context=self.solver_context)
 
         if type(expr) in self.cone_canon_methods:
+            if type(expr) is QuadForm and args[1].parameters():
+                # The cone quad_form canon factorizes the CURRENT P.value
+                # numerically (decomp_quad) — the only canonicalizer that
+                # consumes parameter values. Record it so the parametric
+                # program is not cached (safe_to_cache in problem.py).
+                self._param_values_consumed = True
             return self.cone_canon_methods[type(expr)](expr, args,
                                                        solver_context=self.solver_context)
 

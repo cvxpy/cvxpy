@@ -5,8 +5,9 @@ rationale, §7 below for the cvxcore-tracker replication status). Status as of 2
 kron/perf work (§1a, §2) is done and pushed; the fold is removed
 (`FoldVariableFreeParams` deleted; `EvalParams` survives only for the N-D fallback — see
 `IGNORE_DPP_BEHAVIOR.md`, "Resolution: no folding; EvalParams only for N-D"); re-solve
-caching is parked pending a sound value-consumption detector (§3); what remains is small
-cleanups (§4) and the release/merge checklist (§5). §6 collects possible-but-not-planned
+caching is IMPLEMENTED (§3: record-at-site gating + lazy synthetic parameters + two
+engine fixes on the `param-source-refresh` branch); what remains is small cleanups (§4)
+and the release/merge checklist (§5). §6 collects possible-but-not-planned
 performance follow-ups. The `einsum` gap (§1c) is closed: >2-D problems fall back to
 EvalParams + tensor backends, pinned by
 `test_einsum.py::test_einsum_ignore_dpp_avoids_diffengine`.
@@ -100,62 +101,60 @@ To reproduce: `BENCH_ONLY="QuantumHilbertMatrix,UnconstrainedQP,SDPSegfault1132B
 BENCH_ITERS=1 .venv/bin/python benchmarks/run_upstream_benchmarks.py` (BENCH_OUT is resolved
 relative to `benchmarks/`).
 
-## 3. Re-solve caching — REVISED 2026-07: no-fold detection was unsound; needs
-##    value-consumption detection instead
+## 3. Re-solve caching — ✅ IMPLEMENTED 2026-07 (record-at-site gating + lazy
+##    synthetic parameters + engine refresh fixes)
 
-Status: the duplicate per-solve extraction is FIXED (each `DiffengineConeProgram` records
-the parameter vector its matrices were extracted at; `apply_parameters` reuses on exact
-match — was ~30% of large-problem re-solve time). The fold itself is now GONE
-(`FoldVariableFreeParams` deleted; `EvalParams` survives only for the N-D fallback — see
-`IGNORE_DPP_BEHAVIOR.md`, "Resolution: no folding; EvalParams only for N-D"); the chain is
-kept uncached via the explicit `SolvingChain.uncached_param_prog` flag.
+Parametric non-DPP / `ignore_dpp` (≤2-D) solves now CACHE their
+`DiffengineConeProgram` and refresh values through `apply_parameters` — the
+`de_cached` benchmark column is the default `ignore_dpp` behavior (spot check: a
+300×100 parametric LS re-compile dropped to ~1.6ms, faster than the DPP tensor
+apply at ~2.9ms). Components:
 
-The previously decided plan — **no-fold detection** (cache whenever the problem contains
-no variable-free parametric composite) — was **discovered to be unsound** while removing
-the fold: canonicalization of non-DPP problems can consume parameter values even with no
-foldable composite present. Concretely, `quad_over_lin_canon.py` (quad path) divides by
-`y.value` for a bare-parameter denominator, and constraint `quad_form`s bake numeric
-Cholesky factors of `P.value`. Caching such a program serves stale data
-(`test_dpp.py::test_quad_over_lin` catches the quad_over_lin case).
+- **Engine: `param_source` refresh propagation** (`expr_set_needs_refresh` now walks
+  the side subtree; `param_source` hoisted into the base `expr` struct). Without it,
+  a COMPOSITE source (e.g. `Q = I/p` via a power node) kept serving stale cached
+  values after `problem_update_params` — bare-Parameter sources worked only because
+  they are memcpy'd directly. Pinned by the C tests
+  `test_param_composite_source_{quad_form,left_matmul}` and, end to end,
+  `test_ignore_dpp.py::test_symbolic_quad_matrix_refreshes_through_cache`.
+- **Engine: registration owns parameter nodes** (`problem_register_params` retains;
+  `free_problem` releases). A registered parameter can appear in NO expression tree
+  (its value consumed by a synthetic entry), and previously dangled once the Python
+  capsule died — segfault on the first cross-solve `update_params`.
+- **Record-at-site gating**: `Dcp2Cone` sets `InverseData.param_values_consumed` when
+  the cone quad_form canon fires with parametric P (the ONLY value-consuming
+  canonicalizer — exhaustive audit); `safe_to_cache` honors it plus the chain-level
+  `uncached_param_prog` (now N-D EvalParams only). No tree-walk heuristics.
+- **Lazy synthetic parameters** (`helpers.SyntheticParams`): variable-free subtrees
+  with no engine converter (`floor(t)` from DQCP bisection, raw `log_det(P)`,
+  `norm(p)`) become engine parameter nodes at theta offsets past the real block,
+  re-evaluated from current `Parameter` values in `C_problem.update_params`. DQCP
+  bisection subproblems now cache across iterations.
 
-A future caching scheme must detect **any** parameter-value consumption during
-canonicalization/conversion — candidate design: a scope/flag flipped wherever a
-reduction or the converter reads `Parameter.value`, with `safe_to_cache` honoring it.
-Until then, parametric non-DPP / ignore_dpp solves rebuild the capsule per solve.
+Historical note: an earlier "no-fold detection" plan (cache when no variable-free
+composite exists) was unsound — canonicalization itself can consume values.
+Audit result: the quad-path `quad_over_lin` denominator was ALREADY symbolic
+(`eye/y`, the else-branch; the earlier "divides by y.value" claim described the
+constant-only branch), blocked only by the engine refresh bug above.
 
-### The three sites where parameters do NOT reach the engine symbolically
+### Remaining uncached case (by design)
 
-The exhaustive list (as of 2026-07) of where a parameter's *value* is consumed before the
-diff engine sees the tree. These are simultaneously (a) what a value-consumption detector
-must catch, and (b) the work-list for widening cacheability — each one made symbolic
-removes a caching blocker.
-
-1. **Constraint `quad_form(x, P)` — numeric factorization.** FUNDAMENTAL.
-   `dcp2cone/canonicalizers/quad_form_canon.py:28` calls `decomp_quad(args[1].value)`
-   (marked `# TODO this doesn't work with parameters!`) and embeds the factor as
-   `Constant(M.T)` rows of the SOC data. Cannot go symbolic in this architecture: the
-   conic form needs literal factor rows, and even the factor's shape/branch (PSD vs NSD,
-   rank) depends on the values. Per-solve re-canonicalization is the correct behavior.
-2. **Quad-objective-path `quad_over_lin(x, p)` — denominator evaluated.** FIXABLE.
-   `dcp2cone/canonicalizers/quad/quad_over_lin_canon.py:33` builds the SymbolicQuadForm
-   matrix as `eye/y.value`. Not fundamental: the engine already represents parametric
-   reciprocals (`make_power(d, -1)`, see §1b) and the sparsity of `I/p` is
-   value-invariant. Fix = keep a parametric denominator symbolic when stuffing targets
-   DIFFENGINE. Gating test: `test_dpp.py::test_quad_over_lin` (stale-cache canary).
-3. **Converter numeric fallback for variable-free atoms.** FIXABLE PER-ATOM.
-   `diff_engine/converters.py::convert_expr` (the `not expr.variables()` branch)
-   evaluates `expr.value` for variable-free subtrees whose atom has no symbolic
-   converter — `floor(t)` from DQCP bisection, and composites left intact by
-   `Dcp2Cone(canon_param_constants=False)` (raw `log_det(P)`, `norm(p)`, ...). Each new
-   engine atom converter shrinks this set. Gating tests:
-   `test_ignore_dpp.py::{test_unsupported_variable_free_atom_evaluates,
-   test_param_constant_in_concave_position_sound}`.
+**Constraint `quad_form(x, P)` — numeric factorization.** FUNDAMENTAL.
+`dcp2cone/canonicalizers/quad_form_canon.py:28` calls `decomp_quad(args[1].value)`
+(marked `# TODO this doesn't work with parameters!`) and embeds the factor as
+`Constant(M.T)` rows of the SOC data. Cannot go symbolic in this architecture: the
+conic form needs literal factor rows, and even the factor's shape/branch (PSD vs
+NSD, rank) depends on the values. Recorded exactly via
+`InverseData.param_values_consumed`; per-solve re-canonicalization is the correct
+behavior. Gating test:
+`test_ignore_dpp.py::test_parametric_constraint_quad_form_not_cached`.
+(The N-D EvalParams fallback also stays uncached — baked values must refresh.)
 
 Measured ceiling (re-run 2026-07-06 with the fixed runner — fresh benchmark instance per
 strategy; earlier `eval_params`/Table-2 numbers were invalid because strategies shared a
 Problem whose chain cache key excludes canon_backend/is_dpp. `de_cached` =
-`canon_backend="DIFFENGINE"` on the DPP path = what ignore_dpp would become if a sound
-caching scheme lands; results file since deleted from `benchmarks/`):
+`canon_backend="DIFFENGINE"` on the DPP path = what ignore_dpp now IS since the caching
+landed; results file since deleted from `benchmarks/`):
 
 | benchmark                    | dpp    | rebuild (today) | de_cached |
 |------------------------------|--------|-----------------|-----------|
@@ -192,8 +191,10 @@ Ordered — the cvxpy branch does not work against the released sparsediffpy.
 
 1. **Merge the engine kron PR** (SparseDifferentiation/SparseDiffEngine#101, branch
    `kron-native-atom`: sparse-only left/right kron + output-driven matmul sparsity fills,
-   411 C tests) and the **bindings branch** (SparseDiffPy `kron-binding`:
-   `make_left_kron`/`make_right_kron`, submodule bump).
+   411 C tests), the **`param-source-refresh` branch** (refresh propagation into
+   param_source subtrees + problem ownership of registered parameter nodes, required for
+   re-solve caching; +2 C tests), and the **bindings branch** (SparseDiffPy
+   `kron-binding`: `make_left_kron`/`make_right_kron`, submodule bump).
 2. **Release sparsediffpy 0.6.0** and **bump the cvxpy pin** — `pyproject.toml` still says
    `sparsediffpy >= 0.5.0, < 0.6.0`, but `convert_kron` needs the 0.6.0 bindings. On the
    PyPI 0.5.0 wheel, `test_kron_canon.py -k param` fails with

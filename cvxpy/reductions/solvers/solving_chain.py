@@ -215,24 +215,27 @@ def _build_solving_chain(
             "problems that have expressions of dimension greater than 2.")
 
     uncached_param_prog = False
+    canon_param_consts = True
     if ignore_dpp or not is_dpp:
         if not ignore_dpp and enforce_dpp:
             raise DPPError(DPP_ERROR_MSG)
         if not ignore_dpp:
             warn(DPP_ERROR_MSG)
         if problem.parameters():
-            # Parameters stay symbolic and the DIFFENGINE backend re-evaluates
-            # them each solve. Canonicalization itself may still consume the
-            # current values, though (non-DPP canonicalizers like the quad
-            # canon read Parameter.value), so the parametric program cannot be
-            # cached; the problem re-canonicalizes on every solve.
-            uncached_param_prog = True
             if problem._max_ndim() > 2:
                 # The diff engine is 2-D only: bake parameters to constants
                 # and let the tensor machinery handle the N-D (SCIPY)
-                # fallback, preserving the pre-DIFFENGINE semantics.
+                # fallback, preserving the pre-DIFFENGINE semantics. Baked
+                # values embed the current parameters, so the program must
+                # be rebuilt on every solve.
+                uncached_param_prog = True
                 reductions = [EvalParams()] + reductions
             else:
+                # Parameters stay symbolic: the DIFFENGINE backend
+                # re-evaluates them each solve, so the parametric program is
+                # cacheable — unless Dcp2Cone records that a canonicalizer
+                # consumed current values (see safe_to_cache in problem.py).
+                canon_param_consts = False
                 if (canon_backend is not None
                         and canon_backend != DIFFENGINE_CANON_BACKEND):
                     raise ValueError(
@@ -274,7 +277,7 @@ def _build_solving_chain(
     cones, exact_targets, approx_targets = expand_cones(cones, supported)
 
     reductions.append(Dcp2Cone(quad_obj=quad_obj, solver_context=solver_context,
-                               canon_param_constants=not uncached_param_prog))
+                               canon_param_constants=canon_param_consts))
 
     reductions.append(
         CvxAttr2Constr(reduce_bounds=not solver_instance.BOUNDED_VARIABLES))
@@ -530,10 +533,11 @@ class SolvingChain(Chain):
             raise ValueError("Solving chains must terminate with a Solver.")
         self.solver = self.reductions[-1]
         self.solver_context = solver_context
-        # True when canonicalization may have consumed current parameter
-        # values (non-DPP / ignore_dpp: e.g. the quad canon divides by
-        # y.value, constraint quad_forms bake Cholesky factors), so the
-        # parametric program must be rebuilt on every solve.
+        # True when the chain bakes current parameter values into constants
+        # (the N-D EvalParams fallback), so the parametric program must be
+        # rebuilt on every solve. Per-apply value consumption inside Dcp2Cone
+        # (parametric constraint quad_forms) is reported separately via
+        # InverseData.param_values_consumed.
         self.uncached_param_prog = uncached_param_prog
 
     def prepend(self, chain) -> "SolvingChain":

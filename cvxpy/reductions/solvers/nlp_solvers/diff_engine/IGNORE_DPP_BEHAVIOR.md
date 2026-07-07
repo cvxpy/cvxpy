@@ -143,23 +143,34 @@ The fix lives at two altitudes:
    the default) behavior is unchanged — DPP compliance guarantees the graph implementation is
    sound there, and the tensor backends require it (e.g. DPP `log_det(P)` in an objective is
    *made* affine-in-parameter by its cone reformulation).
-2. The diff-engine converter (`converters.py::convert_expr`) evaluates a variable-free
-   subtree numerically when its atom has no symbolic converter (e.g. `floor(t)`); supported
-   atoms (e.g. `power`) stay symbolic and are re-evaluated by the engine.
+2. The diff-engine converter (`converters.py::convert_expr`) turns a variable-free
+   subtree whose atom has no symbolic converter (e.g. `floor(t)`) into a lazy synthetic
+   parameter (`helpers.SyntheticParams`) re-evaluated in Python on every parameter
+   update; supported atoms (e.g. `power`) stay symbolic and are re-evaluated by the
+   engine.
 
-### No caching on this path
+### Caching on this path (2026-07)
 
-`SolvingChain.uncached_param_prog` is set on the non-DPP / `ignore_dpp` branch when the
-problem has parameters, and `safe_to_cache` in `cvxpy/problems/problem.py` honors it: the
-parametric program is **never cached** on this path, so every solve re-canonicalizes with
-fresh parameter values. This is required for correctness, not merely convenient:
-canonicalization of non-DPP problems can consume current parameter values — `EvalParams` on
-the N-D path bakes everything, the quad canon divides by `y.value`
-(`quad_over_lin_canon.py`), constraint `quad_form`s bake numeric Cholesky factors, and the
-converter's numeric fallback above evaluates `expr.value`.
-(Any "cache when nothing folded" scheme must detect *all* of these; the itemized list —
-which of the three is fundamental vs. fixable, with gating tests — lives in `TODO.md` §3,
-"The three sites where parameters do NOT reach the engine symbolically".)
+The compiled `DiffengineConeProgram` is now **cached across solves** for parametric
+non-DPP / `ignore_dpp` (≤2-D) problems; `apply_parameters` refreshes values through the
+cached program. `safe_to_cache` in `cvxpy/problems/problem.py` disables caching in exactly
+two recorded cases:
+
+1. `SolvingChain.uncached_param_prog` — the N-D `EvalParams` fallback (baked values must
+   refresh via re-canonicalization);
+2. `InverseData.param_values_consumed` — set by `Dcp2Cone` when the cone quad_form canon
+   fires with parametric `P` (`decomp_quad(P.value)`, the only value-consuming
+   canonicalizer per the exhaustive audit).
+
+What made everything else cacheable (see `TODO.md` §3 for the full account):
+the quad-path `quad_over_lin` denominator was already symbolic (`eye/y`); a SparseDiffEngine
+fix propagates `needs_parameter_refresh` into composite `param_source` subtrees (they
+previously served stale values on re-use); the engine now owns registered parameter nodes
+(a node referenced only by the registration list used to dangle); and the converter's
+variable-free fallback became **lazy synthetic parameters** (`helpers.SyntheticParams`) —
+engine parameter nodes re-evaluated from current `Parameter` values on every
+`C_problem.update_params`, instead of baked constants. DQCP bisection subproblems
+(`floor(t)`) now cache across iterations.
 
 ### QP solvers and the numpy remedy
 
@@ -178,7 +189,7 @@ See `test_dpp.py::test_log_det_with_parameter_ignore_dpp_qp_solver_raises`.
 There is **no fallback** to full parameter baking. If the diff engine cannot convert an atom
 with variables that survives symbolically (e.g. a parametric `kron` was one), the solve
 raises (`NotImplementedError` from `diff_engine/converters.py` / `registry.py`). Variable-free
-subtrees never raise — they are evaluated numerically (safe: this path is uncached). The new
+subtrees never raise — they become lazy synthetic parameters re-evaluated per solve. The new
 `ValueError` (explicit-backend parametric) is the loud edge of the removed opt-out; N-D
 parametric problems keep the `EvalParams` fallback for backwards compatibility.
 

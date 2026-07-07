@@ -235,15 +235,59 @@ class TestDiffengineConverter(BaseTest):
 
     def test_unsupported_variable_free_atom_evaluates(self) -> None:
         """An atom with no symbolic converter over parameters only (floor,
-        as emitted by DQCP bisection) is evaluated numerically and must
-        refresh across solves."""
+        as emitted by DQCP bisection) becomes a lazy synthetic parameter:
+        the compiled program is cached and the value refreshes per solve."""
         p = cp.Parameter()
         x = cp.Variable()
         prob = cp.Problem(cp.Minimize(cp.square(x - cp.floor(p))))
+        cached = None
         for val in (2.7, -1.2):
             p.value = val
             prob.solve(solver=SOLVER, ignore_dpp=True)
             self.assertAlmostEqual(x.value, np.floor(val), places=4)
+            if cached is None:
+                cached = prob._cache.param_prog
+                self.assertIsInstance(cached, DiffengineConeProgram)
+            else:
+                self.assertIs(prob._cache.param_prog, cached)
+
+    def test_symbolic_quad_matrix_refreshes_through_cache(self) -> None:
+        """quad_over_lin(x, p) keeps its quadratic matrix symbolic (I/p fed
+        to the engine as a composite param_source); the cached program must
+        serve fresh values on re-solves. Canary for the engine-side
+        param_source refresh propagation."""
+        x = cp.Variable()
+        p = cp.Parameter()
+        prob = cp.Problem(cp.Minimize(cp.quad_over_lin(x, p) + x))
+        cached = None
+        for val in (1.0, 1000.0, 1.0):
+            p.value = val
+            prob.solve(solver=SOLVER, ignore_dpp=True)
+            self.assertAlmostEqual(x.value, -val / 2.0, places=3)
+            if cached is None:
+                cached = prob._cache.param_prog
+                self.assertIsInstance(cached, DiffengineConeProgram)
+            else:
+                self.assertIs(prob._cache.param_prog, cached)
+
+    def test_parametric_constraint_quad_form_not_cached(self) -> None:
+        """quad_form(x, P) in a constraint factorizes P.value during
+        canonicalization (the one value-consuming canon), so the program is
+        never cached — and re-solves must still track fresh values."""
+        n = 2
+        P = cp.Parameter((n, n), PSD=True)
+        y = cp.Variable(n)
+        prob = cp.Problem(cp.Minimize(cp.sum(y)), [cp.quad_form(y, P) <= 1])
+
+        P.value = np.eye(n)
+        prob.solve(solver=SOLVER, ignore_dpp=True)
+        self.assertIsNone(prob._cache.param_prog)
+        val1 = prob.value
+
+        P.value = 4 * np.eye(n)
+        prob.solve(solver=SOLVER, ignore_dpp=True)
+        self.assertIsNone(prob._cache.param_prog)
+        self.assertAlmostEqual(prob.value, val1 / 2.0, places=4)
 
     def test_quad_objective_data_matches_cpp(self) -> None:
         """The extractor's Hessian path must produce the same stuffed
@@ -294,7 +338,8 @@ class TestDiffengineConeProgram(BaseTest):
 
     def test_extraction_runs_once_per_solve(self) -> None:
         """The solver's apply_parameters must reuse the matrices from_problem
-        just extracted; a solve with changed values must re-extract."""
+        just extracted; a cached re-solve with changed values must re-extract
+        exactly once without rebuilding the compiled problem."""
         from cvxpy.reductions.solvers.nlp_solvers.diff_engine.extractor import (
             DiffEngineExtractor,
         )
@@ -304,18 +349,23 @@ class TestDiffengineConeProgram(BaseTest):
         prob = cp.Problem(cp.Minimize(cp.sum_squares(x - p)), [x >= -10])
 
         real_extract = DiffEngineExtractor.extract
+        real_build = DiffEngineExtractor.build
         with mock.patch.object(DiffEngineExtractor, "extract",
-                               autospec=True, side_effect=real_extract) as spy:
+                               autospec=True, side_effect=real_extract) as spy, \
+             mock.patch.object(DiffEngineExtractor, "build",
+                               autospec=True, side_effect=real_build) as build_spy:
             p.value = np.array([1.0, 2.0])
             prob.solve(solver=SOLVER, ignore_dpp=True)
             self.assertEqual(spy.call_count, 1)  # from_problem only
             self.assertItemsAlmostEqual(x.value, p.value, places=4)
 
-            # ignore_dpp keeps the program uncached, so a re-solve rebuilds it
-            # (one extraction), and apply_parameters again reuses it.
+            # The program is cached across solves; changed parameter values
+            # trigger exactly one re-extraction in apply_parameters, and the
+            # compiled problem is NOT rebuilt.
             p.value = np.array([-3.0, 4.0])
             prob.solve(solver=SOLVER, ignore_dpp=True)
             self.assertEqual(spy.call_count, 2)
+            self.assertEqual(build_spy.call_count, 1)
             self.assertItemsAlmostEqual(x.value, p.value, places=4)
 
     def test_parametric_soc_restruct_resolve_and_duals(self) -> None:
@@ -555,14 +605,15 @@ class TestIgnoreDppCacheHygiene(BaseTest):
         x = cp.Variable(n)
         prob = cp.Problem(cp.Minimize(cp.sum_squares(A @ x - b)), [x >= -10])
 
-        # 1. ignore_dpp first: DIFFENGINE chain; parametric problems are not
-        # cached on this path (canonicalization may consume param values).
+        # 1. ignore_dpp first: DIFFENGINE chain with a cached parametric
+        # program (parameters stay symbolic, so caching is safe).
         A.value = rng.standard_normal((m, n))
         b.value = rng.standard_normal(m)
         prob.solve(solver=SOLVER, ignore_dpp=True)
         solver_cache_de = prob._solver_cache
         self.assertEqual(stuffing_backend(prob), s.DIFFENGINE_CANON_BACKEND)
-        self.assertIsNone(prob._cache.param_prog)
+        de_prog = prob._cache.param_prog
+        self.assertIsInstance(de_prog, DiffengineConeProgram)
         self.assertAlmostEqual(prob.value, baseline(A.value, b.value), places=4)
 
         # 2. default solve, same parameter values: key change must rebuild the
@@ -582,12 +633,14 @@ class TestIgnoreDppCacheHygiene(BaseTest):
         self.assertIs(prob._cache.param_prog, dpp_prog)  # fast path reused
         self.assertAlmostEqual(prob.value, baseline(A.value, b.value), places=4)
 
-        # 4. back to ignore_dpp with new values: invalidated again.
+        # 4. back to ignore_dpp with new values: the key toggle must have
+        # invalidated step 1's program (a fresh one is built and cached).
         A.value = rng.standard_normal((m, n))
         b.value = rng.standard_normal(m)
         prob.solve(solver=SOLVER, ignore_dpp=True)
         self.assertEqual(stuffing_backend(prob), s.DIFFENGINE_CANON_BACKEND)
-        self.assertIsNone(prob._cache.param_prog)
+        self.assertIsInstance(prob._cache.param_prog, DiffengineConeProgram)
+        self.assertIsNot(prob._cache.param_prog, de_prog)
         self.assertAlmostEqual(prob.value, baseline(A.value, b.value), places=4)
 
     def test_param_free_program_cached_and_dropped_on_toggle(self) -> None:

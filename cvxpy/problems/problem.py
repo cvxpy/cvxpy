@@ -880,13 +880,17 @@ class Problem(u.Canonical):
                          'Compiling problem (target solver=%s).', solver_name)
                 s.LOGGER.info('Reduction chain: %s', reduction_chain_str)
             data, inverse_data = solving_chain.apply(self, verbose)
-            # Non-DPP / ignore_dpp canonicalization may consume current
-            # parameter values, so caching its parametric program would
-            # serve stale data (see SolvingChain.uncached_param_prog).
+            # The parametric program is cached unless current parameter
+            # values leaked into it: the N-D EvalParams fallback bakes them
+            # (SolvingChain.uncached_param_prog), and the cone quad_form
+            # canon factorizes P.value numerically (recorded per-apply on
+            # Dcp2Cone's InverseData as param_values_consumed).
             safe_to_cache = (
                 isinstance(data, dict)
                 and s.PARAM_PROB in data
                 and not solving_chain.uncached_param_prog
+                and not any(getattr(inv, 'param_values_consumed', False)
+                            for inv in inverse_data)
             )
             self._compilation_time = time.time() - start
             if verbose:
