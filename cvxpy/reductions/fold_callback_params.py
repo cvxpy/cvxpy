@@ -22,16 +22,9 @@ from cvxpy.utilities import scopes
 def _fold_expr(expr):
     """Replace maximal non-affine variable-free parametric subtrees.
 
-    A subtree with parameters but no variables that is NOT affine in the
-    parameters (``power(t, 2)`` from DQCP bisection, ``floor(t)``, raw
-    ``log_det(P)``) becomes a ``CallbackParam`` evaluating the subtree on
-    each access: its value refreshes between solves, so downstream programs
-    stay cacheable, and no canonicalizer ever sees it (a graph
-    implementation would be unsound — the epigraph direction assumes
-    params-affine curvature, so ``x <= power(t, 2)`` would relax vacuously).
-
-    Parameter-affine subtrees (a bare ``Parameter``, ``2 * p + A``) are left
-    intact: canonicalization and the backends handle them symbolically.
+    Such a subtree (e.g. ``power(t, 2)``, ``floor(t)``, ``log_det(P)``)
+    becomes a ``CallbackParam`` evaluating it on each access. Parameter-affine
+    subtrees (a bare ``Parameter``, ``2 * p + A``) stay symbolic.
     """
     if not expr.parameters():
         return expr
@@ -54,9 +47,11 @@ def _fold_expr(expr):
 class CallbackParamFold(Reduction):
     """Fold non-affine parametric-constant subtrees into CallbackParams.
 
-    Used on the ignore_dpp / non-DPP path (and the NLP path), where
-    parameters stay symbolic across solves: unlike ``EvalParams`` this keeps
-    the folded values refreshable, so the compiled program can be cached.
+    Runs before canonicalization on chains where parameters stay symbolic
+    across solves: canonicalizing such subtrees would be unsound there
+    (``x <= power(t, 2)`` would epigraph-relax vacuously), and unlike
+    ``EvalParams`` the folded values refresh per solve, so compiled programs
+    stay cacheable.
     """
 
     def accepts(self, problem) -> bool:

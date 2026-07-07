@@ -231,14 +231,11 @@ def _build_solving_chain(
                 uncached_param_prog = True
                 reductions = [EvalParams()] + reductions
             else:
-                # Parameters stay symbolic: the DIFFENGINE backend
-                # re-evaluates them each solve, so the parametric program is
-                # cacheable — unless Dcp2Cone records that a canonicalizer
-                # consumed current values (see safe_to_cache in problem.py).
-                # Non-affine parametric-constant subtrees (power(t,2) from
-                # DQCP bisection, floor(t), raw log_det(P)) fold to
-                # refreshable CallbackParam leaves before canonicalization,
-                # so Dcp2Cone never epigraph-relaxes them unsoundly.
+                # Parameters stay symbolic and re-evaluate each solve, so
+                # the parametric program is cacheable (see safe_to_cache in
+                # problem.py). Non-affine parametric constants fold to
+                # CallbackParam leaves so Dcp2Cone never epigraph-relaxes
+                # them unsoundly.
                 reductions = [CallbackParamFold()] + reductions
                 if (canon_backend is not None
                         and canon_backend != DIFFENGINE_CANON_BACKEND):
@@ -537,10 +534,8 @@ class SolvingChain(Chain):
         self.solver = self.reductions[-1]
         self.solver_context = solver_context
         # True when the chain bakes current parameter values into constants
-        # (the N-D EvalParams fallback), so the parametric program must be
-        # rebuilt on every solve. Per-apply value consumption inside Dcp2Cone
-        # (parametric constraint quad_forms) is reported separately via
-        # InverseData.param_values_consumed.
+        # (the N-D EvalParams fallback); per-apply baking inside Dcp2Cone is
+        # reported separately via InverseData.param_quad_form_factorized.
         self.uncached_param_prog = uncached_param_prog
 
     def prepend(self, chain) -> "SolvingChain":

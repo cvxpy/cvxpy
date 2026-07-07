@@ -60,11 +60,9 @@ class Dcp2Cone(Canonicalization):
         # solver_context : The solver context: supported constraints and bounds.
         self.solver_context = solver_context
 
-        # Set during apply() when a canonicalizer consumes current parameter
-        # values (the cone quad_form canon factorizes P.value numerically):
-        # the canonicalized program is then only valid for those values, so
-        # the parametric program must not be cached across solves.
-        self._param_values_consumed = False
+        # Set during apply() when the cone quad_form canon factorizes a
+        # parametric P.value (see safe_to_cache in problem.py).
+        self._param_quad_form_factorized = False
 
     def accepts(self, problem):
         """A problem is accepted if it is a minimization and is DCP.
@@ -77,9 +75,8 @@ class Dcp2Cone(Canonicalization):
         if not self.accepts(problem):
             raise ValueError("Cannot reduce problem to cone program")
 
-        # The reduction instance is reused across solves via the cached
-        # chain; the consumption flag is per-apply.
-        self._param_values_consumed = False
+        # The instance is reused via the cached chain; the flag is per-apply.
+        self._param_quad_form_factorized = False
         inverse_data = InverseData(problem)
 
         cse_cache: dict[ConeCacheKey, Expression] = {}
@@ -104,7 +101,7 @@ class Dcp2Cone(Canonicalization):
         new_problem = problems.problem.Problem(canon_objective,
                                                canon_constraints)
         self._cons_id_map = inverse_data.cons_id_map
-        inverse_data.param_values_consumed = self._param_values_consumed
+        inverse_data.param_quad_form_factorized = self._param_quad_form_factorized
         return new_problem, inverse_data
 
     @overload
@@ -230,13 +227,10 @@ class Dcp2Cone(Canonicalization):
         -------
         A tuple of the canonicalized expression and generated constraints.
         """
-        # Constant trees are collapsed; parameter trees are preserved and
-        # canonicalized like any other atom. That is sound on the DPP path
-        # (DCP analysis with params-affine vetted every position); on the
-        # ignore_dpp / non-DPP path, where curvature-blind epigraphs would
-        # be vacuous (x <= power(t, 2)), non-affine parametric constants are
-        # folded to CallbackParam leaves (or baked by EvalParams) before
-        # they can reach this point.
+        # Constant trees are collapsed, but parameter trees are preserved.
+        # Canonicalizing parametric constants is sound here: chains where it
+        # would not be fold them to CallbackParam leaves first (see
+        # CallbackParamFold).
         if isinstance(expr, Expression) and expr.is_constant():
             if not expr.parameters():
                 return expr, []
@@ -260,10 +254,8 @@ class Dcp2Cone(Canonicalization):
         if type(expr) in self.cone_canon_methods:
             if type(expr) is QuadForm and args[1].parameters():
                 # The cone quad_form canon factorizes the CURRENT P.value
-                # numerically (decomp_quad) — the only canonicalizer that
-                # consumes parameter values. Record it so the parametric
-                # program is not cached (safe_to_cache in problem.py).
-                self._param_values_consumed = True
+                # (decomp_quad), so the program must not be cached.
+                self._param_quad_form_factorized = True
             return self.cone_canon_methods[type(expr)](expr, args,
                                                        solver_context=self.solver_context)
 

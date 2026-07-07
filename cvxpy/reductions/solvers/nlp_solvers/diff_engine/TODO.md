@@ -143,7 +143,7 @@ apply at ~2.9ms). Components:
   (its value consumed outside the engine, e.g. by a folded CallbackParam), and
   previously dangled once the Python capsule died — segfault on the first
   cross-solve `update_params`.
-- **Record-at-site gating**: `Dcp2Cone` sets `InverseData.param_values_consumed` when
+- **Record-at-site gating**: `Dcp2Cone` sets `InverseData.param_quad_form_factorized` when
   the cone quad_form canon fires with parametric P (the ONLY value-consuming
   canonicalizer — exhaustive audit); `safe_to_cache` honors it plus the chain-level
   `uncached_param_prog` (now N-D EvalParams only). No tree-walk heuristics.
@@ -171,7 +171,7 @@ constant-only branch), blocked only by the engine refresh bug above.
 `Constant(M.T)` rows of the SOC data. Cannot go symbolic in this architecture: the
 conic form needs literal factor rows, and even the factor's shape/branch (PSD vs
 NSD, rank) depends on the values. Recorded exactly via
-`InverseData.param_values_consumed`; per-solve re-canonicalization is the correct
+`InverseData.param_quad_form_factorized`; per-solve re-canonicalization is the correct
 behavior. Gating test:
 `test_ignore_dpp.py::test_parametric_constraint_quad_form_not_cached`.
 (The N-D EvalParams fallback also stays uncached — baked values must refresh.)

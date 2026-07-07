@@ -158,7 +158,7 @@ two recorded cases:
 
 1. `SolvingChain.uncached_param_prog` — the N-D `EvalParams` fallback (baked values must
    refresh via re-canonicalization);
-2. `InverseData.param_values_consumed` — set by `Dcp2Cone` when the cone quad_form canon
+2. `InverseData.param_quad_form_factorized` — set by `Dcp2Cone` when the cone quad_form canon
    fires with parametric `P` (`decomp_quad(P.value)`, the only value-consuming
    canonicalizer per the exhaustive audit).
 
