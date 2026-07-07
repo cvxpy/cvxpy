@@ -86,8 +86,9 @@ dependencies = [
     "scipy >= 1.13.0",
     # HiGHS < 1.14.0 only honors the lower triangle in `kTriangular` Hessian
     # format and silently returns wrong solutions when given the upper
-    # triangle (which highs_qpif.py passes). See test_highs_dense_quad_form.
-    "highspy >= 1.14.0",
+    # triangle (which highs_qpif.py passes). HiGHS 1.15 is ABI-incompatible
+    # with OR-Tools 9.14's bundled GLOP/PDLP libraries.
+    "highspy >= 1.14.0, < 1.15.0",
     "qdldl >= 0.1.7.post0",
     "sparsediffpy >= 0.5.0, < 0.6.0",
 ]
@@ -120,7 +121,7 @@ GLOP = ["ortools>=9.7,<9.15"]
 GLPK = ["cvxopt"]
 GLPK_MI = ["cvxopt"]
 GUROBI = ["gurobipy"]
-HIGHS = ["highspy"]
+HIGHS = ["highspy >= 1.14.0, < 1.15.0"]
 MOSEK = ["Mosek"]
 OSQP = []
 PDLP = ["ortools>=9.7,<9.15"]
