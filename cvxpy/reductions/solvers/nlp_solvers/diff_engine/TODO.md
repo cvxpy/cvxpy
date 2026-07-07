@@ -58,6 +58,27 @@ design, so each is tracked here with its gating test.
 - Native >2-D converter support would only matter if the engine itself goes N-D; not
   planned.
 
+### 1d. OPEN BUG — heap corruption: `multiply` of gathers with REPEATED indices
+##### (cvxpy#3442, DNLP segfault)
+
+- Trigger (minimal, no solver needed — drive `Oracles` directly):
+  `cp.multiply(a[idx], b[idx])` with `idx` containing DUPLICATES (e.g.
+  `[0, 0, 1, 2, 2, 3]`) on the NLP path. A permutation `idx` works. With
+  `cp.nlp.cos` in the tree it crashes during `problem_init_jacobian` /
+  Hessian init; without, it "succeeds" and segfaults at interpreter
+  shutdown — i.e. an out-of-bounds WRITE corrupting the heap, so the crash
+  site wanders (the reporter on 1.9.1 saw `init_hessian_coo_lower_tri`).
+- Crash frames: `new_elementwise_mult` jacobian-init →
+  `new_sparse_matrix_alloc` → `new_CSR_matrix` — the bivariate
+  elementwise-mult derivative-structure allocator likely undercounts nnz
+  when both children are gathers with duplicated rows (their Jacobians have
+  repeated patterns).
+- Reproduced with the latest dev engine (post `param-source-refresh`), so
+  not fixed by any current branch work; the reporter hit it on released
+  1.9.1, so it is not a regression either.
+- Existing NLP tests only exercise disjoint slices (`multiply(w[g], t[g])`),
+  which is why the suite is green.
+
 ## 2. Still-slow problems ✅ RESOLVED (2026-07)
 
 Every previously-slow benchmark is now at or faster than CPP. Cold first-compile (s),
