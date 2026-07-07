@@ -241,7 +241,8 @@ class TestEinsum(BaseTest):
         self.assertEqual(problem4.status, cp.OPTIMAL)
         self.assertItemsAlmostEqual(result4, expected_result4)
 
-        # Test einsum with 4 arguments
+        # Test einsum with 4 arguments (two multiplied parameters -> non-DPP;
+        # the >2-D fallback bakes them via EvalParams)
         expr5 = cp.einsum('ii,ijk,j,lil->ijl', A, B, C, D)
         problem5 = cp.Problem(cp.Minimize(cp.sum(expr5)), [A == self.A_np])
         problem5.solve()

@@ -219,6 +219,32 @@ class TestDiffengineConverter(BaseTest):
             self.assertAlmostEqual(prob_de.value, prob_base.value, places=4)
             self.assertItemsAlmostEqual(X_de, X.value, places=3)
 
+    def test_param_constant_in_concave_position_sound(self) -> None:
+        """A parametric-constant composite on the 'wrong' side of an
+        inequality must not be epigraph-relaxed: x <= power(t, 2) would
+        relax to x <= s, s >= t**2 (vacuous). It is kept intact by Dcp2Cone
+        and evaluated numerically on each solve."""
+        t = cp.Parameter()
+        x = cp.Variable()
+        prob = cp.Problem(cp.Minimize(-x), [x <= cp.power(t, 2)])
+        for val in (2.0, 3.0):
+            t.value = val
+            prob.solve(solver=SOLVER, ignore_dpp=True)
+            self.assertEqual(prob.status, cp.OPTIMAL)
+            self.assertAlmostEqual(x.value, val ** 2, places=4)
+
+    def test_unsupported_variable_free_atom_evaluates(self) -> None:
+        """An atom with no symbolic converter over parameters only (floor,
+        as emitted by DQCP bisection) is evaluated numerically and must
+        refresh across solves."""
+        p = cp.Parameter()
+        x = cp.Variable()
+        prob = cp.Problem(cp.Minimize(cp.square(x - cp.floor(p))))
+        for val in (2.7, -1.2):
+            p.value = val
+            prob.solve(solver=SOLVER, ignore_dpp=True)
+            self.assertAlmostEqual(x.value, np.floor(val), places=4)
+
     def test_quad_objective_data_matches_cpp(self) -> None:
         """The extractor's Hessian path must produce the same stuffed
         (P, q, A) as the default CPP backend."""
@@ -285,8 +311,8 @@ class TestDiffengineConeProgram(BaseTest):
             self.assertEqual(spy.call_count, 1)  # from_problem only
             self.assertItemsAlmostEqual(x.value, p.value, places=4)
 
-            # ignore_dpp keeps the chain uncached, so a re-solve rebuilds the
-            # program (one extraction), and apply_parameters again reuses it.
+            # ignore_dpp keeps the program uncached, so a re-solve rebuilds it
+            # (one extraction), and apply_parameters again reuses it.
             p.value = np.array([-3.0, 4.0])
             prob.solve(solver=SOLVER, ignore_dpp=True)
             self.assertEqual(spy.call_count, 2)
@@ -403,28 +429,30 @@ class TestDiffengineSelection(BaseTest):
         prob.solve(solver=SOLVER, ignore_dpp=True)
         self.assertAlmostEqual(x.value, 2.0)
 
-    def test_explicit_backend_opts_out_of_diffengine(self) -> None:
-        """ignore_dpp with an explicit tensor backend restores the old
-        parameter-baking semantics: EvalParams + the requested backend, with
-        baked values still refreshing across solves."""
+    def test_explicit_backend_with_params_raises(self) -> None:
+        """A non-DIFFENGINE backend cannot serve the symbolic ignore_dpp path
+        for parametric problems; parameter-free problems honor the request."""
         p = cp.Parameter()
+        p.value = 2.0
         x = cp.Variable()
+        prob = cp.Problem(cp.Minimize(cp.square(x - p)))
 
         for backend in (s.CPP_CANON_BACKEND, s.SCIPY_CANON_BACKEND):
-            p.value = 2.0
-            prob_fresh = cp.Problem(cp.Minimize(cp.square(x - p)))
-            _, chain, _ = prob_fresh.get_problem_data(SOLVER, ignore_dpp=True,
-                                                      canon_backend=backend)
-            self.assertEqual(self._stuffing_backend(chain), backend)
-            reduction_names = [type(r).__name__ for r in chain.reductions]
-            self.assertIn('EvalParams', reduction_names)
-            self.assertNotIn('FoldVariableFreeParams', reduction_names)
+            with self.assertRaisesRegex(ValueError, "keeps parameters symbolic"):
+                prob.get_problem_data(SOLVER, ignore_dpp=True,
+                                      canon_backend=backend)
 
-            prob_fresh.solve(solver=SOLVER, ignore_dpp=True, canon_backend=backend)
-            self.assertAlmostEqual(x.value, 2.0)
-            p.value = -3.0
-            prob_fresh.solve(solver=SOLVER, ignore_dpp=True, canon_backend=backend)
-            self.assertAlmostEqual(x.value, -3.0)
+        # Parameter-free: ignore_dpp is a no-op, explicit backend honored.
+        # (Fresh problem per backend: the problem-data cache does not key
+        # on canon_backend.)
+        for backend in (s.CPP_CANON_BACKEND, s.SCIPY_CANON_BACKEND):
+            y = cp.Variable(3)
+            prob_free = cp.Problem(cp.Minimize(cp.sum_squares(y - 1)), [y >= 0])
+            _, chain, _ = prob_free.get_problem_data(SOLVER, ignore_dpp=True,
+                                                     canon_backend=backend)
+            self.assertEqual(self._stuffing_backend(chain), backend)
+            prob_free.solve(solver=SOLVER, ignore_dpp=True, canon_backend=backend)
+            self.assertAlmostEqual(prob_free.value, 0.0)
 
     def test_env_var_selects_diffengine_on_dpp_path(self) -> None:
         """CVXPY_DEFAULT_CANON_BACKEND=DIFFENGINE routes DPP solves through
@@ -528,7 +556,7 @@ class TestIgnoreDppCacheHygiene(BaseTest):
         prob = cp.Problem(cp.Minimize(cp.sum_squares(A @ x - b)), [x >= -10])
 
         # 1. ignore_dpp first: DIFFENGINE chain; parametric problems are not
-        # cached on this path (the fold keeps the chain uncached).
+        # cached on this path (canonicalization may consume param values).
         A.value = rng.standard_normal((m, n))
         b.value = rng.standard_normal(m)
         prob.solve(solver=SOLVER, ignore_dpp=True)
@@ -564,8 +592,7 @@ class TestIgnoreDppCacheHygiene(BaseTest):
 
     def test_param_free_program_cached_and_dropped_on_toggle(self) -> None:
         """A parameter-free ignore_dpp solve caches its DiffengineConeProgram
-        (no fold in the chain) and reuses it; switching to a default solve
-        must drop it."""
+        and reuses it; switching to a default solve must drop it."""
         y = cp.Variable(3)
         prob = cp.Problem(cp.Minimize(cp.sum_squares(y - 1)), [y >= 0])
 

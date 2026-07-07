@@ -278,6 +278,14 @@ def convert_expr(expr, var_dict, n_vars, param_dict=None):
         C_expr = convert_multiply(expr, children, var_dict, n_vars, param_dict)
     elif atom_name in ATOM_CONVERTERS:
         C_expr = ATOM_CONVERTERS[atom_name](expr, children)
+    elif not expr.variables():
+        # Variable-free parametric subtree whose atom has no symbolic
+        # converter (e.g. floor(t) in DQCP bisection subproblems): evaluate
+        # it numerically. Correct because non-DPP/ignore_dpp programs are
+        # never cached, so conversion re-runs with fresh parameter values.
+        c = to_dense_float(expr.value)
+        d1, d2 = normalize_shape(expr.shape)
+        return _diffengine.make_parameter(d1, d2, -1, n_vars, c.flatten(order='F'))
     else:
         raise NotImplementedError(f"Atom '{atom_name}' not supported")
 
