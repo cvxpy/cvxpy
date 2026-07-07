@@ -29,6 +29,7 @@ class QPALM(QpSolver):
     """QP interface for the QPALM solver"""
 
     MIP_CAPABLE = False
+    REQUIRED_MODULES = ("qpalm",)
 
     def name(self):
         return s.QPALM

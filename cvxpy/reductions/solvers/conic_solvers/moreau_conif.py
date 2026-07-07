@@ -73,6 +73,7 @@ class MOREAU(ConicSolver):
     MIP_CAPABLE = False
     BOUNDED_VARIABLES = False
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC, ExpCone, PowCone3D]
+    REQUIRED_MODULES = ("moreau",)
 
     # Status messages from Moreau (based on solver/status.hpp)
     SOLVED = "Solved"
