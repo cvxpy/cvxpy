@@ -58,26 +58,26 @@ design, so each is tracked here with its gating test.
 - Native >2-D converter support would only matter if the engine itself goes N-D; not
   planned.
 
-### 1d. OPEN BUG — heap corruption: `multiply` of gathers with REPEATED indices
-##### (cvxpy#3442, DNLP segfault)
+### 1d. ✅ FIXED (2026-07-07) — heap corruption: gathers with REPEATED indices
+##### (cvxpy#3442, DNLP segfault; engine PR #105)
 
-- Trigger (minimal, no solver needed — drive `Oracles` directly):
-  `cp.multiply(a[idx], b[idx])` with `idx` containing DUPLICATES (e.g.
-  `[0, 0, 1, 2, 2, 3]`) on the NLP path. A permutation `idx` works. With
-  `cp.nlp.cos` in the tree it crashes during `problem_init_jacobian` /
-  Hessian init; without, it "succeeds" and segfaults at interpreter
-  shutdown — i.e. an out-of-bounds WRITE corrupting the heap, so the crash
-  site wanders (the reporter on 1.9.1 saw `init_hessian_coo_lower_tri`).
-- Crash frames: `new_elementwise_mult` jacobian-init →
-  `new_sparse_matrix_alloc` → `new_CSR_matrix` — the bivariate
-  elementwise-mult derivative-structure allocator likely undercounts nnz
-  when both children are gathers with duplicated rows (their Jacobians have
-  repeated patterns).
-- Reproduced with the latest dev engine (post `param-source-refresh`), so
-  not fixed by any current branch work; the reporter hit it on released
-  1.9.1, so it is not a regression either.
-- Existing NLP tests only exercise disjoint slices (`multiply(w[g], t[g])`),
-  which is why the suite is green.
+- Root cause (NOT in multiply itself): `sparse_index_alloc`
+  (`SparseDiffEngine/src/utils/sparse_matrix.c`) sized the gathered Jacobian
+  by `MIN(source nnz, dense bound)` — valid only for DISTINCT indices. With
+  duplicates the true nnz `Σ rownnz(indices[i])` exceeds the source's
+  (`x[[0,0,1,2,2,3]]` on a size-4 variable: 6 > 4) and the fill loop wrote
+  past the buffers. Crash site wandered because the corruption was detected
+  at later allocations (multiply jacobian-init, hessian init, GC).
+- Fix (engine branch `index-duplicate-gather-nnz`, PR #105): exact per-row
+  nnz sum, 64-bit accumulator, INT_MAX error. Verified failing-first under
+  ASan (heap-buffer-overflow at sparse_matrix.c:135 pre-fix).
+- Tests: engine `test_index_jacobian_duplicates_exceed_source_nnz`,
+  `test_jacobian_elementwise_mult_duplicate_gathers`,
+  `test_wsum_hess_multiply_duplicate_gathers` (400 total); cvxpy
+  `stress_tests_diff_engine/test_affine_vector_atoms.py::
+  TestDuplicateIndexGathers` (solver-free DerivativeChecker, gated on
+  sparsediffpy not IPOPT) + `test_multiply_duplicate_index_gathers_solve`
+  (IPOPT, cross-checks the issue's scalar-loop workaround).
 
 ## 2. Still-slow problems ✅ RESOLVED (2026-07)
 
