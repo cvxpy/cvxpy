@@ -300,14 +300,13 @@ class Constraint(u.Canonical):
     def dual_residual(self):
         """The residual of the dual variable with respect to the dual cone.
 
-        Analogous to ``residual`` for primal constraint satisfaction.  Returns
-        an array measuring how far the dual value lies outside the dual cone,
-        elementwise (zero where feasible), or ``None`` if the dual variable has
-        no value yet.
+        Analogous to ``residual`` for primal constraint satisfaction.
+        Implementations may return a scalar or an array, depending on the
+        constraint.
 
         Returns
         -------
-        NumPy.ndarray or None
+        float, NumPy.ndarray, or None
         """
         raise NotImplementedError(
             f"{type(self).__name__} does not implement dual_residual."
@@ -316,11 +315,7 @@ class Constraint(u.Canonical):
     def dual_violation(self):
         """Scalar infeasibility of the dual variable.
 
-        For non-spectral constraints the violation is the infinity norm of
-        ``dual_residual`` (i.e. the largest elementwise infeasibility).
-        For spectral constraints (e.g. PSD) ``dual_residual`` is already
-        an operator-norm-based scalar, so the violation is that value
-        directly.  Both cases reduce to ``max(dual_residual)``.
+        The violation is the infinity norm of ``dual_residual``.
 
         Returns
         -------
@@ -336,7 +331,7 @@ class Constraint(u.Canonical):
             raise ValueError(
                 "Cannot compute dual violation: dual variable has no value."
             )
-        return float(np.max(np.atleast_1d(residual)))
+        return float(np.linalg.norm(np.ravel(residual), ord=np.inf))
 
     def is_dual_feasible(self, tolerance: float = 1e-8) -> bool:
         """Whether the dual variable satisfies the dual cone constraint.

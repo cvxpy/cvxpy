@@ -19,10 +19,33 @@ import pytest
 
 import cvxpy as cp
 from cvxpy.atoms.affine.reshape import reshape as reshape_atom
+from cvxpy.constraints.constraint import Constraint
 from cvxpy.constraints.power import PowCone3D, PowConeND
 from cvxpy.constraints.second_order import SOC
 from cvxpy.expressions.variable import Variable
 from cvxpy.tests.base_test import BaseTest
+
+
+class SignedDualResidualConstraint(Constraint):
+    """Test helper for dual_violation aggregation."""
+
+    def __init__(self, expr, dual_residual):
+        self._dual_residual = dual_residual
+        super().__init__([expr])
+
+    def is_dcp(self, dpp: bool = False) -> bool:
+        return True
+
+    def is_dgp(self, dpp: bool = False) -> bool:
+        return False
+
+    @property
+    def residual(self):
+        return np.zeros(self.args[0].shape)
+
+    @property
+    def dual_residual(self):
+        return self._dual_residual
 
 
 class TestConstraints(BaseTest):
@@ -39,6 +62,12 @@ class TestConstraints(BaseTest):
         self.A = Variable((2, 2), name='A')
         self.B = Variable((2, 2), name='B')
         self.C = Variable((3, 2), name='C')
+
+    def test_dual_violation_uses_infinity_norm(self):
+        constr = SignedDualResidualConstraint(
+            self.x, np.array([1.0, -3.0, 2.0])
+        )
+        self.assertEqual(constr.dual_violation(), 3.0)
 
     def test_boolean_violation(self):
         # https://github.com/cvxpy/cvxpy/issues/2900

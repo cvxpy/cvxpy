@@ -103,6 +103,11 @@ class NonPos(Constraint):
 
     @property
     def dual_residual(self):
+        """Residual for CVXPY's stored dual variable sign convention.
+
+        ``NonPos`` stores nonnegative dual variables, matching the multiplier
+        convention used by inequality constraints in CVXPY.
+        """
         dv = self.dual_variables[0].value
         if dv is None:
             return None
