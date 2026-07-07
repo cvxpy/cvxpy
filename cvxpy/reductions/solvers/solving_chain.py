@@ -147,8 +147,8 @@ def _build_solving_chain(
     ignore_dpp : bool
         When True, treat DPP problems as non-DPP.
     canon_backend : str, optional
-        Canonicalization backend ('CPP', 'SCIPY', 'COO', or the experimental
-        'DIFFENGINE'). The ignore_dpp / non-DPP path uses 'DIFFENGINE'
+        Canonicalization backend ('CPP', 'SCIPY', 'COO', or 'DIFFENGINE').
+        The ignore_dpp / non-DPP path uses 'DIFFENGINE'
         (parameters stay symbolic and are re-evaluated each solve); passing a
         different backend there raises ValueError for parametric problems and
         is honored for parameter-free ones. Parametric N-D (>2-D) problems

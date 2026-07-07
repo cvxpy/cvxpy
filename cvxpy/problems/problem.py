@@ -785,7 +785,7 @@ class Problem(u.Canonical):
             When True, DPP problems will be treated as non-DPP,
             which may speed up compilation. Defaults to False.
         canon_backend : str, optional
-            'CPP' (default) | 'SCIPY' | 'COO' | 'DIFFENGINE' (experimental)
+            'CPP' (default) | 'SCIPY' | 'COO' | 'DIFFENGINE'
             Specifies which backend to use for canonicalization, which can affect
             compilation time. Defaults to None, i.e., selecting the default
             backend. Non-DPP and ignore_dpp=True solves use the DIFFENGINE
@@ -937,7 +937,7 @@ class Problem(u.Canonical):
             When True, DPP problems will be treated as non-DPP,
             which may speed up compilation. Defaults to False.
         canon_backend : str, optional
-            'CPP' (default) | 'SCIPY' | 'COO' | 'DIFFENGINE' (experimental)
+            'CPP' (default) | 'SCIPY' | 'COO' | 'DIFFENGINE'
             Specifies which backend to use for canonicalization, which can affect
             compilation time. Defaults to None, i.e., selecting the default
             backend. Non-DPP and ignore_dpp=True solves use the DIFFENGINE
@@ -1013,7 +1013,7 @@ class Problem(u.Canonical):
             When True, DPP problems will be treated as non-DPP,
             which may speed up compilation. Defaults to False.
         canon_backend : str, optional
-            'CPP' (default) | 'SCIPY' | 'COO' | 'DIFFENGINE' (experimental)
+            'CPP' (default) | 'SCIPY' | 'COO' | 'DIFFENGINE'
             Specifies which backend to use for canonicalization, which can affect
             compilation time. Defaults to None, i.e., selecting the default
             backend. Non-DPP and ignore_dpp=True solves use the DIFFENGINE

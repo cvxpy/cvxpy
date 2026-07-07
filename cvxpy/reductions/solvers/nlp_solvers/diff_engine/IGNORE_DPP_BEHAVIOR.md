@@ -36,7 +36,7 @@ on every solve, preserving the problem's conic structure.
 - **The constant** — `cvxpy/settings.py`:
   `DIFFENGINE_CANON_BACKEND = "DIFFENGINE"`. Auto-activated for `ignore_dpp` / non-DPP
   solves; since 2026-07 it is also documented as explicitly user-selectable
-  (`canon_backend="DIFFENGINE"`, experimental) on the DPP path, where the chain and the
+  (`canon_backend="DIFFENGINE"`) on the DPP path, where the chain and the
   `DiffengineConeProgram` are cached across solves (no `EvalParams` in the chain).
 
 ## Deep dive: why `log_det(P)` with a parameter `P` is conic, not a constant
