@@ -375,9 +375,13 @@ class TestDcp(BaseTest):
         """log_det(P) is not baked to a number with ignore_dpp=True.
 
         The variable-free composite folds to a CallbackParam leaf
-        (see CallbackParamFold), so its value tracks the current P.value
-        on every solve instead of freezing at compile time.
+        (see CallbackParamFold), so the compiled parametric program is
+        cached and its value tracks the current P.value on every solve
+        instead of freezing at compile time.
         """
+        from cvxpy.reductions.dcp2cone.diffengine_cone_program import (
+            DiffengineConeProgram,
+        )
         n = 2
         x = cp.Variable(n, nonneg=True)
         y = cp.Variable(n, nonneg=True)
@@ -390,10 +394,13 @@ class TestDcp(BaseTest):
         problem.solve(solver=cp.CLARABEL, ignore_dpp=True)
         self.assertEqual(problem.status, cp.OPTIMAL)
         self.assertAlmostEqual(problem.value, 0.0, places=4)
+        cached = problem._cache.param_prog
+        self.assertIsInstance(cached, DiffengineConeProgram)
 
-        # Re-solve with a new P: the program must serve fresh values.
+        # Re-solve with a new P: the cached program must serve fresh values.
         P.value = 2 * np.eye(n)
         problem.solve(solver=cp.CLARABEL, ignore_dpp=True)
+        self.assertIs(problem._cache.param_prog, cached)
         self.assertAlmostEqual(problem.value, -2 * np.log(4.0), places=4)
 
     def test_log_det_with_parameter_ignore_dpp_qp_solver_raises(self) -> None:
@@ -426,6 +433,9 @@ class TestDcp(BaseTest):
         Changing ``A.value`` between solves must change the solution,
         confirming the diff engine re-evaluates the tree.
         """
+        from cvxpy.reductions.dcp2cone.diffengine_cone_program import (
+            DiffengineConeProgram,
+        )
         A = cp.Parameter((2, 2))
         x = cp.Variable(2)
         b = np.array([1.0, 1.0])
@@ -436,15 +446,19 @@ class TestDcp(BaseTest):
         self.assertEqual(problem.status, cp.OPTIMAL)
         np.testing.assert_array_almost_equal(x.value, np.array([1.0, 1.0]), decimal=4)
 
-        # The DIFFENGINE backend is used and parameters stay symbolic.
+        # The DIFFENGINE backend is used; parameters stay symbolic, so the
+        # compiled parametric program is cached and reused across solves.
         _, chain, _ = problem.get_problem_data(cp.CLARABEL, ignore_dpp=True)
         stuffing = [r for r in chain.reductions
                     if type(r).__name__ == 'ConeMatrixStuffing'][0]
         self.assertEqual(stuffing.canon_backend, s.DIFFENGINE_CANON_BACKEND)
+        cached = problem._cache.param_prog
+        self.assertIsInstance(cached, DiffengineConeProgram)
 
-        # Re-solve with a new A; the program must serve fresh values.
+        # Re-solve with a new A; the cached program must serve fresh values.
         A.value = 2.0 * np.eye(2)
         problem.solve(solver=cp.CLARABEL, ignore_dpp=True)
+        self.assertIs(problem._cache.param_prog, cached)
         np.testing.assert_array_almost_equal(x.value, np.array([0.5, 0.5]), decimal=4)
 
     def test_composite_param_in_constraint_refreshes(self) -> None:

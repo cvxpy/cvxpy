@@ -222,20 +222,20 @@ def _build_solving_chain(
         if not ignore_dpp:
             warn(DPP_ERROR_MSG)
         if problem.parameters():
-            # Both branches below rebuild the parametric program on every
-            # solve. Caching the symbolic DIFFENGINE program across solves is
-            # a follow-up (it needs a record-at-site guard for the one
-            # value-consuming canonicalizer, the cone quad_form canon).
-            uncached_param_prog = True
             if problem._max_ndim() > 2:
                 # The diff engine is 2-D only: bake parameters to constants
                 # and let the tensor machinery handle the N-D (SCIPY)
-                # fallback, preserving the pre-DIFFENGINE semantics.
+                # fallback, preserving the pre-DIFFENGINE semantics. Baked
+                # values embed the current parameters, so the program must
+                # be rebuilt on every solve.
+                uncached_param_prog = True
                 reductions = [EvalParams()] + reductions
             else:
-                # Parameters stay symbolic and re-evaluate each solve.
-                # Non-affine parametric constants fold to CallbackParam
-                # leaves so Dcp2Cone never epigraph-relaxes them unsoundly.
+                # Parameters stay symbolic and re-evaluate each solve, so
+                # the parametric program is cacheable (see safe_to_cache in
+                # problem.py). Non-affine parametric constants fold to
+                # CallbackParam leaves so Dcp2Cone never epigraph-relaxes
+                # them unsoundly.
                 reductions = [CallbackParamFold()] + reductions
                 if (canon_backend is not None
                         and canon_backend != DIFFENGINE_CANON_BACKEND):
@@ -533,10 +533,9 @@ class SolvingChain(Chain):
             raise ValueError("Solving chains must terminate with a Solver.")
         self.solver = self.reductions[-1]
         self.solver_context = solver_context
-        # True when the compiled parametric program must be rebuilt on every
-        # solve: the chain bakes current parameter values into constants (the
-        # N-D EvalParams fallback), or it takes the symbolic non-DPP /
-        # ignore_dpp path, which does not yet support cached re-solves.
+        # True when the chain bakes current parameter values into constants
+        # (the N-D EvalParams fallback); per-apply baking inside Dcp2Cone is
+        # reported separately via InverseData.param_quad_form_factorized.
         self.uncached_param_prog = uncached_param_prog
 
     def prepend(self, chain) -> "SolvingChain":

@@ -140,7 +140,7 @@ The fix is a pre-canonicalization rewrite, `CallbackParamFold`
 chain: each maximal variable-free parametric subtree that is NOT parameter-affine
 (`power(t, 2)`, `floor(t)`, raw `log_det(P)`) becomes a `CallbackParam` leaf evaluating
 the subtree on each access. A parameter leaf cannot be mis-canonicalized, and its value
-refreshes between solves. Parameter-affine subtrees
+refreshes between solves, so cached programs stay correct. Parameter-affine subtrees
 (a bare `Parameter`, `2 * p + A`) stay symbolic for the backend. The DPP path is
 untouched — DCP analysis with params-affine vets every position there, so its graph
 implementations are sound and the tensor backends get the canonicalized forms they need
@@ -149,15 +149,26 @@ reformulation).
 
 ### Caching on this path
 
-Not yet. The parametric non-DPP / `ignore_dpp` program is deliberately **rebuilt on
-every solve** (`SolvingChain.uncached_param_prog` marks both the symbolic ≤2-D branch
-and the N-D `EvalParams` fallback; `safe_to_cache` in `cvxpy/problems/problem.py`
-consumes the flag). Everything on this path is *structured* for caching — parameters
-stay symbolic, folds refresh per solve — but enabling it requires a record-at-site
-guard for the one value-consuming canonicalizer (the cone quad_form canon factorizes
-the current `P.value` via `decomp_quad`), which lands in a follow-up PR together with
-the cache-hygiene tests. The explicit-`DIFFENGINE` DPP path (see "Where this lives in
-the code") already caches, as DPP always has.
+The compiled `DiffengineConeProgram` is **cached across solves** for parametric
+non-DPP / `ignore_dpp` (≤2-D) problems; `apply_parameters` refreshes values through the
+cached program. `safe_to_cache` in `cvxpy/problems/problem.py` disables caching in exactly
+two recorded cases:
+
+1. `SolvingChain.uncached_param_prog` — the N-D `EvalParams` fallback (baked values must
+   refresh via re-canonicalization);
+2. `InverseData.param_quad_form_factorized` — set by `Dcp2Cone` when the cone quad_form canon
+   fires with parametric `P` (`decomp_quad(P.value)`, the only value-consuming
+   canonicalizer per the exhaustive audit).
+
+What made everything else cacheable: the quad-path `quad_over_lin` denominator was
+already symbolic (`eye/y`); a SparseDiffEngine fix propagates
+`needs_parameter_refresh` into composite `param_source` subtrees (they previously
+served stale values on re-use); the engine now owns registered parameter nodes
+(a node referenced only by the registration list used to dangle); and non-affine
+variable-free parametric subtrees fold to **`CallbackParam` leaves** before
+canonicalization, flowing through the standard parameter plumbing and re-evaluated from
+current `Parameter` values on every solve, instead of baked constants. DQCP bisection
+subproblems (`floor(t)`) now cache across iterations.
 
 ### QP solvers and the numpy remedy
 
