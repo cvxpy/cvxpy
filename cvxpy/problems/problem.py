@@ -786,10 +786,12 @@ class Problem(u.Canonical):
             When True, DPP problems will be treated as non-DPP,
             which may speed up compilation. Defaults to False.
         canon_backend : str, optional
-            'CPP' (default) | 'SCIPY'
+            'CPP' (default) | 'SCIPY' | 'COO' | 'DIFFENGINE'
             Specifies which backend to use for canonicalization, which can affect
             compilation time. Defaults to None, i.e., selecting the default
-            backend.
+            backend. The DIFFENGINE backend keeps parameters symbolic and
+            re-evaluates them on each solve; it requires expressions of
+            dimension at most 2.
         verbose : bool, optional
             If True, print verbose output related to problem compilation.
         solver_opts : dict, optional
@@ -928,10 +930,12 @@ class Problem(u.Canonical):
             When True, DPP problems will be treated as non-DPP,
             which may speed up compilation. Defaults to False.
         canon_backend : str, optional
-            'CPP' (default) | 'SCIPY'
+            'CPP' (default) | 'SCIPY' | 'COO' | 'DIFFENGINE'
             Specifies which backend to use for canonicalization, which can affect
             compilation time. Defaults to None, i.e., selecting the default
-            backend.
+            backend. The DIFFENGINE backend keeps parameters symbolic and
+            re-evaluates them on each solve; it requires expressions of
+            dimension at most 2.
         solver_opts: dict, optional
             Additional arguments to pass to the solver.
 
@@ -998,10 +1002,12 @@ class Problem(u.Canonical):
             When True, DPP problems will be treated as non-DPP,
             which may speed up compilation. Defaults to False.
         canon_backend : str, optional
-            'CPP' (default) | 'SCIPY'
+            'CPP' (default) | 'SCIPY' | 'COO' | 'DIFFENGINE'
             Specifies which backend to use for canonicalization, which can affect
             compilation time. Defaults to None, i.e., selecting the default
-            backend.
+            backend. The DIFFENGINE backend keeps parameters symbolic and
+            re-evaluates them on each solve; it requires expressions of
+            dimension at most 2.
         kwargs : dict, optional
             A dict of options that will be passed to the specific solver.
             In general, these options will override any default settings

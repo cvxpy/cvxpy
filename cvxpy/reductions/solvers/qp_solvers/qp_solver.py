@@ -20,8 +20,8 @@ import scipy.sparse as sp
 import cvxpy.settings as s
 from cvxpy.constraints import NonNeg, Zero
 from cvxpy.error import SolverError
+from cvxpy.problems.param_prob import ParamProb
 from cvxpy.reductions.cvx_attr2constr import convex_attributes
-from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ParamConeProg
 from cvxpy.reductions.solvers.solver import Solver
 
 
@@ -73,7 +73,7 @@ class QpSolver(Solver):
         return True
 
     def accepts(self, problem):
-        return (isinstance(problem, ParamConeProg)
+        return (isinstance(problem, ParamProb)
                 and (self.MIP_CAPABLE or not problem.is_mixed_integer())
                 and not convex_attributes([problem.x])
                 and (len(problem.constraints) > 0 or not self.REQUIRES_CONSTR)
