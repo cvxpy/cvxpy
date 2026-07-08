@@ -210,7 +210,9 @@ class Constraint(u.Canonical):
         """The numeric violation of the constraint.
 
         For nonspectral constraints, the violation is the infinity norm of
-        the constraint residual.
+        the constraint residual. Spectral constraints may return scalar
+        operator-norm residuals directly, which are unchanged by this scalar
+        reduction.
 
         Returns
         -------
@@ -225,7 +227,7 @@ class Constraint(u.Canonical):
         """
         residual = self.residual
         if residual is None:
-            raise ValueError("Cannot compute the violation of an constraint "
+            raise ValueError("Cannot compute the violation of a constraint "
                              "whose expression is None-valued.")
         residual_arr = np.asarray(residual)
         if residual_arr.size == 0:
