@@ -10,6 +10,7 @@ from cvxpy.constraints import (
     SOC,
     FiniteSet,
 )
+from cvxpy.cvxcore.python import canonInterface
 from cvxpy.error import DPPError, SolverError
 from cvxpy.problems.objective import Maximize
 from cvxpy.problems.problem_form import ProblemForm, make_problem_form, pick_default_solver
@@ -31,11 +32,16 @@ from cvxpy.reductions.discrete2mixedint.valinvec2mixedint import (
 from cvxpy.reductions.eliminate_zero_sized import EliminateZeroSized
 from cvxpy.reductions.eval_params import EvalParams
 from cvxpy.reductions.flip_objective import FlipObjective
+from cvxpy.reductions.fold_callback_params import CallbackParamFold
 from cvxpy.reductions.solvers import defines as slv_def
 from cvxpy.reductions.solvers.constant_solver import ConstantSolver
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
 from cvxpy.reductions.solvers.solver import Solver, expand_cones
-from cvxpy.settings import COO_CANON_BACKEND, DPP_PARAM_THRESHOLD
+from cvxpy.settings import (
+    COO_CANON_BACKEND,
+    DIFFENGINE_CANON_BACKEND,
+    DPP_PARAM_THRESHOLD,
+)
 from cvxpy.utilities.solver_context import SolverInfo
 from cvxpy.utilities.warn import warn
 
@@ -120,7 +126,7 @@ def _build_solving_chain(
        *solver_instance* and *problem_form* (MIP-aware constraint set).
     2. **Pre-canonicalization reductions** — rewrites that depend only on
        *problem* and *gp* (complex→real, DGP→DCP, flip-objective,
-       finite-set, DPP / EvalParams).
+       finite-set).
     3. **Canonicalization reductions** — determined by *problem_form*
        (required cones, quadratic objective) and *solver_context*
        (supported constraints, bounds, SOC-dim-3).
@@ -141,7 +147,12 @@ def _build_solving_chain(
     ignore_dpp : bool
         When True, treat DPP problems as non-DPP.
     canon_backend : str, optional
-        Canonicalization backend ('CPP', 'SCIPY', or 'COO').
+        Canonicalization backend ('CPP', 'SCIPY', 'COO', or 'DIFFENGINE').
+        The ignore_dpp / non-DPP path uses 'DIFFENGINE'
+        (parameters stay symbolic and are re-evaluated each solve); passing a
+        different backend there raises ValueError for parametric problems and
+        is honored for parameter-free ones. Parametric N-D (>2-D) problems
+        bake parameters to constants (EvalParams) and use the tensor backends.
     solver_opts : dict, optional
         Solver-specific options.
 
@@ -196,17 +207,64 @@ def _build_solving_chain(
     # so parametric P in constraints is NOT DPP-safe for the QP path.
     quad_form_dpp = 'qp' if solver_instance.supports_quad_obj() else None
     is_dpp = problem.is_dpp(dpp_context, quad_form_dpp=quad_form_dpp)
+
+    if canon_backend == DIFFENGINE_CANON_BACKEND and problem._max_ndim() > 2:
+        # Mirror the explicit-CPP treatment of N-D problems: the diff engine
+        # represents all expressions as 2-D matrices.
+        raise ValueError(
+            f"The {DIFFENGINE_CANON_BACKEND} backend cannot be used with "
+            "problems that have expressions of dimension greater than 2.")
+
+    uncached_param_prog = False
     if ignore_dpp or not is_dpp:
         if not ignore_dpp and enforce_dpp:
             raise DPPError(DPP_ERROR_MSG)
         if not ignore_dpp:
             warn(DPP_ERROR_MSG)
-        reductions = [EvalParams()] + reductions
+        if problem.parameters():
+            # Both branches below rebuild the parametric program on every
+            # solve. Caching the symbolic DIFFENGINE program across solves is
+            # a follow-up (it needs a record-at-site guard for the one
+            # value-consuming canonicalizer, the cone quad_form canon).
+            uncached_param_prog = True
+            if problem._max_ndim() > 2:
+                # The diff engine is 2-D only: bake parameters to constants
+                # and let the tensor machinery handle the N-D (SCIPY)
+                # fallback, preserving the pre-DIFFENGINE semantics.
+                reductions = [EvalParams()] + reductions
+            else:
+                # Parameters stay symbolic and re-evaluate each solve.
+                # Non-affine parametric constants fold to CallbackParam
+                # leaves so Dcp2Cone never epigraph-relaxes them unsoundly.
+                reductions = [CallbackParamFold()] + reductions
+                if (canon_backend is not None
+                        and canon_backend != DIFFENGINE_CANON_BACKEND):
+                    raise ValueError(
+                        f"canon_backend='{canon_backend}' cannot be used for "
+                        "a parametrized problem that is not DPP (or is solved "
+                        "with ignore_dpp=True); this path requires the "
+                        f"{DIFFENGINE_CANON_BACKEND} backend, which keeps "
+                        "parameters symbolic and re-evaluates them on each "
+                        "solve. Omit canon_backend, or replace the parameters "
+                        "with constants.")
+                canon_backend = DIFFENGINE_CANON_BACKEND
+        elif canon_backend is None and problem._max_ndim() <= 2:
+            # Parameter-free: ignore_dpp is a no-op; default to DIFFENGINE
+            # for consistency. Explicit backends are honored; N-D problems
+            # fall through to the normal tensor-backend selection.
+            canon_backend = DIFFENGINE_CANON_BACKEND
     else:
         if canon_backend is None:
-            total_param_size = sum(p.size for p in problem.parameters())
-            if total_param_size >= DPP_PARAM_THRESHOLD:
-                canon_backend = COO_CANON_BACKEND
+            # DIFFENGINE dispatch lives in ConeMatrixStuffing, before the
+            # tensor pipeline consumes the env var, so resolve it here.
+            # N-D problems fall through to the normal (SCIPY-fallback) selection.
+            if (canonInterface.get_default_canon_backend() == DIFFENGINE_CANON_BACKEND
+                    and problem._max_ndim() <= 2):
+                canon_backend = DIFFENGINE_CANON_BACKEND
+            else:
+                total_param_size = sum(p.size for p in problem.parameters())
+                if total_param_size >= DPP_PARAM_THRESHOLD:
+                    canon_backend = COO_CANON_BACKEND
 
     # --- Canonicalization reductions (problem_form + solver_context) ---
     use_quad = True if solver_opts is None else solver_opts.get('use_quad_obj', True)
@@ -238,7 +296,8 @@ def _build_solving_chain(
         ConeMatrixStuffing(quad_obj=quad_obj, canon_backend=canon_backend),
         solver_instance,
     ]
-    return SolvingChain(reductions=reductions, solver_context=solver_context)
+    return SolvingChain(reductions=reductions, solver_context=solver_context,
+                        uncached_param_prog=uncached_param_prog)
 
 
 def _resolve_solver(
@@ -395,7 +454,7 @@ def resolve_and_build_chain(
         If no suitable solver is found or the specified solver cannot handle
         the problem.
     """
-    problem_form = make_problem_form(problem, gp, ignore_dpp)
+    problem_form = make_problem_form(problem, gp)
     solver_instance = _resolve_solver(solver, problem_form, gp)
     return _build_solving_chain(
         problem,
@@ -466,20 +525,27 @@ class SolvingChain(Chain):
         The solver, i.e., reductions[-1].
     """
 
-    def __init__(self, problem=None, reductions=None, solver_context=None) -> None:
+    def __init__(self, problem=None, reductions=None, solver_context=None,
+                 uncached_param_prog: bool = False) -> None:
         super(SolvingChain, self).__init__(problem=problem,
                                            reductions=reductions)
         if not isinstance(self.reductions[-1], Solver):
             raise ValueError("Solving chains must terminate with a Solver.")
         self.solver = self.reductions[-1]
         self.solver_context = solver_context
+        # True when the compiled parametric program must be rebuilt on every
+        # solve: the chain bakes current parameter values into constants (the
+        # N-D EvalParams fallback), or it takes the symbolic non-DPP /
+        # ignore_dpp path, which does not yet support cached re-solves.
+        self.uncached_param_prog = uncached_param_prog
 
     def prepend(self, chain) -> "SolvingChain":
         """
         Create and return a new SolvingChain by concatenating
         chain with this instance.
         """
-        return SolvingChain(reductions=chain.reductions + self.reductions)
+        return SolvingChain(reductions=chain.reductions + self.reductions,
+                            uncached_param_prog=self.uncached_param_prog)
 
     def solve(self, problem, warm_start: bool, verbose: bool, solver_opts):
         """Solves the problem by applying the chain.
