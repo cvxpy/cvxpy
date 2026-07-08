@@ -280,7 +280,8 @@ def convert_expr(expr, var_dict, n_vars, param_dict=None):
         C_expr = ATOM_CONVERTERS[atom_name](expr, children)
     else:
         # Variable-free parametric subtrees with no converter fail loud
-        # rather than baking a stale value.
+        # rather than baking a stale value; the conic ignore_dpp chain folds
+        # them to CallbackParam leaves before they can get here.
         raise NotImplementedError(f"Atom '{atom_name}' not supported")
 
     # check that python dimension is consistent with C dimension
