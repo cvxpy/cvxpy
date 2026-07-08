@@ -219,9 +219,12 @@ class Dcp2Cone(Canonicalization):
         A tuple of the canonicalized expression and generated constraints.
         """
         # Constant trees are collapsed, but parameter trees are preserved.
-        if isinstance(expr, Expression) and (
-                expr.is_constant() and not expr.parameters()):
-            return expr, []
+        # Canonicalizing parametric constants is sound here: chains where it
+        # would not be fold them to CallbackParam leaves first (see
+        # CallbackParamFold).
+        if isinstance(expr, Expression) and expr.is_constant():
+            if not expr.parameters():
+                return expr, []
 
         if self.quad_obj and affine_above and type(expr) in self.quad_canon_methods:
             # Special case for power.

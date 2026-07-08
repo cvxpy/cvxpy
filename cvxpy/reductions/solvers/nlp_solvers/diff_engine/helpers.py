@@ -98,6 +98,8 @@ def build_param_dict(parameters, inverse_data):
     """Build {param_id: C parameter capsule} mapping from InverseData.
 
     `parameters` is an iterable of `cvxpy.Parameter` (e.g. `problem.parameters()`).
+    CallbackParam entries read their subtree's current value here like any
+    other parameter (see CallbackParamFold).
     """
     n_vars = inverse_data.x_length
     params_by_id = {p.id: p for p in parameters}

@@ -19,14 +19,13 @@ import pytest
 
 import cvxpy as cp
 from cvxpy.reductions.complex2real.complex2real import Complex2Real
-from cvxpy.reductions.eval_params import EvalParams
 
 
 class TestComplexDPP:
     """Tests for DPP (Disciplined Parameterized Programming) with complex parameters."""
 
     def test_dpp_recognition_and_chain(self):
-        """Complex parameter problems are DPP and don't use EvalParams."""
+        """Complex parameter problems are DPP and keep parameters symbolic."""
         p = cp.Parameter(complex=True)
         x = cp.Variable()
         prob = cp.Problem(cp.Minimize(cp.abs(x - cp.real(p))))
@@ -38,12 +37,13 @@ class TestComplexDPP:
         data, _, _ = prob.get_problem_data(cp.CLARABEL)
         assert data is not None
 
-        # After solve, chain should use Complex2Real but not EvalParams
+        # After solve, chain should use Complex2Real; no reduction bakes params
         p.value = np.array(1 + 2j)
         prob.solve()
-        reduction_types = [type(r) for r in prob._cache.solving_chain.reductions]
-        assert EvalParams not in reduction_types
-        assert Complex2Real in reduction_types
+        reduction_names = [type(r).__name__
+                           for r in prob._cache.solving_chain.reductions]
+        assert 'EvalParams' not in reduction_names
+        assert Complex2Real in [type(r) for r in prob._cache.solving_chain.reductions]
 
     @pytest.mark.parametrize("shape,param_val,expected", [
         ((), 3 + 4j, 3.0),  # scalar
@@ -123,12 +123,10 @@ class TestComplexDPP:
         assert np.isclose(x.value, 3.0, atol=1e-4)
         assert np.isclose(prob.value, 4.0, atol=1e-4)
 
-    @pytest.mark.parametrize("flag,should_have_eval_params", [
-        ("enforce_dpp", False),
-        ("ignore_dpp", True),
-    ])
-    def test_dpp_flags(self, flag, should_have_eval_params):
-        """enforce_dpp=True succeeds; ignore_dpp=True uses EvalParams."""
+    @pytest.mark.parametrize("flag", ["enforce_dpp", "ignore_dpp"])
+    def test_dpp_flags(self, flag):
+        """enforce_dpp=True succeeds; ignore_dpp=True keeps parameters
+        symbolic (DIFFENGINE backend) and refreshes them across solves."""
         p = cp.Parameter(complex=True)
         x = cp.Variable()
         prob = cp.Problem(cp.Minimize(x), [x >= cp.real(p)])
@@ -140,8 +138,15 @@ class TestComplexDPP:
             prob.solve(ignore_dpp=True)
 
         assert np.isclose(x.value, 1.0, atol=1e-4)
-        reduction_types = [type(r) for r in prob._cache.solving_chain.reductions]
-        assert (EvalParams in reduction_types) == should_have_eval_params
+        reduction_names = [type(r).__name__
+                           for r in prob._cache.solving_chain.reductions]
+        assert 'EvalParams' not in reduction_names
+        assert 'FoldVariableFreeParams' not in reduction_names
+
+        if flag == "ignore_dpp":
+            p.value = np.array(4 - 1j)
+            prob.solve(ignore_dpp=True)
+            assert np.isclose(x.value, 4.0, atol=1e-4)
 
     @pytest.mark.parametrize("n", [1, 2, 3])
     def test_hermitian_param_dpp(self, n):
