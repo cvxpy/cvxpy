@@ -10,6 +10,7 @@ from cvxpy.constraints import (
     SOC,
     FiniteSet,
 )
+from cvxpy.cvxcore.python import canonInterface
 from cvxpy.error import DPPError, SolverError
 from cvxpy.problems.objective import Maximize
 from cvxpy.problems.problem_form import ProblemForm, make_problem_form, pick_default_solver
@@ -35,7 +36,11 @@ from cvxpy.reductions.solvers import defines as slv_def
 from cvxpy.reductions.solvers.constant_solver import ConstantSolver
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
 from cvxpy.reductions.solvers.solver import Solver, expand_cones
-from cvxpy.settings import COO_CANON_BACKEND, DPP_PARAM_THRESHOLD
+from cvxpy.settings import (
+    COO_CANON_BACKEND,
+    DIFFENGINE_CANON_BACKEND,
+    DPP_PARAM_THRESHOLD,
+)
 from cvxpy.utilities.solver_context import SolverInfo
 from cvxpy.utilities.warn import warn
 
@@ -141,7 +146,10 @@ def _build_solving_chain(
     ignore_dpp : bool
         When True, treat DPP problems as non-DPP.
     canon_backend : str, optional
-        Canonicalization backend ('CPP', 'SCIPY', or 'COO').
+        Canonicalization backend ('CPP', 'SCIPY', 'COO', or 'DIFFENGINE').
+        'DIFFENGINE' builds the problem matrices directly from the expression
+        trees via the C diff engine, keeping parameters symbolic; it requires
+        expressions of dimension at most 2.
     solver_opts : dict, optional
         Solver-specific options.
 
@@ -196,6 +204,14 @@ def _build_solving_chain(
     # so parametric P in constraints is NOT DPP-safe for the QP path.
     quad_form_dpp = 'qp' if solver_instance.supports_quad_obj() else None
     is_dpp = problem.is_dpp(dpp_context, quad_form_dpp=quad_form_dpp)
+
+    if canon_backend == DIFFENGINE_CANON_BACKEND and problem._max_ndim() > 2:
+        # Mirror the explicit-CPP treatment of N-D problems: the diff engine
+        # represents all expressions as 2-D matrices.
+        raise ValueError(
+            f"The {DIFFENGINE_CANON_BACKEND} backend cannot be used with "
+            "problems that have expressions of dimension greater than 2.")
+
     if ignore_dpp or not is_dpp:
         if not ignore_dpp and enforce_dpp:
             raise DPPError(DPP_ERROR_MSG)
@@ -204,9 +220,16 @@ def _build_solving_chain(
         reductions = [EvalParams()] + reductions
     else:
         if canon_backend is None:
-            total_param_size = sum(p.size for p in problem.parameters())
-            if total_param_size >= DPP_PARAM_THRESHOLD:
-                canon_backend = COO_CANON_BACKEND
+            # DIFFENGINE dispatch lives in ConeMatrixStuffing, before the
+            # tensor pipeline consumes the env var, so resolve it here.
+            # N-D problems fall through to the normal (SCIPY-fallback) selection.
+            if (canonInterface.get_default_canon_backend() == DIFFENGINE_CANON_BACKEND
+                    and problem._max_ndim() <= 2):
+                canon_backend = DIFFENGINE_CANON_BACKEND
+            else:
+                total_param_size = sum(p.size for p in problem.parameters())
+                if total_param_size >= DPP_PARAM_THRESHOLD:
+                    canon_backend = COO_CANON_BACKEND
 
     # --- Canonicalization reductions (problem_form + solver_context) ---
     use_quad = True if solver_opts is None else solver_opts.get('use_quad_obj', True)

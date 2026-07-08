@@ -46,22 +46,60 @@ def convert_conv(expr, children):
     return _diffengine.make_convolve(children[0], children[1])
 
 
-def convert_div(expr, children):
-    """Convert x / c by multiplying x by the elementwise reciprocal of c.
+def convert_kron(expr, children):
+    """Convert cp.kron(A, B); the variable-free operand (kron requires one) is
+    re-evaluated each solve, so it may be parametric.
 
-    Matches coo_backend.div: parametrized divisors are rejected and any
-    zero entry in the divisor raises explicitly.
+    The engine materializes output rows only for the ``active`` blocks: the
+    variable-free operand's structurally nonzero entries (column-major flat
+    indices). A parametric operand gets all blocks since its values change."""
+    a, b = expr.args
+    const_is_left = a.is_constant()
+    const_expr = a if const_is_left else b
+    const_node = children[0] if const_is_left else children[1]
+    var_node = children[1] if const_is_left else children[0]
+    p, q = normalize_shape(a.shape)
+    r, s = normalize_shape(b.shape)
+    n_rows = p if const_is_left else r
+
+    if const_expr.parameters():
+        active = np.arange(const_expr.size, dtype=np.int32)
+    else:
+        val = const_expr.value
+        if sparse.issparse(val):
+            coo = val.tocoo()
+            mask = coo.data != 0  # drop stored-but-zero entries
+            active = np.unique(coo.row[mask] + coo.col[mask] * n_rows)
+            active = active.astype(np.int32)
+        else:
+            flat = np.asarray(val, dtype=np.float64).flatten(order="F")
+            active = np.flatnonzero(flat).astype(np.int32)
+
+    if const_is_left:
+        return _diffengine.make_left_kron(const_node, var_node, p, q, r, s, active)
+    return _diffengine.make_right_kron(const_node, var_node, p, q, r, s, active)
+
+
+def convert_div(expr, children):
+    """Convert x / d by multiplying x by the elementwise reciprocal of d.
+
+    A constant divisor bakes ``1/d`` into a parameter node (rejecting zero
+    entries, matching coo_backend.div); a parametric divisor uses a
+    ``make_power(d, -1)`` node the engine re-evaluates each solve.
     """
     divisor_expr = expr.args[1]
     if divisor_expr.parameters():
-        raise NotImplementedError("div doesn't support parametrized divisor")
-    divisor = to_dense_float(divisor_expr.value)
-    if np.any(divisor == 0):
-        raise ValueError("Division by zero encountered in divisor")
-    recip = 1.0 / divisor
-    d1, d2 = normalize_shape(recip.shape)
-    recip_node = _diffengine.make_parameter(d1, d2, -1, 0, recip.flatten(order='F'))
-    if recip.size == 1:
+        recip_node = _diffengine.make_power(children[1], -1.0)
+        size = divisor_expr.size
+    else:
+        divisor = to_dense_float(divisor_expr.value)
+        if np.any(divisor == 0):
+            raise ValueError("Division by zero encountered in divisor")
+        recip = 1.0 / divisor
+        d1, d2 = normalize_shape(recip.shape)
+        recip_node = _diffengine.make_parameter(d1, d2, -1, 0, recip.flatten(order='F'))
+        size = recip.size
+    if size == 1:
         return _diffengine.make_param_scalar_mult(recip_node, children[0])
     return _diffengine.make_param_vector_mult(recip_node, children[0])
 
@@ -230,23 +268,47 @@ def convert_trace(_expr, children):
     return _diffengine.make_trace(children[0])
 
 def convert_diag_vec(expr, children):
-    # C implementation only supports k=0 (main diagonal)
-    # TODO add support for diag vec with k
-    if expr.k != 0:
-        raise NotImplementedError("diag_vec with k != 0 not supported in diff engine")
-    return _diffengine.make_diag_vec(children[0])
+    """Convert diag_vec: place a vector on the k-th diagonal of a matrix.
+
+    The native make_diag_vec is main-diagonal only; an offset diagonal is
+    ``U @ diag(x) @ V`` with sparse selector matrices U, V (O(n) nonzeros).
+    """
+    node = _diffengine.make_diag_vec(children[0])
+    k = expr.k
+    if k == 0:
+        return node
+    from cvxpy.reductions.solvers.nlp_solvers.diff_engine.helpers import (
+        make_sparse_left_matmul,
+        make_sparse_right_matmul,
+    )
+    n = expr.args[0].size
+    m = n + abs(k)
+    rows = np.arange(n)
+    U = sparse.csr_array(
+        (np.ones(n), (rows + max(-k, 0), rows)), shape=(m, n))
+    V = sparse.csr_array(
+        (np.ones(n), (rows, rows + max(k, 0))), shape=(n, m))
+    return make_sparse_right_matmul(
+        None, make_sparse_left_matmul(None, node, U), V)
 
 
 def convert_diag_mat(expr, children):
-    """Convert diag_mat: extract diagonal from square matrix."""
-    if expr.k != 0:
-        raise NotImplementedError("diag_mat with k != 0 not supported in diff engine")
-    node = _diffengine.make_diag_mat(children[0])
-    # C produces (n, 1) but CVXPY shape is (n,) which normalizes to (1, n)
-    # TODO add support for producing (1, n) directly in C and remove this reshape
-    # TODO also raise error that the k should be zero, since that's the only supported case
-    n = expr.args[0].shape[0]
-    return _diffengine.make_reshape(node, 1, n)
+    """Convert diag_mat: extract the k-th diagonal from a square matrix.
+
+    The main diagonal uses the native make_diag_mat; an offset diagonal is a
+    make_index gather over the column-major flattened matrix.
+    """
+    n_rows = expr.args[0].shape[0]
+    if expr.k == 0:
+        node = _diffengine.make_diag_mat(children[0])
+        # C produces (n, 1) but CVXPY shape is (n,) which normalizes to (1, n)
+        # TODO add support for producing (1, n) directly in C and remove this reshape
+        return _diffengine.make_reshape(node, 1, n_rows)
+    k = expr.k
+    length = expr.shape[0]
+    i = np.arange(length)
+    idxs = ((i + max(-k, 0)) + (i + max(k, 0)) * n_rows).astype(np.int32)
+    return _diffengine.make_index(children[0], 1, length, idxs)
 
 
 def convert_upper_tri(_expr, children):
@@ -311,6 +373,8 @@ ATOM_CONVERTERS = {
     # 1D full convolution
     "conv": convert_conv,
     "convolve": convert_conv,
+    # Kronecker product
+    "kron": convert_kron,
     "Trace": convert_trace,
     # Diagonal and triangular
     "diag_vec": convert_diag_vec,

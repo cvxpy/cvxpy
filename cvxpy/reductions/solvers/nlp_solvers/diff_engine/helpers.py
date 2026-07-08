@@ -23,6 +23,11 @@ from sparsediffpy import _sparsediffengine as _diffengine
 def normalize_shape(shape):
     """Normalize shape to 2D (d1, d2) for the C engine."""
     shape = tuple(shape)
+    if len(shape) > 2:
+        raise NotImplementedError(
+            f">2-D expressions (shape {shape}) are not supported by the diff "
+            "engine; the engine represents all expressions as 2-D matrices."
+        )
     return (1,) * (2 - len(shape)) + shape
 
 
@@ -89,19 +94,20 @@ def build_var_dict(inverse_data):
     return var_dict, n_vars
 
 
-def build_param_dict(problem, inverse_data):
-    """Build {param_id: C parameter capsule} mapping from InverseData."""
+def build_param_dict(parameters, inverse_data):
+    """Build {param_id: C parameter capsule} mapping from InverseData.
+
+    `parameters` is an iterable of `cvxpy.Parameter` (e.g. `problem.parameters()`).
+    """
     n_vars = inverse_data.x_length
+    params_by_id = {p.id: p for p in parameters}
     param_dict = {}
     for param_id, offset in inverse_data.param_id_map.items():
         # this is needed to not get key errors with Constants.
         if param_id not in inverse_data.param_shapes:
             continue
         d1, d2 = normalize_shape(inverse_data.param_shapes[param_id])
-        # TODO this is a bit hacky, potentially we can just store the initial
-        # values in the InverseData, but we need to discuss with others.
-        param = next(p for p in problem.parameters() if p.id == param_id)
-        p = to_dense_float(param.value)
+        p = to_dense_float(params_by_id[param_id].value)
         param_dict[param_id] = _diffengine.make_parameter(
             d1, d2, offset, n_vars, p.flatten(order='F'))
     return param_dict
