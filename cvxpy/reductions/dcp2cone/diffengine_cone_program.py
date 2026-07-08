@@ -73,6 +73,11 @@ class DiffengineConeProgram(ParamProb):
         self.upper_bounds = upper_bounds
         self._restruct_mat = None
         self.parameters = list(parameters) if parameters else []
+        # Parameter vector the matrices were extracted at; lets
+        # apply_parameters skip re-extraction on unchanged values.
+        # Per-instance, not on the shared extractor: a restructured copy and
+        # its raw sibling can hold matrices from different parameter vectors.
+        self._extracted_param_vec = None
 
     @property
     def variables(self):
@@ -125,12 +130,21 @@ class DiffengineConeProgram(ParamProb):
             return self.q, self.d, self.A, self.b
 
         theta = self._param_vec(id_to_param_value)
+        if (self._extracted_param_vec is not None
+                and np.array_equal(theta, self._extracted_param_vec)
+                and (not quad_obj or self.P is not None)):
+            # Cached matrices already correspond to these parameter values.
+            if quad_obj:
+                return self.P, self.q, self.d, self.A, self.b
+            return self.q, self.d, self.A, self.b
+
         self.extractor.update_parameters(theta)
         q, d, A, b, P = self.extractor.extract(quad_obj)
         if self._restruct_mat is not None:
             A = self._restruct_mat @ A
             b = np.asarray(self._restruct_mat @ b).flatten()
         self.A, self.b, self.q, self.d, self.P = A, b, q, d, P
+        self._extracted_param_vec = theta
         if quad_obj:
             return P, q, d, A, b
         return q, d, A, b
@@ -171,6 +185,9 @@ class DiffengineConeProgram(ParamProb):
         )
         if R is not None:
             new_prog._restruct_mat = R
+        # The restructured matrices derive from this instance's, so they
+        # correspond to the same parameter vector.
+        new_prog._extracted_param_vec = self._extracted_param_vec
         return new_prog
 
     def split_solution(self, sltn, active_vars=None):
@@ -206,7 +223,12 @@ class DiffengineConeProgram(ParamProb):
         x = Variable(n_vars, boolean=boolean, integer=integer)
         lower_bounds = extract_lower_bounds(problem.variables(), n_vars)
         upper_bounds = extract_upper_bounds(problem.variables(), n_vars)
-        return cls(x, extractor, ordered_cons, inverse_data,
+        prog = cls(x, extractor, ordered_cons, inverse_data,
                    q, d, A, b, P,
                    lower_bounds=lower_bounds, upper_bounds=upper_bounds,
                    parameters=params)
+        if params:
+            # Record the values just extracted at, so the solver's
+            # apply_parameters in the same solve does not re-extract.
+            prog._extracted_param_vec = prog._param_vec()
+        return prog
