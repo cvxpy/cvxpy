@@ -5,6 +5,7 @@ import pytest
 
 import cvxpy as cp
 import cvxpy.error as error
+import cvxpy.settings as s
 from cvxpy.tests.base_test import BaseTest
 
 SOLVER = cp.CLARABEL
@@ -142,7 +143,7 @@ class TestDcp(BaseTest):
         x.value = 3
         self.assertAlmostEqual(problem.solve(cp.SCS), 6)
 
-    def test_chain_data_for_non_dpp_problem_evals_params(self) -> None:
+    def test_chain_data_for_non_dpp_problem_keeps_params_symbolic(self) -> None:
         x = cp.Parameter()
         x.value = 5
         y = cp.Variable()
@@ -151,17 +152,18 @@ class TestDcp(BaseTest):
             warnings.simplefilter('ignore')
             _, chain, _ = problem.get_problem_data(cp.SCS)
         self.assertFalse(problem.is_dpp())
-        self.assertTrue(cp.reductions.eval_params.EvalParams in
-                        [type(r) for r in chain.reductions])
+        stuffing = [r for r in chain.reductions
+                    if isinstance(r, cp.reductions.ConeMatrixStuffing)][0]
+        self.assertEqual(stuffing.canon_backend, s.DIFFENGINE_CANON_BACKEND)
 
-    def test_chain_data_for_dpp_problem_does_not_eval_params(self) -> None:
+    def test_chain_data_for_dpp_problem_is_pure(self) -> None:
         x = cp.Parameter()
         x.value = 5
         y = cp.Variable()
         problem = cp.Problem(cp.Minimize(x + y), [x == y])
         _, chain, _ = problem.get_problem_data(cp.SCS)
-        self.assertFalse(cp.reductions.eval_params.EvalParams
-                         in [type(r) for r in chain.reductions])
+        self.assertNotIn('EvalParams',
+                         [type(r).__name__ for r in chain.reductions])
 
     def test_paper_example_logreg_is_dpp(self) -> None:
         N, n = 3, 2
@@ -370,11 +372,16 @@ class TestDcp(BaseTest):
         self.assertEqual(solver_name, cp.SCS)
 
     def test_log_det_with_parameter_ignore_dpp(self) -> None:
-        """Test log_det with parameter works with ignore_dpp=True.
+        """log_det(P) is not baked to a number with ignore_dpp=True.
 
-        With ignore_dpp=True, EvalParams runs first and evaluates log_det(P)
-        to a constant, so the problem becomes a true QP that OSQP can handle.
+        The variable-free composite folds to a CallbackParam leaf
+        (see CallbackParamFold), so the compiled parametric program is
+        cached and its value tracks the current P.value on every solve
+        instead of freezing at compile time.
         """
+        from cvxpy.reductions.dcp2cone.diffengine_cone_program import (
+            DiffengineConeProgram,
+        )
         n = 2
         x = cp.Variable(n, nonneg=True)
         y = cp.Variable(n, nonneg=True)
@@ -384,17 +391,121 @@ class TestDcp(BaseTest):
         objective = cp.sum_squares(x + y) - 2 * cp.log_det(P)
         problem = cp.Problem(cp.Minimize(objective))
 
-        # With ignore_dpp=True, should route to QP solver (EvalParams runs first)
-        problem.solve(solver=cp.OSQP, ignore_dpp=True)
+        problem.solve(solver=cp.CLARABEL, ignore_dpp=True)
         self.assertEqual(problem.status, cp.OPTIMAL)
         self.assertAlmostEqual(problem.value, 0.0, places=4)
-        np.testing.assert_array_almost_equal(x.value, np.zeros(n), decimal=4)
-        np.testing.assert_array_almost_equal(y.value, np.zeros(n), decimal=4)
+        cached = problem._cache.param_prog
+        self.assertIsInstance(cached, DiffengineConeProgram)
 
-        # Verify EvalParams is in the chain
-        _, chain, _ = problem.get_problem_data(cp.OSQP, ignore_dpp=True)
-        reduction_types = [type(r).__name__ for r in chain.reductions]
-        self.assertIn('EvalParams', reduction_types)
+        # Re-solve with a new P: the cached program must serve fresh values.
+        P.value = 2 * np.eye(n)
+        problem.solve(solver=cp.CLARABEL, ignore_dpp=True)
+        self.assertIs(problem._cache.param_prog, cached)
+        self.assertAlmostEqual(problem.value, -2 * np.log(4.0), places=4)
+
+    def test_log_det_with_parameter_ignore_dpp_qp_solver_raises(self) -> None:
+        """log_det(P) emits cones even under ignore_dpp, so a QP solver
+        refuses the problem; the remedy is evaluating the term numerically."""
+        n = 2
+        x = cp.Variable(n, nonneg=True)
+        y = cp.Variable(n, nonneg=True)
+        P = cp.Parameter((n, n))
+        P.value = np.eye(n)
+
+        problem = cp.Problem(
+            cp.Minimize(cp.sum_squares(x + y) - 2 * cp.log_det(P)))
+        with self.assertRaises(error.SolverError):
+            problem.solve(solver=cp.OSQP, ignore_dpp=True)
+
+        # The remedy: compute the log-det term yourself.
+        log_det_val = np.linalg.slogdet(P.value)[1]
+        qp = cp.Problem(
+            cp.Minimize(cp.sum_squares(x + y) - 2 * log_det_val))
+        qp.solve(solver=cp.OSQP, ignore_dpp=True)
+        self.assertEqual(qp.status, cp.OPTIMAL)
+        self.assertAlmostEqual(qp.value, 0.0, places=4)
+
+    def test_ignore_dpp_keeps_variable_coupled_param_symbolic(self) -> None:
+        """With ignore_dpp, a variable-coupled parameter stays symbolic and the
+        DIFFENGINE backend re-evaluates it across solves.
+
+        ``A`` appears in ``A @ x`` (variable-coupled) and stays symbolic.
+        Changing ``A.value`` between solves must change the solution,
+        confirming the diff engine re-evaluates the tree.
+        """
+        from cvxpy.reductions.dcp2cone.diffengine_cone_program import (
+            DiffengineConeProgram,
+        )
+        A = cp.Parameter((2, 2))
+        x = cp.Variable(2)
+        b = np.array([1.0, 1.0])
+        problem = cp.Problem(cp.Minimize(cp.sum_squares(A @ x - b)))
+
+        A.value = np.eye(2)
+        problem.solve(solver=cp.CLARABEL, ignore_dpp=True)
+        self.assertEqual(problem.status, cp.OPTIMAL)
+        np.testing.assert_array_almost_equal(x.value, np.array([1.0, 1.0]), decimal=4)
+
+        # The DIFFENGINE backend is used; parameters stay symbolic, so the
+        # compiled parametric program is cached and reused across solves.
+        _, chain, _ = problem.get_problem_data(cp.CLARABEL, ignore_dpp=True)
+        stuffing = [r for r in chain.reductions
+                    if type(r).__name__ == 'ConeMatrixStuffing'][0]
+        self.assertEqual(stuffing.canon_backend, s.DIFFENGINE_CANON_BACKEND)
+        cached = problem._cache.param_prog
+        self.assertIsInstance(cached, DiffengineConeProgram)
+
+        # Re-solve with a new A; the cached program must serve fresh values.
+        A.value = 2.0 * np.eye(2)
+        problem.solve(solver=cp.CLARABEL, ignore_dpp=True)
+        self.assertIs(problem._cache.param_prog, cached)
+        np.testing.assert_array_almost_equal(x.value, np.array([0.5, 0.5]), decimal=4)
+
+    def test_composite_param_in_constraint_refreshes(self) -> None:
+        """A variable-free composite inside a constraint (norm(p)) stays
+        symbolic: it emits an SOC cone, so a conic solver is required, and its
+        value must refresh on re-solves.
+        """
+        p = cp.Parameter(3)
+        x = cp.Variable()
+        problem = cp.Problem(cp.Minimize(cp.square(x)), [x >= cp.norm(p)])
+
+        p.value = np.array([3.0, 0.0, 4.0])
+        problem.solve(solver=cp.CLARABEL, ignore_dpp=True)
+        self.assertEqual(problem.status, cp.OPTIMAL)
+        self.assertAlmostEqual(x.value, 5.0, places=4)
+
+        p.value = np.array([0.0, 0.0, 0.5])
+        problem.solve(solver=cp.CLARABEL, ignore_dpp=True)
+        self.assertAlmostEqual(x.value, 0.5, places=4)
+
+        # norm(p) emits SOC even under ignore_dpp; OSQP has no cones.
+        with self.assertRaises(error.SolverError):
+            problem.solve(solver=cp.OSQP, ignore_dpp=True)
+
+    def test_mixed_subtree_stays_symbolic(self) -> None:
+        """One expression tree with both cases: ``p * x`` (variable-coupled)
+        and ``p + 1`` (variable-free composite). Both stay symbolic and must
+        track the current parameter value across re-solves: x* = (p + 1) / p.
+        """
+        p = cp.Parameter()
+        x = cp.Variable()
+        problem = cp.Problem(cp.Minimize(cp.square(p * x - (p + 1.0))))
+
+        for val in (1.0, 2.0):
+            p.value = val
+            problem.solve(solver=cp.CLARABEL, ignore_dpp=True)
+            self.assertEqual(problem.status, cp.OPTIMAL)
+            self.assertAlmostEqual(x.value, (val + 1.0) / val, places=4)
+
+    def test_unspecified_param_in_composite_raises(self) -> None:
+        """solve() rejects unset parameters up front (before compilation), so
+        nothing downstream ever sees a None value."""
+        p = cp.Parameter(2)  # no value assigned
+        x = cp.Variable()
+        problem = cp.Problem(cp.Minimize(cp.square(x) + cp.norm(p)))
+        with self.assertRaises(error.ParameterError):
+            problem.solve(solver=cp.CLARABEL, ignore_dpp=True)
 
 
 class TestDgp(BaseTest):
