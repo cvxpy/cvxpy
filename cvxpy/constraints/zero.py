@@ -78,7 +78,7 @@ class Zero(Constraint):
         """
         if self.expr.value is None:
             return None
-        return np.abs(self.expr.value)
+        return -self.expr.value
 
     @property
     def dual_residual(self):
@@ -169,7 +169,7 @@ class Equality(Constraint):
         """
         if self.expr.value is None:
             return None
-        return np.abs(self.expr.value)
+        return -self.expr.value
 
     @property
     def dual_residual(self):
