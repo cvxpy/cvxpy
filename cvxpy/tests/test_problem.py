@@ -2370,3 +2370,21 @@ class TestProblem(BaseTest):
         result = reduction.invert(sol, inv_data)
         assert result.dual_vars is None
 
+    def test_problem_violation_no_constraints(self):
+        prob = cp.Problem(cp.Minimize(0))
+        self.assertAlmostEqual(prob.violation(), 0.0)
+
+    def test_problem_violation_max_constraint_violation(self):
+        x = cp.Variable(2)
+        prob = cp.Problem(cp.Minimize(0), [x >= 0, x <= 1])
+
+        x.value = np.array([-2.0, 3.0])
+
+        self.assertAlmostEqual(prob.violation(), 2.0)
+
+    def test_problem_violation_raises_without_values(self):
+        x = cp.Variable()
+        prob = cp.Problem(cp.Minimize(x), [x >= 1])
+
+        with self.assertRaisesRegex(ValueError, "None-valued"):
+            prob.violation()

@@ -1536,6 +1536,30 @@ class Problem(u.Canonical):
 
     __truediv__ = __div__
 
+    def violation(self):
+        """The maximum constraint violation in the problem.
+
+        This method computes the largest scalar violation across all
+        constraints using the current values of the variables. For
+        nonspectral constraints, each constraint violation is the infinity
+        norm of the residual. For spectral constraints, it is the operator
+        norm.
+
+        Returns
+        -------
+        float
+            The maximum violation among all constraints. Returns 0.0 if the
+            problem has no constraints.
+
+        Raises
+        ------
+        ValueError
+            If any constrained expression is None-valued.
+        """
+        if not self.constraints:
+            return 0.0
+
+        return float(max(constr.violation() for constr in self.constraints))
 
 @dataclass
 class SolverStats:
