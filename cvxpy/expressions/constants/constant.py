@@ -45,6 +45,10 @@ class Constant(Leaf):
         # Record whether the original value was boolean-typed before
         # const_to_matrix converts it to float64.
         self._boolean: bool = self._detect_boolean(value)
+        # When a dense input must be copied to give Constant snapshot semantics,
+        # retain its identity for structural canonicalization caches. This does
+        # not keep the caller's array alive or expose it as our value.
+        self._value_source_id: int | None = None
         # Keep sparse matrices sparse.
         if intf.is_sparse(value):
             self._value = intf.DEFAULT_SPARSE_INTF.const_to_matrix(
@@ -61,6 +65,7 @@ class Constant(Leaf):
 
             self._value = intf.DEFAULT_INTF.const_to_matrix(value)
             if isinstance(value, np.ndarray) and np.may_share_memory(self._value, value):
+                self._value_source_id = id(value)
                 self._value = self._value.copy()
             self._sparse = False
         self._imag: bool | None = None
