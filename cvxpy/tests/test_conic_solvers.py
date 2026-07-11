@@ -3650,6 +3650,33 @@ class TestCUOPT(unittest.TestCase):
         self.assertTrue(pf.is_mixed_integer())
         self.assertFalse(CUOPT().can_solve(pf))
 
+    def test_cuopt_mi_lp_time_limit_no_incumbent(self) -> None:
+        """A MILP that hits the time limit before any incumbent is found.
+
+        cuOpt reports TimeLimit (mapped to USER_LIMIT) with an empty primal
+        solution. Previously invert() tried to reshape that 0-length array
+        into the variables' shape and crashed with a ValueError; the status
+        must instead be downgraded to INFEASIBLE_INACCURATE (matching Gurobi
+        and COPT), so solve() returns cleanly with prob.value None.
+        """
+        rng = np.random.RandomState(0)
+        n = 400
+        w = cp.Variable(n, boolean=True)
+        weight = rng.rand(n)
+        value = rng.rand(n)
+        prob = cp.Problem(
+            cp.Maximize(value @ w),
+            [weight @ w <= weight.sum() * 0.3, cp.sum(w) >= n * 0.25],
+        )
+        # A tiny time limit makes it very unlikely an incumbent is found.
+        prob.solve(solver="CUOPT", time_limit=0.001)
+        self.assertIn(
+            prob.status,
+            [cp.settings.INFEASIBLE_INACCURATE, cp.settings.USER_LIMIT, cp.OPTIMAL],
+        )
+        if prob.status == cp.settings.INFEASIBLE_INACCURATE:
+            self.assertIsNone(w.value)
+
 
 @pytest.mark.parametrize("solver", INSTALLED_SOLVERS)
 def test_offset_in_opt_val(solver):
