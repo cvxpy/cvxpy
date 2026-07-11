@@ -406,6 +406,18 @@ class Expression(u.Canonical):
                 return self.is_convex() or self.is_concave()
         return self.is_convex() or self.is_concave()
 
+    def explain_dcp(self) -> str:
+        """Explain why this expression fails DCP, if it does.
+
+        Returns
+        -------
+        str
+            A human-readable explanation of DCP violations, or a short
+            success message if the expression follows DCP.
+        """
+        from cvxpy.utilities.debug_tools import explain_dcp
+        return explain_dcp(self)
+
     def is_dnlp(self) -> bool:
         """
         The expression is smooth representable.

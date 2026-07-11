@@ -54,6 +54,9 @@ New features
   - ``Parameter`` values may now be ``±inf``
   - Sparse Cholesky now uses
     `QDLDL <https://github.com/osqp/qdldl>`_
+  - Richer ``DCPError`` messages that identify failing subexpressions and
+    explain the violated DCP rule, plus ``cp.explain_dcp`` /
+    ``problem.explain_dcp()`` / ``expression.explain_dcp()``
 
 CVXPY 1.8
 ---------
