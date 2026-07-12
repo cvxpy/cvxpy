@@ -30,7 +30,7 @@ import cvxpy.utilities.performance_utils as perf
 from cvxpy import error
 from cvxpy.constraints import PSD, Equality, Inequality
 from cvxpy.expressions import cvxtypes
-from cvxpy.utilities import scopes
+from cvxpy.utilities import debug_tools, scopes
 from cvxpy.utilities.shape import size_from_shape
 from cvxpy.utilities.warn import CvxpyDeprecationWarning, warn
 
@@ -406,6 +406,45 @@ class Expression(u.Canonical):
                 return self.is_convex() or self.is_concave()
         return self.is_convex() or self.is_concave()
 
+    def atom_name(self) -> str:
+        """Short display name for this expression's atom (defaults to the class name)."""
+        return type(self).__name__
+
+    def dcp_failure_reason(self) -> str | None:
+        """Return a reason string if this node fails DCP, else None."""
+        if self.is_dcp():
+            return None
+
+        try:
+            atom_convex = self.is_atom_convex()
+            atom_concave = self.is_atom_concave()
+        except (AttributeError, NotImplementedError):
+            return None
+
+        atom_name = self.atom_name()
+        if not atom_convex and not atom_concave:
+            pretty = self.format_labeled()
+            return (
+                f"{atom_name} is neither a convex nor a concave atom, "
+                f"so DCP cannot verify the curvature of {pretty}."
+            )
+
+        reasons: list[str] = []
+        if atom_convex:
+            reason = debug_tools.explain_composition_failure(self, "convex")
+            if reason is not None:
+                reasons.append(reason)
+        if atom_concave:
+            reason = debug_tools.explain_composition_failure(self, "concave")
+            if reason is not None:
+                reasons.append(reason)
+
+        if not reasons:
+            return None
+        if len(reasons) == 1:
+            return reasons[0]
+        return " ".join(reasons)
+
     def explain_dcp(self) -> str:
         """Explain why this expression fails DCP, if it does.
 
@@ -415,9 +454,6 @@ class Expression(u.Canonical):
             A human-readable explanation of DCP violations, or a short
             success message if the expression follows DCP.
         """
-        # Deferred: debug_tools imports Expression/Power/Variable, which import
-        # this module.
-        from cvxpy.utilities import debug_tools
         return debug_tools.explain_expression_dcp(self)
 
     def is_dnlp(self) -> bool:

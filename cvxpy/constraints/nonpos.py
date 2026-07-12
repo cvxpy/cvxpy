@@ -18,7 +18,7 @@ import numpy as np
 
 # Only need Variable from expressions, but that would create a circular import.
 from cvxpy.constraints.constraint import Constraint
-from cvxpy.utilities import scopes
+from cvxpy.utilities import debug_tools, scopes
 from cvxpy.utilities.warn import CvxpyDeprecationWarning, warn
 
 
@@ -67,6 +67,16 @@ class NonPos(Constraint):
             with scopes.dpp_scope():
                 return self.args[0].is_convex()
         return self.args[0].is_convex()
+
+    def dcp_failure_reason(self) -> str | None:
+        expr = self.args[0]
+        if expr.is_convex():
+            return None
+        pretty = expr.format_labeled()
+        return (
+            f"The constraint {pretty} <= 0 requires a convex expression, "
+            f"but {pretty} is {debug_tools.curvature_word(expr)}."
+        )
 
     def is_dnlp(self) -> bool:
         """
@@ -133,6 +143,16 @@ class NonNeg(Constraint):
             with scopes.dpp_scope():
                 return self.args[0].is_concave()
         return self.args[0].is_concave()
+
+    def dcp_failure_reason(self) -> str | None:
+        expr = self.args[0]
+        if expr.is_concave():
+            return None
+        pretty = expr.format_labeled()
+        return (
+            f"The constraint {pretty} >= 0 requires a concave expression, "
+            f"but {pretty} is {debug_tools.curvature_word(expr)}."
+        )
 
     def is_dnlp(self) -> bool:
         """
@@ -223,6 +243,17 @@ class Inequality(Constraint):
             with scopes.dpp_scope():
                 return self.expr.is_convex()
         return self.expr.is_convex()
+
+    def dcp_failure_reason(self) -> str | None:
+        expr = self.expr
+        if expr.is_convex():
+            return None
+        lhs = self.args[0].format_labeled()
+        rhs = self.args[1].format_labeled()
+        return (
+            f"The inequality {lhs} <= {rhs} requires (lhs - rhs) to be convex, "
+            f"but it is {debug_tools.curvature_word(expr)}."
+        )
 
     def is_dnlp(self) -> bool:
         """

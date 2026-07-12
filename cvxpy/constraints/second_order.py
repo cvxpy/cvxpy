@@ -19,7 +19,7 @@ import numpy as np
 
 from cvxpy.constraints.cones import Cone
 from cvxpy.expressions import cvxtypes
-from cvxpy.utilities import scopes
+from cvxpy.utilities import debug_tools, scopes
 
 
 class SOC(Cone):
@@ -161,6 +161,16 @@ class SOC(Cone):
             with scopes.dpp_scope():
                 return all(arg.is_affine() for arg in self.args)
         return all(arg.is_affine() for arg in self.args)
+
+    def dcp_failure_reason(self) -> str | None:
+        bad = [a for a in self.args if not a.is_affine()]
+        if not bad:
+            return None
+        pretty_bad = ", ".join(a.format_labeled() for a in bad)
+        return (
+            f"SOC constraints require affine arguments, "
+            f"but these arguments are not affine: {pretty_bad}."
+        )
 
     def is_dgp(self, dpp: bool = False) -> bool:
         return False
@@ -317,6 +327,16 @@ class RSOC(Cone):
             with scopes.dpp_scope():
                 return all(arg.is_affine() for arg in self.args)
         return all(arg.is_affine() for arg in self.args)
+
+    def dcp_failure_reason(self) -> str | None:
+        bad = [a for a in self.args if not a.is_affine()]
+        if not bad:
+            return None
+        pretty_bad = ", ".join(a.format_labeled() for a in bad)
+        return (
+            f"RSOC constraints require affine arguments, "
+            f"but these arguments are not affine: {pretty_bad}."
+        )
 
     def is_dgp(self, dpp: bool = False) -> bool:
         return False

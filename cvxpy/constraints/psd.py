@@ -19,7 +19,7 @@ import numpy as np
 
 from cvxpy.constraints.cones import Cone
 from cvxpy.expressions import cvxtypes
-from cvxpy.utilities import scopes
+from cvxpy.utilities import debug_tools, scopes
 
 
 class PSD(Cone):
@@ -67,6 +67,16 @@ class PSD(Cone):
             with scopes.dpp_scope():
                 return self.args[0].is_affine()
         return self.args[0].is_affine()
+
+    def dcp_failure_reason(self) -> str | None:
+        expr = self.args[0]
+        if expr.is_affine():
+            return None
+        pretty = expr.format_labeled()
+        return (
+            f"PSD constraints require an affine expression, "
+            f"but {pretty} is {debug_tools.curvature_word(expr)}."
+        )
 
     def is_dgp(self, dpp: bool = False) -> bool:
         return False

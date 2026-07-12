@@ -19,7 +19,7 @@ import cvxpy.utilities as u
 from cvxpy.error import DCPError
 from cvxpy.expressions.expression import Expression
 from cvxpy.interface.matrix_utilities import ScalarValue, scalar_value
-from cvxpy.utilities import scopes
+from cvxpy.utilities import debug_tools, scopes
 
 
 class Objective(u.Canonical):
@@ -123,8 +123,6 @@ class Objective(u.Canonical):
             A human-readable explanation of DCP violations, or a short
             success message if the objective follows DCP.
         """
-        # Deferred: debug_tools imports Objective from this module.
-        from cvxpy.utilities import debug_tools
         return debug_tools.explain_objective_dcp(self)
 
 
@@ -169,18 +167,6 @@ class Minimize(Objective):
                 return self.args[0].is_convex()
         return self.args[0].is_convex()
 
-    def explain_dcp(self) -> str:
-        """Explain why this objective fails DCP, if it does.
-
-        Returns
-        -------
-        str
-            A human-readable explanation of DCP violations, or a short
-            success message if the objective follows DCP.
-        """
-        # Deferred: debug_tools imports Objective from this module.
-        from cvxpy.utilities import debug_tools
-        return debug_tools.explain_objective_dcp(self)
     def is_dnlp(self) -> bool:
         """
         The objective must be linearizable convex.

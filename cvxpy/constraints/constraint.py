@@ -22,6 +22,7 @@ import numpy as np
 import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.utilities as u
 from cvxpy.expressions import cvxtypes
+from cvxpy.utilities import debug_tools
 
 
 class Constraint(u.Canonical):
@@ -183,9 +184,12 @@ class Constraint(u.Canonical):
             A human-readable explanation of DCP violations, or a short
             success message if the constraint follows DCP.
         """
-        # Deferred: debug_tools imports Constraint subclasses from this package.
-        from cvxpy.utilities import debug_tools
         return debug_tools.explain_constraint_dcp(self)
+
+    def dcp_failure_reason(self) -> str | None:
+        """Return a reason string if this constraint fails DCP, else None."""
+        return None
+
     @abc.abstractmethod
     def is_dgp(self, dpp: bool = False) -> bool:
         """Checks whether the constraint is DGP.

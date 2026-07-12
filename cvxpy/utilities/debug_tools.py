@@ -15,15 +15,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from cvxpy.atoms.elementwise.power import Power
-from cvxpy.constraints.constraint import Constraint
-from cvxpy.constraints.nonpos import Inequality, NonNeg, NonPos
-from cvxpy.constraints.psd import PSD
-from cvxpy.constraints.second_order import RSOC, SOC
-from cvxpy.constraints.zero import Equality, Zero
 from cvxpy.expressions import cvxtypes
 
 if TYPE_CHECKING:
+    from cvxpy.constraints.constraint import Constraint
     from cvxpy.expressions.expression import Expression
     from cvxpy.problems.objective import Objective
     from cvxpy.problems.problem import Problem
@@ -39,7 +34,7 @@ def node_count(expr) -> int:
     return 1 + sum(node_count(arg) for arg in expr.args)
 
 
-def _curvature_word(expr: Expression) -> str:
+def curvature_word(expr: Expression) -> str:
     """Short curvature label for diagnostic messages."""
     if expr.is_affine():
         return "affine"
@@ -50,7 +45,7 @@ def _curvature_word(expr: Expression) -> str:
     return "unknown"
 
 
-def _monotonicity_word(atom: Expression, idx: int) -> str:
+def monotonicity_word(atom: Expression, idx: int) -> str:
     """Short monotonicity label for diagnostic messages."""
     incr = atom.is_incr(idx)
     decr = atom.is_decr(idx)
@@ -63,139 +58,7 @@ def _monotonicity_word(atom: Expression, idx: int) -> str:
     return "nonmonotonic"
 
 
-def _atom_display_name(expr: Expression) -> str:
-    """Human-readable atom name for diagnostics."""
-    if isinstance(expr, Power):
-        return expr.atom_name()
-    return type(expr).__name__
-
-
-def explain_dcp_violation(expr: Expression | Constraint) -> str | None:
-    """Explain why a minimal DCP-violating node fails DCP.
-
-    Parameters
-    ----------
-    expr : Expression or Constraint
-        A node that fails ``is_dcp()`` while every child passes (or a leaf).
-
-    Returns
-    -------
-    str or None
-        A reason string, or None if no specific explanation is available.
-    """
-    if isinstance(expr, Constraint):
-        return explain_constraint_dcp_violation(expr)
-
-    if expr.is_dcp():
-        return None
-
-    # Intrinsic atom curvature (not composed).
-    try:
-        atom_convex = expr.is_atom_convex()
-        atom_concave = expr.is_atom_concave()
-    except (AttributeError, NotImplementedError):
-        return None
-
-    atom_name = _atom_display_name(expr)
-
-    if not atom_convex and not atom_concave:
-        pretty = expr.format_labeled()
-        return (
-            f"{atom_name} is neither a convex nor a concave atom, "
-            f"so DCP cannot verify the curvature of {pretty}."
-        )
-
-    reasons: list[str] = []
-    if atom_convex:
-        reason = _explain_composition_failure(expr, atom_curvature="convex")
-        if reason is not None:
-            reasons.append(reason)
-    if atom_concave:
-        reason = _explain_composition_failure(expr, atom_curvature="concave")
-        if reason is not None:
-            reasons.append(reason)
-
-    if not reasons:
-        return None
-    if len(reasons) == 1:
-        return reasons[0]
-    return " ".join(reasons)
-
-
-def explain_constraint_dcp_violation(constraint: Constraint) -> str | None:
-    """Explain why a constraint fails DCP when its arguments are themselves DCP."""
-    if isinstance(constraint, (Equality, Zero)):
-        expr = constraint.expr
-        if expr.is_affine():
-            return None
-        if isinstance(constraint, Equality):
-            pretty = (
-                f"{constraint.args[0].format_labeled()} - "
-                f"{constraint.args[1].format_labeled()}"
-            )
-        else:
-            pretty = constraint.args[0].format_labeled()
-        return (
-            f"Equality constraints require an affine expression, "
-            f"but {pretty} is {_curvature_word(expr)}."
-        )
-
-    if isinstance(constraint, Inequality):
-        expr = constraint.expr
-        if expr.is_convex():
-            return None
-        lhs = constraint.args[0].format_labeled()
-        rhs = constraint.args[1].format_labeled()
-        return (
-            f"The inequality {lhs} <= {rhs} requires (lhs - rhs) to be convex, "
-            f"but it is {_curvature_word(expr)}."
-        )
-
-    if isinstance(constraint, NonPos):
-        expr = constraint.args[0]
-        if expr.is_convex():
-            return None
-        pretty = expr.format_labeled()
-        return (
-            f"The constraint {pretty} <= 0 requires a convex expression, "
-            f"but {pretty} is {_curvature_word(expr)}."
-        )
-
-    if isinstance(constraint, NonNeg):
-        expr = constraint.args[0]
-        if expr.is_concave():
-            return None
-        pretty = expr.format_labeled()
-        return (
-            f"The constraint {pretty} >= 0 requires a concave expression, "
-            f"but {pretty} is {_curvature_word(expr)}."
-        )
-
-    if isinstance(constraint, PSD):
-        expr = constraint.args[0]
-        if expr.is_affine():
-            return None
-        pretty = expr.format_labeled()
-        return (
-            f"PSD constraints require an affine expression, "
-            f"but {pretty} is {_curvature_word(expr)}."
-        )
-
-    if isinstance(constraint, (SOC, RSOC)):
-        bad = [a for a in constraint.args if not a.is_affine()]
-        if not bad:
-            return None
-        pretty_bad = ", ".join(a.format_labeled() for a in bad)
-        cls = type(constraint).__name__
-        return (
-            f"{cls} constraints require affine arguments, "
-            f"but these arguments are not affine: {pretty_bad}."
-        )
-
-    return None
-
-
-def _explain_composition_failure(expr: Expression, atom_curvature: str) -> str | None:
+def explain_composition_failure(expr: Expression, atom_curvature: str) -> str | None:
     """Explain the first DCP composition-rule failure for an atom curvature."""
     for idx, arg in enumerate(expr.args):
         if atom_curvature == "convex":
@@ -213,9 +76,9 @@ def _explain_composition_failure(expr: Expression, atom_curvature: str) -> str |
         if ok:
             continue
 
-        atom_name = _atom_display_name(expr)
-        mono = _monotonicity_word(expr, idx)
-        arg_curv = _curvature_word(arg)
+        atom_name = expr.atom_name()
+        mono = monotonicity_word(expr, idx)
+        arg_curv = curvature_word(arg)
         pretty_arg = arg.format_labeled()
         if len(expr.args) == 1:
             arg_phrase = f"Its argument {pretty_arg} is {arg_curv}"
@@ -228,6 +91,11 @@ def _explain_composition_failure(expr: Expression, atom_curvature: str) -> str |
             f"to be applied to a {arg_curv} argument."
         )
     return None
+
+
+def explain_dcp_violation(node: Expression | Constraint) -> str | None:
+    """Explain why a minimal DCP-violating node fails DCP."""
+    return node.dcp_failure_reason()
 
 
 def _format_violations(violations: list[tuple[str, str | None]], indent: str = "") -> str:
