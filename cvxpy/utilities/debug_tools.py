@@ -30,19 +30,14 @@ MAX_NODES = 10_000
 
 
 def node_count(expr) -> int:
-    """Return node count for the expression/constraint."""
+    """Return node count for the expression/constraint.
+
+    ``args`` may contain nested lists (e.g. a ``Problem`` stores its
+    constraints as a list), so lists are walked explicitly.
+    """
+    if isinstance(expr, list):
+        return sum(node_count(arg) for arg in expr)
     return 1 + sum(node_count(arg) for arg in expr.args)
-
-
-def curvature_word(expr: Expression) -> str:
-    """Short curvature label for diagnostic messages."""
-    if expr.is_affine():
-        return "affine"
-    if expr.is_convex():
-        return "convex"
-    if expr.is_concave():
-        return "concave"
-    return "unknown"
 
 
 def monotonicity_word(atom: Expression, idx: int) -> str:
@@ -59,7 +54,11 @@ def monotonicity_word(atom: Expression, idx: int) -> str:
 
 
 def explain_composition_failure(expr: Expression, atom_curvature: str) -> str | None:
-    """Explain the first DCP composition-rule failure for an atom curvature."""
+    """Explain the first DCP composition-rule failure for an atom curvature.
+
+    Mirrors the argument checks in ``Atom.is_convex`` / ``Atom.is_concave``,
+    but reports which argument failed and why.
+    """
     for idx, arg in enumerate(expr.args):
         if atom_curvature == "convex":
             ok = (
@@ -78,7 +77,7 @@ def explain_composition_failure(expr: Expression, atom_curvature: str) -> str | 
 
         atom_name = expr.atom_name()
         mono = monotonicity_word(expr, idx)
-        arg_curv = curvature_word(arg)
+        arg_curv = arg.curvature.lower()
         pretty_arg = arg.format_labeled()
         if len(expr.args) == 1:
             arg_phrase = f"Its argument {pretty_arg} is {arg_curv}"
@@ -91,11 +90,6 @@ def explain_composition_failure(expr: Expression, atom_curvature: str) -> str | 
             f"to be applied to a {arg_curv} argument."
         )
     return None
-
-
-def explain_dcp_violation(node: Expression | Constraint) -> str | None:
-    """Explain why a minimal DCP-violating node fails DCP."""
-    return node.dcp_failure_reason()
 
 
 def _format_violations(violations: list[tuple[str, str | None]], indent: str = "") -> str:
@@ -128,7 +122,7 @@ def _find_non_prop_leaves(
             all(_passes_discipline(child, prop_name) for child in expr.args)):
         if discipline_type == DCP:
             str_expr = expr.format_labeled()
-            reason = explain_dcp_violation(expr)
+            reason = expr.dcp_failure_reason()
         else:
             str_expr = str(expr)
             reason = None

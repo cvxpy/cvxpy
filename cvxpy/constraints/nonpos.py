@@ -18,7 +18,7 @@ import numpy as np
 
 # Only need Variable from expressions, but that would create a circular import.
 from cvxpy.constraints.constraint import Constraint
-from cvxpy.utilities import debug_tools, scopes
+from cvxpy.utilities import scopes
 from cvxpy.utilities.warn import CvxpyDeprecationWarning, warn
 
 
@@ -75,7 +75,7 @@ class NonPos(Constraint):
         pretty = expr.format_labeled()
         return (
             f"The constraint {pretty} <= 0 requires a convex expression, "
-            f"but {pretty} is {debug_tools.curvature_word(expr)}."
+            f"but {pretty} is {expr.curvature.lower()}."
         )
 
     def is_dnlp(self) -> bool:
@@ -151,7 +151,7 @@ class NonNeg(Constraint):
         pretty = expr.format_labeled()
         return (
             f"The constraint {pretty} >= 0 requires a concave expression, "
-            f"but {pretty} is {debug_tools.curvature_word(expr)}."
+            f"but {pretty} is {expr.curvature.lower()}."
         )
 
     def is_dnlp(self) -> bool:
@@ -252,7 +252,7 @@ class Inequality(Constraint):
         rhs = self.args[1].format_labeled()
         return (
             f"The inequality {lhs} <= {rhs} requires (lhs - rhs) to be convex, "
-            f"but it is {debug_tools.curvature_word(expr)}."
+            f"but it is {expr.curvature.lower()}."
         )
 
     def is_dnlp(self) -> bool:

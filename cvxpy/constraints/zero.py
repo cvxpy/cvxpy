@@ -17,7 +17,7 @@ limitations under the License.
 import numpy as np
 
 from cvxpy.constraints.constraint import Constraint
-from cvxpy.utilities import debug_tools, scopes
+from cvxpy.utilities import scopes
 
 
 class Zero(Constraint):
@@ -65,7 +65,7 @@ class Zero(Constraint):
         pretty = expr.format_labeled()
         return (
             f"Equality constraints require an affine expression, "
-            f"but {pretty} is {debug_tools.curvature_word(expr)}."
+            f"but {pretty} is {expr.curvature.lower()}."
         )
 
     def is_dnlp(self) -> bool:
@@ -157,7 +157,7 @@ class Equality(Constraint):
         )
         return (
             f"Equality constraints require an affine expression, "
-            f"but {pretty} is {debug_tools.curvature_word(expr)}."
+            f"but {pretty} is {expr.curvature.lower()}."
         )
 
     def is_dnlp(self) -> bool:

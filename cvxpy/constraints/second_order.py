@@ -19,7 +19,7 @@ import numpy as np
 
 from cvxpy.constraints.cones import Cone
 from cvxpy.expressions import cvxtypes
-from cvxpy.utilities import debug_tools, scopes
+from cvxpy.utilities import scopes
 
 
 class SOC(Cone):

@@ -19,7 +19,7 @@ import numpy as np
 
 from cvxpy.constraints.cones import Cone
 from cvxpy.expressions import cvxtypes
-from cvxpy.utilities import debug_tools, scopes
+from cvxpy.utilities import scopes
 
 
 class PSD(Cone):
@@ -75,7 +75,7 @@ class PSD(Cone):
         pretty = expr.format_labeled()
         return (
             f"PSD constraints require an affine expression, "
-            f"but {pretty} is {debug_tools.curvature_word(expr)}."
+            f"but {pretty} is {expr.curvature.lower()}."
         )
 
     def is_dgp(self, dpp: bool = False) -> bool:

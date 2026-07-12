@@ -19,7 +19,6 @@ from cvxpy.error import DCPError
 from cvxpy.tests.base_test import BaseTest
 from cvxpy.utilities.debug_tools import (
     build_non_disciplined_error_msg,
-    explain_dcp_violation,
 )
 
 
@@ -31,7 +30,7 @@ class TestDcpDiagnostics(BaseTest):
         x = cp.Variable()
         expr = cp.sqrt(1 + cp.square(x))
         self.assertFalse(expr.is_dcp())
-        reason = explain_dcp_violation(expr)
+        reason = expr.dcp_failure_reason()
         self.assertIsNotNone(reason)
         self.assertIn("concave", reason)
         self.assertIn("nondecreasing", reason)
@@ -46,7 +45,7 @@ class TestDcpDiagnostics(BaseTest):
         x = cp.Variable()
         expr = cp.exp(-cp.square(x))
         self.assertFalse(expr.is_dcp())
-        reason = explain_dcp_violation(expr)
+        reason = expr.dcp_failure_reason()
         self.assertIsNotNone(reason)
         self.assertIn("convex", reason)
         self.assertIn("nondecreasing", reason)
@@ -62,7 +61,7 @@ class TestDcpDiagnostics(BaseTest):
         y = cp.Variable()
         expr = cp.multiply(x, y)
         self.assertFalse(expr.is_dcp())
-        reason = explain_dcp_violation(expr)
+        reason = expr.dcp_failure_reason()
         self.assertIsNotNone(reason)
         self.assertIn("neither a convex nor a concave atom", reason)
 
