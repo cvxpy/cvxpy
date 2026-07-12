@@ -43,15 +43,14 @@ If the function returns ``False``,
 there is a DCP error in that object.
 
 To see *why* an object fails DCP without calling ``solve()``, use
-``cp.explain_dcp(object)`` (also available as ``object.explain_dcp()`` on
-problems and expressions):
+``object.explain_dcp()`` on a problem, objective, constraint, or expression:
 
 .. code:: python
 
     import cvxpy as cp
 
     x = cp.Variable(name="x")
-    print(cp.explain_dcp(cp.sqrt(1 + cp.square(x))))
+    print(cp.sqrt(1 + cp.square(x)).explain_dcp())
     # The following subexpressions are not DCP:
     # sqrt(1.0 + square(x))
     #     Reason: sqrt is concave and nondecreasing. Its argument 1.0 + square(x)

@@ -312,7 +312,7 @@ non-DCP problems:
 
     # Explain DCP violations without calling solve().
     z = cp.Variable(name="z")
-    print(cp.explain_dcp(cp.sqrt(1 + cp.square(z))))
+    print(cp.sqrt(1 + cp.square(z)).explain_dcp())
     print(prob3.explain_dcp())
     print(prob4.explain_dcp())
 

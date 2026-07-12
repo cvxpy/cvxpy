@@ -415,8 +415,10 @@ class Expression(u.Canonical):
             A human-readable explanation of DCP violations, or a short
             success message if the expression follows DCP.
         """
-        from cvxpy.utilities.debug_tools import explain_dcp
-        return explain_dcp(self)
+        # Deferred: debug_tools imports Expression/Power/Variable, which import
+        # this module.
+        from cvxpy.utilities import debug_tools
+        return debug_tools.explain_expression_dcp(self)
 
     def is_dnlp(self) -> bool:
         """

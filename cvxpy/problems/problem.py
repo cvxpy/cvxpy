@@ -300,8 +300,7 @@ class Problem(u.Canonical):
             A human-readable explanation of DCP violations, or a short
             success message if the problem follows DCP.
         """
-        from cvxpy.utilities.debug_tools import explain_dcp
-        return explain_dcp(self)
+        return debug_tools.explain_problem_dcp(self)
 
     @perf.compute_once
     def is_dnlp(self) -> bool:

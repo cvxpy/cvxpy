@@ -19,7 +19,6 @@ from cvxpy.error import DCPError
 from cvxpy.tests.base_test import BaseTest
 from cvxpy.utilities.debug_tools import (
     build_non_disciplined_error_msg,
-    explain_dcp,
     explain_dcp_violation,
 )
 
@@ -81,15 +80,12 @@ class TestDcpDiagnostics(BaseTest):
         )
         self.assertNotIn("PowerApprox", msg)
 
-    def test_format_expr_for_diagnostics_sqrt_square(self) -> None:
-        from cvxpy.utilities.debug_tools import format_expr_for_diagnostics
-
+    def test_power_name_uses_sqrt_and_square(self) -> None:
         x = cp.Variable(name="x")
         expr = cp.sqrt(1 + cp.square(x))
-        self.assertEqual(
-            format_expr_for_diagnostics(expr),
-            "sqrt(1.0 + square(x))",
-        )
+        self.assertEqual(expr.format_labeled(), "sqrt(1.0 + square(x))")
+        self.assertEqual(expr.atom_name(), "sqrt")
+        self.assertEqual(cp.square(x).atom_name(), "square")
 
     def test_error_msg_minimize_concave_objective(self) -> None:
         # Expression is DCP (concave), but Minimize requires convex.
@@ -132,28 +128,27 @@ class TestDcpDiagnostics(BaseTest):
 
     def test_equality_requires_affine(self) -> None:
         x = cp.Variable(name="x")
-        msg = explain_dcp(cp.square(x) == 0)
+        msg = (cp.square(x) == 0).explain_dcp()
         self.assertIn("square(x) == 0", msg)
         self.assertIn("Equality constraints require an affine expression", msg)
         self.assertIn("is convex", msg)
 
     def test_inequality_requires_convex_difference(self) -> None:
         x = cp.Variable(name="x")
-        msg = explain_dcp(cp.sqrt(x) <= 2)
+        msg = (cp.sqrt(x) <= 2).explain_dcp()
         self.assertIn("sqrt(x) <= 2", msg)
         self.assertIn("requires (lhs - rhs) to be convex", msg)
         self.assertIn("concave", msg)
 
     def test_psd_requires_affine(self) -> None:
         X = cp.Variable((2, 2), name="X")
-        msg = explain_dcp(cp.square(X) >> 0)
+        msg = (cp.square(X) >> 0).explain_dcp()
         self.assertIn("PSD constraints require an affine expression", msg)
 
     def test_explain_dcp_on_expression(self) -> None:
         x = cp.Variable(name="x")
         expr = cp.sqrt(1 + cp.square(x))
         msg = expr.explain_dcp()
-        self.assertEqual(msg, explain_dcp(expr))
         self.assertIn("sqrt(1.0 + square(x))", msg)
         self.assertIn("Reason:", msg)
         self.assertIn("concave nondecreasing atom", msg)
@@ -161,11 +156,10 @@ class TestDcpDiagnostics(BaseTest):
         ok = (x + 1).explain_dcp()
         self.assertEqual(ok, "Expression follows DCP rules.")
 
-    def test_explain_dcp_on_problem_and_top_level(self) -> None:
+    def test_explain_dcp_on_problem(self) -> None:
         x = cp.Variable(nonneg=True)
         prob = cp.Problem(cp.Minimize(cp.sqrt(x)))
         msg = prob.explain_dcp()
-        self.assertEqual(msg, cp.explain_dcp(prob))
         self.assertIn("Minimize(...) requires a convex objective", msg)
 
         ok = cp.Problem(cp.Minimize(cp.square(x)))
@@ -174,9 +168,9 @@ class TestDcpDiagnostics(BaseTest):
     def test_explain_dcp_on_objective_and_constraint(self) -> None:
         x = cp.Variable(name="x")
         obj = cp.Minimize(cp.sqrt(1 + cp.square(x)))
-        self.assertIn("sqrt(1.0 + square(x))", explain_dcp(obj))
+        self.assertIn("sqrt(1.0 + square(x))", obj.explain_dcp())
 
         constr = cp.log(cp.square(x)) <= 0
-        msg = explain_dcp(constr)
+        msg = constr.explain_dcp()
         self.assertIn("constraint is not DCP", msg)
         self.assertIn("Reason:", msg)

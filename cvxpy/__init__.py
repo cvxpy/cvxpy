@@ -50,7 +50,6 @@ from cvxpy.error import (
 from cvxpy.utilities.warn import (
     CvxpyDeprecationWarning as CvxpyDeprecationWarning,
 )
-from cvxpy.utilities.debug_tools import explain_dcp as explain_dcp
 from cvxpy.expressions.constants import (
     CallbackParam as CallbackParam,
     Constant as Constant,

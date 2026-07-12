@@ -174,6 +174,18 @@ class Constraint(u.Canonical):
         """
         raise NotImplementedError()
 
+    def explain_dcp(self) -> str:
+        """Explain why this constraint fails DCP, if it does.
+
+        Returns
+        -------
+        str
+            A human-readable explanation of DCP violations, or a short
+            success message if the constraint follows DCP.
+        """
+        # Deferred: debug_tools imports Constraint subclasses from this package.
+        from cvxpy.utilities import debug_tools
+        return debug_tools.explain_constraint_dcp(self)
     @abc.abstractmethod
     def is_dgp(self, dpp: bool = False) -> bool:
         """Checks whether the constraint is DGP.

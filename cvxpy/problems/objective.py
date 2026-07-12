@@ -114,6 +114,19 @@ class Objective(u.Canonical):
         """
         return self.args[0].is_qpwa()
 
+    def explain_dcp(self) -> str:
+        """Explain why this objective fails DCP, if it does.
+
+        Returns
+        -------
+        str
+            A human-readable explanation of DCP violations, or a short
+            success message if the objective follows DCP.
+        """
+        # Deferred: debug_tools imports Objective from this module.
+        from cvxpy.utilities import debug_tools
+        return debug_tools.explain_objective_dcp(self)
+
 
 class Minimize(Objective):
     """An optimization objective for minimization.
@@ -156,6 +169,18 @@ class Minimize(Objective):
                 return self.args[0].is_convex()
         return self.args[0].is_convex()
 
+    def explain_dcp(self) -> str:
+        """Explain why this objective fails DCP, if it does.
+
+        Returns
+        -------
+        str
+            A human-readable explanation of DCP violations, or a short
+            success message if the objective follows DCP.
+        """
+        # Deferred: debug_tools imports Objective from this module.
+        from cvxpy.utilities import debug_tools
+        return debug_tools.explain_objective_dcp(self)
     def is_dnlp(self) -> bool:
         """
         The objective must be linearizable convex.
