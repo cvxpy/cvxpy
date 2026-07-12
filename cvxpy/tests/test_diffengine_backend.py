@@ -249,6 +249,24 @@ class TestDiffengineConeProgram(BaseTest):
             else:
                 self.assertItemsAlmostEqual(got, want, places=10)
 
+    def test_scaled_coefficient_dpp_cached_resolve(self) -> None:
+        """(p * A) @ x is DPP-affine, so it rides the cached DPP path on the
+        explicit backend; the composite coefficient (promote inside the
+        engine's side subtree) must serve fresh values on every re-solve.
+        The optimal point (value 0.5/p) moves with p, so staleness cannot
+        hide behind a parameter-invariant argmin."""
+        A = np.array([[1.0, 2.0], [3.0, 4.0]])
+        x = cp.Variable(2)
+        p = cp.Parameter(nonneg=True)
+        prob = cp.Problem(cp.Minimize(cp.sum(x)),
+                          [(p * A) @ x >= 1, x >= 0])
+        self.assertTrue(prob.is_dpp())
+        for val in (1.0, 100.0, 1.0):
+            p.value = val
+            prob.solve(solver=SOLVER, canon_backend=DIFFENGINE)
+            self.assertEqual(prob.status, cp.OPTIMAL)
+            self.assertAlmostEqual(prob.value, 0.5 / val, places=4)
+
     def test_parametric_soc_restruct_resolve_and_duals(self) -> None:
         """The SOC restructuring matrix must be re-applied to freshly
         extracted (A, b) on re-solves; duals must match the default path."""

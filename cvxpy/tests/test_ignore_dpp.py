@@ -97,6 +97,72 @@ class TestIgnoreDppBehavior(BaseTest):
             else:
                 self.assertIs(prob._cache.param_prog, cached)
 
+    def test_scaled_matrix_coefficient_refreshes_through_cache(self) -> None:
+        """(p * A) @ x: broadcasting promotes p over A, so the coefficient
+        reaches the engine as a composite side subtree whose values must
+        rebuild on re-solves. The constraint boundary (hence the optimal
+        point, value 0.5/p) moves with p, so a stale coefficient produces a
+        wrong optimum, not just a wrong offset."""
+        A = np.array([[1.0, 2.0], [3.0, 4.0]])
+        x = cp.Variable(2)
+        p = cp.Parameter(nonneg=True)
+        prob = cp.Problem(cp.Minimize(cp.sum(x)),
+                          [(p * A) @ x >= 1, x >= 0])
+        cached = None
+        for val in (1.0, 100.0, 1.0):
+            p.value = val
+            prob.solve(solver=SOLVER, ignore_dpp=True)
+            self.assertAlmostEqual(prob.value, 0.5 / val, places=4)
+            if cached is None:
+                cached = prob._cache.param_prog
+                self.assertIsInstance(cached, DiffengineConeProgram)
+            else:
+                self.assertIs(prob._cache.param_prog, cached)
+
+    def test_scaled_quad_matrix_refreshes_through_cache(self) -> None:
+        """quad_form(x, g * Sigma): the scaled constant matrix stays symbolic
+        as the engine's quadratic matrix. The unconstrained optimum
+        x = (g Sigma)^{-1} 1 (value -5/(6g)) moves with g, so a stale Q
+        produces a wrong optimum on cached re-solves."""
+        Sigma = np.array([[2.0, 0.0], [0.0, 3.0]])
+        x = cp.Variable(2)
+        g = cp.Parameter(nonneg=True)
+        prob = cp.Problem(cp.Minimize(
+            cp.quad_form(x, g * Sigma, assume_PSD=True) - 2.0 * cp.sum(x)))
+        cached = None
+        for val in (1.0, 50.0, 1.0):
+            g.value = val
+            prob.solve(solver=SOLVER, ignore_dpp=True)
+            self.assertAlmostEqual(prob.value, -5.0 / (6.0 * val), places=4)
+            self.assertItemsAlmostEqual(
+                x.value, [1.0 / (2 * val), 1.0 / (3 * val)], places=4)
+            if cached is None:
+                cached = prob._cache.param_prog
+                self.assertIsInstance(cached, DiffengineConeProgram)
+            else:
+                self.assertIs(prob._cache.param_prog, cached)
+
+    def test_scaled_param_coefficient_refreshes_through_cache(self) -> None:
+        """A scaled parameter multiplying a variable ((2*p) * x) reaches the
+        engine as a coefficient; the multiplicative node inside it caches
+        parameter data, so the cached program must serve fresh values on
+        re-solves. Companion canary to the symbolic-quad-matrix test."""
+        x = cp.Variable()
+        y = cp.Variable()
+        p = cp.Parameter()
+        prob = cp.Problem(cp.Minimize(y),
+                          [y >= (2 * p) * x, x == 1])
+        cached = None
+        for val in (1.0, 100.0, 1.0):
+            p.value = val
+            prob.solve(solver=SOLVER, ignore_dpp=True)
+            self.assertAlmostEqual(y.value, 2 * val, places=4)
+            if cached is None:
+                cached = prob._cache.param_prog
+                self.assertIsInstance(cached, DiffengineConeProgram)
+            else:
+                self.assertIs(prob._cache.param_prog, cached)
+
     def test_symbolic_quad_matrix_refreshes_through_cache(self) -> None:
         """quad_over_lin(x, p) keeps its quadratic matrix symbolic (I/p fed
         to the engine as a composite param_source); the cached program must
