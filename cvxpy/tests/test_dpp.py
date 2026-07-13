@@ -954,3 +954,61 @@ class TestCallbackParam(BaseTest):
 
         with pytest.raises(NotImplementedError, match="Cannot set the value of a CallbackParam"):
             callback_param.value = 1.0
+
+
+class TestComposedParametricRefresh(BaseTest):
+    """Re-solves must produce fresh problem data when a *composed* parameter
+    expression scales a coefficient matrix.
+
+    Expressions like ``(p * A) @ x`` or ``quad_form(x, g * Sigma)`` reach the
+    canonicalization backend as a parameter expression scaling a constant, and
+    ``quad_over_lin(x, p)`` canonicalizes to a quadratic matrix ``I/p`` derived
+    from the parameter. Whatever a backend caches across solves, reassigning
+    the parameter must be reflected in the next solution.
+
+    The formulations deliberately make the *optimal point* depend on the
+    parameter: the reported objective is recomputed from the live expression
+    at unpack time, so a parameter-invariant argmin would mask stale problem
+    data. Each shape is exercised on the default path and with
+    ``ignore_dpp=True``.
+    """
+
+    def _sweep(self, prob, param, values, check):
+        for kwargs in ({}, {"ignore_dpp": True}):
+            for val in values:
+                param.value = val
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore")
+                    prob.solve(solver=SOLVER, **kwargs)
+                check(val)
+
+    def test_scaled_matrix_coefficient_refreshes(self) -> None:
+        A = np.array([[1.0, 2.0], [3.0, 4.0]])
+        x = cp.Variable(2)
+        p = cp.Parameter(nonneg=True)
+        prob = cp.Problem(cp.Minimize(cp.sum(x)), [(p * A) @ x >= 1, x >= 0])
+        self._sweep(
+            prob, p, (1.0, 100.0, 1.0),
+            lambda val: self.assertAlmostEqual(prob.value, 0.5 / val, places=4))
+
+    def test_scaled_quad_matrix_refreshes(self) -> None:
+        Sigma = np.array([[2.0, 0.0], [0.0, 3.0]])
+        x = cp.Variable(2)
+        g = cp.Parameter(nonneg=True)
+        prob = cp.Problem(cp.Minimize(
+            cp.quad_form(x, g * Sigma, assume_PSD=True) - 2.0 * cp.sum(x)))
+
+        def check(val):
+            self.assertAlmostEqual(prob.value, -5.0 / (6.0 * val), places=4)
+            self.assertItemsAlmostEqual(
+                x.value, [1.0 / (2 * val), 1.0 / (3 * val)], places=4)
+
+        self._sweep(prob, g, (1.0, 50.0, 1.0), check)
+
+    def test_derived_quad_matrix_refreshes(self) -> None:
+        x = cp.Variable()
+        p = cp.Parameter()
+        prob = cp.Problem(cp.Minimize(cp.quad_over_lin(x, p) + x))
+        self._sweep(
+            prob, p, (1.0, 1000.0, 1.0),
+            lambda val: self.assertAlmostEqual(x.value, -val / 2.0, places=3))
