@@ -210,9 +210,8 @@ class Constraint(u.Canonical):
         """The numeric violation of the constraint.
 
         For nonspectral constraints, the violation is the infinity norm of
-        the constraint residual. Spectral constraints may return scalar
-        operator-norm residuals directly, which are unchanged by this scalar
-        reduction.
+        the constraint residual. Spectral constraints return
+        the operator-norm of the residual.
 
         Returns
         -------
