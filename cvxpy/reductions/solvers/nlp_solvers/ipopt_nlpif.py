@@ -14,11 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import importlib.util
+
 import numpy as np
 
 import cvxpy.settings as s
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers.nlp_solvers.nlp_solver import NLPsolver
+from cvxpy.reductions.solvers.openmp_conflict import warn_if_omp_conflict
 from cvxpy.utilities.citations import CITATION_DICT
 
 
@@ -33,11 +36,11 @@ class IPOPT(NLPsolver):
         0: s.OPTIMAL,                    # Solve_Succeeded
         1: s.OPTIMAL_INACCURATE,         # Solved_To_Acceptable_Level
         6: s.OPTIMAL,                    # Feasible_Point_Found
-        
+
         # Infeasibility/Unboundedness
         2: s.INFEASIBLE,                 # Infeasible_Problem_Detected
         4: s.UNBOUNDED,                  # Diverging_Iterates
-        
+
         # Numerical/Algorithm issues
         3: s.SOLVER_ERROR,               # Search_Direction_Becomes_Too_Small
         -2: s.SOLVER_ERROR,              # Restoration_Failed
@@ -46,14 +49,14 @@ class IPOPT(NLPsolver):
         -100: s.SOLVER_ERROR,            # Unrecoverable_Exception
         -101: s.SOLVER_ERROR,            # NonIpopt_Exception_Thrown
         -199: s.SOLVER_ERROR,            # Internal_Error
-        
+
         # User/Resource limits
         5: s.USER_LIMIT,                 # User_Requested_Stop
         -1: s.USER_LIMIT,                # Maximum_Iterations_Exceeded
         -4: s.USER_LIMIT,                # Maximum_CpuTime_Exceeded
         -5: s.USER_LIMIT,                # Maximum_WallTime_Exceeded
         -102: s.USER_LIMIT,              # Insufficient_Memory
-        
+
         # Problem definition issues
         -10: s.SOLVER_ERROR,             # Not_Enough_Degrees_Of_Freedom
         -11: s.SOLVER_ERROR,             # Invalid_Problem_Definition
@@ -66,10 +69,22 @@ class IPOPT(NLPsolver):
         """
         return 'IPOPT'
 
+    def is_installed(self) -> bool:
+        """Checks for the ``cyipopt`` package without importing it.
+
+        Importing ``cyipopt`` loads the native IPOPT runtime (and a bundled
+        OpenMP library on macOS). Detecting installation via the import
+        machinery keeps ``import cvxpy`` from loading it, so it does not
+        share a process -- and an OpenMP runtime -- with other solvers
+        unless an IPOPT solve actually runs.
+        """
+        return importlib.util.find_spec("cyipopt") is not None
+
     def import_solver(self):
         """
         Imports the solver.
         """
+        warn_if_omp_conflict("cyipopt")
         import cyipopt  # noqa F401
 
     def invert(self, solution, inverse_data):
@@ -89,7 +104,7 @@ class IPOPT(NLPsolver):
         if 'all_objs_from_best_of' in solution:
             attr[s.EXTRA_STATS] = {'all_objs_from_best_of':
                                     solution['all_objs_from_best_of']}
-    
+
         if status in s.SOLUTION_PRESENT:
             primal_val = solution['obj_val']
             opt_val = primal_val + inverse_data.offset
@@ -155,10 +170,12 @@ class IPOPT(NLPsolver):
             oracles = Oracles(bounds.new_problem, verbose=verbose, use_hessian=use_hessian)
         elif 'oracles' in solver_cache:
             oracles = solver_cache['oracles']
+            if bounds.new_problem.parameters():
+                oracles.update_params(bounds.new_problem)
         else:
             oracles = Oracles(bounds.new_problem, verbose=verbose, use_hessian=use_hessian)
             solver_cache['oracles'] = oracles
-          
+
         nlp = cyipopt.Problem(
             n=len(data["x0"]),
             m=len(data["cl"]),
@@ -192,14 +209,14 @@ class IPOPT(NLPsolver):
         # a forward pass here to fill in any necessary values for the derivative evaluation.
         oracles.objective(data["x0"])
         oracles.constraints(data["x0"])
-    
+
         _, info = nlp.solve(data["x0"])
 
         # cyipopt does currently not expose the number of iterations, see
         # https://github.com/mechmotum/cyipopt/issues/17. We set it to "Not available" for now,
         # but we should update this when the information becomes available.
         info['num_iters'] = "Not available"
-        
+
         return info
 
     def cite(self, data):

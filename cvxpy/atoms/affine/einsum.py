@@ -20,6 +20,7 @@ from cvxpy.atoms.affine.binary_operators import multiply
 from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.atoms.affine.sum import sum as cvxpy_sum
 from cvxpy.atoms.affine.transpose import permute_dims
+from cvxpy.expressions.expression import Expression
 from cvxpy.utilities.einsum_utilities import (
     find_contraction,
     greedy_path,
@@ -28,7 +29,7 @@ from cvxpy.utilities.einsum_utilities import (
 )
 
 
-def einsum(subscripts, *exprs, optimize="greedy"):
+def einsum(subscripts, *exprs, optimize="greedy") -> Expression:
     """Evaluates the Einstein summation convention on the given expressions.
 
     This atom is the CVXPY analog of NumPy's einsum function `numpy.einsum` [1],
@@ -64,7 +65,7 @@ def einsum(subscripts, *exprs, optimize="greedy"):
     ----------
     subscripts : str
         The subscripts for the einsum operation.
-    exprs : Expression
+    *exprs : Expression
         The expressions to contract.
     optimize : {bool, 'greedy', 'optimal'}, optional
         Whether to contract the expressions using the optimal or greedy ordering.

@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import List, Tuple
 
 import numpy as np
 import scipy.sparse as sp
@@ -56,12 +55,12 @@ class tr_inv(Atom):
                 f"The argument {self.args[0].name()} to tr_inv must be a 2-d square array."
             )
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> tuple[int, ...]:
         """Returns the (row, col) shape of the expression.
         """
         return tuple()
 
-    def sign_from_args(self) -> Tuple[bool, bool]:
+    def sign_from_args(self) -> tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         return (True, False)
@@ -108,7 +107,7 @@ class tr_inv(Atom):
         else:
             return [None]
 
-    def _domain(self) -> List[Constraint]:
+    def _domain(self) -> list[Constraint]:
         """Returns constraints describing the domain of the node.
         """
         return [self.args[0] >> 0]

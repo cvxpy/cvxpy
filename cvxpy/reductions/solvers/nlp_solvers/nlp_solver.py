@@ -136,8 +136,11 @@ class Bounds:
             ub_flat = np.asarray(ub).flatten(order='F')
             var_lower.extend(lb_flat)
             var_upper.extend(ub_flat)
-        self.lb = np.array(var_lower)
-        self.ub = np.array(var_upper)
+        # Force float dtype: all-integer bounds (e.g. nonneg=True gives lb 0)
+        # would otherwise infer an integer array, and replacing entries with a
+        # solver's infinity sentinel (~1e20) overflows int64.
+        self.lb = np.array(var_lower, dtype=float)
+        self.ub = np.array(var_upper, dtype=float)
 
     def construct_initial_point(self) -> None:
         """ Loop through all variables and collect the intial point."""
@@ -202,7 +205,7 @@ class Oracles:
     def jacobian(self, x: np.ndarray) -> np.ndarray:
         """Returns the Jacobian values in COO format at the sparsity structure. """
         return self.c_problem.eval_jacobian_vals()
-        
+
     def jacobianstructure(self) -> tuple[np.ndarray, np.ndarray]:
         """Returns the sparsity structure of the Jacobian."""
         if self._jac_structure is not None:
@@ -217,7 +220,7 @@ class Oracles:
         if not self.use_hessian:
             raise ValueError("Hessian oracle called but use_hessian is False. "
                              "This is a bug and should be reported.")
-       
+
         return self.c_problem.eval_hessian_vals_coo_lower_tri(obj_factor, duals)
 
     def hessianstructure(self) -> tuple[np.ndarray, np.ndarray]:
@@ -228,10 +231,25 @@ class Oracles:
             # IPOPT calls this function even when hessian_approximation='limited-memory',
             # so return empty structure
             return (np.array([]), np.array([]))
-         
+
         if self._hess_structure is not None:
             return self._hess_structure
-        
+
         rows, cols = self.c_problem.get_problem_hessian_sparsity_coo()
         self._hess_structure = (rows, cols)
         return self._hess_structure
+
+    def update_params(self, problem) -> None:
+        """Update parameter values in the C DAG from the problem's parameters.
+
+        Sparsity structures remain valid after this call.
+        """
+        if not problem.parameters():
+            raise ValueError("update_params called but problem has no parameters. "
+                             "This is a bug and should be reported.")
+
+        theta = np.concatenate([
+            np.asarray(p.value, dtype=np.float64).flatten(order='F')
+            for p in problem.parameters()
+        ])
+        self.c_problem.update_params(theta)

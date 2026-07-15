@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import List, Tuple
 
 import numpy as np
 
@@ -42,13 +41,13 @@ class PowCone3D(Cone):
 
     def __init__(self, x, y, z, alpha, constr_id=None) -> None:
         Expression = cvxtypes.expression()
-        self.x = Expression.cast_to_const(x)
-        self.y = Expression.cast_to_const(y)
-        self.z = Expression.cast_to_const(z)
+        self.x = Expression.cast(x)
+        self.y = Expression.cast(y)
+        self.z = Expression.cast(z)
         for val in [self.x, self.y, self.z]:
             if not (val.is_affine() and val.is_real()):
                 raise ValueError('All arguments must be affine and real.')
-        alpha = Expression.cast_to_const(alpha)
+        alpha = Expression.cast(alpha)
         alpha_promoted_to_vec = False
         if alpha.is_scalar():
             if self.x.shape:
@@ -107,7 +106,7 @@ class PowCone3D(Cone):
     def num_cones(self):
         return self.x.size
 
-    def cone_sizes(self) -> List[int]:
+    def cone_sizes(self) -> list[int]:
         return [3]*self.num_cones()
 
     def is_dcp(self, dpp: bool = False) -> bool:
@@ -125,21 +124,19 @@ class PowCone3D(Cone):
         return self.is_dcp()
 
     @property
-    def shape(self) -> Tuple[int, ...]:
+    def shape(self) -> tuple[int, ...]:
         s = (3,) + self.x.shape
         # Note: this can be a 3-tuple of x.ndim == 2.
         return s
 
     def save_dual_value(self, value) -> None:
-        value = np.reshape(value, (3, -1))
-        dv0 = np.reshape(value[0, :], self.x.shape)
-        dv1 = np.reshape(value[1, :], self.y.shape)
-        dv2 = np.reshape(value[2, :], self.z.shape)
+        value = np.asarray(value)
+        dv0 = np.reshape(value[0], self.x.shape, order='F')
+        dv1 = np.reshape(value[1], self.y.shape, order='F')
+        dv2 = np.reshape(value[2], self.z.shape, order='F')
         self.dual_variables[0].save_value(dv0)
         self.dual_variables[1].save_value(dv1)
         self.dual_variables[2].save_value(dv2)
-        # TODO: figure out why the reshaping had to be done differently,
-        #   relative to ExpCone constraints.
 
     def _dual_cone(self, *args):
         """Implements the dual cone of PowCone3D See Pg 85
@@ -195,11 +192,11 @@ class PowConeND(Cone):
 
     def __init__(self, W, z, alpha, axis: int = 0, constr_id=None) -> None:
         Expression = cvxtypes.expression()
-        W = Expression.cast_to_const(W)
+        W = Expression.cast(W)
         if not (W.is_real() and W.is_affine()):
             msg = "Invalid first argument; W must be affine and real."
             raise ValueError(msg)
-        z = Expression.cast_to_const(z)
+        z = Expression.cast(z)
         if z.ndim > 1 or not (z.is_real() and z.is_affine()):
             msg = ("Invalid second argument. z must be affine, real, "
                    "and have at most one z.ndim <= 1.")
@@ -214,7 +211,7 @@ class PowConeND(Cone):
         if W.ndim == 2 and W.shape[axis] <= 1:
             msg = "PowConeND requires left-hand-side to have at least two terms."
             raise ValueError(msg)
-        alpha = Expression.cast_to_const(alpha)
+        alpha = Expression.cast(alpha)
         if alpha.shape != W.shape:
             raise ValueError("Argument dimensions %s and %s are not equal."
                              % (W.shape, alpha.shape))
@@ -241,9 +238,9 @@ class PowConeND(Cone):
 
     def get_data(self):
         return [self.alpha, self.axis, self.id]
-    
+
     @property
-    def shape(self) -> Tuple[int, int]:
+    def shape(self) -> tuple[int, int]:
         # The shape property is a tuple (m, n) where each
         # column/row is a separate power cone depending on axis.
         # This constitutes the shape of the hypograph variable z
@@ -257,7 +254,7 @@ class PowConeND(Cone):
             m, n = self.W.shape[1], self.W.shape[0]
         s = (m + 1, n)
         return s
-    
+
     @property
     def residual(self):
         # TODO: The projection should be implemented directly.
@@ -281,7 +278,7 @@ class PowConeND(Cone):
         cone_size = 1 + self.args[0].shape[self.axis]
         return cone_size * self.num_cones()
 
-    def cone_sizes(self) -> List[int]:
+    def cone_sizes(self) -> list[int]:
         cone_size = 1 + self.args[0].shape[self.axis]
         return [cone_size] * self.num_cones()
 

@@ -31,13 +31,16 @@ class COPT(NLPsolver):
                   1: s.OPTIMAL,             # optimal
                   2: s.INFEASIBLE,          # infeasible
                   3: s.UNBOUNDED,           # unbounded
-                  4: s.INF_OR_UNB,          # infeasible or unbounded
+                  4: s.INFEASIBLE_OR_UNBOUNDED,  # infeasible or unbounded
                   5: s.SOLVER_ERROR,        # numerical
                   6: s.USER_LIMIT,          # node limit
                   7: s.OPTIMAL_INACCURATE,  # imprecise
                   8: s.USER_LIMIT,          # time out
                   9: s.SOLVER_ERROR,        # unfinished
-                  10: s.USER_LIMIT          # interrupted
+                  10: s.USER_LIMIT,         # interrupted
+                  11: s.USER_LIMIT,         # iteration limit
+                  20: s.OPTIMAL,            # local optimal
+                  21: s.INFEASIBLE          # local infeasible
                  }
 
     def name(self):
@@ -125,6 +128,8 @@ class COPT(NLPsolver):
             oracles = Oracles(bounds.new_problem, verbose=verbose, use_hessian=use_hessian)
         elif 'oracles' in solver_cache:
             oracles = solver_cache['oracles']
+            if bounds.new_problem.parameters():
+                oracles.update_params(bounds.new_problem)
         else:
             oracles = Oracles(bounds.new_problem, verbose=verbose, use_hessian=use_hessian)
             solver_cache['oracles'] = oracles
@@ -250,6 +255,15 @@ class COPT(NLPsolver):
         # Set parameters
         for key, value in solver_opts.items():
             model.setParam(key, value)
+
+        # COPT may evaluate the gradient/Jacobian/Hessian callbacks at the
+        # initial point before calling the objective/constraint callbacks.
+        # The oracles cache intermediate values from a forward pass, so prime
+        # them here to ensure the first derivative evaluation uses correct
+        # values rather than stale defaults.
+        oracles.objective(x0)
+        if m > 0:
+            oracles.constraints(x0)
 
         # Solve problem
         model.solve()

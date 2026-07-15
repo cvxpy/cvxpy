@@ -26,11 +26,11 @@ class Canonical(metaclass=abc.ABCMeta):
     """
     An interface for objects that can be canonicalized.
     """
-    
+
     @abc.abstractmethod
     def format_labeled(self):
         """Format the object with labels where available.
-        
+
         Returns
         -------
         str

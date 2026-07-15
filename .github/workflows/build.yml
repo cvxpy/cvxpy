@@ -7,7 +7,7 @@ on:
             - master
             - 'release/**'
         tags:
-          - '*'
+          - 'v*'
 
 # https://docs.github.com/en/actions/using-jobs/using-concurrency#example-using-a-fallback-value
 # Only cancels-in-progress on PRs (head_ref only defined in PR, fallback run_id always unique)
@@ -53,7 +53,9 @@ jobs:
       MOSEK_CI_BASE64: ${{ secrets.MOSEK_CI_BASE64 }}
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0  # setuptools-scm needs tags to compute the version
       - name: Set Additional Envs
         run: |
           echo "PYTHON_SUBVERSION=$(echo $PYTHON_VERSION | cut -c 3-)" >> $GITHUB_ENV
@@ -75,7 +77,7 @@ jobs:
           source continuous_integration/test_script.sh
 
       - name: Upload coverage file
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: ${{env.SINGLE_ACTION_CONFIG == 'True'}}
         with:
           name: coverage
@@ -113,7 +115,9 @@ jobs:
       CVXPY_BASE_SUFFIX: ${{ matrix.build-cvxpy-base && 'base-' || '' }}
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0  # setuptools-scm needs tags to compute the version
       - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
@@ -123,7 +127,7 @@ jobs:
         shell: bash
         run: |
           echo "PYTHON_SUBVERSION=$(echo $PYTHON_VERSION | cut -c 3-)" >> $GITHUB_ENV
-          echo "DEPLOY=$( [[ $GITHUB_EVENT_NAME == 'push' && $GITHUB_REF == 'refs/tags'* ]] && echo 'True' || echo 'False' )" >> $GITHUB_ENV
+          echo "DEPLOY=$( [[ $GITHUB_EVENT_NAME == 'push' && $GITHUB_REF == 'refs/tags/v'* ]] && echo 'True' || echo 'False' )" >> $GITHUB_ENV
 
       - name: Adapt pyproject.toml
         if: ${{matrix.build-cvxpy-base}}
@@ -148,7 +152,7 @@ jobs:
 
       - name: Set up QEMU  # For aarch64, see https://cibuildwheel.readthedocs.io/en/stable/faq/#emulation
         if: runner.os == 'Linux'
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
         with:
           platforms: all
 
@@ -159,7 +163,7 @@ jobs:
           CIBW_SKIP: "*-win32 *-manylinux_i686 *-musllinux*"
           CIBW_ARCHS_MACOS: x86_64 universal2
           CIBW_ARCHS_LINUX: auto aarch64
-        uses: pypa/cibuildwheel@v3.4.0
+        uses: pypa/cibuildwheel@v4.1.0
 
       - name: Build source
         if: ${{github.event_name == 'push' && env.SINGLE_ACTION_CONFIG == 'True'}}
@@ -182,7 +186,7 @@ jobs:
 
       - name: Upload artifacts to github
         if: ${{github.event_name == 'push' && env.USE_OPENMP != 'True'}}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: wheels-${{ env.CVXPY_BASE_SUFFIX }}${{ matrix.os }}-${{ matrix.python-version }}
           path: ./wheelhouse

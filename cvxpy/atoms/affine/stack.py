@@ -34,7 +34,7 @@ Examples
 (3, 2)
 """
 
-from typing import Iterable, Sequence
+from collections.abc import Iterable, Sequence
 
 from cvxpy.atoms.affine.concatenate import concatenate
 from cvxpy.atoms.affine.reshape import reshape
@@ -43,7 +43,7 @@ from cvxpy.expressions.expression import Expression
 
 def _as_expression(obj) -> Expression:
     """Cast scalars/arrays to ``Constant`` while leaving Expressions intact."""
-    return obj if isinstance(obj, Expression) else Expression.cast_to_const(obj)
+    return obj if isinstance(obj, Expression) else Expression.cast(obj)
 
 
 def stack(arrays: Sequence[object] | Iterable[object], axis: int = 0) -> Expression:

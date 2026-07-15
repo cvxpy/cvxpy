@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import logging
+import os
 import sys
 
 LOGGER = logging.getLogger("__cvxpy__")
@@ -110,6 +111,17 @@ SOLVERS = [CLARABEL, ECOS, CVXOPT, GLOP, GLPK, GLPK_MI,
            NAG, PDLP, SCIP, SCIPY, DAQP, HIGHS, MPAX,
            CUCLARABEL, CUOPT, KNITRO, COSMO, PDCS, IPOPT, UNO]
 
+
+def _env_var_to_bool(name: str, default: bool) -> bool:
+    value = os.environ.get(name)
+    if value is None:
+        return default
+    return value.strip().lower() not in {"0", "false", "no", "off"}
+
+# Internal-only feature flag. This may be removed in a future version without warning.
+DEFAULT_TO_COMMERCIAL_SOLVERS = _env_var_to_bool(
+    "CVXPY_DEFAULT_TO_COMMERCIAL_SOLVERS", True)
+
 # Xpress-specific items
 XPRESS_IIS = "XPRESS_IIS"
 XPRESS_TROW = "XPRESS_TROW"
@@ -202,6 +214,11 @@ DEFAULT_CANON_BACKEND = CPP_CANON_BACKEND if sys.platform != "emscripten" else S
 # When problem is DPP and total parameter size >= this threshold, use COO backend
 DPP_PARAM_THRESHOLD = 1000
 
+# Nonzero fraction at/below which an array counts as sparse: the diff engine routes a
+# constant operand below it to its sparse binding, and Leaf flags a sparsity attribute as
+# worth value_sparse.
+SPARSE_DENSITY_THRESHOLD = 0.05
+
 # Numerical tolerances
 EIGVAL_TOL = 1e-10
 PSD_NSD_PROJECTION_TOL = 1e-8
@@ -209,6 +226,7 @@ GENERAL_PROJECTION_TOL = 1e-10
 SPARSE_PROJECTION_TOL = 1e-10
 ATOM_EVAL_TOL = 1e-4
 CHOL_SYM_TOL = 1e-14
+CHOL_ZERO_PIVOT_TOL = 2.2e-10
 
 # Thresholds for warning about SOC approximation of power cones
 # Warning is triggered when approx_error > threshold OR num_soc > threshold

@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import re
 import warnings
 
 import numpy as np
@@ -332,6 +333,38 @@ class TestExpressions(BaseTest):
         self.assertFalse(C.is_skew_symmetric())
         pass
 
+    def test_sparse_symmetry_checks_positions(self) -> None:
+        """Asymmetric sparse matrices whose triangle values match must not pass."""
+        # A[1, 0] = 5, A[0, 2] = 5: value multisets of the triangles match.
+        A = sp.coo_array(([5.0, 5.0], ((1, 0), (0, 2))), shape=(3, 3))
+        self.assertFalse(intf.is_sparse_symmetric(A))
+        self.assertFalse(Constant(A).is_symmetric())
+        with self.assertRaises(ValueError):
+            cp.quad_form(Variable(3), A)
+
+        H = sp.coo_array(([5 + 1j, 5 - 1j], ((1, 0), (0, 2))), shape=(3, 3))
+        self.assertFalse(Constant(H).is_hermitian())
+
+        B = sp.coo_array(([5.0, -5.0], ((1, 0), (0, 2))), shape=(3, 3))
+        self.assertFalse(intf.is_sparse_skew_symmetric(B))
+        self.assertFalse(Constant(B).is_skew_symmetric())
+
+        # Duplicate COO entries and explicit zeros must not break detection.
+        S = sp.coo_array(([2.0, 3.0, 5.0, 0.0], ((1, 1, 0, 2), (0, 0, 1, 0))), shape=(3, 3))
+        self.assertTrue(intf.is_sparse_symmetric(S))
+        K = sp.coo_array(([5.0, -5.0, 0.0], ((1, 0, 2), (0, 1, 2))), shape=(3, 3))
+        self.assertTrue(intf.is_sparse_skew_symmetric(K))
+
+        # Sparse and dense classification agree on random matrices.
+        rng = np.random.default_rng(0)
+        for trial in range(20):
+            M = sp.random_array((5, 5), density=0.4, rng=rng)
+            if trial % 2 == 0:
+                M = (M + M.T).tocoo()
+            D = M.toarray()
+            self.assertEqual(intf.is_sparse_symmetric(M), np.allclose(D, D.T))
+            self.assertEqual(intf.is_sparse_skew_symmetric(M), np.allclose(D + D.T, 0))
+
     def test_1D_array(self) -> None:
         """Test NumPy 1D arrays as constants.
         """
@@ -496,16 +529,16 @@ class TestExpressions(BaseTest):
             p = Parameter((2, 2), integer=True, value=[[1, 1.5], [1, -1]])
         self.assertEqual(str(cm.exception), "Parameter value must be integer.")
 
-         # Boolean indices
+         # Boolean indices: designated entry (0, 1) is not boolean.
         with self.assertRaises(Exception) as cm:
-             p = Parameter((2, 2), boolean=[(0, 0), (0, 1)], value=[[0, 2], [1, 0]])
+             p = Parameter((2, 2), boolean=[(0, 0), (0, 1)], value=np.array([[0, 2], [1, 0]]))
         self.assertEqual(str(cm.exception), "Parameter value must be boolean.")
- 
+
         # Integer indices
         with self.assertRaises(Exception) as cm:
              p = Parameter((2, 2), integer=[(0, 0), (0, 1)], value=[[1, 1.5], [1.4, 2.8]])
         self.assertEqual(str(cm.exception), "Parameter value must be integer.")
-        
+
         # Diag.
         with self.assertRaises(Exception) as cm:
             p = Parameter((2, 2), diag=True, value=[[1, 1], [1, -1]])
@@ -642,6 +675,60 @@ class TestExpressions(BaseTest):
         self.assertEqual(A.is_psd(), True)
         self.assertEqual(A.is_nsd(), True)
 
+    def test_project_multiple_attributes(self) -> None:
+        """Projection composes entrywise attributes instead of being a no-op."""
+        # nonneg and nonpos: only zero is feasible.
+        v = Variable(2, nonneg=True, nonpos=True)
+        self.assertItemsAlmostEqual(v.project(np.array([1., -1.])), [0, 0])
+        with self.assertRaises(ValueError):
+            v.value = np.array([1., -1.])
+        v.value = np.zeros(2)
+
+        # integer and nonneg: round, then clip the sign.
+        v = Variable(2, integer=True, nonneg=True)
+        self.assertItemsAlmostEqual(v.project(np.array([1.4, -3.])), [1, 0])
+        with self.assertRaises(ValueError):
+            v.value = np.array([0.5, -3.])
+        v.value = np.array([2., 0.])
+
+        # integer with fractional bounds: nearest integer inside the bounds.
+        v = Variable(2, integer=True, bounds=[0.5, 4.7])
+        self.assertItemsAlmostEqual(v.project(np.array([0.2, 10.])), [1, 4])
+
+        # boolean and nonpos: only zero is feasible.
+        v = Variable(2, boolean=True, nonpos=True)
+        self.assertItemsAlmostEqual(v.project(np.array([0.9, -0.2])), [0, 0])
+
+        # sign with bounds.
+        v = Variable(2, nonneg=True, bounds=[-3, 5])
+        self.assertItemsAlmostEqual(v.project(np.array([-7., 9.])), [0, 5])
+
+        # Structural attributes combined with entrywise attributes are
+        # not enforced if strict=False: the value passes through unmodified.
+        v = Variable((2, 2), PSD=True, nonneg=True)
+        A = np.array([[1., -1.], [1., -1.]])
+        self.assertItemsAlmostEqual(v.project(A, strict=False), A)
+
+        # Structural attributes combined with entrywise attributes error
+        # if strict=True.
+        v = Variable((2, 2), PSD=True, nonneg=True)
+        A = np.array([[1., -1.], [1., -1.]])
+        with self.assertRaises(RuntimeError):
+            v.project(A, strict=True)
+
+    def test_partial_boolean_sign(self) -> None:
+        """A variable boolean only at some indices has unknown sign.
+
+        is_nonneg used to return the (truthy) index list itself, so the whole
+        variable was classified NONNEGATIVE, corrupting DCP analysis.
+        """
+        x = cp.Variable(2, boolean=[(0,)])
+        self.assertIs(x.is_nonneg(), False)
+        self.assertEqual(x.sign, s.UNKNOWN)
+        # Fully boolean variables remain nonnegative.
+        y = cp.Variable(2, boolean=True)
+        self.assertIs(y.is_nonneg(), True)
+
     def test_project_boolean_indices(self) -> None:
         idx = (np.array([0, 2]),)
         leaf = cp.Variable((3,), boolean=idx)
@@ -657,6 +744,17 @@ class TestExpressions(BaseTest):
         projected = leaf.project(val)
         # Only index 1 is projected to integer, others unchanged
         assert (projected == np.array([1.2, 3, -0.8])).all()
+
+    def test_project_boolean_coordinate_tuples(self) -> None:
+        # Each tuple designates one boolean entry: here (0, 0) and (1, 1).
+        leaf = cp.Variable((2, 2), boolean=[(0, 0), (1, 1)])
+        val = np.array([[0.4, 2.5], [3.5, 0.6]])
+        assert (leaf.project(val) == np.array([[0., 2.5], [3.5, 1.]])).all()
+
+        p = Parameter((2, 2), boolean=[(0, 0), (0, 1)])
+        p.value = np.array([[0., 1.], [5., 7.]])  # designated entries are 0/1
+        with self.assertRaises(ValueError):
+            p.value = np.array([[0.5, 1.], [5., 7.]])
 
     def test_add_expression(self) -> None:
         # Vectors
@@ -1214,6 +1312,26 @@ class TestExpressions(BaseTest):
         self.assertItemsAlmostEqual(A[np.array([True, True, True]),
                                       np.array([True, False, True, True])], expr.value)
 
+    def test_scalar_bool_indices(self) -> None:
+        """Test indexing with scalar booleans (NumPy mask semantics).
+
+        x[True] prepends a length-1 axis; x[False] a length-0 axis.
+        """
+        A = np.arange(12.).reshape(3, 4)
+        C = Constant(A)
+
+        for key in (True, False, np.True_, (True, 0), (False, 1), (True, slice(1, 3))):
+            expr = C[key]
+            self.assertEqual(expr.shape, A[key].shape)
+            self.assertItemsAlmostEqual(expr.value, A[key])
+
+        # Shape inference, value, and solve must agree.
+        P = Variable((3, 4))
+        prob = Problem(Minimize(cp.sum_squares(P - A)), [P[True, 0] == A[True, 0]])
+        prob.solve(solver=cp.CLARABEL)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        self.assertItemsAlmostEqual(P[True, 0].value, A[True, 0])
+
     def test_selector_list_indices(self) -> None:
         """Test indexing with lists/ndarrays of indices.
         """
@@ -1275,6 +1393,91 @@ class TestExpressions(BaseTest):
         self.assertEqual(exp.curvature, s.CONCAVE)
         exp = self.x**-1
         self.assertEqual(exp.curvature, s.CONVEX)
+
+    def test_rpow(self) -> None:
+        """Test Expression.__rpow__ for expressions of the form a**x."""
+        x = Variable()
+
+        # Test 1: basic expression is created correctly
+        expr = 2 ** x
+        self.assertIsNotNone(expr)
+
+        # Test 2: minimize 2**x with x >= 1, optimal at x=1, value=2
+        prob = cp.Problem(cp.Minimize(2 ** x), [x >= 1, x <= 3])
+        prob.solve()
+        self.assertAlmostEqual(float(x.value), 1.0, places=3)
+        self.assertAlmostEqual(float(prob.value), 2.0, places=3)
+
+
+        # Test 3: base=10, minimize with x >= 2, optimal at x=2, value=100
+        prob2 = cp.Problem(cp.Minimize(10 ** x), [x >= 2])
+        prob2.solve()
+        self.assertAlmostEqual(float(x.value), 2.0, places=3)
+        self.assertAlmostEqual(float(prob2.value), 100.0, places=3)
+        # Test 4: base=1 gives value 1 regardless of x
+        prob3 = cp.Problem(cp.Minimize(1 ** x), [x >= 0])
+        prob3.solve()
+        self.assertAlmostEqual(float(prob3.value), 1.0, places=3)
+
+        # Test 5: negative base raises ValueError
+        with self.assertRaises(ValueError):
+            (-2) ** x
+
+        # Test 6: non-integer base 0.5**x, minimize with x in [-2, 0]
+        prob4 = cp.Problem(cp.Minimize(0.5 ** x), [x >= -2, x <= 0])
+        prob4.solve()
+        self.assertAlmostEqual(float(x.value), 0.0, places=3)
+        self.assertAlmostEqual(float(prob4.value), 1.0, places=3)
+
+        # Test 7: 2**x used in constraint, minimize 2**x subject to 2**x <= 8
+        prob5 = cp.Problem(cp.Minimize(x), [2 ** x <= 8, x >= 0])
+        prob5.solve()
+        self.assertAlmostEqual(float(x.value), 0.0, places=3)
+
+        # Test 8: non-constant base raises ValueError
+        y = Variable()
+        with self.assertRaises(ValueError):
+            y ** x
+
+    def test_power_const_base(self) -> None:
+        """Test cp.power(b, x) where b is constant and x is variable."""
+        x = Variable()
+
+        # Test 1: basic expression created correctly
+        expr = cp.power(2, x)
+        self.assertIsNotNone(expr)
+
+        # Test 2: minimize cp.power(2, x) with x >= 1, optimal at x=1, value=2
+        prob = cp.Problem(cp.Minimize(cp.power(2, x)), [x >= 1, x <= 3])
+        prob.solve()
+        self.assertAlmostEqual(float(x.value), 1.0, places=3)
+        self.assertAlmostEqual(float(prob.value), 2.0, places=3)
+
+        # Test 3: base=10, x >= 2, optimal value=100
+        prob2 = cp.Problem(cp.Minimize(cp.power(10, x)), [x >= 2])
+        prob2.solve()
+        self.assertAlmostEqual(float(x.value), 2.0, places=3)
+        self.assertAlmostEqual(float(prob2.value), 100.0, places=3)
+
+        # Test 4: negative base raises ValueError
+        with self.assertRaises(ValueError):
+            cp.power(-2, x)
+
+        # Test 5: Parameter(pos=True) as base for cp.power
+        b = cp.Parameter(pos=True)
+        b.value = 2.0
+        expr3 = cp.power(b, x)
+        self.assertIsNotNone(expr3)
+        prob3 = cp.Problem(cp.Minimize(cp.power(b, x)), [x >= 1, x <= 3])
+        prob3.solve()
+        self.assertAlmostEqual(float(x.value), 1.0, places=3)
+
+        # Test 6: Parameter(pos=True) as base for ** operator
+        expr4 = b ** x
+        self.assertIsNotNone(expr4)
+        prob4 = cp.Problem(cp.Minimize(b ** x), [x >= 1, x <= 3])
+        prob4.solve()
+        self.assertAlmostEqual(float(x.value), 1.0, places=3)
 
     def test_sum(self) -> None:
         """Test cvxpy sum function.
@@ -1801,6 +2004,34 @@ class TestND_Expressions():
         prob = cp.Problem(self.obj, [expr == y])
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
         assert np.allclose(expr.value, y)
+
+    @pytest.mark.parametrize("source, destination", [([0], [-1]), ([-1], [0]),
+                                                     ([0, 1], [-1, -2]), (0, -1), ([0], [0])])
+    @pytest.mark.parametrize("shape", [(2, 3, 4), (2, 3, 4, 5)])
+    def test_moveaxis_negative_axes(self, source, destination, shape) -> None:
+        target = np.arange(np.prod(shape)).reshape(shape)
+        expr = cp.moveaxis(cp.Constant(target), source, destination)
+        y = np.moveaxis(target, source, destination)
+        assert expr.shape == y.shape
+        assert np.allclose(expr.value, y)
+
+    def test_moveaxis_negative_axes_solve(self) -> None:
+        target = np.arange(24).reshape((2, 3, 4))
+        var = cp.Variable((2, 3, 4))
+        y = cp.Variable((4, 2, 3))
+        prob = cp.Problem(self.obj, [var == target, y == cp.moveaxis(var, [-1], [0])])
+        prob.solve(solver=cp.CLARABEL, canon_backend=cp.SCIPY_CANON_BACKEND)
+        assert np.allclose(y.value, np.moveaxis(target, [-1], [0]))
+
+    @pytest.mark.parametrize("source, destination", [([3], [0]), ([0], [-4]),
+                                                     ([0, 0], [1, 2]), ([0], [1, 2]),
+                                                     ([0, 1], [0, 0])])
+    def test_moveaxis_invalid_axes(self, source, destination) -> None:
+        target = np.zeros((2, 3, 4))
+        with pytest.raises(ValueError) as np_err:
+            np.moveaxis(target, source, destination)
+        with pytest.raises(ValueError, match=re.escape(str(np_err.value))):
+            cp.moveaxis(cp.Constant(target), source, destination)
 
     @pytest.mark.parametrize("shapes", [((3),(253, 253, 3)),
                                         ((7, 1, 5),(8, 7, 6, 5)),

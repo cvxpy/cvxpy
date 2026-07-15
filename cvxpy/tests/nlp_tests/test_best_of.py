@@ -62,7 +62,7 @@ class TestBestOf():
                             (radius[i] + radius[i+1:]) ** 2]
         obj = cp.Minimize(cp.max(cp.norm_inf(centers, axis=1) + radius))
         prob = cp.Problem(obj, constraints)
-        
+
         centers.value = np.random.rand(n, 2)
         centers.sample_bounds = [-5.0, 5.0]
         n_runs = 10
@@ -84,7 +84,7 @@ class TestBestOf():
         y = cp.Variable(bounds=[-3, 3])
         obj = cp.Minimize((x - 1) ** 2 + (y - 2) ** 2)
         prob = cp.Problem(obj)
-        prob.solve(nlp=True, best_of=3)
+        prob.solve(nlp=True, best_of=3, verbose=False)
 
         all_objs = prob.solver_stats.extra_stats['all_objs_from_best_of']
         assert len(all_objs) == 3
@@ -110,6 +110,25 @@ class TestBestOf():
         y.value = 5
         obj = cp.Minimize((x - 1) ** 2 + (y - 2) ** 2)
         prob = cp.Problem(obj)
-        prob.solve(nlp=True, best_of=3)
+        prob.solve(nlp=True, best_of=3, verbose=False)
         all_objs = prob.solver_stats.extra_stats['all_objs_from_best_of']
         assert len(all_objs) == 3
+
+    def test_best_of_infeasible_problem(self):
+        # test that if the problem is infeasible, then best_of returns inf as the objective value
+        x = cp.Variable(bounds=[-5, 5])
+        y = cp.Variable(bounds=[-3, 3])
+        constraints = [x + y == 10]
+        obj = cp.Minimize((x - 1) ** 2 + (y - 2) ** 2)
+        prob = cp.Problem(obj, constraints)
+        prob.solve(nlp=True, best_of=20, verbose=True)
+        assert prob.value == float("inf")
+
+    def test_best_of_with_unbounded(self):
+        # test that if the problem is unbounded, then best_of returns -inf as the objective value
+        x = cp.Variable()
+        x.sample_bounds = [-5, 5]
+        obj = cp.Minimize(x)
+        prob = cp.Problem(obj)
+        prob.solve(nlp=True, best_of=20, verbose=True)
+        assert prob.value == float("-inf")

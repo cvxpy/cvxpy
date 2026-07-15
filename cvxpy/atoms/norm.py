@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import Union
 
 import numpy as np
 
@@ -28,7 +27,7 @@ from cvxpy.atoms.sigma_max import sigma_max
 from cvxpy.expressions.expression import Expression
 
 
-def norm(x, p: Union[int, str] = 2, axis=None, keepdims: bool = False):
+def norm(x, p: int | str = 2, axis=None, keepdims: bool = False) -> Expression:
     """Wrapper on the different norm atoms.
 
     Parameters
@@ -49,7 +48,7 @@ def norm(x, p: Union[int, str] = 2, axis=None, keepdims: bool = False):
     Expression
         An Expression representing the norm.
     """
-    x = Expression.cast_to_const(x)
+    x = Expression.cast(x)
     # matrix norms take precedence
     num_nontrivial_idxs = sum([d > 1 for d in x.shape])
     if axis is None and x.ndim == 2:

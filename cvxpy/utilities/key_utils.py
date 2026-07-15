@@ -17,14 +17,14 @@ limitations under the License.
 # Utility functions to handle indexing/slicing into an expression.
 
 import numbers
-from typing import Optional, Tuple
+from typing import overload
 
 import numpy as np
 
 
 # TODO(akshayka): This module needs to be updated in order to handle
 # NumPy 0/1D arrays.
-def validate_key(key, shape: Tuple[int, ...]):
+def validate_key(key, shape: tuple[int, ...]):
     """Check if the key is a valid index.
 
     Args:
@@ -66,7 +66,7 @@ def to_tuple(key):
         return (key,)
 
 
-def format_slice(key_val, dim, axis) -> Optional[slice]:
+def format_slice(key_val, dim, axis) -> slice | None:
     """Converts part of a key into a slice with a start and step.
 
     Uses the same syntax as numpy.
@@ -94,6 +94,8 @@ def format_slice(key_val, dim, axis) -> Optional[slice]:
     else:
         # Convert to int.
         orig_key_val = to_int(key_val)
+        # key_val is non-None in this branch, so to_int yields an int.
+        assert orig_key_val is not None
         key_val = wrap_neg_index(orig_key_val, dim)
         if 0 <= key_val < dim:
             return slice(key_val, key_val + 1, 1)
@@ -110,6 +112,12 @@ def to_int(val, none_val=None):
         return none_val
     else:
         return int(val)
+
+
+@overload
+def wrap_neg_index(index: int, dim, neg_step: bool = ...) -> int: ...
+@overload
+def wrap_neg_index(index: None, dim, neg_step: bool = ...) -> None: ...
 
 
 def wrap_neg_index(index, dim, neg_step: bool = False):
@@ -172,7 +180,7 @@ def is_single_index(slc) -> bool:
         slc.start + step >= slc.stop
 
 
-def shape(key, orig_key, shape: Tuple[int, ...]) -> Tuple[int, ...]:
+def shape(key, orig_key, shape: tuple[int, ...]) -> tuple[int, ...]:
     """Finds the dimensions of a sliced expression.
 
     Args:
@@ -201,10 +209,14 @@ def to_str(key):
 
 
 def is_special_slice(key) -> bool:
-    """Does the key contain a list, ndarray, or logical ndarray?
+    """Does the key contain a list, ndarray, scalar boolean, or logical ndarray?
     """
     # Slices and int-like numbers are fine.
     for elem in to_tuple(key):
+        # Scalar booleans use NumPy mask semantics (new leading axis),
+        # so they must not be treated as integer indices.
+        if isinstance(elem, (bool, np.bool_)):
+            return True
         if not (isinstance(elem, (numbers.Number, slice)) or np.isscalar(elem)):
             return True
 
@@ -213,6 +225,9 @@ def is_special_slice(key) -> bool:
 
 def special_key_to_str(key):
     """Converts a special key to a string representation."""
+    if np.isscalar(key):
+        # Scalar boolean keys are special slices but not iterable.
+        key = (key,)
     key_strs = []
     for k in key:
         if isinstance(k, (np.ndarray, list)):

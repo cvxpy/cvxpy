@@ -545,7 +545,7 @@ class TestAtoms(BaseTest):
 
     def test_multiply_hermitian(self) -> None:
         """Test that Hermitian property is preserved in multiplication."""
-        
+
         # Test real scalar multiplication
         X = cp.Variable((3, 3), hermitian=True)
         self.assertTrue((1 * X).is_hermitian())
@@ -593,14 +593,14 @@ class TestAtoms(BaseTest):
         atom = cp.hstack([self.A, self.B])
         self.assertEqual(atom.name(), "Hstack(A, B)")
         self.assertEqual(atom.shape, (2, 4))
-        
+
         # Extracting columns produces 1D arrays, so hstack concatenates to (4,)
         entries = []
         for i in range(self.A.shape[1]):
             entries.append(self.A[:, i])
         atom = cp.hstack(entries)
         self.assertEqual(atom.shape, (4,))
-        
+
         with self.assertRaises(ValueError):
             cp.hstack([self.C, self.A])
 
@@ -952,6 +952,26 @@ class TestAtoms(BaseTest):
         expr = cp.log1p(-0.5)
         self.assertEqual(expr.sign, s.NONPOS)
 
+    def test_entr(self) -> None:
+        """Test the entr atom, including sparse constants.
+
+        entr was the only elementwise atom missing numpy_numeric, so sparse
+        inputs reached scipy's xlogy undensified and raised a TypeError.
+        """
+        dense = np.array([[0.5, 0.0], [0.0, 2.0]])
+        expected = np.array([[0.5 * np.log(2), 0.0], [0.0, -2 * np.log(2)]])
+        self.assertItemsAlmostEqual(cp.entr(cp.Constant(dense)).value, expected)
+        sparse = sp.csc_array(dense)
+        self.assertItemsAlmostEqual(cp.entr(cp.Constant(sparse)).value, expected)
+
+    def test_elementwise_is_symmetric(self) -> None:
+        """is_symmetric must not crash for scalar or 1-D elementwise atoms."""
+        self.assertTrue(cp.abs(cp.Variable()).is_symmetric())
+        self.assertFalse(cp.abs(cp.Variable(3)).is_symmetric())
+        self.assertTrue(cp.abs(cp.Variable((2, 2), symmetric=True)).is_symmetric())
+        self.assertFalse(cp.abs(cp.Variable((2, 2))).is_symmetric())
+        self.assertFalse(cp.abs(cp.Variable((2, 3))).is_symmetric())
+
     def test_upper_tri(self) -> None:
         with self.assertRaises(Exception) as cm:
             cp.upper_tri(self.C)
@@ -1089,6 +1109,264 @@ class TestAtoms(BaseTest):
         result = problem.solve()
         self.assertAlmostEqual(result, 2.5)
         self.assertAlmostEqual(x.value, 1.5)
+
+    def test_huber_perspective(self) -> None:
+        """Tests for the three-argument perspective Huber atom (HuberPerspectiveAtom)."""
+        # -- t <= 0 → Inf --
+        self.assertTrue(np.isinf(cp.huber(1.0, M=1, t=0).value))
+        self.assertTrue(np.isinf(cp.huber(1.0, M=1, t=-1).value))
+
+        # -- Inner region: |x/t| <= M → x^2/t --
+        self.assertAlmostEqual(cp.huber(0.5, M=1, t=2).value, 0.125)   # 0.25/2
+        self.assertAlmostEqual(cp.huber(0.5, M=1, t=3).value, 1.0/12)  # 0.25/3
+
+        # -- Boundary: |x/t| == M → M^2 * t (both branches agree) --
+        # x=2, M=1, t=2: inner → 4/2=2; outer → 2*1*2 - 1*2=2
+        self.assertAlmostEqual(cp.huber(2.0, M=1, t=2).value, 2.0)
+        # x=3, M=1, t=3: inner → 9/3=3; outer → 2*1*3 - 1*3=3
+        self.assertAlmostEqual(cp.huber(3.0, M=1, t=3).value, 3.0)
+
+        # -- Outer region: |x/t| > M → 2M|x| - M^2*t --
+        # x=3, M=1, t=2: |3/2|=1.5>1 → 2*1*3 - 1*2 = 4
+        self.assertAlmostEqual(cp.huber(3.0, M=1, t=2).value, 4.0)
+
+        # -- Symmetry --
+        self.assertAlmostEqual(cp.huber(-0.5, M=1, t=2).value, 0.125)
+        self.assertAlmostEqual(cp.huber(-3.0, M=1, t=2).value, 4.0)
+
+        # -- Reduction to standard Huber when t=1 --
+        for x_val, M_val in [(0.5, 1.0), (1.0, 1.0), (2.0, 1.0), (3.0, 2.0)]:
+            self.assertAlmostEqual(
+                cp.huber(x_val, M=M_val, t=1).value,
+                cp.huber(x_val, M=M_val).value,
+            )
+
+        # -- Scaling property: huber(α*x, M, α*t) == α * huber(x, M, t) --
+        for alpha in [0.5, 2.0, 3.0]:
+            x_val, M_val, t_val = 1.5, 1.0, 2.0
+            self.assertAlmostEqual(
+                cp.huber(alpha * x_val, M=M_val, t=alpha * t_val).value,
+                alpha * cp.huber(x_val, M=M_val, t=t_val).value,
+            )
+
+        # -- Vector input: [inner, boundary, outer] with M=1, t=2 --
+        # |x/t|: 0.25, 1.0, 1.5 → inner, boundary, outer
+        self.assertItemsAlmostEqual(
+            cp.huber(np.array([0.5, 2.0, 3.0]), M=1, t=2).value,
+            [0.125, 2.0, 4.0],
+        )
+
+        # -- 2-D matrix input --
+        # M=1, t=2: 0.5→0.125 (inner), 3.0→4.0 (outer), 2.0→2.0 (boundary), 1.0→0.5 (inner)
+        self.assertItemsAlmostEqual(
+            cp.huber(np.array([[0.5, 3.0], [2.0, 1.0]]), M=1, t=2).value,
+            np.array([[0.125, 4.0], [2.0, 0.5]]),
+        )
+
+        # -- Sparse constant input --
+        dense = np.array([[0.5, 0.0], [0.0, 3.0]])
+        expected = np.array([[0.125, 0.0], [0.0, 4.0]])
+        self.assertItemsAlmostEqual(cp.huber(cp.Constant(dense), M=1, t=2).value, expected)
+        sparse = sp.csc_array(dense)
+        self.assertItemsAlmostEqual(cp.huber(cp.Constant(sparse), M=1, t=2).value, expected)
+
+        # -- t as Parameter --
+        t_param = cp.Parameter(pos=True)
+        t_param.value = 2.0
+        self.assertAlmostEqual(cp.huber(0.5, M=1, t=t_param).value, 0.125)
+        t_param.value = 3.0
+        self.assertAlmostEqual(cp.huber(0.5, M=1, t=t_param).value, 1.0/12)
+
+        # -- validate_arguments rejects invalid configurations --
+        y = cp.Variable()
+        with self.assertRaises(ValueError) as cm:
+            cp.huber(y, M=-1, t=2)
+        self.assertEqual(str(cm.exception),
+                         "M must be a non-negative scalar constant or Parameter.")
+        with self.assertRaises(ValueError) as cm:
+            cp.huber(y, M=1, t=cp.Variable(3, nonneg=True))
+        self.assertIn("t must be a scalar expression", str(cm.exception))
+        # t must be affine or concave; a convex (non-affine) t is rejected
+        with self.assertRaises(ValueError) as cm:
+            cp.huber(y, M=1, t=cp.square(cp.Variable()))
+        self.assertIn("concave or affine", str(cm.exception))
+
+        # -- _grad: gradient w.r.t. x and t --
+        # d/dt [t*huber(x/t, M)] = -min(|x/t|, M)^2, verified by finite differences.
+        atom = cp.huber(y, M=1, t=cp.Variable(pos=True))
+        g = atom._grad([np.array(0.5), 2.0])
+        self.assertAlmostEqual(g[0].toarray().item(), 0.5)
+        self.assertAlmostEqual(g[1].toarray().item(), -0.0625)
+        g = atom._grad([np.array(3.0), 2.0])
+        self.assertAlmostEqual(g[0].toarray().item(), 2.0)
+        self.assertAlmostEqual(g[1].toarray().item(), -1.0)
+        g = atom._grad([np.array(-3.0), 2.0])
+        self.assertAlmostEqual(g[0].toarray().item(), -2.0)
+        self.assertAlmostEqual(g[1].toarray().item(), -1.0)
+        yv = cp.Variable(3)
+        atom_v = cp.huber(yv, M=1, t=cp.Variable(pos=True))
+        g = atom_v._grad([np.array([0.5, 3.0, -3.0]), 2.0])
+        self.assertItemsAlmostEqual(g[0].toarray(), np.diag([0.5, 2.0, -2.0]))
+        self.assertItemsAlmostEqual(g[1].toarray(), [-0.0625, -1.0, -1.0])
+        g = atom._grad([np.array(0.5), 0.0])
+        self.assertIsNone(g[0])
+        self.assertIsNone(g[1])
+        # Chain rule through Atom.grad: d/dt sum_i t*huber(2*x_i/t) at the kink |2x/t| = M.
+        xv, tv = cp.Variable(2), cp.Variable(pos=True)
+        xv.value, tv.value = np.array([1.0, -1.0]), 2.0
+        expr = cp.sum(cp.huber(2 * xv, M=1, t=tv))
+        self.assertItemsAlmostEqual(expr.grad[xv].toarray(), [4.0, -4.0])
+        self.assertAlmostEqual(expr.grad[tv], -2.0)
+
+        # -- Copy --
+        atom = cp.huber(self.x, M=2, t=3)
+        copy = atom.copy()
+        self.assertIs(type(copy), type(atom))
+        self.assertEqual(len(copy.args), len(atom.args))
+        self.assertEqual(copy.get_data()[0].value, atom.get_data()[0].value)
+
+        # -- DPP with perspective form: M and t as Parameters re-solve correctly --
+        x = cp.Variable()
+        M_p = cp.Parameter(nonneg=True, value=1.0)
+        t_p = cp.Parameter(pos=True, value=1.0)
+        prob = cp.Problem(cp.Minimize(x**2 + cp.huber(2*x - 3, M=M_p, t=t_p)), [x >= 0.5])
+        self.assertTrue(prob.is_dpp())
+        self.assertAlmostEqual(prob.solve(solver=cp.CLARABEL), 1.80, places=4)
+        self.assertAlmostEqual(float(x.value), 1.2, places=4)
+        t_p.value = 2.0
+        self.assertAlmostEqual(prob.solve(solver=cp.CLARABEL), 1.50, places=4)
+        self.assertAlmostEqual(float(x.value), 1.0, places=4)
+
+    def test_huber_dcp(self) -> None:
+        """DCP curvature, sign, and monotonicity properties for Huber atoms."""
+        x = cp.Variable()
+
+        # -- HuberAtom --
+        atom2 = cp.huber(x, M=1)
+        self.assertTrue(atom2.is_convex())
+        self.assertFalse(atom2.is_concave())
+        self.assertTrue(atom2.is_nonneg())
+        self.assertTrue(atom2.is_quadratic())
+        self.assertTrue(atom2.has_quadratic_term())
+
+        # Monotonicity: non-decreasing for x >= 0, non-increasing for x <= 0
+        self.assertTrue(cp.huber(cp.Variable(nonneg=True), 1).is_incr(0))
+        self.assertFalse(cp.huber(cp.Variable(nonneg=True), 1).is_decr(0))
+        self.assertTrue(cp.huber(cp.Variable(nonpos=True), 1).is_decr(0))
+        self.assertFalse(cp.huber(cp.Variable(nonpos=True), 1).is_incr(0))
+
+        # -- HuberPerspectiveAtom --
+        t_const = 2.0
+        t_var = cp.Variable(nonneg=True)
+        atom3 = cp.huber(x, M=1, t=t_const)
+        self.assertTrue(atom3.is_convex())
+        self.assertFalse(atom3.is_concave())
+        self.assertTrue(atom3.is_nonneg())
+
+        # is_quadratic / has_quadratic_term: True iff t is constant
+        self.assertTrue(atom3.is_quadratic())
+        self.assertTrue(atom3.has_quadratic_term())
+        self.assertFalse(cp.huber(x, M=1, t=t_var).is_quadratic())
+        self.assertFalse(cp.huber(x, M=1, t=t_var).has_quadratic_term())
+
+        # Monotonicity in x and t
+        self.assertTrue(cp.huber(cp.Variable(nonneg=True), 1, t=t_const).is_incr(0))
+        self.assertFalse(cp.huber(cp.Variable(nonneg=True), 1, t=t_const).is_decr(0))
+        self.assertTrue(cp.huber(cp.Variable(nonpos=True), 1, t=t_const).is_decr(0))
+        self.assertFalse(atom3.is_incr(1))  # non-increasing in t
+        self.assertTrue(atom3.is_decr(1))
+
+    def test_huber_variable_t(self) -> None:
+        """Solve tests for huber with t as a Variable (concomitant scale estimation).
+
+        Verification: solve the perspective problem to get (x*, t*), then at the
+        returned t* re-solve with the 2-arg HuberAtom — an independent
+        canonicalization. Both paths must agree on x* and objective value.
+        """
+        # -- Scalar x --
+        x = cp.Variable()
+        t = cp.Variable(nonneg=True)
+        prob = cp.Problem(cp.Minimize(cp.huber(x - 2.0, M=1, t=t) + t), [t >= 0.1])
+        prob.solve(solver=cp.CLARABEL)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+
+        # reference problem
+        t_star = float(t.value)
+        x_ref = cp.Variable()
+        ref_prob = cp.Problem(cp.Minimize(
+            t_star * cp.huber((x_ref - 2.0) / t_star, M=1) + t_star
+        ))
+        ref_prob.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(float(x.value), float(x_ref.value), places=3)
+        self.assertAlmostEqual(prob.value, ref_prob.value, places=3)
+
+        # -- Vector x --
+        target = np.array([0.0, 1.0, 2.0])
+        xv = cp.Variable(3)
+        t = cp.Variable(nonneg=True)
+        prob = cp.Problem(
+            cp.Minimize(cp.sum(cp.huber(xv - target, M=1, t=t)) + 3 * t),
+            [t >= 0.01]
+        )
+        prob.solve(solver=cp.CLARABEL)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+
+        # reference problem
+        t_star = float(t.value)
+        xv_ref = cp.Variable(3)
+        ref_prob = cp.Problem(cp.Minimize(
+            t_star * cp.sum(cp.huber((xv_ref - target) / t_star, M=1)) + 3 * t_star
+        ))
+        ref_prob.solve(solver=cp.CLARABEL)
+        self.assertItemsAlmostEqual(xv.value, xv_ref.value, places=3)
+        self.assertAlmostEqual(prob.value, ref_prob.value, places=3)
+
+        # -- 2-D matrix x: exercises the reshape path in the canonicalization --
+        X_tgt = np.array([[0.5, -1.0, 2.0], [1.0, 0.0, -0.5]])
+        Xv = cp.Variable((2, 3))
+        t = cp.Variable(nonneg=True)
+        prob = cp.Problem(
+            cp.Minimize(cp.sum(cp.huber(Xv - X_tgt, M=1, t=t)) + 6 * t),
+            [t >= 0.01]
+        )
+        prob.solve(solver=cp.CLARABEL)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+
+        # reference problem
+        t_star = float(t.value)
+        Xv_ref = cp.Variable((2, 3))
+        ref_prob = cp.Problem(cp.Minimize(
+            t_star * cp.sum(cp.huber((Xv_ref - X_tgt) / t_star, M=1)) + 6 * t_star
+        ))
+        ref_prob.solve(solver=cp.CLARABEL)
+        self.assertItemsAlmostEqual(Xv.value.ravel(), Xv_ref.value.ravel(), places=3)
+        self.assertAlmostEqual(prob.value, ref_prob.value, places=3)
+
+        # -- Concomitant M-estimation: robust location + scale on contaminated data --
+        # 22 obs from N(5, 1) plus 3 gross outliers. M=1.345 → 95% Gaussian efficiency.
+        rng = np.random.default_rng(0)
+        y = np.concatenate([rng.standard_normal(22) + 5.0, [50.0, -40.0, 30.0]])
+        mu = cp.Variable()
+        sigma = cp.Variable(nonneg=True)
+        n = len(y)
+        prob = cp.Problem(
+            cp.Minimize(cp.sum(cp.huber(y - mu, M=1.345, t=sigma)) + n * sigma),
+            [sigma >= 0.01]
+        )
+        prob.solve(solver=cp.CLARABEL)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+
+        # reference problem
+        sigma_star = float(sigma.value)
+        mu_ref = cp.Variable()
+        ref_prob = cp.Problem(cp.Minimize(
+            sigma_star * cp.sum(cp.huber((y - mu_ref) / sigma_star, M=1.345)) + n * sigma_star
+        ))
+        ref_prob.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(float(mu.value), float(mu_ref.value), places=3)
+        self.assertAlmostEqual(prob.value, ref_prob.value, places=3)
+        # Sanity: robust mu is close to the true mean (5.0) despite three big outliers
+        self.assertLess(abs(float(mu.value) - 5.0), 0.5)
 
     def test_sum_largest(self) -> None:
         """Test the sum_largest atom and related atoms.
@@ -2138,6 +2416,72 @@ class TestAtoms(BaseTest):
         self.assertEqual(str(cm.exception),
                          "Dimension of system doesn't correspond to dimension of subsystems.")
 
+    def test_partial_trace_dcp_attributes(self) -> None:
+        """Test that partial_trace propagates DCP attributes correctly.
+        """
+        # PSD input -> PSD output (partial trace preserves PSD)
+        X_psd = cp.Variable((4, 4), PSD=True)
+        pt_psd = cp.partial_trace(X_psd, (2, 2))
+        self.assertTrue(pt_psd.is_psd())
+        self.assertTrue(pt_psd.is_hermitian())
+        self.assertTrue(pt_psd.is_symmetric())
+
+        # Symmetric input -> Symmetric output
+        X_sym = cp.Variable((4, 4), symmetric=True)
+        pt_sym = cp.partial_trace(X_sym, (2, 2))
+        self.assertTrue(pt_sym.is_symmetric())
+        self.assertTrue(pt_sym.is_hermitian())
+
+        # Hermitian input -> Hermitian output
+        X_herm = cp.Variable((4, 4), hermitian=True)
+        pt_herm = cp.partial_trace(X_herm, (2, 2))
+        self.assertTrue(pt_herm.is_hermitian())
+        self.assertFalse(pt_herm.is_symmetric())
+
+        # Plain input -> no special attributes
+        X_plain = cp.Variable((4, 4))
+        pt_plain = cp.partial_trace(X_plain, (2, 2))
+        self.assertFalse(pt_plain.is_psd())
+        self.assertFalse(pt_plain.is_hermitian())
+
+        # PSD complex input -> PSD output (Hermitian, not necessarily symmetric)
+        X_psd_c = cp.Variable((4, 4), PSD=True, complex=True)
+        pt_psd_c = cp.partial_trace(X_psd_c, (2, 2))
+        self.assertTrue(pt_psd_c.is_psd())
+        self.assertTrue(pt_psd_c.is_hermitian())
+        self.assertFalse(pt_psd_c.is_symmetric())
+
+    def test_partial_transpose_dcp_attributes(self) -> None:
+        """Test that partial_transpose propagates DCP attributes correctly.
+        """
+        # Symmetric input -> Symmetric output
+        X_sym = cp.Variable((4, 4), symmetric=True)
+        pp_sym = cp.partial_transpose(X_sym, (2, 2))
+        self.assertTrue(pp_sym.is_symmetric())
+        self.assertTrue(pp_sym.is_hermitian())
+
+        # Hermitian input -> Hermitian output
+        X_herm = cp.Variable((4, 4), hermitian=True)
+        pp_herm = cp.partial_transpose(X_herm, (2, 2))
+        self.assertTrue(pp_herm.is_hermitian())
+
+        # PSD input -> NOT PSD output (partial transpose does NOT preserve PSD!)
+        X_psd = cp.Variable((4, 4), PSD=True)
+        pp_psd = cp.partial_transpose(X_psd, (2, 2))
+        self.assertFalse(pp_psd.is_psd())
+        self.assertTrue(pp_psd.is_hermitian())
+
+        # Plain input -> no special attributes
+        X_plain = cp.Variable((4, 4))
+        pp_plain = cp.partial_transpose(X_plain, (2, 2))
+        self.assertFalse(pp_plain.is_hermitian())
+        self.assertFalse(pp_plain.is_symmetric())
+
+        # Complex hermitian input -> Hermitian output
+        X_herm_c = cp.Variable((4, 4), hermitian=True, complex=True)
+        pp_herm_c = cp.partial_transpose(X_herm_c, (2, 2))
+        self.assertTrue(pp_herm_c.is_hermitian())
+
     def test_log_sum_exp(self) -> None:
         """Test log_sum_exp sign.
         """
@@ -2669,7 +3013,7 @@ class TestDotsort(BaseTest):
         with self.assertRaises(Exception) as cm:
             cp.dotsort(self.x, [1, 2, 3, 4, 5, 8])
         self.assertEqual(str(cm.exception),
-                         "The size of of W must be less or equal to the size of X.")
+                         "The size of W must be less or equal to the size of X.")
 
         # two variable expressions
         with self.assertRaises(Exception) as cm:

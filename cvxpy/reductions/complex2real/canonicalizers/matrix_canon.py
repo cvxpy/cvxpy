@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import List, Optional, Union
 
 import numpy as np
 
@@ -28,14 +27,27 @@ from cvxpy.atoms import (
     von_neumann_entr,
     vstack,
 )
-from cvxpy.atoms.affine.wraps import psd_wrap
+from cvxpy.atoms.affine.wraps import nsd_wrap, psd_wrap
 from cvxpy.constraints.exponential import OpRelEntrConeQuad
 from cvxpy.expressions.constants.constant import Constant
 from cvxpy.expressions.expression import Expression
 
 
-def expand_complex(real_part: Optional[Expression],
-                   imag_part: Optional[Expression]):
+def _complete_complex_pair(real: Expression | None,
+                           imag: Expression | None) -> tuple[Expression, Expression]:
+    """Complete a (real, imaginary) matrix pair in which at most one half is
+    None, replacing the missing half with a zero matrix shaped like the other.
+    """
+    if real is None:
+        assert imag is not None, "real and imaginary parts cannot both be None"
+        return Constant(np.zeros(imag.shape)), imag
+    if imag is None:
+        return real, Constant(np.zeros(real.shape))
+    return real, imag
+
+
+def expand_complex(real_part: Expression | None,
+                   imag_part: Expression | None):
     """
     We expand the matrix A to B = [[Re(A), -Im(A)], [Im(A), Re(A)]].
 
@@ -45,10 +57,7 @@ def expand_complex(real_part: Optional[Expression],
     Therefore, the eigenvalues of B are the same as those of A,
     repeated twice.
     """
-    if real_part is None:
-        real_part = Constant(np.zeros(imag_part.shape))
-    elif imag_part is None:
-        imag_part = Constant(np.zeros(real_part.shape))
+    real_part, imag_part = _complete_complex_pair(real_part, imag_part)
     matrix = bmat([[real_part, -imag_part],
                    [imag_part, real_part]])
     if real_part.is_symmetric() and imag_part.is_skew_symmetric():
@@ -57,8 +66,8 @@ def expand_complex(real_part: Optional[Expression],
 
 
 def expand_and_reapply(expr: Expression,
-                       real_part: Optional[Expression],
-                       imag_part: Optional[Expression]):
+                       real_part: Expression | None,
+                       imag_part: Expression | None):
     if imag_part is None:
         # A weird code path to hit.
         matrix = real_part
@@ -68,8 +77,8 @@ def expand_and_reapply(expr: Expression,
 
 
 def hermitian_canon(expr: Expression,
-                    real_args: List[Union[Expression, None]],
-                    imag_args: List[Union[Expression, None]], real2imag):
+                    real_args: list[Expression | None],
+                    imag_args: list[Expression | None], real2imag):
     """Canonicalize functions that take a Hermitian matrix.
     """
     assert len(real_args) == 1 and len(imag_args) == 1
@@ -78,8 +87,8 @@ def hermitian_canon(expr: Expression,
 
 
 def trace_canon(expr: Expression,
-                real_args: List[Union[Expression, None]],
-                imag_args: List[Union[Expression, None]], real2imag):
+                real_args: list[Expression | None],
+                imag_args: list[Expression | None], real2imag):
     if real_args[0] is None:
         real_part = None
     else:
@@ -92,8 +101,8 @@ def trace_canon(expr: Expression,
 
 
 def norm_nuc_canon(expr: normNuc,
-                   real_args: List[Union[Expression, None]],
-                   imag_args: List[Union[Expression, None]], real2imag):
+                   real_args: list[Expression | None],
+                   imag_args: list[Expression | None], real2imag):
     """Canonicalize nuclear norm with Hermitian matrix input.
     """
     # Divide by two because each eigenvalue is repeated twice.
@@ -104,21 +113,23 @@ def norm_nuc_canon(expr: normNuc,
 
 
 def lambda_sum_largest_canon(expr: lambda_sum_largest,
-                             real_args: List[Union[Expression, None]],
-                             imag_args: List[Union[Expression, None]], real2imag):
+                             real_args: list[Expression | None],
+                             imag_args: list[Expression | None], real2imag):
     """Canonicalize sum of k largest eigenvalues with Hermitian matrix input.
     """
-    # Divide by two because each eigenvalue is repeated twice.
     real, imag = hermitian_canon(expr, real_args, imag_args, real2imag)
-    real.k *= 2
     if imag_args[0] is not None:
+        # The Hermitian dilation repeats each eigenvalue twice, so sum the
+        # 2k largest eigenvalues and divide by two. A real argument is left
+        # untouched by hermitian_canon, so k must not be doubled for it.
+        real.k *= 2
         real /= 2
     return real, imag
 
 
 def von_neumann_entr_canon(expr: von_neumann_entr,
-                           real_args: List[Union[Expression, None]],
-                           imag_args: List[Union[Expression, None]], real2imag):
+                           real_args: list[Expression | None],
+                           imag_args: list[Expression | None], real2imag):
     """
     The von Neumann entropy of X is sum(entr(eigvals(X)).
     Each eigenvalue of X appears twice as an eigenvalue of the Hermitian dilation of X.
@@ -130,8 +141,8 @@ def von_neumann_entr_canon(expr: von_neumann_entr,
 
 
 def quantum_rel_entr_canon(expr: quantum_rel_entr,
-                           real_args: List[Union[Expression, None]],
-                           imag_args: List[Union[Expression, None]], real2imag):
+                           real_args: list[Expression | None],
+                           imag_args: list[Expression | None], real2imag):
     """Transform Hermitian input for quantum_rel_entr into equivalent
     symmetric input for quantum_rel_entr.
     """
@@ -147,8 +158,8 @@ def quantum_rel_entr_canon(expr: quantum_rel_entr,
 
 
 def op_rel_entr_cone_canon(expr: OpRelEntrConeQuad,
-                           real_args: List[Union[Expression, None]],
-                           imag_args: List[Union[Expression, None]], real2imag):
+                           real_args: list[Expression | None],
+                           imag_args: list[Expression | None], real2imag):
     """Transform Hermitian input for OpRelEntrConeQuad into equivalent
     symmetric input for OpRelEntrConeQuad
     """
@@ -171,10 +182,9 @@ def at_least_2D(expr: Expression):
     else:
         return expr
 
-
 def quad_canon(expr,
-               real_args: List[Union[Expression, None]],
-               imag_args: List[Union[Expression, None]], real2imag):
+               real_args: list[Expression | None],
+               imag_args: list[Expression | None], real2imag):
     """Convert quad_form to real.
     """
     if imag_args[0] is None:
@@ -186,19 +196,21 @@ def quad_canon(expr,
     else:
         vec = vstack([at_least_2D(real_args[0]),
                       at_least_2D(imag_args[0])])
-        if real_args[1] is None:
-            real_args[1] = np.zeros(imag_args[1].shape)
-        elif imag_args[1] is None:
-            imag_args[1] = np.zeros(real_args[1].shape)
-        matrix = bmat([[real_args[1], -imag_args[1]],
-                       [imag_args[1], real_args[1]]])
-        matrix = psd_wrap(matrix)
+        mat_real, mat_imag = _complete_complex_pair(real_args[1], imag_args[1])
+        matrix = bmat([[mat_real, -mat_imag],
+                       [mat_imag, mat_real]])
+
+        if expr.args[1].is_psd():
+            matrix = psd_wrap(matrix)
+        elif expr.args[1].is_nsd():
+            matrix = nsd_wrap(matrix)
+
     return expr.copy([vec, matrix]), None
 
 
 def quad_over_lin_canon(expr,
-                        real_args: List[Union[Expression, None]],
-                        imag_args: List[Union[Expression, None]], real2imag):
+                        real_args: list[Expression | None],
+                        imag_args: list[Expression | None], real2imag):
     """Convert quad_over_lin to real.
     """
     if imag_args[0] is None:
@@ -209,8 +221,8 @@ def quad_over_lin_canon(expr,
 
 
 def matrix_frac_canon(expr,
-                      real_args: List[Union[Expression, None]],
-                      imag_args: List[Union[Expression, None]], real2imag):
+                      real_args: list[Expression | None],
+                      imag_args: list[Expression | None], real2imag):
     """Convert matrix_frac to real.
     """
     if real_args[0] is None:
@@ -219,10 +231,7 @@ def matrix_frac_canon(expr,
         imag_args[0] = np.zeros(real_args[0].shape)
     vec = vstack([at_least_2D(real_args[0]),
                   at_least_2D(imag_args[0])])
-    if real_args[1] is None:
-        real_args[1] = np.zeros(imag_args[1].shape)
-    elif imag_args[1] is None:
-        imag_args[1] = np.zeros(real_args[1].shape)
-    matrix = bmat([[real_args[1], -imag_args[1]],
-                   [imag_args[1], real_args[1]]])
+    mat_real, mat_imag = _complete_complex_pair(real_args[1], imag_args[1])
+    matrix = bmat([[mat_real, -mat_imag],
+                   [mat_imag, mat_real]])
     return expr.copy([vec, matrix]), None

@@ -15,9 +15,10 @@ limitations under the License.
 """
 from __future__ import annotations
 
-from typing import Callable
+from collections.abc import Callable
 
 from cvxpy.expressions.constants.parameter import Parameter
+from cvxpy.expressions.expression import ExpressionValue
 
 
 class CallbackParam(Parameter):
@@ -44,7 +45,7 @@ class CallbackParam(Parameter):
         super(CallbackParam, self).__init__(shape, **kwargs)
 
     @property
-    def value(self):
+    def value(self) -> ExpressionValue:
         """Evaluate the callback to get the value.
         """
         return self._validate_value(self._callback())

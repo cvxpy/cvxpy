@@ -14,12 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import abc
-from typing import TYPE_CHECKING, List, Tuple
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from cvxpy.constraints.constraint import Constraint
 
 import numpy as np
+import scipy.sparse as sp
 
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
@@ -28,7 +29,7 @@ from cvxpy import interface as intf
 from cvxpy import utilities as u
 from cvxpy.expressions import cvxtypes
 from cvxpy.expressions.constants import Constant
-from cvxpy.expressions.expression import Expression
+from cvxpy.expressions.expression import Expression, ExpressionValue, GradMap
 from cvxpy.utilities import bounds as bounds_utils
 from cvxpy.utilities import performance_utils as perf
 from cvxpy.utilities.deterministic import unique_list
@@ -47,7 +48,7 @@ class Atom(Expression):
                 "No arguments given to %s." % self.__class__.__name__
             )
         # Convert raw values to Constants.
-        self.args = [Atom.cast_to_const(arg) for arg in args]
+        self.args = [Atom.cast(arg) for arg in args]
         self.validate_arguments()
         self._shape = self.shape_from_args()
         if not s.ALLOW_ND_EXPR and len(self._shape) > 2:
@@ -98,22 +99,22 @@ class Atom(Expression):
             )
 
     @abc.abstractmethod
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> tuple[int, ...]:
         """Returns the shape of the expression.
         """
         raise NotImplementedError()
 
     @property
-    def shape(self) -> Tuple[int, ...]:
+    def shape(self) -> tuple[int, ...]:
         return self._shape
 
     @abc.abstractmethod
-    def sign_from_args(self) -> Tuple[bool, bool]:
+    def sign_from_args(self) -> tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         raise NotImplementedError()
 
-    def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
+    def bounds_from_args(self) -> tuple[np.ndarray, np.ndarray]:
         """Returns bounds (lower, upper) of the expression based on argument bounds.
 
         Default implementation returns unbounded. Override in subclasses that can
@@ -127,7 +128,7 @@ class Atom(Expression):
         return bounds_utils.unbounded(self.shape)
 
     @perf.compute_once
-    def get_bounds(self) -> Tuple[np.ndarray, np.ndarray]:
+    def get_bounds(self) -> tuple[np.ndarray, np.ndarray]:
         """Returns bounds (lower, upper) of the expression.
 
         Combines bounds_from_args() with sign information for potentially tighter bounds.
@@ -182,7 +183,7 @@ class Atom(Expression):
         """Is the atom concave?
         """
         raise NotImplementedError()
-    
+
     def is_atom_affine(self) -> bool:
         """Is the atom affine?
         """
@@ -262,7 +263,7 @@ class Atom(Expression):
             return True
         else:
             return False
-        
+
     @perf.compute_once
     def is_linearizable_convex(self) -> bool:
         """Is the expression convex after linearizing all smooth subexpressions?
@@ -342,7 +343,7 @@ class Atom(Expression):
             return False
 
     @perf.compute_once
-    def _non_const_idx(self) -> List[int]:
+    def _non_const_idx(self) -> list[int]:
         return [i for i, arg in enumerate(self.args) if not arg.is_constant()]
 
     @perf.compute_once
@@ -427,8 +428,8 @@ class Atom(Expression):
             return graph_obj, constraints + graph_constr
 
     def graph_implementation(
-        self, arg_objs, shape: Tuple[int, ...], data=None
-    ) -> Tuple[lo.LinOp, List['Constraint']]:
+        self, arg_objs, shape: tuple[int, ...], data=None
+    ) -> tuple[lo.LinOp, list['Constraint']]:
         """Reduces the atom to an affine expression and list of constraints.
 
         Parameters
@@ -448,19 +449,19 @@ class Atom(Expression):
         raise NotImplementedError()
 
     @property
-    def value(self):
+    def value(self) -> ExpressionValue | None:
         if any([p.value is None for p in self.parameters()]):
             return None
         return self._value_impl()
 
-    def _value_impl(self):
+    def _value_impl(self) -> ExpressionValue | None:
         # shapes with 0's dropped in presolve.
         if 0 in self.shape:
             result = np.array([])
         else:
             arg_values = []
             for arg in self.args:
-                # A argument without a value makes all higher level
+                # An argument without a value makes all higher level
                 # values None.
                 # But if the atom is constant with non-constant
                 # arguments it doesn't depend on its arguments,
@@ -471,10 +472,12 @@ class Atom(Expression):
                 else:
                     arg_values.append(arg_val)
             result = self.numeric(arg_values)
+        if isinstance(result, sp.spmatrix):
+            result = sp.coo_array(result)
         return result
 
     @property
-    def grad(self):
+    def grad(self) -> GradMap:
         """Gives the (sub/super)gradient of the expression w.r.t. each variable.
 
         Matrix expressions are vectorized, so the gradient is a matrix.
@@ -538,18 +541,18 @@ class Atom(Expression):
         raise NotImplementedError()
 
     @property
-    def domain(self) -> List['Constraint']:
+    def domain(self) -> list['Constraint']:
         """A list of constraints describing the closure of the region
            where the expression is finite.
         """
         return self._domain() + [con for arg in self.args for con in arg.domain]
 
-    def _domain(self) -> List['Constraint']:
+    def _domain(self) -> list['Constraint']:
         """Returns constraints describing the domain of the atom.
         """
         # Default is no constraints.
         return []
-    
+
     @staticmethod
     def numpy_numeric(numeric_func):
         """Wraps an atom's numeric function that requires numpy ndarrays as input.
@@ -564,7 +567,7 @@ class Atom(Expression):
             return intf.DEFAULT_INTF.const_to_matrix(result)
         return new_numeric
 
-    def atoms(self) -> List['Atom']:
+    def atoms(self) -> list['Atom']:
         """A list of the atom types present amongst this atom's arguments.
         """
         atom_list = []

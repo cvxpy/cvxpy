@@ -49,8 +49,7 @@ class PROXQP(QpSolver):
         return s.PROXQP
 
     def import_solver(self) -> None:
-        import proxsuite
-        proxsuite
+        import proxsuite  # noqa: F401
 
     def invert(self, solution, inverse_data):
         attr = {s.SOLVE_TIME: solution.info.run_time}

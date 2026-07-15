@@ -31,12 +31,12 @@ class TestSumIPOPT:
         obj = cp.Minimize((cp.sum(x) - 3)**2)
         constr = [x <= 1]
         prob = cp.Problem(obj, constr)
-        prob.solve(solver=cp.IPOPT, nlp=True)
+        prob.solve(solver=cp.IPOPT, nlp=True, verbose=False)
         assert np.allclose(x.value, [[1.0], [1.0]])
 
         checker = DerivativeChecker(prob)
         checker.run_and_assert()
-        
+
 
     def test_sum_with_axis(self):
         """Test sum with axis parameter."""
@@ -44,13 +44,13 @@ class TestSumIPOPT:
         obj = cp.Minimize(cp.sum((cp.sum(X, axis=1) - 4)**2))
         constr = [X >= 0, X <= 1]
         prob = cp.Problem(obj, constr)
-        prob.solve(solver=cp.IPOPT, nlp=True)
+        prob.solve(solver=cp.IPOPT, nlp=True, verbose=False)
         expected = np.full((2, 3), 1)
         assert np.allclose(X.value, expected)
 
         checker = DerivativeChecker(prob)
         checker.run_and_assert()
-    
+
     def test_two_sum_with_axis(self):
         """Test sum with axis parameter."""
         np.random.seed(0)
@@ -59,7 +59,7 @@ class TestSumIPOPT:
         obj = cp.Minimize(cp.prod(cp.sum(A @ X, axis=1)))
         constr = [X >= 0, X <= 1]
         prob = cp.Problem(obj, constr)
-        prob.solve(solver=cp.IPOPT, nlp=True)
+        prob.solve(solver=cp.IPOPT, nlp=True, verbose=False)
         checker = DerivativeChecker(prob)
         checker.run_and_assert()
 
@@ -69,7 +69,7 @@ class TestSumIPOPT:
         obj = cp.Minimize(cp.sum((cp.sum(X, axis=0) - 4)**2))
         constr = [X >= 0, X <= 1]
         prob = cp.Problem(obj, constr)
-        prob.solve(solver=cp.IPOPT, nlp=True)
+        prob.solve(solver=cp.IPOPT, nlp=True, verbose=False)
         expected = np.full((2, 3), 1)
         assert np.allclose(X.value, expected)
 
@@ -84,7 +84,7 @@ class TestSumIPOPT:
         obj = cp.Minimize(cp.prod(cp.sum(A @ X, axis=0)))
         constr = [X >= 0, X <= 1]
         prob = cp.Problem(obj, constr)
-        prob.solve(solver=cp.IPOPT, nlp=True)
+        prob.solve(solver=cp.IPOPT, nlp=True, verbose=False)
         checker = DerivativeChecker(prob)
         checker.run_and_assert()
 
@@ -96,7 +96,7 @@ class TestSumIPOPT:
         obj = cp.sum(cp.multiply(A, T))
         constraints = [T >= 1, T <= 2]
         problem = cp.Problem(cp.Minimize(obj), constraints)
-        problem.solve(solver=cp.IPOPT, nlp=True, verbose=True, derivative_test='none')
+        problem.solve(solver=cp.IPOPT, nlp=True, verbose=False, derivative_test='none')
         assert(np.allclose(T.value, 1))
         assert problem.status == cp.OPTIMAL
 

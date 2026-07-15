@@ -67,13 +67,13 @@ class COSMO(CLARABEL):
 
             eq_dual_vars = utilities.get_dual_values(
                 model.get_y()[: inverse_data[self.DIMS].zero],
-                self.extract_dual_value,
+                utilities.extract_dual_value,
                 inverse_data[self.EQ_CONSTR],
             )
 
             ineq_dual_vars = utilities.get_dual_values(
                 model.get_y()[inverse_data[self.DIMS].zero :],
-                self.extract_dual_value,
+                utilities.extract_dual_value,
                 inverse_data[self.NEQ_CONSTR],
             )
 

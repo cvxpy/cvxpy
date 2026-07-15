@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import List, Optional, Tuple
+from collections.abc import Sequence
 
 import numpy as np
 import scipy.sparse as sp
@@ -24,6 +24,7 @@ from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.errormsg import SECOND_ARG_SHOULD_NOT_BE_EXPRESSION_ERROR_MESSAGE
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions import cvxtypes
+from cvxpy.expressions.expression import Expression
 from cvxpy.utilities.power_tools import (
     approx_error,
     decompose,
@@ -34,7 +35,7 @@ from cvxpy.utilities.power_tools import (
 )
 
 
-def geo_mean(x, p=None, max_denom=1024, approx=True):
+def geo_mean(x, p=None, max_denom=1024, approx=True) -> Expression:
     """Factory function for (weighted) geometric mean.
 
     Parameters
@@ -203,7 +204,7 @@ class GeoMean(Atom):
         :math:`\\|p/\\mathbf{1}^T p - w \\|_\\infty`
     """
 
-    def __init__(self, x, p: Optional[List[int]] = None,
+    def __init__(self, x, p: Sequence[float] | np.ndarray | None = None,
                  max_denom: int = 1024) -> None:
         Expression = cvxtypes.expression()
         if p is not None and isinstance(p, Expression):
@@ -214,9 +215,9 @@ class GeoMean(Atom):
             if isinstance(x, list):
                 x = np.array(x)
             if x.ndim == 0:
-                x = Expression.cast_to_const(promote(x, shape=(1,)))[idxs]
+                x = Expression.cast(promote(x, shape=(1,)))[idxs]
             else:
-                x = Expression.cast_to_const(x)[idxs]
+                x = Expression.cast(x)[idxs]
             p = p[idxs]
         super(GeoMean, self).__init__(x)
 
@@ -249,7 +250,7 @@ class GeoMean(Atom):
             val *= x**float(p)
         return val
 
-    def _domain(self) -> List[Constraint]:
+    def _domain(self) -> list[Constraint]:
         """Returns constraints describing the domain of the node.
         """
         # No special case when only one non-zero weight.
@@ -288,12 +289,12 @@ class GeoMean(Atom):
         return f"{type(self).__name__}({self.args[0].format_labeled()}, ({weights}))"
 
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> tuple[int, ...]:
         """Returns the (row, col) shape of the expression.
         """
         return tuple()
 
-    def sign_from_args(self) -> Tuple[bool, bool]:
+    def sign_from_args(self) -> tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         # Always positive.
@@ -398,7 +399,7 @@ class GeoMeanApprox(GeoMean):
 
     """
 
-    def __init__(self, x, p: Optional[List[int]] = None,
+    def __init__(self, x, p: Sequence[float] | np.ndarray | None = None,
                  max_denom: int = 1024) -> None:
         super().__init__(x, p=p, max_denom=max_denom)
 

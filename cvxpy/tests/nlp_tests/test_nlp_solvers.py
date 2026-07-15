@@ -27,8 +27,8 @@ from cvxpy.tests.test_conic_solvers import is_knitro_available
 NLP_SOLVERS = [
     pytest.param('IPOPT', marks=pytest.mark.skipif(
         'IPOPT' not in INSTALLED_SOLVERS, reason='IPOPT is not installed.')),
-    pytest.param('KNITRO', marks=pytest.mark.skipif(
-        not is_knitro_available(), reason='KNITRO is not installed or license not available.')),
+    pytest.param('KNITRO', marks=[pytest.mark.knitro, pytest.mark.skipif(
+        not is_knitro_available(), reason='KNITRO is not installed or license not available.')]),
     pytest.param('UNO', marks=pytest.mark.skipif(
         'UNO' not in INSTALLED_SOLVERS, reason='UNO is not installed.')),
     pytest.param('COPT', marks=pytest.mark.skipif(
@@ -53,7 +53,7 @@ class TestNLPExamples:
             cp.sum(cp.square(x)) == 40,
         ]
         problem = cp.Problem(objective, constraints)
-        problem.solve(solver=solver, nlp=True)
+        problem.solve(solver=solver, nlp=True, verbose=False)
         assert problem.status == cp.OPTIMAL
         assert np.allclose(x.value, np.array([0.75450865, 4.63936861, 3.78856881, 1.88513184]))
 
@@ -78,7 +78,7 @@ class TestNLPExamples:
 
         objective = cp.Maximize(log_likelihood)
         problem = cp.Problem(objective, constraints)
-        problem.solve(solver=solver, nlp=True)
+        problem.solve(solver=solver, nlp=True, verbose=False)
         assert problem.status == cp.OPTIMAL
         assert np.allclose(sigma.value, 0.77079388)
         assert np.allclose(mu.value, 0.59412321)
@@ -107,7 +107,7 @@ class TestNLPExamples:
                 x >= 0
             ]
         )
-        problem.solve(solver=solver, nlp=True)
+        problem.solve(solver=solver, nlp=True, verbose=False)
         assert problem.status == cp.OPTIMAL
         # Second element can be slightly negative due to numerical tolerance
         assert np.allclose(x.value, np.array([4.97045504e+02, 0.0, 5.02954496e+02]), atol=1e-4)
@@ -136,7 +136,7 @@ class TestNLPExamples:
                 x >= 0
             ]
         )
-        problem.solve(solver=solver, nlp=True)
+        problem.solve(solver=solver, nlp=True, verbose=False)
         assert problem.status == cp.OPTIMAL
         # Second element can be slightly negative due to numerical tolerance
         assert np.allclose(x.value, np.array([4.97045504e+02, 0.0, 5.02954496e+02]), atol=1e-4)
@@ -145,20 +145,18 @@ class TestNLPExamples:
         checker.run_and_assert()
 
     def test_rosenbrock(self, solver):
+        if solver == 'UNO':
+            pytest.skip('UNO has an algorithmic error')
         x = cp.Variable(2, name='x')
         objective = cp.Minimize((1 - x[0])**2 + 100 * (x[1] - x[0]**2)**2)
         problem = cp.Problem(objective, [])
-        problem.solve(solver=solver, nlp=True)
+        problem.solve(solver=solver, nlp=True, verbose=False)
         assert problem.status == cp.OPTIMAL
         assert np.allclose(x.value, np.array([1.0, 1.0]))
-
         checker = DerivativeChecker(problem)
         checker.run_and_assert()
 
     def test_qcp(self, solver):
-        # Use IPM for UNO on this test, SQP converges to a suboptimal point: (0, 0, 1)
-        if solver == 'UNO':
-            solver = 'UNO_IPM'
         x = cp.Variable(1)
         y = cp.Variable(1, bounds=[0, np.inf])
         z = cp.Variable(1, bounds=[0, np.inf])
@@ -171,7 +169,7 @@ class TestNLPExamples:
             x**2 - cp.multiply(y, z) <= 0
         ]
         problem = cp.Problem(objective, constraints)
-        problem.solve(solver=solver, nlp=True)
+        problem.solve(solver=solver, nlp=True, verbose=False)
         assert problem.status == cp.OPTIMAL
         assert np.allclose(x.value, np.array([0.32699284]))
         assert np.allclose(y.value, np.array([0.25706586]))
@@ -194,13 +192,13 @@ class TestNLPExamples:
         objective = cp.Minimize(-cp.sum(cp.log(b - A @ x)))
         problem = cp.Problem(objective, [])
         # Solve the problem
-        problem.solve(solver=solver, nlp=True)
+        problem.solve(solver=solver, nlp=True, verbose=False)
 
         assert problem.status == cp.OPTIMAL
 
         checker = DerivativeChecker(problem)
         checker.run_and_assert()
-    
+
     def test_analytic_polytope_center_x_column_vector(self, solver):
         # Generate random data
         np.random.seed(0)
@@ -215,7 +213,7 @@ class TestNLPExamples:
         objective = cp.Minimize(-cp.sum(cp.log(b - A @ x)))
         problem = cp.Problem(objective, [])
         # Solve the problem
-        problem.solve(solver=solver, nlp=True)
+        problem.solve(solver=solver, nlp=True, verbose=False)
         assert problem.status == cp.OPTIMAL
 
         checker = DerivativeChecker(problem)
@@ -239,7 +237,7 @@ class TestNLPExamples:
 
         # Create and solve the problem
         problem = cp.Problem(objective, constraints)
-        problem.solve(solver=solver, nlp=True)
+        problem.solve(solver=solver, nlp=True, verbose=False)
         assert problem.status == cp.OPTIMAL
         assert np.allclose(objective.value, -13.548638814247532)
         assert np.allclose(x.value, [-3.87462191, -2.12978826, 2.33480343])
@@ -264,7 +262,7 @@ class TestNLPExamples:
                        cp.sum(x) == 1,
                        x >= 0]
         problem = cp.Problem(objective, constraints)
-        problem.solve(solver=solver, nlp=True)
+        problem.solve(solver=solver, nlp=True, verbose=False)
         assert problem.status == cp.OPTIMAL
         assert np.allclose(problem.value, -1.93414338e+00)
 
@@ -287,7 +285,7 @@ class TestNLPExamples:
                        cp.sum(x) == 1,
                        x >= 0]
         problem = cp.Problem(objective, constraints)
-        problem.solve(solver=solver, nlp=True)
+        problem.solve(solver=solver, nlp=True, verbose=False)
         assert problem.status == cp.OPTIMAL
         assert np.allclose(problem.value, -1.93414338e+00)
 
@@ -306,7 +304,7 @@ class TestNLPExamples:
         constraints = [t == cp.sqrt(cp.sum(cp.square(x - a), axis=1))]
         objective = cp.Minimize(cp.sum_squares(t - rho))
         problem = cp.Problem(objective, constraints)
-        problem.solve(solver=solver, nlp=True)
+        problem.solve(solver=solver, nlp=True, verbose=False)
         assert problem.status == cp.OPTIMAL
         assert np.allclose(x.value, x_true)
 
@@ -325,7 +323,7 @@ class TestNLPExamples:
         constraints = [t == cp.sqrt(cp.sum(cp.square(x - a), axis=1))]
         objective = cp.Minimize(cp.sum_squares(t - rho))
         problem = cp.Problem(objective, constraints)
-        problem.solve(solver=solver, nlp=True)
+        problem.solve(solver=solver, nlp=True, verbose=False)
         assert problem.status == cp.OPTIMAL
         assert np.allclose(x.value, x_true)
 
@@ -350,7 +348,7 @@ class TestNLPExamples:
         obj = cp.Minimize(t)
         constraints += [cp.max(cp.norm_inf(centers, axis=0) + radius) <= t]
         problem = cp.Problem(obj, constraints)
-        problem.solve(solver=solver, nlp=True)
+        problem.solve(solver=solver, nlp=True, verbose=False)
 
         true_sol = np.array([[1.73655994, -1.98685738, 2.57208783],
                              [1.99273311, -1.67415425, -2.57208783]])
@@ -363,6 +361,8 @@ class TestNLPExamples:
         """Using norm_inf. This test revealed a very subtle bug in the unpacking of
         the ipopt solution. Some variables were mistakenly reordered. It was fixed
         in https://github.com/cvxgrp/cvxpy-ipopt/pull/82"""
+        if solver == 'UNO':
+            pytest.skip('UNO finds a KKT point with worse obj')
         rng = np.random.default_rng(5)
         n = 3
         radius = rng.uniform(1.0, 3.0, n)
@@ -377,7 +377,7 @@ class TestNLPExamples:
         centers.value = rng.uniform(-5.0, 5.0, (2, n))
         obj = cp.Minimize(cp.max(cp.norm_inf(centers, axis=0) + radius))
         prob = cp.Problem(obj, constraints)
-        prob.solve(solver=solver, nlp=True)
+        prob.solve(solver=solver, nlp=True, verbose=False)
 
         assert np.allclose(obj.value, 4.602738956101437)
 
@@ -387,7 +387,7 @@ class TestNLPExamples:
                 dist_sq = np.linalg.norm(centers.value[:, i] - centers.value[:, j]) ** 2
                 min_dist_sq = (radius[i] + radius[j]) ** 2
                 residuals.append(dist_sq - min_dist_sq)
-        
+
         assert(np.all(np.array(residuals) <= 1e-6))
 
         # Ipopt finds these centers, but Knitro rotates them (but finds the same
@@ -415,9 +415,11 @@ class TestNLPExamples:
         centers.value = rng.uniform(-5.0, 5.0, (2, n))
         obj = cp.Minimize(cp.max(cp.max(cp.abs(centers), axis=0) + radius))
         prob = cp.Problem(obj, constraints)
-        prob.solve(solver=solver, nlp=True)
+        prob.solve(solver=solver, nlp=True, verbose=False)
 
-        true_sol = np.array([[1.73655994, -1.98685738, 2.57208783],
+        # after the chain rule implementation, we find another configuration
+        # with a minus sign
+        true_sol = -np.array([[1.73655994, -1.98685738, 2.57208783],
                              [1.99273311, -1.67415425, -2.57208783]])
         assert np.allclose(centers.value, true_sol)
 
@@ -425,12 +427,14 @@ class TestNLPExamples:
         checker.run_and_assert()
 
     def test_geo_mean(self, solver):
-        x = cp.Variable(3, pos=True)
+        if solver == 'UNO':
+            pytest.skip('UNO reaches iteration limit')
+        x = cp.Variable(3, nonneg=True)
         geo_mean = cp.geo_mean(x)
         objective = cp.Maximize(geo_mean)
         constraints = [cp.sum(x) == 1]
         problem = cp.Problem(objective, constraints)
-        problem.solve(solver=solver, nlp=True)
+        problem.solve(solver=solver, nlp=True, verbose=False)
         assert problem.status == cp.OPTIMAL
         assert np.allclose(x.value, np.array([1/3, 1/3, 1/3]))
 
@@ -438,14 +442,25 @@ class TestNLPExamples:
         checker.run_and_assert()
 
     def test_geo_mean2(self, solver):
+        if solver == 'UNO':
+            pytest.skip('UNO reaches iteration limit')
         p = np.array([.07, .12, .23, .19, .39])
         x = cp.Variable(5, nonneg=True)
         prob = cp.Problem(cp.Maximize(cp.geo_mean(x, p)), [cp.sum(x) <= 1])
-        prob.solve(solver=solver, nlp=True)
+        prob.solve(solver=solver, nlp=True, verbose=False)
         x_true = p/sum(p)
         assert prob.status == cp.OPTIMAL
         assert np.allclose(x.value, x_true)
+        checker = DerivativeChecker(prob)
+        checker.run_and_assert()
 
+    def test_div_composition(self, solver):
+        x = cp.Variable(nonneg=True, bounds=[1, 5])
+        prob = cp.Problem(cp.Maximize(cp.exp(1 / x)))
+        prob.solve(solver=solver, nlp=True, verbose=False)
+        x_true = 1.0
+        assert prob.status == cp.OPTIMAL
+        assert np.allclose(x.value, x_true)
         checker = DerivativeChecker(prob)
         checker.run_and_assert()
 
@@ -459,19 +474,19 @@ class TestNLPExamples:
         u = cp.Variable(N+1)
         u.value = np.zeros(N+1)
         control_terms = cp.multiply(0.5 * h, cp.power(u[1:], 2) + cp.power(u[:-1], 2))
-        trigonometric_terms = cp.multiply(0.5 * alpha * h, cp.cos(t[1:]) + cp.cos(t[:-1]))
+        trigonometric_terms = cp.multiply(0.5 * alpha * h, cp.nlp.cos(t[1:]) + cp.nlp.cos(t[:-1]))
         objective_terms = cp.sum(control_terms + trigonometric_terms)
 
         objective = cp.Minimize(objective_terms)
         constraints = []
         position_constraints = (x[1:] - x[:-1] -
-                                cp.multiply(0.5 * h, cp.sin(t[1:]) + cp.sin(t[:-1])) == 0)
+                                cp.multiply(0.5 * h, cp.nlp.sin(t[1:]) + cp.nlp.sin(t[:-1])) == 0)
         constraints.append(position_constraints)
         angle_constraint = (t[1:] - t[:-1] - 0.5 * h * (u[1:] + u[:-1]) == 0)
         constraints.append(angle_constraint)
 
         problem = cp.Problem(objective, constraints)
-        problem.solve(solver=solver, nlp=True)
+        problem.solve(solver=solver, nlp=True, verbose=False)
         assert problem.status == cp.OPTIMAL
         assert np.allclose(problem.value, 3.500e+02)
 

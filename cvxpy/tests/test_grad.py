@@ -13,8 +13,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable, List, Optional, Tuple
 
 import numpy as np
 import pytest
@@ -50,7 +50,7 @@ DEFAULT_ATOL = 1e-4
 def _compute_numerical_jacobian(
     eval_func: Callable[[np.ndarray], np.ndarray],
     var_value: np.ndarray,
-    var_shape: Tuple[int, ...],
+    var_shape: tuple[int, ...],
     output_size: int,
     eps: float = DEFAULT_FD_EPS,
 ) -> np.ndarray:
@@ -99,12 +99,12 @@ def _compute_numerical_jacobian(
 
 def expression_gradcheck(
     expr_factory: Callable[[cp.Variable], cp.Expression],
-    var_shape: Tuple[int, ...],
+    var_shape: tuple[int, ...],
     var_value: np.ndarray,
     eps: float = DEFAULT_FD_EPS,
     rtol: float = DEFAULT_RTOL,
     atol: float = DEFAULT_ATOL,
-) -> Tuple[bool, Optional[str]]:
+) -> tuple[bool, str | None]:
     """
     Validate expression gradient against numerical finite differences.
 
@@ -186,7 +186,7 @@ def expression_gradcheck_symmetric(
     eps: float = DEFAULT_FD_EPS,
     rtol: float = DEFAULT_RTOL,
     atol: float = DEFAULT_ATOL,
-) -> Tuple[bool, Optional[str]]:
+) -> tuple[bool, str | None]:
     """
     Validate expression gradient for symmetric matrix inputs.
 
@@ -293,12 +293,12 @@ def expression_gradcheck_symmetric(
 
 def expression_gradcheck_multi(
     expr_factory: Callable[..., cp.Expression],
-    var_shapes: List[Tuple[int, ...]],
-    var_values: List[np.ndarray],
+    var_shapes: list[tuple[int, ...]],
+    var_values: list[np.ndarray],
     eps: float = DEFAULT_FD_EPS,
     rtol: float = DEFAULT_RTOL,
     atol: float = DEFAULT_ATOL,
-) -> Tuple[bool, Optional[str]]:
+) -> tuple[bool, str | None]:
     """
     Validate gradient for expressions with multiple variable arguments.
 
@@ -366,20 +366,20 @@ class AtomInputGenerator:
     """Generate valid test inputs for different atom domain types."""
 
     @staticmethod
-    def unrestricted(shape: Tuple[int, ...], seed: int = 42) -> np.ndarray:
+    def unrestricted(shape: tuple[int, ...], seed: int = 42) -> np.ndarray:
         """Generate unrestricted real inputs."""
         rng = np.random.default_rng(seed)
         return rng.standard_normal(shape)
 
     @staticmethod
-    def positive(shape: Tuple[int, ...], seed: int = 42,
+    def positive(shape: tuple[int, ...], seed: int = 42,
                  margin: float = 0.5) -> np.ndarray:
         """Generate strictly positive inputs (for log, sqrt, etc.)."""
         rng = np.random.default_rng(seed)
         return np.abs(rng.standard_normal(shape)) + margin
 
     @staticmethod
-    def nonnegative(shape: Tuple[int, ...], seed: int = 42,
+    def nonnegative(shape: tuple[int, ...], seed: int = 42,
                     margin: float = 0.1) -> np.ndarray:
         """Generate non-negative inputs with small margin from zero."""
         rng = np.random.default_rng(seed)
@@ -393,7 +393,7 @@ class AtomInputGenerator:
         return A @ A.T + np.eye(n)
 
     @staticmethod
-    def symmetric(shape: Tuple[int, int], seed: int = 42) -> np.ndarray:
+    def symmetric(shape: tuple[int, int], seed: int = 42) -> np.ndarray:
         """Generate symmetric matrix."""
         rng = np.random.default_rng(seed)
         A = rng.standard_normal(shape)
@@ -401,13 +401,13 @@ class AtomInputGenerator:
 
     # === Domain violation generators (for testing grad returns None) ===
     @staticmethod
-    def negative(shape: Tuple[int, ...], seed: int = 42) -> np.ndarray:
+    def negative(shape: tuple[int, ...], seed: int = 42) -> np.ndarray:
         """Generate negative values (violates positive domain)."""
         rng = np.random.default_rng(seed)
         return -np.abs(rng.standard_normal(shape)) - 0.5
 
     @staticmethod
-    def with_zero(shape: Tuple[int, ...], seed: int = 42) -> np.ndarray:
+    def with_zero(shape: tuple[int, ...], seed: int = 42) -> np.ndarray:
         """Generate values with at least one zero (violates strictly positive)."""
         arr = AtomInputGenerator.positive(shape, seed)
         arr.flat[0] = 0.0
@@ -424,7 +424,7 @@ class AtomInputGenerator:
         return A
 
     @staticmethod
-    def generate(input_type: str, shape: Tuple[int, ...],
+    def generate(input_type: str, shape: tuple[int, ...],
                  seed: int = 42) -> np.ndarray:
         """Generate input based on type string."""
         generators = {
@@ -453,11 +453,11 @@ class AtomTestConfig:
     """Configuration for testing a single atom."""
     name: str
     atom_factory: Callable
-    var_shapes: List[Tuple[int, ...]]
+    var_shapes: list[tuple[int, ...]]
     input_generator: str
     rtol: float = 1e-4
     atol: float = 1e-4
-    skip_reason: Optional[str] = None
+    skip_reason: str | None = None
     symmetric: bool = False  # For PSD/symmetric matrix atoms
     test_domain: bool = True  # Auto-test domain violation based on input_generator
 
@@ -475,10 +475,10 @@ class MultiVarAtomConfig:
     """Configuration for testing atoms with multiple variable arguments."""
     name: str
     atom_factory: Callable
-    var_specs: List[Tuple[str, Tuple[int, ...]]]  # [(input_type, shape), ...]
+    var_specs: list[tuple[str, tuple[int, ...]]]  # [(input_type, shape), ...]
     rtol: float = 1e-4
     atol: float = 1e-4
-    skip_reason: Optional[str] = None
+    skip_reason: str | None = None
 
 
 # =============================================================================
@@ -539,6 +539,10 @@ SINGLE_VAR_ATOM_CONFIGS = [
     AtomTestConfig("norm_nuc", lambda x: cp.normNuc(x), [(3, 3)],
                    "unrestricted"),
     AtomTestConfig("sigma_max", lambda x: cp.sigma_max(x), [(3, 3)],
+                   "unrestricted"),
+    AtomTestConfig("sigma_max_nonsquare", lambda x: cp.sigma_max(x), [(2, 3)],
+                   "unrestricted"),
+    AtomTestConfig("sigma_max_tall", lambda x: cp.sigma_max(x), [(4, 2)],
                    "unrestricted"),
     AtomTestConfig("mixed_norm_21", lambda x: cp.mixed_norm(x, 2, 1), [(3, 2)],
                    "unrestricted"),
@@ -690,6 +694,8 @@ MULTI_VAR_ATOM_CONFIGS = [
                        [("unrestricted", (3,)), ("positive", (1,))]),
     MultiVarAtomConfig("matrix_frac", lambda x, P: cp.matrix_frac(x, P),
                        [("unrestricted", (3,)), ("psd", (3, 3))]),
+    MultiVarAtomConfig("matrix_frac_matrix_x", lambda x, P: cp.matrix_frac(x, P),
+                       [("unrestricted", (3, 2)), ("psd", (3, 3))]),
 ]
 
 
@@ -1022,12 +1028,12 @@ class TestSpecialCases:
 
 def expression_gradcheck_batched_symmetric(
     expr_factory: Callable[[cp.Variable], cp.Expression],
-    full_shape: Tuple[int, ...],
+    full_shape: tuple[int, ...],
     var_value: np.ndarray,
     eps: float = DEFAULT_FD_EPS,
     rtol: float = DEFAULT_RTOL,
     atol: float = DEFAULT_ATOL,
-) -> Tuple[bool, Optional[str]]:
+) -> tuple[bool, str | None]:
     """
     Validate expression gradient for batched symmetric matrix inputs.
 
@@ -1154,6 +1160,76 @@ class TestBatchedSymmetricGradients:
             lambda x: cp.lambda_sum_largest(x, 1.5), full_shape, A_val
         )
         assert passed, f"lambda_sum_largest frac nd grad {batch_shape}: {msg}"
+
+
+class TestNDAffineGradients:
+    """Tests for _grad of affine atoms with ND (ndim > 2) arguments."""
+
+    @pytest.mark.parametrize("batch_shape", [(2,), (2, 3)])
+    def test_matmul_nd_var(self, batch_shape):
+        rng = np.random.default_rng(42)
+        A = rng.standard_normal(batch_shape + (3, 4))
+        var_shape = batch_shape + (4, 5)
+        passed, msg = expression_gradcheck(
+            lambda x: cp.Constant(A) @ x, var_shape, rng.standard_normal(var_shape)
+        )
+        assert passed, f"const @ ND-var {batch_shape}: {msg}"
+
+    def test_matmul_nd_const_2d_var(self):
+        rng = np.random.default_rng(42)
+        A = rng.standard_normal((2, 3, 4))
+        passed, msg = expression_gradcheck(
+            lambda x: cp.Constant(A) @ x, (4, 5), rng.standard_normal((4, 5))
+        )
+        assert passed, f"ND-const @ 2D-var: {msg}"
+
+    def test_sum_of_nd_matmul(self):
+        rng = np.random.default_rng(42)
+        A = rng.standard_normal((2, 3, 4))
+        passed, msg = expression_gradcheck(
+            lambda x: cp.sum(cp.Constant(A) @ x), (2, 4, 5),
+            rng.standard_normal((2, 4, 5))
+        )
+        assert passed, f"sum(const @ ND-var): {msg}"
+
+    @pytest.mark.parametrize("expr_factory", [
+        lambda x: cp.transpose(x, axes=(2, 0, 1)),
+        lambda x: cp.reshape(x, (4, 6), order='F'),
+        lambda x: cp.sum(x, axis=1),
+    ], ids=["transpose", "reshape", "sum_axis"])
+    def test_nd_affine_atoms(self, expr_factory):
+        rng = np.random.default_rng(42)
+        passed, msg = expression_gradcheck(
+            expr_factory, (2, 3, 4), rng.standard_normal((2, 3, 4))
+        )
+        assert passed, f"ND affine atom: {msg}"
+
+    def test_matmul_nd_matches_2d(self):
+        # A singleton batch dim does not change the F-order vectorization,
+        # so the ND jacobian must equal the 2-D one.
+        rng = np.random.default_rng(42)
+        A = rng.standard_normal((3, 4))
+        x2 = cp.Variable((4, 5))
+        x3 = cp.Variable((1, 4, 5))
+        x2.value = rng.standard_normal((4, 5))
+        x3.value = x2.value[None]
+        grad2 = (cp.Constant(A) @ x2).grad[x2].toarray()
+        grad3 = (cp.Constant(A[None]) @ x3).grad[x3].toarray()
+        np.testing.assert_allclose(grad3, grad2)
+
+    def test_cpp_unsupported_atom_2d(self):
+        # Atoms without a C++ implementation (broadcast_to, concatenate)
+        # raised from _grad even for ndim <= 2 arguments.
+        rng = np.random.default_rng(42)
+        passed, msg = expression_gradcheck(
+            lambda x: cp.broadcast_to(x, (2, 3)), (3,), rng.standard_normal(3)
+        )
+        assert passed, f"broadcast_to grad: {msg}"
+        passed, msg = expression_gradcheck(
+            lambda x: cp.concatenate([x, 2 * x], axis=0), (2, 2),
+            rng.standard_normal((2, 2))
+        )
+        assert passed, f"concatenate grad: {msg}"
 
 
 if __name__ == "__main__":

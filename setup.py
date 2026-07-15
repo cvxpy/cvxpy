@@ -6,7 +6,6 @@ import sys
 import sysconfig
 
 import setup.extensions as setup_extensions
-import setup.versioning as setup_versioning
 
 # BEFORE importing setuptools, remove MANIFEST. Otherwise it may not be
 # properly updated when the contents of directories change (true for distutils,
@@ -50,16 +49,10 @@ if sys.platform == 'darwin':
         if python_target < '10.9' and current_system >= '10.9':
             os.environ['MACOSX_DEPLOYMENT_TARGET'] = '10.9'
 
-setup_versioning.write_version_py()
-VERSION = setup_versioning.VERSION
-extensions = [
-    setup_extensions.cvxcore,
-    setup_extensions.sparsecholesky,
-]
+extensions = [setup_extensions.cvxcore]
 
 setup(
     name="cvxpy",
-    version=str(VERSION),
     cmdclass={'build_ext': build_ext_cvxpy},
     ext_modules=extensions if "PYODIDE" not in os.environ else [],
     packages=find_packages(exclude=["doc*"]),

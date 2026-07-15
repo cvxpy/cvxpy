@@ -2,6 +2,27 @@ from cvxpy import settings as s
 from cvxpy.reductions.reduction import Reduction
 
 
+def _compose_id_map(step_maps):
+    """Compose a sequence of ``{old_id: [new_id, ...]}`` mappings.
+
+    Each step map comes from a reduction's ``var_id_map`` or
+    ``param_id_map``.  The result is a single mapping from the
+    outermost original IDs to lists of the innermost final IDs.
+    """
+    result = {}
+    for step_map in step_maps:
+        # Forward existing mappings through this step (1-to-many capable).
+        result = {
+            orig_id: [new_id for cur_id in cur_ids
+                             for new_id in step_map.get(cur_id, [cur_id])]
+            for orig_id, cur_ids in result.items()
+        }
+        # Add new mappings introduced by this reduction step.
+        for orig_id in step_map.keys() - result.keys():
+            result[orig_id] = list(step_map[orig_id])
+    return result
+
+
 class Chain(Reduction):
     """A logical grouping of multiple reductions into a single reduction.
 
@@ -76,6 +97,61 @@ class Chain(Reduction):
             problem, inv = r.apply(problem)
             inverse_data.append(inv)
         return problem, inverse_data
+
+    def compose_var_id_map(self):
+        """Compose variable ID mappings across all reductions.
+
+        Returns a single ``{orig_var_id: [final_var_id, ...]}`` dict that
+        accounts for every variable replacement in the chain.  If
+        reduction *i* maps ``A → [A']`` and reduction *j* (j > i) maps
+        ``A' → [A'']``, the result contains ``A → [A'']``.  If a step
+        maps ``A' → [A'', A''']``, the result expands to
+        ``A → [A'', A''']``.
+
+        Returns
+        -------
+        dict
+            Maps original variable IDs to lists of their final (innermost)
+            IDs.
+        """
+        return _compose_id_map(r.var_id_map for r in self.reductions)
+
+    def compose_param_id_map(self):
+        """Compose parameter ID mappings across all reductions.
+
+        Returns a single ``{orig_param_id: [final_param_id, ...]}`` dict
+        that accounts for every parameter replacement in the chain.
+
+        Returns
+        -------
+        dict
+            Maps original parameter IDs to lists of their final (innermost)
+            IDs.
+        """
+        return _compose_id_map(r.param_id_map for r in self.reductions)
+
+    def compose_constr_id_map(self):
+        """Compose constraint ID mappings across all reductions.
+
+        Returns a single ``{orig_constr_id: final_constr_id}`` dict tracing
+        each original constraint ID through every reduction step.  Each
+        reduction exposes its mapping via the ``cons_id_map`` property, which
+        is populated during ``apply()``.
+
+        Returns
+        -------
+        dict
+            Maps original constraint IDs to their final (innermost) IDs.
+        """
+        result = {}
+        for r in self.reductions:
+            step_map = r.cons_id_map
+            if step_map:
+                result = {orig: step_map.get(cur, cur) for orig, cur in result.items()}
+                for orig_id, new_id in step_map.items():
+                    if orig_id not in result:
+                        result[orig_id] = new_id
+        return result
 
     def invert(self, solution, inverse_data):
         """Returns a solution to the original problem given the inverse_data.

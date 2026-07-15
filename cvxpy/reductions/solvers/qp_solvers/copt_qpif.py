@@ -27,13 +27,16 @@ class COPT(QpSolver):
                   1: s.OPTIMAL,             # optimal
                   2: s.INFEASIBLE,          # infeasible
                   3: s.UNBOUNDED,           # unbounded
-                  4: s.INF_OR_UNB,          # infeasible or unbounded
+                  4: s.INFEASIBLE_OR_UNBOUNDED,  # infeasible or unbounded
                   5: s.SOLVER_ERROR,        # numerical
                   6: s.USER_LIMIT,          # node limit
                   7: s.OPTIMAL_INACCURATE,  # imprecise
                   8: s.USER_LIMIT,          # time out
                   9: s.SOLVER_ERROR,        # unfinished
-                  10: s.USER_LIMIT          # interrupted
+                  10: s.USER_LIMIT,         # interrupted
+                  11: s.USER_LIMIT,         # iteration limit
+                  20: s.OPTIMAL,            # local optimal
+                  21: s.INFEASIBLE          # local infeasible
                  }
 
     def name(self):
@@ -169,8 +172,7 @@ class COPT(QpSolver):
                 vtype[data[s.INT_IDX]] = copt.COPT.INTEGER
 
         # Load matrix data
-        # TODO remove `sp.csc_matrix` when COPT starts supporting sparray
-        model.loadMatrix(q, sp.csc_matrix(Amat), lhs, rhs, lb, ub, vtype)
+        model.loadMatrix(q, Amat.tocsc(), lhs, rhs, lb, ub, vtype)
 
         # Load Q data
         if P.count_nonzero():

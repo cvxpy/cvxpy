@@ -19,7 +19,10 @@ class SolverInfo:
     """A context class that propagates solver attributes
     through the solving chain.
     """
-    def __init__(self, solver=None, supported_constraints=None, supports_bounds=False):
+    def __init__(self, solver=None, supported_constraints=None, supports_bounds=False,
+                 psd_triangle_kind=None, psd_sqrt2_scaling=None):
         self.solver_name = solver
         self.solver_supported_constraints = supported_constraints
         self.solver_supports_bounds = supports_bounds
+        self.psd_triangle_kind = psd_triangle_kind
+        self.psd_sqrt2_scaling = psd_sqrt2_scaling

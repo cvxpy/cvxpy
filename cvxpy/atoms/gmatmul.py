@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import Tuple
 
 import numpy as np
 
@@ -50,7 +49,7 @@ class gmatmul(Atom):
         # NB: It is important that the exponent is an attribute, not
         # an argument. This prevents parametrized exponents from being replaced
         # with their logs in Dgp2Dcp.
-        self.A = Atom.cast_to_const(A)
+        self.A = Atom.cast(A)
         super(gmatmul, self).__init__(X)
 
     def numeric(self, values):
@@ -84,7 +83,7 @@ class gmatmul(Atom):
                 "gmatmul(A, X) requires that X be positive."
             )
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> tuple[int, ...]:
         """Returns the (row, col) shape of the expression.
         """
         return u.shape.mul_shapes(self.A.shape, self.args[0].shape)
@@ -94,7 +93,7 @@ class gmatmul(Atom):
         """
         return [self.A]
 
-    def sign_from_args(self) -> Tuple[bool, bool]:
+    def sign_from_args(self) -> tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         return (True, False)

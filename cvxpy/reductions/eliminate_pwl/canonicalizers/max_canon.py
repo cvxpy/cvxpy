@@ -40,5 +40,5 @@ def max_canon(expr, args, solver_context: SolverInfo | None = None):
     # x.value will be set when this function is called)
     if expr.value is not None:
         t.value = expr.value
-        
+
     return t, constraints

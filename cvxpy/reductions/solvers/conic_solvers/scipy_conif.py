@@ -109,7 +109,7 @@ class SCIPY(ConicSolver):
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
         from scipy import optimize as opt
 
-        # Set default method which can be overriden by user inputs
+        # Set default method which can be overridden by user inputs
         if (Version(scipy.__version__) < Version('1.6.1')):
             meth = "interior-point"
         else:
@@ -282,7 +282,7 @@ class SCIPY(ConicSolver):
                     inverse_data[self.NEQ_CONSTR])
                 eq_dual.update(leq_dual)
                 dual_vars = eq_dual
-            
+
             attr = {}
             if "nit" in solution: # Number of interior-point or simplex iterations
                 attr[s.NUM_ITERS] = solution['nit']
@@ -294,7 +294,7 @@ class SCIPY(ConicSolver):
             return Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
             return failure_solution(status)
-    
+
     def cite(self, data):
         """Returns bibtex citation for the solver.
 

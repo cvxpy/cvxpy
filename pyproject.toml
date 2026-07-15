@@ -19,6 +19,10 @@ select = [
     "NPY201",
     "W291",  # Trailing whitespace
     "W292",  # No newline at end of file
+    "W293",  # No whitespace on empty lines
+    "UP006",  # Use builtin types (list, dict, tuple, set, frozenset, type) instead of typing
+    "UP007",  # Use X | Y for union types instead of Union/Optional
+    "UP035",  # Use collections.abc / builtins instead of deprecated typing imports
     "W605",  # Check for invalid escape sequences in docstrings (errors in py >= 3.11)
 ]
 
@@ -26,10 +30,33 @@ ignore = [
     "E721" # Do not compare types, use 'isinstance()'
 ]
 
+[tool.pyright]
+pythonVersion = "3.11"
+typeCheckingMode = "basic"
+include = ["cvxpy"]
+exclude = ["cvxpy/tests", "cvxpy/cvxcore"]
+
+# Optional solver dependencies are not installed in CI.
+reportMissingImports = false
+reportMissingModuleSource = false
+
+# Existing violations to be fixed incrementally (error counts as of 2026-05-22):
+reportArgumentType = false          # 213 errors
+reportAttributeAccessIssue = false  # 307 errors
+reportReturnType = false            # 81 errors
+reportOptionalSubscript = false     # 20 errors
+reportCallIssue = false             # 75 errors
+reportOptionalMemberAccess = false  # 34 errors
+reportGeneralTypeIssues = false     # 27 errors
+reportIndexIssue = false            # 17 errors
+reportOperatorIssue = false         # 48 errors
 
 [tool.pytest.ini_options]
 testpaths = [
     "cvxpy/tests/"
+]
+markers = [
+    "knitro: tests that load the native KNITRO runtime; run in a separate process from other native solvers (see test_nlp_solvers.yml)",
 ]
 
 [build-system]
@@ -38,6 +65,7 @@ requires = [
     "scipy >= 1.13.0",
     # 68.1.0 Promoted pyproject.toml's [tool.setuptools] out of beta.
     "setuptools >= 68.1.0",
+    "setuptools-scm >= 8",
     "wheel",
     "pybind11"
 ]
@@ -56,12 +84,16 @@ dependencies = [
     "scs >= 3.2.4.post1",
     "numpy >= 2.0.0",
     "scipy >= 1.13.0",
-    "highspy >= 1.11.0",
-    "sparsediffpy==0.1.3",
+    # HiGHS < 1.14.0 only honors the lower triangle in `kTriangular` Hessian
+    # format and silently returns wrong solutions when given the upper
+    # triangle (which highs_qpif.py passes). See test_highs_dense_quad_form.
+    "highspy >= 1.14.0",
+    "qdldl >= 0.1.7.post0",
+    "sparsediffpy >= 0.6.0, < 0.7.0",
 ]
 requires-python = ">=3.11"
 urls = {Homepage = "https://github.com/cvxpy/cvxpy"}
-license = {text = "Apache License, Version 2.0"}
+license = "Apache-2.0"
 authors = [{name = "Steven Diamond", email = "stevend2@stanford.edu"},
            {name = "", email = "akshayka@cs.stanford.edu"},
            {name = "Eric Chu", email = "echu508@stanford.edu"},
@@ -72,10 +104,16 @@ dynamic = ["version"]
 # Solver names as in cvxpy.settings = pip-installable distribution providing it
 CBC = ["cylp>=0.91.5"]
 CLARABEL = []
+# coptpy >= 8.0.3 provides the NLP callback API (NlpCallbackBase, loadNlData)
+# the COPT NLP interface relies on. It also accepts scipy sparse arrays
+# (csc_array) in loadMatrix / loadConeMatrix, supported since 7.2.5.
+COPT = ["coptpy>=8.0.3"]
 # CUOPT dependency group is disabled since it was breaking uv sync.
 # CUOPT = ["cuopt-cu12>=25.5", "nvidia-cuda-runtime-cu12>=12.8,<13.0"]
 CVXOPT = ["cvxopt"]
-DIFFCP = ["diffcp"]
+# diffcp >= 1.1.9 dropped its `cvxpy` runtime dependency; older versions
+# create a circular dependency that breaks resolution against this project.
+DIFFCP = ["diffcp >= 1.1.9"]
 ECOS = ["ecos"]
 ECOS_BB = ["ecos"]
 GLOP = ["ortools>=9.7,<9.15"]
@@ -96,6 +134,7 @@ SCS = []
 XPRESS = ["xpress>=9.5"]
 DAQP = ["daqp"]
 KNITRO = ["knitro"]
+UNO = ["unopy"]
 # IPOPT = ["cyipopt"]  # requires system IPOPT; excluded from --all-extras
 testing = ["pytest", "hypothesis"]
 doc = ["sphinx",
@@ -110,3 +149,31 @@ content-type = "text/markdown"
 
 [tool.setuptools]
 include-package-data = false
+
+[dependency-groups]
+# Dev-only tooling deps, installed by `uv sync`. pyright type-checks the
+# package; scipy-stubs lets it analyze SciPy types (e.g. the sparse arrays
+# returned by Expression.grad). Running pyright via `uv run` puts it inside
+# this environment so numpy/scipy imports resolve.
+dev = ["pyright", "scipy-stubs"]
+
+[tool.setuptools_scm]
+# Writes the resolved version to cvxpy/_version.py at build time so the
+# version is available at runtime via `cvxpy.__version__` even outside a
+# git checkout (e.g., from an installed wheel or sdist).
+version_file = "cvxpy/_version.py"
+# `semver-pep440-release-branch` bumps the minor on `master` between releases
+# (so post-tag dev versions look like `1.10.0.devN+g<sha>` while developing
+# 1.10 after `v1.9.0`), and bumps the patch on `release/<x.y>.x` branches.
+version_scheme = "semver-pep440-release-branch"
+# Used when building outside a git checkout with no PKG-INFO (e.g. GitHub
+# "Download ZIP" tarballs, which are not proper sdists). Real sdists embed
+# the version in PKG-INFO and don't hit this fallback.
+fallback_version = "0.0.0"
+
+[tool.setuptools_scm.scm.git]
+# `v*` matches real release tags. `dummy-v*` matches the anchor tag placed on
+# `master` at each minor branch point: real release tags live on `release/*`
+# branches and are not ancestors of `master`, so without an anchor `git
+# describe` would fall back to an ancient tag and compute the wrong version.
+describe_command = ["git", "describe", "--dirty", "--tags", "--long", "--match", "v*", "--match", "dummy-v*"]

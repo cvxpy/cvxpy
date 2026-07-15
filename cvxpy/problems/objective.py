@@ -18,7 +18,7 @@ import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.utilities as u
 from cvxpy.error import DCPError
 from cvxpy.expressions.expression import Expression
-from cvxpy.interface.matrix_utilities import scalar_value
+from cvxpy.interface.matrix_utilities import ScalarValue, scalar_value
 from cvxpy.utilities import scopes
 
 
@@ -39,7 +39,7 @@ class Objective(u.Canonical):
     NAME = "objective"
 
     def __init__(self, expr) -> None:
-        self.args = [Expression.cast_to_const(expr)]
+        self.args = [Expression.cast(expr)]
         # Needed for Canonical._aggregate_metrics.
         self.ndim = 0
         # Validate that the objective resolves to a scalar.
@@ -53,7 +53,7 @@ class Objective(u.Canonical):
 
     def __str__(self) -> str:
         return f'{self.NAME} {self.args[0].name()}'
-    
+
     def format_labeled(self):
         """Format objective with labels where available."""
         return f'{self.NAME} {self.args[0].format_labeled()}'
@@ -95,7 +95,7 @@ class Objective(u.Canonical):
     __truediv__ = __div__
 
     @property
-    def value(self):
+    def value(self) -> ScalarValue | None:
         """The value of the objective expression.
         """
         v = self.args[0].value

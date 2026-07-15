@@ -115,11 +115,6 @@ class MOREAU(ConicSolver):
         """Moreau supports quadratic objective with conic constraints."""
         return True
 
-    @staticmethod
-    def extract_dual_value(result_vec, offset, constraint):
-        """Extracts the dual value for constraint starting at offset."""
-        return utilities.extract_dual_value(result_vec, offset, constraint)
-
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data."""
         attr = {}
@@ -145,12 +140,12 @@ class MOREAU(ConicSolver):
             primal_vars = {inverse_data[self.VAR_ID]: solution.x}
             eq_dual_vars = utilities.get_dual_values(
                 solution.z[: inverse_data[ConicSolver.DIMS].zero],
-                self.extract_dual_value,
+                utilities.extract_dual_value,
                 inverse_data[self.EQ_CONSTR],
             )
             ineq_dual_vars = utilities.get_dual_values(
                 solution.z[inverse_data[ConicSolver.DIMS].zero :],
-                self.extract_dual_value,
+                utilities.extract_dual_value,
                 inverse_data[self.NEQ_CONSTR],
             )
             dual_vars = {}

@@ -7,6 +7,7 @@ from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.xpress_conif import (
     get_status_map,
+    make_unique_names,
     makeMstart,
 )
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
@@ -60,19 +61,22 @@ class XPRESS(QpSolver):
         data["initial_mip_values"] = values[mipidxs] if mipidxs.size > 0 else []
         data["initial_mip_idxs"] = mipidxs
 
-        # Setup names
-        data["variable_names"] = np.concatenate([
-            np.ravel([
-                f"{var.name()}_x_{i:09d}" for i in range(var.size)
-            ], order="F")
-            for var in variables
-        ]).tolist()
-        data["constraint_names"] = np.concatenate([
-            np.ravel([
-                f"{eq.constr_id}_eq_{i:09d}" for i in range(eq.size)
-            ], order="F")
-            for eq in problem.constraints
-        ]).tolist()
+        # Setup names. Variable names are derived from user-supplied
+        # Variable.name() values, which need not be unique; de-duplicate so
+        # Xpress >= 9.5 does not reject the problem (?1030).
+        data["variable_names"] = make_unique_names(
+            f"{var.name()}_x_{i:09d}"
+            for var in variables for i in range(var.size)
+        )
+        if problem.constraints:
+            data["constraint_names"] = np.concatenate([
+                np.ravel([
+                    f"{eq.constr_id}_eq_{i:09d}" for i in range(eq.size)
+                ], order="F")
+                for eq in problem.constraints
+            ]).tolist()
+        else:
+            data["constraint_names"] = []
         return data, inv_data
 
     def invert(self, results, inverse_data):

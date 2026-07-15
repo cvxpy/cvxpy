@@ -1,10 +1,10 @@
-from typing import Tuple
 
 import numpy as np
 import scipy.sparse as sp
 
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.atom import Atom
+from cvxpy.expressions.expression import ExpressionValue
 from cvxpy.expressions.variable import Variable
 
 
@@ -21,10 +21,10 @@ class SuppFuncAtom(Atom):
             The object containing data for the convex set associated with this atom.
         """
         self.id = lu.get_id()
-        self.args = [Atom.cast_to_const(y)]
+        self.args = [Atom.cast(y)]
         self._parent = parent
         self._eta = None  # store for debugging purposes
-        self._shape: Tuple[int, ...] = tuple()
+        self._shape: tuple[int, ...] = tuple()
         self.validate_arguments()
 
     def validate_arguments(self) -> None:
@@ -43,10 +43,10 @@ class SuppFuncAtom(Atom):
     def constants(self):
         return []
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> tuple[int, ...]:
         return self._shape
 
-    def sign_from_args(self) -> Tuple[bool, bool]:
+    def sign_from_args(self) -> tuple[bool, bool]:
         return (False, False)
 
     def is_nonneg(self) -> bool:
@@ -105,7 +105,7 @@ class SuppFuncAtom(Atom):
     def is_quasiconcave(self) -> bool:
         return False
 
-    def _value_impl(self):
+    def _value_impl(self) -> ExpressionValue | None:
         from cvxpy.problems.objective import Maximize
         from cvxpy.problems.problem import Problem
         y_val = self.args[0].value.round(decimals=9).ravel(order='F')
