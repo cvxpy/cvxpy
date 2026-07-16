@@ -20,6 +20,7 @@ from types import GeneratorType
 
 import numpy as np
 from numpy.exceptions import AxisError
+from numpy.lib.array_utils import normalize_axis_tuple
 
 import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_op as lo
@@ -87,15 +88,19 @@ class Sum(AxisAtom, AffAtom):
         super(AxisAtom, self).validate_arguments()
 
     def shape_from_args(self) -> tuple[int, ...]:
-        """Returns shape using NumPy's sum shape calculation."""
+        """Returns shape using an exact tuple calculation."""
+        input_shape = self.args[0].shape
+        ndim = len(input_shape)
+        if self.axis is None:
+            return (1,) * ndim if self.keepdims else ()
         try:
-            return np.sum(
-                np.empty(self.args[0].shape, dtype=np.int8),
-                axis=self.axis,
-                keepdims=self.keepdims
-            ).shape
+            axes = normalize_axis_tuple(self.axis, ndim)
         except (ValueError, AxisError, TypeError) as e:
             raise ValueError(f"Invalid arguments for cp.sum: {e}") from e
+        if self.keepdims:
+            return tuple(1 if i in axes else d for i, d in enumerate(input_shape))
+        else:
+            return tuple(d for i, d in enumerate(input_shape) if i not in axes)
 
     def numeric(self, values):
         """Sums the entries of value."""
@@ -153,9 +158,7 @@ class Sum(AxisAtom, AffAtom):
 
 
 @wraps(Sum)
-def sum(
-    expr, axis: int | tuple[int, ...] | None = None, keepdims: bool = False
-) -> Expression:
+def sum(expr, axis: int | tuple[int, ...] | None = None, keepdims: bool = False) -> Expression:
     """
     Wrapper for Sum class.
     """

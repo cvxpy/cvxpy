@@ -2800,6 +2800,50 @@ class TestAtoms(BaseTest):
         S = Variable((3, 3), symmetric=True)
         self.assertTrue(cp.real(S).is_symmetric())
 
+    def test_sum_shape_inference(self):
+        """
+        Test shape inference for cp.sum with exact tuple formula,
+        verifying match with NumPy's axis and keepdims semantics.
+        """
+        x = cp.Variable((2, 3, 4))
+
+        # 1. Default (axis=None)
+        assert cp.sum(x).shape == ()
+        assert cp.sum(x, keepdims=True).shape == (1, 1, 1)
+
+        # 2. Single integer axis
+        assert cp.sum(x, axis=0).shape == (3, 4)
+        assert cp.sum(x, axis=1).shape == (2, 4)
+        assert cp.sum(x, axis=-1).shape == (2, 3)  # Negative indexing
+
+        # 3. Single integer axis with keepdims=True
+        assert cp.sum(x, axis=0, keepdims=True).shape == (1, 3, 4)
+        assert cp.sum(x, axis=1, keepdims=True).shape == (2, 1, 4)
+        assert cp.sum(x, axis=-1, keepdims=True).shape == (2, 3, 1)
+
+        # 4. Tuple of axes
+        assert cp.sum(x, axis=(0, 2)).shape == (3,)
+        assert cp.sum(x, axis=(0, -1)).shape == (3,)  # Mixed positive/negative
+        assert cp.sum(x, axis=(0, 1, 2)).shape == ()
+
+        # 5. Tuple of axes with keepdims=True
+        assert cp.sum(x, axis=(0, 2), keepdims=True).shape == (1, 3, 1)
+        assert cp.sum(x, axis=(0, 1, 2), keepdims=True).shape == (1, 1, 1)
+
+        # 6. Scalar variables
+        scalar = cp.Variable()
+        assert cp.sum(scalar).shape == ()
+        assert cp.sum(scalar, keepdims=True).shape == ()
+
+        # 7. Error cases (caught by normalize_axis_tuple)
+        with pytest.raises(ValueError):
+            cp.sum(x, axis=3)  # Out of bounds (positive)
+
+        with pytest.raises(ValueError):
+            cp.sum(x, axis=-4) # Out of bounds (negative)
+
+        with pytest.raises(ValueError):
+            cp.sum(x, axis=(0, 0))  # Duplicate axes
 
 class TestDotsort(BaseTest):
     """ Unit tests for the dotsort atom. """
