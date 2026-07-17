@@ -155,3 +155,24 @@ class TestKron:
 
         assert np.linalg.norm(param_sol1 - hardcoded_sol1) == 0.0
         assert np.linalg.norm(param_sol2 - hardcoded_sol2) == 0.0
+
+
+class _FakeKron:
+    """Stand-in for a kron expression: convert_kron only reads ``args``."""
+
+    def __init__(self, a, b):
+        self.args = [a, b]
+
+
+class TestKronConverterGuards:
+    """Converter-level validation; no solver required."""
+
+    def _convert(self, a, b):
+        registry = pytest.importorskip(
+            "cvxpy.reductions.solvers.nlp_solvers.diff_engine.registry"
+        )
+        return registry.convert_kron(_FakeKron(a, b), [None, None])
+
+    def test_rejects_two_variable_operands(self):
+        with pytest.raises(ValueError, match="variable-free operand"):
+            self._convert(cp.Variable((2, 2)), cp.Variable((2, 2)))
