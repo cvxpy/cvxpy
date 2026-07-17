@@ -89,7 +89,7 @@ dependencies = [
     # triangle (which highs_qpif.py passes). See test_highs_dense_quad_form.
     "highspy >= 1.14.0",
     "qdldl >= 0.1.7.post0",
-    "sparsediffpy >= 0.6.0, < 0.7.0",
+    "sparsediffpy >= 0.6.1, < 0.7.0",
 ]
 requires-python = ">=3.11"
 urls = {Homepage = "https://github.com/cvxpy/cvxpy"}
