@@ -245,14 +245,36 @@ class Inequality(Constraint):
         return self.expr.is_convex()
 
     def dcp_failure_reason(self) -> str | None:
-        expr = self.expr
-        if expr.is_convex():
+        if self.expr.is_convex():
             return None
-        lhs = self.args[0].format_labeled()
-        rhs = self.args[1].format_labeled()
+        lhs = self.args[0]
+        rhs = self.args[1]
+        lhs_label = lhs.format_labeled()
+        rhs_label = rhs.format_labeled()
+        lhs_convex = lhs.is_convex()
+        rhs_concave = rhs.is_concave()
+        if not lhs_convex and not rhs_concave:
+            return (
+                f"The inequality {lhs_label} <= {rhs_label} requires a convex "
+                f"left-hand side and a concave right-hand side, but "
+                f"{lhs_label} is {lhs.curvature.lower()} and "
+                f"{rhs_label} is {rhs.curvature.lower()}."
+            )
+        if not lhs_convex:
+            return (
+                f"The inequality {lhs_label} <= {rhs_label} requires a convex "
+                f"left-hand side, but {lhs_label} is {lhs.curvature.lower()}."
+            )
+        if not rhs_concave:
+            return (
+                f"The inequality {lhs_label} <= {rhs_label} requires a concave "
+                f"right-hand side, but {rhs_label} is {rhs.curvature.lower()}."
+            )
+        # Sides satisfy the usual convex <= concave rule, but lhs - rhs is not
+        # DCP-convex (uncommon; still report the composed curvature).
         return (
-            f"The inequality {lhs} <= {rhs} requires (lhs - rhs) to be convex, "
-            f"but it is {expr.curvature.lower()}."
+            f"The inequality {lhs_label} <= {rhs_label} is not DCP "
+            f"({lhs_label} - {rhs_label} is {self.expr.curvature.lower()})."
         )
 
     def is_dnlp(self) -> bool:

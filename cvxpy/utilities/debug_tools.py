@@ -13,7 +13,7 @@ limitations under the License.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 from cvxpy.expressions import cvxtypes
 
@@ -27,6 +27,10 @@ DCP = 'DCP'
 DGP = 'DGP'
 # Max number of nodes a reasonable expression should have.
 MAX_NODES = 10_000
+
+DisciplineName = Literal["DCP", "DGP"]
+PropName = Literal["is_dcp", "is_dgp"]
+AtomCurvature = Literal["convex", "concave"]
 
 
 def node_count(expr) -> int:
@@ -53,7 +57,9 @@ def monotonicity_word(atom: Expression, idx: int) -> str:
     return "nonmonotonic"
 
 
-def explain_composition_failure(expr: Expression, atom_curvature: str) -> str | None:
+def explain_composition_failure(
+    expr: Expression, atom_curvature: AtomCurvature
+) -> str | None:
     """Explain the first DCP composition-rule failure for an atom curvature.
 
     Mirrors the argument checks in ``Atom.is_convex`` / ``Atom.is_concave``,
@@ -94,52 +100,81 @@ def explain_composition_failure(expr: Expression, atom_curvature: str) -> str | 
 
 def _format_violations(violations: list[tuple[str, str | None]], indent: str = "") -> str:
     msg = ""
-    for str_expr, reason in violations:
-        msg += f"\n{indent}{str_expr}"
+    for expr_label, reason in violations:
+        msg += f"\n{indent}{expr_label}"
         if reason is not None:
             msg += f"\n{indent}    Reason: {reason}"
     return msg
 
 
-def _passes_discipline(expr, prop_name: str) -> bool:
+def _passes_discipline(expr, prop_name: PropName) -> bool:
+    """Whether ``expr`` satisfies the named DCP/DGP predicate.
+
+    Only DCP and DGP are supported here; DQCP/DNLP use other diagnostics.
+    """
     if prop_name == "is_dcp":
         return expr.is_dcp()
-    return expr.is_dgp()
+    if prop_name == "is_dgp":
+        return expr.is_dgp()
+    raise ValueError(f"Unsupported discipline property: {prop_name}")
 
 
-def _find_non_prop_leaves(
+def _find_non_prop_nodes(
     expr,
-    prop_name: str,
-    discipline_type: str,
+    prop_name: PropName,
+    discipline_type: DisciplineName,
     res: list[tuple[str, str | None]] | None = None,
 ) -> list[tuple[str, str | None]]:
-    """Collect minimal nodes that fail ``prop_name`` while all children pass."""
+    """Collect minimal violating nodes: fail ``prop_name`` while all children pass.
+
+    A leaf that itself fails is a minimal violator (``all([])`` is true). A
+    leaf that passes contributes nothing. Internal nodes are recorded only when
+    they fail and every child passes.
+    """
     if res is None:
         res = []
-    if len(expr.args) == 0 and _passes_discipline(expr, prop_name):
+
+    children = expr.args
+    if len(children) == 0:
+        # Leaf: record only if it fails the discipline.
+        if not _passes_discipline(expr, prop_name):
+            res.append(_violation_entry(expr, discipline_type))
         return res
+
     if (not _passes_discipline(expr, prop_name) and
-            all(_passes_discipline(child, prop_name) for child in expr.args)):
-        if discipline_type == DCP:
-            str_expr = expr.format_labeled()
-            reason = expr.dcp_failure_reason()
-        else:
-            str_expr = str(expr)
-            reason = None
-            if isinstance(expr, cvxtypes.variable()):
-                str_expr += " <-- needs to be declared positive"
-        res.append((str_expr, reason))
-    for child in expr.args:
-        res = _find_non_prop_leaves(child, prop_name, discipline_type, res)
+            all(_passes_discipline(child, prop_name) for child in children)):
+        res.append(_violation_entry(expr, discipline_type))
+
+    for child in children:
+        res = _find_non_prop_nodes(child, prop_name, discipline_type, res)
     return res
+
+
+def _violation_entry(
+    expr, discipline_type: DisciplineName
+) -> tuple[str, str | None]:
+    if discipline_type == DCP:
+        return (expr.format_labeled(), expr.dcp_failure_reason())
+    if discipline_type == DGP:
+        expr_label = str(expr)
+        reason = None
+        if isinstance(expr, cvxtypes.variable()) and not expr.is_pos():
+            expr_label += " <-- needs to be declared positive (pos=True)"
+        return (expr_label, reason)
+    raise ValueError(f"Unknown discipline type: {discipline_type}")
 
 
 def explain_expression_dcp(expr: Expression) -> str:
     """Explain why an expression fails DCP."""
     if expr.is_dcp():
         return "Expression follows DCP rules."
-    violations = _find_non_prop_leaves(expr, "is_dcp", DCP)
+    violations = _find_non_prop_nodes(expr, "is_dcp", DCP)
     if not violations:
+        # Defensive: ``is_dcp`` can fail for reasons outside the expression
+        # tree walk (e.g. unusual ``args``). Prefer a node-local reason if any.
+        reason = expr.dcp_failure_reason()
+        if reason is not None:
+            return f"Expression does not follow DCP rules.\nReason: {reason}"
         return "Expression does not follow DCP rules."
     return "The following subexpressions are not DCP:" + _format_violations(violations)
 
@@ -148,7 +183,7 @@ def explain_objective_dcp(objective: Objective) -> str:
     """Explain why an objective fails DCP."""
     if objective.is_dcp():
         return "Objective follows DCP rules."
-    violations = _find_non_prop_leaves(objective.expr, "is_dcp", DCP)
+    violations = _find_non_prop_nodes(objective.expr, "is_dcp", DCP)
     if violations:
         msg = "The objective is not DCP. Its following subexpressions are not:"
         return msg + _format_violations(violations)
@@ -165,7 +200,7 @@ def explain_constraint_dcp(constraint: Constraint) -> str:
     """Explain why a constraint fails DCP."""
     if constraint.is_dcp():
         return "Constraint follows DCP rules."
-    violations = _find_non_prop_leaves(constraint, "is_dcp", DCP)
+    violations = _find_non_prop_nodes(constraint, "is_dcp", DCP)
     pretty = constraint.format_labeled()
     msg = (
         f"The following constraint is not DCP:\n{pretty} , "
@@ -181,9 +216,9 @@ def explain_problem_dcp(problem: Problem) -> str:
     return build_non_disciplined_error_msg(problem, DCP)
 
 
-def build_non_disciplined_error_msg(problem, discipline_type) -> str:
+def build_non_disciplined_error_msg(problem, discipline_type: DisciplineName) -> str:
     if discipline_type == DCP:
-        prop_name = "is_dcp"
+        prop_name: PropName = "is_dcp"
         prefix_conv = ""
     elif discipline_type == DGP:
         prop_name = "is_dgp"
@@ -194,14 +229,14 @@ def build_non_disciplined_error_msg(problem, discipline_type) -> str:
     if not _passes_discipline(problem.objective, prop_name):
         if discipline_type == DCP:
             return explain_objective_dcp(problem.objective)
-        non_disciplined_leaves = _find_non_prop_leaves(
+        non_disciplined_nodes = _find_non_prop_nodes(
             problem.objective.expr, prop_name, discipline_type
         )
-        if len(non_disciplined_leaves) > 0:
+        if len(non_disciplined_nodes) > 0:
             msg = "The objective is not {}. Its following subexpressions are not:".format(
                 discipline_type
             )
-            msg += _format_violations(non_disciplined_leaves)
+            msg += _format_violations(non_disciplined_nodes)
         else:
             convex_str = "{}{}".format(prefix_conv, "convex")
             concave_str = "{}{}".format(prefix_conv, "concave")
@@ -221,6 +256,6 @@ def build_non_disciplined_error_msg(problem, discipline_type) -> str:
     for expr in not_disciplined_constraints:
         msg += '\n%s , because the following subexpressions are not:' % (
             expr.format_labeled(),)
-        non_disciplined_leaves = _find_non_prop_leaves(expr, prop_name, discipline_type)
-        msg += _format_violations(non_disciplined_leaves, indent="|--  ")
+        non_disciplined_nodes = _find_non_prop_nodes(expr, prop_name, discipline_type)
+        msg += _format_violations(non_disciplined_nodes, indent="|--  ")
     return msg

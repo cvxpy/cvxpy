@@ -64,7 +64,7 @@ class Zero(Constraint):
             return None
         pretty = expr.format_labeled()
         return (
-            f"Equality constraints require an affine expression, "
+            f"Zero constraints require an affine expression, "
             f"but {pretty} is {expr.curvature.lower()}."
         )
 

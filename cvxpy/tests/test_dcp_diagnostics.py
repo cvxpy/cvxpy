@@ -15,6 +15,7 @@ limitations under the License.
 """
 
 import cvxpy as cp
+from cvxpy.constraints.zero import Zero
 from cvxpy.error import DCPError
 from cvxpy.tests.base_test import BaseTest
 from cvxpy.utilities.debug_tools import (
@@ -132,12 +133,32 @@ class TestDcpDiagnostics(BaseTest):
         self.assertIn("Equality constraints require an affine expression", msg)
         self.assertIn("is convex", msg)
 
-    def test_inequality_requires_convex_difference(self) -> None:
+    def test_zero_requires_affine(self) -> None:
+        x = cp.Variable(name="x")
+        msg = Zero(cp.square(x)).explain_dcp()
+        self.assertIn("Zero constraints require an affine expression", msg)
+        self.assertIn("square(x)", msg)
+
+    def test_inequality_requires_convex_lhs(self) -> None:
         x = cp.Variable(name="x")
         msg = (cp.sqrt(x) <= 2).explain_dcp()
         self.assertIn("sqrt(x) <= 2", msg)
-        self.assertIn("requires (lhs - rhs) to be convex", msg)
-        self.assertIn("concave", msg)
+        self.assertIn("requires a convex left-hand side", msg)
+        self.assertIn("sqrt(x) is concave", msg)
+
+    def test_inequality_requires_concave_rhs(self) -> None:
+        x = cp.Variable(name="x")
+        msg = (0 <= cp.square(x)).explain_dcp()
+        self.assertIn("0.0 <= square(x)", msg)
+        self.assertIn("requires a concave right-hand side", msg)
+        self.assertIn("square(x) is convex", msg)
+
+    def test_inequality_both_sides_wrong_curvature(self) -> None:
+        x = cp.Variable(name="x")
+        msg = (cp.sqrt(x) <= cp.square(x)).explain_dcp()
+        self.assertIn("requires a convex left-hand side and a concave right-hand side", msg)
+        self.assertIn("sqrt(x) is concave", msg)
+        self.assertIn("square(x) is convex", msg)
 
     def test_psd_requires_affine(self) -> None:
         X = cp.Variable((2, 2), name="X")
