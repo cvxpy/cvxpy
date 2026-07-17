@@ -54,6 +54,8 @@ def convert_kron(expr, children):
     variable-free operand's structurally nonzero entries (column-major flat
     indices). A parametric operand gets all blocks since its values change."""
     a, b = expr.args
+    if not (a.is_constant() or b.is_constant()):
+        raise ValueError("kron requires at least one variable-free operand.")
     const_is_left = a.is_constant()
     const_expr = a if const_is_left else b
     const_node = children[0] if const_is_left else children[1]
@@ -72,6 +74,8 @@ def convert_kron(expr, children):
             active = np.unique(coo.row[mask] + coo.col[mask] * n_rows)
             active = active.astype(np.int32)
         else:
+            # No format conversion: read the nonzero pattern straight off the
+            # dense values, same result as the sparse branch above.
             flat = np.asarray(val, dtype=np.float64).flatten(order="F")
             active = np.flatnonzero(flat).astype(np.int32)
 
