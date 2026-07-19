@@ -877,3 +877,82 @@ class TestConstraints(BaseTest):
 
         np.testing.assert_allclose(constr.residual, np.array([3.0, 4.0]))
         assert constr.violation() == pytest.approx(4.0)
+
+    def test_inequality_dual_residual_and_violation(self):
+        x = cp.Variable(2)
+        constr = x <= np.array([0.0, 0.0])
+
+        with pytest.raises(ValueError):
+            constr.dual_violation()
+
+        constr.dual_variables[0].value = np.array([1.0, 0.0])
+        np.testing.assert_allclose(constr.dual_residual, np.array([0.0, 0.0]))
+        assert constr.dual_violation() == pytest.approx(0.0)
+        assert constr.is_dual_feasible()
+
+        constr.dual_variables[0].value = np.array([1.0, -2.0])
+        np.testing.assert_allclose(constr.dual_residual, np.array([0.0, 2.0]))
+        assert constr.dual_violation() == pytest.approx(2.0)
+        assert not constr.is_dual_feasible()
+
+    def test_nonpos_dual_residual_and_violation(self):
+        x = cp.Variable(2)
+        constr = cp.NonPos(x)
+
+        constr.dual_variables[0].value = np.array([1.0, -2.0])
+        np.testing.assert_allclose(constr.dual_residual, np.array([0.0, 2.0]))
+        assert constr.dual_violation() == pytest.approx(2.0)
+        assert not constr.is_dual_feasible()
+
+    def test_nonneg_dual_residual_and_violation(self):
+        x = cp.Variable(2)
+        constr = cp.NonNeg(x)
+
+        constr.dual_variables[0].value = np.array([1.0, -2.0])
+        np.testing.assert_allclose(constr.dual_residual, np.array([0.0, 2.0]))
+        assert constr.dual_violation() == pytest.approx(2.0)
+        assert not constr.is_dual_feasible()
+
+    def test_equality_dual_residual_is_always_zero(self):
+        # Equality/Zero dual variables are free (unconstrained), so their
+        # dual cone is the whole space and the residual is always zero.
+        x = cp.Variable(2)
+        constr = x == np.array([0.0, 0.0])
+
+        with pytest.raises(ValueError):
+            constr.dual_violation()
+
+        constr.dual_variables[0].value = np.array([5.0, -7.0])
+        np.testing.assert_allclose(constr.dual_residual, np.array([0.0, 0.0]))
+        assert constr.dual_violation() == pytest.approx(0.0)
+        assert constr.is_dual_feasible()
+
+    def test_psd_dual_residual_is_spectral_not_entrywise(self):
+        # The dual residual for a PSD constraint should be a scalar
+        # eigenvalue-based (spectral) measure, not an entrywise/Frobenius
+        # norm of the matrix residual.
+        X = cp.Variable((3, 3), symmetric=True)
+        constr = X >> 0
+
+        feasible_dual = np.eye(3)
+        constr.dual_variables[0].value = feasible_dual
+        assert np.isscalar(constr.dual_residual) or constr.dual_residual.shape == ()
+        assert constr.dual_violation() == pytest.approx(0.0)
+        assert constr.is_dual_feasible()
+
+        # Smallest eigenvalue is -2, so the residual should be exactly 2,
+        # regardless of the size of the other (feasible) entries.
+        infeasible_dual = np.diag([1.0, -2.0, 3.0])
+        constr.dual_variables[0].value = infeasible_dual
+        assert constr.dual_violation() == pytest.approx(2.0)
+        assert not constr.is_dual_feasible()
+
+    def test_psd_dual_residual_batched_is_worst_case_block(self):
+        X = cp.Variable((2, 3, 3), symmetric=True)
+        constr = X >> 0
+
+        blocks = np.stack([np.eye(3), np.diag([1.0, -2.0, 3.0])])
+        constr.dual_variables[0].value = blocks
+        np.testing.assert_allclose(constr.dual_residual, np.array([0.0, 2.0]))
+        assert constr.dual_violation() == pytest.approx(2.0)
+        assert not constr.is_dual_feasible()
