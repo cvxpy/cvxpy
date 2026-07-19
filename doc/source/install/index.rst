@@ -316,7 +316,7 @@ Install with Additional Solver Support
     :collapsible:
 
     CVXPY supports the UNO solver (for nonlinear programming).
-    Follow the installation instructions for `UNO <https://github.com/cvanaret/Uno/blob/main/INSTALL.md>`_.
+    Follow the installation instructions for `UNO <https://unosolver.readthedocs.io/en/latest/installation>`_.
 
 .. info:: KNITRO
     :collapsible:
