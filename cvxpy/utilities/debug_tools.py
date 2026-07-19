@@ -119,33 +119,31 @@ def _passes_discipline(expr, prop_name: PropName) -> bool:
     raise ValueError(f"Unsupported discipline property: {prop_name}")
 
 
+def _is_minimal_violator(expr, prop_name: PropName) -> bool:
+    """True if ``expr`` fails ``prop_name`` but every child passes.
+
+    These are the nodes we report: the failure starts here, not in a child.
+    For leaves, ``all([])`` is true, so a failing leaf counts as minimal.
+    """
+    return (
+        not _passes_discipline(expr, prop_name)
+        and all(_passes_discipline(child, prop_name) for child in expr.args)
+    )
+
+
 def _find_non_prop_nodes(
     expr,
     prop_name: PropName,
     discipline_type: DisciplineName,
     res: list[tuple[str, str | None]] | None = None,
 ) -> list[tuple[str, str | None]]:
-    """Collect minimal violating nodes: fail ``prop_name`` while all children pass.
-
-    A leaf that itself fails is a minimal violator (``all([])`` is true). A
-    leaf that passes contributes nothing. Internal nodes are recorded only when
-    they fail and every child passes.
-    """
+    """Collect minimal violating nodes under ``expr`` (see ``_is_minimal_violator``)."""
     if res is None:
         res = []
 
-    children = expr.args
-    if len(children) == 0:
-        # Leaf: record only if it fails the discipline.
-        if not _passes_discipline(expr, prop_name):
-            res.append(_violation_entry(expr, discipline_type))
-        return res
-
-    if (not _passes_discipline(expr, prop_name) and
-            all(_passes_discipline(child, prop_name) for child in children)):
+    if _is_minimal_violator(expr, prop_name):
         res.append(_violation_entry(expr, discipline_type))
-
-    for child in children:
+    for child in expr.args:
         res = _find_non_prop_nodes(child, prop_name, discipline_type, res)
     return res
 
@@ -170,11 +168,10 @@ def explain_expression_dcp(expr: Expression) -> str:
         return "Expression follows DCP rules."
     violations = _find_non_prop_nodes(expr, "is_dcp", DCP)
     if not violations:
-        # Defensive: ``is_dcp`` can fail for reasons outside the expression
-        # tree walk (e.g. unusual ``args``). Prefer a node-local reason if any.
-        reason = expr.dcp_failure_reason()
-        if reason is not None:
-            return f"Expression does not follow DCP rules.\nReason: {reason}"
+        # For a normal expression tree this should not happen: if ``is_dcp`` is
+        # false, some node fails while its children pass. (Contrast objectives,
+        # where empty violations means a sense mismatch — see
+        # ``explain_objective_dcp``.)
         return "Expression does not follow DCP rules."
     return "The following subexpressions are not DCP:" + _format_violations(violations)
 
