@@ -1,5 +1,5 @@
 import builtins
-import distutils.version
+from packaging.version import Version
 import os
 import platform
 import sys
@@ -43,8 +43,8 @@ class build_ext_cvxpy(build_ext):
 # motivated by Apple dropping support for libstdc++.
 if sys.platform == 'darwin':
     if 'MACOSX_DEPLOYMENT_TARGET' not in os.environ:
-        current_system = distutils.version.LooseVersion(platform.mac_ver()[0])
-        python_target = distutils.version.LooseVersion(
+        current_system = Version(platform.mac_ver()[0])
+        python_target = Version(
             sysconfig.get_config_var('MACOSX_DEPLOYMENT_TARGET'))
         if python_target < '10.9' and current_system >= '10.9':
             os.environ['MACOSX_DEPLOYMENT_TARGET'] = '10.9'
