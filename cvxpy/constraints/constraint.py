@@ -210,9 +210,8 @@ class Constraint(u.Canonical):
         """The numeric violation of the constraint.
 
         For nonspectral constraints, the violation is the infinity norm of
-        the constraint residual. Spectral constraints may return scalar
-        operator-norm residuals directly, which are unchanged by this scalar
-        reduction.
+        the constraint residual. Spectral constraints return
+        the operator-norm of the residual.
 
         Returns
         -------
@@ -293,14 +292,15 @@ class Constraint(u.Canonical):
     def dual_residual(self):
         """The residual of the dual variable with respect to the dual cone.
 
-        Analogous to ``residual`` for primal constraint satisfaction. When the
-        dual cone has a projection residual, this follows the same signed
-        ``projection - value`` convention as ``residual``. Implementations may
-        return a scalar or an array, depending on the constraint.
+        Analogous to ``residual`` for primal constraint satisfaction: it is
+        shape-preserving and follows the same signed ``projection - value``
+        convention. The reduction to a scalar happens in ``dual_violation``,
+        so this should not itself perform an operator-norm (spectral)
+        reduction.
 
         Returns
         -------
-        float, NumPy.ndarray, or None
+        NumPy.ndarray or None
         """
         raise NotImplementedError(
             f"{type(self).__name__} does not implement dual_residual."
@@ -310,7 +310,9 @@ class Constraint(u.Canonical):
         """Scalar infeasibility of the dual variable.
 
         The violation is the infinity norm of ``dual_residual``, matching the
-        scalar violation convention for primal residuals.
+        scalar violation convention for primal residuals. Spectral cones (such
+        as ``PSD``) override this to reduce the residual with the operator
+        norm instead.
 
         Returns
         -------

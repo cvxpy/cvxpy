@@ -927,23 +927,28 @@ class TestConstraints(BaseTest):
         assert constr.dual_violation() == pytest.approx(0.0)
         assert constr.is_dual_feasible()
 
-    def test_psd_dual_residual_is_spectral_not_entrywise(self):
-        # The dual residual for a PSD constraint should be a scalar
-        # eigenvalue-based (spectral) measure, not an entrywise/Frobenius
-        # norm of the matrix residual.
+    def test_psd_dual_residual_is_shape_preserving_violation_is_spectral(self):
+        # The dual residual for a PSD constraint is the shape-preserving
+        # matrix residual proj_PSD(S) - S; the operator-norm (spectral)
+        # reduction happens in dual_violation, not in dual_residual.
         X = cp.Variable((3, 3), symmetric=True)
         constr = X >> 0
 
         feasible_dual = np.eye(3)
         constr.dual_variables[0].value = feasible_dual
-        assert np.isscalar(constr.dual_residual) or constr.dual_residual.shape == ()
+        assert constr.dual_residual.shape == (3, 3)
+        np.testing.assert_allclose(constr.dual_residual, np.zeros((3, 3)), atol=1e-9)
         assert constr.dual_violation() == pytest.approx(0.0)
         assert constr.is_dual_feasible()
 
-        # Smallest eigenvalue is -2, so the residual should be exactly 2,
+        # Smallest eigenvalue is -2, so the shape-preserving residual isolates
+        # the negative eigenvalue and the operator-norm reduction yields 2,
         # regardless of the size of the other (feasible) entries.
         infeasible_dual = np.diag([1.0, -2.0, 3.0])
         constr.dual_variables[0].value = infeasible_dual
+        np.testing.assert_allclose(
+            constr.dual_residual, np.diag([0.0, 2.0, 0.0]), atol=1e-9
+        )
         assert constr.dual_violation() == pytest.approx(2.0)
         assert not constr.is_dual_feasible()
 
@@ -953,6 +958,7 @@ class TestConstraints(BaseTest):
 
         blocks = np.stack([np.eye(3), np.diag([1.0, -2.0, 3.0])])
         constr.dual_variables[0].value = blocks
-        np.testing.assert_allclose(constr.dual_residual, np.array([0.0, 2.0]))
+        expected = np.stack([np.zeros((3, 3)), np.diag([0.0, 2.0, 0.0])])
+        np.testing.assert_allclose(constr.dual_residual, expected, atol=1e-9)
         assert constr.dual_violation() == pytest.approx(2.0)
         assert not constr.is_dual_feasible()

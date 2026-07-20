@@ -59,13 +59,14 @@ class Cone(Constraint):
         raise NotImplementedError
 
     @property
-    def dual_residual(self) -> np.ndarray | float | None:
+    def dual_residual(self) -> np.ndarray | None:
         """Residual of the dual variable with respect to the dual cone.
 
         This constructs the corresponding dual-cone constraint on this
-        constraint's dual variables and returns that constraint's residual.
-        The returned value may be a scalar or an array, depending on the
-        cone and the number of cone blocks.
+        constraint's dual variables and returns that constraint's residual,
+        following the same shape-preserving convention as ``residual``. The
+        reduction to a scalar happens in ``dual_violation``; spectral cones
+        such as ``PSD`` override it to use the operator norm.
 
         Cone subclasses support this property by implementing
         ``_dual_cone``. Cones without a dual-cone implementation should raise
