@@ -1730,6 +1730,16 @@ class TestAtoms(BaseTest):
         self.assertEqual(expr.shape, (3, 3))
         self.assertTrue(expr.is_affine())
 
+        # A scalar Variable is promoted just like a scalar constant.
+        s = cp.Variable()
+        expr = cp.bmat([[s, x.T], [x, np.identity(2)]])
+        self.assertEqual(expr.shape, (3, 3))
+        self.assertTrue(expr.is_affine())
+        s.value = 7.0
+        x.value = np.array([[10.0], [20.0]])
+        ref = np.block([[7.0, x.value.T], [x.value, np.identity(2)]])
+        self.assertItemsAlmostEqual(expr.value, ref)
+
     def test_conv(self) -> None:
         """Test the conv atom.
         """
