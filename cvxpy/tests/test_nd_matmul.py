@@ -779,6 +779,36 @@ class TestNDRmulEdgeCases:
         assert prob.status == cp.OPTIMAL
 
     @pytest.mark.parametrize("backend", BACKENDS)
+    def test_1d_operand_batched(self, backend):
+        """1-D operands in batched matmul follow np.matmul promotion rules.
+
+        A 1-D lhs (k,) is treated as (1, k) and the inserted axis is removed
+        from the result; a 1-D rhs (k,) is treated as (k, 1) likewise. The
+        1-D operand must not be broadcast along batch dimensions.
+        """
+        w, v = np.arange(3.0), np.arange(4.0)
+        A3 = np.arange(24.0).reshape(2, 3, 4)
+        A4 = np.arange(48.0).reshape(2, 2, 3, 4)
+        for lh, rh in [(w, A3), (A3, v), (w, A4), (A4, v)]:
+            expr = cp.Constant(lh) @ cp.Constant(rh)
+            expected = lh @ rh
+            assert expr.shape == expected.shape
+            np.testing.assert_allclose(expr.value, expected)
+
+        # Solve path with a 1-D variable on either side.
+        wv = cp.Variable(3)
+        y = cp.Variable((2, 4))
+        prob = cp.Problem(cp.Minimize(0), [y == wv @ A3, wv == w])
+        prob.solve(solver=cp.CLARABEL, canon_backend=backend)
+        np.testing.assert_allclose(y.value, w @ A3, atol=1e-6)
+
+        xv = cp.Variable(4)
+        z = cp.Variable((2, 3))
+        prob = cp.Problem(cp.Minimize(0), [z == A3 @ xv, xv == v])
+        prob.solve(solver=cp.CLARABEL, canon_backend=backend)
+        np.testing.assert_allclose(z.value, A3 @ v, atol=1e-6)
+
+    @pytest.mark.parametrize("backend", BACKENDS)
     def test_1d_var_1d_const(self, backend):
         """Test 1D variable @ 1D constant (row vector @ column vector = scalar).
 
