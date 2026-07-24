@@ -68,6 +68,16 @@ class PSD(Cone):
                 return self.args[0].is_affine()
         return self.args[0].is_affine()
 
+    def dcp_failure_reason(self) -> str | None:
+        expr = self.args[0]
+        if expr.is_affine():
+            return None
+        pretty = expr.format_labeled()
+        return (
+            f"PSD constraints require an affine expression, "
+            f"but {pretty} is {expr.curvature.lower()}."
+        )
+
     def is_dgp(self, dpp: bool = False) -> bool:
         return False
 

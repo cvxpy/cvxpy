@@ -68,6 +68,16 @@ class NonPos(Constraint):
                 return self.args[0].is_convex()
         return self.args[0].is_convex()
 
+    def dcp_failure_reason(self) -> str | None:
+        expr = self.args[0]
+        if expr.is_convex():
+            return None
+        pretty = expr.format_labeled()
+        return (
+            f"The constraint {pretty} <= 0 requires a convex expression, "
+            f"but {pretty} is {expr.curvature.lower()}."
+        )
+
     def is_dnlp(self) -> bool:
         """
         A NonPos constraint is DNLP if its
@@ -133,6 +143,16 @@ class NonNeg(Constraint):
             with scopes.dpp_scope():
                 return self.args[0].is_concave()
         return self.args[0].is_concave()
+
+    def dcp_failure_reason(self) -> str | None:
+        expr = self.args[0]
+        if expr.is_concave():
+            return None
+        pretty = expr.format_labeled()
+        return (
+            f"The constraint {pretty} >= 0 requires a concave expression, "
+            f"but {pretty} is {expr.curvature.lower()}."
+        )
 
     def is_dnlp(self) -> bool:
         """
@@ -223,6 +243,39 @@ class Inequality(Constraint):
             with scopes.dpp_scope():
                 return self.expr.is_convex()
         return self.expr.is_convex()
+
+    def dcp_failure_reason(self) -> str | None:
+        if self.expr.is_convex():
+            return None
+        lhs = self.args[0]
+        rhs = self.args[1]
+        lhs_label = lhs.format_labeled()
+        rhs_label = rhs.format_labeled()
+        lhs_convex = lhs.is_convex()
+        rhs_concave = rhs.is_concave()
+        if not lhs_convex and not rhs_concave:
+            return (
+                f"The inequality {lhs_label} <= {rhs_label} requires a convex "
+                f"left-hand side and a concave right-hand side, but "
+                f"{lhs_label} is {lhs.curvature.lower()} and "
+                f"{rhs_label} is {rhs.curvature.lower()}."
+            )
+        if not lhs_convex:
+            return (
+                f"The inequality {lhs_label} <= {rhs_label} requires a convex "
+                f"left-hand side, but {lhs_label} is {lhs.curvature.lower()}."
+            )
+        if not rhs_concave:
+            return (
+                f"The inequality {lhs_label} <= {rhs_label} requires a concave "
+                f"right-hand side, but {rhs_label} is {rhs.curvature.lower()}."
+            )
+        # Sides satisfy the usual convex <= concave rule, but lhs - rhs is not
+        # DCP-convex (uncommon; still report the composed curvature).
+        return (
+            f"The inequality {lhs_label} <= {rhs_label} is not DCP "
+            f"({lhs_label} - {rhs_label} is {self.expr.curvature.lower()})."
+        )
 
     def is_dnlp(self) -> bool:
         """
