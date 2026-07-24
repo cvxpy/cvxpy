@@ -67,6 +67,7 @@ class COPT(ConicSolver):
     REQUIRES_CONSTR = True
     PSD_TRIANGLE_KIND = TriangleKind.LOWER
     PSD_SQRT2_SCALING = False
+    REQUIRED_MODULES = ("coptpy",)
 
     EXP_CONE_ORDER = [2, 1, 0]
 

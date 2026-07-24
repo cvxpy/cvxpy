@@ -60,6 +60,7 @@ class CUCLARABEL(ConicSolver):
     MIP_CAPABLE = False
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS \
         + [SOC, ExpCone, PowCone3D]
+    REQUIRED_MODULES = ("cupy",)
 
     STATUS_MAP = {
                     "SOLVED": s.OPTIMAL,

@@ -34,6 +34,7 @@ class SCIPY(ConicSolver):
     """
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS
     BOUNDED_VARIABLES = True
+    REQUIRED_MODULES = ("scipy.optimize",)
 
     # Solver capabilities.
     if (Version(scipy.__version__) < Version('1.9.0')):

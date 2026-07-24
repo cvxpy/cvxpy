@@ -27,6 +27,7 @@ class DAQP(QpSolver):
 
     REQUIRES_CONSTR = False
     BOUNDED_VARIABLES = True
+    REQUIRED_MODULES = ("daqp",)
 
     # Map of DAQP exit flags to CVXPY status.
     STATUS_MAP = {1: s.OPTIMAL,

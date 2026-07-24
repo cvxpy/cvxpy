@@ -32,6 +32,7 @@ class NAG(ConicSolver):
 
     MIP_CAPABLE = False
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC]
+    REQUIRED_MODULES = ("naginterfaces.library.opt",)
 
     # Map of NAG status to CVXPY status
     STATUS_MAP = {0: s.OPTIMAL,

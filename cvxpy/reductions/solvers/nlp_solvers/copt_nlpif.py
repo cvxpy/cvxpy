@@ -26,6 +26,8 @@ class COPT(NLPsolver):
     """
     NLP interface for the COPT solver.
     """
+    REQUIRED_MODULES = ("coptpy",)
+
     # Map between COPT status and CVXPY status
     STATUS_MAP = {
                   1: s.OPTIMAL,             # optimal

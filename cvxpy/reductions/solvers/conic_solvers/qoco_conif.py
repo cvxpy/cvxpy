@@ -57,6 +57,7 @@ class QOCO(ConicSolver):
     # Solver capabilities.
     MIP_CAPABLE = False
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC]
+    REQUIRED_MODULES = ("qoco",)
 
     STATUS_MAP = {
                     "QOCO_SOLVED": s.OPTIMAL,
