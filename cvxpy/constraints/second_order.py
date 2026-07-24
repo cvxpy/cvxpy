@@ -257,6 +257,24 @@ class RSOC(Cone):
         """The number of RSOC constraints (1 for scalar, n for batched)."""
         return self.args[1].size
 
+    def _cone_size(self) -> int:
+        """The size of each RSOC cone (2 + dimension of X)."""
+        X = self.args[2]
+        if len(X.shape) <= 1:
+            x_dim = X.size
+        else:
+            x_dim = X.shape[self.axis]
+        return 2 + x_dim
+
+    @property
+    def size(self) -> int:
+        """The number of entries in the combined cones."""
+        return self._cone_size() * self.num_cones()
+
+    def cone_sizes(self) -> list[int]:
+        """The dimensions of the rotated second-order cones."""
+        return [self._cone_size()] * self.num_cones()
+
     @property
     def residual(self):
         """Returns the residual of the constraint."""
@@ -290,10 +308,12 @@ class RSOC(Cone):
             du = np.asarray(value[1])   # (n_cones,)
             dx = np.asarray(value[2])   # (n_cones, n_x) or (n_x, n_cones) depending on axis
         else:
-            raise ValueError(
-                "RSOC.save_dual_value expects a list [dt, du, dX] from recover_dual, "
-                f"got {type(value).__name__}."
-            )
+            # Native cone solvers return one flat block per cone in
+            # [t, u, x_1, ..., x_n] order.
+            value = np.reshape(value, (n_cones, self._cone_size()))
+            dt = value[:, 0]
+            du = value[:, 1]
+            dx = value[:, 2:]
         if n_cones == 1:
             # Scalar case: squeeze to match primal shapes
             self.dual_variables[0].save_value(dt[0])   # scalar
