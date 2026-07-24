@@ -28,6 +28,7 @@ from cvxpy.constraints import (
 )
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions import cvxtypes
+from cvxpy.expressions.variable import Variable
 from cvxpy.lin_ops import lin_utils as lu
 from cvxpy.reductions import InverseData, Solution
 from cvxpy.reductions.complex2real.canonicalizers import (
@@ -35,6 +36,9 @@ from cvxpy.reductions.complex2real.canonicalizers import (
 )
 from cvxpy.reductions.complex2real.canonicalizers import (
     Complex2RealCanonMethods,
+)
+from cvxpy.reductions.complex2real.canonicalizers.psd_canon import (
+    complex_psd_matrix,
 )
 from cvxpy.reductions.reduction import Reduction
 
@@ -274,6 +278,30 @@ class Complex2Real(Reduction):
                 constrs.extend(imag_constrs)
             elif isinstance(imag_constrs, Constraint):
                 constrs.append(imag_constrs)
+
+        for orig_expr, canon_expr in leaf_map.items():
+            if not isinstance(orig_expr, Variable):
+                continue
+
+            if not orig_expr.is_complex():
+                continue
+
+            attrs = orig_expr.attributes
+
+            if not (attrs.get("PSD") or attrs.get("NSD")):
+                continue
+
+            real_part, imag_part = canon_expr
+
+            if real_part is None or imag_part is None:
+                continue
+
+            block_mat = complex_psd_matrix(real_part, imag_part)
+
+            if attrs.get("PSD"):
+                constrs.append(PSD(block_mat))
+            else:
+                constrs.append(PSD(-block_mat))
 
         new_problem = problems.problem.Problem(real_obj,
                                                constrs)
