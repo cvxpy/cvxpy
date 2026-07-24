@@ -460,3 +460,54 @@ class TestNlpParameters:
 
         assert np.allclose(param_sol1, hardcoded_sol1)
         assert np.allclose(param_sol2, hardcoded_sol2)
+
+
+@pytest.mark.skipif('IPOPT' not in INSTALLED_SOLVERS, reason='IPOPT is not installed.')
+class TestComposedParametricRefreshNlp:
+    """Cached NLP oracles must serve fresh values when a composed parameter
+    expression scales a coefficient (see TestComposedParametricRefresh in
+    tests/test_dpp.py for the conic-path counterparts).
+
+    The NLP path caches the compiled diff-engine problem across solves and
+    pushes new parameter values into it, so these tests exercise the engine's
+    composite param_source refresh. They fail against sparsediffpy releases
+    that predate the refresh fix (SparseDiffEngine#107): the re-solve then
+    optimizes the problem frozen at the first parameter value.
+    """
+
+    XFAIL_REASON = (
+        "composed parametric coefficients go stale on cached NLP re-solves "
+        "with sparsediffpy <= 0.6.0; fixed by SparseDiffEngine#107 — drop "
+        "this marker once the pinned release contains it"
+    )
+
+    @pytest.mark.xfail(reason=XFAIL_REASON, strict=False)
+    def test_composed_matrix_coefficient_resolve(self):
+        """min ||(p*A) @ x - 1||^2: the optimum x = (pA)^{-1} 1 tracks p."""
+        A = np.array([[1.0, 2.0], [3.0, 4.0]])
+        target = np.ones(2)
+        x = cp.Variable(2)
+        p = cp.Parameter(nonneg=True)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares((p * A) @ x - target)))
+        for val in (1.0, 10.0, 1.0):
+            p.value = val
+            x.value = None
+            prob.solve(nlp=True, solver='IPOPT', verbose=False)
+            expected = np.linalg.solve(val * A, target)
+            np.testing.assert_allclose(x.value, expected, atol=1e-5)
+
+    @pytest.mark.xfail(reason=XFAIL_REASON, strict=False)
+    def test_composed_quad_matrix_resolve(self):
+        """min x'(g*Sigma)x - 2*sum(x): the optimum x = (g*Sigma)^{-1} 1
+        tracks g."""
+        Sigma = np.array([[2.0, 0.0], [0.0, 3.0]])
+        x = cp.Variable(2)
+        g = cp.Parameter(nonneg=True)
+        prob = cp.Problem(cp.Minimize(
+            cp.quad_form(x, g * Sigma, assume_PSD=True) - 2.0 * cp.sum(x)))
+        for val in (1.0, 50.0, 1.0):
+            g.value = val
+            x.value = None
+            prob.solve(nlp=True, solver='IPOPT', verbose=False)
+            expected = np.array([1.0 / (2 * val), 1.0 / (3 * val)])
+            np.testing.assert_allclose(x.value, expected, atol=1e-5)
