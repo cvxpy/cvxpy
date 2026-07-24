@@ -60,7 +60,7 @@ if TYPE_CHECKING:
 
 
 def _objective_cone_atoms(
-    expr: Expression, affine_above: bool = True, eval_params: bool = False,
+    expr: Expression, affine_above: bool = True,
 ) -> list[type]:
     """Collect atom types that need conic canonicalization under quad_obj=True.
 
@@ -68,12 +68,6 @@ def _objective_cone_atoms(
     of the objective that have a quadratic canonicalization are handled by the
     QP path and do NOT produce conic constraints. Atoms below that head, or
     atoms without a quad canon, still need cone canonicalization.
-
-    Parameters
-    ----------
-    eval_params : bool
-        When True, treat parameter-only sub-expressions as constant
-        (they will be evaluated by EvalParams before canonicalization).
     """
     if isinstance(expr, Leaf):
         return []
@@ -83,16 +77,16 @@ def _objective_cone_atoms(
     if isinstance(expr, Constraint):
         result: list[type] = []
         for arg in expr.args:
-            result += _objective_cone_atoms(arg, False, eval_params)
+            result += _objective_cone_atoms(arg, False)
         return result
-    if expr.is_constant() and (eval_params or not expr.parameters()):
+    if expr.is_constant() and not expr.parameters():
         return []
 
     is_affine = type(expr) not in CANON_METHODS
     child_affine_above = is_affine and affine_above
     result: list[type] = []
     for arg in expr.args:
-        result += _objective_cone_atoms(arg, child_affine_above, eval_params)
+        result += _objective_cone_atoms(arg, child_affine_above)
 
     if affine_above and type(expr) in QUAD_CANON_METHODS:
         # Power with non-quadratic exponent falls back to cone canon.
@@ -108,35 +102,6 @@ def _objective_cone_atoms(
     return result
 
 
-def _expr_cone_atoms(expr: Expression, eval_params: bool = False) -> list[type]:
-    """Collect atom types needing conic canonicalization from an expression.
-
-    Unlike ``_objective_cone_atoms``, this does not apply QP-path filtering.
-    Used for constraint expressions and for the objective when the QP path
-    is not active.
-
-    Parameters
-    ----------
-    eval_params : bool
-        When True, treat parameter-only sub-expressions as constant.
-    """
-    if isinstance(expr, Leaf):
-        return []
-    if isinstance(expr, Constraint):
-        result: list[type] = []
-        for arg in expr.args:
-            result += _expr_cone_atoms(arg, eval_params)
-        return result
-    if expr.is_constant() and (eval_params or not expr.parameters()):
-        return []
-    result: list[type] = []
-    for arg in expr.args:
-        result += _expr_cone_atoms(arg, eval_params)
-    if type(expr) in CANON_METHODS:
-        result.append(type(expr))
-    return result
-
-
 class ProblemForm:
     """Analyzes a CVXPY Problem to determine its structural properties.
 
@@ -144,12 +109,9 @@ class ProblemForm:
     and whether the problem has constraints are computed lazily and cached.
     """
 
-    def __init__(
-        self, problem: Problem, gp: bool = False, eval_params: bool = False,
-    ) -> None:
+    def __init__(self, problem: Problem, gp: bool = False) -> None:
         self._problem = problem
         self._gp = gp
-        self._eval_params = eval_params
         self._has_quadratic_objective: bool | None = None
         self._is_mixed_integer: bool | None = None
         self._cones_full: set[type] | None = None
@@ -192,39 +154,22 @@ class ProblemForm:
             return
 
         problem = self._problem
-        eval_params = self._eval_params
 
-        # When eval_params is set, constraints that are entirely
-        # parameter-determined (no variables) will become trivial after
-        # EvalParams runs, so exclude them from cone analysis.
-        if eval_params:
-            relevant_constrs = [c for c in problem.constraints if c.variables()]
-        else:
-            relevant_constrs = problem.constraints
-
-        constr_types = {type(c) for c in relevant_constrs}
+        constr_types = {type(c) for c in problem.constraints}
         cones: set[type] = set()
 
         # Collect atoms from constraints.
         constr_atoms: list[type] = []
-        for constr in relevant_constrs:
-            if eval_params:
-                constr_atoms += _expr_cone_atoms(constr, eval_params=True)
-            else:
-                constr_atoms += constr.atoms()
+        for constr in problem.constraints:
+            constr_atoms += constr.atoms()
 
         # Use QP-filtered objective atoms as the base: when the objective
         # is quadratic, _objective_cone_atoms excludes atoms handled by the
         # QP path (all of which map to SOC).
         if self.has_quadratic_objective():
-            base_obj_atoms = _objective_cone_atoms(
-                problem.objective.expr, eval_params=eval_params)
+            base_obj_atoms = _objective_cone_atoms(problem.objective.expr)
         else:
-            if eval_params:
-                base_obj_atoms = _expr_cone_atoms(
-                    problem.objective.expr, eval_params=True)
-            else:
-                base_obj_atoms = problem.objective.expr.atoms()
+            base_obj_atoms = problem.objective.expr.atoms()
 
         atoms = base_obj_atoms + constr_atoms
 
@@ -240,7 +185,7 @@ class ProblemForm:
                 for arg in expr.args:
                     _collect_suppfunc_info(arg)
             _collect_suppfunc_info(problem.objective.expr)
-            for constr in relevant_constrs:
+            for constr in problem.constraints:
                 _collect_suppfunc_info(constr)
 
         if SOC in constr_types or any(atom in SOC_ATOMS for atom in atoms):
@@ -390,7 +335,7 @@ def pick_default_solver(problem_form: ProblemForm) -> Solver | None:
     return _get(slv_def.SOLVER_MAP_CONIC, s.CLARABEL)
 
 
-def make_problem_form(problem: Problem, gp: bool, ignore_dpp: bool) -> ProblemForm:
+def make_problem_form(problem: Problem, gp: bool) -> ProblemForm:
     """Validate DCP/DGP compliance and build a ProblemForm.
 
     Parameters
@@ -399,8 +344,6 @@ def make_problem_form(problem: Problem, gp: bool, ignore_dpp: bool) -> ProblemFo
         The problem to analyze.
     gp : bool
         If True, validate DGP rules instead of DCP.
-    ignore_dpp : bool
-        When True, treat parameters as constants for cone analysis.
 
     Returns
     -------
@@ -434,5 +377,4 @@ def make_problem_form(problem: Problem, gp: bool, ignore_dpp: bool) -> ProblemFo
                        "Consider calling solve() with `qcp=True`.")
         raise DGPError("Problem does not follow DGP rules." + append)
 
-    eval_params = ignore_dpp and bool(problem.parameters())
-    return ProblemForm(problem, gp=gp, eval_params=eval_params)
+    return ProblemForm(problem, gp=gp)

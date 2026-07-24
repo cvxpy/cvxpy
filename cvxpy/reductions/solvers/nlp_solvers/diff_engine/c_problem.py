@@ -35,25 +35,51 @@ class C_problem:
             verbose: print solver output
         """
         inverse_data = InverseData(cvxpy_problem)
-        var_dict, n_vars = build_var_dict(inverse_data)
-        param_dict = build_param_dict(cvxpy_problem, inverse_data)
+        self._build_capsule(
+            cvxpy_problem.objective.expr,
+            [c.expr for c in cvxpy_problem.constraints],
+            cvxpy_problem.parameters(),
+            inverse_data,
+            verbose,
+        )
 
-        c_obj = convert_expr(cvxpy_problem.objective.expr,
-                             var_dict, n_vars, param_dict)
-        c_constraints = [convert_expr(c.expr, var_dict, n_vars, param_dict)
-                         for c in cvxpy_problem.constraints]
-        self._capsule = _diffengine.make_problem(
-            c_obj, c_constraints, verbose)
+    @classmethod
+    def from_exprs(cls, objective_expr, constraint_exprs, parameters,
+                   inverse_data, verbose: bool = True):
+        """Build a C_problem from already-lowered objective and constraint expressions.
+
+        Use this when the caller has already lowered/ordered the cvxpy constraints
+        (e.g. flattened multi-arg cones into one expression per arg) and wants to
+        feed the raw expression list directly to the C engine.
+        """
+        self = cls.__new__(cls)
+        self._build_capsule(objective_expr, constraint_exprs, parameters,
+                            inverse_data, verbose)
+        return self
+
+    def _build_capsule(self, objective_expr, constraint_exprs, parameters,
+                       inverse_data, verbose: bool):
+        parameters = list(parameters)
+        var_dict, n_vars = build_var_dict(inverse_data)
+        param_dict = build_param_dict(parameters, inverse_data)
+
+        c_obj = convert_expr(objective_expr, var_dict, n_vars, param_dict)
+        c_constraints = [convert_expr(e, var_dict, n_vars, param_dict)
+                         for e in constraint_exprs]
+        self._capsule = _diffengine.make_problem(c_obj, c_constraints, verbose)
 
         if param_dict:
+            # Keep the node capsules alive alongside the problem capsule: a
+            # registered parameter can appear in no converted expression,
+            # and the engine must be able to update it on every later solve.
+            self._param_capsules = list(param_dict.values())
             _diffengine.problem_register_params(
-                self._capsule, list(param_dict.values()))
-            # Set initial parameter values
+                self._capsule, self._param_capsules)
             theta = np.concatenate([
                 np.asarray(p.value, dtype=np.float64).flatten(order='F')
-                for p in cvxpy_problem.parameters()
+                for p in parameters
             ])
-            _diffengine.problem_update_params(self._capsule, theta)
+            self.update_params(theta)
 
     def update_params(self, theta: np.ndarray) -> None:
         """Update parameter values in the C DAG.
@@ -68,6 +94,15 @@ class C_problem:
         Must be called once before get_jacobian_sparsity_coo() or eval_jacobian_vals().
         """
         _diffengine.problem_init_jacobian_coo(self._capsule)
+
+    def init_hessian(self):
+        """Fill sparsity for the full (symmetric) Lagrangian Hessian CSR.
+
+        Must be called once before eval_hessian_csr(). Cheaper than
+        init_hessian_coo_lower_tri() when only the full CSR is needed (it skips
+        building the lower-triangular COO view).
+        """
+        _diffengine.problem_init_hessian(self._capsule)
 
     def init_hessian_coo_lower_tri(self):
         """Fill sparsity for the Lagrangian Hessian (lower triangle, COO).
@@ -127,3 +162,13 @@ class C_problem:
         Call objective_forward() and constraint_forward() first to set the evaluation point.
         """
         return _diffengine.problem_eval_hessian_vals_coo(self._capsule, obj_factor, lagrange)
+
+    def eval_hessian_csr(self, obj_factor: float, lagrange: np.ndarray):
+        """Evaluate the full (symmetric) Lagrangian Hessian as CSR components.
+
+        Returns ``(data, indices, indptr, (m, n))`` ready for
+        ``scipy.sparse.csr_matrix``. Computes obj_factor * hess_f +
+        sum(lagrange[i] * hess_gi). Call init_hessian() once first, and
+        objective_forward()/constraint_forward() to set the evaluation point.
+        """
+        return _diffengine.problem_hessian(self._capsule, obj_factor, lagrange)
