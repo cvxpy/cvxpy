@@ -78,7 +78,14 @@ class Zero(Constraint):
         """
         if self.expr.value is None:
             return None
-        return np.abs(self.expr.value)
+        return -self.expr.value
+
+    @property
+    def dual_residual(self):
+        dv = self.dual_variables[0].value
+        if dv is None:
+            return None
+        return np.zeros(self.dual_variables[0].shape)
 
     # The value of the dual variable.
     @property
@@ -162,7 +169,14 @@ class Equality(Constraint):
         """
         if self.expr.value is None:
             return None
-        return np.abs(self.expr.value)
+        return -self.expr.value
+
+    @property
+    def dual_residual(self):
+        dv = self.dual_variables[0].value
+        if dv is None:
+            return None
+        return np.zeros(self.dual_variables[0].shape)
 
     @property
     def dual_value(self):

@@ -14,6 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import numpy as np
+
 from cvxpy.constraints.constraint import Constraint
 
 
@@ -57,11 +59,19 @@ class Cone(Constraint):
         raise NotImplementedError
 
     @property
-    def dual_residual(self) -> float:
-        """Computes the residual (see Constraint.violation for a
-        more formal definition) for the dual cone of the current instance
-        of `Cone` w.r.t. the recovered dual variables
+    def dual_residual(self) -> np.ndarray | None:
+        """Residual of the dual variable with respect to the dual cone.
 
-        Primarily intended to be used for KKT checks
+        This constructs the corresponding dual-cone constraint on this
+        constraint's dual variables and returns that constraint's residual,
+        following the same shape-preserving convention as ``residual``. The
+        reduction to a scalar happens in ``dual_violation``; spectral cones
+        such as ``PSD`` override it to use the operator norm.
+
+        Cone subclasses support this property by implementing
+        ``_dual_cone``. Cones without a dual-cone implementation should raise
+        ``NotImplementedError`` rather than reporting a residual.
+
+        Returns ``None`` if the dual variable has no value yet.
         """
         return self._dual_cone(*self.dual_variables).residual
