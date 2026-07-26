@@ -2523,7 +2523,7 @@ class TestSCIP(unittest.TestCase):
         StandardTestLPs.test_lp_4(solver="SCIP")
 
     def test_scip_socp_0(self) -> None:
-        StandardTestSOCPs.test_socp_0(solver="SCIP")
+        StandardTestSOCPs.test_socp_0(solver="SCIP", duals=False)
 
     def test_scip_socp_1(self) -> None:
         StandardTestSOCPs.test_socp_1(solver="SCIP", places=2, duals=False)
@@ -2536,6 +2536,18 @@ class TestSCIP(unittest.TestCase):
         StandardTestSOCPs.test_socp_3ax0(solver="SCIP", duals=False)
         # axis 1
         StandardTestSOCPs.test_socp_3ax1(solver="SCIP", duals=False)
+
+    def test_scip_socp_single_cone(self) -> None:
+        # SOCPs with a single cone must not use the continuous-LP dual path.
+        np.random.seed(0)
+        A = np.random.randn(30, 10)
+        w = cp.Variable(10)
+        problem = cp.Problem(
+            cp.Minimize(cp.norm(A @ w, 2)),
+            [cp.sum(w) == 1, w >= 0],
+        )
+        problem.solve(solver="SCIP")
+        self.assertEqual(problem.status, cp.OPTIMAL)
 
     def test_scip_mi_lp_0(self) -> None:
         StandardTestLPs.test_mi_lp_0(solver="SCIP")
