@@ -1707,6 +1707,39 @@ class TestAtoms(BaseTest):
                                       np.array([[1, 2]]).T])])
         self.assertItemsAlmostEqual(expr, const)
 
+    def test_bmat_promotes_scalars(self) -> None:
+        """bmat should promote scalars and 1-D blocks like numpy.block.
+
+        Regression test for https://github.com/cvxpy/cvxpy/issues/2328.
+        """
+        # Mixing a scalar, a vector, and a matrix (e.g. an LMI) used to raise.
+        U = np.array([[10.0], [20.0]])
+        expr = cp.bmat([[4, U.T], [U, np.identity(2)]])
+        ref = np.block([[4, U.T], [U, np.identity(2)]])
+        self.assertEqual(expr.shape, (3, 3))
+        self.assertItemsAlmostEqual(expr.value, ref)
+
+        # A scalar and a 1-D vector on the same row.
+        expr = cp.bmat([[1, np.array([5.0, 6.0])]])
+        self.assertEqual(expr.shape, (1, 3))
+        self.assertItemsAlmostEqual(expr.value, np.array([[1.0, 5.0, 6.0]]))
+
+        # Works with Variables and stays affine.
+        x = cp.Variable((2, 1))
+        expr = cp.bmat([[4, x.T], [x, np.identity(2)]])
+        self.assertEqual(expr.shape, (3, 3))
+        self.assertTrue(expr.is_affine())
+
+        # A scalar Variable is promoted just like a scalar constant.
+        s = cp.Variable()
+        expr = cp.bmat([[s, x.T], [x, np.identity(2)]])
+        self.assertEqual(expr.shape, (3, 3))
+        self.assertTrue(expr.is_affine())
+        s.value = 7.0
+        x.value = np.array([[10.0], [20.0]])
+        ref = np.block([[7.0, x.value.T], [x.value, np.identity(2)]])
+        self.assertItemsAlmostEqual(expr.value, ref)
+
     def test_conv(self) -> None:
         """Test the conv atom.
         """

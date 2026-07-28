@@ -15,6 +15,7 @@ limitations under the License.
 """
 
 from cvxpy.atoms.affine.hstack import hstack
+from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.atoms.affine.vstack import vstack
 from cvxpy.expressions.expression import Expression
 
@@ -24,6 +25,10 @@ def bmat(block_lists) -> Expression:
 
     Takes a list of lists. Each internal list is stacked horizontally.
     The internal lists are stacked vertically.
+
+    Scalars and 1-D blocks are promoted to 2-D so they can be combined
+    with matrices, mirroring the behavior of ``numpy.block`` (e.g. when
+    building an LMI that mixes scalars, vectors, and matrices).
 
     Parameters
     ----------
@@ -35,5 +40,16 @@ def bmat(block_lists) -> Expression:
     CVXPY expression
         The CVXPY expression representing the block matrix.
     """
-    row_blocks = [hstack(blocks) for blocks in block_lists]
+    row_blocks = [hstack([_promote_to_2d(block) for block in blocks])
+                  for blocks in block_lists]
     return vstack(row_blocks)
+
+
+def _promote_to_2d(block) -> Expression:
+    """Promote a scalar or 1-D block to a 2-D row, like ``numpy.block``."""
+    block = Expression.cast_to_const(block)
+    if block.ndim == 0:
+        return reshape(block, (1, 1), order='F')
+    if block.ndim == 1:
+        return reshape(block, (1, block.shape[0]), order='F')
+    return block

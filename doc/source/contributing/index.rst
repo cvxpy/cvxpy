@@ -64,6 +64,7 @@ Medium scope projects
  - `Marimo examples (maybe using N-d arrays) <https://github.com/cvxpy/cvxpy/issues/2618>`_.
  - `QP support for PDLP solver <https://github.com/cvxpy/cvxpy/issues/2868>`_.
  - `More array manipulation atoms <https://github.com/cvxpy/cvxpy/issues/2567>`_.
+ - `Implement cp.block for full numpy.block parity <https://github.com/cvxpy/cvxpy/issues/3469>`_.
  - Support for a set and indexing API similar to `AMPL <https://ampl.com/wp-content/uploads/Chapter-5-Simple-Sets-and-Indexing-AMPL-Book.pdf>`_.
 
 Large scope projects
