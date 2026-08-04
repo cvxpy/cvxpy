@@ -22,6 +22,10 @@ def _add_psd_bound_rows(A, b, dims, lb, ub):
     The rows are inserted right after the existing NonNeg (LEQ) block so the
     cone partition passed to ``loadConeMatrix`` stays contiguous: COPT expects
     rows ordered as free, linear, SOC, exponential, PSD.
+
+    Returns the augmented ``(A, b)`` and the number of inserted rows, so the
+    caller can drop the corresponding dual entries when recovering the
+    constraint duals.
     """
     n = A.shape[1]
     extra_rows = []
@@ -41,14 +45,16 @@ def _add_psd_bound_rows(A, b, dims, lb, ub):
             extra_rows.append(_bound_selector(n_lb, n, np.flatnonzero(finite_lb), -1.0))
             extra_b.append(-lb[finite_lb])
 
+    n_bound = 0
     if extra_rows:
         insert_at = dims[s.EQ_DIM] + dims[s.LEQ_DIM]
         bound_block = sp.vstack(extra_rows, format='csr')
         A = sp.vstack([A[:insert_at], bound_block, A[insert_at:]], format='csc')
         b = np.concatenate([b[:insert_at], *extra_b, b[insert_at:]])
-        dims[s.LEQ_DIM] += bound_block.shape[0]
+        n_bound = bound_block.shape[0]
+        dims[s.LEQ_DIM] += n_bound
 
-    return A, b
+    return A, b, n_bound
 
 
 def _bound_selector(num_rows, num_cols, cols, value):
@@ -233,8 +239,21 @@ class COPT(ConicSolver):
             # explicit constraints since loadConeMatrix doesn't support bounds.
             psd_lb = data[s.LOWER_BOUNDS]
             psd_ub = data[s.UPPER_BOUNDS]
+            n_bound = 0
             if psd_lb is not None or psd_ub is not None:
-                A, b = _add_psd_bound_rows(A, b, dims, psd_lb, psd_ub)
+                A, b, n_bound = _add_psd_bound_rows(A, b, dims, psd_lb, psd_ub)
+
+            # CVXPY stacks rows as (zero, nonneg, SOC, PSD, exp), but COPT's
+            # loadConeMatrix expects (zero, nonneg, SOC, exp, PSD): move the
+            # exponential block ahead of the PSD block.
+            n_lin = dims[s.EQ_DIM] + dims[s.LEQ_DIM] + sum(dims[s.SOC_DIM])
+            n_exp = 3 * dims[s.EXP_DIM]
+            if n_exp:
+                perm = np.concatenate([np.arange(n_lin),
+                                       np.arange(A.shape[0] - n_exp, A.shape[0]),
+                                       np.arange(n_lin, A.shape[0] - n_exp)])
+                A = A[perm]
+                b = b[perm]
 
             # Solve the dualized problem
             rowmap = model.loadConeMatrix(-b, A.transpose().tocsc(), -c, dims)
@@ -373,8 +392,21 @@ class COPT(ConicSolver):
                             y[i] = -duals[rowmap[i] - 1]
                     solution[s.PRIMAL] = y
 
-                    # Recover the dual solution
-                    solution['y'] = np.hstack((model.getValues(), model.getPsdValues()))
+                    # Recover the dual solution. The model variables follow
+                    # COPT's row order (zero, nonneg, SOC, exp, PSD); undo the
+                    # permutation to restore CVXPY's (..., PSD, exp) order.
+                    y = np.hstack((model.getValues(), model.getPsdValues()))
+                    if n_exp:
+                        y = np.concatenate([y[:n_lin], y[n_lin + n_exp:],
+                                            y[n_lin:n_lin + n_exp]])
+                    # Drop the duals of the inserted variable-bound rows, which
+                    # sit at the end of the NonNeg block: the original
+                    # constraints expect a contiguous dual vector without them.
+                    if n_bound:
+                        bound_start = dims[s.EQ_DIM] + dims[s.LEQ_DIM] - n_bound
+                        y = np.concatenate([y[:bound_start],
+                                            y[bound_start + n_bound:]])
+                    solution['y'] = y
                     solution[s.EQ_DUAL] = solution['y'][0:dims[s.EQ_DIM]]
                     solution[s.INEQ_DUAL] = solution['y'][dims[s.EQ_DIM]:]
             else:
