@@ -91,15 +91,20 @@ class NonPos(Constraint):
         """
         if self.expr.value is None:
             return None
-        return np.maximum(self.expr.value, 0)
+        return -np.maximum(self.expr.value, 0)
 
-    def violation(self):
-        res = self.residual
-        if res is None:
-            raise ValueError("Cannot compute the violation of a constraint "
-                             "whose expression is None-valued.")
-        viol = np.linalg.norm(res, ord=2)
-        return viol
+    @property
+    def dual_residual(self):
+        """Residual for CVXPY's stored dual variable sign convention.
+
+        ``NonPos`` stores nonnegative dual variables, matching the multiplier
+        convention used by inequality constraints in CVXPY. The residual is
+        the projection onto the nonnegative orthant minus the stored value.
+        """
+        dv = self.dual_variables[0].value
+        if dv is None:
+            return None
+        return -np.minimum(dv, 0.0)
 
 
 class NonNeg(Constraint):
@@ -157,15 +162,14 @@ class NonNeg(Constraint):
         """
         if self.expr.value is None:
             return None
-        return np.abs(np.minimum(self.expr.value, 0))
+        return -np.minimum(self.expr.value, 0)
 
-    def violation(self):
-        res = self.residual
-        if res is None:
-            raise ValueError("Cannot compute the violation of a constraint "
-                             "whose expression is None-valued.")
-        viol = np.linalg.norm(res, ord=2)
-        return viol
+    @property
+    def dual_residual(self):
+        dv = self.dual_variables[0].value
+        if dv is None:
+            return None
+        return -np.minimum(dv, 0.0)
 
 
 class Inequality(Constraint):
@@ -263,4 +267,11 @@ class Inequality(Constraint):
         """
         if self.expr.value is None:
             return None
-        return np.maximum(self.expr.value, 0)
+        return -np.maximum(self.expr.value, 0)
+
+    @property
+    def dual_residual(self):
+        dv = self.dual_variables[0].value
+        if dv is None:
+            return None
+        return -np.minimum(dv, 0.0)

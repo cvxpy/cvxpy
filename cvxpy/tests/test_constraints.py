@@ -19,10 +19,33 @@ import pytest
 
 import cvxpy as cp
 from cvxpy.atoms.affine.reshape import reshape as reshape_atom
+from cvxpy.constraints.constraint import Constraint
 from cvxpy.constraints.power import PowCone3D, PowConeND
 from cvxpy.constraints.second_order import SOC
 from cvxpy.expressions.variable import Variable
 from cvxpy.tests.base_test import BaseTest
+
+
+class SignedDualResidualConstraint(Constraint):
+    """Test helper for dual_violation aggregation."""
+
+    def __init__(self, expr, dual_residual):
+        self._dual_residual = dual_residual
+        super().__init__([expr])
+
+    def is_dcp(self, dpp: bool = False) -> bool:
+        return True
+
+    def is_dgp(self, dpp: bool = False) -> bool:
+        return False
+
+    @property
+    def residual(self):
+        return np.zeros(self.args[0].shape)
+
+    @property
+    def dual_residual(self):
+        return self._dual_residual
 
 
 class TestConstraints(BaseTest):
@@ -40,6 +63,16 @@ class TestConstraints(BaseTest):
         self.B = Variable((2, 2), name='B')
         self.C = Variable((3, 2), name='C')
 
+    def test_dual_violation_uses_infinity_norm(self):
+        constr = SignedDualResidualConstraint(
+            self.x, np.array([1.0, -3.0, 2.0])
+        )
+        self.assertEqual(constr.dual_violation(), 3.0)
+
+    def test_dual_violation_empty_residual(self):
+        constr = SignedDualResidualConstraint(self.x, np.array([]))
+        self.assertEqual(constr.dual_violation(), 0.0)
+
     def test_boolean_violation(self):
         # https://github.com/cvxpy/cvxpy/issues/2900
         z = cp.Variable(1, boolean=True)
@@ -49,23 +82,19 @@ class TestConstraints(BaseTest):
 
                 constraint = z >= 0.6
                 actual = constraint.violation()
-                expected = np.array([0.0])
-                np.testing.assert_array_equal(actual, expected, strict=True)
+                assert actual == pytest.approx(0.0)
 
                 constraint = 1 - z <= 0.6
                 actual = constraint.violation()
-                expected = np.array([0.0])
-                np.testing.assert_array_equal(actual, expected, strict=True)
+                assert actual == pytest.approx(0.0)
 
                 constraint = z <= 0.6
                 actual = constraint.violation()
-                expected = np.array([0.4])
-                np.testing.assert_array_equal(actual, expected, strict=True)
+                assert actual == pytest.approx(0.4)
 
                 constraint = 1 - z >= 0.6
                 actual = constraint.violation()
-                expected = np.array([0.6])
-                np.testing.assert_array_equal(actual, expected, strict=True)
+                assert actual == pytest.approx(0.6)
 
     def test_equality(self) -> None:
         """Test the Equality class.
@@ -86,12 +115,12 @@ class TestConstraints(BaseTest):
         self.x.value = np.array([2, 1])
         self.z.value = np.array([2, 2])
         assert not constr.value()
-        self.assertItemsAlmostEqual(constr.violation(), [0, 1])
+        self.assertAlmostEqual(constr.violation(), 1)
         self.assertItemsAlmostEqual(constr.residual, [0, 1])
 
         self.z.value = np.array([2, 1])
         assert constr.value()
-        self.assertItemsAlmostEqual(constr.violation(), [0, 0])
+        self.assertAlmostEqual(constr.violation(), 0)
         self.assertItemsAlmostEqual(constr.residual, [0, 0])
 
         # Incompatible dimensions
@@ -130,12 +159,12 @@ class TestConstraints(BaseTest):
         self.x.value = np.array([2, 1])
         self.z.value = np.array([2, 0])
         assert not constr.value()
-        self.assertItemsAlmostEqual(constr.violation(), [0, 1])
-        self.assertItemsAlmostEqual(constr.residual, [0, 1])
+        self.assertAlmostEqual(constr.violation(), 1)
+        self.assertItemsAlmostEqual(constr.residual, [0, -1])
 
         self.z.value = np.array([2, 2])
         assert constr.value()
-        self.assertItemsAlmostEqual(constr.violation(), [0, 0])
+        self.assertAlmostEqual(constr.violation(), 0)
         self.assertItemsAlmostEqual(constr.residual, [0, 0])
 
         # Incompatible dimensions
@@ -808,3 +837,128 @@ class TestConstraints(BaseTest):
 
         with pytest.raises(ValueError, match="same shapes"):
             cp.constraints.OpRelEntrConeQuad(cp.Variable((1, 1), symmetric=True), Y, Z, 2, 3)
+
+    def test_equality_residual_is_feasibility_correction(self):
+        x = cp.Variable(2)
+        constr = x == np.array([0.0, 0.0])
+        x.value = np.array([3.0, -4.0])
+
+        np.testing.assert_allclose(constr.residual, np.array([-3.0, 4.0]))
+        assert constr.violation() == pytest.approx(4.0)
+
+    def test_inequality_leq_residual_is_feasibility_correction(self):
+        x = cp.Variable(2)
+        constr = x <= np.array([0.0, 0.0])
+        x.value = np.array([3.0, -4.0])
+
+        np.testing.assert_allclose(constr.residual, np.array([-3.0, 0.0]))
+        assert constr.violation() == pytest.approx(3.0)
+
+    def test_inequality_geq_residual_is_feasibility_correction(self):
+        x = cp.Variable(2)
+        constr = x >= np.array([0.0, 0.0])
+        x.value = np.array([3.0, -4.0])
+
+        np.testing.assert_allclose(constr.residual, np.array([0.0, -4.0]))
+        assert constr.violation() == pytest.approx(4.0)
+
+    def test_nonpos_violation_uses_infinity_norm(self):
+        x = cp.Variable(2)
+        constr = cp.NonPos(x)
+        x.value = np.array([3.0, 4.0])
+
+        np.testing.assert_allclose(constr.residual, np.array([-3.0, -4.0]))
+        assert constr.violation() == pytest.approx(4.0)
+
+    def test_nonneg_violation_uses_infinity_norm(self):
+        x = cp.Variable(2)
+        constr = cp.NonNeg(x)
+        x.value = np.array([-3.0, -4.0])
+
+        np.testing.assert_allclose(constr.residual, np.array([3.0, 4.0]))
+        assert constr.violation() == pytest.approx(4.0)
+
+    def test_inequality_dual_residual_and_violation(self):
+        x = cp.Variable(2)
+        constr = x <= np.array([0.0, 0.0])
+
+        with pytest.raises(ValueError):
+            constr.dual_violation()
+
+        constr.dual_variables[0].value = np.array([1.0, 0.0])
+        np.testing.assert_allclose(constr.dual_residual, np.array([0.0, 0.0]))
+        assert constr.dual_violation() == pytest.approx(0.0)
+        assert constr.is_dual_feasible()
+
+        constr.dual_variables[0].value = np.array([1.0, -2.0])
+        np.testing.assert_allclose(constr.dual_residual, np.array([0.0, 2.0]))
+        assert constr.dual_violation() == pytest.approx(2.0)
+        assert not constr.is_dual_feasible()
+
+    def test_nonpos_dual_residual_and_violation(self):
+        x = cp.Variable(2)
+        constr = cp.NonPos(x)
+
+        constr.dual_variables[0].value = np.array([1.0, -2.0])
+        np.testing.assert_allclose(constr.dual_residual, np.array([0.0, 2.0]))
+        assert constr.dual_violation() == pytest.approx(2.0)
+        assert not constr.is_dual_feasible()
+
+    def test_nonneg_dual_residual_and_violation(self):
+        x = cp.Variable(2)
+        constr = cp.NonNeg(x)
+
+        constr.dual_variables[0].value = np.array([1.0, -2.0])
+        np.testing.assert_allclose(constr.dual_residual, np.array([0.0, 2.0]))
+        assert constr.dual_violation() == pytest.approx(2.0)
+        assert not constr.is_dual_feasible()
+
+    def test_equality_dual_residual_is_always_zero(self):
+        # Equality/Zero dual variables are free (unconstrained), so their
+        # dual cone is the whole space and the residual is always zero.
+        x = cp.Variable(2)
+        constr = x == np.array([0.0, 0.0])
+
+        with pytest.raises(ValueError):
+            constr.dual_violation()
+
+        constr.dual_variables[0].value = np.array([5.0, -7.0])
+        np.testing.assert_allclose(constr.dual_residual, np.array([0.0, 0.0]))
+        assert constr.dual_violation() == pytest.approx(0.0)
+        assert constr.is_dual_feasible()
+
+    def test_psd_dual_residual_is_shape_preserving_violation_is_spectral(self):
+        # The dual residual for a PSD constraint is the shape-preserving
+        # matrix residual proj_PSD(S) - S; the operator-norm (spectral)
+        # reduction happens in dual_violation, not in dual_residual.
+        X = cp.Variable((3, 3), symmetric=True)
+        constr = X >> 0
+
+        feasible_dual = np.eye(3)
+        constr.dual_variables[0].value = feasible_dual
+        assert constr.dual_residual.shape == (3, 3)
+        np.testing.assert_allclose(constr.dual_residual, np.zeros((3, 3)), atol=1e-9)
+        assert constr.dual_violation() == pytest.approx(0.0)
+        assert constr.is_dual_feasible()
+
+        # Smallest eigenvalue is -2, so the shape-preserving residual isolates
+        # the negative eigenvalue and the operator-norm reduction yields 2,
+        # regardless of the size of the other (feasible) entries.
+        infeasible_dual = np.diag([1.0, -2.0, 3.0])
+        constr.dual_variables[0].value = infeasible_dual
+        np.testing.assert_allclose(
+            constr.dual_residual, np.diag([0.0, 2.0, 0.0]), atol=1e-9
+        )
+        assert constr.dual_violation() == pytest.approx(2.0)
+        assert not constr.is_dual_feasible()
+
+    def test_psd_dual_residual_batched_is_worst_case_block(self):
+        X = cp.Variable((2, 3, 3), symmetric=True)
+        constr = X >> 0
+
+        blocks = np.stack([np.eye(3), np.diag([1.0, -2.0, 3.0])])
+        constr.dual_variables[0].value = blocks
+        expected = np.stack([np.zeros((3, 3)), np.diag([0.0, 2.0, 0.0])])
+        np.testing.assert_allclose(constr.dual_residual, expected, atol=1e-9)
+        assert constr.dual_violation() == pytest.approx(2.0)
+        assert not constr.is_dual_feasible()
