@@ -13,9 +13,12 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import numpy as np
+import scipy.sparse as sp
 from numpy.lib.array_utils import normalize_axis_index
 
 from cvxpy.atoms.affine.reshape import reshape
+from cvxpy.expressions.constants.constant import Constant
 from cvxpy.expressions.variable import Variable
 from cvxpy.utilities.solver_context import SolverInfo
 
@@ -38,6 +41,25 @@ def cumsum_canon(expr, args, solver_context: SolverInfo | None = None):
     # If only one element along this axis, cumsum is identity
     if shape[axis] == 1:
         return X, []
+
+    if not X.variables():
+        # X is constant or parameter-affine. Introducing an auxiliary Variable
+        # here would break DPP: e.g., in cumsum(param) @ x the parameter-affine
+        # factor would become a Variable, making the product non-DPP. Instead,
+        # apply an explicit lower-triangular ones matrix along the cumsum axis.
+        # This dense triangular matrix is avoided for variable arguments (the
+        # constraint-based path below), but parameter-only arguments are
+        # typically small, so the O(n^2) matrix is an acceptable trade-off.
+        dim = shape[axis]
+        tril = sp.csc_array(np.tril(np.ones((dim, dim))))
+        pre = int(np.prod(shape[:axis], dtype=int))
+        post = int(np.prod(shape[axis + 1:], dtype=int))
+        # Operator on the F-order vectorization of X: axes before `axis` vary
+        # fastest, so cumsum along `axis` is I_post (x) tril (x) I_pre.
+        op = sp.kron(sp.eye_array(post), sp.kron(tril, sp.eye_array(pre)))
+        flat = reshape(X, (X.size,), order='F')
+        Y = reshape(Constant(sp.csc_array(op)) @ flat, shape, order='F')
+        return Y, []
 
     Y = Variable(shape)
 
