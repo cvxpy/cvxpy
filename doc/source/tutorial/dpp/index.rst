@@ -25,6 +25,28 @@ data. As a result, subsequent rewritings of DPP problems can be substantially
 faster. CVXPY allows you to solve parametrized problems that are not DPP, but
 you won't see a speed-up when doing so.
 
+When should you use DPP?
+^^^^^^^^^^^^^^^^^^^^^^^^
+DPP is worth the effort when **all** of the following are true:
+
+- You solve the **same problem structure** many times with different numerical
+  data (e.g., daily portfolio rebalancing, cross-validation, Monte Carlo).
+- Only the **numerical values** change between solves — the set of variables,
+  constraints, and atoms stays fixed.
+- **Compile time is your bottleneck**, not solve time. This is common for
+  small-to-medium problems solved in a tight loop. Use ``verbose=True`` to
+  check: if the compilation steps dominate, DPP will help.
+
+DPP is **not** useful when:
+
+- You solve a problem **once** — the compilation cache is never reused.
+- Your problem **changes structure** between solves (different number of
+  variables, different constraints). In this case, CVXPY must recompile
+  regardless.
+
+For a list of common patterns that accidentally break DPP compliance, see the
+:ref:`performance tips <dpp-breaking-patterns>` page.
+
 The DPP ruleset
 ^^^^^^^^^^^^^^^
 
