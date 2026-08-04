@@ -141,6 +141,24 @@ class Solver(Reduction):
         """Whether the solver supports quadratic objectives."""
         return False
 
+    def should_dualize(self, problem_form) -> bool:
+        """Whether this solver wants the problem dualized.
+
+        Called during solving-chain construction. The solver can inspect
+        the ``ProblemForm`` (cones, MIP status, etc.) to decide.
+
+        Parameters
+        ----------
+        problem_form : ProblemForm
+            Structural analysis of the problem.
+
+        Returns
+        -------
+        bool
+            True if the solver wants DualizeConeProg inserted in the chain.
+        """
+        return False
+
     def can_solve(self, problem_form) -> bool:
         """Check if this solver can handle a problem with the given structure.
 
