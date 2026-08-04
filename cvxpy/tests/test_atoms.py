@@ -356,6 +356,17 @@ class TestAtoms(BaseTest):
         atom = cp.matrix_frac(self.x, self.A)
         self.assertEqual(atom.shape, tuple())
         self.assertEqual(atom.curvature, s.CONVEX)
+
+        # A matrix X with an ndarray P must not crash (the ndarray shortcut only
+        # accepts a vector); its value must match the Constant(P) path.
+        Xmat = Variable((3, 2))
+        Pnd = np.eye(3) * 2.0
+        mf = cp.matrix_frac(Xmat, Pnd)
+        self.assertEqual(mf.shape, tuple())
+        self.assertEqual(mf.curvature, s.CONVEX)
+        Xmat.value = np.arange(6).reshape(3, 2).astype(float)
+        self.assertAlmostEqual(mf.value, cp.matrix_frac(Xmat, cp.Constant(Pnd)).value)
+
         # Test matrix_frac shape validation.
         with self.assertRaises(Exception) as cm:
             cp.matrix_frac(self.x, self.C)
