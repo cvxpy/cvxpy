@@ -291,6 +291,17 @@ class Problem(u.Canonical):
         return all(
           expr.is_dcp(dpp) for expr in self.constraints + [self.objective])
 
+    def explain_dcp(self) -> str:
+        """Explain why this problem fails DCP, if it does.
+
+        Returns
+        -------
+        str
+            A human-readable explanation of DCP violations, or a short
+            success message if the problem follows DCP.
+        """
+        return debug_tools.explain_problem_dcp(self)
+
     @perf.compute_once
     def is_dnlp(self) -> bool:
         """

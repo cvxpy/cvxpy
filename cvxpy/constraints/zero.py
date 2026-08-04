@@ -58,6 +58,16 @@ class Zero(Constraint):
                 return self.args[0].is_affine()
         return self.args[0].is_affine()
 
+    def dcp_failure_reason(self) -> str | None:
+        expr = self.args[0]
+        if expr.is_affine():
+            return None
+        pretty = expr.format_labeled()
+        return (
+            f"Zero constraints require an affine expression, "
+            f"but {pretty} is {expr.curvature.lower()}."
+        )
+
     def is_dnlp(self) -> bool:
         """A zero constraint is DNLP if its argument is smooth representable."""
         return self.args[0].is_smooth()
@@ -136,6 +146,19 @@ class Equality(Constraint):
             with scopes.dpp_scope():
                 return self.expr.is_affine()
         return self.expr.is_affine()
+
+    def dcp_failure_reason(self) -> str | None:
+        expr = self.expr
+        if expr.is_affine():
+            return None
+        pretty = (
+            f"{self.args[0].format_labeled()} - "
+            f"{self.args[1].format_labeled()}"
+        )
+        return (
+            f"Equality constraints require an affine expression, "
+            f"but {pretty} is {expr.curvature.lower()}."
+        )
 
     def is_dnlp(self) -> bool:
         """An equality constraint is DNLP if its argument is smooth representable."""

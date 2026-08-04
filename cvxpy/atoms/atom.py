@@ -31,6 +31,7 @@ from cvxpy.expressions import cvxtypes
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.expression import Expression, ExpressionValue, GradMap
 from cvxpy.utilities import bounds as bounds_utils
+from cvxpy.utilities import debug_tools
 from cvxpy.utilities import performance_utils as perf
 from cvxpy.utilities.deterministic import unique_list
 
@@ -89,6 +90,39 @@ class Atom(Expression):
             return f"{type(self).__name__}({', '.join(arg_text + data_strs)})"
         # Defer to Expression default (label or name) when subclass has a custom name().
         return super().format_labeled()
+
+    def atom_name(self) -> str | None:
+        """Short display name for this atom (defaults to the class name)."""
+        return type(self).__name__
+
+    def dcp_failure_reason(self) -> str | None:
+        """Return a reason string if this atom fails DCP composition, else ``None``."""
+        if self.is_dcp():
+            return None
+
+        atom_convex = self.is_atom_convex()
+        atom_concave = self.is_atom_concave()
+        name = self.atom_name()
+        if not (atom_convex or atom_concave):
+            pretty = self.format_labeled()
+            curvs = ", ".join(c.lower() for c in self.curvatures)
+            return (
+                f"{name} is neither a convex nor a concave atom "
+                f"(curvature: {curvs}), so DCP cannot verify the curvature of {pretty}."
+            )
+
+        reasons: list[str] = []
+        if atom_convex:
+            reason = debug_tools.explain_composition_failure(self, "convex")
+            if reason is not None:
+                reasons.append(reason)
+        if atom_concave:
+            reason = debug_tools.explain_composition_failure(self, "concave")
+            if reason is not None:
+                reasons.append(reason)
+        if not reasons:
+            return None
+        return " ".join(reasons)
 
     def validate_arguments(self) -> None:
         """Raises an error if the arguments are invalid.

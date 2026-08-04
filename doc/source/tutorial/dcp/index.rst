@@ -310,6 +310,12 @@ non-DCP problems:
     print(f"prob4 is DCP: {prob4.is_dcp()}")
     print(f"sqrt(x) <= 2 is DCP: {(cp.sqrt(x) <= 2).is_dcp()}")
 
+    # Explain DCP violations without calling solve().
+    z = cp.Variable(name="z")
+    print(cp.sqrt(1 + cp.square(z)).explain_dcp())
+    print(prob3.explain_dcp())
+    print(prob4.explain_dcp())
+
 ::
 
     prob1 is DCP: True
@@ -318,6 +324,15 @@ non-DCP problems:
     Maximize(square(x)) is DCP: False
     prob4 is DCP: False
     sqrt(x) <= 2 is DCP: False
+    The following subexpressions are not DCP:
+    sqrt(1.0 + square(z))
+        Reason: sqrt is concave and nondecreasing. Its argument 1.0 + square(z) is convex. DCP does not allow a concave nondecreasing atom to be applied to a convex argument.
+    The objective is not DCP, even though each sub-expression is.
+    Reason: Maximize(...) requires a concave objective, but the objective is convex.
+    The following constraints are not DCP:
+    sqrt(var1) <= 2.0 , because the following subexpressions are not:
+    |--  sqrt(var1) <= 2.0
+    |--      Reason: The inequality sqrt(var1) <= 2.0 requires (lhs - rhs) to be convex, but it is concave.
 
 
 CVXPY will raise an exception if you call ``problem.solve()`` on a
@@ -335,4 +350,6 @@ non-DCP problem.
 
 ::
 
-    Problem does not follow DCP rules.
+    Problem does not follow DCP rules. Specifically:
+    The objective is not DCP, even though each sub-expression is.
+    Reason: Minimize(...) requires a convex objective, but the objective is concave.

@@ -437,12 +437,30 @@ class Power(Elementwise):
             args = self.args
         return type(self)(args[0], self._p_orig, self.max_denom)
 
+    def atom_name(self) -> str:
+        """Short display name for this power atom (``sqrt``, ``square``, or ``power``)."""
+        try:
+            p = float(self.p.value)
+        except (TypeError, ValueError, AttributeError):
+            return "power"
+        if p == 0.5:
+            return "sqrt"
+        if p == 2.0:
+            return "square"
+        return "power"
+
     def name(self) -> str:
+        op = self.atom_name()
+        if op in ("sqrt", "square"):
+            return f"{op}({self.args[0].name()})"
         return f"{type(self).__name__}({self.args[0].name()}, {self.p.value})"
 
     def format_labeled(self) -> str:
         if self._label is not None:
             return self._label
+        op = self.atom_name()
+        if op in ("sqrt", "square"):
+            return f"{op}({self.args[0].format_labeled()})"
         return f"{type(self).__name__}({self.args[0].format_labeled()}, {self.p.value})"
 
 

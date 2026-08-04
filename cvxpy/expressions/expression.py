@@ -30,7 +30,7 @@ import cvxpy.utilities.performance_utils as perf
 from cvxpy import error
 from cvxpy.constraints import PSD, Equality, Inequality
 from cvxpy.expressions import cvxtypes
-from cvxpy.utilities import scopes
+from cvxpy.utilities import debug_tools, scopes
 from cvxpy.utilities.shape import size_from_shape
 from cvxpy.utilities.warn import CvxpyDeprecationWarning, warn
 
@@ -405,6 +405,29 @@ class Expression(u.Canonical):
             with scopes.dpp_scope():
                 return self.is_convex() or self.is_concave()
         return self.is_convex() or self.is_concave()
+
+    def atom_name(self) -> str | None:
+        """Short display name if this expression is an atom; otherwise ``None``."""
+        return None
+
+    def dcp_failure_reason(self) -> str | None:
+        """Return a reason string if this node fails DCP, else ``None``.
+
+        Non-atom expressions have no composition rule to explain; atoms
+        override this in :class:`~cvxpy.atoms.atom.Atom`.
+        """
+        return None
+
+    def explain_dcp(self) -> str:
+        """Explain why this expression fails DCP, if it does.
+
+        Returns
+        -------
+        str
+            A human-readable explanation of DCP violations, or a short
+            success message if the expression follows DCP.
+        """
+        return debug_tools.explain_expression_dcp(self)
 
     def is_dnlp(self) -> bool:
         """
