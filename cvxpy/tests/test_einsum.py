@@ -15,6 +15,7 @@ limitations under the License.
 """
 
 import unittest
+import warnings
 
 import numpy as np
 
@@ -240,7 +241,8 @@ class TestEinsum(BaseTest):
         self.assertEqual(problem4.status, cp.OPTIMAL)
         self.assertItemsAlmostEqual(result4, expected_result4)
 
-        # Test einsum with 4 arguments
+        # Test einsum with 4 arguments (two multiplied parameters -> non-DPP;
+        # the >2-D fallback bakes them via EvalParams)
         expr5 = cp.einsum('ii,ijk,j,lil->ijl', A, B, C, D)
         problem5 = cp.Problem(cp.Minimize(cp.sum(expr5)), [A == self.A_np])
         problem5.solve()
@@ -273,6 +275,27 @@ class TestEinsum(BaseTest):
         )
         self.assertEqual(problem7.status, cp.OPTIMAL)
         self.assertItemsAlmostEqual(result7, expected_result7)
+
+    def test_einsum_ignore_dpp_avoids_diffengine(self) -> None:
+        """einsum is >2-D, so ignore_dpp must not route to the (2-D-only)
+        DIFFENGINE backend; it bakes parameters and uses the tensor backends."""
+        import cvxpy.settings as s
+        from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
+
+        D_var = cp.Variable(self.D_np.shape)
+        p = cp.Parameter(value=2.0)
+        expr = cp.einsum('iji->i', D_var)
+        problem = cp.Problem(cp.Minimize(p * cp.sum(expr)), [D_var == self.D_np])
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')  # N-D -> SCIPY fallback warning
+            problem.solve(ignore_dpp=True)
+        self.assertEqual(problem.status, cp.OPTIMAL)
+        self.assertItemsAlmostEqual(expr.value, np.einsum('iji->i', self.D_np))
+        backend = next(r.canon_backend
+                       for r in problem._cache.solving_chain.reductions
+                       if isinstance(r, ConeMatrixStuffing))
+        self.assertNotEqual(backend, s.DIFFENGINE_CANON_BACKEND)
+
 
 class TestEinsumDGP(BaseTest):
     """Unit tests for the DGP functionality of the einsum atom."""

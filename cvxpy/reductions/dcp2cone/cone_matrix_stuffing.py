@@ -332,6 +332,45 @@ class ParamConeProg(ParamProb):
                 sltn_dict[var_id] = np.reshape(value, var.shape, order='F')
         return sltn_dict
 
+    def apply_restruct_mat(self, restruct_mat, restruct_mat_op):
+        """Apply the cone-restructuring block-diagonal to A; return a new ParamConeProg.
+
+        `restruct_mat` is the per-constraint list (kept for polymorphic call sites that
+        consume it directly); `restruct_mat_op` is the precomputed block-diagonal linear
+        operator and is what we actually use here. Pass `None` for `restruct_mat_op` when
+        there are no constraints to restructure.
+        """
+        if restruct_mat_op is not None:
+            unspecified, _ = np.divmod(self.A.shape[0] * self.A.shape[1],
+                                        restruct_mat_op.shape[1], dtype=np.int64)
+            reshaped_A = self.A.reshape(restruct_mat_op.shape[1],
+                                        unspecified, order='F').tocsr()
+            restructured_A = restruct_mat_op(reshaped_A).tocoo()
+            # scipy < 1.20 can overflow int32 indices during reshape.
+            restructured_A.row = restructured_A.row.astype(np.int64)
+            restructured_A.col = restructured_A.col.astype(np.int64)
+            restructured_A = restructured_A.reshape(
+                np.int64(restruct_mat_op.shape[0]) * (np.int64(self.x.size) + 1),
+                self.A.shape[1], order='F')
+        else:
+            restructured_A = self.A
+        return ParamConeProg(
+            self.q,
+            self.x,
+            restructured_A,
+            self.variables,
+            self.var_id_to_col,
+            self.constraints,
+            self.parameters,
+            self.param_id_to_col,
+            P=self.P,
+            formatted=True,
+            lower_bounds=self.lower_bounds,
+            upper_bounds=self.upper_bounds,
+            lb_tensor=self.lb_tensor,
+            ub_tensor=self.ub_tensor,
+        )
+
     def split_adjoint(self, del_vars=None):
         """Adjoint of split_solution.
         """
@@ -414,13 +453,6 @@ class ConeMatrixStuffing(MatrixStuffing):
                 con = ExpCone(x.flatten(order='F'), y.flatten(order='F'), z.flatten(order='F'),
                               constr_id=con.constr_id)
             cons.append(con)
-        # Need to check that intended canonicalization backend still works.
-        lowered_con_problem = problem.copy([problem.objective, cons])
-        canon_backend = get_canon_backend(lowered_con_problem, self.canon_backend)
-        # Form the constraints
-        extractor = CoeffExtractor(inverse_data, canon_backend)
-        params_to_P, params_to_c, flattened_variable = self.stuffed_objective(
-            problem, extractor)
         # Reorder constraints to Zero, NonNeg, SOC, PSD, EXP, PowCone3D, PowConeND
         constr_map = group_constraints(cons)
         ordered_cons = constr_map[Zero] + constr_map[NonNeg] + \
@@ -429,13 +461,28 @@ class ConeMatrixStuffing(MatrixStuffing):
             constr_map[PowCone3D] + constr_map[PowConeND]
         inverse_data.cons_id_map = {con.id: con.id for con in ordered_cons}
         self._cons_id_map = inverse_data.cons_id_map
-
         inverse_data.constraints = ordered_cons
+        inverse_data.minimize = type(problem.objective) == Minimize
+
+        if self.canon_backend == s.DIFFENGINE_CANON_BACKEND:
+            from cvxpy.reductions.dcp2cone.diffengine_cone_program import (
+                DiffengineConeProgram,
+            )
+            new_prob = DiffengineConeProgram.from_problem(
+                problem, ordered_cons, inverse_data, self.quad_obj)
+            return new_prob, inverse_data
+
+        # Need to check that intended canonicalization backend still works.
+        lowered_con_problem = problem.copy([problem.objective, ordered_cons])
+        canon_backend = get_canon_backend(lowered_con_problem, self.canon_backend)
+        # Form the constraints
+        extractor = CoeffExtractor(inverse_data, canon_backend)
+        params_to_P, params_to_c, flattened_variable = self.stuffed_objective(
+            problem, extractor)
         # Batch expressions together, then split apart.
         expr_list = [arg for c in ordered_cons for arg in c.args]
         params_to_problem_data = extractor.affine(expr_list)
 
-        inverse_data.minimize = type(problem.objective) == Minimize
         variables = problem.variables()
         if _has_parametric_bounds(variables):
             lb_tensor = extract_bounds_tensor(

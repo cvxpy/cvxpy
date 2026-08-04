@@ -40,7 +40,6 @@ from cvxpy.problems.objective import Maximize, Minimize
 from cvxpy.reductions import InverseData
 from cvxpy.reductions.chain import Chain
 from cvxpy.reductions.dqcp2dcp import dqcp2dcp
-from cvxpy.reductions.eval_params import EvalParams
 from cvxpy.reductions.flip_objective import FlipObjective
 from cvxpy.reductions.solution import INF_OR_UNB_MESSAGE
 from cvxpy.reductions.solvers import bisection
@@ -786,10 +785,16 @@ class Problem(u.Canonical):
             When True, DPP problems will be treated as non-DPP,
             which may speed up compilation. Defaults to False.
         canon_backend : str, optional
-            'CPP' (default) | 'SCIPY'
+            'CPP' (default) | 'SCIPY' | 'COO' | 'DIFFENGINE'
             Specifies which backend to use for canonicalization, which can affect
             compilation time. Defaults to None, i.e., selecting the default
-            backend.
+            backend. Non-DPP and ignore_dpp=True solves use the DIFFENGINE
+            backend, which keeps parameters symbolic and re-evaluates them
+            on each solve; explicitly passing a different backend there
+            raises ValueError for parametric problems (parameter-free
+            problems use the requested backend). Parametric problems with
+            expressions of dimension greater than 2 instead bake parameters
+            to constants (EvalParams) and use the tensor backends.
         verbose : bool, optional
             If True, print verbose output related to problem compilation.
         solver_opts : dict, optional
@@ -875,11 +880,15 @@ class Problem(u.Canonical):
                          'Compiling problem (target solver=%s).', solver_name)
                 s.LOGGER.info('Reduction chain: %s', reduction_chain_str)
             data, inverse_data = solving_chain.apply(self, verbose)
+            # The parametric program is cached unless it embeds current
+            # parameter values (EvalParams chain-wide, or a factorized
+            # parametric quad_form per-apply).
             safe_to_cache = (
                 isinstance(data, dict)
                 and s.PARAM_PROB in data
-                and not any(isinstance(reduction, EvalParams)
-                            for reduction in solving_chain.reductions)
+                and not solving_chain.uncached_param_prog
+                and not any(getattr(inv, 'param_quad_form_factorized', False)
+                            for inv in inverse_data)
             )
             self._compilation_time = time.time() - start
             if verbose:
@@ -928,10 +937,16 @@ class Problem(u.Canonical):
             When True, DPP problems will be treated as non-DPP,
             which may speed up compilation. Defaults to False.
         canon_backend : str, optional
-            'CPP' (default) | 'SCIPY'
+            'CPP' (default) | 'SCIPY' | 'COO' | 'DIFFENGINE'
             Specifies which backend to use for canonicalization, which can affect
             compilation time. Defaults to None, i.e., selecting the default
-            backend.
+            backend. Non-DPP and ignore_dpp=True solves use the DIFFENGINE
+            backend, which keeps parameters symbolic and re-evaluates them
+            on each solve; explicitly passing a different backend there
+            raises ValueError for parametric problems (parameter-free
+            problems use the requested backend). Parametric problems with
+            expressions of dimension greater than 2 instead bake parameters
+            to constants (EvalParams) and use the tensor backends.
         solver_opts: dict, optional
             Additional arguments to pass to the solver.
 
@@ -998,10 +1013,16 @@ class Problem(u.Canonical):
             When True, DPP problems will be treated as non-DPP,
             which may speed up compilation. Defaults to False.
         canon_backend : str, optional
-            'CPP' (default) | 'SCIPY'
+            'CPP' (default) | 'SCIPY' | 'COO' | 'DIFFENGINE'
             Specifies which backend to use for canonicalization, which can affect
             compilation time. Defaults to None, i.e., selecting the default
-            backend.
+            backend. Non-DPP and ignore_dpp=True solves use the DIFFENGINE
+            backend, which keeps parameters symbolic and re-evaluates them
+            on each solve; explicitly passing a different backend there
+            raises ValueError for parametric problems (parameter-free
+            problems use the requested backend). Parametric problems with
+            expressions of dimension greater than 2 instead bake parameters
+            to constants (EvalParams) and use the tensor backends.
         kwargs : dict, optional
             A dict of options that will be passed to the specific solver.
             In general, these options will override any default settings

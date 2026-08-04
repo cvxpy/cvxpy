@@ -37,12 +37,8 @@ def perspective_canon(expr, args, solver_context: SolverInfo | None = None):
     chain = aux_prob._construct_chain(solver=solver, solver_opts=solver_opts, ignore_dpp=True)
     chain.reductions = chain.reductions[:-1]  # skip solver reduction
     prob_canon = chain.apply(aux_prob)[0]  # grab problem instance
-    # get cone representation of c, A, and b for some problem.
-
-    q = prob_canon.q.toarray().flatten()[:-1]
-    d = prob_canon.q.toarray().flatten()[-1]
-    Ab = prob_canon.A.toarray().reshape((-1, len(q) + 1), order="F")
-    A, b = Ab[:, :-1], Ab[:, -1]
+    # get cone representation of q, A, and b for the parameter-free aux problem.
+    q, d, A, b = prob_canon.apply_parameters()
 
     # given f in epigraph form, aka epi f = \{(x,t) | f(x) \leq t\}
     # = \{(x,t) | Fx +tg + e \in K} for K a cone, the epigraph of the
