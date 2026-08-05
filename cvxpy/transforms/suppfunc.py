@@ -1,9 +1,27 @@
+from typing import TYPE_CHECKING, TypeAlias
+
 import numpy as np
 from scipy import sparse
 
 from cvxpy.atoms.suppfunc import SuppFuncAtom
+from cvxpy.constraints.psd import PSD, SvecPSD
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.cvx_attr2constr import CONVEX_ATTRIBUTES
+
+if TYPE_CHECKING:
+    from cvxpy.constraints.constraint import Constraint
+    from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeDims
+    from cvxpy.utilities.solver_context import SolverInfo
+
+    ConeSelectors: TypeAlias = dict[
+        str,
+        np.ndarray | list[np.ndarray] | list[tuple[np.ndarray, Constraint]],
+    ]
+    ConicRepresentation: TypeAlias = tuple[
+        sparse.sparray | sparse.spmatrix,
+        np.ndarray,
+        ConeSelectors,
+    ]
 
 
 def scs_coniclift(x, constraints):
@@ -47,6 +65,91 @@ def scs_coniclift(x, constraints):
     return A, b, K
 
 
+def _coniclift(
+    x: Variable,
+    constraints: list["Constraint"],
+    solver_context: "SolverInfo",
+) -> tuple[
+    sparse.sparray | sparse.spmatrix,
+    np.ndarray,
+    "ConeDims",
+    list["Constraint"],
+]:
+    """
+    Return (A, b, K) so that
+        {x : x satisfies constraints}
+    can be written as
+        {x : exists y where A @ [x; y] + b in K}.
+
+    Parameters
+    ----------
+    x: cvxpy.Variable
+    constraints: list of cvxpy.constraints.constraint.Constraint
+        Each Constraint object must be DCP-compatible.
+
+    Notes
+    -----
+    This function DOES NOT work when ``x`` has attributes, like ``PSD=True``,
+    ``diag=True``, ``symmetric=True``, etc...
+    """
+    from cvxpy.atoms.affine.sum import sum
+    from cvxpy.problems.objective import Minimize
+    from cvxpy.problems.problem import Problem
+    from cvxpy.problems.problem_form import ProblemForm
+    from cvxpy.reductions.chain import Chain
+    from cvxpy.reductions.complex2real import complex2real
+    from cvxpy.reductions.cone2cone.approx import ApproxCone2Cone
+    from cvxpy.reductions.cone2cone.exact import ExactCone2Cone
+    from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr
+    from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import (
+        ConeMatrixStuffing,
+    )
+    from cvxpy.reductions.dcp2cone.dcp2cone import Dcp2Cone
+    from cvxpy.reductions.eliminate_zero_sized import EliminateZeroSized
+    from cvxpy.reductions.solvers.solver import expand_cones
+
+    prob = Problem(Minimize(sum(x)), constraints)
+    # ^ The objective value is only used to make sure that "x"
+    # participates in the problem. So, if constraints is an
+    # empty list, then the support function is the standard
+    # support function for R^n.
+    problem_form = ProblemForm(prob)
+    cones = problem_form.cones(quad_obj=False).copy()
+    _, exact_targets, approx_targets = expand_cones(
+        cones, solver_context.solver_supported_constraints)
+
+    # This deliberately mirrors the parameter-free DCP portion of the normal
+    # solving chain, but stops before solver-specific cone formatting. Bounds
+    # must be explicit because they are part of the set being dualized.
+    reductions = []
+    if complex2real.accepts(prob):
+        reductions.append(complex2real.Complex2Real())
+    reductions.extend([
+        Dcp2Cone(quad_obj=False, solver_context=solver_context),
+        CvxAttr2Constr(reduce_bounds=True),
+    ])
+    if exact_targets:
+        reductions.append(ExactCone2Cone(
+            target_cones=exact_targets, solver_context=solver_context))
+    if approx_targets:
+        reductions.append(ApproxCone2Cone(target_cones=approx_targets))
+    reductions.extend([
+        EliminateZeroSized(),
+        ConeMatrixStuffing(quad_obj=False),
+    ])
+
+    cone_prog, _ = Chain(reductions=reductions).apply(prob)
+    _, _, A, b = cone_prog.apply_parameters()
+    x_offset = cone_prog.var_id_to_col[x.id]
+    x_indices = np.arange(x_offset, x_offset + x.size)
+    x_selector = np.zeros(shape=(A.shape[1],), dtype=bool)
+    x_selector[x_indices] = True
+    A_x = A[:, x_selector]
+    A_other = A[:, ~x_selector]
+    A = sparse.hstack([A_x, A_other])
+    return A, b, cone_prog.cone_dims, cone_prog.constraints
+
+
 def scs_cone_selectors(K):
     """
     Parse a ConeDims object, as returned from SCS's apply function.
@@ -83,6 +186,57 @@ def scs_cone_selectors(K):
         veclen = psd * (psd + 1) // 2
         psd_idxs.append(np.arange(idx, idx + veclen))
         idx += veclen
+    expsize = 3 * K.exp
+    exp_idxs = np.arange(idx, idx + expsize)
+    selectors = {
+        'nonneg': nonneg_idxs,
+        'exp': exp_idxs,
+        'soc': soc_idxs,
+        'psd': psd_idxs
+    }
+    return selectors
+
+
+def _cone_selectors(
+    K: "ConeDims", constraints: list["Constraint"],
+) -> "ConeSelectors":
+    """
+    Parse a ConeDims object from an unformatted ParamConeProg.
+
+    Return a dictionary which gives row-wise information for the affine
+    operator stored by the ParamConeProg.
+
+    Parameters
+    ----------
+    K : cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims
+    constraints : list[Constraint]
+        Ordered constraints from the unformatted ParamConeProg.
+
+    Returns
+    -------
+    selectors : dict
+        Keyed by strings, which specify cone types. Values are numpy
+        arrays, or lists of numpy arrays. The numpy arrays give row indices
+        of the affine operator (A, b) stored by the ParamConeProg.
+    """
+    if K.p3d or K.pnd:
+        msg = "SuppFunc doesn't yet support feasible sets represented \n"
+        msg += "with power cone constraints."
+        raise NotImplementedError(msg)
+        # TODO: implement
+    idx = K.zero
+    nonneg_idxs = np.arange(idx, idx + K.nonneg)
+    idx += K.nonneg
+    soc_idxs = []
+    for soc in K.soc:
+        idxs = np.arange(idx, idx + soc)
+        soc_idxs.append(idxs)
+        idx += soc
+    psd_idxs = []
+    for con in constraints:
+        if isinstance(con, (PSD, SvecPSD)):
+            psd_idxs.append((np.arange(idx, idx + con.size), con))
+            idx += con.size
     expsize = 3 * K.exp
     exp_idxs = np.arange(idx, idx + expsize)
     selectors = {
@@ -166,10 +320,9 @@ class SuppFunc:
                 raise ValueError('Convex sets described with Parameter objects are not allowed.')
         self.x = x
         self.constraints = constraints
-        self._A = None
-        self._b = None
-        self._K_sels = None
-        self._compute_conic_repr_of_set()
+        self._solver_context = None
+        self._conic_repr = None
+        self._scs_conic_repr = None
 
     def __call__(self, y) -> SuppFuncAtom:
         """
@@ -182,17 +335,30 @@ class SuppFunc:
         sigma_at_y = SuppFuncAtom(y, self)
         return sigma_at_y
 
-    def _compute_conic_repr_of_set(self) -> None:
+    def _conic_repr_of_set(
+        self, solver_context: "SolverInfo",
+    ) -> "ConicRepresentation":
+        if self._solver_context is solver_context:
+            return self._conic_repr
         if len(self.constraints) == 0:
             dummy = Variable()
             constrs = [dummy == 1]
         else:
             constrs = self.constraints
-        A, b, K = scs_coniclift(self.x, constrs)
-        K_sels = scs_cone_selectors(K)
-        self._A = A
-        self._b = b
-        self._K_sels = K_sels
+        A, b, K, constraints = _coniclift(self.x, constrs, solver_context)
+        conic_repr = (A, b, _cone_selectors(K, constraints))
+        self._conic_repr = conic_repr
+        self._solver_context = solver_context
+        return conic_repr
 
     def conic_repr_of_set(self):
-        return self._A, self._b, self._K_sels
+        """Return the historical SCS-formatted representation of the set."""
+        if self._scs_conic_repr is None:
+            if len(self.constraints) == 0:
+                dummy = Variable()
+                constrs = [dummy == 1]
+            else:
+                constrs = self.constraints
+            A, b, K = scs_coniclift(self.x, constrs)
+            self._scs_conic_repr = (A, b, scs_cone_selectors(K))
+        return self._scs_conic_repr

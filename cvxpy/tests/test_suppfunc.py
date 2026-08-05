@@ -14,12 +14,42 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from unittest.mock import patch
+
 import numpy as np
 import pytest
 
 import cvxpy as cp
+from cvxpy.constraints.psd import PSD, SvecPSD
 from cvxpy.error import SolverError
+from cvxpy.reductions.dcp2cone.canonicalizers.suppfunc_canon import (
+    suppfunc_canon,
+)
+from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
+from cvxpy.reductions.solvers.conic_solvers.copt_conif import COPT
+from cvxpy.reductions.solvers.conic_solvers.scs_conif import (
+    SCS,
+    scs_psdvec_to_psdmat,
+)
+from cvxpy.reductions.solvers.conic_solvers.sdpa_conif import SDPA
 from cvxpy.tests.base_test import BaseTest
+from cvxpy.transforms.suppfunc import (
+    _coniclift,
+    scs_cone_selectors,
+    scs_coniclift,
+)
+from cvxpy.utilities.solver_context import SolverInfo
+
+
+def _solver_context(solver: type[ConicSolver]) -> SolverInfo:
+    """Build the context used by canonicalization without running the solver."""
+    return SolverInfo(
+        solver=solver().name(),
+        supported_constraints=frozenset(solver.SUPPORTED_CONSTRAINTS),
+        supports_bounds=solver.BOUNDED_VARIABLES,
+        psd_triangle_kind=solver.PSD_TRIANGLE_KIND,
+        psd_sqrt2_scaling=solver.PSD_SQRT2_SCALING,
+    )
 
 
 class TestSupportFunctions(BaseTest):
@@ -114,6 +144,99 @@ class TestSupportFunctions(BaseTest):
         self.assertLessEqual(viol, 1e-6)
         eigs = np.linalg.eigh(Y.value)[0]
         self.assertLessEqual(np.max(eigs), 1e-6)
+
+    def test_psd_support_across_solvers(self) -> None:
+        X = cp.Variable((2, 2))
+        sigma = cp.suppfunc(X, [X >> 0, cp.trace(X) <= 1])
+        Y = cp.Variable((2, 2))
+        A = np.diag([1.0, 2.0])
+        prob = cp.Problem(cp.Minimize(sigma(Y)), [Y == A])
+
+        for solver in [cp.SCS, cp.CLARABEL]:
+            prob.solve(solver=solver)
+            self.assertAlmostEqual(prob.value, 2.0, places=5)
+
+    def test_psd_native_solver_context(self) -> None:
+        X = cp.Variable((2, 2))
+        sigma = cp.suppfunc(X, [X >> 0, cp.trace(X) <= 1])
+        A = np.array([[0.0, 1.0], [1.0, 0.0]])
+        expr = sigma(A)
+
+        epigraph, constraints = suppfunc_canon(
+            expr, [cp.Constant(A)], _solver_context(SDPA))
+        self.assertEqual(sum(isinstance(con, PSD) for con in constraints), 1)
+        self.assertFalse(any(isinstance(con, SvecPSD) for con in constraints))
+
+        prob = cp.Problem(cp.Minimize(epigraph), constraints)
+        prob.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(prob.value, 1.0, places=6)
+
+    def test_unscaled_svec_uses_dual_weights(self) -> None:
+        X = cp.Variable((2, 2))
+        sigma = cp.suppfunc(X, [X >> 0, cp.trace(X) <= 1])
+        expr = sigma(np.eye(2))
+
+        _, constraints = suppfunc_canon(
+            expr, [cp.Constant(np.eye(2))], _solver_context(COPT))
+        svec_con = next(con for con in constraints if isinstance(con, SvecPSD))
+        expr._eta.value = np.ones(expr._eta.size)
+        np.testing.assert_allclose(svec_con.args[0].value, [1.0, 0.5, 1.0])
+
+    def test_auxiliary_variable_bound_attribute(self) -> None:
+        x = cp.Variable(1)
+        aux = cp.Variable(1, nonneg=True)
+        sigma = cp.suppfunc(x, [x == aux, aux <= 2])
+        y = cp.Variable(1)
+
+        for direction, expected in [(1.0, 2.0), (-1.0, 0.0)]:
+            prob = cp.Problem(cp.Minimize(sigma(y)), [y == direction])
+            prob.solve(solver=cp.CLARABEL)
+            self.assertAlmostEqual(prob.value, expected, places=6)
+
+    def test_construction_is_lazy(self) -> None:
+        x = cp.Variable(1)
+        with patch("cvxpy.problems.problem.Problem.get_problem_data") as get_data:
+            cp.suppfunc(x, [x <= 1])
+        get_data.assert_not_called()
+
+    def test_svec_psd_canonicalization_is_cached(self) -> None:
+        X = cp.Variable((2, 2))
+        sigma = cp.suppfunc(X, [X >> 0, cp.trace(X) <= 1])
+        Y = cp.Variable((2, 2))
+        solver_context = _solver_context(SCS)
+
+        with patch("cvxpy.transforms.suppfunc._coniclift", wraps=_coniclift) as lift:
+            _, constraints = suppfunc_canon(sigma(Y), [Y], solver_context)
+            suppfunc_canon(sigma(Y), [Y], solver_context)
+
+        self.assertEqual(lift.call_count, 1)
+        self.assertEqual(sum(isinstance(con, SvecPSD) for con in constraints), 1)
+
+    def test_scs_compatibility_api(self) -> None:
+        x = cp.Variable(1)
+        constraints = [x <= 1]
+        A, b, K = scs_coniclift(x, constraints)
+        selectors = scs_cone_selectors(K)
+        self.assertEqual(A.shape[0], b.size)
+        self.assertEqual(selectors["nonneg"].size, 1)
+
+        sigma = cp.suppfunc(x, constraints)
+        old_A, old_b, old_selectors = sigma.conic_repr_of_set()
+        self.assertEqual(old_A.shape, A.shape)
+        self.assertEqual(old_b.shape, b.shape)
+        self.assertEqual(old_selectors["nonneg"].size, 1)
+
+        vec = cp.Variable(3)
+        self.assertEqual(scs_psdvec_to_psdmat(vec, np.arange(3)).shape, (2, 2))
+
+    def test_power_cone_remains_unsupported(self) -> None:
+        x = cp.Variable(3)
+        sigma = cp.suppfunc(x, [cp.PowCone3D(x[0], x[1], x[2], 0.5)])
+        y = cp.Variable(3)
+        prob = cp.Problem(cp.Minimize(sigma(y)), [y == np.ones(3)])
+
+        with self.assertRaisesRegex(NotImplementedError, "power cone"):
+            prob.get_problem_data(solver=cp.SCS)
 
     def test_largest_singvalue(self) -> None:
         np.random.seed(3)
