@@ -1,27 +1,17 @@
-from typing import TYPE_CHECKING, TypeAlias
+from typing import TYPE_CHECKING
 
 import numpy as np
 from scipy import sparse
 
 from cvxpy.atoms.suppfunc import SuppFuncAtom
+from cvxpy.constraints.constraint import Constraint
 from cvxpy.constraints.psd import PSD, SvecPSD
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.cvx_attr2constr import CONVEX_ATTRIBUTES
+from cvxpy.utilities.solver_context import SolverInfo
 
 if TYPE_CHECKING:
-    from cvxpy.constraints.constraint import Constraint
     from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeDims
-    from cvxpy.utilities.solver_context import SolverInfo
-
-    ConeSelectors: TypeAlias = dict[
-        str,
-        np.ndarray | list[np.ndarray] | list[tuple[np.ndarray, Constraint]],
-    ]
-    ConicRepresentation: TypeAlias = tuple[
-        sparse.sparray | sparse.spmatrix,
-        np.ndarray,
-        ConeSelectors,
-    ]
 
 
 def scs_coniclift(x, constraints):
@@ -45,6 +35,7 @@ def scs_coniclift(x, constraints):
     from cvxpy.atoms.affine.sum import sum
     from cvxpy.problems.objective import Minimize
     from cvxpy.problems.problem import Problem
+
     prob = Problem(Minimize(sum(x)), constraints)
     # ^ The objective value is only used to make sure that "x"
     # participates in the problem. So, if constraints is an
@@ -67,13 +58,12 @@ def scs_coniclift(x, constraints):
 
 def _coniclift(
     x: Variable,
-    constraints: list["Constraint"],
-    solver_context: "SolverInfo",
+    constraints: list[Constraint],
+    solver_context: SolverInfo,
 ) -> tuple[
     sparse.sparray | sparse.spmatrix,
     np.ndarray,
-    "ConeDims",
-    list["Constraint"],
+    dict[str, np.ndarray | list],
 ]:
     """
     Return (A, b, K) so that
@@ -147,7 +137,7 @@ def _coniclift(
     A_x = A[:, x_selector]
     A_other = A[:, ~x_selector]
     A = sparse.hstack([A_x, A_other])
-    return A, b, cone_prog.cone_dims, cone_prog.constraints
+    return A, b, _cone_selectors(cone_prog.cone_dims, cone_prog.constraints)
 
 
 def scs_cone_selectors(K):
@@ -198,8 +188,8 @@ def scs_cone_selectors(K):
 
 
 def _cone_selectors(
-    K: "ConeDims", constraints: list["Constraint"],
-) -> "ConeSelectors":
+    K: "ConeDims", constraints: list[Constraint],
+) -> dict[str, np.ndarray | list]:
     """
     Parse a ConeDims object from an unformatted ParamConeProg.
 
@@ -336,8 +326,12 @@ class SuppFunc:
         return sigma_at_y
 
     def _conic_repr_of_set(
-        self, solver_context: "SolverInfo",
-    ) -> "ConicRepresentation":
+        self, solver_context: SolverInfo,
+    ) -> tuple[
+        sparse.sparray | sparse.spmatrix,
+        np.ndarray,
+        dict[str, np.ndarray | list],
+    ]:
         if self._solver_context is solver_context:
             return self._conic_repr
         if len(self.constraints) == 0:
@@ -345,8 +339,7 @@ class SuppFunc:
             constrs = [dummy == 1]
         else:
             constrs = self.constraints
-        A, b, K, constraints = _coniclift(self.x, constrs, solver_context)
-        conic_repr = (A, b, _cone_selectors(K, constraints))
+        conic_repr = _coniclift(self.x, constrs, solver_context)
         self._conic_repr = conic_repr
         self._solver_context = solver_context
         return conic_repr
