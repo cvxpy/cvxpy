@@ -2,6 +2,7 @@ import numpy as np
 
 from cvxpy import SOC, Variable, hstack, multiply, reshape
 from cvxpy.atoms.affine.transpose import swapaxes
+from cvxpy.atoms.affine.upper_tri import upper_tri
 from cvxpy.constraints.exponential import ExpCone
 from cvxpy.constraints.psd import PSD, SvecPSD
 from cvxpy.expressions.expression import Expression
@@ -74,7 +75,8 @@ def suppfunc_canon(expr, args, solver_context: SolverInfo | None = None):
             local_cons.append(SvecPSD(dual_arg, n=n))
         else:
             eta_mat = reshape(eta_block, source_con.shape, order='F')
-            local_cons.append(eta_mat == swapaxes(eta_mat, -2, -1))
+            local_cons.append(
+                upper_tri(eta_mat) == upper_tri(swapaxes(eta_mat, -2, -1)))
             local_cons.append(PSD(eta_mat))
     expsel = K_sels["exp"]
     if expsel.size > 0:

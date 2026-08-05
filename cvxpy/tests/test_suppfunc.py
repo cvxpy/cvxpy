@@ -174,24 +174,28 @@ class TestSupportFunctions(BaseTest):
         self.assertAlmostEqual(prob.value, 1.0, places=6)
 
     def test_unscaled_svec_uses_dual_weights(self) -> None:
-        X = cp.Variable((2, 2))
+        X = cp.Variable((3, 3))
         sigma = cp.suppfunc(X, [X >> 0, cp.trace(X) <= 1])
-        expr = sigma(np.eye(2))
+        expr = sigma(np.eye(3))
 
         _, constraints = suppfunc_canon(
-            expr, [cp.Constant(np.eye(2))], _solver_context(COPT))
+            expr, [cp.Constant(np.eye(3))], _solver_context(COPT))
         svec_con = next(con for con in constraints if isinstance(con, SvecPSD))
         expr._eta.value = np.ones(expr._eta.size)
-        np.testing.assert_allclose(svec_con.args[0].value, [1.0, 0.5, 1.0])
+        np.testing.assert_allclose(
+            svec_con.args[0].value, [1.0, 0.5, 0.5, 1.0, 0.5, 1.0])
 
     def test_auxiliary_variable_bound_attribute(self) -> None:
         x = cp.Variable(1)
         aux = cp.Variable(1, nonneg=True)
         sigma = cp.suppfunc(x, [x == aux, aux <= 2])
-        y = cp.Variable(1)
+        solver_context = _solver_context(COPT)
 
         for direction, expected in [(1.0, 2.0), (-1.0, 0.0)]:
-            prob = cp.Problem(cp.Minimize(sigma(y)), [y == direction])
+            y = cp.Constant([direction])
+            epigraph, constraints = suppfunc_canon(
+                sigma(y), [y], solver_context)
+            prob = cp.Problem(cp.Minimize(epigraph), constraints)
             prob.solve(solver=cp.CLARABEL)
             self.assertAlmostEqual(prob.value, expected, places=6)
 
