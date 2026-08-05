@@ -25,6 +25,7 @@ from cvxpy.error import SolverError
 from cvxpy.reductions.dcp2cone.canonicalizers.suppfunc_canon import (
     suppfunc_canon,
 )
+from cvxpy.reductions.solvers.conic_solvers.clarabel_conif import CLARABEL
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.conic_solvers.copt_conif import COPT
 from cvxpy.reductions.solvers.conic_solvers.scs_conif import (
@@ -150,11 +151,12 @@ class TestSupportFunctions(BaseTest):
         sigma = cp.suppfunc(X, [X >> 0, cp.trace(X) <= 1])
         Y = cp.Variable((2, 2))
         A = np.diag([1.0, 2.0])
-        prob = cp.Problem(cp.Minimize(sigma(Y)), [Y == A])
+        epigraph = cp.Variable()
+        prob = cp.Problem(cp.Minimize(epigraph), [sigma(Y) <= epigraph, Y == A])
 
         for solver in [cp.SCS, cp.CLARABEL]:
             prob.solve(solver=solver)
-            self.assertAlmostEqual(prob.value, 2.0, places=5)
+            self.assertAlmostEqual(epigraph.value, 2.0, places=5)
 
     def test_psd_native_solver_context(self) -> None:
         X = cp.Variable((2, 2))
@@ -193,11 +195,61 @@ class TestSupportFunctions(BaseTest):
             prob.solve(solver=cp.CLARABEL)
             self.assertAlmostEqual(prob.value, expected, places=6)
 
+    def test_discrete_set_descriptions_are_rejected(self) -> None:
+        x = cp.Variable()
+        z = cp.Variable(2, boolean=True)
+        support_functions = [
+            cp.suppfunc(x, [x == 2 * cp.sum(z), 2 * cp.sum(z) <= 3]),
+            cp.suppfunc(x, [cp.FiniteSet(x, [0, 2])]),
+        ]
+
+        for sigma in support_functions:
+            y = cp.Variable()
+            prob = cp.Problem(cp.Minimize(sigma(y)), [y == 1])
+            with self.assertRaisesRegex(SolverError, "mixed-integer set"):
+                prob.get_problem_data(solver=cp.CLARABEL)
+
+    def test_vectorized_soc_row_order(self) -> None:
+        x = cp.Variable(2)
+        X = cp.reshape(x, (1, 2), order='F')
+        sigma = cp.suppfunc(x, [cp.SOC(np.array([1.0, 2.0]), X)])
+        y = cp.Constant([2.0, 1.0])
+
+        epigraph, constraints = suppfunc_canon(
+            sigma(y), [y], _solver_context(CLARABEL))
+        prob = cp.Problem(cp.Minimize(epigraph), constraints)
+        prob.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(prob.value, 4.0, places=6)
+
+    def test_vectorized_expcone_row_order(self) -> None:
+        x = cp.Variable(2)
+        sigma = cp.suppfunc(x, [cp.exp(x) <= np.exp([1.0, 2.0])])
+        y = cp.Constant([2.0, 1.0])
+
+        epigraph, constraints = suppfunc_canon(
+            sigma(y), [y], _solver_context(CLARABEL))
+        prob = cp.Problem(cp.Minimize(epigraph), constraints)
+        prob.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(prob.value, 4.0, places=6)
+
     def test_construction_is_lazy(self) -> None:
         x = cp.Variable(1)
-        with patch("cvxpy.problems.problem.Problem.get_problem_data") as get_data:
-            cp.suppfunc(x, [x <= 1])
+        with patch("cvxpy.transforms.suppfunc._coniclift") as lift:
+            with patch("cvxpy.problems.problem.Problem.get_problem_data") as get_data:
+                cp.suppfunc(x, [x <= 1])
+        lift.assert_not_called()
         get_data.assert_not_called()
+
+    def test_constraints_are_snapshotted(self) -> None:
+        x = cp.Variable()
+        constraints = [x <= 1]
+        sigma = cp.suppfunc(x, constraints)
+        constraints.append(x <= 0)
+        epigraph = cp.Variable()
+        prob = cp.Problem(cp.Minimize(epigraph), [sigma(1) <= epigraph])
+
+        prob.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(epigraph.value, 1.0, places=6)
 
     def test_svec_psd_canonicalization_is_cached(self) -> None:
         X = cp.Variable((2, 2))
@@ -224,6 +276,8 @@ class TestSupportFunctions(BaseTest):
         old_A, old_b, old_selectors = sigma.conic_repr_of_set()
         self.assertEqual(old_A.shape, A.shape)
         self.assertEqual(old_b.shape, b.shape)
+        np.testing.assert_allclose(old_A.toarray(), A.toarray())
+        np.testing.assert_allclose(old_b, b)
         self.assertEqual(old_selectors["nonneg"].size, 1)
 
         vec = cp.Variable(3)

@@ -5,7 +5,9 @@ from scipy import sparse
 
 from cvxpy.atoms.suppfunc import SuppFuncAtom
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.constraints.exponential import ExpCone
 from cvxpy.constraints.psd import PSD, SvecPSD
+from cvxpy.constraints.second_order import SOC
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.cvx_attr2constr import CONVEX_ATTRIBUTES
 from cvxpy.utilities.solver_context import SolverInfo
@@ -66,7 +68,7 @@ def _coniclift(
     dict[str, np.ndarray | list],
 ]:
     """
-    Return (A, b, K) so that
+    Return (A, b, cone selectors) so that
         {x : x satisfies constraints}
     can be written as
         {x : exists y where A @ [x; y] + b in K}.
@@ -83,6 +85,8 @@ def _coniclift(
     ``diag=True``, ``symmetric=True``, etc...
     """
     from cvxpy.atoms.affine.sum import sum
+    from cvxpy.constraints.finite_set import FiniteSet
+    from cvxpy.error import SolverError
     from cvxpy.problems.objective import Minimize
     from cvxpy.problems.problem import Problem
     from cvxpy.problems.problem_form import ProblemForm
@@ -99,6 +103,10 @@ def _coniclift(
     from cvxpy.reductions.solvers.solver import expand_cones
 
     prob = Problem(Minimize(sum(x)), constraints)
+    has_finite_set = any(isinstance(con, FiniteSet) for con in constraints)
+    if prob.is_mixed_integer() or has_finite_set:
+        raise SolverError(
+            "SuppFunc does not support mixed-integer set descriptions.")
     # ^ The objective value is only used to make sure that "x"
     # participates in the problem. So, if constraints is an
     # empty list, then the support function is the standard
@@ -218,20 +226,30 @@ def _cone_selectors(
     nonneg_idxs = np.arange(idx, idx + K.nonneg)
     idx += K.nonneg
     soc_idxs = []
-    for soc in K.soc:
-        idxs = np.arange(idx, idx + soc)
-        soc_idxs.append(idxs)
-        idx += soc
     psd_idxs = []
+    exp_idxs = []
     for con in constraints:
-        if isinstance(con, (PSD, SvecPSD)):
-            psd_idxs.append((np.arange(idx, idx + con.size), con))
-            idx += con.size
-    expsize = 3 * K.exp
-    exp_idxs = np.arange(idx, idx + expsize)
+        match con:
+            case SOC():
+                cone_count = con.num_cones()
+                rows = np.arange(idx, idx + con.size)
+                soc_idxs.extend(np.column_stack((
+                    rows[:cone_count],
+                    rows[cone_count:].reshape(cone_count, -1),
+                )))
+                idx += con.size
+            case PSD() | SvecPSD():
+                psd_idxs.append((np.arange(idx, idx + con.size), con))
+                idx += con.size
+            case ExpCone():
+                cone_count = con.num_cones()
+                exp_idxs.extend(
+                    np.arange(idx, idx + con.size).reshape(3, cone_count).T.ravel()
+                )
+                idx += con.size
     selectors = {
         'nonneg': nonneg_idxs,
-        'exp': exp_idxs,
+        'exp': np.asarray(exp_idxs, dtype=int),
         'soc': soc_idxs,
         'psd': psd_idxs
     }
@@ -309,7 +327,7 @@ class SuppFunc:
             if len(con_params) > 0:
                 raise ValueError('Convex sets described with Parameter objects are not allowed.')
         self.x = x
-        self.constraints = constraints
+        self.constraints = list(constraints)
         self._solver_context = None
         self._conic_repr = None
         self._scs_conic_repr = None
@@ -332,6 +350,8 @@ class SuppFunc:
         np.ndarray,
         dict[str, np.ndarray | list],
     ]:
+        # Proper cross-chain caching is deferred for now; this only caches
+        # canonicalizations that share the same SolverInfo instance.
         if self._solver_context is solver_context:
             return self._conic_repr
         if len(self.constraints) == 0:
