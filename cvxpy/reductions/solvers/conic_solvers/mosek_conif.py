@@ -106,19 +106,20 @@ class MOSEK(ConicSolver):
     """
 
     MIP_CAPABLE = True
-    SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC, SvecPSD]
+    SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [
+        SOC, SvecPSD, ExpCone, PowCone3D
+    ]
     PSD_TRIANGLE_KIND = TriangleKind.LOWER
     PSD_SQRT2_SCALING = False
     EXP_CONE_ORDER = [2, 1, 0]
     DUAL_EXP_CONE_ORDER = [0, 1, 2]
     # Does not support MISDP.
-    MI_SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC]
+    MI_SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [
+        SOC, ExpCone, PowCone3D
+    ]
+    REQUIRED_MODULES = ("mosek",)
 
     """
-    Note that MOSEK.SUPPORTED_CONSTRAINTS does not include the exponential cone
-    by default. CVXPY will check for exponential cone support when
-    "import_solver( ... )" or "accepts( ... )" is called.
-
     The cvxpy standard for the exponential cone is:
         K_e = closure{(x,y,z) |  z >= y * exp(x/y), y>0}.
     Whenever a solver uses this convention, EXP_CONE_ORDER should be [0, 1, 2].
@@ -129,15 +130,9 @@ class MOSEK(ConicSolver):
     """
 
     def import_solver(self) -> None:
-        """Imports the solver (updates the set of supported constraints, if applicable).
+        """Imports the solver.
         """
         import mosek  # noqa F401
-
-        if hasattr(mosek.conetype, 'pexp') and ExpCone not in MOSEK.SUPPORTED_CONSTRAINTS:
-            MOSEK.SUPPORTED_CONSTRAINTS.append(ExpCone)
-            MOSEK.SUPPORTED_CONSTRAINTS.append(PowCone3D)
-            MOSEK.MI_SUPPORTED_CONSTRAINTS.append(ExpCone)
-            MOSEK.MI_SUPPORTED_CONSTRAINTS.append(PowCone3D)
 
     def name(self):
         """The name of the solver.

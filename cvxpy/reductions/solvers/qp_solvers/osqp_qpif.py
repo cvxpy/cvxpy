@@ -12,6 +12,7 @@ from cvxpy.utilities.citations import CITATION_DICT
 
 class OSQP(QpSolver):
     """QP interface for the OSQP solver"""
+    REQUIRED_MODULES = ("osqp",)
 
     # Map of OSQP status to CVXPY status.
     # Note: Status map has changed in versions >= 1

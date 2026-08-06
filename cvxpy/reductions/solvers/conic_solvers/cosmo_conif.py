@@ -29,6 +29,7 @@ from cvxpy.utilities.citations import CITATION_DICT
 
 class COSMO(CLARABEL):
     """An interface for the COSMO solver."""
+    REQUIRED_MODULES = ("cosmopy",)
 
     STATUS_MAP = {
         "Solved": s.OPTIMAL,

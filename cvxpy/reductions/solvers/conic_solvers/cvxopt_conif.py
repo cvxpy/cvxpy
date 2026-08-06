@@ -49,6 +49,7 @@ class CVXOPT(ConicSolver):
     MIP_CAPABLE = False
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC,
                                                                  PSD]
+    REQUIRED_MODULES = ("cvxopt",)
 
     # Map of CVXOPT status to CVXPY status.
     STATUS_MAP = {"optimal": s.OPTIMAL,
