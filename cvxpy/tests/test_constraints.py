@@ -49,23 +49,19 @@ class TestConstraints(BaseTest):
 
                 constraint = z >= 0.6
                 actual = constraint.violation()
-                expected = np.array([0.0])
-                np.testing.assert_array_equal(actual, expected, strict=True)
+                assert actual == pytest.approx(0.0)
 
                 constraint = 1 - z <= 0.6
                 actual = constraint.violation()
-                expected = np.array([0.0])
-                np.testing.assert_array_equal(actual, expected, strict=True)
+                assert actual == pytest.approx(0.0)
 
                 constraint = z <= 0.6
                 actual = constraint.violation()
-                expected = np.array([0.4])
-                np.testing.assert_array_equal(actual, expected, strict=True)
+                assert actual == pytest.approx(0.4)
 
                 constraint = 1 - z >= 0.6
                 actual = constraint.violation()
-                expected = np.array([0.6])
-                np.testing.assert_array_equal(actual, expected, strict=True)
+                assert actual == pytest.approx(0.6)
 
     def test_equality(self) -> None:
         """Test the Equality class.
@@ -86,12 +82,12 @@ class TestConstraints(BaseTest):
         self.x.value = np.array([2, 1])
         self.z.value = np.array([2, 2])
         assert not constr.value()
-        self.assertItemsAlmostEqual(constr.violation(), [0, 1])
+        self.assertAlmostEqual(constr.violation(), 1)
         self.assertItemsAlmostEqual(constr.residual, [0, 1])
 
         self.z.value = np.array([2, 1])
         assert constr.value()
-        self.assertItemsAlmostEqual(constr.violation(), [0, 0])
+        self.assertAlmostEqual(constr.violation(), 0)
         self.assertItemsAlmostEqual(constr.residual, [0, 0])
 
         # Incompatible dimensions
@@ -130,12 +126,12 @@ class TestConstraints(BaseTest):
         self.x.value = np.array([2, 1])
         self.z.value = np.array([2, 0])
         assert not constr.value()
-        self.assertItemsAlmostEqual(constr.violation(), [0, 1])
-        self.assertItemsAlmostEqual(constr.residual, [0, 1])
+        self.assertAlmostEqual(constr.violation(), 1)
+        self.assertItemsAlmostEqual(constr.residual, [0, -1])
 
         self.z.value = np.array([2, 2])
         assert constr.value()
-        self.assertItemsAlmostEqual(constr.violation(), [0, 0])
+        self.assertAlmostEqual(constr.violation(), 0)
         self.assertItemsAlmostEqual(constr.residual, [0, 0])
 
         # Incompatible dimensions
@@ -808,3 +804,45 @@ class TestConstraints(BaseTest):
 
         with pytest.raises(ValueError, match="same shapes"):
             cp.constraints.OpRelEntrConeQuad(cp.Variable((1, 1), symmetric=True), Y, Z, 2, 3)
+
+
+    def test_equality_residual_is_feasibility_correction(self):
+        x = cp.Variable(2)
+        constr = x == np.array([0.0, 0.0])
+        x.value = np.array([3.0, -4.0])
+
+        np.testing.assert_allclose(constr.residual, np.array([-3.0, 4.0]))
+        assert constr.violation() == pytest.approx(4.0)
+
+    def test_inequality_leq_residual_is_feasibility_correction(self):
+        x = cp.Variable(2)
+        constr = x <= np.array([0.0, 0.0])
+        x.value = np.array([3.0, -4.0])
+
+        np.testing.assert_allclose(constr.residual, np.array([-3.0, 0.0]))
+        assert constr.violation() == pytest.approx(3.0)
+
+    def test_inequality_geq_residual_is_feasibility_correction(self):
+        x = cp.Variable(2)
+        constr = x >= np.array([0.0, 0.0])
+        x.value = np.array([3.0, -4.0])
+
+        np.testing.assert_allclose(constr.residual, np.array([0.0, -4.0]))
+        assert constr.violation() == pytest.approx(4.0)
+
+    def test_nonpos_violation_uses_infinity_norm(self):
+        x = cp.Variable(2)
+        constr = cp.NonPos(x)
+        x.value = np.array([3.0, 4.0])
+
+        np.testing.assert_allclose(constr.residual, np.array([-3.0, -4.0]))
+        assert constr.violation() == pytest.approx(4.0)
+
+
+    def test_nonneg_violation_uses_infinity_norm(self):
+        x = cp.Variable(2)
+        constr = cp.NonNeg(x)
+        x.value = np.array([-3.0, -4.0])
+
+        np.testing.assert_allclose(constr.residual, np.array([3.0, 4.0]))
+        assert constr.violation() == pytest.approx(4.0)
