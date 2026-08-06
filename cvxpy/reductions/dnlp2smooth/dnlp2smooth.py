@@ -58,6 +58,9 @@ class Dnlp2Smooth(Canonicalization):
                 constraint, False)
             canon_constraints += aux_constr + [canon_constr]
             inverse_data.cons_id_map.update({constraint.id: canon_constr.id})
+            # Map auxiliary constraints for dual variable recovery
+            for aux in aux_constr:
+                inverse_data.cons_id_map.update({aux.id: aux.id})
 
         new_problem = problems.problem.Problem(canon_objective,
                                                canon_constraints)
