@@ -291,6 +291,8 @@ warm start would only be a good initial point.
 
 Warm start can also be used to provide an initial guess the first time a problem is solved.
 The initial guess is constructed from the ``value`` field of the problem variables.
+Note that many solvers do not support providing an initial guess, and will ignore
+the ``value`` field of the variables.
 If the same problem is solved a second time, the initial guess is constructed from the
 cached previous solution as described above (rather than from the ``value`` field).
 
