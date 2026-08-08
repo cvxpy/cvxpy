@@ -300,7 +300,7 @@ class Complex2Real(Reduction):
 
             if attrs.get("PSD"):
                 constrs.append(PSD(block_mat))
-            else:
+            elif attrs.get("NSD"):
                 constrs.append(PSD(-block_mat))
 
         new_problem = problems.problem.Problem(real_obj,

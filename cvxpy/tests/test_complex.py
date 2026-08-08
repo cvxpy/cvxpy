@@ -193,6 +193,16 @@ class TestComplex2RealAttributes(BaseTest):
         self.assertEqual(imag.attributes.get("sparsity"), sparsity)
         self.assertFalse(imag.attributes.get("imag"))
 
+    def test_hermitian_sparsity_attribute_rejected(self) -> None:
+        """Hermitian and sparsity attributes are mutually exclusive."""
+        with pytest.raises(ValueError, match="cannot have more than one"):
+            cp.Variable((3, 3), hermitian=True, sparsity=([0], [1]))
+
+    def test_hermitian_diag_attribute_rejected(self) -> None:
+        """Hermitian and diagonal attributes are mutually exclusive."""
+        with pytest.raises(ValueError, match="cannot have more than one"):
+            cp.Variable((3, 3), hermitian=True, diag=True)
+
 class TestComplex(BaseTest):
     """ Unit tests for the expression/expression module. """
 
