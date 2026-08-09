@@ -11,6 +11,7 @@ from cvxpy.constraints.second_order import SOC
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.cvx_attr2constr import CONVEX_ATTRIBUTES
 from cvxpy.utilities.solver_context import SolverInfo
+from cvxpy.utilities.warn import CvxpyDeprecationWarning, warn
 
 if TYPE_CHECKING:
     from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeDims
@@ -34,6 +35,10 @@ def scs_coniclift(x, constraints):
     This function DOES NOT work when ``x`` has attributes, like ``PSD=True``,
     ``diag=True``, ``symmetric=True``, etc...
     """
+    warn(
+        "scs_coniclift is deprecated and will be removed in CVXPY 1.10.",
+        CvxpyDeprecationWarning,
+    )
     from cvxpy.atoms.affine.sum import sum
     from cvxpy.problems.objective import Minimize
     from cvxpy.problems.problem import Problem
@@ -166,6 +171,10 @@ def scs_cone_selectors(K):
         arrays, or lists of numpy arrays. The numpy arrays give row indices
         of the affine operator (A, b) returned by SCS's apply function.
     """
+    warn(
+        "scs_cone_selectors is deprecated and will be removed in CVXPY 1.10.",
+        CvxpyDeprecationWarning,
+    )
     if K.p3d:
         msg = "SuppFunc doesn't yet support feasible sets represented \n"
         msg += "with power cone constraints."
@@ -366,6 +375,11 @@ class SuppFunc:
 
     def conic_repr_of_set(self):
         """Return the historical SCS-formatted representation of the set."""
+        warn(
+            "SuppFunc.conic_repr_of_set is deprecated and will be removed "
+            "in CVXPY 1.10.",
+            CvxpyDeprecationWarning,
+        )
         if self._scs_conic_repr is None:
             if len(self.constraints) == 0:
                 dummy = Variable()

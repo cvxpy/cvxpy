@@ -41,6 +41,7 @@ from cvxpy.transforms.suppfunc import (
     scs_coniclift,
 )
 from cvxpy.utilities.solver_context import SolverInfo
+from cvxpy.utilities.warn import CvxpyDeprecationWarning
 
 
 def _solver_context(solver: type[ConicSolver]) -> SolverInfo:
@@ -286,13 +287,18 @@ class TestSupportFunctions(BaseTest):
     def test_scs_compatibility_api(self) -> None:
         x = cp.Variable(1)
         constraints = [x <= 1]
-        A, b, K = scs_coniclift(x, constraints)
-        selectors = scs_cone_selectors(K)
+        with pytest.warns(CvxpyDeprecationWarning, match="scs_coniclift"):
+            A, b, K = scs_coniclift(x, constraints)
+        with pytest.warns(CvxpyDeprecationWarning, match="scs_cone_selectors"):
+            selectors = scs_cone_selectors(K)
         self.assertEqual(A.shape[0], b.size)
         self.assertEqual(selectors["nonneg"].size, 1)
 
         sigma = cp.suppfunc(x, constraints)
-        old_A, old_b, old_selectors = sigma.conic_repr_of_set()
+        with pytest.warns(CvxpyDeprecationWarning) as warnings:
+            old_A, old_b, old_selectors = sigma.conic_repr_of_set()
+        self.assertTrue(any(
+            "SuppFunc.conic_repr_of_set" in str(w.message) for w in warnings))
         self.assertEqual(old_A.shape, A.shape)
         self.assertEqual(old_b.shape, b.shape)
         np.testing.assert_allclose(old_A.toarray(), A.toarray())
@@ -300,7 +306,9 @@ class TestSupportFunctions(BaseTest):
         self.assertEqual(old_selectors["nonneg"].size, 1)
 
         vec = cp.Variable(3)
-        self.assertEqual(scs_psdvec_to_psdmat(vec, np.arange(3)).shape, (2, 2))
+        with pytest.warns(CvxpyDeprecationWarning, match="scs_psdvec_to_psdmat"):
+            psdmat = scs_psdvec_to_psdmat(vec, np.arange(3))
+        self.assertEqual(psdmat.shape, (2, 2))
 
     def test_power_cone_remains_unsupported(self) -> None:
         x = cp.Variable(3)

@@ -30,7 +30,7 @@ from cvxpy.reductions.solvers.conic_solvers.conic_solver import (
 from cvxpy.utilities.citations import CITATION_DICT
 from cvxpy.utilities.psd_utils import TriangleKind
 from cvxpy.utilities.versioning import Version
-from cvxpy.utilities.warn import warn
+from cvxpy.utilities.warn import CvxpyDeprecationWarning, warn
 
 
 def dims_to_solver_dict(cone_dims):
@@ -62,6 +62,10 @@ def scs_psdvec_to_psdmat(vec: Expression, indices: np.ndarray) -> Expression:
     cannot be used, because this function builds a cvxpy Expression,
     rather than a numpy ndarray.
     """
+    warn(
+        "scs_psdvec_to_psdmat is deprecated and will be removed in CVXPY 1.10.",
+        CvxpyDeprecationWarning,
+    )
     n = int(np.sqrt(indices.size * 2))
     rows, cols = np.triu_indices(n)
     mats = []
