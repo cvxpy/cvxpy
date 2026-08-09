@@ -11,7 +11,7 @@ from cvxpy.utilities.solver_context import SolverInfo
 
 
 def _svec_psd_dual_arg(
-    arg: Expression, n: int, solver_context: SolverInfo,
+    arg: Expression, n: int, num_cones: int, solver_context: SolverInfo,
 ) -> Expression:
     """Map solver-formatted svec rows to their Euclidean dual cone.
 
@@ -21,13 +21,16 @@ def _svec_psd_dual_arg(
     if solver_context.psd_sqrt2_scaling:
         return arg
 
+    # NumPy enumerates triangle indices row-by-row, while solver svec entries
+    # are ordered column-by-column. Column-major lower-triangle order has the
+    # same diagonal pattern as row-major upper-triangle order, and vice versa,
+    # so use the opposite triangle when constructing these weights.
     if solver_context.psd_triangle_kind == TriangleKind.LOWER:
-        rows, cols = np.tril_indices(n)
-    else:
         rows, cols = np.triu_indices(n)
-    order = np.argsort(np.ravel_multi_index((rows, cols), (n, n), order='F'))
-    weights = np.where((rows == cols)[order], 1.0, 0.5)
-    weights = np.tile(weights, arg.size // weights.size)
+    else:
+        rows, cols = np.tril_indices(n)
+    weights = np.where(rows == cols, 1.0, 0.5)
+    weights = np.tile(weights, num_cones)
     return multiply(weights, arg)
 
 
@@ -71,7 +74,8 @@ def suppfunc_canon(expr, args, solver_context: SolverInfo | None = None):
         eta_block = eta[psdsel]
         if isinstance(source_con, SvecPSD):
             n = source_con.cone_sizes()[0]
-            dual_arg = _svec_psd_dual_arg(eta_block, n, solver_context)
+            dual_arg = _svec_psd_dual_arg(
+                eta_block, n, source_con.num_cones(), solver_context)
             local_cons.append(SvecPSD(dual_arg, n=n))
         else:
             eta_mat = reshape(eta_block, source_con.shape, order='F')

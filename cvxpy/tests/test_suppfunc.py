@@ -174,16 +174,18 @@ class TestSupportFunctions(BaseTest):
         self.assertAlmostEqual(prob.value, 1.0, places=6)
 
     def test_unscaled_svec_uses_dual_weights(self) -> None:
-        X = cp.Variable((3, 3))
-        sigma = cp.suppfunc(X, [X >> 0, cp.trace(X) <= 1])
-        expr = sigma(np.eye(3))
+        x = cp.Variable(12)
+        sigma = cp.suppfunc(x, [SvecPSD(x, n=3)])
+        expr = sigma(np.ones(x.shape))
 
         _, constraints = suppfunc_canon(
-            expr, [cp.Constant(np.eye(3))], _solver_context(COPT))
+            expr, [cp.Constant(np.ones(x.shape))], _solver_context(COPT))
         svec_con = next(con for con in constraints if isinstance(con, SvecPSD))
         expr._eta.value = np.ones(expr._eta.size)
         np.testing.assert_allclose(
-            svec_con.args[0].value, [1.0, 0.5, 0.5, 1.0, 0.5, 1.0])
+            svec_con.args[0].value,
+            [1.0, 0.5, 0.5, 1.0, 0.5, 1.0] * 2,
+        )
 
     def test_auxiliary_variable_bound_attribute(self) -> None:
         x = cp.Variable(1)
