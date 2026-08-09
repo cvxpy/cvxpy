@@ -1,4 +1,5 @@
 import numpy as np
+from scipy import sparse
 
 from cvxpy import SOC, Variable, hstack, multiply, reshape
 from cvxpy.atoms.affine.transpose import swapaxes
@@ -8,6 +9,25 @@ from cvxpy.constraints.psd import PSD, SvecPSD
 from cvxpy.expressions.expression import Expression
 from cvxpy.utilities.psd_utils import TriangleKind
 from cvxpy.utilities.solver_context import SolverInfo
+
+
+def _is_symmetric_affine_block(
+    A: sparse.sparray,
+    b: np.ndarray,
+    rows: np.ndarray,
+    n: int,
+    num_cones: int,
+) -> bool:
+    """Return whether a vectorized affine matrix block is symmetric."""
+    # Matrix stuffing uses Fortran order, so batches are interleaved. Reshape
+    # the indices as (column, row, batch), then swap row and column.
+    transposed_rows = rows.reshape(n, n, num_cones).swapaxes(0, 1).ravel()
+    # Using == on sparse matrices is expensive because it includes all the
+    # matching zeros. If != finds no entries, the matrices are equal.
+    return (
+        (A[rows] != A[transposed_rows]).nnz == 0
+        and np.array_equal(b[rows], b[transposed_rows])
+    )
 
 
 def _svec_psd_dual_arg(
@@ -79,8 +99,14 @@ def suppfunc_canon(expr, args, solver_context: SolverInfo | None = None):
             local_cons.append(SvecPSD(dual_arg, n=n))
         else:
             eta_mat = reshape(eta_block, source_con.shape, order='F')
-            local_cons.append(
-                upper_tri(eta_mat) == upper_tri(swapaxes(eta_mat, -2, -1)))
+            # If this block is already symmetric, the skew part of eta drops
+            # out and the PSD constraint is enough on its own.
+            if not _is_symmetric_affine_block(
+                    A, b, psdsel, source_con.shape[-1],
+                    source_con.num_cones()):
+                local_cons.append(
+                    upper_tri(eta_mat)
+                    == upper_tri(swapaxes(eta_mat, -2, -1)))
             local_cons.append(PSD(eta_mat))
     expsel = K_sels["exp"]
     if expsel.size > 0:

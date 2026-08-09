@@ -21,6 +21,7 @@ import pytest
 
 import cvxpy as cp
 from cvxpy.constraints.psd import PSD, SvecPSD
+from cvxpy.constraints.zero import Equality
 from cvxpy.error import SolverError
 from cvxpy.reductions.dcp2cone.canonicalizers.suppfunc_canon import (
     suppfunc_canon,
@@ -167,11 +168,23 @@ class TestSupportFunctions(BaseTest):
         epigraph, constraints = suppfunc_canon(
             expr, [cp.Constant(A)], _solver_context(SDPA))
         self.assertEqual(sum(isinstance(con, PSD) for con in constraints), 1)
+        self.assertEqual(sum(isinstance(con, Equality) for con in constraints), 2)
         self.assertFalse(any(isinstance(con, SvecPSD) for con in constraints))
 
         prob = cp.Problem(cp.Minimize(epigraph), constraints)
         prob.solve(solver=cp.CLARABEL)
         self.assertAlmostEqual(prob.value, 1.0, places=6)
+
+        symmetric_sigma = cp.suppfunc(
+            X, [X + X.T >> 0, cp.trace(X) <= 1])
+        symmetric_epigraph, symmetric_constraints = suppfunc_canon(
+            symmetric_sigma(A), [cp.Constant(A)], _solver_context(SDPA))
+        self.assertEqual(
+            sum(isinstance(con, Equality) for con in symmetric_constraints), 1)
+        symmetric_prob = cp.Problem(
+            cp.Minimize(symmetric_epigraph), symmetric_constraints)
+        symmetric_prob.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(symmetric_prob.value, 1.0, places=6)
 
     def test_unscaled_svec_uses_dual_weights(self) -> None:
         x = cp.Variable(12)
