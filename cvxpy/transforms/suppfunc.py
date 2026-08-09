@@ -63,7 +63,7 @@ def _coniclift(
     constraints: list[Constraint],
     solver_context: SolverInfo,
 ) -> tuple[
-    sparse.sparray | sparse.spmatrix,
+    sparse.sparray,
     np.ndarray,
     dict[str, np.ndarray | list],
 ]:
@@ -346,7 +346,7 @@ class SuppFunc:
     def _conic_repr_of_set(
         self, solver_context: SolverInfo,
     ) -> tuple[
-        sparse.sparray | sparse.spmatrix,
+        sparse.sparray,
         np.ndarray,
         dict[str, np.ndarray | list],
     ]:
