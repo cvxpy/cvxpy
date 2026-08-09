@@ -86,8 +86,9 @@ def _coniclift(
 
     Notes
     -----
-    This function DOES NOT work when ``x`` has attributes, like ``PSD=True``,
-    ``diag=True``, ``symmetric=True``, etc...
+    Attributes on auxiliary variables are supported, but ``x`` itself must be
+    unmodified. The column extraction below assumes that ``x`` retains its
+    original variable ID and occupies ``x.size`` columns after canonicalization.
     """
     from cvxpy.atoms.affine.sum import sum
     from cvxpy.constraints.finite_set import FiniteSet
