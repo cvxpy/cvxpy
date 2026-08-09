@@ -199,23 +199,23 @@ def _cone_selectors(
     K: "ConeDims", constraints: list[Constraint],
 ) -> dict[str, np.ndarray | list]:
     """
-    Parse a ConeDims object from an unformatted ParamConeProg.
+    Parse cone rows from the ParamConeProg returned by ConeMatrixStuffing.
 
-    Return a dictionary which gives row-wise information for the affine
-    operator stored by the ParamConeProg.
+    This is the representation before ConicSolver.format_constraints
+    rearranges the rows for a particular solver.
 
     Parameters
     ----------
     K : cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims
     constraints : list[Constraint]
-        Ordered constraints from the unformatted ParamConeProg.
+        Ordered constraints from the ParamConeProg.
 
     Returns
     -------
     selectors : dict
         Keyed by strings, which specify cone types. Values are numpy
         arrays, or lists of numpy arrays. The numpy arrays give row indices
-        of the affine operator (A, b) stored by the ParamConeProg.
+        of the affine operator (A, b) before solver-specific formatting.
     """
     if K.p3d or K.pnd:
         msg = "SuppFunc doesn't yet support feasible sets represented \n"
