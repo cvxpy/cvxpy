@@ -50,8 +50,8 @@ Four differences are already visible:
 * Matrix multiplication is ``@``, not ``*``. See
   :ref:`multiplication <matlab-multiplication>` below.
 
-Four kinds of array
--------------------
+Four kinds of arrays
+--------------------
 
 Code that mixes MATLAB habits with CVXPY tends to confuse four distinct types:
 
@@ -148,13 +148,25 @@ Using ``*`` for matrix multiplication has been deprecated since CVXPY 1.1 and
 emits a warning. It is worth fixing rather than silencing: on operands that
 happen to have equal shapes, the intent is genuinely ambiguous.
 
-Reshaping: CVXPY follows MATLAB, NumPy does not
------------------------------------------------
+Reshaping: always pass ``order`` explicitly
+-------------------------------------------
+
+.. warning::
+
+    The default order of :py:func:`~cvxpy.reshape`, :py:func:`~cvxpy.vec` and
+    :py:func:`~cvxpy.flatten` is changing. It is Fortran (``'F'``) today, and
+    omitting ``order`` raises a ``FutureWarning``. CVXPY 1.7 plans to raise an
+    error when ``order`` is not specified, and 1.8 will switch the default to
+    ``'C'`` to match NumPy. **Pass** ``order`` **explicitly**: code that relies
+    on the current default will change meaning when the switch happens.
+
+The reason this matters more to MATLAB users than to anyone else is that the
+current default happens to agree with MATLAB and disagree with NumPy — so your
+existing intuition is right today and will stop being right.
 
 MATLAB is column-major: ``reshape`` fills the first column, then the second.
-NumPy is row-major by default. :py:func:`~cvxpy.reshape` and
-:py:func:`~cvxpy.vec` currently default to Fortran (column-major) order, which
-matches MATLAB and *differs* from NumPy on the same data:
+NumPy is row-major by default. The three libraries therefore disagree on the
+same data:
 
 .. code:: python
 
@@ -163,13 +175,6 @@ matches MATLAB and *differs* from NumPy on the same data:
     M.reshape(3, 2)                             # [[0, 1], [2, 3], [4, 5]]
     cp.reshape(cp.Constant(M), (3, 2), order='C').value  # [[0, 1], [2, 3], [4, 5]]
     cp.reshape(cp.Constant(M), (3, 2), order='F').value  # [[0, 4], [3, 2], [1, 5]]
-
-.. warning::
-
-    CVXPY's default order will change from ``'F'`` to ``'C'`` in a future
-    version, to match NumPy. Omitting ``order`` currently raises a
-    ``FutureWarning``. **Always pass** ``order`` **explicitly** — code that
-    relies on the current default will change meaning silently when it flips.
 
 Indexing
 --------
@@ -194,17 +199,29 @@ More than two dimensions
 ------------------------
 
 Older material states that CVXPY expressions are limited to two dimensions.
-This is no longer true: ``cp.Variable((2, 3, 4))`` is valid and N-dimensional
-expressions are supported. Support is newer than the rest of the library, so
-not every atom accepts N-D input; check the documentation of the specific atom.
+That has not been true since CVXPY 1.6, which introduced
+:ref:`N-dimensional expressions <n-dimensional>`, so ``cp.Variable((2, 3, 4))``
+is valid today.
+
+Support is still marked experimental, and there is no single list of which
+atoms do and do not accept N-D input. If you hit a gap, the
+:ref:`N-dimensional section <n-dimensional>` asks that you report it on the
+issue tracker.
 
 Things CVXPY rejects that CVX accepts
 -------------------------------------
 
 * **Chained constraints.** ``0 <= x <= 1`` and ``x == y == 2`` raise an
   exception. Write them as separate entries in the constraint list.
-* **Strict inequalities.** ``<`` and ``>`` are not constraints in CVXPY, since
-  they have no meaning for a numerical solver.
+* **Strict inequalities.** CVX accepts ``<`` and ``>``, but `interprets them
+  identically to their non-strict counterparts
+  <https://cvxr.com/cvx/doc/basics.html>`_. CVXPY raises an exception instead.
+  The reason is not that strict inequalities are meaningless in finite
+  precision — in IEEE 754 arithmetic they are perfectly well defined — but that
+  the resulting problem is ill-posed: an open feasible set need not attain its
+  optimum. Secondarily, numerical solvers do not return strictly feasible
+  points, so there would be no operational difference between the two anyway.
+  Raising an error says so, rather than silently reinterpreting your model.
 * **Non-symmetric quadratic forms.** :py:func:`~cvxpy.quad_form` requires a
   symmetric (or Hermitian) matrix and raises ``ValueError`` otherwise. If your
   matrix is symmetric only up to floating-point noise, symmetrize it first with
