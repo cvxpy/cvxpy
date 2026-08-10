@@ -406,18 +406,6 @@ class Expression(u.Canonical):
                 return self.is_convex() or self.is_concave()
         return self.is_convex() or self.is_concave()
 
-    def atom_name(self) -> str | None:
-        """Short display name if this expression is an atom; otherwise ``None``."""
-        return None
-
-    def dcp_failure_reason(self) -> str | None:
-        """Return a reason string if this node fails DCP, else ``None``.
-
-        Non-atom expressions have no composition rule to explain; atoms
-        override this in :class:`~cvxpy.atoms.atom.Atom`.
-        """
-        return None
-
     def explain_dcp(self) -> str:
         """Explain why this expression fails DCP, if it does.
 

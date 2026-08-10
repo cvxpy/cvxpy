@@ -58,39 +58,41 @@ def monotonicity_word(atom: Expression, idx: int) -> str:
 
 
 def explain_composition_failure(
-    expr: Expression, atom_curvature: AtomCurvature
+    atom: Expression, atom_curvature: AtomCurvature
 ) -> str | None:
     """Explain the first DCP composition-rule failure for an atom curvature.
 
     Mirrors the argument checks in ``Atom.is_convex`` / ``Atom.is_concave``,
     but reports which argument failed and why.
+
+    ``atom`` must be a :class:`~cvxpy.atoms.atom.Atom` (provides ``atom_name``).
     """
-    for idx, arg in enumerate(expr.args):
+    for idx, arg in enumerate(atom.args):
         if atom_curvature == "convex":
             ok = (
                 arg.is_affine()
-                or (arg.is_convex() and expr.is_incr(idx))
-                or (arg.is_concave() and expr.is_decr(idx))
+                or (arg.is_convex() and atom.is_incr(idx))
+                or (arg.is_concave() and atom.is_decr(idx))
             )
         else:
             ok = (
                 arg.is_affine()
-                or (arg.is_concave() and expr.is_incr(idx))
-                or (arg.is_convex() and expr.is_decr(idx))
+                or (arg.is_concave() and atom.is_incr(idx))
+                or (arg.is_convex() and atom.is_decr(idx))
             )
         if ok:
             continue
 
-        atom_name = expr.atom_name()
-        mono = monotonicity_word(expr, idx)
+        name = atom.atom_name()
+        mono = monotonicity_word(atom, idx)
         arg_curv = arg.curvature.lower()
         pretty_arg = arg.format_labeled()
-        if len(expr.args) == 1:
+        if len(atom.args) == 1:
             arg_phrase = f"Its argument {pretty_arg} is {arg_curv}"
         else:
             arg_phrase = f"Argument {idx} ({pretty_arg}) is {arg_curv}"
         return (
-            f"{atom_name} is {atom_curvature} and {mono}. "
+            f"{name} is {atom_curvature} and {mono}. "
             f"{arg_phrase}. "
             f"DCP does not allow a {atom_curvature} {mono} atom "
             f"to be applied to a {arg_curv} argument."
@@ -152,7 +154,12 @@ def _violation_entry(
     expr, discipline_type: DisciplineName
 ) -> tuple[str, str | None]:
     if discipline_type == DCP:
-        return (expr.format_labeled(), expr.dcp_failure_reason())
+        # ``dcp_failure_reason`` exists on Atom and Constraint, not on leaves.
+        try:
+            reason = expr.dcp_failure_reason()
+        except AttributeError:
+            reason = None
+        return (expr.format_labeled(), reason)
     if discipline_type == DGP:
         expr_label = str(expr)
         reason = None

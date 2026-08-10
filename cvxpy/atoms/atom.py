@@ -91,12 +91,15 @@ class Atom(Expression):
         # Defer to Expression default (label or name) when subclass has a custom name().
         return super().format_labeled()
 
-    def atom_name(self) -> str | None:
+    def atom_name(self) -> str:
         """Short display name for this atom (defaults to the class name)."""
         return type(self).__name__
 
     def dcp_failure_reason(self) -> str | None:
-        """Return a reason string if this atom fails DCP composition, else ``None``."""
+        """Return a reason string if this atom fails DCP composition, else ``None``.
+
+        Called from DCP diagnostics when this atom is a minimal violating node.
+        """
         if self.is_dcp():
             return None
 
