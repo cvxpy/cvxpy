@@ -68,7 +68,7 @@ class NonPos(Constraint):
                 return self.args[0].is_convex()
         return self.args[0].is_convex()
 
-    def dcp_failure_reason(self) -> str | None:
+    def _dcp_failure_reason(self) -> str | None:
         expr = self.args[0]
         if expr.is_convex():
             return None
@@ -144,7 +144,7 @@ class NonNeg(Constraint):
                 return self.args[0].is_concave()
         return self.args[0].is_concave()
 
-    def dcp_failure_reason(self) -> str | None:
+    def _dcp_failure_reason(self) -> str | None:
         expr = self.args[0]
         if expr.is_concave():
             return None
@@ -244,7 +244,7 @@ class Inequality(Constraint):
                 return self.expr.is_convex()
         return self.expr.is_convex()
 
-    def dcp_failure_reason(self) -> str | None:
+    def _dcp_failure_reason(self) -> str | None:
         if self.expr.is_convex():
             return None
         lhs = self.args[0]

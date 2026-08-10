@@ -58,7 +58,7 @@ class Zero(Constraint):
                 return self.args[0].is_affine()
         return self.args[0].is_affine()
 
-    def dcp_failure_reason(self) -> str | None:
+    def _dcp_failure_reason(self) -> str | None:
         expr = self.args[0]
         if expr.is_affine():
             return None
@@ -147,7 +147,7 @@ class Equality(Constraint):
                 return self.expr.is_affine()
         return self.expr.is_affine()
 
-    def dcp_failure_reason(self) -> str | None:
+    def _dcp_failure_reason(self) -> str | None:
         expr = self.expr
         if expr.is_affine():
             return None

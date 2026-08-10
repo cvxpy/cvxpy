@@ -31,7 +31,7 @@ class TestDcpDiagnostics(BaseTest):
         x = cp.Variable()
         expr = cp.sqrt(1 + cp.square(x))
         self.assertFalse(expr.is_dcp())
-        reason = expr.dcp_failure_reason()
+        reason = expr._dcp_failure_reason()
         self.assertIsNotNone(reason)
         self.assertIn("concave", reason)
         self.assertIn("nondecreasing", reason)
@@ -46,7 +46,7 @@ class TestDcpDiagnostics(BaseTest):
         x = cp.Variable()
         expr = cp.exp(-cp.square(x))
         self.assertFalse(expr.is_dcp())
-        reason = expr.dcp_failure_reason()
+        reason = expr._dcp_failure_reason()
         self.assertIsNotNone(reason)
         self.assertIn("convex", reason)
         self.assertIn("nondecreasing", reason)
@@ -62,7 +62,7 @@ class TestDcpDiagnostics(BaseTest):
         y = cp.Variable()
         expr = cp.multiply(x, y)
         self.assertFalse(expr.is_dcp())
-        reason = expr.dcp_failure_reason()
+        reason = expr._dcp_failure_reason()
         self.assertIsNotNone(reason)
         self.assertIn("neither a convex nor a concave atom", reason)
 
@@ -84,8 +84,8 @@ class TestDcpDiagnostics(BaseTest):
         x = cp.Variable(name="x")
         expr = cp.sqrt(1 + cp.square(x))
         self.assertEqual(expr.format_labeled(), "sqrt(1.0 + square(x))")
-        self.assertEqual(expr.atom_name(), "sqrt")
-        self.assertEqual(cp.square(x).atom_name(), "square")
+        self.assertEqual(expr._atom_name(), "sqrt")
+        self.assertEqual(cp.square(x)._atom_name(), "square")
 
     def test_error_msg_minimize_concave_objective(self) -> None:
         # Expression is DCP (concave), but Minimize requires convex.

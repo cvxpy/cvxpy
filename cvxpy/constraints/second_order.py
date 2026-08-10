@@ -162,7 +162,7 @@ class SOC(Cone):
                 return all(arg.is_affine() for arg in self.args)
         return all(arg.is_affine() for arg in self.args)
 
-    def dcp_failure_reason(self) -> str | None:
+    def _dcp_failure_reason(self) -> str | None:
         bad = [a for a in self.args if not a.is_affine()]
         if not bad:
             return None
@@ -328,7 +328,7 @@ class RSOC(Cone):
                 return all(arg.is_affine() for arg in self.args)
         return all(arg.is_affine() for arg in self.args)
 
-    def dcp_failure_reason(self) -> str | None:
+    def _dcp_failure_reason(self) -> str | None:
         bad = [a for a in self.args if not a.is_affine()]
         if not bad:
             return None

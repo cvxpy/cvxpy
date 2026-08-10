@@ -65,7 +65,7 @@ def explain_composition_failure(
     Mirrors the argument checks in ``Atom.is_convex`` / ``Atom.is_concave``,
     but reports which argument failed and why.
 
-    ``atom`` must be a :class:`~cvxpy.atoms.atom.Atom` (provides ``atom_name``).
+    ``atom`` must be a :class:`~cvxpy.atoms.atom.Atom` (provides ``_atom_name``).
     """
     for idx, arg in enumerate(atom.args):
         if atom_curvature == "convex":
@@ -83,7 +83,7 @@ def explain_composition_failure(
         if ok:
             continue
 
-        name = atom.atom_name()
+        name = atom._atom_name()
         mono = monotonicity_word(atom, idx)
         arg_curv = arg.curvature.lower()
         pretty_arg = arg.format_labeled()
@@ -154,9 +154,9 @@ def _violation_entry(
     expr, discipline_type: DisciplineName
 ) -> tuple[str, str | None]:
     if discipline_type == DCP:
-        # ``dcp_failure_reason`` exists on Atom and Constraint, not on leaves.
+        # ``_dcp_failure_reason`` exists on Atom and Constraint, not on leaves.
         try:
-            reason = expr.dcp_failure_reason()
+            reason = expr._dcp_failure_reason()
         except AttributeError:
             reason = None
         return (expr.format_labeled(), reason)

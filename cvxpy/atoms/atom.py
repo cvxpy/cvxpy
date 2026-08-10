@@ -91,11 +91,11 @@ class Atom(Expression):
         # Defer to Expression default (label or name) when subclass has a custom name().
         return super().format_labeled()
 
-    def atom_name(self) -> str:
+    def _atom_name(self) -> str:
         """Short display name for this atom (defaults to the class name)."""
         return type(self).__name__
 
-    def dcp_failure_reason(self) -> str | None:
+    def _dcp_failure_reason(self) -> str | None:
         """Return a reason string if this atom fails DCP composition, else ``None``.
 
         Called from DCP diagnostics when this atom is a minimal violating node.
@@ -105,7 +105,7 @@ class Atom(Expression):
 
         atom_convex = self.is_atom_convex()
         atom_concave = self.is_atom_concave()
-        name = self.atom_name()
+        name = self._atom_name()
         if not (atom_convex or atom_concave):
             pretty = self.format_labeled()
             curvs = ", ".join(c.lower() for c in self.curvatures)

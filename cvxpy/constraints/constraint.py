@@ -186,7 +186,7 @@ class Constraint(u.Canonical):
         """
         return debug_tools.explain_constraint_dcp(self)
 
-    def dcp_failure_reason(self) -> str | None:
+    def _dcp_failure_reason(self) -> str | None:
         """Return a reason string if this constraint fails DCP, else None."""
         return None
 
