@@ -90,6 +90,7 @@ def _coniclift(
     unmodified. The column extraction below assumes that ``x`` retains its
     original variable ID and occupies ``x.size`` columns after canonicalization.
     """
+    # Local imports avoid the Problem -> canonicalizers -> transforms cycle.
     from cvxpy.atoms.affine.sum import sum
     from cvxpy.constraints.finite_set import FiniteSet
     from cvxpy.error import SolverError
@@ -98,15 +99,9 @@ def _coniclift(
     from cvxpy.problems.problem_form import ProblemForm
     from cvxpy.reductions.chain import Chain
     from cvxpy.reductions.complex2real import complex2real
-    from cvxpy.reductions.cone2cone.approx import ApproxCone2Cone
-    from cvxpy.reductions.cone2cone.exact import ExactCone2Cone
-    from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr
-    from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import (
-        ConeMatrixStuffing,
+    from cvxpy.reductions.solvers.solving_chain import (
+        _cone_matrix_stuffing_reductions,
     )
-    from cvxpy.reductions.dcp2cone.dcp2cone import Dcp2Cone
-    from cvxpy.reductions.eliminate_zero_sized import EliminateZeroSized
-    from cvxpy.reductions.solvers.solver import expand_cones
 
     prob = Problem(Minimize(sum(x)), constraints)
     has_finite_set = any(isinstance(con, FiniteSet) for con in constraints)
@@ -118,29 +113,15 @@ def _coniclift(
     # empty list, then the support function is the standard
     # support function for R^n.
     problem_form = ProblemForm(prob)
-    cones = problem_form.cones(quad_obj=False).copy()
-    _, exact_targets, approx_targets = expand_cones(
-        cones, solver_context.solver_supported_constraints)
-
-    # This deliberately mirrors the parameter-free DCP portion of the normal
-    # solving chain, but stops before solver-specific cone formatting. Bounds
-    # must be explicit because they are part of the set being dualized.
     reductions = []
     if complex2real.accepts(prob):
         reductions.append(complex2real.Complex2Real())
-    reductions.extend([
-        Dcp2Cone(quad_obj=False, solver_context=solver_context),
-        CvxAttr2Constr(reduce_bounds=True),
-    ])
-    if exact_targets:
-        reductions.append(ExactCone2Cone(
-            target_cones=exact_targets, solver_context=solver_context))
-    if approx_targets:
-        reductions.append(ApproxCone2Cone(target_cones=approx_targets))
-    reductions.extend([
-        EliminateZeroSized(),
-        ConeMatrixStuffing(quad_obj=False),
-    ])
+    reductions.extend(_cone_matrix_stuffing_reductions(
+        problem_form,
+        solver_context,
+        quad_obj=False,
+        reduce_bounds=True,
+    ))
 
     cone_prog, _ = Chain(reductions=reductions).apply(prob)
     _, _, A, b = cone_prog.apply_parameters()
