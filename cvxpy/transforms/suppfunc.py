@@ -36,7 +36,7 @@ def scs_coniclift(x, constraints):
     ``diag=True``, ``symmetric=True``, etc...
     """
     warn(
-        "scs_coniclift is deprecated and will be removed in CVXPY 1.10.",
+        "scs_coniclift is deprecated and will be removed in CVXPY 1.11.",
         CvxpyDeprecationWarning,
     )
     from cvxpy.atoms.affine.sum import sum
@@ -154,7 +154,7 @@ def scs_cone_selectors(K):
         of the affine operator (A, b) returned by SCS's apply function.
     """
     warn(
-        "scs_cone_selectors is deprecated and will be removed in CVXPY 1.10.",
+        "scs_cone_selectors is deprecated and will be removed in CVXPY 1.11.",
         CvxpyDeprecationWarning,
     )
     if K.p3d:
@@ -341,8 +341,6 @@ class SuppFunc:
         np.ndarray,
         dict[str, np.ndarray | list],
     ]:
-        # Proper cross-chain caching is deferred for now; this only caches
-        # canonicalizations that share the same SolverInfo instance.
         if self._solver_context is solver_context:
             return self._conic_repr
         if len(self.constraints) == 0:
@@ -359,7 +357,7 @@ class SuppFunc:
         """Return the historical SCS-formatted representation of the set."""
         warn(
             "SuppFunc.conic_repr_of_set is deprecated and will be removed "
-            "in CVXPY 1.10.",
+            "in CVXPY 1.11.",
             CvxpyDeprecationWarning,
         )
         if self._scs_conic_repr is None:

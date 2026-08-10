@@ -62,8 +62,9 @@ def scs_psdvec_to_psdmat(vec: Expression, indices: np.ndarray) -> Expression:
     cannot be used, because this function builds a cvxpy Expression,
     rather than a numpy ndarray.
     """
+    # Although not root-exported, this non-private helper remains directly importable.
     warn(
-        "scs_psdvec_to_psdmat is deprecated and will be removed in CVXPY 1.10.",
+        "scs_psdvec_to_psdmat is deprecated and will be removed in CVXPY 1.11.",
         CvxpyDeprecationWarning,
     )
     n = int(np.sqrt(indices.size * 2))
