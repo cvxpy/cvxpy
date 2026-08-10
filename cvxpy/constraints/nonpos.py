@@ -51,7 +51,6 @@ class NonPos(Constraint):
     Sign conventions on dual variables associated with NonPos constraints may
     change in the future.
     """
-
     def __init__(self, expr, constr_id=None) -> None:
         warn(NonPos.DEPRECATION_MESSAGE, CvxpyDeprecationWarning)
         super(NonPos, self).__init__([expr], constr_id)
@@ -91,16 +90,7 @@ class NonPos(Constraint):
         """
         if self.expr.value is None:
             return None
-        return np.maximum(self.expr.value, 0)
-
-    def violation(self):
-        res = self.residual
-        if res is None:
-            raise ValueError("Cannot compute the violation of a constraint "
-                             "whose expression is None-valued.")
-        viol = np.linalg.norm(res, ord=2)
-        return viol
-
+        return -np.maximum(self.expr.value, 0)
 
 class NonNeg(Constraint):
     """A constraint of the form :math:`x \\geq 0`.
@@ -157,16 +147,7 @@ class NonNeg(Constraint):
         """
         if self.expr.value is None:
             return None
-        return np.abs(np.minimum(self.expr.value, 0))
-
-    def violation(self):
-        res = self.residual
-        if res is None:
-            raise ValueError("Cannot compute the violation of a constraint "
-                             "whose expression is None-valued.")
-        viol = np.linalg.norm(res, ord=2)
-        return viol
-
+        return -np.minimum(self.expr.value, 0)
 
 class Inequality(Constraint):
     """A constraint of the form :math:`x \\leq y`.
@@ -263,4 +244,4 @@ class Inequality(Constraint):
         """
         if self.expr.value is None:
             return None
-        return np.maximum(self.expr.value, 0)
+        return -np.maximum(self.expr.value, 0)
