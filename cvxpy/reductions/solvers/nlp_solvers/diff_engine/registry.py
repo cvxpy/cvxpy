@@ -65,19 +65,20 @@ def convert_kron(expr, children):
     n_rows = p if const_is_left else r
 
     if const_expr.parameters():
-        active = np.arange(const_expr.size, dtype=np.int32)
+        active = np.arange(const_expr.size)
     else:
         val = const_expr.value
         if sparse.issparse(val):
             coo = val.tocoo()
             mask = coo.data != 0  # drop stored-but-zero entries
             active = np.unique(coo.row[mask] + coo.col[mask] * n_rows)
-            active = active.astype(np.int32)
         else:
             # No format conversion: read the nonzero pattern straight off the
             # dense values, same result as the sparse branch above.
             flat = np.asarray(val, dtype=np.float64).flatten(order="F")
-            active = np.flatnonzero(flat).astype(np.int32)
+            active = np.flatnonzero(flat)
+
+    active = active.astype(np.int32)
 
     if const_is_left:
         return _diffengine.make_left_kron(const_node, var_node, p, q, r, s, active)
