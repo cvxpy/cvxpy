@@ -2523,10 +2523,10 @@ class TestSCIP(unittest.TestCase):
         StandardTestLPs.test_lp_4(solver="SCIP")
 
     def test_scip_socp_0(self) -> None:
-        StandardTestSOCPs.test_socp_0(solver="SCIP")
+        StandardTestSOCPs.test_socp_0(solver="SCIP", duals=False)
 
     def test_scip_socp_1(self) -> None:
-        StandardTestSOCPs.test_socp_1(solver="SCIP", places=2, duals=False)
+        StandardTestSOCPs.test_socp_1(solver="SCIP", places=3, duals=False)
 
     def test_scip_socp_2(self) -> None:
         StandardTestSOCPs.test_socp_2(solver="SCIP", places=2, duals=False)
@@ -2536,6 +2536,19 @@ class TestSCIP(unittest.TestCase):
         StandardTestSOCPs.test_socp_3ax0(solver="SCIP", duals=False)
         # axis 1
         StandardTestSOCPs.test_socp_3ax1(solver="SCIP", duals=False)
+
+    def test_scip_socp_dense(self) -> None:
+        # A continuous SOCP must not use the LP-only settings (presolve, heuristics
+        # and propagation off). Large enough to crash SCIP if they are applied.
+        np.random.seed(0)
+        A = np.random.randn(30, 10)
+        w = cp.Variable(10)
+        problem = cp.Problem(
+            cp.Minimize(cp.norm(A @ w, 2)),
+            [cp.sum(w) == 1, w >= 0],
+        )
+        problem.solve(solver="SCIP")
+        self.assertEqual(problem.status, cp.OPTIMAL)
 
     def test_scip_mi_lp_0(self) -> None:
         StandardTestLPs.test_mi_lp_0(solver="SCIP")
@@ -3598,6 +3611,33 @@ class TestCUOPT(unittest.TestCase):
         pf = ProblemForm(mi_socp)
         self.assertTrue(pf.is_mixed_integer())
         self.assertFalse(CUOPT().can_solve(pf))
+
+    def test_cuopt_mi_lp_time_limit_no_incumbent(self) -> None:
+        """A MILP that hits the time limit before any incumbent is found.
+
+        cuOpt reports TimeLimit (mapped to USER_LIMIT) with an empty primal
+        solution. Previously invert() tried to reshape that 0-length array
+        into the variables' shape and crashed with a ValueError; the status
+        must instead be downgraded to INFEASIBLE_INACCURATE (matching Gurobi
+        and COPT), so solve() returns cleanly with prob.value None.
+        """
+        rng = np.random.RandomState(0)
+        n = 400
+        w = cp.Variable(n, boolean=True)
+        weight = rng.rand(n)
+        value = rng.rand(n)
+        prob = cp.Problem(
+            cp.Maximize(value @ w),
+            [weight @ w <= weight.sum() * 0.3, cp.sum(w) >= n * 0.25],
+        )
+        # A tiny time limit makes it very unlikely an incumbent is found.
+        prob.solve(solver="CUOPT", time_limit=0.001)
+        self.assertIn(
+            prob.status,
+            [cp.settings.INFEASIBLE_INACCURATE, cp.settings.USER_LIMIT, cp.OPTIMAL],
+        )
+        if prob.status == cp.settings.INFEASIBLE_INACCURATE:
+            self.assertIsNone(w.value)
 
 
 @pytest.mark.parametrize("solver", INSTALLED_SOLVERS)

@@ -1707,6 +1707,39 @@ class TestAtoms(BaseTest):
                                       np.array([[1, 2]]).T])])
         self.assertItemsAlmostEqual(expr, const)
 
+    def test_bmat_promotes_scalars(self) -> None:
+        """bmat should promote scalars and 1-D blocks like numpy.block.
+
+        Regression test for https://github.com/cvxpy/cvxpy/issues/2328.
+        """
+        # Mixing a scalar, a vector, and a matrix (e.g. an LMI) used to raise.
+        U = np.array([[10.0], [20.0]])
+        expr = cp.bmat([[4, U.T], [U, np.identity(2)]])
+        ref = np.block([[4, U.T], [U, np.identity(2)]])
+        self.assertEqual(expr.shape, (3, 3))
+        self.assertItemsAlmostEqual(expr.value, ref)
+
+        # A scalar and a 1-D vector on the same row.
+        expr = cp.bmat([[1, np.array([5.0, 6.0])]])
+        self.assertEqual(expr.shape, (1, 3))
+        self.assertItemsAlmostEqual(expr.value, np.array([[1.0, 5.0, 6.0]]))
+
+        # Works with Variables and stays affine.
+        x = cp.Variable((2, 1))
+        expr = cp.bmat([[4, x.T], [x, np.identity(2)]])
+        self.assertEqual(expr.shape, (3, 3))
+        self.assertTrue(expr.is_affine())
+
+        # A scalar Variable is promoted just like a scalar constant.
+        s = cp.Variable()
+        expr = cp.bmat([[s, x.T], [x, np.identity(2)]])
+        self.assertEqual(expr.shape, (3, 3))
+        self.assertTrue(expr.is_affine())
+        s.value = 7.0
+        x.value = np.array([[10.0], [20.0]])
+        ref = np.block([[7.0, x.value.T], [x.value, np.identity(2)]])
+        self.assertItemsAlmostEqual(expr.value, ref)
+
     def test_conv(self) -> None:
         """Test the conv atom.
         """
@@ -2800,6 +2833,50 @@ class TestAtoms(BaseTest):
         S = Variable((3, 3), symmetric=True)
         self.assertTrue(cp.real(S).is_symmetric())
 
+    def test_sum_shape_inference(self):
+        """
+        Test shape inference for cp.sum with exact tuple formula,
+        verifying match with NumPy's axis and keepdims semantics.
+        """
+        x = cp.Variable((2, 3, 4))
+
+        # 1. Default (axis=None)
+        assert cp.sum(x).shape == ()
+        assert cp.sum(x, keepdims=True).shape == (1, 1, 1)
+
+        # 2. Single integer axis
+        assert cp.sum(x, axis=0).shape == (3, 4)
+        assert cp.sum(x, axis=1).shape == (2, 4)
+        assert cp.sum(x, axis=-1).shape == (2, 3)  # Negative indexing
+
+        # 3. Single integer axis with keepdims=True
+        assert cp.sum(x, axis=0, keepdims=True).shape == (1, 3, 4)
+        assert cp.sum(x, axis=1, keepdims=True).shape == (2, 1, 4)
+        assert cp.sum(x, axis=-1, keepdims=True).shape == (2, 3, 1)
+
+        # 4. Tuple of axes
+        assert cp.sum(x, axis=(0, 2)).shape == (3,)
+        assert cp.sum(x, axis=(0, -1)).shape == (3,)  # Mixed positive/negative
+        assert cp.sum(x, axis=(0, 1, 2)).shape == ()
+
+        # 5. Tuple of axes with keepdims=True
+        assert cp.sum(x, axis=(0, 2), keepdims=True).shape == (1, 3, 1)
+        assert cp.sum(x, axis=(0, 1, 2), keepdims=True).shape == (1, 1, 1)
+
+        # 6. Scalar variables
+        scalar = cp.Variable()
+        assert cp.sum(scalar).shape == ()
+        assert cp.sum(scalar, keepdims=True).shape == ()
+
+        # 7. Error cases (caught by normalize_axis_tuple)
+        with pytest.raises(ValueError):
+            cp.sum(x, axis=3)  # Out of bounds (positive)
+
+        with pytest.raises(ValueError):
+            cp.sum(x, axis=-4) # Out of bounds (negative)
+
+        with pytest.raises(ValueError):
+            cp.sum(x, axis=(0, 0))  # Duplicate axes
 
 class TestDotsort(BaseTest):
     """ Unit tests for the dotsort atom. """

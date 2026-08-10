@@ -51,7 +51,6 @@ class NonPos(Constraint):
     Sign conventions on dual variables associated with NonPos constraints may
     change in the future.
     """
-
     def __init__(self, expr, constr_id=None) -> None:
         warn(NonPos.DEPRECATION_MESSAGE, CvxpyDeprecationWarning)
         super(NonPos, self).__init__([expr], constr_id)
