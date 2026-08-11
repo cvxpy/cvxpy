@@ -288,7 +288,69 @@ class Constraint(u.Canonical):
         """
         return self._chain_constraints()
 
-    # TODO(rileyjmurray): add a function to compute dual-variable violation.
+    @property
+    def dual_residual(self):
+        """The residual of the dual variable with respect to the dual cone.
+
+        Analogous to ``residual`` for primal constraint satisfaction: it is
+        shape-preserving and follows the same signed ``projection - value``
+        convention. The reduction to a scalar happens in ``dual_violation``,
+        so this should not itself perform an operator-norm (spectral)
+        reduction.
+
+        Returns
+        -------
+        NumPy.ndarray or None
+        """
+        raise NotImplementedError(
+            f"{type(self).__name__} does not implement dual_residual."
+        )
+
+    def dual_violation(self):
+        """Scalar infeasibility of the dual variable.
+
+        The violation is the infinity norm of ``dual_residual``, matching the
+        scalar violation convention for primal residuals. Spectral cones (such
+        as ``PSD``) override this to reduce the residual with the operator
+        norm instead.
+
+        Returns
+        -------
+        float
+
+        Raises
+        ------
+        ValueError
+            If the dual variable has no value.
+        """
+        residual = self.dual_residual
+        if residual is None:
+            raise ValueError(
+                "Cannot compute dual violation: dual variable has no value."
+            )
+        residual_arr = np.asarray(residual)
+        if residual_arr.size == 0:
+            return 0.0
+        return float(np.linalg.norm(residual_arr.ravel(), ord=np.inf))
+
+    def is_dual_feasible(self, tolerance: float = 1e-8) -> bool:
+        """Whether the dual variable satisfies the dual cone constraint.
+
+        Parameters
+        ----------
+        tolerance : float
+            Maximum allowable dual infeasibility (default 1e-8).
+
+        Returns
+        -------
+        bool
+
+        Raises
+        ------
+        ValueError
+            If the dual variable has no value.
+        """
+        return self.dual_violation() <= tolerance
 
     @property
     def dual_value(self):

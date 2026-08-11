@@ -92,6 +92,20 @@ class NonPos(Constraint):
             return None
         return -np.maximum(self.expr.value, 0)
 
+    @property
+    def dual_residual(self):
+        """Residual for CVXPY's stored dual variable sign convention.
+
+        ``NonPos`` stores nonnegative dual variables, matching the multiplier
+        convention used by inequality constraints in CVXPY. The residual is
+        the projection onto the nonnegative orthant minus the stored value.
+        """
+        dv = self.dual_variables[0].value
+        if dv is None:
+            return None
+        return -np.minimum(dv, 0.0)
+
+
 class NonNeg(Constraint):
     """A constraint of the form :math:`x \\geq 0`.
 
@@ -148,6 +162,14 @@ class NonNeg(Constraint):
         if self.expr.value is None:
             return None
         return -np.minimum(self.expr.value, 0)
+
+    @property
+    def dual_residual(self):
+        dv = self.dual_variables[0].value
+        if dv is None:
+            return None
+        return -np.minimum(dv, 0.0)
+
 
 class Inequality(Constraint):
     """A constraint of the form :math:`x \\leq y`.
@@ -245,3 +267,10 @@ class Inequality(Constraint):
         if self.expr.value is None:
             return None
         return -np.maximum(self.expr.value, 0)
+
+    @property
+    def dual_residual(self):
+        dv = self.dual_variables[0].value
+        if dv is None:
+            return None
+        return -np.minimum(dv, 0.0)
