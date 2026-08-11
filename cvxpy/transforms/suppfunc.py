@@ -6,9 +6,14 @@ from scipy import sparse
 from cvxpy.atoms.suppfunc import SuppFuncAtom
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.constraints.exponential import ExpCone
+from cvxpy.constraints.finite_set import FiniteSet
 from cvxpy.constraints.psd import PSD, SvecPSD
 from cvxpy.constraints.second_order import SOC
+from cvxpy.error import SolverError
 from cvxpy.expressions.variable import Variable
+from cvxpy.problems.objective import Minimize
+from cvxpy.reductions.chain import Chain
+from cvxpy.reductions.complex2real import complex2real
 from cvxpy.reductions.cvx_attr2constr import CONVEX_ATTRIBUTES
 from cvxpy.utilities.solver_context import SolverInfo
 from cvxpy.utilities.warn import CvxpyDeprecationWarning, warn
@@ -40,7 +45,6 @@ def scs_coniclift(x, constraints):
         CvxpyDeprecationWarning,
     )
     from cvxpy.atoms.affine.sum import sum
-    from cvxpy.problems.objective import Minimize
     from cvxpy.problems.problem import Problem
 
     prob = Problem(Minimize(sum(x)), constraints)
@@ -90,20 +94,15 @@ def _coniclift(
     unmodified. The column extraction below assumes that ``x`` retains its
     original variable ID and occupies ``x.size`` columns after canonicalization.
     """
-    # Local imports avoid the Problem -> canonicalizers -> transforms cycle.
-    from cvxpy.atoms.affine.sum import sum
-    from cvxpy.constraints.finite_set import FiniteSet
-    from cvxpy.error import SolverError
-    from cvxpy.problems.objective import Minimize
+    # These imports must remain local to avoid the
+    # Problem -> canonicalizers -> transforms cycle.
     from cvxpy.problems.problem import Problem
     from cvxpy.problems.problem_form import ProblemForm
-    from cvxpy.reductions.chain import Chain
-    from cvxpy.reductions.complex2real import complex2real
     from cvxpy.reductions.solvers.solving_chain import (
         _cone_matrix_stuffing_reductions,
     )
 
-    prob = Problem(Minimize(sum(x)), constraints)
+    prob = Problem(Minimize(x.sum()), constraints)
     has_finite_set = any(isinstance(con, FiniteSet) for con in constraints)
     if prob.is_mixed_integer() or has_finite_set:
         raise SolverError(
