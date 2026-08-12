@@ -203,10 +203,11 @@ That has not been true since CVXPY 1.6, which introduced
 :ref:`N-dimensional expressions <n-dimensional>`, so ``cp.Variable((2, 3, 4))``
 is valid today.
 
-Support is still marked experimental, and there is no single list of which
-atoms do and do not accept N-D input. If you hit a gap, the
-:ref:`N-dimensional section <n-dimensional>` asks that you report it on the
-issue tracker.
+Coverage is broad: elementwise atoms, axis reductions, indexing, reshaping and
+batched ``@`` all accept N-D input. Support is still marked experimental and a
+few atoms remain two-dimensional — ``tv``, ``cvar``, ``geo_mean`` and ``kron``
+among them. If you hit a gap, the :ref:`N-dimensional section <n-dimensional>`
+asks that you report it on the issue tracker.
 
 Things CVXPY rejects that CVX accepts
 -------------------------------------
