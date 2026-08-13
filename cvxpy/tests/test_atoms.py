@@ -1740,6 +1740,89 @@ class TestAtoms(BaseTest):
         ref = np.block([[7.0, x.value.T], [x.value, np.identity(2)]])
         self.assertItemsAlmostEqual(expr.value, ref)
 
+    def test_block_bare_expression(self) -> None:
+        """Test block with a bare expression."""
+        x = cp.Variable((2, 3))
+
+        expr = cp.block(x)
+
+        self.assertEqual(expr.shape, (2, 3))
+        self.assertTrue(expr.is_affine())
+
+    def test_block_flat_list(self) -> None:
+        """Test block concatenates a flat list along the last axis."""
+        x = cp.Variable((2, 2))
+        y = cp.Variable((2, 3))
+
+        expr = cp.block([x, y])
+
+        self.assertEqual(expr.shape, (2, 5))
+        self.assertTrue(expr.is_affine())
+
+    def test_block_nested_2d(self) -> None:
+        """Test arbitrary nesting depth and 2-D concatenation axes."""
+        A = np.array([[1.0, 2.0], [3.0, 4.0]])
+        B = np.array([[5.0], [6.0]])
+        C = np.array([[7.0, 8.0]])
+        D = np.array([[9.0]])
+
+        expr = cp.block([[A, B], [C, D]])
+        ref = np.block([[A, B], [C, D]])
+
+        self.assertEqual(expr.shape, ref.shape)
+        self.assertItemsAlmostEqual(expr.value, ref)
+
+    def test_block_nested_nd(self) -> None:
+        """Test arbitrary nesting depth and N-D concatenation axes."""
+        arrays = [
+            [
+                [np.array([[[1.0]]]), np.array([[[2.0]]])],
+                [np.array([[[3.0]]]), np.array([[[4.0]]])],
+            ],
+            [
+                [np.array([[[5.0]]]), np.array([[[6.0]]])],
+                [np.array([[[7.0]]]), np.array([[[8.0]]])],
+            ],
+        ]
+
+        expr = cp.block(arrays)
+        ref = np.block(arrays)
+
+        self.assertEqual(expr.shape, ref.shape)
+        self.assertItemsAlmostEqual(expr.value, ref)
+
+    def test_block_nd(self) -> None:
+        """Test block supports N-dimensional inputs."""
+        A = np.ones((2, 3, 4))
+        B = 2 * np.ones((2, 3, 5))
+
+        expr = cp.block([A, B])
+        ref = np.block([A, B])
+
+        self.assertEqual(expr.shape, ref.shape)
+        self.assertItemsAlmostEqual(expr.value, ref)
+
+    def test_block_promotes_scalars(self) -> None:
+        """Test block promotes scalars and 1-D inputs like numpy.block."""
+        expr = cp.block([[1, np.array([2.0, 3.0])]])
+        ref = np.block([[1, np.array([2.0, 3.0])]])
+
+        self.assertEqual(expr.shape, ref.shape)
+        self.assertItemsAlmostEqual(expr.value, ref)
+
+    def test_block_empty_list(self) -> None:
+        """Test block rejects empty lists."""
+        with self.assertRaises(ValueError):
+            cp.block([])
+
+        with self.assertRaises(ValueError):
+            cp.block([[]])
+
+    def test_block_mismatched_depth(self) -> None:
+        """Test block rejects mismatched list depths."""
+        with self.assertRaises(ValueError):
+            cp.block([[1, 2], 3])
+
     def test_conv(self) -> None:
         """Test the conv atom.
         """
