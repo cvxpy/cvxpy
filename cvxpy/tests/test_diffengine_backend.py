@@ -382,6 +382,20 @@ class TestDiffengineSelection(BaseTest):
         self.assertAlmostEqual(prob.value, 0.0)
         self.assertItemsAlmostEqual(x.value, np.ones(3), places=4)
 
+    def test_backend_switch_invalidates_cache(self) -> None:
+        """An explicit canon_backend on a re-solve must not silently reuse the
+        chain cached for a different backend."""
+        x = cp.Variable(3)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(x - 1)), [x >= 0])
+        prob.solve(solver=SOLVER)
+        first = self._stuffing_backend(prob._cache.solving_chain)
+        self.assertNotEqual(first, DIFFENGINE)
+        prob.solve(solver=SOLVER, canon_backend=DIFFENGINE)
+        self.assertEqual(self._stuffing_backend(prob._cache.solving_chain),
+                         DIFFENGINE)
+        prob.solve(solver=SOLVER)
+        self.assertEqual(self._stuffing_backend(prob._cache.solving_chain), first)
+
     def test_nd_problem_explicit_diffengine_raises(self) -> None:
         x = cp.Variable((2, 2, 2))
         prob = cp.Problem(cp.Minimize(cp.sum_squares(x)))
