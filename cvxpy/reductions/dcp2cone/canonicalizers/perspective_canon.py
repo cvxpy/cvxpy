@@ -20,6 +20,7 @@ from cvxpy.atoms.affine.diag import diag
 from cvxpy.atoms.affine.vec import vec
 from cvxpy.expressions.variable import Variable
 from cvxpy.problems.objective import Maximize, Minimize
+from cvxpy.reductions.eval_params import EvalParams
 from cvxpy.settings import CPP_CANON_BACKEND
 from cvxpy.utilities.perspective_utils import form_cone_constraint
 from cvxpy.utilities.solver_context import SolverInfo
@@ -31,6 +32,12 @@ def perspective_canon(expr, args, solver_context: SolverInfo | None = None):
     # Only working for minimization right now.
 
     aux_prob = Problem((Minimize if expr.f.is_convex() else Maximize)(expr.f))
+    if aux_prob.parameters():
+        # Pre-bake parameter values: the ignore_dpp chain below no longer
+        # inserts EvalParams for parametric problems (they stay symbolic on
+        # the DIFFENGINE path), but this canonicalizer needs concrete
+        # tensors, matching its pre-existing bake-at-canon semantics.
+        aux_prob, _ = EvalParams().apply(aux_prob)
     # Does numerical solution value of epigraph t coincide with expr.f numerical
     # value at opt?
     solver_opts = {"use_quad_obj": False}

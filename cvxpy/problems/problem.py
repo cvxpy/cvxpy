@@ -41,7 +41,6 @@ from cvxpy.problems.objective import Maximize, Minimize
 from cvxpy.reductions import InverseData
 from cvxpy.reductions.chain import Chain
 from cvxpy.reductions.dqcp2dcp import dqcp2dcp
-from cvxpy.reductions.eval_params import EvalParams
 from cvxpy.reductions.flip_objective import FlipObjective
 from cvxpy.reductions.solution import INF_OR_UNB_MESSAGE
 from cvxpy.reductions.solvers import bisection
@@ -879,8 +878,7 @@ class Problem(u.Canonical):
             safe_to_cache = (
                 isinstance(data, dict)
                 and s.PARAM_PROB in data
-                and not any(isinstance(reduction, EvalParams)
-                            for reduction in solving_chain.reductions)
+                and not solving_chain.uncached_param_prog
             )
             self._compilation_time = time.time() - start
             if verbose:

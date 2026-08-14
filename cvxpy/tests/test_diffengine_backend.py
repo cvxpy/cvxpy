@@ -34,7 +34,6 @@ from cvxpy.reductions.solvers.nlp_solvers.diff_engine.converters import (
     convert_symbolic_quad_form,
 )
 from cvxpy.reductions.solvers.nlp_solvers.diff_engine.helpers import normalize_shape
-from cvxpy.reductions.solvers.nlp_solvers.diff_engine.registry import convert_kron
 from cvxpy.tests.base_test import BaseTest
 
 try:
@@ -80,13 +79,25 @@ class TestDiffengineConverter(BaseTest):
         with self.assertRaisesRegex(NotImplementedError, "norm1"):
             convert_symbolic_quad_form(sqf, {}, 4, {})
 
-    def test_kron_parametric_operand_raises(self) -> None:
-        """kron's variable-free operand must be a plain constant."""
+    def test_kron_parametric_operand_resolves(self) -> None:
+        """A bare-Parameter kron operand stays symbolic and is re-evaluated
+        between solves."""
+        rng = np.random.default_rng(0)
+        target = rng.standard_normal((4, 4))
         P = cp.Parameter((2, 2))
-        P.value = np.eye(2)
         X = cp.Variable((2, 2))
-        with self.assertRaisesRegex(NotImplementedError, "parametric operand"):
-            convert_kron(cp.kron(P, X), [None, None])
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(cp.kron(P, X) - target)))
+        for seed in (1, 2):
+            P_val = np.random.default_rng(seed).standard_normal((2, 2))
+            P.value = P_val
+            prob.solve(solver=SOLVER, ignore_dpp=True)
+            self.assertEqual(prob.status, cp.OPTIMAL)
+
+            X_base = cp.Variable((2, 2))
+            base = cp.Problem(
+                cp.Minimize(cp.sum_squares(cp.kron(P_val, X_base) - target)))
+            base.solve(solver=SOLVER)
+            self.assertAlmostEqual(prob.value, base.value, places=3)
 
     def test_gt_2d_expression_raises_clearly(self) -> None:
         with self.assertRaisesRegex(NotImplementedError, ">2-D"):
@@ -314,15 +325,17 @@ class TestDiffengineBackend(BaseTest):
         base.solve(solver=SOLVER)
         self.assertAlmostEqual(prob.value, base.value, places=3)
 
-    def test_parametric_problem_rejected(self) -> None:
-        """Explicit DIFFENGINE on a DPP-parametric problem must raise and
-        point the user at ignore_dpp."""
+    def test_explicit_diffengine_on_dpp_parametric_solves(self) -> None:
+        """Explicit DIFFENGINE on a DPP-parametric problem takes the symbolic
+        path and tracks parameter values across solves."""
         p = cp.Parameter()
-        p.value = 1.0
         x = cp.Variable()
         prob = cp.Problem(cp.Minimize(cp.square(x - p)))
-        with self.assertRaisesRegex(ValueError, "ignore_dpp"):
-            prob.get_problem_data(SOLVER, canon_backend=DIFFENGINE)
+        for val in (1.0, -2.0):
+            p.value = val
+            prob.solve(solver=SOLVER, canon_backend=DIFFENGINE)
+            self.assertEqual(prob.status, cp.OPTIMAL)
+            self.assertAlmostEqual(x.value, val, places=5)
 
     def test_ignore_dpp_parametric_solves_and_tracks_values(self) -> None:
         """With ignore_dpp=True, EvalParams bakes the parameters and the
@@ -336,21 +349,15 @@ class TestDiffengineBackend(BaseTest):
             self.assertEqual(prob.status, cp.OPTIMAL)
             self.assertAlmostEqual(x.value, val, places=5)
 
-    def test_parametric_bounds_rejected_both_routes(self) -> None:
-        """EvalParams does not bake variable bounds, so they leak past
-        ignore_dpp by two routes, both of which must fail loudly naming the
-        cause: as bounds attributes (bounds-capable solver), or lowered by
-        CvxAttr2Constr into constraints that still carry live Parameters
-        (non-bounds solver)."""
+    def test_parametric_bounds_rejected_on_explicit_request(self) -> None:
+        """Parametric variable bounds are unsupported: an explicit DIFFENGINE
+        request fails loudly (default selection falls back instead)."""
         lb = cp.Parameter(2)
         lb.value = np.array([0.5, 0.5])
         x = cp.Variable(2, bounds=[lb, 10])
         prob = cp.Problem(cp.Minimize(cp.sum(x)))
         with self.assertRaisesRegex(NotImplementedError, "parametric variable bounds"):
             prob.get_problem_data(cp.SCIPY, canon_backend=DIFFENGINE,
-                                  ignore_dpp=True)
-        with self.assertRaisesRegex(ValueError, "parametric variable bounds"):
-            prob.get_problem_data(SOLVER, canon_backend=DIFFENGINE,
                                   ignore_dpp=True)
 
     @unittest.skipUnless(INSTALLED_MI_SOLVERS, "no mixed-integer solver installed")

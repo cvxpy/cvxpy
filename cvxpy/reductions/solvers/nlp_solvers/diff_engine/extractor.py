@@ -58,9 +58,9 @@ def _build_hessian_csc(c_problem, hess_structure, duals):
 
 
 class DiffEngineExtractor:
-    """Parameter-free analog of ``CoeffExtractor``: builds a C autodiff problem
-    from the expressions and recovers the concrete cone matrices
-    ``(q, d, A, b, P)`` by evaluating it at ``x = 0``.
+    """Non-DPP analog of ``CoeffExtractor``: builds a C autodiff problem from
+    the expressions and recovers the concrete cone matrices ``(q, d, A, b, P)``
+    by evaluating it at ``x = 0``, re-evaluating when parameter values change.
     """
 
     def __init__(self, inverse_data) -> None:
@@ -71,7 +71,7 @@ class DiffEngineExtractor:
         self.hess_structure = None
         self.has_constraints = False
 
-    def build(self, objective_expr, constraint_exprs, quad_obj: bool):
+    def build(self, objective_expr, constraint_exprs, parameters, quad_obj: bool):
         """Compile the objective and constraint expressions into a ``C_problem``.
 
         ``constraint_exprs`` is the flat list of cone-constraint argument expressions.
@@ -79,7 +79,7 @@ class DiffEngineExtractor:
         """
         self.has_constraints = bool(constraint_exprs)
         self.c_problem = C_problem.from_exprs(
-            objective_expr, constraint_exprs, [], self.inverse_data,
+            objective_expr, constraint_exprs, parameters, self.inverse_data,
             verbose=False)
         self.c_problem.init_jacobian_coo()
         self.jac_structure = (self.c_problem.get_jacobian_sparsity_coo()
@@ -91,6 +91,10 @@ class DiffEngineExtractor:
             rows, cols = self.c_problem.get_problem_hessian_sparsity_coo()
             self.hess_structure = _full_symmetric_hess_structure(rows, cols, self.n_vars)
         return self
+
+    def update_parameters(self, theta: np.ndarray) -> None:
+        """Push new (flattened, concatenated) parameter values into the C problem."""
+        self.c_problem.update_params(theta)
 
     def extract(self, quad_obj: bool):
         """Evaluate the (affine) objective and constraints at ``x = 0`` to recover the

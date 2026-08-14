@@ -24,6 +24,7 @@ from sparsediffpy import _sparsediffengine as _diffengine
 
 import cvxpy as cp
 import cvxpy.settings as s
+from cvxpy.atoms.affine.wraps import Wrap
 from cvxpy.atoms.elementwise.power import Power
 from cvxpy.atoms.quad_form import QuadForm
 from cvxpy.atoms.quad_over_lin import quad_over_lin
@@ -186,14 +187,18 @@ def convert_symbolic_quad_form(expr, var_dict, n_vars, param_dict):
     if isinstance(orig, (QuadForm, quad_over_lin)):
         x = expr.args[0]
         P = expr.args[1]
-        if P.parameters():
-            # Unreachable through the gated DIFFENGINE backend (the stuffing
-            # rejects parametric problems); fail loud for direct callers.
-            raise NotImplementedError(
-                "SymbolicQuadForm with a parametric P is not supported by "
-                "the diff engine.")
         x_c = convert_expr(x, var_dict, n_vars, param_dict)
-        return make_constant_quad_form(x_c, P.value, x.size)
+        n = x.size
+        if P.parameters():
+            # P is affine in the parameters and independent of x (Hessian still 2P):
+            # feed it as a matrix-valued child evaluated each solve. Peel value-identity
+            # Wrap atoms (e.g. psd_wrap) the converter can't build directly.
+            P_inner = P
+            while isinstance(P_inner, Wrap):
+                P_inner = P_inner.args[0]
+            P_c = convert_expr(P_inner, var_dict, n_vars, param_dict)
+            return _diffengine.make_quad_form(P_c, x_c, "dense", None, n)
+        return make_constant_quad_form(x_c, P.value, n)
 
     if isinstance(orig, Power):  # PowerApprox subclasses Power; canon only p == 2
         return convert_expr(

@@ -69,8 +69,12 @@ class C_problem:
         self._capsule = _diffengine.make_problem(c_obj, c_constraints, verbose)
 
         if param_dict:
+            # Keep the node capsules alive alongside the problem capsule: a
+            # registered parameter can appear in no converted expression,
+            # and the engine must be able to update it on every later solve.
+            self._param_capsules = list(param_dict.values())
             _diffengine.problem_register_params(
-                self._capsule, list(param_dict.values()))
+                self._capsule, self._param_capsules)
             # Set initial parameter values
             theta = np.concatenate([
                 np.asarray(p.value, dtype=np.float64).flatten(order='F')

@@ -47,31 +47,40 @@ from cvxpy.reductions.solvers.nlp_solvers.diff_engine.extractor import DiffEngin
 from cvxpy.reductions.utilities import group_constraints
 
 
-def stuff_cone_program(problem, cons, inverse_data, quad_obj):
-    """Stuff a parameter-free problem by evaluating the expression trees
-    with the C diff engine instead of building parameter tensors.
+def encode_cone_tensors(q, d, A, b, P, n):
+    """Encode concrete cone matrices as the single-column (constant-slice)
+    tensors ParamConeProg decodes: [q; d] for the objective, [A | b]
+    flattened column-major for the constraints, P flattened column-major for
+    the quadratic term."""
+    q_tensor = sp.csr_array(np.concatenate([q, [d]])[:, None])
+    A_tensor = sp.csc_array(
+        sp.hstack([A, sp.csc_array(b[:, None])]).reshape((-1, 1), order='F'))
+    P_tensor = (sp.csc_array(P.reshape((n * n, 1), order='F'))
+                if P is not None else None)
+    return q_tensor, A_tensor, P_tensor
 
-    Produces the same artifact as the tensor path: a ParamConeProg whose
+
+def stuff_cone_program(problem, cons, inverse_data, quad_obj):
+    """Stuff a problem by evaluating the expression trees with the C diff
+    engine instead of building parameter tensors.
+
+    A parameter-free problem produces a stock ParamConeProg whose
     single-column tensors hold the constant slice, so every downstream
     consumer (formatting, solvers, inversion) runs the stock code path.
+    A parametric problem produces a DiffengineParamConeProg, which keeps the
+    engine program alive and re-extracts on every apply_parameters().
 
     ``cons`` are the lowered (but not yet ordered) constraints from
     ``ConeMatrixStuffing.apply``. Returns ``(new_prob, inverse_data)``.
     """
+    from cvxpy.reductions.solvers.nlp_solvers.diff_engine.parametric_program import (
+        DiffengineParamConeProg,
+    )
     variables = problem.variables()
     if _has_parametric_bounds(variables):
         raise NotImplementedError(
             f"The {s.DIFFENGINE_CANON_BACKEND} canonicalization backend "
             "does not support parametric variable bounds.")
-    if problem.parameters():
-        raise ValueError(
-            f"The {s.DIFFENGINE_CANON_BACKEND} canonicalization backend "
-            "does not yet support parametric problems. Solve with "
-            "ignore_dpp=True to evaluate parameters before "
-            "canonicalization. If you already passed ignore_dpp=True, the "
-            "remaining parameters most likely come from parametric "
-            "variable bounds, which the DIFFENGINE backend does not "
-            "support.")
 
     # Reorder constraints to Zero, NonNeg, SOC, PSD, EXP, PowCone3D, PowConeND
     constr_map = group_constraints(cons)
@@ -85,23 +94,25 @@ def stuff_cone_program(problem, cons, inverse_data, quad_obj):
 
     # One-shot extraction of the concrete cone matrices at x = 0.
     expr_list = [arg for c in ordered_cons for arg in c.args]
+    params = problem.parameters()
     extractor = DiffEngineExtractor(inverse_data).build(
-        problem.objective.expr, expr_list, quad_obj)
+        problem.objective.expr, expr_list, params, quad_obj)
     q, d, A, b, P = extractor.extract(quad_obj)
 
     n = inverse_data.x_length
-    # Encode as the single-column (constant-slice) tensors ParamConeProg
-    # decodes: [q; d] for the objective, [A | b] flattened column-major
-    # for the constraints, P flattened column-major for the quadratic
-    # term. Everything downstream then matches the tensor path exactly.
-    q_tensor = sp.csr_array(np.concatenate([q, [d]])[:, None])
-    A_tensor = sp.csc_array(
-        sp.hstack([A, sp.csc_array(b[:, None])]).reshape((-1, 1), order='F'))
-    P_tensor = (sp.csc_array(P.reshape((n * n, 1), order='F'))
-                if P is not None else None)
-
     boolean, integer = extract_mip_idx(variables)
     x = Variable(n, boolean=boolean, integer=integer)
+    lower_bounds = extract_lower_bounds(variables, n)
+    upper_bounds = extract_upper_bounds(variables, n)
+
+    if params:
+        new_prob = DiffengineParamConeProg(
+            extractor, x, variables, inverse_data.var_offsets, ordered_cons,
+            params, inverse_data.param_id_map, q, d, A, b, P,
+            lower_bounds=lower_bounds, upper_bounds=upper_bounds)
+        return new_prob, inverse_data
+
+    q_tensor, A_tensor, P_tensor = encode_cone_tensors(q, d, A, b, P, n)
     new_prob = ParamConeProg(
         q_tensor,
         x,
@@ -112,7 +123,7 @@ def stuff_cone_program(problem, cons, inverse_data, quad_obj):
         [],
         inverse_data.param_id_map,
         P=P_tensor,
-        lower_bounds=extract_lower_bounds(variables, n),
-        upper_bounds=extract_upper_bounds(variables, n),
+        lower_bounds=lower_bounds,
+        upper_bounds=upper_bounds,
     )
     return new_prob, inverse_data
