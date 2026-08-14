@@ -2606,6 +2606,43 @@ class TestSCIP(unittest.TestCase):
         assert np.allclose(data['init_value'][:2], [2.0, 3.0])
         assert np.isnan(data['init_value'][2])
 
+    @staticmethod
+    def completesol_calls(prob) -> int:
+        """How many times SCIP ran the heuristic that consumes a partial start.
+
+        Read from SCIP's own statistics: the ``completesol`` row of the primal
+        heuristics table, whose third numeric column is the call count.
+        """
+        model = prob.solver_stats.extra_stats["model"]
+        path = tempfile.mktemp(suffix=".txt")
+        try:
+            model.writeStatistics(path)
+            with open(path) as stats:
+                for line in stats:
+                    if line.strip().startswith("completesol"):
+                        return int(line.split(":", 1)[1].split()[2])
+        finally:
+            if os.path.exists(path):
+                os.unlink(path)
+        return 0
+
+    def test_scip_mip_start_reaches_solver(self) -> None:
+        """The start is handed to SCIP, not silently dropped.
+
+        Both solves pass ``warm_start=True``; the only difference is whether
+        the user set any variable values. SCIP's ``completesol`` heuristic
+        exists to complete a partial start, so it runs in the second case
+        and not in the first.
+        """
+        prob, x, y = self.get_mip_problem()
+        prob.solve(solver=cp.SCIP, warm_start=True)
+        assert self.completesol_calls(prob) == 0
+
+        prob, x, y = self.get_mip_problem()
+        x.value = np.array([2.0, 3.0])
+        prob.solve(solver=cp.SCIP, warm_start=True)
+        assert self.completesol_calls(prob) > 0
+
     def test_scip_mip_start(self) -> None:
         """A MIP start does not change the optimum."""
         prob, x, y = self.get_mip_problem()
@@ -2620,12 +2657,14 @@ class TestSCIP(unittest.TestCase):
         x.value = None
         y.value = None
         assert prob.solve(solver=cp.SCIP, warm_start=True) == 9.0
+        assert self.completesol_calls(prob) == 0
 
     def test_scip_mip_start_infeasible_values(self) -> None:
-        """An unusable start is discarded by SCIP, not propagated."""
+        """An unusable start is offered to SCIP but does not corrupt the result."""
         prob, x, y = self.get_mip_problem()
         x.value = np.array([99.0, 99.0])
         assert prob.solve(solver=cp.SCIP, warm_start=True) == 9.0
+        assert self.completesol_calls(prob) > 0
 
     def test_scip_test_params__no_params_set(self) -> None:
         prob = self.get_simple_problem()
