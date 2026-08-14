@@ -2584,6 +2584,49 @@ class TestSCIP(unittest.TestCase):
         prob = cp.Problem(obj, constraints)
         return prob
 
+    def get_mip_problem(self):
+        """Small MILP with one integer and one continuous variable."""
+        x = cp.Variable(2, integer=True)
+        y = cp.Variable()
+        constraints = [x >= 0, x <= 5, y >= 0, y <= 3, cp.sum(x) + y <= 6]
+        prob = cp.Problem(cp.Maximize(cp.sum(x) + 2 * y), constraints)
+        return prob, x, y
+
+    def test_scip_mip_start_init_value(self) -> None:
+        """Variable values are collected for the MIP start, NaN where unset."""
+        prob, x, y = self.get_mip_problem()
+
+        # Nothing set: every entry is unknown.
+        data, _, _ = prob.get_problem_data(solver=cp.SCIP)
+        assert np.all(np.isnan(data['init_value']))
+
+        # Only x set: its values are passed through, y stays unknown.
+        x.value = np.array([2.0, 3.0])
+        data, _, _ = prob.get_problem_data(solver=cp.SCIP)
+        assert np.allclose(data['init_value'][:2], [2.0, 3.0])
+        assert np.isnan(data['init_value'][2])
+
+    def test_scip_mip_start(self) -> None:
+        """A MIP start does not change the optimum."""
+        prob, x, y = self.get_mip_problem()
+        expected = prob.solve(solver=cp.SCIP, warm_start=False)
+
+        x.value = np.array([2.0, 3.0])
+        assert prob.solve(solver=cp.SCIP, warm_start=True) == expected
+
+    def test_scip_mip_start_without_values(self) -> None:
+        """warm_start with no values set is a no-op rather than an error."""
+        prob, x, y = self.get_mip_problem()
+        x.value = None
+        y.value = None
+        assert prob.solve(solver=cp.SCIP, warm_start=True) == 9.0
+
+    def test_scip_mip_start_infeasible_values(self) -> None:
+        """An unusable start is discarded by SCIP, not propagated."""
+        prob, x, y = self.get_mip_problem()
+        x.value = np.array([99.0, 99.0])
+        assert prob.solve(solver=cp.SCIP, warm_start=True) == 9.0
+
     def test_scip_test_params__no_params_set(self) -> None:
         prob = self.get_simple_problem()
         prob.solve(solver="SCIP")
