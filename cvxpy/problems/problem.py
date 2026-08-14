@@ -879,6 +879,8 @@ class Problem(u.Canonical):
                 isinstance(data, dict)
                 and s.PARAM_PROB in data
                 and not solving_chain.uncached_param_prog
+                and not any(getattr(inv, 'param_quad_form_factorized', False)
+                            for inv in inverse_data)
             )
             self._compilation_time = time.time() - start
             if verbose:
