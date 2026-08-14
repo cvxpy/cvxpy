@@ -74,12 +74,16 @@ QP solvers consume the program directly and need no formatting step.
   `DiffengineParamConeProg` raises `NotImplementedError` — the engine
   re-evaluates a nonlinear map rather than applying a stored linear one.
 
-## Caching status
+## Caching
 
-The compiled symbolic program is NOT yet cached across solves
-(`SolvingChain.uncached_param_prog`): every solve rebuilds the chain and the
-engine program, and the first solve extracts twice (once at stuffing, once in
-the solver's `apply_parameters`). Caching with a theta short-circuit and a
-record-at-site guard for the one value-consuming canonicalizer (the cone
-quad_form canon calls `decomp_quad` on the current `P.value`) is the follow-up
-PR.
+The compiled symbolic program IS cached across solves: `safe_to_cache` keys on
+`SolvingChain.uncached_param_prog` (True only for the EvalParams fallbacks)
+plus a record-at-site guard — the one value-consuming canonicalizer, the cone
+quad_form canon, calls `decomp_quad` on the current `P.value`, so `Dcp2Cone`
+records `param_quad_form_factorized` on its inverse data and such programs are
+rebuilt per solve. `DiffengineParamConeProg` keeps the parameter vector its
+stored matrices were extracted at (per instance, since a restructured copy and
+its raw sibling can hold matrices from different vectors): `apply_parameters`
+short-circuits when the values are unchanged, so construction's extraction
+serves the first solve, and each re-solve with new values costs exactly one
+engine re-extraction.

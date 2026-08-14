@@ -227,11 +227,12 @@ def _build_solving_chain(
         diffengine_ok = (not gp and problem._max_ndim() <= 2
                          and not _has_parametric_bounds(problem.variables()))
         if problem.parameters() and diffengine_ok:
-            # Parameters stay symbolic through canonicalization. Non-affine
-            # parametric constants fold to CallbackParam leaves so Dcp2Cone
-            # never epigraph-relaxes them unsoundly. Caching the compiled
-            # symbolic program across solves is a follow-up.
-            uncached_param_prog = True
+            # Parameters stay symbolic through canonicalization, so the
+            # compiled program is cacheable (safe_to_cache additionally
+            # guards the one value-consuming canonicalizer, the cone
+            # quad_form canon). Non-affine parametric constants fold to
+            # CallbackParam leaves so Dcp2Cone never epigraph-relaxes them
+            # unsoundly.
             reductions = [CallbackParamFold()] + reductions
             if (canon_backend is not None
                     and canon_backend != DIFFENGINE_CANON_BACKEND):
@@ -255,10 +256,6 @@ def _build_solving_chain(
                 # DIFFENGINE for consistency. Explicit backends are honored.
                 canon_backend = DIFFENGINE_CANON_BACKEND
     else:
-        if canon_backend == DIFFENGINE_CANON_BACKEND and problem.parameters():
-            # Explicit DIFFENGINE on a DPP-parametric problem takes the
-            # symbolic path too; caching its compiled program is a follow-up.
-            uncached_param_prog = True
         if canon_backend is None:
             total_param_size = sum(p.size for p in problem.parameters())
             if total_param_size >= DPP_PARAM_THRESHOLD:

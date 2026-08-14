@@ -51,11 +51,18 @@ class DiffengineParamConeProg(ParamConeProg):
         # post-restructuring. with_restruct() and the tensor refresh both
         # read from here.
         self._raw = (q, d, A, b, P)
+        self._tensors_stale = False
         q_t, A_t, P_t = encode_cone_tensors(q, d, A, b, P, x.size)
         super().__init__(q_t, x, A_t, variables, var_id_to_col, constraints,
                          parameters, param_id_to_col, P=P_t,
                          formatted=formatted,
                          lower_bounds=lower_bounds, upper_bounds=upper_bounds)
+        # The parameter vector the stored matrices were extracted at.
+        # Kept per instance, NOT on the shared extractor: a restructured copy
+        # and its raw sibling can hold matrices from different parameter
+        # vectors. Extraction-once: construction itself extracted at the
+        # current values, so the first apply_parameters() short-circuits.
+        self._extracted_param_vec = self._param_vec()
 
     def _param_vec(self, id_to_param_value=None):
         """Flatten and concatenate parameter values (the extractor's encoding).
@@ -69,16 +76,68 @@ class DiffengineParamConeProg(ParamConeProg):
             np.asarray(values(p), dtype=np.float64).flatten(order='F')
             for p in self.parameters])
 
-    def _refresh_tensors(self) -> None:
-        """Re-encode the stored raw matrices into the ParamConeProg tensor
-        attributes, so direct readers of .q/.A/.P stay consistent."""
-        from cvxpy.reductions.solvers.nlp_solvers.diff_engine.cone_stuffing import (
-            encode_cone_tensors,
-        )
-        q, d, A, b, P = self._raw
-        self.q, self.A, self.P = encode_cone_tensors(q, d, A, b, P, self.x.size)
-        self.reduced_A = ReducedMat(self.A, self.x.size)
-        self.reduced_P = ReducedMat(self.P, self.x.size, quad_form=True)
+    # The ParamConeProg tensor attributes are re-encoded lazily: solvers
+    # consume apply_parameters' return values, so eagerly re-encoding
+    # (several O(nnz) sparse passes) on every re-solve would waste the very
+    # time the cache saves. Direct readers of .q/.A/.P stay consistent
+    # through these properties.
+    def _ensure_tensors(self) -> None:
+        if self._tensors_stale:
+            from cvxpy.reductions.solvers.nlp_solvers.diff_engine.cone_stuffing import (
+                encode_cone_tensors,
+            )
+            self._tensors_stale = False
+            q, d, A, b, P = self._raw
+            self._q_tensor, self._A_tensor, self._P_tensor = \
+                encode_cone_tensors(q, d, A, b, P, self.x.size)
+            self._reduced_A = ReducedMat(self._A_tensor, self.x.size)
+            self._reduced_P = ReducedMat(self._P_tensor, self.x.size,
+                                         quad_form=True)
+
+    @property
+    def q(self):
+        self._ensure_tensors()
+        return self._q_tensor
+
+    @q.setter
+    def q(self, value):
+        self._q_tensor = value
+
+    @property
+    def A(self):
+        self._ensure_tensors()
+        return self._A_tensor
+
+    @A.setter
+    def A(self, value):
+        self._A_tensor = value
+
+    @property
+    def P(self):
+        self._ensure_tensors()
+        return self._P_tensor
+
+    @P.setter
+    def P(self, value):
+        self._P_tensor = value
+
+    @property
+    def reduced_A(self):
+        self._ensure_tensors()
+        return self._reduced_A
+
+    @reduced_A.setter
+    def reduced_A(self, value):
+        self._reduced_A = value
+
+    @property
+    def reduced_P(self):
+        self._ensure_tensors()
+        return self._reduced_P
+
+    @reduced_P.setter
+    def reduced_P(self, value):
+        self._reduced_P = value
 
     def apply_parameters(self, id_to_param_value=None, zero_offset: bool = False,
                          keep_zeros: bool = False, quad_obj: bool = False):
@@ -93,13 +152,22 @@ class DiffengineParamConeProg(ParamConeProg):
                 "differentiation contract (zero_offset/keep_zeros); solve "
                 "without requires_grad, or use a tensor canon backend.")
         theta = self._param_vec(id_to_param_value)
+        if (self._extracted_param_vec is not None
+                and np.array_equal(theta, self._extracted_param_vec)
+                and (not quad_obj or self._raw[4] is not None)):
+            # The stored matrices already correspond to these values.
+            q, d, A, b, P = self._raw
+            if quad_obj:
+                return P, q, d, A, b
+            return q, d, A, b
         self.extractor.update_parameters(theta)
         q, d, A, b, P = self.extractor.extract(quad_obj)
         if self._restruct_mat is not None:
             A = self._restruct_mat @ A
             b = np.asarray(self._restruct_mat @ b).flatten()
         self._raw = (q, d, A, b, P)
-        self._refresh_tensors()
+        self._extracted_param_vec = theta
+        self._tensors_stale = True
         if quad_obj:
             return P, q, d, A, b
         return q, d, A, b
@@ -111,11 +179,14 @@ class DiffengineParamConeProg(ParamConeProg):
         if R is not None:
             A = R @ A
             b = np.asarray(R @ b).flatten()
-        return DiffengineParamConeProg(
+        new_prog = DiffengineParamConeProg(
             self.extractor, self.x, self.variables, self.var_id_to_col,
             self.constraints, self.parameters, self.param_id_to_col,
             q, d, A, b, P, formatted=True, restruct_mat=R,
             lower_bounds=self.lower_bounds, upper_bounds=self.upper_bounds)
+        # The restructured matrices correspond to THIS instance's values.
+        new_prog._extracted_param_vec = self._extracted_param_vec
+        return new_prog
 
     def split_adjoint(self, del_vars=None):
         raise NotImplementedError(

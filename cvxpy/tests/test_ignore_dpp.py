@@ -16,6 +16,7 @@ limitations under the License.
 from __future__ import annotations
 
 import unittest
+from unittest import mock
 
 import numpy as np
 import pytest
@@ -30,6 +31,9 @@ from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import (
 from cvxpy.reductions.eval_params import EvalParams
 from cvxpy.reductions.fold_callback_params import CallbackParamFold
 from cvxpy.reductions.solvers.defines import INSTALLED_MI_SOLVERS
+from cvxpy.reductions.solvers.nlp_solvers.diff_engine.parametric_program import (
+    DiffengineParamConeProg,
+)
 from cvxpy.tests.base_test import BaseTest
 from cvxpy.tests.test_diffengine_backend import MISSING
 
@@ -332,3 +336,257 @@ class TestIgnoreDppBehavior(BaseTest):
         prob.solve(ignore_dpp=True)
         self.assertEqual(prob.status, cp.OPTIMAL)
         self.assertItemsAlmostEqual(x.value, np.ones(3), places=4)
+
+
+class TestResolveCaching(BaseTest):
+    """The compiled DiffengineParamConeProg is cached across ignore_dpp /
+    non-DPP re-solves; values must refresh through the cache, and the one
+    value-consuming canonicalization must disable it."""
+
+    def test_extraction_runs_once_per_solve(self) -> None:
+        """The solver's apply_parameters must reuse the matrices stuffing
+        just extracted; a cached re-solve with changed values must re-extract
+        exactly once without rebuilding the compiled problem."""
+        from cvxpy.reductions.solvers.nlp_solvers.diff_engine.extractor import (
+            DiffEngineExtractor,
+        )
+
+        p = cp.Parameter(2)
+        x = cp.Variable(2)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(x - p)), [x >= -10])
+
+        real_extract = DiffEngineExtractor.extract
+        real_build = DiffEngineExtractor.build
+        with mock.patch.object(DiffEngineExtractor, "extract",
+                               autospec=True, side_effect=real_extract) as spy, \
+             mock.patch.object(DiffEngineExtractor, "build",
+                               autospec=True, side_effect=real_build) as build_spy:
+            p.value = np.array([1.0, 2.0])
+            prob.solve(solver=SOLVER, ignore_dpp=True)
+            self.assertEqual(spy.call_count, 1)  # stuffing only
+            self.assertItemsAlmostEqual(x.value, p.value, places=4)
+
+            # The program is cached across solves; changed parameter values
+            # trigger exactly one re-extraction in apply_parameters, and the
+            # compiled problem is NOT rebuilt.
+            p.value = np.array([-3.0, 4.0])
+            prob.solve(solver=SOLVER, ignore_dpp=True)
+            self.assertEqual(spy.call_count, 2)
+            self.assertEqual(build_spy.call_count, 1)
+            self.assertItemsAlmostEqual(x.value, p.value, places=4)
+
+    def test_parametric_constraint_quad_form_not_cached(self) -> None:
+        """quad_form(x, P) in a constraint factorizes P.value during
+        canonicalization (the one value-consuming canon), so the program is
+        never cached -- and re-solves must still track fresh values."""
+        n = 2
+        P = cp.Parameter((n, n), PSD=True)
+        y = cp.Variable(n)
+        prob = cp.Problem(cp.Minimize(cp.sum(y)), [cp.quad_form(y, P) <= 1])
+
+        P.value = np.eye(n)
+        prob.solve(solver=SOLVER, ignore_dpp=True)
+        self.assertIsNone(prob._cache.param_prog)
+        val1 = prob.value
+
+        P.value = 4 * np.eye(n)
+        prob.solve(solver=SOLVER, ignore_dpp=True)
+        self.assertIsNone(prob._cache.param_prog)
+        self.assertAlmostEqual(prob.value, val1 / 2.0, places=4)
+
+    def test_cache_hit_through_restructured_cones(self) -> None:
+        """Cache-hit re-solves must re-apply the stored restructuring matrix
+        to freshly extracted (A, b): SOC + PSD problem with changing values."""
+        p = cp.Parameter(2)
+        x = cp.Variable(2)
+        X = cp.Variable((2, 2), symmetric=True)
+        prob = cp.Problem(
+            cp.Minimize(cp.sum(x) + cp.trace(X)),
+            [cp.norm(x - p) <= 2.0, X >> cp.diag(p)])
+        cached = None
+        for seed in (1, 2, 1):
+            val = np.random.default_rng(seed).standard_normal(2)
+            p.value = val
+            prob.solve(solver=SOLVER, ignore_dpp=True)
+            self.assertEqual(prob.status, cp.OPTIMAL)
+            if cached is None:
+                cached = prob._cache.param_prog
+                self.assertIsInstance(cached, DiffengineParamConeProg)
+            else:
+                self.assertIs(prob._cache.param_prog, cached)
+
+            x_b = cp.Variable(2)
+            X_b = cp.Variable((2, 2), symmetric=True)
+            base = cp.Problem(
+                cp.Minimize(cp.sum(x_b) + cp.trace(X_b)),
+                [cp.norm(x_b - val) <= 2.0, X_b >> np.diag(val)])
+            base.solve(solver=SOLVER)
+            self.assertAlmostEqual(prob.value, base.value, places=4)
+
+    def test_scaled_matrix_coefficient_refreshes_through_cache(self) -> None:
+        """(p * A) @ x: broadcasting promotes p over A, so the coefficient
+        reaches the engine as a composite side subtree whose values must
+        rebuild on re-solves. The constraint boundary (hence the optimal
+        point, value 0.5/p) moves with p, so a stale coefficient produces a
+        wrong optimum, not just a wrong offset."""
+        A = np.array([[1.0, 2.0], [3.0, 4.0]])
+        x = cp.Variable(2)
+        p = cp.Parameter(nonneg=True)
+        prob = cp.Problem(cp.Minimize(cp.sum(x)),
+                          [(p * A) @ x >= 1, x >= 0])
+        cached = None
+        for val in (1.0, 100.0, 1.0):
+            p.value = val
+            prob.solve(solver=SOLVER, ignore_dpp=True)
+            self.assertAlmostEqual(prob.value, 0.5 / val, places=4)
+            if cached is None:
+                cached = prob._cache.param_prog
+                self.assertIsInstance(cached, DiffengineParamConeProg)
+            else:
+                self.assertIs(prob._cache.param_prog, cached)
+
+    def test_scaled_quad_matrix_refreshes_through_cache(self) -> None:
+        """quad_form(x, g * Sigma): the scaled constant matrix stays symbolic
+        as the engine's quadratic matrix. The unconstrained optimum
+        x = (g Sigma)^{-1} 1 (value -5/(6g)) moves with g, so a stale Q
+        produces a wrong optimum on cached re-solves."""
+        Sigma = np.array([[2.0, 0.0], [0.0, 3.0]])
+        x = cp.Variable(2)
+        g = cp.Parameter(nonneg=True)
+        prob = cp.Problem(cp.Minimize(
+            cp.quad_form(x, g * Sigma, assume_PSD=True) - 2.0 * cp.sum(x)))
+        cached = None
+        for val in (1.0, 50.0, 1.0):
+            g.value = val
+            prob.solve(solver=SOLVER, ignore_dpp=True)
+            self.assertAlmostEqual(prob.value, -5.0 / (6.0 * val), places=4)
+            self.assertItemsAlmostEqual(
+                x.value, [1.0 / (2 * val), 1.0 / (3 * val)], places=4)
+            if cached is None:
+                cached = prob._cache.param_prog
+                self.assertIsInstance(cached, DiffengineParamConeProg)
+            else:
+                self.assertIs(prob._cache.param_prog, cached)
+
+    def test_scaled_param_coefficient_refreshes_through_cache(self) -> None:
+        """A scaled parameter multiplying a variable ((2*p) * x) reaches the
+        engine as a coefficient; the multiplicative node inside it caches
+        parameter data, so the cached program must serve fresh values on
+        re-solves."""
+        x = cp.Variable()
+        y = cp.Variable()
+        p = cp.Parameter()
+        prob = cp.Problem(cp.Minimize(y),
+                          [y >= (2 * p) * x, x == 1])
+        cached = None
+        for val in (1.0, 100.0, 1.0):
+            p.value = val
+            prob.solve(solver=SOLVER, ignore_dpp=True)
+            self.assertAlmostEqual(y.value, 2 * val, places=4)
+            if cached is None:
+                cached = prob._cache.param_prog
+                self.assertIsInstance(cached, DiffengineParamConeProg)
+            else:
+                self.assertIs(prob._cache.param_prog, cached)
+
+
+class TestIgnoreDppCacheHygiene(BaseTest):
+    """Toggling ignore_dpp between solves must fully invalidate the cache:
+    the chain, the cached parametric program, and the solver warm-start cache
+    all belong to one cache key."""
+
+    def test_toggle_ignore_dpp_switches_chain_and_stays_correct(self) -> None:
+        """ignore_dpp -> default -> default (new params) -> ignore_dpp (new
+        params): each step must use the right backend and match a fresh
+        baseline, so any stale cache shows up numerically."""
+        def stuffing_backend(prob):
+            return [r for r in prob._cache.solving_chain.reductions
+                    if isinstance(r, ConeMatrixStuffing)][0].canon_backend
+
+        def baseline(A_val, b_val):
+            x = cp.Variable(A_val.shape[1])
+            base = cp.Problem(
+                cp.Minimize(cp.sum_squares(A_val @ x - b_val)), [x >= -10])
+            base.solve(solver=SOLVER)
+            return base.value
+
+        rng = np.random.default_rng(0)
+        m, n = 8, 5  # overdetermined so the optimum is strictly positive
+        A = cp.Parameter((m, n))
+        b = cp.Parameter(m)
+        x = cp.Variable(n)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(A @ x - b)), [x >= -10])
+
+        # 1. ignore_dpp first: DIFFENGINE chain with a cached parametric
+        # program (parameters stay symbolic, so caching is safe).
+        A.value = rng.standard_normal((m, n))
+        b.value = rng.standard_normal(m)
+        prob.solve(solver=SOLVER, ignore_dpp=True)
+        solver_cache_de = prob._solver_cache
+        self.assertEqual(stuffing_backend(prob), s.DIFFENGINE_CANON_BACKEND)
+        de_prog = prob._cache.param_prog
+        self.assertIsInstance(de_prog, DiffengineParamConeProg)
+        self.assertAlmostEqual(prob.value, baseline(A.value, b.value), places=4)
+
+        # 2. default solve, same parameter values: key change must rebuild the
+        # chain (DPP path, not DIFFENGINE) and reset the solver cache.
+        prob.solve(solver=SOLVER)
+        self.assertNotEqual(stuffing_backend(prob), s.DIFFENGINE_CANON_BACKEND)
+        self.assertIsNotNone(prob._cache.param_prog)  # DPP program cached
+        self.assertIsNot(prob._solver_cache, solver_cache_de)
+        self.assertAlmostEqual(prob.value, baseline(A.value, b.value), places=4)
+
+        # 3. new parameter values, default solve again: the DPP fast path
+        # (cached param_prog) must serve fresh values, not stale ones.
+        dpp_prog = prob._cache.param_prog
+        A.value = rng.standard_normal((m, n))
+        b.value = rng.standard_normal(m)
+        prob.solve(solver=SOLVER)
+        self.assertIs(prob._cache.param_prog, dpp_prog)  # fast path reused
+        self.assertAlmostEqual(prob.value, baseline(A.value, b.value), places=4)
+
+        # 4. back to ignore_dpp with new values: the key toggle must have
+        # invalidated step 1's program (a fresh one is built and cached).
+        A.value = rng.standard_normal((m, n))
+        b.value = rng.standard_normal(m)
+        prob.solve(solver=SOLVER, ignore_dpp=True)
+        self.assertEqual(stuffing_backend(prob), s.DIFFENGINE_CANON_BACKEND)
+        self.assertIsInstance(prob._cache.param_prog, DiffengineParamConeProg)
+        self.assertIsNot(prob._cache.param_prog, de_prog)
+        self.assertAlmostEqual(prob.value, baseline(A.value, b.value), places=4)
+
+    def test_param_free_program_cached_and_reused(self) -> None:
+        """A parameter-free ignore_dpp solve caches its stock program and the
+        fast path reuses it."""
+        y = cp.Variable(3)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(y - 1)), [y >= 0])
+
+        prob.solve(solver=SOLVER, ignore_dpp=True)
+        cached = prob._cache.param_prog
+        self.assertIsInstance(cached, ParamConeProg)
+
+        prob.solve(solver=SOLVER, ignore_dpp=True)
+        self.assertIs(prob._cache.param_prog, cached)  # fast path reused
+        self.assertAlmostEqual(prob.value, 0.0)
+        self.assertItemsAlmostEqual(y.value, np.ones(3), places=4)
+
+    def test_shared_parameter_across_problems(self) -> None:
+        """Two problems sharing a Parameter, one on each path, must not
+        contaminate each other's caches or values."""
+        p = cp.Parameter()
+        x = cp.Variable()
+        y = cp.Variable()
+        prob_de = cp.Problem(cp.Minimize(cp.square(x - p)))
+        prob_dpp = cp.Problem(cp.Minimize(cp.square(y - 2 * p)))
+
+        p.value = 1.0
+        prob_de.solve(solver=SOLVER, ignore_dpp=True)
+        prob_dpp.solve(solver=SOLVER)
+        self.assertAlmostEqual(x.value, 1.0)
+        self.assertAlmostEqual(y.value, 2.0)
+
+        p.value = -3.0
+        prob_dpp.solve(solver=SOLVER)
+        prob_de.solve(solver=SOLVER, ignore_dpp=True)
+        self.assertAlmostEqual(x.value, -3.0)
+        self.assertAlmostEqual(y.value, -6.0)
