@@ -21,6 +21,7 @@ from sparsediffpy import _sparsediffengine as _diffengine
 
 import cvxpy as cp
 import cvxpy.settings as s
+from cvxpy.atoms.affine.wraps import Wrap
 from cvxpy.atoms.elementwise.power import Power
 from cvxpy.atoms.quad_form import QuadForm
 from cvxpy.atoms.quad_over_lin import quad_over_lin
@@ -115,9 +116,10 @@ def convert_symbolic_quad_form(expr, var_dict, n_vars, param_dict):
     """Convert a SymbolicQuadForm (Dcp2Cone quadratic-objective placeholder).
 
     Scalar x'Px (QuadForm / quad_over_lin / sum_squares) uses the native quad_form
-    binding, routed by how P is stored: the sparse CSR path for a sparse P, the
-    dense path otherwise. power/PowerApprox is the elementwise square, lowered
-    to multiply.
+    binding. A parametric P becomes a matrix-valued child the engine re-evaluates
+    each solve; a constant P is routed by how it is stored -- the sparse CSR path
+    for a sparse P, the dense path otherwise. power/PowerApprox is the elementwise
+    square, lowered to multiply.
     """
     if expr.block_indices is not None:
         raise NotImplementedError(
@@ -129,13 +131,17 @@ def convert_symbolic_quad_form(expr, var_dict, n_vars, param_dict):
     if isinstance(orig, (QuadForm, quad_over_lin)):
         x = expr.args[0]
         P = expr.args[1]
-        if P.parameters():
-            # Unreachable through the gated DIFFENGINE backend (the stuffing
-            # rejects parametric problems); fail loud for direct callers.
-            raise NotImplementedError(
-                "SymbolicQuadForm with a parametric P is not supported by "
-                "the diff engine.")
         x_c = convert_expr(x, var_dict, n_vars, param_dict)
+        n = x.size
+        if P.parameters():
+            # P is affine in the parameters and independent of x (Hessian still 2P):
+            # feed it as a matrix-valued child evaluated each solve. Peel value-identity
+            # Wrap atoms (e.g. psd_wrap) the converter can't build directly.
+            P_inner = P
+            while isinstance(P_inner, Wrap):
+                P_inner = P_inner.args[0]
+            P_c = convert_expr(P_inner, var_dict, n_vars, param_dict)
+            return _diffengine.make_quad_form(P_c, x_c, "dense", None, n)
         P_val = P.value
         if sparse.issparse(P_val):
             P_csr = P_val.tocsr()
@@ -147,7 +153,7 @@ def convert_symbolic_quad_form(expr, var_dict, n_vars, param_dict):
                 P_csr.shape[0], P_csr.shape[1])
         P_dense = to_dense_float(P_val)
         return _diffengine.make_quad_form(
-            None, x_c, "dense", P_dense.flatten(order='F'), x.size)
+            None, x_c, "dense", P_dense.flatten(order='F'), n)
 
     if isinstance(orig, Power):  # PowerApprox subclasses Power; canon only p == 2
         # The elementwise square, rebuilt over the leaf arg: the engine's
