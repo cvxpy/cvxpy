@@ -31,6 +31,7 @@ from cvxpy.reductions.discrete2mixedint.valinvec2mixedint import (
 from cvxpy.reductions.eliminate_zero_sized import EliminateZeroSized
 from cvxpy.reductions.eval_params import EvalParams
 from cvxpy.reductions.flip_objective import FlipObjective
+from cvxpy.reductions.matrix_stuffing import _has_parametric_bounds
 from cvxpy.reductions.solvers import defines as slv_def
 from cvxpy.reductions.solvers.constant_solver import ConstantSolver
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
@@ -215,6 +216,19 @@ def _build_solving_chain(
         if not ignore_dpp:
             warn(DPP_ERROR_MSG)
         reductions = [EvalParams()] + reductions
+        # EvalParams bakes the parameters, so the stuffed problem is
+        # parameter-free and the diff engine can build its matrices directly
+        # from the expression trees -- far cheaper than the tensor pipeline
+        # for large or kron-heavy trees. Default selection falls back
+        # silently to the tensor backends for the cases the backend does not
+        # cover (N-D expressions; parametric variable bounds, which
+        # EvalParams does not bake; DGP chains, where Dgp2Dcp introduces
+        # fresh parameters after EvalParams has run); an explicit
+        # canon_backend="DIFFENGINE" request for those still fails loud in
+        # the backend's own guards.
+        if (canon_backend is None and not gp and problem._max_ndim() <= 2
+                and not _has_parametric_bounds(problem.variables())):
+            canon_backend = DIFFENGINE_CANON_BACKEND
     else:
         if canon_backend is None:
             total_param_size = sum(p.size for p in problem.parameters())
