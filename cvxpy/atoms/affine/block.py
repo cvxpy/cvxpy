@@ -37,7 +37,7 @@ def block(arrays) -> Expression:
         The assembled expression.
     """
     if not isinstance(arrays, list):
-        return Expression.cast_to_const(arrays)
+        return Expression.cast(arrays)
 
     list_depth = _list_depth(arrays)
     result_ndim = max(list_depth, _max_ndim(arrays))
@@ -64,12 +64,12 @@ def _max_ndim(arrays) -> int:
     if isinstance(arrays, list):
         return max(_max_ndim(item) for item in arrays)
 
-    return Expression.cast_to_const(arrays).ndim
+    return Expression.cast(arrays).ndim
 
 
 def _block(arrays, list_depth, result_ndim):
     if not isinstance(arrays, list):
-        expr = Expression.cast_to_const(arrays)
+        expr = Expression.cast(arrays)
         return _promote(expr, result_ndim)
 
     children = [
