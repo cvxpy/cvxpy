@@ -50,7 +50,7 @@ jobs:
           echo DEPLOY_LATEST=$DEPLOY_LATEST >> $GITHUB_ENV
 
       - name: Deploy this version
-        uses: JamesIves/github-pages-deploy-action@v4.8.0
+        uses: JamesIves/github-pages-deploy-action@v4.9.0
         with:
           branch: gh-pages
           folder: doc/build/html
@@ -58,7 +58,7 @@ jobs:
 
       - name: Deploy to root if latest version
         if: ${{ env.DEPLOY_LATEST == 'True' }}
-        uses: JamesIves/github-pages-deploy-action@v4.8.0
+        uses: JamesIves/github-pages-deploy-action@v4.9.0
         with:
           branch: gh-pages
           folder: doc/build/html
