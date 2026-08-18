@@ -39,7 +39,7 @@ class Objective(u.Canonical):
     NAME = "objective"
 
     def __init__(self, expr) -> None:
-        self.args = [Expression.cast_to_const(expr)]
+        self.args = [Expression.cast(expr)]
         # Needed for Canonical._aggregate_metrics.
         self.ndim = 0
         # Validate that the objective resolves to a scalar.

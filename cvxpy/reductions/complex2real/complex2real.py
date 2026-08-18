@@ -28,6 +28,7 @@ from cvxpy.constraints import (
 )
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions import cvxtypes
+from cvxpy.expressions.variable import Variable
 from cvxpy.lin_ops import lin_utils as lu
 from cvxpy.reductions import InverseData, Solution
 from cvxpy.reductions.complex2real.canonicalizers import (
@@ -35,6 +36,9 @@ from cvxpy.reductions.complex2real.canonicalizers import (
 )
 from cvxpy.reductions.complex2real.canonicalizers import (
     Complex2RealCanonMethods,
+)
+from cvxpy.reductions.complex2real.canonicalizers.psd_canon import (
+    complex_psd_matrix,
 )
 from cvxpy.reductions.reduction import Reduction
 
@@ -275,6 +279,30 @@ class Complex2Real(Reduction):
             elif isinstance(imag_constrs, Constraint):
                 constrs.append(imag_constrs)
 
+        for orig_expr, canon_expr in leaf_map.items():
+            if not isinstance(orig_expr, Variable):
+                continue
+
+            if not orig_expr.is_complex():
+                continue
+
+            attrs = orig_expr.attributes
+
+            if not (attrs.get("PSD") or attrs.get("NSD")):
+                continue
+
+            real_part, imag_part = canon_expr
+
+            if real_part is None or imag_part is None:
+                continue
+
+            block_mat = complex_psd_matrix(real_part, imag_part)
+
+            if attrs.get("PSD"):
+                constrs.append(PSD(block_mat))
+            elif attrs.get("NSD"):
+                constrs.append(PSD(-block_mat))
+
         new_problem = problems.problem.Problem(real_obj,
                                                constrs)
         return new_problem, inverse_data
@@ -340,14 +368,13 @@ class Complex2Real(Reduction):
                         #          [-im(X), re(X)]
                         # and the constraint con_y = Y >> 0.
                         #
-                        # The real part the dual variable for con_x is the upper-left
-                        # block of the dual variable for con_y.
-                        #
-                        # The imaginary part of the dual variable for con_x is the
-                        # upper-right block of the dual variable for con_y.
+                        # If D is the dual variable for con_y, then the dual variable
+                        # for con_x is 2*(D[:n, :n] + 1j*D[n:, :n]). The factor of 2
+                        # accounts for the dilation doubling the inner product:
+                        # <D, Y> = 2*Re(<D[:n, :n] + 1j*D[n:, :n], X>).
                         n = cons.args[0].shape[0]
                         dual = solution.dual_vars[cid]
-                        dvars[cid] = dual[:n, :n] + 1j*dual[n:, :n]
+                        dvars[cid] = 2*(dual[:n, :n] + 1j*dual[n:, :n])
                     elif isinstance(cons, self.UNIMPLEMENTED_COMPLEX_DUALS):
                         # TODO: implement dual variable recovery
                         pass

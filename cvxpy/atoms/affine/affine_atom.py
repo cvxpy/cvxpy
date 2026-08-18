@@ -19,6 +19,7 @@ import scipy.sparse as sp
 
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
+import cvxpy.settings as s
 import cvxpy.utilities as u
 from cvxpy.atoms.atom import Atom
 from cvxpy.cvxcore.python import canonInterface
@@ -140,6 +141,14 @@ class AffAtom(Atom):
                                                  self.get_data())
         param_to_size = {lo.CONSTANT_ID: 1}
         param_to_col = {lo.CONSTANT_ID: 0}
+        # The CPP backend does not support expressions with more than
+        # 2 dimensions or atoms without a C++ implementation (e.g.
+        # broadcast_to, concatenate), so use the SCIPY backend for those.
+        if self.ndim > 2 or any(arg.ndim > 2 for arg in self.args) \
+                or not self._supports_cpp():
+            canon_backend = s.SCIPY_CANON_BACKEND
+        else:
+            canon_backend = None
         # Get the matrix representation of the function.
         canon_mat = canonInterface.get_problem_matrix(
             [fake_expr],
@@ -148,6 +157,7 @@ class AffAtom(Atom):
             param_to_size,
             param_to_col,
             self.size,
+            canon_backend,
         )
         # HACK TODO TODO convert tensors back to vectors.
         # COO = (V[lo.CONSTANT_ID][0], (J[lo.CONSTANT_ID][0], I[lo.CONSTANT_ID][0]))

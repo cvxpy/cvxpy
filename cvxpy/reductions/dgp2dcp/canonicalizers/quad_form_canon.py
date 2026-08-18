@@ -1,4 +1,4 @@
-from cvxpy.atoms.affine import hstack
+from cvxpy.atoms.affine.hstack import hstack
 from cvxpy.atoms.log_sum_exp import log_sum_exp
 
 

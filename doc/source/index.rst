@@ -25,7 +25,6 @@ Welcome to CVXPY 1.10
 **Convex optimization, for everyone.**
 
 *Help us benchmark CVXPY solvers! Contribute problems and results to the* `Solver Benchmarks <resources/solver_benchmarks/>`_ *project.*
-*We are inviting CVXPY users to share their experience with the library and their application area so we can better serve you!* `Sign up for a listening session! <https://calendar.app.google/mRGBur1ZVMW1dcbR8>`_.
 *We are building a CVXPY community* `on Discord <https://discord.gg/4urRQeGBCr>`_. *Join the conversation!*
 
 CVXPY is an open source Python-embedded modeling language for convex
@@ -96,15 +95,16 @@ researchers and engineers.
 
 CVXPY is developed and maintained by
 `Steven Diamond <https://stevendiamond.me/>`_,
-`Akshay Agrawal <https://akshayagrawal.com>`_,
 `Riley Murray <https://rileyjmurray.wordpress.com/>`_,
 `Philipp Schiele <https://www.philippschiele.com/>`_,
-`Bartolomeo Stellato <https://stellato.io/>`_, and
-`Parth Nobel <https://ptnobel.github.io/>`_ with many others contributing
-significantly. A non-exhaustive list of people who have shaped CVXPY over the
+`Parth Nobel <https://ptnobel.github.io/>`_, and
+`William Zhang <https://zijie.ca/>`_.
+CVXPY's emeritus maintainers are
+`Bartolomeo Stellato <https://stellato.io/>`_ and `Akshay Agrawal <https://akshayagrawal.com>`_.
+Many others have contributed significantly.
+A non-exhaustive list of people who have shaped CVXPY over the
 years includes Stephen Boyd, Eric Chu, Robin Verschueren,
-Jaehyun Park, Enzo Busseti, AJ Friend, Judson Wilson, Chris Dembia, and
-William Zhang.
+Jaehyun Park, Enzo Busseti, AJ Friend, Judson Wilson, Chris Dembia, and Daniel Cederberg.
 
 We appreciate all contributions. To get involved, see our :doc:`contributing
 guide </contributing/index>` and join us `on Discord <https://discord.gg/4urRQeGBCr>`_.

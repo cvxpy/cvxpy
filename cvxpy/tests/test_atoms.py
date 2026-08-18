@@ -952,6 +952,26 @@ class TestAtoms(BaseTest):
         expr = cp.log1p(-0.5)
         self.assertEqual(expr.sign, s.NONPOS)
 
+    def test_entr(self) -> None:
+        """Test the entr atom, including sparse constants.
+
+        entr was the only elementwise atom missing numpy_numeric, so sparse
+        inputs reached scipy's xlogy undensified and raised a TypeError.
+        """
+        dense = np.array([[0.5, 0.0], [0.0, 2.0]])
+        expected = np.array([[0.5 * np.log(2), 0.0], [0.0, -2 * np.log(2)]])
+        self.assertItemsAlmostEqual(cp.entr(cp.Constant(dense)).value, expected)
+        sparse = sp.csc_array(dense)
+        self.assertItemsAlmostEqual(cp.entr(cp.Constant(sparse)).value, expected)
+
+    def test_elementwise_is_symmetric(self) -> None:
+        """is_symmetric must not crash for scalar or 1-D elementwise atoms."""
+        self.assertTrue(cp.abs(cp.Variable()).is_symmetric())
+        self.assertFalse(cp.abs(cp.Variable(3)).is_symmetric())
+        self.assertTrue(cp.abs(cp.Variable((2, 2), symmetric=True)).is_symmetric())
+        self.assertFalse(cp.abs(cp.Variable((2, 2))).is_symmetric())
+        self.assertFalse(cp.abs(cp.Variable((2, 3))).is_symmetric())
+
     def test_upper_tri(self) -> None:
         with self.assertRaises(Exception) as cm:
             cp.upper_tri(self.C)
@@ -1143,6 +1163,13 @@ class TestAtoms(BaseTest):
             np.array([[0.125, 4.0], [2.0, 0.5]]),
         )
 
+        # -- Sparse constant input --
+        dense = np.array([[0.5, 0.0], [0.0, 3.0]])
+        expected = np.array([[0.125, 0.0], [0.0, 4.0]])
+        self.assertItemsAlmostEqual(cp.huber(cp.Constant(dense), M=1, t=2).value, expected)
+        sparse = sp.csc_array(dense)
+        self.assertItemsAlmostEqual(cp.huber(cp.Constant(sparse), M=1, t=2).value, expected)
+
         # -- t as Parameter --
         t_param = cp.Parameter(pos=True)
         t_param.value = 2.0
@@ -1165,24 +1192,31 @@ class TestAtoms(BaseTest):
         self.assertIn("concave or affine", str(cm.exception))
 
         # -- _grad: gradient w.r.t. x and t --
+        # d/dt [t*huber(x/t, M)] = -min(|x/t|, M)^2, verified by finite differences.
         atom = cp.huber(y, M=1, t=cp.Variable(pos=True))
         g = atom._grad([np.array(0.5), 2.0])
-        self.assertAlmostEqual(float(g[0]), 0.5)
-        self.assertAlmostEqual(g[1].item(), -0.125)
+        self.assertAlmostEqual(g[0].toarray().item(), 0.5)
+        self.assertAlmostEqual(g[1].toarray().item(), -0.0625)
         g = atom._grad([np.array(3.0), 2.0])
-        self.assertAlmostEqual(float(g[0]), 2.0)
-        self.assertAlmostEqual(g[1].item(), -2.0)
+        self.assertAlmostEqual(g[0].toarray().item(), 2.0)
+        self.assertAlmostEqual(g[1].toarray().item(), -1.0)
         g = atom._grad([np.array(-3.0), 2.0])
-        self.assertAlmostEqual(float(g[0]), -2.0)
-        self.assertAlmostEqual(g[1].item(), -2.0)
+        self.assertAlmostEqual(g[0].toarray().item(), -2.0)
+        self.assertAlmostEqual(g[1].toarray().item(), -1.0)
         yv = cp.Variable(3)
         atom_v = cp.huber(yv, M=1, t=cp.Variable(pos=True))
         g = atom_v._grad([np.array([0.5, 3.0, -3.0]), 2.0])
-        self.assertItemsAlmostEqual(g[0], [0.5, 2.0, -2.0])
-        self.assertAlmostEqual(g[1].item(), -4.125)
+        self.assertItemsAlmostEqual(g[0].toarray(), np.diag([0.5, 2.0, -2.0]))
+        self.assertItemsAlmostEqual(g[1].toarray(), [-0.0625, -1.0, -1.0])
         g = atom._grad([np.array(0.5), 0.0])
         self.assertIsNone(g[0])
         self.assertIsNone(g[1])
+        # Chain rule through Atom.grad: d/dt sum_i t*huber(2*x_i/t) at the kink |2x/t| = M.
+        xv, tv = cp.Variable(2), cp.Variable(pos=True)
+        xv.value, tv.value = np.array([1.0, -1.0]), 2.0
+        expr = cp.sum(cp.huber(2 * xv, M=1, t=tv))
+        self.assertItemsAlmostEqual(expr.grad[xv].toarray(), [4.0, -4.0])
+        self.assertAlmostEqual(expr.grad[tv], -2.0)
 
         # -- Copy --
         atom = cp.huber(self.x, M=2, t=3)
@@ -1672,6 +1706,39 @@ class TestAtoms(BaseTest):
                            np.hstack([np.zeros((2, 1)),
                                       np.array([[1, 2]]).T])])
         self.assertItemsAlmostEqual(expr, const)
+
+    def test_bmat_promotes_scalars(self) -> None:
+        """bmat should promote scalars and 1-D blocks like numpy.block.
+
+        Regression test for https://github.com/cvxpy/cvxpy/issues/2328.
+        """
+        # Mixing a scalar, a vector, and a matrix (e.g. an LMI) used to raise.
+        U = np.array([[10.0], [20.0]])
+        expr = cp.bmat([[4, U.T], [U, np.identity(2)]])
+        ref = np.block([[4, U.T], [U, np.identity(2)]])
+        self.assertEqual(expr.shape, (3, 3))
+        self.assertItemsAlmostEqual(expr.value, ref)
+
+        # A scalar and a 1-D vector on the same row.
+        expr = cp.bmat([[1, np.array([5.0, 6.0])]])
+        self.assertEqual(expr.shape, (1, 3))
+        self.assertItemsAlmostEqual(expr.value, np.array([[1.0, 5.0, 6.0]]))
+
+        # Works with Variables and stays affine.
+        x = cp.Variable((2, 1))
+        expr = cp.bmat([[4, x.T], [x, np.identity(2)]])
+        self.assertEqual(expr.shape, (3, 3))
+        self.assertTrue(expr.is_affine())
+
+        # A scalar Variable is promoted just like a scalar constant.
+        s = cp.Variable()
+        expr = cp.bmat([[s, x.T], [x, np.identity(2)]])
+        self.assertEqual(expr.shape, (3, 3))
+        self.assertTrue(expr.is_affine())
+        s.value = 7.0
+        x.value = np.array([[10.0], [20.0]])
+        ref = np.block([[7.0, x.value.T], [x.value, np.identity(2)]])
+        self.assertItemsAlmostEqual(expr.value, ref)
 
     def test_conv(self) -> None:
         """Test the conv atom.
@@ -2382,6 +2449,72 @@ class TestAtoms(BaseTest):
         self.assertEqual(str(cm.exception),
                          "Dimension of system doesn't correspond to dimension of subsystems.")
 
+    def test_partial_trace_dcp_attributes(self) -> None:
+        """Test that partial_trace propagates DCP attributes correctly.
+        """
+        # PSD input -> PSD output (partial trace preserves PSD)
+        X_psd = cp.Variable((4, 4), PSD=True)
+        pt_psd = cp.partial_trace(X_psd, (2, 2))
+        self.assertTrue(pt_psd.is_psd())
+        self.assertTrue(pt_psd.is_hermitian())
+        self.assertTrue(pt_psd.is_symmetric())
+
+        # Symmetric input -> Symmetric output
+        X_sym = cp.Variable((4, 4), symmetric=True)
+        pt_sym = cp.partial_trace(X_sym, (2, 2))
+        self.assertTrue(pt_sym.is_symmetric())
+        self.assertTrue(pt_sym.is_hermitian())
+
+        # Hermitian input -> Hermitian output
+        X_herm = cp.Variable((4, 4), hermitian=True)
+        pt_herm = cp.partial_trace(X_herm, (2, 2))
+        self.assertTrue(pt_herm.is_hermitian())
+        self.assertFalse(pt_herm.is_symmetric())
+
+        # Plain input -> no special attributes
+        X_plain = cp.Variable((4, 4))
+        pt_plain = cp.partial_trace(X_plain, (2, 2))
+        self.assertFalse(pt_plain.is_psd())
+        self.assertFalse(pt_plain.is_hermitian())
+
+        # PSD complex input -> PSD output (Hermitian, not necessarily symmetric)
+        X_psd_c = cp.Variable((4, 4), PSD=True, complex=True)
+        pt_psd_c = cp.partial_trace(X_psd_c, (2, 2))
+        self.assertTrue(pt_psd_c.is_psd())
+        self.assertTrue(pt_psd_c.is_hermitian())
+        self.assertFalse(pt_psd_c.is_symmetric())
+
+    def test_partial_transpose_dcp_attributes(self) -> None:
+        """Test that partial_transpose propagates DCP attributes correctly.
+        """
+        # Symmetric input -> Symmetric output
+        X_sym = cp.Variable((4, 4), symmetric=True)
+        pp_sym = cp.partial_transpose(X_sym, (2, 2))
+        self.assertTrue(pp_sym.is_symmetric())
+        self.assertTrue(pp_sym.is_hermitian())
+
+        # Hermitian input -> Hermitian output
+        X_herm = cp.Variable((4, 4), hermitian=True)
+        pp_herm = cp.partial_transpose(X_herm, (2, 2))
+        self.assertTrue(pp_herm.is_hermitian())
+
+        # PSD input -> NOT PSD output (partial transpose does NOT preserve PSD!)
+        X_psd = cp.Variable((4, 4), PSD=True)
+        pp_psd = cp.partial_transpose(X_psd, (2, 2))
+        self.assertFalse(pp_psd.is_psd())
+        self.assertTrue(pp_psd.is_hermitian())
+
+        # Plain input -> no special attributes
+        X_plain = cp.Variable((4, 4))
+        pp_plain = cp.partial_transpose(X_plain, (2, 2))
+        self.assertFalse(pp_plain.is_hermitian())
+        self.assertFalse(pp_plain.is_symmetric())
+
+        # Complex hermitian input -> Hermitian output
+        X_herm_c = cp.Variable((4, 4), hermitian=True, complex=True)
+        pp_herm_c = cp.partial_transpose(X_herm_c, (2, 2))
+        self.assertTrue(pp_herm_c.is_hermitian())
+
     def test_log_sum_exp(self) -> None:
         """Test log_sum_exp sign.
         """
@@ -2700,6 +2833,50 @@ class TestAtoms(BaseTest):
         S = Variable((3, 3), symmetric=True)
         self.assertTrue(cp.real(S).is_symmetric())
 
+    def test_sum_shape_inference(self):
+        """
+        Test shape inference for cp.sum with exact tuple formula,
+        verifying match with NumPy's axis and keepdims semantics.
+        """
+        x = cp.Variable((2, 3, 4))
+
+        # 1. Default (axis=None)
+        assert cp.sum(x).shape == ()
+        assert cp.sum(x, keepdims=True).shape == (1, 1, 1)
+
+        # 2. Single integer axis
+        assert cp.sum(x, axis=0).shape == (3, 4)
+        assert cp.sum(x, axis=1).shape == (2, 4)
+        assert cp.sum(x, axis=-1).shape == (2, 3)  # Negative indexing
+
+        # 3. Single integer axis with keepdims=True
+        assert cp.sum(x, axis=0, keepdims=True).shape == (1, 3, 4)
+        assert cp.sum(x, axis=1, keepdims=True).shape == (2, 1, 4)
+        assert cp.sum(x, axis=-1, keepdims=True).shape == (2, 3, 1)
+
+        # 4. Tuple of axes
+        assert cp.sum(x, axis=(0, 2)).shape == (3,)
+        assert cp.sum(x, axis=(0, -1)).shape == (3,)  # Mixed positive/negative
+        assert cp.sum(x, axis=(0, 1, 2)).shape == ()
+
+        # 5. Tuple of axes with keepdims=True
+        assert cp.sum(x, axis=(0, 2), keepdims=True).shape == (1, 3, 1)
+        assert cp.sum(x, axis=(0, 1, 2), keepdims=True).shape == (1, 1, 1)
+
+        # 6. Scalar variables
+        scalar = cp.Variable()
+        assert cp.sum(scalar).shape == ()
+        assert cp.sum(scalar, keepdims=True).shape == ()
+
+        # 7. Error cases (caught by normalize_axis_tuple)
+        with pytest.raises(ValueError):
+            cp.sum(x, axis=3)  # Out of bounds (positive)
+
+        with pytest.raises(ValueError):
+            cp.sum(x, axis=-4) # Out of bounds (negative)
+
+        with pytest.raises(ValueError):
+            cp.sum(x, axis=(0, 0))  # Duplicate axes
 
 class TestDotsort(BaseTest):
     """ Unit tests for the dotsort atom. """
@@ -2913,7 +3090,7 @@ class TestDotsort(BaseTest):
         with self.assertRaises(Exception) as cm:
             cp.dotsort(self.x, [1, 2, 3, 4, 5, 8])
         self.assertEqual(str(cm.exception),
-                         "The size of of W must be less or equal to the size of X.")
+                         "The size of W must be less or equal to the size of X.")
 
         # two variable expressions
         with self.assertRaises(Exception) as cm:

@@ -42,8 +42,10 @@ class Elementwise(Atom):
     def is_symmetric(self) -> bool:
         """Is the expression symmetric?
         """
-        symm_args = all(arg.is_symmetric() for arg in self.args)
-        return self.shape[0] == self.shape[1] and symm_args
+        if self.ndim == 2 and self.shape[0] == self.shape[1]:
+            return all(arg.is_symmetric() for arg in self.args)
+        # Fall back to the Expression default (true only for scalars).
+        return super(Elementwise, self).is_symmetric()
 
     @staticmethod
     def elemwise_grad_to_diag(value, rows, cols):

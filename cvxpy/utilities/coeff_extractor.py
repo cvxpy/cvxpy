@@ -122,13 +122,13 @@ class CoeffExtractor:
         # in param_coeffs. Later we combine all the quadratic terms
         # to form a single matrix P.
         for var in affine_expr.variables():
-            # quad_forms maps the ids of the SymbolicQuadForm atoms
-            # in the objective to (modified parent node of quad form,
-            #                      argument index of quad form,
-            #                      quad form atom)
+            # quad_forms maps fresh placeholder variable ids to
+            # (modified parent node of quad form,
+            #  argument index of quad form,
+            #  quad form atom)
             if var.id in quad_forms:
                 # This was a dummy variable (placeholder for a quad form).
-                # var_id is the placeholder's ID (= the SymbolicQuadForm's ID).
+                # var_id is the fresh placeholder's ID.
                 # orig_id is the actual CVXPY variable x's ID inside
                 # quad_form(x, P).  The same orig_id may also appear in the
                 # true-variable branch below (e.g. from a linear term c @ x).

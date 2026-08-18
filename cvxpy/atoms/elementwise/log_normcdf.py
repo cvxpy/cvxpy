@@ -48,7 +48,7 @@ def log_normcdf(x) -> Expression:
     )
     b = np.array([[3.0, 2.0, 1.0, 0.0, -1.0, -2.5, -3.5]]).reshape(-1, 1)
 
-    x = Expression.cast_to_const(x)
+    x = Expression.cast(x)
     flat_x = reshape(x, (1, x.size), order='F')
 
     y = A @ (b @ np.ones(flat_x.shape) - np.ones(b.shape) @ flat_x)

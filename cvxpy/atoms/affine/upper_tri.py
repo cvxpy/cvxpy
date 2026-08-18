@@ -116,7 +116,7 @@ def vec_to_upper_tri(expr, strict: bool = False) -> Expression:
     matrix should be returned.
     Inverts cp.upper_tri.
     """
-    expr = Expression.cast_to_const(expr)
+    expr = Expression.cast(expr)
 
     if not expr.is_vector():
         raise ValueError("The input must be a vector.")

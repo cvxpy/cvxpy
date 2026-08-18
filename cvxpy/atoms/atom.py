@@ -48,7 +48,7 @@ class Atom(Expression):
                 "No arguments given to %s." % self.__class__.__name__
             )
         # Convert raw values to Constants.
-        self.args = [Atom.cast_to_const(arg) for arg in args]
+        self.args = [Atom.cast(arg) for arg in args]
         self.validate_arguments()
         self._shape = self.shape_from_args()
         if not s.ALLOW_ND_EXPR and len(self._shape) > 2:
@@ -461,7 +461,7 @@ class Atom(Expression):
         else:
             arg_values = []
             for arg in self.args:
-                # A argument without a value makes all higher level
+                # An argument without a value makes all higher level
                 # values None.
                 # But if the atom is constant with non-constant
                 # arguments it doesn't depend on its arguments,

@@ -96,7 +96,7 @@ def recover_value_for_leaf(variable, lowered_value, project: bool = True):
         value[variable.sparse_idx] = lowered_value
         return value
     elif project:
-        return variable.project(lowered_value)
+        return variable.project(lowered_value, strict=False)
     else:
         return lowered_value
 

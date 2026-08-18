@@ -57,7 +57,7 @@ class TestSparseCholesky(BaseTest):
         A = sp.csc_array(B @ B.T)
         if use_expression:
             from cvxpy.expressions.expression import Expression
-            A = Expression.cast_to_const(A)
+            A = Expression.cast(A)
             assert isinstance(A, Expression)
         _, L, p = lau.sparse_cholesky(A)
         self.check_factor(L)

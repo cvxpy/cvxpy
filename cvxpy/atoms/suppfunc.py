@@ -21,7 +21,7 @@ class SuppFuncAtom(Atom):
             The object containing data for the convex set associated with this atom.
         """
         self.id = lu.get_id()
-        self.args = [Atom.cast_to_const(y)]
+        self.args = [Atom.cast(y)]
         self._parent = parent
         self._eta = None  # store for debugging purposes
         self._shape: tuple[int, ...] = tuple()

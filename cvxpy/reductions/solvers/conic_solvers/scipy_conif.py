@@ -109,7 +109,7 @@ class SCIPY(ConicSolver):
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
         from scipy import optimize as opt
 
-        # Set default method which can be overriden by user inputs
+        # Set default method which can be overridden by user inputs
         if (Version(scipy.__version__) < Version('1.6.1')):
             meth = "interior-point"
         else:

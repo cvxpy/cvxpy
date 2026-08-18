@@ -31,7 +31,7 @@ class COPT(NLPsolver):
                   1: s.OPTIMAL,             # optimal
                   2: s.INFEASIBLE,          # infeasible
                   3: s.UNBOUNDED,           # unbounded
-                  4: s.INF_OR_UNB,          # infeasible or unbounded
+                  4: s.INFEASIBLE_OR_UNBOUNDED,  # infeasible or unbounded
                   5: s.SOLVER_ERROR,        # numerical
                   6: s.USER_LIMIT,          # node limit
                   7: s.OPTIMAL_INACCURATE,  # imprecise

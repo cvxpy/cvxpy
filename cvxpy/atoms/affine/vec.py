@@ -40,5 +40,5 @@ def vec(X, order: Literal["F", "C", None] = None) -> Expression:
         warn(vec_order_warning, FutureWarning)
         order = 'F'
     assert order in ['F', 'C']
-    X = Expression.cast_to_const(X)
+    X = Expression.cast(X)
     return reshape(X, (X.size,), order)

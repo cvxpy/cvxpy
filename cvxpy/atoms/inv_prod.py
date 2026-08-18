@@ -25,7 +25,7 @@ def inv_prod(value, approx=True) -> Expression:
 
     Parameters
     ----------
-    x : Expression or numeric
+    value : Expression or numeric
         The expression whose reciprocal product is to be computed. Must have
         positive entries.
     approx : bool

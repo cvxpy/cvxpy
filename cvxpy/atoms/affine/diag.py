@@ -42,7 +42,7 @@ def diag(expr, k: int = 0) -> "diag_mat" | "diag_vec":
     Expression
         An Expression representing the diagonal vector/matrix.
     """
-    expr = AffAtom.cast_to_const(expr)
+    expr = AffAtom.cast(expr)
     if expr.is_vector():
         return diag_vec(vec(expr, order='F'), k)
     elif expr.ndim == 2 and expr.shape[0] == expr.shape[1]:

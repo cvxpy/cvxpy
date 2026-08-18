@@ -53,7 +53,7 @@ class TestNLPExamples:
             cp.sum(cp.square(x)) == 40,
         ]
         problem = cp.Problem(objective, constraints)
-        problem.solve(solver=solver, nlp=True)
+        problem.solve(solver=solver, nlp=True, verbose=False)
         assert problem.status == cp.OPTIMAL
         assert np.allclose(x.value, np.array([0.75450865, 4.63936861, 3.78856881, 1.88513184]))
 
@@ -78,7 +78,7 @@ class TestNLPExamples:
 
         objective = cp.Maximize(log_likelihood)
         problem = cp.Problem(objective, constraints)
-        problem.solve(solver=solver, nlp=True)
+        problem.solve(solver=solver, nlp=True, verbose=False)
         assert problem.status == cp.OPTIMAL
         assert np.allclose(sigma.value, 0.77079388)
         assert np.allclose(mu.value, 0.59412321)
@@ -107,7 +107,7 @@ class TestNLPExamples:
                 x >= 0
             ]
         )
-        problem.solve(solver=solver, nlp=True)
+        problem.solve(solver=solver, nlp=True, verbose=False)
         assert problem.status == cp.OPTIMAL
         # Second element can be slightly negative due to numerical tolerance
         assert np.allclose(x.value, np.array([4.97045504e+02, 0.0, 5.02954496e+02]), atol=1e-4)
@@ -136,7 +136,7 @@ class TestNLPExamples:
                 x >= 0
             ]
         )
-        problem.solve(solver=solver, nlp=True)
+        problem.solve(solver=solver, nlp=True, verbose=False)
         assert problem.status == cp.OPTIMAL
         # Second element can be slightly negative due to numerical tolerance
         assert np.allclose(x.value, np.array([4.97045504e+02, 0.0, 5.02954496e+02]), atol=1e-4)
@@ -150,7 +150,7 @@ class TestNLPExamples:
         x = cp.Variable(2, name='x')
         objective = cp.Minimize((1 - x[0])**2 + 100 * (x[1] - x[0]**2)**2)
         problem = cp.Problem(objective, [])
-        problem.solve(solver=solver, nlp=True)
+        problem.solve(solver=solver, nlp=True, verbose=False)
         assert problem.status == cp.OPTIMAL
         assert np.allclose(x.value, np.array([1.0, 1.0]))
         checker = DerivativeChecker(problem)
@@ -169,7 +169,7 @@ class TestNLPExamples:
             x**2 - cp.multiply(y, z) <= 0
         ]
         problem = cp.Problem(objective, constraints)
-        problem.solve(solver=solver, nlp=True)
+        problem.solve(solver=solver, nlp=True, verbose=False)
         assert problem.status == cp.OPTIMAL
         assert np.allclose(x.value, np.array([0.32699284]))
         assert np.allclose(y.value, np.array([0.25706586]))
@@ -192,7 +192,7 @@ class TestNLPExamples:
         objective = cp.Minimize(-cp.sum(cp.log(b - A @ x)))
         problem = cp.Problem(objective, [])
         # Solve the problem
-        problem.solve(solver=solver, nlp=True)
+        problem.solve(solver=solver, nlp=True, verbose=False)
 
         assert problem.status == cp.OPTIMAL
 
@@ -213,7 +213,7 @@ class TestNLPExamples:
         objective = cp.Minimize(-cp.sum(cp.log(b - A @ x)))
         problem = cp.Problem(objective, [])
         # Solve the problem
-        problem.solve(solver=solver, nlp=True)
+        problem.solve(solver=solver, nlp=True, verbose=False)
         assert problem.status == cp.OPTIMAL
 
         checker = DerivativeChecker(problem)
@@ -237,7 +237,7 @@ class TestNLPExamples:
 
         # Create and solve the problem
         problem = cp.Problem(objective, constraints)
-        problem.solve(solver=solver, nlp=True)
+        problem.solve(solver=solver, nlp=True, verbose=False)
         assert problem.status == cp.OPTIMAL
         assert np.allclose(objective.value, -13.548638814247532)
         assert np.allclose(x.value, [-3.87462191, -2.12978826, 2.33480343])
@@ -262,7 +262,7 @@ class TestNLPExamples:
                        cp.sum(x) == 1,
                        x >= 0]
         problem = cp.Problem(objective, constraints)
-        problem.solve(solver=solver, nlp=True)
+        problem.solve(solver=solver, nlp=True, verbose=False)
         assert problem.status == cp.OPTIMAL
         assert np.allclose(problem.value, -1.93414338e+00)
 
@@ -285,7 +285,7 @@ class TestNLPExamples:
                        cp.sum(x) == 1,
                        x >= 0]
         problem = cp.Problem(objective, constraints)
-        problem.solve(solver=solver, nlp=True)
+        problem.solve(solver=solver, nlp=True, verbose=False)
         assert problem.status == cp.OPTIMAL
         assert np.allclose(problem.value, -1.93414338e+00)
 
@@ -304,7 +304,7 @@ class TestNLPExamples:
         constraints = [t == cp.sqrt(cp.sum(cp.square(x - a), axis=1))]
         objective = cp.Minimize(cp.sum_squares(t - rho))
         problem = cp.Problem(objective, constraints)
-        problem.solve(solver=solver, nlp=True)
+        problem.solve(solver=solver, nlp=True, verbose=False)
         assert problem.status == cp.OPTIMAL
         assert np.allclose(x.value, x_true)
 
@@ -323,7 +323,7 @@ class TestNLPExamples:
         constraints = [t == cp.sqrt(cp.sum(cp.square(x - a), axis=1))]
         objective = cp.Minimize(cp.sum_squares(t - rho))
         problem = cp.Problem(objective, constraints)
-        problem.solve(solver=solver, nlp=True)
+        problem.solve(solver=solver, nlp=True, verbose=False)
         assert problem.status == cp.OPTIMAL
         assert np.allclose(x.value, x_true)
 
@@ -348,7 +348,7 @@ class TestNLPExamples:
         obj = cp.Minimize(t)
         constraints += [cp.max(cp.norm_inf(centers, axis=0) + radius) <= t]
         problem = cp.Problem(obj, constraints)
-        problem.solve(solver=solver, nlp=True)
+        problem.solve(solver=solver, nlp=True, verbose=False)
 
         true_sol = np.array([[1.73655994, -1.98685738, 2.57208783],
                              [1.99273311, -1.67415425, -2.57208783]])
@@ -377,7 +377,7 @@ class TestNLPExamples:
         centers.value = rng.uniform(-5.0, 5.0, (2, n))
         obj = cp.Minimize(cp.max(cp.norm_inf(centers, axis=0) + radius))
         prob = cp.Problem(obj, constraints)
-        prob.solve(solver=solver, nlp=True)
+        prob.solve(solver=solver, nlp=True, verbose=False)
 
         assert np.allclose(obj.value, 4.602738956101437)
 
@@ -415,7 +415,7 @@ class TestNLPExamples:
         centers.value = rng.uniform(-5.0, 5.0, (2, n))
         obj = cp.Minimize(cp.max(cp.max(cp.abs(centers), axis=0) + radius))
         prob = cp.Problem(obj, constraints)
-        prob.solve(solver=solver, nlp=True)
+        prob.solve(solver=solver, nlp=True, verbose=False)
 
         # after the chain rule implementation, we find another configuration
         # with a minus sign
@@ -434,7 +434,7 @@ class TestNLPExamples:
         objective = cp.Maximize(geo_mean)
         constraints = [cp.sum(x) == 1]
         problem = cp.Problem(objective, constraints)
-        problem.solve(solver=solver, nlp=True)
+        problem.solve(solver=solver, nlp=True, verbose=False)
         assert problem.status == cp.OPTIMAL
         assert np.allclose(x.value, np.array([1/3, 1/3, 1/3]))
 
@@ -447,7 +447,7 @@ class TestNLPExamples:
         p = np.array([.07, .12, .23, .19, .39])
         x = cp.Variable(5, nonneg=True)
         prob = cp.Problem(cp.Maximize(cp.geo_mean(x, p)), [cp.sum(x) <= 1])
-        prob.solve(solver=solver, nlp=True)
+        prob.solve(solver=solver, nlp=True, verbose=False)
         x_true = p/sum(p)
         assert prob.status == cp.OPTIMAL
         assert np.allclose(x.value, x_true)
@@ -457,7 +457,7 @@ class TestNLPExamples:
     def test_div_composition(self, solver):
         x = cp.Variable(nonneg=True, bounds=[1, 5])
         prob = cp.Problem(cp.Maximize(cp.exp(1 / x)))
-        prob.solve(solver=solver, nlp=True)
+        prob.solve(solver=solver, nlp=True, verbose=False)
         x_true = 1.0
         assert prob.status == cp.OPTIMAL
         assert np.allclose(x.value, x_true)
@@ -486,7 +486,7 @@ class TestNLPExamples:
         constraints.append(angle_constraint)
 
         problem = cp.Problem(objective, constraints)
-        problem.solve(solver=solver, nlp=True)
+        problem.solve(solver=solver, nlp=True, verbose=False)
         assert problem.status == cp.OPTIMAL
         assert np.allclose(problem.value, 3.500e+02)
 

@@ -38,7 +38,7 @@ class TestBroadcast():
         x.value = None
 
         problem.solve(solver=cp.IPOPT, nlp=True, hessian_approximation='exact',
-                    derivative_test='none', verbose=True)
+                    derivative_test='none', verbose=False)
         assert(problem.status == cp.OPTIMAL)
         assert(np.allclose(x.value, np.mean(A)))
 
@@ -50,7 +50,7 @@ class TestBroadcast():
         problem = cp.Problem(cp.Minimize(obj))
 
         problem.solve(solver=cp.IPOPT, nlp=True, hessian_approximation='exact',
-                    derivative_test='none', verbose=True)
+                    derivative_test='none', verbose=False)
         assert(problem.status == cp.OPTIMAL)
         assert(np.allclose(x.value, np.mean(A, axis=0)))
 
@@ -66,7 +66,7 @@ class TestBroadcast():
         problem = cp.Problem(cp.Minimize(obj))
 
         problem.solve(solver=cp.IPOPT, nlp=True, hessian_approximation='exact',
-                    derivative_test='none', verbose=True)
+                    derivative_test='none', verbose=False)
         assert(problem.status == cp.OPTIMAL)
         assert(np.allclose(x.value.flatten(), np.mean(A, axis=1)))
 
