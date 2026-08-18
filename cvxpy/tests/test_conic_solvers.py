@@ -2243,10 +2243,6 @@ class TestGUROBI(BaseTest):
         """
         import gurobipy
 
-        if not (hasattr(gurobipy.Model, "addMVar")
-                and hasattr(gurobipy.Model, "addMConstr")):
-            self.skipTest("Gurobi predates the matrix API.")
-
         def scalar_call(*args, **kwargs):
             raise AssertionError("conic interface fell back to the scalar API")
 
