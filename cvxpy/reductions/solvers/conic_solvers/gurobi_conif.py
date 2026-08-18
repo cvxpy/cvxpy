@@ -224,14 +224,17 @@ class GUROBI(ConicSolver):
             if (old_status in s.SOLUTION_PRESENT) or (old_model.solCount > 0):
                 # The cached model also holds the auxiliary SOC variables, which
                 # are appended after the n problem variables.
-                start_vals = old_model.getAttr('X', old_model.getVars()[:n])
+                old_x = old_model.getVars()[:n]
+                start_vals = (gurobipy.MVar.fromlist(old_x).X if vectorized
+                              else [v.X for v in old_x])
         elif warm_start:
-            start_vals = list(data['init_value'][:n])
+            start_vals = data['init_value'][:n]
         if start_vals is not None:
             if vectorized:
                 x_mvar.Start = np.asarray(start_vals)
             else:
-                model.setAttr('Start', variables, start_vals)
+                for var, start in zip(variables, start_vals):
+                    var.Start = start
 
         leq_start = dims[s.EQ_DIM]
         leq_end = dims[s.EQ_DIM] + dims[s.LEQ_DIM]
@@ -305,7 +308,7 @@ class GUROBI(ConicSolver):
             if vectorized:
                 solution["primal"] = np.array(x_mvar.X)
             else:
-                solution["primal"] = np.array(model.getAttr('X', variables[:n]))
+                solution["primal"] = np.array([v.X for v in variables[:n]])
 
             # Only add duals if not a MIP.
             # Not sure why we need to negate the following,

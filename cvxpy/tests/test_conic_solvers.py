@@ -22,6 +22,7 @@ import string
 import sys
 import tempfile
 import unittest
+from unittest import mock
 
 import numpy as np
 import pytest
@@ -2206,24 +2207,60 @@ class TestGUROBI(BaseTest):
         np.random.seed(0)
         x = cp.Variable(6)
         cone_sizes = [2, 3, 5]
-        constraints = []
-        for k in cone_sizes:
-            A_k = np.random.randn(k, 6)
-            b_k = np.random.randn(k)
-            constraints.append(cp.SOC(cp.Constant(3.0), A_k @ x - b_k))
-        constraints.append(cp.sum(x) == 1)
+        cones = [cp.SOC(cp.Constant(3.0), np.random.randn(k, 6) @ x - np.random.randn(k))
+                 for k in cone_sizes]
+        constraints = cones + [cp.sum(x) == 1]
         prob = cp.Problem(cp.Minimize(cp.sum(cp.multiply(np.arange(1, 7), x))),
                           constraints)
         prob.solve(solver=cp.GUROBI)
         self.assertEqual(prob.status, cp.OPTIMAL)
 
+        # The reference problem shares x and the constraint objects, so solving
+        # it overwrites their .value/.dual_value. Snapshot Gurobi's first.
+        gurobi_value = prob.value
+        gurobi_x = x.value.copy()
+        gurobi_cone_duals = [(np.asarray(c.dual_value[0]).copy(),
+                              np.asarray(c.dual_value[1]).copy()) for c in cones]
+
         ref = cp.Problem(prob.objective, constraints)
         ref.solve(solver=cp.CLARABEL)
-        self.assertAlmostEqual(prob.value, ref.value, places=4)
-        self.assertItemsAlmostEqual(x.value, ref.variables()[0].value, places=4)
-        # Cone duals are returned per constraint, in declaration order.
-        for constr, k in zip(constraints[:len(cone_sizes)], cone_sizes):
-            self.assertEqual(len(np.atleast_1d(constr.dual_value[1])), k)
+        # Two solvers at their default tolerances, so compare to 1e-3.
+        self.assertAlmostEqual(gurobi_value, ref.value, places=3)
+        self.assertItemsAlmostEqual(gurobi_x, x.value, places=3)
+        # Cone duals come back per constraint, in declaration order, so each
+        # must match the reference solver's dual for the same cone.
+        for (t_dual, x_dual), constr, k in zip(gurobi_cone_duals, cones, cone_sizes):
+            self.assertEqual(x_dual.shape[0], k)
+            self.assertItemsAlmostEqual(t_dual, constr.dual_value[0], places=3)
+            self.assertItemsAlmostEqual(x_dual, constr.dual_value[1], places=3)
+
+    def test_gurobi_conic_uses_vectorized_api(self) -> None:
+        """The conic interface must build models in bulk.
+
+        Adding variables and rows one call at a time is what made this
+        interface slow, so falling back to the scalar API is a regression even
+        though it would still give the right answer.
+        """
+        import gurobipy
+
+        if not (hasattr(gurobipy.Model, "addMVar")
+                and hasattr(gurobipy.Model, "addMConstr")):
+            self.skipTest("Gurobi predates the matrix API.")
+
+        def scalar_call(*args, **kwargs):
+            raise AssertionError("conic interface fell back to the scalar API")
+
+        np.random.seed(0)
+        y = cp.Variable(5)
+        z = cp.Variable(3, boolean=True)
+        prob = cp.Problem(
+            cp.Minimize(cp.norm(np.random.randn(4, 5) @ y - np.random.randn(4))
+                        + cp.sum(z)),
+            [cp.sum(y) == 1, y <= 2, cp.sum(z) >= 1])
+        with mock.patch.object(gurobipy.Model, "addVar", scalar_call), \
+                mock.patch.object(gurobipy.Model, "addLConstr", scalar_call):
+            prob.solve(solver=cp.GUROBI)
+        self.assertEqual(prob.status, cp.OPTIMAL)
 
     def test_gurobi_mixed_integer_types(self) -> None:
         """Boolean, integer and continuous variables in one conic problem.
