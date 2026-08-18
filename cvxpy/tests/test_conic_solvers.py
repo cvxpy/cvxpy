@@ -2196,6 +2196,65 @@ class TestGUROBI(BaseTest):
     def test_gurobi_mi_socp_2(self) -> None:
         StandardTestSOCPs.test_mi_socp_2(solver='GUROBI')
 
+    def test_gurobi_multiple_socp_cones(self) -> None:
+        """Several SOC cones of differing size, solved together.
+
+        The conic interface builds every cone in one batch, so the per-cone
+        offsets, the lower bound of 0 on each cone's leading variable, and the
+        ordering of the returned duals all have to line up.
+        """
+        np.random.seed(0)
+        x = cp.Variable(6)
+        cone_sizes = [2, 3, 5]
+        constraints = []
+        for k in cone_sizes:
+            A_k = np.random.randn(k, 6)
+            b_k = np.random.randn(k)
+            constraints.append(cp.SOC(cp.Constant(3.0), A_k @ x - b_k))
+        constraints.append(cp.sum(x) == 1)
+        prob = cp.Problem(cp.Minimize(cp.sum(cp.multiply(np.arange(1, 7), x))),
+                          constraints)
+        prob.solve(solver=cp.GUROBI)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+
+        ref = cp.Problem(prob.objective, constraints)
+        ref.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(prob.value, ref.value, places=4)
+        self.assertItemsAlmostEqual(x.value, ref.variables()[0].value, places=4)
+        # Cone duals are returned per constraint, in declaration order.
+        for constr, k in zip(constraints[:len(cone_sizes)], cone_sizes):
+            self.assertEqual(len(np.atleast_1d(constr.dual_value[1])), k)
+
+    def test_gurobi_mixed_integer_types(self) -> None:
+        """Boolean, integer and continuous variables in one conic problem.
+
+        Variable types are assigned by index rather than by testing membership
+        of every column, so a problem mixing all three kinds pins down that
+        mapping. Coefficients are chosen to make the optimum unique.
+        """
+        z = cp.Variable(3, boolean=True)
+        w = cp.Variable(2, integer=True)
+        y = cp.Variable(2)
+        objective = cp.Minimize(w[0] + 2 * w[1]
+                                - (3 * z[0] + 2 * z[1] + z[2])
+                                + cp.norm(y))
+        prob = cp.Problem(objective,
+                          [w >= -4, w <= 4, cp.sum(z) <= 2, y >= 1,
+                           cp.sum(w) >= -5])
+        prob.solve(solver=cp.GUROBI)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+
+        self.assertItemsAlmostEqual(z.value, [1, 1, 0], places=4)
+        self.assertItemsAlmostEqual(w.value, [-1, -4], places=4)
+        self.assertItemsAlmostEqual(y.value, [1, 1], places=4)
+        self.assertAlmostEqual(prob.value, -14 + np.sqrt(2), places=4)
+
+        # The stuffed ordering of the three blocks is an implementation detail,
+        # but each variable must reach Gurobi with the right type.
+        model = prob.solver_stats.extra_stats
+        vtypes = [model.getVarByName("x_%d" % i).VType for i in range(7)]
+        self.assertEqual(sorted(vtypes), ['B', 'B', 'B', 'C', 'C', 'I', 'I'])
+
 
 def test_xpress_make_unique_names() -> None:
     """Unit test for the Xpress column-name de-duplication helper.
