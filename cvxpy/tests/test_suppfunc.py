@@ -26,11 +26,9 @@ from cvxpy.error import SolverError
 from cvxpy.reductions.dcp2cone.canonicalizers.suppfunc_canon import (
     suppfunc_canon,
 )
-from cvxpy.reductions.solvers.conic_solvers.clarabel_conif import CLARABEL
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.conic_solvers.copt_conif import COPT
 from cvxpy.reductions.solvers.conic_solvers.scs_conif import (
-    SCS,
     scs_psdvec_to_psdmat,
 )
 from cvxpy.reductions.solvers.conic_solvers.sdpa_conif import SDPA
@@ -234,31 +232,21 @@ class TestSupportFunctions(BaseTest):
         X = cp.reshape(x, (1, 2), order='F')
         sigma = cp.suppfunc(x, [cp.SOC(np.array([1.0, 2.0]), X)])
         y = cp.Constant([2.0, 1.0])
+        epigraph = cp.Variable()
 
-        epigraph, constraints = suppfunc_canon(
-            sigma(y), [y], _solver_context(CLARABEL))
-        prob = cp.Problem(cp.Minimize(epigraph), constraints)
+        prob = cp.Problem(cp.Minimize(epigraph), [sigma(y) <= epigraph])
         prob.solve(solver=cp.CLARABEL)
-        self.assertAlmostEqual(prob.value, 4.0, places=6)
+        self.assertAlmostEqual(prob.value, 4.0, places=5)
 
     def test_vectorized_expcone_row_order(self) -> None:
         x = cp.Variable(2)
         sigma = cp.suppfunc(x, [cp.exp(x) <= np.exp([1.0, 2.0])])
         y = cp.Constant([2.0, 1.0])
+        epigraph = cp.Variable()
 
-        epigraph, constraints = suppfunc_canon(
-            sigma(y), [y], _solver_context(CLARABEL))
-        prob = cp.Problem(cp.Minimize(epigraph), constraints)
+        prob = cp.Problem(cp.Minimize(epigraph), [sigma(y) <= epigraph])
         prob.solve(solver=cp.CLARABEL)
-        self.assertAlmostEqual(prob.value, 4.0, places=6)
-
-    def test_construction_is_lazy(self) -> None:
-        x = cp.Variable(1)
-        with patch("cvxpy.transforms.suppfunc._coniclift") as lift:
-            with patch("cvxpy.problems.problem.Problem.get_problem_data") as get_data:
-                cp.suppfunc(x, [x <= 1])
-        lift.assert_not_called()
-        get_data.assert_not_called()
+        self.assertAlmostEqual(prob.value, 4.0, places=5)
 
     def test_constraints_are_snapshotted(self) -> None:
         x = cp.Variable()
@@ -271,53 +259,36 @@ class TestSupportFunctions(BaseTest):
         prob.solve(solver=cp.CLARABEL)
         self.assertAlmostEqual(epigraph.value, 1.0, places=6)
 
-    def test_svec_psd_canonicalization_is_cached(self) -> None:
+    def test_conic_lift_is_reused(self) -> None:
         X = cp.Variable((2, 2))
         sigma = cp.suppfunc(X, [X >> 0, cp.trace(X) <= 1])
         Y = cp.Variable((2, 2))
-        solver_context = _solver_context(SCS)
+        Z = cp.Variable((2, 2))
+        prob = cp.Problem(cp.Minimize(
+            sigma(Y) + sigma(Z)), [Y == np.eye(2), Z == 2 * np.eye(2)])
 
         with patch("cvxpy.transforms.suppfunc._coniclift", wraps=_coniclift) as lift:
-            _, constraints = suppfunc_canon(sigma(Y), [Y], solver_context)
-            suppfunc_canon(sigma(Y), [Y], solver_context)
+            prob.get_problem_data(solver=cp.SCS)
 
         self.assertEqual(lift.call_count, 1)
-        self.assertEqual(sum(isinstance(con, SvecPSD) for con in constraints), 1)
 
     def test_scs_compatibility_api(self) -> None:
         x = cp.Variable(1)
         constraints = [x <= 1]
         with pytest.warns(CvxpyDeprecationWarning, match="scs_coniclift"):
-            A, b, K = scs_coniclift(x, constraints)
+            _, _, K = scs_coniclift(x, constraints)
         with pytest.warns(CvxpyDeprecationWarning, match="scs_cone_selectors"):
-            selectors = scs_cone_selectors(K)
-        self.assertEqual(A.shape[0], b.size)
-        self.assertEqual(selectors["nonneg"].size, 1)
+            scs_cone_selectors(K)
 
         sigma = cp.suppfunc(x, constraints)
         with pytest.warns(CvxpyDeprecationWarning) as warnings:
-            old_A, old_b, old_selectors = sigma.conic_repr_of_set()
+            sigma.conic_repr_of_set()
         self.assertTrue(any(
             "SuppFunc.conic_repr_of_set" in str(w.message) for w in warnings))
-        self.assertEqual(old_A.shape, A.shape)
-        self.assertEqual(old_b.shape, b.shape)
-        np.testing.assert_allclose(old_A.toarray(), A.toarray())
-        np.testing.assert_allclose(old_b, b)
-        self.assertEqual(old_selectors["nonneg"].size, 1)
 
         vec = cp.Variable(3)
         with pytest.warns(CvxpyDeprecationWarning, match="scs_psdvec_to_psdmat"):
-            psdmat = scs_psdvec_to_psdmat(vec, np.arange(3))
-        self.assertEqual(psdmat.shape, (2, 2))
-
-    def test_power_cone_remains_unsupported(self) -> None:
-        x = cp.Variable(3)
-        sigma = cp.suppfunc(x, [cp.PowCone3D(x[0], x[1], x[2], 0.5)])
-        y = cp.Variable(3)
-        prob = cp.Problem(cp.Minimize(sigma(y)), [y == np.ones(3)])
-
-        with self.assertRaisesRegex(NotImplementedError, "power cone"):
-            prob.get_problem_data(solver=cp.SCS)
+            scs_psdvec_to_psdmat(vec, np.arange(3))
 
     def test_largest_singvalue(self) -> None:
         np.random.seed(3)

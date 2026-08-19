@@ -238,7 +238,7 @@ def _cone_matrix_stuffing_reductions(
     canon_backend: str | None = None,
     soc_dim3_only: bool = False,
 ) -> list[Reduction]:
-    """Build the solver-independent reductions through matrix stuffing."""
+    """Build the cone reductions through matrix stuffing."""
     cones = problem_form.cones(quad_obj=quad_obj).copy()
     cones, exact_targets, approx_targets = expand_cones(
         cones, solver_context.solver_supported_constraints)
