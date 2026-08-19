@@ -439,6 +439,9 @@ class TestSCS(BaseTest):
         # axis 1
         StandardTestSOCPs.test_socp_3ax1(solver='SCS')
 
+    def test_scs_socp_4(self) -> None:
+        StandardTestSOCPs.test_socp_4(solver='SCS', eps=1e-8)
+
     def test_scs_sdp_1min(self) -> None:
         StandardTestSDPs.test_sdp_1min(solver='SCS')
 
@@ -582,6 +585,9 @@ class TestClarabel(BaseTest):
         StandardTestSOCPs.test_socp_3ax0(solver='CLARABEL')
         # axis 1
         StandardTestSOCPs.test_socp_3ax1(solver='CLARABEL')
+
+    def test_clarabel_socp_4(self) -> None:
+        StandardTestSOCPs.test_socp_4(solver='CLARABEL')
 
     def test_clarabel_expcone_1(self) -> None:
         StandardTestECPs.test_expcone_1(solver='CLARABEL')
@@ -2167,6 +2173,9 @@ class TestGUROBI(BaseTest):
         # axis 1
         StandardTestSOCPs.test_socp_3ax1(solver='GUROBI')
 
+    def test_gurobi_socp_4(self) -> None:
+        StandardTestSOCPs.test_socp_4(solver='GUROBI', places=4)
+
     def test_gurobi_socp_bound_attr(self) -> None:
         sth = StandardTestSOCPs.test_socp_bounds_attr(solver='GUROBI')
         # check that the bounds do reach the solver and don't just generate constraints
@@ -2196,43 +2205,6 @@ class TestGUROBI(BaseTest):
 
     def test_gurobi_mi_socp_2(self) -> None:
         StandardTestSOCPs.test_mi_socp_2(solver='GUROBI')
-
-    def test_gurobi_multiple_socp_cones(self) -> None:
-        """Several SOC cones of differing size, solved together.
-
-        The conic interface builds every cone in one batch, so the per-cone
-        offsets, the lower bound of 0 on each cone's leading variable, and the
-        ordering of the returned duals all have to line up.
-        """
-        np.random.seed(0)
-        x = cp.Variable(6)
-        cone_sizes = [2, 3, 5]
-        cones = [cp.SOC(cp.Constant(3.0), np.random.randn(k, 6) @ x - np.random.randn(k))
-                 for k in cone_sizes]
-        constraints = cones + [cp.sum(x) == 1]
-        prob = cp.Problem(cp.Minimize(cp.sum(cp.multiply(np.arange(1, 7), x))),
-                          constraints)
-        prob.solve(solver=cp.GUROBI)
-        self.assertEqual(prob.status, cp.OPTIMAL)
-
-        # The reference problem shares x and the constraint objects, so solving
-        # it overwrites their .value/.dual_value. Snapshot Gurobi's first.
-        gurobi_value = prob.value
-        gurobi_x = x.value.copy()
-        gurobi_cone_duals = [(np.asarray(c.dual_value[0]).copy(),
-                              np.asarray(c.dual_value[1]).copy()) for c in cones]
-
-        ref = cp.Problem(prob.objective, constraints)
-        ref.solve(solver=cp.CLARABEL)
-        # Two solvers at their default tolerances, so compare to 1e-3.
-        self.assertAlmostEqual(gurobi_value, ref.value, places=3)
-        self.assertItemsAlmostEqual(gurobi_x, x.value, places=3)
-        # Cone duals come back per constraint, in declaration order, so each
-        # must match the reference solver's dual for the same cone.
-        for (t_dual, x_dual), constr, k in zip(gurobi_cone_duals, cones, cone_sizes):
-            self.assertEqual(x_dual.shape[0], k)
-            self.assertItemsAlmostEqual(t_dual, constr.dual_value[0], places=3)
-            self.assertItemsAlmostEqual(x_dual, constr.dual_value[1], places=3)
 
     def test_gurobi_conic_uses_vectorized_api(self) -> None:
         """The conic interface must build models in bulk.

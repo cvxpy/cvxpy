@@ -186,8 +186,6 @@ class GUROBI(ConicSolver):
         bool_idx = data[s.BOOL_IDX]
         int_idx = data[s.INT_IDX]
         is_mip = bool(bool_idx or int_idx)
-        # Assign variable types by index. Testing ``i in bool_idx`` for every
-        # column is quadratic in the number of integer variables.
         vtypes = np.full(n, gurobipy.GRB.CONTINUOUS, dtype="<U1")
         if bool_idx:
             vtypes[bool_idx] = gurobipy.GRB.BINARY
@@ -253,8 +251,8 @@ class GUROBI(ConicSolver):
                 model.setParam("DualReductions", 0)
                 model.optimize()
             solution["value"] = model.ObjVal
-            # Only the n problem variables are inverted; the auxiliary SOC
-            # variables are internal to this interface.
+            # ``x`` covers only the n problem columns. The SOC auxiliary
+            # variables that follow them are internal to this interface.
             solution["primal"] = np.array(x.X)
 
             # Only add duals if not a MIP.
