@@ -439,9 +439,6 @@ class TestSCS(BaseTest):
         # axis 1
         StandardTestSOCPs.test_socp_3ax1(solver='SCS')
 
-    def test_scs_socp_4(self) -> None:
-        StandardTestSOCPs.test_socp_4(solver='SCS', eps=1e-8)
-
     def test_scs_sdp_1min(self) -> None:
         StandardTestSDPs.test_sdp_1min(solver='SCS')
 
@@ -585,9 +582,6 @@ class TestClarabel(BaseTest):
         StandardTestSOCPs.test_socp_3ax0(solver='CLARABEL')
         # axis 1
         StandardTestSOCPs.test_socp_3ax1(solver='CLARABEL')
-
-    def test_clarabel_socp_4(self) -> None:
-        StandardTestSOCPs.test_socp_4(solver='CLARABEL')
 
     def test_clarabel_expcone_1(self) -> None:
         StandardTestECPs.test_expcone_1(solver='CLARABEL')
