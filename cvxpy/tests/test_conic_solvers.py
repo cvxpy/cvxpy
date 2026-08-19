@@ -2784,6 +2784,91 @@ class TestHIGHS:
         captured = capfd.readouterr()
         assert re.search(confirmation_string, captured.out) is not None
 
+    @staticmethod
+    def mip_problem():
+        """Small MILP with one integer and one continuous variable."""
+        x = cp.Variable(2, integer=True)
+        y = cp.Variable()
+        constraints = [x >= 0, x <= 5, y >= 0, y <= 3, cp.sum(x) + y <= 6]
+        prob = cp.Problem(cp.Maximize(cp.sum(x) + 2 * y), constraints)
+        return prob, x, y
+
+    def test_highs_mip_start_init_value(self) -> None:
+        """Variable values are collected for the MIP start, NaN where unset."""
+        prob, x, y = self.mip_problem()
+
+        data, _, _ = prob.get_problem_data(solver=cp.HIGHS)
+        assert np.all(np.isnan(data["init_value"]))
+
+        x.value = np.array([2.0, 3.0])
+        data, _, _ = prob.get_problem_data(solver=cp.HIGHS)
+        assert np.allclose(data["init_value"][:2], [2.0, 3.0])
+        assert np.isnan(data["init_value"][2])
+
+    def test_highs_mip_start(self) -> None:
+        """A MIP start does not change the optimum."""
+        prob, x, y = self.mip_problem()
+        expected = prob.solve(solver=cp.HIGHS, warm_start=False)
+
+        x.value = np.array([2.0, 3.0])
+        assert prob.solve(solver=cp.HIGHS, warm_start=True) == expected
+
+    def test_highs_mip_start_reaches_solver(self, capfd) -> None:
+        """HiGHS reports working from the supplied values, and only then.
+
+        Both solves pass ``warm_start=True``; the only difference is whether
+        the user set any variable values.
+        """
+        confirmation = "user-supplied values of discrete variables"
+
+        prob, x, y = self.mip_problem()
+        prob.solve(solver=cp.HIGHS, warm_start=True, verbose=True)
+        assert confirmation not in capfd.readouterr().out
+
+        prob, x, y = self.mip_problem()
+        x.value = np.array([2.0, 3.0])
+        prob.solve(solver=cp.HIGHS, warm_start=True, verbose=True)
+        assert confirmation in capfd.readouterr().out
+
+    def test_highs_mip_start_rejected_warns(self) -> None:
+        """A start HiGHS refuses is warned about, not raised.
+
+        CVXPY validates ``Variable.value`` against bounds and integrality on
+        assignment, so this path is not reachable through a normal solve; the
+        solver stub is what exercises it.
+        """
+        import highspy as hp
+
+        from cvxpy.reductions.solvers.conic_solvers.highs_conif import HIGHS
+
+        class RejectingSolver:
+            def setSolution(self, *args):
+                return hp.HighsStatus.kError
+
+        data = {"init_value": np.array([1.0, np.nan])}
+        with pytest.warns(UserWarning, match="rejected the initial guess"):
+            HIGHS()._set_initial_solution(RejectingSolver(), data, hp)
+
+    def test_highs_mip_start_passes_only_known_entries(self) -> None:
+        """Only the indices the user set are handed to HiGHS."""
+        import highspy as hp
+
+        from cvxpy.reductions.solvers.conic_solvers.highs_conif import HIGHS
+
+        recorded = {}
+
+        class RecordingSolver:
+            def setSolution(self, num, index, value):
+                recorded.update(num=num, index=index, value=value)
+                return hp.HighsStatus.kOk
+
+        data = {"init_value": np.array([np.nan, 2.0, np.nan, 4.0])}
+        HIGHS()._set_initial_solution(RecordingSolver(), data, hp)
+
+        assert recorded["num"] == 2
+        assert list(recorded["index"]) == [1, 3]
+        assert list(recorded["value"]) == [2.0, 4.0]
+
     def test_highs_validate_column_name(self) -> None:
         """Test that HiGHS column name check is working correctly.
 

@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import warnings
 from re import compile
 
 import numpy as np
@@ -157,6 +158,9 @@ class HIGHS(ConicSolver):
         data[s.INT_IDX] = [int(t[0]) for t in variables.integer_idx]
         inv_data["is_mip"] = data[s.BOOL_IDX] or data[s.INT_IDX]
 
+        # Initial guess, with NaN marking entries the user did not set.
+        data["init_value"] = utilities.stack_vals(problem.variables, np.nan)
+
         return data, inv_data
 
     def invert(self, results, inverse_data):
@@ -212,6 +216,36 @@ class HIGHS(ConicSolver):
                 dual_vars = {}
             sol = failure_solution(status, attr, dual_vars)
         return sol
+
+    def _set_initial_solution(self, solver, data, hp) -> None:
+        """Pass the values set on the user's variables to HiGHS as a MIP start.
+
+        Values are read from ``Variable.value`` and may be set on only some of
+        the variables, so they are handed over through the sparse overload of
+        ``setSolution``, which takes the indices that are known rather than a
+        full solution vector.
+
+        An unusable guess is reported by HiGHS as ``kError``. That is warned
+        about rather than raised: the initial guess is a hint, not part of the
+        model, and a stale value left on a variable should not stop an
+        otherwise valid problem from being solved.
+        """
+        init_value = data.get("init_value")
+        if init_value is None:
+            return
+        init_value = np.asarray(init_value, dtype=float)
+        known = np.flatnonzero(~np.isnan(init_value))
+        if known.size == 0:
+            return
+        status = solver.setSolution(
+            known.size, known.astype(np.int32), init_value[known]
+        )
+        if status == hp.HighsStatus.kError:
+            warnings.warn(
+                "HiGHS rejected the initial guess taken from Variable.value; "
+                "solving without it.",
+                stacklevel=2,
+            )
 
     def solve_via_data(
         self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None
@@ -334,6 +368,8 @@ class HIGHS(ConicSolver):
             old_status = self.STATUS_MAP.get(old_result["model_status"], s.SOLVER_ERROR)
             if old_status in s.SOLUTION_PRESENT:
                 solver.setSolution(old_result["solution"])
+        elif warm_start:
+            self._set_initial_solution(solver, data, hp)
 
         # initialize and solve problem
         try:
