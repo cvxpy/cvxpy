@@ -64,8 +64,8 @@ class TestBackendSelectionDPP:
         stuffing = [r for r in chain.reductions if isinstance(r, ConeMatrixStuffing)][0]
         assert stuffing.canon_backend == s.COO_CANON_BACKEND
 
-    def test_non_dpp_with_large_params_uses_cpp(self):
-        """Non-DPP problem with many params should NOT select COO."""
+    def test_non_dpp_with_large_params_uses_diffengine(self):
+        """Non-DPP problem with many params routes to DIFFENGINE, NOT COO."""
         A = cp.Parameter((100, 20))  # 2000 params
         B = cp.Parameter((20, 20))  # 400 more params
         x = cp.Variable(20)
@@ -77,11 +77,11 @@ class TestBackendSelectionDPP:
 
         chain = prob._construct_chain(solver=cp.CLARABEL)
         stuffing = [r for r in chain.reductions if isinstance(r, ConeMatrixStuffing)][0]
-        # Non-DPP doesn't trigger COO
-        assert stuffing.canon_backend is None
+        # Non-DPP uses the DIFFENGINE backend (and never COO).
+        assert stuffing.canon_backend == s.DIFFENGINE_CANON_BACKEND
 
     def test_ignore_dpp_skips_coo_selection(self):
-        """With ignore_dpp=True, large DPP should NOT select COO."""
+        """With ignore_dpp=True, large DPP routes to DIFFENGINE, NOT COO."""
         A = cp.Parameter((100, 20))  # 2000 params
         x = cp.Variable(20)
         prob = cp.Problem(cp.Minimize(cp.sum_squares(A @ x)))
@@ -90,8 +90,8 @@ class TestBackendSelectionDPP:
 
         chain = prob._construct_chain(solver=cp.CLARABEL, ignore_dpp=True)
         stuffing = [r for r in chain.reductions if isinstance(r, ConeMatrixStuffing)][0]
-        # ignore_dpp means we don't use DPP-based selection
-        assert stuffing.canon_backend is None
+        # ignore_dpp uses the DIFFENGINE backend, not DPP-based COO selection.
+        assert stuffing.canon_backend == s.DIFFENGINE_CANON_BACKEND
 
 
 class TestBackendSelectionUserOverride:
@@ -220,3 +220,4 @@ class TestBackendSelectionSolve:
             prob.solve(solver=cp.CLARABEL)
 
         assert prob.status == cp.OPTIMAL
+

@@ -290,6 +290,11 @@ def get_problem_matrix(linOps,
 
     # Allow to switch default backends through an environment variable for CI
     default_canon_backend = get_default_canon_backend()
+    # DIFFENGINE is not a tensor backend: it is resolved in
+    # construct_solving_chain and never reaches this helper. Other consumers
+    # (affine _grad, cone2cone transforms) fall back to the standard default.
+    if default_canon_backend == s.DIFFENGINE_CANON_BACKEND:
+        default_canon_backend = s.DEFAULT_CANON_BACKEND
     canon_backend = default_canon_backend if not canon_backend else canon_backend
 
     if canon_backend == s.CPP_CANON_BACKEND:

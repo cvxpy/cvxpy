@@ -5,7 +5,6 @@ import pytest
 
 import cvxpy as cp
 import cvxpy.error as error
-import cvxpy.reductions.eval_params
 
 SOLVER = cp.CLARABEL
 BOUNDED_SOLVERS = ["HIGHS", "DAQP"]
@@ -224,8 +223,8 @@ class TestParametricBoundsDPP:
         _, _, _, prob = self._make_prob()
         assert prob.is_dpp()
         _, chain, _ = prob.get_problem_data(SOLVER)
-        reduction_types = [type(r) for r in chain.reductions]
-        assert cvxpy.reductions.eval_params.EvalParams not in reduction_types
+        reduction_names = [type(r).__name__ for r in chain.reductions]
+        assert 'EvalParams' not in reduction_names
 
     def test_get_problem_data_without_param_values(self):
         _, _, _, prob = self._make_prob()
