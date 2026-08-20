@@ -223,13 +223,22 @@ class HIGHS(ConicSolver):
         Values are read from ``Variable.value`` and may be set on only some of
         the variables, so they are handed over through the sparse overload of
         ``setSolution``, which takes the indices that are known rather than a
-        full solution vector.
+        full solution vector. Indices are left as they come out of
+        ``flatnonzero``: HiGHS reports an out-of-range one as ``kError``,
+        whereas narrowing them here would wrap silently.
+
+        Only mixed-integer problems are given a start. On a pure LP the
+        simplex takes the same number of iterations with or without one.
 
         An unusable guess is reported by HiGHS as ``kError``. That is warned
         about rather than raised: the initial guess is a hint, not part of the
         model, and a stale value left on a variable should not stop an
         otherwise valid problem from being solved.
         """
+        if not (data[s.BOOL_IDX] or data[s.INT_IDX]):
+            # On a pure LP the simplex takes the same number of iterations with
+            # or without a primal point, so there is nothing to hand over.
+            return
         init_value = data.get("init_value")
         if init_value is None:
             return
@@ -237,9 +246,7 @@ class HIGHS(ConicSolver):
         known = np.flatnonzero(~np.isnan(init_value))
         if known.size == 0:
             return
-        status = solver.setSolution(
-            known.size, known.astype(np.int32), init_value[known]
-        )
+        status = solver.setSolution(known.size, known, init_value[known])
         if status == hp.HighsStatus.kError:
             warnings.warn(
                 "HiGHS rejected the initial guess taken from Variable.value; "

@@ -2830,6 +2830,28 @@ class TestHIGHS:
         prob.solve(solver=cp.HIGHS, warm_start=True, verbose=True)
         assert confirmation in capfd.readouterr().out
 
+    def test_highs_lp_gets_no_start(self) -> None:
+        """A pure LP is left alone: the simplex gains nothing from a primal point."""
+        import highspy as hp
+
+        import cvxpy.settings as s
+        from cvxpy.reductions.solvers.conic_solvers.highs_conif import HIGHS
+
+        calls = []
+
+        class RecordingSolver:
+            def setSolution(self, *args):
+                calls.append(args)
+                return hp.HighsStatus.kOk
+
+        data = {
+            "init_value": np.array([1.0, 2.0]),
+            s.BOOL_IDX: [],
+            s.INT_IDX: [],
+        }
+        HIGHS()._set_initial_solution(RecordingSolver(), data, hp)
+        assert calls == []
+
     def test_highs_mip_start_rejected_warns(self) -> None:
         """A start HiGHS refuses is warned about, not raised.
 
@@ -2839,13 +2861,14 @@ class TestHIGHS:
         """
         import highspy as hp
 
+        import cvxpy.settings as s
         from cvxpy.reductions.solvers.conic_solvers.highs_conif import HIGHS
 
         class RejectingSolver:
             def setSolution(self, *args):
                 return hp.HighsStatus.kError
 
-        data = {"init_value": np.array([1.0, np.nan])}
+        data = {"init_value": np.array([1.0, np.nan]), s.BOOL_IDX: [0], s.INT_IDX: []}
         with pytest.warns(UserWarning, match="rejected the initial guess"):
             HIGHS()._set_initial_solution(RejectingSolver(), data, hp)
 
@@ -2853,6 +2876,7 @@ class TestHIGHS:
         """Only the indices the user set are handed to HiGHS."""
         import highspy as hp
 
+        import cvxpy.settings as s
         from cvxpy.reductions.solvers.conic_solvers.highs_conif import HIGHS
 
         recorded = {}
@@ -2862,7 +2886,11 @@ class TestHIGHS:
                 recorded.update(num=num, index=index, value=value)
                 return hp.HighsStatus.kOk
 
-        data = {"init_value": np.array([np.nan, 2.0, np.nan, 4.0])}
+        data = {
+            "init_value": np.array([np.nan, 2.0, np.nan, 4.0]),
+            s.BOOL_IDX: [0],
+            s.INT_IDX: [],
+        }
         HIGHS()._set_initial_solution(RecordingSolver(), data, hp)
 
         assert recorded["num"] == 2
