@@ -913,6 +913,70 @@ class TestConstraints(BaseTest):
         assert constr.dual_violation() == pytest.approx(2.0)
         assert not constr.is_dual_feasible()
 
+    def test_nonpos_complementarity_residual(self) -> None:
+        x = cp.Variable(3)
+        constr = cp.NonPos(x)
+        x.value = np.array([-2.0, 0.0, -4.0])
+        constr.dual_variables[0].value = np.array([0.0, 3.0, 0.0])
+
+        np.testing.assert_allclose(
+            constr.complementarity_residual,
+            np.array([0.0, 0.0, 0.0]),
+        )
+        assert constr.complementarity_violation() == pytest.approx(0.0)
+
+        constr.dual_variables[0].value = np.array([2.0, 3.0, 0.0])
+        np.testing.assert_allclose(
+            constr.complementarity_residual,
+            np.array([4.0, 0.0, 0.0]),
+        )
+        assert constr.complementarity_violation() == pytest.approx(4.0)
+
+    def test_nonneg_complementarity_residual(self) -> None:
+        x = cp.Variable(3)
+        constr = cp.NonNeg(x)
+        x.value = np.array([2.0, 0.0, 4.0])
+        constr.dual_variables[0].value = np.array([0.0, 3.0, 0.0])
+
+        np.testing.assert_allclose(
+            constr.complementarity_residual,
+            np.array([0.0, 0.0, 0.0]),
+        )
+        assert constr.complementarity_violation() == pytest.approx(0.0)
+
+        constr.dual_variables[0].value = np.array([2.0, 3.0, 0.0])
+        np.testing.assert_allclose(
+            constr.complementarity_residual,
+            np.array([4.0, 0.0, 0.0]),
+        )
+        assert constr.complementarity_violation() == pytest.approx(4.0)
+
+    def test_inequality_complementarity_residual(self) -> None:
+        x = cp.Variable(3)
+        constr = x <= np.array([1.0, 2.0, 3.0])
+        x.value = np.array([0.0, 2.0, 1.0])
+        constr.dual_variables[0].value = np.array([0.0, 3.0, 0.0])
+
+        np.testing.assert_allclose(
+            constr.complementarity_residual,
+            np.array([0.0, 0.0, 0.0]),
+        )
+        assert constr.complementarity_violation() == pytest.approx(0.0)
+
+        constr.dual_variables[0].value = np.array([2.0, 3.0, 0.0])
+        np.testing.assert_allclose(
+            constr.complementarity_residual,
+            np.array([2.0, 0.0, 0.0]),
+        )
+        assert constr.complementarity_violation() == pytest.approx(2.0)
+
+    def test_complementarity_violation_raises_without_values(self) -> None:
+        x = cp.Variable()
+        constr = x <= 1
+
+        with pytest.raises(ValueError, match="missing primal or dual value"):
+            constr.complementarity_violation()
+
     def test_equality_dual_residual_is_always_zero(self):
         # Equality/Zero dual variables are free (unconstrained), so their
         # dual cone is the whole space and the residual is always zero.
