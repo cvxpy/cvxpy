@@ -77,8 +77,9 @@ class TestBackendSelectionDPP:
 
         chain = prob._construct_chain(solver=cp.CLARABEL)
         stuffing = [r for r in chain.reductions if isinstance(r, ConeMatrixStuffing)][0]
-        # Non-DPP doesn't trigger COO
-        assert stuffing.canon_backend is None
+        # Non-DPP doesn't trigger COO; it defaults to the DIFFENGINE backend
+        # (parameters are baked by EvalParams before stuffing).
+        assert stuffing.canon_backend == s.DIFFENGINE_CANON_BACKEND
 
     def test_ignore_dpp_skips_coo_selection(self):
         """With ignore_dpp=True, large DPP should NOT select COO."""
@@ -90,8 +91,9 @@ class TestBackendSelectionDPP:
 
         chain = prob._construct_chain(solver=cp.CLARABEL, ignore_dpp=True)
         stuffing = [r for r in chain.reductions if isinstance(r, ConeMatrixStuffing)][0]
-        # ignore_dpp means we don't use DPP-based selection
-        assert stuffing.canon_backend is None
+        # ignore_dpp means we don't use DPP-based selection; the branch
+        # defaults to the DIFFENGINE backend instead.
+        assert stuffing.canon_backend == s.DIFFENGINE_CANON_BACKEND
 
 
 class TestBackendSelectionUserOverride:

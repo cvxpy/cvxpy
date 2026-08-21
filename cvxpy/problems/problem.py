@@ -41,7 +41,6 @@ from cvxpy.problems.objective import Maximize, Minimize
 from cvxpy.reductions import InverseData
 from cvxpy.reductions.chain import Chain
 from cvxpy.reductions.dqcp2dcp import dqcp2dcp
-from cvxpy.reductions.eval_params import EvalParams
 from cvxpy.reductions.flip_objective import FlipObjective
 from cvxpy.reductions.solution import INF_OR_UNB_MESSAGE
 from cvxpy.reductions.solvers import bisection
@@ -116,8 +115,8 @@ class Cache:
         self.param_prog = None
         self.inverse_data = None
 
-    def make_key(self, solver, gp, ignore_dpp, use_quad_obj):
-        return (solver, gp, ignore_dpp, use_quad_obj)
+    def make_key(self, solver, gp, ignore_dpp, use_quad_obj, canon_backend):
+        return (solver, gp, ignore_dpp, use_quad_obj, canon_backend)
 
     def gp(self):
         return self.key is not None and self.key[1]
@@ -822,13 +821,13 @@ class Problem(u.Canonical):
         # Convert solver argument to upper case.
         if isinstance(solver, str):
             solver = solver.upper()
-        # Cache includes ignore_dpp and solver_opts['use_quad_obj']
-        # because they alter compilation.
+        # Cache includes ignore_dpp, solver_opts['use_quad_obj'], and
+        # canon_backend because they alter compilation.
         if solver_opts is None:
             use_quad_obj = None
         else:
             use_quad_obj = solver_opts.get('use_quad_obj', None)
-        key = self._cache.make_key(solver, gp, ignore_dpp, use_quad_obj)
+        key = self._cache.make_key(solver, gp, ignore_dpp, use_quad_obj, canon_backend)
         if key != self._cache.key:
             self._cache.invalidate()
             solving_chain = self._construct_chain(
@@ -879,8 +878,7 @@ class Problem(u.Canonical):
             safe_to_cache = (
                 isinstance(data, dict)
                 and s.PARAM_PROB in data
-                and not any(isinstance(reduction, EvalParams)
-                            for reduction in solving_chain.reductions)
+                and not solving_chain.uncached_param_prog
             )
             self._compilation_time = time.time() - start
             if verbose:
