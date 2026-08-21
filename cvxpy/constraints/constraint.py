@@ -333,6 +333,49 @@ class Constraint(u.Canonical):
             return 0.0
         return float(np.linalg.norm(residual_arr.ravel(), ord=np.inf))
 
+    @property
+    def complementarity_residual(self):
+        """The shape-preserving complementarity residual.
+
+        This residual measures complementary slackness for constraints where
+        it is well-defined. The reduction to a scalar happens in
+        ``complementarity_violation``.
+
+        Returns
+        -------
+        NumPy.ndarray or None
+        """
+        raise NotImplementedError(
+            f"{type(self).__name__} does not implement "
+            "complementarity_residual."
+        )
+
+    def complementarity_violation(self):
+        """Scalar complementarity violation.
+
+        The violation is the infinity norm of ``complementarity_residual``,
+        matching the scalar violation convention for primal and dual residuals.
+
+        Returns
+        -------
+        float
+
+        Raises
+        ------
+        ValueError
+            If the primal or dual variable has no value.
+        """
+        residual = self.complementarity_residual
+        if residual is None:
+            raise ValueError(
+                "Cannot compute complementarity violation: missing primal "
+                "or dual value."
+            )
+        residual_arr = np.asarray(residual)
+        if residual_arr.size == 0:
+            return 0.0
+        return float(np.linalg.norm(residual_arr.ravel(), ord=np.inf))
+
     def is_dual_feasible(self, tolerance: float = 1e-8) -> bool:
         """Whether the dual variable satisfies the dual cone constraint.
 
