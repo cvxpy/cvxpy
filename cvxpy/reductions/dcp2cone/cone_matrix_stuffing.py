@@ -414,6 +414,17 @@ class ConeMatrixStuffing(MatrixStuffing):
                 con = ExpCone(x.flatten(order='F'), y.flatten(order='F'), z.flatten(order='F'),
                               constr_id=con.constr_id)
             cons.append(con)
+        if self.canon_backend == s.DIFFENGINE_CANON_BACKEND:
+            # All backend-specific stuffing lives in the diff_engine package;
+            # this dispatch is the only seam. Imported lazily so importing
+            # this module never requires sparsediffpy.
+            from cvxpy.reductions.solvers.nlp_solvers.diff_engine.cone_stuffing import (
+                stuff_cone_program,
+            )
+            new_prob, inverse_data = stuff_cone_program(
+                problem, cons, inverse_data, self.quad_obj)
+            self._cons_id_map = inverse_data.cons_id_map
+            return new_prob, inverse_data
         # Need to check that intended canonicalization backend still works.
         lowered_con_problem = problem.copy([problem.objective, cons])
         canon_backend = get_canon_backend(lowered_con_problem, self.canon_backend)
