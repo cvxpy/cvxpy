@@ -838,7 +838,7 @@ class Expression(u.Canonical):
                 warnings.warn(msg, UserWarning)
                 warnings.warn(msg, CvxpyDeprecationWarning)
                 __STAR_MATMUL_COUNT__ += 1
-            return cvxtypes.matmul_expr()(self, other)
+            return cvxtypes.matmul()(self, other)
 
     @_cast_other
     def __matmul__(self, other: ExpressionLike) -> "Expression":

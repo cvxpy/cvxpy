@@ -28,6 +28,8 @@ import numpy as np
 import pytest
 
 import cvxpy as cp
+from cvxpy.atoms.affine.binary_operators import MulExpression
+from cvxpy.utilities.warn import CvxpyDeprecationWarning
 
 BACKENDS = [cp.SCIPY_CANON_BACKEND, cp.COO_CANON_BACKEND]
 
@@ -795,18 +797,62 @@ class TestNDRmulEdgeCases:
             assert expr.shape == expected.shape
             np.testing.assert_allclose(expr.value, expected)
 
-        # Solve path with a 1-D variable on either side.
-        wv = cp.Variable(3)
-        y = cp.Variable((2, 4))
-        prob = cp.Problem(cp.Minimize(0), [y == wv @ A3, wv == w])
-        prob.solve(solver=cp.CLARABEL, canon_backend=backend)
-        np.testing.assert_allclose(y.value, w @ A3, atol=1e-6)
+        # The deprecated '*' spelling delegates to the same public wrapper.
+        with pytest.warns((UserWarning, CvxpyDeprecationWarning)):
+            lhs_star = cp.Constant(w) * cp.Constant(A3)
+        with pytest.warns((UserWarning, CvxpyDeprecationWarning)):
+            rhs_star = cp.Constant(A3) * cp.Constant(v)
+        assert lhs_star.shape == (2, 4)
+        assert rhs_star.shape == (2, 3)
+        np.testing.assert_allclose(lhs_star.value, w @ A3)
+        np.testing.assert_allclose(rhs_star.value, A3 @ v)
 
-        xv = cp.Variable(4)
-        z = cp.Variable((2, 3))
-        prob = cp.Problem(cp.Minimize(0), [z == A3 @ xv, xv == v])
-        prob.solve(solver=cp.CLARABEL, canon_backend=backend)
-        np.testing.assert_allclose(z.value, A3 @ v, atol=1e-6)
+        # Direct MulExpression construction is a low-level interface that
+        # retains the singleton axis inserted while promoting a 1-D operand.
+        assert MulExpression(cp.Constant(w), cp.Constant(A3)).shape == (2, 1, 4)
+
+        # Concrete 1-D operands are materialized after promotion/broadcast, so
+        # they do not introduce broadcast_to atoms that disable C++ support.
+        for lh, rh, expected in [(w, None, w @ A3), (None, v, A3 @ v)]:
+            X = cp.Variable(A3.shape)
+            result = cp.Variable(expected.shape)
+            product = lh @ X if lh is not None else X @ rh
+            cpp_problem = cp.Problem(
+                cp.Minimize(0),
+                [X == A3, result == product],
+            )
+            assert cpp_problem._supports_cpp()
+            cpp_problem.solve(solver=cp.CLARABEL, canon_backend=backend)
+            np.testing.assert_allclose(result.value, expected, atol=1e-6)
+
+        with pytest.raises(
+            ValueError,
+            match=r"Incompatible dimensions \(5,\) \(2, 3, 4\)",
+        ):
+            np.ones(5) @ cp.Constant(A3)
+
+        # Exercise a 1-D Variable and Parameter on either side through the
+        # solve path, sharing the same construction for all four cases.
+        for lh_value, rh_value in [(w, A3), (A3, v)]:
+            one_d_on_lhs = lh_value.ndim == 1
+            one_d_value = lh_value if one_d_on_lhs else rh_value
+            expected = lh_value @ rh_value
+            for operand_kind in ["variable", "parameter"]:
+                if operand_kind == "variable":
+                    operand = cp.Variable(one_d_value.shape)
+                else:
+                    operand = cp.Parameter(one_d_value.shape, value=one_d_value)
+
+                lh = operand if one_d_on_lhs else cp.Constant(lh_value)
+                rh = cp.Constant(rh_value) if one_d_on_lhs else operand
+                result = cp.Variable(expected.shape)
+                constraints = [result == lh @ rh]
+                if operand_kind == "variable":
+                    constraints.append(operand == one_d_value)
+
+                prob = cp.Problem(cp.Minimize(0), constraints)
+                prob.solve(solver=cp.CLARABEL, canon_backend=backend)
+                np.testing.assert_allclose(result.value, expected, atol=1e-6)
 
     @pytest.mark.parametrize("backend", BACKENDS)
     def test_1d_var_1d_const(self, backend):
