@@ -15,6 +15,7 @@ limitations under the License.
 """
 
 import unittest
+from fractions import Fraction
 
 import numpy as np
 import pytest
@@ -134,8 +135,6 @@ class TestAtoms(BaseTest):
     def test_power(self) -> None:
         """Test the power class.
         """
-        from fractions import Fraction
-
         for shape in [(1, 1), (3, 1), (2, 3)]:
             x = Variable(shape)
             y = Variable(shape)
@@ -214,6 +213,50 @@ class TestAtoms(BaseTest):
                 match=SECOND_ARG_SHOULD_NOT_BE_EXPRESSION_ERROR_MESSAGE
             ):
             cp.geo_mean(self.x, self.y)
+
+    def test_geo_mean_shapes(self) -> None:
+        """Any shape is accepted, and the entries are taken in column-major order."""
+        M = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])
+
+        atom = cp.geo_mean(cp.Constant(M))
+        self.assertEqual(atom.shape, tuple())
+        self.assertSequenceEqual(atom.w, [Fraction(1, 6)] * 6)
+        self.assertAlmostEqual(atom.value, float(np.prod(M) ** (1 / M.size)))
+
+        # Column-major, as elsewhere in CVXPY: the weights line up with
+        # M.ravel(order='F').
+        weighted = cp.geo_mean(cp.Constant(M), [2, 0, 0, 0, 0, 1])
+        flat = M.ravel(order='F')
+        self.assertAlmostEqual(weighted.value, float((flat[0] ** 2 * flat[5]) ** (1 / 3)))
+
+        # More than two dimensions.
+        T = np.arange(1, 25, dtype=float).reshape(2, 3, 4)
+        self.assertAlmostEqual(
+            cp.geo_mean(cp.Constant(T)).value, float(np.prod(T) ** (1 / T.size))
+        )
+
+    def test_geo_mean_shares_one_set_of_constraints(self) -> None:
+        """Every output is covered by the same constraints, not one set each."""
+        from cvxpy.reductions.dcp2cone.canonicalizers.geo_mean_canon import (
+            geo_mean_approx_canon,
+        )
+
+        counts = []
+        for cols in (2, 20, 200):
+            x = cp.Variable((3, cols), nonneg=True)
+            expr = cp.geo_mean(x, axis=0)
+            _, constraints = geo_mean_approx_canon(expr, expr.args)
+            counts.append(len(constraints))
+        assert len(set(counts)) == 1, counts
+
+    def test_geo_mean_row_vector(self) -> None:
+        """A row vector reaches the solver, as the docstring has always promised."""
+        for shape in [(4,), (4, 1), (1, 4), (2, 2)]:
+            x = cp.Variable(shape, nonneg=True)
+            n = int(np.prod(shape))
+            prob = cp.Problem(cp.Maximize(cp.geo_mean(x)), [cp.sum(x) <= n])
+            prob.solve(solver=cp.SCS, eps=1e-6)
+            self.assertAlmostEqual(prob.value, 1.0, places=4)
 
     # Test the harmonic_mean class.
     def test_harmonic_mean(self) -> None:
@@ -3205,3 +3248,38 @@ class TestDotsort(BaseTest):
         with self.assertRaises(Exception) as cm:
             cp.Problem(cp.Minimize(cp.dotsort(self.x, p_squared))).solve(enforce_dpp=True)
         assert "You are solving a parameterized problem that is not DPP" in str(cm.exception)
+
+
+GEO_MEAN_AXES = [None, 0, 1, 2, -1, -2, -3, (0, 1), (1, 2), (0, 2), (0, 1, 2)]
+
+
+@pytest.mark.parametrize("axis", GEO_MEAN_AXES)
+@pytest.mark.parametrize("keepdims", [False, True])
+def test_geo_mean_axis(axis, keepdims) -> None:
+    """Every axis reduces, and the shape follows cp.mean."""
+    T = np.arange(1.0, 25.0).reshape(2, 3, 4)
+    const = cp.Constant(T)
+
+    got = cp.geo_mean(const, axis=axis, keepdims=keepdims)
+    assert got.shape == cp.mean(const, axis=axis, keepdims=keepdims).shape
+
+    expected = np.exp(np.mean(np.log(T), axis=axis))
+    if keepdims:
+        reduced = tuple(range(T.ndim)) if axis is None else np.atleast_1d(axis)
+        expected = np.expand_dims(expected, tuple(np.atleast_1d(reduced)))
+    assert np.allclose(np.array(got.value), expected)
+
+
+@pytest.mark.parametrize("axis", [3, -4])
+def test_geo_mean_axis_out_of_bounds(axis) -> None:
+    """An axis the expression does not have is refused."""
+    T = cp.Constant(np.arange(1.0, 25.0).reshape(2, 3, 4))
+    with pytest.raises((ValueError, IndexError)):
+        cp.geo_mean(T, axis=axis)
+
+
+def test_geo_mean_axis_with_weights() -> None:
+    """Weights apply to each slice along the reduced axis."""
+    M = np.arange(1.0, 7.0).reshape(2, 3)
+    got = cp.geo_mean(cp.Constant(M), [3, 1], axis=0)
+    assert np.allclose(np.array(got.value), (M[0] ** 3 * M[1]) ** (1 / 4))
