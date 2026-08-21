@@ -22,6 +22,7 @@ import string
 import sys
 import tempfile
 import unittest
+from unittest import mock
 
 import numpy as np
 import pytest
@@ -2166,6 +2167,9 @@ class TestGUROBI(BaseTest):
         # axis 1
         StandardTestSOCPs.test_socp_3ax1(solver='GUROBI')
 
+    def test_gurobi_socp_4(self) -> None:
+        StandardTestSOCPs.test_socp_4(solver='GUROBI', places=4)
+
     def test_gurobi_socp_bound_attr(self) -> None:
         sth = StandardTestSOCPs.test_socp_bounds_attr(solver='GUROBI')
         # check that the bounds do reach the solver and don't just generate constraints
@@ -2195,6 +2199,60 @@ class TestGUROBI(BaseTest):
 
     def test_gurobi_mi_socp_2(self) -> None:
         StandardTestSOCPs.test_mi_socp_2(solver='GUROBI')
+
+    def test_gurobi_conic_uses_vectorized_api(self) -> None:
+        """The conic interface must build models in bulk.
+
+        Adding variables and rows one call at a time is what made this
+        interface slow, so falling back to the scalar API is a regression even
+        though it would still give the right answer.
+        """
+        import gurobipy
+
+        def scalar_call(*args, **kwargs):
+            raise AssertionError("conic interface fell back to the scalar API")
+
+        np.random.seed(0)
+        y = cp.Variable(5)
+        z = cp.Variable(3, boolean=True)
+        prob = cp.Problem(
+            cp.Minimize(cp.norm(np.random.randn(4, 5) @ y - np.random.randn(4))
+                        + cp.sum(z)),
+            [cp.sum(y) == 1, y <= 2, cp.sum(z) >= 1])
+        with mock.patch.object(gurobipy.Model, "addVar", scalar_call), \
+                mock.patch.object(gurobipy.Model, "addLConstr", scalar_call):
+            prob.solve(solver=cp.GUROBI)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+
+    def test_gurobi_mixed_integer_types(self) -> None:
+        """Boolean, integer and continuous variables in one conic problem.
+
+        Variable types are assigned by index rather than by testing membership
+        of every column, so a problem mixing all three kinds pins down that
+        mapping. Coefficients are chosen to make the optimum unique.
+        """
+        z = cp.Variable(3, boolean=True)
+        w = cp.Variable(2, integer=True)
+        y = cp.Variable(2)
+        objective = cp.Minimize(w[0] + 2 * w[1]
+                                - (3 * z[0] + 2 * z[1] + z[2])
+                                + cp.norm(y))
+        prob = cp.Problem(objective,
+                          [w >= -4, w <= 4, cp.sum(z) <= 2, y >= 1,
+                           cp.sum(w) >= -5])
+        prob.solve(solver=cp.GUROBI)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+
+        self.assertItemsAlmostEqual(z.value, [1, 1, 0], places=4)
+        self.assertItemsAlmostEqual(w.value, [-1, -4], places=4)
+        self.assertItemsAlmostEqual(y.value, [1, 1], places=4)
+        self.assertAlmostEqual(prob.value, -14 + np.sqrt(2), places=4)
+
+        # The stuffed ordering of the three blocks is an implementation detail,
+        # but each variable must reach Gurobi with the right type.
+        model = prob.solver_stats.extra_stats
+        vtypes = [model.getVarByName("x_%d" % i).VType for i in range(7)]
+        self.assertEqual(sorted(vtypes), ['B', 'B', 'B', 'C', 'C', 'I', 'I'])
 
 
 def test_xpress_make_unique_names() -> None:
