@@ -19,6 +19,7 @@ from typing import overload
 
 from cvxpy import problems
 from cvxpy.atoms.elementwise.power import Power
+from cvxpy.atoms.quad_form import QuadForm
 from cvxpy.atoms.quad_over_lin import quad_over_lin
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions import cvxtypes
@@ -58,6 +59,10 @@ class Dcp2Cone(Canonicalization):
         # solver_context : The solver context: supported constraints and bounds.
         self.solver_context = solver_context
 
+        # Set during apply() when the cone quad_form canon factorizes a
+        # parametric P.value (see safe_to_cache in problem.py).
+        self._param_quad_form_factorized = False
+
     def accepts(self, problem):
         """A problem is accepted if it is a minimization and is DCP.
         """
@@ -68,6 +73,9 @@ class Dcp2Cone(Canonicalization):
         """
         if not self.accepts(problem):
             raise ValueError("Cannot reduce problem to cone program")
+
+        # The instance is reused via the cached chain; the flag is per-apply.
+        self._param_quad_form_factorized = False
 
         inverse_data = InverseData(problem)
 
@@ -93,6 +101,7 @@ class Dcp2Cone(Canonicalization):
         new_problem = problems.problem.Problem(canon_objective,
                                                canon_constraints)
         self._cons_id_map = inverse_data.cons_id_map
+        inverse_data.param_quad_form_factorized = self._param_quad_form_factorized
         return new_problem, inverse_data
 
     @overload
@@ -240,6 +249,10 @@ class Dcp2Cone(Canonicalization):
                                                            solver_context=self.solver_context)
 
         if type(expr) in self.cone_canon_methods:
+            if type(expr) is QuadForm and args[1].parameters():
+                # The cone quad_form canon factorizes the CURRENT P.value
+                # (decomp_quad), so the program must not be cached.
+                self._param_quad_form_factorized = True
             return self.cone_canon_methods[type(expr)](expr, args,
                                                        solver_context=self.solver_context)
 
