@@ -215,6 +215,39 @@ class TestAtoms(BaseTest):
             ):
             cp.geo_mean(self.x, self.y)
 
+    def test_tv_three_dimensional(self) -> None:
+        """A 3-D value is read as channels, the same as passing them separately."""
+        rng = np.random.default_rng(0)
+        R, G, B = (rng.random((4, 5)) for _ in range(3))
+        A = np.stack([R, G, B], axis=-1)
+
+        separate = cp.tv(cp.Constant(R), cp.Constant(G), cp.Constant(B)).value
+        stacked = cp.tv(cp.Constant(A)).value
+        self.assertAlmostEqual(stacked, separate, places=10)
+
+        # Channels are coupled, so this is not the sum of the per-channel ones.
+        per_channel = sum(cp.tv(cp.Constant(M)).value for M in (R, G, B))
+        self.assertNotAlmostEqual(stacked, per_channel, places=6)
+
+        # A 3-D value composes with further channels given as arguments.
+        X = rng.random((4, 5))
+        self.assertAlmostEqual(
+            cp.tv(cp.Constant(A), cp.Constant(X)).value,
+            cp.tv(cp.Constant(R), cp.Constant(G), cp.Constant(B), cp.Constant(X)).value,
+            places=10,
+        )
+
+        # One dimension further is still refused.
+        with pytest.raises(ValueError, match="more than 3 dimensions"):
+            cp.tv(cp.Constant(rng.random((2, 3, 4, 5))))
+
+    def test_tv_unchanged_for_vectors_and_matrices(self) -> None:
+        """The vector and matrix cases keep their existing values."""
+        self.assertAlmostEqual(cp.tv(cp.Constant(np.array([1.0, 3.0, 2.0, 7.0]))).value, 8.0)
+        self.assertAlmostEqual(
+            cp.tv(cp.Constant(np.array([[-5.0, 2.0], [-3.0, 1.0]]))).value, np.sqrt(53)
+        )
+
     # Test the harmonic_mean class.
     def test_harmonic_mean(self) -> None:
         atom = cp.harmonic_mean(self.x)
