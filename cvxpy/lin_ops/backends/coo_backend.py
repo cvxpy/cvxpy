@@ -15,9 +15,10 @@ limitations under the License.
 """
 from __future__ import annotations
 
+import dataclasses
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Self
 
 import numpy as np
 import scipy.sparse as sp
@@ -110,6 +111,9 @@ class CooTensor:
     def stacked_shape(self) -> tuple[int, int]:
         """Shape if this were converted to stacked format."""
         return (self.param_size * self.m, self.n)
+
+    def copy(self) -> Self:
+        return dataclasses.replace(self)
 
     def to_stacked_sparse(self) -> sp.csr_array:
         """Convert to stacked sparse matrix (for compatibility)."""
