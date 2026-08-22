@@ -1876,8 +1876,11 @@ class TestProblem(BaseTest):
         prob.solve(solver=cp.SCS, eps=1e-5)
         self.assertItemsAlmostEqual(x.value, [.5, .5])
 
+        # Any shape is accepted; the entries are taken in row-major order.
         x = Variable((3, 3))
-        self.assertRaises(ValueError, cp.geo_mean, x)
+        g = cp.geo_mean(x)
+        self.assertSequenceEqual(g.w, [Fraction(1, 9)]*9)
+        self.assertEqual(g.shape, tuple())
 
         x = Variable((3, 1))
         g = cp.geo_mean(x)

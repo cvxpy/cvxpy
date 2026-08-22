@@ -14,15 +14,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from collections.abc import Sequence
 
 import numpy as np
-import scipy.sparse as sp
 
 from cvxpy.atoms.affine.promote import promote
-from cvxpy.atoms.atom import Atom
+from cvxpy.atoms.affine.reshape import reshape
+from cvxpy.atoms.affine.transpose import moveaxis
+from cvxpy.atoms.axis_atom import AxisAtom
 from cvxpy.atoms.errormsg import SECOND_ARG_SHOULD_NOT_BE_EXPRESSION_ERROR_MESSAGE
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions import cvxtypes
+from cvxpy.expressions.expression import Expression
 from cvxpy.utilities.power_tools import (
     approx_error,
     decompose,
@@ -33,7 +36,8 @@ from cvxpy.utilities.power_tools import (
 )
 
 
-def geo_mean(x, p=None, max_denom=1024, approx=True):
+def geo_mean(x, p=None, max_denom=1024, approx=True, axis=None,
+             keepdims: bool = False) -> Expression:
     """Factory function for (weighted) geometric mean.
 
     Parameters
@@ -47,18 +51,25 @@ def geo_mean(x, p=None, max_denom=1024, approx=True):
     approx : bool
         When True (default), uses SOC approximation. When False,
         uses power cone (exact).
+    axis : int or tuple of int, optional
+        The axes to reduce along. ``None`` reduces every entry into a single
+        geometric mean.
+    keepdims : bool
+        Keep the reduced axes with length one.
 
     Returns
     -------
-    GeoMean or GeoMeanApprox
+    Expression
+        A scalar when ``axis`` is None, otherwise one geometric mean per
+        slice along ``axis``.
     """
     if approx:
-        return GeoMeanApprox(x, p=p, max_denom=max_denom)
-    else:
-        return GeoMean(x, p=p, max_denom=max_denom)
+        return GeoMeanApprox(x, p=p, max_denom=max_denom, axis=axis,
+                             keepdims=keepdims)
+    return GeoMean(x, p=p, max_denom=max_denom, axis=axis, keepdims=keepdims)
 
 
-class GeoMean(Atom):
+class GeoMean(AxisAtom):
     """ The (weighted) geometric mean of vector ``x``, with optional powers given by ``p``:
 
     .. math::
@@ -176,7 +187,10 @@ class GeoMean(Atom):
     Parameters
     ----------
     x : Variable
-        A column or row vector whose elements we will take the geometric mean of.
+        An expression of any shape whose elements we will take the geometric
+        mean of. Anything past one dimension is flattened in row-major order,
+        so a row vector, a column vector and an N-D array holding the same
+        entries all give the same result.
 
     p : Sequence (list, tuple, ...) of ``int``, ``float``, or ``Fraction`` objects
         A vector of weights for the weighted geometric mean
@@ -202,36 +216,38 @@ class GeoMean(Atom):
         :math:`\\|p/\\mathbf{1}^T p - w \\|_\\infty`
     """
 
-    def __init__(self, x, p: list[int] | None = None,
-                 max_denom: int = 1024) -> None:
+    def __init__(self, x, p: Sequence[float] | np.ndarray | None = None,
+                 max_denom: int = 1024, axis=None, keepdims: bool = False) -> None:
         Expression = cvxtypes.expression()
         if p is not None and isinstance(p, Expression):
             raise TypeError(SECOND_ARG_SHOULD_NOT_BE_EXPRESSION_ERROR_MESSAGE)
-        elif p is not None and hasattr(p, '__getitem__'):
+
+        if isinstance(x, list):
+            x = np.array(x)
+        x = Expression.cast(x)
+        if x.ndim == 0:
+            x = Expression.cast(promote(x, shape=(1,)))
+
+        super(GeoMean, self).__init__(x, axis=axis, keepdims=keepdims)
+
+        n = self._reduced_size()
+
+        if p is not None and hasattr(p, '__getitem__'):
             p = np.array(p)
-            idxs = p > 0
-            if isinstance(x, list):
-                x = np.array(x)
-            if x.ndim == 0:
-                x = Expression.cast_to_const(promote(x, shape=(1,)))[idxs]
-            else:
-                x = Expression.cast_to_const(x)[idxs]
-            p = p[idxs]
-        super(GeoMean, self).__init__(x)
-
-        x = self.args[0]
-        if x.is_vector():
-            n = 1 if x.ndim == 0 else max(x.shape)
+            if len(p) != n:
+                raise ValueError('x and p must have the same number of elements.')
+            # Entries with zero weight take no part. They are dropped from the
+            # canonicalization rather than from the argument, so that the
+            # argument keeps the shape the axis bookkeeping is based on.
+            self._keep = p > 0
+            p = p[self._keep]
         else:
-            raise ValueError('x must be a row or column vector.')
+            self._keep = np.ones(n, dtype=bool)
+            if p is None:
+                p = [1] * n
 
-        if p is None:
-            p = [1]*n
         self.p = p
         self.max_denom = max_denom
-
-        if len(p) != n:
-            raise ValueError('x and p must have the same number of elements.')
 
         if any(v < 0 for v in p) or sum(p) <= 0:
             raise ValueError('powers must be nonnegative and not all zero.')
@@ -240,20 +256,68 @@ class GeoMean(Atom):
         self.w = tuple(p_arr / p_arr.sum())
         self.approx_error = 0.0
 
-    # Returns the (weighted) geometric mean of the elements of x.
-    def numeric(self, values) -> float:
-        values = np.array(values[0]).flatten()
-        val = 1.0
-        for x, p in zip(values, self.w):
-            val *= x**float(p)
-        return val
+    def _reduced_size(self) -> int:
+        """How many entries each geometric mean is taken over."""
+        shape = self.args[0].shape
+        if self.axis is None:
+            return int(np.prod(shape))
+        axes = (self.axis,) if isinstance(self.axis, int) else tuple(self.axis)
+        return int(np.prod([shape[a] for a in axes]))
+
+    def _aligned_arg(self, arg=None):
+        """The argument with the reduced entries along axis 0.
+
+        Axes being reduced are moved to the front and flattened into one in
+        Fortran order, and entries whose weight is zero are dropped. Everything downstream — the
+        domain and the canonicalizers — works on this view, so none of them
+        has to know about the axis. The canonicalizers pass their own already
+        canonicalized argument, which has the same shape.
+        """
+        x = self.args[0] if arg is None else arg
+        if self.axis is None:
+            aligned = reshape(x, (x.size,), order='F')
+        else:
+            axes = (self.axis,) if isinstance(self.axis, int) else tuple(self.axis)
+            moved = moveaxis(x, axes, range(len(axes)))
+            aligned = reshape(moved, (self._reduced_size(), -1), order='F')
+        if not self._keep.all():
+            aligned = aligned[self._keep]
+        return aligned
+
+    def numeric(self, values):
+        """The (weighted) geometric mean, taken along the reduced axes."""
+        x = np.asarray(values[0], dtype=float)
+        w = np.array([float(w_i) for w_i in self.w])
+        if self.axis is None:
+            kept = x.ravel(order='F')[self._keep]
+            out = np.prod(kept ** w)
+        else:
+            axes = (self.axis,) if isinstance(self.axis, int) else tuple(self.axis)
+            moved = np.moveaxis(x, axes, range(len(axes)))
+            rest = moved.shape[len(axes):]
+            flat = moved.reshape((self._reduced_size(), -1), order='F')
+            kept = flat[self._keep]
+            out = np.prod(kept ** w[:, None], axis=0).reshape(rest, order='F')
+        return np.reshape(out, self.shape, order='F') if self.keepdims else out
 
     def _domain(self) -> list[Constraint]:
         """Returns constraints describing the domain of the node.
         """
-        # No special case when only one non-zero weight.
-        selection = np.array([w_i > 0 for w_i in self.w])
-        return [self.args[0][selection > 0] >= 0]
+        # Entries with zero weight are already gone from the aligned view, so
+        # they carry no implicit nonnegativity.
+        return [self._aligned_arg() >= 0]
+
+    def _column_grad(self, value):
+        """Gradient with respect to one column of reduced entries."""
+        column = np.asarray(value, dtype=float).ravel()
+        kept = column[self._keep]
+        w = np.array([float(w_i) for w_i in self.w])
+        if np.any(kept <= 0):
+            return None
+        gm = np.prod(kept ** w)
+        D = np.zeros(column.size)
+        D[self._keep] = w / kept * gm
+        return D[:, None]
 
     def _grad(self, values):
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.
@@ -266,15 +330,7 @@ class GeoMean(Atom):
         Returns:
             A list of SciPy CSC sparse matrices or None.
         """
-        x = np.array(values[0])
-        # No special case when only one non-zero weight.
-        w_arr = np.array([float(w_i) for w_i in self.w])
-        # Outside domain.
-        if np.any(x[w_arr > 0] <= 0):
-            return [None]
-        else:
-            D = w_arr/x.ravel(order='F')*self.numeric(values)
-            return [sp.csc_array([D]).T]
+        return self._axis_grad(values)
 
     def name(self) -> str:
         weights = ', '.join(str(v) for v in self.w)
@@ -286,11 +342,6 @@ class GeoMean(Atom):
         weights = ', '.join(str(v) for v in self.w)
         return f"{type(self).__name__}({self.args[0].format_labeled()}, ({weights}))"
 
-
-    def shape_from_args(self) -> tuple[int, ...]:
-        """Returns the (row, col) shape of the expression.
-        """
-        return tuple()
 
     def sign_from_args(self) -> tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
@@ -335,7 +386,7 @@ class GeoMean(Atom):
         return False
 
     def get_data(self):
-        return [self.p, self.max_denom]
+        return [self.p, self.max_denom, self.axis, self.keepdims]
 
     def copy(self, args=None, id_objects=None):
         """Returns a shallow copy of the GeoMean atom.
@@ -354,11 +405,12 @@ class GeoMean(Atom):
             args = self.args
         # Avoid calling __init__() directly as we do not have p and max_denom.
         copy = type(self).__new__(type(self))
-        super(type(self), copy).__init__(*args)
+        AxisAtom.__init__(copy, *args, axis=self.axis, keepdims=self.keepdims)
         # Emulate __init__()
         copy.p = self.p
         copy.max_denom = self.max_denom
         copy.w = self.w
+        copy._keep = self._keep
         copy.approx_error = self.approx_error
         return copy
 
@@ -397,9 +449,9 @@ class GeoMeanApprox(GeoMean):
 
     """
 
-    def __init__(self, x, p: list[int] | None = None,
-                 max_denom: int = 1024) -> None:
-        super().__init__(x, p=p, max_denom=max_denom)
+    def __init__(self, x, p: Sequence[float] | np.ndarray | None = None,
+                 max_denom: int = 1024, axis=None, keepdims: bool = False) -> None:
+        super().__init__(x, p=p, max_denom=max_denom, axis=axis, keepdims=keepdims)
 
         self.w, self.w_dyad = fracify(self.p, max_denom)
         self.approx_error = approx_error(self.p, self.w)
@@ -417,18 +469,9 @@ class GeoMeanApprox(GeoMean):
 
     def copy(self, args=None, id_objects=None):
         """Returns a shallow copy of the GeoMeanApprox atom."""
-        if args is None:
-            args = self.args
-        # Avoid calling __init__() directly as we do not have p and max_denom.
-        copy = type(self).__new__(type(self))
-        super(type(self), copy).__init__(*args)
-        # Emulate __init__()
-        copy.p = self.p
-        copy.max_denom = self.max_denom
-        copy.w = self.w
+        copy = super().copy(args=args, id_objects=id_objects)
         copy.w_dyad = self.w_dyad
         copy.tree = self.tree
-        copy.approx_error = self.approx_error
         copy.cone_lb = self.cone_lb
         copy.cone_num_over = self.cone_num_over
         copy.cone_num = self.cone_num
