@@ -39,6 +39,7 @@ class GLOP(ConicSolver):
 
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS
     BOUNDED_VARIABLES = True
+    REQUIRED_MODULES = ("google.protobuf", "ortools")
 
     # The key that maps to the MPModelProto in the data returned by apply().
     MODEL_PROTO = "model_proto"
