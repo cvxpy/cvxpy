@@ -1654,7 +1654,7 @@ class TestAtoms(BaseTest):
     def test_stats(self) -> None:
         """Test the mean, std, var atoms.
         """
-        a = np.array([[10., 10., 3.0], [6., 0., 1.5]])
+        a = np.arange(24., dtype=float).reshape(2, 3, 4)
         expr_mean = cp.mean(a)
         expr_var = cp.var(a)
         expr_std = cp.std(a)
@@ -1673,19 +1673,26 @@ class TestAtoms(BaseTest):
             assert np.isclose(a.var(ddof=ddof), expr_var.value)
             assert np.isclose(a.std(ddof=ddof), expr_std.value)
 
-        for axis in [0, 1]:
+        for axis in [0, 1, 2, (0, 1), (1, 2), (0, 2), None]:
             for keepdims in [True, False]:
                 expr_mean = cp.mean(a, axis=axis, keepdims=keepdims)
-                # expr_var = cp.var(a, axis=axis, keepdims=keepdims)
-                expr_std = cp.std(a, axis=axis, keepdims=keepdims)
+                expr_var = cp.var(a, axis=axis, keepdims=keepdims)
 
                 assert expr_mean.shape == a.mean(axis=axis, keepdims=keepdims).shape
-                # assert expr_var.shape == a.var(axis=axis, keepdims=keepdims).shape
-                assert expr_std.shape == a.std(axis=axis, keepdims=keepdims).shape
+                assert expr_var.shape == a.var(axis=axis, keepdims=keepdims).shape
 
                 assert np.allclose(a.mean(axis=axis, keepdims=keepdims), expr_mean.value)
-                # assert np.allclose(a.var(axis=axis, keepdims=keepdims), expr_var.value)
+                assert np.allclose(a.var(axis=axis, keepdims=keepdims), expr_var.value)
+
+        for axis in [0, 1, 2]:
+            for keepdims in [True, False]:
+                expr_std = cp.std(a, axis=axis, keepdims=keepdims)
+
+                assert expr_std.shape == a.std(axis=axis, keepdims=keepdims).shape
                 assert np.allclose(a.std(axis=axis, keepdims=keepdims), expr_std.value)
+
+        with self.assertRaises(ValueError):
+            cp.std(a, axis=(0, 1))
 
     def test_partial_optimize_dcp(self) -> None:
         """Test DCP properties of partial optimize.
