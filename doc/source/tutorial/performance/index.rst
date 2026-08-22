@@ -146,6 +146,96 @@ solves, which is known as **DPP (Disciplined Parameterized Programming)**.
 
 You can verify your problem is DPP-compliant by calling ``prob.is_dpp()``.
 
+.. _dpp-breaking-patterns:
+
+Patterns that silently break DPP caching
+------------------------------------------
+
+A problem can be DCP-valid (it compiles and solves) yet not DPP-compliant,
+which means CVXPY re-compiles it from scratch on every solve. Because there
+is no warning by default, this is a common source of unexpectedly slow
+repeated solves. Below are the three most common patterns and their fixes.
+
+**1. Parametric quadratic forms in constraints**
+
+``cp.quad_form(x, P)`` is DPP-compliant when ``P`` is a Parameter **in the
+objective** of a solver that supports quadratic objectives (e.g., Clarabel,
+OSQP). However, the same expression in a **constraint** is *not*
+DPP-compliant — CVXPY silently falls back to full recompilation:
+
+.. code:: python
+
+    import cvxpy as cp
+    import numpy as np
+
+    n = 10
+    x = cp.Variable(n)
+    P = cp.Parameter((n, n), PSD=True)
+
+    # DPP in the objective — fast re-solves
+    obj_prob = cp.Problem(cp.Minimize(cp.quad_form(x, P)))
+    print(obj_prob.is_dpp())  # True
+
+    # NOT DPP in a constraint — silent slow path
+    con_prob = cp.Problem(cp.Minimize(cp.sum(x)),
+                          [cp.quad_form(x, P) <= 1])
+    print(con_prob.is_dpp())  # False
+
+When you need a parametric quadratic form in a constraint, use a Cholesky
+factorization: pass ``L = np.linalg.cholesky(P_value)`` as a Parameter and
+write ``cp.sum_squares(L_param @ x)`` instead. See the
+:ref:`DPP tutorial <dpp>` for a worked example.
+
+**2. Unsigned parameters multiplied by concave atoms**
+
+CVXPY's DCP rules need to know the **sign** of a parameter when it multiplies
+a non-affine expression. A ``cp.Parameter`` with no sign attribute has unknown
+sign, which can cause the expression to fail DCP entirely — not just DPP:
+
+.. code:: python
+
+    import cvxpy as cp
+
+    n = 5
+    y = cp.Variable(n, pos=True)
+
+    # Fails DCP — sign of b is unknown, so b @ cp.log(y) is ambiguous
+    b_bad = cp.Parameter(n)
+    print(cp.Problem(cp.Maximize(b_bad @ cp.log(y))).is_dcp())  # False
+
+    # Works — nonneg=True resolves the sign ambiguity
+    b_good = cp.Parameter(n, nonneg=True)
+    print(cp.Problem(cp.Maximize(b_good @ cp.log(y))).is_dcp())  # True
+
+This comes up in risk-budgeting problems, entropy maximization, and any
+formulation with a logarithmic or exponential barrier.
+
+**3. Products of two parametrized expressions**
+
+DPP requires each product to have at most one parametrized factor. A product
+of two parameters is quadratic in the parameters and breaks DPP:
+
+.. code:: python
+
+    import cvxpy as cp
+
+    x = cp.Variable()
+    a = cp.Parameter(nonneg=True)
+    b = cp.Parameter(nonneg=True)
+
+    # NOT DPP — a * b is quadratic in parameters
+    prob = cp.Problem(cp.Minimize(a * b * x), [x >= 1])
+    print(prob.is_dpp())  # False
+
+The fix is to compute the product in NumPy and pass it as a single parameter:
+
+.. code:: python
+
+    ab = cp.Parameter(nonneg=True)
+    prob = cp.Problem(cp.Minimize(ab * x), [x >= 1])
+    print(prob.is_dpp())  # True
+    # Then set ab.value = a_val * b_val before each solve
+
 
 .. _quadratic-objectives:
 
@@ -196,7 +286,9 @@ The available backends are:
 - **SCIPY**: A pure Python implementation using SciPy sparse matrices. Often faster for
   already-vectorized problems.
 - **COO**: A pure Python implementation using 3D COO sparse tensors. Best for
-  DPP-compliant problems with large parameters.
+  DPP-compliant problems with large parameters. Note that COO **requires** DPP
+  compliance; if your problem is not DPP, the COO backend will silently fall
+  back to the default backend.
 
 .. _verbose-diagnostics:
 
@@ -227,6 +319,8 @@ Summary of tips
 | Use ``cp.sum`` instead of Python ``sum``     | High for large sums                              |
 +----------------------------------------------+--------------------------------------------------+
 | Use parameters for repeated solves (DPP)     | High — amortizes compile cost across solves      |
++----------------------------------------------+--------------------------------------------------+
+| Avoid DPP-breaking patterns                  | High — silent fallback negates DPP benefits      |
 +----------------------------------------------+--------------------------------------------------+
 | Choose the right canonicalization backend    | Moderate — problem-dependent                     |
 +----------------------------------------------+--------------------------------------------------+
