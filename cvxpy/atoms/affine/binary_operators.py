@@ -119,18 +119,35 @@ class BinaryOperator(AffAtom):
         return bounds_utils.mul_bounds(lb1, ub1, lb2, ub2)
 
 
-def matmul(lh_exp, rh_exp) -> "MulExpression":
+def matmul(lh_exp, rh_exp) -> Expression:
     """Matrix multiplication."""
-    return MulExpression(lh_exp, rh_exp)
+    lh_exp = Expression.cast(lh_exp)
+    rh_exp = Expression.cast(rh_exp)
+    if lh_exp.shape and rh_exp.shape:
+        rh_inner_dim = rh_exp.shape[-2] if rh_exp.ndim > 1 else rh_exp.shape[0]
+        if lh_exp.shape[-1] != rh_inner_dim:
+            raise ValueError(
+                f"Incompatible dimensions {lh_exp.shape} {rh_exp.shape}"
+            )
+
+    target_shape = u.shape.mul_shapes(lh_exp.shape, rh_exp.shape)
+    prod = MulExpression(lh_exp, rh_exp)
+    if prod.shape != target_shape:
+        # MulExpression retains axes inserted while promoting 1-D operands;
+        # the public wrapper removes them to match np.matmul's result shape.
+        return reshape(prod, target_shape, order='F')
+    return prod
 
 
 class MulExpression(BinaryOperator):
     """Matrix multiplication.
 
-    The semantics of multiplication are exactly as those of NumPy's
-    matmul function, except here multiplication by a scalar is permitted.
-    MulExpression objects can be created by using the '*' operator of
-    the Expression class.
+    This is the low-level multiplication atom. For batched multiplication with
+    a 1-D operand, direct construction retains the singleton axis inserted by
+    NumPy's promotion rules. Use :func:`matmul`, ``@``, or the deprecated ``*``
+    spelling for the public NumPy-compatible result shape.
+
+    Multiplication by a scalar is also permitted.
 
     Parameters
     ----------
@@ -155,16 +172,41 @@ class MulExpression(BinaryOperator):
 
         For A @ B where A has shape (...a, m, k) and B has shape (...b, k, n),
         broadcasts both to have batch shape broadcast(...a, ...b).
+
+        Following np.matmul semantics, a 1-D operand is promoted to 2-D by
+        prepending a 1 to its shape (lhs) or appending a 1 (rhs) before
+        broadcasting; it is never broadcast along batch dimensions itself.
         """
         lh_exp = Expression.cast(lh_exp)
         rh_exp = Expression.cast(rh_exp)
 
+        # Only apply batch broadcasting for ND arrays (ndim > 2)
+        if lh_exp.ndim <= 2 and rh_exp.ndim <= 2:
+            return lh_exp, rh_exp
+
+        lh_1d = lh_exp.ndim == 1
+        rh_1d = rh_exp.ndim == 1
+
+        # Promote 1-D operands to 2-D per np.matmul semantics. Materializing a
+        # concrete Constant avoids unnecessary reshape and broadcast_to atoms;
+        # Parameters must remain symbolic so DPP re-solves still work.
+        if lh_1d:
+            target_shape = (1,) + lh_exp.shape
+            if lh_exp.is_constant() and not lh_exp.parameters():
+                value = np.reshape(lh_exp.value, target_shape, order='F')
+                lh_exp = Expression.cast(value)
+            else:
+                lh_exp = reshape(lh_exp, target_shape, order='F')
+        if rh_1d:
+            target_shape = rh_exp.shape + (1,)
+            if rh_exp.is_constant() and not rh_exp.parameters():
+                value = np.reshape(rh_exp.value, target_shape, order='F')
+                rh_exp = Expression.cast(value)
+            else:
+                rh_exp = reshape(rh_exp, target_shape, order='F')
+
         lh_shape = lh_exp.shape
         rh_shape = rh_exp.shape
-
-        # Only apply batch broadcasting for ND arrays (ndim > 2)
-        if len(lh_shape) <= 2 and len(rh_shape) <= 2:
-            return lh_exp, rh_exp
 
         # Extract batch dimensions (all but last 2)
         lh_batch = lh_shape[:-2] if len(lh_shape) > 2 else ()
@@ -180,12 +222,20 @@ class MulExpression(BinaryOperator):
         # Broadcast lhs if needed
         if lh_batch != broadcast_batch:
             target_shape = broadcast_batch + lh_shape[-2:]
-            lh_exp = broadcast_to(lh_exp, target_shape)
+            if lh_1d and lh_exp.is_constant() and not lh_exp.parameters():
+                value = np.broadcast_to(lh_exp.value, target_shape)
+                lh_exp = Expression.cast(value)
+            else:
+                lh_exp = broadcast_to(lh_exp, target_shape)
 
         # Broadcast rhs if needed
         if rh_batch != broadcast_batch:
             target_shape = broadcast_batch + rh_shape[-2:]
-            rh_exp = broadcast_to(rh_exp, target_shape)
+            if rh_1d and rh_exp.is_constant() and not rh_exp.parameters():
+                value = np.broadcast_to(rh_exp.value, target_shape)
+                rh_exp = Expression.cast(value)
+            else:
+                rh_exp = broadcast_to(rh_exp, target_shape)
 
         return lh_exp, rh_exp
 
