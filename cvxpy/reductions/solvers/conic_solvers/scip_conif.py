@@ -86,6 +86,7 @@ class SCIP(ConicSolver):
     BOUNDED_VARIABLES = True
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC]
     MI_SUPPORTED_CONSTRAINTS = SUPPORTED_CONSTRAINTS
+    REQUIRED_MODULES = ("pyscipopt",)
 
     def name(self) -> str:
         """The name of the solver."""
@@ -134,6 +135,9 @@ class SCIP(ConicSolver):
         inv_data['is_mip'] = data[s.BOOL_IDX] or data[s.INT_IDX]
         data[s.LOWER_BOUNDS] = problem.lower_bounds
         data[s.UPPER_BOUNDS] = problem.upper_bounds
+
+        # Add initial guess. NaN marks entries the user did not provide.
+        data['init_value'] = utilities.stack_vals(problem.variables, np.nan)
 
         return data, inv_data
 
@@ -186,6 +190,8 @@ class SCIP(ConicSolver):
         model.redirectOutput()
         A, b, c, dims = self._define_data(data)
         variables = self._create_variables(model, data, c)
+        if warm_start:
+            self._set_initial_solution(model, variables, data)
         constraints = self._add_constraints(model, variables, A, b, dims)
         self._set_params(model, verbose, solver_opts, data, dims)
         solution = self._solve(model, variables, constraints, data, dims)
@@ -224,6 +230,29 @@ class SCIP(ConicSolver):
                 )
             )
         return variables
+
+    def _set_initial_solution(
+            self, model: ScipModel, variables: list, data: dict[str, Any]
+    ) -> None:
+        """Pass the values set on the user's variables to SCIP as a MIP start.
+
+        Values are read from ``Variable.value`` and may be set on only some of
+        the variables, so the start is registered as a *partial* solution and
+        SCIP's ``completesol`` heuristic fills in the rest. ``addSol`` is used
+        rather than ``trySol`` because the model is still in SCIP's problem
+        creation stage, where ``trySol`` cannot be called.
+        """
+        init_value = data.get('init_value')
+        if init_value is None:
+            return
+        init_value = np.asarray(init_value, dtype=float)
+        known = np.flatnonzero(~np.isnan(init_value))
+        if known.size == 0:
+            return
+        solution = model.createPartialSol()
+        for idx in known:
+            model.setSolVal(solution, variables[idx], init_value[idx])
+        model.addSol(solution)
 
     def _add_constraints(
             self,

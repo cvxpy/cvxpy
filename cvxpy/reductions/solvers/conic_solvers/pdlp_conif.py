@@ -39,6 +39,7 @@ class PDLP(ConicSolver):
 
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS
     BOUNDED_VARIABLES = True
+    REQUIRED_MODULES = ("ortools",)
 
     # The key that maps to the pdlp.QuadraticProgram in the data returned by
     # apply().

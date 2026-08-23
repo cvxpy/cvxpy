@@ -15,6 +15,7 @@ limitations under the License.
 """
 
 import unittest
+from fractions import Fraction
 
 import numpy as np
 import pytest
@@ -134,8 +135,6 @@ class TestAtoms(BaseTest):
     def test_power(self) -> None:
         """Test the power class.
         """
-        from fractions import Fraction
-
         for shape in [(1, 1), (3, 1), (2, 3)]:
             x = Variable(shape)
             y = Variable(shape)
@@ -214,6 +213,50 @@ class TestAtoms(BaseTest):
                 match=SECOND_ARG_SHOULD_NOT_BE_EXPRESSION_ERROR_MESSAGE
             ):
             cp.geo_mean(self.x, self.y)
+
+    def test_geo_mean_shapes(self) -> None:
+        """Any shape is accepted, and the entries are taken in column-major order."""
+        M = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])
+
+        atom = cp.geo_mean(cp.Constant(M))
+        self.assertEqual(atom.shape, tuple())
+        self.assertSequenceEqual(atom.w, [Fraction(1, 6)] * 6)
+        self.assertAlmostEqual(atom.value, float(np.prod(M) ** (1 / M.size)))
+
+        # Column-major, as elsewhere in CVXPY: the weights line up with
+        # M.ravel(order='F').
+        weighted = cp.geo_mean(cp.Constant(M), [2, 0, 0, 0, 0, 1])
+        flat = M.ravel(order='F')
+        self.assertAlmostEqual(weighted.value, float((flat[0] ** 2 * flat[5]) ** (1 / 3)))
+
+        # More than two dimensions.
+        T = np.arange(1, 25, dtype=float).reshape(2, 3, 4)
+        self.assertAlmostEqual(
+            cp.geo_mean(cp.Constant(T)).value, float(np.prod(T) ** (1 / T.size))
+        )
+
+    def test_geo_mean_shares_one_set_of_constraints(self) -> None:
+        """Every output is covered by the same constraints, not one set each."""
+        from cvxpy.reductions.dcp2cone.canonicalizers.geo_mean_canon import (
+            geo_mean_approx_canon,
+        )
+
+        counts = []
+        for cols in (2, 20, 200):
+            x = cp.Variable((3, cols), nonneg=True)
+            expr = cp.geo_mean(x, axis=0)
+            _, constraints = geo_mean_approx_canon(expr, expr.args)
+            counts.append(len(constraints))
+        assert len(set(counts)) == 1, counts
+
+    def test_geo_mean_row_vector(self) -> None:
+        """A row vector reaches the solver, as the docstring has always promised."""
+        for shape in [(4,), (4, 1), (1, 4), (2, 2)]:
+            x = cp.Variable(shape, nonneg=True)
+            n = int(np.prod(shape))
+            prob = cp.Problem(cp.Maximize(cp.geo_mean(x)), [cp.sum(x) <= n])
+            prob.solve(solver=cp.SCS, eps=1e-6)
+            self.assertAlmostEqual(prob.value, 1.0, places=4)
 
     # Test the harmonic_mean class.
     def test_harmonic_mean(self) -> None:
@@ -1740,6 +1783,89 @@ class TestAtoms(BaseTest):
         ref = np.block([[7.0, x.value.T], [x.value, np.identity(2)]])
         self.assertItemsAlmostEqual(expr.value, ref)
 
+    def test_block_bare_expression(self) -> None:
+        """Test block with a bare expression."""
+        x = cp.Variable((2, 3))
+
+        expr = cp.block(x)
+
+        self.assertEqual(expr.shape, (2, 3))
+        self.assertTrue(expr.is_affine())
+
+    def test_block_flat_list(self) -> None:
+        """Test block concatenates a flat list along the last axis."""
+        x = cp.Variable((2, 2))
+        y = cp.Variable((2, 3))
+
+        expr = cp.block([x, y])
+
+        self.assertEqual(expr.shape, (2, 5))
+        self.assertTrue(expr.is_affine())
+
+    def test_block_nested_2d(self) -> None:
+        """Test arbitrary nesting depth and 2-D concatenation axes."""
+        A = np.array([[1.0, 2.0], [3.0, 4.0]])
+        B = np.array([[5.0], [6.0]])
+        C = np.array([[7.0, 8.0]])
+        D = np.array([[9.0]])
+
+        expr = cp.block([[A, B], [C, D]])
+        ref = np.block([[A, B], [C, D]])
+
+        self.assertEqual(expr.shape, ref.shape)
+        self.assertItemsAlmostEqual(expr.value, ref)
+
+    def test_block_nested_nd(self) -> None:
+        """Test arbitrary nesting depth and N-D concatenation axes."""
+        arrays = [
+            [
+                [np.array([[[1.0]]]), np.array([[[2.0]]])],
+                [np.array([[[3.0]]]), np.array([[[4.0]]])],
+            ],
+            [
+                [np.array([[[5.0]]]), np.array([[[6.0]]])],
+                [np.array([[[7.0]]]), np.array([[[8.0]]])],
+            ],
+        ]
+
+        expr = cp.block(arrays)
+        ref = np.block(arrays)
+
+        self.assertEqual(expr.shape, ref.shape)
+        self.assertItemsAlmostEqual(expr.value, ref)
+
+    def test_block_nd(self) -> None:
+        """Test block supports N-dimensional inputs."""
+        A = np.ones((2, 3, 4))
+        B = 2 * np.ones((2, 3, 5))
+
+        expr = cp.block([A, B])
+        ref = np.block([A, B])
+
+        self.assertEqual(expr.shape, ref.shape)
+        self.assertItemsAlmostEqual(expr.value, ref)
+
+    def test_block_promotes_scalars(self) -> None:
+        """Test block promotes scalars and 1-D inputs like numpy.block."""
+        expr = cp.block([[1, np.array([2.0, 3.0])]])
+        ref = np.block([[1, np.array([2.0, 3.0])]])
+
+        self.assertEqual(expr.shape, ref.shape)
+        self.assertItemsAlmostEqual(expr.value, ref)
+
+    def test_block_empty_list(self) -> None:
+        """Test block rejects empty lists."""
+        with self.assertRaises(ValueError):
+            cp.block([])
+
+        with self.assertRaises(ValueError):
+            cp.block([[]])
+
+    def test_block_mismatched_depth(self) -> None:
+        """Test block rejects mismatched list depths."""
+        with self.assertRaises(ValueError):
+            cp.block([[1, 2], 3])
+
     def test_conv(self) -> None:
         """Test the conv atom.
         """
@@ -1885,7 +2011,7 @@ class TestAtoms(BaseTest):
     def test_stats(self) -> None:
         """Test the mean, std, var atoms.
         """
-        a = np.array([[10., 10., 3.0], [6., 0., 1.5]])
+        a = np.arange(24., dtype=float).reshape(2, 3, 4)
         expr_mean = cp.mean(a)
         expr_var = cp.var(a)
         expr_std = cp.std(a)
@@ -1904,19 +2030,26 @@ class TestAtoms(BaseTest):
             assert np.isclose(a.var(ddof=ddof), expr_var.value)
             assert np.isclose(a.std(ddof=ddof), expr_std.value)
 
-        for axis in [0, 1]:
+        for axis in [0, 1, 2, (0, 1), (1, 2), (0, 2), None]:
             for keepdims in [True, False]:
                 expr_mean = cp.mean(a, axis=axis, keepdims=keepdims)
-                # expr_var = cp.var(a, axis=axis, keepdims=keepdims)
-                expr_std = cp.std(a, axis=axis, keepdims=keepdims)
+                expr_var = cp.var(a, axis=axis, keepdims=keepdims)
 
                 assert expr_mean.shape == a.mean(axis=axis, keepdims=keepdims).shape
-                # assert expr_var.shape == a.var(axis=axis, keepdims=keepdims).shape
-                assert expr_std.shape == a.std(axis=axis, keepdims=keepdims).shape
+                assert expr_var.shape == a.var(axis=axis, keepdims=keepdims).shape
 
                 assert np.allclose(a.mean(axis=axis, keepdims=keepdims), expr_mean.value)
-                # assert np.allclose(a.var(axis=axis, keepdims=keepdims), expr_var.value)
+                assert np.allclose(a.var(axis=axis, keepdims=keepdims), expr_var.value)
+
+        for axis in [0, 1, 2]:
+            for keepdims in [True, False]:
+                expr_std = cp.std(a, axis=axis, keepdims=keepdims)
+
+                assert expr_std.shape == a.std(axis=axis, keepdims=keepdims).shape
                 assert np.allclose(a.std(axis=axis, keepdims=keepdims), expr_std.value)
+
+        with self.assertRaises(ValueError):
+            cp.std(a, axis=(0, 1))
 
     def test_partial_optimize_dcp(self) -> None:
         """Test DCP properties of partial optimize.
@@ -3115,3 +3248,38 @@ class TestDotsort(BaseTest):
         with self.assertRaises(Exception) as cm:
             cp.Problem(cp.Minimize(cp.dotsort(self.x, p_squared))).solve(enforce_dpp=True)
         assert "You are solving a parameterized problem that is not DPP" in str(cm.exception)
+
+
+GEO_MEAN_AXES = [None, 0, 1, 2, -1, -2, -3, (0, 1), (1, 2), (0, 2), (0, 1, 2)]
+
+
+@pytest.mark.parametrize("axis", GEO_MEAN_AXES)
+@pytest.mark.parametrize("keepdims", [False, True])
+def test_geo_mean_axis(axis, keepdims) -> None:
+    """Every axis reduces, and the shape follows cp.mean."""
+    T = np.arange(1.0, 25.0).reshape(2, 3, 4)
+    const = cp.Constant(T)
+
+    got = cp.geo_mean(const, axis=axis, keepdims=keepdims)
+    assert got.shape == cp.mean(const, axis=axis, keepdims=keepdims).shape
+
+    expected = np.exp(np.mean(np.log(T), axis=axis))
+    if keepdims:
+        reduced = tuple(range(T.ndim)) if axis is None else np.atleast_1d(axis)
+        expected = np.expand_dims(expected, tuple(np.atleast_1d(reduced)))
+    assert np.allclose(np.array(got.value), expected)
+
+
+@pytest.mark.parametrize("axis", [3, -4])
+def test_geo_mean_axis_out_of_bounds(axis) -> None:
+    """An axis the expression does not have is refused."""
+    T = cp.Constant(np.arange(1.0, 25.0).reshape(2, 3, 4))
+    with pytest.raises((ValueError, IndexError)):
+        cp.geo_mean(T, axis=axis)
+
+
+def test_geo_mean_axis_with_weights() -> None:
+    """Weights apply to each slice along the reduced axis."""
+    M = np.arange(1.0, 7.0).reshape(2, 3)
+    got = cp.geo_mean(cp.Constant(M), [3, 1], axis=0)
+    assert np.allclose(np.array(got.value), (M[0] ** 3 * M[1]) ** (1 / 4))
