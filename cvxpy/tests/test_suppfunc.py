@@ -203,14 +203,14 @@ class TestSupportFunctions(BaseTest):
         x = cp.Variable(1)
         aux = cp.Variable(1, nonneg=True)
         sigma = cp.suppfunc(x, [x == aux, aux <= 2])
-        solver_context = _solver_context(COPT)
 
         for direction, expected in [(1.0, 2.0), (-1.0, 0.0)]:
-            y = cp.Constant([direction])
-            epigraph, constraints = suppfunc_canon(
-                sigma(y), [y], solver_context)
-            prob = cp.Problem(cp.Minimize(epigraph), constraints)
-            prob.solve(solver=cp.CLARABEL)
+            epigraph = cp.Variable()
+            prob = cp.Problem(
+                cp.Minimize(epigraph),
+                [sigma([direction]) <= epigraph],
+            )
+            prob.solve(solver=cp.HIGHS)
             self.assertAlmostEqual(prob.value, expected, places=6)
 
     def test_discrete_set_descriptions_are_rejected(self) -> None:
