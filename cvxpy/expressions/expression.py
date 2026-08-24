@@ -769,9 +769,11 @@ class Expression(u.Canonical):
         # Zero-sized constants (size == 0) are placeholders for
         # eliminated variables and must not be folded away; they need
         # to propagate through the expression tree so that the resulting
-        # shape is correct.
+        # shape is correct. Folding is also skipped when adding the zero
+        # would broadcast self to a larger shape.
         if isinstance(other, cvxtypes.constant()) and other.is_zero() \
-                and other.size > 0:
+                and other.size > 0 \
+                and np.broadcast_shapes(self.shape, other.shape) == self.shape:
             return self
         self, other = self.broadcast(self, other)
         return cvxtypes.add_expr()([self, other])
@@ -780,9 +782,10 @@ class Expression(u.Canonical):
     def __radd__(self, other: ExpressionLike) -> "Expression":
         """Expression : Sum two expressions.
         """
-        # See __add__ for why we require size > 0.
+        # See __add__ for why we require size > 0 and an unchanged shape.
         if isinstance(other, cvxtypes.constant()) and other.is_zero() \
-                and other.size > 0:
+                and other.size > 0 \
+                and np.broadcast_shapes(self.shape, other.shape) == self.shape:
             return self
         return other + self
 
