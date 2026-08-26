@@ -12,13 +12,12 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-"""
 
-"""
 CVXPY integration layer for the DNLP diff engine.
 
-This module converts CVXPY expressions to C expression trees
-for automatic differentiation.
+This module converts CVXPY expressions to C expression trees for automatic
+differentiation, shared between the NLP solver path (C_problem) and the DCP
+matrix-stuffing path (DiffengineConeProgram).
 """
 
 from cvxpy.reductions.solvers.nlp_solvers.diff_engine.c_problem import C_problem
