@@ -971,6 +971,37 @@ class TestAtoms(BaseTest):
         prob.solve(solver=cp.CLARABEL)
         self.assertAlmostEqual(prob.value, np.trace(C @ X.value), places=4)
 
+    def test_trace_scalar_real_products(self) -> None:
+        """Real scalar-shaped products should canonicalize without real()."""
+        X = cp.Variable((1, 1))
+        constant = np.array([[2.]])
+
+        matmul_trace = cp.trace(constant @ X)
+        self.assertIsInstance(matmul_trace, Sum)
+        matmul_trace.canonical_form
+
+        elementwise_trace = cp.trace(cp.multiply(constant, X))
+        self.assertIsInstance(elementwise_trace, cp.Trace)
+        elementwise_trace.canonical_form
+
+    def test_trace_AB_hermitian_complex(self) -> None:
+        """Complex Hermitian products should retain their real trace property."""
+        X = cp.Variable((2, 2), hermitian=True)
+        constant = np.array([[2., 1 + 1j], [1 - 1j, 3.]])
+        trace_expr = cp.trace(cp.multiply(constant, X))
+
+        self.assertIsInstance(trace_expr, cp.Trace)
+        self.assertTrue(trace_expr.is_real())
+
+    def test_trace_elementwise_multiply(self) -> None:
+        """Trace of an elementwise product must only sum its diagonal."""
+        A = np.array([[1., 2.], [3., 4.]])
+        B = np.array([[5., 6.], [7., 8.]])
+        trace_expr = cp.trace(cp.multiply(A, B))
+
+        self.assertIsInstance(trace_expr, cp.Trace)
+        self.assertAlmostEqual(trace_expr.value, np.trace(A * B))
+
     def test_trace_complex2real(self) -> None:
         X = cp.Variable((2, 2), complex=True)
         problem = cp.Problem(cp.Minimize(cp.norm(cp.trace(X))), [X==2])
