@@ -68,8 +68,9 @@ CVXPY ``Expression``
     A symbolic object: a :py:class:`~cvxpy.expressions.variable.Variable`, a
     :py:class:`~cvxpy.expressions.constants.parameter.Parameter`, a
     :py:class:`~cvxpy.expressions.constants.constant.Constant`, or anything built
-    from them. Expressions have a ``.shape``, but no numeric value until the
-    problem is solved.
+    from them. All of them have a ``.shape``. A ``Constant`` always carries a
+    numeric value and a ``Parameter`` carries one once assigned; a ``Variable``
+    gets one from a solve, and keeps it afterwards.
 
 MATLAB matrix
     Always two-dimensional, always column-major. Neither property holds in
@@ -105,7 +106,7 @@ it *broadcasts*.
 
 The second line produces no error and no warning. The residual has become a
 4-by-4 matrix, and any objective built on it optimizes something you did not
-write:
+intend to write:
 
 .. code:: python
 
@@ -118,7 +119,7 @@ write:
     wrong.solve()     # 20.0
 
 Both problems are scalar-valued, both solve to optimality, and only one of them
-is the least-squares problem. The only difference is the shape of ``b``.
+is the intended least-squares problem. The only difference is the shape of ``b``.
 
 The habit that prevents this: **do not create explicit row or column vectors in
 Python unless something specifically requires one.** Write ``cp.Variable(n)``
@@ -126,7 +127,7 @@ rather than ``cp.Variable((n, 1))``, and keep data one-dimensional with
 ``b.ravel()`` when it arrives from a source that produced a column.
 
 When you do need a block structure, build it explicitly with
-:py:func:`~cvxpy.bmat` rather than relying on broadcasting to assemble it.
+:py:func:`~cvxpy.block` rather than relying on broadcasting to assemble it.
 
 .. _matlab-multiplication:
 
@@ -154,19 +155,14 @@ Reshaping: always pass ``order`` explicitly
 .. warning::
 
     The default order of :py:func:`~cvxpy.reshape`, :py:func:`~cvxpy.vec` and
-    :py:func:`~cvxpy.flatten` is changing. It is Fortran (``'F'``) today, and
-    omitting ``order`` raises a ``FutureWarning``. CVXPY 1.7 plans to raise an
-    error when ``order`` is not specified, and 1.8 will switch the default to
-    ``'C'`` to match NumPy. **Pass** ``order`` **explicitly**: code that relies
-    on the current default will change meaning when the switch happens.
-
-The reason this matters more to MATLAB users than to anyone else is that the
-current default happens to agree with MATLAB and disagree with NumPy — so your
-existing intuition is right today and will stop being right.
+    :py:func:`~cvxpy.flatten` is Fortran (``'F'``), and omitting ``order``
+    raises a ``FutureWarning``. Switching the default to ``'C'`` to match NumPy
+    is planned for CVXPY 2.0; until then the warning stays. **Pass** ``order``
+    **explicitly** and the question does not arise.
 
 MATLAB is column-major: ``reshape`` fills the first column, then the second.
-NumPy is row-major by default. The three libraries therefore disagree on the
-same data:
+NumPy is row-major by default. Name the order you want and CVXPY gives you that
+one:
 
 .. code:: python
 
@@ -204,10 +200,8 @@ That has not been true since CVXPY 1.6, which introduced
 is valid today.
 
 Coverage is broad: elementwise atoms, axis reductions, indexing, reshaping and
-batched ``@`` all accept N-D input. Support is still marked experimental and a
-few atoms remain two-dimensional — ``tv``, ``cvar``, ``geo_mean`` and ``kron``
-among them. If you hit a gap, the :ref:`N-dimensional section <n-dimensional>`
-asks that you report it on the issue tracker.
+batched ``@`` all accept N-D input. A few atoms are still two-dimensional —
+``tv`` and ``cvar`` among them — and gaps are tracked on the issue tracker.
 
 Things CVXPY rejects that CVX accepts
 -------------------------------------
@@ -217,12 +211,11 @@ Things CVXPY rejects that CVX accepts
 * **Strict inequalities.** CVX accepts ``<`` and ``>``, but `interprets them
   identically to their non-strict counterparts
   <https://cvxr.com/cvx/doc/basics.html>`_. CVXPY raises an exception instead.
-  The reason is not that strict inequalities are meaningless in finite
-  precision — in IEEE 754 arithmetic they are perfectly well defined — but that
-  the resulting problem is ill-posed: an open feasible set need not attain its
-  optimum. Secondarily, numerical solvers do not return strictly feasible
-  points, so there would be no operational difference between the two anyway.
-  Raising an error says so, rather than silently reinterpreting your model.
+  The reason is that the resulting problem is ill-posed: an open feasible set
+  need not attain its optimum. Numerical solvers also do not return strictly
+  feasible points, so there would be no operational difference between the two
+  anyway. Raising an error says so, rather than silently reinterpreting your
+  model.
 * **Non-symmetric quadratic forms.** :py:func:`~cvxpy.quad_form` requires a
   symmetric (or Hermitian) matrix and raises ``ValueError`` otherwise. If your
   matrix is symmetric only up to floating-point noise, symmetrize it first with
@@ -254,4 +247,4 @@ Where to go next
 * :ref:`functions` — the atom library, with the CVX-equivalent names.
 * :ref:`dcp` — the ruleset for what counts as a valid convex expression. It is
   the same discipline CVX enforces, and the error messages are more informative.
-* :ref:`advanced` — solver selection, warm starts and problem transformations.
+* :ref:`advanced` — solver selection and problem transformations.
