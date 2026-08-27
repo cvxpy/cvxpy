@@ -148,7 +148,10 @@ class Leaf(expression.Expression):
             self.integer_idx = integer
         if sparsity:
             self.sparse_idx = self._validate_indices(sparsity)
-            self._sparse_high_fill_in = (len(self.sparse_idx[0]) / np.prod(self.shape) <= 0.25)
+            # Sparse enough (small nonzero fraction) to nudge toward value_sparse;
+            # shares the diff engine's sparse-routing threshold (see settings).
+            self._sparse_high_fill_in = (
+                len(self.sparse_idx[0]) / np.prod(self.shape) <= s.SPARSE_DENSITY_THRESHOLD)
         else:
             self.sparse_idx = None
         # count number of attributes
@@ -159,6 +162,19 @@ class Leaf(expression.Expression):
                 "A CVXPY Variable cannot have more than one of the following attributes: "
                 f"{dim_reducing_attr}"
             )
+        if self.attributes['complex'] or self.attributes['imag']:
+            invalid_attrs = {'nonneg', 'nonpos', 'pos', 'neg'} & {
+                k for k, v in self.attributes.items() if v
+            }
+            if invalid_attrs:
+                raise ValueError(
+                    "Cannot combine "
+                    f"{sorted(invalid_attrs)} with complex or imaginary attributes."
+                )
+            if bounds is not None:
+                raise ValueError(
+                    "Cannot combine bounds with complex or imaginary attributes."
+                )
         sign_attrs = [k for k in ['pos', 'neg'] if self.attributes[k]]
         sparse_attrs = [k for k in ['sparsity', 'diag'] if self.attributes[k]]
         if sign_attrs and sparse_attrs:

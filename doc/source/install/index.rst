@@ -126,7 +126,7 @@ Install with Additional Solver Support
     :collapsible:
 
     CVXPY supports the GUROBI solver.
-    Install GUROBI version 7.5.2 or greater such that you can ``import gurobipy`` in Python.
+    Install GUROBI version 9.5 or greater such that you can ``import gurobipy`` in Python.
     See the `GUROBI <https://www.gurobi.com/>`_ website for installation instructions.
 
 .. info:: MOREAU
@@ -316,7 +316,7 @@ Install with Additional Solver Support
     :collapsible:
 
     CVXPY supports the UNO solver (for nonlinear programming).
-    Follow the installation instructions for `UNO <https://github.com/cvanaret/Uno/blob/main/INSTALL.md>`_.
+    Follow the installation instructions for `UNO <https://unosolver.readthedocs.io/en/latest/installation>`_.
 
 .. info:: KNITRO
     :collapsible:
