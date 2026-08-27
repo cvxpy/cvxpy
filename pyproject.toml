@@ -149,3 +149,10 @@ content-type = "text/markdown"
 
 [tool.setuptools]
 include-package-data = false
+
+[dependency-groups]
+# Dev-only tooling deps, installed by `uv sync`. pyright type-checks the
+# package; scipy-stubs lets it analyze SciPy types (e.g. the sparse arrays
+# returned by Expression.grad). Running pyright via `uv run` puts it inside
+# this environment so numpy/scipy imports resolve.
+dev = ["pyright", "scipy-stubs"]
