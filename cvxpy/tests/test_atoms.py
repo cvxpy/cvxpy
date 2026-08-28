@@ -125,6 +125,21 @@ class TestAtoms(BaseTest):
         self.assertTrue(str(cm.exception) in (
             "Unsupported norm option nuc for non-matrix."))
 
+        # A matrix norm has no meaning along a single axis. This used to return
+        # the norm of the whole array for axis=0 and raise an AxisError from
+        # inside the flattened expression for anything else.
+        X = cp.Variable((3, 4))
+        for p in ('fro', 'nuc', 'Fro'):
+            for axis in (0, 1, (0, 1)):
+                with self.assertRaises(ValueError) as cm:
+                    cp.norm(X, p, axis=axis)
+                assert "not supported for the" in str(cm.exception)
+
+        # Without an axis both are unchanged.
+        A = np.arange(12., dtype=float).reshape(3, 4)
+        assert np.isclose(cp.norm(cp.Constant(A), 'fro').value, np.linalg.norm(A, 'fro'))
+        assert np.isclose(cp.norm(cp.Constant(A), 'nuc').value, np.linalg.norm(A, 'nuc'))
+
     def test_quad_form(self) -> None:
         """Test quad_form atom.
         """
