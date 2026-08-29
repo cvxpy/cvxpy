@@ -20,6 +20,14 @@ import scipy.sparse as sp
 
 import cvxpy as cp
 from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS
+from cvxpy.tests.nlp_tests.derivative_checker import DerivativeChecker
+
+
+def _spd(n, seed):
+    """A symmetric positive-definite n x n matrix."""
+    rng = np.random.default_rng(seed)
+    M = rng.standard_normal((n, n))
+    return M @ M.T + n * np.eye(n)
 
 
 @pytest.mark.skipif('IPOPT' not in INSTALLED_SOLVERS, reason='IPOPT is not installed.')
@@ -112,3 +120,108 @@ class TestQuadFormDifferentFormats:
 
         assert np.allclose(dense_val, csr_val)
         assert np.allclose(dense_val, csc_val)
+
+
+class TestQuadFormDiffEngine:
+    """Derivative-engine checks for quad_form x'Px across P formats and a leaf or
+    composed x. Uses DerivativeChecker (objective/gradient/jacobian/hessian), which
+    builds the C diff-engine problem directly and needs no NLP solver.
+    """
+
+    @staticmethod
+    def _var(n, seed):
+        x = cp.Variable(n, bounds=[-1, 1])
+        x.value = np.random.default_rng(seed).uniform(-0.9, 0.9, n)
+        return x
+
+    def test_quad_form_dense_P(self):
+        # Dense constant P over a leaf variable (the dense fast path).
+        n = 6
+        P = _spd(n, seed=0)
+        x = self._var(n, seed=10)
+        prob = cp.Problem(cp.Minimize(cp.quad_form(x, P)))
+        DerivativeChecker(prob).run_and_assert()
+
+    def test_quad_form_sparse_P(self):
+        # Sparse constant P over a leaf variable (the CSR path).
+        n = 6
+        P = sp.csr_matrix(_spd(n, seed=1))
+        x = self._var(n, seed=11)
+        prob = cp.Problem(cp.Minimize(cp.quad_form(x, P)))
+        DerivativeChecker(prob).run_and_assert()
+
+    def test_quad_form_parametric_P(self):
+        # Parametric P (re-evaluated each solve) over a leaf variable.
+        n = 6
+        P = cp.Parameter((n, n), PSD=True, value=_spd(n, seed=2))
+        x = self._var(n, seed=12)
+        prob = cp.Problem(cp.Minimize(cp.quad_form(x, P)))
+        DerivativeChecker(prob).run_and_assert()
+
+    def test_quad_form_dense_P_composition(self):
+        # Dense P over a composed (sliced) argument x[:k], not a single variable.
+        n, k = 6, 3
+        P = _spd(k, seed=3)
+        x = self._var(n, seed=13)
+        prob = cp.Problem(cp.Minimize(cp.quad_form(x[:k], P)))
+        DerivativeChecker(prob).run_and_assert()
+
+    def test_quad_form_sparse_P_composition(self):
+        # Sparse P over a composed (sliced) argument x[:k].
+        n, k = 6, 3
+        P = sp.csr_matrix(_spd(k, seed=4))
+        x = self._var(n, seed=14)
+        prob = cp.Problem(cp.Minimize(cp.quad_form(x[:k], P)))
+        DerivativeChecker(prob).run_and_assert()
+
+    def test_quad_form_dense_P_nonlinear_composition(self):
+        # Dense P over a nonlinear argument sin(x .* x), not just a linear slice.
+        n = 6
+        P = _spd(n, seed=5)
+        x = self._var(n, seed=15)
+        prob = cp.Problem(cp.Minimize(cp.quad_form(cp.nlp.sin(cp.multiply(x, x)), P)))
+        DerivativeChecker(prob).run_and_assert()
+
+    def test_quad_form_diag_param(self):
+        # P = diag(p) for a vector parameter p: parameter-affine, so it routes through
+        # the parametric dense path (diag is symmetric, hence a valid quad_form matrix).
+        n = 6
+        p = cp.Parameter(n, nonneg=True, value=np.arange(1, n + 1, dtype=float))
+        x = self._var(n, seed=16)
+        prob = cp.Problem(cp.Minimize(cp.quad_form(x, cp.diag(p))))
+        DerivativeChecker(prob).run_and_assert()
+
+
+class TestQuadFormDenseSparseDispatch:
+    """A constant P given as a dense-but-mostly-zero array (e.g. a diagonal written as a
+    dense ndarray) is routed to the sparse quad_form binding, so the Hessian block is
+    sparse instead of a dense n x n. Mirrors the matmul sparse-dispatch.
+    """
+
+    @staticmethod
+    def _var(n, seed):
+        x = cp.Variable(n, bounds=[-1, 1])
+        x.value = np.random.default_rng(seed).uniform(-0.9, 0.9, n)
+        return x
+
+    def test_dense_diagonal_P_routed_to_sparse(self):
+        from cvxpy.reductions.solvers.nlp_solvers.diff_engine import registry
+        n = 40  # diagonal density 1/n = 2.5% < SPARSE_DENSITY_THRESHOLD (5%)
+        P = np.diag(np.arange(1, n + 1, dtype=float))  # dense ndarray, but diagonal
+        prob = cp.Problem(cp.Minimize(cp.quad_form(self._var(n, seed=21), P)))
+
+        fmts = []
+        orig = registry._diffengine.make_quad_form
+        registry._diffengine.make_quad_form = (
+            lambda *a, **k: fmts.append(a[2] if len(a) > 2 else None) or orig(*a, **k))
+        try:
+            DerivativeChecker(prob).run_and_assert()
+        finally:
+            registry._diffengine.make_quad_form = orig
+        assert "sparse" in fmts and "dense" not in fmts
+
+    def test_dense_diagonal_P_derivative_check(self):
+        n = 6
+        P = np.diag(np.arange(1, n + 1, dtype=float))
+        prob = cp.Problem(cp.Minimize(cp.quad_form(self._var(n, seed=22), P)))
+        DerivativeChecker(prob).run_and_assert()

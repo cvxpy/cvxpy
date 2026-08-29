@@ -7,12 +7,12 @@ jobs:
   doc_deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
 
       - name: Get deployed versions from gh-pages
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           ref: gh-pages
       - name: Set already deployed versions
@@ -26,7 +26,9 @@ jobs:
           ") >> $GITHUB_ENV
 
       - name: Checkout current branch
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0  # setuptools-scm needs tags to compute the version
 
       - name: Build docs
         run: |
@@ -48,7 +50,7 @@ jobs:
           echo DEPLOY_LATEST=$DEPLOY_LATEST >> $GITHUB_ENV
 
       - name: Deploy this version
-        uses: JamesIves/github-pages-deploy-action@v4.8.0
+        uses: JamesIves/github-pages-deploy-action@v4.9.0
         with:
           branch: gh-pages
           folder: doc/build/html
@@ -56,7 +58,7 @@ jobs:
 
       - name: Deploy to root if latest version
         if: ${{ env.DEPLOY_LATEST == 'True' }}
-        uses: JamesIves/github-pages-deploy-action@v4.8.0
+        uses: JamesIves/github-pages-deploy-action@v4.9.0
         with:
           branch: gh-pages
           folder: doc/build/html

@@ -209,6 +209,21 @@ class TestDqcp(base_test.BaseTest):
         self.assertEqual(problem.objective.value, 11.0)
         self.assertGreater(x.value, 11.7)
 
+    def test_ceil_floor_near_integer_tolerance(self) -> None:
+        """Values within solver noise of an integer evaluate to that integer."""
+        x = cp.Variable()
+        for noisy in [3 - 1e-10, 3 + 1e-10]:
+            x.value = noisy
+            self.assertEqual(cp.floor(x).value, 3.0)
+            self.assertEqual(cp.ceil(x).value, 3.0)
+        # Exact integers and clearly-non-integer values are unaffected.
+        x.value = 4.0
+        self.assertEqual(cp.floor(x).value, 4.0)
+        self.assertEqual(cp.ceil(x).value, 4.0)
+        x.value = 2.5
+        self.assertEqual(cp.floor(x).value, 2.0)
+        self.assertEqual(cp.ceil(x).value, 3.0)
+
     def test_basic_multiply_nonneg(self) -> None:
         x, y = cp.Variable(2, nonneg=True)
         expr = x * y
@@ -246,6 +261,20 @@ class TestDqcp(base_test.BaseTest):
         self.assertAlmostEqual(problem.objective.value, 72, places=1)
         self.assertAlmostEqual(x.value, -12, places=1)
         self.assertAlmostEqual(y.value, -6, places=1)
+
+    def test_multiply_solver_failure_during_bisection(self) -> None:
+        # Regression test: CLARABEL fails (instead of reporting
+        # infeasibility) at query points near the optimum of this badly
+        # scaled problem; bisection used to re-solve the identical failing
+        # subproblem until it raised "Max iters hit during bisection".
+        x = cp.Variable(nonneg=True)
+        y = cp.Variable(nonneg=True)
+        problem = cp.Problem(cp.Maximize(cp.multiply(x, y)), [x + y <= 1e-4])
+        with pytest.warns(RuntimeWarning):
+            problem.solve(solver=cp.CLARABEL, qcp=True)
+        self.assertIn(problem.status, s.SOLUTION_PRESENT)
+        # optimal value is (5e-5)**2 = 2.5e-9; bisection eps is 1e-6
+        self.assertAlmostEqual(problem.value, 2.5e-9, places=6)
 
     def test_basic_multiply_qcvx(self) -> None:
         x = cp.Variable(nonneg=True)

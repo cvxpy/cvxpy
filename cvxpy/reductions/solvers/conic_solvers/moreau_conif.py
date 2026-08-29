@@ -88,6 +88,7 @@ class MOREAU(ConicSolver):
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [
         SOC, ExpCone, PowCone3D, PowConeND, SvecPSD,
     ]
+    REQUIRED_MODULES = ("moreau",)
     # Moreau's psd_triangle direct-x cone uses upper-triangle column-major
     # ordering with sqrt(2) scaling on off-diagonals (matches CLARABEL).
     PSD_TRIANGLE_KIND = TriangleKind.UPPER

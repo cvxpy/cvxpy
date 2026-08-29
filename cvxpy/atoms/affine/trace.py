@@ -23,9 +23,10 @@ from cvxpy.atoms.affine.binary_operators import MulExpression, multiply
 from cvxpy.atoms.affine.real import real as real_atom
 from cvxpy.atoms.affine.sum import sum as cvxpy_sum
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.expressions.expression import Expression
 
 
-def trace(expr):
+def trace(expr) -> Expression:
     """
     TLDR: Use alternate formulation for trace(A@B) for more efficient computation.
     trace(A@B) normally is O(n^3) because of the A@B operation.
@@ -38,13 +39,16 @@ def trace(expr):
     both real and complex matrices (no conjugation on A is needed).
 
     When the MulExpression is Hermitian (e.g. X @ X^H for Hermitian X), the
-    result is provably real; it is wrapped with real() so that is_real()
-    correctly returns True without routing to the O(n^3) Trace(expr) path.
+    result is provably real. If that fact is not already known from the
+    result's arguments, it is wrapped with real() so that is_real() correctly
+    returns True without routing to the O(n^3) Trace(expr) path.
     """
-    if isinstance(expr, MulExpression):
+    # Use an exact type check: `multiply` subclasses `MulExpression`, but this
+    # rewrite is valid only for matrix multiplication.
+    if type(expr) is MulExpression:
         # trace(A @ B) = sum(A * B.T), correct for real and complex matrices.
         result = cvxpy_sum(multiply(expr.args[0], expr.args[1].T))
-        if expr.is_hermitian():
+        if expr.is_hermitian() and not result.is_real():
             # trace of a Hermitian matrix is provably real.
             # Wrap with real() so is_real() == True propagates upward.
             return real_atom(result)

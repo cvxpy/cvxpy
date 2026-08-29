@@ -50,7 +50,7 @@ class dotsort(Atom):
         if not self.args[1].is_constant():
             raise ValueError("The W argument must be constant.")
         if self.args[0].size < self.args[1].size:
-            raise ValueError("The size of of W must be less or equal to the size of X.")
+            raise ValueError("The size of W must be less or equal to the size of X.")
 
         super(dotsort, self).validate_arguments()
 

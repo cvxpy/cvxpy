@@ -55,6 +55,16 @@ class norm1(AxisAtom):
         """
         return False
 
+    def is_atom_log_log_convex(self) -> bool:
+        """Is the atom log-log convex?
+        """
+        return True
+
+    def is_atom_log_log_concave(self) -> bool:
+        """Is the atom log-log concave?
+        """
+        return False
+
     def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """

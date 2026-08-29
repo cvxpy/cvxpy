@@ -177,7 +177,7 @@ def neg_expr(operator):
 
     Parameters
     ----------
-    expr : LinOp
+    operator : LinOp
         The operator to be negated.
 
     Returns
@@ -378,10 +378,14 @@ def sum_entries(operator, shape: tuple[int, ...], axis=None, keepdims=None):
 
     Parameters
     ----------
-    expr : LinOp
+    operator : LinOp
         The operator to sum the entries of.
     shape : tuple
         The shape of the sum.
+    axis : int, optional
+        The axis to sum along.
+    keepdims : bool, optional
+        Whether to keep the reduced dimensions.
 
     Returns
     -------
@@ -558,7 +562,7 @@ def hstack(operators, shape: tuple[int, ...]):
 
     Parameters
     ----------
-    operator : list
+    operators : list
         The operators to stack.
     shape : tuple
         The (rows, cols) of the stacked operators.
@@ -576,7 +580,7 @@ def vstack(operators, shape: tuple[int, ...]):
 
     Parameters
     ----------
-    operator : list
+    operators : list
         The operators to stack.
     shape : tuple
         The (rows, cols) of the stacked operators.
@@ -593,7 +597,7 @@ def concatenate(operators, shape: tuple[int, ...], axis: int | None = 0):
 
     Parameters
     ----------
-    operator : list
+    operators : list
         The operators to concatenate.
     shape : tuple
         The (rows, cols) of the concatenated operators.
@@ -622,9 +626,9 @@ def create_eq(lh_op, rh_op=None, constr_id=None):
 
     Parameters
     ----------
-    lh_term : LinOp
+    lh_op : LinOp
         The left-hand operator in the equality constraint.
-    rh_term : LinOp
+    rh_op : LinOp
         The right-hand operator in the equality constraint.
     constr_id : int
         The id of the CVXPY equality constraint creating the constraint.
@@ -644,9 +648,9 @@ def create_leq(lh_op, rh_op=None, constr_id=None):
 
     Parameters
     ----------
-    lh_term : LinOp
+    lh_op : LinOp
         The left-hand operator in the <= constraint.
-    rh_term : LinOp
+    rh_op : LinOp
         The right-hand operator in the <= constraint.
     constr_id : int
         The id of the CVXPY equality constraint creating the constraint.
@@ -666,16 +670,16 @@ def create_geq(lh_op, rh_op=None, constr_id=None):
 
     Parameters
     ----------
-    lh_term : LinOp
+    lh_op : LinOp
         The left-hand operator in the >= constraint.
-    rh_term : LinOp
+    rh_op : LinOp
         The right-hand operator in the >= constraint.
     constr_id : int
         The id of the CVXPY equality constraint creating the constraint.
 
     Returns
     -------
-    LinLeqConstr
+    LinGeqConstr
     """
     if rh_op is not None:
         rh_op = neg_expr(rh_op)

@@ -91,8 +91,6 @@ def set_column_names_from_variables(lp, variables):
     """
     column_names = []
     for variable in variables:
-        # leaf_of_provenance() handles auto-generated vars (nonneg=True, etc.)
-        variable = variable.leaf_of_provenance() or variable
         collect_column_names(variable, column_names)
     lp.col_names_ = column_names
 
@@ -115,6 +113,7 @@ class HIGHS(ConicSolver):
     BOUNDED_VARIABLES = True
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS
     MI_SUPPORTED_CONSTRAINTS = SUPPORTED_CONSTRAINTS
+    REQUIRED_MODULES = ("highspy",)
 
     # Map of HiGHS status to CVXPY status.
     STATUS_MAP = {

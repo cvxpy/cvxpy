@@ -23,6 +23,7 @@ from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ParamConeProg
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver, dims_to_solver_dict
+from cvxpy.reductions.solvers.openmp_conflict import warn_if_omp_conflict
 from cvxpy.utilities.citations import CITATION_DICT
 
 
@@ -212,6 +213,7 @@ class KNITRO(ConicSolver):
     BOUNDED_VARIABLES = True
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC, ExpCone, PowCone3D, PSD]
     MI_SUPPORTED_CONSTRAINTS = SUPPORTED_CONSTRAINTS
+    REQUIRED_MODULES = ("knitro",)
 
     # Keys:
     CONTEXT_KEY = "context"
@@ -298,6 +300,7 @@ class KNITRO(ConicSolver):
 
     def import_solver(self) -> None:
         """Imports the solver."""
+        warn_if_omp_conflict("knitro")
         import knitro  # noqa: F401
 
     def supports_quad_obj(self):
@@ -464,7 +467,7 @@ class KNITRO(ConicSolver):
         if dims.n_psds > 0:
             kn.KN_add_vars(kc, dims.n_psd_vars)
 
-        D = sp.coo_matrix(A)
+        D = sp.coo_array(A)
         if D.nnz != 0:
             cis, vis, coefs = D.row, D.col, D.data
             kn.KN_add_con_linear_struct(kc, indexCons=cis, indexVars=vis, coefs=coefs)
@@ -598,7 +601,7 @@ class KNITRO(ConicSolver):
 
         # Set the quadratic part of the objective function.
         if P is not None and P.nnz != 0:
-            Q = sp.coo_matrix(0.5 * P)
+            Q = sp.coo_array(0.5 * P)
             vis1, vis2, coefs = Q.row, Q.col, Q.data
             kn.KN_add_obj_quadratic_struct(kc, indexVars1=vis1, indexVars2=vis2, coefs=coefs)
 

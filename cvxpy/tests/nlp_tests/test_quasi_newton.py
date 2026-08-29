@@ -38,7 +38,7 @@ class TestQuasiNewton:
         objective = cp.Minimize((1 - x[0])**2 + 100 * (x[1] - x[0]**2)**2)
         problem = cp.Problem(objective, [])
         problem.solve(solver=cp.IPOPT, nlp=True,
-                      hessian_approximation='limited-memory')
+                      hessian_approximation='limited-memory', verbose=False)
         assert problem.status == cp.OPTIMAL
         assert np.allclose(x.value, np.array([1.0, 1.0]), atol=1e-4)
 
@@ -54,7 +54,7 @@ class TestQuasiNewton:
         ]
         problem = cp.Problem(objective, constraints)
         problem.solve(solver=cp.IPOPT, nlp=True,
-                      hessian_approximation='limited-memory')
+                      hessian_approximation='limited-memory', verbose=False)
         assert problem.status == cp.OPTIMAL
         # L-BFGS may converge to a slightly different point, use looser tolerance
         expected = np.array([0.75450865, 4.63936861, 3.78856881, 1.88513184])
@@ -81,7 +81,7 @@ class TestQuasiNewton:
             ]
         )
         problem.solve(solver=cp.IPOPT, nlp=True,
-                      hessian_approximation='limited-memory')
+                      hessian_approximation='limited-memory', verbose=False)
         assert problem.status == cp.OPTIMAL
         expected = np.array([4.97045504e+02, 0.0, 5.02954496e+02])
         assert np.allclose(x.value, expected, atol=1e-3)
@@ -98,7 +98,7 @@ class TestQuasiNewton:
         objective = cp.Minimize(-cp.sum(cp.log(b - A @ x)))
         problem = cp.Problem(objective, [])
         problem.solve(solver=cp.IPOPT, nlp=True,
-                      hessian_approximation='limited-memory')
+                      hessian_approximation='limited-memory', verbose=False)
         assert problem.status == cp.OPTIMAL
 
     def test_exact_vs_lbfgs_solution_quality(self):
@@ -109,7 +109,7 @@ class TestQuasiNewton:
         # Solve with exact Hessian
         problem_exact = cp.Problem(objective, [])
         problem_exact.solve(solver=cp.IPOPT, nlp=True,
-                            hessian_approximation='exact')
+                            hessian_approximation='exact', verbose=False)
         x_exact = x.value.copy()
 
         # Solve with L-BFGS
@@ -144,7 +144,7 @@ class TestQuasiNewton:
         # Solve with L-BFGS
         problem.solve(solver=cp.IPOPT, nlp=True,
                       hessian_approximation='limited-memory',
-                      print_level=0)
+                      print_level=0, verbose=False)
         assert problem.status == cp.OPTIMAL
 
     def test_socp_lbfgs(self):
@@ -161,7 +161,7 @@ class TestQuasiNewton:
 
         problem = cp.Problem(objective, constraints)
         problem.solve(solver=cp.IPOPT, nlp=True,
-                      hessian_approximation='limited-memory')
+                      hessian_approximation='limited-memory', verbose=False)
         assert problem.status == cp.OPTIMAL
         assert np.allclose(objective.value, -13.548638814247532, atol=1e-3)
 
@@ -178,7 +178,7 @@ class TestQuasiNewton:
         problem = cp.Problem(objective, constraints)
 
         problem.solve(solver=cp.IPOPT, nlp=True,
-                      hessian_approximation='limited-memory')
+                      hessian_approximation='limited-memory', verbose=False)
         assert problem.status == cp.OPTIMAL
         # Optimal solution is uniform: x_i = 1/n
         assert np.allclose(x.value, np.ones(n) / n, atol=1e-4)

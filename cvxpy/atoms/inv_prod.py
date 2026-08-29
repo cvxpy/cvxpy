@@ -17,14 +17,15 @@ import numpy as np
 
 from cvxpy.atoms.elementwise.power import power
 from cvxpy.atoms.geo_mean import geo_mean
+from cvxpy.expressions.expression import Expression
 
 
-def inv_prod(value, approx=True):
+def inv_prod(value, approx=True) -> Expression:
     """The reciprocal of a product of the entries of a vector ``x``.
 
     Parameters
     ----------
-    x : Expression or numeric
+    value : Expression or numeric
         The expression whose reciprocal product is to be computed. Must have
         positive entries.
     approx : bool

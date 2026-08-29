@@ -51,6 +51,8 @@ Note that for CVXPY to treat the problem as an NLP, you must pass the option ``n
 For an in-depth reference on DNLP, see our
 `accompanying paper <https://web.stanford.edu/~boyd/papers/dnlp.html>`_.
 
+.. _dnlp-atoms-and-expressions:
+
 Atoms and expressions
 ---------------------
 
@@ -90,6 +92,19 @@ The valid constraint types are:
 You can check that a problem satisfies the DNLP rules by calling
 ``problem.is_dnlp()``. CVXPY will raise an exception if you call
 ``problem.solve(nlp=True)`` on a non-DNLP problem.
+
+Solvers
+-------
+
+DNLP problems require a nonlinear programming (NLP) solver.
+The following solvers are supported; see the :ref:`install` page for installation instructions.
+
+- `IPOPT <https://github.com/coin-or/Ipopt>`_ (recommended, open-source, EPL-2.0)
+- `UNO <https://github.com/cvanaret/Uno>`_ (open-source, MIT)
+- `COPT <https://github.com/COPT-Public/COPT-Release>`_ (commercial)
+- `KNITRO <https://www.artelys.com/knitro/>`_ (commercial)
+
+Set the solver explicitly if needed: ``prob.solve(nlp=True, solver=cp.IPOPT)``.
 
 .. _dnlp-atoms:
 
@@ -134,7 +149,8 @@ but in DNLP, ``multiply`` is smooth and can be used with two variable arguments.
      - depends on sign
 
 In addition, DNLP introduces the following new smooth atoms that are neither convex
-nor concave. These atoms can only be used in DNLP problems.
+nor concave. These atoms can only be used in DNLP problems and are available in the
+``cp.nlp`` module.
 
 .. list-table::
    :header-rows: 1
@@ -144,50 +160,52 @@ nor concave. These atoms can only be used in DNLP problems.
      - Domain
      - Monotonicity
 
-   * - sin(x)
+   * - cp.nlp.sin(x)
 
      - :math:`\sin(x)`
      - :math:`x \in \mathbf{R}`
      - none
 
-   * - cos(x)
+   * - cp.nlp.cos(x)
 
      - :math:`\cos(x)`
      - :math:`x \in \mathbf{R}`
      - none
 
-   * - tan(x)
+   * - cp.nlp.tan(x)
 
      - :math:`\tan(x)`
      - :math:`x \in (-\pi/2, \pi/2)`
      - none
 
-   * - sinh(x)
+   * - cp.nlp.sinh(x)
 
      - :math:`(e^x - e^{-x})/2`
      - :math:`x \in \mathbf{R}`
      - incr.
 
-   * - tanh(x)
+   * - cp.nlp.tanh(x)
 
      - :math:`(e^x - e^{-x})/(e^x + e^{-x})`
      - :math:`x \in \mathbf{R}`
      - incr.
 
-   * - asinh(x)
+   * - cp.nlp.asinh(x)
 
      - :math:`\ln(x + \sqrt{x^2 + 1})`
      - :math:`x \in \mathbf{R}`
      - incr.
 
-   * - atanh(x)
+   * - cp.nlp.atanh(x)
 
      - :math:`\frac{1}{2} \ln \frac{1+x}{1-x}`
      - :math:`x \in (-1, 1)`
      - incr.
 
-   * - sigmoid(x)
+..
+   TODO: re-add the sigmoid row below once the ``sigmoid`` atom is implemented.
 
+   * - sigmoid(x)
      - :math:`\frac{1}{1 + e^{-x}}`
      - :math:`x \in \mathbf{R}`
      - incr.

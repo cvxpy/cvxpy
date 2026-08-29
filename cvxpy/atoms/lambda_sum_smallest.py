@@ -18,8 +18,8 @@ from cvxpy.atoms.lambda_sum_largest import lambda_sum_largest
 from cvxpy.expressions.expression import Expression
 
 
-def lambda_sum_smallest(X, k):
+def lambda_sum_smallest(X, k) -> Expression:
     """Sum of the smallest k eigenvalues.
     """
-    X = Expression.cast_to_const(X)
+    X = Expression.cast(X)
     return -lambda_sum_largest(-X, k)

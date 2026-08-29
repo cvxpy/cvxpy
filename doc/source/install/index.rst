@@ -63,7 +63,7 @@ or a conda environment.
         * `OSQP`_ >= 0.6.2
         * `CLARABEL`_ >= 0.6.0
         * `SCS`_ >= 3.2.4.post1
-        * `NumPy`_ >= 1.22.4
+        * `NumPy`_ >= 2.0.0
         * `SciPy`_ >= 1.13.0
 
         All required packages are installed automatically alongside CVXPY.
@@ -126,7 +126,7 @@ Install with Additional Solver Support
     :collapsible:
 
     CVXPY supports the GUROBI solver.
-    Install GUROBI version 7.5.2 or greater such that you can ``import gurobipy`` in Python.
+    Install GUROBI version 9.5 or greater such that you can ``import gurobipy`` in Python.
     See the `GUROBI <https://www.gurobi.com/>`_ website for installation instructions.
 
 .. info:: MOREAU
@@ -286,6 +286,37 @@ Install with Additional Solver Support
     Simply install CUOPT such that you can ``import cuopt`` in Python.
     See the `CUOPT github page <http://github.com/NVIDIA/cuopt>`_ for system requirments and installation instructions (pip, conda, or build from source).
     Follow this link for additional documentation on CUOPT_
+
+.. info:: IPOPT
+    :collapsible:
+
+    CVXPY supports the IPOPT solver (for nonlinear programming).
+    First install the IPOPT system library, followed by the Python interface `cyipopt <https://github.com/mechmotum/cyipopt>`_:
+
+    .. code-block:: bash
+
+        # Ubuntu/Debian
+        sudo apt-get install coinor-libipopt-dev
+
+        # macOS
+        brew install ipopt
+
+        # Windows
+        conda install -c conda-forge ipopt
+
+    Then install the Python interface:
+
+    .. code-block:: python
+
+        pip install cyipopt
+
+    See the `IPOPT <https://coin-or.github.io/Ipopt/INSTALL.html>`_ website for additional instructions.
+
+.. info:: UNO
+    :collapsible:
+
+    CVXPY supports the UNO solver (for nonlinear programming).
+    Follow the installation instructions for `UNO <https://unosolver.readthedocs.io/en/latest/installation>`_.
 
 .. info:: KNITRO
     :collapsible:

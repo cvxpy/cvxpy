@@ -15,6 +15,8 @@ limitations under the License.
 """
 
 import abc
+import importlib.machinery
+import importlib.util
 
 from cvxpy import settings as s
 from cvxpy.reductions.cone2cone.approx import APPROX_CONE_CONVERSIONS
@@ -67,6 +69,34 @@ def expand_cones(cones, supported):
     return cones, exact_targets, approx_targets
 
 
+def module_spec_available(module: str) -> bool | None:
+    """Return whether *module* can be imported without executing it.
+
+    ``None`` means the top-level package exists, but a dotted component could
+    not be decided by the path-based finder alone. That is ambiguous for
+    non-path import hooks, so callers should fall back to importing.
+    """
+    parts = module.split(".")
+    spec = importlib.util.find_spec(parts[0])
+    if spec is None:
+        return False
+    if len(parts) == 1:
+        return True
+
+    search_path = spec.submodule_search_locations
+    qualified_name = parts[0]
+    for part in parts[1:]:
+        if search_path is None:
+            return None
+        qualified_name = f"{qualified_name}.{part}"
+        spec = importlib.machinery.PathFinder.find_spec(qualified_name, search_path)
+        if spec is None:
+            return None
+        if qualified_name != module:
+            search_path = spec.submodule_search_locations
+    return True
+
+
 class Solver(Reduction):
     """Generic interface for a solver that uses reduction semantics
     """
@@ -93,6 +123,10 @@ class Solver(Reduction):
     SUPPORTED_CONSTRAINTS = []
     REQUIRES_CONSTR = False
 
+    # Optional backend availability checks. Built-in solvers should declare the
+    # import names here so installed_solvers() does not import native libraries.
+    REQUIRED_MODULES: tuple[str, ...] | None = None
+
     # Keys for inverse data.
     VAR_ID = 'var_id'
     DUAL_VAR_ID = 'dual_var_id'
@@ -114,6 +148,14 @@ class Solver(Reduction):
     def is_installed(self) -> bool:
         """Is the solver installed?
         """
+        if self.REQUIRED_MODULES is not None:
+            module_availability = [
+                module_spec_available(module) for module in self.REQUIRED_MODULES
+            ]
+            if all(available is True for available in module_availability):
+                return True
+            if any(available is False for available in module_availability):
+                return False
         try:
             self.import_solver()
             return True

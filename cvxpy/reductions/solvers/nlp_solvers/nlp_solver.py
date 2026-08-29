@@ -136,8 +136,11 @@ class Bounds:
             ub_flat = np.asarray(ub).flatten(order='F')
             var_lower.extend(lb_flat)
             var_upper.extend(ub_flat)
-        self.lb = np.array(var_lower)
-        self.ub = np.array(var_upper)
+        # Force float dtype: all-integer bounds (e.g. nonneg=True gives lb 0)
+        # would otherwise infer an integer array, and replacing entries with a
+        # solver's infinity sentinel (~1e20) overflows int64.
+        self.lb = np.array(var_lower, dtype=float)
+        self.ub = np.array(var_upper, dtype=float)
 
     def construct_initial_point(self) -> None:
         """ Loop through all variables and collect the intial point."""
@@ -235,3 +238,18 @@ class Oracles:
         rows, cols = self.c_problem.get_problem_hessian_sparsity_coo()
         self._hess_structure = (rows, cols)
         return self._hess_structure
+
+    def update_params(self, problem) -> None:
+        """Update parameter values in the C DAG from the problem's parameters.
+
+        Sparsity structures remain valid after this call.
+        """
+        if not problem.parameters():
+            raise ValueError("update_params called but problem has no parameters. "
+                             "This is a bug and should be reported.")
+
+        theta = np.concatenate([
+            np.asarray(p.value, dtype=np.float64).flatten(order='F')
+            for p in problem.parameters()
+        ])
+        self.c_problem.update_params(theta)

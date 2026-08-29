@@ -20,6 +20,8 @@ Such objects can be used like any other CVXPY Expression for purposes of convex 
     :members: __call__
 
 
+.. _scalarize-transforms:
+
 Scalarize
 ---------
 

@@ -40,8 +40,10 @@ def dpp_scope() -> Generator[None, None, None]:
     """
     prev_state = getattr(_thread_local, 'dpp_scope_active', False)
     _thread_local.dpp_scope_active = True
-    yield
-    _thread_local.dpp_scope_active = prev_state
+    try:
+        yield
+    finally:
+        _thread_local.dpp_scope_active = prev_state
 
 
 def dpp_scope_active() -> bool:
@@ -62,8 +64,10 @@ def quad_form_dpp_scope() -> Generator[None, None, None]:
     """
     prev = getattr(_thread_local, 'quad_form_dpp_scope_active', False)
     _thread_local.quad_form_dpp_scope_active = True
-    yield
-    _thread_local.quad_form_dpp_scope_active = prev
+    try:
+        yield
+    finally:
+        _thread_local.quad_form_dpp_scope_active = prev
 
 
 def quad_form_dpp_scope_active() -> bool:

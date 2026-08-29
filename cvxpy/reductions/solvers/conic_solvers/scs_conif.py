@@ -90,6 +90,7 @@ class SCS(ConicSolver):
     REQUIRES_CONSTR = True
     PSD_TRIANGLE_KIND = TriangleKind.LOWER
     PSD_SQRT2_SCALING = True
+    REQUIRED_MODULES = ("scs",)
 
     # Map of SCS status value to CVXPY status.
     STATUS_MAP = {1: s.OPTIMAL,

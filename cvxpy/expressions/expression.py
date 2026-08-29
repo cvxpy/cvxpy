@@ -17,7 +17,7 @@ limitations under the License.
 import abc
 import warnings
 from functools import wraps
-from typing import Literal, Self
+from typing import TYPE_CHECKING, Literal, Self, TypeAlias
 
 import numpy as np
 import scipy.sparse as sp
@@ -34,6 +34,9 @@ from cvxpy.utilities import scopes
 from cvxpy.utilities.shape import size_from_shape
 from cvxpy.utilities.warn import CvxpyDeprecationWarning, warn
 
+if TYPE_CHECKING:
+    from cvxpy.expressions.variable import Variable
+
 
 def _cast_other(binary_op):
     """Casts the second argument of a binary operator as an Expression.
@@ -49,7 +52,7 @@ def _cast_other(binary_op):
     def cast_op(self, other):
         """A wrapped binary operator that can handle non-Expression arguments.
         """
-        other = self.cast_to_const(other)
+        other = self.cast(other)
         return binary_op(self, other)
     return cast_op
 
@@ -130,7 +133,12 @@ __BINARY_EXPRESSION_UFUNCS__ = {
 }
 
 
-ExpressionLike = "Expression | np.typing.ArrayLike"
+ExpressionLike: TypeAlias = "Expression | np.typing.ArrayLike"
+ExpressionValue: TypeAlias = np.ndarray | np.generic | sp.sparray | int | float | complex
+# Maps each variable to the (sub/super)gradient of the expression w.r.t. it.
+# Values are sparse/dense gradients, or None when a value is missing or the
+# gradient is undefined.
+GradMap: TypeAlias = dict["Variable", "sp.csc_array | np.ndarray | np.generic | float | None"]
 
 
 class Expression(u.Canonical):
@@ -149,19 +157,19 @@ class Expression(u.Canonical):
 
     @property
     @abc.abstractmethod
-    def value(self) -> np.ndarray | None:
+    def value(self) -> ExpressionValue | None:
         """Returns: The numeric value of the expression.
         """
         raise NotImplementedError()
 
-    def _value_impl(self) -> np.ndarray | None:
+    def _value_impl(self) -> ExpressionValue | None:
         """Implementation of .value.
         """
         return self.value
 
     @property
     @abc.abstractmethod
-    def grad(self):
+    def grad(self) -> GradMap:
         """Gives the (sub/super)gradient of the expression w.r.t. each variable.
 
         Matrix expressions are vectorized, so the gradient is a matrix.
@@ -680,7 +688,7 @@ class Expression(u.Canonical):
         Expression
             The expression raised to ``power``.
         """
-        power_expr = Expression.cast_to_const(power)
+        power_expr = Expression.cast(power)
         if self.is_constant() and not power_expr.is_constant():
             return _pow_const_base(self, power_expr)
         return cvxtypes.power()(self, power)
@@ -701,21 +709,21 @@ class Expression(u.Canonical):
             exp(self * log(base))
         """
 
-        base = cvxtypes.expression().cast_to_const(base)
-        return _pow_const_base(base, self)
+        base_expr = cvxtypes.expression().cast(base)
+        return _pow_const_base(base_expr, self)
 
     @staticmethod
-    def cast(expr_like) -> "Expression":
+    def cast_to_const(expr_like) -> "Expression":
         """
         If expr_like is an Expression, return it. Otherwise, cast expr_like to a Constant.
 
-        This is a wrapper around the misleadingly-named `Expression.cast_to_const` function.
+        Deprecated: This is a wrapper around the `Expression.cast` function.
         """
-        return Expression.cast_to_const(expr_like)
+        return Expression.cast(expr_like)
 
     # Arithmetic operators.
     @staticmethod
-    def cast_to_const(expr: "Expression"):
+    def cast(expr: "Expression"):
         """Converts a non-Expression to a Constant.
         """
         if isinstance(expr, list):
@@ -730,8 +738,8 @@ class Expression(u.Canonical):
     @staticmethod
     def broadcast(lh_expr: "Expression", rh_expr: "Expression"):
         """Broadcast the binary operator."""
-        lh_expr = Expression.cast_to_const(lh_expr)
-        rh_expr = Expression.cast_to_const(rh_expr)
+        lh_expr = Expression.cast(lh_expr)
+        rh_expr = Expression.cast(rh_expr)
         # Promote.
         if lh_expr.is_scalar() and not rh_expr.is_scalar():
             lh_expr = cp.promote(lh_expr, rh_expr.shape)
@@ -769,9 +777,11 @@ class Expression(u.Canonical):
         # Zero-sized constants (size == 0) are placeholders for
         # eliminated variables and must not be folded away; they need
         # to propagate through the expression tree so that the resulting
-        # shape is correct.
+        # shape is correct. Folding is also skipped when adding the zero
+        # would broadcast self to a larger shape.
         if isinstance(other, cvxtypes.constant()) and other.is_zero() \
-                and other.size > 0:
+                and other.size > 0 \
+                and np.broadcast_shapes(self.shape, other.shape) == self.shape:
             return self
         self, other = self.broadcast(self, other)
         return cvxtypes.add_expr()([self, other])
@@ -780,9 +790,10 @@ class Expression(u.Canonical):
     def __radd__(self, other: ExpressionLike) -> "Expression":
         """Expression : Sum two expressions.
         """
-        # See __add__ for why we require size > 0.
+        # See __add__ for why we require size > 0 and an unchanged shape.
         if isinstance(other, cvxtypes.constant()) and other.is_zero() \
-                and other.size > 0:
+                and other.size > 0 \
+                and np.broadcast_shapes(self.shape, other.shape) == self.shape:
             return self
         return other + self
 
