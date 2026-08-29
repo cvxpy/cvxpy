@@ -52,7 +52,7 @@ jobs:
         run: uv sync --all-extras --no-extra uno --dev
       - name: Install Moreau
         if: runner.os == 'Linux'
-        run: uv pip install moreau
+        run: uv pip install "moreau>=0.4.0"
       - name: Print installed solvers
         run: uv run python -c "import cvxpy; print(cvxpy.installed_solvers())"
       # KNITRO bundles LLVM libomp; CVXOPT bundles GNU libgomp via its
