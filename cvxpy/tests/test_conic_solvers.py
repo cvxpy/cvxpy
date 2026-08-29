@@ -1036,6 +1036,38 @@ class TestMoreau(BaseTest):
         self.assertAlmostEqual(pow_cones[0][1]['alpha'], 0.5, places=10)
         self.assertEqual(data[ConicSolver.DIMS].p3d, [])
 
+    def test_moreau_mixed_slack_cone_order_with_direct_x(self) -> None:
+        """PSD, EXP, and POW3D remain correctly ordered beside a direct-x cone."""
+        self._skip_if_no_xcones()
+        x = cp.Variable(nonneg=True)
+        X = cp.Variable((2, 2), symmetric=True)
+        e = cp.Variable(3)
+        p = cp.Variable(3)
+        constraints = [
+            X == 0,
+            e == 0,
+            p == 0,
+            X + np.eye(2) >> 0,
+            cp.constraints.ExpCone(e[0], e[1] + 1, e[2] + 2),
+            cp.constraints.PowCone3D(p[0] + 1, p[1] + 1, p[2] + 0.25, 0.4),
+        ]
+        prob = cp.Problem(cp.Minimize(0.5 * cp.square(x) - x), constraints)
+
+        data, _, _ = prob.get_problem_data(solver=cp.MOREAU)
+        dims = data[ConicSolver.DIMS]
+        self.assertEqual(dims.psd, [2])
+        self.assertEqual(dims.exp, 1)
+        self.assertItemsAlmostEqual(dims.p3d, [0.4])
+        self.assertIn('nonneg', [kind for kind, *_ in data.get('x_cones', [])])
+
+        value = prob.solve(
+            solver=cp.MOREAU,
+            ipm_settings={"presolve_enable": False, "equilibrate_enable": False},
+        )
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        self.assertAlmostEqual(value, -0.5, places=6)
+        self.assertAlmostEqual(x.value, 1.0, places=6)
+
     def test_moreau_multicone_pow_nd_extraction(self) -> None:
         """Multi-cone PowConeND emits one ``gen_power`` XConeSpec per
         column of ``alpha``; rows are formatted into cone-interleaved
