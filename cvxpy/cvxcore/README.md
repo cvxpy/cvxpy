@@ -91,3 +91,9 @@ information in a generalized CSC or CSR format. The default format is a generali
 assume a ``SparseMatrix`` object ``mat`` is standard CSC or CSR by calling ``mat.makeCompressed()``.
 See ``cvxpy/cvxcore/src/Utils.hpp`` for the definitions of cvxcore's ``Vector``, ``Triplet``, and ``Tensor``
 datatypes.
+
+## 5. Updating NumPy's SWIG interface file
+
+The file `numpy.i` has been copied from NumPy's official source code as recommended by
+https://numpy.org/doc/2.5/reference/swig.interface-file.html#using-numpy-i. Changes to the file in
+NumPy's repository (at `tools/swig/numpy.i`) should be reflected in this project's copy.
