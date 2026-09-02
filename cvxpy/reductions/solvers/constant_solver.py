@@ -1,3 +1,5 @@
+import numpy as np
+
 import cvxpy.settings as s
 from cvxpy.reductions.solution import Solution
 from cvxpy.reductions.solvers.solver import Solver
@@ -32,7 +34,8 @@ class ConstantSolver(Solver):
 
     def solve(self, problem, warm_start: bool, verbose: bool, solver_opts):
         if all(c.value() for c in problem.constraints):
-            return Solution(s.OPTIMAL, problem.objective.value, {}, {}, {})
+            dual_vars = {c.id: np.zeros(c.shape) for c in problem.constraints}
+            return Solution(s.OPTIMAL, problem.objective.value, {}, dual_vars, {})
         else:
             return Solution(s.INFEASIBLE, None, {}, {}, {})
 

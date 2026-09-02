@@ -2373,3 +2373,37 @@ class TestProblem(BaseTest):
         result = reduction.invert(sol, inv_data)
         assert result.dual_vars is None
 
+    def test_constant_solver_duals(self) -> None:
+        """Test that ConstantSolver returns zero dual values for feasible problems."""
+        # Satisfied inequality constraint
+        prob = Problem(cp.Minimize(1), [2 >= 1])
+        prob.solve()
+        self.assertEqual(prob.status, s.OPTIMAL)
+        self.assertEqual(prob.constraints[0].dual_value, 0.0)
+
+        # Equality constraint
+        prob = Problem(cp.Minimize(1), [cp.Constant(1) == cp.Constant(1)])
+        prob.solve()
+        self.assertEqual(prob.status, s.OPTIMAL)
+        self.assertEqual(prob.constraints[0].dual_value, 0.0)
+
+        # Multiple constraints
+        prob = Problem(cp.Minimize(1), [2 >= 1, 3 >= 2])
+        prob.solve()
+        self.assertEqual(prob.status, s.OPTIMAL)
+        for c in prob.constraints:
+            self.assertEqual(c.dual_value, 0.0)
+
+        # Vector constraint
+        prob = Problem(cp.Minimize(1),
+                       [cp.Constant(np.array([2, 3, 4])) >= cp.Constant(np.array([1, 2, 3]))])
+        prob.solve()
+        self.assertEqual(prob.status, s.OPTIMAL)
+        self.assertItemsAlmostEqual(prob.constraints[0].dual_value, [0, 0, 0])
+
+        # Infeasible problem (dual should be None)
+        prob = Problem(cp.Minimize(1), [0 >= 1])
+        prob.solve()
+        self.assertEqual(prob.status, s.INFEASIBLE)
+        self.assertIsNone(prob.constraints[0].dual_value)
+
