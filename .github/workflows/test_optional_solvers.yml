@@ -59,8 +59,16 @@ jobs:
       # OpenBLAS dependency. Loading both in one process can crash inside
       # KNITRO's KN_solve on macOS, so run KNITRO tests in a separate
       # process (mirrors test_nlp_solvers.yml).
+      #
+      # OR-Tools >= 9.14 bundles its own HiGHS inside libortools.so.
+      # Loading highspy and ortools in the same process causes native
+      # symbol conflicts (google/or-tools#5246). Run OR-Tools tests
+      # (GLOP/PDLP) in a separate process to avoid this.
       - name: Run test_conic_solvers
-        run: uv run pytest -rs -m "not knitro" cvxpy/tests/test_conic_solvers.py
+        run: uv run pytest -rs -m "not knitro" -k "not (GLOP or PDLP)" cvxpy/tests/test_conic_solvers.py
+      - name: Run test_conic_solvers (OR-Tools)
+        if: always()
+        run: uv run pytest -rs -k "GLOP or PDLP" cvxpy/tests/test_conic_solvers.py
       - name: Run test_conic_solvers (KNITRO)
         if: always()
         run: uv run pytest -rs -m knitro cvxpy/tests/test_conic_solvers.py
