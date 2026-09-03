@@ -50,12 +50,6 @@ Small scope projects
  - Add explanation and examples of explicit conic constraints to `Advanced constraints <https://www.cvxpy.org/tutorial/constraints/index.html>`_.
 
 Medium scope projects
- - Refactor ``suppfunc_canon`` to use ``SvecPSD`` constraints directly, eliminating the
-   SCS-specific ``scs_psdvec_to_psdmat`` helper and decoupling the support function
-   implementation from any particular solver convention. This requires moving the
-   conic lifting in ``SuppFunc`` from construction time to canonicalization time,
-   so that ``solver_context`` is available and the lifting can target the actual
-   solver's cone format.
  - `Post-solver feasibility checks <https://github.com/cvxpy/cvxpy/issues/434>`_.
  - `Vectorize the quad_over_lin atom <https://github.com/cvxpy/cvxpy/issues/1197>`_.
  - Caching computation of lin_ops during matrix stuffing.
