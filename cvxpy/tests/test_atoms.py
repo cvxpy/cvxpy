@@ -2072,15 +2072,22 @@ class TestAtoms(BaseTest):
                 assert np.allclose(a.mean(axis=axis, keepdims=keepdims), expr_mean.value)
                 assert np.allclose(a.var(axis=axis, keepdims=keepdims), expr_var.value)
 
-        for axis in [0, 1, 2]:
+        for axis in [0, 1, 2, (0, 1), (1, 2), (0, 2), (0,), (0, 1, 2), (-3, -1)]:
             for keepdims in [True, False]:
-                expr_std = cp.std(a, axis=axis, keepdims=keepdims)
+                for ddof in [0, 1]:
+                    expr_std = cp.std(a, axis=axis, keepdims=keepdims, ddof=ddof)
+                    want = a.std(axis=axis, keepdims=keepdims, ddof=ddof)
 
-                assert expr_std.shape == a.std(axis=axis, keepdims=keepdims).shape
-                assert np.allclose(a.std(axis=axis, keepdims=keepdims), expr_std.value)
+                    assert expr_std.shape == want.shape
+                    assert np.allclose(want, expr_std.value)
 
-        with self.assertRaises(ValueError):
-            cp.std(a, axis=(0, 1))
+        # A tuple of axes stays DCP and solves.
+        X = cp.Variable((2, 3, 4))
+        prob = cp.Problem(cp.Minimize(cp.sum(cp.std(X, axis=(0, 2)))), [X >= 1])
+        assert prob.is_dcp()
+        prob.solve()
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        self.assertAlmostEqual(prob.value, 0.0, places=6)
 
     def test_partial_optimize_dcp(self) -> None:
         """Test DCP properties of partial optimize.
