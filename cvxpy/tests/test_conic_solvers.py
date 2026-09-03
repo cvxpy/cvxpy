@@ -1624,6 +1624,7 @@ class TestGLPK(unittest.TestCase):
         sth.verify_primal_values(places=4)
 
 
+@pytest.mark.ortools
 @unittest.skipUnless('GLOP' in INSTALLED_SOLVERS, 'GLOP is not installed.')
 class TestGLOP(unittest.TestCase):
 
@@ -1683,6 +1684,7 @@ class TestGLOP(unittest.TestCase):
         StandardTestLPs.test_lp_bound_attr(solver='GLOP', duals=False)
 
 
+@pytest.mark.ortools
 @unittest.skipUnless('PDLP' in INSTALLED_SOLVERS, 'PDLP is not installed.')
 class TestPDLP(unittest.TestCase):
 

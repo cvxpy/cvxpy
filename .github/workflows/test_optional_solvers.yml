@@ -65,10 +65,10 @@ jobs:
       # symbol conflicts (google/or-tools#5246). Run OR-Tools tests
       # (GLOP/PDLP) in a separate process to avoid this.
       - name: Run test_conic_solvers
-        run: uv run pytest -rs -m "not knitro" -k "not (GLOP or PDLP)" cvxpy/tests/test_conic_solvers.py
+        run: uv run pytest -rs -m "not knitro and not ortools" cvxpy/tests/test_conic_solvers.py
       - name: Run test_conic_solvers (OR-Tools)
         if: always()
-        run: uv run pytest -rs -k "GLOP or PDLP" cvxpy/tests/test_conic_solvers.py
+        run: uv run pytest -rs -m ortools cvxpy/tests/test_conic_solvers.py
       - name: Run test_conic_solvers (KNITRO)
         if: always()
         run: uv run pytest -rs -m knitro cvxpy/tests/test_conic_solvers.py
