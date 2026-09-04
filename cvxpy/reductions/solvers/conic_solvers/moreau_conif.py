@@ -29,19 +29,6 @@ from cvxpy.utilities.citations import CITATION_DICT
 from cvxpy.utilities.psd_utils import TriangleKind
 
 
-def _moreau_supports_x_cones() -> bool:
-    """True if the installed Moreau build exposes the x_cones API.
-
-    Older Moreau lacks ``XConeSpec``; on those installs ``x_cone_kinds()``
-    returns an empty set and the chain skips ExtractIdentityCones.
-    """
-    try:
-        import moreau
-    except ImportError:
-        return False
-    return hasattr(moreau, 'XConeSpec')
-
-
 def dims_to_solver_cones(cone_dims):
     """Convert CVXPY cone dimensions to Moreau cone specification.
 
@@ -85,12 +72,13 @@ class MOREAU(ConicSolver):
     # Solver capabilities
     MIP_CAPABLE = False
     BOUNDED_VARIABLES = False
+    X_CONE_KINDS = frozenset({'nonneg', 'soc', 'psd_triangle', 'exp', 'power', 'gen_power'})
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [
         SOC, ExpCone, PowCone3D, PowConeND, SvecPSD,
     ]
     REQUIRED_MODULES = ("moreau",)
     # Moreau's psd_triangle direct-x cone uses upper-triangle column-major
-    # ordering with sqrt(2) scaling on off-diagonals (matches CLARABEL).
+    # ordering with sqrt(2) scaling on off-diagonals (as in CLARABEL).
     PSD_TRIANGLE_KIND = TriangleKind.UPPER
     PSD_SQRT2_SCALING = True
 
@@ -135,27 +123,10 @@ class MOREAU(ConicSolver):
         """Moreau supports quadratic objective with conic constraints."""
         return True
 
-    def x_cone_kinds(self) -> frozenset:
-        """Direct-x cone kinds Moreau accepts via XConeSpec.
-
-        Empty when the installed Moreau is too old to know about
-        x_cones, so ExtractIdentityCones becomes a no-op.
-        """
-        if not _moreau_supports_x_cones():
-            return frozenset()
-        return frozenset(
-            {'nonneg', 'soc', 'psd_triangle', 'exp', 'power', 'gen_power'}
-        )
-
     def apply(self, problem):
-        """Forward ``problem.x_cones`` (set by ExtractIdentityCones) into
-        the solver's data and inverse-data dicts; otherwise behaves
-        exactly as ConicSolver.apply.
-        """
+        """Forward extracted cones alongside the usual slack-side solver data."""
         data, inv_data = super().apply(problem)
-        if problem.x_cones:
-            data['x_cones'] = problem.x_cones
-            inv_data['x_cones'] = problem.x_cones
+        data['x_cones'] = problem.x_cones
         return data, inv_data
 
     def invert(self, solution, inverse_data):
@@ -195,10 +166,9 @@ class MOREAU(ConicSolver):
             dual_vars.update(eq_dual_vars)
             dual_vars.update(ineq_dual_vars)
             # x_cone duals (computed in solve_via_data from the KKT
-            # residual q + A.T z) are keyed by their original
+            # residual P x + q + A.T z) are keyed by their original
             # constraint id and slot in directly.
-            xcone_duals = getattr(solution, 'x_cone_duals', None) or {}
-            dual_vars.update(xcone_duals)
+            dual_vars.update(solution.x_cone_duals)
             return Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
             return failure_solution(status, attr)
@@ -301,17 +271,25 @@ class MOREAU(ConicSolver):
         # Direct-x cones from ExtractIdentityCones: subvectors of the
         # primal variable that ride the XConeSpec path instead of
         # being slack-side cones.
-        x_cones_meta = data.get('x_cones', []) or []
-        if x_cones_meta:
-            specs = []
-            for entry in x_cones_meta:
-                # x_cones tuple is (kind, indices, constr_id, extras)
-                # where ``extras`` carries the kind-specific kwargs
-                # (psd_k, alpha, alphas+dim2, ...) for XConeSpec.
-                kind, indices, _constr_id, extras = entry
-                kwargs = {'kind': kind, 'indices': list(indices), **extras}
-                specs.append(moreau.XConeSpec(**kwargs))
-            cones.x_cones = specs
+        x_cones_meta = data['x_cones']
+        cones.x_cones = [moreau.XConeSpec(kind=c.kind, indices=c.indices, **c.extras)
+                         for c in x_cones_meta]
+
+        # Moreau's direct PSD variables are scaled svec entries. CVXPY's
+        # symmetric variables store unscaled entries, so use x_solver = D x.
+        scale = np.ones(q.size)
+        for cone in x_cones_meta:
+            if cone.kind == 'psd_triangle':
+                n = cone.extras['psd_k']
+                j = np.arange(n)
+                indices = np.asarray(cone.indices)
+                scale[indices] = np.sqrt(2)
+                scale[indices[j * (j + 3) // 2]] = 1
+        if np.any(scale != 1):
+            inverse_scale = sp.diags_array(1 / scale, format='csr')
+            P = inverse_scale @ P @ inverse_scale
+            A = A @ inverse_scale
+            q = q / scale
 
         # Handle options (device is now part of Settings)
         settings, processed_opts = self.handle_options(verbose, solver_opts or {})
@@ -331,22 +309,20 @@ class MOREAU(ConicSolver):
         info = solver.info  # Metadata is on solver.info after solve()
 
         wrapped = MoreauSolution(solution, info)
+        if solution.x is not None:
+            wrapped.x = solution.x / scale
         # Recover x_cone duals from the KKT residual:
-        #   μ_block = (q + A.T z)[x_indices]
-        # which lives in K* (matches CVXPY's convention for NonNeg/SOC
-        # duals).  See cvxpy/reductions/cone2cone/extract_identity_cones.py.
+        #   μ_block = (P x + q + A.T z)[x_indices]
+        # in solver coordinates, including the removed SvecPSD rows' scaling.
         if x_cones_meta and solution.z is not None:
-            kkt_resid = q + A.T @ solution.z
+            kkt_resid = P @ solution.x + q + A.T @ solution.z
             # A single constraint may emit multiple XConeSpec entries
             # (multi-cone SOC / SvecPSD); accumulate per-cone slices in
             # iteration order and concatenate to recover the full
             # per-constraint dual.
             partials: dict[int, list] = {}
-            for entry in x_cones_meta:
-                _kind, indices, constr_id, _extras = entry
-                partials.setdefault(constr_id, []).append(
-                    kkt_resid[list(indices)]
-                )
+            for cone in x_cones_meta:
+                partials.setdefault(cone.constr_id, []).append(kkt_resid[cone.indices])
             wrapped.x_cone_duals = {
                 cid: parts[0] if len(parts) == 1 else np.concatenate(parts)
                 for cid, parts in partials.items()

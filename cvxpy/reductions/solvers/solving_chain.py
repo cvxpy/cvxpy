@@ -167,7 +167,7 @@ def _build_solving_chain(
     else:
         supported = frozenset(solver_instance.SUPPORTED_CONSTRAINTS)
 
-    x_cone_kinds = solver_instance.x_cone_kinds()
+    x_cone_kinds = solver_instance.X_CONE_KINDS
     solver_context = SolverInfo(
         solver=solver_instance.name(),
         supported_constraints=supported,

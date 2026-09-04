@@ -899,13 +899,7 @@ class TestMoreau(BaseTest):
         StandardTestPCPs.test_pcp_2(solver='MOREAU', ipm_settings=ipm_settings)
 
     def test_moreau_variable_soc_dims(self) -> None:
-        """Test that Moreau handles SOC constraints of dimension > 3 directly.
-
-        With the x_cone path, ``cp.SOC(t, x)`` on bare variables is
-        extracted to ``data['x_cones']``; otherwise the dim-6 SOC
-        appears in ``cone_dims.soc``.  Either path is acceptable —
-        what matters is that no SOCDim3 expansion happened.
-        """
+        """Moreau accepts SOCs of dimension greater than three."""
         x = cp.Variable(5)
         t = cp.Variable()
         # SOC constraint: ||x|| <= t, which is a dim-6 SOC
@@ -915,135 +909,49 @@ class TestMoreau(BaseTest):
         self.assertAlmostEqual(prob.value, np.sqrt(5), places=4)
 
         data, _, _ = prob.get_problem_data(solver=cp.MOREAU)
-        soc_dims = data[ConicSolver.DIMS].soc
-        x_cone_socs = [
-            len(idx) for kind, idx, *_ in (data.get('x_cones') or [])
-            if kind == 'soc'
-        ]
-        all_soc_sizes = list(soc_dims) + x_cone_socs
-        self.assertTrue(any(d > 3 for d in all_soc_sizes))
+        self.assertEqual([len(c.indices) for c in data['x_cones'] if c.kind == 'soc'], [6])
 
-    def _skip_if_no_xcones(self) -> None:
-        from cvxpy.reductions.solvers.conic_solvers.moreau_conif import (
-            _moreau_supports_x_cones,
+    def test_moreau_sdp_1min(self) -> None:
+        StandardTestSDPs.test_sdp_1min(solver=cp.MOREAU)
+
+    def test_moreau_sdp_1max(self) -> None:
+        StandardTestSDPs.test_sdp_1max(solver=cp.MOREAU)
+
+    def test_moreau_sdp_2(self) -> None:
+        # The optimizer is nonunique; check optimality and feasibility.
+        sth = sths.sdp_2()
+        sth.solve(cp.MOREAU)
+        sth.verify_objective(3)
+        sth.check_primal_feasibility(3)
+        sth.check_complementarity(3)
+        sth.check_dual_domains(3)
+
+    def test_moreau_sdp_batched(self) -> None:
+        StandardTestSDPs.test_sdp_batched(solver=cp.MOREAU)
+
+    def test_moreau_quadratic_direct_cone_dual(self) -> None:
+        x = cp.Variable(2)
+        constraint = x >= 0
+        problem = cp.Problem(cp.Minimize(cp.sum_squares(x) / 2 - x[0] + x[1]),
+                             [constraint])
+        problem.solve(solver=cp.MOREAU)
+        self.assertItemsAlmostEqual(x.value, [1, 0], places=4)
+        self.assertItemsAlmostEqual(constraint.dual_value, [0, 1], places=4)
+
+    def test_moreau_quadratic_psd_scaling(self) -> None:
+        X = cp.Variable((2, 2), symmetric=True)
+        target = np.array([[1., 2.], [2., 1.]])
+        constraint = X >> 0
+        problem = cp.Problem(
+            cp.Minimize(cp.sum_squares(X) - 2 * cp.sum(cp.multiply(target, X))),
+            [constraint],
         )
-        if not _moreau_supports_x_cones():
-            self.skipTest("installed Moreau build lacks XConeSpec")
-
-    def test_moreau_extract_identity_cones_lp(self) -> None:
-        """ExtractIdentityCones reroutes Variable(nonneg=True) onto x_cones.
-
-        Verifies the extraction reduction produces the same optimum
-        and primal as CLARABEL.
-        """
-        self._skip_if_no_xcones()
-        x = cp.Variable(4, nonneg=True)
-        c = np.array([1.0, 2.0, 3.0, 4.0])
-        cons = [cp.sum(x) >= 1.0]
-        prob = cp.Problem(cp.Minimize(c @ x), cons)
-
-        val_m = prob.solve(solver=cp.MOREAU)
-        x_m = x.value.copy()
-        val_c = prob.solve(solver=cp.CLARABEL)
-        self.assertAlmostEqual(val_m, val_c, places=5)
-        self.assertItemsAlmostEqual(x_m, x.value, places=5)
-
-    def test_moreau_extract_identity_cones_socp(self) -> None:
-        """cp.SOC(t, x) on bare variables extracts directly."""
-        self._skip_if_no_xcones()
-        n = 4
-        x = cp.Variable(n)
-        t = cp.Variable()
-        cons = [cp.SOC(t, x), cp.sum(x) == 1]
-        prob = cp.Problem(cp.Minimize(t), cons)
-
-        val_m = prob.solve(solver=cp.MOREAU)
-        x_m, t_m = x.value.copy(), float(t.value)
-        val_c = prob.solve(solver=cp.CLARABEL)
-        self.assertAlmostEqual(val_m, val_c, places=5)
-        self.assertItemsAlmostEqual(x_m, x.value, places=5)
-        self.assertAlmostEqual(t_m, float(t.value), places=5)
-
-    def test_moreau_extract_identity_cones_psd(self) -> None:
-        """cp.Variable((k,k), PSD=True) extracts onto a psd_triangle x_cone."""
-        self._skip_if_no_xcones()
-        X = cp.Variable((3, 3), PSD=True)
-        cons = [X[0, 0] >= 1, X[1, 1] >= 1, X[2, 2] >= 1]
-        prob = cp.Problem(cp.Minimize(cp.trace(X)), cons)
-
-        val_m = prob.solve(solver=cp.MOREAU)
-        X_m = X.value.copy()
-        val_c = prob.solve(solver=cp.CLARABEL)
-        self.assertAlmostEqual(val_m, val_c, places=5)
-        self.assertItemsAlmostEqual(X_m.ravel(), X.value.ravel(), places=4)
-        # Confirm extraction routed the SvecPSD onto x_cones rather
-        # than leaving it in the slack-side cone_dims.
-        data, _, _ = prob.get_problem_data(solver=cp.MOREAU)
-        kinds = [k for k, *_ in (data.get('x_cones') or [])]
-        self.assertIn('psd_triangle', kinds)
-        self.assertEqual(data[ConicSolver.DIMS].psd, [])
-
-    def test_moreau_multicone_psd_extraction(self) -> None:
-        """Multi-cone SvecPSD (e.g. Variable((b,k,k), PSD=True)) emits
-        one psd_triangle XConeSpec per sub-cone.  Matches CLARABEL.
-        """
-        self._skip_if_no_xcones()
-        X = cp.Variable((2, 3, 3), PSD=True)
-        cons = [X[0, 0, 0] >= 1, X[1, 1, 1] >= 1, X[1, 2, 2] >= 1]
-        prob = cp.Problem(cp.Minimize(cp.sum([cp.trace(X[i]) for i in range(2)])),
-                          cons)
-
-        val_m = prob.solve(solver=cp.MOREAU)
-        X_m = X.value.copy()
-
-        val_c = prob.solve(solver=cp.CLARABEL)
-        self.assertAlmostEqual(val_m, val_c, places=4)
-        self.assertItemsAlmostEqual(X_m.ravel(), X.value.ravel(), places=3)
-        # Both sub-cones extract — slack-side cone_dims.psd is empty.
-        data, _, _ = prob.get_problem_data(solver=cp.MOREAU)
-        psd_xcones = [k for k, *_ in (data.get('x_cones') or []) if k == 'psd_triangle']
-        self.assertEqual(len(psd_xcones), 2)
-        self.assertEqual(data[ConicSolver.DIMS].psd, [])
-
-    def test_moreau_extract_identity_cones_exp(self) -> None:
-        """Bare-variable ExpCone extracts to a single ``exp`` x_cone."""
-        self._skip_if_no_xcones()
-        x = cp.Variable(3)
-        prob = cp.Problem(cp.Minimize(x[2]),
-                          [cp.constraints.ExpCone(x[0:1], x[1:2], x[2:3]),
-                           x[0] >= 1.0, x[1] >= 2.0])
-        val_m = prob.solve(solver=cp.MOREAU)
-        val_c = prob.solve(solver=cp.CLARABEL)
-        self.assertAlmostEqual(val_m, val_c, places=4)
-        data, _, _ = prob.get_problem_data(solver=cp.MOREAU)
-        kinds = [k for k, *_ in (data.get('x_cones') or [])]
-        self.assertIn('exp', kinds)
-        self.assertEqual(data[ConicSolver.DIMS].exp, 0)
-
-    def test_moreau_extract_identity_cones_pow3d(self) -> None:
-        """Bare-variable PowCone3D extracts to ``power`` with the per-cone alpha."""
-        self._skip_if_no_xcones()
-        x = cp.Variable(3)
-        prob = cp.Problem(
-            cp.Minimize(x[2]),
-            [cp.constraints.PowCone3D(x[0:1], x[1:2], x[2:3], 0.5),
-             x[0] >= 1.0, x[0] <= 4.0, x[1] >= 4.0, x[1] <= 9.0],
-        )
-        val_m = prob.solve(solver=cp.MOREAU)
-        val_c = prob.solve(solver=cp.CLARABEL)
-        self.assertAlmostEqual(val_m, val_c, places=5)
-        data, _, _ = prob.get_problem_data(solver=cp.MOREAU)
-        pow_cones = [
-            (k, extras) for k, _idx, _cid, extras in (data.get('x_cones') or [])
-            if k == 'power'
-        ]
-        self.assertEqual(len(pow_cones), 1)
-        self.assertAlmostEqual(pow_cones[0][1]['alpha'], 0.5, places=10)
-        self.assertEqual(data[ConicSolver.DIMS].p3d, [])
+        self.assertAlmostEqual(problem.solve(solver=cp.MOREAU), -9., places=4)
+        self.assertItemsAlmostEqual(X.value, np.full((2, 2), 1.5), places=4)
+        self.assertItemsAlmostEqual(constraint.dual_value, np.array([[1, -1], [-1, 1]]), places=4)
 
     def test_moreau_mixed_slack_cone_order_with_direct_x(self) -> None:
         """PSD, EXP, and POW3D remain correctly ordered beside a direct-x cone."""
-        self._skip_if_no_xcones()
         x = cp.Variable(nonneg=True)
         X = cp.Variable((2, 2), symmetric=True)
         e = cp.Variable(3)
@@ -1072,57 +980,6 @@ class TestMoreau(BaseTest):
         self.assertEqual(prob.status, cp.OPTIMAL)
         self.assertAlmostEqual(value, -0.5, places=6)
         self.assertAlmostEqual(x.value, 1.0, places=6)
-
-    def test_moreau_multicone_pow_nd_extraction(self) -> None:
-        """Multi-cone PowConeND emits one ``gen_power`` XConeSpec per
-        column of ``alpha``; rows are formatted into cone-interleaved
-        order before extraction.
-        """
-        self._skip_if_no_xcones()
-        W = cp.Variable((3, 2))
-        z = cp.Variable(2)
-        alpha = np.array([[0.3, 0.5], [0.4, 0.3], [0.3, 0.2]])
-        prob = cp.Problem(
-            cp.Minimize(cp.sum(z)),
-            [cp.constraints.PowConeND(W, z, alpha, axis=0),
-             W >= 1.0, W <= 4.0],
-        )
-        val_m = prob.solve(solver=cp.MOREAU)
-        val_c = prob.solve(solver=cp.CLARABEL)
-        self.assertAlmostEqual(val_m, val_c, places=4)
-        data, _, _ = prob.get_problem_data(solver=cp.MOREAU)
-        gen_pow = [
-            extras for k, _idx, _cid, extras in (data.get('x_cones') or [])
-            if k == 'gen_power'
-        ]
-        self.assertEqual(len(gen_pow), 2)
-        # Each sub-cone's alphas slice matches the j-th column of alpha.
-        self.assertItemsAlmostEqual(gen_pow[0]['alphas'], alpha[:, 0], places=10)
-        self.assertItemsAlmostEqual(gen_pow[1]['alphas'], alpha[:, 1], places=10)
-        self.assertEqual(data[ConicSolver.DIMS].pnd, [])
-
-    def test_moreau_extract_skips_param_dependent_block(self) -> None:
-        """A NonNeg block whose A rows depend on a parameter is left as
-        slack; otherwise re-solving with new parameter values would use
-        a stale (wrong) extraction.
-        """
-        self._skip_if_no_xcones()
-        a = cp.Parameter(2, value=np.array([1.0, 1.0]))
-        x = cp.Variable(2)
-        # `cp.multiply(a, x) >= 0` makes the A row parameter-dependent.
-        cons = [cp.multiply(a, x) >= 0, cp.sum(x) == 1]
-        prob = cp.Problem(cp.Minimize(cp.sum(x)), cons)
-
-        val_m = prob.solve(solver=cp.MOREAU)
-        # Indirect check: re-solve with a new parameter value and assert
-        # the optimum still matches CLARABEL — would diverge if we'd
-        # extracted on a param-dependent pattern.
-        a.value = np.array([2.0, 0.5])
-        val_m2 = prob.solve(solver=cp.MOREAU)
-        val_c2 = prob.solve(solver=cp.CLARABEL)
-        self.assertAlmostEqual(val_m, 1.0, places=5)
-        self.assertAlmostEqual(val_m2, val_c2, places=5)
-
 
 def is_mosek_available():
     """Check if MOSEK is installed and a license is available."""

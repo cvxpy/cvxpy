@@ -15,7 +15,7 @@ limitations under the License.
 """
 from __future__ import annotations
 
-from typing import Literal, overload
+from typing import Literal, NamedTuple, TypedDict, overload
 
 import numpy as np
 import scipy.sparse as sp
@@ -55,6 +55,26 @@ from cvxpy.reductions.utilities import (
     lower_ineq_to_nonneg,
 )
 from cvxpy.utilities.coeff_extractor import CoeffExtractor
+
+
+class XConeExtras(TypedDict, total=False):
+    psd_k: int
+    alpha: float
+    alphas: list[float]
+    dim2: int
+
+
+class XCone(NamedTuple):
+    """A cone on a subvector of x, with its original constraint's dual ID.
+
+    PSD indices address unscaled upper-triangle entries in column-major
+    order. Solvers recover duals in the removed constraint's svec scaling.
+    """
+
+    kind: Literal['nonneg', 'soc', 'psd_triangle', 'exp', 'power', 'gen_power']
+    indices: list[int]
+    constr_id: int
+    extras: XConeExtras
 
 
 class ConeDims:
@@ -169,7 +189,7 @@ class ParamConeProg(ParamProb):
                  upper_bounds: np.ndarray | None = None,
                  lb_tensor=None,
                  ub_tensor=None,
-                 x_cones: list | None = None,
+                 x_cones: list[XCone] | None = None,
                  ) -> None:
         # The problem data tensors; q is for the objective, and A for
         # the problem data matrix
@@ -208,15 +228,7 @@ class ParamConeProg(ParamProb):
         # whether this param cone prog has been formatted for a solver
         self.formatted = formatted
 
-        # Direct-x cones: a list of (kind, indices, original_constr_id)
-        # tuples naming subvectors of ``x`` that are constrained to lie
-        # in a cone of the named kind ('nonneg', 'soc', ...).  Set by
-        # reductions that extract identity-pattern cone blocks (see
-        # cvxpy/reductions/cone2cone/extract_identity_cones.py); the
-        # solver consumes these alongside the slack-side cone_dims.
-        # ``None`` (default) means no x_cones — the slack-side cone
-        # interpretation is the entire story.
-        self.x_cones = x_cones
+        self.x_cones: list[XCone] = x_cones if x_cones is not None else []
 
     def is_mixed_integer(self) -> bool:
         """Is the problem mixed-integer?"""
