@@ -19,7 +19,7 @@ import cvxpy.utilities as u
 from cvxpy.error import DCPError
 from cvxpy.expressions.expression import Expression
 from cvxpy.interface.matrix_utilities import ScalarValue, scalar_value
-from cvxpy.utilities import scopes
+from cvxpy.utilities import debug_tools, scopes
 
 
 class Objective(u.Canonical):
@@ -113,6 +113,17 @@ class Objective(u.Canonical):
         """Returns if the objective is a quadratic of piecewise affine.
         """
         return self.args[0].is_qpwa()
+
+    def explain_dcp(self) -> str:
+        """Explain why this objective fails DCP, if it does.
+
+        Returns
+        -------
+        str
+            A human-readable explanation of DCP violations, or a short
+            success message if the objective follows DCP.
+        """
+        return debug_tools.explain_objective_dcp(self)
 
 
 class Minimize(Objective):
