@@ -1624,6 +1624,7 @@ class TestGLPK(unittest.TestCase):
         sth.verify_primal_values(places=4)
 
 
+@pytest.mark.ortools
 @unittest.skipUnless('GLOP' in INSTALLED_SOLVERS, 'GLOP is not installed.')
 class TestGLOP(unittest.TestCase):
 
@@ -1683,6 +1684,7 @@ class TestGLOP(unittest.TestCase):
         StandardTestLPs.test_lp_bound_attr(solver='GLOP', duals=False)
 
 
+@pytest.mark.ortools
 @unittest.skipUnless('PDLP' in INSTALLED_SOLVERS, 'PDLP is not installed.')
 class TestPDLP(unittest.TestCase):
 
@@ -3078,6 +3080,13 @@ class TestAllSolvers(BaseTest):
                     pass
                 elif solver is cp.KNITRO and not is_knitro_available():
                     pass
+                # OR-Tools >= 9.14 bundles HiGHS inside libortools.so.
+                # Loading both in the same process causes native symbol
+                # conflicts (google/or-tools#5246); GLOP/PDLP coverage
+                # is provided by TestGLOP/TestPDLP in the isolated
+                # -m ortools pytest invocation.
+                elif solver in ("GLOP", "PDLP"):
+                    pass
                 else:
                     prob.solve(solver=solver)
                     self.assertAlmostEqual(prob.value, 1.0)
@@ -3831,7 +3840,22 @@ class TestCUOPT(unittest.TestCase):
             self.assertIsNone(w.value)
 
 
-@pytest.mark.parametrize("solver", INSTALLED_SOLVERS)
+def _ortools_params(solvers):
+    """Wrap GLOP/PDLP solver names with ``pytest.mark.ortools``.
+
+    This keeps those parameter variants in the isolated OR-Tools pytest
+    process and out of the main conic-solver invocation (google/or-tools#5246).
+    """
+    result = []
+    for s in solvers:
+        if s in ("GLOP", "PDLP"):
+            result.append(pytest.param(s, marks=[pytest.mark.ortools], id=s))
+        else:
+            result.append(s)
+    return result
+
+
+@pytest.mark.parametrize("solver", _ortools_params(INSTALLED_SOLVERS))
 def test_offset_in_opt_val(solver):
     """Solvers must add the constant OFFSET back in invert().
 
