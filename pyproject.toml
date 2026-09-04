@@ -57,6 +57,7 @@ testpaths = [
 ]
 markers = [
     "knitro: tests that load the native KNITRO runtime; run in a separate process from other native solvers (see test_nlp_solvers.yml)",
+    "ortools: tests that load the native OR-Tools runtime (libortools.so bundles HiGHS); run in a separate process from HiGHS tests (google/or-tools#5246)",
 ]
 
 [build-system]
