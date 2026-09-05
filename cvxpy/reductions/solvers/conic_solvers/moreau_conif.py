@@ -21,12 +21,44 @@ import scipy.sparse as sp
 
 import cvxpy.settings as s
 from cvxpy.constraints import SOC, ExpCone, PowCone3D, PowConeND, SvecPSD
+from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import XCone
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.solver_inverse_data import SolverInverseData
 from cvxpy.utilities.citations import CITATION_DICT
 from cvxpy.utilities.psd_utils import TriangleKind
+
+
+def _psd_coordinate_transform(n: int, cones: list[XCone]) -> sp.csr_array | None:
+    """Map solver coordinates back to CVXPY's matrix entries.
+
+    Symmetric variables need diagonal svec scaling. Unrestricted off-diagonal
+    pairs use an orthogonal symmetric/skew change of basis, retaining both
+    degrees of freedom. Each original coordinate participates in at most one
+    extracted cone, so these blocks are disjoint.
+    """
+    diagonal = np.ones(n)
+    rows, cols = [], []
+    for cone in cones:
+        if cone.kind != 'psd_triangle':
+            continue
+        assert 'psd_k' in cone.extras
+        indices = np.asarray(cone.indices)
+        j = np.arange(cone.extras['psd_k'])
+        diagonal[indices] = 1 / np.sqrt(2)
+        diagonal[indices[j * (j + 3) // 2]] = 1
+        for i, k in cone.psd_pairs:
+            diagonal[k] = -1 / np.sqrt(2)
+            rows.extend((i, k))
+            cols.extend((k, i))
+    if np.all(diagonal == 1):
+        return None
+    transform = sp.diags_array(diagonal, format='csr')
+    if rows:
+        transform += sp.csr_array((np.full(len(rows), 1 / np.sqrt(2)), (rows, cols)),
+                                  shape=(n, n))
+    return transform
 
 
 def dims_to_solver_cones(cone_dims):
@@ -275,21 +307,13 @@ class MOREAU(ConicSolver):
         cones.x_cones = [moreau.XConeSpec(kind=c.kind, indices=c.indices, **c.extras)
                          for c in x_cones_meta]
 
-        # Moreau's direct PSD variables are scaled svec entries. CVXPY's
-        # symmetric variables store unscaled entries, so use x_solver = D x.
-        scale = np.ones(q.size)
-        for cone in x_cones_meta:
-            if cone.kind == 'psd_triangle':
-                n = cone.extras['psd_k']
-                j = np.arange(n)
-                indices = np.asarray(cone.indices)
-                scale[indices] = np.sqrt(2)
-                scale[indices[j * (j + 3) // 2]] = 1
-        if np.any(scale != 1):
-            inverse_scale = sp.diags_array(1 / scale, format='csr')
-            P = inverse_scale @ P @ inverse_scale
-            A = A @ inverse_scale
-            q = q / scale
+        # x = T y: direct PSD cones act on scaled symmetric coordinates of y,
+        # while skew coordinates remain available to the rest of the problem.
+        transform = _psd_coordinate_transform(q.size, x_cones_meta)
+        if transform is not None:
+            P = transform.T @ P @ transform
+            A = A @ transform
+            q = transform.T @ q
 
         # Handle options (device is now part of Settings)
         settings, processed_opts = self.handle_options(verbose, solver_opts or {})
@@ -309,8 +333,8 @@ class MOREAU(ConicSolver):
         info = solver.info  # Metadata is on solver.info after solve()
 
         wrapped = MoreauSolution(solution, info)
-        if solution.x is not None:
-            wrapped.x = solution.x / scale
+        if solution.x is not None and transform is not None:
+            wrapped.x = transform @ solution.x
         # Recover x_cone duals from the KKT residual:
         #   μ_block = (P x + q + A.T z)[x_indices]
         # in solver coordinates, including the removed SvecPSD rows' scaling.

@@ -46,7 +46,7 @@ def _extract_soc(constr, indices, values) -> list[XCone]:
                        [{}] * constr.num_cones())
 
 
-def _extract_psd(constr, indices, values) -> list[XCone]:
+def _extract_psd(constr, indices, values, partners) -> list[XCone]:
     # Direct PSD indices refer to unscaled upper-triangle entries, while
     # SvecPSD rows multiply off-diagonal entries by sqrt(2).
     n = constr._n
@@ -56,8 +56,12 @@ def _extract_psd(constr, indices, values) -> list[XCone]:
     pattern[j * (j + 3) // 2] = 1
     if np.any(values != np.tile(pattern, constr.num_cones())):
         return []
-    return [XCone('psd_triangle', idx.tolist(), constr.id, {'psd_k': n})
-            for idx in indices.reshape(-1, size)]
+    cones = []
+    for idx, partner in zip(indices.reshape(-1, size), partners.reshape(-1, size)):
+        paired = partner >= 0
+        pairs = tuple(zip(idx[paired].tolist(), partner[paired].tolist()))
+        cones.append(XCone('psd_triangle', idx.tolist(), constr.id, {'psd_k': n}, pairs))
+    return cones
 
 
 def _extract_exp(constr, indices, values) -> list[XCone]:
@@ -78,13 +82,14 @@ def _extract_gen_power(constr, indices, values) -> list[XCone]:
     return _unit_cones(constr, indices, values, 'gen_power', constr.cone_sizes(), extras)
 
 
-def _identity_rows(problem, reduced, rows, cols):
-    """Find structurally constant single-entry rows in one linear pass.
+def _identity_rows(problem, reduced, rows, cols, allow_psd_pairs=False):
+    """Find structurally constant identity rows and optional PSD coordinate pairs.
 
     Each reduced tensor row represents one entry of [A b]. Counting these
     entries by output row avoids sorting or rescanning the tensor per cone.
     Parameter-dependent entries remain ineligible even if their current
-    value happens to be zero or one.
+    value happens to be zero or one. Partners are -1 except for PSD pairs;
+    their reported weight is relative to the unscaled symmetric coordinate.
     """
     m, n = problem.constr_size, problem.x.size
     x_indices = np.full(m, -1, dtype=np.int64)
@@ -97,7 +102,28 @@ def _identity_rows(problem, reduced, rows, cols):
     single, positions = single[valid], positions[valid]
     x_indices[rows[single]] = cols[single]
     values[rows[single]] = reduced.data[positions]
-    return x_indices, values
+    partners = np.full(m, -1, dtype=np.int64)
+    if allow_psd_pairs:
+        # Symmetrization gives (x_ij + x_ji)/sqrt(2). Both tensor entries
+        # must be structurally constant, with no other entry in that row.
+        paired = np.flatnonzero((counts[rows] == 2) & (np.diff(reduced.indptr) == 1))
+        positions = reduced.indptr[paired]
+        valid = ((reduced.indices[positions] == problem.param_id_to_col[CONSTANT_ID])
+                 & (reduced.data[positions] == np.sqrt(2) / 2) & (cols[paired] < n))
+        paired = paired[valid]
+        if not paired.size:
+            return x_indices, values, partners
+        pair_counts = np.bincount(rows[paired], minlength=m)
+        left = np.full(m, n, dtype=np.int64)
+        right = np.full(m, -1, dtype=np.int64)
+        np.minimum.at(left, rows[paired], cols[paired])
+        np.maximum.at(right, rows[paired], cols[paired])
+        paired_rows = pair_counts == 2
+        x_indices[paired_rows] = left[paired_rows]
+        partners[paired_rows] = right[paired_rows]
+        # The symmetric coordinate (x_i + x_j)/2 has the usual svec weight.
+        values[paired_rows] = np.sqrt(2)
+    return x_indices, values, partners
 
 
 def _remove_rows(problem, reduced, rows, cols, keep):
@@ -156,22 +182,36 @@ class ExtractIdentityCones(Reduction):
         reduced = reduced.tocsr()
         rows, indptr, _ = data_index
         cols = np.repeat(np.arange(problem.x.size + 1), np.diff(indptr))
-        x_indices, values = _identity_rows(problem, reduced, rows, cols)
+        # Rotating coordinate pairs does not preserve coordinatewise bounds
+        # or integrality. Moreau lowers bounds to ordinary constraints first.
+        allow_psd_pairs = (SvecPSD in self._extractors and bool(problem.constr_map.get(SvecPSD))
+                           and not problem.is_mixed_integer()
+                           and all(bound is None for bound in (
+                               problem.lower_bounds, problem.upper_bounds,
+                               problem.lb_tensor, problem.ub_tensor)))
+        x_indices, values, partners = _identity_rows(
+            problem, reduced, rows, cols, allow_psd_pairs)
 
         x_cones = list(problem.x_cones)
         used = {idx for cone in x_cones for idx in cone.indices}
+        used.update(j for cone in x_cones for _, j in cone.psd_pairs)
         keep = np.ones(problem.constr_size, dtype=bool)
         constraints = []
         start = 0
         for constr in problem.constraints:
             stop = start + constr.size
             indices = x_indices[start:stop]
+            other = partners[start:stop]
             extractor = self._extractors.get(type(constr))
             cones = []
             if extractor is not None and indices.size and np.all(indices >= 0):
-                slots = set(indices.tolist())
-                if len(slots) == indices.size and used.isdisjoint(slots):
-                    cones = extractor(constr, indices, values[start:stop])
+                all_indices = indices.tolist() + other[other >= 0].tolist()
+                slots = set(all_indices)
+                if len(slots) == len(all_indices) and used.isdisjoint(slots):
+                    if type(constr) is SvecPSD:
+                        cones = extractor(constr, indices, values[start:stop], other)
+                    elif np.all(other < 0):
+                        cones = extractor(constr, indices, values[start:stop])
             if cones:
                 x_cones.extend(cones)
                 used.update(slots)

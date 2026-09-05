@@ -69,12 +69,16 @@ class XCone(NamedTuple):
 
     PSD indices address unscaled upper-triangle entries in column-major
     order. Solvers recover duals in the removed constraint's svec scaling.
+    Each optional psd_pair (i, j) instead represents an unrestricted matrix's
+    off-diagonal entries: coordinate i becomes (x_i + x_j)/sqrt(2), and
+    coordinate j retains (x_i - x_j)/sqrt(2).
     """
 
     kind: Literal['nonneg', 'soc', 'psd_triangle', 'exp', 'power', 'gen_power']
     indices: list[int]
     constr_id: int
     extras: XConeExtras
+    psd_pairs: tuple[tuple[int, int], ...] = ()
 
 
 class ConeDims:

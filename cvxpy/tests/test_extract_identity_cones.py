@@ -14,6 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import unittest
+
 import numpy as np
 
 import cvxpy as cp
@@ -25,6 +27,7 @@ from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
 from cvxpy.reductions.dcp2cone.dcp2cone import Dcp2Cone
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
+from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS
 from cvxpy.tests.base_test import BaseTest
 from cvxpy.utilities.psd_utils import TriangleKind
 from cvxpy.utilities.solver_context import SolverInfo
@@ -160,3 +163,108 @@ class TestExtractIdentityCones(BaseTest):
         result, _ = ExtractIdentityCones(self.CONTEXT).apply(first)
         self.assertEqual([c.kind for c in result.x_cones], ['nonneg', 'soc'])
         self.assertEqual(result.constr_size, 0)
+
+    def test_unrestricted_psd(self):
+        for shape in [(2, 2), (3, 3), (2, 3, 3)]:
+            with self.subTest(shape=shape):
+                X = cp.Variable(shape)
+                original = self.stuff(cp.Problem(cp.Minimize(0), [X >> 0]))
+                result, _ = ExtractIdentityCones(self.CONTEXT).apply(original)
+                self.assertEqual(result.constr_size, 0)
+                self.assertEqual(result.x.size, X.size)
+                self.assertEqual(len(result.x_cones), X.size // shape[-1]**2)
+                _, _, A, b = original.apply_parameters()
+                x = np.arange(X.size, dtype=float)
+                packed = []
+                used = []
+                for cone in result.x_cones:
+                    n = cone.extras['psd_k']
+                    self.assertEqual(len(cone.psd_pairs), n * (n - 1) // 2)
+                    values = x[cone.indices].copy()
+                    for i, j in cone.psd_pairs:
+                        values[cone.indices.index(i)] = (x[i] + x[j]) / np.sqrt(2)
+                    packed.extend(values)
+                    used.extend(cone.indices + [j for _, j in cone.psd_pairs])
+                self.assertEqual(sorted(used), list(range(X.size)))
+                np.testing.assert_allclose(packed, A @ x + b)
+
+    def test_unrestricted_psd_rejection(self):
+        X = cp.Variable((2, 2))
+        a = cp.Parameter((2, 2), value=np.ones((2, 2)))
+        for expr in [X + np.eye(2), cp.multiply(a, X),
+                     cp.bmat([[X[0, 0], X[0, 0]], [X[1, 0], X[1, 1]]])]:
+            with self.subTest(expr=expr):
+                original = self.stuff(cp.Problem(cp.Minimize(0), [expr >> 0]))
+                result, _ = ExtractIdentityCones(self.CONTEXT).apply(original)
+                self.assertEqual(result.x_cones, [])
+        for attr in ['integer', 'lower_bounds', 'lb_tensor']:
+            with self.subTest(attr=attr):
+                original = self.stuff(cp.Problem(cp.Minimize(0), [X >> 0]))
+                original = ConicSolver.format_constraints(original, [0, 1, 2])
+                if attr == 'integer':
+                    original.x.attributes['integer'] = [(0,)]
+                elif attr == 'lb_tensor':
+                    original.lb_tensor = original.q[:X.size]
+                else:
+                    setattr(original, attr, np.zeros(X.size))
+                result, _ = ExtractIdentityCones(self.CONTEXT).apply(original)
+                self.assertEqual(result.x_cones, [])
+
+    def test_unrestricted_psd_overlap(self):
+        X = cp.Variable((2, 2))
+        reduction = ExtractIdentityCones(self.CONTEXT)
+        # Either member of an off-diagonal pair must remain disjoint from
+        # other direct cones, including cones extracted by a previous apply.
+        for entry in [X[0, 1], X[1, 0]]:
+            original = self.stuff(cp.Problem(cp.Minimize(0), [entry >= 0, X >> 0]))
+            result, _ = reduction.apply(original)
+            self.assertEqual([c.kind for c in result.x_cones], ['nonneg'])
+        original = self.stuff(cp.Problem(cp.Minimize(0), [X >> 0, X.T >> 0]))
+        result, _ = reduction.apply(original)
+        self.assertEqual(len(result.x_cones), 1)
+        self.assertIs(reduction.apply(result)[0], result)
+
+
+@unittest.skipUnless('MOREAU' in INSTALLED_SOLVERS, 'MOREAU is not installed.')
+class TestMoreauUnrestrictedPSD(BaseTest):
+    def test_skew_primal_and_dual(self):
+        X = cp.Variable((2, 2))
+        target = np.array([[1., 4.], [0., 1.]])
+        constraint = X >> 0
+        problem = cp.Problem(
+            cp.Minimize(cp.sum_squares(X) - 2 * cp.sum(cp.multiply(target, X))),
+            [constraint],
+        )
+        data, _, _ = problem.get_problem_data(cp.MOREAU)
+        self.assertEqual(data[ConicSolver.DIMS].psd, [])
+        self.assertEqual(len(data['x_cones'][0].psd_pairs), 1)
+        self.assertAlmostEqual(problem.solve(solver=cp.MOREAU), -17., places=4)
+        np.testing.assert_allclose(X.value, [[1.5, 3.5], [-0.5, 1.5]], atol=1e-4)
+        np.testing.assert_allclose(constraint.dual_value, [[1., -1.], [-1., 1.]], atol=1e-4)
+
+    def test_batched_dpp_with_skew_constraints(self):
+        X = cp.Variable((2, 2, 2), bounds=[-1.5, 1.5])
+        skew = cp.Parameter(value=1.)
+        target = cp.Parameter(X.shape, value=np.arange(8.).reshape(X.shape))
+        coefficients = np.arange(1., 9.).reshape(X.shape)
+        constraints = [X >> 0, X[0, 0, 1] - X[0, 1, 0] == skew,
+                       X[1, 0, 1] + 2 * X[1, 1, 0] == 1]
+        problem = cp.Problem(cp.Minimize(cp.sum(cp.multiply(coefficients, cp.square(X)))
+                                        - 2 * cp.sum(cp.multiply(target, X))), constraints)
+        reference = cp.Problem(problem.objective, constraints)
+        cached = None
+        for skew.value in [1., -2.]:
+            target.value = target.value + 0.5
+            value = problem.solve(solver=cp.MOREAU, enforce_dpp=True)
+            primal = X.value.copy()
+            duals = [np.array(c.dual_value, copy=True) for c in constraints]
+            if cached is not None:
+                self.assertIs(problem._cache.param_prog, cached)
+            cached = problem._cache.param_prog
+            data, _, _ = problem.get_problem_data(cp.MOREAU)
+            self.assertEqual(data[ConicSolver.DIMS].psd, [])
+            self.assertEqual(len(data['x_cones']), 2)
+            self.assertAlmostEqual(reference.solve(solver=cp.CLARABEL), value, places=4)
+            np.testing.assert_allclose(X.value, primal, atol=2e-4)
+            for c, dual in zip(constraints, duals):
+                np.testing.assert_allclose(c.dual_value, dual, atol=2e-4)
