@@ -20,12 +20,13 @@ import numpy as np
 import scipy.sparse as sp
 
 import cvxpy.settings as s
-from cvxpy.constraints import SOC, ExpCone, PowCone3D
+from cvxpy.constraints import SOC, ExpCone, PowCone3D, PowConeND, SvecPSD
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.solver_inverse_data import SolverInverseData
 from cvxpy.utilities.citations import CITATION_DICT
+from cvxpy.utilities.psd_utils import TriangleKind
 
 
 def dims_to_solver_cones(cone_dims):
@@ -43,13 +44,10 @@ def dims_to_solver_cones(cone_dims):
     """
     import moreau
 
-    # Moreau does not support PSD cones yet
-    if cone_dims.psd:
-        raise ValueError("Moreau does not support PSD cones")
-
-    # Moreau does not support generalized power cones yet
-    if cone_dims.pnd:
-        raise ValueError("Moreau does not support generalized power cones (PowConeND)")
+    # ConeDims.pnd is a list of per-cone alpha lists (each summing to
+    # 1).  CVXPY's PowConeND has dim2 = 1 by convention (single z[j]
+    # per cone), so each Moreau gen_power slot is (alphas, 1).
+    gen_power_params = [(list(alphas), 1) for alphas in cone_dims.pnd]
 
     cones = moreau.Cones(
         num_zero_cones=cone_dims.zero,
@@ -57,6 +55,8 @@ def dims_to_solver_cones(cone_dims):
         so_cone_dims=list(cone_dims.soc),
         num_exp_cones=cone_dims.exp,
         power_alphas=list(cone_dims.p3d),
+        gen_power_cone_params=gen_power_params,
+        psd_dims=list(cone_dims.psd),
     )
 
     return cones
@@ -72,8 +72,15 @@ class MOREAU(ConicSolver):
     # Solver capabilities
     MIP_CAPABLE = False
     BOUNDED_VARIABLES = False
-    SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC, ExpCone, PowCone3D]
+    DIR_CONE_KINDS = frozenset({'nonneg', 'soc', 'psd_triangle', 'exp', 'power', 'gen_power'})
+    SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [
+        SOC, ExpCone, PowCone3D, PowConeND, SvecPSD,
+    ]
     REQUIRED_MODULES = ("moreau",)
+    # Moreau's psd_triangle direct cone uses upper-triangle column-major
+    # ordering with sqrt(2) scaling on off-diagonals (as in CLARABEL).
+    PSD_TRIANGLE_KIND = TriangleKind.UPPER
+    PSD_SQRT2_SCALING = True
 
     # Status messages from Moreau (based on solver/status.hpp)
     SOLVED = "Solved"
@@ -116,6 +123,12 @@ class MOREAU(ConicSolver):
         """Moreau supports quadratic objective with conic constraints."""
         return True
 
+    def apply(self, problem):
+        """Forward extracted cones alongside the usual slack-side solver data."""
+        data, inv_data = super().apply(problem)
+        data['dir_cones'] = problem.dir_cones
+        return data, inv_data
+
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data."""
         attr = {}
@@ -152,6 +165,10 @@ class MOREAU(ConicSolver):
             dual_vars = {}
             dual_vars.update(eq_dual_vars)
             dual_vars.update(ineq_dual_vars)
+            # Direct cone duals (computed in solve_via_data from the KKT
+            # residual P x + q + A.T z) are keyed by their original
+            # constraint id and slot in directly.
+            dual_vars.update(solution.dir_cone_duals)
             return Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
             return failure_solution(status, attr)
@@ -251,6 +268,27 @@ class MOREAU(ConicSolver):
         # Convert cone dimensions
         cones = dims_to_solver_cones(data[ConicSolver.DIMS])
 
+        # Forward extracted cones on subvectors of the primal variable.
+        dir_cones_meta = data['dir_cones']
+        cones.dir_cones = [moreau.DirectConeSpec(kind=c.kind, indices=c.indices, **c.extras)
+                           for c in dir_cones_meta]
+
+        # Moreau's direct PSD variables are scaled svec entries. CVXPY's
+        # symmetric variables store unscaled entries, so use x_solver = D x.
+        scale = np.ones(q.size)
+        for cone in dir_cones_meta:
+            if cone.kind == 'psd_triangle':
+                n = cone.extras['psd_k']
+                j = np.arange(n)
+                indices = np.asarray(cone.indices)
+                scale[indices] = np.sqrt(2)
+                scale[indices[j * (j + 3) // 2]] = 1
+        if np.any(scale != 1):
+            inverse_scale = sp.diags_array(1 / scale, format='csr')
+            P = inverse_scale @ P @ inverse_scale
+            A = A @ inverse_scale
+            q = q / scale
+
         # Handle options (device is now part of Settings)
         settings, processed_opts = self.handle_options(verbose, solver_opts or {})
 
@@ -268,7 +306,28 @@ class MOREAU(ConicSolver):
         solution = solver.solve()
         info = solver.info  # Metadata is on solver.info after solve()
 
-        return MoreauSolution(solution, info)
+        wrapped = MoreauSolution(solution, info)
+        if solution.x is not None:
+            wrapped.x = solution.x / scale
+        # Recover direct cone duals from the KKT residual:
+        #   μ_block = (P x + q + A.T z)[x_indices]
+        # in solver coordinates, including the removed SvecPSD rows' scaling.
+        if dir_cones_meta and solution.z is not None:
+            kkt_resid = P @ solution.x + q + A.T @ solution.z
+            # A single constraint may emit multiple DirectConeSpec entries
+            # (multi-cone SOC / SvecPSD); accumulate per-cone slices in
+            # iteration order and concatenate to recover the full
+            # per-constraint dual.
+            partials: dict[int, list] = {}
+            for cone in dir_cones_meta:
+                partials.setdefault(cone.constr_id, []).append(kkt_resid[cone.indices])
+            wrapped.dir_cone_duals = {
+                cid: parts[0] if len(parts) == 1 else np.concatenate(parts)
+                for cid, parts in partials.items()
+            }
+        else:
+            wrapped.dir_cone_duals = {}
+        return wrapped
 
     def cite(self, data):
         """Returns bibtex citation for the solver.

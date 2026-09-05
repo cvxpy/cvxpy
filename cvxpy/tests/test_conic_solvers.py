@@ -899,7 +899,7 @@ class TestMoreau(BaseTest):
         StandardTestPCPs.test_pcp_2(solver='MOREAU', ipm_settings=ipm_settings)
 
     def test_moreau_variable_soc_dims(self) -> None:
-        """Test that Moreau handles SOC constraints of dimension > 3 directly."""
+        """Moreau accepts SOCs of dimension greater than three."""
         x = cp.Variable(5)
         t = cp.Variable()
         # SOC constraint: ||x|| <= t, which is a dim-6 SOC
@@ -908,11 +908,78 @@ class TestMoreau(BaseTest):
         self.assertEqual(prob.status, cp.OPTIMAL)
         self.assertAlmostEqual(prob.value, np.sqrt(5), places=4)
 
-        # Verify the solver receives variable-length SOC dims (not all dim-3)
         data, _, _ = prob.get_problem_data(solver=cp.MOREAU)
-        soc_dims = data[ConicSolver.DIMS].soc
-        self.assertTrue(any(d > 3 for d in soc_dims))
+        self.assertEqual([len(c.indices) for c in data['dir_cones'] if c.kind == 'soc'], [6])
 
+    def test_moreau_sdp_1min(self) -> None:
+        StandardTestSDPs.test_sdp_1min(solver=cp.MOREAU)
+
+    def test_moreau_sdp_1max(self) -> None:
+        StandardTestSDPs.test_sdp_1max(solver=cp.MOREAU)
+
+    def test_moreau_sdp_2(self) -> None:
+        # The optimizer is nonunique; check optimality and feasibility.
+        sth = sths.sdp_2()
+        sth.solve(cp.MOREAU)
+        sth.verify_objective(3)
+        sth.check_primal_feasibility(3)
+        sth.check_complementarity(3)
+        sth.check_dual_domains(3)
+
+    def test_moreau_sdp_batched(self) -> None:
+        StandardTestSDPs.test_sdp_batched(solver=cp.MOREAU)
+
+    def test_moreau_quadratic_direct_cone_dual(self) -> None:
+        x = cp.Variable(2)
+        constraint = x >= 0
+        problem = cp.Problem(cp.Minimize(cp.sum_squares(x) / 2 - x[0] + x[1]),
+                             [constraint])
+        problem.solve(solver=cp.MOREAU)
+        self.assertItemsAlmostEqual(x.value, [1, 0], places=4)
+        self.assertItemsAlmostEqual(constraint.dual_value, [0, 1], places=4)
+
+    def test_moreau_quadratic_psd_scaling(self) -> None:
+        X = cp.Variable((2, 2), symmetric=True)
+        target = np.array([[1., 2.], [2., 1.]])
+        constraint = X >> 0
+        problem = cp.Problem(
+            cp.Minimize(cp.sum_squares(X) - 2 * cp.sum(cp.multiply(target, X))),
+            [constraint],
+        )
+        self.assertAlmostEqual(problem.solve(solver=cp.MOREAU), -9., places=4)
+        self.assertItemsAlmostEqual(X.value, np.full((2, 2), 1.5), places=4)
+        self.assertItemsAlmostEqual(constraint.dual_value, np.array([[1, -1], [-1, 1]]), places=4)
+
+    def test_moreau_mixed_slack_cone_order_with_direct_cone(self) -> None:
+        """PSD, EXP, and POW3D remain correctly ordered beside a direct cone."""
+        x = cp.Variable(nonneg=True)
+        X = cp.Variable((2, 2), symmetric=True)
+        e = cp.Variable(3)
+        p = cp.Variable(3)
+        constraints = [
+            X == 0,
+            e == 0,
+            p == 0,
+            X + np.eye(2) >> 0,
+            cp.constraints.ExpCone(e[0], e[1] + 1, e[2] + 2),
+            cp.constraints.PowCone3D(p[0] + 1, p[1] + 1, p[2] + 0.25, 0.4),
+        ]
+        prob = cp.Problem(cp.Minimize(0.5 * cp.square(x) - x), constraints)
+
+        data, _, _ = prob.get_problem_data(solver=cp.MOREAU)
+        dims = data[ConicSolver.DIMS]
+        self.assertEqual(dims.psd, [2])
+        self.assertEqual(dims.exp, 1)
+        self.assertItemsAlmostEqual(dims.p3d, [0.4])
+        self.assertIn('nonneg', [cone.kind for cone in data['dir_cones']])
+
+        value = prob.solve(
+            solver=cp.MOREAU,
+            ipm_settings={"presolve_enable": False, "equilibrate_enable": False},
+        )
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        self.assertAlmostEqual(value, -0.5, places=6)
+        self.assertAlmostEqual(x.value, 1.0, places=6)
 
 def is_mosek_available():
     """Check if MOSEK is installed and a license is available."""

@@ -15,7 +15,7 @@ limitations under the License.
 """
 from __future__ import annotations
 
-from typing import Literal, overload
+from typing import Literal, NamedTuple, TypedDict, overload
 
 import numpy as np
 import scipy.sparse as sp
@@ -55,6 +55,26 @@ from cvxpy.reductions.utilities import (
     lower_ineq_to_nonneg,
 )
 from cvxpy.utilities.coeff_extractor import CoeffExtractor
+
+
+class DirectConeExtras(TypedDict, total=False):
+    psd_k: int
+    alpha: float
+    alphas: list[float]
+    dim2: int
+
+
+class DirectCone(NamedTuple):
+    """A cone on a subvector of x, with its original constraint's dual ID.
+
+    PSD indices address unscaled upper-triangle entries in column-major
+    order. Solvers recover duals in the removed constraint's svec scaling.
+    """
+
+    kind: Literal['nonneg', 'soc', 'psd_triangle', 'exp', 'power', 'gen_power']
+    indices: list[int]
+    constr_id: int
+    extras: DirectConeExtras
 
 
 class ConeDims:
@@ -169,6 +189,7 @@ class ParamConeProg(ParamProb):
                  upper_bounds: np.ndarray | None = None,
                  lb_tensor=None,
                  ub_tensor=None,
+                 dir_cones: list[DirectCone] | None = None,
                  ) -> None:
         # The problem data tensors; q is for the objective, and A for
         # the problem data matrix
@@ -206,6 +227,8 @@ class ParamConeProg(ParamProb):
 
         # whether this param cone prog has been formatted for a solver
         self.formatted = formatted
+
+        self.dir_cones: list[DirectCone] = dir_cones if dir_cones is not None else []
 
     def is_mixed_integer(self) -> bool:
         """Is the problem mixed-integer?"""
