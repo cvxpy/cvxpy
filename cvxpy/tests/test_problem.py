@@ -2375,8 +2375,8 @@ class TestProblem(BaseTest):
 
     def test_constant_solver_duals(self) -> None:
         """Test that ConstantSolver returns zero dual values for feasible problems."""
-        # Satisfied inequality constraint
-        prob = Problem(cp.Minimize(1), [2 >= 1])
+        # Satisfied scalar inequality constraint
+        prob = Problem(cp.Minimize(1), [cp.Constant(2) >= cp.Constant(1)])
         prob.solve()
         self.assertEqual(prob.status, s.OPTIMAL)
         self.assertEqual(prob.constraints[0].dual_value, 0.0)
@@ -2387,23 +2387,50 @@ class TestProblem(BaseTest):
         self.assertEqual(prob.status, s.OPTIMAL)
         self.assertEqual(prob.constraints[0].dual_value, 0.0)
 
-        # Multiple constraints
-        prob = Problem(cp.Minimize(1), [2 >= 1, 3 >= 2])
+        # Satisfied multiple constraints
+        prob = Problem(cp.Minimize(1), [cp.Constant(2) >= cp.Constant(1), cp.Constant(3) >= cp.Constant(2)])
         prob.solve()
         self.assertEqual(prob.status, s.OPTIMAL)
         for c in prob.constraints:
             self.assertEqual(c.dual_value, 0.0)
 
-        # Vector constraint
+        # Vector inequality constraint
         prob = Problem(cp.Minimize(1),
                        [cp.Constant(np.array([2, 3, 4])) >= cp.Constant(np.array([1, 2, 3]))])
         prob.solve()
         self.assertEqual(prob.status, s.OPTIMAL)
         self.assertItemsAlmostEqual(prob.constraints[0].dual_value, [0, 0, 0])
 
-        # Infeasible problem (dual should be None)
-        prob = Problem(cp.Minimize(1), [0 >= 1])
+        # Infeasible inequality constraint (dual is None)
+        prob = Problem(cp.Minimize(1), [cp.Constant(0) >= cp.Constant(1)])
         prob.solve()
         self.assertEqual(prob.status, s.INFEASIBLE)
         self.assertIsNone(prob.constraints[0].dual_value)
+
+        # Parameter-only problem reaches ConstantSolver and tracks the Parameter value.
+        # Feasible at value=2 -> optimal with zero dual; infeasible at value=0 -> None.
+        p = cp.Parameter(value=2)
+        prob = Problem(cp.Minimize(1), [p >= 1])
+        prob.solve()
+        self.assertEqual(prob.status, s.OPTIMAL)
+        self.assertEqual(prob.constraints[0].dual_value, 0.0)
+
+        p.value = 0
+        prob.solve()
+        self.assertEqual(prob.status, s.INFEASIBLE)
+        self.assertIsNone(prob.constraints[0].dual_value)
+
+        # Explicit constant SOC reaches ConstantSolver with a zero dual.
+        prob = Problem(cp.Minimize(1),
+                       [cp.SOC(cp.Constant(1), cp.Constant([1.0, 0.0]))])
+        prob.solve()
+        self.assertEqual(prob.status, s.OPTIMAL)
+        dv = prob.constraints[0].dual_value
+        # SOC duals are stored as a two-element list, not a tuple.
+        self.assertIsInstance(dv, list)
+        self.assertEqual(len(dv), 2)
+        self.assertEqual(dv[0].shape, (1,))
+        self.assertEqual(dv[1].shape, (2, 1))
+        self.assertTrue(np.all(dv[0] == 0.0))
+        self.assertTrue(np.all(dv[1] == 0.0))
 
