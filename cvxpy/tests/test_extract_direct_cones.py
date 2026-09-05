@@ -20,7 +20,7 @@ import cvxpy as cp
 from cvxpy.constraints import PSD, SOC, ExpCone, NonNeg, PowCone3D, PowConeND, SvecPSD
 from cvxpy.reductions.chain import Chain
 from cvxpy.reductions.cone2cone.exact import ExactCone2Cone
-from cvxpy.reductions.cone2cone.extract_identity_cones import ExtractIdentityCones
+from cvxpy.reductions.cone2cone.extract_direct_cones import ExtractDirectCones
 from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
 from cvxpy.reductions.dcp2cone.dcp2cone import Dcp2Cone
@@ -30,11 +30,11 @@ from cvxpy.utilities.psd_utils import TriangleKind
 from cvxpy.utilities.solver_context import SolverInfo
 
 
-class TestExtractIdentityCones(BaseTest):
+class TestExtractDirectCones(BaseTest):
     CONTEXT = SolverInfo(
         supported_constraints={NonNeg, SOC, SvecPSD, ExpCone, PowCone3D, PowConeND},
         psd_triangle_kind=TriangleKind.UPPER, psd_sqrt2_scaling=True,
-        x_cone_kinds={'nonneg', 'soc', 'psd_triangle', 'exp', 'power', 'gen_power'},
+        dir_cone_kinds={'nonneg', 'soc', 'psd_triangle', 'exp', 'power', 'gen_power'},
     )
 
     @classmethod
@@ -64,21 +64,21 @@ class TestExtractIdentityCones(BaseTest):
             (PowConeND(x.T, t, alpha.T, axis=1), 'gen_power', [4, 4],
              [{'alphas': a.tolist(), 'dim2': 1} for a in alpha.T]),
         ]
-        reduction = ExtractIdentityCones(self.CONTEXT)
+        reduction = ExtractDirectCones(self.CONTEXT)
         for constraint, kind, sizes, extras in cases:
             with self.subTest(kind=kind, constraint=constraint):
                 original = self.stuff(cp.Problem(cp.Minimize(0), [constraint]))
                 original = ConicSolver.format_constraints(original, [0, 1, 2])
                 result, inverse = reduction.apply(original)
                 self.assertIsNone(inverse)
-                self.assertEqual([c.kind for c in result.x_cones], [kind] * len(sizes))
-                self.assertEqual([len(c.indices) for c in result.x_cones], sizes)
-                self.assertEqual([c.extras for c in result.x_cones], extras)
-                self.assertEqual([c.constr_id for c in result.x_cones],
+                self.assertEqual([c.kind for c in result.dir_cones], [kind] * len(sizes))
+                self.assertEqual([len(c.indices) for c in result.dir_cones], sizes)
+                self.assertEqual([c.extras for c in result.dir_cones], extras)
+                self.assertEqual([c.constr_id for c in result.dir_cones],
                                  [original.constraints[0].id] * len(sizes))
                 self.assertEqual(result.constr_size, 0)
                 _, _, A, b = original.apply_parameters()
-                indices = np.concatenate([c.indices for c in result.x_cones])
+                indices = np.concatenate([c.indices for c in result.dir_cones])
                 self.assertEqual(len(set(indices)), sum(sizes))
                 expected = np.ones(sum(sizes))
                 if kind == 'psd_triangle':
@@ -97,32 +97,32 @@ class TestExtractIdentityCones(BaseTest):
         for expr in expressions:
             with self.subTest(expr=expr):
                 original = self.stuff(cp.Problem(cp.Minimize(0), [expr >= 0]))
-                result, _ = ExtractIdentityCones(self.CONTEXT).apply(original)
-                self.assertEqual(result.x_cones, [])
+                result, _ = ExtractDirectCones(self.CONTEXT).apply(original)
+                self.assertEqual(result.dir_cones, [])
                 self.assertEqual(result.constr_size, 4)
 
     def test_disjointness_and_repeated_apply(self):
         x = cp.Variable(3)
         constraints = [NonNeg(x), SOC(x[0], x[1:])]
         original = self.stuff(cp.Problem(cp.Minimize(0), constraints))
-        reduction = ExtractIdentityCones(self.CONTEXT)
+        reduction = ExtractDirectCones(self.CONTEXT)
         result, _ = reduction.apply(original)
-        self.assertEqual([c.kind for c in result.x_cones], ['nonneg'])
+        self.assertEqual([c.kind for c in result.dir_cones], ['nonneg'])
         self.assertEqual([c.id for c in result.constraints], [constraints[1].id])
         again, _ = reduction.apply(result)
         self.assertIs(again, result)
-        self.assertEqual(len(again.x_cones), 1)
+        self.assertEqual(len(again.dir_cones), 1)
 
     def test_opt_in_and_integer_variables(self):
         x = cp.Variable(2, integer=True)
         original = self.stuff(cp.Problem(cp.Minimize(cp.sum(x)), [x >= 0]))
-        result, inverse = ExtractIdentityCones().apply(original)
+        result, inverse = ExtractDirectCones().apply(original)
         self.assertIs(result, original)
         self.assertIsNone(inverse)
-        result, _ = ExtractIdentityCones(self.CONTEXT).apply(original)
-        self.assertEqual([c.kind for c in result.x_cones], ['nonneg'])
+        result, _ = ExtractDirectCones(self.CONTEXT).apply(original)
+        self.assertEqual([c.kind for c in result.dir_cones], ['nonneg'])
         self.assertEqual(result.x.integer_idx, original.x.integer_idx)
-        self.assertIs(ExtractIdentityCones().invert(result, None), result)
+        self.assertIs(ExtractDirectCones().invert(result, None), result)
 
     def test_parameter_updates_and_kept_rows(self):
         """Extraction keeps the parameter tensor valid after values change."""
@@ -133,8 +133,8 @@ class TestExtractIdentityCones(BaseTest):
         problem = cp.Problem(cp.Minimize(cp.sum(x)), constraints)
         original = self.stuff(problem)
         original = ConicSolver.format_constraints(original, [0, 1, 2])
-        result, _ = ExtractIdentityCones(self.CONTEXT).apply(original)
-        self.assertEqual([c.kind for c in result.x_cones], ['nonneg'])
+        result, _ = ExtractDirectCones(self.CONTEXT).apply(original)
+        self.assertEqual([c.kind for c in result.dir_cones], ['nonneg'])
         kept = [0, 4, 5, 6]  # equality, then the nonidentity NonNeg block
         for a.value, b.value in [(np.ones(3), 1.), (np.array([2., -1., 0.5]), 3.)]:
             _, _, A, offset = original.apply_parameters()
@@ -147,7 +147,7 @@ class TestExtractIdentityCones(BaseTest):
             reconstructed = cp.Problem(cp.Minimize(q @ y + d),
                                        [new_A[:1] @ y + new_offset[:1] == 0,
                                         new_A[1:] @ y + new_offset[1:] >= 0,
-                                        y[result.x_cones[0].indices] >= 0])
+                                        y[result.dir_cones[0].indices] >= 0])
             expected = problem.solve(solver=cp.CLARABEL)
             self.assertAlmostEqual(reconstructed.solve(solver=cp.CLARABEL), expected)
 
@@ -156,7 +156,7 @@ class TestExtractIdentityCones(BaseTest):
         t = cp.Variable()
         y = cp.Variable()
         original = self.stuff(cp.Problem(cp.Minimize(t + y), [SOC(t, x), y >= 0]))
-        first, _ = ExtractIdentityCones(SolverInfo(x_cone_kinds={'nonneg'})).apply(original)
-        result, _ = ExtractIdentityCones(self.CONTEXT).apply(first)
-        self.assertEqual([c.kind for c in result.x_cones], ['nonneg', 'soc'])
+        first, _ = ExtractDirectCones(SolverInfo(dir_cone_kinds={'nonneg'})).apply(original)
+        result, _ = ExtractDirectCones(self.CONTEXT).apply(first)
+        self.assertEqual([c.kind for c in result.dir_cones], ['nonneg', 'soc'])
         self.assertEqual(result.constr_size, 0)

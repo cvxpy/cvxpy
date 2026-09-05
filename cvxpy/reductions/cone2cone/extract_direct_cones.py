@@ -21,32 +21,32 @@ import scipy.sparse as sp
 
 from cvxpy.constraints import SOC, ExpCone, NonNeg, PowCone3D, PowConeND, SvecPSD
 from cvxpy.lin_ops.lin_op import CONSTANT_ID
-from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ParamConeProg, XCone
+from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import DirectCone, ParamConeProg
 from cvxpy.reductions.reduction import Reduction
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 
 
-def _unit_cones(constr, indices, values, kind, sizes, extras) -> list[XCone]:
+def _unit_cones(constr, indices, values, kind, sizes, extras) -> list[DirectCone]:
     if np.any(values != 1):
         return []
     cones = []
     start = 0
     for size, extra in zip(sizes, extras):
-        cones.append(XCone(kind, indices[start:start + size].tolist(), constr.id, extra))
+        cones.append(DirectCone(kind, indices[start:start + size].tolist(), constr.id, extra))
         start += size
     return cones
 
 
-def _extract_nonneg(constr, indices, values) -> list[XCone]:
+def _extract_nonneg(constr, indices, values) -> list[DirectCone]:
     return _unit_cones(constr, indices, values, 'nonneg', [constr.size], [{}])
 
 
-def _extract_soc(constr, indices, values) -> list[XCone]:
+def _extract_soc(constr, indices, values) -> list[DirectCone]:
     return _unit_cones(constr, indices, values, 'soc', constr.cone_sizes(),
                        [{}] * constr.num_cones())
 
 
-def _extract_psd(constr, indices, values) -> list[XCone]:
+def _extract_psd(constr, indices, values) -> list[DirectCone]:
     # Direct PSD indices refer to unscaled upper-triangle entries, while
     # SvecPSD rows multiply off-diagonal entries by sqrt(2).
     n = constr._n
@@ -56,22 +56,22 @@ def _extract_psd(constr, indices, values) -> list[XCone]:
     pattern[j * (j + 3) // 2] = 1
     if np.any(values != np.tile(pattern, constr.num_cones())):
         return []
-    return [XCone('psd_triangle', idx.tolist(), constr.id, {'psd_k': n})
+    return [DirectCone('psd_triangle', idx.tolist(), constr.id, {'psd_k': n})
             for idx in indices.reshape(-1, size)]
 
 
-def _extract_exp(constr, indices, values) -> list[XCone]:
+def _extract_exp(constr, indices, values) -> list[DirectCone]:
     count = constr.num_cones()
     return _unit_cones(constr, indices, values, 'exp', [3] * count, [{}] * count)
 
 
-def _extract_power(constr, indices, values) -> list[XCone]:
+def _extract_power(constr, indices, values) -> list[DirectCone]:
     # As in ConeDims, alpha is snapshotted; parameterized alpha is not DPP.
     extras = [{'alpha': float(a)} for a in np.asarray(constr.alpha.value).ravel()]
     return _unit_cones(constr, indices, values, 'power', [3] * constr.num_cones(), extras)
 
 
-def _extract_gen_power(constr, indices, values) -> list[XCone]:
+def _extract_gen_power(constr, indices, values) -> list[DirectCone]:
     # ConeMatrixStuffing normalizes PowConeND to axis=0.
     alpha = np.asarray(constr.alpha.value).reshape(-1, constr.num_cones())
     extras = [{'alphas': a.tolist(), 'dim2': 1} for a in alpha.T]
@@ -113,10 +113,10 @@ def _remove_rows(problem, reduced, rows, cols, keep):
     )
 
 
-class ExtractIdentityCones(Reduction):
+class ExtractDirectCones(Reduction):
     """Move identity-pattern slack cones onto disjoint subvectors of x.
 
-    Runs after ConeMatrixStuffing for solvers advertising X_CONE_KINDS.
+    Runs after ConeMatrixStuffing for solvers advertising DIR_CONE_KINDS.
     Detection uses the parameter tensor's structure, so extraction remains
     valid across DPP parameter updates. Cone order is CVXPY's standard
     order, with upper-triangle, sqrt(2)-scaled SvecPSD rows.
@@ -132,7 +132,7 @@ class ExtractIdentityCones(Reduction):
     }
 
     def __init__(self, solver_context=None) -> None:
-        kinds = solver_context.x_cone_kinds if solver_context is not None else ()
+        kinds = solver_context.dir_cone_kinds if solver_context is not None else ()
         self._extractors = {cls: extractor for cls, (kind, extractor) in self.EXTRACTORS.items()
                             if kind in kinds}
 
@@ -158,8 +158,8 @@ class ExtractIdentityCones(Reduction):
         cols = np.repeat(np.arange(problem.x.size + 1), np.diff(indptr))
         x_indices, values = _identity_rows(problem, reduced, rows, cols)
 
-        x_cones = list(problem.x_cones)
-        used = {idx for cone in x_cones for idx in cone.indices}
+        dir_cones = list(problem.dir_cones)
+        used = {idx for cone in dir_cones for idx in cone.indices}
         keep = np.ones(problem.constr_size, dtype=bool)
         constraints = []
         start = 0
@@ -173,7 +173,7 @@ class ExtractIdentityCones(Reduction):
                 if len(slots) == indices.size and used.isdisjoint(slots):
                     cones = extractor(constr, indices, values[start:stop])
             if cones:
-                x_cones.extend(cones)
+                dir_cones.extend(cones)
                 used.update(slots)
                 keep[start:stop] = False
             else:
@@ -189,7 +189,7 @@ class ExtractIdentityCones(Reduction):
             P=problem.P, formatted=True,
             lower_bounds=problem.lower_bounds, upper_bounds=problem.upper_bounds,
             lb_tensor=problem.lb_tensor, ub_tensor=problem.ub_tensor,
-            x_cones=x_cones,
+            dir_cones=dir_cones,
         ), None
 
     def invert(self, solution, inverse_data):

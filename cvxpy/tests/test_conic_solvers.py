@@ -909,7 +909,7 @@ class TestMoreau(BaseTest):
         self.assertAlmostEqual(prob.value, np.sqrt(5), places=4)
 
         data, _, _ = prob.get_problem_data(solver=cp.MOREAU)
-        self.assertEqual([len(c.indices) for c in data['x_cones'] if c.kind == 'soc'], [6])
+        self.assertEqual([len(c.indices) for c in data['dir_cones'] if c.kind == 'soc'], [6])
 
     def test_moreau_sdp_1min(self) -> None:
         StandardTestSDPs.test_sdp_1min(solver=cp.MOREAU)
@@ -950,8 +950,8 @@ class TestMoreau(BaseTest):
         self.assertItemsAlmostEqual(X.value, np.full((2, 2), 1.5), places=4)
         self.assertItemsAlmostEqual(constraint.dual_value, np.array([[1, -1], [-1, 1]]), places=4)
 
-    def test_moreau_mixed_slack_cone_order_with_direct_x(self) -> None:
-        """PSD, EXP, and POW3D remain correctly ordered beside a direct-x cone."""
+    def test_moreau_mixed_slack_cone_order_with_direct_cone(self) -> None:
+        """PSD, EXP, and POW3D remain correctly ordered beside a direct cone."""
         x = cp.Variable(nonneg=True)
         X = cp.Variable((2, 2), symmetric=True)
         e = cp.Variable(3)
@@ -971,7 +971,7 @@ class TestMoreau(BaseTest):
         self.assertEqual(dims.psd, [2])
         self.assertEqual(dims.exp, 1)
         self.assertItemsAlmostEqual(dims.p3d, [0.4])
-        self.assertIn('nonneg', [kind for kind, *_ in data.get('x_cones', [])])
+        self.assertIn('nonneg', [cone.kind for cone in data['dir_cones']])
 
         value = prob.solve(
             solver=cp.MOREAU,

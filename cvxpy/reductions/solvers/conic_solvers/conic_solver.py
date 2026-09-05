@@ -308,7 +308,7 @@ class ConicSolver(Solver):
             upper_bounds=problem.upper_bounds,
             lb_tensor=problem.lb_tensor,
             ub_tensor=problem.ub_tensor,
-            x_cones=problem.x_cones,
+            dir_cones=problem.dir_cones,
         )
         return new_param_cone_prog
 

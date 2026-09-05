@@ -72,12 +72,12 @@ class MOREAU(ConicSolver):
     # Solver capabilities
     MIP_CAPABLE = False
     BOUNDED_VARIABLES = False
-    X_CONE_KINDS = frozenset({'nonneg', 'soc', 'psd_triangle', 'exp', 'power', 'gen_power'})
+    DIR_CONE_KINDS = frozenset({'nonneg', 'soc', 'psd_triangle', 'exp', 'power', 'gen_power'})
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [
         SOC, ExpCone, PowCone3D, PowConeND, SvecPSD,
     ]
     REQUIRED_MODULES = ("moreau",)
-    # Moreau's psd_triangle direct-x cone uses upper-triangle column-major
+    # Moreau's psd_triangle direct cone uses upper-triangle column-major
     # ordering with sqrt(2) scaling on off-diagonals (as in CLARABEL).
     PSD_TRIANGLE_KIND = TriangleKind.UPPER
     PSD_SQRT2_SCALING = True
@@ -126,7 +126,7 @@ class MOREAU(ConicSolver):
     def apply(self, problem):
         """Forward extracted cones alongside the usual slack-side solver data."""
         data, inv_data = super().apply(problem)
-        data['x_cones'] = problem.x_cones
+        data['dir_cones'] = problem.dir_cones
         return data, inv_data
 
     def invert(self, solution, inverse_data):
@@ -165,10 +165,10 @@ class MOREAU(ConicSolver):
             dual_vars = {}
             dual_vars.update(eq_dual_vars)
             dual_vars.update(ineq_dual_vars)
-            # x_cone duals (computed in solve_via_data from the KKT
+            # Direct cone duals (computed in solve_via_data from the KKT
             # residual P x + q + A.T z) are keyed by their original
             # constraint id and slot in directly.
-            dual_vars.update(solution.x_cone_duals)
+            dual_vars.update(solution.dir_cone_duals)
             return Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
             return failure_solution(status, attr)
@@ -268,17 +268,15 @@ class MOREAU(ConicSolver):
         # Convert cone dimensions
         cones = dims_to_solver_cones(data[ConicSolver.DIMS])
 
-        # Direct-x cones from ExtractIdentityCones: subvectors of the
-        # primal variable that ride the XConeSpec path instead of
-        # being slack-side cones.
-        x_cones_meta = data['x_cones']
-        cones.x_cones = [moreau.XConeSpec(kind=c.kind, indices=c.indices, **c.extras)
-                         for c in x_cones_meta]
+        # Forward extracted cones on subvectors of the primal variable.
+        dir_cones_meta = data['dir_cones']
+        cones.dir_cones = [moreau.DirectConeSpec(kind=c.kind, indices=c.indices, **c.extras)
+                           for c in dir_cones_meta]
 
         # Moreau's direct PSD variables are scaled svec entries. CVXPY's
         # symmetric variables store unscaled entries, so use x_solver = D x.
         scale = np.ones(q.size)
-        for cone in x_cones_meta:
+        for cone in dir_cones_meta:
             if cone.kind == 'psd_triangle':
                 n = cone.extras['psd_k']
                 j = np.arange(n)
@@ -311,24 +309,24 @@ class MOREAU(ConicSolver):
         wrapped = MoreauSolution(solution, info)
         if solution.x is not None:
             wrapped.x = solution.x / scale
-        # Recover x_cone duals from the KKT residual:
+        # Recover direct cone duals from the KKT residual:
         #   μ_block = (P x + q + A.T z)[x_indices]
         # in solver coordinates, including the removed SvecPSD rows' scaling.
-        if x_cones_meta and solution.z is not None:
+        if dir_cones_meta and solution.z is not None:
             kkt_resid = P @ solution.x + q + A.T @ solution.z
-            # A single constraint may emit multiple XConeSpec entries
+            # A single constraint may emit multiple DirectConeSpec entries
             # (multi-cone SOC / SvecPSD); accumulate per-cone slices in
             # iteration order and concatenate to recover the full
             # per-constraint dual.
             partials: dict[int, list] = {}
-            for cone in x_cones_meta:
+            for cone in dir_cones_meta:
                 partials.setdefault(cone.constr_id, []).append(kkt_resid[cone.indices])
-            wrapped.x_cone_duals = {
+            wrapped.dir_cone_duals = {
                 cid: parts[0] if len(parts) == 1 else np.concatenate(parts)
                 for cid, parts in partials.items()
             }
         else:
-            wrapped.x_cone_duals = {}
+            wrapped.dir_cone_duals = {}
         return wrapped
 
     def cite(self, data):

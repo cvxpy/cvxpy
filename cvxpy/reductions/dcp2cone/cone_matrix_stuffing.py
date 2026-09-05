@@ -57,14 +57,14 @@ from cvxpy.reductions.utilities import (
 from cvxpy.utilities.coeff_extractor import CoeffExtractor
 
 
-class XConeExtras(TypedDict, total=False):
+class DirectConeExtras(TypedDict, total=False):
     psd_k: int
     alpha: float
     alphas: list[float]
     dim2: int
 
 
-class XCone(NamedTuple):
+class DirectCone(NamedTuple):
     """A cone on a subvector of x, with its original constraint's dual ID.
 
     PSD indices address unscaled upper-triangle entries in column-major
@@ -74,7 +74,7 @@ class XCone(NamedTuple):
     kind: Literal['nonneg', 'soc', 'psd_triangle', 'exp', 'power', 'gen_power']
     indices: list[int]
     constr_id: int
-    extras: XConeExtras
+    extras: DirectConeExtras
 
 
 class ConeDims:
@@ -189,7 +189,7 @@ class ParamConeProg(ParamProb):
                  upper_bounds: np.ndarray | None = None,
                  lb_tensor=None,
                  ub_tensor=None,
-                 x_cones: list[XCone] | None = None,
+                 dir_cones: list[DirectCone] | None = None,
                  ) -> None:
         # The problem data tensors; q is for the objective, and A for
         # the problem data matrix
@@ -228,7 +228,7 @@ class ParamConeProg(ParamProb):
         # whether this param cone prog has been formatted for a solver
         self.formatted = formatted
 
-        self.x_cones: list[XCone] = x_cones if x_cones is not None else []
+        self.dir_cones: list[DirectCone] = dir_cones if dir_cones is not None else []
 
     def is_mixed_integer(self) -> bool:
         """Is the problem mixed-integer?"""

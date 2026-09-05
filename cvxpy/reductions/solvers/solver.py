@@ -111,7 +111,7 @@ class Solver(Reduction):
     MIP_CAPABLE = False
     BOUNDED_VARIABLES = False
     # Cone families supported directly on subvectors of the primal variable.
-    X_CONE_KINDS: frozenset[str] = frozenset()
+    DIR_CONE_KINDS: frozenset[str] = frozenset()
     SOC_DIM3_ONLY = False
 
     # PSD constraint format. Overridden by solvers that support PSD constraints.
