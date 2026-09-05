@@ -30,7 +30,7 @@ or a conda environment.
 
         ::
 
-            pip install "cvxpy[CBC,CVXOPT,GLOP,GLPK,GUROBI,MOSEK,PDLP,SCIP,XPRESS,KNITRO]"
+            pip install "cvxpy[CBC,CVXOPT,GLOP,GLPK,GUROBI,MOREAU,MOSEK,PDLP,SCIP,XPRESS,KNITRO]"
 
     .. tab:: conda
 
