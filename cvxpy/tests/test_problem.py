@@ -2388,7 +2388,9 @@ class TestProblem(BaseTest):
         self.assertEqual(prob.constraints[0].dual_value, 0.0)
 
         # Satisfied multiple constraints
-        prob = Problem(cp.Minimize(1), [cp.Constant(2) >= cp.Constant(1), cp.Constant(3) >= cp.Constant(2)])
+        prob = Problem(cp.Minimize(1), [
+            cp.Constant(2) >= cp.Constant(1),
+            cp.Constant(3) >= cp.Constant(2)])
         prob.solve()
         self.assertEqual(prob.status, s.OPTIMAL)
         for c in prob.constraints:
