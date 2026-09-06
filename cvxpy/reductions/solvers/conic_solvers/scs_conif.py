@@ -211,6 +211,15 @@ class SCS(ConicSolver):
             else:
                 solver_opts['eps_abs'] = solver_opts.get('eps_abs', 1e-5)
                 solver_opts['eps_rel'] = solver_opts.get('eps_rel', 1e-5)
+            if Version(scs.__version__) >= Version('3.3.0') \
+                    and "use_indirect" in solver_opts:
+                # SCS 3.3.0 replaced the boolean `use_indirect` setting with the
+                # `linear_solver` enum. Translate so that user code written
+                # against earlier 3.x releases keeps working.
+                use_indirect = solver_opts.pop("use_indirect")
+                solver_opts.setdefault(
+                    "linear_solver", "cpu_indirect" if use_indirect else "qdldl"
+                )
         # use_quad_obj is only for canonicalization.
         if "use_quad_obj" in solver_opts:
             del solver_opts["use_quad_obj"]

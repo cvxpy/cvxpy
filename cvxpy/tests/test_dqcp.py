@@ -483,7 +483,7 @@ class TestDqcp(base_test.BaseTest):
         a = np.ones(2)
         b = np.zeros(2)
         problem = cp.Problem(cp.Minimize(cp.dist_ratio(x, a, b)), [x <= 0.8])
-        problem.solve(cp.SCS, qcp=True)
+        problem.solve(SOLVER, qcp=True)
         np.testing.assert_almost_equal(problem.objective.value, 0.25, decimal=3)
         np.testing.assert_almost_equal(x.value, np.array([0.8, 0.8]), decimal=3)
 

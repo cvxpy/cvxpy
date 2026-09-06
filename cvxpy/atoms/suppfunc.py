@@ -115,7 +115,10 @@ class SuppFuncAtom(Atom):
             dummy = Variable()
             cons = [dummy == 1]
         prob = Problem(Maximize(y_val @ x_flat), cons)
-        val = prob.solve(solver='SCS', eps=1e-6)
+        # Solve well below the 1e-6 accuracy callers typically check the
+        # value against; at eps=1e-6 the returned value carried an error of
+        # the same magnitude as the tolerance itself.
+        val = prob.solve(solver='SCS', eps=1e-8)
         return val
 
     def _grad(self, values):

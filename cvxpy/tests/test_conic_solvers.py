@@ -181,6 +181,29 @@ class TestSCS(BaseTest):
         self.assertAlmostEqual(prob.value, 1.0, places=2)
         self.assertItemsAlmostEqual(x.value, [0, 0], places=2)
 
+    def test_scs_use_indirect_translation(self) -> None:
+        """SCS 3.3.0 replaced ``use_indirect`` with the ``linear_solver`` enum.
+        """
+        import scs
+
+        from cvxpy.reductions.solvers.conic_solvers.scs_conif import (
+            SCS as SCS_interface,
+        )
+        from cvxpy.utilities.versioning import Version
+        if Version(scs.__version__) < Version('3.3.0'):
+            self.skipTest('use_indirect is still accepted by SCS < 3.3.0')
+        opts = SCS_interface.parse_solver_options({'use_indirect': True})
+        self.assertEqual(opts['linear_solver'], 'cpu_indirect')
+        self.assertNotIn('use_indirect', opts)
+
+        opts = SCS_interface.parse_solver_options({'use_indirect': False})
+        self.assertEqual(opts['linear_solver'], 'qdldl')
+
+        # An explicit linear_solver takes precedence over the translation.
+        opts = SCS_interface.parse_solver_options(
+            {'use_indirect': True, 'linear_solver': 'qdldl'})
+        self.assertEqual(opts['linear_solver'], 'qdldl')
+
     def test_log_problem(self) -> None:
         # Log in objective.
         obj = cp.Maximize(cp.sum(cp.log(self.x)))
