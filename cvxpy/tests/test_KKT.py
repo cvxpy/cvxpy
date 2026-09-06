@@ -342,7 +342,7 @@ class TestKKT_Flags(BaseTest):
     """
     def test_kkt_nsd_var(self, places=4):
         sth = TestKKT_Flags.nsd_flag()
-        sth.solve(solver='SCS')
+        sth.solve(solver='SCS', eps=1e-8)
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
         sth.check_dual_domains(places)
@@ -350,7 +350,7 @@ class TestKKT_Flags(BaseTest):
 
     def test_kkt_psd_var(self, places=4):
         sth = TestKKT_Flags.psd_flag()
-        sth.solve(solver='SCS')
+        sth.solve(solver='SCS', eps=1e-8)
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
         sth.check_dual_domains(places)
@@ -358,7 +358,7 @@ class TestKKT_Flags(BaseTest):
 
     def test_kkt_symmetric_var(self, places=4):
         sth = TestKKT_Flags.symmetric_flag()
-        sth.solve(solver='SCS')
+        sth.solve(solver='SCS', eps=1e-8)
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
         sth.check_dual_domains(places)
@@ -366,7 +366,7 @@ class TestKKT_Flags(BaseTest):
 
     def test_kkt_nonneg_var(self, places=4):
         sth = TestKKT_Flags.nonneg_flag()
-        sth.solve(solver='SCS')
+        sth.solve(solver='SCS', eps=1e-8)
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
         sth.check_dual_domains(places)
@@ -374,7 +374,7 @@ class TestKKT_Flags(BaseTest):
 
     def test_kkt_nonpos_var(self, places=4):
         sth = TestKKT_Flags.nonpos_flag()
-        sth.solve(solver='SCS')
+        sth.solve(solver='SCS', eps=1e-8)
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
         sth.check_dual_domains(places)
