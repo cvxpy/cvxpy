@@ -16,6 +16,7 @@ limitations under the License.
 
 import unittest
 from fractions import Fraction
+from unittest.mock import patch
 
 import numpy as np
 import pytest
@@ -2996,6 +2997,28 @@ class TestAtoms(BaseTest):
         """real(symmetric) is symmetric."""
         S = Variable((3, 3), symmetric=True)
         self.assertTrue(cp.real(S).is_symmetric())
+
+    def test_sum_scalar_axes(self):
+        scalar = cp.Parameter(value=2.0)
+        for axis in (None, 0, -1, np.int64(0), np.int64(-1), ()):
+            for keepdims in (False, True):
+                with self.subTest(axis=axis, keepdims=keepdims):
+                    expected = np.sum(scalar.value, axis=axis, keepdims=keepdims)
+                    expr = cp.sum(scalar, axis=axis, keepdims=keepdims)
+                    self.assertEqual(expr.shape, expected.shape)
+                    self.assertEqual(expr.value, expected)
+                    self.assertTrue(expr.is_dpp())
+        for axis in (1, -2, (0,), (-1,), (0, -1), 0.0, False):
+            with self.subTest(axis=axis):
+                with self.assertRaisesRegex(ValueError, "Invalid arguments for cp.sum"):
+                    cp.sum(scalar, axis=axis)
+
+    def test_sum_shape_without_allocation(self):
+        x = cp.Variable((2, 3, 4))
+        with patch("numpy.empty", side_effect=AssertionError("Shape inference allocated")):
+            with np.errstate(all="raise"):
+                self.assertEqual(cp.sum(x, axis=(0, -1)).shape, (3,))
+                self.assertEqual(cp.sum(x, axis=(), keepdims=True).shape, x.shape)
 
     def test_sum_shape_inference(self):
         """

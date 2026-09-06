@@ -93,6 +93,14 @@ class Sum(AxisAtom, AffAtom):
         ndim = len(input_shape)
         if self.axis is None:
             return (1,) * ndim if self.keepdims else ()
+        # NumPy accepts integer axes 0 and -1 for scalars, but not tuple axes.
+        if (
+            ndim == 0
+            and isinstance(self.axis, (int, np.integer))
+            and not isinstance(self.axis, (bool, np.bool_))
+            and self.axis in (0, -1)
+        ):
+            return ()
         try:
             axes = normalize_axis_tuple(self.axis, ndim)
         except (ValueError, AxisError, TypeError) as e:
