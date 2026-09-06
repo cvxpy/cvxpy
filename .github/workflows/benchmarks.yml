@@ -7,5 +7,5 @@ on:
 
 jobs:
   benchmark:
-    uses: cvxpy/actions/.github/workflows/benchmarks.yml@main
+    uses: cvxpy/actions/.github/workflows/benchmarks.yml@cfcc3f4309e2c50221f21ff4070be3a9de4ccdf1 # main as of 2026-07-07
     secrets: inherit
