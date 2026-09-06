@@ -82,7 +82,12 @@ description = "A domain-specific language for modeling convex optimization probl
 dependencies = [
     "osqp >= 1.0.0",
     "clarabel >= 0.5.0",
-    "scs >= 3.2.4.post1",
+    # SCS 3.3.0 replaced the boolean solver-selection flags (use_indirect,
+    # gpu, mkl, cudss) with a `linear_solver` enum, and its new equilibration
+    # changes delivered accuracy enough to move results that tests and
+    # downstream derivative code depend on. See bodono/scs-python#235 and
+    # cvxpy/cvxpylayers#244. Pinned below 3.3.0 until that is sorted out.
+    "scs >= 3.2.4.post1, < 3.3.0",
     "numpy >= 2.0.0",
     "scipy >= 1.13.0",
     # HiGHS < 1.14.0 only honors the lower triangle in `kTriangular` Hessian
