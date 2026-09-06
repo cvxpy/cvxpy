@@ -37,6 +37,7 @@ from cvxpy.problems.problem_form import ProblemForm
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.conic_solvers.cuopt_conif import CUOPT
 from cvxpy.reductions.solvers.conic_solvers.cvxopt_conif import compress_matrix
+from cvxpy.reductions.solvers.conic_solvers.scs_conif import SCS
 from cvxpy.reductions.solvers.defines import (
     INSTALLED_MI_SOLVERS,
     INSTALLED_SOLVERS,
@@ -175,11 +176,30 @@ class TestSCS(BaseTest):
         EPS = 1e-4
         x = cp.Variable(2, name='x')
         prob = cp.Problem(cp.Minimize(cp.norm(x, 1) + 1.0), [x == 0])
-        for i in range(2):
-            prob.solve(solver=cp.SCS, max_iters=50, eps=EPS, alpha=1.2,
-                       verbose=True, normalize=True, use_indirect=False)
-        self.assertAlmostEqual(prob.value, 1.0, places=2)
-        self.assertItemsAlmostEqual(x.value, [0, 0], places=2)
+        for indirect in (False, True):
+            for _ in range(2):
+                prob.solve(solver=cp.SCS, max_iters=50, eps=EPS, alpha=1.2,
+                           verbose=True, normalize=True, use_indirect=indirect)
+            self.assertAlmostEqual(prob.value, 1.0, places=2)
+            self.assertItemsAlmostEqual(x.value, [0, 0], places=2)
+
+    def test_scs_linear_solver_options(self) -> None:
+        for version in ("3.2.11", "3.3.0", "3.3.1"):
+            for indirect in (False, True):
+                with self.subTest(version=version, indirect=indirect):
+                    with mock.patch("scs.__version__", version):
+                        options = SCS.parse_solver_options({"use_indirect": indirect})
+                    if Version(version) < Version("3.3.0"):
+                        self.assertEqual(options["use_indirect"], indirect)
+                    else:
+                        self.assertNotIn("use_indirect", options)
+                        self.assertEqual(options["linear_solver"],
+                                         "cpu_indirect" if indirect else "qdldl")
+        with mock.patch("scs.__version__", "3.3.1"):
+            self.assertEqual(SCS.parse_solver_options({"linear_solver": "auto"})[
+                "linear_solver"], "auto")
+            with self.assertRaisesRegex(ValueError, "Specify only one"):
+                SCS.parse_solver_options({"use_indirect": True, "linear_solver": "qdldl"})
 
     def test_log_problem(self) -> None:
         # Log in objective.

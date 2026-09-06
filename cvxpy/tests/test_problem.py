@@ -652,7 +652,7 @@ class TestProblem(BaseTest):
     def test_variable_name_conflict(self) -> None:
         var = Variable(name='a')
         p = Problem(cp.Maximize(self.a + var), [var == 2 + self.a, var <= 3])
-        result = p.solve(solver=cp.SCS, eps=1e-5)
+        result = p.solve(solver=cp.CLARABEL)
         self.assertAlmostEqual(result, 4.0)
         self.assertAlmostEqual(self.a.value, 1)
         self.assertAlmostEqual(var.value, 3)

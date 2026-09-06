@@ -8,10 +8,13 @@ on:
 
 jobs:
   claude-review:
-    # Run if PR opened OR if someone comments /claude-review on a PR
+    # Fork pull_request events cannot access the OAuth secret or request OIDC.
+    # Maintainers can still request a fork review with /claude-review.
+    # Run if a same-repository PR opens OR a maintainer requests a review.
     # Important to check author association to prevent prompt injection attacks
     if: |
       (github.event_name == 'pull_request' &&
+       github.event.pull_request.head.repo.full_name == github.repository &&
        (github.event.pull_request.author_association == 'MEMBER' ||
         github.event.pull_request.author_association == 'OWNER' ||
         github.event.pull_request.author_association == 'COLLABORATOR')) ||
