@@ -136,12 +136,15 @@ class QpSolver(Solver):
             F, g = sp.csr_array((0, n)), -np.array([])
 
         # Create dictionary with problem data
-        data[s.P] = sp.csc_array(P)
+        data[s.P] = P
         data[s.Q] = q
-        data[s.A] = sp.csc_array(A)
+        data[s.A] = A
         data[s.B] = b
-        data[s.F] = sp.csc_array(F)
+        data[s.F] = F
         data[s.G] = g
+        data['AF'] = AF
+        data['bg'] = bg
+        data['len_eq'] = len_eq
         data[s.BOOL_IDX] = [t[0] for t in problem.x.boolean_idx]
         data[s.INT_IDX] = [t[0] for t in problem.x.integer_idx]
         data[s.LOWER_BOUNDS] = problem.lower_bounds
