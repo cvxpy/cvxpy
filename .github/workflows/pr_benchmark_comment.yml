@@ -8,4 +8,4 @@ on:
 
 jobs:
   comment_pr:
-    uses: cvxpy/actions/.github/workflows/pr_benchmark_comment.yml@cfcc3f4309e2c50221f21ff4070be3a9de4ccdf1 # main as of 2026-07-07
+    uses: cvxpy/actions/.github/workflows/pr_benchmark_comment.yml@main
