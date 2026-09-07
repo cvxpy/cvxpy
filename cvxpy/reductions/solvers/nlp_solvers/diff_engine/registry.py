@@ -46,6 +46,45 @@ def convert_conv(expr, children):
     return _diffengine.make_convolve(children[0], children[1])
 
 
+def convert_kron(expr, children):
+    """Convert cp.kron(A, B) to the engine's left/right kron binding.
+
+    kron requires one variable-free operand; that operand may be parametric, in
+    which case the engine re-evaluates it each solve.
+
+    The engine materializes output rows only for the ``active`` blocks: the
+    variable-free operand's structurally nonzero entries, as column-major flat
+    indices. A parametric operand gets every block, since its values change
+    between solves. Indices are bounded by the variable-free operand's size (not
+    by the much larger kron output), so the int32 the bindings take is safe here.
+    """
+    a, b = expr.args
+    if not (a.is_constant() or b.is_constant()):
+        raise ValueError("kron requires at least one variable-free operand.")
+    const_is_left = a.is_constant()
+    const_expr = a if const_is_left else b
+    const_node = children[0] if const_is_left else children[1]
+    var_node = children[1] if const_is_left else children[0]
+    a_rows, a_cols = normalize_shape(a.shape)
+    b_rows, b_cols = normalize_shape(b.shape)
+    n_rows = a_rows if const_is_left else b_rows
+
+    if const_expr.parameters():
+        active = np.arange(const_expr.size)
+    else:
+        val = const_expr.value
+        if sparse.issparse(val):
+            coo = val.tocoo()
+            nonzero = coo.data != 0  # drop stored-but-zero entries
+            active = np.unique(coo.row[nonzero] + coo.col[nonzero] * n_rows)
+        else:
+            active = np.flatnonzero(to_dense_float(val).flatten(order="F"))
+    active = active.astype(np.int32)
+
+    make_kron = _diffengine.make_left_kron if const_is_left else _diffengine.make_right_kron
+    return make_kron(const_node, var_node, a_rows, a_cols, b_rows, b_cols, active)
+
+
 def convert_div(expr, children):
     """Convert x / c by multiplying x by the elementwise reciprocal of c.
 
@@ -311,6 +350,8 @@ ATOM_CONVERTERS = {
     # 1D full convolution
     "conv": convert_conv,
     "convolve": convert_conv,
+    # Kronecker product
+    "kron": convert_kron,
     "Trace": convert_trace,
     # Diagonal and triangular
     "diag_vec": convert_diag_vec,
