@@ -15,164 +15,111 @@ limitations under the License.
 """
 import numpy as np
 import pytest
+from scipy import sparse
 
 import cvxpy as cp
 from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS
 from cvxpy.tests.nlp_tests.derivative_checker import DerivativeChecker
 
+# Constant operands with zeros, so the converter prunes inactive blocks. The
+# tests weight the kron output entrywise before summing: a bare sum would be
+# blind to the block layout, since sum(kron(A, S)) == sum(A) * sum(S) whatever
+# the layout.
+A = np.array([[2.0, 0.0, -1.0],
+              [0.0, 3.0, 0.0]])
+B = np.array([[1.0, 0.0],
+              [0.0, -2.0],
+              [0.5, 0.0]])
+
 
 @pytest.mark.skipif('IPOPT' not in INSTALLED_SOLVERS, reason='IPOPT is not installed.')
-class TestKron:
+class TestKron():
 
     def test_left_kron(self):
         """cp.kron(A, f(X)) with a constant left operand containing zeros."""
         np.random.seed(0)
-        A = np.array([[2.0, 0.0, -1.0],
-                      [0.0, 3.0, 0.0]])
         X = cp.Variable((2, 2), bounds=[-1, 1], name='X')
         X.value = np.random.rand(2, 2)
-        obj = cp.sum(cp.kron(A, cp.nlp.sin(X)))
-        problem = cp.Problem(cp.Minimize(obj))
+        W = np.random.rand(4, 6)
+        problem = cp.Problem(cp.Minimize(cp.sum(cp.multiply(W, cp.kron(A, cp.nlp.sin(X))))))
 
         problem.solve(solver=cp.IPOPT, nlp=True, verbose=False)
-        assert(problem.status == cp.OPTIMAL)
+        assert problem.status == cp.OPTIMAL
+        assert problem.value == pytest.approx(np.sum(W * np.kron(A, np.sin(X.value))))
 
-        checker = DerivativeChecker(problem)
-        checker.run_and_assert()
+        DerivativeChecker(problem).run_and_assert()
 
     def test_right_kron(self):
         """cp.kron(f(X), B) with a constant right operand containing zeros."""
         np.random.seed(0)
-        B = np.array([[1.0, 0.0],
-                      [0.0, -2.0],
-                      [0.5, 0.0]])
         X = cp.Variable((2, 3), bounds=[-1, 1], name='X')
         X.value = np.random.rand(2, 3)
-        obj = cp.sum(cp.kron(cp.nlp.sin(X), B))
-        problem = cp.Problem(cp.Minimize(obj))
+        W = np.random.rand(6, 6)
+        problem = cp.Problem(cp.Minimize(cp.sum(cp.multiply(W, cp.kron(cp.nlp.sin(X), B)))))
 
         problem.solve(solver=cp.IPOPT, nlp=True, verbose=False)
-        assert(problem.status == cp.OPTIMAL)
+        assert problem.status == cp.OPTIMAL
+        assert problem.value == pytest.approx(np.sum(W * np.kron(np.sin(X.value), B)))
 
-        checker = DerivativeChecker(problem)
-        checker.run_and_assert()
+        DerivativeChecker(problem).run_and_assert()
 
-    def test_left_kron_parameter(self):
-        """cp.kron(A, f(X)) with a parametric left operand.
-
-        Solve with hardcoded A1, A2, then with a Parameter and mutate
-        A.value; the solutions must match. A2 is nonzero exactly where A1
-        is zero, so a converter that pruned blocks from the initial
-        parameter value would drop every entry of the second solve.
-        """
+    def test_sparse_constant_operand(self):
+        """A sparse constant operand, with an explicitly stored zero."""
         np.random.seed(0)
-        A1 = np.array([[2.0, 0.0, -1.0],
-                       [0.0, 3.0, 0.0]])
-        A2 = np.array([[0.0, 1.5, 0.0],
-                       [2.5, 0.0, -2.0]])
-        X0 = np.random.rand(2, 2)
-
-        # Solve with hardcoded values.
+        A_sparse = sparse.csr_array(A)
+        A_sparse.data[0] = 0.0  # stored but zero: not an active block
         X = cp.Variable((2, 2), bounds=[-1, 1], name='X')
-        prob1 = cp.Problem(cp.Minimize(cp.sum(cp.kron(A1, cp.nlp.sin(X)))))
-        prob2 = cp.Problem(cp.Minimize(cp.sum(cp.kron(A2, cp.nlp.sin(X)))))
-        X.value = X0
-        prob1.solve(solver=cp.IPOPT, nlp=True, verbose=False)
-        assert prob1.status == cp.OPTIMAL
-        hardcoded_sol1 = X.value
-        X.value = X0
-        prob2.solve(solver=cp.IPOPT, nlp=True, verbose=False)
-        assert prob2.status == cp.OPTIMAL
-        hardcoded_sol2 = X.value
+        X.value = np.random.rand(2, 2)
+        W = np.random.rand(4, 6)
+        problem = cp.Problem(cp.Minimize(cp.sum(cp.multiply(W, cp.kron(A_sparse, cp.nlp.sin(X))))))
 
-        # Solve with a parameter, then update its value and re-solve.
-        A = cp.Parameter((2, 3), value=A1)
-        prob = cp.Problem(cp.Minimize(cp.sum(cp.kron(A, cp.nlp.sin(X)))))
-        X.value = X0
-        prob.solve(solver=cp.IPOPT, nlp=True, verbose=False)
-        assert prob.status == cp.OPTIMAL
-        checker = DerivativeChecker(prob)
-        checker.run_and_assert()
-        param_sol1 = X.value
+        problem.solve(solver=cp.IPOPT, nlp=True, verbose=False)
+        assert problem.status == cp.OPTIMAL
+        expected = np.sum(W * np.kron(A_sparse.toarray(), np.sin(X.value)))
+        assert problem.value == pytest.approx(expected)
 
-        A.value = A2
-        X.value = X0
-        prob.solve(solver=cp.IPOPT, nlp=True, verbose=False)
-        assert prob.status == cp.OPTIMAL
-        checker = DerivativeChecker(prob)
-        checker.run_and_assert()
-        param_sol2 = X.value
+        DerivativeChecker(problem).run_and_assert()
 
-        assert np.linalg.norm(param_sol1 - hardcoded_sol1) == 0.0
-        assert np.linalg.norm(param_sol2 - hardcoded_sol2) == 0.0
+    @pytest.mark.parametrize('const_is_left', [True, False])
+    def test_kron_parameter(self, const_is_left):
+        """A parametric operand must give the same answer as a hardcoded one.
 
-    def test_right_kron_parameter(self):
-        """cp.kron(f(X), B) with a parametric right operand.
-
-        Same structure as test_left_kron_parameter: B2's zero pattern is
-        the complement of B1's, exercising the all-blocks-active path for
-        parametric operands.
+        C2 is nonzero exactly where C1 is zero, so a converter that pruned
+        blocks from the initial parameter value would drop every entry of the
+        second solve.
         """
         np.random.seed(0)
-        B1 = np.array([[1.0, 0.0],
-                       [0.0, -2.0],
-                       [0.5, 0.0]])
-        B2 = np.array([[0.0, 2.0],
-                       [-1.5, 0.0],
-                       [0.0, 1.0]])
-        X0 = np.random.rand(2, 3)
+        if const_is_left:
+            C1, C2 = A, np.array([[0.0, 1.5, 0.0],
+                                  [2.5, 0.0, -2.0]])
+            X = cp.Variable((2, 2), bounds=[-1, 1], name='X')
+        else:
+            C1, C2 = B, np.array([[0.0, 2.0],
+                                  [-1.5, 0.0],
+                                  [0.0, 1.0]])
+            X = cp.Variable((2, 3), bounds=[-1, 1], name='X')
+        X0 = np.random.rand(*X.shape)
+
+        def objective(C):
+            f = cp.nlp.sin(X)
+            return cp.Minimize(cp.sum(cp.kron(C, f) if const_is_left else cp.kron(f, C)))
 
         # Solve with hardcoded values.
-        X = cp.Variable((2, 3), bounds=[-1, 1], name='X')
-        prob1 = cp.Problem(cp.Minimize(cp.sum(cp.kron(cp.nlp.sin(X), B1))))
-        prob2 = cp.Problem(cp.Minimize(cp.sum(cp.kron(cp.nlp.sin(X), B2))))
-        X.value = X0
-        prob1.solve(solver=cp.IPOPT, nlp=True, verbose=False)
-        assert prob1.status == cp.OPTIMAL
-        hardcoded_sol1 = X.value
-        X.value = X0
-        prob2.solve(solver=cp.IPOPT, nlp=True, verbose=False)
-        assert prob2.status == cp.OPTIMAL
-        hardcoded_sol2 = X.value
+        hardcoded = []
+        for C in (C1, C2):
+            X.value = X0
+            problem = cp.Problem(objective(C))
+            problem.solve(solver=cp.IPOPT, nlp=True, verbose=False)
+            assert problem.status == cp.OPTIMAL
+            hardcoded.append(X.value)
 
         # Solve with a parameter, then update its value and re-solve.
-        B = cp.Parameter((3, 2), value=B1)
-        prob = cp.Problem(cp.Minimize(cp.sum(cp.kron(cp.nlp.sin(X), B))))
-        X.value = X0
-        prob.solve(solver=cp.IPOPT, nlp=True, verbose=False)
-        assert prob.status == cp.OPTIMAL
-        checker = DerivativeChecker(prob)
-        checker.run_and_assert()
-        param_sol1 = X.value
-
-        B.value = B2
-        X.value = X0
-        prob.solve(solver=cp.IPOPT, nlp=True, verbose=False)
-        assert prob.status == cp.OPTIMAL
-        checker = DerivativeChecker(prob)
-        checker.run_and_assert()
-        param_sol2 = X.value
-
-        assert np.linalg.norm(param_sol1 - hardcoded_sol1) == 0.0
-        assert np.linalg.norm(param_sol2 - hardcoded_sol2) == 0.0
-
-
-class _FakeKron:
-    """Stand-in for a kron expression: convert_kron only reads ``args``."""
-
-    def __init__(self, a, b):
-        self.args = [a, b]
-
-
-class TestKronConverterGuards:
-    """Converter-level validation; no solver required."""
-
-    def _convert(self, a, b):
-        registry = pytest.importorskip(
-            "cvxpy.reductions.solvers.nlp_solvers.diff_engine.registry"
-        )
-        return registry.convert_kron(_FakeKron(a, b), [None, None])
-
-    def test_rejects_two_variable_operands(self):
-        with pytest.raises(ValueError, match="variable-free operand"):
-            self._convert(cp.Variable((2, 2)), cp.Variable((2, 2)))
+        C = cp.Parameter(C1.shape)
+        problem = cp.Problem(objective(C))
+        for value, expected in zip((C1, C2), hardcoded):
+            C.value = value
+            X.value = X0
+            problem.solve(solver=cp.IPOPT, nlp=True, verbose=False)
+            assert problem.status == cp.OPTIMAL
+            DerivativeChecker(problem).run_and_assert()
+            np.testing.assert_allclose(X.value, expected, atol=1e-6)

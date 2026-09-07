@@ -47,12 +47,17 @@ def convert_conv(expr, children):
 
 
 def convert_kron(expr, children):
-    """Convert cp.kron(A, B); the variable-free operand (kron requires one) is
-    re-evaluated each solve, so it may be parametric.
+    """Convert cp.kron(A, B) to the engine's left/right kron binding.
+
+    kron requires one variable-free operand; that operand may be parametric, in
+    which case the engine re-evaluates it each solve.
 
     The engine materializes output rows only for the ``active`` blocks: the
-    variable-free operand's structurally nonzero entries (column-major flat
-    indices). A parametric operand gets all blocks since its values change."""
+    variable-free operand's structurally nonzero entries, as column-major flat
+    indices. A parametric operand gets every block, since its values change
+    between solves. Indices are bounded by the variable-free operand's size (not
+    by the much larger kron output), so the int32 the bindings take is safe here.
+    """
     a, b = expr.args
     if not (a.is_constant() or b.is_constant()):
         raise ValueError("kron requires at least one variable-free operand.")
@@ -60,9 +65,9 @@ def convert_kron(expr, children):
     const_expr = a if const_is_left else b
     const_node = children[0] if const_is_left else children[1]
     var_node = children[1] if const_is_left else children[0]
-    p, q = normalize_shape(a.shape)
-    r, s = normalize_shape(b.shape)
-    n_rows = p if const_is_left else r
+    a_rows, a_cols = normalize_shape(a.shape)
+    b_rows, b_cols = normalize_shape(b.shape)
+    n_rows = a_rows if const_is_left else b_rows
 
     if const_expr.parameters():
         active = np.arange(const_expr.size)
@@ -70,19 +75,14 @@ def convert_kron(expr, children):
         val = const_expr.value
         if sparse.issparse(val):
             coo = val.tocoo()
-            mask = coo.data != 0  # drop stored-but-zero entries
-            active = np.unique(coo.row[mask] + coo.col[mask] * n_rows)
+            nonzero = coo.data != 0  # drop stored-but-zero entries
+            active = np.unique(coo.row[nonzero] + coo.col[nonzero] * n_rows)
         else:
-            # No format conversion: read the nonzero pattern straight off the
-            # dense values, same result as the sparse branch above.
-            flat = np.asarray(val, dtype=np.float64).flatten(order="F")
-            active = np.flatnonzero(flat)
-
+            active = np.flatnonzero(to_dense_float(val).flatten(order="F"))
     active = active.astype(np.int32)
 
-    if const_is_left:
-        return _diffengine.make_left_kron(const_node, var_node, p, q, r, s, active)
-    return _diffengine.make_right_kron(const_node, var_node, p, q, r, s, active)
+    make_kron = _diffengine.make_left_kron if const_is_left else _diffengine.make_right_kron
+    return make_kron(const_node, var_node, a_rows, a_cols, b_rows, b_cols, active)
 
 
 def convert_div(expr, children):
