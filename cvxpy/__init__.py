@@ -26,6 +26,7 @@ from cvxpy.constraints import (
     PSD as PSD,
     RSOC as RSOC,
     SOC as SOC,
+    RSOC as RSOC,
     NonPos as NonPos,
     NonNeg as NonNeg,
     Zero as Zero,
