@@ -37,7 +37,7 @@ compiler_args = [
 #
 # TODO wheels should be compiled with openmp ...
 cvxcore = Extension(
-    '_cvxcore',
+    'cvxpy.cvxcore.python._cvxcore',
     sources=['cvxpy/cvxcore/src/cvxcore.cpp',
              'cvxpy/cvxcore/src/LinOpOperations.cpp',
              'cvxpy/cvxcore/src/Utils.cpp',

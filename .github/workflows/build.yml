@@ -146,7 +146,7 @@ jobs:
         if: ${{matrix.build-cvxpy-base && env.PIP_INSTALL == 'True'}}
         run: |
           pip install . pytest cplex
-          pytest cvxpy/tests/test_conic_solvers.py -k 'TestCPLEX'
+          pytest --pyargs cvxpy.tests.test_conic_solvers -k 'TestCPLEX'
           # ensure a fresh state for cibuildwheel
           rm -r build
 
