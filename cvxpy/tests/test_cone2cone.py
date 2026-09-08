@@ -53,9 +53,9 @@ from cvxpy.tests.base_test import BaseTest
 class TestDualize(BaseTest):
 
     @staticmethod
-    def simulate_chain(in_prob):
+    def simulate_chain(in_prob, quad_obj=False):
         # Get a ParamConeProg object
-        reductions = [Dcp2Cone(), CvxAttr2Constr(), ConeMatrixStuffing()]
+        reductions = [Dcp2Cone(quad_obj=quad_obj), CvxAttr2Constr(), ConeMatrixStuffing(quad_obj=quad_obj)]
         chain = Chain(None, reductions)
         cone_prog, inv_prob2cone = chain.apply(in_prob)
 
@@ -64,32 +64,56 @@ class TestDualize(BaseTest):
         cone_prog = ConicSolver.format_constraints(cone_prog, exp_cone_order=[0, 1, 2])
         data, inv_data = a2d.Dualize.apply(cone_prog)
         A, b, c, K_dir = data[s.A], data[s.B], data[s.C], data['K_dir']
+        P = data.get(s.P)
         y = cp.Variable(shape=(A.shape[1],))
-        constraints = [A @ y == b]
         i = K_dir[a2d.FREE]
         dual_prims = {a2d.FREE: y[:i], a2d.SOC: []}
         if K_dir[a2d.NONNEG]:
             dim = K_dir[a2d.NONNEG]
             dual_prims[a2d.NONNEG] = y[i:i+dim]
-            constraints.append(y[i:i+dim] >= 0)
             i += dim
         for dim in K_dir[a2d.SOC]:
             dual_prims[a2d.SOC].append(y[i:i+dim])
-            constraints.append(SOC(y[i], y[i+1:i+dim]))
             i += dim
         if K_dir[a2d.DUAL_EXP]:
             exp_len = 3 * K_dir[a2d.DUAL_EXP]
             dual_prims[a2d.DUAL_EXP] = y[i:i+exp_len]
+            i += exp_len
+        if K_dir[a2d.DUAL_POW3D]:
+            dual_prims[a2d.DUAL_POW3D] = y[i:i+len(K_dir[a2d.DUAL_POW3D])*3]
+            i += len(K_dir[a2d.DUAL_POW3D]) * 3
+        # Equality constraint and objective depend on whether P is present.
+        if P is not None:
+            w = cp.Variable(P.shape[0])
+            dual_prims[a2d.QUAD_SLACK] = w
+            constraints = [A @ y - P @ w == b]
+            objective = cp.Maximize(c @ y - 0.5 * cp.quad_form(w, P))
+        else:
+            constraints = [A @ y == b]
+            objective = cp.Maximize(c @ y)
+        # Cone constraints on y.
+        i = K_dir[a2d.FREE]
+        if K_dir[a2d.NONNEG]:
+            dim = K_dir[a2d.NONNEG]
+            constraints.append(y[i:i+dim] >= 0)
+            i += dim
+        for dim in K_dir[a2d.SOC]:
+            constraints.append(SOC(y[i], y[i+1:i+dim]))
+            i += dim
+        if K_dir[a2d.DUAL_EXP]:
+            exp_len = 3 * K_dir[a2d.DUAL_EXP]
             y_de = cp.reshape(y[i:i+exp_len], (exp_len//3, 3), order='C')  # fill rows first
             constraints.append(ExpCone(-y_de[:, 1], -y_de[:, 0], np.exp(1)*y_de[:, 2]))
             i += exp_len
         if K_dir[a2d.DUAL_POW3D]:
             alpha = np.array(K_dir[a2d.DUAL_POW3D])
-            dual_prims[a2d.DUAL_POW3D] = y[i:]
-            y_dp = cp.reshape(y[i:], (alpha.size, 3), order='C')  # fill rows first
+            y_dp = cp.reshape(y[i:i+len(alpha)*3], (alpha.size, 3), order='C')  # fill rows first
             pow_con = PowCone3D(y_dp[:, 0] / alpha, y_dp[:, 1] / (1-alpha), y_dp[:, 2], alpha)
             constraints.append(pow_con)
-        objective = cp.Maximize(c @ y)
+        if P is not None:
+            objective = cp.Maximize(c @ y - 0.5 * cp.quad_form(w, P))
+        else:
+            objective = cp.Maximize(c @ y)
         dual_prob = cp.Problem(objective, constraints)
         dual_prob.solve(solver='SCS', eps=1e-8)
         dual_prims[a2d.FREE] = dual_prims[a2d.FREE].value
@@ -100,6 +124,8 @@ class TestDualize(BaseTest):
             dual_prims[a2d.DUAL_EXP] = dual_prims[a2d.DUAL_EXP].value
         if K_dir[a2d.DUAL_POW3D]:
             dual_prims[a2d.DUAL_POW3D] = dual_prims[a2d.DUAL_POW3D].value
+        if a2d.QUAD_SLACK in dual_prims:
+            dual_prims[a2d.QUAD_SLACK] = dual_prims[a2d.QUAD_SLACK].value
         dual_duals = {s.EQ_DUAL: constraints[0].dual_value}
         dual_sol = Solution(dual_prob.status, dual_prob.value, dual_prims, dual_duals, dict())
         cone_sol = a2d.Dualize.invert(dual_sol, inv_data)
@@ -198,6 +224,64 @@ class TestDualize(BaseTest):
         sth.verify_objective(places=3)
         sth.verify_primal_values(places=3)
         sth.verify_dual_values(places=3)
+
+
+class TestDualizeQuadObj(BaseTest):
+
+    def test_qp_strong_duality(self):
+        x = cp.Variable(2)
+        P = 2.0 * np.eye(2)
+        c = np.array([1.0, -1.0])
+        prob = cp.Problem(cp.Minimize(cp.quad_form(x, P) + c @ x),
+                          [x >= 0, cp.sum(x) <= 5])
+        prob.solve(solver='SCS', eps=1e-8)
+        pval = prob.value
+        x_ref = x.value.copy()
+        x.value = None
+        TestDualize.simulate_chain(prob, quad_obj=True)
+        self.assertAlmostEqual(prob.value, pval, places=3)
+        np.testing.assert_allclose(x.value, x_ref, atol=1e-3)
+
+    def test_qp_equality_constraints(self):
+        x = cp.Variable(3)
+        prob = cp.Problem(cp.Minimize(cp.quad_form(x, np.eye(3))),
+                          [cp.sum(x) == 1, x >= 0])
+        prob.solve(solver='SCS', eps=1e-8)
+        pval = prob.value
+        x_ref = x.value.copy()
+        x.value = None
+        TestDualize.simulate_chain(prob, quad_obj=True)
+        self.assertAlmostEqual(prob.value, pval, places=3)
+        np.testing.assert_allclose(x.value, x_ref, atol=1e-3)
+
+    def test_qp_with_linear_objective(self):
+        x = cp.Variable(2)
+        prob = cp.Problem(
+            cp.Minimize(cp.quad_form(x, np.eye(2)) + np.array([1.0, 2.0]) @ x),
+            [x >= -10])
+        prob.solve(solver='SCS', eps=1e-8)
+        pval = prob.value
+        x_ref = x.value.copy()
+        x.value = None
+        TestDualize.simulate_chain(prob, quad_obj=True)
+        self.assertAlmostEqual(prob.value, pval, places=3)
+        np.testing.assert_allclose(x.value, x_ref, atol=1e-3)
+
+    def test_qp_data_keys(self):
+        x = cp.Variable(2)
+        prob = cp.Problem(
+            cp.Minimize(cp.quad_form(x, np.eye(2)) + cp.sum(x)), [x >= -1])
+        reductions = [
+            Dcp2Cone(quad_obj=True),
+            CvxAttr2Constr(),
+            ConeMatrixStuffing(quad_obj=True),
+        ]
+        chain = Chain(None, reductions)
+        cone_prog, _ = chain.apply(prob)
+        cone_prog = ConicSolver.format_constraints(cone_prog, exp_cone_order=[0, 1, 2])
+        data, inv_data = a2d.Dualize.apply(cone_prog)
+        self.assertIn(s.P, data)
+        self.assertTrue(inv_data.get('has_quad'))
 
 
 class TestSlacks(BaseTest):
