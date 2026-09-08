@@ -97,6 +97,27 @@ def dims_to_solver_dict(cone_dims):
     return cones
 
 
+def diagonal_restruct_signs(restruct_mat):
+    """Return the +-1 row signs when every restructuring block is +-I, else None.
+
+    Zero cones contribute -I and NonNeg/PSD/SvecPSD contribute I, so a problem
+    built only from those has a diagonal restructuring matrix: a row sign flip
+    rather than a permutation. SOC and the exponential/power cones interleave
+    their arguments' rows and are not diagonal.
+    """
+    if not restruct_mat:
+        return None
+    signs = []
+    for blk in restruct_mat:
+        if isinstance(blk, NegativeIdentityOperator):
+            signs.append(np.full(blk.shape[0], -1.0))
+        elif isinstance(blk, IdentityOperator):
+            signs.append(np.ones(blk.shape[0]))
+        else:
+            return None
+    return np.concatenate(signs)
+
+
 class ConicSolver(Solver):
     """Conic solver class with reduction semantics
     """
@@ -272,7 +293,21 @@ class ConicSolver(Solver):
                 raise ValueError("Unsupported constraint type.")
 
         # Form new ParamConeProg
-        if restruct_mat:
+        signs = diagonal_restruct_signs(restruct_mat)
+        if signs is not None:
+            # R is diagonal, so restructuring is a row sign flip. Skip the
+            # reshape/block-diag-matmul/reshape round trip, which also avoids
+            # handing a COO matrix to everything downstream.
+            if (signs > 0).all():
+                restructured_A = problem.A
+            else:
+                m = signs.shape[0]
+                # In CSC, `indices` holds the row of each stored value, and
+                # tensor row i + m*j corresponds to concrete row i.
+                A = problem.A.tocsc(copy=True)
+                A.data = A.data * signs[A.indices % m]
+                restructured_A = A
+        elif restruct_mat:
             # TODO(akshayka): profile to see whether using linear operators
             # or bmat is faster
             restruct_mat = as_block_diag_linear_operator(restruct_mat)
