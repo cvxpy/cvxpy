@@ -15,12 +15,16 @@ limitations under the License.
 
 Main entry point for converting CVXPY expressions to C diff engine expressions.
 """
+import operator
+from functools import reduce
+
 import numpy as np
 from scipy import sparse
 from sparsediffpy import _sparsediffengine as _diffengine
 
 import cvxpy as cp
 import cvxpy.settings as s
+from cvxpy.expressions.constants import Constant
 from cvxpy.reductions.solvers.nlp_solvers.diff_engine.helpers import (
     make_dense_left_matmul,
     make_dense_right_matmul,
@@ -30,6 +34,66 @@ from cvxpy.reductions.solvers.nlp_solvers.diff_engine.helpers import (
     to_dense_float,
 )
 from cvxpy.reductions.solvers.nlp_solvers.diff_engine.registry import ATOM_CONVERTERS
+
+
+def _is_plain_constant(expr):
+    """Variable-free and parameter-free: a value that never changes between solves."""
+    return expr.is_constant() and not expr.parameters()
+
+
+def _is_vector(expr):
+    """1-D, or 2-D with a singleton dimension."""
+    return len(expr.shape) <= 1 or min(expr.shape) == 1
+
+
+def _apply_constant_right(left, c):
+    """Build an expression equivalent to ``left @ c`` for a plain-constant
+    ``c``, pushing ``c`` toward the leaves so constants multiply constants
+    (each engine node's Jacobian has one row per output, so a chain ending in
+    a constant must not drag wide intermediates -- issue #2205):
+
+      constant @ c   -> Constant(value)
+      (A @ B) @ c    -> A @ (B @ c)
+      (-E) @ c       -> -(E @ c)
+      (E1 + E2) @ c  -> E1 @ c + E2 @ c   (vector c only)
+
+    Only parameter-free constants fold, so parametric factors are never frozen.
+    """
+    if _is_plain_constant(left):
+        return Constant(left.value @ c.value)
+    name = type(left).__name__
+    if name == "MulExpression":
+        a, b = left.args
+        if _is_plain_constant(b):
+            return _apply_constant_right(a, Constant(b.value @ c.value))
+        if _is_vector(c):
+            return a @ _apply_constant_right(b, c)
+        if _is_plain_constant(a):
+            # (C1 @ E) @ C2 -> C1 @ (E @ C2): frees the tail to keep folding
+            # when (E @ C2) is normalized on its own visit.
+            return a @ (b @ c)
+        return left @ c
+    if name == "NegExpression":
+        return -_apply_constant_right(left.args[0], c)
+    if (name == "AddExpression" and _is_vector(c)
+            and all(arg.shape == left.shape for arg in left.args)):
+        return reduce(operator.add, [_apply_constant_right(arg, c) for arg in left.args])
+    return left @ c
+
+
+def _normalize_matmul(expr):
+    """Reassociate ``expr`` when a matmul chain ends in a plain-constant
+    factor. General matrix-chain reordering is deliberately not attempted."""
+    left, right = expr.args
+    # Reassociation is only valid while every intermediate stays 2-D: a 1-D
+    # operand contracts to an inner product under numpy's matmul rules, and
+    # (a @ b) @ c != a @ (b @ c) across that collapse (the rewritten factor
+    # can be shape-invalid). A 2-D left guarantees both its factors are 2-D.
+    if len(left.shape) != 2:
+        return expr
+    if _is_plain_constant(right) and not left.is_constant():
+        return _apply_constant_right(left, right)
+    return expr
 
 
 def convert_matmul(expr, children, var_dict, n_vars, param_dict):
@@ -116,6 +180,14 @@ def convert_expr(expr, var_dict, n_vars, param_dict=None):
 
     # Recursive case: atoms
     atom_name = type(expr).__name__
+
+    # Reassociate a matmul chain that ends in a plain-constant factor, so the
+    # constants fold together instead of the chain dragging wide intermediates.
+    if atom_name == "MulExpression":
+        expr = _normalize_matmul(expr)
+        if type(expr).__name__ != "MulExpression":
+            return convert_expr(expr, var_dict, n_vars, param_dict)
+
     children = [convert_expr(arg, var_dict, n_vars, param_dict) for arg in expr.args]
 
     # matmul and multiply need param_dict for parameter support
