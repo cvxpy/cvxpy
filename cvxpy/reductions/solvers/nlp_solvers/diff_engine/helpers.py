@@ -19,6 +19,8 @@ import numpy as np
 from scipy import sparse
 from sparsediffpy import _sparsediffengine as _diffengine
 
+import cvxpy.settings as s
+
 
 def normalize_shape(shape):
     """Normalize shape to 2D (d1, d2) for the C engine."""
@@ -77,6 +79,36 @@ def make_dense_right_matmul(param_node, child, A):
     m, n = A.shape
     return _diffengine.make_right_matmul(
         param_node, child, 'dense', A.flatten(order='C'), m, n)
+
+
+def make_constant_quad_form(x_c, P_val, n):
+    """Build the engine quad_form node for a plain-constant P, routed by
+    content, not container: a sparse-stored or mostly-zero P takes the sparse
+    CSR binding (a dense-stored diagonal like H * np.eye(n) would otherwise
+    become a dense n^2 Hessian block), a genuinely dense P the dense binding.
+    Explicitly stored zeros are dropped so the engine sees the true pattern.
+
+    ``n`` is the side length of the (square) form, i.e. ``x.size``.
+    """
+    if not sparse.issparse(P_val):
+        P_dense = to_dense_float(P_val)
+        density = np.count_nonzero(P_dense) / P_dense.size if P_dense.size else 1.0
+        if density >= s.SPARSE_DENSITY_THRESHOLD:
+            return _diffengine.make_quad_form(
+                None, x_c, "dense", P_dense.flatten(order='F'), n)
+        P_val = sparse.csr_array(P_dense)
+    P_csr = P_val.tocsr()
+    if (P_csr.data == 0).any():
+        # tocsr() on an already-CSR P aliases the caller's arrays; copy
+        # before eliminate_zeros() so the user's matrix is not mutated.
+        P_csr = P_csr.copy()
+        P_csr.eliminate_zeros()
+    return _diffengine.make_quad_form(
+        None, x_c, "sparse",
+        P_csr.data.astype(np.float64),
+        P_csr.indices.astype(np.int32),
+        P_csr.indptr.astype(np.int32),
+        P_csr.shape[0], P_csr.shape[1])
 
 
 def build_var_dict(inverse_data):
