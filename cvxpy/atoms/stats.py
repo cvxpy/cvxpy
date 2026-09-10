@@ -19,7 +19,9 @@ import numbers
 import numpy as np
 from numpy.lib.array_utils import normalize_axis_tuple
 
+from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.atoms.affine.sum import sum as cvxpy_sum
+from cvxpy.atoms.affine.transpose import moveaxis
 from cvxpy.atoms.norm import norm
 from cvxpy.atoms.sum_squares import sum_squares
 from cvxpy.expressions.expression import Expression
@@ -48,11 +50,24 @@ def std(x, axis=None, keepdims=False, ddof=0) -> Expression:
     """
     if axis is None:
         return norm((x - mean(x)).flatten(order='F'), 2) / np.sqrt(x.size - ddof)
-    elif isinstance(axis, numbers.Integral):
-        return norm(x - mean(x, axis, True), 2, axis=axis, keepdims=keepdims) \
-                / np.sqrt(_axis_size(x, axis) - ddof)
-    else:
-        raise ValueError("cp.std doesn't yet support tuple axis values.")
+
+    centered = x - mean(x, axis, True)
+    scale = np.sqrt(_axis_size(x, axis) - ddof)
+    if isinstance(axis, numbers.Integral):
+        return norm(centered, 2, axis=axis, keepdims=keepdims) / scale
+
+    # A tuple of axes pools the entries of every axis it names, which is one
+    # vector per remaining position. norm takes a single axis, so the pooled
+    # axes are moved to the front and flattened into one, in Fortran order,
+    # and the result is folded back into the shape those axes left behind.
+    axes = normalize_axis_tuple(axis, x.ndim, "axis")
+    kept = tuple(d for d in range(x.ndim) if d not in axes)
+    moved = moveaxis(centered, axes, range(len(axes)))
+    pooled = norm(reshape(moved, (_axis_size(x, axis), -1), order='F'), 2, axis=0) / scale
+    out_shape = tuple(x.shape[d] for d in kept)
+    if keepdims:
+        out_shape = tuple(1 if d in axes else x.shape[d] for d in range(x.ndim))
+    return reshape(pooled, out_shape, order='F')
 
 
 def var(x, axis=None, keepdims=False, ddof=0) -> Expression:
