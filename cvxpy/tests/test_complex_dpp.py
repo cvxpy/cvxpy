@@ -123,12 +123,10 @@ class TestComplexDPP:
         assert np.isclose(x.value, 3.0, atol=1e-4)
         assert np.isclose(prob.value, 4.0, atol=1e-4)
 
-    @pytest.mark.parametrize("flag,should_have_eval_params", [
-        ("enforce_dpp", False),
-        ("ignore_dpp", True),
-    ])
-    def test_dpp_flags(self, flag, should_have_eval_params):
-        """enforce_dpp=True succeeds; ignore_dpp=True uses EvalParams."""
+    @pytest.mark.parametrize("flag", ["enforce_dpp", "ignore_dpp"])
+    def test_dpp_flags(self, flag):
+        """enforce_dpp=True succeeds; ignore_dpp=True keeps parameters
+        symbolic (DIFFENGINE backend) and refreshes them across solves."""
         p = cp.Parameter(complex=True)
         x = cp.Variable()
         prob = cp.Problem(cp.Minimize(x), [x >= cp.real(p)])
@@ -141,7 +139,12 @@ class TestComplexDPP:
 
         assert np.isclose(x.value, 1.0, atol=1e-4)
         reduction_types = [type(r) for r in prob._cache.solving_chain.reductions]
-        assert (EvalParams in reduction_types) == should_have_eval_params
+        assert EvalParams not in reduction_types
+
+        if flag == "ignore_dpp":
+            p.value = np.array(4 - 1j)
+            prob.solve(ignore_dpp=True)
+            assert np.isclose(x.value, 4.0, atol=1e-4)
 
     @pytest.mark.parametrize("n", [1, 2, 3])
     def test_hermitian_param_dpp(self, n):

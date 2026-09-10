@@ -62,6 +62,10 @@ class diag_vec(AffAtom):
     def get_data(self) -> list[int]:
         return [self.k]
 
+    def _supports_diffengine(self) -> bool:
+        # The engine's make_diag_vec binding only builds the main diagonal.
+        return self.k == 0
+
     def validate_arguments(self) -> None:
         """Checks that the argument is a vector.
         """
@@ -143,6 +147,10 @@ class diag_mat(AffAtom):
 
     def get_data(self) -> list[int]:
         return [self.k]
+
+    def _supports_diffengine(self) -> bool:
+        # The engine's make_diag_mat binding only extracts the main diagonal.
+        return self.k == 0
 
     def validate_arguments(self) -> None:
         """Checks that the argument is a square matrix.

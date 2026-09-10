@@ -36,7 +36,6 @@ from cvxpy.constraints import (
 )
 from cvxpy.expressions.variable import Variable
 from cvxpy.problems.objective import Minimize
-from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ParamConeProg
 from cvxpy.reductions.matrix_stuffing import (
     _has_parametric_bounds,
     extract_lower_bounds,
@@ -47,33 +46,40 @@ from cvxpy.reductions.solvers.nlp_solvers.diff_engine.extractor import DiffEngin
 from cvxpy.reductions.utilities import group_constraints
 
 
-def stuff_cone_program(problem, cons, inverse_data, quad_obj):
-    """Stuff a parameter-free problem by evaluating the expression trees
-    with the C diff engine instead of building parameter tensors.
+def encode_cone_tensors(q, d, A, b, P, n):
+    """Write concrete cone matrices into the single constant column of the
+    coefficient tensor ParamConeProg decodes: [q; d] for the objective,
+    [A | b] flattened column-major for the constraints, and P flattened
+    column-major for the quadratic term. Matching that layout is what lets
+    anything reading the tensors run unmodified."""
+    q_col = sp.csr_array(np.concatenate([q, [d]])[:, None])
+    A_col = sp.csc_array(
+        sp.hstack([A, sp.csc_array(b[:, None])]).reshape((-1, 1), order='F'))
+    P_col = (sp.csc_array(P.reshape((n * n, 1), order='F'))
+             if P is not None else None)
+    return q_col, A_col, P_col
 
-    Produces the same artifact as the tensor path: a ParamConeProg whose
-    single-column tensors hold the constant slice, so every downstream
-    consumer (formatting, solvers, inversion) runs the stock code path.
+
+def stuff_cone_program(problem, cons, inverse_data, quad_obj):
+    """Stuff a problem by evaluating the expression trees with the C diff
+    engine instead of building parameter tensors.
+
+    Produces a DiffengineParamConeProg, which keeps the engine program alive
+    and re-extracts the cone matrices on every apply_parameters(). Parameters
+    stay symbolic; a parameter-free problem is the degenerate case, where the
+    parameter vector is empty and the extraction done here is the only one.
 
     ``cons`` are the lowered (but not yet ordered) constraints from
     ``ConeMatrixStuffing.apply``. Returns ``(new_prob, inverse_data)``.
     """
+    from cvxpy.reductions.solvers.nlp_solvers.diff_engine.parametric_program import (
+        DiffengineParamConeProg,
+    )
     variables = problem.variables()
     if _has_parametric_bounds(variables):
         raise NotImplementedError(
             f"The {s.DIFFENGINE_CANON_BACKEND} canonicalization backend "
             "does not support parametric variable bounds.")
-    if problem.parameters():
-        # Staged: parametric problems keep their parameters symbolic on the
-        # follow-up PR, which replaces this rejection.
-        raise ValueError(
-            f"The {s.DIFFENGINE_CANON_BACKEND} canonicalization backend "
-            "does not yet support parametric problems. Solve with "
-            "ignore_dpp=True to evaluate parameters before "
-            "canonicalization. If you already passed ignore_dpp=True, the "
-            "remaining parameters most likely come from parametric "
-            "variable bounds, which the DIFFENGINE backend does not "
-            "support.")
 
     # Reorder constraints to Zero, NonNeg, SOC, PSD, EXP, PowCone3D, PowConeND
     constr_map = group_constraints(cons)
@@ -87,32 +93,19 @@ def stuff_cone_program(problem, cons, inverse_data, quad_obj):
 
     # One-shot extraction of the concrete cone matrices at x = 0.
     expr_list = [arg for c in ordered_cons for arg in c.args]
+    params = problem.parameters()
     extractor = DiffEngineExtractor(inverse_data).build(
-        problem.objective.expr, expr_list, quad_obj)
+        problem.objective.expr, expr_list, params, quad_obj)
     q, d, A, b, P = extractor.extract(quad_obj)
 
     n = inverse_data.x_length
-    # Parameter-free, so the constant column is the whole coefficient tensor;
-    # matching that layout is what keeps every downstream consumer unmodified.
-    q_col = sp.csr_array(np.concatenate([q, [d]])[:, None])
-    A_col = sp.csc_array(
-        sp.hstack([A, sp.csc_array(b[:, None])]).reshape((-1, 1), order='F'))
-    P_col = (sp.csc_array(P.reshape((n * n, 1), order='F'))
-             if P is not None else None)
-
     boolean, integer = extract_mip_idx(variables)
     x = Variable(n, boolean=boolean, integer=integer)
-    new_prob = ParamConeProg(
-        q_col,
-        x,
-        A_col,
-        variables,
-        inverse_data.var_offsets,
-        ordered_cons,
-        [],
-        inverse_data.param_id_map,
-        P=P_col,
-        lower_bounds=extract_lower_bounds(variables, n),
-        upper_bounds=extract_upper_bounds(variables, n),
-    )
+    lower_bounds = extract_lower_bounds(variables, n)
+    upper_bounds = extract_upper_bounds(variables, n)
+
+    new_prob = DiffengineParamConeProg(
+        extractor, x, variables, inverse_data.var_offsets, ordered_cons,
+        params, inverse_data.param_id_map, q, d, A, b, P,
+        lower_bounds=lower_bounds, upper_bounds=upper_bounds)
     return new_prob, inverse_data

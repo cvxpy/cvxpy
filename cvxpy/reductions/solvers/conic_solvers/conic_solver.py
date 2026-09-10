@@ -344,7 +344,7 @@ class ConicSolver(Solver):
 
         # Apply parameter values.
         # Obtain A, b such that Ax + s = b, s \in cones.
-        if problem.P is None:
+        if not problem.has_quad_obj:
             c, d, A, b = problem.apply_parameters()
         else:
             P, c, d, A, b = problem.apply_parameters(quad_obj=True)

@@ -191,24 +191,17 @@ class ParamConeProg(ParamProb):
                  ub_tensor=None,
                  dir_cones: list[DirectCone] | None = None,
                  ) -> None:
-        # The problem data tensors; q is for the objective, and A for
-        # the problem data matrix
-        self.q = q
-        self.A = A
-        self.P = P
         # The variable
         self.x = x
+        # The problem data tensors; q is for the objective, and A for
+        # the problem data matrix.
+        self._store_tensors(q, A, P)
         # Lower and upper bounds for the variable, if present.
         self.lower_bounds = lower_bounds
         self.upper_bounds = upper_bounds
         # Sparse tensors for parametric bounds (param_vec -> bounds_vec).
         self.lb_tensor = lb_tensor
         self.ub_tensor = ub_tensor
-
-        # Form a reduced representation of A and P, for faster application
-        # of parameters.
-        self.reduced_A = ReducedMat(self.A, self.x.size)
-        self.reduced_P = ReducedMat(self.P, self.x.size, quad_form=True)
 
         self.constraints = constraints
         self.constr_size = sum([c.size for c in constraints])
@@ -241,10 +234,29 @@ class ParamConeProg(ParamProb):
         """
         return solver.format_constraints(self, solver.EXP_CONE_ORDER)
 
+    def _store_tensors(self, q, A, P) -> None:
+        """Store the parameter-to-data tensors and their reduced forms.
+
+        A subclass whose data is re-extracted rather than obtained by
+        multiplying these tensors overrides this to build them on demand.
+        """
+        self.q = q
+        self.A = A
+        self.P = P
+        # Form a reduced representation of A and P, for faster application
+        # of parameters.
+        self.reduced_A = ReducedMat(self.A, self.x.size)
+        self.reduced_P = ReducedMat(self.P, self.x.size, quad_form=True)
+
     def is_mixed_integer(self) -> bool:
         """Is the problem mixed-integer?"""
         return self.x.attributes['boolean'] or \
             self.x.attributes['integer']
+
+    @property
+    def has_quad_obj(self) -> bool:
+        """Does the objective have a quadratic term?"""
+        return self.P is not None
 
     # Returns (q, d, A, b): objective vector, offset, constraint matrix, rhs.
     @overload
@@ -320,7 +332,7 @@ class ParamConeProg(ParamProb):
         Returns:
             A dictionary param.id -> dparam
         """
-        if self.P is not None:
+        if self.has_quad_obj:
             raise ValueError("Can't apply Jacobian with a quadratic objective.")
 
         if active_params is None:
