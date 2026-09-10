@@ -118,6 +118,118 @@ def diagonal_restruct_signs(restruct_mat):
     return np.concatenate(signs)
 
 
+def build_restruct_blocks(constraints, exp_cone_order) -> list:
+    """Per-constraint blocks of the cone-restructuring matrix R.
+
+    Purely structural: derived from the constraint types and shapes plus
+    ``exp_cone_order``, never from coefficient or parameter values. Blocks that
+    are only a sign come back as data-free operators, so callers needing an
+    actual matrix should use :func:`build_restruct_mat_sparse`.
+    """
+    restruct_mat = []  # Form a block diagonal matrix.
+    for constr in constraints:
+        total_height = sum([arg.size for arg in constr.args])
+        if type(constr) == Zero:
+            restruct_mat.append(NegativeIdentityOperator(constr.size))
+        elif type(constr) == NonNeg:
+            restruct_mat.append(IdentityOperator(constr.size))
+        elif type(constr) == SOC:
+            # Group each t row with appropriate X rows.
+            assert constr.axis == 0, 'SOC must be lowered to axis == 0'
+
+            # Interleave the rows of coeffs[0] and coeffs[1]:
+            #     coeffs[0][0, :]
+            #     coeffs[1][0:gap-1, :]
+            #     coeffs[0][1, :]
+            #     coeffs[1][gap-1:2*(gap-1), :]
+            # Handle scalar X (shape is empty tuple)
+            x_dim = constr.args[1].shape[0] if constr.args[1].shape else 1
+            t_spacer = ConicSolver.get_spacing_matrix(
+                shape=(total_height, constr.args[0].size),
+                spacing=x_dim,
+                streak=1,
+                num_blocks=constr.args[0].size,
+                offset=0,
+            )
+            X_spacer = ConicSolver.get_spacing_matrix(
+                shape=(total_height, constr.args[1].size),
+                spacing=1,
+                streak=x_dim,
+                num_blocks=constr.args[0].size,
+                offset=1,
+            )
+            restruct_mat.append(sp.hstack([t_spacer, X_spacer]))
+        elif type(constr) == ExpCone:
+            arg_mats = []
+            for i, arg in enumerate(constr.args):
+                space_mat = ConicSolver.get_spacing_matrix(
+                    shape=(total_height, arg.size),
+                    spacing=len(exp_cone_order) - 1,
+                    streak=1,
+                    num_blocks=arg.size,
+                    offset=exp_cone_order[i],
+                )
+                arg_mats.append(space_mat)
+            restruct_mat.append(sp.hstack(arg_mats))
+        elif type(constr) == PowCone3D:
+            arg_mats = []
+            for i, arg in enumerate(constr.args):
+                space_mat = ConicSolver.get_spacing_matrix(
+                    shape=(total_height, arg.size), spacing=2,
+                    streak=1, num_blocks=arg.size, offset=i,
+                )
+                arg_mats.append(space_mat)
+            restruct_mat.append(sp.hstack(arg_mats))
+        elif type(constr) == PowConeND:
+            arg_mats = []
+            if constr.args[0].ndim == 1:
+                m = constr.args[0].shape[0]
+                n = 1
+            else:
+                m, n = constr.args[0].shape
+            for j in range(n):
+                space_mat = ConicSolver.get_spacing_matrix(
+                    shape=(total_height, m), spacing=0,
+                    streak=1, num_blocks=m, offset=(m+1)*j,
+                )
+                arg_mats.append(space_mat)
+
+            # Hypo columns
+            arg = constr.args[1]
+            assert arg.size == n
+            space_mat = ConicSolver.get_spacing_matrix(
+                shape=(total_height, n), spacing=m,
+                streak=1, num_blocks=n, offset=m,
+            )
+            arg_mats.append(space_mat)
+            restruct_mat.append(sp.hstack(arg_mats))
+
+        elif type(constr) == PSD:
+            restruct_mat.append(IdentityOperator(constr.size))
+        elif type(constr) == SvecPSD:
+            restruct_mat.append(IdentityOperator(constr.size))
+        else:
+            raise ValueError("Unsupported constraint type.")
+    return restruct_mat
+
+
+def build_restruct_mat_sparse(constraints, exp_cone_order):
+    """R as one sparse matrix, or None when there are no constraints.
+
+    Materializes the ``IdentityOperator`` / ``NegativeIdentityOperator`` blocks,
+    which carry a shape but no data.
+    """
+    blocks = []
+    for block in build_restruct_blocks(constraints, exp_cone_order):
+        if isinstance(block, NegativeIdentityOperator):
+            blocks.append(-sp.eye_array(block.shape[0]))
+        elif isinstance(block, IdentityOperator):
+            blocks.append(sp.eye_array(block.shape[0]))
+        else:
+            blocks.append(block)
+    return sp.block_diag(blocks, format='csc') if blocks else None
+
+
 class ConicSolver(Solver):
     """Conic solver class with reduction semantics
     """
@@ -205,92 +317,8 @@ class ConicSolver(Solver):
         Returns:
           ParamConeProg with structured A.
         """
-        # Create a matrix to reshape constraints, then replicate for each
-        # variable entry.
-        restruct_mat = []  # Form a block diagonal matrix.
-        for constr in problem.constraints:
-            total_height = sum([arg.size for arg in constr.args])
-            if type(constr) == Zero:
-                restruct_mat.append(NegativeIdentityOperator(constr.size))
-            elif type(constr) == NonNeg:
-                restruct_mat.append(IdentityOperator(constr.size))
-            elif type(constr) == SOC:
-                # Group each t row with appropriate X rows.
-                assert constr.axis == 0, 'SOC must be lowered to axis == 0'
-
-                # Interleave the rows of coeffs[0] and coeffs[1]:
-                #     coeffs[0][0, :]
-                #     coeffs[1][0:gap-1, :]
-                #     coeffs[0][1, :]
-                #     coeffs[1][gap-1:2*(gap-1), :]
-                # Handle scalar X (shape is empty tuple)
-                x_dim = constr.args[1].shape[0] if constr.args[1].shape else 1
-                t_spacer = ConicSolver.get_spacing_matrix(
-                    shape=(total_height, constr.args[0].size),
-                    spacing=x_dim,
-                    streak=1,
-                    num_blocks=constr.args[0].size,
-                    offset=0,
-                )
-                X_spacer = ConicSolver.get_spacing_matrix(
-                    shape=(total_height, constr.args[1].size),
-                    spacing=1,
-                    streak=x_dim,
-                    num_blocks=constr.args[0].size,
-                    offset=1,
-                )
-                restruct_mat.append(sp.hstack([t_spacer, X_spacer]))
-            elif type(constr) == ExpCone:
-                arg_mats = []
-                for i, arg in enumerate(constr.args):
-                    space_mat = ConicSolver.get_spacing_matrix(
-                        shape=(total_height, arg.size),
-                        spacing=len(exp_cone_order) - 1,
-                        streak=1,
-                        num_blocks=arg.size,
-                        offset=exp_cone_order[i],
-                    )
-                    arg_mats.append(space_mat)
-                restruct_mat.append(sp.hstack(arg_mats))
-            elif type(constr) == PowCone3D:
-                arg_mats = []
-                for i, arg in enumerate(constr.args):
-                    space_mat = ConicSolver.get_spacing_matrix(
-                        shape=(total_height, arg.size), spacing=2,
-                        streak=1, num_blocks=arg.size, offset=i,
-                    )
-                    arg_mats.append(space_mat)
-                restruct_mat.append(sp.hstack(arg_mats))
-            elif type(constr) == PowConeND:
-                arg_mats = []
-                if constr.args[0].ndim == 1:
-                    m = constr.args[0].shape[0]
-                    n = 1
-                else:
-                    m, n = constr.args[0].shape
-                for j in range(n):
-                    space_mat = ConicSolver.get_spacing_matrix(
-                        shape=(total_height, m), spacing=0,
-                        streak=1, num_blocks=m, offset=(m+1)*j,
-                    )
-                    arg_mats.append(space_mat)
-
-                # Hypo columns
-                arg = constr.args[1]
-                assert arg.size == n
-                space_mat = ConicSolver.get_spacing_matrix(
-                    shape=(total_height, n), spacing=m,
-                    streak=1, num_blocks=n, offset=m,
-                )
-                arg_mats.append(space_mat)
-                restruct_mat.append(sp.hstack(arg_mats))
-
-            elif type(constr) == PSD:
-                restruct_mat.append(IdentityOperator(constr.size))
-            elif type(constr) == SvecPSD:
-                restruct_mat.append(IdentityOperator(constr.size))
-            else:
-                raise ValueError("Unsupported constraint type.")
+        restruct_mat = build_restruct_blocks(
+            problem.constraints, exp_cone_order)
 
         # Form new ParamConeProg
         signs = diagonal_restruct_signs(restruct_mat)
