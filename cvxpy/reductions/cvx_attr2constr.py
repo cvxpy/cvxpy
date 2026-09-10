@@ -281,7 +281,7 @@ class CvxAttr2Constr(Reduction):
                         new_attr[key] = None if key == 'bounds' else False
                 reduced_param = Parameter(n, name=param.name(), **new_attr)
                 self._parameters[param] = reduced_param
-                if param.value is not None:
+                if param._has_value:
                     reduced_param.value = lower_value(param)
                 obj = build_dim_reduced_expression(param, reduced_param)
                 id2new_obj[id(param)] = obj
@@ -307,7 +307,7 @@ class CvxAttr2Constr(Reduction):
     def update_parameters(self, problem) -> None:
         """Update reduced parameter values from original parameters."""
         for param, reduced_param in self._parameters.items():
-            if param.value is not None:
+            if param._has_value:
                 reduced_param.value = lower_value(param)
 
     def var_backward(self, del_vars):

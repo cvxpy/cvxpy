@@ -615,16 +615,32 @@ class Leaf(expression.Expression):
     @property
     def value(self) -> expression.ExpressionValue | None:
         """The numeric value of the expression."""
-        if self.sparse_idx is None:
-            return self._value
-        else:
+        if self.sparse_idx is not None:
             warn('Reading from a sparse CVXPY expression via `.value` is discouraged.'
                   ' Use `.value_sparse` instead', RuntimeWarning)
-            if self._value is None:
-                return None
-            val = np.zeros(self.shape, dtype=self._value.dtype)
-            val[self.sparse_idx] = self._value
-            return val
+        return self._value_dense()
+
+    def _value_dense(self) -> expression.ExpressionValue | None:
+        """The value of the leaf, densified when sparse, without warning.
+
+        `value` steers users towards `value_sparse` for sparse leaves. CVXPY's own
+        internals need the same data without emitting that warning at the user.
+        """
+        if self.sparse_idx is None:
+            return self._value
+        if self._value is None:
+            return None
+        val = np.zeros(self.shape, dtype=self._value.dtype)
+        val[self.sparse_idx] = self._value
+        return val
+
+    def _value_impl(self) -> expression.ExpressionValue | None:
+        return self._value_dense()
+
+    @property
+    def _has_value(self) -> bool:
+        """Whether a value has been assigned, without reading it through `value`."""
+        return self._value is not None
 
     @value.setter
     def value(self, val) -> None:

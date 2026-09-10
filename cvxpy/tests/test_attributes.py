@@ -1,4 +1,5 @@
 import sys
+import warnings
 
 import numpy as np
 import pytest
@@ -113,6 +114,56 @@ class TestAttributes:
                   ' for Parameter value.'
         ):
             A.value_sparse = sp.coo_array(([1], ([0], [0])), (3, 3))
+
+    def test_solve_does_not_warn_on_sparse_parameter(self):
+        """Solving must not warn about `.value` on a user's behalf.
+
+        `Problem.solve` and the reductions it runs check whether each Parameter has a
+        value. Reading those through `.value` emitted the sparse-read warning from
+        CVXPY's own internals, so a user who only ever touches `.value_sparse` was
+        still warned on every solve.
+        """
+        x = cp.Variable(2)
+        P = cp.Parameter((2, 2), sparsity=([0, 1], [0, 1]))
+        P.value_sparse = sp.eye(2).tocoo()
+
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(P @ x - 1)))
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            prob.solve(solver=cp.CLARABEL)
+
+        sparse_warnings = [
+            w for w in caught
+            if issubclass(w.category, RuntimeWarning)
+            and 'sparse CVXPY expression via `.value`' in str(w.message)
+        ]
+        assert not sparse_warnings, [str(w.message) for w in sparse_warnings]
+        assert prob.status == cp.OPTIMAL
+        assert np.allclose(x.value, [1.0, 1.0])
+
+        # The DPP re-solve path reads parameter values again, through a different
+        # code path than the first solve, and must stay quiet too.
+        P.value_sparse = sp.coo_array((np.array([2.0, 2.0]), ([0, 1], [0, 1])), shape=(2, 2))
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            prob.solve(solver=cp.CLARABEL)
+
+        sparse_warnings = [
+            w for w in caught
+            if issubclass(w.category, RuntimeWarning)
+            and 'sparse CVXPY expression via `.value`' in str(w.message)
+        ]
+        assert not sparse_warnings, [str(w.message) for w in sparse_warnings]
+        assert np.allclose(x.value, [0.5, 0.5])
+
+    def test_sparse_parameter_without_value_still_raises(self):
+        """The value check the warning came from must keep rejecting unset Parameters."""
+        x = cp.Variable(2)
+        P = cp.Parameter((2, 2), sparsity=([0, 1], [0, 1]))
+
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(P @ x - 1)))
+        with pytest.raises(cp.error.ParameterError):
+            prob.solve(solver=cp.CLARABEL)
 
     def test_sparsity_read_value(self):
         sparsity = [(0, 2, 1, 2), (0, 1, 2, 2)]

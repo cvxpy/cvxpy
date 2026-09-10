@@ -450,7 +450,7 @@ class Atom(Expression):
 
     @property
     def value(self) -> ExpressionValue | None:
-        if any([p.value is None for p in self.parameters()]):
+        if any([not p._has_value for p in self.parameters()]):
             return None
         return self._value_impl()
 
