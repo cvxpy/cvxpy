@@ -33,6 +33,8 @@ from cvxpy.reductions.discrete2mixedint.valinvec2mixedint import (
 from cvxpy.reductions.eliminate_zero_sized import EliminateZeroSized
 from cvxpy.reductions.eval_params import EvalParams
 from cvxpy.reductions.flip_objective import FlipObjective
+from cvxpy.reductions.fold_callback_params import CallbackParamFold
+from cvxpy.reductions.matrix_stuffing import _has_parametric_bounds
 from cvxpy.reductions.solvers import defines as slv_def
 from cvxpy.reductions.solvers.constant_solver import ConstantSolver
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
@@ -106,6 +108,31 @@ def _fallback_solver(problem_form: ProblemForm) -> Solver:
     raise SolverError(
         "No installed solver could handle this problem."
     )
+
+
+def _diffengine_eligible(problem, gp: bool, dir_cone_kinds) -> bool:
+    """Whether the DIFFENGINE backend can canonicalize this problem at all.
+
+    Capability only: selection also depends on the route taken and on an
+    explicit ``canon_backend``. The disqualifiers are unrelated to each other,
+    so each gets its own reason:
+
+    * ``gp``: ``Dgp2Dcp`` introduces fresh parameters during canonicalization,
+      after ``EvalParams`` has already run.
+    * ndim > 2: the engine represents every expression as a 2-D matrix.
+    * parametric variable bounds: ``EvalParams`` does not substitute bounds, so
+      they would still be symbolic at stuffing time.
+    * ``dir_cone_kinds``: ``ExtractDirectCones`` rebuilds the stuffed program
+      as a plain ParamConeProg, discarding a re-extractable one.
+    * unsupported atoms: no converter exists, so an auto-selected DIFFENGINE
+      would raise where the tensor backends succeed (see
+      ``_supports_diffengine``).
+    """
+    return (not gp
+            and problem._max_ndim() <= 2
+            and not _has_parametric_bounds(problem.variables())
+            and not dir_cone_kinds
+            and problem._supports_diffengine())
 
 
 def _build_solving_chain(
@@ -218,7 +245,35 @@ def _build_solving_chain(
             raise DPPError(DPP_ERROR_MSG)
         if not ignore_dpp:
             warn(DPP_ERROR_MSG)
-        reductions = [EvalParams()] + reductions
+        # The diff engine keeps parameters symbolic and re-evaluates them on
+        # each solve. Where it does not apply, fall back to EvalParams plus
+        # the tensor backends.
+        diffengine_ok = _diffengine_eligible(problem, gp, dir_cone_kinds)
+        if problem.parameters() and diffengine_ok:
+            # Parameters stay symbolic through canonicalization, so the
+            # compiled program is cacheable (safe_to_cache additionally
+            # guards the one value-consuming canonicalizer, the cone
+            # quad_form canon). Non-affine parametric constants fold to
+            # CallbackParam leaves so Dcp2Cone never epigraph-relaxes them
+            # unsoundly.
+            reductions = [CallbackParamFold()] + reductions
+            if (canon_backend is not None
+                    and canon_backend != DIFFENGINE_CANON_BACKEND):
+                raise ValueError(
+                    f"canon_backend='{canon_backend}' cannot be used for "
+                    "a parametrized problem that is not DPP (or is solved "
+                    "with ignore_dpp=True); this path requires the "
+                    f"{DIFFENGINE_CANON_BACKEND} backend, which keeps "
+                    "parameters symbolic and re-evaluates them on each "
+                    "solve. Omit canon_backend, or replace the parameters "
+                    "with constants.")
+            canon_backend = DIFFENGINE_CANON_BACKEND
+        else:
+            reductions = [EvalParams()] + reductions
+            if canon_backend is None and diffengine_ok:
+                # Parameter-free, or ineligible for the symbolic route:
+                # default to DIFFENGINE. Explicit backends are honored.
+                canon_backend = DIFFENGINE_CANON_BACKEND
     else:
         if canon_backend is None:
             total_param_size = sum(p.size for p in problem.parameters())

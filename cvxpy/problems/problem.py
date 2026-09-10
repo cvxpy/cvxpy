@@ -195,20 +195,24 @@ class Problem(u.Canonical):
     def _aggregate_metrics(self) -> dict:
         """
         Aggregates and caches metrics for expression trees in self.args. So far
-        metrics include the maximum dimensionality ('max_ndim') and whether
-        all sub-expressions support C++ ('all_support_cpp').
+        metrics include the maximum dimensionality ('max_ndim'), whether
+        all sub-expressions support C++ ('all_support_cpp'), and whether all
+        sub-expressions have a diff engine converter ('all_support_diffengine').
 
         """
         max_ndim = self.ndim
         cpp_support = self._supports_cpp()
+        diffengine_support = self._supports_diffengine()
 
         for arg in [self._objective] + self._constraints:
             max_ndim = max(max_ndim, arg._max_ndim())
             cpp_support = cpp_support and arg._all_support_cpp()
+            diffengine_support = diffengine_support and arg._all_support_diffengine()
 
         metrics = {
             "max_ndim": max_ndim,
-            "all_support_cpp": cpp_support
+            "all_support_cpp": cpp_support,
+            "all_support_diffengine": diffengine_support
         }
         return metrics
 
@@ -312,6 +316,14 @@ class Problem(u.Canonical):
         Returns True if all the arguments in the problem support cpp backend.
         """
         return all(expr._all_support_cpp() for expr in self.constraints + [self.objective.expr])
+
+    @perf.compute_once
+    def _supports_diffengine(self) -> bool:
+        """
+        Returns True if every expression in the problem has a diff engine converter.
+        """
+        return all(expr._all_support_diffengine()
+                   for expr in self.constraints + [self.objective.expr])
 
     @perf.compute_once
     def is_dgp(self, dpp: bool = False) -> bool:
