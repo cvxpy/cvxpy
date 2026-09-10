@@ -4,6 +4,7 @@ from scipy import sparse
 from cvxpy.atoms.suppfunc import SuppFuncAtom
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.cvx_attr2constr import CONVEX_ATTRIBUTES
+from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
 
 
 def scs_coniclift(x, constraints):
@@ -33,8 +34,11 @@ def scs_coniclift(x, constraints):
     # empty list, then the support function is the standard
     # support function for R^n.
     data, chain, invdata = prob.get_problem_data(solver='SCS')
-    inv = invdata[-2]
-    x_offset = inv.var_offsets[x.id]
+    # The variable offsets come from the stuffing step; find it by reduction
+    # rather than by position, since the chain's tail is not fixed.
+    stuffing = next(i for i, r in enumerate(chain.reductions)
+                    if isinstance(r, ConeMatrixStuffing))
+    x_offset = invdata[stuffing].var_offsets[x.id]
     x_indices = np.arange(x_offset, x_offset + x.size)
     A = data['A']
     x_selector = np.zeros(shape=(A.shape[1],), dtype=bool)

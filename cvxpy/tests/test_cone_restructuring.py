@@ -21,6 +21,7 @@ import scipy.sparse as sp
 
 import cvxpy as cp
 import cvxpy.reductions.solvers.conic_solvers.conic_solver as cs_mod
+from cvxpy.reductions.cone_format import ConeFormat
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import (
     IdentityOperator,
     NegativeIdentityOperator,
@@ -126,3 +127,40 @@ class TestRestructuringFastPath(BaseTest):
                     prob._cache.invalidate()
                     prob.solve(solver=SOLVER)
                 self.assertAlmostEqual(fast_val, prob.value, places=6)
+
+
+class TestConeFormatReduction(BaseTest):
+    """Formatting is a chain step, not a per-interface convention."""
+
+    def test_conic_chain_formats_before_the_solver(self) -> None:
+        x = cp.Variable(3)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(x - 1)),
+                          [cp.norm(x, 2) <= 2])
+        prob.solve(solver=SOLVER)
+        reductions = prob._cache.solving_chain.reductions
+        self.assertIsInstance(reductions[-2], ConeFormat)
+        # The solver receives an already-formatted program, so its own
+        # `if not problem.formatted` guard is a no-op.
+        self.assertTrue(prob._cache.param_prog.formatted)
+
+    def test_qp_chain_has_no_cone_format(self) -> None:
+        x = cp.Variable(3)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(x - 1)), [x >= 0])
+        prob.solve(solver=cp.OSQP)
+        self.assertFalse(any(isinstance(r, ConeFormat)
+                             for r in prob._cache.solving_chain.reductions))
+
+    def test_format_for_matches_format_constraints(self) -> None:
+        for name, prob, _ in _shapes():
+            with self.subTest(name):
+                chain = prob._construct_chain(solver=SOLVER)
+                solver = chain.reductions[-1]
+                chain.reductions = [r for r in chain.reductions
+                                    if not isinstance(r, (ConeFormat, type(solver)))]
+                stuffed = chain.apply(prob)[0]
+                self.assertFalse(stuffed.formatted)
+                expected = solver.format_constraints(stuffed, solver.EXP_CONE_ORDER)
+                got = ConeFormat(solver).apply(stuffed)[0]
+                self.assertTrue(got.formatted)
+                self.assertItemsAlmostEqual(got.A.toarray(), expected.A.toarray(),
+                                            places=12)

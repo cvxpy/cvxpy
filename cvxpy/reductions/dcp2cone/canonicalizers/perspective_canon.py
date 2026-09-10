@@ -20,6 +20,8 @@ from cvxpy.atoms.affine.diag import diag
 from cvxpy.atoms.affine.vec import vec
 from cvxpy.expressions.variable import Variable
 from cvxpy.problems.objective import Maximize, Minimize
+from cvxpy.reductions.cone_format import ConeFormat
+from cvxpy.reductions.solvers.solver import Solver
 from cvxpy.utilities.perspective_utils import form_cone_constraint
 from cvxpy.utilities.solver_context import SolverInfo
 
@@ -35,7 +37,10 @@ def perspective_canon(expr, args, solver_context: SolverInfo | None = None):
     solver_opts = {"use_quad_obj": False}
     solver = solver_context.solver_name if solver_context is not None else None
     chain = aux_prob._construct_chain(solver=solver, solver_opts=solver_opts, ignore_dpp=True)
-    chain.reductions = chain.reductions[:-1]  # skip solver reduction
+    # Keep only the canonicalization reductions: the raw stuffed tensors are
+    # unpacked below, so the solver's cone row layout must not be applied.
+    chain.reductions = [r for r in chain.reductions
+                        if not isinstance(r, (Solver, ConeFormat))]
     prob_canon = chain.apply(aux_prob)[0]  # grab problem instance
     # get cone representation of c, A, and b for some problem.
 

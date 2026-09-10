@@ -230,6 +230,15 @@ class ParamConeProg(ParamProb):
 
         self.dir_cones: list[DirectCone] = dir_cones if dir_cones is not None else []
 
+    def format_for(self, solver):
+        """Return this program with the solver's cone row layout applied.
+
+        Restructuring reorders the stuffed constraint rows into the layout the
+        solver's cone API expects. Subclasses that own a re-extractable program
+        override this so formatting does not discard it.
+        """
+        return solver.format_constraints(self, solver.EXP_CONE_ORDER)
+
     def is_mixed_integer(self) -> bool:
         """Is the problem mixed-integer?"""
         return self.x.attributes['boolean'] or \
