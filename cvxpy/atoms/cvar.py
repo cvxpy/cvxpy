@@ -14,11 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from cvxpy.atoms.axis_atom import axis_size
 from cvxpy.atoms.sum_largest import sum_largest
 from cvxpy.expressions.expression import Expression
 
 
-def cvar(x, beta) -> Expression:
+def cvar(x, beta, axis=None, keepdims=False) -> Expression:
     r"""The conditional value at risk (CVaR) of a random variable represented by
     the vector of samples ``x``.
 
@@ -29,10 +30,18 @@ def cvar(x, beta) -> Expression:
     Parameters
     ----------
     x : Expression or numeric constant
-        A vector of samples representing the distribution. Must be one-dimensional.
+        The samples representing the distribution. With ``axis`` given, the
+        samples of each distribution run along the reduced axes, so an array of
+        shape ``(m, n)`` with ``axis=0`` holds ``n`` distributions of ``m``
+        samples each.
     beta : float
         The probability level. Must be in the range :math:`[0, 1)`.
         For example, :math:`\beta = 0.95` gives the average of the worst 5% of outcomes.
+    axis : int or tuple of ints, optional
+        The axis or axes along which the samples are taken. The default,
+        ``None``, treats all the entries of ``x`` as one distribution.
+    keepdims : bool, optional
+        If True, the reduced axes are kept with size one.
 
     Returns
     -------
@@ -41,15 +50,12 @@ def cvar(x, beta) -> Expression:
 
             \frac{1}{(1-\beta)m} \sum\nolimits_{\text{largest } (1-\beta)m} x_i
 
-        where :math:`m` is the length of :math:`x`. When :math:`(1-\beta)m` is not an
-        integer, the fractional part is handled via linear interpolation.
+        where :math:`m` is the number of samples reduced, that is the size of
+        :math:`x` along ``axis``. When :math:`(1-\beta)m` is not an integer, the
+        fractional part is handled via linear interpolation.
     """
     if not 0 <= beta < 1:
         raise ValueError(f"The probability level beta must be in the range [0, 1), got {beta}")
 
-    if len(x.shape) != 1:
-        raise ValueError(f"cvar input must be a 1d array, got shape {x.shape}")
-
-    k = (1 - beta) * x.shape[0]
-    return sum_largest(x, k) / k
-
+    k = (1 - beta) * axis_size(x, axis)
+    return sum_largest(x, k, axis=axis, keepdims=keepdims) / k

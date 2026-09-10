@@ -84,7 +84,7 @@ and returns a scalar.
      - average of the :math:`(1-\beta)`
        
        fraction of largest values in :math:`x`
-     - :math:`x \in \mathbf{R}^m`
+     - :math:`x \in \mathbf{R}^{m \times n}`
       
        :math:`\beta \in (0,1)`
      - sign depends on :math:`x`
@@ -521,8 +521,8 @@ The CVXPY function ``sum`` sums all the entries in a single expression. The buil
 Functions along an axis
 -----------------------
 
-The functions ``sum``, ``norm``, ``max``, ``min``, ``mean``, ``std``, ``var``, and ``ptp`` can
-be applied along an axis.
+The functions ``sum``, ``norm``, ``max``, ``min``, ``mean``, ``std``, ``var``, ``ptp``,
+``sum_largest`` and ``cvar`` can be applied along an axis.
 Given an ``m`` by ``n`` expression ``expr``, the syntax ``func(expr, axis=0, keepdims=True)``
 applies ``func`` to each column, returning a 1 by ``n`` expression.
 The syntax ``func(expr, axis=1, keepdims=True)`` applies ``func`` to each row,
