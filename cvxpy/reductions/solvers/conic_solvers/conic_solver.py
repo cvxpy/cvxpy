@@ -232,6 +232,11 @@ def build_restruct_mat_sparse(constraints, exp_cone_order):
 
 class ConicSolver(Solver):
     """Conic solver class with reduction semantics
+
+    ``apply`` requires a program whose constraint rows are already in this
+    solver's cone layout, i.e. ``problem.formatted`` is True. The
+    ``ConeFormat`` reduction, which every conic chain ends with before the
+    solver, establishes that; interfaces must not re-derive it.
     """
     # The key that maps to ConeDims in the data returned by apply().
     DIMS = "dims"
@@ -412,8 +417,6 @@ class ConicSolver(Solver):
         # 5. exponential
         # 6. three-dimensional power cones
         # 7. n-dimensional power cones
-        if not problem.formatted:
-            problem = self.format_constraints(problem, self.EXP_CONE_ORDER)
         data[s.PARAM_PROB] = problem
         data[self.DIMS] = problem.cone_dims
         inv_data[self.DIMS] = problem.cone_dims

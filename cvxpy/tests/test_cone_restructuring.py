@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import pathlib
 from unittest import mock
 
 import numpy as np
@@ -139,9 +140,41 @@ class TestConeFormatReduction(BaseTest):
         prob.solve(solver=SOLVER)
         reductions = prob._cache.solving_chain.reductions
         self.assertIsInstance(reductions[-2], ConeFormat)
-        # The solver receives an already-formatted program, so its own
-        # `if not problem.formatted` guard is a no-op.
+        # The solver receives an already-formatted program; it no longer
+        # carries a guard to re-derive the layout itself.
         self.assertTrue(prob._cache.param_prog.formatted)
+
+    def test_every_conic_interface_relies_on_the_reduction(self) -> None:
+        """No conic interface may re-derive the cone layout: `formatted` is a
+        precondition of ConicSolver.apply, established once by ConeFormat."""
+        import cvxpy.reductions.solvers.conic_solvers as conic_pkg
+        src_dir = pathlib.Path(conic_pkg.__file__).parent
+        offenders = [f.name for f in sorted(src_dir.glob('*.py'))
+                     if 'if not problem.formatted:' in f.read_text()]
+        self.assertEqual(offenders, [])
+
+    def test_solver_apply_no_longer_formats(self) -> None:
+        """The reduction is load-bearing: handed an unformatted program, the
+        solver interface uses its rows as they are rather than restructuring
+        them."""
+        # Several cones in one constraint: R interleaves each t with its own
+        # X rows, so it is a genuine permutation rather than the identity.
+        X = cp.Variable((3, 2))
+        prob = cp.Problem(cp.Minimize(cp.sum(X)), [cp.norm(X, 2, axis=0) <= 2])
+        chain = prob._construct_chain(solver=SOLVER)
+        solver = chain.reductions[-1]
+        chain.reductions = [r for r in chain.reductions
+                            if not isinstance(r, (ConeFormat, type(solver)))]
+        unformatted = chain.apply(prob)[0]
+        self.assertFalse(unformatted.formatted)
+
+        raw = solver.apply(unformatted)[0][cp.settings.A].toarray()
+        formatted = ConeFormat(solver).apply(unformatted)[0]
+        laid_out = solver.apply(formatted)[0][cp.settings.A].toarray()
+        self.assertFalse(np.allclose(raw, laid_out))
+        # `raw` is the stuffed order passed straight through: the same rows,
+        # merely permuted, which is what the interface no longer corrects.
+        self.assertItemsAlmostEqual(np.sort(raw, axis=0), np.sort(laid_out, axis=0))
 
     def test_qp_chain_has_no_cone_format(self) -> None:
         x = cp.Variable(3)

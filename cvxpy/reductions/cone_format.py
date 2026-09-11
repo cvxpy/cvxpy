@@ -19,13 +19,16 @@ from cvxpy.reductions.reduction import Reduction
 class ConeFormat(Reduction):
     """Apply a conic solver's cone row layout as an explicit chain step.
 
-    Solver interfaces have historically each opened by calling
-    ``format_constraints`` themselves, guarded on ``problem.formatted``. Doing
-    it here instead makes the ordering a chain fact rather than a convention
-    every interface has to remember -- ``Dualize`` in particular assumes
-    formatting has already happened. It also lets a program that owns a
-    re-extractable form restructure itself instead of being rebuilt as an
-    ordinary program, via ``ParamConeProg.format_for``.
+    This is the only place cone formatting happens. Interfaces used to each
+    open by calling ``format_constraints`` themselves, guarded on
+    ``problem.formatted`` -- eleven copies of a step every new interface had
+    to remember, and one that ``Dualize`` already assumed had run. An
+    already-formatted program is now a precondition of ``ConicSolver.apply``
+    rather than something each interface repairs.
+
+    Making it a reduction also lets a program that owns a re-extractable form
+    restructure itself instead of being rebuilt as an ordinary program, via
+    ``ParamConeProg.format_for``.
 
     A no-op when there is nothing to do: an already-formatted program (which
     is what ``ExtractDirectCones`` leaves behind), or a program whose solver
