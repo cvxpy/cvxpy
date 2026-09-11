@@ -615,6 +615,40 @@ class TestExpressions(BaseTest):
         expr = cp.promote(Variable(), (2, 2))
         assert expr.is_hermitian()
 
+    def test_discrete_leaf_accepts_python_scalar(self) -> None:
+        """gh-3284: constructing a boolean/integer leaf with a Python bool or
+        int must work.
+
+        The reported failure was in the constructor, which validates through
+        project(); that reached ``val.astype`` directly, which a Python scalar
+        does not have.
+        """
+        for attr in ('boolean', 'integer'):
+            for kind in (Variable, cp.Parameter):
+                for val in (False, True, 0, 1):
+                    with self.subTest(attr=attr, kind=kind.__name__, val=val):
+                        leaf = kind(value=val, **{attr: True})
+                        self.assertAlmostEqual(float(leaf.value), float(val))
+
+    def test_project_python_scalar_discrete(self) -> None:
+        """The same scalar path through project() directly, shape preserved."""
+        for attr in ('boolean', 'integer'):
+            for leaf in (Variable(**{attr: True}), cp.Parameter(**{attr: True})):
+                with self.subTest(attr=attr, leaf=type(leaf).__name__):
+                    for val, expected in ((False, 0.0), (True, 1.0),
+                                          (0, 0.0), (1, 1.0)):
+                        projected = leaf.project(val)
+                        self.assertAlmostEqual(float(projected), expected)
+                        # 0-d in, 0-d out: the scalar shape must survive.
+                        self.assertEqual(np.ndim(projected), 0)
+
+    def test_project_python_scalar_rounds(self) -> None:
+        """The same scalar path still rounds and clips, not just passes through."""
+        self.assertAlmostEqual(float(Variable(boolean=True).project(0.6)), 1.0)
+        self.assertAlmostEqual(float(Variable(boolean=True).project(-3)), 0.0)
+        self.assertAlmostEqual(float(Variable(integer=True).project(2.4)), 2.0)
+        self.assertAlmostEqual(float(Variable(integer=True).project(-2.6)), -3.0)
+
     def test_round_attr(self) -> None:
         """Test rounding for attributes.
         """
