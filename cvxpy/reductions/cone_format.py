@@ -13,26 +13,27 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from cvxpy.problems.param_prob import ParamProb
 from cvxpy.reductions.reduction import Reduction
 
 
 class ConeFormat(Reduction):
     """Apply a conic solver's cone row layout as an explicit chain step.
 
-    This is the only place cone formatting happens. Interfaces used to each
-    open by calling ``format_constraints`` themselves, guarded on
-    ``problem.formatted`` -- eleven copies of a step every new interface had
-    to remember, and one that ``Dualize`` already assumed had run. An
-    already-formatted program is now a precondition of ``ConicSolver.apply``
-    rather than something each interface repairs.
+    Interfaces used to each open by calling ``format_constraints``
+    themselves, guarded on ``problem.formatted`` -- eleven copies of a step
+    every new interface had to remember, and one that ``Dualize`` already
+    assumed had run. An already-formatted program is now a precondition of
+    ``ConicSolver.apply`` rather than something each interface repairs.
 
-    Making it a reduction also lets a program that owns a re-extractable form
-    restructure itself instead of being rebuilt as an ordinary program, via
-    ``ParamConeProg.format_for``.
+    Which formatting to apply is dispatched on the program, via
+    ``format_for(solver)``, so a program that knows a cheaper way to
+    restructure itself can say so rather than be rebuilt.
 
-    A no-op when there is nothing to do: an already-formatted program (which
-    is what ``ExtractDirectCones`` leaves behind), or a program whose solver
-    formats nothing.
+    ``ExtractDirectCones`` is the one reduction that still formats on its own
+    (``cone2cone/extract_direct_cones.py``). It has to: it scans rows in
+    per-cone order to find its cones, which is earlier than this step runs.
+    It leaves ``formatted`` set, so this reduction is then a no-op.
     """
 
     def __init__(self, solver) -> None:
@@ -40,10 +41,10 @@ class ConeFormat(Reduction):
         self.solver = solver
 
     def accepts(self, problem) -> bool:
-        return True
+        return isinstance(problem, ParamProb)
 
     def apply(self, problem):
-        if getattr(problem, 'formatted', True):
+        if problem.formatted:
             return problem, None
         return problem.format_for(self.solver), None
 

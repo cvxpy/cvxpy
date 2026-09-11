@@ -193,7 +193,6 @@ class CVXOPT(ConicSolver):
         """
         data = {}
         inv_data = {self.VAR_ID: problem.x.id}
-
         data[s.PARAM_PROB] = problem
         data[self.DIMS] = problem.cone_dims
         inv_data[self.DIMS] = problem.cone_dims

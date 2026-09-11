@@ -37,8 +37,11 @@ def perspective_canon(expr, args, solver_context: SolverInfo | None = None):
     solver_opts = {"use_quad_obj": False}
     solver = solver_context.solver_name if solver_context is not None else None
     chain = aux_prob._construct_chain(solver=solver, solver_opts=solver_opts, ignore_dpp=True)
-    # Keep only the canonicalization reductions: the raw stuffed tensors are
-    # unpacked below, so the solver's cone row layout must not be applied.
+    # Keep only the canonicalization reductions: the stuffed rows are unpacked
+    # below against `prob_canon.constraints`, so ConeFormat must not reorder
+    # them. (ExtractDirectCones stays, and formats on its own when the solver
+    # advertises direct cones; it rewrites the constraint list to match, so the
+    # unpacking below still lines up.)
     chain.reductions = [r for r in chain.reductions
                         if not isinstance(r, (Solver, ConeFormat))]
     prob_canon = chain.apply(aux_prob)[0]  # grab problem instance

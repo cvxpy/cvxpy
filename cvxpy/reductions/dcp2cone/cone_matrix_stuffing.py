@@ -234,8 +234,10 @@ class ParamConeProg(ParamProb):
         """Return this program with the solver's cone row layout applied.
 
         Restructuring reorders the stuffed constraint rows into the layout the
-        solver's cone API expects. Subclasses that own a re-extractable program
-        override this so formatting does not discard it.
+        solver's cone API expects. Applied by the ``ConeFormat`` reduction,
+        which dispatches here rather than calling ``format_constraints``
+        itself: a program that knows a cheaper way to restructure itself
+        overrides this.
         """
         return solver.format_constraints(self, solver.EXP_CONE_ORDER)
 

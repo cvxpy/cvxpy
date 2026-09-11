@@ -21,20 +21,21 @@ import numpy as np
 import scipy.sparse as sp
 
 import cvxpy as cp
-import cvxpy.reductions.solvers.conic_solvers.conic_solver as cs_mod
+from cvxpy.constraints import SOC, ExpCone, Zero
 from cvxpy.reductions.cone_format import ConeFormat
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import (
-    IdentityOperator,
-    NegativeIdentityOperator,
-    diagonal_restruct_signs,
+    ConicSolver,
+    restruct_permutation,
 )
+from cvxpy.reductions.solvers.solver import Solver
 from cvxpy.tests.base_test import BaseTest
 
 SOLVER = cp.CLARABEL
 
 
 def _shapes():
-    """Problems covering diagonal and non-diagonal restructuring."""
+    """Problems whose restructuring is a pure sign flip, and problems whose
+    restructuring genuinely permutes rows. The flag is the latter."""
     rng = np.random.default_rng(0)
     A = rng.standard_normal((3, 4))
 
@@ -52,82 +53,162 @@ def _shapes():
     yield "psd and zero", cp.Problem(
         cp.Minimize(cp.trace(S)), [S >> np.eye(3), cp.trace(S) == 5]), True
 
-    w = cp.Variable(4)
+    w = cp.Variable((3, 2))
+    # Several cones in one constraint: a single SOC is stored as [t; X], which
+    # is already cone order, so only multiple cones actually interleave.
     yield "soc", cp.Problem(
-        cp.Minimize(cp.sum(w)), [cp.norm2(w) <= 1, cp.sum(w) == 0.5]), False
+        cp.Minimize(cp.sum(w)), [cp.norm(w, 2, axis=0) <= 1, cp.sum(w) == 0.5]), False
 
     v = cp.Variable(3)
     yield "exp cone", cp.Problem(
         cp.Maximize(cp.sum(cp.log(v))), [cp.sum(v) <= 3, v >= 0.1]), False
 
 
-class TestDiagonalRestructSigns(BaseTest):
-    """``diagonal_restruct_signs`` decides whether restructuring is a row sign
-    flip (Zero/NonNeg/PSD only) or a genuine row permutation (SOC, and the
-    exponential/power cones, which interleave their arguments' rows)."""
+def _materialize(cons, exp_cone_order):
+    """R as an explicit sparse matrix, for use as a test oracle only.
 
-    def test_identity_blocks_give_positive_signs(self) -> None:
-        signs = diagonal_restruct_signs([IdentityOperator(3), IdentityOperator(2)])
-        self.assertItemsAlmostEqual(signs, np.ones(5))
-
-    def test_zero_cone_blocks_give_negative_signs(self) -> None:
-        signs = diagonal_restruct_signs(
-            [NegativeIdentityOperator(2), IdentityOperator(3)])
-        self.assertItemsAlmostEqual(signs, [-1, -1, 1, 1, 1])
-
-    def test_interleaving_block_is_not_diagonal(self) -> None:
-        self.assertIsNone(
-            diagonal_restruct_signs([IdentityOperator(2), sp.eye_array(3)]))
-
-    def test_no_constraints_is_not_diagonal(self) -> None:
-        self.assertIsNone(diagonal_restruct_signs([]))
+    Production code never builds R -- that is the point of
+    ``restruct_permutation`` -- so the matrix form lives here.
+    """
+    new_row, sign = restruct_permutation(cons, exp_cone_order)
+    m = new_row.shape[0]
+    return sp.csc_array((sign, (new_row, np.arange(m))), shape=(m, m))
 
 
-class TestRestructuringFastPath(BaseTest):
-    """The fast path must be indistinguishable from the general path."""
+def _stuff(prob):
+    """The stuffed, *unformatted* program for a problem."""
+    chain = prob._construct_chain(solver=SOLVER)
+    chain.reductions = [r for r in chain.reductions
+                        if not isinstance(r, (Solver, ConeFormat))]
+    stuffed = chain.apply(prob)[0]
+    assert not stuffed.formatted
+    return stuffed
 
-    def test_fast_path_fires_only_for_diagonal_cones(self) -> None:
-        for name, prob, expect_diagonal in _shapes():
-            with self.subTest(name):
-                with mock.patch.object(
-                    cs_mod, "as_block_diag_linear_operator",
-                    side_effect=cs_mod.as_block_diag_linear_operator
-                ) as spy:
-                    prob.get_problem_data(SOLVER)
-                # The block-diagonal operator is only built on the general path.
-                self.assertEqual(spy.called, not expect_diagonal)
 
-    def test_stuffed_data_matches_general_path(self) -> None:
+class TestRestructPermutation(BaseTest):
+    """R is a signed permutation for every cone family, so restructuring is a
+    row remap plus a sign flip rather than a matrix product."""
+
+    def test_is_a_signed_permutation(self) -> None:
         for name, prob, _ in _shapes():
-            fast, _, _ = prob.get_problem_data(SOLVER)
-            fast = dict(fast)
-            # Force the general path and compare.
-            with mock.patch.object(cs_mod, "diagonal_restruct_signs",
-                                   return_value=None):
-                prob._cache.invalidate()
-                slow, _, _ = prob.get_problem_data(SOLVER)
-            for key in ("A", "b", "c"):
-                if key not in slow:
-                    continue
-                with self.subTest(f"{name}/{key}"):
-                    a, b = fast[key], slow[key]
-                    if sp.issparse(a):
-                        self.assertEqual(a.shape, b.shape)
-                        self.assertItemsAlmostEqual(
-                            a.toarray(), b.toarray(), places=12)
-                    else:
-                        self.assertItemsAlmostEqual(a, b, places=12)
+            with self.subTest(name):
+                prog = _stuff(prob)
+                new_row, sign = restruct_permutation(prog.constraints, [0, 1, 2])
+                # Every row lands somewhere, and nowhere twice.
+                self.assertItemsAlmostEqual(np.sort(new_row), np.arange(new_row.size))
+                self.assertItemsAlmostEqual(np.abs(sign), np.ones(sign.size))
 
-    def test_solutions_match_general_path(self) -> None:
+    def test_only_zero_cones_are_negated(self) -> None:
+        for name, prob, _ in _shapes():
+            with self.subTest(name):
+                prog = _stuff(prob)
+                _, sign = restruct_permutation(prog.constraints, [0, 1, 2])
+                expected = np.concatenate([
+                    np.full(c.size, -1.0 if type(c) == Zero else 1.0)
+                    for c in prog.constraints])
+                self.assertItemsAlmostEqual(sign, expected)
+
+    def test_diagonal_cones_do_not_move(self) -> None:
+        """Zero/NonNeg/PSD contribute +-I, so only the sign differs."""
+        for name, prob, identity_perm in _shapes():
+            with self.subTest(name):
+                prog = _stuff(prob)
+                new_row, _ = restruct_permutation(prog.constraints, [0, 1, 2])
+                is_identity = np.array_equal(new_row, np.arange(new_row.size))
+                self.assertEqual(is_identity, identity_perm)
+
+    def test_soc_interleaves_each_t_with_its_own_cone(self) -> None:
+        # t has 2 entries, X is 3x2 (column-major), so cone j is
+        # (t[j], X[:, j]) and lands on rows 4j .. 4j+3.
+        cons = [SOC(cp.Variable(2), cp.Variable((3, 2)))]
+        new_row, sign = restruct_permutation(cons, [0, 1, 2])
+        self.assertItemsAlmostEqual(new_row, [0, 4, 1, 2, 3, 5, 6, 7])
+        self.assertItemsAlmostEqual(sign, np.ones(8))
+
+    def test_exp_cone_follows_the_solver_order(self) -> None:
+        v = cp.Variable(2)
+        self.assertItemsAlmostEqual(
+            restruct_permutation([ExpCone(v, v, v)], [0, 1, 2])[0],
+            [0, 3, 1, 4, 2, 5])
+        # A solver using the reverse convention gets its arguments swapped.
+        self.assertItemsAlmostEqual(
+            restruct_permutation([ExpCone(v, v, v)], [2, 1, 0])[0],
+            [2, 5, 1, 4, 0, 3])
+
+    def test_no_constraints(self) -> None:
+        self.assertIsNone(restruct_permutation([], [0, 1, 2]))
+
+
+class TestRestructuringEquivalence(BaseTest):
+    """Remapping the parameter tensor must equal applying R to the concrete
+    ``[A | b]`` -- the check that the index arithmetic is right."""
+
+    def test_tensor_remap_matches_matrix_product(self) -> None:
+        for name, prob, _ in _shapes():
+            for order in ([0, 1, 2], [2, 1, 0]):
+                with self.subTest(f"{name}/{order}"):
+                    prog = _stuff(prob)
+                    _, _, A, b = prog.apply_parameters()
+                    R = _materialize(prog.constraints, order)
+                    formatted = ConicSolver.format_constraints(prog, order)
+                    _, _, A_new, b_new = formatted.apply_parameters()
+                    self.assertEqual(A_new.shape, A.shape)
+                    self.assertItemsAlmostEqual(
+                        A_new.toarray(), (R @ A).toarray(), places=12)
+                    self.assertItemsAlmostEqual(b_new, R @ b, places=12)
+
+    def test_remap_keeps_the_index_dtype(self) -> None:
+        """The remap computes in int64 but must store indices in the tensor's
+        own dtype: scipy requires indices and indptr to agree, and the permuted
+        index has the same bound as the one it replaces.
+
+        The CPP backend emits int32 indices for some problems, so build that
+        case explicitly rather than relying on a problem that happens to.
+        """
+        for name, prob, _ in _shapes():
+            with self.subTest(name):
+                prog = _stuff(prob)
+                narrow = prog.A.tocsc(copy=True)
+                narrow.indices = narrow.indices.astype(np.int32)
+                narrow.indptr = narrow.indptr.astype(np.int32)
+                prog.A = narrow
+
+                A = ConicSolver.format_constraints(prog, [0, 1, 2]).A.tocsc()
+                self.assertEqual(A.indices.dtype, np.int32)
+                self.assertEqual(A.indices.dtype, A.indptr.dtype)
+                # eliminate_zeros raises outright on a mismatch, which is how
+                # this surfaced downstream rather than here.
+                A.copy().eliminate_zeros()
+
+    def test_identity_restructuring_does_no_work(self) -> None:
+        """NonNeg-only cones give R = I, so there is nothing to copy."""
+        x = cp.Variable(4)
+        rng = np.random.default_rng(0)
+        prob = cp.Problem(cp.Minimize(cp.sum(x)), [rng.standard_normal((3, 4)) @ x >= 1])
+        prog = _stuff(prob)
+        self.assertIs(ConicSolver.format_constraints(prog, [0, 1, 2]).A, prog.A)
+
+        # A Zero cone flips signs, so that one does have to copy.
+        y = cp.Variable(4)
+        signed = _stuff(cp.Problem(cp.Minimize(cp.sum(y)), [cp.sum(y) == 1]))
+        self.assertIsNot(ConicSolver.format_constraints(signed, [0, 1, 2]).A, signed.A)
+
+    def test_format_constraints_does_not_mutate_its_input(self) -> None:
+        for name, prob, _ in _shapes():
+            with self.subTest(name):
+                prog = _stuff(prob)
+                before = prog.A.copy().toarray()
+                ConicSolver.format_constraints(prog, [0, 1, 2])
+                self.assertItemsAlmostEqual(prog.A.toarray(), before, places=12)
+
+    def test_solutions_are_unchanged(self) -> None:
         for name, prob, _ in _shapes():
             with self.subTest(name):
                 prob.solve(solver=SOLVER)
-                fast_val = prob.value
-                with mock.patch.object(cs_mod, "diagonal_restruct_signs",
-                                       return_value=None):
-                    prob._cache.invalidate()
-                    prob.solve(solver=SOLVER)
-                self.assertAlmostEqual(fast_val, prob.value, places=6)
+                reference = prob.value
+                prob._cache.invalidate()
+                prob.solve(solver=SOLVER, canon_backend=cp.settings.SCIPY_CANON_BACKEND)
+                self.assertAlmostEqual(reference, prob.value, places=6)
 
 
 class TestConeFormatReduction(BaseTest):
@@ -171,6 +252,7 @@ class TestConeFormatReduction(BaseTest):
         raw = solver.apply(unformatted)[0][cp.settings.A].toarray()
         formatted = ConeFormat(solver).apply(unformatted)[0]
         laid_out = solver.apply(formatted)[0][cp.settings.A].toarray()
+        self.assertEqual(raw.shape, laid_out.shape)
         self.assertFalse(np.allclose(raw, laid_out))
         # `raw` is the stuffed order passed straight through: the same rows,
         # merely permuted, which is what the interface no longer corrects.
@@ -183,17 +265,19 @@ class TestConeFormatReduction(BaseTest):
         self.assertFalse(any(isinstance(r, ConeFormat)
                              for r in prob._cache.solving_chain.reductions))
 
-    def test_format_for_matches_format_constraints(self) -> None:
+    def test_format_for_dispatches_on_the_program(self) -> None:
+        """ConeFormat delegates to the program, which is the seam a program
+        owning a re-extractable form overrides."""
         for name, prob, _ in _shapes():
             with self.subTest(name):
                 chain = prob._construct_chain(solver=SOLVER)
                 solver = chain.reductions[-1]
-                chain.reductions = [r for r in chain.reductions
-                                    if not isinstance(r, (ConeFormat, type(solver)))]
-                stuffed = chain.apply(prob)[0]
-                self.assertFalse(stuffed.formatted)
-                expected = solver.format_constraints(stuffed, solver.EXP_CONE_ORDER)
-                got = ConeFormat(solver).apply(stuffed)[0]
+                stuffed = _stuff(prob)
+                with mock.patch.object(
+                        type(stuffed), 'format_for',
+                        side_effect=stuffed.format_for) as spy:
+                    got = ConeFormat(solver).apply(stuffed)[0]
+                spy.assert_called_once_with(solver)
                 self.assertTrue(got.formatted)
-                self.assertItemsAlmostEqual(got.A.toarray(), expected.A.toarray(),
-                                            places=12)
+                # ...and an already-formatted program is left alone.
+                self.assertIs(ConeFormat(solver).apply(got)[0], got)
