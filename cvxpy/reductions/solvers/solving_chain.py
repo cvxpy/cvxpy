@@ -110,7 +110,7 @@ def _fallback_solver(problem_form: ProblemForm) -> Solver:
     )
 
 
-def _diffengine_eligible(problem, gp: bool, dir_cone_kinds) -> bool:
+def _diffengine_eligible(problem, gp: bool, solver_instance) -> bool:
     """Whether the DIFFENGINE backend can canonicalize this problem at all.
 
     Capability only: selection also depends on the route taken and on an
@@ -122,8 +122,10 @@ def _diffengine_eligible(problem, gp: bool, dir_cone_kinds) -> bool:
     * ndim > 2: the engine represents every expression as a 2-D matrix.
     * parametric variable bounds: ``EvalParams`` does not substitute bounds, so
       they would still be symbolic at stuffing time.
-    * ``dir_cone_kinds``: ``ExtractDirectCones`` rebuilds the stuffed program
-      as a plain ParamConeProg, discarding a re-extractable one.
+    * ``DIR_CONE_KINDS``: ``ExtractDirectCones`` reads the parameter tensors,
+      which a re-extracted program does not have.
+    * ``REQUIRES_PARAM_TENSORS``: so does the solver interface itself (diffcp,
+      whose ``keep_zeros`` needs a stable sparsity pattern).
     * unsupported atoms: no converter exists, so an auto-selected DIFFENGINE
       would raise where the tensor backends succeed (see
       ``_supports_diffengine``).
@@ -131,7 +133,8 @@ def _diffengine_eligible(problem, gp: bool, dir_cone_kinds) -> bool:
     return (not gp
             and problem._max_ndim() <= 2
             and not _has_parametric_bounds(problem.variables())
-            and not dir_cone_kinds
+            and not solver_instance.DIR_CONE_KINDS
+            and not solver_instance.REQUIRES_PARAM_TENSORS
             and problem._supports_diffengine())
 
 
@@ -248,7 +251,7 @@ def _build_solving_chain(
         # The diff engine keeps parameters symbolic and re-evaluates them on
         # each solve. Where it does not apply, fall back to EvalParams plus
         # the tensor backends.
-        diffengine_ok = _diffengine_eligible(problem, gp, dir_cone_kinds)
+        diffengine_ok = _diffengine_eligible(problem, gp, solver_instance)
         if problem.parameters() and diffengine_ok:
             # Parameters stay symbolic through canonicalization, so the
             # compiled program is cacheable (safe_to_cache additionally

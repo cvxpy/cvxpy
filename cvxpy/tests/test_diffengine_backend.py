@@ -25,7 +25,7 @@ import cvxpy.settings as s
 from cvxpy.atoms.quad_form import SymbolicQuadForm
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import (
     ConeMatrixStuffing,
-    ParamConeProg,
+    ConeProg,
 )
 from cvxpy.reductions.solvers.defines import INSTALLED_MI_SOLVERS
 from cvxpy.reductions.solvers.nlp_solvers.diff_engine.converters import (
@@ -229,8 +229,8 @@ class TestDiffengineBackend(BaseTest):
 
 
 class TestDiffengineSelection(BaseTest):
-    """canon_backend='DIFFENGINE' is explicit opt-in and produces a stock
-    parameter-free ParamConeProg."""
+    """canon_backend='DIFFENGINE' is explicit opt-in and produces a
+    parameter-free cone program the solvers accept like any other."""
 
     def _stuffing_backend(self, chain) -> str:
         stuffing = [r for r in chain.reductions
@@ -243,7 +243,7 @@ class TestDiffengineSelection(BaseTest):
         prob.solve(solver=SOLVER, canon_backend=DIFFENGINE)
         self.assertEqual(self._stuffing_backend(prob._cache.solving_chain),
                          DIFFENGINE)
-        self.assertIsInstance(prob._cache.param_prog, ParamConeProg)
+        self.assertIsInstance(prob._cache.param_prog, ConeProg)
         self.assertEqual(prob._cache.param_prog.parameters, [])
         self.assertAlmostEqual(prob.value, 0.0)
         self.assertItemsAlmostEqual(x.value, np.ones(3), places=4)

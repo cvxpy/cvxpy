@@ -63,6 +63,11 @@ class DIFFCP(scs_conif.SCS):
         """
         return False
 
+    # Differentiation needs a parameter tensor with a stable sparsity
+    # pattern (keep_zeros below), so this interface cannot take a program
+    # that re-extracts its matrices.
+    REQUIRES_PARAM_TENSORS = True
+
     def apply(self, problem):
         problem, data, inv_data = self._prepare_data_and_inv_data(problem)
 

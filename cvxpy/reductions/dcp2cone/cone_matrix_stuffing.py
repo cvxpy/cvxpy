@@ -165,43 +165,48 @@ class ConeDims:
             raise KeyError(key)
 
 
-# TODO(akshayka): unit tests
-class ParamConeProg(ParamProb):
-    """Represents a parameterized cone program
+def order_cone_constraints(constraints):
+    """Sort lowered constraints into CVXPY's standard cone order.
+
+    Zero, NonNeg, SOC, PSD, SvecPSD, ExpCone, PowCone3D, PowConeND.
+    """
+    constr_map = group_constraints(constraints)
+    return constr_map[Zero] + constr_map[NonNeg] + \
+        constr_map[SOC] + constr_map.get(PSD, []) + \
+        constr_map.get(SvecPSD, []) + constr_map[ExpCone] + \
+        constr_map[PowCone3D] + constr_map[PowConeND]
+
+
+class ConeProg(ParamProb):
+    """The structure of a stuffed cone program, without its data.
 
     minimize   q'x  + d + [(1/2)x'Px]
     subject to cone_constr1(A_1*x + b_1, ...)
                ...
                cone_constrK(A_i*x + b_i, ...)
 
-
-    The constant offsets d and b are the last column of c and A.
+    This is the surface every conic and QP solver interface consumes: the
+    stuffed variable, the cone constraints and their dimensions, and the
+    variable/parameter index maps. How ``(q, d, A, b, P)`` are obtained is left
+    to the subclass -- :class:`ParamConeProg` multiplies DPP parameter tensors,
+    while the DIFFENGINE backend's program re-evaluates the expression trees.
     """
-    def __init__(self, q, x, A,
+
+    def __init__(self, x,
                  variables,
                  var_id_to_col,
                  constraints,
                  parameters,
                  param_id_to_col,
-                 P=None,
                  formatted: bool = False,
                  lower_bounds: np.ndarray | None = None,
                  upper_bounds: np.ndarray | None = None,
-                 lb_tensor=None,
-                 ub_tensor=None,
-                 dir_cones: list[DirectCone] | None = None,
                  ) -> None:
         # The variable
         self.x = x
-        # The problem data tensors; q is for the objective, and A for
-        # the problem data matrix.
-        self._store_tensors(q, A, P)
         # Lower and upper bounds for the variable, if present.
         self.lower_bounds = lower_bounds
         self.upper_bounds = upper_bounds
-        # Sparse tensors for parametric bounds (param_vec -> bounds_vec).
-        self.lb_tensor = lb_tensor
-        self.ub_tensor = ub_tensor
 
         self.constraints = constraints
         self.constr_size = sum([c.size for c in constraints])
@@ -218,10 +223,18 @@ class ParamConeProg(ParamProb):
         self.var_id_to_col = var_id_to_col
         self.id_to_var = {v.id: v for v in self.variables}
 
-        # whether this param cone prog has been formatted for a solver
+        # whether this cone prog has been formatted for a solver
         self.formatted = formatted
 
-        self.dir_cones: list[DirectCone] = dir_cones if dir_cones is not None else []
+    def is_mixed_integer(self) -> bool:
+        """Is the problem mixed-integer?"""
+        return self.x.attributes['boolean'] or \
+            self.x.attributes['integer']
+
+    @property
+    def has_quad_obj(self) -> bool:
+        """Does the objective have a quadratic term?"""
+        raise NotImplementedError()
 
     def format_for(self, solver):
         """Return this program with the solver's cone row layout applied.
@@ -229,17 +242,53 @@ class ParamConeProg(ParamProb):
         Restructuring reorders the stuffed constraint rows into the layout the
         solver's cone API expects. Applied by the ``ConeFormat`` reduction,
         which dispatches here rather than calling ``format_constraints``
-        itself: a program that knows a cheaper way to restructure itself
-        overrides this.
+        itself, so a program that owns a re-extractable form can restructure
+        itself rather than be rebuilt as an ordinary one.
         """
-        return solver.format_constraints(self, solver.EXP_CONE_ORDER)
+        raise NotImplementedError()
 
-    def _store_tensors(self, q, A, P) -> None:
-        """Store the parameter-to-data tensors and their reduced forms.
-
-        A subclass whose data is re-extracted rather than obtained by
-        multiplying these tensors overrides this to build them on demand.
+    def split_solution(self, sltn, active_vars=None):
+        """Splits the solution into individual variables.
         """
+        if active_vars is None:
+            active_vars = [v.id for v in self.variables]
+        sltn_dict = {}
+        for var_id, col in self.var_id_to_col.items():
+            if var_id in active_vars:
+                var = self.id_to_var[var_id]
+                value = sltn[col:var.size+col]
+                sltn_dict[var_id] = np.reshape(value, var.shape, order='F')
+        return sltn_dict
+
+
+# TODO(akshayka): unit tests
+class ParamConeProg(ConeProg):
+    """A cone program whose data is a linear map of the parameter vector.
+
+    The parameter-to-data tensors q, A and P are produced by DPP
+    canonicalization; ``apply_parameters`` multiplies them by the current
+    parameter vector. The constant offsets d and b are the last column of
+    q and A.
+    """
+    def __init__(self, q, x, A,
+                 variables,
+                 var_id_to_col,
+                 constraints,
+                 parameters,
+                 param_id_to_col,
+                 P=None,
+                 formatted: bool = False,
+                 lower_bounds: np.ndarray | None = None,
+                 upper_bounds: np.ndarray | None = None,
+                 lb_tensor=None,
+                 ub_tensor=None,
+                 dir_cones: list[DirectCone] | None = None,
+                 ) -> None:
+        super().__init__(x, variables, var_id_to_col, constraints,
+                         parameters, param_id_to_col, formatted=formatted,
+                         lower_bounds=lower_bounds, upper_bounds=upper_bounds)
+        # The problem data tensors; q is for the objective, and A for
+        # the problem data matrix.
         self.q = q
         self.A = A
         self.P = P
@@ -247,11 +296,14 @@ class ParamConeProg(ParamProb):
         # of parameters.
         self.reduced_A = ReducedMat(self.A, self.x.size)
         self.reduced_P = ReducedMat(self.P, self.x.size, quad_form=True)
+        # Sparse tensors for parametric bounds (param_vec -> bounds_vec).
+        self.lb_tensor = lb_tensor
+        self.ub_tensor = ub_tensor
 
-    def is_mixed_integer(self) -> bool:
-        """Is the problem mixed-integer?"""
-        return self.x.attributes['boolean'] or \
-            self.x.attributes['integer']
+        self.dir_cones: list[DirectCone] = dir_cones if dir_cones is not None else []
+
+    def format_for(self, solver):
+        return solver.format_constraints(self, solver.EXP_CONE_ORDER)
 
     @property
     def has_quad_obj(self) -> bool:
@@ -365,19 +417,6 @@ class ParamConeProg(ParamProb):
                     delta, param.shape, order='F')
         return param_id_to_delta_param
 
-    def split_solution(self, sltn, active_vars=None):
-        """Splits the solution into individual variables.
-        """
-        if active_vars is None:
-            active_vars = [v.id for v in self.variables]
-        sltn_dict = {}
-        for var_id, col in self.var_id_to_col.items():
-            if var_id in active_vars:
-                var = self.id_to_var[var_id]
-                value = sltn[col:var.size+col]
-                sltn_dict[var_id] = np.reshape(value, var.shape, order='F')
-        return sltn_dict
-
     def split_adjoint(self, del_vars=None):
         """Adjoint of split_solution.
         """
@@ -461,8 +500,8 @@ class ConeMatrixStuffing(MatrixStuffing):
                               constr_id=con.constr_id)
             cons.append(con)
         if self.canon_backend == s.DIFFENGINE_CANON_BACKEND:
-            # Local import: cone_stuffing imports ParamConeProg from this module.
-            from cvxpy.reductions.solvers.nlp_solvers.diff_engine.cone_stuffing import (
+            # Local import: cone_program imports ConeProg from this module.
+            from cvxpy.reductions.solvers.nlp_solvers.diff_engine.cone_program import (
                 stuff_cone_program,
             )
             new_prob, inverse_data = stuff_cone_program(
@@ -476,12 +515,7 @@ class ConeMatrixStuffing(MatrixStuffing):
         extractor = CoeffExtractor(inverse_data, canon_backend)
         params_to_P, params_to_c, flattened_variable = self.stuffed_objective(
             problem, extractor)
-        # Reorder constraints to Zero, NonNeg, SOC, PSD, EXP, PowCone3D, PowConeND
-        constr_map = group_constraints(cons)
-        ordered_cons = constr_map[Zero] + constr_map[NonNeg] + \
-            constr_map[SOC] + constr_map.get(PSD, []) + \
-            constr_map.get(SvecPSD, []) + constr_map[ExpCone] + \
-            constr_map[PowCone3D] + constr_map[PowConeND]
+        ordered_cons = order_cone_constraints(cons)
         inverse_data.cons_id_map = {con.id: con.id for con in ordered_cons}
         self._cons_id_map = inverse_data.cons_id_map
 

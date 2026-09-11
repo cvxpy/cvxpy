@@ -26,13 +26,13 @@ import cvxpy as cp
 import cvxpy.settings as s
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import (
     ConeMatrixStuffing,
+    ParamConeProg,
 )
 from cvxpy.reductions.eval_params import EvalParams
 from cvxpy.reductions.fold_callback_params import CallbackParamFold
-from cvxpy.reductions.solvers.defines import INSTALLED_MI_SOLVERS
-from cvxpy.reductions.solvers.nlp_solvers.diff_engine import parametric_program
-from cvxpy.reductions.solvers.nlp_solvers.diff_engine.parametric_program import (
-    DiffengineParamConeProg,
+from cvxpy.reductions.solvers.defines import INSTALLED_MI_SOLVERS, INSTALLED_SOLVERS
+from cvxpy.reductions.solvers.nlp_solvers.diff_engine.cone_program import (
+    DiffengineConeProg,
 )
 from cvxpy.tests.base_test import BaseTest
 
@@ -141,10 +141,9 @@ class TestIgnoreDppSelection(BaseTest):
         self.assertItemsAlmostEqual(x.value, lb.value, places=4)
 
     def test_direct_cone_solver_falls_back(self) -> None:
-        """ExtractDirectCones rebuilds the stuffed program as a plain
-        ParamConeProg, which would discard the symbolic program's
-        re-extraction; solvers advertising DIR_CONE_KINDS therefore stay on
-        the tensor path."""
+        """ExtractDirectCones detects its cones in the parameter tensors,
+        which the symbolic program does not have; solvers advertising
+        DIR_CONE_KINDS therefore stay on the tensor path."""
         A = np.array([[1.0, 2.0], [3.0, 4.0]])
         x = cp.Variable(2)
         p = cp.Parameter(nonneg=True)
@@ -156,6 +155,23 @@ class TestIgnoreDppSelection(BaseTest):
             chain = prob._construct_chain(solver=SOLVER, ignore_dpp=True)
         self.assertNotEqual(_stuffing_backend(chain), DIFFENGINE)
         self.assertTrue(any(isinstance(r, EvalParams) for r in chain.reductions))
+
+    @unittest.skipUnless(s.DIFFCP in INSTALLED_SOLVERS, 'diffcp is not installed')
+    def test_tensor_consuming_solver_falls_back(self) -> None:
+        """diffcp reads the parameter tensors directly (keep_zeros), which a
+        re-extracted program cannot honor, so it stays on the tensor path."""
+        A = np.array([[1.0, 2.0], [3.0, 4.0]])
+        x = cp.Variable(2)
+        p = cp.Parameter(nonneg=True)
+        p.value = 2.0
+        prob = cp.Problem(cp.Minimize(cp.sum(x)), [(p * A) @ x >= 1, x >= 0])
+        chain = prob._construct_chain(solver=s.DIFFCP, ignore_dpp=True)
+        self.assertNotEqual(_stuffing_backend(chain), DIFFENGINE)
+        prob.solve(solver=s.DIFFCP, ignore_dpp=True)
+        ref = cp.Problem(cp.Minimize(cp.sum(x)),
+                         [(p.value * A) @ x >= 1, x >= 0])
+        ref.solve(solver=SOLVER)
+        self.assertAlmostEqual(prob.value, ref.value, places=4)
 
     def test_parametric_pow_cone_alpha(self) -> None:
         """PowCone3D's alpha lives outside the constraint args and survives
@@ -353,25 +369,39 @@ class TestIgnoreDppBehavior(BaseTest):
             self.assertAlmostEqual(x.value, -val / 2.0, places=3)
 
     def test_soc_restruct_resolve_and_duals(self) -> None:
-        """The pre-applied SOC restructuring matrix must act on freshly
-        extracted (A, b) on re-solves; duals must match the default path."""
-        c = np.array([1.0, 2.0])
-        p = cp.Parameter(2)
-        x = cp.Variable(2)
-        constraints = [cp.norm(x - p) <= 2.0, x >= -5]
-        prob = cp.Problem(cp.Minimize(c @ x), constraints)
+        """The pre-applied row layout must act on freshly extracted (A, b) on
+        re-solves; duals must match the default path.
 
-        for val in (np.array([1.0, 1.0]), np.array([-2.0, 3.0])):
+        Several cones in one constraint, plus an equality: a single SOC is
+        stored as [t; X], which is already cone order, so only multiple cones
+        actually permute rows, and only a Zero cone flips signs. With one cone
+        and no equality the layout is the identity and this proves nothing.
+        """
+        c = np.array([1.0, 2.0, 3.0])
+        p = cp.Parameter((3, 2))
+        X = cp.Variable((3, 2))
+
+        def build(pv, var):
+            return [cp.norm(var - pv, 2, axis=0) <= 2.0,
+                    cp.sum(var[:, 0]) == 1.0,
+                    var >= -5]
+
+        constraints = build(p, X)
+        prob = cp.Problem(cp.Minimize(c @ X @ np.ones(2)), constraints)
+
+        rng = np.random.default_rng(0)
+        for _ in range(2):
+            val = rng.standard_normal((3, 2))
             p.value = val
             prob.solve(solver=SOLVER, ignore_dpp=True)
             self.assertEqual(prob.status, cp.OPTIMAL)
 
-            x_base = cp.Variable(2)
-            base_cons = [cp.norm(x_base - val) <= 2.0, x_base >= -5]
-            base = cp.Problem(cp.Minimize(c @ x_base), base_cons)
+            X_base = cp.Variable((3, 2))
+            base_cons = build(val, X_base)
+            base = cp.Problem(cp.Minimize(c @ X_base @ np.ones(2)), base_cons)
             base.solve(solver=SOLVER)
             self.assertAlmostEqual(prob.value, base.value, places=4)
-            self.assertItemsAlmostEqual(x.value, x_base.value, places=4)
+            self.assertItemsAlmostEqual(X.value, X_base.value, places=4)
             for con_de, con_base in zip(constraints, base_cons):
                 self.assertItemsAlmostEqual(
                     con_de.dual_value, con_base.dual_value, places=4)
@@ -424,7 +454,7 @@ class TestIgnoreDppBehavior(BaseTest):
 
 
 class TestResolveCaching(BaseTest):
-    """The compiled DiffengineParamConeProg is cached across ignore_dpp /
+    """The compiled DiffengineConeProg is cached across ignore_dpp /
     non-DPP re-solves; values must refresh through the cache, and the one
     value-consuming canonicalization must disable it."""
 
@@ -498,14 +528,24 @@ class TestResolveCaching(BaseTest):
                 x.value, [1.0 / (2 * val), 1.0 / (3 * val)], places=4)
 
     def test_cache_hit_through_restructured_cones(self) -> None:
-        """Cache-hit re-solves must re-apply the stored restructuring matrix
-        to freshly extracted (A, b): SOC + PSD problem with changing values."""
+        """Cache-hit re-solves must re-apply the stored row layout to freshly
+        extracted (A, b).
+
+        Multi-cone SOC (which permutes rows), an equality (which flips signs)
+        and a PSD cone. One SOC and a PSD alone give the identity layout, so
+        this would hold even if the layout were never applied.
+        """
         p = cp.Parameter(2)
-        x = cp.Variable(2)
+        Y = cp.Variable((2, 2))
         X = cp.Variable((2, 2), symmetric=True)
-        prob = cp.Problem(
-            cp.Minimize(cp.sum(x) + cp.trace(X)),
-            [cp.norm(x - p) <= 2.0, X >> cp.diag(p)])
+
+        def build(pv, y, xx):
+            return [cp.norm(y - cp.reshape(cp.hstack([pv, pv]), (2, 2), order='F'),
+                            2, axis=0) <= 2.0,
+                    cp.sum(y[:, 0]) == 1.0,
+                    xx >> cp.diag(pv) if isinstance(pv, cp.Parameter) else xx >> np.diag(pv)]
+
+        prob = cp.Problem(cp.Minimize(cp.sum(Y) + cp.trace(X)), build(p, Y, X))
         cached = None
         for seed in (1, 2, 1):
             val = np.random.default_rng(seed).standard_normal(2)
@@ -514,15 +554,14 @@ class TestResolveCaching(BaseTest):
             self.assertEqual(prob.status, cp.OPTIMAL)
             if cached is None:
                 cached = prob._cache.param_prog
-                self.assertIsInstance(cached, DiffengineParamConeProg)
+                self.assertIsInstance(cached, DiffengineConeProg)
             else:
                 self.assertIs(prob._cache.param_prog, cached)
 
-            x_b = cp.Variable(2)
+            Y_b = cp.Variable((2, 2))
             X_b = cp.Variable((2, 2), symmetric=True)
-            base = cp.Problem(
-                cp.Minimize(cp.sum(x_b) + cp.trace(X_b)),
-                [cp.norm(x_b - val) <= 2.0, X_b >> np.diag(val)])
+            base = cp.Problem(cp.Minimize(cp.sum(Y_b) + cp.trace(X_b)),
+                              build(val, Y_b, X_b))
             base.solve(solver=SOLVER)
             self.assertAlmostEqual(prob.value, base.value, places=4)
 
@@ -544,7 +583,7 @@ class TestResolveCaching(BaseTest):
             self.assertAlmostEqual(prob.value, 0.5 / val, places=4)
             if cached is None:
                 cached = prob._cache.param_prog
-                self.assertIsInstance(cached, DiffengineParamConeProg)
+                self.assertIsInstance(cached, DiffengineConeProg)
             else:
                 self.assertIs(prob._cache.param_prog, cached)
 
@@ -566,7 +605,7 @@ class TestResolveCaching(BaseTest):
             self.assertAlmostEqual(y.value, 2 * val, places=4)
             if cached is None:
                 cached = prob._cache.param_prog
-                self.assertIsInstance(cached, DiffengineParamConeProg)
+                self.assertIsInstance(cached, DiffengineConeProg)
             else:
                 self.assertIs(prob._cache.param_prog, cached)
 
@@ -606,7 +645,7 @@ class TestIgnoreDppCacheHygiene(BaseTest):
         solver_cache_de = prob._solver_cache
         self.assertEqual(stuffing_backend(prob), s.DIFFENGINE_CANON_BACKEND)
         de_prog = prob._cache.param_prog
-        self.assertIsInstance(de_prog, DiffengineParamConeProg)
+        self.assertIsInstance(de_prog, DiffengineConeProg)
         self.assertAlmostEqual(prob.value, baseline(A.value, b.value), places=4)
 
         # 2. default solve, same parameter values: key change must rebuild the
@@ -632,7 +671,7 @@ class TestIgnoreDppCacheHygiene(BaseTest):
         b.value = rng.standard_normal(m)
         prob.solve(solver=SOLVER, ignore_dpp=True)
         self.assertEqual(stuffing_backend(prob), s.DIFFENGINE_CANON_BACKEND)
-        self.assertIsInstance(prob._cache.param_prog, DiffengineParamConeProg)
+        self.assertIsInstance(prob._cache.param_prog, DiffengineConeProg)
         self.assertIsNot(prob._cache.param_prog, de_prog)
         self.assertAlmostEqual(prob.value, baseline(A.value, b.value), places=4)
 
@@ -647,7 +686,7 @@ class TestIgnoreDppCacheHygiene(BaseTest):
 
         prob.solve(solver=SOLVER, ignore_dpp=True)
         cached = prob._cache.param_prog
-        self.assertIsInstance(cached, DiffengineParamConeProg)
+        self.assertIsInstance(cached, DiffengineConeProg)
 
         prob.solve(solver=SOLVER, ignore_dpp=True)
         self.assertIs(prob._cache.param_prog, cached)  # fast path reused
@@ -679,100 +718,30 @@ class TestIgnoreDppCacheHygiene(BaseTest):
         self.assertAlmostEqual(y.value, -6.0)
 
 
-class TestDiffengineTensors(BaseTest):
-    """DiffengineParamConeProg holds concrete matrices; ParamConeProg's
-    coefficient tensors are an encoding of them, built only when read."""
+class TestDiffengineProgram(BaseTest):
+    """The symbolic program carries concrete matrices and no parameter
+    tensors, so it is a sibling of ParamConeProg rather than a subclass."""
 
-    @staticmethod
-    def _least_squares(rng, quad_obj: bool):
+    def test_program_exposes_no_tensors(self) -> None:
+        rng = np.random.default_rng(0)
         m, n = 8, 4
         A = cp.Parameter((m, n))
         b = cp.Parameter(m)
         x = cp.Variable(n)
         # A @ A.T @ A is nonlinear in A, so the problem is not DPP.
         resid = A @ A.T @ A @ x - b
-        obj = cp.sum_squares(resid) if quad_obj else cp.norm1(resid)
-        prob = cp.Problem(cp.Minimize(obj), [x >= -10])
-        A.value = rng.standard_normal((m, n))
-        b.value = rng.standard_normal(m)
-        return prob, A, b, x
-
-    def test_solve_path_never_encodes_tensors(self) -> None:
-        """No solve, first or cached, may encode the tensors: the solver
-        interfaces read apply_parameters' return values and ask
-        has_quad_obj."""
-        rng = np.random.default_rng(0)
         for quad_obj in (False, True):
-            prob, A, b, x = self._least_squares(rng, quad_obj)
-            with mock.patch.object(
-                    parametric_program, 'encode_cone_tensors',
-                    side_effect=parametric_program.encode_cone_tensors) as spy:
-                for _ in range(3):
-                    A.value = rng.standard_normal(A.shape)
-                    b.value = rng.standard_normal(b.shape)
-                    prob.solve(solver=SOLVER, ignore_dpp=True)
-                    self.assertEqual(prob.status, cp.OPTIMAL)
-                    # Same problem solved from the concrete values.
-                    y = cp.Variable(x.size)
-                    resid = A.value @ A.value.T @ A.value @ y - b.value
-                    ref_obj = cp.sum_squares(resid) if quad_obj else cp.norm1(resid)
-                    ref = cp.Problem(cp.Minimize(ref_obj), [y >= -10])
-                    ref.solve(solver=SOLVER)
-                    self.assertAlmostEqual(prob.value, ref.value, places=4)
-                self.assertEqual(spy.call_count, 0)
-
-    def test_tensors_reflect_the_current_extraction(self) -> None:
-        """Tensors read once, then re-read after a re-solve, must encode that
-        solve's matrices rather than serving the cached earlier ones.
-        ExtractDirectCones reads them, and reads reduced_A twice expecting the
-        same object."""
-        rng = np.random.default_rng(1)
-        prob, A, b, _ = self._least_squares(rng, quad_obj=False)
-        prob.solve(solver=SOLVER, ignore_dpp=True)
-        prog = prob._cache.param_prog
-        self.assertIsInstance(prog, DiffengineParamConeProg)
-
-        with mock.patch.object(
-                parametric_program, 'encode_cone_tensors',
-                side_effect=parametric_program.encode_cone_tensors) as spy:
-            # Materialize the tensors, so a re-solve has a cache to invalidate.
-            first_A = prog.A.toarray()
-            first_reduced_A = prog.reduced_A
-            self.assertEqual(spy.call_count, 1)  # ... and encoded once, lazily
-            self.assertIs(prog.reduced_A, first_reduced_A)  # one per extraction
-            self.assertIs(prog.reduced_P, prog.reduced_P)
-
-            A.value = rng.standard_normal(A.shape)
-            b.value = rng.standard_normal(b.shape)
-            prob.solve(solver=SOLVER, ignore_dpp=True)
-            self.assertIs(prob._cache.param_prog, prog)  # cached fast path
-            self.assertEqual(spy.call_count, 1)  # the solve itself encodes not
-
-            # Values are unchanged since the solve, so this returns the
-            # matrices the tensors must now agree with.
-            q, d, A_mat, b_vec = prog.apply_parameters()
-            # q holds [q; d]; A holds [A | b], flattened column-major.
-            self.assertItemsAlmostEqual(prog.q.toarray().flatten(),
-                                        np.append(q, d))
-            decoded = prog.A.toarray().reshape(
-                (prog.constr_size, prog.x.size + 1), order='F')
-            self.assertItemsAlmostEqual(decoded[:, :-1], A_mat.toarray())
-            self.assertItemsAlmostEqual(decoded[:, -1], b_vec)
-            self.assertEqual(spy.call_count, 2)  # re-encoded for this solve
-            self.assertIsNot(prog.reduced_A, first_reduced_A)
-        self.assertFalse(np.allclose(prog.A.toarray(), first_A))
-
-    def test_has_quad_obj_needs_no_tensor(self) -> None:
-        """has_quad_obj answers from the concrete matrices, so the read that
-        every ConicSolver.apply performs encodes nothing."""
-        rng = np.random.default_rng(2)
-        for quad_obj in (False, True):
-            prob, _, _, _ = self._least_squares(rng, quad_obj)
+            obj = cp.sum_squares(resid) if quad_obj else cp.norm1(resid)
+            prob = cp.Problem(cp.Minimize(obj), [x >= -10])
+            A.value = rng.standard_normal((m, n))
+            b.value = rng.standard_normal(m)
             prob.solve(solver=SOLVER, ignore_dpp=True)
             prog = prob._cache.param_prog
-            with mock.patch.object(
-                    parametric_program, 'encode_cone_tensors',
-                    side_effect=parametric_program.encode_cone_tensors) as spy:
-                self.assertEqual(prog.has_quad_obj, quad_obj)
-                self.assertEqual(spy.call_count, 0)
-            self.assertEqual(prog.P is not None, quad_obj)
+            self.assertIsInstance(prog, DiffengineConeProg)
+            self.assertNotIsInstance(prog, ParamConeProg)
+            for tensor in ('q', 'A', 'P', 'reduced_A', 'reduced_P',
+                           'lb_tensor', 'ub_tensor'):
+                self.assertFalse(hasattr(prog, tensor), tensor)
+            # has_quad_obj answers from the concrete matrices, which is the
+            # only thing ConicSolver.apply asks of the objective term.
+            self.assertEqual(prog.has_quad_obj, quad_obj)

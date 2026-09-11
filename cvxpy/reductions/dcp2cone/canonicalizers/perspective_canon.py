@@ -53,11 +53,10 @@ def perspective_canon(expr, args, solver_context: SolverInfo | None = None):
                         if not isinstance(r, (Solver, ConeFormat))]
     prob_canon = chain.apply(aux_prob)[0]  # grab problem instance
     # get cone representation of c, A, and b for some problem.
-
-    q = prob_canon.q.toarray().flatten()[:-1]
-    d = prob_canon.q.toarray().flatten()[-1]
-    Ab = prob_canon.A.toarray().reshape((-1, len(q) + 1), order="F")
-    A, b = Ab[:, :-1], Ab[:, -1]
+    # aux_prob is parameter-free by here, so this is the one and only
+    # evaluation; asking the program for its matrices rather than decoding
+    # its coefficient tensors keeps this independent of the canon backend.
+    q, d, A, b = prob_canon.apply_parameters()
 
     # given f in epigraph form, aka epi f = \{(x,t) | f(x) \leq t\}
     # = \{(x,t) | Fx +tg + e \in K} for K a cone, the epigraph of the

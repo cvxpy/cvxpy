@@ -112,6 +112,10 @@ class Solver(Reduction):
     BOUNDED_VARIABLES = False
     # Cone families supported directly on subvectors of the primal variable.
     DIR_CONE_KINDS: frozenset[str] = frozenset()
+    # Whether this interface consumes the DPP parameter tensors directly --
+    # diffcp needs apply_parameters' keep_zeros sparsity contract, which a
+    # program that re-extracts its matrices cannot honor.
+    REQUIRES_PARAM_TENSORS = False
     SOC_DIM3_ONLY = False
 
     # PSD constraint format. Overridden by solvers that support PSD constraints.
