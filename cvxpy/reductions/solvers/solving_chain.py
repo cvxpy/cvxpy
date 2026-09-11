@@ -22,6 +22,7 @@ from cvxpy.reductions.cone2cone.approx import ApproxCone2Cone
 from cvxpy.reductions.cone2cone.exact import ExactCone2Cone
 from cvxpy.reductions.cone2cone.extract_direct_cones import ExtractDirectCones
 from cvxpy.reductions.cone2cone.soc_dim3 import SOCDim3
+from cvxpy.reductions.cone_format import ConeFormat
 from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
 from cvxpy.reductions.dcp2cone.dcp2cone import Dcp2Cone
@@ -254,6 +255,12 @@ def _build_solving_chain(
         ConeMatrixStuffing(quad_obj=quad_obj, canon_backend=canon_backend))
     if dir_cone_kinds:
         reductions.append(ExtractDirectCones(solver_context=solver_context))
+    if not is_qp_solver:
+        # Reorder the stuffed constraint rows into the layout the solver's
+        # cone API expects, once, as a chain step rather than as a convention
+        # each interface has to remember. A no-op when the program is already
+        # formatted, which is what ExtractDirectCones leaves behind.
+        reductions.append(ConeFormat(solver_instance))
     reductions.append(solver_instance)
     return SolvingChain(reductions=reductions, solver_context=solver_context)
 
