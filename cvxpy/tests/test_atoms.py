@@ -189,6 +189,34 @@ class TestAtoms(BaseTest):
 
         assert cp.power(-1, 2).value == 1
 
+    def test_power_curvature_follows_rational_approximation(self) -> None:
+        """Curvature and sign follow p_used, not the input exponent.
+
+        ``power`` approximates ``p`` by a rational with denominator at most
+        ``max_denom``. An exponent that approximates to exactly 1 must behave
+        like ``power(x, 1)``, matching is_incr/is_decr, which already use
+        ``p_used``.
+        """
+        x = Variable()
+
+        # 1.0001 approximates to p_used == 1, so it is affine like power(x, 1).
+        near_one = cp.power(x, 1.0001)
+        self.assertEqual(near_one.p_used, 1)
+        self.assertEqual(near_one.curvature, s.AFFINE)
+        self.assertEqual(near_one.curvature, cp.power(x, 1).curvature)
+        self.assertEqual(near_one.sign, cp.power(x, 1).sign)
+
+        # 1.001 does not, so it stays convex and nonnegative.
+        approx = cp.power(x, 1.001)
+        self.assertEqual(approx.p_used, Fraction(1001, 1000))
+        self.assertEqual(approx.curvature, s.CONVEX)
+        self.assertEqual(approx.sign, s.NONNEG)
+
+        # A parametrized exponent has no approximation and stays unknown.
+        param = cp.power(x, Parameter())
+        self.assertIsNone(param.p_used)
+        self.assertEqual(param.curvature, s.UNKNOWN)
+
     # Test the xexp class
     def test_xexp(self) -> None:
         # Test for positive x
