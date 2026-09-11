@@ -150,7 +150,7 @@ class QOCO(ConicSolver):
         p = problem.cone_dims.zero
         m = p + problem.cone_dims.nonneg + sum(problem.cone_dims.soc)
 
-        if problem.P is None:
+        if not problem.has_quad_obj:
             c, d, A, b = problem.apply_parameters()
         else:
             P, c, d, A, b = problem.apply_parameters(quad_obj=True)

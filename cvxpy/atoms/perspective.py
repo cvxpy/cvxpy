@@ -51,6 +51,14 @@ class perspective(Atom):
         self.f_recession = f_recession
         super(perspective, self).__init__(s, *f.variables())
 
+    def _supports_diffengine(self) -> bool:
+        # perspective_canon compiles f through its own chain, substituting the
+        # parameter values in force at canonicalization time. f is not in
+        # args, so this is the only place those parameters can be seen.
+        return not (self.f.parameters()
+                    or (self.f_recession is not None
+                        and self.f_recession.parameters()))
+
     def validate_arguments(self) -> None:
         assert self.f.size == 1  # dealing only with scalars, for now
         assert self.args[0].size == 1

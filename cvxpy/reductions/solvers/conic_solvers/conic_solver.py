@@ -20,7 +20,7 @@ import scipy.sparse as sp
 import cvxpy.settings as s
 from cvxpy.constraints import PSD, SOC, ExpCone, NonNeg, PowCone3D, PowConeND, SvecPSD, Zero
 from cvxpy.reductions.cvx_attr2constr import convex_attributes
-from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ParamConeProg
+from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeProg, ParamConeProg
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.solver import Solver
@@ -31,59 +31,6 @@ from cvxpy.reductions.solvers.solver import Solver
 # not introduced a regression.
 
 
-class LinearOperator:
-    """A wrapper for linear operators."""
-    def __init__(self, linear_op, shape: tuple[int, ...]) -> None:
-        if sp.issparse(linear_op):
-            self._matmul = lambda X: linear_op @ X
-        else:
-            self._matmul = linear_op
-        self.shape = shape
-
-    def __call__(self, X):
-        return self._matmul(X)
-
-class IdentityOperator(LinearOperator):
-    """A wrapper for the identity operator."""
-    def __init__(self, n):
-        self.shape = (n,n)
-    def __call__(self, X):
-        return X
-
-class NegativeIdentityOperator(LinearOperator):
-    """A wrapper for the negative identity operator."""
-    def __init__(self, n):
-        self.shape = (n,n)
-    def __call__(self, X):
-        return -X
-
-def as_linear_operator(linear_op) -> LinearOperator:
-    if isinstance(linear_op, LinearOperator):
-        return linear_op
-    elif sp.issparse(linear_op):
-        return LinearOperator(linear_op, linear_op.shape)
-    raise ValueError(f"Cannot convert {type(linear_op)} to LinearOperator")
-
-
-def as_block_diag_linear_operator(matrices) -> LinearOperator:
-    """Block diag of SciPy sparse matrices or linear operators."""
-    linear_operators = [as_linear_operator(op) for op in matrices]
-    nrows = [op.shape[0] for op in linear_operators]
-    ncols = [op.shape[1] for op in linear_operators]
-    m, n = sum(nrows), sum(ncols)
-    col_indices = np.append(0, np.cumsum(ncols))
-
-    def matmul(X):
-        outputs = []
-        for i, op in enumerate(linear_operators):
-            Xi = X[col_indices[i]:col_indices[i + 1]]
-            outputs.append(op(Xi))
-        return sp.vstack(outputs)
-    return LinearOperator(matmul, (m, n))
-
-
-# Utility method for formatting a ConeDims instance into a dictionary
-# that can be supplied to solvers.
 def dims_to_solver_dict(cone_dims):
     cones = {
         'f': cone_dims.zero,
@@ -97,8 +44,150 @@ def dims_to_solver_dict(cone_dims):
     return cones
 
 
+def _spacing_rows(spacing, streak, num_blocks, offset):
+    """Destination rows of :meth:`ConicSolver.get_spacing_matrix`'s columns.
+
+    Column ``k`` of that matrix has its single nonzero in row
+    ``result[k]``; this is the same index expression, without the matrix.
+    """
+    return (np.arange(num_blocks * (streak + spacing))
+            .reshape(num_blocks, streak + spacing)[:, :streak].ravel() + offset)
+
+
+def _reformatted(problem, restructured_A):
+    """``problem`` with its constraint rows in the solver's cone layout."""
+    return ParamConeProg(
+        problem.q,
+        problem.x,
+        restructured_A,
+        problem.variables,
+        problem.var_id_to_col,
+        problem.constraints,
+        problem.parameters,
+        problem.param_id_to_col,
+        P=problem.P,
+        formatted=True,
+        lower_bounds=problem.lower_bounds,
+        upper_bounds=problem.upper_bounds,
+        lb_tensor=problem.lb_tensor,
+        ub_tensor=problem.ub_tensor,
+        dir_cones=problem.dir_cones,
+    )
+
+
+def _identity_rows(constr, exp_cone_order):
+    """Zero, NonNeg, PSD and SvecPSD keep every row where it is."""
+    return np.arange(constr.size)
+
+
+def _soc_rows(constr, exp_cone_order):
+    """Group each t row with the X rows of its own cone."""
+    assert constr.axis == 0, 'SOC must be lowered to axis == 0'
+    # Handle scalar X (shape is empty tuple)
+    x_dim = constr.args[1].shape[0] if constr.args[1].shape else 1
+    num_cones = constr.args[0].size
+    return np.concatenate([_spacing_rows(x_dim, 1, num_cones, 0),
+                           _spacing_rows(1, x_dim, num_cones, 1)])
+
+
+def _exp_rows(constr, exp_cone_order):
+    """Interleave (x, y, z) per cone, in the solver's argument order."""
+    return np.concatenate([
+        _spacing_rows(len(exp_cone_order) - 1, 1, arg.size, exp_cone_order[i])
+        for i, arg in enumerate(constr.args)])
+
+
+def _pow3d_rows(constr, exp_cone_order):
+    """Interleave (x, y, z) per cone."""
+    return np.concatenate([_spacing_rows(2, 1, arg.size, i)
+                           for i, arg in enumerate(constr.args)])
+
+
+def _pownd_rows(constr, exp_cone_order):
+    """Each cone is a column of W followed by its entry of z."""
+    W = constr.args[0]
+    m, n = (W.shape[0], 1) if W.ndim == 1 else W.shape
+    assert constr.args[1].size == n
+    return np.concatenate([_spacing_rows(0, 1, m, (m + 1) * j) for j in range(n)]
+                          + [_spacing_rows(m, 1, n, m)])
+
+
+# Where each constraint type's rows land within its own block.
+_ROW_LAYOUT = {
+    Zero: _identity_rows,
+    NonNeg: _identity_rows,
+    PSD: _identity_rows,
+    SvecPSD: _identity_rows,
+    SOC: _soc_rows,
+    ExpCone: _exp_rows,
+    PowCone3D: _pow3d_rows,
+    PowConeND: _pownd_rows,
+}
+
+
+def restruct_permutation(constraints, exp_cone_order):
+    """Where each stuffed constraint row moves, and its sign.
+
+    The cone-restructuring matrix R is always a signed permutation: every
+    block is either +-I (Zero contributes -I; NonNeg, PSD and SvecPSD
+    contribute I) or a pure interleaving of the constraint's arguments
+    (SOC and the exponential/power cones). So R never has to be built, let
+    alone multiplied by -- restructuring is a row remap plus a sign flip.
+
+    Purely structural: derived from the constraint types and shapes plus
+    ``exp_cone_order``, never from coefficient or parameter values.
+
+    Returns ``(new_row, sign)``, both indexed by the *old* row: row ``i``
+    becomes row ``new_row[i]``, scaled by ``sign[i]``. ``None`` when there are
+    no constraints, i.e. nothing to reorder.
+    """
+    if not constraints:
+        return None
+    new_row, sign, base = [], [], 0
+    for constr in constraints:
+        layout = _ROW_LAYOUT.get(type(constr))
+        if layout is None:
+            raise ValueError("Unsupported constraint type.")
+        rows = layout(constr, exp_cone_order)
+        new_row.append(rows + base)
+        # Only the zero cone is negated; it enters as -I.
+        sign.append(np.full(rows.size, -1.0 if type(constr) == Zero else 1.0))
+        base += rows.size
+    return np.concatenate(new_row), np.concatenate(sign)
+
+
+def _permute_rows(A, new_row, sign):
+    """Apply a signed row permutation to a stuffed parameter tensor.
+
+    The tensor stacks the ``x.size + 1`` columns of ``[A | b]`` vertically, so
+    tensor row ``i + m*j`` holds concrete row ``i`` of column ``j``: scattering
+    row ``i`` to ``new_row[i]`` shifts every one of its stored values by the
+    same amount. Returns ``A`` untouched when there is nothing to apply.
+    """
+    m = new_row.shape[0]
+    shift = new_row - np.arange(m)
+    moves = shift.any()
+    if not moves and (sign > 0).all():
+        return A
+    A = A.tocsc(copy=True)
+    row = A.indices % m
+    if moves:
+        # Shifting, rather than recomputing new_row[i] + m*j, keeps the
+        # arithmetic in the index dtype, which scipy requires to match indptr.
+        A.indices = A.indices + shift.astype(A.indices.dtype)[row]
+        # Shifting rows leaves each column's indices out of ascending order.
+        A.sort_indices()
+    A.data = A.data * sign[row]
+    return A
+
+
 class ConicSolver(Solver):
     """Conic solver class with reduction semantics
+
+    ``apply`` requires a program whose constraint rows are already in this
+    solver's cone layout, i.e. ``problem.formatted`` is True. The
+    ``ConeFormat`` reduction establishes that: ``_build_solving_chain``
+    appends it before every non-QP solver. Interfaces must not re-derive it.
     """
     # The key that maps to ConeDims in the data returned by apply().
     DIMS = "dims"
@@ -117,7 +206,7 @@ class ConicSolver(Solver):
     EXP_CONE_ORDER = None
 
     def accepts(self, problem):
-        return (isinstance(problem, ParamConeProg)
+        return (isinstance(problem, ConeProg)
                 and (self.MIP_CAPABLE or not problem.is_mixed_integer())
                 and not convex_attributes([problem.x])
                 and (len(problem.constraints) > 0 or not self.REQUIRES_CONSTR)
@@ -184,133 +273,11 @@ class ConicSolver(Solver):
         Returns:
           ParamConeProg with structured A.
         """
-        # Create a matrix to reshape constraints, then replicate for each
-        # variable entry.
-        restruct_mat = []  # Form a block diagonal matrix.
-        for constr in problem.constraints:
-            total_height = sum([arg.size for arg in constr.args])
-            if type(constr) == Zero:
-                restruct_mat.append(NegativeIdentityOperator(constr.size))
-            elif type(constr) == NonNeg:
-                restruct_mat.append(IdentityOperator(constr.size))
-            elif type(constr) == SOC:
-                # Group each t row with appropriate X rows.
-                assert constr.axis == 0, 'SOC must be lowered to axis == 0'
-
-                # Interleave the rows of coeffs[0] and coeffs[1]:
-                #     coeffs[0][0, :]
-                #     coeffs[1][0:gap-1, :]
-                #     coeffs[0][1, :]
-                #     coeffs[1][gap-1:2*(gap-1), :]
-                # Handle scalar X (shape is empty tuple)
-                x_dim = constr.args[1].shape[0] if constr.args[1].shape else 1
-                t_spacer = ConicSolver.get_spacing_matrix(
-                    shape=(total_height, constr.args[0].size),
-                    spacing=x_dim,
-                    streak=1,
-                    num_blocks=constr.args[0].size,
-                    offset=0,
-                )
-                X_spacer = ConicSolver.get_spacing_matrix(
-                    shape=(total_height, constr.args[1].size),
-                    spacing=1,
-                    streak=x_dim,
-                    num_blocks=constr.args[0].size,
-                    offset=1,
-                )
-                restruct_mat.append(sp.hstack([t_spacer, X_spacer]))
-            elif type(constr) == ExpCone:
-                arg_mats = []
-                for i, arg in enumerate(constr.args):
-                    space_mat = ConicSolver.get_spacing_matrix(
-                        shape=(total_height, arg.size),
-                        spacing=len(exp_cone_order) - 1,
-                        streak=1,
-                        num_blocks=arg.size,
-                        offset=exp_cone_order[i],
-                    )
-                    arg_mats.append(space_mat)
-                restruct_mat.append(sp.hstack(arg_mats))
-            elif type(constr) == PowCone3D:
-                arg_mats = []
-                for i, arg in enumerate(constr.args):
-                    space_mat = ConicSolver.get_spacing_matrix(
-                        shape=(total_height, arg.size), spacing=2,
-                        streak=1, num_blocks=arg.size, offset=i,
-                    )
-                    arg_mats.append(space_mat)
-                restruct_mat.append(sp.hstack(arg_mats))
-            elif type(constr) == PowConeND:
-                arg_mats = []
-                if constr.args[0].ndim == 1:
-                    m = constr.args[0].shape[0]
-                    n = 1
-                else:
-                    m, n = constr.args[0].shape
-                for j in range(n):
-                    space_mat = ConicSolver.get_spacing_matrix(
-                        shape=(total_height, m), spacing=0,
-                        streak=1, num_blocks=m, offset=(m+1)*j,
-                    )
-                    arg_mats.append(space_mat)
-
-                # Hypo columns
-                arg = constr.args[1]
-                assert arg.size == n
-                space_mat = ConicSolver.get_spacing_matrix(
-                    shape=(total_height, n), spacing=m,
-                    streak=1, num_blocks=n, offset=m,
-                )
-                arg_mats.append(space_mat)
-                restruct_mat.append(sp.hstack(arg_mats))
-
-            elif type(constr) == PSD:
-                restruct_mat.append(IdentityOperator(constr.size))
-            elif type(constr) == SvecPSD:
-                restruct_mat.append(IdentityOperator(constr.size))
-            else:
-                raise ValueError("Unsupported constraint type.")
-
-        # Form new ParamConeProg
-        if restruct_mat:
-            # TODO(akshayka): profile to see whether using linear operators
-            # or bmat is faster
-            restruct_mat = as_block_diag_linear_operator(restruct_mat)
-            # this is equivalent to but _much_ faster than:
-            #    restruct_mat_rep = sp.block_diag([restruct_mat]*(problem.x.size + 1))
-            #    restruct_A = restruct_mat_rep * problem.A
-            unspecified, _ = np.divmod(problem.A.shape[0] * problem.A.shape[1],
-                                        restruct_mat.shape[1], dtype=np.int64)
-            reshaped_A = problem.A.reshape(restruct_mat.shape[1],
-                                           unspecified, order='F').tocsr()
-            restructured_A = restruct_mat(reshaped_A).tocoo()
-            # Because of a bug in scipy versions <  1.20, `reshape`
-            # can overflow if indices are int32s.
-            restructured_A.row = restructured_A.row.astype(np.int64)
-            restructured_A.col = restructured_A.col.astype(np.int64)
-            restructured_A = restructured_A.reshape(
-                np.int64(restruct_mat.shape[0]) * (np.int64(problem.x.size) + 1),
-                problem.A.shape[1], order='F')
-        else:
-            restructured_A = problem.A
-        new_param_cone_prog = ParamConeProg(
-            problem.q,
-            problem.x,
-            restructured_A,
-            problem.variables,
-            problem.var_id_to_col,
-            problem.constraints,
-            problem.parameters,
-            problem.param_id_to_col,
-            P=problem.P,
-            formatted=True,
-            lower_bounds=problem.lower_bounds,
-            upper_bounds=problem.upper_bounds,
-            lb_tensor=problem.lb_tensor,
-            ub_tensor=problem.ub_tensor,
-            dir_cones=problem.dir_cones,
-        )
-        return new_param_cone_prog
+        # R is a signed permutation, so applying it is a row shift and a sign
+        # flip -- no reshape, no block-diagonal matmul.
+        perm = restruct_permutation(problem.constraints, exp_cone_order)
+        A = problem.A if perm is None else _permute_rows(problem.A, *perm)
+        return _reformatted(problem, A)
 
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data.
@@ -338,8 +305,7 @@ class ConicSolver(Solver):
         data = {}
         inv_data = {self.VAR_ID: problem.x.id}
 
-        # Format constraints
-        #
+        # Rows arrive in this order, established by the ConeFormat reduction.
         # By default cvxpy follows the SCS convention, which requires
         # constraints to be specified in the following order:
         # 1. zero cone
@@ -349,8 +315,6 @@ class ConicSolver(Solver):
         # 5. exponential
         # 6. three-dimensional power cones
         # 7. n-dimensional power cones
-        if not problem.formatted:
-            problem = self.format_constraints(problem, self.EXP_CONE_ORDER)
         data[s.PARAM_PROB] = problem
         data[self.DIMS] = problem.cone_dims
         inv_data[self.DIMS] = problem.cone_dims
@@ -380,7 +344,7 @@ class ConicSolver(Solver):
 
         # Apply parameter values.
         # Obtain A, b such that Ax + s = b, s \in cones.
-        if problem.P is None:
+        if not problem.has_quad_obj:
             c, d, A, b = problem.apply_parameters()
         else:
             P, c, d, A, b = problem.apply_parameters(quad_obj=True)

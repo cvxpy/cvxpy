@@ -83,15 +83,12 @@ class NAG(ConicSolver):
         data = dict()
         inv_data = dict()
         inv_data[self.VAR_ID] = problem.x.id
-
-        if not problem.formatted:
-            problem = self.format_constraints(problem, None)
         data[s.PARAM_PROB] = problem
         data[self.DIMS] = problem.cone_dims
         inv_data[self.DIMS] = problem.cone_dims
         constr_map = problem.constr_map
 
-        if problem.P is None:
+        if not problem.has_quad_obj:
             c, d, A, b = problem.apply_parameters()
         else:
             P, c, d, A, b = problem.apply_parameters(quad_obj=True)
