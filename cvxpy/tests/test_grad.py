@@ -1162,5 +1162,75 @@ class TestBatchedSymmetricGradients:
         assert passed, f"lambda_sum_largest frac nd grad {batch_shape}: {msg}"
 
 
+class TestNDAffineGradients:
+    """Tests for _grad of affine atoms with ND (ndim > 2) arguments."""
+
+    @pytest.mark.parametrize("batch_shape", [(2,), (2, 3)])
+    def test_matmul_nd_var(self, batch_shape):
+        rng = np.random.default_rng(42)
+        A = rng.standard_normal(batch_shape + (3, 4))
+        var_shape = batch_shape + (4, 5)
+        passed, msg = expression_gradcheck(
+            lambda x: cp.Constant(A) @ x, var_shape, rng.standard_normal(var_shape)
+        )
+        assert passed, f"const @ ND-var {batch_shape}: {msg}"
+
+    def test_matmul_nd_const_2d_var(self):
+        rng = np.random.default_rng(42)
+        A = rng.standard_normal((2, 3, 4))
+        passed, msg = expression_gradcheck(
+            lambda x: cp.Constant(A) @ x, (4, 5), rng.standard_normal((4, 5))
+        )
+        assert passed, f"ND-const @ 2D-var: {msg}"
+
+    def test_sum_of_nd_matmul(self):
+        rng = np.random.default_rng(42)
+        A = rng.standard_normal((2, 3, 4))
+        passed, msg = expression_gradcheck(
+            lambda x: cp.sum(cp.Constant(A) @ x), (2, 4, 5),
+            rng.standard_normal((2, 4, 5))
+        )
+        assert passed, f"sum(const @ ND-var): {msg}"
+
+    @pytest.mark.parametrize("expr_factory", [
+        lambda x: cp.transpose(x, axes=(2, 0, 1)),
+        lambda x: cp.reshape(x, (4, 6), order='F'),
+        lambda x: cp.sum(x, axis=1),
+    ], ids=["transpose", "reshape", "sum_axis"])
+    def test_nd_affine_atoms(self, expr_factory):
+        rng = np.random.default_rng(42)
+        passed, msg = expression_gradcheck(
+            expr_factory, (2, 3, 4), rng.standard_normal((2, 3, 4))
+        )
+        assert passed, f"ND affine atom: {msg}"
+
+    def test_matmul_nd_matches_2d(self):
+        # A singleton batch dim does not change the F-order vectorization,
+        # so the ND jacobian must equal the 2-D one.
+        rng = np.random.default_rng(42)
+        A = rng.standard_normal((3, 4))
+        x2 = cp.Variable((4, 5))
+        x3 = cp.Variable((1, 4, 5))
+        x2.value = rng.standard_normal((4, 5))
+        x3.value = x2.value[None]
+        grad2 = (cp.Constant(A) @ x2).grad[x2].toarray()
+        grad3 = (cp.Constant(A[None]) @ x3).grad[x3].toarray()
+        np.testing.assert_allclose(grad3, grad2)
+
+    def test_cpp_unsupported_atom_2d(self):
+        # Atoms without a C++ implementation (broadcast_to, concatenate)
+        # raised from _grad even for ndim <= 2 arguments.
+        rng = np.random.default_rng(42)
+        passed, msg = expression_gradcheck(
+            lambda x: cp.broadcast_to(x, (2, 3)), (3,), rng.standard_normal(3)
+        )
+        assert passed, f"broadcast_to grad: {msg}"
+        passed, msg = expression_gradcheck(
+            lambda x: cp.concatenate([x, 2 * x], axis=0), (2, 2),
+            rng.standard_normal((2, 2))
+        )
+        assert passed, f"concatenate grad: {msg}"
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

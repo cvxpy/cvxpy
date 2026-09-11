@@ -27,7 +27,7 @@ from cvxpy.atoms.sigma_max import sigma_max
 from cvxpy.expressions.expression import Expression
 
 
-def norm(x, p: int | str = 2, axis=None, keepdims: bool = False):
+def norm(x, p: int | str = 2, axis=None, keepdims: bool = False) -> Expression:
     """Wrapper on the different norm atoms.
 
     Parameters
@@ -48,7 +48,7 @@ def norm(x, p: int | str = 2, axis=None, keepdims: bool = False):
     Expression
         An Expression representing the norm.
     """
-    x = Expression.cast_to_const(x)
+    x = Expression.cast(x)
     # matrix norms take precedence
     num_nontrivial_idxs = sum([d > 1 for d in x.shape])
     if axis is None and x.ndim == 2:
@@ -66,13 +66,23 @@ def norm(x, p: int | str = 2, axis=None, keepdims: bool = False):
         else:
             raise RuntimeError('Unsupported matrix norm.')
     else:
+        if axis is not None and str(p).lower() in ("fro", "nuc"):
+            # Both are matrix norms, defined over a whole matrix rather than
+            # along one of its axes. Without this the fro branch below vecs
+            # the argument first and then hands the axis to a 1-D expression,
+            # which silently returned the norm of the whole array for axis=0.
+            raise ValueError(
+                f"The axis parameter is not supported for the '{p}' norm, which is "
+                "defined over a whole matrix. Use norm(x, 2, axis=...) for the "
+                "2-norm along an axis."
+            )
         if p == 1 or x.is_scalar():
             return norm1(x, axis=axis, keepdims=keepdims)
         elif str(p).lower() == "inf":
             return norm_inf(x, axis=axis, keepdims=keepdims)
         elif str(p).lower() == "fro":
             # TODO should not work for vectors.
-            return pnorm(vec(x, order='F'), 2, axis)
+            return pnorm(vec(x, order='F'), 2)
         elif isinstance(p, str):
             raise RuntimeError(f'Unsupported norm option {p} for non-matrix.')
         else:

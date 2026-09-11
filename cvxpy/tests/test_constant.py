@@ -90,6 +90,39 @@ def test_prod():
     assert np.allclose(cp.prod(sp.coo_matrix(B)).value, 24)
 
 
+def test_sparse_expression_values_are_sparse_arrays():
+    lhs = cp.Constant(sp.csc_matrix(np.eye(2)))
+    rhs = cp.Constant(np.ones((2, 2)))
+
+    multiply_value = cp.multiply(lhs, rhs).value
+    assert sp.issparse(multiply_value)
+    assert isinstance(multiply_value, sp.sparray)
+    assert not isinstance(multiply_value, sp.spmatrix)
+
+    matmul_value = (lhs @ lhs).value
+    assert sp.issparse(matmul_value)
+    assert isinstance(matmul_value, sp.sparray)
+    assert not isinstance(matmul_value, sp.spmatrix)
+
+
+def test_mutating_source_array_does_not_change_constant():
+    # Mutating the array a Constant was built from must not desynchronize
+    # the constant's value from its cached sign attributes (issue: stale cache).
+    a = np.array([1.0, 2.0])
+    c = cp.Constant(a)
+    assert c.is_nonneg()
+    a[0] = -5.0
+    assert np.allclose(c.value, [1.0, 2.0])
+    assert c.is_nonneg()
+
+    m = sp.csc_array(np.array([[1.0, 0.0], [0.0, 2.0]]))
+    cs = cp.Constant(m)
+    assert cs.is_nonneg()
+    m.data[0] = -3.0
+    assert np.allclose(cs.value.toarray(), [[1.0, 0.0], [0.0, 2.0]])
+    assert cs.is_nonneg()
+
+
 def test_nested_lists():
 
     A = [[1, 2], [3, 4], [5, 6]]

@@ -21,6 +21,7 @@ from cvxpy.atoms.affine.conj import conj
 from cvxpy.atoms.affine.transpose import swapaxes as expr_swapaxes
 from cvxpy.atoms.atom import Atom
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.expressions.expression import ExpressionValue
 
 
 class lambda_max(Atom):
@@ -122,7 +123,7 @@ class lambda_max(Atom):
         return False
 
     @property
-    def value(self):
+    def value(self) -> ExpressionValue | None:
         val = self.args[0].value
         if val is None:
             return None

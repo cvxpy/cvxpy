@@ -139,7 +139,7 @@ class special_index(AffAtom):
     def __init__(self, expr: Expression, key) -> None:
         self.key = key
         # Order the entries of expr and select them using key.
-        expr = index.cast_to_const(expr)
+        expr = index.cast(expr)
         idx_mat = np.arange(expr.size)
         idx_mat = np.reshape(idx_mat, expr.shape, order='F')
         self._select_mat = idx_mat[key]

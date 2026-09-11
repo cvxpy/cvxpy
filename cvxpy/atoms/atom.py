@@ -20,6 +20,7 @@ if TYPE_CHECKING:
     from cvxpy.constraints.constraint import Constraint
 
 import numpy as np
+import scipy.sparse as sp
 
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
@@ -28,7 +29,7 @@ from cvxpy import interface as intf
 from cvxpy import utilities as u
 from cvxpy.expressions import cvxtypes
 from cvxpy.expressions.constants import Constant
-from cvxpy.expressions.expression import Expression
+from cvxpy.expressions.expression import Expression, ExpressionValue, GradMap
 from cvxpy.utilities import bounds as bounds_utils
 from cvxpy.utilities import performance_utils as perf
 from cvxpy.utilities.deterministic import unique_list
@@ -47,7 +48,7 @@ class Atom(Expression):
                 "No arguments given to %s." % self.__class__.__name__
             )
         # Convert raw values to Constants.
-        self.args = [Atom.cast_to_const(arg) for arg in args]
+        self.args = [Atom.cast(arg) for arg in args]
         self.validate_arguments()
         self._shape = self.shape_from_args()
         if not s.ALLOW_ND_EXPR and len(self._shape) > 2:
@@ -448,19 +449,19 @@ class Atom(Expression):
         raise NotImplementedError()
 
     @property
-    def value(self):
+    def value(self) -> ExpressionValue | None:
         if any([p.value is None for p in self.parameters()]):
             return None
         return self._value_impl()
 
-    def _value_impl(self):
+    def _value_impl(self) -> ExpressionValue | None:
         # shapes with 0's dropped in presolve.
         if 0 in self.shape:
             result = np.array([])
         else:
             arg_values = []
             for arg in self.args:
-                # A argument without a value makes all higher level
+                # An argument without a value makes all higher level
                 # values None.
                 # But if the atom is constant with non-constant
                 # arguments it doesn't depend on its arguments,
@@ -471,10 +472,12 @@ class Atom(Expression):
                 else:
                     arg_values.append(arg_val)
             result = self.numeric(arg_values)
+        if isinstance(result, sp.spmatrix):
+            result = sp.coo_array(result)
         return result
 
     @property
-    def grad(self):
+    def grad(self) -> GradMap:
         """Gives the (sub/super)gradient of the expression w.r.t. each variable.
 
         Matrix expressions are vectorized, so the gradient is a matrix.

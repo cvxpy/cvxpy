@@ -34,6 +34,7 @@ class PDCS(ConicSolver):
     MIP_CAPABLE = False
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS \
         + [SOC, ExpCone]
+    REQUIRED_MODULES = ("cupy",)
     STATUS_MAP = {
         "optimal" : s.OPTIMAL,
         "primal_infeasible_high_acc": s.INFEASIBLE,

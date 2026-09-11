@@ -110,10 +110,12 @@ def extract_mip_idx(variables) -> tuple[list[int], list[int]]:
     for x in variables:
         ravel_shape = max(x.shape, (1,))
         if x.boolean_idx:
-            ravel_idx = np.ravel_multi_index(x.boolean_idx, ravel_shape, order='F')
+            np_idx = x._discrete_numpy_index(x.boolean_idx)
+            ravel_idx = np.ravel_multi_index(np_idx, ravel_shape, order='F')
             boolean_idx += [(idx + offset,) for idx in ravel_idx]
         if x.integer_idx:
-            ravel_idx = np.ravel_multi_index(x.integer_idx, ravel_shape, order='F')
+            np_idx = x._discrete_numpy_index(x.integer_idx)
+            ravel_idx = np.ravel_multi_index(np_idx, ravel_shape, order='F')
             integer_idx += [(idx + offset,) for idx in ravel_idx]
         offset += x.size
     return boolean_idx, integer_idx

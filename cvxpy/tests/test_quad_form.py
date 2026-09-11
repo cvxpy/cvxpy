@@ -108,6 +108,22 @@ class TestDecompQuad(BaseTest):
         P_nsd = sp.diags([-4 * np.ones(n), off, off], [0, -1, 1], format="csc")
         self._check(P_nsd)
 
+    def test_sparse_psd_rank_deficient(self) -> None:
+        """Sparse PSD rank-deficient matrices should stay on the sparse path."""
+        rng = np.random.default_rng(0)
+        for n, k in [(4, 2), (10, 7), (20, 5)]:
+            B = rng.standard_normal((n, k))
+            self._check(sp.csc_array(B @ B.T))
+            self._check(sp.csc_array(-(B @ B.T)))  # NSD rank-deficient
+
+    def test_sparse_diagonal_with_zeros(self) -> None:
+        """Sparse diagonal PSD with zero entries."""
+        self._check(sp.diags_array([3.0, 0.0, 5.0, 0.0], format="csc"))
+
+    def test_sparse_zero(self) -> None:
+        """Sparse all-zero matrix."""
+        self._check(sp.csc_array((4, 4)))
+
 
 class TestNonOptimal(BaseTest):
     def test_singular_quad_form(self) -> None:

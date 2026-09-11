@@ -22,6 +22,37 @@ from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS
 from cvxpy.tests.nlp_tests.derivative_checker import DerivativeChecker
 
 
+def _duplicate_gather_problem():
+    """gh-3442 shape: multiply of gathers whose index arrays contain
+    DUPLICATES, so each gather Jacobian has more nonzeros than its source
+    variable. Corrupted the heap in derivative-structure initialization."""
+    nb = 4
+    rows = np.array([0, 0, 1, 2, 2, 3])
+    cols = np.array([1, 2, 2, 0, 3, 1])
+    theta = cp.Variable(nb, name='theta', bounds=[-0.5, 0.5])
+    v = cp.Variable(nb, name='v', bounds=[0.9, 1.1])
+    x = cp.Variable(rows.size, name='x')
+    C = cp.nlp.cos(theta[rows] - theta[cols])
+    vv = cp.multiply(v[rows], v[cols])
+    prob = cp.Problem(cp.Minimize(cp.sum(x)), [x == cp.multiply(vv, C)])
+    return prob, theta, v, x, rows, cols
+
+
+class TestDuplicateIndexGathers:
+    # Regression tests for gh-3442 (solver-free: the crash was in the diff
+    # engine's jacobian/hessian structure init, before any solver ran).
+    # The fix (gather-Jacobian allocation for duplicated indices,
+    # SparseDiffEngine#105) ships in sparsediffpy 0.6.0, the pinned floor.
+    def test_multiply_duplicate_index_gathers_derivatives(self):
+        np.random.seed(0)
+        prob, theta, v, x, rows, _ = _duplicate_gather_problem()
+        theta.value = np.random.uniform(-0.4, 0.4, theta.size)
+        v.value = np.random.uniform(0.95, 1.05, v.size)
+        x.value = np.zeros(rows.size)
+        checker = DerivativeChecker(prob)
+        checker.run_and_assert()
+
+
 @pytest.mark.skipif('IPOPT' not in INSTALLED_SOLVERS, reason='IPOPT is not installed.')
 class TestAffineDiffEngine:
     # Stress tests for affine vector atoms in the diff engine.
@@ -91,6 +122,26 @@ class TestAffineDiffEngine:
         prob.solve(solver=cp.IPOPT, nlp=True)
         assert prob.status == cp.OPTIMAL
         assert np.allclose(X.value, -2, atol=1e-4)
+
+    def test_multiply_duplicate_index_gathers_solve(self):
+        # gh-3442: the array-indexed formulation must solve and agree with
+        # the scalar-indexed loop formulation (the issue's workaround).
+        np.random.seed(0)
+        prob, theta, v, x, rows, cols = _duplicate_gather_problem()
+        theta.value = np.random.uniform(-0.4, 0.4, theta.size)
+        v.value = np.random.uniform(0.95, 1.05, v.size)
+        x.value = np.zeros(rows.size)
+        prob.solve(solver=cp.IPOPT, nlp=True)
+        assert prob.status == cp.OPTIMAL
+        gathered_value = prob.value
+
+        x2 = cp.Variable(rows.size)
+        cons = [x2[k] == v[i] * v[j] * cp.nlp.cos(theta[i] - theta[j])
+                for k, (i, j) in enumerate(zip(rows, cols))]
+        prob2 = cp.Problem(cp.Minimize(cp.sum(x2)), cons)
+        prob2.solve(solver=cp.IPOPT, nlp=True)
+        assert prob2.status == cp.OPTIMAL
+        assert np.isclose(gathered_value, prob2.value, atol=1e-5)
 
     def test_promote_row(self):
         # Promote scalar to row vector

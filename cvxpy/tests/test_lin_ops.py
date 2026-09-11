@@ -15,8 +15,11 @@ limitations under the License.
 """
 
 import numpy as np
+import pytest
 import scipy.sparse as sp
 
+import cvxpy as cp
+from cvxpy.lin_ops import lin_utils as lu
 from cvxpy.lin_ops.lin_op import (
     DENSE_CONST,
     NEG,
@@ -160,3 +163,57 @@ class test_lin_ops(BaseTest):
         self.assertEqual(expr.shape, (1, 1))
         self.assertEqual(len(expr.args), 1)
         self.assertEqual(expr.type, SUM_ENTRIES)
+
+    def test_parameter_and_replacement_helpers(self) -> None:
+        x = lu.create_var((2, 2), var_id=10)
+        y = lu.create_var((2, 2), var_id=11)
+        param = cp.Parameter((2, 2))
+        param.value = np.arange(4).reshape((2, 2))
+        p_op = lu.create_param((2, 2), param)
+
+        self.assertTrue(lu.is_scalar(lu.create_var(tuple())))
+        self.assertTrue(lu.is_const(lu.create_const(1, (1, 1))))
+        self.assertIs(lu.get_constr_expr(x, None), x)
+        lh_op, rh_op, shape = lu.promote_lin_ops_for_mul(lu.create_var((2,)), lu.create_var((2,)))
+        self.assertEqual(lh_op.shape, (1, 2))
+        self.assertEqual(rh_op.shape, (2, 1))
+        self.assertEqual(shape, (1, 1))
+        self.assertEqual(lu.sub_expr(x, y).type, lu.lo.SUM)
+        self.assertEqual(lu.rmul_expr(x, p_op, (2, 2)).type, lu.lo.RMUL)
+        self.assertEqual(lu.multiply(x, y).type, lu.lo.MUL_ELEM)
+        self.assertEqual(lu.kron_r(p_op, x, (4, 4)).type, lu.lo.KRON_R)
+        self.assertEqual(lu.kron_l(x, p_op, (4, 4)).type, lu.lo.KRON_L)
+        self.assertEqual(lu.div_expr(x, lu.create_const(2, (1, 1))).type, lu.lo.DIV)
+        self.assertEqual(lu.promote(lu.create_const(1, (1, 1)), (2, 2)).type, lu.lo.PROMOTE)
+        self.assertEqual(lu.broadcast_to([x, y], (2, 2)).type, lu.lo.BROADCAST_TO)
+        self.assertEqual(lu.trace(x).type, lu.lo.TRACE)
+        self.assertEqual(lu.index(x, (1, 2), (slice(0, 1), slice(None))).type, lu.lo.INDEX)
+        self.assertEqual(lu.conv(p_op, x, (3,)).type, lu.lo.CONV)
+        self.assertEqual(lu.transpose(lu.create_var((3,))).shape, (3,))
+        self.assertEqual(lu.transpose(x).shape, (2, 2))
+        self.assertEqual(lu.transpose(lu.create_var((2, 3, 4)), axes=(2, 0, 1)).shape, (4, 2, 3))
+        self.assertEqual(lu.reshape(x, (4, 1)).type, lu.lo.RESHAPE)
+        self.assertEqual(lu.diag_vec(lu.create_var((2, 1))).shape, (2, 2))
+        self.assertEqual(lu.diag_mat(x).shape, (2, 1))
+        self.assertEqual(lu.upper_tri(x).shape, (1, 1))
+        self.assertEqual(lu.hstack([x, y], (2, 4)).type, lu.lo.HSTACK)
+        self.assertEqual(lu.vstack([x, y], (4, 2)).type, lu.lo.VSTACK)
+        self.assertEqual(lu.concatenate([x, y], (4, 2), axis=0).type, lu.lo.CONCATENATE)
+        geq = lu.create_geq(x, y, constr_id=123)
+        self.assertEqual(geq.constr_id, 123)
+        self.assertEqual(geq.shape, (2, 2))
+
+        expr = lu.mul_expr(p_op, x, (2, 2))
+        self.assertEqual(lu.get_expr_params(expr), [param])
+        replacement = lu.create_var((2, 2), var_id=99)
+        replaced = lu.replace_new_vars(expr, {10: replacement})
+        self.assertIs(replaced.args[0], replacement)
+
+        const_expr = lu.replace_params_with_consts(expr)
+        self.assertIn(
+            const_expr.data.type,
+            {lu.lo.DENSE_CONST, lu.lo.SPARSE_CONST, lu.lo.SCALAR_CONST},
+        )
+        param.value = None
+        with pytest.raises(ValueError, match="missing parameter"):
+            lu.check_param_val(param)

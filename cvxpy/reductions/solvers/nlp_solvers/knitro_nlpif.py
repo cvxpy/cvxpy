@@ -19,6 +19,7 @@ import numpy as np
 import cvxpy.settings as s
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers.nlp_solvers.nlp_solver import NLPsolver
+from cvxpy.reductions.solvers.openmp_conflict import warn_if_omp_conflict
 from cvxpy.utilities.citations import CITATION_DICT
 
 
@@ -26,6 +27,7 @@ class KNITRO(NLPsolver):
     """
     NLP interface for the KNITRO solver
     """
+    REQUIRED_MODULES = ("knitro",)
 
     # Keys:
     CONTEXT_KEY = "context"
@@ -111,6 +113,7 @@ class KNITRO(NLPsolver):
         """
         Imports the solver.
         """
+        warn_if_omp_conflict("knitro")
         import knitro  # noqa F401
 
     def invert(self, solution, inverse_data):
@@ -180,6 +183,8 @@ class KNITRO(NLPsolver):
             oracles = Oracles(bounds.new_problem, verbose=verbose, use_hessian=use_hessian)
         elif 'oracles' in solver_cache:
             oracles = solver_cache['oracles']
+            if bounds.new_problem.parameters():
+                oracles.update_params(bounds.new_problem)
         else:
             oracles = Oracles(bounds.new_problem, verbose=verbose, use_hessian=use_hessian)
             solver_cache['oracles'] = oracles

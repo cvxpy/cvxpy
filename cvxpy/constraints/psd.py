@@ -121,6 +121,43 @@ class PSD(Cone):
             assert args_shapes == instance_args_shapes
             return args[0] >> 0
 
+    @property
+    def dual_residual(self):
+        """Shape-preserving residual of the dual variable w.r.t. the dual cone.
+
+        The dual cone of the PSD cone is the PSD cone itself, so this returns
+        the signed matrix residual ``proj_PSD(S) - S`` of the (symmetric part
+        of the) dual variable ``S``, per PSD block for batched constraints.
+        This follows the same ``projection - value`` convention as
+        ``residual``; the scalar operator-norm reduction is applied in
+        ``dual_violation``.
+        """
+        dv = self.dual_variables[0].value
+        if dv is None:
+            return None
+        sym = (dv + np.swapaxes(dv, -2, -1)) / 2
+        eigvals, eigvecs = np.linalg.eigh(sym)
+        # proj_PSD(S) - S = V diag(max(w, 0) - w) V^T = V diag(-min(w, 0)) V^T.
+        scaled = np.expand_dims(-np.minimum(eigvals, 0.0), -1) \
+            * np.swapaxes(eigvecs, -2, -1)
+        return eigvecs @ scaled
+
+    def dual_violation(self):
+        """Scalar dual infeasibility using the operator (spectral) norm.
+
+        Reduces the shape-preserving :attr:`dual_residual` with the operator
+        norm per PSD block and aggregates across blocks.
+        """
+        residual = self.dual_residual
+        if residual is None:
+            raise ValueError(
+                "Cannot compute dual violation: dual variable has no value."
+            )
+        if residual.size == 0:
+            return 0.0
+        op_norms = np.linalg.norm(residual, ord=2, axis=(-2, -1))
+        return float(np.max(op_norms))
+
 
 class SvecPSD(Cone):
     """A PSD constraint in scaled vectorized (svec) form.

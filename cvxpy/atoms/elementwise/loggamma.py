@@ -14,10 +14,11 @@ limitations under the License.
 from cvxpy.atoms.elementwise.entr import entr
 from cvxpy.atoms.elementwise.log import log
 from cvxpy.atoms.elementwise.maximum import maximum
+from cvxpy.expressions.expression import Expression
 
 
 # ruff: noqa: E501
-def loggamma(x):
+def loggamma(x) -> Expression:
     """Elementwise log of the gamma function.
 
     Implementation has modest accuracy over the full range, approaching perfect

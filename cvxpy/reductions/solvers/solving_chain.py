@@ -20,6 +20,7 @@ from cvxpy.reductions.chain import Chain
 from cvxpy.reductions.complex2real import complex2real
 from cvxpy.reductions.cone2cone.approx import ApproxCone2Cone
 from cvxpy.reductions.cone2cone.exact import ExactCone2Cone
+from cvxpy.reductions.cone2cone.extract_direct_cones import ExtractDirectCones
 from cvxpy.reductions.cone2cone.soc_dim3 import SOCDim3
 from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
@@ -35,7 +36,11 @@ from cvxpy.reductions.solvers import defines as slv_def
 from cvxpy.reductions.solvers.constant_solver import ConstantSolver
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
 from cvxpy.reductions.solvers.solver import Solver, expand_cones
-from cvxpy.settings import COO_CANON_BACKEND, DPP_PARAM_THRESHOLD
+from cvxpy.settings import (
+    COO_CANON_BACKEND,
+    DIFFENGINE_CANON_BACKEND,
+    DPP_PARAM_THRESHOLD,
+)
 from cvxpy.utilities.solver_context import SolverInfo
 from cvxpy.utilities.warn import warn
 
@@ -141,7 +146,8 @@ def _build_solving_chain(
     ignore_dpp : bool
         When True, treat DPP problems as non-DPP.
     canon_backend : str, optional
-        Canonicalization backend ('CPP', 'SCIPY', or 'COO').
+        Canonicalization backend ('CPP', 'SCIPY', 'COO', or 'DIFFENGINE';
+        'DIFFENGINE' supports parameter-free compilation only).
     solver_opts : dict, optional
         Solver-specific options.
 
@@ -166,12 +172,14 @@ def _build_solving_chain(
     else:
         supported = frozenset(solver_instance.SUPPORTED_CONSTRAINTS)
 
+    dir_cone_kinds = solver_instance.DIR_CONE_KINDS
     solver_context = SolverInfo(
         solver=solver_instance.name(),
         supported_constraints=supported,
         supports_bounds=solver_instance.BOUNDED_VARIABLES,
         psd_triangle_kind=solver_instance.PSD_TRIANGLE_KIND,
         psd_sqrt2_scaling=solver_instance.PSD_SQRT2_SCALING,
+        dir_cone_kinds=dir_cone_kinds,
     )
 
     # --- Pre-canonicalization reductions (problem + gp only) ---
@@ -188,7 +196,23 @@ def _build_solving_chain(
 
     # --- DPP handling ---
     dpp_context = 'dcp' if not gp else 'dgp'
-    if ignore_dpp or not problem.is_dpp(dpp_context):
+    # For QP/conic-QP solvers, we can loosen the DPP rules for quad_form
+    # in the objective. These solvers accept quadratic objectives directly
+    # (P matrix), so the mapping from parameters to problem data (P, q) stays
+    # linear — the standard DPP requirement. Constraint quad_forms still go
+    # through the conic canonicalizer which bakes in numeric Cholesky factors,
+    # so parametric P in constraints is NOT DPP-safe for the QP path.
+    quad_form_dpp = 'qp' if solver_instance.supports_quad_obj() else None
+    is_dpp = problem.is_dpp(dpp_context, quad_form_dpp=quad_form_dpp)
+
+    if canon_backend == DIFFENGINE_CANON_BACKEND and problem._max_ndim() > 2:
+        # Mirror the explicit-CPP treatment of N-D problems: the diff engine
+        # represents all expressions as 2-D matrices.
+        raise ValueError(
+            f"The {DIFFENGINE_CANON_BACKEND} backend cannot be used with "
+            "problems that have expressions of dimension greater than 2.")
+
+    if ignore_dpp or not is_dpp:
         if not ignore_dpp and enforce_dpp:
             raise DPPError(DPP_ERROR_MSG)
         if not ignore_dpp:
@@ -226,10 +250,11 @@ def _build_solving_chain(
     if solver_instance.SOC_DIM3_ONLY and SOC in cones:
         reductions.append(SOCDim3())
 
-    reductions += [
-        ConeMatrixStuffing(quad_obj=quad_obj, canon_backend=canon_backend),
-        solver_instance,
-    ]
+    reductions.append(
+        ConeMatrixStuffing(quad_obj=quad_obj, canon_backend=canon_backend))
+    if dir_cone_kinds:
+        reductions.append(ExtractDirectCones(solver_context=solver_context))
+    reductions.append(solver_instance)
     return SolvingChain(reductions=reductions, solver_context=solver_context)
 
 

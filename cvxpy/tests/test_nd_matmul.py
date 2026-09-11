@@ -179,6 +179,97 @@ class TestNDMatmulParametric:
         # Since target is achievable, optimal value should be near 0
         assert prob.value < 1e-6
 
+    @pytest.mark.parametrize("backend", BACKENDS)
+    def test_parametric_trivial_batch_param(self, backend):
+        """Test P (1,m,k) @ X (1,k,n) with a direct ND Parameter (regression: COO crash)."""
+        m, k, n = 3, 4, 5
+        P = cp.Parameter((1, m, k))
+        P.value = np.random.randn(1, m, k)
+        X = cp.Variable((1, k, n))
+
+        X_true = np.random.randn(1, k, n)
+        target = P.value @ X_true
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(P @ X - target)))
+        prob.solve(canon_backend=backend)
+
+        assert prob.status == cp.OPTIMAL
+        np.testing.assert_allclose(P.value @ X.value, target, atol=1e-4)
+
+    @pytest.mark.parametrize("backend", BACKENDS)
+    # Non-square dims (m != k != n) exercise the interleaved index math;
+    # k >= m keeps the target achievable after the parameter update.
+    @pytest.mark.parametrize("B,m,k,n", [(3, 2, 2, 2), (2, 2, 3, 4)])
+    def test_parametric_batch_varying_param(self, backend, B, m, k, n):
+        """Test P (B,m,k) @ X (B,k,n): each batch element has its own slice of P."""
+        P = cp.Parameter((B, m, k))
+        P.value = np.random.randn(B, m, k)
+        X = cp.Variable((B, k, n))
+
+        X_true = np.random.randn(B, k, n)
+        target = P.value @ X_true
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(P @ X - target)))
+        prob.solve(canon_backend=backend)
+
+        assert prob.status == cp.OPTIMAL
+        np.testing.assert_allclose(P.value @ X.value, target, atol=1e-4)
+
+        # Cross-backend consistency: a fresh COO solve gives the same solution.
+        x_backend = X.value.copy()
+        prob_coo = cp.Problem(cp.Minimize(cp.sum_squares(P @ X - target)))
+        prob_coo.solve(canon_backend=cp.COO_CANON_BACKEND)
+        np.testing.assert_allclose(X.value, x_backend, atol=1e-4)
+
+        # Re-solve with a new parameter value (reuses cached canonicalization).
+        P.value = np.random.randn(B, m, k)
+        prob.solve(canon_backend=backend)
+        np.testing.assert_allclose(P.value @ X.value, target, atol=1e-4)
+
+    @pytest.mark.parametrize("backend", BACKENDS)
+    def test_parametric_expression_batch_varying(self, backend):
+        """Test (2*P) @ X with P (B,m,k): a parametric expression, not a direct Parameter."""
+        B, m, k, n = 3, 2, 2, 2
+        P = cp.Parameter((B, m, k))
+        P.value = np.random.randn(B, m, k)
+        X = cp.Variable((B, k, n))
+
+        X_true = np.random.randn(B, k, n)
+        target = 2 * P.value @ X_true
+        prob = cp.Problem(cp.Minimize(cp.sum_squares((2 * P) @ X - target)))
+        prob.solve(canon_backend=backend)
+
+        assert prob.status == cp.OPTIMAL
+        np.testing.assert_allclose(2 * P.value @ X.value, target, atol=1e-4)
+
+        # Equivalent 2D formulation: each batch slice solved as its own 2D problem.
+        for b in range(B):
+            Xb = cp.Variable((k, n))
+            prob_2d = cp.Problem(cp.Minimize(cp.sum_squares(2 * P.value[b] @ Xb - target[b])))
+            prob_2d.solve(canon_backend=backend)
+            np.testing.assert_allclose(Xb.value, X.value[b], atol=1e-3)
+
+        # Re-solve with a new parameter value (reuses cached canonicalization).
+        P.value = np.random.randn(B, m, k)
+        prob.solve(canon_backend=backend)
+        np.testing.assert_allclose(2 * P.value @ X.value, target, atol=1e-4)
+
+    @pytest.mark.parametrize("backend", BACKENDS)
+    def test_parametric_sum_batch_varying(self, backend):
+        """Test (P + Q) @ X with 3D Parameters P, Q: each batch element has its own slices."""
+        B, m, k, n = 3, 2, 2, 2
+        P = cp.Parameter((B, m, k))
+        Q = cp.Parameter((B, m, k))
+        P.value = np.random.randn(B, m, k)
+        Q.value = np.random.randn(B, m, k)
+        X = cp.Variable((B, k, n))
+
+        C = P.value + Q.value
+        target = C @ np.random.randn(B, k, n)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares((P + Q) @ X - target)))
+        prob.solve(canon_backend=backend)
+
+        assert prob.status == cp.OPTIMAL
+        np.testing.assert_allclose(C @ X.value, target, atol=1e-4)
+
 
 class TestNDMatmulBroadcasting:
     """Test batch dimension broadcasting for ND matmul."""
@@ -483,6 +574,97 @@ class TestNDRmulParametric:
         assert prob.status == cp.OPTIMAL
         # Since target is achievable, optimal value should be near 0
         assert prob.value < 1e-6
+
+    @pytest.mark.parametrize("backend", BACKENDS)
+    def test_parametric_trivial_batch_param(self, backend):
+        """Test X (1,m,k) @ P (1,k,n) with a direct ND Parameter (regression: COO crash)."""
+        m, k, n = 3, 4, 5
+        X = cp.Variable((1, m, k))
+        P = cp.Parameter((1, k, n))
+        P.value = np.random.randn(1, k, n)
+
+        X_true = np.random.randn(1, m, k)
+        target = X_true @ P.value
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(X @ P - target)))
+        prob.solve(canon_backend=backend)
+
+        assert prob.status == cp.OPTIMAL
+        np.testing.assert_allclose(X.value @ P.value, target, atol=1e-4)
+
+    @pytest.mark.parametrize("backend", BACKENDS)
+    # Non-square dims (m != k != n) exercise the interleaved index math;
+    # k >= n keeps the target achievable after the parameter update.
+    @pytest.mark.parametrize("B,m,k,n", [(3, 2, 2, 2), (2, 4, 3, 2)])
+    def test_parametric_batch_varying_param(self, backend, B, m, k, n):
+        """Test X (B,m,k) @ P (B,k,n): each batch element has its own slice of P."""
+        X = cp.Variable((B, m, k))
+        P = cp.Parameter((B, k, n))
+        P.value = np.random.randn(B, k, n)
+
+        X_true = np.random.randn(B, m, k)
+        target = X_true @ P.value
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(X @ P - target)))
+        prob.solve(canon_backend=backend)
+
+        assert prob.status == cp.OPTIMAL
+        np.testing.assert_allclose(X.value @ P.value, target, atol=1e-4)
+
+        # Cross-backend consistency: a fresh COO solve gives the same solution.
+        x_backend = X.value.copy()
+        prob_coo = cp.Problem(cp.Minimize(cp.sum_squares(X @ P - target)))
+        prob_coo.solve(canon_backend=cp.COO_CANON_BACKEND)
+        np.testing.assert_allclose(X.value, x_backend, atol=1e-4)
+
+        # Re-solve with a new parameter value (reuses cached canonicalization).
+        P.value = np.random.randn(B, k, n)
+        prob.solve(canon_backend=backend)
+        np.testing.assert_allclose(X.value @ P.value, target, atol=1e-4)
+
+    @pytest.mark.parametrize("backend", BACKENDS)
+    def test_parametric_expression_batch_varying(self, backend):
+        """Test X @ (2*P) with P (B,k,n): a parametric expression, not a direct Parameter."""
+        B, m, k, n = 3, 2, 2, 2
+        X = cp.Variable((B, m, k))
+        P = cp.Parameter((B, k, n))
+        P.value = np.random.randn(B, k, n)
+
+        X_true = np.random.randn(B, m, k)
+        target = X_true @ (2 * P.value)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(X @ (2 * P) - target)))
+        prob.solve(canon_backend=backend)
+
+        assert prob.status == cp.OPTIMAL
+        np.testing.assert_allclose(X.value @ (2 * P.value), target, atol=1e-4)
+
+        # Equivalent 2D formulation: each batch slice solved as its own 2D problem.
+        for b in range(B):
+            Xb = cp.Variable((m, k))
+            prob_2d = cp.Problem(cp.Minimize(cp.sum_squares(Xb @ (2 * P.value[b]) - target[b])))
+            prob_2d.solve(canon_backend=backend)
+            np.testing.assert_allclose(Xb.value, X.value[b], atol=1e-3)
+
+        # Re-solve with a new parameter value (reuses cached canonicalization).
+        P.value = np.random.randn(B, k, n)
+        prob.solve(canon_backend=backend)
+        np.testing.assert_allclose(X.value @ (2 * P.value), target, atol=1e-4)
+
+    @pytest.mark.parametrize("backend", BACKENDS)
+    def test_parametric_sum_batch_varying(self, backend):
+        """Test X @ (P + Q) with 3D Parameters P, Q: each batch element has its own slices."""
+        B, m, k, n = 3, 2, 2, 2
+        X = cp.Variable((B, m, k))
+        P = cp.Parameter((B, k, n))
+        Q = cp.Parameter((B, k, n))
+        P.value = np.random.randn(B, k, n)
+        Q.value = np.random.randn(B, k, n)
+
+        C = P.value + Q.value
+        target = np.random.randn(B, m, k) @ C
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(X @ (P + Q) - target)))
+        prob.solve(canon_backend=backend)
+
+        assert prob.status == cp.OPTIMAL
+        np.testing.assert_allclose(X.value @ C, target, atol=1e-4)
 
 
 class TestNDRmulBroadcasting:

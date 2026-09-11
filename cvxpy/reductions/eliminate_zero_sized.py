@@ -120,6 +120,7 @@ class EliminateZeroSized(Reduction):
                 eliminated_vars[v.id] = v
 
         new_problem = Problem(objective, constraints)
+        self._cons_id_map = cons_id_map
         inverse_data = {
             'eliminated_vars': eliminated_vars,
             'dropped_constraints': dropped_constraints,

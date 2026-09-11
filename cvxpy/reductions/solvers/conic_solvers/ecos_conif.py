@@ -44,6 +44,7 @@ class ECOS(ConicSolver):
     # Solver capabilities.
     MIP_CAPABLE = False
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC, ExpCone]
+    REQUIRED_MODULES = ("ecos",)
 
     # EXITCODES from ECOS
     # ECOS_OPTIMAL  (0)   Problem solved to optimality

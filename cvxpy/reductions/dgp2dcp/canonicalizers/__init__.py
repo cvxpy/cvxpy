@@ -23,7 +23,7 @@ from cvxpy.atoms.one_minus_pos import one_minus_pos
 from cvxpy.atoms.pf_eigenvalue import pf_eigenvalue
 from cvxpy.atoms.pnorm import Pnorm, PnormApprox
 from cvxpy.atoms.prod import Prod
-from cvxpy.atoms.quad_form import quad_form
+from cvxpy.atoms.quad_form import QuadForm
 from cvxpy.atoms.quad_over_lin import quad_over_lin
 from cvxpy.constraints.finite_set import FiniteSet
 from cvxpy.expressions.constants.constant import Constant
@@ -90,7 +90,7 @@ CANON_METHODS = {
     Power : power_canon,
     PowerApprox : power_canon,
     Prod : prod_canon,
-    quad_form : quad_form_canon,
+    QuadForm : quad_form_canon,
     quad_over_lin : quad_over_lin_canon,
     Trace : trace_canon,
     Sum : sum_canon,
@@ -196,11 +196,10 @@ class DgpCanonMethods(dict):
             constrs.extend(aux_lb)
             log_ub, aux_ub = self._log_transform_bound(bounds[1])
             constrs.extend(aux_ub)
-            log_variable = Variable(variable.shape, var_id=variable.id,
+            log_variable = Variable(variable.shape,
                                     bounds=[log_lb, log_ub], **dim_attrs)
         else:
-            log_variable = Variable(variable.shape, var_id=variable.id,
-                                    **dim_attrs)
+            log_variable = Variable(variable.shape, **dim_attrs)
         self._variables[variable] = log_variable
         return log_variable, constrs
 

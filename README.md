@@ -25,7 +25,7 @@ CVXPY is a Python-embedded modeling language for convex optimization problems. I
 
 For example, the following code solves a least-squares problem where the variable is constrained by lower and upper bounds:
 
-```python3
+```python
 import cvxpy as cp
 import numpy
 
@@ -54,8 +54,9 @@ print(constraints[0].dual_value)
 With CVXPY, you can model
 * convex optimization problems,
 * mixed-integer convex optimization problems,
-* geometric programs, and
-* quasiconvex programs.
+* geometric programs,
+* quasiconvex programs, and
+* nonlinear programs
 
 CVXPY is not a solver. It relies upon the open source solvers 
 [Clarabel](https://github.com/oxfordcontrol/Clarabel.rs), [SCS](https://github.com/bodono/scs-python),
@@ -69,12 +70,12 @@ many people, across many institutions and countries.
 
 ## Installation
 CVXPY is available on PyPI, and can be installed with
-```
+```bash
 pip install cvxpy
 ```
 
 CVXPY can also be installed with conda, using
-```
+```bash
 conda install -c conda-forge cvxpy
 ```
 
@@ -87,6 +88,7 @@ CVXPY has the following dependencies:
 - NumPy >= 2.0.0
 - SciPy >= 1.13.0
 - highspy >= 1.11.0
+- sparsediffpy >= 0.2.2
 
 For detailed instructions, see the [installation
 guide](https://www.cvxpy.org/install/index.html).

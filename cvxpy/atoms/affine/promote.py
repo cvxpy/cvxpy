@@ -24,7 +24,7 @@ from cvxpy.expressions.expression import Expression
 from cvxpy.utilities import bounds as bounds_utils
 
 
-def promote(expr: Expression, shape: tuple[int, ...]):
+def promote(expr: Expression, shape: tuple[int, ...]) -> Expression:
     """ Promote a scalar expression to a vector/matrix.
 
     Parameters
@@ -40,7 +40,7 @@ def promote(expr: Expression, shape: tuple[int, ...]):
         If ``expr`` is not a scalar.
     """
 
-    expr = Expression.cast_to_const(expr)
+    expr = Expression.cast(expr)
     if expr.shape != shape:
         if not expr.is_scalar():
             raise ValueError('Only 0-d arrays (i.e., scalars) may be promoted.')

@@ -39,6 +39,7 @@ class SDPA(ConicSolver):
     # Solver capabilities.
     MIP_CAPABLE = False
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [PSD]
+    REQUIRED_MODULES = ("sdpap",)
 
     # Map of SDPA status to CVXPY status.
     STATUS_MAP = {

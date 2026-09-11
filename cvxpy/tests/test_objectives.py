@@ -137,3 +137,50 @@ class TestObjectives(unittest.TestCase):
         # Test Maximize + Minimize raises DCPError (not bare Exception)
         with self.assertRaises(DCPError):
             cp.Maximize(-expr1) + cp.Minimize(expr2)
+
+    def test_objective_arithmetic_and_predicate_branches(self) -> None:
+        x = cp.Variable(nonneg=True)
+        minimize = cp.Minimize(cp.square(x))
+        maximize = cp.Maximize(cp.sqrt(x))
+
+        self.assertIs(0 + minimize, minimize)
+        with self.assertRaises(NotImplementedError):
+            1 + minimize
+        with self.assertRaises(NotImplementedError):
+            minimize - 1
+        self.assertIsInstance(0 - minimize, cp.Maximize)
+        with self.assertRaises(NotImplementedError):
+            1 - minimize
+        with self.assertRaises(NotImplementedError):
+            minimize * "bad"
+        with self.assertRaises(NotImplementedError):
+            minimize / "bad"
+
+        self.assertIsInstance(minimize * 2, cp.Minimize)
+        self.assertIsInstance(minimize * -2, cp.Maximize)
+        self.assertIsInstance(maximize * 2, cp.Maximize)
+        self.assertIsInstance(maximize * -2, cp.Minimize)
+        self.assertIsInstance(minimize / 2, cp.Minimize)
+
+        with self.assertRaises(DCPError):
+            minimize + maximize
+        with self.assertRaises(DCPError):
+            maximize + minimize
+
+        self.assertIsNone(minimize.value)
+        x.value = 3
+        self.assertEqual(minimize.value, 9)
+        self.assertTrue(minimize.is_quadratic())
+        self.assertTrue(minimize.is_qpwa())
+        self.assertTrue(minimize.is_dcp(dpp=True))
+        self.assertTrue(maximize.is_dcp(dpp=True))
+        self.assertFalse(minimize.is_dgp(dpp=True))
+        self.assertFalse(maximize.is_dgp(dpp=True))
+        self.assertTrue(minimize.is_dpp("dcp"))
+        self.assertFalse(minimize.is_dpp("dgp"))
+        with self.assertRaises(ValueError):
+            minimize.is_dpp("bad")
+        with self.assertRaises(ValueError):
+            maximize.is_dpp("bad")
+        self.assertEqual(cp.Minimize.primal_to_result(2.5), 2.5)
+        self.assertEqual(cp.Maximize.primal_to_result(2.5), -2.5)

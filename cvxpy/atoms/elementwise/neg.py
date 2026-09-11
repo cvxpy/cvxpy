@@ -15,9 +15,10 @@ limitations under the License.
 """
 
 from cvxpy.atoms.elementwise.minimum import minimum
+from cvxpy.expressions.expression import Expression
 
 
-def neg(x):
+def neg(x) -> Expression:
     """ Alias for -minimum{x, 0}.
 
     """

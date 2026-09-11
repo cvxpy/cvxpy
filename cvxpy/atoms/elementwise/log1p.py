@@ -19,6 +19,7 @@ import scipy
 
 from cvxpy.atoms.elementwise.log import log
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.utilities import bounds as bounds_utils
 
 
 class log1p(log):
@@ -38,6 +39,11 @@ class log1p(log):
         """The same sign as the argument.
         """
         return (self.args[0].is_nonneg(), self.args[0].is_nonpos())
+
+    def bounds_from_args(self) -> tuple[np.ndarray, np.ndarray]:
+        """Returns bounds for log1p by shifting the argument bounds by 1."""
+        lb, ub = self.args[0].get_bounds()
+        return bounds_utils.log_bounds(lb + 1, ub + 1)
 
     def _grad(self, values):
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.

@@ -14,10 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from fractions import Fraction
+
 import numpy as np
+import pytest
 
 import cvxpy as cp
 from cvxpy.tests.base_test import BaseTest
+from cvxpy.utilities import power_tools as pt
 
 
 class TestGeoMean(BaseTest):
@@ -111,3 +115,46 @@ class TestGeoMean(BaseTest):
             except AssertionError as e:
                 print(f'Failure at index {i} (when alpha={alpha_float}).')
                 raise e
+
+
+def test_power_tools_edge_branches():
+    t = cp.Variable()
+    x = cp.Variable()
+    constraints = pt.gm_constrs(t, [x], (Fraction(1),))
+    assert len(constraints) == 1
+    assert constraints[0].args[0] is t
+    assert constraints[0].args[1] is x
+
+    assert pt.pow_high(2, approx=False) == (2, (Fraction(1, 2), Fraction(1, 2)))
+    assert pt.pow_high(Fraction(3, 2))[0] == Fraction(3, 2)
+    p, weights = pt.pow_neg(-2, approx=False)
+    assert p == -2
+    np.testing.assert_allclose(weights, (2 / 3, 1 / 3))
+    assert pt.pow_neg(-2)[0] == -2
+    assert pt.is_dyad(2)
+    assert not pt.is_dyad(Fraction(1, 3))
+    assert pt.is_weight(np.array([0, 0, 1]))
+
+    with pytest.raises(ValueError, match="nonnegative"):
+        pt.fracify([-1, 2])
+    with pytest.raises(ValueError, match="denominator"):
+        pt.fracify([1, 2], max_denom=0)
+    with pytest.raises(ValueError, match="reliably represent"):
+        pt.fracify((Fraction(1, 3), Fraction(2, 3)), max_denom=2)
+
+    w, w_dyad = pt.fracify(np.array([0.1, 0.9]), max_denom=16)
+    assert pt.is_weight(w)
+    assert pt.is_dyad_weight(w_dyad)
+    assert pt.make_frac([0.2, 0.8], 4) == (Fraction(1, 4), Fraction(3, 4))
+    assert pt.dyad_completion((Fraction(1, 3), Fraction(2, 3))) == (
+        Fraction(1, 4), Fraction(1, 2), Fraction(1, 4)
+    )
+    assert pt.approx_error([1, 1], [Fraction(1, 2), Fraction(1, 2)]) == 0
+    assert pt.next_pow2(0) == 1
+    assert pt.check_dyad((Fraction(1, 2), Fraction(1, 2)), (Fraction(1, 2), Fraction(1, 2)))
+    assert not pt.check_dyad((Fraction(2, 3), 1), (Fraction(2, 3), 1))
+    assert pt.split((Fraction(1), 0)) == ()
+    tree = pt.decompose((Fraction(1, 2), Fraction(1, 2)))
+    assert pt.over_bound((Fraction(1, 2), Fraction(1, 2)), tree) == 0
+    pretty = pt.prettydict(tree)
+    assert "(1/2, 1/2)" in pretty

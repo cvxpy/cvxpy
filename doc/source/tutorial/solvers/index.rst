@@ -95,7 +95,7 @@ The table below shows the types of problems the supported solvers can handle.
 +----------------+----+----+------+-----+-----+-----+-----+
 | `GUROBI`_      | X  | X  | X    |     |     |     | X   |
 +----------------+----+----+------+-----+-----+-----+-----+
-| `MOREAU`_      | X  | X  | X    |     | X   | X   |     |
+| `MOREAU`_      | X  | X  | X    | X   | X   | X   |     |
 +----------------+----+----+------+-----+-----+-----+-----+
 | `MOSEK`_       | X  | X  | X    | X   | X   | X   | X** |
 +----------------+----+----+------+-----+-----+-----+-----+
@@ -291,6 +291,13 @@ warm start would only be a good initial point.
 
 Warm start can also be used to provide an initial guess the first time a problem is solved.
 The initial guess is constructed from the ``value`` field of the problem variables.
+
+.. note::
+   As of now, this initial-guess behavior is not implemented for most solver
+   backends. Setting a variable's ``value`` before the first solve currently
+   has no effect on the result. See `#1355
+   <https://github.com/cvxpy/cvxpy/issues/1355>`_ for details and status.
+
 If the same problem is solved a second time, the initial guess is constructed from the
 cached previous solution as described above (rather than from the ``value`` field).
 
@@ -654,41 +661,42 @@ Here is the complete list of solver options.
 .. info:: `CBC`_ options
     :collapsible:
 
-    Cut-generation through `CGL`_
+    CVXPY's CBC interface is built on `CyLP`_. The options that CVXPY forwards
+    are the ones exposed as attributes on CyLP's ``CyClpSimplex`` (`CLP`_) and
+    ``CyCbcModel`` (`CBC`_) objects. Cut generators such as ``GomoryCuts`` are
+    *not* configurable through this interface; passing them has no effect.
 
-    General remarks:
-        - some of these cut-generators seem to be buggy (observed problems with AllDifferentCuts, RedSplitCuts, LandPCuts, PreProcessCuts)
-        - a few of these cut-generators will generate noisy output even if ``'verbose=False'``
+    The following options configure the `CLP`_ simplex solver, which is used
+    directly for continuous (LP) problems and for the relaxations solved inside
+    the `CBC`_ branch-and-cut process. They are passed as keyword arguments:
 
-    The following cut-generators are available:
-        ``GomoryCuts``, ``MIRCuts``, ``MIRCuts2``, ``TwoMIRCuts``, ``ResidualCapacityCuts``, ``KnapsackCuts`` ``FlowCoverCuts``, ``CliqueCuts``, ``LiftProjectCuts``, ``AllDifferentCuts``, ``OddHoleCuts``, ``RedSplitCuts``, ``LandPCuts``, ``PreProcessCuts``, ``ProbingCuts``, ``SimpleRoundingCuts``.
+    ``'logLevel'``
+        controls the verbosity of the solver output (``0`` is silent). This is
+        also set for you by the ``verbose`` flag.
 
-    ``'CutGenName'``
-        if cut-generator is activated (e.g. ``'GomoryCuts=True'``)
+    ``'dualTolerance'``
+        the tolerance used to decide dual feasibility of the simplex solver.
 
-    ``'integerTolerance'``
-        an integer variable is deemed to be at an integral value if it is no further than this value (tolerance) away
+    ``'primalTolerance'``
+        the tolerance used to decide primal feasibility of the simplex solver.
 
-    ``'maximumSeconds'``
-        stop after given amount of seconds
+    ``'maxNumIteration'``
+        the maximum number of simplex iterations.
 
-    ``'maximumNodes'``
-        stop after given maximum number of nodes
+    ``'scaling'``
+        the scaling mode passed to CLP (an integer, e.g. ``0`` to disable).
 
-    ``'maximumSolutions'``
-        stop after evalutation x number of solutions
+    ``'optimizationDirection'``
+        the optimization direction, e.g. ``'min'`` or ``'max'``.
 
-    ``'numberThreads'``
-        sets the number of threads
+    ``'presolve'``
+        controls CLP's presolve for continuous problems, e.g. ``'off'`` to
+        disable it.
 
-    ``'allowableGap'``
-        returns a solution if the gap between the best known solution and the best possible solution is less than this value.
-
-    ``'allowableFractionGap'``
-        returns a solution if the gap between the best known solution and the best possible solution is less than this fraction.
-
-    ``'allowablePercentageGap'``
-        returns if the gap between the best known solution and the best possible solution is less than this percentage.
+    For mixed-integer problems, any additional keyword argument is set as an
+    attribute on the underlying `CBC`_ ``CyCbcModel`` object. Whether a given
+    name takes effect depends on the attributes that CyLP exposes; see the
+    `CyLP`_ source for the current list.
 
 .. info:: `COPT`_ options:
     :collapsible:
@@ -941,8 +949,9 @@ will be the same as the class variable ``SUPPORTED_CONSTRAINTS``.
 .. _MOSEK: https://www.mosek.com/
 .. _MOREAU: https://optimalintellect.com/
 .. _MPAX: https://github.com/MIT-Lu-Lab/MPAX
-.. _CBC: https://projects.coin-or.org/Cbc
-.. _CGL: https://projects.coin-or.org/Cgl
+.. _CBC: https://github.com/coin-or/Cbc
+.. _CLP: https://github.com/coin-or/Clp
+.. _CyLP: https://github.com/coin-or/CyLP
 .. _CPLEX: https://www.ibm.com/docs/en/icos
 .. _NAG: https://nag.com/mathematical-optimization/
 .. _OSQP: https://osqp.org/

@@ -21,7 +21,7 @@ from cvxpy.expressions.expression import Expression
 
 
 # ruff: noqa: E501
-def log_normcdf(x):
+def log_normcdf(x) -> Expression:
     """Elementwise log of the cumulative distribution function of a standard normal random variable.
 
     The implementation is a quadratic approximation with modest accuracy over [-4, 4].
@@ -48,7 +48,7 @@ def log_normcdf(x):
     )
     b = np.array([[3.0, 2.0, 1.0, 0.0, -1.0, -2.5, -3.5]]).reshape(-1, 1)
 
-    x = Expression.cast_to_const(x)
+    x = Expression.cast(x)
     flat_x = reshape(x, (1, x.size), order='F')
 
     y = A @ (b @ np.ones(flat_x.shape) - np.ones(b.shape) @ flat_x)

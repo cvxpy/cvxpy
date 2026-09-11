@@ -197,7 +197,7 @@ def pow_3d_canon(con, args):
     x, y, z = args
 
     # alpha is always a CVXPY Expression (PowCone3D.__init__ wraps it
-    # via cast_to_const), so .value always exists.
+    # via cast), so .value always exists.
     alpha_val = alpha.value
 
     # Normalize to a 1-D numpy array so the branches below can

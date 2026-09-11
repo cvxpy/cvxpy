@@ -33,6 +33,19 @@ from cvxpy.expressions.constants.constant import Constant
 from cvxpy.expressions.expression import Expression
 
 
+def _complete_complex_pair(real: Expression | None,
+                           imag: Expression | None) -> tuple[Expression, Expression]:
+    """Complete a (real, imaginary) matrix pair in which at most one half is
+    None, replacing the missing half with a zero matrix shaped like the other.
+    """
+    if real is None:
+        assert imag is not None, "real and imaginary parts cannot both be None"
+        return Constant(np.zeros(imag.shape)), imag
+    if imag is None:
+        return real, Constant(np.zeros(real.shape))
+    return real, imag
+
+
 def expand_complex(real_part: Expression | None,
                    imag_part: Expression | None):
     """
@@ -44,10 +57,7 @@ def expand_complex(real_part: Expression | None,
     Therefore, the eigenvalues of B are the same as those of A,
     repeated twice.
     """
-    if real_part is None:
-        real_part = Constant(np.zeros(imag_part.shape))
-    elif imag_part is None:
-        imag_part = Constant(np.zeros(real_part.shape))
+    real_part, imag_part = _complete_complex_pair(real_part, imag_part)
     matrix = bmat([[real_part, -imag_part],
                    [imag_part, real_part]])
     if real_part.is_symmetric() and imag_part.is_skew_symmetric():
@@ -107,10 +117,12 @@ def lambda_sum_largest_canon(expr: lambda_sum_largest,
                              imag_args: list[Expression | None], real2imag):
     """Canonicalize sum of k largest eigenvalues with Hermitian matrix input.
     """
-    # Divide by two because each eigenvalue is repeated twice.
     real, imag = hermitian_canon(expr, real_args, imag_args, real2imag)
-    real.k *= 2
     if imag_args[0] is not None:
+        # The Hermitian dilation repeats each eigenvalue twice, so sum the
+        # 2k largest eigenvalues and divide by two. A real argument is left
+        # untouched by hermitian_canon, so k must not be doubled for it.
+        real.k *= 2
         real /= 2
     return real, imag
 
@@ -184,13 +196,9 @@ def quad_canon(expr,
     else:
         vec = vstack([at_least_2D(real_args[0]),
                       at_least_2D(imag_args[0])])
-        if real_args[1] is None:
-            real_args[1] = np.zeros(imag_args[1].shape)
-        elif imag_args[1] is None:
-            imag_args[1] = np.zeros(real_args[1].shape)
-
-        matrix = bmat([[real_args[1], -imag_args[1]],
-                       [imag_args[1], real_args[1]]])
+        mat_real, mat_imag = _complete_complex_pair(real_args[1], imag_args[1])
+        matrix = bmat([[mat_real, -mat_imag],
+                       [mat_imag, mat_real]])
 
         if expr.args[1].is_psd():
             matrix = psd_wrap(matrix)
@@ -223,10 +231,7 @@ def matrix_frac_canon(expr,
         imag_args[0] = np.zeros(real_args[0].shape)
     vec = vstack([at_least_2D(real_args[0]),
                   at_least_2D(imag_args[0])])
-    if real_args[1] is None:
-        real_args[1] = np.zeros(imag_args[1].shape)
-    elif imag_args[1] is None:
-        imag_args[1] = np.zeros(real_args[1].shape)
-    matrix = bmat([[real_args[1], -imag_args[1]],
-                   [imag_args[1], real_args[1]]])
+    mat_real, mat_imag = _complete_complex_pair(real_args[1], imag_args[1])
+    matrix = bmat([[mat_real, -mat_imag],
+                   [mat_imag, mat_real]])
     return expr.copy([vec, matrix]), None

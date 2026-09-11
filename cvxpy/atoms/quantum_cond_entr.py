@@ -11,7 +11,7 @@ from cvxpy.expressions.expression import Expression
 
 def quantum_cond_entr(
         rho: Expression , dims: tuple[int, int], sys: Literal[0, 1] = 0, quad_approx=(3, 3)
-    ):
+    ) -> Expression:
     """
     Returns (an approximation of) the quantum conditional entropy for a bipartite state,
     conditioning on system :math:`\\texttt{sys}.`

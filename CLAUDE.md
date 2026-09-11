@@ -15,7 +15,12 @@ pytest cvxpy/tests/
 
 # Run specific test
 pytest cvxpy/tests/test_atoms.py::TestAtoms::test_norm_inf
+
+# Rebuild the C++ core after changing cvxpy/cvxcore/ (requires swig)
+./rebuild_cvxcore.sh
 ```
+
+Requires Python >= 3.11. Linting is enforced by ruff via pre-commit.
 
 ## Code Style
 
@@ -42,28 +47,6 @@ limitations under the License.
 """
 ```
 
-## Project Structure
-
-```
-cvxpy/
-├── atoms/              # Mathematical functions (exp, log, norm, etc.)
-│   ├── affine/         # Linear/affine ops (reshape, sum, trace, index)
-│   └── elementwise/    # Element-wise ops (exp, log, abs, sqrt)
-├── constraints/        # Constraint types (Zero, NonNeg, SOC, PSD)
-├── expressions/        # Variable, Parameter, Constant, Expression
-├── problems/           # Problem class and Minimize/Maximize
-├── reductions/         # Problem transformations
-│   ├── dcp2cone/       # DCP → conic canonicalizers
-│   ├── dgp2dcp/        # DGP → DCP transforms
-│   └── solvers/        # Solver interfaces
-│       ├── conic_solvers/
-│       └── qp_solvers/
-├── lin_ops/            # Linear operator representation
-│   └── backends/       # Canonicalization backends
-├── utilities/          # Helpers, performance utils
-└── tests/              # Unit tests (use pytest to run)
-```
-
 ## Architecture
 
 ### Expression Hierarchy
@@ -86,7 +69,8 @@ Problem → [Dgp2Dcp] → [FlipObjective] → Dcp2Cone → CvxAttr2Constr → Co
 ```
 
 **Key reductions:**
-- `Dgp2Dcp` - Converts DGP to DCP (if `gp=True`)
+- `Dgp2Dcp` - Converts DGP (log-log curvature) to DCP (if `gp=True`)
+- `Dqcp2Dcp` - Converts DQCP (quasiconvex) to DCP, solved via bisection (if `qcp=True`)
 - `FlipObjective` - Converts Maximize to Minimize (negates objective)
 - `Dcp2Cone` - Canonicalizes atoms to conic constraints (calls canonicalizers)
 - `CvxAttr2Constr` - Converts variable attributes (e.g., `nonneg=True`) to constraints
@@ -104,11 +88,8 @@ Atoms define curvature via:
 - `is_atom_convex()` / `is_atom_concave()` - Intrinsic curvature
 - `is_incr(idx)` / `is_decr(idx)` - Monotonicity per argument
 
-### DGP (Disciplined Geometric Programming)
-DGP problems use log-log curvature instead of standard curvature. Transformed to DCP via `dgp2dcp` reduction.
-
-### DQCP (Disciplined Quasiconvex Programming)
-DQCP extends DCP to quasiconvex functions. Solved via bisection on a parameter. Transformed via `dqcp2dcp` reduction.
+### DNLP (Disciplined Nonlinear Programming)
+DNLP supports smooth nonconvex problems via `prob.solve(nlp=True)`, which bypasses the conic chain and uses `cvxpy/reductions/solvers/nlp_solving_chain.py`. Nonconvex atoms live in the `cp.nlp` namespace (e.g. `cp.nlp.sin`, `cp.nlp.cos`, `cp.nlp.tanh`, `cp.nlp.normcdf`). Requires an NLP solver (IPOPT, UNO, KNITRO, COPT). Check with `problem.is_dnlp()`; transformed via the `dnlp2smooth` reduction.
 
 ### DPP (Disciplined Parametrized Programming)
 DPP enables efficient re-solving when only `Parameter` values change. CVXPY caches the canonicalization and reuses it.
@@ -122,115 +103,48 @@ Check with `problem.is_dpp()`. See `cvxpy/utilities/scopes.py` for implementatio
 
 ## Implementing New Atoms
 
-### 1. Create Atom Class
-Location: `cvxpy/atoms/` or `cvxpy/atoms/elementwise/`
+Copy the structure of an existing atom rather than writing from scratch. The full checklist:
 
-```python
-from typing import Tuple
-from cvxpy.atoms.atom import Atom
+1. **Atom class** in `cvxpy/atoms/` (or `atoms/elementwise/`) - must define `shape_from_args`, `sign_from_args`, `is_atom_convex`/`is_atom_concave`, `is_incr`/`is_decr` (per-argument monotonicity; missing these breaks DCP analysis), and `numeric`
+2. **Canonicalizer** in `cvxpy/reductions/dcp2cone/canonicalizers/` with signature
+   `def my_atom_canon(expr, args, solver_context: SolverInfo | None = None)` returning `(epigraph_var, constraints)`
+3. **Register** it in `CANON_METHODS` in `cvxpy/reductions/dcp2cone/canonicalizers/__init__.py`
+4. **Export** the atom in `cvxpy/atoms/__init__.py`
+5. **Document** it (see `doc/` folder; renders at [cvxpy.org](https://www.cvxpy.org/))
 
-class my_atom(Atom):
-    def __init__(self, x) -> None:
-        super().__init__(x)
-
-    def shape_from_args(self) -> Tuple[int, ...]:
-        return self.args[0].shape
-
-    def sign_from_args(self) -> Tuple[bool, bool]:
-        return (False, False)  # (is_nonneg, is_nonpos)
-
-    def is_atom_convex(self) -> bool:
-        return True
-
-    def is_atom_concave(self) -> bool:
-        return False
-
-    def is_incr(self, idx: int) -> bool:
-        return True
-
-    def is_decr(self, idx: int) -> bool:
-        return False
-
-    def numeric(self, values):
-        return np.my_function(values[0])
-```
-
-### 2. Create Canonicalizer
-Location: `cvxpy/reductions/dcp2cone/canonicalizers/`
-
-```python
-from cvxpy.expressions.variable import Variable
-from cvxpy.utilities.solver_context import SolverInfo
-
-def my_atom_canon(expr, args, solver_context: SolverInfo | None = None):
-    x = args[0]
-    t = Variable(expr.shape)
-    # For CONVEX atoms: use t >= f(x)
-    #   When minimizing, optimizer pushes t down to equality: t = f(x)
-    # For CONCAVE atoms: use t <= f(x)
-    #   When maximizing, optimizer pushes t up to equality: t = f(x)
-    constraints = [t >= x]  # Example for convex atom
-    return t, constraints
-```
-
-### 3. Register
-In `cvxpy/reductions/dcp2cone/canonicalizers/__init__.py`:
-```python
-from cvxpy.atoms import my_atom
-CANON_METHODS[my_atom] = my_atom_canon
-```
-
-### 4. Export
-In `cvxpy/atoms/__init__.py`:
-```python
-from cvxpy.atoms.my_atom import my_atom
-```
+Steps 3-5 fail silently when forgotten - check them explicitly.
 
 ## Testing
 
-Tests should be **comprehensive but concise and focused**. Cover edge cases without unnecessary verbosity.
+Tests should be **comprehensive but concise and focused**. Cover edge cases without unnecessary verbosity. Tests subclass `cvxpy.tests.base_test.BaseTest`, which provides `assertItemsAlmostEqual(a, b, places=5)` for arrays and `assertAlmostEqual` for scalars - copy an existing test file for the pattern.
 
 **IMPORTANT:** Use `solver=cp.CLARABEL` for tests that call `problem.solve()` - it's the default open-source solver.
 
-### Base Test Pattern
-```python
-from cvxpy.tests.base_test import BaseTest
-import cvxpy as cp
-import numpy as np
+### Choosing which tests to run
 
-class TestMyFeature(BaseTest):
-    def test_basic(self) -> None:
-        x = cp.Variable(2)
-        atom = cp.my_atom(x)
+The full suite is slow; run the test files matching your change (e.g. atom change → `test_atoms.py` and `test_constant_atoms.py`; canonicalization → `test_canon_methods.py`; a solver interface → `pytest cvxpy/tests/test_conic_solvers.py -k SOLVERNAME`; NLP features → `tests/nlp_tests/`). Only run broader suites when the change is structural.
 
-        # Test DCP
-        self.assertTrue(atom.is_convex())
+### Solver-dependent tests skip silently
 
-        # Test numeric
-        x.value = np.array([1.0, 2.0])
-        self.assertItemsAlmostEqual(atom.value, expected)
+Solver tests are guarded by `@unittest.skipUnless('X' in INSTALLED_SOLVERS, ...)` (from `cvxpy.reductions.solvers.defines`). A green run does NOT mean a solver's tests executed - if the solver isn't installed they skip. Run pytest with `-rs` to list skips before concluding a solver interface works.
 
-    def test_solve(self) -> None:
-        x = cp.Variable(2)
-        prob = cp.Problem(cp.Minimize(cp.sum(x)), [x >= 1])
-        prob.solve(solver=cp.CLARABEL)
-        self.assertEqual(prob.status, cp.OPTIMAL)
-```
+### KNITRO isolation
 
-### Assertion Helpers
-- `self.assertItemsAlmostEqual(a, b, places=5)` - Compare arrays
-- `self.assertAlmostEqual(a, b, places=5)` - Compare scalars
+Tests marked `@pytest.mark.knitro` load the native KNITRO runtime and must run in a separate process from other native NLP solvers (see the marker definition in `pyproject.toml` and `test_nlp_solvers.yml`). Don't run them in the same pytest invocation as other NLP solver tests.
 
 ## Canon Backend Architecture
 
-Backends are critical to performance. They handle matrix construction during `ConeMatrixStuffing`. Located in `cvxpy/lin_ops/backends/`.
+Backends are critical to performance. They handle matrix construction during `ConeMatrixStuffing`. Python backends live in `cvxpy/lin_ops/backends/`; the CPP backend lives in `cvxpy/cvxcore/`.
 
 **Backends:**
 - `CPP` (default) - C++ implementation, fastest for problems with large expression trees
-- `SCIPY` - Pure Python with SciPy sparse matrices, good for large problems
+- `SCIPY` - Pure Python with SciPy sparse matrices, good for large problems (default on pyodide)
 - `COO` - 3D COO tensor, better for large DPP problems with many parameters
+- `RUST` - Experimental Rust-accelerated backend
 
-Select via `CVXPY_DEFAULT_CANON_BACKEND=CPP` (default), `SCIPY`, or `COO`.
+**Selection** (see `construct_solving_chain` in `cvxpy/reductions/solvers/solving_chain.py`):
+1. Explicitly via `prob.solve(canon_backend=...)` or the `CVXPY_DEFAULT_CANON_BACKEND` env var
+2. Otherwise auto: `COO` if the problem is DPP and total parameter size >= `DPP_PARAM_THRESHOLD` (1000, in `cvxpy/settings.py`); else `CPP`
 
 ## Pull Requests
 
@@ -238,9 +152,7 @@ Always use the PR template in `.github/` when opening PRs. Fill out all sections
 
 ## Common Mistakes to Avoid
 
-1. **Forgetting to register canonicalizers** in `canonicalizers/__init__.py`
-2. **Forgetting to export atoms** in `cvxpy/atoms/__init__.py`
-3. Missing `is_incr`/`is_decr` methods in atoms (breaks DCP analysis)
-4. Not testing with `Parameter` objects (DPP compliance)
-5. Missing license headers on new files
-6. **Forgetting to update documentation** - new features need docs at [cvxpy.org](https://www.cvxpy.org/) (see `doc/` folder)
+1. Skipping steps of the new-atom checklist above (registration, export, and docs fail silently)
+2. Not testing with `Parameter` objects (DPP compliance)
+3. Missing license headers on new files
+4. Concluding solver tests pass when they were actually skipped (see Testing)

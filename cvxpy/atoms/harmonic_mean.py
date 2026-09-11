@@ -18,7 +18,7 @@ from cvxpy.atoms.pnorm import pnorm
 from cvxpy.expressions.expression import Expression
 
 
-def harmonic_mean(x):
+def harmonic_mean(x) -> Expression:
     """The harmonic mean of ``x``.
 
     Parameters
@@ -35,7 +35,7 @@ def harmonic_mean(x):
 
         where :math:`n` is the length of :math:`x`.
     """
-    x = Expression.cast_to_const(x)
+    x = Expression.cast(x)
     # TODO(akshayka): Behavior of the below is incorrect when x has negative
     # entries. Either fail fast or provide a correct expression with
     # unknown curvature.

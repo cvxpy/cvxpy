@@ -19,6 +19,7 @@ import numpy as np
 import cvxpy.settings as s
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers.nlp_solvers.nlp_solver import NLPsolver
+from cvxpy.reductions.solvers.openmp_conflict import warn_if_omp_conflict
 from cvxpy.utilities.citations import CITATION_DICT
 
 
@@ -26,6 +27,8 @@ class IPOPT(NLPsolver):
     """
     NLP interface for the IPOPT solver
     """
+    REQUIRED_MODULES = ("cyipopt",)
+
     # Map between IPOPT status and CVXPY status
     # taken from https://github.com/jump-dev/Ipopt.jl/blob/master/src/C_wrapper.jl#L485-L511
     STATUS_MAP = {
@@ -70,6 +73,7 @@ class IPOPT(NLPsolver):
         """
         Imports the solver.
         """
+        warn_if_omp_conflict("cyipopt")
         import cyipopt  # noqa F401
 
     def invert(self, solution, inverse_data):
@@ -155,6 +159,8 @@ class IPOPT(NLPsolver):
             oracles = Oracles(bounds.new_problem, verbose=verbose, use_hessian=use_hessian)
         elif 'oracles' in solver_cache:
             oracles = solver_cache['oracles']
+            if bounds.new_problem.parameters():
+                oracles.update_params(bounds.new_problem)
         else:
             oracles = Oracles(bounds.new_problem, verbose=verbose, use_hessian=use_hessian)
             solver_cache['oracles'] = oracles

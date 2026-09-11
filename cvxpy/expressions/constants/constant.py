@@ -22,6 +22,7 @@ import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.settings as s
 import cvxpy.utilities.linalg as eig_util
+from cvxpy.expressions.expression import ExpressionValue, GradMap
 from cvxpy.expressions.leaf import Leaf
 from cvxpy.utilities import performance_utils as perf
 from cvxpy.utilities.warn import warn
@@ -44,16 +45,28 @@ class Constant(Leaf):
         # Record whether the original value was boolean-typed before
         # const_to_matrix converts it to float64.
         self._boolean: bool = self._detect_boolean(value)
+        # When a dense input must be copied to give Constant snapshot semantics,
+        # retain its identity for structural canonicalization caches. This does
+        # not keep the caller's array alive or expose it as our value.
+        self._value_source_id: int | None = None
         # Keep sparse matrices sparse.
         if intf.is_sparse(value):
             self._value = intf.DEFAULT_SPARSE_INTF.const_to_matrix(
                 value, convert_scalars=True)
+            # Defensively copy if the conversion aliased the caller's data,
+            # since sign/PSD attributes are cached against the value.
+            if hasattr(value, 'data') and hasattr(self._value, 'data') and \
+                    np.may_share_memory(self._value.data, value.data):
+                self._value = self._value.copy()
             self._sparse = True
         else:
             if isinstance(value, list) and any(isinstance(i, list) for i in value):
                 warn(NESTED_LIST_WARNING)
 
             self._value = intf.DEFAULT_INTF.const_to_matrix(value)
+            if isinstance(value, np.ndarray) and np.may_share_memory(self._value, value):
+                self._value_source_id = id(value)
+                self._value = self._value.copy()
             self._sparse = False
         self._imag: bool | None = None
         self._nonneg: bool | None = None
@@ -104,8 +117,8 @@ class Constant(Leaf):
         return True
 
     @property
-    def value(self):
-        """NumPy.ndarray or None: The numeric value of the constant.
+    def value(self) -> ExpressionValue:
+        """The numeric value of the constant.
         """
         return self._value
 
@@ -122,7 +135,7 @@ class Constant(Leaf):
         return self._cached_is_pos
 
     @property
-    def grad(self):
+    def grad(self) -> GradMap:
         """Gives the (sub/super)gradient of the expression w.r.t. each variable.
 
         Matrix expressions are vectorized, so the gradient is a matrix.

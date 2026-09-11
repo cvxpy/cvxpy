@@ -171,7 +171,7 @@ def deep_flatten(x):
         else:
             return x.flatten(order='F')
     elif isinstance(x, np.ndarray) or isinstance(x, (int, float)):
-        x = Expression.cast_to_const(x)
+        x = Expression.cast(x)
         return x.flatten(order='F')
     # recursion
     if isinstance(x, list):

@@ -196,7 +196,7 @@ class atanh(Elementwise):
         return False
 
     def _domain(self) -> list[Constraint]:
-        return [self.args[0] < 1, self.args[0] > -1]
+        return [self.args[0] <= 1, self.args[0] >= -1]
 
     def _grad(self, values) -> list[Constraint]:
         raise NotImplementedError("Gradient not implemented for atanh.")

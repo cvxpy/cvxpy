@@ -106,6 +106,10 @@ def _bisect(problem, solver, t, low, high, tighten_lower, tighten_higher,
 
     verbose_freq = 5
     soln = None
+    # Lower end of the subinterval from which the query point is drawn.
+    # Solver failures move it toward `high`, the feasible end of the
+    # bracket, so a failing query point is never retried verbatim.
+    query_low = low
     for i in range(max_iters):
         assert low <= high
         if soln is not None and (high - low) <= eps:
@@ -114,7 +118,7 @@ def _bisect(problem, solver, t, low, high, tighten_lower, tighten_higher,
             # to the optimal value in the previous iteration (hence the
             # soln is not None check)
             return soln, low, high
-        query_pt = (low + high) / 2.0
+        query_pt = (query_low + high) / 2.0
         if verbose and i % verbose_freq == 0:
             print("(iteration %d) lower bound: %0.6f" % (i, low))
             print("(iteration %d) upper bound: %0.6f" % (i, high))
@@ -127,19 +131,28 @@ def _bisect(problem, solver, t, low, high, tighten_lower, tighten_higher,
             if verbose and i % verbose_freq == 0:
                 print("(iteration %d) query was infeasible.\n" % i)
             low = tighten_lower(query_pt)
+            query_low = low
         elif lowered.status in s.SOLUTION_PRESENT:
             if verbose and i % verbose_freq == 0:
                 print("(iteration %d) query was feasible. %s)\n" %
                       (i, lowered.solution))
             soln = lowered.solution
             high = tighten_higher(query_pt)
+            query_low = low
         else:
+            if query_pt == high:
+                raise error.SolverError(
+                    "Solver failed at every query point between the "
+                    "current bisection bounds; unable to make progress.")
             warnings.warn(
-                "Solver failed at iteration %d, trying next bisection point." % i,
+                "Solver failed at iteration %d, querying a point closer to "
+                "the feasible end of the interval." % i,
                 RuntimeWarning
             )
             if verbose:
-                print("(iteration %d) solver failed, skipping.\n" % i)
+                print("(iteration %d) solver failed, perturbing query "
+                      "point.\n" % i)
+            query_low = query_pt
             continue
     raise error.SolverError("Max iters hit during bisection.")
 
