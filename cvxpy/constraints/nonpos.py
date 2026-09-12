@@ -105,6 +105,13 @@ class NonPos(Constraint):
             return None
         return -np.minimum(dv, 0.0)
 
+    @property
+    def complementarity_residual(self):
+        expr_val = self.expr.value
+        dv = self.dual_variables[0].value
+        if expr_val is None or dv is None:
+            return None
+        return dv * (-expr_val)
 
 class NonNeg(Constraint):
     """A constraint of the form :math:`x \\geq 0`.
@@ -170,6 +177,13 @@ class NonNeg(Constraint):
             return None
         return -np.minimum(dv, 0.0)
 
+    @property
+    def complementarity_residual(self):
+        expr_val = self.expr.value
+        dv = self.dual_variables[0].value
+        if expr_val is None or dv is None:
+            return None
+        return dv * expr_val
 
 class Inequality(Constraint):
     """A constraint of the form :math:`x \\leq y`.
@@ -274,3 +288,11 @@ class Inequality(Constraint):
         if dv is None:
             return None
         return -np.minimum(dv, 0.0)
+
+    @property
+    def complementarity_residual(self):
+        expr_val = self.expr.value
+        dv = self.dual_variables[0].value
+        if expr_val is None or dv is None:
+            return None
+        return dv * (-expr_val)

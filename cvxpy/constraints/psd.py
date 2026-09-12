@@ -158,6 +158,36 @@ class PSD(Cone):
         op_norms = np.linalg.norm(residual, ord=2, axis=(-2, -1))
         return float(np.max(op_norms))
 
+    @property
+    def complementarity_residual(self):
+        """Shape-preserving PSD complementarity residual.
+
+        For a PSD constraint with primal matrix X and dual matrix S, this
+        returns the matrix product X S, computed from the Hermitian/symmetric
+        parts of the primal and dual values.
+        """
+        expr_val = self.expr.value
+        dv = self.dual_variables[0].value
+        if expr_val is None or dv is None:
+            return None
+
+        sym_expr = (expr_val + np.conjugate(np.swapaxes(expr_val, -2, -1))) / 2
+        sym_dv = (dv + np.conjugate(np.swapaxes(dv, -2, -1))) / 2
+        return np.matmul(sym_expr, sym_dv)
+
+    def complementarity_violation(self):
+        """Scalar PSD complementarity violation using the operator norm."""
+        residual = self.complementarity_residual
+        if residual is None:
+            raise ValueError(
+                "Cannot compute complementarity violation: missing primal "
+                "or dual value."
+            )
+        if residual.size == 0:
+            return 0.0
+        op_norms = np.linalg.norm(residual, ord=2, axis=(-2, -1))
+        return float(np.max(op_norms))
+
 
 class SvecPSD(Cone):
     """A PSD constraint in scaled vectorized (svec) form.
