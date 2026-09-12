@@ -30,12 +30,36 @@ The problems you solve in CVXPY must follow the rules of disciplined convex prog
 DCP is like a type system for optimization problems.
 For more about DCP, see the :ref:`DCP tutorial section <dcp>` or the `DCP tutorial website <http://dcp.stanford.edu/>`_.
 
+When ``solve()`` raises a ``DCPError``, the message identifies the failing
+subexpressions and explains which DCP rule was violated. For example,
+``cp.sqrt(1 + cp.square(x))`` is convex but not DCP, and the error explains
+that a concave nondecreasing atom cannot take a convex argument.
+
 How do I find DCP errors?
 -------------------------
 You can test whether a problem, objective, constraint, or expression satisfies the DCP
 rules by calling ``object.is_dcp()``.
 If the function returns ``False``,
 there is a DCP error in that object.
+
+To see *why* an object fails DCP without calling ``solve()``, use
+``object.explain_dcp()`` on a problem, objective, constraint, or expression:
+
+.. code:: python
+
+    import cvxpy as cp
+
+    x = cp.Variable(name="x")
+    print(cp.sqrt(1 + cp.square(x)).explain_dcp())
+    # The following subexpressions are not DCP:
+    # sqrt(1.0 + square(x))
+    #     Reason: sqrt is concave and nondecreasing. Its argument 1.0 + square(x)
+    #     is convex. DCP does not allow a concave nondecreasing atom to be
+    #     applied to a convex argument.
+
+    print(cp.Problem(cp.Minimize(cp.sqrt(cp.Variable(nonneg=True)))).explain_dcp())
+    # The objective is not DCP, even though each sub-expression is.
+    # Reason: Minimize(...) requires a convex objective, but the objective is concave.
 
 What do I do if I get a ``SolverError`` exception?
 --------------------------------------------------
