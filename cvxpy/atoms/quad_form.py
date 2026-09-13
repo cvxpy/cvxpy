@@ -71,6 +71,12 @@ class QuadForm(Atom):
         x, P = self.args[0], self.args[1]
         return is_param_free(x) and is_param_affine(P)
 
+    def _supports_diffengine(self) -> bool:
+        # The cone quad_form canon factorizes P.value with decomp_quad, so P
+        # has to be a real constant -- the same thing is_atom_convex asks for
+        # outside quad_form_dpp_scope.
+        return not self.args[1].parameters()
+
     def is_atom_convex(self) -> bool:
         """Is the atom convex?
 
