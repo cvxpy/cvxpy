@@ -14,11 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import numpy as np
-import scipy.sparse as sp
-
 import cvxpy.settings as s
 from cvxpy.constraints import PSD, SOC, ExpCone, NonNeg, PowCone3D, PowConeND, SvecPSD, Zero
+from cvxpy.reductions.cone_format import format_cone_prog
 from cvxpy.reductions.cvx_attr2constr import convex_attributes
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ParamConeProg
 from cvxpy.reductions.solution import Solution, failure_solution
@@ -31,59 +29,6 @@ from cvxpy.reductions.solvers.solver import Solver
 # not introduced a regression.
 
 
-class LinearOperator:
-    """A wrapper for linear operators."""
-    def __init__(self, linear_op, shape: tuple[int, ...]) -> None:
-        if sp.issparse(linear_op):
-            self._matmul = lambda X: linear_op @ X
-        else:
-            self._matmul = linear_op
-        self.shape = shape
-
-    def __call__(self, X):
-        return self._matmul(X)
-
-class IdentityOperator(LinearOperator):
-    """A wrapper for the identity operator."""
-    def __init__(self, n):
-        self.shape = (n,n)
-    def __call__(self, X):
-        return X
-
-class NegativeIdentityOperator(LinearOperator):
-    """A wrapper for the negative identity operator."""
-    def __init__(self, n):
-        self.shape = (n,n)
-    def __call__(self, X):
-        return -X
-
-def as_linear_operator(linear_op) -> LinearOperator:
-    if isinstance(linear_op, LinearOperator):
-        return linear_op
-    elif sp.issparse(linear_op):
-        return LinearOperator(linear_op, linear_op.shape)
-    raise ValueError(f"Cannot convert {type(linear_op)} to LinearOperator")
-
-
-def as_block_diag_linear_operator(matrices) -> LinearOperator:
-    """Block diag of SciPy sparse matrices or linear operators."""
-    linear_operators = [as_linear_operator(op) for op in matrices]
-    nrows = [op.shape[0] for op in linear_operators]
-    ncols = [op.shape[1] for op in linear_operators]
-    m, n = sum(nrows), sum(ncols)
-    col_indices = np.append(0, np.cumsum(ncols))
-
-    def matmul(X):
-        outputs = []
-        for i, op in enumerate(linear_operators):
-            Xi = X[col_indices[i]:col_indices[i + 1]]
-            outputs.append(op(Xi))
-        return sp.vstack(outputs)
-    return LinearOperator(matmul, (m, n))
-
-
-# Utility method for formatting a ConeDims instance into a dictionary
-# that can be supplied to solvers.
 def dims_to_solver_dict(cone_dims):
     cones = {
         'f': cone_dims.zero,
@@ -99,6 +44,11 @@ def dims_to_solver_dict(cone_dims):
 
 class ConicSolver(Solver):
     """Conic solver class with reduction semantics
+
+    ``apply`` requires a program whose constraint rows are already in this
+    solver's cone layout, i.e. ``problem.formatted`` is True. The
+    ``ConeFormat`` reduction establishes that: ``_build_solving_chain``
+    appends it before every non-QP solver. Interfaces must not re-derive it.
     """
     # The key that maps to ConeDims in the data returned by apply().
     DIMS = "dims"
@@ -124,193 +74,15 @@ class ConicSolver(Solver):
                 and all(type(c) in self.SUPPORTED_CONSTRAINTS for c in
                         problem.constraints))
 
-    @staticmethod
-    def get_spacing_matrix(shape: tuple[int, ...], spacing, streak, num_blocks, offset):
-        """Returns a sparse matrix that spaces out an expression.
-
-        Parameters
-        ----------
-        shape : tuple
-            (rows in matrix, columns in matrix)
-        spacing : int
-            The number of rows between the start of each non-zero block.
-        streak: int
-            The number of elements in each block.
-        num_blocks : int
-            The number of non-zero blocks.
-        offset : int
-            The number of zero rows at the beginning of the matrix.
-
-        Returns
-        -------
-        SciPy CSC matrix
-            A sparse matrix
-        """
-        num_values = num_blocks * streak
-        val_arr = np.ones(num_values, dtype=np.float64)
-        streak_plus_spacing = streak + spacing
-        row_arr = np.arange(0, num_blocks * streak_plus_spacing).reshape(
-            num_blocks, streak_plus_spacing)[:, :streak].flatten() + offset
-        col_arr = np.arange(num_values)
-        return sp.csc_array((val_arr, (row_arr, col_arr)), shape)
-
     @classmethod
     def format_constraints(cls, problem, exp_cone_order):
+        """Deprecated: the ``ConeFormat`` chain step applies the cone layout.
+
+        Kept because out-of-tree interfaces still call this at the top of their
+        own ``apply``. On the already-formatted program they now receive it is
+        a no-op, so such an interface keeps working unchanged.
         """
-        Returns a ParamConeProg whose problem data tensors will yield the
-        coefficient "A" and offset "b" for the constraint in the following
-        formats:
-            Linear equations: (A, b) such that A * x + b == 0,
-            Linear inequalities: (A, b) such that A * x + b >= 0,
-            Second order cone: (A, b) such that A * x + b in SOC,
-            Exponential cone: (A, b) such that A * x + b in EXP,
-            Semidefinite cone: (A, b) such that A * x + b in PSD,
-
-        The CVXPY standard for the exponential cone is:
-            K_e = closure{(x,y,z) |  z >= y * exp(x/y), y>0}.
-        Whenever a solver uses this convention, EXP_CONE_ORDER should be
-        [0, 1, 2].
-
-        The CVXPY standard for the second order cone is:
-            SOC(n) = { x : x[0] >= norm(x[1:n], 2)  }.
-        All currently supported solvers use this convention.
-
-        Args:
-          problem : ParamConeProg
-            The problem that is the provenance of the constraint.
-          exp_cone_order: list
-            A list indicating how the exponential cone arguments are ordered.
-
-        Returns:
-          ParamConeProg with structured A.
-        """
-        # Create a matrix to reshape constraints, then replicate for each
-        # variable entry.
-        restruct_mat = []  # Form a block diagonal matrix.
-        for constr in problem.constraints:
-            total_height = sum([arg.size for arg in constr.args])
-            if type(constr) == Zero:
-                restruct_mat.append(NegativeIdentityOperator(constr.size))
-            elif type(constr) == NonNeg:
-                restruct_mat.append(IdentityOperator(constr.size))
-            elif type(constr) == SOC:
-                # Group each t row with appropriate X rows.
-                assert constr.axis == 0, 'SOC must be lowered to axis == 0'
-
-                # Interleave the rows of coeffs[0] and coeffs[1]:
-                #     coeffs[0][0, :]
-                #     coeffs[1][0:gap-1, :]
-                #     coeffs[0][1, :]
-                #     coeffs[1][gap-1:2*(gap-1), :]
-                # Handle scalar X (shape is empty tuple)
-                x_dim = constr.args[1].shape[0] if constr.args[1].shape else 1
-                t_spacer = ConicSolver.get_spacing_matrix(
-                    shape=(total_height, constr.args[0].size),
-                    spacing=x_dim,
-                    streak=1,
-                    num_blocks=constr.args[0].size,
-                    offset=0,
-                )
-                X_spacer = ConicSolver.get_spacing_matrix(
-                    shape=(total_height, constr.args[1].size),
-                    spacing=1,
-                    streak=x_dim,
-                    num_blocks=constr.args[0].size,
-                    offset=1,
-                )
-                restruct_mat.append(sp.hstack([t_spacer, X_spacer]))
-            elif type(constr) == ExpCone:
-                arg_mats = []
-                for i, arg in enumerate(constr.args):
-                    space_mat = ConicSolver.get_spacing_matrix(
-                        shape=(total_height, arg.size),
-                        spacing=len(exp_cone_order) - 1,
-                        streak=1,
-                        num_blocks=arg.size,
-                        offset=exp_cone_order[i],
-                    )
-                    arg_mats.append(space_mat)
-                restruct_mat.append(sp.hstack(arg_mats))
-            elif type(constr) == PowCone3D:
-                arg_mats = []
-                for i, arg in enumerate(constr.args):
-                    space_mat = ConicSolver.get_spacing_matrix(
-                        shape=(total_height, arg.size), spacing=2,
-                        streak=1, num_blocks=arg.size, offset=i,
-                    )
-                    arg_mats.append(space_mat)
-                restruct_mat.append(sp.hstack(arg_mats))
-            elif type(constr) == PowConeND:
-                arg_mats = []
-                if constr.args[0].ndim == 1:
-                    m = constr.args[0].shape[0]
-                    n = 1
-                else:
-                    m, n = constr.args[0].shape
-                for j in range(n):
-                    space_mat = ConicSolver.get_spacing_matrix(
-                        shape=(total_height, m), spacing=0,
-                        streak=1, num_blocks=m, offset=(m+1)*j,
-                    )
-                    arg_mats.append(space_mat)
-
-                # Hypo columns
-                arg = constr.args[1]
-                assert arg.size == n
-                space_mat = ConicSolver.get_spacing_matrix(
-                    shape=(total_height, n), spacing=m,
-                    streak=1, num_blocks=n, offset=m,
-                )
-                arg_mats.append(space_mat)
-                restruct_mat.append(sp.hstack(arg_mats))
-
-            elif type(constr) == PSD:
-                restruct_mat.append(IdentityOperator(constr.size))
-            elif type(constr) == SvecPSD:
-                restruct_mat.append(IdentityOperator(constr.size))
-            else:
-                raise ValueError("Unsupported constraint type.")
-
-        # Form new ParamConeProg
-        if restruct_mat:
-            # TODO(akshayka): profile to see whether using linear operators
-            # or bmat is faster
-            restruct_mat = as_block_diag_linear_operator(restruct_mat)
-            # this is equivalent to but _much_ faster than:
-            #    restruct_mat_rep = sp.block_diag([restruct_mat]*(problem.x.size + 1))
-            #    restruct_A = restruct_mat_rep * problem.A
-            unspecified, _ = np.divmod(problem.A.shape[0] * problem.A.shape[1],
-                                        restruct_mat.shape[1], dtype=np.int64)
-            reshaped_A = problem.A.reshape(restruct_mat.shape[1],
-                                           unspecified, order='F').tocsr()
-            restructured_A = restruct_mat(reshaped_A).tocoo()
-            # Because of a bug in scipy versions <  1.20, `reshape`
-            # can overflow if indices are int32s.
-            restructured_A.row = restructured_A.row.astype(np.int64)
-            restructured_A.col = restructured_A.col.astype(np.int64)
-            restructured_A = restructured_A.reshape(
-                np.int64(restruct_mat.shape[0]) * (np.int64(problem.x.size) + 1),
-                problem.A.shape[1], order='F')
-        else:
-            restructured_A = problem.A
-        new_param_cone_prog = ParamConeProg(
-            problem.q,
-            problem.x,
-            restructured_A,
-            problem.variables,
-            problem.var_id_to_col,
-            problem.constraints,
-            problem.parameters,
-            problem.param_id_to_col,
-            P=problem.P,
-            formatted=True,
-            lower_bounds=problem.lower_bounds,
-            upper_bounds=problem.upper_bounds,
-            lb_tensor=problem.lb_tensor,
-            ub_tensor=problem.ub_tensor,
-            dir_cones=problem.dir_cones,
-        )
-        return new_param_cone_prog
+        return format_cone_prog(problem, exp_cone_order)
 
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data.
@@ -338,8 +110,7 @@ class ConicSolver(Solver):
         data = {}
         inv_data = {self.VAR_ID: problem.x.id}
 
-        # Format constraints
-        #
+        # Rows arrive in this order, established by the ConeFormat reduction.
         # By default cvxpy follows the SCS convention, which requires
         # constraints to be specified in the following order:
         # 1. zero cone
@@ -349,8 +120,6 @@ class ConicSolver(Solver):
         # 5. exponential
         # 6. three-dimensional power cones
         # 7. n-dimensional power cones
-        if not problem.formatted:
-            problem = self.format_constraints(problem, self.EXP_CONE_ORDER)
         data[s.PARAM_PROB] = problem
         data[self.DIMS] = problem.cone_dims
         inv_data[self.DIMS] = problem.cone_dims

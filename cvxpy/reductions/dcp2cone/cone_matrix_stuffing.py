@@ -165,6 +165,31 @@ class ConeDims:
             raise KeyError(key)
 
 
+def _permute_rows(A, new_row, sign):
+    """Apply a signed row permutation to a stuffed parameter tensor.
+
+    The tensor stacks the ``x.size + 1`` columns of ``[A | b]`` vertically, so
+    tensor row ``i + m*j`` holds concrete row ``i`` of column ``j``: scattering
+    row ``i`` to ``new_row[i]`` shifts every one of its stored values by the
+    same amount. Returns ``A`` untouched when there is nothing to apply.
+    """
+    m = new_row.shape[0]
+    shift = new_row - np.arange(m)
+    moves = shift.any()
+    if not moves and (sign > 0).all():
+        return A
+    A = A.tocsc(copy=True)
+    row = A.indices % m
+    if moves:
+        # Shifting, rather than recomputing new_row[i] + m*j, keeps the
+        # arithmetic in the index dtype, which scipy requires to match indptr.
+        A.indices = A.indices + shift.astype(A.indices.dtype)[row]
+        # Shifting rows leaves each column's indices out of ascending order.
+        A.sort_indices()
+    A.data = A.data * sign[row]
+    return A
+
+
 # TODO(akshayka): unit tests
 class ParamConeProg(ParamProb):
     """Represents a parameterized cone program
@@ -229,6 +254,38 @@ class ParamConeProg(ParamProb):
         self.formatted = formatted
 
         self.dir_cones: list[DirectCone] = dir_cones if dir_cones is not None else []
+
+    def with_row_layout(self, perm):
+        """Return this program with a signed row permutation applied.
+
+        ``perm`` is ``(new_row, sign)`` as returned by
+        :func:`~cvxpy.reductions.cone_format.restruct_permutation`, indexed by
+        the *old* row: row ``i`` becomes row ``new_row[i]``, scaled by
+        ``sign[i]``. ``None`` means there are no constraints, so there is
+        nothing to apply.
+
+        The layout is derived by the ``ConeFormat`` reduction, which is
+        structural; applying it lands here, because how a program stores its
+        constraint data is its own business -- a program that knows a cheaper
+        way to restructure itself overrides this.
+        """
+        return ParamConeProg(
+            self.q,
+            self.x,
+            self.A if perm is None else _permute_rows(self.A, *perm),
+            self.variables,
+            self.var_id_to_col,
+            self.constraints,
+            self.parameters,
+            self.param_id_to_col,
+            P=self.P,
+            formatted=True,
+            lower_bounds=self.lower_bounds,
+            upper_bounds=self.upper_bounds,
+            lb_tensor=self.lb_tensor,
+            ub_tensor=self.ub_tensor,
+            dir_cones=self.dir_cones,
+        )
 
     def is_mixed_integer(self) -> bool:
         """Is the problem mixed-integer?"""

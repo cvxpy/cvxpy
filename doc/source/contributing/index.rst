@@ -356,11 +356,13 @@ explicit representation for problem :math:`(P)` in ``apply``, with a code snippe
 
     # from cvxpy.constraints import Zero, NonNeg, SOC, PSD, ExpCone, PowCone3D
     #  ...
-    if not problem.formatted:
-        problem = self.format_constraints(problem, self.EXP_CONE_ORDER)
     constr_map = problem.constr_map
     cone_dims = problem.cone_dims
     c, d, A, b = problem.apply_parameters()
+
+``apply`` receives a program whose constraint rows are already in the layout
+your ``EXP_CONE_ORDER`` asks for: the ``ConeFormat`` reduction does that once,
+immediately before the solver, so an interface must not re-derive it.
 
 The variable ``constr_map`` is a dict of lists of CVXPY Constraint objects.
 The dict is keyed by the references to CVXPY's Zero, NonNeg, SOC, PSD, ExpCone,

@@ -21,10 +21,10 @@ from cvxpy.constraints import PSD, SOC, ExpCone, NonNeg, PowCone3D, PowConeND, S
 from cvxpy.reductions.chain import Chain
 from cvxpy.reductions.cone2cone.exact import ExactCone2Cone
 from cvxpy.reductions.cone2cone.extract_direct_cones import ExtractDirectCones
+from cvxpy.reductions.cone_format import format_cone_prog
 from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
 from cvxpy.reductions.dcp2cone.dcp2cone import Dcp2Cone
-from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.tests.base_test import BaseTest
 from cvxpy.utilities.psd_utils import TriangleKind
 from cvxpy.utilities.solver_context import SolverInfo
@@ -68,7 +68,7 @@ class TestExtractDirectCones(BaseTest):
         for constraint, kind, sizes, extras in cases:
             with self.subTest(kind=kind, constraint=constraint):
                 original = self.stuff(cp.Problem(cp.Minimize(0), [constraint]))
-                original = ConicSolver.format_constraints(original, [0, 1, 2])
+                original = format_cone_prog(original, [0, 1, 2])
                 result, inverse = reduction.apply(original)
                 self.assertIsNone(inverse)
                 self.assertEqual([c.kind for c in result.dir_cones], [kind] * len(sizes))
@@ -132,7 +132,7 @@ class TestExtractDirectCones(BaseTest):
         constraints = [NonNeg(x), a @ x == b, 2*x + b >= 0]
         problem = cp.Problem(cp.Minimize(cp.sum(x)), constraints)
         original = self.stuff(problem)
-        original = ConicSolver.format_constraints(original, [0, 1, 2])
+        original = format_cone_prog(original, [0, 1, 2])
         result, _ = ExtractDirectCones(self.CONTEXT).apply(original)
         self.assertEqual([c.kind for c in result.dir_cones], ['nonneg'])
         kept = [0, 4, 5, 6]  # equality, then the nonidentity NonNeg block

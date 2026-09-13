@@ -129,8 +129,6 @@ class COPT(ConicSolver):
         tuple
             (dict of arguments needed for the solver, inverse data)
         """
-        if not problem.formatted:
-            problem = self.format_constraints(problem, self.EXP_CONE_ORDER)
         data, inv_data = super(COPT, self).apply(problem)
         variables = problem.x
         data[s.BOOL_IDX] = [int(t[0]) for t in variables.boolean_idx]

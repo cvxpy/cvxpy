@@ -21,9 +21,9 @@ import scipy.sparse as sp
 
 from cvxpy.constraints import SOC, ExpCone, NonNeg, PowCone3D, PowConeND, SvecPSD
 from cvxpy.lin_ops.lin_op import CONSTANT_ID
+from cvxpy.reductions.cone_format import format_cone_prog
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import DirectCone, ParamConeProg
 from cvxpy.reductions.reduction import Reduction
-from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 
 
 def _unit_cones(constr, indices, values, kind, sizes, extras) -> list[DirectCone]:
@@ -143,8 +143,7 @@ class ExtractDirectCones(Reduction):
         if not self.accepts(problem):
             return problem, None
         # Interleave SOC / EXP / power rows into per-cone order before scanning.
-        if not problem.formatted:
-            problem = ConicSolver.format_constraints(problem, [0, 1, 2])
+        problem = format_cone_prog(problem, [0, 1, 2])
         if CONSTANT_ID not in problem.param_id_to_col:
             return problem, None
 
