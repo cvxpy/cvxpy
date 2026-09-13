@@ -22,11 +22,8 @@ import scipy.sparse as sp
 
 import cvxpy as cp
 from cvxpy.constraints import SOC, ExpCone, Zero
-from cvxpy.reductions.cone_format import ConeFormat
-from cvxpy.reductions.solvers.conic_solvers.conic_solver import (
-    ConicSolver,
-    restruct_permutation,
-)
+from cvxpy.reductions.cone_format import ConeFormat, format_cone_prog, restruct_permutation
+from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.solver import Solver
 from cvxpy.tests.base_test import BaseTest
 
@@ -150,7 +147,7 @@ class TestRestructuringEquivalence(BaseTest):
                     prog = _stuff(prob)
                     _, _, A, b = prog.apply_parameters()
                     R = _materialize(prog.constraints, order)
-                    formatted = ConicSolver.format_constraints(prog, order)
+                    formatted = format_cone_prog(prog, order)
                     _, _, A_new, b_new = formatted.apply_parameters()
                     self.assertEqual(A_new.shape, A.shape)
                     self.assertItemsAlmostEqual(
@@ -173,7 +170,7 @@ class TestRestructuringEquivalence(BaseTest):
                 narrow.indptr = narrow.indptr.astype(np.int32)
                 prog.A = narrow
 
-                A = ConicSolver.format_constraints(prog, [0, 1, 2]).A.tocsc()
+                A = format_cone_prog(prog, [0, 1, 2]).A.tocsc()
                 self.assertEqual(A.indices.dtype, np.int32)
                 self.assertEqual(A.indices.dtype, A.indptr.dtype)
                 # eliminate_zeros raises outright on a mismatch, which is how
@@ -186,19 +183,19 @@ class TestRestructuringEquivalence(BaseTest):
         rng = np.random.default_rng(0)
         prob = cp.Problem(cp.Minimize(cp.sum(x)), [rng.standard_normal((3, 4)) @ x >= 1])
         prog = _stuff(prob)
-        self.assertIs(ConicSolver.format_constraints(prog, [0, 1, 2]).A, prog.A)
+        self.assertIs(format_cone_prog(prog, [0, 1, 2]).A, prog.A)
 
         # A Zero cone flips signs, so that one does have to copy.
         y = cp.Variable(4)
         signed = _stuff(cp.Problem(cp.Minimize(cp.sum(y)), [cp.sum(y) == 1]))
-        self.assertIsNot(ConicSolver.format_constraints(signed, [0, 1, 2]).A, signed.A)
+        self.assertIsNot(format_cone_prog(signed, [0, 1, 2]).A, signed.A)
 
-    def test_format_constraints_does_not_mutate_its_input(self) -> None:
+    def test_formatting_does_not_mutate_its_input(self) -> None:
         for name, prob, _ in _shapes():
             with self.subTest(name):
                 prog = _stuff(prob)
                 before = prog.A.copy().toarray()
-                ConicSolver.format_constraints(prog, [0, 1, 2])
+                format_cone_prog(prog, [0, 1, 2])
                 self.assertItemsAlmostEqual(prog.A.toarray(), before, places=12)
 
     def test_solutions_are_unchanged(self) -> None:
@@ -265,19 +262,42 @@ class TestConeFormatReduction(BaseTest):
         self.assertFalse(any(isinstance(r, ConeFormat)
                              for r in prob._cache.solving_chain.reductions))
 
-    def test_format_for_dispatches_on_the_program(self) -> None:
-        """ConeFormat delegates to the program, which is the seam a program
-        owning a re-extractable form overrides."""
+    def test_the_program_applies_the_layout_the_reduction_derives(self) -> None:
+        """ConeFormat derives the permutation and hands it to the program,
+        which is the seam a program owning a re-extractable form overrides."""
         for name, prob, _ in _shapes():
             with self.subTest(name):
                 chain = prob._construct_chain(solver=SOLVER)
                 solver = chain.reductions[-1]
                 stuffed = _stuff(prob)
                 with mock.patch.object(
-                        type(stuffed), 'format_for',
-                        side_effect=stuffed.format_for) as spy:
+                        type(stuffed), 'with_row_layout',
+                        side_effect=stuffed.with_row_layout) as spy:
                     got = ConeFormat(solver).apply(stuffed)[0]
-                spy.assert_called_once_with(solver)
+                spy.assert_called_once()
+                (perm,), _ = spy.call_args
+                expected = restruct_permutation(
+                    stuffed.constraints, solver.EXP_CONE_ORDER)
+                self.assertItemsAlmostEqual(perm[0], expected[0])
+                self.assertItemsAlmostEqual(perm[1], expected[1])
                 self.assertTrue(got.formatted)
                 # ...and an already-formatted program is left alone.
                 self.assertIs(ConeFormat(solver).apply(got)[0], got)
+
+    def test_formatting_an_already_formatted_program_is_a_no_op(self) -> None:
+        """The guard lives in the formatter, not only in the reduction, so an
+        out-of-tree interface that still formats in its own `apply` gets a
+        no-op rather than twice-permuted rows. `ConicSolver.format_constraints`
+        is retained for exactly those callers."""
+        X = cp.Variable((3, 2))
+        prob = cp.Problem(cp.Minimize(cp.sum(X)), [cp.norm(X, 2, axis=0) <= 2])
+        prog = _stuff(prob)
+        formatted = format_cone_prog(prog, [0, 1, 2])
+        self.assertTrue(formatted.formatted)
+        self.assertIs(format_cone_prog(formatted, [0, 1, 2]), formatted)
+        self.assertIs(
+            ConicSolver.format_constraints(formatted, [0, 1, 2]), formatted)
+        # The deprecated entry point still formats an unformatted program.
+        again = ConicSolver.format_constraints(prog, [0, 1, 2])
+        self.assertItemsAlmostEqual(again.apply_parameters()[2].toarray(),
+                                    formatted.apply_parameters()[2].toarray())
