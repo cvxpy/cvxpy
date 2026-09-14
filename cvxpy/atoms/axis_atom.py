@@ -40,6 +40,14 @@ def normalize_axis(
         return axes
 
 
+def axis_size(x, axis: None | int | tuple[int, ...] = None) -> int:
+    """Return the number of entries reduced by an axis argument."""
+    if axis is None:
+        return x.size
+    axes = normalize_axis_tuple(axis, len(x.shape), "axis")
+    return int(np.prod([x.shape[a] for a in axes]))
+
+
 class AxisAtom(Atom):
     """
     An abstract base class for atoms that can be applied along an axis.
