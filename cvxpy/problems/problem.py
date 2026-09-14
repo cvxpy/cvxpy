@@ -955,7 +955,7 @@ class Problem(u.Canonical):
         self._inverse_data = None
 
     def _solve(self,
-               solver: str = None,
+               solver: str | None = None,
                warm_start: bool = True,
                verbose: bool = False,
                bibtex: bool = False,
