@@ -123,18 +123,21 @@ class Power(Elementwise):
         >>> from cvxpy import Variable, power
         >>> x = Variable()
         >>> g = power(x, 1.001)
-        >>> g.p
+        >>> g.p_used
         Fraction(1001, 1000)
         >>> g
-        Expression(CONVEX, POSITIVE, (1, 1))
+        Expression(CONVEX, NONNEGATIVE, ())
+
         results in a convex atom with implicit constraint :math:`x \geq 0`, while
+
         >>> g = power(x, 1.0001)
-        >>> g.p
+        >>> g.p_used
         1
         >>> g
-        Expression(AFFINE, UNKNOWN, (1, 1))
+        Expression(AFFINE, UNKNOWN, ())
 
-        results in an affine atom with no constraint on ``x``.
+        results in an affine atom with no constraint on ``x``, because the
+        rational approximation to ``1.0001`` is exactly ``1``.
 
     - When :math:`p > 1` and ``p`` is not a power of two, the monotonically increasing version
       of the function with full domain,
@@ -195,7 +198,13 @@ class Power(Elementwise):
     def sign_from_args(self) -> tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
-        if self.p.value == 1:
+        # The sign follows the rational approximation p_used rather than the
+        # input exponent, matching is_incr/is_decr and is_atom_convex.
+        # p_used is None exactly when the exponent is non-constant (set in
+        # __init__), in which case p.value may be None and neither branch
+        # below applies, leaving the atom unconditionally positive.
+        p = self.p.value if self.p_used is None else self.p_used
+        if p == 1:
             # Same as input.
             return (self.args[0].is_nonneg(), self.args[0].is_nonpos())
         else:
@@ -215,7 +224,14 @@ class Power(Elementwise):
         # depends on the value of the power, not just the sign).
         #
         # p == 0 is affine here.
-        return _is_const(self.p) and (self.p.value <= 0 or self.p.value >= 1)
+        #
+        # Curvature is determined by the rational approximation p_used, not
+        # by the input exponent, so power(x, 1.0001) -- which approximates to
+        # p_used == 1 -- is affine just like power(x, 1). p_used is None
+        # exactly when the exponent is non-constant (set in __init__).
+        if self.p_used is None:
+            return False
+        return self.p_used <= 0 or self.p_used >= 1
 
     def is_atom_concave(self) -> bool:
         """Is the atom concave?
@@ -223,7 +239,12 @@ class Power(Elementwise):
         # Parametrized powers are not allowed for DCP.
         #
         # p == 0 is affine here.
-        return _is_const(self.p) and 0 <= self.p.value <= 1
+        #
+        # As in is_atom_convex, curvature follows the rational approximation
+        # p_used rather than the input exponent.
+        if self.p_used is None:
+            return False
+        return 0 <= self.p_used <= 1
 
     def is_atom_smooth(self) -> bool:
         """Is the atom smooth?"""

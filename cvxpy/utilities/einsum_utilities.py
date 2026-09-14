@@ -139,19 +139,31 @@ def find_contraction(positions, input_sets, output_set):
     Examples
     --------
 
-    # A simple dot product test case
+    Sets are sorted below so the output does not depend on set iteration order.
+
+    A simple dot product test case:
+
     >>> pos = (0, 1)
     >>> isets = [set('ab'), set('bc')]
     >>> oset = set('ac')
-    >>> _find_contraction(pos, isets, oset)
-    ({'a', 'c'}, [{'a', 'c'}], {'b'}, {'a', 'b', 'c'})
+    >>> new_result, remaining, idx_removed, idx_contract = find_contraction(
+    ...     pos, isets, oset)
+    >>> sorted(new_result), [sorted(s) for s in remaining]
+    (['a', 'c'], [['a', 'c']])
+    >>> sorted(idx_removed), sorted(idx_contract)
+    (['b'], ['a', 'b', 'c'])
 
-    # A more complex case with additional terms in the contraction
+    A more complex case with additional terms in the contraction:
+
     >>> pos = (0, 2)
     >>> isets = [set('abd'), set('ac'), set('bdc')]
     >>> oset = set('ac')
-    >>> _find_contraction(pos, isets, oset)
-    ({'a', 'c'}, [{'a', 'c'}, {'a', 'c'}], {'b', 'd'}, {'a', 'b', 'c', 'd'})
+    >>> new_result, remaining, idx_removed, idx_contract = find_contraction(
+    ...     pos, isets, oset)
+    >>> sorted(new_result), [sorted(s) for s in remaining]
+    (['a', 'c'], [['a', 'c'], ['a', 'c']])
+    >>> sorted(idx_removed), sorted(idx_contract)
+    (['b', 'd'], ['a', 'b', 'c', 'd'])
     """
 
     idx_contract = set()
@@ -198,7 +210,7 @@ def optimal_path(input_sets, output_set, idx_dict, memory_limit):
     >>> isets = [set('abd'), set('ac'), set('bdc')]
     >>> oset = set()
     >>> idx_sizes = {'a': 1, 'b':2, 'c':3, 'd':4}
-    >>> _optimal_path(isets, oset, idx_sizes, 5000)
+    >>> optimal_path(isets, oset, idx_sizes, 5000)
     [(0, 2), (0, 1)]
     """
 
@@ -382,7 +394,7 @@ def greedy_path(input_sets, output_set, idx_dict, memory_limit):
     >>> isets = [set('abd'), set('ac'), set('bdc')]
     >>> oset = set()
     >>> idx_sizes = {'a': 1, 'b':2, 'c':3, 'd':4}
-    >>> _greedy_path(isets, oset, idx_sizes, 5000)
+    >>> greedy_path(isets, oset, idx_sizes, 5000)
     [(0, 2), (0, 1)]
     """
 
@@ -481,16 +493,26 @@ def parse_einsum_input(operands):
 
     Examples
     --------
-    The operand list is simplified to reduce printing:
+    Broadcast dimensions are assigned generated index symbols, and the exact
+    symbols chosen vary between runs (e.g. ``('za,xza', 'xz', [a, b])``), so
+    only the structure of the parse is checked below.
 
     >>> np.random.seed(123)
     >>> a = np.random.rand(4, 4)
     >>> b = np.random.rand(4, 4, 4)
-    >>> _parse_einsum_input(('...a,...a->...', a, b))
-    ('za,xza', 'xz', [a, b]) # may vary
+    >>> input_str, output_str, operands = parse_einsum_input(
+    ...     ('...a,...a->...', a, b))
+    >>> [len(term) for term in input_str.split(',')], len(output_str)
+    ([2, 3], 2)
+    >>> [op.shape for op in operands]
+    [(4, 4), (4, 4, 4)]
 
-    >>> _parse_einsum_input((a, [Ellipsis, 0], b, [Ellipsis, 0]))
-    ('za,xza', 'xz', [a, b]) # may vary
+    The interleaved ``(operand, subscript-list)`` form parses the same way:
+
+    >>> alt_in, alt_out, _ = parse_einsum_input(
+    ...     (a, [Ellipsis, 0], b, [Ellipsis, 0]))
+    >>> [len(term) for term in alt_in.split(',')], len(alt_out)
+    ([2, 3], 2)
     """
 
     if len(operands) == 0:

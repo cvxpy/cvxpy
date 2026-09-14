@@ -161,7 +161,7 @@ class GeoMean(AxisAtom):
     >>> x = Variable(4, name='x')
     >>> g = geo_mean(x, [.1, Fraction(1,3), 0, 2])
     >>> print(g)
-    GeoMeanApprox(x, (3/73, 10/73, 0, 60/73))
+    GeoMeanApprox(x, (3/73, 10/73, 60/73))
     >>> g.approx_error <= 1e-10
     True
 
