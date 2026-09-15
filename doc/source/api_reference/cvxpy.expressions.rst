@@ -18,7 +18,7 @@ Expression
 
 .. autoclass:: cvxpy.expressions.expression.Expression
     :members: value, grad, domain, name, curvature, is_constant, is_affine,
-              is_convex, is_concave, is_dcp, is_log_log_affine,
+              is_convex, is_concave, is_dcp, explain_dcp, is_log_log_affine,
               is_log_log_convex, is_log_log_concave, is_dgp, is_dqcp, is_dpp,
               sign, is_zero, is_nonneg, is_nonpos, shape, size, ndim, T,
               __pow__, __add__, __radd__, __sub__, __rsub__, __mul__, __rmul__,
