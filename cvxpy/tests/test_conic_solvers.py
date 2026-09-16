@@ -946,6 +946,29 @@ class TestMoreau(BaseTest):
         self.assertEqual(problem.status, cp.OPTIMAL)
         self.assertAlmostEqual(x.value, 2., places=5)
 
+    def test_moreau_failure_without_solution_vectors(self) -> None:
+        for solver_status, status in [("PrimalInfeasible", cp.INFEASIBLE),
+                                      ("DualInfeasible", cp.UNBOUNDED)]:
+            with self.subTest(status=status), mock.patch("moreau.Solver") as solver_type:
+                solver = solver_type.return_value
+                solver.solve.return_value = mock.Mock(x=None, s=None, z=None, z_x=None)
+                solver.info.status.name = solver_status
+                solver.info.iterations = 0
+                solver.info.solve_time = solver.info.setup_time = 0.
+                solver.info.obj_val = np.nan
+
+                x = cp.Variable()
+                constraint = x >= 0
+                problem = cp.Problem(cp.Minimize(x), [constraint])
+                data, _, _ = problem.get_problem_data(cp.MOREAU)
+                self.assertTrue(data['dir_cones'])
+                problem.solve(solver=cp.MOREAU, device="cpu")
+
+                self.assertEqual(problem.status, status)
+                self.assertIsNone(x.value)
+                self.assertIsNone(constraint.dual_value)
+                self.assertNotIn(cp.MOREAU, problem._solver_cache)
+
 
     def test_moreau_lp_0(self) -> None:
         StandardTestLPs.test_lp_0(solver=cp.MOREAU)

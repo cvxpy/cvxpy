@@ -316,7 +316,7 @@ class MOREAU(ConicSolver):
                 solver_cache.pop(self.name(), None)
         if solution.x is not None:
             wrapped.x = solution.x / scale
-        if dir_cones_meta:
+        if dir_cones_meta and solution.z_x is not None:
             # A single constraint may emit multiple DirectConeSpec entries
             # (multi-cone SOC / SvecPSD). Moreau returns z_x in spec order,
             # already unequilibrated, with the same svec convention as the
