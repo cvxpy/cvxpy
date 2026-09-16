@@ -798,18 +798,14 @@ class TestMoreau(BaseTest):
         StandardTestQPs.test_qp_parameter_update(solver=cp.MOREAU)
 
 
-    def test_moreau_failure_without_solution_vectors(self) -> None:
+    def test_moreau_infeasible_clears_warm_start(self) -> None:
         x = cp.Variable()
-        problem = cp.Problem(cp.Minimize(x), [x >= 0])
+        bound = cp.Parameter(value=1.)
+        problem = cp.Problem(cp.Minimize(-x), [x >= 0, x <= bound])
         problem.solve(solver=cp.MOREAU, device="cpu")
-        with mock.patch("moreau.Solver") as solver_type:
-            solver = solver_type.return_value
-            solver.solve.return_value = mock.Mock(x=None, s=None, z=None, z_x=None)
-            solver.info.configure_mock(**{
-                "status.name": "PrimalInfeasible", "obj_val": np.inf,
-                "iterations": 0, "solve_time": 0., "setup_time": 0.,
-            })
-            problem.solve(solver=cp.MOREAU, device="cpu")
+        self.assertIn(cp.MOREAU, problem._solver_cache)
+        bound.value = -1.
+        problem.solve(solver=cp.MOREAU, device="cpu", warm_start=False)
         self.assertEqual(problem.status, cp.INFEASIBLE)
         self.assertNotIn(cp.MOREAU, problem._solver_cache)
 
