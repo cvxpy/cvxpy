@@ -165,9 +165,7 @@ class MOREAU(ConicSolver):
             dual_vars = {}
             dual_vars.update(eq_dual_vars)
             dual_vars.update(ineq_dual_vars)
-            # Direct cone duals (computed in solve_via_data from the KKT
-            # residual P x + q + A.T z) are keyed by their original
-            # constraint id and slot in directly.
+            # Direct cone duals are keyed by their original constraint IDs.
             dual_vars.update(solution.dir_cone_duals)
             return Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
@@ -236,13 +234,13 @@ class MOREAU(ConicSolver):
         data : dict
             Data generated via an apply call.
         warm_start : bool
-            Whether to warm_start Moreau (not currently supported).
+            Whether to initialize Moreau from the previous solution.
         verbose : bool
             Control the verbosity.
         solver_opts : dict
             Moreau-specific solver options.
         solver_cache : dict, optional
-            Cache for solver objects (not currently used).
+            Cache for warm-start points in Moreau's coordinates.
 
         Returns
         -------
@@ -302,25 +300,33 @@ class MOREAU(ConicSolver):
             settings=settings,
         )
 
-        # Solve (no arguments - all data was provided in constructor)
-        solution = solver.solve()
+        warm_start_data = None
+        if warm_start and solver_cache is not None:
+            warm_start_data = solver_cache.get(self.name())
+        solution = solver.solve(warm_start=warm_start_data)
         info = solver.info  # Metadata is on solver.info after solve()
 
         wrapped = MoreauSolution(solution, info)
+        if solver_cache is not None:
+            if wrapped.status in (self.SOLVED, self.ALMOST_SOLVED):
+                # Keep native coordinates, including scaled PSD entries and
+                # direct-cone duals. to_warm_start() copies all four vectors.
+                solver_cache[self.name()] = solution.to_warm_start()
+            else:
+                solver_cache.pop(self.name(), None)
         if solution.x is not None:
             wrapped.x = solution.x / scale
-        # Recover direct cone duals from the KKT residual:
-        #   μ_block = (P x + q + A.T z)[x_indices]
-        # in solver coordinates, including the removed SvecPSD rows' scaling.
-        if dir_cones_meta and solution.z is not None:
-            kkt_resid = P @ solution.x + q + A.T @ solution.z
+        if dir_cones_meta:
             # A single constraint may emit multiple DirectConeSpec entries
-            # (multi-cone SOC / SvecPSD); accumulate per-cone slices in
-            # iteration order and concatenate to recover the full
-            # per-constraint dual.
+            # (multi-cone SOC / SvecPSD). Moreau returns z_x in spec order,
+            # already unequilibrated, with the same svec convention as the
+            # removed SvecPSD rows.
             partials: dict[int, list] = {}
+            offset = 0
             for cone in dir_cones_meta:
-                partials.setdefault(cone.constr_id, []).append(kkt_resid[cone.indices])
+                end = offset + len(cone.indices)
+                partials.setdefault(cone.constr_id, []).append(solution.z_x[offset:end])
+                offset = end
             wrapped.dir_cone_duals = {
                 cid: parts[0] if len(parts) == 1 else np.concatenate(parts)
                 for cid, parts in partials.items()
