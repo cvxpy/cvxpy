@@ -240,7 +240,7 @@ class MOREAU(ConicSolver):
         solver_opts : dict
             Moreau-specific solver options.
         solver_cache : dict, optional
-            Cache for warm-start points in Moreau's coordinates.
+            Cache for compiled solvers and warm-start points in Moreau's coordinates.
 
         Returns
         -------
@@ -290,20 +290,32 @@ class MOREAU(ConicSolver):
         # Handle options (device is now part of Settings)
         settings, processed_opts = self.handle_options(verbose, solver_opts or {})
 
-        # Create solver with all problem data in constructor
-        solver = moreau.Solver(
-            P=P,
-            q=q.astype(np.float64),
-            A=A,
-            b=b.astype(np.float64),
-            cones=cones,
-            settings=settings,
+        settings.batch_size = 1
+        # Chordal decomposition also depends on the nonzero pattern of b.
+        b_sparsity = b != 0
+        structure = (
+            P.shape, A.shape, P.indptr.tobytes(), P.indices.tobytes(),
+            A.indptr.tobytes(), A.indices.tobytes(), b_sparsity.tobytes(),
+            cones.model_dump(), settings.model_dump(),
         )
-
-        warm_start_data = None
+        cached = None
         if warm_start and solver_cache is not None:
-            warm_start_data = solver_cache.get(self.name())
-        solution = solver.solve(warm_start=warm_start_data)
+            cached = solver_cache.get(self.name())
+        if cached is None or cached["structure"] != structure:
+            solver = moreau.CompiledSolver(
+                n=q.size, m=b.size,
+                P_row_offsets=P.indptr, P_col_indices=P.indices,
+                A_row_offsets=A.indptr, A_col_indices=A.indices,
+                cones=cones, settings=settings.model_copy(deep=True),
+                b_sparsity_pattern=b_sparsity.tolist(),
+            )
+            cached = {"solver": solver, "structure": structure, "P": None, "A": None,
+                      "warm_start": None}
+        solver = cached["solver"]
+        if not (np.array_equal(P.data, cached["P"]) and np.array_equal(A.data, cached["A"])):
+            solver.setup(P.data, A.data)
+            cached["P"], cached["A"] = P.data.copy(), A.data.copy()
+        solution = solver.solve(q[None, :], b[None, :], warm_start=cached["warm_start"])[0]
         info = solver.info  # Metadata is on solver.info after solve()
 
         wrapped = MoreauSolution(solution, info)
@@ -311,7 +323,8 @@ class MOREAU(ConicSolver):
             if wrapped.status in (self.SOLVED, self.ALMOST_SOLVED):
                 # Keep native coordinates, including scaled PSD entries and
                 # direct-cone duals. to_warm_start() copies all four vectors.
-                solver_cache[self.name()] = solution.to_warm_start()
+                cached["warm_start"] = solution.to_warm_start()
+                solver_cache[self.name()] = cached
             else:
                 solver_cache.pop(self.name(), None)
         if solution.x is not None:
@@ -363,8 +376,8 @@ class MoreauSolution:
         self.x = sol.x
         self.s = sol.s
         self.z = sol.z
-        self.status = info.status.name
-        self.iterations = info.iterations
+        self.status = info.status[0].name
+        self.iterations = np.asarray(info.iterations).item()
         self.solve_time = info.solve_time
         self.setup_time = info.setup_time
-        self.obj_val = info.obj_val
+        self.obj_val = np.asarray(info.obj_val).item()

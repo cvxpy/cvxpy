@@ -797,6 +797,25 @@ class TestMoreau(BaseTest):
     def test_moreau_parameter_update(self) -> None:
         StandardTestQPs.test_qp_parameter_update(solver=cp.MOREAU)
 
+    def test_moreau_compiled_solver_updates(self) -> None:
+        x = cp.Variable()
+        p, q, a, b = cp.Parameter(nonneg=True), cp.Parameter(), cp.Parameter(), cp.Parameter()
+        problem = cp.Problem(cp.Minimize(p * cp.square(x) / 2 + q * x), [x >= 0, a * x <= b])
+        previous = None
+        for pv, qv, av, bv, max_iter, expected, reuse in (
+            (2., -4., 1., 1., 200, 1., False),
+            (2., -6., 1., 2., 200, 2., True),  # Only q and b change.
+            (4., -6., 2., 2., 200, 1., True),  # P and A values change.
+            (4., -6., 2., 2., 100, 1., False),  # Settings change.
+            (4., -6., 2., 0., 100, 0., False),  # b sparsity changes.
+        ):
+            p.value, q.value, a.value, b.value = pv, qv, av, bv
+            problem.solve(solver=cp.MOREAU, device="cpu", max_iter=max_iter)
+            self.assertEqual(problem.status, cp.OPTIMAL)
+            self.assertAlmostEqual(x.value, expected, places=4)
+            current = problem._solver_cache[cp.MOREAU]["solver"]
+            self.assertEqual(current is previous, reuse)
+            previous = current
 
     def test_moreau_infeasible_clears_warm_start(self) -> None:
         x = cp.Variable()
@@ -904,8 +923,12 @@ class TestMoreau(BaseTest):
         P = np.diag([4., 0.25])
         problem = cp.Problem(cp.Minimize(cp.quad_form(x, P) / 2 - 4 * x[0] + 2 * x[1]),
                              [constraint])
+        previous = None
         for warm_start in (False, True, False):
             problem.solve(solver=cp.MOREAU, device="cpu", warm_start=warm_start)
+            current = problem._solver_cache[cp.MOREAU]["solver"]
+            self.assertEqual(current is previous, warm_start)
+            previous = current
             self.assertEqual(problem.solver_stats.num_iters == 0, warm_start)
             self.assertItemsAlmostEqual(x.value, [1, 0], places=4)
             self.assertItemsAlmostEqual(constraint.dual_value, [0, 2], places=4)
@@ -918,8 +941,12 @@ class TestMoreau(BaseTest):
             cp.Minimize(cp.sum_squares(X) - 2 * cp.sum(cp.multiply(target, X))),
             [constraint],
         )
+        previous = None
         for warm_start in (False, True, False):
             value = problem.solve(solver=cp.MOREAU, device="cpu", warm_start=warm_start)
+            current = problem._solver_cache[cp.MOREAU]["solver"]
+            self.assertEqual(current is previous, warm_start)
+            previous = current
             self.assertEqual(problem.solver_stats.num_iters == 0, warm_start)
             self.assertAlmostEqual(value, -9., places=4)
             self.assertItemsAlmostEqual(X.value, np.full((2, 2), 1.5), places=4)
