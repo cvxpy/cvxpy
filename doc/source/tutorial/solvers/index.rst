@@ -301,11 +301,6 @@ The initial guess is constructed from the ``value`` field of the problem variabl
 If the same problem is solved a second time, the initial guess is constructed from the
 cached previous solution as described above (rather than from the ``value`` field).
 
-Moreau warm starts from the previous primal, slack, and dual variables, including
-duals for direct cone constraints. CVXPY caches this point after a successful
-solve and passes it to Moreau when ``warm_start=True``. Each solve constructs a
-new Moreau solver, so this reuses the iterate but does not cache a factorization.
-
 .. _solveropts:
 
 Setting solver options

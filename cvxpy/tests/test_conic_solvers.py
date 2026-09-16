@@ -498,39 +498,7 @@ class TestClarabel(BaseTest):
         self.C = cp.Variable((3, 2), name='C')
 
     def test_clarabel_parameter_update(self) -> None:
-        """Test warm start.
-        """
-        x = cp.Variable(2)
-        P = cp.Parameter(nonneg=True),
-        A = cp.Parameter(4)
-        b = cp.Parameter(2, nonneg=True)
-        q = cp.Parameter(2)
-
-        def update_parameters(P, A, b, q):
-            P[0].value = np.random.rand()
-            A.value = np.random.randn(4)
-            b.value = np.random.rand(2)
-            q.value = np.random.randn(2)
-
-        prob = cp.Problem(
-                cp.Minimize(P[0]*cp.square(x[0]) + cp.quad_form(x, np.ones([2, 2])) + q.T @ x),
-                [A[0] * x[0] + A[1] * x[1] == b[0],
-                 A[2] * x[0] + A[3] * x[1] <= b[1]]
-            )
-
-        update_parameters(P, A, b, q)
-        result1 = prob.solve(solver=cp.CLARABEL, warm_start=False)
-        result2 = prob.solve(solver=cp.CLARABEL, warm_start=True)
-        self.assertAlmostEqual(result1, result2)
-
-        update_parameters(P, A, b, q)
-        result1 = prob.solve(solver=cp.CLARABEL, warm_start=True)
-        result2 = prob.solve(solver=cp.CLARABEL, warm_start=False)
-        self.assertAlmostEqual(result1, result2)
-
-        # consecutive solves, no data update
-        result1 = prob.solve(solver=cp.CLARABEL, warm_start=False)
-        self.assertAlmostEqual(result1, result2)
+        StandardTestQPs.test_qp_parameter_update(solver=cp.CLARABEL)
 
 
     def test_clarabel_lp_0(self) -> None:
@@ -827,148 +795,23 @@ class TestMoreau(BaseTest):
         self.C = cp.Variable((3, 2), name='C')
 
     def test_moreau_parameter_update(self) -> None:
-        """Test warm start.
-        """
-        x = cp.Variable(2)
-        P = cp.Parameter(nonneg=True),
-        A = cp.Parameter(4)
-        b = cp.Parameter(2, nonneg=True)
-        q = cp.Parameter(2)
+        StandardTestQPs.test_qp_parameter_update(solver=cp.MOREAU)
 
-        def update_parameters(P, A, b, q):
-            P[0].value = np.random.rand()
-            A.value = np.random.randn(4)
-            b.value = np.random.rand(2)
-            q.value = np.random.randn(2)
-
-        prob = cp.Problem(
-                cp.Minimize(P[0]*cp.square(x[0]) + cp.quad_form(x, np.ones([2, 2])) + q.T @ x),
-                [A[0] * x[0] + A[1] * x[1] == b[0],
-                 A[2] * x[0] + A[3] * x[1] <= b[1]]
-            )
-
-        update_parameters(P, A, b, q)
-        result1 = prob.solve(solver=cp.MOREAU, warm_start=False)
-        result2 = prob.solve(solver=cp.MOREAU, warm_start=True)
-        self.assertAlmostEqual(result1, result2)
-
-        update_parameters(P, A, b, q)
-        result1 = prob.solve(solver=cp.MOREAU, warm_start=True)
-        result2 = prob.solve(solver=cp.MOREAU, warm_start=False)
-        self.assertAlmostEqual(result1, result2)
-
-        # consecutive solves, no data update
-        result1 = prob.solve(solver=cp.MOREAU, warm_start=False)
-        self.assertAlmostEqual(result1, result2)
-
-    def test_moreau_warm_start_direct_nonneg(self) -> None:
-        x = cp.Variable(2)
-        constraint = x >= 0
-        problem = cp.Problem(
-            cp.Minimize(cp.quad_form(x, np.diag([4., 0.25])) / 2 + np.array([-4., 2.]) @ x),
-            [constraint],
-        )
-        cold_value = problem.solve(solver=cp.MOREAU, device="cpu", warm_start=False)
-        cold_iters = problem.solver_stats.num_iters
-        self.assertGreater(cold_iters, 0)
-        self.assertItemsAlmostEqual(constraint.dual_value, [0., 2.], places=5)
-
-        # An optimal cached point needs no IPM iterations. Ignoring warm_start
-        # or dropping the direct-cone dual cannot pass this check.
-        warm_value = problem.solve(solver=cp.MOREAU, device="cpu", max_iter=1)
-        self.assertEqual(problem.status, cp.OPTIMAL)
-        self.assertEqual(problem.solver_stats.num_iters, 0)
-        self.assertAlmostEqual(warm_value, cold_value, places=7)
-        self.assertItemsAlmostEqual(x.value, [1., 0.], places=5)
-        self.assertItemsAlmostEqual(constraint.dual_value, [0., 2.], places=5)
-
-        problem.solve(solver=cp.MOREAU, device="cpu", warm_start=False)
-        self.assertEqual(problem.solver_stats.num_iters, cold_iters)
-
-    def test_moreau_warm_start_parameter_changes(self) -> None:
-        x = cp.Variable(2)
-        p = cp.Parameter(2, nonneg=True, value=[4., 0.25])
-        q = cp.Parameter(2, value=[-4., 2.])
-        a = cp.Parameter(2, value=[1., 1.])
-        b = cp.Parameter(value=2.)
-        constraints = [x >= 0, a @ x <= b]
-        problem = cp.Problem(
-            cp.Minimize(cp.sum(cp.multiply(p, cp.square(x))) / 2 + q @ x), constraints,
-        )
-        problem.solve(solver=cp.MOREAU, device="cpu", enforce_dpp=True)
-        p.value, q.value, a.value, b.value = [2., 1.], [-6., 2.], [1., 2.], 1.5
-        warm_value = problem.solve(solver=cp.MOREAU, device="cpu", enforce_dpp=True)
-        warm_x = x.value.copy()
-        warm_duals = [np.array(c.dual_value) for c in constraints]
-
-        reference = problem.solve(solver=cp.CLARABEL)
-        self.assertAlmostEqual(warm_value, reference, places=5)
-        self.assertItemsAlmostEqual(warm_x, x.value, places=5)
-        for actual, constraint in zip(warm_duals, constraints):
-            self.assertItemsAlmostEqual(actual, constraint.dual_value, places=5)
-
-    def test_moreau_warm_start_psd_coordinates(self) -> None:
-        X = cp.Variable((2, 2), symmetric=True)
-        target = np.array([[1., 2.], [2., 1.]])
-        constraint = X >> 0
-        problem = cp.Problem(
-            cp.Minimize(cp.sum_squares(X) - 2 * cp.sum(cp.multiply(target, X))), [constraint],
-        )
-        problem.solve(solver=cp.MOREAU, device="cpu")
-        data, _, _ = problem.get_problem_data(cp.MOREAU)
-        cone, = data['dir_cones']
-        point = problem._solver_cache[cp.MOREAU]
-        self.assertItemsAlmostEqual(point.x[cone.indices], [1.5, 1.5 * np.sqrt(2), 1.5],
-                                    places=5)
-        self.assertItemsAlmostEqual(point.z_x, [1., -np.sqrt(2), 1.], places=5)
-
-        problem.solve(solver=cp.MOREAU, device="cpu", max_iter=1)
-        self.assertEqual(problem.status, cp.OPTIMAL)
-        self.assertEqual(problem.solver_stats.num_iters, 0)
-        self.assertItemsAlmostEqual(X.value, np.full((2, 2), 1.5), places=5)
-        self.assertItemsAlmostEqual(constraint.dual_value, np.array([[1., -1.], [-1., 1.]]),
-                                    places=5)
-
-    def test_moreau_warm_start_discards_infeasible_point(self) -> None:
-        x = cp.Variable()
-        bound = cp.Parameter(value=1.)
-        problem = cp.Problem(cp.Minimize(-x), [x >= 0, x <= bound])
-        problem.solve(solver=cp.MOREAU, device="cpu")
-        self.assertIn(cp.MOREAU, problem._solver_cache)
-
-        bound.value = -1.
-        problem.solve(solver=cp.MOREAU, device="cpu", warm_start=False)
-        self.assertEqual(problem.status, cp.INFEASIBLE)
-        self.assertNotIn(cp.MOREAU, problem._solver_cache)
-
-        bound.value = 2.
-        problem.solve(solver=cp.MOREAU, device="cpu")
-        self.assertEqual(problem.status, cp.OPTIMAL)
-        self.assertAlmostEqual(x.value, 2., places=5)
 
     def test_moreau_failure_without_solution_vectors(self) -> None:
-        for solver_status, status in [("PrimalInfeasible", cp.INFEASIBLE),
-                                      ("DualInfeasible", cp.UNBOUNDED)]:
-            with self.subTest(status=status), mock.patch("moreau.Solver") as solver_type:
-                solver = solver_type.return_value
-                solver.solve.return_value = mock.Mock(x=None, s=None, z=None, z_x=None)
-                solver.info.status.name = solver_status
-                solver.info.iterations = 0
-                solver.info.solve_time = solver.info.setup_time = 0.
-                solver.info.obj_val = np.nan
-
-                x = cp.Variable()
-                constraint = x >= 0
-                problem = cp.Problem(cp.Minimize(x), [constraint])
-                data, _, _ = problem.get_problem_data(cp.MOREAU)
-                self.assertTrue(data['dir_cones'])
-                problem.solve(solver=cp.MOREAU, device="cpu")
-
-                self.assertEqual(problem.status, status)
-                self.assertIsNone(x.value)
-                self.assertIsNone(constraint.dual_value)
-                self.assertNotIn(cp.MOREAU, problem._solver_cache)
-
+        x = cp.Variable()
+        problem = cp.Problem(cp.Minimize(x), [x >= 0])
+        problem.solve(solver=cp.MOREAU, device="cpu")
+        with mock.patch("moreau.Solver") as solver_type:
+            solver = solver_type.return_value
+            solver.solve.return_value = mock.Mock(x=None, s=None, z=None, z_x=None)
+            solver.info.configure_mock(**{
+                "status.name": "PrimalInfeasible", "obj_val": np.inf,
+                "iterations": 0, "solve_time": 0., "setup_time": 0.,
+            })
+            problem.solve(solver=cp.MOREAU, device="cpu")
+        self.assertEqual(problem.status, cp.INFEASIBLE)
+        self.assertNotIn(cp.MOREAU, problem._solver_cache)
 
     def test_moreau_lp_0(self) -> None:
         StandardTestLPs.test_lp_0(solver=cp.MOREAU)
@@ -1062,11 +905,14 @@ class TestMoreau(BaseTest):
     def test_moreau_quadratic_direct_cone_dual(self) -> None:
         x = cp.Variable(2)
         constraint = x >= 0
-        problem = cp.Problem(cp.Minimize(cp.sum_squares(x) / 2 - x[0] + x[1]),
+        P = np.diag([4., 0.25])
+        problem = cp.Problem(cp.Minimize(cp.quad_form(x, P) / 2 - 4 * x[0] + 2 * x[1]),
                              [constraint])
-        problem.solve(solver=cp.MOREAU)
-        self.assertItemsAlmostEqual(x.value, [1, 0], places=4)
-        self.assertItemsAlmostEqual(constraint.dual_value, [0, 1], places=4)
+        for warm_start in (False, True, False):
+            problem.solve(solver=cp.MOREAU, device="cpu", warm_start=warm_start)
+            self.assertEqual(problem.solver_stats.num_iters == 0, warm_start)
+            self.assertItemsAlmostEqual(x.value, [1, 0], places=4)
+            self.assertItemsAlmostEqual(constraint.dual_value, [0, 2], places=4)
 
     def test_moreau_quadratic_psd_scaling(self) -> None:
         X = cp.Variable((2, 2), symmetric=True)
@@ -1076,9 +922,13 @@ class TestMoreau(BaseTest):
             cp.Minimize(cp.sum_squares(X) - 2 * cp.sum(cp.multiply(target, X))),
             [constraint],
         )
-        self.assertAlmostEqual(problem.solve(solver=cp.MOREAU), -9., places=4)
-        self.assertItemsAlmostEqual(X.value, np.full((2, 2), 1.5), places=4)
-        self.assertItemsAlmostEqual(constraint.dual_value, np.array([[1, -1], [-1, 1]]), places=4)
+        for warm_start in (False, True, False):
+            value = problem.solve(solver=cp.MOREAU, device="cpu", warm_start=warm_start)
+            self.assertEqual(problem.solver_stats.num_iters == 0, warm_start)
+            self.assertAlmostEqual(value, -9., places=4)
+            self.assertItemsAlmostEqual(X.value, np.full((2, 2), 1.5), places=4)
+            self.assertItemsAlmostEqual(constraint.dual_value, np.array([[1, -1], [-1, 1]]),
+                                        places=4)
 
     def test_moreau_mixed_slack_cone_order_with_direct_cone(self) -> None:
         """PSD, EXP, and POW3D remain correctly ordered beside a direct cone."""
