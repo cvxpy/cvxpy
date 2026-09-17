@@ -38,7 +38,7 @@ on how to manipulate N-dimensional arrays. Our goal is to match the NumPy API as
 
 .. warning::
 
-    N-dimensional support is still experimental and may not work with all CVXPY features.
+    A few atoms do not accept N-dimensional input yet.
     If you encounter any issues or missing functionality, please report them on `GitHub issues <https://github.com/cvxpy/cvxpy/issues>`_.
 
 .. _dual-variables:
