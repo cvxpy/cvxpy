@@ -123,6 +123,9 @@ def matmul(lh_exp, rh_exp) -> Expression:
     """Matrix multiplication."""
     lh_exp = Expression.cast(lh_exp)
     rh_exp = Expression.cast(rh_exp)
+    # mul_shapes below raises on a dimension mismatch too, but only after a
+    # 1-D operand has been promoted, so it reports the promoted (1, k) rather
+    # than the (k,) the caller passed. Check here to report the user's shapes.
     if lh_exp.shape and rh_exp.shape:
         rh_inner_dim = rh_exp.shape[-2] if rh_exp.ndim > 1 else rh_exp.shape[0]
         if lh_exp.shape[-1] != rh_inner_dim:

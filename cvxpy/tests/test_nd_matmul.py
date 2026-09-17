@@ -29,6 +29,7 @@ import pytest
 
 import cvxpy as cp
 from cvxpy.atoms.affine.binary_operators import MulExpression
+from cvxpy.atoms.affine.broadcast_to import broadcast_to
 from cvxpy.utilities.warn import CvxpyDeprecationWarning
 
 BACKENDS = [cp.SCIPY_CANON_BACKEND, cp.COO_CANON_BACKEND]
@@ -811,18 +812,20 @@ class TestNDRmulEdgeCases:
         # retains the singleton axis inserted while promoting a 1-D operand.
         assert MulExpression(cp.Constant(w), cp.Constant(A3)).shape == (2, 1, 4)
 
-        # Concrete 1-D operands are materialized after promotion/broadcast, so
-        # they do not introduce broadcast_to atoms that disable C++ support.
+        # A concrete 1-D operand is materialized after promotion/broadcast, so
+        # it leaves no broadcast_to atom in the tree; a symbolic one must stay
+        # symbolic for DPP and so keeps the broadcast_to.
         for lh, rh, expected in [(w, None, w @ A3), (None, v, A3 @ v)]:
             X = cp.Variable(A3.shape)
             result = cp.Variable(expected.shape)
             product = lh @ X if lh is not None else X @ rh
-            cpp_problem = cp.Problem(
-                cp.Minimize(0),
-                [X == A3, result == product],
-            )
-            assert cpp_problem._supports_cpp()
-            cpp_problem.solve(solver=cp.CLARABEL, canon_backend=backend)
+            assert broadcast_to not in product.atoms()
+            symbolic = cp.Parameter(w.shape, value=w) @ X if lh is not None \
+                else X @ cp.Parameter(v.shape, value=v)
+            assert broadcast_to in symbolic.atoms()
+
+            prob = cp.Problem(cp.Minimize(0), [X == A3, result == product])
+            prob.solve(solver=cp.CLARABEL, canon_backend=backend)
             np.testing.assert_allclose(result.value, expected, atol=1e-6)
 
         with pytest.raises(
