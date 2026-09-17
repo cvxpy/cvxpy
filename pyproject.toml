@@ -24,6 +24,7 @@ select = [
     "UP007",  # Use X | Y for union types instead of Union/Optional
     "UP035",  # Use collections.abc / builtins instead of deprecated typing imports
     "W605",  # Check for invalid escape sequences in docstrings (errors in py >= 3.11)
+    "RUF013",  # Implicit Optional: PEP 484 prohibits `x: int = None`
 ]
 
 ignore = [
