@@ -220,6 +220,30 @@ class TestQuadFormDenseSparseDispatch:
             registry._diffengine.make_quad_form = orig
         assert "sparse" in fmts and "dense" not in fmts
 
+    def test_stored_zeros_dropped_from_sparse_P(self):
+        """Explicitly stored zeros (scipy's block_diag of dense blocks stores
+        them) are dropped, so the engine sees the true pattern rather than an
+        inflated one -- and the caller's matrix is not mutated in the process.
+        """
+        from cvxpy.reductions.solvers.nlp_solvers.diff_engine import registry
+        blocks = [np.diag([1.0, 2.0]) for _ in range(5)]  # 2 stored zeros each
+        P = sp.csr_array(sp.block_diag(blocks, format="csr"))
+        assert P.nnz == 20 and np.count_nonzero(P.toarray()) == 10
+        n = P.shape[0]
+        prob = cp.Problem(cp.Minimize(cp.quad_form(self._var(n, seed=23), P)))
+
+        nnz = []
+        orig = registry._diffengine.make_quad_form
+        registry._diffengine.make_quad_form = (
+            lambda *a, **k: nnz.append((a[2], a[3].size if a[2] == "sparse" else None))
+            or orig(*a, **k))
+        try:
+            DerivativeChecker(prob).run_and_assert()
+        finally:
+            registry._diffengine.make_quad_form = orig
+        assert nnz == [("sparse", 10)], nnz
+        assert P.nnz == 20  # the caller's matrix is left alone
+
     def test_dense_diagonal_P_derivative_check(self):
         n = 6
         P = np.diag(np.arange(1, n + 1, dtype=float))

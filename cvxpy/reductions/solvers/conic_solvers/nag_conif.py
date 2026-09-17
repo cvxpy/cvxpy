@@ -32,6 +32,7 @@ class NAG(ConicSolver):
 
     MIP_CAPABLE = False
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC]
+    REQUIRED_MODULES = ("naginterfaces.library.opt",)
 
     # Map of NAG status to CVXPY status
     STATUS_MAP = {0: s.OPTIMAL,
@@ -82,9 +83,6 @@ class NAG(ConicSolver):
         data = dict()
         inv_data = dict()
         inv_data[self.VAR_ID] = problem.x.id
-
-        if not problem.formatted:
-            problem = self.format_constraints(problem, None)
         data[s.PARAM_PROB] = problem
         data[self.DIMS] = problem.cone_dims
         inv_data[self.DIMS] = problem.cone_dims

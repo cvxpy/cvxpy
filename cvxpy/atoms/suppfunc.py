@@ -115,7 +115,7 @@ class SuppFuncAtom(Atom):
             dummy = Variable()
             cons = [dummy == 1]
         prob = Problem(Maximize(y_val @ x_flat), cons)
-        val = prob.solve(solver='SCS', eps=1e-6)
+        val = prob.solve(solver='CLARABEL')
         return val
 
     def _grad(self, values):

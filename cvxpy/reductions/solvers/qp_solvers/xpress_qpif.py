@@ -20,6 +20,7 @@ class XPRESS(QpSolver):
 
     MIP_CAPABLE = True
     BOUNDED_VARIABLES = True
+    REQUIRED_MODULES = ("xpress",)
 
     def __init__(self) -> None:
         self.prob_ = None

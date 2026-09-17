@@ -28,6 +28,7 @@ from cvxpy.lin_ops.backends.base import (
     DictTensorView,
     PythonCanonBackend,
     TensorRepresentation,
+    _deduplicate_parametric_entries,
     get_nd_matmul_dims,
     get_nd_rmul_dims,
     is_batch_varying,
@@ -1419,58 +1420,16 @@ def reshape_parametric_constant(tensor: CooTensor, new_m: int, new_n: int) -> Co
     that needs to be reshaped from column vector format to matrix format for
     operations like matrix multiplication.
 
-    Why Deduplication?
-    ------------------
-    When a parameter is broadcast to a larger shape (e.g., P(2,3) → P(4,2,3)),
-    the `select_rows` operation duplicates entries, including their param_idx
-    values. See `_select_rows_with_duplicates` for details.
+    ``tensor.row`` records the transformed local position; ``param_idx`` only
+    identifies the parameter value that supplies the coefficient. Consequently,
+    one parameter slice may legitimately contain several positions, as in
+    ``A @ p``, and those entries must all survive the reshape.
 
-    After broadcast, the same param_idx appears multiple times:
-        param_idx = [0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, ...]
-                     └─4 copies─┘ └─4 copies─┘
-
-    Without deduplication, when we reshape to matrix format:
-        - We'd create 4 copies of each matrix position
-        - The resulting matrix would have duplicate entries at same (row, col)
-        - This wastes memory and can cause incorrect results when the sparse
-          matrix sums duplicate entries
-
-    The fix: keep only the FIRST occurrence of each param_idx value.
-
-    Concrete Example
-    ----------------
-    Parameter P has shape (2, 3), broadcast to (4, 2, 3) for batch matmul.
-
-    Original P (before broadcast):
-        param_idx = [0, 1, 2, 3, 4, 5]  (6 unique elements)
-        data = [1, 1, 1, 1, 1, 1]       (coefficients, all 1s)
-        row = [0, 1, 2, 3, 4, 5]        (column vector format)
-
-    After broadcast via select_rows (24 entries):
-        param_idx = [0,0,0,0, 1,1,1,1, 2,2,2,2, 3,3,3,3, 4,4,4,4, 5,5,5,5]
-        data = [1,1,1,1, 1,1,1,1, ...]  (24 entries)
-        row = [0,2,4,6, 1,3,5,7, ...]   (spread across output rows)
-
-    After reshape_parametric_constant to (2, 3):
-        param_idx = [0, 1, 2, 3, 4, 5]  (deduplicated!)
-        data = [1, 1, 1, 1, 1, 1]       (first occurrence of each)
-        row = [0, 1, 0, 1, 0, 1]        (param_idx % 2)
-        col = [0, 0, 1, 1, 2, 2]        (param_idx // 2)
-
-    The result is a proper (2, 3) sparse matrix with one entry per position,
-    ready for matrix multiplication.
-
-    Position Calculation
-    --------------------
-    For parametric tensors, param_idx directly encodes the position in the
-    parameter matrix (column-major/Fortran order):
-        new_row = param_idx % new_m
-        new_col = param_idx // new_m
-
-    For example, param_idx=3 in a (2, 3) matrix:
-        row = 3 % 2 = 1
-        col = 3 // 2 = 1
-        → position (1, 1) in the matrix
+    A transformed constant may defensively arrive with repeated copies of its
+    full target shape. In that case, dividing the local position by the repeat
+    factor maps each copy back to the target, and only identical entries with
+    the same ``(param_idx, position)`` are collapsed. Normal batch-varying ND
+    matmul is routed to an interleaved handler before reaching this reshape.
 
     Parameters
     ----------
@@ -1491,34 +1450,27 @@ def reshape_parametric_constant(tensor: CooTensor, new_m: int, new_n: int) -> Co
         # row always contains correct local positions after transformations,
         # whereas param_idx encodes original parameter identity and may diverge.
         #
-        # Account for broadcast expansion.  For ND matmul like
-        # P(m,k) @ X(B,k,n), _broadcast_batch_dims wraps the parameter in
-        # broadcast_to(P, (B,m,k)).  The tensor then has m*n = B*m*k entries
-        # per slice, but the target reshape size is only new_m * new_n = m*k.
-        # In Fortran (column-major) order, each original entry is duplicated B
-        # consecutive times, so dividing pos by the broadcast factor
-        # (B = tensor_size / original_size) maps positions back to the
-        # original (new_m, new_n) space.
-        # When there is no broadcast, broadcast_factor == 1 and this is a no-op.
+        # Defensively collapse repeated full copies of the target shape. Normal
+        # batch-varying ND matmul is intercepted by is_batch_varying before
+        # get_constant_data requests a target-shape reshape.
         original_size = new_m * new_n
         broadcast_factor = (tensor.m * tensor.n) // original_size
         pos = tensor.row
+        data = tensor.data
+        param_idx = tensor.param_idx
         if broadcast_factor > 1:
             pos = pos // broadcast_factor
+            data, param_idx, pos = _deduplicate_parametric_entries(
+                data, param_idx, pos, original_size
+            )
         new_row = pos % new_m
         new_col = pos // new_m
 
-        # Deduplicate: keep first occurrence of each param_idx
-        # This handles broadcast operations that duplicate param entries
-        unique_param_idx, first_occurrence = np.unique(
-            tensor.param_idx, return_index=True
-        )
-
         return CooTensor(
-            data=tensor.data[first_occurrence].copy(),
-            row=new_row[first_occurrence].astype(np.int64),
-            col=new_col[first_occurrence].astype(np.int64),
-            param_idx=unique_param_idx.astype(np.int64),
+            data=data.copy(),
+            row=new_row.astype(np.int64),
+            col=new_col.astype(np.int64),
+            param_idx=param_idx.astype(np.int64),
             m=new_m,
             n=new_n,
             param_size=tensor.param_size
@@ -2419,8 +2371,8 @@ class CooCanonBackend(PythonCanonBackend):
         The input CooTensor is in column format (m*n, 1). We reshape it
         to (m, n) for operations like mul that need the actual shape.
 
-        For parametric data, uses reshape_parametric_constant which handles
-        broadcast deduplication based on param_idx.
+        For parametric data, uses reshape_parametric_constant, which preserves
+        transformed local positions and collapses only identical broadcast copies.
         """
         result = {}
         for k, v in constant_data.items():

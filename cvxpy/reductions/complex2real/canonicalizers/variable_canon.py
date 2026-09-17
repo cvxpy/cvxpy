@@ -14,32 +14,81 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+
 from cvxpy.atoms.affine.upper_tri import vec_to_upper_tri
 from cvxpy.atoms.affine.wraps import skew_symmetric_wrap
 from cvxpy.expressions.constants.constant import Constant
 from cvxpy.expressions.variable import Variable
 
+# Attributes that are safe to forward to both full-size real and imaginary
+# split Variables. New attributes should be added here only after checking
+# their Complex2Real semantics.
+FULL_SIZE_SPLIT_ATTRS = {"diag", "sparsity"}
+
+def _split_complex_attributes(attributes: dict) -> tuple[dict, dict]:
+    """Map attributes for full-size real/imaginary split Variables.
+
+    Only known-safe structural attributes are forwarded to avoid silently
+    passing new scalar/order attributes to complex split variables.
+    Hermitian variables handle their imaginary component separately with a
+    compact skew-symmetric parameterization.
+    """
+    real_attr = {
+        attr: attributes[attr]
+        for attr in FULL_SIZE_SPLIT_ATTRS
+        if attributes.get(attr)
+    }
+    imag_attr = real_attr.copy()
+
+    if attributes.get("PSD"):
+        real_attr["PSD"] = True
+    if attributes.get("NSD"):
+        real_attr["NSD"] = True
+
+    if attributes.get("hermitian") and not (
+        attributes.get("PSD") or attributes.get("NSD")
+    ):
+        real_attr["symmetric"] = True
+
+    return real_attr, imag_attr
+
 
 def variable_canon(expr, real_args, imag_args, real2imag):
     if expr.is_real():
-        # Purely real
+        # Purely real.
         return expr, None
+
     elif expr.is_imag():
-        # Purely imaginary
-        imag = Variable(expr.shape, var_id=real2imag[expr.id])
+        # Purely imaginary.
+        _, imag_attr = _split_complex_attributes(expr.attributes)
+        imag = Variable(expr.shape, var_id=real2imag[expr.id], **imag_attr)
         return None, imag
+
     elif expr.is_complex() and expr.is_hermitian():
         n = expr.shape[0]
-        real = Variable((n, n), var_id=expr.id, symmetric=True)
+        real_attr, _ = _split_complex_attributes(expr.attributes)
+        real = Variable((n, n), var_id=expr.id, **real_attr)
+
         if n > 1:
-            imag_var = Variable(shape=n*(n-1)//2, var_id=real2imag[expr.id])
+            # The imaginary part of a Hermitian matrix is skew-symmetric.
+            # It is represented by a compact vector of strict upper-triangular
+            # entries, not by a full matrix Variable, so matrix-shaped imag_attr
+            # is intentionally not forwarded here.
+            imag_var = Variable(
+                shape=n * (n - 1) // 2,
+                var_id=real2imag[expr.id],
+            )
             imag_upper_tri = vec_to_upper_tri(imag_var, strict=True)
             imag = skew_symmetric_wrap(imag_upper_tri - imag_upper_tri.T)
         else:
             imag = Constant([[0.0]])
+
         return real, imag
+
     else:
-        # General complex.
-        real = Variable(expr.shape, var_id=expr.id)
-        imag = Variable(expr.shape, var_id=real2imag[expr.id])
-        return real, imag
+        real_attr, imag_attr = _split_complex_attributes(expr.attributes)
+
+        real_var = Variable(shape=expr.shape, var_id=expr.id, **real_attr)
+        imag_var = Variable(shape=expr.shape, var_id=real2imag[expr.id], **imag_attr)
+
+        return real_var, imag_var

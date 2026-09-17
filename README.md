@@ -25,7 +25,7 @@ CVXPY is a Python-embedded modeling language for convex optimization problems. I
 
 For example, the following code solves a least-squares problem where the variable is constrained by lower and upper bounds:
 
-```python3
+```python
 import cvxpy as cp
 import numpy
 
@@ -70,12 +70,12 @@ many people, across many institutions and countries.
 
 ## Installation
 CVXPY is available on PyPI, and can be installed with
-```
+```bash
 pip install cvxpy
 ```
 
 CVXPY can also be installed with conda, using
-```
+```bash
 conda install -c conda-forge cvxpy
 ```
 

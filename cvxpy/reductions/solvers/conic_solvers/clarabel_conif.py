@@ -72,6 +72,7 @@ class CLARABEL(ConicSolver):
         + [SOC, ExpCone, PowCone3D, SvecPSD, PowConeND]
     PSD_TRIANGLE_KIND = TriangleKind.UPPER
     PSD_SQRT2_SCALING = True
+    REQUIRED_MODULES = ("clarabel",)
 
     # Status messages from clarabel.
     SOLVED = "Solved"

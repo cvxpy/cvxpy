@@ -18,6 +18,7 @@ class COPT(QpSolver):
     # Solve capabilities
     MIP_CAPABLE = True
     BOUNDED_VARIABLES = True
+    REQUIRED_MODULES = ("coptpy",)
 
     # Keyword arguments for the CVXPY interface.
     INTERFACE_ARGS = ["save_file", "reoptimize"]

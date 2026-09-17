@@ -32,6 +32,7 @@ class UNO(NLPsolver):
 
     For more information, see: https://github.com/cvanaret/Uno
     """
+    REQUIRED_MODULES = ("unopy",)
 
     STATUS_MAP = {
         # Success cases (optimization_status)

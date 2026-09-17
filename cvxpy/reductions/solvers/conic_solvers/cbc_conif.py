@@ -34,6 +34,7 @@ class CBC(ConicSolver):
     BOUNDED_VARIABLES = True
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS
     MI_SUPPORTED_CONSTRAINTS = SUPPORTED_CONSTRAINTS
+    REQUIRED_MODULES = ("cylp.cy",)
 
     # Map of CBC status to CVXPY status.
     STATUS_MAP_MIP = {'solution': s.OPTIMAL,

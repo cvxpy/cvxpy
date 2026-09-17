@@ -33,6 +33,7 @@ class CPLEX(QpSolver):
 
     MIP_CAPABLE = True
     BOUNDED_VARIABLES = True
+    REQUIRED_MODULES = ("cplex",)
 
     def name(self):
         return s.CPLEX

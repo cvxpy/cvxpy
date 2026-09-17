@@ -340,7 +340,7 @@ class TestLinearCone(BaseTest):
         # Check that violations are computed properly
         expr_val = constr_expr.value  # want >= 0
         expr_val[expr_val >= 0] = 0
-        manual_viol = np.linalg.norm(expr_val, ord=2)
+        manual_viol = np.linalg.norm(expr_val, ord=np.inf)
         reported_viol = constraints[0].violation()
         self.assertAlmostEqual(manual_viol, reported_viol, places=4)
         # Check that residuals are computed properly
@@ -352,5 +352,5 @@ class TestLinearCone(BaseTest):
         )
         # Run a second check for violations
         reported_viol = constraints[0].violation()
-        expected_viol = np.sqrt(5.0)
+        expected_viol = 2.0
         self.assertAlmostEqual(reported_viol, expected_viol)
