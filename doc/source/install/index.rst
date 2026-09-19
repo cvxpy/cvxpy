@@ -83,6 +83,17 @@ or a conda environment.
 
             pip install .
 
+        (Windows only) If the build fails while compiling a dependency (e.g. NumPy) with
+        an error from ``pip``'s build subprocess, make sure the Visual Studio Build Tools
+        environment is active in your shell first:
+
+        ::
+
+            SET DISTUTILS_USE_SDK=1
+            "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvarsall.bat" x64
+
+        The path to ``vcvarsall.bat`` depends on your Visual Studio installation.
+
     .. tab:: Using Codespaces
 
         We provide support for `GitHub Codespaces <https://github.com/features/codespaces>`_ with
