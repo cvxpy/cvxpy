@@ -14,6 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from unittest.mock import ANY, patch
+
 import numpy as np
 import pytest
 
@@ -254,3 +256,25 @@ class TestSupportFunctions(BaseTest):
         grad = atom._grad([np.array([2.0])])[0]
         np.testing.assert_allclose(y.value, [2.0])
         np.testing.assert_allclose(grad.toarray(), [[1.0]], atol=1e-4)
+
+    def test_value_solve_kwargs(self) -> None:
+        x = cp.Variable(2)
+        sigma = cp.suppfunc(x, [cp.norm(x, 2) <= 1])
+        atom = sigma(np.array([3.0, 4.0]))
+        other_atom = sigma(np.array([3.0, 4.0]))
+        self.assertEqual(atom._val_solve_kwargs, {"solver": cp.CLARABEL})
+
+        atom._val_solve_kwargs.update(tol_gap_abs=1e-10, tol_feas=1e-10)
+        with patch.object(
+            cp.Problem, "solve", autospec=True, side_effect=cp.Problem.solve
+        ) as solve:
+            self.assertAlmostEqual(atom.value, 5.0)
+            solve.assert_called_once_with(
+                ANY, solver=cp.CLARABEL, tol_gap_abs=1e-10, tol_feas=1e-10
+            )
+        self.assertEqual(other_atom._val_solve_kwargs, {"solver": cp.CLARABEL})
+
+        atom._val_solve_kwargs["solver"] = "NOT_A_SOLVER"
+        with self.assertRaises(SolverError):
+            _ = atom.value
+        self.assertAlmostEqual(other_atom.value, 5.0)

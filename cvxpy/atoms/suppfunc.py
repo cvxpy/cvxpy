@@ -23,6 +23,7 @@ class SuppFuncAtom(Atom):
         self.id = lu.get_id()
         self.args = [Atom.cast(y)]
         self._parent = parent
+        self._val_solve_kwargs = {"solver": "CLARABEL"}
         self._eta = None  # store for debugging purposes
         self._shape: tuple[int, ...] = tuple()
         self.validate_arguments()
@@ -115,7 +116,7 @@ class SuppFuncAtom(Atom):
             dummy = Variable()
             cons = [dummy == 1]
         prob = Problem(Maximize(y_val @ x_flat), cons)
-        val = prob.solve(solver='CLARABEL')
+        val = prob.solve(**self._val_solve_kwargs)
         return val
 
     def _grad(self, values):
