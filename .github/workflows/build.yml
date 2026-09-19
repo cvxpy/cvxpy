@@ -43,7 +43,7 @@ jobs:
         # exluding this build because it is failing and blocks wheels
         exclude:
           - os: windows-2022
-          - python-version: 3.14t
+            python-version: 3.14t
 
     env:
       RUNNER_OS: ${{ matrix.os }}
