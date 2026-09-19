@@ -146,7 +146,9 @@ class MatrixFrac(Atom):
 
 @wraps(MatrixFrac)
 def matrix_frac(X, P) -> Expression:
-    if isinstance(P, np.ndarray):
+    # The QuadForm shortcut only accepts a vector x, so restrict it to that case;
+    # a matrix X must go through MatrixFrac (which also handles an ndarray P).
+    if isinstance(P, np.ndarray) and Expression.cast(X).shape in [(P.shape[0], 1), (P.shape[0],)]:
         invP = LA.inv(P)
         return QuadForm(X, (invP + np.conj(invP).T) / 2.0)
     else:
