@@ -153,6 +153,32 @@ def is_batch_varying(const_shape: tuple[int, ...]) -> bool:
     return int(np.prod(const_shape[:-2])) > 1
 
 
+def _deduplicate_parametric_entries(
+    data: np.ndarray,
+    param_idx: np.ndarray,
+    positions: np.ndarray,
+    num_positions: int,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Collapse identical broadcast copies at the same parameter and position.
+
+    Different coefficients at the same key represent genuine additive entries,
+    not broadcast copies, and must not be silently discarded.
+    """
+    keys = param_idx * num_positions + positions
+    _, first_occurrence, inverse = np.unique(
+        keys, return_index=True, return_inverse=True
+    )
+    if not np.array_equal(data, data[first_occurrence[inverse]], equal_nan=True):
+        raise ValueError(
+            "Cannot deduplicate parametric entries with different coefficients."
+        )
+    return (
+        data[first_occurrence],
+        param_idx[first_occurrence],
+        positions[first_occurrence],
+    )
+
+
 class Constant(Enum):
     ID = -1
 

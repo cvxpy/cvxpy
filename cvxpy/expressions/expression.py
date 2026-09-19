@@ -769,9 +769,11 @@ class Expression(u.Canonical):
         # Zero-sized constants (size == 0) are placeholders for
         # eliminated variables and must not be folded away; they need
         # to propagate through the expression tree so that the resulting
-        # shape is correct.
+        # shape is correct. Folding is also skipped when adding the zero
+        # would broadcast self to a larger shape.
         if isinstance(other, cvxtypes.constant()) and other.is_zero() \
-                and other.size > 0:
+                and other.size > 0 \
+                and np.broadcast_shapes(self.shape, other.shape) == self.shape:
             return self
         self, other = self.broadcast(self, other)
         return cvxtypes.add_expr()([self, other])
@@ -780,9 +782,10 @@ class Expression(u.Canonical):
     def __radd__(self, other: ExpressionLike) -> "Expression":
         """Expression : Sum two expressions.
         """
-        # See __add__ for why we require size > 0.
+        # See __add__ for why we require size > 0 and an unchanged shape.
         if isinstance(other, cvxtypes.constant()) and other.is_zero() \
-                and other.size > 0:
+                and other.size > 0 \
+                and np.broadcast_shapes(self.shape, other.shape) == self.shape:
             return self
         return other + self
 
@@ -830,7 +833,7 @@ class Expression(u.Canonical):
                 warnings.warn(msg, UserWarning)
                 warnings.warn(msg, CvxpyDeprecationWarning)
                 __STAR_MATMUL_COUNT__ += 1
-            return cvxtypes.matmul_expr()(self, other)
+            return cvxtypes.matmul()(self, other)
 
     @_cast_other
     def __matmul__(self, other: ExpressionLike) -> "Expression":
@@ -847,7 +850,7 @@ class Expression(u.Canonical):
                 from cvxpy.expressions.cvxtypes import quad_form
                 return quad_form()(other, self.args[1])
 
-        return cvxtypes.matmul_expr()(self, other)
+        return cvxtypes.matmul()(self, other)
 
     @_cast_other
     def __truediv__(self, other: ExpressionLike) -> "Expression":
@@ -890,7 +893,7 @@ class Expression(u.Canonical):
         """
         if self.shape == () or other.shape == ():
             raise ValueError("Scalar operands are not allowed, use '*' instead")
-        return cvxtypes.matmul_expr()(other, self)
+        return cvxtypes.matmul()(other, self)
 
     def __neg__(self) -> "Expression":
         """Expression : The negation of the expression.

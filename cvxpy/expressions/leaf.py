@@ -148,7 +148,10 @@ class Leaf(expression.Expression):
             self.integer_idx = integer
         if sparsity:
             self.sparse_idx = self._validate_indices(sparsity)
-            self._sparse_high_fill_in = (len(self.sparse_idx[0]) / np.prod(self.shape) <= 0.25)
+            # Sparse enough (small nonzero fraction) to nudge toward value_sparse;
+            # shares the diff engine's sparse-routing threshold (see settings).
+            self._sparse_high_fill_in = (
+                len(self.sparse_idx[0]) / np.prod(self.shape) <= s.SPARSE_DENSITY_THRESHOLD)
         else:
             self.sparse_idx = None
         # count number of attributes
@@ -159,6 +162,19 @@ class Leaf(expression.Expression):
                 "A CVXPY Variable cannot have more than one of the following attributes: "
                 f"{dim_reducing_attr}"
             )
+        if self.attributes['complex'] or self.attributes['imag']:
+            invalid_attrs = {'nonneg', 'nonpos', 'pos', 'neg'} & {
+                k for k, v in self.attributes.items() if v
+            }
+            if invalid_attrs:
+                raise ValueError(
+                    "Cannot combine "
+                    f"{sorted(invalid_attrs)} with complex or imaginary attributes."
+                )
+            if bounds is not None:
+                raise ValueError(
+                    "Cannot combine bounds with complex or imaginary attributes."
+                )
         sign_attrs = [k for k in ['pos', 'neg'] if self.attributes[k]]
         sparse_attrs = [k for k in ['sparsity', 'diag'] if self.attributes[k]]
         if sign_attrs and sparse_attrs:
@@ -467,14 +483,14 @@ class Leaf(expression.Expression):
             return np.asarray(val).astype(complex)
         elif self.attributes['boolean']:
             if hasattr(self, "boolean_idx"):
-                new_val = np.atleast_1d(val.astype(np.float64, copy=True))
+                new_val = np.atleast_1d(np.array(val, dtype=np.float64))
                 new_val[self.boolean_idx] = np.round(np.clip(new_val[self.boolean_idx], 0., 1.))
-                return new_val.reshape(val.shape) if val.ndim == 0 else new_val
+                return new_val.reshape(np.shape(val)) if np.ndim(val) == 0 else new_val
         elif self.attributes['integer']:
             if hasattr(self, "integer_idx"):
-                new_val = np.atleast_1d(val.astype(np.float64, copy=True))
+                new_val = np.atleast_1d(np.array(val, dtype=np.float64))
                 new_val[self.integer_idx] = np.round(new_val[self.integer_idx])
-                return new_val.reshape(val.shape) if val.ndim == 0 else new_val
+                return new_val.reshape(np.shape(val)) if np.ndim(val) == 0 else new_val
         elif self.attributes['diag']:
             if intf.is_sparse(val):
                 val = val.diagonal()

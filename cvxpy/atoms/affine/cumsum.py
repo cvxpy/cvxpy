@@ -38,6 +38,25 @@ def _sparse_triu_ones(dim: int) -> sp.csc_array:
     return sp.csc_array((data, (rows, cols)), shape=(dim, dim))
 
 
+def _cumsum_axis_op(shape: tuple[int, ...], axis: int) -> sp.csc_array:
+    """Return the sparse operator for cumsum along one axis.
+
+    The operator acts on the F-order vectorization of an array with ``shape``.
+    """
+    axis = normalize_axis_index(axis, len(shape))
+    dim = shape[axis]
+    tril = _sparse_triu_ones(dim).T.tocsc()
+
+    pre_size = int(np.prod(shape[:axis], dtype=int))
+    post_size = int(np.prod(shape[axis + 1:], dtype=int))
+    if pre_size == post_size == 1:
+        return tril
+
+    post_eye = sp.eye_array(post_size, format="csc")
+    pre_eye = sp.eye_array(pre_size, format="csc")
+    return sp.kron(sp.kron(post_eye, tril, format="csc"), pre_eye, format="csc")
+
+
 class cumsum(AffAtom, AxisAtom):
     """
     Cumulative sum of the elements of an expression.
@@ -109,27 +128,17 @@ class cumsum(AffAtom, AxisAtom):
             # - dy/dx_f = L @ P
             # - CVXPY wants grad[i,j] = dy[j]/dx_f[i] = (L @ P).T = P.T @ L.T = P.T @ U
             # where U is upper triangular
-            triu = _sparse_triu_ones(dim)
+            axis_op = _cumsum_axis_op((dim,), 0)
             # Permutation: P @ f_vec = c_vec
             c_order_indices = np.arange(dim).reshape(values[0].shape, order='F').flatten(order='C')
             P = sp.csc_array((np.ones(dim), (np.arange(dim), c_order_indices)), shape=(dim, dim))
-            grad = P.T @ triu
-            return [sp.csc_array(grad)]
+            grad = P.T @ axis_op.T
+            return [grad.tocsc()]
 
         axis = normalize_axis_index(axis, ndim)
-        dim = values[0].shape[axis]
-
-        # Upper triangular matrix for CVXPY gradient convention
-        # grad[i, j] = d(cumsum[j])/d(x[i]) = 1 if i <= j
-        triu = _sparse_triu_ones(dim)
-
-        # Kronecker product: I_post ⊗ triu ⊗ I_pre
-        # This works for all dimensions including 1D and 2D
-        pre_size = int(np.prod(values[0].shape[:axis])) if axis > 0 else 1
-        post_size = int(np.prod(values[0].shape[axis+1:])) if axis < ndim - 1 else 1
-
-        grad = sp.kron(sp.kron(sp.eye_array(post_size), triu), sp.eye_array(pre_size))
-        return [sp.csc_array(grad)]
+        # The cumsum operator maps input to output; CVXPY's gradient convention
+        # stores its transpose: grad[i, j] = d(output[j]) / d(input[i]).
+        return [_cumsum_axis_op(values[0].shape, axis).T.tocsc()]
 
     def get_data(self):
         """Returns the axis being summed."""

@@ -477,6 +477,20 @@ class CUOPT(ConicSolver):
             iters = extra_stats["nb_iterations"]
 
         primal_full = cuopt_result.get_primal_solution()
+
+        # USER_LIMIT (time/iteration limit, etc.) only means the solve
+        # stopped early -- it does not guarantee an incumbent was found.
+        # When cuOpt has no solution to report, primal_full comes back
+        # empty; treating that as SOLUTION_PRESENT would make invert() try
+        # to reshape a 0-length array into the variables' shape and crash
+        # with a ValueError. Downgrade to INFEASIBLE_INACCURATE instead,
+        # matching how gurobi_conif.py and copt_conif.py handle the same
+        # "USER_LIMIT with no incumbent" case.
+        if sol_status == s.USER_LIMIT and (
+            primal_full is None or len(primal_full) == 0
+        ):
+            sol_status = s.INFEASIBLE_INACCURATE
+
         primal = primal_full[:n_orig] if primal_full is not None else np.array([])
 
         return Solution(

@@ -14,23 +14,29 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import numbers
+
 import numpy as np
+from numpy.lib.array_utils import normalize_axis_tuple
 
 from cvxpy.atoms.affine.sum import sum as cvxpy_sum
 from cvxpy.atoms.norm import norm
 from cvxpy.atoms.sum_squares import sum_squares
 
 
+def _axis_size(x, axis=None) -> int:
+    """Return the number of entries reduced by an axis argument."""
+    if axis is None:
+        return x.size
+    axes = normalize_axis_tuple(axis, len(x.shape), "axis")
+    return int(np.prod([x.shape[a] for a in axes]))
+
+
 def mean(x, axis=None, keepdims=False):
     """
     Returns the mean of x.
     """
-    if axis is None:
-        return cvxpy_sum(x, axis, keepdims) / x.size
-    elif axis in (0, 1):
-        return cvxpy_sum(x, axis, keepdims) / x.shape[axis]
-    else:
-        raise UserWarning("cp.mean doesn't yet support axis values other than 0 or 1.")
+    return cvxpy_sum(x, axis=axis, keepdims=keepdims) / _axis_size(x, axis)
 
 
 def std(x, axis=None, keepdims=False, ddof=0):
@@ -41,11 +47,12 @@ def std(x, axis=None, keepdims=False, ddof=0):
     """
     if axis is None:
         return norm((x - mean(x)).flatten(order='F'), 2) / np.sqrt(x.size - ddof)
-    elif axis in (0, 1):
+    elif isinstance(axis, numbers.Integral):
         return norm(x - mean(x, axis, True), 2, axis=axis, keepdims=keepdims) \
-                / np.sqrt(x.shape[axis] - ddof)
+                / np.sqrt(_axis_size(x, axis) - ddof)
     else:
-        raise ValueError("cp.std doesn't yet support axis values other than 0 or 1.")
+        raise ValueError("cp.std doesn't yet support tuple axis values.")
+
 
 def var(x, axis=None, keepdims=False, ddof=0):
     """
@@ -53,16 +60,8 @@ def var(x, axis=None, keepdims=False, ddof=0):
 
     `ddof` is the quantity to use in the Bessel correction.
     """
-    if axis is None:
-        return sum_squares(x - mean(x)) / (x.size - ddof)
-    elif axis in (0, 1):
-        raise NotImplementedError(
-            """axis and keepdims are not yet supported for var.
-            Use square(std(...)) instead.
-            """
-        )
-        # TODO when sum_squares implements axis and keepdims uncomment:
-        # return sum_squares(x - mean(x, axis, True), 2, axis=axis, keepdims=keepdims) \
-        #         / (x.shape[axis] - ddof)
-    else:
-        raise ValueError("cp.var doesn't yet support axis values other than 0 or 1.")
+    return sum_squares(
+        x - mean(x, axis, True),
+        axis=axis,
+        keepdims=keepdims,
+    ) / (_axis_size(x, axis) - ddof)

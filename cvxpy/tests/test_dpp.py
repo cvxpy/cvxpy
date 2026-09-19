@@ -396,6 +396,43 @@ class TestDcp(BaseTest):
         reduction_types = [type(r).__name__ for r in chain.reductions]
         self.assertIn('EvalParams', reduction_types)
 
+    def test_cumsum_of_parameter(self) -> None:
+        """cumsum of a parameter-only expression must stay parameter-affine.
+
+        Regression test: cumsum_canon replaced cumsum(p) with an auxiliary
+        Variable, so cumsum(p) @ x became Variable @ Variable and DPP
+        canonicalization failed with a bare AssertionError.
+        """
+        p = cp.Parameter(3)
+        p.value = np.array([1.0, 2.0, 3.0])
+        x = cp.Variable(3)
+        problem = cp.Problem(cp.Minimize(cp.cumsum(p) @ x + cp.sum_squares(x)))
+        self.assertTrue(problem.is_dpp())
+        problem.solve(solver=cp.CLARABEL)
+        # Analytic optimum: -||cumsum(p)||^2 / 4 = -(1 + 9 + 36) / 4.
+        self.assertAlmostEqual(problem.value, -11.5)
+
+        # Constraint position: min ||x||^2 s.t. x >= cumsum(p).
+        constr_prob = cp.Problem(cp.Minimize(cp.sum_squares(x)), [x >= cp.cumsum(p)])
+        constr_prob.solve(solver=cp.CLARABEL)
+        self.assertItemsAlmostEqual(x.value, np.cumsum(p.value))
+
+        # Re-solving with a new parameter value uses the DPP cache correctly.
+        p.value = np.array([2.0, -1.0, 1.0])
+        problem.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(problem.value, -np.sum(np.cumsum(p.value) ** 2) / 4)
+
+    def test_cumsum_of_parameter_axes(self) -> None:
+        """cumsum of a 2-D parameter along each axis matches np.cumsum."""
+        P = cp.Parameter((2, 3))
+        P.value = np.arange(6.0).reshape(2, 3)
+        for axis in [0, 1, None]:
+            y = cp.Variable(np.cumsum(P.value, axis=axis).shape)
+            problem = cp.Problem(cp.Minimize(0), [y == cp.cumsum(P, axis=axis)])
+            self.assertTrue(problem.is_dpp())
+            problem.solve(solver=cp.CLARABEL)
+            self.assertItemsAlmostEqual(y.value, np.cumsum(P.value, axis=axis))
+
 
 class TestDgp(BaseTest):
     def test_basic_equality_constraint(self) -> None:

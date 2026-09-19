@@ -17,6 +17,7 @@ from cvxpy.lin_ops.backends import (
     TensorRepresentation,
     get_backend,
 )
+from cvxpy.lin_ops.backends.base import _deduplicate_parametric_entries
 from cvxpy.lin_ops.backends.coo_backend import (
     _build_interleaved_mul,
     _build_interleaved_rmul,
@@ -118,6 +119,57 @@ def test_build_matrix_order(backend_name):
     # Test invalid order
     with pytest.raises(ValueError, match="order must be 'F' or 'C'"):
         backend.build_matrix([lin_op], order='INVALID')
+
+
+@pytest.mark.parametrize(
+    "backend_name",
+    [s.SCIPY_CANON_BACKEND, s.COO_CANON_BACKEND, s.RUST_CANON_BACKEND],
+)
+def test_matmul_with_parametric_expression_lhs(backend_name):
+    """Stuffing (A @ p) @ x must keep every entry of A.
+
+    Regression test: reshaping a parametric matmul lhs deduplicated entries
+    by param_idx, silently dropping all but one entry of A per parameter.
+    """
+    if backend_name == s.RUST_CANON_BACKEND:
+        pytest.importorskip("cvxpy_rust")
+
+    p = cp.Parameter(3)
+    p.value = np.array([1.0, 2.0, 3.0])
+    x = cp.Variable(3)
+    A = np.tril(np.ones((3, 3)))
+    prob = cp.Problem(cp.Minimize((A @ p) @ x + cp.sum_squares(x)))
+    c = prob.get_problem_data(cp.CLARABEL, canon_backend=backend_name)[0]["c"]
+    np.testing.assert_allclose(c[:3], A @ p.value)
+
+    # Entries duplicated by broadcasting the parameter must also be kept.
+    q = cp.Parameter(2)
+    q.value = np.array([1.0, 2.0])
+    y = cp.Variable(2)
+    prob = cp.Problem(cp.Minimize(cp.sum(cp.broadcast_to(q, (2, 2)) @ y) + cp.sum_squares(y)))
+    c = prob.get_problem_data(cp.CLARABEL, canon_backend=backend_name)[0]["c"]
+    np.testing.assert_allclose(c[:2], 2 * q.value)
+
+
+def test_deduplicate_parametric_entries():
+    """Collapse identical copies, but reject different coefficients."""
+    data, param_idx, positions = _deduplicate_parametric_entries(
+        data=np.array([1.0, 1.0, 2.0]),
+        param_idx=np.array([0, 0, 1]),
+        positions=np.array([0, 0, 1]),
+        num_positions=2,
+    )
+    np.testing.assert_array_equal(data, [1.0, 2.0])
+    np.testing.assert_array_equal(param_idx, [0, 1])
+    np.testing.assert_array_equal(positions, [0, 1])
+
+    with pytest.raises(ValueError, match="different coefficients"):
+        _deduplicate_parametric_entries(
+            data=np.array([1.0, 2.0]),
+            param_idx=np.array([0, 0]),
+            positions=np.array([0, 0]),
+            num_positions=1,
+        )
 
 
 class TestBackendInstance:
@@ -3250,12 +3302,13 @@ class TestCooBackend:
     @staticmethod
     def test_coo_reshape_vs_reshape_parametric_constant():
         """
-        Test that coo_reshape and reshape_parametric_constant behave differently.
+        Test that both reshape paths preserve genuine repeated parameter slices.
 
         - coo_reshape: Uses linear index reshaping, preserves all entries.
           Used by the 'reshape' linop for general reshape operations.
-        - reshape_parametric_constant: Deduplicates based on param_idx for
-          parametric tensors. Used for reshaping constant data in matmul.
+        - reshape_parametric_constant: Uses transformed local positions and only
+          collapses identical broadcast copies at the same position. Used for
+          reshaping constant data in matmul.
 
         This is a regression test for an issue where using parametric reshape
         logic in coo_reshape caused DGP tests to fail with index out of bounds
@@ -3288,11 +3341,15 @@ class TestCooBackend:
         assert np.array_equal(result_linear.row, np.array([0, 1, 0, 1]))
         assert np.array_equal(result_linear.col, np.array([0, 0, 1, 1]))
 
-        # reshape_parametric_constant: deduplicates based on param_idx
+        # reshape_parametric_constant: keeps all entries here. The tensor size
+        # equals the target size, so the duplicated param_idx values are genuine
+        # entries at distinct positions (as in broadcast_to(p, (2, 2)) @ x),
+        # not broadcast copies, and dropping them would lose coefficients.
         result_param = reshape_parametric_constant(tensor, new_m, new_n)
-        assert result_param.nnz == 2, "reshape_parametric_constant should deduplicate"
-        # param_idx 0 -> position (0,0), param_idx 1 -> position (1,0)
-        assert np.array_equal(result_param.param_idx, np.array([0, 1]))
+        assert result_param.nnz == 4, "entries at distinct positions must be kept"
+        assert np.array_equal(result_param.row, np.array([0, 1, 0, 1]))
+        assert np.array_equal(result_param.col, np.array([0, 0, 1, 1]))
+        assert np.array_equal(result_param.param_idx, np.array([0, 0, 1, 1]))
 
     @staticmethod
     def test_get_constant_data_shape_for_broadcast_param():
