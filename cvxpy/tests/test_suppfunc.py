@@ -260,11 +260,13 @@ class TestSupportFunctions(BaseTest):
     def test_value_solve_kwargs(self) -> None:
         x = cp.Variable(2)
         sigma = cp.suppfunc(x, [cp.norm(x, 2) <= 1])
-        atom = sigma(np.array([3.0, 4.0]))
-        other_atom = sigma(np.array([3.0, 4.0]))
-        self.assertEqual(atom._val_solve_kwargs, {"solver": cp.CLARABEL})
+        y = np.array([3.0, 4.0])
+        options = {"tol_gap_abs": 1e-10, "tol_feas": 1e-10}
+        atom = sigma(y, value_solve_kwargs=options)
+        other_atom = sigma(y)
 
-        atom._val_solve_kwargs.update(tol_gap_abs=1e-10, tol_feas=1e-10)
+        self.assertNotIn("solver", options)
+        options["solver"] = "NOT_A_SOLVER"
         with patch.object(
             cp.Problem, "solve", autospec=True, side_effect=cp.Problem.solve
         ) as solve:
@@ -272,9 +274,9 @@ class TestSupportFunctions(BaseTest):
             solve.assert_called_once_with(
                 ANY, solver=cp.CLARABEL, tol_gap_abs=1e-10, tol_feas=1e-10
             )
-        self.assertEqual(other_atom._val_solve_kwargs, {"solver": cp.CLARABEL})
+        self.assertEqual(other_atom._value_solve_kwargs, {"solver": cp.CLARABEL})
 
-        atom._val_solve_kwargs["solver"] = "NOT_A_SOLVER"
+        invalid_atom = sigma(y, value_solve_kwargs={"solver": "NOT_A_SOLVER"})
         with self.assertRaises(SolverError):
-            _ = atom.value
+            _ = invalid_atom.value
         self.assertAlmostEqual(other_atom.value, 5.0)

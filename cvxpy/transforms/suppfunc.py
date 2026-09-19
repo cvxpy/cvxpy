@@ -175,15 +175,18 @@ class SuppFunc:
         self._K_sels = None
         self._compute_conic_repr_of_set()
 
-    def __call__(self, y) -> SuppFuncAtom:
+    def __call__(self, y, value_solve_kwargs: dict | None = None) -> SuppFuncAtom:
         """
         Return an atom representing
 
             max{ cvxpy.vec(y) @ cvxpy.vec(x) : x in S }
 
         where S is the convex set associated with this SuppFunc object.
+
+        ``value_solve_kwargs`` specifies keyword arguments passed to ``Problem.solve``
+        when evaluating the atom's value or gradient. The solver defaults to CLARABEL.
         """
-        sigma_at_y = SuppFuncAtom(y, self)
+        sigma_at_y = SuppFuncAtom(y, self, value_solve_kwargs=value_solve_kwargs)
         return sigma_at_y
 
     def _compute_conic_repr_of_set(self) -> None:
