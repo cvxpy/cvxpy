@@ -24,7 +24,7 @@ from scipy.sparse import dok_array
 import cvxpy.settings as s
 from cvxpy import Zero
 from cvxpy.constraints import SOC, ExpCone, NonNeg
-from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ParamConeProg
+from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeProg
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import (
@@ -96,7 +96,7 @@ class SCIP(ConicSolver):
         """Imports the solver."""
         import pyscipopt  # noqa: F401
 
-    def apply(self, problem: ParamConeProg) -> tuple[dict, dict]:
+    def apply(self, problem: ConeProg) -> tuple[dict, dict]:
         """Returns a new problem and data for inverting the new solution."""
 
         # Create data and inv_data objects

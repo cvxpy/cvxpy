@@ -23,7 +23,7 @@ from scipy.sparse import csr_array
 import cvxpy.settings as s
 from cvxpy import Zero
 from cvxpy.constraints import NonNeg
-from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ParamConeProg
+from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeProg
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
@@ -63,7 +63,7 @@ class PDLP(ConicSolver):
                 'Please open a feature request on cvxpy if you encounter issues.'
             )
 
-    def apply(self, problem: ParamConeProg) -> tuple[dict, dict]:
+    def apply(self, problem: ConeProg) -> tuple[dict, dict]:
         """Returns a new problem and data for inverting the new solution."""
         from ortools.pdlp.python import pdlp
 

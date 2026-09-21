@@ -115,8 +115,9 @@ def convert_symbolic_quad_form(expr, var_dict, n_vars, param_dict):
     """Convert a SymbolicQuadForm (Dcp2Cone quadratic-objective placeholder).
 
     Scalar x'Px (QuadForm / quad_over_lin / sum_squares) uses the native quad_form
-    binding, routed by how P is stored: the sparse CSR path for a sparse P, the
-    dense path otherwise. power/PowerApprox is the elementwise square, lowered
+    binding. A symbolic P becomes a matrix-valued child the engine re-evaluates
+    each solve; a constant P is routed by how it is stored -- the sparse CSR path
+    for a sparse P, the dense path otherwise. power/PowerApprox is the elementwise square, lowered
     to multiply.
     """
     if expr.block_indices is not None:
@@ -129,13 +130,15 @@ def convert_symbolic_quad_form(expr, var_dict, n_vars, param_dict):
     if isinstance(orig, (QuadForm, quad_over_lin)):
         x = expr.args[0]
         P = expr.args[1]
-        if P.parameters():
-            # Unreachable through the gated DIFFENGINE backend (the stuffing
-            # rejects parametric problems); fail loud for direct callers.
-            raise NotImplementedError(
-                "SymbolicQuadForm with a parametric P is not supported by "
-                "the diff engine.")
         x_c = convert_expr(x, var_dict, n_vars, param_dict)
+        if P.parameters():
+            # A symbolic P (quad_over_lin's eye/y, say) is independent of x, so
+            # the Hessian is still 2P: feed it as a matrix-valued child the
+            # engine re-evaluates each solve. A parametric quad_form never
+            # reaches here -- QuadForm._supports_diffengine keeps it off this
+            # backend, because its cone canon needs a concrete P.
+            P_c = convert_expr(P, var_dict, n_vars, param_dict)
+            return _diffengine.make_quad_form(P_c, x_c, "dense", None, x.size)
         P_val = P.value
         if sparse.issparse(P_val):
             P_csr = P_val.tocsr()

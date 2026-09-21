@@ -88,7 +88,7 @@ class NAG(ConicSolver):
         inv_data[self.DIMS] = problem.cone_dims
         constr_map = problem.constr_map
 
-        if problem.P is None:
+        if not problem.has_quad_obj:
             c, d, A, b = problem.apply_parameters()
         else:
             P, c, d, A, b = problem.apply_parameters(quad_obj=True)

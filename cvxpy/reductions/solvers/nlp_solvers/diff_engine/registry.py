@@ -86,21 +86,36 @@ def convert_kron(expr, children):
 
 
 def convert_div(expr, children):
-    """Convert x / c by multiplying x by the elementwise reciprocal of c.
+    """Convert x / d by multiplying x by the elementwise reciprocal of d.
 
-    Matches coo_backend.div: parametrized divisors are rejected and any
-    zero entry in the divisor raises explicitly.
+    A constant divisor folds ``1/d`` into a parameter node (rejecting zero
+    entries, matching coo_backend.div); a parametric divisor uses a
+    ``make_power(d, -1)`` node the engine re-evaluates each solve.
     """
     divisor_expr = expr.args[1]
     if divisor_expr.parameters():
-        raise NotImplementedError("div doesn't support parametrized divisor")
-    divisor = to_dense_float(divisor_expr.value)
-    if np.any(divisor == 0):
-        raise ValueError("Division by zero encountered in divisor")
-    recip = 1.0 / divisor
-    d1, d2 = normalize_shape(recip.shape)
-    recip_node = _diffengine.make_parameter(d1, d2, -1, 0, recip.flatten(order='F'))
-    if recip.size == 1:
+        # The engine re-evaluates make_power(d, -1) each solve; check the
+        # current value here so a zero divisor fails loudly at conversion
+        # like the constant branch does. A zero introduced by a later
+        # parameter update still surfaces as inf from the engine.
+        # TODO(diffengine): the engine's power node should reject a zero
+        # base with a negative exponent on re-evaluation, so a parameter
+        # update to zero raises instead of propagating inf. Tracked
+        # upstream in sparsediffpy.
+        div_val = divisor_expr.value
+        if div_val is not None and np.any(to_dense_float(div_val) == 0):
+            raise ValueError("Division by zero encountered in divisor")
+        recip_node = _diffengine.make_power(children[1], -1.0)
+        size = divisor_expr.size
+    else:
+        divisor = to_dense_float(divisor_expr.value)
+        if np.any(divisor == 0):
+            raise ValueError("Division by zero encountered in divisor")
+        recip = 1.0 / divisor
+        d1, d2 = normalize_shape(recip.shape)
+        recip_node = _diffengine.make_parameter(d1, d2, -1, 0, recip.flatten(order='F'))
+        size = recip.size
+    if size == 1:
         return _diffengine.make_param_scalar_mult(recip_node, children[0])
     return _diffengine.make_param_vector_mult(recip_node, children[0])
 
