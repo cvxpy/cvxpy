@@ -83,8 +83,16 @@ class norm1(AxisAtom):
 
     def validate_arguments(self) -> None:
         super(norm1, self).validate_arguments()
-        if isinstance(self.axis, tuple):
-            raise ValueError("The axis parameter of norm1 must be an int or None.")
+        # A one-element tuple is equivalent to an integer axis (AxisAtom
+        # normalizes it to an int). Multi-axis tuples are rejected because
+        # the elementwise reduction semantics of the norm1 canonicalization
+        # do not match NumPy matrix-norm semantics.
+        if isinstance(self.axis, tuple) and len(self.axis) > 1:
+            raise ValueError(
+                "The axis parameter of norm1 must be an int, None, or a "
+                "single-element tuple. For matrix norms over multiple axes, "
+                "use cp.norm()."
+            )
 
     def get_data(self):
         return [self.axis]

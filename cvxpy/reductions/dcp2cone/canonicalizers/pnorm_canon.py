@@ -42,8 +42,32 @@ def _pnorm_p2_canon(expr, args, bounds=None):
     if axis is None:
         assert shape == tuple()
         return t, [SOC(t, vec(x, order="F"))]
-    else:
+    elif x.ndim <= 2 or axis == 0:
+        # The cone lowering (ConeMatrixStuffing.apply and
+        # ConicSolver.format_constraints) only formats SOC constraints whose
+        # X argument is 1-D or 2-D, plus N-D X with axis == 0 (axis-0 fibers
+        # are contiguous in column-major order, which is what the interleaved
+        # sparse spacing assumes).
         return t, [SOC(vec(t, order="F"), x, axis)]
+    else:
+        # N-D X with axis >= 1: emit one scalar SOC per fiber instead of a
+        # single batched SOC. Fibers along an inner axis are not contiguous
+        # in either column-major or row-major order, so they cannot be
+        # isolated with a reshape; per-fiber emission preserves the
+        # mathematics exactly (each fiber is an affine expression).
+        constraints = []
+        for coords in np.ndindex(*shape):
+            # coords enumerates the output (non-reduced) axes; map them onto
+            # the input axes, leaving the reduced axis free.
+            fiber_index = [slice(None)] * x.ndim
+            out = 0
+            for i in range(x.ndim):
+                if i == axis:
+                    continue
+                fiber_index[i] = coords[out]
+                out += 1
+            constraints.append(SOC(t[coords], x[tuple(fiber_index)]))
+        return t, constraints
 
 
 def pnorm_exact_canon(expr, args, solver_context: SolverInfo | None = None):
