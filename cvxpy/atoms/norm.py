@@ -126,6 +126,12 @@ def _norm_over_matrix_axes(
     """
     if len(set(axis)) != len(axis):
         raise ValueError("The axis parameter must not contain duplicate entries.")
+    if len(axis) > 2:
+        raise NotImplementedError(
+            "norm() with more than two axis entries is not supported. "
+            "Two-entry tuples are interpreted as matrix norms over the remaining "
+            "slices, matching NumPy semantics."
+        )
     axes = normalize_axis_tuple(axis, x.ndim)
     if len(axes) > 2:
         raise NotImplementedError(

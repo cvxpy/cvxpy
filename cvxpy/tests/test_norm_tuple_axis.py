@@ -229,6 +229,36 @@ class TestMatrixNormTupleAxis:
         ref = np.linalg.norm(X.value, 2, axis=(0, 2))
         assert np.allclose(y.value, ref, atol=1e-6)
 
+    def test_full_tuple_pairing_and_numpy(self) -> None:
+        """A 2-tuple on a 2-D array is a scalar matrix norm (NumPy semantics).
+
+        (0,1) and (1,0) are exactly equivalent, and every supported ord matches
+        np.linalg.norm on the flattened 2-D input. In contrast a 1-tuple or an
+        int axis for 'fro'/'nuc' must still reject (single axis has no matrix
+        meaning).
+        """
+        Xv = np.arange(12, dtype=float).reshape(3, 4)
+        Xc = cp.Constant(Xv)
+        ords = [1, 2, np.inf, "fro", "nuc"]
+        for p in ords:
+            a = cp.norm(Xc, p, axis=(0, 1))
+            b = cp.norm(Xc, p, axis=(1, 0))
+            ref = np.linalg.norm(Xv, ord=p)
+            assert np.isclose(a.value, ref, atol=1e-10), (p, a.value, ref)
+            assert np.isclose(b.value, ref, atol=1e-10)
+            assert np.isclose(a.value, b.value, atol=1e-10)
+
+        # 1-tuple / int axis on 2-D: 'fro'/'nuc' still raise (single axis).
+        for p in ("fro", "nuc"):
+            for axis in (0, 1, (0,), (1,)):
+                with pytest.raises(ValueError):
+                    cp.norm(Xc, p, axis=axis)
+
+        # keepdims shape on the full tuple.
+        y = cp.norm(Xc, 2, axis=(0, 1), keepdims=True)
+        assert y.shape == (1, 1)
+        assert np.isclose(y.value[0, 0], np.linalg.norm(Xv, 2), atol=1e-10)
+
     def test_solve_nuc_tuple_matches_numpy(self) -> None:
         X = cp.Variable((3, 4, 5))
         y = cp.norm(X, "nuc", axis=(0, 2))
