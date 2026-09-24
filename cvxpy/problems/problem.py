@@ -1460,6 +1460,15 @@ class Problem(u.Canonical):
         self._solver_stats = SolverStats.from_dict(self._solution.attr,
                                          chain.solver.name())
 
+        if solution.status in (s.OPTIMAL, s.OPTIMAL_INACCURATE) and self.constraints:
+            max_violation = max(c.violation() for c in self.constraints)
+            if max_violation > s.FEASIBILITY_TOL:
+                warn(
+                    "Solver reported an optimal solution, but the maximum "
+                    f"constraint violation ({max_violation:.2e}) exceeds the "
+                    f"feasibility tolerance ({s.FEASIBILITY_TOL:.0e}). Consider "
+                    "trying another solver or adjusting solver settings."
+                )
 
     def __str__(self) -> str:
         if len(self.constraints) == 0:

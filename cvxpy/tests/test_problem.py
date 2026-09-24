@@ -2360,6 +2360,29 @@ class TestProblem(BaseTest):
             cp.Problem(cp.Maximize(0), [c >= 0])
             assert len(w) == 0
 
+    def test_feasibility_tolerance_warn(self) -> None:
+        """Test that a warning is raised when a reported-optimal solution
+        violates a constraint beyond the feasibility tolerance."""
+        x = cp.Variable()
+        problem = cp.Problem(cp.Minimize(x), [x >= 0])
+        with patch(
+            "cvxpy.constraints.constraint.Constraint.violation", return_value=1.0
+        ):
+            with warnings.catch_warnings(record=True) as w:
+                warnings.simplefilter("always")
+                problem.solve(solver=cp.CLARABEL)
+                assert any(
+                    "feasibility tolerance" in str(warning.message) for warning in w
+                )
+
+        # No warning when violations are within tolerance.
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            problem.solve(solver=cp.CLARABEL)
+            assert not any(
+                "feasibility tolerance" in str(warning.message) for warning in w
+            )
+
     def test_canonicalization_invert_none_duals(self) -> None:
         """Canonicalization.invert should handle None dual_vars."""
         x = cp.Variable(2)

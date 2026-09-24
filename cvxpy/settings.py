@@ -67,6 +67,8 @@ INACCURATE = [OPTIMAL_INACCURATE, INFEASIBLE_INACCURATE,
               UNBOUNDED_INACCURATE, USER_LIMIT]
 # Statuses that indicate an error.
 ERROR = [SOLVER_ERROR]
+# Default tolerance for the post-solve constraint feasibility check.
+FEASIBILITY_TOL = 1e-6
 
 # Solver names.
 CVXOPT = "CVXOPT"
