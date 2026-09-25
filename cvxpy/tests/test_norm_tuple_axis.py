@@ -56,13 +56,17 @@ class TestNormIntegerAxisND:
 
     @pytest.mark.parametrize("axis", [0, 1, 2])
     def test_pnorm2_axis_3d_solves(self, axis: int) -> None:
-        # Exercises the PnormApprox/SOC canonicalization route directly.
-        y = cp.pnorm(cp.Constant(self.X), 2, axis=axis)
-        expected = np.linalg.norm(self.X, 2, axis=axis).sum()
-        prob = cp.Problem(cp.Minimize(cp.sum(y)))
+        # Solve with a variable constrained to self.X so the N-D per-fiber
+        # SOC canonicalization is actually exercised (a Constant-only
+        # expression could be constant-folded and skip the lowering).
+        X = cp.Variable(self.X.shape)
+        y = cp.norm(X, 2, axis=axis)
+        prob = cp.Problem(cp.Minimize(cp.sum(y)), [X == self.X])
         prob.solve(solver=SOLVER)
         assert prob.status == cp.OPTIMAL
-        assert np.isclose(prob.value, expected, atol=1e-6)
+        expected = np.linalg.norm(self.X, 2, axis=axis)
+        assert y.shape == expected.shape
+        assert np.allclose(y.value, expected, atol=1e-6)
 
     def test_pnorm2_axis1_gradient(self) -> None:
         X = cp.Variable((3, 4, 5))
@@ -182,10 +186,20 @@ class TestMatrixNormTupleAxis:
         assert y.shape == (4,)
         assert np.allclose(y.value, expected, atol=1e-10)
 
-    def test_axis_ordering_equivalent(self) -> None:
-        a = cp.norm(cp.Constant(self.X), 2, axis=(0, 2))
-        b = cp.norm(cp.Constant(self.X), 2, axis=(2, 0))
-        assert np.allclose(a.value, b.value, atol=1e-10)
+    def test_axis_ordering_matches_numpy(self) -> None:
+        """Both tuple orders must match np.linalg.norm per slice.
+
+        Order matters for ord=1/np.inf (reversing the axes transposes each
+        matrix slice), while 2/"fro"/"nuc" are transpose-invariant. Each
+        ordering is therefore compared against NumPy directly instead of
+        asserting that the two orderings agree universally.
+        """
+        for p in [1, 2, np.inf, "fro", "nuc"]:
+            for axis in [(0, 2), (2, 0)]:
+                y = cp.norm(cp.Constant(self.X), p, axis=axis)
+                ref = np.linalg.norm(self.X, p, axis=axis)
+                assert y.shape == ref.shape, (p, axis)
+                assert np.allclose(y.value, ref, atol=1e-10), (p, axis)
 
     def test_negative_axes(self) -> None:
         a = cp.norm(cp.Constant(self.X), 2, axis=(0, 2))
@@ -232,21 +246,24 @@ class TestMatrixNormTupleAxis:
     def test_full_tuple_pairing_and_numpy(self) -> None:
         """A 2-tuple on a 2-D array is a scalar matrix norm (NumPy semantics).
 
-        (0,1) and (1,0) are exactly equivalent, and every supported ord matches
-        np.linalg.norm on the flattened 2-D input. In contrast a 1-tuple or an
-        int axis for 'fro'/'nuc' must still reject (single axis has no matrix
-        meaning).
+        Every supported ord matches np.linalg.norm for axis=(0, 1); the
+        reversed tuple (1, 0) transposes the matrix, so ord=1/np.inf differ
+        while 2/"fro"/"nuc" are transpose-invariant. In contrast a 1-tuple or
+        an int axis for 'fro'/'nuc' must still reject (single axis has no
+        matrix meaning).
         """
         Xv = np.arange(12, dtype=float).reshape(3, 4)
         Xc = cp.Constant(Xv)
         ords = [1, 2, np.inf, "fro", "nuc"]
         for p in ords:
             a = cp.norm(Xc, p, axis=(0, 1))
-            b = cp.norm(Xc, p, axis=(1, 0))
             ref = np.linalg.norm(Xv, ord=p)
             assert np.isclose(a.value, ref, atol=1e-10), (p, a.value, ref)
-            assert np.isclose(b.value, ref, atol=1e-10)
-            assert np.isclose(a.value, b.value, atol=1e-10)
+            b = cp.norm(Xc, p, axis=(1, 0))
+            ref_b = np.linalg.norm(Xv, ord=p, axis=(1, 0))
+            assert np.isclose(b.value, ref_b, atol=1e-10), (p, b.value, ref_b)
+            if p in (2, "fro", "nuc"):
+                assert np.isclose(a.value, b.value, atol=1e-10)
 
         # 1-tuple / int axis on 2-D: 'fro'/'nuc' still raise (single axis).
         for p in ("fro", "nuc"):
@@ -305,21 +322,6 @@ class TestTupleAxisValidation:
         X = cp.Constant(np.zeros((2, 3, 4)))
         with pytest.raises(ValueError, match="norm_inf"):
             cp.norm_inf(X, axis=(0, 2))
-
-    def test_nd_soc_lowering_still_rejected(self) -> None:
-        # The batched N-D SOC lowering is intentionally out of scope (it is
-        # a separate issue); pin that a direct 3-D SOC with an inner axis
-        # still fails loudly at problem-data time instead of silently
-        # producing wrong values. Checked by exception type only: the exact
-        # message belongs to the lowering internals.
-        t = cp.Variable(12)
-        prob = cp.Problem(
-            cp.Minimize(cp.sum(t)),
-            [cp.SOC(t, cp.Constant(np.zeros((3, 4, 5))), axis=2)],
-        )
-        with pytest.raises(AssertionError):
-            prob.get_problem_data(cp.CLARABEL)
-
 
 class TestEmptyAxes:
     """Empty-size inputs: NumPy defines every supported matrix norm of an

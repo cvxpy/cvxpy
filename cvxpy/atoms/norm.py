@@ -140,6 +140,11 @@ def _norm_over_matrix_axes(
             "remaining slices, matching NumPy semantics."
         )
     remaining = tuple(a for a in range(x.ndim) if a not in axes)
+    # CVXPY expressions are limited to 2 dimensions. Reducing two axes from
+    # an N-D input leaves ndim - 2 batch dimensions, and the per-slice norms
+    # are stacked into an expression of exactly that shape. ndim <= 4 keeps
+    # the result representable (at most 2 batch dimensions); larger inputs
+    # would require >2-D expressions, which CVXPY cannot represent.
     if len(remaining) > 2:
         raise NotImplementedError(
             "norm() with a two-element axis tuple is only supported for "
@@ -147,8 +152,9 @@ def _norm_over_matrix_axes(
         )
     if x.ndim == 2:
         # The tuple spans both axes of a matrix: NumPy returns a scalar
-        # (or a (1, 1) array with keepdims=True).
-        result = _matrix_norm(x, p)
+        # (or a (1, 1) array with keepdims=True). A reversed tuple
+        # transposes the matrix, which matters for ord=1/np.inf.
+        result = _matrix_norm(x.T if axes[0] > axes[1] else x, p)
         if keepdims:
             result = reshape(result, (1, 1), order='F')
         return result
@@ -167,12 +173,19 @@ def _norm_over_matrix_axes(
         return cvxpy.Constant(np.zeros(target))
     # Compute the matrix norm of each slice; np.ndindex enumerates the
     # remaining coordinates in C order, matching NumPy result layout.
+    # NumPy applies the matrix norm to each slice with row axis axes[0] and
+    # column axis axes[1]; plain slicing always yields the ascending-axis
+    # layout, so transpose each slice when the tuple order is reversed.
+    transpose = axes[0] > axes[1]
     entries = []
     for coords in np.ndindex(*remaining_shape):
         index = [slice(None)] * x.ndim
         for a, c in zip(remaining, coords):
             index[a] = c
-        entries.append(_matrix_norm(x[tuple(index)], p))
+        slice_ = x[tuple(index)]
+        if transpose:
+            slice_ = slice_.T
+        entries.append(_matrix_norm(slice_, p))
     if len(remaining) == 0:
         return entries[0]
     # Stack the scalar entries: hstack the (1,)-shaped entries, then reshape
