@@ -61,12 +61,10 @@ def std(x, axis=None, keepdims=False, ddof=0) -> Expression:
     # axes are moved to the front and flattened into one, in Fortran order,
     # and the result is folded back into the shape those axes left behind.
     axes = normalize_axis_tuple(axis, x.ndim, "axis")
-    kept = tuple(d for d in range(x.ndim) if d not in axes)
     moved = moveaxis(centered, axes, range(len(axes)))
     pooled = norm(reshape(moved, (_axis_size(x, axis), -1), order='F'), 2, axis=0) / scale
-    out_shape = tuple(x.shape[d] for d in kept)
-    if keepdims:
-        out_shape = tuple(1 if d in axes else x.shape[d] for d in range(x.ndim))
+    # The output shape is that of any other reduction along these axes.
+    out_shape = cvxpy_sum(x, axis=axis, keepdims=keepdims).shape
     return reshape(pooled, out_shape, order='F')
 
 
