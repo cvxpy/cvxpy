@@ -84,7 +84,7 @@ and returns a scalar.
      - average of the :math:`(1-\beta)`
        
        fraction of largest values in :math:`x`
-     - :math:`x \in \mathbf{R}^{m \times n}`
+     - :math:`x \in \mathbf{R}^m`
       
        :math:`\beta \in (0,1)`
      - sign depends on :math:`x`
