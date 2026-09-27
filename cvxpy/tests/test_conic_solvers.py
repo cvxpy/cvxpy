@@ -3119,6 +3119,26 @@ class TestHIGHS:
         }
         problem(solver=cp.HIGHS, highs_options=highs_options)
 
+    @pytest.mark.parametrize("limit", [{"time_limit": 0.0}, {"mip_max_nodes": 1}])
+    def test_highs_mip_limit_no_incumbent(self, limit) -> None:
+        """A MIP stopped by a limit before HiGHS finds any solution must not report one.
+
+        Previously the status was USER_LIMIT (in SOLUTION_PRESENT) and the variables were
+        set to HiGHS's placeholder column values (all zeros), which violate the constraints.
+        """
+        # A market split instance: A @ x == d has no binary solution, and HiGHS cannot
+        # find a feasible point or prove infeasibility within one node.
+        rng = np.random.default_rng(0)
+        A = rng.integers(0, 100, size=(3, 20))
+        d = A.sum(axis=1) // 2
+        x = cp.Variable(20, boolean=True)
+        prob = cp.Problem(cp.Minimize(0), [A @ x == d])
+        prob.solve(solver=cp.HIGHS, **limit)
+        if prob.status == cp.INFEASIBLE:
+            pytest.skip("HiGHS proved infeasibility before reaching the limit.")
+        assert prob.status == cp.INFEASIBLE_INACCURATE
+        assert x.value is None
+
 
 class TestAllSolvers(BaseTest):
 
