@@ -65,9 +65,9 @@ SciPy sparse arrays
     CVXPY keeps them sparse internally, so prefer them for large structured data.
 
 CVXPY ``Expression``
-    A symbolic object: a :py:class:`~cvxpy.expressions.variable.Variable`, a
-    :py:class:`~cvxpy.expressions.constants.parameter.Parameter`, a
-    :py:class:`~cvxpy.expressions.constants.constant.Constant`, or anything built
+    A symbolic object: a :py:class:`cp.Variable <cvxpy.expressions.variable.Variable>`, a
+    :py:class:`cp.Parameter <cvxpy.expressions.constants.parameter.Parameter>`, a
+    :py:class:`cp.Constant <cvxpy.expressions.constants.Constant>`, or anything built
     from them. All of them have a ``.shape``. A ``Constant`` always carries a
     numeric value and a ``Parameter`` carries one once assigned; a ``Variable``
     gets one from a solve, and keeps it afterwards.
@@ -118,16 +118,13 @@ intend to write:
     correct.solve()   # 0.0
     wrong.solve()     # 20.0
 
-Both problems are scalar-valued, both solve to optimality, and only one of them
-is the intended least-squares problem. The only difference is the shape of ``b``.
+Both problems solve to optimality, and only one of them is the intended
+least-squares problem. The only difference is the shape of ``b``.
 
 The habit that prevents this: **do not create explicit row or column vectors in
 Python unless something specifically requires one.** Write ``cp.Variable(n)``
-rather than ``cp.Variable((n, 1))``, and keep data one-dimensional with
-``b.ravel()`` when it arrives from a source that produced a column.
-
-When you do need a block structure, build it explicitly with
-:py:func:`~cvxpy.block` rather than relying on broadcasting to assemble it.
+rather than ``cp.Variable((n, 1))``. When data arrives from another source, check
+the shape that source produces before combining it with your expressions.
 
 .. _matlab-multiplication:
 
@@ -200,8 +197,8 @@ That has not been true since CVXPY 1.6, which introduced
 is valid today.
 
 Coverage is broad: elementwise atoms, axis reductions, indexing, reshaping and
-batched ``@`` all accept N-D input. A few atoms are still two-dimensional —
-``tv`` and ``cvar`` among them — and gaps are tracked on the issue tracker.
+batched ``@`` all accept N-D input. A few atoms are still limited to two
+dimensions.
 
 Things CVXPY rejects that CVX accepts
 -------------------------------------
