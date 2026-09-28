@@ -22,6 +22,8 @@ import cvxpy as cp
 from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS
 from cvxpy.tests.nlp_tests.derivative_checker import DerivativeChecker
 
+pytest.importorskip("sparsediffpy")
+
 
 def _spd(n, seed):
     """A symmetric positive-definite n x n matrix."""

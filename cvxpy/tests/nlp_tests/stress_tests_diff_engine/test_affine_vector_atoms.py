@@ -21,6 +21,8 @@ import cvxpy as cp
 from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS
 from cvxpy.tests.nlp_tests.derivative_checker import DerivativeChecker
 
+pytest.importorskip("sparsediffpy")
+
 
 def _duplicate_gather_problem():
     """gh-3442 shape: multiply of gathers whose index arrays contain

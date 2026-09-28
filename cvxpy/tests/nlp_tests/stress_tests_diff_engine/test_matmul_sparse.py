@@ -23,6 +23,8 @@ from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS
 from cvxpy.settings import SPARSE_DENSITY_THRESHOLD
 from cvxpy.tests.nlp_tests.derivative_checker import DerivativeChecker
 
+pytest.importorskip("sparsediffpy")
+
 
 @pytest.mark.skipif('IPOPT' not in INSTALLED_SOLVERS, reason='IPOPT is not installed.')
 class TestMatmulDifferentFormats:

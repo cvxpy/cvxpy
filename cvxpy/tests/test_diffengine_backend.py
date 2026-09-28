@@ -18,6 +18,7 @@ from __future__ import annotations
 import unittest
 
 import numpy as np
+import pytest
 import scipy.sparse as sp
 
 import cvxpy as cp
@@ -28,11 +29,14 @@ from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import (
     ParamConeProg,
 )
 from cvxpy.reductions.solvers.defines import INSTALLED_MI_SOLVERS
-from cvxpy.reductions.solvers.nlp_solvers.diff_engine.converters import (
+from cvxpy.tests.base_test import BaseTest
+
+pytest.importorskip("sparsediffpy")
+
+from cvxpy.reductions.solvers.nlp_solvers.diff_engine.converters import (  # noqa: E402
     convert_expr,
     convert_symbolic_quad_form,
 )
-from cvxpy.tests.base_test import BaseTest
 
 SOLVER = cp.CLARABEL
 DIFFENGINE = s.DIFFENGINE_CANON_BACKEND
