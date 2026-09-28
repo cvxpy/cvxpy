@@ -51,8 +51,15 @@ EOF
 
   # Backslash paths stop Git Bash from rewriting them when passed through env vars.
   root=$(cygpath -w "$PWD/$root")
-  LIB="$root\\lib;${LIB:-}" CMAKE_PREFIX_PATH="$root" \
-    python -m pip wheel --no-deps -w build/openblas/dist "${missing[@]}"
+  for spec in "${missing[@]}"; do
+    local args=()
+    # The runners put MinGW gcc on PATH, which meson picks over MSVC unless --vsenv is set.
+    if [[ "$spec" == scs* ]]; then
+      args=(-Csetup-args=--vsenv)
+    fi
+    LIB="$root\\lib;${LIB:-}" CMAKE_PREFIX_PATH="$root" \
+      python -m pip wheel --no-deps -w build/openblas/dist "${args[@]}" "$spec"
+  done
   delvewheel repair --add-path "$root\\bin" -w build/openblas/wheelhouse build/openblas/dist/*.whl
   uv pip install build/openblas/wheelhouse/*.whl
 }
