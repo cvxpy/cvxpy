@@ -64,7 +64,12 @@ EOF
   uv pip install build/openblas/wheelhouse/*.whl
 }
 
-uv venv
+if [[ "$RUNNER_OS" == "Windows" && "$RUNNER_ARCH" == "ARM64" ]]; then
+  # uv otherwise prefers the x64 free-threaded build, which runs emulated on ARM64.
+  uv venv --python "cpython-$PYTHON_VERSION-windows-aarch64"
+else
+  uv venv
+fi
 if [[ "$RUNNER_OS" == "Windows" ]]; then
   . .venv/Scripts/activate
 else
