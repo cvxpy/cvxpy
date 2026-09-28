@@ -78,6 +78,9 @@ fi
 
 uv pip install pytest pytest-cov hypothesis "setuptools>65.5.1"
 
+# FindPython before CMake 4.1 can't find free-threaded Python; runners may ship older CMake.
+export SKBUILD_CMAKE_VERSION=">=4.1"
+
 uv pip install clarabel osqp highspy
 
 # Keep the sparsediffpy spec in sync with pyproject.toml.
