@@ -602,10 +602,45 @@ class TestClarabel(BaseTest):
         StandardTestInfeasibleProblems.test_soc_exp_mixed(solver="CLARABEL")
 
 
+class TestCuClarabelFullP(BaseTest):
+    """CuClarabel's GPU path needs the full symmetric P; runs without a GPU."""
+
+    def test_triu_to_full_symmetric(self) -> None:
+        from cvxpy.reductions.solvers.conic_solvers.cuclarabel_conif import (
+            triu_to_full_symmetric,
+        )
+        rng = np.random.default_rng(0)
+        A = rng.standard_normal((6, 6))
+        P = A @ A.T
+        for given in (P, np.triu(P)):
+            out = triu_to_full_symmetric(sp.csc_array(given))
+            self.assertEqual(out.format, "csr")
+            self.assertItemsAlmostEqual(out.toarray(), P, places=12)
+        D = sp.diags_array([1.0, 2.0, 3.0]).tocsc()
+        self.assertItemsAlmostEqual(triu_to_full_symmetric(D).toarray(), D.toarray())
+
+
 @unittest.skipUnless('CUCLARABEL' in INSTALLED_SOLVERS, 'CLARABEL is not installed.')
 class TestCuClarabel(BaseTest):
 
     """ Unit tests for Clarabel. """
+    def test_cuclarabel_qp_nondiagonal_P(self) -> None:
+        """A dense (non-diagonal) P must match CLARABEL; a triu-only P on GPU does not."""
+        rng = np.random.default_rng(0)
+        n = 8
+        A = rng.standard_normal((n, n))
+        P = A @ A.T + 0.1 * np.eye(n)
+        q = rng.standard_normal(n)
+        x = cp.Variable(n)
+        prob = cp.Problem(
+            cp.Minimize(0.5 * cp.quad_form(x, cp.psd_wrap(P)) + q @ x), [x >= -1, x <= 1]
+        )
+        prob.solve(solver=cp.CLARABEL)
+        x_ref, v_ref = x.value.copy(), prob.value
+        prob.solve(solver=cp.CUCLARABEL)
+        self.assertItemsAlmostEqual(x.value, x_ref, places=4)
+        self.assertAlmostEqual(prob.value, v_ref, places=4)
+
     def setUp(self) -> None:
 
         self.x = cp.Variable(2, name='x')
