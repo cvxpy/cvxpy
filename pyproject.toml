@@ -51,6 +51,17 @@ reportGeneralTypeIssues = false     # 27 errors
 reportIndexIssue = false            # 17 errors
 reportOperatorIssue = false         # 48 errors
 
+[tool.interrogate]
+# Docstring coverage. The SWIG-generated C++ core and the test suite are
+# excluded, matching the exclusions declared for pyright above.
+exclude = ["cvxpy/cvxcore", "cvxpy/tests"]
+# Set to the coverage measured when this gate was introduced (2803 of 3923
+# nodes documented). It is a ratchet: raise it as coverage improves, never
+# lower it to make a change pass. There is no headroom at this value, so a
+# new undocumented public function will fail the gate -- document it, or
+# raise coverage elsewhere first.
+fail-under = 71.5
+
 [tool.pytest.ini_options]
 testpaths = [
     "cvxpy/tests/"
