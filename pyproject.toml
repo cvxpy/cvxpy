@@ -57,6 +57,7 @@ testpaths = [
 ]
 markers = [
     "knitro: tests that load the native KNITRO runtime; run in a separate process from other native solvers (see test_nlp_solvers.yml)",
+    "ortools: tests that load the native OR-Tools runtime (libortools.so bundles HiGHS); run in a separate process from HiGHS tests (google/or-tools#5246)",
 ]
 
 [build-system]
@@ -89,7 +90,7 @@ dependencies = [
     # triangle (which highs_qpif.py passes). See test_highs_dense_quad_form.
     "highspy >= 1.14.0",
     "qdldl >= 0.1.7.post0",
-    "sparsediffpy >= 0.6.0, < 0.7.0",
+    "sparsediffpy >= 0.6.1, < 0.7.0",
 ]
 requires-python = ">=3.11"
 urls = {Homepage = "https://github.com/cvxpy/cvxpy"}
@@ -121,6 +122,7 @@ GLPK = ["cvxopt"]
 GLPK_MI = ["cvxopt"]
 GUROBI = ["gurobipy"]
 HIGHS = ["highspy"]
+MOREAU = ["moreau>=0.4.1"]
 MOSEK = ["Mosek >= 10.0.0"]
 OSQP = []
 PDLP = ["ortools>=9.7,<9.15"]

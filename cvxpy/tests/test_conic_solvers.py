@@ -37,6 +37,7 @@ from cvxpy.problems.problem_form import ProblemForm
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.conic_solvers.cuopt_conif import CUOPT
 from cvxpy.reductions.solvers.conic_solvers.cvxopt_conif import compress_matrix
+from cvxpy.reductions.solvers.conic_solvers.scs_conif import SCS
 from cvxpy.reductions.solvers.defines import (
     INSTALLED_MI_SOLVERS,
     INSTALLED_SOLVERS,
@@ -128,6 +129,19 @@ class TestECOS(BaseTest):
         StandardTestMixedCPs.test_exp_soc_1(solver='ECOS')
 
 
+@pytest.mark.parametrize("version", ["3.2.11", "3.3.0", "3.3.1"])
+@pytest.mark.parametrize("indirect", [False, True])
+def test_scs_linear_solver_options(version, indirect):
+    with mock.patch("scs.__version__", version):
+        options = SCS.parse_solver_options({"use_indirect": indirect})
+    if Version(version) < Version("3.3.0"):
+        assert options["use_indirect"] == indirect
+        assert "linear_solver" not in options
+    else:
+        assert "use_indirect" not in options
+        assert options["linear_solver"] == ("cpu_indirect" if indirect else "qdldl")
+
+
 class TestSCS(BaseTest):
 
     """ Unit tests for SCS. """
@@ -175,11 +189,19 @@ class TestSCS(BaseTest):
         EPS = 1e-4
         x = cp.Variable(2, name='x')
         prob = cp.Problem(cp.Minimize(cp.norm(x, 1) + 1.0), [x == 0])
-        for i in range(2):
-            prob.solve(solver=cp.SCS, max_iters=50, eps=EPS, alpha=1.2,
-                       verbose=True, normalize=True, use_indirect=False)
-        self.assertAlmostEqual(prob.value, 1.0, places=2)
-        self.assertItemsAlmostEqual(x.value, [0, 0], places=2)
+        for indirect in (False, True):
+            for _ in range(2):
+                prob.solve(solver=cp.SCS, max_iters=50, eps=EPS, alpha=1.2,
+                           verbose=True, normalize=True, use_indirect=indirect)
+            self.assertAlmostEqual(prob.value, 1.0, places=2)
+            self.assertItemsAlmostEqual(x.value, [0, 0], places=2)
+
+    def test_scs_explicit_linear_solver(self) -> None:
+        with mock.patch("scs.__version__", "3.3.1"):
+            self.assertEqual(SCS.parse_solver_options({"linear_solver": "auto"})[
+                "linear_solver"], "auto")
+            with self.assertRaisesRegex(ValueError, "Specify only one"):
+                SCS.parse_solver_options({"use_indirect": True, "linear_solver": "qdldl"})
 
     def test_log_problem(self) -> None:
         # Log in objective.
@@ -476,39 +498,7 @@ class TestClarabel(BaseTest):
         self.C = cp.Variable((3, 2), name='C')
 
     def test_clarabel_parameter_update(self) -> None:
-        """Test warm start.
-        """
-        x = cp.Variable(2)
-        P = cp.Parameter(nonneg=True),
-        A = cp.Parameter(4)
-        b = cp.Parameter(2, nonneg=True)
-        q = cp.Parameter(2)
-
-        def update_parameters(P, A, b, q):
-            P[0].value = np.random.rand()
-            A.value = np.random.randn(4)
-            b.value = np.random.rand(2)
-            q.value = np.random.randn(2)
-
-        prob = cp.Problem(
-                cp.Minimize(P[0]*cp.square(x[0]) + cp.quad_form(x, np.ones([2, 2])) + q.T @ x),
-                [A[0] * x[0] + A[1] * x[1] == b[0],
-                 A[2] * x[0] + A[3] * x[1] <= b[1]]
-            )
-
-        update_parameters(P, A, b, q)
-        result1 = prob.solve(solver=cp.CLARABEL, warm_start=False)
-        result2 = prob.solve(solver=cp.CLARABEL, warm_start=True)
-        self.assertAlmostEqual(result1, result2)
-
-        update_parameters(P, A, b, q)
-        result1 = prob.solve(solver=cp.CLARABEL, warm_start=True)
-        result2 = prob.solve(solver=cp.CLARABEL, warm_start=False)
-        self.assertAlmostEqual(result1, result2)
-
-        # consecutive solves, no data update
-        result1 = prob.solve(solver=cp.CLARABEL, warm_start=False)
-        self.assertAlmostEqual(result1, result2)
+        StandardTestQPs.test_qp_parameter_update(solver=cp.CLARABEL)
 
 
     def test_clarabel_lp_0(self) -> None:
@@ -805,40 +795,38 @@ class TestMoreau(BaseTest):
         self.C = cp.Variable((3, 2), name='C')
 
     def test_moreau_parameter_update(self) -> None:
-        """Test warm start.
-        """
-        x = cp.Variable(2)
-        P = cp.Parameter(nonneg=True),
-        A = cp.Parameter(4)
-        b = cp.Parameter(2, nonneg=True)
-        q = cp.Parameter(2)
+        StandardTestQPs.test_qp_parameter_update(solver=cp.MOREAU)
 
-        def update_parameters(P, A, b, q):
-            P[0].value = np.random.rand()
-            A.value = np.random.randn(4)
-            b.value = np.random.rand(2)
-            q.value = np.random.randn(2)
+    def test_moreau_compiled_solver_updates(self) -> None:
+        x = cp.Variable()
+        p, q, a, b = cp.Parameter(nonneg=True), cp.Parameter(), cp.Parameter(), cp.Parameter()
+        problem = cp.Problem(cp.Minimize(p * cp.square(x) / 2 + q * x), [x >= 0, a * x <= b])
+        previous = None
+        for pv, qv, av, bv, max_iter, expected, reuse in (
+            (2., -4., 1., 1., 200, 1., False),
+            (2., -6., 1., 2., 200, 2., True),  # Only q and b change.
+            (4., -6., 2., 2., 200, 1., True),  # P and A values change.
+            (4., -6., 2., 2., 100, 1., False),  # Settings change.
+            (4., -6., 2., 0., 100, 0., False),  # b sparsity changes.
+        ):
+            p.value, q.value, a.value, b.value = pv, qv, av, bv
+            problem.solve(solver=cp.MOREAU, device="cpu", max_iter=max_iter)
+            self.assertEqual(problem.status, cp.OPTIMAL)
+            self.assertAlmostEqual(x.value, expected, places=4)
+            current = problem._solver_cache[cp.MOREAU]["solver"]
+            self.assertEqual(current is previous, reuse)
+            previous = current
 
-        prob = cp.Problem(
-                cp.Minimize(P[0]*cp.square(x[0]) + cp.quad_form(x, np.ones([2, 2])) + q.T @ x),
-                [A[0] * x[0] + A[1] * x[1] == b[0],
-                 A[2] * x[0] + A[3] * x[1] <= b[1]]
-            )
-
-        update_parameters(P, A, b, q)
-        result1 = prob.solve(solver=cp.MOREAU, warm_start=False)
-        result2 = prob.solve(solver=cp.MOREAU, warm_start=True)
-        self.assertAlmostEqual(result1, result2)
-
-        update_parameters(P, A, b, q)
-        result1 = prob.solve(solver=cp.MOREAU, warm_start=True)
-        result2 = prob.solve(solver=cp.MOREAU, warm_start=False)
-        self.assertAlmostEqual(result1, result2)
-
-        # consecutive solves, no data update
-        result1 = prob.solve(solver=cp.MOREAU, warm_start=False)
-        self.assertAlmostEqual(result1, result2)
-
+    def test_moreau_infeasible_clears_warm_start(self) -> None:
+        x = cp.Variable()
+        bound = cp.Parameter(value=1.)
+        problem = cp.Problem(cp.Minimize(-x), [x >= 0, x <= bound])
+        problem.solve(solver=cp.MOREAU, device="cpu")
+        self.assertIn(cp.MOREAU, problem._solver_cache)
+        bound.value = -1.
+        problem.solve(solver=cp.MOREAU, device="cpu", warm_start=False)
+        self.assertEqual(problem.status, cp.INFEASIBLE)
+        self.assertNotIn(cp.MOREAU, problem._solver_cache)
 
     def test_moreau_lp_0(self) -> None:
         StandardTestLPs.test_lp_0(solver=cp.MOREAU)
@@ -899,7 +887,7 @@ class TestMoreau(BaseTest):
         StandardTestPCPs.test_pcp_2(solver='MOREAU', ipm_settings=ipm_settings)
 
     def test_moreau_variable_soc_dims(self) -> None:
-        """Test that Moreau handles SOC constraints of dimension > 3 directly."""
+        """Moreau accepts SOCs of dimension greater than three."""
         x = cp.Variable(5)
         t = cp.Variable()
         # SOC constraint: ||x|| <= t, which is a dim-6 SOC
@@ -908,11 +896,93 @@ class TestMoreau(BaseTest):
         self.assertEqual(prob.status, cp.OPTIMAL)
         self.assertAlmostEqual(prob.value, np.sqrt(5), places=4)
 
-        # Verify the solver receives variable-length SOC dims (not all dim-3)
         data, _, _ = prob.get_problem_data(solver=cp.MOREAU)
-        soc_dims = data[ConicSolver.DIMS].soc
-        self.assertTrue(any(d > 3 for d in soc_dims))
+        self.assertEqual([len(c.indices) for c in data['dir_cones'] if c.kind == 'soc'], [6])
 
+    def test_moreau_sdp_1min(self) -> None:
+        StandardTestSDPs.test_sdp_1min(solver=cp.MOREAU)
+
+    def test_moreau_sdp_1max(self) -> None:
+        StandardTestSDPs.test_sdp_1max(solver=cp.MOREAU)
+
+    def test_moreau_sdp_2(self) -> None:
+        # The optimizer is nonunique; check optimality and feasibility.
+        sth = sths.sdp_2()
+        sth.solve(cp.MOREAU)
+        sth.verify_objective(3)
+        sth.check_primal_feasibility(3)
+        sth.check_complementarity(3)
+        sth.check_dual_domains(3)
+
+    def test_moreau_sdp_batched(self) -> None:
+        StandardTestSDPs.test_sdp_batched(solver=cp.MOREAU)
+
+    def test_moreau_quadratic_direct_cone_dual(self) -> None:
+        x = cp.Variable(2)
+        constraint = x >= 0
+        P = np.diag([4., 0.25])
+        problem = cp.Problem(cp.Minimize(cp.quad_form(x, P) / 2 - 4 * x[0] + 2 * x[1]),
+                             [constraint])
+        previous = None
+        for warm_start in (False, True, False):
+            problem.solve(solver=cp.MOREAU, device="cpu", warm_start=warm_start)
+            current = problem._solver_cache[cp.MOREAU]["solver"]
+            self.assertEqual(current is previous, warm_start)
+            previous = current
+            self.assertEqual(problem.solver_stats.num_iters == 0, warm_start)
+            self.assertItemsAlmostEqual(x.value, [1, 0], places=4)
+            self.assertItemsAlmostEqual(constraint.dual_value, [0, 2], places=4)
+
+    def test_moreau_quadratic_psd_scaling(self) -> None:
+        X = cp.Variable((2, 2), symmetric=True)
+        target = np.array([[1., 2.], [2., 1.]])
+        constraint = X >> 0
+        problem = cp.Problem(
+            cp.Minimize(cp.sum_squares(X) - 2 * cp.sum(cp.multiply(target, X))),
+            [constraint],
+        )
+        previous = None
+        for warm_start in (False, True, False):
+            value = problem.solve(solver=cp.MOREAU, device="cpu", warm_start=warm_start)
+            current = problem._solver_cache[cp.MOREAU]["solver"]
+            self.assertEqual(current is previous, warm_start)
+            previous = current
+            self.assertEqual(problem.solver_stats.num_iters == 0, warm_start)
+            self.assertAlmostEqual(value, -9., places=4)
+            self.assertItemsAlmostEqual(X.value, np.full((2, 2), 1.5), places=4)
+            self.assertItemsAlmostEqual(constraint.dual_value, np.array([[1, -1], [-1, 1]]),
+                                        places=4)
+
+    def test_moreau_mixed_slack_cone_order_with_direct_cone(self) -> None:
+        """PSD, EXP, and POW3D remain correctly ordered beside a direct cone."""
+        x = cp.Variable(nonneg=True)
+        X = cp.Variable((2, 2), symmetric=True)
+        e = cp.Variable(3)
+        p = cp.Variable(3)
+        constraints = [
+            X == 0,
+            e == 0,
+            p == 0,
+            X + np.eye(2) >> 0,
+            cp.constraints.ExpCone(e[0], e[1] + 1, e[2] + 2),
+            cp.constraints.PowCone3D(p[0] + 1, p[1] + 1, p[2] + 0.25, 0.4),
+        ]
+        prob = cp.Problem(cp.Minimize(0.5 * cp.square(x) - x), constraints)
+
+        data, _, _ = prob.get_problem_data(solver=cp.MOREAU)
+        dims = data[ConicSolver.DIMS]
+        self.assertEqual(dims.psd, [2])
+        self.assertEqual(dims.exp, 1)
+        self.assertItemsAlmostEqual(dims.p3d, [0.4])
+        self.assertIn('nonneg', [cone.kind for cone in data['dir_cones']])
+
+        value = prob.solve(
+            solver=cp.MOREAU,
+            ipm_settings={"presolve_enable": False, "equilibrate_enable": False},
+        )
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        self.assertAlmostEqual(value, -0.5, places=6)
+        self.assertAlmostEqual(x.value, 1.0, places=6)
 
 def is_mosek_available():
     """Check if MOSEK is installed and a license is available."""
@@ -1624,6 +1694,7 @@ class TestGLPK(unittest.TestCase):
         sth.verify_primal_values(places=4)
 
 
+@pytest.mark.ortools
 @unittest.skipUnless('GLOP' in INSTALLED_SOLVERS, 'GLOP is not installed.')
 class TestGLOP(unittest.TestCase):
 
@@ -1683,6 +1754,7 @@ class TestGLOP(unittest.TestCase):
         StandardTestLPs.test_lp_bound_attr(solver='GLOP', duals=False)
 
 
+@pytest.mark.ortools
 @unittest.skipUnless('PDLP' in INSTALLED_SOLVERS, 'PDLP is not installed.')
 class TestPDLP(unittest.TestCase):
 
@@ -3078,6 +3150,13 @@ class TestAllSolvers(BaseTest):
                     pass
                 elif solver is cp.KNITRO and not is_knitro_available():
                     pass
+                # OR-Tools >= 9.14 bundles HiGHS inside libortools.so.
+                # Loading both in the same process causes native symbol
+                # conflicts (google/or-tools#5246); GLOP/PDLP coverage
+                # is provided by TestGLOP/TestPDLP in the isolated
+                # -m ortools pytest invocation.
+                elif solver in ("GLOP", "PDLP"):
+                    pass
                 else:
                     prob.solve(solver=solver)
                     self.assertAlmostEqual(prob.value, 1.0)
@@ -3831,7 +3910,22 @@ class TestCUOPT(unittest.TestCase):
             self.assertIsNone(w.value)
 
 
-@pytest.mark.parametrize("solver", INSTALLED_SOLVERS)
+def _ortools_params(solvers):
+    """Wrap GLOP/PDLP solver names with ``pytest.mark.ortools``.
+
+    This keeps those parameter variants in the isolated OR-Tools pytest
+    process and out of the main conic-solver invocation (google/or-tools#5246).
+    """
+    result = []
+    for s in solvers:
+        if s in ("GLOP", "PDLP"):
+            result.append(pytest.param(s, marks=[pytest.mark.ortools], id=s))
+        else:
+            result.append(s)
+    return result
+
+
+@pytest.mark.parametrize("solver", _ortools_params(INSTALLED_SOLVERS))
 def test_offset_in_opt_val(solver):
     """Solvers must add the constant OFFSET back in invert().
 

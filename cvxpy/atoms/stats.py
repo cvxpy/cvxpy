@@ -17,8 +17,11 @@ limitations under the License.
 import numbers
 
 import numpy as np
+from numpy.lib.array_utils import normalize_axis_tuple
 
+from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.atoms.affine.sum import sum as cvxpy_sum
+from cvxpy.atoms.affine.transpose import moveaxis
 from cvxpy.atoms.axis_atom import axis_size
 from cvxpy.atoms.norm import norm
 from cvxpy.atoms.sum_squares import sum_squares
@@ -40,11 +43,22 @@ def std(x, axis=None, keepdims=False, ddof=0) -> Expression:
     """
     if axis is None:
         return norm((x - mean(x)).flatten(order='F'), 2) / np.sqrt(x.size - ddof)
-    elif isinstance(axis, numbers.Integral):
-        return norm(x - mean(x, axis, True), 2, axis=axis, keepdims=keepdims) \
-                / np.sqrt(axis_size(x, axis) - ddof)
-    else:
-        raise ValueError("cp.std doesn't yet support tuple axis values.")
+
+    centered = x - mean(x, axis, True)
+    scale = np.sqrt(axis_size(x, axis) - ddof)
+    if isinstance(axis, numbers.Integral):
+        return norm(centered, 2, axis=axis, keepdims=keepdims) / scale
+
+    # A tuple of axes pools the entries of every axis it names, which is one
+    # vector per remaining position. norm takes a single axis, so the pooled
+    # axes are moved to the front and flattened into one, in Fortran order,
+    # and the result is folded back into the shape those axes left behind.
+    axes = normalize_axis_tuple(axis, x.ndim, "axis")
+    moved = moveaxis(centered, axes, range(len(axes)))
+    pooled = norm(reshape(moved, (axis_size(x, axis), -1), order='F'), 2, axis=0) / scale
+    # The output shape is that of any other reduction along these axes.
+    out_shape = cvxpy_sum(x, axis=axis, keepdims=keepdims).shape
+    return reshape(pooled, out_shape, order='F')
 
 
 def var(x, axis=None, keepdims=False, ddof=0) -> Expression:

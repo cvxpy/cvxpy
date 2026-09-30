@@ -95,7 +95,7 @@ Solve for several :math:`\alpha` values
         
         # Form and solve optimization problem.
         prob = cp.Problem(obj, constraints)
-        prob.solve(solver=cp.CVXOPT)
+        prob.solve()
         if prob.status != cp.OPTIMAL:
             raise Exception('CVXPY Error')
     

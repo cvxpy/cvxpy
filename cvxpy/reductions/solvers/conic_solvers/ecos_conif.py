@@ -94,15 +94,12 @@ class ECOS(ConicSolver):
         data = {}
         inv_data = {self.VAR_ID: problem.x.id}
 
-        # Format constraints
-        #
+        # Rows arrive in this order, established by the ConeFormat reduction.
         # ECOS requires constraints to be specified in the following order:
         # 1. zero cone
         # 2. non-negative orthant
         # 3. soc
         # 4. exponential
-        if not problem.formatted:
-            problem = self.format_constraints(problem, self.EXP_CONE_ORDER)
         data[s.PARAM_PROB] = problem
         data[self.DIMS] = problem.cone_dims
         inv_data[self.DIMS] = problem.cone_dims

@@ -95,7 +95,7 @@ The table below shows the types of problems the supported solvers can handle.
 +----------------+----+----+------+-----+-----+-----+-----+
 | `GUROBI`_      | X  | X  | X    |     |     |     | X   |
 +----------------+----+----+------+-----+-----+-----+-----+
-| `MOREAU`_      | X  | X  | X    |     | X   | X   |     |
+| `MOREAU`_      | X  | X  | X    | X   | X   | X   |     |
 +----------------+----+----+------+-----+-----+-----+-----+
 | `MOSEK`_       | X  | X  | X    | X   | X   | X   | X** |
 +----------------+----+----+------+-----+-----+-----+-----+
@@ -291,6 +291,13 @@ warm start would only be a good initial point.
 
 Warm start can also be used to provide an initial guess the first time a problem is solved.
 The initial guess is constructed from the ``value`` field of the problem variables.
+
+.. note::
+   As of now, this initial-guess behavior is not implemented for most solver
+   backends. Setting a variable's ``value`` before the first solve currently
+   has no effect on the result. See `#1355
+   <https://github.com/cvxpy/cvxpy/issues/1355>`_ for details and status.
+
 If the same problem is solved a second time, the initial guess is constructed from the
 cached previous solution as described above (rather than from the ``value`` field).
 

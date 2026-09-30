@@ -16,6 +16,7 @@ limitations under the License.
 
 import unittest
 from fractions import Fraction
+from unittest.mock import patch
 
 import numpy as np
 import pytest
@@ -124,6 +125,21 @@ class TestAtoms(BaseTest):
             cp.norm(x, 'nuc')
         self.assertTrue(str(cm.exception) in (
             "Unsupported norm option nuc for non-matrix."))
+
+        # A matrix norm has no meaning along a single axis. This used to return
+        # the norm of the whole array for axis=0 and raise an AxisError from
+        # inside the flattened expression for anything else.
+        X = cp.Variable((3, 4))
+        for p in ('fro', 'nuc', 'Fro'):
+            for axis in (0, 1, (0, 1)):
+                with self.assertRaises(ValueError) as cm:
+                    cp.norm(X, p, axis=axis)
+                assert "not supported for the" in str(cm.exception)
+
+        # Without an axis both are unchanged.
+        A = np.arange(12., dtype=float).reshape(3, 4)
+        assert np.isclose(cp.norm(cp.Constant(A), 'fro').value, np.linalg.norm(A, 'fro'))
+        assert np.isclose(cp.norm(cp.Constant(A), 'nuc').value, np.linalg.norm(A, 'nuc'))
 
     def test_quad_form(self) -> None:
         """Test quad_form atom.
@@ -2116,15 +2132,22 @@ class TestAtoms(BaseTest):
                 assert np.allclose(a.mean(axis=axis, keepdims=keepdims), expr_mean.value)
                 assert np.allclose(a.var(axis=axis, keepdims=keepdims), expr_var.value)
 
-        for axis in [0, 1, 2]:
+        for axis in [0, 1, 2, (0, 1), (1, 2), (0, 2), (0,), (0, 1, 2), (-3, -1)]:
             for keepdims in [True, False]:
-                expr_std = cp.std(a, axis=axis, keepdims=keepdims)
+                for ddof in [0, 1]:
+                    expr_std = cp.std(a, axis=axis, keepdims=keepdims, ddof=ddof)
+                    want = a.std(axis=axis, keepdims=keepdims, ddof=ddof)
 
-                assert expr_std.shape == a.std(axis=axis, keepdims=keepdims).shape
-                assert np.allclose(a.std(axis=axis, keepdims=keepdims), expr_std.value)
+                    assert expr_std.shape == want.shape
+                    assert np.allclose(want, expr_std.value)
 
-        with self.assertRaises(ValueError):
-            cp.std(a, axis=(0, 1))
+        # A tuple of axes stays DCP and solves.
+        X = cp.Variable((2, 3, 4))
+        prob = cp.Problem(cp.Minimize(cp.sum(cp.std(X, axis=(0, 2)))), [X >= 1])
+        assert prob.is_dcp()
+        prob.solve()
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        self.assertAlmostEqual(prob.value, 0.0, places=6)
 
     def test_partial_optimize_dcp(self) -> None:
         """Test DCP properties of partial optimize.
@@ -3040,6 +3063,28 @@ class TestAtoms(BaseTest):
         """real(symmetric) is symmetric."""
         S = Variable((3, 3), symmetric=True)
         self.assertTrue(cp.real(S).is_symmetric())
+
+    def test_sum_scalar_axes(self):
+        scalar = cp.Parameter(value=2.0)
+        for axis in (None, 0, -1, np.int64(0), np.int64(-1), ()):
+            for keepdims in (False, True):
+                with self.subTest(axis=axis, keepdims=keepdims):
+                    expected = np.sum(scalar.value, axis=axis, keepdims=keepdims)
+                    expr = cp.sum(scalar, axis=axis, keepdims=keepdims)
+                    self.assertEqual(expr.shape, expected.shape)
+                    self.assertEqual(expr.value, expected)
+                    self.assertTrue(expr.is_dpp())
+        for axis in (1, -2, (0,), (-1,), (0, -1), 0.0, False):
+            with self.subTest(axis=axis):
+                with self.assertRaisesRegex(ValueError, "Invalid arguments for cp.sum"):
+                    cp.sum(scalar, axis=axis)
+
+    def test_sum_shape_without_allocation(self):
+        x = cp.Variable((2, 3, 4))
+        with patch("numpy.empty", side_effect=AssertionError("Shape inference allocated")):
+            with np.errstate(all="raise"):
+                self.assertEqual(cp.sum(x, axis=(0, -1)).shape, (3,))
+                self.assertEqual(cp.sum(x, axis=(), keepdims=True).shape, x.shape)
 
     def test_sum_shape_inference(self):
         """

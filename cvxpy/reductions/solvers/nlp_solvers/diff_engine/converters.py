@@ -21,6 +21,10 @@ from sparsediffpy import _sparsediffengine as _diffengine
 
 import cvxpy as cp
 import cvxpy.settings as s
+from cvxpy.atoms.elementwise.power import Power
+from cvxpy.atoms.quad_form import QuadForm
+from cvxpy.atoms.quad_over_lin import quad_over_lin
+from cvxpy.expressions.constants.parameter import is_param_free
 from cvxpy.reductions.solvers.nlp_solvers.diff_engine.helpers import (
     make_dense_left_matmul,
     make_dense_right_matmul,
@@ -30,6 +34,22 @@ from cvxpy.reductions.solvers.nlp_solvers.diff_engine.helpers import (
     to_dense_float,
 )
 from cvxpy.reductions.solvers.nlp_solvers.diff_engine.registry import ATOM_CONVERTERS
+
+
+def _matmul_children(expr, var_dict, n_vars, param_dict):
+    """Convert a matmul's operands, leaving out the one whose value
+    ``convert_matmul`` reads numerically -- an engine node for it would be
+    built and then ignored. A parametric operand is always converted, since
+    the engine re-evaluates it.
+    """
+    left_arg, right_arg = expr.args
+    skip = None
+    if left_arg.is_constant() and is_param_free(left_arg) and not right_arg.is_constant():
+        skip = 0
+    elif right_arg.is_constant() and is_param_free(right_arg) and not left_arg.is_constant():
+        skip = 1
+    return [None if i == skip else convert_expr(arg, var_dict, n_vars, param_dict)
+            for i, arg in enumerate(expr.args)]
 
 
 def convert_matmul(expr, children, var_dict, n_vars, param_dict):
@@ -91,6 +111,56 @@ def convert_multiply(expr, children, var_dict, n_vars, param_dict):
         return _diffengine.make_multiply(children[0], children[1])
 
 
+def convert_symbolic_quad_form(expr, var_dict, n_vars, param_dict):
+    """Convert a SymbolicQuadForm (Dcp2Cone quadratic-objective placeholder).
+
+    Scalar x'Px (QuadForm / quad_over_lin / sum_squares) uses the native quad_form
+    binding, routed by how P is stored: the sparse CSR path for a sparse P, the
+    dense path otherwise. power/PowerApprox is the elementwise square, lowered
+    to multiply.
+    """
+    if expr.block_indices is not None:
+        raise NotImplementedError(
+            "SymbolicQuadForm with block_indices (axis-reduced quad form) is not "
+            "supported by the diff engine."
+        )
+
+    orig = expr.original_expression
+    if isinstance(orig, (QuadForm, quad_over_lin)):
+        x = expr.args[0]
+        P = expr.args[1]
+        if P.parameters():
+            # Unreachable through the gated DIFFENGINE backend (the stuffing
+            # rejects parametric problems); fail loud for direct callers.
+            raise NotImplementedError(
+                "SymbolicQuadForm with a parametric P is not supported by "
+                "the diff engine.")
+        x_c = convert_expr(x, var_dict, n_vars, param_dict)
+        P_val = P.value
+        if sparse.issparse(P_val):
+            P_csr = P_val.tocsr()
+            return _diffengine.make_quad_form(
+                None, x_c, "sparse",
+                P_csr.data.astype(np.float64),
+                P_csr.indices.astype(np.int32),
+                P_csr.indptr.astype(np.int32),
+                P_csr.shape[0], P_csr.shape[1])
+        P_dense = to_dense_float(P_val)
+        return _diffengine.make_quad_form(
+            None, x_c, "dense", P_dense.flatten(order='F'), x.size)
+
+    if isinstance(orig, Power):  # PowerApprox subclasses Power; canon only p == 2
+        # The elementwise square, rebuilt over the leaf arg: the engine's
+        # init_jacobian segfaults on a quad form over a compound argument.
+        x = expr.args[0]
+        return convert_expr(cp.multiply(x, x), var_dict, n_vars, param_dict)
+
+    raise NotImplementedError(
+        f"SymbolicQuadForm over '{type(orig).__name__}' is not supported by the "
+        "diff engine."
+    )
+
+
 def convert_expr(expr, var_dict, n_vars, param_dict=None):
     """Convert a CVXPY expression to a C diff engine expression.
 
@@ -108,18 +178,28 @@ def convert_expr(expr, var_dict, n_vars, param_dict=None):
     if isinstance(expr, cp.Parameter):
         return param_dict[expr.id]
 
-    # Base case: constant (in the diff engine, a constant is a parameter with ID -1)
-    if isinstance(expr, cp.Constant):
+    # Base case: a constant leaf or subtree (a parameter with ID -1 in the
+    # engine). Dcp2Cone leaves constant subtrees alone, so nonlinear atoms
+    # over constants reach the converter.
+    if expr.is_constant() and is_param_free(expr):
         c = to_dense_float(expr.value)
         d1, d2 = normalize_shape(expr.shape)
         return _diffengine.make_parameter(d1, d2, -1, n_vars, c.flatten(order='F'))
 
     # Recursive case: atoms
     atom_name = type(expr).__name__
-    children = [convert_expr(arg, var_dict, n_vars, param_dict) for arg in expr.args]
 
-    # matmul and multiply need param_dict for parameter support
-    # TODO: maybe multiply doesn't need parameter dict special case
+    # Handle SymbolicQuadForm before converting its args: its P arg may
+    # itself be unconvertible (e.g. a parametric divisor).
+    if atom_name == "SymbolicQuadForm":
+        return convert_symbolic_quad_form(expr, var_dict, n_vars, param_dict)
+
+    if atom_name == "MulExpression":
+        children = _matmul_children(expr, var_dict, n_vars, param_dict)
+    else:
+        children = [convert_expr(arg, var_dict, n_vars, param_dict)
+                    for arg in expr.args]
+
     if atom_name == "MulExpression":
         C_expr = convert_matmul(expr, children, var_dict, n_vars, param_dict)
     elif atom_name == "multiply":
@@ -127,6 +207,8 @@ def convert_expr(expr, var_dict, n_vars, param_dict=None):
     elif atom_name in ATOM_CONVERTERS:
         C_expr = ATOM_CONVERTERS[atom_name](expr, children)
     else:
+        # Variable-free parametric subtrees with no converter fail loud
+        # rather than baking a stale value.
         raise NotImplementedError(f"Atom '{atom_name}' not supported")
 
     # check that python dimension is consistent with C dimension

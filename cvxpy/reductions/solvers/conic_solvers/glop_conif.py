@@ -70,8 +70,6 @@ class GLOP(ConicSolver):
         # Create data and inv_data objects
         data = {}
         inv_data = {self.VAR_ID: problem.x.id}
-        if not problem.formatted:
-            problem = self.format_constraints(problem, None)
         data[s.PARAM_PROB] = problem
         data[self.DIMS] = problem.cone_dims
 

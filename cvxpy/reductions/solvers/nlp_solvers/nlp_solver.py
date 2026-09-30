@@ -176,7 +176,7 @@ class Oracles:
     ) -> None:
         from cvxpy.reductions.solvers.nlp_solvers.diff_engine import C_problem
 
-        self.c_problem = C_problem(problem, verbose=verbose)
+        self.c_problem = C_problem.from_problem(problem, verbose=verbose)
         self.use_hessian = use_hessian
 
         # Always initialize Jacobian
