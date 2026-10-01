@@ -20,7 +20,6 @@
    <style>
    .md-main__inner.md-grid { max-width: 80rem; }
    .workshop-2027-date {
-     color: #3d2e88;
      font-weight: 700;
    }
    .workshop-2027-button {
@@ -78,7 +77,6 @@
    }
    .workshop-2027-schedule .break-session { background: #f2f4f6; color: #25303b; }
    .workshop-2027-schedule .talk-speaker { display: block; font-weight: 300; }
-   body[data-md-color-scheme="slate"] .workshop-2027-date { color: #c6b8ff; }
    body[data-md-color-scheme="slate"] .workshop-2027-schedule table,
    body[data-md-color-scheme="slate"] .workshop-2027-schedule th,
    body[data-md-color-scheme="slate"] .workshop-2027-schedule td {
