@@ -140,16 +140,11 @@ def _norm_over_matrix_axes(
             "remaining slices, matching NumPy semantics."
         )
     remaining = tuple(a for a in range(x.ndim) if a not in axes)
-    # CVXPY expressions are limited to 2 dimensions. Reducing two axes from
-    # an N-D input leaves ndim - 2 batch dimensions, and the per-slice norms
-    # are stacked into an expression of exactly that shape. ndim <= 4 keeps
-    # the result representable (at most 2 batch dimensions); larger inputs
-    # would require >2-D expressions, which CVXPY cannot represent.
-    if len(remaining) > 2:
-        raise NotImplementedError(
-            "norm() with a two-element axis tuple is only supported for "
-            "expressions with at most 4 dimensions."
-        )
+    # No dimension ceiling is imposed here: N-D expressions and N-D reshape
+    # targets are supported under the current ALLOW_ND_EXPR configuration.
+    # Reducing two axes from an N-D input leaves ndim - 2 batch dimensions,
+    # and the per-slice norms are stacked and reshaped into exactly that
+    # shape, so arbitrarily many batch axes are representable.
     if x.ndim == 2:
         # The tuple spans both axes of a matrix: NumPy returns a scalar
         # (or a (1, 1) array with keepdims=True). A reversed tuple

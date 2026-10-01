@@ -350,3 +350,71 @@ class TestEmptyAxes:
         y = cp.norm(cp.Constant(np.zeros((0, 4, 5))), p, axis=(0, 2))
         assert y.shape == (4,)
         assert np.allclose(np.asarray(y.value), np.zeros(4))
+
+
+class TestNDTupleAxisBeyond4D:
+    """No artificial ndim ceiling: two-element tuple axes work on inputs
+    above 4-D. N-D expressions and N-D reshape targets are supported under
+    the current ALLOW_ND_EXPR configuration, so reducing two axes from a
+    5-D input leaves a 3-D batch result, and a 6-D input reduced over two
+    axes yields a 4-D result.
+    """
+
+    def setup_method(self) -> None:
+        self.X = np.random.default_rng(4).normal(size=(2, 3, 4, 5, 6))
+        self.axes = (1, 3)
+
+    @pytest.mark.parametrize("p", [1, 2, np.inf, "fro", "nuc"])
+    def test_5d_tuple_axis_matches_numpy(self, p) -> None:
+        # Every supported matrix norm on every 2-axis slice of a 5-D input,
+        # compared directly against NumPy (which defines the semantics).
+        y = cp.norm(cp.Constant(self.X), p, axis=self.axes)
+        ref = np.linalg.norm(self.X, p, axis=self.axes)
+        assert y.shape == ref.shape == (2, 4, 6)
+        assert np.allclose(y.value, ref, atol=1e-10), p
+
+    def test_5d_keepdims_true(self) -> None:
+        y = cp.norm(cp.Constant(self.X), 2, axis=self.axes, keepdims=True)
+        ref = np.linalg.norm(self.X, 2, axis=self.axes, keepdims=True)
+        assert y.shape == ref.shape == (2, 1, 4, 1, 6)
+        assert np.allclose(
+            np.ravel(y.value, order="C"),
+            np.ravel(ref, order="C"),
+            atol=1e-10,
+        )
+
+    def test_5d_reversed_tuple_order(self) -> None:
+        # Reversing the tuple transposes each matrix slice: ord=1 and
+        # ord=np.inf are transpose-sensitive and must match NumPy per
+        # ordering, while 2/"fro"/"nuc" are transpose-invariant.
+        for p in [1, 2, np.inf, "fro", "nuc"]:
+            for axis in [(1, 3), (3, 1)]:
+                y = cp.norm(cp.Constant(self.X), p, axis=axis)
+                ref = np.linalg.norm(self.X, p, axis=axis)
+                assert y.shape == ref.shape, (p, axis)
+                assert np.allclose(y.value, ref, atol=1e-10), (p, axis)
+
+    def test_5d_variable_solve_exercises_canonicalization(self) -> None:
+        # A Constant-only expression can be constant-folded, so solve with a
+        # Variable constrained to self.X: this exercises the actual
+        # canonicalization of the stacked per-slice matrix norms (hstack of
+        # the per-slice entries, reshaped into the 3-D batch shape).
+        X = cp.Variable(self.X.shape)
+        y = cp.norm(X, 2, axis=self.axes)
+        prob = cp.Problem(cp.Minimize(cp.sum(y)), [X == self.X])
+        prob.solve(solver=SOLVER)
+        assert prob.status == cp.OPTIMAL
+        ref = np.linalg.norm(self.X, 2, axis=self.axes)
+        assert y.shape == (2, 4, 6)
+        assert np.allclose(y.value, ref, atol=1e-6)
+
+    def test_6d_to_4d_result_shape(self) -> None:
+        # A 6-D input with a two-element tuple reduces two axes; the result
+        # keeps the remaining four axes, proving there is no artificial
+        # ndim ceiling on inputs or results.
+        Xv = np.random.default_rng(5).normal(size=(2, 3, 4, 5, 6, 7))
+        y = cp.norm(cp.Constant(Xv), 2, axis=(1, 4))
+        ref = np.linalg.norm(Xv, 2, axis=(1, 4))
+        # Remaining axes (0, 2, 3, 5) with sizes (2, 4, 5, 7).
+        assert y.shape == ref.shape == (2, 4, 5, 7)
+        assert np.allclose(y.value, ref, atol=1e-10)
