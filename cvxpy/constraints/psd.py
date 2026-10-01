@@ -159,6 +159,7 @@ class PSD(Cone):
         return float(np.max(op_norms))
 
 
+
 class SvecPSD(Cone):
     """A PSD constraint in scaled vectorized (svec) form.
 
