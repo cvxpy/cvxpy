@@ -29,7 +29,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-22.04, macos-14, windows-2022 ]
-        python-version: [ "3.11", "3.12", "3.13", "3.14", "3.14t" ]
+        python-version: [ "3.11", "3.12", "3.13", "3.14", "3.14t", "3.15" ]
         include:
           # These are intended to just add their extra parameter to existing matrix combinations;
           # see https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions#jobsjob_idstrategymatrixinclude
