@@ -93,6 +93,42 @@ class TestNormIntegerAxisND:
         assert y.shape == (3, 1, 5)
         ref = np.linalg.norm(X.value, 2, axis=1, keepdims=True)
         assert np.allclose(y.value, ref, atol=1e-6)
+        # Solver-level optimum: y.value and problem.value are recomputed from
+        # the leaf values, so they stay correct even when the emitted
+        # per-fiber SOCs are wrong; solution.opt_val reflects the actual
+        # constraints. Each of the 15 fibers minimizes ||x||_2 - sum(x) over
+        # [0, 1]^4 at x = ones(4) (norm 2, sum 4): 15 * (2 - 4) = -30.
+        ones = np.ones(4)
+        expected_opt = 15 * (np.linalg.norm(ones) - ones.sum())
+        assert np.isclose(prob.solution.opt_val, expected_opt, atol=1e-6)
+
+    def test_norm2_axis1_3d_keepdims_nonuniform_variable(self) -> None:
+        """keepdims=True must emit one SOC per fiber, not reuse the k = 0 slice.
+
+        With keepdims=True the atom shape still contains the reduced axis as
+        a size-1 dimension ((3, 1, 5) here), so a cursor that advances only
+        over non-reduced axes can misalign and pair input axis 2 with the
+        size-1 axis, constraining every t[i, 0, k] to the k = 0 fiber.
+        problem.value and y.value are recomputed from the leaf values and
+        stay correct even when the emitted SOCs are wrong, so the SOLVER's
+        optimal value (problem.solution.opt_val) is compared against NumPy.
+        """
+        A = np.random.default_rng(6).normal(size=(3, 4, 5))
+        X = cp.Variable((3, 4, 5))
+        y = cp.norm(X, 2, axis=1, keepdims=True)
+        prob = cp.Problem(cp.Minimize(cp.sum(y)), [X == A])
+        prob.solve(solver=SOLVER)
+        assert prob.status == cp.OPTIMAL
+        assert y.shape == (3, 1, 5)
+        expected = np.linalg.norm(A, 2, axis=1, keepdims=True)
+        # Solver-level optimum: sensitive to the emitted per-fiber SOCs.
+        assert np.isclose(prob.solution.opt_val, expected.sum(), atol=1e-6)
+        assert np.allclose(y.value, expected, atol=1e-6)
+        # The data must vary across both non-reduced dimensions so that a
+        # k = 0 fiber reuse cannot coincide with the true norms.
+        norms = expected[:, 0, :]
+        assert np.ptp(norms, axis=1).max() > 1e-3
+        assert np.ptp(norms, axis=0).max() > 1e-3
 
     def test_perfiber_soc_dual_feasible(self) -> None:
         # The per-fiber SOCs produced by the p=2 canonicalization must
