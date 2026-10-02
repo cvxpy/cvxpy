@@ -238,7 +238,7 @@ def test_various_operations_with_labels():
     # Test geo_mean (weights sum to 1 after normalization)
     weights = np.array([0.3, 0.3, 0.4])
     geo_mean_expr = cp.geo_mean(x, weights)
-    expected = "GeoMeanApprox(x_vec[True, True, True], (3/10, 3/10, 2/5))"
+    expected = "GeoMeanApprox(x_vec, (3/10, 3/10, 2/5))"
     assert geo_mean_expr.format_labeled() == expected
 
     # Test that operations can themselves be labeled
@@ -460,7 +460,7 @@ def test_label_display_catalog_exact():
 
     # Geometric mean (weights show exactly)
     g = cp.geo_mean(x, [1, 2, 1])
-    assert g.format_labeled() == "GeoMeanApprox(xL[True, True, True], (1/4, 1/2, 1/4))"
+    assert g.format_labeled() == "GeoMeanApprox(xL, (1/4, 1/2, 1/4))"
 
     # Perron-Frobenius eigenvalue
     assert cp.pf_eigenvalue(X).format_labeled() == "pf_eigenvalue(XL)"

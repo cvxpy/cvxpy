@@ -50,12 +50,6 @@ Small scope projects
  - Add explanation and examples of explicit conic constraints to `Advanced constraints <https://www.cvxpy.org/tutorial/constraints/index.html>`_.
 
 Medium scope projects
- - Refactor ``suppfunc_canon`` to use ``SvecPSD`` constraints directly, eliminating the
-   SCS-specific ``scs_psdvec_to_psdmat`` helper and decoupling the support function
-   implementation from any particular solver convention. This requires moving the
-   conic lifting in ``SuppFunc`` from construction time to canonicalization time,
-   so that ``solver_context`` is available and the lifting can target the actual
-   solver's cone format.
  - `Post-solver feasibility checks <https://github.com/cvxpy/cvxpy/issues/434>`_.
  - `Vectorize the quad_over_lin atom <https://github.com/cvxpy/cvxpy/issues/1197>`_.
  - Caching computation of lin_ops during matrix stuffing.
@@ -356,11 +350,13 @@ explicit representation for problem :math:`(P)` in ``apply``, with a code snippe
 
     # from cvxpy.constraints import Zero, NonNeg, SOC, PSD, ExpCone, PowCone3D
     #  ...
-    if not problem.formatted:
-        problem = self.format_constraints(problem, self.EXP_CONE_ORDER)
     constr_map = problem.constr_map
     cone_dims = problem.cone_dims
     c, d, A, b = problem.apply_parameters()
+
+``apply`` receives a program whose constraint rows are already in the layout
+your ``EXP_CONE_ORDER`` asks for: the ``ConeFormat`` reduction does that once,
+immediately before the solver, so an interface must not re-derive it.
 
 The variable ``constr_map`` is a dict of lists of CVXPY Constraint objects.
 The dict is keyed by the references to CVXPY's Zero, NonNeg, SOC, PSD, ExpCone,

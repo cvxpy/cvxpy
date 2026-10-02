@@ -30,6 +30,7 @@ class PROXQP(QpSolver):
 
     MIP_CAPABLE = False
     BOUNDED_VARIABLES = True
+    REQUIRED_MODULES = ("proxsuite",)
 
     # Map of Proxqp status to CVXPY status.
     STATUS_MAP = {"PROXQP_SOLVED": s.OPTIMAL,

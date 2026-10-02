@@ -30,6 +30,7 @@ class PIQP(QpSolver):
 
     MIP_CAPABLE = False
     BOUNDED_VARIABLES = True
+    REQUIRED_MODULES = ("piqp",)
 
     # Map of PIQP status to CVXPY status.
     STATUS_MAP = {"PIQP_SOLVED": s.OPTIMAL,

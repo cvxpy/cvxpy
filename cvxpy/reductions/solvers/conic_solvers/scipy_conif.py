@@ -34,6 +34,7 @@ class SCIPY(ConicSolver):
     """
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS
     BOUNDED_VARIABLES = True
+    REQUIRED_MODULES = ("scipy.optimize",)
 
     # Solver capabilities.
     if (Version(scipy.__version__) < Version('1.9.0')):
@@ -70,9 +71,6 @@ class SCIPY(ConicSolver):
         """
         data = {}
         inv_data = {self.VAR_ID: problem.x.id}
-
-        if not problem.formatted:
-            problem = self.format_constraints(problem, None)
         data[s.PARAM_PROB] = problem
         data[self.DIMS] = problem.cone_dims
         inv_data[self.DIMS] = problem.cone_dims

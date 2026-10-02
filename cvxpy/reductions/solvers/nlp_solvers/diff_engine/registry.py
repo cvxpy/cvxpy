@@ -23,9 +23,9 @@ import numpy as np
 from scipy import sparse
 from sparsediffpy import _sparsediffengine as _diffengine
 
-import cvxpy.settings as s
 from cvxpy.reductions.solvers.nlp_solvers.diff_engine.helpers import (
     chain_add,
+    make_constant_quad_form,
     normalize_shape,
     to_dense_float,
 )
@@ -44,6 +44,45 @@ def convert_vstack(expr, children):
 def convert_conv(expr, children):
     """Convert cp.conv / cp.convolve (full 1D convolution)."""
     return _diffengine.make_convolve(children[0], children[1])
+
+
+def convert_kron(expr, children):
+    """Convert cp.kron(A, B) to the engine's left/right kron binding.
+
+    kron requires one variable-free operand; that operand may be parametric, in
+    which case the engine re-evaluates it each solve.
+
+    The engine materializes output rows only for the ``active`` blocks: the
+    variable-free operand's structurally nonzero entries, as column-major flat
+    indices. A parametric operand gets every block, since its values change
+    between solves. Indices are bounded by the variable-free operand's size (not
+    by the much larger kron output), so the int32 the bindings take is safe here.
+    """
+    a, b = expr.args
+    if not (a.is_constant() or b.is_constant()):
+        raise ValueError("kron requires at least one variable-free operand.")
+    const_is_left = a.is_constant()
+    const_expr = a if const_is_left else b
+    const_node = children[0] if const_is_left else children[1]
+    var_node = children[1] if const_is_left else children[0]
+    a_rows, a_cols = normalize_shape(a.shape)
+    b_rows, b_cols = normalize_shape(b.shape)
+    n_rows = a_rows if const_is_left else b_rows
+
+    if const_expr.parameters():
+        active = np.arange(const_expr.size)
+    else:
+        val = const_expr.value
+        if sparse.issparse(val):
+            coo = val.tocoo()
+            nonzero = coo.data != 0  # drop stored-but-zero entries
+            active = np.unique(coo.row[nonzero] + coo.col[nonzero] * n_rows)
+        else:
+            active = np.flatnonzero(to_dense_float(val).flatten(order="F"))
+    active = active.astype(np.int32)
+
+    make_kron = _diffengine.make_left_kron if const_is_left else _diffengine.make_right_kron
+    return make_kron(const_node, var_node, a_rows, a_cols, b_rows, b_cols, active)
 
 
 def convert_div(expr, children):
@@ -109,11 +148,9 @@ def convert_quad_form(expr, children):
     """Convert the scalar quadratic form ``x.T @ P @ x``.
 
     ``children[0]`` is the converted ``x`` node and ``children[1]`` the converted ``P``.
-    A constant ``P`` goes to the engine's sparse (CSR) or dense ``make_quad_form``
-    binding; a dense-but-mostly-zero ``P`` is routed to the sparse binding (density
-    check) to avoid a dense Hessian block. A parametric ``P`` (depends on parameters,
-    not on ``x``) is fed to the dense path as the matrix-valued child ``children[1]``,
-    which the engine re-evaluates each solve.
+    A constant ``P`` is routed by ``make_constant_quad_form``. A parametric ``P``
+    (depends on parameters, not on ``x``) is fed to the dense path as the
+    matrix-valued child ``children[1]``, which the engine re-evaluates each solve.
     """
     P = expr.args[1]
     n = expr.args[0].size
@@ -131,29 +168,7 @@ def convert_quad_form(expr, children):
             "is not supported by the diff engine."
         )
 
-    if not sparse.issparse(P_val):
-        P_dense = np.asarray(P_val, dtype=np.float64)
-        # A dense but mostly-zero P (e.g. a diagonal written as np.eye) would build a
-        # dense Hessian block; route it to the sparse binding instead, mirroring the
-        # matmul sparse-dispatch.
-        density = np.count_nonzero(P_dense) / P_dense.size if P_dense.size else 1.0
-        if density >= s.SPARSE_DENSITY_THRESHOLD:
-            return _diffengine.make_quad_form(
-                None, children[0], "dense", P_dense.flatten(order='F'), P_dense.shape[0]
-            )
-        P_val = sparse.csr_array(P_dense)
-
-    P_csr = P_val.tocsr()
-    return _diffengine.make_quad_form(
-        None,
-        children[0],
-        "sparse",
-        P_csr.data.astype(np.float64),
-        P_csr.indices.astype(np.int32),
-        P_csr.indptr.astype(np.int32),
-        P_csr.shape[0],
-        P_csr.shape[1],
-    )
+    return make_constant_quad_form(children[0], P_val, n)
 
 
 def convert_reshape(expr, children):
@@ -311,6 +326,8 @@ ATOM_CONVERTERS = {
     # 1D full convolution
     "conv": convert_conv,
     "convolve": convert_conv,
+    # Kronecker product
+    "kron": convert_kron,
     "Trace": convert_trace,
     # Diagonal and triangular
     "diag_vec": convert_diag_vec,

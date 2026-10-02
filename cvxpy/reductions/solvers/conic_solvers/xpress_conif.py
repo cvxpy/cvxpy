@@ -86,6 +86,7 @@ class XPRESS(ConicSolver):
     BOUNDED_VARIABLES = True
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC]
     MI_SUPPORTED_CONSTRAINTS = SUPPORTED_CONSTRAINTS
+    REQUIRED_MODULES = ("xpress",)
 
     def __init__(self) -> None:
         # Main member of this class: an Xpress problem. Marked with a

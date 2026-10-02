@@ -30,7 +30,7 @@ from cvxpy.reductions.solvers.conic_solvers.conic_solver import (
 from cvxpy.utilities.citations import CITATION_DICT
 from cvxpy.utilities.psd_utils import TriangleKind
 from cvxpy.utilities.versioning import Version
-from cvxpy.utilities.warn import warn
+from cvxpy.utilities.warn import CvxpyDeprecationWarning, warn
 
 
 def dims_to_solver_dict(cone_dims):
@@ -62,6 +62,11 @@ def scs_psdvec_to_psdmat(vec: Expression, indices: np.ndarray) -> Expression:
     cannot be used, because this function builds a cvxpy Expression,
     rather than a numpy ndarray.
     """
+    # Although not root-exported, this non-private helper remains directly importable.
+    warn(
+        "scs_psdvec_to_psdmat is deprecated and will be removed in CVXPY 1.11.",
+        CvxpyDeprecationWarning,
+    )
     n = int(np.sqrt(indices.size * 2))
     rows, cols = np.triu_indices(n)
     mats = []
@@ -90,6 +95,7 @@ class SCS(ConicSolver):
     REQUIRES_CONSTR = True
     PSD_TRIANGLE_KIND = TriangleKind.LOWER
     PSD_SQRT2_SCALING = True
+    REQUIRED_MODULES = ("scs",)
 
     # Map of SCS status value to CVXPY status.
     STATUS_MAP = {1: s.OPTIMAL,
@@ -210,6 +216,13 @@ class SCS(ConicSolver):
             else:
                 solver_opts['eps_abs'] = solver_opts.get('eps_abs', 1e-5)
                 solver_opts['eps_rel'] = solver_opts.get('eps_rel', 1e-5)
+        # SCS 3.3 replaced use_indirect with an explicit linear solver selection.
+        if Version(scs.__version__) >= Version('3.3.0') and "use_indirect" in solver_opts:
+            if "linear_solver" in solver_opts:
+                raise ValueError("Specify only one of use_indirect and linear_solver.")
+            solver_opts["linear_solver"] = (
+                "cpu_indirect" if solver_opts.pop("use_indirect") else "qdldl"
+            )
         # use_quad_obj is only for canonicalization.
         if "use_quad_obj" in solver_opts:
             del solver_opts["use_quad_obj"]

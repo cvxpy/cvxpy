@@ -56,6 +56,32 @@ Signature: TypeAlias = tuple[Hashable, ...]
 ExprKey: TypeAlias = int
 
 
+class _AliasedArrayKey:
+    """Exact key for a Constant snapshot copied from a shared source array.
+
+    Hashing by source identity retains the cheap large-constant CSE path. The
+    snapshot comparison is necessary because the caller may mutate the source
+    between constructing two Constants. Storing only its id avoids retaining
+    the caller's potentially large array for the lifetime of the Constant.
+    """
+
+    def __init__(self, source_id: int, snapshot: np.ndarray) -> None:
+        self._source_id = source_id
+        self._snapshot = snapshot
+
+    def __hash__(self) -> int:
+        return self._source_id
+
+    def __eq__(self, other: object) -> bool:
+        if self is other:
+            return True
+        if not isinstance(other, _AliasedArrayKey):
+            return NotImplemented
+        if self._source_id != other._source_id:
+            return False
+        return np.array_equal(self._snapshot, other._snapshot, equal_nan=True)
+
+
 class UncacheableError(Exception):
     """Raised when a structural cache key cannot be safely built.
 
@@ -143,19 +169,19 @@ def _constant_key(expr: Constant) -> Signature:
        ``Constant(0.5)`` for the default ``M`` argument, which would otherwise
        defeat the CSE merge.
 
-    2. Large float64 ndarray: id of the underlying ndarray. ``Constant``'s
-       ndarray-interface stores a reference to a float64 ndarray without
-       copying (see ``ndarray_interface.const_to_matrix``), so two
-       ``Constant(arr)`` calls on the same source array share ``_value``.
-       Keying on ``id(expr.value)`` catches that without copying problem-data
-       bytes into the cache key. Other dtypes (int, bool, ...) get copied via
-       ``astype(float64)`` so this branch only fires when it's safe.
+    2. Large float64 ndarray copied from a caller-owned source: source identity
+       plus exact snapshot equality. This lets two ``Constant(arr)`` calls
+       deduplicate without aliasing ``arr`` or hashing the large value, while
+       keeping Constants constructed on opposite sides of a mutation distinct.
 
-    3. Sparse values: value hash for small sparse arrays, using sparse storage
+    3. Large internally owned float64 ndarray: id of the underlying ndarray.
+       Reusing one Constant wrapper reaches this branch with the same value.
+
+    4. Sparse values: value hash for small sparse arrays, using sparse storage
        directly rather than ``np.asarray``. Large sparse values fall back to the
        Constant wrapper id.
 
-    4. Fallback: id of the Constant wrapper. The common large-data pattern of
+    5. Fallback: id of the Constant wrapper. The common large-data pattern of
        binding ``c = cp.Constant(arr)`` and reusing ``c`` deduplicates here.
     """
     value = expr.value
@@ -168,6 +194,9 @@ def _constant_key(expr: Constant) -> Signature:
     if arr.dtype != object and arr.size <= _CONSTANT_VALUE_HASH_MAX_SIZE:
         return ("const-val", arr.shape, str(arr.dtype), arr.tobytes())
     if isinstance(value, np.ndarray) and value.dtype == np.float64:
+        source_id = expr._value_source_id
+        if source_id is not None:
+            return ("const-source", value.shape, _AliasedArrayKey(source_id, value))
         return ("const-ref", value.shape, id(value))
     return ("const", id(expr))
 

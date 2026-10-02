@@ -15,7 +15,9 @@ limitations under the License.
 """
 from numpy.lib.array_utils import normalize_axis_index
 
+from cvxpy.atoms.affine.cumsum import _cumsum_axis_op
 from cvxpy.atoms.affine.reshape import reshape
+from cvxpy.expressions.constants.constant import Constant
 from cvxpy.expressions.variable import Variable
 from cvxpy.utilities.solver_context import SolverInfo
 
@@ -28,7 +30,8 @@ def cumsum_canon(expr, args, solver_context: SolverInfo | None = None):
 
     # Handle axis=None: flatten in C order, then treat as 1D with axis=0
     if axis is None:
-        X = reshape(X, (X.size,), order='C')
+        if X.ndim != 1:
+            X = reshape(X, (X.size,), order='C')
         shape = (X.size,)
         axis = 0
 
@@ -38,6 +41,18 @@ def cumsum_canon(expr, args, solver_context: SolverInfo | None = None):
     # If only one element along this axis, cumsum is identity
     if shape[axis] == 1:
         return X, []
+
+    if not X.variables():
+        # X is constant or parameter-affine. Introducing an auxiliary Variable
+        # here would break DPP: e.g., in cumsum(param) @ x the parameter-affine
+        # factor would become a Variable, making the product non-DPP. Instead,
+        # apply the same sparse axis operator used by the atom's gradient.
+        op = _cumsum_axis_op(shape, axis)
+        if len(shape) == 1:
+            return Constant(op) @ X, []
+        flat = reshape(X, (X.size,), order='F')
+        Y = reshape(Constant(op) @ flat, shape, order='F')
+        return Y, []
 
     Y = Variable(shape)
 

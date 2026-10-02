@@ -35,6 +35,13 @@ bmat
 
 .. autofunction:: cvxpy.bmat
 
+.. _block:
+
+block
+---------------------------------
+
+.. autofunction:: cvxpy.block
+
 .. _conj:
 
 conj

@@ -30,7 +30,7 @@ or a conda environment.
 
         ::
 
-            pip install "cvxpy[CBC,CVXOPT,GLOP,GLPK,GUROBI,MOSEK,PDLP,SCIP,XPRESS,KNITRO]"
+            pip install "cvxpy[CBC,CVXOPT,GLOP,GLPK,GUROBI,MOREAU,MOSEK,PDLP,SCIP,XPRESS,KNITRO]"
 
     .. tab:: conda
 
@@ -126,7 +126,7 @@ Install with Additional Solver Support
     :collapsible:
 
     CVXPY supports the GUROBI solver.
-    Install GUROBI version 7.5.2 or greater such that you can ``import gurobipy`` in Python.
+    Install GUROBI version 9.5 or greater such that you can ``import gurobipy`` in Python.
     See the `GUROBI <https://www.gurobi.com/>`_ website for installation instructions.
 
 .. info:: MOREAU
