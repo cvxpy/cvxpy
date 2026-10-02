@@ -37,13 +37,45 @@ def _pnorm_p2_canon(expr, args, bounds=None):
     """Handle p == 2 case via SOC directly (shared by exact and approx)."""
     x = args[0]
     axis = expr.axis
+    keepdims = expr.keepdims
     shape = expr.shape
     t = Variable(shape, bounds=bounds)
     if axis is None:
         assert shape == tuple()
         return t, [SOC(t, vec(x, order="F"))]
-    else:
+    elif x.ndim <= 2 or axis == 0:
+        # The cone lowering (ConeMatrixStuffing.apply and
+        # ConicSolver.format_constraints) only formats SOC constraints whose
+        # X argument is 1-D or 2-D, plus N-D X with axis == 0 (axis-0 fibers
+        # are contiguous in column-major order, which is what the interleaved
+        # sparse spacing assumes).
         return t, [SOC(vec(t, order="F"), x, axis)]
+    else:
+        # N-D X with axis >= 1: emit one scalar SOC per fiber instead of a
+        # single batched SOC. Fibers along an inner axis are not contiguous
+        # in either column-major or row-major order, so they cannot be
+        # isolated with a reshape; per-fiber emission preserves the
+        # mathematics exactly (each fiber is an affine expression).
+        constraints = []
+        # Enumerate only the non-reduced coordinates. With keepdims=True the
+        # atom shape still contains the reduced axis as a size-1 dimension,
+        # so iterating over expr.shape directly would shift the coordinate
+        # cursor whenever the reduced axis is not last: shape (3, 4, 5)
+        # with axis=1 enumerates (i, 0, k), and pairing the size-1
+        # coordinate with input axis 2 would constrain every fiber
+        # x[i, :, k] to its k = 0 slice.
+        non_reduced = [i for i in range(x.ndim) if i != axis]
+        for out_coords in np.ndindex(*(x.shape[a] for a in non_reduced)):
+            fiber_index = [slice(None)] * x.ndim
+            # t has the keepdims shape: the reduced axis is 0 there, and
+            # the remaining coordinates line up with t's non-reduced axes.
+            t_index = [0] * x.ndim if keepdims else out_coords
+            for out, a in enumerate(non_reduced):
+                fiber_index[a] = out_coords[out]
+                if keepdims:
+                    t_index[a] = out_coords[out]
+            constraints.append(SOC(t[tuple(t_index)], x[tuple(fiber_index)]))
+        return t, constraints
 
 
 def pnorm_exact_canon(expr, args, solver_context: SolverInfo | None = None):

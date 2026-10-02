@@ -157,8 +157,15 @@ class Pnorm(AxisAtom):
         if self.axis is not None and self.p != 2:
             raise ValueError(
                 "The axis parameter is only supported for p=2.")
-        if isinstance(self.axis, tuple):
-            raise ValueError("The axis parameter of pnorm must be an int or None.")
+        # A one-element tuple is equivalent to an integer axis (AxisAtom
+        # normalizes it to an int). Multi-axis tuples are rejected; matrix
+        # norms over two axes are provided by cp.norm().
+        if isinstance(self.axis, tuple) and len(self.axis) > 1:
+            raise ValueError(
+                "The axis parameter of pnorm must be an int, None, or a "
+                "single-element tuple. For matrix norms over multiple axes, "
+                "use cp.norm()."
+            )
         if self.p < 1 and self.args[0].is_complex():
             raise ValueError("pnorm(x, p) cannot have x complex for p < 1.")
 
