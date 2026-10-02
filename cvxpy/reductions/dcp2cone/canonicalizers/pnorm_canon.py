@@ -37,6 +37,7 @@ def _pnorm_p2_canon(expr, args, bounds=None):
     """Handle p == 2 case via SOC directly (shared by exact and approx)."""
     x = args[0]
     axis = expr.axis
+    keepdims = expr.keepdims
     shape = expr.shape
     t = Variable(shape, bounds=bounds)
     if axis is None:
@@ -56,17 +57,24 @@ def _pnorm_p2_canon(expr, args, bounds=None):
         # isolated with a reshape; per-fiber emission preserves the
         # mathematics exactly (each fiber is an affine expression).
         constraints = []
-        for coords in np.ndindex(*shape):
-            # coords enumerates the output (non-reduced) axes; map them onto
-            # the input axes, leaving the reduced axis free.
+        # Enumerate only the non-reduced coordinates. With keepdims=True the
+        # atom shape still contains the reduced axis as a size-1 dimension,
+        # so iterating over expr.shape directly would shift the coordinate
+        # cursor whenever the reduced axis is not last: shape (3, 4, 5)
+        # with axis=1 enumerates (i, 0, k), and pairing the size-1
+        # coordinate with input axis 2 would constrain every fiber
+        # x[i, :, k] to its k = 0 slice.
+        non_reduced = [i for i in range(x.ndim) if i != axis]
+        for out_coords in np.ndindex(*(x.shape[a] for a in non_reduced)):
             fiber_index = [slice(None)] * x.ndim
-            out = 0
-            for i in range(x.ndim):
-                if i == axis:
-                    continue
-                fiber_index[i] = coords[out]
-                out += 1
-            constraints.append(SOC(t[coords], x[tuple(fiber_index)]))
+            # t has the keepdims shape: the reduced axis is 0 there, and
+            # the remaining coordinates line up with t's non-reduced axes.
+            t_index = [0] * x.ndim if keepdims else out_coords
+            for out, a in enumerate(non_reduced):
+                fiber_index[a] = out_coords[out]
+                if keepdims:
+                    t_index[a] = out_coords[out]
+            constraints.append(SOC(t[tuple(t_index)], x[tuple(fiber_index)]))
         return t, constraints
 
 
