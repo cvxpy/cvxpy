@@ -191,6 +191,24 @@ class SparseCholeskyMessages:
     NOT_REAL = 'Input matrix must be real.'
 
 
+def _symmetric_triangle(P, lower: bool):
+    """Copy the referenced triangle of ``P`` into a full symmetric matrix."""
+    A = np.asarray(P)
+    if lower:
+        tri = np.tril(A)
+        return tri + np.conjugate(np.tril(tri, -1)).T
+    tri = np.triu(A)
+    return tri + np.conjugate(np.triu(tri, 1)).T
+
+
+def _factors_match(sym, diag_vals, lu) -> bool:
+    """Whether ``lu @ diag(diag_vals) @ lu.H`` reproduces ``sym``."""
+    recon = (lu * diag_vals) @ (lu.conj().T if np.iscomplexobj(lu) else lu.T)
+    diff = np.linalg.norm(recon - sym)
+    scale = np.linalg.norm(sym)
+    return diff <= 1e-8 * max(scale, 1.0)
+
+
 def dense_ldl_decomp(P, lower: bool = True, check_finite: bool = True):
     """Bunch-Kaufman LDL of a dense symmetric matrix, with 2x2 blocks resolved.
 
@@ -201,6 +219,13 @@ def dense_ldl_decomp(P, lower: bool = True, check_finite: bool = True):
     to absorb the block's eigenvectors).  Used as a shared building block
     by :func:`sparse_cholesky` (when its QDLDL path fails) and
     :func:`cvxpy.atoms.quad_form.decomp_quad`.
+
+    LAPACK's blocked Bunch-Kaufman (``?LASYF``) can return a stale nonzero
+    pivot for a singular matrix once the order exceeds the panel size
+    (65 with the usual block size of 64). ``scipy.linalg.ldl`` only rejects
+    ``info < 0``, so those factors do not reconstruct ``P``. When that
+    happens this falls back to ``numpy.linalg.eigh``, which still provides
+    ``P = lu @ diag(diag_vals) @ lu.T``.
     """
     lu, d, _perm = la.ldl(P, lower=lower, check_finite=check_finite)
     sub_diag = np.diag(d, -1)
@@ -217,6 +242,10 @@ def dense_ldl_decomp(P, lower: bool = True, check_finite: bool = True):
         lu_ip1 = lu[:, bs + 1].copy()
         lu[:, bs] = lu_i * eigvecs[:, 0, 0] + lu_ip1 * eigvecs[:, 1, 0]
         lu[:, bs + 1] = lu_i * eigvecs[:, 0, 1] + lu_ip1 * eigvecs[:, 1, 1]
+    sym = _symmetric_triangle(P, lower)
+    if not _factors_match(sym, diag_vals, lu):
+        diag_vals, lu = np.linalg.eigh(sym)
+        diag_vals = np.real(diag_vals)
     return diag_vals, lu
 
 
