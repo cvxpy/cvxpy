@@ -194,18 +194,21 @@ class SparseCholeskyMessages:
 def dense_ldl_decomp(P, lower: bool = True, check_finite: bool = True):
     """Bunch-Kaufman LDL of a dense symmetric matrix, with 2x2 blocks resolved.
 
-    Returns ``(diag_vals, lu)`` such that ``P = lu @ diag(diag_vals) @ lu.T``,
+    Returns ``(diag_vals, lu)`` such that ``P = lu @ diag(diag_vals) @ lu.conj().T``,
     where ``lu`` is the row-permuted (unit) triangular factor returned by
     ``scipy.linalg.ldl`` and any 2x2 blocks in ``D`` have been diagonalized
     via ``eigh`` (with the corresponding pair of columns of ``lu`` rotated
-    to absorb the block's eigenvectors).  Used as a shared building block
-    by :func:`sparse_cholesky` (when its QDLDL path fails) and
+    to absorb the block's eigenvectors). If the factors fail the diagonal
+    reconstruction check, falls back to an eigendecomposition. Used as a
+    shared building block by :func:`sparse_cholesky` (when its QDLDL path fails) and
     :func:`cvxpy.atoms.quad_form.decomp_quad`.
     """
     lu, d, _perm = la.ldl(P, lower=lower, check_finite=check_finite)
     sub_diag = np.diag(d, -1)
     block_starts = np.nonzero(sub_diag)[0]
     diag_vals = np.real(np.diag(d)).copy()
+    if not diag_vals.size:
+        return diag_vals, lu
     if block_starts.size:
         bs = block_starts
         idx = bs[:, None] + np.arange(2)[None, :]
@@ -217,6 +220,39 @@ def dense_ldl_decomp(P, lower: bool = True, check_finite: bool = True):
         lu_ip1 = lu[:, bs + 1].copy()
         lu[:, bs] = lu_i * eigvecs[:, 0, 0] + lu_ip1 * eigvecs[:, 1, 0]
         lu[:, bs + 1] = lu_i * eigvecs[:, 0, 1] + lu_ip1 * eigvecs[:, 1, 1]
+
+    # LAPACK's blocked LDL can leave a stale nonzero pivot when a Schur
+    # complement column is exactly zero (#3547). At the first such pivot,
+    # the reconstructed diagonal differs from P. Check that diagonal in
+    # O(n**2), rather than forming the full O(n**3) reconstruction.
+    # Scale the tolerance per row to allow roundoff, including cancellation
+    # for indefinite matrices, without hiding errors in small-magnitude P.
+    with np.errstate(over='ignore', invalid='ignore'):
+        lu_conj = lu.conj()
+        reconstructed = np.einsum('ij,j,ij->i', lu, diag_vals, lu_conj).real
+        diagonal = np.diag(np.atleast_2d(P)).real.astype(diag_vals.dtype, copy=False)
+        error = np.abs(reconstructed - diagonal)
+        roundoff = 10 * lu.shape[0] * np.finfo(diag_vals.dtype).eps
+        # Scale before summing, since the unscaled magnitude may overflow.
+        tolerance = np.einsum('ij,j,ij->i', lu, roundoff * np.abs(diag_vals), lu_conj).real
+        tolerance += roundoff * np.abs(diagonal)
+        # Even a correct factor can overflow while summing terms with opposite
+        # signs. Recheck only those rows at a smaller scale; keep the original
+        # row-wise check for small entries elsewhere in the same matrix.
+        overflow = ~np.isfinite(error) | ~np.isfinite(tolerance)
+        if np.any(overflow):
+            scale = np.max(np.abs(diag_vals))
+            if 0 < scale < np.inf:
+                weights = diag_vals / scale
+                rows = lu[overflow]
+                rows_conj = rows.conj()
+                target = diagonal[overflow] / scale
+                reconstructed = np.einsum('ij,j,ij->i', rows, weights, rows_conj).real
+                error[overflow] = np.abs(reconstructed - target)
+                tolerance[overflow] = roundoff * (
+                    np.einsum('ij,j,ij->i', rows, np.abs(weights), rows_conj).real + np.abs(target))
+    if not np.all(np.isfinite(error) & np.isfinite(tolerance) & (error <= tolerance)):
+        return la.eigh(P, lower=lower, check_finite=check_finite)
     return diag_vals, lu
 
 
