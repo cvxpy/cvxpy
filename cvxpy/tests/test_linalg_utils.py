@@ -14,11 +14,101 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from unittest.mock import patch
+
 import numpy as np  # noqa F403
 import scipy.sparse as sp
+from numpy.testing import assert_allclose
 
 from cvxpy.tests.base_test import BaseTest
 from cvxpy.utilities import linalg as lau
+
+
+class TestDenseLDL(BaseTest):
+
+    def test_empty(self):
+        for dtype in (int, float, complex):
+            values, factor = lau.dense_ldl_decomp(np.empty((0, 0), dtype=dtype))
+            self.assertEqual(values.shape, (0,))
+            self.assertEqual(factor.shape, (0, 0))
+
+    def test_array_like(self):
+        for P in ([[2, 1], [1, 2]], [[np.iinfo(np.int64).min]]):
+            values, factor = lau.dense_ldl_decomp(P)
+            assert_allclose((factor * values) @ factor.T, np.asarray(P, dtype=float))
+
+    def test_singular_blocked_factorization(self):
+        # LAPACK's blocked factorization can leave a stale nonzero pivot
+        # for an exactly singular Schur complement (CVXPY issue #3547).
+        for n in (64, 65, 128):
+            for dtype in (np.float32, np.float64, np.complex64, np.complex128):
+                for lower in (True, False):
+                    with self.subTest(n=n, dtype=dtype, lower=lower):
+                        P = np.diag(np.full(n, 0.04)).astype(dtype)
+                        P[:2, :2] = 0.0625
+                        if np.iscomplexobj(P):
+                            P[0, 1] *= 1j
+                            P[1, 0] *= -1j
+                        if not lower:
+                            P = P[::-1, ::-1].copy()
+                        values, factor = lau.dense_ldl_decomp(P, lower=lower)
+                        eps = np.finfo(values.dtype).eps
+                        assert_allclose((factor * values) @ factor.conj().T, P,
+                                        rtol=10 * eps, atol=10 * eps)
+                        self.assertEqual(np.count_nonzero(np.abs(values) > 10 * eps), n - 1)
+
+    def test_stale_pivot_falls_back(self):
+        # Mock the broken factors so this also tests the fallback on fixed LAPACK builds.
+        for scale in (1e-12, 1.0, 1e12, -1.0):
+            for lower in (True, False):
+                with self.subTest(scale=scale, lower=lower):
+                    P = scale * np.ones((2, 2))
+                    factor = np.array([[1., 0.], [1., 1.]])
+                    if not lower:
+                        factor = factor[::-1, ::-1]
+                    triangular = np.tril(P) if lower else np.triu(P)
+                    with patch.object(lau.la, 'ldl', return_value=(
+                        factor, scale * np.eye(2), np.arange(2)
+                    )), patch.object(lau.la, 'eigh', wraps=lau.la.eigh) as eigh:
+                        values, factor = lau.dense_ldl_decomp(
+                            triangular, lower=lower, check_finite=False)
+                        eigh.assert_called_once_with(
+                            triangular, lower=lower, check_finite=False)
+                    assert_allclose((factor * values) @ factor.T, P, rtol=1e-14)
+
+    def test_correct_factors_avoid_fallback(self):
+        for P in (np.eye(3), -np.eye(3), np.zeros((3, 3)),
+                  np.array([[2, 1], [1, 2]]),
+                  np.array([[0., 1.], [1., 0.]]),
+                  np.array([[2., 1j], [-1j, 2.]])):
+            for lower in (True, False):
+                triangular = np.tril(P) if lower else np.triu(P)
+                with patch.object(lau.la, 'eigh', wraps=lau.la.eigh) as eigh:
+                    values, factor = lau.dense_ldl_decomp(triangular, lower=lower)
+                    eigh.assert_not_called()
+                assert_allclose((factor * values) @ factor.conj().T, P, atol=1e-14)
+
+    def test_nonfinite_factors_fall_back(self):
+        for bad_value in (np.inf, np.nan):
+            P = np.ones((2, 2))
+            bad_factor = np.array([[1., 0.], [bad_value, 1.]])
+            with patch.object(lau.la, 'ldl', return_value=(bad_factor, np.eye(2), np.arange(2))):
+                values, factor = lau.dense_ldl_decomp(P)
+            assert_allclose((factor * values) @ factor.T, P, rtol=1e-14)
+
+    def test_large_factors_avoid_fallback(self):
+        # LDL can represent these matrices even when an eigenvalue or an
+        # intermediate diagonal sum overflows. Avoid a spurious eigh fallback.
+        for dtype, scale in ((np.float32, 2e38), (np.float64, 1e308)):
+            for matrix in (np.ones((2, 2)), [[1, 1, 1], [1, 0, 0], [1, 0, 1]],
+                           [[1, 0, 1], [0, 1, 1], [1, 1, 1]]):
+                P = scale * np.asarray(matrix, dtype=dtype)
+                with patch.object(lau.la, 'eigh', wraps=lau.la.eigh) as eigh:
+                    values, factor = lau.dense_ldl_decomp(P)
+                    eigh.assert_not_called()
+                eps = np.finfo(dtype).eps
+                assert_allclose((factor * (values / scale)) @ factor.T, P / scale,
+                                rtol=10 * eps, atol=10 * eps)
 
 
 class TestSparseCholesky(BaseTest):

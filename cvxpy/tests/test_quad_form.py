@@ -124,8 +124,32 @@ class TestDecompQuad(BaseTest):
         """Sparse all-zero matrix."""
         self._check(sp.csc_array((4, 4)))
 
+    def test_singular_blocked_factorization(self) -> None:
+        """A zero pivot in blocked LDL must not change the quadratic form (#3547)."""
+        for n in (64, 65, 128):
+            P = np.diag(np.full(n, 0.04))
+            P[:2, :2] = 0.0625
+            for sign in (1, -1):
+                self._check(sign * P)
+                self._check(sp.csc_array(sign * P))
+
 
 class TestNonOptimal(BaseTest):
+    def test_singular_quadratic_constraint(self) -> None:
+        """Regression for #3547: a constraint gave 0.125 instead of 0.0625."""
+        for n in (64, 65):
+            P = np.diag(np.full(n, 0.04))
+            P[:2, :2] = 0.0625
+            for matrix in (P, sp.csc_array(P), cp.psd_wrap(P), cp.psd_wrap(sp.csc_array(P))):
+                x, t = cp.Variable(n), cp.Variable()
+                point = cp.Parameter(n)
+                problem = cp.Problem(cp.Minimize(t), [cp.quad_form(x, matrix) <= t, x == point])
+                for i in (0, 1):
+                    point.value = np.eye(n)[i]
+                    problem.solve(solver=cp.CLARABEL)
+                    self.assertEqual(problem.status, cp.OPTIMAL)
+                    self.assertAlmostEqual(problem.value, 0.0625, places=6)
+
     def test_singular_quad_form(self) -> None:
         """Test quad form with a singular matrix.
         """
