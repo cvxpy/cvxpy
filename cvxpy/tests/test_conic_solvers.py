@@ -602,10 +602,61 @@ class TestClarabel(BaseTest):
         StandardTestInfeasibleProblems.test_soc_exp_mixed(solver="CLARABEL")
 
 
+class TestCuClarabelFullP(BaseTest):
+    """Regression test for #3544 that runs without a GPU."""
+
+    def test_solve_via_data_sends_full_P_to_gpu(self) -> None:
+        """CuClarabel reads a device-resident P as the full matrix, so it must not get triu(P).
+
+        CPU Clarabel symmetrises whatever triangle it gets, so solving on the CPU can't show
+        the bug. Instead we stub out cupy and juliacall and check the P that gets uploaded.
+        """
+        from cvxpy.reductions.solvers.conic_solvers.cuclarabel_conif import CUCLARABEL
+
+        rng = np.random.default_rng(0)
+        n = 4
+        A = rng.standard_normal((n, n))
+        P = A @ A.T + 0.1 * np.eye(n)
+        x = cp.Variable(n)
+        prob = cp.Problem(cp.Minimize(0.5 * cp.quad_form(x, cp.psd_wrap(P))), [x >= -1])
+        data, _, _ = prob.get_problem_data(cp.CLARABEL)
+
+        to_gpu = mock.MagicMock()
+        stubs = {
+            "cupy": mock.MagicMock(),
+            "cupyx": mock.MagicMock(),
+            "cupyx.scipy": mock.MagicMock(),
+            "cupyx.scipy.sparse": mock.MagicMock(csr_matrix=to_gpu),
+            "juliacall": mock.MagicMock(),
+        }
+        with mock.patch.dict(sys.modules, stubs):
+            CUCLARABEL().solve_via_data(data, False, False, {})
+
+        P_gpu = to_gpu.call_args_list[0].args[0]  # P is uploaded first, then A
+        self.assertItemsAlmostEqual(P_gpu.toarray(), P)
+
+
 @unittest.skipUnless('CUCLARABEL' in INSTALLED_SOLVERS, 'CLARABEL is not installed.')
 class TestCuClarabel(BaseTest):
 
     """ Unit tests for Clarabel. """
+    def test_cuclarabel_qp_nondiagonal_P(self) -> None:
+        """A dense (non-diagonal) P must match CLARABEL; a triu-only P on GPU does not."""
+        rng = np.random.default_rng(0)
+        n = 8
+        A = rng.standard_normal((n, n))
+        P = A @ A.T + 0.1 * np.eye(n)
+        q = rng.standard_normal(n)
+        x = cp.Variable(n)
+        prob = cp.Problem(
+            cp.Minimize(0.5 * cp.quad_form(x, cp.psd_wrap(P)) + q @ x), [x >= -1, x <= 1]
+        )
+        prob.solve(solver=cp.CLARABEL)
+        x_ref, v_ref = x.value.copy(), prob.value
+        prob.solve(solver=cp.CUCLARABEL)
+        self.assertItemsAlmostEqual(x.value, x_ref, places=4)
+        self.assertAlmostEqual(prob.value, v_ref, places=4)
+
     def setUp(self) -> None:
 
         self.x = cp.Variable(2, name='x')
