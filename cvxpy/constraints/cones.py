@@ -81,7 +81,7 @@ class Cone(Constraint):
 
         For a primal cone element ``s`` and corresponding dual element ``y``,
         complementary slackness requires ``<s, y> = 0``. This method returns
-        ``|<s, y>|``, using the real Hermitian inner product for complex-valued
+        ``|<s, y>|``, using the Hermitian inner product for complex-valued
         arguments.
         """
         pairing = 0.0
@@ -93,7 +93,5 @@ class Cone(Constraint):
                     "Cannot compute complementarity violation: missing primal "
                     "or dual value."
                 )
-            pairing += np.real(
-                np.vdot(np.asarray(primal), np.asarray(dual))
-            )
-        return float(abs(pairing))
+            pairing += np.vdot(np.asarray(primal), np.asarray(dual))
+        return abs(pairing)

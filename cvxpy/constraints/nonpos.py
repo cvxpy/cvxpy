@@ -113,7 +113,7 @@ class NonPos(Constraint):
                 "Cannot compute complementarity violation: missing primal "
                 "or dual value."
             )
-        pairing = np.real(np.vdot(np.asarray(expr_val), np.asarray(dv)))
+        pairing = np.vdot(np.asarray(expr_val), np.asarray(dv))
         return abs(pairing)
 
 class NonNeg(Constraint):
@@ -188,7 +188,7 @@ class NonNeg(Constraint):
                 "Cannot compute complementarity violation: missing primal "
                 "or dual value."
             )
-        pairing = np.real(np.vdot(np.asarray(expr_val), np.asarray(dv)))
+        pairing = np.vdot(np.asarray(expr_val), np.asarray(dv))
         return abs(pairing)
 
 class Inequality(Constraint):
@@ -303,5 +303,5 @@ class Inequality(Constraint):
                 "Cannot compute complementarity violation: missing primal "
                 "or dual value."
             )
-        pairing = np.real(np.vdot(np.asarray(expr_val), np.asarray(dv)))
+        pairing = np.vdot(np.asarray(expr_val), np.asarray(dv))
         return abs(pairing)
