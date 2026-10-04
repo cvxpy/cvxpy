@@ -603,21 +603,37 @@ class TestClarabel(BaseTest):
 
 
 class TestCuClarabelFullP(BaseTest):
-    """CuClarabel's GPU path needs the full symmetric P; runs without a GPU."""
+    """Regression test for #3544 that runs without a GPU."""
 
-    def test_triu_to_full_symmetric(self) -> None:
-        from cvxpy.reductions.solvers.conic_solvers.cuclarabel_conif import (
-            triu_to_full_symmetric,
-        )
+    def test_solve_via_data_sends_full_P_to_gpu(self) -> None:
+        """CuClarabel reads a device-resident P as the full matrix, so it must not get triu(P).
+
+        CPU Clarabel symmetrises whatever triangle it gets, so solving on the CPU can't show
+        the bug. Instead we stub out cupy and juliacall and check the P that gets uploaded.
+        """
+        from cvxpy.reductions.solvers.conic_solvers.cuclarabel_conif import CUCLARABEL
+
         rng = np.random.default_rng(0)
-        A = rng.standard_normal((6, 6))
-        P = A @ A.T
-        for given in (P, np.triu(P)):
-            out = triu_to_full_symmetric(sp.csc_array(given))
-            self.assertEqual(out.format, "csr")
-            self.assertItemsAlmostEqual(out.toarray(), P, places=12)
-        D = sp.diags_array([1.0, 2.0, 3.0]).tocsc()
-        self.assertItemsAlmostEqual(triu_to_full_symmetric(D).toarray(), D.toarray())
+        n = 4
+        A = rng.standard_normal((n, n))
+        P = A @ A.T + 0.1 * np.eye(n)
+        x = cp.Variable(n)
+        prob = cp.Problem(cp.Minimize(0.5 * cp.quad_form(x, cp.psd_wrap(P))), [x >= -1])
+        data, _, _ = prob.get_problem_data(cp.CLARABEL)
+
+        to_gpu = mock.MagicMock()
+        stubs = {
+            "cupy": mock.MagicMock(),
+            "cupyx": mock.MagicMock(),
+            "cupyx.scipy": mock.MagicMock(),
+            "cupyx.scipy.sparse": mock.MagicMock(csr_matrix=to_gpu),
+            "juliacall": mock.MagicMock(),
+        }
+        with mock.patch.dict(sys.modules, stubs):
+            CUCLARABEL().solve_via_data(data, False, False, {})
+
+        P_gpu = to_gpu.call_args_list[0].args[0]  # P is uploaded first, then A
+        self.assertItemsAlmostEqual(P_gpu.toarray(), P)
 
 
 @unittest.skipUnless('CUCLARABEL' in INSTALLED_SOLVERS, 'CLARABEL is not installed.')
