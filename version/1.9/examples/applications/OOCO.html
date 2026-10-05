@@ -742,7 +742,7 @@ and sink are the last two edges. The problem becomes</p>
 incidence matrices, however, but in terms of the properties of edges and
 nodes. We can write an <code class="docutils literal notranslate"><span class="pre">Edge</span></code> class to capture these properties.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Edge</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; An undirected, capacity limited edge. &quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">""" An undirected, capacity limited edge. """</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">capacity</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">capacity</span> <span class="o">=</span> <span class="n">capacity</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">flow</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">()</span>
@@ -752,7 +752,7 @@ nodes. We can write an <code class="docutils literal notranslate"><span class="p
         <span class="n">in_node</span><span class="o">.</span><span class="n">edge_flows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">flow</span><span class="p">)</span>
         <span class="n">out_node</span><span class="o">.</span><span class="n">edge_flows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">flow</span><span class="p">)</span>
 
-    <span class="c1"># Returns the edge&#39;s internal constraints.</span>
+    <span class="c1"># Returns the edge's internal constraints.</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">constraints</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">[</span><span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">flow</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">capacity</span><span class="p">]</span>
 </code></pre></div>
@@ -763,12 +763,12 @@ structure is also stored locally, by calling
 <code class="docutils literal notranslate"><span class="pre">edge.connect(node1,</span> <span class="pre">node2)</span></code> for each edge.</p>
 <p>We also define a <code class="docutils literal notranslate"><span class="pre">Node</span></code> class:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Node</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; A node with accumulation. &quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">""" A node with accumulation. """</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">accumulation</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">accumulation</span> <span class="o">=</span> <span class="n">accumulation</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">edge_flows</span> <span class="o">=</span> <span class="p">[]</span>
 
-    <span class="c1"># Returns the node&#39;s internal constraints.</span>
+    <span class="c1"># Returns the node's internal constraints.</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">constraints</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">[</span><span class="nb">sum</span><span class="p">(</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">edge_flows</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">accumulation</span><span class="p">]</span>
 </code></pre></div>

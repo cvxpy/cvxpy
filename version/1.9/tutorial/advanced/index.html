@@ -1249,9 +1249,9 @@ If you encounter any issues or missing functionality, please report them on <a c
 
 <span class="c1"># The optimal dual variable (Lagrange multiplier) for</span>
 <span class="c1"># a constraint is stored in constraint.dual_value.</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;optimal (x + y == 1) dual variable&quot;</span><span class="p">,</span> <span class="n">constraints</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dual_value</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;optimal (x - y &gt;= 1) dual variable&quot;</span><span class="p">,</span> <span class="n">constraints</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">dual_value</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;x - y value:&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">y</span><span class="p">)</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"optimal (x + y == 1) dual variable"</span><span class="p">,</span> <span class="n">constraints</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dual_value</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"optimal (x - y &gt;= 1) dual variable"</span><span class="p">,</span> <span class="n">constraints</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">dual_value</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"x - y value:"</span><span class="p">,</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">y</span><span class="p">)</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
 </code></pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="n">optimal</span> <span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span> <span class="n">dual</span> <span class="n">variable</span> <span class="mf">6.47610300459e-18</span>
@@ -1269,9 +1269,9 @@ constraints hold and <span class="math notranslate nohighlight">\(\infty\)</span
 <span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">x</span><span class="p">,</span> <span class="n">x</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">]</span>
 <span class="n">expr</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">transforms</span><span class="o">.</span><span class="n">indicator</span><span class="p">(</span><span class="n">constraints</span><span class="p">)</span>
 <span class="n">x</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="mf">.5</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;expr.value = &quot;</span><span class="p">,</span> <span class="n">expr</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"expr.value = "</span><span class="p">,</span> <span class="n">expr</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
 <span class="n">x</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="mi">2</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;expr.value = &quot;</span><span class="p">,</span> <span class="n">expr</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"expr.value = "</span><span class="p">,</span> <span class="n">expr</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
 </code></pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="n">expr</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="mf">0.0</span>
@@ -1377,17 +1377,17 @@ directly.</p>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">scs</span>
 <span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
-  <span class="s1">&#39;A&#39;</span><span class="p">:</span> <span class="n">probdata</span><span class="p">[</span><span class="s1">&#39;A&#39;</span><span class="p">],</span>
-  <span class="s1">&#39;b&#39;</span><span class="p">:</span> <span class="n">probdata</span><span class="p">[</span><span class="s1">&#39;b&#39;</span><span class="p">],</span>
-  <span class="s1">&#39;c&#39;</span><span class="p">:</span> <span class="n">probdata</span><span class="p">[</span><span class="s1">&#39;c&#39;</span><span class="p">],</span>
+  <span class="s1">'A'</span><span class="p">:</span> <span class="n">probdata</span><span class="p">[</span><span class="s1">'A'</span><span class="p">],</span>
+  <span class="s1">'b'</span><span class="p">:</span> <span class="n">probdata</span><span class="p">[</span><span class="s1">'b'</span><span class="p">],</span>
+  <span class="s1">'c'</span><span class="p">:</span> <span class="n">probdata</span><span class="p">[</span><span class="s1">'c'</span><span class="p">],</span>
 <span class="p">}</span>
-<span class="n">cone_dims</span> <span class="o">=</span> <span class="n">probdata</span><span class="p">[</span><span class="s1">&#39;dims&#39;</span><span class="p">]</span>
+<span class="n">cone_dims</span> <span class="o">=</span> <span class="n">probdata</span><span class="p">[</span><span class="s1">'dims'</span><span class="p">]</span>
 <span class="n">cones</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;f&quot;</span><span class="p">:</span> <span class="n">cone_dims</span><span class="o">.</span><span class="n">zero</span><span class="p">,</span>
-    <span class="s2">&quot;l&quot;</span><span class="p">:</span> <span class="n">cone_dims</span><span class="o">.</span><span class="n">nonpos</span><span class="p">,</span>
-    <span class="s2">&quot;q&quot;</span><span class="p">:</span> <span class="n">cone_dims</span><span class="o">.</span><span class="n">soc</span><span class="p">,</span>
-    <span class="s2">&quot;ep&quot;</span><span class="p">:</span> <span class="n">cone_dims</span><span class="o">.</span><span class="n">exp</span><span class="p">,</span>
-    <span class="s2">&quot;s&quot;</span><span class="p">:</span> <span class="n">cone_dims</span><span class="o">.</span><span class="n">psd</span><span class="p">,</span>
+    <span class="s2">"f"</span><span class="p">:</span> <span class="n">cone_dims</span><span class="o">.</span><span class="n">zero</span><span class="p">,</span>
+    <span class="s2">"l"</span><span class="p">:</span> <span class="n">cone_dims</span><span class="o">.</span><span class="n">nonpos</span><span class="p">,</span>
+    <span class="s2">"q"</span><span class="p">:</span> <span class="n">cone_dims</span><span class="o">.</span><span class="n">soc</span><span class="p">,</span>
+    <span class="s2">"ep"</span><span class="p">:</span> <span class="n">cone_dims</span><span class="o">.</span><span class="n">exp</span><span class="p">,</span>
+    <span class="s2">"s"</span><span class="p">:</span> <span class="n">cone_dims</span><span class="o">.</span><span class="n">psd</span><span class="p">,</span>
 <span class="p">}</span>
 <span class="n">soln</span> <span class="o">=</span> <span class="n">scs</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">cones</span><span class="p">)</span>
 </code></pre></div>

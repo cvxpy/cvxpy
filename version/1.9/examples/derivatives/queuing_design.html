@@ -801,16 +801,16 @@ import numpy as np
 import time
 
 
-mu = cp.Variable(pos=True, shape=(2,), name=&#39;mu&#39;)
-lam = cp.Variable(pos=True, shape=(2,), name=&#39;lambda&#39;)
-ell = cp.Variable(pos=True, shape=(2,), name=&#39;ell&#39;)
+mu = cp.Variable(pos=True, shape=(2,), name='mu')
+lam = cp.Variable(pos=True, shape=(2,), name='lambda')
+ell = cp.Variable(pos=True, shape=(2,), name='ell')
 
-w_max = cp.Parameter(pos=True, shape=(2,), value=np.array([2.5, 3.0]), name=&#39;w_max&#39;)
-d_max = cp.Parameter(pos=True, shape=(2,), value=np.array([2., 2.]), name=&#39;d_max&#39;)
-q_max = cp.Parameter(pos=True, shape=(2,), value=np.array([4., 5.0]), name=&#39;q_max&#39;)
-lam_min = cp.Parameter(pos=True, shape=(2,), value=np.array([0.5, 0.8]), name=&#39;lambda_min&#39;)
-mu_max = cp.Parameter(pos=True, value=3.0, name=&#39;mu_max&#39;)
-gamma = cp.Parameter(pos=True, shape=(2,), value=np.array([1.0, 2.0]), name=&#39;gamma&#39;)
+w_max = cp.Parameter(pos=True, shape=(2,), value=np.array([2.5, 3.0]), name='w_max')
+d_max = cp.Parameter(pos=True, shape=(2,), value=np.array([2., 2.]), name='d_max')
+q_max = cp.Parameter(pos=True, shape=(2,), value=np.array([4., 5.0]), name='q_max')
+lam_min = cp.Parameter(pos=True, shape=(2,), value=np.array([0.5, 0.8]), name='lambda_min')
+mu_max = cp.Parameter(pos=True, value=3.0, name='mu_max')
+gamma = cp.Parameter(pos=True, shape=(2,), value=np.array([1.0, 2.0]), name='gamma')
 
 lq = (ell)**(-2)/cp.one_minus_pos(ell**(-1))
 q = lq
@@ -829,16 +829,16 @@ constraints = [
 objective_fn = gamma.T @ ell
 
 problem = cp.Problem(cp.Minimize(objective_fn), constraints)
-problem.solve(requires_grad=True, gp=True, eps=1e-14, max_iters=10000, mode=&#39;dense&#39;)
+problem.solve(requires_grad=True, gp=True, eps=1e-14, max_iters=10000, mode='dense')
 </code></pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="mf">4.457106781186705</span>
 </code></pre></div>
 </div>
 <p>The solution is printed below.</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><code>print(&#39;mu &#39;, mu.value)
-print(&#39;lam &#39;, lam.value)
-print(&#39;ell &#39;, ell.value)
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><code>print('mu ', mu.value)
+print('lam ', lam.value)
+print('ell ', ell.value)
 </code></pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="n">mu</span>  <span class="p">[</span><span class="mf">1.32842713</span> <span class="mf">1.67157287</span><span class="p">]</span>
@@ -852,30 +852,30 @@ One takeaway is that the solution is highly sensitive to the values of
 <span class="math notranslate nohighlight">\(d_{\max}\)</span> and <span class="math notranslate nohighlight">\(\mu_{\max}\)</span>, and that increasing these
 parameters would decrease the service loads, especially on the first
 queue.</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><code>problem.solve(requires_grad=True, gp=True, eps=1e-14, max_iters=10000, mode=&#39;dense&#39;)
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><code>problem.solve(requires_grad=True, gp=True, eps=1e-14, max_iters=10000, mode='dense')
 
 for var in [lam, mu, ell]:
-    print(&#39;Variable &#39;, var.name())
-    print(&#39;Gradient with respect to first component&#39;)
+    print('Variable ', var.name())
+    print('Gradient with respect to first component')
     var.gradient = np.array([1., 0.])
     problem.backward()
     for param in problem.parameters():
         if np.prod(param.shape) == 2:
-            print(&#39;{0}: {1:.3g}, {2:.3g}&#39;.format(param.name(), param.gradient[0], param.gradient[1]))
+            print('{0}: {1:.3g}, {2:.3g}'.format(param.name(), param.gradient[0], param.gradient[1]))
         else:
-            print(&#39;{0}: {1:.3g}&#39;.format(param.name(), param.gradient))
+            print('{0}: {1:.3g}'.format(param.name(), param.gradient))
 
-    print(&#39;Gradient with respect to second component&#39;)
+    print('Gradient with respect to second component')
     var.gradient = np.array([0., 1.])
     problem.backward()
     for param in problem.parameters():
         if np.prod(param.shape) == 2:
-            print(&#39;{0}: {1:.3g}, {2:.3g}&#39;.format(param.name(), param.gradient[0], param.gradient[1]))
+            print('{0}: {1:.3g}, {2:.3g}'.format(param.name(), param.gradient[0], param.gradient[1]))
         else:
-            print(&#39;{0}: {1:.3g}&#39;.format(param.name(), param.gradient))
+            print('{0}: {1:.3g}'.format(param.name(), param.gradient))
 
     var.gradient = np.zeros(2)
-    print(&#39;&#39;)
+    print('')
 </code></pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="n">Variable</span>  <span class="k">lambda</span>
@@ -931,7 +931,7 @@ for var in [lam, mu, ell]:
 <p>Next, we perturb each parameter by a small amount, and compare the
 prediction of a first-order approximation to the solution of the
 perturbed problem to the true solution.</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><code>problem.solve(requires_grad=True, gp=True, eps=1e-14, max_iters=10000, mode=&#39;dense&#39;)
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><code>problem.solve(requires_grad=True, gp=True, eps=1e-14, max_iters=10000, mode='dense')
 
 mu_value = mu.value
 lam_value = lam.value
@@ -945,8 +945,8 @@ problem.derivative()
 lam_pred = (lam.delta / lam_value) * 100
 mu_pred = (mu.delta / mu_value) * 100
 
-print(&#39;lam predicted (percent change): &#39;, lam_pred)
-print(&#39;mu predicted (percent change): &#39;, mu_pred)
+print('lam predicted (percent change): ', lam_pred)
+print('mu predicted (percent change): ', mu_pred)
 
 
 for param in problem.parameters():
@@ -957,8 +957,8 @@ problem.solve(cp.SCS, gp=True, eps=1e-14, max_iters=10000)
 lam_actual = ((lam.value - lam_value) / lam_value) * 100
 mu_actual = ((mu.value - mu_value) / mu_value) * 100
 
-print(&#39;lam actual (percent change): &#39;, lam_actual)
-print(&#39;mu actual (percent change): &#39;, mu_actual)
+print('lam actual (percent change): ', lam_actual)
+print('mu actual (percent change): ', mu_actual)
 </code></pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="n">lam</span> <span class="n">predicted</span> <span class="p">(</span><span class="n">percent</span> <span class="n">change</span><span class="p">):</span>  <span class="p">[</span><span class="mf">2.32203282</span> <span class="mf">1.77228841</span><span class="p">]</span>

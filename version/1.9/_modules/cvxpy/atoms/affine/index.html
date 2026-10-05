@@ -718,21 +718,21 @@
 
 
 <h1>Source code for cvxpy.atoms.affine.index</h1><div class="highlight"><pre>
-<span></span><code><span class="sd">&quot;&quot;&quot;</span>
+<span></span><code><span class="sd">"""</span>
 <span class="sd">Copyright 2013 Steven Diamond</span>
 
-<span class="sd">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="sd">Licensed under the Apache License, Version 2.0 (the "License");</span>
 <span class="sd">you may not use this file except in compliance with the License.</span>
 <span class="sd">You may obtain a copy of the License at</span>
 
 <span class="sd">    http://www.apache.org/licenses/LICENSE-2.0</span>
 
 <span class="sd">Unless required by applicable law or agreed to in writing, software</span>
-<span class="sd">distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="sd">distributed under the License is distributed on an "AS IS" BASIS,</span>
 <span class="sd">WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
 <span class="sd">See the License for the specific language governing permissions and</span>
 <span class="sd">limitations under the License.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">scipy.sparse</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">sp</span>
@@ -751,10 +751,10 @@
 <div class="viewcode-block" id="index">
 <a class="viewcode-back" href="../../../../api_reference/cvxpy.atoms.affine.html#cvxpy.atoms.affine.index.index">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">index</span><span class="p">(</span><span class="n">AffAtom</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Indexing/slicing into an Expression.</span>
+<span class="w">    </span><span class="sd">"""Indexing/slicing into an Expression.</span>
 
 <span class="sd">    CVXPY supports NumPy-like indexing semantics via the Expression</span>
-<span class="sd">    class&#39; overloading of the ``[]`` operator. This is a low-level class</span>
+<span class="sd">    class' overloading of the ``[]`` operator. This is a low-level class</span>
 <span class="sd">    constructed by that operator, and it should not be instantiated directly.</span>
 
 <span class="sd">    Parameters</span>
@@ -775,7 +775,7 @@
 <span class="sd">    (2, 3, 4, 1)</span>
 <span class="sd">    &gt;&gt;&gt; x[1, 2].shape</span>
 <span class="sd">    (4,)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">orig_key</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="c1"># Format and validate key.</span>
@@ -788,46 +788,46 @@
         <span class="nb">super</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">is_atom_log_log_convex</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the atom log-log convex?&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Is the atom log-log convex?"""</span>
         <span class="k">return</span> <span class="kc">True</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">is_atom_log_log_concave</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the atom log-log concave?&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Is the atom log-log concave?"""</span>
         <span class="k">return</span> <span class="kc">True</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">bounds_from_args</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns bounds for indexed expression.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Returns bounds for indexed expression."""</span>
         <span class="n">lb</span><span class="p">,</span> <span class="n">ub</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get_bounds</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">bounds_utils</span><span class="o">.</span><span class="n">index_bounds</span><span class="p">(</span><span class="n">lb</span><span class="p">,</span> <span class="n">ub</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_orig_key</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;String representation of the index expression.&quot;&quot;&quot;</span>
-        <span class="n">inner_str</span> <span class="o">=</span> <span class="s2">&quot;[</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="s2">&quot;, </span><span class="si">%s</span><span class="s2">&quot;</span><span class="o">*</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;]&quot;</span>
+<span class="w">        </span><span class="sd">"""String representation of the index expression."""</span>
+        <span class="n">inner_str</span> <span class="o">=</span> <span class="s2">"[</span><span class="si">%s</span><span class="s2">"</span> <span class="o">+</span> <span class="s2">", </span><span class="si">%s</span><span class="s2">"</span><span class="o">*</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="s2">"]"</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="p">()</span> <span class="o">+</span> <span class="n">inner_str</span> <span class="o">%</span> <span class="n">ku</span><span class="o">.</span><span class="n">to_str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">format_labeled</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Labeled representation of the index expression.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Labeled representation of the index expression."""</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_label</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_label</span>
-        <span class="n">inner_str</span> <span class="o">=</span> <span class="s2">&quot;[</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="s2">&quot;, </span><span class="si">%s</span><span class="s2">&quot;</span><span class="o">*</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;]&quot;</span>
+        <span class="n">inner_str</span> <span class="o">=</span> <span class="s2">"[</span><span class="si">%s</span><span class="s2">"</span> <span class="o">+</span> <span class="s2">", </span><span class="si">%s</span><span class="s2">"</span><span class="o">*</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="s2">"]"</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">format_labeled</span><span class="p">()</span> <span class="o">+</span> <span class="n">inner_str</span> <span class="o">%</span> <span class="n">ku</span><span class="o">.</span><span class="n">to_str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">numeric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the index/slice into the given value.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Returns the index/slice into the given value."""</span>
         <span class="k">return</span> <span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">_orig_key</span><span class="p">]</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">shape_from_args</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the shape of the index expression.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Returns the shape of the index expression."""</span>
         <span class="k">return</span> <span class="n">ku</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_orig_key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the (row slice, column slice).&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Returns the (row slice, column slice)."""</span>
         <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_orig_key</span><span class="p">]</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">graph_implementation</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">arg_objs</span><span class="p">,</span> <span class="n">shape</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">lo</span><span class="o">.</span><span class="n">LinOp</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">Constraint</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Index/slice into the expression.</span>
+<span class="w">        </span><span class="sd">"""Index/slice into the expression.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -837,14 +837,14 @@
 <span class="sd">            The shape of the resulting expression.</span>
 <span class="sd">        data : tuple</span>
 <span class="sd">            A tuple of slices.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">obj</span> <span class="o">=</span> <span class="n">lu</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">arg_objs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">shape</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="p">[])</span></div>
 
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">special_index</span><span class="p">(</span><span class="n">AffAtom</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Indexing using logical indexing or a list of indices.</span>
+<span class="w">    </span><span class="sd">"""Indexing using logical indexing or a list of indices.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -852,10 +852,10 @@
 <span class="sd">        The expression being indexed/sliced into.</span>
 <span class="sd">    key : tuple</span>
 <span class="sd">        ndarrays or lists.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">bounds_from_args</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns bounds for special indexed expression.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Returns bounds for special indexed expression."""</span>
         <span class="n">lb</span><span class="p">,</span> <span class="n">ub</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get_bounds</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">bounds_utils</span><span class="o">.</span><span class="n">index_bounds</span><span class="p">(</span><span class="n">lb</span><span class="p">,</span> <span class="n">ub</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">)</span>
 
@@ -864,58 +864,58 @@
         <span class="c1"># Order the entries of expr and select them using key.</span>
         <span class="n">expr</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">cast_to_const</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span>
         <span class="n">idx_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
-        <span class="n">idx_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">idx_mat</span><span class="p">,</span> <span class="n">expr</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
+        <span class="n">idx_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">idx_mat</span><span class="p">,</span> <span class="n">expr</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">'F'</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_select_mat</span> <span class="o">=</span> <span class="n">idx_mat</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_select_mat</span><span class="o">.</span><span class="n">shape</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">special_index</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">is_atom_log_log_convex</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the atom log-log convex?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Is the atom log-log convex?</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="kc">True</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">is_atom_log_log_concave</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the atom log-log concave?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Is the atom log-log concave?</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="kc">True</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;String representation of the special index expression.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""String representation of the special index expression."""</span>
         <span class="n">key_str</span> <span class="o">=</span> <span class="n">ku</span><span class="o">.</span><span class="n">special_key_to_str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">)</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="p">()</span><span class="si">}</span><span class="s2">[</span><span class="si">{</span><span class="n">key_str</span><span class="si">}</span><span class="s2">]&quot;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="p">()</span><span class="si">}</span><span class="s2">[</span><span class="si">{</span><span class="n">key_str</span><span class="si">}</span><span class="s2">]"</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">format_labeled</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_label</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_label</span>
         <span class="n">key_str</span> <span class="o">=</span> <span class="n">ku</span><span class="o">.</span><span class="n">special_key_to_str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">)</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">format_labeled</span><span class="p">()</span><span class="si">}</span><span class="s2">[</span><span class="si">{</span><span class="n">key_str</span><span class="si">}</span><span class="s2">]&quot;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">format_labeled</span><span class="p">()</span><span class="si">}</span><span class="s2">[</span><span class="si">{</span><span class="n">key_str</span><span class="si">}</span><span class="s2">]"</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">numeric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the index/slice into the given value.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Returns the index/slice into the given value.</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">]</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">shape_from_args</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the shape of the index expression.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Returns the shape of the index expression."""</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shape</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the key.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Returns the key."""</span>
         <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">]</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">grad</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">sp</span><span class="o">.</span><span class="n">csc_array</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gives the (sub/super)gradient of the expression w.r.t. each variable.</span>
+<span class="w">        </span><span class="sd">"""Gives the (sub/super)gradient of the expression w.r.t. each variable.</span>
 
 <span class="sd">        Matrix expressions are vectorized, so the gradient is a matrix.</span>
 <span class="sd">        None indicates variable values unknown or outside domain.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">select_vec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_select_mat</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_select_mat</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
-        <span class="n">identity</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">eye_array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;csc&#39;</span><span class="p">)</span>
+<span class="sd">        """</span>
+        <span class="n">select_vec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_select_mat</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_select_mat</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">'F'</span><span class="p">)</span>
+        <span class="n">identity</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">eye_array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">'csc'</span><span class="p">)</span>
         <span class="n">lowered</span> <span class="o">=</span> <span class="n">reshape</span><span class="p">(</span>
-            <span class="n">identity</span><span class="p">[</span><span class="n">select_vec</span><span class="p">]</span> <span class="o">@</span> <span class="n">vec</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">),</span>
+            <span class="n">identity</span><span class="p">[</span><span class="n">select_vec</span><span class="p">]</span> <span class="o">@</span> <span class="n">vec</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">order</span><span class="o">=</span><span class="s1">'F'</span><span class="p">),</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_shape</span><span class="p">,</span>
-            <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span>
+            <span class="n">order</span><span class="o">=</span><span class="s1">'F'</span>
         <span class="p">)</span>
         <span class="k">return</span> <span class="n">lowered</span><span class="o">.</span><span class="n">grad</span>
 
@@ -923,7 +923,7 @@
                             <span class="n">arg_objs</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
                             <span class="n">shape</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span>
                             <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">lo</span><span class="o">.</span><span class="n">LinOp</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">Constraint</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Index/slice into the expression.</span>
+<span class="w">        </span><span class="sd">"""Index/slice into the expression.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -933,13 +933,13 @@
 <span class="sd">            The shape of the resulting expression.</span>
 <span class="sd">        data : tuple</span>
 <span class="sd">            A tuple of slices.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">select_mat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_select_mat</span>
         <span class="n">final_shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_select_mat</span><span class="o">.</span><span class="n">shape</span>
-        <span class="n">select_vec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">select_mat</span><span class="p">,</span> <span class="n">select_mat</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
+        <span class="n">select_vec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">select_mat</span><span class="p">,</span> <span class="n">select_mat</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">'F'</span><span class="p">)</span>
         <span class="c1"># Select the chosen entries from expr.</span>
         <span class="n">arg</span> <span class="o">=</span> <span class="n">arg_objs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">identity</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">eye_array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;csc&#39;</span><span class="p">)</span>
+        <span class="n">identity</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">eye_array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">'csc'</span><span class="p">)</span>
         <span class="n">vec_arg</span> <span class="o">=</span> <span class="n">lu</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="p">,))</span>
         <span class="n">mul_mat</span> <span class="o">=</span> <span class="n">identity</span><span class="p">[</span><span class="n">select_vec</span><span class="p">]</span>
         <span class="n">mul_const</span> <span class="o">=</span> <span class="n">lu</span><span class="o">.</span><span class="n">create_const</span><span class="p">(</span><span class="n">mul_mat</span><span class="p">,</span> <span class="n">mul_mat</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">sparse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>

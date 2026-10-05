@@ -1203,9 +1203,9 @@ problems. For example, the following code solves a simple QCP,</p>
 <span class="n">problem</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">objective_fn</span><span class="p">),</span> <span class="p">[</span><span class="n">cp</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">y</span><span class="p">])</span>
 <span class="n">problem</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">qcp</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">assert</span> <span class="n">problem</span><span class="o">.</span><span class="n">is_dqcp</span><span class="p">()</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Optimal value: &quot;</span><span class="p">,</span> <span class="n">problem</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;x: &quot;</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;y: &quot;</span><span class="p">,</span> <span class="n">y</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Optimal value: "</span><span class="p">,</span> <span class="n">problem</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"x: "</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"y: "</span><span class="p">,</span> <span class="n">y</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
 </code></pre></div>
 </div>
 <p>and it prints the below output.</p>

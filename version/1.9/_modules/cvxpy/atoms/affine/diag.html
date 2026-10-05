@@ -718,21 +718,21 @@
 
 
 <h1>Source code for cvxpy.atoms.affine.diag</h1><div class="highlight"><pre>
-<span></span><code><span class="sd">&quot;&quot;&quot;</span>
+<span></span><code><span class="sd">"""</span>
 <span class="sd">Copyright 2013 Steven Diamond</span>
 
-<span class="sd">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="sd">Licensed under the Apache License, Version 2.0 (the "License");</span>
 <span class="sd">you may not use this file except in compliance with the License.</span>
 <span class="sd">You may obtain a copy of the License at</span>
 
 <span class="sd">    http://www.apache.org/licenses/LICENSE-2.0</span>
 
 <span class="sd">Unless required by applicable law or agreed to in writing, software</span>
-<span class="sd">distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="sd">distributed under the License is distributed on an "AS IS" BASIS,</span>
 <span class="sd">WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
 <span class="sd">See the License for the specific language governing permissions and</span>
 <span class="sd">limitations under the License.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
@@ -746,8 +746,8 @@
 
 <div class="viewcode-block" id="diag">
 <a class="viewcode-back" href="../../../../api_reference/cvxpy.atoms.affine.html#cvxpy.diag">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">diag</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;diag_mat&quot;</span> <span class="o">|</span> <span class="s2">&quot;diag_vec&quot;</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Extracts the diagonal from a matrix or makes a vector a diagonal matrix.</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">diag</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"diag_mat"</span> <span class="o">|</span> <span class="s2">"diag_vec"</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Extracts the diagonal from a matrix or makes a vector a diagonal matrix.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -763,20 +763,20 @@
 <span class="sd">    -------</span>
 <span class="sd">    Expression</span>
 <span class="sd">        An Expression representing the diagonal vector/matrix.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">expr</span> <span class="o">=</span> <span class="n">AffAtom</span><span class="o">.</span><span class="n">cast_to_const</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">expr</span><span class="o">.</span><span class="n">is_vector</span><span class="p">():</span>
-        <span class="k">return</span> <span class="n">diag_vec</span><span class="p">(</span><span class="n">vec</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">),</span> <span class="n">k</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">diag_vec</span><span class="p">(</span><span class="n">vec</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">'F'</span><span class="p">),</span> <span class="n">k</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">expr</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">expr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">expr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
-        <span class="k">assert</span> <span class="nb">abs</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">expr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;Offset out of bounds.&quot;</span>
+        <span class="k">assert</span> <span class="nb">abs</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">expr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">"Offset out of bounds."</span>
         <span class="k">return</span> <span class="n">diag_mat</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Argument to diag must be a 1-d array or 2-d square array.&quot;</span><span class="p">)</span></div>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Argument to diag must be a 1-d array or 2-d square array."</span><span class="p">)</span></div>
 
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">diag_vec</span><span class="p">(</span><span class="n">AffAtom</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Converts a vector into a diagonal matrix.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Converts a vector into a diagonal matrix."""</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">=</span> <span class="n">k</span>
@@ -786,58 +786,58 @@
         <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">]</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">validate_arguments</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Checks that the argument is a vector.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Checks that the argument is a vector.</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s2">&quot;Argument to diag_vec must be a 1-d array&quot;</span>
+                <span class="s2">"Argument to diag_vec must be a 1-d array"</span>
             <span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">is_atom_log_log_convex</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the atom log-log convex?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Is the atom log-log convex?</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="kc">True</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">is_atom_log_log_concave</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the atom log-log concave?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Is the atom log-log concave?</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="kc">True</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">numeric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert the vector constant into a diagonal matrix.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Convert the vector constant into a diagonal matrix.</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">k</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">shape_from_args</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;A square matrix.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""A square matrix.</span>
+<span class="sd">        """</span>
         <span class="n">rows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">rows</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">is_symmetric</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the expression symmetric?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Is the expression symmetric?</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">==</span> <span class="mi">0</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">is_hermitian</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the expression hermitian?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Is the expression hermitian?</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_real</span><span class="p">()</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">is_psd</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the expression a positive semidefinite matrix?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Is the expression a positive semidefinite matrix?</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_nonneg</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">==</span> <span class="mi">0</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">is_nsd</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the expression a negative semidefinite matrix?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Is the expression a negative semidefinite matrix?</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_nonpos</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">==</span> <span class="mi">0</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">graph_implementation</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">arg_objs</span><span class="p">,</span> <span class="n">shape</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">lo</span><span class="o">.</span><span class="n">LinOp</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">Constraint</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convolve two vectors.</span>
+<span class="w">        </span><span class="sd">"""Convolve two vectors.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -852,13 +852,13 @@
 <span class="sd">        -------</span>
 <span class="sd">        tuple</span>
 <span class="sd">            (LinOp for objective, list of constraints)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">lu</span><span class="o">.</span><span class="n">diag_vec</span><span class="p">(</span><span class="n">arg_objs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">),</span> <span class="p">[])</span>
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">diag_mat</span><span class="p">(</span><span class="n">AffAtom</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Extracts the diagonal from a square matrix.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Extracts the diagonal from a square matrix.</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">=</span> <span class="n">k</span>
@@ -868,42 +868,42 @@
         <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">]</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">validate_arguments</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Checks that the argument is a square matrix.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Checks that the argument is a square matrix.</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s2">&quot;Argument to diag_mat must be a 2-d array.&quot;</span>
+                <span class="s2">"Argument to diag_mat must be a 2-d array."</span>
             <span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">is_atom_log_log_convex</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the atom log-log convex?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Is the atom log-log convex?</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="kc">True</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">is_atom_log_log_concave</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the atom log-log concave?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Is the atom log-log concave?</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="kc">True</span>
 
     <span class="nd">@AffAtom</span><span class="o">.</span><span class="n">numpy_numeric</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">numeric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Extract the diagonal from a square matrix constant.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Extract the diagonal from a square matrix constant."""</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">k</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">shape_from_args</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;A column vector.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""A column vector."""</span>
         <span class="n">rows</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span>
         <span class="n">rows</span> <span class="o">-=</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">rows</span><span class="p">,)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">is_nonneg</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the expression nonnegative?&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Is the expression nonnegative?"""</span>
         <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_nonneg</span><span class="p">()</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_psd</span><span class="p">())</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">==</span> <span class="mi">0</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">graph_implementation</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">arg_objs</span><span class="p">,</span> <span class="n">shape</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">lo</span><span class="o">.</span><span class="n">LinOp</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">Constraint</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Extracts the diagonal of a matrix.</span>
+<span class="w">        </span><span class="sd">"""Extracts the diagonal of a matrix.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -918,7 +918,7 @@
 <span class="sd">        -------</span>
 <span class="sd">        tuple</span>
 <span class="sd">            (LinOp for objective, list of constraints)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">lu</span><span class="o">.</span><span class="n">diag_mat</span><span class="p">(</span><span class="n">arg_objs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">),</span> <span class="p">[])</span>
 </code></pre></div>
 

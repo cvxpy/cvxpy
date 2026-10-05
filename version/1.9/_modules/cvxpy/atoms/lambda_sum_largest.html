@@ -718,21 +718,21 @@
 
 
 <h1>Source code for cvxpy.atoms.lambda_sum_largest</h1><div class="highlight"><pre>
-<span></span><code><span class="sd">&quot;&quot;&quot;</span>
+<span></span><code><span class="sd">"""</span>
 <span class="sd">Copyright 2013 Steven Diamond</span>
 
-<span class="sd">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="sd">Licensed under the Apache License, Version 2.0 (the "License");</span>
 <span class="sd">you may not use this file except in compliance with the License.</span>
 <span class="sd">You may obtain a copy of the License at</span>
 
 <span class="sd">    http://www.apache.org/licenses/LICENSE-2.0</span>
 
 <span class="sd">Unless required by applicable law or agreed to in writing, software</span>
-<span class="sd">distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="sd">distributed under the License is distributed on an "AS IS" BASIS,</span>
 <span class="sd">WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
 <span class="sd">See the License for the specific language governing permissions and</span>
 <span class="sd">limitations under the License.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
@@ -742,8 +742,8 @@
 <div class="viewcode-block" id="lambda_sum_largest">
 <a class="viewcode-back" href="../../../api_reference/cvxpy.atoms.other_atoms.html#cvxpy.atoms.lambda_sum_largest.lambda_sum_largest">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">lambda_sum_largest</span><span class="p">(</span><span class="n">lambda_max</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Sum of the largest k eigenvalues.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Sum of the largest k eigenvalues.</span>
+<span class="sd">    """</span>
     <span class="n">_allow_complex</span> <span class="o">=</span> <span class="kc">True</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -751,19 +751,19 @@
         <span class="nb">super</span><span class="p">(</span><span class="n">lambda_sum_largest</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">validate_arguments</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Verify that the argument A is square.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Verify that the argument A is square.</span>
+<span class="sd">        """</span>
         <span class="n">X</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">X</span><span class="o">.</span><span class="n">ndim</span> <span class="o">&lt;</span> <span class="mi">2</span> <span class="ow">or</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">!=</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;First argument must be a square matrix.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"First argument must be a square matrix."</span><span class="p">)</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Second argument must be a positive number.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Second argument must be a positive number."</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">numeric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the sum of the k largest eigenvalues of A.</span>
+<span class="w">        </span><span class="sd">"""Returns the sum of the k largest eigenvalues of A.</span>
 
 <span class="sd">        Requires that A be symmetric.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="c1"># eigvalsh returns eigenvalues sorted ascending along the last axis.</span>
         <span class="n">eigs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">eigvalsh</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
         <span class="n">k_floor</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">))</span>
@@ -776,17 +776,17 @@
         <span class="k">return</span> <span class="n">result</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the parameter k.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Returns the parameter k.</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">]</span>
 
     <span class="c1"># _grad is inherited from lambda_max; only _grad_matrices is overridden.</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_grad_matrices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">A</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute gradient matrices for all batch elements.</span>
+<span class="w">        </span><span class="sd">"""Compute gradient matrices for all batch elements.</span>
 
 <span class="sd">        Returns an array of shape (*batch, n, n).</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">k</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span>
         <span class="n">k_floor</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">k</span><span class="p">))</span>
         <span class="n">k_frac</span> <span class="o">=</span> <span class="n">k</span> <span class="o">-</span> <span class="n">k_floor</span>
@@ -808,7 +808,7 @@
         <span class="k">if</span> <span class="n">val</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">conj</span><span class="p">()):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Input matrix was not Hermitian/symmetric.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Input matrix was not Hermitian/symmetric."</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value_impl</span><span class="p">()</span></div>
 
 </code></pre></div>

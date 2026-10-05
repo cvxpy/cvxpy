@@ -718,21 +718,21 @@
 
 
 <h1>Source code for cvxpy.problems.objective</h1><div class="highlight"><pre>
-<span></span><code><span class="sd">&quot;&quot;&quot;</span>
+<span></span><code><span class="sd">"""</span>
 <span class="sd">Copyright 2013 Steven Diamond</span>
 
-<span class="sd">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="sd">Licensed under the Apache License, Version 2.0 (the "License");</span>
 <span class="sd">you may not use this file except in compliance with the License.</span>
 <span class="sd">You may obtain a copy of the License at</span>
 
 <span class="sd">    http://www.apache.org/licenses/LICENSE-2.0</span>
 
 <span class="sd">Unless required by applicable law or agreed to in writing, software</span>
-<span class="sd">distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="sd">distributed under the License is distributed on an "AS IS" BASIS,</span>
 <span class="sd">WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
 <span class="sd">See the License for the specific language governing permissions and</span>
 <span class="sd">limitations under the License.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">cvxpy.lin_ops.lin_utils</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">lu</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">cvxpy.utilities</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">u</span>
@@ -743,7 +743,7 @@
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">Objective</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">Canonical</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;An optimization objective.</span>
+<span class="w">    </span><span class="sd">"""An optimization objective.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -754,9 +754,9 @@
 <span class="sd">    ------</span>
 <span class="sd">    ValueError</span>
 <span class="sd">        If expr is not a scalar.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
-    <span class="n">NAME</span> <span class="o">=</span> <span class="s2">&quot;objective&quot;</span>
+    <span class="n">NAME</span> <span class="o">=</span> <span class="s2">"objective"</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="n">Expression</span><span class="o">.</span><span class="n">cast_to_const</span><span class="p">(</span><span class="n">expr</span><span class="p">)]</span>
@@ -764,19 +764,19 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">ndim</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="c1"># Validate that the objective resolves to a scalar.</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_scalar</span><span class="p">():</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The &#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">NAME</span><span class="si">}</span><span class="s2">&#39; objective must resolve to a scalar.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"The '</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">NAME</span><span class="si">}</span><span class="s2">' objective must resolve to a scalar."</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_real</span><span class="p">():</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The &#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">NAME</span><span class="si">}</span><span class="s2">&#39; objective must be real valued.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"The '</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">NAME</span><span class="si">}</span><span class="s2">' objective must be real valued."</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">(</span><span class="si">{</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="si">}</span><span class="s2">)&quot;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">(</span><span class="si">{</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="si">}</span><span class="s2">)"</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">NAME</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">NAME</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="p">()</span><span class="si">}</span><span class="s1">'</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">format_labeled</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Format objective with labels where available.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">NAME</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">format_labeled</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span>
+<span class="w">        </span><span class="sd">"""Format objective with labels where available."""</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">NAME</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">format_labeled</span><span class="p">()</span><span class="si">}</span><span class="s1">'</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__radd__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">other</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -816,8 +816,8 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;The value of the objective expression.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""The value of the objective expression.</span>
+<span class="sd">        """</span>
         <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
         <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
@@ -825,20 +825,20 @@
             <span class="k">return</span> <span class="n">scalar_value</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">is_quadratic</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns if the objective is a quadratic function.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Returns if the objective is a quadratic function.</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_quadratic</span><span class="p">()</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">is_qpwa</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns if the objective is a quadratic of piecewise affine.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Returns if the objective is a quadratic of piecewise affine.</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_qpwa</span><span class="p">()</span>
 
 
 <div class="viewcode-block" id="Minimize">
 <a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.Minimize">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Minimize</span><span class="p">(</span><span class="n">Objective</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;An optimization objective for minimization.</span>
+<span class="w">    </span><span class="sd">"""An optimization objective for minimization.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -849,11 +849,11 @@
 <span class="sd">    ------</span>
 <span class="sd">    ValueError</span>
 <span class="sd">        If expr is not a scalar.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
-    <span class="n">NAME</span> <span class="o">=</span> <span class="s2">&quot;minimize&quot;</span>
+    <span class="n">NAME</span> <span class="o">=</span> <span class="s2">"minimize"</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__neg__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Maximize&quot;</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__neg__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"Maximize"</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">Maximize</span><span class="p">(</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
@@ -863,18 +863,18 @@
         <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="ow">is</span> <span class="n">Minimize</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">Minimize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">other</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">DCPError</span><span class="p">(</span><span class="s2">&quot;Problem does not follow DCP rules.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">DCPError</span><span class="p">(</span><span class="s2">"Problem does not follow DCP rules."</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">canonicalize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Pass on the target expression&#39;s objective and constraints.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Pass on the target expression's objective and constraints.</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">canonical_form</span>
 
 <div class="viewcode-block" id="Minimize.is_dcp">
 <a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.Minimize.is_dcp">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">is_dcp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dpp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;The objective must be convex.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""The objective must be convex.</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">dpp</span><span class="p">:</span>
             <span class="k">with</span> <span class="n">scopes</span><span class="o">.</span><span class="n">dpp_scope</span><span class="p">():</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_convex</span><span class="p">()</span>
@@ -882,40 +882,40 @@
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">is_dnlp</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        The objective must be linearizable convex.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_linearizable_convex</span><span class="p">()</span>
 
 <div class="viewcode-block" id="Minimize.is_dgp">
 <a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.Minimize.is_dgp">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">is_dgp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dpp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;The objective must be log-log convex.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""The objective must be log-log convex.</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">dpp</span><span class="p">:</span>
             <span class="k">with</span> <span class="n">scopes</span><span class="o">.</span><span class="n">dpp_scope</span><span class="p">():</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_log_log_convex</span><span class="p">()</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_log_log_convex</span><span class="p">()</span></div>
 
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">is_dpp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="s1">&#39;dcp&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_dpp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="s1">'dcp'</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="k">with</span> <span class="n">scopes</span><span class="o">.</span><span class="n">dpp_scope</span><span class="p">():</span>
-            <span class="k">if</span> <span class="n">context</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;dcp&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">context</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">'dcp'</span><span class="p">:</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_dcp</span><span class="p">(</span><span class="n">dpp</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-            <span class="k">elif</span> <span class="n">context</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;dgp&#39;</span><span class="p">:</span>
+            <span class="k">elif</span> <span class="n">context</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">'dgp'</span><span class="p">:</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_dgp</span><span class="p">(</span><span class="n">dpp</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unsupported context &quot;</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Unsupported context "</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">is_dqcp</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;The objective must be quasiconvex.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""The objective must be quasiconvex.</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_quasiconvex</span><span class="p">()</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">primal_to_result</span><span class="p">(</span><span class="n">result</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;The value of the objective given the solver primal value.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""The value of the objective given the solver primal value.</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="n">result</span></div>
 
 
@@ -923,7 +923,7 @@
 <div class="viewcode-block" id="Maximize">
 <a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.Maximize">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Maximize</span><span class="p">(</span><span class="n">Objective</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;An optimization objective for maximization.</span>
+<span class="w">    </span><span class="sd">"""An optimization objective for maximization.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -934,9 +934,9 @@
 <span class="sd">    ------</span>
 <span class="sd">    ValueError</span>
 <span class="sd">        If expr is not a scalar.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
-    <span class="n">NAME</span> <span class="o">=</span> <span class="s2">&quot;maximize&quot;</span>
+    <span class="n">NAME</span> <span class="o">=</span> <span class="s2">"maximize"</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__neg__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Minimize</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">Minimize</span><span class="p">(</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
@@ -948,19 +948,19 @@
         <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="ow">is</span> <span class="n">Maximize</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">Maximize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">other</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">DCPError</span><span class="p">(</span><span class="s2">&quot;Problem does not follow DCP rules.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">DCPError</span><span class="p">(</span><span class="s2">"Problem does not follow DCP rules."</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">canonicalize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Negates the target expression&#39;s objective.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Negates the target expression's objective.</span>
+<span class="sd">        """</span>
         <span class="n">obj</span><span class="p">,</span> <span class="n">constraints</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">canonical_form</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">lu</span><span class="o">.</span><span class="n">neg_expr</span><span class="p">(</span><span class="n">obj</span><span class="p">),</span> <span class="n">constraints</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Maximize.is_dcp">
 <a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.Maximize.is_dcp">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">is_dcp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dpp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;The objective must be concave.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""The objective must be concave.</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">dpp</span><span class="p">:</span>
             <span class="k">with</span> <span class="n">scopes</span><span class="o">.</span><span class="n">dpp_scope</span><span class="p">():</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_concave</span><span class="p">()</span>
@@ -968,40 +968,40 @@
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">is_dnlp</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        The objective must be linearizable concave.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_linearizable_concave</span><span class="p">()</span>
 
 <div class="viewcode-block" id="Maximize.is_dgp">
 <a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.Maximize.is_dgp">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">is_dgp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dpp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;The objective must be log-log concave.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""The objective must be log-log concave.</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">dpp</span><span class="p">:</span>
             <span class="k">with</span> <span class="n">scopes</span><span class="o">.</span><span class="n">dpp_scope</span><span class="p">():</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_log_log_concave</span><span class="p">()</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_log_log_concave</span><span class="p">()</span></div>
 
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">is_dpp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="s1">&#39;dcp&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_dpp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="s1">'dcp'</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="k">with</span> <span class="n">scopes</span><span class="o">.</span><span class="n">dpp_scope</span><span class="p">():</span>
-            <span class="k">if</span> <span class="n">context</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;dcp&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">context</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">'dcp'</span><span class="p">:</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_dcp</span><span class="p">(</span><span class="n">dpp</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-            <span class="k">elif</span> <span class="n">context</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;dgp&#39;</span><span class="p">:</span>
+            <span class="k">elif</span> <span class="n">context</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">'dgp'</span><span class="p">:</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_dgp</span><span class="p">(</span><span class="n">dpp</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unsupported context &quot;</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Unsupported context "</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">is_dqcp</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;The objective must be quasiconcave.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""The objective must be quasiconcave.</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_quasiconcave</span><span class="p">()</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">primal_to_result</span><span class="p">(</span><span class="n">result</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;The value of the objective given the solver primal value.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""The value of the objective given the solver primal value.</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="o">-</span><span class="n">result</span></div>
 
 </code></pre></div>

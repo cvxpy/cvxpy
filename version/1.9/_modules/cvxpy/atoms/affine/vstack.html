@@ -718,21 +718,21 @@
 
 
 <h1>Source code for cvxpy.atoms.affine.vstack</h1><div class="highlight"><pre>
-<span></span><code><span class="sd">&quot;&quot;&quot;</span>
+<span></span><code><span class="sd">"""</span>
 <span class="sd">Copyright 2013 Steven Diamond</span>
 
-<span class="sd">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="sd">Licensed under the Apache License, Version 2.0 (the "License");</span>
 <span class="sd">you may not use this file except in compliance with the License.</span>
 <span class="sd">You may obtain a copy of the License at</span>
 
 <span class="sd">    http://www.apache.org/licenses/LICENSE-2.0</span>
 
 <span class="sd">Unless required by applicable law or agreed to in writing, software</span>
-<span class="sd">distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="sd">distributed under the License is distributed on an "AS IS" BASIS,</span>
 <span class="sd">WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
 <span class="sd">See the License for the specific language governing permissions and</span>
 <span class="sd">limitations under the License.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
@@ -744,23 +744,23 @@
 
 <div class="viewcode-block" id="vstack">
 <a class="viewcode-back" href="../../../../api_reference/cvxpy.atoms.affine.html#cvxpy.vstack">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">vstack</span><span class="p">(</span><span class="n">arg_list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Vstack&quot;</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Wrapper on vstack to ensure list argument.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">vstack</span><span class="p">(</span><span class="n">arg_list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"Vstack"</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Wrapper on vstack to ensure list argument.</span>
+<span class="sd">    """</span>
     <span class="k">return</span> <span class="n">Vstack</span><span class="p">(</span><span class="o">*</span><span class="n">arg_list</span><span class="p">)</span></div>
 
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">Vstack</span><span class="p">(</span><span class="n">AffAtom</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Vertical concatenation&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Vertical concatenation"""</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">is_atom_log_log_convex</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the atom log-log convex?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Is the atom log-log convex?</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="kc">True</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">is_atom_log_log_concave</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the atom log-log concave?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Is the atom log-log concave?</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="kc">True</span>
 
     <span class="c1"># Returns the vstack of the values.</span>
@@ -775,7 +775,7 @@
                 <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">arg</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">([]))</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">]</span>
                 <span class="p">)</span><span class="o">.</span><span class="n">shape</span>
         <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid arguments for cp.vstack: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Invalid arguments for cp.vstack: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
 
     <span class="c1"># All arguments must have the same width.</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">validate_arguments</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -784,7 +784,7 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">graph_implementation</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">arg_objs</span><span class="p">,</span> <span class="n">shape</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">lo</span><span class="o">.</span><span class="n">LinOp</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">Constraint</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Stack the expressions vertically.</span>
+<span class="w">        </span><span class="sd">"""Stack the expressions vertically.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -799,7 +799,7 @@
 <span class="sd">        -------</span>
 <span class="sd">        tuple</span>
 <span class="sd">            (LinOp for objective, list of constraints)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">lu</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="n">arg_objs</span><span class="p">,</span> <span class="n">shape</span><span class="p">),</span> <span class="p">[])</span>
 </code></pre></div>
 

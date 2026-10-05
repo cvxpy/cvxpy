@@ -718,21 +718,21 @@
 
 
 <h1>Source code for cvxpy.reductions.complex2real.complex2real</h1><div class="highlight"><pre>
-<span></span><code><span class="sd">&quot;&quot;&quot;</span>
+<span></span><code><span class="sd">"""</span>
 <span class="sd">Copyright 2017 Robin Verschueren</span>
 
-<span class="sd">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="sd">Licensed under the Apache License, Version 2.0 (the "License");</span>
 <span class="sd">you may not use this file except in compliance with the License.</span>
 <span class="sd">You may obtain a copy of the License at</span>
 
 <span class="sd">    http://www.apache.org/licenses/LICENSE-2.0</span>
 
 <span class="sd">Unless required by applicable law or agreed to in writing, software</span>
-<span class="sd">distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="sd">distributed under the License is distributed on an "AS IS" BASIS,</span>
 <span class="sd">WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
 <span class="sd">See the License for the specific language governing permissions and</span>
 <span class="sd">limitations under the License.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
@@ -748,6 +748,7 @@
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.constraints.constraint</span><span class="w"> </span><span class="kn">import</span> <span class="n">Constraint</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.expressions</span><span class="w"> </span><span class="kn">import</span> <span class="n">cvxtypes</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.expressions.variable</span><span class="w"> </span><span class="kn">import</span> <span class="n">Variable</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.lin_ops</span><span class="w"> </span><span class="kn">import</span> <span class="n">lin_utils</span> <span class="k">as</span> <span class="n">lu</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions</span><span class="w"> </span><span class="kn">import</span> <span class="n">InverseData</span><span class="p">,</span> <span class="n">Solution</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.complex2real.canonicalizers</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
@@ -755,6 +756,9 @@
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.complex2real.canonicalizers</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">Complex2RealCanonMethods</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.complex2real.canonicalizers.psd_canon</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">complex_psd_matrix</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.reduction</span><span class="w"> </span><span class="kn">import</span> <span class="n">Reduction</span>
 
@@ -767,13 +771,13 @@
 <div class="viewcode-block" id="Complex2Real">
 <a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.middle_end.html#cvxpy.reductions.complex2real.complex2real.Complex2Real">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Complex2Real</span><span class="p">(</span><span class="n">Reduction</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Lifts complex numbers to a real representation.</span>
+<span class="w">    </span><span class="sd">"""Lifts complex numbers to a real representation.</span>
 
 <span class="sd">    For DPP (Disciplined Parameterized Programming) support, this reduction</span>
 <span class="sd">    tracks complex parameter mappings in canon_methods._parameters. At solve</span>
 <span class="sd">    time, the real/imaginary parameter values are set from the original</span>
 <span class="sd">    complex parameter values.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">UNIMPLEMENTED_COMPLEX_DUALS</span> <span class="o">=</span> <span class="p">(</span><span class="n">SOC</span><span class="p">,</span> <span class="n">OpRelEntrConeQuad</span><span class="p">)</span>
 
@@ -822,7 +826,7 @@
 <div class="viewcode-block" id="Complex2Real.update_parameters">
 <a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.middle_end.html#cvxpy.reductions.complex2real.complex2real.Complex2Real.update_parameters">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">update_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Update real/imag parameter values from complex parameters.</span>
+<span class="w">        </span><span class="sd">"""Update real/imag parameter values from complex parameters.</span>
 
 <span class="sd">        Called at solve time in the DPP fast path. Complex parameters are</span>
 <span class="sd">        split into real/imag parameter pairs during canonicalization; this</span>
@@ -831,7 +835,7 @@
 <span class="sd">        For Hermitian parameters, the imaginary part uses a compact</span>
 <span class="sd">        representation (strict upper triangle only), so we extract those</span>
 <span class="sd">        elements from the skew-symmetric imaginary part.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">canon_methods</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span>
         <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">problem</span><span class="o">.</span><span class="n">parameters</span><span class="p">():</span>
@@ -852,11 +856,11 @@
 <div class="viewcode-block" id="Complex2Real.var_backward">
 <a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.middle_end.html#cvxpy.reductions.complex2real.complex2real.Complex2Real.var_backward">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">var_backward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">del_vars</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Split complex gradients into real/imag gradients for backward diff.</span>
+<span class="w">        </span><span class="sd">"""Split complex gradients into real/imag gradients for backward diff.</span>
 
 <span class="sd">        Transforms from outer (original complex) var IDs to inner</span>
 <span class="sd">        (real/imag) var IDs.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">canon_methods</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">del_vars</span>
         <span class="n">result</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">del_vars</span><span class="p">)</span>
@@ -879,11 +883,11 @@
 <div class="viewcode-block" id="Complex2Real.var_forward">
 <a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.middle_end.html#cvxpy.reductions.complex2real.complex2real.Complex2Real.var_forward">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">var_forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dvars</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Combine real/imag deltas into complex deltas for forward diff.</span>
+<span class="w">        </span><span class="sd">"""Combine real/imag deltas into complex deltas for forward diff.</span>
 
 <span class="sd">        Transforms from inner (real/imag) var IDs to outer (original complex)</span>
 <span class="sd">        var IDs.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">canon_methods</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">dvars</span>
         <span class="n">result</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">dvars</span><span class="p">)</span>
@@ -911,12 +915,12 @@
 <div class="viewcode-block" id="Complex2Real.param_backward">
 <a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.middle_end.html#cvxpy.reductions.complex2real.complex2real.Complex2Real.param_backward">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">param_backward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dparams</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Combine real/imag gradients into complex gradient for backward diff.</span>
+<span class="w">        </span><span class="sd">"""Combine real/imag gradients into complex gradient for backward diff.</span>
 
 <span class="sd">        For complex param -&gt; (real_param, imag_param), we compute:</span>
 <span class="sd">        param.gradient = dL/d(real_param) + 1j * dL/d(imag_param)</span>
 
-<span class="sd">        This follows PyTorch&#39;s convention for complex gradients, treating the</span>
+<span class="sd">        This follows PyTorch's convention for complex gradients, treating the</span>
 <span class="sd">        complex parameter as a pair of independent real parameters. This is</span>
 <span class="sd">        the gradient needed for gradient descent (p -= lr * p.gradient).</span>
 
@@ -925,7 +929,7 @@
 
 <span class="sd">        For Hermitian parameters, the imaginary gradient is stored in compact</span>
 <span class="sd">        form (strict upper triangle) and must be expanded to skew-symmetric.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">canon_methods</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">dparams</span>
         <span class="n">result</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">dparams</span><span class="p">)</span>
@@ -951,7 +955,7 @@
 <div class="viewcode-block" id="Complex2Real.param_forward">
 <a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.middle_end.html#cvxpy.reductions.complex2real.complex2real.Complex2Real.param_forward">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">param_forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">param_deltas</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Split complex deltas into real/imag deltas for forward diff.</span>
+<span class="w">        </span><span class="sd">"""Split complex deltas into real/imag deltas for forward diff.</span>
 
 <span class="sd">        For complex param -&gt; (real_param, imag_param), we split the</span>
 <span class="sd">        complex perturbation into its real and imaginary components:</span>
@@ -962,7 +966,7 @@
 
 <span class="sd">        For Hermitian parameters, the imaginary delta is extracted as the</span>
 <span class="sd">        strict upper triangle of the skew-symmetric imaginary part.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">canon_methods</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">param_deltas</span>
         <span class="n">result</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">param_deltas</span><span class="p">)</span>
@@ -1016,6 +1020,30 @@
                 <span class="n">constrs</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">imag_constrs</span><span class="p">)</span>
             <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">imag_constrs</span><span class="p">,</span> <span class="n">Constraint</span><span class="p">):</span>
                 <span class="n">constrs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">imag_constrs</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">orig_expr</span><span class="p">,</span> <span class="n">canon_expr</span> <span class="ow">in</span> <span class="n">leaf_map</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">orig_expr</span><span class="p">,</span> <span class="n">Variable</span><span class="p">):</span>
+                <span class="k">continue</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">orig_expr</span><span class="o">.</span><span class="n">is_complex</span><span class="p">():</span>
+                <span class="k">continue</span>
+
+            <span class="n">attrs</span> <span class="o">=</span> <span class="n">orig_expr</span><span class="o">.</span><span class="n">attributes</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">attrs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"PSD"</span><span class="p">)</span> <span class="ow">or</span> <span class="n">attrs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"NSD"</span><span class="p">)):</span>
+                <span class="k">continue</span>
+
+            <span class="n">real_part</span><span class="p">,</span> <span class="n">imag_part</span> <span class="o">=</span> <span class="n">canon_expr</span>
+
+            <span class="k">if</span> <span class="n">real_part</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">imag_part</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="n">block_mat</span> <span class="o">=</span> <span class="n">complex_psd_matrix</span><span class="p">(</span><span class="n">real_part</span><span class="p">,</span> <span class="n">imag_part</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">attrs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"PSD"</span><span class="p">):</span>
+                <span class="n">constrs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">PSD</span><span class="p">(</span><span class="n">block_mat</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="n">attrs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"NSD"</span><span class="p">):</span>
+                <span class="n">constrs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">PSD</span><span class="p">(</span><span class="o">-</span><span class="n">block_mat</span><span class="p">))</span>
 
         <span class="n">new_problem</span> <span class="o">=</span> <span class="n">problems</span><span class="o">.</span><span class="n">problem</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">real_obj</span><span class="p">,</span>
                                                <span class="n">constrs</span><span class="p">)</span>
@@ -1096,14 +1124,14 @@
                         <span class="c1"># TODO: implement dual variable recovery</span>
                         <span class="k">pass</span>
                     <span class="k">else</span><span class="p">:</span>
-                        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Unknown constraint type.&quot;</span><span class="p">)</span>
+                        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">"Unknown constraint type."</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">Solution</span><span class="p">(</span><span class="n">solution</span><span class="o">.</span><span class="n">status</span><span class="p">,</span> <span class="n">solution</span><span class="o">.</span><span class="n">opt_val</span><span class="p">,</span> <span class="n">pvars</span><span class="p">,</span> <span class="n">dvars</span><span class="p">,</span>
                         <span class="n">solution</span><span class="o">.</span><span class="n">attr</span><span class="p">)</span></div>
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">canonicalize_tree</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">,</span> <span class="n">real2imag</span><span class="p">,</span> <span class="n">leaf_map</span><span class="p">):</span>
-        <span class="c1"># TODO don&#39;t copy affine expressions?</span>
+        <span class="c1"># TODO don't copy affine expressions?</span>
         <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span> <span class="o">==</span> <span class="n">cvxtypes</span><span class="o">.</span><span class="n">partial_problem</span><span class="p">():</span>
             <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>

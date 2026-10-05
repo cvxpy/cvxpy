@@ -1298,7 +1298,7 @@ It supports scalars, NumPy arrays, parameters, and affine functions of parameter
 <p>When summing CVXPY expressions, always use <code class="docutils literal notranslate"><span class="pre">cp.sum</span></code> rather than Python’s built-in <code class="docutils literal notranslate"><span class="pre">sum</span></code>.
 Python’s <code class="docutils literal notranslate"><span class="pre">sum</span></code> builds up a chain of binary <code class="docutils literal notranslate"><span class="pre">+</span></code> operations, creating a deep expression tree
 that is slow to compile. <code class="docutils literal notranslate"><span class="pre">cp.sum</span></code> handles the entire sum in a single, efficient operation.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="c1"># Slow: Python&#39;s sum() creates a deep binary tree of additions</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="c1"># Slow: Python's sum() creates a deep binary tree of additions</span>
 <span class="n">objective</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span>
 
 <span class="c1"># Fast: single efficient operation</span>

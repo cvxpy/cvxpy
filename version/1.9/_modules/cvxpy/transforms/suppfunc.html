@@ -727,7 +727,7 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">scs_coniclift</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">constraints</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Return (A, b, K) so that</span>
 <span class="sd">        {x : x satisfies constraints}</span>
 <span class="sd">    can be written as</span>
@@ -743,36 +743,36 @@
 <span class="sd">    -----</span>
 <span class="sd">    This function DOES NOT work when ``x`` has attributes, like ``PSD=True``,</span>
 <span class="sd">    ``diag=True``, ``symmetric=True``, etc...</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.atoms.affine.sum</span><span class="w"> </span><span class="kn">import</span> <span class="nb">sum</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.problems.objective</span><span class="w"> </span><span class="kn">import</span> <span class="n">Minimize</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.problems.problem</span><span class="w"> </span><span class="kn">import</span> <span class="n">Problem</span>
     <span class="n">prob</span> <span class="o">=</span> <span class="n">Problem</span><span class="p">(</span><span class="n">Minimize</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">x</span><span class="p">)),</span> <span class="n">constraints</span><span class="p">)</span>
-    <span class="c1"># ^ The objective value is only used to make sure that &quot;x&quot;</span>
+    <span class="c1"># ^ The objective value is only used to make sure that "x"</span>
     <span class="c1"># participates in the problem. So, if constraints is an</span>
     <span class="c1"># empty list, then the support function is the standard</span>
     <span class="c1"># support function for R^n.</span>
-    <span class="n">data</span><span class="p">,</span> <span class="n">chain</span><span class="p">,</span> <span class="n">invdata</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">get_problem_data</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="s1">&#39;SCS&#39;</span><span class="p">)</span>
+    <span class="n">data</span><span class="p">,</span> <span class="n">chain</span><span class="p">,</span> <span class="n">invdata</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">get_problem_data</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="s1">'SCS'</span><span class="p">)</span>
     <span class="n">inv</span> <span class="o">=</span> <span class="n">invdata</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
     <span class="n">x_offset</span> <span class="o">=</span> <span class="n">inv</span><span class="o">.</span><span class="n">var_offsets</span><span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">id</span><span class="p">]</span>
     <span class="n">x_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">x_offset</span><span class="p">,</span> <span class="n">x_offset</span> <span class="o">+</span> <span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
-    <span class="n">A</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;A&#39;</span><span class="p">]</span>
+    <span class="n">A</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">'A'</span><span class="p">]</span>
     <span class="n">x_selector</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">A</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
     <span class="n">x_selector</span><span class="p">[</span><span class="n">x_indices</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="n">A_x</span> <span class="o">=</span> <span class="n">A</span><span class="p">[:,</span> <span class="n">x_selector</span><span class="p">]</span>
     <span class="n">A_other</span> <span class="o">=</span> <span class="n">A</span><span class="p">[:,</span> <span class="o">~</span><span class="n">x_selector</span><span class="p">]</span>
     <span class="n">A</span> <span class="o">=</span> <span class="o">-</span><span class="n">sparse</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">A_x</span><span class="p">,</span> <span class="n">A_other</span><span class="p">])</span>
-    <span class="n">b</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;b&#39;</span><span class="p">]</span>
-    <span class="n">K</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;dims&#39;</span><span class="p">]</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">'b'</span><span class="p">]</span>
+    <span class="n">K</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">'dims'</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">A</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">K</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">scs_cone_selectors</span><span class="p">(</span><span class="n">K</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Parse a ConeDims object, as returned from SCS&#39;s apply function.</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Parse a ConeDims object, as returned from SCS's apply function.</span>
 
 <span class="sd">    Return a dictionary which gives row-wise information for the affine</span>
-<span class="sd">    operator returned from SCS&#39;s apply function.</span>
+<span class="sd">    operator returned from SCS's apply function.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -783,11 +783,11 @@
 <span class="sd">    selectors : dict</span>
 <span class="sd">        Keyed by strings, which specify cone types. Values are numpy</span>
 <span class="sd">        arrays, or lists of numpy arrays. The numpy arrays give row indices</span>
-<span class="sd">        of the affine operator (A, b) returned by SCS&#39;s apply function.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">        of the affine operator (A, b) returned by SCS's apply function.</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="n">K</span><span class="o">.</span><span class="n">p3d</span><span class="p">:</span>
-        <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;SuppFunc doesn&#39;t yet support feasible sets represented </span><span class="se">\n</span><span class="s2">&quot;</span>
-        <span class="n">msg</span> <span class="o">+=</span> <span class="s2">&quot;with power cone constraints.&quot;</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s2">"SuppFunc doesn't yet support feasible sets represented </span><span class="se">\n</span><span class="s2">"</span>
+        <span class="n">msg</span> <span class="o">+=</span> <span class="s2">"with power cone constraints."</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
         <span class="c1"># TODO: implement</span>
     <span class="n">idx</span> <span class="o">=</span> <span class="n">K</span><span class="o">.</span><span class="n">zero</span>
@@ -806,10 +806,10 @@
     <span class="n">expsize</span> <span class="o">=</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">K</span><span class="o">.</span><span class="n">exp</span>
     <span class="n">exp_idxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">idx</span> <span class="o">+</span> <span class="n">expsize</span><span class="p">)</span>
     <span class="n">selectors</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s1">&#39;nonneg&#39;</span><span class="p">:</span> <span class="n">nonneg_idxs</span><span class="p">,</span>
-        <span class="s1">&#39;exp&#39;</span><span class="p">:</span> <span class="n">exp_idxs</span><span class="p">,</span>
-        <span class="s1">&#39;soc&#39;</span><span class="p">:</span> <span class="n">soc_idxs</span><span class="p">,</span>
-        <span class="s1">&#39;psd&#39;</span><span class="p">:</span> <span class="n">psd_idxs</span>
+        <span class="s1">'nonneg'</span><span class="p">:</span> <span class="n">nonneg_idxs</span><span class="p">,</span>
+        <span class="s1">'exp'</span><span class="p">:</span> <span class="n">exp_idxs</span><span class="p">,</span>
+        <span class="s1">'soc'</span><span class="p">:</span> <span class="n">soc_idxs</span><span class="p">,</span>
+        <span class="s1">'psd'</span><span class="p">:</span> <span class="n">psd_idxs</span>
     <span class="p">}</span>
     <span class="k">return</span> <span class="n">selectors</span>
 
@@ -817,13 +817,13 @@
 <div class="viewcode-block" id="SuppFunc">
 <a class="viewcode-back" href="../../../api_reference/cvxpy.transforms.html#cvxpy.transforms.suppfunc.SuppFunc">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">SuppFunc</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Given a list of CVXPY Constraint objects :math:`\\texttt{constraints}`</span>
 <span class="sd">    involving a real CVXPY Variable :math:`\\texttt{x}`, consider the convex set</span>
 
 <span class="sd">    .. math::</span>
 
-<span class="sd">        S = \\{ v : \\text{it&#39;s possible to satisfy all } \\texttt{constraints}</span>
+<span class="sd">        S = \\{ v : \\text{it's possible to satisfy all } \\texttt{constraints}</span>
 <span class="sd">                    \\text{ when } \\texttt{x.value} = v \\}.</span>
 
 <span class="sd">    This object represents the *support function* of :math:`S`.</span>
@@ -834,7 +834,7 @@
 <span class="sd">        y \\mapsto \\max\\{ \\langle y, v \\rangle : v \\in S \\}.</span>
 
 <span class="sd">    The support function is a fundamental object in convex analysis.</span>
-<span class="sd">    It&#39;s extremely useful for expressing dual problems using</span>
+<span class="sd">    It's extremely useful for expressing dual problems using</span>
 <span class="sd">    `Fenchel duality &lt;https://en.wikipedia.org/wiki/Fenchel%27s_duality_theorem&gt;`_.</span>
 
 <span class="sd">    Parameters</span>
@@ -869,23 +869,23 @@
 <span class="sd">    :math:`\\texttt{constraints}`, but the set :math:`S` only consists of objects</span>
 <span class="sd">    (vectors or matrices) with the same shape as :math:`\\texttt{x}`.</span>
 
-<span class="sd">    It&#39;s possible for the support function to take the value :math:`+\\infty`</span>
+<span class="sd">    It's possible for the support function to take the value :math:`+\\infty`</span>
 <span class="sd">    for a fixed vector :math:`\\texttt{y}`. This is an important point, and</span>
-<span class="sd">    it&#39;s one reason why support functions are actually formally defined with</span>
-<span class="sd">    the supremum &quot;:math:`\\sup`&quot; rather than the maximum &quot;:math:`\\max`&quot;.</span>
+<span class="sd">    it's one reason why support functions are actually formally defined with</span>
+<span class="sd">    the supremum ":math:`\\sup`" rather than the maximum ":math:`\\max`".</span>
 <span class="sd">    For more information on support functions, check out</span>
 <span class="sd">    `this Wikipedia page &lt;https://en.wikipedia.org/wiki/Support_function&gt;`_.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">constraints</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">Variable</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;The first argument must be an unmodified cvxpy Variable object.&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'The first argument must be an unmodified cvxpy Variable object.'</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="n">attr</span><span class="p">]</span> <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">CONVEX_ATTRIBUTES</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;The first argument cannot have any declared attributes.&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'The first argument cannot have any declared attributes.'</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">con</span> <span class="ow">in</span> <span class="n">constraints</span><span class="p">:</span>
             <span class="n">con_params</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">parameters</span><span class="p">()</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">con_params</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Convex sets described with Parameter objects are not allowed.&#39;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'Convex sets described with Parameter objects are not allowed.'</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">x</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">constraints</span> <span class="o">=</span> <span class="n">constraints</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_A</span> <span class="o">=</span> <span class="kc">None</span>
@@ -896,13 +896,13 @@
 <div class="viewcode-block" id="SuppFunc.__call__">
 <a class="viewcode-back" href="../../../api_reference/cvxpy.transforms.html#cvxpy.transforms.suppfunc.SuppFunc.__call__">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SuppFuncAtom</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Return an atom representing</span>
 
 <span class="sd">            max{ cvxpy.vec(y) @ cvxpy.vec(x) : x in S }</span>
 
 <span class="sd">        where S is the convex set associated with this SuppFunc object.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">sigma_at_y</span> <span class="o">=</span> <span class="n">SuppFuncAtom</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">sigma_at_y</span></div>
 

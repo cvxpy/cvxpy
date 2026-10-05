@@ -718,21 +718,21 @@
 
 
 <h1>Source code for cvxpy.atoms.gmatmul</h1><div class="highlight"><pre>
-<span></span><code><span class="sd">&quot;&quot;&quot;</span>
+<span></span><code><span class="sd">"""</span>
 <span class="sd">Copyright, the CVXPY authors</span>
 
-<span class="sd">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="sd">Licensed under the Apache License, Version 2.0 (the "License");</span>
 <span class="sd">you may not use this file except in compliance with the License.</span>
 <span class="sd">You may obtain a copy of the License at</span>
 
 <span class="sd">    http://www.apache.org/licenses/LICENSE-2.0</span>
 
 <span class="sd">Unless required by applicable law or agreed to in writing, software</span>
-<span class="sd">distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="sd">distributed under the License is distributed on an "AS IS" BASIS,</span>
 <span class="sd">WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
 <span class="sd">See the License for the specific language governing permissions and</span>
 <span class="sd">limitations under the License.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
@@ -745,7 +745,7 @@
 <div class="viewcode-block" id="gmatmul">
 <a class="viewcode-back" href="../../../api_reference/cvxpy.atoms.other_atoms.html#cvxpy.atoms.gmatmul.gmatmul">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">gmatmul</span><span class="p">(</span><span class="n">Atom</span><span class="p">):</span>
-<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Geometric matrix multiplication; :math:`A \mathbin{\diamond} X`.</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">"""Geometric matrix multiplication; :math:`A \mathbin{\diamond} X`.</span>
 
 <span class="sd">    For :math:`A \in \mathbf{R}^{m \times n}` and</span>
 <span class="sd">    :math:`X \in \mathbf{R}^{n \times p}_{++}`, this atom represents</span>
@@ -766,7 +766,7 @@
 <span class="sd">        A constant matrix.</span>
 <span class="sd">    X : cvxpy.Expression</span>
 <span class="sd">        A positive matrix.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">X</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="c1"># NB: It is important that the exponent is an attribute, not</span>
         <span class="c1"># an argument. This prevents parametrized exponents from being replaced</span>
@@ -775,59 +775,59 @@
         <span class="nb">super</span><span class="p">(</span><span class="n">gmatmul</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">numeric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Geometric matrix multiplication.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Geometric matrix multiplication.</span>
+<span class="sd">        """</span>
         <span class="n">logX</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="o">.</span><span class="n">value</span> <span class="o">@</span> <span class="n">logX</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">)&quot;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">)"</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">format_labeled</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_label</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_label</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">format_labeled</span><span class="p">()</span><span class="si">}</span><span class="s2">)&quot;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">format_labeled</span><span class="p">()</span><span class="si">}</span><span class="s2">)"</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">validate_arguments</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Raises an error if the arguments are invalid.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Raises an error if the arguments are invalid.</span>
+<span class="sd">        """</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">gmatmul</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">validate_arguments</span><span class="p">()</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="o">.</span><span class="n">is_constant</span><span class="p">():</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s2">&quot;gmatmul(A, X) requires that A be constant.&quot;</span>
+                <span class="s2">"gmatmul(A, X) requires that A be constant."</span>
             <span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="o">.</span><span class="n">parameters</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">,</span> <span class="n">cvxtypes</span><span class="o">.</span><span class="n">parameter</span><span class="p">()):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s2">&quot;gmatmul(A, X) requires that A be a Constant or a Parameter.&quot;</span>
+                <span class="s2">"gmatmul(A, X) requires that A be a Constant or a Parameter."</span>
             <span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_pos</span><span class="p">():</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s2">&quot;gmatmul(A, X) requires that X be positive.&quot;</span>
+                <span class="s2">"gmatmul(A, X) requires that X be positive."</span>
             <span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">shape_from_args</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the (row, col) shape of the expression.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Returns the (row, col) shape of the expression.</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="n">u</span><span class="o">.</span><span class="n">shape</span><span class="o">.</span><span class="n">mul_shapes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns info needed to reconstruct the expression besides the args.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Returns info needed to reconstruct the expression besides the args.</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">]</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">sign_from_args</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns sign (is positive, is negative) of the expression.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Returns sign (is positive, is negative) of the expression.</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">is_atom_convex</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the atom convex?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Is the atom convex?</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="kc">False</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">is_atom_concave</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the atom concave?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Is the atom concave?</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="kc">False</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -835,8 +835,8 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">parameters</span><span class="p">()</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="o">.</span><span class="n">parameters</span><span class="p">()</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">is_atom_log_log_convex</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the atom log-log convex?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Is the atom log-log convex?</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">u</span><span class="o">.</span><span class="n">scopes</span><span class="o">.</span><span class="n">dpp_scope_active</span><span class="p">():</span>
             <span class="c1"># This branch applies curvature rules for DPP.</span>
             <span class="c1">#</span>
@@ -857,18 +857,18 @@
             <span class="k">return</span> <span class="kc">True</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">is_atom_log_log_concave</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the atom log-log concave?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Is the atom log-log concave?</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_atom_log_log_convex</span><span class="p">()</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">is_incr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the composition non-decreasing in argument idx?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Is the composition non-decreasing in argument idx?</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="o">.</span><span class="n">is_nonneg</span><span class="p">()</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">is_decr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the composition non-increasing in argument idx?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Is the composition non-increasing in argument idx?</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="o">.</span><span class="n">is_nonpos</span><span class="p">()</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_grad</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>

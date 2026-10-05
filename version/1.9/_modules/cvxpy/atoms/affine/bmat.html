@@ -718,33 +718,39 @@
 
 
 <h1>Source code for cvxpy.atoms.affine.bmat</h1><div class="highlight"><pre>
-<span></span><code><span class="sd">&quot;&quot;&quot;</span>
+<span></span><code><span class="sd">"""</span>
 <span class="sd">Copyright 2013 Steven Diamond</span>
 
-<span class="sd">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="sd">Licensed under the Apache License, Version 2.0 (the "License");</span>
 <span class="sd">you may not use this file except in compliance with the License.</span>
 <span class="sd">You may obtain a copy of the License at</span>
 
 <span class="sd">    http://www.apache.org/licenses/LICENSE-2.0</span>
 
 <span class="sd">Unless required by applicable law or agreed to in writing, software</span>
-<span class="sd">distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="sd">distributed under the License is distributed on an "AS IS" BASIS,</span>
 <span class="sd">WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
 <span class="sd">See the License for the specific language governing permissions and</span>
 <span class="sd">limitations under the License.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.atoms.affine.hstack</span><span class="w"> </span><span class="kn">import</span> <span class="n">hstack</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.atoms.affine.reshape</span><span class="w"> </span><span class="kn">import</span> <span class="n">reshape</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.atoms.affine.vstack</span><span class="w"> </span><span class="kn">import</span> <span class="n">vstack</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.expressions.expression</span><span class="w"> </span><span class="kn">import</span> <span class="n">Expression</span>
 
 
 <div class="viewcode-block" id="bmat">
 <a class="viewcode-back" href="../../../../api_reference/cvxpy.atoms.affine.html#cvxpy.bmat">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">bmat</span><span class="p">(</span><span class="n">block_lists</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Constructs a block matrix.</span>
+<span class="w">    </span><span class="sd">"""Constructs a block matrix.</span>
 
 <span class="sd">    Takes a list of lists. Each internal list is stacked horizontally.</span>
 <span class="sd">    The internal lists are stacked vertically.</span>
+
+<span class="sd">    Scalars and 1-D blocks are promoted to 2-D so they can be combined</span>
+<span class="sd">    with matrices, mirroring the behavior of ``numpy.block`` (e.g. when</span>
+<span class="sd">    building an LMI that mixes scalars, vectors, and matrices).</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -755,10 +761,21 @@
 <span class="sd">    ------</span>
 <span class="sd">    CVXPY expression</span>
 <span class="sd">        The CVXPY expression representing the block matrix.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">row_blocks</span> <span class="o">=</span> <span class="p">[</span><span class="n">hstack</span><span class="p">(</span><span class="n">blocks</span><span class="p">)</span> <span class="k">for</span> <span class="n">blocks</span> <span class="ow">in</span> <span class="n">block_lists</span><span class="p">]</span>
+<span class="sd">    """</span>
+    <span class="n">row_blocks</span> <span class="o">=</span> <span class="p">[</span><span class="n">hstack</span><span class="p">([</span><span class="n">_promote_to_2d</span><span class="p">(</span><span class="n">block</span><span class="p">)</span> <span class="k">for</span> <span class="n">block</span> <span class="ow">in</span> <span class="n">blocks</span><span class="p">])</span>
+                  <span class="k">for</span> <span class="n">blocks</span> <span class="ow">in</span> <span class="n">block_lists</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">vstack</span><span class="p">(</span><span class="n">row_blocks</span><span class="p">)</span></div>
 
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_promote_to_2d</span><span class="p">(</span><span class="n">block</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Expression</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Promote a scalar or 1-D block to a 2-D row, like ``numpy.block``."""</span>
+    <span class="n">block</span> <span class="o">=</span> <span class="n">Expression</span><span class="o">.</span><span class="n">cast_to_const</span><span class="p">(</span><span class="n">block</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">block</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">reshape</span><span class="p">(</span><span class="n">block</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">order</span><span class="o">=</span><span class="s1">'F'</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">block</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">reshape</span><span class="p">(</span><span class="n">block</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">block</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">order</span><span class="o">=</span><span class="s1">'F'</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">block</span>
 </code></pre></div>
 
 

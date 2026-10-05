@@ -789,7 +789,7 @@ plt.plot(x,obj)
 
 x = cp.Variable(pos=True)
 obj = cp.sqrt(cp.inv_pos(cp.square(x))-1)
-print(&quot;This objective function is&quot;, obj.curvature)
+print("This objective function is", obj.curvature)
 </code></pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="n">This</span> <span class="n">objective</span> <span class="n">function</span> <span class="ow">is</span> <span class="n">QUASILINEAR</span>
@@ -811,9 +811,9 @@ print(constraint)
 </div>
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><code>prob = cp.Problem(cp.Minimize(obj), constraint)
 prob.solve(qcp=True, verbose=True)
-print(&#39;Final L/D Ratio = &#39;, 1/obj.value)
-print(&#39;Final width of wedge = &#39;, x.value)
-print(&#39;Final height of wedge = &#39;, math.sqrt(1-x.value**2))
+print('Final L/D Ratio = ', 1/obj.value)
+print('Final width of wedge = ', x.value)
+print('Final height of wedge = ', math.sqrt(1-x.value**2))
 </code></pre></div>
 </div>
 <pre class="literal-block"><strong>****************************************************************************</strong>
@@ -863,21 +863,21 @@ lambda1 = a*x.value/y
 lambda2 = a*x.value**2/y+a*y
 lambda3 = a*x.value-y*(a*x.value/y-b)
 
-plt.plot([0,x.value],[0,0],&#39;b.-&#39;)
-plt.plot([0,x.value],[0,-y],&#39;b.-&#39;)
-plt.plot([x.value,x.value],[0,-y],&#39;b.-&#39;)
+plt.plot([0,x.value],[0,0],'b.-')
+plt.plot([0,x.value],[0,-y],'b.-')
+plt.plot([x.value,x.value],[0,-y],'b.-')
 
 pt1 = [lambda1*x.value,-lambda1*y]
 pt2 = [(lambda1+b)*x.value,-(lambda1+b)*y]
 pt3 = [(lambda1+b)*x.value+a*y,-(lambda1+b)*y+a*x.value]
 pt4 = [lambda1*x.value+a*y,-lambda1*y+a*x.value]
 
-plt.plot([pt1[0],pt2[0]],[pt1[1],pt2[1]],&#39;r.-&#39;)
-plt.plot([pt2[0],pt3[0]],[pt2[1],pt3[1]],&#39;r.-&#39;)
-plt.plot([pt3[0],pt4[0]],[pt3[1],pt4[1]],&#39;r.-&#39;)
-plt.plot([pt4[0],pt1[0]],[pt4[1],pt1[1]],&#39;r.-&#39;)
+plt.plot([pt1[0],pt2[0]],[pt1[1],pt2[1]],'r.-')
+plt.plot([pt2[0],pt3[0]],[pt2[1],pt3[1]],'r.-')
+plt.plot([pt3[0],pt4[0]],[pt3[1],pt4[1]],'r.-')
+plt.plot([pt4[0],pt1[0]],[pt4[1],pt1[1]],'r.-')
 
-plt.axis(&#39;equal&#39;)
+plt.axis('equal')
 </code></pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="p">(</span><span class="o">-</span><span class="mf">0.04947620645689951</span><span class="p">,</span>

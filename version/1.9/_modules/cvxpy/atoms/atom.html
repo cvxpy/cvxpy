@@ -718,21 +718,21 @@
 
 
 <h1>Source code for cvxpy.atoms.atom</h1><div class="highlight"><pre>
-<span></span><code><span class="sd">&quot;&quot;&quot;</span>
+<span></span><code><span class="sd">"""</span>
 <span class="sd">Copyright 2013 Steven Diamond</span>
 
-<span class="sd">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="sd">Licensed under the Apache License, Version 2.0 (the "License");</span>
 <span class="sd">you may not use this file except in compliance with the License.</span>
 <span class="sd">You may obtain a copy of the License at</span>
 
 <span class="sd">    http://www.apache.org/licenses/LICENSE-2.0</span>
 
 <span class="sd">Unless required by applicable law or agreed to in writing, software</span>
-<span class="sd">distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="sd">distributed under the License is distributed on an "AS IS" BASIS,</span>
 <span class="sd">WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
 <span class="sd">See the License for the specific language governing permissions and</span>
 <span class="sd">limitations under the License.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">abc</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span>
 
@@ -757,7 +757,7 @@
 <div class="viewcode-block" id="Atom">
 <a class="viewcode-back" href="../../../api_reference/cvxpy.atoms.html#cvxpy.atoms.atom.Atom">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Atom</span><span class="p">(</span><span class="n">Expression</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; Abstract base class for atoms. &quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">""" Abstract base class for atoms. """</span>
     <span class="n">_allow_complex</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="c1"># args are the expressions passed into the Atom constructor.</span>
 
@@ -766,63 +766,63 @@
         <span class="c1"># Throws error if args is empty.</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
-                <span class="s2">&quot;No arguments given to </span><span class="si">%s</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span>
+                <span class="s2">"No arguments given to </span><span class="si">%s</span><span class="s2">."</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span>
             <span class="p">)</span>
         <span class="c1"># Convert raw values to Constants.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="n">Atom</span><span class="o">.</span><span class="n">cast_to_const</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">args</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">validate_arguments</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape_from_args</span><span class="p">()</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">s</span><span class="o">.</span><span class="n">ALLOW_ND_EXPR</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_shape</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Atoms must be at most 2D.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Atoms must be at most 2D."</span><span class="p">)</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">Atom</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the string representation of the function call.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Returns the string representation of the function call.</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data</span><span class="p">()</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">data</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span> <span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data</span><span class="p">()]</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">(</span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">arg</span><span class="o">.</span><span class="n">name</span><span class="p">()</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">arg</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">data</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">(</span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">arg</span><span class="o">.</span><span class="n">name</span><span class="p">()</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">arg</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">data</span><span class="p">)</span><span class="si">}</span><span class="s2">)"</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_uses_default_name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return True if this class uses Atom.name without override.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Return True if this class uses Atom.name without override."""</span>
         <span class="k">return</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">name</span> <span class="ow">is</span> <span class="n">Atom</span><span class="o">.</span><span class="n">name</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">format_labeled</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Format atom with labels, mirroring name() where safe.</span>
+<span class="w">        </span><span class="sd">"""Format atom with labels, mirroring name() where safe.</span>
 
 <span class="sd">        - If this atom or any ancestor has set a label, return it.</span>
-<span class="sd">        - If the subclass didn&#39;t override name() (i.e., function-style default),</span>
+<span class="sd">        - If the subclass didn't override name() (i.e., function-style default),</span>
 <span class="sd">          mirror Atom.name but recurse with child.format_labeled() and include</span>
 <span class="sd">          get_data() strings to preserve no-label parity.</span>
 <span class="sd">        - Otherwise, fall back to Expression.format_labeled(); specialized</span>
 <span class="sd">          subclasses with custom name() should implement their own</span>
 <span class="sd">          format_labeled() to preserve custom syntax and precedence while</span>
 <span class="sd">          recursing into children.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_label</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_label</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_uses_default_name</span><span class="p">():</span>
             <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data</span><span class="p">()</span>
             <span class="n">data_strs</span> <span class="o">=</span> <span class="p">[]</span> <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span> <span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="n">data</span><span class="p">]</span>
             <span class="n">arg_text</span> <span class="o">=</span> <span class="p">[</span><span class="n">arg</span><span class="o">.</span><span class="n">format_labeled</span><span class="p">()</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">]</span>
-            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">(</span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">arg_text</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">data_strs</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">(</span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">arg_text</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">data_strs</span><span class="p">)</span><span class="si">}</span><span class="s2">)"</span>
         <span class="c1"># Defer to Expression default (label or name) when subclass has a custom name().</span>
         <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">format_labeled</span><span class="p">()</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">validate_arguments</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Raises an error if the arguments are invalid.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Raises an error if the arguments are invalid.</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_allow_complex</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span><span class="n">arg</span><span class="o">.</span><span class="n">is_complex</span><span class="p">()</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s2">&quot;Arguments to </span><span class="si">%s</span><span class="s2"> cannot be complex.&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span>
+                <span class="s2">"Arguments to </span><span class="si">%s</span><span class="s2"> cannot be complex."</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span>
             <span class="p">)</span>
 
     <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">shape_from_args</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the shape of the expression.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Returns the shape of the expression.</span>
+<span class="sd">        """</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
 
     <span class="nd">@property</span>
@@ -831,12 +831,12 @@
 
     <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">sign_from_args</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns sign (is positive, is negative) of the expression.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Returns sign (is positive, is negative) of the expression.</span>
+<span class="sd">        """</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">bounds_from_args</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns bounds (lower, upper) of the expression based on argument bounds.</span>
+<span class="w">        </span><span class="sd">"""Returns bounds (lower, upper) of the expression based on argument bounds.</span>
 
 <span class="sd">        Default implementation returns unbounded. Override in subclasses that can</span>
 <span class="sd">        compute tighter bounds from their arguments.</span>
@@ -845,12 +845,12 @@
 <span class="sd">        -------</span>
 <span class="sd">        tuple of np.ndarray</span>
 <span class="sd">            (lower_bound, upper_bound) arrays with shape matching self.shape.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="n">bounds_utils</span><span class="o">.</span><span class="n">unbounded</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
 
     <span class="nd">@perf</span><span class="o">.</span><span class="n">compute_once</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_bounds</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns bounds (lower, upper) of the expression.</span>
+<span class="w">        </span><span class="sd">"""Returns bounds (lower, upper) of the expression.</span>
 
 <span class="sd">        Combines bounds_from_args() with sign information for potentially tighter bounds.</span>
 
@@ -858,7 +858,7 @@
 <span class="sd">        -------</span>
 <span class="sd">        tuple of np.ndarray</span>
 <span class="sd">            (lower_bound, upper_bound) arrays with shape matching self.shape.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="c1"># Get bounds from argument propagation</span>
         <span class="n">lb</span><span class="p">,</span> <span class="n">ub</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds_from_args</span><span class="p">()</span>
 
@@ -869,27 +869,27 @@
 
     <span class="nd">@perf</span><span class="o">.</span><span class="n">compute_once</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">is_nonneg</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the expression nonnegative?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Is the expression nonnegative?</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sign_from_args</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
 
     <span class="nd">@perf</span><span class="o">.</span><span class="n">compute_once</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">is_nonpos</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the expression nonpositive?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Is the expression nonpositive?</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sign_from_args</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
 
     <span class="nd">@perf</span><span class="o">.</span><span class="n">compute_once</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">is_imag</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the expression imaginary?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Is the expression imaginary?</span>
+<span class="sd">        """</span>
         <span class="c1"># Default is false.</span>
         <span class="k">return</span> <span class="kc">False</span>
 
     <span class="nd">@perf</span><span class="o">.</span><span class="n">compute_once</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">is_complex</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the expression complex valued?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Is the expression complex valued?</span>
+<span class="sd">        """</span>
         <span class="c1"># Default is false.</span>
         <span class="k">return</span> <span class="kc">False</span>
 
@@ -897,8 +897,8 @@
 <a class="viewcode-back" href="../../../api_reference/cvxpy.atoms.html#cvxpy.atoms.atom.Atom.is_atom_convex">[docs]</a>
     <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">is_atom_convex</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the atom convex?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Is the atom convex?</span>
+<span class="sd">        """</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
 
 
@@ -906,54 +906,54 @@
 <a class="viewcode-back" href="../../../api_reference/cvxpy.atoms.html#cvxpy.atoms.atom.Atom.is_atom_concave">[docs]</a>
     <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">is_atom_concave</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the atom concave?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Is the atom concave?</span>
+<span class="sd">        """</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="Atom.is_atom_affine">
 <a class="viewcode-back" href="../../../api_reference/cvxpy.atoms.html#cvxpy.atoms.atom.Atom.is_atom_affine">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">is_atom_affine</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the atom affine?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Is the atom affine?</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_atom_concave</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_atom_convex</span><span class="p">()</span></div>
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">is_atom_smooth</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the atom smooth?&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Is the atom smooth?"""</span>
         <span class="k">return</span> <span class="kc">False</span>
 
 <div class="viewcode-block" id="Atom.is_atom_log_log_convex">
 <a class="viewcode-back" href="../../../api_reference/cvxpy.atoms.html#cvxpy.atoms.atom.Atom.is_atom_log_log_convex">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">is_atom_log_log_convex</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the atom log-log convex?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Is the atom log-log convex?</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="kc">False</span></div>
 
 
 <div class="viewcode-block" id="Atom.is_atom_log_log_concave">
 <a class="viewcode-back" href="../../../api_reference/cvxpy.atoms.html#cvxpy.atoms.atom.Atom.is_atom_log_log_concave">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">is_atom_log_log_concave</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the atom log-log concave?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Is the atom log-log concave?</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="kc">False</span></div>
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">is_atom_quasiconvex</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the atom quasiconvex?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Is the atom quasiconvex?</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_atom_convex</span><span class="p">()</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">is_atom_quasiconcave</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the atom quasiconcave?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Is the atom quasiconcave?</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_atom_concave</span><span class="p">()</span>
 
 <div class="viewcode-block" id="Atom.is_atom_log_log_affine">
 <a class="viewcode-back" href="../../../api_reference/cvxpy.atoms.html#cvxpy.atoms.atom.Atom.is_atom_log_log_affine">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">is_atom_log_log_affine</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the atom log-log affine?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Is the atom log-log affine?</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_atom_log_log_concave</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_atom_log_log_convex</span><span class="p">()</span></div>
 
 
@@ -961,8 +961,8 @@
 <a class="viewcode-back" href="../../../api_reference/cvxpy.atoms.html#cvxpy.atoms.atom.Atom.is_incr">[docs]</a>
     <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">is_incr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the composition non-decreasing in argument idx?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Is the composition non-decreasing in argument idx?</span>
+<span class="sd">        """</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
 
 
@@ -970,15 +970,15 @@
 <a class="viewcode-back" href="../../../api_reference/cvxpy.atoms.html#cvxpy.atoms.atom.Atom.is_decr">[docs]</a>
     <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">is_decr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the composition non-increasing in argument idx?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Is the composition non-increasing in argument idx?</span>
+<span class="sd">        """</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
 
 
     <span class="nd">@perf</span><span class="o">.</span><span class="n">compute_once</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">is_convex</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the expression convex?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Is the expression convex?</span>
+<span class="sd">        """</span>
         <span class="c1"># Applies DCP composition rule.</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_constant</span><span class="p">():</span>
             <span class="k">return</span> <span class="kc">True</span>
@@ -994,8 +994,8 @@
 
     <span class="nd">@perf</span><span class="o">.</span><span class="n">compute_once</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">is_concave</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the expression concave?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Is the expression concave?</span>
+<span class="sd">        """</span>
         <span class="c1"># Applies DCP composition rule.</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_constant</span><span class="p">():</span>
             <span class="k">return</span> <span class="kc">True</span>
@@ -1011,8 +1011,8 @@
 
     <span class="nd">@perf</span><span class="o">.</span><span class="n">compute_once</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">is_linearizable_convex</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the expression convex after linearizing all smooth subexpressions?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Is the expression convex after linearizing all smooth subexpressions?</span>
+<span class="sd">        """</span>
         <span class="c1"># Applies DNLP composition rule.</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_constant</span><span class="p">():</span>
             <span class="k">return</span> <span class="kc">True</span>
@@ -1028,8 +1028,8 @@
 
     <span class="nd">@perf</span><span class="o">.</span><span class="n">compute_once</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">is_linearizable_concave</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the expression concave after linearizing all smooth subexpressions?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Is the expression concave after linearizing all smooth subexpressions?</span>
+<span class="sd">        """</span>
         <span class="c1"># Applies DNLP composition rule.</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_constant</span><span class="p">():</span>
             <span class="k">return</span> <span class="kc">True</span>
@@ -1043,20 +1043,20 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">is_dpp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="s1">&#39;dcp&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;The expression is a disciplined parameterized expression.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">context</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;dcp&#39;</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_dpp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="s1">'dcp'</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""The expression is a disciplined parameterized expression.</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="n">context</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">'dcp'</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_dcp</span><span class="p">(</span><span class="n">dpp</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">context</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;dgp&#39;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">context</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">'dgp'</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_dgp</span><span class="p">(</span><span class="n">dpp</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Unsupported context &#39;</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'Unsupported context '</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
 
     <span class="nd">@perf</span><span class="o">.</span><span class="n">compute_once</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">is_log_log_convex</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the expression log-log convex?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Is the expression log-log convex?</span>
+<span class="sd">        """</span>
         <span class="c1"># Verifies DGP composition rule.</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_log_log_constant</span><span class="p">():</span>
             <span class="k">return</span> <span class="kc">True</span>
@@ -1072,8 +1072,8 @@
 
     <span class="nd">@perf</span><span class="o">.</span><span class="n">compute_once</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">is_log_log_concave</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the expression log-log concave?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Is the expression log-log concave?</span>
+<span class="sd">        """</span>
         <span class="c1"># Verifies DGP composition rule.</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_log_log_constant</span><span class="p">():</span>
             <span class="k">return</span> <span class="kc">True</span>
@@ -1103,8 +1103,8 @@
 
     <span class="nd">@perf</span><span class="o">.</span><span class="n">compute_once</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">is_quasiconvex</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the expression quaisconvex?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Is the expression quaisconvex?</span>
+<span class="sd">        """</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.atoms.max</span><span class="w"> </span><span class="kn">import</span> <span class="nb">max</span> <span class="k">as</span> <span class="n">max_atom</span>
 
         <span class="c1"># Verifies the DQCP composition rule.</span>
@@ -1128,8 +1128,8 @@
 
     <span class="nd">@perf</span><span class="o">.</span><span class="n">compute_once</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">is_quasiconcave</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the expression quasiconcave?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Is the expression quasiconcave?</span>
+<span class="sd">        """</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.atoms.min</span><span class="w"> </span><span class="kn">import</span> <span class="nb">min</span> <span class="k">as</span> <span class="n">min_atom</span>
 
         <span class="c1"># Verifies the DQCP composition rule.</span>
@@ -1152,8 +1152,8 @@
         <span class="k">return</span> <span class="kc">False</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">canonicalize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Represent the atom as an affine objective and conic constraints.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Represent the atom as an affine objective and conic constraints.</span>
+<span class="sd">        """</span>
         <span class="c1"># Constant atoms are treated as a leaf.</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_constant</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">():</span>
             <span class="c1"># Non-parameterized expressions are evaluated immediately.</span>
@@ -1174,8 +1174,8 @@
 
     <span class="k">def</span><span class="w"> </span><span class="nf">graph_implementation</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">arg_objs</span><span class="p">,</span> <span class="n">shape</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">lo</span><span class="o">.</span><span class="n">LinOp</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="s1">&#39;Constraint&#39;</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reduces the atom to an affine expression and list of constraints.</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">lo</span><span class="o">.</span><span class="n">LinOp</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="s1">'Constraint'</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">"""Reduces the atom to an affine expression and list of constraints.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1190,7 +1190,7 @@
 <span class="sd">        -------</span>
 <span class="sd">        tuple</span>
 <span class="sd">            (LinOp for objective, list of constraints)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
 
     <span class="nd">@property</span>
@@ -1200,7 +1200,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value_impl</span><span class="p">()</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_value_impl</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1"># shapes with 0&#39;s dropped in presolve.</span>
+        <span class="c1"># shapes with 0's dropped in presolve.</span>
         <span class="k">if</span> <span class="mi">0</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
             <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
         <span class="k">else</span><span class="p">:</span>
@@ -1209,8 +1209,8 @@
                 <span class="c1"># A argument without a value makes all higher level</span>
                 <span class="c1"># values None.</span>
                 <span class="c1"># But if the atom is constant with non-constant</span>
-                <span class="c1"># arguments it doesn&#39;t depend on its arguments,</span>
-                <span class="c1"># so it isn&#39;t None.</span>
+                <span class="c1"># arguments it doesn't depend on its arguments,</span>
+                <span class="c1"># so it isn't None.</span>
                 <span class="n">arg_val</span> <span class="o">=</span> <span class="n">arg</span><span class="o">.</span><span class="n">_value_impl</span><span class="p">()</span>
                 <span class="k">if</span> <span class="n">arg_val</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_constant</span><span class="p">():</span>
                     <span class="k">return</span> <span class="kc">None</span>
@@ -1221,14 +1221,14 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">grad</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gives the (sub/super)gradient of the expression w.r.t. each variable.</span>
+<span class="w">        </span><span class="sd">"""Gives the (sub/super)gradient of the expression w.r.t. each variable.</span>
 
 <span class="sd">        Matrix expressions are vectorized, so the gradient is a matrix.</span>
 <span class="sd">        None indicates variable values unknown or outside domain.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            A map of variable to SciPy CSC sparse matrix or None.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="c1"># Short-circuit to all zeros if known to be constant.</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_constant</span><span class="p">():</span>
             <span class="k">return</span> <span class="n">u</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">constant_grad</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
@@ -1271,7 +1271,7 @@
 
     <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_grad</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gives the (sub/super)gradient of the atom w.r.t. each argument.</span>
+<span class="w">        </span><span class="sd">"""Gives the (sub/super)gradient of the atom w.r.t. each argument.</span>
 
 <span class="sd">        Matrix expressions are vectorized, so the gradient is a matrix.</span>
 
@@ -1280,27 +1280,27 @@
 
 <span class="sd">        Returns:</span>
 <span class="sd">            A list of SciPy CSC sparse matrices or None.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">domain</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="s1">&#39;Constraint&#39;</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;A list of constraints describing the closure of the region</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">domain</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="s1">'Constraint'</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""A list of constraints describing the closure of the region</span>
 <span class="sd">           where the expression is finite.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_domain</span><span class="p">()</span> <span class="o">+</span> <span class="p">[</span><span class="n">con</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="k">for</span> <span class="n">con</span> <span class="ow">in</span> <span class="n">arg</span><span class="o">.</span><span class="n">domain</span><span class="p">]</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_domain</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="s1">&#39;Constraint&#39;</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns constraints describing the domain of the atom.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_domain</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="s1">'Constraint'</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""Returns constraints describing the domain of the atom.</span>
+<span class="sd">        """</span>
         <span class="c1"># Default is no constraints.</span>
         <span class="k">return</span> <span class="p">[]</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">numpy_numeric</span><span class="p">(</span><span class="n">numeric_func</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Wraps an atom&#39;s numeric function that requires numpy ndarrays as input.</span>
+<span class="w">        </span><span class="sd">"""Wraps an atom's numeric function that requires numpy ndarrays as input.</span>
 <span class="sd">           Ensures both inputs and outputs are the correct matrix types.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="k">def</span><span class="w"> </span><span class="nf">new_numeric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
             <span class="n">interface</span> <span class="o">=</span> <span class="n">intf</span><span class="o">.</span><span class="n">DEFAULT_INTF</span>
@@ -1310,9 +1310,9 @@
             <span class="k">return</span> <span class="n">intf</span><span class="o">.</span><span class="n">DEFAULT_INTF</span><span class="o">.</span><span class="n">const_to_matrix</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">new_numeric</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">atoms</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="s1">&#39;Atom&#39;</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;A list of the atom types present amongst this atom&#39;s arguments.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">atoms</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="s1">'Atom'</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""A list of the atom types present amongst this atom's arguments.</span>
+<span class="sd">        """</span>
         <span class="n">atom_list</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">:</span>
             <span class="n">atom_list</span> <span class="o">+=</span> <span class="n">arg</span><span class="o">.</span><span class="n">atoms</span><span class="p">()</span>

@@ -718,21 +718,21 @@
 
 
 <h1>Source code for cvxpy.atoms.affine.trace</h1><div class="highlight"><pre>
-<span></span><code><span class="sd">&quot;&quot;&quot;</span>
+<span></span><code><span class="sd">"""</span>
 <span class="sd">Copyright 2013 Steven Diamond</span>
 
-<span class="sd">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="sd">Licensed under the Apache License, Version 2.0 (the "License");</span>
 <span class="sd">you may not use this file except in compliance with the License.</span>
 <span class="sd">You may obtain a copy of the License at</span>
 
 <span class="sd">    http://www.apache.org/licenses/LICENSE-2.0</span>
 
 <span class="sd">Unless required by applicable law or agreed to in writing, software</span>
-<span class="sd">distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="sd">distributed under the License is distributed on an "AS IS" BASIS,</span>
 <span class="sd">WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
 <span class="sd">See the License for the specific language governing permissions and</span>
 <span class="sd">limitations under the License.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
@@ -748,7 +748,7 @@
 <div class="viewcode-block" id="trace">
 <a class="viewcode-back" href="../../../../api_reference/cvxpy.atoms.affine.html#cvxpy.trace">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">trace</span><span class="p">(</span><span class="n">expr</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    TLDR: Use alternate formulation for trace(A@B) for more efficient computation.</span>
 <span class="sd">    trace(A@B) normally is O(n^3) because of the A@B operation.</span>
 <span class="sd">    However, trace(A@B) only requires diagonal entries of A@B, which can be</span>
@@ -760,13 +760,16 @@
 <span class="sd">    both real and complex matrices (no conjugation on A is needed).</span>
 
 <span class="sd">    When the MulExpression is Hermitian (e.g. X @ X^H for Hermitian X), the</span>
-<span class="sd">    result is provably real; it is wrapped with real() so that is_real()</span>
-<span class="sd">    correctly returns True without routing to the O(n^3) Trace(expr) path.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">MulExpression</span><span class="p">):</span>
+<span class="sd">    result is provably real. If that fact is not already known from the</span>
+<span class="sd">    result's arguments, it is wrapped with real() so that is_real() correctly</span>
+<span class="sd">    returns True without routing to the O(n^3) Trace(expr) path.</span>
+<span class="sd">    """</span>
+    <span class="c1"># Use an exact type check: `multiply` subclasses `MulExpression`, but this</span>
+    <span class="c1"># rewrite is valid only for matrix multiplication.</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span> <span class="ow">is</span> <span class="n">MulExpression</span><span class="p">:</span>
         <span class="c1"># trace(A @ B) = sum(A * B.T), correct for real and complex matrices.</span>
         <span class="n">result</span> <span class="o">=</span> <span class="n">cvxpy_sum</span><span class="p">(</span><span class="n">multiply</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">))</span>
-        <span class="k">if</span> <span class="n">expr</span><span class="o">.</span><span class="n">is_hermitian</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">expr</span><span class="o">.</span><span class="n">is_hermitian</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">result</span><span class="o">.</span><span class="n">is_real</span><span class="p">():</span>
             <span class="c1"># trace of a Hermitian matrix is provably real.</span>
             <span class="c1"># Wrap with real() so is_real() == True propagates upward.</span>
             <span class="k">return</span> <span class="n">real_atom</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
@@ -777,7 +780,7 @@
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">Trace</span><span class="p">(</span><span class="n">AffAtom</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;The sum of the diagonal entries of a matrix.</span>
+<span class="w">    </span><span class="sd">"""The sum of the diagonal entries of a matrix.</span>
 
 <span class="sd">    Follows ``np.linalg.trace`` conventions: for an input with shape</span>
 <span class="sd">    ``(*batch, n, n)``, returns an expression with shape ``(*batch,)``.</span>
@@ -786,15 +789,15 @@
 <span class="sd">    ----------</span>
 <span class="sd">    expr : Expression</span>
 <span class="sd">        The expression to sum the diagonal of.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">Trace</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">sign_from_args</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Trace is nonneg (nonpos) if its argument is elementwise nonneg</span>
+<span class="w">        </span><span class="sd">"""Trace is nonneg (nonpos) if its argument is elementwise nonneg</span>
 <span class="sd">        (nonpos) or psd (nsd).</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">is_nonneg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_nonneg</span><span class="p">()</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_psd</span><span class="p">()</span>
         <span class="n">is_nonpos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_nonpos</span><span class="p">()</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_nsd</span><span class="p">()</span>
 
@@ -802,22 +805,22 @@
 
     <span class="nd">@AffAtom</span><span class="o">.</span><span class="n">numpy_numeric</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">numeric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Sums the diagonal entries.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Sums the diagonal entries.</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">trace</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">validate_arguments</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Checks that the argument is a square matrix (possibly batched).</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Checks that the argument is a square matrix (possibly batched).</span>
+<span class="sd">        """</span>
         <span class="n">shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">ndim</span> <span class="o">&lt;</span> <span class="mi">2</span> <span class="ow">or</span> <span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">!=</span> <span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s2">&quot;Argument to trace must have ndim &gt;= 2 with equal last two dimensions.&quot;</span>
+                <span class="s2">"Argument to trace must have ndim &gt;= 2 with equal last two dimensions."</span>
             <span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">shape_from_args</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Scalar for 2D input, batch shape for ND input.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Scalar for 2D input, batch shape for ND input.</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">is_real</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
@@ -827,19 +830,19 @@
         <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_real</span><span class="p">()</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">is_atom_log_log_convex</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the atom log-log convex?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Is the atom log-log convex?</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="kc">True</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">is_atom_log_log_concave</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the atom log-log concave?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Is the atom log-log concave?</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="kc">False</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">graph_implementation</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">arg_objs</span><span class="p">,</span> <span class="n">shape</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">lo</span><span class="o">.</span><span class="n">LinOp</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">Constraint</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Sum the diagonal entries of the linear expression.</span>
+<span class="w">        </span><span class="sd">"""Sum the diagonal entries of the linear expression.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -854,7 +857,7 @@
 <span class="sd">        -------</span>
 <span class="sd">        tuple</span>
 <span class="sd">            (LinOp for objective, list of constraints)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">lu</span><span class="o">.</span><span class="n">trace</span><span class="p">(</span><span class="n">arg_objs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">shape</span><span class="p">),</span> <span class="p">[])</span>
 </code></pre></div>
 

@@ -957,14 +957,14 @@ lam2 = torch.tensor(1e-1)
 
 opt = torch.optim.SGD([A_tch, c_tch], lr=5e-2)
 for epoch in range(10):
-    preds = layer(A_tch, c_tch, train_inputs, solver_args={&#39;acceleration_lookback&#39;: 0})[0]
+    preds = layer(A_tch, c_tch, train_inputs, solver_args={'acceleration_lookback': 0})[0]
     loss = (preds - train_outputs).pow(2).sum(axis=1).mean(axis=0)
 
     with torch.no_grad():
-        val_preds = layer(A_tch, c_tch, val_inputs, solver_args={&#39;acceleration_lookback&#39;: 0})[0]
+        val_preds = layer(A_tch, c_tch, val_inputs, solver_args={'acceleration_lookback': 0})[0]
         val_loss = (val_preds - val_outputs).pow(2).sum(axis=1).mean(axis=0)
 
-    print(&#39;(epoch {0}) train / val ({1:.4f} / {2:.4f}) &#39;.format(epoch, loss, val_loss))
+    print('(epoch {0}) train / val ({1:.4f} / {2:.4f}) '.format(epoch, loss, val_loss))
     train_losses.append(loss.item())
     val_losses.append(val_loss.item())
 
@@ -1001,12 +1001,12 @@ for epoch in range(10):
 
 
 i = 0
-plt.plot(val_preds[i], label=&#39;LLCP&#39;, color=&#39;teal&#39;)
-plt.plot(lstsq_val_preds[i], label=&#39;least squares&#39;, linestyle=&#39;--&#39;, color=&#39;gray&#39;)
-plt.plot(val_outputs[i], label=&#39;true&#39;, linestyle=&#39;-.&#39;, color=&#39;orange&#39;)
+plt.plot(val_preds[i], label='LLCP', color='teal')
+plt.plot(lstsq_val_preds[i], label='least squares', linestyle='--', color='gray')
+plt.plot(val_outputs[i], label='true', linestyle='-.', color='orange')
 w, h = 8, 3.5
-plt.xlabel(r&#39;$i$&#39;)
-plt.ylabel(r&#39;$y_i$&#39;)
+plt.xlabel(r'$i$')
+plt.ylabel(r'$y_i$')
 plt.legend()
 plt.show()
 </code></pre></div>

@@ -837,9 +837,9 @@ b.value += db
 c.value += dc
 
 problem.solve(gp=True)
-print(&#39;x: predicted {0:.5f} actual {1:.5f}&#39;.format(x_hat, x.value))
-print(&#39;y: predicted {0:.5f} actual {1:.5f}&#39;.format(y_hat, y.value))
-print(&#39;z: predicted {0:.5f} actual {1:.5f}&#39;.format(z_hat, z.value))
+print('x: predicted {0:.5f} actual {1:.5f}'.format(x_hat, x.value))
+print('y: predicted {0:.5f} actual {1:.5f}'.format(y_hat, y.value))
+print('z: predicted {0:.5f} actual {1:.5f}'.format(z_hat, z.value))
 
 a.value -= da
 b.value -= db
@@ -899,7 +899,7 @@ c.value -= eta*c.gradient
 problem.solve(gp=True)
 actual = f(x, y, z).value
 
-print(&#39;original {0:.5f} predicted {1:.5f} actual {2:.5f}&#39;.format(
+print('original {0:.5f} predicted {1:.5f} actual {2:.5f}'.format(
        original, predicted, actual))
 </code></pre></div>
 </div>

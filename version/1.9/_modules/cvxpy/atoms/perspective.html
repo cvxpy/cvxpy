@@ -718,21 +718,21 @@
 
 
 <h1>Source code for cvxpy.atoms.perspective</h1><div class="highlight"><pre>
-<span></span><code><span class="sd">&quot;&quot;&quot;</span>
+<span></span><code><span class="sd">"""</span>
 <span class="sd">Copyright, the CVXPY authors</span>
 
-<span class="sd">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="sd">Licensed under the Apache License, Version 2.0 (the "License");</span>
 <span class="sd">you may not use this file except in compliance with the License.</span>
 <span class="sd">You may obtain a copy of the License at</span>
 
 <span class="sd">    https://www.apache.org/licenses/LICENSE-2.0</span>
 
 <span class="sd">Unless required by applicable law or agreed to in writing, software</span>
-<span class="sd">distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="sd">distributed under the License is distributed on an "AS IS" BASIS,</span>
 <span class="sd">WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
 <span class="sd">See the License for the specific language governing permissions and</span>
 <span class="sd">limitations under the License.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
@@ -748,7 +748,7 @@
 <div class="viewcode-block" id="perspective">
 <a class="viewcode-back" href="../../../api_reference/cvxpy.atoms.other_atoms.html#cvxpy.atoms.perspective.perspective">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">perspective</span><span class="p">(</span><span class="n">Atom</span><span class="p">):</span>
-<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Implements the perspective transform of a convex or concave scalar</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">"""Implements the perspective transform of a convex or concave scalar</span>
 <span class="sd">    expression. Uses the fact that given a cone form for the epigraph of :math:`f` via</span>
 
 <span class="sd">    :math:`\{ (t, x) \in \mathbb{R}^{n+1} : t \geq f(x) \}`</span>
@@ -766,7 +766,7 @@
 <span class="sd">    a function of its underlying variables. The perspective atom does not return</span>
 <span class="sd">    a `Callable`, so you cannot create compositions such as :math:`p(g(x),s)`, where</span>
 <span class="sd">    :math:`p(z,s) = sf(z/s)` is the perpective transform of :math:`f`.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">:</span> <span class="n">Expression</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="n">Variable</span><span class="p">,</span> <span class="n">f_recession</span><span class="p">:</span> <span class="n">Expression</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">f</span> <span class="o">=</span> <span class="n">f</span>
@@ -776,14 +776,14 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">validate_arguments</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">1</span>  <span class="c1"># dealing only with scalars, for now</span>
         <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">1</span>
-        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">Variable</span><span class="p">),</span> <span class="s2">&quot;s must be a variable&quot;</span>
-        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_nonneg</span><span class="p">(),</span> <span class="s2">&quot;s must be a nonnegative variable&quot;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">Variable</span><span class="p">),</span> <span class="s2">"s must be a variable"</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_nonneg</span><span class="p">(),</span> <span class="s2">"s must be a nonnegative variable"</span>
         <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">validate_arguments</span><span class="p">()</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">numeric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Compute the perspective sf(x/s) numerically.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="k">assert</span> <span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">0</span>
         <span class="n">s_val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
@@ -795,7 +795,7 @@
             <span class="c1"># Since we just swap the two functions, we end up with s * f_recession(x / s)</span>
             <span class="c1"># when we actually just want f_recession(x). Thus we set s=1 to ignore s.</span>
             <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">f_recession</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span>
-                <span class="s2">&quot;To handle s = 0, pass in a recession function f_recession&quot;</span>
+                <span class="s2">"To handle s = 0, pass in a recession function f_recession"</span>
             <span class="p">)</span>
             <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">f_recession</span>
             <span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
@@ -827,38 +827,38 @@
         <span class="k">return</span> <span class="n">is_positive</span><span class="p">,</span> <span class="n">is_negative</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">is_atom_convex</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the atom convex?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Is the atom convex?</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">scopes</span><span class="o">.</span><span class="n">dpp_scope_active</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">is_param_free</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="p">):</span>
             <span class="k">return</span> <span class="kc">False</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="o">.</span><span class="n">is_convex</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_nonneg</span><span class="p">()</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">is_atom_concave</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the atom concave?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Is the atom concave?</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">scopes</span><span class="o">.</span><span class="n">dpp_scope_active</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">is_param_free</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="p">):</span>
             <span class="k">return</span> <span class="kc">False</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="o">.</span><span class="n">is_concave</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_nonneg</span><span class="p">()</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">is_incr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the composition non-decreasing in argument idx?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Is the composition non-decreasing in argument idx?</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="kc">False</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">is_decr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the composition non-increasing in argument idx?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Is the composition non-increasing in argument idx?</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="kc">False</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">shape_from_args</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the (row, col) shape of the expression.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Returns the (row, col) shape of the expression.</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="o">.</span><span class="n">shape</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_grad</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gives the (sub/super)gradient of the atom w.r.t. each argument.</span>
+<span class="w">        </span><span class="sd">"""Gives the (sub/super)gradient of the atom w.r.t. each argument.</span>
 
 <span class="sd">        Matrix expressions are vectorized, so the gradient is a matrix.</span>
 
@@ -867,7 +867,7 @@
 
 <span class="sd">        Returns:</span>
 <span class="sd">            A list of SciPy CSC sparse matrices or None.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="c1"># TODO</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
 

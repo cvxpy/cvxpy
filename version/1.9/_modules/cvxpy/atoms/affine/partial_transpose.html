@@ -718,21 +718,21 @@
 
 
 <h1>Source code for cvxpy.atoms.affine.partial_transpose</h1><div class="highlight"><pre>
-<span></span><code><span class="sd">&quot;&quot;&quot;</span>
+<span></span><code><span class="sd">"""</span>
 <span class="sd">Copyright 2022, the CVXPY authors.</span>
 
-<span class="sd">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="sd">Licensed under the Apache License, Version 2.0 (the "License");</span>
 <span class="sd">you may not use this file except in compliance with the License.</span>
 <span class="sd">You may obtain a copy of the License at</span>
 
 <span class="sd">    http://www.apache.org/licenses/LICENSE-2.0</span>
 
 <span class="sd">Unless required by applicable law or agreed to in writing, software</span>
-<span class="sd">distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="sd">distributed under the License is distributed on an "AS IS" BASIS,</span>
 <span class="sd">WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
 <span class="sd">See the License for the specific language governing permissions and</span>
 <span class="sd">limitations under the License.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="c1"># The implementation of partial_transpose is due to @duguyipiao.</span>
 
@@ -746,7 +746,7 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_term</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">i</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">j</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">dims</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">axis</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Helper function for partial transpose.</span>
+<span class="w">    </span><span class="sd">"""Helper function for partial transpose.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -761,8 +761,8 @@
 <span class="sd">    axis : int</span>
 <span class="sd">        The index of the subsystem to be transposed</span>
 <span class="sd">        from the tensor product that defines expr.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># (I ⊗ |i&gt;&lt;j| ⊗ I) x (I ⊗ |i&gt;&lt;j| ⊗ I) for all (i,j)&#39;s</span>
+<span class="sd">    """</span>
+    <span class="c1"># (I ⊗ |i&gt;&lt;j| ⊗ I) x (I ⊗ |i&gt;&lt;j| ⊗ I) for all (i,j)'s</span>
     <span class="c1"># in the system we want to transpose.</span>
     <span class="c1"># This function returns the (i,j)-th term in the sum, namely</span>
     <span class="c1"># (I ⊗ |i&gt;&lt;j| ⊗ I) x (I ⊗ |i&gt;&lt;j| ⊗ I).</span>
@@ -780,7 +780,7 @@
 <div class="viewcode-block" id="partial_transpose">
 <a class="viewcode-back" href="../../../../api_reference/cvxpy.atoms.affine.html#cvxpy.partial_transpose">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">partial_transpose</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">dims</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">axis</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Assumes :math:`\\texttt{expr} = X_1 \\otimes ... \\otimes X_n` is a 2D Kronecker</span>
 <span class="sd">    product composed of :math:`n = \\texttt{len(dims)}` implicit subsystems.</span>
 <span class="sd">    Letting :math:`k = \\texttt{axis}`, the returned expression is a</span>
@@ -799,12 +799,12 @@
 <span class="sd">    axis : int</span>
 <span class="sd">        The index of the subsystem to be transposed</span>
 <span class="sd">        from the tensor product that defines expr.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">expr</span> <span class="o">=</span> <span class="n">Atom</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">expr</span><span class="o">.</span><span class="n">ndim</span> <span class="o">&lt;</span> <span class="mi">2</span> <span class="ow">or</span> <span class="n">expr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">expr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;partial_transpose only supports 2-d square arrays.&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"partial_transpose only supports 2-d square arrays."</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">expr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">dims</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Dimension of system doesn&#39;t correspond to dimension of subsystems.&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Dimension of system doesn't correspond to dimension of subsystems."</span><span class="p">)</span>
     <span class="n">axis</span> <span class="o">=</span> <span class="n">normalize_axis_index</span><span class="p">(</span><span class="n">axis</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">dims</span><span class="p">))</span>
     <span class="n">result</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span>
         <span class="n">_term</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">dims</span><span class="p">,</span> <span class="n">axis</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">dims</span><span class="p">[</span><span class="n">axis</span><span class="p">])</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">dims</span><span class="p">[</span><span class="n">axis</span><span class="p">])</span>

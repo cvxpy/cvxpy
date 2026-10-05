@@ -718,21 +718,21 @@
 
 
 <h1>Source code for cvxpy.constraints.finite_set</h1><div class="highlight"><pre>
-<span></span><code><span class="sd">&quot;&quot;&quot;</span>
+<span></span><code><span class="sd">"""</span>
 <span class="sd">Copyright, the CVXPY authors</span>
 
-<span class="sd">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="sd">Licensed under the Apache License, Version 2.0 (the "License");</span>
 <span class="sd">you may not use this file except in compliance with the License.</span>
 <span class="sd">You may obtain a copy of the License at</span>
 
 <span class="sd">    https://www.apache.org/licenses/LICENSE-2.0</span>
 
 <span class="sd">Unless required by applicable law or agreed to in writing, software</span>
-<span class="sd">distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="sd">distributed under the License is distributed on an "AS IS" BASIS,</span>
 <span class="sd">WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
 <span class="sd">See the License for the specific language governing permissions and</span>
 <span class="sd">limitations under the License.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.constraints.constraint</span><span class="w"> </span><span class="kn">import</span> <span class="n">Constraint</span>
@@ -743,7 +743,7 @@
 <div class="viewcode-block" id="FiniteSet">
 <a class="viewcode-back" href="../../../api_reference/cvxpy.constraints.html#cvxpy.constraints.finite_set.FiniteSet">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">FiniteSet</span><span class="p">(</span><span class="n">Constraint</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Constrain each entry of an Expression to take a value in a given set of real numbers.</span>
 
 <span class="sd">    Parameters</span>
@@ -775,27 +775,27 @@
 
 <span class="sd">        Defaults to False. The case ``ineq_form=True`` may speed up some mixed-integer</span>
 <span class="sd">        solvers that use simple branch and bound methods.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expre</span><span class="p">,</span> <span class="n">vec</span><span class="p">,</span> <span class="n">ineq_form</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">constr_id</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">Expression</span> <span class="o">=</span> <span class="n">cvxtypes</span><span class="o">.</span><span class="n">expression</span><span class="p">()</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">vec</span><span class="p">,</span> <span class="nb">set</span><span class="p">):</span>
             <span class="n">vec</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">vec</span><span class="p">)</span>
-        <span class="n">vec</span> <span class="o">=</span> <span class="n">Expression</span><span class="o">.</span><span class="n">cast_to_const</span><span class="p">(</span><span class="n">vec</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
+        <span class="n">vec</span> <span class="o">=</span> <span class="n">Expression</span><span class="o">.</span><span class="n">cast_to_const</span><span class="p">(</span><span class="n">vec</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="s1">'F'</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">expre</span><span class="o">.</span><span class="n">is_affine</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">expre</span><span class="o">.</span><span class="n">is_log_log_affine</span><span class="p">():</span>
-            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">"""</span>
 <span class="s2">            Provided Expression must be affine or log-log affine, but had curvature </span><span class="si">%s</span><span class="s2">.</span>
-<span class="s2">            &quot;&quot;&quot;</span> <span class="o">%</span> <span class="n">expre</span><span class="o">.</span><span class="n">curvature</span>
+<span class="s2">            """</span> <span class="o">%</span> <span class="n">expre</span><span class="o">.</span><span class="n">curvature</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
-        <span class="c1"># Note: we use the term &quot;expre&quot; rather than &quot;expr&quot; since</span>
-        <span class="c1"># &quot;expr&quot; is already a property used by all Constraint classes.</span>
+        <span class="c1"># Note: we use the term "expre" rather than "expr" since</span>
+        <span class="c1"># "expr" is already a property used by all Constraint classes.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">expre</span> <span class="o">=</span> <span class="n">expre</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">vec</span> <span class="o">=</span> <span class="n">vec</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_ineq_form</span> <span class="o">=</span> <span class="n">ineq_form</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">FiniteSet</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">([</span><span class="n">expre</span><span class="p">,</span> <span class="n">vec</span><span class="p">],</span> <span class="n">constr_id</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s2">&quot;FiniteSet(</span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">return</span> <span class="s2">"FiniteSet(</span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">)"</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_ineq_form</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">]</span>
@@ -803,9 +803,9 @@
 <div class="viewcode-block" id="FiniteSet.is_dcp">
 <a class="viewcode-back" href="../../../api_reference/cvxpy.constraints.html#cvxpy.constraints.finite_set.FiniteSet.is_dcp">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">is_dcp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dpp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        A FiniteSet constraint is DCP if the constrained expression is affine.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">dpp</span><span class="p">:</span>
             <span class="k">with</span> <span class="n">scopes</span><span class="o">.</span><span class="n">dpp_scope</span><span class="p">():</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_affine</span><span class="p">()</span>
@@ -834,10 +834,10 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">ineq_form</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Choose between two constraining methodologies, use ``ineq_form=False`` while</span>
 <span class="sd">        working with ``Parameter`` types.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ineq_form</span>
 
     <span class="nd">@property</span>
@@ -846,16 +846,16 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">residual</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        The residual of the constraint.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        float</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">expre</span><span class="o">.</span><span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
-        <span class="n">expr_val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">expre</span><span class="o">.</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
+        <span class="n">expr_val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">expre</span><span class="o">.</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="s1">'F'</span><span class="p">)</span>
         <span class="n">vec_val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vec</span><span class="o">.</span><span class="n">value</span>
         <span class="n">resids</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">val</span> <span class="o">-</span> <span class="n">vec_val</span><span class="p">))</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">expr_val</span><span class="p">]</span>
         <span class="n">res</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">resids</span><span class="p">)</span>

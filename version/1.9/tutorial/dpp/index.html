@@ -1224,8 +1224,8 @@ DPP forbids taking the product of two parametrized expressions:</p>
 <span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">()</span>
 <span class="n">gamma</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">nonneg</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">problem</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">gamma</span> <span class="o">*</span> <span class="n">gamma</span> <span class="o">*</span> <span class="n">x</span><span class="p">),</span> <span class="p">[</span><span class="n">x</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">])</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Is DPP? &quot;</span><span class="p">,</span> <span class="n">problem</span><span class="o">.</span><span class="n">is_dcp</span><span class="p">(</span><span class="n">dpp</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Is DCP? &quot;</span><span class="p">,</span> <span class="n">problem</span><span class="o">.</span><span class="n">is_dcp</span><span class="p">(</span><span class="n">dpp</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Is DPP? "</span><span class="p">,</span> <span class="n">problem</span><span class="o">.</span><span class="n">is_dcp</span><span class="p">(</span><span class="n">dpp</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Is DCP? "</span><span class="p">,</span> <span class="n">problem</span><span class="o">.</span><span class="n">is_dcp</span><span class="p">(</span><span class="n">dpp</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
 </code></pre></div>
 </div>
 <p>This code snippet prints</p>
@@ -1243,8 +1243,8 @@ example, the above problem can be equivalently written as</p>
 <span class="n">y</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">()</span>
 <span class="n">gamma</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">nonneg</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">problem</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">gamma</span> <span class="o">*</span> <span class="n">y</span><span class="p">),</span> <span class="p">[</span><span class="n">y</span> <span class="o">==</span> <span class="n">gamma</span> <span class="o">*</span> <span class="n">x</span><span class="p">])</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Is DPP? &quot;</span><span class="p">,</span> <span class="n">problem</span><span class="o">.</span><span class="n">is_dcp</span><span class="p">(</span><span class="n">dpp</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Is DCP? &quot;</span><span class="p">,</span> <span class="n">problem</span><span class="o">.</span><span class="n">is_dcp</span><span class="p">(</span><span class="n">dpp</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Is DPP? "</span><span class="p">,</span> <span class="n">problem</span><span class="o">.</span><span class="n">is_dcp</span><span class="p">(</span><span class="n">dpp</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Is DCP? "</span><span class="p">,</span> <span class="n">problem</span><span class="o">.</span><span class="n">is_dcp</span><span class="p">(</span><span class="n">dpp</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
 </code></pre></div>
 </div>
 <p>This snippet prints</p>
@@ -1318,8 +1318,8 @@ DPP forbids taking raising a parametrized expression to a power:</p>
 <span class="n">a</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Parameter</span><span class="p">()</span>
 
 <span class="n">monomial</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span><span class="o">**</span><span class="n">a</span><span class="p">)</span><span class="o">**</span><span class="n">a</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Is DPP? &quot;</span><span class="p">,</span> <span class="n">monomial</span><span class="o">.</span><span class="n">is_dgp</span><span class="p">(</span><span class="n">dpp</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Is DGP? &quot;</span><span class="p">,</span> <span class="n">monomial</span><span class="o">.</span><span class="n">is_dgp</span><span class="p">(</span><span class="n">dpp</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Is DPP? "</span><span class="p">,</span> <span class="n">monomial</span><span class="o">.</span><span class="n">is_dgp</span><span class="p">(</span><span class="n">dpp</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Is DGP? "</span><span class="p">,</span> <span class="n">monomial</span><span class="o">.</span><span class="n">is_dgp</span><span class="p">(</span><span class="n">dpp</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
 </code></pre></div>
 </div>
 <p>This code snippet prints</p>
@@ -1377,13 +1377,13 @@ solves of a DPP-compliant DCP problem.</p>
     <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
     <span class="n">new_problem_times</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">end</span> <span class="o">-</span> <span class="n">start</span><span class="p">)</span>
 
-<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;text&#39;</span><span class="p">,</span> <span class="n">usetex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;font&#39;</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="s1">&#39;serif&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">'text'</span><span class="p">,</span> <span class="n">usetex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">'font'</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="s1">'serif'</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">gamma_vals</span><span class="p">,</span> <span class="n">times</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Re-solving a DPP problem&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">gamma_vals</span><span class="p">,</span> <span class="n">new_problem_times</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Solving a new problem&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;$\gamma$&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;time (s)&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">gamma_vals</span><span class="p">,</span> <span class="n">times</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">'Re-solving a DPP problem'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">gamma_vals</span><span class="p">,</span> <span class="n">new_problem_times</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">'Solving a new problem'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">'$\gamma$'</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">'time (s)'</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
 </code></pre></div>
 </div>
@@ -1440,7 +1440,7 @@ by calling the <code class="docutils literal notranslate"><span class="pre">back
 method populates the <code class="docutils literal notranslate"><span class="pre">gradient</span></code> attribute on all parameters with the gradient
 of the solution with respect to that parameter.</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><code><span class="n">problem</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;The gradient is </span><span class="si">{0:0.1f}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">gradient</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"The gradient is </span><span class="si">{0:0.1f}</span><span class="s2">."</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">gradient</span><span class="p">))</span>
 </code></pre></div>
 </div>
 <p>In this case, the problem has the trivial analytical solution <code class="docutils literal notranslate"><span class="pre">2*p</span></code>, and
@@ -1455,7 +1455,7 @@ the <code class="docutils literal notranslate"><span class="pre">delta</span></c
 a first-order approximation (which is <code class="docutils literal notranslate"><span class="pre">dx/dp</span> <span class="pre">*</span> <span class="pre">p.delta</span></code>).</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><code><span class="n">p</span><span class="o">.</span><span class="n">delta</span> <span class="o">=</span> <span class="mf">1e-5</span>
 <span class="n">problem</span><span class="o">.</span><span class="n">derivative</span><span class="p">()</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;x.delta is </span><span class="si">{0:2.1g}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">delta</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"x.delta is </span><span class="si">{0:2.1g}</span><span class="s2">."</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">delta</span><span class="p">))</span>
 </code></pre></div>
 </div>
 <p>In this case the solution is trivial and its derivative is just <code class="docutils literal notranslate"><span class="pre">2*p</span></code>, so we

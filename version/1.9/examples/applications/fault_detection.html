@@ -808,7 +808,7 @@ That is,</p>
 </div>
 <img alt="../../_images/fault_detection_3_1.png" src="../../_images/fault_detection_3_1.png" />
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">m</span><span class="p">),</span> <span class="n">A</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">x_true</span><span class="p">),</span><span class="nb">range</span><span class="p">(</span><span class="n">m</span><span class="p">),</span><span class="n">v</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">((</span><span class="s1">&#39;Ax&#39;</span><span class="p">,</span><span class="s1">&#39;v&#39;</span><span class="p">))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">((</span><span class="s1">'Ax'</span><span class="p">,</span><span class="s1">'v'</span><span class="p">))</span>
 </code></pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">legend</span><span class="o">.</span><span class="n">Legend</span> <span class="n">at</span> <span class="mh">0x11aee9630</span><span class="o">&gt;</span>
@@ -825,7 +825,7 @@ round the result to get a Boolean solution.</p>
 <span class="n">obj</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">sum_squares</span><span class="p">(</span><span class="n">A</span><span class="o">*</span><span class="n">x</span> <span class="o">-</span> <span class="n">y</span><span class="p">)</span> <span class="o">+</span> <span class="n">tau</span><span class="o">*</span><span class="n">cp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
 <span class="n">const</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">x</span><span class="p">,</span> <span class="n">x</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">]</span>
 <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span><span class="n">const</span><span class="p">)</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;final objective value: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"final objective value: </span><span class="si">{}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
 
 <span class="c1"># relaxed ML estimate</span>
 <span class="n">x_rml</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
@@ -876,10 +876,10 @@ solutions.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">errors</span><span class="p">(</span><span class="n">x_true</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mf">.5</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;Return estimation errors.</span>
+<span class="w">    </span><span class="sd">'''Return estimation errors.</span>
 
 <span class="sd">    Return the true number of faults, the number of false positives, and the number of false negatives.</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">    '''</span>
     <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">x_true</span><span class="p">)</span>
     <span class="n">k</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">x_true</span><span class="p">)</span>
     <span class="n">false_pos</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">x_true</span> <span class="o">&lt;</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">x</span> <span class="o">&gt;=</span> <span class="n">threshold</span><span class="p">))</span>
@@ -887,10 +887,10 @@ solutions.</p>
     <span class="k">return</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">false_pos</span><span class="p">,</span> <span class="n">false_neg</span><span class="p">)</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">plotXs</span><span class="p">(</span><span class="n">x_true</span><span class="p">,</span> <span class="n">x_rml</span><span class="p">,</span> <span class="n">x_rnd</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;Plot true, relaxed ML, and rounded solutions.&#39;&#39;&#39;</span>
-    <span class="n">matplotlib</span><span class="o">.</span><span class="n">rcParams</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;font.size&#39;</span><span class="p">:</span> <span class="mi">14</span><span class="p">})</span>
+<span class="w">    </span><span class="sd">'''Plot true, relaxed ML, and rounded solutions.'''</span>
+    <span class="n">matplotlib</span><span class="o">.</span><span class="n">rcParams</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">'font.size'</span><span class="p">:</span> <span class="mi">14</span><span class="p">})</span>
     <span class="n">xs</span> <span class="o">=</span> <span class="p">[</span><span class="n">x_true</span><span class="p">,</span> <span class="n">x_rml</span><span class="p">,</span> <span class="n">x_rnd</span><span class="p">]</span>
-    <span class="n">titles</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;x_true&#39;</span><span class="p">,</span> <span class="s1">&#39;x_rml&#39;</span><span class="p">,</span> <span class="s1">&#39;x_rnd&#39;</span><span class="p">]</span>
+    <span class="n">titles</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'x_true'</span><span class="p">,</span> <span class="s1">'x_rml'</span><span class="p">,</span> <span class="s1">'x_rnd'</span><span class="p">]</span>
 
     <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">x_true</span><span class="p">)</span>
     <span class="n">k</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">x_true</span><span class="p">)</span>
@@ -903,14 +903,14 @@ solutions.</p>
             <span class="n">ax</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
 
     <span class="k">if</span> <span class="n">filename</span><span class="p">:</span>
-        <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s1">&#39;tight&#39;</span><span class="p">)</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s1">'tight'</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">errors</span><span class="p">(</span><span class="n">x_true</span><span class="p">,</span> <span class="n">x_rml</span><span class="p">,</span><span class="mf">.5</span><span class="p">)</span>
 </code></pre></div>
 </div>
 <p>We see that out of 20 actual faults, the rounded solution gives perfect
 recovery with 0 false negatives and 0 false positives.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="n">plotXs</span><span class="p">(</span><span class="n">x_true</span><span class="p">,</span> <span class="n">x_rml</span><span class="p">,</span> <span class="n">x_rnd</span><span class="p">,</span> <span class="s1">&#39;fault.pdf&#39;</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="n">plotXs</span><span class="p">(</span><span class="n">x_true</span><span class="p">,</span> <span class="n">x_rml</span><span class="p">,</span> <span class="n">x_rnd</span><span class="p">,</span> <span class="s1">'fault.pdf'</span><span class="p">)</span>
 </code></pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>

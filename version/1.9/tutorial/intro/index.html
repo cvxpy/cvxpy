@@ -1259,9 +1259,9 @@ and unpacks the results.</p>
 <span class="c1"># Form and solve problem.</span>
 <span class="n">prob</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
 <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>  <span class="c1"># Returns the optimal value.</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;status:&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">status</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;optimal value&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;optimal var&quot;</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">y</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"status:"</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">status</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"optimal value"</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"optimal var"</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">y</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
 </code></pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="n">status</span><span class="p">:</span> <span class="n">optimal</span>
@@ -1284,12 +1284,12 @@ cannot be changed after they are created.  To change the objective or
 constraints, create a new problem.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="c1"># Replace the objective.</span>
 <span class="n">prob2</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Maximize</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">y</span><span class="p">),</span> <span class="n">prob</span><span class="o">.</span><span class="n">constraints</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;optimal value&quot;</span><span class="p">,</span> <span class="n">prob2</span><span class="o">.</span><span class="n">solve</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"optimal value"</span><span class="p">,</span> <span class="n">prob2</span><span class="o">.</span><span class="n">solve</span><span class="p">())</span>
 
 <span class="c1"># Replace the constraint (x + y == 1).</span>
 <span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">&lt;=</span> <span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="n">prob2</span><span class="o">.</span><span class="n">constraints</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
 <span class="n">prob3</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">prob2</span><span class="o">.</span><span class="n">objective</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;optimal value&quot;</span><span class="p">,</span> <span class="n">prob3</span><span class="o">.</span><span class="n">solve</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"optimal value"</span><span class="p">,</span> <span class="n">prob3</span><span class="o">.</span><span class="n">solve</span><span class="p">())</span>
 </code></pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="n">optimal</span> <span class="n">value</span> <span class="mf">1.0</span>
@@ -1307,14 +1307,14 @@ problem variables are not updated.</p>
 <span class="c1"># An infeasible problem.</span>
 <span class="n">prob</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="p">[</span><span class="n">x</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">x</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">])</span>
 <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;status:&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">status</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;optimal value&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"status:"</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">status</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"optimal value"</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
 
 <span class="c1"># An unbounded problem.</span>
 <span class="n">prob</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
 <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;status:&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">status</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;optimal value&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"status:"</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">status</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"optimal value"</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
 </code></pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="n">status</span><span class="p">:</span> <span class="n">infeasible</span>
@@ -1404,8 +1404,8 @@ sparse matrices, etc. <code class="docutils literal notranslate"><span class="pr
 <span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">x</span><span class="p">,</span> <span class="n">x</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">]</span>
 <span class="n">prob</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">objective</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Optimal objective value&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">())</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Optimal variable value&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Optimal objective value"</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Optimal variable value"</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="c1"># A numpy ndarray.</span>
 </code></pre></div>
 </div>
@@ -1489,25 +1489,25 @@ computes a trade-off curve for a LASSO problem.</p>
     <span class="n">l1_penalty</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
     <span class="n">x_values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
 
-<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;text&#39;</span><span class="p">,</span> <span class="n">usetex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;font&#39;</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="s1">&#39;serif&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">'text'</span><span class="p">,</span> <span class="n">usetex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">'font'</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="s1">'serif'</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
 
 <span class="c1"># Plot trade-off curve.</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">211</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">l1_penalty</span><span class="p">,</span> <span class="n">sq_penalty</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\|x\|_1&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\|Ax-b\|^2&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Trade-Off Curve for LASSO&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">'\|x\|_1'</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">'\|Ax-b\|^2'</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">'Trade-Off Curve for LASSO'</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
 
 <span class="c1"># Plot entries of x vs. gamma.</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">212</span><span class="p">)</span>
 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">m</span><span class="p">):</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">gamma_vals</span><span class="p">,</span> <span class="p">[</span><span class="n">xi</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">xi</span> <span class="ow">in</span> <span class="n">x_values</span><span class="p">])</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\gamma&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;x_</span><span class="si">{i}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">xscale</span><span class="p">(</span><span class="s1">&#39;log&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\text{Entries of x vs. }\gamma&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">'\gamma'</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">'x_</span><span class="si">{i}</span><span class="s1">'</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xscale</span><span class="p">(</span><span class="s1">'log'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="sa">r</span><span class="s1">'\text{Entries of x vs. }\gamma'</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
 
 <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
@@ -1540,13 +1540,13 @@ show labeled expressions in problems.</p>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
 <span class="c1"># Create variables</span>
-<span class="n">weights</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;weights&quot;</span><span class="p">)</span>
+<span class="n">weights</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">"weights"</span><span class="p">)</span>
 
 <span class="c1"># Create constraints with custom labels</span>
 <span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="p">(</span><span class="n">weights</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="s2">&quot;non_negative_weights&quot;</span><span class="p">),</span>
-    <span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="s2">&quot;budget_constraint&quot;</span><span class="p">),</span>
-    <span class="p">(</span><span class="n">weights</span> <span class="o">&lt;=</span> <span class="mf">0.4</span><span class="p">)</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="s2">&quot;concentration_limits&quot;</span><span class="p">)</span>
+    <span class="p">(</span><span class="n">weights</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="s2">"non_negative_weights"</span><span class="p">),</span>
+    <span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="s2">"budget_constraint"</span><span class="p">),</span>
+    <span class="p">(</span><span class="n">weights</span> <span class="o">&lt;=</span> <span class="mf">0.4</span><span class="p">)</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="s2">"concentration_limits"</span><span class="p">)</span>
 <span class="p">]</span>
 
 <span class="c1"># Create expressions with custom labels (portfolio example)</span>
@@ -1556,8 +1556,8 @@ show labeled expressions in problems.</p>
                   <span class="p">[</span><span class="mf">0.02</span><span class="p">,</span> <span class="mf">0.08</span><span class="p">,</span> <span class="mf">0.03</span><span class="p">],</span>
                   <span class="p">[</span><span class="mf">0.01</span><span class="p">,</span> <span class="mf">0.03</span><span class="p">,</span> <span class="mf">0.09</span><span class="p">]])</span>
 
-<span class="n">expected_return</span> <span class="o">=</span> <span class="p">(</span><span class="n">mu</span> <span class="o">@</span> <span class="n">weights</span><span class="p">)</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="s2">&quot;expected_return&quot;</span><span class="p">)</span>
-<span class="n">risk</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">quad_form</span><span class="p">(</span><span class="n">weights</span><span class="p">,</span> <span class="n">Sigma</span><span class="p">)</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="s2">&quot;risk&quot;</span><span class="p">)</span>
+<span class="n">expected_return</span> <span class="o">=</span> <span class="p">(</span><span class="n">mu</span> <span class="o">@</span> <span class="n">weights</span><span class="p">)</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="s2">"expected_return"</span><span class="p">)</span>
+<span class="n">risk</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">quad_form</span><span class="p">(</span><span class="n">weights</span><span class="p">,</span> <span class="n">Sigma</span><span class="p">)</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="s2">"risk"</span><span class="p">)</span>
 
 <span class="c1"># Build objective (risk-return tradeoff)</span>
 <span class="n">objective</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">risk</span> <span class="o">-</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">expected_return</span><span class="p">)</span>
@@ -1578,7 +1578,7 @@ show labeled expressions in problems.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">set_label()</span></code> method returns the object itself, allowing method chaining.
 Labels are “live” and can be modified after problem creation:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="c1"># Change labels dynamically</span>
-<span class="n">risk</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="s2">&quot;portfolio_risk&quot;</span>  <span class="c1"># Change label</span>
+<span class="n">risk</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="s2">"portfolio_risk"</span>  <span class="c1"># Change label</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">problem</span><span class="o">.</span><span class="n">format_labeled</span><span class="p">())</span>
 </code></pre></div>
 </div>

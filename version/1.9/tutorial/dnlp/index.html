@@ -1182,11 +1182,11 @@ solves a simple (nonconvex) nonlinear program:</p>
 <span class="n">x</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
 <span class="n">prob</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
 <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">nlp</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Optimal value from DNLP:&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Optimal value from DNLP:"</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
 
 <span class="c1"># the optimal value can also be found via the maximum eigenvalue of A</span>
 <span class="n">eigenvalues</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">eigvalsh</span><span class="p">(</span><span class="n">A</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Maximum eigenvalue:     &quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">eigenvalues</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Maximum eigenvalue:     "</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">eigenvalues</span><span class="p">))</span>
 </code></pre></div>
 </div>
 <p>Note that for CVXPY to treat the problem as an NLP, you must pass the option <code class="docutils literal notranslate"><span class="pre">nlp=True</span></code> to the

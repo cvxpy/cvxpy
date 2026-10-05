@@ -718,21 +718,21 @@
 
 
 <h1>Source code for cvxpy.reductions.cone2cone.affine2direct</h1><div class="highlight"><pre>
-<span></span><code><span class="sd">&quot;&quot;&quot;</span>
+<span></span><code><span class="sd">"""</span>
 <span class="sd">Copyright 2020 the CVXPY developers</span>
 
-<span class="sd">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="sd">Licensed under the Apache License, Version 2.0 (the "License");</span>
 <span class="sd">you may not use this file except in compliance with the License.</span>
 <span class="sd">You may obtain a copy of the License at</span>
 
 <span class="sd">    http://www.apache.org/licenses/LICENSE-2.0</span>
 
 <span class="sd">Unless required by applicable law or agreed to in writing, software</span>
-<span class="sd">distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="sd">distributed under the License is distributed on an "AS IS" BASIS,</span>
 <span class="sd">WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
 <span class="sd">See the License for the specific language governing permissions and</span>
 <span class="sd">limitations under the License.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">sp</span>
@@ -746,21 +746,21 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.constraints.zero</span><span class="w"> </span><span class="kn">import</span> <span class="n">Zero</span> <span class="k">as</span> <span class="n">Zero_obj</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.solution</span><span class="w"> </span><span class="kn">import</span> <span class="n">Solution</span>
 
-<span class="n">FREE</span> <span class="o">=</span> <span class="s1">&#39;fr&#39;</span>
-<span class="n">ZERO</span> <span class="o">=</span> <span class="s1">&#39;0&#39;</span>
-<span class="n">NONNEG</span> <span class="o">=</span> <span class="s1">&#39;+&#39;</span>
-<span class="n">EXP</span> <span class="o">=</span> <span class="s1">&#39;e&#39;</span>
-<span class="n">DUAL_EXP</span> <span class="o">=</span> <span class="s1">&#39;de&#39;</span>
-<span class="n">SOC</span> <span class="o">=</span> <span class="s1">&#39;q&#39;</span>
-<span class="n">PSD</span> <span class="o">=</span> <span class="s1">&#39;s&#39;</span>
-<span class="n">POW3D</span> <span class="o">=</span> <span class="s1">&#39;pp3&#39;</span>
-<span class="n">DUAL_POW3D</span> <span class="o">=</span> <span class="s1">&#39;dp3&#39;</span>
+<span class="n">FREE</span> <span class="o">=</span> <span class="s1">'fr'</span>
+<span class="n">ZERO</span> <span class="o">=</span> <span class="s1">'0'</span>
+<span class="n">NONNEG</span> <span class="o">=</span> <span class="s1">'+'</span>
+<span class="n">EXP</span> <span class="o">=</span> <span class="s1">'e'</span>
+<span class="n">DUAL_EXP</span> <span class="o">=</span> <span class="s1">'de'</span>
+<span class="n">SOC</span> <span class="o">=</span> <span class="s1">'q'</span>
+<span class="n">PSD</span> <span class="o">=</span> <span class="s1">'s'</span>
+<span class="n">POW3D</span> <span class="o">=</span> <span class="s1">'pp3'</span>
+<span class="n">DUAL_POW3D</span> <span class="o">=</span> <span class="s1">'dp3'</span>
 
 
 <div class="viewcode-block" id="Dualize">
 <a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.back_end.html#cvxpy.reductions.cone2cone.affine2direct.Dualize">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Dualize</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    CVXPY represents cone programs as</span>
 
 <span class="sd">        (P-Opt) min{ c.T @ x : A @ x + b in K } + d,</span>
@@ -784,7 +784,7 @@
 <span class="sd">    The call to Dualize.apply should be one of the first things that happens, and the</span>
 <span class="sd">    call to Dualize.invert should be one of the last things that happens.</span>
 
-<span class="sd">    The &quot;data&quot; dict returned by Dualize.apply is keyed by s.A, s.B, s.C, and &#39;K_dir&#39;,</span>
+<span class="sd">    The "data" dict returned by Dualize.apply is keyed by s.A, s.B, s.C, and 'K_dir',</span>
 <span class="sd">    which respectively provide the dual constraint matrix (A.T), the dual constraint</span>
 <span class="sd">    right-hand-side (c), the dual objective vector (-b), and the dual cones (K^*).</span>
 <span class="sd">    The solver interface should interpret this data is a new primal problem, just with a</span>
@@ -801,7 +801,7 @@
 <span class="sd">    The problem has no integer or boolean constraints. This is necessary because strong</span>
 <span class="sd">    duality does not hold for problems with discrete constraints.</span>
 
-<span class="sd">    Dualize.apply assumes &quot;SOLVER.format_constraints()&quot; has already been called. This</span>
+<span class="sd">    Dualize.apply assumes "SOLVER.format_constraints()" has already been called. This</span>
 <span class="sd">    assumption allows flexibility in how a solver interface chooses to vectorize a</span>
 <span class="sd">    feasible set (e.g. how to order conic constraints, or how to vectorize the PSD cone).</span>
 
@@ -812,7 +812,7 @@
 <span class="sd">    but it also imposes specific requirements on the input. Providing correct input to</span>
 <span class="sd">    Dualize.invert requires consideration to the effect of ``SOLVER.format_constraints`` and</span>
 <span class="sd">    the output of ``problem.apply_parameters``.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">apply</span><span class="p">(</span><span class="n">problem</span><span class="p">):</span>
@@ -822,7 +822,7 @@
             <span class="n">FREE</span><span class="p">:</span> <span class="n">Kp</span><span class="o">.</span><span class="n">zero</span><span class="p">,</span>  <span class="c1"># length of block of unconstrained variables.</span>
             <span class="n">NONNEG</span><span class="p">:</span> <span class="n">Kp</span><span class="o">.</span><span class="n">nonneg</span><span class="p">,</span>  <span class="c1"># length of block of nonneg variables.</span>
             <span class="n">SOC</span><span class="p">:</span> <span class="n">Kp</span><span class="o">.</span><span class="n">soc</span><span class="p">,</span>  <span class="c1"># lengths of blocks of soc-constrained variables.</span>
-            <span class="n">PSD</span><span class="p">:</span> <span class="n">Kp</span><span class="o">.</span><span class="n">psd</span><span class="p">,</span>  <span class="c1"># &quot;orders&quot; of PSD variables</span>
+            <span class="n">PSD</span><span class="p">:</span> <span class="n">Kp</span><span class="o">.</span><span class="n">psd</span><span class="p">,</span>  <span class="c1"># "orders" of PSD variables</span>
             <span class="n">DUAL_EXP</span><span class="p">:</span> <span class="n">Kp</span><span class="o">.</span><span class="n">exp</span><span class="p">,</span>  <span class="c1"># number of length-3 blocks of dual exp cone variables.</span>
             <span class="n">DUAL_POW3D</span><span class="p">:</span> <span class="n">Kp</span><span class="o">.</span><span class="n">p3d</span>  <span class="c1"># scale parameters for dual 3d power cones</span>
         <span class="p">}</span>
@@ -830,15 +830,15 @@
             <span class="n">s</span><span class="o">.</span><span class="n">A</span><span class="p">:</span> <span class="n">A</span><span class="o">.</span><span class="n">T</span><span class="p">,</span>
             <span class="n">s</span><span class="o">.</span><span class="n">B</span><span class="p">:</span> <span class="n">c</span><span class="p">,</span>
             <span class="n">s</span><span class="o">.</span><span class="n">C</span><span class="p">:</span> <span class="o">-</span><span class="n">b</span><span class="p">,</span>
-            <span class="s1">&#39;K_dir&#39;</span><span class="p">:</span> <span class="n">Kd</span><span class="p">,</span>
-            <span class="s1">&#39;dualized&#39;</span><span class="p">:</span> <span class="kc">True</span>
+            <span class="s1">'K_dir'</span><span class="p">:</span> <span class="n">Kd</span><span class="p">,</span>
+            <span class="s1">'dualized'</span><span class="p">:</span> <span class="kc">True</span>
         <span class="p">}</span>
         <span class="n">inv_data</span> <span class="o">=</span> <span class="p">{</span>
             <span class="n">s</span><span class="o">.</span><span class="n">OBJ_OFFSET</span><span class="p">:</span> <span class="n">d</span><span class="p">,</span>
-            <span class="s1">&#39;constr_map&#39;</span><span class="p">:</span> <span class="n">problem</span><span class="o">.</span><span class="n">constr_map</span><span class="p">,</span>
-            <span class="s1">&#39;x_id&#39;</span><span class="p">:</span> <span class="n">problem</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
-            <span class="s1">&#39;K_dir&#39;</span><span class="p">:</span> <span class="n">Kd</span><span class="p">,</span>
-            <span class="s1">&#39;dualized&#39;</span><span class="p">:</span> <span class="kc">True</span>
+            <span class="s1">'constr_map'</span><span class="p">:</span> <span class="n">problem</span><span class="o">.</span><span class="n">constr_map</span><span class="p">,</span>
+            <span class="s1">'x_id'</span><span class="p">:</span> <span class="n">problem</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+            <span class="s1">'K_dir'</span><span class="p">:</span> <span class="n">Kd</span><span class="p">,</span>
+            <span class="s1">'dualized'</span><span class="p">:</span> <span class="kc">True</span>
         <span class="p">}</span>
         <span class="k">return</span> <span class="n">data</span><span class="p">,</span> <span class="n">inv_data</span>
 
@@ -846,61 +846,61 @@
 <a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.back_end.html#cvxpy.reductions.cone2cone.affine2direct.Dualize.invert">[docs]</a>
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">invert</span><span class="p">(</span><span class="n">solution</span><span class="p">,</span> <span class="n">inv_data</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        ``solution`` is a CVXPY Solution object, formatted where</span>
 
 <span class="sd">            (D-Opt) max{ -b @ y : c = A.T @ y, y in K^* } + d</span>
 
-<span class="sd">        is the primal problem from the solver&#39;s perspective. The purpose of this function</span>
+<span class="sd">        is the primal problem from the solver's perspective. The purpose of this function</span>
 <span class="sd">        is to map such a solution back to the format</span>
 
 <span class="sd">                (P-Opt) min{ c.T @ x : A @ x + b in K } + d.</span>
 
 <span class="sd">        This function handles mapping of primal and dual variables, and solver status codes.</span>
-<span class="sd">        The variable &quot;x&quot; in (P-Opt) is trivially populated from the dual variables to the</span>
-<span class="sd">        constraint &quot;c = A.T @ y&quot; in (D-Opt). Status codes also map back in a simple way.</span>
+<span class="sd">        The variable "x" in (P-Opt) is trivially populated from the dual variables to the</span>
+<span class="sd">        constraint "c = A.T @ y" in (D-Opt). Status codes also map back in a simple way.</span>
 
 <span class="sd">        Details on required formatting of solution.primal_vars</span>
 <span class="sd">        ------------------------------------------------------</span>
 
-<span class="sd">        We assume the dict solution.primal_vars is keyed by string-enums FREE (&#39;fr&#39;), NONNEG (&#39;+&#39;),</span>
-<span class="sd">        SOC (&#39;s&#39;), PSD (&#39;p&#39;), and DUAL_EXP (&#39;de&#39;). The corresponding values are described below.</span>
+<span class="sd">        We assume the dict solution.primal_vars is keyed by string-enums FREE ('fr'), NONNEG ('+'),</span>
+<span class="sd">        SOC ('s'), PSD ('p'), and DUAL_EXP ('de'). The corresponding values are described below.</span>
 
 <span class="sd">        solution.primal_vars[FREE] should be a single vector. It corresponds to the (possibly</span>
-<span class="sd">        concatenated) components of &quot;y&quot; which are subject to no conic constraints. We map these</span>
+<span class="sd">        concatenated) components of "y" which are subject to no conic constraints. We map these</span>
 <span class="sd">        variables back to dual variables for equality constraints in (P-Opt).</span>
 
 <span class="sd">        solution.primal_vars[NONNEG] should also be a single vector, this time giving the</span>
-<span class="sd">        possibly concatenated components of &quot;y&quot; which must be &gt;= 0. We map these variables</span>
+<span class="sd">        possibly concatenated components of "y" which must be &gt;= 0. We map these variables</span>
 <span class="sd">        back to dual variables for inequality constraints in (P-Opt).</span>
 
-<span class="sd">        solution.primal_vars[SOC] is a list of vectors specifying blocks of &quot;y&quot; which belong</span>
+<span class="sd">        solution.primal_vars[SOC] is a list of vectors specifying blocks of "y" which belong</span>
 <span class="sd">        to the second-order-cone under the CVXPY standard ({ z : z[0] &gt;= || z[1:] || }).</span>
 <span class="sd">        We map these variables back to dual variables for SOC constraints in (P-Opt).</span>
 
 <span class="sd">        solution.primal_vars[PSD] is a list of triangular (svec) vectors: the</span>
-<span class="sd">        column-major lower-triangular entries of the PSD blocks of &quot;y&quot;, one vector</span>
+<span class="sd">        column-major lower-triangular entries of the PSD blocks of "y", one vector</span>
 <span class="sd">        per cone. PSD constraints reach a dualizing solver in this triangular form</span>
 <span class="sd">        via the PSDToSvecPSD reduction (see #3268), so we concatenate the cones</span>
 <span class="sd">        belonging to each SvecPSD constraint and assign the result as that</span>
-<span class="sd">        constraint&#39;s dual variable in (P-Opt).</span>
+<span class="sd">        constraint's dual variable in (P-Opt).</span>
 
 <span class="sd">        solution.primal_vars[DUAL_EXP] is a vector of concatenated length-3 slices of y, where</span>
 <span class="sd">        each constituent length-3 slice belongs to dual exponential cone as implied by the CVXPY</span>
 <span class="sd">        standard of the primal exponential cone (see cvxpy/constraints/exponential.py:ExpCone).</span>
 <span class="sd">        We map these back to dual variables for exponential cone constraints in (P-Opt).</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">status</span> <span class="o">=</span> <span class="n">solution</span><span class="o">.</span><span class="n">status</span>
         <span class="n">prob_attr</span> <span class="o">=</span> <span class="n">solution</span><span class="o">.</span><span class="n">attr</span>
         <span class="n">primal_vars</span><span class="p">,</span> <span class="n">dual_vars</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="n">status</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">SOLUTION_PRESENT</span><span class="p">:</span>
             <span class="n">opt_val</span> <span class="o">=</span> <span class="n">solution</span><span class="o">.</span><span class="n">opt_val</span> <span class="o">+</span> <span class="n">inv_data</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">OBJ_OFFSET</span><span class="p">]</span>
-            <span class="n">primal_vars</span> <span class="o">=</span> <span class="p">{</span><span class="n">inv_data</span><span class="p">[</span><span class="s1">&#39;x_id&#39;</span><span class="p">]:</span>
+            <span class="n">primal_vars</span> <span class="o">=</span> <span class="p">{</span><span class="n">inv_data</span><span class="p">[</span><span class="s1">'x_id'</span><span class="p">]:</span>
                            <span class="n">solution</span><span class="o">.</span><span class="n">dual_vars</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">EQ_DUAL</span><span class="p">]}</span>
             <span class="n">dual_vars</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
             <span class="n">direct_prims</span> <span class="o">=</span> <span class="n">solution</span><span class="o">.</span><span class="n">primal_vars</span>
-            <span class="n">constr_map</span> <span class="o">=</span> <span class="n">inv_data</span><span class="p">[</span><span class="s1">&#39;constr_map&#39;</span><span class="p">]</span>
+            <span class="n">constr_map</span> <span class="o">=</span> <span class="n">inv_data</span><span class="p">[</span><span class="s1">'constr_map'</span><span class="p">]</span>
             <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="k">for</span> <span class="n">con</span> <span class="ow">in</span> <span class="n">constr_map</span><span class="p">[</span><span class="n">Zero_obj</span><span class="p">]:</span>
                 <span class="n">dv</span> <span class="o">=</span> <span class="n">direct_prims</span><span class="p">[</span><span class="n">FREE</span><span class="p">][</span><span class="n">i</span><span class="p">:</span><span class="n">i</span> <span class="o">+</span> <span class="n">con</span><span class="o">.</span><span class="n">size</span><span class="p">]</span>
@@ -920,7 +920,7 @@
             <span class="c1"># direct_prims[PSD] holds one triangular (svec) vector per cone,</span>
             <span class="c1"># ordered to match ConeDims.psd; a batched SvecPSD constraint spans</span>
             <span class="c1"># con.num_cones() consecutive cones. Concatenating those cones gives</span>
-            <span class="c1"># the constraint&#39;s dual in the svec form PSDToSvecPSD.recover_dual</span>
+            <span class="c1"># the constraint's dual in the svec form PSDToSvecPSD.recover_dual</span>
             <span class="c1"># expects.</span>
             <span class="n">psd_idx</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="k">for</span> <span class="n">con</span> <span class="ow">in</span> <span class="n">constr_map</span><span class="p">[</span><span class="n">SvecPSD_obj</span><span class="p">]:</span>
@@ -962,7 +962,7 @@
 <div class="viewcode-block" id="Slacks">
 <a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.back_end.html#cvxpy.reductions.cone2cone.affine2direct.Slacks">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Slacks</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    CVXPY represents mixed-integer cone programs as</span>
 
 <span class="sd">        (Aff)   min{ c.T @ x : A @ x + b in K,</span>
@@ -990,14 +990,14 @@
 
 <span class="sd">    Because this reduction is only intended for mixed-integer problems, this reduction</span>
 <span class="sd">    makes no attempt to recover dual variables when mapping between (Aff) and (Dir).</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
 <div class="viewcode-block" id="Slacks.apply">
 <a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.back_end.html#cvxpy.reductions.cone2cone.affine2direct.Slacks.apply">[docs]</a>
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">apply</span><span class="p">(</span><span class="n">prob</span><span class="p">,</span> <span class="n">affine</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        &quot;prob&quot; is a ParamConeProg which represents</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        "prob" is a ParamConeProg which represents</span>
 
 <span class="sd">            (Aff)   min{ c.T @ x : A @ x + b in K,</span>
 <span class="sd">                                  x[bools] in {0, 1}, x[ints] in Z } + d.</span>
@@ -1009,14 +1009,14 @@
 
 <span class="sd">        where</span>
 
-<span class="sd">            (1) K_aff is built from cone types specified in &quot;affine&quot; (a list of strings),</span>
+<span class="sd">            (1) K_aff is built from cone types specified in "affine" (a list of strings),</span>
 <span class="sd">            (2) a primal solution for (Dir) can be mapped back to a primal solution</span>
-<span class="sd">                for (Aff) by selecting the leading ``c.size`` block of y&#39;s components.</span>
+<span class="sd">                for (Aff) by selecting the leading ``c.size`` block of y's components.</span>
 
-<span class="sd">        In the returned dict &quot;data&quot;, data[s.A] = G, data[s.B] = h, data[s.C] = f,</span>
-<span class="sd">        data[&#39;K_aff&#39;] = K_aff, data[&#39;K_dir&#39;] = K_dir, data[s.BOOL_IDX] = bools,</span>
+<span class="sd">        In the returned dict "data", data[s.A] = G, data[s.B] = h, data[s.C] = f,</span>
+<span class="sd">        data['K_aff'] = K_aff, data['K_dir'] = K_dir, data[s.BOOL_IDX] = bools,</span>
 <span class="sd">        and data[s.INT_IDX] = ints. The rows of G are ordered according to ZERO, then</span>
-<span class="sd">        (as applicable) NONNEG, SOC, and EXP. If  &quot;c&quot; is the objective vector in (Aff),</span>
+<span class="sd">        (as applicable) NONNEG, SOC, and EXP. If  "c" is the objective vector in (Aff),</span>
 <span class="sd">        then ``y[:c.size]`` should contain the optimal solution to (Aff). The columns of</span>
 <span class="sd">        G correspond first to variables in cones FREE, then NONNEG, then SOC, then EXP.</span>
 <span class="sd">        The length of the free cone is equal to ``c.size``.</span>
@@ -1027,7 +1027,7 @@
 <span class="sd">        rows formatted first for the zero cone, then for the nonnegative orthant, then</span>
 <span class="sd">        second order cones, then the exponential cone. Removing this assumption will</span>
 <span class="sd">        require adding additional data to ParamConeProg objects.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">c</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">apply_parameters</span><span class="p">()</span>  <span class="c1"># A @ x + b in K</span>
         <span class="n">A</span> <span class="o">=</span> <span class="o">-</span><span class="n">A</span>  <span class="c1"># A @ x &lt;=_K b.</span>
         <span class="n">cone_dims</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">cone_dims</span>
@@ -1058,20 +1058,20 @@
         <span class="p">}</span>
         <span class="c1"># ^ If the rows of A are formatted in an order different from</span>
         <span class="c1"># zero -&gt; nonneg -&gt; soc -&gt; exp -&gt; pow, then the above block of code should</span>
-        <span class="c1"># change. Right now there isn&#39;t enough data in (c, d, A, b, cone_dims,</span>
+        <span class="c1"># change. Right now there isn't enough data in (c, d, A, b, cone_dims,</span>
         <span class="c1"># constr_map) which allows us to figure out the ordering of these rows.</span>
         <span class="n">A_aff</span><span class="p">,</span> <span class="n">b_aff</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
         <span class="n">A_slk</span><span class="p">,</span> <span class="n">b_slk</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
         <span class="n">total_slack</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">co_type</span> <span class="ow">in</span> <span class="p">[</span><span class="n">ZERO</span><span class="p">,</span> <span class="n">NONNEG</span><span class="p">,</span> <span class="n">SOC</span><span class="p">,</span> <span class="n">EXP</span><span class="p">,</span> <span class="n">POW3D</span><span class="p">]:</span>
-            <span class="c1"># ^ The order of that list means that the matrix &quot;G&quot; in &quot;G @ z &lt;=_{K_aff} h&quot;</span>
+            <span class="c1"># ^ The order of that list means that the matrix "G" in "G @ z &lt;=_{K_aff} h"</span>
             <span class="c1"># will always have rows ordered by the zero cone, then the nonnegative orthant,</span>
             <span class="c1"># then second order cones, and finally exponential cones. Changing the order</span>
-            <span class="c1"># of items in this list would change the order of row blocks in &quot;G&quot;.</span>
+            <span class="c1"># of items in this list would change the order of row blocks in "G".</span>
             <span class="c1">#</span>
             <span class="c1"># If the order is changed, then this affects which columns of the final matrix</span>
-            <span class="c1"># &quot;G&quot; correspond to which types of cones. For example, [ZERO, SOC, EXP, POW3D, NONNEG]</span>
-            <span class="c1"># and NONNEG is not in &quot;affine&quot;, then the columns of G with nonnegative variables</span>
+            <span class="c1"># "G" correspond to which types of cones. For example, [ZERO, SOC, EXP, POW3D, NONNEG]</span>
+            <span class="c1"># and NONNEG is not in "affine", then the columns of G with nonnegative variables</span>
             <span class="c1"># occur after all free variables, soc variables, exp variables, and pow3d variables.</span>
             <span class="n">co_dim</span> <span class="o">=</span> <span class="n">cone_lens</span><span class="p">[</span><span class="n">co_type</span><span class="p">]</span>
             <span class="k">if</span> <span class="n">co_dim</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -1110,7 +1110,7 @@
             <span class="n">A_slk</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">A_slk</span><span class="p">))</span>
             <span class="n">eye</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">eye_array</span><span class="p">(</span><span class="n">total_slack</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">A_aff</span><span class="p">:</span>
-                <span class="n">A_aff</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">A_aff</span><span class="p">),</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;csr&#39;</span><span class="p">)</span>
+                <span class="n">A_aff</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">A_aff</span><span class="p">),</span> <span class="nb">format</span><span class="o">=</span><span class="s1">'csr'</span><span class="p">)</span>
                 <span class="n">G</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">block_array</span><span class="p">([[</span><span class="n">A_slk</span><span class="p">,</span> <span class="n">eye</span><span class="p">],</span> <span class="p">[</span><span class="n">A_aff</span><span class="p">,</span> <span class="kc">None</span><span class="p">]])</span>
                 <span class="n">h</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">b_slk</span> <span class="o">+</span> <span class="n">b_aff</span><span class="p">)</span>  <span class="c1"># concatenate lists, then turn to vector</span>
             <span class="k">else</span><span class="p">:</span>
@@ -1119,7 +1119,7 @@
             <span class="n">f</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">c</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">total_slack</span><span class="p">)))</span>
         <span class="k">elif</span> <span class="n">A_aff</span><span class="p">:</span>
             <span class="c1"># No slack variables were introduced.</span>
-            <span class="n">G</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">A_aff</span><span class="p">),</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;csr&#39;</span><span class="p">)</span>
+            <span class="n">G</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">A_aff</span><span class="p">),</span> <span class="nb">format</span><span class="o">=</span><span class="s1">'csr'</span><span class="p">)</span>
             <span class="n">h</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">b_aff</span><span class="p">)</span>
             <span class="n">f</span> <span class="o">=</span> <span class="n">c</span>
         <span class="k">else</span><span class="p">:</span>
@@ -1130,8 +1130,8 @@
         <span class="n">data</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">C</span><span class="p">]</span> <span class="o">=</span> <span class="n">f</span>
         <span class="n">data</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">BOOL_IDX</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">prob</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">boolean_idx</span><span class="p">]</span>
         <span class="n">data</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">INT_IDX</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">prob</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">integer_idx</span><span class="p">]</span>
-        <span class="n">data</span><span class="p">[</span><span class="s1">&#39;K_dir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">K_dir</span>
-        <span class="n">data</span><span class="p">[</span><span class="s1">&#39;K_aff&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">K_aff</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">'K_dir'</span><span class="p">]</span> <span class="o">=</span> <span class="n">K_dir</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">'K_aff'</span><span class="p">]</span> <span class="o">=</span> <span class="n">K_aff</span>
 
         <span class="c1"># Extend lower and upper bounds to cover slack variables.</span>
         <span class="n">num_vars</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
@@ -1139,9 +1139,9 @@
         <span class="n">data</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">UPPER_BOUNDS</span><span class="p">]</span> <span class="o">=</span> <span class="n">Slacks</span><span class="o">.</span><span class="n">extend_bounds</span><span class="p">(</span><span class="n">num_vars</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">upper_bounds</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
 
         <span class="n">inv_data</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
-        <span class="n">inv_data</span><span class="p">[</span><span class="s1">&#39;x_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">id</span>
-        <span class="n">inv_data</span><span class="p">[</span><span class="s1">&#39;K_dir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">K_dir</span>
-        <span class="n">inv_data</span><span class="p">[</span><span class="s1">&#39;K_aff&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">K_aff</span>
+        <span class="n">inv_data</span><span class="p">[</span><span class="s1">'x_id'</span><span class="p">]</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">id</span>
+        <span class="n">inv_data</span><span class="p">[</span><span class="s1">'K_dir'</span><span class="p">]</span> <span class="o">=</span> <span class="n">K_dir</span>
+        <span class="n">inv_data</span><span class="p">[</span><span class="s1">'K_aff'</span><span class="p">]</span> <span class="o">=</span> <span class="n">K_aff</span>
         <span class="n">inv_data</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">OBJ_OFFSET</span><span class="p">]</span> <span class="o">=</span> <span class="n">d</span>
 
         <span class="k">return</span> <span class="n">data</span><span class="p">,</span> <span class="n">inv_data</span></div>
@@ -1155,7 +1155,7 @@
         <span class="n">bounds_vector</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">fill_value</span><span class="p">:</span> <span class="nb">float</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Extend the bounds vector to be length num_vars, filling with fill_value.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Extend the bounds vector to be length num_vars, filling with fill_value."""</span>
         <span class="k">if</span> <span class="n">bounds_vector</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">num_vars</span><span class="p">,</span> <span class="n">fill_value</span><span class="p">)</span>
 
@@ -1170,7 +1170,7 @@
             <span class="n">prim_vars</span> <span class="o">=</span> <span class="n">solution</span><span class="o">.</span><span class="n">primal_vars</span>
             <span class="n">x</span> <span class="o">=</span> <span class="n">prim_vars</span><span class="p">[</span><span class="n">FREE</span><span class="p">]</span>
             <span class="k">del</span> <span class="n">prim_vars</span><span class="p">[</span><span class="n">FREE</span><span class="p">]</span>
-            <span class="n">prim_vars</span><span class="p">[</span><span class="n">inv_data</span><span class="p">[</span><span class="s1">&#39;x_id&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">x</span>
+            <span class="n">prim_vars</span><span class="p">[</span><span class="n">inv_data</span><span class="p">[</span><span class="s1">'x_id'</span><span class="p">]]</span> <span class="o">=</span> <span class="n">x</span>
         <span class="k">if</span> <span class="n">solution</span><span class="o">.</span><span class="n">opt_val</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">solution</span><span class="o">.</span><span class="n">opt_val</span> <span class="o">+=</span> <span class="n">inv_data</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">OBJ_OFFSET</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">solution</span></div>

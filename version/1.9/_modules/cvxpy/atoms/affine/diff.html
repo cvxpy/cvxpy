@@ -718,21 +718,21 @@
 
 
 <h1>Source code for cvxpy.atoms.affine.diff</h1><div class="highlight"><pre>
-<span></span><code><span class="sd">&quot;&quot;&quot;</span>
+<span></span><code><span class="sd">"""</span>
 <span class="sd">Copyright 2013 Steven Diamond</span>
 
-<span class="sd">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="sd">Licensed under the Apache License, Version 2.0 (the "License");</span>
 <span class="sd">you may not use this file except in compliance with the License.</span>
 <span class="sd">You may obtain a copy of the License at</span>
 
 <span class="sd">    http://www.apache.org/licenses/LICENSE-2.0</span>
 
 <span class="sd">Unless required by applicable law or agreed to in writing, software</span>
-<span class="sd">distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="sd">distributed under the License is distributed on an "AS IS" BASIS,</span>
 <span class="sd">WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
 <span class="sd">See the License for the specific language governing permissions and</span>
 <span class="sd">limitations under the License.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">numpy.lib.array_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">normalize_axis_index</span>
 
@@ -742,7 +742,7 @@
 <div class="viewcode-block" id="diff">
 <a class="viewcode-back" href="../../../../api_reference/cvxpy.atoms.affine.html#cvxpy.diff">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">diff</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">axis</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Computes kth order differences along the specified axis.</span>
+<span class="w">    </span><span class="sd">"""Computes kth order differences along the specified axis.</span>
 
 <span class="sd">    Takes in an array and returns an array with the kth order differences</span>
 <span class="sd">    along the given axis. The output shape is the same as the input except</span>
@@ -763,24 +763,24 @@
 <span class="sd">        The number of times values are differenced. Default is 1.</span>
 <span class="sd">    axis : int, optional</span>
 <span class="sd">        The axis along which the difference is taken. Default is 0.</span>
-<span class="sd">        Note: NumPy&#39;s np.diff uses axis=-1 as default.</span>
+<span class="sd">        Note: NumPy's np.diff uses axis=-1 as default.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    Expression</span>
 <span class="sd">        The kth order differences along the specified axis.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">x</span> <span class="o">=</span> <span class="n">Expression</span><span class="o">.</span><span class="n">cast_to_const</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
 
     <span class="c1"># Validate and normalize axis (handles negative indices)</span>
     <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid axis given input dimensions.&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Invalid axis given input dimensions."</span><span class="p">)</span>
     <span class="n">axis</span> <span class="o">=</span> <span class="n">normalize_axis_index</span><span class="p">(</span><span class="n">axis</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">ndim</span><span class="p">)</span>
 
     <span class="c1"># Validate k</span>
     <span class="k">if</span> <span class="n">k</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">k</span> <span class="o">&gt;=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="n">axis</span><span class="p">]:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Must have k &gt;= 0 and X must have &lt; k elements along &quot;</span>
-                         <span class="s2">&quot;axis&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Must have k &gt;= 0 and X must have &lt; k elements along "</span>
+                         <span class="s2">"axis"</span><span class="p">)</span>
 
     <span class="c1"># Apply k iterations of first-order difference along axis</span>
     <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">k</span><span class="p">):</span>

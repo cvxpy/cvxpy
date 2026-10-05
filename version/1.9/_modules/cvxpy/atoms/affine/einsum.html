@@ -718,21 +718,21 @@
 
 
 <h1>Source code for cvxpy.atoms.affine.einsum</h1><div class="highlight"><pre>
-<span></span><code><span class="sd">&quot;&quot;&quot;</span>
+<span></span><code><span class="sd">"""</span>
 <span class="sd">Copyright, the CVXPY authors</span>
 
-<span class="sd">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="sd">Licensed under the Apache License, Version 2.0 (the "License");</span>
 <span class="sd">you may not use this file except in compliance with the License.</span>
 <span class="sd">You may obtain a copy of the License at</span>
 
 <span class="sd">    http://www.apache.org/licenses/LICENSE-2.0</span>
 
 <span class="sd">Unless required by applicable law or agreed to in writing, software</span>
-<span class="sd">distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="sd">distributed under the License is distributed on an "AS IS" BASIS,</span>
 <span class="sd">WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
 <span class="sd">See the License for the specific language governing permissions and</span>
 <span class="sd">limitations under the License.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
@@ -750,10 +750,10 @@
 
 <div class="viewcode-block" id="einsum">
 <a class="viewcode-back" href="../../../../api_reference/cvxpy.atoms.affine.html#cvxpy.einsum">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">einsum</span><span class="p">(</span><span class="n">subscripts</span><span class="p">,</span> <span class="o">*</span><span class="n">exprs</span><span class="p">,</span> <span class="n">optimize</span><span class="o">=</span><span class="s2">&quot;greedy&quot;</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Evaluates the Einstein summation convention on the given expressions.</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">einsum</span><span class="p">(</span><span class="n">subscripts</span><span class="p">,</span> <span class="o">*</span><span class="n">exprs</span><span class="p">,</span> <span class="n">optimize</span><span class="o">=</span><span class="s2">"greedy"</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Evaluates the Einstein summation convention on the given expressions.</span>
 
-<span class="sd">    This atom is the CVXPY analog of NumPy&#39;s einsum function `numpy.einsum` [1],</span>
+<span class="sd">    This atom is the CVXPY analog of NumPy's einsum function `numpy.einsum` [1],</span>
 <span class="sd">    and it maintains the same syntax and semantics.</span>
 
 <span class="sd">    The einsum operation is evaluated by contracting pairs of expressions by</span>
@@ -772,11 +772,11 @@
 <span class="sd">    &gt;&gt;&gt; A = cp.Variable((3, 4))</span>
 <span class="sd">    &gt;&gt;&gt; B = cp.Variable((4, 5))</span>
 <span class="sd">    &gt;&gt;&gt; # Matrix multiplication</span>
-<span class="sd">    &gt;&gt;&gt; result = cp.einsum(&#39;ij,jk-&gt;ik&#39;, A, B)</span>
+<span class="sd">    &gt;&gt;&gt; result = cp.einsum('ij,jk-&gt;ik', A, B)</span>
 <span class="sd">    &gt;&gt;&gt;</span>
 <span class="sd">    &gt;&gt;&gt; # Trace of a matrix</span>
 <span class="sd">    &gt;&gt;&gt; C = cp.Variable((3, 3))</span>
-<span class="sd">    &gt;&gt;&gt; trace = cp.einsum(&#39;ii-&gt;&#39;, C)</span>
+<span class="sd">    &gt;&gt;&gt; trace = cp.einsum('ii-&gt;', C)</span>
 
 <span class="sd">    References</span>
 <span class="sd">    ----------</span>
@@ -788,30 +788,30 @@
 <span class="sd">        The subscripts for the einsum operation.</span>
 <span class="sd">    exprs : Expression</span>
 <span class="sd">        The expressions to contract.</span>
-<span class="sd">    optimize : {bool, &#39;greedy&#39;, &#39;optimal&#39;}, optional</span>
+<span class="sd">    optimize : {bool, 'greedy', 'optimal'}, optional</span>
 <span class="sd">        Whether to contract the expressions using the optimal or greedy ordering.</span>
-<span class="sd">        Defaults to &quot;greedy&quot;.</span>
+<span class="sd">        Defaults to "greedy".</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    Expression</span>
 <span class="sd">        The contracted expression.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Note for maintainers:</span>
+<span class="sd">    """</span>
+<span class="w">    </span><span class="sd">"""Note for maintainers:</span>
 <span class="sd">    Here, einsum is implemented using the CVXPY sum, multiply, permute_dims, and reshape atoms.</span>
 <span class="sd">    The implementation proceeds as follows:</span>
 
 <span class="sd">    1. Parse and validate the subscripts and the shapes and count of the expressions.</span>
 <span class="sd">        The core logic is:</span>
 <span class="sd">        ```python</span>
-<span class="sd">        input_subscripts, output_subscript = subscripts.split(&quot;-&gt;&quot;)</span>
+<span class="sd">        input_subscripts, output_subscript = subscripts.split("-&gt;")</span>
 <span class="sd">        ```</span>
 <span class="sd">        The rest is validation.</span>
 
 <span class="sd">    2. Reduce duplicate indices in the expressions.</span>
 <span class="sd">        Duplicated indices in a subscript pattern represent indexing along a diagonal</span>
-<span class="sd">        of the corresponding dimensions. For example, the subscript pattern &#39;ii-&gt;i&#39;</span>
-<span class="sd">        extracts the diagonal of a matrix and &#39;ii-&gt;&#39; takes the trace. For the following steps,</span>
+<span class="sd">        of the corresponding dimensions. For example, the subscript pattern 'ii-&gt;i'</span>
+<span class="sd">        extracts the diagonal of a matrix and 'ii-&gt;' takes the trace. For the following steps,</span>
 <span class="sd">        it is necessary that every dimension of a tensor is uniquely indexed (within the tensor)</span>
 <span class="sd">        or not indexed (elipsis). We reduce duplicated indices by creating a new tensor</span>
 <span class="sd">        of reduced dimension by taking the diagonal elements.</span>
@@ -826,12 +826,12 @@
 
 <span class="sd">    4. Permute the final result to match output subscript order.</span>
 <span class="sd">        After all contractions, we permute the final result to match the output subscript order.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="c1"># 1. Initial parsing</span>
     <span class="n">dummy_operands</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">([]))</span> <span class="k">for</span> <span class="n">expr</span> <span class="ow">in</span> <span class="n">exprs</span><span class="p">]</span>
     <span class="n">input_subscripts</span><span class="p">,</span> <span class="n">output_subscript</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">parse_einsum_input</span><span class="p">((</span><span class="n">subscripts</span><span class="p">,</span> <span class="o">*</span><span class="n">dummy_operands</span><span class="p">))</span>
 
-    <span class="n">input_list</span> <span class="o">=</span> <span class="n">input_subscripts</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+    <span class="n">input_list</span> <span class="o">=</span> <span class="n">input_subscripts</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">","</span><span class="p">)</span>
     <span class="n">output_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">output_subscript</span><span class="p">)</span>
     <span class="n">dimension_dict</span> <span class="o">=</span> <span class="n">_validate_arguments</span><span class="p">(</span><span class="n">input_list</span><span class="p">,</span> <span class="n">exprs</span><span class="p">)</span>
 
@@ -887,7 +887,7 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_validate_arguments</span><span class="p">(</span><span class="n">input_list</span><span class="p">,</span> <span class="n">exprs</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Validate the input arguments for einsum operation.</span>
+<span class="w">    </span><span class="sd">"""Validate the input arguments for einsum operation.</span>
 
 <span class="sd">    This function checks that the number of expressions matches the number of</span>
 <span class="sd">    input subscript patterns, and that the dimensions of each expression are</span>
@@ -908,32 +908,32 @@
 <span class="sd">    Raises</span>
 <span class="sd">    ------</span>
 <span class="sd">    ValueError</span>
-<span class="sd">        If the number of expressions doesn&#39;t match the number of input patterns,</span>
-<span class="sd">        if a subscript pattern doesn&#39;t match the shape of its corresponding expression,</span>
+<span class="sd">        If the number of expressions doesn't match the number of input patterns,</span>
+<span class="sd">        if a subscript pattern doesn't match the shape of its corresponding expression,</span>
 <span class="sd">        or if the same subscript character has inconsistent dimensions across expressions.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">dimension_dict</span> <span class="o">=</span> <span class="p">{}</span>
 
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">exprs</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">input_list</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;Number of arguments (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">exprs</span><span class="p">)</span><span class="si">}</span><span class="s2">) doesn&#39;t match &quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;number of input patterns (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">input_list</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span>
+            <span class="sa">f</span><span class="s2">"Number of arguments (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">exprs</span><span class="p">)</span><span class="si">}</span><span class="s2">) doesn't match "</span>
+            <span class="sa">f</span><span class="s2">"number of input patterns (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">input_list</span><span class="p">)</span><span class="si">}</span><span class="s2">)"</span>
         <span class="p">)</span>
 
     <span class="k">for</span> <span class="n">tnum</span><span class="p">,</span> <span class="n">term</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">input_list</span><span class="p">):</span>
         <span class="n">sh</span> <span class="o">=</span> <span class="n">exprs</span><span class="p">[</span><span class="n">tnum</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sh</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">term</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s2">&quot;Einstein sum subscript </span><span class="si">%s</span><span class="s2"> does not contain the &quot;</span>
-                <span class="s2">&quot;correct number of indices for operand </span><span class="si">%d</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">input_list</span><span class="p">[</span><span class="n">tnum</span><span class="p">],</span> <span class="n">tnum</span><span class="p">)</span>
+                <span class="s2">"Einstein sum subscript </span><span class="si">%s</span><span class="s2"> does not contain the "</span>
+                <span class="s2">"correct number of indices for operand </span><span class="si">%d</span><span class="s2">."</span> <span class="o">%</span> <span class="p">(</span><span class="n">input_list</span><span class="p">[</span><span class="n">tnum</span><span class="p">],</span> <span class="n">tnum</span><span class="p">)</span>
             <span class="p">)</span>
         <span class="k">for</span> <span class="n">cnum</span><span class="p">,</span> <span class="n">char</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">term</span><span class="p">):</span>
             <span class="n">dim</span> <span class="o">=</span> <span class="n">sh</span><span class="p">[</span><span class="n">cnum</span><span class="p">]</span>
             <span class="k">if</span> <span class="n">char</span> <span class="ow">in</span> <span class="n">dimension_dict</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">dimension_dict</span><span class="p">[</span><span class="n">char</span><span class="p">]</span> <span class="o">!=</span> <span class="n">dim</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                        <span class="s2">&quot;Size of label &#39;</span><span class="si">%s</span><span class="s2">&#39; for operand </span><span class="si">%d</span><span class="s2"> (</span><span class="si">%d</span><span class="s2">) &quot;</span>
-                        <span class="s2">&quot;does not match previous terms (</span><span class="si">%d</span><span class="s2">).&quot;</span>
+                        <span class="s2">"Size of label '</span><span class="si">%s</span><span class="s2">' for operand </span><span class="si">%d</span><span class="s2"> (</span><span class="si">%d</span><span class="s2">) "</span>
+                        <span class="s2">"does not match previous terms (</span><span class="si">%d</span><span class="s2">)."</span>
                         <span class="o">%</span> <span class="p">(</span><span class="n">char</span><span class="p">,</span> <span class="n">tnum</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">dimension_dict</span><span class="p">[</span><span class="n">char</span><span class="p">])</span>
                     <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
@@ -943,7 +943,7 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_get_path</span><span class="p">(</span><span class="n">input_sets</span><span class="p">,</span> <span class="n">output_set</span><span class="p">,</span> <span class="n">dimension_dict</span><span class="p">,</span> <span class="n">optimize</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the contraction path for the einsum operation.</span>
+<span class="w">    </span><span class="sd">"""Get the contraction path for the einsum operation.</span>
 
 <span class="sd">    This function determines the order in which pairs of tensors should be</span>
 <span class="sd">    contracted to minimize computational cost. The path optimization can use</span>
@@ -957,10 +957,10 @@
 <span class="sd">        Set of subscript characters that should appear in the final output.</span>
 <span class="sd">    dimension_dict : dict</span>
 <span class="sd">        Dictionary mapping subscript characters to their corresponding dimensions.</span>
-<span class="sd">    optimize : {bool, &#39;greedy&#39;, &#39;optimal&#39;}</span>
+<span class="sd">    optimize : {bool, 'greedy', 'optimal'}</span>
 <span class="sd">        Optimization strategy for determining the contraction path.</span>
-<span class="sd">        - True or &#39;optimal&#39;: Use optimal path (exponential cost)</span>
-<span class="sd">        - False or &#39;greedy&#39;: Use greedy path (cubic cost)</span>
+<span class="sd">        - True or 'optimal': Use optimal path (exponential cost)</span>
+<span class="sd">        - False or 'greedy': Use greedy path (cubic cost)</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -972,20 +972,20 @@
 <span class="sd">    ------</span>
 <span class="sd">    ValueError</span>
 <span class="sd">        If optimize has an invalid value.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">optimize</span> <span class="ow">in</span> <span class="p">{</span><span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;optimal&quot;</span><span class="p">}:</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">optimize</span> <span class="ow">in</span> <span class="p">{</span><span class="kc">True</span><span class="p">,</span> <span class="s2">"optimal"</span><span class="p">}:</span>
         <span class="k">return</span> <span class="n">optimal_path</span><span class="p">(</span><span class="n">input_sets</span><span class="p">,</span> <span class="n">output_set</span><span class="p">,</span> <span class="n">dimension_dict</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">iinfo</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">optimize</span> <span class="ow">in</span> <span class="p">{</span><span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;greedy&quot;</span><span class="p">}:</span>
+    <span class="k">elif</span> <span class="n">optimize</span> <span class="ow">in</span> <span class="p">{</span><span class="kc">False</span><span class="p">,</span> <span class="s2">"greedy"</span><span class="p">}:</span>
         <span class="k">return</span> <span class="n">greedy_path</span><span class="p">(</span><span class="n">input_sets</span><span class="p">,</span> <span class="n">output_set</span><span class="p">,</span> <span class="n">dimension_dict</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">iinfo</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid value for optimize. Must be True, False, &#39;optimal&#39;, or &#39;greedy&#39;.&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Invalid value for optimize. Must be True, False, 'optimal', or 'greedy'."</span><span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_initial_reduction</span><span class="p">(</span><span class="n">operand</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">dimension_dict</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Reduce operands with repeated indices by taking diagonal elements.</span>
+<span class="w">    </span><span class="sd">"""Reduce operands with repeated indices by taking diagonal elements.</span>
 
 <span class="sd">    This function handles the case where a subscript pattern contains repeated</span>
-<span class="sd">    indices (e.g., &#39;ii&#39; or &#39;ijj&#39;). For repeated indices, the corresponding</span>
+<span class="sd">    indices (e.g., 'ii' or 'ijj'). For repeated indices, the corresponding</span>
 <span class="sd">    dimensions are reduced by taking diagonal elements.</span>
 
 <span class="sd">    Parameters</span>
@@ -1003,7 +1003,7 @@
 <span class="sd">        A tuple containing:</span>
 <span class="sd">        - Expression: The reduced operand with repeated indices eliminated</span>
 <span class="sd">        - str: The updated subscript pattern with repeated indices removed</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="c1"># Find repeated indices</span>
     <span class="n">counts</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">inputs</span><span class="p">:</span>
@@ -1025,7 +1025,7 @@
 
         <span class="n">idxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag_indices</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="n">dimension_dict</span><span class="p">[</span><span class="n">x</span><span class="p">],</span> <span class="n">ndim</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">to_reduce</span><span class="p">))</span>
 
-        <span class="n">inputs</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">inputs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">to_keep</span><span class="p">])</span>
+        <span class="n">inputs</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="s2">""</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">inputs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">to_keep</span><span class="p">])</span>
 
         <span class="n">operand</span> <span class="o">=</span> <span class="n">permute_dims</span><span class="p">(</span><span class="n">operand</span><span class="p">,</span> <span class="n">axes</span><span class="o">=</span><span class="n">perm</span><span class="p">)</span>
         <span class="n">operand</span> <span class="o">=</span> <span class="n">operand</span><span class="p">[</span><span class="n">idxs</span><span class="p">]</span>
@@ -1035,7 +1035,7 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_sum_single_operand</span><span class="p">(</span><span class="n">operand</span><span class="p">,</span> <span class="n">input_subscript</span><span class="p">,</span> <span class="n">output_subscript</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Sum a single operand along specified axes.</span>
+<span class="w">    </span><span class="sd">"""Sum a single operand along specified axes.</span>
 
 <span class="sd">    This function handles the case where there is only one input operand.</span>
 <span class="sd">    It sums the operand along axes that appear in the input subscript but</span>
@@ -1055,7 +1055,7 @@
 <span class="sd">    -------</span>
 <span class="sd">    Expression</span>
 <span class="sd">        The summed and permuted expression with shape matching the output subscript.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">output_subscript</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">input_subscript</span><span class="p">):</span>
         <span class="n">idxs</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">input_subscript</span><span class="p">)</span> <span class="k">if</span> <span class="n">x</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">output_subscript</span><span class="p">]</span>
@@ -1070,7 +1070,7 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_contract_pair</span><span class="p">(</span><span class="n">operands</span><span class="p">,</span> <span class="n">input_lists</span><span class="p">,</span> <span class="n">to_remove</span><span class="p">,</span> <span class="n">all_labels</span><span class="p">,</span> <span class="n">dimension_dict</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Contract a pair of operands by elementwise multiplication and summation.</span>
+<span class="w">    </span><span class="sd">"""Contract a pair of operands by elementwise multiplication and summation.</span>
 
 <span class="sd">    This function performs the core contraction operation between two tensors.</span>
 <span class="sd">    It aligns the operands to compatible shapes, performs elementwise multiplication,</span>
@@ -1095,10 +1095,10 @@
 <span class="sd">        A tuple containing:</span>
 <span class="sd">        - Expression: The contracted result</span>
 <span class="sd">        - str: The subscript pattern for the contracted result</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="c1"># Convert all_labels from set to sorted string for deterministic ordering</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">all_labels</span><span class="p">,</span> <span class="nb">set</span><span class="p">):</span>
-        <span class="n">all_labels</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">all_labels</span><span class="p">))</span>
+        <span class="n">all_labels</span> <span class="o">=</span> <span class="s2">""</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">all_labels</span><span class="p">))</span>
 
     <span class="c1"># Align and permute the operands to compatible shapes</span>
     <span class="n">aligned_operands</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1106,9 +1106,9 @@
         <span class="n">extra_dims</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">all_labels</span> <span class="k">if</span> <span class="n">x</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">input_list</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">extra_dims</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">shape</span> <span class="o">=</span> <span class="n">operand</span><span class="o">.</span><span class="n">shape</span> <span class="o">+</span> <span class="n">extra_dims</span>
-            <span class="n">input_list</span> <span class="o">+=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">all_labels</span> <span class="k">if</span> <span class="n">x</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">input_list</span><span class="p">])</span>
+            <span class="n">input_list</span> <span class="o">+=</span> <span class="s2">""</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">all_labels</span> <span class="k">if</span> <span class="n">x</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">input_list</span><span class="p">])</span>
             <span class="n">perm</span> <span class="o">=</span> <span class="p">[</span><span class="n">input_list</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">all_labels</span><span class="p">]</span>
-            <span class="n">operand</span> <span class="o">=</span> <span class="n">reshape</span><span class="p">(</span><span class="n">operand</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="n">shape</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s2">&quot;C&quot;</span><span class="p">)</span>
+            <span class="n">operand</span> <span class="o">=</span> <span class="n">reshape</span><span class="p">(</span><span class="n">operand</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="n">shape</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s2">"C"</span><span class="p">)</span>
 
         <span class="n">perm</span> <span class="o">=</span> <span class="p">[</span><span class="n">input_list</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">all_labels</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">perm</span> <span class="o">!=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">perm</span><span class="p">))):</span>
@@ -1132,7 +1132,7 @@
             <span class="n">axis</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">axes_to_remove</span><span class="p">)</span>
         <span class="n">new_operand</span> <span class="o">=</span> <span class="n">cvxpy_sum</span><span class="p">(</span><span class="n">new_operand</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
-    <span class="n">new_input</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">all_labels</span> <span class="k">if</span> <span class="n">x</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">to_remove</span><span class="p">])</span>
+    <span class="n">new_input</span> <span class="o">=</span> <span class="s2">""</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">all_labels</span> <span class="k">if</span> <span class="n">x</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">to_remove</span><span class="p">])</span>
 
     <span class="c1"># Return the contracted operand and inputs</span>
     <span class="k">return</span> <span class="n">new_operand</span><span class="p">,</span> <span class="n">new_input</span>
