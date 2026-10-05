@@ -758,7 +758,7 @@ from scipy.special import xlogy
 </code></pre></div>
 </div>
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><code>def channel_capacity(n, m, P, sum_x=1):
-    &#39;&#39;&#39;
+    '''
     Boyd and Vandenberghe, Convex Optimization, exercise 4.57 page 207
     Capacity of a communication channel.
 
@@ -779,13 +779,13 @@ from scipy.special import xlogy
     With a variable change of y = Px this becomes
     I(X;Y)=  c^T x - ∑(y_i log_2 y_i)
     where c_j = ∑(p_(i,j)log_2(p_(i,j)))
-    &#39;&#39;&#39;
+    '''
 
     # n is the number of different input values
     # m is the number of different output values
     if n*m == 0:
-        print(&#39;The range of both input and output values must be greater than zero&#39;)
-        return &#39;failed&#39;, np.nan, np.nan
+        print('The range of both input and output values must be greater than zero')
+        return 'failed', np.nan, np.nan
 
     # x is probability distribution of the input signal X(t)
     x = cp.Variable(shape=n)
@@ -805,7 +805,7 @@ from scipy.special import xlogy
     # Form and solve problem
     prob = cp.Problem(obj,constraints)
     prob.solve()
-    if prob.status==&#39;optimal&#39;:
+    if prob.status=='optimal':
         return prob.status, prob.value, x.value
     else:
         return prob.status, np.nan, np.nan
@@ -824,9 +824,9 @@ m = 2
 P = np.array([[0.75,0.25],
              [0.25,0.75]])
 stat, C, x = channel_capacity(n, m, P)
-print(&#39;Problem status: &#39;,stat)
-print(&#39;Optimal value of C = {:.4g}&#39;.format(C))
-print(&#39;Optimal variable x = \n&#39;, x)
+print('Problem status: ',stat)
+print('Optimal value of C = {:.4g}'.format(C))
+print('Optimal variable x = \n', x)
 </code></pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="n">Problem</span> <span class="n">status</span><span class="p">:</span>  <span class="n">optimal</span>

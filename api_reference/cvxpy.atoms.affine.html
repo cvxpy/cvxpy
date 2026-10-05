@@ -5776,10 +5776,11 @@
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.affine.binary_operators.</span></span><span class="sig-name descname"><span class="pre">MulExpression</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.atoms.affine.binary_operators.MulExpression.__init__.lh_exp" title="cvxpy.atoms.affine.binary_operators.MulExpression.__init__.lh_exp (Python parameter) — The left-hand side of the multiplication."><span class="n"><span class="pre">lh_exp</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.atoms.affine.binary_operators.MulExpression.__init__.rh_exp" title="cvxpy.atoms.affine.binary_operators.MulExpression.__init__.rh_exp (Python parameter) — The right-hand side of the multiplication."><span class="n"><span class="pre">rh_exp</span></span></a></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/binary_operators.html#MulExpression"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.affine.binary_operators.MulExpression" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BinaryOperator</span></code></p>
 <p>Matrix multiplication.</p>
-<p>The semantics of multiplication are exactly as those of NumPy’s
-matmul function, except here multiplication by a scalar is permitted.
-MulExpression objects can be created by using the ‘*’ operator of
-the Expression class.</p>
+<p>This is the low-level multiplication atom. For batched multiplication with
+a 1-D operand, direct construction retains the singleton axis inserted by
+NumPy’s promotion rules. Use <code class="xref py py-func docutils literal notranslate"><span class="pre">matmul()</span></code>, <code class="docutils literal notranslate"><span class="pre">&#64;</span></code>, or the deprecated <code class="docutils literal notranslate"><span class="pre">*</span></code>
+spelling for the public NumPy-compatible result shape.</p>
+<p>Multiplication by a scalar is also permitted.</p>
 <dl class="field-list simple">
 <dt class="field-odd" id="cvxpy.atoms.affine.binary_operators.MulExpression-parameters">Parameters<span class="colon">:</span><a class="headerlink" href="#cvxpy.atoms.affine.binary_operators.MulExpression-parameters" title="Permalink to this headline">¶</a></dt>
 <dd class="field-odd"><dl class="simple api-field highlight">
@@ -5808,6 +5809,9 @@ the Expression class.</p>
 <dd><p>Constructs a block matrix.</p>
 <p>Takes a list of lists. Each internal list is stacked horizontally.
 The internal lists are stacked vertically.</p>
+<p>Scalars and 1-D blocks are promoted to 2-D so they can be combined
+with matrices, mirroring the behavior of <code class="docutils literal notranslate"><span class="pre">numpy.block</span></code> (e.g. when
+building an LMI that mixes scalars, vectors, and matrices).</p>
 <dl class="field-list simple">
 <dt class="field-odd" id="cvxpy.bmat-parameters">Parameters<span class="colon">:</span><a class="headerlink" href="#cvxpy.bmat-parameters" title="Permalink to this headline">¶</a></dt>
 <dd class="field-odd"><dl class="simple api-field highlight">
@@ -5949,7 +5953,7 @@ Note: NumPy’s np.diff uses axis=-1 as default.</p>
 <h2 id="einsum"><span id="id7"></span><a class="toc-backref" href="#id40" role="doc-backlink">einsum</a><a class="headerlink" href="#einsum" title="Link to this heading">¶</a></h2>
 <dl class="py function objdesc">
 <dt class="sig sig-object highlight py" id="cvxpy.einsum">
-<span class="sig-prename descclassname"><span class="pre">cvxpy.</span></span><span class="sig-name descname"><span class="pre">einsum</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.einsum.subscripts" title="cvxpy.einsum.subscripts (Python parameter) — The subscripts for the einsum operation."><span class="n"><span class="pre">subscripts</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><span class="o"><span class="pre">*</span></span><a class="n reference internal" href="#cvxpy.einsum.exprs" title="cvxpy.einsum.exprs (Python parameter) — The expressions to contract."><span class="n"><span class="pre">exprs</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.einsum.optimize" title="cvxpy.einsum.optimize (Python parameter) — Whether to contract the expressions using the optimal or greedy ordering. Defaults to &quot;greedy&quot;."><span class="n"><span class="pre">optimize</span></span></a><span class="o"><span class="pre">=</span></span><code class="code python default_value docutils literal highlight highlight-python"><span class="s1">&#39;greedy&#39;</span></code></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/einsum.html#einsum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.einsum" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">cvxpy.</span></span><span class="sig-name descname"><span class="pre">einsum</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.einsum.subscripts" title="cvxpy.einsum.subscripts (Python parameter) — The subscripts for the einsum operation."><span class="n"><span class="pre">subscripts</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><span class="o"><span class="pre">*</span></span><a class="n reference internal" href="#cvxpy.einsum.exprs" title="cvxpy.einsum.exprs (Python parameter) — The expressions to contract."><span class="n"><span class="pre">exprs</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.einsum.optimize" title="cvxpy.einsum.optimize (Python parameter) — Whether to contract the expressions using the optimal or greedy ordering. Defaults to &quot;greedy&quot;."><span class="n"><span class="pre">optimize</span></span></a><span class="o"><span class="pre">=</span></span><code class="code python default_value docutils literal highlight highlight-python"><span class="s1">'greedy'</span></code></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/einsum.html#einsum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.einsum" title="Link to this definition">¶</a></dt>
 <dd><p>Evaluates the Einstein summation convention on the given expressions.</p>
 <p>This atom is the CVXPY analog of NumPy’s einsum function <cite>numpy.einsum</cite> [1],
 and it maintains the same syntax and semantics.</p>
@@ -5966,11 +5970,11 @@ search to produce the optimal path for most problems.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">A</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">B</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Matrix multiplication</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;ij,jk-&gt;ik&#39;</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">'ij,jk-&gt;ik'</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Trace of a matrix</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">C</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">trace</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;ii-&gt;&#39;</span><span class="p">,</span> <span class="n">C</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">trace</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">'ii-&gt;'</span><span class="p">,</span> <span class="n">C</span><span class="p">)</span>
 </code></pre></div>
 </div>
 <p class="rubric">References</p>
@@ -6062,7 +6066,7 @@ constructed by that operator, and it should not be instantiated directly.</p>
 <h2 id="matmul"><span id="id11"></span><a class="toc-backref" href="#id45" role="doc-backlink">matmul</a><a class="headerlink" href="#matmul" title="Link to this heading">¶</a></h2>
 <dl class="py function objdesc">
 <dt class="sig sig-object highlight py" id="cvxpy.matmul">
-<span class="sig-prename descclassname"><span class="pre">cvxpy.</span></span><span class="sig-name descname"><span class="pre">matmul</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.matmul" title="cvxpy.matmul.lh_exp (Python parameter)"><span class="n"><span class="pre">lh_exp</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.matmul" title="cvxpy.matmul.rh_exp (Python parameter)"><span class="n"><span class="pre">rh_exp</span></span></a></em></span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="desctype"><a class="reference internal" href="#cvxpy.atoms.affine.binary_operators.MulExpression" title="cvxpy.atoms.affine.binary_operators.MulExpression (Python class) — Bases: BinaryOperator"><span class="pre">MulExpression</span></a></span></span></span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/binary_operators.html#matmul"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.matmul" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">cvxpy.</span></span><span class="sig-name descname"><span class="pre">matmul</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.matmul" title="cvxpy.matmul.lh_exp (Python parameter)"><span class="n"><span class="pre">lh_exp</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cvxpy.matmul" title="cvxpy.matmul.rh_exp (Python parameter)"><span class="n"><span class="pre">rh_exp</span></span></a></em></span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="desctype"><a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression (Python class) — Bases: Canonical"><span class="pre">Expression</span></a></span></span></span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/binary_operators.html#matmul"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.matmul" title="Link to this definition">¶</a></dt>
 <dd><p>Matrix multiplication.</p>
 </dd></dl>
 
@@ -6300,8 +6304,9 @@ computed in O(n^2) time using the identity:</p>
 <p>This avoids forming the full matrix product while remaining correct for
 both real and complex matrices (no conjugation on A is needed).</p>
 <p>When the MulExpression is Hermitian (e.g. X &#64; X^H for Hermitian X), the
-result is provably real; it is wrapped with real() so that is_real()
-correctly returns True without routing to the O(n^3) Trace(expr) path.</p>
+result is provably real. If that fact is not already known from the
+result’s arguments, it is wrapped with real() so that is_real() correctly
+returns True without routing to the O(n^3) Trace(expr) path.</p>
 </dd></dl>
 
 <h2 id="transpose"><span id="id21"></span><a class="toc-backref" href="#id58" role="doc-backlink">transpose</a><a class="headerlink" href="#transpose" title="Link to this heading">¶</a></h2>

@@ -777,16 +777,16 @@ initial guess for <span class="math notranslate nohighlight">\(Y\)</span> and th
         <span class="n">constraint</span> <span class="o">=</span> <span class="p">[</span><span class="n">Y</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">]</span>
 
     <span class="c1"># Solve the problem.</span>
-    <span class="c1"># increase max iters otherwise, a few iterations are &quot;OPTIMAL_INACCURATE&quot;</span>
+    <span class="c1"># increase max iters otherwise, a few iterations are "OPTIMAL_INACCURATE"</span>
     <span class="c1"># (eg a few of the entries in X or Y are negative beyond standard tolerances)</span>
-    <span class="n">obj</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">A</span> <span class="o">-</span> <span class="n">Y</span><span class="o">*</span><span class="n">X</span><span class="p">,</span> <span class="s1">&#39;fro&#39;</span><span class="p">))</span>
+    <span class="n">obj</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">A</span> <span class="o">-</span> <span class="n">Y</span><span class="o">*</span><span class="n">X</span><span class="p">,</span> <span class="s1">'fro'</span><span class="p">))</span>
     <span class="n">prob</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">constraint</span><span class="p">)</span>
     <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">SCS</span><span class="p">,</span> <span class="n">max_iters</span><span class="o">=</span><span class="mi">10000</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">prob</span><span class="o">.</span><span class="n">status</span> <span class="o">!=</span> <span class="n">cp</span><span class="o">.</span><span class="n">OPTIMAL</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Solver did not converge!&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">"Solver did not converge!"</span><span class="p">)</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Iteration </span><span class="si">{}</span><span class="s1">, residual norm </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">iter_num</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">'Iteration </span><span class="si">{}</span><span class="s1">, residual norm </span><span class="si">{}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">iter_num</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
     <span class="n">residual</span><span class="p">[</span><span class="n">iter_num</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span>
 
     <span class="c1"># Convert variable to NumPy array constant for next iteration.</span>
@@ -839,30 +839,30 @@ initial guess for <span class="math notranslate nohighlight">\(Y\)</span> and th
 <span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
 
 <span class="c1"># Set plot properties.</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;text&#39;</span><span class="p">,</span> <span class="n">usetex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;font&#39;</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="s1">&#39;serif&#39;</span><span class="p">)</span>
-<span class="n">font</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;weight&#39;</span> <span class="p">:</span> <span class="s1">&#39;normal&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;size&#39;</span>   <span class="p">:</span> <span class="mi">16</span><span class="p">}</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;font&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">font</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">'text'</span><span class="p">,</span> <span class="n">usetex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">'font'</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="s1">'serif'</span><span class="p">)</span>
+<span class="n">font</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'weight'</span> <span class="p">:</span> <span class="s1">'normal'</span><span class="p">,</span>
+        <span class="s1">'size'</span>   <span class="p">:</span> <span class="mi">16</span><span class="p">}</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">'font'</span><span class="p">,</span> <span class="o">**</span><span class="n">font</span><span class="p">)</span>
 
 <span class="c1"># Create the plot.</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">residual</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Iteration Number&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Residual Norm&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">'Iteration Number'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">'Residual Norm'</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 
 <span class="c1">#</span>
 <span class="c1"># Print results.</span>
 <span class="c1">#</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Original matrix:&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Original matrix:'</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">A</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Left factor Y:&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Left factor Y:'</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Right factor X:&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Right factor X:'</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Residual A - Y * X:&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Residual A - Y * X:'</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">A</span> <span class="o">-</span> <span class="n">Y</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">X</span><span class="p">))</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Residual after </span><span class="si">{}</span><span class="s1"> iterations: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">iter_num</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Residual after </span><span class="si">{}</span><span class="s1"> iterations: </span><span class="si">{}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">iter_num</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
 </code></pre></div>
 </div>
 <img alt="../../_images/nonneg_matrix_fact_5_0.png" src="../../_images/nonneg_matrix_fact_5_0.png" />

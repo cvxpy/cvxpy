@@ -718,21 +718,21 @@
 
 
 <h1>Source code for cvxpy.atoms.harmonic_mean</h1><div class="highlight"><pre>
-<span></span><code><span class="sd">&quot;&quot;&quot;</span>
+<span></span><code><span class="sd">"""</span>
 <span class="sd">Copyright 2013 Steven Diamond</span>
 
-<span class="sd">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="sd">Licensed under the Apache License, Version 2.0 (the "License");</span>
 <span class="sd">you may not use this file except in compliance with the License.</span>
 <span class="sd">You may obtain a copy of the License at</span>
 
 <span class="sd">    http://www.apache.org/licenses/LICENSE-2.0</span>
 
 <span class="sd">Unless required by applicable law or agreed to in writing, software</span>
-<span class="sd">distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="sd">distributed under the License is distributed on an "AS IS" BASIS,</span>
 <span class="sd">WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
 <span class="sd">See the License for the specific language governing permissions and</span>
 <span class="sd">limitations under the License.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.atoms.pnorm</span><span class="w"> </span><span class="kn">import</span> <span class="n">pnorm</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.expressions.expression</span><span class="w"> </span><span class="kn">import</span> <span class="n">Expression</span>
@@ -741,7 +741,7 @@
 <div class="viewcode-block" id="harmonic_mean">
 <a class="viewcode-back" href="../../../api_reference/cvxpy.atoms.other_atoms.html#cvxpy.atoms.harmonic_mean.harmonic_mean">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">harmonic_mean</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;The harmonic mean of ``x``.</span>
+<span class="w">    </span><span class="sd">"""The harmonic mean of ``x``.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -756,7 +756,7 @@
 <span class="sd">            \\frac{n}{\\left(\\sum_{i=1}^{n} x_i^{-1} \\right)},</span>
 
 <span class="sd">        where :math:`n` is the length of :math:`x`.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">x</span> <span class="o">=</span> <span class="n">Expression</span><span class="o">.</span><span class="n">cast_to_const</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
     <span class="c1"># TODO(akshayka): Behavior of the below is incorrect when x has negative</span>
     <span class="c1"># entries. Either fail fast or provide a correct expression with</span>

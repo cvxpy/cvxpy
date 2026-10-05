@@ -718,21 +718,21 @@
 
 
 <h1>Source code for cvxpy.reductions.cvx_attr2constr</h1><div class="highlight"><pre>
-<span></span><code><span class="sd">&quot;&quot;&quot;</span>
+<span></span><code><span class="sd">"""</span>
 <span class="sd">Copyright 2017 Steven Diamond</span>
 
-<span class="sd">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="sd">Licensed under the Apache License, Version 2.0 (the "License");</span>
 <span class="sd">you may not use this file except in compliance with the License.</span>
 <span class="sd">You may obtain a copy of the License at</span>
 
 <span class="sd">    http://www.apache.org/licenses/LICENSE-2.0</span>
 
 <span class="sd">Unless required by applicable law or agreed to in writing, software</span>
-<span class="sd">distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="sd">distributed under the License is distributed on an "AS IS" BASIS,</span>
 <span class="sd">WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
 <span class="sd">See the License for the specific language governing permissions and</span>
 <span class="sd">limitations under the License.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
@@ -750,68 +750,68 @@
 
 <span class="c1"># Convex attributes that generate constraints.</span>
 <span class="n">CONVEX_ATTRIBUTES</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="s1">&#39;nonneg&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;nonpos&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;pos&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;neg&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;symmetric&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;diag&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;PSD&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;NSD&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;bounds&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;sparsity&#39;</span><span class="p">,</span>
+    <span class="s1">'nonneg'</span><span class="p">,</span>
+    <span class="s1">'nonpos'</span><span class="p">,</span>
+    <span class="s1">'pos'</span><span class="p">,</span>
+    <span class="s1">'neg'</span><span class="p">,</span>
+    <span class="s1">'symmetric'</span><span class="p">,</span>
+    <span class="s1">'diag'</span><span class="p">,</span>
+    <span class="s1">'PSD'</span><span class="p">,</span>
+    <span class="s1">'NSD'</span><span class="p">,</span>
+    <span class="s1">'bounds'</span><span class="p">,</span>
+    <span class="s1">'sparsity'</span><span class="p">,</span>
 <span class="p">]</span>
 
 <span class="c1"># Attributes that define lower and upper bounds.</span>
 <span class="n">BOUND_ATTRIBUTES</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="s1">&#39;nonneg&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;nonpos&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;pos&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;neg&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;bounds&#39;</span><span class="p">,</span>
+    <span class="s1">'nonneg'</span><span class="p">,</span>
+    <span class="s1">'nonpos'</span><span class="p">,</span>
+    <span class="s1">'pos'</span><span class="p">,</span>
+    <span class="s1">'neg'</span><span class="p">,</span>
+    <span class="s1">'bounds'</span><span class="p">,</span>
 <span class="p">]</span>
 
 <span class="c1"># Attributes related to symmetry.</span>
 <span class="n">SYMMETRIC_ATTRIBUTES</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="s1">&#39;symmetric&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;PSD&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;NSD&#39;</span><span class="p">,</span>
+    <span class="s1">'symmetric'</span><span class="p">,</span>
+    <span class="s1">'PSD'</span><span class="p">,</span>
+    <span class="s1">'NSD'</span><span class="p">,</span>
 <span class="p">]</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">convex_attributes</span><span class="p">(</span><span class="n">variables</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Returns a list of the (constraint-generating) convex attributes present</span>
+<span class="w">    </span><span class="sd">"""Returns a list of the (constraint-generating) convex attributes present</span>
 <span class="sd">       among the variables.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">return</span> <span class="n">attributes_present</span><span class="p">(</span><span class="n">variables</span><span class="p">,</span> <span class="n">CONVEX_ATTRIBUTES</span><span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">attributes_present</span><span class="p">(</span><span class="n">variables</span><span class="p">,</span> <span class="n">attr_map</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Returns a list of the relevant attributes present</span>
+<span class="w">    </span><span class="sd">"""Returns a list of the relevant attributes present</span>
 <span class="sd">       among the variables.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">return</span> <span class="p">[</span><span class="n">attr</span> <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">attr_map</span> <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="n">attr</span><span class="p">]</span> <span class="k">for</span> <span class="n">v</span>
                                              <span class="ow">in</span> <span class="n">variables</span><span class="p">)]</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">recover_value_for_leaf</span><span class="p">(</span><span class="n">variable</span><span class="p">,</span> <span class="n">lowered_value</span><span class="p">,</span> <span class="n">project</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
-    <span class="k">if</span> <span class="n">variable</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;diag&#39;</span><span class="p">]:</span>
-        <span class="k">return</span> <span class="n">sp</span><span class="o">.</span><span class="n">diags_array</span><span class="p">(</span><span class="n">lowered_value</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">variable</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">'diag'</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="n">sp</span><span class="o">.</span><span class="n">diags_array</span><span class="p">(</span><span class="n">lowered_value</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="s1">'F'</span><span class="p">))</span>
     <span class="k">elif</span> <span class="n">attributes_present</span><span class="p">([</span><span class="n">variable</span><span class="p">],</span> <span class="n">SYMMETRIC_ATTRIBUTES</span><span class="p">):</span>
         <span class="n">n</span> <span class="o">=</span> <span class="n">variable</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">tri</span> <span class="o">=</span> <span class="n">n</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span>
         <span class="n">batch_shape</span> <span class="o">=</span> <span class="n">variable</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
         <span class="n">idxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">triu_indices</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
         <span class="n">value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">variable</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-        <span class="n">tri_values</span> <span class="o">=</span> <span class="n">lowered_value</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
-            <span class="p">(</span><span class="o">*</span><span class="n">batch_shape</span><span class="p">,</span> <span class="n">tri</span><span class="p">),</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
+        <span class="n">tri_values</span> <span class="o">=</span> <span class="n">lowered_value</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="s1">'F'</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
+            <span class="p">(</span><span class="o">*</span><span class="n">batch_shape</span><span class="p">,</span> <span class="n">tri</span><span class="p">),</span> <span class="n">order</span><span class="o">=</span><span class="s1">'F'</span><span class="p">)</span>
         <span class="n">value</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">idxs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">idxs</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">tri_values</span>
         <span class="n">result</span> <span class="o">=</span> <span class="n">value</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
         <span class="n">di</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
         <span class="n">result</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">di</span><span class="p">,</span> <span class="n">di</span><span class="p">]</span> <span class="o">-=</span> <span class="n">value</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">di</span><span class="p">,</span> <span class="n">di</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">result</span>
     <span class="c1">#TODO keep sparse / return coo_tensor</span>
-    <span class="k">elif</span> <span class="n">variable</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;sparsity&#39;</span><span class="p">]:</span>
+    <span class="k">elif</span> <span class="n">variable</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">'sparsity'</span><span class="p">]:</span>
         <span class="n">value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">variable</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
         <span class="n">value</span><span class="p">[</span><span class="n">variable</span><span class="o">.</span><span class="n">sparse_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">lowered_value</span>
         <span class="k">return</span> <span class="n">value</span>
@@ -822,12 +822,12 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">lower_value</span><span class="p">(</span><span class="n">variable</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Extract the reduced representation of a leaf&#39;s value.</span>
+<span class="w">    </span><span class="sd">"""Extract the reduced representation of a leaf's value.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        variable: The leaf whose attributes determine the reduction.</span>
 <span class="sd">        value: If provided, a full-size value (e.g. a differentiation delta)</span>
-<span class="sd">            to reduce.  If ``None``, reads the leaf&#39;s stored ``_value``.</span>
+<span class="sd">            to reduce.  If ``None``, reads the leaf's stored ``_value``.</span>
 
 <span class="sd">    Notes:</span>
 <span class="sd">        Called without *value* by ``update_parameters`` and ``apply`` to read</span>
@@ -838,7 +838,7 @@
 <span class="sd">        entries, so when ``value is None`` the sparse branch can return</span>
 <span class="sd">        ``_value`` directly.  An explicit *value* is always full-size and must</span>
 <span class="sd">        be extracted at the sparse indices.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="c1"># Track whether the caller supplied a full-size value.  When value is None</span>
     <span class="c1"># we read _value, which for sparse leaves is already in reduced form.</span>
     <span class="n">full_size</span> <span class="o">=</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
@@ -847,10 +847,10 @@
     <span class="k">if</span> <span class="n">attributes_present</span><span class="p">([</span><span class="n">variable</span><span class="p">],</span> <span class="n">SYMMETRIC_ATTRIBUTES</span><span class="p">):</span>
         <span class="n">n</span> <span class="o">=</span> <span class="n">variable</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">idxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">triu_indices</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">value</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">idxs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">idxs</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">variable</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;diag&#39;</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="n">value</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">idxs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">idxs</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="s1">'F'</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">variable</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">'diag'</span><span class="p">]:</span>
         <span class="k">return</span> <span class="n">value</span><span class="o">.</span><span class="n">diagonal</span><span class="p">()</span> <span class="k">if</span> <span class="n">sp</span><span class="o">.</span><span class="n">issparse</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">variable</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;sparsity&#39;</span><span class="p">]:</span>
+    <span class="k">elif</span> <span class="n">variable</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">'sparsity'</span><span class="p">]:</span>
         <span class="k">if</span> <span class="n">full_size</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">value</span><span class="p">)[</span><span class="n">variable</span><span class="o">.</span><span class="n">sparse_idx</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
@@ -861,23 +861,23 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">build_dim_reduced_expression</span><span class="p">(</span><span class="n">leaf</span><span class="p">,</span> <span class="n">reduced_leaf</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Build Expression that reconstructs full shape from a reduced-size leaf.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Build Expression that reconstructs full shape from a reduced-size leaf."""</span>
     <span class="k">if</span> <span class="n">attributes_present</span><span class="p">([</span><span class="n">leaf</span><span class="p">],</span> <span class="n">SYMMETRIC_ATTRIBUTES</span><span class="p">):</span>
         <span class="n">n</span> <span class="o">=</span> <span class="n">leaf</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">expr</span> <span class="o">=</span> <span class="n">reshape</span><span class="p">(</span><span class="n">Constant</span><span class="p">(</span><span class="n">upper_tri_to_full</span><span class="p">(</span><span class="n">n</span><span class="p">))</span> <span class="o">@</span> <span class="n">reduced_leaf</span><span class="p">,</span> <span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">n</span><span class="p">),</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">leaf</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;PSD&#39;</span><span class="p">]:</span>
+        <span class="n">expr</span> <span class="o">=</span> <span class="n">reshape</span><span class="p">(</span><span class="n">Constant</span><span class="p">(</span><span class="n">upper_tri_to_full</span><span class="p">(</span><span class="n">n</span><span class="p">))</span> <span class="o">@</span> <span class="n">reduced_leaf</span><span class="p">,</span> <span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">n</span><span class="p">),</span> <span class="n">order</span><span class="o">=</span><span class="s1">'F'</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">leaf</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">'PSD'</span><span class="p">]:</span>
             <span class="k">return</span> <span class="n">psd_wrap</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">leaf</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;NSD&#39;</span><span class="p">]:</span>
+        <span class="k">elif</span> <span class="n">leaf</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">'NSD'</span><span class="p">]:</span>
             <span class="k">return</span> <span class="n">nsd_wrap</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">symmetric_wrap</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">leaf</span><span class="o">.</span><span class="n">sparse_idx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">leaf</span><span class="o">.</span><span class="n">sparse_idx</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-        <span class="n">row_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ravel_multi_index</span><span class="p">(</span><span class="n">leaf</span><span class="o">.</span><span class="n">sparse_idx</span><span class="p">,</span> <span class="n">leaf</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
+        <span class="n">row_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ravel_multi_index</span><span class="p">(</span><span class="n">leaf</span><span class="o">.</span><span class="n">sparse_idx</span><span class="p">,</span> <span class="n">leaf</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">'F'</span><span class="p">)</span>
         <span class="n">coeff</span> <span class="o">=</span> <span class="n">Constant</span><span class="p">(</span><span class="n">sp</span><span class="o">.</span><span class="n">csc_array</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n</span><span class="p">),</span> <span class="p">(</span><span class="n">row_idx</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n</span><span class="p">))),</span>
-                         <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">leaf</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">),</span> <span class="n">n</span><span class="p">)),</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;sparse_coeff&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">reshape</span><span class="p">(</span><span class="n">coeff</span> <span class="o">@</span> <span class="n">reduced_leaf</span><span class="p">,</span> <span class="n">leaf</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">leaf</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;diag&#39;</span><span class="p">]:</span>
+                         <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">leaf</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">),</span> <span class="n">n</span><span class="p">)),</span> <span class="n">name</span><span class="o">=</span><span class="s2">"sparse_coeff"</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">reshape</span><span class="p">(</span><span class="n">coeff</span> <span class="o">@</span> <span class="n">reduced_leaf</span><span class="p">,</span> <span class="n">leaf</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">'F'</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">leaf</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">'diag'</span><span class="p">]:</span>
         <span class="k">return</span> <span class="n">diag</span><span class="p">(</span><span class="n">reduced_leaf</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">reduced_leaf</span>
 
@@ -885,10 +885,10 @@
 <div class="viewcode-block" id="CvxAttr2Constr">
 <a class="viewcode-back" href="../../../api_reference/cvxpy.reductions.middle_end.html#cvxpy.reductions.cvx_attr2constr.CvxAttr2Constr">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">CvxAttr2Constr</span><span class="p">(</span><span class="n">Reduction</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Expand convex variable attributes into constraints.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Expand convex variable attributes into constraints."""</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">reduce_bounds</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;If reduce_bounds, reduce lower and upper bounds on variables.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""If reduce_bounds, reduce lower and upper bounds on variables."""</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reduce_bounds</span> <span class="o">=</span> <span class="n">reduce_bounds</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># {orig_param: reduced_param}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_variables</span> <span class="o">=</span> <span class="p">{}</span>   <span class="c1"># {orig_var: new_var} — only for changed vars</span>
@@ -899,7 +899,7 @@
 <div class="viewcode-block" id="CvxAttr2Constr.reduction_attributes">
 <a class="viewcode-back" href="../../../api_reference/cvxpy.reductions.middle_end.html#cvxpy.reductions.cvx_attr2constr.CvxAttr2Constr.reduction_attributes">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">reduction_attributes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the attributes that will be reduced.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Returns the attributes that will be reduced."""</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduce_bounds</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">CONVEX_ATTRIBUTES</span>
         <span class="k">else</span><span class="p">:</span>
@@ -938,7 +938,7 @@
                 <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">reduction_attributes</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">new_attr</span><span class="p">[</span><span class="n">key</span><span class="p">]:</span>
                         <span class="n">new_var</span> <span class="o">=</span> <span class="kc">True</span>
-                        <span class="n">new_attr</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;bounds&#39;</span> <span class="k">else</span> <span class="kc">False</span>
+                        <span class="n">new_attr</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">'bounds'</span> <span class="k">else</span> <span class="kc">False</span>
 
                 <span class="k">if</span> <span class="n">attributes_present</span><span class="p">([</span><span class="n">var</span><span class="p">],</span> <span class="n">SYMMETRIC_ATTRIBUTES</span><span class="p">):</span>
                     <span class="n">n</span> <span class="o">=</span> <span class="n">var</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
@@ -952,14 +952,14 @@
                     <span class="n">fill_coeff</span> <span class="o">=</span> <span class="n">Constant</span><span class="p">(</span>
                         <span class="n">batched_upper_tri_to_full</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
                     <span class="n">full_mat</span> <span class="o">=</span> <span class="n">fill_coeff</span> <span class="o">@</span> <span class="n">upper_tri_var</span>
-                    <span class="n">obj</span> <span class="o">=</span> <span class="n">reshape</span><span class="p">(</span><span class="n">full_mat</span><span class="p">,</span> <span class="n">var</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
+                    <span class="n">obj</span> <span class="o">=</span> <span class="n">reshape</span><span class="p">(</span><span class="n">full_mat</span><span class="p">,</span> <span class="n">var</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">'F'</span><span class="p">)</span>
                 <span class="k">elif</span> <span class="n">var</span><span class="o">.</span><span class="n">_has_dim_reducing_attr</span><span class="p">:</span>
                     <span class="n">n</span> <span class="o">=</span> <span class="n">var</span><span class="o">.</span><span class="n">_reduced_size</span>
 
                     <span class="c1"># Transform bounds for sparse reduced variable</span>
-                    <span class="k">if</span> <span class="n">var</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;sparsity&#39;</span><span class="p">]</span> <span class="ow">and</span> \
-                            <span class="s1">&#39;bounds&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">reduction_attributes</span> <span class="ow">and</span> <span class="n">new_attr</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;bounds&#39;</span><span class="p">):</span>
-                        <span class="n">bounds</span> <span class="o">=</span> <span class="n">new_attr</span><span class="p">[</span><span class="s1">&#39;bounds&#39;</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">var</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">'sparsity'</span><span class="p">]</span> <span class="ow">and</span> \
+                            <span class="s1">'bounds'</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">reduction_attributes</span> <span class="ow">and</span> <span class="n">new_attr</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'bounds'</span><span class="p">):</span>
+                        <span class="n">bounds</span> <span class="o">=</span> <span class="n">new_attr</span><span class="p">[</span><span class="s1">'bounds'</span><span class="p">]</span>
                         <span class="n">transformed_bounds</span> <span class="o">=</span> <span class="p">[]</span>
                         <span class="k">for</span> <span class="n">bound</span> <span class="ow">in</span> <span class="n">bounds</span><span class="p">:</span>
                             <span class="k">if</span> <span class="n">sp</span><span class="o">.</span><span class="n">issparse</span><span class="p">(</span><span class="n">bound</span><span class="p">):</span>
@@ -967,14 +967,14 @@
                                 <span class="n">coo</span><span class="o">.</span><span class="n">sum_duplicates</span><span class="p">()</span>
                                 <span class="n">transformed_bounds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">coo</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
                             <span class="k">elif</span> <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">bound</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span>
-                                    <span class="nb">hasattr</span><span class="p">(</span><span class="n">bound</span><span class="p">,</span> <span class="s1">&#39;ndim&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">bound</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+                                    <span class="nb">hasattr</span><span class="p">(</span><span class="n">bound</span><span class="p">,</span> <span class="s1">'ndim'</span><span class="p">)</span> <span class="ow">and</span> <span class="n">bound</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
                                 <span class="n">transformed_bounds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bound</span><span class="p">)</span>
                             <span class="k">else</span><span class="p">:</span>
                                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                                    <span class="s2">&quot;Unexpected dense array bound on sparse &quot;</span>
-                                    <span class="s2">&quot;variable during reduction.&quot;</span>
+                                    <span class="s2">"Unexpected dense array bound on sparse "</span>
+                                    <span class="s2">"variable during reduction."</span>
                                 <span class="p">)</span>
-                        <span class="n">new_attr</span><span class="p">[</span><span class="s1">&#39;bounds&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">transformed_bounds</span>
+                        <span class="n">new_attr</span><span class="p">[</span><span class="s1">'bounds'</span><span class="p">]</span> <span class="o">=</span> <span class="n">transformed_bounds</span>
 
                     <span class="n">reduced_var</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">var</span><span class="o">.</span><span class="n">name</span><span class="p">(),</span> <span class="o">**</span><span class="n">new_attr</span><span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_variables</span><span class="p">[</span><span class="n">var</span><span class="p">]</span> <span class="o">=</span> <span class="n">reduced_var</span>
@@ -994,7 +994,7 @@
                 <span class="c1"># Attributes related to positive and negative definiteness.</span>
                 <span class="k">if</span> <span class="n">var</span><span class="o">.</span><span class="n">is_psd</span><span class="p">():</span>
                     <span class="n">constr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obj</span> <span class="o">&gt;&gt;</span> <span class="mi">0</span><span class="p">)</span>
-                <span class="k">elif</span> <span class="n">var</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;NSD&#39;</span><span class="p">]:</span>
+                <span class="k">elif</span> <span class="n">var</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">'NSD'</span><span class="p">]:</span>
                     <span class="n">constr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obj</span> <span class="o">&lt;&lt;</span> <span class="mi">0</span><span class="p">)</span>
                 <span class="c1"># Add in constraints from bounds.</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduce_bounds</span><span class="p">:</span>
@@ -1008,7 +1008,7 @@
                 <span class="n">new_attr</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">attributes</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
                 <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">reduction_attributes</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">new_attr</span><span class="p">[</span><span class="n">key</span><span class="p">]:</span>
-                        <span class="n">new_attr</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;bounds&#39;</span> <span class="k">else</span> <span class="kc">False</span>
+                        <span class="n">new_attr</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">'bounds'</span> <span class="k">else</span> <span class="kc">False</span>
                 <span class="n">reduced_param</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">param</span><span class="o">.</span><span class="n">name</span><span class="p">(),</span> <span class="o">**</span><span class="n">new_attr</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="p">[</span><span class="n">param</span><span class="p">]</span> <span class="o">=</span> <span class="n">reduced_param</span>
                 <span class="k">if</span> <span class="n">param</span><span class="o">.</span><span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -1038,7 +1038,7 @@
 <div class="viewcode-block" id="CvxAttr2Constr.update_parameters">
 <a class="viewcode-back" href="../../../api_reference/cvxpy.reductions.middle_end.html#cvxpy.reductions.cvx_attr2constr.CvxAttr2Constr.update_parameters">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">update_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Update reduced parameter values from original parameters.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Update reduced parameter values from original parameters."""</span>
         <span class="k">for</span> <span class="n">param</span><span class="p">,</span> <span class="n">reduced_param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">param</span><span class="o">.</span><span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">reduced_param</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">lower_value</span><span class="p">(</span><span class="n">param</span><span class="p">)</span></div>
@@ -1047,7 +1047,7 @@
 <div class="viewcode-block" id="CvxAttr2Constr.var_backward">
 <a class="viewcode-back" href="../../../api_reference/cvxpy.reductions.middle_end.html#cvxpy.reductions.cvx_attr2constr.CvxAttr2Constr.var_backward">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">var_backward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">del_vars</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Transform variable gradients from outer (original) to inner (reduced).&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Transform variable gradients from outer (original) to inner (reduced)."""</span>
         <span class="n">result</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">del_vars</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">orig_var</span><span class="p">,</span> <span class="n">new_var</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_variables</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">orig_var</span><span class="o">.</span><span class="n">id</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
@@ -1061,7 +1061,7 @@
             <span class="k">if</span> <span class="n">orig_var</span><span class="o">.</span><span class="n">id</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
                 <span class="n">fill_mat</span> <span class="o">=</span> <span class="n">batched_upper_tri_to_full</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
                 <span class="n">result</span><span class="p">[</span><span class="n">orig_var</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span>
-                    <span class="n">fill_mat</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">result</span><span class="p">[</span><span class="n">orig_var</span><span class="o">.</span><span class="n">id</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
+                    <span class="n">fill_mat</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">result</span><span class="p">[</span><span class="n">orig_var</span><span class="o">.</span><span class="n">id</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="s1">'F'</span><span class="p">)</span>
                 <span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">result</span></div>
 
@@ -1069,7 +1069,7 @@
 <div class="viewcode-block" id="CvxAttr2Constr.var_forward">
 <a class="viewcode-back" href="../../../api_reference/cvxpy.reductions.middle_end.html#cvxpy.reductions.cvx_attr2constr.CvxAttr2Constr.var_forward">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">var_forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dvars</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Transform variable deltas from inner (reduced) to outer (original).&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Transform variable deltas from inner (reduced) to outer (original)."""</span>
         <span class="n">result</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">dvars</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">orig_var</span><span class="p">,</span> <span class="n">new_var</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_variables</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">new_var</span><span class="o">.</span><span class="n">id</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
@@ -1081,14 +1081,14 @@
             <span class="k">if</span> <span class="n">orig_var</span><span class="o">.</span><span class="n">id</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
                 <span class="n">fill_mat</span> <span class="o">=</span> <span class="n">batched_upper_tri_to_full</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
                 <span class="n">full_flat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">fill_mat</span> <span class="o">@</span> <span class="n">result</span><span class="p">[</span><span class="n">orig_var</span><span class="o">.</span><span class="n">id</span><span class="p">]</span><span class="o">.</span><span class="n">ravel</span><span class="p">())</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
-                <span class="n">result</span><span class="p">[</span><span class="n">orig_var</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">full_flat</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">orig_var</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
+                <span class="n">result</span><span class="p">[</span><span class="n">orig_var</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">full_flat</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">orig_var</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">'F'</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">result</span></div>
 
 
 <div class="viewcode-block" id="CvxAttr2Constr.param_backward">
 <a class="viewcode-back" href="../../../api_reference/cvxpy.reductions.middle_end.html#cvxpy.reductions.cvx_attr2constr.CvxAttr2Constr.param_backward">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">param_backward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dparams</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Recover full-size gradients from reduced-size gradients.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Recover full-size gradients from reduced-size gradients."""</span>
         <span class="n">result</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">dparams</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">param</span><span class="p">,</span> <span class="n">reduced_param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">reduced_param</span><span class="o">.</span><span class="n">id</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
@@ -1100,7 +1100,7 @@
 <div class="viewcode-block" id="CvxAttr2Constr.param_forward">
 <a class="viewcode-back" href="../../../api_reference/cvxpy.reductions.middle_end.html#cvxpy.reductions.cvx_attr2constr.CvxAttr2Constr.param_forward">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">param_forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">param_deltas</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Transform full-size deltas to reduced-size deltas.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Transform full-size deltas to reduced-size deltas."""</span>
         <span class="n">result</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">param_deltas</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">param</span><span class="p">,</span> <span class="n">reduced_param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">param</span><span class="o">.</span><span class="n">id</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>

@@ -732,7 +732,7 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">SuppFuncAtom</span><span class="p">(</span><span class="n">Atom</span><span class="p">):</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        y : cvxpy.expressions.expression.Expression</span>
@@ -740,7 +740,7 @@
 
 <span class="sd">        parent : cvxpy.transforms.suppfunc.SuppFunc</span>
 <span class="sd">            The object containing data for the convex set associated with this atom.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">lu</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="n">Atom</span><span class="o">.</span><span class="n">cast_to_const</span><span class="p">(</span><span class="n">y</span><span class="p">)]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span> <span class="o">=</span> <span class="n">parent</span>
@@ -750,9 +750,9 @@
 
     <span class="k">def</span><span class="w"> </span><span class="nf">validate_arguments</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_complex</span><span class="p">():</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Arguments to SuppFuncAtom cannot be complex.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Arguments to SuppFuncAtom cannot be complex."</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_affine</span><span class="p">():</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Arguments to SuppFuncAtom must be affine.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Arguments to SuppFuncAtom must be affine."</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">variables</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">varlist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">variables</span><span class="p">()</span>
@@ -807,7 +807,7 @@
         <span class="k">return</span> <span class="kc">False</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">is_convex</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-        <span class="c1"># The argument &quot;y&quot; is restricted to being affine.</span>
+        <span class="c1"># The argument "y" is restricted to being affine.</span>
         <span class="k">return</span> <span class="kc">True</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">is_concave</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
@@ -820,7 +820,7 @@
         <span class="k">return</span> <span class="kc">False</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">is_quasiconvex</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-        <span class="c1"># The argument &quot;y&quot; is restricted to being affine.</span>
+        <span class="c1"># The argument "y" is restricted to being affine.</span>
         <span class="k">return</span> <span class="kc">True</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">is_quasiconcave</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
@@ -829,14 +829,14 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">_value_impl</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.problems.objective</span><span class="w"> </span><span class="kn">import</span> <span class="n">Maximize</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.problems.problem</span><span class="w"> </span><span class="kn">import</span> <span class="n">Problem</span>
-        <span class="n">y_val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">decimals</span><span class="o">=</span><span class="mi">9</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
-        <span class="n">x_flat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
+        <span class="n">y_val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">decimals</span><span class="o">=</span><span class="mi">9</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="s1">'F'</span><span class="p">)</span>
+        <span class="n">x_flat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="s1">'F'</span><span class="p">)</span>
         <span class="n">cons</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">constraints</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cons</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">dummy</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">()</span>
             <span class="n">cons</span> <span class="o">=</span> <span class="p">[</span><span class="n">dummy</span> <span class="o">==</span> <span class="mi">1</span><span class="p">]</span>
         <span class="n">prob</span> <span class="o">=</span> <span class="n">Problem</span><span class="p">(</span><span class="n">Maximize</span><span class="p">(</span><span class="n">y_val</span> <span class="o">@</span> <span class="n">x_flat</span><span class="p">),</span> <span class="n">cons</span><span class="p">)</span>
-        <span class="n">val</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="s1">&#39;SCS&#39;</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">)</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="s1">'CLARABEL'</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">val</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_grad</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
@@ -853,14 +853,14 @@
             <span class="c1"># this means the support function is not finite at this input.</span>
             <span class="k">return</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">gradmat</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">csc_array</span><span class="p">([</span><span class="n">gradval</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)])</span><span class="o">.</span><span class="n">T</span>
+            <span class="n">gradmat</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">csc_array</span><span class="p">([</span><span class="n">gradval</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="s1">'F'</span><span class="p">)])</span><span class="o">.</span><span class="n">T</span>
             <span class="k">return</span> <span class="p">[</span><span class="n">gradmat</span><span class="p">]</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__lt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Strict inequalities are not allowed.&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">"Strict inequalities are not allowed."</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__gt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Strict inequalities are not allowed.&quot;</span><span class="p">)</span></div>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">"Strict inequalities are not allowed."</span><span class="p">)</span></div>
 
 </code></pre></div>
 

@@ -753,23 +753,23 @@ therefore be solved using CVXPY.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
 <span class="n">mse</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">sum_squares</span><span class="p">(</span><span class="n">A</span> <span class="o">@</span> <span class="n">x</span> <span class="o">-</span> <span class="n">b</span><span class="p">)</span><span class="o">/</span><span class="n">n</span>
 <span class="n">problem</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">length</span><span class="p">(</span><span class="n">x</span><span class="p">)),</span> <span class="p">[</span><span class="n">mse</span> <span class="o">&lt;=</span> <span class="n">epsilon</span><span class="p">])</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Is problem DQCP?: &quot;</span><span class="p">,</span> <span class="n">problem</span><span class="o">.</span><span class="n">is_dqcp</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Is problem DQCP?: "</span><span class="p">,</span> <span class="n">problem</span><span class="o">.</span><span class="n">is_dqcp</span><span class="p">())</span>
 
 <span class="n">problem</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">qcp</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Found a solution, with length: &quot;</span><span class="p">,</span> <span class="n">problem</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Found a solution, with length: "</span><span class="p">,</span> <span class="n">problem</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
 </code></pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code>Is problem DQCP?:  True
 Found a solution, with length:  8.0
 </code></pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;MSE: &quot;</span><span class="p">,</span> <span class="n">mse</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="nb">print</span><span class="p">(</span><span class="s2">"MSE: "</span><span class="p">,</span> <span class="n">mse</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
 </code></pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="n">MSE</span><span class="p">:</span>  <span class="mf">0.00926009328813662</span>
 </code></pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;x: &quot;</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="nb">print</span><span class="p">(</span><span class="s2">"x: "</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
 </code></pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="n">x</span><span class="p">:</span>  <span class="p">[</span><span class="o">-</span><span class="mf">2.58366030e-01</span>  <span class="mf">1.38434327e+00</span>  <span class="mf">2.10714108e-01</span>  <span class="mf">9.44811159e-01</span>
@@ -777,7 +777,7 @@ Found a solution, with length:  8.0
   <span class="mf">2.78132907e-13</span> <span class="o">-</span><span class="mf">1.76314786e-13</span><span class="p">]</span>
 </code></pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;x_star: &quot;</span><span class="p">,</span> <span class="n">x_star</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="nb">print</span><span class="p">(</span><span class="s2">"x_star: "</span><span class="p">,</span> <span class="n">x_star</span><span class="p">)</span>
 </code></pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="n">x_star</span><span class="p">:</span>  <span class="p">[</span><span class="o">-</span><span class="mf">0.44712856</span>  <span class="mf">1.2245077</span>   <span class="mf">0.40349164</span>  <span class="mf">0.59357852</span> <span class="o">-</span><span class="mf">1.09491185</span>  <span class="mf">0.16938243</span>

@@ -740,6 +740,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.complex2real</span><span class="w"> </span><span class="kn">import</span> <span class="n">complex2real</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.cone2cone.approx</span><span class="w"> </span><span class="kn">import</span> <span class="n">ApproxCone2Cone</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.cone2cone.exact</span><span class="w"> </span><span class="kn">import</span> <span class="n">ExactCone2Cone</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.cone2cone.extract_direct_cones</span><span class="w"> </span><span class="kn">import</span> <span class="n">ExtractDirectCones</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.cone2cone.soc_dim3</span><span class="w"> </span><span class="kn">import</span> <span class="n">SOCDim3</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.cvx_attr2constr</span><span class="w"> </span><span class="kn">import</span> <span class="n">CvxAttr2Constr</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.reductions.dcp2cone.cone_matrix_stuffing</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConeMatrixStuffing</span>
@@ -760,19 +761,19 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">cvxpy.utilities.warn</span><span class="w"> </span><span class="kn">import</span> <span class="n">warn</span>
 
 <span class="n">DPP_ERROR_MSG</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="s2">&quot;You are solving a parameterized problem that is not DPP. &quot;</span>
-    <span class="s2">&quot;Because the problem is not DPP, subsequent solves will not be &quot;</span>
-    <span class="s2">&quot;faster than the first one. For more information, see the &quot;</span>
-    <span class="s2">&quot;documentation on Disciplined Parametrized Programming, at &quot;</span>
-    <span class="s2">&quot;https://www.cvxpy.org/tutorial/dpp/index.html&quot;</span>
+    <span class="s2">"You are solving a parameterized problem that is not DPP. "</span>
+    <span class="s2">"Because the problem is not DPP, subsequent solves will not be "</span>
+    <span class="s2">"faster than the first one. For more information, see the "</span>
+    <span class="s2">"documentation on Disciplined Parametrized Programming, at "</span>
+    <span class="s2">"https://www.cvxpy.org/tutorial/dpp/index.html"</span>
 <span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_lookup_by_name</span><span class="p">(</span><span class="n">solver_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">gp</span><span class="p">:</span> <span class="nb">bool</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Look up installed QP and conic instances for a solver name.</span>
+<span class="w">    </span><span class="sd">"""Look up installed QP and conic instances for a solver name.</span>
 
 <span class="sd">    Returns (qp_inst | None, conic_inst | None). GP mode suppresses QP.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">upper</span> <span class="o">=</span> <span class="n">solver_name</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
     <span class="n">qp</span> <span class="o">=</span> <span class="n">slv_def</span><span class="o">.</span><span class="n">SOLVER_MAP_QP</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">upper</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">qp</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">qp</span><span class="o">.</span><span class="n">is_installed</span><span class="p">():</span>
@@ -786,7 +787,7 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_fallback_solver</span><span class="p">(</span><span class="n">problem_form</span><span class="p">:</span> <span class="n">ProblemForm</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Solver</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Last-resort: try every installed solver, warn, or raise.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Last-resort: try every installed solver, warn, or raise."""</span>
     <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">slv_def</span><span class="o">.</span><span class="n">INSTALLED_SOLVERS</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">slv_def</span><span class="o">.</span><span class="n">COMMERCIAL_SOLVERS</span><span class="p">:</span>
             <span class="k">continue</span>
@@ -794,31 +795,31 @@
                      <span class="n">slv_def</span><span class="o">.</span><span class="n">SOLVER_MAP_QP</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">)):</span>
             <span class="k">if</span> <span class="n">inst</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">inst</span><span class="o">.</span><span class="n">can_solve</span><span class="p">(</span><span class="n">problem_form</span><span class="p">):</span>
                 <span class="n">warn</span><span class="p">(</span>
-                    <span class="s2">&quot;The default solvers are not available. &quot;</span>
-                    <span class="s2">&quot;Using </span><span class="si">%s</span><span class="s2">. Consider specifying a solver &quot;</span>
-                    <span class="s2">&quot;explicitly via the ``solver`` argument.&quot;</span> <span class="o">%</span>
+                    <span class="s2">"The default solvers are not available. "</span>
+                    <span class="s2">"Using </span><span class="si">%s</span><span class="s2">. Consider specifying a solver "</span>
+                    <span class="s2">"explicitly via the ``solver`` argument."</span> <span class="o">%</span>
                     <span class="n">inst</span><span class="o">.</span><span class="n">name</span><span class="p">()</span>
                 <span class="p">)</span>
                 <span class="k">return</span> <span class="n">inst</span>
     <span class="k">if</span> <span class="n">problem_form</span><span class="o">.</span><span class="n">is_mixed_integer</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">problem_form</span><span class="o">.</span><span class="n">is_lp</span><span class="p">():</span>
         <span class="n">warn</span><span class="p">(</span>
-            <span class="s2">&quot;Your problem is mixed-integer but not an LP. &quot;</span>
-            <span class="s2">&quot;If your problem is nonlinear, consider installing SCIP &quot;</span>
-            <span class="s2">&quot;(pip install pyscipopt) to solve it.&quot;</span>
+            <span class="s2">"Your problem is mixed-integer but not an LP. "</span>
+            <span class="s2">"If your problem is nonlinear, consider installing SCIP "</span>
+            <span class="s2">"(pip install pyscipopt) to solve it."</span>
         <span class="p">)</span>
     <span class="k">if</span> <span class="n">problem_form</span><span class="o">.</span><span class="n">is_mixed_integer</span><span class="p">():</span>
         <span class="k">raise</span> <span class="n">SolverError</span><span class="p">(</span>
-            <span class="s2">&quot;You need a mixed-integer solver for this model. &quot;</span>
-            <span class="s2">&quot;Refer to the documentation &quot;</span>
-            <span class="s2">&quot;https://www.cvxpy.org/tutorial/advanced/&quot;</span>
-            <span class="s2">&quot;index.html#mixed-integer-programs &quot;</span>
-            <span class="s2">&quot;for discussion on this topic. &quot;</span>
-            <span class="s2">&quot;Install the SCIP solver (pip install pyscipopt) &quot;</span>
-            <span class="s2">&quot;for mixed-integer nonlinear problems, or HiGHS &quot;</span>
-            <span class="s2">&quot;(pip install highspy) for mixed-integer LPs.&quot;</span>
+            <span class="s2">"You need a mixed-integer solver for this model. "</span>
+            <span class="s2">"Refer to the documentation "</span>
+            <span class="s2">"https://www.cvxpy.org/tutorial/advanced/"</span>
+            <span class="s2">"index.html#mixed-integer-programs "</span>
+            <span class="s2">"for discussion on this topic. "</span>
+            <span class="s2">"Install the SCIP solver (pip install pyscipopt) "</span>
+            <span class="s2">"for mixed-integer nonlinear problems, or HiGHS "</span>
+            <span class="s2">"(pip install highspy) for mixed-integer LPs."</span>
         <span class="p">)</span>
     <span class="k">raise</span> <span class="n">SolverError</span><span class="p">(</span>
-        <span class="s2">&quot;No installed solver could handle this problem.&quot;</span>
+        <span class="s2">"No installed solver could handle this problem."</span>
     <span class="p">)</span>
 
 
@@ -831,8 +832,8 @@
     <span class="n">ignore_dpp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">canon_backend</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">solver_opts</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SolvingChain&quot;</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Build a reduction chain for a specific solver.</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"SolvingChain"</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Build a reduction chain for a specific solver.</span>
 
 <span class="sd">    The chain is assembled in three stages:</span>
 
@@ -861,7 +862,7 @@
 <span class="sd">    ignore_dpp : bool</span>
 <span class="sd">        When True, treat DPP problems as non-DPP.</span>
 <span class="sd">    canon_backend : str, optional</span>
-<span class="sd">        Canonicalization backend (&#39;CPP&#39;, &#39;SCIPY&#39;, or &#39;COO&#39;).</span>
+<span class="sd">        Canonicalization backend ('CPP', 'SCIPY', or 'COO').</span>
 <span class="sd">    solver_opts : dict, optional</span>
 <span class="sd">        Solver-specific options.</span>
 
@@ -869,7 +870,7 @@
 <span class="sd">    -------</span>
 <span class="sd">    SolvingChain</span>
 <span class="sd">        A SolvingChain targeting the given solver.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">problem</span><span class="o">.</span><span class="n">variables</span><span class="p">())</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">SolvingChain</span><span class="p">(</span><span class="n">reductions</span><span class="o">=</span><span class="p">[</span><span class="n">ConstantSolver</span><span class="p">()])</span>
 
@@ -880,18 +881,20 @@
     <span class="c1"># are a function of (problem_form, DPP approach, solver_context).</span>
     <span class="k">if</span> <span class="n">problem_form</span><span class="o">.</span><span class="n">is_mixed_integer</span><span class="p">():</span>
         <span class="n">supported</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">(</span>
-            <span class="nb">getattr</span><span class="p">(</span><span class="n">solver_instance</span><span class="p">,</span> <span class="s1">&#39;MI_SUPPORTED_CONSTRAINTS&#39;</span><span class="p">,</span>
+            <span class="nb">getattr</span><span class="p">(</span><span class="n">solver_instance</span><span class="p">,</span> <span class="s1">'MI_SUPPORTED_CONSTRAINTS'</span><span class="p">,</span>
                     <span class="n">solver_instance</span><span class="o">.</span><span class="n">SUPPORTED_CONSTRAINTS</span><span class="p">)</span>
         <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">supported</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">(</span><span class="n">solver_instance</span><span class="o">.</span><span class="n">SUPPORTED_CONSTRAINTS</span><span class="p">)</span>
 
+    <span class="n">dir_cone_kinds</span> <span class="o">=</span> <span class="n">solver_instance</span><span class="o">.</span><span class="n">DIR_CONE_KINDS</span>
     <span class="n">solver_context</span> <span class="o">=</span> <span class="n">SolverInfo</span><span class="p">(</span>
         <span class="n">solver</span><span class="o">=</span><span class="n">solver_instance</span><span class="o">.</span><span class="n">name</span><span class="p">(),</span>
         <span class="n">supported_constraints</span><span class="o">=</span><span class="n">supported</span><span class="p">,</span>
         <span class="n">supports_bounds</span><span class="o">=</span><span class="n">solver_instance</span><span class="o">.</span><span class="n">BOUNDED_VARIABLES</span><span class="p">,</span>
         <span class="n">psd_triangle_kind</span><span class="o">=</span><span class="n">solver_instance</span><span class="o">.</span><span class="n">PSD_TRIANGLE_KIND</span><span class="p">,</span>
         <span class="n">psd_sqrt2_scaling</span><span class="o">=</span><span class="n">solver_instance</span><span class="o">.</span><span class="n">PSD_SQRT2_SCALING</span><span class="p">,</span>
+        <span class="n">dir_cone_kinds</span><span class="o">=</span><span class="n">dir_cone_kinds</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="c1"># --- Pre-canonicalization reductions (problem + gp only) ---</span>
@@ -907,14 +910,14 @@
         <span class="n">reductions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Valinvec2mixedint</span><span class="p">())</span>
 
     <span class="c1"># --- DPP handling ---</span>
-    <span class="n">dpp_context</span> <span class="o">=</span> <span class="s1">&#39;dcp&#39;</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">gp</span> <span class="k">else</span> <span class="s1">&#39;dgp&#39;</span>
+    <span class="n">dpp_context</span> <span class="o">=</span> <span class="s1">'dcp'</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">gp</span> <span class="k">else</span> <span class="s1">'dgp'</span>
     <span class="c1"># For QP/conic-QP solvers, we can loosen the DPP rules for quad_form</span>
     <span class="c1"># in the objective. These solvers accept quadratic objectives directly</span>
     <span class="c1"># (P matrix), so the mapping from parameters to problem data (P, q) stays</span>
     <span class="c1"># linear — the standard DPP requirement. Constraint quad_forms still go</span>
     <span class="c1"># through the conic canonicalizer which bakes in numeric Cholesky factors,</span>
     <span class="c1"># so parametric P in constraints is NOT DPP-safe for the QP path.</span>
-    <span class="n">quad_form_dpp</span> <span class="o">=</span> <span class="s1">&#39;qp&#39;</span> <span class="k">if</span> <span class="n">solver_instance</span><span class="o">.</span><span class="n">supports_quad_obj</span><span class="p">()</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="n">quad_form_dpp</span> <span class="o">=</span> <span class="s1">'qp'</span> <span class="k">if</span> <span class="n">solver_instance</span><span class="o">.</span><span class="n">supports_quad_obj</span><span class="p">()</span> <span class="k">else</span> <span class="kc">None</span>
     <span class="n">is_dpp</span> <span class="o">=</span> <span class="n">problem</span><span class="o">.</span><span class="n">is_dpp</span><span class="p">(</span><span class="n">dpp_context</span><span class="p">,</span> <span class="n">quad_form_dpp</span><span class="o">=</span><span class="n">quad_form_dpp</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">ignore_dpp</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">is_dpp</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">ignore_dpp</span> <span class="ow">and</span> <span class="n">enforce_dpp</span><span class="p">:</span>
@@ -929,7 +932,7 @@
                 <span class="n">canon_backend</span> <span class="o">=</span> <span class="n">COO_CANON_BACKEND</span>
 
     <span class="c1"># --- Canonicalization reductions (problem_form + solver_context) ---</span>
-    <span class="n">use_quad</span> <span class="o">=</span> <span class="kc">True</span> <span class="k">if</span> <span class="n">solver_opts</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">solver_opts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;use_quad_obj&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="n">use_quad</span> <span class="o">=</span> <span class="kc">True</span> <span class="k">if</span> <span class="n">solver_opts</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">solver_opts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'use_quad_obj'</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
 
     <span class="c1"># QP solvers always need quad_obj=True in the matrix stuffing step</span>
     <span class="c1"># because their apply() expects the P matrix from ConeMatrixStuffing.</span>
@@ -954,10 +957,11 @@
     <span class="k">if</span> <span class="n">solver_instance</span><span class="o">.</span><span class="n">SOC_DIM3_ONLY</span> <span class="ow">and</span> <span class="n">SOC</span> <span class="ow">in</span> <span class="n">cones</span><span class="p">:</span>
         <span class="n">reductions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">SOCDim3</span><span class="p">())</span>
 
-    <span class="n">reductions</span> <span class="o">+=</span> <span class="p">[</span>
-        <span class="n">ConeMatrixStuffing</span><span class="p">(</span><span class="n">quad_obj</span><span class="o">=</span><span class="n">quad_obj</span><span class="p">,</span> <span class="n">canon_backend</span><span class="o">=</span><span class="n">canon_backend</span><span class="p">),</span>
-        <span class="n">solver_instance</span><span class="p">,</span>
-    <span class="p">]</span>
+    <span class="n">reductions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+        <span class="n">ConeMatrixStuffing</span><span class="p">(</span><span class="n">quad_obj</span><span class="o">=</span><span class="n">quad_obj</span><span class="p">,</span> <span class="n">canon_backend</span><span class="o">=</span><span class="n">canon_backend</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">dir_cone_kinds</span><span class="p">:</span>
+        <span class="n">reductions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ExtractDirectCones</span><span class="p">(</span><span class="n">solver_context</span><span class="o">=</span><span class="n">solver_context</span><span class="p">))</span>
+    <span class="n">reductions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">solver_instance</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">SolvingChain</span><span class="p">(</span><span class="n">reductions</span><span class="o">=</span><span class="n">reductions</span><span class="p">,</span> <span class="n">solver_context</span><span class="o">=</span><span class="n">solver_context</span><span class="p">)</span>
 
 
@@ -966,7 +970,7 @@
     <span class="n">problem_form</span><span class="p">:</span> <span class="n">ProblemForm</span><span class="p">,</span>
     <span class="n">gp</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Solver</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Validate and resolve a solver argument to a concrete Solver instance.</span>
+<span class="w">    </span><span class="sd">"""Validate and resolve a solver argument to a concrete Solver instance.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -989,24 +993,24 @@
 <span class="sd">    SolverError</span>
 <span class="sd">        If the solver argument is invalid, not installed, cannot handle</span>
 <span class="sd">        the problem, or no suitable solver is found.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">constant</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">problem_form</span><span class="o">.</span><span class="n">_problem</span><span class="o">.</span><span class="n">variables</span><span class="p">())</span> <span class="o">==</span> <span class="mi">0</span>
 
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">solver</span><span class="p">,</span> <span class="n">Solver</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">solver</span><span class="o">.</span><span class="n">name</span><span class="p">()</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">SOLVERS</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">SolverError</span><span class="p">(</span>
-                <span class="s2">&quot;Custom solvers must have a different name &quot;</span>
-                <span class="s2">&quot;than the officially supported ones&quot;</span>
+                <span class="s2">"Custom solvers must have a different name "</span>
+                <span class="s2">"than the officially supported ones"</span>
             <span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">constant</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">problem_form</span><span class="o">.</span><span class="n">is_mixed_integer</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">solver</span><span class="o">.</span><span class="n">MIP_CAPABLE</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">SolverError</span><span class="p">(</span>
-                    <span class="s2">&quot;Problem is mixed-integer, but the custom solver &quot;</span>
-                    <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> is not MIP-capable.&quot;</span> <span class="o">%</span> <span class="n">solver</span><span class="o">.</span><span class="n">name</span><span class="p">()</span>
+                    <span class="s2">"Problem is mixed-integer, but the custom solver "</span>
+                    <span class="s2">"</span><span class="si">%s</span><span class="s2"> is not MIP-capable."</span> <span class="o">%</span> <span class="n">solver</span><span class="o">.</span><span class="n">name</span><span class="p">()</span>
                 <span class="p">)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">solver</span><span class="o">.</span><span class="n">can_solve</span><span class="p">(</span><span class="n">problem_form</span><span class="p">):</span>
                 <span class="k">raise</span> <span class="n">SolverError</span><span class="p">(</span>
-                    <span class="s2">&quot;The solver </span><span class="si">%s</span><span class="s2"> cannot solve this problem.&quot;</span> <span class="o">%</span> <span class="n">solver</span><span class="o">.</span><span class="n">name</span><span class="p">()</span>
+                    <span class="s2">"The solver </span><span class="si">%s</span><span class="s2"> cannot solve this problem."</span> <span class="o">%</span> <span class="n">solver</span><span class="o">.</span><span class="n">name</span><span class="p">()</span>
                 <span class="p">)</span>
         <span class="k">return</span> <span class="n">solver</span>
 
@@ -1015,14 +1019,14 @@
 
         <span class="k">if</span> <span class="n">qp_inst</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">conic_inst</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">SolverError</span><span class="p">(</span>
-                <span class="s2">&quot;The solver </span><span class="si">%s</span><span class="s2"> is not installed.&quot;</span> <span class="o">%</span> <span class="n">solver</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+                <span class="s2">"The solver </span><span class="si">%s</span><span class="s2"> is not installed."</span> <span class="o">%</span> <span class="n">solver</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
             <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">gp</span> <span class="ow">and</span> <span class="n">conic_inst</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">SolverError</span><span class="p">(</span>
-                <span class="s2">&quot;When `gp=True`, `solver` must be a conic solver &quot;</span>
-                <span class="s2">&quot;(received &#39;</span><span class="si">%s</span><span class="s2">&#39;); try calling &quot;</span>
-                <span class="s2">&quot;`solve()` with `solver=cvxpy.CLARABEL`.&quot;</span> <span class="o">%</span> <span class="n">solver</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+                <span class="s2">"When `gp=True`, `solver` must be a conic solver "</span>
+                <span class="s2">"(received '</span><span class="si">%s</span><span class="s2">'); try calling "</span>
+                <span class="s2">"`solve()` with `solver=cvxpy.CLARABEL`."</span> <span class="o">%</span> <span class="n">solver</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
             <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">constant</span><span class="p">:</span>
@@ -1044,12 +1048,12 @@
             <span class="k">if</span> <span class="n">inst</span><span class="o">.</span><span class="n">can_solve</span><span class="p">(</span><span class="n">problem_form</span><span class="p">):</span>
                 <span class="k">return</span> <span class="n">inst</span>
         <span class="k">raise</span> <span class="n">SolverError</span><span class="p">(</span>
-            <span class="s2">&quot;The solver </span><span class="si">%s</span><span class="s2"> cannot solve this problem.&quot;</span> <span class="o">%</span> <span class="n">solver</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+            <span class="s2">"The solver </span><span class="si">%s</span><span class="s2"> cannot solve this problem."</span> <span class="o">%</span> <span class="n">solver</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
         <span class="p">)</span>
 
     <span class="k">if</span> <span class="n">solver</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">SolverError</span><span class="p">(</span>
-            <span class="s2">&quot;The solver argument must be a string, a Solver instance, or None.&quot;</span>
+            <span class="s2">"The solver argument must be a string, a Solver instance, or None."</span>
         <span class="p">)</span>
 
     <span class="c1"># solver is None</span>
@@ -1077,8 +1081,8 @@
     <span class="n">ignore_dpp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">canon_backend</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">solver_opts</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SolvingChain&quot;</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Resolve a solver argument and build a solving chain.</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"SolvingChain"</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Resolve a solver argument and build a solving chain.</span>
 
 <span class="sd">    Resolves *solver* (``None``, a string name, or a :class:`Solver` instance)</span>
 <span class="sd">    to a concrete solver, validates it against the problem structure, then</span>
@@ -1100,7 +1104,7 @@
 <span class="sd">    ignore_dpp : bool</span>
 <span class="sd">        When True, treat DPP problems as non-DPP.</span>
 <span class="sd">    canon_backend : str or None</span>
-<span class="sd">        Canonicalization backend (``&#39;CPP&#39;``, ``&#39;SCIPY&#39;``, or ``&#39;COO&#39;``).</span>
+<span class="sd">        Canonicalization backend (``'CPP'``, ``'SCIPY'``, or ``'COO'``).</span>
 <span class="sd">    solver_opts : dict or None</span>
 <span class="sd">        Solver-specific options.</span>
 
@@ -1114,7 +1118,7 @@
 <span class="sd">    SolverError</span>
 <span class="sd">        If no suitable solver is found or the specified solver cannot handle</span>
 <span class="sd">        the problem.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">problem_form</span> <span class="o">=</span> <span class="n">make_problem_form</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">gp</span><span class="p">,</span> <span class="n">ignore_dpp</span><span class="p">)</span>
     <span class="n">solver_instance</span> <span class="o">=</span> <span class="n">_resolve_solver</span><span class="p">(</span><span class="n">solver</span><span class="p">,</span> <span class="n">problem_form</span><span class="p">,</span> <span class="n">gp</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">_build_solving_chain</span><span class="p">(</span>
@@ -1130,7 +1134,7 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_validate_problem_data</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Validate problem data for NaN and Inf values.</span>
+<span class="w">    </span><span class="sd">"""Validate problem data for NaN and Inf values.</span>
 
 <span class="sd">    Raises ValueError if:</span>
 <span class="sd">    - Any matrix/vector contains NaN</span>
@@ -1138,7 +1142,7 @@
 
 <span class="sd">    Inf is allowed in constraint RHS (b, G) and bounds since users</span>
 <span class="sd">    sometimes use inf for unbounded constraints/variables.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="c1"># Skip validation for non-dict data (e.g., ConstantSolver returns Problem)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
         <span class="k">return</span>
@@ -1158,21 +1162,21 @@
         <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">inf_allowed_keys</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">arr</span><span class="p">)):</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="s2">&quot;Problem data contains NaN. &quot;</span>
-                    <span class="s2">&quot;Check your parameter values and constants.&quot;</span>
+                    <span class="s2">"Problem data contains NaN. "</span>
+                    <span class="s2">"Check your parameter values and constants."</span>
                 <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">arr</span><span class="p">)):</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="s2">&quot;Problem data contains NaN or Inf. &quot;</span>
-                    <span class="s2">&quot;Check your parameter values and constants.&quot;</span>
+                    <span class="s2">"Problem data contains NaN or Inf. "</span>
+                    <span class="s2">"Check your parameter values and constants."</span>
                 <span class="p">)</span>
 
 
 <div class="viewcode-block" id="SolvingChain">
 <a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.html#cvxpy.reductions.solvers.solving_chain.SolvingChain">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">SolvingChain</span><span class="p">(</span><span class="n">Chain</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;A reduction chain that ends with a solver.</span>
+<span class="w">    </span><span class="sd">"""A reduction chain that ends with a solver.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -1186,30 +1190,30 @@
 <span class="sd">        A list of reductions.</span>
 <span class="sd">    solver : Solver</span>
 <span class="sd">        The solver, i.e., reductions[-1].</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">reductions</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">solver_context</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">SolvingChain</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">problem</span><span class="o">=</span><span class="n">problem</span><span class="p">,</span>
                                            <span class="n">reductions</span><span class="o">=</span><span class="n">reductions</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reductions</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">Solver</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Solving chains must terminate with a Solver.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Solving chains must terminate with a Solver."</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">solver</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reductions</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">solver_context</span> <span class="o">=</span> <span class="n">solver_context</span>
 
 <div class="viewcode-block" id="SolvingChain.prepend">
 <a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.html#cvxpy.reductions.solvers.solving_chain.SolvingChain.prepend">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">prepend</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chain</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SolvingChain&quot;</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">prepend</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chain</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"SolvingChain"</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Create and return a new SolvingChain by concatenating</span>
 <span class="sd">        chain with this instance.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="n">SolvingChain</span><span class="p">(</span><span class="n">reductions</span><span class="o">=</span><span class="n">chain</span><span class="o">.</span><span class="n">reductions</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">reductions</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="SolvingChain.solve">
 <a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.html#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">solve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="p">,</span> <span class="n">warm_start</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">solver_opts</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Solves the problem by applying the chain.</span>
+<span class="w">        </span><span class="sd">"""Solves the problem by applying the chain.</span>
 
 <span class="sd">        Applies each reduction in the chain to the problem, solves it,</span>
 <span class="sd">        and then inverts the chain to return a solution of the supplied</span>
@@ -1230,7 +1234,7 @@
 <span class="sd">        -------</span>
 <span class="sd">        solution : Solution</span>
 <span class="sd">            A solution to the problem.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">data</span><span class="p">,</span> <span class="n">inverse_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">problem</span><span class="p">)</span>
 
         <span class="c1"># We validate the data both in SolvingChain.solve and</span>
@@ -1247,7 +1251,7 @@
 <a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.html#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">solve_via_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">warm_start</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
                        <span class="n">solver_opts</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Solves the problem using the data output by the an apply invocation.</span>
+<span class="w">        </span><span class="sd">"""Solves the problem using the data output by the an apply invocation.</span>
 
 <span class="sd">        The semantics are:</span>
 
@@ -1280,7 +1284,7 @@
 <span class="sd">        raw solver solution</span>
 <span class="sd">            The information returned by the solver; this is not necessarily</span>
 <span class="sd">            a Solution object.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">solver_opts</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">solver_opts</span> <span class="o">=</span> <span class="p">{}</span>
 

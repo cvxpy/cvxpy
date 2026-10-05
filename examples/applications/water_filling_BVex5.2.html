@@ -742,7 +742,7 @@ can be simply solved using CVXPY.</p>
 </code></pre></div>
 </div>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">water_filling</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">sum_x</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="w">    </span><span class="sd">'''</span>
 <span class="sd">    Boyd and Vandenberghe, Convex Optimization, example 5.2 page 145</span>
 <span class="sd">    Water-filling.</span>
 
@@ -751,7 +751,7 @@ can be simply solved using CVXPY.</p>
 <span class="sd">    The variable x_i represents the transmitter power allocated to the ith channel,</span>
 <span class="sd">    and log(α_i+x_i) gives the capacity or maximum communication rate of the channel.</span>
 <span class="sd">    The objective is to minimise -∑log(α_i+x_i) subject to the constraint ∑x_i = 1</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">    '''</span>
 
     <span class="c1"># Declare variables and parameters</span>
     <span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">n</span><span class="p">)</span>
@@ -767,7 +767,7 @@ can be simply solved using CVXPY.</p>
     <span class="c1"># Solve</span>
     <span class="n">prob</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
     <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
-    <span class="k">if</span><span class="p">(</span><span class="n">prob</span><span class="o">.</span><span class="n">status</span><span class="o">==</span><span class="s1">&#39;optimal&#39;</span><span class="p">):</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">prob</span><span class="o">.</span><span class="n">status</span><span class="o">==</span><span class="s1">'optimal'</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">prob</span><span class="o">.</span><span class="n">status</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">value</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">prob</span><span class="o">.</span><span class="n">status</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
@@ -786,9 +786,9 @@ this maximum communication rate.</p>
 </code></pre></div>
 </div>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="n">stat</span><span class="p">,</span> <span class="n">prob</span><span class="p">,</span> <span class="n">x</span> <span class="o">=</span> <span class="n">water_filling</span><span class="p">(</span><span class="n">buckets</span><span class="p">,</span> <span class="n">alpha</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Problem status: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">stat</span><span class="p">))</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Optimal communication rate = </span><span class="si">{:.4g}</span><span class="s1"> &#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">prob</span><span class="p">))</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Transmitter powers:</span><span class="se">\n</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Problem status: </span><span class="si">{}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">stat</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Optimal communication rate = </span><span class="si">{:.4g}</span><span class="s1"> '</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">prob</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Transmitter powers:</span><span class="se">\n</span><span class="si">{}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
 </code></pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="n">Problem</span> <span class="n">status</span><span class="p">:</span> <span class="n">optimal</span>
@@ -804,7 +804,7 @@ been allocated:</p>
 <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pylab</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 <span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
 
-<span class="n">matplotlib</span><span class="o">.</span><span class="n">rcParams</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;font.size&#39;</span><span class="p">:</span> <span class="mi">14</span><span class="p">})</span>
+<span class="n">matplotlib</span><span class="o">.</span><span class="n">rcParams</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">'font.size'</span><span class="p">:</span> <span class="mi">14</span><span class="p">})</span>
 
 <span class="n">axis</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span><span class="n">buckets</span><span class="o">+</span><span class="mf">1.5</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
 <span class="n">index</span> <span class="o">=</span> <span class="n">axis</span><span class="o">+</span><span class="mf">0.5</span>
@@ -819,12 +819,12 @@ been allocated:</p>
 <span class="n">plt</span><span class="o">.</span><span class="n">xticks</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span><span class="n">buckets</span><span class="o">+</span><span class="mf">0.5</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mf">1.5</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">axis</span><span class="p">,</span><span class="n">A</span><span class="p">,</span><span class="n">where</span><span class="o">=</span><span class="s1">&#39;post&#39;</span><span class="p">,</span><span class="n">label</span> <span class="o">=</span><span class="sa">r</span><span class="s1">&#39;$\alpha$&#39;</span><span class="p">,</span><span class="n">lw</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">axis</span><span class="p">,</span><span class="n">Y</span><span class="p">,</span><span class="n">where</span><span class="o">=</span><span class="s1">&#39;post&#39;</span><span class="p">,</span><span class="n">label</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;$\alpha + x$&#39;</span><span class="p">,</span><span class="n">lw</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;lower right&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Bucket Number&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Power Level&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Water Filling Solution&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">axis</span><span class="p">,</span><span class="n">A</span><span class="p">,</span><span class="n">where</span><span class="o">=</span><span class="s1">'post'</span><span class="p">,</span><span class="n">label</span> <span class="o">=</span><span class="sa">r</span><span class="s1">'$\alpha$'</span><span class="p">,</span><span class="n">lw</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">axis</span><span class="p">,</span><span class="n">Y</span><span class="p">,</span><span class="n">where</span><span class="o">=</span><span class="s1">'post'</span><span class="p">,</span><span class="n">label</span><span class="o">=</span><span class="sa">r</span><span class="s1">'$\alpha + x$'</span><span class="p">,</span><span class="n">lw</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">'lower right'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">'Bucket Number'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">'Power Level'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">'Water Filling Solution'</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </code></pre></div>
 </div>

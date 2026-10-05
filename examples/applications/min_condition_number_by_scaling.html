@@ -778,15 +778,15 @@ objFun = cp.Minimize(cp.gen_lambda_max(A,B))
 problem = cp.Problem(objFun,constr)
 
 # check if DQCP
-print(&quot;Is the problem DQCP? &quot;,problem.is_dqcp())
+print("Is the problem DQCP? ",problem.is_dqcp())
 
 # solve
-problem.solve(qcp=True,solver=&quot;SCS&quot;)
+problem.solve(qcp=True,solver="SCS")
 
 # print results
-if problem.status not in [&quot;infeasible&quot;, &quot;unbounded&quot;]:
-    print(&quot;Initial Condition Number: &quot;,cond(M))
-    print(&quot;Optimized Condition Number: &quot;,evalCond(M,Q,P))
+if problem.status not in ["infeasible", "unbounded"]:
+    print("Initial Condition Number: ",cond(M))
+    print("Optimized Condition Number: ",evalCond(M,Q,P))
 else:
     print(problem.status)
 </code></pre></div>

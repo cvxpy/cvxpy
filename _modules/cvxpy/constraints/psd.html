@@ -718,21 +718,21 @@
 
 
 <h1>Source code for cvxpy.constraints.psd</h1><div class="highlight"><pre>
-<span></span><code><span class="sd">&quot;&quot;&quot;</span>
+<span></span><code><span class="sd">"""</span>
 <span class="sd">Copyright 2013 Steven Diamond</span>
 
-<span class="sd">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="sd">Licensed under the Apache License, Version 2.0 (the "License");</span>
 <span class="sd">you may not use this file except in compliance with the License.</span>
 <span class="sd">You may obtain a copy of the License at</span>
 
 <span class="sd">    http://www.apache.org/licenses/LICENSE-2.0</span>
 
 <span class="sd">Unless required by applicable law or agreed to in writing, software</span>
-<span class="sd">distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="sd">distributed under the License is distributed on an "AS IS" BASIS,</span>
 <span class="sd">WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
 <span class="sd">See the License for the specific language governing permissions and</span>
 <span class="sd">limitations under the License.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
@@ -745,7 +745,7 @@
 <div class="viewcode-block" id="PSD">
 <a class="viewcode-back" href="../../../api_reference/cvxpy.constraints.html#cvxpy.constraints.psd.PSD">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">PSD</span><span class="p">(</span><span class="n">Cone</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;A constraint of the form :math:`\\frac{1}{2}(X + X^T) \\succcurlyeq_{S_n^+} 0`</span>
+<span class="w">    </span><span class="sd">"""A constraint of the form :math:`\\frac{1}{2}(X + X^T) \\succcurlyeq_{S_n^+} 0`</span>
 
 <span class="sd">    Applying a ``PSD`` constraint to a two-dimensional expression ``X``</span>
 <span class="sd">    constrains its symmetric part to be positive semidefinite: i.e.,</span>
@@ -769,24 +769,24 @@
 <span class="sd">        The expression to constrain; *must* be two-dimensional.</span>
 <span class="sd">    constr_id : int</span>
 <span class="sd">        A unique id for the constraint.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">,</span> <span class="n">constr_id</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="c1"># Argument must be square matrix (possibly batched).</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span> <span class="ow">or</span> <span class="n">expr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">!=</span> <span class="n">expr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s2">&quot;Non-square matrix in positive definite constraint.&quot;</span>
+                <span class="s2">"Non-square matrix in positive definite constraint."</span>
             <span class="p">)</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">PSD</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">([</span><span class="n">expr</span><span class="p">],</span> <span class="n">constr_id</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> &gt;&gt; 0&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="s2">"</span><span class="si">%s</span><span class="s2"> &gt;&gt; 0"</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
 <div class="viewcode-block" id="PSD.is_dcp">
 <a class="viewcode-back" href="../../../api_reference/cvxpy.constraints.html#cvxpy.constraints.psd.PSD.is_dcp">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">is_dcp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dpp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;A PSD constraint is DCP if the constrained expression is affine.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""A PSD constraint is DCP if the constrained expression is affine.</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">dpp</span><span class="p">:</span>
             <span class="k">with</span> <span class="n">scopes</span><span class="o">.</span><span class="n">dpp_scope</span><span class="p">():</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_affine</span><span class="p">()</span>
@@ -800,30 +800,30 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_dcp</span><span class="p">()</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">num_cones</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;The number of PSD cones.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""The number of PSD cones."""</span>
         <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]))</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span> <span class="k">else</span> <span class="mi">1</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_cone_size</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;The dimension of each PSD cone (the matrix side length n).&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""The dimension of each PSD cone (the matrix side length n)."""</span>
         <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">cone_sizes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;The dimensions of the PSD cones.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""The dimensions of the PSD cones."""</span>
         <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_cone_size</span><span class="p">()]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_cones</span><span class="p">()</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">size</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;The number of entries in the combined cones.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""The number of entries in the combined cones."""</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cone_size</span><span class="p">()</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_cones</span><span class="p">()</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">residual</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;The residual of the constraint.</span>
+<span class="w">        </span><span class="sd">"""The residual of the constraint.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        NumPy.ndarray</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">expr</span><span class="o">.</span><span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
         <span class="c1"># Deferred import to avoid circular import:</span>
@@ -834,8 +834,8 @@
         <span class="k">return</span> <span class="n">cvxtypes</span><span class="o">.</span><span class="n">neg</span><span class="p">()(</span><span class="n">min_eig</span><span class="p">)</span><span class="o">.</span><span class="n">value</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_dual_cone</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Implements the dual cone of the PSD cone See Pg 85 of the</span>
-<span class="sd">        MOSEK modelling cookbook for more information&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Implements the dual cone of the PSD cone See Pg 85 of the</span>
+<span class="sd">        MOSEK modelling cookbook for more information"""</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">args</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dual_variables</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;&gt;</span> <span class="mi">0</span>
         <span class="k">else</span><span class="p">:</span>
@@ -849,7 +849,7 @@
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">SvecPSD</span><span class="p">(</span><span class="n">Cone</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;A PSD constraint in scaled vectorized (svec) form.</span>
+<span class="w">    </span><span class="sd">"""A PSD constraint in scaled vectorized (svec) form.</span>
 
 <span class="sd">    The argument is a 1-D expression of length ``n * (n + 1) // 2``</span>
 <span class="sd">    representing the scaled lower- or upper-triangular entries of a</span>
@@ -865,18 +865,18 @@
 <span class="sd">        The side length of the original PSD matrix.</span>
 <span class="sd">    constr_id : int, optional</span>
 <span class="sd">        A unique id for the constraint.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">constr_id</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_n</span> <span class="o">=</span> <span class="n">n</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">([</span><span class="n">expr</span><span class="p">],</span> <span class="n">constr_id</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Data needed to copy.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Data needed to copy."""</span>
         <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_n</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">]</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s2">&quot;svec_psd(</span><span class="si">%s</span><span class="s2">, n=</span><span class="si">%d</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_n</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s2">"svec_psd(</span><span class="si">%s</span><span class="s2">, n=</span><span class="si">%d</span><span class="s2">)"</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_n</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">is_dcp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dpp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">dpp</span><span class="p">:</span>
@@ -895,7 +895,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">size</span> <span class="o">//</span> <span class="n">tri_dim</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_cone_size</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;The matrix side length (not the triangular dimension).&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""The matrix side length (not the triangular dimension)."""</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_n</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">cone_sizes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
@@ -910,12 +910,12 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">expr</span><span class="o">.</span><span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
-            <span class="s2">&quot;Residual is not implemented for SvecPSD. &quot;</span>
-            <span class="s2">&quot;Check the residual on the original PSD constraint instead.&quot;</span>
+            <span class="s2">"Residual is not implemented for SvecPSD. "</span>
+            <span class="s2">"Check the residual on the original PSD constraint instead."</span>
         <span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_dual_cone</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;The dual of the PSD cone is itself.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""The dual of the PSD cone is itself."""</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">args</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">SvecPSD</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dual_variables</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">n</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_n</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>

@@ -718,17 +718,17 @@
 
 
 <h1>Source code for cvxpy.atoms.affine.stack</h1><div class="highlight"><pre>
-<span></span><code><span class="sd">&quot;&quot;&quot;</span>
+<span></span><code><span class="sd">"""</span>
 <span class="sd">Copyright, the CVXPY authors</span>
 
-<span class="sd">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="sd">Licensed under the Apache License, Version 2.0 (the "License");</span>
 <span class="sd">you may not use this file except in compliance with the License.</span>
 <span class="sd">You may obtain a copy of the License at</span>
 
 <span class="sd">    http://www.apache.org/licenses/LICENSE-2.0</span>
 
 <span class="sd">Unless required by applicable law or agreed to in writing, software</span>
-<span class="sd">distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="sd">distributed under the License is distributed on an "AS IS" BASIS,</span>
 <span class="sd">WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
 <span class="sd">See the License for the specific language governing permissions and</span>
 <span class="sd">limitations under the License.</span>
@@ -738,7 +738,7 @@
 <span class="sd">This mirrors the semantics of ``np.stack``, where they make sense, for symbolic</span>
 <span class="sd">expressions: every input must share an identical shape, and the result gains a</span>
 <span class="sd">new axis of length ``len(arrays)`` at the requested position. Options that are</span>
-<span class="sd">specific to NumPy&#39;s ndarray type system (for example ``out`` or ``dtype``) are</span>
+<span class="sd">specific to NumPy's ndarray type system (for example ``out`` or ``dtype``) are</span>
 <span class="sd">intentionally unsupported.</span>
 
 <span class="sd">Examples</span>
@@ -752,7 +752,7 @@
 <span class="sd">&gt;&gt;&gt; z = cp.stack([a, b], axis=-1)</span>
 <span class="sd">&gt;&gt;&gt; z.shape</span>
 <span class="sd">(3, 2)</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Sequence</span>
 
@@ -762,14 +762,14 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_as_expression</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Expression</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Cast scalars/arrays to ``Constant`` while leaving Expressions intact.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Cast scalars/arrays to ``Constant`` while leaving Expressions intact."""</span>
     <span class="k">return</span> <span class="n">obj</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">Expression</span><span class="p">)</span> <span class="k">else</span> <span class="n">Expression</span><span class="o">.</span><span class="n">cast_to_const</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="stack">
 <a class="viewcode-back" href="../../../../api_reference/cvxpy.atoms.affine.html#cvxpy.stack">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">stack</span><span class="p">(</span><span class="n">arrays</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">object</span><span class="p">]</span> <span class="o">|</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">object</span><span class="p">],</span> <span class="n">axis</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Expression</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Join a sequence of expressions along a new axis.</span>
+<span class="w">    </span><span class="sd">"""Join a sequence of expressions along a new axis.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -791,26 +791,26 @@
 <span class="sd">        If ``axis`` is not an integer.</span>
 <span class="sd">    ValueError</span>
 <span class="sd">        If ``arrays`` is empty, shapes differ, or ``axis`` is out of bounds.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">xs</span> <span class="o">=</span> <span class="p">[</span><span class="n">_as_expression</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">arrays</span><span class="p">]</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">xs</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;need at least one array to stack&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"need at least one array to stack"</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">axis</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;axis must be an int; received </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"axis must be an int; received </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
     <span class="n">shapes</span> <span class="o">=</span> <span class="p">{</span><span class="n">expr</span><span class="o">.</span><span class="n">shape</span> <span class="k">for</span> <span class="n">expr</span> <span class="ow">in</span> <span class="n">xs</span><span class="p">}</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">shapes</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="s2">&quot;all input arrays must have the same shape; got &quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">shapes</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="s2">"all input arrays must have the same shape; got "</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">shapes</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
         <span class="p">)</span>
 
     <span class="n">base_shape</span> <span class="o">=</span> <span class="n">xs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span>
     <span class="n">result_ndim</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">base_shape</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="o">-</span><span class="n">result_ndim</span> <span class="o">&lt;=</span> <span class="n">axis</span> <span class="o">&lt;</span> <span class="n">result_ndim</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;axis </span><span class="si">{</span><span class="n">axis</span><span class="si">}</span><span class="s2"> is out of bounds for result ndim </span><span class="si">{</span><span class="n">result_ndim</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">"axis </span><span class="si">{</span><span class="n">axis</span><span class="si">}</span><span class="s2"> is out of bounds for result ndim </span><span class="si">{</span><span class="n">result_ndim</span><span class="si">}</span><span class="s2">"</span>
         <span class="p">)</span>
 
     <span class="n">axis_index</span> <span class="o">=</span> <span class="n">axis</span> <span class="k">if</span> <span class="n">axis</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">axis</span> <span class="o">+</span> <span class="n">result_ndim</span>
@@ -819,7 +819,7 @@
     <span class="n">suffix</span> <span class="o">=</span> <span class="n">base_shape</span><span class="p">[</span><span class="n">axis_index</span><span class="p">:]</span>
     <span class="c1"># Reshape each argument to inject the new length-1 axis before concatenating.</span>
     <span class="n">reshaped</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="n">reshape</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">prefix</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span><span class="p">,)</span> <span class="o">+</span> <span class="n">suffix</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
+        <span class="n">reshape</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">prefix</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span><span class="p">,)</span> <span class="o">+</span> <span class="n">suffix</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">'F'</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">expr</span> <span class="ow">in</span> <span class="n">xs</span>
     <span class="p">]</span>
 
@@ -827,7 +827,7 @@
 
 
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;stack&quot;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"stack"</span><span class="p">]</span>
 </code></pre></div>
 
 

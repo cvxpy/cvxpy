@@ -718,37 +718,37 @@
 
 
 <h1>Source code for cvxpy.reductions.solution</h1><div class="highlight"><pre>
-<span></span><code><span class="sd">&quot;&quot;&quot;</span>
+<span></span><code><span class="sd">"""</span>
 <span class="sd">Copyright 2013 Steven Diamond</span>
 
-<span class="sd">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="sd">Licensed under the Apache License, Version 2.0 (the "License");</span>
 <span class="sd">you may not use this file except in compliance with the License.</span>
 <span class="sd">You may obtain a copy of the License at</span>
 
 <span class="sd">    http://www.apache.org/licenses/LICENSE-2.0</span>
 
 <span class="sd">Unless required by applicable law or agreed to in writing, software</span>
-<span class="sd">distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="sd">distributed under the License is distributed on an "AS IS" BASIS,</span>
 <span class="sd">WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
 <span class="sd">See the License for the specific language governing permissions and</span>
 <span class="sd">limitations under the License.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">cvxpy.settings</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">s</span>
 
-<span class="n">INF_OR_UNB_MESSAGE</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="n">INF_OR_UNB_MESSAGE</span> <span class="o">=</span> <span class="s2">"""</span>
 <span class="s2">    The problem is either infeasible or unbounded, but the solver</span>
 <span class="s2">    cannot tell which. Disable any solver-specific presolve methods</span>
 <span class="s2">    and re-solve to determine the precise problem status.</span>
 
 <span class="s2">    For GUROBI and CPLEX you can automatically perform this re-solve</span>
 <span class="s2">    with the keyword argument prob.solve(reoptimize=True, ...).</span>
-<span class="s2">    &quot;&quot;&quot;</span>
+<span class="s2">    """</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">failure_solution</span><span class="p">(</span><span class="n">status</span><span class="p">,</span> <span class="n">attr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dual_vars</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Solution&quot;</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Factory function for infeasible or unbounded solutions.</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">failure_solution</span><span class="p">(</span><span class="n">status</span><span class="p">,</span> <span class="n">attr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dual_vars</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"Solution"</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Factory function for infeasible or unbounded solutions.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -763,7 +763,7 @@
 <span class="sd">    -------</span>
 <span class="sd">    Solution</span>
 <span class="sd">        A solution object.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="n">status</span> <span class="ow">in</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">INFEASIBLE</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">INFEASIBLE_INACCURATE</span><span class="p">]:</span>
         <span class="n">opt_val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
     <span class="k">elif</span> <span class="n">status</span> <span class="ow">in</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">UNBOUNDED</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">UNBOUNDED_INACCURATE</span><span class="p">]:</span>
@@ -775,14 +775,14 @@
     <span class="k">if</span> <span class="n">dual_vars</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">dual_vars</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">if</span> <span class="n">status</span> <span class="o">==</span> <span class="n">s</span><span class="o">.</span><span class="n">INFEASIBLE_OR_UNBOUNDED</span><span class="p">:</span>
-        <span class="n">attr</span><span class="p">[</span><span class="s1">&#39;message&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">INF_OR_UNB_MESSAGE</span>
+        <span class="n">attr</span><span class="p">[</span><span class="s1">'message'</span><span class="p">]</span> <span class="o">=</span> <span class="n">INF_OR_UNB_MESSAGE</span>
     <span class="k">return</span> <span class="n">Solution</span><span class="p">(</span><span class="n">status</span><span class="p">,</span> <span class="n">opt_val</span><span class="p">,</span> <span class="p">{},</span> <span class="n">dual_vars</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="Solution">
 <a class="viewcode-back" href="../../../api_reference/cvxpy.reductions.html#cvxpy.reductions.solution.Solution">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Solution</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;A solution to an optimization problem.</span>
+<span class="w">    </span><span class="sd">"""A solution to an optimization problem.</span>
 
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
@@ -796,7 +796,7 @@
 <span class="sd">        A map from constraint ids to dual values.</span>
 <span class="sd">    attr : dict</span>
 <span class="sd">        Miscellaneous information propagated up from a solver.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span> <span class="n">opt_val</span><span class="p">,</span> <span class="n">primal_vars</span><span class="p">,</span> <span class="n">dual_vars</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">status</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">opt_val</span> <span class="o">=</span> <span class="n">opt_val</span>
@@ -804,7 +804,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">dual_vars</span> <span class="o">=</span> <span class="n">dual_vars</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">attr</span> <span class="o">=</span> <span class="n">attr</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Solution&quot;</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"Solution"</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">Solution</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">,</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">opt_val</span><span class="p">,</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">primal_vars</span><span class="p">,</span>
@@ -812,11 +812,11 @@
                         <span class="bp">self</span><span class="o">.</span><span class="n">attr</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s2">&quot;Solution(status=</span><span class="si">%s</span><span class="s2">, opt_val=</span><span class="si">%s</span><span class="s2">, primal_vars=</span><span class="si">%s</span><span class="s2">, dual_vars=</span><span class="si">%s</span><span class="s2">, attr=</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span>
+        <span class="k">return</span> <span class="s2">"Solution(status=</span><span class="si">%s</span><span class="s2">, opt_val=</span><span class="si">%s</span><span class="s2">, primal_vars=</span><span class="si">%s</span><span class="s2">, dual_vars=</span><span class="si">%s</span><span class="s2">, attr=</span><span class="si">%s</span><span class="s2">)"</span> <span class="o">%</span> <span class="p">(</span>
           <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">opt_val</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">primal_vars</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dual_vars</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">attr</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s2">&quot;Solution(</span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">,</span>
+        <span class="k">return</span> <span class="s2">"Solution(</span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">)"</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">,</span>
                                              <span class="bp">self</span><span class="o">.</span><span class="n">primal_vars</span><span class="p">,</span>
                                              <span class="bp">self</span><span class="o">.</span><span class="n">dual_vars</span><span class="p">,</span>
                                              <span class="bp">self</span><span class="o">.</span><span class="n">attr</span><span class="p">)</span></div>

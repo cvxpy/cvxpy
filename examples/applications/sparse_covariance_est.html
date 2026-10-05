@@ -798,7 +798,7 @@ knowledge that <span class="math notranslate nohighlight">\(S\)</span> is sparse
     <span class="n">prob</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
     <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">CVXOPT</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">prob</span><span class="o">.</span><span class="n">status</span> <span class="o">!=</span> <span class="n">cp</span><span class="o">.</span><span class="n">OPTIMAL</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;CVXPY Error&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">'CVXPY Error'</span><span class="p">)</span>
 
     <span class="c1"># If the covariance matrix R is desired, here is how to create it.</span>
     <span class="n">R_hat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">S</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
@@ -810,7 +810,7 @@ knowledge that <span class="math notranslate nohighlight">\(S\)</span> is sparse
     <span class="c1"># Store this S in the list of results for later plotting.</span>
     <span class="n">Ss</span> <span class="o">+=</span> <span class="p">[</span><span class="n">S</span><span class="p">]</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Completed optimization parameterized by alpha = </span><span class="si">{}</span><span class="s1">, obj value = </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">alpha</span><span class="p">,</span> <span class="n">obj</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">'Completed optimization parameterized by alpha = </span><span class="si">{}</span><span class="s1">, obj value = </span><span class="si">{}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">alpha</span><span class="p">,</span> <span class="n">obj</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
 </code></pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="n">Completed</span> <span class="n">optimization</span> <span class="n">parameterized</span> <span class="n">by</span> <span class="n">alpha</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span> <span class="n">obj</span> <span class="n">value</span> <span class="o">=</span> <span class="o">-</span><span class="mf">16.167608186713004</span>
@@ -825,8 +825,8 @@ knowledge that <span class="math notranslate nohighlight">\(S\)</span> is sparse
 <span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
 
 <span class="c1"># Plot properties.</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;text&#39;</span><span class="p">,</span> <span class="n">usetex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;font&#39;</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="s1">&#39;serif&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">'text'</span><span class="p">,</span> <span class="n">usetex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">'font'</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="s1">'serif'</span><span class="p">)</span>
 
 <span class="c1"># Create figure.</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
@@ -835,13 +835,13 @@ knowledge that <span class="math notranslate nohighlight">\(S\)</span> is sparse
 <span class="c1"># Plot sparsity pattern for the true covariance matrix.</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">spy</span><span class="p">(</span><span class="n">Strue</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Inverse of true covariance matrix&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">'Inverse of true covariance matrix'</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
 
 <span class="c1"># Plot sparsity pattern for each result, corresponding to a specific alpha.</span>
 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">alphas</span><span class="p">)):</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="o">+</span><span class="n">i</span><span class="p">)</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">spy</span><span class="p">(</span><span class="n">Ss</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Estimated inv. cov matrix, $</span><span class="se">\\</span><span class="s1">alpha$=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">alphas</span><span class="p">[</span><span class="n">i</span><span class="p">]),</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">'Estimated inv. cov matrix, $</span><span class="se">\\</span><span class="s1">alpha$=</span><span class="si">{}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">alphas</span><span class="p">[</span><span class="n">i</span><span class="p">]),</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
 </code></pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="o">&lt;</span><span class="n">Figure</span> <span class="n">size</span> <span class="mi">432</span><span class="n">x288</span> <span class="k">with</span> <span class="mi">0</span> <span class="n">Axes</span><span class="o">&gt;</span>

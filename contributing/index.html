@@ -1172,6 +1172,7 @@ solver’s cone format.</p></li>
 <li><p><a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/2618">Marimo examples (maybe using N-d arrays)</a>.</p></li>
 <li><p><a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/2868">QP support for PDLP solver</a>.</p></li>
 <li><p><a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/2567">More array manipulation atoms</a>.</p></li>
+<li><p><a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/3469">Implement cp.block for full numpy.block parity</a>.</p></li>
 <li><p>Support for a set and indexing API similar to <a class="reference external" href="https://ampl.com/wp-content/uploads/Chapter-5-Simple-Sets-and-Indexing-AMPL-Book.pdf">AMPL</a>.</p></li>
 </ul>
 </dd>
@@ -1237,21 +1238,21 @@ Python versions and different platforms. If these tests start failing, please
 fix your code and send another commit, which will re-trigger the tests.</p>
 <h3 id="license"><span id="contrib-license"></span>License<a class="headerlink" href="#license" title="Link to this heading">¶</a></h3>
 <p>Please add the following license to new files:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="sd">&quot;&quot;&quot;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="sd">"""</span>
 <span class="sd">Copyright, the CVXPY authors</span>
 
-<span class="sd">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="sd">Licensed under the Apache License, Version 2.0 (the "License");</span>
 <span class="sd">you may not use this file except in compliance with the License.</span>
 <span class="sd">You may obtain a copy of the License at</span>
 
 <span class="sd">    http://www.apache.org/licenses/LICENSE-2.0</span>
 
 <span class="sd">Unless required by applicable law or agreed to in writing, software</span>
-<span class="sd">distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="sd">distributed under the License is distributed on an "AS IS" BASIS,</span>
 <span class="sd">WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
 <span class="sd">See the License for the specific language governing permissions and</span>
 <span class="sd">limitations under the License.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 </code></pre></div>
 </div>
 <h3 id="code-style"><span id="contrib-style"></span>Code style<a class="headerlink" href="#code-style" title="Link to this heading">¶</a></h3>
@@ -1507,7 +1508,7 @@ Here are examples of helper functions we invoke in <code class="docutils literal
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">test_sdp_1min</span><span class="p">(</span><span class="n">solver</span><span class="p">,</span> <span class="n">places</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="n">sth</span> <span class="o">=</span> <span class="n">sdp_1</span><span class="p">(</span><span class="s1">&#39;min&#39;</span><span class="p">)</span>
+        <span class="n">sth</span> <span class="o">=</span> <span class="n">sdp_1</span><span class="p">(</span><span class="s1">'min'</span><span class="p">)</span>
         <span class="n">sth</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="n">sth</span><span class="o">.</span><span class="n">verify_objective</span><span class="p">(</span><span class="n">places</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>  <span class="c1"># only 2 digits recorded.</span>
         <span class="n">sth</span><span class="o">.</span><span class="n">check_primal_feasibility</span><span class="p">(</span><span class="n">places</span><span class="p">)</span>
@@ -1532,7 +1533,7 @@ Here are examples of helper functions we invoke in <code class="docutils literal
     <span class="k">def</span><span class="w"> </span><span class="nf">test_mi_socp_1</span><span class="p">(</span><span class="n">solver</span><span class="p">,</span> <span class="n">places</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">sth</span> <span class="o">=</span> <span class="n">mi_socp_1</span><span class="p">()</span>
         <span class="n">sth</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="c1"># mixed integer problems don&#39;t have dual variables,</span>
+        <span class="c1"># mixed integer problems don't have dual variables,</span>
         <span class="c1">#   so we only check the optimal objective and primal variables.</span>
         <span class="n">sth</span><span class="o">.</span><span class="n">verify_objective</span><span class="p">(</span><span class="n">places</span><span class="p">)</span>
         <span class="n">sth</span><span class="o">.</span><span class="n">verify_primal_values</span><span class="p">(</span><span class="n">places</span><span class="p">)</span>
@@ -1555,9 +1556,9 @@ passed to <code class="docutils literal notranslate"><span class="pre">sth.solve
 call modified versions of a test with different solver parameters, for example</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_mosek_lp_1</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="c1"># default settings</span>
-    <span class="n">StandardTestLPs</span><span class="o">.</span><span class="n">test_lp_1</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="s1">&#39;MOSEK&#39;</span><span class="p">)</span>  <span class="c1"># 4 places</span>
+    <span class="n">StandardTestLPs</span><span class="o">.</span><span class="n">test_lp_1</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="s1">'MOSEK'</span><span class="p">)</span>  <span class="c1"># 4 places</span>
     <span class="c1"># require a basic feasible solution</span>
-    <span class="n">StandardTestLPs</span><span class="o">.</span><span class="n">test_lp_1</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="s1">&#39;MOSEK&#39;</span><span class="p">,</span> <span class="n">places</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">bfs</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">StandardTestLPs</span><span class="o">.</span><span class="n">test_lp_1</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="s1">'MOSEK'</span><span class="p">,</span> <span class="n">places</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">bfs</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </code></pre></div>
 </div>
 

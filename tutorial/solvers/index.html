@@ -1755,7 +1755,7 @@ The table below shows the types of problems the supported solvers can handle.</p
 <td><p>X</p></td>
 <td><p>X</p></td>
 <td><p>X</p></td>
-<td></td>
+<td><p>X</p></td>
 <td><p>X</p></td>
 <td><p>X</p></td>
 <td></td>
@@ -1907,14 +1907,14 @@ objects manually.</p>
 
 <span class="c1"># Solve with OSQP.</span>
 <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">OSQP</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;optimal value with OSQP:&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"optimal value with OSQP:"</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
 
 <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">CLARABEL</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;optimal value with CLARABEL:&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"optimal value with CLARABEL:"</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
 
 <span class="c1"># Solve with {solver_name}</span>
 <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="p">{</span><span class="n">solver_name</span><span class="p">})</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;optimal value with </span><span class="si">{solver_name}</span><span class="s2">:&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"optimal value with </span><span class="si">{solver_name}</span><span class="s2">:"</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
 
 <span class="n">optimal</span> <span class="n">value</span> <span class="k">with</span> <span class="n">OSQP</span><span class="p">:</span> <span class="mf">6.0</span>
 <span class="o">...</span>
@@ -1925,15 +1925,15 @@ objects manually.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="nb">print</span><span class="p">(</span><span class="n">installed_solvers</span><span class="p">())</span>
 </code></pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="p">[</span><span class="s1">&#39;CBC&#39;</span><span class="p">,</span> <span class="s1">&#39;CVXOPT&#39;</span><span class="p">,</span> <span class="s1">&#39;MOSEK&#39;</span><span class="p">,</span> <span class="s1">&#39;MPAX&#39;</span><span class="p">,</span> <span class="s1">&#39;GLPK&#39;</span><span class="p">,</span> <span class="s1">&#39;GLPK_MI&#39;</span><span class="p">,</span> <span class="s1">&#39;ECOS&#39;</span><span class="p">,</span> <span class="s1">&#39;SCS&#39;</span><span class="p">,</span> <span class="s1">&#39;SDPA&#39;</span>
- <span class="s1">&#39;SCIPY&#39;</span><span class="p">,</span> <span class="s1">&#39;GUROBI&#39;</span><span class="p">,</span> <span class="s1">&#39;OSQP&#39;</span><span class="p">,</span> <span class="s1">&#39;CPLEX&#39;</span><span class="p">,</span> <span class="s1">&#39;NAG&#39;</span><span class="p">,</span> <span class="s1">&#39;SCIP&#39;</span><span class="p">,</span> <span class="s1">&#39;XPRESS&#39;</span><span class="p">,</span> <span class="s1">&#39;PROXQP&#39;</span><span class="p">,</span> <span class="s1">&#39;CUOPT&#39;</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="p">[</span><span class="s1">'CBC'</span><span class="p">,</span> <span class="s1">'CVXOPT'</span><span class="p">,</span> <span class="s1">'MOSEK'</span><span class="p">,</span> <span class="s1">'MPAX'</span><span class="p">,</span> <span class="s1">'GLPK'</span><span class="p">,</span> <span class="s1">'GLPK_MI'</span><span class="p">,</span> <span class="s1">'ECOS'</span><span class="p">,</span> <span class="s1">'SCS'</span><span class="p">,</span> <span class="s1">'SDPA'</span>
+ <span class="s1">'SCIPY'</span><span class="p">,</span> <span class="s1">'GUROBI'</span><span class="p">,</span> <span class="s1">'OSQP'</span><span class="p">,</span> <span class="s1">'CPLEX'</span><span class="p">,</span> <span class="s1">'NAG'</span><span class="p">,</span> <span class="s1">'SCIP'</span><span class="p">,</span> <span class="s1">'XPRESS'</span><span class="p">,</span> <span class="s1">'PROXQP'</span><span class="p">,</span> <span class="s1">'CUOPT'</span><span class="p">]</span>
 </code></pre></div>
 </div>
 <h3 id="viewing-solver-output">Viewing solver output<a class="headerlink" href="#viewing-solver-output" title="Link to this heading">¶</a></h3>
 <p>All the solvers can print out information about their progress while solving the problem. This information can be useful in debugging a solver error. To see the output from both CVXPY and the solvers, set <code class="docutils literal notranslate"><span class="pre">verbose=True</span></code> in the solve method. If you want to see the output from the solver only, set <code class="docutils literal notranslate"><span class="pre">solver_verbose=True</span></code>.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="c1"># Solve with ECOS and display output.</span>
 <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">ECOS</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;optimal value with ECOS: </span><span class="si">{</span><span class="n">prob</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"optimal value with ECOS: </span><span class="si">{</span><span class="n">prob</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </code></pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="n">ECOS</span> <span class="mf">1.0.3</span> <span class="o">-</span> <span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="n">A</span><span class="o">.</span> <span class="n">Domahidi</span><span class="p">,</span> <span class="n">Automatic</span> <span class="n">Control</span> <span class="n">Laboratory</span><span class="p">,</span> <span class="n">ETH</span> <span class="n">Zurich</span><span class="p">,</span> <span class="mi">2012</span><span class="o">-</span><span class="mf">2014.</span>
@@ -1993,11 +1993,11 @@ The code below shows how warm start can accelerate solving a sequence of related
 
 <span class="n">b</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
 <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;First solve time:&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">solver_stats</span><span class="o">.</span><span class="n">solve_time</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"First solve time:"</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">solver_stats</span><span class="o">.</span><span class="n">solve_time</span><span class="p">)</span>
 
 <span class="n">b</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
 <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">warm_start</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Second solve time:&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">solver_stats</span><span class="o">.</span><span class="n">solve_time</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Second solve time:"</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">solver_stats</span><span class="o">.</span><span class="n">solve_time</span><span class="p">)</span>
 </code></pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="n">First</span> <span class="n">solve</span> <span class="n">time</span><span class="p">:</span> <span class="mf">11.14</span>
@@ -2020,12 +2020,12 @@ as the maximum number of iterations. You can pass these options along through CV
 <p>For example, here we tell SCS to use an indirect method for solving linear equations rather than a direct method.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><code><span class="c1"># Solve with SCS, use sparse-indirect method.</span>
 <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">SCS</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">use_indirect</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;optimal value with SCS: </span><span class="si">{</span><span class="n">prob</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"optimal value with SCS: </span><span class="si">{</span><span class="n">prob</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </code></pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="o">----------------------------------------------------------------------------</span>
     <span class="n">SCS</span> <span class="n">v1</span><span class="mf">.0.5</span> <span class="o">-</span> <span class="n">Splitting</span> <span class="n">Conic</span> <span class="n">Solver</span>
-    <span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="n">Brendan</span> <span class="n">O</span><span class="s1">&#39;Donoghue, Stanford University, 2012</span>
+    <span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="n">Brendan</span> <span class="n">O</span><span class="s1">'Donoghue, Stanford University, 2012</span>
 <span class="o">----------------------------------------------------------------------------</span>
 <span class="n">Lin</span><span class="o">-</span><span class="n">sys</span><span class="p">:</span> <span class="n">sparse</span><span class="o">-</span><span class="n">indirect</span><span class="p">,</span> <span class="n">nnz</span> <span class="ow">in</span> <span class="n">A</span> <span class="o">=</span> <span class="mi">13</span><span class="p">,</span> <span class="n">CG</span> <span class="n">tol</span> <span class="o">~</span> <span class="mi">1</span><span class="o">/</span><span class="nb">iter</span><span class="o">^</span><span class="p">(</span><span class="mf">2.00</span><span class="p">)</span>
 <span class="n">EPS</span> <span class="o">=</span> <span class="mf">1.00e-03</span><span class="p">,</span> <span class="n">ALPHA</span> <span class="o">=</span> <span class="mf">1.80</span><span class="p">,</span> <span class="n">MAX_ITERS</span> <span class="o">=</span> <span class="mi">2500</span><span class="p">,</span> <span class="n">NORMALIZE</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">SCALE</span> <span class="o">=</span> <span class="mf">5.00</span>
@@ -2046,11 +2046,11 @@ as the maximum number of iterations. You can pass these options along through CV
 <span class="o">----------------------------------------------------------------------------</span>
 <span class="n">Error</span> <span class="n">metrics</span><span class="p">:</span>
 <span class="o">|</span><span class="n">Ax</span> <span class="o">+</span> <span class="n">s</span> <span class="o">-</span> <span class="n">b</span><span class="o">|</span><span class="n">_2</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="o">|</span><span class="n">b</span><span class="o">|</span><span class="n">_2</span><span class="p">)</span> <span class="o">=</span> <span class="mf">3.9223e-05</span>
-<span class="o">|</span><span class="n">A</span><span class="s1">&#39;y + c|_2 / (1 + |c|_2) = 1.1168e-04</span>
-<span class="o">|</span><span class="n">c</span><span class="s1">&#39;x + b&#39;</span><span class="n">y</span><span class="o">|</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="o">|</span><span class="n">c</span><span class="s1">&#39;x| + |b&#39;</span><span class="n">y</span><span class="o">|</span><span class="p">)</span> <span class="o">=</span> <span class="mf">6.6446e-06</span>
-<span class="n">dist</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">K</span><span class="p">)</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">dist</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">K</span><span class="o">*</span><span class="p">)</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">s</span><span class="s1">&#39;y = 0</span>
+<span class="o">|</span><span class="n">A</span><span class="s1">'y + c|_2 / (1 + |c|_2) = 1.1168e-04</span>
+<span class="o">|</span><span class="n">c</span><span class="s1">'x + b'</span><span class="n">y</span><span class="o">|</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="o">|</span><span class="n">c</span><span class="s1">'x| + |b'</span><span class="n">y</span><span class="o">|</span><span class="p">)</span> <span class="o">=</span> <span class="mf">6.6446e-06</span>
+<span class="n">dist</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">K</span><span class="p">)</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">dist</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">K</span><span class="o">*</span><span class="p">)</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">s</span><span class="s1">'y = 0</span>
 <span class="o">----------------------------------------------------------------------------</span>
-<span class="n">c</span><span class="s1">&#39;x = 6.8284, -b&#39;</span><span class="n">y</span> <span class="o">=</span> <span class="mf">6.8285</span>
+<span class="n">c</span><span class="s1">'x = 6.8284, -b'</span><span class="n">y</span> <span class="o">=</span> <span class="mf">6.8285</span>
 <span class="o">============================================================================</span>
 <span class="n">optimal</span> <span class="n">value</span> <span class="k">with</span> <span class="n">SCS</span><span class="p">:</span> <span class="mf">6.82837896975</span>
 </code></pre></div>
@@ -2513,10 +2513,10 @@ point under the given conditions.</p>
     <span class="n">MIP_CAPABLE</span><span class="o">=</span><span class="kc">False</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s2">&quot;CUSTOM_OSQP&quot;</span>
+        <span class="k">return</span> <span class="s2">"CUSTOM_OSQP"</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">solve_via_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Solving with a custom QP solver!&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"Solving with a custom QP solver!"</span><span class="p">)</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">solve_via_data</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
 

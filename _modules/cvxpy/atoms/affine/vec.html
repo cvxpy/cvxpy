@@ -718,21 +718,21 @@
 
 
 <h1>Source code for cvxpy.atoms.affine.vec</h1><div class="highlight"><pre>
-<span></span><code><span class="sd">&quot;&quot;&quot;</span>
+<span></span><code><span class="sd">"""</span>
 <span class="sd">Copyright 2013 Steven Diamond</span>
 
-<span class="sd">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="sd">Licensed under the Apache License, Version 2.0 (the "License");</span>
 <span class="sd">you may not use this file except in compliance with the License.</span>
 <span class="sd">You may obtain a copy of the License at</span>
 
 <span class="sd">    http://www.apache.org/licenses/LICENSE-2.0</span>
 
 <span class="sd">Unless required by applicable law or agreed to in writing, software</span>
-<span class="sd">distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="sd">distributed under the License is distributed on an "AS IS" BASIS,</span>
 <span class="sd">WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
 <span class="sd">See the License for the specific language governing permissions and</span>
 <span class="sd">limitations under the License.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Literal</span>
 
@@ -743,25 +743,25 @@
 
 <div class="viewcode-block" id="vec">
 <a class="viewcode-back" href="../../../../api_reference/cvxpy.atoms.affine.html#cvxpy.vec">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">vec</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">order</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;F&quot;</span><span class="p">,</span> <span class="s2">&quot;C&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Flattens the matrix X into a 1-d array.</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">vec</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">order</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"F"</span><span class="p">,</span> <span class="s2">"C"</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Flattens the matrix X into a 1-d array.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    X : Expression or numeric constant</span>
 <span class="sd">        The matrix to flatten.</span>
-<span class="sd">    order: column-major (&#39;F&#39;) or row-major (&#39;C&#39;) order.</span>
+<span class="sd">    order: column-major ('F') or row-major ('C') order.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    Expression</span>
 <span class="sd">        An Expression representing the flattened matrix.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="n">order</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">vec_order_warning</span> <span class="o">=</span> <span class="n">DEFAULT_ORDER_DEPRECATION_MSG</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;FUNC_NAME&quot;</span><span class="p">,</span> <span class="s2">&quot;vec&quot;</span><span class="p">)</span>
+        <span class="n">vec_order_warning</span> <span class="o">=</span> <span class="n">DEFAULT_ORDER_DEPRECATION_MSG</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"FUNC_NAME"</span><span class="p">,</span> <span class="s2">"vec"</span><span class="p">)</span>
         <span class="n">warn</span><span class="p">(</span><span class="n">vec_order_warning</span><span class="p">,</span> <span class="ne">FutureWarning</span><span class="p">)</span>
-        <span class="n">order</span> <span class="o">=</span> <span class="s1">&#39;F&#39;</span>
-    <span class="k">assert</span> <span class="n">order</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;F&#39;</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">]</span>
+        <span class="n">order</span> <span class="o">=</span> <span class="s1">'F'</span>
+    <span class="k">assert</span> <span class="n">order</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">'F'</span><span class="p">,</span> <span class="s1">'C'</span><span class="p">]</span>
     <span class="n">X</span> <span class="o">=</span> <span class="n">Expression</span><span class="o">.</span><span class="n">cast_to_const</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">reshape</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">size</span><span class="p">,),</span> <span class="n">order</span><span class="p">)</span></div>
 

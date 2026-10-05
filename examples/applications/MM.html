@@ -763,7 +763,7 @@ it to solve an optimization problem.</p>
 
 <span class="c1"># Solve with CVXPY.</span>
 <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">f</span><span class="p">),</span> <span class="p">[</span><span class="n">A</span><span class="o">*</span><span class="n">x</span> <span class="o">==</span> <span class="n">b</span><span class="p">])</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Optimal value from CVXPY: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Optimal value from CVXPY: </span><span class="si">{}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
 
 <span class="c1"># Solve with method of multipliers.</span>
 <span class="n">resid</span> <span class="o">=</span> <span class="n">A</span><span class="o">*</span><span class="n">x</span> <span class="o">-</span> <span class="n">b</span>
@@ -773,7 +773,7 @@ it to solve an optimization problem.</p>
     <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">aug_lagr</span><span class="p">))</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
     <span class="n">y</span><span class="o">.</span><span class="n">value</span> <span class="o">+=</span> <span class="n">rho</span><span class="o">*</span><span class="n">resid</span><span class="o">.</span><span class="n">value</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Optimal value from method of multipliers: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Optimal value from method of multipliers: </span><span class="si">{}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
 </code></pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="n">Optimal</span> <span class="n">value</span> <span class="kn">from</span><span class="w"> </span><span class="nn">CVXPY</span><span class="p">:</span> <span class="mf">5.5905035557463005</span>
