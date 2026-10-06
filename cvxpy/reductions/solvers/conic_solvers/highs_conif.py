@@ -169,6 +169,11 @@ class HIGHS(ConicSolver):
 
         # map solver statuses back to CVXPY statuses
         status = self.STATUS_MAP.get(results["model_status"], s.UNKNOWN)
+        # A limit can stop HiGHS before it has any primal solution (e.g. a MIP with no
+        # incumbent yet). col_value is then not a solution, so do not report one, as
+        # gurobi_conif.py, copt_conif.py and cuopt_conif.py do in the same case.
+        if status == s.USER_LIMIT and not results["solution"].value_valid:
+            status = s.INFEASIBLE_INACCURATE
         if status in s.SOLUTION_PRESENT:
             opt_val = results["info"].objective_function_value + inverse_data[s.OFFSET]
             primal_vars = {
