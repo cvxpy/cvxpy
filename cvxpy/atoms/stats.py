@@ -22,24 +22,17 @@ from numpy.lib.array_utils import normalize_axis_tuple
 from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.atoms.affine.sum import sum as cvxpy_sum
 from cvxpy.atoms.affine.transpose import moveaxis
+from cvxpy.atoms.axis_atom import axis_size
 from cvxpy.atoms.norm import norm
 from cvxpy.atoms.sum_squares import sum_squares
 from cvxpy.expressions.expression import Expression
-
-
-def _axis_size(x, axis=None) -> int:
-    """Return the number of entries reduced by an axis argument."""
-    if axis is None:
-        return x.size
-    axes = normalize_axis_tuple(axis, len(x.shape), "axis")
-    return int(np.prod([x.shape[a] for a in axes]))
 
 
 def mean(x, axis=None, keepdims=False) -> Expression:
     """
     Returns the mean of x.
     """
-    return cvxpy_sum(x, axis=axis, keepdims=keepdims) / _axis_size(x, axis)
+    return cvxpy_sum(x, axis=axis, keepdims=keepdims) / axis_size(x, axis)
 
 
 def std(x, axis=None, keepdims=False, ddof=0) -> Expression:
@@ -52,7 +45,7 @@ def std(x, axis=None, keepdims=False, ddof=0) -> Expression:
         return norm((x - mean(x)).flatten(order='F'), 2) / np.sqrt(x.size - ddof)
 
     centered = x - mean(x, axis, True)
-    scale = np.sqrt(_axis_size(x, axis) - ddof)
+    scale = np.sqrt(axis_size(x, axis) - ddof)
     if isinstance(axis, numbers.Integral):
         return norm(centered, 2, axis=axis, keepdims=keepdims) / scale
 
@@ -62,7 +55,7 @@ def std(x, axis=None, keepdims=False, ddof=0) -> Expression:
     # and the result is folded back into the shape those axes left behind.
     axes = normalize_axis_tuple(axis, x.ndim, "axis")
     moved = moveaxis(centered, axes, range(len(axes)))
-    pooled = norm(reshape(moved, (_axis_size(x, axis), -1), order='F'), 2, axis=0) / scale
+    pooled = norm(reshape(moved, (axis_size(x, axis), -1), order='F'), 2, axis=0) / scale
     # The output shape is that of any other reduction along these axes.
     out_shape = cvxpy_sum(x, axis=axis, keepdims=keepdims).shape
     return reshape(pooled, out_shape, order='F')
@@ -78,4 +71,4 @@ def var(x, axis=None, keepdims=False, ddof=0) -> Expression:
         x - mean(x, axis, True),
         axis=axis,
         keepdims=keepdims,
-    ) / (_axis_size(x, axis) - ddof)
+    ) / (axis_size(x, axis) - ddof)
