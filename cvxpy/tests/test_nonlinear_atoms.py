@@ -206,6 +206,26 @@ def test_trig_atoms_metadata_numeric_and_grad(atom, numeric, grad, domain_size):
     np.testing.assert_allclose(grad_matrix.diagonal(), grad(value))
 
 
+def test_atan_metadata_numeric_and_grad():
+    x = cp.Variable(2)
+    expr = cp.nlp.atan(x)
+    value = np.array([0.2, -0.3])
+
+    np.testing.assert_allclose(expr.numeric([value]), np.arctan(value))
+    assert expr.sign_from_args() == (False, False)
+    assert cp.nlp.atan(cp.Variable(2, nonneg=True)).sign_from_args() == (True, False)
+    assert cp.nlp.atan(cp.Variable(2, nonpos=True)).sign_from_args() == (False, True)
+    assert not expr.is_atom_convex()
+    assert not expr.is_atom_concave()
+    assert expr.is_atom_smooth()
+    assert expr.is_incr(0)
+    assert not expr.is_decr(0)
+    assert len(expr._domain()) == 0
+
+    grad_matrix = expr._grad([value])[0]
+    np.testing.assert_allclose(grad_matrix.diagonal(), 1 / (1 + value**2))
+
+
 @pytest.mark.parametrize(
     ("atom", "numeric", "domain_size"),
     [
