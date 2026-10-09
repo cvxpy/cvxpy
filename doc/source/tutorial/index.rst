@@ -17,3 +17,4 @@ User Guide
     advanced/index
     performance/index
     solvers/index
+    matlab/index
