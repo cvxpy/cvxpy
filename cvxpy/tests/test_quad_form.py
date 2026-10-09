@@ -81,6 +81,23 @@ class TestDecompQuad(BaseTest):
         assert_equal(M2.size, 0)
         self._check(np.diag([3.0, 0.0, 5.0, 0.0]))
 
+    def test_singular_psd_above_lapack_block(self) -> None:
+        """Blocked Bunch-Kaufman can return a stale pivot once n exceeds 64.
+
+        A rank-1 leading block (two perfectly correlated assets) is PSD with a
+        zero eigenvalue. scipy.linalg.ldl reconstructs it for n=64 and does not
+        for n>=65. decomp_quad must still return factors of P.
+        """
+        def make_P(n):
+            P = np.diag(np.full(n, 0.04))
+            P[:2, :2] = 0.0625
+            return P
+
+        for n in (64, 65, 128):
+            P = make_P(n)
+            self._check(P)
+            self._check(sp.csc_array(P))
+
     def test_complex_hermitian(self) -> None:
         rng = np.random.default_rng(0)
         A = rng.standard_normal((5, 5)) + 1j * rng.standard_normal((5, 5))
