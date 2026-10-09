@@ -246,3 +246,76 @@ class atan(Elementwise):
         cols = self.size
         grad_vals = 1/(1 + values[0]**2)
         return [atan.elemwise_grad_to_diag(grad_vals, rows, cols)]
+
+
+class atan2(Elementwise):
+    """Elementwise :math:`\\operatorname{atan2}(y, x)`, the angle of the point
+    :math:`(x, y)` in :math:`(-\\pi, \\pi]`.
+
+    The argument order follows C and NumPy: ``atan2(y, x)``.
+    """
+
+    def __init__(self, y, x) -> None:
+        super(atan2, self).__init__(y, x)
+
+    @Elementwise.numpy_numeric
+    def numeric(self, values):
+        """Returns the elementwise angle of the point (x, y).
+        """
+        return np.arctan2(values[0], values[1])
+
+    def sign_from_args(self) -> tuple[bool, bool]:
+        """Returns sign (is positive, is negative) of the expression.
+        """
+        # y >= 0 gives an angle in [0, pi]. y <= 0 alone is not enough for a
+        # nonpositive angle since atan2(0, -1) = pi; with x >= 0 the angle
+        # lies in [-pi/2, 0].
+        return (self.args[0].is_nonneg(),
+                self.args[0].is_nonpos() and self.args[1].is_nonneg())
+
+    def is_atom_convex(self) -> bool:
+        """Is the atom convex?
+        """
+        return False
+
+    def is_atom_concave(self) -> bool:
+        """Is the atom concave?
+        """
+        return False
+
+    def is_atom_smooth(self) -> bool:
+        """Is the atom smooth?"""
+        return True
+
+    def is_incr(self, idx) -> bool:
+        """Is the composition non-decreasing in argument idx?
+        """
+        return False
+
+    def is_decr(self, idx) -> bool:
+        """Is the composition non-increasing in argument idx?
+        """
+        return False
+
+    def _domain(self) -> list[Constraint]:
+        """Returns constraints describing the domain of the node.
+        """
+        # The domain is R^2 minus the origin, which has no constraint form.
+        return []
+
+    def _grad(self, values) -> list[Constraint]:
+        """Returns the gradient of the node.
+        """
+        y = values[0]
+        x = values[1]
+        r2 = y**2 + x**2
+        if np.min(r2) <= 0:
+            # Non-differentiable at the origin.
+            return [None, None]
+        grad_vals = [x / r2, -y / r2]
+        grad_list = []
+        for idx in range(len(values)):
+            rows = self.args[idx].size
+            cols = self.size
+            grad_list += [atan2.elemwise_grad_to_diag(grad_vals[idx], rows, cols)]
+        return grad_list

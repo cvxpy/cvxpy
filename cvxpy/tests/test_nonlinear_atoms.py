@@ -226,6 +226,66 @@ def test_atan_metadata_numeric_and_grad():
     np.testing.assert_allclose(grad_matrix.diagonal(), 1 / (1 + value**2))
 
 
+def test_atan2_metadata_numeric_and_grad():
+    y = cp.Variable(2)
+    x = cp.Variable(2)
+    expr = cp.nlp.atan2(y, x)
+    y_val = np.array([0.2, -0.3])
+    x_val = np.array([-0.5, 0.4])
+
+    np.testing.assert_allclose(expr.numeric([y_val, x_val]), np.arctan2(y_val, x_val))
+    assert cp.nlp.atan2(cp.Variable(), cp.Variable((3, 2))).shape == (3, 2)
+    assert expr.sign_from_args() == (False, False)
+    assert cp.nlp.atan2(cp.Variable(2, nonneg=True), x).sign_from_args() == (True, False)
+    assert cp.nlp.atan2(cp.Variable(2, nonpos=True), x).sign_from_args() == (False, False)
+    assert cp.nlp.atan2(cp.Variable(2, nonpos=True),
+                        cp.Variable(2, nonneg=True)).sign_from_args() == (False, True)
+    assert not expr.is_atom_convex()
+    assert not expr.is_atom_concave()
+    assert expr.is_atom_smooth()
+    assert not expr.is_incr(0) and not expr.is_incr(1)
+    assert not expr.is_decr(0) and not expr.is_decr(1)
+    assert len(expr._domain()) == 0
+
+    r2 = y_val**2 + x_val**2
+    grad_y, grad_x = expr._grad([y_val, x_val])
+    np.testing.assert_allclose(grad_y.diagonal(), x_val / r2)
+    np.testing.assert_allclose(grad_x.diagonal(), -y_val / r2)
+    assert expr._grad([np.array([0.0, 1.0]), np.array([0.0, 1.0])]) == [None, None]
+
+
+def test_atan2_canon_lifts_to_fresh_variables():
+    from cvxpy.reductions.dnlp2smooth.canonicalizers.atan2_canon import MIN_INIT_RADIUS
+    from cvxpy.reductions.dnlp2smooth.dnlp2smooth import Dnlp2Smooth
+
+    # Same variable in both slots, starting at the origin.
+    x = cp.Variable(3)
+    x.value = np.zeros(3)
+    prob = cp.Problem(cp.Minimize(cp.sum(cp.nlp.atan2(x, x))))
+    canon, _ = Dnlp2Smooth().apply(prob)
+    atom = canon.objective.expr.args[0]
+    t1, t2 = atom.args
+    assert isinstance(t1, cp.Variable) and isinstance(t2, cp.Variable)
+    assert t1 is not t2 and t1 is not x and t2 is not x
+    assert t1.shape == (3,) and t2.shape == (3,)
+    assert len(canon.constraints) == 2
+    np.testing.assert_allclose(np.hypot(t2.value, t1.value), MIN_INIT_RADIUS)
+    np.testing.assert_array_equal(x.value, np.zeros(3))
+
+    # Scalar and matrix arguments are lifted to variables of the atom's shape,
+    # and initial values away from the origin are kept.
+    y = cp.Variable()
+    y.value = 2.0
+    z = cp.Variable((3, 2))
+    z.value = np.full((3, 2), -1.5)
+    prob = cp.Problem(cp.Minimize(cp.sum(cp.nlp.atan2(y, z))))
+    canon, _ = Dnlp2Smooth().apply(prob)
+    t1, t2 = canon.objective.expr.args[0].args
+    assert t1.shape == (3, 2) and t2.shape == (3, 2)
+    np.testing.assert_allclose(t1.value, np.full((3, 2), 2.0))
+    np.testing.assert_allclose(t2.value, np.full((3, 2), -1.5))
+
+
 @pytest.mark.parametrize(
     ("atom", "numeric", "domain_size"),
     [

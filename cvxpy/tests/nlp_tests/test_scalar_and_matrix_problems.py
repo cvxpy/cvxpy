@@ -328,3 +328,92 @@ class TestScalarProblems():
         assert prob.status == cp.OPTIMAL
         checker = DerivativeChecker(prob)
         checker.run_and_assert()
+
+    # The atan2 tests leave the variables without initial values, so they
+    # start at the origin and exercise the canonicalizer's nudge away from it.
+    def test_atan2_both_scalar_variables(self):
+        x = cp.Variable()
+        y = cp.Variable()
+        prob = cp.Problem(cp.Minimize(cp.nlp.atan2(x, y)),
+                          [x >= 0.1, y >= 0.1, x <= 2, y <= 2])
+        prob.solve(nlp=True, solver=cp.IPOPT, verbose=False)
+        assert prob.status == cp.OPTIMAL
+        assert np.isclose(prob.value, np.arctan2(0.1, 2))
+        checker = DerivativeChecker(prob)
+        checker.run_and_assert()
+
+        x = cp.Variable((1, ))
+        y = cp.Variable((1, ))
+        prob = cp.Problem(cp.Minimize(cp.nlp.atan2(x, y)),
+                          [x >= 0.1, y >= 0.1, x <= 2, y <= 2])
+        prob.solve(nlp=True, solver=cp.IPOPT, verbose=False)
+        assert prob.status == cp.OPTIMAL
+        checker = DerivativeChecker(prob)
+        checker.run_and_assert()
+
+    def test_atan2_matrix_variable_and_scalar_variable(self):
+        x = cp.Variable((3, 2))
+        y = cp.Variable()
+        prob = cp.Problem(cp.Minimize(cp.sum(cp.nlp.atan2(x, y))),
+                          [x >= 0.1, y >= 0.1, x <= 2, y <= 2])
+        prob.solve(nlp=True, solver=cp.IPOPT, verbose=False)
+        assert prob.status == cp.OPTIMAL
+        checker = DerivativeChecker(prob)
+        checker.run_and_assert()
+
+    def test_atan2_scalar_variable_and_matrix_variable(self):
+        x = cp.Variable()
+        y = cp.Variable((3, 2))
+        prob = cp.Problem(cp.Minimize(cp.sum(cp.nlp.atan2(x, y))),
+                          [x >= 0.1, y >= 0.1, x <= 2, y <= 2])
+        prob.solve(nlp=True, solver=cp.IPOPT, verbose=False)
+        assert prob.status == cp.OPTIMAL
+        checker = DerivativeChecker(prob)
+        checker.run_and_assert()
+
+    def test_atan2_both_matrix_variables(self):
+        x = cp.Variable((3, 2))
+        y = cp.Variable((3, 2))
+        prob = cp.Problem(cp.Minimize(cp.sum(cp.nlp.atan2(x, y))),
+                          [x >= 0.1, y >= 0.1, x <= 2, y <= 2])
+        prob.solve(nlp=True, solver=cp.IPOPT, verbose=False)
+        assert prob.status == cp.OPTIMAL
+        checker = DerivativeChecker(prob)
+        checker.run_and_assert()
+
+    def test_atan2_both_vector_variables(self):
+        x = cp.Variable((3, ))
+        y = cp.Variable((3, ))
+        prob = cp.Problem(cp.Minimize(cp.sum(cp.nlp.atan2(x, y))),
+                          [x >= 0.1, y >= 0.1, x <= 2, y <= 2])
+        prob.solve(nlp=True, solver=cp.IPOPT, verbose=False)
+        assert prob.status == cp.OPTIMAL
+        checker = DerivativeChecker(prob)
+        checker.run_and_assert()
+
+    def test_atan2_same_variable(self):
+        # atan2(x, x) = pi/4 for x > 0; the canonicalizer lifts both slots to
+        # distinct variables so the leaf-only engine atom accepts them.
+        x = cp.Variable(3)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(x - 1) + cp.sum(cp.nlp.atan2(x, x))),
+                          [x >= 0.1])
+        prob.solve(nlp=True, solver=cp.IPOPT, verbose=False)
+        assert prob.status == cp.OPTIMAL
+        assert np.isclose(prob.value, 3 * np.pi / 4)
+        checker = DerivativeChecker(prob)
+        checker.run_and_assert()
+
+    def test_atan2_angle_wrap(self):
+        # atan2(sin(theta), cos(theta)) wraps theta into (-pi, pi]. The
+        # arguments are not variables, so the canonicalizer has to lift them.
+        target = np.array([0.5, -2.0, 2.5])
+        theta = cp.Variable(3)
+        theta.value = target + 2 * np.pi
+        wrapped = cp.nlp.atan2(cp.nlp.sin(theta), cp.nlp.cos(theta))
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(wrapped - target)))
+        prob.solve(nlp=True, solver=cp.IPOPT, verbose=False)
+        assert prob.status == cp.OPTIMAL
+        np.testing.assert_allclose(
+            np.arctan2(np.sin(theta.value), np.cos(theta.value)), target, atol=1e-5)
+        checker = DerivativeChecker(prob)
+        checker.run_and_assert()
