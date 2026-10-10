@@ -239,8 +239,8 @@ Install with Additional Solver Support
     This requires the `SciPy`_ package in Python, which should already be installed, as it is a requirement for CVXPY.
     `SciPy`_'s "interior-point" and "revised-simplex" implementations are written in Python and are always available.
     However, the main advantage of this solver is its ability to use the `HiGHS`_ LP and MIP solvers (which are written in C++).
-    `HiGHS`_ LP solvers come bundled with `SciPy`_ version 1.6.1 and higher.
-    The `HiGHS`_ MIP solver comes bundled with version 1.9.0 and higher.
+    `HiGHS`_ LP solvers come bundled with SciPy and are used by default when you solve an LP with CVXPY's SCIPY interface.
+    The `HiGHS`_ MIP solver is likewise available through SciPy's ``scipy.optimize.milp`` (used automatically for mixed-integer LPs).
 
 .. info:: PIQP
     :collapsible:
