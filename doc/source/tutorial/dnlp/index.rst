@@ -183,6 +183,12 @@ nor concave. These atoms can only be used in DNLP problems and are available in 
      - :math:`x \in \mathbf{R}`
      - incr.
 
+   * - cp.nlp.atan2(y, x)
+
+     - angle of :math:`(x, y)` in :math:`(-\pi, \pi]`
+     - :math:`(x, y) \neq (0, 0)`
+     - none
+
    * - cp.nlp.sinh(x)
 
      - :math:`(e^x - e^{-x})/2`

@@ -12,9 +12,9 @@ Example usage:
 
 from cvxpy.atoms.elementwise.hyperbolic import sinh, tanh, asinh, atanh
 from cvxpy.atoms.elementwise.normcdf import normcdf
-from cvxpy.atoms.elementwise.trig import atan, cos, sin, tan
+from cvxpy.atoms.elementwise.trig import atan, atan2, cos, sin, tan
 
 __all__ = [
-    "sin", "cos", "tan", "atan", "normcdf",
+    "sin", "cos", "tan", "atan", "atan2", "normcdf",
     "sinh", "tanh", "asinh", "atanh",
 ]
