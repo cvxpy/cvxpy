@@ -16,7 +16,7 @@ limitations under the License.
 
 
 import numpy as np
-import scipy  # For version checks
+import scipy
 
 import cvxpy.settings as s
 from cvxpy.constraints import NonNeg, Zero
@@ -24,24 +24,20 @@ from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.utilities.citations import CITATION_DICT
-from cvxpy.utilities.versioning import Version
-from cvxpy.utilities.warn import warn
 
 
 class SCIPY(ConicSolver):
-    """An interface for the SciPy linprog function.
-    Note: This requires a version of SciPy which is >= 1.6.1
+    """An interface for the SciPy linprog and milp functions.
+    The default LP method is ``highs`` (HiGHS), which is the recommended way to use
+    the bundled HiGHS LP/MIP solvers.
     """
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS
     BOUNDED_VARIABLES = True
     REQUIRED_MODULES = ("scipy.optimize",)
 
     # Solver capabilities.
-    if (Version(scipy.__version__) < Version('1.9.0')):
-        MIP_CAPABLE = False
-    else:
-        MIP_CAPABLE = True
-        MI_SUPPORTED_CONSTRAINTS = SUPPORTED_CONSTRAINTS
+    MIP_CAPABLE = True
+    MI_SUPPORTED_CONSTRAINTS = SUPPORTED_CONSTRAINTS
 
     # Map of SciPy linprog status
     STATUS_MAP = {0: s.OPTIMAL,  # Optimal
@@ -107,11 +103,8 @@ class SCIPY(ConicSolver):
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
         from scipy import optimize as opt
 
-        # Set default method which can be overridden by user inputs
-        if (Version(scipy.__version__) < Version('1.6.1')):
-            meth = "interior-point"
-        else:
-            meth = "highs"
+        # Set default method which can be overridden by user inputs.
+        meth = "highs"
 
         # Check if the problem is a MIP.
         problem_is_a_mip = data[s.BOOL_IDX] or data[s.INT_IDX]
@@ -162,19 +155,8 @@ class SCIPY(ConicSolver):
                                  "prob.solve(solver='SCIPY', verbose=True,"
                                  " scipy_options={'method':'highs-ds', 'maxiter':10000})")
 
-            if Version(scipy.__version__) < Version('1.9.0'):
-                # Raise warning if the 'method' parameter is not specified
-                if "method" not in solver_opts['scipy_options']:
-                    self._log_scipy_method_warning(meth)
-
             if "method" in solver_opts["scipy_options"]:
                 meth = solver_opts["scipy_options"].pop("method")
-
-                # Check to see if scipy version larger than 1.6.1 is installed
-                # if method chosen is one of the highs methods.
-                ver = (Version(scipy.__version__) < Version('1.6.1'))
-                if ((meth in ['highs-ds', 'highs-ipm', 'highs']) & ver):
-                    raise ValueError("The HiGHS solvers require a SciPy version >= 1.6.1")
 
             # Disable the 'bounds' parameter to avoid problems with
             # canonicalised problems.
@@ -201,9 +183,6 @@ class SCIPY(ConicSolver):
         else:
             # Instantiate an empty `scipy_options` entry.
             solver_opts['scipy_options'] = {}
-
-            if Version(scipy.__version__) < Version('1.9.0'):
-                self._log_scipy_method_warning(meth)
 
         if problem_is_a_mip:
             constraints = []
@@ -240,15 +219,6 @@ class SCIPY(ConicSolver):
 
         return solution
 
-    def _log_scipy_method_warning(self, meth):
-        warn("It is best to specify the 'method' parameter "
-              "within scipy_options. The main advantage "
-              "of this solver is its ability to use the "
-              "HiGHS LP solvers via scipy.optimize.linprog(), "
-              "which requires a SciPy version >= 1.6.1."
-              "\n\nThe default method '{}' will be"
-              " used in this case.\n".format(meth))
-
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data.
         """
@@ -266,9 +236,9 @@ class SCIPY(ConicSolver):
             opt_val = primal_val + inverse_data[s.OFFSET]
             primal_vars = {inverse_data[self.VAR_ID]: solution['x']}
 
-            # SciPy linprog only returns duals for version >= 1.7.0
-            # and method is one of 'highs', 'highs-ds' or 'highs-ipm'
-            # MIP problems don't have duals and thus are not updated.
+            # SciPy's HiGHS methods return dual marginals when available; older
+            # SciPy linprog backends or non-HiGHS methods may omit them. MIP
+            # solutions do not include duals.
             if 'ineqlin' in solution and not inverse_data['is_mip']:
                 eq_dual = utilities.get_dual_values(
                     -solution['eqlin']['marginals'],

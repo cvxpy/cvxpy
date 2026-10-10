@@ -3331,8 +3331,7 @@ class TestECOS_BB(unittest.TestCase):
 class TestSCIPY(unittest.TestCase):
 
     def setUp(self):
-        import scipy
-        self.d = Version(scipy.__version__) >= Version('1.7.0')
+        self.d = True
 
     def test_scipy_lp_0(self) -> None:
         StandardTestLPs.test_lp_0(solver='SCIPY', duals=self.d)
