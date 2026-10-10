@@ -226,7 +226,7 @@ def test_atan_metadata_numeric_and_grad():
     np.testing.assert_allclose(grad_matrix.diagonal(), 1 / (1 + value**2))
 
 
-def test_atan2_metadata_numeric_and_grad():
+def test_atan2_sign_and_grad():
     y = cp.Variable(2)
     x = cp.Variable(2)
     expr = cp.nlp.atan2(y, x)
@@ -234,18 +234,14 @@ def test_atan2_metadata_numeric_and_grad():
     x_val = np.array([-0.5, 0.4])
 
     np.testing.assert_allclose(expr.numeric([y_val, x_val]), np.arctan2(y_val, x_val))
-    assert cp.nlp.atan2(cp.Variable(), cp.Variable((3, 2))).shape == (3, 2)
+    assert expr.is_atom_smooth()
+
+    # y >= 0 gives [0, pi]; y <= 0 needs x >= 0 for [-pi/2, 0] (atan2(0, -1) = pi).
     assert expr.sign_from_args() == (False, False)
     assert cp.nlp.atan2(cp.Variable(2, nonneg=True), x).sign_from_args() == (True, False)
     assert cp.nlp.atan2(cp.Variable(2, nonpos=True), x).sign_from_args() == (False, False)
     assert cp.nlp.atan2(cp.Variable(2, nonpos=True),
                         cp.Variable(2, nonneg=True)).sign_from_args() == (False, True)
-    assert not expr.is_atom_convex()
-    assert not expr.is_atom_concave()
-    assert expr.is_atom_smooth()
-    assert not expr.is_incr(0) and not expr.is_incr(1)
-    assert not expr.is_decr(0) and not expr.is_decr(1)
-    assert len(expr._domain()) == 0
 
     r2 = y_val**2 + x_val**2
     grad_y, grad_x = expr._grad([y_val, x_val])

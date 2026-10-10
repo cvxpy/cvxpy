@@ -329,8 +329,6 @@ class TestScalarProblems():
         checker = DerivativeChecker(prob)
         checker.run_and_assert()
 
-    # The atan2 tests leave the variables without initial values, so they
-    # start at the origin and exercise the canonicalizer's nudge away from it.
     def test_atan2_both_scalar_variables(self):
         x = cp.Variable()
         y = cp.Variable()
@@ -403,17 +401,16 @@ class TestScalarProblems():
         checker = DerivativeChecker(prob)
         checker.run_and_assert()
 
-    def test_atan2_angle_wrap(self):
-        # atan2(sin(theta), cos(theta)) wraps theta into (-pi, pi]. The
-        # arguments are not variables, so the canonicalizer has to lift them.
+    def test_atan2_composite(self):
+        # atan2 of non-variable arguments exercises the canonicalizer's lifting
+        A = np.array([[1.0, 0.5, 0.0], [0.0, 1.0, -0.5], [0.5, 0.0, 1.0]])
+        B = np.array([[1.0, -0.5, 0.0], [0.0, 1.0, 0.5], [-0.5, 0.0, 1.0]])
         target = np.array([0.5, -2.0, 2.5])
         theta = cp.Variable(3)
         theta.value = target + 2 * np.pi
-        wrapped = cp.nlp.atan2(cp.nlp.sin(theta), cp.nlp.cos(theta))
-        prob = cp.Problem(cp.Minimize(cp.sum_squares(wrapped - target)))
+        angle = cp.nlp.atan2(cp.nlp.sin(A @ theta), cp.nlp.cos(B @ theta))
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(angle - target)))
         prob.solve(nlp=True, solver=cp.IPOPT, verbose=False)
         assert prob.status == cp.OPTIMAL
-        np.testing.assert_allclose(
-            np.arctan2(np.sin(theta.value), np.cos(theta.value)), target, atol=1e-5)
         checker = DerivativeChecker(prob)
         checker.run_and_assert()

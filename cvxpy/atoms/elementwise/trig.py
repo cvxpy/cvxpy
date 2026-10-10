@@ -309,13 +309,9 @@ class atan2(Elementwise):
         y = values[0]
         x = values[1]
         r2 = y**2 + x**2
-        if np.min(r2) <= 0:
+        if np.any(r2 == 0):
             # Non-differentiable at the origin.
             return [None, None]
-        grad_vals = [x / r2, -y / r2]
-        grad_list = []
-        for idx in range(len(values)):
-            rows = self.args[idx].size
-            cols = self.size
-            grad_list += [atan2.elemwise_grad_to_diag(grad_vals[idx], rows, cols)]
-        return grad_list
+        cols = self.size
+        return [atan2.elemwise_grad_to_diag(x / r2, self.args[0].size, cols),
+                atan2.elemwise_grad_to_diag(-y / r2, self.args[1].size, cols)]
