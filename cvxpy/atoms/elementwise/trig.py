@@ -310,7 +310,6 @@ class atan2(Elementwise):
         x = values[1]
         r2 = y**2 + x**2
         if np.any(r2 == 0):
-            # Non-differentiable at the origin.
             return [None, None]
         cols = self.size
         return [atan2.elemwise_grad_to_diag(x / r2, self.args[0].size, cols),

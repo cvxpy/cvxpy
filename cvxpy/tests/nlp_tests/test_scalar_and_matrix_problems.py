@@ -402,7 +402,6 @@ class TestScalarProblems():
         checker.run_and_assert()
 
     def test_atan2_composite(self):
-        # atan2 of non-variable arguments exercises the canonicalizer's lifting
         A = np.array([[1.0, 0.5, 0.0], [0.0, 1.0, -0.5], [0.5, 0.0, 1.0]])
         B = np.array([[1.0, -0.5, 0.0], [0.0, 1.0, 0.5], [-0.5, 0.0, 1.0]])
         target = np.array([0.5, -2.0, 2.5])

@@ -24,11 +24,22 @@ from cvxpy.expressions.variable import Variable
 MIN_INIT_RADIUS = 1.0
 
 
-def _lifted_value(arg, shape):
-    """Value of arg broadcast to shape, or zeros if it has no value."""
+def _value_on_shape(arg, shape):
+    """Current value of arg broadcast to shape, or zeros if it has none."""
     if arg.value is None:
         return np.zeros(shape)
     return np.array(np.broadcast_to(arg.value, shape), dtype=float)
+
+
+def _initial_point(y, x):
+    """Push entries closer to the origin than MIN_INIT_RADIUS out to that
+    radius, keeping their angle. The origin itself goes to angle 0."""
+    r = np.hypot(x, y)
+    at_origin = r == 0
+    scale = np.where(r < MIN_INIT_RADIUS, MIN_INIT_RADIUS / np.where(at_origin, 1.0, r), 1.0)
+    y = y * scale
+    x = np.where(at_origin, MIN_INIT_RADIUS, x * scale)
+    return y, x
 
 
 def atan2_canon(expr, args):
@@ -39,22 +50,12 @@ def atan2_canon(expr, args):
     non-variable arguments, scalar/matrix broadcasting and atan2(x, x).
 
     The derivatives of atan2 are undefined at the origin, and variables without
-    a user-specified value are initialized to zero before this reduction runs.
-    The fresh variables are therefore initialized at the argument values pushed
-    out to radius MIN_INIT_RADIUS (preserving the angle; the exact origin is
-    moved to angle 0) without touching the user's variables.
+    a user-specified value are initialized to zero before this reduction runs,
+    so the fresh variables are initialized away from the origin.
     """
     shape = expr.shape
-    y0 = _lifted_value(args[0], shape)
-    x0 = _lifted_value(args[1], shape)
-
-    r = np.hypot(x0, y0)
-    small = r < MIN_INIT_RADIUS
-    at_origin = r == 0
-    scale = MIN_INIT_RADIUS / np.where(at_origin, 1.0, r)
-    x0 = np.where(small, np.where(at_origin, MIN_INIT_RADIUS, x0 * scale), x0)
-    y0 = np.where(small, y0 * scale, y0)
-
+    y0, x0 = _initial_point(_value_on_shape(args[0], shape),
+                            _value_on_shape(args[1], shape))
     t1 = Variable(shape)
     t2 = Variable(shape)
     t1.value = y0
