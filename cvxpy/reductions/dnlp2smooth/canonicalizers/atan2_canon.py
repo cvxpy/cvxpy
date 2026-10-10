@@ -32,10 +32,10 @@ def _value_on_shape(arg, shape):
 
 
 def _initial_point(y, x):
-    """Push entries closer to the origin than MIN_INIT_RADIUS out to that
-    radius, keeping their angle. The origin itself goes to angle 0."""
+    """Rescale entries with radius below MIN_INIT_RADIUS to that radius,
+    preserving their angle. Entries at the origin are moved to angle 0."""
     r = np.hypot(x, y)
-    at_origin = r == 0
+    at_origin = (r == 0)
     scale = np.where(r < MIN_INIT_RADIUS, MIN_INIT_RADIUS / np.where(at_origin, 1.0, r), 1.0)
     y = y * scale
     x = np.where(at_origin, MIN_INIT_RADIUS, x * scale)
@@ -43,16 +43,8 @@ def _initial_point(y, x):
 
 
 def atan2_canon(expr, args):
-    """Canonicalize atan2(y, x) by lifting both arguments to fresh variables.
-
-    The diff engine's atan2 atom is leaf-only: both children must be distinct
-    variables of the same shape. Lifting through equality constraints handles
-    non-variable arguments, scalar/matrix broadcasting and atan2(x, x).
-
-    The derivatives of atan2 are undefined at the origin, and variables without
-    a user-specified value are initialized to zero before this reduction runs,
-    so the fresh variables are initialized away from the origin.
-    """
+    """Canonicalize atan2(y, x) by lifting both arguments to fresh variables
+    (required by the diff engine), initialized away from the origin."""
     shape = expr.shape
     y0, x0 = _initial_point(_value_on_shape(args[0], shape),
                             _value_on_shape(args[1], shape))
