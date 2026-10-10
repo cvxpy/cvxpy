@@ -24,13 +24,6 @@ from cvxpy.expressions.variable import Variable
 MIN_INIT_RADIUS = 1.0
 
 
-def _value_on_shape(arg, shape):
-    """Current value of arg broadcast to shape, or zeros if it has none."""
-    if arg.value is None:
-        return np.zeros(shape)
-    return np.array(np.broadcast_to(arg.value, shape), dtype=float)
-
-
 def _initial_point(y, x):
     """Rescale entries with radius below MIN_INIT_RADIUS to that radius,
     preserving their angle. Entries at the origin are moved to angle 0."""
@@ -46,8 +39,9 @@ def atan2_canon(expr, args):
     """Canonicalize atan2(y, x) by lifting both arguments to fresh variables
     (required by the diff engine), initialized away from the origin."""
     shape = expr.shape
-    y0, x0 = _initial_point(_value_on_shape(args[0], shape),
-                            _value_on_shape(args[1], shape))
+    y0 = np.zeros(shape) if args[0].value is None else np.broadcast_to(args[0].value, shape)
+    x0 = np.zeros(shape) if args[1].value is None else np.broadcast_to(args[1].value, shape)
+    y0, x0 = _initial_point(y0, x0)
     t1 = Variable(shape)
     t2 = Variable(shape)
     t1.value = y0
