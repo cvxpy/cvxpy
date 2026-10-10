@@ -3330,17 +3330,14 @@ class TestECOS_BB(unittest.TestCase):
 
 class TestSCIPY(unittest.TestCase):
 
-    def setUp(self):
-        self.d = True
-
     def test_scipy_lp_0(self) -> None:
-        StandardTestLPs.test_lp_0(solver='SCIPY', duals=self.d)
+        StandardTestLPs.test_lp_0(solver='SCIPY', duals=True)
 
     def test_scipy_lp_1(self) -> None:
-        StandardTestLPs.test_lp_1(solver='SCIPY', duals=self.d)
+        StandardTestLPs.test_lp_1(solver='SCIPY', duals=True)
 
     def test_scipy_lp_2(self) -> None:
-        StandardTestLPs.test_lp_2(solver='SCIPY', duals=self.d)
+        StandardTestLPs.test_lp_2(solver='SCIPY', duals=True)
 
     def test_scipy_lp_3(self) -> None:
         StandardTestLPs.test_lp_3(solver='SCIPY')
@@ -3349,10 +3346,10 @@ class TestSCIPY(unittest.TestCase):
         StandardTestLPs.test_lp_4(solver='SCIPY')
 
     def test_scipy_lp_5(self) -> None:
-        StandardTestLPs.test_lp_5(solver='SCIPY', duals=self.d)
+        StandardTestLPs.test_lp_5(solver='SCIPY', duals=True)
 
     def test_scipy_lp_solver_stats(self) -> None:
-        sth = StandardTestLPs.test_lp_0(solver='SCIPY', duals=self.d)
+        sth = StandardTestLPs.test_lp_0(solver='SCIPY', duals=True)
 
         # Equal because presolve might directly find the solution in 0 iterations
         self.assertGreaterEqual(sth.prob.solver_stats.num_iters, 0)
@@ -3398,7 +3395,7 @@ class TestSCIPY(unittest.TestCase):
         self.assertTrue("mip_dual_bound" in sth.prob.solver_stats.extra_stats)
 
     def test_scipy_lp_bound_attr(self) -> None:
-        StandardTestLPs.test_lp_bound_attr(solver='SCIPY', duals=self.d)
+        StandardTestLPs.test_lp_bound_attr(solver='SCIPY', duals=True)
 
 
 @unittest.skipUnless('COPT' in INSTALLED_SOLVERS, 'COPT is not installed.')
