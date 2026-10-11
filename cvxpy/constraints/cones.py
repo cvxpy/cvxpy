@@ -75,3 +75,23 @@ class Cone(Constraint):
         Returns ``None`` if the dual variable has no value yet.
         """
         return self._dual_cone(*self.dual_variables).residual
+
+    def complementarity_violation(self) -> float:
+        """Return the scalar violation of complementary slackness.
+
+        For a primal cone element ``s`` and corresponding dual element ``y``,
+        complementary slackness requires ``<s, y> = 0``. This method returns
+        ``|<s, y>|``, using the Hermitian inner product for complex-valued
+        arguments.
+        """
+        pairing = 0.0
+        for arg, dual_var in zip(self.args, self.dual_variables):
+            primal = arg.value
+            dual = dual_var.value
+            if primal is None or dual is None:
+                raise ValueError(
+                    "Cannot compute complementarity violation: missing primal "
+                    "or dual value."
+                )
+            pairing += np.vdot(np.asarray(primal), np.asarray(dual))
+        return abs(pairing)
