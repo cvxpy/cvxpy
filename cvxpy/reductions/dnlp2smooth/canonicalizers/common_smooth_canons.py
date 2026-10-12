@@ -86,6 +86,7 @@ prod_canon = smooth_full_domain_canon_non_chain_rule
 exp_canon = smooth_full_domain_canon_chain_rule
 sin_canon = smooth_full_domain_canon_chain_rule
 cos_canon = smooth_full_domain_canon_chain_rule
+atan_canon = smooth_full_domain_canon_chain_rule
 sinh_canon = smooth_full_domain_canon_chain_rule
 tanh_canon = smooth_full_domain_canon_chain_rule
 asinh_canon = smooth_full_domain_canon_chain_rule

@@ -189,3 +189,60 @@ class tan(Elementwise):
         cols = self.size
         grad_vals = 1/np.cos(values[0])**2
         return [tan.elemwise_grad_to_diag(grad_vals, rows, cols)]
+
+
+class atan(Elementwise):
+    """Elementwise :math:`\\arctan x`.
+    """
+
+    def __init__(self, x) -> None:
+        super(atan, self).__init__(x)
+
+    @Elementwise.numpy_numeric
+    def numeric(self, values):
+        """Returns the elementwise arctangent of x.
+        """
+        return np.arctan(values[0])
+
+    def sign_from_args(self) -> tuple[bool, bool]:
+        """Returns sign (is positive, is negative) of the expression.
+        """
+        # atan is odd and increasing, so it has the sign of its argument.
+        return (self.args[0].is_nonneg(), self.args[0].is_nonpos())
+
+    def is_atom_convex(self) -> bool:
+        """Is the atom convex?
+        """
+        return False
+
+    def is_atom_concave(self) -> bool:
+        """Is the atom concave?
+        """
+        return False
+
+    def is_atom_smooth(self) -> bool:
+        """Is the atom smooth?"""
+        return True
+
+    def is_incr(self, idx) -> bool:
+        """Is the composition non-decreasing in argument idx?
+        """
+        return True
+
+    def is_decr(self, idx) -> bool:
+        """Is the composition non-increasing in argument idx?
+        """
+        return False
+
+    def _domain(self) -> list[Constraint]:
+        """Returns constraints describing the domain of the node.
+        """
+        return []
+
+    def _grad(self, values) -> list[Constraint]:
+        """Returns the gradient of the node.
+        """
+        rows = self.args[0].size
+        cols = self.size
+        grad_vals = 1/(1 + values[0]**2)
+        return [atan.elemwise_grad_to_diag(grad_vals, rows, cols)]

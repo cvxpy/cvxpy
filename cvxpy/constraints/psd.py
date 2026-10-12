@@ -158,7 +158,6 @@ class PSD(Cone):
         op_norms = np.linalg.norm(residual, ord=2, axis=(-2, -1))
         return float(np.max(op_norms))
 
-
 class SvecPSD(Cone):
     """A PSD constraint in scaled vectorized (svec) form.
 

@@ -333,6 +333,12 @@ class Constraint(u.Canonical):
             return 0.0
         return float(np.linalg.norm(residual_arr.ravel(), ord=np.inf))
 
+    def complementarity_violation(self):
+        """Scalar violation of complementary slackness."""
+        raise NotImplementedError(
+            f"{type(self).__name__} does not implement complementarity checks."
+        )
+
     def is_dual_feasible(self, tolerance: float = 1e-8) -> bool:
         """Whether the dual variable satisfies the dual cone constraint.
 
