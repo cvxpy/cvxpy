@@ -105,6 +105,16 @@ class NonPos(Constraint):
             return None
         return -np.minimum(dv, 0.0)
 
+    def complementarity_violation(self) -> float:
+        expr_val = self.expr.value
+        dv = self.dual_variables[0].value
+        if expr_val is None or dv is None:
+            raise ValueError(
+                "Cannot compute complementarity violation: missing primal "
+                "or dual value."
+            )
+        pairing = np.vdot(np.asarray(expr_val), np.asarray(dv))
+        return abs(pairing)
 
 class NonNeg(Constraint):
     """A constraint of the form :math:`x \\geq 0`.
@@ -170,6 +180,16 @@ class NonNeg(Constraint):
             return None
         return -np.minimum(dv, 0.0)
 
+    def complementarity_violation(self) -> float:
+        expr_val = self.expr.value
+        dv = self.dual_variables[0].value
+        if expr_val is None or dv is None:
+            raise ValueError(
+                "Cannot compute complementarity violation: missing primal "
+                "or dual value."
+            )
+        pairing = np.vdot(np.asarray(expr_val), np.asarray(dv))
+        return abs(pairing)
 
 class Inequality(Constraint):
     """A constraint of the form :math:`x \\leq y`.
@@ -274,3 +294,14 @@ class Inequality(Constraint):
         if dv is None:
             return None
         return -np.minimum(dv, 0.0)
+
+    def complementarity_violation(self) -> float:
+        expr_val = self.expr.value
+        dv = self.dual_variables[0].value
+        if expr_val is None or dv is None:
+            raise ValueError(
+                "Cannot compute complementarity violation: missing primal "
+                "or dual value."
+            )
+        pairing = np.vdot(np.asarray(expr_val), np.asarray(dv))
+        return abs(pairing)

@@ -913,6 +913,43 @@ class TestConstraints(BaseTest):
         assert constr.dual_violation() == pytest.approx(2.0)
         assert not constr.is_dual_feasible()
 
+    def test_nonpos_complementarity_violation(self) -> None:
+        x = cp.Variable(3)
+        constr = cp.NonPos(x)
+        x.value = np.array([-2.0, 0.0, -4.0])
+        constr.dual_variables[0].value = np.array([0.0, 3.0, 0.0])
+        assert constr.complementarity_violation() == pytest.approx(0.0)
+
+        constr.dual_variables[0].value = np.array([2.0, 3.0, 0.0])
+        assert constr.complementarity_violation() == pytest.approx(4.0)
+
+    def test_nonneg_complementarity_violation(self) -> None:
+        x = cp.Variable(3)
+        constr = cp.NonNeg(x)
+        x.value = np.array([2.0, 0.0, 4.0])
+        constr.dual_variables[0].value = np.array([0.0, 3.0, 0.0])
+        assert constr.complementarity_violation() == pytest.approx(0.0)
+
+        constr.dual_variables[0].value = np.array([2.0, 3.0, 0.0])
+        assert constr.complementarity_violation() == pytest.approx(4.0)
+
+    def test_inequality_complementarity_violation(self) -> None:
+        x = cp.Variable(3)
+        constr = x <= np.array([1.0, 2.0, 3.0])
+        x.value = np.array([0.0, 2.0, 1.0])
+        constr.dual_variables[0].value = np.array([0.0, 3.0, 0.0])
+        assert constr.complementarity_violation() == pytest.approx(0.0)
+
+        constr.dual_variables[0].value = np.array([2.0, 3.0, 0.0])
+        assert constr.complementarity_violation() == pytest.approx(2.0)
+
+    def test_complementarity_violation_raises_without_values(self) -> None:
+        x = cp.Variable()
+        constr = x <= 1
+
+        with pytest.raises(ValueError, match="missing primal or dual value"):
+            constr.complementarity_violation()
+
     def test_equality_dual_residual_is_always_zero(self):
         # Equality/Zero dual variables are free (unconstrained), so their
         # dual cone is the whole space and the residual is always zero.
@@ -962,3 +999,116 @@ class TestConstraints(BaseTest):
         np.testing.assert_allclose(constr.dual_residual, expected, atol=1e-9)
         assert constr.dual_violation() == pytest.approx(2.0)
         assert not constr.is_dual_feasible()
+
+    def test_soc_complementarity_violation(self):
+        t = cp.Variable()
+        x = cp.Variable(2)
+        constr = cp.SOC(t, x)
+
+        t.value = 5.0
+        x.value = np.array([3.0, 4.0])
+
+        constr.dual_variables[0].value = np.array([1.0])
+        constr.dual_variables[1].value = np.array([-0.6, -0.8])
+        assert constr.complementarity_violation() == pytest.approx(0.0)
+
+        constr.dual_variables[1].value = np.array([0.0, 0.0])
+        assert constr.complementarity_violation() == pytest.approx(5.0)
+
+    def test_rsoc_complementarity_violation(self):
+        t = cp.Variable()
+        u = cp.Variable()
+        x = cp.Variable(2)
+        constr = cp.constraints.second_order.RSOC(t, u, x)
+
+        t.value = 1.0
+        u.value = 1.0
+        x.value = np.array([np.sqrt(2.0), 0.0])
+
+        constr.dual_variables[0].value = 1.0
+        constr.dual_variables[1].value = 1.0
+        constr.dual_variables[2].value = np.array([-np.sqrt(2.0), 0.0])
+
+        assert constr.complementarity_violation() == pytest.approx(
+            0.0, abs=1e-12
+        )
+
+        constr.dual_variables[2].value = np.array([0.0, 0.0])
+        assert constr.complementarity_violation() == pytest.approx(2.0)
+
+    def test_expcone_complementarity_violation(self):
+        x = cp.Variable()
+        y = cp.Variable()
+        z = cp.Variable()
+        constr = cp.ExpCone(x, y, z)
+
+        x.value = 0.0
+        y.value = 1.0
+        z.value = 1.0
+
+        constr.dual_variables[0].value = -1.0
+        constr.dual_variables[1].value = -1.0
+        constr.dual_variables[2].value = 1.0
+        assert constr.complementarity_violation() == pytest.approx(0.0)
+
+        constr.dual_variables[2].value = 2.0
+        assert constr.complementarity_violation() == pytest.approx(1.0)
+
+    def test_powcone3d_complementarity_violation(self):
+        x = cp.Variable()
+        y = cp.Variable()
+        z = cp.Variable()
+        constr = cp.PowCone3D(x, y, z, 0.5)
+
+        x.value = 1.0
+        y.value = 1.0
+        z.value = 1.0
+
+        constr.dual_variables[0].value = 0.5
+        constr.dual_variables[1].value = 0.5
+        constr.dual_variables[2].value = -1.0
+        assert constr.complementarity_violation() == pytest.approx(0.0)
+
+        constr.dual_variables[2].value = 0.0
+        assert constr.complementarity_violation() == pytest.approx(1.0)
+
+    def test_powconend_complementarity_violation(self):
+        W = cp.Variable((2, 3))
+        z = cp.Variable(3)
+        alpha = np.full((2, 3), 0.5)
+        constr = cp.PowConeND(W, z, alpha, axis=0)
+
+        W.value = np.ones((2, 3))
+        z.value = np.ones(3)
+
+        constr.dual_variables[0].value = np.full((2, 3), 0.5)
+        constr.dual_variables[1].value = -np.ones(3)
+        assert constr.complementarity_violation() == pytest.approx(0.0)
+
+        constr.dual_variables[1].value = np.zeros(3)
+        assert constr.complementarity_violation() == pytest.approx(3.0)
+
+    def test_psd_complementarity_violation(self):
+        X = cp.Variable((2, 2), symmetric=True)
+        constr = X >> 0
+
+        with pytest.raises(ValueError, match="missing primal or dual value"):
+            constr.complementarity_violation()
+
+        X.value = np.diag([2.0, 0.0])
+        constr.dual_variables[0].value = np.diag([0.0, 3.0])
+        assert constr.complementarity_violation() == pytest.approx(0.0)
+
+        constr.dual_variables[0].value = np.diag([4.0, 3.0])
+        assert constr.complementarity_violation() == pytest.approx(8.0)
+
+    def test_psd_complementarity_uses_inner_product(self):
+        X = cp.Variable((2, 2), symmetric=True)
+        constr = X >> 0
+
+        X.value = np.array([[1.0, 0.0], [0.0, 0.0]])
+        constr.dual_variables[0].value = np.array(
+            [[1.0, 1.0], [1.0, 1.0]]
+        )
+
+        assert constr.complementarity_violation() == pytest.approx(1.0)
