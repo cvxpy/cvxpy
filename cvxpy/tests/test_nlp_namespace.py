@@ -15,6 +15,7 @@ class TestNLPNamespace:
         assert cp.nlp.sin(x) is not None
         assert cp.nlp.cos(x) is not None
         assert cp.nlp.tan(x) is not None
+        assert cp.nlp.atan(x) is not None
         assert cp.nlp.normcdf(x) is not None
 
     def test_hyperbolic_atoms(self):
@@ -29,6 +30,7 @@ class TestNLPNamespace:
         assert not hasattr(cp, 'sin')
         assert not hasattr(cp, 'cos')
         assert not hasattr(cp, 'tan')
+        assert not hasattr(cp, 'atan')
         assert not hasattr(cp, 'sinh')
         assert not hasattr(cp, 'tanh')
         assert not hasattr(cp, 'asinh')

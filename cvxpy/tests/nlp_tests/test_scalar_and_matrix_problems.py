@@ -150,6 +150,12 @@ class TestScalarProblems():
         checker = DerivativeChecker(prob)
         checker.run_and_assert()
 
+        prob = cp.Problem(cp.Minimize(cp.nlp.atan(x)), [x >= 0.1])
+        prob.solve(nlp=True, solver=cp.IPOPT, verbose=False)
+        assert prob.status == cp.OPTIMAL
+        checker = DerivativeChecker(prob)
+        checker.run_and_assert()
+
     def test_matrix_trig(self):
         x = cp.Variable((3, 2))
         prob = cp.Problem(cp.Minimize(cp.sum(cp.nlp.tan(x))), [x >= 0.1])
@@ -170,6 +176,12 @@ class TestScalarProblems():
         checker = DerivativeChecker(prob)
         checker.run_and_assert()
 
+        prob = cp.Problem(cp.Minimize(cp.sum(cp.nlp.atan(x))), [x >= 0.1])
+        prob.solve(nlp=True, solver=cp.IPOPT, verbose=False)
+        assert prob.status == cp.OPTIMAL
+        checker = DerivativeChecker(prob)
+        checker.run_and_assert()
+
     def test_matrix_hyperbolic(self):
         x = cp.Variable((3, 2))
         prob = cp.Problem(cp.Minimize(cp.sum(cp.nlp.sinh(x))), [x >= 0.1])
@@ -179,6 +191,17 @@ class TestScalarProblems():
         checker.run_and_assert()
 
         prob = cp.Problem(cp.Minimize(cp.sum(cp.nlp.tanh(x))), [x >= 0.1])
+        prob.solve(nlp=True, solver=cp.IPOPT, verbose=False)
+        assert prob.status == cp.OPTIMAL
+        checker = DerivativeChecker(prob)
+        checker.run_and_assert()
+
+    def test_atan_composite(self):
+        # atan of a non-variable argument exercises the engine's chain rule
+        n = 10
+        x = cp.Variable(n)
+        prob = cp.Problem(cp.Minimize(cp.sum(cp.nlp.atan(cp.logistic(x * 3)))),
+                          [x >= 0.1, cp.sum(x) == 10])
         prob.solve(nlp=True, solver=cp.IPOPT, verbose=False)
         assert prob.status == cp.OPTIMAL
         checker = DerivativeChecker(prob)

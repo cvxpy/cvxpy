@@ -302,6 +302,7 @@ ATOM_CONVERTERS = {
     "sin": lambda _expr, children: _diffengine.make_sin(children[0]),
     "cos": lambda _expr, children: _diffengine.make_cos(children[0]),
     "tan": lambda _expr, children: _diffengine.make_tan(children[0]),
+    "atan": lambda _expr, children: _diffengine.make_atan(children[0]),
     # Hyperbolic
     "sinh": lambda _expr, children: _diffengine.make_sinh(children[0]),
     "tanh": lambda _expr, children: _diffengine.make_tanh(children[0]),

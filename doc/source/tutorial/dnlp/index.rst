@@ -177,6 +177,11 @@ nor concave. These atoms can only be used in DNLP problems and are available in 
      - :math:`\tan(x)`
      - :math:`x \in (-\pi/2, \pi/2)`
      - none
+   * - cp.nlp.atan(x)
+
+     - :math:`\arctan(x)`
+     - :math:`x \in \mathbf{R}`
+     - incr.
 
    * - cp.nlp.sinh(x)
 
