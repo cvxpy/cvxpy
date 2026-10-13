@@ -1,0 +1,456 @@
+"""
+Copyright 2013 Steven Diamond
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+"""
+
+import numpy as np
+import pytest
+
+import cvxpy as cp
+
+SOLVER = cp.CLARABEL
+
+
+class TestNormIntegerAxisND:
+    """Regression tests for N-D p=2 norms with an integer axis.
+
+    These exercises the per-fiber SOC emission in the p=2 canonicalization:
+    N-D SOC constraints with an inner axis could not be lowered to solver
+    format (they crashed in ConicSolver.format_constraints).
+    """
+
+    def setup_method(self) -> None:
+        rng = np.random.default_rng(0)
+        self.X = rng.normal(size=(3, 4, 5))
+
+    def test_norm2_axis1_3d_solves(self) -> None:
+        X = cp.Variable((3, 4, 5))
+        prob = cp.Problem(
+            cp.Minimize(cp.sum(cp.norm(X, 2, axis=1) - cp.sum(X))),
+            [X >= -1, X <= 1],
+        )
+        prob.solve(solver=SOLVER)
+        assert prob.status == cp.OPTIMAL
+        ref = np.linalg.norm(X.value, 2, axis=1)
+        y = cp.norm(X, 2, axis=1)
+        assert y.shape == (3, 5)
+        assert np.allclose(y.value, ref, atol=1e-6)
+
+    @pytest.mark.parametrize("axis", [0, 1, 2, -1, -3])
+    def test_norm2_axis_3d_matches_numpy(self, axis: int) -> None:
+        y = cp.norm(cp.Constant(self.X), 2, axis=axis)
+        expected = np.linalg.norm(self.X, 2, axis=axis)
+        assert y.shape == expected.shape
+        assert np.allclose(y.value, expected, atol=1e-10)
+
+    @pytest.mark.parametrize("axis", [0, 1, 2])
+    def test_pnorm2_axis_3d_solves(self, axis: int) -> None:
+        # Solve with a variable constrained to self.X so the N-D per-fiber
+        # SOC canonicalization is actually exercised (a Constant-only
+        # expression could be constant-folded and skip the lowering).
+        X = cp.Variable(self.X.shape)
+        y = cp.norm(X, 2, axis=axis)
+        prob = cp.Problem(cp.Minimize(cp.sum(y)), [X == self.X])
+        prob.solve(solver=SOLVER)
+        assert prob.status == cp.OPTIMAL
+        expected = np.linalg.norm(self.X, 2, axis=axis)
+        assert y.shape == expected.shape
+        assert np.allclose(y.value, expected, atol=1e-6)
+
+    def test_pnorm2_axis1_gradient(self) -> None:
+        X = cp.Variable((3, 4, 5))
+        y = cp.norm(X, 2, axis=1)
+        X.value = self.X
+        G = np.asarray(y.grad[X].todense())
+        # CVXPY convention: grad[i, j] = d(y_flat_F[j]) / d(x_flat_F[i]).
+        norms = np.linalg.norm(self.X, 2, axis=1)
+        expected = np.zeros((60, 15))
+        for i in range(3):
+            for k in range(5):
+                j = i + 3 * k            # y flat (F-order) index of (i, k)
+                for r in range(4):
+                    m = i + 3 * r + 12 * k  # x flat (F-order) index of (i, r, k)
+                    expected[m, j] = self.X[i, r, k] / norms[i, k]
+        assert np.allclose(G, expected, atol=1e-10)
+
+    def test_norm2_axis1_3d_keepdims(self) -> None:
+        X = cp.Variable((3, 4, 5))
+        y = cp.norm(X, 2, axis=1, keepdims=True)
+        prob = cp.Problem(cp.Minimize(cp.sum(y) - cp.sum(X)), [X >= 0, X <= 1])
+        prob.solve(solver=SOLVER)
+        assert prob.status == cp.OPTIMAL
+        assert y.shape == (3, 1, 5)
+        ref = np.linalg.norm(X.value, 2, axis=1, keepdims=True)
+        assert np.allclose(y.value, ref, atol=1e-6)
+        # Solver-level optimum: y.value and problem.value are recomputed from
+        # the leaf values, so they stay correct even when the emitted
+        # per-fiber SOCs are wrong; solution.opt_val reflects the actual
+        # constraints. Each of the 15 fibers minimizes ||x||_2 - sum(x) over
+        # [0, 1]^4 at x = ones(4) (norm 2, sum 4): 15 * (2 - 4) = -30.
+        ones = np.ones(4)
+        expected_opt = 15 * (np.linalg.norm(ones) - ones.sum())
+        assert np.isclose(prob.solution.opt_val, expected_opt, atol=1e-6)
+
+    def test_norm2_axis1_3d_keepdims_nonuniform_variable(self) -> None:
+        """keepdims=True must emit one SOC per fiber, not reuse the k = 0 slice.
+
+        With keepdims=True the atom shape still contains the reduced axis as
+        a size-1 dimension ((3, 1, 5) here), so a cursor that advances only
+        over non-reduced axes can misalign and pair input axis 2 with the
+        size-1 axis, constraining every t[i, 0, k] to the k = 0 fiber.
+        problem.value and y.value are recomputed from the leaf values and
+        stay correct even when the emitted SOCs are wrong, so the SOLVER's
+        optimal value (problem.solution.opt_val) is compared against NumPy.
+        """
+        A = np.random.default_rng(6).normal(size=(3, 4, 5))
+        X = cp.Variable((3, 4, 5))
+        y = cp.norm(X, 2, axis=1, keepdims=True)
+        prob = cp.Problem(cp.Minimize(cp.sum(y)), [X == A])
+        prob.solve(solver=SOLVER)
+        assert prob.status == cp.OPTIMAL
+        assert y.shape == (3, 1, 5)
+        expected = np.linalg.norm(A, 2, axis=1, keepdims=True)
+        # Solver-level optimum: sensitive to the emitted per-fiber SOCs.
+        assert np.isclose(prob.solution.opt_val, expected.sum(), atol=1e-6)
+        assert np.allclose(y.value, expected, atol=1e-6)
+        # The data must vary across both non-reduced dimensions so that a
+        # k = 0 fiber reuse cannot coincide with the true norms.
+        norms = expected[:, 0, :]
+        assert np.ptp(norms, axis=1).max() > 1e-3
+        assert np.ptp(norms, axis=0).max() > 1e-3
+
+    def test_perfiber_soc_dual_feasible(self) -> None:
+        # The per-fiber SOCs produced by the p=2 canonicalization must
+        # recover dual values in the dual second-order cone.
+        Xc = cp.Constant(self.X)
+        t = cp.Variable((3, 5))
+        cons = [cp.SOC(t[i, k], Xc[i, :, k]) for i in range(3) for k in range(5)]
+        prob = cp.Problem(cp.Minimize(cp.sum(t)), cons)
+        prob.solve(solver=SOLVER)
+        assert prob.status == cp.OPTIMAL
+        for c in cons:
+            rho, lam = np.ravel(c.dual_value[0]), np.ravel(c.dual_value[1])
+            assert np.linalg.norm(lam) <= rho[0] + 1e-6
+
+
+class TestNormOneElementTuple:
+    """A one-element axis tuple must be equivalent to an integer axis."""
+
+    def setup_method(self) -> None:
+        rng = np.random.default_rng(1)
+        self.X = rng.normal(size=(3, 4, 5))
+
+    @pytest.mark.parametrize("p", [1, 2, np.inf])
+    def test_one_element_tuple_equivalent_to_int(self, p) -> None:
+        Xc = cp.Constant(self.X)
+        y_int = cp.norm(Xc, p, axis=1)
+        y_tup = cp.norm(Xc, p, axis=(1,))
+        assert y_tup.shape == y_int.shape
+        assert np.allclose(y_tup.value, y_int.value, atol=1e-10)
+        expected = np.linalg.norm(self.X, p, axis=1)
+        assert np.allclose(y_tup.value, expected, atol=1e-10)
+
+    @pytest.mark.parametrize("p", [1, np.inf])
+    def test_one_element_tuple_solves(self, p) -> None:
+        X = cp.Variable((3, 4, 5))
+        prob = cp.Problem(
+            cp.Minimize(cp.sum(cp.norm(X, p, axis=(1,)))),
+            [X >= 0, X <= 1],
+        )
+        prob.solve(solver=SOLVER)
+        assert prob.status == cp.OPTIMAL
+        expected = np.linalg.norm(X.value, p, axis=1).sum()
+        assert np.isclose(prob.value, expected, atol=1e-6)
+
+
+class TestMatrixNormTupleAxis:
+    """Two-element axis tuples: NumPy matrix-norm semantics per slice."""
+
+    def setup_method(self) -> None:
+        rng = np.random.default_rng(2)
+        self.X = rng.normal(size=(3, 4, 5))
+
+    def test_p2_is_spectral_not_frobenius(self) -> None:
+        y = cp.norm(cp.Constant(self.X), 2, axis=(0, 2))
+        expected = np.linalg.norm(self.X, 2, axis=(0, 2))
+        fro = np.sqrt(
+            (np.abs(self.X) ** 2).sum(axis=(0, 2))
+        )
+        assert y.shape == (4,)
+        # Distinguishes spectral from Frobenius: they differ on generic data.
+        assert not np.allclose(expected, fro)
+        assert np.allclose(y.value, expected, atol=1e-10)
+
+    def test_fro_tuple(self) -> None:
+        y = cp.norm(cp.Constant(self.X), "fro", axis=(0, 2))
+        expected = np.sqrt((np.abs(self.X) ** 2).sum(axis=(0, 2)))
+        assert y.shape == (4,)
+        assert np.allclose(y.value, expected, atol=1e-10)
+
+    def test_nuc_tuple(self) -> None:
+        y = cp.norm(cp.Constant(self.X), "nuc", axis=(0, 2))
+        expected = np.array(
+            [np.linalg.norm(self.X[:, j, :], "nuc") for j in range(4)]
+        )
+        assert y.shape == (4,)
+        assert np.allclose(y.value, expected, atol=1e-10)
+
+    def test_p1_tuple(self) -> None:
+        y = cp.norm(cp.Constant(self.X), 1, axis=(0, 2))
+        expected = np.array(
+            [np.linalg.norm(self.X[:, j, :], 1) for j in range(4)]
+        )
+        assert y.shape == (4,)
+        assert np.allclose(y.value, expected, atol=1e-10)
+
+    def test_pinf_tuple(self) -> None:
+        y = cp.norm(cp.Constant(self.X), np.inf, axis=(0, 2))
+        expected = np.array(
+            [np.linalg.norm(self.X[:, j, :], np.inf) for j in range(4)]
+        )
+        assert y.shape == (4,)
+        assert np.allclose(y.value, expected, atol=1e-10)
+
+    def test_axis_ordering_matches_numpy(self) -> None:
+        """Both tuple orders must match np.linalg.norm per slice.
+
+        Order matters for ord=1/np.inf (reversing the axes transposes each
+        matrix slice), while 2/"fro"/"nuc" are transpose-invariant. Each
+        ordering is therefore compared against NumPy directly instead of
+        asserting that the two orderings agree universally.
+        """
+        for p in [1, 2, np.inf, "fro", "nuc"]:
+            for axis in [(0, 2), (2, 0)]:
+                y = cp.norm(cp.Constant(self.X), p, axis=axis)
+                ref = np.linalg.norm(self.X, p, axis=axis)
+                assert y.shape == ref.shape, (p, axis)
+                assert np.allclose(y.value, ref, atol=1e-10), (p, axis)
+
+    def test_negative_axes(self) -> None:
+        a = cp.norm(cp.Constant(self.X), 2, axis=(0, 2))
+        b = cp.norm(cp.Constant(self.X), 2, axis=(-3, -1))
+        assert np.allclose(a.value, b.value, atol=1e-10)
+
+    def test_keepdims(self) -> None:
+        y = cp.norm(cp.Constant(self.X), 2, axis=(0, 2), keepdims=True)
+        assert y.shape == (1, 4, 1)
+        expected = np.linalg.norm(self.X, 2, axis=(0, 2))
+        assert np.allclose(np.ravel(y.value, order="C"), expected, atol=1e-10)
+
+    def test_2d_full_tuple_is_matrix_norm(self) -> None:
+        Xv = np.arange(12, dtype=float).reshape(3, 4)
+        Xc = cp.Constant(Xv)
+        assert np.isclose(
+            cp.norm(Xc, "nuc", axis=(0, 1)).value,
+            np.linalg.norm(Xv, "nuc"),
+            atol=1e-10,
+        )
+        y = cp.norm(Xc, 2, axis=(0, 1), keepdims=True)
+        assert y.shape == (1, 1)
+        assert np.isclose(y.value[0, 0], np.linalg.norm(Xv, 2), atol=1e-10)
+
+    def test_4d_tuple_axis(self) -> None:
+        # Two-axis tuples on 4-D input: the result is a 2-D array laid out
+        # over the remaining axes (C order), matching NumPy.
+        Xv = np.random.default_rng(3).normal(size=(2, 3, 4, 5))
+        y = cp.norm(cp.Constant(Xv), 2, axis=(0, 2))
+        assert y.shape == (3, 5)
+        assert np.allclose(y.value, np.linalg.norm(Xv, 2, axis=(0, 2)), atol=1e-10)
+
+    def test_solve_p2_tuple_matches_numpy(self) -> None:
+        X = cp.Variable((3, 4, 5))
+        y = cp.norm(X, 2, axis=(0, 2))
+        prob = cp.Problem(
+            cp.Minimize(cp.sum(y) - cp.sum(X)), [X >= 0, X <= 1]
+        )
+        prob.solve(solver=SOLVER)
+        assert prob.status == cp.OPTIMAL
+        ref = np.linalg.norm(X.value, 2, axis=(0, 2))
+        assert np.allclose(y.value, ref, atol=1e-6)
+
+    def test_full_tuple_pairing_and_numpy(self) -> None:
+        """A 2-tuple on a 2-D array is a scalar matrix norm (NumPy semantics).
+
+        Every supported ord matches np.linalg.norm for axis=(0, 1); the
+        reversed tuple (1, 0) transposes the matrix, so ord=1/np.inf differ
+        while 2/"fro"/"nuc" are transpose-invariant. In contrast a 1-tuple or
+        an int axis for 'fro'/'nuc' must still reject (single axis has no
+        matrix meaning).
+        """
+        Xv = np.arange(12, dtype=float).reshape(3, 4)
+        Xc = cp.Constant(Xv)
+        ords = [1, 2, np.inf, "fro", "nuc"]
+        for p in ords:
+            a = cp.norm(Xc, p, axis=(0, 1))
+            ref = np.linalg.norm(Xv, ord=p)
+            assert np.isclose(a.value, ref, atol=1e-10), (p, a.value, ref)
+            b = cp.norm(Xc, p, axis=(1, 0))
+            ref_b = np.linalg.norm(Xv, ord=p, axis=(1, 0))
+            assert np.isclose(b.value, ref_b, atol=1e-10), (p, b.value, ref_b)
+            if p in (2, "fro", "nuc"):
+                assert np.isclose(a.value, b.value, atol=1e-10)
+
+        # 1-tuple / int axis on 2-D: 'fro'/'nuc' still raise (single axis).
+        for p in ("fro", "nuc"):
+            for axis in (0, 1, (0,), (1,)):
+                with pytest.raises(ValueError):
+                    cp.norm(Xc, p, axis=axis)
+
+        # keepdims shape on the full tuple.
+        y = cp.norm(Xc, 2, axis=(0, 1), keepdims=True)
+        assert y.shape == (1, 1)
+        assert np.isclose(y.value[0, 0], np.linalg.norm(Xv, 2), atol=1e-10)
+
+    def test_solve_nuc_tuple_matches_numpy(self) -> None:
+        X = cp.Variable((3, 4, 5))
+        y = cp.norm(X, "nuc", axis=(0, 2))
+        prob = cp.Problem(
+            cp.Minimize(cp.sum(y) - cp.sum(X)), [X >= 0, X <= 1]
+        )
+        prob.solve(solver=SOLVER)
+        assert prob.status == cp.OPTIMAL
+        ref = np.array(
+            [np.linalg.norm(X.value[:, j, :], "nuc") for j in range(4)]
+        )
+        assert np.allclose(y.value, ref, atol=1e-6)
+
+
+class TestTupleAxisValidation:
+    """Invalid axis tuples must raise informative errors."""
+
+    def test_three_axes_rejected(self) -> None:
+        X = cp.Constant(np.zeros((2, 3, 4)))
+        with pytest.raises(NotImplementedError, match="two axis entries"):
+            cp.norm(X, 2, axis=(0, 1, 2))
+
+    def test_duplicate_axes_rejected(self) -> None:
+        X = cp.Constant(np.zeros((2, 3, 4)))
+        with pytest.raises(ValueError, match="duplicate entries"):
+            cp.norm(X, 2, axis=(1, 1))
+
+    def test_empty_tuple_rejected(self) -> None:
+        X = cp.Constant(np.zeros((2, 3)))
+        with pytest.raises(ValueError, match="empty"):
+            cp.norm(X, 2, axis=())
+
+    def test_pnorm_multi_axis_tuple_rejected(self) -> None:
+        X = cp.Constant(np.zeros((2, 3, 4)))
+        with pytest.raises(ValueError, match="pnorm"):
+            cp.pnorm(X, 2, axis=(0, 2))
+
+    def test_norm1_multi_axis_tuple_rejected(self) -> None:
+        X = cp.Constant(np.zeros((2, 3, 4)))
+        with pytest.raises(ValueError, match="norm1"):
+            cp.norm1(X, axis=(0, 2))
+
+    def test_norm_inf_multi_axis_tuple_rejected(self) -> None:
+        X = cp.Constant(np.zeros((2, 3, 4)))
+        with pytest.raises(ValueError, match="norm_inf"):
+            cp.norm_inf(X, axis=(0, 2))
+
+class TestEmptyAxes:
+    """Empty-size inputs: NumPy defines every supported matrix norm of an
+    empty array as 0, so cvxpy must return a zero constant of the
+    NumPy-consistent output shape (also bypassing per-slice construction)."""
+
+    @pytest.mark.parametrize("p", [1, 2, np.inf, "fro", "nuc"])
+    def test_empty_remaining_axis(self, p) -> None:
+        # No slices exist: the output itself is zero-size.
+        Xv = np.zeros((3, 0, 5))
+        y = cp.norm(cp.Constant(Xv), p, axis=(0, 2))
+        ref = np.linalg.norm(Xv, p, axis=(0, 2))
+        assert y.shape == ref.shape == (0,)
+        assert np.asarray(y.value).size == 0
+
+    @pytest.mark.parametrize("p", [1, 2, np.inf, "fro", "nuc"])
+    def test_empty_remaining_axis_keepdims(self, p) -> None:
+        y = cp.norm(cp.Constant(np.zeros((3, 0, 5))), p, axis=(0, 2), keepdims=True)
+        ref = np.linalg.norm(np.zeros((3, 0, 5)), p, axis=(0, 2), keepdims=True)
+        assert y.shape == ref.shape == (1, 0, 1)
+
+    @pytest.mark.parametrize("p", [1, 2, np.inf, "fro", "nuc"])
+    def test_empty_reduced_axes(self, p) -> None:
+        # Slices exist but each is (0, 5); every norm is 0. The p='nuc' and
+        # p=inf cases also guard against slice-value quirks resurfacing.
+        y = cp.norm(cp.Constant(np.zeros((0, 4, 5))), p, axis=(0, 2))
+        assert y.shape == (4,)
+        assert np.allclose(np.asarray(y.value), np.zeros(4))
+
+
+class TestNDTupleAxisBeyond4D:
+    """No artificial ndim ceiling: two-element tuple axes work on inputs
+    above 4-D. N-D expressions and N-D reshape targets are supported under
+    the current ALLOW_ND_EXPR configuration, so reducing two axes from a
+    5-D input leaves a 3-D batch result, and a 6-D input reduced over two
+    axes yields a 4-D result.
+    """
+
+    def setup_method(self) -> None:
+        self.X = np.random.default_rng(4).normal(size=(2, 3, 4, 5, 6))
+        self.axes = (1, 3)
+
+    @pytest.mark.parametrize("p", [1, 2, np.inf, "fro", "nuc"])
+    def test_5d_tuple_axis_matches_numpy(self, p) -> None:
+        # Every supported matrix norm on every 2-axis slice of a 5-D input,
+        # compared directly against NumPy (which defines the semantics).
+        y = cp.norm(cp.Constant(self.X), p, axis=self.axes)
+        ref = np.linalg.norm(self.X, p, axis=self.axes)
+        assert y.shape == ref.shape == (2, 4, 6)
+        assert np.allclose(y.value, ref, atol=1e-10), p
+
+    def test_5d_keepdims_true(self) -> None:
+        y = cp.norm(cp.Constant(self.X), 2, axis=self.axes, keepdims=True)
+        ref = np.linalg.norm(self.X, 2, axis=self.axes, keepdims=True)
+        assert y.shape == ref.shape == (2, 1, 4, 1, 6)
+        assert np.allclose(
+            np.ravel(y.value, order="C"),
+            np.ravel(ref, order="C"),
+            atol=1e-10,
+        )
+
+    def test_5d_reversed_tuple_order(self) -> None:
+        # Reversing the tuple transposes each matrix slice: ord=1 and
+        # ord=np.inf are transpose-sensitive and must match NumPy per
+        # ordering, while 2/"fro"/"nuc" are transpose-invariant.
+        for p in [1, 2, np.inf, "fro", "nuc"]:
+            for axis in [(1, 3), (3, 1)]:
+                y = cp.norm(cp.Constant(self.X), p, axis=axis)
+                ref = np.linalg.norm(self.X, p, axis=axis)
+                assert y.shape == ref.shape, (p, axis)
+                assert np.allclose(y.value, ref, atol=1e-10), (p, axis)
+
+    def test_5d_variable_solve_exercises_canonicalization(self) -> None:
+        # A Constant-only expression can be constant-folded, so solve with a
+        # Variable constrained to self.X: this exercises the actual
+        # canonicalization of the stacked per-slice matrix norms (hstack of
+        # the per-slice entries, reshaped into the 3-D batch shape).
+        X = cp.Variable(self.X.shape)
+        y = cp.norm(X, 2, axis=self.axes)
+        prob = cp.Problem(cp.Minimize(cp.sum(y)), [X == self.X])
+        prob.solve(solver=SOLVER)
+        assert prob.status == cp.OPTIMAL
+        ref = np.linalg.norm(self.X, 2, axis=self.axes)
+        assert y.shape == (2, 4, 6)
+        assert np.allclose(y.value, ref, atol=1e-6)
+
+    def test_6d_to_4d_result_shape(self) -> None:
+        # A 6-D input with a two-element tuple reduces two axes; the result
+        # keeps the remaining four axes, proving there is no artificial
+        # ndim ceiling on inputs or results.
+        Xv = np.random.default_rng(5).normal(size=(2, 3, 4, 5, 6, 7))
+        y = cp.norm(cp.Constant(Xv), 2, axis=(1, 4))
+        ref = np.linalg.norm(Xv, 2, axis=(1, 4))
+        # Remaining axes (0, 2, 3, 5) with sizes (2, 4, 5, 7).
+        assert y.shape == ref.shape == (2, 4, 5, 7)
+        assert np.allclose(y.value, ref, atol=1e-10)
