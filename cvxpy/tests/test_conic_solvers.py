@@ -17,11 +17,13 @@ limitations under the License.
 import contextlib
 import math
 import os
+import pickle
 import re
 import string
 import sys
 import tempfile
 import unittest
+from copy import deepcopy
 from unittest import mock
 
 import numpy as np
@@ -29,6 +31,7 @@ import pytest
 import scipy.linalg as la
 import scipy.sparse as sp
 import scipy.stats as st
+import scs
 
 import cvxpy as cp
 import cvxpy.tests.solver_test_helpers as sths
@@ -333,6 +336,159 @@ class TestSCS(BaseTest):
         time2 = prob.solver_stats.solve_time
         self.assertAlmostEqual(result2, result, places=2)
         print(time > time2)
+
+    @unittest.skipIf(Version(scs.__version__).major < 3, "Requires the SCS workspace API.")
+    def test_workspace_reuse(self) -> None:
+        for quadratic in (False, True):
+            with self.subTest(quadratic=quadratic):
+                x = cp.Variable(2)
+                b, c = cp.Parameter(2), cp.Parameter(2)
+                objective = c @ x + (0.5 * cp.sum_squares(x) if quadratic else 0)
+                constraint = x >= b
+                problem = cp.Problem(cp.Minimize(objective), [constraint])
+                with mock.patch("scs.SCS", wraps=scs.SCS) as setup:
+                    for i, warm_start in enumerate((True, True, False, True, True)):
+                        b.value, c.value = [i + 1, 2], [2, i + 3]
+                        value = problem.solve(solver=cp.SCS, eps=1e-8, warm_start=warm_start)
+                        expected = c.value @ b.value
+                        if quadratic:
+                            expected += 0.5 * b.value @ b.value
+                        self.assertAlmostEqual(value, expected, places=5)
+                        self.assertItemsAlmostEqual(x.value, b.value, places=5)
+                        self.assertItemsAlmostEqual(
+                            constraint.dual_value,
+                            c.value + (b.value if quadratic else 0), places=5,
+                        )
+                        self.assertEqual(setup.call_count, (1, 1, 2, 3, 3)[i])
+
+    @unittest.skipIf(Version(scs.__version__).major < 3, "Requires the SCS workspace API.")
+    def test_workspace_matrix_updates(self) -> None:
+        x = cp.Variable(2)
+        a = cp.Parameter((2, 2))
+        p = cp.Parameter(2, nonneg=True)
+        problem = cp.Problem(cp.Minimize(cp.sum(x) + cp.sum(cp.multiply(p, cp.square(x)))),
+                             [a @ x >= [1, 2]])
+        cases = [
+            (np.eye(2), [1, 1], [1, 2]),
+            (2 * np.eye(2), [1, 1], [0.5, 1]),
+            (np.eye(2)[::-1], [1, 1], [2, 1]),
+            (np.eye(2)[::-1], [2, 3], [2, 1]),
+        ]
+        with mock.patch("scs.SCS", wraps=scs.SCS) as setup:
+            for i, (matrix, diagonal, expected) in enumerate(cases, 1):
+                a.value, p.value = matrix, diagonal
+                for _ in range(2):
+                    value = problem.solve(solver=cp.SCS, eps=1e-8)
+                    self.assertItemsAlmostEqual(x.value, expected, places=5)
+                    self.assertAlmostEqual(
+                        value, np.sum(expected) + p.value @ np.square(expected), places=5,
+                    )
+                    self.assertEqual(setup.call_count, i)
+
+    @unittest.skipIf(Version(scs.__version__).major < 3, "Requires the SCS workspace API.")
+    def test_workspace_invalidation(self) -> None:
+        x = cp.Variable(2)
+        problem = cp.Problem(cp.Minimize(cp.sum_squares(x) + cp.sum(x)), [x >= [1, 2]])
+        cases = ("A_values", "A_indices", "A_structure", "P_values", "P_structure", "P_removed",
+                 "P_none", "shape", "cones", "options", "verbose")
+        for case in cases:
+            with self.subTest(case=case):
+                data, _, _ = problem.get_problem_data(cp.SCS)
+                # Each case owns its arrays; mutations below must not change the saved cache key.
+                data = data.copy()
+                data["A"], data["P"] = data["A"].copy(), data["P"].copy()
+                data["dims"] = deepcopy(data["dims"])
+                cache, options, verbose = {}, {"eps": 1e-8}, False
+                interface = SCS()
+                interface.solve_via_data(data, True, verbose, options.copy(), cache)
+                if case == "A_values":
+                    data["A"].data *= 2
+                elif case == "A_indices":
+                    data["A"].indices[:] = data["A"].indices[::-1]
+                elif case == "A_structure":
+                    data["A"] = sp.csc_array([[-1., 0.], [-1., -1.]])
+                elif case == "P_values":
+                    data["P"].data *= 2
+                elif case == "P_structure":
+                    data["P"] = sp.csc_array([[2., 0.5], [0.5, 2.]])
+                elif case == "P_removed":
+                    del data["P"]
+                elif case == "P_none":
+                    data["P"] = None
+                elif case == "shape":
+                    data["A"], data["P"] = -sp.eye_array(3, format="csc"), None
+                    data["b"], data["c"] = -np.arange(1., 4.), np.ones(3)
+                    data["dims"].nonneg = 3
+                elif case == "cones":
+                    data["dims"].zero = 1
+                    data["dims"].nonneg -= 1
+                elif case == "options":
+                    options["normalize"] = False
+                else:
+                    verbose = True
+                with mock.patch("scs.SCS", wraps=scs.SCS) as setup:
+                    result = interface.solve_via_data(data, True, verbose, options.copy(), cache)
+                    self.assertEqual(setup.call_count, 1)
+                    repeated = interface.solve_via_data(data, True, verbose, options.copy(), cache)
+                    self.assertEqual(setup.call_count, 1)
+                fresh = interface.solve_via_data(data, False, verbose, options.copy())
+                for actual in (result, repeated):
+                    self.assertItemsAlmostEqual(actual["x"], fresh["x"], places=5)
+                    self.assertAlmostEqual(actual["info"]["pobj"], fresh["info"]["pobj"], places=5)
+
+    @unittest.skipIf(Version(scs.__version__).major < 3, "Requires the SCS workspace API.")
+    def test_workspace_unsuccessful_solve(self) -> None:
+        for failure in ("infeasible", "exception"):
+            with self.subTest(failure=failure):
+                x, b = cp.Variable(), cp.Parameter(value=0)
+                problem = cp.Problem(cp.Minimize(x), [x >= b, x <= 1])
+                problem.solve(solver=cp.SCS, eps=1e-8)
+                if failure == "infeasible":
+                    b.value = 2
+                    problem.solve(solver=cp.SCS, eps=1e-8)
+                    self.assertEqual(problem.status, cp.INFEASIBLE)
+                else:
+                    with mock.patch.object(scs.SCS, "solve",
+                                           side_effect=ValueError("solve failed")):
+                        with self.assertRaisesRegex(ValueError, "solve failed"):
+                            problem.solve(solver=cp.SCS, eps=1e-8)
+                self.assertNotIn(cp.SCS, problem._solver_cache)
+                b.value = 0.5
+                with mock.patch("scs.SCS", wraps=scs.SCS) as setup:
+                    value = problem.solve(solver=cp.SCS, eps=1e-8)
+                    self.assertEqual(setup.call_count, 1)
+                self.assertAlmostEqual(value, 0.5, places=5)
+
+    @unittest.skipIf(Version(scs.__version__).major < 3, "Requires the SCS workspace API.")
+    def test_workspace_pickle(self) -> None:
+        x, b = cp.Variable(), cp.Parameter(value=1)
+        problem = cp.Problem(cp.Minimize(x), [x >= b])
+        problem.solve(solver=cp.SCS, eps=1e-8)
+        restored = pickle.loads(pickle.dumps(problem))
+        restored.parameters()[0].value = 2
+        with mock.patch("scs.SCS", wraps=scs.SCS) as setup:
+            for _ in range(2):
+                self.assertAlmostEqual(restored.solve(solver=cp.SCS, eps=1e-8), 2, places=5)
+                self.assertEqual(setup.call_count, 1)
+        self.assertAlmostEqual(problem.solve(solver=cp.SCS, eps=1e-8), 1, places=5)
+
+    @unittest.skipIf(Version(scs.__version__).major < 3, "Requires the SCS workspace API.")
+    def test_workspace_write_data(self) -> None:
+        x, b = cp.Variable(), cp.Parameter(value=1)
+        problem = cp.Problem(cp.Minimize(x), [x >= b])
+        with tempfile.TemporaryDirectory() as directory:
+            path = os.path.join(directory, "problem.dat")
+            problem.solve(solver=cp.SCS, write_data_filename=path)
+            with open(path, "rb") as stream:
+                first = stream.read()
+            b.value = 2
+            problem.solve(solver=cp.SCS, write_data_filename=path)
+            with open(path, "rb") as stream:
+                updated = stream.read()
+            self.assertNotEqual(first, updated)
+            problem.solve(solver=cp.SCS, write_data_filename=path, warm_start=False)
+            with open(path, "rb") as stream:
+                self.assertEqual(updated, stream.read())
 
     def test_warm_start_diffcp(self) -> None:
         """Test warm starting in diffcvx.
