@@ -8,6 +8,8 @@ set -e
 # Installs packages that need BLAS/LAPACK. On Windows, packages with no wheel for this
 # platform (e.g. ARM64, free-threaded) are built against the official OpenBLAS binaries
 # and repaired with delvewheel so the OpenBLAS DLL is vendored.
+# TODO: Drop the Windows build path once scs and sparsediffpy ship win_arm64 and
+# Windows cp314t wheels.
 install_blas_packages() {
   if [[ "$RUNNER_OS" != "Windows" ]]; then
     uv pip install "$@"
@@ -39,6 +41,8 @@ install_blas_packages() {
 
   if [[ "$RUNNER_ARCH" != "ARM64" ]]; then
     # The x64 (MinGW) archive lacks the OpenBLAS::OpenBLAS target and an openblas.lib.
+    # TODO: Drop the appended target when moving past 0.3.34: OpenMathLib/OpenBLAS#6091 adds
+    # it to the shipped config, and keeping ours would define the target twice.
     cat >> "$root/lib/cmake/openblas/OpenBLASConfig.cmake" <<'EOF'
 add_library(OpenBLAS::OpenBLAS SHARED IMPORTED)
 set_target_properties(OpenBLAS::OpenBLAS PROPERTIES
@@ -79,6 +83,7 @@ fi
 uv pip install pytest pytest-cov hypothesis "setuptools>65.5.1"
 
 # FindPython before CMake 4.1 can't find free-threaded Python; runners may ship older CMake.
+# TODO: Drop once highspy and sparsediffpy ship cp314t wheels (or runners have CMake >= 4.1).
 export SKBUILD_CMAKE_VERSION=">=4.1"
 
 uv pip install clarabel osqp highspy

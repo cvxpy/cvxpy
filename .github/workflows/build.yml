@@ -135,7 +135,7 @@ jobs:
           rm -rf pyproject.toml.bak setup.py.bak
 
       - name: Verify that we can build by pip-install on each OS.
-        # cplex has no Windows ARM64 wheels.
+        # TODO: Drop the windows-11-arm condition once cplex ships win_arm64 wheels.
         if: ${{matrix.build-cvxpy-base && env.PIP_INSTALL == 'True' && matrix.os != 'windows-11-arm'}}
         run: |
           pip install . pytest cplex
