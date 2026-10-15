@@ -179,7 +179,7 @@ class SCIP(ConicSolver):
             warm_start: bool,
             verbose: bool,
             solver_opts: dict[str, Any],
-            solver_cache: dict = None,
+            solver_cache: dict | None = None,
     ) -> Solution:
         """Returns the result of the call to the solver."""
         from pyscipopt.scip import Model
