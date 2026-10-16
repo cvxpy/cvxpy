@@ -1018,7 +1018,7 @@ class Problem(u.Canonical):
         if verbose:
             print(_HEADER)
         for parameter in self.parameters():
-            if parameter.value is None:
+            if not parameter._has_value:
                 raise error.ParameterError(
                     "A Parameter (whose name is '%s') does not have a value "
                     "associated with it; all Parameter objects must have "
