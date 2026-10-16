@@ -3933,14 +3933,17 @@ class TestCUOPT(unittest.TestCase):
         """Bounds on boolean variables are intersected with [0, 1], not replaced.
 
         Booleans become integer columns in cuOpt with bounds [0, 1]. A tighter
-        user bound, such as a binary fixed to 1, must survive that step.
+        user bound, such as a binary fixed to 1, must survive that step. The
+        constraint makes the lost bound change the optimum: cvxpy clips the
+        returned values to the variable bounds, so a problem where the bound is
+        never active would pass even with the bound dropped.
         """
-        x = cp.Variable(3, boolean=True, bounds=[np.array([1, 0, 0]), np.array([1, 1, 0])])
-        prob = cp.Problem(cp.Minimize(cp.sum(x)), [cp.sum(x) >= 0])
+        x = cp.Variable(2, boolean=True, bounds=[np.array([1, 0]), np.array([1, 1])])
+        prob = cp.Problem(cp.Minimize(0.5 * x[0] - x[1]), [x[0] + x[1] <= 1])
         prob.solve(solver="CUOPT", **TestCUOPT.kwargs)
         self.assertEqual(prob.status, cp.OPTIMAL)
-        self.assertAlmostEqual(prob.value, 1.0, places=4)
-        np.testing.assert_allclose(x.value, [1, 0, 0], atol=1e-4)
+        self.assertAlmostEqual(prob.value, 0.5, places=4)
+        np.testing.assert_allclose(x.value, [1, 0], atol=1e-4)
 
     def test_cuopt_mi_lp_time_limit_no_incumbent(self) -> None:
         """A MILP that hits the time limit before any incumbent is found.
