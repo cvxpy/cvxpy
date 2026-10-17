@@ -229,7 +229,7 @@ def test_various_operations_with_labels():
     )
 
     power_expr = cp.power(cp.sum(x), 2)
-    assert power_expr.format_labeled() == "PowerApprox(Sum(x_vec, None, False), 2.0)"
+    assert power_expr.format_labeled() == "square(Sum(x_vec, None, False))"
 
     # Test indexing (has custom name method)
     index_expr = x[0]
@@ -447,7 +447,7 @@ def test_label_display_catalog_exact():
     assert cp.norm(x + y).format_labeled() == "PnormApprox(xL + yL, 2)"
     assert cp.norm1(x).format_labeled() == "norm1(xL)"
     assert cp.norm_inf(x).format_labeled() == "norm_inf(xL)"
-    assert cp.power(cp.sum(x), 2).format_labeled() == "PowerApprox(Sum(xL, None, False), 2.0)"
+    assert cp.power(cp.sum(x), 2).format_labeled() == "square(Sum(xL, None, False))"
 
     # Quad form
     A = _np.diag([1, 2, 3])
