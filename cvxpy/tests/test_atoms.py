@@ -1874,6 +1874,36 @@ class TestAtoms(BaseTest):
         ref = np.block([[7.0, x.value.T], [x.value, np.identity(2)]])
         self.assertItemsAlmostEqual(expr.value, ref)
 
+    def test_bmat_constant_quad_form_uses_value_symmetry(self) -> None:
+        """A parameter-free symmetric bmat is Hermitian for quad_form.
+
+        Regression test for https://github.com/cvxpy/cvxpy/issues/2786.
+        """
+        x = cp.Variable((2, 1))
+        skewed = cp.bmat([[1, 2], [3, 4]])
+        with self.assertRaises(ValueError):
+            cp.quad_form(x, skewed)
+
+        param = cp.Parameter((2, 2))
+        parametric = cp.bmat([[param]])
+        self.assertEqual(len(parametric.parameters()), 1)
+
+        A = np.array([[1.0, 1.0], [-1.0, 2.0], [-1.0, 0.0]])
+        b = cp.bmat([[2], [-1], [0]])
+        P = cp.bmat([[2, -2], [-2, 2]])
+        self.assertTrue(P.is_hermitian())
+        prob = cp.Problem(cp.Minimize(cp.quad_form(x, P)), [A @ x <= b])
+        cost = prob.solve(solver=cp.CLARABEL)
+
+        x_ref = cp.Variable((2, 1))
+        P_np = np.array([[2.0, -2.0], [-2.0, 2.0]])
+        b_np = np.array([[2.0], [-1.0], [0.0]])
+        ref = cp.Problem(
+            cp.Minimize(cp.quad_form(x_ref, P_np)), [A @ x_ref <= b_np])
+        cost_ref = ref.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(cost, cost_ref)
+        self.assertItemsAlmostEqual(x.value, x_ref.value)
+
     def test_block_bare_expression(self) -> None:
         """Test block with a bare expression."""
         x = cp.Variable((2, 3))
