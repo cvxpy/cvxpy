@@ -141,6 +141,9 @@ class TestDiffengineBackend(BaseTest):
             np.ones(n) @ x,                 # scalar
             x @ np.ones(n),                 # scalar
             np.ones(m) @ (2 * X + c0),      # over a compound expression
+            X[:, :1] @ np.ones((1, n)),     # outer products (broadcasting),
+            np.ones((m, 1)) @ X[:1, :],     # not sums
+            X[:, :1] + X,                   # column broadcast
         ]
         for expr in exprs:
             prob = cp.Problem(cp.Minimize(cp.sum(X) + cp.sum(x)),

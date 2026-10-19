@@ -52,12 +52,14 @@ def _matmul_children(expr, var_dict, n_vars, param_dict):
             for i, arg in enumerate(expr.args)]
 
 
-def _is_ones_vector(arg):
-    """True if ``arg`` is a parameter-free constant vector (1D, or a single row or
-    column) whose entries are all one."""
+def _is_ones_vector(arg, free_axis):
+    """True if ``arg`` is a parameter-free constant vector of ones whose only
+    dimension of length other than one is the contracted one: 1D, or 2D with
+    ``arg.shape[free_axis] == 1``. A row of ones on the right (or a column on
+    the left) forms an outer product, which cvxpy uses to broadcast, not a sum."""
     if not is_param_free(arg) or arg.size == 0:
         return False
-    if len(arg.shape) == 2 and 1 not in arg.shape:
+    if len(arg.shape) == 2 and arg.shape[free_axis] != 1:
         return False
     return bool(np.all(to_dense_float(arg.value) == 1.0))
 
@@ -72,11 +74,11 @@ def _ones_matmul_as_sum(expr, children):
     """
     left_arg, right_arg = expr.args
     if left_arg.is_constant() and not right_arg.is_constant() \
-            and _is_ones_vector(left_arg):
+            and _is_ones_vector(left_arg, 0):
         # 1' @ X sums the rows of X; 1' @ x sums all of x.
         return _diffengine.make_sum(children[1], 0 if right_arg.ndim == 2 else -1)
     if right_arg.is_constant() and not left_arg.is_constant() \
-            and _is_ones_vector(right_arg):
+            and _is_ones_vector(right_arg, 1):
         if left_arg.ndim < 2:
             return _diffengine.make_sum(children[0], -1)
         # X @ 1 sums the columns of X. The engine returns sums along an axis as
