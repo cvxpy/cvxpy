@@ -303,7 +303,9 @@ html_css_files = [
 ]
 html_js_files = [
     'https://cdn.datatables.net/2.1.8/js/dataTables.js',
-    # Typesets math on pages loaded through "navigation.instant".
+    # Typesets math on pages loaded through "navigation.instant". Keep it last:
+    # it makes the `src` of the scripts that come before it absolute, so the
+    # theme doesn't load them again after an instant navigation.
     'js/mathjax-instant-navigation.js',
 ]
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
