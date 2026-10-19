@@ -125,6 +125,37 @@ class TestDiffengineBackend(BaseTest):
             elif isinstance(expected, np.ndarray):
                 self.assertItemsAlmostEqual(data_de[key], expected, places=10)
 
+    def test_ones_matmul_data_matches_cpp(self) -> None:
+        """Products with a vector of ones are lowered to sums; every shape of
+        operand must still produce the default backend's stuffed data."""
+        m, n = 3, 4
+        X = cp.Variable((m, n))
+        x = cp.Variable(n)
+        c0 = np.arange(1.0, m * n + 1.0).reshape((m, n))
+        exprs = [
+            np.ones(m) @ X,                 # (n,): sums the rows
+            np.ones((1, m)) @ X,            # (1, n)
+            X @ np.ones(n),                 # (m,): sums the columns
+            X @ np.ones((n, 1)),            # (m, 1)
+            X.T @ np.ones(m),               # (n,), through a transpose
+            np.ones(n) @ x,                 # scalar
+            x @ np.ones(n),                 # scalar
+            np.ones(m) @ (2 * X + c0),      # over a compound expression
+        ]
+        for expr in exprs:
+            prob = cp.Problem(cp.Minimize(cp.sum(X) + cp.sum(x)),
+                              [expr <= np.arange(expr.size).reshape(expr.shape),
+                               X >= -1, x >= -1])
+            data_de, _, _ = prob.get_problem_data(SOLVER, canon_backend=DIFFENGINE)
+            data_cpp, _, _ = prob.get_problem_data(SOLVER)
+            for key in data_cpp:
+                expected = data_cpp[key]
+                if sp.issparse(expected):
+                    self.assertItemsAlmostEqual(
+                        data_de[key].toarray(), expected.toarray(), places=10)
+                elif isinstance(expected, np.ndarray):
+                    self.assertItemsAlmostEqual(data_de[key], expected, places=10)
+
     def test_lp_and_soc_data_matches_cpp(self) -> None:
         """LP and SOC stuffed data must match the default backend through the
         single-column tensor encode."""

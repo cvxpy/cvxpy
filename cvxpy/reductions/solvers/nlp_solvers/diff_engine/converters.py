@@ -52,12 +52,53 @@ def _matmul_children(expr, var_dict, n_vars, param_dict):
             for i, arg in enumerate(expr.args)]
 
 
+def _is_ones_vector(arg):
+    """True if ``arg`` is a parameter-free constant vector (1D, or a single row or
+    column) whose entries are all one."""
+    if not is_param_free(arg) or arg.size == 0:
+        return False
+    if len(arg.shape) == 2 and 1 not in arg.shape:
+        return False
+    return bool(np.all(to_dense_float(arg.value) == 1.0))
+
+
+def _ones_matmul_as_sum(expr, children):
+    """Lower 1' @ X and X @ 1 to the engine's sum.
+
+    Summing with a vector of ones is common (``D.T @ np.ones(m)``), and the
+    matmul lowering builds one dense block per column of X, each carrying an
+    inverse column map over every variable of the problem. The sum node builds
+    no blocks. Returns None when ``expr`` is not of this form.
+    """
+    left_arg, right_arg = expr.args
+    if left_arg.is_constant() and not right_arg.is_constant() \
+            and _is_ones_vector(left_arg):
+        # 1' @ X sums the rows of X; 1' @ x sums all of x.
+        return _diffengine.make_sum(children[1], 0 if right_arg.ndim == 2 else -1)
+    if right_arg.is_constant() and not left_arg.is_constant() \
+            and _is_ones_vector(right_arg):
+        if left_arg.ndim < 2:
+            return _diffengine.make_sum(children[0], -1)
+        # X @ 1 sums the columns of X. The engine returns sums along an axis as
+        # a row; a column result (X @ ones((n, 1))) has the same column-major
+        # vectorization, so a reshape restores its shape.
+        node = _diffengine.make_sum(children[0], 1)
+        if expr.ndim == 2:
+            node = _diffengine.make_reshape(node, *expr.shape)
+        return node
+    return None
+
+
 def convert_matmul(expr, children, var_dict, n_vars, param_dict):
     """Convert matrix multiplication A @ f(x), f(x) @ A, or X @ Y.
 
     Follows numpy's matmul broadcasting rules for 1D operands.
     """
     left_arg, right_arg = expr.args
+
+    ones_sum = _ones_matmul_as_sum(expr, children)
+    if ones_sum is not None:
+        return ones_sum
 
     if left_arg.is_constant():
         A = left_arg.value
