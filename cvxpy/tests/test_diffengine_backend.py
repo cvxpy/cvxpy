@@ -126,7 +126,7 @@ class TestDiffengineBackend(BaseTest):
                 self.assertItemsAlmostEqual(data_de[key], expected, places=10)
 
     def test_ones_matmul_data_matches_cpp(self) -> None:
-        """Products with a vector of ones are lowered to sums; every shape of
+        """Products with a uniform vector c * 1 are lowered to sums; every shape of
         operand must still produce the default backend's stuffed data."""
         m, n = 3, 4
         X = cp.Variable((m, n))
@@ -141,6 +141,9 @@ class TestDiffengineBackend(BaseTest):
             np.ones(n) @ x,                 # scalar
             x @ np.ones(n),                 # scalar
             np.ones(m) @ (2 * X + c0),      # over a compound expression
+            np.full(m, 0.5) @ X,            # a uniform vector c * 1
+            X @ np.full((n, 1), -3.0),
+            np.zeros(n) @ x,                # c == 0 keeps the matmul lowering
             X[:, :1] @ np.ones((1, n)),     # outer products (broadcasting),
             np.ones((m, 1)) @ X[:1, :],     # not sums
             X[:, :1] + X,                   # column broadcast
