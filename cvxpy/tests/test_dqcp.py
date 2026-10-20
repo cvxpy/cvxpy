@@ -487,6 +487,20 @@ class TestDqcp(base_test.BaseTest):
         np.testing.assert_almost_equal(problem.objective.value, 0.25, decimal=3)
         np.testing.assert_almost_equal(x.value, np.array([0.8, 0.8]), decimal=3)
 
+    def test_dist_ratio_parameters(self) -> None:
+        x = cp.Variable(1)
+        x.value = np.array([0.0])
+        a = cp.Parameter(1, value=np.array([0.0]))
+        b = cp.Parameter(1, value=np.array([2.0]))
+        expr = cp.dist_ratio(x, a, b)
+        self.assertEqual(expr.value, 0.0)
+
+        a.value = np.array([1.0])
+        self.assertEqual(expr.value, 0.5)
+
+        b.value = np.array([4.0])
+        self.assertEqual(expr.value, 0.25)
+
     def test_infeasible_exp_constr(self) -> None:
         x = cp.Variable()
         constr = [cp.exp(cp.ceil(x)) <= -5]
