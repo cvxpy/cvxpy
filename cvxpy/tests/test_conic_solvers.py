@@ -3929,6 +3929,22 @@ class TestCUOPT(unittest.TestCase):
         self.assertTrue(pf.is_mixed_integer())
         self.assertFalse(CUOPT().can_solve(pf))
 
+    def test_cuopt_boolean_bounds(self) -> None:
+        """Bounds on boolean variables are intersected with [0, 1], not replaced.
+
+        Booleans become integer columns in cuOpt with bounds [0, 1]. A tighter
+        user bound, such as a binary fixed to 1, must survive that step. The
+        constraint makes the lost bound change the optimum: cvxpy clips the
+        returned values to the variable bounds, so a problem where the bound is
+        never active would pass even with the bound dropped.
+        """
+        x = cp.Variable(2, boolean=True, bounds=[np.array([1, 0]), np.array([1, 1])])
+        prob = cp.Problem(cp.Minimize(0.5 * x[0] - x[1]), [x[0] + x[1] <= 1])
+        prob.solve(solver="CUOPT", **TestCUOPT.kwargs)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        self.assertAlmostEqual(prob.value, 0.5, places=4)
+        np.testing.assert_allclose(x.value, [1, 0], atol=1e-4)
+
     def test_cuopt_mi_lp_time_limit_no_incumbent(self) -> None:
         """A MILP that hits the time limit before any incumbent is found.
 
@@ -3955,6 +3971,28 @@ class TestCUOPT(unittest.TestCase):
         )
         if prob.status == cp.settings.INFEASIBLE_INACCURATE:
             self.assertIsNone(w.value)
+
+
+def test_cuopt_miqp_not_advertised() -> None:
+    """cuOpt must not advertise mixed-integer quadratic objectives.
+
+    cuOpt does not support MIQPs (NVIDIA/cuopt#2032). Without this check,
+    can_solve accepted them because supports_quad_obj() is True, so solver
+    selection could route a MIQP to cuOpt. This runs without cuOpt installed.
+    """
+    w = cp.Variable(3)
+    z = cp.Variable(3, boolean=True)
+    constraints = [cp.sum(w) == 1, w >= 0, w <= z, cp.sum(z) <= 2]
+    miqp = cp.Problem(cp.Minimize(cp.sum_squares(w)), constraints)
+    pf = ProblemForm(miqp)
+    assert pf.is_mixed_integer() and pf.has_quadratic_objective()
+    assert not CUOPT().can_solve(pf)
+
+    # MILPs and continuous QPs are still advertised.
+    milp = cp.Problem(cp.Minimize(cp.sum(w)), constraints)
+    assert CUOPT().can_solve(ProblemForm(milp))
+    qp = cp.Problem(cp.Minimize(cp.sum_squares(w)), [cp.sum(w) == 1, w >= 0])
+    assert CUOPT().can_solve(ProblemForm(qp))
 
 
 def _ortools_params(solvers):
