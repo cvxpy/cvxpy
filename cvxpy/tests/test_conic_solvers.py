@@ -368,51 +368,42 @@ class TestSCS(BaseTest):
     def test_quad_obj(self) -> None:
         """Test SCS canonicalization with a quadratic objective.
         """
-        # Only relevant for SCS >= 3.0.0.
-        import scs
-        if Version(scs.__version__) >= Version('3.0.0'):
-            x = cp.Variable(2)
-            expr = cp.sum_squares(x)
-            constr = [x >= 1]
-            prob = cp.Problem(cp.Minimize(expr), constr)
-            data = prob.get_problem_data(solver=cp.SCS)
-            self.assertItemsAlmostEqual(data[0]["P"].toarray(), 2*np.eye(2))
-            solution1 = prob.solve(solver=cp.SCS)
+        x = cp.Variable(2)
+        expr = cp.sum_squares(x)
+        constr = [x >= 1]
+        prob = cp.Problem(cp.Minimize(expr), constr)
+        data = prob.get_problem_data(solver=cp.SCS)
+        self.assertItemsAlmostEqual(data[0]["P"].toarray(), 2*np.eye(2))
+        solution1 = prob.solve(solver=cp.SCS)
 
-            # When use_quad_obj = False, the quadratic objective is
-            # canonicalized to a SOC constraint.
-            prob = cp.Problem(cp.Minimize(expr), constr)
-            solver_opts = {"use_quad_obj": False}
-            data = prob.get_problem_data(solver=cp.SCS, solver_opts=solver_opts)
-            assert "P" not in data[0]
-            solution2 = prob.solve(solver=cp.SCS, **solver_opts)
+        # When use_quad_obj = False, the quadratic objective is
+        # canonicalized to a SOC constraint.
+        prob = cp.Problem(cp.Minimize(expr), constr)
+        data = prob.get_problem_data(solver=cp.SCS)
+        solution2 = prob.solve(solver=cp.SCS)
 
-            assert np.isclose(solution1, solution2)
+        assert np.isclose(solution1, solution2)
 
-            # Check that there is no P for non-quadratic objectives.
-            expr = cp.norm(x, 1)
-            prob = cp.Problem(cp.Minimize(expr), constr)
-            data = prob.get_problem_data(solver=cp.SCS)
-            assert "P" not in data[0]
+        # Check that there is no P for non-quadratic objectives.
+        expr = cp.norm(x, 1)
+        prob = cp.Problem(cp.Minimize(expr), constr)
+        data = prob.get_problem_data(solver=cp.SCS)
+        assert "P" not in data[0]
 
     def test_quad_obj_with_power(self) -> None:
         """Test a mixed quadratic/power objective.
         """
-        # Only relevant for SCS >= 3.0.0.
-        import scs
-        if Version(scs.__version__) >= Version('3.0.0'):
-            # See https://github.com/cvxpy/cvxpy/issues/2059
-            x = cp.Variable()
-            prob = cp.Problem(cp.Minimize(cp.power(x, 1.6, approx=True) + x**2), [x >= 1])
-            prob.solve(solver=cp.SCS, use_quad_obj=True)
-            self.assertAlmostEqual(prob.value, 2)
-            self.assertAlmostEqual(x.value, 1)
+        x = cp.Variable()
+        prob = cp.Problem(cp.Minimize(cp.power(x, 1.6, approx=True) + x**2), [x >= 1])
+        prob.solve(solver=cp.SCS, use_quad_obj=True)
+        self.assertAlmostEqual(prob.value, 2)
+        self.assertAlmostEqual(x.value, 1)
 
-            # Check problem data.
-            data = prob.get_problem_data(solver=cp.SCS, solver_opts={"use_quad_obj": True})
-            # Quadratic objective and SOC contraints.
-            assert "P" in data[0]
-            assert data[0]["dims"].soc
+        # Check problem data.
+        data = prob.get_problem_data(solver=cp.SCS, solver_opts={"use_quad_obj": True})
+        # Quadratic objective and SOC contraints.
+        assert "P" in data[0]
+        assert data[0]["dims"].soc
 
     def test_scs_lp_3(self) -> None:
         StandardTestLPs.test_lp_3(solver='SCS')
