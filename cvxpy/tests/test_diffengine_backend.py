@@ -127,6 +127,43 @@ class TestDiffengineBackend(BaseTest):
             elif isinstance(expected, np.ndarray):
                 self.assertItemsAlmostEqual(data_de[key], expected, places=10)
 
+    def test_ones_matmul_data_matches_cpp(self) -> None:
+        """Products with a uniform vector c * 1 are lowered to sums; every shape of
+        operand must still produce the default backend's stuffed data."""
+        m, n = 3, 4
+        X = cp.Variable((m, n))
+        x = cp.Variable(n)
+        c0 = np.arange(1.0, m * n + 1.0).reshape((m, n))
+        exprs = [
+            np.ones(m) @ X,                 # (n,): sums the rows
+            np.ones((1, m)) @ X,            # (1, n)
+            X @ np.ones(n),                 # (m,): sums the columns
+            X @ np.ones((n, 1)),            # (m, 1)
+            X.T @ np.ones(m),               # (n,), through a transpose
+            np.ones(n) @ x,                 # scalar
+            x @ np.ones(n),                 # scalar
+            np.ones(m) @ (2 * X + c0),      # over a compound expression
+            np.full(m, 0.5) @ X,            # a uniform vector c * 1
+            X @ np.full((n, 1), -3.0),
+            np.zeros(n) @ x,                # c == 0 keeps the matmul lowering
+            X[:, :1] @ np.ones((1, n)),     # outer products (broadcasting),
+            np.ones((m, 1)) @ X[:1, :],     # not sums
+            X[:, :1] + X,                   # column broadcast
+        ]
+        for expr in exprs:
+            prob = cp.Problem(cp.Minimize(cp.sum(X) + cp.sum(x)),
+                              [expr <= np.arange(expr.size).reshape(expr.shape),
+                               X >= -1, x >= -1])
+            data_de, _, _ = prob.get_problem_data(SOLVER, canon_backend=DIFFENGINE)
+            data_cpp, _, _ = prob.get_problem_data(SOLVER)
+            for key in data_cpp:
+                expected = data_cpp[key]
+                if sp.issparse(expected):
+                    self.assertItemsAlmostEqual(
+                        data_de[key].toarray(), expected.toarray(), places=10)
+                elif isinstance(expected, np.ndarray):
+                    self.assertItemsAlmostEqual(data_de[key], expected, places=10)
+
     def test_quad_objective_dense_stored_diagonal(self) -> None:
         """A diagonal P stored as a dense array (H * np.eye(n)) must take the
         sparse quad_form binding, not become a dense n^2 Hessian block, and
