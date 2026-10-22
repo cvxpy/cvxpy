@@ -28,8 +28,8 @@ from cvxpy.reductions.solvers.conic_solvers.conic_solver import (
     dims_to_solver_dict as dims_to_solver_dict_default,
 )
 from cvxpy.utilities.citations import CITATION_DICT
-from cvxpy.utilities.versioning import Version
 from cvxpy.utilities.psd_utils import TriangleKind
+from cvxpy.utilities.versioning import Version
 from cvxpy.utilities.warn import CvxpyDeprecationWarning, warn
 
 
@@ -116,7 +116,6 @@ class SCS(ConicSolver):
     def supports_quad_obj(self) -> bool:
         """SCS >= 3.2.4.post1 supports a quadratic objective.
         """
-        import scs
         return True
 
     def apply(self, problem):
@@ -133,7 +132,6 @@ class SCS(ConicSolver):
         """Returns the solution to the original problem given the inverse_data.
         """
         attr = {}
-        import scs
         status = self.STATUS_MAP[solution["info"]["status_val"]]
         attr[s.SOLVE_TIME] = solution["info"]["solve_time"] / 1000
         attr[s.SETUP_TIME] = solution["info"]["setup_time"] / 1000
