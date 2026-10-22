@@ -103,7 +103,8 @@ class SCS(ConicSolver):
                   -3: s.SOLVER_ERROR,           # Indeterminate
                   -5: s.SOLVER_ERROR}           # SIGINT
 
-    # Order of exponential cone arguments for solver.    EXP_CONE_ORDER = [0, 1, 2]
+    # Order of exponential cone arguments for solver.
+    EXP_CONE_ORDER = [0, 1, 2]
     def name(self):
         """The name of the solver.
         """
