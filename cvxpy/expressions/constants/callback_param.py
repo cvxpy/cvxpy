@@ -53,3 +53,8 @@ class CallbackParam(Parameter):
     @value.setter
     def value(self, _val):
         raise NotImplementedError("Cannot set the value of a CallbackParam.")
+
+    @property
+    def _has_value(self) -> bool:
+        """A CallbackParam's value comes from its callback, not from _value."""
+        return self.value is not None
