@@ -2255,6 +2255,21 @@ class TestGUROBI(BaseTest):
                 prob.solve(solver=cp.GUROBI, TimeLimit=0)
             self.assertEqual(str(cm.exception), "The solver %s is not installed." % cp.GUROBI)
 
+    def test_gurobi_error_message(self) -> None:
+        """An error raised by Gurobi itself (e.g. a size-limited license) must show
+        up in the SolverError instead of the generic failure message.
+        """
+        if cp.GUROBI not in INSTALLED_SOLVERS:
+            self.skipTest("GUROBI is not installed.")
+        import gurobipy
+
+        prob = cp.Problem(cp.Minimize(self.a), [cp.norm(self.x) <= self.a])
+        error = gurobipy.GurobiError(10010, "Model too large for size-limited license")
+        with mock.patch.object(gurobipy.Model, "optimize", side_effect=error):
+            with pytest.raises(cp.error.SolverError, match="Model too large") as exc_info:
+                prob.solve(solver=cp.GUROBI)
+        assert exc_info.value.__cause__ is error
+
     def test_gurobi_environment(self) -> None:
         """Tests that Gurobi environments can be passed to Model.
         Gurobi environments can include licensing and model parameter data.
