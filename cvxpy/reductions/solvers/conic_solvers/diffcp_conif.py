@@ -81,7 +81,6 @@ class DIFFCP(scs_conif.SCS):
         """
         attr = {}
         if solution["solve_method"] == s.SCS:
-            import scs
             status = scs_conif.SCS.STATUS_MAP[solution["info"]["status_val"]]
             attr[s.SOLVE_TIME] = solution["info"]["solve_time"]
             attr[s.SETUP_TIME] = solution["info"]["setup_time"]
