@@ -34,7 +34,10 @@ from cvxpy.utilities.warn import CvxpyDeprecationWarning, warn
 
 
 def dims_to_solver_dict(cone_dims):
-    return dims_to_solver_dict_default(cone_dims)
+    cones = dims_to_solver_dict_default(cone_dims)
+    # SCS 3.0.0 renamed the zero cone key 'f' to 'z'; diffcp also requires 'z'.
+    cones['z'] = cones.pop('f')
+    return cones
 
 
 def scs_psdvec_to_psdmat(vec: Expression, indices: np.ndarray) -> Expression:
