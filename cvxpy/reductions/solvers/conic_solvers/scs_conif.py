@@ -108,6 +108,7 @@ class SCS(ConicSolver):
 
     # Order of exponential cone arguments for solver.
     EXP_CONE_ORDER = [0, 1, 2]
+
     def name(self):
         """The name of the solver.
         """
@@ -226,6 +227,8 @@ class SCS(ConicSolver):
 
         solver_opts = SCS.parse_solver_options(solver_opts)
         results, status = solve(solver_opts)
+        if solver_cache is not None and status == s.OPTIMAL:
+            solver_cache[self.name()] = results
         return results
 
     def cite(self, data):
