@@ -33,6 +33,7 @@ from numpy import linalg as LA
 
 import cvxpy as cp
 import cvxpy.interface as intf
+import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.settings as s
 from cvxpy.constraints import PSD, ExpCone, NonNeg, Zero
 from cvxpy.error import DCPError, ParameterError, SolverError
@@ -2134,6 +2135,29 @@ class TestProblem(BaseTest):
         result = new_prob.solve(solver=cp.SCS, eps=1e-6)
         self.assertAlmostEqual(result, 5.0)
         self.assertAlmostEqual(new_prob.variables()[0].value, 1.0)
+
+    def test_pickle_fresh_process_ids(self) -> None:
+        """Test that unpickled objects don't share ids with new objects.
+
+        In a fresh process (e.g. a ``spawn`` multiprocessing worker) the id counter
+        starts over. Issue #3023.
+        """
+        x = Variable(name="x")
+        data = pickle.dumps(([cp.square(x)], [x >= 1], x))
+        saved_count = lu.ID_COUNTER.count
+        # Simulate a fresh process, whose counter hands out the ids the restored objects use.
+        lu.ID_COUNTER.count = x.id
+        try:
+            costs, constraints, x = pickle.loads(data)
+            y = Variable(name="y")
+            self.assertNotEqual(x.id, y.id)
+            prob = cp.Problem(cp.Minimize(cp.sum(costs) + cp.square(y - 3)), constraints)
+            prob.solve(solver=cp.CLARABEL)
+            self.assertAlmostEqual(prob.value, 1.0, places=4)
+            self.assertAlmostEqual(x.value[()], 1.0, places=4)
+            self.assertAlmostEqual(y.value[()], 3.0, places=4)
+        finally:
+            lu.ID_COUNTER.count = max(lu.ID_COUNTER.count, saved_count)
 
     def test_spare_int8_matrix(self) -> None:
         """Test problem with sparse int8 matrix.
