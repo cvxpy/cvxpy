@@ -14,6 +14,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from copy import deepcopy
+
 import numpy as np
 
 import cvxpy.settings as s
@@ -31,6 +33,17 @@ from cvxpy.utilities.citations import CITATION_DICT
 from cvxpy.utilities.psd_utils import TriangleKind
 from cvxpy.utilities.versioning import Version
 from cvxpy.utilities.warn import CvxpyDeprecationWarning, warn
+
+
+class _SCSWorkspace:
+    def __init__(self, solver, key):
+        self.solver = solver
+        self.key = key
+
+    def __getstate__(self):
+        # Native workspaces cannot be pickled. Rebuild after restoring a Problem,
+        # while retaining its cached solution vectors for warm starting.
+        return {"solver": None, "key": None}
 
 
 def dims_to_solver_dict(cone_dims):
@@ -268,7 +281,39 @@ class SCS(ConicSolver):
             return _results, _status
 
         solver_opts = SCS.parse_solver_options(solver_opts)
-        results, status = solve(solver_opts)
+        workspace = None
+        cached = None
+        if scs_version.major >= 3 and solver_cache is not None:
+            # A failed update or solve must not leave a mutated workspace in the cache.
+            cached = solver_cache.pop(self.name(), None)
+        if scs_version.major >= 3 and warm_start and solver_cache is not None:
+            # SCS can update b and c, but not its matrices, cones or settings.
+            # Snapshot the sparse arrays so in-place changes also invalidate the cache.
+            matrices = []
+            for name in ("A", "P"):
+                if name in args and args[name] is not None:
+                    matrix = args[name].tocsc()
+                    matrices.append((name, matrix.shape, matrix.dtype.str,
+                                     matrix.indptr.tobytes(), matrix.indices.tobytes(),
+                                     matrix.data.tobytes()))
+            key = (matrices, deepcopy(cones), deepcopy(solver_opts), verbose)
+            if cached is not None:
+                workspace = cached.get("workspace")
+            # SCS writes problem data during setup, so a requested dump needs a fresh workspace.
+            if (workspace is None or workspace.solver is None or workspace.key != key or
+                    solver_opts.get("write_data_filename")):
+                workspace = _SCSWorkspace(scs.SCS(args, cones, verbose=verbose, **solver_opts), key)
+            else:
+                workspace.solver.update(b=args["b"], c=args["c"])
+            initial = {name: args[name] for name in ("x", "y", "s") if name in args}
+            if initial and (initial["x"].size != args["c"].size or
+                            initial["y"].size != args["b"].size):
+                initial = {}
+            results = workspace.solver.solve(warm_start=warm_start, **initial)
+            status = self.STATUS_MAP[results["info"]["status_val"]]
+        else:
+            cached = None
+            results, status = solve(solver_opts)
         if (status in s.INACCURATE and scs_version.major == 2
                 and "acceleration_lookback" not in solver_opts):
             warn(SCS.ACCELERATION_RETRY_MESSAGE % str(scs_version))
@@ -277,7 +322,8 @@ class SCS(ConicSolver):
             results, status = solve(retry_opts)
 
         if solver_cache is not None and status == s.OPTIMAL:
-            solver_cache[self.name()] = results
+            solver_cache[self.name()] = (dict(results, workspace=workspace)
+                                         if workspace is not None else results)
         return results
 
     def cite(self, data):
