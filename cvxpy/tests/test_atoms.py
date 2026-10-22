@@ -129,12 +129,22 @@ class TestAtoms(BaseTest):
         # A matrix norm has no meaning along a single axis. This used to return
         # the norm of the whole array for axis=0 and raise an AxisError from
         # inside the flattened expression for anything else.
+        # A full-length tuple on a 2-D matrix is a scalar matrix norm (numpy
+        # semantics): ('fro'/'nuc' still raise, but the numerical ords are valid).
         X = cp.Variable((3, 4))
-        for p in ('fro', 'nuc', 'Fro'):
-            for axis in (0, 1, (0, 1)):
+        for p in ('fro', 'nuc'):
+            for axis in (0, 1):
                 with self.assertRaises(ValueError) as cm:
                     cp.norm(X, p, axis=axis)
                 assert "not supported for the" in str(cm.exception)
+        # A full-length tuple on a 2-D matrix is a scalar matrix norm (numpy
+        # semantics): 'fro'/'nuc' still raise (single-axis definition), all
+        # other ords are valid. Three or more axes raise NotImplementedError.
+
+        # 3+ axes are rejected (spec: only two-entry tuples are matrix axes).
+        with self.assertRaises(NotImplementedError) as cm:
+            cp.norm(X, 'nuc', axis=(0, 1, 2))
+        assert "more than two axis entries" in str(cm.exception)
 
         # Without an axis both are unchanged.
         A = np.arange(12., dtype=float).reshape(3, 4)
