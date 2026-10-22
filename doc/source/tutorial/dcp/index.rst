@@ -60,7 +60,7 @@ are the same as for NumPy ndarrays (except some broadcasting is banned).
     # ValueError raised for invalid dimensions.
     try:
         A + X
-    except ValueError, e:
+    except ValueError as e:
         print(e)
 
 ::
