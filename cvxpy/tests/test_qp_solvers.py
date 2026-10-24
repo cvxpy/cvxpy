@@ -501,6 +501,83 @@ def test_parametric(solver):
         np.testing.assert_allclose(obj_param[i], obj_full[i], atol=1e-5)
 
 
+# Attributes whose variables CvxAttr2Constr substitutes with affine (non-Variable)
+# expressions. Quadratic objectives over such variables used to be silently
+# dropped (an all-zero P was sent to the solver). See quad_form_canon.py.
+DIM_REDUCING_ATTRS = [
+    {"symmetric": True},
+    {"PSD": True},
+    {"diag": True},
+    {"sparsity": [(0, 1), (0, 1)]},
+]
+
+
+@pytest.mark.parametrize("solver", [cp.CLARABEL, cp.OSQP])
+@pytest.mark.parametrize("attr", DIM_REDUCING_ATTRS, ids=lambda a: next(iter(a)))
+def test_quad_obj_dim_reducing_attr(solver, attr):
+    """Quadratic objective over a variable with a dim-reducing attribute."""
+    if "PSD" in attr and solver == cp.OSQP:
+        pytest.skip("OSQP does not support the PSD cone")
+    X = cp.Variable((2, 2), **attr)
+    con = cp.trace(X) >= 2
+    p = cp.Problem(cp.Minimize(cp.sum_squares(X)), [con])
+    p.solve(solver=solver)
+    # Optimum is X = I with value 2 and dual 2.
+    np.testing.assert_allclose(p.value, 2.0, atol=1e-5)
+    np.testing.assert_allclose(con.dual_value, 2.0, atol=1e-4)
+
+
+def test_quad_obj_nsd_attr():
+    """NSD is also dim-reducing; needs a sign-compatible constraint."""
+    X = cp.Variable((2, 2), NSD=True)
+    con = cp.trace(X) <= -2
+    p = cp.Problem(cp.Minimize(cp.sum_squares(X)), [con])
+    p.solve(solver=cp.CLARABEL)
+    # Optimum is X = -I with value 2 and dual 2.
+    np.testing.assert_allclose(p.value, 2.0, atol=1e-5)
+    np.testing.assert_allclose(con.dual_value, 2.0, atol=1e-4)
+
+
+@pytest.mark.parametrize("solver", [cp.CLARABEL, cp.OSQP])
+def test_quad_obj_attr_power_canon(solver):
+    """sum(square(X)) lowers through power_canon rather than quad_over_lin_canon."""
+    X = cp.Variable((2, 2), symmetric=True)
+    con = cp.trace(X) >= 2
+    p = cp.Problem(cp.Minimize(cp.sum(cp.square(X))), [con])
+    p.solve(solver=solver)
+    np.testing.assert_allclose(p.value, 2.0, atol=1e-5)
+    np.testing.assert_allclose(con.dual_value, 2.0, atol=1e-4)
+
+
+@pytest.mark.parametrize("solver", [cp.CLARABEL, cp.OSQP])
+def test_quad_obj_attr_quad_form_canon(solver):
+    """An explicit quad_form over a sparsity-constrained vector hits quad_form_canon."""
+    x = cp.Variable(4, sparsity=[(0, 2)])
+    con = cp.sum(x) >= 2
+    p = cp.Problem(cp.Minimize(cp.quad_form(x, np.eye(4))), [con])
+    p.solve(solver=solver)
+    # Support is {0, 2}: optimum x0 = x2 = 1 with value 2 and dual 2.
+    np.testing.assert_allclose(p.value, 2.0, atol=1e-5)
+    np.testing.assert_allclose(con.dual_value, 2.0, atol=1e-4)
+
+
+@pytest.mark.parametrize("solver", [cp.CLARABEL, cp.OSQP])
+def test_quad_obj_symmetric_mixed_dpp(solver):
+    """DPP quad objective mixing a symmetric variable with a plain variable."""
+    gamma = cp.Parameter(nonneg=True)
+    X = cp.Variable((2, 2), symmetric=True)
+    y = cp.Variable(2)
+    con = cp.trace(X) + cp.sum(y) >= 4
+    prob = cp.Problem(cp.Minimize(gamma * cp.sum_squares(X) + cp.sum_squares(y)), [con])
+    assert prob.is_dpp()
+    for gv in (1.0, 4.0):
+        gamma.value = gv
+        prob.solve(solver=solver)
+        # Analytic optimum: value 8g/(1+g), dual 4g/(1+g).
+        np.testing.assert_allclose(prob.value, 8 * gv / (1 + gv), atol=1e-5)
+        np.testing.assert_allclose(con.dual_value, 4 * gv / (1 + gv), atol=1e-4)
+
+
 # --- Solver-specific tests --- #
 
 @pytest.mark.parametrize(

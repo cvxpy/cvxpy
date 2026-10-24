@@ -20,7 +20,9 @@ from cvxpy.reductions.chain import Chain
 from cvxpy.reductions.complex2real import complex2real
 from cvxpy.reductions.cone2cone.approx import ApproxCone2Cone
 from cvxpy.reductions.cone2cone.exact import ExactCone2Cone
+from cvxpy.reductions.cone2cone.extract_direct_cones import ExtractDirectCones
 from cvxpy.reductions.cone2cone.soc_dim3 import SOCDim3
+from cvxpy.reductions.cone_format import ConeFormat
 from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
 from cvxpy.reductions.dcp2cone.dcp2cone import Dcp2Cone
@@ -31,11 +33,16 @@ from cvxpy.reductions.discrete2mixedint.valinvec2mixedint import (
 from cvxpy.reductions.eliminate_zero_sized import EliminateZeroSized
 from cvxpy.reductions.eval_params import EvalParams
 from cvxpy.reductions.flip_objective import FlipObjective
+from cvxpy.reductions.reduction import Reduction
 from cvxpy.reductions.solvers import defines as slv_def
 from cvxpy.reductions.solvers.constant_solver import ConstantSolver
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
 from cvxpy.reductions.solvers.solver import Solver, expand_cones
-from cvxpy.settings import COO_CANON_BACKEND, DPP_PARAM_THRESHOLD
+from cvxpy.settings import (
+    COO_CANON_BACKEND,
+    DIFFENGINE_CANON_BACKEND,
+    DPP_PARAM_THRESHOLD,
+)
 from cvxpy.utilities.solver_context import SolverInfo
 from cvxpy.utilities.warn import warn
 
@@ -141,7 +148,8 @@ def _build_solving_chain(
     ignore_dpp : bool
         When True, treat DPP problems as non-DPP.
     canon_backend : str, optional
-        Canonicalization backend ('CPP', 'SCIPY', or 'COO').
+        Canonicalization backend ('CPP', 'SCIPY', 'COO', or 'DIFFENGINE';
+        'DIFFENGINE' supports parameter-free compilation only).
     solver_opts : dict, optional
         Solver-specific options.
 
@@ -166,12 +174,14 @@ def _build_solving_chain(
     else:
         supported = frozenset(solver_instance.SUPPORTED_CONSTRAINTS)
 
+    dir_cone_kinds = solver_instance.DIR_CONE_KINDS
     solver_context = SolverInfo(
         solver=solver_instance.name(),
         supported_constraints=supported,
         supports_bounds=solver_instance.BOUNDED_VARIABLES,
         psd_triangle_kind=solver_instance.PSD_TRIANGLE_KIND,
         psd_sqrt2_scaling=solver_instance.PSD_SQRT2_SCALING,
+        dir_cone_kinds=dir_cone_kinds,
     )
 
     # --- Pre-canonicalization reductions (problem + gp only) ---
@@ -196,6 +206,14 @@ def _build_solving_chain(
     # so parametric P in constraints is NOT DPP-safe for the QP path.
     quad_form_dpp = 'qp' if solver_instance.supports_quad_obj() else None
     is_dpp = problem.is_dpp(dpp_context, quad_form_dpp=quad_form_dpp)
+
+    if canon_backend == DIFFENGINE_CANON_BACKEND and problem._max_ndim() > 2:
+        # Mirror the explicit-CPP treatment of N-D problems: the diff engine
+        # represents all expressions as 2-D matrices.
+        raise ValueError(
+            f"The {DIFFENGINE_CANON_BACKEND} backend cannot be used with "
+            "problems that have expressions of dimension greater than 2.")
+
     if ignore_dpp or not is_dpp:
         if not ignore_dpp and enforce_dpp:
             raise DPPError(DPP_ERROR_MSG)
@@ -216,29 +234,55 @@ def _build_solving_chain(
     is_qp_solver = isinstance(solver_instance, QpSolver)
     quad_obj = (use_quad and solver_instance.supports_quad_obj()
                 and (is_qp_solver or problem_form.has_quadratic_objective()))
+    reductions.extend(_cone_matrix_stuffing_reductions(
+        problem_form,
+        solver_context,
+        quad_obj=quad_obj,
+        reduce_bounds=not solver_instance.BOUNDED_VARIABLES,
+        canon_backend=canon_backend,
+        soc_dim3_only=solver_instance.SOC_DIM3_ONLY,
+    ))
+    if dir_cone_kinds:
+        reductions.append(ExtractDirectCones(solver_context=solver_context))
+    if not is_qp_solver:
+        # Reorder the stuffed constraint rows into the layout the solver's
+        # cone API expects, once, as a chain step rather than as a convention
+        # each interface has to remember. A no-op when the program is already
+        # formatted, which is what ExtractDirectCones leaves behind.
+        reductions.append(ConeFormat(solver_instance))
+    reductions.append(solver_instance)
+    return SolvingChain(reductions=reductions, solver_context=solver_context)
+
+
+def _cone_matrix_stuffing_reductions(
+    problem_form: ProblemForm,
+    solver_context: SolverInfo,
+    *,
+    quad_obj: bool,
+    reduce_bounds: bool,
+    canon_backend: str | None = None,
+    soc_dim3_only: bool = False,
+) -> list[Reduction]:
+    """Build the cone reductions through matrix stuffing."""
     cones = problem_form.cones(quad_obj=quad_obj).copy()
-    cones, exact_targets, approx_targets = expand_cones(cones, supported)
+    cones, exact_targets, approx_targets = expand_cones(
+        cones, solver_context.solver_supported_constraints)
 
-    reductions.append(Dcp2Cone(quad_obj=quad_obj, solver_context=solver_context))
-
-    reductions.append(
-        CvxAttr2Constr(reduce_bounds=not solver_instance.BOUNDED_VARIABLES))
-
+    reductions: list[Reduction] = [
+        Dcp2Cone(quad_obj=quad_obj, solver_context=solver_context),
+        CvxAttr2Constr(reduce_bounds=reduce_bounds),
+    ]
     if exact_targets:
-        reductions.append(ExactCone2Cone(target_cones=exact_targets,
-                                         solver_context=solver_context))
+        reductions.append(ExactCone2Cone(
+            target_cones=exact_targets, solver_context=solver_context))
     if approx_targets:
         reductions.append(ApproxCone2Cone(target_cones=approx_targets))
     reductions.append(EliminateZeroSized())
-
-    if solver_instance.SOC_DIM3_ONLY and SOC in cones:
+    if soc_dim3_only and SOC in cones:
         reductions.append(SOCDim3())
-
-    reductions += [
-        ConeMatrixStuffing(quad_obj=quad_obj, canon_backend=canon_backend),
-        solver_instance,
-    ]
-    return SolvingChain(reductions=reductions, solver_context=solver_context)
+    reductions.append(ConeMatrixStuffing(
+        quad_obj=quad_obj, canon_backend=canon_backend))
+    return reductions
 
 
 def _resolve_solver(

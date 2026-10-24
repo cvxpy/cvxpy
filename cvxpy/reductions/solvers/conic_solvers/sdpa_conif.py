@@ -39,6 +39,7 @@ class SDPA(ConicSolver):
     # Solver capabilities.
     MIP_CAPABLE = False
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [PSD]
+    REQUIRED_MODULES = ("sdpap",)
 
     # Map of SDPA status to CVXPY status.
     STATUS_MAP = {
@@ -87,9 +88,6 @@ class SDPA(ConicSolver):
         """
         data = {}
         inv_data = {self.VAR_ID: problem.x.id}
-
-        if not problem.formatted:
-            problem = self.format_constraints(problem, None)
         data[s.PARAM_PROB] = problem
         data[self.DIMS] = problem.cone_dims
         inv_data[self.DIMS] = problem.cone_dims

@@ -28,6 +28,7 @@ class GUROBI(QpSolver):
 
     MIP_CAPABLE = True
     BOUNDED_VARIABLES = True
+    REQUIRED_MODULES = ("gurobipy",)
 
     # Keyword arguments for the CVXPY interface.
     INTERFACE_ARGS = ["save_file", "reoptimize"]

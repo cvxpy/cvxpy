@@ -521,8 +521,8 @@ The CVXPY function ``sum`` sums all the entries in a single expression. The buil
 Functions along an axis
 -----------------------
 
-The functions ``sum``, ``norm``, ``max``, ``min``, ``mean``, ``std``, ``var``, and ``ptp`` can
-be applied along an axis.
+The functions ``sum``, ``norm``, ``max``, ``min``, ``mean``, ``std``, ``var``, ``ptp``,
+``sum_largest`` and ``cvar`` can be applied along an axis.
 Given an ``m`` by ``n`` expression ``expr``, the syntax ``func(expr, axis=0, keepdims=True)``
 applies ``func`` to each column, returning a 1 by ``n`` expression.
 The syntax ``func(expr, axis=1, keepdims=True)`` applies ``func`` to each row,
@@ -881,6 +881,12 @@ Expression and a negative Expression) then the returned Expression will have unk
      - |affine| affine
      - |incr| incr.
 
+   * - :ref:`block(arrays) <block>`
+     - NumPy-style block assembly
+     - nested lists of array-like expressions
+     - |affine| affine
+     - |incr| incr.
+
    * - :ref:`convolve(c, x) <convolve>`
 
        :math:`c\in\mathbf{R}^m`
@@ -1006,6 +1012,11 @@ Clarifications on vector and matrix functions
 The input to :math:`\texttt{bmat}` is a list of lists of CVXPY expressions.
 It constructs a block matrix.
 The elements of each inner list are stacked horizontally and then the resulting block matrices are stacked vertically.
+
+The input to :math:`\texttt{block}` is a nested list of CVXPY expressions.
+The innermost lists are concatenated along the last axis, the next level along
+the second-to-last axis, and so on, following NumPy's ``block`` semantics.
+Lower-dimensional inputs are prepended with dimensions of size one as needed.
 
 The output :math:`y = \texttt{convolve}(c, x)` has size :math:`n+m-1` and is defined as
 :math:`y_k =\sum_{j=0}^{k} c[j]x[k-j]`.

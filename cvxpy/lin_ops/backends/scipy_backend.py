@@ -28,6 +28,7 @@ from cvxpy.lin_ops.backends.base import (
     DictTensorView,
     PythonCanonBackend,
     TensorRepresentation,
+    _deduplicate_parametric_entries,
     get_nd_matmul_dims,
     get_nd_rmul_dims,
     is_batch_varying,
@@ -480,12 +481,12 @@ class SciPyCanonBackend(PythonCanonBackend):
         """
         Reshape parametric constant data from column to matrix format.
 
-        For parametric data, entries may be duplicated by broadcast operations.
-        We deduplicate and compute positions based on param_idx.
-
-        The param_idx encodes which parameter value each entry corresponds to.
-        After broadcast_to, entries are duplicated but param_idx stays the same.
-        We keep only the first occurrence of each param_idx.
+        Local position determines the output matrix entry, while ``param_idx``
+        only identifies the parameter value supplying its coefficient. Distinct
+        positions in the same parameter slice (e.g., from ``A @ p``) are kept.
+        If a transformed constant defensively arrives with repeated full copies
+        of the target shape, identical ``(param_idx, local position)`` copies
+        are collapsed. Normal batch-varying ND matmul is routed elsewhere first.
 
         Parameters
         ----------
@@ -513,34 +514,26 @@ class SciPyCanonBackend(PythonCanonBackend):
         # so we must use local_pos for position computation.
         local_pos = stacked_rows % slice_size
 
-        # Account for broadcast expansion.  For ND matmul like
-        # P(m,k) @ X(B,k,n), _broadcast_batch_dims wraps the parameter in
-        # broadcast_to(P, (B,m,k)).  This makes each parameter slice have
-        # slice_size = B*m*k entries instead of m*k.  In Fortran (column-major)
-        # order, each original entry is duplicated B consecutive times, so
-        # dividing local_pos by the broadcast factor (B = slice_size / (m*k))
-        # maps positions back to the original (m,k) space.
-        # When there is no broadcast, broadcast_factor == 1 and this is a no-op.
+        # Defensively collapse repeated full copies of the target shape. Normal
+        # batch-varying ND matmul is intercepted by is_batch_varying before
+        # get_constant_data requests a target-shape reshape.
         broadcast_factor = slice_size // (m * k)
         if broadcast_factor > 1:
             local_pos = local_pos // broadcast_factor
-
-        # Deduplicate: broadcast creates copies with same param_idx.
-        # For a param with param_size=12, param_idx should be 0-11 exactly once.
-        # If param_idx=5 appears 3 times, broadcast created duplicates - keep first only.
-        unique_param_idx, first_occurrence = np.unique(param_idx, return_index=True)
+            data, param_idx, local_pos = _deduplicate_parametric_entries(
+                data, param_idx, local_pos, m * k
+            )
 
         # Position in (m, k) matrix: column-major order
-        local_pos_dedup = local_pos[first_occurrence]
-        new_rows = local_pos_dedup % m
-        new_cols = local_pos_dedup // m
+        new_rows = local_pos % m
+        new_cols = local_pos // m
 
-        # In stacked format, offset by slice: unique_param_idx is the slice index
-        stacked_new_rows = unique_param_idx * m + new_rows
+        # In stacked format, offset by slice: param_idx is the slice index
+        stacked_new_rows = param_idx * m + new_rows
 
         new_stacked_shape = (param_size * m, k)
         return sp.csc_array(
-            (data[first_occurrence], (stacked_new_rows, new_cols)),
+            (data, (stacked_new_rows, new_cols)),
             shape=new_stacked_shape
         )
 

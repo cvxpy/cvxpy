@@ -55,8 +55,9 @@ class Dualize:
     Usage
     -----
     Dualize applies to ParamConeProg problems. It accesses (P-Opt) data by calling
-    ``c, d, A, b = problem.apply_parameters()``. It assumes the solver interface
-    has already executed its ``format_constraints`` function on the ParamConeProg problem.
+    ``c, d, A, b = problem.apply_parameters()``. It assumes the rows are already in the
+    solver's cone layout, which the ``ConeFormat`` reduction establishes before the solver
+    runs.
 
     A solver interface is responsible for calling both Dualize.apply and Dualize.invert.
     The call to Dualize.apply should be one of the first things that happens, and the
@@ -79,8 +80,8 @@ class Dualize:
     The problem has no integer or boolean constraints. This is necessary because strong
     duality does not hold for problems with discrete constraints.
 
-    Dualize.apply assumes "SOLVER.format_constraints()" has already been called. This
-    assumption allows flexibility in how a solver interface chooses to vectorize a
+    Dualize.apply assumes the ``ConeFormat`` reduction has already applied the solver's
+    cone layout. That assumption allows flexibility in how a solver chooses to vectorize a
     feasible set (e.g. how to order conic constraints, or how to vectorize the PSD cone).
 
     Additional notes
@@ -88,8 +89,8 @@ class Dualize:
 
     Dualize.invert is written in a way which is agnostic to how a solver formats constraints,
     but it also imposes specific requirements on the input. Providing correct input to
-    Dualize.invert requires consideration to the effect of ``SOLVER.format_constraints`` and
-    the output of ``problem.apply_parameters``.
+    Dualize.invert requires consideration to the effect of the solver's cone layout, applied
+    by ``ConeFormat``, and the output of ``problem.apply_parameters``.
     """
 
     @staticmethod

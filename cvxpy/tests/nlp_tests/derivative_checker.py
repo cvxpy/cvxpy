@@ -47,7 +47,7 @@ class DerivativeChecker:
 
         # Construct the C version
         print("Constructing C diff engine problem for derivative checking...")
-        self.c_problem = C_problem(self.canonicalized_problem)
+        self.c_problem = C_problem.from_problem(self.canonicalized_problem)
         print("Done constructing C diff engine problem.")
 
         # Construct initial point using Bounds functionality

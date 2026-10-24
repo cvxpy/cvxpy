@@ -51,7 +51,6 @@ class NonPos(Constraint):
     Sign conventions on dual variables associated with NonPos constraints may
     change in the future.
     """
-
     def __init__(self, expr, constr_id=None) -> None:
         warn(NonPos.DEPRECATION_MESSAGE, CvxpyDeprecationWarning)
         super(NonPos, self).__init__([expr], constr_id)
@@ -91,16 +90,31 @@ class NonPos(Constraint):
         """
         if self.expr.value is None:
             return None
-        return np.maximum(self.expr.value, 0)
+        return -np.maximum(self.expr.value, 0)
 
-    def violation(self):
-        res = self.residual
-        if res is None:
-            raise ValueError("Cannot compute the violation of a constraint "
-                             "whose expression is None-valued.")
-        viol = np.linalg.norm(res, ord=2)
-        return viol
+    @property
+    def dual_residual(self):
+        """Residual for CVXPY's stored dual variable sign convention.
 
+        ``NonPos`` stores nonnegative dual variables, matching the multiplier
+        convention used by inequality constraints in CVXPY. The residual is
+        the projection onto the nonnegative orthant minus the stored value.
+        """
+        dv = self.dual_variables[0].value
+        if dv is None:
+            return None
+        return -np.minimum(dv, 0.0)
+
+    def complementarity_violation(self) -> float:
+        expr_val = self.expr.value
+        dv = self.dual_variables[0].value
+        if expr_val is None or dv is None:
+            raise ValueError(
+                "Cannot compute complementarity violation: missing primal "
+                "or dual value."
+            )
+        pairing = np.vdot(np.asarray(expr_val), np.asarray(dv))
+        return abs(pairing)
 
 class NonNeg(Constraint):
     """A constraint of the form :math:`x \\geq 0`.
@@ -157,16 +171,25 @@ class NonNeg(Constraint):
         """
         if self.expr.value is None:
             return None
-        return np.abs(np.minimum(self.expr.value, 0))
+        return -np.minimum(self.expr.value, 0)
 
-    def violation(self):
-        res = self.residual
-        if res is None:
-            raise ValueError("Cannot compute the violation of a constraint "
-                             "whose expression is None-valued.")
-        viol = np.linalg.norm(res, ord=2)
-        return viol
+    @property
+    def dual_residual(self):
+        dv = self.dual_variables[0].value
+        if dv is None:
+            return None
+        return -np.minimum(dv, 0.0)
 
+    def complementarity_violation(self) -> float:
+        expr_val = self.expr.value
+        dv = self.dual_variables[0].value
+        if expr_val is None or dv is None:
+            raise ValueError(
+                "Cannot compute complementarity violation: missing primal "
+                "or dual value."
+            )
+        pairing = np.vdot(np.asarray(expr_val), np.asarray(dv))
+        return abs(pairing)
 
 class Inequality(Constraint):
     """A constraint of the form :math:`x \\leq y`.
@@ -263,4 +286,22 @@ class Inequality(Constraint):
         """
         if self.expr.value is None:
             return None
-        return np.maximum(self.expr.value, 0)
+        return -np.maximum(self.expr.value, 0)
+
+    @property
+    def dual_residual(self):
+        dv = self.dual_variables[0].value
+        if dv is None:
+            return None
+        return -np.minimum(dv, 0.0)
+
+    def complementarity_violation(self) -> float:
+        expr_val = self.expr.value
+        dv = self.dual_variables[0].value
+        if expr_val is None or dv is None:
+            raise ValueError(
+                "Cannot compute complementarity violation: missing primal "
+                "or dual value."
+            )
+        pairing = np.vdot(np.asarray(expr_val), np.asarray(dv))
+        return abs(pairing)

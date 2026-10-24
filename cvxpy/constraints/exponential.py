@@ -279,6 +279,12 @@ class RelEntrConeQuad(Cone):
         # TODO: implement me.
         pass
 
+    def _dual_cone(self, *args):
+        raise NotImplementedError(
+            "dual_residual is not implemented for RelEntrConeQuad. "
+            "Implement dual recovery and the dual cone before enabling it."
+        )
+
 
 class OpRelEntrConeQuad(Cone):
     """An approximate construction of the operator relative entropy cone,
@@ -395,3 +401,9 @@ class OpRelEntrConeQuad(Cone):
     def save_dual_value(self, value) -> None:
         # TODO: implement me.
         pass
+
+    def _dual_cone(self, *args):
+        raise NotImplementedError(
+            "dual_residual is not implemented for OpRelEntrConeQuad. "
+            "Implement dual recovery and the dual cone before enabling it."
+        )

@@ -507,6 +507,39 @@ def socp_3(axis) -> SolverTestHelper:
     return sth
 
 
+def socp_4() -> SolverTestHelper:
+    """Three SOC constraints of different sizes, plus an equality.
+
+    The cones have dimension 2, 3 and 4, and the third is inactive at the
+    optimum. Solver interfaces that split the SOC block themselves have to get
+    the per-cone offsets and the ordering of the returned duals right.
+    """
+    x = cp.Variable(shape=(4,))
+    A1 = np.array([[1., -2., 2., -1.]])
+    A2 = np.array([[1., 0., -2., 2.],
+                   [0., -2., 2., 2.]])
+    A3 = np.array([[-2., -2., -2., -1.],
+                   [0., 1., 1., 1.],
+                   [0., 2., -1., 0.]])
+    b3 = np.array([0., 2., 2.])
+    c = np.array([3., 1., 2., -1.])
+    constraints = [cp.constraints.SOC(cp.Constant(1.0), A1 @ x),
+                   cp.constraints.SOC(cp.Constant(2.0), A2 @ x),
+                   cp.constraints.SOC(cp.Constant(3.0), A3 @ x - b3),
+                   cp.sum(x) == 1]
+    obj = cp.Minimize(c @ x)
+    expect_x = np.array([-0.69418893, 0.35428326, 0.58088704, 0.75901863])
+    con_pairs = [(constraints[0], [np.array([1.2]), np.array([1.2])]),
+                 (constraints[1], [np.array([0.88776405]),
+                                   np.array([0.15, -0.875])]),
+                 (constraints[2], [np.array([0.]), np.zeros(3)]),
+                 (constraints[3], -1.65)]
+    var_pairs = [(x, expect_x)]
+    obj_pair = (obj, -1.32552809)
+    sth = SolverTestHelper(obj_pair, var_pairs, con_pairs)
+    return sth
+
+
 def socp_bounds_attr() -> SolverTestHelper:
     x = cp.Variable(bounds=[-1, 1])
     obj_pair = (cp.Minimize(x), -1)
@@ -1290,6 +1323,25 @@ class StandardTestLPs:
 class StandardTestQPs:
 
     @staticmethod
+    def test_qp_parameter_update(solver, places: int = 4, **kwargs) -> None:
+        x = cp.Variable(2)
+        p = cp.Parameter(2, nonneg=True, value=[4., 0.25])
+        q = cp.Parameter(2, value=[-4., 2.])
+        a = cp.Parameter(2, value=[1., 1.])
+        b = cp.Parameter(value=2.)
+        objective = cp.Minimize(cp.sum(cp.multiply(p, cp.square(x))) / 2 + q @ x)
+        sth = SolverTestHelper(
+            (objective, -6.75), [(x, [1.5, 0.])], [(x >= 0, [0., 8.]), (a @ x <= b, 3.)],
+        )
+        sth.solve(solver, warm_start=False, **kwargs)
+        p.value, q.value, a.value, b.value = [2., 1.], [-6., 2.], [1., 2.], 1.5
+        for warm_start in (True, False):
+            sth.solve(solver, warm_start=warm_start, enforce_dpp=True, **kwargs)
+            sth.verify_objective(places)
+            sth.verify_primal_values(places)
+            sth.verify_dual_values(places)
+
+    @staticmethod
     def test_qp_0(solver, places: int = 4, duals: bool = True, **kwargs) -> SolverTestHelper:
         sth = qp_0()
         sth.solve(solver, **kwargs)
@@ -1369,6 +1421,17 @@ class StandardTestSOCPs:
     @staticmethod
     def test_socp_3ax1(solver, places: int = 3, duals: bool = True, **kwargs) -> SolverTestHelper:
         sth = socp_3(axis=1)
+        sth.solve(solver, **kwargs)
+        sth.verify_objective(places)
+        sth.verify_primal_values(places)
+        if duals:
+            sth.check_complementarity(places)
+            sth.verify_dual_values(places)
+        return sth
+
+    @staticmethod
+    def test_socp_4(solver, places: int = 4, duals: bool = True, **kwargs) -> SolverTestHelper:
+        sth = socp_4()
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
         sth.verify_primal_values(places)

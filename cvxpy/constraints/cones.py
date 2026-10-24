@@ -14,6 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import numpy as np
+
 from cvxpy.constraints.constraint import Constraint
 
 
@@ -57,11 +59,39 @@ class Cone(Constraint):
         raise NotImplementedError
 
     @property
-    def dual_residual(self) -> float:
-        """Computes the residual (see Constraint.violation for a
-        more formal definition) for the dual cone of the current instance
-        of `Cone` w.r.t. the recovered dual variables
+    def dual_residual(self) -> np.ndarray | None:
+        """Residual of the dual variable with respect to the dual cone.
 
-        Primarily intended to be used for KKT checks
+        This constructs the corresponding dual-cone constraint on this
+        constraint's dual variables and returns that constraint's residual,
+        following the same shape-preserving convention as ``residual``. The
+        reduction to a scalar happens in ``dual_violation``; spectral cones
+        such as ``PSD`` override it to use the operator norm.
+
+        Cone subclasses support this property by implementing
+        ``_dual_cone``. Cones without a dual-cone implementation should raise
+        ``NotImplementedError`` rather than reporting a residual.
+
+        Returns ``None`` if the dual variable has no value yet.
         """
         return self._dual_cone(*self.dual_variables).residual
+
+    def complementarity_violation(self) -> float:
+        """Return the scalar violation of complementary slackness.
+
+        For a primal cone element ``s`` and corresponding dual element ``y``,
+        complementary slackness requires ``<s, y> = 0``. This method returns
+        ``|<s, y>|``, using the Hermitian inner product for complex-valued
+        arguments.
+        """
+        pairing = 0.0
+        for arg, dual_var in zip(self.args, self.dual_variables):
+            primal = arg.value
+            dual = dual_var.value
+            if primal is None or dual is None:
+                raise ValueError(
+                    "Cannot compute complementarity violation: missing primal "
+                    "or dual value."
+                )
+            pairing += np.vdot(np.asarray(primal), np.asarray(dual))
+        return abs(pairing)

@@ -27,6 +27,7 @@ class GLPK(CVXOPT):
     # Solver capabilities.
     MIP_CAPABLE = False
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS
+    REQUIRED_MODULES = ("cvxopt.glpk",)
 
     # When constraints aren't provided, use zero matrix and vector of this length
     MIN_CONSTRAINT_LENGTH = 1

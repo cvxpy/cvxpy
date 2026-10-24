@@ -166,13 +166,15 @@ class TestDcp2ConeCSE(BaseTest):
 
     def test_shared_ndarray_constant_dedup(self) -> None:
         # A large float64 ndarray passed to two separate cp.Constant(...)
-        # calls produces two distinct Constant wrappers that share the same
-        # underlying ndarray (the ndarray interface stores by reference for
-        # float64). _constant_key's id-of-underlying branch merges them.
+        # calls produces two distinct snapshots. _constant_key uses their
+        # shared source identity and equal snapshots to merge them without
+        # making either Constant alias the source.
         arr = np.random.default_rng(0).standard_normal(100)
         x = cp.Variable(100)
         c1 = cp.Constant(arr)
         c2 = cp.Constant(arr)
+        self.assertFalse(np.shares_memory(c1.value, arr))
+        self.assertFalse(np.shares_memory(c2.value, arr))
         # Two structurally identical norm1(multiply(c_i, x)) subtrees.
         prob = cp.Problem(
             cp.Minimize(cp.norm1(cp.multiply(c1, x))),
@@ -183,6 +185,17 @@ class TestDcp2ConeCSE(BaseTest):
         aux_vars = [v for v in new_prob.variables() if v is not x]
         self.assertEqual(len(aux_vars), 1)
         self.assertEqual(aux_vars[0].shape, (100,))
+
+    def test_mutated_shared_ndarray_constants_do_not_dedup(self) -> None:
+        # Source identity alone is insufficient: the caller can mutate an
+        # array between constructing two Constant snapshots.
+        arr = np.random.default_rng(0).standard_normal(100)
+        c1 = cp.Constant(arr)
+        arr[0] += 1
+        c2 = cp.Constant(arr)
+
+        key_cache = StructuralKeyCache()
+        self.assertNotEqual(expr_key(c1, key_cache), expr_key(c2, key_cache))
 
     def test_sparse_constant_key_uses_sparse_contents(self) -> None:
         rows = np.array([0, 1])

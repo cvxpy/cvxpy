@@ -30,6 +30,7 @@ class MPAX(QpSolver):
 
     # Solver capabilities.
     BOUNDED_VARIABLES = True
+    REQUIRED_MODULES = ("jax", "mpax")
 
     STATUS_MAP = {
                     1: s.SOLVER_ERROR, # 1: UNSPECIFIED

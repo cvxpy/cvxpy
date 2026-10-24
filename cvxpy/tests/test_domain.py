@@ -47,7 +47,7 @@ class TestDomain(BaseTest):
             dom = expr.domain
             constr = [self.a >= -100, self.x >= 0]
             prob = Problem(Minimize(sum(self.x + self.a)), dom + constr)
-            prob.solve(solver=cp.SCS, eps=1e-6)
+            prob.solve(solver=cp.CLARABEL)
             self.assertAlmostEqual(prob.value, 13)
             assert self.a.value >= 0
             assert np.all((self.x + self.a - [5, 8]).value >= -1e-3)

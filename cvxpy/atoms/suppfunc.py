@@ -10,7 +10,7 @@ from cvxpy.expressions.variable import Variable
 
 class SuppFuncAtom(Atom):
 
-    def __init__(self, y, parent) -> None:
+    def __init__(self, y, parent, value_solve_kwargs: dict | None = None) -> None:
         """
         Parameters
         ----------
@@ -19,10 +19,17 @@ class SuppFuncAtom(Atom):
 
         parent : cvxpy.transforms.suppfunc.SuppFunc
             The object containing data for the convex set associated with this atom.
+
+        value_solve_kwargs : dict, optional
+            Keyword arguments passed to ``Problem.solve`` when evaluating this atom.
+            Uses CLARABEL unless a different solver is specified.
         """
         self.id = lu.get_id()
         self.args = [Atom.cast(y)]
         self._parent = parent
+        self._value_solve_kwargs = {"solver": "CLARABEL"}
+        if value_solve_kwargs is not None:
+            self._value_solve_kwargs.update(value_solve_kwargs)
         self._eta = None  # store for debugging purposes
         self._shape: tuple[int, ...] = tuple()
         self.validate_arguments()
@@ -115,7 +122,7 @@ class SuppFuncAtom(Atom):
             dummy = Variable()
             cons = [dummy == 1]
         prob = Problem(Maximize(y_val @ x_flat), cons)
-        val = prob.solve(solver='SCS', eps=1e-6)
+        val = prob.solve(**self._value_solve_kwargs)
         return val
 
     def _grad(self, values):

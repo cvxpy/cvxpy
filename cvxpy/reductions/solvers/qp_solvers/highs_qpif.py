@@ -36,6 +36,7 @@ class HIGHS(QpSolver):
     # Note that HiGHS does not support MIQP but supports MILP
     MIP_CAPABLE = False
     BOUNDED_VARIABLES = True
+    REQUIRED_MODULES = ("highspy",)
 
     # Map of HiGHS status to CVXPY status.
     STATUS_MAP = {

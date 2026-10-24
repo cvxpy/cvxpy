@@ -150,6 +150,12 @@ class TestScalarProblems():
         checker = DerivativeChecker(prob)
         checker.run_and_assert()
 
+        prob = cp.Problem(cp.Minimize(cp.nlp.atan(x)), [x >= 0.1])
+        prob.solve(nlp=True, solver=cp.IPOPT, verbose=False)
+        assert prob.status == cp.OPTIMAL
+        checker = DerivativeChecker(prob)
+        checker.run_and_assert()
+
     def test_matrix_trig(self):
         x = cp.Variable((3, 2))
         prob = cp.Problem(cp.Minimize(cp.sum(cp.nlp.tan(x))), [x >= 0.1])
@@ -170,6 +176,12 @@ class TestScalarProblems():
         checker = DerivativeChecker(prob)
         checker.run_and_assert()
 
+        prob = cp.Problem(cp.Minimize(cp.sum(cp.nlp.atan(x))), [x >= 0.1])
+        prob.solve(nlp=True, solver=cp.IPOPT, verbose=False)
+        assert prob.status == cp.OPTIMAL
+        checker = DerivativeChecker(prob)
+        checker.run_and_assert()
+
     def test_matrix_hyperbolic(self):
         x = cp.Variable((3, 2))
         prob = cp.Problem(cp.Minimize(cp.sum(cp.nlp.sinh(x))), [x >= 0.1])
@@ -179,6 +191,17 @@ class TestScalarProblems():
         checker.run_and_assert()
 
         prob = cp.Problem(cp.Minimize(cp.sum(cp.nlp.tanh(x))), [x >= 0.1])
+        prob.solve(nlp=True, solver=cp.IPOPT, verbose=False)
+        assert prob.status == cp.OPTIMAL
+        checker = DerivativeChecker(prob)
+        checker.run_and_assert()
+
+    def test_atan_composite(self):
+        # atan of a non-variable argument exercises the engine's chain rule
+        n = 10
+        x = cp.Variable(n)
+        prob = cp.Problem(cp.Minimize(cp.sum(cp.nlp.atan(cp.logistic(x * 3)))),
+                          [x >= 0.1, cp.sum(x) == 10])
         prob.solve(nlp=True, solver=cp.IPOPT, verbose=False)
         assert prob.status == cp.OPTIMAL
         checker = DerivativeChecker(prob)
@@ -301,6 +324,91 @@ class TestScalarProblems():
         y = cp.Variable((3, ))
         prob = cp.Problem(cp.Minimize(cp.sum(cp.rel_entr(x, y))),
                           [x >= 0.1, y >= 0.1, x <= 2, y <= 2])
+        prob.solve(nlp=True, solver=cp.IPOPT, verbose=False)
+        assert prob.status == cp.OPTIMAL
+        checker = DerivativeChecker(prob)
+        checker.run_and_assert()
+
+    def test_atan2_both_scalar_variables(self):
+        x = cp.Variable()
+        y = cp.Variable()
+        prob = cp.Problem(cp.Minimize(cp.nlp.atan2(x, y)),
+                          [x >= 0.1, y >= 0.1, x <= 2, y <= 2])
+        prob.solve(nlp=True, solver=cp.IPOPT, verbose=False)
+        assert prob.status == cp.OPTIMAL
+        assert np.isclose(prob.value, np.arctan2(0.1, 2))
+        checker = DerivativeChecker(prob)
+        checker.run_and_assert()
+
+        x = cp.Variable((1, ))
+        y = cp.Variable((1, ))
+        prob = cp.Problem(cp.Minimize(cp.nlp.atan2(x, y)),
+                          [x >= 0.1, y >= 0.1, x <= 2, y <= 2])
+        prob.solve(nlp=True, solver=cp.IPOPT, verbose=False)
+        assert prob.status == cp.OPTIMAL
+        checker = DerivativeChecker(prob)
+        checker.run_and_assert()
+
+    def test_atan2_matrix_variable_and_scalar_variable(self):
+        x = cp.Variable((3, 2))
+        y = cp.Variable()
+        prob = cp.Problem(cp.Minimize(cp.sum(cp.nlp.atan2(x, y))),
+                          [x >= 0.1, y >= 0.1, x <= 2, y <= 2])
+        prob.solve(nlp=True, solver=cp.IPOPT, verbose=False)
+        assert prob.status == cp.OPTIMAL
+        checker = DerivativeChecker(prob)
+        checker.run_and_assert()
+
+    def test_atan2_scalar_variable_and_matrix_variable(self):
+        x = cp.Variable()
+        y = cp.Variable((3, 2))
+        prob = cp.Problem(cp.Minimize(cp.sum(cp.nlp.atan2(x, y))),
+                          [x >= 0.1, y >= 0.1, x <= 2, y <= 2])
+        prob.solve(nlp=True, solver=cp.IPOPT, verbose=False)
+        assert prob.status == cp.OPTIMAL
+        checker = DerivativeChecker(prob)
+        checker.run_and_assert()
+
+    def test_atan2_both_matrix_variables(self):
+        x = cp.Variable((3, 2))
+        y = cp.Variable((3, 2))
+        prob = cp.Problem(cp.Minimize(cp.sum(cp.nlp.atan2(x, y))),
+                          [x >= 0.1, y >= 0.1, x <= 2, y <= 2])
+        prob.solve(nlp=True, solver=cp.IPOPT, verbose=False)
+        assert prob.status == cp.OPTIMAL
+        checker = DerivativeChecker(prob)
+        checker.run_and_assert()
+
+    def test_atan2_both_vector_variables(self):
+        x = cp.Variable((3, ))
+        y = cp.Variable((3, ))
+        prob = cp.Problem(cp.Minimize(cp.sum(cp.nlp.atan2(x, y))),
+                          [x >= 0.1, y >= 0.1, x <= 2, y <= 2])
+        prob.solve(nlp=True, solver=cp.IPOPT, verbose=False)
+        assert prob.status == cp.OPTIMAL
+        checker = DerivativeChecker(prob)
+        checker.run_and_assert()
+
+    def test_atan2_same_variable(self):
+        # atan2(x, x) = pi/4 for x > 0; the canonicalizer lifts both slots to
+        # distinct variables so the leaf-only engine atom accepts them.
+        x = cp.Variable(3)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(x - 1) + cp.sum(cp.nlp.atan2(x, x))),
+                          [x >= 0.1])
+        prob.solve(nlp=True, solver=cp.IPOPT, verbose=False)
+        assert prob.status == cp.OPTIMAL
+        assert np.isclose(prob.value, 3 * np.pi / 4)
+        checker = DerivativeChecker(prob)
+        checker.run_and_assert()
+
+    def test_atan2_composite(self):
+        A = np.array([[1.0, 0.5, 0.0], [0.0, 1.0, -0.5], [0.5, 0.0, 1.0]])
+        B = np.array([[1.0, -0.5, 0.0], [0.0, 1.0, 0.5], [-0.5, 0.0, 1.0]])
+        target = np.array([0.5, -2.0, 2.5])
+        theta = cp.Variable(3)
+        theta.value = target + 2 * np.pi
+        angle = cp.nlp.atan2(cp.nlp.sin(A @ theta), cp.nlp.cos(B @ theta))
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(angle - target)))
         prob.solve(nlp=True, solver=cp.IPOPT, verbose=False)
         assert prob.status == cp.OPTIMAL
         checker = DerivativeChecker(prob)

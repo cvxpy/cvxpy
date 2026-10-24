@@ -19,7 +19,7 @@ import warnings
 import numpy as np
 
 from cvxpy import settings
-from cvxpy.atoms.affine.vstack import vstack
+from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.constraints.power import PowConeND
 from cvxpy.expressions.variable import Variable
 from cvxpy.utilities.power_tools import gm_constrs
@@ -28,42 +28,45 @@ from cvxpy.utilities.solver_context import SolverInfo
 
 def geo_mean_exact_canon(expr, args, solver_context: SolverInfo | None = None):
     """Canonicalize GeoMean using PowConeND constraints."""
-    x = args[0]
     w = expr.w
+    # One row per reduced entry, one column per output. PowConeND takes one
+    # cone per column, so every output is covered by a single constraint.
+    W = expr._aligned_arg(args[0])
 
     # Single non-zero weight: geo_mean is just that element (affine).
     if len(w) == 1:
-        return x, []
+        out = W[0]
+        return (reshape(out, expr.shape, order='F')
+                if out.shape != expr.shape else out), []
 
-    shape = expr.shape
-    t = Variable(shape)
-
-    if x.shape == ():
-        x_list = [x]
-    else:
-        x_list = [x[i] for i in range(len(w))]
-
-    W = vstack(x_list)
+    t = Variable(W.shape[1:])
     alpha = np.array([float(wi) for wi in w]).reshape(-1, 1)
-    return t, [PowConeND(W, t, alpha, axis=0)]
+    if W.ndim == 2:
+        alpha = np.tile(alpha, (1, W.shape[1]))
+    else:
+        alpha = alpha.reshape(-1)
+    constrs = [PowConeND(W, t, alpha, axis=0)]
+    if t.shape != expr.shape:
+        return reshape(t, expr.shape, order='F'), constrs
+    return t, constrs
 
 
 def geo_mean_approx_canon(expr, args, solver_context: SolverInfo | None = None):
     """Canonicalize GeoMeanApprox using SOC constraints via rational approximation."""
-    x = args[0]
     w = expr.w
+    # One row per reduced entry, one column per output. gm_constrs is
+    # vectorised, so all the outputs share a single set of constraints
+    # instead of getting one atom each.
+    x = expr._aligned_arg(args[0])
 
     # Single non-zero weight: geo_mean is just that element (affine).
     if len(w) == 1:
-        return x, []
+        out = x[0]
+        return (reshape(out, expr.shape, order='F')
+                if out.shape != expr.shape else out), []
 
-    shape = expr.shape
-    t = Variable(shape)
-
-    if x.shape == ():
-        x_list = [x]
-    else:
-        x_list = [x[i] for i in range(len(w))]
+    t = Variable(x.shape[1:])
+    x_list = [x[i] for i in range(len(w))]
 
     constrs = gm_constrs(t, x_list, w)
 
@@ -85,4 +88,6 @@ def geo_mean_approx_canon(expr, args, solver_context: SolverInfo | None = None):
                 stacklevel=6,
             )
 
+    if t.shape != expr.shape:
+        return reshape(t, expr.shape, order='F'), constrs
     return t, constrs

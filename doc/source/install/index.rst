@@ -30,7 +30,7 @@ or a conda environment.
 
         ::
 
-            pip install "cvxpy[CBC,CVXOPT,GLOP,GLPK,GUROBI,MOSEK,PDLP,SCIP,XPRESS,KNITRO]"
+            pip install "cvxpy[CBC,CVXOPT,GLOP,GLPK,GUROBI,MOREAU,MOSEK,PDLP,SCIP,XPRESS,KNITRO]"
 
     .. tab:: conda
 
@@ -126,7 +126,7 @@ Install with Additional Solver Support
     :collapsible:
 
     CVXPY supports the GUROBI solver.
-    Install GUROBI version 7.5.2 or greater such that you can ``import gurobipy`` in Python.
+    Install GUROBI version 9.5 or greater such that you can ``import gurobipy`` in Python.
     See the `GUROBI <https://www.gurobi.com/>`_ website for installation instructions.
 
 .. info:: MOREAU
@@ -239,8 +239,8 @@ Install with Additional Solver Support
     This requires the `SciPy`_ package in Python, which should already be installed, as it is a requirement for CVXPY.
     `SciPy`_'s "interior-point" and "revised-simplex" implementations are written in Python and are always available.
     However, the main advantage of this solver is its ability to use the `HiGHS`_ LP and MIP solvers (which are written in C++).
-    `HiGHS`_ LP solvers come bundled with `SciPy`_ version 1.6.1 and higher.
-    The `HiGHS`_ MIP solver comes bundled with version 1.9.0 and higher.
+    `HiGHS`_ LP solvers come bundled with SciPy and are used by default when you solve an LP with CVXPY's SCIPY interface.
+    The `HiGHS`_ MIP solver is likewise available through SciPy's ``scipy.optimize.milp`` (used automatically for mixed-integer LPs).
 
 .. info:: PIQP
     :collapsible:
@@ -316,7 +316,7 @@ Install with Additional Solver Support
     :collapsible:
 
     CVXPY supports the UNO solver (for nonlinear programming).
-    Follow the installation instructions for `UNO <https://github.com/cvanaret/Uno/blob/main/INSTALL.md>`_.
+    Follow the installation instructions for `UNO <https://unosolver.readthedocs.io/en/latest/installation>`_.
 
 .. info:: KNITRO
     :collapsible:

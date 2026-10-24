@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import time
 from collections import namedtuple
+from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
@@ -115,8 +116,8 @@ class Cache:
         self.param_prog = None
         self.inverse_data = None
 
-    def make_key(self, solver, gp, ignore_dpp, use_quad_obj):
-        return (solver, gp, ignore_dpp, use_quad_obj)
+    def make_key(self, solver, gp, ignore_dpp, use_quad_obj, canon_backend):
+        return (solver, gp, ignore_dpp, use_quad_obj, canon_backend)
 
     def gp(self):
         return self.key is not None and self.key[1]
@@ -144,7 +145,7 @@ class Problem(u.Canonical):
     ---------
     objective : Minimize or Maximize
         The problem's objective.
-    constraints : list
+    constraints : iterable
         The constraints on the problem variables.
     """
 
@@ -152,7 +153,7 @@ class Problem(u.Canonical):
     REGISTERED_SOLVE_METHODS = {}
 
     def __init__(
-        self, objective: Minimize | Maximize, constraints: list[Constraint] | None = None
+        self, objective: Minimize | Maximize, constraints: Iterable[Constraint] | None = None
     ) -> None:
         if constraints is None:
             constraints = []
@@ -821,13 +822,13 @@ class Problem(u.Canonical):
         # Convert solver argument to upper case.
         if isinstance(solver, str):
             solver = solver.upper()
-        # Cache includes ignore_dpp and solver_opts['use_quad_obj']
-        # because they alter compilation.
+        # Cache includes ignore_dpp, solver_opts['use_quad_obj'], and
+        # canon_backend because they alter compilation.
         if solver_opts is None:
             use_quad_obj = None
         else:
             use_quad_obj = solver_opts.get('use_quad_obj', None)
-        key = self._cache.make_key(solver, gp, ignore_dpp, use_quad_obj)
+        key = self._cache.make_key(solver, gp, ignore_dpp, use_quad_obj, canon_backend)
         if key != self._cache.key:
             self._cache.invalidate()
             solving_chain = self._construct_chain(
