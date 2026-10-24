@@ -37,7 +37,6 @@ def _pnorm_p2_canon(expr, args, bounds=None):
     """Handle p == 2 case via SOC directly (shared by exact and approx)."""
     x = args[0]
     axis = expr.axis
-    keepdims = expr.keepdims
     shape = expr.shape
     t = Variable(shape, bounds=bounds)
     if axis is None:
@@ -57,6 +56,7 @@ def _pnorm_p2_canon(expr, args, bounds=None):
         # isolated with a reshape; per-fiber emission preserves the
         # mathematics exactly (each fiber is an affine expression).
         constraints = []
+        keepdims = expr.keepdims
         # Enumerate only the non-reduced coordinates. With keepdims=True the
         # atom shape still contains the reduced axis as a size-1 dimension,
         # so iterating over expr.shape directly would shift the coordinate

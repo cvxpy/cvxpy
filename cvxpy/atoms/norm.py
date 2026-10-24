@@ -20,6 +20,7 @@ import numpy as np
 import cvxpy
 from cvxpy.atoms.affine.hstack import hstack
 from cvxpy.atoms.affine.reshape import reshape
+from cvxpy.atoms.affine.transpose import swapaxes
 from cvxpy.atoms.affine.vec import vec
 from cvxpy.atoms.axis_atom import normalize_axis_tuple
 from cvxpy.atoms.norm1 import norm1
@@ -139,17 +140,20 @@ def _norm_over_matrix_axes(
             "Two-entry tuples are interpreted as matrix norms over the "
             "remaining slices, matching NumPy semantics."
         )
+    # NumPy treats axis[0] as the row axis and axis[1] as the column axis of
+    # each slice, while plain slicing always yields ascending-axis layout.
+    # Normalize a reversed tuple once with swapaxes so every slice below is
+    # already in NumPy's row/column order; this matters for ord=1/np.inf,
+    # which are not transpose-invariant.
+    if axes[0] > axes[1]:
+        x = swapaxes(x, axes[0], axes[1])
+        axes = (axes[1], axes[0])
     remaining = tuple(a for a in range(x.ndim) if a not in axes)
-    # No dimension ceiling is imposed here: N-D expressions and N-D reshape
-    # targets are supported under the current ALLOW_ND_EXPR configuration.
-    # Reducing two axes from an N-D input leaves ndim - 2 batch dimensions,
-    # and the per-slice norms are stacked and reshaped into exactly that
-    # shape, so arbitrarily many batch axes are representable.
     if x.ndim == 2:
         # The tuple spans both axes of a matrix: NumPy returns a scalar
-        # (or a (1, 1) array with keepdims=True). A reversed tuple
-        # transposes the matrix, which matters for ord=1/np.inf.
-        result = _matrix_norm(x.T if axes[0] > axes[1] else x, p)
+        # (or a (1, 1) array with keepdims=True); the tuple order has
+        # already been normalized above.
+        result = _matrix_norm(x, p)
         if keepdims:
             result = reshape(result, (1, 1), order='F')
         return result
@@ -168,19 +172,12 @@ def _norm_over_matrix_axes(
         return cvxpy.Constant(np.zeros(target))
     # Compute the matrix norm of each slice; np.ndindex enumerates the
     # remaining coordinates in C order, matching NumPy result layout.
-    # NumPy applies the matrix norm to each slice with row axis axes[0] and
-    # column axis axes[1]; plain slicing always yields the ascending-axis
-    # layout, so transpose each slice when the tuple order is reversed.
-    transpose = axes[0] > axes[1]
     entries = []
     for coords in np.ndindex(*remaining_shape):
         index = [slice(None)] * x.ndim
         for a, c in zip(remaining, coords):
             index[a] = c
-        slice_ = x[tuple(index)]
-        if transpose:
-            slice_ = slice_.T
-        entries.append(_matrix_norm(slice_, p))
+        entries.append(_matrix_norm(x[tuple(index)], p))
     if len(remaining) == 0:
         return entries[0]
     # Stack the scalar entries: hstack the (1,)-shaped entries, then reshape
