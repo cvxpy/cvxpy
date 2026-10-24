@@ -114,6 +114,7 @@ class CooTensor:
         return (self.param_size * self.m, self.n)
 
     def copy(self) -> Self:
+        """Copy the wrapper, sharing arrays that backend operations must not mutate."""
         return dataclasses.replace(self)
 
     def to_stacked_sparse(self) -> sp.csr_array:

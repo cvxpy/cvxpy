@@ -58,6 +58,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from collections import Counter
 from collections.abc import Callable
+from copy import copy
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any
@@ -549,20 +550,16 @@ class PythonCanonBackend(CanonBackend):
         return tensor_res.flatten_tensor(self.param_size_plus_one, order=order)
 
     def _count_reusable_lin_ops(self, lin_ops: list[LinOp]) -> Counter[int]:
-        raw_counts: Counter[int] = Counter()
-        for lin_op in lin_ops:
-            self._count_lin_op_tree(lin_op, raw_counts)
-
-        process_counts: Counter[int] = Counter()
-        seen_cacheable: set[int] = set()
-        for lin_op in lin_ops:
-            self._count_processed_lin_ops(lin_op, raw_counts, process_counts, seen_cacheable)
-        return process_counts
-
-    def _count_lin_op_tree(self, lin_op: LinOp, counts: Counter[int]) -> None:
-        counts[id(lin_op)] += 1
-        for child in self._lin_op_children(lin_op):
-            self._count_lin_op_tree(child, counts)
+        # Count incoming references, expanding each unique node only once. Descendants
+        # of a cached node are processed only when that node is first lowered.
+        counts: Counter[int] = Counter()
+        pending = list(lin_ops)
+        while pending:
+            lin_op = pending.pop()
+            counts[id(lin_op)] += 1
+            if counts[id(lin_op)] == 1:
+                pending.extend(self._lin_op_children(lin_op))
+        return counts
 
     @staticmethod
     def _lin_op_children(lin_op: LinOp) -> list[LinOp]:
@@ -570,22 +567,6 @@ class PythonCanonBackend(CanonBackend):
         if isinstance(lin_op.data, LinOp):
             children.append(lin_op.data)
         return children
-
-    def _count_processed_lin_ops(
-        self,
-        lin_op: LinOp,
-        raw_counts: Counter[int],
-        process_counts: Counter[int],
-        seen_cacheable: set[int],
-    ) -> None:
-        lin_op_id = id(lin_op)
-        process_counts[lin_op_id] += 1
-        if raw_counts[lin_op_id] > 1:
-            if lin_op_id in seen_cacheable:
-                return
-            seen_cacheable.add(lin_op_id)
-        for child in self._lin_op_children(lin_op):
-            self._count_processed_lin_ops(child, raw_counts, process_counts, seen_cacheable)
 
     def process_constraint(self, lin_op: LinOp, empty_view: TensorView) -> TensorView:
         """
@@ -602,10 +583,15 @@ class PythonCanonBackend(CanonBackend):
         """
 
         counts = getattr(self, "_lin_op_counts", None)
-        should_cache = counts is not None and counts[id(lin_op)] > 1
+        is_leaf = lin_op.type in {"variable", "param"} or lin_op.type.endswith("_const")
+        should_cache = not is_leaf and counts is not None and counts[id(lin_op)] > 1
         cache = getattr(self, "_lin_op_tensor_cache", None)
         cache_key = id(lin_op)
         if should_cache and cache is not None and cache_key in cache:
+            counts[cache_key] -= 1
+            if counts[cache_key] == 1:
+                # Transfer ownership on the last use; no snapshot is needed anymore.
+                return cache.pop(cache_key)
             return self._copy_tensor_view(cache[cache_key], empty_view)
 
         # Leaf nodes
@@ -654,10 +640,14 @@ class PythonCanonBackend(CanonBackend):
         )
 
     def _copy_tensor_data(self, data: Any) -> Any:
+        # Copy containers and tensor wrappers, sharing their underlying arrays.
+        # Backend operations may replace arrays, but must not mutate them in place.
         if isinstance(data, dict):
             return {key: self._copy_tensor_data(value) for key, value in data.items()}
         if data is None:
             return None
+        if sp.issparse(data):
+            return copy(data)
         if hasattr(data, "copy"):
             return data.copy()
         raise RuntimeError(f"Tensor type {type(data)} has no copy method")

@@ -16,6 +16,7 @@ limitations under the License.
 
 import numpy as np
 import pytest
+import scipy.sparse as sp
 
 import cvxpy as cp
 import cvxpy.settings as s
@@ -79,7 +80,8 @@ def test_shared_linop_lowered_once(monkeypatch, backend, backend_cls) -> None:
 
     monkeypatch.setattr(backend_cls, "get_variable_tensor", spy_get_variable_tensor)
 
-    matrix = _problem_matrix([x, x], backend)
+    shared = lu.neg_expr(x)
+    matrix = _problem_matrix([shared, shared], backend)
 
     assert calls == 1
     assert matrix.shape == (2 * 3 * (3 + 1), 1)
@@ -129,7 +131,7 @@ def test_single_use_linop_is_not_cached(monkeypatch, backend, backend_cls) -> No
 
     monkeypatch.setattr(backend_cls, "_copy_tensor_view", spy_copy_tensor_view)
 
-    matrix = _problem_matrix([x], backend)
+    matrix = _problem_matrix([lu.neg_expr(x)], backend)
 
     assert calls == 0
     assert matrix.shape == (3 * (3 + 1), 1)
@@ -139,7 +141,8 @@ def test_single_use_linop_is_not_cached(monkeypatch, backend, backend_cls) -> No
 @pytest.mark.parametrize(("backend", "backend_cls"), PYTHON_BACKENDS)
 def test_descendant_of_reused_linop_is_not_cached(monkeypatch, backend, backend_cls) -> None:
     x = lu.create_var((3,), var_id=1)
-    neg_x = lu.neg_expr(x)
+    descendant = lu.neg_expr(x)
+    shared = lu.neg_expr(descendant)
     calls = 0
     original = backend_cls._copy_tensor_view
 
@@ -150,9 +153,9 @@ def test_descendant_of_reused_linop_is_not_cached(monkeypatch, backend, backend_
 
     monkeypatch.setattr(backend_cls, "_copy_tensor_view", spy_copy_tensor_view)
 
-    matrix = _problem_matrix([neg_x, neg_x], backend)
+    matrix = _problem_matrix([shared, shared], backend)
 
-    assert calls == 2
+    assert calls == 1
     assert matrix.shape == (2 * 3 * (3 + 1), 1)
     assert matrix.nnz == 2 * 3
 
@@ -160,11 +163,116 @@ def test_descendant_of_reused_linop_is_not_cached(monkeypatch, backend, backend_
 @pytest.mark.parametrize("backend", [backend for backend, _ in PYTHON_BACKENDS])
 def test_shared_linop_cache_hits_do_not_share_mutable_views(backend) -> None:
     x = lu.create_var((3,), var_id=1)
-    matrix = _problem_matrix([lu.neg_expr(x), x], backend).toarray()
-    matrix = matrix.reshape((6, 4), order="F")
+    shared = lu.sum_expr([x, x])
+    matrix = _problem_matrix([lu.neg_expr(shared), lu.neg_expr(shared), shared], backend).toarray()
+    matrix = matrix.reshape((9, 4), order="F")
 
     first_block = matrix[:3, :3]
-    second_block = matrix[3:, :3]
+    second_block = matrix[3:6, :3]
+    third_block = matrix[6:, :3]
 
-    np.testing.assert_array_equal(first_block, -np.eye(3))
-    np.testing.assert_array_equal(second_block, np.eye(3))
+    np.testing.assert_array_equal(first_block, -2 * np.eye(3))
+    np.testing.assert_array_equal(second_block, -2 * np.eye(3))
+    np.testing.assert_array_equal(third_block, 2 * np.eye(3))
+
+
+@pytest.mark.parametrize(("backend", "backend_cls"), PYTHON_BACKENDS)
+def test_nested_shared_graph_is_counted_once(monkeypatch, backend, backend_cls) -> None:
+    shared = lu.create_var((3,), var_id=1)
+    nodes = [shared]
+    for _ in range(40):
+        shared = lu.sum_expr([shared, shared])
+        nodes.append(shared)
+
+    expanded = set()
+    original = backend_cls._lin_op_children
+
+    def spy_children(lin_op):
+        # Fail immediately on repeated expansion instead of timing an exponential walk.
+        assert id(lin_op) not in expanded
+        expanded.add(id(lin_op))
+        return original(lin_op)
+
+    monkeypatch.setattr(backend_cls, "_lin_op_children", staticmethod(spy_children))
+    instance = backend_cls({1: 0}, {-1: 1}, {-1: 0}, 1, 3)
+    counts = instance._count_reusable_lin_ops([shared])
+
+    assert expanded == {id(node) for node in nodes}
+    assert counts[id(shared)] == 1
+    assert all(counts[id(node)] == 2 for node in nodes[:-1])
+
+
+@pytest.mark.parametrize(("backend", "backend_cls"), PYTHON_BACKENDS)
+@pytest.mark.parametrize("leaf_type", ["variable", "param", "scalar_const", "dense_const",
+                                       "sparse_const"])
+def test_repeated_leaves_are_not_cached(monkeypatch, backend, backend_cls, leaf_type) -> None:
+    parameter = cp.Parameter(3)
+    if leaf_type == "variable":
+        leaf = lu.create_var((3,), var_id=1)
+    elif leaf_type == "param":
+        leaf, _ = parameter.canonical_form
+    elif leaf_type == "scalar_const":
+        leaf = lu.create_const(2, (1, 1))
+    elif leaf_type == "dense_const":
+        leaf = lu.create_const(np.ones(3), (3,))
+    else:
+        leaf = lu.create_const(sp.eye_array(3), (3, 3), sparse=True)
+    assert leaf.type == leaf_type
+
+    def fail_copy(*args):
+        pytest.fail("Leaf nodes must not enter the tensor cache")
+
+    monkeypatch.setattr(backend_cls, "_copy_tensor_view", fail_copy)
+    _problem_matrix([leaf, leaf], backend, parameters=[parameter])
+
+
+@pytest.mark.parametrize(("backend", "backend_cls"), PYTHON_BACKENDS)
+def test_last_use_transfers_cached_view(monkeypatch, backend, backend_cls) -> None:
+    shared = lu.neg_expr(lu.create_var((3,), var_id=1))
+    original = backend_cls.process_constraint
+    snapshots = []
+
+    def spy_process(self, lin_op, empty_view):
+        cached = self._lin_op_tensor_cache.get(id(shared))
+        result = original(self, lin_op, empty_view)
+        if lin_op is shared:
+            snapshots.append((cached, result, id(shared) in self._lin_op_tensor_cache))
+        return result
+
+    monkeypatch.setattr(backend_cls, "process_constraint", spy_process)
+    _problem_matrix([shared, shared, shared], backend)
+
+    assert [present for _, _, present in snapshots] == [True, True, False]
+    cached, result, _ = snapshots[1]
+    assert result is not cached
+    assert snapshots[2][1] is cached
+
+
+@pytest.mark.parametrize(("backend", "backend_cls"), PYTHON_BACKENDS)
+def test_tensor_copy_shares_arrays_but_not_wrappers(backend, backend_cls) -> None:
+    instance = backend_cls({1: 0}, {-1: 1}, {-1: 0}, 1, 3)
+    tensor = instance.get_variable_tensor((3,), 1)
+    copied = instance._copy_tensor_data(tensor)
+
+    assert copied is not tensor
+    original_matrix = tensor[1][-1]
+    copied_matrix = copied[1][-1]
+    assert copied[1] is not tensor[1]
+    assert copied_matrix is not original_matrix
+    fields = ("data", "indices", "indptr") if sp.issparse(original_matrix) else (
+        "data", "row", "col", "param_idx")
+    for field in fields:
+        assert getattr(copied_matrix, field) is getattr(original_matrix, field)
+    copied_matrix.data = -copied_matrix.data
+    np.testing.assert_array_equal(original_matrix.data, np.ones(3))
+
+
+@pytest.mark.parametrize("backend", [backend for backend, _ in PYTHON_BACKENDS])
+def test_shared_constant_data_survives_division(backend) -> None:
+    x = lu.create_var((3,), var_id=1)
+    shared = lu.neg_expr(lu.create_const(-2 * np.ones(3), (3,)))
+    matrix = _problem_matrix([lu.div_expr(x, shared), lu.div_expr(x, shared), shared],
+                             backend).toarray().reshape((9, 4), order="F")
+    np.testing.assert_array_equal(matrix[:3, :3], np.eye(3) / 2)
+    np.testing.assert_array_equal(matrix[3:6, :3], np.eye(3) / 2)
+    np.testing.assert_array_equal(matrix[6:, 3], 2 * np.ones(3))
