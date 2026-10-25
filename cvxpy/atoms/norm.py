@@ -69,7 +69,11 @@ def norm(x, p: int | str = 2, axis=None, keepdims: bool = False) -> Expression:
             return _norm_over_matrix_axes(x, p, axis, keepdims)
     # matrix norms take precedence
     if axis is None and x.ndim == 2:
-        return _matrix_norm(x, p)
+        # Route through the two-axis path so axis=None and the equivalent
+        # axis=(0, 1) tuple share one implementation: unsupported-order
+        # validation, the empty-input zero shortcut, and keepdims=(1, 1)
+        # output all follow NumPy semantics on both paths.
+        return _norm_over_matrix_axes(x, p, (0, 1), keepdims)
     else:
         if axis is not None and str(p).lower() in ("fro", "nuc"):
             # Both are matrix norms, defined over a whole matrix rather than
@@ -92,6 +96,18 @@ def norm(x, p: int | str = 2, axis=None, keepdims: bool = False) -> Expression:
             raise RuntimeError(f'Unsupported norm option {p} for non-matrix.')
         else:
             return pnorm(x, p, axis=axis, keepdims=keepdims)
+
+
+def _validate_matrix_norm_order(p: int | str) -> None:
+    """Raise if p is not an order that _matrix_norm supports.
+
+    Mirrors the branches of _matrix_norm so the empty-input shortcut can
+    validate the order before returning zeros, where no per-slice call into
+    _matrix_norm would ever run.
+    """
+    if p in (1, 2, 'fro', 'nuc', np.inf, "inf", "Inf"):
+        return
+    raise RuntimeError('Unsupported matrix norm.')
 
 
 def _matrix_norm(x: Expression, p: int | str) -> Expression:
@@ -143,14 +159,6 @@ def _norm_over_matrix_axes(
         x = swapaxes(x, axes[0], axes[1])
         axes = (axes[1], axes[0])
     remaining = tuple(a for a in range(x.ndim) if a not in axes)
-    if x.ndim == 2:
-        # The tuple spans both axes of a matrix: NumPy returns a scalar
-        # (or a (1, 1) array with keepdims=True); the tuple order has
-        # already been normalized above.
-        result = _matrix_norm(x, p)
-        if keepdims:
-            result = reshape(result, (1, 1), order='F')
-        return result
     remaining_shape = tuple(x.shape[a] for a in remaining)
     if keepdims:
         target = tuple(
@@ -159,11 +167,24 @@ def _norm_over_matrix_axes(
     else:
         target = remaining_shape
     if x.size == 0:
+        # Validate the order first: the empty shortcut below never reaches
+        # _matrix_norm, so without this an unsupported order such as 3 or
+        # "invalid" would be accepted for empty inputs only.
+        _validate_matrix_norm_order(p)
         # NumPy defines every supported matrix norm of an empty array as 0,
         # so the result is a zero constant of the output shape. This covers
-        # both an empty remaining axis (zero-size output) and empty reduced
-        # axes (all slices empty).
+        # an empty remaining axis (zero-size output), empty reduced axes
+        # (all slices empty), and empty 2-D matrices (scalar, or (1, 1) with
+        # keepdims), on both the axis=None and two-axis tuple paths.
         return cvxpy.Constant(np.zeros(target))
+    if x.ndim == 2:
+        # The tuple spans both axes of a matrix: NumPy returns a scalar
+        # (or a (1, 1) array with keepdims=True); the tuple order has
+        # already been normalized above.
+        result = _matrix_norm(x, p)
+        if keepdims:
+            result = reshape(result, (1, 1), order='F')
+        return result
     # Compute the matrix norm of each slice; np.ndindex enumerates the
     # remaining coordinates in C order, matching NumPy result layout.
     entries = []
