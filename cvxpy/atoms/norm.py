@@ -16,13 +16,13 @@ limitations under the License.
 
 
 import numpy as np
+from numpy.lib.array_utils import normalize_axis_tuple
 
 import cvxpy
 from cvxpy.atoms.affine.hstack import hstack
 from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.atoms.affine.transpose import swapaxes
 from cvxpy.atoms.affine.vec import vec
-from cvxpy.atoms.axis_atom import normalize_axis_tuple
 from cvxpy.atoms.norm1 import norm1
 from cvxpy.atoms.norm_inf import norm_inf
 from cvxpy.atoms.norm_nuc import normNuc
@@ -134,12 +134,6 @@ def _norm_over_matrix_axes(
             "slices, matching NumPy semantics."
         )
     axes = normalize_axis_tuple(axis, x.ndim)
-    if len(axes) > 2:
-        raise NotImplementedError(
-            "norm() with more than two axis entries is not supported. "
-            "Two-entry tuples are interpreted as matrix norms over the "
-            "remaining slices, matching NumPy semantics."
-        )
     # NumPy treats axis[0] as the row axis and axis[1] as the column axis of
     # each slice, while plain slicing always yields ascending-axis layout.
     # Normalize a reversed tuple once with swapaxes so every slice below is
@@ -178,8 +172,6 @@ def _norm_over_matrix_axes(
         for a, c in zip(remaining, coords):
             index[a] = c
         entries.append(_matrix_norm(x[tuple(index)], p))
-    if len(remaining) == 0:
-        return entries[0]
     # Stack the scalar entries: hstack the (1,)-shaped entries, then reshape
     # into the remaining shape (or the keepdims shape).
     flat = hstack([reshape(e, (1,), order='F') for e in entries])

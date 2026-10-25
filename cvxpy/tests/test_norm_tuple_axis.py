@@ -130,18 +130,13 @@ class TestNormIntegerAxisND:
         assert np.ptp(norms, axis=1).max() > 1e-3
         assert np.ptp(norms, axis=0).max() > 1e-3
 
-    def test_perfiber_soc_dual_feasible(self) -> None:
-        # The per-fiber SOCs produced by the p=2 canonicalization must
-        # recover dual values in the dual second-order cone.
-        Xc = cp.Constant(self.X)
-        t = cp.Variable((3, 5))
-        cons = [cp.SOC(t[i, k], Xc[i, :, k]) for i in range(3) for k in range(5)]
-        prob = cp.Problem(cp.Minimize(cp.sum(t)), cons)
-        prob.solve(solver=SOLVER)
-        assert prob.status == cp.OPTIMAL
-        for c in cons:
-            rho, lam = np.ravel(c.dual_value[0]), np.ravel(c.dual_value[1])
-            assert np.linalg.norm(lam) <= rho[0] + 1e-6
+    def test_perfiber_soc_structure(self) -> None:
+        # Build the constraints through the real cp.norm canonicalization
+        # path so they come from _pnorm_p2_canon, not hand-written SOCs.
+        X = cp.Variable((3, 4, 5))
+        prob = cp.Problem(cp.Minimize(cp.sum(cp.norm(X, 2, axis=1))))
+        data, _, _ = prob.get_problem_data(cp.CLARABEL)
+        assert data["dims"].soc == [5] * 15
 
 
 class TestNormOneElementTuple:

@@ -126,30 +126,31 @@ class TestAtoms(BaseTest):
         self.assertTrue(str(cm.exception) in (
             "Unsupported norm option nuc for non-matrix."))
 
-        # A matrix norm has no meaning along a single axis. This used to return
-        # the norm of the whole array for axis=0 and raise an AxisError from
-        # inside the flattened expression for anything else.
-        # A full-length tuple on a 2-D matrix is a scalar matrix norm (numpy
-        # semantics): ('fro'/'nuc' still raise, but the numerical ords are valid).
+        # Matrix norms are not supported for a single axis.
         X = cp.Variable((3, 4))
-        for p in ('fro', 'nuc'):
-            for axis in (0, 1):
+        for p in ('fro', 'nuc', 'Fro'):
+            for axis in (0, 1, (0,), (1,)):
                 with self.assertRaises(ValueError) as cm:
                     cp.norm(X, p, axis=axis)
                 assert "not supported for the" in str(cm.exception)
-        # A full-length tuple on a 2-D matrix is a scalar matrix norm (numpy
-        # semantics): 'fro'/'nuc' still raise (single-axis definition), all
-        # other ords are valid. Three or more axes raise NotImplementedError.
 
-        # 3+ axes are rejected (spec: only two-entry tuples are matrix axes).
+        # Three or more axes are not supported.
         with self.assertRaises(NotImplementedError) as cm:
             cp.norm(X, 'nuc', axis=(0, 1, 2))
         assert "more than two axis entries" in str(cm.exception)
 
-        # Without an axis both are unchanged.
+        # Norms without an axis retain NumPy-compatible behavior.
         A = np.arange(12., dtype=float).reshape(3, 4)
-        assert np.isclose(cp.norm(cp.Constant(A), 'fro').value, np.linalg.norm(A, 'fro'))
-        assert np.isclose(cp.norm(cp.Constant(A), 'nuc').value, np.linalg.norm(A, 'nuc'))
+        assert np.isclose(cp.norm(cp.Constant(A), 'fro').value,
+                          np.linalg.norm(A, 'fro'))
+        assert np.isclose(cp.norm(cp.Constant(A), 'nuc').value,
+                          np.linalg.norm(A, 'nuc'))
+
+        # A full two-axis tuple computes the Frobenius matrix norm.
+        assert np.isclose(
+            cp.norm(cp.Constant(A), 'fro', axis=(0, 1)).value,
+            np.linalg.norm(A, 'fro')
+        )
 
     def test_quad_form(self) -> None:
         """Test quad_form atom.
