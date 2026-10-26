@@ -498,39 +498,7 @@ class TestClarabel(BaseTest):
         self.C = cp.Variable((3, 2), name='C')
 
     def test_clarabel_parameter_update(self) -> None:
-        """Test warm start.
-        """
-        x = cp.Variable(2)
-        P = cp.Parameter(nonneg=True),
-        A = cp.Parameter(4)
-        b = cp.Parameter(2, nonneg=True)
-        q = cp.Parameter(2)
-
-        def update_parameters(P, A, b, q):
-            P[0].value = np.random.rand()
-            A.value = np.random.randn(4)
-            b.value = np.random.rand(2)
-            q.value = np.random.randn(2)
-
-        prob = cp.Problem(
-                cp.Minimize(P[0]*cp.square(x[0]) + cp.quad_form(x, np.ones([2, 2])) + q.T @ x),
-                [A[0] * x[0] + A[1] * x[1] == b[0],
-                 A[2] * x[0] + A[3] * x[1] <= b[1]]
-            )
-
-        update_parameters(P, A, b, q)
-        result1 = prob.solve(solver=cp.CLARABEL, warm_start=False)
-        result2 = prob.solve(solver=cp.CLARABEL, warm_start=True)
-        self.assertAlmostEqual(result1, result2)
-
-        update_parameters(P, A, b, q)
-        result1 = prob.solve(solver=cp.CLARABEL, warm_start=True)
-        result2 = prob.solve(solver=cp.CLARABEL, warm_start=False)
-        self.assertAlmostEqual(result1, result2)
-
-        # consecutive solves, no data update
-        result1 = prob.solve(solver=cp.CLARABEL, warm_start=False)
-        self.assertAlmostEqual(result1, result2)
+        StandardTestQPs.test_qp_parameter_update(solver=cp.CLARABEL)
 
 
     def test_clarabel_lp_0(self) -> None:
@@ -634,10 +602,61 @@ class TestClarabel(BaseTest):
         StandardTestInfeasibleProblems.test_soc_exp_mixed(solver="CLARABEL")
 
 
+class TestCuClarabelFullP(BaseTest):
+    """Regression test for #3544 that runs without a GPU."""
+
+    def test_solve_via_data_sends_full_P_to_gpu(self) -> None:
+        """CuClarabel reads a device-resident P as the full matrix, so it must not get triu(P).
+
+        CPU Clarabel symmetrises whatever triangle it gets, so solving on the CPU can't show
+        the bug. Instead we stub out cupy and juliacall and check the P that gets uploaded.
+        """
+        from cvxpy.reductions.solvers.conic_solvers.cuclarabel_conif import CUCLARABEL
+
+        rng = np.random.default_rng(0)
+        n = 4
+        A = rng.standard_normal((n, n))
+        P = A @ A.T + 0.1 * np.eye(n)
+        x = cp.Variable(n)
+        prob = cp.Problem(cp.Minimize(0.5 * cp.quad_form(x, cp.psd_wrap(P))), [x >= -1])
+        data, _, _ = prob.get_problem_data(cp.CLARABEL)
+
+        to_gpu = mock.MagicMock()
+        stubs = {
+            "cupy": mock.MagicMock(),
+            "cupyx": mock.MagicMock(),
+            "cupyx.scipy": mock.MagicMock(),
+            "cupyx.scipy.sparse": mock.MagicMock(csr_matrix=to_gpu),
+            "juliacall": mock.MagicMock(),
+        }
+        with mock.patch.dict(sys.modules, stubs):
+            CUCLARABEL().solve_via_data(data, False, False, {})
+
+        P_gpu = to_gpu.call_args_list[0].args[0]  # P is uploaded first, then A
+        self.assertItemsAlmostEqual(P_gpu.toarray(), P)
+
+
 @unittest.skipUnless('CUCLARABEL' in INSTALLED_SOLVERS, 'CLARABEL is not installed.')
 class TestCuClarabel(BaseTest):
 
     """ Unit tests for Clarabel. """
+    def test_cuclarabel_qp_nondiagonal_P(self) -> None:
+        """A dense (non-diagonal) P must match CLARABEL; a triu-only P on GPU does not."""
+        rng = np.random.default_rng(0)
+        n = 8
+        A = rng.standard_normal((n, n))
+        P = A @ A.T + 0.1 * np.eye(n)
+        q = rng.standard_normal(n)
+        x = cp.Variable(n)
+        prob = cp.Problem(
+            cp.Minimize(0.5 * cp.quad_form(x, cp.psd_wrap(P)) + q @ x), [x >= -1, x <= 1]
+        )
+        prob.solve(solver=cp.CLARABEL)
+        x_ref, v_ref = x.value.copy(), prob.value
+        prob.solve(solver=cp.CUCLARABEL)
+        self.assertItemsAlmostEqual(x.value, x_ref, places=4)
+        self.assertAlmostEqual(prob.value, v_ref, places=4)
+
     def setUp(self) -> None:
 
         self.x = cp.Variable(2, name='x')
@@ -827,40 +846,38 @@ class TestMoreau(BaseTest):
         self.C = cp.Variable((3, 2), name='C')
 
     def test_moreau_parameter_update(self) -> None:
-        """Test warm start.
-        """
-        x = cp.Variable(2)
-        P = cp.Parameter(nonneg=True),
-        A = cp.Parameter(4)
-        b = cp.Parameter(2, nonneg=True)
-        q = cp.Parameter(2)
+        StandardTestQPs.test_qp_parameter_update(solver=cp.MOREAU)
 
-        def update_parameters(P, A, b, q):
-            P[0].value = np.random.rand()
-            A.value = np.random.randn(4)
-            b.value = np.random.rand(2)
-            q.value = np.random.randn(2)
+    def test_moreau_compiled_solver_updates(self) -> None:
+        x = cp.Variable()
+        p, q, a, b = cp.Parameter(nonneg=True), cp.Parameter(), cp.Parameter(), cp.Parameter()
+        problem = cp.Problem(cp.Minimize(p * cp.square(x) / 2 + q * x), [x >= 0, a * x <= b])
+        previous = None
+        for pv, qv, av, bv, max_iter, expected, reuse in (
+            (2., -4., 1., 1., 200, 1., False),
+            (2., -6., 1., 2., 200, 2., True),  # Only q and b change.
+            (4., -6., 2., 2., 200, 1., True),  # P and A values change.
+            (4., -6., 2., 2., 100, 1., False),  # Settings change.
+            (4., -6., 2., 0., 100, 0., False),  # b sparsity changes.
+        ):
+            p.value, q.value, a.value, b.value = pv, qv, av, bv
+            problem.solve(solver=cp.MOREAU, device="cpu", max_iter=max_iter)
+            self.assertEqual(problem.status, cp.OPTIMAL)
+            self.assertAlmostEqual(x.value, expected, places=4)
+            current = problem._solver_cache[cp.MOREAU]["solver"]
+            self.assertEqual(current is previous, reuse)
+            previous = current
 
-        prob = cp.Problem(
-                cp.Minimize(P[0]*cp.square(x[0]) + cp.quad_form(x, np.ones([2, 2])) + q.T @ x),
-                [A[0] * x[0] + A[1] * x[1] == b[0],
-                 A[2] * x[0] + A[3] * x[1] <= b[1]]
-            )
-
-        update_parameters(P, A, b, q)
-        result1 = prob.solve(solver=cp.MOREAU, warm_start=False)
-        result2 = prob.solve(solver=cp.MOREAU, warm_start=True)
-        self.assertAlmostEqual(result1, result2)
-
-        update_parameters(P, A, b, q)
-        result1 = prob.solve(solver=cp.MOREAU, warm_start=True)
-        result2 = prob.solve(solver=cp.MOREAU, warm_start=False)
-        self.assertAlmostEqual(result1, result2)
-
-        # consecutive solves, no data update
-        result1 = prob.solve(solver=cp.MOREAU, warm_start=False)
-        self.assertAlmostEqual(result1, result2)
-
+    def test_moreau_infeasible_clears_warm_start(self) -> None:
+        x = cp.Variable()
+        bound = cp.Parameter(value=1.)
+        problem = cp.Problem(cp.Minimize(-x), [x >= 0, x <= bound])
+        problem.solve(solver=cp.MOREAU, device="cpu")
+        self.assertIn(cp.MOREAU, problem._solver_cache)
+        bound.value = -1.
+        problem.solve(solver=cp.MOREAU, device="cpu", warm_start=False)
+        self.assertEqual(problem.status, cp.INFEASIBLE)
+        self.assertNotIn(cp.MOREAU, problem._solver_cache)
 
     def test_moreau_lp_0(self) -> None:
         StandardTestLPs.test_lp_0(solver=cp.MOREAU)
@@ -954,11 +971,18 @@ class TestMoreau(BaseTest):
     def test_moreau_quadratic_direct_cone_dual(self) -> None:
         x = cp.Variable(2)
         constraint = x >= 0
-        problem = cp.Problem(cp.Minimize(cp.sum_squares(x) / 2 - x[0] + x[1]),
+        P = np.diag([4., 0.25])
+        problem = cp.Problem(cp.Minimize(cp.quad_form(x, P) / 2 - 4 * x[0] + 2 * x[1]),
                              [constraint])
-        problem.solve(solver=cp.MOREAU)
-        self.assertItemsAlmostEqual(x.value, [1, 0], places=4)
-        self.assertItemsAlmostEqual(constraint.dual_value, [0, 1], places=4)
+        previous = None
+        for warm_start in (False, True, False):
+            problem.solve(solver=cp.MOREAU, device="cpu", warm_start=warm_start)
+            current = problem._solver_cache[cp.MOREAU]["solver"]
+            self.assertEqual(current is previous, warm_start)
+            previous = current
+            self.assertEqual(problem.solver_stats.num_iters == 0, warm_start)
+            self.assertItemsAlmostEqual(x.value, [1, 0], places=4)
+            self.assertItemsAlmostEqual(constraint.dual_value, [0, 2], places=4)
 
     def test_moreau_quadratic_psd_scaling(self) -> None:
         X = cp.Variable((2, 2), symmetric=True)
@@ -968,9 +992,17 @@ class TestMoreau(BaseTest):
             cp.Minimize(cp.sum_squares(X) - 2 * cp.sum(cp.multiply(target, X))),
             [constraint],
         )
-        self.assertAlmostEqual(problem.solve(solver=cp.MOREAU), -9., places=4)
-        self.assertItemsAlmostEqual(X.value, np.full((2, 2), 1.5), places=4)
-        self.assertItemsAlmostEqual(constraint.dual_value, np.array([[1, -1], [-1, 1]]), places=4)
+        previous = None
+        for warm_start in (False, True, False):
+            value = problem.solve(solver=cp.MOREAU, device="cpu", warm_start=warm_start)
+            current = problem._solver_cache[cp.MOREAU]["solver"]
+            self.assertEqual(current is previous, warm_start)
+            previous = current
+            self.assertEqual(problem.solver_stats.num_iters == 0, warm_start)
+            self.assertAlmostEqual(value, -9., places=4)
+            self.assertItemsAlmostEqual(X.value, np.full((2, 2), 1.5), places=4)
+            self.assertItemsAlmostEqual(constraint.dual_value, np.array([[1, -1], [-1, 1]]),
+                                        places=4)
 
     def test_moreau_mixed_slack_cone_order_with_direct_cone(self) -> None:
         """PSD, EXP, and POW3D remain correctly ordered beside a direct cone."""
@@ -3298,18 +3330,14 @@ class TestECOS_BB(unittest.TestCase):
 
 class TestSCIPY(unittest.TestCase):
 
-    def setUp(self):
-        import scipy
-        self.d = Version(scipy.__version__) >= Version('1.7.0')
-
     def test_scipy_lp_0(self) -> None:
-        StandardTestLPs.test_lp_0(solver='SCIPY', duals=self.d)
+        StandardTestLPs.test_lp_0(solver='SCIPY')
 
     def test_scipy_lp_1(self) -> None:
-        StandardTestLPs.test_lp_1(solver='SCIPY', duals=self.d)
+        StandardTestLPs.test_lp_1(solver='SCIPY')
 
     def test_scipy_lp_2(self) -> None:
-        StandardTestLPs.test_lp_2(solver='SCIPY', duals=self.d)
+        StandardTestLPs.test_lp_2(solver='SCIPY')
 
     def test_scipy_lp_3(self) -> None:
         StandardTestLPs.test_lp_3(solver='SCIPY')
@@ -3318,10 +3346,10 @@ class TestSCIPY(unittest.TestCase):
         StandardTestLPs.test_lp_4(solver='SCIPY')
 
     def test_scipy_lp_5(self) -> None:
-        StandardTestLPs.test_lp_5(solver='SCIPY', duals=self.d)
+        StandardTestLPs.test_lp_5(solver='SCIPY')
 
     def test_scipy_lp_solver_stats(self) -> None:
-        sth = StandardTestLPs.test_lp_0(solver='SCIPY', duals=self.d)
+        sth = StandardTestLPs.test_lp_0(solver='SCIPY')
 
         # Equal because presolve might directly find the solution in 0 iterations
         self.assertGreaterEqual(sth.prob.solver_stats.num_iters, 0)
@@ -3367,7 +3395,7 @@ class TestSCIPY(unittest.TestCase):
         self.assertTrue("mip_dual_bound" in sth.prob.solver_stats.extra_stats)
 
     def test_scipy_lp_bound_attr(self) -> None:
-        StandardTestLPs.test_lp_bound_attr(solver='SCIPY', duals=self.d)
+        StandardTestLPs.test_lp_bound_attr(solver='SCIPY')
 
 
 @unittest.skipUnless('COPT' in INSTALLED_SOLVERS, 'COPT is not installed.')
@@ -3901,6 +3929,22 @@ class TestCUOPT(unittest.TestCase):
         self.assertTrue(pf.is_mixed_integer())
         self.assertFalse(CUOPT().can_solve(pf))
 
+    def test_cuopt_boolean_bounds(self) -> None:
+        """Bounds on boolean variables are intersected with [0, 1], not replaced.
+
+        Booleans become integer columns in cuOpt with bounds [0, 1]. A tighter
+        user bound, such as a binary fixed to 1, must survive that step. The
+        constraint makes the lost bound change the optimum: cvxpy clips the
+        returned values to the variable bounds, so a problem where the bound is
+        never active would pass even with the bound dropped.
+        """
+        x = cp.Variable(2, boolean=True, bounds=[np.array([1, 0]), np.array([1, 1])])
+        prob = cp.Problem(cp.Minimize(0.5 * x[0] - x[1]), [x[0] + x[1] <= 1])
+        prob.solve(solver="CUOPT", **TestCUOPT.kwargs)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        self.assertAlmostEqual(prob.value, 0.5, places=4)
+        np.testing.assert_allclose(x.value, [1, 0], atol=1e-4)
+
     def test_cuopt_mi_lp_time_limit_no_incumbent(self) -> None:
         """A MILP that hits the time limit before any incumbent is found.
 
@@ -3927,6 +3971,28 @@ class TestCUOPT(unittest.TestCase):
         )
         if prob.status == cp.settings.INFEASIBLE_INACCURATE:
             self.assertIsNone(w.value)
+
+
+def test_cuopt_miqp_not_advertised() -> None:
+    """cuOpt must not advertise mixed-integer quadratic objectives.
+
+    cuOpt does not support MIQPs (NVIDIA/cuopt#2032). Without this check,
+    can_solve accepted them because supports_quad_obj() is True, so solver
+    selection could route a MIQP to cuOpt. This runs without cuOpt installed.
+    """
+    w = cp.Variable(3)
+    z = cp.Variable(3, boolean=True)
+    constraints = [cp.sum(w) == 1, w >= 0, w <= z, cp.sum(z) <= 2]
+    miqp = cp.Problem(cp.Minimize(cp.sum_squares(w)), constraints)
+    pf = ProblemForm(miqp)
+    assert pf.is_mixed_integer() and pf.has_quadratic_objective()
+    assert not CUOPT().can_solve(pf)
+
+    # MILPs and continuous QPs are still advertised.
+    milp = cp.Problem(cp.Minimize(cp.sum(w)), constraints)
+    assert CUOPT().can_solve(ProblemForm(milp))
+    qp = cp.Problem(cp.Minimize(cp.sum_squares(w)), [cp.sum(w) == 1, w >= 0])
+    assert CUOPT().can_solve(ProblemForm(qp))
 
 
 def _ortools_params(solvers):

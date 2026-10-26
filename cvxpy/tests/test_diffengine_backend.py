@@ -16,9 +16,11 @@ limitations under the License.
 from __future__ import annotations
 
 import unittest
+import unittest.mock
 
 import numpy as np
 import scipy.sparse as sp
+from sparsediffpy import _sparsediffengine as _diffengine
 
 import cvxpy as cp
 import cvxpy.settings as s
@@ -125,6 +127,29 @@ class TestDiffengineBackend(BaseTest):
         prob = cp.Problem(cp.Minimize(cp.quad_form(x, P0) + q0 @ x), [x >= -1])
 
         data_de, _, _ = prob.get_problem_data(cp.OSQP, canon_backend=DIFFENGINE)
+        data_cpp, _, _ = prob.get_problem_data(cp.OSQP)
+        for key in data_cpp:
+            expected = data_cpp[key]
+            if sp.issparse(expected):
+                self.assertItemsAlmostEqual(
+                    data_de[key].toarray(), expected.toarray(), places=10)
+            elif isinstance(expected, np.ndarray):
+                self.assertItemsAlmostEqual(data_de[key], expected, places=10)
+
+    def test_quad_objective_dense_stored_diagonal(self) -> None:
+        """A diagonal P stored as a dense array (H * np.eye(n)) must take the
+        sparse quad_form binding, not become a dense n^2 Hessian block, and
+        still produce the default backend's stuffed data."""
+        n = 40  # diagonal density 1/n = 2.5% < SPARSE_DENSITY_THRESHOLD (5%)
+        x = cp.Variable(n)
+        prob = cp.Problem(cp.Minimize(cp.quad_form(x - 1, 3.0 * np.eye(n))), [x >= 0])
+
+        make_quad_form = _diffengine.make_quad_form
+        with unittest.mock.patch.object(
+                _diffengine, "make_quad_form", side_effect=make_quad_form) as spy:
+            data_de, _, _ = prob.get_problem_data(cp.OSQP, canon_backend=DIFFENGINE)
+        self.assertEqual([c.args[2] for c in spy.call_args_list], ["sparse"])
+
         data_cpp, _, _ = prob.get_problem_data(cp.OSQP)
         for key in data_cpp:
             expected = data_cpp[key]

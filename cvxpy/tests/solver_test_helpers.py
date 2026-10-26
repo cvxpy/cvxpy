@@ -1323,6 +1323,25 @@ class StandardTestLPs:
 class StandardTestQPs:
 
     @staticmethod
+    def test_qp_parameter_update(solver, places: int = 4, **kwargs) -> None:
+        x = cp.Variable(2)
+        p = cp.Parameter(2, nonneg=True, value=[4., 0.25])
+        q = cp.Parameter(2, value=[-4., 2.])
+        a = cp.Parameter(2, value=[1., 1.])
+        b = cp.Parameter(value=2.)
+        objective = cp.Minimize(cp.sum(cp.multiply(p, cp.square(x))) / 2 + q @ x)
+        sth = SolverTestHelper(
+            (objective, -6.75), [(x, [1.5, 0.])], [(x >= 0, [0., 8.]), (a @ x <= b, 3.)],
+        )
+        sth.solve(solver, warm_start=False, **kwargs)
+        p.value, q.value, a.value, b.value = [2., 1.], [-6., 2.], [1., 2.], 1.5
+        for warm_start in (True, False):
+            sth.solve(solver, warm_start=warm_start, enforce_dpp=True, **kwargs)
+            sth.verify_objective(places)
+            sth.verify_primal_values(places)
+            sth.verify_dual_values(places)
+
+    @staticmethod
     def test_qp_0(solver, places: int = 4, duals: bool = True, **kwargs) -> SolverTestHelper:
         sth = qp_0()
         sth.solve(solver, **kwargs)

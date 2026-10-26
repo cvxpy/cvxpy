@@ -251,12 +251,28 @@ class TestPowConeND:
         prob = cp.Problem(cp.Maximize(z[0]), [con, W <= 2])
 
         solve_prob(prob, cp.CLARABEL)
+        assert con.dual_value[0].shape == W.shape
+        assert con.dual_value[1].shape == z.shape
         clarabel_w_dual = con.dual_value[0].flatten()
         clarabel_z_dual = con.dual_value[1].flatten()
 
         solve_prob(prob, cp.SCS)
+        assert con.dual_value[0].shape == W.shape
+        assert con.dual_value[1].shape == z.shape
         scs_w_dual = con.dual_value[0].flatten()
         scs_z_dual = con.dual_value[1].flatten()
 
         np.testing.assert_allclose(scs_w_dual, clarabel_w_dual, rtol=rtol)
         np.testing.assert_allclose(scs_z_dual, clarabel_z_dual, rtol=rtol)
+
+    @pytest.mark.parametrize("W_shape", [(3,), (3, 1)])
+    def test_pow_cone_nd_dual_value_preserves_W_shape(self, W_shape) -> None:
+        """Distinguish a vector from a genuine one-column matrix."""
+        W = cp.Variable(W_shape)
+        z = cp.Variable(1)
+        con = PowConeND(W, z, np.ones(W_shape) / 3)
+
+        con.save_dual_value(np.arange(4).reshape(4, 1))
+
+        assert con.dual_value[0].shape == W_shape
+        np.testing.assert_array_equal(con.dual_value[0], np.arange(3).reshape(W_shape))

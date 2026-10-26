@@ -35,6 +35,7 @@ from cvxpy.reductions.eval_params import EvalParams
 from cvxpy.reductions.flip_objective import FlipObjective
 from cvxpy.reductions.fold_callback_params import CallbackParamFold
 from cvxpy.reductions.matrix_stuffing import _has_parametric_bounds
+from cvxpy.reductions.reduction import Reduction
 from cvxpy.reductions.solvers import defines as slv_def
 from cvxpy.reductions.solvers.constant_solver import ConstantSolver
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
@@ -291,26 +292,14 @@ def _build_solving_chain(
     is_qp_solver = isinstance(solver_instance, QpSolver)
     quad_obj = (use_quad and solver_instance.supports_quad_obj()
                 and (is_qp_solver or problem_form.has_quadratic_objective()))
-    cones = problem_form.cones(quad_obj=quad_obj).copy()
-    cones, exact_targets, approx_targets = expand_cones(cones, supported)
-
-    reductions.append(Dcp2Cone(quad_obj=quad_obj, solver_context=solver_context))
-
-    reductions.append(
-        CvxAttr2Constr(reduce_bounds=not solver_instance.BOUNDED_VARIABLES))
-
-    if exact_targets:
-        reductions.append(ExactCone2Cone(target_cones=exact_targets,
-                                         solver_context=solver_context))
-    if approx_targets:
-        reductions.append(ApproxCone2Cone(target_cones=approx_targets))
-    reductions.append(EliminateZeroSized())
-
-    if solver_instance.SOC_DIM3_ONLY and SOC in cones:
-        reductions.append(SOCDim3())
-
-    reductions.append(
-        ConeMatrixStuffing(quad_obj=quad_obj, canon_backend=canon_backend))
+    reductions.extend(_cone_matrix_stuffing_reductions(
+        problem_form,
+        solver_context,
+        quad_obj=quad_obj,
+        reduce_bounds=not solver_instance.BOUNDED_VARIABLES,
+        canon_backend=canon_backend,
+        soc_dim3_only=solver_instance.SOC_DIM3_ONLY,
+    ))
     if dir_cone_kinds:
         reductions.append(ExtractDirectCones(solver_context=solver_context))
     if not is_qp_solver:
@@ -321,6 +310,37 @@ def _build_solving_chain(
         reductions.append(ConeFormat(solver_instance))
     reductions.append(solver_instance)
     return SolvingChain(reductions=reductions, solver_context=solver_context)
+
+
+def _cone_matrix_stuffing_reductions(
+    problem_form: ProblemForm,
+    solver_context: SolverInfo,
+    *,
+    quad_obj: bool,
+    reduce_bounds: bool,
+    canon_backend: str | None = None,
+    soc_dim3_only: bool = False,
+) -> list[Reduction]:
+    """Build the cone reductions through matrix stuffing."""
+    cones = problem_form.cones(quad_obj=quad_obj).copy()
+    cones, exact_targets, approx_targets = expand_cones(
+        cones, solver_context.solver_supported_constraints)
+
+    reductions: list[Reduction] = [
+        Dcp2Cone(quad_obj=quad_obj, solver_context=solver_context),
+        CvxAttr2Constr(reduce_bounds=reduce_bounds),
+    ]
+    if exact_targets:
+        reductions.append(ExactCone2Cone(
+            target_cones=exact_targets, solver_context=solver_context))
+    if approx_targets:
+        reductions.append(ApproxCone2Cone(target_cones=approx_targets))
+    reductions.append(EliminateZeroSized())
+    if soc_dim3_only and SOC in cones:
+        reductions.append(SOCDim3())
+    reductions.append(ConeMatrixStuffing(
+        quad_obj=quad_obj, canon_backend=canon_backend))
+    return reductions
 
 
 def _resolve_solver(

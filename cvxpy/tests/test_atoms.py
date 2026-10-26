@@ -1764,6 +1764,50 @@ class TestAtoms(BaseTest):
         cvar_value = cp.cvar(A @ x.value, beta).value
         self.assertTrue(cvar_value <= kappa)
 
+    def test_cvar_axis(self) -> None:
+        """cvar reduces along an axis the way the other stats atoms do."""
+        rng = np.random.default_rng(0)
+        a = rng.standard_normal((5, 4, 3))
+
+        # The output shape follows the same reduction rule as the other atoms.
+        for axis in [0, 1, 2, (0, 1), (1, 2), (0, 2), None]:
+            for keepdims in [True, False]:
+                expr = cp.cvar(a, 0.9, axis=axis, keepdims=keepdims)
+                assert expr.shape == np.mean(a, axis=axis, keepdims=keepdims).shape
+
+        # Reducing over one axis agrees with the atom applied to each slice.
+        m = rng.standard_normal((6, 4))
+        for beta in [0.0, 0.5, 0.9]:
+            assert np.allclose(cp.cvar(m, beta, axis=0).value,
+                               [cp.cvar(m[:, j], beta).value for j in range(m.shape[1])])
+            assert np.allclose(cp.cvar(m, beta, axis=1).value,
+                               [cp.cvar(m[i, :], beta).value for i in range(m.shape[0])])
+
+        # A tuple of axes pools the samples of every axis it names.
+        pooled = cp.cvar(a, 0.9, axis=(0, 2)).value
+        assert np.allclose(pooled,
+                           [cp.cvar(a[:, j, :].flatten(), 0.9).value for j in range(a.shape[1])])
+
+        # Negative axes count from the end.
+        assert np.allclose(cp.cvar(a, 0.9, axis=-1).value, cp.cvar(a, 0.9, axis=2).value)
+
+        # Without an axis the whole array is one distribution.
+        assert np.isclose(cp.cvar(a, 0.9).value, cp.cvar(a.flatten(), 0.9).value)
+
+        # beta = 0 keeps every sample, so cvar is the mean.
+        for axis in [0, 1, (0, 2), None]:
+            assert np.allclose(cp.cvar(a, 0.0, axis=axis).value, np.mean(a, axis=axis))
+
+        # The axis form canonicalizes and solves.
+        X = cp.Variable((6, 4))
+        prob = cp.Problem(cp.Minimize(cp.sum(cp.cvar(X, 0.75, axis=0))), [X >= 1])
+        prob.solve()
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        self.assertAlmostEqual(prob.value, 4.0)
+
+        with self.assertRaises(ValueError):
+            cp.cvar(a, 1.0, axis=0)
+
     def test_index(self) -> None:
         """Test the copy function for index.
         """
@@ -2091,15 +2135,22 @@ class TestAtoms(BaseTest):
                 assert np.allclose(a.mean(axis=axis, keepdims=keepdims), expr_mean.value)
                 assert np.allclose(a.var(axis=axis, keepdims=keepdims), expr_var.value)
 
-        for axis in [0, 1, 2]:
+        for axis in [0, 1, 2, (0, 1), (1, 2), (0, 2), (0,), (0, 1, 2), (-3, -1)]:
             for keepdims in [True, False]:
-                expr_std = cp.std(a, axis=axis, keepdims=keepdims)
+                for ddof in [0, 1]:
+                    expr_std = cp.std(a, axis=axis, keepdims=keepdims, ddof=ddof)
+                    want = a.std(axis=axis, keepdims=keepdims, ddof=ddof)
 
-                assert expr_std.shape == a.std(axis=axis, keepdims=keepdims).shape
-                assert np.allclose(a.std(axis=axis, keepdims=keepdims), expr_std.value)
+                    assert expr_std.shape == want.shape
+                    assert np.allclose(want, expr_std.value)
 
-        with self.assertRaises(ValueError):
-            cp.std(a, axis=(0, 1))
+        # A tuple of axes stays DCP and solves.
+        X = cp.Variable((2, 3, 4))
+        prob = cp.Problem(cp.Minimize(cp.sum(cp.std(X, axis=(0, 2)))), [X >= 1])
+        assert prob.is_dcp()
+        prob.solve()
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        self.assertAlmostEqual(prob.value, 0.0, places=6)
 
     def test_partial_optimize_dcp(self) -> None:
         """Test DCP properties of partial optimize.

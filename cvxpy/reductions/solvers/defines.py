@@ -113,7 +113,7 @@ MI_SOCP_SOLVERS = [
 
 # Policy list (not derivable from solver attributes).
 COMMERCIAL_SOLVERS = [
-    "MOSEK", "MOREAU", "GUROBI", "CPLEX", "COPT", "XPRESS", "NAG", "KNITRO",
+    "MOSEK", "GUROBI", "CPLEX", "COPT", "XPRESS", "NAG", "KNITRO",
 ]
 
 

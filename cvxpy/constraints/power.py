@@ -302,16 +302,12 @@ class PowConeND(Cone):
         # Value has shape (n+1, k) from ConeMatrixStuffing (constraint.shape).
         # First n rows are W duals, last row is z duals.
         dW = value[:-1, :]  # Shape (n, k)
-        dz = value[-1, :]   # Shape (k,)
         if self.axis == 1:
             dW = dW.T
-        if dW.shape[-1] == 1:
-            # NOTE: Targetting problems where duals have the shape
-            # (n, 1) --- dropping the extra dimension is crucial for
-            # the `_dual_cone` and `dual_residual` methods to work properly
-            dW = np.squeeze(dW)
-        self.dual_variables[0].save_value(dW)
-        self.dual_variables[1].save_value(dz)
+        self.dual_variables[0].save_value(
+            np.reshape(dW, self.args[0].shape, order='F'))
+        self.dual_variables[1].save_value(
+            np.reshape(value[-1, :], self.args[1].shape, order='F'))
 
     def _dual_cone(self, *args):
         """Implements the dual cone of PowConeND See Pg 85
@@ -325,5 +321,6 @@ class PowConeND(Cone):
             instance_args_shapes = [arg.shape for arg in self.args]
             assert len(args) == len(self.args)
             assert args_shapes == instance_args_shapes
-            assert args[0].value.shape == self.alpha.value.shape
+            # Compare shapes directly, as in PowCone3D; symbolic arguments may lack values.
+            assert args[0].shape == self.alpha.shape
             return PowConeND(args[0]/self.alpha, args[1], self.alpha, axis=self.axis)

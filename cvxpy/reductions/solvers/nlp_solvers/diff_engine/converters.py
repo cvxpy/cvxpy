@@ -26,6 +26,7 @@ from cvxpy.atoms.quad_form import QuadForm
 from cvxpy.atoms.quad_over_lin import quad_over_lin
 from cvxpy.expressions.constants.parameter import is_param_free
 from cvxpy.reductions.solvers.nlp_solvers.diff_engine.helpers import (
+    make_constant_quad_form,
     make_dense_left_matmul,
     make_dense_right_matmul,
     make_sparse_left_matmul,
@@ -116,9 +117,10 @@ def convert_symbolic_quad_form(expr, var_dict, n_vars, param_dict):
 
     Scalar x'Px (QuadForm / quad_over_lin / sum_squares) uses the native quad_form
     binding. A symbolic P becomes a matrix-valued child the engine re-evaluates
-    each solve; a constant P is routed by how it is stored -- the sparse CSR path
-    for a sparse P, the dense path otherwise. power/PowerApprox is the elementwise square, lowered
-    to multiply.
+    each solve; a constant P is routed by its content as in the NLP path
+    (``make_constant_quad_form``): a sparse or mostly-zero P takes the sparse CSR
+    binding, a genuinely dense P the dense one. power/PowerApprox is the
+    elementwise square, lowered to multiply.
     """
     if expr.block_indices is not None:
         raise NotImplementedError(
@@ -139,18 +141,7 @@ def convert_symbolic_quad_form(expr, var_dict, n_vars, param_dict):
             # backend, because its cone canon needs a concrete P.
             P_c = convert_expr(P, var_dict, n_vars, param_dict)
             return _diffengine.make_quad_form(P_c, x_c, "dense", None, x.size)
-        P_val = P.value
-        if sparse.issparse(P_val):
-            P_csr = P_val.tocsr()
-            return _diffengine.make_quad_form(
-                None, x_c, "sparse",
-                P_csr.data.astype(np.float64),
-                P_csr.indices.astype(np.int32),
-                P_csr.indptr.astype(np.int32),
-                P_csr.shape[0], P_csr.shape[1])
-        P_dense = to_dense_float(P_val)
-        return _diffengine.make_quad_form(
-            None, x_c, "dense", P_dense.flatten(order='F'), x.size)
+        return make_constant_quad_form(x_c, P.value, x.size)
 
     if isinstance(orig, Power):  # PowerApprox subclasses Power; canon only p == 2
         # The elementwise square, rebuilt over the leaf arg: the engine's
