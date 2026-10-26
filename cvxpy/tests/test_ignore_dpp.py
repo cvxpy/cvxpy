@@ -33,6 +33,8 @@ from cvxpy.reductions.fold_callback_params import CallbackParamFold
 from cvxpy.reductions.solvers.defines import INSTALLED_MI_SOLVERS, INSTALLED_SOLVERS
 from cvxpy.reductions.solvers.nlp_solvers.diff_engine.cone_program import (
     DiffengineConeProg,
+    _Matrices,
+    _RowLayout,
 )
 from cvxpy.tests.base_test import BaseTest
 
@@ -745,3 +747,74 @@ class TestDiffengineProgram(BaseTest):
             # has_quad_obj answers from the concrete matrices, which is the
             # only thing ConicSolver.apply asks of the objective term.
             self.assertEqual(prog.has_quad_obj, quad_obj)
+
+
+class TestRowLayout(BaseTest):
+    """The cone row layout is applied to each extraction as a gather of
+    A.data, planned once per sparsity pattern."""
+
+    @staticmethod
+    def _layout(rng, m):
+        new_row = rng.permutation(m)
+        sign = rng.choice([-1.0, 1.0], size=m)
+        return new_row, sign
+
+    @staticmethod
+    def _reference(A, b, new_row, sign):
+        R = sp.csc_array((sign, (new_row, np.arange(new_row.size))),
+                         shape=(new_row.size,) * 2)
+        return (R @ A).toarray(), R @ b
+
+    def _check(self, layout, A, b, new_row, sign):
+        out = layout.apply(_Matrices(np.zeros(A.shape[1]), 0.0, A, b, None))
+        A_ref, b_ref = self._reference(A, b, new_row, sign)
+        self.assertIsInstance(out.A, sp.csc_array)
+        np.testing.assert_array_equal(out.A.toarray(), A_ref)
+        np.testing.assert_array_equal(out.b, b_ref)
+        # The result is canonical CSC, as solvers expect.
+        A_sorted = out.A.copy()
+        A_sorted.has_sorted_indices = False
+        A_sorted.sort_indices()
+        np.testing.assert_array_equal(A_sorted.indices, out.A.indices)
+
+    def test_matches_permutation_matrix(self) -> None:
+        rng = np.random.default_rng(0)
+        m, n = 40, 15
+        new_row, sign = self._layout(rng, m)
+        layout = _RowLayout(new_row, sign)
+        A = sp.random_array((m, n), density=0.2, format='csc', rng=rng)
+        b = rng.standard_normal(m)
+        self._check(layout, A, b, new_row, sign)
+        plan = layout._plan
+        # New values on the same pattern reuse the plan.
+        A2 = A.copy()
+        A2.data = rng.standard_normal(A2.nnz)
+        self._check(layout, A2, rng.standard_normal(m), new_row, sign)
+        self.assertIs(layout._plan, plan)
+        # A different pattern is planned again.
+        A3 = sp.random_array((m, n), density=0.3, format='csc', rng=rng)
+        self._check(layout, A3, b, new_row, sign)
+        self.assertIsNot(layout._plan, plan)
+
+    def test_unsorted_indices(self) -> None:
+        rng = np.random.default_rng(1)
+        m, n = 30, 10
+        new_row, sign = self._layout(rng, m)
+        A = sp.random_array((m, n), density=0.3, format='csc', rng=rng)
+        # Reverse the values within each column.
+        indices, data = A.indices.copy(), A.data.copy()
+        for j in range(n):
+            lo, hi = A.indptr[j], A.indptr[j + 1]
+            indices[lo:hi] = indices[lo:hi][::-1]
+            data[lo:hi] = data[lo:hi][::-1]
+        A_unsorted = sp.csc_array((data, indices, A.indptr), shape=A.shape)
+        self._check(_RowLayout(new_row, sign), A_unsorted,
+                    rng.standard_normal(m), new_row, sign)
+
+    def test_empty_columns_and_rows(self) -> None:
+        rng = np.random.default_rng(2)
+        m, n = 12, 6
+        new_row, sign = self._layout(rng, m)
+        A = sp.csc_array(([1.0, -2.0, 3.0], ([0, 5, 11], [1, 1, 4])), shape=(m, n))
+        self._check(_RowLayout(new_row, sign), A, rng.standard_normal(m),
+                    new_row, sign)

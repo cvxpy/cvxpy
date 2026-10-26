@@ -49,21 +49,61 @@ class _Matrices(NamedTuple):
     P: sp.csc_array | None
 
 
-def _restructure(matrices: _Matrices, perm) -> _Matrices:
-    """Apply the solver's cone row layout to one extraction.
+class _RowLayout:
+    """The solver's cone row layout, with a plan for applying it to A.
 
-    The layout is a signed permutation (see
-    ``cone_format.restruct_permutation``), so this is a row gather and a sign
-    flip rather than a matrix product. ``perm`` is ``(old_row, row_sign)``
-    indexed by the *new* row: new row k is old row ``old_row[k]``, scaled by
-    ``row_sign[k]``.
+    The layout is a signed permutation, as returned by
+    ``cone_format.restruct_permutation``: ``new_row`` and ``sign`` are indexed
+    by the *old* row, so old row i becomes row ``new_row[i]``, scaled by
+    ``sign[i]``.
+
+    Permuting rows keeps every stored value in its column, so a CSC matrix
+    keeps its ``indptr``; only the order of the values within each column
+    changes. That order depends on the sparsity pattern alone, which the
+    re-extractions of one program share, so it is computed once and each
+    later extraction is a gather of ``A.data`` and a sign flip, with no
+    format conversion.
     """
+
+    def __init__(self, new_row: np.ndarray, sign: np.ndarray) -> None:
+        self.new_row = new_row
+        self.sign = sign
+        # The (indptr, indices) the plan was computed for, and the plan:
+        # (order of the values, their signs, their new row indices).
+        self._pattern = None
+        self._plan = None
+
+    def _plan_for(self, A: sp.csc_array):
+        pattern = self._pattern
+        if (pattern is not None and np.array_equal(pattern[0], A.indptr)
+                and np.array_equal(pattern[1], A.indices)):
+            return self._plan
+        # A different pattern (or the first extraction): plan again. The
+        # stable sort keeps the columns in place and orders each by new row,
+        # whether or not A's indices were sorted.
+        new_idx = self.new_row[A.indices].astype(A.indices.dtype, copy=False)
+        col = np.repeat(np.arange(A.shape[1]), np.diff(A.indptr))
+        order = np.lexsort((new_idx, col))
+        self._pattern = (A.indptr.copy(), A.indices.copy())
+        self._plan = (order, self.sign[A.indices][order], new_idx[order])
+        return self._plan
+
+    def apply(self, matrices: _Matrices) -> _Matrices:
+        A = sp.csc_array(matrices.A)
+        order, signs, new_indices = self._plan_for(A)
+        A = sp.csc_array((A.data[order] * signs, new_indices, A.indptr),
+                         shape=A.shape)
+        A.has_sorted_indices = True
+        b = np.empty_like(matrices.b)
+        b[self.new_row] = matrices.b * self.sign
+        return matrices._replace(A=A, b=b)
+
+
+def _restructure(matrices: _Matrices, perm: _RowLayout | None) -> _Matrices:
+    """Apply the solver's cone row layout to one extraction."""
     if perm is None:
         return matrices
-    old_row, row_sign = perm
-    A = sp.csr_array(matrices.A)[old_row]
-    A.data = A.data * np.repeat(row_sign, np.diff(A.indptr))
-    return matrices._replace(A=sp.csc_array(A), b=matrices.b[old_row] * row_sign)
+    return perm.apply(matrices)
 
 
 class DiffengineConeProg(ConeProg):
@@ -90,8 +130,8 @@ class DiffengineConeProg(ConeProg):
                          parameters, param_id_to_col, formatted=formatted,
                          lower_bounds=lower_bounds, upper_bounds=upper_bounds)
         self.extractor = extractor
-        # The row layout ``with_row_layout`` applied, as (src, row_sign), kept so
-        # it can be re-applied to every later extraction.
+        # The row layout ``with_row_layout`` applied, kept so it can be
+        # re-applied to every later extraction.
         self._restruct_perm = restruct_perm
         # The concrete matrices at the currently-pushed parameter values,
         # post-restructuring.
@@ -165,14 +205,7 @@ class DiffengineConeProg(ConeProg):
         # earlier layout to compose with.
         assert self._restruct_perm is None, "already formatted"
         if perm is not None:
-            # restruct_permutation indexes by the old row, because the tensor
-            # path scatters: it walks stored values, each of which knows its
-            # old row. Here the matrices are concrete and `A[old_row]` gathers,
-            # so invert to index by the new row instead.
-            new_row, sign = perm
-            old_row = np.empty_like(new_row)
-            old_row[new_row] = np.arange(new_row.size)
-            perm = (old_row, sign[old_row])
+            perm = _RowLayout(*perm)
         formatted = DiffengineConeProg(
             self.extractor, self.x, self.variables, self.var_id_to_col,
             self.constraints, self.parameters, self.param_id_to_col,
