@@ -396,7 +396,7 @@ class TestDcp(BaseTest):
         problem.solve(solver=cp.CLARABEL, ignore_dpp=True)
         self.assertAlmostEqual(problem.value, -2 * np.log(4.0), places=4)
 
-    def test_log_det_with_parameter_ignore_dpp_qp_solver(self) -> None:
+    def test_log_det_parameter_qp_solver(self) -> None:
         """A QP solver still takes the problem: the variable-free log_det(P)
         folds to a CallbackParam leaf, so it emits no cones and the problem
         stays a QP. Unlike the EvalParams route the leaf is not frozen, so

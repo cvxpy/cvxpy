@@ -100,8 +100,7 @@ def convert_div(expr, children):
         # parameter update still surfaces as inf from the engine.
         # TODO(diffengine): the engine's power node should reject a zero
         # base with a negative exponent on re-evaluation, so a parameter
-        # update to zero raises instead of propagating inf. Tracked
-        # upstream in sparsediffpy.
+        # update to zero raises instead of propagating inf.
         div_val = divisor_expr.value
         if div_val is not None and np.any(to_dense_float(div_val) == 0):
             raise ValueError("Division by zero encountered in divisor")

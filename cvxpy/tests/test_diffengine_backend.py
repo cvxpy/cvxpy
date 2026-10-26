@@ -85,8 +85,8 @@ class TestDiffengineConverter(BaseTest):
 
 class TestDiffengineBackend(BaseTest):
     """End-to-end behavior of canon_backend='DIFFENGINE': same stuffed data
-    and solutions as the default tensor backends, for parameter-free
-    problems; loud rejection otherwise."""
+    and solutions as the default tensor backends, and loud rejection of what
+    the engine cannot convert."""
 
     def test_constant_nonlinear_subtree_is_evaluated(self) -> None:
         """A nonlinear atom over plain constants is evaluated numerically;
@@ -254,8 +254,8 @@ class TestDiffengineBackend(BaseTest):
 
 
 class TestDiffengineSelection(BaseTest):
-    """canon_backend='DIFFENGINE' is explicit opt-in and produces a
-    parameter-free cone program the solvers accept like any other."""
+    """canon_backend='DIFFENGINE' produces a cone program the solvers accept
+    like any other, with or without parameters."""
 
     def _stuffing_backend(self, chain) -> str:
         stuffing = [r for r in chain.reductions

@@ -255,11 +255,11 @@ def _build_solving_chain(
         diffengine_ok = _diffengine_eligible(problem, gp, solver_instance)
         if problem.parameters() and diffengine_ok:
             # Parameters stay symbolic through canonicalization, so the
-            # compiled program is cacheable (safe_to_cache additionally
-            # guards the one value-consuming canonicalizer, the cone
-            # quad_form canon). Non-affine parametric constants fold to
-            # CallbackParam leaves so Dcp2Cone never epigraph-relaxes them
-            # unsoundly.
+            # compiled program is cacheable. The canonicalizers that consume
+            # parameter values (quad_form with a parametric P, perspective
+            # over a parametric f) opt out through _supports_diffengine.
+            # Non-affine parametric constants fold to CallbackParam leaves
+            # so Dcp2Cone never epigraph-relaxes them unsoundly.
             reductions = [CallbackParamFold()] + reductions
             if (canon_backend is not None
                     and canon_backend != DIFFENGINE_CANON_BACKEND):
