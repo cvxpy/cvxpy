@@ -904,7 +904,7 @@ class TestBackends:
         # Axis 2
         (2, list(range(16))),
         # Axis None
-        (None, list(range(16))),
+        (None, [0, 4, 2, 6, 1, 5, 3, 7, 8, 12, 10, 14, 9, 13, 11, 15]),
     ])
     def test_concatenate_nd(self, backend, axis, variable_indices):
         """
@@ -927,15 +927,15 @@ class TestBackends:
             [y110, y111]]
             ]
 
-        The variables are assigned indices as follows:
+        The variables are assigned indices in 'F' order (column-major order):
 
         Indices for x:
-            x000: 0, x001: 1, x010: 2, x011: 3,
-            x100: 4, x101: 5, x110: 6, x111: 7
+            x000: 0, x100: 1, x010: 2, x110: 3,
+            x001: 4, x101: 5, x011: 6, x111: 7
 
         Indices for y:
-            y000: 8, y001: 9, y010: 10, y011: 11,
-            y100: 12, y101: 13, y110: 14, y111: 15
+            y000: 8, y100: 9, y010: 10, y110: 11,
+            y001: 12, y101: 13, y011: 14, y111: 15
 
         How we chose the list of variable_indices:
 
@@ -962,7 +962,7 @@ class TestBackends:
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
 
         For axis=None:
-            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+            [0, 4, 2, 6, 1, 5, 3, 7, 8, 12, 10, 14, 9, 13, 11, 15]
 
         axis=None follows NumPy; arrays are flattened in 'C' order before concatenating,
         so the resulting array is [x000, x001, x010, x011, x100, x101, x110, x111,
