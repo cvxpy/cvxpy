@@ -438,36 +438,6 @@ class TestProblem(BaseTest):
         assert CITATION_DICT["CVXPY"] in out
         assert CITATION_DICT["DQCP"] in out
 
-    # Test removing duplicate constraint objects.
-    # def test_duplicate_constraints(self):
-    #     # TODO(akshayka): Adapt this test to the reduction infrastructure.
-    #     eq = (self.x == 2)
-    #     le = (self.x <= 2)
-    #     obj = 0
-
-    #     def test(self):
-    #         objective, constraints = self.canonicalize()
-    #         sym_data = SymData(objective, constraints, SOLVERS[s.CVXOPT])
-    #         return (len(sym_data.constr_map[s.EQ]),
-    #                 len(sym_data.constr_map[s.LEQ]))
-    #     Problem.register_solve("test", test)
-    #     p = Problem(cp.Minimize(obj), [eq, eq, le, le])
-    #     result = p.solve(method="test")
-    #     self.assertEqual(result, (1, 1))
-
-    #     # Internal constraints.
-    #     X = Variable((2, 2), PSD=True)
-    #     obj = sum(X + X)
-    #     p = Problem(cp.Minimize(obj))
-    #     result = p.solve(method="test")
-    #     self.assertEqual(result, (0, 1))
-
-    #     # Duplicates from non-linear constraints.
-    #     exp = norm(self.x, 2)
-    #     prob = Problem(cp.Minimize(0), [exp <= 1, exp <= 2])
-    #     result = prob.solve(method="test")
-    #     self.assertEqual(result, (0, 3))
-
     # Test the is_dcp method.
     def test_is_dcp(self) -> None:
         p = Problem(cp.Minimize(cp.norm_inf(self.a)))
