@@ -136,8 +136,6 @@ def is_scalar(operator) -> bool:
     return len(operator.shape) == 0 or np.prod(operator.shape, dtype=int) == 1
 
 
-
-
 def sum_expr(operators):
     """Add linear operators.
 
@@ -168,10 +166,6 @@ def neg_expr(operator):
         The negated operator.
     """
     return lo.LinOp(lo.NEG, operator.shape, [operator], None)
-
-
-
-
 
 
 def mul_expr(lh_op, rh_op, shape: tuple[int, ...]):
@@ -531,6 +525,7 @@ def vstack(operators, shape: tuple[int, ...]):
        LinOp representing the stacked expression.
     """
     return lo.LinOp(lo.VSTACK, shape, operators, None)
+
 
 def concatenate(operators, shape: tuple[int, ...], axis: int | None = 0):
     """Concatenate operators on axis.
