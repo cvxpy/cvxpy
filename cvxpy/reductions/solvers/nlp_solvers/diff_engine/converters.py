@@ -53,12 +53,67 @@ def _matmul_children(expr, var_dict, n_vars, param_dict):
             for i, arg in enumerate(expr.args)]
 
 
+def _uniform_vector_value(arg, free_axis):
+    """The common value c if ``arg`` is a parameter-free constant vector c * 1,
+    else None. A vector here is 1D, or 2D with ``arg.shape[free_axis] == 1``:
+    its only dimension of length other than one is the contracted one. A row on
+    the right (or a column on the left) forms an outer product, which cvxpy
+    uses to broadcast, not a sum."""
+    if not is_param_free(arg) or arg.size == 0:
+        return None
+    if len(arg.shape) == 2 and arg.shape[free_axis] != 1:
+        return None
+    x = to_dense_float(arg.value).ravel()
+    return x[0] if np.all(x == x[0]) else None
+
+
+def _uniform_matmul_as_sum(expr, children, n_vars):
+    """Lower (c 1)' @ X and X @ (c 1) to c times the engine's sum.
+
+    Summing with a vector of ones is common (``D.T @ np.ones(m)``), and the
+    matmul lowering builds one dense block per column of X, each carrying an
+    inverse column map over every variable of the problem. The sum node builds
+    no blocks. Returns None when ``expr`` is not of this form, or when c is
+    zero (left to the regular lowering, which is exact for it).
+    """
+    left_arg, right_arg = expr.args
+    if left_arg.is_constant() and not right_arg.is_constant():
+        c = _uniform_vector_value(left_arg, 0)
+        if c is None or c == 0:
+            return None
+        # 1' @ X sums the rows of X; 1' @ x sums all of x.
+        node = _diffengine.make_sum(children[1], 0 if right_arg.ndim == 2 else -1)
+    elif right_arg.is_constant() and not left_arg.is_constant():
+        c = _uniform_vector_value(right_arg, 1)
+        if c is None or c == 0:
+            return None
+        if left_arg.ndim < 2:
+            node = _diffengine.make_sum(children[0], -1)
+        else:
+            # X @ 1 sums the columns of X. The engine returns sums along an axis
+            # as a row; a column result (X @ ones((n, 1))) has the same
+            # column-major vectorization, so a reshape restores its shape.
+            node = _diffengine.make_sum(children[0], 1)
+            if expr.ndim == 2:
+                node = _diffengine.make_reshape(node, *expr.shape)
+    else:
+        return None
+    if c != 1:
+        c_node = _diffengine.make_parameter(1, 1, -1, n_vars, np.array([c]))
+        node = _diffengine.make_param_scalar_mult(c_node, node)
+    return node
+
+
 def convert_matmul(expr, children, var_dict, n_vars, param_dict):
     """Convert matrix multiplication A @ f(x), f(x) @ A, or X @ Y.
 
     Follows numpy's matmul broadcasting rules for 1D operands.
     """
     left_arg, right_arg = expr.args
+
+    uniform_sum = _uniform_matmul_as_sum(expr, children, n_vars)
+    if uniform_sum is not None:
+        return uniform_sum
 
     if left_arg.is_constant():
         A = left_arg.value
