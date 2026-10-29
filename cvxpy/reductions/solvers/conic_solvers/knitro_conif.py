@@ -19,7 +19,7 @@ import scipy.sparse as sp
 
 import cvxpy.settings as s
 from cvxpy.constraints import PSD, SOC, ExpCone, PowCone3D
-from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ParamConeProg
+from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeProg
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver, dims_to_solver_dict
@@ -309,7 +309,7 @@ class KNITRO(ConicSolver):
     def accepts(self, problem) -> bool:
         return super(KNITRO, self).accepts(problem)
 
-    def apply(self, problem: ParamConeProg):
+    def apply(self, problem: ConeProg):
         """Returns a new problem and data for inverting the new solution.
 
         Returns
