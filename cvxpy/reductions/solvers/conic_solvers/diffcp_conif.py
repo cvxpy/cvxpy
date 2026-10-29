@@ -138,7 +138,8 @@ class DIFFCP(scs_conif.SCS):
         Returns
         -------
         The result returned by a call to scs.solve().
-        """        import diffcp
+        """
+        import diffcp
         A = data[s.A]
         b = data[s.B]
         c = data[s.C]
