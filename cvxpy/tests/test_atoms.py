@@ -94,6 +94,21 @@ class TestAtoms(BaseTest):
         self.assertEqual(cp.norm1(atom).curvature, s.CONVEX)
         self.assertEqual(cp.norm1(-atom).curvature, s.CONVEX)
 
+    def test_norm1_keepdims_canonicalization(self) -> None:
+        """Test that norm1 keeps keepdims=True when it is canonicalized.
+        """
+        # Without keepdims the canonicalized norm has shape (3,), the
+        # constraint broadcasts against the (3, 1) t to (3, 3), and every
+        # entry of t is pushed up to the largest row norm.
+        X_val = np.array([[1.0, -2.0], [3.0, 0.0], [-0.5, 0.5]])
+        X = Variable((3, 2))
+        t = Variable((3, 1))
+        expr = cp.norm(X, 1, axis=1, keepdims=True)
+        prob = cp.Problem(cp.Minimize(cp.sum(t)), [X == X_val, expr <= t])
+        prob.solve(solver=cp.CLARABEL)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        self.assertItemsAlmostEqual(t.value, np.linalg.norm(X_val, 1, axis=1, keepdims=True))
+
     def test_list_input(self) -> None:
         """Test that list input is rejected.
         """
