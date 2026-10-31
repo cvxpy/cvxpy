@@ -34,6 +34,7 @@ from cvxpy.atoms.affine.upper_tri import upper_tri_to_full
 from cvxpy.atoms.errormsg import SECOND_ARG_SHOULD_NOT_BE_EXPRESSION_ERROR_MESSAGE
 from cvxpy.expressions.constants import Constant, Parameter
 from cvxpy.expressions.variable import Variable
+from cvxpy.reductions.eliminate_pwl.canonicalizers.norm1_canon import norm1_canon
 from cvxpy.reductions.solvers.defines import INSTALLED_MI_SOLVERS
 from cvxpy.tests.base_test import BaseTest
 from cvxpy.transforms.partial_optimize import partial_optimize
@@ -104,6 +105,9 @@ class TestAtoms(BaseTest):
         X = Variable((3, 2))
         t = Variable((3, 1))
         expr = cp.norm(X, 1, axis=1, keepdims=True)
+        self.assertEqual(expr.shape, (3, 1))
+        canonical_expr, _ = norm1_canon(expr, expr.args)
+        self.assertEqual(canonical_expr.shape, (3, 1))
         prob = cp.Problem(cp.Minimize(cp.sum(t)), [X == X_val, expr <= t])
         prob.solve(solver=cp.CLARABEL)
         self.assertEqual(prob.status, cp.OPTIMAL)
