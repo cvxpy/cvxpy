@@ -625,22 +625,24 @@ Here is the complete list of solver options.
     ``'max_iters'``
         maximum number of iterations (default: 2500).
 
+    ``'eps_abs'``
+        absolute convergence tolerance (default: 1e-5).
+
+    ``'eps_rel'``
+        relative convergence tolerance (default: 1e-5).
+
     ``'eps'``
-        convergence tolerance (default: 1e-4).
+        legacy alias for setting both ``eps_abs`` and ``eps_rel`` at once
+        (SCS < 3.0 exposed a single tolerance). Prefer ``eps_abs`` and
+        ``eps_rel``.
 
     ``'alpha'``
         relaxation parameter (default: 1.8).
 
     ``'acceleration_lookback'``
-        Anderson Acceleration parameter for SCS 2.0 and higher. This can be any positive or negative integer;
-        its default value is 10. See `this page of the SCS documentation <https://www.cvxgrp.org/scs/algorithm/acceleration.html#in-scs>`_
+        Anderson Acceleration parameter for SCS. This can be any positive or negative integer;
+        its default value is 10. See `the SCS documentation <https://www.cvxgrp.org/scs/algorithm/acceleration.html#in-scs>`_
         for more information.
-
-    .. warning::
-        The value of this parameter often effects whether or not SCS 2.X will converge to an accurate solution.
-        If you don't *explicitly* set ``acceleration_lookback`` and SCS 2.X fails to converge, then CVXPY
-        will raise a warning and try to re-solve the problem with ``acceleration_lookback=0``.
-        No attempt will be made to re-solve with problem if you have SCS version 3.0 or higher.
 
     ``'scale'``
         balance between minimizing primal and dual residual (default: 5.0).
