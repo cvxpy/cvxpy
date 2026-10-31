@@ -625,8 +625,16 @@ Here is the complete list of solver options.
     ``'max_iters'``
         maximum number of iterations (default: 2500).
 
+    ``'eps_abs'``
+        absolute convergence tolerance (default: 1e-5).
+
+    ``'eps_rel'``
+        relative convergence tolerance (default: 1e-5).
+
     ``'eps'``
-        convergence tolerance (default: 1e-4).
+        legacy alias for setting both ``eps_abs`` and ``eps_rel`` at once
+        (SCS < 3.0 exposed a single tolerance). Prefer ``eps_abs`` and
+        ``eps_rel``.
 
     ``'alpha'``
         relaxation parameter (default: 1.8).

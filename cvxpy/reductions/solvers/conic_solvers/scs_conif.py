@@ -35,7 +35,10 @@ from cvxpy.utilities.warn import CvxpyDeprecationWarning, warn
 
 def dims_to_solver_dict(cone_dims):
     cones = dims_to_solver_dict_default(cone_dims)
-    # SCS 3.0.0 renamed the zero cone key 'f' to 'z'; diffcp also requires 'z'.
+    # CVXPY's shared dims_to_solver_dict (conic_solver.py) uses 'f' as its
+    # standard zero-cone key (e.g. ECOS requires that key). SCS 3.0 renamed
+    # the key to 'z', so the conversion belongs here at the SCS interface;
+    # diffcp, which builds on SCS, requires 'z' as well.
     cones['z'] = cones.pop('f')
     return cones
 
@@ -119,7 +122,7 @@ class SCS(ConicSolver):
         import scs  # noqa F401
 
     def supports_quad_obj(self) -> bool:
-        """SCS >= 3.2.4.post1 supports a quadratic objective.
+        """SCS >= 3.0.0 supports a quadratic objective.
         """
         return True
 
@@ -172,7 +175,10 @@ class SCS(ConicSolver):
     @staticmethod
     def parse_solver_options(solver_opts):
         import scs
-        if "eps" in solver_opts:  # eps replaced by eps_abs, eps_rel
+        # CVXPY documents a single 'eps' tolerance for SCS (the pre-3.0 API).
+        # SCS 3.0+ only accepts eps_abs/eps_rel, so 'eps' is mapped to both to
+        # preserve the old single-tolerance behavior for existing users.
+        if "eps" in solver_opts:
             solver_opts["eps_abs"] = solver_opts["eps"]
             solver_opts["eps_rel"] = solver_opts["eps"]
             del solver_opts["eps"]

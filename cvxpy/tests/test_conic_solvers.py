@@ -379,8 +379,10 @@ class TestSCS(BaseTest):
         # When use_quad_obj = False, the quadratic objective is
         # canonicalized to a SOC constraint.
         prob = cp.Problem(cp.Minimize(expr), constr)
-        data = prob.get_problem_data(solver=cp.SCS)
-        solution2 = prob.solve(solver=cp.SCS)
+        solver_opts = {"use_quad_obj": False}
+        data = prob.get_problem_data(solver=cp.SCS, solver_opts=solver_opts)
+        assert "P" not in data[0]
+        solution2 = prob.solve(solver=cp.SCS, **solver_opts)
 
         assert np.isclose(solution1, solution2)
 
