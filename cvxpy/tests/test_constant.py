@@ -57,6 +57,35 @@ def test_is_psd_arpack_no_convergence(monkeypatch) -> None:
         cp.Constant(A).is_psd()
 
 
+def test_is_psd_low_rank_matrix() -> None:
+    """Regression test for inaccurate shift-invert eigenpairs (issue 2031)."""
+    rng = np.random.RandomState(42)
+    x = rng.randn(200, 2)
+    A = x @ x.T
+
+    assert cp.Constant(A).is_psd()
+    assert cp.Constant(sp.csc_array(A)).is_psd()
+
+
+def test_is_psd_inaccurate_eigenpair_fallback(monkeypatch) -> None:
+    """Use a dense fallback, but do not densify sparse inputs."""
+    n = 10
+    A = np.full((n, n), 0.5)
+    np.fill_diagonal(A, 1.0)
+
+    def mock_eigsh(matrix, *args, **kwargs):
+        eigvec = np.ones((matrix.shape[0], 1)) / np.sqrt(matrix.shape[0])
+        return np.array([-1.0]), eigvec
+
+    monkeypatch.setattr(sparla, 'eigsh', mock_eigsh)
+
+    assert cp.Constant(A).is_psd()
+    with pytest.raises(sparla.ArpackNoConvergence) as exc:
+        cp.Constant(sp.csc_array(A)).is_psd()
+    assert "ARPACK returned an inaccurate eigenpair" in str(exc.value)
+    assert "CVXPY note" in str(exc.value)
+
+
 def test_print():
     A = cp.Constant(np.ones((3, 3)))
     assert str(A) == '[[1.00 1.00 1.00]\n [1.00 1.00 1.00]\n [1.00 1.00 1.00]]'
