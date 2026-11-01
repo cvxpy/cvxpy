@@ -51,8 +51,7 @@ class GLPK_MI(GLPK):
         return data, inv_data
 
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
-        import cvxopt
-        import cvxopt.solvers
+        import cvxopt.glpk
 
         # Save original cvxopt solver options.
         old_options = cvxopt.glpk.options.copy()
