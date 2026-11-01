@@ -1101,6 +1101,25 @@ class TestAtoms(BaseTest):
             " with equal last two dimensions."
         )
 
+    def test_upper_tri_value_shape(self) -> None:
+        """upper_tri values should have the declared column shape."""
+        data = np.array([[0., 1., 2.], [3., 4., 5.], [6., 7., 8.]])
+        X = Variable((3, 3))
+        X.value = data
+        triangle = cp.upper_tri(X)
+        self.assertEqual(triangle.value.shape, triangle.shape)
+        self.assertItemsAlmostEqual(triangle.value, [1., 2., 5.])
+
+        expr = triangle + np.array([[10.], [20.], [30.]])
+        self.assertEqual(expr.value.shape, (3, 1))
+        self.assertAlmostEqual(cp.sum(expr).value, 68.)
+        prob = cp.Problem(cp.Minimize(cp.sum(expr)), [X == data])
+        self.assertAlmostEqual(prob.solve(solver=cp.CLARABEL), 68., places=4)
+
+        batch = Variable((2, 3, 3))
+        batch.value = np.stack([data, data.T])
+        self.assertEqual(cp.upper_tri(batch).value.shape, (2, 3, 1))
+
     def test_vec_to_upper_tri(self) -> None:
         x = Variable(shape=(3,))
         X = cp.vec_to_upper_tri(x)
