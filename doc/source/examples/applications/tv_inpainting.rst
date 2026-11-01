@@ -85,6 +85,47 @@ does.
     prob.solve(verbose=True, solver=cp.SCS)
     print("optimal objective value: {}".format(obj.value))
 
+
+.. parsed-literal::
+
+    ------------------------------------------------------------------
+    	       SCS v3.3.1 - Splitting Conic Solver
+    	(c) Brendan O'Donoghue, Stanford University, 2012
+    ------------------------------------------------------------------
+    problem:  variables n: 523265, constraints m: 1045507
+    cones: 	  z: primal zero / dual free vars: 262144
+    	  q: soc vars: 783363, qsize: 261121
+    settings: eps_abs: 1.0e-05, eps_rel: 1.0e-05, eps_infeas: 1.0e-07
+    	  alpha: 1.50, scale: 1.00e-01, adaptive_scale: 1
+    	  max_iters: 100000, normalize: 1, rho_x: 1.00e-06
+    	  acceleration_lookback: 10, acceleration_interval: 5
+    lin-sys:  sparse-direct-amd-qdldl
+    	  nnz(A): 1554199, nnz(P): 0
+    ------------------------------------------------------------------
+     iter | pri res | dua res |   gap   |   obj   |  scale  | time (s)
+    ------------------------------------------------------------------
+         0| 1.56e+01  1.00e+00  4.07e+06 -2.04e+06  1.00e-01  1.34e+00
+       250| 9.68e-03  9.95e-03  5.56e-04  1.10e+04  1.00e-01  1.31e+01
+       500| 3.04e-03  6.39e-03  3.38e-05  1.10e+04  1.00e-01  2.48e+01
+       750| 4.83e-04  2.04e-03  3.59e-05  1.10e+04  1.29e-02  3.72e+01
+      1000| 7.01e-05  8.83e-05  3.75e-05  1.10e+04  1.29e-02  4.90e+01
+      1250| 1.34e-05  3.57e-05  4.29e-05  1.10e+04  1.29e-02  6.14e+01
+      1325| 1.05e-05  1.60e-05  4.38e-05  1.10e+04  1.29e-02  6.53e+01
+    ------------------------------------------------------------------
+    status:  solved
+    timings: total: 6.53e+01s = setup: 1.23e+00s + solve: 6.40e+01s
+    	 lin-sys: 3.71e+01s, cones: 5.88e+00s, accel: 4.56e+00s
+    ------------------------------------------------------------------
+    objective = 11044.275554
+    ------------------------------------------------------------------
+    optimal objective value: 11044.277093475477
+
+
+After solving the problem, the in-painted image is stored in
+``U.value``. We display the in-painted image and the intensity
+difference between the original and in-painted images. The intensity
+difference is magnified by a factor of 10 so it is more visible.
+
 .. code:: python
 
     fig, ax = plt.subplots(1, 2, figsize=(10, 5))
@@ -198,6 +239,45 @@ and CVXOPT don't scale to this large problem.
     prob = cp.Problem(cp.Minimize(cp.tv(*variables)), constraints)
     prob.solve(verbose=True, solver=cp.SCS)
     print("optimal objective value: {}".format(prob.value))
+
+
+.. parsed-literal::
+
+    ------------------------------------------------------------------
+    	       SCS v3.3.1 - Splitting Conic Solver
+    	(c) Brendan O'Donoghue, Stanford University, 2012
+    ------------------------------------------------------------------
+    problem:  variables n: 1047553, constraints m: 2614279
+    cones: 	  z: primal zero / dual free vars: 786432
+    	  q: soc vars: 1827847, qsize: 261121
+    settings: eps_abs: 1.0e-05, eps_rel: 1.0e-05, eps_infeas: 1.0e-07
+    	  alpha: 1.50, scale: 1.00e-01, adaptive_scale: 1
+    	  max_iters: 100000, normalize: 1, rho_x: 1.00e-06
+    	  acceleration_lookback: 10, acceleration_interval: 5
+    lin-sys:  sparse-direct-amd-qdldl
+    	  nnz(A): 3630814, nnz(P): 0
+    ------------------------------------------------------------------
+     iter | pri res | dua res |   gap   |   obj   |  scale  | time (s)
+    ------------------------------------------------------------------
+         0| 1.60e+01  1.00e+00  4.18e+06 -2.09e+06  1.00e-01  4.33e+00
+       250| 2.57e-03  1.10e-02  3.81e-05  1.15e+04  1.00e-01  3.78e+01
+       450| 1.28e-05  1.76e-05  4.11e-06  1.15e+04  1.07e-02  6.54e+01
+    ------------------------------------------------------------------
+    status:  solved
+    timings: total: 6.54e+01s = setup: 4.03e+00s + solve: 6.13e+01s
+    	 lin-sys: 3.73e+01s, cones: 4.61e+00s, accel: 3.65e+00s
+    ------------------------------------------------------------------
+    objective = 11465.602408
+    ------------------------------------------------------------------
+    optimal objective value: 11465.607283681691
+
+
+After solving the problem, the RGB values of the in-painted image are
+stored in the value fields of the three variables. We display the
+in-painted image and the difference in RGB values at each pixel of the
+original and in-painted image. Though the in-painted image looks almost
+identical to the original image, you can see that many of the RGB values
+differ.
 
 .. code:: python
 
