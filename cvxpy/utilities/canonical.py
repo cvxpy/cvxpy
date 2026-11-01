@@ -118,6 +118,15 @@ class Canonical(metaclass=abc.ABCMeta):
         """
         return True
 
+    def _supports_diffengine(self) -> bool:
+        """
+        Determines whether the current atom has a diff engine converter. This method should
+        be overridden in derived atom classes the diff engine cannot convert, so that the
+        DIFFENGINE backend is not auto-selected for problems containing them. An explicit
+        ``canon_backend="DIFFENGINE"`` still reaches the converter and fails loudly there.
+        """
+        return True
+
     def __copy__(self):
         """
         Called by copy.copy()
@@ -174,20 +183,24 @@ class Canonical(metaclass=abc.ABCMeta):
     def _aggregate_metrics(self) -> dict:
         """
         Aggregates and caches metrics for expression trees in self.args. So far
-        metrics include the maximum dimensionality ('max_ndim') and whether
-        all sub-expressions support C++ ('all_support_cpp').
+        metrics include the maximum dimensionality ('max_ndim'), whether
+        all sub-expressions support C++ ('all_support_cpp'), and whether all
+        sub-expressions have a diff engine converter ('all_support_diffengine').
 
         """
         max_ndim = self.ndim
         cpp_support = self._supports_cpp()
+        diffengine_support = self._supports_diffengine()
 
         for arg in self.args:
             max_ndim = max(max_ndim, arg._max_ndim())
             cpp_support = cpp_support and arg._all_support_cpp()
+            diffengine_support = diffengine_support and arg._all_support_diffengine()
 
         metrics = {
             "max_ndim": max_ndim,
-            "all_support_cpp": cpp_support
+            "all_support_cpp": cpp_support,
+            "all_support_diffengine": diffengine_support
         }
         return metrics
 
@@ -201,6 +214,12 @@ class Canonical(metaclass=abc.ABCMeta):
         Returns True if all sub-expressions support C++, False otherwise.
         """
         return self._aggregate_metrics()["all_support_cpp"]
+
+    def _all_support_diffengine(self) -> bool:
+        """
+        Returns True if all sub-expressions have a diff engine converter.
+        """
+        return self._aggregate_metrics()["all_support_diffengine"]
 
     @abc.abstractmethod
     def __str__(self) -> str:
