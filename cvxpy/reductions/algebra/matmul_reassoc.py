@@ -25,54 +25,39 @@ from cvxpy.reductions.canonicalization import Canonicalization
 
 
 def _apply_constant_right(left, c):
-    """Build ``left @ c`` for a plain-constant ``c``, pushing ``c`` toward the leaves:
-
-      constant @ c   -> Constant(value)
-      (A @ B) @ c    -> A @ (B @ c)
-      (-E) @ c       -> -(E @ c)
-      (E1 + E2) @ c  -> E1 @ c + E2 @ c   (vector c only)
-    """
+    """``left @ c`` for a parameter-free constant ``c``, pushed toward the leaves."""
     if left.is_constant() and is_param_free(left):
         return Constant(left.value @ c.value)
     if type(left) is MulExpression:
         a, b = left.args
         if b.is_constant() and is_param_free(b):
             return _apply_constant_right(a, Constant(b.value @ c.value))
-        if c.is_vector():
+        if c.is_vector() or (a.is_constant() and is_param_free(a)):
             return a @ _apply_constant_right(b, c)
-        if a.is_constant() and is_param_free(a):
-            return a @ (b @ c)
-        return left @ c
-    if type(left) is NegExpression:
+    elif type(left) is NegExpression:
         return -_apply_constant_right(left.args[0], c)
-    if (type(left) is AddExpression and c.is_vector()
+    elif (type(left) is AddExpression and c.is_vector()
             and all(arg.shape == left.shape for arg in left.args)):
         return reduce(operator.add, [_apply_constant_right(arg, c) for arg in left.args])
     return left @ c
 
 
 def _normalize_matmul(expr):
-    """Reassociate ``expr`` when a matmul chain ends in a plain-constant factor."""
     left, right = expr.args
-    # A 1-D operand contracts to an inner product, and (a @ b) @ c != a @ (b @ c)
-    # across that collapse; a 2-D left guarantees both its factors are 2-D.
-    if len(left.shape) != 2:
-        return expr
-    if right.is_constant() and is_param_free(right) and not left.is_constant():
+    # Only a 2-D left is safe: across a 1-D operand, (a @ b) @ c != a @ (b @ c).
+    if (left.ndim == 2 and right.is_constant() and is_param_free(right)
+            and not left.is_constant()):
         return _apply_constant_right(left, right)
     return expr
 
 
-def _matmul_canon(expr, args):
-    return _normalize_matmul(expr.copy(args)), []
-
-
 class MatmulReassoc(Canonicalization):
-    """Reassociate matmul chains that end in a constant, so that a chain like
-    (A @ X) @ C folds its constants instead of building the wide A @ X (issue #2205)."""
+    """Fold the constants of a matmul chain like (A @ X) @ C instead of building the
+    wide A @ X (issue #2205)."""
 
     def __init__(self, problem=None) -> None:
-        super().__init__(canon_methods={MulExpression: _matmul_canon}, problem=problem)
+        super().__init__({MulExpression: lambda expr, args: (
+            _normalize_matmul(expr.copy(args)), [])}, problem=problem)
 
     def accepts(self, problem) -> bool:
         return True
