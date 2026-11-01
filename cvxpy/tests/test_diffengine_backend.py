@@ -339,3 +339,60 @@ class TestDiffengineSelection(BaseTest):
         prob = cp.Problem(cp.Minimize(cp.sum_squares(x)))
         with self.assertRaisesRegex(ValueError, "dimension greater than 2"):
             prob.get_problem_data(SOLVER, canon_backend=DIFFENGINE)
+
+
+class TestDiffengineAtomCoverage(BaseTest):
+    """Every affine atom states how the DIFFENGINE backend handles it."""
+
+    # Not reachable by the converter for a reason the three checks below
+    # cannot see.
+    EXEMPT = {
+        # Abstract base of the *_wrap atoms, each of which has a converter.
+        "Wrap",
+        # Not affine (neither convex nor concave), so a DCP problem only
+        # contains it over constants, which the converter evaluates as a leaf
+        # or CallbackParamFold folds.
+        "cumprod",
+        # Complex2Real removes these from complex arguments. A real or imag
+        # left over a real argument has no graph_implementation, so no backend
+        # can stuff it.
+        "real",
+        "imag",
+    }
+
+    def test_affine_atoms_declare_diffengine_support(self) -> None:
+        """No affine atom can make an auto-selected DIFFENGINE raise.
+
+        Affine atoms survive Dcp2Cone and reach the converter, and CVXPY selects
+        DIFFENGINE whenever every atom reports _supports_diffengine(). Walk every
+        concrete AffAtom subclass and require one of the following:
+        - a converter (ATOM_CONVERTERS, or an atom convert_expr special-cases),
+        - a Dcp2Cone canonicalizer that rewrites it away, or
+        - an override of _supports_diffengine.
+        A new atom with none of these would fail at solve time instead of
+        falling back to a tensor backend.
+        """
+        import inspect
+
+        from cvxpy.atoms.affine.affine_atom import AffAtom
+        from cvxpy.reductions.dcp2cone.canonicalizers import CANON_METHODS
+        from cvxpy.reductions.solvers.nlp_solvers.diff_engine.registry import (
+            ATOM_CONVERTERS,
+        )
+        from cvxpy.utilities.canonical import Canonical
+
+        def subclasses(cls):
+            for sub in cls.__subclasses__():
+                yield sub
+                yield from subclasses(sub)
+
+        undeclared = sorted(
+            cls.__name__ for cls in set(subclasses(AffAtom))
+            if not inspect.isabstract(cls)
+            and cls.__name__ not in self.EXEMPT
+            and cls.__name__ not in ATOM_CONVERTERS
+            and cls.__name__ not in ("MulExpression", "multiply")
+            and cls not in CANON_METHODS
+            and cls._supports_diffengine is Canonical._supports_diffengine
+        )
+        self.assertEqual(undeclared, [])
