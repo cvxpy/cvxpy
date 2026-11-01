@@ -33,6 +33,8 @@ from cvxpy.reductions.discrete2mixedint.valinvec2mixedint import (
 from cvxpy.reductions.eliminate_zero_sized import EliminateZeroSized
 from cvxpy.reductions.eval_params import EvalParams
 from cvxpy.reductions.flip_objective import FlipObjective
+from cvxpy.reductions.fold_callback_params import CallbackParamFold
+from cvxpy.reductions.matrix_stuffing import _has_parametric_bounds
 from cvxpy.reductions.reduction import Reduction
 from cvxpy.reductions.solvers import defines as slv_def
 from cvxpy.reductions.solvers.constant_solver import ConstantSolver
@@ -107,6 +109,34 @@ def _fallback_solver(problem_form: ProblemForm) -> Solver:
     raise SolverError(
         "No installed solver could handle this problem."
     )
+
+
+def _diffengine_eligible(problem, gp: bool, solver_instance) -> bool:
+    """Whether the DIFFENGINE backend can canonicalize this problem at all.
+
+    Capability only: selection also depends on the route taken and on an
+    explicit ``canon_backend``. The disqualifiers are unrelated to each other,
+    so each gets its own reason:
+
+    * ``gp``: ``Dgp2Dcp`` introduces fresh parameters during canonicalization,
+      after ``EvalParams`` has already run.
+    * ndim > 2: the engine represents every expression as a 2-D matrix.
+    * parametric variable bounds: ``EvalParams`` does not substitute bounds, so
+      they would still be symbolic at stuffing time.
+    * ``DIR_CONE_KINDS``: ``ExtractDirectCones`` reads the parameter tensors,
+      which a re-extracted program does not have.
+    * ``REQUIRES_PARAM_TENSORS``: so does the solver interface itself (diffcp,
+      whose ``keep_zeros`` needs a stable sparsity pattern).
+    * unsupported atoms: no converter exists, so an auto-selected DIFFENGINE
+      would raise where the tensor backends succeed (see
+      ``_supports_diffengine``).
+    """
+    return (not gp
+            and problem._max_ndim() <= 2
+            and not _has_parametric_bounds(problem.variables())
+            and not solver_instance.DIR_CONE_KINDS
+            and not solver_instance.REQUIRES_PARAM_TENSORS
+            and problem._supports_diffengine())
 
 
 def _build_solving_chain(
@@ -219,7 +249,19 @@ def _build_solving_chain(
             raise DPPError(DPP_ERROR_MSG)
         if not ignore_dpp:
             warn(DPP_ERROR_MSG)
-        reductions = [EvalParams()] + reductions
+        # An explicit DIFFENGINE request keeps parameters symbolic and
+        # re-evaluates them on each solve. Otherwise, and where the engine
+        # does not apply, EvalParams substitutes them before canonicalization.
+        if (canon_backend == DIFFENGINE_CANON_BACKEND and problem.parameters()
+                and _diffengine_eligible(problem, gp, solver_instance)):
+            # The canonicalizers that consume parameter values (quad_form
+            # with a parametric P, perspective over a parametric f) opt out
+            # through _supports_diffengine. Non-affine parametric constants
+            # fold to CallbackParam leaves so Dcp2Cone never epigraph-relaxes
+            # them unsoundly.
+            reductions = [CallbackParamFold()] + reductions
+        else:
+            reductions = [EvalParams()] + reductions
     else:
         if canon_backend is None:
             total_param_size = sum(p.size for p in problem.parameters())

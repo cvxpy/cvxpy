@@ -547,8 +547,8 @@ class ConeMatrixStuffing(MatrixStuffing):
                               constr_id=con.constr_id)
             cons.append(con)
         if self.canon_backend == s.DIFFENGINE_CANON_BACKEND:
-            # Local import: cone_stuffing imports ParamConeProg from this module.
-            from cvxpy.reductions.solvers.nlp_solvers.diff_engine.cone_stuffing import (
+            # Local import: cone_program imports ConeProg from this module.
+            from cvxpy.reductions.solvers.nlp_solvers.diff_engine.cone_program import (
                 stuff_cone_program,
             )
             new_prob, inverse_data = stuff_cone_program(
