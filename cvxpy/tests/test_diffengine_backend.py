@@ -297,10 +297,10 @@ class TestDiffengineSelection(BaseTest):
         prob = cp.Problem(cp.Minimize(cp.sum_squares(x - 1)), [x >= 0])
         prob.solve(solver=SOLVER)
         first = self._stuffing_backend(prob._cache.solving_chain)
-        self.assertNotEqual(first, DIFFENGINE)
-        prob.solve(solver=SOLVER, canon_backend=DIFFENGINE)
+        self.assertEqual(first, DIFFENGINE)  # the parameter-free default
+        prob.solve(solver=SOLVER, canon_backend=s.SCIPY_CANON_BACKEND)
         self.assertEqual(self._stuffing_backend(prob._cache.solving_chain),
-                         DIFFENGINE)
+                         s.SCIPY_CANON_BACKEND)
         prob.solve(solver=SOLVER)
         self.assertEqual(self._stuffing_backend(prob._cache.solving_chain), first)
 

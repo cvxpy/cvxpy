@@ -278,11 +278,15 @@ def _build_solving_chain(
                 # Parameter-free, or ineligible for the symbolic route:
                 # default to DIFFENGINE. Explicit backends are honored.
                 canon_backend = DIFFENGINE_CANON_BACKEND
-    else:
-        if canon_backend is None:
-            total_param_size = sum(p.size for p in problem.parameters())
-            if total_param_size >= DPP_PARAM_THRESHOLD:
-                canon_backend = COO_CANON_BACKEND
+    elif canon_backend is None:
+        if not problem.parameters():
+            # No parameters to keep symbolic or to stuff into tensors, so the
+            # DPP machinery buys nothing and the engine evaluates the
+            # expression trees directly.
+            if _diffengine_eligible(problem, gp, solver_instance):
+                canon_backend = DIFFENGINE_CANON_BACKEND
+        elif sum(p.size for p in problem.parameters()) >= DPP_PARAM_THRESHOLD:
+            canon_backend = COO_CANON_BACKEND
 
     # --- Canonicalization reductions (problem_form + solver_context) ---
     use_quad = True if solver_opts is None else solver_opts.get('use_quad_obj', True)

@@ -273,7 +273,8 @@ keyword argument to the ``.solve()`` call, e.g. ``problem.solve(canon_backend=cp
 This can speed up the canonicalization time significantly for some problems.
 Currently, the following canonicalization backends are supported:
 
-*  | DIFFENGINE (default for ``ignore_dpp=True`` and non-DPP solves): a C autodiff engine that
+*  | DIFFENGINE (default for parameter-free problems, ``ignore_dpp=True`` and non-DPP
+   | solves): a C autodiff engine that
    | evaluates the expression trees directly and keeps parameters symbolic, rather than
    | building parameter tensors.
 *  CPP (default otherwise): The original C++ implementation, also referred to as CVXCORE.

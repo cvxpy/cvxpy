@@ -192,7 +192,8 @@ keyword argument to ``.solve()``:
 
 The available backends are:
 
-- **DIFFENGINE** (default for ``ignore_dpp=True`` and non-DPP solves): a C autodiff engine
+- **DIFFENGINE** (default for parameter-free problems, ``ignore_dpp=True`` and non-DPP
+  solves): a C autodiff engine
   that evaluates the expression trees directly instead of building parameter tensors.
 - **CPP** (default otherwise): The original C++ implementation. Works well for most problems.
 - **SCIPY**: A pure Python implementation using SciPy sparse matrices. Often faster for
@@ -200,8 +201,9 @@ The available backends are:
 - **COO**: A pure Python implementation using 3D COO sparse tensors. Best for
   DPP-compliant problems with large parameters.
 
-On an ``ignore_dpp=True`` or non-DPP solve, the parameter tensors would have to be rebuilt
-on every solve, so CVXPY selects DIFFENGINE there instead: it keeps the parameters symbolic
+A parameter-free problem has nothing to put in the parameter tensors, and on an
+``ignore_dpp=True`` or non-DPP solve they would have to be rebuilt on every solve, so CVXPY
+selects DIFFENGINE in both cases instead: it keeps the parameters symbolic
 in a compiled program and re-evaluates it when their values change, so re-solves skip
 canonicalization. CVXPY falls back to the tensor backends for anything DIFFENGINE cannot
 express, so you do not have to check.
