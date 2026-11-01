@@ -21,6 +21,7 @@ from cvxpy.atoms.affine.vec import vec
 from cvxpy.expressions.variable import Variable
 from cvxpy.problems.objective import Maximize, Minimize
 from cvxpy.reductions.cone_format import ConeFormat
+from cvxpy.reductions.eval_params import EvalParams
 from cvxpy.reductions.solvers.solver import Solver
 from cvxpy.utilities.perspective_utils import form_cone_constraint
 from cvxpy.utilities.solver_context import SolverInfo
@@ -32,6 +33,12 @@ def perspective_canon(expr, args, solver_context: SolverInfo | None = None):
     # Only working for minimization right now.
 
     aux_prob = Problem((Minimize if expr.f.is_convex() else Maximize)(expr.f))
+    if aux_prob.parameters():
+        # f is not in args, so the outer chain's EvalParams cannot reach it.
+        # Substitute here: the raw tensors unpacked further down must be
+        # concrete, and the chain below would otherwise keep f's parameters
+        # symbolic.
+        aux_prob, _ = EvalParams().apply(aux_prob)
     # Does numerical solution value of epigraph t coincide with expr.f numerical
     # value at opt?
     solver_opts = {"use_quad_obj": False}
@@ -46,7 +53,8 @@ def perspective_canon(expr, args, solver_context: SolverInfo | None = None):
                         if not isinstance(r, (Solver, ConeFormat))]
     prob_canon = chain.apply(aux_prob)[0]  # grab problem instance
     # get cone representation of c, A, and b for some problem.
-    # Asking the program for its matrices rather than decoding
+    # aux_prob is parameter-free by here, so this is the one and only
+    # evaluation; asking the program for its matrices rather than decoding
     # its coefficient tensors keeps this independent of the canon backend.
     q, d, A, b = prob_canon.apply_parameters()
 
