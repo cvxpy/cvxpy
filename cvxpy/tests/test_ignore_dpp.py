@@ -16,6 +16,7 @@ limitations under the License.
 from __future__ import annotations
 
 import unittest
+import warnings
 from unittest import mock
 
 import numpy as np
@@ -27,7 +28,9 @@ from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import (
     ConeMatrixStuffing,
     ParamConeProg,
 )
-from cvxpy.reductions.solvers.defines import INSTALLED_MI_SOLVERS
+from cvxpy.reductions.eval_params import EvalParams
+from cvxpy.reductions.fold_callback_params import CallbackParamFold
+from cvxpy.reductions.solvers.defines import INSTALLED_MI_SOLVERS, INSTALLED_SOLVERS
 from cvxpy.reductions.solvers.nlp_solvers.diff_engine.cone_program import (
     DiffengineConeProg,
     _Matrices,
@@ -43,6 +46,274 @@ def _stuffing_backend(chain) -> str | None:
     stuffing = [r for r in chain.reductions
                 if isinstance(r, ConeMatrixStuffing)][0]
     return stuffing.canon_backend
+
+
+class TestIgnoreDppSelection(BaseTest):
+    """The ignore_dpp / non-DPP branch defaults to the DIFFENGINE backend and
+    keeps the parameters symbolic, falling back to EvalParams plus the tensor
+    backends only where DIFFENGINE is not eligible."""
+
+    def test_default_backend(self) -> None:
+        """Which backend the ignore_dpp / non-DPP branch picks by default,
+        and that an ineligible problem still solves on a tensor backend."""
+        x, X3 = cp.Variable(3), cp.Variable((2, 2, 2))
+        p = cp.Parameter()
+        p.value = 2.0
+        lb = cp.Parameter(2)
+        lb.value = np.array([0.5, 0.25])
+        xb = cp.Variable(2, bounds=[lb, 10])
+        param_free = cp.Problem(cp.Minimize(cp.sum_squares(x - 1)), [x >= 0])
+        cases = [
+            # (name, problem, solve kwargs, expected backend or None for "not DIFFENGINE")
+            ("ignore_dpp", param_free, {"ignore_dpp": True}, DIFFENGINE),
+            ("non-DPP", cp.Problem(cp.Minimize(cp.square(x[0] - p * p))), {}, DIFFENGINE),
+            ("explicit backend", param_free,
+             {"ignore_dpp": True, "canon_backend": s.SCIPY_CANON_BACKEND},
+             s.SCIPY_CANON_BACKEND),
+            ("DPP", cp.Problem(cp.Minimize(cp.sum_squares(x[0] - p))), {}, None),
+            ("N-D", cp.Problem(cp.Minimize(cp.sum_squares(X3))), {"ignore_dpp": True}, None),
+            ("parametric bounds", cp.Problem(cp.Minimize(cp.sum(xb))),
+             {"ignore_dpp": True}, None),
+        ]
+        for name, prob, kwargs, expected in cases:
+            with self.subTest(name), warnings.catch_warnings():
+                warnings.simplefilter("ignore")  # non-DPP warning
+                prob.solve(solver=SOLVER, **kwargs)
+                self.assertEqual(prob.status, cp.OPTIMAL)
+                backend = _stuffing_backend(prob._cache.solving_chain)
+                if expected is None:
+                    self.assertNotEqual(backend, DIFFENGINE)
+                else:
+                    self.assertEqual(backend, expected)
+
+    def test_parametric_ignore_dpp_stays_symbolic(self) -> None:
+        """Parametric problems keep their parameters symbolic: the chain
+        folds non-affine parametric constants (no EvalParams), and values
+        track the parameter across re-solves."""
+        p = cp.Parameter()
+        x = cp.Variable()
+        prob = cp.Problem(cp.Minimize(cp.square(x - p * p)))  # not DPP
+        for val in (1.0, -3.0):
+            p.value = val
+            prob.solve(solver=SOLVER, ignore_dpp=True)
+            self.assertEqual(_stuffing_backend(prob._cache.solving_chain),
+                             DIFFENGINE)
+            chain_types = [type(r) for r in prob._cache.solving_chain.reductions]
+            self.assertIn(CallbackParamFold, chain_types)
+            self.assertNotIn(EvalParams, chain_types)
+            self.assertAlmostEqual(x.value, val * val, places=5)
+
+    def test_symbolic_data_matches_dpp_tensor_path(self) -> None:
+        """Stuffed data on the symbolic DIFFENGINE route equals the DPP
+        tensor path at the same parameter values."""
+        p = cp.Parameter(2)
+        p.value = np.array([1.0, -2.0])
+        x = cp.Variable(2)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(x - p)),
+                          [cp.norm2(x) <= 3, cp.sum(x) == 0.5])
+        self.assertTrue(prob.is_dpp())
+        data_de, _, _ = prob.get_problem_data(SOLVER, ignore_dpp=True)
+        data_cpp, _, _ = prob.get_problem_data(
+            SOLVER, canon_backend=s.CPP_CANON_BACKEND)
+        for key in data_cpp:
+            expected = data_cpp[key]
+            if sp.issparse(expected):
+                self.assertItemsAlmostEqual(
+                    data_de[key].toarray(), expected.toarray(), places=10)
+            elif isinstance(expected, np.ndarray):
+                self.assertItemsAlmostEqual(data_de[key], expected, places=10)
+
+    def test_explicit_tensor_backend_with_params_raises(self) -> None:
+        """An explicit tensor backend cannot serve the symbolic parametric
+        path."""
+        p = cp.Parameter()
+        p.value = 2.0
+        x = cp.Variable()
+        prob = cp.Problem(cp.Minimize(cp.square(x - p * p)))
+        with self.assertRaisesRegex(ValueError, "keeps parameters symbolic"):
+            prob.get_problem_data(SOLVER, ignore_dpp=True,
+                                  canon_backend=s.CPP_CANON_BACKEND)
+
+    def test_direct_cone_solver_falls_back(self) -> None:
+        """ExtractDirectCones detects its cones in the parameter tensors,
+        which the symbolic program does not have; solvers advertising
+        DIR_CONE_KINDS therefore stay on the tensor path."""
+        A = np.array([[1.0, 2.0], [3.0, 4.0]])
+        x = cp.Variable(2)
+        p = cp.Parameter(nonneg=True)
+        p.value = 1.0
+        prob = cp.Problem(cp.Minimize(cp.sum(x)), [(p * A) @ x >= 1, x >= 0])
+        solver_cls = type(prob._construct_chain(solver=SOLVER).solver)
+        with mock.patch.object(solver_cls, "DIR_CONE_KINDS",
+                               frozenset({"nonneg", "soc"})):
+            chain = prob._construct_chain(solver=SOLVER, ignore_dpp=True)
+        self.assertNotEqual(_stuffing_backend(chain), DIFFENGINE)
+        self.assertTrue(any(isinstance(r, EvalParams) for r in chain.reductions))
+
+    @unittest.skipUnless(s.DIFFCP in INSTALLED_SOLVERS, 'diffcp is not installed')
+    def test_tensor_consuming_solver_falls_back(self) -> None:
+        """diffcp reads the parameter tensors directly (keep_zeros), which a
+        re-extracted program cannot honor, so it stays on the tensor path."""
+        A = np.array([[1.0, 2.0], [3.0, 4.0]])
+        x = cp.Variable(2)
+        p = cp.Parameter(nonneg=True)
+        p.value = 2.0
+        prob = cp.Problem(cp.Minimize(cp.sum(x)), [(p * A) @ x >= 1, x >= 0])
+        chain = prob._construct_chain(solver=s.DIFFCP, ignore_dpp=True)
+        self.assertNotEqual(_stuffing_backend(chain), DIFFENGINE)
+        prob.solve(solver=s.DIFFCP, ignore_dpp=True)
+        ref = cp.Problem(cp.Minimize(cp.sum(x)),
+                         [(p.value * A) @ x >= 1, x >= 0])
+        ref.solve(solver=SOLVER)
+        self.assertAlmostEqual(prob.value, ref.value, places=4)
+
+    def test_parametric_pow_cone_alpha(self) -> None:
+        """PowCone3D's alpha lives outside the constraint args and survives
+        EvalParams; it must flow to the solver identically on the default
+        DIFFENGINE route."""
+        alpha = cp.Parameter()
+        alpha.value = 0.4
+        x = cp.Variable(pos=True)
+        y = cp.Variable(pos=True)
+        z = cp.Variable()
+        cons = [cp.constraints.PowCone3D(x, y, z, alpha), x <= 2, y <= 3]
+        prob = cp.Problem(cp.Maximize(z), cons)
+        prob.solve(solver=SOLVER, ignore_dpp=True)
+        self.assertEqual(_stuffing_backend(prob._cache.solving_chain), DIFFENGINE)
+
+        x2 = cp.Variable(pos=True)
+        y2 = cp.Variable(pos=True)
+        z2 = cp.Variable()
+        base = cp.Problem(cp.Maximize(z2),
+                          [cp.constraints.PowCone3D(x2, y2, z2, 0.4),
+                           x2 <= 2, y2 <= 3])
+        base.solve(solver=SOLVER, canon_backend=s.CPP_CANON_BACKEND,
+                   ignore_dpp=True)
+        self.assertAlmostEqual(prob.value, base.value, places=4)
+
+    def test_parametric_quad_form_falls_back(self) -> None:
+        """The cone quad_form canon factorizes P.value, so a parametric P (in
+        a constraint, or scaled in the objective) is not eligible for the
+        symbolic route: it falls back, and re-solves track fresh values."""
+        y = cp.Variable(2)
+        P = cp.Parameter((2, 2), PSD=True)
+        g = cp.Parameter(nonneg=True)
+        Sigma = np.diag([2.0, 3.0])
+        cases = {
+            # min sum(y) s.t. y'(vI)y <= 1 has value -sqrt(2/v).
+            "constraint": (cp.Problem(cp.Minimize(cp.sum(y)), [cp.quad_form(y, P) <= 1]),
+                           P, lambda v: v * np.eye(2), lambda v: -np.sqrt(2.0 / v)),
+            # Unconstrained optimum y = (g Sigma)^{-1} 1, value -5/(6g).
+            "objective": (cp.Problem(cp.Minimize(
+                              cp.quad_form(y, g * Sigma, assume_PSD=True) - 2 * cp.sum(y))),
+                          g, lambda v: v, lambda v: -5.0 / (6.0 * v)),
+        }
+        for name, (prob, param, value, expected) in cases.items():
+            with self.subTest(name):
+                for val in (1.0, 4.0, 1.0):
+                    param.value = value(val)
+                    prob.solve(solver=SOLVER, ignore_dpp=True)
+                    self.assertNotEqual(
+                        _stuffing_backend(prob._cache.solving_chain), DIFFENGINE)
+                    self.assertAlmostEqual(prob.value, expected(val), places=4)
+
+    def test_perspective_solves(self) -> None:
+        """A parameter-free perspective is eligible; it keeps solving
+        correctly through the canonicalizer's own auxiliary chain."""
+        x = cp.Variable()
+        t = cp.Variable(pos=True)
+        persp = cp.perspective(cp.square(x), s=t)
+        prob = cp.Problem(cp.Minimize(persp + t), [x >= 2, t <= 4])
+        prob.solve(solver=SOLVER)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        # x = 2 at its bound, then min over t <= 4 of 4/t + t is 4 at t = 2.
+        self.assertAlmostEqual(prob.value, 4.0, places=3)
+
+    def test_parametric_perspective_falls_back(self) -> None:
+        """perspective_canon compiles expr.f through its own chain, freezing
+        the parameter values in force at canonicalization time, so a
+        perspective with parameters in f is not eligible for the symbolic
+        route. f is not in args, so perspective._supports_diffengine is the
+        only place those parameters can be seen -- with or without a second,
+        visible parameter that would otherwise make the problem eligible."""
+        def build(p_val, extra_param):
+            p = cp.Parameter()
+            x = cp.Variable()
+            t = cp.Variable(pos=True)
+            obj = cp.perspective(cp.square(x - p), s=t) + t
+            if extra_param:
+                # Without this the problem looks parameter-free and takes the
+                # EvalParams fallback anyway; with it, only the atom's own
+                # eligibility check keeps it off the symbolic route.
+                q = cp.Parameter()
+                q.value = 0.5
+                obj = obj + q * q * x
+            p.value = p_val
+            return cp.Problem(cp.Minimize(obj), [x >= 2, t <= 4]), p
+
+        for extra_param in (False, True):
+            with self.subTest(extra_param=extra_param):
+                baseline, _ = build(1.5, extra_param)
+                baseline.solve(solver=SOLVER, ignore_dpp=True)
+
+                prob, p = build(0.0, extra_param)
+                prob.solve(solver=SOLVER, ignore_dpp=True)
+                self.assertNotEqual(
+                    _stuffing_backend(prob._cache.solving_chain), DIFFENGINE)
+                self.assertIsNone(prob._cache.param_prog)
+                p.value = 1.5
+                prob.solve(solver=SOLVER, ignore_dpp=True)
+                self.assertAlmostEqual(prob.value, baseline.value, places=4)
+
+
+class TestDiffengineCapability(BaseTest):
+    """Atoms with no converter must keep the tensor backends when the
+    backend is auto-selected, and still fail loudly when it is requested."""
+
+    @staticmethod
+    def _concatenate():
+        p = cp.Parameter()
+        p.value = 2.0
+        x = cp.Variable(4)
+        return cp.Problem(
+            cp.Minimize(cp.sum(cp.concatenate([x, x])) + p * p * cp.sum(x)),
+            [x >= 1]), 24.0
+
+    @staticmethod
+    def _offset_diag():
+        p = cp.Parameter()
+        p.value = 2.0
+        y = cp.Variable(3)
+        return cp.Problem(
+            cp.Minimize(cp.sum(cp.diag(y, 1)) + p * p * cp.sum(y)),
+            [y >= 1]), 15.0
+
+    @staticmethod
+    def _axis_quad_over_lin():
+        # Canonicalizes to a SymbolicQuadForm with block_indices.
+        p = cp.Parameter()
+        p.value = 2.0
+        X = cp.Variable((3, 2))
+        return cp.Problem(
+            cp.Minimize(cp.sum(cp.sum_squares(X, axis=0)) + p * p * cp.sum(X)),
+            [X >= 1]), 30.0
+
+    def test_unsupported_atom_falls_back(self) -> None:
+        for name in ("_concatenate", "_offset_diag", "_axis_quad_over_lin"):
+            for ignore_dpp in (False, True):
+                with self.subTest(atom=name, ignore_dpp=ignore_dpp):
+                    prob, expected = getattr(self, name)()
+                    prob.solve(solver=SOLVER, ignore_dpp=ignore_dpp)
+                    self.assertNotEqual(
+                        _stuffing_backend(prob._cache.solving_chain), DIFFENGINE)
+                    self.assertAlmostEqual(prob.value, expected, places=4)
+
+    def test_unsupported_atom_explicit_request_raises(self) -> None:
+        for name in ("_concatenate", "_offset_diag", "_axis_quad_over_lin"):
+            with self.subTest(atom=name):
+                prob, _ = getattr(self, name)()
+                with self.assertRaises(NotImplementedError):
+                    prob.solve(solver=SOLVER, canon_backend=DIFFENGINE)
 
 
 class TestIgnoreDppBehavior(BaseTest):

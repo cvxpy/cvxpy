@@ -249,19 +249,35 @@ def _build_solving_chain(
             raise DPPError(DPP_ERROR_MSG)
         if not ignore_dpp:
             warn(DPP_ERROR_MSG)
-        # An explicit DIFFENGINE request keeps parameters symbolic and
-        # re-evaluates them on each solve. Otherwise, and where the engine
-        # does not apply, EvalParams substitutes them before canonicalization.
-        if (canon_backend == DIFFENGINE_CANON_BACKEND and problem.parameters()
-                and _diffengine_eligible(problem, gp, solver_instance)):
-            # The canonicalizers that consume parameter values (quad_form
-            # with a parametric P, perspective over a parametric f) opt out
-            # through _supports_diffengine. Non-affine parametric constants
-            # fold to CallbackParam leaves so Dcp2Cone never epigraph-relaxes
-            # them unsoundly.
+        # The diff engine keeps parameters symbolic and re-evaluates them on
+        # each solve. Where it does not apply, fall back to EvalParams plus
+        # the tensor backends.
+        diffengine_ok = _diffengine_eligible(problem, gp, solver_instance)
+        if problem.parameters() and diffengine_ok:
+            # Parameters stay symbolic through canonicalization, so the
+            # compiled program is cacheable. The canonicalizers that consume
+            # parameter values (quad_form with a parametric P, perspective
+            # over a parametric f) opt out through _supports_diffengine.
+            # Non-affine parametric constants fold to CallbackParam leaves
+            # so Dcp2Cone never epigraph-relaxes them unsoundly.
             reductions = [CallbackParamFold()] + reductions
+            if (canon_backend is not None
+                    and canon_backend != DIFFENGINE_CANON_BACKEND):
+                raise ValueError(
+                    f"canon_backend='{canon_backend}' cannot be used for "
+                    "a parametrized problem that is not DPP (or is solved "
+                    "with ignore_dpp=True); this path requires the "
+                    f"{DIFFENGINE_CANON_BACKEND} backend, which keeps "
+                    "parameters symbolic and re-evaluates them on each "
+                    "solve. Omit canon_backend, or replace the parameters "
+                    "with constants.")
+            canon_backend = DIFFENGINE_CANON_BACKEND
         else:
             reductions = [EvalParams()] + reductions
+            if canon_backend is None and diffengine_ok:
+                # Parameter-free, or ineligible for the symbolic route:
+                # default to DIFFENGINE. Explicit backends are honored.
+                canon_backend = DIFFENGINE_CANON_BACKEND
     else:
         if canon_backend is None:
             total_param_size = sum(p.size for p in problem.parameters())
