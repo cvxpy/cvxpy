@@ -15,6 +15,7 @@ limitations under the License.
 """
 from __future__ import annotations
 
+import os
 import unittest
 import unittest.mock
 
@@ -28,6 +29,7 @@ from cvxpy.atoms.quad_form import SymbolicQuadForm
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import (
     ConeMatrixStuffing,
     ConeProg,
+    ParamConeProg,
 )
 from cvxpy.reductions.solvers.defines import INSTALLED_MI_SOLVERS
 from cvxpy.reductions.solvers.nlp_solvers.diff_engine.converters import (
@@ -327,12 +329,29 @@ class TestDiffengineSelection(BaseTest):
         prob = cp.Problem(cp.Minimize(cp.sum_squares(x - 1)), [x >= 0])
         prob.solve(solver=SOLVER)
         first = self._stuffing_backend(prob._cache.solving_chain)
-        self.assertNotEqual(first, DIFFENGINE)
-        prob.solve(solver=SOLVER, canon_backend=DIFFENGINE)
+        self.assertEqual(first, DIFFENGINE)  # the parameter-free default
+        prob.solve(solver=SOLVER, canon_backend=s.SCIPY_CANON_BACKEND)
         self.assertEqual(self._stuffing_backend(prob._cache.solving_chain),
-                         DIFFENGINE)
+                         s.SCIPY_CANON_BACKEND)
         prob.solve(solver=SOLVER)
         self.assertEqual(self._stuffing_backend(prob._cache.solving_chain), first)
+
+    def test_env_default_backend_opts_out_of_param_free_default(self) -> None:
+        """CVXPY_DEFAULT_CANON_BACKEND overrides the parameter-free default.
+
+        A parameter-free DPP problem defaults to DIFFENGINE. With the variable
+        set to SCIPY, the chain leaves canon_backend unset, so stuffing
+        resolves it to SCIPY from the environment. The solve should still
+        reach x = 1.
+        """
+        x = cp.Variable(3)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(x - 1)), [x >= 0])
+        with unittest.mock.patch.dict(
+                os.environ, {"CVXPY_DEFAULT_CANON_BACKEND": s.SCIPY_CANON_BACKEND}):
+            prob.solve(solver=SOLVER)
+        self.assertIsNone(self._stuffing_backend(prob._cache.solving_chain))
+        self.assertIsInstance(prob._cache.param_prog, ParamConeProg)
+        self.assertItemsAlmostEqual(x.value, np.ones(3), places=4)
 
     def test_nd_problem_explicit_diffengine_raises(self) -> None:
         x = cp.Variable((2, 2, 2))
