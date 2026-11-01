@@ -1491,6 +1491,21 @@ class TestCVXOPT(BaseTest):
         # Stationarity in z: 1 - c1.dual - 2 * c2.dual == 0.
         self.assertAlmostEqual(c1.dual_value + 2 * c2.dual_value, 1.0)
 
+    def test_cvxopt_error_message(self) -> None:
+        """An error raised by CVXOPT itself (e.g. rank-deficient constraints) must show
+        up in the SolverError instead of the generic failure message.
+        """
+        import cvxopt
+
+        options = cvxopt.solvers.options.copy()
+        # One inequality and no equalities in two variables: Rank([G; A]) < n.
+        prob = cp.Problem(cp.Maximize(cp.sum(self.x)), [cp.sum(self.x) <= 10])
+        with pytest.raises(cp.error.SolverError, match=r"Rank\(A\) < p") as exc_info:
+            prob.solve(solver=cp.CVXOPT, max_iters=50)
+        assert isinstance(exc_info.value.__cause__, ValueError)
+        # The options set for this solve (e.g. max_iters) must be restored.
+        assert cvxopt.solvers.options == options
+
 
 @unittest.skipUnless('SDPA' in INSTALLED_SOLVERS, 'SDPA is not installed.')
 class TestSDPA(BaseTest):

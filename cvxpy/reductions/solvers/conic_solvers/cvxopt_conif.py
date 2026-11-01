@@ -23,6 +23,7 @@ from scipy.sparse.linalg import eigsh
 import cvxpy.interface as intf
 import cvxpy.settings as s
 from cvxpy.constraints import PSD, SOC, NonNeg, Zero
+from cvxpy.error import SolverError
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.kktsolver import setup_ldl_factor
 from cvxpy.reductions.solvers.openmp_conflict import warn_if_omp_conflict
@@ -292,11 +293,11 @@ class CVXOPT(ConicSolver):
             results_dict = cvxopt.solvers.conelp(c, G, h, dims, A, b,
                                                  kktsolver=kktsolver)
         # Catch exceptions in CVXOPT and convert them to solver errors.
-        except ValueError:
-            results_dict = {"status": "unknown"}
-
-        # Restore original cvxopt solver options.
-        self._restore_solver_options(old_options)
+        except ValueError as e:
+            raise SolverError(f"Solver '{self.name()}' failed: {e}") from e
+        finally:
+            # Restore original cvxopt solver options.
+            self._restore_solver_options(old_options)
 
         # Construct solution.
         solution = {}
