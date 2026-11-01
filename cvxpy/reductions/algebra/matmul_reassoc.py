@@ -20,17 +20,8 @@ from cvxpy.atoms.affine.add_expr import AddExpression
 from cvxpy.atoms.affine.binary_operators import MulExpression
 from cvxpy.atoms.affine.unary_operators import NegExpression
 from cvxpy.expressions.constants import Constant
+from cvxpy.expressions.constants.parameter import is_param_free
 from cvxpy.reductions.canonicalization import Canonicalization
-
-
-def _is_plain_constant(expr):
-    """Variable-free and parameter-free: a value that never changes between solves."""
-    return expr.is_constant() and not expr.parameters()
-
-
-def _is_vector(expr):
-    """1-D, or 2-D with a singleton dimension."""
-    return len(expr.shape) <= 1 or min(expr.shape) == 1
 
 
 def _apply_constant_right(left, c):
@@ -41,20 +32,20 @@ def _apply_constant_right(left, c):
       (-E) @ c       -> -(E @ c)
       (E1 + E2) @ c  -> E1 @ c + E2 @ c   (vector c only)
     """
-    if _is_plain_constant(left):
+    if left.is_constant() and is_param_free(left):
         return Constant(left.value @ c.value)
     if type(left) is MulExpression:
         a, b = left.args
-        if _is_plain_constant(b):
+        if b.is_constant() and is_param_free(b):
             return _apply_constant_right(a, Constant(b.value @ c.value))
-        if _is_vector(c):
+        if c.is_vector():
             return a @ _apply_constant_right(b, c)
-        if _is_plain_constant(a):
+        if a.is_constant() and is_param_free(a):
             return a @ (b @ c)
         return left @ c
     if type(left) is NegExpression:
         return -_apply_constant_right(left.args[0], c)
-    if (type(left) is AddExpression and _is_vector(c)
+    if (type(left) is AddExpression and c.is_vector()
             and all(arg.shape == left.shape for arg in left.args)):
         return reduce(operator.add, [_apply_constant_right(arg, c) for arg in left.args])
     return left @ c
@@ -67,7 +58,7 @@ def _normalize_matmul(expr):
     # across that collapse; a 2-D left guarantees both its factors are 2-D.
     if len(left.shape) != 2:
         return expr
-    if _is_plain_constant(right) and not left.is_constant():
+    if right.is_constant() and is_param_free(right) and not left.is_constant():
         return _apply_constant_right(left, right)
     return expr
 
