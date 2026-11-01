@@ -1831,6 +1831,12 @@ class TestExpressions(BaseTest):
             def _supports_cpp(self):
                 return False
 
+            def _supports_diffengine(self):
+                # Converters are looked up by type name, so an out-of-tree
+                # subclass has none either; without this the default backend
+                # for a parameter-free problem would be DIFFENGINE.
+                return False
+
         x = Variable(2)
         prob = Problem(Minimize(0), [SumNotSupportedInCPP(x) == 1])
 

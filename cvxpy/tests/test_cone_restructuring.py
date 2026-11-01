@@ -73,8 +73,15 @@ def _materialize(cons, exp_cone_order):
 
 
 def _stuff(prob):
-    """The stuffed, *unformatted* program for a problem."""
-    chain = prob._construct_chain(solver=SOLVER)
+    """The stuffed, *unformatted* program for a problem.
+
+    Pinned to a tensor backend: these tests reach into the program's
+    parameter tensors, which is ParamConeProg's storage and not the
+    DIFFENGINE program's (it re-extracts concrete matrices instead, and
+    covers its own layout in test_diffengine_backend.py).
+    """
+    chain = prob._construct_chain(solver=SOLVER,
+                                  canon_backend=cp.CPP_CANON_BACKEND)
     chain.reductions = [r for r in chain.reductions
                         if not isinstance(r, (Solver, ConeFormat))]
     stuffed = chain.apply(prob)[0]
