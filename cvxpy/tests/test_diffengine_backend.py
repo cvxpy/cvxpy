@@ -127,6 +127,36 @@ class TestDiffengineBackend(BaseTest):
             elif isinstance(expected, np.ndarray):
                 self.assertItemsAlmostEqual(data_de[key], expected, places=10)
 
+    def test_ones_matmul_data_matches_cpp(self) -> None:
+        """Products with a uniform vector c * 1 must stuff the same data as CPP."""
+        m, n = 3, 4
+        X = cp.Variable((m, n))
+        x = cp.Variable(n)
+        exprs = [
+            np.ones(m) @ X,
+            np.ones((1, m)) @ X,
+            X @ np.ones(n),
+            X @ np.ones((n, 1)),
+            np.ones(n) @ x,
+            np.full(m, 0.5) @ X,
+            np.zeros(n) @ x,
+            X[:, :1] @ np.ones((1, n)),
+            np.ones((m, 1)) @ X[:1, :],
+        ]
+        for expr in exprs:
+            prob = cp.Problem(cp.Minimize(cp.sum(X) + cp.sum(x)),
+                              [expr <= np.arange(expr.size).reshape(expr.shape),
+                               X >= -1, x >= -1])
+            data_de, _, _ = prob.get_problem_data(SOLVER, canon_backend=DIFFENGINE)
+            data_cpp, _, _ = prob.get_problem_data(SOLVER)
+            for key in data_cpp:
+                expected = data_cpp[key]
+                if sp.issparse(expected):
+                    self.assertItemsAlmostEqual(
+                        data_de[key].toarray(), expected.toarray(), places=10)
+                elif isinstance(expected, np.ndarray):
+                    self.assertItemsAlmostEqual(data_de[key], expected, places=10)
+
     def test_quad_objective_dense_stored_diagonal(self) -> None:
         """A diagonal P stored as a dense array (H * np.eye(n)) must take the
         sparse quad_form binding, not become a dense n^2 Hessian block, and

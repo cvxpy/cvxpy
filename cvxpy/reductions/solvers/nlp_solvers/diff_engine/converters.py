@@ -53,12 +53,48 @@ def _matmul_children(expr, var_dict, n_vars, param_dict):
             for i, arg in enumerate(expr.args)]
 
 
+def _uniform_vector_value(arg, free_axis):
+    """Return c if ``arg`` is a constant vector c * 1 along the contracted axis, else None."""
+    if (not is_param_free(arg) or arg.size == 0
+            or (arg.ndim == 2 and arg.shape[free_axis] != 1)):
+        return None
+    x = to_dense_float(arg.value).ravel()
+    return x[0] if np.all(x == x[0]) else None
+
+
+def _uniform_matmul_as_sum(expr, children, n_vars):
+    """Lower c 1' @ X and X @ c 1 to c * sum(X), skipping the per-column matmul blocks."""
+    left_arg, right_arg = expr.args
+    if left_arg.is_constant() and not right_arg.is_constant():
+        c = _uniform_vector_value(left_arg, 0)
+        child, axis = children[1], 0 if right_arg.ndim == 2 else -1
+    elif right_arg.is_constant() and not left_arg.is_constant():
+        c = _uniform_vector_value(right_arg, 1)
+        child, axis = children[0], 1 if left_arg.ndim == 2 else -1
+    else:
+        return None
+    if c is None or c == 0:
+        return None
+    node = _diffengine.make_sum(child, axis)
+    if axis == 1 and expr.ndim == 2:
+        # The engine returns axis sums as a row; reshape to the (m, 1) column.
+        node = _diffengine.make_reshape(node, *expr.shape)
+    if c != 1:
+        c_node = _diffengine.make_parameter(1, 1, -1, n_vars, np.array([c]))
+        node = _diffengine.make_param_scalar_mult(c_node, node)
+    return node
+
+
 def convert_matmul(expr, children, var_dict, n_vars, param_dict):
     """Convert matrix multiplication A @ f(x), f(x) @ A, or X @ Y.
 
     Follows numpy's matmul broadcasting rules for 1D operands.
     """
     left_arg, right_arg = expr.args
+
+    uniform_sum = _uniform_matmul_as_sum(expr, children, n_vars)
+    if uniform_sum is not None:
+        return uniform_sum
 
     if left_arg.is_constant():
         A = left_arg.value
