@@ -84,37 +84,7 @@ def is_psd_within_tol(A, tol):
             min_diag_entry = np.min(np.diag(A))
             return min_diag_entry >= -tol
 
-    def SA_eigsh(sigma):
-
-        # Check for default_rng in np.random module (new API)
-        if hasattr(np.random, 'default_rng'):
-            g = np.random.default_rng(123)
-        else:  # fallback to legacy RandomState
-            g = np.random.RandomState(123)
-
-        n = A.shape[0]
-        v0 = g.normal(loc=0.0, scale=1.0, size=n)
-
-        return sparla.eigsh(A, k=1, sigma=sigma, which='SA', v0=v0,
-                            return_eigenvectors=False)
-        # Returns the eigenvalue w[i] of A where 1/(w[i] - sigma) is minimized.
-        #
-        # If A - sigma*I is PSD, then w[i] should be equal to the largest
-        # eigenvalue of A.
-        #
-        # If A - sigma*I is not PSD, then w[i] should be the largest eigenvalue
-        # of A where w[i] - sigma < 0.
-        #
-        # We should only call this function with sigma < 0. In this case, if
-        # A - sigma*I is not PSD then A is not PSD, and w[i] < -abs(sigma) is
-        # a negative eigenvalue of A. If A - sigma*I is PSD, then we obviously
-        # have that the smallest eigenvalue of A is >= sigma.
-
-    try:
-        ev = SA_eigsh(-tol)  # might return np.NaN, or raise exception
-    except sparla.ArpackNoConvergence as e:
-        # This is a numerical issue. We can't certify that A is PSD.
-
+    def _raise_arpack_no_convergence(e):
         message = """
         CVXPY note: This failure was encountered while trying to certify
         that a matrix is positive semi-definite (see [1] for a definition).
@@ -126,14 +96,76 @@ def is_psd_within_tol(A, tol):
         """
 
         error_with_note = f"{str(e)}\n\n{message}"
-
         raise sparla.ArpackNoConvergence(error_with_note, e.eigenvalues, e.eigenvectors)
+
+    def SA_eigsh(sigma=None):
+
+        # Check for default_rng in np.random module (new API)
+        if hasattr(np.random, 'default_rng'):
+            g = np.random.default_rng(123)
+        else:  # fallback to legacy RandomState
+            g = np.random.RandomState(123)
+
+        n = A.shape[0]
+        v0 = g.normal(loc=0.0, scale=1.0, size=n)
+
+        # With sigma, the returned eigenvalue w[i] is the one where
+        # 1/(w[i] - sigma) is minimized.
+        #
+        # If A - sigma*I is PSD, then w[i] should be equal to the largest
+        # eigenvalue of A.
+        #
+        # If A - sigma*I is not PSD, then w[i] should be the largest eigenvalue
+        # of A where w[i] - sigma < 0.
+        #
+        # We should only call this function with sigma < 0. In this case, if
+        # A - sigma*I is not PSD then A is not PSD, and w[i] < -abs(sigma) is
+        # a negative eigenvalue of A. If A - sigma*I is PSD, then we obviously
+        # have that the smallest eigenvalue of A is >= sigma.
+        kwargs = {'k': 1, 'which': 'SA', 'v0': v0, 'return_eigenvectors': True}
+        if sigma is not None:
+            kwargs['sigma'] = sigma
+        try:
+            return sparla.eigsh(A, **kwargs)
+        except sparla.ArpackNoConvergence as e:
+            # This is a numerical issue. We can't certify that A is PSD.
+            _raise_arpack_no_convergence(e)
+
+    ev, evec = SA_eigsh(-tol)  # might return np.NaN, or raise exception
 
     if np.isnan(ev).any():
         # will be NaN if A has an eigenvalue which is exactly -tol
         # (We might also hit this code block for other reasons.)
         temp = tol - np.finfo(A.dtype).eps
-        ev = SA_eigsh(-temp)
+        ev, evec = SA_eigsh(-temp)
+
+    # ARPACK can report convergence in shift-invert mode even when the returned
+    # eigenpair is too inaccurate to decide whether the eigenvalue is below
+    # -tol. In that case, retry without shift-invert. The residual bounds the
+    # distance from the approximate eigenvalue to some exact eigenvalue of A.
+    def eigenpair_is_accurate():
+        eigval = ev[0]
+        eigvec = evec[:, 0]
+        residual = np.linalg.norm(A @ eigvec - eigval * eigvec)
+        matrix_norm = sparla.norm(A, ord=np.inf) if sp.issparse(A) else la.norm(A, ord=np.inf)
+        eps = np.finfo(np.asarray(eigval).real.dtype).eps
+        residual_tol = np.sqrt(eps) * max(matrix_norm, 1.0)
+        return (
+            np.isfinite(residual)
+            and residual <= residual_tol
+            and residual <= abs(eigval + tol)
+        )
+
+    if not eigenpair_is_accurate():
+        ev, evec = SA_eigsh()
+        if not eigenpair_is_accurate():
+            if isinstance(A, np.ndarray):
+                ev = la.eigvalsh(A, subset_by_index=[0, 0])
+            else:
+                error = sparla.ArpackNoConvergence(
+                    "ARPACK returned an inaccurate eigenpair.", ev, evec
+                )
+                _raise_arpack_no_convergence(error)
 
     return np.all(ev >= -tol)
 
