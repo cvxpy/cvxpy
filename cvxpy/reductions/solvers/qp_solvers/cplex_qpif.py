@@ -2,6 +2,7 @@ import numpy as np
 
 import cvxpy.interface as intf
 import cvxpy.settings as s
+from cvxpy.error import SolverError
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.cplex_conif import (
@@ -192,6 +193,12 @@ class CPLEX(QpSolver):
                 model.solve()
                 results_dict["cputime"] += model.get_time() - start_time
 
+        except cpx.exceptions.CplexError as e:
+            # Report CPLEX's own message (e.g. a size-limited edition)
+            # unless a solution was found before the error.
+            if not model.solution.is_primal_feasible():
+                raise SolverError(f"Solver '{self.name()}' failed: {e}") from e
+            results_dict["status"] = s.SOLVER_ERROR
         except Exception:  # Error in the solution
             results_dict["status"] = s.SOLVER_ERROR
 

@@ -988,11 +988,69 @@ def test_piqp_unknown_setting():
         prob.solve(solver=cp.PIQP, not_a_real_setting=1.0)
 
 
+# --- CPLEX interface tests --- #
+
+cplex_skip = pytest.mark.skipif(
+    'CPLEX' not in INSTALLED_SOLVERS, reason='CPLEX is not installed.'
+)
+
+
+@cplex_skip
+def test_cplex_error_message():
+    """An error raised by CPLEX itself (e.g. a size-limited edition) must show
+    up in the SolverError instead of the generic failure message.
+    """
+    import cplex
+
+    x = cp.Variable(2)
+    prob = cp.Problem(cp.Minimize(cp.sum_squares(x - 1)), [x >= 0])
+    error = cplex.exceptions.CplexSolverError("Problem size limits exceeded", None, 1016)
+    with mock.patch.object(cplex.Cplex, "solve", side_effect=error):
+        with pytest.raises(SolverError, match="Problem size limits") as exc_info:
+            prob.solve(solver=cp.CPLEX)
+    assert exc_info.value.__cause__ is error
+
+
+@cplex_skip
+def test_cplex_error_keeps_solution():
+    """A solution found before the error is still returned."""
+    import cplex
+
+    solve = cplex.Cplex.solve
+
+    def solve_then_fail(model):
+        solve(model)
+        raise cplex.exceptions.CplexSolverError("Failed after solving", None, 1)
+
+    x = cp.Variable(2)
+    prob = cp.Problem(cp.Minimize(cp.sum_squares(x - 1)), [x >= 0])
+    with mock.patch.object(cplex.Cplex, "solve", solve_then_fail):
+        prob.solve(solver=cp.CPLEX)
+    assert prob.status == cp.OPTIMAL
+    np.testing.assert_allclose(x.value, [1., 1.], atol=1e-4)
+
+
 # --- COPT interface tests --- #
 
 copt_skip = pytest.mark.skipif(
     'COPT' not in INSTALLED_SOLVERS, reason='COPT is not installed.'
 )
+
+
+@copt_skip
+def test_copt_error_message():
+    """An error raised by COPT itself (e.g. a size-limited license) must show
+    up in the SolverError instead of the generic failure message.
+    """
+    import coptpy
+
+    x = cp.Variable(2)
+    prob = cp.Problem(cp.Minimize(cp.sum_squares(x - 1)), [x >= 0])
+    error = coptpy.CoptError(4, "(LICENSE) Fail to solve problem")
+    with mock.patch.object(coptpy.Model, "solve", side_effect=error):
+        with pytest.raises(SolverError, match="Fail to solve") as exc_info:
+            prob.solve(solver=cp.COPT)
+    assert exc_info.value.__cause__ is error
 
 
 @copt_skip
