@@ -15,13 +15,14 @@ limitations under the License.
 """
 
 import numpy as np
+import scipy.sparse as sp
 
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.utilities as u
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.constraints.constraint import Constraint
-from cvxpy.expressions.constants.parameter import is_param_free
+from cvxpy.expressions.constants.parameter import is_param_affine, is_param_free
 
 
 class kron(AffAtom):
@@ -55,11 +56,11 @@ class kron(AffAtom):
         """Is the atom convex?
         """
         if u.scopes.dpp_scope_active():
-            # kron is not DPP if any parameters are present.
             x = self.args[0]
             y = self.args[1]
-            return ((x.is_constant() or y.is_constant()) and
-                    (is_param_free(x) and is_param_free(y)))
+            return ((x.is_constant() or y.is_constant()) or
+                    (is_param_affine(x) and is_param_free(y)) or
+                    (is_param_affine(y) and is_param_free(x)))
         else:
             return self.args[0].is_constant() or self.args[1].is_constant()
 
@@ -76,14 +77,12 @@ class kron(AffAtom):
     def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """
-        cst_loc = 0 if self.args[0].is_constant() else 1
-        return self.args[cst_loc].is_nonneg()
+        return self.args[1 - idx].is_nonneg()
 
     def is_decr(self, idx) -> bool:
         """Is the composition non-increasing in argument idx?
         """
-        cst_loc = 0 if self.args[0].is_constant() else 1
-        return self.args[cst_loc].is_nonpos()
+        return self.args[1 - idx].is_nonpos()
 
     def is_psd(self):
         """Check a *sufficient condition* that the expression is PSD,
@@ -120,6 +119,29 @@ class kron(AffAtom):
         tuple
             (LinOp for objective, list of constraints)
         """
+        if self.parameters():
+            lhs, rhs = arg_objs
+            lhs = lu.reshape(lhs, (1, self.args[0].size))
+            rhs = lu.reshape(rhs, (self.args[1].size, 1))
+            outer_shape = (self.args[1].size, self.args[0].size)
+            if not self.args[0].variables():
+                outer = lu.rmul_expr(rhs, lhs, outer_shape)
+            else:
+                outer = lu.mul_expr(rhs, lhs, outer_shape)
+
+            # Reorder vec(B) @ vec(A).T into the column-major layout of kron(A, B).
+            m, n = self.args[0].shape
+            p, q = self.args[1].shape
+            indices = np.arange(self.size).reshape((p, q, m, n), order="F")
+            indices = indices.transpose(0, 2, 1, 3).ravel(order="F")
+            permutation = sp.csc_array(
+                (np.ones(self.size), (np.arange(self.size), indices)),
+                shape=(self.size, self.size),
+            )
+            vector = lu.reshape(outer, (self.size, 1))
+            perm_op = lu.create_const(permutation, permutation.shape, sparse=True)
+            return lu.reshape(lu.mul_expr(perm_op, vector, vector.shape), shape), []
+
         if self.args[0].is_constant():
             return lu.kron_r(arg_objs[0], arg_objs[1], shape), []
         else:
