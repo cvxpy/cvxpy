@@ -770,6 +770,30 @@ class TestAtoms(BaseTest):
             cp.concatenate([self.C, self.x], axis=1)
         # Expected ValueError due to mismatched number of dimensions between arrays
 
+    def test_concatenate_axis_none_solve(self) -> None:
+        # With axis=None every argument is flattened in 'C' order, as in np.concatenate.
+        X = Variable((2, 3))
+        Y = Variable((2, 2, 2))
+        P = Parameter((2, 2), value=np.array([[10.0, 11.0], [12.0, 13.0]]))
+        A = np.arange(6.0).reshape(2, 3)
+        B = np.arange(8.0).reshape(2, 2, 2)
+        expr = cp.concatenate([X, P, Y], axis=None)
+        target = np.concatenate([A, P.value, B], axis=None)
+        for backend in [cp.SCIPY_CANON_BACKEND, cp.COO_CANON_BACKEND]:
+            prob = Problem(Minimize(0), [expr == target])
+            prob.solve(solver=cp.CLARABEL, canon_backend=backend)
+            self.assertEqual(prob.status, cp.OPTIMAL)
+            self.assertItemsAlmostEqual(X.value, A)
+            self.assertItemsAlmostEqual(Y.value, B)
+
+        # DGP problems go through the same linear operator.
+        Z = Variable((2, 2), pos=True)
+        t = np.array([1.0, 2.0, 3.0, 4.0])
+        z = cp.concatenate([Z], axis=None)
+        prob = Problem(Minimize(cp.sum(cp.multiply(z, 1 / t) + cp.multiply(t, z ** -1))))
+        prob.solve(gp=True, solver=cp.CLARABEL)
+        self.assertItemsAlmostEqual(Z.value, t.reshape(2, 2), places=3)
+
     def test_reshape(self) -> None:
         """Test the reshape class.
         """
