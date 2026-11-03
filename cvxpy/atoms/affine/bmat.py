@@ -17,6 +17,7 @@ limitations under the License.
 from cvxpy.atoms.affine.hstack import hstack
 from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.atoms.affine.vstack import vstack
+from cvxpy.expressions.constants.constant import Constant
 from cvxpy.expressions.expression import Expression
 
 
@@ -42,7 +43,12 @@ def bmat(block_lists) -> Expression:
     """
     row_blocks = [hstack([_promote_to_2d(block) for block in blocks])
                   for blocks in block_lists]
-    return vstack(row_blocks)
+    expr = vstack(row_blocks)
+    # Vstack treats only scalars as symmetric. A parameter-free constant
+    # can use Constant, which reads symmetry from the numeric value.
+    if expr.is_constant() and len(expr.parameters()) == 0:
+        return Constant(expr.value)
+    return expr
 
 
 def _promote_to_2d(block) -> Expression:
