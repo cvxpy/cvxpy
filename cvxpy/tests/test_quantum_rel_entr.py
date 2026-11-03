@@ -3,6 +3,7 @@ import sys
 
 import numpy as np
 import pytest
+from scipy.linalg import logm
 
 import cvxpy as cp
 from cvxpy.atoms.affine.kron import kron
@@ -57,7 +58,7 @@ class TestQuantumRelEntr:
         var_pairs = [(X, expect_X)]
 
         obj = cp.Minimize(cp.quantum_rel_entr(M, X))
-        expect_obj = -36.19277
+        expect_obj = 107.74371
         obj_pair = (obj, expect_obj)
 
         cons1 = cp.diag(X) == np.ones((n,))
@@ -184,3 +185,11 @@ class TestQuantumRelEntr:
         prob.solve(**self.CLARABEL_ARGS)
         assert prob.status == cp.OPTIMAL
         np.testing.assert_allclose(prob.value, -np.log(n), atol=1e-3)
+
+    def test_value_without_unit_trace(self):
+        """The value is tr(X log X - X log Y), with no assumption that tr(X) = tr(Y) = 1."""
+        X = np.array([[2.0, 0.5], [0.5, 1.0]])
+        Y = np.array([[1.0, 0.2], [0.2, 3.0]])
+        expect = np.trace(X @ (logm(X) - logm(Y))).real
+        np.testing.assert_allclose(cp.quantum_rel_entr(X, Y).value, expect)
+        np.testing.assert_allclose(cp.quantum_rel_entr(3 * X, 3 * Y).value, 3 * expect)
