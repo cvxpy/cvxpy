@@ -28,7 +28,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-22.04, macos-14, windows-2022 ]
+        os: [ ubuntu-22.04, macos-14, windows-2022, windows-11-arm ]
         python-version: [ "3.11", "3.12", "3.13", "3.14", "3.14t", "3.15" ]
         include:
           # These are intended to just add their extra parameter to existing matrix combinations;
@@ -40,10 +40,6 @@ jobs:
           - os: macos-14
             python-version: 3.12
             single_action_config: true
-        # exluding this build because it is failing and blocks wheels
-        exclude:
-          - os: windows-2022
-            python-version: 3.14t
 
     env:
       RUNNER_OS: ${{ matrix.os }}
@@ -90,7 +86,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-22.04, macos-14, windows-2022 ]
+        os: [ ubuntu-22.04, macos-14, windows-2022, windows-11-arm ]
         python-version: [ "3.11", "3.12", "3.13", "3.14", "3.14t" ]
         build-cvxpy-base: [ true, false ]  # whether to build cvxpy-base (true) or regular cvxpy (false)
         include:
@@ -99,10 +95,6 @@ jobs:
           - os: ubuntu-22.04
             python-version: 3.12
             single_action_config: true
-        # exluding this version because it is failing
-        exclude:
-          - os: windows-2022
-            python-version: 3.14t
 
     env:
       RUNNER_OS: ${{ matrix.os }}
@@ -143,7 +135,8 @@ jobs:
           rm -rf pyproject.toml.bak setup.py.bak
 
       - name: Verify that we can build by pip-install on each OS.
-        if: ${{matrix.build-cvxpy-base && env.PIP_INSTALL == 'True'}}
+        # TODO: Drop the windows-11-arm condition once cplex ships win_arm64 wheels.
+        if: ${{matrix.build-cvxpy-base && env.PIP_INSTALL == 'True' && matrix.os != 'windows-11-arm'}}
         run: |
           pip install . pytest cplex
           pytest --pyargs cvxpy.tests.test_conic_solvers -k 'TestCPLEX'
