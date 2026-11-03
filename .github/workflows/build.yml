@@ -28,7 +28,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-22.04, macos-14, windows-2022 ]
+        os: [ ubuntu-22.04, macos-15, windows-2022 ]
         python-version: [ "3.11", "3.12", "3.13", "3.14", "3.14t", "3.15" ]
         include:
           # These are intended to just add their extra parameter to existing matrix combinations;
@@ -37,7 +37,7 @@ jobs:
             python-version: 3.12
             openmp: "True"
             single_action_config: false
-          - os: macos-14
+          - os: macos-15
             python-version: 3.12
             single_action_config: true
         # exluding this build because it is failing and blocks wheels
@@ -90,7 +90,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-22.04, macos-14, windows-2022 ]
+        os: [ ubuntu-22.04, macos-15, windows-2022 ]
         python-version: [ "3.11", "3.12", "3.13", "3.14", "3.14t" ]
         build-cvxpy-base: [ true, false ]  # whether to build cvxpy-base (true) or regular cvxpy (false)
         include:
