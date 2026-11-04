@@ -48,10 +48,11 @@ def test_is_psd_arpack_no_convergence(monkeypatch) -> None:
 
     monkeypatch.setattr(sparla, 'eigsh', mock_eigsh)
 
-    # Construct a matrix that bypasses the Gershgorin and diagonal fast paths
-    # so it reaches the ARPACK code path.
-    A = np.full((n, n), 0.5)
-    np.fill_diagonal(A, 1.0)
+    # Construct a sparse matrix that bypasses the Gershgorin and diagonal fast paths
+    # so it reaches the ARPACK code path. Dense matrices are handled with an exact
+    # eigendecomposition and never reach ARPACK.
+    A = sp.csc_array(np.full((n, n), 0.5))
+    A.setdiag(1.0)
 
     with pytest.raises(sparla.ArpackNoConvergence, match="CVXPY note"):
         cp.Constant(A).is_psd()

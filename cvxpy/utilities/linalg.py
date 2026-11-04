@@ -84,6 +84,12 @@ def is_psd_within_tol(A, tol):
             min_diag_entry = np.min(np.diag(A))
             return min_diag_entry >= -tol
 
+    if isinstance(A, np.ndarray):
+        # Dense input: an exact eigendecomposition is both faster and more reliable than
+        # shift-invert Lanczos, which needs an O(n^2) solve per iteration and can take
+        # thousands of iterations on (nearly) singular matrices.
+        return bool(np.all(np.linalg.eigvalsh(A) >= -tol))
+
     def SA_eigsh(sigma):
 
         # Check for default_rng in np.random module (new API)
