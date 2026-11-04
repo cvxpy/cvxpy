@@ -88,45 +88,37 @@ does.
 
 .. parsed-literal::
 
-    ----------------------------------------------------------------------------
-    	SCS v2.0.2 - Splitting Conic Solver
-    	(c) Brendan O'Donoghue, Stanford University, 2012-2017
-    ----------------------------------------------------------------------------
-    Lin-sys: sparse-indirect, nnz in A = 1554199, CG tol ~ 1/iter^(2.00)
-    eps = 1.00e-05, alpha = 1.50, max_iters = 5000, normalize = 1, scale = 1.00
-    acceleration_lookback = 20, rho_x = 1.00e-03
-    Variables n = 523265, constraints m = 1045507
-    Cones:	primal zero / dual free vars: 262144
-    	soc vars: 783363, soc blks: 261121
-    Setup time: 1.23e-01s
-    ----------------------------------------------------------------------------
-     Iter | pri res | dua res | rel gap | pri obj | dua obj | kap/tau | time (s)
-    ----------------------------------------------------------------------------
-         0| 5.19e+00  4.79e+00  1.00e+00 -5.21e+05  1.51e+04  0.00e+00  1.38e+00 
-       100| 4.46e-03  4.69e-03  3.82e-04  1.10e+04  1.10e+04  3.50e-12  3.95e+01 
-       200| 3.59e-04  3.83e-04  9.12e-05  1.10e+04  1.10e+04  4.20e-11  7.82e+01 
-       300| 7.10e-05  6.96e-05  2.77e-05  1.10e+04  1.10e+04  3.75e-11  1.14e+02 
-       400| 3.30e-05  3.39e-05  2.14e-06  1.10e+04  1.10e+04  6.65e-12  1.47e+02 
-       500| 2.77e-05  2.85e-05  1.35e-05  1.10e+04  1.10e+04  2.07e-11  1.81e+02 
-       600| 1.10e-05  1.09e-05  6.45e-06  1.10e+04  1.10e+04  1.48e-11  2.15e+02 
-       700| 1.00e-05  9.49e-06  1.94e-07  1.10e+04  1.10e+04  2.40e-11  2.48e+02 
-       720| 9.04e-06  8.24e-06  6.85e-07  1.10e+04  1.10e+04  1.09e-11  2.55e+02 
-    ----------------------------------------------------------------------------
-    Status: Solved
-    Timing: Solve time: 2.55e+02s
-    	Lin-sys: avg # CG iterations: 9.58, avg solve time: 1.41e-01s
-    	Cones: avg projection time: 3.42e-03s
-    	Acceleration: avg step time: 1.71e-01s
-    ----------------------------------------------------------------------------
-    Error metrics:
-    dist(s, K) = 2.1720e-04, dist(y, K*) = 3.7180e-04, s'y/|s||y| = -9.9097e-11
-    primal res: |Ax + s - b|_2 / (1 + |b|_2) = 9.0439e-06
-    dual res:   |A'y + c|_2 / (1 + |c|_2) = 8.2388e-06
-    rel gap:    |c'x + b'y| / (1 + |c'x| + |b'y|) = 6.8544e-07
-    ----------------------------------------------------------------------------
-    c'x = 11044.2661, -b'y = 11044.2813
-    ============================================================================
-    optimal objective value: 11044.28989542425
+    ------------------------------------------------------------------
+    	       SCS v3.3.1 - Splitting Conic Solver
+    	(c) Brendan O'Donoghue, Stanford University, 2012
+    ------------------------------------------------------------------
+    problem:  variables n: 523265, constraints m: 1045507
+    cones: 	  z: primal zero / dual free vars: 262144
+    	  q: soc vars: 783363, qsize: 261121
+    settings: eps_abs: 1.0e-05, eps_rel: 1.0e-05, eps_infeas: 1.0e-07
+    	  alpha: 1.50, scale: 1.00e-01, adaptive_scale: 1
+    	  max_iters: 100000, normalize: 1, rho_x: 1.00e-06
+    	  acceleration_lookback: 10, acceleration_interval: 5
+    lin-sys:  sparse-direct-amd-qdldl
+    	  nnz(A): 1554199, nnz(P): 0
+    ------------------------------------------------------------------
+     iter | pri res | dua res |   gap   |   obj   |  scale  | time (s)
+    ------------------------------------------------------------------
+         0| 1.56e+01  1.00e+00  4.07e+06 -2.04e+06  1.00e-01  1.34e+00
+       250| 9.68e-03  9.95e-03  5.56e-04  1.10e+04  1.00e-01  1.31e+01
+       500| 3.04e-03  6.39e-03  3.38e-05  1.10e+04  1.00e-01  2.48e+01
+       750| 4.83e-04  2.04e-03  3.59e-05  1.10e+04  1.29e-02  3.72e+01
+      1000| 7.01e-05  8.83e-05  3.75e-05  1.10e+04  1.29e-02  4.90e+01
+      1250| 1.34e-05  3.57e-05  4.29e-05  1.10e+04  1.29e-02  6.14e+01
+      1325| 1.05e-05  1.60e-05  4.38e-05  1.10e+04  1.29e-02  6.53e+01
+    ------------------------------------------------------------------
+    status:  solved
+    timings: total: 6.53e+01s = setup: 1.23e+00s + solve: 6.40e+01s
+    	 lin-sys: 3.71e+01s, cones: 5.88e+00s, accel: 4.56e+00s
+    ------------------------------------------------------------------
+    objective = 11044.275554
+    ------------------------------------------------------------------
+    optimal objective value: 11044.277093475477
 
 
 After solving the problem, the in-painted image is stored in
@@ -251,48 +243,33 @@ and CVXOPT don't scale to this large problem.
 
 .. parsed-literal::
 
-    WARN: A->p (column pointers) not strictly increasing, column 523264 empty
-    WARN: A->p (column pointers) not strictly increasing, column 785408 empty
-    WARN: A->p (column pointers) not strictly increasing, column 1047552 empty
-    ----------------------------------------------------------------------------
-    	SCS v2.0.2 - Splitting Conic Solver
-    	(c) Brendan O'Donoghue, Stanford University, 2012-2017
-    ----------------------------------------------------------------------------
-    Lin-sys: sparse-indirect, nnz in A = 3630814, CG tol ~ 1/iter^(2.00)
-    eps = 1.00e-05, alpha = 1.50, max_iters = 5000, normalize = 1, scale = 1.00
-    acceleration_lookback = 20, rho_x = 1.00e-03
-    Variables n = 1047553, constraints m = 2614279
-    Cones:	primal zero / dual free vars: 786432
-    	soc vars: 1827847, soc blks: 261121
-    Setup time: 3.00e-01s
-    ----------------------------------------------------------------------------
-     Iter | pri res | dua res | rel gap | pri obj | dua obj | kap/tau | time (s)
-    ----------------------------------------------------------------------------
-         0| 1.16e+01  1.18e+01  1.00e+00 -1.02e+06  3.34e+04  1.53e-10  3.81e+00 
-       100| 2.19e-03  2.32e-03  6.52e-04  1.14e+04  1.15e+04  7.82e-12  1.08e+02 
-       200| 4.23e-04  3.78e-04  4.97e-05  1.15e+04  1.15e+04  1.34e-11  2.04e+02 
-       300| 9.58e-05  1.10e-04  5.94e-05  1.15e+04  1.15e+04  1.46e-11  2.96e+02 
-       400| 4.54e-05  4.57e-05  6.08e-06  1.15e+04  1.15e+04  5.96e-12  3.85e+02 
-       500| 2.92e-05  3.19e-05  3.42e-06  1.15e+04  1.15e+04  3.37e-11  4.74e+02 
-       600| 1.77e-05  1.87e-05  1.20e-05  1.15e+04  1.15e+04  3.08e-11  5.60e+02 
-       700| 1.40e-05  1.43e-05  7.45e-06  1.15e+04  1.15e+04  9.77e-12  6.47e+02 
-       760| 9.03e-06  9.70e-06  2.43e-06  1.15e+04  1.15e+04  7.02e-12  6.99e+02 
-    ----------------------------------------------------------------------------
-    Status: Solved
-    Timing: Solve time: 6.99e+02s
-    	Lin-sys: avg # CG iterations: 11.66, avg solve time: 4.29e-01s
-    	Cones: avg projection time: 4.72e-03s
-    	Acceleration: avg step time: 3.94e-01s
-    ----------------------------------------------------------------------------
-    Error metrics:
-    dist(s, K) = 1.8769e-05, dist(y, K*) = 1.1246e-04, s'y/|s||y| = 6.2851e-11
-    primal res: |Ax + s - b|_2 / (1 + |b|_2) = 9.0269e-06
-    dual res:   |A'y + c|_2 / (1 + |c|_2) = 9.7005e-06
-    rel gap:    |c'x + b'y| / (1 + |c'x| + |b'y|) = 2.4293e-06
-    ----------------------------------------------------------------------------
-    c'x = 11465.6528, -b'y = 11465.5971
-    ============================================================================
-    optimal objective value: 11465.652787130613
+    ------------------------------------------------------------------
+    	       SCS v3.3.1 - Splitting Conic Solver
+    	(c) Brendan O'Donoghue, Stanford University, 2012
+    ------------------------------------------------------------------
+    problem:  variables n: 1047553, constraints m: 2614279
+    cones: 	  z: primal zero / dual free vars: 786432
+    	  q: soc vars: 1827847, qsize: 261121
+    settings: eps_abs: 1.0e-05, eps_rel: 1.0e-05, eps_infeas: 1.0e-07
+    	  alpha: 1.50, scale: 1.00e-01, adaptive_scale: 1
+    	  max_iters: 100000, normalize: 1, rho_x: 1.00e-06
+    	  acceleration_lookback: 10, acceleration_interval: 5
+    lin-sys:  sparse-direct-amd-qdldl
+    	  nnz(A): 3630814, nnz(P): 0
+    ------------------------------------------------------------------
+     iter | pri res | dua res |   gap   |   obj   |  scale  | time (s)
+    ------------------------------------------------------------------
+         0| 1.60e+01  1.00e+00  4.18e+06 -2.09e+06  1.00e-01  4.33e+00
+       250| 2.57e-03  1.10e-02  3.81e-05  1.15e+04  1.00e-01  3.78e+01
+       450| 1.28e-05  1.76e-05  4.11e-06  1.15e+04  1.07e-02  6.54e+01
+    ------------------------------------------------------------------
+    status:  solved
+    timings: total: 6.54e+01s = setup: 4.03e+00s + solve: 6.13e+01s
+    	 lin-sys: 3.73e+01s, cones: 4.61e+00s, accel: 3.65e+00s
+    ------------------------------------------------------------------
+    objective = 11465.602408
+    ------------------------------------------------------------------
+    optimal objective value: 11465.607283681691
 
 
 After solving the problem, the RGB values of the in-painted image are
