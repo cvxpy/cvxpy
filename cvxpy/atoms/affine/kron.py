@@ -142,6 +142,10 @@ class kron(AffAtom):
             perm_op = lu.create_const(permutation, permutation.shape, sparse=True)
             return lu.reshape(lu.mul_expr(perm_op, vector, vector.shape), shape), []
 
+        # Keep the parameter-free path: preliminary CPP benchmarks favor the
+        # specialized kron_l/kron_r operators over the lowering above.
+        # https://github.com/cvxpy/cvxpy/pull/3595#discussion_r4454094229
+        # Revisit consolidation once the CPP (cvxcore) backend is removed.
         if self.args[0].is_constant():
             return lu.kron_r(arg_objs[0], arg_objs[1], shape), []
         else:
