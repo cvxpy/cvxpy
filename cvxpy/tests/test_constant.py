@@ -39,6 +39,60 @@ def test_is_psd() -> None:
     assert psd_wrap(cp.Constant(P)).is_psd()
 
 
+def _dense_psd_with_large_off_diagonals(n: int) -> np.ndarray:
+    """A positive definite matrix whose Gershgorin check is inconclusive."""
+    A = np.full((n, n), 0.5)
+    np.fill_diagonal(A, 1.0)
+    return A
+
+
+def test_is_psd_dense_uses_pivoted_cholesky(monkeypatch) -> None:
+    """Dense input is certified with pstrf instead of the iterative solver."""
+    import cvxpy.utilities.linalg as linalg
+
+    calls: list[tuple[int, ...]] = []
+    original = linalg._PSTRF_FUNCTIONS[np.float64]
+
+    def counting_pstrf(a):
+        calls.append(a.shape)
+        return original(a)
+
+    monkeypatch.setitem(linalg._PSTRF_FUNCTIONS, np.float64, counting_pstrf)
+
+    assert cp.Constant(_dense_psd_with_large_off_diagonals(8)).is_psd()
+    assert calls, "the dense path must go through the pivoted Cholesky"
+
+
+def test_is_psd_dense_indefinite_is_rejected() -> None:
+    """pstrf reports a non-positive pivot and the fallback confirms it is indefinite."""
+    A = np.array([[1.0, 2.0], [2.0, 1.0]])
+    assert not cp.Constant(A).is_psd()
+
+
+def test_is_psd_dense_singular_is_accepted() -> None:
+    """A singular PSD matrix stops pstrf, and the fallback still certifies it."""
+    v = np.array([1.0, 2.0, 3.0])
+    E = np.eye(3) - np.outer(v, v) / np.inner(v, v)
+    A = E @ np.diag([2.0, 3.0, 4.0]) @ E.T
+    assert np.linalg.matrix_rank(A) == 2
+    assert cp.Constant(A).is_psd()
+
+
+def test_is_psd_dense_float32_is_accepted() -> None:
+    """The float32 LAPACK wrapper is dispatched to as well."""
+    A = _dense_psd_with_large_off_diagonals(8).astype(np.float32)
+    assert cp.Constant(A).is_psd()
+
+
+def test_is_psd_warns_for_large_dense(monkeypatch) -> None:
+    """Order >= 5000 warns and points at psd_wrap."""
+    import cvxpy.utilities.linalg as linalg
+
+    monkeypatch.setattr(linalg, "_PSTRF_WARN_ORDER", 5)
+    with pytest.warns(UserWarning, match="psd_wrap"):
+        assert cp.Constant(_dense_psd_with_large_off_diagonals(6)).is_psd()
+
+
 def test_is_psd_arpack_no_convergence(monkeypatch) -> None:
     """Test that ArpackNoConvergence is augmented with a helpful message."""
     n = 10

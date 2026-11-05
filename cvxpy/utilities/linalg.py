@@ -50,6 +50,9 @@ def is_diagonal(A):
     return np.allclose(off_diagonal_elements, 0)
 
 
+# Above this order the warning about the cost of the dense PSD check is emitted.
+_PSTRF_WARN_ORDER = 5000
+
 _PSTRF_FUNCTIONS = {
     np.float64: la.lapack.dpstrf,
     np.float32: la.lapack.spstrf,
@@ -99,7 +102,7 @@ def is_psd_within_tol(A, tol):
         # the rank in one pass and costs O(n^3) with a small constant. The iterative solver
         # below needs an O(n^2) solve per iteration and can take thousands of iterations on
         # (nearly) singular matrices.
-        if A.shape[0] >= 5000:
+        if A.shape[0] >= _PSTRF_WARN_ORDER:
             warnings.warn(
                 'Certifying a dense matrix of order 5000 or more as positive semidefinite is '
                 'slow. If you know that the matrix is PSD, wrap it with cvxpy.psd_wrap to skip '
