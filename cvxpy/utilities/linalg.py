@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 import qdldl
 import scipy.linalg as la
@@ -48,6 +50,14 @@ def is_diagonal(A):
     return np.allclose(off_diagonal_elements, 0)
 
 
+_PSTRF_FUNCTIONS = {
+    np.float64: la.lapack.dpstrf,
+    np.float32: la.lapack.spstrf,
+    np.complex128: la.lapack.zpstrf,
+    np.complex64: la.lapack.cpstrf,
+}
+
+
 def is_psd_within_tol(A, tol):
     """
     Return True if we can certify that A is PSD (up to tolerance "tol").
@@ -85,9 +95,28 @@ def is_psd_within_tol(A, tol):
             return min_diag_entry >= -tol
 
     if isinstance(A, np.ndarray):
-        # Dense input: an exact eigendecomposition is both faster and more reliable than
-        # shift-invert Lanczos, which needs an O(n^2) solve per iteration and can take
-        # thousands of iterations on (nearly) singular matrices.
+        # A dense matrix is certified with a pivoted Cholesky factorization, which reveals
+        # the rank in one pass and costs O(n^3) with a small constant. The iterative solver
+        # below needs an O(n^2) solve per iteration and can take thousands of iterations on
+        # (nearly) singular matrices.
+        if A.shape[0] >= 5000:
+            warnings.warn(
+                'Certifying a dense matrix of order 5000 or more as positive semidefinite is '
+                'slow. If you know that the matrix is PSD, wrap it with cvxpy.psd_wrap to skip '
+                'the check; see the psd_wrap documentation.',
+                stacklevel=2,
+            )
+        pstrf = _PSTRF_FUNCTIONS.get(A.dtype.type)
+        if pstrf is None:
+            return bool(np.all(np.linalg.eigvalsh(A) >= -tol))
+        try:
+            _, _, _, info = pstrf(A)
+        except (np.linalg.LinAlgError, ValueError):
+            info = 1
+        if info == 0:
+            return True
+        # A singular PSD matrix also stops the factorization with a non-positive pivot, so
+        # fall back to an exact eigenvalue check rather than rejecting it.
         return bool(np.all(np.linalg.eigvalsh(A) >= -tol))
 
     def SA_eigsh(sigma):
