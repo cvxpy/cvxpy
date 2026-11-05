@@ -3060,7 +3060,7 @@ class TestHIGHS:
         assert confirmation in capfd.readouterr().out
 
     def test_highs_lp_gets_no_start(self) -> None:
-        """A pure LP is left alone: the simplex gains nothing from a primal point."""
+        """A pure LP is left alone: a start would make HiGHS skip presolve."""
         import highspy as hp
 
         import cvxpy.settings as s
