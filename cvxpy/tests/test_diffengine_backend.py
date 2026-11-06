@@ -79,6 +79,23 @@ class TestDiffengineBackend(BaseTest):
     and solutions as the default tensor backends, for parameter-free
     problems; loud rejection otherwise."""
 
+    def test_sum_keepdims(self) -> None:
+        """An axis sum with keepdims=True keeps the reduced axis, as a column
+        for axis=1 and a row for axis=0."""
+        X_val = np.array([[1.0, -2.0], [3.0, 0.0], [-0.5, 0.5]])
+        X = cp.Variable((3, 2))
+        for axis in (0, 1):
+            with self.subTest(axis=axis):
+                expected = np.abs(X_val).sum(axis=axis, keepdims=True)
+                t = cp.Variable(expected.shape)
+                prob = cp.Problem(
+                    cp.Minimize(cp.sum(t)),
+                    [X == X_val,
+                     cp.sum(cp.abs(X), axis=axis, keepdims=True) <= t])
+                prob.solve(solver=SOLVER, canon_backend=DIFFENGINE)
+                self.assertEqual(prob.status, cp.OPTIMAL)
+                self.assertItemsAlmostEqual(t.value, expected, places=4)
+
     def test_constant_nonlinear_subtree_is_evaluated(self) -> None:
         """A nonlinear atom over plain constants is evaluated numerically;
         the engine cannot differentiate through it."""
