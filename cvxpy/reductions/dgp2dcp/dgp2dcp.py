@@ -16,6 +16,7 @@ limitations under the License.
 import numpy as np
 
 from cvxpy.expressions.expression import Expression
+from cvxpy.reductions.canonical_maps import ParameterTransform, ParameterTransformKind
 from cvxpy.reductions.canonicalization import Canonicalization
 from cvxpy.reductions.dgp2dcp.canonicalizers import DgpCanonMethods
 
@@ -83,18 +84,34 @@ class Dgp2Dcp(Canonicalization):
         return {orig.id: [new.id]
                 for orig, new in self.canon_methods._parameters.items()}
 
-    def update_parameters(self, problem) -> None:
-        """Update log-parameter values from original parameters.
-
-        Called at solve time in the DPP fast path. Parameters are transformed
-        to log-space during canonicalization; this method sets the log-parameter
-        values from the original parameter values.
-        """
+    @property
+    def param_transforms(self):
+        """Parameters are replaced by their logarithms."""
         if self.canon_methods is None:
-            return
-        for param in problem.parameters():
-            if param in self.canon_methods._parameters:
-                self.canon_methods._parameters[param].value = np.log(param.value)
+            return []
+        return [ParameterTransform(param.id, log_param.id, ParameterTransformKind.LOG)
+                for param, log_param in self.canon_methods._parameters.items()]
+
+    def transform_parameters(self):
+        if self.canon_methods is None:
+            return {}
+        params = {}
+        for param, log_param in self.canon_methods._parameters.items():
+            params[param.id] = param
+            params[log_param.id] = log_param
+        return params
+
+    def compose_recovery(self, inner, inverse_data):
+        """Variables are the exponentials of their log-space counterparts.
+
+        Duals keep the transformed-DCP convention, as in ``invert``.
+        """
+        new_ids = {orig.id: new.id
+                   for orig, new in self.canon_methods._variables.items()}
+        recovery = super(Dgp2Dcp, self).compose_recovery(inner, inverse_data)
+        primal = {vid: inner.get_primal(new_ids.get(vid, vid)).with_exp()
+                  for vid in recovery.primal}
+        return recovery.replace(primal=primal)
 
     def var_backward(self, del_vars):
         """Apply chain rule for exp transformation in backward diff.

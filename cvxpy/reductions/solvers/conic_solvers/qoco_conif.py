@@ -130,40 +130,17 @@ class QOCO(ConicSolver):
         else:
             return failure_solution(status, attr)
 
-    def apply(self, problem):
-        """Returns a new problem and data for inverting the new solution.
+    def get_canonical_maps(self, problem):
+        """Inputs ``P`` (upper triangle, if quadratic), ``c``, ``d``, ``A``, ``b``, ``G``, ``h``."""
+        return self._split_conic_canonical_maps(problem)
 
-        Returns
-        -------
-        tuple
-            (dict of arguments needed for the solver, inverse data)
-        """
-
-        # Format constraints
-        #
-        # QOCO requires constraints to be specified in the following order:
-        # 1. zero cone
-        # 2. non-negative orthant
-        # 3. soc
-
-        problem, data, inv_data = self._prepare_data_and_inv_data(problem)
-        p = problem.cone_dims.zero
-        m = p + problem.cone_dims.nonneg + sum(problem.cone_dims.soc)
-
-        if problem.P is None:
-            c, d, A, b = problem.apply_parameters()
-        else:
-            P, c, d, A, b = problem.apply_parameters(quad_obj=True)
-            data[s.P] = P
-
-        inv_data[s.OFFSET] = d
-
-        data[s.C] = c
-        data[s.A] = -A[0:p, :] if p > 0 else None
-        data[s.B] = b[0:p] if p > 0 else None
-        data[s.G] = -A[p::, :] if m > 0 else None
-        data[s.H] = b[p::] if m > 0 else None
-
+    def _apply_canonical_maps(self, problem, maps):
+        """QOCO takes ``None`` for absent equality or cone blocks."""
+        data, inv_data = super(QOCO, self)._apply_canonical_maps(problem, maps)
+        if problem.cone_dims.zero == 0:
+            data[s.A] = data[s.B] = None
+        if problem.constr_size == 0:
+            data[s.G] = data[s.H] = None
         return data, inv_data
 
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):

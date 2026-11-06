@@ -173,6 +173,8 @@ EXTRA_STATS = "solver_specific_stats"
 # Keys for problem data dict.
 C = "c"
 OFFSET = "offset"
+# Canonical-map key for the objective's constant offset.
+CANONICAL_OFFSET = "d"
 P = "P"
 Q = "q"
 A = "A"

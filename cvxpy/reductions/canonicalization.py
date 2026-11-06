@@ -21,6 +21,7 @@ from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions import cvxtypes
 from cvxpy.expressions.expression import Expression
 from cvxpy.problems.objective import Objective
+from cvxpy.reductions.canonical_maps import UnsupportedRecovery
 from cvxpy.reductions.inverse_data import InverseData
 from cvxpy.reductions.reduction import Reduction
 from cvxpy.reductions.solution import Solution
@@ -91,6 +92,21 @@ class Canonicalization(Reduction):
 
         return Solution(solution.status, solution.opt_val, pvars, dvars,
                         solution.attr)
+
+    def compose_recovery(self, inner, inverse_data):
+        """Variables keep their IDs; duals follow ``cons_id_map``.
+
+        A constraint rewritten into a different constraint type by
+        ``canon_methods`` has no generic dual recovery.
+        """
+        recovery = inner.pass_through(inverse_data.id_map, inverse_data.cons_id_map)
+        canon_methods = getattr(self, 'canon_methods', None) or {}
+        for cid, cons in inverse_data.id2cons.items():
+            if type(cons) in canon_methods:
+                recovery.dual[cid] = UnsupportedRecovery(
+                    f"{type(self).__name__} does not export the dual of "
+                    f"{type(cons).__name__} constraints")
+        return recovery
 
     @overload
     def canonicalize_tree(

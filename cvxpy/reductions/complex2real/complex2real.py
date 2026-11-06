@@ -31,6 +31,11 @@ from cvxpy.expressions import cvxtypes
 from cvxpy.expressions.variable import Variable
 from cvxpy.lin_ops import lin_utils as lu
 from cvxpy.reductions import InverseData, Solution
+from cvxpy.reductions.canonical_maps import (
+    ParameterTransform,
+    ParameterTransformKind,
+    UnsupportedRecovery,
+)
 from cvxpy.reductions.complex2real.canonicalizers import (
     CANON_METHODS as elim_cplx_methods,
 )
@@ -64,6 +69,9 @@ class Complex2Real(Reduction):
         # Stateful canonicalizers for tracking complex parameter mappings.
         # Set in apply() to enable DPP for complex parameters.
         self.canon_methods = None
+        # Intermediate transform IDs for the imaginary parts of Hermitian
+        # parameters, stable across calls to param_transforms.
+        self._imag_ids = {}
 
     def accepts(self, problem) -> bool:
         return accepts(problem)
@@ -98,32 +106,62 @@ class Complex2Real(Reduction):
                 result[orig.id] = ids
         return result
 
-    def update_parameters(self, problem) -> None:
-        """Update real/imag parameter values from complex parameters.
+    @property
+    def param_transforms(self):
+        """Complex parameters split into real and imaginary parameters.
 
-        Called at solve time in the DPP fast path. Complex parameters are
-        split into real/imag parameter pairs during canonicalization; this
-        method sets their values from the original complex parameter values.
-
-        For Hermitian parameters, the imaginary part uses a compact
-        representation (strict upper triangle only), so we extract those
-        elements from the skew-symmetric imaginary part.
+        For Hermitian parameters the imaginary part is the strict upper
+        triangle of the skew-symmetric imaginary matrix, so its ``Imag``
+        entry writes an intermediate ID that a ``Gather`` then reads.
         """
         if self.canon_methods is None:
-            return
-        for param in problem.parameters():
-            if param in self.canon_methods._parameters:
-                real_param, imag_param = self.canon_methods._parameters[param]
-                if real_param is not None:
-                    real_param.value = np.real(param.value)
-                if imag_param is not None:
-                    if param.is_hermitian():
-                        # Hermitian: extract strict upper triangle of imaginary part
-                        n = param.shape[0]
-                        imag_full = np.imag(param.value)
-                        imag_param.value = imag_full[np.triu_indices(n, k=1)]
-                    else:
-                        imag_param.value = np.imag(param.value)
+            return []
+        transforms = []
+        for param, (real_param, imag_param) in self.canon_methods._parameters.items():
+            if real_param is not None:
+                transforms.append(ParameterTransform(
+                    param.id, real_param.id, ParameterTransformKind.REAL))
+            if imag_param is None:
+                continue
+            if param.is_hermitian():
+                n = param.shape[0]
+                rows, cols = np.triu_indices(n, k=1)
+                imag_id = self._imag_ids.setdefault(param.id, lu.get_id())
+                transforms.append(ParameterTransform(
+                    param.id, imag_id, ParameterTransformKind.IMAG))
+                transforms.append(ParameterTransform(
+                    imag_id, imag_param.id, ParameterTransformKind.GATHER,
+                    rows + n * cols))
+            else:
+                transforms.append(ParameterTransform(
+                    param.id, imag_param.id, ParameterTransformKind.IMAG))
+        return transforms
+
+    def transform_parameters(self):
+        if self.canon_methods is None:
+            return {}
+        params = {}
+        for param, parts in self.canon_methods._parameters.items():
+            params[param.id] = param
+            for part in parts:
+                if part is not None:
+                    params[part.id] = part
+        return params
+
+    def compose_recovery(self, inner, inverse_data):
+        """Real variables and real constraints pass through.
+
+        Complex outputs have no real-valued recovery and are not exported.
+        """
+        primal = {}
+        for vid, var in inverse_data.id2var.items():
+            primal[vid] = inner.get_primal(vid) if var.is_real() else \
+                UnsupportedRecovery("complex variables are not supported")
+        dual = {}
+        for cid, cons in inverse_data.id2cons.items():
+            dual[cid] = inner.get_dual(cid) if cons.is_real() else \
+                UnsupportedRecovery("duals of complex constraints are not supported")
+        return inner.replace(primal=primal, dual=dual)
 
     def var_backward(self, del_vars):
         """Split complex gradients into real/imag gradients for backward diff.
