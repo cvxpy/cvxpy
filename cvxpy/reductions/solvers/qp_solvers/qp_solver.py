@@ -21,7 +21,7 @@ import cvxpy.settings as s
 from cvxpy.constraints import NonNeg, Zero
 from cvxpy.error import SolverError
 from cvxpy.reductions.cvx_attr2constr import convex_attributes
-from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ParamConeProg
+from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeProg
 from cvxpy.reductions.solvers.solver import Solver
 
 
@@ -51,7 +51,7 @@ class QpSolver(Solver):
     """
     A QP solver interface.
 
-    QP solvers accept ParamConeProg with only Zero and NonNeg constraints
+    QP solvers accept ConeProg with only Zero and NonNeg constraints
     (i.e., equality and inequality constraints) and convert them to the
     standard QP form:
 
@@ -73,7 +73,7 @@ class QpSolver(Solver):
         return True
 
     def accepts(self, problem):
-        return (isinstance(problem, ParamConeProg)
+        return (isinstance(problem, ConeProg)
                 and (self.MIP_CAPABLE or not problem.is_mixed_integer())
                 and not convex_attributes([problem.x])
                 and (len(problem.constraints) > 0 or not self.REQUIRES_CONSTR)
@@ -84,7 +84,7 @@ class QpSolver(Solver):
         """
         Construct QP problem data stored in a dictionary.
 
-        Converts a ParamConeProg (with only Zero and NonNeg constraints) to QP form:
+        Converts a ConeProg (with only Zero and NonNeg constraints) to QP form:
 
             minimize      1/2 x' P x + q' x
             subject to    A x =  b
