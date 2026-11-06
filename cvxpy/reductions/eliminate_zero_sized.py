@@ -17,6 +17,7 @@ limitations under the License.
 import numpy as np
 
 from cvxpy.expressions.constants.constant import Constant
+from cvxpy.reductions.canonical_maps import Recovery
 from cvxpy.reductions.reduction import Reduction
 
 
@@ -127,6 +128,20 @@ class EliminateZeroSized(Reduction):
             'cons_id_map': cons_id_map,
         }
         return new_problem, inverse_data
+
+    def compose_recovery(self, inner, inverse_data):
+        """Eliminated variables and dropped constraints recover as zeros."""
+        if not inverse_data:
+            return inner
+        primal = dict(inner.primal)
+        for vid, var in inverse_data.get('eliminated_vars', {}).items():
+            primal[vid] = Recovery.zeros('x', inner.n_x, var.size)
+        dual = dict(inner.dual)
+        for orig_id, new_id in inverse_data.get('cons_id_map', {}).items():
+            dual[orig_id] = inner.get_dual(new_id)
+        for cid, c in inverse_data.get('dropped_constraints', {}).items():
+            dual[cid] = Recovery.zeros('y', inner.n_y, c.size)
+        return inner.replace(primal=primal, dual=dual)
 
     def invert(self, solution, inverse_data):
         if not inverse_data:

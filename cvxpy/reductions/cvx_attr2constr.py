@@ -25,6 +25,7 @@ from cvxpy.expressions import cvxtypes
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.constants.parameter import Parameter
 from cvxpy.expressions.variable import Variable
+from cvxpy.reductions.canonical_maps import ParameterTransform, ParameterTransformKind
 from cvxpy.reductions.reduction import Reduction
 from cvxpy.reductions.solution import Solution
 
@@ -138,6 +139,34 @@ def lower_value(variable, value=None) -> np.ndarray:
             return np.asarray(value)
     else:
         return value
+
+
+def reduced_param_indices(param) -> np.ndarray:
+    """Indices with which ``lower_value`` gathers a parameter's free entries.
+
+    They address the Fortran-flattened value, or for a sparse parameter, its
+    stored entries (which are already the free entries).
+    """
+    if param.attributes['sparsity']:
+        return np.arange(param._reduced_size)
+    flat_idx = np.arange(param.size).reshape(param.shape, order='F')
+    return np.asarray(lower_value(param, flat_idx)).ravel(order='F').astype(np.int64)
+
+
+def recovered_leaf_indices(variable) -> np.ndarray | None:
+    """Gather indices expressing ``recover_value_for_leaf`` on the lowered value.
+
+    ``None`` when the recovered output is the lowered value itself: dense
+    variables (whose projection is not part of the export), and diagonal and
+    sparse variables, whose outputs are their stored entries.
+    """
+    if variable.attributes['diag'] or variable.attributes['sparsity'] or \
+            not attributes_present([variable], SYMMETRIC_ATTRIBUTES):
+        return None
+    n = variable.shape[-1]
+    size = int(np.prod(variable.shape[:-2], dtype=int)) * (n * (n + 1) // 2)
+    value = recover_value_for_leaf(variable, np.arange(size, dtype=float))
+    return value.ravel(order='F').astype(np.int64)
 
 
 def build_dim_reduced_expression(leaf, reduced_leaf):
@@ -304,11 +333,32 @@ class CvxAttr2Constr(Reduction):
     def param_id_map(self):
         return {orig.id: [new.id] for orig, new in self._parameters.items()}
 
-    def update_parameters(self, problem) -> None:
-        """Update reduced parameter values from original parameters."""
-        for param, reduced_param in self._parameters.items():
-            if param.value is not None:
-                reduced_param.value = lower_value(param)
+    @property
+    def param_transforms(self):
+        """Gather the free entries of each structured parameter."""
+        return [ParameterTransform(param.id, reduced.id, ParameterTransformKind.GATHER,
+                                   reduced_param_indices(param))
+                for param, reduced in self._parameters.items()]
+
+    def transform_parameters(self):
+        params = {}
+        for param, reduced in self._parameters.items():
+            params[param.id] = param
+            params[reduced.id] = reduced
+        return params
+
+    def compose_recovery(self, inner, inverse_data):
+        if not inverse_data:
+            return inner
+        id2new_var, id2old_var, cons_id_map = inverse_data
+        primal = {}
+        for vid, var in id2old_var.items():
+            rec = inner.get_primal(id2new_var[vid].id)
+            idx = recovered_leaf_indices(var)
+            primal[vid] = rec if idx is None else rec.take(idx)
+        return inner.replace(
+            primal=primal,
+            dual={orig: inner.get_dual(new) for orig, new in cons_id_map.items()})
 
     def var_backward(self, del_vars):
         """Transform variable gradients from outer (original) to inner (reduced)."""

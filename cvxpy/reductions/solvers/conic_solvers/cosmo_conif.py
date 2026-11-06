@@ -44,6 +44,10 @@ class COSMO(CLARABEL):
         """The name of the solver."""
         return "COSMO"
 
+    def get_canonical_maps(self, problem):
+        """Not yet converted; keep the inherited ``apply``."""
+        return NotImplemented
+
     def import_solver(self) -> None:
         """Imports the solver."""
         import cosmopy  # noqa F401
