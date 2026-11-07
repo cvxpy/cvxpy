@@ -19,6 +19,7 @@ import math
 import os
 import re
 import string
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -1742,6 +1743,14 @@ class TestGLPK(unittest.TestCase):
         sth.check_primal_feasibility(places=4)
         sth.check_complementarity(places=4)
         sth.check_dual_domains(places=4)
+
+    def test_glpk_mi_fresh_interpreter(self) -> None:
+        # GLPK_MI must import cvxopt.glpk itself: availability checks no longer import it, and
+        # an earlier GLPK solve in this process would hide a missing import.
+        code = ("import cvxpy as cp; x = cp.Variable(integer=True); "
+                "cp.Problem(cp.Minimize(x), [x >= 0.5]).solve(solver=cp.GLPK_MI); "
+                "assert abs(x.value - 1) < 1e-6")
+        subprocess.run([sys.executable, "-c", code], check=True)
 
     def test_glpk_mi_options(self) -> None:
         sth = sths.mi_lp_1()
