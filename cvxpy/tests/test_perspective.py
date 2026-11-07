@@ -476,3 +476,17 @@ def test_s_eq_0():
 
     assert np.isclose(x.value, -1)
     assert np.isclose(s.value, 0)
+
+
+@pytest.mark.parametrize("s_val", [0.0, 1e-9, 0.5, 1.0, 2.0])
+@pytest.mark.parametrize("x_val", [-2.0, 2.0])
+def test_evaluate_persp_recession(s_val, x_val):
+    x = cp.Variable()
+    s = cp.Variable(nonneg=True)
+    obj = cp.perspective(cp.abs(x) + 1, s, f_recession=cp.abs(x))
+    x.value = x_val
+    s.value = s_val
+
+    assert np.isclose(obj.value, abs(x_val) + s_val)
+    assert x.value == x_val
+    assert s.value == s_val
