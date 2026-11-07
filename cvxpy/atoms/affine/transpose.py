@@ -115,6 +115,10 @@ class transpose(AffAtom):
         tuple
             (LinOp for objective, list of constraints)
         """
+        if self.axes is not None:
+            axes = normalize_axis_tuple(self.axes, self.ndim)
+            if axes == tuple(range(self.ndim)):
+                return arg_objs[0], []
         return (lu.transpose(arg_objs[0], self.axes), [])
 
 def permute_dims(expr, axes: list[int]) -> Expression:
