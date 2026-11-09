@@ -52,6 +52,23 @@ class TestSumLargestCanonWarmStart:
         assert np.all(x.value <= t.value + q.value + 1e-10)
         assert np.all(t.value >= -1e-10)
 
+    @pytest.mark.parametrize("shape, k, keepdims", [
+        ((2, 3), 2, False),    # matrix argument
+        ((6,), 2.5, False),    # fractional k, as used by cvar
+        ((6,), 6, False),      # k equal to the size of x
+        ((6,), 2, True),       # keepdims gives q the shape (1,)
+    ])
+    def test_warmstart_shapes_and_k(self, shape, k, keepdims):
+        """The warm start is feasible and optimal for any shape of x and any k."""
+        x = Variable(shape)
+        x.value = np.array([1.0, 10.0, 6.0, 8.0, 3.0, 9.0]).reshape(shape)
+        expr = sum_largest(x, k, keepdims=keepdims)
+
+        obj, constraints = sum_largest_canon(expr, [x])
+
+        assert all(c.value() for c in constraints)
+        np.testing.assert_allclose(obj.value, expr.value)
+
 
 @pytest.mark.skipif('IPOPT' not in INSTALLED_SOLVERS, reason='IPOPT is not installed.')
 class TestNonsmoothNontrivial():
