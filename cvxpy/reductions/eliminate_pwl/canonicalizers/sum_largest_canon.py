@@ -46,12 +46,11 @@ def sum_largest_canon(expr, args, solver_context: SolverInfo | None = None):
     # for DNLP we must initialize the new variable (DNLP guarantees that
     # x.value will be set when this function is called). The initialization
     # below is motivated by the optimal solution of min sum(t) + kq subject
-    # to x <= t + q, 0 <= t
+    # to x <= t + q, 0 <= t: q is the (floor(k) + 1)-th largest entry of x
+    # (the ceil(k)-th largest for fractional k) and t = max(x - q, 0).
     if axis is None and x.value is not None:
-        sorted_indices = np.argsort(x.value)
-        idx_of_smallest = sorted_indices[:-k]
-        idx_of_largest = sorted_indices[-k:]
-        q.value = np.max(x.value[idx_of_smallest])
-        t.value = np.zeros_like(x.value)
-        t.value[idx_of_largest] = x.value[idx_of_largest] - q.value
+        x_sorted = np.sort(x.value, axis=None)
+        q_value = x_sorted[-min(int(np.floor(k)) + 1, x_sorted.size)]
+        q.value = np.full(q.shape, q_value)
+        t.value = np.maximum(x.value - q_value, 0)
     return obj, constraints
