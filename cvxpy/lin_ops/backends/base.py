@@ -857,12 +857,9 @@ class PythonCanonBackend(CanonBackend):
         """
         res = self.hstack(lin=lin, view=view)
         axis = lin.data[0]
-        if axis is None:
-            # In this case following numpy, arrays are flattened in 'C' order
-            order = np.arange(sum(np.prod(arg.shape, dtype=int) for arg in lin.args))
-            res.select_rows(order)
-            return res
-
+        # The rows of each argument are in 'F' order. Concatenating the index arrays with
+        # NumPy gives the right permutation for every axis, including axis=None, where
+        # NumPy flattens each argument in 'C' order first.
         offset = 0
         indices = []
         for arg in lin.args:
