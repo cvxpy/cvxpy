@@ -113,6 +113,29 @@ class TestAtoms(BaseTest):
         self.assertEqual(prob.status, cp.OPTIMAL)
         self.assertItemsAlmostEqual(t.value, np.linalg.norm(X_val, 1, axis=1, keepdims=True))
 
+    def test_pnorm2_keepdims_no_axis(self) -> None:
+        """Test that the 2-norm with keepdims=True and no axis canonicalizes.
+        """
+        # keepdims=True gives the norm an all-ones shape such as (1, 1),
+        # which the SOC canonicalization used to reject with an AssertionError.
+        for shape in [(4,), (3, 4), (2, 3, 4)]:
+            for approx in [True, False]:
+                with self.subTest(shape=shape, approx=approx):
+                    X_val = np.arange(1.0, 1.0 + np.prod(shape)).reshape(shape)
+                    X = Variable(shape)
+                    expr = cp.pnorm(X, 2, keepdims=True, approx=approx)
+                    self.assertEqual(expr.shape, (1,) * len(shape))
+                    t = Variable(expr.shape)
+                    prob = cp.Problem(cp.Minimize(cp.sum(t)), [X == X_val, expr <= t])
+                    prob.solve(solver=cp.CLARABEL)
+                    self.assertEqual(prob.status, cp.OPTIMAL)
+                    self.assertItemsAlmostEqual(t.value, np.linalg.norm(X_val.ravel()))
+        # cp.norm with its default p=2 takes the same path for a vector.
+        x = Variable(2)
+        prob = cp.Problem(cp.Minimize(cp.sum(cp.norm(x, keepdims=True))), [x == [3.0, 4.0]])
+        prob.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(prob.value, 5.0)
+
     def test_list_input(self) -> None:
         """Test that list input is rejected.
         """
