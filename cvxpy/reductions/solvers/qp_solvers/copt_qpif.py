@@ -5,6 +5,7 @@ import numpy as np
 import scipy.sparse as sp
 
 import cvxpy.settings as s
+from cvxpy.error import SolverError
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
@@ -211,6 +212,11 @@ class COPT(QpSolver):
                 solution[s.VALUE] = model.objval
                 solution[s.PRIMAL] = np.array(model.getValues())
                 solution['y'] = -np.array(model.getDuals())
+        except copt.CoptError as e:
+            # Report COPT's own message (e.g. a size-limited license)
+            # unless a solution was found before the error.
+            if not (model.haslpsol or model.hasmipsol):
+                raise SolverError(f"Solver '{self.name()}' failed: {e}") from e
         except Exception:
             pass
 

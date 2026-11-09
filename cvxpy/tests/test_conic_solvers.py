@@ -2107,6 +2107,35 @@ class TestCPLEX(BaseTest):
     def test_cplex_lp_bound_attr(self) -> None:
         StandardTestLPs.test_lp_bound_attr(solver='CPLEX')
 
+    def test_cplex_error_message(self) -> None:
+        """An error raised by CPLEX itself (e.g. a size-limited edition) must show
+        up in the SolverError instead of the generic failure message.
+        """
+        import cplex
+
+        prob = cp.Problem(cp.Minimize(self.a), [cp.norm(self.x) <= self.a])
+        error = cplex.exceptions.CplexSolverError("Problem size limits exceeded", None, 1016)
+        with mock.patch.object(cplex.Cplex, "solve", side_effect=error):
+            with pytest.raises(cp.error.SolverError, match="Problem size limits") as exc_info:
+                prob.solve(solver=cp.CPLEX)
+        assert exc_info.value.__cause__ is error
+
+    def test_cplex_error_keeps_solution(self) -> None:
+        """A solution found before the error is still returned."""
+        import cplex
+
+        solve = cplex.Cplex.solve
+
+        def solve_then_fail(model):
+            solve(model)
+            raise cplex.exceptions.CplexSolverError("Failed after solving", None, 1)
+
+        prob = cp.Problem(cp.Minimize(self.a), [cp.norm(self.x) <= self.a, self.x == 1])
+        with mock.patch.object(cplex.Cplex, "solve", solve_then_fail):
+            prob.solve(solver=cp.CPLEX)
+        assert prob.status == cp.OPTIMAL
+        self.assertAlmostEqual(self.a.value, np.sqrt(2), places=4)
+
 
 @unittest.skipUnless('GUROBI' in INSTALLED_SOLVERS, 'GUROBI is not installed.')
 class TestGUROBI(BaseTest):
@@ -3555,6 +3584,21 @@ class TestCOPT(unittest.TestCase):
 
     def test_copt_infeasible_lp_eq(self) -> None:
         StandardTestInfeasibleProblems.test_lp_eq_constraints(solver='COPT')
+
+    def test_copt_error_message(self) -> None:
+        """An error raised by COPT itself (e.g. a size-limited license) must show
+        up in the SolverError instead of the generic failure message.
+        """
+        import coptpy
+
+        x = cp.Variable(2)
+        a = cp.Variable()
+        prob = cp.Problem(cp.Minimize(a), [cp.norm(x) <= a])
+        error = coptpy.CoptError(4, "(LICENSE) Fail to solve problem")
+        with mock.patch.object(coptpy.Model, "solve", side_effect=error):
+            with pytest.raises(cp.error.SolverError, match="Fail to solve") as exc_info:
+                prob.solve(solver=cp.COPT)
+        assert exc_info.value.__cause__ is error
 
 
 @unittest.skipUnless('COSMO' in INSTALLED_SOLVERS, 'COSMO is not installed.')
