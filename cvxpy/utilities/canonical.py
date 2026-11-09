@@ -118,6 +118,19 @@ class Canonical(metaclass=abc.ABCMeta):
         """
         return True
 
+    def __setstate__(self, state) -> None:
+        """
+        Called when unpickling.
+        Unpickled objects keep their ids. In a fresh process (e.g. a ``spawn``
+        multiprocessing worker) the id counter starts over, so it must be moved past
+        the restored ids, otherwise objects created afterwards could reuse them.
+        """
+        self.__dict__.update(state)
+        for key in ("id", "constr_id"):
+            obj_id = state.get(key)
+            if isinstance(obj_id, int) and obj_id >= lu.ID_COUNTER.count:
+                lu.ID_COUNTER.count = obj_id + 1
+
     def __copy__(self):
         """
         Called by copy.copy()
