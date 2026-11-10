@@ -1,3 +1,4 @@
+from cvxpy.settings import sparse_density_context as sparse_density_context
 """
 Copyright, the CVXPY authors
 
