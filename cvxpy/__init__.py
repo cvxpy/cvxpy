@@ -123,4 +123,5 @@ from cvxpy.settings import (
     KNITRO as KNITRO,
     get_num_threads as get_num_threads,
     set_num_threads as set_num_threads,
+    sparse_density_context as sparse_density_context,
 )
