@@ -670,7 +670,9 @@ class Problem(u.Canonical):
             Raised if no suitable solver exists among the installed solvers,
             or if an unanticipated error is encountered.
         """
-        func_name = kwargs.pop("method", None)
+        sparse_density_threshold = kwargs.pop("sparse_density_threshold", None)
+        with s.sparse_density_context(sparse_density_threshold):
+            func_name = kwargs.pop("method", None)
         if func_name is not None:
             solve_func = Problem.REGISTERED_SOLVE_METHODS[func_name]
         else:
