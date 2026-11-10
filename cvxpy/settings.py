@@ -16,6 +16,8 @@ limitations under the License.
 import logging
 import os
 import sys
+from contextlib import contextmanager
+from typing import Generator, Optional
 
 LOGGER = logging.getLogger("__cvxpy__")
 LOGGER.propagate = False
@@ -256,10 +258,11 @@ def set_num_threads(num_threads: int) -> None:
 def get_num_threads() -> int:
     return NUM_THREADS
 
-from contextlib import contextmanager
 
 @contextmanager
-def sparse_density_context(threshold=None):
+def sparse_density_context(
+    threshold: Optional[float] = None
+) -> Generator[None, None, None]:
     """Context manager to temporarily override SPARSE_DENSITY_THRESHOLD."""
     global SPARSE_DENSITY_THRESHOLD
     if threshold is None:

@@ -673,18 +673,18 @@ class Problem(u.Canonical):
         sparse_density_threshold = kwargs.pop("sparse_density_threshold", None)
         with s.sparse_density_context(sparse_density_threshold):
             func_name = kwargs.pop("method", None)
-        if func_name is not None:
-            solve_func = Problem.REGISTERED_SOLVE_METHODS[func_name]
-        else:
-            solve_func = Problem._solve
-        solver_path = kwargs.pop("solver_path", None)
-        if solver_path is not None:
-            solver = kwargs.get("solver", None)
-            if solver is not None:
-                raise ValueError(
-                    "Cannot specify both 'solver' and 'solver_path'. Please choose one.")
-            return self._solve_solver_path(solve_func,solver_path, args, kwargs)
-        return solve_func(self, *args, **kwargs)
+            if func_name is not None:
+                solve_func = Problem.REGISTERED_SOLVE_METHODS[func_name]
+            else:
+                solve_func = Problem._solve
+            solver_path = kwargs.pop("solver_path", None)
+            if solver_path is not None:
+                solver = kwargs.get("solver", None)
+                if solver is not None:
+                    raise ValueError(
+                        "Cannot specify both 'solver' and 'solver_path'. Please choose one.")
+                return self._solve_solver_path(solve_func, solver_path, args, kwargs)
+            return solve_func(self, *args, **kwargs)
 
     @classmethod
     def register_solve(cls, name: str, func) -> None:
