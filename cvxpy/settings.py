@@ -255,3 +255,20 @@ def set_num_threads(num_threads: int) -> None:
 
 def get_num_threads() -> int:
     return NUM_THREADS
+
+from contextlib import contextmanager
+
+@contextmanager
+def sparse_density_context(threshold=None):
+    """Context manager to temporarily override SPARSE_DENSITY_THRESHOLD."""
+    global SPARSE_DENSITY_THRESHOLD
+    if threshold is None:
+        yield
+        return
+    original = SPARSE_DENSITY_THRESHOLD
+    try:
+        SPARSE_DENSITY_THRESHOLD = float(threshold)
+        yield
+    finally:
+        SPARSE_DENSITY_THRESHOLD = original
+
