@@ -273,7 +273,11 @@ keyword argument to the ``.solve()`` call, e.g. ``problem.solve(canon_backend=cp
 This can speed up the canonicalization time significantly for some problems.
 Currently, the following canonicalization backends are supported:
 
-*  CPP (default): The original C++ implementation, also referred to as CVXCORE.
+*  | DIFFENGINE (default for parameter-free problems, ``ignore_dpp=True`` and non-DPP
+   | solves): a C autodiff engine that
+   | evaluates the expression trees directly and keeps parameters symbolic, rather than
+   | building parameter tensors.
+*  CPP (default otherwise): The original C++ implementation, also referred to as CVXCORE.
 *  | SCIPY: A pure Python implementation based on the SciPy sparse module.
    | Generally fast for problems that are already vectorized.
 *  | COO: A pure Python implementation using 3D COO sparse tensors with O(nnz) operations.
