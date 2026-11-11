@@ -204,6 +204,10 @@ atoms_minimize = [
 
     (cp.quad_over_lin, tuple(), [[[-1, 2, -2], [-1, 2, -2]], 2], Constant([2 * 4.5])),
     (cp.quad_over_lin, tuple(), [v_np, 2], Constant([4.5])),
+    # quad_over_root: case 2 (4ac >= b^2), a=2 b=1 c=1 x=3 y=4 => (18+3+1)/2=11
+    (lambda x, y: cp.quad_over_root(x, y, 2, 1, 1), tuple(), [3.0, 4.0], Constant([11.0])),
+    # quad_over_root: case 1 (4ac < b^2), a=2 b=3 c=1 d=1 x=2 y=4 => (8+6+1)/2=7.5
+    (lambda x, y: cp.quad_over_root(x, y, 2, 3, 1, d=1), tuple(), [2.0, 4.0], Constant([7.5])),
     (lambda x: cp.norm(x, 2), tuple(), [[[2, 0], [0, 1]]], Constant([2])),
     (lambda x: cp.norm(x, 2), tuple(),
      [[[3, 4, 5], [6, 7, 8], [9, 10, 11]]], Constant([22.368559552680377])),
