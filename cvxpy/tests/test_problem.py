@@ -2065,6 +2065,108 @@ class TestProblem(BaseTest):
         self.assertAlmostEqual(result, 5.0)
         self.assertAlmostEqual(new_prob.variables()[0].value, 1.0)
 
+    def test_pickle_after_solve(self) -> None:
+        """Test pickling problems after solve across multiple solvers and protocols.
+
+        Verifies that:
+        - Native solver cache entries (e.g. CLARABEL, OSQP, HIGHS) are safely dropped.
+        - Serializable cache entries (e.g. SCS) are preserved.
+        - Problem compilation cache (_cache.param_prog) is preserved.
+        - SolverStats and extra_stats (including OSQP) survive serialization.
+        - Post-restore solves with warm_start=True produce correct results.
+        """
+        tested_solvers = [cp.CLARABEL, cp.OSQP, cp.SCS, cp.HIGHS]
+        available_solvers = [s for s in tested_solvers if s in cp.installed_solvers()]
+        protocols = [0, pickle.DEFAULT_PROTOCOL, pickle.HIGHEST_PROTOCOL]
+
+        for solver in available_solvers:
+            for proto in protocols:
+                with self.subTest(solver=solver, protocol=proto):
+                    x = cp.Variable(4)
+                    cap = cp.Parameter(value=5.0, name="cap")
+                    prob = cp.Problem(
+                        cp.Maximize(cp.sum(x)), [x >= 0, x <= cap]
+                    )
+                    prob.solve(solver=solver)
+
+                    # Verify pre-pickle state
+                    self.assertIn(solver, prob._solver_cache)
+
+                    pickled_bytes = pickle.dumps(prob, protocol=proto)
+                    restored = pickle.loads(pickled_bytes)
+
+                    # Verify cache handling:
+                    # SCS stores a picklable dict; CLARABEL, OSQP, HIGHS store native handles
+                    if solver == cp.SCS:
+                        self.assertIn(solver, restored._solver_cache)
+                    else:
+                        self.assertNotIn(solver, restored._solver_cache)
+
+                    # Verify compilation cache is preserved
+                    self.assertIsNotNone(restored._cache.param_prog)
+
+                    # Verify solver stats survived
+                    self.assertIsNotNone(restored.solver_stats)
+                    if solver == cp.OSQP:
+                        self.assertIsNotNone(restored.solver_stats.extra_stats)
+                        self.assertAlmostEqual(
+                            restored.solver_stats.extra_stats.info.obj_val, -20.0, places=3
+                        )
+
+                    # Post-restore warm-start re-solve with updated parameter
+                    restored.parameters()[0].value = 6.0
+                    result = restored.solve(solver=solver, warm_start=True)
+                    self.assertAlmostEqual(result, 24.0, places=3)
+                    self.assertAlmostEqual(cap.value, 5.0)
+
+    def test_pickle_unsolved_problem(self) -> None:
+        """Test pickling an unsolved parameterized problem across protocols."""
+        x = cp.Variable(2)
+        p = cp.Parameter(value=3.0)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(x)), [x >= p])
+
+        for proto in (0, pickle.DEFAULT_PROTOCOL, pickle.HIGHEST_PROTOCOL):
+            restored = pickle.loads(pickle.dumps(prob, protocol=proto))
+            self.assertEqual(restored._solver_cache, {})
+            self.assertIsNone(restored.value)
+            restored.parameters()[0].value = 4.0
+            res = restored.solve(solver=cp.CLARABEL)
+            self.assertAlmostEqual(res, 32.0, places=3)
+
+    def test_pickle_solved_twice(self) -> None:
+        """Test pickling a problem that was solved twice before pickling."""
+        x = cp.Variable(2)
+        p = cp.Parameter(value=2.0)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(x)), [x >= p])
+
+        # First solve
+        prob.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(prob.value, 8.0, places=3)
+
+        # Second solve with updated parameter
+        p.value = 3.0
+        prob.solve(solver=cp.CLARABEL, warm_start=True)
+        self.assertAlmostEqual(prob.value, 18.0, places=3)
+
+        # Pickle, restore, update parameter, solve third time
+        restored = pickle.loads(pickle.dumps(prob))
+        restored.parameters()[0].value = 4.0
+        res = restored.solve(solver=cp.CLARABEL, warm_start=True)
+        self.assertAlmostEqual(res, 32.0, places=3)
+
+    def test_copy_after_solve(self) -> None:
+        """Test shallow copy (copy.copy) of a solved problem."""
+        import copy
+        x = cp.Variable(2)
+        p = cp.Parameter(value=2.0)
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(x)), [x >= p])
+        prob.solve(solver=cp.CLARABEL)
+
+        copied = copy.copy(prob)
+        copied.parameters()[0].value = 3.0
+        res = copied.solve(solver=cp.CLARABEL, warm_start=True)
+        self.assertAlmostEqual(res, 18.0, places=3)
+
     def test_spare_int8_matrix(self) -> None:
         """Test problem with sparse int8 matrix.
            issue #809.
