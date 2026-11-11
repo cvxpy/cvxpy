@@ -13,6 +13,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import pickle
+
 import numpy as np
 
 import cvxpy.settings as s
@@ -98,3 +100,43 @@ class Solution:
                                              self.primal_vars,
                                              self.dual_vars,
                                              self.attr)
+
+    def __getstate__(self) -> dict:
+        """Return a pickleable state dict for Solution.
+
+        Entries in ``attr`` that cannot be pickled are omitted to allow
+        serialization of the solution.
+        """
+        state = self.__dict__.copy()
+        if "attr" in state and isinstance(state["attr"], dict):
+            clean_attr = {}
+            for k, v in state["attr"].items():
+                # OSQP results wrap info in a SimpleNamespace containing an unpicklable
+                # _pybind11_conduit_v1_ bound method; strip it lazily upon serialization.
+                if k == s.EXTRA_STATS and hasattr(v, "info") and hasattr(
+                    v.info, "_pybind11_conduit_v1_"
+                ):
+                    try:
+                        delattr(v.info, "_pybind11_conduit_v1_")
+                    except (AttributeError, TypeError):
+                        pass
+                try:
+                    pickle.dumps(v, protocol=pickle.HIGHEST_PROTOCOL)
+                    clean_attr[k] = v
+                except (pickle.PicklingError, TypeError, AttributeError):
+                    s.LOGGER.debug(
+                        "Dropping unpicklable Solution.attr[%r] of type %s during serialization.",
+                        k,
+                        type(v).__name__,
+                    )
+            state["attr"] = clean_attr
+        return state
+
+    def __setstate__(self, state: dict) -> None:
+        self.__dict__.update(state)
+        if "attr" not in self.__dict__ or self.attr is None:
+            self.attr = {}
+        if "primal_vars" not in self.__dict__ or self.primal_vars is None:
+            self.primal_vars = {}
+        if "dual_vars" not in self.__dict__ or self.dual_vars is None:
+            self.dual_vars = {}
