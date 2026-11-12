@@ -35,9 +35,11 @@ from cvxpy.constraints import (
 )
 from cvxpy.cvxcore.python import canonInterface
 from cvxpy.expressions.variable import Variable
+from cvxpy.lin_ops.lin_op import CONSTANT_ID
 from cvxpy.problems.objective import Minimize
 from cvxpy.problems.param_prob import ParamProb
 from cvxpy.reductions import InverseData, Solution, cvx_attr2constr
+from cvxpy.reductions.canonical_maps import pack_param_vec, prepare_tensor
 from cvxpy.reductions.matrix_stuffing import (
     MatrixStuffing,
     _has_parametric_bounds,
@@ -286,6 +288,47 @@ class ParamConeProg(ParamProb):
             ub_tensor=self.ub_tensor,
             dir_cones=self.dir_cones,
         )
+
+    def param_vec(self) -> np.ndarray:
+        """The current compiled parameter values, packed without the constant.
+
+        Unset parameters contribute NaN, as in ``apply_parameters``, so that
+        data can be compiled before values are assigned.
+        """
+        param_id_to_col = {pid: col for pid, col in self.param_id_to_col.items()
+                           if pid != CONSTANT_ID}
+        values = {}
+        for pid in param_id_to_col:
+            value = self.id_to_param[pid].value
+            values[pid] = np.full(self.param_id_to_size[pid], np.nan) if value is None \
+                else value
+        return pack_param_vec(values, param_id_to_col, self.param_id_to_size,
+                              self.total_param_size)
+
+    def input_tensors(self):
+        """The stuffed tensors, reduced to their nonzero rows (cached).
+
+        Returns ``(n_params, q, A, P)`` as
+        :class:`~cvxpy.reductions.canonical_maps.StuffedTensor` objects (or
+        ``None``). Each tensor has ``n_params + 1`` columns, the last holding
+        the constant offset. ``A`` stacks the ``[A | b]`` entries in Fortran
+        order; ``q`` stacks ``q`` and ``d``.
+        """
+        cache = self.__dict__.get('_input_tensors')
+        if cache is None:
+            A, P = prepare_tensor(self.A), prepare_tensor(self.P)
+            cache = (self.total_param_size, prepare_tensor(self.q), A, P)
+            self._input_tensors = cache
+            # TRANSITIONAL: interfaces evaluating canonical maps no longer call
+            # apply_parameters(), which used to fill these caches. CVXPYlayers
+            # still reads them for solvers without canonical inputs and for
+            # custom solvers, so fill them from the same work. Remove once
+            # nothing outside apply_parameters() reads reduced_A/reduced_P.
+            if A is not None:
+                self.reduced_A.cache_reduced(A.nonzero_rows, A.reduced)
+            if P is not None:
+                self.reduced_P.cache_reduced(P.nonzero_rows, P.reduced)
+        return cache
 
     def is_mixed_integer(self) -> bool:
         """Is the problem mixed-integer?"""
@@ -557,6 +600,16 @@ class ConeMatrixStuffing(MatrixStuffing):
             ub_tensor=ub_tensor,
         )
         return new_prob, inverse_data
+
+    def compose_recovery(self, inner, inverse_data):
+        """Each variable is a slice of the stuffed variable ``x``."""
+        (x_rec,) = inner.primal.values()
+        primal = {}
+        for var_id, offset in inverse_data.var_offsets.items():
+            size = int(np.prod(inverse_data.var_shapes[var_id], dtype=int))
+            primal[var_id] = x_rec.take(np.arange(offset, offset + size))
+        dual = {old: inner.get_dual(new) for old, new in inverse_data.cons_id_map.items()}
+        return inner.replace(primal=primal, dual=dual)
 
     def invert(self, solution, inverse_data):
         """Retrieves a solution to the original problem"""

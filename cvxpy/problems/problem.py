@@ -39,6 +39,7 @@ from cvxpy.expressions.variable import Variable
 from cvxpy.interface.matrix_utilities import ScalarValue, scalar_value
 from cvxpy.problems.objective import Maximize, Minimize
 from cvxpy.reductions import InverseData
+from cvxpy.reductions.canonical_maps import CanonicalMaps
 from cvxpy.reductions.chain import Chain
 from cvxpy.reductions.dqcp2dcp import dqcp2dcp
 from cvxpy.reductions.eval_params import EvalParams
@@ -46,6 +47,7 @@ from cvxpy.reductions.flip_objective import FlipObjective
 from cvxpy.reductions.solution import INF_OR_UNB_MESSAGE
 from cvxpy.reductions.solvers import bisection
 from cvxpy.reductions.solvers import defines as slv_def
+from cvxpy.reductions.solvers.canonical_export import build_canonical_maps
 from cvxpy.reductions.solvers.solver_inverse_data import SolverInverseData
 from cvxpy.reductions.solvers.solving_chain import (
     SolvingChain,
@@ -896,6 +898,89 @@ class Problem(u.Canonical):
         # Convert last inverse data (which is from the solver) to a SolverInverseData object.
         inverse_data[-1] = SolverInverseData(inverse_data[-1], solving_chain.solver, solver_opts)
         return data, solving_chain, inverse_data
+
+    def get_canonical_maps(
+        self, solver: str,
+        variables: list[Variable] | None = None,
+        *,
+        gp: bool = False,
+        **compilation_options,
+    ) -> CanonicalMaps:
+        """Export the maps between parameters, solver inputs, and solutions.
+
+        The export reuses the compilation (and cache) of
+        :meth:`get_problem_data` and has three parts, used in order:
+
+        1. **Parameter preparation.** ``param_transforms`` lists the
+           reductions' parameter transformations (gather, log, real, imag)
+           in execution order. Evaluate them starting from the original
+           parameter values (sparse parameters contribute their stored
+           entries), then pack the compiled parameters into ``param_vec``
+           using ``param_id_to_col`` and ``param_id_to_size`` (Fortran
+           order). Compiled parameters that no reduction replaced keep their
+           original values.
+        2. **Solver inputs.** ``maps[name]`` is a pair ``(M, v)`` such that
+           ``M @ param_vec + v`` is the solver input ``name``, in the
+           solver's own format. For a sparse matrix input it produces the
+           stored values, and ``structures[name]`` gives the structure.
+           ``maps['d']`` is the objective's constant offset.
+        3. **Solution recovery.** ``primal_recovery[var.id]`` maps the
+           solver's primal vector to the variable's entries (Fortran order):
+           an index array, ``Exp(indices)`` for DGP variables, or a sparse
+           matrix. ``dual_recovery[dual_var.id]`` likewise maps the solver's
+           dual vector to each requested dual variable. Sparse and diagonal
+           variables recover their stored entries only; see ``primal_vars``.
+
+        ``CanonicalMaps.prepare_param_vec``, ``evaluate`` and ``recover``
+        implement the three stages with NumPy. Solving and differentiating
+        through the solve remain with the caller.
+
+        Only some solver interfaces export maps so far; the others raise
+        ``NotImplementedError``.
+
+        Arguments
+        ---------
+        solver : str
+            The solver whose input format the maps target.
+        variables : list of Variable, optional
+            The outputs to recover: primal variables of the problem and/or
+            dual variables of its constraints
+            (``constraint.dual_variables[i]``). Defaults to all primal
+            variables and all duals of ``problem.constraints``.
+        gp : bool, optional
+            Whether to parse the problem as a disciplined geometric program.
+        **compilation_options
+            Further keyword arguments to :meth:`get_problem_data`, such as
+            ``canon_backend`` or ``solver_opts``. The problem must be DPP.
+
+        Returns
+        -------
+        CanonicalMaps
+
+        Raises
+        ------
+        DPPError
+            If the problem is not DPP.
+        ValueError
+            If the problem does not compile to a parametrized program (for
+            example, because it has no variables), or if ``variables``
+            contains a variable that is not an output of the problem.
+        NotImplementedError
+            If the solver interface does not export canonical maps, or if a
+            requested output cannot be expressed by the recovery maps (for
+            example, complex variables). Pass ``variables`` to request only
+            supported outputs.
+        """
+        compilation_options.setdefault('enforce_dpp', True)
+        data, chain, inverse_data = self.get_problem_data(
+            solver, gp=gp, **compilation_options)
+        if not isinstance(data, dict) or s.PARAM_PROB not in data:
+            raise ValueError(
+                "Canonical maps are unavailable for this problem; it does not "
+                "compile to a parametrized program (for example, because it "
+                "has no variables).")
+        return build_canonical_maps(self, chain, data[s.PARAM_PROB],
+                                    inverse_data, variables)
 
     def _construct_chain(
             self,

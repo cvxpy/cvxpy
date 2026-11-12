@@ -16,6 +16,12 @@ limitations under the License.
 
 from abc import ABCMeta, abstractmethod
 
+from cvxpy.reductions.canonical_maps import (
+    ParameterTransform,
+    RecoveryMap,
+    update_transformed_parameters,
+)
+
 
 class Reduction(metaclass=ABCMeta):
     """Abstract base class for reductions.
@@ -72,17 +78,57 @@ class Reduction(metaclass=ABCMeta):
     def update_parameters(self, problem) -> None:
         """Update transformed parameter values at solve time.
 
-        Called in the DPP fast path before solving. Reductions that transform
-        parameters (e.g., Dgp2Dcp applies log(), Complex2Real splits into
-        real/imag) override this method to update the transformed parameter
-        values from the original parameter values.
+        Called in the DPP fast path before solving. Evaluates this
+        reduction's ``param_transforms`` with NumPy/SciPy, assigning the
+        parameters it created from the parameters it replaced.
 
         Parameters
         ----------
         problem : Problem
             The original problem with parameter values set.
         """
-        pass
+        transforms = self.param_transforms
+        if transforms:
+            update_transformed_parameters(transforms, self.transform_parameters())
+
+    @property
+    def param_transforms(self) -> list[ParameterTransform]:
+        """The parameter transformations this reduction performs, in order.
+
+        Reductions that replace parameters (e.g., Dgp2Dcp applies log(),
+        Complex2Real splits into real/imag, CvxAttr2Constr gathers the free
+        entries of structured parameters) override this. Each entry reads one
+        source ID and writes one target ID; see
+        :class:`~cvxpy.reductions.canonical_maps.ParameterTransform`.
+        """
+        return []
+
+    def transform_parameters(self) -> dict:
+        """The ``Parameter`` objects named in ``param_transforms``, by ID.
+
+        IDs without an entry are intermediate values.
+        """
+        return {}
+
+    def compose_recovery(self, inner: RecoveryMap, inverse_data) -> RecoveryMap:
+        """Express this reduction's ``invert`` as linear recovery maps.
+
+        Given recoveries of the reduced problem's variables and duals (in
+        terms of the solver's output vectors), return recoveries of this
+        reduction's input problem. Used by ``Problem.get_canonical_maps()``.
+        A reduction that cannot express its inversion this way leaves this
+        unimplemented, or marks individual outputs as
+        :class:`~cvxpy.reductions.canonical_maps.UnsupportedRecovery`.
+
+        Parameters
+        ----------
+        inner : RecoveryMap
+            Recoveries for the problem this reduction produced.
+        inverse_data
+            The inverse data this reduction's ``apply`` returned.
+        """
+        raise NotImplementedError(
+            f"The {type(self).__name__} reduction does not support canonical maps.")
 
     @property
     def var_id_map(self):

@@ -30,7 +30,8 @@ jobs:
           uv pip install pytest
       - name: Install CVXPYlayers
         run: |
-          git clone https://github.com/cvxpy/cvxpylayers.git
+          # TEMPORARY: cvxpylayers from the canon-param-api branch until its PR is merged; then revert.
+          git clone --branch canon-param-api https://github.com/cvxpy/cvxpylayers.git
           cd cvxpylayers
           uv pip install ".[torch, jax]"
           uv pip install "mlx[cpu]" "mpax"
@@ -69,6 +70,8 @@ jobs:
     name: test_cvxpygen (${{ matrix.name }})
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0  # setuptools-scm needs tags to compute the version
       - name: Install uv
         uses: astral-sh/setup-uv@v7
         with:
@@ -86,13 +89,15 @@ jobs:
       - name: Install CVXPYlayers
         if: matrix.cvxpylayers
         run: |
-          git clone https://github.com/cvxpy/cvxpylayers.git
+          # TEMPORARY: cvxpylayers from the canon-param-api branch until its PR is merged; then revert.
+          git clone --branch canon-param-api https://github.com/cvxpy/cvxpylayers.git
           cd cvxpylayers
           uv pip install ".[torch, jax]"
           uv pip install "mlx[cpu]" "mpax"
       - name: Install CVXPYgen
         run: |
-          git clone --recurse-submodules https://github.com/cvxgrp/cvxpygen.git
+          # TEMPORARY: cvxpygen from the canon-param-api branch until its PR is merged; then revert.
+          git clone --recurse-submodules --branch canon-param-api https://github.com/cvxgrp/cvxpygen.git
           cd cvxpygen
           uv pip install .[dev]
       - name: Run CVXPYgen tests

@@ -139,6 +139,23 @@ class ReducedMat:
             self.mapping_nonzero = canonInterface.A_mapping_nonzero_rows(
                 self.matrix_data, self.var_len)
 
+    def cache_reduced(self, nonzero_rows: np.ndarray, reduced_mat) -> None:
+        """Fill the cache from an already reduced tensor.
+
+        ``reduced_mat`` holds the nonzero rows ``nonzero_rows`` (increasing)
+        of ``matrix_data``, as ``reduce_problem_data_tensor`` returns them.
+        """
+        if self.reduced_mat is not None or self.matrix_data is None \
+                or np.prod(self.matrix_data.shape) == 0:
+            return
+        n_cols = self.var_len + (0 if self.quad_form else 1)
+        n_constr = self.matrix_data.shape[0] // n_cols
+        cols = nonzero_rows // n_constr
+        indptr = np.zeros(n_cols + 1, dtype=np.int64)
+        np.cumsum(np.bincount(cols, minlength=n_cols), out=indptr[1:])
+        self.reduced_mat = reduced_mat
+        self.problem_data_index = (nonzero_rows % n_constr, indptr, (n_constr, n_cols))
+
     def get_matrix_from_tensor(self, param_vec: np.ndarray, with_offset: bool = True
                                ) -> tuple[sp.csc_array, np.ndarray | None]:
         """Wraps get_matrix_from_tensor in canonInterface.

@@ -14,8 +14,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import numpy as np
+
 import cvxpy.settings as s
 from cvxpy.constraints import PSD, SOC, ExpCone, NonNeg, PowCone3D, PowConeND, SvecPSD, Zero
+from cvxpy.reductions.canonical_maps import (
+    SolverInputMaps,
+    tensor_matrix_block,
+    tensor_vector_block,
+)
 from cvxpy.reductions.cone_format import format_cone_prog
 from cvxpy.reductions.cvx_attr2constr import convex_attributes
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ParamConeProg
@@ -133,6 +140,83 @@ class ConicSolver(Solver):
             constr_map[PowConeND]
         return problem, data, inv_data
 
+    # Data keys under which ``_apply_canonical_maps`` stores each evaluated
+    # canonical input; ``d`` becomes the objective offset in the inverse data.
+    CANONICAL_DATA_KEYS = {s.P: s.P, s.C: s.C, s.A: s.A, s.B: s.B, s.G: s.G, s.H: s.H}
+
+    @staticmethod
+    def _conic_affine_inputs(problem):
+        """``(P, q, d, A, b)`` of ``min 1/2 x'Px + q'x + d s.t. Ax + s = b, s in K``.
+
+        ``P`` is the full symmetric matrix (empty without a quadratic
+        objective). Rows of ``A`` and ``b`` are in the formatted cone layout.
+        """
+        n_params, q, A, P = problem.input_tensors()
+        n = problem.x.size
+        m = problem.constr_size
+        return (tensor_matrix_block(P, n, n, n_params),
+                tensor_vector_block(q, 0, n, n_params),
+                tensor_vector_block(q, n, n + 1, n_params),
+                # The stuffed rows read ``A x + b`` in K, i.e. ``s = -A x + b``.
+                tensor_matrix_block(A, m, n, n_params).scale_rows(-np.ones(m)),
+                tensor_vector_block(A, m * n, m * (n + 1), n_params))
+
+    def _conic_canonical_maps(self, problem, objective_key: str = s.C,
+                              quad_obj: bool = False) -> SolverInputMaps:
+        """Canonical maps in the SCS input format.
+
+        ``minimize 1/2 x'Px + q'x + d  s.t.  Ax + s = b, s in K``, with ``q``
+        stored under ``objective_key``, ``P`` as its upper triangle in CSC
+        (included when the program has a quadratic objective, or always if
+        ``quad_obj`` is True), and ``A`` in CSC.
+        """
+        P, q, d, A, b = self._conic_affine_inputs(problem)
+        maps = SolverInputMaps()
+        if problem.P is not None or quad_obj:
+            maps.add_matrix(s.P, P.triu())
+        maps.add_vector(objective_key, q)
+        maps.add_vector(s.CANONICAL_OFFSET, d)
+        maps.add_matrix(s.A, A)
+        maps.add_vector(s.B, b)
+        return maps
+
+    def _split_conic_canonical_maps(self, problem) -> SolverInputMaps:
+        """Canonical maps in the ECOS input format.
+
+        ``minimize 1/2 x'Px + c'x + d  s.t.  Ax = b,  h - Gx in K``: the zero
+        cone rows of the SCS form become ``A, b`` and the remaining rows
+        ``G, h``. ``P`` (upper triangle, CSC) is present for a quadratic
+        objective.
+        """
+        P, c, d, A, b = self._conic_affine_inputs(problem)
+        p, m = problem.cone_dims.zero, problem.constr_size
+        maps = SolverInputMaps()
+        if problem.P is not None:
+            maps.add_matrix(s.P, P.triu())
+        maps.add_vector(s.C, c)
+        maps.add_vector(s.CANONICAL_OFFSET, d)
+        maps.add_matrix(s.A, A.row_block(0, p))
+        maps.add_vector(s.B, b.take(np.arange(p)))
+        maps.add_matrix(s.G, A.row_block(p, m))
+        maps.add_vector(s.H, b.take(np.arange(p, m)))
+        return maps
+
+    def _apply_canonical_maps(self, problem, maps: SolverInputMaps):
+        """``apply`` for an interface whose canonical maps are implemented.
+
+        Stores each evaluated input under its ``CANONICAL_DATA_KEYS`` key.
+        Interfaces extend this to adapt the data to their ``solve_via_data``.
+        """
+        problem, data, inv_data = self._prepare_data_and_inv_data(problem)
+        values = maps.evaluate(problem.param_vec())
+        for key, data_key in self.CANONICAL_DATA_KEYS.items():
+            if key in values:
+                data[data_key] = values[key]
+        inv_data[s.OFFSET] = values[s.CANONICAL_OFFSET][0]
+        data[s.LOWER_BOUNDS] = problem.lower_bounds
+        data[s.UPPER_BOUNDS] = problem.upper_bounds
+        return data, inv_data
+
     def apply(self, problem):
         """Returns a new problem and data for inverting the new solution.
 
@@ -141,6 +225,9 @@ class ConicSolver(Solver):
         tuple
             (dict of arguments needed for the solver, inverse data)
         """
+        maps = self.cached_canonical_maps(problem)
+        if maps is not NotImplemented:
+            return self._apply_canonical_maps(problem, maps)
 
         # This is a reference implementation following SCS conventions
         # Implementations for other solvers may amend or override the implementation entirely

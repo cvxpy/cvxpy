@@ -19,6 +19,7 @@ import importlib.machinery
 import importlib.util
 
 from cvxpy import settings as s
+from cvxpy.reductions.canonical_maps import Recovery, RecoveryMap
 from cvxpy.reductions.cone2cone.approx import APPROX_CONE_CONVERSIONS
 from cvxpy.reductions.cone2cone.exact import EXACT_CONE_CONVERSIONS
 from cvxpy.reductions.reduction import Reduction
@@ -184,6 +185,59 @@ class Solver(Reduction):
     def supports_quad_obj(self) -> bool:
         """Whether the solver supports quadratic objectives."""
         return False
+
+    def get_canonical_maps(self, problem):
+        """Affine maps from ``param_vec`` to this interface's solver inputs.
+
+        Interfaces are converted one at a time: an interface that overrides
+        this returns a
+        :class:`~cvxpy.reductions.canonical_maps.SolverInputMaps` in its
+        solver's input format (input names, signs, row grouping, and matrix
+        storage), and its ``apply`` evaluates those maps. The base
+        implementation returns ``NotImplemented``, which keeps the
+        interface's existing ``apply``.
+
+        Parameters
+        ----------
+        problem : ParamConeProg
+            The compiled program this interface's ``apply`` receives.
+        """
+        return NotImplemented
+
+    def cached_canonical_maps(self, problem):
+        """``get_canonical_maps(problem)``, cached with the compiled program.
+
+        The cache holds either the maps or the ``NotImplemented`` sentinel, so
+        DPP re-solves neither rebuild nor re-query them.
+
+        The key is the interface class, which assumes that
+        ``get_canonical_maps`` depends only on the class and the compiled
+        program. Anything that changes the maps, such as whether the
+        objective is quadratic, must change the compilation (and so the
+        program the cache lives on). An interface whose maps depend on solver
+        options or instance state must extend the key.
+        """
+        cache = problem.__dict__.setdefault('_canonical_maps_cache', {})
+        key = type(self)
+        if key not in cache:
+            cache[key] = self.get_canonical_maps(problem)
+        return cache[key]
+
+    def canonical_recovery(self, problem) -> RecoveryMap:
+        """Recovery of the compiled program's ``x`` and constraint duals.
+
+        Declares how the solver's primal vector ``solver_x`` and dual vector
+        ``solver_y`` relate to ``problem``. By default ``solver_x`` is ``x``
+        and ``solver_y`` concatenates the constraint duals in the order of
+        ``problem.constraints``; interfaces with another layout override this.
+        """
+        n_x = problem.x.size
+        n_y = sum(c.size for c in problem.constraints)
+        dual, offset = {}, 0
+        for c in problem.constraints:
+            dual[c.id] = Recovery.identity('y', n_y, offset, c.size)
+            offset += c.size
+        return RecoveryMap(n_x, n_y, {problem.x.id: Recovery.identity('x', n_x)}, dual)
 
     def can_solve(self, problem_form) -> bool:
         """Check if this solver can handle a problem with the given structure.

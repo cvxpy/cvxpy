@@ -153,6 +153,15 @@ class Chain(Reduction):
                         result[orig_id] = new_id
         return result
 
+    @property
+    def param_transforms(self):
+        """The reductions' parameter transformations, in reduction order.
+
+        Intermediate IDs are retained: an entry may read the target of an
+        earlier entry.
+        """
+        return [t for r in self.reductions for t in r.param_transforms]
+
     def invert(self, solution, inverse_data):
         """Returns a solution to the original problem given the inverse_data.
         """
