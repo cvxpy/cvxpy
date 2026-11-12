@@ -215,7 +215,9 @@ class AffineSparseMatrix:
 
     Entries are kept in COO form (``rows``, ``cols``); ``M`` has one row per
     entry. The structure never depends on parameter values, so entries that
-    evaluate to zero for particular values stay present.
+    evaluate to zero for particular values stay present. Each ``(row, col)``
+    position holds at most one entry: :func:`tensor_matrix_block` produces
+    unique entries and the other methods only drop or rescale them.
     """
 
     def __init__(self, shape, rows, cols, M, v) -> None:
@@ -253,6 +255,9 @@ class AffineSparseMatrix:
             order = slice(None)
         else:
             order = np.argsort(key, kind='stable')
+            sorted_key = key[order]
+            if np.any(sorted_key[1:] == sorted_key[:-1]):
+                raise ValueError("AffineSparseMatrix has duplicate (row, col) entries.")
         indptr = np.zeros(n_major + 1, dtype=np.int64)
         np.cumsum(np.bincount(major, minlength=n_major), out=indptr[1:])
         structure = MatrixStructure(fmt, self.shape, minor[order].astype(np.int64), indptr)
@@ -389,6 +394,9 @@ class UnsupportedRecovery:
     def with_exp(self) -> UnsupportedRecovery:
         return self
 
+    def finalize(self) -> UnsupportedRecovery:
+        return self
+
 
 class Recovery:
     """A linear map from a solver output vector to a block of values.
@@ -435,10 +443,10 @@ class Recovery:
                             exp=self.exp)
         return Recovery(self.source, self.n_source, matrix=self.matrix[idx], exp=self.exp)
 
-    def linear(self, mat) -> Recovery:
+    def linear(self, mat) -> Recovery | UnsupportedRecovery:
         """The map ``mat @ self``."""
         if self.exp:
-            raise NotImplementedError("Cannot compose a linear map after exp().")
+            return UnsupportedRecovery("a linear map cannot follow exp()")
         return Recovery(self.source, self.n_source,
                         matrix=sp.csr_array(mat) @ self.as_matrix())
 
@@ -448,6 +456,10 @@ class Recovery:
 
     @staticmethod
     def concat(recs) -> Recovery | UnsupportedRecovery:
+        """Stack ``recs`` (at least one) into one recovery."""
+        if not recs:
+            raise ValueError("Recovery.concat needs at least one recovery to "
+                             "determine the source vector.")
         for rec in recs:
             if isinstance(rec, UnsupportedRecovery):
                 return rec
@@ -462,8 +474,11 @@ class Recovery:
                         matrix=sp.vstack([r.as_matrix() for r in recs], format='csr'),
                         exp=first.exp)
 
-    def finalize(self) -> np.ndarray | Exp | sp.csr_array:
-        """The exported form: indices, ``Exp(indices)``, or a sparse matrix."""
+    def finalize(self) -> np.ndarray | Exp | sp.csr_array | UnsupportedRecovery:
+        """The exported form: indices, ``Exp(indices)``, or a sparse matrix.
+
+        An exponentiated recovery that is not a gather has no exported form.
+        """
         indices = self.indices
         if indices is None:
             mat = sp.csr_array(self.matrix, copy=True)
@@ -472,8 +487,7 @@ class Recovery:
             if np.all(np.diff(mat.indptr) == 1) and np.all(mat.data == 1):
                 indices = mat.indices.astype(np.int64)
             elif self.exp:
-                raise NotImplementedError(
-                    "Exponentiated recovery requires a pure gather.")
+                return UnsupportedRecovery("an exponentiated recovery must be a gather")
             else:
                 return mat
         return Exp(indices) if self.exp else indices
@@ -517,20 +531,34 @@ class RecoveryMap:
 def trace_scaled_selection(fn, n_in: int) -> sp.csr_array:
     """Matrix ``S`` with ``fn(v) == S @ v`` for a scaled-selection map ``fn``.
 
-    ``fn`` takes a vector of length ``n_in`` and returns an array; each of its
-    output entries must be a multiple of at most one input entry. This reuses
-    the NumPy recovery code of a reduction as the source of truth, rather
-    than duplicating its index arithmetic. The result is checked on a random
-    input.
+    ``fn`` must be linear (as dual recovery code is: it indexes, reshapes
+    and scales), and each of its output entries must be a multiple of at
+    most one input entry. This reuses the NumPy recovery code of a reduction
+    as the source of truth, rather than duplicating its index arithmetic.
+
+    Applying ``fn`` to ones gives each output's scale, and to ``1, ..., n_in``
+    its input index. The inferred ``S`` is then checked on two random
+    inputs: for a linear ``fn`` that differs from ``S``, a random input
+    agrees with ``S`` only with probability zero. Raises
+    ``NotImplementedError`` if ``fn`` is not such a map; reductions turn this
+    into an :class:`UnsupportedRecovery`.
     """
-    ones = np.asarray(fn(np.ones(n_in)), dtype=float).ravel(order='F')
-    ramp = np.asarray(fn(np.arange(1.0, n_in + 1)), dtype=float).ravel(order='F')
+    def call(v):
+        return np.asarray(fn(v), dtype=float).ravel(order='F')
+
+    ones = call(np.ones(n_in))
+    ramp = call(np.arange(1.0, n_in + 1))
     nz = np.flatnonzero(ones)
-    cols = np.rint(ramp[nz] / ones[nz]).astype(np.int64) - 1
-    S = sp.csr_array((ones[nz], (nz, cols)), shape=(ones.size, n_in))
-    probe = np.random.default_rng(0).standard_normal(n_in)
-    if not np.allclose(np.asarray(fn(probe), dtype=float).ravel(order='F'), S @ probe):
+    ratio = ramp[nz] / ones[nz]
+    cols = np.rint(ratio).astype(np.int64) - 1
+    if not (np.allclose(ratio, cols + 1) and np.all((cols >= 0) & (cols < n_in))):
         raise NotImplementedError("Recovery is not a scaled selection.")
+    S = sp.csr_array((ones[nz], (nz, cols)), shape=(ones.size, n_in))
+    rng = np.random.default_rng(0)
+    for _ in range(2):
+        probe = rng.standard_normal(n_in)
+        if not np.allclose(call(probe), S @ probe):
+            raise NotImplementedError("Recovery is not a scaled selection.")
     return S
 
 

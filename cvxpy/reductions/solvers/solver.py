@@ -209,6 +209,13 @@ class Solver(Reduction):
 
         The cache holds either the maps or the ``NotImplemented`` sentinel, so
         DPP re-solves neither rebuild nor re-query them.
+
+        The key is the interface class, which assumes that
+        ``get_canonical_maps`` depends only on the class and the compiled
+        program. Anything that changes the maps, such as whether the
+        objective is quadratic, must change the compilation (and so the
+        program the cache lives on). An interface whose maps depend on solver
+        options or instance state must extend the key.
         """
         cache = problem.__dict__.setdefault('_canonical_maps_cache', {})
         key = type(self)

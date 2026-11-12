@@ -108,7 +108,7 @@ class Dgp2Dcp(Canonicalization):
         """
         new_ids = {orig.id: new.id
                    for orig, new in self.canon_methods._variables.items()}
-        recovery = super(Dgp2Dcp, self).compose_recovery(inner, inverse_data)
+        recovery = super().compose_recovery(inner, inverse_data)
         primal = {vid: inner.get_primal(new_ids.get(vid, vid)).with_exp()
                   for vid in recovery.primal}
         return recovery.replace(primal=primal)

@@ -89,7 +89,7 @@ class ECOS(ConicSolver):
 
     def _apply_canonical_maps(self, problem, maps):
         """ECOS takes ``None`` for an empty block."""
-        data, inv_data = super(ECOS, self)._apply_canonical_maps(problem, maps)
+        data, inv_data = super()._apply_canonical_maps(problem, maps)
         for key in (s.A, s.B, s.G, s.H):
             if data[key].shape[0] == 0:
                 data[key] = None
@@ -100,7 +100,7 @@ class ECOS(ConicSolver):
 
         Exponential cone duals arrive in ECOS's argument order.
         """
-        recovery = super(ECOS, self).canonical_recovery(problem)
+        recovery = super().canonical_recovery(problem)
         for con in problem.constraints:
             if isinstance(con, ExpCone):
                 perm = utilities.expcone_permutor(con.num_cones(), ECOS.EXP_CONE_ORDER)

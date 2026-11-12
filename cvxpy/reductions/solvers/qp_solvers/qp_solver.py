@@ -195,6 +195,9 @@ class QpSolver(Solver):
         """``apply`` for an interface whose canonical maps are implemented.
 
         Interfaces override this to turn their evaluated inputs into the data
-        their ``solve_via_data`` consumes.
+        their ``solve_via_data`` consumes. There is no generic QP layout, so an
+        interface that implements ``get_canonical_maps`` must override it too.
         """
-        raise NotImplementedError()
+        raise NotImplementedError(
+            f"{type(self).__name__} implements get_canonical_maps but not "
+            "_apply_canonical_maps.")

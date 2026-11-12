@@ -136,7 +136,7 @@ class QOCO(ConicSolver):
 
     def _apply_canonical_maps(self, problem, maps):
         """QOCO takes ``None`` for absent equality or cone blocks."""
-        data, inv_data = super(QOCO, self)._apply_canonical_maps(problem, maps)
+        data, inv_data = super()._apply_canonical_maps(problem, maps)
         if problem.cone_dims.zero == 0:
             data[s.A] = data[s.B] = None
         if problem.constr_size == 0:

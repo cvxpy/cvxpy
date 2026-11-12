@@ -20,13 +20,21 @@ import numpy as np
 import scipy.sparse as sp
 
 import cvxpy as cp
+from cvxpy.cvxcore.python.canonInterface import reduce_problem_data_tensor
 from cvxpy.error import DPPError
 from cvxpy.reductions.canonical_maps import (
+    AffineSparseMatrix,
     Exp,
     ParameterTransformKind,
+    Recovery,
+    StuffedTensor,
+    UnsupportedRecovery,
+    trace_scaled_selection,
     transform_source_value,
 )
-from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS
+from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS, SOLVER_MAP_QP
+from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
+from cvxpy.reductions.solvers.solver import Solver
 from cvxpy.tests.base_test import BaseTest
 
 CONIC = [s for s in (cp.CLARABEL, cp.SCS) if s in INSTALLED_SOLVERS]
@@ -92,7 +100,7 @@ def _reference_inputs(param_prog, solver):
         sign = np.where(np.arange(b.size) < p, -1.0, 1.0)
         ref.update(q=c, A=sign[:, None] * A, u=sign * b,
                    l=np.concatenate([-b[:p], np.full(b.size - p, -np.inf)]))
-    elif solver in SPLIT:
+    elif solver in SPLIT or solver == cp.ECOS_BB:
         p = param_prog.cone_dims.zero
         ref.update(c=c, A=A[:p], b=b[:p], G=A[p:], h=b[p:])
     else:
@@ -210,6 +218,10 @@ class TestCanonicalMaps(BaseTest):
         problems['zero_sized'] = (cp.Problem(
             cp.Minimize(cp.sum_squares(v - 1) + cp.sum(e)), [v >= 0, e >= 0]), CONIC + QP + SPLIT)
 
+        xe, pe = cp.Variable(2), cp.Parameter(2, value=np.array([1.0, -2.0]))
+        problems['equality_only'] = (cp.Problem(
+            cp.Minimize(cp.sum(xe)), [xe == pe]), CONIC + QP + SPLIT)
+
         pc = cp.Parameter(2, complex=True, value=np.array([1 + 2j, 3 - 1j]))
         xc = cp.Variable(2)
         problems['complex_param'] = (cp.Problem(
@@ -220,6 +232,46 @@ class TestCanonicalMaps(BaseTest):
                 with self.subTest(problem=name, solver=solver):
                     self.assert_recovery_matches_invert(problem, solver)
                     self.assert_inputs_match_problem_data(problem, solver)
+
+    def test_empty_blocks_are_none(self) -> None:
+        """Empty blocks are passed as ``None``, as before canonical maps.
+
+        ECOS gets ``None`` for an empty equality or cone block; QOCO only for
+        an empty equality block.
+        """
+        x, p = cp.Variable(2), cp.Parameter(2, value=np.array([1.0, -2.0]))
+        only_eq = cp.Problem(cp.Minimize(cp.sum(x)), [x == p])
+        only_ineq = cp.Problem(cp.Minimize(cp.sum(x)), [x >= p])
+        for solver in SPLIT:
+            with self.subTest(solver=solver):
+                data, _, _ = only_eq.get_problem_data(solver)
+                if solver == cp.ECOS:
+                    self.assertIsNone(data['G'])
+                    self.assertIsNone(data['h'])
+                else:
+                    self.assertEqual(data['G'].shape, (0, 2))
+                self.assertEqual(data['A'].shape, (2, 2))
+                data, _, _ = only_ineq.get_problem_data(solver)
+                self.assertIsNone(data['A'])
+                self.assertIsNone(data['b'])
+                for problem in (only_eq, only_ineq):
+                    problem.solve(solver=solver)
+                    self.assertItemsAlmostEqual(x.value, p.value, places=5)
+
+    @unittest.skipUnless(cp.ECOS_BB in INSTALLED_SOLVERS, 'ECOS_BB is not installed.')
+    def test_ecos_bb(self) -> None:
+        """ECOS_BB inherits ECOS's maps; the integer indices stay in its data."""
+        x = cp.Variable(2, integer=True)
+        p = cp.Parameter(2, value=np.array([1.5, 2.5]))
+        problem = cp.Problem(cp.Minimize(cp.sum(x)), [x >= p, x[0] + x[1] == 5])
+        self.assert_inputs_match_problem_data(problem, cp.ECOS_BB)
+        data, _, _ = problem.get_problem_data(cp.ECOS_BB)
+        self.assertEqual(list(data[cp.settings.INT_IDX]), [0, 1])
+        problem.solve(solver=cp.ECOS_BB)
+        self.assertItemsAlmostEqual(x.value, [2, 3])
+        p.value = np.array([0.5, 3.5])
+        problem.solve(solver=cp.ECOS_BB)
+        self.assertItemsAlmostEqual(x.value, [1, 4])
 
     @unittest.skipUnless(cp.CLARABEL in INSTALLED_SOLVERS, 'CLARABEL is not installed.')
     def test_gp(self) -> None:
@@ -332,6 +384,41 @@ class TestCanonicalMaps(BaseTest):
         with self.assertRaises(ValueError):
             problem.get_canonical_maps(cp.CLARABEL, [cp.Variable()])
 
+    @unittest.skipUnless(cp.CLARABEL in INSTALLED_SOLVERS, 'CLARABEL is not installed.')
+    def test_chained_transforms_re_solve(self) -> None:
+        """Re-solving after Complex2Real -> CvxAttr2Constr transforms matches a fresh solve.
+
+        The hermitian parameter's imaginary part passes through an
+        intermediate ID without a ``Parameter``; the complex sparse parameter
+        is split into sparse real and imaginary parameters, which are then
+        gathered.
+        """
+        rng = np.random.default_rng(3)
+        H = cp.Parameter((3, 3), hermitian=True)
+        Pcs = cp.Parameter((2, 2), complex=True, sparsity=([0, 1], [1, 0]))
+        V, Z = cp.Variable((2, 2)), cp.Variable((3, 3), symmetric=True)
+        problem = cp.Problem(
+            cp.Minimize(cp.sum_squares(V) + cp.real(cp.sum(cp.multiply(Pcs, V)))
+                        + cp.real(cp.trace(H @ Z))),
+            [Z >> 0, cp.trace(Z) == 1])
+        for _ in range(3):
+            B = rng.standard_normal((3, 3)) + 1j * rng.standard_normal((3, 3))
+            H.value = B + B.conj().T
+            Pcs.value_sparse = sp.coo_array(
+                (rng.standard_normal(2) + 1j * rng.standard_normal(2), ([0, 1], [1, 0])),
+                shape=(2, 2))
+            problem.solve(solver=cp.CLARABEL)
+            V_cached = V.value
+            fresh = cp.Problem(problem.objective, problem.constraints)
+            fresh.solve(solver=cp.CLARABEL)
+            self.assertAlmostEqual(problem.value, fresh.value, places=5)
+            self.assertItemsAlmostEqual(V_cached, V.value, places=5)
+
+    def test_no_variables(self) -> None:
+        p = cp.Parameter(value=1.0)
+        with self.assertRaisesRegex(ValueError, "no variables"):
+            cp.Problem(cp.Minimize(p)).get_canonical_maps(cp.CLARABEL)
+
     def test_unsupported(self) -> None:
         x = cp.Variable(2)
         p = cp.Parameter(value=1.0)
@@ -348,6 +435,62 @@ class TestCanonicalMaps(BaseTest):
             problem.get_canonical_maps(cp.CLARABEL)
         canon = problem.get_canonical_maps(cp.CLARABEL, [x])
         self.assertEqual(len(canon.primal_vars), 1)
+
+    def test_recovery_degrades_instead_of_raising(self) -> None:
+        """Unsupported compositions mark the output; they do not raise."""
+        gather = Recovery('x', 4, indices=[0, 2])
+        self.assertIsInstance(gather.with_exp().linear(np.eye(2)), UnsupportedRecovery)
+        summed = Recovery('x', 4, matrix=np.array([[1.0, 1.0, 0, 0]]))
+        self.assertIsInstance(summed.with_exp().finalize(), UnsupportedRecovery)
+        self.assertIsInstance(gather.with_exp().finalize(), Exp)
+        self.assertIsInstance(Recovery.concat([gather, UnsupportedRecovery("r")]),
+                              UnsupportedRecovery)
+        with self.assertRaises(ValueError):
+            Recovery.concat([])
+
+    def test_trace_scaled_selection(self) -> None:
+        S = trace_scaled_selection(lambda v: np.array([2 * v[2], 0.0, -v[0]]), 3)
+        np.testing.assert_array_equal(S.toarray(), [[0, 0, 2], [0, 0, 0], [-1, 0, 0]])
+        # Sums of inputs, including ones whose scales cancel, are rejected.
+        for fn in (lambda v: np.array([v[0] + v[2]]), lambda v: np.array([v[0] - v[1]]),
+                   lambda v: np.array([v[0] + 2 * v[1]])):
+            with self.assertRaises(NotImplementedError):
+                trace_scaled_selection(fn, 3)
+
+    def test_to_structure_rejects_duplicates(self) -> None:
+        M = sp.csr_array((2, 1))
+        dup = AffineSparseMatrix((2, 2), [1, 1], [0, 0], M, [1.0, 2.0])
+        with self.assertRaises(ValueError):
+            dup.to_structure()
+
+    def test_stuffed_tensor_matches_legacy_reduction(self) -> None:
+        """``StuffedTensor`` keeps the rows ``reduce_problem_data_tensor`` keeps.
+
+        The tensor has explicit zeros, duplicates that cancel, and empty
+        rows; both drop stored zeros before summing duplicates, so cancelled
+        entries remain as explicit zeros in both.
+        """
+        n_var, n_constr, n_cols = 2, 3, 2
+        rows = [0, 0, 1, 4, 4, 5, 7]
+        cols = [0, 1, 0, 1, 1, 0, 1]
+        data = [1.0, 0.0, 2.0, 1.0, -1.0, 3.0, 4.0]
+        tensor = sp.csc_array((data, (rows, cols)), shape=((n_var + 1) * n_constr, n_cols))
+        new = StuffedTensor(tensor)
+        legacy, indices, indptr, _ = reduce_problem_data_tensor(tensor.copy(), n_var)
+        np.testing.assert_array_equal(new.nonzero_rows % n_constr, indices)
+        np.testing.assert_array_equal(
+            np.bincount(new.nonzero_rows // n_constr, minlength=n_var + 1),
+            np.diff(indptr))
+        np.testing.assert_array_equal(new.reduced.toarray(), legacy.toarray())
+        self.assertEqual(new.reduced.nnz, sp.csr_array(legacy).nnz)
+
+    def test_qp_interfaces_pair_maps(self) -> None:
+        """A QP interface exporting maps must also turn them into its data."""
+        for solver in SOLVER_MAP_QP.values():
+            cls = type(solver)
+            if cls.get_canonical_maps is not Solver.get_canonical_maps:
+                with self.subTest(solver=solver.name()):
+                    self.assertIsNot(cls._apply_canonical_maps, QpSolver._apply_canonical_maps)
 
     @unittest.skipUnless(cp.SCS in INSTALLED_SOLVERS, 'SCS is not installed.')
     def test_maps_cached_with_compilation(self) -> None:

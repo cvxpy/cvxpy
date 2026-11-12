@@ -935,8 +935,7 @@ class Problem(u.Canonical):
         implement the three stages with NumPy. Solving and differentiating
         through the solve remain with the caller.
 
-        Only some solver interfaces export maps so far (SCS, DIFFCP,
-        CLARABEL, ECOS, ECOS_BB, QOCO and OSQP); others raise
+        Only some solver interfaces export maps so far; the others raise
         ``NotImplementedError``.
 
         Arguments
@@ -957,12 +956,26 @@ class Problem(u.Canonical):
         Returns
         -------
         CanonicalMaps
+
+        Raises
+        ------
+        DPPError
+            If the problem is not DPP.
+        ValueError
+            If the problem does not compile to a parametrized program (for
+            example, because it has no variables), or if ``variables``
+            contains a variable that is not an output of the problem.
+        NotImplementedError
+            If the solver interface does not export canonical maps, or if a
+            requested output cannot be expressed by the recovery maps (for
+            example, complex variables). Pass ``variables`` to request only
+            supported outputs.
         """
         compilation_options.setdefault('enforce_dpp', True)
         data, chain, inverse_data = self.get_problem_data(
             solver, gp=gp, **compilation_options)
         if not isinstance(data, dict) or s.PARAM_PROB not in data:
-            raise NotImplementedError(
+            raise ValueError(
                 "Canonical maps are unavailable for this problem; it does not "
                 "compile to a parametrized program (for example, because it "
                 "has no variables).")

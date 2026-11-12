@@ -145,7 +145,8 @@ def build_canonical_maps(problem, chain, param_prog, inverse_data,
 
     primal_recovery, primal_info = {}, []
     for var in requested_primal:
-        rec = _resolve(recovery.get_primal(var.id), f"variable {var}")
+        what = f"variable {var}"
+        rec = _resolve(recovery.get_primal(var.id), what)
         assert rec.source == 'x'
         if var.attributes['sparsity']:
             sparse_idx = var.sparse_idx
@@ -153,7 +154,7 @@ def build_canonical_maps(problem, chain, param_prog, inverse_data,
             sparse_idx = (np.arange(var.shape[0]),) * 2
         else:
             sparse_idx = None
-        primal_recovery[var.id] = rec.finalize()
+        primal_recovery[var.id] = _resolve(rec.finalize(), what)
         primal_info.append(VarInfo(
             var.id, var.shape, rec.size, sparse_idx,
             bool(attributes_present([var], SYMMETRIC_ATTRIBUTES))))
@@ -170,7 +171,7 @@ def build_canonical_maps(problem, chain, param_prog, inverse_data,
         sub = rec.take(parts[i])
         if sub.size != dv.size:
             raise NotImplementedError(f"Inconsistent dual size for {what}.")
-        dual_recovery[dv.id] = sub.finalize()
+        dual_recovery[dv.id] = _resolve(sub.finalize(), what)
         dual_info.append(DualInfo(dv.id, constraint.id, dv.shape, dv.size,
                                   type(constraint).__name__, isinstance(constraint, PSD)))
 
