@@ -66,10 +66,10 @@ prints ``True``. We can walk through the DPP analysis to understand why
 ``objective`` is DPP-compliant. The product ``(F + G) @ x`` is affine under DPP,
 because ``F + G`` is parameter-affine and ``x`` is parameter-free. The difference
 ``(F + G) @ x - g`` is affine because the addition atom is affine and both
-``(F + G) @ x`` and  ``- g`` are affine. Likewise ``gamma * cp.norm(x)`` is affine
-under DPP because ``gamma`` is parameter-affine and ``cp.norm(x)`` is
-parameter-free. The final objective is then affine under DPP because addition is
-affine.
+``(F + G) @ x`` and ``- g`` are affine. Likewise ``gamma * cp.norm(x)`` is convex
+under DPP: ``gamma`` is nonnegative and parameter-affine, while ``cp.norm(x)`` is
+convex and parameter-free. The final objective is convex under DPP because it is
+the sum of two convex expressions.
 
 Some expressions are DCP-compliant but not DPP-compliant. For example,
 DPP forbids taking the product of two parametrized expressions:
