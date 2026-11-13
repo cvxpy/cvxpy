@@ -107,6 +107,91 @@ def _all_zero_or_inf(arr) -> bool:
     return bool(np.all((arr == 0) | np.isinf(arr)))
 
 
+def _any_isinf(arr) -> bool:
+    """Check if any values are inf, sparse-aware (O(nnz) for sparse)."""
+    if sp_sparse.issparse(arr):
+        return bool(np.any(np.isinf(arr.data)))
+    return bool(np.any(np.isinf(arr)))
+
+
+def _compressed(arr):
+    """``arr`` with a numeric ``.data`` array: lil, dok, dia and bsr become csr."""
+    if sp_sparse.issparse(arr) and arr.format not in ("csr", "csc", "coo"):
+        return arr.tocsr()
+    return arr
+
+
+def _nan_to_unbounded(lb, ub) -> Bounds:
+    """Replace NaN bounds by -inf (lower) and inf (upper).
+
+    A NaN bound carries no information about the expression, so the only
+    valid interval for it is unbounded.
+    """
+    def _replace(arr, value):
+        arr = _compressed(arr)
+        if not _any_isnan(arr):
+            return arr
+        if sp_sparse.issparse(arr):
+            arr = arr.copy()
+            arr.data = np.where(np.isnan(arr.data), value, arr.data)
+            return arr
+        return np.where(np.isnan(arr), value, arr)
+
+    return (_replace(lb, -np.inf), _replace(ub, np.inf))
+
+
+def _inf_indicator(bounds, value):
+    """Float array with 1.0 where ``bounds == value`` (an infinity), else 0.0."""
+    if sp_sparse.issparse(bounds):
+        out = bounds.astype(float)
+        out.data = (out.data == value).astype(float)
+        return out
+    return (np.asarray(bounds) == value).astype(float)
+
+
+def _safe_matmul(coeffs, bounds, coeff_sign: int):
+    """Compute ``coeffs @ bounds`` with ``0 * inf = 0``.
+
+    ``coeffs`` has a single sign: every entry times ``coeff_sign`` (+1 or -1)
+    is nonnegative. A sparse ``coeffs`` stores no zeros, as the output of
+    ``_safe_maximum(A, 0)`` and ``_safe_minimum(A, 0)`` does.
+
+    In interval arithmetic a zero coefficient contributes nothing, even
+    against an infinite bound, but ``@`` gives ``0 * inf = NaN`` and the NaN
+    spreads over the whole entry. A sparse ``coeffs`` never multiplies a
+    zero. For a dense ``coeffs``, the finite part is computed with the
+    infinite bounds set to 0, and an entry becomes ``+-inf`` where a nonzero
+    coefficient meets an infinite bound.
+    """
+    if sp_sparse.issparse(coeffs) or not _any_isinf(bounds):
+        return coeffs @ bounds
+    bounds = _compressed(bounds)
+    if sp_sparse.issparse(bounds):
+        finite = bounds.astype(float)
+        finite.data = np.where(np.isinf(finite.data), 0.0, finite.data)
+    else:
+        finite = np.where(np.isinf(bounds), 0.0, bounds)
+    result = _ensure_dense(coeffs @ finite)
+    result = result.astype(np.result_type(result.dtype, float))
+    infinite_terms = np.zeros(result.shape)
+    with np.errstate(invalid="ignore"):
+        for value in (np.inf, -np.inf):
+            hits = _inf_indicator(bounds, value)
+            if hits.sum() == 0:
+                continue
+            # The coefficients share one sign, so a sum of coefficients is 0
+            # only when every one of them is 0.
+            reached = _ensure_dense(coeffs @ hits) != 0
+            # +inf + -inf in one entry has no value and stays NaN.
+            infinite_terms = infinite_terms + np.where(reached, coeff_sign * value, 0.0)
+        return result + infinite_terms
+
+
+def _safe_rmatmul(bounds, coeffs, coeff_sign: int):
+    """Compute ``bounds @ coeffs`` with ``0 * inf = 0``, as ``(coeffs.T @ bounds.T).T``."""
+    return _safe_matmul(coeffs.T, bounds.T, coeff_sign).T
+
+
 def unbounded(shape: tuple[int, ...]) -> Bounds:
     """Return unbounded interval (-inf, inf) for given shape.
 
@@ -266,9 +351,12 @@ def mul_bounds(lb1, ub1, lb2, ub2) -> Bounds:
     Bounds
         Bounds for the product.
     """
+    lb1, ub1 = _nan_to_unbounded(lb1, ub1)
+    lb2, ub2 = _nan_to_unbounded(lb2, ub2)
+
     # All four products of interval endpoints.
-    # Replace NaN with 0: the only source of NaN here is 0 * inf,
-    # and in interval arithmetic 0 * anything = 0.
+    # Replace NaN with 0: with NaN inputs replaced above, the only source of
+    # NaN here is 0 * inf, and in interval arithmetic 0 * anything = 0.
     def _mul(a, b):
         with np.errstate(invalid="ignore"):
             p = a * b
@@ -777,6 +865,8 @@ def matmul_bounds(lb1, ub1, lb2, ub2) -> Bounds:
             return diff.nnz == 0
         return np.array_equal(lb, ub)
 
+    lb1, ub1 = _nan_to_unbounded(lb1, ub1)
+    lb2, ub2 = _nan_to_unbounded(lb2, ub2)
     lhs_point = _is_point(lb1, ub1)
     rhs_point = _is_point(lb2, ub2)
 
@@ -784,10 +874,12 @@ def matmul_bounds(lb1, ub1, lb2, ub2) -> Bounds:
         # A is a constant matrix. C = A @ B where B in [lb2, ub2].
         # C_ij = sum_k A_ik * B_kj; min over B gives:
         #   A_pos @ lb2 + A_neg @ ub2
+        # A zero entry of A_pos or A_neg contributes 0, also against an
+        # infinite bound, so the products use _safe_matmul.
         a_pos = _safe_maximum(lb1, 0)
         a_neg = _safe_minimum(lb1, 0)
-        new_lb = a_pos @ lb2 + a_neg @ ub2
-        new_ub = a_pos @ ub2 + a_neg @ lb2
+        new_lb = _safe_matmul(a_pos, lb2, 1) + _safe_matmul(a_neg, ub2, -1)
+        new_ub = _safe_matmul(a_pos, ub2, 1) + _safe_matmul(a_neg, lb2, -1)
         return (new_lb, new_ub)
 
     if rhs_point:
@@ -796,8 +888,8 @@ def matmul_bounds(lb1, ub1, lb2, ub2) -> Bounds:
         #   lb1 @ B_pos + ub1 @ B_neg  (for lower bound)
         b_pos = _safe_maximum(lb2, 0)
         b_neg = _safe_minimum(lb2, 0)
-        new_lb = lb1 @ b_pos + ub1 @ b_neg
-        new_ub = ub1 @ b_pos + lb1 @ b_neg
+        new_lb = _safe_rmatmul(lb1, b_pos, 1) + _safe_rmatmul(ub1, b_neg, -1)
+        new_ub = _safe_rmatmul(ub1, b_pos, 1) + _safe_rmatmul(lb1, b_neg, -1)
         return (new_lb, new_ub)
 
     # Both operands are intervals — no efficient exact formula.
