@@ -19,6 +19,7 @@ import scipy.sparse as sp
 
 import cvxpy.settings as s
 from cvxpy.constraints import SOC
+from cvxpy.error import SolverError
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import (
@@ -251,6 +252,12 @@ class GUROBI(ConicSolver):
                 # INF_OR_UNBD. Solve again to get a definitive answer.
                 model.setParam("DualReductions", 0)
                 model.optimize()
+        except gurobipy.GurobiError as e:
+            # Report Gurobi's own message (e.g. a size-limited license)
+            # unless a solution was found before the error.
+            if not model.SolCount:
+                raise SolverError(f"Solver '{self.name()}' failed: {e}") from e
+        try:
             solution["value"] = model.ObjVal
             # ``x`` covers only the n problem columns. The SOC auxiliary
             # variables that follow them are internal to this interface.

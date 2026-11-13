@@ -26,6 +26,7 @@ from cvxpy.atoms.quad_form import QuadForm
 from cvxpy.atoms.quad_over_lin import quad_over_lin
 from cvxpy.expressions.constants.parameter import is_param_free
 from cvxpy.reductions.solvers.nlp_solvers.diff_engine.helpers import (
+    make_constant_quad_form,
     make_dense_left_matmul,
     make_dense_right_matmul,
     make_sparse_left_matmul,
@@ -52,12 +53,48 @@ def _matmul_children(expr, var_dict, n_vars, param_dict):
             for i, arg in enumerate(expr.args)]
 
 
+def _uniform_vector_value(arg, free_axis):
+    """Return c if ``arg`` is a constant vector c * 1 along the contracted axis, else None."""
+    if (not is_param_free(arg) or arg.size == 0
+            or (arg.ndim == 2 and arg.shape[free_axis] != 1)):
+        return None
+    x = to_dense_float(arg.value).ravel()
+    return x[0] if np.all(x == x[0]) else None
+
+
+def _uniform_matmul_as_sum(expr, children, n_vars):
+    """Lower c 1' @ X and X @ c 1 to c * sum(X), skipping the per-column matmul blocks."""
+    left_arg, right_arg = expr.args
+    if left_arg.is_constant() and not right_arg.is_constant():
+        c = _uniform_vector_value(left_arg, 0)
+        child, axis = children[1], 0 if right_arg.ndim == 2 else -1
+    elif right_arg.is_constant() and not left_arg.is_constant():
+        c = _uniform_vector_value(right_arg, 1)
+        child, axis = children[0], 1 if left_arg.ndim == 2 else -1
+    else:
+        return None
+    if c is None or c == 0:
+        return None
+    node = _diffengine.make_sum(child, axis)
+    if axis == 1 and expr.ndim == 2:
+        # The engine returns axis sums as a row; reshape to the (m, 1) column.
+        node = _diffengine.make_reshape(node, *expr.shape)
+    if c != 1:
+        c_node = _diffengine.make_parameter(1, 1, -1, n_vars, np.array([c]))
+        node = _diffengine.make_param_scalar_mult(c_node, node)
+    return node
+
+
 def convert_matmul(expr, children, var_dict, n_vars, param_dict):
     """Convert matrix multiplication A @ f(x), f(x) @ A, or X @ Y.
 
     Follows numpy's matmul broadcasting rules for 1D operands.
     """
     left_arg, right_arg = expr.args
+
+    uniform_sum = _uniform_matmul_as_sum(expr, children, n_vars)
+    if uniform_sum is not None:
+        return uniform_sum
 
     if left_arg.is_constant():
         A = left_arg.value
@@ -115,9 +152,10 @@ def convert_symbolic_quad_form(expr, var_dict, n_vars, param_dict):
     """Convert a SymbolicQuadForm (Dcp2Cone quadratic-objective placeholder).
 
     Scalar x'Px (QuadForm / quad_over_lin / sum_squares) uses the native quad_form
-    binding, routed by how P is stored: the sparse CSR path for a sparse P, the
-    dense path otherwise. power/PowerApprox is the elementwise square, lowered
-    to multiply.
+    binding, routed by the content of P as in the NLP path
+    (``make_constant_quad_form``): a sparse or mostly-zero P takes the sparse CSR
+    binding, a genuinely dense P the dense one. power/PowerApprox is the
+    elementwise square, lowered to multiply.
     """
     if expr.block_indices is not None:
         raise NotImplementedError(
@@ -136,18 +174,7 @@ def convert_symbolic_quad_form(expr, var_dict, n_vars, param_dict):
                 "SymbolicQuadForm with a parametric P is not supported by "
                 "the diff engine.")
         x_c = convert_expr(x, var_dict, n_vars, param_dict)
-        P_val = P.value
-        if sparse.issparse(P_val):
-            P_csr = P_val.tocsr()
-            return _diffengine.make_quad_form(
-                None, x_c, "sparse",
-                P_csr.data.astype(np.float64),
-                P_csr.indices.astype(np.int32),
-                P_csr.indptr.astype(np.int32),
-                P_csr.shape[0], P_csr.shape[1])
-        P_dense = to_dense_float(P_val)
-        return _diffengine.make_quad_form(
-            None, x_c, "dense", P_dense.flatten(order='F'), x.size)
+        return make_constant_quad_form(x_c, P.value, x.size)
 
     if isinstance(orig, Power):  # PowerApprox subclasses Power; canon only p == 2
         # The elementwise square, rebuilt over the leaf arg: the engine's

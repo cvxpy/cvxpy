@@ -16,7 +16,7 @@ limitations under the License.
 
 import numpy as np
 from scipy import linalg as LA
-from scipy.stats import entropy
+from scipy.special import entr
 
 from cvxpy import settings
 from cvxpy.atoms.atom import Atom
@@ -71,7 +71,7 @@ class quantum_rel_entr(Atom):
         else:
             w1[w1 < 0] = 0
             w2[w2 < 0] = 0
-        r1 = -entropy(w1)
+        r1 = -np.sum(entr(w1))
         r2 = u @ np.log(w2)
         return (r1 - r2)
 

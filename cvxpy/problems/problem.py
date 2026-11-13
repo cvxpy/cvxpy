@@ -119,9 +119,6 @@ class Cache:
     def make_key(self, solver, gp, ignore_dpp, use_quad_obj, canon_backend):
         return (solver, gp, ignore_dpp, use_quad_obj, canon_backend)
 
-    def gp(self):
-        return self.key is not None and self.key[1]
-
 
 def _validate_constraint(constraint):
     if isinstance(constraint, Constraint):
@@ -948,14 +945,8 @@ class Problem(u.Canonical):
             solver_opts=solver_opts,
         )
 
-    def _invalidate_cache(self) -> None:
-        self._cache_key = None
-        self._solving_chain = None
-        self._param_prog = None
-        self._inverse_data = None
-
     def _solve(self,
-               solver: str = None,
+               solver: str | None = None,
                warm_start: bool = True,
                verbose: bool = False,
                bibtex: bool = False,

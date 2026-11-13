@@ -37,7 +37,7 @@ class dist_ratio(Atom):
         """Returns the distance ratio.
         """
         return np.linalg.norm(
-            values[0] - self.a) / np.linalg.norm(values[0] - self.b)
+            values[0] - values[1]) / np.linalg.norm(values[0] - values[2])
 
     def shape_from_args(self) -> tuple[int, ...]:
         """Returns the (row, col) shape of the expression.

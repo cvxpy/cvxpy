@@ -20,7 +20,11 @@ from cvxpy.constraints.constraint import Constraint
 
 
 class Wrap(AffAtom):
-    """A no-op wrapper to assert properties.
+    """A no-op wrapper that marks its argument as having a property.
+
+    The property is assumed, not checked, so that CVXPY can skip validations.
+    Wrapping an expression that does not have the property is undefined
+    behavior: the problem may be solved incorrectly without raising an error.
     """
     def __init__(self, arg) -> None:
         return super(Wrap, self).__init__(arg)
@@ -67,21 +71,33 @@ class Wrap(AffAtom):
 
 
 class nonneg_wrap(Wrap):
-    """Asserts that the expression is nonnegative.
+    """Assumes that the expression is nonnegative to skip validations.
+
+    Passing an expression with negative entries is undefined behavior.
     """
     def is_nonneg(self) -> bool:
         return True
 
 
 class nonpos_wrap(Wrap):
-    """Asserts that the expression is nonpositive.
+    """Assumes that the expression is nonpositive to skip validations.
+
+    Passing an expression with positive entries is undefined behavior.
     """
     def is_nonpos(self) -> bool:
         return True
 
 
 class psd_wrap(Wrap):
-    """Asserts that a square matrix is PSD.
+    """Assumes that a square matrix is PSD to skip validations.
+
+    Passing non-PSD matrices is undefined behavior: CVXPY does not check the
+    assumption, and the problem may be solved incorrectly without raising an
+    error.
+
+    This is useful when a matrix is PSD by construction, such as a covariance
+    matrix, but CVXPY cannot verify it numerically, for example
+    ``cp.quad_form(x, cp.psd_wrap(P))``.
     """
 
     def validate_arguments(self) -> None:
@@ -105,7 +121,9 @@ class psd_wrap(Wrap):
         return True
 
 class nsd_wrap(Wrap):
-    """Asserts that a square matrix is NSD.
+    """Assumes that a square matrix is NSD to skip validations.
+
+    Passing non-NSD matrices is undefined behavior.
     """
 
     def validate_arguments(self) -> None:
@@ -129,7 +147,9 @@ class nsd_wrap(Wrap):
         return True
 
 class symmetric_wrap(Wrap):
-    """Asserts that a real square matrix is symmetric
+    """Assumes that a real square matrix is symmetric to skip validations.
+
+    Passing a matrix that is not symmetric is undefined behavior.
     """
 
     def validate_arguments(self) -> None:
@@ -143,7 +163,9 @@ class symmetric_wrap(Wrap):
 
 
 class hermitian_wrap(Wrap):
-    """Asserts that a square matrix is Hermitian.
+    """Assumes that a square matrix is Hermitian to skip validations.
+
+    Passing a matrix that is not Hermitian is undefined behavior.
     """
 
     def validate_arguments(self) -> None:
@@ -158,7 +180,9 @@ class hermitian_wrap(Wrap):
         return True
 
 class skew_symmetric_wrap(Wrap):
-    """Asserts that X is a real square matrix, satisfying X + X.T == 0.
+    """Assumes that X is a real square matrix satisfying X + X.T == 0 to skip validations.
+
+    Passing a matrix that is not skew-symmetric is undefined behavior.
     """
 
     def validate_arguments(self) -> None:

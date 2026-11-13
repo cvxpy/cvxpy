@@ -20,6 +20,7 @@ import os
 import pickle
 import re
 import string
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -524,51 +525,44 @@ class TestSCS(BaseTest):
     def test_quad_obj(self) -> None:
         """Test SCS canonicalization with a quadratic objective.
         """
-        # Only relevant for SCS >= 3.0.0.
-        import scs
-        if Version(scs.__version__) >= Version('3.0.0'):
-            x = cp.Variable(2)
-            expr = cp.sum_squares(x)
-            constr = [x >= 1]
-            prob = cp.Problem(cp.Minimize(expr), constr)
-            data = prob.get_problem_data(solver=cp.SCS)
-            self.assertItemsAlmostEqual(data[0]["P"].toarray(), 2*np.eye(2))
-            solution1 = prob.solve(solver=cp.SCS)
+        x = cp.Variable(2)
+        expr = cp.sum_squares(x)
+        constr = [x >= 1]
+        prob = cp.Problem(cp.Minimize(expr), constr)
+        data = prob.get_problem_data(solver=cp.SCS)
+        self.assertItemsAlmostEqual(data[0]["P"].toarray(), 2*np.eye(2))
+        solution1 = prob.solve(solver=cp.SCS)
 
-            # When use_quad_obj = False, the quadratic objective is
-            # canonicalized to a SOC constraint.
-            prob = cp.Problem(cp.Minimize(expr), constr)
-            solver_opts = {"use_quad_obj": False}
-            data = prob.get_problem_data(solver=cp.SCS, solver_opts=solver_opts)
-            assert "P" not in data[0]
-            solution2 = prob.solve(solver=cp.SCS, **solver_opts)
+        # When use_quad_obj = False, the quadratic objective is
+        # canonicalized to a SOC constraint.
+        prob = cp.Problem(cp.Minimize(expr), constr)
+        solver_opts = {"use_quad_obj": False}
+        data = prob.get_problem_data(solver=cp.SCS, solver_opts=solver_opts)
+        assert "P" not in data[0]
+        solution2 = prob.solve(solver=cp.SCS, **solver_opts)
 
-            assert np.isclose(solution1, solution2)
+        assert np.isclose(solution1, solution2)
 
-            # Check that there is no P for non-quadratic objectives.
-            expr = cp.norm(x, 1)
-            prob = cp.Problem(cp.Minimize(expr), constr)
-            data = prob.get_problem_data(solver=cp.SCS)
-            assert "P" not in data[0]
+        # Check that there is no P for non-quadratic objectives.
+        expr = cp.norm(x, 1)
+        prob = cp.Problem(cp.Minimize(expr), constr)
+        data = prob.get_problem_data(solver=cp.SCS)
+        assert "P" not in data[0]
 
     def test_quad_obj_with_power(self) -> None:
         """Test a mixed quadratic/power objective.
         """
-        # Only relevant for SCS >= 3.0.0.
-        import scs
-        if Version(scs.__version__) >= Version('3.0.0'):
-            # See https://github.com/cvxpy/cvxpy/issues/2059
-            x = cp.Variable()
-            prob = cp.Problem(cp.Minimize(cp.power(x, 1.6, approx=True) + x**2), [x >= 1])
-            prob.solve(solver=cp.SCS, use_quad_obj=True)
-            self.assertAlmostEqual(prob.value, 2)
-            self.assertAlmostEqual(x.value, 1)
+        x = cp.Variable()
+        prob = cp.Problem(cp.Minimize(cp.power(x, 1.6, approx=True) + x**2), [x >= 1])
+        prob.solve(solver=cp.SCS, use_quad_obj=True)
+        self.assertAlmostEqual(prob.value, 2)
+        self.assertAlmostEqual(x.value, 1)
 
-            # Check problem data.
-            data = prob.get_problem_data(solver=cp.SCS, solver_opts={"use_quad_obj": True})
-            # Quadratic objective and SOC contraints.
-            assert "P" in data[0]
-            assert data[0]["dims"].soc
+        # Check problem data.
+        data = prob.get_problem_data(solver=cp.SCS, solver_opts={"use_quad_obj": True})
+        # Quadratic objective and SOC contraints.
+        assert "P" in data[0]
+        assert data[0]["dims"].soc
 
     def test_scs_lp_3(self) -> None:
         StandardTestLPs.test_lp_3(solver='SCS')
@@ -1654,6 +1648,21 @@ class TestCVXOPT(BaseTest):
         # Stationarity in z: 1 - c1.dual - 2 * c2.dual == 0.
         self.assertAlmostEqual(c1.dual_value + 2 * c2.dual_value, 1.0)
 
+    def test_cvxopt_error_message(self) -> None:
+        """An error raised by CVXOPT itself (e.g. rank-deficient constraints) must show
+        up in the SolverError instead of the generic failure message.
+        """
+        import cvxopt
+
+        options = cvxopt.solvers.options.copy()
+        # One inequality and no equalities in two variables: Rank([G; A]) < n.
+        prob = cp.Problem(cp.Maximize(cp.sum(self.x)), [cp.sum(self.x) <= 10])
+        with pytest.raises(cp.error.SolverError, match=r"Rank\(A\) < p") as exc_info:
+            prob.solve(solver=cp.CVXOPT, max_iters=50)
+        assert isinstance(exc_info.value.__cause__, ValueError)
+        # The options set for this solve (e.g. max_iters) must be restored.
+        assert cvxopt.solvers.options == options
+
 
 @unittest.skipUnless('SDPA' in INSTALLED_SOLVERS, 'SDPA is not installed.')
 class TestSDPA(BaseTest):
@@ -1890,6 +1899,14 @@ class TestGLPK(unittest.TestCase):
         sth.check_primal_feasibility(places=4)
         sth.check_complementarity(places=4)
         sth.check_dual_domains(places=4)
+
+    def test_glpk_mi_fresh_interpreter(self) -> None:
+        # GLPK_MI must import cvxopt.glpk itself: availability checks no longer import it, and
+        # an earlier GLPK solve in this process would hide a missing import.
+        code = ("import cvxpy as cp; x = cp.Variable(integer=True); "
+                "cp.Problem(cp.Minimize(x), [x >= 0.5]).solve(solver=cp.GLPK_MI); "
+                "assert abs(x.value - 1) < 1e-6")
+        subprocess.run([sys.executable, "-c", code], check=True)
 
     def test_glpk_mi_options(self) -> None:
         sth = sths.mi_lp_1()
@@ -2410,6 +2427,21 @@ class TestGUROBI(BaseTest):
                 prob = cp.Problem(cp.Minimize(cp.norm(self.x, 1)), [self.x == 0])
                 prob.solve(solver=cp.GUROBI, TimeLimit=0)
             self.assertEqual(str(cm.exception), "The solver %s is not installed." % cp.GUROBI)
+
+    def test_gurobi_error_message(self) -> None:
+        """An error raised by Gurobi itself (e.g. a size-limited license) must show
+        up in the SolverError instead of the generic failure message.
+        """
+        if cp.GUROBI not in INSTALLED_SOLVERS:
+            self.skipTest("GUROBI is not installed.")
+        import gurobipy
+
+        prob = cp.Problem(cp.Minimize(self.a), [cp.norm(self.x) <= self.a])
+        error = gurobipy.GurobiError(10010, "Model too large for size-limited license")
+        with mock.patch.object(gurobipy.Model, "optimize", side_effect=error):
+            with pytest.raises(cp.error.SolverError, match="Model too large") as exc_info:
+                prob.solve(solver=cp.GUROBI)
+        assert exc_info.value.__cause__ is error
 
     def test_gurobi_environment(self) -> None:
         """Tests that Gurobi environments can be passed to Model.
@@ -4085,6 +4117,22 @@ class TestCUOPT(unittest.TestCase):
         self.assertTrue(pf.is_mixed_integer())
         self.assertFalse(CUOPT().can_solve(pf))
 
+    def test_cuopt_boolean_bounds(self) -> None:
+        """Bounds on boolean variables are intersected with [0, 1], not replaced.
+
+        Booleans become integer columns in cuOpt with bounds [0, 1]. A tighter
+        user bound, such as a binary fixed to 1, must survive that step. The
+        constraint makes the lost bound change the optimum: cvxpy clips the
+        returned values to the variable bounds, so a problem where the bound is
+        never active would pass even with the bound dropped.
+        """
+        x = cp.Variable(2, boolean=True, bounds=[np.array([1, 0]), np.array([1, 1])])
+        prob = cp.Problem(cp.Minimize(0.5 * x[0] - x[1]), [x[0] + x[1] <= 1])
+        prob.solve(solver="CUOPT", **TestCUOPT.kwargs)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        self.assertAlmostEqual(prob.value, 0.5, places=4)
+        np.testing.assert_allclose(x.value, [1, 0], atol=1e-4)
+
     def test_cuopt_mi_lp_time_limit_no_incumbent(self) -> None:
         """A MILP that hits the time limit before any incumbent is found.
 
@@ -4111,6 +4159,28 @@ class TestCUOPT(unittest.TestCase):
         )
         if prob.status == cp.settings.INFEASIBLE_INACCURATE:
             self.assertIsNone(w.value)
+
+
+def test_cuopt_miqp_not_advertised() -> None:
+    """cuOpt must not advertise mixed-integer quadratic objectives.
+
+    cuOpt does not support MIQPs (NVIDIA/cuopt#2032). Without this check,
+    can_solve accepted them because supports_quad_obj() is True, so solver
+    selection could route a MIQP to cuOpt. This runs without cuOpt installed.
+    """
+    w = cp.Variable(3)
+    z = cp.Variable(3, boolean=True)
+    constraints = [cp.sum(w) == 1, w >= 0, w <= z, cp.sum(z) <= 2]
+    miqp = cp.Problem(cp.Minimize(cp.sum_squares(w)), constraints)
+    pf = ProblemForm(miqp)
+    assert pf.is_mixed_integer() and pf.has_quadratic_objective()
+    assert not CUOPT().can_solve(pf)
+
+    # MILPs and continuous QPs are still advertised.
+    milp = cp.Problem(cp.Minimize(cp.sum(w)), constraints)
+    assert CUOPT().can_solve(ProblemForm(milp))
+    qp = cp.Problem(cp.Minimize(cp.sum_squares(w)), [cp.sum(w) == 1, w >= 0])
+    assert CUOPT().can_solve(ProblemForm(qp))
 
 
 def _ortools_params(solvers):

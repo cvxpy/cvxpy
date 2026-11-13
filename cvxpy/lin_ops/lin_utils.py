@@ -20,8 +20,6 @@ DO NOT CALL THESE FUNCTIONS IN YOUR CODE!
 import numpy as np
 
 import cvxpy.lin_ops.lin_op as lo
-import cvxpy.utilities as u
-from cvxpy.lin_ops.lin_constraints import LinEqConstr, LinLeqConstr
 
 # Utility functions for dealing with LinOp.
 
@@ -138,24 +136,6 @@ def is_scalar(operator) -> bool:
     return len(operator.shape) == 0 or np.prod(operator.shape, dtype=int) == 1
 
 
-def is_const(operator) -> bool:
-    """Returns whether a LinOp is constant.
-
-    Parameters
-    ----------
-    operator : LinOp
-        The LinOp to test.
-
-    Returns
-    -------
-        True if the LinOp is a constant, False otherwise.
-    """
-    return operator.type in [lo.SCALAR_CONST,
-                             lo.SPARSE_CONST,
-                             lo.DENSE_CONST,
-                             lo.PARAM]
-
-
 def sum_expr(operators):
     """Add linear operators.
 
@@ -186,52 +166,6 @@ def neg_expr(operator):
         The negated operator.
     """
     return lo.LinOp(lo.NEG, operator.shape, [operator], None)
-
-
-def sub_expr(lh_op, rh_op):
-    """Difference of linear operators.
-
-    Parameters
-    ----------
-    lh_op : LinOp
-        The left-hand operator in the difference.
-    rh_op : LinOp
-        The right-hand operator in the difference.
-
-    Returns
-    -------
-    LinOp
-        A LinOp representing the difference of the operators.
-    """
-    return sum_expr([lh_op, neg_expr(rh_op)])
-
-
-def promote_lin_ops_for_mul(lh_op, rh_op):
-    """Promote arguments for multiplication.
-
-    Parameters
-    ----------
-    lh_op : LinOp
-        The left-hand operator in the multiplication.
-    rh_op : LinOp
-        The right-hand operator in the multiplication.
-
-    Returns
-    -------
-    LinOp
-       Promoted left-hand operator.
-    LinOp
-       Promoted right-hand operator.
-    tuple
-       Shape of the product
-    """
-    lh_shape, rh_shape, shape = u.shape.mul_shapes_promote(
-        lh_op.shape, rh_op.shape)
-    lh_op = lo.LinOp(lh_op.type, lh_shape, lh_op.args,
-                     lh_op.data)
-    rh_op = lo.LinOp(rh_op.type, rh_shape, rh_op.args,
-                     rh_op.data)
-    return lh_op, rh_op, shape
 
 
 def mul_expr(lh_op, rh_op, shape: tuple[int, ...]):
@@ -592,6 +526,7 @@ def vstack(operators, shape: tuple[int, ...]):
     """
     return lo.LinOp(lo.VSTACK, shape, operators, None)
 
+
 def concatenate(operators, shape: tuple[int, ...], axis: int | None = 0):
     """Concatenate operators on axis.
 
@@ -610,223 +545,3 @@ def concatenate(operators, shape: tuple[int, ...], axis: int | None = 0):
        LinOp representing the stacked expression.
     """
     return lo.LinOp(lo.CONCATENATE, shape, operators, [axis])
-
-def get_constr_expr(lh_op, rh_op):
-    """Returns the operator in the constraint.
-    """
-    # rh_op defaults to 0.
-    if rh_op is None:
-        return lh_op
-    else:
-        return sum_expr([lh_op, neg_expr(rh_op)])
-
-
-def create_eq(lh_op, rh_op=None, constr_id=None):
-    """Creates an internal equality constraint.
-
-    Parameters
-    ----------
-    lh_op : LinOp
-        The left-hand operator in the equality constraint.
-    rh_op : LinOp
-        The right-hand operator in the equality constraint.
-    constr_id : int
-        The id of the CVXPY equality constraint creating the constraint.
-
-    Returns
-    -------
-    LinEqConstr
-    """
-    if constr_id is None:
-        constr_id = get_id()
-    expr = get_constr_expr(lh_op, rh_op)
-    return LinEqConstr(expr, constr_id, lh_op.shape)
-
-
-def create_leq(lh_op, rh_op=None, constr_id=None):
-    """Creates an internal less than or equal constraint.
-
-    Parameters
-    ----------
-    lh_op : LinOp
-        The left-hand operator in the <= constraint.
-    rh_op : LinOp
-        The right-hand operator in the <= constraint.
-    constr_id : int
-        The id of the CVXPY equality constraint creating the constraint.
-
-    Returns
-    -------
-    LinLeqConstr
-    """
-    if constr_id is None:
-        constr_id = get_id()
-    expr = get_constr_expr(lh_op, rh_op)
-    return LinLeqConstr(expr, constr_id, lh_op.shape)
-
-
-def create_geq(lh_op, rh_op=None, constr_id=None):
-    """Creates an internal greater than or equal constraint.
-
-    Parameters
-    ----------
-    lh_op : LinOp
-        The left-hand operator in the >= constraint.
-    rh_op : LinOp
-        The right-hand operator in the >= constraint.
-    constr_id : int
-        The id of the CVXPY equality constraint creating the constraint.
-
-    Returns
-    -------
-    LinGeqConstr
-    """
-    if rh_op is not None:
-        rh_op = neg_expr(rh_op)
-    return create_leq(neg_expr(lh_op), rh_op, constr_id)
-
-
-def get_expr_vars(operator):
-    """Get a list of the variables in the operator and their shapes.
-
-    Parameters
-    ----------
-    operator : LinOp
-        The operator to extract the variables from.
-
-    Returns
-    -------
-    list
-        A list of (var id, var shape) pairs.
-    """
-    if operator.type == lo.VARIABLE:
-        return [(operator.data, operator.shape)]
-    else:
-        vars_ = []
-        for arg in operator.args:
-            vars_ += get_expr_vars(arg)
-        return vars_
-
-
-def get_expr_params(operator):
-    """Get a list of the parameters in the operator.
-
-    Parameters
-    ----------
-    operator : LinOp
-        The operator to extract the parameters from.
-
-    Returns
-    -------
-    list
-        A list of parameter objects.
-    """
-    if operator.type == lo.PARAM:
-        return operator.data.parameters()
-    else:
-        params = []
-        for arg in operator.args:
-            params += get_expr_params(arg)
-        # Some LinOps have a param as data.
-        if isinstance(operator.data, lo.LinOp):
-            params += get_expr_params(operator.data)
-        return params
-
-
-def copy_constr(constr, func):
-    """Creates a copy of the constraint modified according to func.
-
-    Parameters
-    ----------
-    constr : LinConstraint
-        The constraint to modify.
-    func : function
-        Function to modify the constraint expression.
-
-    Returns
-    -------
-    LinConstraint
-        A copy of the constraint with the specified changes.
-    """
-    expr = func(constr.expr)
-    return type(constr)(expr, constr.constr_id, constr.shape)
-
-
-def replace_new_vars(expr, id_to_new_var):
-    """Replaces the given variables in the expression.
-
-    Parameters
-    ----------
-    expr : LinOp
-        The expression to replace variables in.
-    id_to_new_var : dict
-        A map of id to new variable.
-
-    Returns
-    -------
-    LinOp
-        An LinOp identical to expr, but with the given variables replaced.
-    """
-    if expr.type == lo.VARIABLE and expr.data in id_to_new_var:
-        return id_to_new_var[expr.data]
-    else:
-        new_args = []
-        for arg in expr.args:
-            new_args.append(
-                replace_new_vars(arg, id_to_new_var)
-            )
-        return lo.LinOp(expr.type, expr.shape, new_args, expr.data)
-
-
-def check_param_val(param):
-    """Wrapper on accessing a parameter.
-
-    Parameters
-    ----------
-    param : Parameter
-        The parameter whose value is being accessed.
-
-    Returns
-    -------
-    The numerical value of the parameter.
-
-    Raises
-    ------
-    ValueError
-        Raises error if parameter value is None.
-    """
-    val = param.value
-    if val is None:
-        raise ValueError("Problem has missing parameter value.")
-    else:
-        return val
-
-
-def replace_params_with_consts(expr):
-    """Replaces parameters with constant nodes.
-
-    Parameters
-    ----------
-    expr : LinOp
-        The expression to replace parameters in.
-
-    Returns
-    -------
-    LinOp
-        An LinOp identical to expr, but with the parameters replaced.
-    """
-    if expr.type == lo.PARAM:
-        return create_const(check_param_val(expr.data), expr.shape)
-    else:
-        new_args = []
-        for arg in expr.args:
-            new_args.append(replace_params_with_consts(arg))
-        # Data could also be a parameter.
-        if isinstance(expr.data, lo.LinOp) and expr.data.type == lo.PARAM:
-            data_lin_op = expr.data
-            assert isinstance(data_lin_op.shape, tuple)
-            val = check_param_val(data_lin_op.data)
-            data = create_const(val, data_lin_op.shape)
-        else:
-            data = expr.data
-        return lo.LinOp(expr.type, expr.shape, new_args, data)

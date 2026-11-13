@@ -14,6 +14,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from unittest import mock
+
 import numpy as np
 import pytest
 import scipy.sparse as sp
@@ -756,6 +758,22 @@ def test_gurobi_environment():
         with pytest.raises(Exception) as exc_info:
             prob.solve(solver=cp.GUROBI, TimeLimit=0)
         assert str(exc_info.value) == f"The solver {cp.GUROBI} is not installed."
+
+
+@pytest.mark.skipif(cp.GUROBI not in INSTALLED_SOLVERS, reason="GUROBI is not installed")
+def test_gurobi_error_message():
+    """An error raised by Gurobi itself (e.g. a size-limited license) must show
+    up in the SolverError instead of the generic failure message.
+    """
+    import gurobipy
+
+    x = cp.Variable(2)
+    prob = cp.Problem(cp.Minimize(cp.sum(x)), [x >= 0])
+    error = gurobipy.GurobiError(10010, "Model too large for size-limited license")
+    with mock.patch.object(gurobipy.Model, "optimize", side_effect=error):
+        with pytest.raises(SolverError, match="Model too large") as exc_info:
+            prob.solve(solver=cp.GUROBI)
+    assert exc_info.value.__cause__ is error
 
 
 _INFEAS_QP_SOLVERS = [

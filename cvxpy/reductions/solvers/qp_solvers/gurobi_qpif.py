@@ -2,6 +2,7 @@ import numpy as np
 
 import cvxpy.interface as intf
 import cvxpy.settings as s
+from cvxpy.error import SolverError
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
@@ -231,6 +232,12 @@ class GUROBI(QpSolver):
                 # Solve again to get a definitive answer.
                 model.setParam("DualReductions", 0)
                 model.optimize()
+        except grb.GurobiError as e:
+            # Report Gurobi's own message (e.g. a size-limited license)
+            # unless a solution was found before the error.
+            if not model.SolCount:
+                raise SolverError(f"Solver '{self.name()}' failed: {e}") from e
+            results_dict["status"] = s.SOLVER_ERROR
         except Exception:  # Error in the solution
             results_dict["status"] = s.SOLVER_ERROR
 

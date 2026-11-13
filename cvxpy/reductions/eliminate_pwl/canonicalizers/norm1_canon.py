@@ -32,4 +32,4 @@ def norm1_canon(expr, args, solver_context: SolverInfo | None = None):
     abs_expr = abs(x)
     abs_x, abs_constraints = abs_canon(abs_expr, abs_expr.args)
     constraints += abs_constraints
-    return sum(abs_x, axis=axis), constraints
+    return sum(abs_x, axis=axis, keepdims=expr.keepdims), constraints

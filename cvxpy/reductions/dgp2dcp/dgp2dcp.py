@@ -32,26 +32,28 @@ class Dgp2Dcp(Canonicalization):
 
     >>> import cvxpy as cp
     >>>
-    >>> x1 = cp.Variable(pos=True)
-    >>> x2 = cp.Variable(pos=True)
-    >>> x3 = cp.Variable(pos=True)
+    >>> x_1 = cp.Variable(pos=True, name='x_1')
+    >>> x_2 = cp.Variable(pos=True, name='x_2')
+    >>> x_3 = cp.Variable(pos=True, name='x_3')
     >>>
     >>> monomial = 3.0 * x_1**0.4 * x_2 ** 0.2 * x_3 ** -1.4
     >>> posynomial = monomial + 2.0 * x_1 * x_2
     >>> dgp_problem = cp.Problem(cp.Minimize(posynomial), [monomial == 4.0])
     >>>
-    >>> dcp2cone = cvxpy.reductions.Dcp2Cone()
+    >>> dcp2cone = cp.reductions.Dcp2Cone()
     >>> assert not dcp2cone.accepts(dgp_problem)
     >>>
-    >>> gp2dcp = cvxpy.reductions.Dgp2Dcp(dgp_problem)
+    >>> gp2dcp = cp.reductions.Dgp2Dcp(dgp_problem)
     >>> dcp_problem = gp2dcp.reduce()
     >>>
     >>> assert dcp2cone.accepts(dcp_problem)
-    >>> dcp_problem.solve()
+    >>> _ = dcp_problem.solve()
     >>>
     >>> dgp_problem.unpack(gp2dcp.retrieve(dcp_problem.solution))
-    >>> print(dgp_problem.value)
-    >>> print(dgp_problem.variables())
+    >>> float(round(dgp_problem.value, 6))
+    4.0
+    >>> dgp_problem.variables()
+    [Variable((), x_1, pos=True), Variable((), x_2, pos=True), Variable((), x_3, pos=True)]
     """
     def __init__(self, problem=None) -> None:
         # Canonicalization of DGP is stateful; canon_methods created

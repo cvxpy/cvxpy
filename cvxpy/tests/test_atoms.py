@@ -34,6 +34,7 @@ from cvxpy.atoms.affine.upper_tri import upper_tri_to_full
 from cvxpy.atoms.errormsg import SECOND_ARG_SHOULD_NOT_BE_EXPRESSION_ERROR_MESSAGE
 from cvxpy.expressions.constants import Constant, Parameter
 from cvxpy.expressions.variable import Variable
+from cvxpy.reductions.eliminate_pwl.canonicalizers.norm1_canon import norm1_canon
 from cvxpy.reductions.solvers.defines import INSTALLED_MI_SOLVERS
 from cvxpy.tests.base_test import BaseTest
 from cvxpy.transforms.partial_optimize import partial_optimize
@@ -94,6 +95,24 @@ class TestAtoms(BaseTest):
         self.assertEqual(cp.norm1(atom).curvature, s.CONVEX)
         self.assertEqual(cp.norm1(-atom).curvature, s.CONVEX)
 
+    def test_norm1_keepdims_canonicalization(self) -> None:
+        """Test that norm1 keeps keepdims=True when it is canonicalized.
+        """
+        # Without keepdims the canonicalized norm has shape (3,), the
+        # constraint broadcasts against the (3, 1) t to (3, 3), and every
+        # entry of t is pushed up to the largest row norm.
+        X_val = np.array([[1.0, -2.0], [3.0, 0.0], [-0.5, 0.5]])
+        X = Variable((3, 2))
+        t = Variable((3, 1))
+        expr = cp.norm(X, 1, axis=1, keepdims=True)
+        self.assertEqual(expr.shape, (3, 1))
+        canonical_expr, _ = norm1_canon(expr, expr.args)
+        self.assertEqual(canonical_expr.shape, (3, 1))
+        prob = cp.Problem(cp.Minimize(cp.sum(t)), [X == X_val, expr <= t])
+        prob.solve(solver=cp.CLARABEL)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        self.assertItemsAlmostEqual(t.value, np.linalg.norm(X_val, 1, axis=1, keepdims=True))
+
     def test_list_input(self) -> None:
         """Test that list input is rejected.
         """
@@ -126,20 +145,31 @@ class TestAtoms(BaseTest):
         self.assertTrue(str(cm.exception) in (
             "Unsupported norm option nuc for non-matrix."))
 
-        # A matrix norm has no meaning along a single axis. This used to return
-        # the norm of the whole array for axis=0 and raise an AxisError from
-        # inside the flattened expression for anything else.
+        # Matrix norms are not supported for a single axis.
         X = cp.Variable((3, 4))
         for p in ('fro', 'nuc', 'Fro'):
-            for axis in (0, 1, (0, 1)):
+            for axis in (0, 1, (0,), (1,)):
                 with self.assertRaises(ValueError) as cm:
                     cp.norm(X, p, axis=axis)
                 assert "not supported for the" in str(cm.exception)
 
-        # Without an axis both are unchanged.
+        # Three or more axes are not supported.
+        with self.assertRaises(NotImplementedError) as cm:
+            cp.norm(X, 'nuc', axis=(0, 1, 2))
+        assert "more than two axis entries" in str(cm.exception)
+
+        # Norms without an axis retain NumPy-compatible behavior.
         A = np.arange(12., dtype=float).reshape(3, 4)
-        assert np.isclose(cp.norm(cp.Constant(A), 'fro').value, np.linalg.norm(A, 'fro'))
-        assert np.isclose(cp.norm(cp.Constant(A), 'nuc').value, np.linalg.norm(A, 'nuc'))
+        assert np.isclose(cp.norm(cp.Constant(A), 'fro').value,
+                          np.linalg.norm(A, 'fro'))
+        assert np.isclose(cp.norm(cp.Constant(A), 'nuc').value,
+                          np.linalg.norm(A, 'nuc'))
+
+        # A full two-axis tuple computes the Frobenius matrix norm.
+        assert np.isclose(
+            cp.norm(cp.Constant(A), 'fro', axis=(0, 1)).value,
+            np.linalg.norm(A, 'fro')
+        )
 
     def test_quad_form(self) -> None:
         """Test quad_form atom.
@@ -188,6 +218,34 @@ class TestAtoms(BaseTest):
                 self.assertEqual(copy.get_data(), atom.get_data())
 
         assert cp.power(-1, 2).value == 1
+
+    def test_power_curvature_follows_rational_approximation(self) -> None:
+        """Curvature and sign follow p_used, not the input exponent.
+
+        ``power`` approximates ``p`` by a rational with denominator at most
+        ``max_denom``. An exponent that approximates to exactly 1 must behave
+        like ``power(x, 1)``, matching is_incr/is_decr, which already use
+        ``p_used``.
+        """
+        x = Variable()
+
+        # 1.0001 approximates to p_used == 1, so it is affine like power(x, 1).
+        near_one = cp.power(x, 1.0001)
+        self.assertEqual(near_one.p_used, 1)
+        self.assertEqual(near_one.curvature, s.AFFINE)
+        self.assertEqual(near_one.curvature, cp.power(x, 1).curvature)
+        self.assertEqual(near_one.sign, cp.power(x, 1).sign)
+
+        # 1.001 does not, so it stays convex and nonnegative.
+        approx = cp.power(x, 1.001)
+        self.assertEqual(approx.p_used, Fraction(1001, 1000))
+        self.assertEqual(approx.curvature, s.CONVEX)
+        self.assertEqual(approx.sign, s.NONNEG)
+
+        # A parametrized exponent has no approximation and stays unknown.
+        param = cp.power(x, Parameter())
+        self.assertIsNone(param.p_used)
+        self.assertEqual(param.curvature, s.UNKNOWN)
 
     # Test the xexp class
     def test_xexp(self) -> None:

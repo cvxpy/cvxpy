@@ -108,7 +108,8 @@ class Constraint(u.Canonical):
 
         Examples
         --------
-        >>> x = cp.Variable(3)
+        >>> import cvxpy as cp
+        >>> x = cp.Variable(3, name="x")
         >>> # Using the method for chaining:
         >>> con = (x >= 0).set_label("non_negative")
         >>> # Using the property setter:

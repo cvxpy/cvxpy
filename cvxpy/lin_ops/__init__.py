@@ -14,5 +14,4 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.lin_ops.lin_constraints import LinEqConstr, LinLeqConstr
 from cvxpy.lin_ops.lin_op import CONSTANT_ID, LinOp
