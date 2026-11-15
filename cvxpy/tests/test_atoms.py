@@ -1045,6 +1045,75 @@ class TestAtoms(BaseTest):
         prob.solve(solver=cp.CLARABEL)
         self.assertAlmostEqual(prob.value, np.trace(C @ X.value), places=4)
 
+    def test_trace_batched_product(self) -> None:
+        rng = np.random.default_rng(42)
+        for batch, rows, inner in [((2,), 2, 2), ((3,), 2, 4), ((2, 3), 3, 2)]:
+            for complex_values in [False, True]:
+                with self.subTest(batch=batch, rows=rows, inner=inner,
+                                  complex_values=complex_values):
+                    a = rng.normal(size=(*batch, rows, inner))
+                    b = rng.normal(size=(*batch, inner, rows))
+                    if complex_values:
+                        a = a + 1j * rng.normal(size=a.shape)
+                        b = b + 1j * rng.normal(size=b.shape)
+                    A = cp.Variable(a.shape, complex=complex_values)
+                    B = cp.Variable(b.shape, complex=complex_values)
+                    A.value, B.value = a, b
+                    result = cp.trace(A @ B)
+                    self.assertEqual(result.shape, batch)
+                    self.assertItemsAlmostEqual(result.value, np.linalg.trace(a @ b))
+
+    def test_trace_batched_product_broadcast(self) -> None:
+        rng = np.random.default_rng(1)
+        for left_batch, right_batch in [((2, 3), ()), ((), (2, 3)),
+                                       ((2, 1), (1, 3))]:
+            with self.subTest(left_batch=left_batch, right_batch=right_batch):
+                a = rng.normal(size=(*left_batch, 2, 4))
+                b = rng.normal(size=(*right_batch, 4, 2))
+                A = cp.Parameter(a.shape, value=a)
+                B = cp.Variable(b.shape)
+                B.value = b
+                result = cp.trace(A @ B)
+                expected = np.linalg.trace(a @ b)
+                self.assertEqual(result.shape, expected.shape)
+                self.assertItemsAlmostEqual(result.value, expected)
+                A.value = a * 2
+                self.assertItemsAlmostEqual(result.value, expected * 2)
+
+    def test_trace_product_validation(self) -> None:
+        for left, right in [((2, 3), (3, 4)), ((3,), (3,)),
+                            ((2, 2, 3), (3, 4))]:
+            with self.subTest(left=left, right=right):
+                with self.assertRaisesRegex(ValueError, "Argument to trace must"):
+                    cp.trace(cp.Variable(left) @ cp.Variable(right))
+
+    def test_trace_batched_product_solve(self) -> None:
+        costs = np.array([[[40., 10.], [20., 30.]], [[1., 50.], [60., 70.]]])
+        for backend in [cp.SCIPY_CANON_BACKEND, cp.COO_CANON_BACKEND]:
+            with self.subTest(backend=backend):
+                X = cp.Variable(costs.shape, nonneg=True)
+                problem = cp.Problem(cp.Minimize(cp.sum(cp.trace(costs @ X))),
+                                     [cp.sum(X) == 1])
+                problem.solve(solver=cp.CLARABEL, canon_backend=backend)
+                self.assertAlmostEqual(problem.value, 1., places=5)
+                self.assertAlmostEqual(np.linalg.trace(costs @ X.value).sum(),
+                                       problem.value, places=5)
+
+    def test_trace_batched_product_dpp(self) -> None:
+        costs = cp.Parameter((2, 2, 2), nonneg=True)
+        X = cp.Variable(costs.shape, nonneg=True)
+        problem = cp.Problem(cp.Minimize(cp.sum(cp.trace(costs @ X))),
+                             [cp.sum(X) == 1])
+        self.assertTrue(problem.is_dpp())
+        for values in [np.array([[[40., 10.], [20., 30.]], [[1., 50.], [60., 70.]]]),
+                       np.array([[[40., 2.], [20., 30.]], [[50., 50.], [60., 70.]]])]:
+            costs.value = values
+            problem.solve(solver=cp.CLARABEL, canon_backend=cp.SCIPY_CANON_BACKEND,
+                          enforce_dpp=True)
+            self.assertAlmostEqual(problem.value, values.min(), places=5)
+            self.assertAlmostEqual(np.linalg.trace(values @ X.value).sum(),
+                                   problem.value, places=5)
+
     def test_trace_scalar_real_products(self) -> None:
         """Real scalar-shaped products should canonicalize without real()."""
         X = cp.Variable((1, 1))

@@ -22,6 +22,7 @@ from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.atoms.affine.binary_operators import MulExpression, multiply
 from cvxpy.atoms.affine.real import real as real_atom
 from cvxpy.atoms.affine.sum import sum as cvxpy_sum
+from cvxpy.atoms.affine.transpose import swapaxes
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions.expression import Expression
 
@@ -45,9 +46,11 @@ def trace(expr) -> Expression:
     """
     # Use an exact type check: `multiply` subclasses `MulExpression`, but this
     # rewrite is valid only for matrix multiplication.
-    if type(expr) is MulExpression:
-        # trace(A @ B) = sum(A * B.T), correct for real and complex matrices.
-        result = cvxpy_sum(multiply(expr.args[0], expr.args[1].T))
+    if type(expr) is MulExpression and expr.ndim >= 2 and expr.shape[-2] == expr.shape[-1]:
+        # Transpose and sum only the matrix axes, preserving any batch axes.
+        # No conjugation is needed, including for complex matrices.
+        product = multiply(expr.args[0], swapaxes(expr.args[1], -1, -2))
+        result = cvxpy_sum(product, axis=(-2, -1))
         if expr.is_hermitian() and not result.is_real():
             # trace of a Hermitian matrix is provably real.
             # Wrap with real() so is_real() == True propagates upward.
