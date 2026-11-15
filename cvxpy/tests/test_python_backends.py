@@ -3143,6 +3143,85 @@ class TestCooBackend:
         expected = data.flatten(order='F').reshape(-1, 1)
         assert np.allclose(tensor.toarray(), expected)
 
+    @pytest.mark.parametrize("shape", [(5,), (2, 3), (2, 3, 4), (2, 1, 3, 4)])
+    @pytest.mark.parametrize("empty", [False, True])
+    def test_get_sparse_data_tensor_all_axes(self, coo_backend, shape, empty):
+        rng = np.random.default_rng(42)
+        dense = rng.normal(size=shape)
+        dense[rng.random(shape) < .6] = 0
+        if empty:
+            dense.fill(0)
+        data = sp.coo_array(dense)
+        tensor = coo_backend.get_data_tensor(data)[-1][-1]
+        assert tensor.m == dense.size
+        assert tensor.n == tensor.param_size == 1
+        np.testing.assert_allclose(tensor.toarray(), dense.reshape(-1, 1, order="F"))
+
+    def test_get_sparse_data_tensor_duplicates(self, coo_backend):
+        data = sp.coo_array(([2., 5., -3.], ([1, 1, 0], [0, 0, 1], [2, 2, 1])),
+                            shape=(2, 3, 4))
+        tensor = coo_backend.get_data_tensor(data)[-1][-1]
+        np.testing.assert_allclose(tensor.toarray(), data.toarray().reshape(-1, 1, order="F"))
+
+    def test_get_sparse_data_tensor_without_densifying(self, coo_backend, monkeypatch):
+        shape = (1000, 2000, 3000)
+        data = sp.coo_array(([7.], ([999], [1999], [2999])), shape=shape)
+
+        def reject_densification(*args, **kwargs):
+            raise AssertionError("Sparse constants must not be densified")
+
+        monkeypatch.setattr(sp.coo_array, "toarray", reject_densification)
+        tensor = coo_backend.get_data_tensor(data)[-1][-1]
+        assert tensor.m == 6_000_000_000
+        np.testing.assert_array_equal(tensor.row, [5_999_999_999])
+        np.testing.assert_array_equal(tensor.data, [7.])
+
+    @pytest.mark.parametrize("backend", [cp.SCIPY_CANON_BACKEND, cp.COO_CANON_BACKEND])
+    def test_nd_sparse_constant_constraint(self, backend):
+        data = sp.coo_array(([7.], ([1], [0], [1])), shape=(2, 2, 2))
+        var = cp.Variable(data.shape)
+        problem = cp.Problem(cp.Minimize(cp.sum(var)), [var == data])
+        problem.solve(solver=cp.CLARABEL, canon_backend=backend)
+        assert problem.status == cp.OPTIMAL
+        np.testing.assert_allclose(var.value, data.toarray(), atol=1e-8)
+
+    @pytest.mark.parametrize("backend", [cp.SCIPY_CANON_BACKEND, cp.COO_CANON_BACKEND])
+    @pytest.mark.parametrize("shape", [(2, 2, 3), (2, 3, 2, 2)])
+    def test_nd_sparse_constant_multiply(self, backend, shape):
+        dense = np.arange(np.prod(shape), dtype=float).reshape(shape)
+        dense[dense % 3 == 0] = 0
+        data = sp.coo_array(dense)
+        var = cp.Variable(shape)
+        target = np.arange(np.prod(shape), dtype=float).reshape(shape) + 1
+        problem = cp.Problem(cp.Minimize(cp.sum(cp.multiply(data, var))), [var == target])
+        problem.solve(solver=cp.CLARABEL, canon_backend=backend)
+        assert problem.status == cp.OPTIMAL
+        np.testing.assert_allclose(problem.value, np.sum(dense * target), rtol=1e-7)
+
+    @pytest.mark.parametrize("backend", [cp.SCIPY_CANON_BACKEND, cp.COO_CANON_BACKEND])
+    @pytest.mark.parametrize("shape", [(2, 2, 2), (2, 3, 2, 2)])
+    def test_batched_lambda_max_sparse_identity(self, backend, shape):
+        var = cp.Variable(shape, symmetric=True)
+        target = cp.Parameter(shape)
+        problem = cp.Problem(cp.Minimize(cp.sum(cp.lambda_max(var))), [var == target])
+        for scale in [1., 3.]:
+            target.value = np.broadcast_to(scale * np.eye(shape[-1]), shape).copy()
+            problem.solve(solver=cp.CLARABEL, canon_backend=backend, enforce_dpp=True)
+            assert problem.status == cp.OPTIMAL
+            np.testing.assert_allclose(problem.value, scale * np.prod(shape[:-2]), rtol=1e-7)
+
+    def test_batched_lambda_max_auto_backend(self):
+        # A large parameter selects COO without an explicit canon_backend.
+        shape = (50, 5, 5)
+        target = cp.Parameter(shape)
+        var = cp.Variable(shape, symmetric=True)
+        problem = cp.Problem(cp.Minimize(cp.sum(cp.lambda_max(var))), [var == target])
+        for scale in [1., 3.]:
+            target.value = np.broadcast_to(scale * np.eye(5), shape).copy()
+            problem.solve(solver=cp.CLARABEL, enforce_dpp=True)
+            assert problem.status == cp.OPTIMAL
+            np.testing.assert_allclose(problem.value, 50 * scale, rtol=1e-7)
+
     @staticmethod
     @pytest.mark.parametrize("shape,reps", [
         ((2, 2), 1),
