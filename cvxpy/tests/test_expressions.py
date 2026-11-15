@@ -2247,3 +2247,117 @@ def test_sum_squares_with_axis(shape, axis, keepdims, expected_shape, use_soc):
     prob.solve(solver=cp.CLARABEL, use_quad_obj=not use_soc)
     assert prob.status == cp.OPTIMAL
     np.testing.assert_allclose(X.value, Y, atol=1e-3)
+
+
+class TestAffineSemidefinitePropagation:
+    """Elementwise monotonicity alone does not preserve matrix order."""
+
+    @pytest.mark.parametrize("negative", [False, True])
+    @pytest.mark.parametrize("operation", [
+        lambda x: x[::-1, :],
+        lambda x: x[:, ::-1],
+        lambda x: x[[1, 0], :],
+        lambda x: cp.cumsum(x, axis=0),
+        lambda x: cp.hstack([x, x]),
+        lambda x: cp.vstack([x, x]),
+        lambda x: cp.concatenate([x, x], axis=0),
+        lambda x: cp.upper_tri(x),
+        lambda x: cp.reshape(x, (4,), order='F'),
+        lambda x: cp.sum(x, axis=0),
+        lambda x: np.array([[1., 0.], [0., 2.]]) @ x,
+        lambda x: x @ np.array([[1., 0.], [0., 2.]]),
+    ])
+    def test_structural_maps_not_assumed_semidefinite(self, operation, negative):
+        x = cp.Variable((2, 2), NSD=True) if negative else cp.Variable((2, 2), PSD=True)
+        result = operation(x)
+        assert not result.is_psd()
+        assert not result.is_nsd()
+
+    @pytest.mark.parametrize("negative", [False, True])
+    @pytest.mark.parametrize("operation", [
+        lambda x: x + x,
+        lambda x: 2 * x,
+        lambda x: -(-x),
+        lambda x: cp.real(x),
+        lambda x: symmetric_wrap(x),
+        lambda x: x[:1, :1],
+        lambda x: x[::-1, ::-1],
+        lambda x: cp.reshape(x, (2, 2), order='C'),
+        lambda x: cp.reshape(x, (1, 2, 2), order='F'),
+        lambda x: cp.broadcast_to(x, (3, 2, 2)),
+    ])
+    def test_proven_matrix_maps_preserve_semidefiniteness(self, operation, negative):
+        x = cp.Variable((2, 2), NSD=True) if negative else cp.Variable((2, 2), PSD=True)
+        result = operation(x)
+        assert result.is_nsd() == negative
+        assert result.is_psd() != negative
+
+    @pytest.mark.parametrize("negative", [False, True])
+    @pytest.mark.parametrize("operation", [
+        lambda x: x[0, :, :],
+        lambda x: x[:, :1, :1],
+        lambda x: x[:, ::-1, ::-1],
+        lambda x: cp.sum(x, axis=0),
+        lambda x: cp.sum(x, axis=(0,), keepdims=True),
+        lambda x: cp.sum(x, axis=-3),
+        lambda x: cp.cumsum(x, axis=0),
+        lambda x: cp.cumsum(x, axis=-3),
+        lambda x: cp.reshape(x, (1, 2, 3, 3), order='F'),
+        lambda x: cp.reshape(x, (1, 2, 3, 3), order='C'),
+    ])
+    def test_batch_only_maps_preserve_semidefiniteness(self, operation, negative):
+        x = cp.Variable((2, 3, 3), NSD=True) if negative else cp.Variable((2, 3, 3), PSD=True)
+        result = operation(x)
+        assert result.is_nsd() == negative
+        assert result.is_psd() != negative
+
+    @pytest.mark.parametrize("operation", [
+        lambda x: x[:, :, 0, 0],
+        lambda x: x[:, :, 0, :],
+        lambda x: x[:, :, ::-1, :],
+        lambda x: cp.sum(x, axis=-1),
+        lambda x: cp.sum(x, axis=(-2, -1), keepdims=True),
+        lambda x: cp.reshape(x, (3, 3, 2, 2), order='F'),
+        lambda x: cp.cumsum(x, axis=-1),
+    ])
+    def test_matrix_axis_maps_drop_semidefiniteness(self, operation):
+        x = cp.Variable((2, 2, 3, 3), PSD=True)
+        assert not operation(x).is_psd()
+
+    @pytest.mark.parametrize("shape", [(2, 2)])
+    @pytest.mark.parametrize("negative", [False, True])
+    def test_hermitian_real_part_preserves_semidefiniteness(self, shape, negative):
+        x = cp.Variable(shape, hermitian=True)
+        wrapped = cp.atoms.affine.wraps.nsd_wrap(x) if negative else psd_wrap(x)
+        result = cp.real(wrapped)
+        assert result.is_nsd() == negative
+        assert result.is_psd() != negative
+
+    def test_unsafe_index_cannot_certify_nonconvex_objective(self):
+        x = cp.Variable((2, 2), PSD=True)
+        t = cp.trace(x[::-1, :])
+        objective = cp.square(cp.maximum(t, -1)) + .25 * t
+        problem = cp.Problem(cp.Minimize(objective), [cp.diag(x) == 1])
+        assert not t.is_nonneg()
+        assert not problem.is_dcp()
+        with pytest.raises(cp.error.DCPError):
+            problem.solve(solver=cp.CLARABEL)
+        # This feasible positive-definite point is better than the point
+        # returned when the false PSD flag certified the objective as DCP.
+        x.value = np.array([[1., -.0625], [-.0625, 1.]])
+        np.testing.assert_allclose(objective.value, -.015625)
+        x.value = np.array([[1., -1.], [-1., 1.]])
+        np.testing.assert_allclose(objective.value, .5)
+
+    def test_safe_principal_trace_parameter_resolves(self):
+        p = cp.Parameter(nonneg=True)
+        x = cp.Variable((3, 3), PSD=True)
+        principal = x[:2, :2]
+        objective = cp.sqrt(cp.trace(principal))
+        problem = cp.Problem(cp.Maximize(objective), [cp.trace(x) == p])
+        assert objective.is_concave()
+        for value in [1., 4.]:
+            p.value = value
+            problem.solve(solver=cp.CLARABEL, enforce_dpp=True)
+            assert problem.status == cp.OPTIMAL
+            np.testing.assert_allclose(problem.value, np.sqrt(value), rtol=1e-6)
