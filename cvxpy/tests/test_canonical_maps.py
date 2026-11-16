@@ -32,6 +32,7 @@ from cvxpy.reductions.canonical_maps import (
     trace_scaled_selection,
     transform_source_value,
 )
+from cvxpy.reductions.solvers.canonical_export import build_canonical_maps
 from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS, SOLVER_MAP_QP
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
 from cvxpy.reductions.solvers.solver import Solver
@@ -122,7 +123,11 @@ class TestCanonicalMaps(BaseTest):
         data, chain, inverse_data = problem.get_problem_data(solver, gp=gp, solver_opts={})
         raw = chain.solve_via_data(problem, data)
         problem.unpack_results(raw, chain, inverse_data)
-        recovered = canon.recover(*_solver_vectors(solver, raw))
+        self.assert_recovered_values(problem, canon, canon.recover(*_solver_vectors(solver, raw)))
+        return canon
+
+    def assert_recovered_values(self, problem, canon, recovered):
+        """``recovered`` must agree with the values ``invert`` stored on ``problem``."""
         variables = {v.id: v for v in problem.variables()}
         duals = {dv.id: dv for c in problem.constraints for dv in c.dual_variables}
         for info in canon.primal_vars:
@@ -132,7 +137,6 @@ class TestCanonicalMaps(BaseTest):
             expected = np.ravel(duals[info.dual_var_id].value, order='F')
             self.assertItemsAlmostEqual(np.ravel(recovered[info.dual_var_id], order='F'),
                                         expected, places=6)
-        return canon
 
     def assert_inputs_match_problem_data(self, problem, solver, gp=False):
         """Evaluated maps agree with ``apply_parameters`` and the solve path's data."""
@@ -232,6 +236,31 @@ class TestCanonicalMaps(BaseTest):
                 with self.subTest(problem=name, solver=solver):
                     self.assert_recovery_matches_invert(problem, solver)
                     self.assert_inputs_match_problem_data(problem, solver)
+
+    @unittest.skipUnless(cp.MOREAU in INSTALLED_SOLVERS, 'MOREAU is not installed.')
+    def test_moreau_direct_cone_recovery(self) -> None:
+        """Duals of cones Moreau places directly on x are read from z_x, after z."""
+        rng = np.random.default_rng(0)
+        x, t, z, w = cp.Variable(3), cp.Variable(), cp.Variable(3), cp.Variable(3)
+        X, S = cp.Variable((3, 2)), cp.Variable((3, 3), symmetric=True)
+        C = rng.standard_normal((3, 3))
+        c = cp.Parameter(3, value=np.array([1.0, -2.0, 0.5]))
+        problem = cp.Problem(
+            cp.Minimize(c @ x + t + cp.sum(X) + cp.trace((C + C.T) @ S)
+                        + cp.sum_squares(z) - z[2] + cp.sum_squares(w) - w[2]),
+            [x >= 0, cp.sum(x) == 1, cp.SOC(t, x), cp.SOC(cp.Variable(2), X, axis=0),
+             X >= -1, S >> 0, cp.trace(S) == 1, cp.ExpCone(z[0], z[1], z[2]),
+             z[1] >= 0.1, cp.PowCone3D(w[0], w[1], w[2], 0.3), w[:2] <= 2])
+        data, chain, inverse_data = problem.get_problem_data(cp.MOREAU, solver_opts={})
+        param_prog = data[cp.settings.PARAM_PROB]
+        self.assertEqual({cone.kind for cone in param_prog.dir_cones},
+                         {'nonneg', 'soc', 'psd_triangle', 'exp', 'power'})
+        canon = build_canonical_maps(problem, chain, param_prog, inverse_data,
+                                     solver_inputs=False)
+        raw = chain.solve_via_data(problem, data)
+        problem.unpack_results(raw, chain, inverse_data)
+        recovered = canon.recover(raw.x, np.concatenate([raw.z, raw.z_x]))
+        self.assert_recovered_values(problem, canon, recovered)
 
     def test_empty_blocks_are_none(self) -> None:
         """Empty blocks are passed as ``None``, as before canonical maps.
