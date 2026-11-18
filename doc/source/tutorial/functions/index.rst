@@ -29,7 +29,7 @@ Elementwise multiplication can be applied with the :ref:`multiply` function.
 Indexing and slicing
 ^^^^^^^^^^^^^^^^^^^^
 
-Indexing in CVXPY follows exactly the same semantics as `NumPy ndarrays <https://docs.scipy.org/doc/numpy/reference/arrays.indexing.html>`_.
+Indexing in CVXPY follows exactly the same semantics as `NumPy ndarrays <https://numpy.org/doc/stable/user/basics.indexing.html>`_.
 For example, if ``expr`` has shape ``(5,)`` then ``expr[1]`` gives the second entry.
 More generally, ``expr[i:j:k]`` selects every kth
 element of ``expr``, starting at ``i`` and ending at ``j-1``.
