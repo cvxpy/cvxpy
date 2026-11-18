@@ -1023,7 +1023,7 @@ class TestMoreau(BaseTest):
 
         value = prob.solve(
             solver=cp.MOREAU,
-            ipm_settings={"presolve_enable": False, "equilibrate_enable": False},
+            ipm_settings={"equilibrate_enable": False},
         )
         self.assertEqual(prob.status, cp.OPTIMAL)
         self.assertAlmostEqual(value, -0.5, places=6)
