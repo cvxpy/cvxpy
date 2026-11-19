@@ -825,7 +825,7 @@ Here is the complete list of solver options.
     ``'eps_rel'``
         relative accuracy (default: 1e-9).
 
-    For others see `PIQP documentation <https://predict-epfl.github.io/piqp/interfaces/settings>`_.
+    For others see `PIQP documentation <https://predict-epfl.github.io/piqp/api/settings>`_.
 
 
 .. info:: `HIGHS`_ options:
