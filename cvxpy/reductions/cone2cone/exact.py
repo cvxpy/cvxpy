@@ -35,6 +35,7 @@ form a DAG (no cycles).
 
 import numpy as np
 from scipy import sparse
+from scipy.sparse import eye_array as sp_eye
 
 import cvxpy as cp
 from cvxpy import problems
@@ -47,6 +48,11 @@ from cvxpy.constraints.power import PowCone3D, PowConeND
 from cvxpy.constraints.psd import PSD, SvecPSD
 from cvxpy.constraints.second_order import RSOC, SOC
 from cvxpy.expressions.variable import Variable
+from cvxpy.reductions.canonical_maps import (
+    Recovery,
+    UnsupportedRecovery,
+    trace_scaled_selection,
+)
 from cvxpy.reductions.canonicalization import Canonicalization
 from cvxpy.reductions.cone2cone.cone_tree import (
     LeafNode,
@@ -307,6 +313,17 @@ class PowNDConversion:
         # Format as (n+1, k): W duals stacked above z duals
         return np.vstack([w_duals, z_duals[np.newaxis, :]])
 
+    @staticmethod
+    def recover_dual_map(cons, rec, inner_cons, inverse_data, dual_recs):
+        """The tree recovery selects entries of the PowCone3D duals."""
+        if inner_cons is None:
+            return UnsupportedRecovery("missing PowCone3D constraint metadata")
+        S = trace_scaled_selection(
+            lambda v: PowNDConversion.recover_dual(
+                cons, np.reshape(v, inner_cons.shape, order='F'), inverse_data, None),
+            inner_cons.size)
+        return rec.linear(S)
+
 
 class SOCConversion:
     """SOC -> PSD via Schur complement."""
@@ -398,6 +415,20 @@ class SOCConversion:
         else:
             return 2 * dual_var[0]
 
+    @staticmethod
+    def recover_dual_map(cons, rec, inner_cons, inverse_data, dual_recs):
+        """Twice the first row of each (full-matrix) PSD dual."""
+        k = cons.cone_sizes()[0]  # Side length of each PSD matrix.
+        first_row = np.arange(k) * k
+        parts = [rec.take(first_row)]
+        for aux_id in getattr(inverse_data, 'soc_packed_aux', {}).get(cons.id, []):
+            parts.append(dual_recs.get(aux_id, UnsupportedRecovery(
+                "missing auxiliary PSD dual")).take(first_row))
+        joined = Recovery.concat(parts)
+        if isinstance(joined, UnsupportedRecovery):
+            return joined
+        return joined.linear(2 * sp_eye(joined.size))
+
 
 class NonPosConversion:
     """NonPos -> NonNeg by negating the expression.
@@ -418,6 +449,10 @@ class NonPosConversion:
     @staticmethod
     def recover_dual(cons, dual_var, inverse_data, dvars):
         return dual_var
+
+    @staticmethod
+    def recover_dual_map(cons, rec, inner_cons, inverse_data, dual_recs):
+        return rec
 
 class RSocConversion:
     """RSOC -> SOC conversion.
@@ -481,6 +516,32 @@ class RSocConversion:
         du_dual = dt - d_tu
         return [dt_dual, du_dual, dx_dual]
 
+    @staticmethod
+    def recover_dual_map(cons, rec, inner_cons, inverse_data, dual_recs):
+        """``recover_dual`` as a matrix; parts concatenate as ``[dt, du, vec(dX)]``.
+
+        ``vec(dX)`` flattens the ``(n_cones, n_x)`` array in Fortran order.
+        """
+        X_shape = cons.args[2].shape
+        if cons.axis == 1 and len(X_shape) == 2:
+            n_x = X_shape[1]
+        else:
+            n_x = X_shape[0] if cons.args[2].ndim > 1 else cons.args[2].size
+        n_cones = cons.args[0].size
+        stride = n_x + 2
+        k = np.arange(n_cones)
+        t_rows, tu_rows = k * stride, k * stride + stride - 1
+        ki, ii = np.meshgrid(k, np.arange(n_x), indexing='ij')
+        x_out = 2 * n_cones + ki + ii * n_cones
+        x_in = ki * stride + 1 + ii
+        rows = np.concatenate([k, k, n_cones + k, n_cones + k, x_out.ravel()])
+        cols = np.concatenate([t_rows, tu_rows, t_rows, tu_rows, x_in.ravel()])
+        vals = np.concatenate([np.ones(2 * n_cones), np.ones(n_cones), -np.ones(n_cones),
+                               np.full(n_cones * n_x, np.sqrt(2))])
+        mat = sparse.csr_array((vals, (rows, cols)),
+                               shape=(n_cones * (2 + n_x), n_cones * stride))
+        return rec.linear(mat)
+
 class PSDToSvecPSD:
     """PSD -> SvecPSD via scaled vectorization.
 
@@ -509,6 +570,15 @@ class PSDToSvecPSD:
                            ctx.psd_sqrt2_scaling)
         return full.reshape(cons.args[0].shape)
 
+    @staticmethod
+    def recover_dual_map(cons, rec, inner_cons, inverse_data, dual_recs):
+        """Unpack (and unscale) the triangle into the full matrix."""
+        n = cons.args[0].shape[-1]
+        size = n * (n + 1) // 2 * cons.num_cones()
+        S = trace_scaled_selection(
+            lambda v: PSDToSvecPSD.recover_dual(cons, v, inverse_data, None), size)
+        return rec.linear(S)
+
 
 class ExactCone2Cone(Canonicalization):
 
@@ -524,6 +594,8 @@ class ExactCone2Cone(Canonicalization):
         canon_methods = {c.source: c.canonicalize for c in conversions}
         self._dual_recovery = {c.source: c.recover_dual
                                for c in conversions if hasattr(c, 'recover_dual')}
+        self._dual_recovery_maps = {c.source: c.recover_dual_map for c in conversions
+                                    if hasattr(c, 'recover_dual_map')}
         # _apply_hooks: per-conversion callbacks invoked by apply() right
         # after a constraint is canonicalized.  The flow is:
         #   1. apply() calls canonicalize_tree(constraint) to get
@@ -563,6 +635,7 @@ class ExactCone2Cone(Canonicalization):
 
         canon_constraints.append(current)
         inverse_data.cons_id_map[constraint.id] = current.id
+        inverse_data._final_constraints[constraint.id] = current
         if chain:
             inverse_data._recovery_chains[constraint.id] = chain
 
@@ -570,6 +643,7 @@ class ExactCone2Cone(Canonicalization):
         inverse_data = InverseData(problem)
         inverse_data._solver_context = self.solver_context
         inverse_data._recovery_chains = {}
+        inverse_data._final_constraints = {}
 
         canon_objective, canon_constraints = self.canonicalize_tree(
             problem.objective)
@@ -582,6 +656,28 @@ class ExactCone2Cone(Canonicalization):
                                                canon_constraints)
         self._cons_id_map = inverse_data.cons_id_map
         return new_problem, inverse_data
+
+    def compose_recovery(self, inner, inverse_data):
+        """Unwind each conversion chain, mirroring ``invert``."""
+        recovery = inner.pass_through(inverse_data.id_map, inverse_data.cons_id_map)
+        finals = getattr(inverse_data, '_final_constraints', {})
+        for orig_id, chain in inverse_data._recovery_chains.items():
+            rec = recovery.dual[orig_id]
+            inner_cons = chain[1:] + [finals.get(orig_id)]
+            for cons, nxt in reversed(list(zip(chain, inner_cons))):
+                if isinstance(rec, UnsupportedRecovery):
+                    break
+                recover = self._dual_recovery_maps.get(type(cons))
+                if recover is None:
+                    rec = UnsupportedRecovery(
+                        f"no dual recovery map for {type(cons).__name__}")
+                    break
+                try:
+                    rec = recover(cons, rec, nxt, inverse_data, recovery.dual)
+                except NotImplementedError as e:
+                    rec = UnsupportedRecovery(str(e))
+            recovery.dual[orig_id] = rec
+        return recovery
 
     def invert(self, solution, inverse_data):
         pvars = {vid: solution.primal_vars[vid] for vid in inverse_data.id_map

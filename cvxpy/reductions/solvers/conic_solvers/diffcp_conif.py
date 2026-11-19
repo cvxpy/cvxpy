@@ -62,19 +62,8 @@ class DIFFCP(scs_conif.SCS):
         """
         return False
 
-    def apply(self, problem):
-        problem, data, inv_data = self._prepare_data_and_inv_data(problem)
-
-        # Apply parameter values.
-        # Obtain A, b such that Ax + s = b, s \in cones.
-        #
-        # Keep zeros in A that are affected by parameters
-        c, d, A, b = problem.apply_parameters(keep_zeros=True)
-        data[s.C] = c
-        inv_data[s.OFFSET] = d
-        data[s.A] = -A
-        data[s.B] = b
-        return data, inv_data
+    # DIFFCP inherits SCS's canonical maps and apply(). Their structure keeps
+    # every entry that depends on a parameter, as diffcp's derivatives need.
 
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data.

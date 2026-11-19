@@ -73,6 +73,7 @@ class CLARABEL(ConicSolver):
     PSD_TRIANGLE_KIND = TriangleKind.UPPER
     PSD_SQRT2_SCALING = True
     REQUIRED_MODULES = ("clarabel",)
+    CANONICAL_DATA_KEYS = {s.P: s.P, s.Q: s.C, s.A: s.A, s.B: s.B}
 
     # Status messages from clarabel.
     SOLVED = "Solved"
@@ -119,6 +120,10 @@ class CLARABEL(ConicSolver):
         of conic constraints.
         """
         return True
+
+    def get_canonical_maps(self, problem):
+        """Inputs ``P`` (upper triangle, always present), ``q``, ``A``, ``b``, ``d``."""
+        return self._conic_canonical_maps(problem, objective_key=s.Q, quad_obj=True)
 
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data.

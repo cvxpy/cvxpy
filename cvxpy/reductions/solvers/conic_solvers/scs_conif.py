@@ -126,6 +126,10 @@ class SCS(ConicSolver):
         """
         return True
 
+    def get_canonical_maps(self, problem):
+        """Inputs ``P`` (upper triangle, if quadratic), ``c``, ``A``, ``b``, ``d``."""
+        return self._conic_canonical_maps(problem)
+
     def apply(self, problem):
         """Returns a new problem and data for inverting the new solution.
 

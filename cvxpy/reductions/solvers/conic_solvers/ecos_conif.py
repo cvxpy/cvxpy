@@ -19,7 +19,7 @@ from scipy import sparse
 
 import cvxpy.interface as intf
 import cvxpy.settings as s
-from cvxpy.constraints import SOC, ExpCone, NonNeg, Zero
+from cvxpy.constraints import SOC, ExpCone
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
@@ -83,48 +83,29 @@ class ECOS(ConicSolver):
         """
         return s.ECOS
 
-    def apply(self, problem):
-        """Returns a new problem and data for inverting the new solution.
+    def get_canonical_maps(self, problem):
+        """Inputs ``c``, ``d``, ``A``, ``b``, ``G``, ``h``."""
+        return self._split_conic_canonical_maps(problem)
 
-        Returns
-        -------
-        tuple
-            (dict of arguments needed for the solver, inverse data)
-        """
-        data = {}
-        inv_data = {self.VAR_ID: problem.x.id}
-
-        # Rows arrive in this order, established by the ConeFormat reduction.
-        # ECOS requires constraints to be specified in the following order:
-        # 1. zero cone
-        # 2. non-negative orthant
-        # 3. soc
-        # 4. exponential
-        data[s.PARAM_PROB] = problem
-        data[self.DIMS] = problem.cone_dims
-        inv_data[self.DIMS] = problem.cone_dims
-
-        constr_map = problem.constr_map
-        inv_data[self.EQ_CONSTR] = constr_map[Zero]
-        inv_data[self.NEQ_CONSTR] = constr_map[NonNeg] + constr_map[SOC] + constr_map[ExpCone]
-        len_eq = problem.cone_dims.zero
-
-        c, d, A, b = problem.apply_parameters()
-        data[s.C] = c
-        inv_data[s.OFFSET] = d
-        data[s.A] = -A[:len_eq]
-        if data[s.A].shape[0] == 0:
-            data[s.A] = None
-        data[s.B] = b[:len_eq].flatten(order='F')
-        if data[s.B].shape[0] == 0:
-            data[s.B] = None
-        data[s.G] = -A[len_eq:]
-        if 0 in data[s.G].shape:
-            data[s.G] = None
-        data[s.H] = b[len_eq:].flatten(order='F')
-        if 0 in data[s.H].shape:
-            data[s.H] = None
+    def _apply_canonical_maps(self, problem, maps):
+        """ECOS takes ``None`` for an empty block."""
+        data, inv_data = super()._apply_canonical_maps(problem, maps)
+        for key in (s.A, s.B, s.G, s.H):
+            if data[key].shape[0] == 0:
+                data[key] = None
         return data, inv_data
+
+    def canonical_recovery(self, problem):
+        """``solver_y`` concatenates ECOS's ``y`` and ``z``.
+
+        Exponential cone duals arrive in ECOS's argument order.
+        """
+        recovery = super().canonical_recovery(problem)
+        for con in problem.constraints:
+            if isinstance(con, ExpCone):
+                perm = utilities.expcone_permutor(con.num_cones(), ECOS.EXP_CONE_ORDER)
+                recovery.dual[con.id] = recovery.dual[con.id].take(perm)
+        return recovery
 
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
         import ecos

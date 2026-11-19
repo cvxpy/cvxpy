@@ -229,9 +229,13 @@ class Complex2RealCanonMethods(dict):
                 return real_param, imag_matrix
             return real_param, imag_param
 
+        # The parts of a sparse parameter share its sparsity pattern, so that
+        # splitting acts elementwise on the stored entries.
+        sparsity = {} if expr.sparse_idx is None else {'sparsity': expr.sparse_idx}
+
         if expr.is_imag():
             # Purely imaginary parameter
-            imag_param = Parameter(expr.shape, name=f"{expr.name()}_imag")
+            imag_param = Parameter(expr.shape, name=f"{expr.name()}_imag", **sparsity)
             if expr.value is not None:
                 imag_param.value = np.imag(expr.value)
             self._parameters[expr] = (None, imag_param)
@@ -263,8 +267,8 @@ class Complex2RealCanonMethods(dict):
             return real_param, imag_matrix
 
         # General complex parameter
-        real_param = Parameter(expr.shape, name=f"{expr.name()}_real")
-        imag_param = Parameter(expr.shape, name=f"{expr.name()}_imag")
+        real_param = Parameter(expr.shape, name=f"{expr.name()}_real", **sparsity)
+        imag_param = Parameter(expr.shape, name=f"{expr.name()}_imag", **sparsity)
         if expr.value is not None:
             real_param.value = np.real(expr.value)
             imag_param.value = np.imag(expr.value)

@@ -263,6 +263,74 @@ The structure of the data dict that CVXPY returns depends on the solver. For
 details, print the dictionary, or consult the solver interfaces in
 ``cvxpy/reductions/solvers``.
 
+.. _canonical-maps:
+
+Canonical maps
+--------------
+
+For a :ref:`DPP <dpp>` problem, the solver's inputs are affine functions of
+the parameters, and the requested variables and duals are linear functions of
+the solver's outputs. The ``get_canonical_maps`` method exports these maps,
+so that code outside CVXPY (for example, code generators, or differentiable
+layers that solve batches of problems) can update the solver data and read
+the solution without running CVXPY's reductions on every solve. It returns a
+:class:`~cvxpy.reductions.canonical_maps.CanonicalMaps` object with three
+parts, used in order:
+
+1. **Parameter preparation.** ``param_transforms`` lists the transformations
+   that reductions apply to the parameters (for example, taking the real and
+   imaginary parts of a complex parameter). Applied to the original
+   parameter values, they give the values that are packed into the
+   parameter vector ``param_vec``.
+2. **Solver inputs.** ``maps[name]`` is a pair ``(M, v)`` of a sparse matrix
+   and a vector; ``M @ param_vec + v`` is the solver input ``name``, in the
+   solver's own format. For a sparse matrix input, it gives the stored values
+   and ``structures[name]`` gives the fixed sparsity structure.
+3. **Solution recovery.** ``primal_recovery`` and ``dual_recovery`` map the
+   solver's primal and dual vectors to the values of the variables and of the
+   constraints' dual variables.
+
+``prepare_param_vec``, ``evaluate`` and ``recover`` implement the three
+steps with NumPy. Solving (and differentiating through the solve) is left to
+the caller. For example, calling Clarabel directly:
+
+.. code:: python
+
+  import clarabel
+  import numpy as np
+  import cvxpy as cp
+
+  x = cp.Variable(2)
+  p = cp.Parameter(2, value=np.array([1.0, -2.0]))
+  con = x >= 0
+  problem = cp.Problem(cp.Minimize(0.5 * cp.sum_squares(x) + p @ x), [con])
+  canon = problem.get_canonical_maps(cp.CLARABEL)
+
+  # 1. Parameter preparation: values are keyed by parameter ID.
+  param_vec = canon.prepare_param_vec({p.id: p.value})
+  # 2. Solver inputs: 'P', 'q', 'A', 'b', and the objective offset 'd'.
+  inputs = canon.evaluate(param_vec)
+  # 3. Solve, then recover x and the dual of con.
+  settings = clarabel.DefaultSettings()
+  settings.verbose = False
+  cones = [clarabel.NonnegativeConeT(canon.cone_dims.nonneg)]
+  solver = clarabel.DefaultSolver(inputs['P'], inputs['q'], inputs['A'],
+                                  inputs['b'], cones, settings)
+  solution = solver.solve()
+  values = canon.recover(np.array(solution.x), np.array(solution.z))
+  x_value = values[x.id]
+  dual_value = values[con.dual_variables[0].id]
+  objective = solution.obj_val + inputs['d'][0]
+
+After changing ``p.value``, only steps 1–3 need to be repeated; the maps
+themselves stay the same.
+
+The ``variables`` argument selects the outputs to recover. Some outputs
+cannot be expressed by the maps (for example, complex variables); requesting
+one raises ``NotImplementedError``, so pass ``variables`` to request only the
+supported outputs. Only some solver interfaces export canonical maps so far;
+the others also raise ``NotImplementedError``.
+
 .. _canonicalization-backends:
 
 Canonicalization backends

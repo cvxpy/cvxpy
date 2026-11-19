@@ -4,6 +4,7 @@ import scipy.sparse as sp
 import cvxpy.interface as intf
 import cvxpy.settings as s
 from cvxpy.error import SolverError
+from cvxpy.reductions.canonical_maps import AffineVector, SolverInputMaps
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
@@ -42,6 +43,45 @@ class OSQP(QpSolver):
 
     def import_solver(self) -> None:
         import osqp  # noqa: F401
+
+    def get_canonical_maps(self, problem):
+        """OSQP's inputs: ``P`` (upper triangle), ``q``, ``A``, ``l``, ``u``, ``d``.
+
+        ``l <= A x <= u`` stacks the equality rows above the inequality rows;
+        the inequality rows of ``l`` are the constant ``-inf``.
+        """
+        P, q, d, A, u = self._qp_canonical_maps(problem)
+        n_params = problem.total_param_size
+        len_eq = problem.cone_dims.zero
+        lower = AffineVector.constant(np.full(u.size - len_eq, -np.inf), n_params)
+        maps = SolverInputMaps()
+        maps.add_matrix(s.P, P.triu())
+        maps.add_vector(s.Q, q)
+        maps.add_matrix(s.A, A)
+        maps.add_vector('l', AffineVector.concat([u.take(np.arange(len_eq)), lower], n_params))
+        maps.add_vector('u', u)
+        maps.add_vector(s.CANONICAL_OFFSET, d)
+        return maps
+
+    def _apply_canonical_maps(self, problem, maps):
+        """Split the evaluated inputs into ``apply``'s ``A, b, F, g`` layout."""
+        data, inv_data = self._prepare_data_and_inv_data(problem)
+        values = maps.evaluate(problem.param_vec())
+        n_eq = problem.cone_dims.zero
+        A, u = values[s.A], values['u']
+        data[s.P] = values[s.P]
+        data[s.Q] = values[s.Q]
+        data[s.A] = sp.csc_array(A[:n_eq])
+        data[s.B] = u[:n_eq]
+        data[s.F] = sp.csc_array(A[n_eq:])
+        data[s.G] = u[n_eq:]
+        data['n_eq'] = n_eq
+        data['n_ineq'] = A.shape[0] - n_eq
+        # OSQP has no native bounds, so these are never parametric.
+        data[s.LOWER_BOUNDS] = problem.lower_bounds
+        data[s.UPPER_BOUNDS] = problem.upper_bounds
+        inv_data[s.OFFSET] = values[s.CANONICAL_OFFSET][0]
+        return data, inv_data
 
     def extract_duals_from_solution_attribute(
             self, solution_attribute, inverse_data

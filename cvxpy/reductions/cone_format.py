@@ -158,5 +158,9 @@ class ConeFormat(Reduction):
     def apply(self, problem):
         return format_cone_prog(problem, self.solver.EXP_CONE_ORDER), None
 
+    def compose_recovery(self, inner, inverse_data):
+        """Solver interfaces already read duals in the formatted layout."""
+        return inner
+
     def invert(self, solution, inverse_data):
         return solution

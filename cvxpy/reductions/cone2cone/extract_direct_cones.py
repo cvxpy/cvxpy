@@ -191,6 +191,10 @@ class ExtractDirectCones(Reduction):
             dir_cones=dir_cones,
         ), None
 
+    def compose_recovery(self, inner, inverse_data):
+        """The solver interface recovers direct-cone duals under their original IDs."""
+        return inner
+
     def invert(self, solution, inverse_data):
         """The solver already restores direct-cone duals under their original IDs."""
         return solution
