@@ -195,7 +195,13 @@ def convert_sum(expr, children):
     axis = expr.axis
     if axis is None:
         axis = -1
-    return _diffengine.make_sum(children[0], axis)
+    node = _diffengine.make_sum(children[0], axis)
+    # The engine returns an axis-1 sum as a row; keepdims=True asks for a
+    # column. Both are vectors, so a reshape is all that differs.
+    d1, d2 = normalize_shape(expr.shape)
+    if tuple(_diffengine.get_expr_dimensions(node)) != (d1, d2):
+        node = _diffengine.make_reshape(node, d1, d2)
+    return node
 
 def convert_promote(expr, children):
     d1, d2 = normalize_shape(expr.shape)
