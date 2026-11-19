@@ -63,6 +63,11 @@ class quad_over_lin(AxisAtom):
 
         return squared.sum(axis=self.axis, keepdims=self.keepdims) / y_val
 
+    def _supports_diffengine(self) -> bool:
+        # With an axis, quad_over_lin_canon emits a SymbolicQuadForm carrying
+        # block_indices, which the engine's quad_form binding cannot express.
+        return self.axis is None
+
     def _domain(self) -> list[Constraint]:
         """Returns constraints describing the domain of the node.
         """

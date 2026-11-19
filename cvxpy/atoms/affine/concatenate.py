@@ -46,6 +46,9 @@ class Concatenate(AffAtom):
     def _supports_cpp(self) -> bool:
         return False
 
+    def _supports_diffengine(self) -> bool:
+        return False
+
     def is_atom_log_log_convex(self) -> bool:
         return True
 
