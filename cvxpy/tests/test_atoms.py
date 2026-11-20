@@ -724,11 +724,70 @@ class TestAtoms(BaseTest):
         with self.assertRaises(ValueError):
             cp.hstack([self.A, self.x])
 
+        with self.assertRaises(ValueError):
+            cp.hstack([Variable((2, 3, 4)), Variable((2, 3))])
+
         with self.assertRaises(TypeError):
             cp.hstack()
 
         expr = cp.hstack([2, Variable((1,))])
         self.assertEqual(expr.shape, (2,))
+
+    def test_hstack_nd_solve(self) -> None:
+        """hstack must follow NumPy semantics for ndim >= 3."""
+        backends = [None, cp.SCIPY_CANON_BACKEND, cp.COO_CANON_BACKEND]
+        shapes = [(2, 3, 4), (2, 3, 2, 2)]
+        for backend in backends:
+            for shape in shapes:
+                with self.subTest(backend=backend, shape=shape):
+                    left = np.arange(np.prod(shape), dtype=float).reshape(shape)
+                    right = left + 100.0
+                    constant_shape = (shape[0], 1) + shape[2:]
+                    constant = np.arange(
+                        np.prod(constant_shape), dtype=float
+                    ).reshape(constant_shape) - 50.0
+                    target = np.hstack([left, constant, right])
+
+                    x = cp.Variable(shape)
+                    y = cp.Variable(shape)
+                    expr = cp.hstack([x, constant, y])
+
+                    self.assertEqual(expr.shape, target.shape)
+                    prob = cp.Problem(
+                        cp.Minimize(cp.sum_squares(expr - target))
+                    )
+                    prob.solve(solver=cp.CLARABEL, canon_backend=backend)
+
+                    self.assertAlmostEqual(prob.value, 0.0, places=6)
+                    self.assertItemsAlmostEqual(x.value, left)
+                    self.assertItemsAlmostEqual(y.value, right)
+                    self.assertItemsAlmostEqual(expr.value, target)
+
+    def test_hstack_nd_value(self) -> None:
+        """Shape and numeric value must match NumPy hstack."""
+        for shape in [(2, 3, 4), (2, 3, 2, 2)]:
+            with self.subTest(shape=shape):
+                left = np.arange(np.prod(shape), dtype=float).reshape(shape)
+                right = left + 100.0
+                expected = np.hstack([left, right])
+
+                expr = cp.hstack([left, right])
+
+                self.assertEqual(expr.shape, expected.shape)
+                self.assertItemsAlmostEqual(expr.value, expected)
+
+    def test_hstack_nd_issue_3576(self) -> None:
+        """Regression test for the original repro in issue #3576."""
+        A = np.arange(24.).reshape(2, 3, 4)
+        X = cp.Variable((2, 3, 4))
+        prob = cp.Problem(
+            cp.Minimize(cp.sum_squares(cp.hstack([X, A]) - np.hstack([A, A])))
+        )
+
+        prob.solve(solver=cp.CLARABEL)
+
+        self.assertAlmostEqual(prob.value, 0.0, places=6)
+        self.assertItemsAlmostEqual(X.value, A)
 
     def test_concatenate(self):
         atom = cp.concatenate([self.x, self.y], axis=0)
