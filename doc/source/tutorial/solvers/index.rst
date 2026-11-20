@@ -9,7 +9,7 @@ Solve method options
 The ``solve`` method takes optional arguments that let you change how CVXPY
 parses and solves the problem.
 
-.. function:: solve(solver=None, verbose=False, gp=False, qcp=False, requires_grad=False, enforce_dpp=False, ignore_dpp=False, **kwargs)
+.. function:: solve(solver=None, warm_start=True, verbose=False, gp=False, qcp=False, requires_grad=False, enforce_dpp=False, ignore_dpp=False, **kwargs)
 
    Solves the problem using the specified method.
 
@@ -21,7 +21,10 @@ parses and solves the problem.
    :param solver_path:  The solvers to use with optional arguments.
             The function tries the solvers in the given order and
             returns the first solver's solution that succeeds.
-   :type solver_path: list of (str, dict) tuples or strings, optional   
+   :type solver_path: list of (str, dict) tuples or strings, optional
+   :param warm_start: Allow the solver to reuse information from a previous solve when
+        supported. Defaults to ``True``. See :ref:`solver-warm-start` for details.
+   :type warm_start: bool, optional
    :param verbose:  Overrides the default of hiding solver output.
    :type verbose: bool, optional
    :param gp:  If ``True``, parses the problem as a disciplined geometric program instead of a disciplined convex program.
@@ -246,6 +249,8 @@ For example, ``problem.solver_stats.solve_time`` gives the time it took the solv
     For example, if we use ``MOSEK``, ``problem.solver_stats.num_iters`` includes the following: ``iinfitem.intpnt_iter``, ``liinfitem.simplex_iter``
     or ``iinfitem.mio_num_relax``. In addition, ``problem.solver_stats.extra_stats`` includes ``liinfitem.mio_intpnt_iter`` and ``liinfitem.mio_simplex_iter``.
     For more information, please visit https://docs.mosek.com/latest/pythonapi/constants.html
+
+.. _solver-warm-start:
 
 Warm start
 ----------
