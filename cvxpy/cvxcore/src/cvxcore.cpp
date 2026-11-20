@@ -137,6 +137,9 @@ ProblemData init_data_tensor(std::map<int, int> param_to_size) {
   typedef std::map<int, int>::iterator it_type;
   for (it_type it = param_to_size.begin(); it != param_to_size.end(); ++it) {
     int param_id = it->first;
+    if (param_id == CONSTANT_ID) {
+      continue;
+    }
     int param_size = it->second;
     output.init_id(param_id, param_size);
   }

@@ -220,3 +220,21 @@ class TestBackendSelectionSolve:
             prob.solve(solver=cp.CLARABEL)
 
         assert prob.status == cp.OPTIMAL
+
+    def test_issue_3001_cpp_backend_constant_id_init(self):
+        """Ensure ProblemData init_id does not fail assertion with CONSTANT_ID (#3001)."""
+        m = 30
+        n = 20
+        np.random.seed(1)
+        A = np.random.randn(m, n)
+        b = np.random.randn(m)
+
+        x = cp.Variable(n)
+        objective = cp.Minimize(cp.sum_squares(A @ x - b))
+        constraints = [0 <= x, x <= 1]
+        prob = cp.Problem(objective, constraints)
+
+        result = prob.solve(solver=cp.CLARABEL, canon_backend=cp.CPP_CANON_BACKEND)
+        assert prob.status == cp.OPTIMAL
+        assert x.value is not None
+        assert constraints[0].dual_value is not None
