@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import warnings
 from re import compile
 
 import numpy as np
@@ -29,6 +28,7 @@ from cvxpy.reductions.solvers.conic_solvers.conic_solver import (
     dims_to_solver_dict,
 )
 from cvxpy.utilities.citations import CITATION_DICT
+from cvxpy.utilities.warn import warn
 
 PYTHON_LIST_SLICE_PATTERN = compile(r", \d+:\d+")
 VALID_COLUMN_NAME_PATTERN = compile(
@@ -158,9 +158,9 @@ class HIGHS(ConicSolver):
         data[s.BOOL_IDX] = [int(t[0]) for t in variables.boolean_idx]
         data[s.INT_IDX] = [int(t[0]) for t in variables.integer_idx]
         inv_data["is_mip"] = data[s.BOOL_IDX] or data[s.INT_IDX]
-
-        # Initial guess, with NaN marking entries the user did not set.
-        data["init_value"] = utilities.stack_vals(problem.variables, np.nan)
+        # Only MIPs get a start: on an LP it makes HiGHS skip presolve.
+        if inv_data["is_mip"]:
+            data["init_value"] = utilities.stack_vals(problem.variables, np.nan)
 
         return data, inv_data
 
@@ -221,39 +221,18 @@ class HIGHS(ConicSolver):
     def _set_initial_solution(self, solver, data, hp) -> None:
         """Pass the values set on the user's variables to HiGHS as a MIP start.
 
-        Values are read from ``Variable.value`` and may be set on only some of
-        the variables, so they are handed over through the sparse overload of
-        ``setSolution``, which takes the indices that are known rather than a
-        full solution vector. Indices are left as they come out of
-        ``flatnonzero``: HiGHS reports an out-of-range one as ``kError``,
-        whereas narrowing them here would wrap silently.
-
-        Only mixed-integer problems are given a start. On a pure LP a start
-        makes HiGHS skip presolve, which can increase the simplex iterations.
-
-        An unusable guess is reported by HiGHS as ``kError``. That is warned
-        about rather than raised: the initial guess is a hint, not part of the
-        model, and a stale value left on a variable should not stop an
-        otherwise valid problem from being solved.
+        Only the entries the user set are passed, so the start can be partial.
+        If HiGHS rejects it, we warn and solve without it.
         """
-        if not (data[s.BOOL_IDX] or data[s.INT_IDX]):
-            # On a pure LP a start makes HiGHS skip presolve, which can increase
-            # the simplex iterations, so nothing is handed over.
-            return
         init_value = data.get("init_value")
         if init_value is None:
             return
-        init_value = np.asarray(init_value, dtype=float)
         known = np.flatnonzero(~np.isnan(init_value))
         if known.size == 0:
             return
         status = solver.setSolution(known.size, known, init_value[known])
         if status == hp.HighsStatus.kError:
-            warnings.warn(
-                "HiGHS rejected the initial guess taken from Variable.value; "
-                "solving without it.",
-                stacklevel=2,
-            )
+            warn("HiGHS rejected the initial guess; solving without it.")
 
     def solve_via_data(
         self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None
