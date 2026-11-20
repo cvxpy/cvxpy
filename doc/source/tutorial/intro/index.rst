@@ -80,7 +80,7 @@ Infeasible and unbounded problems
 
 If a problem is infeasible or unbounded, the status field will be set to
 "infeasible" or "unbounded", respectively. The value fields of the
-problem variables are not updated.
+problem variables are set to ``None``.
 
 .. code:: python
 
@@ -158,7 +158,7 @@ Vectors and matrices
 --------------------
 
 :py:class:`Variables <cvxpy.expressions.variable.Variable>` can be scalars,
-vectors, or matrices, meaning they are 0, 1, or 2 dimensional.
+vectors, matrices, or :ref:`N-dimensional arrays <n-dimensional>`.
 
 
 .. code:: python

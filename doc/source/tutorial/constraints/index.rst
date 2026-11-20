@@ -16,7 +16,7 @@ of :py:class:`Variable <cvxpy.expressions.variable.Variable>` and
 .. function:: Leaf(shape=None, value=None, nonneg=False, nonpos=False, complex=False, imag=False, symmetric=False, diag=False, PSD=False, NSD=False, hermitian=False, boolean=False, integer=False, sparsity=None, pos=False, neg=False)
 
     Creates a Leaf object (e.g., Variable or Parameter).
-    Only one attribute can be active (set to True).
+    Some attributes can be combined; see :ref:`multiple-attributes` for supported combinations.
 
     :param shape: The variable dimensions, defaults to scalar (0D).
     :type shape: tuple or int
@@ -187,43 +187,50 @@ Example for defining a sparse integer variable:
 .. code:: python
 
     import cvxpy as cp
+    import numpy as np
+
     x = cp.Variable(shape=(2,2), sparsity=[(0,1),(0,1)], integer=True)
     prob = cp.Problem(cp.Minimize(cp.sum(x)), [x >= -5.5])
     prob.solve()
     assert prob.value == -10
-    # although the lower bound on x is 5.5, the non-zero entries
+    # although the lower bound on x is -5.5, the non-zero entries
     # of x are set to -5 due to the integer attribute
-    assert x.value == np.array([[-5, 0],
-                                [0, -5]])
+    np.testing.assert_allclose(x.value, [[-5, 0],
+                                       [0, -5]])
 
 Example for defining a bounded integer variable:
 
 .. code:: python
 
     import cvxpy as cp
+    import numpy as np
+
     x = cp.Variable(shape=(2,2), integer=True, bounds=[-1.5, 2])
     prob = cp.Problem(cp.Minimize(cp.sum(x)), [])
     prob.solve()
     assert prob.value == -4
-    # although the lower bound is 1.5, each entry of x
+    # although the lower bound is -1.5, each entry of x
     # is set to -1 due to the integer attribute
-    assert x.value == np.array([[-1, -1],
-                                [-1, -1]])
+    np.testing.assert_allclose(x.value, [[-1, -1],
+                                       [-1, -1]])
 
 Example for defining a sparse bounded variable:
 
 .. code:: python
 
     import cvxpy as cp
-    x = cp.Variable((3,3), sparsity=[(0,1),(1,2)], bounds=[3.5, 7])
+    import numpy as np
+
+    # Scalar bounds must include the structurally zero entries.
+    x = cp.Variable((3,3), sparsity=[(0,1),(1,2)], bounds=[-3.5, 7])
     prob = cp.Problem(cp.Minimize(cp.sum(x)), [])
     prob.solve()
-    assert prob.value == 7
+    np.testing.assert_allclose(prob.value, -7)
     # each non-zero entry of x is set to the lower
-    # bound of 3.5
-    assert x.value == np.array([[0, 3.5, 0],
-                                [0, 0, 3.5],
-                                [0, 0, 0]])
+    # bound of -3.5
+    np.testing.assert_allclose(x.value, [[0, -3.5, 0],
+                                       [0, 0, -3.5],
+                                       [0, 0, 0]])
 
 .. _semidefinite:
 
@@ -296,7 +303,7 @@ You can construct mixed-integer programs by creating variables with the attribut
     constr2 = (expr2 == Z)
 
 CVXPY provides interfaces to many mixed-integer solvers, including open source and commercial solvers.
-For licensing reasons, CVXPY does not install any of the preferred solvers by default.
+HiGHS is installed with CVXPY by default; the other solvers must be installed separately.
 
 The preferred open source mixed-integer solvers in CVXPY are HiGHS, GLPK_MI, CBC and SCIP. The CVXOPT
 python package provides CVXPY with access to GLPK_MI; CVXOPT can be installed by running

@@ -54,7 +54,7 @@ We will discuss the optional arguments in detail below.
 Choosing a solver
 ^^^^^^^^^^^^^^^^^
 
-CVXPY is distributed with the open source solvers `CLARABEL`_, `OSQP`_, and `SCS`_.
+CVXPY is distributed with the open source solvers `CLARABEL`_, `OSQP`_, `SCS`_, and `HiGHS`_.
 Many other solvers can be called by CVXPY if installed separately.
 The table below shows the types of problems the supported solvers can handle.
 
@@ -146,7 +146,7 @@ The exponential cone is defined as: :math:`\{(x,y,z) \mid y > 0, y\exp(x/y) \leq
 
 POW - refers to problems with 3-dimensional power cone constraints.
 
-The 3D power cone is defined as: :math:`\{(x,y,z) \mid x^{\alpha}y^{\alpha} \geq |z|, x \geq 0, y \geq 0 \}`.
+The 3D power cone is defined as: :math:`\{(x,y,z) \mid x^{\alpha}y^{1-\alpha} \geq |z|, x \geq 0, y \geq 0 \}`, where :math:`0 < \alpha < 1`.
 
 Support for power cone constraints is a recent addition (v1.1.8), and CVXPY currently does
 not have any atoms that take advantage of this constraint. If you want to use this

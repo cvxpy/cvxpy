@@ -363,13 +363,13 @@ tutorial <functions>` for more information.
      - |incr| incr.
 
    * - :ref:`norm(X, 1) <norm>`
-     - :math:`\sum_{ij}\lvert X_{ij} \rvert`
+     - :math:`\max_j \sum_i \lvert X_{ij} \rvert`
      - :math:`X \in\mathbf{R}^{m \times n}_{++}`
      - |convex| log-log convex
      - |incr| incr.
 
    * - :ref:`norm(X, "inf") <norm>`
-     - :math:`\max_{ij} \{\lvert X_{ij} \rvert\}`
+     - :math:`\max_i \sum_j \lvert X_{ij} \rvert`
      - :math:`X \in\mathbf{R}^{m \times n}_{++}`
      - |convex| log-log convex
      - |incr| incr.
@@ -534,7 +534,7 @@ dimensions or be scalars, which are promoted.
      - constant
 
    * - :ref:`power(x, p) <power>`
-     - :math:`x`
+     - :math:`x^p`
      - :math:`x > 0`
      - |affine| log-log affine
      - |incr| for :math:`p > 0`
