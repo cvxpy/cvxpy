@@ -19,6 +19,7 @@ import pytest
 import scipy.sparse as sp
 
 import cvxpy as cp
+from cvxpy.utilities.bounds import matmul_bounds, mul_bounds
 
 
 class TestBoundsPropagation:
@@ -335,6 +336,59 @@ class TestBoundsPropagation:
         assert np.all(lb == -np.inf)
         assert np.all(ub == np.inf)
 
+    @pytest.mark.parametrize("matrix", [
+        np.array([[1.0, 0.0, 1.0, 0.0], [0.0, 1.0, 0.0, 1.0]]),
+        sp.csr_array([[1.0, 0.0, 1.0, 0.0], [0.0, 1.0, 0.0, 1.0]]),
+    ])
+    def test_matmul_unbounded_variable(self, matrix) -> None:
+        """A zero coefficient against an infinite bound contributes 0, not NaN."""
+        x = cp.Variable(4)
+        lb, ub = (matrix @ x).get_bounds()
+        assert np.all(lb == -np.inf)
+        assert np.all(ub == np.inf)
+
+        y = cp.Variable(4, nonneg=True)
+        lb, ub = (matrix @ y).get_bounds()
+        assert np.allclose(lb, 0)
+        assert np.all(ub == np.inf)
+
+    def test_matmul_matrix_variable(self) -> None:
+        """M @ X and X.T @ M.T with a 2-D variable have no NaN bounds."""
+        M = np.array([[1.0, 0.0, 1.0, 0.0], [0.0, 1.0, 0.0, 1.0]])
+        X = cp.Variable((4, 3), nonneg=True)
+        lb, ub = (M @ X).get_bounds()
+        assert lb.shape == (2, 3)
+        assert np.allclose(lb, 0)
+        assert np.all(ub == np.inf)
+        lb, ub = (X.T @ M.T).get_bounds()
+        assert lb.shape == (3, 2)
+        assert np.allclose(lb, 0)
+        assert np.all(ub == np.inf)
+
+    def test_matmul_constant_right_unbounded_variable(self) -> None:
+        """x @ B with a constant B and an unbounded x has no NaN bounds."""
+        B = np.array([[1.0, 0.0], [0.0, -2.0], [3.0, 0.0]])
+        x = cp.Variable(3, nonneg=True)
+        lb, ub = (x @ B).get_bounds()
+        assert np.allclose(lb, [0, -np.inf])
+        assert np.allclose(ub, [np.inf, 0])
+
+    @pytest.mark.parametrize("scale", [
+        lambda e: e / 3,
+        lambda e: 3 * e,
+        lambda e: cp.multiply(np.array([1.0, 2.0]), e),
+    ])
+    def test_scaled_matmul_unbounded_variable(self, scale) -> None:
+        """Scaling M @ x keeps the bounds unbounded instead of collapsing to 0."""
+        M = np.array([[1.0, 0.0, 1.0, 0.0], [0.0, 1.0, 0.0, 1.0]])
+        x = cp.Variable(4)
+        lb, ub = scale(M @ x).get_bounds()
+        assert np.all(lb == -np.inf)
+        assert np.all(ub == np.inf)
+        lb, ub = cp.square(np.array([0.3, 0.6]) - scale(M @ x)).get_bounds()
+        assert np.allclose(lb, 0)
+        assert np.all(ub == np.inf)
+
     # -------------------- Composed expressions --------------------
     def test_composed_expression(self) -> None:
         """Test bounds propagation through composed expressions."""
@@ -624,6 +678,65 @@ class TestBoundsUtilityFunctions:
         assert np.all(lb == -np.inf)
         assert np.all(ub == np.inf)
 
+    @pytest.mark.parametrize("to_matrix", [
+        np.array, sp.csr_array, sp.csc_matrix, sp.lil_array, sp.dok_array,
+    ])
+    def test_matmul_bounds_zero_coefficient_times_inf(self, to_matrix) -> None:
+        """matmul_bounds treats 0 * inf as 0 for both operand orders."""
+        A = to_matrix(np.array([[1.0, 0.0], [0.0, -2.0]]))
+        lb2 = np.array([-np.inf, 1.0])
+        ub2 = np.array([3.0, np.inf])
+        lb, ub = matmul_bounds(A, A, lb2, ub2)
+        assert np.allclose(lb, [-np.inf, -np.inf])
+        assert np.allclose(ub, [3.0, -2.0])
+
+        # x @ A.T is the same product with the constant on the right.
+        lb, ub = matmul_bounds(lb2, ub2, A.T, A.T)
+        assert np.allclose(lb, [-np.inf, -np.inf])
+        assert np.allclose(ub, [3.0, -2.0])
+
+    def test_matmul_bounds_finite_bounds_unchanged(self) -> None:
+        """Finite bounds still give the exact split formula."""
+        A = np.array([[1.0, -2.0], [0.0, 3.0]])
+        lb2, ub2 = np.array([-1.0, 0.0]), np.array([2.0, 1.0])
+        lb, ub = matmul_bounds(A, A, lb2, ub2)
+        assert np.allclose(lb, [-3.0, 0.0])
+        assert np.allclose(ub, [2.0, 3.0])
+
+    def test_matmul_bounds_nan_input_is_unbounded(self) -> None:
+        """A NaN input bound counts as unbounded where a nonzero coefficient meets it."""
+        A = np.array([[1.0, 0.0], [0.0, 2.0]])
+        lb, ub = matmul_bounds(A, A, np.array([np.nan, 1.0]), np.array([np.nan, 2.0]))
+        assert np.allclose(lb, [-np.inf, 2.0])
+        assert np.allclose(ub, [np.inf, 4.0])
+
+    def test_matmul_bounds_sparse_operands_stay_sparse(self) -> None:
+        """A sparse constant times sparse bounds with an infinity gives sparse bounds."""
+        A = sp.csc_array([[1.0, 0.0], [0.0, -2.0]])
+        lb2 = sp.coo_array(([-np.inf, 1.0], ([0, 1], [0, 1])), shape=(2, 2))
+        ub2 = sp.coo_array(([3.0, 2.0], ([0, 1], [0, 1])), shape=(2, 2))
+        lb, ub = matmul_bounds(A, A, lb2, ub2)
+        assert sp.issparse(lb)
+        assert sp.issparse(ub)
+        assert np.allclose(lb.toarray(), [[-np.inf, 0.0], [0.0, -4.0]])
+        assert np.allclose(ub.toarray(), [[3.0, 0.0], [0.0, -2.0]])
+
+    def test_mul_bounds_nan_input_is_unbounded(self) -> None:
+        """A NaN input bound means 'unknown', so the product is unbounded, not 0."""
+        lb, ub = mul_bounds(
+            np.array([np.nan]), np.array([np.nan]),
+            np.array([1 / 3]), np.array([1 / 3]),
+        )
+        assert lb == -np.inf
+        assert ub == np.inf
+
+        lb, ub = mul_bounds(
+            sp.csr_array([[np.nan, 2.0]]), sp.csr_array([[np.nan, 3.0]]),
+            np.array([[2.0, 2.0]]), np.array([[2.0, 2.0]]),
+        )
+        assert np.allclose(sp.csr_array(lb).toarray(), [[-np.inf, 4.0]])
+        assert np.allclose(sp.csr_array(ub).toarray(), [[np.inf, 6.0]])
+
     # -------------------- Sign refinement --------------------
     @pytest.mark.parametrize("is_nonneg,is_nonpos,expected_lb,expected_ub", [
         (True, False, [0, 0], [3, 4]),
@@ -763,6 +876,43 @@ class TestHIGHSBoundsPropagation:
         assert np.allclose(data['upper_bounds'][:2], 1)
         assert np.allclose(data['lower_bounds'][2:], -5)
         assert np.allclose(data['upper_bounds'][2:], -3)
+
+    def test_weighted_abs_dense_matrix(self) -> None:
+        """abs() over a scaled dense matmul of an unbounded x leaves its auxiliary
+        variables unfixed, and HIGHS matches Clarabel."""
+        rng = np.random.default_rng(1)
+        A = rng.normal(size=(20, 4))
+        b = rng.normal(size=20)
+        w = rng.uniform(0.5, 2.0, size=20)
+        x = cp.Variable(4)
+        prob = cp.Problem(cp.Minimize(cp.sum(cp.abs(cp.multiply(w, A @ x - b)))))
+
+        data, _, _ = prob.get_problem_data(cp.HIGHS)
+        lb, ub = data['lower_bounds'], data['upper_bounds']
+        assert lb is None or ub is None or not np.any(np.isfinite(lb) & (lb == ub))
+
+        prob.solve(solver=cp.HIGHS)
+        highs_value = prob.value
+        prob.solve(solver=cp.CLARABEL)
+        assert np.isclose(highs_value, prob.value, rtol=1e-5)
+
+
+@pytest.mark.skipif('SCIP' not in cp.installed_solvers(), reason='SCIP is not installed.')
+class TestSCIPBoundsPropagation:
+    """Tests that SCIP receives valid propagated bounds."""
+
+    def test_square_dense_matrix(self) -> None:
+        """square()'s auxiliary variables over (M @ x) / 3 are not fixed for SCIP."""
+        M = np.array([[1.0, 0.0, 1.0, 0.0], [0.0, 1.0, 0.0, 1.0]])
+        d = np.array([0.3, 0.6])
+        x = cp.Variable(4, integer=True)
+        prob = cp.Problem(
+            cp.Minimize(cp.sum(cp.square(d - M @ x / 3))),
+            [x >= 0, cp.sum(x) == 3],
+        )
+        prob.solve(solver=cp.SCIP)
+        # The optimum is x1 + x3 = 1, x2 + x4 = 2: (0.3 - 1/3)^2 + (0.6 - 2/3)^2.
+        assert np.isclose(prob.value, 1 / 180)
 
 
 class TestBoundsMemoryOptimization:
