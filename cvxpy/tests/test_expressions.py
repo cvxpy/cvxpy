@@ -2020,6 +2020,59 @@ class TestND_Expressions():
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
         assert np.allclose(expr.value, y)
 
+    @pytest.mark.parametrize("attribute", ["symmetric", "hermitian", "PSD", "NSD"])
+    @pytest.mark.parametrize("shape, axes, preserves", [
+        ((2, 2), None, True),
+        ((2, 2), (0, 1), True),
+        ((2, 2, 2), (0, 1, 2), True),
+        ((2, 2, 2), (0, 2, 1), True),
+        ((2, 2, 2), (-3, -1, -2), True),
+        ((2, 2, 2), (1, 0, 2), False),
+        ((2, 2, 2), None, False),
+        ((2, 3, 2, 2), (1, 0, 2, 3), True),
+        ((2, 3, 2, 2), (1, 0, 3, 2), True),
+        ((2, 3, 2, 2), (2, 1, 0, 3), False),
+    ])
+    def test_transpose_matrix_properties(self, attribute, shape, axes, preserves) -> None:
+        var = cp.Variable(shape, **{attribute: True})
+        expr = cp.transpose(var, axes)
+        for property_name in ["is_symmetric", "is_hermitian", "is_psd", "is_nsd"]:
+            assert getattr(expr, property_name)() == (
+                preserves and getattr(var, property_name)())
+
+    @pytest.mark.parametrize("operation", [
+        lambda x: cp.permute_dims(x, (1, 0, 2)),
+        lambda x: cp.swapaxes(x, 0, 1),
+        lambda x: cp.moveaxis(x, 0, 1),
+        lambda x: x.T,
+    ])
+    def test_permuted_symmetric_lambda_max_domain(self, operation) -> None:
+        var = cp.Variable((2, 2, 2), symmetric=True)
+        target = np.array([[[1., 2.], [2., 4.]], [[5., 6.], [6., 8.]]])
+        expr = operation(var)
+        # Every input slice is symmetric, but the permutation mixes a batch
+        # axis with a matrix axis, so the output need not be symmetric.
+        numeric_expr = operation(cp.Constant(target)).value
+        assert not np.allclose(numeric_expr, numeric_expr.swapaxes(-1, -2))
+        prob = cp.Problem(cp.Minimize(cp.sum(cp.lambda_max(expr))), [var == target])
+        prob.solve(solver=cp.CLARABEL, canon_backend=cp.SCIPY_CANON_BACKEND)
+        assert prob.status == cp.INFEASIBLE
+
+    def test_permuted_symmetric_lambda_max_parameter_update(self) -> None:
+        var = cp.Variable((2, 2, 2), symmetric=True)
+        target = cp.Parameter(var.shape)
+        expr = cp.swapaxes(var, 0, 1)
+        prob = cp.Problem(cp.Minimize(cp.sum(cp.lambda_max(expr))), [var == target])
+        target.value = np.array([[[1., 2.], [2., 4.]], [[5., 6.], [6., 8.]]])
+        prob.solve(solver=cp.CLARABEL, canon_backend=cp.SCIPY_CANON_BACKEND,
+                   enforce_dpp=True)
+        assert prob.status == cp.INFEASIBLE
+        target.value = np.ones(var.shape)
+        prob.solve(solver=cp.CLARABEL, canon_backend=cp.SCIPY_CANON_BACKEND,
+                   enforce_dpp=True)
+        assert prob.status == cp.OPTIMAL
+        np.testing.assert_allclose(prob.value, 4., atol=1e-6)
+
     @pytest.mark.parametrize("axes", [(0, 2, 1), (2, 0, 1), (1, 2, 0), (1, 0, 2), (-1, 0, 1)])
     def test_nd_transpose_axes(self, axes) -> None:
         var = cp.Variable((5, 24, 10))

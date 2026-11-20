@@ -70,20 +70,36 @@ class transpose(AffAtom):
         lb, ub = self.args[0].get_bounds()
         return bounds_utils.transpose_bounds(lb, ub, self.axes)
 
+    def _preserves_matrix_axes(self) -> bool:
+        """Whether the permutation keeps both matrix axes as matrix axes."""
+        ndim = self.args[0].ndim
+        if ndim <= 2:
+            return True
+        if self.axes is None:
+            return False
+        # shape_from_args has already validated the permutation.
+        return {axis % ndim for axis in self.axes[-2:]} == {ndim - 2, ndim - 1}
+
+    def is_psd(self) -> bool:
+        return self._preserves_matrix_axes() and self.args[0].is_psd()
+
+    def is_nsd(self) -> bool:
+        return self._preserves_matrix_axes() and self.args[0].is_nsd()
+
     def is_symmetric(self) -> bool:
         """Is the expression symmetric?
         """
-        return self.args[0].is_symmetric()
+        return self._preserves_matrix_axes() and self.args[0].is_symmetric()
 
     def is_skew_symmetric(self) -> bool:
         """Is the expression skew-symmetric?
         """
-        return self.args[0].is_skew_symmetric()
+        return self._preserves_matrix_axes() and self.args[0].is_skew_symmetric()
 
     def is_hermitian(self) -> bool:
         """Is the expression Hermitian?
         """
-        return self.args[0].is_hermitian()
+        return self._preserves_matrix_axes() and self.args[0].is_hermitian()
 
     def shape_from_args(self) -> tuple[int, ...]:
         """Returns the shape of the transpose expression.
