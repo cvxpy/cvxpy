@@ -2366,3 +2366,18 @@ class TestProblem(BaseTest):
         self.assertTrue(np.all(dv[0] == 0.0))
         self.assertTrue(np.all(dv[1] == 0.0))
 
+    def test_sparse_density_context_and_solve_override(self):
+        orig = s.SPARSE_DENSITY_THRESHOLD
+        try:
+            with s.sparse_density_context(0.42):
+                self.assertEqual(s.SPARSE_DENSITY_THRESHOLD, 0.42)
+            self.assertEqual(s.SPARSE_DENSITY_THRESHOLD, orig)
+
+            x = cp.Variable()
+            prob = cp.Problem(cp.Minimize(x), [x >= 0])
+            prob.solve(sparse_density_threshold=0.15)
+            self.assertEqual(prob.status, s.OPTIMAL)
+            self.assertEqual(s.SPARSE_DENSITY_THRESHOLD, orig)
+        finally:
+            s.SPARSE_DENSITY_THRESHOLD = orig
+
