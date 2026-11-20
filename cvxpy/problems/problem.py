@@ -15,6 +15,7 @@ limitations under the License.
 """
 from __future__ import annotations
 
+import pickle
 import time
 from collections import namedtuple
 from collections.abc import Iterable
@@ -1528,6 +1529,46 @@ class Problem(u.Canonical):
 
     __truediv__ = __div__
 
+    def __getstate__(self) -> dict:
+        """Return a pickleable state dict for the Problem.
+
+        The ``_solver_cache`` can hold native (non-Python) solver objects that
+        are not picklable (e.g. ``clarabel.DefaultSolver``, ``osqp.OSQP``, ``Highs``).
+        Those entries are dropped on serialization: when the restored
+        problem is solved again the solver cache is rebuilt from scratch, so the first
+        post-restore solve will be a cold-start at the solver level.
+        The compiled ``_cache`` (ASA map, solving chain, inverse data) is
+        preserved, so subsequent solves bypass the compilation step.
+        """
+        state = self.__dict__.copy()
+        if "_solver_cache" in state and isinstance(state["_solver_cache"], dict):
+            # Solvers with purely serializable cache entries (e.g. SCS/DIFFCP/MOREAU)
+            # are preserved directly without the overhead of probe-pickling.
+            safe_solvers = {s.SCS, s.DIFFCP, s.MOREAU}
+            clean_cache = {}
+            for k, v in state["_solver_cache"].items():
+                if k in safe_solvers:
+                    clean_cache[k] = v
+                else:
+                    try:
+                        pickle.dumps(v, protocol=pickle.HIGHEST_PROTOCOL)
+                        clean_cache[k] = v
+                    except (pickle.PicklingError, TypeError, AttributeError):
+                        s.LOGGER.debug(
+                            "Dropping unpicklable solver cache entry for '%s' "
+                            "during serialization.",
+                            k,
+                        )
+            state["_solver_cache"] = clean_cache
+        return state
+
+    def __setstate__(self, state: dict) -> None:
+        self.__dict__.update(state)
+        if "_solver_cache" not in self.__dict__ or self._solver_cache is None:
+            self._solver_cache = {}
+        if "_cache" not in self.__dict__ or self._cache is None:
+            self._cache = Cache()
+
 
 @dataclass
 class SolverStats:
@@ -1580,6 +1621,37 @@ class SolverStats:
             num_iters=attr.get(s.NUM_ITERS),
             extra_stats=attr.get(s.EXTRA_STATS),
         )
+
+    def __getstate__(self) -> dict:
+        """Return a pickleable state dict for SolverStats.
+
+        If ``extra_stats`` cannot be serialized, it is dropped to ensure
+        the rest of the solver statistics remain accessible.
+        """
+        state = self.__dict__.copy()
+        extra_stats = state.get("extra_stats")
+        if extra_stats is not None:
+            # OSQP results wrap info in a SimpleNamespace containing an unpicklable
+            # _pybind11_conduit_v1_ bound method; strip it lazily upon serialization.
+            if hasattr(extra_stats, "info") and hasattr(extra_stats.info, "_pybind11_conduit_v1_"):
+                try:
+                    delattr(extra_stats.info, "_pybind11_conduit_v1_")
+                except (AttributeError, TypeError):
+                    pass
+            try:
+                pickle.dumps(extra_stats, protocol=pickle.HIGHEST_PROTOCOL)
+            except (pickle.PicklingError, TypeError, AttributeError):
+                s.LOGGER.debug(
+                    "Dropping unpicklable extra_stats of type %s during serialization.",
+                    type(extra_stats).__name__,
+                )
+                state["extra_stats"] = None
+        return state
+
+    def __setstate__(self, state: dict) -> None:
+        self.__dict__.update(state)
+        if "extra_stats" not in self.__dict__:
+            self.extra_stats = None
 
 class SizeMetrics:
     """Reports various metrics regarding the problem.
