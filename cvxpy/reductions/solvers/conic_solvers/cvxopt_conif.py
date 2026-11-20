@@ -225,7 +225,11 @@ class CVXOPT(ConicSolver):
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data.
         """
-        return super(CVXOPT, self).invert(solution, inverse_data)
+        result = super(CVXOPT, self).invert(solution, inverse_data)
+        for key in (s.NUM_ITERS, s.EXTRA_STATS):
+            if key in solution:
+                result.attr[key] = solution[key]
+        return result
 
     @classmethod
     def _prepare_cvxopt_matrices(cls, data) -> dict:
@@ -300,7 +304,10 @@ class CVXOPT(ConicSolver):
             self._restore_solver_options(old_options)
 
         # Construct solution.
-        solution = {}
+        solution = {
+            s.NUM_ITERS: results_dict.get("iterations"),
+            s.EXTRA_STATS: results_dict,
+        }
         status = self.STATUS_MAP[results_dict['status']]
         solution[s.STATUS] = status
         if solution[s.STATUS] in s.SOLUTION_PRESENT:
