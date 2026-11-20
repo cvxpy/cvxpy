@@ -6,6 +6,7 @@ import scipy.sparse as sp
 
 import cvxpy.settings as s
 from cvxpy.constraints import SOC, ExpCone, SvecPSD
+from cvxpy.error import SolverError
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import (
@@ -386,6 +387,11 @@ class COPT(ConicSolver):
                     solution['y'] = -np.array(model.getDuals())
                     solution[s.EQ_DUAL] = solution['y'][0:dims[s.EQ_DIM]]
                     solution[s.INEQ_DUAL] = solution['y'][dims[s.EQ_DIM]:]
+        except copt.CoptError as e:
+            # Report COPT's own message (e.g. a size-limited license)
+            # unless a solution was found before the error.
+            if not (model.haslpsol or model.hasmipsol):
+                raise SolverError(f"Solver '{self.name()}' failed: {e}") from e
         except Exception:
             pass
 
