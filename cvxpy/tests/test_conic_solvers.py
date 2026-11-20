@@ -3045,6 +3045,33 @@ class TestHIGHS:
         captured = capfd.readouterr()
         assert re.search(confirmation_string, captured.out) is not None
 
+    @staticmethod
+    def mip_problem():
+        x = cp.Variable(2, integer=True, bounds=[0, 5])
+        y = cp.Variable(bounds=[0, 3])
+        prob = cp.Problem(cp.Maximize(cp.sum(x) + 2 * y), [cp.sum(x) + y <= 6])
+        return prob, x
+
+    def test_highs_mip_start_init_value(self) -> None:
+        prob, x = self.mip_problem()
+        data, _, _ = prob.get_problem_data(solver=cp.HIGHS)
+        assert np.all(np.isnan(data["init_value"]))
+
+        x.value = np.array([2.0, 3.0])
+        data, _, _ = prob.get_problem_data(solver=cp.HIGHS)
+        assert np.allclose(data["init_value"][:2], [2.0, 3.0])
+        assert np.isnan(data["init_value"][2])
+
+    def test_highs_mip_start(self, capfd) -> None:
+        prob, x = self.mip_problem()
+        expected = prob.solve(solver=cp.HIGHS, warm_start=True, verbose=True)
+        assert "user-supplied values" not in capfd.readouterr().out
+
+        prob, x = self.mip_problem()
+        x.value = np.array([2.0, 3.0])
+        assert prob.solve(solver=cp.HIGHS, warm_start=True, verbose=True) == expected
+        assert "user-supplied values" in capfd.readouterr().out
+
     def test_highs_validate_column_name(self) -> None:
         """Test that HiGHS column name check is working correctly.
 
