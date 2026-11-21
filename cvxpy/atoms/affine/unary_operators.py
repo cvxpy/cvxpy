@@ -22,6 +22,7 @@ import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.utilities import bounds as bounds_utils
+from cvxpy.utilities import performance_utils as perf
 
 
 class UnaryOperator(AffAtom):
@@ -66,6 +67,14 @@ class NegExpression(UnaryOperator):
         else:
             retval = self.OP_NAME + self.args[0].format_labeled()
         return retval
+
+    @perf.compute_once
+    def is_psd(self) -> bool:
+        return self.args[0].is_nsd()
+
+    @perf.compute_once
+    def is_nsd(self) -> bool:
+        return self.args[0].is_psd()
 
     def shape_from_args(self) -> tuple[int, ...]:
         """Returns the (row, col) shape of the expression.

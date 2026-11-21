@@ -21,6 +21,7 @@ import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.utilities import performance_utils as perf
 
 
 class broadcast_to(AffAtom):
@@ -30,6 +31,19 @@ class broadcast_to(AffAtom):
         self.broadcast_shape = shape
         self._shape = expr.shape
         super(broadcast_to, self).__init__(expr)
+
+    def _preserves_matrix_axes(self) -> bool:
+        arg = self.args[0]
+        return (arg.ndim >= 2 and self.ndim >= 2
+                and self.shape[-2:] == arg.shape[-2:])
+
+    @perf.compute_once
+    def is_psd(self) -> bool:
+        return self._preserves_matrix_axes() and self.args[0].is_psd()
+
+    @perf.compute_once
+    def is_nsd(self) -> bool:
+        return self._preserves_matrix_axes() and self.args[0].is_nsd()
 
     def _supports_cpp(self) -> bool:
         return False

@@ -17,6 +17,7 @@ limitations under the License.
 import numpy as np
 
 from cvxpy.atoms.affine.affine_atom import AffAtom
+from cvxpy.utilities import performance_utils as perf
 
 
 class real(AffAtom):
@@ -50,3 +51,11 @@ class real(AffAtom):
         """Is the expression symmetric?
         """
         return self.args[0].is_symmetric() or self.args[0].is_hermitian()
+
+    @perf.compute_once
+    def is_psd(self) -> bool:
+        return self.args[0].is_psd()
+
+    @perf.compute_once
+    def is_nsd(self) -> bool:
+        return self.args[0].is_nsd()

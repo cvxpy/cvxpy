@@ -24,7 +24,6 @@ import cvxpy.utilities as u
 from cvxpy.atoms.atom import Atom
 from cvxpy.cvxcore.python import canonInterface
 from cvxpy.expressions.constants import Constant
-from cvxpy.utilities import performance_utils as perf
 
 
 class AffAtom(Atom):
@@ -92,26 +91,17 @@ class AffAtom(Atom):
     def is_pwl(self) -> bool:
         return all(arg.is_pwl() for arg in self.args)
 
-    # TODO is this right?
-    @perf.compute_once
     def is_psd(self) -> bool:
-        """Is the expression a positive semidefinite matrix?
-        """
-        for idx, arg in enumerate(self.args):
-            if not ((self.is_incr(idx) and arg.is_psd()) or
-                    (self.is_decr(idx) and arg.is_nsd())):
-                return False
-        return True
+        """Affine maps need not preserve positive semidefiniteness.
 
-    @perf.compute_once
-    def is_nsd(self) -> bool:
-        """Is the expression a negative semidefinite matrix?
+        Elementwise monotonicity does not imply monotonicity in the Loewner
+        order. Subclasses must supply a rule for their particular matrix map.
         """
-        for idx, arg in enumerate(self.args):
-            if not ((self.is_decr(idx) and arg.is_psd()) or
-                    (self.is_incr(idx) and arg.is_nsd())):
-                return False
-        return True
+        return False
+
+    def is_nsd(self) -> bool:
+        """Affine maps need not preserve negative semidefiniteness."""
+        return False
 
     def _grad(self, values) -> list[Any]:
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.

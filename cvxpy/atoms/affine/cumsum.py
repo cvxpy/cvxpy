@@ -21,6 +21,7 @@ from numpy.lib.array_utils import normalize_axis_index
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.atoms.axis_atom import AxisAtom
 from cvxpy.expressions.expression import Expression
+from cvxpy.utilities import performance_utils as perf
 from cvxpy.utilities.warn import warn
 
 
@@ -88,6 +89,18 @@ class cumsum(AffAtom, AxisAtom):
                 )
         else:
             super().validate_arguments()
+
+    def _sums_only_batch_axis(self) -> bool:
+        return (self.axis is not None and self.args[0].ndim >= 2
+                and normalize_axis_index(self.axis, self.args[0].ndim) < self.args[0].ndim - 2)
+
+    @perf.compute_once
+    def is_psd(self) -> bool:
+        return self._sums_only_batch_axis() and self.args[0].is_psd()
+
+    @perf.compute_once
+    def is_nsd(self) -> bool:
+        return self._sums_only_batch_axis() and self.args[0].is_nsd()
 
     @AffAtom.numpy_numeric
     def numeric(self, values):
