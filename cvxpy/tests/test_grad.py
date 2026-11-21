@@ -632,7 +632,7 @@ SINGLE_VAR_ATOM_CONFIGS = [
                    "unrestricted"),
 
     # === Other atoms ===
-    AtomTestConfig("dotsort", lambda x: cp.dotsort(x, [3, 2, 1]), [(3,)],
+    AtomTestConfig("dotsort", lambda x: cp.dotsort(x, [3, 2, 1]), [(3,), (2, 3)],
                    "unrestricted"),
     AtomTestConfig("ptp", lambda x: cp.ptp(x), [(3,)], "unrestricted"),
     AtomTestConfig("sum_largest", lambda x: cp.sum_largest(x, 2), [(5,)],
