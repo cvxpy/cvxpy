@@ -145,6 +145,23 @@ def test_prod():
     assert np.allclose(cp.prod(sp.coo_matrix(B)).value, 24)
 
 
+def test_norm_atoms_of_sparse_values():
+    # The norm atoms must evaluate sparse values, including along an axis.
+    A = np.array([[1.0, -2.0, 0.0], [0.0, 3.0, -4.0]])
+    S = sp.csc_array(A)
+    for axis, keepdims in [(None, False), (0, False), (1, False), (1, True)]:
+        kwargs = dict(axis=axis, keepdims=keepdims)
+        for atom in [cp.norm1, cp.norm_inf, cp.pnorm]:
+            np.testing.assert_allclose(atom(S, **kwargs).value, atom(A, **kwargs).value)
+    assert np.shape(cp.norm1(S).value) == ()
+
+    # A weighted norm: the argument of the norm is a sparse-valued expression.
+    X = cp.Variable((2, 3))
+    prob = cp.Problem(cp.Minimize(cp.norm1(cp.multiply(S, X))), [X >= 1])
+    prob.solve(solver=cp.CLARABEL)
+    assert np.isclose(prob.value, np.abs(A).sum())
+
+
 def test_sparse_expression_values_are_sparse_arrays():
     lhs = cp.Constant(sp.csc_matrix(np.eye(2)))
     rhs = cp.Constant(np.ones((2, 2)))
