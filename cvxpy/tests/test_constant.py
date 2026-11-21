@@ -178,6 +178,28 @@ def test_mutating_source_array_does_not_change_constant():
     assert cs.is_nonneg()
 
 
+def test_matrix_frac_with_sparse_arguments():
+    B = np.array([[2.0, 0.0, 1.0], [0.0, 3.0, 0.0], [1.0, 0.0, 2.0]])
+    P = sp.csc_array(B)
+    xv = np.array([1.0, -2.0, 0.5])
+    expected = xv @ np.linalg.solve(B, xv)
+
+    # A sparse P.
+    x = cp.Variable(3)
+    x.value = xv
+    assert np.isclose(cp.matrix_frac(x, P).value, expected)
+    assert np.allclose(cp.matrix_frac(x, P).grad[x].toarray().ravel(),
+                       2 * np.linalg.solve(B, xv))
+    prob = cp.Problem(cp.Minimize(cp.matrix_frac(x, P)), [x == xv])
+    prob.solve(solver=cp.CLARABEL)
+    assert np.isclose(prob.value, expected, rtol=1e-5)
+
+    # A sparse X with a dense P used to evaluate to a sparse array, not a scalar.
+    Xs = sp.csc_array(np.eye(3)[:, :2])
+    dense = np.trace(Xs.toarray().T @ np.linalg.solve(B, Xs.toarray()))
+    assert np.isclose(cp.matrix_frac(Xs, cp.Constant(B)).value, dense)
+
+
 def test_nested_lists():
 
     A = [[1, 2], [3, 4], [5, 6]]
