@@ -1821,6 +1821,28 @@ class TestAtoms(BaseTest):
         cvar_value = cp.cvar(A @ x.value, beta).value
         self.assertTrue(cvar_value <= kappa)
 
+    def test_sum_largest_argument_with_value(self) -> None:
+        """sum_largest and cvar canonicalize when their argument already has a value,
+        e.g. after an earlier solve.
+        """
+        rng = np.random.default_rng(0)
+        R = rng.standard_normal((20, 3))
+        w = cp.Variable(3)
+        w.value = np.ones(3) / 3
+        # k = (1 - 0.9) * 20 is not an integer.
+        prob = cp.Problem(cp.Minimize(cp.cvar(R @ w, 0.9)), [cp.sum(w) == 1, w >= 0])
+        prob.solve(solver=cp.CLARABEL)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        self.assertAlmostEqual(prob.value, cp.cvar(R @ w.value, 0.9).value, places=5)
+
+        A = np.arange(6.0).reshape((2, 3))
+        X = cp.Variable((2, 3))
+        X.value = A
+        prob = cp.Problem(cp.Minimize(cp.sum_largest(X, 2)), [X >= A])
+        prob.solve(solver=cp.CLARABEL)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        self.assertAlmostEqual(prob.value, 9.0, places=5)
+
     def test_cvar_axis(self) -> None:
         """cvar reduces along an axis the way the other stats atoms do."""
         rng = np.random.default_rng(0)
