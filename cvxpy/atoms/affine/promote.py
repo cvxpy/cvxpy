@@ -22,6 +22,7 @@ from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions.expression import Expression
 from cvxpy.utilities import bounds as bounds_utils
+from cvxpy.utilities import performance_utils as perf
 
 
 def promote(expr: Expression, shape: tuple[int, ...]) -> Expression:
@@ -87,6 +88,14 @@ class Promote(AffAtom):
         """Returns bounds for promoted expression."""
         lb, ub = self.args[0].get_bounds()
         return bounds_utils.broadcast_bounds(lb, ub, self.promoted_shape)
+
+    @perf.compute_once
+    def is_psd(self) -> bool:
+        return self.is_symmetric() and self.args[0].is_nonneg()
+
+    @perf.compute_once
+    def is_nsd(self) -> bool:
+        return self.is_symmetric() and self.args[0].is_nonpos()
 
     def shape_from_args(self) -> tuple[int, ...]:
         """Returns the (row, col) shape of the expression.

@@ -27,6 +27,7 @@ from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions.expression import Expression
 from cvxpy.utilities import bounds as bounds_utils
+from cvxpy.utilities import performance_utils as perf
 
 
 class AddExpression(AffAtom):
@@ -38,6 +39,14 @@ class AddExpression(AffAtom):
         self.args = []
         for group in arg_groups:
             self.args += self.expand_args(group)
+
+    @perf.compute_once
+    def is_psd(self) -> bool:
+        return all(arg.is_psd() for arg in self.args)
+
+    @perf.compute_once
+    def is_nsd(self) -> bool:
+        return all(arg.is_nsd() for arg in self.args)
 
     def shape_from_args(self) -> tuple[int, ...]:
         """Returns the (row, col) shape of the expression.
