@@ -35,6 +35,37 @@ from cvxpy.lin_ops.backends.base import (
 )
 
 
+def _scale_repeated_rows(lhs: sp.sparray, x: sp.sparray, p: int) -> sp.sparray:
+    """Apply a column of row scales to p vertically stacked slices of x."""
+    if p == 1:
+        return lhs.multiply(x)
+
+    rows_per_slice = lhs.shape[0]
+    assert lhs.shape[1] == 1 and x.shape[0] == p * rows_per_slice
+    if not lhs.nnz or not x.nnz:
+        return sp.csc_array(x.shape, dtype=np.result_type(lhs.dtype, x.dtype))
+
+    scales = lhs.tocsc()
+    if not scales.has_canonical_format:
+        scales = scales.copy()
+        scales.sum_duplicates()
+
+    entries = x.tocoo(copy=False)
+    # The same row scale applies to every slice. Visit only stored entries
+    # rather than constructing p copies of lhs and a large CSR row pointer.
+    rows = entries.row % rows_per_slice
+    if scales.nnz == rows_per_slice:
+        data = scales.data[rows] * entries.data
+        return sp.csc_array((data, (entries.row, entries.col)), shape=x.shape)
+
+    # Missing sparse rows contribute no entries, as in sparse .multiply().
+    positions = np.searchsorted(scales.indices, rows)
+    positions = np.minimum(positions, scales.nnz - 1)
+    keep = scales.indices[positions] == rows
+    data = scales.data[positions[keep]] * entries.data[keep]
+    return sp.csc_array((data, (entries.row[keep], entries.col[keep])), shape=x.shape)
+
+
 def _build_interleaved_matrix_mul(
     const_data: np.ndarray,
     const_shape: tuple[int, ...],
@@ -820,11 +851,7 @@ class SciPyCanonBackend(PythonCanonBackend):
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, target_shape=None)
         if is_param_free_lhs:
             def param_free_mul(x, p):
-                if p == 1:
-                    return lhs.multiply(x)
-                else:
-                    new_lhs = sp.vstack([lhs] * p)
-                    return new_lhs.multiply(x)
+                return _scale_repeated_rows(lhs, x, p)
             func = param_free_mul
         else:
             def parametrized_mul(x):
@@ -908,11 +935,7 @@ class SciPyCanonBackend(PythonCanonBackend):
         lhs.data = np.reciprocal(lhs.data, dtype=float)
 
         def div_func(x, p):
-            if p == 1:
-                return lhs.multiply(x)
-            else:
-                new_lhs = sp.vstack([lhs] * p)
-                return new_lhs.multiply(x)
+            return _scale_repeated_rows(lhs, x, p)
 
         return view.accumulate_over_variables(div_func, is_param_free_function=is_param_free_lhs)
 
