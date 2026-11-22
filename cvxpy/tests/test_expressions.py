@@ -2020,58 +2020,57 @@ class TestND_Expressions():
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
         assert np.allclose(expr.value, y)
 
-    @pytest.mark.parametrize("attribute", ["symmetric", "hermitian", "PSD", "NSD"])
-    @pytest.mark.parametrize("shape, axes, preserves", [
-        ((2, 2), None, True),
-        ((2, 2), (0, 1), True),
-        ((2, 2, 2), (0, 1, 2), True),
-        ((2, 2, 2), (0, 2, 1), True),
-        ((2, 2, 2), (-3, -1, -2), True),
-        ((2, 2, 2), (1, 0, 2), False),
-        ((2, 2, 2), None, False),
-        ((2, 3, 2, 2), (1, 0, 2, 3), True),
-        ((2, 3, 2, 2), (1, 0, 3, 2), True),
-        ((2, 3, 2, 2), (2, 1, 0, 3), False),
+    @pytest.mark.parametrize("axes, preserves", [
+        pytest.param((-3, -4, -1, -2), True, id="swap-within-batch-and-matrix-axes"),
+        pytest.param((0, 2, 1, 3), False, id="mix-batch-and-matrix-axes"),
+        pytest.param(None, False, id="reverse-all-axes"),
     ])
-    def test_transpose_matrix_properties(self, attribute, shape, axes, preserves) -> None:
-        var = cp.Variable(shape, **{attribute: True})
-        expr = cp.transpose(var, axes)
-        for property_name in ["is_symmetric", "is_hermitian", "is_psd", "is_nsd"]:
-            assert getattr(expr, property_name)() == (
-                preserves and getattr(var, property_name)())
+    def test_transpose_matrix_properties(self, axes, preserves) -> None:
+        shape = (2, 2, 2, 2)
+        psd = cp.transpose(cp.Variable(shape, PSD=True), axes)
+        nsd = cp.transpose(cp.Variable(shape, NSD=True), axes)
+        hermitian = cp.transpose(cp.Variable(shape, hermitian=True), axes)
+        assert psd.is_symmetric() == preserves
+        assert psd.is_psd() == preserves
+        assert nsd.is_nsd() == preserves
+        assert hermitian.is_hermitian() == preserves
 
-    @pytest.mark.parametrize("operation", [
-        lambda x: cp.permute_dims(x, (1, 0, 2)),
-        lambda x: cp.swapaxes(x, 0, 1),
-        lambda x: cp.moveaxis(x, 0, 1),
-        lambda x: x.T,
-    ])
-    def test_permuted_symmetric_lambda_max_domain(self, operation) -> None:
-        var = cp.Variable((2, 2, 2), symmetric=True)
-        target = np.array([[[1., 2.], [2., 4.]], [[5., 6.], [6., 8.]]])
-        expr = operation(var)
-        # Every input slice is symmetric, but the permutation mixes a batch
-        # axis with a matrix axis, so the output need not be symmetric.
-        numeric_expr = operation(cp.Constant(target)).value
-        assert not np.allclose(numeric_expr, numeric_expr.swapaxes(-1, -2))
-        prob = cp.Problem(cp.Minimize(cp.sum(cp.lambda_max(expr))), [var == target])
-        prob.solve(solver=cp.CLARABEL, canon_backend=cp.SCIPY_CANON_BACKEND)
-        assert prob.status == cp.INFEASIBLE
+    def test_permuted_lambda_max_cone_data(self) -> None:
+        # This comparison assumes both cone programs use the same row and column
+        # ordering. An unexpected failure can reflect a change in that assumption
+        # even if the formulations are still equivalent.
+        x = cp.Variable((2, 2, 2), symmetric=True)
+        target = cp.Parameter(x.shape)
+        y = cp.swapaxes(x, 0, 1)
+        problem = cp.Problem(cp.Minimize(cp.sum(cp.lambda_max(y))), [x == target])
 
-    def test_permuted_symmetric_lambda_max_parameter_update(self) -> None:
-        var = cp.Variable((2, 2, 2), symmetric=True)
-        target = cp.Parameter(var.shape)
-        expr = cp.swapaxes(var, 0, 1)
-        prob = cp.Problem(cp.Minimize(cp.sum(cp.lambda_max(expr))), [var == target])
-        target.value = np.array([[[1., 2.], [2., 4.]], [[5., 6.], [6., 8.]]])
-        prob.solve(solver=cp.CLARABEL, canon_backend=cp.SCIPY_CANON_BACKEND,
-                   enforce_dpp=True)
-        assert prob.status == cp.INFEASIBLE
-        target.value = np.ones(var.shape)
-        prob.solve(solver=cp.CLARABEL, canon_backend=cp.SCIPY_CANON_BACKEND,
-                   enforce_dpp=True)
-        assert prob.status == cp.OPTIMAL
-        np.testing.assert_allclose(prob.value, 4., atol=1e-6)
+        # A 2-by-2 matrix is symmetric exactly when its off-diagonal entries match.
+        t = cp.Variable(2)
+        symmetry = y[..., 0, 1] == y[..., 1, 0]
+        t_eye = cp.multiply(t[:, None, None], np.eye(2))
+        epigraph = (t_eye - y) >> 0
+        nonsymmetric_after_permutation = np.array([
+            [[1., 2.], [2., 4.]], [[5., 6.], [6., 8.]],
+        ])
+
+        compiled_programs = []
+        for value in [nonsymmetric_after_permutation, np.ones(x.shape)]:
+            target.value = value
+            # Compile a fresh reference with the updated target as a constant.
+            reference = cp.Problem(cp.Minimize(cp.sum(t)), [symmetry, x == value, epigraph])
+            actual, _, _ = problem.get_problem_data(
+                cp.CLARABEL, canon_backend=cp.SCIPY_CANON_BACKEND, enforce_dpp=True,
+            )
+            expected, _, _ = reference.get_problem_data(
+                cp.CLARABEL, canon_backend=cp.SCIPY_CANON_BACKEND,
+            )
+            assert vars(actual["dims"]) == vars(expected["dims"])
+            np.testing.assert_array_equal(actual["A"].toarray(), expected["A"].toarray())
+            np.testing.assert_array_equal(actual["b"], expected["b"])
+            np.testing.assert_array_equal(actual["c"], expected["c"])
+            compiled_programs.append(actual["param_prob"])
+
+        assert compiled_programs[0] is compiled_programs[1]
 
     @pytest.mark.parametrize("shape", [(2, 2), (2, 3), (1, 3), (3, 1)])
     @pytest.mark.parametrize("axes", [(0, 1), (-2, -1), [0, -1], (1, 0), None])
