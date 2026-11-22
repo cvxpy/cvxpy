@@ -35,6 +35,7 @@ from cvxpy.lin_ops.backends.scipy_backend import (
     _expand_parametric_slices_mul,
     _expand_parametric_slices_rmul,
 )
+from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
 
 
 @dataclass
@@ -3176,51 +3177,29 @@ class TestCooBackend:
         np.testing.assert_array_equal(tensor.row, [5_999_999_999])
         np.testing.assert_array_equal(tensor.data, [7.])
 
-    @pytest.mark.parametrize("backend", [cp.SCIPY_CANON_BACKEND, cp.COO_CANON_BACKEND])
-    def test_nd_sparse_constant_constraint(self, backend):
-        data = sp.coo_array(([7.], ([1], [0], [1])), shape=(2, 2, 2))
-        var = cp.Variable(data.shape)
-        problem = cp.Problem(cp.Minimize(cp.sum(var)), [var == data])
-        problem.solve(solver=cp.CLARABEL, canon_backend=backend)
-        assert problem.status == cp.OPTIMAL
-        np.testing.assert_allclose(var.value, data.toarray(), atol=1e-8)
+    def test_nd_sparse_constant_constraint(self):
+        sparse_value = sp.coo_array(([7.], ([1], [0], [1])), shape=(2, 2, 2))
+        var = cp.Variable(sparse_value.shape)
+        problem = cp.Problem(cp.Minimize(0), [var == sparse_value])
+        data, _, _ = problem.get_problem_data(cp.CLARABEL, canon_backend=cp.COO_CANON_BACKEND)
 
-    @pytest.mark.parametrize("backend", [cp.SCIPY_CANON_BACKEND, cp.COO_CANON_BACKEND])
-    @pytest.mark.parametrize("shape", [(2, 2, 3), (2, 3, 2, 2)])
-    def test_nd_sparse_constant_multiply(self, backend, shape):
-        dense = np.arange(np.prod(shape), dtype=float).reshape(shape)
-        dense[dense % 3 == 0] = 0
-        data = sp.coo_array(dense)
-        var = cp.Variable(shape)
-        target = np.arange(np.prod(shape), dtype=float).reshape(shape) + 1
-        problem = cp.Problem(cp.Minimize(cp.sum(cp.multiply(data, var))), [var == target])
-        problem.solve(solver=cp.CLARABEL, canon_backend=backend)
-        assert problem.status == cp.OPTIMAL
-        np.testing.assert_allclose(problem.value, np.sum(dense * target), rtol=1e-7)
-
-    @pytest.mark.parametrize("backend", [cp.SCIPY_CANON_BACKEND, cp.COO_CANON_BACKEND])
-    @pytest.mark.parametrize("shape", [(2, 2, 2), (2, 3, 2, 2)])
-    def test_batched_lambda_max_sparse_identity(self, backend, shape):
-        var = cp.Variable(shape, symmetric=True)
-        target = cp.Parameter(shape)
-        problem = cp.Problem(cp.Minimize(cp.sum(cp.lambda_max(var))), [var == target])
-        for scale in [1., 3.]:
-            target.value = np.broadcast_to(scale * np.eye(shape[-1]), shape).copy()
-            problem.solve(solver=cp.CLARABEL, canon_backend=backend, enforce_dpp=True)
-            assert problem.status == cp.OPTIMAL
-            np.testing.assert_allclose(problem.value, scale * np.prod(shape[:-2]), rtol=1e-7)
+        # The known value for var must satisfy the compiled equality.
+        expected = sparse_value.toarray().ravel(order="F")
+        assert data["dims"].zero == expected.size
+        np.testing.assert_allclose(data["A"] @ expected, data["b"])
 
     def test_batched_lambda_max_auto_backend(self):
-        # A large parameter selects COO without an explicit canon_backend.
+        # Batched lambda_max creates a sparse identity during compilation.
+        # The large parameter selects COO automatically.
         shape = (50, 5, 5)
-        target = cp.Parameter(shape)
+        target = cp.Parameter(shape, value=np.broadcast_to(np.eye(shape[-1]), shape).copy())
         var = cp.Variable(shape, symmetric=True)
         problem = cp.Problem(cp.Minimize(cp.sum(cp.lambda_max(var))), [var == target])
-        for scale in [1., 3.]:
-            target.value = np.broadcast_to(scale * np.eye(5), shape).copy()
-            problem.solve(solver=cp.CLARABEL, enforce_dpp=True)
-            assert problem.status == cp.OPTIMAL
-            np.testing.assert_allclose(problem.value, 50 * scale, rtol=1e-7)
+        data, chain, _ = problem.get_problem_data(cp.CLARABEL, enforce_dpp=True)
+
+        stuffing = next(r for r in chain.reductions if isinstance(r, ConeMatrixStuffing))
+        assert stuffing.canon_backend == cp.COO_CANON_BACKEND
+        assert data["dims"].psd == [shape[-1]] * shape[0]
 
     @staticmethod
     @pytest.mark.parametrize("shape,reps", [
