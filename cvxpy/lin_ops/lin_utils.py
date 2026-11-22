@@ -18,6 +18,7 @@ DO NOT CALL THESE FUNCTIONS IN YOUR CODE!
 """
 
 import numpy as np
+from numpy.lib.array_utils import normalize_axis_tuple
 
 import cvxpy.lin_ops.lin_op as lo
 
@@ -401,17 +402,19 @@ def transpose(operator, axes=None):
     Returns
     -------
     LinOp
-       A linear operator representing the transpose.
+       A linear operator representing the transpose, or the original operator
+       if the axes stay in their original order.
     """
-    if len(operator.shape) < 2:
+    ndim = len(operator.shape)
+    if ndim < 2:
         return operator
+    if axes is None:
+        shape = operator.shape[::-1]
     else:
-        if axes is None:
-            # Default reverse all axes
-            shape = operator.shape[::-1]
-        else:
-            shape = tuple(operator.shape[i] for i in axes)
-        return lo.LinOp(lo.TRANSPOSE, shape, [operator], data=[axes])
+        if normalize_axis_tuple(axes, ndim) == tuple(range(ndim)):
+            return operator
+        shape = tuple(operator.shape[i] for i in axes)
+    return lo.LinOp(lo.TRANSPOSE, shape, [operator], data=[axes])
 
 
 def reshape(operator, shape: tuple[int, ...]):
