@@ -27,7 +27,15 @@ from cvxpy.expressions.constants import Constant
 
 
 class AffAtom(Atom):
-    """ Abstract base class for affine atoms. """
+    """Abstract base class for affine atoms.
+
+    Fix all but one argument and suppose the resulting map :math:`F` is
+    real-valued and affine on the full real argument space. For each standard
+    basis vector :math:`e_j`, the entries of :math:`F(e_j) - F(0)` give the
+    coefficients of the linear part for input coordinate :math:`j`.
+    The map is elementwise nondecreasing exactly when all these coefficients
+    are nonnegative, and nonincreasing exactly when they are all nonpositive.
+    """
     _allow_complex = True
 
     def sign_from_args(self) -> tuple[bool, bool]:
@@ -60,18 +68,6 @@ class AffAtom(Atom):
     def is_atom_smooth(self) -> bool:
         """Is the atom smooth?"""
         return True
-
-    def is_incr(self, idx) -> bool:
-        """Is the composition non-decreasing in argument idx?
-        """
-        # Defaults to increasing.
-        return True
-
-    def is_decr(self, idx) -> bool:
-        """Is the composition non-increasing in argument idx?
-        """
-        # Defaults to increasing.
-        return False
 
     def is_quadratic(self) -> bool:
         return all(arg.is_quadratic() for arg in self.args)

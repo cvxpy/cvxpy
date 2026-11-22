@@ -96,6 +96,12 @@ class Trace(AffAtom):
                 "Argument to trace must have ndim >= 2 with equal last two dimensions."
             )
 
+    def is_incr(self, idx) -> bool:
+        return True
+
+    def is_decr(self, idx) -> bool:
+        return False
+
     def shape_from_args(self) -> tuple[int, ...]:
         """Scalar for 2D input, batch shape for ND input.
         """

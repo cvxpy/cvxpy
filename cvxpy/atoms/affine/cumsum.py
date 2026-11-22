@@ -109,6 +109,12 @@ class cumsum(AffAtom, AxisAtom):
         """
         return np.cumsum(values[0], axis=self.axis)
 
+    def is_incr(self, idx) -> bool:
+        return True
+
+    def is_decr(self, idx) -> bool:
+        return False
+
     def shape_from_args(self) -> tuple[int, ...]:
         """Flattened if axis=None, otherwise same as input."""
         if self.axis is None:

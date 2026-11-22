@@ -97,6 +97,12 @@ class Promote(AffAtom):
     def is_nsd(self) -> bool:
         return self.is_symmetric() and self.args[0].is_nonpos()
 
+    def is_incr(self, idx) -> bool:
+        return True
+
+    def is_decr(self, idx) -> bool:
+        return False
+
     def shape_from_args(self) -> tuple[int, ...]:
         """Returns the (row, col) shape of the expression.
         """

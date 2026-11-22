@@ -69,6 +69,12 @@ class upper_tri(AffAtom):
                 "Argument to upper_tri must have ndim >= 2 with equal last two dimensions."
             )
 
+    def is_incr(self, idx) -> bool:
+        return True
+
+    def is_decr(self, idx) -> bool:
+        return False
+
     def shape_from_args(self) -> tuple[int, ...]:
         """Batch shape + vector of upper triangular entries.
         """

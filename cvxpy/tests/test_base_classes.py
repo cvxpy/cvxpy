@@ -28,6 +28,10 @@ def test_is_abstract(expected_abc):
     assert inspect.isabstract(expected_abc)
 
 
+def test_affine_atom_requires_monotonicity_methods():
+    assert {"is_incr", "is_decr"} <= AffAtom.__abstractmethods__
+
+
 class _DenseMatrixInterface(BaseMatrixInterface):
     def const_to_matrix(self, value, convert_scalars: bool = False):
         return np.asarray(value)

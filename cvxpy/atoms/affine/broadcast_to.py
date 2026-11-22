@@ -66,6 +66,12 @@ class broadcast_to(AffAtom):
             shape=self.broadcast_shape
         )
 
+    def is_incr(self, idx) -> bool:
+        return True
+
+    def is_decr(self, idx) -> bool:
+        return False
+
     def shape_from_args(self) -> tuple[int, ...]:
         return self.broadcast_shape
 

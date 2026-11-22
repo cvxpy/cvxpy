@@ -48,6 +48,12 @@ class AddExpression(AffAtom):
     def is_nsd(self) -> bool:
         return all(arg.is_nsd() for arg in self.args)
 
+    def is_incr(self, idx) -> bool:
+        return True
+
+    def is_decr(self, idx) -> bool:
+        return False
+
     def shape_from_args(self) -> tuple[int, ...]:
         """Returns the (row, col) shape of the expression.
         """

@@ -65,6 +65,12 @@ class cumprod(AffAtom, AxisAtom):
         """Is the atom log-log concave?"""
         return True
 
+    def is_incr(self, idx) -> bool:
+        return self.args[0].is_nonneg()
+
+    def is_decr(self, idx) -> bool:
+        return False
+
     def _grad(self, values) -> list:
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.
 

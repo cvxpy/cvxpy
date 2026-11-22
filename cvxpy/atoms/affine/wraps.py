@@ -52,6 +52,13 @@ class Wrap(AffAtom):
     def is_complex(self) -> bool:
         return self.args[0].is_complex()
 
+    def is_incr(self, idx) -> bool:
+        """Wrapping preserves elementwise order because the output equals the input."""
+        return True
+
+    def is_decr(self, idx) -> bool:
+        return False
+
     def shape_from_args(self) -> tuple[int, ...]:
         """Shape of input.
         """

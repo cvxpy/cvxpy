@@ -220,13 +220,27 @@ class Atom(Expression):
 
     @abc.abstractmethod
     def is_incr(self, idx) -> bool:
-        """Is the composition non-decreasing in argument idx?
+        r"""Certify that the atom is elementwise nondecreasing in argument ``idx``.
+
+        Fix the other arguments and let :math:`F` be the map of argument ``idx``.
+        For real inputs and outputs and all :math:`x` and :math:`y` in the domain,
+        :math:`x \leq y` must imply :math:`F(x) \leq F(y)`. Both comparisons
+        are elementwise, including for matrix inputs and outputs.
+        The check can use known sign restrictions on the arguments. A return
+        value of ``False`` can indicate that monotonicity is unknown.
+
+        See :class:`~cvxpy.atoms.affine.affine_atom.AffAtom` for the affine test.
         """
         raise NotImplementedError()
 
     @abc.abstractmethod
     def is_decr(self, idx) -> bool:
-        """Is the composition non-increasing in argument idx?
+        r"""Certify that the atom is elementwise nonincreasing in argument ``idx``.
+
+        With the other arguments fixed, :math:`x \leq y` must imply
+        :math:`F(x) \geq F(y)` for real values :math:`x` and :math:`y` in the
+        domain of the resulting map :math:`F`. The same conventions apply as
+        in :meth:`~cvxpy.atoms.atom.Atom.is_incr`.
         """
         raise NotImplementedError()
 
