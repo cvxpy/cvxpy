@@ -101,6 +101,12 @@ class transpose(AffAtom):
         """
         return self.args[0].is_hermitian()
 
+    def is_incr(self, idx) -> bool:
+        return True
+
+    def is_decr(self, idx) -> bool:
+        return False
+
     def shape_from_args(self) -> tuple[int, ...]:
         """Returns the shape of the transpose expression.
         """

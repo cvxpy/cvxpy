@@ -103,6 +103,12 @@ class Sum(AxisAtom, AffAtom):
         self.shape_from_args()
         super(AxisAtom, self).validate_arguments()
 
+    def is_incr(self, idx) -> bool:
+        return True
+
+    def is_decr(self, idx) -> bool:
+        return False
+
     def shape_from_args(self) -> tuple[int, ...]:
         """Returns shape using an exact tuple calculation."""
         input_shape = self.args[0].shape

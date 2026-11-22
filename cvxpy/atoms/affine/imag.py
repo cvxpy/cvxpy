@@ -30,6 +30,13 @@ class imag(AffAtom):
         """
         return np.imag(values[0])
 
+    def is_incr(self, idx) -> bool:
+        # Preserve DCP compositions with curvature in the real part.
+        return True
+
+    def is_decr(self, idx) -> bool:
+        return False
+
     def shape_from_args(self) -> tuple[int, ...]:
         """Returns the shape of the expression.
         """

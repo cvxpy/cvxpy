@@ -111,6 +111,12 @@ class index(AffAtom):
         """Returns the index/slice into the given value."""
         return values[0][self._orig_key]
 
+    def is_incr(self, idx) -> bool:
+        return True
+
+    def is_decr(self, idx) -> bool:
+        return False
+
     def shape_from_args(self) -> tuple[int, ...]:
         """Returns the shape of the index expression."""
         return ku.shape(self.key, self._orig_key, self.args[0].shape)
@@ -188,6 +194,12 @@ class special_index(AffAtom):
         """Returns the index/slice into the given value.
         """
         return values[0][self.key]
+
+    def is_incr(self, idx) -> bool:
+        return True
+
+    def is_decr(self, idx) -> bool:
+        return False
 
     def shape_from_args(self) -> tuple[int, ...]:
         """Returns the shape of the index expression."""

@@ -32,6 +32,12 @@ class real(AffAtom):
         """
         return np.real(values[0])
 
+    def is_incr(self, idx) -> bool:
+        return True
+
+    def is_decr(self, idx) -> bool:
+        return False
+
     def shape_from_args(self) -> tuple[int, ...]:
         """Returns the shape of the expression.
         """

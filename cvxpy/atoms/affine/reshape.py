@@ -136,6 +136,12 @@ class reshape(AffAtom):
                 "Invalid reshape dimensions %s." % (self._shape,)
             )
 
+    def is_incr(self, idx) -> bool:
+        return True
+
+    def is_decr(self, idx) -> bool:
+        return False
+
     def shape_from_args(self) -> tuple[int, ...]:
         """Returns the shape argument.
         """

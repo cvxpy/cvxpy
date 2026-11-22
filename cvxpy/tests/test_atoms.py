@@ -2075,6 +2075,16 @@ class TestAtoms(BaseTest):
 
             assert np.allclose(expr.value, target)
 
+    def test_cumprod_monotonicity(self) -> None:
+        assert not cp.cumprod(self.x).is_incr(0)
+        assert not cp.cumprod(self.x).is_decr(0)
+
+        x = cp.Variable(2, pos=True)
+        expr = cp.cumprod(x + 1)
+        assert expr.is_incr(0)
+        assert not expr.is_decr(0)
+        assert expr.is_log_log_convex()
+
     def test_kron_expr(self) -> None:
         """Test the kron atom.
         """

@@ -357,6 +357,12 @@ class TestComplex(BaseTest):
         assert not expr.is_imag()
         self.assertItemsAlmostEqual(expr.value, 2*A)
 
+    def test_imag_of_convex_complex_expression(self) -> None:
+        x = cp.Variable()
+        y = cp.Variable()
+        prob = cp.Problem(cp.Minimize(cp.imag(cp.square(x) + 1j * y)), [x >= 1, y >= 2])
+        self.assertAlmostEqual(prob.solve(solver=cp.CLARABEL), 2)
+
     def test_conj(self) -> None:
         """Test imag.
         """

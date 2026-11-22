@@ -61,18 +61,6 @@ class AffAtom(Atom):
         """Is the atom smooth?"""
         return True
 
-    def is_incr(self, idx) -> bool:
-        """Is the composition non-decreasing in argument idx?
-        """
-        # Defaults to increasing.
-        return True
-
-    def is_decr(self, idx) -> bool:
-        """Is the composition non-increasing in argument idx?
-        """
-        # Defaults to increasing.
-        return False
-
     def is_quadratic(self) -> bool:
         return all(arg.is_quadratic() for arg in self.args)
 
