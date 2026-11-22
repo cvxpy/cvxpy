@@ -229,10 +229,7 @@ class Atom(Expression):
         The check can use known sign restrictions on the arguments. A return
         value of ``False`` can indicate that monotonicity is unknown.
 
-        For an affine map on the full real argument space, it suffices to
-        compare :math:`F(0)` with :math:`F(e_j)` for each standard basis
-        vector :math:`e_j`. The entries of :math:`F(e_j) - F(0)` give the
-        coefficients of the linear part for coordinate :math:`j`.
+        See :class:`~cvxpy.atoms.affine.affine_atom.AffAtom` for the affine test.
         """
         raise NotImplementedError()
 
