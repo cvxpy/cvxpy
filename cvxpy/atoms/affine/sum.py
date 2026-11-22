@@ -152,6 +152,31 @@ class Sum(AxisAtom, AffAtom):
             The axis and keepdims parameters of the sum expression.
         """
         axis, keepdims = data
+        arg = arg_objs[0]
+        if axis is None and shape == () and len(arg.shape) == 1 and arg.type == lo.SUM:
+            # Reduce scalar broadcasts without building a dense intermediate tensor.
+            scalar_terms = []
+            vector_terms = []
+            for term in arg.args:
+                negated = term.type == lo.NEG
+                promoted = term.args[0] if negated else term
+                if (
+                    promoted.type == lo.PROMOTE
+                    and promoted.shape == arg.shape
+                    and promoted.args[0].shape == ()
+                ):
+                    scalar = promoted.args[0]
+                    scalar_terms.append(lu.neg_expr(scalar) if negated else scalar)
+                else:
+                    vector_terms.append(term)
+            if scalar_terms:
+                scale = lu.create_const(np.asarray(arg.shape[0], dtype=float), ())
+                scalar = scalar_terms[0] if len(scalar_terms) == 1 else lu.sum_expr(scalar_terms)
+                reduced = lu.multiply(scale, scalar)
+                if vector_terms:
+                    vector = lu.sum_expr(vector_terms)
+                    reduced = lu.sum_expr([lu.sum_entries(vector, shape=shape), reduced])
+                return (reduced, [])
         # Normalize tuple axes so they use the fast path when possible.
         if isinstance(axis, tuple):
             ndim = len(arg_objs[0].shape)
