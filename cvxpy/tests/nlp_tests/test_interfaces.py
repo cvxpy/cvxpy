@@ -14,11 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from unittest.mock import MagicMock
+
 import numpy as np
 import pytest
 
 import cvxpy as cp
 from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS
+from cvxpy.reductions.solvers.nlp_solvers.uno_nlpif import UNO
 from cvxpy.tests.test_conic_solvers import is_knitro_available
 
 
@@ -277,9 +280,6 @@ class TestUNOInterface:
 
     def test_uno_invert_status_mapping(self):
         """Test that UNO.invert correctly distinguishes optimization and solution statuses."""
-        from unittest.mock import MagicMock
-        from cvxpy.reductions.solvers.nlp_solvers.uno_nlpif import UNO
-
         uno = UNO()
         inv_data = MagicMock()
         inv_data.offset = 0
