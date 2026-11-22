@@ -2023,6 +2023,9 @@ class TestND_Expressions():
     @pytest.mark.parametrize("shape", [(2, 2), (2, 3), (1, 3), (3, 1)])
     @pytest.mark.parametrize("axes", [(0, 1), (-2, -1), [0, -1], (1, 0), None])
     def test_matrix_transpose_cpp_matches_scipy(self, shape, axes) -> None:
+        # CPP used to reorder variable entries even for an identity permutation.
+        # Fix x to known data and compare the recovered y across stuffing paths.
+        # This backend comparison can be removed when CPP is retired.
         target = np.arange(1, np.prod(shape) + 1, dtype=float).reshape(shape)
 
         def solve(backend):
@@ -2039,6 +2042,10 @@ class TestND_Expressions():
         np.testing.assert_allclose(cpp_value, scipy_value, atol=1e-7)
 
     def test_identity_transpose_parameter_resolve(self) -> None:
+        # The same CPP bug affected the parameter on the right-hand side.
+        # Solve the same DPP problem with two parameter values to check that
+        # each value reaches the solver in the original order.
+        # This parameter-stuffing regression can be removed when CPP is retired.
         p = cp.Parameter((2, 3))
         y = cp.Variable(p.shape)
         problem = cp.Problem(cp.Minimize(0), [y == cp.transpose(p, axes=(0, 1))])
