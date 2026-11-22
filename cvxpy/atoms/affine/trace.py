@@ -22,39 +22,36 @@ from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.atoms.affine.binary_operators import MulExpression, multiply
 from cvxpy.atoms.affine.real import real as real_atom
 from cvxpy.atoms.affine.sum import sum as cvxpy_sum
+from cvxpy.atoms.affine.transpose import swapaxes
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions.expression import Expression
 
 
 def trace(expr) -> Expression:
+    """Return the trace of a square matrix or a batch of square matrices.
+
+    For a matrix product, use trace(A @ B) = sum_ij A_ij * B_ji to avoid
+    forming the full product.
     """
-    TLDR: Use alternate formulation for trace(A@B) for more efficient computation.
-    trace(A@B) normally is O(n^3) because of the A@B operation.
-    However, trace(A@B) only requires diagonal entries of A@B, which can be
-    computed in O(n^2) time using the identity:
-
-        trace(A @ B) = sum_ij A_ij * B_ji = sum(A * B.T)
-
-    This avoids forming the full matrix product while remaining correct for
-    both real and complex matrices (no conjugation on A is needed).
-
-    When the MulExpression is Hermitian (e.g. X @ X^H for Hermitian X), the
-    result is provably real. If that fact is not already known from the
-    result's arguments, it is wrapped with real() so that is_real() correctly
-    returns True without routing to the O(n^3) Trace(expr) path.
-    """
-    # Use an exact type check: `multiply` subclasses `MulExpression`, but this
-    # rewrite is valid only for matrix multiplication.
-    if type(expr) is MulExpression:
-        # trace(A @ B) = sum(A * B.T), correct for real and complex matrices.
-        result = cvxpy_sum(multiply(expr.args[0], expr.args[1].T))
-        if expr.is_hermitian() and not result.is_real():
-            # trace of a Hermitian matrix is provably real.
-            # Wrap with real() so is_real() == True propagates upward.
-            return real_atom(result)
-        return result
-    else:
+    # Elementwise multiply subclasses MulExpression, so check the exact type.
+    if type(expr) is not MulExpression:
         return Trace(expr)
+    # Let Trace reject invalid shapes. Broadcasting in the rewrite can accept
+    # some nonsquare products.
+    if expr.ndim < 2 or expr.shape[-2] != expr.shape[-1]:
+        return Trace(expr)
+
+    left, right = expr.args
+    # Swap the matrix axes without conjugation, then sum the paired entries
+    # over just those axes to preserve the batch dimensions.
+    right_transposed = swapaxes(right, -1, -2)
+    paired_entries = multiply(left, right_transposed)
+    result = cvxpy_sum(paired_entries, axis=(-2, -1))
+
+    # The trace of a Hermitian matrix is real even when the factors are complex.
+    if expr.is_hermitian() and not result.is_real():
+        return real_atom(result)
+    return result
 
 
 class Trace(AffAtom):

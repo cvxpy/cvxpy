@@ -976,6 +976,10 @@ class TestAtoms(BaseTest):
         self.assertEqual(str(cm.exception),
                          "Argument to trace must have ndim >= 2 with equal last two dimensions.")
 
+        # The shortcut can broadcast these factors even though their product is nonsquare.
+        with self.assertRaisesRegex(ValueError, "Argument to trace must"):
+            cp.trace(cp.Variable((1, 3)) @ cp.Variable((3, 2)))
+
     def test_trace_sign_psd(self) -> None:
         """Test sign of trace for psd/nsd inputs.
         """
@@ -1044,6 +1048,16 @@ class TestAtoms(BaseTest):
         prob = cp.Problem(cp.Minimize(cp.trace(C @ X)), [cp.sum(X) == 1])
         prob.solve(solver=cp.CLARABEL)
         self.assertAlmostEqual(prob.value, np.trace(C @ X.value), places=4)
+
+    def test_trace_batched_product(self) -> None:
+        # Rectangular complex factors broadcast to two batch axes.
+        a = (1 + 2j) * np.arange(1., 13.).reshape(2, 1, 2, 3)
+        b = (1 - 1j) * np.arange(1., 19.).reshape(1, 3, 3, 2)
+        A = cp.Variable(a.shape, complex=True, value=a)
+        B = cp.Variable(b.shape, complex=True, value=b)
+        result = cp.trace(A @ B)
+        self.assertEqual(result.shape, (2, 3))
+        np.testing.assert_allclose(result.value, np.linalg.trace(a @ b))
 
     def test_trace_scalar_real_products(self) -> None:
         """Real scalar-shaped products should canonicalize without real()."""
