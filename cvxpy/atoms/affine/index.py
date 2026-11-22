@@ -26,6 +26,7 @@ from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions.expression import Expression
 from cvxpy.utilities import bounds as bounds_utils
 from cvxpy.utilities import key_utils as ku
+from cvxpy.utilities import performance_utils as perf
 
 
 class index(AffAtom):
@@ -65,6 +66,22 @@ class index(AffAtom):
             self.key = key
         super(index, self).__init__(expr)
 
+    def _is_principal_submatrix(self) -> bool:
+        arg = self.args[0]
+        if self.ndim < 2 or arg.ndim < 2 or self.key[-2] != self.key[-1]:
+            return False
+        original = ku.to_tuple(self._orig_key)
+        original += (slice(None),) * (arg.ndim - len(original))
+        return all(isinstance(key, slice) for key in original[-2:])
+
+    @perf.compute_once
+    def is_psd(self) -> bool:
+        return self._is_principal_submatrix() and self.args[0].is_psd()
+
+    @perf.compute_once
+    def is_nsd(self) -> bool:
+        return self._is_principal_submatrix() and self.args[0].is_nsd()
+
     def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?"""
         return True
@@ -93,6 +110,12 @@ class index(AffAtom):
     def numeric(self, values):
         """Returns the index/slice into the given value."""
         return values[0][self._orig_key]
+
+    def is_incr(self, idx) -> bool:
+        return True
+
+    def is_decr(self, idx) -> bool:
+        return False
 
     def shape_from_args(self) -> tuple[int, ...]:
         """Returns the shape of the index expression."""
@@ -171,6 +194,12 @@ class special_index(AffAtom):
         """Returns the index/slice into the given value.
         """
         return values[0][self.key]
+
+    def is_incr(self, idx) -> bool:
+        return True
+
+    def is_decr(self, idx) -> bool:
+        return False
 
     def shape_from_args(self) -> tuple[int, ...]:
         """Returns the shape of the index expression."""

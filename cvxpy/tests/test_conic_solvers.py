@@ -1023,7 +1023,7 @@ class TestMoreau(BaseTest):
 
         value = prob.solve(
             solver=cp.MOREAU,
-            ipm_settings={"presolve_enable": False, "equilibrate_enable": False},
+            ipm_settings={"equilibrate_enable": False},
         )
         self.assertEqual(prob.status, cp.OPTIMAL)
         self.assertAlmostEqual(value, -0.5, places=6)
@@ -1375,6 +1375,31 @@ class TestCVXOPT(BaseTest):
 
     def test_cvxopt_lp_0(self) -> None:
         StandardTestLPs.test_lp_0(solver='CVXOPT')
+
+    def test_cvxopt_solver_stats(self) -> None:
+        problem = cp.Problem(cp.Minimize(cp.norm(self.x)), [self.x >= 1])
+        problem.solve(solver=cp.CVXOPT)
+
+        stats = problem.solver_stats
+        self.assertEqual(stats.solver_name, cp.CVXOPT)
+        self.assertIsNotNone(stats.num_iters)
+        self.assertGreater(stats.num_iters, 0)
+        self.assertEqual(stats.num_iters, stats.extra_stats["iterations"])
+        self.assertEqual(stats.extra_stats["status"], "optimal")
+        self.assertIn("gap", stats.extra_stats)
+        self.assertIn("primal infeasibility", stats.extra_stats)
+        self.assertAlmostEqual(stats.extra_stats["primal objective"], problem.value, places=5)
+
+    def test_cvxopt_infeasible_solver_stats(self) -> None:
+        problem = cp.Problem(cp.Minimize(cp.sum(self.x)), [self.x >= 1, self.x <= 0])
+        problem.solve(solver=cp.CVXOPT, kktsolver="robust")
+
+        self.assertEqual(problem.status, cp.INFEASIBLE)
+        stats = problem.solver_stats
+        self.assertIsNotNone(stats.num_iters)
+        self.assertEqual(stats.num_iters, stats.extra_stats["iterations"])
+        self.assertEqual(stats.extra_stats["status"], "primal infeasible")
+        self.assertIn("residual as primal infeasibility certificate", stats.extra_stats)
 
     def test_cvxopt_lp_1(self) -> None:
         StandardTestLPs.test_lp_1(solver='CVXOPT')

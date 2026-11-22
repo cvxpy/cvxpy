@@ -976,6 +976,10 @@ class TestAtoms(BaseTest):
         self.assertEqual(str(cm.exception),
                          "Argument to trace must have ndim >= 2 with equal last two dimensions.")
 
+        # The shortcut can broadcast these factors even though their product is nonsquare.
+        with self.assertRaisesRegex(ValueError, "Argument to trace must"):
+            cp.trace(cp.Variable((1, 3)) @ cp.Variable((3, 2)))
+
     def test_trace_sign_psd(self) -> None:
         """Test sign of trace for psd/nsd inputs.
         """
@@ -1044,6 +1048,16 @@ class TestAtoms(BaseTest):
         prob = cp.Problem(cp.Minimize(cp.trace(C @ X)), [cp.sum(X) == 1])
         prob.solve(solver=cp.CLARABEL)
         self.assertAlmostEqual(prob.value, np.trace(C @ X.value), places=4)
+
+    def test_trace_batched_product(self) -> None:
+        # Rectangular complex factors broadcast to two batch axes.
+        a = (1 + 2j) * np.arange(1., 13.).reshape(2, 1, 2, 3)
+        b = (1 - 1j) * np.arange(1., 19.).reshape(1, 3, 3, 2)
+        A = cp.Variable(a.shape, complex=True, value=a)
+        B = cp.Variable(b.shape, complex=True, value=b)
+        result = cp.trace(A @ B)
+        self.assertEqual(result.shape, (2, 3))
+        np.testing.assert_allclose(result.value, np.linalg.trace(a @ b))
 
     def test_trace_scalar_real_products(self) -> None:
         """Real scalar-shaped products should canonicalize without real()."""
@@ -2075,6 +2089,16 @@ class TestAtoms(BaseTest):
 
             assert np.allclose(expr.value, target)
 
+    def test_cumprod_monotonicity(self) -> None:
+        assert not cp.cumprod(self.x).is_incr(0)
+        assert not cp.cumprod(self.x).is_decr(0)
+
+        x = cp.Variable(2, pos=True)
+        expr = cp.cumprod(x + 1)
+        assert expr.is_incr(0)
+        assert not expr.is_decr(0)
+        assert expr.is_log_log_convex()
+
     def test_kron_expr(self) -> None:
         """Test the kron atom.
         """
@@ -3056,6 +3080,52 @@ class TestAtoms(BaseTest):
         self.assertItemsAlmostEqual(
             cp.cummax(x, axis=2).value, expected, places=4
         )
+
+    def test_log_det_outside_positive_domain(self):
+        """Positive determinant does not imply positive definiteness."""
+        for complex_input in [False, True]:
+            for eigenvalues in [[-1., -1.], [-3., -2., 1.], [-4., -3., -2., -1.],
+                                [-2., 1.], [0., 1.], [0., 0.]]:
+                with self.subTest(complex_input=complex_input, eigenvalues=eigenvalues):
+                    n = len(eigenvalues)
+                    rng = np.random.default_rng(129)
+                    basis = rng.normal(size=(n, n))
+                    if complex_input:
+                        basis = basis + 1j * rng.normal(size=(n, n))
+                    unitary, _ = np.linalg.qr(basis)
+                    # Keep singular cases exact rather than depending on roundoff in a rotation.
+                    value = (unitary @ np.diag(eigenvalues) @ unitary.conj().T
+                             if all(eigenvalues) else np.diag(eigenvalues))
+                    parameter = cp.Parameter((n, n), hermitian=True, value=value)
+                    variable = cp.Variable((n, n), hermitian=True)
+                    variable.value = value
+                    for expression in [cp.log_det(value), cp.log_det(parameter),
+                                       cp.log_det(variable)]:
+                        with self.subTest(argument=type(expression.args[0]).__name__):
+                            self.assertEqual(expression.value, -np.inf)
+                    problem = cp.Problem(cp.Maximize(cp.log_det(value)))
+                    self.assertEqual(problem.solve(solver=cp.CLARABEL), -np.inf)
+
+    def test_log_det_positive_domain_scaling(self):
+        """Use a log-domain factorization, without forming the determinant."""
+        for complex_input in [False, True]:
+            for scale in [1e-250, 1., 1e250]:
+                with self.subTest(complex_input=complex_input, scale=scale):
+                    basis = np.array([[2., 1.], [0., 3.]])
+                    if complex_input:
+                        basis = basis + 1j * np.array([[0., 1.], [2., 0.]])
+                    value = scale * (basis @ basis.conj().T)
+                    expected = np.linalg.slogdet(value)[1]
+                    self.assertAlmostEqual(cp.log_det(value).value, expected, places=10)
+
+    def test_log_det_parameter_domain_updates(self):
+        """A new parameter value must not reuse an earlier domain result."""
+        parameter = cp.Parameter((2, 2), symmetric=True)
+        atom = cp.log_det(parameter)
+        for value, expected in [(np.eye(2), 0.), (-np.eye(2), -np.inf),
+                                (2 * np.eye(2), 2 * np.log(2.))]:
+            parameter.value = value
+            self.assertAlmostEqual(atom.value, expected)
 
     def test_log_det_sign(self) -> None:
         """log_det can be negative, e.g. log(det(0.5*I)) < 0."""

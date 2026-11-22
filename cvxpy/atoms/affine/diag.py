@@ -85,6 +85,12 @@ class diag_vec(AffAtom):
         """
         return np.diag(values[0], k=self.k)
 
+    def is_incr(self, idx) -> bool:
+        return True
+
+    def is_decr(self, idx) -> bool:
+        return False
+
     def shape_from_args(self) -> tuple[int, int]:
         """A square matrix.
         """
@@ -166,6 +172,12 @@ class diag_mat(AffAtom):
     def numeric(self, values) -> np.ndarray:
         """Extract the diagonal from a square matrix constant."""
         return np.diag(values[0], k=self.k)
+
+    def is_incr(self, idx) -> bool:
+        return True
+
+    def is_decr(self, idx) -> bool:
+        return False
 
     def shape_from_args(self) -> tuple[int]:
         """A column vector."""

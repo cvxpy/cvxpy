@@ -40,11 +40,12 @@ class log_det(Atom):
         """
         # take Hermitian part of the input.
         symm = (values[0] + np.conj(values[0].T))/2
-        sign, logdet = LA.slogdet(symm)
-        if np.isclose(np.real(sign), 1):
-            return logdet
-        else:
+        # A positive determinant alone does not certify the PSD domain.
+        try:
+            factor = LA.cholesky(symm)
+        except LA.LinAlgError:
             return -np.inf
+        return 2 * np.log(np.diag(factor).real).sum()
 
     # Any argument shape is valid.
     def validate_arguments(self) -> None:

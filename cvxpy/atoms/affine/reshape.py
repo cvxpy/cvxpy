@@ -28,6 +28,7 @@ from cvxpy.atoms.affine.hstack import hstack
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions.expression import DEFAULT_ORDER_DEPRECATION_MSG, Expression
 from cvxpy.utilities import bounds as bounds_utils
+from cvxpy.utilities import performance_utils as perf
 from cvxpy.utilities.shape import size_from_shape
 from cvxpy.utilities.warn import warn
 
@@ -91,6 +92,19 @@ class reshape(AffAtom):
             shape = tuple(int(unspecified) if d == -1 else d for d in shape)
         return shape
 
+    def _preserves_matrix_axes(self) -> bool:
+        arg = self.args[0]
+        return (arg.ndim >= 2 and self.ndim >= 2
+                and self.shape[-2:] == arg.shape[-2:])
+
+    @perf.compute_once
+    def is_psd(self) -> bool:
+        return self._preserves_matrix_axes() and self.args[0].is_psd()
+
+    @perf.compute_once
+    def is_nsd(self) -> bool:
+        return self._preserves_matrix_axes() and self.args[0].is_nsd()
+
     def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
         """
@@ -121,6 +135,12 @@ class reshape(AffAtom):
             raise ValueError(
                 "Invalid reshape dimensions %s." % (self._shape,)
             )
+
+    def is_incr(self, idx) -> bool:
+        return True
+
+    def is_decr(self, idx) -> bool:
+        return False
 
     def shape_from_args(self) -> tuple[int, ...]:
         """Returns the shape argument.

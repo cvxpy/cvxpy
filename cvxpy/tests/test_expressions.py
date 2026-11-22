@@ -2073,6 +2073,43 @@ class TestND_Expressions():
         assert prob.status == cp.OPTIMAL
         np.testing.assert_allclose(prob.value, 4., atol=1e-6)
 
+    @pytest.mark.parametrize("shape", [(2, 2), (2, 3), (1, 3), (3, 1)])
+    @pytest.mark.parametrize("axes", [(0, 1), (-2, -1), [0, -1], (1, 0), None])
+    def test_matrix_transpose_cpp_matches_scipy(self, shape, axes) -> None:
+        # CPP used to reorder variable entries even for an identity permutation.
+        # Fix x to known data and compare the recovered y across stuffing paths.
+        # This backend comparison can be removed when CPP is retired.
+        target = np.arange(1, np.prod(shape) + 1, dtype=float).reshape(shape)
+
+        def solve(backend):
+            x = cp.Variable(shape)
+            expr = cp.transpose(x, axes=axes)
+            y = cp.Variable(expr.shape)
+            problem = cp.Problem(cp.Minimize(0), [x == target, y == expr])
+            problem.solve(solver=cp.CLARABEL, canon_backend=backend)
+            assert problem.status == cp.OPTIMAL
+            return y.value
+
+        cpp_value = solve(cp.CPP_CANON_BACKEND)
+        scipy_value = solve(cp.SCIPY_CANON_BACKEND)
+        np.testing.assert_allclose(cpp_value, scipy_value, atol=1e-7)
+
+    def test_identity_transpose_parameter_resolve(self) -> None:
+        # The same CPP bug affected the parameter on the right-hand side.
+        # Solve the same DPP problem with two parameter values to check that
+        # each value reaches the solver in the original order.
+        # This parameter-stuffing regression can be removed when CPP is retired.
+        p = cp.Parameter((2, 3))
+        y = cp.Variable(p.shape)
+        problem = cp.Problem(cp.Minimize(0), [y == cp.transpose(p, axes=(0, 1))])
+        assert problem.is_dpp()
+
+        for offset in [0, 10]:
+            p.value = np.arange(1, 7, dtype=float).reshape(p.shape) + offset
+            problem.solve(solver=cp.CLARABEL, canon_backend=cp.CPP_CANON_BACKEND, enforce_dpp=True)
+            assert problem.status == cp.OPTIMAL
+            np.testing.assert_allclose(y.value, p.value, atol=1e-7)
+
     @pytest.mark.parametrize("axes", [(0, 2, 1), (2, 0, 1), (1, 2, 0), (1, 0, 2), (-1, 0, 1)])
     def test_nd_transpose_axes(self, axes) -> None:
         var = cp.Variable((5, 24, 10))
@@ -2300,3 +2337,117 @@ def test_sum_squares_with_axis(shape, axis, keepdims, expected_shape, use_soc):
     prob.solve(solver=cp.CLARABEL, use_quad_obj=not use_soc)
     assert prob.status == cp.OPTIMAL
     np.testing.assert_allclose(X.value, Y, atol=1e-3)
+
+
+class TestAffineSemidefinitePropagation:
+    """Elementwise monotonicity alone does not preserve matrix order."""
+
+    @pytest.mark.parametrize("negative", [False, True])
+    @pytest.mark.parametrize("operation", [
+        lambda x: x[::-1, :],
+        lambda x: x[:, ::-1],
+        lambda x: x[[1, 0], :],
+        lambda x: cp.cumsum(x, axis=0),
+        lambda x: cp.hstack([x, x]),
+        lambda x: cp.vstack([x, x]),
+        lambda x: cp.concatenate([x, x], axis=0),
+        lambda x: cp.upper_tri(x),
+        lambda x: cp.reshape(x, (4,), order='F'),
+        lambda x: cp.sum(x, axis=0),
+        lambda x: np.array([[1., 0.], [0., 2.]]) @ x,
+        lambda x: x @ np.array([[1., 0.], [0., 2.]]),
+    ])
+    def test_structural_maps_not_assumed_semidefinite(self, operation, negative):
+        x = cp.Variable((2, 2), NSD=True) if negative else cp.Variable((2, 2), PSD=True)
+        result = operation(x)
+        assert not result.is_psd()
+        assert not result.is_nsd()
+
+    @pytest.mark.parametrize("negative", [False, True])
+    @pytest.mark.parametrize("operation", [
+        lambda x: x + x,
+        lambda x: 2 * x,
+        lambda x: -(-x),
+        lambda x: cp.real(x),
+        lambda x: symmetric_wrap(x),
+        lambda x: x[:1, :1],
+        lambda x: x[::-1, ::-1],
+        lambda x: cp.reshape(x, (2, 2), order='C'),
+        lambda x: cp.reshape(x, (1, 2, 2), order='F'),
+        lambda x: cp.broadcast_to(x, (3, 2, 2)),
+    ])
+    def test_proven_matrix_maps_preserve_semidefiniteness(self, operation, negative):
+        x = cp.Variable((2, 2), NSD=True) if negative else cp.Variable((2, 2), PSD=True)
+        result = operation(x)
+        assert result.is_nsd() == negative
+        assert result.is_psd() != negative
+
+    @pytest.mark.parametrize("negative", [False, True])
+    @pytest.mark.parametrize("operation", [
+        lambda x: x[0, :, :],
+        lambda x: x[:, :1, :1],
+        lambda x: x[:, ::-1, ::-1],
+        lambda x: cp.sum(x, axis=0),
+        lambda x: cp.sum(x, axis=(0,), keepdims=True),
+        lambda x: cp.sum(x, axis=-3),
+        lambda x: cp.cumsum(x, axis=0),
+        lambda x: cp.cumsum(x, axis=-3),
+        lambda x: cp.reshape(x, (1, 2, 3, 3), order='F'),
+        lambda x: cp.reshape(x, (1, 2, 3, 3), order='C'),
+    ])
+    def test_batch_only_maps_preserve_semidefiniteness(self, operation, negative):
+        x = cp.Variable((2, 3, 3), NSD=True) if negative else cp.Variable((2, 3, 3), PSD=True)
+        result = operation(x)
+        assert result.is_nsd() == negative
+        assert result.is_psd() != negative
+
+    @pytest.mark.parametrize("operation", [
+        lambda x: x[:, :, 0, 0],
+        lambda x: x[:, :, 0, :],
+        lambda x: x[:, :, ::-1, :],
+        lambda x: cp.sum(x, axis=-1),
+        lambda x: cp.sum(x, axis=(-2, -1), keepdims=True),
+        lambda x: cp.reshape(x, (3, 3, 2, 2), order='F'),
+        lambda x: cp.cumsum(x, axis=-1),
+    ])
+    def test_matrix_axis_maps_drop_semidefiniteness(self, operation):
+        x = cp.Variable((2, 2, 3, 3), PSD=True)
+        assert not operation(x).is_psd()
+
+    @pytest.mark.parametrize("shape", [(2, 2)])
+    @pytest.mark.parametrize("negative", [False, True])
+    def test_hermitian_real_part_preserves_semidefiniteness(self, shape, negative):
+        x = cp.Variable(shape, hermitian=True)
+        wrapped = cp.atoms.affine.wraps.nsd_wrap(x) if negative else psd_wrap(x)
+        result = cp.real(wrapped)
+        assert result.is_nsd() == negative
+        assert result.is_psd() != negative
+
+    def test_unsafe_index_cannot_certify_nonconvex_objective(self):
+        x = cp.Variable((2, 2), PSD=True)
+        t = cp.trace(x[::-1, :])
+        objective = cp.square(cp.maximum(t, -1)) + .25 * t
+        problem = cp.Problem(cp.Minimize(objective), [cp.diag(x) == 1])
+        assert not t.is_nonneg()
+        assert not problem.is_dcp()
+        with pytest.raises(cp.error.DCPError):
+            problem.solve(solver=cp.CLARABEL)
+        # This feasible positive-definite point is better than the point
+        # returned when the false PSD flag certified the objective as DCP.
+        x.value = np.array([[1., -.0625], [-.0625, 1.]])
+        np.testing.assert_allclose(objective.value, -.015625)
+        x.value = np.array([[1., -1.], [-1., 1.]])
+        np.testing.assert_allclose(objective.value, .5)
+
+    def test_safe_principal_trace_parameter_resolves(self):
+        p = cp.Parameter(nonneg=True)
+        x = cp.Variable((3, 3), PSD=True)
+        principal = x[:2, :2]
+        objective = cp.sqrt(cp.trace(principal))
+        problem = cp.Problem(cp.Maximize(objective), [cp.trace(x) == p])
+        assert objective.is_concave()
+        for value in [1., 4.]:
+            p.value = value
+            problem.solve(solver=cp.CLARABEL, enforce_dpp=True)
+            assert problem.status == cp.OPTIMAL
+            np.testing.assert_allclose(problem.value, np.sqrt(value), rtol=1e-6)

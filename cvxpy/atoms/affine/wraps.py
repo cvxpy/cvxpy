@@ -17,6 +17,7 @@ limitations under the License.
 import cvxpy.lin_ops.lin_op as lo
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.utilities import performance_utils as perf
 
 
 class Wrap(AffAtom):
@@ -28,6 +29,14 @@ class Wrap(AffAtom):
     """
     def __init__(self, arg) -> None:
         return super(Wrap, self).__init__(arg)
+
+    @perf.compute_once
+    def is_psd(self) -> bool:
+        return self.args[0].is_psd()
+
+    @perf.compute_once
+    def is_nsd(self) -> bool:
+        return self.args[0].is_nsd()
 
     def is_atom_log_log_convex(self) -> bool:
         return True
@@ -42,6 +51,13 @@ class Wrap(AffAtom):
 
     def is_complex(self) -> bool:
         return self.args[0].is_complex()
+
+    def is_incr(self, idx) -> bool:
+        """Wrapping preserves elementwise order because the output equals the input."""
+        return True
+
+    def is_decr(self, idx) -> bool:
+        return False
 
     def shape_from_args(self) -> tuple[int, ...]:
         """Shape of input.
