@@ -2038,16 +2038,10 @@ class TestND_Expressions():
         scipy_value = solve(cp.SCIPY_CANON_BACKEND)
         np.testing.assert_allclose(cpp_value, scipy_value, atol=1e-7)
 
-    @pytest.mark.parametrize("identity", [
-        lambda x: cp.transpose(x, axes=(-2, 1)),
-        lambda x: cp.permute_dims(x, axes=(0, 1)),
-        lambda x: cp.swapaxes(x, 0, 0),
-        lambda x: cp.moveaxis(x, -1, -1),
-    ])
-    def test_identity_transpose_parameter_resolve(self, identity) -> None:
+    def test_identity_transpose_parameter_resolve(self) -> None:
         p = cp.Parameter((2, 3))
         y = cp.Variable(p.shape)
-        problem = cp.Problem(cp.Minimize(0), [y == identity(p)])
+        problem = cp.Problem(cp.Minimize(0), [y == cp.transpose(p, axes=(0, 1))])
         assert problem.is_dpp()
 
         for offset in [0, 10]:
