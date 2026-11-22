@@ -89,17 +89,17 @@ class transpose(AffAtom):
     def is_symmetric(self) -> bool:
         """Is the expression symmetric?
         """
-        return self.args[0].is_symmetric()
+        return self._preserves_matrix_axes() and self.args[0].is_symmetric()
 
     def is_skew_symmetric(self) -> bool:
         """Is the expression skew-symmetric?
         """
-        return self.args[0].is_skew_symmetric()
+        return self._preserves_matrix_axes() and self.args[0].is_skew_symmetric()
 
     def is_hermitian(self) -> bool:
         """Is the expression Hermitian?
         """
-        return self.args[0].is_hermitian()
+        return self._preserves_matrix_axes() and self.args[0].is_hermitian()
 
     def is_incr(self, idx) -> bool:
         return True
