@@ -271,3 +271,71 @@ class TestCOPTInterface:
         prob.solve(solver=cp.COPT, nlp=True, NLPIterLimit=100, verbose=False)
         assert prob.status == cp.OPTIMAL
         assert np.allclose(x.value, [0.5, 0.5], atol=1e-4)
+
+
+class TestUNOInterface:
+
+    def test_uno_invert_status_mapping(self):
+        """Test that UNO.invert correctly distinguishes optimization and solution statuses."""
+        from unittest.mock import MagicMock
+        from cvxpy.reductions.solvers.nlp_solvers.uno_nlpif import UNO
+
+        uno = UNO()
+        inv_data = MagicMock()
+        inv_data.offset = 0
+        inv_data.var_offsets = {}
+        inv_data.var_shapes = {}
+
+        # Infeasible problem should map to INFEASIBLE even if optimization_status is SUCCESS
+        sol_infeasible = {
+            'optimization_status': 'SUCCESS',
+            'solution_status': 'INFEASIBLE_STATIONARY_POINT',
+            'obj_val': 0.0,
+            'x': [0.0],
+        }
+        res = uno.invert(sol_infeasible, inv_data)
+        assert res.status == cp.INFEASIBLE
+        assert res.opt_val == float('inf')
+
+        # Infeasible small step
+        sol_infeasible_step = {
+            'optimization_status': 'SUCCESS',
+            'solution_status': 'INFEASIBLE_SMALL_STEP',
+            'obj_val': 0.0,
+            'x': [0.0],
+        }
+        res = uno.invert(sol_infeasible_step, inv_data)
+        assert res.status == cp.INFEASIBLE
+
+        # Feasible KKT point should map to OPTIMAL
+        sol_optimal = {
+            'optimization_status': 'SUCCESS',
+            'solution_status': 'FEASIBLE_KKT_POINT',
+            'obj_val': 2.0,
+            'x': [],
+        }
+        res = uno.invert(sol_optimal, inv_data)
+        assert res.status == cp.OPTIMAL
+        assert res.opt_val == 2.0
+
+        # Iteration limit should map to USER_LIMIT even if solution_status is NOT_OPTIMAL
+        sol_iter_limit = {
+            'optimization_status': 'ITERATION_LIMIT',
+            'solution_status': 'NOT_OPTIMAL',
+            'obj_val': 0.0,
+            'x': [],
+        }
+        res = uno.invert(sol_iter_limit, inv_data)
+        assert res.status == cp.USER_LIMIT
+
+        # Unbounded objective should map to UNBOUNDED
+        sol_unbounded = {
+            'optimization_status': 'SUCCESS',
+            'solution_status': 'UNBOUNDED_OBJECTIVE',
+            'obj_val': -float('inf'),
+            'x': [],
+        }
+        res = uno.invert(sol_unbounded, inv_data)
+        assert res.status == cp.UNBOUNDED
+        assert res.opt_val == -float('inf')
+
