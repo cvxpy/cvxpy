@@ -2020,16 +2020,18 @@ class TestND_Expressions():
         prob.solve(canon_backend=cp.SCIPY_CANON_BACKEND)
         assert np.allclose(expr.value, y)
 
-    @pytest.mark.parametrize("axes, preserves", [
-        pytest.param((-3, -4, -1, -2), True, id="swap-within-batch-and-matrix-axes"),
-        pytest.param((0, 2, 1, 3), False, id="mix-batch-and-matrix-axes"),
-        pytest.param(None, False, id="reverse-all-axes"),
+    @pytest.mark.parametrize("shape, axes, preserves", [
+        pytest.param((2, 3, 4, 4), (-3, -4, -1, -2), True, id="preserve-matrix-axes"),
+        pytest.param((2, 3, 3, 3), (0, 2, 1, 3), False, id="mix-batch-and-matrix-axes"),
+        pytest.param((2, 2, 3, 3), None, False, id="reverse-all-axes"),
     ])
-    def test_transpose_matrix_properties(self, axes, preserves) -> None:
-        shape = (2, 2, 2, 2)
+    def test_transpose_matrix_properties(self, shape, axes, preserves) -> None:
         psd = cp.transpose(cp.Variable(shape, PSD=True), axes)
         nsd = cp.transpose(cp.Variable(shape, NSD=True), axes)
         hermitian = cp.transpose(cp.Variable(shape, hermitian=True), axes)
+
+        # Keep the output slices square in every case, including after mixing axes.
+        assert psd.shape[-2] == psd.shape[-1]
         assert psd.is_symmetric() == preserves
         assert psd.is_psd() == preserves
         assert nsd.is_nsd() == preserves
