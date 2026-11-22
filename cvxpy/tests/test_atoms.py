@@ -2470,6 +2470,52 @@ class TestAtoms(BaseTest):
         self.assertEqual(str(cm.exception),
                          "Input matrix was not Hermitian/symmetric.")
 
+    def test_eigenvalue_atoms_nonhermitian(self) -> None:
+        """Non-Hermitian input must raise for all eigenvalue atoms, including
+        when the atom is constant-folded inside a larger expression."""
+        M = cp.Constant([[0., 1.], [-1., 0.]])  # eigenvalues +i, -i
+        msg = "Input matrix was not Hermitian/symmetric."
+        atoms = [
+            lambda: cp.lambda_max(M).value,
+            lambda: cp.lambda_min(M).value,
+            lambda: cp.lambda_sum_largest(M, 1).value,
+            lambda: cp.lambda_sum_smallest(M, 1).value,
+            lambda: cp.condition_number(M).value,
+            lambda: cp.gen_lambda_max(M, np.eye(2)).value,
+            lambda: cp.gen_lambda_max(np.eye(2), M).value,
+        ]
+        for f in atoms:
+            with self.assertRaises(ValueError) as cm:
+                f()
+            self.assertEqual(str(cm.exception), msg)
+
+    def test_eigenvalue_atoms_nonhermitian_folded(self) -> None:
+        """Wrapping the atom in arithmetic must not bypass the check via
+        constant folding."""
+        M = cp.Constant([[0., 1.], [-1., 0.]])
+        msg = "Input matrix was not Hermitian/symmetric."
+        with self.assertRaises(ValueError) as cm:
+            (2 * cp.lambda_max(M)).value
+        self.assertEqual(str(cm.exception), msg)
+        with self.assertRaises(ValueError) as cm:
+            (cp.lambda_sum_largest(M, 1) + 1).value
+        self.assertEqual(str(cm.exception), msg)
+
+    def test_eigenvalue_atoms_valid_input(self) -> None:
+        """Hermitian input is unaffected, including complex and batched."""
+        A = cp.Constant([[2., 0.], [0., 1.]])
+        self.assertAlmostEqual(cp.lambda_max(A).value, 2.0)
+        self.assertAlmostEqual(cp.lambda_min(A).value, 1.0)
+        self.assertAlmostEqual(cp.lambda_sum_largest(A, 1).value, 2.0)
+        self.assertAlmostEqual(cp.lambda_sum_smallest(A, 1).value, 1.0)
+        self.assertAlmostEqual(cp.condition_number(A).value, 2.0)
+        self.assertAlmostEqual(cp.gen_lambda_max(A, np.eye(2)).value, 2.0)
+        H = cp.Constant(np.array([[2., 1j], [-1j, 1.]]))
+        self.assertAlmostEqual(cp.lambda_max(H).value, 2.618033988749895)
+        batch = cp.Constant(np.stack([[[2., 0.], [0., 1.]],
+                                      [[3., 0.], [0., 1.]]]))
+        self.assertTrue(np.allclose(cp.lambda_max(batch).value, [2.0, 3.0]))
+
     def test_diff(self) -> None:
         """Test the diff atom.
         """

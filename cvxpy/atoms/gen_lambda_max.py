@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import numpy as np
 from scipy import linalg as LA
 
 from cvxpy.atoms.atom import Atom
@@ -32,6 +33,9 @@ class gen_lambda_max(Atom):
 
         Requires that A is symmetric, B is positive semidefinite.
         """
+        if not np.allclose(values[0], np.swapaxes(values[0], -2, -1).conj()) or \
+                not np.allclose(values[1], np.swapaxes(values[1], -2, -1).conj()):
+            raise ValueError("Input matrix was not Hermitian/symmetric.")
         lo = hi = self.args[0].shape[0]-1
         return LA.eigh(a=values[0],
                        b=values[1],

@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import numpy as np
 from scipy import linalg as LA
 
 from cvxpy.atoms.atom import Atom
@@ -32,6 +33,8 @@ class condition_number(Atom):
 
         Requires that A be a Positive Semidefinite Matrix.
         """
+        if not np.allclose(values[0], np.swapaxes(values[0], -2, -1).conj()):
+            raise ValueError("Input matrix was not Hermitian/symmetric.")
         lo = hi = self.args[0].shape[0]-1
         max_eigen = LA.eigvalsh(values[0], subset_by_index=(lo, hi))[0]
         min_eigen = -LA.eigvalsh(-values[0], subset_by_index=(lo, hi))[0]

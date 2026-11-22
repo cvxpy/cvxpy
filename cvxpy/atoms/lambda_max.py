@@ -21,7 +21,6 @@ from cvxpy.atoms.affine.conj import conj
 from cvxpy.atoms.affine.transpose import swapaxes as expr_swapaxes
 from cvxpy.atoms.atom import Atom
 from cvxpy.constraints.constraint import Constraint
-from cvxpy.expressions.expression import ExpressionValue
 
 
 class lambda_max(Atom):
@@ -36,6 +35,8 @@ class lambda_max(Atom):
 
         Requires that A be symmetric.
         """
+        if not np.allclose(values[0], np.swapaxes(values[0], -2, -1).conj()):
+            raise ValueError("Input matrix was not Hermitian/symmetric.")
         return np.linalg.eigvalsh(values[0])[..., -1]
 
     def _domain(self) -> list[Constraint]:
@@ -122,11 +123,3 @@ class lambda_max(Atom):
         """
         return False
 
-    @property
-    def value(self) -> ExpressionValue | None:
-        val = self.args[0].value
-        if val is None:
-            return None
-        if not np.allclose(val, np.swapaxes(val, -2, -1).conj()):
-            raise ValueError("Input matrix was not Hermitian/symmetric.")
-        return self._value_impl()
