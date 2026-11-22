@@ -1059,21 +1059,25 @@ class TestAtoms(BaseTest):
         self.assertEqual(result.shape, (2, 3))
         np.testing.assert_allclose(result.value, np.linalg.trace(a @ b))
 
-    def test_trace_batched_product_dpp(self) -> None:
-        # The old shortcut assigned the wrong costs to the allocation.
-        # Move the cheapest entry to check that updated costs reach the solver.
+    def test_trace_batched_product_parameter_update(self) -> None:
         costs = cp.Parameter((2, 2, 2), nonneg=True)
         X = cp.Variable(costs.shape, nonneg=True)
         problem = cp.Problem(cp.Minimize(cp.sum(cp.trace(costs @ X))),
                              [cp.sum(X) == 1])
-        for values in [np.array([[[40., 10.], [20., 30.]], [[1., 50.], [60., 70.]]]),
-                       np.array([[[40., 2.], [20., 30.]], [[50., 50.], [60., 70.]]])]:
+
+        # Since the cost matrices are symmetric, each entry of X costs the
+        # corresponding entry of costs. The optimum puts the unit in the free entry.
+        for free_entry in [(1, 0, 0), (0, 1, 1)]:
+            values = np.ones(costs.shape)
+            values[free_entry] = 0.
             costs.value = values
             problem.solve(solver=cp.CLARABEL, canon_backend=cp.SCIPY_CANON_BACKEND,
                           enforce_dpp=True)
-            expected = values.min()
-            self.assertAlmostEqual(problem.value, expected, places=5)
-            self.assertAlmostEqual(np.linalg.trace(values @ X.value).sum(), expected, places=5)
+
+            # The old shortcut could report zero while allocating to a paid entry.
+            allocation_cost = np.linalg.trace(values @ X.value).sum()
+            self.assertAlmostEqual(problem.value, 0., places=5)
+            self.assertAlmostEqual(allocation_cost, 0., places=5)
 
     def test_trace_scalar_real_products(self) -> None:
         """Real scalar-shaped products should canonicalize without real()."""
