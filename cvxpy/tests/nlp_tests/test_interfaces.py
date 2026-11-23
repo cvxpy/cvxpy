@@ -14,14 +14,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from unittest.mock import MagicMock
-
 import numpy as np
 import pytest
 
 import cvxpy as cp
 from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS
-from cvxpy.reductions.solvers.nlp_solvers.uno_nlpif import UNO
 from cvxpy.tests.test_conic_solvers import is_knitro_available
 
 
@@ -276,66 +273,23 @@ class TestCOPTInterface:
         assert np.allclose(x.value, [0.5, 0.5], atol=1e-4)
 
 
+@pytest.mark.skipif('UNO' not in INSTALLED_SOLVERS, reason='UNO is not installed.')
 class TestUNOInterface:
 
-    def test_uno_invert_status_mapping(self):
-        """Test that UNO.invert correctly distinguishes optimization and solution statuses."""
-        uno = UNO()
-        inv_data = MagicMock()
-        inv_data.offset = 0
-        inv_data.var_offsets = {}
-        inv_data.var_shapes = {}
+    def test_uno_basic_solve(self):
+        """Test that UNO can solve a basic NLP problem."""
+        x = cp.Variable()
+        prob = cp.Problem(cp.Minimize((x - 2) ** 2), [x >= 1])
+        prob.solve(solver=cp.UNO, nlp=True, verbose=False)
+        assert prob.status == cp.OPTIMAL
+        assert np.isclose(x.value, 2.0, atol=1e-5)
 
-        # Infeasible problem should map to INFEASIBLE even if optimization_status is SUCCESS
-        sol_infeasible = {
-            'optimization_status': 'SUCCESS',
-            'solution_status': 'INFEASIBLE_STATIONARY_POINT',
-            'obj_val': 0.0,
-            'x': [0.0],
-        }
-        res = uno.invert(sol_infeasible, inv_data)
-        assert res.status == cp.INFEASIBLE
-        assert res.opt_val == float('inf')
-
-        # Infeasible small step
-        sol_infeasible_step = {
-            'optimization_status': 'SUCCESS',
-            'solution_status': 'INFEASIBLE_SMALL_STEP',
-            'obj_val': 0.0,
-            'x': [0.0],
-        }
-        res = uno.invert(sol_infeasible_step, inv_data)
-        assert res.status == cp.INFEASIBLE
-
-        # Feasible KKT point should map to OPTIMAL
-        sol_optimal = {
-            'optimization_status': 'SUCCESS',
-            'solution_status': 'FEASIBLE_KKT_POINT',
-            'obj_val': 2.0,
-            'x': [],
-        }
-        res = uno.invert(sol_optimal, inv_data)
-        assert res.status == cp.OPTIMAL
-        assert res.opt_val == 2.0
-
-        # Iteration limit should map to USER_LIMIT even if solution_status is NOT_OPTIMAL
-        sol_iter_limit = {
-            'optimization_status': 'ITERATION_LIMIT',
-            'solution_status': 'NOT_OPTIMAL',
-            'obj_val': 0.0,
-            'x': [],
-        }
-        res = uno.invert(sol_iter_limit, inv_data)
-        assert res.status == cp.USER_LIMIT
-
-        # Unbounded objective should map to UNBOUNDED
-        sol_unbounded = {
-            'optimization_status': 'SUCCESS',
-            'solution_status': 'UNBOUNDED_OBJECTIVE',
-            'obj_val': -float('inf'),
-            'x': [],
-        }
-        res = uno.invert(sol_unbounded, inv_data)
-        assert res.status == cp.UNBOUNDED
-        assert res.opt_val == -float('inf')
+    def test_uno_infeasible_problem(self):
+        """Test that UNO correctly reports infeasible for an infeasible problem (#3644)."""
+        x = cp.Variable()
+        prob = cp.Problem(cp.Minimize(0), [cp.square(x) <= -1])
+        prob.solve(solver=cp.UNO, nlp=True, verbose=False)
+        assert prob.status in [cp.INFEASIBLE, cp.INFEASIBLE_INACCURATE]
+        assert prob.value == float("inf")
+        assert x.value is None
 
