@@ -90,6 +90,10 @@ def is_psd_within_tol(A, tol):
     if gershgorin_psd_check(A, tol):
         return True
 
+    # For a Hermitian matrix, a diagonal entry is a coordinate Rayleigh quotient.
+    if sp.issparse(A) and np.any(A.diagonal().real < -tol):
+        return False
+
     if is_diagonal(A):
         if isinstance(A, csc_array):
             return np.all(A.data >= -tol)
