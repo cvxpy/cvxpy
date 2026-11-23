@@ -16,7 +16,7 @@ limitations under the License.
 
 
 import numpy as np
-from scipy.special import logsumexp
+from scipy.special import logsumexp, softmax
 
 from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.axis_atom import AxisAtom
@@ -61,10 +61,10 @@ class log_sum_exp(AxisAtom):
         Returns:
             A NumPy ndarray or None.
         """
-        denom = np.exp(logsumexp(value, axis=None, keepdims=True))
-        nom = np.exp(value)
-        D = nom/denom
-        return D
+        # Score gaps can underflow to zero weight, or overflow negatively
+        # when subtracting the maximum from a finite score of opposite sign.
+        with np.errstate(over="ignore", under="ignore"):
+            return softmax(value)
 
     def sign_from_args(self) -> tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
