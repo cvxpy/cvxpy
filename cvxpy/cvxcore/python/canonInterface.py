@@ -192,17 +192,22 @@ def get_matrix_from_tensor(problem_data_tensor, param_vec,
 
     Parameters
     ----------
-        problem_data_tensor: tensor returned from get_problem_matrix,
-            representing a parameterized affine map
-        param_vec: flattened parameter vector
-        var_length: the number of variables
-        nonzero_rows: (optional) rows in the part of problem_data_tensor
-            corresponding to A that have nonzeros in them (i.e., rows that
-            are affected by parameters); if not None, then the corresponding
-            entries in A will have explicit zeros.
-        with_offset: (optional) return offset. Defaults to True.
-        problem_data_index: (optional) a tuple (indices, indptr, shape) for
-            construction of the CSC matrix holding the problem data and offset
+    problem_data_tensor : sparse matrix
+        Tensor returned from get_problem_matrix, representing a parameterized
+        affine map.
+    param_vec : numpy.ndarray or None
+        Flattened parameter vector.
+    var_length : int
+        The number of variables.
+    nonzero_rows : numpy.ndarray, optional
+        Rows in the part of problem_data_tensor corresponding to A that have
+        nonzeros in them (i.e., rows affected by parameters). If not None,
+        the corresponding entries in A will have explicit zeros.
+    with_offset : bool, optional
+        Return the offset. Defaults to True.
+    problem_data_index : tuple, optional
+        A tuple (indices, indptr, shape) for construction of the CSC matrix
+        holding the problem data and offset.
 
     Returns
     -------
