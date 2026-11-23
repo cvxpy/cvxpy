@@ -33,8 +33,9 @@ def squeeze(expr, axis: int | tuple[int, ...] | None = None) -> Expression:
     ----------
     expr : Expression
        The expression to squeeze
-    axis :
-        The axis or axes along which to squeeze.
+    axis : int or tuple of int, optional
+        The axis or axes along which to squeeze. If None, remove all
+        dimensions of size 1. Negative axes count from the last dimension.
     """
     shape = _get_squeezed_shape(expr.shape, axis)
     return reshape(expr, shape, order='F')
