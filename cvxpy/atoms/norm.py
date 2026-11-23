@@ -50,8 +50,9 @@ def norm(x, p: int | str = 2, axis=None, keepdims: bool = False) -> Expression:
         'nuc', or inf) to each slice spanned by the remaining axes, matching
         NumPy semantics. Tuples with more than two elements are not
         supported.
-    keepdims: If this is set to True, the axes which are reduced are left
-        in the result as dimensions with size one.
+    keepdims : bool, optional
+        If True, the axes which are reduced are left in the result as
+        dimensions with size one.
 
     Returns
     -------
@@ -207,6 +208,8 @@ def norm2(x, axis=None):
     x : Expression or numeric constant
         The value to take the norm of.  If `x` is 2D and `axis` is None,
         this function constructs a matrix norm.
+    axis : None, int, or tuple of ints, optional
+        The axis or axes along which to apply the norm. See :func:`norm`.
 
     Returns
     -------
