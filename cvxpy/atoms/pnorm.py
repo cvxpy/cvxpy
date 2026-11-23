@@ -31,9 +31,21 @@ def pnorm(x, p: int | str = 2, axis: int | tuple[int, ...] | None = None,
 
     Parameters
     ----------
+    x : Expression or numeric constant
+        The value to take the norm of.
     p : numeric type or string
        The type of norm to construct; set this to np.inf or 'inf' to
        construct an infinity norm.
+    axis : int or tuple of int, optional
+        Axes over which to compute the norm. If None, use all entries.
+    keepdims : bool, optional
+        If True, retain reduced axes as dimensions of size 1.
+    max_denom : int, optional
+        Maximum denominator used for the rational approximation when
+        ``approx=True``. Defaults to 1024.
+    approx : bool, optional
+        If True (default), use the SOC-based rational approximation for
+        values of ``p`` other than 1 or infinity. Otherwise, use ``Pnorm``.
 
     Returns
     -------
