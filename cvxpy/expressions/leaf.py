@@ -483,9 +483,12 @@ class Leaf(expression.Expression):
         ----------
         val : numeric type
             The value assigned.
-        strict: bool
+        strict : bool
             Whether to error if the projection cannot be
             performed analytically.
+        sparse_path : bool, optional
+            If True, treat ``val`` as the stored sparse values and skip the
+            dense sparsity projection. Defaults to False.
 
         Returns
         -------
