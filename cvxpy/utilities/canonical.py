@@ -93,6 +93,9 @@ class Canonical(metaclass=abc.ABCMeta):
         args : list, optional
             The arguments to reconstruct the object. If args=None, use the
             current args of the object.
+        id_objects : dict, optional
+            Map from object IDs to replacement objects. If this object's ID is
+            present, return its replacement instead of constructing a copy.
 
         Returns
         -------
