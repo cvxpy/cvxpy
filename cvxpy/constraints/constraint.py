@@ -235,24 +235,23 @@ class Constraint(u.Canonical):
         return float(np.linalg.norm(residual_arr.ravel(), ord=np.inf))
 
     def value(self, tolerance: float = 1e-8):
-        """Checks whether the constraint violation is less than a tolerance.
+        """Checks whether the constraint violation is at most a tolerance.
 
         Parameters
         ----------
-            tolerance : float
-                The absolute tolerance to impose on the violation.
+        tolerance : float
+            The absolute tolerance to impose on the violation.
 
         Returns
         -------
-            bool
-                True if the violation is less than ``tolerance``, False
-                otherwise.
+        bool
+            True if the violation is at most ``tolerance``, False otherwise.
 
         Raises
         ------
-            ValueError
-                If the constrained expression does not have a value associated
-                with it.
+        ValueError
+            If the constrained expression does not have a value associated
+            with it.
         """
         return bool(self.violation() <= tolerance)
 
