@@ -26,13 +26,17 @@ def stack_vals(variables: list, default: float, order: str = "F") -> np.ndarray:
 
     Parameters
     ----------
-    variables: list of cvxpy variables.
-    default: value to use when variable value is None.
-    order: unravel values in C or Fortran ("F") order
+    variables : list of Variable
+        Variables whose values are stacked.
+    default : float
+        Value to use when a variable value is None.
+    order : {"F", "C"}, optional
+        Flatten values in Fortran ("F", the default) or C order.
 
     Returns
     -------
-    An initial guess for the solution.
+    numpy.ndarray
+        An initial guess for the solution.
     """
     value = []
     for variable in variables:
