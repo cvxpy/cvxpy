@@ -139,6 +139,23 @@ def test_is_psd_inaccurate_eigenpair_fallback(monkeypatch) -> None:
     assert "CVXPY note" in str(exc.value)
 
 
+def test_is_psd_negative_diagonal_witness(monkeypatch) -> None:
+    """A diagonal entry below -tol decides the sparse PSD check before ARPACK."""
+    def fail_eigsh(*args, **kwargs):
+        raise AssertionError("eigsh should not be called")
+
+    monkeypatch.setattr(sparla, 'eigsh', fail_eigsh)
+
+    A = sp.block_diag([sp.csc_array([[-2e-10]]), 1e6 * np.ones((3, 3))], format='csc')
+    assert not cp.Constant(A).is_psd()
+
+
+def test_is_psd_diagonal_within_tolerance() -> None:
+    """A diagonal entry within -tol must not be treated as a negative witness."""
+    A = sp.block_diag([sp.csc_array([[-5e-11]]), np.ones((3, 3))], format='csc')
+    assert cp.Constant(A).is_psd()
+
+
 def test_print():
     A = cp.Constant(np.ones((3, 3)))
     assert str(A) == '[[1.00 1.00 1.00]\n [1.00 1.00 1.00]\n [1.00 1.00 1.00]]'

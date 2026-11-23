@@ -122,6 +122,12 @@ def is_psd_within_tol(A, tol):
         # fall back to an exact eigenvalue check rather than rejecting it.
         return bool(np.all(np.linalg.eigvalsh(A) >= -tol))
 
+    # A diagonal entry A[i, i] = e_i^H A e_i is an upper bound on the smallest
+    # eigenvalue of A, so a diagonal entry below -tol certifies that A is not PSD
+    # without an eigensolve.
+    if np.min(A.diagonal().real) < -tol:
+        return False
+
     def _raise_arpack_no_convergence(e):
         message = """
         CVXPY note: This failure was encountered while trying to certify
