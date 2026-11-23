@@ -32,8 +32,10 @@ def extract_lower_bounds(variables: list, var_size: int) -> np.ndarray | None:
 
     Parameters
     ----------
-    variables: A list of the variables present in the problem.
-    var_size: Size of the coalesced variable.
+    variables : list of Variable
+        Variables present in the problem.
+    var_size : int
+        Size of the coalesced variable.
     """
     # No bounds case.
     bounds_present = any([var._has_lower_bounds() for var in variables])
@@ -68,8 +70,10 @@ def extract_upper_bounds(variables: list, var_size: int) -> np.ndarray | None:
 
     Parameters
     ----------
-    variables: A list of the variables present in the problem.
-    var_size: Size of the coalesced variable.
+    variables : list of Variable
+        Variables present in the problem.
+    var_size : int
+        Size of the coalesced variable.
     """
     # No bounds case.
     bounds_present = any([var._has_upper_bounds() for var in variables])
