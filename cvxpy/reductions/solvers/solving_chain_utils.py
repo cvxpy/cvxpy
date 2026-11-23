@@ -22,6 +22,7 @@ def get_canon_backend(problem, canon_backend: str) -> str:
         Specifies which backend to use for canonicalization, which can affect
         compilation time. Defaults to None, i.e., selecting the default
         backend.
+
     Returns
     -------
     canon_backend : str
