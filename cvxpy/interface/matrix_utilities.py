@@ -315,12 +315,15 @@ def is_skew_symmetric(constant) -> bool:
 
 
 def is_sparse_symmetric(m, complex: bool = False) -> bool:
-    """Check if a sparse matrix is symmetric
+    """Check symmetry of a sparse matrix's off-diagonal entries.
 
     Parameters
     ----------
     m : array or sparse matrix
         A square matrix.
+    complex : bool, optional
+        If True, compare off-diagonal entries with their complex conjugates.
+        If False (default), compare them directly.
 
     Returns
     -------
