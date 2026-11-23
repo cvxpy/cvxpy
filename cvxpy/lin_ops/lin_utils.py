@@ -178,6 +178,8 @@ def mul_expr(lh_op, rh_op, shape: tuple[int, ...]):
         The left-hand operator in the product.
     rh_op : LinOp
         The right-hand operator in the product.
+    shape : tuple of int
+        The shape of the product.
 
     Returns
     -------
@@ -235,6 +237,8 @@ def kron_r(lh_op, rh_op, shape: tuple[int, ...]):
         The left-hand operator in the product.
     rh_op : LinOp
         The right-hand operator in the product.
+    shape : tuple of int
+        The shape of the product.
 
     Returns
     -------
@@ -253,6 +257,8 @@ def kron_l(lh_op, rh_op, shape: tuple[int, ...]):
         The left-hand operator in the product.
     rh_op : LinOp
         The right-hand operator in the product.
+    shape : tuple of int
+        The shape of the product.
 
     Returns
     -------
@@ -273,8 +279,6 @@ def div_expr(lh_op, rh_op):
         The left-hand operator in the quotient.
     rh_op : LinOp
         The right-hand operator in the quotient.
-    shape : tuple
-        The shape of the quotient.
 
     Returns
     -------
