@@ -164,7 +164,7 @@ def bisect(problem, solver=None, low=None, high=None, eps: float = 1e-6, verbose
     Bisects on a one-parameter family of DCP problems emitted by `Dqcp2Dcp`.
 
     Parameters
-    ------
+    ----------
     problem : Problem
         problem emitted by Dqcp2Dcp
     solver : Solver
@@ -179,6 +179,9 @@ def bisect(problem, solver=None, low=None, high=None, eps: float = 1e-6, verbose
         whether to print verbose output related to the bisection
     max_iters : int
         the maximum number of iterations to run bisection
+    max_iters_interval_search : int
+        The maximum number of iterations used to find an initial bisection
+        interval when either bound is omitted. Defaults to 100.
 
     Returns
     -------
