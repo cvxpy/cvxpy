@@ -157,18 +157,75 @@ def test_is_psd_diagonal_within_tolerance() -> None:
 
 
 def _not_psd_with_nonnegative_diagonal(n=10):
-    # Eigenvalues are 0.5 * (n - 1) and -0.5, and the zero diagonal skips the
-    # diagonal-witness fast path.
+    # Eigenvalues are 0.5 * (n - 1) (eigenvector: all ones) and -0.5, and the zero
+    # diagonal skips the diagonal-witness fast path. The returned witness mixes a
+    # -0.5 eigenvector with some of the positive eigenvector, so it is not an
+    # eigenvector but its Ritz value is still clearly negative.
     A = np.full((n, n), 0.5)
     np.fill_diagonal(A, 0.0)
-    v = np.zeros((n, 1))
-    v[0], v[1] = 1 / np.sqrt(2), -1 / np.sqrt(2)  # Ritz value -0.5
+    negative_dir = np.zeros((n, 1))
+    negative_dir[0], negative_dir[1] = 1 / np.sqrt(2), -1 / np.sqrt(2)
+    positive_dir = np.ones((n, 1)) / np.sqrt(n)
+    v = negative_dir + 0.3 * positive_dir
+    ritz = (v.T @ A @ v).item() / (v.T @ v).item()
+    assert ritz < -0.05
+    assert np.linalg.norm(A @ v - ritz * v) > 0.1  # not an eigenvector
     return sp.csc_array(A), v
 
 
-def test_is_psd_ritz_witness_from_inaccurate_eigenpair(monkeypatch) -> None:
+@pytest.mark.parametrize("witness_on_retry", [False, True])
+def test_is_psd_ritz_witness_from_inaccurate_eigenpair(monkeypatch, witness_on_retry) -> None:
     """A negative Ritz value certifies non-PSD even if the eigenpair is inaccurate."""
     A, v = _not_psd_with_nonnegative_diagonal()
+
+    calls = []
+
+    def mock_eigsh(matrix, *args, **kwargs):
+        calls.append(kwargs.get('sigma'))
+        if witness_on_retry and len(calls) == 1:
+            return np.array([5.0]), np.ones_like(v) / np.sqrt(A.shape[0])
+        return np.array([5.0]), v
+
+    monkeypatch.setattr(sparla, 'eigsh', mock_eigsh)
+    assert not cp.Constant(A).is_psd()
+    assert calls == ([-s.EIGVAL_TOL, None] if witness_on_retry else [-s.EIGVAL_TOL])
+
+
+def test_is_psd_ritz_witness_from_arpack_no_convergence(monkeypatch) -> None:
+    """Every partial vector from a non-converged ARPACK run is checked as a witness."""
+    A, v = _not_psd_with_nonnegative_diagonal()
+    positive = np.ones_like(v) / np.sqrt(A.shape[0])  # Ritz value 0.5 * (n - 1)
+
+    def mock_eigsh(matrix, *args, **kwargs):
+        raise sparla.ArpackNoConvergence(
+            "no convergence", np.array([5.0, 5.0]), np.hstack([positive, v])
+        )
+
+    monkeypatch.setattr(sparla, 'eigsh', mock_eigsh)
+    assert not cp.Constant(A).is_psd()
+
+
+def test_is_psd_arpack_no_convergence_without_witness(monkeypatch) -> None:
+    """Without a negative Ritz value, non-convergence still raises with the CVXPY note."""
+    A, _ = _not_psd_with_nonnegative_diagonal()
+    n = A.shape[0]
+    positive = np.ones((n, 1)) / np.sqrt(n)
+    zero = np.zeros((n, 1))
+
+    def mock_eigsh(matrix, *args, **kwargs):
+        raise sparla.ArpackNoConvergence(
+            "no convergence", np.array([5.0, 5.0]), np.hstack([positive, zero])
+        )
+
+    monkeypatch.setattr(sparla, 'eigsh', mock_eigsh)
+    with pytest.raises(sparla.ArpackNoConvergence, match="CVXPY note"):
+        cp.Constant(A).is_psd()
+
+
+def test_is_psd_ritz_witness_complex_hermitian(monkeypatch) -> None:
+    """The Ritz value uses the conjugate inner product for complex Hermitian input."""
+    A = sp.csc_array([[0, 1j], [-1j, 0]])  # eigenvalues -1 and 1
+    v = np.array([[1], [2j]]) / np.sqrt(5)  # not an eigenvector; v^H A v = -0.8
 
     def mock_eigsh(matrix, *args, **kwargs):
         return np.array([5.0]), v
@@ -177,15 +234,21 @@ def test_is_psd_ritz_witness_from_inaccurate_eigenpair(monkeypatch) -> None:
     assert not cp.Constant(A).is_psd()
 
 
-def test_is_psd_ritz_witness_from_arpack_no_convergence(monkeypatch) -> None:
-    """A negative Ritz value from a non-converged ARPACK run certifies non-PSD."""
-    A, v = _not_psd_with_nonnegative_diagonal()
+def test_is_psd_ritz_witness_roundoff_margin(monkeypatch) -> None:
+    """A quotient inside the rounding margin must not certify non-PSD."""
+    tol = s.EIGVAL_TOL
+    off_diag = np.nextafter(1.0 + tol, np.inf)
+    A = sp.csc_array([[1.0, off_diag], [off_diag, 1.0]])
+    v = np.array([[1.0], [-1.0]]) / np.sqrt(2)
+    # The quotient is below -tol by less than the rounding margin.
+    assert np.vdot(v, A @ v).real / np.vdot(v, v).real < -tol
 
     def mock_eigsh(matrix, *args, **kwargs):
-        raise sparla.ArpackNoConvergence("no convergence", np.array([5.0]), v)
+        return np.array([5.0]), v
 
     monkeypatch.setattr(sparla, 'eigsh', mock_eigsh)
-    assert not cp.Constant(A).is_psd()
+    with pytest.raises(sparla.ArpackNoConvergence, match="CVXPY note"):
+        cp.Constant(A).is_psd()
 
 
 def test_print():

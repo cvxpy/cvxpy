@@ -146,7 +146,8 @@ def is_psd_within_tol(A, tol):
         # For any nonzero v, the Ritz value v^H A v / v^H v is an upper bound on
         # the smallest eigenvalue of A. A Ritz value below -tol therefore
         # certifies that A is not PSD even if v is a poor eigenvector. The margin
-        # bounds the rounding error in computing v^H A v.
+        # is a conservative allowance for rounding error in computing v^H A v, so
+        # quotients only marginally below -tol are not treated as witnesses.
         if vectors is None:
             return False
         vectors = np.asarray(vectors)
