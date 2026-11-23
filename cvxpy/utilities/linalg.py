@@ -142,7 +142,35 @@ def is_psd_within_tol(A, tol):
         error_with_note = f"{str(e)}\n\n{message}"
         raise sparla.ArpackNoConvergence(error_with_note, e.eigenvalues, e.eigenvectors)
 
+    def ritz_certifies_not_psd(vectors):
+        # For any nonzero v, the Ritz value v^H A v / v^H v is an upper bound on
+        # the smallest eigenvalue of A. A Ritz value below -tol therefore
+        # certifies that A is not PSD even if v is a poor eigenvector. The margin
+        # bounds the rounding error in computing v^H A v.
+        if vectors is None:
+            return False
+        vectors = np.asarray(vectors)
+        if vectors.ndim == 1:
+            vectors = vectors.reshape(-1, 1)
+        if vectors.ndim != 2 or vectors.shape[0] != A.shape[0]:
+            return False
+        n = A.shape[0]
+        abs_A = abs(A)
+        for v in vectors.T:
+            if not np.all(np.isfinite(v)):
+                continue
+            norm_sq = np.vdot(v, v).real
+            if norm_sq == 0:
+                continue
+            ritz = np.vdot(v, A @ v).real / norm_sq
+            eps = np.finfo(np.asarray(ritz).dtype).eps
+            margin = 2 * n * eps * np.vdot(np.abs(v), abs_A @ np.abs(v)).real / norm_sq
+            if ritz < -tol - margin:
+                return True
+        return False
+
     def SA_eigsh(sigma=None):
+        """Return (eigenvalues, eigenvectors), or None if A is certified not PSD."""
 
         # Check for default_rng in np.random module (new API)
         if hasattr(np.random, 'default_rng'):
@@ -172,16 +200,26 @@ def is_psd_within_tol(A, tol):
         try:
             return sparla.eigsh(A, **kwargs)
         except sparla.ArpackNoConvergence as e:
-            # This is a numerical issue. We can't certify that A is PSD.
+            # Even without convergence, a partial Ritz vector may prove that A
+            # is not PSD. Otherwise this is a numerical issue and we can't
+            # certify that A is PSD.
+            if ritz_certifies_not_psd(e.eigenvectors):
+                return None
             _raise_arpack_no_convergence(e)
 
-    ev, evec = SA_eigsh(-tol)  # might return np.NaN, or raise exception
+    result = SA_eigsh(-tol)  # might return np.NaN, or raise exception
+    if result is None:
+        return False
+    ev, evec = result
 
     if np.isnan(ev).any():
         # will be NaN if A has an eigenvalue which is exactly -tol
         # (We might also hit this code block for other reasons.)
         temp = tol - np.finfo(A.dtype).eps
-        ev, evec = SA_eigsh(-temp)
+        result = SA_eigsh(-temp)
+        if result is None:
+            return False
+        ev, evec = result
 
     # ARPACK can report convergence in shift-invert mode even when the returned
     # eigenpair is too inaccurate to decide whether the eigenvalue is below
@@ -201,8 +239,15 @@ def is_psd_within_tol(A, tol):
         )
 
     if not eigenpair_is_accurate():
-        ev, evec = SA_eigsh()
+        if ritz_certifies_not_psd(evec):
+            return False
+        result = SA_eigsh()
+        if result is None:
+            return False
+        ev, evec = result
         if not eigenpair_is_accurate():
+            if ritz_certifies_not_psd(evec):
+                return False
             error = sparla.ArpackNoConvergence(
                 "ARPACK returned an inaccurate eigenpair.", ev, evec
             )

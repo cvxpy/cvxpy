@@ -156,6 +156,38 @@ def test_is_psd_diagonal_within_tolerance() -> None:
     assert cp.Constant(A).is_psd()
 
 
+def _not_psd_with_nonnegative_diagonal(n=10):
+    # Eigenvalues are 0.5 * (n - 1) and -0.5, and the zero diagonal skips the
+    # diagonal-witness fast path.
+    A = np.full((n, n), 0.5)
+    np.fill_diagonal(A, 0.0)
+    v = np.zeros((n, 1))
+    v[0], v[1] = 1 / np.sqrt(2), -1 / np.sqrt(2)  # Ritz value -0.5
+    return sp.csc_array(A), v
+
+
+def test_is_psd_ritz_witness_from_inaccurate_eigenpair(monkeypatch) -> None:
+    """A negative Ritz value certifies non-PSD even if the eigenpair is inaccurate."""
+    A, v = _not_psd_with_nonnegative_diagonal()
+
+    def mock_eigsh(matrix, *args, **kwargs):
+        return np.array([5.0]), v
+
+    monkeypatch.setattr(sparla, 'eigsh', mock_eigsh)
+    assert not cp.Constant(A).is_psd()
+
+
+def test_is_psd_ritz_witness_from_arpack_no_convergence(monkeypatch) -> None:
+    """A negative Ritz value from a non-converged ARPACK run certifies non-PSD."""
+    A, v = _not_psd_with_nonnegative_diagonal()
+
+    def mock_eigsh(matrix, *args, **kwargs):
+        raise sparla.ArpackNoConvergence("no convergence", np.array([5.0]), v)
+
+    monkeypatch.setattr(sparla, 'eigsh', mock_eigsh)
+    assert not cp.Constant(A).is_psd()
+
+
 def test_print():
     A = cp.Constant(np.ones((3, 3)))
     assert str(A) == '[[1.00 1.00 1.00]\n [1.00 1.00 1.00]\n [1.00 1.00 1.00]]'
