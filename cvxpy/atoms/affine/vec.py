@@ -28,7 +28,9 @@ def vec(X, order: Literal["F", "C", None] = None) -> Expression:
     ----------
     X : Expression or numeric constant
         The matrix to flatten.
-    order: column-major ('F') or row-major ('C') order.
+    order : {'F', 'C'}, optional
+        Column-major ('F') or row-major ('C') order. If omitted, uses
+        column-major order and emits a FutureWarning.
 
     Returns
     -------
