@@ -33,15 +33,15 @@ Basic examples
 
 *For geometric interpretations of linear and quadratic programs, see the marimo links.*
 
-- :doc:`Least squares <basic/least_squares>` `[.ipynb] <https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/WWW/least_squares.ipynb>`_ `[marimo] <https://marimo.app/gh/marimo-team/learn/main?entrypoint=optimization%2F01_least_squares.py>`_
+- :doc:`Least squares <basic/least_squares>` `[.ipynb] <https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/WWW/least_squares.ipynb>`_ `[marimo] <https://molab.marimo.io/github/marimo-team/learn/blob/main/optimization/01_least_squares.py>`_
 
-- :doc:`Linear program <basic/linear_program>` `[.ipynb] <https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/WWW/linear_program.ipynb>`_ `[marimo] <https://marimo.app/gh/marimo-team/learn/main?entrypoint=optimization%2F02_linear_program.py>`_
+- :doc:`Linear program <basic/linear_program>` `[.ipynb] <https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/WWW/linear_program.ipynb>`_ `[marimo] <https://molab.marimo.io/github/marimo-team/learn/blob/main/optimization/02_linear_program.py>`_
 
-- :doc:`Quadratic program <basic/quadratic_program>` `[.ipynb] <https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/WWW/quadratic_program.ipynb>`_ `[marimo] <https://marimo.app/gh/marimo-team/learn/main?entrypoint=optimization%2F04_quadratic_program.py>`_
+- :doc:`Quadratic program <basic/quadratic_program>` `[.ipynb] <https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/WWW/quadratic_program.ipynb>`_ `[marimo] <https://molab.marimo.io/github/marimo-team/learn/blob/main/optimization/04_quadratic_program.py>`_
 
-- :doc:`Semidefinite program <basic/sdp>` `[.ipynb] <https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/WWW/sdp.ipynb>`_ `[marimo] <https://marimo.app/gh/marimo-team/learn/main?entrypoint=optimization%2F07_sdp.py>`_
+- :doc:`Semidefinite program <basic/sdp>` `[.ipynb] <https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/WWW/sdp.ipynb>`_ `[marimo] <https://molab.marimo.io/github/marimo-team/learn/blob/main/optimization/07_sdp.py>`_
 
-- `Disciplined convex programming <https://marimo.app/gh/marimo-team/learn/main?entrypoint=optimization%2F06_convex_optimization.py>`_
+- `Disciplined convex programming <https://molab.marimo.io/github/marimo-team/learn/blob/main/optimization/06_convex_optimization.py>`_
 
 - :doc:`Mixed-integer quadratic program <basic/mixed_integer_quadratic_program>` `[.ipynb] <https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/WWW/mixed_integer_quadratic_program.ipynb>`_
 
@@ -51,9 +51,9 @@ Basic examples
 Basic applications
 ------------------
 
-- `Minimum-fuel optimal control <https://marimo.app/gh/marimo-team/learn/main?entrypoint=optimization%2F03_minimum_fuel_optimal_control.py>`_
+- `Minimum-fuel optimal control <https://molab.marimo.io/github/marimo-team/learn/blob/main/optimization/03_minimum_fuel_optimal_control.py>`_
 
-- `Markowitz portfolio optimization <https://marimo.app/gh/marimo-team/learn/main?entrypoint=optimization%2F05_portfolio_optimization.py>`_
+- `Markowitz portfolio optimization <https://molab.marimo.io/github/marimo-team/learn/blob/main/optimization/05_portfolio_optimization.py>`_
 
 - `More control <https://colab.research.google.com/github/cvxgrp/cvx_short_course/blob/master/book/docs/intro/notebooks/control.ipynb>`_
 
