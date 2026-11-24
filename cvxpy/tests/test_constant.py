@@ -114,6 +114,26 @@ def test_is_psd_sparse_indefinite_without_negative_diagonal():
     assert not cp.Constant(A).is_psd()
 
 
+def test_strict_sparse_negative_diagonal_witness_does_not_densify(monkeypatch):
+    """Reject a strict witness without allocating a dense copy of the sparse matrix."""
+    A = sp.block_diag([sp.csc_array([[-2 * s.EIGVAL_TOL]]), np.ones((3, 3))], format="csc")
+
+    def forbid_toarray(*args, **kwargs):
+        raise AssertionError("A strict diagonal witness must not densify the sparse matrix")
+
+    monkeypatch.setattr(sp.csc_array, "toarray", forbid_toarray)
+    assert not cp.Constant(A).is_psd()
+
+
+def test_strict_negative_diagonal_witness_sums_duplicate_csc_entries():
+    """An exactly diagonal CSC array must use its mathematical, not stored, diagonal."""
+    tol = s.EIGVAL_TOL
+    A = sp.csc_array(([-0.75 * tol, -0.75 * tol, 1.0], [0, 0, 1], [0, 2, 3]), shape=(2, 2))
+    assert not A.has_canonical_format
+    assert A.diagonal()[0] < -tol
+    assert not cp.Constant(A).is_psd()
+
+
 def _dense_psd_with_large_off_diagonals(n: int) -> np.ndarray:
     """A positive definite matrix whose Gershgorin check is inconclusive."""
     A = np.full((n, n), 0.5)
@@ -268,3 +288,4 @@ def test_nested_lists():
     # CVXPY behaviour currenlty is different from NumPy for nested lists,
     # with the order being reversed.
     assert np.allclose(constant_from_lists.value.T, numpy_array)
+
