@@ -630,7 +630,35 @@ class TestCuClarabelFullP(BaseTest):
         self.assertItemsAlmostEqual(P_gpu.toarray(), P)
 
 
-@unittest.skipUnless('CUCLARABEL' in INSTALLED_SOLVERS, 'CLARABEL is not installed.')
+@pytest.mark.parametrize(
+    ("verbose", "solver_opts", "julia_verbose"),
+    [(False, {}, "false"), (True, {}, "true"), (True, {"verbose": False}, "false")],
+)
+def test_cuclarabel_julia_verbosity(verbose, solver_opts, julia_verbose) -> None:
+    """Compile an LP and check the verbosity passed to Julia with the GPU bridge stubbed out."""
+    from cvxpy.reductions.solvers.conic_solvers.cuclarabel_conif import CUCLARABEL
+
+    x = cp.Variable()
+    problem = cp.Problem(cp.Minimize(x), [x >= 1])
+    data, _, _ = problem.get_problem_data(cp.SCIPY)
+    stubs = {
+        "cupy": mock.MagicMock(),
+        "cupyx": mock.MagicMock(),
+        "cupyx.scipy": mock.MagicMock(),
+        "cupyx.scipy.sparse": mock.MagicMock(),
+        "juliacall": mock.MagicMock(),
+    }
+    with mock.patch.dict(sys.modules, stubs):
+        CUCLARABEL().solve_via_data(data, False, verbose, solver_opts)
+
+    julia_calls = stubs["juliacall"].Main.seval.call_args_list
+    assert any(
+        "Clarabel.Settings(" in call.args[0] and f"verbose = {julia_verbose}" in call.args[0]
+        for call in julia_calls
+    )
+
+
+@unittest.skipUnless('CUCLARABEL' in INSTALLED_SOLVERS, 'CUCLARABEL is not installed.')
 class TestCuClarabel(BaseTest):
 
     """ Unit tests for Clarabel. """
@@ -698,6 +726,29 @@ class TestCuClarabel(BaseTest):
 
     def test_clarabel_lp_0(self) -> None:
         StandardTestLPs.test_lp_0(solver=cp.CUCLARABEL)
+
+    def test_cuclarabel_solver_verbosity(self) -> None:
+        """Solve the same LP twice and check that only the verbose solve prints a banner."""
+        # A subprocess captures Julia's native stdout as well as Python's stdout.
+        code = """
+import cvxpy as cp
+from juliacall import Main as jl
+
+x = cp.Variable()
+problem = cp.Problem(cp.Minimize(x), [x >= 1])
+problem.solve(solver=cp.CUCLARABEL, verbose=False)
+jl.flush(jl.stdout)
+print("Starting verbose solve", flush=True)
+problem.solve(solver=cp.CUCLARABEL, verbose=False, solver_verbose=True)
+jl.flush(jl.stdout)
+"""
+        result = subprocess.run(
+            [sys.executable, "-c", code], capture_output=True, text=True, check=False, timeout=600
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        quiet_output, _, verbose_output = result.stdout.partition("Starting verbose solve\n")
+        self.assertNotIn("Clarabel.jl v", quiet_output)
+        self.assertIn("Clarabel.jl v", verbose_output)
 
     def test_clarabel_nonstandard_name(self) -> None:
         # Test that solver name with non-standard capitalization works.
