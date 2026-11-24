@@ -401,6 +401,21 @@ and returns a scalar.
        |decr| decr. in :math:`y`
      - |convex| convex
 
+   * - :ref:`quantum_cond_entr(rho, dims, sys) <quantum-cond-entr>`
+
+     - :math:`N(\rho) - N(\operatorname{tr}_{\text{sys}}(\rho))`,
+       where :math:`N` is the von Neumann entropy
+     - :math:`\rho \in \mathbf{S}^{n}_+`
+     - |unknown| unknown sign
+     - |concave| concave
+
+   * - :ref:`quantum_rel_entr(X, Y) <quantum-rel-entr>`
+
+     - :math:`\operatorname{tr}\left(X(\operatorname{logm}(X) - \operatorname{logm}(Y))\right)`
+     - :math:`X, Y \in \mathbf{S}^{n}_+`
+     - |unknown| unknown sign
+     - |convex| convex
+
    * - :ref:`std(X) <std>`
 
      - analog to `numpy.std <https://numpy.org/doc/stable/reference/generated/numpy.std.html#numpy-std>`_
