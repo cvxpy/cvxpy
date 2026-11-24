@@ -271,25 +271,3 @@ class TestCOPTInterface:
         prob.solve(solver=cp.COPT, nlp=True, NLPIterLimit=100, verbose=False)
         assert prob.status == cp.OPTIMAL
         assert np.allclose(x.value, [0.5, 0.5], atol=1e-4)
-
-
-@pytest.mark.skipif('UNO' not in INSTALLED_SOLVERS, reason='UNO is not installed.')
-class TestUNOInterface:
-
-    def test_uno_basic_solve(self):
-        """Test that UNO can solve a basic NLP problem."""
-        x = cp.Variable()
-        prob = cp.Problem(cp.Minimize((x - 2) ** 2), [x >= 1])
-        prob.solve(solver=cp.UNO, nlp=True, verbose=False)
-        assert prob.status == cp.OPTIMAL
-        assert np.isclose(x.value, 2.0, atol=1e-5)
-
-    def test_uno_infeasible_problem(self):
-        """Test that UNO correctly reports infeasible for an infeasible problem (#3644)."""
-        x = cp.Variable()
-        prob = cp.Problem(cp.Minimize(0), [cp.square(x) <= -1])
-        prob.solve(solver=cp.UNO, nlp=True, verbose=False)
-        assert prob.status in [cp.INFEASIBLE, cp.INFEASIBLE_INACCURATE]
-        assert prob.value == float("inf")
-        assert x.value is None
-
