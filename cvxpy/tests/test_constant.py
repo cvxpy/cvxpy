@@ -193,3 +193,32 @@ def test_nested_lists():
     # CVXPY behaviour currenlty is different from NumPy for nested lists,
     # with the order being reversed.
     assert np.allclose(constant_from_lists.value.T, numpy_array)
+
+
+def test_stacking_sparse_constants_with_variables():
+    """hstack, concatenate and bmat accept sparse constants next to variables.
+
+    Each stack combines a 3x3 variable with a random 3x3 sparse constant. For
+    every stack the test sets the variable to a dense value, checks that
+    ``.value`` equals the NumPy stack of the dense equivalents, then solves a
+    problem that fixes the variable to that value and checks the objective
+    (the sum of the stack) against the NumPy result.
+    """
+    rng = np.random.default_rng(0)
+    S = sp.random_array((3, 3), density=0.5, random_state=0, format="csc")
+    S_dense = S.toarray()
+    Xv = rng.normal(size=(3, 3))
+    X = cp.Variable((3, 3))
+    stacks = [
+        (cp.hstack([X, S]), np.hstack([Xv, S_dense])),
+        (cp.concatenate([X, S], axis=None), np.concatenate([Xv, S_dense], axis=None)),
+        (cp.concatenate([X, S], axis=0), np.concatenate([Xv, S_dense], axis=0)),
+        (cp.concatenate([X, S], axis=1), np.concatenate([Xv, S_dense], axis=1)),
+        (cp.bmat([[X, S], [S, X]]), np.block([[Xv, S_dense], [S_dense, Xv]])),
+    ]
+    for expr, expected in stacks:
+        X.value = Xv
+        assert np.allclose(expr.value, expected)
+        prob = cp.Problem(cp.Minimize(cp.sum(expr)), [X == Xv])
+        prob.solve(solver=cp.CLARABEL)
+        assert np.isclose(prob.value, expected.sum())

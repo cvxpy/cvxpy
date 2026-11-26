@@ -53,6 +53,7 @@ class Concatenate(AffAtom):
         return True
 
     # Returns the concatenation of the values along the specified axis.
+    @AffAtom.numpy_numeric
     def numeric(self, values):
         return np.concatenate(values, axis=self.axis)
 

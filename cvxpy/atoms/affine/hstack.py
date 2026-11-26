@@ -46,6 +46,7 @@ class Hstack(AffAtom):
         return True
 
     # Returns the hstack of the values.
+    @AffAtom.numpy_numeric
     def numeric(self, values):
         return np.hstack(values)
 
