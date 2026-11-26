@@ -1441,6 +1441,8 @@ class Problem(u.Canonical):
             )
         if solution.status == s.INFEASIBLE_OR_UNBOUNDED:
             warn(INF_OR_UNB_MESSAGE)
+        # Preserve diagnostics even when the solver result cannot be unpacked.
+        self._solver_stats = SolverStats.from_dict(solution.attr, chain.solver.name())
         if solution.status in s.ERROR:
             raise error.SolverError(
                     "Solver '%s' failed. " % chain.solver.name() +
@@ -1448,8 +1450,6 @@ class Problem(u.Canonical):
                     "information.")
 
         self.unpack(solution)
-        self._solver_stats = SolverStats.from_dict(self._solution.attr,
-                                         chain.solver.name())
 
 
     def __str__(self) -> str:

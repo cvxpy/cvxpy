@@ -3004,6 +3004,26 @@ class TestSCIP(unittest.TestCase):
                   "Try another solver, or solve with verbose=True for more information."
             assert str(se.value) == exc
 
+        stats = sth.prob.solver_stats
+        assert stats is not None
+        assert stats.solver_name == "SCIP"
+        assert stats.solve_time is not None
+        assert stats.num_iters is not None
+        assert stats.extra_stats["scip_status"] == "timelimit"
+
+    def test_scip_solver_stats_replaced_after_failure(self) -> None:
+        prob = self.get_simple_problem()
+        prob.solve(solver=cp.CLARABEL)
+        previous_stats = prob.solver_stats
+
+        with pytest.raises(cp.error.SolverError, match="Solver 'SCIP' failed"):
+            prob.solve(solver=cp.SCIP, warm_start=False, scip_params={"limits/time": 0.0})
+
+        stats = prob.solver_stats
+        assert stats is not previous_stats
+        assert stats.solver_name == "SCIP"
+        assert stats.extra_stats["scip_status"] == "timelimit"
+
     def test_scip_solver_stats(self) -> None:
         import pyscipopt
 
