@@ -67,3 +67,9 @@ CallbackParam
     :members: shape, size, ndim, T, value, project, project_and_assign, round
     :undoc-members:
     :show-inheritance:
+
+MixedCoordinates
+-----------------------------------
+
+.. autoclass:: cvxpy.expressions.mixed_coordinates.MixedCoordinates
+    :members: lin, log, value

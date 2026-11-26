@@ -63,6 +63,7 @@ from cvxpy.problems.objective import (
     Objective as Objective,
 )
 from cvxpy.problems.problem import Problem as Problem
+from cvxpy.expressions.mixed_coordinates import MixedCoordinates as MixedCoordinates
 from cvxpy.transforms import (
     linearize as linearize,
     partial_optimize as partial_optimize,
