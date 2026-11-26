@@ -601,6 +601,9 @@ class Problem(u.Canonical):
             The function tries the solvers in the given order and
             returns the first solver's solution that succeeds.
             For example, ['SCS', ('OSQP', {'max_iter':10000})]
+        warm_start : bool, optional
+            Allow the solver to reuse information from a previous solve when
+            supported. Defaults to ``True``. See :ref:`solver-warm-start` for details.
         verbose : bool, optional
             Overrides the default of hiding solver output, and prints
             logging information describing CVXPY's compilation process.
@@ -647,10 +650,7 @@ class Problem(u.Canonical):
             mydict = {"MSK_DPAR_INTPNT_CO_TOL_NEAR_REL":  10}
             prob.solve(solver='MOSEK', mosek_params=mydict).
 
-        You should refer to CVXPY's web documentation for details on how to pass solver
-        solver arguments, available at
-
-        https://www.cvxpy.org/tutorial/advanced/index.html#setting-solver-options
+        See :ref:`solveropts` for more about passing options to a solver.
 
         Returns
         -------
