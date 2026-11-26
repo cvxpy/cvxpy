@@ -650,15 +650,21 @@ class TestConstraints(BaseTest):
             cp.Variable((2,), bounds=[np.array([1, np.nan]), np.array([2, np.nan])])
 
     def test_psd_residual_complex(self) -> None:
-        """PSD.residual should use .H (not .T) for complex Hermitian matrices."""
+        """Check Hermitian PSD feasibility with nonzero imaginary matrix entries.
+
+        The indefinite fixture has eigenvalues -1 and 3, but its real part is
+        positive definite, so dropping conjugation would report zero violation.
+        """
         X = cp.Variable((2, 2), hermitian=True)
         constr = X >> 0
         # A Hermitian PSD matrix
         X.value = np.array([[2, 1+1j], [1-1j, 2]])
         self.assertAlmostEqual(constr.residual, 0.0)
-        # A non-PSD Hermitian matrix
-        X.value = np.array([[1, 3+1j], [3-1j, 1]])
-        self.assertTrue(constr.residual > 0)
+        self.assertTrue(constr.value())
+        X.value = np.array([[1, 2j], [-2j, 1]])
+        self.assertAlmostEqual(constr.residual, 1.0)
+        self.assertAlmostEqual(constr.violation(), 1.0)
+        self.assertFalse(constr.value())
 
     def test_finite_set_residual_none(self) -> None:
         """FiniteSet.residual should return None when variable has no value."""
@@ -999,6 +1005,40 @@ class TestConstraints(BaseTest):
         np.testing.assert_allclose(constr.dual_residual, expected, atol=1e-9)
         assert constr.dual_violation() == pytest.approx(2.0)
         assert not constr.is_dual_feasible()
+
+    def test_psd_dual_residual_complex(self):
+        """Compare single and batched Hermitian dual projections with exact matrices.
+
+        The first two blocks have minimum eigenvalues -1 and -4; the third is
+        positive definite. Their explicit projection residuals distinguish a
+        conjugate transpose from a transpose in both eigenspace operations.
+        """
+        blocks = np.array([
+            [[1, 2j], [-2j, 1]],
+            [[1, 3+4j], [3-4j, 1]],
+            [[2, 1+1j], [1-1j, 2]],
+        ])
+        expected = np.array([
+            [[0.5, -0.5j], [0.5j, 0.5]],
+            [[2, -1.2-1.6j], [-1.2+1.6j, 2]],
+            [[0, 0], [0, 0]],
+        ])
+        for dual, residual in ((blocks[1], expected[1]), (blocks, expected)):
+            with self.subTest(shape=dual.shape):
+                X = cp.Variable(dual.shape, complex=True)
+                constr = X >> 0
+                constr.save_dual_value(dual)
+                self.assertEqual(constr.dual_residual.shape, dual.shape)
+                np.testing.assert_allclose(constr.dual_residual, residual, atol=1e-9)
+                self.assertAlmostEqual(constr.dual_violation(), 4.0)
+                self.assertFalse(constr.is_dual_feasible())
+
+    def test_psd_dual_residual_list(self):
+        """A dual saved as nested Python lists retains its PSD projection residual."""
+        constr = cp.Variable((2, 2), symmetric=True) >> 0
+        constr.save_dual_value([[1, 0], [0, -1]])
+        np.testing.assert_allclose(constr.dual_residual, [[0, 0], [0, 1]], atol=1e-9)
+        self.assertAlmostEqual(constr.dual_violation(), 1.0)
 
     def test_soc_complementarity_violation(self):
         t = cp.Variable()

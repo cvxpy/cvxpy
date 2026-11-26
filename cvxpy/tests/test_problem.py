@@ -2183,6 +2183,18 @@ class TestProblem(BaseTest):
         p.solve(solver=cp.SCS)
         self.assertEqual(p.status, cp.INFEASIBLE)
 
+    def test_constant_complex_psd_infeasible(self) -> None:
+        """Reject a constant Hermitian matrix with eigenvalues -1 and 3.
+
+        A solve is required to exercise ConstantSolver's feasibility decision,
+        which uses the PSD residual rather than a numerical conic solver.
+        """
+        H = np.array([[1, 2j], [-2j, 1]])
+        problem = cp.Problem(cp.Minimize(0), [cp.Constant(H) >> 0])
+        problem.solve()
+        self.assertEqual(problem.status, cp.INFEASIBLE)
+        self.assertIsNone(problem.value)
+
     def test_huber_scs(self) -> None:
         """Test that huber regression works with SCS.
            See issue #1370.
