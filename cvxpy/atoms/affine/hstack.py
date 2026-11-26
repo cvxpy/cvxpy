@@ -50,6 +50,12 @@ class Hstack(AffAtom):
     def numeric(self, values):
         return np.hstack(values)
 
+    def is_incr(self, idx) -> bool:
+        return True
+
+    def is_decr(self, idx) -> bool:
+        return False
+
     # The shape is the common width and the sum of the heights.
     def shape_from_args(self) -> tuple[int, ...]:
         try:

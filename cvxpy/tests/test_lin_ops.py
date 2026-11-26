@@ -117,6 +117,10 @@ class test_lin_ops(BaseTest):
         self.assertEqual(len(expr.args), 1)
         self.assertEqual(expr.type, SUM_ENTRIES)
 
+    def test_identity_transpose_reuses_linop(self) -> None:
+        x = lu.create_var((2, 3))
+        self.assertIs(lu.transpose(x, axes=(0, -1)), x)
+
     def test_constructors(self) -> None:
         x = lu.create_var((2, 2), var_id=10)
         y = lu.create_var((2, 2), var_id=11)

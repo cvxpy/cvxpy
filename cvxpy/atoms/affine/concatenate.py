@@ -65,6 +65,12 @@ class Concatenate(AffAtom):
         # concatenation along a specified axis using numpy API with empty arrays
         self.shape_from_args()
 
+    def is_incr(self, idx) -> bool:
+        return True
+
+    def is_decr(self, idx) -> bool:
+        return False
+
     def shape_from_args(self) -> tuple[int, ...]:
         try:
             return np.concatenate(

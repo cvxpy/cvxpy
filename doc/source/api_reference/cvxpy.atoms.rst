@@ -62,3 +62,10 @@ Atom
               is_atom_log_log_affine, is_incr, is_decr, grad, domain
     :undoc-members:
     :show-inheritance:
+
+
+AffAtom
+-------
+
+.. autoclass:: cvxpy.atoms.affine.affine_atom.AffAtom
+    :show-inheritance:

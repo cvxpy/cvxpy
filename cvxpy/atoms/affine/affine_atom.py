@@ -24,11 +24,18 @@ import cvxpy.utilities as u
 from cvxpy.atoms.atom import Atom
 from cvxpy.cvxcore.python import canonInterface
 from cvxpy.expressions.constants import Constant
-from cvxpy.utilities import performance_utils as perf
 
 
 class AffAtom(Atom):
-    """ Abstract base class for affine atoms. """
+    """Abstract base class for affine atoms.
+
+    Fix all but one argument and suppose the resulting map :math:`F` is
+    real-valued and affine on the full real argument space. For each standard
+    basis vector :math:`e_j`, the entries of :math:`F(e_j) - F(0)` give the
+    coefficients of the linear part for input coordinate :math:`j`.
+    The map is elementwise nondecreasing exactly when all these coefficients
+    are nonnegative, and nonincreasing exactly when they are all nonpositive.
+    """
     _allow_complex = True
 
     def sign_from_args(self) -> tuple[bool, bool]:
@@ -62,18 +69,6 @@ class AffAtom(Atom):
         """Is the atom smooth?"""
         return True
 
-    def is_incr(self, idx) -> bool:
-        """Is the composition non-decreasing in argument idx?
-        """
-        # Defaults to increasing.
-        return True
-
-    def is_decr(self, idx) -> bool:
-        """Is the composition non-increasing in argument idx?
-        """
-        # Defaults to increasing.
-        return False
-
     def is_quadratic(self) -> bool:
         return all(arg.is_quadratic() for arg in self.args)
 
@@ -92,26 +87,17 @@ class AffAtom(Atom):
     def is_pwl(self) -> bool:
         return all(arg.is_pwl() for arg in self.args)
 
-    # TODO is this right?
-    @perf.compute_once
     def is_psd(self) -> bool:
-        """Is the expression a positive semidefinite matrix?
-        """
-        for idx, arg in enumerate(self.args):
-            if not ((self.is_incr(idx) and arg.is_psd()) or
-                    (self.is_decr(idx) and arg.is_nsd())):
-                return False
-        return True
+        """Affine maps need not preserve positive semidefiniteness.
 
-    @perf.compute_once
-    def is_nsd(self) -> bool:
-        """Is the expression a negative semidefinite matrix?
+        Elementwise monotonicity does not imply monotonicity in the Loewner
+        order. Subclasses must supply a rule for their particular matrix map.
         """
-        for idx, arg in enumerate(self.args):
-            if not ((self.is_decr(idx) and arg.is_psd()) or
-                    (self.is_incr(idx) and arg.is_nsd())):
-                return False
-        return True
+        return False
+
+    def is_nsd(self) -> bool:
+        """Affine maps need not preserve negative semidefiniteness."""
+        return False
 
     def _grad(self, values) -> list[Any]:
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.

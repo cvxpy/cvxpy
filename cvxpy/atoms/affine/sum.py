@@ -30,6 +30,7 @@ from cvxpy.atoms.axis_atom import AxisAtom, normalize_axis
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions.expression import Expression
 from cvxpy.utilities import bounds as bounds_utils
+from cvxpy.utilities import performance_utils as perf
 
 
 class Sum(AxisAtom, AffAtom):
@@ -69,6 +70,21 @@ class Sum(AxisAtom, AffAtom):
     def __init__(self, expr, axis=None, keepdims=False) -> None:
         super(Sum, self).__init__(expr, axis=axis, keepdims=keepdims)
 
+    def _sums_only_batch_axes(self) -> bool:
+        arg = self.args[0]
+        if self.axis is None or arg.ndim < 2:
+            return False
+        axes = normalize_axis_tuple(self.axis, arg.ndim)
+        return all(axis < arg.ndim - 2 for axis in axes)
+
+    @perf.compute_once
+    def is_psd(self) -> bool:
+        return self._sums_only_batch_axes() and self.args[0].is_psd()
+
+    @perf.compute_once
+    def is_nsd(self) -> bool:
+        return self._sums_only_batch_axes() and self.args[0].is_nsd()
+
     def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?"""
         return True
@@ -86,6 +102,12 @@ class Sum(AxisAtom, AffAtom):
         """Validates arguments using NumPy's sum validation."""
         self.shape_from_args()
         super(AxisAtom, self).validate_arguments()
+
+    def is_incr(self, idx) -> bool:
+        return True
+
+    def is_decr(self, idx) -> bool:
+        return False
 
     def shape_from_args(self) -> tuple[int, ...]:
         """Returns shape using an exact tuple calculation."""
