@@ -705,6 +705,13 @@ Here is the complete list of solver options.
 
     COPT solver options are specified in CVXPY as keyword arguments. The full list of COPT parameters with defaults is listed `here <https://guide.coap.online/copt/en-doc/index.html#parameters>`_.
 
+    On some AMD Linux systems, a COPT solve can terminate Python with an
+    illegal instruction after a Gurobi solve in the same process. This was
+    observed with ``gurobipy 14.0.0`` and ``coptpy 8.0.7``. If you use both
+    solvers on an affected system, set ``GRB_BLAS_WORKAROUND_SKIP=1`` in the
+    environment before starting Python. This prevents Gurobi from overriding
+    MKL's CPU detection for subsequent solves.
+
 .. info:: `CPLEX`_ options:
     :collapsible:
 

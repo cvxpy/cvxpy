@@ -32,6 +32,12 @@ jobs:
           # when a license secret is present so forks skip KNITRO tests.
           if [ -n "$KNITRO_LICENSE" ]; then echo "ARTELYS_LICENSE=$HOME" >> $GITHUB_ENV; fi
 
+      # On some AMD runners Gurobi sets MKL_DEBUG_CPU_TYPE=6, which makes
+      # a subsequent COPT solve execute an unsupported instruction (#3520).
+      - name: Preserve MKL CPU detection when testing Gurobi and COPT
+        if: runner.os == 'Linux'
+        run: echo "GRB_BLAS_WORKAROUND_SKIP=1" >> "$GITHUB_ENV"
+
       - uses: astral-sh/setup-uv@v7
         with:
           python-version: 3.12
