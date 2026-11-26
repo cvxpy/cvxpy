@@ -72,6 +72,19 @@ class Parameter(Leaf):
         super(Parameter, self).__init__(shape, value, **kwargs)
         self._is_constant = True
 
+    @Leaf.value.setter
+    def value(self, val) -> None:
+        import scipy.sparse as sp
+        if sp.issparse(val):
+            raise ValueError(
+                f"Cannot set cp.Parameter.value to a sparse matrix "
+                f"(type: {type(val).__name__}). "
+                "To use a sparse parameter, construct it with the `sparsity` "
+                "attribute and assign via `.value_sparse`. "
+                "To use a sparse constant, use cp.Constant() instead."
+            )
+        Leaf.value.fset(self, val)  # type: ignore[misc]
+
     def get_data(self):
         """Returns info needed to reconstruct the expression besides the args.
         """
