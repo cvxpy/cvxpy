@@ -165,6 +165,108 @@ class ConeDims:
             raise KeyError(key)
 
 
+def order_cone_constraints(constraints):
+    """Sort lowered constraints into CVXPY's standard cone order.
+
+    Zero, NonNeg, SOC, PSD, SvecPSD, ExpCone, PowCone3D, PowConeND.
+    """
+    constr_map = group_constraints(constraints)
+    return constr_map[Zero] + constr_map[NonNeg] + \
+        constr_map[SOC] + constr_map.get(PSD, []) + \
+        constr_map.get(SvecPSD, []) + constr_map[ExpCone] + \
+        constr_map[PowCone3D] + constr_map[PowConeND]
+
+
+class ConeProg(ParamProb):
+    """The structure of a stuffed cone program, without its data.
+
+    minimize   q'x  + d + [(1/2)x'Px]
+    subject to cone_constr1(A_1*x + b_1, ...)
+               ...
+               cone_constrK(A_i*x + b_i, ...)
+
+    This is the surface every conic and QP solver interface consumes: the
+    stuffed variable, the cone constraints and their dimensions, and the
+    variable/parameter index maps. How ``(q, d, A, b, P)`` are obtained is left
+    to the subclass -- :class:`ParamConeProg` multiplies DPP parameter tensors,
+    while the DIFFENGINE backend's program re-evaluates the expression trees.
+    """
+
+    def __init__(self, x,
+                 variables,
+                 var_id_to_col,
+                 constraints,
+                 parameters,
+                 param_id_to_col,
+                 formatted: bool = False,
+                 lower_bounds: np.ndarray | None = None,
+                 upper_bounds: np.ndarray | None = None,
+                 ) -> None:
+        # The variable
+        self.x = x
+        # Lower and upper bounds for the variable, if present.
+        self.lower_bounds = lower_bounds
+        self.upper_bounds = upper_bounds
+
+        self.constraints = constraints
+        self.constr_size = sum([c.size for c in constraints])
+        self.constr_map = group_constraints(constraints)
+        self.cone_dims = ConeDims(self.constr_map)
+        self.parameters = parameters
+        self.param_id_to_col = param_id_to_col
+        self.id_to_param = {p.id: p for p in self.parameters}
+        self.param_id_to_size = {p.id: p.size for p in self.parameters}
+        self.total_param_size = sum([p.size for p in self.parameters])
+
+        # TODO technically part of inverse data.
+        self.variables = variables
+        self.var_id_to_col = var_id_to_col
+        self.id_to_var = {v.id: v for v in self.variables}
+
+        # whether this cone prog has been formatted for a solver
+        self.formatted = formatted
+
+    def is_mixed_integer(self) -> bool:
+        """Is the problem mixed-integer?"""
+        return self.x.attributes['boolean'] or \
+            self.x.attributes['integer']
+
+    @property
+    def has_quad_obj(self) -> bool:
+        """Does the objective have a quadratic term?"""
+        raise NotImplementedError()
+
+    def with_row_layout(self, perm):
+        """Return this program with a signed row permutation applied.
+
+        ``perm`` is ``(new_row, sign)`` as returned by
+        :func:`~cvxpy.reductions.cone_format.restruct_permutation`, indexed by
+        the *old* row: row ``i`` becomes row ``new_row[i]``, scaled by
+        ``sign[i]``. ``None`` means there are no constraints, so there is
+        nothing to apply.
+
+        The layout is derived by the ``ConeFormat`` reduction, which is
+        structural; applying it lands here, because how a program stores its
+        constraint data is its own business -- a program that owns a
+        re-extractable form can restructure itself rather than be rebuilt as
+        an ordinary one.
+        """
+        raise NotImplementedError()
+
+    def split_solution(self, sltn, active_vars=None):
+        """Splits the solution into individual variables.
+        """
+        if active_vars is None:
+            active_vars = [v.id for v in self.variables]
+        sltn_dict = {}
+        for var_id, col in self.var_id_to_col.items():
+            if var_id in active_vars:
+                var = self.id_to_var[var_id]
+                value = sltn[col:var.size+col]
+                sltn_dict[var_id] = np.reshape(value, var.shape, order='F')
+        return sltn_dict
+
+
 def _permute_rows(A, new_row, sign):
     """Apply a signed row permutation to a stuffed parameter tensor.
 
@@ -191,16 +293,13 @@ def _permute_rows(A, new_row, sign):
 
 
 # TODO(akshayka): unit tests
-class ParamConeProg(ParamProb):
-    """Represents a parameterized cone program
+class ParamConeProg(ConeProg):
+    """A cone program whose data is a linear map of the parameter vector.
 
-    minimize   q'x  + d + [(1/2)x'Px]
-    subject to cone_constr1(A_1*x + b_1, ...)
-               ...
-               cone_constrK(A_i*x + b_i, ...)
-
-
-    The constant offsets d and b are the last column of c and A.
+    The parameter-to-data tensors q, A and P are produced by DPP
+    canonicalization; ``apply_parameters`` multiplies them by the current
+    parameter vector. The constant offsets d and b are the last column of
+    q and A.
     """
     def __init__(self, q, x, A,
                  variables,
@@ -216,59 +315,25 @@ class ParamConeProg(ParamProb):
                  ub_tensor=None,
                  dir_cones: list[DirectCone] | None = None,
                  ) -> None:
+        super().__init__(x, variables, var_id_to_col, constraints,
+                         parameters, param_id_to_col, formatted=formatted,
+                         lower_bounds=lower_bounds, upper_bounds=upper_bounds)
         # The problem data tensors; q is for the objective, and A for
-        # the problem data matrix
+        # the problem data matrix.
         self.q = q
         self.A = A
         self.P = P
-        # The variable
-        self.x = x
-        # Lower and upper bounds for the variable, if present.
-        self.lower_bounds = lower_bounds
-        self.upper_bounds = upper_bounds
-        # Sparse tensors for parametric bounds (param_vec -> bounds_vec).
-        self.lb_tensor = lb_tensor
-        self.ub_tensor = ub_tensor
-
         # Form a reduced representation of A and P, for faster application
         # of parameters.
         self.reduced_A = ReducedMat(self.A, self.x.size)
         self.reduced_P = ReducedMat(self.P, self.x.size, quad_form=True)
-
-        self.constraints = constraints
-        self.constr_size = sum([c.size for c in constraints])
-        self.constr_map = group_constraints(constraints)
-        self.cone_dims = ConeDims(self.constr_map)
-        self.parameters = parameters
-        self.param_id_to_col = param_id_to_col
-        self.id_to_param = {p.id: p for p in self.parameters}
-        self.param_id_to_size = {p.id: p.size for p in self.parameters}
-        self.total_param_size = sum([p.size for p in self.parameters])
-
-        # TODO technically part of inverse data.
-        self.variables = variables
-        self.var_id_to_col = var_id_to_col
-        self.id_to_var = {v.id: v for v in self.variables}
-
-        # whether this param cone prog has been formatted for a solver
-        self.formatted = formatted
+        # Sparse tensors for parametric bounds (param_vec -> bounds_vec).
+        self.lb_tensor = lb_tensor
+        self.ub_tensor = ub_tensor
 
         self.dir_cones: list[DirectCone] = dir_cones if dir_cones is not None else []
 
     def with_row_layout(self, perm):
-        """Return this program with a signed row permutation applied.
-
-        ``perm`` is ``(new_row, sign)`` as returned by
-        :func:`~cvxpy.reductions.cone_format.restruct_permutation`, indexed by
-        the *old* row: row ``i`` becomes row ``new_row[i]``, scaled by
-        ``sign[i]``. ``None`` means there are no constraints, so there is
-        nothing to apply.
-
-        The layout is derived by the ``ConeFormat`` reduction, which is
-        structural; applying it lands here, because how a program stores its
-        constraint data is its own business -- a program that knows a cheaper
-        way to restructure itself overrides this.
-        """
         return ParamConeProg(
             self.q,
             self.x,
@@ -287,10 +352,10 @@ class ParamConeProg(ParamProb):
             dir_cones=self.dir_cones,
         )
 
-    def is_mixed_integer(self) -> bool:
-        """Is the problem mixed-integer?"""
-        return self.x.attributes['boolean'] or \
-            self.x.attributes['integer']
+    @property
+    def has_quad_obj(self) -> bool:
+        """Does the objective have a quadratic term?"""
+        return self.P is not None
 
     # Returns (q, d, A, b): objective vector, offset, constraint matrix, rhs.
     @overload
@@ -366,7 +431,7 @@ class ParamConeProg(ParamProb):
         Returns:
             A dictionary param.id -> dparam
         """
-        if self.P is not None:
+        if self.has_quad_obj:
             raise ValueError("Can't apply Jacobian with a quadratic objective.")
 
         if active_params is None:
@@ -398,19 +463,6 @@ class ParamConeProg(ParamProb):
                 param_id_to_delta_param[param_id] = np.reshape(
                     delta, param.shape, order='F')
         return param_id_to_delta_param
-
-    def split_solution(self, sltn, active_vars=None):
-        """Splits the solution into individual variables.
-        """
-        if active_vars is None:
-            active_vars = [v.id for v in self.variables]
-        sltn_dict = {}
-        for var_id, col in self.var_id_to_col.items():
-            if var_id in active_vars:
-                var = self.id_to_var[var_id]
-                value = sltn[col:var.size+col]
-                sltn_dict[var_id] = np.reshape(value, var.shape, order='F')
-        return sltn_dict
 
     def split_adjoint(self, del_vars=None):
         """Adjoint of split_solution.
@@ -495,8 +547,8 @@ class ConeMatrixStuffing(MatrixStuffing):
                               constr_id=con.constr_id)
             cons.append(con)
         if self.canon_backend == s.DIFFENGINE_CANON_BACKEND:
-            # Local import: cone_stuffing imports ParamConeProg from this module.
-            from cvxpy.reductions.solvers.nlp_solvers.diff_engine.cone_stuffing import (
+            # Local import: cone_program imports ConeProg from this module.
+            from cvxpy.reductions.solvers.nlp_solvers.diff_engine.cone_program import (
                 stuff_cone_program,
             )
             new_prob, inverse_data = stuff_cone_program(
@@ -510,12 +562,7 @@ class ConeMatrixStuffing(MatrixStuffing):
         extractor = CoeffExtractor(inverse_data, canon_backend)
         params_to_P, params_to_c, flattened_variable = self.stuffed_objective(
             problem, extractor)
-        # Reorder constraints to Zero, NonNeg, SOC, PSD, EXP, PowCone3D, PowConeND
-        constr_map = group_constraints(cons)
-        ordered_cons = constr_map[Zero] + constr_map[NonNeg] + \
-            constr_map[SOC] + constr_map.get(PSD, []) + \
-            constr_map.get(SvecPSD, []) + constr_map[ExpCone] + \
-            constr_map[PowCone3D] + constr_map[PowConeND]
+        ordered_cons = order_cone_constraints(cons)
         inverse_data.cons_id_map = {con.id: con.id for con in ordered_cons}
         self._cons_id_map = inverse_data.cons_id_map
 
