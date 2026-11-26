@@ -238,6 +238,243 @@ These problems are automatically benchmarked on every commit using `airspeed vel
 Optionally, the package `act <https://github.com/nektos/act>`_ can be installed
 to run github actions locally.
 
+.. _contrib_atoms:
+
+Adding an atom
+----------------------
+
+An atom is a function that CVXPY can reason about. It knows the shape, sign,
+curvature and monotonicity of the function, so it can apply the DCP rules.
+It also knows how to turn the function into constraints that a solver understands.
+This section goes through the pieces of a new atom in the order you will usually
+write them. Please follow the :ref:`contribution checklist <contrib_license>` above
+as for any other change.
+
+Open a GitHub issue before you start, so that the CVXPY developers can tell you
+whether the atom fits and whether something similar exists already.
+If the function can be written with existing atoms, a short function that returns
+an expression is often better than a new atom.
+``cvxpy.huber`` and ``cvxpy.trace`` are functions that choose which atom to build.
+
+The best way to learn the structure is to read a similar atom from start to end.
+Good ones to start from are ``xexp`` (elementwise, exponential cone),
+``huber`` (elementwise, second order cone), ``quad_over_lin`` (second order cone)
+and ``trace`` (affine). The example below is a small made-up atom.
+File names are relative to the root of the CVXPY repository.
+
+Step 1: write the atom class
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Atoms live in ``cvxpy/atoms``. Elementwise atoms go in ``cvxpy/atoms/elementwise``
+and affine atoms go in ``cvxpy/atoms/affine``. Every atom derives from ``Atom``
+in ``cvxpy/atoms/atom.py``, usually through one of its subclasses:
+
+- ``AffAtom`` for affine functions (``cvxpy/atoms/affine/affine_atom.py``),
+- ``Elementwise`` for functions applied to each entry (``cvxpy/atoms/elementwise/elementwise.py``),
+- ``AxisAtom`` for reductions over an ``axis`` such as ``max`` or ``norm1`` (``cvxpy/atoms/axis_atom.py``).
+
+The class describes the function to the DCP rules. These methods are needed:
+
+- ``numeric(values)`` evaluates the function on a list of numeric argument values.
+- ``shape_from_args()`` returns the shape of the output.
+- ``sign_from_args()`` returns ``(is_nonneg, is_nonpos)``. It may look at the arguments.
+- ``is_atom_convex()`` and ``is_atom_concave()`` give the curvature of the function
+  itself, as if its arguments were affine.
+- ``is_incr(idx)`` and ``is_decr(idx)`` say whether the function is nondecreasing or
+  nonincreasing in argument ``idx``. They may depend on the sign of the argument.
+  For example ``huber`` is nondecreasing in ``x`` when ``x`` is known to be nonnegative.
+- ``_grad(values)`` returns the gradient with respect to each argument as a sparse matrix,
+  or ``None`` where the function is not differentiable.
+
+These are optional:
+
+- ``validate_arguments()`` raises ``ValueError`` for arguments that are not allowed.
+- ``_domain()`` returns constraints that describe where the function is defined.
+- ``get_data()`` returns constructor arguments that are not expressions.
+  CVXPY rebuilds an atom as ``type(atom)(*args, *data)``, so the constructor
+  and ``get_data()`` must agree. ``huber`` keeps its parameter ``M`` this way.
+- ``is_atom_log_log_convex()`` and ``is_atom_log_log_concave()`` for use in
+  :ref:`DGP <dgp>` problems.
+
+Here is an example. It is the Euclidean norm of a vector with an extra entry equal
+to one, :math:`\sqrt{1 + \|x\|_2^2}`. The function is convex and positive.
+The file would be ``cvxpy/atoms/aug_norm.py``.
+
+.. code:: python
+
+    import numpy as np
+    import scipy.sparse as sp
+
+    from cvxpy.atoms.atom import Atom
+
+
+    class aug_norm(Atom):
+        """The Euclidean norm of x with a 1 appended, sqrt(1 + ||x||^2)."""
+
+        def __init__(self, x) -> None:
+            super(aug_norm, self).__init__(x)
+
+        def numeric(self, values):
+            return np.sqrt(1 + np.sum(np.square(values[0])))
+
+        def shape_from_args(self) -> tuple[int, ...]:
+            return ()
+
+        def sign_from_args(self) -> tuple[bool, bool]:
+            return (True, False)
+
+        def is_atom_convex(self) -> bool:
+            return True
+
+        def is_atom_concave(self) -> bool:
+            return False
+
+        def is_incr(self, idx) -> bool:
+            return self.args[idx].is_nonneg()
+
+        def is_decr(self, idx) -> bool:
+            return self.args[idx].is_nonpos()
+
+        def _grad(self, values):
+            x = values[0]
+            grad = x / np.sqrt(1 + np.sum(np.square(x)))
+            return [sp.csc_matrix(grad.reshape((-1, 1)))]
+
+The gradient of a scalar atom is a column with one row per entry of the argument.
+For an atom with array output it is a matrix from the vectorized argument to the
+vectorized output. ``Elementwise.elemwise_grad_to_diag`` builds it for elementwise atoms.
+
+Step 2: write a canonicalizer
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Solvers only understand affine expressions and constraints on cones.
+The ``Dcp2Cone`` reduction (``cvxpy/reductions/dcp2cone/dcp2cone.py``) replaces every
+atom in a problem by an affine expression plus some constraints.
+What you write for this depends on the atom.
+
+An affine atom implements ``graph_implementation`` on its class. It builds a
+linear operator from the linear operators of the arguments.
+``Trace`` in ``cvxpy/atoms/affine/trace.py`` is a short example.
+Most new atoms are not affine, so you can usually skip this.
+
+Any other atom gets a canonicalizer. This is a function ``canon(expr, args, solver_context=None)``
+where ``expr`` is the atom and ``args`` are its arguments after they were canonicalized,
+so they are affine. The function returns an affine expression that stands in for the atom,
+and a list of constraints that make the expression equal to the atom at the optimum.
+It creates new ``Variable`` objects and constrains them with the cones in ``cvxpy.constraints``.
+For our example the constraint is one second order cone.
+The file would be ``cvxpy/reductions/dcp2cone/canonicalizers/aug_norm_canon.py``.
+
+.. code:: python
+
+    from cvxpy.atoms.affine.hstack import hstack
+    from cvxpy.atoms.affine.vec import vec
+    from cvxpy.constraints.second_order import SOC
+    from cvxpy.expressions.variable import Variable
+    from cvxpy.utilities.solver_context import SolverInfo
+
+
+    def aug_norm_canon(expr, args, solver_context: SolverInfo | None = None):
+        t = Variable()
+        x = vec(args[0], order="F")
+        return t, [SOC(t, hstack([1, x]))]
+
+The other files in that folder show how to build exponential cone, power cone and
+semidefinite constraints. A canonicalizer can call the canonicalizer of another atom,
+as ``xexp_canon.py`` does with ``power_approx_canon``.
+
+Step 3: register the canonicalizer
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Open ``cvxpy/reductions/dcp2cone/canonicalizers/__init__.py``. Import the canonicalizer
+and add it to the ``CANON_METHODS`` dictionary:
+
+.. code:: python
+
+    from cvxpy.reductions.dcp2cone.canonicalizers.aug_norm_canon import *
+
+    CANON_METHODS = {
+        ...
+        aug_norm : aug_norm_canon,
+    }
+
+The key must be the class of the atom, not a factory function.
+``cvxpy.huber`` is a function, so the key for it is ``HuberAtom``.
+``cvxpy/tests/test_canon_methods.py`` checks this for every registry.
+An atom that is not in ``CANON_METHODS`` is passed on unchanged, and the solver cannot handle it.
+
+An atom that can appear in the objective of a quadratic program may also need an entry in
+``QUAD_CANON_METHODS`` in ``cvxpy/reductions/dcp2cone/canonicalizers/quad/__init__.py``.
+Only a few atoms such as ``quad_over_lin`` and ``huber`` have one.
+Piecewise linear atoms such as ``abs`` and ``max`` have their canonicalizers in
+``cvxpy/reductions/eliminate_pwl/canonicalizers``, and ``CANON_METHODS`` imports them from there.
+
+Step 4: export the atom and list its cones
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Open ``cvxpy/atoms/__init__.py``. Import the atom there so that it is available as
+``cvxpy.aug_norm``:
+
+.. code:: python
+
+    from cvxpy.atoms.aug_norm import aug_norm
+
+The same file has lists of the atoms that need each kind of cone: ``SOC_ATOMS``,
+``EXP_ATOMS``, ``PSD_ATOMS``, ``POWCONE_ATOMS``, ``POWCONE_ND_ATOMS`` and ``NONNEG_ATOMS``.
+CVXPY reads them in ``cvxpy/problems/problem_form.py`` to find the cones that a problem
+needs, and then it picks a solver that supports those cones.
+Add your atom to the list for every cone that its canonicalizer uses.
+Our example goes in ``SOC_ATOMS``. If an atom is missing from the lists, CVXPY may pick a
+solver that cannot handle the constraints that the canonicalizer creates.
+
+Step 5: write tests
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Tests live in ``cvxpy/tests``. Most atoms need entries in these files:
+
+- ``test_atoms.py`` checks the shape, sign, curvature and monotonicity, including the
+  cases where they depend on the sign of the argument. ``test_xexp`` is a short example.
+- ``test_constant_atoms.py`` solves a small problem for each atom, with the arguments given as
+  constants, variables and parameters, and compares the result with a known value.
+  Add a tuple to ``atoms_minimize`` or ``atoms_maximize`` with the function,
+  the output shape, the argument values and the expected result:
+
+  .. code:: python
+
+      (aug_norm, tuple(), [[3, 4]], Constant([math.sqrt(26)])),
+
+- ``test_grad.py`` compares ``_grad`` with finite differences. Add an
+  ``AtomTestConfig`` for the atom.
+- ``test_dgp2dcp.py`` is for atoms that are log-log convex or concave.
+
+:ref:`Run <contrib_run_tests>` the tests in the files you changed, and then the full test suite.
+
+Step 6: document the atom
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Give the class a docstring that says what the function is and lists its arguments,
+in the style of the other atoms. Then add the atom to the docs:
+
+- ``doc/source/api_reference/``: an entry in ``cvxpy.atoms.elementwise.rst``,
+  ``cvxpy.atoms.affine.rst`` or ``cvxpy.atoms.other_atoms.rst``. Copy the ``.. _name:``
+  label and the ``autoclass`` or ``autofunction`` directive from a neighbouring entry.
+- ``doc/source/functions/functions_table.rst``: a row with the meaning, domain,
+  DCP properties and curvature.
+- ``doc/source/tutorial/functions/index.rst``: the same row in the table for
+  scalar, elementwise or vector and matrix functions.
+- ``doc/source/tutorial/dgp/index.rst``: a row if the atom is log-log convex or concave.
+
+Install ``doc/requirements.txt`` and run ``make html`` in the ``doc`` folder to check that
+the new entries render and that the math in the docstring displays correctly.
+
+Other kinds of problems
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+An atom that should work in :ref:`DGP <dgp>` problems needs a rule in
+``cvxpy/reductions/dgp2dcp/canonicalizers``. An atom for the nonlinear solvers (DNLP)
+sets ``is_atom_smooth()`` and may need a rule in ``cvxpy/reductions/dnlp2smooth/canonicalizers``.
+Ask the developers in your issue whether the atom should support either.
+
 .. _contrib_solver:
 
 Solver interfaces
