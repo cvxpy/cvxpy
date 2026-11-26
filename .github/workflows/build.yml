@@ -83,7 +83,36 @@ jobs:
           name: coverage
           path: coverage.xml
 
+  pip_install_check:
+    # Runs on PRs and pushes: check that a plain `pip install` of cvxpy-base
+    # builds from source on each OS, then exercise it with the CPLEX tests.
+    needs: build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-22.04, macos-26, windows-2022 ]
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0  # setuptools-scm needs tags to compute the version
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      - name: Convert to cvxpy-base
+        shell: bash
+        run: bash continuous_integration/convert_to_cvxpy_base.sh
+
+      - name: Verify that we can build by pip-install
+        run: |
+          pip install . pytest cplex
+          pytest --pyargs cvxpy.tests.test_conic_solvers -k 'TestCPLEX'
+
   build_wheels:
+    # Wheels and the sdist are only built, checked and uploaded on pushes.
+    if: github.event_name == 'push'
     needs: build
 
     runs-on: ${{ matrix.os }}
@@ -91,12 +120,8 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-22.04, macos-26, windows-2022 ]
-        # Pull requests only exercise the Python 3.11 cvxpy-base install and CPLEX tests.
-        python-version: >-
-          ${{ fromJSON(github.event_name == 'pull_request'
-              && '["3.11"]' || '["3.11", "3.12", "3.13", "3.14", "3.14t"]') }}
-        build-cvxpy-base: >-
-          ${{ fromJSON(github.event_name == 'pull_request' && '[true]' || '[true, false]') }}
+        python-version: [ "3.11", "3.12", "3.13", "3.14", "3.14t" ]
+        build-cvxpy-base: [ true, false ]  # whether to build cvxpy-base (true) or regular cvxpy (false)
         # exluding this version because it is failing
         exclude:
           - os: windows-2022
@@ -105,7 +130,6 @@ jobs:
     env:
       RUNNER_OS: ${{ matrix.os }}
       PYTHON_VERSION: ${{ matrix.python-version }}
-      PIP_INSTALL: "${{ matrix.python-version == '3.11' }}"
       PYPI_SERVER: ${{ secrets.PYPI_SERVER }}
       PYPI_USER: ${{ secrets.PYPI_USER }}
       PYPI_PASSWORD: ${{ matrix.build-cvxpy-base && secrets.PYPI_BASE_PASSWORD || secrets.PYPI_PASSWORD }}
@@ -124,28 +148,12 @@ jobs:
         shell: bash
         run: |
           echo "PYTHON_SUBVERSION=$(echo $PYTHON_VERSION | cut -c 3-)" >> $GITHUB_ENV
-          echo "DEPLOY=$( [[ $GITHUB_EVENT_NAME == 'push' && $GITHUB_REF == 'refs/tags/v'* ]] && echo 'True' || echo 'False' )" >> $GITHUB_ENV
+          echo "DEPLOY=$( [[ $GITHUB_REF == 'refs/tags/v'* ]] && echo 'True' || echo 'False' )" >> $GITHUB_ENV
 
-      - name: Adapt pyproject.toml
+      - name: Convert to cvxpy-base
         if: ${{matrix.build-cvxpy-base}}
         shell: bash
-        run: |
-          # Mac has a different syntax for sed -i, this works across oses
-          sed -i.bak -e 's/name = "cvxpy"/name = "cvxpy-base"/g' pyproject.toml
-          sed -i.bak '/clarabel >= /d' pyproject.toml
-          sed -i.bak '/osqp >= /d' pyproject.toml
-          sed -i.bak '/scs >= /d' pyproject.toml
-          sed -i.bak '/highspy >= /d' pyproject.toml
-          sed -i.bak -e 's/name="cvxpy",/name="cvxpy-base",/g' setup.py
-          rm -rf pyproject.toml.bak setup.py.bak
-
-      - name: Verify that we can build by pip-install on each OS.
-        if: ${{matrix.build-cvxpy-base && env.PIP_INSTALL == 'True'}}
-        run: |
-          pip install . pytest cplex
-          pytest --pyargs cvxpy.tests.test_conic_solvers -k 'TestCPLEX'
-          # ensure a fresh state for cibuildwheel
-          rm -r build
+        run: bash continuous_integration/convert_to_cvxpy_base.sh
 
       - name: Set up QEMU  # For aarch64, see https://cibuildwheel.readthedocs.io/en/stable/faq/#emulation
         if: runner.os == 'Linux'
@@ -154,7 +162,6 @@ jobs:
           platforms: all
 
       - name: Build wheels
-        if: ${{github.event_name == 'push' && env.USE_OPENMP != 'True'}}
         env:
           CIBW_BUILD: "cp3${{env.PYTHON_SUBVERSION}}-*"
           CIBW_SKIP: "*-win32 *-manylinux_i686 *-musllinux*"
@@ -163,28 +170,24 @@ jobs:
         uses: pypa/cibuildwheel@v4.3.5
 
       - name: Build source
-        if: >-
-          github.event_name == 'push' && matrix.os == 'ubuntu-22.04'
-          && matrix.python-version == '3.12'
+        if: matrix.os == 'ubuntu-22.04' && matrix.python-version == '3.12'
         run: |
           pip install build
           python -m build --sdist -o wheelhouse
 
       - name: Check wheels
-        if: ${{github.event_name == 'push' && env.USE_OPENMP != 'True'}}
         shell: bash
         run: |
           pip install --upgrade twine
           twine check wheelhouse/*
 
       - name: Release to pypi
-        if: ${{env.DEPLOY == 'True' && env.USE_OPENMP != 'True'}}
+        if: ${{env.DEPLOY == 'True'}}
         shell: bash
         run: |
           twine upload --skip-existing --repository-url $PYPI_SERVER wheelhouse/* -u $PYPI_USER -p $PYPI_PASSWORD
 
       - name: Upload artifacts to github
-        if: ${{github.event_name == 'push' && env.USE_OPENMP != 'True'}}
         uses: actions/upload-artifact@v7
         with:
           name: wheels-${{ env.CVXPY_BASE_SUFFIX }}${{ matrix.os }}-${{ matrix.python-version }}
