@@ -49,7 +49,7 @@ class Elementwise(Atom):
 
     @staticmethod
     def elemwise_grad_to_diag(value, rows, cols):
-        """Converts elementwise gradient into a diagonal matrix for Atom._grad()
+        """Converts elementwise derivatives to a CSC matrix for Atom._grad().
 
         Args:
             value: A scalar or NumPy matrix.
@@ -59,6 +59,9 @@ class Elementwise(Atom):
         """
         if not np.isscalar(value):
             value = value.ravel(order='F')
+        if rows == 1 and cols > 1:
+            # A promoted scalar contributes to every output.
+            return sp.csc_array(np.broadcast_to(value, (rows, cols)))
         return sp.dia_array((np.atleast_1d(value), [0]), shape=(rows, cols)).tocsc()
 
     @staticmethod
