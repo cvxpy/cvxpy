@@ -610,6 +610,40 @@ class TestDgp2Dcp(BaseTest):
         sltn = np.exp(np.linalg.solve(A, np.log(b)))
         self.assertItemsAlmostEqual(x.value, sltn)
 
+    def test_gmatmul_copy(self) -> None:
+        x = cvxpy.Variable(2, pos=True)
+        y = cvxpy.Variable(2, pos=True)
+        A = np.array([[-5., 2.], [1., -3.]])
+        expr = cvxpy.gmatmul(A, x)
+        copied = expr.copy([y])
+        self.assertIs(copied.args[0], y)
+        self.assertIs(copied.A, expr.A)
+        y.value = np.array([3., 2.])
+        self.assertItemsAlmostEqual(copied.value, [3**-5*2**2, 3./8])
+        self.assertIs(expr.copy().args[0], x)
+
+    def test_gmatmul_parameter_ignore_dpp(self) -> None:
+        x = cvxpy.Variable(2, pos=True)
+        A_par = cvxpy.Parameter((2, 2), value=np.array([[-5., 2.], [1., -3.]]))
+        b = np.array([3, 2])
+        prob = cvxpy.Problem(cvxpy.Minimize(1.0), [cvxpy.gmatmul(A_par, x) == b])
+        prob.solve(solver=SOLVER, gp=True, ignore_dpp=True)
+        sltn = np.exp(np.linalg.solve(A_par.value, np.log(b)))
+        self.assertItemsAlmostEqual(x.value, sltn)
+        A_par.value = np.array([[1., 2.], [3., 1.]])
+        prob.solve(solver=SOLVER, gp=True, ignore_dpp=True)
+        sltn = np.exp(np.linalg.solve(A_par.value, np.log(b)))
+        self.assertItemsAlmostEqual(x.value, sltn)
+
+    def test_gmatmul_non_dpp_parameters(self) -> None:
+        x = cvxpy.Variable((2, 1), pos=True)
+        A = cvxpy.Parameter((2, 2), pos=True, value=np.array([[1., 2.], [0.5, 1.]]))
+        P = cvxpy.Parameter((2, 1), pos=True, value=np.array([[1.], [2.]]))
+        prob = cvxpy.Problem(cvxpy.Minimize(cvxpy.prod(x)), [x >= cvxpy.gmatmul(A, P)])
+        self.assertFalse(prob.is_dpp("dgp"))
+        prob.solve(solver=SOLVER, gp=True)
+        self.assertItemsAlmostEqual(x.value, [4., 2.])
+
     def test_xexp(self) -> None:
         x = cvxpy.Variable(2, pos=True)
         b = np.array([1, 0.5])
