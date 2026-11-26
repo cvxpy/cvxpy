@@ -3046,6 +3046,50 @@ class TestSciPyBackend:
         assert (expected != transposed).nnz == 0
 
 
+@pytest.mark.parametrize("operation", ["divide", "multiply", "sparse_multiply"])
+def test_scipy_constant_scales_parameter_without_repeated_stacking(monkeypatch, operation):
+    n = 37
+    p = cp.Parameter(n)
+    x = cp.Variable(n)
+    d = np.linspace(0.5, 1.5, n)
+    d[1::2] *= -1
+
+    if operation == "divide":
+        rhs = p / d
+        scales = np.reciprocal(d)
+    elif operation == "multiply":
+        rhs = cp.multiply(d, p)
+        scales = d
+    else:
+        d[::4] = 0.0
+        # CVXPY's sparse constants are 2-D; use the same row scales with
+        # the parameter vector reshaped to a column.
+        column = sp.csc_array(d.reshape(-1, 1))
+        rhs = cp.reshape(cp.multiply(column, cp.reshape(p, (n, 1), order="F")), (n,), order="F")
+        scales = d
+
+    original_vstack = sp.vstack
+
+    def check_vstack(blocks, *args, **kwargs):
+        # Other uses of sparse stacking are unrelated to constant scales.
+        if (isinstance(blocks, list) and len(blocks) == n
+                and blocks[0].shape == (n, 1)
+                and all(block is blocks[0] for block in blocks)):
+            pytest.fail("Materialized a constant column once per parameter entry")
+        return original_vstack(blocks, *args, **kwargs)
+
+    monkeypatch.setattr(sp, "vstack", check_vstack)
+    problem = cp.Problem(cp.Minimize(-cp.sum(x)), [x <= rhs])
+    assert problem.is_dpp()
+    for values in (np.arange(n, dtype=float), np.linspace(-3.0, 1.0, n)):
+        p.value = values
+        answer = problem.solve(solver=cp.CLARABEL, canon_backend=cp.SCIPY_CANON_BACKEND)
+        assert problem.status == cp.OPTIMAL
+        expected = scales * values
+        np.testing.assert_allclose(x.value, expected, atol=1e-6, rtol=1e-7)
+        np.testing.assert_allclose(answer, -np.sum(expected), atol=1e-6, rtol=1e-7)
+
+
 class TestCooBackend:
     @staticmethod
     @pytest.fixture()
