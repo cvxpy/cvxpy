@@ -16,6 +16,7 @@ from cvxpy.problems.problem_form import ProblemForm, make_problem_form, pick_def
 
 if TYPE_CHECKING:
     from cvxpy.problems.problem import Problem
+from cvxpy.reductions.algebra import MatmulReassoc
 from cvxpy.reductions.chain import Chain
 from cvxpy.reductions.complex2real import complex2real
 from cvxpy.reductions.cone2cone.approx import ApproxCone2Cone
@@ -280,6 +281,7 @@ def _cone_matrix_stuffing_reductions(
     reductions.append(EliminateZeroSized())
     if soc_dim3_only and SOC in cones:
         reductions.append(SOCDim3())
+    reductions.append(MatmulReassoc())
     reductions.append(ConeMatrixStuffing(
         quad_obj=quad_obj, canon_backend=canon_backend))
     return reductions

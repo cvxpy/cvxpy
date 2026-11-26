@@ -17,6 +17,7 @@ import numpy as np
 
 from cvxpy import error
 from cvxpy.problems.objective import Maximize
+from cvxpy.reductions.algebra import MatmulReassoc
 from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr
 from cvxpy.reductions.dnlp2smooth.dnlp2smooth import Dnlp2Smooth
 from cvxpy.reductions.flip_objective import FlipObjective
@@ -60,6 +61,7 @@ def _build_nlp_chain(problem, solver, kwargs):
     reductions += [
         CvxAttr2Constr(reduce_bounds=not solver_instance.BOUNDED_VARIABLES),
         Dnlp2Smooth(),
+        MatmulReassoc(),
         solver_instance,
     ]
 
