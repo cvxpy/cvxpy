@@ -339,7 +339,7 @@ def test_psd_mf_persp(n):
     obj = cp.matrix_frac(ref_x, ref_P)
     constraints = [ref_x == 5, ref_P == np.eye(n)]
     ref_prob = cp.Problem(cp.Minimize(obj), constraints)
-    ref_prob.solve(solver=cp.SCS)
+    ref_prob.solve(solver=cp.CLARABEL)
 
     # perspective problem
     x = cp.Variable(n)
@@ -350,7 +350,7 @@ def test_psd_mf_persp(n):
     obj = cp.perspective(f, s)
     constraints = [x == 5, P == np.eye(n), s == 1, ]
     prob = cp.Problem(cp.Minimize(obj), constraints)
-    prob.solve(solver=cp.SCS)
+    prob.solve(solver=cp.CLARABEL)
 
     assert prob.status == cp.OPTIMAL
     assert np.isclose(prob.value, ref_prob.value, atol=1e-2)
