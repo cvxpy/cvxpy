@@ -3603,6 +3603,25 @@ class TestDotsort(BaseTest):
         assert "You are solving a parameterized problem that is not DPP" in str(cm.exception)
 
 
+@pytest.mark.parametrize("values, k, axis", [
+    (np.array([1., 2.]), 3, None),
+    (np.array([[-4., 1., 3.], [2., -5., 7.]]), 2.5, 0),
+])
+@pytest.mark.parametrize("initialize", [False, True])
+def test_sum_largest_oversized_k(values, k, axis, initialize) -> None:
+    """Taking more entries than a slice contains sums the whole slice."""
+    x = cp.Variable(values.shape)
+    if initialize:
+        x.value = values
+    largest = cp.sum_largest(x, k, axis=axis)
+    t = cp.Variable(largest.shape)
+    problem = cp.Problem(cp.Minimize(cp.sum(t)), [x == values, largest <= t])
+    problem.solve(solver=cp.CLARABEL)
+
+    assert problem.status == cp.OPTIMAL
+    np.testing.assert_allclose(t.value, values.sum(axis=axis), atol=1e-6)
+
+
 GEO_MEAN_AXES = [None, 0, 1, 2, -1, -2, -3, (0, 1), (1, 2), (0, 2), (0, 1, 2)]
 
 
