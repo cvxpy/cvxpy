@@ -83,7 +83,9 @@ description = "A domain-specific language for modeling convex optimization probl
 dependencies = [
     "osqp >= 1.0.0",
     "clarabel >= 0.5.0",
-    "scs >= 3.2.4.post1",
+    # SCS 3.3.2 fails to project some PSD cones with Apple Accelerate (cvxgrp/scs#531).
+    "scs >= 3.2.4.post1, != 3.3.2; sys_platform == 'darwin' and platform_machine == 'arm64'",
+    "scs >= 3.2.4.post1; sys_platform != 'darwin' or platform_machine != 'arm64'",
     "numpy >= 2.0.0",
     "scipy >= 1.13.0",
     # HiGHS < 1.14.0 only honors the lower triangle in `kTriangular` Hessian
