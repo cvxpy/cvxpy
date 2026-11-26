@@ -751,6 +751,20 @@ class TestSingleVarAtomGradients:
 class TestMultiVarAtomGradients:
     """Systematic gradient tests for multi-variable atoms."""
 
+    @pytest.mark.parametrize("atom", [cp.maximum, cp.minimum, cp.rel_entr, cp.kl_div])
+    @pytest.mark.parametrize("scalar_index", [0, 1])
+    @pytest.mark.parametrize("shape", [(4,), (2, 2)])
+    def test_scalar_promotion(self, atom, scalar_index, shape):
+        """Promoted scalars contribute to every output and to their sum."""
+        values = [np.array(2.5), np.arange(1.0, 5.0).reshape(shape)]
+        if scalar_index == 1:
+            values.reverse()
+        shapes = [value.shape for value in values]
+
+        for factory in [atom, lambda x, y: cp.sum(atom(x, y))]:
+            passed, message = expression_gradcheck_multi(factory, shapes, values)
+            assert passed, message
+
     @pytest.mark.parametrize(
         "config",
         MULTI_VAR_ATOM_CONFIGS,
