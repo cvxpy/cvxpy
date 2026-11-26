@@ -140,7 +140,8 @@ class dotsort(Atom):
     @staticmethod
     def _get_args_from_values(values: list[np.ndarray]) \
             -> tuple[np.ndarray, np.ndarray]:
-        x = values[0].flatten()
+        # Column-major order, so the indices used by _grad match CVXPY's vectorization.
+        x = values[0].flatten(order='F')
         w = values[1].flatten()
 
         w_padded = np.zeros_like(x)  # pad in case size(W) < size(X)
