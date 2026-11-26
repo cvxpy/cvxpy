@@ -18,8 +18,6 @@ jobs:
 
     env:
       PYTHON_VERSION: "3.12"
-      # Keep Gurobi's MKL CPU override out of subsequent COPT solves on AMD (#3520).
-      GRB_BLAS_WORKAROUND_SKIP: "1"
       MOSEK_CI_BASE64: ${{ secrets.MOSEK_CI_BASE64 }}
       KNITRO_LICENSE: ${{ secrets.KNITRO_LICENSE }}
       MOREAU_LICENSE_KEY: ${{ secrets.MOREAU_KEY }}

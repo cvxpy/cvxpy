@@ -32,12 +32,6 @@ jobs:
           # when a license secret is present so forks skip KNITRO tests.
           if [ -n "$KNITRO_LICENSE" ]; then echo "ARTELYS_LICENSE=$HOME" >> $GITHUB_ENV; fi
 
-      # On some AMD runners Gurobi sets MKL_DEBUG_CPU_TYPE=6, which makes
-      # a subsequent COPT solve execute an unsupported instruction (#3520).
-      - name: Preserve MKL CPU detection when testing Gurobi and COPT
-        if: runner.os == 'Linux'
-        run: echo "GRB_BLAS_WORKAROUND_SKIP=1" >> "$GITHUB_ENV"
-
       - uses: astral-sh/setup-uv@v7
         with:
           python-version: 3.12
@@ -54,8 +48,10 @@ jobs:
       # Uno (unopy) is exercised by test_nlp_solvers, which installs it on its
       # own with the IPOPT/OpenMP toolchain it needs. The conic and QP tests
       # run here don't use it, so skip the extra to avoid a from-source build.
-      - name: Install cvxpy dependencies and all optional solvers
-        run: uv sync --all-extras --no-extra uno --dev
+      # COPT can crash after a Gurobi solve on AMD Linux (#3520).
+      # test_installed_solvers calls both if they share an environment.
+      - name: Install cvxpy dependencies and optional solvers
+        run: uv sync --all-extras --no-extra uno --no-extra copt --dev
       - name: Print installed solvers
         run: uv run python -c "import cvxpy; print(cvxpy.installed_solvers())"
       # KNITRO bundles LLVM libomp; CVXOPT bundles GNU libgomp via its
@@ -81,6 +77,12 @@ jobs:
       - name: Run test_qp_solvers (KNITRO)
         if: always()
         run: uv run pytest -rs -m knitro cvxpy/tests/test_qp_solvers.py
+      - name: Run COPT tests in a separate environment
+        if: always()
+        run: |
+          uv run --isolated --extra copt --extra testing pytest -rs \
+            -k "copt or test_installed_solvers" \
+            cvxpy/tests/test_conic_solvers.py cvxpy/tests/test_qp_solvers.py
 
     env:
       RUNNER_OS: ${{ matrix.os }}
