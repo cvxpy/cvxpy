@@ -37,8 +37,8 @@ class MatrixFrac(Atom):
         """Returns tr X.T*P^-1*X.
         """
         # TODO raise error if not invertible?
-        X = values[0]
-        P = values[1]
+        X = values[0].toarray() if sp.issparse(values[0]) else values[0]
+        P = values[1].toarray() if sp.issparse(values[1]) else values[1]
         if self.args[0].is_complex():
             product = np.conj(X).T.dot(LA.inv(P)).dot(X)
         else:
@@ -62,10 +62,10 @@ class MatrixFrac(Atom):
         Returns:
             A list of SciPy CSC sparse matrices or None.
         """
-        X = np.array(values[0])
+        X = values[0].toarray() if sp.issparse(values[0]) else np.array(values[0])
         if X.ndim == 1:
             X = X[:, None]
-        P = np.array(values[1])
+        P = values[1].toarray() if sp.issparse(values[1]) else np.array(values[1])
         try:
             P_inv = LA.inv(P)
         except LA.LinAlgError:
