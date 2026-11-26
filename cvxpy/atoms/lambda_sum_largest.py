@@ -17,7 +17,6 @@ limitations under the License.
 import numpy as np
 
 from cvxpy.atoms.lambda_max import lambda_max
-from cvxpy.expressions.expression import ExpressionValue
 
 
 class lambda_sum_largest(lambda_max):
@@ -43,6 +42,8 @@ class lambda_sum_largest(lambda_max):
 
         Requires that A be symmetric.
         """
+        if not np.allclose(values[0], np.swapaxes(values[0], -2, -1).conj()):
+            raise ValueError("Input matrix was not Hermitian/symmetric.")
         # eigvalsh returns eigenvalues sorted ascending along the last axis.
         eigs = np.linalg.eigvalsh(values[0])
         k_floor = int(np.floor(self.k))
@@ -81,11 +82,3 @@ class lambda_sum_largest(lambda_max):
             D = D + k_frac * (v_next[..., :, np.newaxis] * v_next[..., np.newaxis, :])
         return D
 
-    @property
-    def value(self) -> ExpressionValue | None:
-        val = self.args[0].value
-        if val is None:
-            return None
-        if not np.allclose(val, np.swapaxes(val, -2, -1).conj()):
-            raise ValueError("Input matrix was not Hermitian/symmetric.")
-        return self._value_impl()
