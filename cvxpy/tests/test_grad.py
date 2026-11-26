@@ -632,7 +632,7 @@ SINGLE_VAR_ATOM_CONFIGS = [
                    "unrestricted"),
 
     # === Other atoms ===
-    AtomTestConfig("dotsort", lambda x: cp.dotsort(x, [3, 2, 1]), [(3,)],
+    AtomTestConfig("dotsort", lambda x: cp.dotsort(x, [3, 2, 1]), [(3,), (2, 3)],
                    "unrestricted"),
     AtomTestConfig("ptp", lambda x: cp.ptp(x), [(3,)], "unrestricted"),
     AtomTestConfig("sum_largest", lambda x: cp.sum_largest(x, 2), [(5,)],
@@ -750,6 +750,20 @@ class TestSingleVarAtomGradients:
 
 class TestMultiVarAtomGradients:
     """Systematic gradient tests for multi-variable atoms."""
+
+    @pytest.mark.parametrize("atom", [cp.maximum, cp.minimum, cp.rel_entr, cp.kl_div])
+    @pytest.mark.parametrize("scalar_index", [0, 1])
+    @pytest.mark.parametrize("shape", [(4,), (2, 2)])
+    def test_scalar_promotion(self, atom, scalar_index, shape):
+        """Promoted scalars contribute to every output and to their sum."""
+        values = [np.array(2.5), np.arange(1.0, 5.0).reshape(shape)]
+        if scalar_index == 1:
+            values.reverse()
+        shapes = [value.shape for value in values]
+
+        for factory in [atom, lambda x, y: cp.sum(atom(x, y))]:
+            passed, message = expression_gradcheck_multi(factory, shapes, values)
+            assert passed, message
 
     @pytest.mark.parametrize(
         "config",

@@ -1614,9 +1614,13 @@ class CooCanonBackend(PythonCanonBackend):
         if sp.issparse(data):
             # Extract directly from sparse format (avoid densification)
             coo = data.tocoo()
-            size = coo.shape[0] * coo.shape[1]
-            # Flatten indices in Fortran order: linear_idx = col * nrows + row
-            nz_idx = coo.col * coo.shape[0] + coo.row
+            if coo.ndim == 2:
+                size = coo.shape[0] * coo.shape[1]
+                nz_idx = coo.col * coo.shape[0] + coo.row
+            else:
+                size = int(np.prod(coo.shape))
+                # Include every axis when vectorizing N-D sparse constants.
+                nz_idx = np.ravel_multi_index(coo.coords, coo.shape, order='F')
             nz_data = coo.data.copy()
         else:
             flat = np.asarray(data).flatten(order='F')
