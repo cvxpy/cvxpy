@@ -630,6 +630,40 @@ class TestCuClarabelFullP(BaseTest):
         self.assertItemsAlmostEqual(P_gpu.toarray(), P)
 
 
+class TestCuClarabelVerbose(BaseTest):
+    """Regression test for #3059 that runs without a GPU."""
+
+    def test_solve_via_data_passes_verbose_to_clarabel(self) -> None:
+        """CuClarabel printed its log even with verbose=False.
+
+        We stub out cupy and juliacall, solve with verbose off and on, and check that
+        the flag reaches Julia and that the Clarabel.Settings call reads it.
+        """
+        from cvxpy.reductions.solvers.conic_solvers.cuclarabel_conif import CUCLARABEL
+
+        x = cp.Variable(2)
+        prob = cp.Problem(cp.Minimize(cp.sum(x)), [x >= 1])
+        data, _, _ = prob.get_problem_data(cp.CLARABEL)
+
+        for verbose in (False, True):
+            juliacall = mock.MagicMock()
+            stubs = {
+                "cupy": mock.MagicMock(),
+                "cupyx": mock.MagicMock(),
+                "cupyx.scipy": mock.MagicMock(),
+                "cupyx.scipy.sparse": mock.MagicMock(),
+                "juliacall": juliacall,
+            }
+            with mock.patch.dict(sys.modules, stubs):
+                CUCLARABEL().solve_via_data(data, False, verbose, {})
+
+            jl = juliacall.Main
+            self.assertIs(jl.verbose, verbose)
+            solve_code = jl.seval.call_args_list[-1].args[0]
+            self.assertIn("Clarabel.Settings(direct_solve_method = :cudss, verbose = verbose)",
+                          solve_code)
+
+
 @unittest.skipUnless('CUCLARABEL' in INSTALLED_SOLVERS, 'CLARABEL is not installed.')
 class TestCuClarabel(BaseTest):
 
