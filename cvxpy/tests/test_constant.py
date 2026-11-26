@@ -39,6 +39,101 @@ def test_is_psd() -> None:
     assert psd_wrap(cp.Constant(P)).is_psd()
 
 
+def _rank_one_sparse_block(diagonal, *, scale=1.0, complex_case=False):
+    v = np.array([1., 1j, -1.]) if complex_case else np.ones(3)
+    return sp.block_diag(
+        [sp.diags_array(diagonal), scale * np.outer(v, v.conj())], format="csc"
+    )
+
+
+def _unexpected_sparse_eigensolve(*args, **kwargs):
+    pytest.fail("A strict negative diagonal witness should not require ARPACK.")
+
+
+@pytest.mark.parametrize(("diagonal", "scale", "complex_case"), [
+    pytest.param([-2 * s.EIGVAL_TOL], 1e6, False, id="scaled-rank-one"),
+    pytest.param([-s.EIGVAL_TOL, -1.0], 1.0, False, id="exact-shift-singularity"),
+    pytest.param([np.nextafter(-s.EIGVAL_TOL, -np.inf)], 1.0, True, id="complex-below"),
+])
+def test_is_psd_sparse_negative_diagonal_skips_eigsh(
+    monkeypatch, diagonal, scale, complex_case
+):
+    A = _rank_one_sparse_block(diagonal, scale=scale, complex_case=complex_case)
+    monkeypatch.setattr(sparla, 'eigsh', _unexpected_sparse_eigensolve)
+    assert not cp.Constant(A).is_psd()
+
+
+@pytest.mark.parametrize("diagonal", [0., -0.5 * s.EIGVAL_TOL])
+def test_is_psd_sparse_hermitian_within_tolerance(diagonal):
+    # Nontrivial imaginary off-diagonals and no Gershgorin certificate.
+    A = _rank_one_sparse_block([diagonal], complex_case=True)
+    c = cp.Constant(A)
+    assert c.is_hermitian()
+    assert c.is_psd()
+
+
+@pytest.mark.parametrize("diagonal", [-s.EIGVAL_TOL, np.nextafter(-s.EIGVAL_TOL, np.inf)])
+def test_is_psd_sparse_diagonal_at_cutoff_reaches_eigsh(monkeypatch, diagonal):
+    # A real shift at this eigenvalue can be singular. Test the strict
+    # comparison separately by supplying the exact coordinate eigenpair.
+    A = _rank_one_sparse_block([diagonal])
+    calls = []
+
+    def exact_eigsh(a, **kwargs):
+        calls.append(kwargs["sigma"])
+        eigval = np.array([a[0, 0]])
+        if kwargs.get("return_eigenvectors", True):
+            return eigval, np.eye(a.shape[0], 1)
+        return eigval
+
+    monkeypatch.setattr(sparla, 'eigsh', exact_eigsh)
+    assert cp.Constant(A).is_psd()
+    assert calls == [-s.EIGVAL_TOL]
+
+
+@pytest.mark.parametrize(("entries", "psd"), [
+    pytest.param([-0.75 * s.EIGVAL_TOL] * 2, False, id="combined-negative"),
+    pytest.param([-4 * s.EIGVAL_TOL, 3.5 * s.EIGVAL_TOL], True, id="compensated"),
+])
+def test_is_psd_sparse_duplicate_csc_diagonal(monkeypatch, entries, psd):
+    # Duplicate storage only in A[0, 0]; the other block is all ones.
+    A = sp.csc_array(
+        (np.r_[entries, np.ones(9)], [0, 0] + [1, 2, 3] * 3, [0, 2, 5, 8, 11]),
+        shape=(4, 4),
+    )
+    assert not A.has_canonical_format
+    if not psd:
+        monkeypatch.setattr(sparla, 'eigsh', _unexpected_sparse_eigensolve)
+    assert bool(cp.Constant(A).is_psd()) == psd
+
+
+def test_is_psd_sparse_indefinite_without_negative_diagonal():
+    # Eigenvalues are 7 and -1 (multiplicity 3); no diagonal witness.
+    A = sp.csc_array(np.full((4, 4), 2.0))
+    A.setdiag(1.0)
+    assert not cp.Constant(A).is_psd()
+
+
+def test_strict_sparse_negative_diagonal_witness_does_not_densify(monkeypatch):
+    """Reject a strict witness without allocating a dense copy of the sparse matrix."""
+    A = sp.block_diag([sp.csc_array([[-2 * s.EIGVAL_TOL]]), np.ones((3, 3))], format="csc")
+
+    def forbid_toarray(*args, **kwargs):
+        raise AssertionError("A strict diagonal witness must not densify the sparse matrix")
+
+    monkeypatch.setattr(sp.csc_array, "toarray", forbid_toarray)
+    assert not cp.Constant(A).is_psd()
+
+
+def test_strict_negative_diagonal_witness_sums_duplicate_csc_entries():
+    """An exactly diagonal CSC array must use its mathematical, not stored, diagonal."""
+    tol = s.EIGVAL_TOL
+    A = sp.csc_array(([-0.75 * tol, -0.75 * tol, 1.0], [0, 0, 1], [0, 2, 3]), shape=(2, 2))
+    assert not A.has_canonical_format
+    assert A.diagonal()[0] < -tol
+    assert not cp.Constant(A).is_psd()
+
+
 def _dense_psd_with_large_off_diagonals(n: int) -> np.ndarray:
     """A positive definite matrix whose Gershgorin check is inconclusive."""
     A = np.full((n, n), 0.5)
