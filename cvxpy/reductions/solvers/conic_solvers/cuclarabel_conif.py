@@ -205,8 +205,9 @@ class CUCLARABEL(ConicSolver):
 
         dims_to_solver_cones(jl, cones)
 
+        jl.verbose = bool(verbose)
         results = jl.seval("""
-        settings = Clarabel.Settings(direct_solve_method = :cudss)
+        settings = Clarabel.Settings(direct_solve_method = :cudss, verbose = verbose)
         solver   = Clarabel.Solver(settings)
         solver   = Clarabel.setup!(solver, P,q,A,b,cones)
         Clarabel.solve!(solver)
