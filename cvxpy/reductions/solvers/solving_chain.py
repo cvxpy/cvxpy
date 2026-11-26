@@ -272,11 +272,13 @@ def _cone_matrix_stuffing_reductions(
         Dcp2Cone(quad_obj=quad_obj, solver_context=solver_context),
         CvxAttr2Constr(reduce_bounds=reduce_bounds),
     ]
+    # Approximations first, so the cones they produce (e.g. PSD) are then
+    # put in the form the solver supports (e.g. SvecPSD) by ExactCone2Cone.
+    if approx_targets:
+        reductions.append(ApproxCone2Cone(target_cones=approx_targets))
     if exact_targets:
         reductions.append(ExactCone2Cone(
             target_cones=exact_targets, solver_context=solver_context))
-    if approx_targets:
-        reductions.append(ApproxCone2Cone(target_cones=approx_targets))
     reductions.append(EliminateZeroSized())
     if soc_dim3_only and SOC in cones:
         reductions.append(SOCDim3())

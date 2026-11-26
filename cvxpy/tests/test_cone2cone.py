@@ -22,10 +22,16 @@ import scipy as sp
 import cvxpy as cp
 from cvxpy import settings as s
 from cvxpy.atoms.affine.trace import trace
-from cvxpy.constraints.exponential import ExpCone
+from cvxpy.constraints.exponential import (
+    ExpCone,
+    OpRelEntrConeQuad,
+    RelEntrConeQuad,
+)
+from cvxpy.constraints.nonpos import NonNeg
 from cvxpy.constraints.power import PowCone3D, PowCone3DApprox, PowConeND
 from cvxpy.constraints.psd import PSD, SvecPSD
 from cvxpy.constraints.second_order import SOC
+from cvxpy.constraints.zero import Zero
 from cvxpy.reductions.chain import Chain
 from cvxpy.reductions.cone2cone import affine2direct as a2d
 from cvxpy.reductions.cone2cone.approx import (
@@ -47,6 +53,7 @@ from cvxpy.reductions.solvers.conic_solvers.clarabel_conif import (
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.defines import INSTALLED_MI_SOLVERS as INSTALLED_MI
 from cvxpy.reductions.solvers.defines import MI_SOCP_SOLVERS as MI_SOCP
+from cvxpy.reductions.solvers.solver import expand_cones
 from cvxpy.tests import solver_test_helpers as STH
 from cvxpy.tests.base_test import BaseTest
 
@@ -949,6 +956,46 @@ class TestExactApproxCone2Cone(BaseTest):
         inverted = reduction.invert(mock_solution, inverse_data)
         self.assertIn(pow_con.id, inverted.dual_vars)
         self.assertEqual(inverted.dual_vars[pow_con.id], mock_dual_value)
+
+    def test_expand_cones_converts_approx_outputs_exactly(self) -> None:
+        """Cones produced by an approximation get their exact conversions.
+
+        OpRelEntrConeQuad -> PSD is approximate and PSD -> SvecPSD is exact,
+        so the PSD from the approximation must still become SvecPSD.
+        """
+        cones = {OpRelEntrConeQuad, Zero}
+        supported = frozenset({Zero, NonNeg, SvecPSD})
+        cones, exact_targets, approx_targets = expand_cones(cones, supported)
+        self.assertEqual(approx_targets, {OpRelEntrConeQuad})
+        self.assertEqual(exact_targets, {PSD})
+        self.assertEqual(cones, {Zero, SvecPSD})
+
+    def test_op_rel_entr_cone_quad_constraint(self) -> None:
+        """An explicit OpRelEntrConeQuad constraint is solvable (GH #3672)."""
+        n = 2
+        X = cp.Variable((n, n), symmetric=True)
+        Y = cp.Variable((n, n), symmetric=True)
+        T = cp.Variable((n, n), symmetric=True)
+        prob = cp.Problem(cp.Minimize(cp.trace(T)),
+                          [OpRelEntrConeQuad(X, Y, T, 3, 3),
+                           X == np.eye(n), Y == 2 * np.eye(n)])
+        prob.solve(solver=cp.CLARABEL)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        # T = D_op(I || 2I) = -ln(2) I.
+        self.assertAlmostEqual(prob.value, -2 * np.log(2), places=4)
+
+    def test_rel_entr_cone_quad_via_psd_only_solver(self) -> None:
+        """RelEntrConeQuad -> SOC (approx) -> PSD -> SvecPSD (exact)."""
+        x = cp.Variable(2, pos=True)
+        y = cp.Variable(2, pos=True)
+        t = cp.Variable(2)
+        prob = cp.Problem(cp.Minimize(cp.sum(t)),
+                          [RelEntrConeQuad(x, y, t, 3, 3),
+                           x == 1, y == 2])
+        prob.solve(solver=_PSDOnlyClarabel())
+        self.assertIn(prob.status, [cp.OPTIMAL, cp.OPTIMAL_INACCURATE])
+        # t_i >= x_i log(x_i / y_i) = -ln(2).
+        self.assertAlmostEqual(prob.value, -2 * np.log(2), places=3)
 
 
 class TestPSDUtils(BaseTest):

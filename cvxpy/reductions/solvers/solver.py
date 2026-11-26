@@ -40,6 +40,14 @@ def expand_cones(cones, supported):
     (cones, exact_targets, approx_targets) where *cones* is the
     (mutated) input set and the targets are the cones that were expanded.
     """
+    # Approximate conversions run first. Their outputs (SOC, PSD) may still
+    # need an exact conversion (e.g. PSD -> SvecPSD), whereas no exact
+    # conversion produces an approximation target.
+    approx_targets = (cones & APPROX_CONE_CONVERSIONS.keys()) - supported
+    for co in approx_targets:
+        cones.discard(co)
+        cones.update(APPROX_CONE_CONVERSIONS[co])
+
     # Compute which unsupported cones can transitively reach a
     # supported cone via the EXACT_CONE_CONVERSIONS DAG.
     reachable = set()
@@ -60,11 +68,6 @@ def expand_cones(cones, supported):
         for co in new_targets:
             cones.discard(co)
             cones.update(EXACT_CONE_CONVERSIONS[co])
-
-    approx_targets = (cones & APPROX_CONE_CONVERSIONS.keys()) - supported
-    for co in approx_targets:
-        cones.discard(co)
-        cones.update(APPROX_CONE_CONVERSIONS[co])
 
     return cones, exact_targets, approx_targets
 
