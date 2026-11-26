@@ -3674,3 +3674,61 @@ class TestTransformedParameterReshape:
         assert val_scipy is not None
         assert val_coo is not None
         np.testing.assert_allclose(val_scipy, val_coo, rtol=1e-3, atol=1e-6)
+
+
+class TestSumOfScalarBroadcasts:
+    @pytest.mark.parametrize("backend", [cp.SCIPY_CANON_BACKEND, cp.COO_CANON_BACKEND])
+    def test_scalar_broadcast_is_not_materialized(self, backend):
+        n = 7
+        x = cp.Variable(n)
+        p = cp.Parameter()
+        bias = cp.Parameter()
+        weights = np.arange(1, n + 1, dtype=float)
+        expr = cp.sum(
+            x + cp.multiply(weights, x) - cp.sum(x) * p
+            - cp.promote(cp.sum(x), (n,)) + bias
+        )
+        problem = cp.Problem(cp.Minimize(expr), [expr <= 16])
+        assert problem.is_dpp()
+        for multiplier, offset in [(2, -3), (-1, 0), (0, 4)]:
+            p.value = multiplier
+            bias.value = offset
+            data, _, _ = problem.get_problem_data(cp.CLARABEL, canon_backend=backend)
+            expected = weights + 1 - n * (multiplier + 1)
+            np.testing.assert_array_equal(data["A"].toarray(), expected[None, :])
+            np.testing.assert_array_equal(data["b"], [16 - n * offset])
+            np.testing.assert_array_equal(data["c"], expected)
+
+        # This expression's only promotions are the scalars being fully reduced.
+        pending = [expr.canonical_form[0]]
+        while pending:
+            node = pending.pop()
+            assert node.type != "promote"
+            pending.extend(node.args)
+
+    def test_other_sum_shapes_keep_their_graph(self):
+        x = cp.Variable(3)
+        p = cp.Parameter()
+        matrix = cp.Variable((2, 3))
+        for expr in (
+            cp.sum(x + p, keepdims=True),
+            cp.sum(x + p, axis=()),
+            cp.sum(matrix + p),
+            cp.sum(x + x[::-1]),
+        ):
+            node = expr.canonical_form[0]
+            assert node.type == "sum_entries"
+            assert node.args[0].type == "sum"
+        # Axial matrix sum (not the full scalar reduction).
+        assert cp.sum(matrix + p, axis=0).canonical_form[0].type == "mul"
+
+    @pytest.mark.parametrize("backend", [cp.SCIPY_CANON_BACKEND, cp.COO_CANON_BACKEND])
+    def test_sparse_vector_sum_control(self, backend):
+        matrix = sp.csc_array([[0, -2, 0], [3, 0, 5], [0, 0, -7]])
+        x = cp.Variable(3)
+        expr = cp.sum(matrix @ x + x)
+        problem = cp.Problem(cp.Minimize(expr), [expr <= 16])
+        data, _, _ = problem.get_problem_data(cp.CLARABEL, canon_backend=backend)
+        np.testing.assert_array_equal(data["A"].toarray(), [[4, -1, -1]])
+        np.testing.assert_array_equal(data["b"], [16])
+        np.testing.assert_array_equal(data["c"], [4, -1, -1])
