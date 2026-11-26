@@ -54,6 +54,7 @@ from cvxpy.constraints.second_order import SOC
 from cvxpy.expressions import cvxtypes
 from cvxpy.expressions.expression import Expression
 from cvxpy.expressions.variable import Variable
+from cvxpy.reductions.canonical_maps import UnsupportedRecovery
 from cvxpy.reductions.cone2cone.cone_tree import (
     LeafNode,
     SpecialNode,
@@ -475,6 +476,14 @@ class SOCDim3(Reduction):
 
         new_problem = cvxtypes.problem()(problem.objective, new_constraints)
         return new_problem, inverse_data
+
+    def compose_recovery(self, inner, inverse_data):
+        """Variables pass through; decomposed SOC duals are not exported."""
+        dual = dict(inner.dual)
+        for orig_id in inverse_data.soc_trees:
+            dual[orig_id] = UnsupportedRecovery(
+                "SOCDim3 does not export the duals of decomposed SOC constraints")
+        return inner.replace(dual=dual)
 
     def invert(
         self,

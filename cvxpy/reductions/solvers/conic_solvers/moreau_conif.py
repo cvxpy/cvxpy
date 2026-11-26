@@ -21,6 +21,7 @@ import scipy.sparse as sp
 
 import cvxpy.settings as s
 from cvxpy.constraints import SOC, ExpCone, PowCone3D, PowConeND, SvecPSD
+from cvxpy.reductions.canonical_maps import Recovery, RecoveryMap
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
@@ -128,6 +129,30 @@ class MOREAU(ConicSolver):
         data, inv_data = super().apply(problem)
         data['dir_cones'] = problem.dir_cones
         return data, inv_data
+
+    def canonical_recovery(self, problem) -> RecoveryMap:
+        """Recovery from ``solver_y = [z, z_x]``.
+
+        ``z`` holds the slack-side duals in the default layout; ``z_x`` holds
+        Moreau's direct-cone duals in ``problem.dir_cones`` order, in the same
+        svec convention as the rows the cones replaced. A constraint split into
+        several direct cones takes their duals in spec order, as in ``invert``.
+        """
+        recovery = super().canonical_recovery(problem)
+        if not problem.dir_cones:
+            return recovery
+        n_y = recovery.n_y + sum(len(cone.indices) for cone in problem.dir_cones)
+        dual = {cid: Recovery(rec.source, n_y, indices=rec.indices)
+                for cid, rec in recovery.dual.items()}
+        parts: dict[int, list] = {}
+        offset = recovery.n_y
+        for cone in problem.dir_cones:
+            size = len(cone.indices)
+            parts.setdefault(cone.constr_id, []).append(
+                Recovery.identity('y', n_y, offset, size))
+            offset += size
+        dual.update((cid, Recovery.concat(recs)) for cid, recs in parts.items())
+        return RecoveryMap(recovery.n_x, n_y, recovery.primal, dual)
 
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data."""
@@ -376,6 +401,7 @@ class MoreauSolution:
         self.x = sol.x
         self.s = sol.s
         self.z = sol.z
+        self.z_x = sol.z_x
         self.status = info.status[0].name
         self.iterations = np.asarray(info.iterations).item()
         self.solve_time = info.solve_time

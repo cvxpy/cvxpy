@@ -47,6 +47,10 @@ class FlipObjective(Reduction):
                                      problem.constraints)
         return problem, []
 
+    def compose_recovery(self, inner, inverse_data):
+        """Variables and duals are unchanged."""
+        return inner
+
     def invert(self, solution, inverse_data):
         """Map the solution of the flipped problem to that of the original.
 

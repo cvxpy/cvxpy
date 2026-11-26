@@ -179,6 +179,21 @@ class TestParametricBoundsSolving:
         prob.solve(solver=solver_name)
         assert np.isclose(x.value, 3, atol=1e-6)
 
+    @pytest.mark.parametrize("solver_name", BOUNDED_SOLVERS)
+    def test_bounded_qp_solver_re_solve(self, solver_name):
+        """A quadratic objective takes the QP path, which must also read the
+        bounds that apply_parameters() evaluates."""
+        _skip_if_unavailable(solver_name)
+        lb, ub = cp.Parameter(value=1), cp.Parameter(value=5)
+        x = cp.Variable(bounds=[lb, ub])
+        prob = cp.Problem(cp.Minimize(cp.square(x) + x))
+        prob.solve(solver=solver_name)
+        assert np.isclose(x.value, 1, atol=1e-6)
+
+        lb.value = 3
+        prob.solve(solver=solver_name)
+        assert np.isclose(x.value, 3, atol=1e-6)
+
 
 class TestParametricBoundsEdgeCases:
     """Edge cases for parametric bounds."""
