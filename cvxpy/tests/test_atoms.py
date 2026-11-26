@@ -339,6 +339,52 @@ class TestAtoms(BaseTest):
         self.assertEqual(atom.curvature, s.CONCAVE)
         self.assertEqual(atom.sign, s.NONNEG)
 
+    def test_harmonic_mean_negative_entries_fail_fast(self) -> None:
+        """Arguments known to have negative entries raise at construction
+        instead of silently evaluating to -inf.
+        """
+        x = Variable(2)
+        bad_args = [
+            [-1.0, 2.0],  # numeric data with mixed sign
+            Constant([-1.0, -2.0]),
+            Constant([1.0, 2.0]) - 3.0,  # a compound constant expression
+            -cp.abs(x),  # a provably nonpositive expression
+        ]
+        for i, bad_arg in enumerate(bad_args):
+            with self.subTest(case=i):
+                with self.assertRaises(ValueError):
+                    cp.harmonic_mean(bad_arg)
+        with self.assertRaises(ValueError) as cm:
+            cp.harmonic_mean([-1.0, 2.0])
+        self.assertEqual(
+            str(cm.exception),
+            "harmonic_mean is only defined for arguments with positive entries, "
+            "but the argument is known to have negative entries.")
+
+    def test_harmonic_mean_valid_arguments(self) -> None:
+        """Nonnegative and unknown-sign arguments keep working.
+
+        Zero entries give the limiting harmonic mean of zero, unknown-sign
+        arguments get their nonnegativity enforced as a domain constraint,
+        and a parameter's current value must not trigger the check.
+        """
+        # A bare variable: the atom stays concave; the solver enforces the
+        # domain constraint x >= 0.
+        atom = cp.harmonic_mean(self.x)
+        self.assertEqual(atom.curvature, s.CONCAVE)
+        # Zero entries evaluate to the limiting harmonic mean of zero.
+        self.assertEqual(cp.harmonic_mean([0.0, 0.0]).value, 0.0)
+        # Positive numeric data evaluates to the true harmonic mean.
+        self.assertAlmostEqual(cp.harmonic_mean([1.0, 2.0]).value, 4.0 / 3.0)
+        # A parameter is exempt from value checks because its value is
+        # mutable, even when it currently holds negative entries. Outside
+        # a DPP scope, a parameter-only expression reads as constant.
+        param = Parameter(2)
+        param.value = [-1.0, 2.0]
+        atom = cp.harmonic_mean(param)
+        self.assertEqual(atom.shape, tuple())
+        self.assertEqual(atom.curvature, s.CONSTANT)
+
     # Test the pnorm class.
     def test_pnorm(self) -> None:
         atom = cp.pnorm(self.x, p=1.5)
