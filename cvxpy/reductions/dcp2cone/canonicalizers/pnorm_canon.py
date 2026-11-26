@@ -20,6 +20,7 @@ from fractions import Fraction
 import numpy as np
 
 from cvxpy import settings
+from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.atoms.affine.sum import sum
 from cvxpy.atoms.affine.vec import vec
 from cvxpy.atoms.elementwise.abs import abs
@@ -40,8 +41,10 @@ def _pnorm_p2_canon(expr, args, bounds=None):
     shape = expr.shape
     t = Variable(shape, bounds=bounds)
     if axis is None:
-        assert shape == tuple()
-        return t, [SOC(t, vec(x, order="F"))]
+        # keepdims=True gives an all-ones shape such as (1, 1); the SOC
+        # needs t as a scalar.
+        t_scalar = t if shape == tuple() else reshape(t, (), order="F")
+        return t, [SOC(t_scalar, vec(x, order="F"))]
     elif x.ndim <= 2 or axis == 0:
         # The cone lowering (ConeMatrixStuffing.apply and
         # ConicSolver.format_constraints) only formats SOC constraints whose
