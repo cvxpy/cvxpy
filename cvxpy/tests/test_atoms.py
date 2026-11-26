@@ -1918,6 +1918,28 @@ class TestAtoms(BaseTest):
         cvar_value = cp.cvar(A @ x.value, beta).value
         self.assertTrue(cvar_value <= kappa)
 
+    def test_sum_largest_argument_with_value(self) -> None:
+        """sum_largest and cvar canonicalize when their argument already has a value,
+        e.g. after an earlier solve.
+        """
+        rng = np.random.default_rng(0)
+        R = rng.standard_normal((20, 3))
+        w = cp.Variable(3)
+        w.value = np.ones(3) / 3
+        # k = (1 - 0.9) * 20 is not an integer.
+        prob = cp.Problem(cp.Minimize(cp.cvar(R @ w, 0.9)), [cp.sum(w) == 1, w >= 0])
+        prob.solve(solver=cp.CLARABEL)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        self.assertAlmostEqual(prob.value, cp.cvar(R @ w.value, 0.9).value, places=5)
+
+        A = np.arange(6.0).reshape((2, 3))
+        X = cp.Variable((2, 3))
+        X.value = A
+        prob = cp.Problem(cp.Minimize(cp.sum_largest(X, 2)), [X >= A])
+        prob.solve(solver=cp.CLARABEL)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        self.assertAlmostEqual(prob.value, 9.0, places=5)
+
     def test_cvar_axis(self) -> None:
         """cvar reduces along an axis the way the other stats atoms do."""
         rng = np.random.default_rng(0)
@@ -3579,6 +3601,25 @@ class TestDotsort(BaseTest):
         with self.assertRaises(Exception) as cm:
             cp.Problem(cp.Minimize(cp.dotsort(self.x, p_squared))).solve(enforce_dpp=True)
         assert "You are solving a parameterized problem that is not DPP" in str(cm.exception)
+
+
+@pytest.mark.parametrize("values, k, axis", [
+    (np.array([1., 2.]), 3, None),
+    (np.array([[-4., 1., 3.], [2., -5., 7.]]), 2.5, 0),
+])
+@pytest.mark.parametrize("initialize", [False, True])
+def test_sum_largest_oversized_k(values, k, axis, initialize) -> None:
+    """Taking more entries than a slice contains sums the whole slice."""
+    x = cp.Variable(values.shape)
+    if initialize:
+        x.value = values
+    largest = cp.sum_largest(x, k, axis=axis)
+    t = cp.Variable(largest.shape)
+    problem = cp.Problem(cp.Minimize(cp.sum(t)), [x == values, largest <= t])
+    problem.solve(solver=cp.CLARABEL)
+
+    assert problem.status == cp.OPTIMAL
+    np.testing.assert_allclose(t.value, values.sum(axis=axis), atol=1e-6)
 
 
 GEO_MEAN_AXES = [None, 0, 1, 2, -1, -2, -3, (0, 1), (1, 2), (0, 2), (0, 1, 2)]
