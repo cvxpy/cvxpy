@@ -196,8 +196,14 @@ def test_nested_lists():
 
 
 def test_stacking_sparse_constants_with_variables():
-    # hstack, vstack and concatenate must accept sparse constants next to
-    # variables, both when evaluating values and when solving.
+    """hstack, concatenate and bmat accept sparse constants next to variables.
+
+    Each stack combines a 3x3 variable with a random 3x3 sparse constant. For
+    every stack the test sets the variable to a dense value, checks that
+    ``.value`` equals the NumPy stack of the dense equivalents, then solves a
+    problem that fixes the variable to that value and checks the objective
+    (the sum of the stack) against the NumPy result.
+    """
     rng = np.random.default_rng(0)
     S = sp.random_array((3, 3), density=0.5, random_state=0, format="csc")
     S_dense = S.toarray()
