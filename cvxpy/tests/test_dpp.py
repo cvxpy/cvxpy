@@ -5,6 +5,7 @@ import pytest
 
 import cvxpy as cp
 import cvxpy.error as error
+import cvxpy.settings as s
 from cvxpy.tests.base_test import BaseTest
 
 SOLVER = cp.CLARABEL
@@ -142,7 +143,7 @@ class TestDcp(BaseTest):
         x.value = 3
         self.assertAlmostEqual(problem.solve(cp.SCS), 6)
 
-    def test_chain_data_for_non_dpp_problem_evals_params(self) -> None:
+    def test_non_dpp_chain_keeps_params_symbolic(self) -> None:
         x = cp.Parameter()
         x.value = 5
         y = cp.Variable()
@@ -151,8 +152,9 @@ class TestDcp(BaseTest):
             warnings.simplefilter('ignore')
             _, chain, _ = problem.get_problem_data(cp.SCS)
         self.assertFalse(problem.is_dpp())
-        self.assertTrue(cp.reductions.eval_params.EvalParams in
-                        [type(r) for r in chain.reductions])
+        stuffing = [r for r in chain.reductions
+                    if isinstance(r, cp.reductions.ConeMatrixStuffing)][0]
+        self.assertEqual(stuffing.canon_backend, s.DIFFENGINE_CANON_BACKEND)
 
     def test_chain_data_for_dpp_problem_does_not_eval_params(self) -> None:
         x = cp.Parameter()
@@ -370,31 +372,24 @@ class TestDcp(BaseTest):
         self.assertEqual(solver_name, cp.SCS)
 
     def test_log_det_with_parameter_ignore_dpp(self) -> None:
-        """Test log_det with parameter works with ignore_dpp=True.
-
-        With ignore_dpp=True, EvalParams runs first and evaluates log_det(P)
-        to a constant, so the problem becomes a true QP that OSQP can handle.
-        """
+        """log_det(P) folds to a CallbackParam leaf with ignore_dpp=True, so a
+        QP solver still takes the problem, and the term tracks P.value across
+        re-solves instead of freezing at compile time."""
         n = 2
         x = cp.Variable(n, nonneg=True)
         y = cp.Variable(n, nonneg=True)
         P = cp.Parameter((n, n))
-        P.value = np.eye(n)
-
-        objective = cp.sum_squares(x + y) - 2 * cp.log_det(P)
-        problem = cp.Problem(cp.Minimize(objective))
-
-        # With ignore_dpp=True, should route to QP solver (EvalParams runs first)
-        problem.solve(solver=cp.OSQP, ignore_dpp=True)
-        self.assertEqual(problem.status, cp.OPTIMAL)
-        self.assertAlmostEqual(problem.value, 0.0, places=4)
-        np.testing.assert_array_almost_equal(x.value, np.zeros(n), decimal=4)
-        np.testing.assert_array_almost_equal(y.value, np.zeros(n), decimal=4)
-
-        # Verify EvalParams is in the chain
-        _, chain, _ = problem.get_problem_data(cp.OSQP, ignore_dpp=True)
-        reduction_types = [type(r).__name__ for r in chain.reductions]
-        self.assertIn('EvalParams', reduction_types)
+        problem = cp.Problem(
+            cp.Minimize(cp.sum_squares(x + y) - 2 * cp.log_det(P)))
+        for solver in (cp.CLARABEL, cp.OSQP):
+            with self.subTest(solver=solver):
+                P.value = np.eye(n)
+                problem.solve(solver=solver, ignore_dpp=True)
+                self.assertEqual(problem.status, cp.OPTIMAL)
+                self.assertAlmostEqual(problem.value, 0.0, places=4)
+                P.value = 2 * np.eye(n)
+                problem.solve(solver=solver, ignore_dpp=True)
+                self.assertAlmostEqual(problem.value, -2 * np.log(4.0), places=4)
 
     def test_cumsum_of_parameter(self) -> None:
         """cumsum of a parameter-only expression must stay parameter-affine.

@@ -152,7 +152,8 @@ def convert_symbolic_quad_form(expr, var_dict, n_vars, param_dict):
     """Convert a SymbolicQuadForm (Dcp2Cone quadratic-objective placeholder).
 
     Scalar x'Px (QuadForm / quad_over_lin / sum_squares) uses the native quad_form
-    binding, routed by the content of P as in the NLP path
+    binding. A symbolic P becomes a matrix-valued child the engine re-evaluates
+    each solve; a constant P is routed by its content as in the NLP path
     (``make_constant_quad_form``): a sparse or mostly-zero P takes the sparse CSR
     binding, a genuinely dense P the dense one. power/PowerApprox is the
     elementwise square, lowered to multiply.
@@ -167,13 +168,15 @@ def convert_symbolic_quad_form(expr, var_dict, n_vars, param_dict):
     if isinstance(orig, (QuadForm, quad_over_lin)):
         x = expr.args[0]
         P = expr.args[1]
-        if P.parameters():
-            # Unreachable through the gated DIFFENGINE backend (the stuffing
-            # rejects parametric problems); fail loud for direct callers.
-            raise NotImplementedError(
-                "SymbolicQuadForm with a parametric P is not supported by "
-                "the diff engine.")
         x_c = convert_expr(x, var_dict, n_vars, param_dict)
+        if P.parameters():
+            # A symbolic P (quad_over_lin's eye/y, say) is independent of x, so
+            # the Hessian is still 2P: feed it as a matrix-valued child the
+            # engine re-evaluates each solve. A parametric quad_form never
+            # reaches here -- QuadForm._supports_diffengine keeps it off this
+            # backend, because its cone canon needs a concrete P.
+            P_c = convert_expr(P, var_dict, n_vars, param_dict)
+            return _diffengine.make_quad_form(P_c, x_c, "dense", None, x.size)
         return make_constant_quad_form(x_c, P.value, x.size)
 
     if isinstance(orig, Power):  # PowerApprox subclasses Power; canon only p == 2
@@ -243,8 +246,14 @@ def convert_expr(expr, var_dict, n_vars, param_dict=None):
     d1_Python, d2_Python = normalize_shape(expr.shape)
 
     if d1_C != d1_Python or d2_C != d2_Python:
-        # 1D shape (n,) normalizes to (1, n) but C may produce (n, 1); reshape.
-        if len(expr.shape) <= 1 and d1_C * d2_C == d1_Python * d2_Python:
+        # A row and a column of the same length hold the same entries in the
+        # same order, so a reshape only relabels them. This covers a 1-D shape
+        # (n,), which normalizes to (1, n) while C may produce (n, 1), and an
+        # axis reduction with keepdims=True: the engine returns sum or prod
+        # over axis=1 as a row, but CVXPY expects a column.
+        same_size = d1_C * d2_C == d1_Python * d2_Python
+        both_vectors = 1 in (d1_C, d2_C) and 1 in (d1_Python, d2_Python)
+        if same_size and (len(expr.shape) <= 1 or both_vectors):
             C_expr = _diffengine.make_reshape(C_expr, d1_Python, d2_Python)
         else:
             raise ValueError(
