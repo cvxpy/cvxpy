@@ -17,7 +17,6 @@ limitations under the License.
 import abc
 import importlib.machinery
 import importlib.util
-import os
 
 from cvxpy import settings as s
 from cvxpy.reductions.cone2cone.approx import APPROX_CONE_CONVERSIONS
@@ -75,10 +74,11 @@ def _is_namespace_package(spec) -> bool:
 
     Such a directory on ``sys.path`` (e.g. MOSEK's default license folder ``~/mosek``
     when Python runs from the home directory) imports as an empty namespace package,
-    so it must not count as the solver being installed.
+    so it must not count as the solver being installed. ``find_spec`` marks a
+    namespace package with no origin and the directories it found, so this reads
+    the spec only and does not touch the filesystem.
     """
-    locations = spec.submodule_search_locations
-    return spec.origin is None and bool(locations) and all(os.path.isdir(p) for p in locations)
+    return spec.origin is None and bool(spec.submodule_search_locations)
 
 
 def module_spec_available(module: str) -> bool | None:
