@@ -116,6 +116,13 @@ class indicator(Expression):
         """
         return f"Indicator({self.args})"
 
+    def format_labeled(self) -> str:
+        """Format the indicator with labels substituted into constraints."""
+        if self._label is not None:
+            return self._label
+        constraint_text = [constraint.format_labeled() for constraint in self.args]
+        return f"Indicator({constraint_text})"
+
     def domain(self) -> list[Constraint]:
         """A list of constraints describing the closure of the region
            where the expression is finite.
