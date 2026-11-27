@@ -134,7 +134,10 @@ class KNITRO(NLPsolver):
                 shape = inverse_data.var_shapes[id]
                 size = np.prod(shape, dtype=int)
                 primal_vars[id] = np.reshape(x_opt[offset:offset+size], shape, order='F')
-            return Solution(status, opt_val, primal_vars, {}, attr)
+            # KN_get_solution lists the m constraint multipliers first, then
+            # the n variable-bound ones; recover_duals reads only the first m.
+            dual_vars = self.recover_duals(solution['lambda'], inverse_data)
+            return Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
             return failure_solution(status, attr)
 

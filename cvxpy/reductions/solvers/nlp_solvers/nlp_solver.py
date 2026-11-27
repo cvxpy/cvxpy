@@ -23,6 +23,7 @@ import numpy as np
 from cvxpy.constraints import (
     Equality,
     Inequality,
+    NonNeg,
 )
 from cvxpy.reductions.inverse_data import InverseData
 from cvxpy.reductions.solvers.solver import Solver
@@ -70,12 +71,36 @@ class NLPsolver(Solver):
         bounds = Bounds(problem)
         inverse_data = InverseData(bounds.new_problem)
         inverse_data.offset = 0.0
+        # The rows of g(x) in the order the solver sees them, for dual recovery.
+        inverse_data.constraints = bounds.new_problem.constraints
         data["problem"] = bounds.new_problem
         data["cl"], data["cu"] = bounds.cl, bounds.cu
         data["lb"], data["ub"] = bounds.lb, bounds.ub
         data["x0"] = bounds.x0
         data["_bounds"] = bounds  # Store for deferred Oracles creation in solve_via_data
         return problem, data, inverse_data
+
+    @staticmethod
+    def recover_duals(mult_g: np.ndarray, inverse_data: InverseData) -> dict:
+        """Split the solver's constraint multipliers into per-constraint duals.
+
+        ``mult_g`` holds one multiplier per row of g(x), in the order that
+        ``Bounds`` lowered the constraints. Entries past those rows (KNITRO
+        appends the variable-bound multipliers) are ignored. Every NLP
+        interface sets up the Lagrangian as f(x) + mult_g^T g(x), the same
+        convention its Hessian callback uses. ``Zero(lhs - rhs)`` rows already follow CVXPY's
+        sign convention. ``NonNeg(rhs - lhs)`` rows flip sign, so that the dual
+        of ``lhs <= rhs`` is nonnegative.
+        """
+        dual_vars = {}
+        offset = 0
+        for constr in inverse_data.constraints:
+            mult = np.asarray(mult_g[offset:offset + constr.size])
+            offset += constr.size
+            if isinstance(constr, NonNeg):
+                mult = -mult
+            dual_vars[constr.id] = np.reshape(mult, constr.shape, order='F')
+        return dual_vars
 
 class Bounds:
     """Extracts variable and constraint bounds from a CVXPY problem.
