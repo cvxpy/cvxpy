@@ -113,6 +113,66 @@ class TestAtoms(BaseTest):
         self.assertEqual(prob.status, cp.OPTIMAL)
         self.assertItemsAlmostEqual(t.value, np.linalg.norm(X_val, 1, axis=1, keepdims=True))
 
+    def test_axis_atom_copy_keeps_keepdims(self) -> None:
+        """Rebuilding an axis atom with copy() keeps keepdims.
+
+        Reductions such as Complex2Real, EvalParams, and CvxAttr2Constr
+        rebuild atoms through copy(), which passes get_data() back to the
+        constructor. Each atom here reduces a (3, 2) argument along axis 1
+        with keepdims=True, so its shape is (3, 1). The copy, with a fresh
+        argument, must have that shape too.
+        """
+        X = Variable((3, 2), pos=True)
+        Y = Variable((3, 2), pos=True)
+        atoms = {
+            "sum": cp.sum(X, axis=1, keepdims=True),
+            "max": cp.max(X, axis=1, keepdims=True),
+            "min": cp.min(X, axis=1, keepdims=True),
+            "prod": cp.prod(X, axis=1, keepdims=True),
+            "log_sum_exp": cp.log_sum_exp(X, axis=1, keepdims=True),
+            "norm1": cp.norm(X, 1, axis=1, keepdims=True),
+            "norm2": cp.norm(X, 2, axis=1, keepdims=True),
+            "norm_inf": cp.norm(X, "inf", axis=1, keepdims=True),
+            "sum_largest": cp.sum_largest(X, 1, axis=1, keepdims=True),
+            "geo_mean": cp.geo_mean(X, axis=1, keepdims=True),
+            "quad_over_lin": cp.quad_over_lin(X, 1, axis=1, keepdims=True),
+        }
+        for name, atom in atoms.items():
+            with self.subTest(atom=name):
+                self.assertEqual(atom.shape, (3, 1))
+                copy = atom.copy([Y] + list(atom.args[1:]))
+                self.assertEqual(copy.shape, (3, 1))
+
+    def test_norm_keepdims_survives_reductions_that_copy(self) -> None:
+        """norm1 and norm_inf with keepdims=True solve correctly after a copy.
+
+        The constraint norm(X, p, axis=1, keepdims=True) <= t has a (3, 1)
+        t. If a reduction's copy dropped keepdims, the norm would become (3,)
+        and broadcast against t to (3, 3). Every entry of t would then rise
+        to the largest row norm while the solver still reported optimal. Two
+        reductions copy the atom: Complex2Real for a complex argument, and
+        EvalParams for a parameter solved with ignore_dpp=True. For each,
+        t must equal the row norms.
+        """
+        X_val = np.array([[1.0, -2.0], [3.0, 0.5], [0.25, 4.0]])
+        for p in (1, np.inf):
+            expected = np.linalg.norm(X_val, p, axis=1, keepdims=True)
+            with self.subTest(p=p, reduction="Complex2Real"):
+                X = Variable((3, 2), complex=True)
+                t = Variable((3, 1))
+                prob = cp.Problem(cp.Minimize(cp.sum(t)),
+                                  [cp.norm(X, p, axis=1, keepdims=True) <= t, X == X_val])
+                prob.solve(solver=cp.CLARABEL)
+                self.assertItemsAlmostEqual(t.value, expected, places=4)
+            with self.subTest(p=p, reduction="EvalParams"):
+                P = cp.Parameter((3, 2), value=X_val)
+                X = Variable((3, 2))
+                t = Variable((3, 1))
+                prob = cp.Problem(cp.Minimize(cp.sum(t)),
+                                  [cp.norm(X + P, p, axis=1, keepdims=True) <= t, X == 0])
+                prob.solve(solver=cp.CLARABEL, ignore_dpp=True)
+                self.assertItemsAlmostEqual(t.value, expected, places=4)
+
     def test_list_input(self) -> None:
         """Test that list input is rejected.
         """
