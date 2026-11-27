@@ -15,8 +15,9 @@ limitations under the License.
 """
 
 from cvxpy.atoms.elementwise.power import power
+from cvxpy.expressions.expression import Expression
 
 
-def square(x):
+def square(x) -> Expression:
     """The square of an expression."""
     return power(x, 2)

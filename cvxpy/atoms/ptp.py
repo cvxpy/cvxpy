@@ -18,9 +18,10 @@ limitations under the License.
 from cvxpy.atoms.affine.wraps import nonneg_wrap
 from cvxpy.atoms.max import max as cvxpy_max
 from cvxpy.atoms.min import min as cvxpy_min
+from cvxpy.expressions.expression import Expression
 
 
-def ptp(x, axis=None, keepdims=False):
+def ptp(x, axis=None, keepdims=False) -> Expression:
     """
     Range of values (maximum - minimum) along an axis.
 

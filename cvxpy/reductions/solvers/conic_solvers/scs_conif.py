@@ -15,10 +15,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import numpy as np
-import scipy.sparse as sp
 
 import cvxpy.settings as s
-from cvxpy.constraints import PSD, SOC, ExpCone, PowCone3D
+from cvxpy.constraints import SOC, ExpCone, PowCone3D, SvecPSD
 from cvxpy.expressions.expression import Expression
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
@@ -29,51 +28,19 @@ from cvxpy.reductions.solvers.conic_solvers.conic_solver import (
     dims_to_solver_dict as dims_to_solver_dict_default,
 )
 from cvxpy.utilities.citations import CITATION_DICT
+from cvxpy.utilities.psd_utils import TriangleKind
 from cvxpy.utilities.versioning import Version
-from cvxpy.utilities.warn import warn
+from cvxpy.utilities.warn import CvxpyDeprecationWarning, warn
 
 
 def dims_to_solver_dict(cone_dims):
     cones = dims_to_solver_dict_default(cone_dims)
-
-    import scs
-    if Version(scs.__version__) >= Version('3.0.0'):
-        cones['z'] = cones.pop('f')  # renamed to 'z' in SCS 3.0.0
+    # CVXPY's shared dims_to_solver_dict (conic_solver.py) uses 'f' as its
+    # standard zero-cone key (e.g. ECOS requires that key). SCS 3.0 renamed
+    # the key to 'z', so the conversion belongs here at the SCS interface;
+    # diffcp, which builds on SCS, requires 'z' as well.
+    cones['z'] = cones.pop('f')
     return cones
-
-
-def tri_to_full(lower_tri, n):
-    """Expands n*(n+1)//2 lower triangular to full matrix
-
-    Scales off-diagonal by 1/sqrt(2), as per the SCS specification.
-
-    Parameters
-    ----------
-    lower_tri : numpy.ndarray
-        A NumPy array representing the lower triangular part of the
-        matrix, stacked in column-major order.
-    n : int
-        The number of rows (columns) in the full square matrix.
-
-    Returns
-    -------
-    numpy.ndarray
-        A 2-dimensional ndarray that is the scaled expansion of the lower
-        triangular array.
-
-    Notes
-    -----
-    SCS tracks "lower triangular" indices in a way that corresponds to numpy's
-    "upper triangular" indices. So the function call below uses ``np.triu_indices``
-    in a way that looks weird, but is nevertheless correct.
-    """
-    full = np.zeros((n, n))
-    full[np.triu_indices(n)] = lower_tri
-    full += full.T
-    full[np.diag_indices(n)] /= 2
-    full[np.tril_indices(n, k=-1)] /= np.sqrt(2)
-    full[np.triu_indices(n, k=1)] /= np.sqrt(2)
-    return np.reshape(full, n*n, order="F")
 
 
 def scs_psdvec_to_psdmat(vec: Expression, indices: np.ndarray) -> Expression:
@@ -96,6 +63,11 @@ def scs_psdvec_to_psdmat(vec: Expression, indices: np.ndarray) -> Expression:
     cannot be used, because this function builds a cvxpy Expression,
     rather than a numpy ndarray.
     """
+    # Although not root-exported, this non-private helper remains directly importable.
+    warn(
+        "scs_psdvec_to_psdmat is deprecated and will be removed in CVXPY 1.11.",
+        CvxpyDeprecationWarning,
+    )
     n = int(np.sqrt(indices.size * 2))
     rows, cols = np.triu_indices(n)
     mats = []
@@ -120,8 +92,11 @@ class SCS(ConicSolver):
     # Solver capabilities.
     MIP_CAPABLE = False
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS \
-        + [SOC, ExpCone, PSD, PowCone3D]
+        + [SOC, ExpCone, SvecPSD, PowCone3D]
     REQUIRES_CONSTR = True
+    PSD_TRIANGLE_KIND = TriangleKind.LOWER
+    PSD_SQRT2_SCALING = True
+    REQUIRED_MODULES = ("scs",)
 
     # Map of SCS status value to CVXPY status.
     STATUS_MAP = {1: s.OPTIMAL,
@@ -137,26 +112,10 @@ class SCS(ConicSolver):
     # Order of exponential cone arguments for solver.
     EXP_CONE_ORDER = [0, 1, 2]
 
-    ACCELERATION_RETRY_MESSAGE = """
-    CVXPY has just called the numerical solver SCS (version %s),
-    which could not accurately solve the problem with the provided solver
-    options. No value was specified for the SCS option called
-    "acceleration_lookback". That option often has a major impact on
-    whether this version of SCS converges to an accurate solution.
-
-    We will try to solve the problem again by setting acceleration_lookback = 0.
-    To avoid this error in the future we recommend installing SCS version 3.0
-    or higher.
-
-    More information on SCS options can be found at the following URL:
-    https://www.cvxgrp.org/scs/api/settings.html
-    """
-
     def name(self):
         """The name of the solver.
         """
         return s.SCS
-
     def import_solver(self) -> None:
         """Imports the solver.
         """
@@ -165,70 +124,7 @@ class SCS(ConicSolver):
     def supports_quad_obj(self) -> bool:
         """SCS >= 3.0.0 supports a quadratic objective.
         """
-        import scs
-        return Version(scs.__version__) >= Version('3.0.0')
-
-    @staticmethod
-    def _psd_format_mat_single(n):
-        """Return a format matrix for a single n x n PSD constraint."""
-        rows = cols = n
-        entries = rows * (cols + 1)//2
-
-        row_arr = np.arange(0, entries)
-
-        lower_diag_indices = np.tril_indices(rows)
-        col_arr = np.sort(np.ravel_multi_index(lower_diag_indices,
-                                               (rows, cols),
-                                               order='F'))
-
-        val_arr = np.zeros((rows, cols))
-        val_arr[lower_diag_indices] = np.sqrt(2)
-        np.fill_diagonal(val_arr, 1.0)
-        val_arr = np.ravel(val_arr, order='F')
-        val_arr = val_arr[np.nonzero(val_arr)]
-
-        shape = (entries, rows*cols)
-        scaled_lower_tri = sp.csc_array((val_arr, (row_arr, col_arr)), shape)
-
-        idx = np.arange(rows * cols)
-        val_symm = 0.5 * np.ones(2 * rows * cols)
-        K = idx.reshape((rows, cols))
-        row_symm = np.append(idx, np.ravel(K, order='F'))
-        col_symm = np.append(idx, np.ravel(K.T, order='F'))
-        symm_matrix = sp.csc_array((val_symm, (row_symm, col_symm)))
-
-        return scaled_lower_tri @ symm_matrix
-
-    @staticmethod
-    def psd_format_mat(constr):
-        """Return a linear operator to multiply by PSD constraint coefficients.
-
-        Special cases PSD constraints, as SCS expects constraints to be
-        imposed on solely the lower triangular part of the variable matrix.
-        Moreover, it requires the off-diagonal coefficients to be scaled by
-        sqrt(2), and applies to the symmetric part of the constrained expression.
-        """
-        n = constr.args[0].shape[-1]
-        single_block = SCS._psd_format_mat_single(n)
-        num = constr.num_cones()
-        if num == 1:
-            return single_block
-        # For batched PSD, the constraint data is F-order flattened from
-        # (*batch, n, n), which interleaves batch elements. We need a
-        # permutation to de-interleave before applying per-block formatting.
-        block_format = sp.block_diag([single_block] * num, format='csc')
-        # Build permutation: F-order index of (b, i, j) in (*batch, n, n)
-        # is b + num * (i + n * j). We need to map this to
-        # b * n^2 + (i + n * j), i.e., contiguous blocks per batch element.
-        nn = n * n
-        perm = np.empty(num * nn, dtype=int)
-        for b in range(num):
-            for k in range(nn):
-                perm[b + num * k] = b * nn + k
-        perm_mat = sp.csc_array(
-            (np.ones(num * nn), (perm, np.arange(num * nn))),
-            shape=(num * nn, num * nn))
-        return block_format @ perm_mat
+        return True
 
     def apply(self, problem):
         """Returns a new problem and data for inverting the new solution.
@@ -240,43 +136,13 @@ class SCS(ConicSolver):
         """
         return super(SCS, self).apply(problem)
 
-    @staticmethod
-    def extract_dual_value(result_vec, offset, constraint):
-        """Extracts the dual value for constraint starting at offset.
-
-        Special cases PSD constraints, as per the SCS specification.
-        """
-        if isinstance(constraint, PSD):
-            dim = constraint._cone_size()
-            lower_tri_dim = dim * (dim + 1) // 2
-            num = constraint.num_cones()
-            blocks = []
-            for _ in range(num):
-                new_offset = offset + lower_tri_dim
-                lower_tri = result_vec[offset:new_offset]
-                blocks.append(tri_to_full(lower_tri, dim))
-                offset = new_offset
-            return np.concatenate(blocks), offset
-        else:
-            return utilities.extract_dual_value(result_vec, offset,
-                                                constraint)
-
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data.
         """
-        import scs
         attr = {}
-        # SCS versions 1.*, SCS 2.*
-        if Version(scs.__version__) < Version('3.0.0'):
-            status = self.STATUS_MAP[solution["info"]["statusVal"]]
-            attr[s.SOLVE_TIME] = solution["info"]["solveTime"] / 1000
-            attr[s.SETUP_TIME] = solution["info"]["setupTime"] / 1000
-
-        # SCS version 3.*
-        else:
-            status = self.STATUS_MAP[solution["info"]["status_val"]]
-            attr[s.SOLVE_TIME] = solution["info"]["solve_time"] / 1000
-            attr[s.SETUP_TIME] = solution["info"]["setup_time"] / 1000
+        status = self.STATUS_MAP[solution["info"]["status_val"]]
+        attr[s.SOLVE_TIME] = solution["info"]["solve_time"] / 1000
+        attr[s.SETUP_TIME] = solution["info"]["setup_time"] / 1000
 
         attr[s.NUM_ITERS] = solution["info"]["iter"]
         attr[s.EXTRA_STATS] = solution
@@ -284,12 +150,12 @@ class SCS(ConicSolver):
         zero_idx = inverse_data[ConicSolver.DIMS].zero
         eq_dual_vars = utilities.get_dual_values(
             solution["y"][:zero_idx],
-            self.extract_dual_value,
+            utilities.extract_dual_value,
             inverse_data[SCS.EQ_CONSTR]
         )
         ineq_dual_vars = utilities.get_dual_values(
             solution["y"][zero_idx:],
-            self.extract_dual_value,
+            utilities.extract_dual_value,
             inverse_data[SCS.NEQ_CONSTR]
         )
         dual_vars = eq_dual_vars | ineq_dual_vars
@@ -309,22 +175,23 @@ class SCS(ConicSolver):
     @staticmethod
     def parse_solver_options(solver_opts):
         import scs
-        if Version(scs.__version__) < Version('3.0.0'):
-            if "eps_abs" in solver_opts or "eps_rel" in solver_opts:
-                # Take the min of eps_rel and eps_abs to be eps
-                solver_opts["eps"] = min(solver_opts.get("eps_abs", 1),
-                                         solver_opts.get("eps_rel", 1))
-            else:
-                # Default to eps = 1e-4 instead of 1e-3.
-                solver_opts["eps"] = solver_opts.get("eps", 1e-4)
+        # CVXPY documents a single 'eps' tolerance for SCS (the pre-3.0 API).
+        # SCS 3.0+ only accepts eps_abs/eps_rel, so 'eps' is mapped to both to
+        # preserve the old single-tolerance behavior for existing users.
+        if "eps" in solver_opts:
+            solver_opts["eps_abs"] = solver_opts["eps"]
+            solver_opts["eps_rel"] = solver_opts["eps"]
+            del solver_opts["eps"]
         else:
-            if "eps" in solver_opts:  # eps replaced by eps_abs, eps_rel
-                solver_opts["eps_abs"] = solver_opts["eps"]
-                solver_opts["eps_rel"] = solver_opts["eps"]
-                del solver_opts["eps"]
-            else:
-                solver_opts['eps_abs'] = solver_opts.get('eps_abs', 1e-5)
-                solver_opts['eps_rel'] = solver_opts.get('eps_rel', 1e-5)
+            solver_opts['eps_abs'] = solver_opts.get('eps_abs', 1e-5)
+            solver_opts['eps_rel'] = solver_opts.get('eps_rel', 1e-5)
+        # SCS 3.3 replaced use_indirect with an explicit linear solver selection.
+        if Version(scs.__version__) >= Version('3.3.0') and "use_indirect" in solver_opts:
+            if "linear_solver" in solver_opts:
+                raise ValueError("Specify only one of use_indirect and linear_solver.")
+            solver_opts["linear_solver"] = (
+                "cpu_indirect" if solver_opts.pop("use_indirect") else "qdldl"
+            )
         # use_quad_obj is only for canonicalization.
         if "use_quad_obj" in solver_opts:
             del solver_opts["use_quad_obj"]
@@ -349,7 +216,6 @@ class SCS(ConicSolver):
         The result returned by a call to scs.solve().
         """
         import scs
-        scs_version = Version(scs.__version__)
         args = {"A": data[s.A], "b": data[s.B], "c": data[s.C]}
         if s.P in data:
             args["P"] = data[s.P]
@@ -361,27 +227,16 @@ class SCS(ConicSolver):
         cones = dims_to_solver_dict(data[ConicSolver.DIMS])
 
         def solve(_solver_opts):
-            if scs_version.major < 3:
-                _results = scs.solve(args, cones, verbose=verbose, **_solver_opts)
-                _status = self.STATUS_MAP[_results["info"]["statusVal"]]
-            else:
-                _results = scs.solve(args, cones, verbose=verbose, **_solver_opts)
-                _status = self.STATUS_MAP[_results["info"]["status_val"]]
+            _results = scs.solve(args, cones, verbose=verbose, **_solver_opts)
+            _status = self.STATUS_MAP[_results["info"]["status_val"]]
             return _results, _status
 
         solver_opts = SCS.parse_solver_options(solver_opts)
         results, status = solve(solver_opts)
-        if (status in s.INACCURATE and scs_version.major == 2
-                and "acceleration_lookback" not in solver_opts):
-            warn(SCS.ACCELERATION_RETRY_MESSAGE % str(scs_version))
-            retry_opts = solver_opts.copy()
-            retry_opts["acceleration_lookback"] = 0
-            results, status = solve(retry_opts)
-
         if solver_cache is not None and status == s.OPTIMAL:
             solver_cache[self.name()] = results
         return results
-    
+
     def cite(self, data):
         """Returns bibtex citation for the solver.
 

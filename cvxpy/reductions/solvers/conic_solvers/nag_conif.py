@@ -32,6 +32,7 @@ class NAG(ConicSolver):
 
     MIP_CAPABLE = False
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC]
+    REQUIRED_MODULES = ("naginterfaces.library.opt",)
 
     # Map of NAG status to CVXPY status
     STATUS_MAP = {0: s.OPTIMAL,
@@ -52,7 +53,7 @@ class NAG(ConicSolver):
         """The name of the solver.
         """
         return s.NAG
-    
+
     def supports_quad_obj(self) -> bool:
         """NAG supports quadratic objective.
         """
@@ -82,9 +83,6 @@ class NAG(ConicSolver):
         data = dict()
         inv_data = dict()
         inv_data[self.VAR_ID] = problem.x.id
-
-        if not problem.formatted:
-            problem = self.format_constraints(problem, None)
         data[s.PARAM_PROB] = problem
         data[self.DIMS] = problem.cone_dims
         inv_data[self.DIMS] = problem.cone_dims
@@ -254,7 +252,7 @@ class NAG(ConicSolver):
             opt.handle_opt_set(handle, "Monitoring File = 6")
             opt.handle_opt_set(handle, "Monitoring Level = 2")
 
-        
+
         # use_quad_obj is only for canonicalization
         if "use_quad_obj" in solver_opts:
             del solver_opts["use_quad_obj"]
@@ -293,7 +291,7 @@ class NAG(ConicSolver):
         opt.handle_free(handle)
 
         return {'status': status, 'sln': sln}
-    
+
     def cite(self, data):
         """Returns bibtex citation for the solver.
 

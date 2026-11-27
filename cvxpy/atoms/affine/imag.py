@@ -13,7 +13,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import Tuple
 
 import numpy as np
 
@@ -31,7 +30,14 @@ class imag(AffAtom):
         """
         return np.imag(values[0])
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def is_incr(self, idx) -> bool:
+        # Preserve DCP compositions with curvature in the real part.
+        return True
+
+    def is_decr(self, idx) -> bool:
+        return False
+
+    def shape_from_args(self) -> tuple[int, ...]:
         """Returns the shape of the expression.
         """
         return self.args[0].shape

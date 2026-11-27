@@ -9,7 +9,7 @@ Solve method options
 The ``solve`` method takes optional arguments that let you change how CVXPY
 parses and solves the problem.
 
-.. function:: solve(solver=None, verbose=False, gp=False, qcp=False, requires_grad=False, enforce_dpp=False, ignore_dpp=False, **kwargs)
+.. function:: solve(solver=None, warm_start=True, verbose=False, gp=False, qcp=False, requires_grad=False, enforce_dpp=False, ignore_dpp=False, **kwargs)
 
    Solves the problem using the specified method.
 
@@ -21,7 +21,10 @@ parses and solves the problem.
    :param solver_path:  The solvers to use with optional arguments.
             The function tries the solvers in the given order and
             returns the first solver's solution that succeeds.
-   :type solver_path: list of (str, dict) tuples or strings, optional   
+   :type solver_path: list of (str, dict) tuples or strings, optional
+   :param warm_start: Allow the solver to reuse information from a previous solve when
+        supported. Defaults to ``True``. See :ref:`solver-warm-start` for details.
+   :type warm_start: bool, optional
    :param verbose:  Overrides the default of hiding solver output.
    :type verbose: bool, optional
    :param gp:  If ``True``, parses the problem as a disciplined geometric program instead of a disciplined convex program.
@@ -95,7 +98,7 @@ The table below shows the types of problems the supported solvers can handle.
 +----------------+----+----+------+-----+-----+-----+-----+
 | `GUROBI`_      | X  | X  | X    |     |     |     | X   |
 +----------------+----+----+------+-----+-----+-----+-----+
-| `MOREAU`_      | X  | X  | X    |     | X   | X   |     |
+| `MOREAU`_      | X  | X  | X    | X   | X   | X   |     |
 +----------------+----+----+------+-----+-----+-----+-----+
 | `MOSEK`_       | X  | X  | X    | X   | X   | X   | X** |
 +----------------+----+----+------+-----+-----+-----+-----+
@@ -247,6 +250,8 @@ For example, ``problem.solver_stats.solve_time`` gives the time it took the solv
     or ``iinfitem.mio_num_relax``. In addition, ``problem.solver_stats.extra_stats`` includes ``liinfitem.mio_intpnt_iter`` and ``liinfitem.mio_simplex_iter``.
     For more information, please visit https://docs.mosek.com/latest/pythonapi/constants.html
 
+.. _solver-warm-start:
+
 Warm start
 ----------
 
@@ -291,6 +296,13 @@ warm start would only be a good initial point.
 
 Warm start can also be used to provide an initial guess the first time a problem is solved.
 The initial guess is constructed from the ``value`` field of the problem variables.
+
+.. note::
+   As of now, this initial-guess behavior is not implemented for most solver
+   backends. Setting a variable's ``value`` before the first solve currently
+   has no effect on the result. See `#1355
+   <https://github.com/cvxpy/cvxpy/issues/1355>`_ for details and status.
+
 If the same problem is solved a second time, the initial guess is constructed from the
 cached previous solution as described above (rather than from the ``value`` field).
 
@@ -618,22 +630,24 @@ Here is the complete list of solver options.
     ``'max_iters'``
         maximum number of iterations (default: 2500).
 
+    ``'eps_abs'``
+        absolute convergence tolerance (default: 1e-5).
+
+    ``'eps_rel'``
+        relative convergence tolerance (default: 1e-5).
+
     ``'eps'``
-        convergence tolerance (default: 1e-4).
+        legacy alias for setting both ``eps_abs`` and ``eps_rel`` at once
+        (SCS < 3.0 exposed a single tolerance). Prefer ``eps_abs`` and
+        ``eps_rel``.
 
     ``'alpha'``
         relaxation parameter (default: 1.8).
 
     ``'acceleration_lookback'``
-        Anderson Acceleration parameter for SCS 2.0 and higher. This can be any positive or negative integer;
-        its default value is 10. See `this page of the SCS documentation <https://www.cvxgrp.org/scs/algorithm/acceleration.html#in-scs>`_
+        Anderson Acceleration parameter for SCS. This can be any positive or negative integer;
+        its default value is 10. See `the SCS documentation <https://www.cvxgrp.org/scs/algorithm/acceleration.html#in-scs>`_
         for more information.
-
-    .. warning::
-        The value of this parameter often effects whether or not SCS 2.X will converge to an accurate solution.
-        If you don't *explicitly* set ``acceleration_lookback`` and SCS 2.X fails to converge, then CVXPY
-        will raise a warning and try to re-solve the problem with ``acceleration_lookback=0``.
-        No attempt will be made to re-solve with problem if you have SCS version 3.0 or higher.
 
     ``'scale'``
         balance between minimizing primal and dual residual (default: 5.0).
@@ -654,41 +668,42 @@ Here is the complete list of solver options.
 .. info:: `CBC`_ options
     :collapsible:
 
-    Cut-generation through `CGL`_
+    CVXPY's CBC interface is built on `CyLP`_. The options that CVXPY forwards
+    are the ones exposed as attributes on CyLP's ``CyClpSimplex`` (`CLP`_) and
+    ``CyCbcModel`` (`CBC`_) objects. Cut generators such as ``GomoryCuts`` are
+    *not* configurable through this interface; passing them has no effect.
 
-    General remarks:
-        - some of these cut-generators seem to be buggy (observed problems with AllDifferentCuts, RedSplitCuts, LandPCuts, PreProcessCuts)
-        - a few of these cut-generators will generate noisy output even if ``'verbose=False'``
+    The following options configure the `CLP`_ simplex solver, which is used
+    directly for continuous (LP) problems and for the relaxations solved inside
+    the `CBC`_ branch-and-cut process. They are passed as keyword arguments:
 
-    The following cut-generators are available:
-        ``GomoryCuts``, ``MIRCuts``, ``MIRCuts2``, ``TwoMIRCuts``, ``ResidualCapacityCuts``, ``KnapsackCuts`` ``FlowCoverCuts``, ``CliqueCuts``, ``LiftProjectCuts``, ``AllDifferentCuts``, ``OddHoleCuts``, ``RedSplitCuts``, ``LandPCuts``, ``PreProcessCuts``, ``ProbingCuts``, ``SimpleRoundingCuts``.
+    ``'logLevel'``
+        controls the verbosity of the solver output (``0`` is silent). This is
+        also set for you by the ``verbose`` flag.
 
-    ``'CutGenName'``
-        if cut-generator is activated (e.g. ``'GomoryCuts=True'``)
+    ``'dualTolerance'``
+        the tolerance used to decide dual feasibility of the simplex solver.
 
-    ``'integerTolerance'``
-        an integer variable is deemed to be at an integral value if it is no further than this value (tolerance) away
+    ``'primalTolerance'``
+        the tolerance used to decide primal feasibility of the simplex solver.
 
-    ``'maximumSeconds'``
-        stop after given amount of seconds
+    ``'maxNumIteration'``
+        the maximum number of simplex iterations.
 
-    ``'maximumNodes'``
-        stop after given maximum number of nodes
+    ``'scaling'``
+        the scaling mode passed to CLP (an integer, e.g. ``0`` to disable).
 
-    ``'maximumSolutions'``
-        stop after evalutation x number of solutions
+    ``'optimizationDirection'``
+        the optimization direction, e.g. ``'min'`` or ``'max'``.
 
-    ``'numberThreads'``
-        sets the number of threads
+    ``'presolve'``
+        controls CLP's presolve for continuous problems, e.g. ``'off'`` to
+        disable it.
 
-    ``'allowableGap'``
-        returns a solution if the gap between the best known solution and the best possible solution is less than this value.
-
-    ``'allowableFractionGap'``
-        returns a solution if the gap between the best known solution and the best possible solution is less than this fraction.
-
-    ``'allowablePercentageGap'``
-        returns if the gap between the best known solution and the best possible solution is less than this percentage.
+    For mixed-integer problems, any additional keyword argument is set as an
+    attribute on the underlying `CBC`_ ``CyCbcModel`` object. Whether a given
+    name takes effect depends on the attributes that CyLP exposes; see the
+    `CyLP`_ source for the current list.
 
 .. info:: `COPT`_ options:
     :collapsible:
@@ -727,7 +742,7 @@ Here is the complete list of solver options.
 
     * **Please note**: All options should be listed as key-value pairs within the ``'scipy_options'`` dictionary, and there should not be a nested dictionary called options. Some of the methods have different parameters, so please check the parameters for the method you wish to use, e.g., for method = 'highs-ipm'. Also, note that the 'integrality' and 'bounds' options should never be specified within ``'scipy_options'`` and should instead be specified using CVXPY.
 
-    * The main advantage of this solver is its ability to use the `HiGHS`_ LP and MIP solvers, which are coded in C++. However, these require versions of SciPy larger than 1.6.1 and 1.9.0, respectively. To use the `HiGHS`_ LP solvers, simply set the method parameter to 'highs-ds' (for dual-simplex), 'highs-ipm' (for interior-point method) or 'highs' (which will choose either 'highs-ds' or 'highs-ipm' for you). To use the `HiGHS`_ MIP solver, leave the method parameter unspecified or set it explicitly to 'highs'.
+    * The main advantage of this solver is its ability to use the `HiGHS`_ LP and MIP solvers, which are coded in C++. CVXPY uses these by default: the default LP method is ``highs``, and mixed-integer LPs are solved with ``highs`` as well. You can choose a specific LP algorithm by setting the method parameter to 'highs-ds' (dual-simplex), 'highs-ipm' (interior-point) or leaving it at 'highs' (which picks a default HiGHS algorithm).
 
 .. info:: `PDLP`_ options:
     :collapsible:
@@ -815,7 +830,7 @@ Here is the complete list of solver options.
     ``'eps_rel'``
         relative accuracy (default: 1e-9).
 
-    For others see `PIQP documentation <https://predict-epfl.github.io/piqp/interfaces/settings>`_.
+    For others see `PIQP documentation <https://predict-epfl.github.io/piqp/api/settings>`_.
 
 
 .. info:: `HIGHS`_ options:
@@ -941,8 +956,9 @@ will be the same as the class variable ``SUPPORTED_CONSTRAINTS``.
 .. _MOSEK: https://www.mosek.com/
 .. _MOREAU: https://optimalintellect.com/
 .. _MPAX: https://github.com/MIT-Lu-Lab/MPAX
-.. _CBC: https://projects.coin-or.org/Cbc
-.. _CGL: https://projects.coin-or.org/Cgl
+.. _CBC: https://github.com/coin-or/Cbc
+.. _CLP: https://github.com/coin-or/Clp
+.. _CyLP: https://github.com/coin-or/CyLP
 .. _CPLEX: https://www.ibm.com/docs/en/icos
 .. _NAG: https://nag.com/mathematical-optimization/
 .. _OSQP: https://osqp.org/

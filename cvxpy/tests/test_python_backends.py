@@ -1,7 +1,7 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable
 
 import numpy as np
 import pytest
@@ -17,6 +17,7 @@ from cvxpy.lin_ops.backends import (
     TensorRepresentation,
     get_backend,
 )
+from cvxpy.lin_ops.backends.base import _deduplicate_parametric_entries
 from cvxpy.lin_ops.backends.coo_backend import (
     _build_interleaved_mul,
     _build_interleaved_rmul,
@@ -24,6 +25,7 @@ from cvxpy.lin_ops.backends.coo_backend import (
     _kron_eye_r,
     _kron_nd_structure_mul,
     _kron_nd_structure_rmul,
+    coo_mul_elem,
 )
 from cvxpy.lin_ops.backends.scipy_backend import (
     _apply_nd_kron_structure_mul,
@@ -33,6 +35,7 @@ from cvxpy.lin_ops.backends.scipy_backend import (
     _expand_parametric_slices_mul,
     _expand_parametric_slices_rmul,
 )
+from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
 
 
 @dataclass
@@ -117,6 +120,57 @@ def test_build_matrix_order(backend_name):
     # Test invalid order
     with pytest.raises(ValueError, match="order must be 'F' or 'C'"):
         backend.build_matrix([lin_op], order='INVALID')
+
+
+@pytest.mark.parametrize(
+    "backend_name",
+    [s.SCIPY_CANON_BACKEND, s.COO_CANON_BACKEND, s.RUST_CANON_BACKEND],
+)
+def test_matmul_with_parametric_expression_lhs(backend_name):
+    """Stuffing (A @ p) @ x must keep every entry of A.
+
+    Regression test: reshaping a parametric matmul lhs deduplicated entries
+    by param_idx, silently dropping all but one entry of A per parameter.
+    """
+    if backend_name == s.RUST_CANON_BACKEND:
+        pytest.importorskip("cvxpy_rust")
+
+    p = cp.Parameter(3)
+    p.value = np.array([1.0, 2.0, 3.0])
+    x = cp.Variable(3)
+    A = np.tril(np.ones((3, 3)))
+    prob = cp.Problem(cp.Minimize((A @ p) @ x + cp.sum_squares(x)))
+    c = prob.get_problem_data(cp.CLARABEL, canon_backend=backend_name)[0]["c"]
+    np.testing.assert_allclose(c[:3], A @ p.value)
+
+    # Entries duplicated by broadcasting the parameter must also be kept.
+    q = cp.Parameter(2)
+    q.value = np.array([1.0, 2.0])
+    y = cp.Variable(2)
+    prob = cp.Problem(cp.Minimize(cp.sum(cp.broadcast_to(q, (2, 2)) @ y) + cp.sum_squares(y)))
+    c = prob.get_problem_data(cp.CLARABEL, canon_backend=backend_name)[0]["c"]
+    np.testing.assert_allclose(c[:2], 2 * q.value)
+
+
+def test_deduplicate_parametric_entries():
+    """Collapse identical copies, but reject different coefficients."""
+    data, param_idx, positions = _deduplicate_parametric_entries(
+        data=np.array([1.0, 1.0, 2.0]),
+        param_idx=np.array([0, 0, 1]),
+        positions=np.array([0, 0, 1]),
+        num_positions=2,
+    )
+    np.testing.assert_array_equal(data, [1.0, 2.0])
+    np.testing.assert_array_equal(param_idx, [0, 1])
+    np.testing.assert_array_equal(positions, [0, 1])
+
+    with pytest.raises(ValueError, match="different coefficients"):
+        _deduplicate_parametric_entries(
+            data=np.array([1.0, 2.0]),
+            param_idx=np.array([0, 0]),
+            positions=np.array([0, 0]),
+            num_positions=1,
+        )
 
 
 class TestBackendInstance:
@@ -633,11 +687,11 @@ class TestBackends:
         [[1  0  0],
          [0  1  0],
          [0  0  1]]
-        
+
         broadcast_to(x, (2, 3)) means we repeat every variable twice along the row axis.
 
         Thus we expect the following A matrix:
-        
+
          x1 x2 x3
         [[1  0  0],
          [1  0  0],
@@ -681,11 +735,11 @@ class TestBackends:
          x1 x2
         [[1  0],
          [0  1]]
-        
+
         broadcast_to(x, (2, 3)) means we tile the variables three times along the rows
 
         Thus we expect the following A matrix:
-        
+
          x1 x2
         [[1  0],
          [0  1],
@@ -851,7 +905,7 @@ class TestBackends:
         # Axis 2
         (2, list(range(16))),
         # Axis None
-        (None, list(range(16))),
+        (None, [0, 4, 2, 6, 1, 5, 3, 7, 8, 12, 10, 14, 9, 13, 11, 15]),
     ])
     def test_concatenate_nd(self, backend, axis, variable_indices):
         """
@@ -874,15 +928,15 @@ class TestBackends:
             [y110, y111]]
             ]
 
-        The variables are assigned indices as follows:
+        The variables are assigned indices in 'F' order (column-major order):
 
         Indices for x:
-            x000: 0, x001: 1, x010: 2, x011: 3,
-            x100: 4, x101: 5, x110: 6, x111: 7
+            x000: 0, x100: 1, x010: 2, x110: 3,
+            x001: 4, x101: 5, x011: 6, x111: 7
 
         Indices for y:
-            y000: 8, y001: 9, y010: 10, y011: 11,
-            y100: 12, y101: 13, y110: 14, y111: 15
+            y000: 8, y100: 9, y010: 10, y110: 11,
+            y001: 12, y101: 13, y011: 14, y111: 15
 
         How we chose the list of variable_indices:
 
@@ -909,7 +963,7 @@ class TestBackends:
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
 
         For axis=None:
-            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+            [0, 4, 2, 6, 1, 5, 3, 7, 8, 12, 10, 14, 9, 13, 11, 15]
 
         axis=None follows NumPy; arrays are flattened in 'C' order before concatenating,
         so the resulting array is [x000, x001, x010, x011, x100, x101, x110, x111,
@@ -2401,11 +2455,11 @@ class TestND_Backends:
          [0   1   0   0],
          [0   0   1   0],
          [0   0   0   1]]
-        
+
         broadcast_to(x, (2, 3, 2)) means we repeat columns of x three times each subsequently.
 
         Thus we expect the following A matrix:
-        
+
         x11 x21 x12 x22
         [[1   0   0   0],
          [0   1   0   0],
@@ -2992,6 +3046,50 @@ class TestSciPyBackend:
         assert (expected != transposed).nnz == 0
 
 
+@pytest.mark.parametrize("operation", ["divide", "multiply", "sparse_multiply"])
+def test_scipy_constant_scales_parameter_without_repeated_stacking(monkeypatch, operation):
+    n = 37
+    p = cp.Parameter(n)
+    x = cp.Variable(n)
+    d = np.linspace(0.5, 1.5, n)
+    d[1::2] *= -1
+
+    if operation == "divide":
+        rhs = p / d
+        scales = np.reciprocal(d)
+    elif operation == "multiply":
+        rhs = cp.multiply(d, p)
+        scales = d
+    else:
+        d[::4] = 0.0
+        # CVXPY's sparse constants are 2-D; use the same row scales with
+        # the parameter vector reshaped to a column.
+        column = sp.csc_array(d.reshape(-1, 1))
+        rhs = cp.reshape(cp.multiply(column, cp.reshape(p, (n, 1), order="F")), (n,), order="F")
+        scales = d
+
+    original_vstack = sp.vstack
+
+    def check_vstack(blocks, *args, **kwargs):
+        # Other uses of sparse stacking are unrelated to constant scales.
+        if (isinstance(blocks, list) and len(blocks) == n
+                and blocks[0].shape == (n, 1)
+                and all(block is blocks[0] for block in blocks)):
+            pytest.fail("Materialized a constant column once per parameter entry")
+        return original_vstack(blocks, *args, **kwargs)
+
+    monkeypatch.setattr(sp, "vstack", check_vstack)
+    problem = cp.Problem(cp.Minimize(-cp.sum(x)), [x <= rhs])
+    assert problem.is_dpp()
+    for values in (np.arange(n, dtype=float), np.linspace(-3.0, 1.0, n)):
+        p.value = values
+        answer = problem.solve(solver=cp.CLARABEL, canon_backend=cp.SCIPY_CANON_BACKEND)
+        assert problem.status == cp.OPTIMAL
+        expected = scales * values
+        np.testing.assert_allclose(x.value, expected, atol=1e-6, rtol=1e-7)
+        np.testing.assert_allclose(answer, -np.sum(expected), atol=1e-6, rtol=1e-7)
+
+
 class TestCooBackend:
     @staticmethod
     @pytest.fixture()
@@ -3089,6 +3187,63 @@ class TestCooBackend:
         # Column vector in Fortran order: [1, 3, 2, 4]
         expected = data.flatten(order='F').reshape(-1, 1)
         assert np.allclose(tensor.toarray(), expected)
+
+    @pytest.mark.parametrize("shape", [(5,), (2, 3), (2, 3, 4), (2, 1, 3, 4)])
+    @pytest.mark.parametrize("empty", [False, True])
+    def test_get_sparse_data_tensor_all_axes(self, coo_backend, shape, empty):
+        rng = np.random.default_rng(42)
+        dense = rng.normal(size=shape)
+        dense[rng.random(shape) < .6] = 0
+        if empty:
+            dense.fill(0)
+        data = sp.coo_array(dense)
+        tensor = coo_backend.get_data_tensor(data)[-1][-1]
+        assert tensor.m == dense.size
+        assert tensor.n == tensor.param_size == 1
+        np.testing.assert_allclose(tensor.toarray(), dense.reshape(-1, 1, order="F"))
+
+    def test_get_sparse_data_tensor_duplicates(self, coo_backend):
+        data = sp.coo_array(([2., 5., -3.], ([1, 1, 0], [0, 0, 1], [2, 2, 1])),
+                            shape=(2, 3, 4))
+        tensor = coo_backend.get_data_tensor(data)[-1][-1]
+        np.testing.assert_allclose(tensor.toarray(), data.toarray().reshape(-1, 1, order="F"))
+
+    def test_get_sparse_data_tensor_without_densifying(self, coo_backend, monkeypatch):
+        shape = (1000, 2000, 3000)
+        data = sp.coo_array(([7.], ([999], [1999], [2999])), shape=shape)
+
+        def reject_densification(*args, **kwargs):
+            raise AssertionError("Sparse constants must not be densified")
+
+        monkeypatch.setattr(sp.coo_array, "toarray", reject_densification)
+        tensor = coo_backend.get_data_tensor(data)[-1][-1]
+        assert tensor.m == 6_000_000_000
+        np.testing.assert_array_equal(tensor.row, [5_999_999_999])
+        np.testing.assert_array_equal(tensor.data, [7.])
+
+    def test_nd_sparse_constant_constraint(self):
+        sparse_value = sp.coo_array(([7.], ([1], [0], [1])), shape=(2, 2, 2))
+        var = cp.Variable(sparse_value.shape)
+        problem = cp.Problem(cp.Minimize(0), [var == sparse_value])
+        data, _, _ = problem.get_problem_data(cp.CLARABEL, canon_backend=cp.COO_CANON_BACKEND)
+
+        # The known value for var must satisfy the compiled equality.
+        expected = sparse_value.toarray().ravel(order="F")
+        assert data["dims"].zero == expected.size
+        np.testing.assert_allclose(data["A"] @ expected, data["b"])
+
+    def test_batched_lambda_max_auto_backend(self):
+        # Batched lambda_max creates a sparse identity during compilation.
+        # The large parameter selects COO automatically.
+        shape = (50, 5, 5)
+        target = cp.Parameter(shape, value=np.broadcast_to(np.eye(shape[-1]), shape).copy())
+        var = cp.Variable(shape, symmetric=True)
+        problem = cp.Problem(cp.Minimize(cp.sum(cp.lambda_max(var))), [var == target])
+        data, chain, _ = problem.get_problem_data(cp.CLARABEL, enforce_dpp=True)
+
+        stuffing = next(r for r in chain.reductions if isinstance(r, ConeMatrixStuffing))
+        assert stuffing.canon_backend == cp.COO_CANON_BACKEND
+        assert data["dims"].psd == [shape[-1]] * shape[0]
 
     @staticmethod
     @pytest.mark.parametrize("shape,reps", [
@@ -3249,12 +3404,13 @@ class TestCooBackend:
     @staticmethod
     def test_coo_reshape_vs_reshape_parametric_constant():
         """
-        Test that coo_reshape and reshape_parametric_constant behave differently.
+        Test that both reshape paths preserve genuine repeated parameter slices.
 
         - coo_reshape: Uses linear index reshaping, preserves all entries.
           Used by the 'reshape' linop for general reshape operations.
-        - reshape_parametric_constant: Deduplicates based on param_idx for
-          parametric tensors. Used for reshaping constant data in matmul.
+        - reshape_parametric_constant: Uses transformed local positions and only
+          collapses identical broadcast copies at the same position. Used for
+          reshaping constant data in matmul.
 
         This is a regression test for an issue where using parametric reshape
         logic in coo_reshape caused DGP tests to fail with index out of bounds
@@ -3287,11 +3443,15 @@ class TestCooBackend:
         assert np.array_equal(result_linear.row, np.array([0, 1, 0, 1]))
         assert np.array_equal(result_linear.col, np.array([0, 0, 1, 1]))
 
-        # reshape_parametric_constant: deduplicates based on param_idx
+        # reshape_parametric_constant: keeps all entries here. The tensor size
+        # equals the target size, so the duplicated param_idx values are genuine
+        # entries at distinct positions (as in broadcast_to(p, (2, 2)) @ x),
+        # not broadcast copies, and dropping them would lose coefficients.
         result_param = reshape_parametric_constant(tensor, new_m, new_n)
-        assert result_param.nnz == 2, "reshape_parametric_constant should deduplicate"
-        # param_idx 0 -> position (0,0), param_idx 1 -> position (1,0)
-        assert np.array_equal(result_param.param_idx, np.array([0, 1]))
+        assert result_param.nnz == 4, "entries at distinct positions must be kept"
+        assert np.array_equal(result_param.row, np.array([0, 1, 0, 1]))
+        assert np.array_equal(result_param.col, np.array([0, 0, 1, 1]))
+        assert np.array_equal(result_param.param_idx, np.array([0, 0, 1, 1]))
 
     @staticmethod
     def test_get_constant_data_shape_for_broadcast_param():
@@ -3347,6 +3507,69 @@ class TestCooBackend:
             unique_params = np.unique(tensor.param_idx)
             assert len(unique_params) == param_to_size[param_id], \
                 f"Expected {param_to_size[param_id]} unique param_idx, got {len(unique_params)}"
+
+    def test_coo_mul_elem_broadcast_both_constant(self):
+        """Regression test for issue #3257: coo_mul_elem broadcast dimensions.
+
+        When both operands are constant (param_size == 1) and shapes differ
+        (e.g. (T, 1) * (T, T)), scipy's .multiply() broadcasts the result.
+        The output CooTensor must use the broadcasted shape, not lhs shape.
+        """
+        T = 3
+        # lhs: (T, 1) constant tensor with ones in column 0
+        lhs = CooTensor(
+            data=np.ones(T, dtype=np.float64),
+            row=np.arange(T),
+            col=np.zeros(T, dtype=np.intp),
+            param_idx=np.zeros(T, dtype=np.int64),
+            m=T, n=1, param_size=1
+        )
+        # rhs: (T, T) identity constant tensor
+        rows, cols = np.nonzero(np.eye(T))
+        rhs = CooTensor(
+            data=np.ones(T, dtype=np.float64),
+            row=rows.astype(np.intp),
+            col=cols.astype(np.intp),
+            param_idx=np.zeros(T, dtype=np.int64),
+            m=T, n=T, param_size=1
+        )
+        result = coo_mul_elem(lhs, rhs)
+        # Broadcasted result should be (T, T), not (T, 1)
+        assert result.m == T, f"Expected m={T}, got {result.m}"
+        assert result.n == T, f"Expected n={T}, got {result.n}"
+        # The result should be the identity (ones column * identity = identity)
+        dense = result.toarray()
+        np.testing.assert_allclose(dense, np.eye(T))
+
+
+def test_issue_3257_coo_multiply_scalar_param_broadcast():
+    """Regression test for issue #3257: COO backend ValueError on broadcast.
+
+    cp.sum(cp.multiply(scalar_param, matrix_var), axis=1) should work
+    when the COO backend is selected (large total param size).
+    """
+    T = 720  # Large enough to trigger COO backend (param_size >= 1000)
+    p1 = cp.Parameter((1, T), nonneg=True, name="p1")
+    p2 = cp.Parameter((1, T), nonneg=True, name="p2")
+    mc = cp.Parameter(nonneg=True, name="mc", value=40.0)
+
+    np.random.seed(42)
+    p1.value = np.random.rand(1, T)
+    p2.value = np.random.rand(1, T)
+
+    x = cp.Variable((1, T), nonneg=True, name="x")
+    constraints = [x <= p1 + p2]
+    obj = cp.Minimize(cp.sum(cp.multiply(mc, x), axis=1))
+    prob = cp.Problem(obj, constraints)
+
+    # Verify COO backend would be selected
+    param_size = sum(p.size for p in prob.parameters())
+    assert param_size >= 1000, f"param_size={param_size}, need >= 1000 for COO"
+
+    # This should not raise ValueError
+    prob.solve(solver=cp.CLARABEL)
+    assert prob.status == cp.OPTIMAL
+    np.testing.assert_allclose(prob.value, 0.0, atol=1e-6)
 
 
 class TestTransformedParameterReshape:

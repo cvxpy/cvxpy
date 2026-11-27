@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import List, Tuple
 
 import numpy as np
 
@@ -86,7 +85,7 @@ class conv(AffAtom):
         """
         return self.is_atom_convex()
 
-    def shape_from_args(self) -> Tuple[int, int]:
+    def shape_from_args(self) -> tuple[int, int]:
         """The sum of the argument dimensions - 1.
         """
         lh_length = self.args[0].size
@@ -97,7 +96,7 @@ class conv(AffAtom):
         else:
             return (output_length,)
 
-    def sign_from_args(self) -> Tuple[bool, bool]:
+    def sign_from_args(self) -> tuple[bool, bool]:
         """Same as times.
         """
         return u.sign.mul_sign(self.args[0], self.args[1])
@@ -113,8 +112,8 @@ class conv(AffAtom):
         return self.args[0].is_nonpos()
 
     def graph_implementation(
-        self, arg_objs, shape: Tuple[int, ...], data=None
-    ) -> Tuple[lo.LinOp, List[Constraint]]:
+        self, arg_objs, shape: tuple[int, ...], data=None
+    ) -> tuple[lo.LinOp, list[Constraint]]:
         """Convolve two vectors.
 
         Parameters
@@ -187,14 +186,14 @@ class convolve(AffAtom):
         """
         return self.is_atom_convex()
 
-    def shape_from_args(self) -> Tuple[int, int]:
+    def shape_from_args(self) -> tuple[int, int]:
         """The sum of the argument dimensions - 1.
         """
         lh_length = self.args[0].size
         rh_length = self.args[1].size
         return (lh_length + rh_length - 1,)
 
-    def sign_from_args(self) -> Tuple[bool, bool]:
+    def sign_from_args(self) -> tuple[bool, bool]:
         """Same as times.
         """
         return u.sign.mul_sign(self.args[0], self.args[1])
@@ -210,8 +209,8 @@ class convolve(AffAtom):
         return self.args[0].is_nonpos()
 
     def graph_implementation(
-        self, arg_objs, shape: Tuple[int, ...], data=None
-    ) -> Tuple[lo.LinOp, List[Constraint]]:
+        self, arg_objs, shape: tuple[int, ...], data=None
+    ) -> tuple[lo.LinOp, list[Constraint]]:
         """Convolve two vectors.
 
         Parameters

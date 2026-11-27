@@ -1,3 +1,8 @@
 [run]
 source = cvxpy
 relative_files = True
+
+[report]
+exclude_also =
+    # Solver cite() methods just return a static BibTeX string; not worth testing.
+    def cite\(

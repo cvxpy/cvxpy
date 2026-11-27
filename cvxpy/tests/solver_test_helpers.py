@@ -49,7 +49,7 @@ class SolverTestHelper:
             elif attrs['imag']:
                 all_cons.append(x + cp.conj(x) == 0)
             elif attrs['symmetric']:
-                all_cons.append(x == x.T)
+                all_cons.append(x == cp.swapaxes(x, -2, -1))
             elif attrs['diag']:
                 all_cons.append(x - cp.diag(cp.diag(x)) == 0)
             elif attrs['PSD']:
@@ -57,14 +57,14 @@ class SolverTestHelper:
             elif attrs['NSD']:
                 all_cons.append(x << 0)
             elif attrs['hermitian']:
-                all_cons.append(x == cp.conj(x.T))
+                all_cons.append(x == cp.conj(cp.swapaxes(x, -2, -1)))
             elif attrs['boolean'] or attrs['integer']:
                 round_val = np.round(x.value)
                 all_cons.append(x == round_val)
         for con in all_cons:
             viol = con.violation()
             if isinstance(viol, np.ndarray):
-                viol = np.linalg.norm(viol, ord=2)
+                viol = np.linalg.norm(viol)
             self.tester.assertAlmostEqual(viol, 0, places)
 
     def check_dual_domains(self, places) -> None:
@@ -79,6 +79,8 @@ class SolverTestHelper:
                 dual_violation = con.dual_residual
                 if isinstance(con, cp.constraints.SOC):
                     dual_violation = np.linalg.norm(dual_violation)
+                if isinstance(dual_violation, np.ndarray):
+                    dual_violation = np.max(dual_violation)
                 self.tester.assertLessEqual(dual_violation, 10**(-places))
             elif isinstance(con, cp.constraints.Inequality):
                 # TODO: move this to Inequality.dual_violation
@@ -505,6 +507,39 @@ def socp_3(axis) -> SolverTestHelper:
     return sth
 
 
+def socp_4() -> SolverTestHelper:
+    """Three SOC constraints of different sizes, plus an equality.
+
+    The cones have dimension 2, 3 and 4, and the third is inactive at the
+    optimum. Solver interfaces that split the SOC block themselves have to get
+    the per-cone offsets and the ordering of the returned duals right.
+    """
+    x = cp.Variable(shape=(4,))
+    A1 = np.array([[1., -2., 2., -1.]])
+    A2 = np.array([[1., 0., -2., 2.],
+                   [0., -2., 2., 2.]])
+    A3 = np.array([[-2., -2., -2., -1.],
+                   [0., 1., 1., 1.],
+                   [0., 2., -1., 0.]])
+    b3 = np.array([0., 2., 2.])
+    c = np.array([3., 1., 2., -1.])
+    constraints = [cp.constraints.SOC(cp.Constant(1.0), A1 @ x),
+                   cp.constraints.SOC(cp.Constant(2.0), A2 @ x),
+                   cp.constraints.SOC(cp.Constant(3.0), A3 @ x - b3),
+                   cp.sum(x) == 1]
+    obj = cp.Minimize(c @ x)
+    expect_x = np.array([-0.69418893, 0.35428326, 0.58088704, 0.75901863])
+    con_pairs = [(constraints[0], [np.array([1.2]), np.array([1.2])]),
+                 (constraints[1], [np.array([0.88776405]),
+                                   np.array([0.15, -0.875])]),
+                 (constraints[2], [np.array([0.]), np.zeros(3)]),
+                 (constraints[3], -1.65)]
+    var_pairs = [(x, expect_x)]
+    obj_pair = (obj, -1.32552809)
+    sth = SolverTestHelper(obj_pair, var_pairs, con_pairs)
+    return sth
+
+
 def socp_bounds_attr() -> SolverTestHelper:
     x = cp.Variable(bounds=[-1, 1])
     obj_pair = (cp.Minimize(x), -1)
@@ -577,6 +612,38 @@ def sdp_2() -> SolverTestHelper:
     obj_pair = (obj_expr, 52.40127214)
     sth = SolverTestHelper(obj_pair, var_pairs, con_pairs)
     return sth
+
+
+def sdp_batched() -> SolverTestHelper:
+    """
+    Batched PSD constraint: a single Variable of shape (2, 3, 3) constrained
+    to be PSD along the last two axes.
+
+    Equivalent to two independent 3x3 SDP problems packed into one constraint.
+
+    Batch 0: minimize trace(X[0])  s.t. X[0] >> 0, X[0][0,1] >= 1
+      Optimal X[0] has X[0][0,1] = X[0][1,0] = 1, diagonal = [1, 1, 0],
+      giving trace = 2.
+
+    Batch 1: minimize trace(X[1])  s.t. X[1] >> 0, X[1][1,2] >= 2
+      Optimal X[1] has X[1][1,2] = X[1][2,1] = 2, diagonal = [0, 4, 4] (minimum trace PSD),
+      but more precisely the minimum-trace PSD matrix with off-diagonal entry 2 is
+      [[0,0,0],[0,a,2],[0,2,b]] with a*b >= 4, trace = a+b >= 2*sqrt(4) = 4, achieved at a=b=2.
+      So trace = 4.
+
+    Total objective = 2 + 4 = 6.
+    """
+    X = cp.Variable(shape=(2, 3, 3), symmetric=True)
+    constraints = [
+        X >> 0,
+        X[0, 0, 1] >= 1,
+        X[1, 1, 2] >= 2,
+    ]
+    obj = cp.Minimize(cp.trace(X[0]) + cp.trace(X[1]))
+    obj_pair = (obj, 6.0)
+    var_pairs = [(X, None)]
+    con_pairs = [(c, None) for c in constraints]
+    return SolverTestHelper(obj_pair, var_pairs, con_pairs)
 
 
 def expcone_1() -> SolverTestHelper:
@@ -1256,6 +1323,25 @@ class StandardTestLPs:
 class StandardTestQPs:
 
     @staticmethod
+    def test_qp_parameter_update(solver, places: int = 4, **kwargs) -> None:
+        x = cp.Variable(2)
+        p = cp.Parameter(2, nonneg=True, value=[4., 0.25])
+        q = cp.Parameter(2, value=[-4., 2.])
+        a = cp.Parameter(2, value=[1., 1.])
+        b = cp.Parameter(value=2.)
+        objective = cp.Minimize(cp.sum(cp.multiply(p, cp.square(x))) / 2 + q @ x)
+        sth = SolverTestHelper(
+            (objective, -6.75), [(x, [1.5, 0.])], [(x >= 0, [0., 8.]), (a @ x <= b, 3.)],
+        )
+        sth.solve(solver, warm_start=False, **kwargs)
+        p.value, q.value, a.value, b.value = [2., 1.], [-6., 2.], [1., 2.], 1.5
+        for warm_start in (True, False):
+            sth.solve(solver, warm_start=warm_start, enforce_dpp=True, **kwargs)
+            sth.verify_objective(places)
+            sth.verify_primal_values(places)
+            sth.verify_dual_values(places)
+
+    @staticmethod
     def test_qp_0(solver, places: int = 4, duals: bool = True, **kwargs) -> SolverTestHelper:
         sth = qp_0()
         sth.solve(solver, **kwargs)
@@ -1344,6 +1430,17 @@ class StandardTestSOCPs:
         return sth
 
     @staticmethod
+    def test_socp_4(solver, places: int = 4, duals: bool = True, **kwargs) -> SolverTestHelper:
+        sth = socp_4()
+        sth.solve(solver, **kwargs)
+        sth.verify_objective(places)
+        sth.verify_primal_values(places)
+        if duals:
+            sth.check_complementarity(places)
+            sth.verify_dual_values(places)
+        return sth
+
+    @staticmethod
     def test_mi_socp_1(solver, places: int = 4, **kwargs) -> SolverTestHelper:
         sth = mi_socp_1()
         sth.solve(solver, **kwargs)
@@ -1400,6 +1497,18 @@ class StandardTestSDPs:
         sth.verify_objective(places)
         sth.check_primal_feasibility(places)
         sth.verify_primal_values(places)
+        if duals:
+            sth.check_complementarity(places)
+            sth.check_dual_domains(places)
+        return sth
+
+    @staticmethod
+    def test_sdp_batched(solver, places: int = 3, duals: bool = True,
+                         **kwargs) -> SolverTestHelper:
+        sth = sdp_batched()
+        sth.solve(solver, **kwargs)
+        sth.verify_objective(places)
+        sth.check_primal_feasibility(places)
         if duals:
             sth.check_complementarity(places)
             sth.check_dual_domains(places)

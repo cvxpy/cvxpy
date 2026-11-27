@@ -20,7 +20,7 @@ from cvxpy.atoms.elementwise.power import power
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.dnlp2smooth.canonicalizers.power_canon import power_canon
 
-MIN_INIT = 1e-4
+MIN_INIT = 1
 
 def quad_over_lin_canon(expr, args):
     """
@@ -48,5 +48,5 @@ def quad_over_lin_canon(expr, args):
 
         if args[1].value is not None:
             t2.value = np.maximum(args[1].value, MIN_INIT)
-       
+
         return expr.copy([t1, t2]), constraints

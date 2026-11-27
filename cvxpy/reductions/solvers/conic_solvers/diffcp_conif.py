@@ -22,12 +22,12 @@ from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers import scs_conif
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.utilities.citations import CITATION_DICT
-from cvxpy.utilities.versioning import Version
 
 
 class DIFFCP(scs_conif.SCS):
     """An interface for the DIFFCP solver, a differentiable wrapper of SCS and ECOS.
     """
+    REQUIRED_MODULES = ("diffcp",)
 
     # Map of DIFFCP status to CVXPY status.
     STATUS_MAP = {"Solved": s.OPTIMAL,
@@ -81,15 +81,9 @@ class DIFFCP(scs_conif.SCS):
         """
         attr = {}
         if solution["solve_method"] == s.SCS:
-            import scs
-            if Version(scs.__version__) < Version('3.0.0'):
-                status = scs_conif.SCS.STATUS_MAP[solution["info"]["statusVal"]]
-                attr[s.SOLVE_TIME] = solution["info"]["solveTime"]
-                attr[s.SETUP_TIME] = solution["info"]["setupTime"]
-            else:
-                status = scs_conif.SCS.STATUS_MAP[solution["info"]["status_val"]]
-                attr[s.SOLVE_TIME] = solution["info"]["solve_time"]
-                attr[s.SETUP_TIME] = solution["info"]["setup_time"]
+            status = scs_conif.SCS.STATUS_MAP[solution["info"]["status_val"]]
+            attr[s.SOLVE_TIME] = solution["info"]["solve_time"]
+            attr[s.SETUP_TIME] = solution["info"]["setup_time"]
         elif solution["solve_method"] == s.ECOS:
             status = self.STATUS_MAP[solution["info"]["status"]]
             attr[s.SOLVE_TIME] = solution["info"]["solveTime"]
@@ -111,12 +105,12 @@ class DIFFCP(scs_conif.SCS):
             }
             eq_dual_vars = utilities.get_dual_values(
                 solution["y"][:inverse_data[ConicSolver.DIMS].zero],
-                self.extract_dual_value,
+                utilities.extract_dual_value,
                 inverse_data[DIFFCP.EQ_CONSTR]
             )
             ineq_dual_vars = utilities.get_dual_values(
                 solution["y"][inverse_data[ConicSolver.DIMS].zero:],
-                self.extract_dual_value,
+                utilities.extract_dual_value,
                 inverse_data[DIFFCP.NEQ_CONSTR]
             )
             dual_vars = {}
@@ -155,14 +149,8 @@ class DIFFCP(scs_conif.SCS):
         warm_start_tuple = None
 
         if solver_opts["solve_method"] == s.SCS:
-            import scs
-            if Version(scs.__version__) < Version('3.0.0'):
-                # Default to eps = 1e-4 instead of 1e-3.
-                solver_opts["eps"] = solver_opts.get("eps", 1e-4)
-            else:
-                solver_opts['eps_abs'] = solver_opts.get('eps_abs', 1e-5)
-                solver_opts['eps_rel'] = solver_opts.get('eps_rel', 1e-5)
-
+            solver_opts['eps_abs'] = solver_opts.get('eps_abs', 1e-5)
+            solver_opts['eps_rel'] = solver_opts.get('eps_rel', 1e-5)
             if warm_start and solver_cache is not None and \
                     self.name() in solver_cache:
                 warm_start_tuple = (solver_cache[self.name()]["x"],
@@ -182,7 +170,7 @@ class DIFFCP(scs_conif.SCS):
         if solver_cache is not None:
             solver_cache[self.name()] = results
         return results
-    
+
     def cite(self, data):
         """Returns bibtex citation for the solver.
 

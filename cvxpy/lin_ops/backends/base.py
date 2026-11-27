@@ -56,9 +56,10 @@ This module contains the abstract base classes used by all backends:
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Callable, Tuple
+from typing import Any
 
 import numpy as np
 import scipy.sparse as sp
@@ -68,9 +69,9 @@ from cvxpy.lin_ops import LinOp
 
 
 def get_nd_matmul_dims(
-    const_shape: Tuple[int, ...],
-    var_shape: Tuple[int, ...],
-) -> Tuple[int, int, bool]:
+    const_shape: tuple[int, ...],
+    var_shape: tuple[int, ...],
+) -> tuple[int, int, bool]:
     """
     Compute dimensions for ND matmul C @ X.
 
@@ -97,9 +98,9 @@ def get_nd_matmul_dims(
 
 
 def get_nd_rmul_dims(
-    var_shape: Tuple[int, ...],
-    const_shape: Tuple[int, ...],
-) -> Tuple[int, int, int, bool]:
+    var_shape: tuple[int, ...],
+    const_shape: tuple[int, ...],
+) -> tuple[int, int, int, bool]:
     """
     Compute dimensions for ND rmul X @ C.
 
@@ -130,7 +131,7 @@ def get_nd_rmul_dims(
     return batch_size, m, n, const_has_batch
 
 
-def is_batch_varying(const_shape: Tuple[int, ...]) -> bool:
+def is_batch_varying(const_shape: tuple[int, ...]) -> bool:
     """
     Check if constant has batch dimensions with product > 1.
 
@@ -150,6 +151,32 @@ def is_batch_varying(const_shape: Tuple[int, ...]) -> bool:
     if len(const_shape) <= 2:
         return False
     return int(np.prod(const_shape[:-2])) > 1
+
+
+def _deduplicate_parametric_entries(
+    data: np.ndarray,
+    param_idx: np.ndarray,
+    positions: np.ndarray,
+    num_positions: int,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Collapse identical broadcast copies at the same parameter and position.
+
+    Different coefficients at the same key represent genuine additive entries,
+    not broadcast copies, and must not be silently discarded.
+    """
+    keys = param_idx * num_positions + positions
+    _, first_occurrence, inverse = np.unique(
+        keys, return_index=True, return_inverse=True
+    )
+    if not np.array_equal(data, data[first_occurrence[inverse]], equal_nan=True):
+        raise ValueError(
+            "Cannot deduplicate parametric entries with different coefficients."
+        )
+    return (
+        data[first_occurrence],
+        param_idx[first_occurrence],
+        positions[first_occurrence],
+    )
 
 
 class Constant(Enum):
@@ -830,12 +857,9 @@ class PythonCanonBackend(CanonBackend):
         """
         res = self.hstack(lin=lin, view=view)
         axis = lin.data[0]
-        if axis is None:
-            # In this case following numpy, arrays are flattened in 'C' order
-            order = np.arange(sum(np.prod(arg.shape, dtype=int) for arg in lin.args))
-            res.select_rows(order)
-            return res
-
+        # The rows of each argument are in 'F' order. Concatenating the index arrays with
+        # NumPy gives the right permutation for every axis, including axis=None, where
+        # NumPy flattens each argument in 'C' order first.
         offset = 0
         indices = []
         for arg in lin.args:

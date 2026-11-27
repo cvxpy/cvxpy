@@ -89,7 +89,15 @@ class QpSolver(Solver):
             minimize      1/2 x' P x + q' x
             subject to    A x =  b
                           F x <= g
+
+        The rows arrive in stuffing order -- Zero then NonNeg, established by
+        ``order_cone_constraints`` -- and unformatted: ``_build_solving_chain``
+        appends ``ConeFormat`` only for conic solvers. With just those two
+        cones the layout would be the identity anyway, so all it would do is
+        negate the Zero rows, and the split below applies its own signs.
         """
+        # Negating twice would silently flip the equality block.
+        assert not problem.formatted, "QP solvers consume unformatted rows"
         if not self.accepts(problem):
             if _has_unsupported_cones(problem.cone_dims):
                 raise SolverError(

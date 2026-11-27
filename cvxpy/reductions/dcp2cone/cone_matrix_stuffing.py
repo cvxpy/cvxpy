@@ -15,6 +15,8 @@ limitations under the License.
 """
 from __future__ import annotations
 
+from typing import Literal, NamedTuple, TypedDict, overload
+
 import numpy as np
 import scipy.sparse as sp
 
@@ -28,6 +30,7 @@ from cvxpy.constraints import (
     NonNeg,
     PowCone3D,
     PowConeND,
+    SvecPSD,
     Zero,
 )
 from cvxpy.cvxcore.python import canonInterface
@@ -52,6 +55,26 @@ from cvxpy.reductions.utilities import (
     lower_ineq_to_nonneg,
 )
 from cvxpy.utilities.coeff_extractor import CoeffExtractor
+
+
+class DirectConeExtras(TypedDict, total=False):
+    psd_k: int
+    alpha: float
+    alphas: list[float]
+    dim2: int
+
+
+class DirectCone(NamedTuple):
+    """A cone on a subvector of x, with its original constraint's dual ID.
+
+    PSD indices address unscaled upper-triangle entries in column-major
+    order. Solvers recover duals in the removed constraint's svec scaling.
+    """
+
+    kind: Literal['nonneg', 'soc', 'psd_triangle', 'exp', 'power', 'gen_power']
+    indices: list[int]
+    constr_id: int
+    extras: DirectConeExtras
 
 
 class ConeDims:
@@ -88,7 +111,8 @@ class ConeDims:
         self.nonneg = int(sum(c.size for c in constr_map[NonNeg]))
         self.exp = int(sum(c.num_cones() for c in constr_map[ExpCone]))
         self.soc = [int(dim) for c in constr_map[SOC] for dim in c.cone_sizes()]
-        self.psd = [int(dim) for c in constr_map[PSD] for dim in c.cone_sizes()]
+        psd_constrs = constr_map.get(PSD, []) + constr_map.get(SvecPSD, [])
+        self.psd = [int(dim) for c in psd_constrs for dim in c.cone_sizes()]
         p3d = []
         if constr_map[PowCone3D]:
             p3d = np.concatenate([c.alpha.value for c in constr_map[PowCone3D]]).tolist()
@@ -141,6 +165,31 @@ class ConeDims:
             raise KeyError(key)
 
 
+def _permute_rows(A, new_row, sign):
+    """Apply a signed row permutation to a stuffed parameter tensor.
+
+    The tensor stacks the ``x.size + 1`` columns of ``[A | b]`` vertically, so
+    tensor row ``i + m*j`` holds concrete row ``i`` of column ``j``: scattering
+    row ``i`` to ``new_row[i]`` shifts every one of its stored values by the
+    same amount. Returns ``A`` untouched when there is nothing to apply.
+    """
+    m = new_row.shape[0]
+    shift = new_row - np.arange(m)
+    moves = shift.any()
+    if not moves and (sign > 0).all():
+        return A
+    A = A.tocsc(copy=True)
+    row = A.indices % m
+    if moves:
+        # Shifting, rather than recomputing new_row[i] + m*j, keeps the
+        # arithmetic in the index dtype, which scipy requires to match indptr.
+        A.indices = A.indices + shift.astype(A.indices.dtype)[row]
+        # Shifting rows leaves each column's indices out of ascending order.
+        A.sort_indices()
+    A.data = A.data * sign[row]
+    return A
+
+
 # TODO(akshayka): unit tests
 class ParamConeProg(ParamProb):
     """Represents a parameterized cone program
@@ -165,6 +214,7 @@ class ParamConeProg(ParamProb):
                  upper_bounds: np.ndarray | None = None,
                  lb_tensor=None,
                  ub_tensor=None,
+                 dir_cones: list[DirectCone] | None = None,
                  ) -> None:
         # The problem data tensors; q is for the objective, and A for
         # the problem data matrix
@@ -203,10 +253,59 @@ class ParamConeProg(ParamProb):
         # whether this param cone prog has been formatted for a solver
         self.formatted = formatted
 
+        self.dir_cones: list[DirectCone] = dir_cones if dir_cones is not None else []
+
+    def with_row_layout(self, perm):
+        """Return this program with a signed row permutation applied.
+
+        ``perm`` is ``(new_row, sign)`` as returned by
+        :func:`~cvxpy.reductions.cone_format.restruct_permutation`, indexed by
+        the *old* row: row ``i`` becomes row ``new_row[i]``, scaled by
+        ``sign[i]``. ``None`` means there are no constraints, so there is
+        nothing to apply.
+
+        The layout is derived by the ``ConeFormat`` reduction, which is
+        structural; applying it lands here, because how a program stores its
+        constraint data is its own business -- a program that knows a cheaper
+        way to restructure itself overrides this.
+        """
+        return ParamConeProg(
+            self.q,
+            self.x,
+            self.A if perm is None else _permute_rows(self.A, *perm),
+            self.variables,
+            self.var_id_to_col,
+            self.constraints,
+            self.parameters,
+            self.param_id_to_col,
+            P=self.P,
+            formatted=True,
+            lower_bounds=self.lower_bounds,
+            upper_bounds=self.upper_bounds,
+            lb_tensor=self.lb_tensor,
+            ub_tensor=self.ub_tensor,
+            dir_cones=self.dir_cones,
+        )
+
     def is_mixed_integer(self) -> bool:
         """Is the problem mixed-integer?"""
         return self.x.attributes['boolean'] or \
             self.x.attributes['integer']
+
+    # Returns (q, d, A, b): objective vector, offset, constraint matrix, rhs.
+    @overload
+    def apply_parameters(self, id_to_param_value=None, zero_offset: bool = False,
+                         keep_zeros: bool = False,
+                         quad_obj: Literal[False] = False
+                         ) -> tuple[np.ndarray, np.ndarray, sp.csc_array, np.ndarray]: ...
+
+    # With quad_obj=True, also returns the quadratic-objective matrix P first.
+    @overload
+    def apply_parameters(self, id_to_param_value=None, zero_offset: bool = False,
+                         keep_zeros: bool = False,
+                         quad_obj: Literal[True] = ...
+                         ) -> tuple[sp.csc_array, np.ndarray, np.ndarray,
+                                    sp.csc_array, np.ndarray]: ...
 
     def apply_parameters(self, id_to_param_value=None, zero_offset: bool = False,
                          keep_zeros: bool = False, quad_obj: bool = False):
@@ -305,21 +404,12 @@ class ParamConeProg(ParamProb):
         """
         if active_vars is None:
             active_vars = [v.id for v in self.variables]
-        # var id to solution.
         sltn_dict = {}
         for var_id, col in self.var_id_to_col.items():
             if var_id in active_vars:
                 var = self.id_to_var[var_id]
                 value = sltn[col:var.size+col]
-                if var.attributes_were_lowered():
-                    orig_var = var.leaf_of_provenance()
-                    value = cvx_attr2constr.recover_value_for_leaf(
-                        orig_var, value, project=False)
-                    sltn_dict[orig_var.id] = np.reshape(
-                        value, orig_var.shape, order='F')
-                else:
-                    sltn_dict[var_id] = np.reshape(
-                        value, var.shape, order='F')
+                sltn_dict[var_id] = np.reshape(value, var.shape, order='F')
         return sltn_dict
 
     def split_adjoint(self, del_vars=None):
@@ -329,12 +419,6 @@ class ParamConeProg(ParamProb):
         for var_id, delta in del_vars.items():
             var = self.id_to_var[var_id]
             col = self.var_id_to_col[var_id]
-            if var.attributes_were_lowered():
-                orig_var = var.leaf_of_provenance()
-                if cvx_attr2constr.attributes_present(
-                        [orig_var], cvx_attr2constr.SYMMETRIC_ATTRIBUTES):
-                    delta = delta + delta.T - np.diag(np.diag(delta))
-                delta = cvx_attr2constr.lower_value(orig_var, delta)
             var_vec[col:col + var.size] = delta.flatten(order='F')
         return var_vec
 
@@ -410,6 +494,15 @@ class ConeMatrixStuffing(MatrixStuffing):
                 con = ExpCone(x.flatten(order='F'), y.flatten(order='F'), z.flatten(order='F'),
                               constr_id=con.constr_id)
             cons.append(con)
+        if self.canon_backend == s.DIFFENGINE_CANON_BACKEND:
+            # Local import: cone_stuffing imports ParamConeProg from this module.
+            from cvxpy.reductions.solvers.nlp_solvers.diff_engine.cone_stuffing import (
+                stuff_cone_program,
+            )
+            new_prob, inverse_data = stuff_cone_program(
+                problem, cons, inverse_data, self.quad_obj)
+            self._cons_id_map = inverse_data.cons_id_map
+            return new_prob, inverse_data
         # Need to check that intended canonicalization backend still works.
         lowered_con_problem = problem.copy([problem.objective, cons])
         canon_backend = get_canon_backend(lowered_con_problem, self.canon_backend)
@@ -420,9 +513,11 @@ class ConeMatrixStuffing(MatrixStuffing):
         # Reorder constraints to Zero, NonNeg, SOC, PSD, EXP, PowCone3D, PowConeND
         constr_map = group_constraints(cons)
         ordered_cons = constr_map[Zero] + constr_map[NonNeg] + \
-            constr_map[SOC] + constr_map[PSD] + constr_map[ExpCone] + \
+            constr_map[SOC] + constr_map.get(PSD, []) + \
+            constr_map.get(SvecPSD, []) + constr_map[ExpCone] + \
             constr_map[PowCone3D] + constr_map[PowConeND]
         inverse_data.cons_id_map = {con.id: con.id for con in ordered_cons}
+        self._cons_id_map = inverse_data.cons_id_map
 
         inverse_data.constraints = ordered_cons
         # Batch expressions together, then split apart.
@@ -480,11 +575,13 @@ class ConeMatrixStuffing(MatrixStuffing):
                 shape = con_obj.shape
                 dual_value = solution.dual_vars.get(new_con)
                 # TODO rationalize Exponential.
-                if dual_value is not None:
-                    if shape == () or isinstance(con_obj, (ExpCone, SOC)):
-                        dual_vars[old_con] = dual_value
-                    else:
-                        dual_vars[old_con] = np.reshape(dual_value, shape, order="F")
+                if dual_value is None:
+                    continue
+                if shape == () or isinstance(con_obj, (ExpCone, SOC)) or \
+                        (isinstance(con_obj, PSD) and con_obj.num_cones() > 1):
+                    dual_vars[old_con] = dual_value
+                else:
+                    dual_vars[old_con] = np.reshape(dual_value, shape, order="F")
 
         primal_vars = {}
         if solution.status not in s.SOLUTION_PRESENT:
@@ -496,22 +593,6 @@ class ConeMatrixStuffing(MatrixStuffing):
             shape = inverse_data.var_shapes[var_id]
             size = np.prod(shape, dtype=int)
             primal_vars[var_id] = np.reshape(x_opt[offset: offset + size], shape, order="F")
-
-        # Remap dual variables if dual exists (problem is convex).
-        if solution.dual_vars is not None:
-            for old_con, new_con in con_map.items():
-                con_obj = inverse_data.id2cons[old_con]
-                shape = con_obj.shape
-                # TODO rationalize Exponential.
-                if shape == () or isinstance(con_obj, (ExpCone, SOC)) or \
-                        (isinstance(con_obj, PSD) and con_obj.num_cones() > 1):
-                    dual_vars[old_con] = solution.dual_vars[new_con]
-                else:
-                    dual_vars[old_con] = np.reshape(
-                        solution.dual_vars[new_con],
-                        shape,
-                        order='F'
-                    )
 
         return Solution(solution.status, opt_val, primal_vars, dual_vars,
                         solution.attr)

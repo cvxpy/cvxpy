@@ -36,7 +36,7 @@ class TestLogSumExp():
 
         checker = DerivativeChecker(prob)
         checker.run_and_assert()
-       
+
     def test_two(self):
         m = 50
         n = 10
@@ -54,7 +54,7 @@ class TestLogSumExp():
         x.value = x.value + 0.1  # perturb to avoid boundary issues
         checker = DerivativeChecker(prob)
         checker.run_and_assert()
-    
+
     @pytest.mark.parametrize(
     "m, n",
     [(50, 25), (300, 100)]

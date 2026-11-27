@@ -15,9 +15,10 @@ limitations under the License.
 """
 
 from cvxpy.atoms.elementwise.power import power
+from cvxpy.expressions.expression import Expression
 
 
-def inv_pos(x):
+def inv_pos(x) -> Expression:
     """:math:`x^{-1}` for :math:`x > 0`.
     """
     return power(x, -1)

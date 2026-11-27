@@ -259,6 +259,21 @@ quad_over_lin
 .. autoclass:: cvxpy.atoms.quad_over_lin.quad_over_lin
     :show-inheritance:
 
+.. _quantum-cond-entr:
+
+quantum_cond_entr
+------------------------------------
+
+.. autofunction:: cvxpy.quantum_cond_entr
+
+.. _quantum-rel-entr:
+
+quantum_rel_entr
+------------------------------------
+
+.. autoclass:: cvxpy.quantum_rel_entr
+    :show-inheritance:
+
 .. _resolvent:
 
 resolvent

@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import List, Optional, Tuple
 
 import numpy as np
 
@@ -22,6 +21,7 @@ import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.utilities import performance_utils as perf
 
 
 class broadcast_to(AffAtom):
@@ -31,6 +31,19 @@ class broadcast_to(AffAtom):
         self.broadcast_shape = shape
         self._shape = expr.shape
         super(broadcast_to, self).__init__(expr)
+
+    def _preserves_matrix_axes(self) -> bool:
+        arg = self.args[0]
+        return (arg.ndim >= 2 and self.ndim >= 2
+                and self.shape[-2:] == arg.shape[-2:])
+
+    @perf.compute_once
+    def is_psd(self) -> bool:
+        return self._preserves_matrix_axes() and self.args[0].is_psd()
+
+    @perf.compute_once
+    def is_nsd(self) -> bool:
+        return self._preserves_matrix_axes() and self.args[0].is_nsd()
 
     def _supports_cpp(self) -> bool:
         return False
@@ -44,7 +57,7 @@ class broadcast_to(AffAtom):
     def numeric(self, values):
         return np.broadcast_to(values[0], shape=self.broadcast_shape)
 
-    def get_data(self) -> List[Optional[int]]:
+    def get_data(self) -> list[int | None]:
         return [self.broadcast_shape]
 
     def validate_arguments(self) -> None:
@@ -53,15 +66,21 @@ class broadcast_to(AffAtom):
             shape=self.broadcast_shape
         )
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def is_incr(self, idx) -> bool:
+        return True
+
+    def is_decr(self, idx) -> bool:
+        return False
+
+    def shape_from_args(self) -> tuple[int, ...]:
         return self.broadcast_shape
 
     def graph_implementation(
         self,
         arg_objs,
-        shape: Tuple[int, ...],
+        shape: tuple[int, ...],
         data=None,
-    ) -> Tuple[lo.LinOp, List[Constraint]]:
+    ) -> tuple[lo.LinOp, list[Constraint]]:
         """Broadcast an expression to a given shape.
 
         Parameters

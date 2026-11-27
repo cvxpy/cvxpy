@@ -12,7 +12,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import List, Tuple
 
 import numpy as np
 import scipy.sparse as sp
@@ -21,6 +20,7 @@ import cvxpy.utilities as u
 from cvxpy.atoms.elementwise.elementwise import Elementwise
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions import cvxtypes
+from cvxpy.expressions.expression import Expression
 from cvxpy.utilities import bounds as bounds_utils
 from cvxpy.utilities.power_tools import is_power2, pow_high, pow_mid, pow_neg
 
@@ -29,15 +29,16 @@ def _is_const(p) -> bool:
     return isinstance(p, cvxtypes.constant())
 
 
-def power(x, p, max_denom: int = 1024, approx: bool = True):
+def power(x, p, max_denom: int = 1024, approx: bool = True) -> Expression:
     """Factory function for elementwise power.
 
     Parameters
     ----------
     x : Expression
-        The base expression.
-    p : int, float, Fraction, or Parameter
-        The exponent.
+        The base expression, OR a positive constant if p is a variable.
+    p : int, float, Fraction, Parameter, or Expression
+        The exponent. If p is a non-constant Expression and x is a
+        positive constant, uses the identity b**x = exp(x * log(b)).
     max_denom : int
         Maximum denominator for rational approximation.
     approx : bool
@@ -46,8 +47,20 @@ def power(x, p, max_denom: int = 1024, approx: bool = True):
 
     Returns
     -------
-    Power or PowerApprox
+    Power, PowerApprox, or exp expression
     """
+
+    # Cast both to CVXPY expressions for inspection
+    x_expr = Expression.cast(x)
+    p_expr = Expression.cast(p)
+
+    # Case: b**x where b is constant and x is variable
+    # e.g. cp.power(2, x) — dispatch to exp(x * log(b))
+    if x_expr.is_constant() and not p_expr.is_constant():
+        from cvxpy.expressions.expression import _pow_const_base
+        return _pow_const_base(x_expr, p_expr)
+
+    # Default case: x**p where x is variable and p is constant
     if approx:
         return PowerApprox(x, p, max_denom)
     else:
@@ -110,18 +123,21 @@ class Power(Elementwise):
         >>> from cvxpy import Variable, power
         >>> x = Variable()
         >>> g = power(x, 1.001)
-        >>> g.p
+        >>> g.p_used
         Fraction(1001, 1000)
         >>> g
-        Expression(CONVEX, POSITIVE, (1, 1))
+        Expression(CONVEX, NONNEGATIVE, ())
+
         results in a convex atom with implicit constraint :math:`x \geq 0`, while
+
         >>> g = power(x, 1.0001)
-        >>> g.p
+        >>> g.p_used
         1
         >>> g
-        Expression(AFFINE, UNKNOWN, (1, 1))
+        Expression(AFFINE, UNKNOWN, ())
 
-        results in an affine atom with no constraint on ``x``.
+        results in an affine atom with no constraint on ``x``, because the
+        rational approximation to ``1.0001`` is exactly ``1``.
 
     - When :math:`p > 1` and ``p`` is not a power of two, the monotonically increasing version
       of the function with full domain,
@@ -160,7 +176,7 @@ class Power(Elementwise):
         # NB: It is important that the exponent is an attribute, not
         # an argument. This prevents parametrized exponents from being replaced
         # with their logs in Dgp2Dcp.
-        self.p = cvxtypes.expression().cast_to_const(p)
+        self.p = cvxtypes.expression().cast(p)
         if not (isinstance(self.p, cvxtypes.constant()) or
                 isinstance(self.p, cvxtypes.parameter())):
             raise ValueError("The exponent `p` must be either a Constant or "
@@ -179,17 +195,23 @@ class Power(Elementwise):
     def numeric(self, values):
         return np.power(values[0], float(self.p.value))
 
-    def sign_from_args(self) -> Tuple[bool, bool]:
+    def sign_from_args(self) -> tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
-        if self.p.value == 1:
+        # The sign follows the rational approximation p_used rather than the
+        # input exponent, matching is_incr/is_decr and is_atom_convex.
+        # p_used is None exactly when the exponent is non-constant (set in
+        # __init__), in which case p.value may be None and neither branch
+        # below applies, leaving the atom unconditionally positive.
+        p = self.p.value if self.p_used is None else self.p_used
+        if p == 1:
             # Same as input.
             return (self.args[0].is_nonneg(), self.args[0].is_nonpos())
         else:
             # Always positive.
             return (True, False)
 
-    def bounds_from_args(self) -> Tuple[np.ndarray, np.ndarray]:
+    def bounds_from_args(self) -> tuple[np.ndarray, np.ndarray]:
         """Returns bounds for power based on argument bounds."""
         lb, ub = self.args[0].get_bounds()
         p = float(self.p.value) if self.p.value is not None else 1.0
@@ -202,7 +224,14 @@ class Power(Elementwise):
         # depends on the value of the power, not just the sign).
         #
         # p == 0 is affine here.
-        return _is_const(self.p) and (self.p.value <= 0 or self.p.value >= 1)
+        #
+        # Curvature is determined by the rational approximation p_used, not
+        # by the input exponent, so power(x, 1.0001) -- which approximates to
+        # p_used == 1 -- is affine just like power(x, 1). p_used is None
+        # exactly when the exponent is non-constant (set in __init__).
+        if self.p_used is None:
+            return False
+        return self.p_used <= 0 or self.p_used >= 1
 
     def is_atom_concave(self) -> bool:
         """Is the atom concave?
@@ -210,7 +239,12 @@ class Power(Elementwise):
         # Parametrized powers are not allowed for DCP.
         #
         # p == 0 is affine here.
-        return _is_const(self.p) and 0 <= self.p.value <= 1
+        #
+        # As in is_atom_convex, curvature follows the rational approximation
+        # p_used rather than the input exponent.
+        if self.p_used is None:
+            return False
+        return 0 <= self.p_used <= 1
 
     def is_atom_smooth(self) -> bool:
         """Is the atom smooth?"""
@@ -269,7 +303,9 @@ class Power(Elementwise):
     def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """
-        if not _is_const(self.p):
+        # p_used is None exactly when the exponent is non-constant (set in
+        # __init__); guarding on it also narrows p_used to a float below.
+        if self.p_used is None:
             return self.p.is_nonneg() and self.args[idx].is_nonneg()
 
         p = self.p_used
@@ -286,7 +322,9 @@ class Power(Elementwise):
     def is_decr(self, idx) -> bool:
         """Is the composition non-increasing in argument idx?
         """
-        if not _is_const(self.p):
+        # p_used is None exactly when the exponent is non-constant (set in
+        # __init__); guarding on it also narrows p_used to a float below.
+        if self.p_used is None:
             return self.p.is_nonpos() and self.args[idx].is_nonneg()
 
         p = self.p_used
@@ -384,7 +422,7 @@ class Power(Elementwise):
         grad_vals = float(p)*np.power(values[0], float(p)-1)
         return [Power.elemwise_grad_to_diag(grad_vals, rows, cols)]
 
-    def _domain(self) -> List[Constraint]:
+    def _domain(self) -> list[Constraint]:
         """Returns constraints describing the domain of the node.
         """
         if not isinstance(self._p_orig, cvxtypes.expression()):
@@ -399,7 +437,7 @@ class Power(Elementwise):
             return [self.args[0] >= 0]
         else:
             return []
-    
+
     def get_data(self):
         return [self._p_orig, self.max_denom]
 

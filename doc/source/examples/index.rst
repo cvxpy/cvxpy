@@ -24,6 +24,7 @@ Most of these examples are implemented as `Jupyter notebooks
 <https://github.com/jupyter/notebook>`_, while some are implemented as
 interactive `marimo notebooks <https://github.com/marimo-team/marimo>`_.
 
+Additional examples are in the `examples repository <https://github.com/cvxpy/examples>`_.
 
 .. _basic:
 
@@ -32,15 +33,15 @@ Basic examples
 
 *For geometric interpretations of linear and quadratic programs, see the marimo links.*
 
-- :doc:`Least squares <basic/least_squares>` `[.ipynb] <https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/WWW/least_squares.ipynb>`_ `[marimo] <https://marimo.app/gh/marimo-team/learn/main?entrypoint=optimization%2F01_least_squares.py>`_
+- :doc:`Least squares <basic/least_squares>` `[.ipynb] <https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/WWW/least_squares.ipynb>`_ `[marimo] <https://molab.marimo.io/github/marimo-team/learn/blob/main/optimization/01_least_squares.py>`_
 
-- :doc:`Linear program <basic/linear_program>` `[.ipynb] <https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/WWW/linear_program.ipynb>`_ `[marimo] <https://marimo.app/gh/marimo-team/learn/main?entrypoint=optimization%2F02_linear_program.py>`_
+- :doc:`Linear program <basic/linear_program>` `[.ipynb] <https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/WWW/linear_program.ipynb>`_ `[marimo] <https://molab.marimo.io/github/marimo-team/learn/blob/main/optimization/02_linear_program.py>`_
 
-- :doc:`Quadratic program <basic/quadratic_program>` `[.ipynb] <https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/WWW/quadratic_program.ipynb>`_ `[marimo] <https://marimo.app/gh/marimo-team/learn/main?entrypoint=optimization%2F04_quadratic_program.py>`_
+- :doc:`Quadratic program <basic/quadratic_program>` `[.ipynb] <https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/WWW/quadratic_program.ipynb>`_ `[marimo] <https://molab.marimo.io/github/marimo-team/learn/blob/main/optimization/04_quadratic_program.py>`_
 
-- :doc:`Semidefinite program <basic/sdp>` `[.ipynb] <https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/WWW/sdp.ipynb>`_ `[marimo] <https://marimo.app/gh/marimo-team/learn/main?entrypoint=optimization%2F07_sdp.py>`_
+- :doc:`Semidefinite program <basic/sdp>` `[.ipynb] <https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/WWW/sdp.ipynb>`_ `[marimo] <https://molab.marimo.io/github/marimo-team/learn/blob/main/optimization/07_sdp.py>`_
 
-- `Disciplined convex programming <https://marimo.app/gh/marimo-team/learn/main?entrypoint=optimization%2F06_convex_optimization.py>`_
+- `Disciplined convex programming <https://molab.marimo.io/github/marimo-team/learn/blob/main/optimization/06_convex_optimization.py>`_
 
 - :doc:`Mixed-integer quadratic program <basic/mixed_integer_quadratic_program>` `[.ipynb] <https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/WWW/mixed_integer_quadratic_program.ipynb>`_
 
@@ -50,9 +51,9 @@ Basic examples
 Basic applications
 ------------------
 
-- `Minimum-fuel optimal control <https://marimo.app/gh/marimo-team/learn/main?entrypoint=optimization%2F03_minimum_fuel_optimal_control.py>`_
+- `Minimum-fuel optimal control <https://molab.marimo.io/github/marimo-team/learn/blob/main/optimization/03_minimum_fuel_optimal_control.py>`_
 
-- `Markowitz portfolio optimization <https://marimo.app/gh/marimo-team/learn/main?entrypoint=optimization%2F05_portfolio_optimization.py>`_
+- `Markowitz portfolio optimization <https://molab.marimo.io/github/marimo-team/learn/blob/main/optimization/05_portfolio_optimization.py>`_
 
 - `More control <https://colab.research.google.com/github/cvxgrp/cvx_short_course/blob/master/book/docs/intro/notebooks/control.ipynb>`_
 
@@ -86,6 +87,13 @@ Disciplined quasiconvex programming
 - :doc:`Minimum-length least squares <dqcp/minimum_length_least_squares>` `[.ipynb] <https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/dqcp/minimum_length_least_squares.ipynb>`_
 - :doc:`Hypersonic shape design <dqcp/hypersonic_shape_design>` `[.ipynb] <https://colab.research.google.com/github/cvxpy/examples/blob/master/notebooks/dqcp/hypersonic_shape_design.ipynb>`_
 
+.. _dnlp_examples:
+
+Disciplined nonlinear programming
+-----------------------------------
+- :doc:`Path planning with obstacles <dnlp/path_planning_with_obstacles>` `[.ipynb] <https://colab.research.google.com/github/cvxpy/examples/blob/master/nlp_examples/path_planning.ipynb>`_
+- :doc:`Sparse signal recovery <dnlp/sparse_signal_recovery>` `[.ipynb] <https://colab.research.google.com/github/cvxpy/examples/blob/master/nlp_examples/sparse_recovery.ipynb>`_
+- :doc:`Modelling chemical equilibrium <dnlp/chemical_equilibrium>` `[.ipynb] <https://colab.research.google.com/github/cvxpy/examples/blob/master/nlp_examples/chemical_equilibrium.ipynb>`_
 
 .. _derivative-examples:
 

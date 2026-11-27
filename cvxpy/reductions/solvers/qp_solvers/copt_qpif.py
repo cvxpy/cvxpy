@@ -5,6 +5,7 @@ import numpy as np
 import scipy.sparse as sp
 
 import cvxpy.settings as s
+from cvxpy.error import SolverError
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
@@ -18,6 +19,7 @@ class COPT(QpSolver):
     # Solve capabilities
     MIP_CAPABLE = True
     BOUNDED_VARIABLES = True
+    REQUIRED_MODULES = ("coptpy",)
 
     # Keyword arguments for the CVXPY interface.
     INTERFACE_ARGS = ["save_file", "reoptimize"]
@@ -27,13 +29,16 @@ class COPT(QpSolver):
                   1: s.OPTIMAL,             # optimal
                   2: s.INFEASIBLE,          # infeasible
                   3: s.UNBOUNDED,           # unbounded
-                  4: s.INF_OR_UNB,          # infeasible or unbounded
+                  4: s.INFEASIBLE_OR_UNBOUNDED,  # infeasible or unbounded
                   5: s.SOLVER_ERROR,        # numerical
                   6: s.USER_LIMIT,          # node limit
                   7: s.OPTIMAL_INACCURATE,  # imprecise
                   8: s.USER_LIMIT,          # time out
                   9: s.SOLVER_ERROR,        # unfinished
-                  10: s.USER_LIMIT          # interrupted
+                  10: s.USER_LIMIT,         # interrupted
+                  11: s.USER_LIMIT,         # iteration limit
+                  20: s.OPTIMAL,            # local optimal
+                  21: s.INFEASIBLE          # local infeasible
                  }
 
     def name(self):
@@ -169,8 +174,7 @@ class COPT(QpSolver):
                 vtype[data[s.INT_IDX]] = copt.COPT.INTEGER
 
         # Load matrix data
-        # TODO remove `sp.csc_matrix` when COPT starts supporting sparray
-        model.loadMatrix(q, sp.csc_matrix(Amat), lhs, rhs, lb, ub, vtype)
+        model.loadMatrix(q, Amat.tocsc(), lhs, rhs, lb, ub, vtype)
 
         # Load Q data
         if P.count_nonzero():
@@ -208,6 +212,11 @@ class COPT(QpSolver):
                 solution[s.VALUE] = model.objval
                 solution[s.PRIMAL] = np.array(model.getValues())
                 solution['y'] = -np.array(model.getDuals())
+        except copt.CoptError as e:
+            # Report COPT's own message (e.g. a size-limited license)
+            # unless a solution was found before the error.
+            if not (model.haslpsol or model.hasmipsol):
+                raise SolverError(f"Solver '{self.name()}' failed: {e}") from e
         except Exception:
             pass
 

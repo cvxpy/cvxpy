@@ -12,6 +12,7 @@ from cvxpy.utilities.citations import CITATION_DICT
 
 class OSQP(QpSolver):
     """QP interface for the OSQP solver"""
+    REQUIRED_MODULES = ("osqp",)
 
     # Map of OSQP status to CVXPY status.
     # Note: Status map has changed in versions >= 1
@@ -40,8 +41,7 @@ class OSQP(QpSolver):
         return s.OSQP
 
     def import_solver(self) -> None:
-        import osqp
-        osqp
+        import osqp  # noqa: F401
 
     def extract_duals_from_solution_attribute(
             self, solution_attribute, inverse_data
@@ -94,7 +94,7 @@ class OSQP(QpSolver):
                        solver_cache=None):
         import osqp
         is_pre_v1 = float(osqp.__version__.split('.')[0]) < 1
-        
+
         P = data[s.P]
         q = data[s.Q]
         A = sp.vstack([data[s.A], data[s.F]]).tocsc()

@@ -16,16 +16,17 @@ limitations under the License.
 
 # The implementation of partial_transpose is due to @duguyipiao.
 
-from typing import Optional, Tuple
 
 import numpy as np
 import scipy.sparse as sp
 from numpy.lib.array_utils import normalize_axis_index
 
+from cvxpy.atoms.affine.wraps import hermitian_wrap, symmetric_wrap
 from cvxpy.atoms.atom import Atom
+from cvxpy.expressions.expression import Expression
 
 
-def _term(expr, i: int, j: int, dims: Tuple[int], axis: Optional[int] = 0):
+def _term(expr, i: int, j: int, dims: tuple[int], axis: int | None = 0):
     """Helper function for partial transpose.
 
     Parameters
@@ -46,10 +47,10 @@ def _term(expr, i: int, j: int, dims: Tuple[int], axis: Optional[int] = 0):
     # in the system we want to transpose.
     # This function returns the (i,j)-th term in the sum, namely
     # (I ⊗ |i><j| ⊗ I) x (I ⊗ |i><j| ⊗ I).
-    a = sp.coo_matrix(([1.0], ([0], [0])))
+    a = sp.coo_array(([1.0], ([0], [0])))
     for (i_axis, dim) in enumerate(dims):
         if i_axis == axis:
-            v = sp.coo_matrix(([1], ([i], [j])), shape=(dim, dim))
+            v = sp.coo_array(([1], ([i], [j])), shape=(dim, dim))
             a = sp.kron(a, v)
         else:
             eye_mat = sp.eye_array(dim)
@@ -57,7 +58,7 @@ def _term(expr, i: int, j: int, dims: Tuple[int], axis: Optional[int] = 0):
     return a @ expr @ a
 
 
-def partial_transpose(expr, dims: Tuple[int, ...], axis: Optional[int] = 0):
+def partial_transpose(expr, dims: tuple[int, ...], axis: int | None = 0) -> Expression:
     """
     Assumes :math:`\\texttt{expr} = X_1 \\otimes ... \\otimes X_n` is a 2D Kronecker
     product composed of :math:`n = \\texttt{len(dims)}` implicit subsystems.
@@ -78,12 +79,17 @@ def partial_transpose(expr, dims: Tuple[int, ...], axis: Optional[int] = 0):
         The index of the subsystem to be transposed
         from the tensor product that defines expr.
     """
-    expr = Atom.cast_to_const(expr)
+    expr = Atom.cast(expr)
     if expr.ndim < 2 or expr.shape[0] != expr.shape[1]:
         raise ValueError("partial_transpose only supports 2-d square arrays.")
     if expr.shape[0] != np.prod(dims):
         raise ValueError("Dimension of system doesn't correspond to dimension of subsystems.")
     axis = normalize_axis_index(axis, len(dims))
-    return sum([
+    result = sum([
         _term(expr, i, j, dims, axis) for i in range(dims[axis]) for j in range(dims[axis])
     ])
+    if expr.is_symmetric():
+        return symmetric_wrap(result)
+    if expr.is_hermitian():
+        return hermitian_wrap(result)
+    return result

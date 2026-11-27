@@ -19,21 +19,10 @@ import pytest
 
 import cvxpy as cp
 from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS
+from cvxpy.tests.test_conic_solvers import is_knitro_available
 
 
-def is_knitro_available():
-    """Check if KNITRO is installed and a license is available."""
-    import os
-    if 'KNITRO' not in INSTALLED_SOLVERS:
-        return False
-    # Only run KNITRO tests if license env var is explicitly set
-    # This prevents hanging in CI when KNITRO is installed but not licensed
-    return bool(
-        os.environ.get('ARTELYS_LICENSE') or
-        os.environ.get('ARTELYS_LICENSE_NETWORK_ADDR')
-    )
-
-
+@pytest.mark.knitro
 @pytest.mark.skipif(
     not is_knitro_available(),
     reason='KNITRO is not installed or license is not available.'
@@ -45,7 +34,7 @@ class TestKNITROInterface:
         """Test that KNITRO can solve a basic NLP problem."""
         x = cp.Variable()
         prob = cp.Problem(cp.Minimize((x - 2) ** 2), [x >= 1])
-        prob.solve(solver=cp.KNITRO, nlp=True)
+        prob.solve(solver=cp.KNITRO, nlp=True, verbose=False)
         assert prob.status == cp.OPTIMAL
         assert np.isclose(x.value, 2.0, atol=1e-5)
 
@@ -195,7 +184,7 @@ class TestKNITROInterface:
         prob = cp.Problem(cp.Minimize(x[0]**2 + x[1]**2), [x[0] + x[1] >= 1])
 
         # Use a reasonable maxit value that allows convergence
-        prob.solve(solver=cp.KNITRO, nlp=True, maxit=100)
+        prob.solve(solver=cp.KNITRO, nlp=True, maxit=100, verbose=False)
         assert prob.status == cp.OPTIMAL
         assert np.allclose(x.value, [0.5, 0.5], atol=1e-4)
 
@@ -209,7 +198,7 @@ class TestKNITROInterface:
         )
 
         # With only 1 iteration, solver should hit the limit
-        prob.solve(solver=cp.KNITRO, nlp=True, maxit=1)
+        prob.solve(solver=cp.KNITRO, nlp=True, maxit=1, verbose=False)
         # Status should be USER_LIMIT (iteration limit reached)
         assert prob.status in [cp.USER_LIMIT, cp.OPTIMAL_INACCURATE, cp.OPTIMAL]
 
@@ -245,7 +234,7 @@ class TestKNITROInterface:
         prob = cp.Problem(cp.Minimize((x - 2) ** 2), [x >= 1])
 
         with pytest.raises(ValueError, match="Unknown KNITRO option"):
-            prob.solve(solver=cp.KNITRO, nlp=True, unknown_option=123)
+            prob.solve(solver=cp.KNITRO, nlp=True, verbose=False, unknown_option=123)
 
     def test_knitro_solver_stats(self):
         """Test that solver stats (num_iters, solve_time) are available."""
@@ -253,7 +242,7 @@ class TestKNITROInterface:
         x.value = np.array([1.0, 1.0])
         prob = cp.Problem(cp.Minimize(x[0]**2 + x[1]**2), [x[0] + x[1] >= 1])
 
-        prob.solve(solver=cp.KNITRO, nlp=True)
+        prob.solve(solver=cp.KNITRO, nlp=True, verbose=False)
 
         assert prob.status == cp.OPTIMAL
         assert prob.solver_stats is not None
@@ -268,7 +257,7 @@ class TestCOPTInterface:
         """Test that COPT can solve a basic NLP problem."""
         x = cp.Variable()
         prob = cp.Problem(cp.Minimize((x - 2) ** 2), [x >= 1])
-        prob.solve(solver=cp.COPT, nlp=True)
+        prob.solve(solver=cp.COPT, nlp=True, verbose=False)
         assert prob.status == cp.OPTIMAL
         assert np.isclose(x.value, 2.0, atol=1e-5)
 
@@ -279,6 +268,6 @@ class TestCOPTInterface:
         prob = cp.Problem(cp.Minimize(x[0]**2 + x[1]**2), [x[0] + x[1] >= 1])
 
         # Use a reasonable maxit value that allows convergence
-        prob.solve(solver=cp.COPT, nlp=True, NLPIterLimit=100)
+        prob.solve(solver=cp.COPT, nlp=True, NLPIterLimit=100, verbose=False)
         assert prob.status == cp.OPTIMAL
         assert np.allclose(x.value, [0.5, 0.5], atol=1e-4)

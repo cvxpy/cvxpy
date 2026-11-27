@@ -13,7 +13,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import Tuple
 
 import numpy as np
 import scipy.sparse as sp
@@ -22,6 +21,7 @@ from cvxpy.atoms.affine.conj import conj
 from cvxpy.atoms.affine.transpose import swapaxes as expr_swapaxes
 from cvxpy.atoms.atom import Atom
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.expressions.expression import ExpressionValue
 
 
 class lambda_max(Atom):
@@ -92,12 +92,12 @@ class lambda_max(Atom):
             raise ValueError("The argument '%s' to lambda_max must resolve to a square matrix."
                              % A.name())
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> tuple[int, ...]:
         """Returns the (row, col) shape of the expression.
         """
         return self.args[0].shape[:-2]
 
-    def sign_from_args(self) -> Tuple[bool, bool]:
+    def sign_from_args(self) -> tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         return (False, False)
@@ -123,7 +123,7 @@ class lambda_max(Atom):
         return False
 
     @property
-    def value(self):
+    def value(self) -> ExpressionValue | None:
         val = self.args[0].value
         if val is None:
             return None

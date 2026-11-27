@@ -223,6 +223,16 @@ html_theme_options = {
             "aliases": [],
         },
         {
+            "version": "https://www.cvxpy.org/version/1.10",
+            "title": "1.10",
+            "aliases": [],
+        },
+        {
+            "version": "https://www.cvxpy.org/version/1.9",
+            "title": "1.9",
+            "aliases": [],
+        },
+        {
             "version": "https://www.cvxpy.org/version/1.8",
             "title": "1.8",
             "aliases": [],

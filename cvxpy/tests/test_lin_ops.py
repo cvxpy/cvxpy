@@ -17,6 +17,8 @@ limitations under the License.
 import numpy as np
 import scipy.sparse as sp
 
+import cvxpy as cp
+from cvxpy.lin_ops import lin_utils as lu
 from cvxpy.lin_ops.lin_op import (
     DENSE_CONST,
     NEG,
@@ -28,11 +30,8 @@ from cvxpy.lin_ops.lin_op import (
 )
 from cvxpy.lin_ops.lin_utils import (
     create_const,
-    create_eq,
-    create_leq,
     create_param,
     create_var,
-    get_expr_vars,
     neg_expr,
     sum_entries,
     sum_expr,
@@ -98,19 +97,6 @@ class test_lin_ops(BaseTest):
         self.assertEqual(add_expr.shape, shape)
         assert len(add_expr.args) == 2
 
-    def test_get_vars(self) -> None:
-        """Test getting vars from an expression.
-        """
-        shape = (5, 4)
-        x = create_var(shape)
-        y = create_var(shape)
-        A = create_const(np.ones(shape), shape)
-        # Expanding dict.
-        add_expr = sum_expr([x, y, A])
-        vars_ = get_expr_vars(add_expr)
-        ref = [(x.data, shape), (y.data, shape)]
-        self.assertCountEqual(vars_, ref)
-
     def test_neg_expr(self) -> None:
         """Test negating an expression.
         """
@@ -121,36 +107,6 @@ class test_lin_ops(BaseTest):
         self.assertEqual(expr.shape, shape)
         self.assertEqual(expr.type, NEG)
 
-    def test_eq_constr(self) -> None:
-        """Test creating an equality constraint.
-        """
-        shape = (5, 5)
-        x = create_var(shape)
-        y = create_var(shape)
-        lh_expr = sum_expr([x, y])
-        value = np.ones(shape)
-        rh_expr = create_const(value, shape)
-        constr = create_eq(lh_expr, rh_expr)
-        self.assertEqual(constr.shape, shape)
-        vars_ = get_expr_vars(constr.expr)
-        ref = [(x.data, shape), (y.data, shape)]
-        self.assertCountEqual(vars_, ref)
-
-    def test_leq_constr(self) -> None:
-        """Test creating a less than or equal constraint.
-        """
-        shape = (5, 5)
-        x = create_var(shape)
-        y = create_var(shape)
-        lh_expr = sum_expr([x, y])
-        value = np.ones(shape)
-        rh_expr = create_const(value, shape)
-        constr = create_leq(lh_expr, rh_expr)
-        self.assertEqual(constr.shape, shape)
-        vars_ = get_expr_vars(constr.expr)
-        ref = [(x.data, shape), (y.data, shape)]
-        self.assertCountEqual(vars_, ref)
-
     def test_sum(self) -> None:
         """Test sum entries op.
         """
@@ -160,3 +116,37 @@ class test_lin_ops(BaseTest):
         self.assertEqual(expr.shape, (1, 1))
         self.assertEqual(len(expr.args), 1)
         self.assertEqual(expr.type, SUM_ENTRIES)
+
+    def test_identity_transpose_reuses_linop(self) -> None:
+        x = lu.create_var((2, 3))
+        self.assertIs(lu.transpose(x, axes=(0, -1)), x)
+
+    def test_constructors(self) -> None:
+        x = lu.create_var((2, 2), var_id=10)
+        y = lu.create_var((2, 2), var_id=11)
+        param = cp.Parameter((2, 2))
+        param.value = np.arange(4).reshape((2, 2))
+        p_op = lu.create_param((2, 2), param)
+
+        self.assertTrue(lu.is_scalar(lu.create_var(tuple())))
+        self.assertEqual(lu.rmul_expr(x, p_op, (2, 2)).type, lu.lo.RMUL)
+        self.assertEqual(lu.multiply(x, y).type, lu.lo.MUL_ELEM)
+        self.assertEqual(lu.kron_r(p_op, x, (4, 4)).type, lu.lo.KRON_R)
+        self.assertEqual(lu.kron_l(x, p_op, (4, 4)).type, lu.lo.KRON_L)
+        self.assertEqual(lu.div_expr(x, lu.create_const(2, (1, 1))).type, lu.lo.DIV)
+        self.assertEqual(lu.promote(lu.create_const(1, (1, 1)), (2, 2)).type, lu.lo.PROMOTE)
+        self.assertEqual(lu.broadcast_to([x, y], (2, 2)).type, lu.lo.BROADCAST_TO)
+        self.assertEqual(lu.trace(x).type, lu.lo.TRACE)
+        self.assertEqual(lu.index(x, (1, 2), (slice(0, 1), slice(None))).type, lu.lo.INDEX)
+        self.assertEqual(lu.conv(p_op, x, (3,)).type, lu.lo.CONV)
+        self.assertEqual(lu.transpose(lu.create_var((3,))).shape, (3,))
+        self.assertEqual(lu.transpose(x).shape, (2, 2))
+        self.assertEqual(lu.transpose(lu.create_var((2, 3, 4)), axes=(2, 0, 1)).shape, (4, 2, 3))
+        self.assertEqual(lu.reshape(x, (4, 1)).type, lu.lo.RESHAPE)
+        self.assertEqual(lu.diag_vec(lu.create_var((2, 1))).shape, (2, 2))
+        self.assertEqual(lu.diag_mat(x).shape, (2, 1))
+        self.assertEqual(lu.upper_tri(x).shape, (1, 1))
+        self.assertEqual(lu.hstack([x, y], (2, 4)).type, lu.lo.HSTACK)
+        self.assertEqual(lu.vstack([x, y], (4, 2)).type, lu.lo.VSTACK)
+        self.assertEqual(lu.concatenate([x, y], (4, 2), axis=0).type, lu.lo.CONCATENATE)
+        self.assertEqual(lu.mul_expr(p_op, x, (2, 2)).type, lu.lo.MUL)

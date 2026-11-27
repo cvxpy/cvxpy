@@ -16,12 +16,12 @@ limitations under the License.
 from __future__ import annotations
 
 import numbers
-from typing import Tuple
 
 from cvxpy.atoms.affine.reshape import reshape
+from cvxpy.expressions.expression import Expression
 
 
-def squeeze(expr, axis: int | Tuple[int, ...] | None = None):
+def squeeze(expr, axis: int | tuple[int, ...] | None = None) -> Expression:
     """
     Squeeze the expression.
 
@@ -41,9 +41,9 @@ def squeeze(expr, axis: int | Tuple[int, ...] | None = None):
 
 
 def _get_squeezed_shape(
-    shape: Tuple[int, ...],
-    axis: int | Tuple[int, ...] | None,
-) -> Tuple[int, ...]:
+    shape: tuple[int, ...],
+    axis: int | tuple[int, ...] | None,
+) -> tuple[int, ...]:
     if axis is None:
         axis = tuple(i for i, d in enumerate(shape) if d == 1)
     else:

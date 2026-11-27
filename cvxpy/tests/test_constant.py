@@ -39,6 +39,155 @@ def test_is_psd() -> None:
     assert psd_wrap(cp.Constant(P)).is_psd()
 
 
+def _rank_one_sparse_block(diagonal, *, scale=1.0, complex_case=False):
+    v = np.array([1., 1j, -1.]) if complex_case else np.ones(3)
+    return sp.block_diag(
+        [sp.diags_array(diagonal), scale * np.outer(v, v.conj())], format="csc"
+    )
+
+
+def _unexpected_sparse_eigensolve(*args, **kwargs):
+    pytest.fail("A strict negative diagonal witness should not require ARPACK.")
+
+
+@pytest.mark.parametrize(("diagonal", "scale", "complex_case"), [
+    pytest.param([-2 * s.EIGVAL_TOL], 1e6, False, id="scaled-rank-one"),
+    pytest.param([-s.EIGVAL_TOL, -1.0], 1.0, False, id="exact-shift-singularity"),
+    pytest.param([np.nextafter(-s.EIGVAL_TOL, -np.inf)], 1.0, True, id="complex-below"),
+])
+def test_is_psd_sparse_negative_diagonal_skips_eigsh(
+    monkeypatch, diagonal, scale, complex_case
+):
+    A = _rank_one_sparse_block(diagonal, scale=scale, complex_case=complex_case)
+    monkeypatch.setattr(sparla, 'eigsh', _unexpected_sparse_eigensolve)
+    assert not cp.Constant(A).is_psd()
+
+
+@pytest.mark.parametrize("diagonal", [0., -0.5 * s.EIGVAL_TOL])
+def test_is_psd_sparse_hermitian_within_tolerance(diagonal):
+    # Nontrivial imaginary off-diagonals and no Gershgorin certificate.
+    A = _rank_one_sparse_block([diagonal], complex_case=True)
+    c = cp.Constant(A)
+    assert c.is_hermitian()
+    assert c.is_psd()
+
+
+@pytest.mark.parametrize("diagonal", [-s.EIGVAL_TOL, np.nextafter(-s.EIGVAL_TOL, np.inf)])
+def test_is_psd_sparse_diagonal_at_cutoff_reaches_eigsh(monkeypatch, diagonal):
+    # A real shift at this eigenvalue can be singular. Test the strict
+    # comparison separately by supplying the exact coordinate eigenpair.
+    A = _rank_one_sparse_block([diagonal])
+    calls = []
+
+    def exact_eigsh(a, **kwargs):
+        calls.append(kwargs["sigma"])
+        eigval = np.array([a[0, 0]])
+        if kwargs.get("return_eigenvectors", True):
+            return eigval, np.eye(a.shape[0], 1)
+        return eigval
+
+    monkeypatch.setattr(sparla, 'eigsh', exact_eigsh)
+    assert cp.Constant(A).is_psd()
+    assert calls == [-s.EIGVAL_TOL]
+
+
+@pytest.mark.parametrize(("entries", "psd"), [
+    pytest.param([-0.75 * s.EIGVAL_TOL] * 2, False, id="combined-negative"),
+    pytest.param([-4 * s.EIGVAL_TOL, 3.5 * s.EIGVAL_TOL], True, id="compensated"),
+])
+def test_is_psd_sparse_duplicate_csc_diagonal(monkeypatch, entries, psd):
+    # Duplicate storage only in A[0, 0]; the other block is all ones.
+    A = sp.csc_array(
+        (np.r_[entries, np.ones(9)], [0, 0] + [1, 2, 3] * 3, [0, 2, 5, 8, 11]),
+        shape=(4, 4),
+    )
+    assert not A.has_canonical_format
+    if not psd:
+        monkeypatch.setattr(sparla, 'eigsh', _unexpected_sparse_eigensolve)
+    assert bool(cp.Constant(A).is_psd()) == psd
+
+
+def test_is_psd_sparse_indefinite_without_negative_diagonal():
+    # Eigenvalues are 7 and -1 (multiplicity 3); no diagonal witness.
+    A = sp.csc_array(np.full((4, 4), 2.0))
+    A.setdiag(1.0)
+    assert not cp.Constant(A).is_psd()
+
+
+def test_strict_sparse_negative_diagonal_witness_does_not_densify(monkeypatch):
+    """Reject a strict witness without allocating a dense copy of the sparse matrix."""
+    A = sp.block_diag([sp.csc_array([[-2 * s.EIGVAL_TOL]]), np.ones((3, 3))], format="csc")
+
+    def forbid_toarray(*args, **kwargs):
+        raise AssertionError("A strict diagonal witness must not densify the sparse matrix")
+
+    monkeypatch.setattr(sp.csc_array, "toarray", forbid_toarray)
+    assert not cp.Constant(A).is_psd()
+
+
+def test_strict_negative_diagonal_witness_sums_duplicate_csc_entries():
+    """An exactly diagonal CSC array must use its mathematical, not stored, diagonal."""
+    tol = s.EIGVAL_TOL
+    A = sp.csc_array(([-0.75 * tol, -0.75 * tol, 1.0], [0, 0, 1], [0, 2, 3]), shape=(2, 2))
+    assert not A.has_canonical_format
+    assert A.diagonal()[0] < -tol
+    assert not cp.Constant(A).is_psd()
+
+
+def _dense_psd_with_large_off_diagonals(n: int) -> np.ndarray:
+    """A positive definite matrix whose Gershgorin check is inconclusive."""
+    A = np.full((n, n), 0.5)
+    np.fill_diagonal(A, 1.0)
+    return A
+
+
+def test_is_psd_dense_uses_pivoted_cholesky(monkeypatch) -> None:
+    """Dense input is certified with pstrf instead of the iterative solver."""
+    import cvxpy.utilities.linalg as linalg
+
+    calls: list[tuple[int, ...]] = []
+    original = linalg._PSTRF_FUNCTIONS[np.float64]
+
+    def counting_pstrf(a):
+        calls.append(a.shape)
+        return original(a)
+
+    monkeypatch.setitem(linalg._PSTRF_FUNCTIONS, np.float64, counting_pstrf)
+
+    assert cp.Constant(_dense_psd_with_large_off_diagonals(8)).is_psd()
+    assert calls, "the dense path must go through the pivoted Cholesky"
+
+
+def test_is_psd_dense_indefinite_is_rejected() -> None:
+    """pstrf reports a non-positive pivot and the fallback confirms it is indefinite."""
+    A = np.array([[1.0, 2.0], [2.0, 1.0]])
+    assert not cp.Constant(A).is_psd()
+
+
+def test_is_psd_dense_singular_is_accepted() -> None:
+    """A singular PSD matrix stops pstrf, and the fallback still certifies it."""
+    v = np.array([1.0, 2.0, 3.0])
+    E = np.eye(3) - np.outer(v, v) / np.inner(v, v)
+    A = E @ np.diag([2.0, 3.0, 4.0]) @ E.T
+    assert np.linalg.matrix_rank(A) == 2
+    assert cp.Constant(A).is_psd()
+
+
+def test_is_psd_dense_float32_is_accepted() -> None:
+    """The float32 LAPACK wrapper is dispatched to as well."""
+    A = _dense_psd_with_large_off_diagonals(8).astype(np.float32)
+    assert cp.Constant(A).is_psd()
+
+
+def test_is_psd_warns_for_large_dense(monkeypatch) -> None:
+    """Order >= 5000 warns and points at psd_wrap."""
+    import cvxpy.utilities.linalg as linalg
+
+    monkeypatch.setattr(linalg, "_PSTRF_WARN_ORDER", 5)
+    with pytest.warns(UserWarning, match="psd_wrap"):
+        assert cp.Constant(_dense_psd_with_large_off_diagonals(6)).is_psd()
+
+
 def test_is_psd_arpack_no_convergence(monkeypatch) -> None:
     """Test that ArpackNoConvergence is augmented with a helpful message."""
     n = 10
@@ -48,10 +197,11 @@ def test_is_psd_arpack_no_convergence(monkeypatch) -> None:
 
     monkeypatch.setattr(sparla, 'eigsh', mock_eigsh)
 
-    # Construct a matrix that bypasses the Gershgorin and diagonal fast paths
-    # so it reaches the ARPACK code path.
-    A = np.full((n, n), 0.5)
-    np.fill_diagonal(A, 1.0)
+    # Construct a sparse matrix that bypasses the Gershgorin and diagonal fast paths
+    # so it reaches the ARPACK code path. Dense matrices are handled with an exact
+    # eigendecomposition and never reach ARPACK.
+    A = sp.csc_array(np.full((n, n), 0.5))
+    A.setdiag(1.0)
 
     with pytest.raises(sparla.ArpackNoConvergence, match="CVXPY note"):
         cp.Constant(A).is_psd()
@@ -90,6 +240,39 @@ def test_prod():
     assert np.allclose(cp.prod(sp.coo_matrix(B)).value, 24)
 
 
+def test_sparse_expression_values_are_sparse_arrays():
+    lhs = cp.Constant(sp.csc_matrix(np.eye(2)))
+    rhs = cp.Constant(np.ones((2, 2)))
+
+    multiply_value = cp.multiply(lhs, rhs).value
+    assert sp.issparse(multiply_value)
+    assert isinstance(multiply_value, sp.sparray)
+    assert not isinstance(multiply_value, sp.spmatrix)
+
+    matmul_value = (lhs @ lhs).value
+    assert sp.issparse(matmul_value)
+    assert isinstance(matmul_value, sp.sparray)
+    assert not isinstance(matmul_value, sp.spmatrix)
+
+
+def test_mutating_source_array_does_not_change_constant():
+    # Mutating the array a Constant was built from must not desynchronize
+    # the constant's value from its cached sign attributes (issue: stale cache).
+    a = np.array([1.0, 2.0])
+    c = cp.Constant(a)
+    assert c.is_nonneg()
+    a[0] = -5.0
+    assert np.allclose(c.value, [1.0, 2.0])
+    assert c.is_nonneg()
+
+    m = sp.csc_array(np.array([[1.0, 0.0], [0.0, 2.0]]))
+    cs = cp.Constant(m)
+    assert cs.is_nonneg()
+    m.data[0] = -3.0
+    assert np.allclose(cs.value.toarray(), [[1.0, 0.0], [0.0, 2.0]])
+    assert cs.is_nonneg()
+
+
 def test_nested_lists():
 
     A = [[1, 2], [3, 4], [5, 6]]
@@ -105,3 +288,32 @@ def test_nested_lists():
     # CVXPY behaviour currenlty is different from NumPy for nested lists,
     # with the order being reversed.
     assert np.allclose(constant_from_lists.value.T, numpy_array)
+
+
+def test_stacking_sparse_constants_with_variables():
+    """hstack, concatenate and bmat accept sparse constants next to variables.
+
+    Each stack combines a 3x3 variable with a random 3x3 sparse constant. For
+    every stack the test sets the variable to a dense value, checks that
+    ``.value`` equals the NumPy stack of the dense equivalents, then solves a
+    problem that fixes the variable to that value and checks the objective
+    (the sum of the stack) against the NumPy result.
+    """
+    rng = np.random.default_rng(0)
+    S = sp.random_array((3, 3), density=0.5, random_state=0, format="csc")
+    S_dense = S.toarray()
+    Xv = rng.normal(size=(3, 3))
+    X = cp.Variable((3, 3))
+    stacks = [
+        (cp.hstack([X, S]), np.hstack([Xv, S_dense])),
+        (cp.concatenate([X, S], axis=None), np.concatenate([Xv, S_dense], axis=None)),
+        (cp.concatenate([X, S], axis=0), np.concatenate([Xv, S_dense], axis=0)),
+        (cp.concatenate([X, S], axis=1), np.concatenate([Xv, S_dense], axis=1)),
+        (cp.bmat([[X, S], [S, X]]), np.block([[Xv, S_dense], [S_dense, Xv]])),
+    ]
+    for expr, expected in stacks:
+        X.value = Xv
+        assert np.allclose(expr.value, expected)
+        prob = cp.Problem(cp.Minimize(cp.sum(expr)), [X == Xv])
+        prob.solve(solver=cp.CLARABEL)
+        assert np.isclose(prob.value, expected.sum())

@@ -1,16 +1,16 @@
-from typing import Tuple
 
 import numpy as np
 import scipy.sparse as sp
 
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.atom import Atom
+from cvxpy.expressions.expression import ExpressionValue
 from cvxpy.expressions.variable import Variable
 
 
 class SuppFuncAtom(Atom):
 
-    def __init__(self, y, parent) -> None:
+    def __init__(self, y, parent, value_solve_kwargs: dict | None = None) -> None:
         """
         Parameters
         ----------
@@ -19,12 +19,19 @@ class SuppFuncAtom(Atom):
 
         parent : cvxpy.transforms.suppfunc.SuppFunc
             The object containing data for the convex set associated with this atom.
+
+        value_solve_kwargs : dict, optional
+            Keyword arguments passed to ``Problem.solve`` when evaluating this atom.
+            Uses CLARABEL unless a different solver is specified.
         """
         self.id = lu.get_id()
-        self.args = [Atom.cast_to_const(y)]
+        self.args = [Atom.cast(y)]
         self._parent = parent
+        self._value_solve_kwargs = {"solver": "CLARABEL"}
+        if value_solve_kwargs is not None:
+            self._value_solve_kwargs.update(value_solve_kwargs)
         self._eta = None  # store for debugging purposes
-        self._shape: Tuple[int, ...] = tuple()
+        self._shape: tuple[int, ...] = tuple()
         self.validate_arguments()
 
     def validate_arguments(self) -> None:
@@ -43,10 +50,10 @@ class SuppFuncAtom(Atom):
     def constants(self):
         return []
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> tuple[int, ...]:
         return self._shape
 
-    def sign_from_args(self) -> Tuple[bool, bool]:
+    def sign_from_args(self) -> tuple[bool, bool]:
         return (False, False)
 
     def is_nonneg(self) -> bool:
@@ -105,7 +112,7 @@ class SuppFuncAtom(Atom):
     def is_quasiconcave(self) -> bool:
         return False
 
-    def _value_impl(self):
+    def _value_impl(self) -> ExpressionValue | None:
         from cvxpy.problems.objective import Maximize
         from cvxpy.problems.problem import Problem
         y_val = self.args[0].value.round(decimals=9).ravel(order='F')
@@ -115,7 +122,7 @@ class SuppFuncAtom(Atom):
             dummy = Variable()
             cons = [dummy == 1]
         prob = Problem(Maximize(y_val @ x_flat), cons)
-        val = prob.solve(solver='SCS', eps=1e-6)
+        val = prob.solve(**self._value_solve_kwargs)
         return val
 
     def _grad(self, values):

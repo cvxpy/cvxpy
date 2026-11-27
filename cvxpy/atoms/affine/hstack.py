@@ -13,7 +13,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import List, Tuple
 
 import numpy as np
 
@@ -31,7 +30,7 @@ def hstack(arg_list) -> "Hstack":
     arg_list : list of Expression
         The Expressions to concatenate.
     """
-    arg_list = [AffAtom.cast_to_const(arg) for arg in arg_list]
+    arg_list = [AffAtom.cast(arg) for arg in arg_list]
     for idx, arg in enumerate(arg_list):
         if arg.ndim == 0:
             arg_list[idx] = arg.flatten(order='F')
@@ -47,11 +46,18 @@ class Hstack(AffAtom):
         return True
 
     # Returns the hstack of the values.
+    @AffAtom.numpy_numeric
     def numeric(self, values):
         return np.hstack(values)
 
+    def is_incr(self, idx) -> bool:
+        return True
+
+    def is_decr(self, idx) -> bool:
+        return False
+
     # The shape is the common width and the sum of the heights.
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def shape_from_args(self) -> tuple[int, ...]:
         try:
             return np.hstack(
                 [np.empty(arg.shape, dtype=np.dtype([])) for arg in self.args]
@@ -64,8 +70,8 @@ class Hstack(AffAtom):
         self.shape_from_args()
 
     def graph_implementation(
-        self, arg_objs, shape: Tuple[int, ...], data=None
-    ) -> Tuple[lo.LinOp, List[Constraint]]:
+        self, arg_objs, shape: tuple[int, ...], data=None
+    ) -> tuple[lo.LinOp, list[Constraint]]:
         """Stack the expressions horizontally.
 
         Parameters
@@ -82,4 +88,9 @@ class Hstack(AffAtom):
         tuple
             (LinOp for objective, list of constraints)
         """
+        if self.ndim >= 3:
+            # NumPy's hstack concatenates along axis 1 when ndim >= 3.
+            # The HSTACK LinOp only implements column-wise concatenation
+            # for 2D arrays, so use CONCATENATE for higher dimensions.
+            return (lu.concatenate(arg_objs, shape, axis=1), [])
         return (lu.hstack(arg_objs, shape), [])

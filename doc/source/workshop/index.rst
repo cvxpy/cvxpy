@@ -1,7 +1,7 @@
 :orphan:
 
 .. meta::
-   :http-equiv=refresh: 0; url=2026/
+   :http-equiv=refresh: 0; url=2027/
 
 .. _workshop:
 
@@ -10,4 +10,10 @@ CVXPY Workshop
 
 Redirecting to the latest workshop...
 
-If you are not redirected automatically, `click here <2026/>`_.
+If you are not redirected automatically, `click here <2027/>`_.
+
+.. toctree::
+   :hidden:
+
+   2027/index
+   2026/index

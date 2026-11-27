@@ -358,7 +358,7 @@ class TestKKT_Flags(BaseTest):
 
     def test_kkt_symmetric_var(self, places=4):
         sth = TestKKT_Flags.symmetric_flag()
-        sth.solve(solver='SCS')
+        sth.solve(solver=cp.CLARABEL)
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
         sth.check_dual_domains(places)

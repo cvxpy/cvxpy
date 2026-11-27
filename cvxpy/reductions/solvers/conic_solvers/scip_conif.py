@@ -15,7 +15,8 @@ limitations under the License.
 """
 
 import logging
-from typing import Any, Dict, Iterator, List, Optional, Tuple, Union
+from collections.abc import Iterator
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 from scipy.sparse import dok_array
@@ -34,11 +35,11 @@ from cvxpy.utilities.citations import CITATION_DICT
 
 log = logging.getLogger(__name__)
 
-try:
-    # Try to import SCIP model for typing
+if TYPE_CHECKING:
+    # pyscipopt is an optional dependency; imported only for type checking.
     from pyscipopt.scip import Model as ScipModel
-except ModuleNotFoundError:
-    # If it fails continue and use a generic type instead.
+else:
+    # At runtime use a generic type so annotations resolve without pyscipopt.
     ScipModel = Any
 
 
@@ -85,6 +86,7 @@ class SCIP(ConicSolver):
     BOUNDED_VARIABLES = True
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC]
     MI_SUPPORTED_CONSTRAINTS = SUPPORTED_CONSTRAINTS
+    REQUIRED_MODULES = ("pyscipopt",)
 
     def name(self) -> str:
         """The name of the solver."""
@@ -92,17 +94,14 @@ class SCIP(ConicSolver):
 
     def import_solver(self) -> None:
         """Imports the solver."""
-        import pyscipopt
-        pyscipopt
+        import pyscipopt  # noqa: F401
 
-    def apply(self, problem: ParamConeProg) -> Tuple[Dict, Dict]:
+    def apply(self, problem: ParamConeProg) -> tuple[dict, dict]:
         """Returns a new problem and data for inverting the new solution."""
 
         # Create data and inv_data objects
         data = {}
         inv_data = {self.VAR_ID: problem.x.id}
-        if not problem.formatted:
-            problem = self.format_constraints(problem, None)
         data[s.PARAM_PROB] = problem
         data[self.DIMS] = problem.cone_dims
         inv_data[self.DIMS] = problem.cone_dims
@@ -135,9 +134,12 @@ class SCIP(ConicSolver):
         data[s.LOWER_BOUNDS] = problem.lower_bounds
         data[s.UPPER_BOUNDS] = problem.upper_bounds
 
+        # Add initial guess. NaN marks entries the user did not provide.
+        data['init_value'] = utilities.stack_vals(problem.variables, np.nan)
+
         return data, inv_data
 
-    def invert(self, solution: Dict[str, Any], inverse_data: Dict[str, Any]) -> Solution:
+    def invert(self, solution: dict[str, Any], inverse_data: dict[str, Any]) -> Solution:
         """Returns the solution to the original problem given the inverse_data."""
 
         status = solution['status']
@@ -173,11 +175,11 @@ class SCIP(ConicSolver):
 
     def solve_via_data(
             self,
-            data: Dict[str, Any],
+            data: dict[str, Any],
             warm_start: bool,
             verbose: bool,
-            solver_opts: Dict[str, Any],
-            solver_cache: Dict = None,
+            solver_opts: dict[str, Any],
+            solver_cache: dict | None = None,
     ) -> Solution:
         """Returns the result of the call to the solver."""
         from pyscipopt.scip import Model
@@ -186,13 +188,15 @@ class SCIP(ConicSolver):
         model.redirectOutput()
         A, b, c, dims = self._define_data(data)
         variables = self._create_variables(model, data, c)
+        if warm_start:
+            self._set_initial_solution(model, variables, data)
         constraints = self._add_constraints(model, variables, A, b, dims)
         self._set_params(model, verbose, solver_opts, data, dims)
         solution = self._solve(model, variables, constraints, data, dims)
 
         return solution
 
-    def _define_data(self, data: Dict[str, Any]) -> Tuple:
+    def _define_data(self, data: dict[str, Any]) -> tuple:
         """Define data parts from the data reference."""
         c = data[s.C]
         b = data[s.B]
@@ -202,7 +206,7 @@ class SCIP(ConicSolver):
         dims = dims_to_solver_dict(data[s.DIMS])
         return A, b, c, dims
 
-    def _create_variables(self, model: ScipModel, data: Dict[str, Any], c: np.ndarray) -> List:
+    def _create_variables(self, model: ScipModel, data: dict[str, Any], c: np.ndarray) -> list:
         """Create a list of variables."""
         lb_arr = data.get(s.LOWER_BOUNDS)
         ub_arr = data.get(s.UPPER_BOUNDS)
@@ -225,14 +229,37 @@ class SCIP(ConicSolver):
             )
         return variables
 
+    def _set_initial_solution(
+            self, model: ScipModel, variables: list, data: dict[str, Any]
+    ) -> None:
+        """Pass the values set on the user's variables to SCIP as a MIP start.
+
+        Values are read from ``Variable.value`` and may be set on only some of
+        the variables, so the start is registered as a *partial* solution and
+        SCIP's ``completesol`` heuristic fills in the rest. ``addSol`` is used
+        rather than ``trySol`` because the model is still in SCIP's problem
+        creation stage, where ``trySol`` cannot be called.
+        """
+        init_value = data.get('init_value')
+        if init_value is None:
+            return
+        init_value = np.asarray(init_value, dtype=float)
+        known = np.flatnonzero(~np.isnan(init_value))
+        if known.size == 0:
+            return
+        solution = model.createPartialSol()
+        for idx in known:
+            model.setSolVal(solution, variables[idx], init_value[idx])
+        model.addSol(solution)
+
     def _add_constraints(
             self,
             model: ScipModel,
-            variables: List,
+            variables: list,
             A: dok_array,
             b: np.ndarray,
-            dims: Dict[str, Union[int, List]],
-    ) -> List:
+            dims: dict[str, int | list],
+    ) -> list:
         """Create a list of constraints."""
 
         # Equal constraints
@@ -281,9 +308,9 @@ class SCIP(ConicSolver):
             self,
             model: ScipModel,
             verbose: bool,
-            solver_opts: Optional[Dict],
-            data: Dict[str, Any],
-            dims: Dict[str, Union[int, List]],
+            solver_opts: dict | None,
+            data: dict[str, Any],
+            dims: dict[str, int | list],
     ) -> None:
         """Set model solve parameters."""
         from pyscipopt import SCIP_PARAMSETTING
@@ -318,7 +345,7 @@ class SCIP(ConicSolver):
                 )
 
         is_mip = data[s.BOOL_IDX] or data[s.INT_IDX]
-        has_soc_constr = len(dims[s.SOC_DIM]) > 1
+        has_soc_constr = len(dims[s.SOC_DIM]) > 0
         if not (is_mip or has_soc_constr):
             # These settings are needed  to allow the dual to be calculated
             model.setPresolve(SCIP_PARAMSETTING.OFF)
@@ -328,11 +355,11 @@ class SCIP(ConicSolver):
     def _solve(
             self,
             model: ScipModel,
-            variables: List,
-            constraints: List,
-            data: Dict[str, Any],
-            dims: Dict[str, Union[int, List]],
-    ) -> Dict[str, Any]:
+            variables: list,
+            constraints: list,
+            data: dict[str, Any],
+            dims: dict[str, int | list],
+    ) -> dict[str, Any]:
         """Solve and return a solution if one exists."""
 
         try:
@@ -361,7 +388,7 @@ class SCIP(ConicSolver):
                 solution["value"] = model.getObjVal()
 
             is_mip = data[s.BOOL_IDX] or data[s.INT_IDX]
-            has_soc_constr = len(dims[s.SOC_DIM]) > 1
+            has_soc_constr = len(dims[s.SOC_DIM]) > 0
             if not (is_mip or has_soc_constr):
                 # Not the following code calculating the dual values does not
                 # always return the correct values, see tests `test_scip_lp_2`
@@ -397,12 +424,12 @@ class SCIP(ConicSolver):
     def add_model_lin_constr(
         self,
         model: ScipModel,
-        variables: List,
+        variables: list,
         rows: Iterator,
         ctype: str,
         A: dok_array,
         b: np.ndarray,
-    ) -> List:
+    ) -> list:
         """Adds EQ/LEQ constraints to the model using the data from mat and vec.
 
         Return list contains constraints.
@@ -436,11 +463,11 @@ class SCIP(ConicSolver):
     def add_model_soc_constr(
         self,
         model: ScipModel,
-        variables: List,
+        variables: list,
         rows: Iterator,
         A: dok_array,
         b: np.ndarray,
-    ) -> Tuple:
+    ) -> tuple:
         """Adds SOC constraint to the model using the data from mat and vec.
 
         Return tuple contains (QConstr, list of Constr, and list of variables).
@@ -500,7 +527,7 @@ class SCIP(ConicSolver):
         """
         return CITATION_DICT["SCIP"]
 
-def get_variable_type(n: int, data: Dict[str, Any]) -> str:
+def get_variable_type(n: int, data: dict[str, Any]) -> str:
     """Given an index n, and a set of data,
     return the type of a variable with the same index."""
     if n in data[s.BOOL_IDX]:

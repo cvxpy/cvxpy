@@ -22,6 +22,7 @@ from scipy.sparse import dok_array
 
 import cvxpy.settings as s
 from cvxpy.constraints import SOC
+from cvxpy.error import SolverError
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import (
@@ -213,6 +214,7 @@ class CPLEX(ConicSolver):
     BOUNDED_VARIABLES = True
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC]
     MI_SUPPORTED_CONSTRAINTS = SUPPORTED_CONSTRAINTS
+    REQUIRED_MODULES = ("cplex",)
 
     def name(self):
         """The name of the solver. """
@@ -390,6 +392,11 @@ class CPLEX(ConicSolver):
                 model.solve()
                 solution[s.SOLVE_TIME] += model.get_time() - start_time
 
+        except cplex.exceptions.CplexError as e:
+            # Report CPLEX's own message (e.g. a size-limited edition)
+            # unless a solution was found before the error.
+            if not model.solution.is_primal_feasible():
+                raise SolverError(f"Solver '{self.name()}' failed: {e}") from e
         except Exception:
             pass
 
@@ -520,7 +527,7 @@ class CPLEX(ConicSolver):
             rhs=0.0,
             name="")
         return (qconstr, new_lin_constrs, soc_vars)
-    
+
     def cite(self, data):
         """Returns bibtex citation for the solver.
 

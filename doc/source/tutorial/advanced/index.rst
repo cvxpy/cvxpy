@@ -109,6 +109,27 @@ constraints hold and :math:`\infty` when they are violated.
    expr.value = 0.0
    expr.value = inf
 
+Other transforms worth knowing about:
+
+- The :ref:`scalarize <scalarize-transforms>` transforms combine a
+  list of competing objectives into a single objective — as a
+  :py:func:`weighted sum <cvxpy.transforms.scalarize.weighted_sum>`, as a
+  worst-case :py:func:`max <cvxpy.transforms.scalarize.max>`, as a smooth
+  :py:func:`log_sum_exp <cvxpy.transforms.scalarize.log_sum_exp>`
+  interpolation between the two, or via
+  :py:func:`targets_and_priorities <cvxpy.transforms.scalarize.targets_and_priorities>`,
+  which assigns each objective its own target value and hard limit with a
+  penalty in between.
+- :py:func:`linearize <cvxpy.transforms.linearize>` returns an affine
+  approximation of a CVXPY expression at the current value of its variables.
+- :py:func:`partial_optimize <cvxpy.transforms.partial_optimize.partial_optimize>`
+  optimizes out a subset of a problem's variables, leaving an expression in
+  the remaining variables that can be used inside a larger problem.
+- :py:class:`SuppFunc <cvxpy.transforms.suppfunc.SuppFunc>` takes a convex
+  set defined implicitly by a list of constraints and exposes its support
+  function as a CVXPY atom, which is useful for expressing dual problems
+  using Fenchel duality.
+
 The full set of transforms available is discussed in :ref:`transforms-api`.
 
 .. _problem-arithmetic:

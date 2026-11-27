@@ -105,7 +105,7 @@ def reduce_problem_data_tensor(A, var_length, quad_form: bool = False):
 
     Returns
     -------
-        reduced_A: A CSR sparse matrix with redundant rows removed
+        reduced_A: A CSR sparse array with redundant rows removed
         indices: CSC indices for the problem data matrix
         indptr: CSC indptr for the problem data matrix
         shape: the shape of the problem data matrix
@@ -118,7 +118,7 @@ def reduce_problem_data_tensor(A, var_length, quad_form: bool = False):
     reduced_A_shape = (unique_old_row.size, A_coo.shape[1])
 
     # remap the rows
-    reduced_A = sp.coo_matrix(
+    reduced_A = sp.coo_array(
         (A_coo.data, (reduced_row, A_coo.col)), shape=reduced_A_shape)
 
     # convert reduced_A to csr

@@ -30,6 +30,7 @@ class PROXQP(QpSolver):
 
     MIP_CAPABLE = False
     BOUNDED_VARIABLES = True
+    REQUIRED_MODULES = ("proxsuite",)
 
     # Map of Proxqp status to CVXPY status.
     STATUS_MAP = {"PROXQP_SOLVED": s.OPTIMAL,
@@ -49,8 +50,7 @@ class PROXQP(QpSolver):
         return s.PROXQP
 
     def import_solver(self) -> None:
-        import proxsuite
-        proxsuite
+        import proxsuite  # noqa: F401
 
     def invert(self, solution, inverse_data):
         attr = {s.SOLVE_TIME: solution.info.run_time}

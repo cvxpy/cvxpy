@@ -15,7 +15,6 @@ limitations under the License.
 """
 
 
-from typing import Tuple
 
 import numpy
 import scipy.sparse
@@ -60,7 +59,7 @@ class NDArrayInterface(base.BaseMatrixInterface):
         return numpy.eye(size)
 
     # Return the dimensions of the matrix.
-    def shape(self, matrix) -> Tuple[int, ...]:
+    def shape(self, matrix) -> tuple[int, ...]:
         return tuple(int(d) for d in matrix.shape)
 
     def size(self, matrix):
@@ -73,7 +72,7 @@ class NDArrayInterface(base.BaseMatrixInterface):
         return matrix.item()
 
     # A matrix with all entries equal to the given scalar value.
-    def scalar_matrix(self, value, shape: Tuple[int, ...]):
+    def scalar_matrix(self, value, shape: tuple[int, ...]):
         return numpy.zeros(shape, dtype='float64') + value
 
     def reshape(self, matrix, size):

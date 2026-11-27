@@ -15,6 +15,7 @@ limitations under the License.
 """
 
 import numbers
+from typing import TypeAlias
 
 import numpy as np
 import scipy.sparse as sp
@@ -32,6 +33,7 @@ DEFAULT_NP_INTF = INTERFACES[np.ndarray]
 # Default dense and sparse matrix interfaces.
 DEFAULT_INTF = INTERFACES[np.ndarray]
 DEFAULT_SPARSE_INTF = INTERFACES[sp.csc_array]
+ScalarValue: TypeAlias = numbers.Number | np.generic
 
 
 # Returns the interface for interacting with the target matrix class.
@@ -60,7 +62,7 @@ def sparse2cvxopt(value):
 
     Parameters
     ----------
-    sparse_mat : SciPy sparse matrix
+    value : SciPy sparse matrix
         The matrix to convert.
 
     Returns
@@ -183,7 +185,7 @@ def convert(constant, sparse: bool = False, convert_scalars: bool = False):
 # Get the value of the passed constant, interpreted as a scalar.
 
 
-def scalar_value(constant):
+def scalar_value(constant) -> ScalarValue:
     if isinstance(constant, numbers.Number) or np.isscalar(constant):
         return constant
     elif isinstance(constant, list):
@@ -330,8 +332,9 @@ def is_sparse_symmetric(m, complex: bool = False) -> bool:
     if m.shape[0] != m.shape[1]:
         raise ValueError('m must be a square matrix')
 
-    if not isinstance(m, sp.coo_matrix):
-        m = sp.coo_matrix(m)
+    m = sp.coo_array(m)
+    m.sum_duplicates()
+    m.eliminate_zeros()
 
     r, c, v = m.row, m.col, m.data
     tril_no_diag = r > c
@@ -349,8 +352,13 @@ def is_sparse_symmetric(m, complex: bool = False) -> bool:
 
     sortl = np.lexsort((cl, rl))
     sortu = np.lexsort((ru, cu))
-    vl = vl[sortl]
-    vu = vu[sortu]
+    rl, cl, vl = rl[sortl], cl[sortl], vl[sortl]
+    ru, cu, vu = ru[sortu], cu[sortu], vu[sortu]
+
+    # Entry (i, j) in the lower triangle must mirror entry (j, i)
+    # in the upper triangle.
+    if not (np.array_equal(rl, cu) and np.array_equal(cl, ru)):
+        return False
 
     if complex:
         check = np.allclose(vl, np.conj(vu))
@@ -376,8 +384,9 @@ def is_sparse_skew_symmetric(A) -> bool:
     if A.shape[0] != A.shape[1]:
         raise ValueError('m must be a square matrix')
 
-    if not isinstance(A, sp.coo_matrix):
-        A = sp.coo_matrix(A)
+    A = sp.coo_array(A)
+    A.sum_duplicates()
+    A.eliminate_zeros()
 
     r, c, v = A.row, A.col, A.data
     tril = r >= c
@@ -395,8 +404,12 @@ def is_sparse_skew_symmetric(A) -> bool:
 
     sortl = np.lexsort((cl, rl))
     sortu = np.lexsort((ru, cu))
-    vl = vl[sortl]
-    vu = vu[sortu]
+    rl, cl, vl = rl[sortl], cl[sortl], vl[sortl]
+    ru, cu, vu = ru[sortu], cu[sortu], vu[sortu]
+
+    # Entry (i, j) with i >= j must mirror entry (j, i) with j <= i.
+    if not (np.array_equal(rl, cu) and np.array_equal(cl, ru)):
+        return False
 
     check = np.allclose(vl + vu, 0)
     return check

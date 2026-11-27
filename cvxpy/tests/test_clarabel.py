@@ -13,6 +13,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from types import SimpleNamespace
+
 import clarabel
 import numpy as np
 
@@ -76,7 +78,7 @@ class ClarabelTest(BaseTest):
         self.solution.status = CLARABEL.INSUFFICIENT_PROGRESS
         solution = solver.invert(self.solution, SolverInverseData(inverse_data[-1], {}))
         self.assertEqual(s.SOLVER_ERROR, solution.status)
-        
+
     def test_invert_when_insufficient_progress_but_accept_unknown(self):
         """
         Tests invert when a solution is present and solver status from clarabel
@@ -106,4 +108,21 @@ class ClarabelTest(BaseTest):
                                                 solver_options={"accept_unknown": True})
         solution = solver.invert(self.solution, solver_inverse_data)
         self.assertEqual(s.SOLVER_ERROR, solution.status)
-        
+
+    def test_unsolved_status_handling(self):
+        """
+        Test that the Clarabel interface correctly handles the 'Unsolved'
+        status without raising a KeyError.
+        """
+        solver = CLARABEL()
+        mock_solution = SimpleNamespace(
+            status=CLARABEL.UNSOLVED,
+            solve_time=0.01,
+            iterations=0,
+            x=None,
+            z=None,
+            attr={}
+        )
+        mock_inverse_data = SimpleNamespace(solver_options={})
+        sol = solver.invert(mock_solution, mock_inverse_data)
+        self.assertEqual(sol.status, s.SOLVER_ERROR)

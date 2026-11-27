@@ -21,6 +21,7 @@ import warnings
 from contextlib import redirect_stdout
 from fractions import Fraction
 from io import StringIO
+from unittest.mock import DEFAULT, call, patch
 
 import numpy
 import numpy as np
@@ -437,76 +438,6 @@ class TestProblem(BaseTest):
         assert CITATION_DICT["CVXPY"] in out
         assert CITATION_DICT["DQCP"] in out
 
-    # def test_consistency(self):
-    #     """Test that variables and constraints keep a consistent order.
-    #     """
-    #     # TODO(akshayka): Adapt this test to the reduction infrastructure.
-    #     import itertools
-    #     num_solves = 4
-    #     vars_lists = []
-    #     ineqs_lists = []
-    #     var_ids_order_created = []
-    #     for k in range(num_solves):
-    #         sum = 0
-    #         constraints = []
-    #         var_ids = []
-    #         for i in range(100):
-    #             var = Variable(name=str(i))
-    #             var_ids.append(var.id)
-    #             sum += var
-    #             constraints.append(var >= i)
-    #         var_ids_order_created.append(var_ids)
-    #         obj = cp.Minimize(sum)
-    #         p = Problem(obj, constraints)
-    #         objective, constraints = p.canonicalize()
-    #         sym_data = SymData(objective, constraints, SOLVERS[s.CLARABEL])
-    #         # Sort by offset.
-    #         vars_ = sorted(sym_data.var_offsets.items(),
-    #                        key=lambda key_val: key_val[1])
-    #         vars_ = [var_id for (var_id, offset) in vars_]
-    #         vars_lists.append(vars_)
-    #         ineqs_lists.append(sym_data.constr_map[s.LEQ])
-
-    #     # Verify order of variables is consistent.
-    #     for i in range(num_solves):
-    #         self.assertEqual(var_ids_order_created[i],
-    #                          vars_lists[i])
-    #     for i in range(num_solves):
-    #         for idx, constr in enumerate(ineqs_lists[i]):
-    #             var_id, _ = lu.get_expr_vars(constr.expr)[0]
-    #             self.assertEqual(var_ids_order_created[i][idx],
-    #                              var_id)
-
-    # Test removing duplicate constraint objects.
-    # def test_duplicate_constraints(self):
-    #     # TODO(akshayka): Adapt this test to the reduction infrastructure.
-    #     eq = (self.x == 2)
-    #     le = (self.x <= 2)
-    #     obj = 0
-
-    #     def test(self):
-    #         objective, constraints = self.canonicalize()
-    #         sym_data = SymData(objective, constraints, SOLVERS[s.CVXOPT])
-    #         return (len(sym_data.constr_map[s.EQ]),
-    #                 len(sym_data.constr_map[s.LEQ]))
-    #     Problem.register_solve("test", test)
-    #     p = Problem(cp.Minimize(obj), [eq, eq, le, le])
-    #     result = p.solve(method="test")
-    #     self.assertEqual(result, (1, 1))
-
-    #     # Internal constraints.
-    #     X = Variable((2, 2), PSD=True)
-    #     obj = sum(X + X)
-    #     p = Problem(cp.Minimize(obj))
-    #     result = p.solve(method="test")
-    #     self.assertEqual(result, (0, 1))
-
-    #     # Duplicates from non-linear constraints.
-    #     exp = norm(self.x, 2)
-    #     prob = Problem(cp.Minimize(0), [exp <= 1, exp <= 2])
-    #     result = prob.solve(method="test")
-    #     self.assertEqual(result, (0, 3))
-
     # Test the is_dcp method.
     def test_is_dcp(self) -> None:
         p = Problem(cp.Minimize(cp.norm_inf(self.a)))
@@ -651,7 +582,7 @@ class TestProblem(BaseTest):
     def test_variable_name_conflict(self) -> None:
         var = Variable(name='a')
         p = Problem(cp.Maximize(self.a + var), [var == 2 + self.a, var <= 3])
-        result = p.solve(solver=cp.SCS, eps=1e-5)
+        result = p.solve(solver=cp.CLARABEL)
         self.assertAlmostEqual(result, 4.0)
         self.assertAlmostEqual(self.a.value, 1)
         self.assertAlmostEqual(var.value, 3)
@@ -1533,24 +1464,52 @@ class TestProblem(BaseTest):
         A = numpy.random.randn(40, 40)
         b = cp.matmul(A, numpy.random.randn(40))
 
-        # valid input, return solution
+        # If the first solver yields a non-optimal status, we should fall back to the next solver.
         solvers_with_str=[(s.OSQP, {'max_iter':1}), s.CLARABEL]
         solvers_empty_dict=[(s.OSQP, {'max_iter':1}), (s.CLARABEL, {})]
         solvers_wrong_case=[("osqp", {'max_iter':1}), "Clarabel"]
 
         for solvers in [solvers_with_str, solvers_empty_dict, solvers_wrong_case]:
-            self.assertIsNotNone(Problem(cp.Minimize(
-                cp.sum_squares(cp.matmul(A, cp.Variable(40)) - b))).solve(
-                solver_path=solvers))
+            with patch.object(Problem, "_solve", wraps=Problem._solve) as mock_solve_func:
+                problem = Problem(cp.Minimize(cp.sum_squares(cp.matmul(A, cp.Variable(40)) - b)))
+                self.assertIsNotNone(problem.solve(solver_path=solvers))
+                self.assertEqual(problem.status, s.OPTIMAL)
+
+                expected_calls = []
+                for solver_spec in solvers:
+                    if isinstance(solver_spec, str):
+                        solver = solver_spec
+                        solver_kwargs = {}
+                    elif isinstance(solver_spec, tuple):
+                        solver, solver_kwargs = solver_spec
+                    else:
+                        msg = f"Unexpected solver specification {solver_spec}."
+                        raise ValueError(msg)
+
+                    expected_calls.append(call(problem, solver=solver, **solver_kwargs))
+
+                self.assertEqual(mock_solve_func.mock_calls, expected_calls)
+
+        # If the first solver results in a SolverError, we should fall back to the next solver.
+        with patch.object(
+                Problem,
+                "_solve",
+                wraps=Problem._solve,
+                side_effect=[SolverError("Mock solver error"), DEFAULT],
+        ) as mock_solve_func:
+            problem = Problem(cp.Minimize(0), [cp.Variable(1) == 1])
+            problem.solve(solver_path=[cp.OSQP, cp.CLARABEL])
+            expected_calls = [call(problem, solver=cp.OSQP), call(problem, solver=cp.CLARABEL)]
+            self.assertEqual(mock_solve_func.mock_calls, expected_calls)
+            self.assertEqual(problem.solver_stats.solver_name, s.CLARABEL)
+            self.assertEqual(problem.status, s.OPTIMAL)
 
         # valid input, raise SolverError
         solvers = [(s.OSQP, {'max_iter':1})]
-
         with self.assertRaises(SolverError):
             Problem(cp.Minimize(cp.quad_form(cp.Variable(1) + 1, np.array([[-1]]), True))).solve(
                 solver_path=solvers
             )
-
         # invalid input, raise ValueError
         solvers_invalid_inner_input = [{'str':{}}, 'str', [], [1], [()], [(1)], [(1,{})],
                                         [(s.OSQP,[])], [(s.OSQP,)]]
@@ -1847,8 +1806,11 @@ class TestProblem(BaseTest):
         prob.solve(solver=cp.SCS, eps=1e-5)
         self.assertItemsAlmostEqual(x.value, [.5, .5])
 
+        # Any shape is accepted; the entries are taken in row-major order.
         x = Variable((3, 3))
-        self.assertRaises(ValueError, cp.geo_mean, x)
+        g = cp.geo_mean(x)
+        self.assertSequenceEqual(g.w, [Fraction(1, 9)]*9)
+        self.assertEqual(g.shape, tuple())
 
         x = Variable((3, 1))
         g = cp.geo_mean(x)
@@ -2340,4 +2302,67 @@ class TestProblem(BaseTest):
         sol = Solution("optimal", 2.0, pv, None, {})
         result = reduction.invert(sol, inv_data)
         assert result.dual_vars is None
+
+    def test_constant_solver_duals(self) -> None:
+        """Test that ConstantSolver returns zero dual values for feasible problems."""
+        # Satisfied scalar inequality constraint
+        prob = Problem(cp.Minimize(1), [cp.Constant(2) >= cp.Constant(1)])
+        prob.solve()
+        self.assertEqual(prob.status, s.OPTIMAL)
+        self.assertEqual(prob.constraints[0].dual_value, 0.0)
+
+        # Equality constraint
+        prob = Problem(cp.Minimize(1), [cp.Constant(1) == cp.Constant(1)])
+        prob.solve()
+        self.assertEqual(prob.status, s.OPTIMAL)
+        self.assertEqual(prob.constraints[0].dual_value, 0.0)
+
+        # Satisfied multiple constraints
+        prob = Problem(cp.Minimize(1), [
+            cp.Constant(2) >= cp.Constant(1),
+            cp.Constant(3) >= cp.Constant(2)])
+        prob.solve()
+        self.assertEqual(prob.status, s.OPTIMAL)
+        for c in prob.constraints:
+            self.assertEqual(c.dual_value, 0.0)
+
+        # Vector inequality constraint
+        prob = Problem(cp.Minimize(1),
+                       [cp.Constant(np.array([2, 3, 4])) >= cp.Constant(np.array([1, 2, 3]))])
+        prob.solve()
+        self.assertEqual(prob.status, s.OPTIMAL)
+        self.assertItemsAlmostEqual(prob.constraints[0].dual_value, [0, 0, 0])
+
+        # Infeasible inequality constraint (dual is None)
+        prob = Problem(cp.Minimize(1), [cp.Constant(0) >= cp.Constant(1)])
+        prob.solve()
+        self.assertEqual(prob.status, s.INFEASIBLE)
+        self.assertIsNone(prob.constraints[0].dual_value)
+
+        # Parameter-only problem reaches ConstantSolver and tracks the Parameter value.
+        # Feasible at value=2 -> optimal with zero dual; infeasible at value=0 -> None.
+        p = cp.Parameter(value=2)
+        prob = Problem(cp.Minimize(1), [p >= 1])
+        prob.solve()
+        self.assertEqual(prob.status, s.OPTIMAL)
+        self.assertEqual(prob.constraints[0].dual_value, 0.0)
+
+        p.value = 0
+        prob.solve()
+        self.assertEqual(prob.status, s.INFEASIBLE)
+        self.assertIsNone(prob.constraints[0].dual_value)
+
+        # Explicit constant SOC reaches ConstantSolver with a zero dual.
+        prob = Problem(cp.Minimize(1),
+                       [cp.SOC(cp.Constant(1), cp.Constant([1.0, 0.0]))])
+        prob.solve()
+        self.assertEqual(prob.status, s.OPTIMAL)
+        dv = prob.constraints[0].dual_value
+        # SOC duals are stored as a two-element list, not a tuple.
+        self.assertIsInstance(dv, list)
+        self.assertEqual(len(dv), 2)
+        self.assertEqual(dv[0].shape, (1,))
+        self.assertEqual(dv[1].shape, (2, 1))
+        self.assertTrue(np.all(dv[0] == 0.0))
+        self.assertTrue(np.all(dv[1] == 0.0))
 

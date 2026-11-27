@@ -29,13 +29,13 @@ class QPALM(QpSolver):
     """QP interface for the QPALM solver"""
 
     MIP_CAPABLE = False
+    REQUIRED_MODULES = ("qpalm",)
 
     def name(self):
         return s.QPALM
 
     def import_solver(self) -> None:
-        import qpalm
-        qpalm
+        import qpalm  # noqa: F401
 
     def invert(self, solution, inverse_data):
         import qpalm

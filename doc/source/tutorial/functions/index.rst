@@ -29,7 +29,7 @@ Elementwise multiplication can be applied with the :ref:`multiply` function.
 Indexing and slicing
 ^^^^^^^^^^^^^^^^^^^^
 
-Indexing in CVXPY follows exactly the same semantics as `NumPy ndarrays <https://docs.scipy.org/doc/numpy/reference/arrays.indexing.html>`_.
+Indexing in CVXPY follows exactly the same semantics as `NumPy ndarrays <https://numpy.org/doc/stable/user/basics.indexing.html>`_.
 For example, if ``expr`` has shape ``(5,)`` then ``expr[1]`` gives the second entry.
 More generally, ``expr[i:j:k]`` selects every kth
 element of ``expr``, starting at ``i`` and ending at ``j-1``.
@@ -401,6 +401,21 @@ and returns a scalar.
        |decr| decr. in :math:`y`
      - |convex| convex
 
+   * - :ref:`quantum_cond_entr(rho, dims, sys) <quantum-cond-entr>`
+
+     - :math:`N(\rho) - N(\operatorname{tr}_{\text{sys}}(\rho))`,
+       where :math:`N` is the von Neumann entropy
+     - :math:`\rho \in \mathbf{S}^{n}_+`
+     - |unknown| unknown sign
+     - |concave| concave
+
+   * - :ref:`quantum_rel_entr(X, Y) <quantum-rel-entr>`
+
+     - :math:`\operatorname{tr}\left(X(\operatorname{logm}(X) - \operatorname{logm}(Y))\right)`
+     - :math:`X, Y \in \mathbf{S}^{n}_+`
+     - |unknown| unknown sign
+     - |convex| convex
+
    * - :ref:`std(X) <std>`
 
      - analog to `numpy.std <https://numpy.org/doc/stable/reference/generated/numpy.std.html#numpy-std>`_
@@ -521,8 +536,8 @@ The CVXPY function ``sum`` sums all the entries in a single expression. The buil
 Functions along an axis
 -----------------------
 
-The functions ``sum``, ``norm``, ``max``, ``min``, ``mean``, ``std``, ``var``, and ``ptp`` can
-be applied along an axis.
+The functions ``sum``, ``norm``, ``max``, ``min``, ``mean``, ``std``, ``var``, ``ptp``,
+``sum_largest`` and ``cvar`` can be applied along an axis.
 Given an ``m`` by ``n`` expression ``expr``, the syntax ``func(expr, axis=0, keepdims=True)``
 applies ``func`` to each column, returning a 1 by ``n`` expression.
 The syntax ``func(expr, axis=1, keepdims=True)`` applies ``func`` to each row,
@@ -881,6 +896,12 @@ Expression and a negative Expression) then the returned Expression will have unk
      - |affine| affine
      - |incr| incr.
 
+   * - :ref:`block(arrays) <block>`
+     - NumPy-style block assembly
+     - nested lists of array-like expressions
+     - |affine| affine
+     - |incr| incr.
+
    * - :ref:`convolve(c, x) <convolve>`
 
        :math:`c\in\mathbf{R}^m`
@@ -1006,6 +1027,11 @@ Clarifications on vector and matrix functions
 The input to :math:`\texttt{bmat}` is a list of lists of CVXPY expressions.
 It constructs a block matrix.
 The elements of each inner list are stacked horizontally and then the resulting block matrices are stacked vertically.
+
+The input to :math:`\texttt{block}` is a nested list of CVXPY expressions.
+The innermost lists are concatenated along the last axis, the next level along
+the second-to-last axis, and so on, following NumPy's ``block`` semantics.
+Lower-dimensional inputs are prepended with dimensions of size one as needed.
 
 The output :math:`y = \texttt{convolve}(c, x)` has size :math:`n+m-1` and is defined as
 :math:`y_k =\sum_{j=0}^{k} c[j]x[k-j]`.

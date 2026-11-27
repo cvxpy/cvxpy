@@ -16,13 +16,11 @@ limitations under the License.
 THIS FILE IS DEPRECATED AND MAY BE REMOVED WITHOUT WARNING!
 DO NOT CALL THESE FUNCTIONS IN YOUR CODE!
 """
-from typing import Optional, Tuple
 
 import numpy as np
+from numpy.lib.array_utils import normalize_axis_tuple
 
 import cvxpy.lin_ops.lin_op as lo
-import cvxpy.utilities as u
-from cvxpy.lin_ops.lin_constraints import LinEqConstr, LinLeqConstr
 
 # Utility functions for dealing with LinOp.
 
@@ -56,7 +54,7 @@ def get_id() -> int:
     return new_id
 
 
-def create_var(shape: Tuple[int, ...], var_id=None):
+def create_var(shape: tuple[int, ...], var_id=None):
     """Creates a new internal variable.
 
     Parameters
@@ -76,7 +74,7 @@ def create_var(shape: Tuple[int, ...], var_id=None):
     return lo.LinOp(lo.VARIABLE, shape, [], var_id)
 
 
-def create_param(shape: Tuple[int, ...], param_id=None):
+def create_param(shape: tuple[int, ...], param_id=None):
     """Wraps a parameter.
 
     Parameters
@@ -94,7 +92,7 @@ def create_param(shape: Tuple[int, ...], param_id=None):
     return lo.LinOp(lo.PARAM, shape, [], param_id)
 
 
-def create_const(value, shape: Tuple[int, ...], sparse: bool = False):
+def create_const(value, shape: tuple[int, ...], sparse: bool = False):
     """Wraps a constant.
 
     Parameters
@@ -139,24 +137,6 @@ def is_scalar(operator) -> bool:
     return len(operator.shape) == 0 or np.prod(operator.shape, dtype=int) == 1
 
 
-def is_const(operator) -> bool:
-    """Returns whether a LinOp is constant.
-
-    Parameters
-    ----------
-    operator : LinOp
-        The LinOp to test.
-
-    Returns
-    -------
-        True if the LinOp is a constant, False otherwise.
-    """
-    return operator.type in [lo.SCALAR_CONST,
-                             lo.SPARSE_CONST,
-                             lo.DENSE_CONST,
-                             lo.PARAM]
-
-
 def sum_expr(operators):
     """Add linear operators.
 
@@ -178,7 +158,7 @@ def neg_expr(operator):
 
     Parameters
     ----------
-    expr : LinOp
+    operator : LinOp
         The operator to be negated.
 
     Returns
@@ -189,53 +169,7 @@ def neg_expr(operator):
     return lo.LinOp(lo.NEG, operator.shape, [operator], None)
 
 
-def sub_expr(lh_op, rh_op):
-    """Difference of linear operators.
-
-    Parameters
-    ----------
-    lh_op : LinOp
-        The left-hand operator in the difference.
-    rh_op : LinOp
-        The right-hand operator in the difference.
-
-    Returns
-    -------
-    LinOp
-        A LinOp representing the difference of the operators.
-    """
-    return sum_expr([lh_op, neg_expr(rh_op)])
-
-
-def promote_lin_ops_for_mul(lh_op, rh_op):
-    """Promote arguments for multiplication.
-
-    Parameters
-    ----------
-    lh_op : LinOp
-        The left-hand operator in the multiplication.
-    rh_op : LinOp
-        The right-hand operator in the multiplication.
-
-    Returns
-    -------
-    LinOp
-       Promoted left-hand operator.
-    LinOp
-       Promoted right-hand operator.
-    tuple
-       Shape of the product
-    """
-    lh_shape, rh_shape, shape = u.shape.mul_shapes_promote(
-        lh_op.shape, rh_op.shape)
-    lh_op = lo.LinOp(lh_op.type, lh_shape, lh_op.args,
-                     lh_op.data)
-    rh_op = lo.LinOp(rh_op.type, rh_shape, rh_op.args,
-                     rh_op.data)
-    return lh_op, rh_op, shape
-
-
-def mul_expr(lh_op, rh_op, shape: Tuple[int, ...]):
+def mul_expr(lh_op, rh_op, shape: tuple[int, ...]):
     """Multiply two linear operators, with the constant on the left.
 
     Parameters
@@ -253,7 +187,7 @@ def mul_expr(lh_op, rh_op, shape: Tuple[int, ...]):
     return lo.LinOp(lo.MUL, shape, [rh_op], lh_op)
 
 
-def rmul_expr(lh_op, rh_op, shape: Tuple[int, ...]):
+def rmul_expr(lh_op, rh_op, shape: tuple[int, ...]):
     """Multiply two linear operators, with the constant on the right.
 
     Parameters
@@ -292,7 +226,7 @@ def multiply(lh_op, rh_op):
     return lo.LinOp(lo.MUL_ELEM, shape, [rh_op], lh_op)
 
 
-def kron_r(lh_op, rh_op, shape: Tuple[int, ...]):
+def kron_r(lh_op, rh_op, shape: tuple[int, ...]):
     """Kronecker product of two matrices, where the right operand is a Variable
 
     Parameters
@@ -310,7 +244,7 @@ def kron_r(lh_op, rh_op, shape: Tuple[int, ...]):
     return lo.LinOp(lo.KRON_R, shape, [rh_op], lh_op)
 
 
-def kron_l(lh_op, rh_op, shape: Tuple[int, ...]):
+def kron_l(lh_op, rh_op, shape: tuple[int, ...]):
     """Kronecker product of two matrices, where the left operand is a Variable
 
     Parameters
@@ -350,7 +284,7 @@ def div_expr(lh_op, rh_op):
     return lo.LinOp(lo.DIV, lh_op.shape, [lh_op], rh_op)
 
 
-def promote(operator, shape: Tuple[int, ...]):
+def promote(operator, shape: tuple[int, ...]):
     """Promotes a scalar operator to the given shape.
 
     Parameters
@@ -368,21 +302,25 @@ def promote(operator, shape: Tuple[int, ...]):
     return lo.LinOp(lo.PROMOTE, shape, [operator], None)
 
 
-def broadcast_to(operators, shape: Tuple[int, ...]):
+def broadcast_to(operators, shape: tuple[int, ...]):
     """Broadcasts operators to a common shape.
     """
     return lo.LinOp(lo.BROADCAST_TO, shape, operators, [])
 
 
-def sum_entries(operator, shape: Tuple[int, ...], axis=None, keepdims=None):
+def sum_entries(operator, shape: tuple[int, ...], axis=None, keepdims=None):
     """Sum the entries of an operator.
 
     Parameters
     ----------
-    expr : LinOp
+    operator : LinOp
         The operator to sum the entries of.
     shape : tuple
         The shape of the sum.
+    axis : int, optional
+        The axis to sum along.
+    keepdims : bool, optional
+        Whether to keep the reduced dimensions.
 
     Returns
     -------
@@ -392,7 +330,7 @@ def sum_entries(operator, shape: Tuple[int, ...], axis=None, keepdims=None):
     return lo.LinOp(lo.SUM_ENTRIES, shape, [operator], data=[axis, keepdims])
 
 
-def trace(operator, shape: Tuple[int, ...] = ()):
+def trace(operator, shape: tuple[int, ...] = ()):
     """Sum the diagonal entries of an operator.
 
     Parameters
@@ -410,7 +348,7 @@ def trace(operator, shape: Tuple[int, ...] = ()):
     return lo.LinOp(lo.TRACE, shape, [operator], None)
 
 
-def index(operator, shape: Tuple[int, ...], keys):
+def index(operator, shape: tuple[int, ...], keys):
     """Indexes/slices an operator.
 
     Parameters
@@ -430,7 +368,7 @@ def index(operator, shape: Tuple[int, ...], keys):
     return lo.LinOp(lo.INDEX, shape, [operator], keys)
 
 
-def conv(lh_op, rh_op, shape: Tuple[int, ...]):
+def conv(lh_op, rh_op, shape: tuple[int, ...]):
     """1D discrete convolution of two vectors.
 
     Parameters
@@ -464,20 +402,22 @@ def transpose(operator, axes=None):
     Returns
     -------
     LinOp
-       A linear operator representing the transpose.
+       A linear operator representing the transpose, or the original operator
+       if the axes stay in their original order.
     """
-    if len(operator.shape) < 2:
+    ndim = len(operator.shape)
+    if ndim < 2:
         return operator
+    if axes is None:
+        shape = operator.shape[::-1]
     else:
-        if axes is None:
-            # Default reverse all axes
-            shape = operator.shape[::-1]
-        else:
-            shape = tuple(operator.shape[i] for i in axes)
-        return lo.LinOp(lo.TRANSPOSE, shape, [operator], data=[axes])
+        if normalize_axis_tuple(axes, ndim) == tuple(range(ndim)):
+            return operator
+        shape = tuple(operator.shape[i] for i in axes)
+    return lo.LinOp(lo.TRANSPOSE, shape, [operator], data=[axes])
 
 
-def reshape(operator, shape: Tuple[int, ...]):
+def reshape(operator, shape: tuple[int, ...]):
     """Reshapes an operator.
 
     Parameters
@@ -554,12 +494,12 @@ def upper_tri(operator):
     return lo.LinOp(lo.UPPER_TRI, shape, [operator], None)
 
 
-def hstack(operators, shape: Tuple[int, ...]):
+def hstack(operators, shape: tuple[int, ...]):
     """Concatenates operators horizontally.
 
     Parameters
     ----------
-    operator : list
+    operators : list
         The operators to stack.
     shape : tuple
         The (rows, cols) of the stacked operators.
@@ -572,12 +512,12 @@ def hstack(operators, shape: Tuple[int, ...]):
     return lo.LinOp(lo.HSTACK, shape, operators, None)
 
 
-def vstack(operators, shape: Tuple[int, ...]):
+def vstack(operators, shape: tuple[int, ...]):
     """Concatenates operators vertically.
 
     Parameters
     ----------
-    operator : list
+    operators : list
         The operators to stack.
     shape : tuple
         The (rows, cols) of the stacked operators.
@@ -589,12 +529,13 @@ def vstack(operators, shape: Tuple[int, ...]):
     """
     return lo.LinOp(lo.VSTACK, shape, operators, None)
 
-def concatenate(operators, shape: Tuple[int, ...], axis: Optional[int] = 0):
+
+def concatenate(operators, shape: tuple[int, ...], axis: int | None = 0):
     """Concatenate operators on axis.
 
     Parameters
     ----------
-    operator : list
+    operators : list
         The operators to concatenate.
     shape : tuple
         The (rows, cols) of the concatenated operators.
@@ -607,223 +548,3 @@ def concatenate(operators, shape: Tuple[int, ...], axis: Optional[int] = 0):
        LinOp representing the stacked expression.
     """
     return lo.LinOp(lo.CONCATENATE, shape, operators, [axis])
-
-def get_constr_expr(lh_op, rh_op):
-    """Returns the operator in the constraint.
-    """
-    # rh_op defaults to 0.
-    if rh_op is None:
-        return lh_op
-    else:
-        return sum_expr([lh_op, neg_expr(rh_op)])
-
-
-def create_eq(lh_op, rh_op=None, constr_id=None):
-    """Creates an internal equality constraint.
-
-    Parameters
-    ----------
-    lh_term : LinOp
-        The left-hand operator in the equality constraint.
-    rh_term : LinOp
-        The right-hand operator in the equality constraint.
-    constr_id : int
-        The id of the CVXPY equality constraint creating the constraint.
-
-    Returns
-    -------
-    LinEqConstr
-    """
-    if constr_id is None:
-        constr_id = get_id()
-    expr = get_constr_expr(lh_op, rh_op)
-    return LinEqConstr(expr, constr_id, lh_op.shape)
-
-
-def create_leq(lh_op, rh_op=None, constr_id=None):
-    """Creates an internal less than or equal constraint.
-
-    Parameters
-    ----------
-    lh_term : LinOp
-        The left-hand operator in the <= constraint.
-    rh_term : LinOp
-        The right-hand operator in the <= constraint.
-    constr_id : int
-        The id of the CVXPY equality constraint creating the constraint.
-
-    Returns
-    -------
-    LinLeqConstr
-    """
-    if constr_id is None:
-        constr_id = get_id()
-    expr = get_constr_expr(lh_op, rh_op)
-    return LinLeqConstr(expr, constr_id, lh_op.shape)
-
-
-def create_geq(lh_op, rh_op=None, constr_id=None):
-    """Creates an internal greater than or equal constraint.
-
-    Parameters
-    ----------
-    lh_term : LinOp
-        The left-hand operator in the >= constraint.
-    rh_term : LinOp
-        The right-hand operator in the >= constraint.
-    constr_id : int
-        The id of the CVXPY equality constraint creating the constraint.
-
-    Returns
-    -------
-    LinLeqConstr
-    """
-    if rh_op is not None:
-        rh_op = neg_expr(rh_op)
-    return create_leq(neg_expr(lh_op), rh_op, constr_id)
-
-
-def get_expr_vars(operator):
-    """Get a list of the variables in the operator and their shapes.
-
-    Parameters
-    ----------
-    operator : LinOp
-        The operator to extract the variables from.
-
-    Returns
-    -------
-    list
-        A list of (var id, var shape) pairs.
-    """
-    if operator.type == lo.VARIABLE:
-        return [(operator.data, operator.shape)]
-    else:
-        vars_ = []
-        for arg in operator.args:
-            vars_ += get_expr_vars(arg)
-        return vars_
-
-
-def get_expr_params(operator):
-    """Get a list of the parameters in the operator.
-
-    Parameters
-    ----------
-    operator : LinOp
-        The operator to extract the parameters from.
-
-    Returns
-    -------
-    list
-        A list of parameter objects.
-    """
-    if operator.type == lo.PARAM:
-        return operator.data.parameters()
-    else:
-        params = []
-        for arg in operator.args:
-            params += get_expr_params(arg)
-        # Some LinOps have a param as data.
-        if isinstance(operator.data, lo.LinOp):
-            params += get_expr_params(operator.data)
-        return params
-
-
-def copy_constr(constr, func):
-    """Creates a copy of the constraint modified according to func.
-
-    Parameters
-    ----------
-    constr : LinConstraint
-        The constraint to modify.
-    func : function
-        Function to modify the constraint expression.
-
-    Returns
-    -------
-    LinConstraint
-        A copy of the constraint with the specified changes.
-    """
-    expr = func(constr.expr)
-    return type(constr)(expr, constr.constr_id, constr.shape)
-
-
-def replace_new_vars(expr, id_to_new_var):
-    """Replaces the given variables in the expression.
-
-    Parameters
-    ----------
-    expr : LinOp
-        The expression to replace variables in.
-    id_to_new_var : dict
-        A map of id to new variable.
-
-    Returns
-    -------
-    LinOp
-        An LinOp identical to expr, but with the given variables replaced.
-    """
-    if expr.type == lo.VARIABLE and expr.data in id_to_new_var:
-        return id_to_new_var[expr.data]
-    else:
-        new_args = []
-        for arg in expr.args:
-            new_args.append(
-                replace_new_vars(arg, id_to_new_var)
-            )
-        return lo.LinOp(expr.type, expr.shape, new_args, expr.data)
-
-
-def check_param_val(param):
-    """Wrapper on accessing a parameter.
-
-    Parameters
-    ----------
-    param : Parameter
-        The parameter whose value is being accessed.
-
-    Returns
-    -------
-    The numerical value of the parameter.
-
-    Raises
-    ------
-    ValueError
-        Raises error if parameter value is None.
-    """
-    val = param.value
-    if val is None:
-        raise ValueError("Problem has missing parameter value.")
-    else:
-        return val
-
-
-def replace_params_with_consts(expr):
-    """Replaces parameters with constant nodes.
-
-    Parameters
-    ----------
-    expr : LinOp
-        The expression to replace parameters in.
-
-    Returns
-    -------
-    LinOp
-        An LinOp identical to expr, but with the parameters replaced.
-    """
-    if expr.type == lo.PARAM:
-        return create_const(check_param_val(expr.data), expr.shape)
-    else:
-        new_args = []
-        for arg in expr.args:
-            new_args.append(replace_params_with_consts(arg))
-        # Data could also be a parameter.
-        if isinstance(expr.data, lo.LinOp) and expr.data.type == lo.PARAM:
-            data_lin_op = expr.data
-            assert isinstance(data_lin_op.shape, tuple)
-            val = check_param_val(data_lin_op.data)
-            data = create_const(val, data_lin_op.shape)
-        else:
-            data = expr.data
-        return lo.LinOp(expr.type, expr.shape, new_args, data)

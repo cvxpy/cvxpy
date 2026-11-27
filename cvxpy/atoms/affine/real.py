@@ -13,11 +13,11 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import Tuple
 
 import numpy as np
 
 from cvxpy.atoms.affine.affine_atom import AffAtom
+from cvxpy.utilities import performance_utils as perf
 
 
 class real(AffAtom):
@@ -32,7 +32,13 @@ class real(AffAtom):
         """
         return np.real(values[0])
 
-    def shape_from_args(self) -> Tuple[int, ...]:
+    def is_incr(self, idx) -> bool:
+        return True
+
+    def is_decr(self, idx) -> bool:
+        return False
+
+    def shape_from_args(self) -> tuple[int, ...]:
         """Returns the shape of the expression.
         """
         return self.args[0].shape
@@ -51,3 +57,11 @@ class real(AffAtom):
         """Is the expression symmetric?
         """
         return self.args[0].is_symmetric() or self.args[0].is_hermitian()
+
+    @perf.compute_once
+    def is_psd(self) -> bool:
+        return self.args[0].is_psd()
+
+    @perf.compute_once
+    def is_nsd(self) -> bool:
+        return self.args[0].is_nsd()

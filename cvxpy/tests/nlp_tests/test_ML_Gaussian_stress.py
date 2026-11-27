@@ -25,7 +25,7 @@ from cvxpy.tests.nlp_tests.derivative_checker import DerivativeChecker
 
 @pytest.mark.skipif('IPOPT' not in INSTALLED_SOLVERS, reason='IPOPT is not installed.')
 class TestStressMLE():
-    
+
     def test_zero_mean(self):
         np.random.seed(1234)
         TOL = 1e-3
@@ -55,7 +55,7 @@ class TestStressMLE():
                         obj = n  * cp.log(np.sqrt(2*np.pi)*sigma) + \
                                 (1 / (2 * cp.square(sigma))) * res
                         constraints = []
-            
+
                     problem = cp.Problem(cp.Minimize(obj), constraints)
                     problem.solve(solver=cp.IPOPT, nlp=True)
                     DerivativeChecker(problem).run_and_assert()
@@ -94,7 +94,7 @@ class TestStressMLE():
                         obj = n  * cp.log(np.sqrt(2*np.pi)*sigma) + \
                                 (1 / (2 * cp.square(sigma))) * cp.sum(cp.square(data-mu))
                         constraints = []
-                    
+
                     problem = cp.Problem(cp.Minimize(obj), constraints)
                     problem.solve(solver=cp.IPOPT, nlp=True, verbose=True)
                     DerivativeChecker(problem).run_and_assert()

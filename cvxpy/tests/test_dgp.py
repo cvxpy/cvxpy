@@ -210,15 +210,15 @@ class TestDgp(BaseTest):
         A = cvxpy.Variable((2, 2))
         with self.assertRaises(Exception) as cm:
             cvxpy.gmatmul(A, x)
-        self.assertTrue(str(cm.exception) ==
-                        "gmatmul(A, X) requires that A be constant.")
+        self.assertEqual(str(cm.exception),
+                         "gmatmul(A, X) requires that A be constant.")
 
         x = cvxpy.Variable(2)
         A = np.ones((4, 2))
         with self.assertRaises(Exception) as cm:
             cvxpy.gmatmul(A, x)
-        self.assertTrue(str(cm.exception) ==
-                        "gmatmul(A, X) requires that X be positive.")
+        self.assertEqual(str(cm.exception),
+                         "gmatmul(A, X) requires that X be positive.")
 
         x = cvxpy.Variable(3, pos=True)
         A = np.ones((4, 3))
@@ -388,3 +388,26 @@ class TestDgp(BaseTest):
             [x <= 2, x >= 0.5],
         )
         self.assertFalse(prob2.is_dgp())
+
+    def test_norm1_dgp(self) -> None:
+        """Regression test: norm1 is log-log convex (sum of positives)."""
+        x = cvxpy.Variable(2, pos=True)
+        self.assertTrue(cvxpy.norm1(x).is_log_log_convex())
+        # minimize x1 + x2 s.t. x1 * x2 >= 4 has optimum 4 at x = (2, 2).
+        prob = cvxpy.Problem(cvxpy.Minimize(cvxpy.norm(x, 1)), [x[0] * x[1] >= 4])
+        self.assertTrue(prob.is_dgp())
+        prob.solve(gp=True, solver=cvxpy.CLARABEL)
+        self.assertAlmostEqual(prob.value, 4.0, places=4)
+        self.assertItemsAlmostEqual(x.value, [2.0, 2.0], places=4)
+
+    def test_quad_form_dgp(self) -> None:
+        """Regression test: QuadForm must be canonicalized, not copied verbatim."""
+        x = cvxpy.Variable(2, pos=True)
+        P = np.array([[2.0, 1.0], [1.0, 3.0]])
+        prob = cvxpy.Problem(cvxpy.Minimize(cvxpy.quad_form(x, P)), [x[0] * x[1] >= 4])
+        self.assertTrue(prob.is_dgp())
+        prob.solve(gp=True, solver=cvxpy.CLARABEL)
+        # With x2 = 4/x1, the objective is 2*x1^2 + 8 + 48/x1^2,
+        # minimized at x1^2 = sqrt(24) with optimum 8 + 8*sqrt(6).
+        self.assertAlmostEqual(prob.value, 8 + 8 * np.sqrt(6), places=4)
+        self.assertAlmostEqual(x.value @ P @ x.value, prob.value, places=4)

@@ -27,6 +27,7 @@ class GLPK(CVXOPT):
     # Solver capabilities.
     MIP_CAPABLE = False
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS
+    REQUIRED_MODULES = ("cvxopt.glpk",)
 
     # When constraints aren't provided, use zero matrix and vector of this length
     MIN_CONSTRAINT_LENGTH = 1
@@ -107,7 +108,7 @@ class GLPK(CVXOPT):
                 cvxopt.solvers.options[key] = old_options[key]
             else:
                 del cvxopt.solvers.options[key]
-    
+
     def cite(self, data):
         """Returns bibtex citation for the solver.
 

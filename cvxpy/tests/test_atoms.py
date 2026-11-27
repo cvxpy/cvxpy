@@ -15,6 +15,8 @@ limitations under the License.
 """
 
 import unittest
+from fractions import Fraction
+from unittest.mock import patch
 
 import numpy as np
 import pytest
@@ -32,6 +34,7 @@ from cvxpy.atoms.affine.upper_tri import upper_tri_to_full
 from cvxpy.atoms.errormsg import SECOND_ARG_SHOULD_NOT_BE_EXPRESSION_ERROR_MESSAGE
 from cvxpy.expressions.constants import Constant, Parameter
 from cvxpy.expressions.variable import Variable
+from cvxpy.reductions.eliminate_pwl.canonicalizers.norm1_canon import norm1_canon
 from cvxpy.reductions.solvers.defines import INSTALLED_MI_SOLVERS
 from cvxpy.tests.base_test import BaseTest
 from cvxpy.transforms.partial_optimize import partial_optimize
@@ -92,6 +95,24 @@ class TestAtoms(BaseTest):
         self.assertEqual(cp.norm1(atom).curvature, s.CONVEX)
         self.assertEqual(cp.norm1(-atom).curvature, s.CONVEX)
 
+    def test_norm1_keepdims_canonicalization(self) -> None:
+        """Test that norm1 keeps keepdims=True when it is canonicalized.
+        """
+        # Without keepdims the canonicalized norm has shape (3,), the
+        # constraint broadcasts against the (3, 1) t to (3, 3), and every
+        # entry of t is pushed up to the largest row norm.
+        X_val = np.array([[1.0, -2.0], [3.0, 0.0], [-0.5, 0.5]])
+        X = Variable((3, 2))
+        t = Variable((3, 1))
+        expr = cp.norm(X, 1, axis=1, keepdims=True)
+        self.assertEqual(expr.shape, (3, 1))
+        canonical_expr, _ = norm1_canon(expr, expr.args)
+        self.assertEqual(canonical_expr.shape, (3, 1))
+        prob = cp.Problem(cp.Minimize(cp.sum(t)), [X == X_val, expr <= t])
+        prob.solve(solver=cp.CLARABEL)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        self.assertItemsAlmostEqual(t.value, np.linalg.norm(X_val, 1, axis=1, keepdims=True))
+
     def test_list_input(self) -> None:
         """Test that list input is rejected.
         """
@@ -124,6 +145,32 @@ class TestAtoms(BaseTest):
         self.assertTrue(str(cm.exception) in (
             "Unsupported norm option nuc for non-matrix."))
 
+        # Matrix norms are not supported for a single axis.
+        X = cp.Variable((3, 4))
+        for p in ('fro', 'nuc', 'Fro'):
+            for axis in (0, 1, (0,), (1,)):
+                with self.assertRaises(ValueError) as cm:
+                    cp.norm(X, p, axis=axis)
+                assert "not supported for the" in str(cm.exception)
+
+        # Three or more axes are not supported.
+        with self.assertRaises(NotImplementedError) as cm:
+            cp.norm(X, 'nuc', axis=(0, 1, 2))
+        assert "more than two axis entries" in str(cm.exception)
+
+        # Norms without an axis retain NumPy-compatible behavior.
+        A = np.arange(12., dtype=float).reshape(3, 4)
+        assert np.isclose(cp.norm(cp.Constant(A), 'fro').value,
+                          np.linalg.norm(A, 'fro'))
+        assert np.isclose(cp.norm(cp.Constant(A), 'nuc').value,
+                          np.linalg.norm(A, 'nuc'))
+
+        # A full two-axis tuple computes the Frobenius matrix norm.
+        assert np.isclose(
+            cp.norm(cp.Constant(A), 'fro', axis=(0, 1)).value,
+            np.linalg.norm(A, 'fro')
+        )
+
     def test_quad_form(self) -> None:
         """Test quad_form atom.
         """
@@ -134,8 +181,6 @@ class TestAtoms(BaseTest):
     def test_power(self) -> None:
         """Test the power class.
         """
-        from fractions import Fraction
-
         for shape in [(1, 1), (3, 1), (2, 3)]:
             x = Variable(shape)
             y = Variable(shape)
@@ -173,6 +218,34 @@ class TestAtoms(BaseTest):
                 self.assertEqual(copy.get_data(), atom.get_data())
 
         assert cp.power(-1, 2).value == 1
+
+    def test_power_curvature_follows_rational_approximation(self) -> None:
+        """Curvature and sign follow p_used, not the input exponent.
+
+        ``power`` approximates ``p`` by a rational with denominator at most
+        ``max_denom``. An exponent that approximates to exactly 1 must behave
+        like ``power(x, 1)``, matching is_incr/is_decr, which already use
+        ``p_used``.
+        """
+        x = Variable()
+
+        # 1.0001 approximates to p_used == 1, so it is affine like power(x, 1).
+        near_one = cp.power(x, 1.0001)
+        self.assertEqual(near_one.p_used, 1)
+        self.assertEqual(near_one.curvature, s.AFFINE)
+        self.assertEqual(near_one.curvature, cp.power(x, 1).curvature)
+        self.assertEqual(near_one.sign, cp.power(x, 1).sign)
+
+        # 1.001 does not, so it stays convex and nonnegative.
+        approx = cp.power(x, 1.001)
+        self.assertEqual(approx.p_used, Fraction(1001, 1000))
+        self.assertEqual(approx.curvature, s.CONVEX)
+        self.assertEqual(approx.sign, s.NONNEG)
+
+        # A parametrized exponent has no approximation and stays unknown.
+        param = cp.power(x, Parameter())
+        self.assertIsNone(param.p_used)
+        self.assertEqual(param.curvature, s.UNKNOWN)
 
     # Test the xexp class
     def test_xexp(self) -> None:
@@ -215,12 +288,102 @@ class TestAtoms(BaseTest):
             ):
             cp.geo_mean(self.x, self.y)
 
+    def test_geo_mean_shapes(self) -> None:
+        """Any shape is accepted, and the entries are taken in column-major order."""
+        M = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])
+
+        atom = cp.geo_mean(cp.Constant(M))
+        self.assertEqual(atom.shape, tuple())
+        self.assertSequenceEqual(atom.w, [Fraction(1, 6)] * 6)
+        self.assertAlmostEqual(atom.value, float(np.prod(M) ** (1 / M.size)))
+
+        # Column-major, as elsewhere in CVXPY: the weights line up with
+        # M.ravel(order='F').
+        weighted = cp.geo_mean(cp.Constant(M), [2, 0, 0, 0, 0, 1])
+        flat = M.ravel(order='F')
+        self.assertAlmostEqual(weighted.value, float((flat[0] ** 2 * flat[5]) ** (1 / 3)))
+
+        # More than two dimensions.
+        T = np.arange(1, 25, dtype=float).reshape(2, 3, 4)
+        self.assertAlmostEqual(
+            cp.geo_mean(cp.Constant(T)).value, float(np.prod(T) ** (1 / T.size))
+        )
+
+    def test_geo_mean_shares_one_set_of_constraints(self) -> None:
+        """Every output is covered by the same constraints, not one set each."""
+        from cvxpy.reductions.dcp2cone.canonicalizers.geo_mean_canon import (
+            geo_mean_approx_canon,
+        )
+
+        counts = []
+        for cols in (2, 20, 200):
+            x = cp.Variable((3, cols), nonneg=True)
+            expr = cp.geo_mean(x, axis=0)
+            _, constraints = geo_mean_approx_canon(expr, expr.args)
+            counts.append(len(constraints))
+        assert len(set(counts)) == 1, counts
+
+    def test_geo_mean_row_vector(self) -> None:
+        """A row vector reaches the solver, as the docstring has always promised."""
+        for shape in [(4,), (4, 1), (1, 4), (2, 2)]:
+            x = cp.Variable(shape, nonneg=True)
+            n = int(np.prod(shape))
+            prob = cp.Problem(cp.Maximize(cp.geo_mean(x)), [cp.sum(x) <= n])
+            prob.solve(solver=cp.SCS, eps=1e-6)
+            self.assertAlmostEqual(prob.value, 1.0, places=4)
+
     # Test the harmonic_mean class.
     def test_harmonic_mean(self) -> None:
         atom = cp.harmonic_mean(self.x)
         self.assertEqual(atom.shape, tuple())
         self.assertEqual(atom.curvature, s.CONCAVE)
         self.assertEqual(atom.sign, s.NONNEG)
+
+    def test_harmonic_mean_negative_entries_fail_fast(self) -> None:
+        """Arguments known to have negative entries raise at construction
+        instead of silently evaluating to -inf.
+        """
+        x = Variable(2)
+        bad_args = [
+            [-1.0, 2.0],  # numeric data with mixed sign
+            Constant([-1.0, -2.0]),
+            Constant([1.0, 2.0]) - 3.0,  # a compound constant expression
+            -cp.abs(x),  # a provably nonpositive expression
+        ]
+        for i, bad_arg in enumerate(bad_args):
+            with self.subTest(case=i):
+                with self.assertRaises(ValueError):
+                    cp.harmonic_mean(bad_arg)
+        with self.assertRaises(ValueError) as cm:
+            cp.harmonic_mean([-1.0, 2.0])
+        self.assertEqual(
+            str(cm.exception),
+            "harmonic_mean is only defined for arguments with positive entries, "
+            "but the argument is known to have negative entries.")
+
+    def test_harmonic_mean_valid_arguments(self) -> None:
+        """Nonnegative and unknown-sign arguments keep working.
+
+        Zero entries give the limiting harmonic mean of zero, unknown-sign
+        arguments get their nonnegativity enforced as a domain constraint,
+        and a parameter's current value must not trigger the check.
+        """
+        # A bare variable: the atom stays concave; the solver enforces the
+        # domain constraint x >= 0.
+        atom = cp.harmonic_mean(self.x)
+        self.assertEqual(atom.curvature, s.CONCAVE)
+        # Zero entries evaluate to the limiting harmonic mean of zero.
+        self.assertEqual(cp.harmonic_mean([0.0, 0.0]).value, 0.0)
+        # Positive numeric data evaluates to the true harmonic mean.
+        self.assertAlmostEqual(cp.harmonic_mean([1.0, 2.0]).value, 4.0 / 3.0)
+        # A parameter is exempt from value checks because its value is
+        # mutable, even when it currently holds negative entries. Outside
+        # a DPP scope, a parameter-only expression reads as constant.
+        param = Parameter(2)
+        param.value = [-1.0, 2.0]
+        atom = cp.harmonic_mean(param)
+        self.assertEqual(atom.shape, tuple())
+        self.assertEqual(atom.curvature, s.CONSTANT)
 
     # Test the pnorm class.
     def test_pnorm(self) -> None:
@@ -545,7 +708,7 @@ class TestAtoms(BaseTest):
 
     def test_multiply_hermitian(self) -> None:
         """Test that Hermitian property is preserved in multiplication."""
-        
+
         # Test real scalar multiplication
         X = cp.Variable((3, 3), hermitian=True)
         self.assertTrue((1 * X).is_hermitian())
@@ -593,25 +756,84 @@ class TestAtoms(BaseTest):
         atom = cp.hstack([self.A, self.B])
         self.assertEqual(atom.name(), "Hstack(A, B)")
         self.assertEqual(atom.shape, (2, 4))
-        
+
         # Extracting columns produces 1D arrays, so hstack concatenates to (4,)
         entries = []
         for i in range(self.A.shape[1]):
             entries.append(self.A[:, i])
         atom = cp.hstack(entries)
         self.assertEqual(atom.shape, (4,))
-        
+
         with self.assertRaises(ValueError):
             cp.hstack([self.C, self.A])
 
         with self.assertRaises(ValueError):
             cp.hstack([self.A, self.x])
 
+        with self.assertRaises(ValueError):
+            cp.hstack([Variable((2, 3, 4)), Variable((2, 3))])
+
         with self.assertRaises(TypeError):
             cp.hstack()
 
         expr = cp.hstack([2, Variable((1,))])
         self.assertEqual(expr.shape, (2,))
+
+    def test_hstack_nd_solve(self) -> None:
+        """hstack must follow NumPy semantics for ndim >= 3."""
+        backends = [None, cp.SCIPY_CANON_BACKEND, cp.COO_CANON_BACKEND]
+        shapes = [(2, 3, 4), (2, 3, 2, 2)]
+        for backend in backends:
+            for shape in shapes:
+                with self.subTest(backend=backend, shape=shape):
+                    left = np.arange(np.prod(shape), dtype=float).reshape(shape)
+                    right = left + 100.0
+                    constant_shape = (shape[0], 1) + shape[2:]
+                    constant = np.arange(
+                        np.prod(constant_shape), dtype=float
+                    ).reshape(constant_shape) - 50.0
+                    target = np.hstack([left, constant, right])
+
+                    x = cp.Variable(shape)
+                    y = cp.Variable(shape)
+                    expr = cp.hstack([x, constant, y])
+
+                    self.assertEqual(expr.shape, target.shape)
+                    prob = cp.Problem(
+                        cp.Minimize(cp.sum_squares(expr - target))
+                    )
+                    prob.solve(solver=cp.CLARABEL, canon_backend=backend)
+
+                    self.assertAlmostEqual(prob.value, 0.0, places=6)
+                    self.assertItemsAlmostEqual(x.value, left)
+                    self.assertItemsAlmostEqual(y.value, right)
+                    self.assertItemsAlmostEqual(expr.value, target)
+
+    def test_hstack_nd_value(self) -> None:
+        """Shape and numeric value must match NumPy hstack."""
+        for shape in [(2, 3, 4), (2, 3, 2, 2)]:
+            with self.subTest(shape=shape):
+                left = np.arange(np.prod(shape), dtype=float).reshape(shape)
+                right = left + 100.0
+                expected = np.hstack([left, right])
+
+                expr = cp.hstack([left, right])
+
+                self.assertEqual(expr.shape, expected.shape)
+                self.assertItemsAlmostEqual(expr.value, expected)
+
+    def test_hstack_nd_issue_3576(self) -> None:
+        """Regression test for the original repro in issue #3576."""
+        A = np.arange(24.).reshape(2, 3, 4)
+        X = cp.Variable((2, 3, 4))
+        prob = cp.Problem(
+            cp.Minimize(cp.sum_squares(cp.hstack([X, A]) - np.hstack([A, A])))
+        )
+
+        prob.solve(solver=cp.CLARABEL)
+
+        self.assertAlmostEqual(prob.value, 0.0, places=6)
+        self.assertItemsAlmostEqual(X.value, A)
 
     def test_concatenate(self):
         atom = cp.concatenate([self.x, self.y], axis=0)
@@ -652,6 +874,30 @@ class TestAtoms(BaseTest):
         with self.assertRaises(ValueError):
             cp.concatenate([self.C, self.x], axis=1)
         # Expected ValueError due to mismatched number of dimensions between arrays
+
+    def test_concatenate_axis_none_solve(self) -> None:
+        # With axis=None every argument is flattened in 'C' order, as in np.concatenate.
+        X = Variable((2, 3))
+        Y = Variable((2, 2, 2))
+        P = Parameter((2, 2), value=np.array([[10.0, 11.0], [12.0, 13.0]]))
+        A = np.arange(6.0).reshape(2, 3)
+        B = np.arange(8.0).reshape(2, 2, 2)
+        expr = cp.concatenate([X, P, Y], axis=None)
+        target = np.concatenate([A, P.value, B], axis=None)
+        for backend in [cp.SCIPY_CANON_BACKEND, cp.COO_CANON_BACKEND]:
+            prob = Problem(Minimize(0), [expr == target])
+            prob.solve(solver=cp.CLARABEL, canon_backend=backend)
+            self.assertEqual(prob.status, cp.OPTIMAL)
+            self.assertItemsAlmostEqual(X.value, A)
+            self.assertItemsAlmostEqual(Y.value, B)
+
+        # DGP problems go through the same linear operator.
+        Z = Variable((2, 2), pos=True)
+        t = np.array([1.0, 2.0, 3.0, 4.0])
+        z = cp.concatenate([Z], axis=None)
+        prob = Problem(Minimize(cp.sum(cp.multiply(z, 1 / t) + cp.multiply(t, z ** -1))))
+        prob.solve(gp=True, solver=cp.CLARABEL)
+        self.assertItemsAlmostEqual(Z.value, t.reshape(2, 2), places=3)
 
     def test_reshape(self) -> None:
         """Test the reshape class.
@@ -859,6 +1105,10 @@ class TestAtoms(BaseTest):
         self.assertEqual(str(cm.exception),
                          "Argument to trace must have ndim >= 2 with equal last two dimensions.")
 
+        # The shortcut can broadcast these factors even though their product is nonsquare.
+        with self.assertRaisesRegex(ValueError, "Argument to trace must"):
+            cp.trace(cp.Variable((1, 3)) @ cp.Variable((3, 2)))
+
     def test_trace_sign_psd(self) -> None:
         """Test sign of trace for psd/nsd inputs.
         """
@@ -928,6 +1178,47 @@ class TestAtoms(BaseTest):
         prob.solve(solver=cp.CLARABEL)
         self.assertAlmostEqual(prob.value, np.trace(C @ X.value), places=4)
 
+    def test_trace_batched_product(self) -> None:
+        # Rectangular complex factors broadcast to two batch axes.
+        a = (1 + 2j) * np.arange(1., 13.).reshape(2, 1, 2, 3)
+        b = (1 - 1j) * np.arange(1., 19.).reshape(1, 3, 3, 2)
+        A = cp.Variable(a.shape, complex=True, value=a)
+        B = cp.Variable(b.shape, complex=True, value=b)
+        result = cp.trace(A @ B)
+        self.assertEqual(result.shape, (2, 3))
+        np.testing.assert_allclose(result.value, np.linalg.trace(a @ b))
+
+    def test_trace_scalar_real_products(self) -> None:
+        """Real scalar-shaped products should canonicalize without real()."""
+        X = cp.Variable((1, 1))
+        constant = np.array([[2.]])
+
+        matmul_trace = cp.trace(constant @ X)
+        self.assertIsInstance(matmul_trace, Sum)
+        matmul_trace.canonical_form
+
+        elementwise_trace = cp.trace(cp.multiply(constant, X))
+        self.assertIsInstance(elementwise_trace, cp.Trace)
+        elementwise_trace.canonical_form
+
+    def test_trace_AB_hermitian_complex(self) -> None:
+        """Complex Hermitian products should retain their real trace property."""
+        X = cp.Variable((2, 2), hermitian=True)
+        constant = np.array([[2., 1 + 1j], [1 - 1j, 3.]])
+        trace_expr = cp.trace(cp.multiply(constant, X))
+
+        self.assertIsInstance(trace_expr, cp.Trace)
+        self.assertTrue(trace_expr.is_real())
+
+    def test_trace_elementwise_multiply(self) -> None:
+        """Trace of an elementwise product must only sum its diagonal."""
+        A = np.array([[1., 2.], [3., 4.]])
+        B = np.array([[5., 6.], [7., 8.]])
+        trace_expr = cp.trace(cp.multiply(A, B))
+
+        self.assertIsInstance(trace_expr, cp.Trace)
+        self.assertAlmostEqual(trace_expr.value, np.trace(A * B))
+
     def test_trace_complex2real(self) -> None:
         X = cp.Variable((2, 2), complex=True)
         problem = cp.Problem(cp.Minimize(cp.norm(cp.trace(X))), [X==2])
@@ -951,6 +1242,26 @@ class TestAtoms(BaseTest):
         self.assertEqual(expr.shape, tuple())
         expr = cp.log1p(-0.5)
         self.assertEqual(expr.sign, s.NONPOS)
+
+    def test_entr(self) -> None:
+        """Test the entr atom, including sparse constants.
+
+        entr was the only elementwise atom missing numpy_numeric, so sparse
+        inputs reached scipy's xlogy undensified and raised a TypeError.
+        """
+        dense = np.array([[0.5, 0.0], [0.0, 2.0]])
+        expected = np.array([[0.5 * np.log(2), 0.0], [0.0, -2 * np.log(2)]])
+        self.assertItemsAlmostEqual(cp.entr(cp.Constant(dense)).value, expected)
+        sparse = sp.csc_array(dense)
+        self.assertItemsAlmostEqual(cp.entr(cp.Constant(sparse)).value, expected)
+
+    def test_elementwise_is_symmetric(self) -> None:
+        """is_symmetric must not crash for scalar or 1-D elementwise atoms."""
+        self.assertTrue(cp.abs(cp.Variable()).is_symmetric())
+        self.assertFalse(cp.abs(cp.Variable(3)).is_symmetric())
+        self.assertTrue(cp.abs(cp.Variable((2, 2), symmetric=True)).is_symmetric())
+        self.assertFalse(cp.abs(cp.Variable((2, 2))).is_symmetric())
+        self.assertFalse(cp.abs(cp.Variable((2, 3))).is_symmetric())
 
     def test_upper_tri(self) -> None:
         with self.assertRaises(Exception) as cm:
@@ -1089,6 +1400,264 @@ class TestAtoms(BaseTest):
         result = problem.solve()
         self.assertAlmostEqual(result, 2.5)
         self.assertAlmostEqual(x.value, 1.5)
+
+    def test_huber_perspective(self) -> None:
+        """Tests for the three-argument perspective Huber atom (HuberPerspectiveAtom)."""
+        # -- t <= 0 → Inf --
+        self.assertTrue(np.isinf(cp.huber(1.0, M=1, t=0).value))
+        self.assertTrue(np.isinf(cp.huber(1.0, M=1, t=-1).value))
+
+        # -- Inner region: |x/t| <= M → x^2/t --
+        self.assertAlmostEqual(cp.huber(0.5, M=1, t=2).value, 0.125)   # 0.25/2
+        self.assertAlmostEqual(cp.huber(0.5, M=1, t=3).value, 1.0/12)  # 0.25/3
+
+        # -- Boundary: |x/t| == M → M^2 * t (both branches agree) --
+        # x=2, M=1, t=2: inner → 4/2=2; outer → 2*1*2 - 1*2=2
+        self.assertAlmostEqual(cp.huber(2.0, M=1, t=2).value, 2.0)
+        # x=3, M=1, t=3: inner → 9/3=3; outer → 2*1*3 - 1*3=3
+        self.assertAlmostEqual(cp.huber(3.0, M=1, t=3).value, 3.0)
+
+        # -- Outer region: |x/t| > M → 2M|x| - M^2*t --
+        # x=3, M=1, t=2: |3/2|=1.5>1 → 2*1*3 - 1*2 = 4
+        self.assertAlmostEqual(cp.huber(3.0, M=1, t=2).value, 4.0)
+
+        # -- Symmetry --
+        self.assertAlmostEqual(cp.huber(-0.5, M=1, t=2).value, 0.125)
+        self.assertAlmostEqual(cp.huber(-3.0, M=1, t=2).value, 4.0)
+
+        # -- Reduction to standard Huber when t=1 --
+        for x_val, M_val in [(0.5, 1.0), (1.0, 1.0), (2.0, 1.0), (3.0, 2.0)]:
+            self.assertAlmostEqual(
+                cp.huber(x_val, M=M_val, t=1).value,
+                cp.huber(x_val, M=M_val).value,
+            )
+
+        # -- Scaling property: huber(α*x, M, α*t) == α * huber(x, M, t) --
+        for alpha in [0.5, 2.0, 3.0]:
+            x_val, M_val, t_val = 1.5, 1.0, 2.0
+            self.assertAlmostEqual(
+                cp.huber(alpha * x_val, M=M_val, t=alpha * t_val).value,
+                alpha * cp.huber(x_val, M=M_val, t=t_val).value,
+            )
+
+        # -- Vector input: [inner, boundary, outer] with M=1, t=2 --
+        # |x/t|: 0.25, 1.0, 1.5 → inner, boundary, outer
+        self.assertItemsAlmostEqual(
+            cp.huber(np.array([0.5, 2.0, 3.0]), M=1, t=2).value,
+            [0.125, 2.0, 4.0],
+        )
+
+        # -- 2-D matrix input --
+        # M=1, t=2: 0.5→0.125 (inner), 3.0→4.0 (outer), 2.0→2.0 (boundary), 1.0→0.5 (inner)
+        self.assertItemsAlmostEqual(
+            cp.huber(np.array([[0.5, 3.0], [2.0, 1.0]]), M=1, t=2).value,
+            np.array([[0.125, 4.0], [2.0, 0.5]]),
+        )
+
+        # -- Sparse constant input --
+        dense = np.array([[0.5, 0.0], [0.0, 3.0]])
+        expected = np.array([[0.125, 0.0], [0.0, 4.0]])
+        self.assertItemsAlmostEqual(cp.huber(cp.Constant(dense), M=1, t=2).value, expected)
+        sparse = sp.csc_array(dense)
+        self.assertItemsAlmostEqual(cp.huber(cp.Constant(sparse), M=1, t=2).value, expected)
+
+        # -- t as Parameter --
+        t_param = cp.Parameter(pos=True)
+        t_param.value = 2.0
+        self.assertAlmostEqual(cp.huber(0.5, M=1, t=t_param).value, 0.125)
+        t_param.value = 3.0
+        self.assertAlmostEqual(cp.huber(0.5, M=1, t=t_param).value, 1.0/12)
+
+        # -- validate_arguments rejects invalid configurations --
+        y = cp.Variable()
+        with self.assertRaises(ValueError) as cm:
+            cp.huber(y, M=-1, t=2)
+        self.assertEqual(str(cm.exception),
+                         "M must be a non-negative scalar constant or Parameter.")
+        with self.assertRaises(ValueError) as cm:
+            cp.huber(y, M=1, t=cp.Variable(3, nonneg=True))
+        self.assertIn("t must be a scalar expression", str(cm.exception))
+        # t must be affine or concave; a convex (non-affine) t is rejected
+        with self.assertRaises(ValueError) as cm:
+            cp.huber(y, M=1, t=cp.square(cp.Variable()))
+        self.assertIn("concave or affine", str(cm.exception))
+
+        # -- _grad: gradient w.r.t. x and t --
+        # d/dt [t*huber(x/t, M)] = -min(|x/t|, M)^2, verified by finite differences.
+        atom = cp.huber(y, M=1, t=cp.Variable(pos=True))
+        g = atom._grad([np.array(0.5), 2.0])
+        self.assertAlmostEqual(g[0].toarray().item(), 0.5)
+        self.assertAlmostEqual(g[1].toarray().item(), -0.0625)
+        g = atom._grad([np.array(3.0), 2.0])
+        self.assertAlmostEqual(g[0].toarray().item(), 2.0)
+        self.assertAlmostEqual(g[1].toarray().item(), -1.0)
+        g = atom._grad([np.array(-3.0), 2.0])
+        self.assertAlmostEqual(g[0].toarray().item(), -2.0)
+        self.assertAlmostEqual(g[1].toarray().item(), -1.0)
+        yv = cp.Variable(3)
+        atom_v = cp.huber(yv, M=1, t=cp.Variable(pos=True))
+        g = atom_v._grad([np.array([0.5, 3.0, -3.0]), 2.0])
+        self.assertItemsAlmostEqual(g[0].toarray(), np.diag([0.5, 2.0, -2.0]))
+        self.assertItemsAlmostEqual(g[1].toarray(), [-0.0625, -1.0, -1.0])
+        g = atom._grad([np.array(0.5), 0.0])
+        self.assertIsNone(g[0])
+        self.assertIsNone(g[1])
+        # Chain rule through Atom.grad: d/dt sum_i t*huber(2*x_i/t) at the kink |2x/t| = M.
+        xv, tv = cp.Variable(2), cp.Variable(pos=True)
+        xv.value, tv.value = np.array([1.0, -1.0]), 2.0
+        expr = cp.sum(cp.huber(2 * xv, M=1, t=tv))
+        self.assertItemsAlmostEqual(expr.grad[xv].toarray(), [4.0, -4.0])
+        self.assertAlmostEqual(expr.grad[tv], -2.0)
+
+        # -- Copy --
+        atom = cp.huber(self.x, M=2, t=3)
+        copy = atom.copy()
+        self.assertIs(type(copy), type(atom))
+        self.assertEqual(len(copy.args), len(atom.args))
+        self.assertEqual(copy.get_data()[0].value, atom.get_data()[0].value)
+
+        # -- DPP with perspective form: M and t as Parameters re-solve correctly --
+        x = cp.Variable()
+        M_p = cp.Parameter(nonneg=True, value=1.0)
+        t_p = cp.Parameter(pos=True, value=1.0)
+        prob = cp.Problem(cp.Minimize(x**2 + cp.huber(2*x - 3, M=M_p, t=t_p)), [x >= 0.5])
+        self.assertTrue(prob.is_dpp())
+        self.assertAlmostEqual(prob.solve(solver=cp.CLARABEL), 1.80, places=4)
+        self.assertAlmostEqual(float(x.value), 1.2, places=4)
+        t_p.value = 2.0
+        self.assertAlmostEqual(prob.solve(solver=cp.CLARABEL), 1.50, places=4)
+        self.assertAlmostEqual(float(x.value), 1.0, places=4)
+
+    def test_huber_dcp(self) -> None:
+        """DCP curvature, sign, and monotonicity properties for Huber atoms."""
+        x = cp.Variable()
+
+        # -- HuberAtom --
+        atom2 = cp.huber(x, M=1)
+        self.assertTrue(atom2.is_convex())
+        self.assertFalse(atom2.is_concave())
+        self.assertTrue(atom2.is_nonneg())
+        self.assertTrue(atom2.is_quadratic())
+        self.assertTrue(atom2.has_quadratic_term())
+
+        # Monotonicity: non-decreasing for x >= 0, non-increasing for x <= 0
+        self.assertTrue(cp.huber(cp.Variable(nonneg=True), 1).is_incr(0))
+        self.assertFalse(cp.huber(cp.Variable(nonneg=True), 1).is_decr(0))
+        self.assertTrue(cp.huber(cp.Variable(nonpos=True), 1).is_decr(0))
+        self.assertFalse(cp.huber(cp.Variable(nonpos=True), 1).is_incr(0))
+
+        # -- HuberPerspectiveAtom --
+        t_const = 2.0
+        t_var = cp.Variable(nonneg=True)
+        atom3 = cp.huber(x, M=1, t=t_const)
+        self.assertTrue(atom3.is_convex())
+        self.assertFalse(atom3.is_concave())
+        self.assertTrue(atom3.is_nonneg())
+
+        # is_quadratic / has_quadratic_term: True iff t is constant
+        self.assertTrue(atom3.is_quadratic())
+        self.assertTrue(atom3.has_quadratic_term())
+        self.assertFalse(cp.huber(x, M=1, t=t_var).is_quadratic())
+        self.assertFalse(cp.huber(x, M=1, t=t_var).has_quadratic_term())
+
+        # Monotonicity in x and t
+        self.assertTrue(cp.huber(cp.Variable(nonneg=True), 1, t=t_const).is_incr(0))
+        self.assertFalse(cp.huber(cp.Variable(nonneg=True), 1, t=t_const).is_decr(0))
+        self.assertTrue(cp.huber(cp.Variable(nonpos=True), 1, t=t_const).is_decr(0))
+        self.assertFalse(atom3.is_incr(1))  # non-increasing in t
+        self.assertTrue(atom3.is_decr(1))
+
+    def test_huber_variable_t(self) -> None:
+        """Solve tests for huber with t as a Variable (concomitant scale estimation).
+
+        Verification: solve the perspective problem to get (x*, t*), then at the
+        returned t* re-solve with the 2-arg HuberAtom — an independent
+        canonicalization. Both paths must agree on x* and objective value.
+        """
+        # -- Scalar x --
+        x = cp.Variable()
+        t = cp.Variable(nonneg=True)
+        prob = cp.Problem(cp.Minimize(cp.huber(x - 2.0, M=1, t=t) + t), [t >= 0.1])
+        prob.solve(solver=cp.CLARABEL)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+
+        # reference problem
+        t_star = float(t.value)
+        x_ref = cp.Variable()
+        ref_prob = cp.Problem(cp.Minimize(
+            t_star * cp.huber((x_ref - 2.0) / t_star, M=1) + t_star
+        ))
+        ref_prob.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(float(x.value), float(x_ref.value), places=3)
+        self.assertAlmostEqual(prob.value, ref_prob.value, places=3)
+
+        # -- Vector x --
+        target = np.array([0.0, 1.0, 2.0])
+        xv = cp.Variable(3)
+        t = cp.Variable(nonneg=True)
+        prob = cp.Problem(
+            cp.Minimize(cp.sum(cp.huber(xv - target, M=1, t=t)) + 3 * t),
+            [t >= 0.01]
+        )
+        prob.solve(solver=cp.CLARABEL)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+
+        # reference problem
+        t_star = float(t.value)
+        xv_ref = cp.Variable(3)
+        ref_prob = cp.Problem(cp.Minimize(
+            t_star * cp.sum(cp.huber((xv_ref - target) / t_star, M=1)) + 3 * t_star
+        ))
+        ref_prob.solve(solver=cp.CLARABEL)
+        self.assertItemsAlmostEqual(xv.value, xv_ref.value, places=3)
+        self.assertAlmostEqual(prob.value, ref_prob.value, places=3)
+
+        # -- 2-D matrix x: exercises the reshape path in the canonicalization --
+        X_tgt = np.array([[0.5, -1.0, 2.0], [1.0, 0.0, -0.5]])
+        Xv = cp.Variable((2, 3))
+        t = cp.Variable(nonneg=True)
+        prob = cp.Problem(
+            cp.Minimize(cp.sum(cp.huber(Xv - X_tgt, M=1, t=t)) + 6 * t),
+            [t >= 0.01]
+        )
+        prob.solve(solver=cp.CLARABEL)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+
+        # reference problem
+        t_star = float(t.value)
+        Xv_ref = cp.Variable((2, 3))
+        ref_prob = cp.Problem(cp.Minimize(
+            t_star * cp.sum(cp.huber((Xv_ref - X_tgt) / t_star, M=1)) + 6 * t_star
+        ))
+        ref_prob.solve(solver=cp.CLARABEL)
+        self.assertItemsAlmostEqual(Xv.value.ravel(), Xv_ref.value.ravel(), places=3)
+        self.assertAlmostEqual(prob.value, ref_prob.value, places=3)
+
+        # -- Concomitant M-estimation: robust location + scale on contaminated data --
+        # 22 obs from N(5, 1) plus 3 gross outliers. M=1.345 → 95% Gaussian efficiency.
+        rng = np.random.default_rng(0)
+        y = np.concatenate([rng.standard_normal(22) + 5.0, [50.0, -40.0, 30.0]])
+        mu = cp.Variable()
+        sigma = cp.Variable(nonneg=True)
+        n = len(y)
+        prob = cp.Problem(
+            cp.Minimize(cp.sum(cp.huber(y - mu, M=1.345, t=sigma)) + n * sigma),
+            [sigma >= 0.01]
+        )
+        prob.solve(solver=cp.CLARABEL)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+
+        # reference problem
+        sigma_star = float(sigma.value)
+        mu_ref = cp.Variable()
+        ref_prob = cp.Problem(cp.Minimize(
+            sigma_star * cp.sum(cp.huber((y - mu_ref) / sigma_star, M=1.345)) + n * sigma_star
+        ))
+        ref_prob.solve(solver=cp.CLARABEL)
+        self.assertAlmostEqual(float(mu.value), float(mu_ref.value), places=3)
+        self.assertAlmostEqual(prob.value, ref_prob.value, places=3)
+        # Sanity: robust mu is close to the true mean (5.0) despite three big outliers
+        self.assertLess(abs(float(mu.value) - 5.0), 0.5)
 
     def test_sum_largest(self) -> None:
         """Test the sum_largest atom and related atoms.
@@ -1395,6 +1964,72 @@ class TestAtoms(BaseTest):
         cvar_value = cp.cvar(A @ x.value, beta).value
         self.assertTrue(cvar_value <= kappa)
 
+    def test_sum_largest_argument_with_value(self) -> None:
+        """sum_largest and cvar canonicalize when their argument already has a value,
+        e.g. after an earlier solve.
+        """
+        rng = np.random.default_rng(0)
+        R = rng.standard_normal((20, 3))
+        w = cp.Variable(3)
+        w.value = np.ones(3) / 3
+        # k = (1 - 0.9) * 20 is not an integer.
+        prob = cp.Problem(cp.Minimize(cp.cvar(R @ w, 0.9)), [cp.sum(w) == 1, w >= 0])
+        prob.solve(solver=cp.CLARABEL)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        self.assertAlmostEqual(prob.value, cp.cvar(R @ w.value, 0.9).value, places=5)
+
+        A = np.arange(6.0).reshape((2, 3))
+        X = cp.Variable((2, 3))
+        X.value = A
+        prob = cp.Problem(cp.Minimize(cp.sum_largest(X, 2)), [X >= A])
+        prob.solve(solver=cp.CLARABEL)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        self.assertAlmostEqual(prob.value, 9.0, places=5)
+
+    def test_cvar_axis(self) -> None:
+        """cvar reduces along an axis the way the other stats atoms do."""
+        rng = np.random.default_rng(0)
+        a = rng.standard_normal((5, 4, 3))
+
+        # The output shape follows the same reduction rule as the other atoms.
+        for axis in [0, 1, 2, (0, 1), (1, 2), (0, 2), None]:
+            for keepdims in [True, False]:
+                expr = cp.cvar(a, 0.9, axis=axis, keepdims=keepdims)
+                assert expr.shape == np.mean(a, axis=axis, keepdims=keepdims).shape
+
+        # Reducing over one axis agrees with the atom applied to each slice.
+        m = rng.standard_normal((6, 4))
+        for beta in [0.0, 0.5, 0.9]:
+            assert np.allclose(cp.cvar(m, beta, axis=0).value,
+                               [cp.cvar(m[:, j], beta).value for j in range(m.shape[1])])
+            assert np.allclose(cp.cvar(m, beta, axis=1).value,
+                               [cp.cvar(m[i, :], beta).value for i in range(m.shape[0])])
+
+        # A tuple of axes pools the samples of every axis it names.
+        pooled = cp.cvar(a, 0.9, axis=(0, 2)).value
+        assert np.allclose(pooled,
+                           [cp.cvar(a[:, j, :].flatten(), 0.9).value for j in range(a.shape[1])])
+
+        # Negative axes count from the end.
+        assert np.allclose(cp.cvar(a, 0.9, axis=-1).value, cp.cvar(a, 0.9, axis=2).value)
+
+        # Without an axis the whole array is one distribution.
+        assert np.isclose(cp.cvar(a, 0.9).value, cp.cvar(a.flatten(), 0.9).value)
+
+        # beta = 0 keeps every sample, so cvar is the mean.
+        for axis in [0, 1, (0, 2), None]:
+            assert np.allclose(cp.cvar(a, 0.0, axis=axis).value, np.mean(a, axis=axis))
+
+        # The axis form canonicalizes and solves.
+        X = cp.Variable((6, 4))
+        prob = cp.Problem(cp.Minimize(cp.sum(cp.cvar(X, 0.75, axis=0))), [X >= 1])
+        prob.solve()
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        self.assertAlmostEqual(prob.value, 4.0)
+
+        with self.assertRaises(ValueError):
+            cp.cvar(a, 1.0, axis=0)
+
     def test_index(self) -> None:
         """Test the copy function for index.
         """
@@ -1428,6 +2063,122 @@ class TestAtoms(BaseTest):
                            np.hstack([np.zeros((2, 1)),
                                       np.array([[1, 2]]).T])])
         self.assertItemsAlmostEqual(expr, const)
+
+    def test_bmat_promotes_scalars(self) -> None:
+        """bmat should promote scalars and 1-D blocks like numpy.block.
+
+        Regression test for https://github.com/cvxpy/cvxpy/issues/2328.
+        """
+        # Mixing a scalar, a vector, and a matrix (e.g. an LMI) used to raise.
+        U = np.array([[10.0], [20.0]])
+        expr = cp.bmat([[4, U.T], [U, np.identity(2)]])
+        ref = np.block([[4, U.T], [U, np.identity(2)]])
+        self.assertEqual(expr.shape, (3, 3))
+        self.assertItemsAlmostEqual(expr.value, ref)
+
+        # A scalar and a 1-D vector on the same row.
+        expr = cp.bmat([[1, np.array([5.0, 6.0])]])
+        self.assertEqual(expr.shape, (1, 3))
+        self.assertItemsAlmostEqual(expr.value, np.array([[1.0, 5.0, 6.0]]))
+
+        # Works with Variables and stays affine.
+        x = cp.Variable((2, 1))
+        expr = cp.bmat([[4, x.T], [x, np.identity(2)]])
+        self.assertEqual(expr.shape, (3, 3))
+        self.assertTrue(expr.is_affine())
+
+        # A scalar Variable is promoted just like a scalar constant.
+        s = cp.Variable()
+        expr = cp.bmat([[s, x.T], [x, np.identity(2)]])
+        self.assertEqual(expr.shape, (3, 3))
+        self.assertTrue(expr.is_affine())
+        s.value = 7.0
+        x.value = np.array([[10.0], [20.0]])
+        ref = np.block([[7.0, x.value.T], [x.value, np.identity(2)]])
+        self.assertItemsAlmostEqual(expr.value, ref)
+
+    def test_block_bare_expression(self) -> None:
+        """Test block with a bare expression."""
+        x = cp.Variable((2, 3))
+
+        expr = cp.block(x)
+
+        self.assertEqual(expr.shape, (2, 3))
+        self.assertTrue(expr.is_affine())
+
+    def test_block_flat_list(self) -> None:
+        """Test block concatenates a flat list along the last axis."""
+        x = cp.Variable((2, 2))
+        y = cp.Variable((2, 3))
+
+        expr = cp.block([x, y])
+
+        self.assertEqual(expr.shape, (2, 5))
+        self.assertTrue(expr.is_affine())
+
+    def test_block_nested_2d(self) -> None:
+        """Test arbitrary nesting depth and 2-D concatenation axes."""
+        A = np.array([[1.0, 2.0], [3.0, 4.0]])
+        B = np.array([[5.0], [6.0]])
+        C = np.array([[7.0, 8.0]])
+        D = np.array([[9.0]])
+
+        expr = cp.block([[A, B], [C, D]])
+        ref = np.block([[A, B], [C, D]])
+
+        self.assertEqual(expr.shape, ref.shape)
+        self.assertItemsAlmostEqual(expr.value, ref)
+
+    def test_block_nested_nd(self) -> None:
+        """Test arbitrary nesting depth and N-D concatenation axes."""
+        arrays = [
+            [
+                [np.array([[[1.0]]]), np.array([[[2.0]]])],
+                [np.array([[[3.0]]]), np.array([[[4.0]]])],
+            ],
+            [
+                [np.array([[[5.0]]]), np.array([[[6.0]]])],
+                [np.array([[[7.0]]]), np.array([[[8.0]]])],
+            ],
+        ]
+
+        expr = cp.block(arrays)
+        ref = np.block(arrays)
+
+        self.assertEqual(expr.shape, ref.shape)
+        self.assertItemsAlmostEqual(expr.value, ref)
+
+    def test_block_nd(self) -> None:
+        """Test block supports N-dimensional inputs."""
+        A = np.ones((2, 3, 4))
+        B = 2 * np.ones((2, 3, 5))
+
+        expr = cp.block([A, B])
+        ref = np.block([A, B])
+
+        self.assertEqual(expr.shape, ref.shape)
+        self.assertItemsAlmostEqual(expr.value, ref)
+
+    def test_block_promotes_scalars(self) -> None:
+        """Test block promotes scalars and 1-D inputs like numpy.block."""
+        expr = cp.block([[1, np.array([2.0, 3.0])]])
+        ref = np.block([[1, np.array([2.0, 3.0])]])
+
+        self.assertEqual(expr.shape, ref.shape)
+        self.assertItemsAlmostEqual(expr.value, ref)
+
+    def test_block_empty_list(self) -> None:
+        """Test block rejects empty lists."""
+        with self.assertRaises(ValueError):
+            cp.block([])
+
+        with self.assertRaises(ValueError):
+            cp.block([[]])
+
+    def test_block_mismatched_depth(self) -> None:
+        """Test block rejects mismatched list depths."""
+        with self.assertRaises(ValueError):
+            cp.block([[1, 2], 3])
 
     def test_conv(self) -> None:
         """Test the conv atom.
@@ -1488,6 +2239,16 @@ class TestAtoms(BaseTest):
             prob.solve(gp=True)
 
             assert np.allclose(expr.value, target)
+
+    def test_cumprod_monotonicity(self) -> None:
+        assert not cp.cumprod(self.x).is_incr(0)
+        assert not cp.cumprod(self.x).is_decr(0)
+
+        x = cp.Variable(2, pos=True)
+        expr = cp.cumprod(x + 1)
+        assert expr.is_incr(0)
+        assert not expr.is_decr(0)
+        assert expr.is_log_log_convex()
 
     def test_kron_expr(self) -> None:
         """Test the kron atom.
@@ -1574,7 +2335,7 @@ class TestAtoms(BaseTest):
     def test_stats(self) -> None:
         """Test the mean, std, var atoms.
         """
-        a = np.array([[10., 10., 3.0], [6., 0., 1.5]])
+        a = np.arange(24., dtype=float).reshape(2, 3, 4)
         expr_mean = cp.mean(a)
         expr_var = cp.var(a)
         expr_std = cp.std(a)
@@ -1593,19 +2354,33 @@ class TestAtoms(BaseTest):
             assert np.isclose(a.var(ddof=ddof), expr_var.value)
             assert np.isclose(a.std(ddof=ddof), expr_std.value)
 
-        for axis in [0, 1]:
+        for axis in [0, 1, 2, (0, 1), (1, 2), (0, 2), None]:
             for keepdims in [True, False]:
                 expr_mean = cp.mean(a, axis=axis, keepdims=keepdims)
-                # expr_var = cp.var(a, axis=axis, keepdims=keepdims)
-                expr_std = cp.std(a, axis=axis, keepdims=keepdims)
+                expr_var = cp.var(a, axis=axis, keepdims=keepdims)
 
                 assert expr_mean.shape == a.mean(axis=axis, keepdims=keepdims).shape
-                # assert expr_var.shape == a.var(axis=axis, keepdims=keepdims).shape
-                assert expr_std.shape == a.std(axis=axis, keepdims=keepdims).shape
+                assert expr_var.shape == a.var(axis=axis, keepdims=keepdims).shape
 
                 assert np.allclose(a.mean(axis=axis, keepdims=keepdims), expr_mean.value)
-                # assert np.allclose(a.var(axis=axis, keepdims=keepdims), expr_var.value)
-                assert np.allclose(a.std(axis=axis, keepdims=keepdims), expr_std.value)
+                assert np.allclose(a.var(axis=axis, keepdims=keepdims), expr_var.value)
+
+        for axis in [0, 1, 2, (0, 1), (1, 2), (0, 2), (0,), (0, 1, 2), (-3, -1)]:
+            for keepdims in [True, False]:
+                for ddof in [0, 1]:
+                    expr_std = cp.std(a, axis=axis, keepdims=keepdims, ddof=ddof)
+                    want = a.std(axis=axis, keepdims=keepdims, ddof=ddof)
+
+                    assert expr_std.shape == want.shape
+                    assert np.allclose(want, expr_std.value)
+
+        # A tuple of axes stays DCP and solves.
+        X = cp.Variable((2, 3, 4))
+        prob = cp.Problem(cp.Minimize(cp.sum(cp.std(X, axis=(0, 2)))), [X >= 1])
+        assert prob.is_dcp()
+        prob.solve()
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        self.assertAlmostEqual(prob.value, 0.0, places=6)
 
     def test_partial_optimize_dcp(self) -> None:
         """Test DCP properties of partial optimize.
@@ -2138,6 +2913,72 @@ class TestAtoms(BaseTest):
         self.assertEqual(str(cm.exception),
                          "Dimension of system doesn't correspond to dimension of subsystems.")
 
+    def test_partial_trace_dcp_attributes(self) -> None:
+        """Test that partial_trace propagates DCP attributes correctly.
+        """
+        # PSD input -> PSD output (partial trace preserves PSD)
+        X_psd = cp.Variable((4, 4), PSD=True)
+        pt_psd = cp.partial_trace(X_psd, (2, 2))
+        self.assertTrue(pt_psd.is_psd())
+        self.assertTrue(pt_psd.is_hermitian())
+        self.assertTrue(pt_psd.is_symmetric())
+
+        # Symmetric input -> Symmetric output
+        X_sym = cp.Variable((4, 4), symmetric=True)
+        pt_sym = cp.partial_trace(X_sym, (2, 2))
+        self.assertTrue(pt_sym.is_symmetric())
+        self.assertTrue(pt_sym.is_hermitian())
+
+        # Hermitian input -> Hermitian output
+        X_herm = cp.Variable((4, 4), hermitian=True)
+        pt_herm = cp.partial_trace(X_herm, (2, 2))
+        self.assertTrue(pt_herm.is_hermitian())
+        self.assertFalse(pt_herm.is_symmetric())
+
+        # Plain input -> no special attributes
+        X_plain = cp.Variable((4, 4))
+        pt_plain = cp.partial_trace(X_plain, (2, 2))
+        self.assertFalse(pt_plain.is_psd())
+        self.assertFalse(pt_plain.is_hermitian())
+
+        # PSD complex input -> PSD output (Hermitian, not necessarily symmetric)
+        X_psd_c = cp.Variable((4, 4), PSD=True, complex=True)
+        pt_psd_c = cp.partial_trace(X_psd_c, (2, 2))
+        self.assertTrue(pt_psd_c.is_psd())
+        self.assertTrue(pt_psd_c.is_hermitian())
+        self.assertFalse(pt_psd_c.is_symmetric())
+
+    def test_partial_transpose_dcp_attributes(self) -> None:
+        """Test that partial_transpose propagates DCP attributes correctly.
+        """
+        # Symmetric input -> Symmetric output
+        X_sym = cp.Variable((4, 4), symmetric=True)
+        pp_sym = cp.partial_transpose(X_sym, (2, 2))
+        self.assertTrue(pp_sym.is_symmetric())
+        self.assertTrue(pp_sym.is_hermitian())
+
+        # Hermitian input -> Hermitian output
+        X_herm = cp.Variable((4, 4), hermitian=True)
+        pp_herm = cp.partial_transpose(X_herm, (2, 2))
+        self.assertTrue(pp_herm.is_hermitian())
+
+        # PSD input -> NOT PSD output (partial transpose does NOT preserve PSD!)
+        X_psd = cp.Variable((4, 4), PSD=True)
+        pp_psd = cp.partial_transpose(X_psd, (2, 2))
+        self.assertFalse(pp_psd.is_psd())
+        self.assertTrue(pp_psd.is_hermitian())
+
+        # Plain input -> no special attributes
+        X_plain = cp.Variable((4, 4))
+        pp_plain = cp.partial_transpose(X_plain, (2, 2))
+        self.assertFalse(pp_plain.is_hermitian())
+        self.assertFalse(pp_plain.is_symmetric())
+
+        # Complex hermitian input -> Hermitian output
+        X_herm_c = cp.Variable((4, 4), hermitian=True, complex=True)
+        pp_herm_c = cp.partial_transpose(X_herm_c, (2, 2))
+        self.assertTrue(pp_herm_c.is_hermitian())
+
     def test_log_sum_exp(self) -> None:
         """Test log_sum_exp sign.
         """
@@ -2391,6 +3232,52 @@ class TestAtoms(BaseTest):
             cp.cummax(x, axis=2).value, expected, places=4
         )
 
+    def test_log_det_outside_positive_domain(self):
+        """Positive determinant does not imply positive definiteness."""
+        for complex_input in [False, True]:
+            for eigenvalues in [[-1., -1.], [-3., -2., 1.], [-4., -3., -2., -1.],
+                                [-2., 1.], [0., 1.], [0., 0.]]:
+                with self.subTest(complex_input=complex_input, eigenvalues=eigenvalues):
+                    n = len(eigenvalues)
+                    rng = np.random.default_rng(129)
+                    basis = rng.normal(size=(n, n))
+                    if complex_input:
+                        basis = basis + 1j * rng.normal(size=(n, n))
+                    unitary, _ = np.linalg.qr(basis)
+                    # Keep singular cases exact rather than depending on roundoff in a rotation.
+                    value = (unitary @ np.diag(eigenvalues) @ unitary.conj().T
+                             if all(eigenvalues) else np.diag(eigenvalues))
+                    parameter = cp.Parameter((n, n), hermitian=True, value=value)
+                    variable = cp.Variable((n, n), hermitian=True)
+                    variable.value = value
+                    for expression in [cp.log_det(value), cp.log_det(parameter),
+                                       cp.log_det(variable)]:
+                        with self.subTest(argument=type(expression.args[0]).__name__):
+                            self.assertEqual(expression.value, -np.inf)
+                    problem = cp.Problem(cp.Maximize(cp.log_det(value)))
+                    self.assertEqual(problem.solve(solver=cp.CLARABEL), -np.inf)
+
+    def test_log_det_positive_domain_scaling(self):
+        """Use a log-domain factorization, without forming the determinant."""
+        for complex_input in [False, True]:
+            for scale in [1e-250, 1., 1e250]:
+                with self.subTest(complex_input=complex_input, scale=scale):
+                    basis = np.array([[2., 1.], [0., 3.]])
+                    if complex_input:
+                        basis = basis + 1j * np.array([[0., 1.], [2., 0.]])
+                    value = scale * (basis @ basis.conj().T)
+                    expected = np.linalg.slogdet(value)[1]
+                    self.assertAlmostEqual(cp.log_det(value).value, expected, places=10)
+
+    def test_log_det_parameter_domain_updates(self):
+        """A new parameter value must not reuse an earlier domain result."""
+        parameter = cp.Parameter((2, 2), symmetric=True)
+        atom = cp.log_det(parameter)
+        for value, expected in [(np.eye(2), 0.), (-np.eye(2), -np.inf),
+                                (2 * np.eye(2), 2 * np.log(2.))]:
+            parameter.value = value
+            self.assertAlmostEqual(atom.value, expected)
+
     def test_log_det_sign(self) -> None:
         """log_det can be negative, e.g. log(det(0.5*I)) < 0."""
         X = Variable((2, 2), symmetric=True)
@@ -2456,6 +3343,72 @@ class TestAtoms(BaseTest):
         S = Variable((3, 3), symmetric=True)
         self.assertTrue(cp.real(S).is_symmetric())
 
+    def test_sum_scalar_axes(self):
+        scalar = cp.Parameter(value=2.0)
+        for axis in (None, 0, -1, np.int64(0), np.int64(-1), ()):
+            for keepdims in (False, True):
+                with self.subTest(axis=axis, keepdims=keepdims):
+                    expected = np.sum(scalar.value, axis=axis, keepdims=keepdims)
+                    expr = cp.sum(scalar, axis=axis, keepdims=keepdims)
+                    self.assertEqual(expr.shape, expected.shape)
+                    self.assertEqual(expr.value, expected)
+                    self.assertTrue(expr.is_dpp())
+        for axis in (1, -2, (0,), (-1,), (0, -1), 0.0, False):
+            with self.subTest(axis=axis):
+                with self.assertRaisesRegex(ValueError, "Invalid arguments for cp.sum"):
+                    cp.sum(scalar, axis=axis)
+
+    def test_sum_shape_without_allocation(self):
+        x = cp.Variable((2, 3, 4))
+        with patch("numpy.empty", side_effect=AssertionError("Shape inference allocated")):
+            with np.errstate(all="raise"):
+                self.assertEqual(cp.sum(x, axis=(0, -1)).shape, (3,))
+                self.assertEqual(cp.sum(x, axis=(), keepdims=True).shape, x.shape)
+
+    def test_sum_shape_inference(self):
+        """
+        Test shape inference for cp.sum with exact tuple formula,
+        verifying match with NumPy's axis and keepdims semantics.
+        """
+        x = cp.Variable((2, 3, 4))
+
+        # 1. Default (axis=None)
+        assert cp.sum(x).shape == ()
+        assert cp.sum(x, keepdims=True).shape == (1, 1, 1)
+
+        # 2. Single integer axis
+        assert cp.sum(x, axis=0).shape == (3, 4)
+        assert cp.sum(x, axis=1).shape == (2, 4)
+        assert cp.sum(x, axis=-1).shape == (2, 3)  # Negative indexing
+
+        # 3. Single integer axis with keepdims=True
+        assert cp.sum(x, axis=0, keepdims=True).shape == (1, 3, 4)
+        assert cp.sum(x, axis=1, keepdims=True).shape == (2, 1, 4)
+        assert cp.sum(x, axis=-1, keepdims=True).shape == (2, 3, 1)
+
+        # 4. Tuple of axes
+        assert cp.sum(x, axis=(0, 2)).shape == (3,)
+        assert cp.sum(x, axis=(0, -1)).shape == (3,)  # Mixed positive/negative
+        assert cp.sum(x, axis=(0, 1, 2)).shape == ()
+
+        # 5. Tuple of axes with keepdims=True
+        assert cp.sum(x, axis=(0, 2), keepdims=True).shape == (1, 3, 1)
+        assert cp.sum(x, axis=(0, 1, 2), keepdims=True).shape == (1, 1, 1)
+
+        # 6. Scalar variables
+        scalar = cp.Variable()
+        assert cp.sum(scalar).shape == ()
+        assert cp.sum(scalar, keepdims=True).shape == ()
+
+        # 7. Error cases (caught by normalize_axis_tuple)
+        with pytest.raises(ValueError):
+            cp.sum(x, axis=3)  # Out of bounds (positive)
+
+        with pytest.raises(ValueError):
+            cp.sum(x, axis=-4) # Out of bounds (negative)
+
+        with pytest.raises(ValueError):
+            cp.sum(x, axis=(0, 0))  # Duplicate axes
 
 class TestDotsort(BaseTest):
     """ Unit tests for the dotsort atom. """
@@ -2669,7 +3622,7 @@ class TestDotsort(BaseTest):
         with self.assertRaises(Exception) as cm:
             cp.dotsort(self.x, [1, 2, 3, 4, 5, 8])
         self.assertEqual(str(cm.exception),
-                         "The size of of W must be less or equal to the size of X.")
+                         "The size of W must be less or equal to the size of X.")
 
         # two variable expressions
         with self.assertRaises(Exception) as cm:
@@ -2694,3 +3647,57 @@ class TestDotsort(BaseTest):
         with self.assertRaises(Exception) as cm:
             cp.Problem(cp.Minimize(cp.dotsort(self.x, p_squared))).solve(enforce_dpp=True)
         assert "You are solving a parameterized problem that is not DPP" in str(cm.exception)
+
+
+@pytest.mark.parametrize("values, k, axis", [
+    (np.array([1., 2.]), 3, None),
+    (np.array([[-4., 1., 3.], [2., -5., 7.]]), 2.5, 0),
+])
+@pytest.mark.parametrize("initialize", [False, True])
+def test_sum_largest_oversized_k(values, k, axis, initialize) -> None:
+    """Taking more entries than a slice contains sums the whole slice."""
+    x = cp.Variable(values.shape)
+    if initialize:
+        x.value = values
+    largest = cp.sum_largest(x, k, axis=axis)
+    t = cp.Variable(largest.shape)
+    problem = cp.Problem(cp.Minimize(cp.sum(t)), [x == values, largest <= t])
+    problem.solve(solver=cp.CLARABEL)
+
+    assert problem.status == cp.OPTIMAL
+    np.testing.assert_allclose(t.value, values.sum(axis=axis), atol=1e-6)
+
+
+GEO_MEAN_AXES = [None, 0, 1, 2, -1, -2, -3, (0, 1), (1, 2), (0, 2), (0, 1, 2)]
+
+
+@pytest.mark.parametrize("axis", GEO_MEAN_AXES)
+@pytest.mark.parametrize("keepdims", [False, True])
+def test_geo_mean_axis(axis, keepdims) -> None:
+    """Every axis reduces, and the shape follows cp.mean."""
+    T = np.arange(1.0, 25.0).reshape(2, 3, 4)
+    const = cp.Constant(T)
+
+    got = cp.geo_mean(const, axis=axis, keepdims=keepdims)
+    assert got.shape == cp.mean(const, axis=axis, keepdims=keepdims).shape
+
+    expected = np.exp(np.mean(np.log(T), axis=axis))
+    if keepdims:
+        reduced = tuple(range(T.ndim)) if axis is None else np.atleast_1d(axis)
+        expected = np.expand_dims(expected, tuple(np.atleast_1d(reduced)))
+    assert np.allclose(np.array(got.value), expected)
+
+
+@pytest.mark.parametrize("axis", [3, -4])
+def test_geo_mean_axis_out_of_bounds(axis) -> None:
+    """An axis the expression does not have is refused."""
+    T = cp.Constant(np.arange(1.0, 25.0).reshape(2, 3, 4))
+    with pytest.raises((ValueError, IndexError)):
+        cp.geo_mean(T, axis=axis)
+
+
+def test_geo_mean_axis_with_weights() -> None:
+    """Weights apply to each slice along the reduced axis."""
+    M = np.arange(1.0, 7.0).reshape(2, 3)
+    got = cp.geo_mean(cp.Constant(M), [3, 1], axis=0)
+    assert np.allclose(np.array(got.value), (M[0] ** 3 * M[1]) ** (1 / 4))

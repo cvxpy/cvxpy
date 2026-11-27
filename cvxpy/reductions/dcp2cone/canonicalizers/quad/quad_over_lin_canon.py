@@ -50,7 +50,11 @@ def quad_over_lin_canon(expr, args, solver_context=None):
 
         block_indices = _compute_block_indices(shape, axes)
 
-    if isinstance(affine_expr, Variable):
+    # The SymbolicQuadForm argument must remain a true Variable through
+    # CvxAttr2Constr; variables with dim-reducing attributes (symmetric,
+    # PSD, NSD, diag, sparsity) are later substituted with affine
+    # expressions, so they need an auxiliary variable here.
+    if isinstance(affine_expr, Variable) and not affine_expr._has_dim_reducing_attr:
         return SymbolicQuadForm(affine_expr, quad_mat, expr, block_indices=block_indices), []
     else:
         t = Variable(affine_expr.shape)

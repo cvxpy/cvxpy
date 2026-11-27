@@ -14,6 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from collections.abc import Iterable
+
 import numpy as np
 
 import cvxpy.settings as s
@@ -38,6 +40,41 @@ def makeMstart(A, n, ifCol: int = 1):
     return mstart
 
 
+def make_unique_names(names: Iterable[str]) -> list[str]:
+    """Disambiguate duplicate Xpress column names with a "__dup<n>" suffix.
+
+    Avoids a "Duplicate column names are not allowed" error on Xpress >= 9.5
+    when any Variables share the same .name().
+
+    Only repeated entries are altered (the first occurrence of each name is kept
+    unchanged), and every generated suffix is checked against the names already
+    emitted, so a pre-existing "foo__dup1" cannot collide with the
+    disambiguated form of a duplicated "foo".
+    """
+    seen = set()
+    dup_counts = {}
+    unique_names = []
+    for name in names:
+        if name not in seen:
+            seen.add(name)
+            unique_names.append(name)
+            continue
+        count = dup_counts.get(name, 0)
+        while True:
+            # unlikely to iterate more than once
+            # for each outer name, unless the model
+            # variables themselves use the __dup<n>
+            # name pattern
+            count += 1
+            candidate = f"{name}__dup{count}"
+            if candidate not in seen:
+                break
+        dup_counts[name] = count
+        seen.add(candidate)
+        unique_names.append(candidate)
+    return unique_names
+
+
 class XPRESS(ConicSolver):
     """An interface for the Xpress solver.
     """
@@ -49,6 +86,7 @@ class XPRESS(ConicSolver):
     BOUNDED_VARIABLES = True
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC]
     MI_SUPPORTED_CONSTRAINTS = SUPPORTED_CONSTRAINTS
+    REQUIRED_MODULES = ("xpress",)
 
     def __init__(self) -> None:
         # Main member of this class: an Xpress problem. Marked with a
@@ -64,7 +102,10 @@ class XPRESS(ConicSolver):
         """Imports the solver.
         """
         import xpress
-        self.version = xpress.getversion()
+        try:
+            self.version = xpress.getVersion()
+        except AttributeError:
+            self.version = xpress.getversion()
 
     def accepts(self, problem) -> bool:
         """Can Xpress solve the problem?
@@ -109,13 +150,13 @@ class XPRESS(ConicSolver):
         data["initial_mip_values"] = values[mipidxs] if mipidxs.size > 0 else []
         data["initial_mip_idxs"] = mipidxs
 
-        # Setup names
-        data["variable_names"] = np.concatenate([
-            np.ravel([
-                f"{var.name()}_x_{i:09d}" for i in range(var.size)
-            ], order="F")
-            for var in variables
-        ]).tolist()
+        # Setup names. Variable names are derived from user-supplied
+        # Variable.name() values, which need not be unique; de-duplicate so
+        # Xpress >= 9.5 does not reject the problem (?1030).
+        data["variable_names"] = make_unique_names(
+            f"{var.name()}_x_{i:09d}"
+            for var in variables for i in range(var.size)
+        )
         if problem.constraints:
             data["constraint_names"] = np.concatenate([
                 np.ravel([

@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import Tuple
 
 import numpy as np
 from scipy.special import logsumexp
@@ -67,7 +66,7 @@ class log_sum_exp(AxisAtom):
         D = nom/denom
         return D
 
-    def sign_from_args(self) -> Tuple[bool, bool]:
+    def sign_from_args(self) -> tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         # Non-negative when arg is non-negative.
@@ -82,7 +81,7 @@ class log_sum_exp(AxisAtom):
         """Is the atom concave?
         """
         return False
-    
+
     def is_atom_smooth(self) -> bool:
         """Is the atom smooth?"""
         return True

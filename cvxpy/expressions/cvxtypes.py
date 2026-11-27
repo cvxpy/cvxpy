@@ -77,6 +77,11 @@ def matmul_expr():
     return binary_operators.MulExpression
 
 
+def matmul():
+    from cvxpy.atoms.affine import binary_operators
+    return binary_operators.matmul
+
+
 def elmul_expr():
     from cvxpy.atoms.affine import binary_operators
     return binary_operators.multiply

@@ -26,6 +26,17 @@ from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.utilities.citations import CITATION_DICT
 
 
+def triu_to_full_symmetric(P):
+    """Return the full symmetric matrix, as CSR, from either triangle or the full matrix of P.
+
+    Clarabel symmetrises an upper-triangular P that arrives on the CPU, but its GPU path reads a
+    device-resident P as the full matrix (``gpu_data_copy!`` in Clarabel.jl), so passing only the
+    upper triangle would count each off-diagonal entry once instead of twice.
+    """
+    upper = sp.triu(P)
+    return (upper + sp.triu(upper, k=1).T).tocsr()
+
+
 def dims_to_solver_cones(jl, cone_dims):
 
     jl.seval("""cones = Clarabel.SupportedCone[]""")
@@ -60,6 +71,7 @@ class CUCLARABEL(ConicSolver):
     MIP_CAPABLE = False
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS \
         + [SOC, ExpCone, PowCone3D]
+    REQUIRED_MODULES = ("cupy",)
 
     STATUS_MAP = {
                     "SOLVED": s.OPTIMAL,
@@ -95,12 +107,6 @@ class CUCLARABEL(ConicSolver):
         """
         return True
 
-    @staticmethod
-    def extract_dual_value(result_vec, offset, constraint):
-        """Extracts the dual value for constraint starting at offset.
-        """
-        return utilities.extract_dual_value(result_vec, offset, constraint)
-
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data.
         """
@@ -120,12 +126,12 @@ class CUCLARABEL(ConicSolver):
             }
             eq_dual_vars = utilities.get_dual_values(
                 np.array(solution.z[:inverse_data[ConicSolver.DIMS].zero]),
-                self.extract_dual_value,
+                utilities.extract_dual_value,
                 inverse_data[CUCLARABEL.EQ_CONSTR]
             )
             ineq_dual_vars = utilities.get_dual_values(
                 np.array(solution.z[inverse_data[ConicSolver.DIMS].zero:]),
-                self.extract_dual_value,
+                utilities.extract_dual_value,
                 inverse_data[CUCLARABEL.NEQ_CONSTR]
             )
             dual_vars = {}
@@ -163,13 +169,13 @@ class CUCLARABEL(ConicSolver):
         b = data[s.B]
         q = data[s.C]
 
+        nvars = q.size
         if s.P in data:
             P = data[s.P]
         else:
-            nvars = q.size
             P = sp.csr_array((nvars, nvars))
 
-        P = sp.triu(P).tocsr()
+        P = triu_to_full_symmetric(P)
 
         cones = data[ConicSolver.DIMS]
 
@@ -199,14 +205,15 @@ class CUCLARABEL(ConicSolver):
 
         dims_to_solver_cones(jl, cones)
 
+        jl.verbose = bool(verbose)
         results = jl.seval("""
-        settings = Clarabel.Settings(direct_solve_method = :cudss)
+        settings = Clarabel.Settings(direct_solve_method = :cudss, verbose = verbose)
         solver   = Clarabel.Solver(settings)
         solver   = Clarabel.setup!(solver, P,q,A,b,cones)
         Clarabel.solve!(solver)
         """)
         return results
-    
+
     def cite(self, data):
         """Returns bibtex citation for the solver.
 

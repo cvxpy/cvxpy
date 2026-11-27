@@ -13,24 +13,32 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import Any, List, Tuple
+from typing import Any
 
 import scipy.sparse as sp
 
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
+import cvxpy.settings as s
 import cvxpy.utilities as u
 from cvxpy.atoms.atom import Atom
 from cvxpy.cvxcore.python import canonInterface
 from cvxpy.expressions.constants import Constant
-from cvxpy.utilities import performance_utils as perf
 
 
 class AffAtom(Atom):
-    """ Abstract base class for affine atoms. """
+    """Abstract base class for affine atoms.
+
+    Fix all but one argument and suppose the resulting map :math:`F` is
+    real-valued and affine on the full real argument space. For each standard
+    basis vector :math:`e_j`, the entries of :math:`F(e_j) - F(0)` give the
+    coefficients of the linear part for input coordinate :math:`j`.
+    The map is elementwise nondecreasing exactly when all these coefficients
+    are nonnegative, and nonincreasing exactly when they are all nonpositive.
+    """
     _allow_complex = True
 
-    def sign_from_args(self) -> Tuple[bool, bool]:
+    def sign_from_args(self) -> tuple[bool, bool]:
         """By default, the sign is the most general of all the argument signs.
         """
         return u.sign.sum_signs([arg for arg in self.args])
@@ -61,18 +69,6 @@ class AffAtom(Atom):
         """Is the atom smooth?"""
         return True
 
-    def is_incr(self, idx) -> bool:
-        """Is the composition non-decreasing in argument idx?
-        """
-        # Defaults to increasing.
-        return True
-
-    def is_decr(self, idx) -> bool:
-        """Is the composition non-increasing in argument idx?
-        """
-        # Defaults to increasing.
-        return False
-
     def is_quadratic(self) -> bool:
         return all(arg.is_quadratic() for arg in self.args)
 
@@ -91,28 +87,19 @@ class AffAtom(Atom):
     def is_pwl(self) -> bool:
         return all(arg.is_pwl() for arg in self.args)
 
-    # TODO is this right?
-    @perf.compute_once
     def is_psd(self) -> bool:
-        """Is the expression a positive semidefinite matrix?
-        """
-        for idx, arg in enumerate(self.args):
-            if not ((self.is_incr(idx) and arg.is_psd()) or
-                    (self.is_decr(idx) and arg.is_nsd())):
-                return False
-        return True
+        """Affine maps need not preserve positive semidefiniteness.
 
-    @perf.compute_once
+        Elementwise monotonicity does not imply monotonicity in the Loewner
+        order. Subclasses must supply a rule for their particular matrix map.
+        """
+        return False
+
     def is_nsd(self) -> bool:
-        """Is the expression a negative semidefinite matrix?
-        """
-        for idx, arg in enumerate(self.args):
-            if not ((self.is_decr(idx) and arg.is_psd()) or
-                    (self.is_incr(idx) and arg.is_nsd())):
-                return False
-        return True
+        """Affine maps need not preserve negative semidefiniteness."""
+        return False
 
-    def _grad(self, values) -> List[Any]:
+    def _grad(self, values) -> list[Any]:
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.
 
         Matrix expressions are vectorized, so the gradient is a matrix.
@@ -140,6 +127,14 @@ class AffAtom(Atom):
                                                  self.get_data())
         param_to_size = {lo.CONSTANT_ID: 1}
         param_to_col = {lo.CONSTANT_ID: 0}
+        # The CPP backend does not support expressions with more than
+        # 2 dimensions or atoms without a C++ implementation (e.g.
+        # broadcast_to, concatenate), so use the SCIPY backend for those.
+        if self.ndim > 2 or any(arg.ndim > 2 for arg in self.args) \
+                or not self._supports_cpp():
+            canon_backend = s.SCIPY_CANON_BACKEND
+        else:
+            canon_backend = None
         # Get the matrix representation of the function.
         canon_mat = canonInterface.get_problem_matrix(
             [fake_expr],
@@ -148,6 +143,7 @@ class AffAtom(Atom):
             param_to_size,
             param_to_col,
             self.size,
+            canon_backend,
         )
         # HACK TODO TODO convert tensors back to vectors.
         # COO = (V[lo.CONSTANT_ID][0], (J[lo.CONSTANT_ID][0], I[lo.CONSTANT_ID][0]))
@@ -162,7 +158,7 @@ class AffAtom(Atom):
                 if grad_shape == (1, 1):
                     grad_list += [0]
                 else:
-                    grad_list += [sp.coo_matrix(grad_shape, dtype='float64')]
+                    grad_list += [sp.coo_array(grad_shape, dtype='float64')]
             else:
                 stop = start + arg.size
                 grad_list += [stacked_grad[start:stop, :]]

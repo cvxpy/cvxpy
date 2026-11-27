@@ -15,7 +15,6 @@ limitations under the License.
 """
 
 
-from typing import List, Optional, Tuple
 
 import numpy as np
 import scipy.sparse as sp
@@ -28,7 +27,7 @@ from cvxpy.expressions.expression import Expression
 from cvxpy.reductions.reduction import Reduction
 
 
-def extract_lower_bounds(variables: list, var_size: int) -> Optional[np.ndarray]:
+def extract_lower_bounds(variables: list, var_size: int) -> np.ndarray | None:
     """Coalesces lower bounds for the variables.
 
     Parameters
@@ -64,7 +63,7 @@ def extract_lower_bounds(variables: list, var_size: int) -> Optional[np.ndarray]
     return lower_bounds
 
 
-def extract_upper_bounds(variables: list, var_size: int) -> Optional[np.ndarray]:
+def extract_upper_bounds(variables: list, var_size: int) -> np.ndarray | None:
     """Coalesces upper bounds for the variables.
 
     Parameters
@@ -100,7 +99,7 @@ def extract_upper_bounds(variables: list, var_size: int) -> Optional[np.ndarray]
     return upper_bounds
 
 
-def extract_mip_idx(variables) -> Tuple[List[int], List[int]]:
+def extract_mip_idx(variables) -> tuple[list[int], list[int]]:
     """
     Coalesces bool, int indices for variables.
     The indexing scheme assumes that the variables will be coalesced into
@@ -111,10 +110,12 @@ def extract_mip_idx(variables) -> Tuple[List[int], List[int]]:
     for x in variables:
         ravel_shape = max(x.shape, (1,))
         if x.boolean_idx:
-            ravel_idx = np.ravel_multi_index(x.boolean_idx, ravel_shape, order='F')
+            np_idx = x._discrete_numpy_index(x.boolean_idx)
+            ravel_idx = np.ravel_multi_index(np_idx, ravel_shape, order='F')
             boolean_idx += [(idx + offset,) for idx in ravel_idx]
         if x.integer_idx:
-            ravel_idx = np.ravel_multi_index(x.integer_idx, ravel_shape, order='F')
+            np_idx = x._discrete_numpy_index(x.integer_idx)
+            ravel_idx = np.ravel_multi_index(np_idx, ravel_shape, order='F')
             integer_idx += [(idx + offset,) for idx in ravel_idx]
         offset += x.size
     return boolean_idx, integer_idx

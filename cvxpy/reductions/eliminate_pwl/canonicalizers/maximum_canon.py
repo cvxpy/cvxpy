@@ -34,7 +34,7 @@ def maximum_canon(expr, args, solver_context: SolverInfo | None = None):
         t = nonneg_wrap(t)
     if expr.is_nonpos():
         t = nonpos_wrap(t)
-    
+
     constraints = [t >= elem for elem in args]
 
     return t, constraints

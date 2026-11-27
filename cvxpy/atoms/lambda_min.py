@@ -18,8 +18,8 @@ from cvxpy.atoms.lambda_max import lambda_max
 from cvxpy.expressions.expression import Expression
 
 
-def lambda_min(X):
+def lambda_min(X) -> Expression:
     """ Minimum eigenvalue; :math:`\\lambda_{\\min}(A)`.
     """
-    X = Expression.cast_to_const(X)
+    X = Expression.cast(X)
     return -lambda_max(-X)

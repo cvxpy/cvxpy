@@ -15,7 +15,7 @@ limitations under the License.
 """
 
 import logging
-from typing import Any, Dict, Tuple
+from typing import Any
 
 from numpy import array, ndarray
 from scipy.sparse import csr_array
@@ -29,6 +29,7 @@ from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.utilities.citations import CITATION_DICT
 from cvxpy.utilities.versioning import Version
+from cvxpy.utilities.warn import warn
 
 log = logging.getLogger(__name__)
 
@@ -38,6 +39,7 @@ class GLOP(ConicSolver):
 
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS
     BOUNDED_VARIABLES = True
+    REQUIRED_MODULES = ("google.protobuf", "ortools")
 
     # The key that maps to the MPModelProto in the data returned by apply().
     MODEL_PROTO = "model_proto"
@@ -53,21 +55,21 @@ class GLOP(ConicSolver):
         if Version(ortools.__version__) < Version('9.5.0'):
             raise RuntimeError(f'Version of ortools ({ortools.__version__}) '
                                f'is too old. Expected >= 9.5.0.')
-        if Version(ortools.__version__) >= Version('9.15.0'):
-            raise RuntimeError('Unrecognized new version of ortools '
-                               f'({ortools.__version__}). Expected < 9.15.0. '
-                               'Please open a feature request on cvxpy to '
-                               'enable support for this version.')
+        if Version(ortools.__version__) >= Version('9.16.0'):
+            warn(
+                f'Unrecognized version of ortools ({ortools.__version__}). '
+                'Version support has been tested up to 9.15.x. '
+                'Newer versions may work but are not officially supported. '
+                'Please open a feature request on cvxpy if you encounter issues.'
+            )
 
-    def apply(self, problem: ParamConeProg) -> Tuple[Dict, Dict]:
+    def apply(self, problem: ParamConeProg) -> tuple[dict, dict]:
         """Returns a new problem and data for inverting the new solution."""
         from ortools.linear_solver import linear_solver_pb2
 
         # Create data and inv_data objects
         data = {}
         inv_data = {self.VAR_ID: problem.x.id}
-        if not problem.formatted:
-            problem = self.format_constraints(problem, None)
         data[s.PARAM_PROB] = problem
         data[self.DIMS] = problem.cone_dims
 
@@ -120,8 +122,8 @@ class GLOP(ConicSolver):
         data[s.UPPER_BOUNDS] = ub
         return data, inv_data
 
-    def invert(self, solution: Dict[str, Any],
-               inverse_data: Dict[str, Any]) -> Solution:
+    def invert(self, solution: dict[str, Any],
+               inverse_data: dict[str, Any]) -> Solution:
         """Returns the solution to the original problem."""
         status = solution["status"]
 
@@ -141,11 +143,11 @@ class GLOP(ConicSolver):
 
     def solve_via_data(
             self,
-            data: Dict[str, Any],
+            data: dict[str, Any],
             warm_start: bool,
             verbose: bool,
-            solver_opts: Dict[str, Any],
-            solver_cache: Dict = None,
+            solver_opts: dict[str, Any],
+            solver_cache: dict | None = None,
     ) -> Solution:
         """Returns the result of the call to the solver."""
         from google.protobuf import text_format
@@ -224,7 +226,7 @@ class GLOP(ConicSolver):
                         linear_solver_pb2.MPSolverResponseStatus.Name(status),
                         response.status_str)
             return s.SOLVER_ERROR
-    
+
     def cite(self, data):
         """Returns bibtex citation for the solver.
 

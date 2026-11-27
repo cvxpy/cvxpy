@@ -35,6 +35,13 @@ bmat
 
 .. autofunction:: cvxpy.bmat
 
+.. _block:
+
+block
+---------------------------------
+
+.. autofunction:: cvxpy.block
+
 .. _conj:
 
 conj
@@ -165,6 +172,27 @@ psd_wrap
 --------
 
 .. autoclass:: cvxpy.atoms.affine.wraps.psd_wrap
+
+.. _symmetric_wrap:
+
+symmetric_wrap
+--------------
+
+.. autoclass:: cvxpy.atoms.affine.wraps.symmetric_wrap
+
+.. _hermitian_wrap:
+
+hermitian_wrap
+--------------
+
+.. autoclass:: cvxpy.atoms.affine.wraps.hermitian_wrap
+
+.. _skew_symmetric_wrap:
+
+skew_symmetric_wrap
+-------------------
+
+.. autoclass:: cvxpy.atoms.affine.wraps.skew_symmetric_wrap
 
 .. _real-atom:
 

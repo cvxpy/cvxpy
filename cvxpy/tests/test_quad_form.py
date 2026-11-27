@@ -81,6 +81,23 @@ class TestDecompQuad(BaseTest):
         assert_equal(M2.size, 0)
         self._check(np.diag([3.0, 0.0, 5.0, 0.0]))
 
+    def test_singular_psd_above_lapack_block(self) -> None:
+        """Blocked Bunch-Kaufman can return a stale pivot once n exceeds 64.
+
+        A rank-1 leading block (two perfectly correlated assets) is PSD with a
+        zero eigenvalue. scipy.linalg.ldl reconstructs it for n=64 and does not
+        for n>=65. decomp_quad must still return factors of P.
+        """
+        def make_P(n):
+            P = np.diag(np.full(n, 0.04))
+            P[:2, :2] = 0.0625
+            return P
+
+        for n in (64, 65, 128):
+            P = make_P(n)
+            self._check(P)
+            self._check(sp.csc_array(P))
+
     def test_complex_hermitian(self) -> None:
         rng = np.random.default_rng(0)
         A = rng.standard_normal((5, 5)) + 1j * rng.standard_normal((5, 5))
@@ -107,6 +124,22 @@ class TestDecompQuad(BaseTest):
         # Negative discrete Laplacian: NSD, tridiagonal, AMD gives non-identity permutation.
         P_nsd = sp.diags([-4 * np.ones(n), off, off], [0, -1, 1], format="csc")
         self._check(P_nsd)
+
+    def test_sparse_psd_rank_deficient(self) -> None:
+        """Sparse PSD rank-deficient matrices should stay on the sparse path."""
+        rng = np.random.default_rng(0)
+        for n, k in [(4, 2), (10, 7), (20, 5)]:
+            B = rng.standard_normal((n, k))
+            self._check(sp.csc_array(B @ B.T))
+            self._check(sp.csc_array(-(B @ B.T)))  # NSD rank-deficient
+
+    def test_sparse_diagonal_with_zeros(self) -> None:
+        """Sparse diagonal PSD with zero entries."""
+        self._check(sp.diags_array([3.0, 0.0, 5.0, 0.0], format="csc"))
+
+    def test_sparse_zero(self) -> None:
+        """Sparse all-zero matrix."""
+        self._check(sp.csc_array((4, 4)))
 
 
 class TestNonOptimal(BaseTest):

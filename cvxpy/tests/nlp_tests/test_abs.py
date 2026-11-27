@@ -80,7 +80,7 @@ class TestAbs():
             obj_star_nlp = obj.value
             assert(np.abs(obj_star_nlp - obj_star_dcp) / obj_star_nlp <= 1e-4)
 
-            
+
 
     def test_lasso_underdetermined(self):
         np.random.seed(0)

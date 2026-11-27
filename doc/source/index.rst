@@ -3,8 +3,8 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to CVXPY 1.9
-====================
+Welcome to CVXPY 1.10
+=====================
 
 .. meta::
    :description: An open source Python-embedded modeling language for convex optimization problems.
@@ -25,7 +25,6 @@ Welcome to CVXPY 1.9
 **Convex optimization, for everyone.**
 
 *Help us benchmark CVXPY solvers! Contribute problems and results to the* `Solver Benchmarks <resources/solver_benchmarks/>`_ *project.*
-*We are inviting CVXPY users to share their experience with the library and their application area so we can better serve you!* `Sign up for a listening session! <https://calendar.app.google/mRGBur1ZVMW1dcbR8>`_.
 *We are building a CVXPY community* `on Discord <https://discord.gg/4urRQeGBCr>`_. *Join the conversation!*
 
 CVXPY is an open source Python-embedded modeling language for convex
@@ -62,13 +61,17 @@ For example, the following code solves a least-squares problem with box constrai
     print(constraints[0].dual_value)
 
 This short script is a basic example of what CVXPY can do. In addition
-to convex programming, CVXPY also supports a generalization of geometric
-programming, mixed-integer convex programs, and quasiconvex programs.
+to convex programming, CVXPY also supports :doc:`parametrized programming </tutorial/dpp/index>`,
+:doc:`geometric programming </tutorial/dgp/index>`, :ref:`mixed-integer convex programs <mip>`,
+:doc:`quasiconvex programming </tutorial/dqcp/index>`,
+and :doc:`nonlinear programming </tutorial/dnlp/index>`.
 
 For a guided tour of CVXPY, check out the :doc:`tutorial
 </tutorial/index>`. For applications to machine learning, control, finance, and
-more, browse the :doc:`library of examples </examples/index>`. For
-background on convex optimization, see the book `Convex Optimization
+more, browse the :doc:`library of examples </examples/index>`.
+For applications that involve nonlinear programming, visit the
+`library of DNLP examples <https://github.com/cvxgrp/dnlp-examples/>`_.
+For background on convex optimization, see the book `Convex Optimization
 <https://www.stanford.edu/~boyd/cvxbook/>`_ by Boyd and Vandenberghe.
 
 CVXPY relies on the open source solvers `Clarabel`_, `OSQP`_, `SCS`_, `HIGHS`_.
@@ -92,25 +95,29 @@ researchers and engineers.
 
 CVXPY is developed and maintained by
 `Steven Diamond <https://stevendiamond.me/>`_,
-`Akshay Agrawal <https://akshayagrawal.com>`_,
 `Riley Murray <https://rileyjmurray.wordpress.com/>`_,
 `Philipp Schiele <https://www.philippschiele.com/>`_,
-`Bartolomeo Stellato <https://stellato.io/>`_, and
-`Parth Nobel <https://ptnobel.github.io/>`_ with many others contributing
-significantly. A non-exhaustive list of people who have shaped CVXPY over the
+`Parth Nobel <https://ptnobel.github.io/>`_, and
+`William Zhang <https://zijie.ca/>`_.
+CVXPY's emeritus maintainers are
+`Bartolomeo Stellato <https://stellato.io/>`_ and `Akshay Agrawal <https://akshayagrawal.com>`_.
+Many others have contributed significantly.
+A non-exhaustive list of people who have shaped CVXPY over the
 years includes Stephen Boyd, Eric Chu, Robin Verschueren,
-Jaehyun Park, Enzo Busseti, AJ Friend, Judson Wilson, Chris Dembia, and
-William Zhang.
+Jaehyun Park, Enzo Busseti, AJ Friend, Judson Wilson, Chris Dembia, and Daniel Cederberg.
 
 We appreciate all contributions. To get involved, see our :doc:`contributing
 guide </contributing/index>` and join us `on Discord <https://discord.gg/4urRQeGBCr>`_.
 
 **News.**
 
-CVXPY 1.8 includes many new solver interfaces such as MOREAU, KNITRO and COSMO,
-and it makes HiGHS its new default solver for MILPs.
-This release also includes many new features such as more complete support of ND expressions,
-unification of the quadratic conic canonicalization paths, and DPP support for complex expressions.
+CVXPY 1.9 introduces *Disciplined Nonlinear Programming* (DNLP), a grammar
+for specifying nonlinear programs (NLP) which extends CVXPY beyond convex optimization.
+CVXPY currently supports four NLP solvers:
+`IPOPT <https://github.com/coin-or/Ipopt>`_,
+`KNITRO <https://www.artelys.com/solvers/knitro/>`_,
+`UNO <https://github.com/cvanaret/Uno>`_, and
+`COPT <https://www.shanshu.ai/copt>`_.
 For a complete list of changes, see the :doc:`changelog </updates/index>`.
 
 .. _Clarabel: https://github.com/oxfordcontrol/Clarabel.rs

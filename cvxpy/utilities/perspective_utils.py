@@ -20,7 +20,7 @@ from cvxpy.constraints.constraint import Constraint
 from cvxpy.constraints.exponential import ExpCone
 from cvxpy.constraints.nonpos import NonNeg
 from cvxpy.constraints.power import PowCone3D
-from cvxpy.constraints.psd import PSD
+from cvxpy.constraints.psd import PSD, SvecPSD
 from cvxpy.constraints.second_order import SOC
 from cvxpy.constraints.zero import Zero
 
@@ -52,6 +52,8 @@ def form_cone_constraint(z: Variable, constraint: Constraint) -> Constraint:
         assert N == n**2, "argument is not a vectorized square matrix"
         z_mat = cp.reshape(z, (n, n), order='F')
         return PSD(z_mat)  # do we need constraint_id?
+    elif isinstance(constraint, SvecPSD):
+        return SvecPSD(z, n=constraint._cone_size())
     elif isinstance(constraint, PowCone3D):
         raise NotImplementedError
     else:

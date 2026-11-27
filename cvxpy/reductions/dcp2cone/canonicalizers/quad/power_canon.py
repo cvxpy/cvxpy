@@ -33,7 +33,11 @@ def power_canon(expr, args, solver_context: SolverInfo | None = None):
     elif p == 1:
         return affine_expr, []
     elif p == 2:
-        if isinstance(affine_expr, Variable):
+        # The SymbolicQuadForm argument must remain a true Variable through
+        # CvxAttr2Constr; variables with dim-reducing attributes (symmetric,
+        # PSD, NSD, diag, sparsity) are later substituted with affine
+        # expressions, so they need an auxiliary variable here.
+        if isinstance(affine_expr, Variable) and not affine_expr._has_dim_reducing_attr:
             return SymbolicQuadForm(affine_expr, sp.eye_array(affine_expr.size), expr), []
         else:
             t = Variable(affine_expr.shape)

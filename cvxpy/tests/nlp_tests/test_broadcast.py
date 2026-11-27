@@ -32,14 +32,15 @@ class TestBroadcast():
         obj = cp.sum(cp.square(x - A))
         problem = cp.Problem(cp.Minimize(obj))
 
-        problem.solve(solver=cp.IPOPT, nlp=True, hessian_approximation='exact',
-                    derivative_test='none', verbose=True)
-        assert(problem.status == cp.OPTIMAL)
-        assert(np.allclose(x.value, np.mean(A)))
-
+        x.value = 0.1
         checker = DerivativeChecker(problem)
         checker.run_and_assert()
+        x.value = None
 
+        problem.solve(solver=cp.IPOPT, nlp=True, hessian_approximation='exact',
+                    derivative_test='none', verbose=False)
+        assert(problem.status == cp.OPTIMAL)
+        assert(np.allclose(x.value, np.mean(A)))
 
     def test_row_broadcast(self):
         np.random.seed(0)
@@ -49,10 +50,10 @@ class TestBroadcast():
         problem = cp.Problem(cp.Minimize(obj))
 
         problem.solve(solver=cp.IPOPT, nlp=True, hessian_approximation='exact',
-                    derivative_test='none', verbose=True)
+                    derivative_test='none', verbose=False)
         assert(problem.status == cp.OPTIMAL)
         assert(np.allclose(x.value, np.mean(A, axis=0)))
-                        
+
         checker = DerivativeChecker(problem)
         checker.run_and_assert()
 
@@ -65,7 +66,7 @@ class TestBroadcast():
         problem = cp.Problem(cp.Minimize(obj))
 
         problem.solve(solver=cp.IPOPT, nlp=True, hessian_approximation='exact',
-                    derivative_test='none', verbose=True)
+                    derivative_test='none', verbose=False)
         assert(problem.status == cp.OPTIMAL)
         assert(np.allclose(x.value.flatten(), np.mean(A, axis=1)))
 
@@ -82,7 +83,7 @@ class TestBroadcast():
         prob = cp.Problem(cp.Minimize(0), constraints)
         checker = DerivativeChecker(prob)
         checker.run_and_assert()
-    
+
     def test_subtle_broadcast2(self):
         n = 5
         x = cp.Variable((n, 1))
