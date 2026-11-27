@@ -105,7 +105,7 @@ class PSD(Cone):
         # psd -> transpose -> affine_atom -> atom -> expression -> psd
         from cvxpy.atoms.affine.transpose import swapaxes as cp_swapaxes
         min_eig = cvxtypes.lambda_min()(
-            self.args[0] + cp_swapaxes(self.args[0], -2, -1))/2
+            self.args[0] + cp_swapaxes(self.args[0].conj(), -2, -1))/2
         return cvxtypes.neg()(min_eig).value
 
     def _dual_cone(self, *args):
@@ -126,7 +126,7 @@ class PSD(Cone):
         """Shape-preserving residual of the dual variable w.r.t. the dual cone.
 
         The dual cone of the PSD cone is the PSD cone itself, so this returns
-        the signed matrix residual ``proj_PSD(S) - S`` of the (symmetric part
+        the signed matrix residual ``proj_PSD(S) - S`` of the (Hermitian part
         of the) dual variable ``S``, per PSD block for batched constraints.
         This follows the same ``projection - value`` convention as
         ``residual``; the scalar operator-norm reduction is applied in
@@ -135,11 +135,11 @@ class PSD(Cone):
         dv = self.dual_variables[0].value
         if dv is None:
             return None
-        sym = (dv + np.swapaxes(dv, -2, -1)) / 2
+        sym = (dv + np.swapaxes(np.conj(dv), -2, -1)) / 2
         eigvals, eigvecs = np.linalg.eigh(sym)
-        # proj_PSD(S) - S = V diag(max(w, 0) - w) V^T = V diag(-min(w, 0)) V^T.
+        # proj_PSD(S) - S = V diag(max(w, 0) - w) V^H = V diag(-min(w, 0)) V^H.
         scaled = np.expand_dims(-np.minimum(eigvals, 0.0), -1) \
-            * np.swapaxes(eigvecs, -2, -1)
+            * np.swapaxes(eigvecs.conj(), -2, -1)
         return eigvecs @ scaled
 
     def dual_violation(self):
