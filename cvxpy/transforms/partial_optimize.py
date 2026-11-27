@@ -207,6 +207,12 @@ class PartialProblem(Expression):
         """
         return f"PartialProblem({self.args[0]})"
 
+    def format_labeled(self) -> str:
+        """Format the partial problem with labels in its objective and constraints."""
+        if self._label is not None:
+            return self._label
+        return f"PartialProblem({self.args[0].format_labeled()})"
+
     def variables(self) -> list[Variable]:
         """Returns the variables in the problem.
         """

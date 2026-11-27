@@ -159,6 +159,37 @@ def test_problem_format_labeled():
     assert "non_negative:" in regular  # Constraint labels do show
 
 
+def test_indicator_format_labeled():
+    """Indicator formatting should recurse into labeled constraints."""
+    x = cp.Variable(name="x")
+    constraint = (x >= 0).set_label("nonnegative")
+    expr = cp.transforms.indicator([constraint])
+
+    assert "nonnegative:" in expr.format_labeled()
+    assert "nonnegative:" not in expr.name()
+
+    expr.set_label("domain")
+    assert expr.format_labeled() == "domain"
+
+
+def test_partial_problem_format_labeled():
+    """PartialProblem formatting should recurse into the nested problem."""
+    x = cp.Variable(name="x")
+    objective = cp.Minimize(cp.sum_squares(x).set_label("cost"))
+    constraint = (x >= 0).set_label("nonnegative")
+    problem = cp.partial_optimize(
+        cp.Problem(objective, [constraint]),
+        opt_vars=[x],
+    )
+
+    assert "cost" in problem.format_labeled()
+    assert "nonnegative:" in problem.format_labeled()
+    assert "cost" not in problem.name()
+
+    problem.set_label("inner_problem")
+    assert problem.format_labeled() == "inner_problem"
+
+
 # Expression Composition
 
 
