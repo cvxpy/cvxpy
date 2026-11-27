@@ -44,7 +44,7 @@ class upper_tri(AffAtom):
 
     ::
 
-        upper_tri(A).value == np.array([11, 12, 13, 16, 17, 21])
+        upper_tri(A).value == np.array([[11], [12], [13], [16], [17], [21]])
 
     """
 
@@ -58,7 +58,8 @@ class upper_tri(AffAtom):
         """
         n = values[0].shape[-1]
         rows, cols = np.triu_indices(n, k=1)
-        return values[0][..., rows, cols]
+        # Keep the trailing axis of the declared (tri, 1) column shape.
+        return values[0][..., rows, cols][..., np.newaxis]
 
     def validate_arguments(self) -> None:
         """Checks that the argument is a square matrix with ndim >= 2.
