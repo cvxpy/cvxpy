@@ -115,6 +115,25 @@ class TestProdIPOPT:
         checker = DerivativeChecker(prob)
         checker.run_and_assert()
 
+    @pytest.mark.parametrize("axis", [0, 1])
+    def test_prod_with_axis_keepdims(self, axis):
+        """prod with keepdims=True keeps the reduced axis.
+
+        X is fixed to a (3, 2) matrix and t equals prod(X, axis, keepdims=True).
+        For axis=1, the engine returns its product as a row but CVXPY expects
+        a (3, 1) column. The converter has to relabel the row, so t should
+        equal numpy's keepdims product.
+        """
+        X_val = np.array([[1.0, 2.0], [3.0, 0.5], [0.25, 4.0]])
+        X = cp.Variable((3, 2), pos=True)
+        expr = cp.prod(X, axis=axis, keepdims=True)
+        t = cp.Variable(expr.shape)
+        prob = cp.Problem(cp.Minimize(cp.sum(t)), [X == X_val, t == expr])
+        prob.solve(solver=cp.IPOPT, nlp=True, print_level=0, verbose=False)
+
+        assert prob.status == cp.OPTIMAL
+        assert np.allclose(t.value, np.prod(X_val, axis=axis, keepdims=True), atol=1e-6)
+
     def test_prod_with_axis_large_matrix(self):
         """Test prod with axis parameter on a larger matrix."""
         X = cp.Variable((4, 5), pos=True)
