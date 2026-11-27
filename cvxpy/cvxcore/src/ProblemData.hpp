@@ -34,18 +34,12 @@ public:
 
   // Initialize TensorV/I/J for the given parameter.
   void init_id(int new_param_id, int param_size) {
-    assert(TensorV.count(new_param_id) == 0);
+    if (TensorV.count(new_param_id) != 0) {
+      return;
+    }
     std::vector<std::vector<double> > vecV(param_size);
     std::vector<std::vector<int> > vecI(param_size);
     std::vector<std::vector<int> > vecJ(param_size);
-    for (int i = 0; i < param_size; ++i) {
-      std::vector<double> elemV;
-      std::vector<int> elemI;
-      std::vector<int> elemJ;
-      vecV.push_back(elemV);
-      vecI.push_back(elemI);
-      vecJ.push_back(elemJ);
-    }
     TensorV[new_param_id] = vecV;
     TensorI[new_param_id] = vecI;
     TensorJ[new_param_id] = vecJ;

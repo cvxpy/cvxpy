@@ -25,7 +25,7 @@ import cvxpy.settings as s
 
 try:
     import cvxpy.cvxcore.python.cvxcore as cvxcore
-except ModuleNotFoundError:
+except (ModuleNotFoundError, ImportError):
     raise ModuleNotFoundError(
         "Tried using the C++ backend, but the cvxcore module was not installed."
     )
@@ -47,6 +47,8 @@ def build_matrix(
 
     param_to_size_C = cvxcore.IntIntMap()
     for id, size in param_to_size.items():
+        if int(id) == lo.CONSTANT_ID:
+            continue
         param_to_size_C[int(id)] = int(size)
 
     # dict to memoize construction of C++ linOps, and to keep Python references
