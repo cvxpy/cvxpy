@@ -85,8 +85,10 @@ class NLPsolver(Solver):
         """Split the solver's constraint multipliers into per-constraint duals.
 
         ``mult_g`` holds one multiplier per row of g(x), in the order that
-        ``Bounds`` lowered the constraints. The solvers' Lagrangian is
-        f(x) + mult_g^T g(x). ``Zero(lhs - rhs)`` rows already follow CVXPY's
+        ``Bounds`` lowered the constraints. Entries past those rows (KNITRO
+        appends the variable-bound multipliers) are ignored. Every NLP
+        interface sets up the Lagrangian as f(x) + mult_g^T g(x), the same
+        convention its Hessian callback uses. ``Zero(lhs - rhs)`` rows already follow CVXPY's
         sign convention. ``NonNeg(rhs - lhs)`` rows flip sign, so that the dual
         of ``lhs <= rhs`` is nonnegative.
         """

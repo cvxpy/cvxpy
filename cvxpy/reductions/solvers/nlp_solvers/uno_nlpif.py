@@ -114,7 +114,10 @@ class UNO(NLPsolver):
                 shape = inverse_data.var_shapes[id]
                 size = np.prod(shape, dtype=int)
                 primal_vars[id] = np.reshape(x_opt[offset:offset+size], shape, order='F')
-            return Solution(status, opt_val, primal_vars, {}, attr)
+            # Older unopy releases do not expose the multipliers.
+            dual_vars = ({} if 'constraint_dual' not in solution else
+                         self.recover_duals(solution['constraint_dual'], inverse_data))
+            return Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
             return failure_solution(status, attr)
 
