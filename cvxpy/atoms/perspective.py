@@ -64,7 +64,6 @@ class perspective(Atom):
         """
 
         assert values[0] >= 0
-        s_val = np.array(values[0])
 
         # Normal scenario: compute the perspective transform of the given function f
         f = self.f
@@ -78,6 +77,7 @@ class perspective(Atom):
             f = self.f_recession
             values[0] = 1
 
+        s_val = np.array(values[0])
         old_x_vals = [var.value for var in f.variables()]
 
         def set_vals(vals, s_val):
