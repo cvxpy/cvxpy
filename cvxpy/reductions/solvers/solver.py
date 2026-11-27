@@ -69,6 +69,18 @@ def expand_cones(cones, supported):
     return cones, exact_targets, approx_targets
 
 
+def _is_namespace_package(spec) -> bool:
+    """Whether *spec* is a bare directory with no ``__init__.py``.
+
+    Such a directory on ``sys.path`` (e.g. MOSEK's default license folder ``~/mosek``
+    when Python runs from the home directory) imports as an empty namespace package,
+    so it must not count as the solver being installed. ``find_spec`` marks a
+    namespace package with no origin and the directories it found, so this reads
+    the spec only and does not touch the filesystem.
+    """
+    return spec.origin is None and bool(spec.submodule_search_locations)
+
+
 def module_spec_available(module: str) -> bool | None:
     """Return whether *module* can be imported without executing it.
 
@@ -81,7 +93,7 @@ def module_spec_available(module: str) -> bool | None:
     if spec is None:
         return False
     if len(parts) == 1:
-        return True
+        return not _is_namespace_package(spec)
 
     search_path = spec.submodule_search_locations
     qualified_name = parts[0]

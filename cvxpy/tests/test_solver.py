@@ -47,6 +47,19 @@ def test_module_spec_available_does_not_import_dotted_module(tmp_path, monkeypat
     assert "probe_pkg.child" not in sys.modules
 
 
+def test_module_spec_available_rejects_bare_directory(tmp_path, monkeypatch):
+    """A folder without __init__.py, like MOSEK's license folder ~/mosek, isn't a solver (#979)."""
+    (tmp_path / "bare_solver_dir").mkdir()
+    (tmp_path / "ns_parent" / "real_child").mkdir(parents=True)
+    (tmp_path / "ns_parent" / "real_child" / "__init__.py").write_text("")
+    monkeypatch.syspath_prepend(str(tmp_path))
+
+    assert module_spec_available("bare_solver_dir") is False
+    # A namespace parent is fine when the required module itself is a real package,
+    # as with google.protobuf.
+    assert module_spec_available("ns_parent.real_child") is True
+
+
 def test_module_spec_available_uses_meta_path_for_base_package(monkeypatch):
     package_name = "meta_path_solver_backend"
     finder = _BasePackageFinder(package_name)
