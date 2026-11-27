@@ -96,9 +96,6 @@ class norm_inf(AxisAtom):
                 "use cp.norm()."
             )
 
-    def get_data(self):
-        return [self.axis]
-
     def name(self) -> str:
         return f"{type(self).__name__}({self.args[0].name()})"
 
