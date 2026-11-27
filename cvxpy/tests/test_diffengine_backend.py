@@ -27,7 +27,7 @@ import cvxpy.settings as s
 from cvxpy.atoms.quad_form import SymbolicQuadForm
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import (
     ConeMatrixStuffing,
-    ParamConeProg,
+    ConeProg,
 )
 from cvxpy.reductions.solvers.defines import INSTALLED_MI_SOLVERS
 from cvxpy.reductions.solvers.nlp_solvers.diff_engine.converters import (
@@ -63,21 +63,47 @@ class TestDiffengineConverter(BaseTest):
         with self.assertRaisesRegex(NotImplementedError, "norm1"):
             convert_symbolic_quad_form(sqf, {}, 4, {})
 
-    def test_symbolic_quad_form_parametric_P_raises(self) -> None:
-        """A parametric P is out of scope for the diff engine; the converter
-        must fail loud rather than freeze the current value."""
-        n = 4
-        x = cp.Variable(n)
-        P = cp.Parameter((n, n), PSD=True)
-        P.value = np.eye(n)
-        sqf = SymbolicQuadForm(x, cp.psd_wrap(P), cp.quad_form(x, cp.psd_wrap(P)))
-        with self.assertRaisesRegex(NotImplementedError, "parametric P"):
-            convert_symbolic_quad_form(sqf, {x.id: None}, n, {P.id: None})
+    def test_kron_parametric_operand_resolves(self) -> None:
+        """A bare-Parameter kron operand stays symbolic and is re-evaluated
+        between solves."""
+        rng = np.random.default_rng(0)
+        target = rng.standard_normal((4, 4))
+        P = cp.Parameter((2, 2))
+        X = cp.Variable((2, 2))
+        prob = cp.Problem(cp.Minimize(cp.sum_squares(cp.kron(P, X) - target)))
+        for seed in (1, 2):
+            P_val = np.random.default_rng(seed).standard_normal((2, 2))
+            P.value = P_val
+            prob.solve(solver=SOLVER, canon_backend=DIFFENGINE, ignore_dpp=True)
+            self.assertEqual(prob.status, cp.OPTIMAL)
+
+            X_base = cp.Variable((2, 2))
+            base = cp.Problem(
+                cp.Minimize(cp.sum_squares(cp.kron(P_val, X_base) - target)))
+            base.solve(solver=SOLVER)
+            self.assertAlmostEqual(prob.value, base.value, places=3)
 
 class TestDiffengineBackend(BaseTest):
     """End-to-end behavior of canon_backend='DIFFENGINE': same stuffed data
-    and solutions as the default tensor backends, for parameter-free
-    problems; loud rejection otherwise."""
+    and solutions as the default tensor backends, and loud rejection of what
+    the engine cannot convert."""
+
+    def test_sum_keepdims(self) -> None:
+        """An axis sum with keepdims=True keeps the reduced axis, as a column
+        for axis=1 and a row for axis=0."""
+        X_val = np.array([[1.0, -2.0], [3.0, 0.0], [-0.5, 0.5]])
+        X = cp.Variable((3, 2))
+        for axis in (0, 1):
+            with self.subTest(axis=axis):
+                expected = np.abs(X_val).sum(axis=axis, keepdims=True)
+                t = cp.Variable(expected.shape)
+                prob = cp.Problem(
+                    cp.Minimize(cp.sum(t)),
+                    [X == X_val,
+                     cp.sum(cp.abs(X), axis=axis, keepdims=True) <= t])
+                prob.solve(solver=SOLVER, canon_backend=DIFFENGINE)
+                self.assertEqual(prob.status, cp.OPTIMAL)
+                self.assertItemsAlmostEqual(t.value, expected, places=4)
 
     def test_constant_nonlinear_subtree_is_evaluated(self) -> None:
         """A nonlinear atom over plain constants is evaluated numerically;
@@ -237,43 +263,32 @@ class TestDiffengineBackend(BaseTest):
         base.solve(solver=SOLVER)
         self.assertAlmostEqual(prob.value, base.value, places=3)
 
-    def test_parametric_problem_rejected(self) -> None:
-        """Explicit DIFFENGINE on a DPP-parametric problem must raise and
-        point the user at ignore_dpp."""
-        p = cp.Parameter()
-        p.value = 1.0
-        x = cp.Variable()
-        prob = cp.Problem(cp.Minimize(cp.square(x - p)))
-        with self.assertRaisesRegex(ValueError, "ignore_dpp"):
-            prob.get_problem_data(SOLVER, canon_backend=DIFFENGINE)
+    def test_explicit_diffengine_parametric_solves(self) -> None:
+        """Explicit DIFFENGINE keeps the parameters symbolic and tracks their
+        values across solves. ignore_dpp does not change that: it only picks
+        the backend, which is already DIFFENGINE here."""
+        for ignore_dpp in (False, True):
+            with self.subTest(ignore_dpp=ignore_dpp):
+                p = cp.Parameter()
+                x = cp.Variable()
+                prob = cp.Problem(cp.Minimize(cp.square(x - p)))
+                for val in (1.0, -2.0):
+                    p.value = val
+                    prob.solve(solver=SOLVER, canon_backend=DIFFENGINE,
+                               ignore_dpp=ignore_dpp)
+                    self.assertEqual(prob.status, cp.OPTIMAL)
+                    self.assertAlmostEqual(x.value, val, places=5)
+                self.assertEqual(prob._cache.param_prog.parameters, [p])
 
-    def test_ignore_dpp_parametric_solves_and_tracks_values(self) -> None:
-        """With ignore_dpp=True, EvalParams bakes the parameters and the
-        backend compiles the resulting parameter-free problem each solve."""
-        p = cp.Parameter()
-        x = cp.Variable()
-        prob = cp.Problem(cp.Minimize(cp.square(x - p)))
-        for val in (1.0, -3.0):
-            p.value = val
-            prob.solve(solver=SOLVER, canon_backend=DIFFENGINE, ignore_dpp=True)
-            self.assertEqual(prob.status, cp.OPTIMAL)
-            self.assertAlmostEqual(x.value, val, places=5)
-
-    def test_parametric_bounds_rejected_both_routes(self) -> None:
-        """EvalParams does not bake variable bounds, so they leak past
-        ignore_dpp by two routes, both of which must fail loudly naming the
-        cause: as bounds attributes (bounds-capable solver), or lowered by
-        CvxAttr2Constr into constraints that still carry live Parameters
-        (non-bounds solver)."""
+    def test_parametric_bounds_rejected_on_explicit_request(self) -> None:
+        """Parametric variable bounds are unsupported: an explicit DIFFENGINE
+        request fails loudly (default selection falls back instead)."""
         lb = cp.Parameter(2)
         lb.value = np.array([0.5, 0.5])
         x = cp.Variable(2, bounds=[lb, 10])
         prob = cp.Problem(cp.Minimize(cp.sum(x)))
         with self.assertRaisesRegex(NotImplementedError, "parametric variable bounds"):
             prob.get_problem_data(cp.SCIPY, canon_backend=DIFFENGINE,
-                                  ignore_dpp=True)
-        with self.assertRaisesRegex(ValueError, "parametric variable bounds"):
-            prob.get_problem_data(SOLVER, canon_backend=DIFFENGINE,
                                   ignore_dpp=True)
 
     @unittest.skipUnless(INSTALLED_MI_SOLVERS, "no mixed-integer solver installed")
@@ -286,8 +301,8 @@ class TestDiffengineBackend(BaseTest):
 
 
 class TestDiffengineSelection(BaseTest):
-    """canon_backend='DIFFENGINE' is explicit opt-in and produces a stock
-    parameter-free ParamConeProg."""
+    """canon_backend='DIFFENGINE' produces a cone program the solvers accept
+    like any other, with or without parameters."""
 
     def _stuffing_backend(self, chain) -> str:
         stuffing = [r for r in chain.reductions
@@ -300,7 +315,7 @@ class TestDiffengineSelection(BaseTest):
         prob.solve(solver=SOLVER, canon_backend=DIFFENGINE)
         self.assertEqual(self._stuffing_backend(prob._cache.solving_chain),
                          DIFFENGINE)
-        self.assertIsInstance(prob._cache.param_prog, ParamConeProg)
+        self.assertIsInstance(prob._cache.param_prog, ConeProg)
         self.assertEqual(prob._cache.param_prog.parameters, [])
         self.assertAlmostEqual(prob.value, 0.0)
         self.assertItemsAlmostEqual(x.value, np.ones(3), places=4)
@@ -324,3 +339,60 @@ class TestDiffengineSelection(BaseTest):
         prob = cp.Problem(cp.Minimize(cp.sum_squares(x)))
         with self.assertRaisesRegex(ValueError, "dimension greater than 2"):
             prob.get_problem_data(SOLVER, canon_backend=DIFFENGINE)
+
+
+class TestDiffengineAtomCoverage(BaseTest):
+    """Every affine atom states how the DIFFENGINE backend handles it."""
+
+    # Not reachable by the converter for a reason the three checks below
+    # cannot see.
+    EXEMPT = {
+        # Abstract base of the *_wrap atoms, each of which has a converter.
+        "Wrap",
+        # Not affine (neither convex nor concave), so a DCP problem only
+        # contains it over constants, which the converter evaluates as a leaf
+        # or CallbackParamFold folds.
+        "cumprod",
+        # Complex2Real removes these from complex arguments. A real or imag
+        # left over a real argument has no graph_implementation, so no backend
+        # can stuff it.
+        "real",
+        "imag",
+    }
+
+    def test_affine_atoms_declare_diffengine_support(self) -> None:
+        """No affine atom can make an auto-selected DIFFENGINE raise.
+
+        Affine atoms survive Dcp2Cone and reach the converter, and CVXPY selects
+        DIFFENGINE whenever every atom reports _supports_diffengine(). Walk every
+        concrete AffAtom subclass and require one of the following:
+        - a converter (ATOM_CONVERTERS, or an atom convert_expr special-cases),
+        - a Dcp2Cone canonicalizer that rewrites it away, or
+        - an override of _supports_diffengine.
+        A new atom with none of these would fail at solve time instead of
+        falling back to a tensor backend.
+        """
+        import inspect
+
+        from cvxpy.atoms.affine.affine_atom import AffAtom
+        from cvxpy.reductions.dcp2cone.canonicalizers import CANON_METHODS
+        from cvxpy.reductions.solvers.nlp_solvers.diff_engine.registry import (
+            ATOM_CONVERTERS,
+        )
+        from cvxpy.utilities.canonical import Canonical
+
+        def subclasses(cls):
+            for sub in cls.__subclasses__():
+                yield sub
+                yield from subclasses(sub)
+
+        undeclared = sorted(
+            cls.__name__ for cls in set(subclasses(AffAtom))
+            if not inspect.isabstract(cls)
+            and cls.__name__ not in self.EXEMPT
+            and cls.__name__ not in ATOM_CONVERTERS
+            and cls.__name__ not in ("MulExpression", "multiply")
+            and cls not in CANON_METHODS
+            and cls._supports_diffengine is Canonical._supports_diffengine
+        )
+        self.assertEqual(undeclared, [])

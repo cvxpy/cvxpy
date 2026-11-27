@@ -55,8 +55,14 @@ Test the compositions whose validity depends on the rule you changed.
    linear operator. For a new conic canonicalizer, follow the
    `(expr, args, solver_context=None)` signature and return the replacement
    expression and auxiliary constraints. Register it in `CANON_METHODS`.
-3. Export the public symbol and update the function table and API docs.
-4. Exercise the public symbol in tests. If the rule depends on how an
+3. If the atom can survive canonicalization (affine atoms usually do), check
+   the backends that stuff it. Add a converter to the diff engine's
+   `ATOM_CONVERTERS`, or override `_supports_diffengine` to return False so
+   CVXPY never selects DIFFENGINE for problems that contain it. Likewise,
+   override `_supports_cpp` if the C++ backend cannot build it.
+   `test_diffengine_backend.py` fails for an affine atom that does neither.
+4. Export the public symbol and update the function table and API docs.
+5. Exercise the public symbol in tests. If the rule depends on how an
    argument enters canonicalization, check the relevant variable and
    parameter cases. See [Testing](testing.md) for how to choose the cases.
 
