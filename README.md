@@ -88,7 +88,7 @@ CVXPY has the following dependencies:
 - NumPy >= 2.0.0
 - SciPy >= 1.13.0
 - highspy >= 1.11.0
-- sparsediffpy >= 0.2.2
+- sparsediffpy >= 0.10.0
 
 For detailed instructions, see the [installation
 guide](https://www.cvxpy.org/install/index.html).
