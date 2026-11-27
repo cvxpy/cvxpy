@@ -243,8 +243,14 @@ def convert_expr(expr, var_dict, n_vars, param_dict=None):
     d1_Python, d2_Python = normalize_shape(expr.shape)
 
     if d1_C != d1_Python or d2_C != d2_Python:
-        # 1D shape (n,) normalizes to (1, n) but C may produce (n, 1); reshape.
-        if len(expr.shape) <= 1 and d1_C * d2_C == d1_Python * d2_Python:
+        # A row and a column of the same length hold the same entries in the
+        # same order, so a reshape only relabels them. This covers a 1-D shape
+        # (n,), which normalizes to (1, n) while C may produce (n, 1), and an
+        # axis reduction with keepdims=True: the engine returns sum or prod
+        # over axis=1 as a row, but CVXPY expects a column.
+        same_size = d1_C * d2_C == d1_Python * d2_Python
+        both_vectors = 1 in (d1_C, d2_C) and 1 in (d1_Python, d2_Python)
+        if same_size and (len(expr.shape) <= 1 or both_vectors):
             C_expr = _diffengine.make_reshape(C_expr, d1_Python, d2_Python)
         else:
             raise ValueError(
