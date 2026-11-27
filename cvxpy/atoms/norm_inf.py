@@ -28,13 +28,9 @@ class norm_inf(AxisAtom):
     def numeric(self, values):
         """Returns the inf norm of x.
         """
+        values = values[0].toarray() if sp.issparse(values[0]) else np.array(values[0])
         if self.axis is None:
-            if sp.issparse(values[0]):
-                values = values[0].toarray().flatten()
-            else:
-                values = np.array(values[0]).flatten()
-        else:
-            values = np.array(values[0])
+            values = values.flatten()
         return np.linalg.norm(values, np.inf, axis=self.axis, keepdims=self.keepdims)
 
     def sign_from_args(self) -> tuple[bool, bool]:
