@@ -81,4 +81,9 @@ class Hstack(AffAtom):
         tuple
             (LinOp for objective, list of constraints)
         """
+        if self.ndim >= 3:
+            # NumPy's hstack concatenates along axis 1 when ndim >= 3.
+            # The HSTACK LinOp only implements column-wise concatenation
+            # for 2D arrays, so use CONCATENATE for higher dimensions.
+            return (lu.concatenate(arg_objs, shape, axis=1), [])
         return (lu.hstack(arg_objs, shape), [])

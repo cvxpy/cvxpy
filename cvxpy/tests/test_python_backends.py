@@ -35,6 +35,7 @@ from cvxpy.lin_ops.backends.scipy_backend import (
     _expand_parametric_slices_mul,
     _expand_parametric_slices_rmul,
 )
+from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
 
 
 @dataclass
@@ -904,7 +905,7 @@ class TestBackends:
         # Axis 2
         (2, list(range(16))),
         # Axis None
-        (None, list(range(16))),
+        (None, [0, 4, 2, 6, 1, 5, 3, 7, 8, 12, 10, 14, 9, 13, 11, 15]),
     ])
     def test_concatenate_nd(self, backend, axis, variable_indices):
         """
@@ -927,15 +928,15 @@ class TestBackends:
             [y110, y111]]
             ]
 
-        The variables are assigned indices as follows:
+        The variables are assigned indices in 'F' order (column-major order):
 
         Indices for x:
-            x000: 0, x001: 1, x010: 2, x011: 3,
-            x100: 4, x101: 5, x110: 6, x111: 7
+            x000: 0, x100: 1, x010: 2, x110: 3,
+            x001: 4, x101: 5, x011: 6, x111: 7
 
         Indices for y:
-            y000: 8, y001: 9, y010: 10, y011: 11,
-            y100: 12, y101: 13, y110: 14, y111: 15
+            y000: 8, y100: 9, y010: 10, y110: 11,
+            y001: 12, y101: 13, y011: 14, y111: 15
 
         How we chose the list of variable_indices:
 
@@ -962,7 +963,7 @@ class TestBackends:
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
 
         For axis=None:
-            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+            [0, 4, 2, 6, 1, 5, 3, 7, 8, 12, 10, 14, 9, 13, 11, 15]
 
         axis=None follows NumPy; arrays are flattened in 'C' order before concatenating,
         so the resulting array is [x000, x001, x010, x011, x100, x101, x110, x111,
@@ -3142,6 +3143,63 @@ class TestCooBackend:
         # Column vector in Fortran order: [1, 3, 2, 4]
         expected = data.flatten(order='F').reshape(-1, 1)
         assert np.allclose(tensor.toarray(), expected)
+
+    @pytest.mark.parametrize("shape", [(5,), (2, 3), (2, 3, 4), (2, 1, 3, 4)])
+    @pytest.mark.parametrize("empty", [False, True])
+    def test_get_sparse_data_tensor_all_axes(self, coo_backend, shape, empty):
+        rng = np.random.default_rng(42)
+        dense = rng.normal(size=shape)
+        dense[rng.random(shape) < .6] = 0
+        if empty:
+            dense.fill(0)
+        data = sp.coo_array(dense)
+        tensor = coo_backend.get_data_tensor(data)[-1][-1]
+        assert tensor.m == dense.size
+        assert tensor.n == tensor.param_size == 1
+        np.testing.assert_allclose(tensor.toarray(), dense.reshape(-1, 1, order="F"))
+
+    def test_get_sparse_data_tensor_duplicates(self, coo_backend):
+        data = sp.coo_array(([2., 5., -3.], ([1, 1, 0], [0, 0, 1], [2, 2, 1])),
+                            shape=(2, 3, 4))
+        tensor = coo_backend.get_data_tensor(data)[-1][-1]
+        np.testing.assert_allclose(tensor.toarray(), data.toarray().reshape(-1, 1, order="F"))
+
+    def test_get_sparse_data_tensor_without_densifying(self, coo_backend, monkeypatch):
+        shape = (1000, 2000, 3000)
+        data = sp.coo_array(([7.], ([999], [1999], [2999])), shape=shape)
+
+        def reject_densification(*args, **kwargs):
+            raise AssertionError("Sparse constants must not be densified")
+
+        monkeypatch.setattr(sp.coo_array, "toarray", reject_densification)
+        tensor = coo_backend.get_data_tensor(data)[-1][-1]
+        assert tensor.m == 6_000_000_000
+        np.testing.assert_array_equal(tensor.row, [5_999_999_999])
+        np.testing.assert_array_equal(tensor.data, [7.])
+
+    def test_nd_sparse_constant_constraint(self):
+        sparse_value = sp.coo_array(([7.], ([1], [0], [1])), shape=(2, 2, 2))
+        var = cp.Variable(sparse_value.shape)
+        problem = cp.Problem(cp.Minimize(0), [var == sparse_value])
+        data, _, _ = problem.get_problem_data(cp.CLARABEL, canon_backend=cp.COO_CANON_BACKEND)
+
+        # The known value for var must satisfy the compiled equality.
+        expected = sparse_value.toarray().ravel(order="F")
+        assert data["dims"].zero == expected.size
+        np.testing.assert_allclose(data["A"] @ expected, data["b"])
+
+    def test_batched_lambda_max_auto_backend(self):
+        # Batched lambda_max creates a sparse identity during compilation.
+        # The large parameter selects COO automatically.
+        shape = (50, 5, 5)
+        target = cp.Parameter(shape, value=np.broadcast_to(np.eye(shape[-1]), shape).copy())
+        var = cp.Variable(shape, symmetric=True)
+        problem = cp.Problem(cp.Minimize(cp.sum(cp.lambda_max(var))), [var == target])
+        data, chain, _ = problem.get_problem_data(cp.CLARABEL, enforce_dpp=True)
+
+        stuffing = next(r for r in chain.reductions if isinstance(r, ConeMatrixStuffing))
+        assert stuffing.canon_backend == cp.COO_CANON_BACKEND
+        assert data["dims"].psd == [shape[-1]] * shape[0]
 
     @staticmethod
     @pytest.mark.parametrize("shape,reps", [

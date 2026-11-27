@@ -93,6 +93,11 @@ class gmatmul(Atom):
         """
         return [self.A]
 
+    def copy(self, args=None, id_objects=None):
+        """Returns a shallow copy; ``A`` is the first constructor argument."""
+        args = self.args if args is None else args
+        return type(self)(self.A, *args)
+
     def sign_from_args(self) -> tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """

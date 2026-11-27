@@ -139,6 +139,15 @@ class CUOPT(ConicSolver):
         """Cuopt supports quadratic objective."""
         return True
 
+    def can_solve(self, problem_form) -> bool:
+        # cuOpt cannot solve mixed-integer problems with a quadratic objective
+        # (NVIDIA/cuopt#2032): depending on the version it fails in presolve or
+        # silently drops the quadratic term. Like MI-SOC, MIQPs must not be
+        # advertised, so solver selection defers them to a capable backend.
+        if problem_form.is_mixed_integer() and problem_form.has_quadratic_objective():
+            return False
+        return super().can_solve(problem_form)
+
     def apply(self, problem):
         """Returns a new problem and data for inverting the new solution.
 
@@ -373,8 +382,12 @@ class CUOPT(ConicSolver):
         is_mip = data[s.BOOL_IDX] or data[s.INT_IDX]
         if is_mip:
             variable_types[data[s.BOOL_IDX] + data[s.INT_IDX]] = "I"
-            variable_lower_bounds[data[s.BOOL_IDX]] = 0
-            variable_upper_bounds[data[s.BOOL_IDX]] = 1
+            # cuOpt has no boolean type, so booleans become integer columns.
+            # Intersect their bounds with [0, 1] instead of overwriting them,
+            # so tighter user bounds (e.g. a binary fixed to 1) are kept.
+            bool_idx = data[s.BOOL_IDX]
+            variable_lower_bounds[bool_idx] = np.maximum(variable_lower_bounds[bool_idx], 0)
+            variable_upper_bounds[bool_idx] = np.minimum(variable_upper_bounds[bool_idx], 1)
 
         if has_soc and is_mip:
             raise SolverError(

@@ -33,10 +33,7 @@ class UNO(NLPsolver):
     For more information, see: https://github.com/cvanaret/Uno
     """
 
-    STATUS_MAP = {
-        # Success cases (optimization_status)
-        "SUCCESS": s.OPTIMAL,
-
+    OPTIMIZATION_STATUS_MAP = {
         # Limit cases
         "ITERATION_LIMIT": s.USER_LIMIT,
         "TIME_LIMIT": s.USER_LIMIT,
@@ -44,15 +41,31 @@ class UNO(NLPsolver):
         # Error cases
         "EVALUATION_ERROR": s.SOLVER_ERROR,
         "ALGORITHMIC_ERROR": s.SOLVER_ERROR,
+    }
 
-        # Solution status cases
+    SOLUTION_STATUS_MAP = {
+        # Feasible cases
         "FEASIBLE_KKT_POINT": s.OPTIMAL,
         "FEASIBLE_FJ_POINT": s.OPTIMAL_INACCURATE,
         "FEASIBLE_SMALL_STEP": s.OPTIMAL_INACCURATE,
+
+        # Infeasible cases
         "INFEASIBLE_STATIONARY_POINT": s.INFEASIBLE,
         "INFEASIBLE_SMALL_STEP": s.INFEASIBLE,
+
+        # Unbounded cases
         "UNBOUNDED": s.UNBOUNDED,
+        "UNBOUNDED_OBJECTIVE": s.UNBOUNDED,
+        "DIVERGING_ITERATE": s.UNBOUNDED,
+
+        # Error cases
         "NOT_OPTIMAL": s.SOLVER_ERROR,
+    }
+
+    STATUS_MAP = {
+        "SUCCESS": s.OPTIMAL,
+        **OPTIMIZATION_STATUS_MAP,
+        **SOLUTION_STATUS_MAP,
     }
 
     def name(self):
@@ -73,10 +86,19 @@ class UNO(NLPsolver):
         """
         attr = {}
 
-        # Get status from the solution - try optimization_status first,
-        # then solution_status
-        status_key = solution.get('optimization_status', solution.get('solution_status'))
-        status = self.STATUS_MAP.get(str(status_key), s.SOLVER_ERROR)
+        # Get status from the solution.
+        # Limit and error cases from optimization_status take precedence.
+        opt_status = solution.get('optimization_status')
+        sol_status = solution.get('solution_status')
+
+        if opt_status in self.OPTIMIZATION_STATUS_MAP:
+            status = self.OPTIMIZATION_STATUS_MAP[opt_status]
+        elif sol_status in self.SOLUTION_STATUS_MAP:
+            status = self.SOLUTION_STATUS_MAP[sol_status]
+        elif opt_status == "SUCCESS":
+            status = s.OPTIMAL
+        else:
+            status = s.SOLVER_ERROR
 
         attr[s.NUM_ITERS] = solution.get('iterations', 0)
         if 'cpu_time' in solution:

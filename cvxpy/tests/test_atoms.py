@@ -34,6 +34,7 @@ from cvxpy.atoms.affine.upper_tri import upper_tri_to_full
 from cvxpy.atoms.errormsg import SECOND_ARG_SHOULD_NOT_BE_EXPRESSION_ERROR_MESSAGE
 from cvxpy.expressions.constants import Constant, Parameter
 from cvxpy.expressions.variable import Variable
+from cvxpy.reductions.eliminate_pwl.canonicalizers.norm1_canon import norm1_canon
 from cvxpy.reductions.solvers.defines import INSTALLED_MI_SOLVERS
 from cvxpy.tests.base_test import BaseTest
 from cvxpy.transforms.partial_optimize import partial_optimize
@@ -93,6 +94,24 @@ class TestAtoms(BaseTest):
         self.assertEqual(atom.curvature, s.CONVEX)
         self.assertEqual(cp.norm1(atom).curvature, s.CONVEX)
         self.assertEqual(cp.norm1(-atom).curvature, s.CONVEX)
+
+    def test_norm1_keepdims_canonicalization(self) -> None:
+        """Test that norm1 keeps keepdims=True when it is canonicalized.
+        """
+        # Without keepdims the canonicalized norm has shape (3,), the
+        # constraint broadcasts against the (3, 1) t to (3, 3), and every
+        # entry of t is pushed up to the largest row norm.
+        X_val = np.array([[1.0, -2.0], [3.0, 0.0], [-0.5, 0.5]])
+        X = Variable((3, 2))
+        t = Variable((3, 1))
+        expr = cp.norm(X, 1, axis=1, keepdims=True)
+        self.assertEqual(expr.shape, (3, 1))
+        canonical_expr, _ = norm1_canon(expr, expr.args)
+        self.assertEqual(canonical_expr.shape, (3, 1))
+        prob = cp.Problem(cp.Minimize(cp.sum(t)), [X == X_val, expr <= t])
+        prob.solve(solver=cp.CLARABEL)
+        self.assertEqual(prob.status, cp.OPTIMAL)
+        self.assertItemsAlmostEqual(t.value, np.linalg.norm(X_val, 1, axis=1, keepdims=True))
 
     def test_list_input(self) -> None:
         """Test that list input is rejected.
@@ -666,11 +685,70 @@ class TestAtoms(BaseTest):
         with self.assertRaises(ValueError):
             cp.hstack([self.A, self.x])
 
+        with self.assertRaises(ValueError):
+            cp.hstack([Variable((2, 3, 4)), Variable((2, 3))])
+
         with self.assertRaises(TypeError):
             cp.hstack()
 
         expr = cp.hstack([2, Variable((1,))])
         self.assertEqual(expr.shape, (2,))
+
+    def test_hstack_nd_solve(self) -> None:
+        """hstack must follow NumPy semantics for ndim >= 3."""
+        backends = [None, cp.SCIPY_CANON_BACKEND, cp.COO_CANON_BACKEND]
+        shapes = [(2, 3, 4), (2, 3, 2, 2)]
+        for backend in backends:
+            for shape in shapes:
+                with self.subTest(backend=backend, shape=shape):
+                    left = np.arange(np.prod(shape), dtype=float).reshape(shape)
+                    right = left + 100.0
+                    constant_shape = (shape[0], 1) + shape[2:]
+                    constant = np.arange(
+                        np.prod(constant_shape), dtype=float
+                    ).reshape(constant_shape) - 50.0
+                    target = np.hstack([left, constant, right])
+
+                    x = cp.Variable(shape)
+                    y = cp.Variable(shape)
+                    expr = cp.hstack([x, constant, y])
+
+                    self.assertEqual(expr.shape, target.shape)
+                    prob = cp.Problem(
+                        cp.Minimize(cp.sum_squares(expr - target))
+                    )
+                    prob.solve(solver=cp.CLARABEL, canon_backend=backend)
+
+                    self.assertAlmostEqual(prob.value, 0.0, places=6)
+                    self.assertItemsAlmostEqual(x.value, left)
+                    self.assertItemsAlmostEqual(y.value, right)
+                    self.assertItemsAlmostEqual(expr.value, target)
+
+    def test_hstack_nd_value(self) -> None:
+        """Shape and numeric value must match NumPy hstack."""
+        for shape in [(2, 3, 4), (2, 3, 2, 2)]:
+            with self.subTest(shape=shape):
+                left = np.arange(np.prod(shape), dtype=float).reshape(shape)
+                right = left + 100.0
+                expected = np.hstack([left, right])
+
+                expr = cp.hstack([left, right])
+
+                self.assertEqual(expr.shape, expected.shape)
+                self.assertItemsAlmostEqual(expr.value, expected)
+
+    def test_hstack_nd_issue_3576(self) -> None:
+        """Regression test for the original repro in issue #3576."""
+        A = np.arange(24.).reshape(2, 3, 4)
+        X = cp.Variable((2, 3, 4))
+        prob = cp.Problem(
+            cp.Minimize(cp.sum_squares(cp.hstack([X, A]) - np.hstack([A, A])))
+        )
+
+        prob.solve(solver=cp.CLARABEL)
+
+        self.assertAlmostEqual(prob.value, 0.0, places=6)
+        self.assertItemsAlmostEqual(X.value, A)
 
     def test_concatenate(self):
         atom = cp.concatenate([self.x, self.y], axis=0)
@@ -711,6 +789,30 @@ class TestAtoms(BaseTest):
         with self.assertRaises(ValueError):
             cp.concatenate([self.C, self.x], axis=1)
         # Expected ValueError due to mismatched number of dimensions between arrays
+
+    def test_concatenate_axis_none_solve(self) -> None:
+        # With axis=None every argument is flattened in 'C' order, as in np.concatenate.
+        X = Variable((2, 3))
+        Y = Variable((2, 2, 2))
+        P = Parameter((2, 2), value=np.array([[10.0, 11.0], [12.0, 13.0]]))
+        A = np.arange(6.0).reshape(2, 3)
+        B = np.arange(8.0).reshape(2, 2, 2)
+        expr = cp.concatenate([X, P, Y], axis=None)
+        target = np.concatenate([A, P.value, B], axis=None)
+        for backend in [cp.SCIPY_CANON_BACKEND, cp.COO_CANON_BACKEND]:
+            prob = Problem(Minimize(0), [expr == target])
+            prob.solve(solver=cp.CLARABEL, canon_backend=backend)
+            self.assertEqual(prob.status, cp.OPTIMAL)
+            self.assertItemsAlmostEqual(X.value, A)
+            self.assertItemsAlmostEqual(Y.value, B)
+
+        # DGP problems go through the same linear operator.
+        Z = Variable((2, 2), pos=True)
+        t = np.array([1.0, 2.0, 3.0, 4.0])
+        z = cp.concatenate([Z], axis=None)
+        prob = Problem(Minimize(cp.sum(cp.multiply(z, 1 / t) + cp.multiply(t, z ** -1))))
+        prob.solve(gp=True, solver=cp.CLARABEL)
+        self.assertItemsAlmostEqual(Z.value, t.reshape(2, 2), places=3)
 
     def test_reshape(self) -> None:
         """Test the reshape class.
@@ -2602,6 +2704,52 @@ class TestAtoms(BaseTest):
         self.assertItemsAlmostEqual(
             cp.cummax(x, axis=2).value, expected, places=4
         )
+
+    def test_log_det_outside_positive_domain(self):
+        """Positive determinant does not imply positive definiteness."""
+        for complex_input in [False, True]:
+            for eigenvalues in [[-1., -1.], [-3., -2., 1.], [-4., -3., -2., -1.],
+                                [-2., 1.], [0., 1.], [0., 0.]]:
+                with self.subTest(complex_input=complex_input, eigenvalues=eigenvalues):
+                    n = len(eigenvalues)
+                    rng = np.random.default_rng(129)
+                    basis = rng.normal(size=(n, n))
+                    if complex_input:
+                        basis = basis + 1j * rng.normal(size=(n, n))
+                    unitary, _ = np.linalg.qr(basis)
+                    # Keep singular cases exact rather than depending on roundoff in a rotation.
+                    value = (unitary @ np.diag(eigenvalues) @ unitary.conj().T
+                             if all(eigenvalues) else np.diag(eigenvalues))
+                    parameter = cp.Parameter((n, n), hermitian=True, value=value)
+                    variable = cp.Variable((n, n), hermitian=True)
+                    variable.value = value
+                    for expression in [cp.log_det(value), cp.log_det(parameter),
+                                       cp.log_det(variable)]:
+                        with self.subTest(argument=type(expression.args[0]).__name__):
+                            self.assertEqual(expression.value, -np.inf)
+                    problem = cp.Problem(cp.Maximize(cp.log_det(value)))
+                    self.assertEqual(problem.solve(solver=cp.CLARABEL), -np.inf)
+
+    def test_log_det_positive_domain_scaling(self):
+        """Use a log-domain factorization, without forming the determinant."""
+        for complex_input in [False, True]:
+            for scale in [1e-250, 1., 1e250]:
+                with self.subTest(complex_input=complex_input, scale=scale):
+                    basis = np.array([[2., 1.], [0., 3.]])
+                    if complex_input:
+                        basis = basis + 1j * np.array([[0., 1.], [2., 0.]])
+                    value = scale * (basis @ basis.conj().T)
+                    expected = np.linalg.slogdet(value)[1]
+                    self.assertAlmostEqual(cp.log_det(value).value, expected, places=10)
+
+    def test_log_det_parameter_domain_updates(self):
+        """A new parameter value must not reuse an earlier domain result."""
+        parameter = cp.Parameter((2, 2), symmetric=True)
+        atom = cp.log_det(parameter)
+        for value, expected in [(np.eye(2), 0.), (-np.eye(2), -np.inf),
+                                (2 * np.eye(2), 2 * np.log(2.))]:
+            parameter.value = value
+            self.assertAlmostEqual(atom.value, expected)
 
     def test_log_det_sign(self) -> None:
         """log_det can be negative, e.g. log(det(0.5*I)) < 0."""

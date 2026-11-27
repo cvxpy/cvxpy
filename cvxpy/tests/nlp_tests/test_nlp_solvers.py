@@ -493,3 +493,12 @@ class TestNLPExamples:
         # the derivative checker takes more than 10 seconds on this problem
         #checker = DerivativeChecker(problem)
         #checker.run_and_assert()
+
+    def test_infeasible_problem(self, solver):
+        x = cp.Variable()
+        problem = cp.Problem(cp.Minimize(0), [cp.square(x) <= -1])
+        problem.solve(solver=solver, nlp=True, verbose=False)
+        assert problem.status in [cp.INFEASIBLE, cp.INFEASIBLE_INACCURATE]
+        assert problem.value == float("inf")
+        assert x.value is None
+
