@@ -30,6 +30,7 @@ from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import (
     ParamConeProg,
 )
 from cvxpy.reductions.solvers.defines import INSTALLED_MI_SOLVERS
+from cvxpy.reductions.solvers.nlp_solvers.diff_engine.c_problem import C_problem
 from cvxpy.reductions.solvers.nlp_solvers.diff_engine.converters import (
     convert_expr,
     convert_symbolic_quad_form,
@@ -43,6 +44,25 @@ DIFFENGINE = s.DIFFENGINE_CANON_BACKEND
 class TestDiffengineConverter(BaseTest):
     """Converter correctness and fail-loud behavior: unsupported constructs
     must raise immediately instead of silently miscompiling."""
+
+    def test_shared_node_across_objective_and_constraint(self) -> None:
+        """Convert exp(x) once and accumulate both uses in the Lagrangian Hessian."""
+        x = cp.Variable()
+        shared = cp.exp(x)
+        problem = cp.Problem(cp.Minimize(shared), [2 * shared == 1])
+        with unittest.mock.patch.object(_diffengine, "make_exp", wraps=_diffengine.make_exp) as exp:
+            engine = C_problem.from_problem(problem, verbose=False)
+            exp.assert_called_once()
+
+        engine.init_jacobian_coo()
+        engine.init_hessian_coo_lower_tri()
+        point = np.array([0.0])
+        self.assertAlmostEqual(engine.objective_forward(point), 1.0)
+        self.assertItemsAlmostEqual(engine.constraint_forward(point), [1.0])
+        self.assertItemsAlmostEqual(engine.gradient(), [1.0])
+        self.assertItemsAlmostEqual(engine.eval_jacobian_vals(), [2.0])
+        hessian = engine.eval_hessian_vals_coo_lower_tri(1.0, np.array([3.0]))
+        self.assertItemsAlmostEqual(hessian, [7.0])
 
     def test_unsupported_atom_raises(self) -> None:
         """convert_expr names the offending atom."""

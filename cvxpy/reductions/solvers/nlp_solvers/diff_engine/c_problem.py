@@ -44,8 +44,9 @@ class C_problem:
         var_dict, n_vars = build_var_dict(inverse_data)
         param_dict = build_param_dict(parameters, inverse_data)
 
-        c_obj = convert_expr(objective_expr, var_dict, n_vars, param_dict)
-        c_constraints = [convert_expr(e, var_dict, n_vars, param_dict)
+        cache = {}
+        c_obj = convert_expr(objective_expr, var_dict, n_vars, param_dict, cache)
+        c_constraints = [convert_expr(e, var_dict, n_vars, param_dict, cache)
                          for e in constraint_exprs]
         self._capsule = _diffengine.make_problem(c_obj, c_constraints, verbose)
 
