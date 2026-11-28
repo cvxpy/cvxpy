@@ -14,14 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from unittest.mock import patch
-
 import numpy as np
 
 import cvxpy as cp
-from cvxpy.expressions import cvxtypes
 from cvxpy.expressions.variable import Variable
-from cvxpy.reductions.dnlp2smooth import dnlp2smooth as dnlp2smooth_mod
 from cvxpy.reductions.dnlp2smooth.dnlp2smooth import Dnlp2Smooth
 from cvxpy.tests.base_test import BaseTest
 from cvxpy.transforms.partial_optimize import partial_optimize
@@ -150,28 +146,19 @@ class TestDnlp2SmoothCSE(BaseTest):
         )
 
     def test_cache_cleared_between_applies(self) -> None:
-        # The per-apply cache must not leak Variables across calls, so two
-        # apply()s on equivalent problems mint fresh aux Variables.
-        def build_problem():
-            x = cp.Variable(2)
-            x.value = np.zeros(2)
-            return x, cp.Problem(
-                cp.Minimize(cp.sum(cp.huber(x))),
-                [cp.sum(cp.huber(x)) <= 5],
-            )
-
+        """Applying the reduction twice to one problem creates fresh auxiliaries."""
+        x = cp.Variable(2)
+        x.value = np.zeros(2)
+        prob = cp.Problem(cp.Minimize(cp.sum(cp.huber(x))), [cp.sum(cp.huber(x)) <= 5])
         reduction = Dnlp2Smooth()
 
-        x1, prob1 = build_problem()
-        new1, _ = reduction.apply(prob1)
-        aux1 = {v.id for v in _aux_variables(new1, [x1])}
-
-        x2, prob2 = build_problem()
-        new2, _ = reduction.apply(prob2)
-        aux2 = {v.id for v in _aux_variables(new2, [x2])}
-
-        # Fresh problem -> fresh Variables. No id overlap.
-        self.assertEqual(aux1 & aux2, set())
+        first, _ = reduction.apply(prob)
+        second, _ = reduction.apply(prob)
+        first_ids = {v.id for v in _aux_variables(first, [x])}
+        second_ids = {v.id for v in _aux_variables(second, [x])}
+        self.assertTrue(first_ids)
+        self.assertTrue(second_ids)
+        self.assertTrue(first_ids.isdisjoint(second_ids))
 
     def test_shared_constraint_walk_is_correct(self) -> None:
         # Sanity: after canonicalization, every Variable referenced by the
@@ -193,22 +180,18 @@ class TestDnlp2SmoothCSE(BaseTest):
         # Every aux var in the objective must also appear in some constraint.
         self.assertTrue(objective_vars - {x.id} <= constraint_vars)
 
-    def test_partial_optimize_excluded_from_cse_cache(self) -> None:
-        x = cp.Variable()
-        y = cp.Variable()
-        y.value = 0
-        inner = cp.Problem(cp.Minimize(cp.square(y - x)), [y >= 0])
+    def test_partial_optimize_preserves_inner_constraint(self) -> None:
+        """The inner lower bound must constrain the variable used in the reduced objective."""
+        x, y = cp.Variable(), cp.Variable()
+        inner = cp.Problem(cp.Minimize(y), [y >= x])
         partial = partial_optimize(inner, opt_vars=[y])
         prob = cp.Problem(cp.Minimize(partial + cp.square(x)))
 
-        seen_types = []
-        real_expr_key = dnlp2smooth_mod.expr_key
-
-        def spy_expr_key(expr, key_cache):
-            seen_types.append(type(expr))
-            return real_expr_key(expr, key_cache)
-
-        with patch.object(dnlp2smooth_mod, "expr_key", side_effect=spy_expr_key):
-            Dnlp2Smooth().apply(prob)
-
-        self.assertNotIn(cvxtypes.partial_problem(), seen_types)
+        reduced, _ = Dnlp2Smooth().apply(prob)
+        inner_y, = _aux_variables(reduced.objective, [x])
+        bound, = reduced.constraints
+        x.value = 2
+        inner_y.value = 2
+        self.assertTrue(bound.value())
+        inner_y.value = 1
+        self.assertEqual(bound.violation(), 1)
