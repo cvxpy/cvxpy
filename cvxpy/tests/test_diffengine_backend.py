@@ -68,20 +68,20 @@ class TestDiffengineConverter(BaseTest):
         """convert_expr names the offending atom."""
         x = cp.Variable(4)
         with self.assertRaisesRegex(NotImplementedError, "cumsum"):
-            convert_expr(cp.cumsum(x), {x.id: None}, 4, {})
+            convert_expr(cp.cumsum(x), {x.id: None}, 4, {}, cache={})
 
     def test_symbolic_quad_form_block_indices_raises(self) -> None:
         x = cp.Variable(4)
         sqf = SymbolicQuadForm(x, sp.eye_array(4), cp.sum_squares(x),
                                block_indices=[np.array([0, 1]), np.array([2, 3])])
         with self.assertRaisesRegex(NotImplementedError, "block_indices"):
-            convert_symbolic_quad_form(sqf, {}, 4, {})
+            convert_symbolic_quad_form(sqf, {}, 4, {}, cache={})
 
     def test_symbolic_quad_form_unsupported_orig_raises(self) -> None:
         x = cp.Variable(4)
         sqf = SymbolicQuadForm(x, sp.eye_array(4), cp.norm1(x))
         with self.assertRaisesRegex(NotImplementedError, "norm1"):
-            convert_symbolic_quad_form(sqf, {}, 4, {})
+            convert_symbolic_quad_form(sqf, {}, 4, {}, cache={})
 
     def test_symbolic_quad_form_parametric_P_raises(self) -> None:
         """A parametric P is out of scope for the diff engine; the converter
@@ -92,7 +92,7 @@ class TestDiffengineConverter(BaseTest):
         P.value = np.eye(n)
         sqf = SymbolicQuadForm(x, cp.psd_wrap(P), cp.quad_form(x, cp.psd_wrap(P)))
         with self.assertRaisesRegex(NotImplementedError, "parametric P"):
-            convert_symbolic_quad_form(sqf, {x.id: None}, n, {P.id: None})
+            convert_symbolic_quad_form(sqf, {x.id: None}, n, {P.id: None}, cache={})
 
 class TestDiffengineBackend(BaseTest):
     """End-to-end behavior of canon_backend='DIFFENGINE': same stuffed data

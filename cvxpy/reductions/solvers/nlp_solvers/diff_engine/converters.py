@@ -148,7 +148,7 @@ def convert_multiply(expr, children, var_dict, n_vars, param_dict):
         return _diffengine.make_multiply(children[0], children[1])
 
 
-def convert_symbolic_quad_form(expr, var_dict, n_vars, param_dict, cache=None):
+def convert_symbolic_quad_form(expr, var_dict, n_vars, param_dict, cache):
     """Convert a SymbolicQuadForm (Dcp2Cone quadratic-objective placeholder).
 
     Scalar x'Px (QuadForm / quad_over_lin / sum_squares) uses the native quad_form
@@ -188,14 +188,14 @@ def convert_symbolic_quad_form(expr, var_dict, n_vars, param_dict, cache=None):
     )
 
 
-def convert_expr(expr, var_dict, n_vars, param_dict=None, cache=None):
+def convert_expr(expr, var_dict, n_vars, param_dict, cache):
     """Convert a CVXPY expression to a C diff engine expression.
 
     Args:
         expr: CVXPY expression tree node
         var_dict: {var_id: C variable capsule} mapping
         n_vars: total number of scalar variables
-        param_dict: optional {param_id: C parameter capsule} mapping
+        param_dict: {param_id: C parameter capsule} mapping
         cache: expression-to-capsule mapping shared within one C problem build
     """
     # Base case: variable lookup
@@ -206,8 +206,6 @@ def convert_expr(expr, var_dict, n_vars, param_dict=None, cache=None):
     if isinstance(expr, cp.Parameter):
         return param_dict[expr.id]
 
-    if cache is None:
-        cache = {}
     if expr not in cache:
         cache[expr] = _convert_expr(expr, var_dict, n_vars, param_dict, cache)
     return cache[expr]
