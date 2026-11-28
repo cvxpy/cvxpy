@@ -37,7 +37,7 @@ from cvxpy.reductions.solvers.nlp_solvers.diff_engine.helpers import (
 from cvxpy.reductions.solvers.nlp_solvers.diff_engine.registry import ATOM_CONVERTERS
 
 
-def _matmul_children(expr, var_dict, n_vars, param_dict):
+def _matmul_children(expr, var_dict, n_vars, param_dict, cache):
     """Convert a matmul's operands, leaving out the one whose value
     ``convert_matmul`` reads numerically -- an engine node for it would be
     built and then ignored. A parametric operand is always converted, since
@@ -49,7 +49,7 @@ def _matmul_children(expr, var_dict, n_vars, param_dict):
         skip = 0
     elif right_arg.is_constant() and is_param_free(right_arg) and not left_arg.is_constant():
         skip = 1
-    return [None if i == skip else convert_expr(arg, var_dict, n_vars, param_dict)
+    return [None if i == skip else convert_expr(arg, var_dict, n_vars, param_dict, cache)
             for i, arg in enumerate(expr.args)]
 
 
@@ -148,7 +148,7 @@ def convert_multiply(expr, children, var_dict, n_vars, param_dict):
         return _diffengine.make_multiply(children[0], children[1])
 
 
-def convert_symbolic_quad_form(expr, var_dict, n_vars, param_dict):
+def convert_symbolic_quad_form(expr, var_dict, n_vars, param_dict, cache):
     """Convert a SymbolicQuadForm (Dcp2Cone quadratic-objective placeholder).
 
     Scalar x'Px (QuadForm / quad_over_lin / sum_squares) uses the native quad_form
@@ -173,14 +173,14 @@ def convert_symbolic_quad_form(expr, var_dict, n_vars, param_dict):
             raise NotImplementedError(
                 "SymbolicQuadForm with a parametric P is not supported by "
                 "the diff engine.")
-        x_c = convert_expr(x, var_dict, n_vars, param_dict)
+        x_c = convert_expr(x, var_dict, n_vars, param_dict, cache)
         return make_constant_quad_form(x_c, P.value, x.size)
 
     if isinstance(orig, Power):  # PowerApprox subclasses Power; canon only p == 2
         # The elementwise square, rebuilt over the leaf arg: the engine's
         # init_jacobian segfaults on a quad form over a compound argument.
         x = expr.args[0]
-        return convert_expr(cp.multiply(x, x), var_dict, n_vars, param_dict)
+        return convert_expr(cp.multiply(x, x), var_dict, n_vars, param_dict, cache)
 
     raise NotImplementedError(
         f"SymbolicQuadForm over '{type(orig).__name__}' is not supported by the "
@@ -188,14 +188,15 @@ def convert_symbolic_quad_form(expr, var_dict, n_vars, param_dict):
     )
 
 
-def convert_expr(expr, var_dict, n_vars, param_dict=None):
+def convert_expr(expr, var_dict, n_vars, param_dict, cache):
     """Convert a CVXPY expression to a C diff engine expression.
 
     Args:
         expr: CVXPY expression tree node
         var_dict: {var_id: C variable capsule} mapping
         n_vars: total number of scalar variables
-        param_dict: optional {param_id: C parameter capsule} mapping
+        param_dict: {param_id: C parameter capsule} mapping
+        cache: expression-to-capsule mapping shared within one C problem build
     """
     # Base case: variable lookup
     if isinstance(expr, cp.Variable):
@@ -205,6 +206,12 @@ def convert_expr(expr, var_dict, n_vars, param_dict=None):
     if isinstance(expr, cp.Parameter):
         return param_dict[expr.id]
 
+    if expr not in cache:
+        cache[expr] = _convert_expr(expr, var_dict, n_vars, param_dict, cache)
+    return cache[expr]
+
+
+def _convert_expr(expr, var_dict, n_vars, param_dict, cache):
     # Base case: a constant leaf or subtree (a parameter with ID -1 in the
     # engine). Dcp2Cone leaves constant subtrees alone, so nonlinear atoms
     # over constants reach the converter.
@@ -219,12 +226,12 @@ def convert_expr(expr, var_dict, n_vars, param_dict=None):
     # Handle SymbolicQuadForm before converting its args: its P arg may
     # itself be unconvertible (e.g. a parametric divisor).
     if atom_name == "SymbolicQuadForm":
-        return convert_symbolic_quad_form(expr, var_dict, n_vars, param_dict)
+        return convert_symbolic_quad_form(expr, var_dict, n_vars, param_dict, cache)
 
     if atom_name == "MulExpression":
-        children = _matmul_children(expr, var_dict, n_vars, param_dict)
+        children = _matmul_children(expr, var_dict, n_vars, param_dict, cache)
     else:
-        children = [convert_expr(arg, var_dict, n_vars, param_dict)
+        children = [convert_expr(arg, var_dict, n_vars, param_dict, cache)
                     for arg in expr.args]
 
     if atom_name == "MulExpression":

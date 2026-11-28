@@ -30,6 +30,7 @@ from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import (
     ParamConeProg,
 )
 from cvxpy.reductions.solvers.defines import INSTALLED_MI_SOLVERS
+from cvxpy.reductions.solvers.nlp_solvers.diff_engine.c_problem import C_problem
 from cvxpy.reductions.solvers.nlp_solvers.diff_engine.converters import (
     convert_expr,
     convert_symbolic_quad_form,
@@ -44,24 +45,43 @@ class TestDiffengineConverter(BaseTest):
     """Converter correctness and fail-loud behavior: unsupported constructs
     must raise immediately instead of silently miscompiling."""
 
+    def test_shared_node_across_objective_and_constraint(self) -> None:
+        """Convert exp(x) once and accumulate both uses in the Lagrangian Hessian."""
+        x = cp.Variable()
+        shared = cp.exp(x)
+        problem = cp.Problem(cp.Minimize(shared), [2 * shared == 1])
+        with unittest.mock.patch.object(_diffengine, "make_exp", wraps=_diffengine.make_exp) as exp:
+            engine = C_problem.from_problem(problem, verbose=False)
+            exp.assert_called_once()
+
+        engine.init_jacobian_coo()
+        engine.init_hessian_coo_lower_tri()
+        point = np.array([0.0])
+        self.assertAlmostEqual(engine.objective_forward(point), 1.0)
+        self.assertItemsAlmostEqual(engine.constraint_forward(point), [1.0])
+        self.assertItemsAlmostEqual(engine.gradient(), [1.0])
+        self.assertItemsAlmostEqual(engine.eval_jacobian_vals(), [2.0])
+        hessian = engine.eval_hessian_vals_coo_lower_tri(1.0, np.array([3.0]))
+        self.assertItemsAlmostEqual(hessian, [7.0])
+
     def test_unsupported_atom_raises(self) -> None:
         """convert_expr names the offending atom."""
         x = cp.Variable(4)
         with self.assertRaisesRegex(NotImplementedError, "cumsum"):
-            convert_expr(cp.cumsum(x), {x.id: None}, 4, {})
+            convert_expr(cp.cumsum(x), {x.id: None}, 4, {}, cache={})
 
     def test_symbolic_quad_form_block_indices_raises(self) -> None:
         x = cp.Variable(4)
         sqf = SymbolicQuadForm(x, sp.eye_array(4), cp.sum_squares(x),
                                block_indices=[np.array([0, 1]), np.array([2, 3])])
         with self.assertRaisesRegex(NotImplementedError, "block_indices"):
-            convert_symbolic_quad_form(sqf, {}, 4, {})
+            convert_symbolic_quad_form(sqf, {}, 4, {}, cache={})
 
     def test_symbolic_quad_form_unsupported_orig_raises(self) -> None:
         x = cp.Variable(4)
         sqf = SymbolicQuadForm(x, sp.eye_array(4), cp.norm1(x))
         with self.assertRaisesRegex(NotImplementedError, "norm1"):
-            convert_symbolic_quad_form(sqf, {}, 4, {})
+            convert_symbolic_quad_form(sqf, {}, 4, {}, cache={})
 
     def test_symbolic_quad_form_parametric_P_raises(self) -> None:
         """A parametric P is out of scope for the diff engine; the converter
@@ -72,7 +92,7 @@ class TestDiffengineConverter(BaseTest):
         P.value = np.eye(n)
         sqf = SymbolicQuadForm(x, cp.psd_wrap(P), cp.quad_form(x, cp.psd_wrap(P)))
         with self.assertRaisesRegex(NotImplementedError, "parametric P"):
-            convert_symbolic_quad_form(sqf, {x.id: None}, n, {P.id: None})
+            convert_symbolic_quad_form(sqf, {x.id: None}, n, {P.id: None}, cache={})
 
 class TestDiffengineBackend(BaseTest):
     """End-to-end behavior of canon_backend='DIFFENGINE': same stuffed data
