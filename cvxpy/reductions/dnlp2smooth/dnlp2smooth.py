@@ -15,7 +15,7 @@ limitations under the License.
 """
 
 
-from typing import overload
+from typing import TypeVar, cast
 
 from cvxpy import problems
 from cvxpy.constraints.constraint import Constraint
@@ -31,7 +31,8 @@ from cvxpy.reductions.subexpr_cache import (
     UncacheableError,
     expr_key,
 )
-from cvxpy.utilities.canonical import Canonical
+
+_CanonT = TypeVar("_CanonT", Expression, Constraint, Objective)
 
 
 class Dnlp2Smooth(Canonicalization):
@@ -78,43 +79,14 @@ class Dnlp2Smooth(Canonicalization):
         self._cons_id_map = inverse_data.cons_id_map
         return new_problem, inverse_data
 
-    @overload
     def canonicalize_tree(
         self,
-        expr: Expression,
+        expr: _CanonT,
         affine_above: bool,
         cse_cache: dict[ExprKey, Expression] | None = None,
         structural_key_cache: StructuralKeyCache | None = None,
-    ) -> tuple[Expression, list[Constraint]]: ...
-    @overload
-    def canonicalize_tree(
-        self,
-        expr: Constraint,
-        affine_above: bool,
-        cse_cache: dict[ExprKey, Expression] | None = None,
-        structural_key_cache: StructuralKeyCache | None = None,
-    ) -> tuple[Constraint, list[Constraint]]: ...
-    @overload
-    def canonicalize_tree(
-        self,
-        expr: Objective,
-        affine_above: bool,
-        cse_cache: dict[ExprKey, Expression] | None = None,
-        structural_key_cache: StructuralKeyCache | None = None,
-    ) -> tuple[Objective, list[Constraint]]: ...
-
-    def canonicalize_tree(
-        self,
-        expr: Canonical,
-        affine_above: bool,
-        cse_cache: dict[ExprKey, Expression] | None = None,
-        structural_key_cache: StructuralKeyCache | None = None,
-    ) -> tuple[Canonical, list[Constraint]]:
+    ) -> tuple[_CanonT, list[Constraint]]:
         """Recursively canonicalize an Expression.
-
-        Canonicalizing an Expression yields an Expression, a Constraint yields
-        a Constraint, and an Objective yields an Objective; the overloads above
-        preserve that distinction for callers.
 
         Parameters
         ----------
@@ -135,11 +107,8 @@ class Dnlp2Smooth(Canonicalization):
         # through to inverse_data unchanged. partial_problem subtrees carry
         # their own constraints with IDs and are excluded for the same reason.
         partial_problem_cls = cvxtypes.partial_problem()
-        cache_eligible = (
-            isinstance(expr, Expression) and type(expr) != partial_problem_cls
-        )
         cache_key = None
-        if cache_eligible:
+        if isinstance(expr, Expression) and type(expr) != partial_problem_cls:
             try:
                 cache_key = expr_key(expr, structural_key_cache)
             except UncacheableError:
@@ -155,29 +124,30 @@ class Dnlp2Smooth(Canonicalization):
                 canon_constr, aux_constr = self.canonicalize_tree(
                     constr, False, cse_cache, structural_key_cache)
                 constrs += [canon_constr] + aux_constr
-        else:
-            affine_atom = type(expr) not in self.smooth_canon_methods
-            canon_args = []
-            constrs = []
-            for arg in expr.args:
-                canon_arg, c = self.canonicalize_tree(
-                    arg, affine_atom and affine_above,
-                    cse_cache, structural_key_cache)
-                canon_args += [canon_arg]
-                constrs += c
-            canon_expr, c = self.canonicalize_expr(expr, canon_args, affine_above)
+            return canon_expr, constrs
+
+        affine_atom = type(expr) not in self.smooth_canon_methods
+        canon_args = []
+        constrs = []
+        for arg in cast(list[Expression], expr.args):
+            canon_arg, c = self.canonicalize_tree(
+                arg, affine_atom and affine_above,
+                cse_cache, structural_key_cache)
+            canon_args += [canon_arg]
             constrs += c
+        canon_expr, c = self.canonicalize_expr(expr, canon_args, affine_above)
+        constrs += c
 
         if cache_key is not None:
-            cse_cache[cache_key] = canon_expr
+            cse_cache[cache_key] = cast(Expression, canon_expr)
         return canon_expr, constrs
 
     def canonicalize_expr(
         self,
-        expr: Expression,
+        expr: _CanonT,
         args: list[Expression],
         affine_above: bool,
-    ) -> tuple[Expression, list[Constraint]]:
+    ) -> tuple[_CanonT, list[Constraint]]:
         """Canonicalize an expression, w.r.t. canonicalized arguments.
 
         Parameters
@@ -198,4 +168,4 @@ class Dnlp2Smooth(Canonicalization):
         if type(expr) in self.smooth_canon_methods:
             return self.smooth_canon_methods[type(expr)](expr, args)
 
-        return expr.copy(args), []
+        return cast(_CanonT, expr.copy(args)), []
