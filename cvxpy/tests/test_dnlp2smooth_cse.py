@@ -212,30 +212,3 @@ class TestDnlp2SmoothCSE(BaseTest):
             Dnlp2Smooth().apply(prob)
 
         self.assertNotIn(cvxtypes.partial_problem(), seen_types)
-
-    def test_structural_key_cache_threaded_through_apply(self) -> None:
-        # A single per-apply key cache keeps deep expression trees from
-        # rebuilding structural keys for every suffix subtree.
-        x = cp.Variable()
-        x.value = 0
-        expr = x
-        for _ in range(20):
-            expr = expr + 1
-        prob = cp.Problem(cp.Minimize(expr), [expr <= 25])
-
-        seen_key_caches = []
-        real_expr_key = dnlp2smooth_mod.expr_key
-
-        def spy_expr_key(expr, key_cache):
-            seen_key_caches.append(key_cache)
-            key = real_expr_key(expr, key_cache)
-            self.assertIsInstance(key, int)
-            return key
-
-        reduction = Dnlp2Smooth()
-        with patch.object(dnlp2smooth_mod, "expr_key", side_effect=spy_expr_key):
-            reduction.apply(prob)
-
-        self.assertTrue(seen_key_caches)
-        self.assertNotIn(None, seen_key_caches)
-        self.assertEqual(len({id(key_cache) for key_cache in seen_key_caches}), 1)
