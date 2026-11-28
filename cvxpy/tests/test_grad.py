@@ -880,6 +880,54 @@ class TestCompositeExpressions:
 class TestSpecialCases:
     """Tests that require specific expected values or special handling."""
 
+    @pytest.mark.parametrize("offset", [-1000.0, 1000.0])
+    def test_log_sum_exp_gradient_large_shift(self, offset):
+        """The gradient and affine tangent are finite after a large common shift."""
+        point = offset + np.array([0.0, -1.0, -3.0])
+        x = cp.Variable(3, value=point)
+        expr = cp.log_sum_exp(x)
+        weights = np.exp([0.0, -1.0, -3.0])
+        expected = weights / weights.sum()
+
+        with np.errstate(over="raise", invalid="raise", divide="raise"):
+            np.testing.assert_allclose(expr.grad[x].toarray()[:, 0], expected)
+            tangent = linearize(expr)
+            np.testing.assert_allclose(tangent.value, expr.value)
+            x.value = point + [1.0, 0.0, 0.0]
+            np.testing.assert_allclose(
+                tangent.value - (offset + np.log(weights.sum())),
+                expected[0],
+                atol=2e-13,
+                rtol=0,
+            )
+            assert tangent.value <= expr.value
+
+    @pytest.mark.parametrize("keepdims", [False, True])
+    def test_log_sum_exp_gradient_large_shift_tuple_axes(self, keepdims):
+        """Each N-D reduction fiber gets its own softmax despite mixed shifts."""
+        values = (
+            np.arange(4, dtype=float).reshape((2, 1, 2))
+            + np.array([1000.0, -1000.0]).reshape((1, 2, 1))
+        )
+        x = cp.Variable(values.shape, value=values)
+        expr = cp.log_sum_exp(x, axis=(0, -1), keepdims=keepdims)
+        weights = np.exp(np.arange(-3, 1))
+        weights /= weights.sum()
+        expected = np.zeros((8, 2))
+        expected[[0, 4, 1, 5], 0] = weights
+        expected[[2, 6, 3, 7], 1] = weights
+
+        with np.errstate(over="raise", invalid="raise", divide="raise"):
+            np.testing.assert_allclose(expr.grad[x].toarray(), expected)
+
+    def test_log_sum_exp_gradient_extreme_finite_range(self):
+        """Score gaps outside the float range contribute zero, not NaN."""
+        limit = np.finfo(float).max
+        x = cp.Variable(3, value=np.array([limit, limit, -limit]))
+        with np.errstate(all="raise"):
+            grad = cp.log_sum_exp(x).grad[x].toarray()[:, 0]
+        np.testing.assert_array_equal(grad, [0.5, 0.5, 0.0])
+
     def test_linearize(self):
         """Test linearize method."""
         x = cp.Variable(2)
